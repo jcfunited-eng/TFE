@@ -1,0 +1,75 @@
+"""
+UF-Spec v1.4.0 — Section 13 Validation
+======================================
+
+Module: val_direction_stability.py
+
+Purpose:
+    Compute ONLY the Directional Stability Score (strict mode).
+
+This module performs:
+    1. Dataset QA
+    2. Baseline UF pipeline run
+    3. Percentage-noise injection
+    4. Noisy UF pipeline run
+    5. Directional Stability Score computation
+"""
+
+import sys
+import os
+
+# Ensure project root is added to sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(os.path.dirname(current_dir))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+import pandas as pd
+
+from uf_core.validation.qa_dataset import qa_csv_structure, qa_csv_content
+from uf_core.validation.val_noise import (
+    run_uf_pipeline,
+    inject_percentage_noise,
+)
+from uf_core.validation.val_metrics import directional_stability_score
+
+
+def main():
+    """
+    Usage:
+        python val_direction_stability.py <csv_path> <sigma_pct>
+
+    Example:
+        python val_direction_stability.py validation_sample.csv 0.005
+    """
+
+    if len(sys.argv) < 2:
+        print("Usage: python val_direction_stability.py <csv_path> <sigma_pct>")
+        return
+
+    csv_path = sys.argv[1]
+    sigma_pct = float(sys.argv[2])
+
+    # 1. QA dataset
+    df = qa_csv_structure(csv_path)
+    qa_csv_content(df)
+
+    # 2. Baseline DSF
+    _, _, _, _, dsf_base = run_uf_pipeline(df)
+
+    # 3. Noise injection
+    noisy_df = inject_percentage_noise(df, sigma_pct=sigma_pct, seed=42)
+
+    # 4. Noisy DSF
+    _, _, _, _, dsf_noisy = run_uf_pipeline(noisy_df)
+
+    # 5. Compute Directional Stability Score
+    dss = directional_stability_score(dsf_base, dsf_noisy)
+
+    print("\n=== Directional Stability Score ===")
+    print(f"Sigma_pct: {sigma_pct}")
+    print(f"DSS (strict): {dss:.6f}")
+
+
+if __name__ == "__main__":
+    main()
