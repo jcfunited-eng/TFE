@@ -1,0 +1,6 @@
+ticker,quantity,cost_basis,asset_type
+VTI,10.0,230.0,equity
+TSLA,2.0,404.35,equity
+LLY,1.0,1025.28,equity
+BTC,0.95058363,94.247,equity
+TEVA,20.0,28.46,equity
