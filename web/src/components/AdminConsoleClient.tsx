@@ -237,6 +237,9 @@ export default function AdminConsolePage() {
   const [showResetPasswords, setShowResetPasswords] = useState(false);
   const [resetUserBusy, setResetUserBusy] = useState(false);
   const [userActionBusy, setUserActionBusy] = useState<string | null>(null);
+  const [userTableQuery, setUserTableQuery] = useState("");
+  const [userTablePage, setUserTablePage] = useState(1);
+  const [userTablePageSize, setUserTablePageSize] = useState(25);
 
   const refreshRunning = Boolean(refreshStatus?.running);
 
@@ -257,6 +260,36 @@ export default function AdminConsolePage() {
       null
     );
   }, [refreshStatus, systemStatus]);
+
+  const filteredTestUsers = useMemo(() => {
+    const query = userTableQuery.trim().toLowerCase();
+    if (!query) return testUsers;
+    return testUsers.filter((user) => user.username.toLowerCase().includes(query));
+  }, [testUsers, userTableQuery]);
+
+  const userTablePageCount = useMemo(() => {
+    if (filteredTestUsers.length === 0) return 1;
+    return Math.ceil(filteredTestUsers.length / userTablePageSize);
+  }, [filteredTestUsers.length, userTablePageSize]);
+
+  const activeUserTablePage = useMemo(() => {
+    return Math.min(userTablePage, userTablePageCount);
+  }, [userTablePage, userTablePageCount]);
+
+  const pagedTestUsers = useMemo(() => {
+    const start = (activeUserTablePage - 1) * userTablePageSize;
+    return filteredTestUsers.slice(start, start + userTablePageSize);
+  }, [activeUserTablePage, filteredTestUsers, userTablePageSize]);
+
+  const userTableDisplayStart = useMemo(() => {
+    if (filteredTestUsers.length === 0) return 0;
+    return (activeUserTablePage - 1) * userTablePageSize + 1;
+  }, [activeUserTablePage, filteredTestUsers.length, userTablePageSize]);
+
+  const userTableDisplayEnd = useMemo(() => {
+    if (filteredTestUsers.length === 0) return 0;
+    return Math.min(activeUserTablePage * userTablePageSize, filteredTestUsers.length);
+  }, [activeUserTablePage, filteredTestUsers.length, userTablePageSize]);
 
   const refreshPolicyHeadline = useMemo(() => {
     if (!systemStatus?.refreshPolicy) return "Unknown";
@@ -357,6 +390,12 @@ export default function AdminConsolePage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (userTablePage > userTablePageCount) {
+      setUserTablePage(userTablePageCount);
+    }
+  }, [userTablePage, userTablePageCount]);
 
   async function onTriggerRefresh(mode: RefreshMode): Promise<void> {
     setRefreshBusy(mode);
@@ -1085,8 +1124,68 @@ export default function AdminConsolePage() {
 
             <p className={styles.inlineMsg}>User store: {displayPath(testUsersSource || systemStatus?.users.sourcePath || "")}</p>
 
-            <div className={styles.scrollWrap}>
-              <table className={styles.table}>
+            <div className={styles.tableControls}>
+              <label className={styles.tableControlField}>
+                <span>Search username</span>
+                <input
+                  className={styles.input}
+                  type="text"
+                  value={userTableQuery}
+                  onChange={(event) => {
+                    setUserTableQuery(event.target.value);
+                    setUserTablePage(1);
+                  }}
+                  placeholder="Filter users by username"
+                />
+              </label>
+
+              <label className={styles.tableControlField}>
+                <span>Rows per page</span>
+                <select
+                  className={styles.select}
+                  value={String(userTablePageSize)}
+                  onChange={(event) => {
+                    const parsed = Number(event.target.value);
+                    if (!Number.isFinite(parsed)) return;
+                    setUserTablePageSize(parsed);
+                    setUserTablePage(1);
+                  }}
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </label>
+
+              <div className={styles.tablePager}>
+                <span className={styles.inlineMsg}>
+                  Showing {userTableDisplayStart}-{userTableDisplayEnd} of {filteredTestUsers.length}
+                </span>
+                <button
+                  className={styles.ghostButton}
+                  type="button"
+                  onClick={() => setUserTablePage((prev) => Math.max(1, prev - 1))}
+                  disabled={activeUserTablePage <= 1}
+                >
+                  Prev
+                </button>
+                <button
+                  className={styles.ghostButton}
+                  type="button"
+                  onClick={() => setUserTablePage((prev) => Math.min(userTablePageCount, prev + 1))}
+                  disabled={activeUserTablePage >= userTablePageCount}
+                >
+                  Next
+                </button>
+                <span className={styles.inlineMsg}>
+                  Page {activeUserTablePage} / {userTablePageCount}
+                </span>
+              </div>
+            </div>
+
+            <div className={`${styles.scrollWrap} ${styles.userTableWrap}`}>
+              <table className={`${styles.table} ${styles.userTable}`}>
                 <thead>
                   <tr>
                     <th>Username</th>
@@ -1099,36 +1198,42 @@ export default function AdminConsolePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {testUsers.map((user) => (
-                    <tr key={user.username}>
-                      <td>{user.username}</td>
-                      <td>{user.role}</td>
-                      <td>{user.is_active ? "Yes" : "No"}</td>
-                      <td>{user.is_test_user ? "Yes" : "No"}</td>
-                      <td>{formatIso(user.access_expires_at)}</td>
-                      <td>{formatIso(user.created_at)}</td>
-                      <td>
-                        <div className={styles.buttonRow}>
-                          <button
-                            className={styles.secondaryButton}
-                            type="button"
-                            onClick={() => void onToggleUserActive(user, !user.is_active)}
-                            disabled={userActionBusy === `${user.is_active ? "disable" : "enable"}:${user.username}`}
-                          >
-                            {user.is_active ? "Disable" : "Enable"}
-                          </button>
-                          <button
-                            className={styles.ghostButton}
-                            type="button"
-                            onClick={() => void onRemoveUser(user)}
-                            disabled={userActionBusy === `remove:${user.username}`}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </td>
+                  {pagedTestUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={7}>No users match the current filter.</td>
                     </tr>
-                  ))}
+                  ) : (
+                    pagedTestUsers.map((user) => (
+                      <tr key={user.username}>
+                        <td>{user.username}</td>
+                        <td>{user.role}</td>
+                        <td>{user.is_active ? "Yes" : "No"}</td>
+                        <td>{user.is_test_user ? "Yes" : "No"}</td>
+                        <td>{formatIso(user.access_expires_at)}</td>
+                        <td>{formatIso(user.created_at)}</td>
+                        <td>
+                          <div className={styles.buttonRow}>
+                            <button
+                              className={styles.secondaryButton}
+                              type="button"
+                              onClick={() => void onToggleUserActive(user, !user.is_active)}
+                              disabled={userActionBusy === `${user.is_active ? "disable" : "enable"}:${user.username}`}
+                            >
+                              {user.is_active ? "Disable" : "Enable"}
+                            </button>
+                            <button
+                              className={styles.ghostButton}
+                              type="button"
+                              onClick={() => void onRemoveUser(user)}
+                              disabled={userActionBusy === `remove:${user.username}`}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

@@ -357,6 +357,48 @@
   background: rgba(220, 238, 227, 0.5);
 }
 
+.tableControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.6fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.tableControlField {
+  display: grid;
+  gap: 4px;
+}
+
+.tableControlField > span {
+  font-size: 0.69rem;
+  color: rgba(23, 53, 43, 0.78);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.tablePager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.userTableWrap {
+  max-height: 520px;
+}
+
+.userTable {
+  min-width: 720px;
+}
+
+.userTable th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
 .chipGood,
 .chipWarn,
 .chipBad {
@@ -548,6 +590,14 @@
 @media (max-width: 900px) {
   .deck {
     width: calc(100vw - 12px);
+  }
+
+  .tableControls {
+    grid-template-columns: 1fr;
+  }
+
+  .tablePager {
+    justify-content: flex-start;
   }
 
   .formGrid {
