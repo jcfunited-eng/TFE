@@ -12,6 +12,8 @@ __pycache__/
 *.pem
 *.key
 *.crt
+!certs/
+!certs/rds-global-bundle.pem
 tfe_root_key.bin
 tfe_session_secret.bin
 tfe_users.json
