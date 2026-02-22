@@ -1,0 +1,30 @@
+# Python cache/build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Logs
+*.log
+
+# Secrets/local state
+.env
+.env.*
+*.pem
+*.key
+*.crt
+tfe_root_key.bin
+tfe_session_secret.bin
+tfe_users.json
+
+# Runtime/generated local data (keep out of git unless explicitly approved)
+uf_snapshot.json
+uf_snapshot_old_backup.json
+uf_structural_cache.json
+portfolio_manual.json
+watchlist.csv
+admin_refresh_latest.log
+admin_refresh_status.json
+
+# Editor/OS
+.vscode/
+.DS_Store

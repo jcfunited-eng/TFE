@@ -1,0 +1,1225 @@
+{
+  "generated_at_utc": "2026-02-18T14:23:01.255611Z",
+  "dataset_path": "backups/strict-ab-frozen-dataset-20260218T133559Z.json",
+  "total_cells": 71,
+  "decision_counts": {
+    "Accumulate": 39,
+    "Hold": 0,
+    "Avoid": 32
+  },
+  "scoring_mode_counts": {
+    "clean_only": 57,
+    "fallback_all_anomalous": 14
+  },
+  "top_cells_by_excess": [
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.44655677181877995,
+      "outcome_over_index_pct": 100.0,
+      "n": 3,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.30369752789265997,
+      "outcome_over_index_pct": 66.66666666666667,
+      "n": 3,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=VOLATILE|D=0|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": 0.301435475097329,
+      "outcome_over_index_pct": 100.0,
+      "n": 3,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=VOLATILE|D=-1|M=-1|Rrev=0|U0|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.2730080226019492,
+      "outcome_over_index_pct": 100.0,
+      "n": 3,
+      "anomaly_any_rate_pct": 50.0
+    },
+    {
+      "cell": "reg=VOLATILE|D=-1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.19229311074968503,
+      "outcome_over_index_pct": 66.66666666666667,
+      "n": 3,
+      "anomaly_any_rate_pct": 50.0
+    },
+    {
+      "cell": "reg=VOLATILE|D=1|M=1|Rrev=0|U0|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.18654813147535607,
+      "outcome_over_index_pct": 66.66666666666667,
+      "n": 3,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=VOLATILE|D=1|M=1|Rrev=1|U0|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.18469870267398916,
+      "outcome_over_index_pct": 50.0,
+      "n": 6,
+      "anomaly_any_rate_pct": 33.333333333333336
+    },
+    {
+      "cell": "reg=DEGENERATE|D=0|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": 0.12303101771302505,
+      "outcome_over_index_pct": 73.26007326007326,
+      "n": 273,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.11711642736142036,
+      "outcome_over_index_pct": 100.0,
+      "n": 6,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=STABLE|D=-1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.1152037350038978,
+      "outcome_over_index_pct": 67.3913043478261,
+      "n": 276,
+      "anomaly_any_rate_pct": 25.806451612903224
+    },
+    {
+      "cell": "reg=STABLE|D=-1|M=-1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.11476786195710159,
+      "outcome_over_index_pct": 60.714285714285715,
+      "n": 84,
+      "anomaly_any_rate_pct": 6.666666666666667
+    },
+    {
+      "cell": "reg=VOLATILE|D=0|M=0|Rrev=0|U0|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": 0.11439952347925243,
+      "outcome_over_index_pct": 83.33333333333333,
+      "n": 6,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=-1|Rrev=0|U2|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.09911825265543553,
+      "outcome_over_index_pct": 67.85714285714286,
+      "n": 168,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=1|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.0965862853952019,
+      "outcome_over_index_pct": 50.0,
+      "n": 6,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=-1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.0908575462860218,
+      "outcome_over_index_pct": 63.768115942028984,
+      "n": 69,
+      "anomaly_any_rate_pct": 39.473684210526315
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=1|Rrev=0|U2|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.08968158678739638,
+      "outcome_over_index_pct": 75.64102564102564,
+      "n": 78,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=0|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.08798254433251214,
+      "outcome_over_index_pct": 66.66666666666667,
+      "n": 3,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=STABLE|D=1|M=1|Rrev=1|U1|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.08258927655043495,
+      "outcome_over_index_pct": 47.688564476885645,
+      "n": 822,
+      "anomaly_any_rate_pct": 31.8407960199005
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": 0.08022293326912172,
+      "outcome_over_index_pct": 66.66666666666667,
+      "n": 6,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=-1|Rrev=1|U1|P2|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.0795996828782593,
+      "outcome_over_index_pct": 79.01234567901234,
+      "n": 81,
+      "anomaly_any_rate_pct": 80.1470588235294
+    },
+    {
+      "cell": "reg=STABLE|D=-1|M=-1|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.07930965931615676,
+      "outcome_over_index_pct": 73.33333333333333,
+      "n": 15,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=1|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.06726316968232667,
+      "outcome_over_index_pct": 66.66666666666667,
+      "n": 6,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=0|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": 0.06662132436586131,
+      "outcome_over_index_pct": 52.76190476190476,
+      "n": 2100,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=-1|Rrev=1|U2|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.06650417329982018,
+      "outcome_over_index_pct": 73.80952380952381,
+      "n": 42,
+      "anomaly_any_rate_pct": 17.647058823529413
+    },
+    {
+      "cell": "reg=VOLATILE|D=-1|M=-1|Rrev=1|U1|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.06537247410657021,
+      "outcome_over_index_pct": 51.388888888888886,
+      "n": 72,
+      "anomaly_any_rate_pct": 22.580645161290324
+    },
+    {
+      "cell": "reg=STABLE|D=1|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.05793493603170733,
+      "outcome_over_index_pct": 44.44444444444444,
+      "n": 45,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.05163429628454847,
+      "outcome_over_index_pct": 51.388888888888886,
+      "n": 72,
+      "anomaly_any_rate_pct": 35.13513513513514
+    },
+    {
+      "cell": "reg=STABLE|D=1|M=1|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.0491275487932254,
+      "outcome_over_index_pct": 53.990610328638496,
+      "n": 213,
+      "anomaly_any_rate_pct": 34.25925925925926
+    },
+    {
+      "cell": "reg=STABLE|D=1|M=1|Rrev=1|U2|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.03798875891144079,
+      "outcome_over_index_pct": 66.66666666666667,
+      "n": 3,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=STABLE|D=-1|M=1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.03719797536195493,
+      "outcome_over_index_pct": 64.87455197132617,
+      "n": 279,
+      "anomaly_any_rate_pct": 25.6
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=-1|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": 0.036409632319686365,
+      "outcome_over_index_pct": 55.55555555555556,
+      "n": 9,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=0|M=0|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.036105597190861025,
+      "outcome_over_index_pct": 65.0,
+      "n": 120,
+      "anomaly_any_rate_pct": 69.92481203007519
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=1|Rrev=1|U1|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.032049394941172926,
+      "outcome_over_index_pct": 50.34722222222222,
+      "n": 864,
+      "anomaly_any_rate_pct": 7.395498392282958
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=0|M=1|Rrev=0|U2|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.029799713432986985,
+      "outcome_over_index_pct": 50.0,
+      "n": 6,
+      "anomaly_any_rate_pct": 99.11504424778761
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=1|Rrev=0|U2|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.02457931037301532,
+      "outcome_over_index_pct": 66.66666666666667,
+      "n": 9,
+      "anomaly_any_rate_pct": 98.64253393665159
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=0|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.022917066047265598,
+      "outcome_over_index_pct": 62.5,
+      "n": 24,
+      "anomaly_any_rate_pct": 91.30434782608695
+    },
+    {
+      "cell": "reg=DEGENERATE|D=0|M=0|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.020504115260755854,
+      "outcome_over_index_pct": 57.47126436781609,
+      "n": 87,
+      "anomaly_any_rate_pct": 30.952380952380953
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=0|Rrev=0|U2|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.01843152159016172,
+      "outcome_over_index_pct": 50.16436554898093,
+      "n": 1521,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=0|M=-1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.017537068601354743,
+      "outcome_over_index_pct": 33.333333333333336,
+      "n": 24,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=VOLATILE|D=1|M=-1|Rrev=0|U0|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": 0.016244516381025937,
+      "outcome_over_index_pct": 66.66666666666667,
+      "n": 3,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=1|Rrev=1|U2|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.014892627875126638,
+      "outcome_over_index_pct": 52.38095238095238,
+      "n": 21,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.01415310234441991,
+      "outcome_over_index_pct": 51.445086705202314,
+      "n": 519,
+      "anomaly_any_rate_pct": 33.71647509578544
+    },
+    {
+      "cell": "reg=STABLE|D=-1|M=-1|Rrev=1|U1|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.012606266294915194,
+      "outcome_over_index_pct": 41.30879345603272,
+      "n": 2934,
+      "anomaly_any_rate_pct": 30.142857142857142
+    },
+    {
+      "cell": "reg=VOLATILE|D=-1|M=-1|Rrev=1|U2|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.009016201133647686,
+      "outcome_over_index_pct": 55.55555555555556,
+      "n": 9,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=0|M=0|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": 0.008920188112938508,
+      "outcome_over_index_pct": 51.06382978723404,
+      "n": 141,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=1|Rrev=1|U2|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.007741701106604822,
+      "outcome_over_index_pct": 54.36241610738255,
+      "n": 447,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=STABLE|D=1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.007523327118447267,
+      "outcome_over_index_pct": 40.266666666666666,
+      "n": 375,
+      "anomaly_any_rate_pct": 63.23529411764706
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.005445498272934105,
+      "outcome_over_index_pct": 52.303523035230356,
+      "n": 369,
+      "anomaly_any_rate_pct": 29.310344827586206
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=0|M=0|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": 0.005338926384563648,
+      "outcome_over_index_pct": 56.39846743295019,
+      "n": 1305,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=1|Rrev=1|U1|P2|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.004605109993922216,
+      "outcome_over_index_pct": 62.31884057971015,
+      "n": 69,
+      "anomaly_any_rate_pct": 46.51162790697674
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.0038239867817555593,
+      "outcome_over_index_pct": 53.58527131782946,
+      "n": 1032,
+      "anomaly_any_rate_pct": 1.1494252873563218
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.0035876840459343434,
+      "outcome_over_index_pct": 45.6140350877193,
+      "n": 57,
+      "anomaly_any_rate_pct": 17.391304347826086
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": 0.003296333116212945,
+      "outcome_over_index_pct": 43.97163120567376,
+      "n": 141,
+      "anomaly_any_rate_pct": 64.12213740458016
+    },
+    {
+      "cell": "reg=VOLATILE|D=0|M=1|Rrev=0|U2|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": -0.0004032997948523835,
+      "outcome_over_index_pct": 33.333333333333336,
+      "n": 12,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=-1|Rrev=1|U1|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.0010034248810278752,
+      "outcome_over_index_pct": 39.40362087326944,
+      "n": 939,
+      "anomaly_any_rate_pct": 14.246575342465754
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=-1|Rrev=1|U2|P2|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.0014477499769304798,
+      "outcome_over_index_pct": 52.23880597014925,
+      "n": 603,
+      "anomaly_any_rate_pct": 25.830258302583026
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=1|Rrev=0|U2|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.0035394871385458215,
+      "outcome_over_index_pct": 41.666666666666664,
+      "n": 12,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=0|M=1|Rrev=0|U2|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": -0.004099194607283425,
+      "outcome_over_index_pct": 51.623931623931625,
+      "n": 585,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.004827511531746404,
+      "outcome_over_index_pct": 60.8187134502924,
+      "n": 171,
+      "anomaly_any_rate_pct": 41.83673469387755
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=0|Rrev=0|U2|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.00593721182628825,
+      "outcome_over_index_pct": 42.69517330741821,
+      "n": 6174,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=-1|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.0061368250608808145,
+      "outcome_over_index_pct": 39.08045977011494,
+      "n": 87,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=0|Rrev=0|U1|P0|B=0",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.0065213501099605905,
+      "outcome_over_index_pct": 43.13764379214597,
+      "n": 30252,
+      "anomaly_any_rate_pct": 0.0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.006660976953796263,
+      "outcome_over_index_pct": 50.98039215686274,
+      "n": 102,
+      "anomaly_any_rate_pct": 40.35087719298246
+    },
+    {
+      "cell": "reg=STABLE|D=1|M=-1|Rrev=0|U2|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": -0.010734426917385576,
+      "outcome_over_index_pct": 66.66666666666667,
+      "n": 3,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=VOLATILE|D=-1|M=-1|Rrev=1|U0|P2|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.01188793365490776,
+      "outcome_over_index_pct": 56.86274509803921,
+      "n": 51,
+      "anomaly_any_rate_pct": 15.0
+    },
+    {
+      "cell": "reg=VOLATILE|D=0|M=0|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": -0.012439637469767825,
+      "outcome_over_index_pct": 56.25,
+      "n": 48,
+      "anomaly_any_rate_pct": 100.0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=-1|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.01825706682651662,
+      "outcome_over_index_pct": 41.02564102564103,
+      "n": 39,
+      "anomaly_any_rate_pct": 35.0
+    },
+    {
+      "cell": "reg=VOLATILE|D=-1|M=1|Rrev=0|U0|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.019491606159592962,
+      "outcome_over_index_pct": 33.333333333333336,
+      "n": 6,
+      "anomaly_any_rate_pct": 50.0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=-1|Rrev=0|U1|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.02016219231665168,
+      "outcome_over_index_pct": 44.44444444444444,
+      "n": 18,
+      "anomaly_any_rate_pct": 14.285714285714286
+    },
+    {
+      "cell": "reg=STABLE|D=-1|M=-1|Rrev=1|U2|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "mean_excess_vs_spy": -0.02178958684399199,
+      "outcome_over_index_pct": 53.9272030651341,
+      "n": 1044,
+      "anomaly_any_rate_pct": 14.705882352941176
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=0|Rrev=0|U2|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "mean_excess_vs_spy": -0.022744135955893603,
+      "outcome_over_index_pct": 41.666666666666664,
+      "n": 120,
+      "anomaly_any_rate_pct": 100.0
+    }
+  ],
+  "top_cells_by_anomaly_rate": [
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=-1|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 9,
+      "anomaly_any_count": 9
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 6,
+      "anomaly_any_count": 6
+    },
+    {
+      "cell": "reg=DEGENERATE|D=0|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 273,
+      "anomaly_any_count": 273
+    },
+    {
+      "cell": "reg=DEGENERATE|D=0|M=1|Rrev=0|U2|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 585,
+      "anomaly_any_count": 585
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=0|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 2100,
+      "anomaly_any_count": 2100
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=0|Rrev=0|U2|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 120,
+      "anomaly_any_count": 120
+    },
+    {
+      "cell": "reg=STABLE|D=1|M=-1|Rrev=0|U2|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 3,
+      "anomaly_any_count": 3
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=0|M=0|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 1305,
+      "anomaly_any_count": 1305
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=0|M=0|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 141,
+      "anomaly_any_count": 141
+    },
+    {
+      "cell": "reg=VOLATILE|D=0|M=0|Rrev=0|U0|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 6,
+      "anomaly_any_count": 6
+    },
+    {
+      "cell": "reg=VOLATILE|D=0|M=0|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 48,
+      "anomaly_any_count": 48
+    },
+    {
+      "cell": "reg=VOLATILE|D=0|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 3,
+      "anomaly_any_count": 3
+    },
+    {
+      "cell": "reg=VOLATILE|D=0|M=1|Rrev=0|U2|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 12,
+      "anomaly_any_count": 12
+    },
+    {
+      "cell": "reg=VOLATILE|D=1|M=-1|Rrev=0|U0|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "fallback_all_anomalous",
+      "anomaly_any_rate_pct": 100.0,
+      "evaluations": 3,
+      "anomaly_any_count": 3
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=0|M=1|Rrev=0|U2|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 99.11504424778761,
+      "evaluations": 678,
+      "anomaly_any_count": 672
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=1|Rrev=0|U2|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 98.64253393665159,
+      "evaluations": 663,
+      "anomaly_any_count": 654
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=0|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 91.30434782608695,
+      "evaluations": 276,
+      "anomaly_any_count": 252
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=-1|Rrev=1|U1|P2|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 80.1470588235294,
+      "evaluations": 408,
+      "anomaly_any_count": 327
+    },
+    {
+      "cell": "reg=DEGENERATE|D=0|M=0|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 69.92481203007519,
+      "evaluations": 399,
+      "anomaly_any_count": 279
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 64.12213740458016,
+      "evaluations": 393,
+      "anomaly_any_count": 252
+    },
+    {
+      "cell": "reg=STABLE|D=1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 63.23529411764706,
+      "evaluations": 1020,
+      "anomaly_any_count": 645
+    },
+    {
+      "cell": "reg=VOLATILE|D=-1|M=-1|Rrev=0|U0|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 50.0,
+      "evaluations": 6,
+      "anomaly_any_count": 3
+    },
+    {
+      "cell": "reg=VOLATILE|D=-1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 50.0,
+      "evaluations": 6,
+      "anomaly_any_count": 3
+    },
+    {
+      "cell": "reg=VOLATILE|D=-1|M=1|Rrev=0|U0|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 50.0,
+      "evaluations": 12,
+      "anomaly_any_count": 6
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=1|Rrev=1|U1|P2|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 46.51162790697674,
+      "evaluations": 129,
+      "anomaly_any_count": 60
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 41.83673469387755,
+      "evaluations": 294,
+      "anomaly_any_count": 123
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 40.35087719298246,
+      "evaluations": 171,
+      "anomaly_any_count": 69
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=-1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 39.473684210526315,
+      "evaluations": 114,
+      "anomaly_any_count": 45
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 35.13513513513514,
+      "evaluations": 111,
+      "anomaly_any_count": 39
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=-1|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 35.0,
+      "evaluations": 60,
+      "anomaly_any_count": 21
+    },
+    {
+      "cell": "reg=STABLE|D=1|M=1|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 34.25925925925926,
+      "evaluations": 324,
+      "anomaly_any_count": 111
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 33.71647509578544,
+      "evaluations": 783,
+      "anomaly_any_count": 264
+    },
+    {
+      "cell": "reg=VOLATILE|D=1|M=1|Rrev=1|U0|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 33.333333333333336,
+      "evaluations": 9,
+      "anomaly_any_count": 3
+    },
+    {
+      "cell": "reg=STABLE|D=1|M=1|Rrev=1|U1|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 31.8407960199005,
+      "evaluations": 1206,
+      "anomaly_any_count": 384
+    },
+    {
+      "cell": "reg=DEGENERATE|D=0|M=0|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 30.952380952380953,
+      "evaluations": 126,
+      "anomaly_any_count": 39
+    },
+    {
+      "cell": "reg=STABLE|D=-1|M=-1|Rrev=1|U1|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 30.142857142857142,
+      "evaluations": 4200,
+      "anomaly_any_count": 1266
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 29.310344827586206,
+      "evaluations": 522,
+      "anomaly_any_count": 153
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=-1|Rrev=1|U2|P2|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 25.830258302583026,
+      "evaluations": 813,
+      "anomaly_any_count": 210
+    },
+    {
+      "cell": "reg=STABLE|D=-1|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 25.806451612903224,
+      "evaluations": 372,
+      "anomaly_any_count": 96
+    },
+    {
+      "cell": "reg=STABLE|D=-1|M=1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 25.6,
+      "evaluations": 375,
+      "anomaly_any_count": 96
+    },
+    {
+      "cell": "reg=VOLATILE|D=-1|M=-1|Rrev=1|U1|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 22.580645161290324,
+      "evaluations": 93,
+      "anomaly_any_count": 21
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=-1|Rrev=1|U2|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 17.647058823529413,
+      "evaluations": 51,
+      "anomaly_any_count": 9
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 17.391304347826086,
+      "evaluations": 69,
+      "anomaly_any_count": 12
+    },
+    {
+      "cell": "reg=VOLATILE|D=-1|M=-1|Rrev=1|U0|P2|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 15.0,
+      "evaluations": 60,
+      "anomaly_any_count": 9
+    },
+    {
+      "cell": "reg=STABLE|D=-1|M=-1|Rrev=1|U2|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 14.705882352941176,
+      "evaluations": 1224,
+      "anomaly_any_count": 180
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=-1|Rrev=0|U1|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 14.285714285714286,
+      "evaluations": 21,
+      "anomaly_any_count": 3
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=-1|Rrev=1|U1|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 14.246575342465754,
+      "evaluations": 1095,
+      "anomaly_any_count": 156
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=1|Rrev=1|U1|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 7.395498392282958,
+      "evaluations": 933,
+      "anomaly_any_count": 69
+    },
+    {
+      "cell": "reg=STABLE|D=-1|M=-1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 6.666666666666667,
+      "evaluations": 90,
+      "anomaly_any_count": 6
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 1.1494252873563218,
+      "evaluations": 1044,
+      "anomaly_any_count": 12
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=0|Rrev=0|U2|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 6174,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=-1|M=1|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 6,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=-1|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 87,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=0|Rrev=0|U2|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 1521,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 6,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=1|Rrev=0|U2|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 12,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=DEGENERATE|D=1|M=1|Rrev=1|U2|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 21,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=STABLE|D=-1|M=-1|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 15,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 3,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=STABLE|D=0|M=0|Rrev=0|U1|P0|B=0",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 30252,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=STABLE|D=1|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 45,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=STABLE|D=1|M=1|Rrev=1|U2|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 3,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=-1|M=1|Rrev=0|U2|P0|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 6,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=0|M=-1|Rrev=0|U1|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 3,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=0|M=-1|Rrev=0|U1|P1|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 24,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=-1|Rrev=0|U2|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 168,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=1|Rrev=0|U1|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 3,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=1|Rrev=0|U2|P0|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 78,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=TRANSITIONAL|D=1|M=1|Rrev=1|U2|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 447,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=VOLATILE|D=-1|M=-1|Rrev=1|U2|P2|B=-1",
+      "decision": "Accumulate",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 9,
+      "anomaly_any_count": 0
+    },
+    {
+      "cell": "reg=VOLATILE|D=1|M=1|Rrev=0|U0|P1|B=-1",
+      "decision": "Avoid",
+      "scoring_mode": "clean_only",
+      "anomaly_any_rate_pct": 0.0,
+      "evaluations": 3,
+      "anomaly_any_count": 0
+    }
+  ]
+}

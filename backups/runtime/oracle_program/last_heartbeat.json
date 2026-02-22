@@ -1,0 +1,22 @@
+{
+  "updated_at_utc": "2026-02-20T16:35:24Z",
+  "phase": "short_cycle_complete",
+  "completed": 978,
+  "latest_run_id": 978,
+  "latest_score": 64.50953396957203,
+  "best_run_id": 10,
+  "best_score": 65.84995589389956,
+  "best_config": {
+    "min_samples_grid": "1,5,10,20",
+    "min_suf_grid": "0.10,0.20,0.30,0.40,0.50",
+    "include_irf_modes": "0,1",
+    "train_fracs": "0.60,0.70,0.80,0.90",
+    "test_frac": "0.10",
+    "min_edge_grid": "0.0005",
+    "min_winrate_grid": "0",
+    "uncertainty_penalty_grid": "0.0",
+    "hold_bias_grid": "0.0005"
+  },
+  "session_id": "short_25_20260220T162536Z",
+  "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_25_20260220T162536Z.json"
+}

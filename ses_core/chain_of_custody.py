@@ -118,6 +118,10 @@ class FileChainOfCustodySink:
         with open(self.path, "a", encoding="utf-8") as f:
             f.write(line)
             f.write("\n")
+        try:
+            os.chmod(self.path, 0o600)
+        except Exception:
+            pass
 
     def record_events(self, events: Iterable[ChainOfCustodyEvent]) -> None:
         with open(self.path, "a", encoding="utf-8") as f:
@@ -129,6 +133,10 @@ class FileChainOfCustodySink:
                 )
                 f.write(line)
                 f.write("\n")
+        try:
+            os.chmod(self.path, 0o600)
+        except Exception:
+            pass
 
 
 @runtime_checkable

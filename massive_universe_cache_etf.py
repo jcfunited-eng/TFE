@@ -2,104 +2,101 @@
 massive_universe_cache_etf.py
 -----------------------------
 
-ETF reference universe builder + cache for Massive.com
+ETF universe builder + cache for TFE.
 
-- Fetches ALL active ETFs via pagination (market=etf).
-- Stores them in massive_universe_etf.json.
+Important correction:
+- Massive reference data currently arrives through market=stocks with an
+  instrument `type` field.
+- ETF detection is done by filtering raw stock-universe rows where type == "ETF".
+
+Ticker handling:
+- Tickers are kept case-preserving (no forced uppercasing).
 """
 
 from __future__ import annotations
 
-import os
 import json
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
-import requests
-
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except Exception:
-    pass
+from massive_universe_cache import fetch_massive_stock_universe
 
 
 CACHE_PATH = Path("massive_universe_etf.json")
-BASE_URL = "https://api.massive.com/v3/reference/tickers"
+ETF_TYPE = "ETF"
 
 
-def _get_api_key() -> str:
-    key = os.getenv("MASSIVE_API_KEY")
-    if not key:
-        raise RuntimeError("MASSIVE_API_KEY not set in environment.")
-    return key
+def _load_cached_universe() -> List[Dict[str, Any]]:
+    if not CACHE_PATH.exists():
+        return []
+
+    with CACHE_PATH.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if not isinstance(data, list):
+        raise RuntimeError(f"Invalid ETF cache format in {CACHE_PATH}; expected a list.")
+
+    return data
+
+
+def _save_cached_universe(rows: List[Dict[str, Any]]) -> None:
+    with CACHE_PATH.open("w", encoding="utf-8") as f:
+        json.dump(rows, f, indent=2, sort_keys=True)
+
+
+def _filter_etf_rows(raw_universe: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    filtered: List[Dict[str, Any]] = []
+
+    for item in raw_universe:
+        if not isinstance(item, dict):
+            continue
+
+        if not bool(item.get("active", False)):
+            continue
+
+        market = str(item.get("market", "")).strip().lower()
+        if market != "stocks":
+            continue
+
+        instrument_type = str(item.get("type", "")).strip().upper()
+        if instrument_type != ETF_TYPE:
+            continue
+
+        ticker = item.get("ticker")
+        if not ticker:
+            continue
+
+        filtered.append(item)
+
+    return filtered
 
 
 def fetch_massive_etf_universe(force_refresh: bool = False) -> List[Dict[str, Any]]:
     """
-    Fetch full ETF ticker universe using Massive pagination.
+    Fetch ETF rows from the raw Massive stock universe and cache them.
     """
-    if CACHE_PATH.exists() and not force_refresh:
-        with CACHE_PATH.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        if isinstance(data, list):
-            return data
+    if not force_refresh:
+        cached = _load_cached_universe()
+        if cached:
+            return cached
 
-    api_key = _get_api_key()
+    raw_universe = fetch_massive_stock_universe(force_refresh=force_refresh)
+    etf_rows = _filter_etf_rows(raw_universe)
+    _save_cached_universe(etf_rows)
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json",
-    }
-
-    all_results: List[Dict[str, Any]] = []
-
-    url = BASE_URL
-    params = {
-        "active": "true",
-        "market": "etf",
-        "limit": 1000,
-    }
-
-    while True:
-        resp = requests.get(url, headers=headers, params=params)
-        resp.raise_for_status()
-        payload = resp.json()
-
-        results = payload.get("results", [])
-        if not isinstance(results, list):
-            raise RuntimeError("Unexpected ETF response format.")
-
-        all_results.extend(results)
-
-        next_url = payload.get("next_url")
-        if not next_url:
-            break
-
-        url = next_url
-        params = None
-
-    with CACHE_PATH.open("w", encoding="utf-8") as f:
-        json.dump(all_results, f, indent=2, sort_keys=True)
-
-    return all_results
+    return etf_rows
 
 
 def get_etf_tickers_from_universe(force_refresh: bool = False) -> List[str]:
     """
-    Return active ETF tickers from Massive ETF universe.
+    Return active ETF tickers detected from Massive instrument type metadata.
     """
-    universe = fetch_massive_etf_universe(force_refresh)
-    tickers: List[str] = []
+    rows = fetch_massive_etf_universe(force_refresh=force_refresh)
 
-    for item in universe:
-        if not item.get("active", False):
-            continue
-        if item.get("market") != "etf":
-            continue
+    tickers = {
+        str(item.get("ticker", "")).strip()
+        for item in rows
+        if item.get("ticker")
+    }
 
-        t = item.get("ticker")
-        if t:
-            tickers.append(str(t).upper())
-
-    return sorted(set(tickers))
+    return sorted(t for t in tickers if t)

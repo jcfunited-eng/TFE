@@ -1,0 +1,19 @@
+{
+  "program": "oracle_optimizer",
+  "created_at_utc": "2026-02-20T16:35:24Z",
+  "latest_session": {
+    "session_id": "short_25_20260220T162536Z",
+    "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_25_20260220T162536Z.json"
+  },
+  "sessions": [
+    {
+      "session_id": "short_25_20260220T162536Z",
+      "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_25_20260220T162536Z.json",
+      "finished_at_utc": "2026-02-20T16:35:24Z",
+      "requested_additional_runs": 25,
+      "actual_additional_runs": 26,
+      "best_score": 65.84995589389956
+    }
+  ],
+  "updated_at_utc": "2026-02-20T16:35:24Z"
+}

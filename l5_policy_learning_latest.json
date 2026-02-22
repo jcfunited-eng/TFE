@@ -1,0 +1,121 @@
+{
+  "generated_at_utc": "2026-02-20T16:44:08Z",
+  "trigger": "oracle_seeded_cycle_22",
+  "inputs": {
+    "row_trace_path": "real_world_cleaned_universe_l5_row_trace_full.csv",
+    "spy_dataset_path": "backups/strict-ab-frozen-dataset-20260218T133559Z.json",
+    "validation_dataset_path": "backups/strict-ab-frozen-dataset-20260218T133559Z.json",
+    "runtime_policy_path": "/tmp/oracle_seeded_25_20260220T164247Z_runtime_policy.json"
+  },
+  "artifacts": {
+    "replay_policy_path": "backups/runtime/l5_policy_learning/pscf-policy-replay-spy-20260220T164405Z.json",
+    "candidate_policy_path": "backups/runtime/l5_policy_learning/pscf-policy-candidate-20260220T164405Z.json",
+    "current_eval_path": "backups/runtime/l5_policy_learning/policy-eval-current-20260220T164405Z.json",
+    "candidate_eval_path": "backups/runtime/l5_policy_learning/policy-eval-candidate-20260220T164405Z.json"
+  },
+  "merge_report": {
+    "generated_at_utc": "2026-02-20T16:44:06Z",
+    "merged_cell_count": 717,
+    "min_primary_cell_samples": 0,
+    "source_counts": {
+      "primary_only": 0,
+      "secondary_only": 616,
+      "both_primary_selected": 101,
+      "both_secondary_selected_low_support": 0,
+      "primary_only_dropped_low_support": 0
+    },
+    "decision_counts": {
+      "Accumulate": 431,
+      "Hold": 35,
+      "Avoid": 251
+    }
+  },
+  "comparison": {
+    "generated_at_utc": "2026-02-20T16:44:07Z",
+    "horizon_rows": [
+      {
+        "horizon": 5,
+        "current_excess_mean_anomaly_accounted": 0.014684717095145246,
+        "candidate_excess_mean_anomaly_accounted": 0.0162914245059208,
+        "delta_excess_mean_anomaly_accounted": 0.0016067074107755548,
+        "current_outcome_over_index_pct_anomaly_accounted": 65.43256516811485,
+        "candidate_outcome_over_index_pct_anomaly_accounted": 78.84397431054023,
+        "delta_outcome_over_index_pct_anomaly_accounted": 13.411409142425384,
+        "current_mapped_rate_pct": 100.0,
+        "candidate_mapped_rate_pct": 100.0,
+        "delta_mapped_rate_pct": 0.0
+      },
+      {
+        "horizon": 20,
+        "current_excess_mean_anomaly_accounted": 0.05038251179872923,
+        "candidate_excess_mean_anomaly_accounted": 0.04947385941503091,
+        "delta_excess_mean_anomaly_accounted": -0.000908652383698326,
+        "current_outcome_over_index_pct_anomaly_accounted": 69.0404231205138,
+        "candidate_outcome_over_index_pct_anomaly_accounted": 83.7363052512278,
+        "delta_outcome_over_index_pct_anomaly_accounted": 14.695882130714011,
+        "current_mapped_rate_pct": 100.0,
+        "candidate_mapped_rate_pct": 100.0,
+        "delta_mapped_rate_pct": 0.0
+      },
+      {
+        "horizon": 60,
+        "current_excess_mean_anomaly_accounted": 0.02730040421942982,
+        "candidate_excess_mean_anomaly_accounted": 0.00924948786645273,
+        "delta_excess_mean_anomaly_accounted": -0.01805091635297709,
+        "current_outcome_over_index_pct_anomaly_accounted": 59.21798262183604,
+        "candidate_outcome_over_index_pct_anomaly_accounted": 40.78201737816396,
+        "delta_outcome_over_index_pct_anomaly_accounted": -18.435965243672086,
+        "current_mapped_rate_pct": 100.0,
+        "candidate_mapped_rate_pct": 100.0,
+        "delta_mapped_rate_pct": 0.0
+      }
+    ],
+    "aggregate_delta_excess_mean_anomaly_accounted": -0.005784287108633286,
+    "gates": {
+      "delta_excess_mean_anomaly_accounted_non_negative_aggregate_mean": false,
+      "outcome_over_index_pct_anomaly_accounted_non_decreasing_all_horizons": false,
+      "mapped_rate_non_decreasing_all_horizons": true
+    },
+    "promote": false,
+    "gate_rule": "promote when candidate aggregate anomaly-accounted excess-mean delta is non-negative, outcome-over-index delta is non-negative at all horizons, and mapping rate is non-decreasing at all horizons"
+  },
+  "coverage": {
+    "current_runtime": {
+      "snapshot_path": "uf_snapshot.ses.json",
+      "status": "snapshot_decrypt_failed:RuntimeError"
+    },
+    "candidate": {
+      "snapshot_path": "uf_snapshot.ses.json",
+      "status": "snapshot_decrypt_failed:RuntimeError"
+    }
+  },
+  "promotion": {
+    "promoted": false,
+    "reason": "gates_failed"
+  },
+  "notes": {
+    "irf_fmm_integration": "not integrated in this pipeline yet",
+    "target_goal_reference": "index beat target is external business goal; promotion gate here is structural non-regression with mapping non-degradation",
+    "cd_bucket_edges": [
+      -0.6,
+      -0.4,
+      -0.3,
+      -0.2
+    ],
+    "cd_regime_mode": "stable",
+    "horizon_weights": {
+      "5": 1.0,
+      "20": 1.0,
+      "60": 1.0
+    },
+    "min_primary_cell_samples": 0,
+    "policy_source_mode": "rowtrace",
+    "selection_objective": "outcome",
+    "include_stability_bucket": true,
+    "irf_mode": "off",
+    "eval_mode": "rowtrace",
+    "min_action_edge": 0.01,
+    "min_action_margin": 0.002,
+    "min_action_winrate_pct": 60.0
+  }
+}

@@ -21,7 +21,11 @@ from __future__ import annotations
 import os
 from typing import Mapping, Any
 
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except Exception:
+    def load_dotenv(*_args, **_kwargs):
+        return False
 
 # Load .env ONCE and FOR ALL
 load_dotenv()

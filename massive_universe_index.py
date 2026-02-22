@@ -1,12 +1,12 @@
 """
 massive_universe_index.py
 
-Static index universe provider for TFE.
-Massive.com Starter Plan does not provide index discovery endpoints.
-Therefore, we define a stable deterministic universe.
+Index universe provider for TFE.
 
-UF-Core treats index time series exactly like any other asset, so using
-explicitly-defined symbols is structurally safe.
+Plan constraint:
+- Massive index entitlements vary by symbol.
+- The current account is confirmed to return bars for I:NDX.
+- Symbols that return consistent 403 NOT_AUTHORIZED are excluded.
 """
 
 from __future__ import annotations
@@ -15,12 +15,9 @@ import json
 import os
 from typing import List
 
+# Entitlement-verified index symbols for current plan.
 INDEX_UNIVERSE = [
-    "SPX",     # S&P 500
-    "NDX",     # Nasdaq 100
-    "DJI",     # Dow Jones
-    "RUT",     # Russell 2000
-    "VIX",     # Volatility Index
+    "I:NDX",  # Nasdaq 100 index
 ]
 
 OUTPUT_PATH = "massive_universe_index.json"
@@ -28,12 +25,11 @@ OUTPUT_PATH = "massive_universe_index.json"
 
 def get_index_tickers_from_universe(force_refresh: bool = False) -> List[str]:
     """
-    Returns the index universe.
+    Return deterministic index universe.
 
-    If JSON exists and force_refresh=False,
-    load from disk. Otherwise write a fresh deterministic file.
+    If JSON exists and force_refresh=False, load from disk.
+    Otherwise write the canonical universe and return it.
     """
-
     if not force_refresh and os.path.exists(OUTPUT_PATH):
         try:
             with open(OUTPUT_PATH, "r", encoding="utf-8") as f:
