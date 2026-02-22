@@ -1,0 +1,14 @@
+{
+  "backgroundImages": {
+    "home": "/landing-zen.jpg",
+    "help": "/uploads/1771146411980-help-helppage.jpg",
+    "support": "/uploads/1771147499302-support-supportpage.jpg",
+    "signIn": "/landing-zen.jpg",
+    "account": "/uploads/1771019530856-account-accountpage.png",
+    "recommendations": "/uploads/1771019598184-recommendations-recommendationspage.png",
+    "watchlist": "/uploads/1771021004354-watchlist-watchlistpage.png",
+    "portfolioAdvisor": "/uploads/1771022274445-portfolioAdvisor-portfolioadvisdorpage.jpg",
+    "legal": "/uploads/1771029307452-legal-legalpage.jpg",
+    "adminConsole": "/uploads/1771174792200-adminConsole-adminpage.jpg"
+  }
+}

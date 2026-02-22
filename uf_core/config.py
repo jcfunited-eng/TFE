@@ -1,68 +1,95 @@
 """
-uf_core.config — Kernel Thresholds (UF-Spec v1.4.0)
-===================================================
+uf_core.config — Kernel Thresholds and Structural Constants (UF-Spec v1.4.0)
+===========================================================================
 
-This file defines all kernel-level structural constants used by
-UF-Core L1–L4, including:
+Centralized constants used by L1-L4 and the L5 domain adapter path.
 
-    • τ_D          – minimum gate delta threshold
-    • epsilon_D    – directional epsilon for DSF (L4)
-    • U_max        – maximum uncertainty allowed before gating (L3)
-    • λ1–λ5        – resonance weights (L3)
-    • B_min/max    – breathing clamps (L4)
-    • η_H, η_IAS   – uncertainty amplification weights (L4)
+Notes:
+- The `segment_gates` comparator override (`>` vs `>=`) is preserved through
+  `gate_boundary_strict_gt` because it was explicitly approved as a domain
+  condition.
+- All other constants are explicit and named so behavior is auditable.
 """
 
 from dataclasses import dataclass
+from typing import Tuple
 
 
 @dataclass
 class KernelThresholds:
-    # ------------------------------------------------------------
-    # L1 / L2 thresholds
-    # ------------------------------------------------------------
-    tau_D: float = 0.20            # minimum gate structural delta
+    # L0 baseline
     sigma_min: float = 1e-6
     delta_min: float = 1e-6
     kappa_min: float = 1e-6
     variance_window: int = 20
 
-    # ------------------------------------------------------------
-    # L4 directional epsilon (DSF)
-    # ------------------------------------------------------------
-    epsilon_D: float = 0.00073     # controls D_k sensitivity
+    # L1 boundary operator D(t)
+    alpha1: float = 1.0
+    alpha2: float = 1.0
+    alpha3: float = 1.0
+    tau_D: float = 0.20
 
-    # ------------------------------------------------------------
-    # L3 gating threshold
-    # ------------------------------------------------------------
-    U_max: float = 0.75            # gates suppressed if U_k > U_max
+    # Approved domain override for L1 boundary comparator.
+    # True:  D(t) > tau_D  (approved)
+    # False: D(t) >= tau_D (canonical math-text form)
+    gate_boundary_strict_gt: bool = True
 
-    # ------------------------------------------------------------
-    # L3 resonance weights (UF-Spec v1.4.0 Section 6)
-    # These are REQUIRED for compute_raw_resonance()
-    # ------------------------------------------------------------
-    lambda1: float = 1.0           # weight for w_k
-    lambda2: float = 1.0           # weight for CV norm
-    lambda3: float = 1.0           # weight for S_k
-    lambda4: float = 1.0           # weight for cohesion term 1/(1+C_k)
-    lambda5: float = 1.0           # weight for (1 - U_k)
+    # L1 TVR structural volume weights
+    beta1: float = 1.0
+    beta2: float = 1.0
+    beta3: float = 1.0
 
-    # ------------------------------------------------------------
-    # L4 uncertainty amplification terms (Spec Section 7.6)
-    # ------------------------------------------------------------
-    eta_H: float = 0.10            # hysteresis uncertainty injection
-    eta_IAS: float = 0.10          # anomaly uncertainty injection
+    # L1 multi-lattice quantization steps: (h1, h2, h3) per lattice level.
+    mosaic_lattices: Tuple[Tuple[float, float, float], ...] = (
+        (1.0, 1.0, 1.0),
+        (2.0, 2.0, 2.0),
+        (4.0, 4.0, 4.0),
+    )
 
-    # ------------------------------------------------------------
-    # L4 breathing clamps
-    # ------------------------------------------------------------
+    # L1 negative-space gate thresholds
+    theta_V: float = 1.0
+    theta_R: float = 1.0
+
+    # L2 score and uncertainty weights
+    gamma1: float = 1.0 / 3.0
+    gamma2: float = 1.0 / 3.0
+    gamma3: float = 1.0 / 3.0
+
+    lambda_u1: float = 1.0 / 3.0
+    lambda_u2: float = 1.0 / 3.0
+    lambda_u3: float = 1.0 / 3.0
+
+    # L2 deterministic regime thresholds over chi/psi space
+    chi_min: float = 0.25
+    chi_max: float = 0.75
+    psi_min: float = 0.25
+    psi_max: float = 0.75
+
+    # L2/L3 uncertainty gate limit
+    U_max: float = 0.75
+
+    # L3 resonance weights
+    lambda1: float = 1.0
+    lambda2: float = 1.0
+    lambda3: float = 1.0
+    lambda4: float = 1.0
+    lambda5: float = 1.0
+
+    # L3 hysteresis
+    h_max: float = 0.20
+
+    # L4 directional threshold
+    epsilon_D: float = 0.00073
+
+    # L4 uncertainty amplification terms
+    eta_H: float = 0.10
+    eta_IAS: float = 0.10
+
+    # L4 breathing dynamics
+    breath_xi: float = 0.10
+    breath_chi: float = 0.10
     B_min: float = -1.0
     B_max: float = 1.0
 
-    # L4 breathing coefficients
-    breath_xi: float = 0.10        # expansion on low uncertainty
-    breath_chi: float = 0.10       # contraction on high uncertainty
 
-
-# Create singleton
 KERNEL_THRESHOLDS = KernelThresholds()

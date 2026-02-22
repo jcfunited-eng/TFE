@@ -4,7 +4,7 @@ import base64
 import os
 from typing import Optional
 
-# RootKeyProvider comes from the SES‑Core package, not a top‑level module.
+# RootKeyProvider comes from the SES-Core package, not a top-level module.
 from ses_core import RootKeyProvider  # type: ignore[import]
 
 
@@ -25,17 +25,17 @@ def _lazy_boto3():
 
 class AwsSecretsRootKeyProvider(RootKeyProvider):
     """
-    SES‑Core RootKeyProvider that loads the root key from AWS Secrets Manager.
+    SES-Core RootKeyProvider that loads the root key from AWS Secrets Manager.
 
     Expected configuration (environment variables):
 
-      * TFE_SES_ROOT_SECRET_ID  – name or ARN of the secret that holds the root key
-      * AWS_REGION              – AWS region for Secrets Manager (e.g. 'us-east-1')
+      * TFE_SES_ROOT_SECRET_ID  - name or ARN of the secret that holds the root key
+      * AWS_REGION              - AWS region for Secrets Manager (e.g. 'us-east-1')
 
     The secret value may be:
       * hex string (preferred); or
       * base64 string; or
-      * raw UTF‑8 string of at least 32 bytes.
+      * raw UTF-8 string of at least 32 bytes.
     """
 
     def __init__(
@@ -48,6 +48,17 @@ class AwsSecretsRootKeyProvider(RootKeyProvider):
         self._region_name = region_name or os.environ.get("AWS_REGION", "")
         self._cache_enabled = cache
         self._cached_key: Optional[bytes] = None
+
+    @classmethod
+    def from_env(cls, *, cache: bool = True) -> "AwsSecretsRootKeyProvider":
+        """
+        Construct a provider directly from runtime environment variables.
+        """
+        return cls(
+            secret_id=os.environ.get("TFE_SES_ROOT_SECRET_ID", ""),
+            region_name=os.environ.get("AWS_REGION", ""),
+            cache=cache,
+        )
 
     # ------------------------
     # Helpers
@@ -86,7 +97,7 @@ class AwsSecretsRootKeyProvider(RootKeyProvider):
         Accepts:
           * hex
           * base64
-          * raw utf‑8 (length >= 32)
+          * raw utf-8 (length >= 32)
         """
         text = value.strip()
 
@@ -106,7 +117,7 @@ class AwsSecretsRootKeyProvider(RootKeyProvider):
         except Exception:
             pass
 
-        # Fallback: raw utf‑8
+        # Fallback: raw utf-8
         b = text.encode("utf-8")
         if len(b) < 32:
             raise ValueError(
@@ -120,9 +131,9 @@ class AwsSecretsRootKeyProvider(RootKeyProvider):
     # ------------------------
     def get_root_key(self) -> bytes:  # type: ignore[override]
         """
-        Return the root key bytes for SES‑Core HKDF.
+        Return the root key bytes for SES-Core HKDF.
 
-        This is cached in‑process if cache=True.
+        This is cached in-process if cache=True.
         """
         if self._cache_enabled and self._cached_key is not None:
             return self._cached_key

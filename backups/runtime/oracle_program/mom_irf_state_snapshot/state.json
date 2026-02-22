@@ -1,0 +1,38 @@
+{
+  "run_id": 978,
+  "phase": "idle",
+  "fingerprint": {
+    "fingerprint_version": "v1",
+    "captured_at_utc": "2026-02-20T16:25:36Z",
+    "python_version": "3.11.14",
+    "runner": {
+      "path": "/workspaces/Tao_Financial_Engine/g32_horse_race_mom_irf.py",
+      "exists": true,
+      "size_bytes": 37273,
+      "mtime_epoch": 1771551055.1946094,
+      "sha256": "637d6b43051e8dc27f1a166bac2629d3520d0358a50831ba886a87c482195c39"
+    },
+    "loop_runner": {
+      "path": "/workspaces/Tao_Financial_Engine/g32_mom_irf_loop_runner.py",
+      "exists": true,
+      "size_bytes": 40487,
+      "mtime_epoch": 1771551126.1038504,
+      "sha256": "20e48bd0b45013a493d2f4d0fcc50f9848e156ff9b4e1aa9185ccc6fadce515a"
+    },
+    "row_trace": {
+      "path": "/workspaces/Tao_Financial_Engine/real_world_cleaned_universe_l5_row_trace_full.csv",
+      "exists": true,
+      "size_bytes": 3168179,
+      "mtime_epoch": 1771123557.015278,
+      "sha256": "e88cd5bcfde67d994d1b4b1d836bbf815b67c8ffebdd7214b2e1f96827b08117"
+    },
+    "dataset": {
+      "path": "/workspaces/Tao_Financial_Engine/backups/strict-ab-frozen-dataset-20260218T133559Z.json",
+      "exists": true,
+      "size_bytes": 908650,
+      "mtime_epoch": 1771421763.7503316,
+      "sha256": "1e182941c3b2f6d81df3873ea48f3ccbb52cb24a09d98cb9f64bd87ef8a4869e"
+    }
+  },
+  "updated_at_utc": "2026-02-20T16:33:12Z"
+}

@@ -57,7 +57,8 @@ class UFStructuralState:
 
     NOTE:
       - All fields are derived from uf_core.*.
-      - Level5.decision_vector is taken directly from the final DSF_k.
+      - Level5.decision_vector is taken directly from the final DSF_k,
+        except for deterministic structural guardrails.
     """
 
     level1: Dict[str, float]
@@ -140,8 +141,10 @@ def _aggregate_gate_regime(interpretations: List[GateInterpretation]) -> str:
     return interpretations[-1].regime
 
 
-def _compute_stability_from_l4(results: List[ResonanceResult],
-                               decision_states: List[DecisionState]) -> Dict[str, float]:
+def _compute_stability_from_l4(
+    results: List[ResonanceResult],
+    decision_states: List[DecisionState],
+) -> Dict[str, float]:
     """
     Derive stability-like metrics from L3/L4 outputs to feed into the
     hardening framework and TFE-level stability view.
@@ -190,6 +193,49 @@ def _compute_stability_from_l4(results: List[ResonanceResult],
     }
 
 
+def _gate_unlock_transient_meta(results: List[ResonanceResult]) -> Dict[str, Any]:
+    """
+    Detect one-step gate-unlock transients at the current edge.
+
+    Structural condition:
+    - at least two resonance points
+    - previous gate is fully gated out (g=0, URF=0)
+    - current gate is active (g=1, URF>0)
+
+    This pattern can emit a positive/negative D from a pure activation jump,
+    not from persistent directional field evolution. We neutralize direction for
+    the latest decision vector in this specific case.
+    """
+
+    meta: Dict[str, Any] = {
+        "active": False,
+        "prev_g": 0,
+        "curr_g": 0,
+        "prev_urf": 0.0,
+        "curr_urf": 0.0,
+    }
+
+    if len(results) < 2:
+        return meta
+
+    prev_res = results[-2]
+    curr_res = results[-1]
+
+    prev_g = int(prev_res.g_k)
+    curr_g = int(curr_res.g_k)
+    prev_urf = float(prev_res.URF_k)
+    curr_urf = float(curr_res.URF_k)
+
+    is_unlock = (prev_g == 0) and (curr_g == 1) and (prev_urf <= 0.0) and (curr_urf > 0.0)
+
+    meta["active"] = bool(is_unlock)
+    meta["prev_g"] = prev_g
+    meta["curr_g"] = curr_g
+    meta["prev_urf"] = prev_urf
+    meta["curr_urf"] = curr_urf
+    return meta
+
+
 # ============================================================
 # CORE PUBLIC API (YOUR ORIGINAL ENGINE)
 # ============================================================
@@ -207,6 +253,9 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
         level4 = {"max_drawdown": 0.0, "stability_score": 0.0, "S_UF": 0.0, "R_UF": 0.0}
         level5 = {
             "decision_vector": [],
+            "gate_count": 0,
+            "active_gate_count": 0,
+            "decision_guard": {"gate_unlock_transient_neutralized": False},
             "dsf_list": [],
             "hardening": {},
             "safemode": {},
@@ -259,17 +308,33 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
     )
 
     final_dsf_list = dsf_after
+    gate_count = int(len(gates))
+    active_gate_count = int(sum(1 for r in resonance_results if int(r.g_k) == 1))
+
+    unlock_meta = _gate_unlock_transient_meta(resonance_results)
+    unlock_guard_active = bool(unlock_meta.get("active", False))
 
     if final_dsf_list:
         last_dsf = final_dsf_list[-1]
-        decision_vector = [
-            float(last_dsf.D_k),
-            float(last_dsf.M_k),
-            float(last_dsf.R_rev_k),
-            float(last_dsf.U_star_k),
-            float(last_dsf.P_k),
-            float(last_dsf.B_k),
-        ]
+        if unlock_guard_active:
+            # Neutralize direction for one-step gate-unlock transient at edge.
+            decision_vector = [
+                0.0,
+                0.0,
+                0.0,
+                float(last_dsf.U_star_k),
+                0.0,
+                float(last_dsf.B_k),
+            ]
+        else:
+            decision_vector = [
+                float(last_dsf.D_k),
+                float(last_dsf.M_k),
+                float(last_dsf.R_rev_k),
+                float(last_dsf.U_star_k),
+                float(last_dsf.P_k),
+                float(last_dsf.B_k),
+            ]
     else:
         decision_vector = []
 
@@ -295,6 +360,15 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
 
     level5 = {
         "decision_vector": decision_vector,
+        "gate_count": gate_count,
+        "active_gate_count": active_gate_count,
+        "decision_guard": {
+            "gate_unlock_transient_neutralized": unlock_guard_active,
+            "prev_g": int(unlock_meta.get("prev_g", 0)),
+            "curr_g": int(unlock_meta.get("curr_g", 0)),
+            "prev_urf": float(unlock_meta.get("prev_urf", 0.0)),
+            "curr_urf": float(unlock_meta.get("curr_urf", 0.0)),
+        },
         "dsf_list": [],
         "hardening": {
             "flags": vars(htc_result.flags),
@@ -345,4 +419,7 @@ def compute_structural_state(symbol: str, bars: List[Bar]) -> Dict[str, Any]:
         "stability_score": uf_state.level4.get("stability_score"),
         "max_drawdown": uf_state.level4.get("max_drawdown"),
         "decision_vector": uf_state.level5.get("decision_vector", []),
+        "gate_count": uf_state.level5.get("gate_count", 0),
+        "active_gate_count": uf_state.level5.get("active_gate_count", 0),
+        "decision_guard": uf_state.level5.get("decision_guard", {}),
     }

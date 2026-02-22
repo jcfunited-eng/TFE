@@ -6,7 +6,7 @@ Purpose
 -------
 Single place that turns:
     (symbol, recent market history)
-into one UF snapshot row that matches the existing uf_snapshot.json
+into one UF snapshot row that matches the active snapshot row schema
 schema used by TFE pages (Recommendations, etc.).
 
 This module:
@@ -14,7 +14,7 @@ This module:
     - Uses the same structural adapter as Watchlist / live views.
     - Returns a dict with keys:
         ticker, asset_type, price, regime,
-        S_UF, R_UF, stability_score, max_dd, decision_vector
+        S_UF, R_UF, stability_score, max_dd, decision_vector, bar_count
 
 Intended usage
 --------------
@@ -23,7 +23,7 @@ Typical integration point is the snapshot rebuild path (e.g. refresh_snapshot_fu
     from uf_mdg_snapshot import evaluate_symbol_snapshot
 
     row = evaluate_symbol_snapshot("AAPL", asset_type="stock")
-    # collect rows and write uf_snapshot.json
+    # collect rows and write snapshot envelope payload rows
 
 This file does NOT know anything about Streamlit or UI.
 It is purely a governance-aware structural snapshot builder.
@@ -32,9 +32,7 @@ It is purely a governance-aware structural snapshot builder.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
-
-import math
+from typing import Any, Dict, List, Optional, Tuple
 
 # ----------------------------------------------------------------------
 # Data layer imports
@@ -51,6 +49,7 @@ except ModuleNotFoundError:
     from unified_market_data_service import get_unified_market_data  # type: ignore
 
 from tfe_market_data_service import Bar, HistoryRequest, Timespan  # type: ignore
+from tfe_bar_integrity import DEFAULT_MIN_PRICE_FLOOR, sanitize_daily_bars
 
 # ----------------------------------------------------------------------
 # UF-Core structural engine import
@@ -72,6 +71,13 @@ except ModuleNotFoundError:
 # How much history we give UF-Core for a snapshot evaluation.
 YEARS_HISTORY: int = 5
 
+# Production policy evidence floor:
+# decision layer requires this many daily bars before allowing Accumulate.
+ACCUMULATE_MIN_BARS: int = 514
+
+# Strict OHLC integrity floor used by production ingestion.
+MIN_PRICE_FLOOR: float = DEFAULT_MIN_PRICE_FLOOR
+
 
 # ----------------------------------------------------------------------
 # Internal helpers
@@ -81,13 +87,15 @@ def _fetch_history(
     symbol: str,
     years: int = YEARS_HISTORY,
     client: Optional[Any] = None,
-) -> List[Bar]:
+) -> Tuple[List[Bar], Dict[str, int]]:
     """
     Fetch daily OHLCV bars for `symbol` using the unified market data service.
 
-    This is the same shape as used in the backtest scripts and Watchlist:
-    - Bars are sorted by timestamp.
-    - Only bars with a valid `close` are kept.
+    Production ingestion behavior:
+    - Apply strict bar integrity filter via sanitize_daily_bars
+      (finite/positive/consistent OHLC + min price floor + timestamp dedupe).
+    - Keep only bars with parseable close values after integrity filtering.
+    - Return bars sorted by timestamp.
     """
     if client is None:
         client = get_unified_market_data()
@@ -106,25 +114,24 @@ def _fetch_history(
     )
 
     result = client.get_history(req)
-    bars: List[Bar] = getattr(result, "bars", []) or []
+    raw_bars: List[Bar] = getattr(result, "bars", []) or []
+
+    cleaned_bars, dropped = sanitize_daily_bars(raw_bars, min_price_floor=MIN_PRICE_FLOOR)
 
     # Keep only bars with a usable close
-    clean: List[Bar] = []
-    for b in bars:
+    close_clean: List[Bar] = []
+    for b in cleaned_bars:
         try:
-            c = getattr(b, "close", None)
-        except Exception:
-            c = None
-        if c is None:
-            continue
-        try:
-            _ = float(c)
+            close_value = getattr(b, "close", None)
+            if close_value is None:
+                continue
+            float(close_value)
         except Exception:
             continue
-        clean.append(b)
+        close_clean.append(b)
 
-    clean.sort(key=lambda b: b.timestamp)
-    return clean
+    close_clean.sort(key=lambda b: b.timestamp)
+    return close_clean, dropped
 
 
 def _pad_decision_vector(raw_dv: Any, length: int = 6) -> List[float]:
@@ -156,6 +163,20 @@ def _pad_decision_vector(raw_dv: Any, length: int = 6) -> List[float]:
     return out
 
 
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except Exception:
+        return default
+
+
+def _safe_int(value: Any, default: int = 0) -> int:
+    try:
+        return int(value)
+    except Exception:
+        return default
+
+
 # ----------------------------------------------------------------------
 # Public API: single-row UF snapshot evaluator
 # ----------------------------------------------------------------------
@@ -182,7 +203,7 @@ def evaluate_symbol_snapshot(
 
     Output
     ------
-    A dict with the same fields used in uf_snapshot.json:
+    A dict with the same row fields used in the snapshot envelope payload, plus bar_count:
 
         {
             "ticker": "AAPL",
@@ -194,6 +215,7 @@ def evaluate_symbol_snapshot(
             "stability_score": 0.62,
             "max_dd": -0.24,
             "decision_vector": [D, M, R_rev, U*, P, B],
+            "bar_count": 1256,
         }
 
     Notes
@@ -202,7 +224,8 @@ def evaluate_symbol_snapshot(
     - This function is deliberately small so it can be called from
       refresh_snapshot_full without dragging in any Streamlit / UI code.
     """
-    bars = _fetch_history(symbol, years=years_history, client=client)
+    bars, dropped = _fetch_history(symbol, years=years_history, client=client)
+    bar_count = len(bars)
 
     # If we truly have no usable data, still return a row so the UI doesn't break.
     if not bars:
@@ -216,51 +239,46 @@ def evaluate_symbol_snapshot(
             "stability_score": 0.0,
             "max_dd": 0.0,
             "decision_vector": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            "bar_count": 0,
+            "gate_count": 0,
+            "active_gate_count": 0,
+            "decision_guard": {"gate_unlock_transient_neutralized": False},
+            "integrity_dropped": dropped,
         }
 
     # Use the same structural adapter as Watchlist and other TFE pages.
     state = compute_structural_state(symbol, bars)
 
     # Defensive extraction of fields
-    try:
-        last_close = float(state.get("last_close", float("nan")))
-    except Exception:
-        last_close = float("nan")
-
+    last_close = _safe_float(state.get("last_close"), float("nan"))
     regime = str(state.get("regime", "UNKNOWN"))
-
-    try:
-        S_UF = float(state.get("S_UF", 0.0))
-    except Exception:
-        S_UF = 0.0
-
-    try:
-        R_UF = float(state.get("R_UF", 0.0))
-    except Exception:
-        R_UF = 0.0
-
-    try:
-        stability_score = float(state.get("stability_score", 0.0))
-    except Exception:
-        stability_score = 0.0
-
-    try:
-        max_dd = float(state.get("max_drawdown", 0.0))
-    except Exception:
-        max_dd = 0.0
+    s_uf = _safe_float(state.get("S_UF"), 0.0)
+    r_uf = _safe_float(state.get("R_UF"), 0.0)
+    stability_score = _safe_float(state.get("stability_score"), 0.0)
+    max_dd = _safe_float(state.get("max_drawdown"), 0.0)
 
     decision_vector = _pad_decision_vector(state.get("decision_vector"))
+    gate_count = _safe_int(state.get("gate_count"), 0)
+    active_gate_count = _safe_int(state.get("active_gate_count"), 0)
+
+    decision_guard_raw = state.get("decision_guard", {})
+    decision_guard = decision_guard_raw if isinstance(decision_guard_raw, dict) else {}
 
     row: Dict[str, Any] = {
         "ticker": symbol,
         "asset_type": asset_type,
         "price": last_close,
         "regime": regime,
-        "S_UF": S_UF,
-        "R_UF": R_UF,
+        "S_UF": s_uf,
+        "R_UF": r_uf,
         "stability_score": stability_score,
         "max_dd": max_dd,
         "decision_vector": decision_vector,
+        "bar_count": int(bar_count),
+        "gate_count": gate_count,
+        "active_gate_count": active_gate_count,
+        "decision_guard": decision_guard,
+        "integrity_dropped": dropped,
     }
 
     return row

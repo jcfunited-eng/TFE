@@ -1,0 +1,22 @@
+{
+  "objective_metric": "avg_return_multiple_over_spy_pct_log_v2_mom_irf_v1",
+  "updated_at_utc": "2026-02-20T16:33:12Z",
+  "arms": {
+    "baseline_estimated": {
+      "runs": 478,
+      "ok_runs": 478,
+      "sum_score": 65.04830942956073,
+      "sum_sq_score": 12.83569109212264,
+      "best_score": 0.3294772149966117,
+      "above_reference_runs": 0
+    },
+    "soft_negative_space": {
+      "runs": 478,
+      "ok_runs": 478,
+      "sum_score": 64.89825437989795,
+      "sum_sq_score": 12.753114605989992,
+      "best_score": 0.27083792482019425,
+      "above_reference_runs": 0
+    }
+  }
+}

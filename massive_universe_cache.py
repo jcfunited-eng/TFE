@@ -2,11 +2,24 @@
 massive_universe_cache.py
 -------------------------
 
-Reference universe builder + cache for Massive.com
+Reference universe builder + cache for Massive.com.
 
-- Fetches ALL active U.S. stocks (market=stocks) via pagination (next_url).
-- Caches the entire result set to massive_universe_stocks.json.
-- On future runs, loads from cache unless force_refresh=True.
+This module fetches the raw active U.S. ticker universe (market=stocks),
+then applies a strict stock allowlist for TFE ingestion.
+
+Default stock allowlist (production):
+- CS    (Common Stock)
+- ADRC  (ADR Common)
+- PFD   (Preferred)
+
+Why this exists:
+- Massive market=stocks contains many non-common instruments (ETF, WARRANT,
+  UNIT, RIGHT, ETN, etc.).
+- Those instruments materially distort recommendation distributions.
+
+Ticker handling:
+- Tickers are kept case-preserving (no forced uppercasing).
+- This avoids collisions such as BCPC vs BCpC.
 """
 
 from __future__ import annotations
@@ -14,12 +27,13 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable, List, Sequence, Tuple
 
 import requests
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except Exception:
     pass
@@ -27,6 +41,9 @@ except Exception:
 
 CACHE_PATH = Path("massive_universe_stocks.json")
 MASSIVE_BASE_URL = "https://api.massive.com/v3/reference/tickers"
+
+# Production stock-type allowlist used by ingestion.
+DEFAULT_STOCK_TYPES: Tuple[str, ...] = ("CS", "ADRC", "PFD")
 
 
 def _get_api_key() -> str:
@@ -36,19 +53,38 @@ def _get_api_key() -> str:
     return key
 
 
-def fetch_massive_stock_universe(force_refresh: bool = False) -> List[Dict[str, Any]]:
-    """
-    Fetch the complete Massive stock universe using next_url pagination.
-    Cache results locally.
-    """
-    # Step 1: use cache if available and not forced to refresh
-    if CACHE_PATH.exists() and not force_refresh:
-        with CACHE_PATH.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        if isinstance(data, list):
-            return data
+def _load_cached_universe() -> List[Dict[str, Any]]:
+    if not CACHE_PATH.exists():
+        return []
 
-    # Step 2: fetch from Massive with pagination
+    with CACHE_PATH.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if not isinstance(data, list):
+        raise RuntimeError(f"Invalid cache format in {CACHE_PATH}; expected a list.")
+
+    return data
+
+
+def _save_cached_universe(rows: List[Dict[str, Any]]) -> None:
+    with CACHE_PATH.open("w", encoding="utf-8") as f:
+        json.dump(rows, f, indent=2, sort_keys=True)
+
+
+def fetch_massive_stock_universe(
+    force_refresh: bool = False,
+    request_timeout_seconds: int = 30,
+) -> List[Dict[str, Any]]:
+    """
+    Fetch raw Massive stock reference universe using pagination.
+
+    Returns raw rows exactly as delivered by Massive for market=stocks.
+    """
+    if not force_refresh:
+        cached = _load_cached_universe()
+        if cached:
+            return cached
+
     api_key = _get_api_key()
 
     headers = {
@@ -57,7 +93,7 @@ def fetch_massive_stock_universe(force_refresh: bool = False) -> List[Dict[str, 
     }
 
     url = MASSIVE_BASE_URL
-    params = {
+    params: Dict[str, Any] | None = {
         "active": "true",
         "market": "stocks",
         "limit": 1000,
@@ -66,9 +102,14 @@ def fetch_massive_stock_universe(force_refresh: bool = False) -> List[Dict[str, 
     all_results: List[Dict[str, Any]] = []
 
     while True:
-        resp = requests.get(url, headers=headers, params=params)
-        resp.raise_for_status()
-        payload = resp.json()
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params,
+            timeout=request_timeout_seconds,
+        )
+        response.raise_for_status()
+        payload = response.json()
 
         results = payload.get("results", [])
         if not isinstance(results, list):
@@ -80,33 +121,84 @@ def fetch_massive_stock_universe(force_refresh: bool = False) -> List[Dict[str, 
         if not next_url:
             break
 
-        # Next page uses next_url directly with no params
-        url = next_url
+        url = str(next_url)
         params = None
 
-    # Step 3: cache the universe
-    with CACHE_PATH.open("w", encoding="utf-8") as f:
-        json.dump(all_results, f, indent=2, sort_keys=True)
-
+    _save_cached_universe(all_results)
     return all_results
 
 
-def get_stock_tickers_from_universe(force_refresh: bool = False) -> List[str]:
+def filter_stock_universe(
+    universe: Iterable[Dict[str, Any]],
+    allowed_types: Sequence[str] = DEFAULT_STOCK_TYPES,
+) -> List[Dict[str, Any]]:
     """
-    Return a list of ACTIVE stock ticker symbols from the Massive universe.
-    Uppercased.
+    Strict stock filter for ingestion.
+
+    Required fields:
+    - active == True
+    - market == "stocks"
+    - type in allowed_types
+    - ticker present
     """
-    universe = fetch_massive_stock_universe(force_refresh=force_refresh)
-    tickers: List[str] = []
+    allowed = {str(t).upper().strip() for t in allowed_types}
+    filtered: List[Dict[str, Any]] = []
 
     for item in universe:
-        if not item.get("active", False):
-            continue
-        if item.get("market") != "stocks":
+        if not isinstance(item, dict):
             continue
 
-        t = item.get("ticker")
-        if t:
-            tickers.append(str(t).upper())
+        if not bool(item.get("active", False)):
+            continue
 
-    return sorted(set(tickers))
+        market = str(item.get("market", "")).strip().lower()
+        if market != "stocks":
+            continue
+
+        instrument_type = str(item.get("type", "")).strip().upper()
+        if instrument_type not in allowed:
+            continue
+
+        ticker = item.get("ticker")
+        if not ticker:
+            continue
+
+        filtered.append(item)
+
+    return filtered
+
+
+def get_stock_tickers_from_universe(
+    force_refresh: bool = False,
+    allowed_types: Sequence[str] = DEFAULT_STOCK_TYPES,
+) -> List[str]:
+    """
+    Return filtered stock tickers for ingestion.
+
+    Default behavior returns only CS/ADRC/PFD symbols.
+    Tickers remain case-preserving.
+    """
+    universe = fetch_massive_stock_universe(force_refresh=force_refresh)
+    filtered = filter_stock_universe(universe, allowed_types=allowed_types)
+
+    tickers = {
+        str(item.get("ticker", "")).strip()
+        for item in filtered
+        if item.get("ticker")
+    }
+
+    return sorted(t for t in tickers if t)
+
+
+def get_stock_universe_type_counts(force_refresh: bool = False) -> Dict[str, int]:
+    """
+    Diagnostic helper: count raw instrument types in market=stocks universe.
+    """
+    universe = fetch_massive_stock_universe(force_refresh=force_refresh)
+    counts: Dict[str, int] = {}
+
+    for item in universe:
+        instrument_type = str(item.get("type", "UNKNOWN")).upper().strip()
+        counts[instrument_type] = counts.get(instrument_type, 0) + 1
+
+    return counts
