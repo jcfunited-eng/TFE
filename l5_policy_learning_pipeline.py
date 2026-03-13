@@ -211,6 +211,7 @@ L5_POLICY_IO_MODE = normalize_l5_policy_io_mode(
 DEFAULT_ROW_TRACE_PATH = Path("real_world_cleaned_universe_l5_row_trace_full.csv")
 DEFAULT_RUNTIME_POLICY_PATH = Path("pscf_policy_runtime.json")
 DEFAULT_REPORT_LATEST_PATH = Path("l5_policy_learning_latest.json")
+REPORT_LATEST_PATH_OVERRIDE_ENV = "TFE_L5_REPORT_LATEST_PATH"
 DEFAULT_OUTPUT_DIR = Path("backups/runtime/l5_policy_learning")
 DEFAULT_COVERAGE_SNAPSHOT_PATH = Path("uf_snapshot.ses.json")
 DEFAULT_HORIZON_DECISION_OVERRIDES_PATH = Path("policy_horizon_overrides.json")
@@ -228,6 +229,17 @@ def _utc_now_iso() -> str:
 
 def _utc_stamp() -> str:
     return datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+
+
+def _resolve_report_latest_path() -> Path:
+    override_raw = str(os.environ.get(REPORT_LATEST_PATH_OVERRIDE_ENV, "")).strip()
+    if not override_raw:
+        return DEFAULT_REPORT_LATEST_PATH
+
+    override_path = Path(override_raw)
+    if override_path.is_absolute():
+        return override_path
+    return Path.cwd() / override_path
 
 
 def _to_num(value: Any) -> float:
@@ -2878,6 +2890,7 @@ def run_l5_policy_learning(trigger: str = "manual") -> LearningResult:
 
     output_dir = DEFAULT_OUTPUT_DIR
     output_dir.mkdir(parents=True, exist_ok=True)
+    report_latest_path = _resolve_report_latest_path()
 
     row_trace_path = Path(str(os.environ.get("TFE_POLICY_ROW_TRACE", str(DEFAULT_ROW_TRACE_PATH))))
     runtime_policy_path = Path(str(os.environ.get("TFE_RUNTIME_POLICY_PATH", str(DEFAULT_RUNTIME_POLICY_PATH))))
@@ -3058,6 +3071,7 @@ def run_l5_policy_learning(trigger: str = "manual") -> LearningResult:
             "candidate_policy_path": str(candidate_policy_path),
             "current_eval_path": str(current_eval_path),
             "candidate_eval_path": str(candidate_eval_path),
+            "latest_report_path": str(report_latest_path),
             "candidate_sampling_path": (
                 str(candidate_sampling_artifact_path) if candidate_sampling_artifact_path is not None else None
             ),
@@ -3124,7 +3138,7 @@ def run_l5_policy_learning(trigger: str = "manual") -> LearningResult:
     report["postgres_persistence"] = postgres_persistence
 
     _write_json(report_path, report)
-    _write_json(DEFAULT_REPORT_LATEST_PATH, report)
+    _write_json(report_latest_path, report)
 
     return LearningResult(report_path=report_path, report=report)
 

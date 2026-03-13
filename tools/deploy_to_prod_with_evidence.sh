@@ -416,11 +416,13 @@ sort -u "$SOURCE_LIST" -o "$SOURCE_LIST"
 
 : >"$DIRTY_DEPLOY_INPUTS_PATH"
 : >"$UNTRACKED_DEPLOY_INPUTS_PATH"
-if ! git -C "$REPO_ROOT" diff --name-only HEAD --pathspec-from-file="$SOURCE_LIST" -- >"$DIRTY_DEPLOY_INPUTS_PATH"; then
+mapfile -t DEPLOY_SOURCE_PATTERNS <"$SOURCE_LIST"
+
+if ! git -C "$REPO_ROOT" diff --name-only HEAD -- "${DEPLOY_SOURCE_PATTERNS[@]}" >"$DIRTY_DEPLOY_INPUTS_PATH"; then
   echo "Deployment failed: unable to diff deploy-relevant tracked files against HEAD." >&2
   exit 1
 fi
-git -C "$REPO_ROOT" ls-files --others --exclude-standard --pathspec-from-file="$SOURCE_LIST" -- >"$UNTRACKED_DEPLOY_INPUTS_PATH"
+git -C "$REPO_ROOT" ls-files --others --exclude-standard -- "${DEPLOY_SOURCE_PATTERNS[@]}" >"$UNTRACKED_DEPLOY_INPUTS_PATH"
 
 if [ -s "$DIRTY_DEPLOY_INPUTS_PATH" ] || [ -s "$UNTRACKED_DEPLOY_INPUTS_PATH" ]; then
   echo "Deployment failed: deploy-relevant workspace files do not match HEAD. Commit the deploy package first." >&2
