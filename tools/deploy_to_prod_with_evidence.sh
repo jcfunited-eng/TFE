@@ -104,6 +104,7 @@ DEPLOY_METADATA_STAGE_PATH="${STAGE_DIR}/tfe_deploy_metadata.json"
 DEPLOY_METADATA_EVIDENCE_PATH="${EVIDENCE_DIR}/source-traceability-metadata.json"
 DIRTY_DEPLOY_INPUTS_PATH="${EVIDENCE_DIR}/deploy-relevant-dirty-tracked.txt"
 UNTRACKED_DEPLOY_INPUTS_PATH="${EVIDENCE_DIR}/deploy-relevant-untracked.txt"
+STAGED_BUILD_CONTEXT_VERIFY_PATH="${EVIDENCE_DIR}/staged-build-context-verification.json"
 
 mkdir -p "$TMP_SRC_DIR" "$ARCHIVE_EXTRACT_DIR" "$STAGE_DIR" "$EVIDENCE_DIR"
 
@@ -509,6 +510,59 @@ cat >"${DEPLOY_METADATA_STAGE_PATH}" <<JSON
 JSON
 jq . "${DEPLOY_METADATA_STAGE_PATH}" >"${DEPLOY_METADATA_EVIDENCE_PATH}"
 sha256sum "${DEPLOY_METADATA_STAGE_PATH}" >"${EVIDENCE_DIR}/source-traceability-metadata-sha.txt"
+
+if [ ! -f "${REPO_ROOT}/uf_structural_cache.json" ]; then
+  echo "Packaging failed: required workspace file uf_structural_cache.json is absent." >&2
+  exit 1
+fi
+echo "package_copy_start pattern=workspace-explicit path=uf_structural_cache.json" | tee -a "$PACKAGE_PROGRESS_LOG"
+cp -a "${REPO_ROOT}/uf_structural_cache.json" "${STAGE_DIR}/uf_structural_cache.json"
+echo "package_copy_done pattern=workspace-explicit path=uf_structural_cache.json" | tee -a "$PACKAGE_PROGRESS_LOG"
+
+python3 - <<PY
+import json
+from pathlib import Path
+
+stage_dir = Path("${STAGE_DIR}")
+dockerignore_path = stage_dir / ".dockerignore"
+dockerignore_lines = []
+if dockerignore_path.exists():
+    dockerignore_lines = dockerignore_path.read_text(encoding="utf-8").splitlines()
+
+required = {
+    "tfe_deploy_metadata.json": {
+        "stage_path": str(stage_dir / "tfe_deploy_metadata.json"),
+        "present_in_stage": (stage_dir / "tfe_deploy_metadata.json").is_file(),
+        "dockerignore_allow_rule": "!tfe_deploy_metadata.json",
+        "dockerignore_explicitly_allowed": "!tfe_deploy_metadata.json" in dockerignore_lines,
+    },
+    "uf_structural_cache.json": {
+        "stage_path": str(stage_dir / "uf_structural_cache.json"),
+        "present_in_stage": (stage_dir / "uf_structural_cache.json").is_file(),
+        "dockerignore_allow_rule": "!uf_structural_cache.json",
+        "dockerignore_explicitly_allowed": "!uf_structural_cache.json" in dockerignore_lines,
+    },
+}
+
+report = {
+    "generated_at_utc": "${TS_ISO}",
+    "stage_dir": str(stage_dir),
+    "dockerignore_path": str(dockerignore_path),
+    "required_root_copy_inputs": required,
+}
+report["pass"] = all(
+    item["present_in_stage"] and item["dockerignore_explicitly_allowed"]
+    for item in required.values()
+)
+
+Path("${STAGED_BUILD_CONTEXT_VERIFY_PATH}").write_text(
+    json.dumps(report, indent=2),
+    encoding="utf-8",
+)
+
+if not report["pass"]:
+    raise SystemExit(1)
+PY
 
 (
   cd "$STAGE_DIR"

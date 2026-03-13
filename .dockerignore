@@ -67,6 +67,7 @@ web/tsconfig.tsbuildinfo
 !l5_policy_learning_pipeline.py
 !l5_postgres_io.py
 !l5_policy_learning_latest.json
+!tfe_deploy_metadata.json
 !policy_horizon_overrides.json
 !pscf_policy_runtime.json
 
