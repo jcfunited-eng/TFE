@@ -1,78 +1,94 @@
 {
-  "generated_at_utc": "2026-02-20T16:44:08Z",
-  "trigger": "oracle_seeded_cycle_22",
+  "generated_at_utc": "2026-03-11T23:15:25Z",
+  "trigger": "manual",
   "inputs": {
     "row_trace_path": "real_world_cleaned_universe_l5_row_trace_full.csv",
-    "spy_dataset_path": "backups/strict-ab-frozen-dataset-20260218T133559Z.json",
-    "validation_dataset_path": "backups/strict-ab-frozen-dataset-20260218T133559Z.json",
-    "runtime_policy_path": "/tmp/oracle_seeded_25_20260220T164247Z_runtime_policy.json"
+    "spy_dataset_path": "backups/strict-ab-frozen-dataset-20260306T180841Z.json",
+    "validation_dataset_path": "backups/strict-ab-frozen-dataset-20260306T180841Z.json",
+    "validation_dataset_source": "not_required_for_current_modes",
+    "anomaly_policy_path": "backups/pscf-policy-anomaly-watch-20260218T142043Z.json",
+    "anomaly_policy_source": "file",
+    "runtime_policy_path": "pscf_policy_runtime.json",
+    "runtime_policy_source": "file",
+    "policy_io_mode": "file",
+    "evaluation_scope": "full_broad",
+    "evaluation_symbol_count": null
   },
   "artifacts": {
-    "replay_policy_path": "backups/runtime/l5_policy_learning/pscf-policy-replay-spy-20260220T164405Z.json",
-    "candidate_policy_path": "backups/runtime/l5_policy_learning/pscf-policy-candidate-20260220T164405Z.json",
-    "current_eval_path": "backups/runtime/l5_policy_learning/policy-eval-current-20260220T164405Z.json",
-    "candidate_eval_path": "backups/runtime/l5_policy_learning/policy-eval-candidate-20260220T164405Z.json"
+    "replay_policy_path": "backups/runtime/l5_policy_learning/pscf-policy-replay-spy-20260311T231523Z.json",
+    "candidate_policy_path": "backups/runtime/l5_policy_learning/pscf-policy-candidate-20260311T231523Z.json",
+    "current_eval_path": "backups/runtime/l5_policy_learning/policy-eval-current-20260311T231523Z.json",
+    "candidate_eval_path": "backups/runtime/l5_policy_learning/policy-eval-candidate-20260311T231523Z.json",
+    "candidate_sampling_path": null
   },
   "merge_report": {
-    "generated_at_utc": "2026-02-20T16:44:06Z",
-    "merged_cell_count": 717,
+    "generated_at_utc": "2026-03-11T23:15:24Z",
+    "merged_cell_count": 2467,
     "min_primary_cell_samples": 0,
     "source_counts": {
-      "primary_only": 0,
-      "secondary_only": 616,
-      "both_primary_selected": 101,
+      "primary_only": 750,
+      "secondary_only": 1153,
+      "both_primary_selected": 564,
       "both_secondary_selected_low_support": 0,
       "primary_only_dropped_low_support": 0
     },
     "decision_counts": {
-      "Accumulate": 431,
-      "Hold": 35,
-      "Avoid": 251
+      "Accumulate": 1434,
+      "Hold": 262,
+      "Avoid": 771
     }
   },
+  "anomaly_overlay_report": {
+    "generated_at_utc": "2026-03-11T23:15:24Z",
+    "policy_cell_count": 2467,
+    "anomaly_policy_cell_count": 71,
+    "anomaly_profile_overlay_count": 71,
+    "anomaly_profile_already_present_count": 0,
+    "anomaly_profile_missing_after_overlay_count": 2396
+  },
   "comparison": {
-    "generated_at_utc": "2026-02-20T16:44:07Z",
+    "generated_at_utc": "2026-03-11T23:15:25Z",
     "horizon_rows": [
       {
         "horizon": 5,
-        "current_excess_mean_anomaly_accounted": 0.014684717095145246,
-        "candidate_excess_mean_anomaly_accounted": 0.0162914245059208,
-        "delta_excess_mean_anomaly_accounted": 0.0016067074107755548,
-        "current_outcome_over_index_pct_anomaly_accounted": 65.43256516811485,
-        "candidate_outcome_over_index_pct_anomaly_accounted": 78.84397431054023,
-        "delta_outcome_over_index_pct_anomaly_accounted": 13.411409142425384,
-        "current_mapped_rate_pct": 100.0,
+        "current_excess_mean_anomaly_accounted": -0.008507388385378362,
+        "candidate_excess_mean_anomaly_accounted": -0.003828764734124441,
+        "delta_excess_mean_anomaly_accounted": 0.004678623651253921,
+        "current_outcome_over_index_pct_anomaly_accounted": 40.222935953145665,
+        "candidate_outcome_over_index_pct_anomaly_accounted": 34.06385792556206,
+        "delta_outcome_over_index_pct_anomaly_accounted": -6.159078027583604,
+        "current_mapped_rate_pct": 97.82731910069904,
         "candidate_mapped_rate_pct": 100.0,
-        "delta_mapped_rate_pct": 0.0
+        "delta_mapped_rate_pct": 2.172680899300957
       },
       {
         "horizon": 20,
-        "current_excess_mean_anomaly_accounted": 0.05038251179872923,
-        "candidate_excess_mean_anomaly_accounted": 0.04947385941503091,
-        "delta_excess_mean_anomaly_accounted": -0.000908652383698326,
-        "current_outcome_over_index_pct_anomaly_accounted": 69.0404231205138,
-        "candidate_outcome_over_index_pct_anomaly_accounted": 83.7363052512278,
-        "delta_outcome_over_index_pct_anomaly_accounted": 14.695882130714011,
-        "current_mapped_rate_pct": 100.0,
+        "current_excess_mean_anomaly_accounted": -0.009415856089221157,
+        "candidate_excess_mean_anomaly_accounted": 0.02620190541893331,
+        "delta_excess_mean_anomaly_accounted": 0.03561776150815447,
+        "current_outcome_over_index_pct_anomaly_accounted": 48.64915926695636,
+        "candidate_outcome_over_index_pct_anomaly_accounted": 46.57094275458152,
+        "delta_outcome_over_index_pct_anomaly_accounted": -2.078216512374837,
+        "current_mapped_rate_pct": 98.46967693179671,
         "candidate_mapped_rate_pct": 100.0,
-        "delta_mapped_rate_pct": 0.0
+        "delta_mapped_rate_pct": 1.5303230682032876
       },
       {
         "horizon": 60,
-        "current_excess_mean_anomaly_accounted": 0.02730040421942982,
-        "candidate_excess_mean_anomaly_accounted": 0.00924948786645273,
-        "delta_excess_mean_anomaly_accounted": -0.01805091635297709,
-        "current_outcome_over_index_pct_anomaly_accounted": 59.21798262183604,
-        "candidate_outcome_over_index_pct_anomaly_accounted": 40.78201737816396,
-        "delta_outcome_over_index_pct_anomaly_accounted": -18.435965243672086,
-        "current_mapped_rate_pct": 100.0,
+        "current_excess_mean_anomaly_accounted": 0.011283246161421224,
+        "candidate_excess_mean_anomaly_accounted": 0.049082457930237224,
+        "delta_excess_mean_anomaly_accounted": 0.037799211768815996,
+        "current_outcome_over_index_pct_anomaly_accounted": 42.26336671075005,
+        "candidate_outcome_over_index_pct_anomaly_accounted": 43.20801058001133,
+        "delta_outcome_over_index_pct_anomaly_accounted": 0.9446438692612844,
+        "current_mapped_rate_pct": 98.22406952578878,
         "candidate_mapped_rate_pct": 100.0,
-        "delta_mapped_rate_pct": 0.0
+        "delta_mapped_rate_pct": 1.775930474211222
       }
     ],
-    "aggregate_delta_excess_mean_anomaly_accounted": -0.005784287108633286,
+    "aggregate_delta_excess_mean_anomaly_accounted": 0.02603186564274146,
     "gates": {
-      "delta_excess_mean_anomaly_accounted_non_negative_aggregate_mean": false,
+      "delta_excess_mean_anomaly_accounted_non_negative_aggregate_mean": true,
       "outcome_over_index_pct_anomaly_accounted_non_decreasing_all_horizons": false,
       "mapped_rate_non_decreasing_all_horizons": true
     },
@@ -82,11 +98,11 @@
   "coverage": {
     "current_runtime": {
       "snapshot_path": "uf_snapshot.ses.json",
-      "status": "snapshot_decrypt_failed:RuntimeError"
+      "status": "snapshot_decrypt_failed:ValueError"
     },
     "candidate": {
       "snapshot_path": "uf_snapshot.ses.json",
-      "status": "snapshot_decrypt_failed:RuntimeError"
+      "status": "snapshot_decrypt_failed:ValueError"
     }
   },
   "promotion": {
@@ -95,6 +111,7 @@
   },
   "notes": {
     "irf_fmm_integration": "not integrated in this pipeline yet",
+    "spider_eyes_integration": "integrated:section23-key",
     "target_goal_reference": "index beat target is external business goal; promotion gate here is structural non-regression with mapping non-degradation",
     "cd_bucket_edges": [
       -0.6,
@@ -102,7 +119,7 @@
       -0.3,
       -0.2
     ],
-    "cd_regime_mode": "stable",
+    "cd_regime_mode": "all",
     "horizon_weights": {
       "5": 1.0,
       "20": 1.0,
@@ -110,12 +127,59 @@
     },
     "min_primary_cell_samples": 0,
     "policy_source_mode": "rowtrace",
-    "selection_objective": "outcome",
-    "include_stability_bucket": true,
+    "selection_objective": "excess",
+    "auto_promote_runtime_policy": false,
+    "include_stability_bucket": false,
     "irf_mode": "off",
+    "spider_eyes_mode": "section23",
     "eval_mode": "rowtrace",
-    "min_action_edge": 0.01,
-    "min_action_margin": 0.002,
-    "min_action_winrate_pct": 60.0
+    "refresh_candidate_sample_on_targeted": true,
+    "refresh_candidate_sample_size": 30,
+    "refresh_candidate_sample_seed": 20260301,
+    "min_action_edge": 0.0,
+    "min_action_margin": 0.0,
+    "min_action_winrate_pct": 0.0,
+    "horizon_decision_overrides_path": "policy_horizon_overrides.json",
+    "horizon_decision_overrides_cells_by_horizon": {
+      "5": 0,
+      "20": 1,
+      "60": 4
+    },
+    "horizon_decision_overrides_resolution": {
+      "io_mode": "file",
+      "horizon_decision_overrides_path": "policy_horizon_overrides.json",
+      "source": "file",
+      "postgres_enabled": false,
+      "postgres_strict": false
+    },
+    "policy_io_mode": "file",
+    "runtime_policy_resolution": {
+      "io_mode": "file",
+      "runtime_policy_path": "pscf_policy_runtime.json",
+      "source": "file",
+      "postgres_enabled": false,
+      "postgres_strict": false
+    },
+    "validation_dataset_resolution": {
+      "source": "not_required_for_current_modes",
+      "io_mode": "file",
+      "validation_dataset_path": "backups/strict-ab-frozen-dataset-20260306T180841Z.json"
+    },
+    "anomaly_policy_resolution": {
+      "io_mode": "file",
+      "anomaly_policy_path": "backups/pscf-policy-anomaly-watch-20260218T142043Z.json",
+      "source": "file",
+      "postgres_enabled": false,
+      "postgres_strict": false
+    }
+  },
+  "postgres_persistence": {
+    "enabled": false,
+    "io_mode": "file",
+    "strict": false,
+    "status": "skipped",
+    "policy_runtime_write": null,
+    "eval_run_write": null,
+    "errors": []
   }
 }

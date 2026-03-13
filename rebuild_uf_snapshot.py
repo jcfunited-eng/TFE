@@ -32,7 +32,9 @@ import datetime
 import json
 import os
 import re
+import signal
 import shutil
+import subprocess
 import time
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -56,6 +58,7 @@ from uf_mdg_snapshot import evaluate_symbol_snapshot
 STRUCTURAL_CACHE_PATH = "uf_structural_cache.json"
 SNAPSHOT_ENVELOPE_PATH = "uf_snapshot.ses.json"
 SNAPSHOT_ENVELOPE_BACKUP_PATH = "uf_snapshot_old_backup.ses.json"
+SNAPSHOT_JSON_FALLBACK_PATH = "uf_snapshot.json"
 REBUILD_REPORT_PATH = "uf_snapshot_rebuild_report.json"
 
 PRIVATE_FILE_MODE = 0o600
@@ -71,6 +74,7 @@ REFRESH_MODE_TARGETED = "targeted_pfsc"
 
 ACCUMULATE_MIN_BARS = 514
 WEB_USER_DATA_ROOT = "web_user_data"
+REQUIRED_PG_ENV = ("PGHOST", "PGDATABASE", "PGUSER", "PGPASSWORD")
 
 REQUIRED_KEYS = (
     "ticker",
@@ -191,6 +195,14 @@ def _save_snapshot_envelope(rows: List[Dict[str, Any]], generated_at_utc: str) -
     )
 
 
+def _save_snapshot_json_fallback(rows: List[Dict[str, Any]], generated_at_utc: str) -> None:
+    payload = {
+        "rows": rows,
+        "generated_at_utc": generated_at_utc,
+    }
+    _write_private_json(SNAPSHOT_JSON_FALLBACK_PATH, payload)
+
+
 def _save_rebuild_report(report: Dict[str, Any]) -> None:
     _write_private_json(REBUILD_REPORT_PATH, report)
 
@@ -205,6 +217,14 @@ def _safe_int(value: Any, default: int = 0) -> int:
         return n
     except Exception:
         return default
+
+
+class _SnapshotSymbolTimeout(TimeoutError):
+    pass
+
+
+def _snapshot_symbol_timeout_handler(signum: int, frame: Any) -> None:
+    raise _SnapshotSymbolTimeout("snapshot symbol evaluation timed out")
 
 
 def _sanitize_username_for_path(username: str) -> str:
@@ -326,41 +346,67 @@ def _decrypt_user_envelope(
 
 
 def _load_existing_snapshot_rows() -> List[Dict[str, Any]]:
-    if not os.path.exists(SNAPSHOT_ENVELOPE_PATH):
-        return []
+    missing_env = [key for key in REQUIRED_PG_ENV if not str(os.environ.get(key, "")).strip()]
+    if missing_env:
+        raise RuntimeError(
+            "targeted_selector_runtime_postgres_env_missing:"
+            + ",".join(missing_env)
+        )
+
+    node_bin = shutil.which("node")
+    if node_bin is None:
+        raise RuntimeError("targeted_selector_node_missing")
+
+    selector_script = os.path.join(
+        os.getcwd(),
+        "web",
+        "scripts",
+        "read_runtime_selector_rows.mjs",
+    )
+    if not os.path.exists(selector_script):
+        raise RuntimeError(f"targeted_selector_script_missing:{selector_script}")
 
     try:
-        ctx, tenant = _init_web_ses_context()
-
-        with open(SNAPSHOT_ENVELOPE_PATH, "r", encoding="utf-8") as f:
-            envelope_raw = f.read()
-
-        envelope = Envelope.from_json(envelope_raw)
-        domain = make_domain(ctx=ctx, purpose_suffix=SES_PURPOSE_SUFFIX, version="v1")
-
-        payload = decrypt_blob(
-            ctx=ctx,
-            tenant=tenant,
-            domain=domain,
-            envelope=envelope,
-            actor_id=SES_ACTOR_ID,
+        completed = subprocess.run(
+            [node_bin, selector_script],
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=90,
+            env=os.environ.copy(),
         )
-
-        rows_raw: Any = []
-        if isinstance(payload, dict):
-            rows_raw = payload.get("rows", [])
-        elif isinstance(payload, list):
-            rows_raw = payload
-
-        if isinstance(rows_raw, list):
-            return [row for row in rows_raw if isinstance(row, dict)]
     except Exception as exc:
-        print(
-            "[UF-SNAPSHOT] WARNING: Could not decrypt existing snapshot envelope for targeted selector: "
-            f"{type(exc).__name__}: {exc}"
-        )
+        raise RuntimeError(
+            "targeted_selector_runtime_query_failed:"
+            f"{type(exc).__name__}:{exc}"
+        ) from exc
 
-    return []
+    stdout = str(completed.stdout or "").strip()
+    stderr = str(completed.stderr or "").strip()
+    payload_raw = stdout or stderr
+    try:
+        payload = json.loads(payload_raw) if payload_raw else {}
+    except Exception:
+        payload = {"ok": False, "reason": payload_raw or "selector_payload_parse_failed"}
+
+    if completed.returncode != 0:
+        reason = str(payload.get("reason") or stderr or stdout or "targeted_selector_non_zero_exit")
+        raise RuntimeError(reason)
+
+    rows_raw = payload.get("rows", [])
+    if not isinstance(rows_raw, list):
+        raise RuntimeError("targeted_selector_rows_missing")
+
+    rows = [row for row in rows_raw if isinstance(row, dict)]
+    if not rows:
+        raise RuntimeError("targeted_selector_rows_empty")
+
+    source_table = str(payload.get("source_table") or "runtime_selector_rows").strip()
+    print(
+        "[UF-SNAPSHOT] Targeted selector runtime read: loaded "
+        f"{len(rows)} rows from {source_table}."
+    )
+    return rows
 
 
 def _load_admin_tracked_symbols() -> Set[str]:
@@ -629,21 +675,55 @@ def rebuild_snapshot(
 
     snapshot_rows: List[Dict[str, Any]] = []
     skipped_rows: List[Dict[str, str]] = []
+    symbol_timeout_count = 0
+    symbol_timeout_seconds = max(
+        0,
+        _safe_int(os.environ.get("TFE_SNAPSHOT_SYMBOL_TIMEOUT_SECONDS", 120), 120),
+    )
+    progress_log_interval_seconds = max(
+        5,
+        _safe_int(os.environ.get("TFE_SNAPSHOT_PROGRESS_LOG_INTERVAL_SECONDS", 30), 30),
+    )
 
     total = len(universe_items)
+    last_progress_log_ts = time.time()
     for idx, item in enumerate(universe_items, start=1):
         symbol = item["symbol"]
         asset_type = item["asset_type"]
 
-        if idx == 1 or idx % 200 == 0:
-            print(f"[UF-SNAPSHOT] Processing {idx}/{total}...")
+        now = time.time()
+        if idx == 1 or idx % 200 == 0 or (now - last_progress_log_ts) >= progress_log_interval_seconds:
+            print(f"[UF-SNAPSHOT] Processing {idx}/{total} symbol={symbol}...")
+            last_progress_log_ts = now
+
+        timeout_armed = False
+        previous_alarm_handler = None
 
         try:
+            if symbol_timeout_seconds > 0:
+                previous_alarm_handler = signal.getsignal(signal.SIGALRM)
+                signal.signal(signal.SIGALRM, _snapshot_symbol_timeout_handler)
+                signal.alarm(symbol_timeout_seconds)
+                timeout_armed = True
             row = evaluate_symbol_snapshot(
                 symbol=symbol,
                 asset_type=asset_type,
                 years_history=years_history,
             )
+        except _SnapshotSymbolTimeout:
+            symbol_timeout_count += 1
+            skipped_rows.append(
+                {
+                    "symbol": symbol,
+                    "asset_type": asset_type,
+                    "reason": f"evaluation_timeout_after_{symbol_timeout_seconds}s",
+                }
+            )
+            print(
+                f"[UF-SNAPSHOT] TIMEOUT symbol={symbol} asset_type={asset_type} "
+                f"after={symbol_timeout_seconds}s; skipping."
+            )
+            continue
         except Exception as exc:
             skipped_rows.append(
                 {
@@ -653,6 +733,10 @@ def rebuild_snapshot(
                 }
             )
             continue
+        finally:
+            if timeout_armed:
+                signal.alarm(0)
+                signal.signal(signal.SIGALRM, previous_alarm_handler)
 
         if not isinstance(row, dict):
             skipped_rows.append(
@@ -696,6 +780,9 @@ def rebuild_snapshot(
             **selector_meta,
             "rows_written": 0,
             "skipped_count": len(skipped_rows),
+            "symbol_timeout_count": symbol_timeout_count,
+            "symbol_timeout_seconds": symbol_timeout_seconds,
+            "progress_log_interval_seconds": progress_log_interval_seconds,
             "skipped_examples": skipped_rows[:25],
             "summary": {},
             "snapshot_envelope_path": SNAPSHOT_ENVELOPE_PATH,
@@ -708,6 +795,7 @@ def rebuild_snapshot(
     _backup_old_snapshot_envelope()
 
     generated_at_utc = datetime.datetime.utcnow().isoformat() + "Z"
+    _save_snapshot_json_fallback(snapshot_rows, generated_at_utc=generated_at_utc)
     _save_snapshot_envelope(snapshot_rows, generated_at_utc=generated_at_utc)
 
     summary = _build_summary(snapshot_rows)
@@ -722,8 +810,12 @@ def rebuild_snapshot(
         **selector_meta,
         "rows_written": len(snapshot_rows),
         "skipped_count": len(skipped_rows),
+        "symbol_timeout_count": symbol_timeout_count,
+        "symbol_timeout_seconds": symbol_timeout_seconds,
+        "progress_log_interval_seconds": progress_log_interval_seconds,
         "skipped_examples": skipped_rows[:25],
         "summary": summary,
+        "snapshot_json_fallback_path": SNAPSHOT_JSON_FALLBACK_PATH,
         "snapshot_envelope_path": SNAPSHOT_ENVELOPE_PATH,
         "snapshot_envelope_backup_path": SNAPSHOT_ENVELOPE_BACKUP_PATH,
         "status": "ok",
@@ -735,6 +827,7 @@ def rebuild_snapshot(
         f"rows={len(snapshot_rows)} skipped={len(skipped_rows)} "
         f"processed={summary['rows_processed']}"
     )
+    print(f"[UF-SNAPSHOT] Plaintext snapshot written: {SNAPSHOT_JSON_FALLBACK_PATH}")
     print(f"[UF-SNAPSHOT] SES envelope written: {SNAPSHOT_ENVELOPE_PATH}")
     print(f"[UF-SNAPSHOT] Report written: {REBUILD_REPORT_PATH}")
 

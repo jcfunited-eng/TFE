@@ -22,7 +22,7 @@ web/tsconfig.tsbuildinfo
 !web/scripts/
 !web/scripts/**
 !web/data/
-!web/data/**
+!web/data/ui-config.json
 
 # Root runtime files copied by the Dockerfile.
 !certs/
@@ -33,13 +33,25 @@ web/tsconfig.tsbuildinfo
 !uf_core/**
 !tools/oracle_program/
 !tools/oracle_program/**
+!tools/l0_phase1_sync_postgres.py
+!tools/l0_phase2_bars_sync_postgres.py
+!tools/l1_phase1_sync_postgres.py
+!tools/l2_phase1_sync_postgres.py
+!tools/l3_phase1_sync_postgres.py
+!tools/l4_phase1_decision_sync_postgres.py
+!tools/l4_phase2_structural_snapshot_sync_postgres.py
+!tools/l5_db_native_preflight.py
+!tools/l5_phase2_sync_postgres.py
 !backups/runtime/oracle_program/
 !backups/runtime/oracle_program/**
+!backups/runtime/recommendation-quality-audit-lane-*/
+!backups/runtime/recommendation-quality-audit-lane-*/**
 
 !tfe_ses_core_adapter.py
 !aws_root_key_provider.py
 !rebuild_uf_snapshot.py
 !uf_mdg_snapshot.py
+!structural_recency_snapshot.py
 !run_refresh_with_l5_learning.py
 !unified_market_data_service.py
 !tfe_market_data.py
@@ -53,7 +65,9 @@ web/tsconfig.tsbuildinfo
 !massive_universe_index.py
 !massive_universe_crypto.py
 !l5_policy_learning_pipeline.py
+!l5_postgres_io.py
 !l5_policy_learning_latest.json
+!policy_horizon_overrides.json
 !pscf_policy_runtime.json
 
 !g32_horse_race.py
@@ -64,10 +78,9 @@ web/tsconfig.tsbuildinfo
 !horse_race_status.py
 
 !real_world_cleaned_universe_l5_row_trace_full.csv
+!structural_episodes.csv
+!uf_structural_cache.json
 
-!uf_snapshot.json
-!uf_snapshot.ses.json
-!uf_snapshot_rebuild_report.json
 !massive_universe_stocks.json
 !massive_universe_etf.json
 !massive_universe_index.json

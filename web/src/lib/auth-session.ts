@@ -226,7 +226,14 @@ export async function readSessionUserFromToken(token: string | null | undefined)
   const nowSeconds = Math.floor(Date.now() / 1000);
   if (parsedPayload.exp <= nowSeconds) return null;
 
-  const user = await getUserByUsername(parsedPayload.username);
+  let user: UserSummary | null;
+  try {
+    user = await getUserByUsername(parsedPayload.username);
+  } catch {
+    // Session lookup failures (for example transient DB outages) must not crash page render.
+    // Treat as signed-out and let auth-gated routes respond with their normal 401/redirect flow.
+    return null;
+  }
   if (!user) return null;
   if (!user.is_active) return null;
   if (isUserAccessExpired(user.access_expires_at)) return null;

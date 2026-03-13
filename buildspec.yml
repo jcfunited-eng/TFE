@@ -8,7 +8,7 @@ phases:
   build:
     commands:
       - echo Building image $IMAGE_URI
-      - docker build -f web/Dockerfile -t "$IMAGE_URI" .
+      - docker build --build-arg TFE_GIT_COMMIT_SHA="$TFE_GIT_COMMIT_SHA" -f web/Dockerfile -t "$IMAGE_URI" .
   post_build:
     commands:
       - echo Pushing image $IMAGE_URI

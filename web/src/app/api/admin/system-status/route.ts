@@ -3,6 +3,18 @@ import path from "node:path";
 import { NextResponse } from "next/server";
 
 import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { loadRuntimeBuildMetadata } from "@/lib/runtime-build-metadata";
+import {
+  loadCanonicalPublicationState,
+  loadLatestRuntimeRefreshRunState,
+  publicationContractFields,
+  type CanonicalPublicationState,
+} from "@/lib/publication-state";
+import {
+  loadRuntimeQuoteCacheFromPostgres,
+  loadRuntimeSnapshotRowsFromPostgres,
+} from "@/lib/runtime-postgres";
+import { resolveWorkspaceRoot } from "@/lib/workspace-root";
 import { listUsers } from "@/lib/user-store";
 import { isAdminMfaEnabled } from "@/lib/mfa";
 
@@ -25,11 +37,25 @@ type DirectoryStatus = {
 };
 
 type RefreshReportSummary = {
+  source?: "runtime_refresh_runs";
+  run_id?: string;
+  mode?: string;
+  trigger_source?: string;
+  validation_status?: string;
+  snapshot_publication_id?: string | null;
+  quote_publication_id?: string | null;
+  quote_binding_status?: string | null;
   generated_at_utc?: string;
   status?: string;
   elapsed_seconds?: number;
   rows_written?: number;
   skipped_count?: number;
+};
+
+type SnapshotSummary = {
+  rowCount: number;
+  sourcePath: string | null;
+  sourceMtimeUtc: string | null;
 };
 
 type RefreshMode = "snapshot" | "universe_snapshot";
@@ -60,6 +86,19 @@ type RefreshPolicyHealth = {
   lastRequestedMode: RefreshMode | "unknown";
   lastError: string | null;
   checks: RefreshPolicyCheck[];
+  canonicalServingPolicy: {
+    allowed: boolean;
+    freshness: CanonicalPublicationState["freshness"];
+    validation_status: string | null;
+    snapshot_publication_id: string | null;
+    quote_publication_id: string | null;
+    quote_binding_status: string | null;
+    run_id: string | null;
+    activation_state: string;
+    serving_state: string;
+    blocking_reason_code: string | null;
+    blocking_reason_detail: string | null;
+  };
 };
 
 type WebDataProtectionSummary = {
@@ -70,7 +109,15 @@ type WebDataProtectionSummary = {
   legacyPortfolios: number;
 };
 
-const ROOT_DIR = path.resolve(process.cwd(), "..");
+type InvestorServingPolicyStatus = {
+  publicationState: CanonicalPublicationState;
+  snapshotSource: string | null;
+  quoteSource: string | null;
+  snapshotFailures: Array<{ path: string; reason: string }>;
+  quoteFailures: Array<{ path: string; reason: string }>;
+};
+
+const ROOT_DIR = resolveWorkspaceRoot();
 
 const SECRET_FILES = [
   { key: "session_secret", relativePath: "tfe_session_secret.bin" },
@@ -79,6 +126,7 @@ const SECRET_FILES = [
 ] as const;
 
 const ARTIFACT_FILES = [
+  { key: "deploy_metadata", relativePath: "tfe_deploy_metadata.json" },
   { key: "uf_snapshot_envelope", relativePath: "uf_snapshot.ses.json" },
   { key: "uf_snapshot_report", relativePath: "uf_snapshot_rebuild_report.json" },
   { key: "ingestion_verify", relativePath: "ingestion_pipeline_verification_latest.json" },
@@ -230,21 +278,64 @@ async function readDirectoryStatus(key: string, absolutePath: string): Promise<D
 }
 
 async function readRefreshReportSummary(): Promise<RefreshReportSummary | null> {
-  const reportPath = path.join(ROOT_DIR, "uf_snapshot_rebuild_report.json");
-  try {
-    const raw = await readFile(reportPath, "utf-8");
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-
+  const latestRuntimeRun = await loadLatestRuntimeRefreshRunState();
+  if (latestRuntimeRun.runId) {
     return {
-      generated_at_utc: typeof parsed.generated_at_utc === "string" ? parsed.generated_at_utc : undefined,
-      status: typeof parsed.status === "string" ? parsed.status : undefined,
-      elapsed_seconds: typeof parsed.elapsed_seconds === "number" ? parsed.elapsed_seconds : undefined,
-      rows_written: typeof parsed.rows_written === "number" ? parsed.rows_written : undefined,
-      skipped_count: typeof parsed.skipped_count === "number" ? parsed.skipped_count : undefined,
+      source: "runtime_refresh_runs",
+      run_id: latestRuntimeRun.runId,
+      mode: latestRuntimeRun.mode ?? undefined,
+      trigger_source: latestRuntimeRun.triggerSource ?? undefined,
+      validation_status: latestRuntimeRun.validationStatus ?? undefined,
+      snapshot_publication_id: latestRuntimeRun.snapshotPublicationId,
+      quote_publication_id: latestRuntimeRun.quotePublicationId,
+      quote_binding_status: latestRuntimeRun.quoteBindingStatus,
+      generated_at_utc: latestRuntimeRun.reportGeneratedAtUtc ?? latestRuntimeRun.generatedAtUtc ?? undefined,
+      status: latestRuntimeRun.reportStatus ?? undefined,
+      rows_written: latestRuntimeRun.rowsWritten ?? undefined,
+    };
+  }
+  return null;
+}
+
+async function readSnapshotSummary(): Promise<SnapshotSummary> {
+  try {
+    const snapshot = await loadRuntimeSnapshotRowsFromPostgres();
+    return {
+      rowCount: snapshot.rows.length,
+      sourcePath: snapshot.sourcePath ?? null,
+      sourceMtimeUtc: null,
     };
   } catch {
-    return null;
+    return {
+      rowCount: 0,
+      sourcePath: null,
+      sourceMtimeUtc: null,
+    };
   }
+}
+
+async function readInvestorServingPolicyStatus(): Promise<InvestorServingPolicyStatus> {
+  const snapshot = await loadRuntimeSnapshotRowsFromPostgres();
+  const quote = await loadRuntimeQuoteCacheFromPostgres();
+  const publicationState = await loadCanonicalPublicationState({
+    snapshot: {
+      available: Boolean(snapshot.sourcePath && snapshot.rows.length > 0),
+      runId: snapshot.runId,
+      generatedAtUtc: snapshot.generatedAtUtc,
+    },
+    quote: {
+      available: Boolean(quote.sourcePath && Object.keys(quote.quotes).length > 0),
+      runId: quote.runId,
+    },
+  });
+
+  return {
+    publicationState,
+    snapshotSource: snapshot.sourcePath,
+    quoteSource: quote.sourcePath,
+    snapshotFailures: snapshot.failures,
+    quoteFailures: quote.failures,
+  };
 }
 
 async function readRefreshStatusRecord(rootDir: string): Promise<RefreshStatusRecord | null> {
@@ -267,23 +358,22 @@ function artifactExists(artifacts: FileStatus[], key: string): boolean {
 
 async function evaluateRefreshPolicyHealth(
   rootDir: string,
-  artifactStatuses: FileStatus[],
   reportSummary: RefreshReportSummary | null,
+  publicationState: CanonicalPublicationState,
 ): Promise<RefreshPolicyHealth> {
-  const status = await readRefreshStatusRecord(rootDir);
   const refreshScriptPath = path.join(rootDir, "run_refresh_with_l5_learning.py");
   let refreshScriptPresent = false;
-  const refreshStatusArtifactExists = artifactExists(artifactStatuses, "refresh_status");
-  const refreshLogArtifactExists = artifactExists(artifactStatuses, "refresh_log");
-  const snapshotEnvelopeArtifactExists = artifactExists(artifactStatuses, "uf_snapshot_envelope");
-  const refreshRunning = Boolean(status?.running);
-  const lastRequestedMode: RefreshMode | "unknown" = status?.requested_mode ?? "unknown";
+  const modeFromSummary = String(reportSummary?.mode ?? "").trim().toLowerCase();
+  const summaryModeNormalized: RefreshMode | null =
+    modeFromSummary === "snapshot" || modeFromSummary === "targeted_pfsc"
+      ? "snapshot"
+      : modeFromSummary === "universe_snapshot" || modeFromSummary === "full_universe"
+        ? "universe_snapshot"
+        : null;
+  const lastRequestedMode: RefreshMode | "unknown" = summaryModeNormalized ?? "unknown";
   const reportStatus = String(reportSummary?.status ?? "unknown");
   const reportRowsWritten = typeof reportSummary?.rows_written === "number" ? reportSummary.rows_written : null;
-  const targetedNoChangeAllowed =
-    lastRequestedMode === "snapshot" &&
-    reportStatus === "no_rows_written" &&
-    snapshotEnvelopeArtifactExists;
+  const servingBundleValid = publicationState.servingState === "allowed";
   const universeNoRowsFailure =
     lastRequestedMode === "universe_snapshot" &&
     reportStatus === "no_rows_written";
@@ -297,63 +387,54 @@ async function evaluateRefreshPolicyHealth(
 
   const checks: RefreshPolicyCheck[] = [
     {
+      key: "canonical-investor-serving-policy",
+      ok: servingBundleValid,
+      detail: servingBundleValid
+        ? `Investor serving is valid for run_id='${publicationState.runId ?? "unknown"}'.`
+        : `Investor serving is blocked. code=${publicationState.blockingReasonCode ?? "unknown"}.`,
+    },
+    {
       key: "refresh-script-present",
       ok: refreshScriptPresent,
       detail: refreshScriptPresent ? "Refresh wrapper script is present." : "Refresh wrapper script is missing.",
     },
     {
-      key: "refresh-status-artifact",
-      ok: refreshStatusArtifactExists || !refreshRunning,
-      detail: refreshStatusArtifactExists
-        ? "Refresh status artifact exists."
-        : refreshRunning
-          ? "Refresh status artifact is missing while refresh is running."
-          : "Refresh status artifact is not present while idle (informational).",
-    },
-    {
-      key: "refresh-log-artifact",
-      ok: refreshLogArtifactExists || !refreshRunning,
-      detail: refreshLogArtifactExists
-        ? "Refresh log artifact exists."
-        : refreshRunning
-          ? "Refresh log artifact is missing while refresh is running."
-          : "Refresh log artifact is not present while idle (informational).",
-    },
-    {
-      key: "snapshot-envelope-artifact",
-      ok: snapshotEnvelopeArtifactExists,
-      detail: snapshotEnvelopeArtifactExists
-        ? "Snapshot envelope artifact exists."
-        : "Snapshot envelope artifact is missing.",
-    },
-    {
       key: "latest-report-status",
-      ok: reportStatus === "ok" || targetedNoChangeAllowed,
+      ok: reportStatus === "ok" || servingBundleValid,
       detail: reportStatus === "ok"
         ? "Latest snapshot rebuild report is OK."
-        : targetedNoChangeAllowed
-          ? "Latest targeted snapshot wrote no rows; existing snapshot remains valid."
-          : `Latest snapshot rebuild report status is ${reportStatus}.`,
+        : servingBundleValid
+          ? `Latest runtime refresh status is ${reportStatus}, but the active publication remains valid for serving.`
+          : `Latest runtime refresh status is ${reportStatus}.`,
     },
     {
       key: "latest-report-rows",
-      ok: (typeof reportRowsWritten === "number" && reportRowsWritten > 0) || targetedNoChangeAllowed,
+      ok: (typeof reportRowsWritten === "number" && reportRowsWritten > 0) || servingBundleValid,
       detail: typeof reportRowsWritten === "number" && reportRowsWritten > 0
         ? `Latest snapshot wrote ${reportRowsWritten} rows.`
-        : targetedNoChangeAllowed
-          ? "Targeted snapshot wrote 0 rows because no eligible updates were found."
-          : "Latest snapshot rebuild report does not show rows written > 0.",
+        : servingBundleValid
+          ? "Latest report rows are not > 0, but the active publication remains valid for serving."
+          : "Latest runtime refresh record does not show rows written > 0.",
     },
     {
       key: "mode-aware-empty-write-guard",
-      ok: !universeNoRowsFailure,
+      ok: !universeNoRowsFailure || servingBundleValid,
       detail: universeNoRowsFailure
-        ? "Universe snapshot wrote 0 rows; this is a production failure."
+        ? servingBundleValid
+          ? "Universe snapshot wrote 0 rows, but the active publication remains valid for serving."
+          : "Universe snapshot wrote 0 rows; this is a production failure."
         : "Empty-write guard passed for current refresh mode.",
+    },
+    {
+      key: "active-serving-bundle-validation",
+      ok: servingBundleValid,
+      detail: servingBundleValid
+        ? `Canonical active publication is valid. run_id='${publicationState.runId ?? "unknown"}'.`
+        : `Canonical active publication is blocked. code=${publicationState.blockingReasonCode ?? "unknown"}.`,
     },
   ];
 
-  const healthy = checks.every((check) => check.ok);
+  const healthy = servingBundleValid;
 
   return {
     healthy,
@@ -362,8 +443,21 @@ async function evaluateRefreshPolicyHealth(
       universe_snapshot: "full_universe + force_refresh_universe",
     },
     lastRequestedMode,
-    lastError: status?.last_error ?? null,
+    lastError: publicationState.blockingReasonDetail,
     checks,
+    canonicalServingPolicy: {
+      allowed: publicationState.servingState === "allowed",
+      freshness: publicationState.freshness,
+      validation_status: publicationState.validationStatus,
+      snapshot_publication_id: publicationState.snapshotPublicationId,
+      quote_publication_id: publicationState.quotePublicationId,
+      quote_binding_status: publicationState.quoteBindingStatus,
+      run_id: publicationState.runId,
+      activation_state: publicationState.activationState,
+      serving_state: publicationState.servingState,
+      blocking_reason_code: publicationState.blockingReasonCode,
+      blocking_reason_detail: publicationState.blockingReasonDetail,
+    },
   };
 }
 
@@ -440,16 +534,26 @@ export async function GET(request: Request) {
     .map((user) => user.username);
   const sesCoreDir = directoryStatuses.find((entry) => entry.key === "ses_core");
   const reportSummary = await readRefreshReportSummary();
-  const refreshPolicy = await evaluateRefreshPolicyHealth(ROOT_DIR, artifactStatuses, reportSummary);
+  const investorServing = await readInvestorServingPolicyStatus();
+  const snapshotSummary = await readSnapshotSummary();
+  const refreshPolicy = await evaluateRefreshPolicyHealth(
+    ROOT_DIR,
+    reportSummary,
+    investorServing.publicationState,
+  );
   const webDataProtection = await scanWebDataProtection(ROOT_DIR);
+  const runtimeBuild = await loadRuntimeBuildMetadata();
 
   return NextResponse.json({
     generatedAtUtc: new Date().toISOString(),
+    git_commit_sha: runtimeBuild.gitCommitSha,
+    ...publicationContractFields(investorServing.publicationState),
     environment: {
       nodeEnv: process.env.NODE_ENV ?? "development",
       webProcessCwd: process.cwd(),
       rootDir: ROOT_DIR,
     },
+    runtimeBuild,
     users: {
       count: usersResult.users.length,
       sourcePath: usersResult.filePath,
@@ -472,7 +576,41 @@ export async function GET(request: Request) {
     artifacts: artifactStatuses,
     directories: directoryStatuses,
     reportSummary,
+    snapshotSummary,
     refreshPolicy,
+    servingBundle: {
+      sourcePath: investorServing.publicationState.sourcePath,
+      failureCount: investorServing.publicationState.failures.length,
+      run_id: investorServing.publicationState.runId,
+      active_runtime_run_id: investorServing.publicationState.activeRuntimeRunId,
+      active_runtime_bundle_valid: investorServing.publicationState.activationState === "activated",
+      generated_at_utc: investorServing.publicationState.generatedAtUtc,
+      validation_status: investorServing.publicationState.validationStatus,
+      snapshot_publication_id: investorServing.publicationState.snapshotPublicationId,
+      quote_publication_id: investorServing.publicationState.quotePublicationId,
+      quote_binding_status: investorServing.publicationState.quoteBindingStatus,
+      activation_state: investorServing.publicationState.activationState,
+      serving_state: investorServing.publicationState.servingState,
+      blocking_reason_code: investorServing.publicationState.blockingReasonCode,
+      blocking_reason_detail: investorServing.publicationState.blockingReasonDetail,
+    },
+    servingPolicy: investorServing.publicationState,
+    servingPolicySources: {
+      snapshotSource: investorServing.snapshotSource,
+      quoteSource: investorServing.quoteSource,
+      snapshotFailures: investorServing.snapshotFailures,
+      quoteFailures: investorServing.quoteFailures,
+      publicationBundle: {
+        sourcePath: investorServing.publicationState.sourcePath,
+        failureCount: investorServing.publicationState.failures.length,
+        run_id: investorServing.publicationState.runId,
+        generated_at_utc: investorServing.publicationState.generatedAtUtc,
+        validation_status: investorServing.publicationState.validationStatus,
+        snapshot_publication_id: investorServing.publicationState.snapshotPublicationId,
+        quote_publication_id: investorServing.publicationState.quotePublicationId,
+        quote_binding_status: investorServing.publicationState.quoteBindingStatus,
+      },
+    },
     webDataProtection,
   });
 }

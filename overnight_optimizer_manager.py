@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 WORKSPACE = Path('/workspaces/Tao_Financial_Engine')
 
 BASELINE_METRIC = 'avg_return_multiple_over_spy_pct_log_v2'
-MOM_IRF_METRIC = 'avg_return_multiple_over_spy_pct_log_v2_mom_irf_v1'
+MOM_IRF_METRIC = 'avg_annualized_return_lift_vs_spy_pct_log_v3_mom_irf_v1'
 
 TARGET_BASELINE_RUNS = 500
 TARGET_MOM_IRF_RUNS = 1000
@@ -41,6 +41,7 @@ MOM_RUNNER_LOG = MOM_DIR / 'launcher.log'
 MANAGER_LOG = Path('/tmp/g32_overnight_manager.log')
 
 MOM_RUNNER = WORKSPACE / 'g32_mom_irf_loop_runner.py'
+SUCCESS_TARGET_RETURN_LIFT = 4.0
 
 
 @dataclass
@@ -79,6 +80,20 @@ def read_jsonl(path: Path) -> List[Dict[str, Any]]:
     return out
 
 
+def objective_score_from_row(row: Dict[str, Any]) -> Optional[float]:
+    for key in (
+        'objective_score',
+        'g32_symbol_return_multiple_over_spy_pct',
+        # Backward compatibility with older runner rows.
+        'g32_symbol_avg_outcome_over_index_pct',
+        'legacy_outcome_score',
+    ):
+        v = row.get(key)
+        if isinstance(v, (int, float)):
+            return float(v)
+    return None
+
+
 def extract_records(root: Path, metric: str, start_run_id: int) -> List[RunRecord]:
     rows = read_jsonl(root / 'results.jsonl')
     out: List[RunRecord] = []
@@ -90,7 +105,7 @@ def extract_records(root: Path, metric: str, start_run_id: int) -> List[RunRecor
         rid = int(row.get('run_id') or 0)
         if rid < start_run_id:
             continue
-        score_obj = row.get('legacy_outcome_score')
+        score_obj = objective_score_from_row(row)
         if not isinstance(score_obj, (int, float)):
             continue
         cfg = row.get('config')
@@ -183,7 +198,7 @@ def lock_baseline_winner() -> Dict[str, Any]:
         'locked_at_utc': utc_now(),
         'policy': {
             'baseline_metric': BASELINE_METRIC,
-            'selection_metric': 'legacy_outcome_score_percent_over_index',
+            'selection_metric': 'objective_return_lift_over_spy_pct',
             'baseline_target_completed_runs_per_loop': TARGET_BASELINE_RUNS,
         },
         'loops': loop_payload,
@@ -191,6 +206,7 @@ def lock_baseline_winner() -> Dict[str, Any]:
             'loop': win_loop,
             'run_id': win_rec.run_id,
             'run_name': win_rec.run_name,
+            'score_return_lift_pct': win_rec.score,
             'score_percent_over_index': win_rec.score,
             'config': win_rec.config,
             'report_path': win_rec.report_path,
@@ -232,7 +248,9 @@ def check_mom_progress(start_run_id: int) -> Dict[str, Any]:
 def load_locked_baseline_score() -> float:
     obj = json.loads(LOCK_FILE.read_text(encoding='utf-8'))
     winner = obj.get('winner', {}) if isinstance(obj, dict) else {}
-    s = winner.get('score_percent_over_index') if isinstance(winner, dict) else None
+    s = winner.get('score_return_lift_pct') if isinstance(winner, dict) else None
+    if not isinstance(s, (int, float)):
+        s = winner.get('score_percent_over_index') if isinstance(winner, dict) else None
     if not isinstance(s, (int, float)):
         raise RuntimeError('Missing locked winner baseline score')
     return float(s)
@@ -300,22 +318,26 @@ def finalize_mom_summary(start_run_id: int) -> Dict[str, Any]:
         'start_run_id': start_run_id,
         'latest': {
             'run_id': latest.run_id,
+            'score_return_lift_pct': latest.score,
             'score_percent_over_index': latest.score,
             'run_name': latest.run_name,
             'report_path': latest.report_path,
         },
         'best': {
             'run_id': best.run_id,
+            'score_return_lift_pct': best.score,
             'score_percent_over_index': best.score,
             'run_name': best.run_name,
             'report_path': best.report_path,
             'config': best.config,
         },
         'comparison_to_locked_baseline': {
+            'success_target_return_lift_pct': SUCCESS_TARGET_RETURN_LIFT,
             'locked_baseline_score_percent_over_index': baseline,
             'mom_irf_best_score_percent_over_index': best.score,
             'delta_vs_locked_baseline': best.score - baseline,
             'beats_locked_baseline': bool(best.score > baseline),
+            'target_met_for_prepare_promote': bool(best.score >= SUCCESS_TARGET_RETURN_LIFT),
         },
     }
     MOM_SUMMARY_FILE.write_text(json.dumps(payload, indent=2), encoding='utf-8')

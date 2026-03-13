@@ -190,6 +190,30 @@
   align-items: center;
 }
 
+.panelTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.panelTabButton {
+  border: 1px solid rgba(28, 66, 50, 0.22);
+  background: rgba(255, 255, 255, 0.66);
+  color: var(--deck-hunter-800);
+  min-height: 32px;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.panelTabButtonActive {
+  background: linear-gradient(180deg, #2e7057 0%, #214f3e 100%);
+  color: #e9fff4;
+  border-color: rgba(20, 63, 48, 0.9);
+}
+
 .primaryButton,
 .secondaryButton,
 .ghostButton,
@@ -325,6 +349,115 @@
   font-size: 0.69rem;
   line-height: 1.35;
   font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+}
+
+.accuracyPanel {
+  border: 1px solid rgba(20, 59, 45, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.56);
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.accuracyGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.accuracyTile {
+  border-radius: 10px;
+  border: 1px solid rgba(22, 62, 47, 0.18);
+  background: rgba(255, 255, 255, 0.66);
+  padding: 8px;
+  display: grid;
+  gap: 5px;
+}
+
+.accuracyHorizon {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(22, 57, 45, 0.75);
+  font-weight: 700;
+}
+
+.accuracyValue {
+  font-size: 1.2rem;
+  line-height: 1.1;
+  color: var(--deck-hunter-900);
+  font-weight: 700;
+}
+
+.accuracyGauge {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(23, 58, 45, 0.17);
+  overflow: hidden;
+}
+
+.accuracyGaugeFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(205, 166, 74, 0.95) 0%, rgba(32, 119, 79, 0.95) 100%);
+}
+
+.accuracyMeta {
+  font-size: 0.72rem;
+  color: rgba(23, 53, 43, 0.78);
+}
+
+.qualityPanel {
+  border: 1px solid rgba(20, 59, 45, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.56);
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.qualityGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.qualityTile {
+  border-radius: 10px;
+  border: 1px solid rgba(22, 62, 47, 0.18);
+  background: rgba(255, 255, 255, 0.66);
+  padding: 8px;
+  display: grid;
+  gap: 4px;
+}
+
+.qualityLabel {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(22, 57, 45, 0.75);
+  font-weight: 700;
+}
+
+.qualityValue {
+  font-size: 1.16rem;
+  line-height: 1.1;
+  color: var(--deck-hunter-900);
+  font-weight: 700;
+}
+
+.qualityTarget {
+  font-size: 0.72rem;
+  color: rgba(23, 53, 43, 0.78);
+}
+
+.qualityChipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .scrollWrap {
@@ -585,6 +718,14 @@
   .heroActionRow {
     justify-content: flex-start;
   }
+
+  .accuracyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .qualityGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 900px) {
@@ -609,6 +750,10 @@
   }
 
   .artifactGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .qualityGrid {
     grid-template-columns: 1fr;
   }
 

@@ -57,8 +57,10 @@ class UFStructuralState:
 
     NOTE:
       - All fields are derived from uf_core.*.
-      - Level5.decision_vector is taken directly from the final DSF_k,
-        except for deterministic structural guardrails.
+      - level5.D_k/M_k/R_rev_k/U_star_k/C_k/P_k/B_k preserve last DSF values
+        for full L4 structural provenance.
+      - level5.decision_vector remains the legacy compatibility vector used by
+        existing TFE consumers.
     """
 
     level1: Dict[str, float]
@@ -253,6 +255,13 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
         level4 = {"max_drawdown": 0.0, "stability_score": 0.0, "S_UF": 0.0, "R_UF": 0.0}
         level5 = {
             "decision_vector": [],
+            "D_k": None,
+            "M_k": None,
+            "R_rev_k": None,
+            "U_star_k": None,
+            "C_k": None,
+            "P_k": None,
+            "B_k": None,
             "gate_count": 0,
             "active_gate_count": 0,
             "decision_guard": {"gate_unlock_transient_neutralized": False},
@@ -308,14 +317,31 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
     )
 
     final_dsf_list = dsf_after
-    gate_count = int(len(gates))
+    gate_count = int(len(gates_after))
     active_gate_count = int(sum(1 for r in resonance_results if int(r.g_k) == 1))
 
     unlock_meta = _gate_unlock_transient_meta(resonance_results)
     unlock_guard_active = bool(unlock_meta.get("active", False))
 
+    # Preserve full L4 DSF output regardless of decision-vector guardrails.
+    raw_D_k: float | None = None
+    raw_M_k: float | None = None
+    raw_R_rev_k: float | None = None
+    raw_U_star_k: float | None = None
+    raw_C_k: float | None = None
+    raw_P_k: float | None = None
+    raw_B_k: float | None = None
+
     if final_dsf_list:
         last_dsf = final_dsf_list[-1]
+        raw_D_k = float(last_dsf.D_k)
+        raw_M_k = float(last_dsf.M_k)
+        raw_R_rev_k = float(last_dsf.R_rev_k)
+        raw_U_star_k = float(last_dsf.U_star_k)
+        raw_C_k = float(last_dsf.C_k)
+        raw_P_k = float(last_dsf.P_k)
+        raw_B_k = float(last_dsf.B_k)
+
         if unlock_guard_active:
             # Neutralize direction for one-step gate-unlock transient at edge.
             decision_vector = [
@@ -360,6 +386,13 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
 
     level5 = {
         "decision_vector": decision_vector,
+        "D_k": raw_D_k,
+        "M_k": raw_M_k,
+        "R_rev_k": raw_R_rev_k,
+        "U_star_k": raw_U_star_k,
+        "C_k": raw_C_k,
+        "P_k": raw_P_k,
+        "B_k": raw_B_k,
         "gate_count": gate_count,
         "active_gate_count": active_gate_count,
         "decision_guard": {
@@ -419,6 +452,13 @@ def compute_structural_state(symbol: str, bars: List[Bar]) -> Dict[str, Any]:
         "stability_score": uf_state.level4.get("stability_score"),
         "max_drawdown": uf_state.level4.get("max_drawdown"),
         "decision_vector": uf_state.level5.get("decision_vector", []),
+        "D_k": uf_state.level5.get("D_k"),
+        "M_k": uf_state.level5.get("M_k"),
+        "R_rev_k": uf_state.level5.get("R_rev_k"),
+        "U_star_k": uf_state.level5.get("U_star_k"),
+        "C_k": uf_state.level5.get("C_k"),
+        "P_k": uf_state.level5.get("P_k"),
+        "B_k": uf_state.level5.get("B_k"),
         "gate_count": uf_state.level5.get("gate_count", 0),
         "active_gate_count": uf_state.level5.get("active_gate_count", 0),
         "decision_guard": uf_state.level5.get("decision_guard", {}),

@@ -1,7 +1,17 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { UIEvent } from "react";
+import ScreenerChart, {
+  DEFAULT_SCREENER_CHART_CONTROLS,
+  type ScreenerChartControls,
+  type ScreenerChartInterval,
+  type ScreenerChartRange,
+  type MarketTimeframe,
+} from "@/components/ScreenerChart";
+import ClientPortal from "@/components/ClientPortal";
+import { buildMarketStatColumns, type MarketQuoteSummary } from "@/lib/market-analysis";
+import { useFlyoutPanel } from "@/lib/use-flyout-panel";
 
 type RecommendationRow = {
   ticker: string;
@@ -17,6 +27,8 @@ type RecommendationRow = {
   minBarsForAccumulate: number;
   classification: "BUY" | "HOLD" | "SELL";
   regime: string;
+  assessmentStatus?: "ASSESSED" | "NOT_ASSESSED";
+  assessmentLabel?: string;
 };
 
 type RecommendationsPayload = {
@@ -28,6 +40,39 @@ type RecommendationsPayload = {
     etf: RecommendationRow[];
   };
   allMarket: RecommendationRow[];
+  universeStats?: {
+    totalRows?: number;
+    processedRows?: number;
+    excludedRows?: number;
+  };
+  decisionSummary?: {
+    accumulate?: number;
+    hold?: number;
+    avoid?: number;
+  };
+  recommendationHealth?: {
+    totalRows?: number;
+    assessedRows?: number;
+    notAssessedRows?: number;
+    assessedRate?: number;
+    notAssessedRate?: number;
+    accuracyScoringScope?: "ASSESSED_ONLY";
+    policyMappedRows?: number;
+    fallbackRows?: number;
+    insufficientBarsRows?: number;
+    coverageRate?: number;
+    fallbackRate?: number;
+    alerts?: string[];
+  };
+  snapshotSource?: string;
+  data_source?: string;
+  run_id?: string | null;
+  generated_at_utc?: string | null;
+  freshness?: {
+    snapshot_age_minutes?: number;
+    snapshot_max_age_minutes?: number;
+    stale?: boolean;
+  };
   error?: string;
 };
 
@@ -73,23 +118,15 @@ type ChartSummary = {
   low52: number;
 };
 
-type QuoteSummary = {
-  marketCap?: number | null;
-  peRatio?: number | null;
-  beta?: number | null;
-  eps?: number | null;
-  avgVolume?: number | null;
-  dividendYield?: number | null;
-  target1Y?: number | null;
-  bid?: number | null;
-  ask?: number | null;
-};
+type QuoteSummary = MarketQuoteSummary;
 
 type ChartResponse = {
   ticker: string;
   bars: ChartBar[];
   summary: ChartSummary | null;
   quote?: QuoteSummary;
+  interval?: string;
+  range?: string;
   ufMetric?: WatchlistMetricRow | null;
   note?: string | null;
   error?: string;
@@ -97,9 +134,9 @@ type ChartResponse = {
 
 type SortDirection = "asc" | "desc";
 
-type SortKey = "ticker" | "assetType" | "price" | "decision" | "regime" | "sUf" | "rUf" | "barCount" | "confidence";
+type SortKey = "ticker" | "assetType" | "price" | "decision" | "regime" | "barCount";
 type DecisionFilterKey = "Accumulate" | "Hold" | "Avoid";
-type FullRangeField = "price" | "S_UF" | "R_UF" | "barCount" | "confidence";
+type FullRangeField = "price" | "barCount";
 type FullAssetFilter = "all" | "equities" | "index" | "crypto" | "etf" | "other";
 
 type SortState = {
@@ -146,28 +183,38 @@ function fmtCompactNumber(value: number | null | undefined): string {
   return n.toFixed(2);
 }
 
-function linePath(points: number[], width: number, height: number, pad: number): string {
-  if (points.length < 2) return "";
+function formatIsoUtc(value: string | null | undefined): string {
+  const text = String(value ?? "").trim();
+  if (!text) return "N/A";
+  const ms = Date.parse(text);
+  if (!Number.isFinite(ms)) return text;
+  return new Date(ms).toISOString();
+}
 
-  let min = Number.POSITIVE_INFINITY;
-  let max = Number.NEGATIVE_INFINITY;
+function formatAgeMinutes(value: number | null | undefined): string {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) return "N/A";
+  if (n < 1) return `${Math.round(n * 60)}s`;
+  const whole = Math.floor(n);
+  const days = Math.floor(whole / 1440);
+  const hours = Math.floor((whole % 1440) / 60);
+  const mins = whole % 60;
+  if (days > 0) return `${days}d ${hours}h ${mins}m`;
+  if (hours > 0) return `${hours}h ${mins}m`;
+  return `${mins}m`;
+}
 
-  for (const p of points) {
-    if (p < min) min = p;
-    if (p > max) max = p;
-  }
+function formatPctRate(value: number | null | undefined): string {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "N/A";
+  return `${(n * 100).toFixed(2)}%`;
+}
 
-  const span = max - min || 1;
-  const usableW = width - pad * 2;
-  const usableH = height - pad * 2;
-
-  return points
-    .map((p, i) => {
-      const x = pad + (i / (points.length - 1)) * usableW;
-      const y = height - pad - ((p - min) / span) * usableH;
-      return `${x},${y}`;
-    })
-    .join(" ");
+function shortRunId(value: string | null | undefined): string {
+  const text = String(value ?? "").trim();
+  if (!text) return "N/A";
+  if (text.length <= 32) return text;
+  return `${text.slice(0, 14)}...${text.slice(-10)}`;
 }
 
 function decisionClass(decision: "Accumulate" | "Hold" | "Avoid"): "accumulate" | "hold" | "avoid" {
@@ -197,10 +244,7 @@ function sortRows(rows: RecommendationRow[], sort: SortState): RecommendationRow
     if (sort.key === "price") return compareNumber(a.price, b.price, sort.direction);
     if (sort.key === "decision") return compareString(a.decision, b.decision, sort.direction);
     if (sort.key === "regime") return compareString(a.regime, b.regime, sort.direction);
-    if (sort.key === "sUf") return compareNumber(a.S_UF, b.S_UF, sort.direction);
-    if (sort.key === "rUf") return compareNumber(a.R_UF, b.R_UF, sort.direction);
     if (sort.key === "barCount") return compareNumber(a.barCount, b.barCount, sort.direction);
-    if (sort.key === "confidence") return compareNumber(a.confidence, b.confidence, sort.direction);
     return compareString(a.ticker, b.ticker, "asc");
   });
 
@@ -243,113 +287,402 @@ function SortHeader({
 function insufficientDataMessage(metric: WatchlistMetricRow | null): string | null {
   if (!metric) return null;
   if (metric.decision !== "Hold") return null;
-  if (metric.decisionReasonCode !== "INSUFFICIENT_EVIDENCE_BARS") return null;
+  if (
+    metric.decisionReasonCode !== "PSCF_FALLBACK_INSUFFICIENT_BARS" &&
+    metric.decisionReasonCode !== "INSUFFICIENT_EVIDENCE_BARS"
+  ) {
+    return null;
+  }
   return metric.decisionReason || "Insufficient Data";
+}
+
+function notAssessedLabel(row: RecommendationRow): string | null {
+  if (row.assessmentStatus === "NOT_ASSESSED" && row.assessmentLabel) {
+    return row.assessmentLabel;
+  }
+  if (row.decisionReasonCode === "PSCF_FALLBACK_INSUFFICIENT_BARS" || row.decisionReasonCode === "INSUFFICIENT_EVIDENCE_BARS") {
+    return "Not Assessed (Insufficient Data)";
+  }
+  if (row.decisionReasonCode !== "PSCF_POLICY_DECISION") {
+    return "Not Assessed (Fallback Hold)";
+  }
+  return null;
+}
+
+function normalizeChartInterval(value: string | undefined, fallback: ScreenerChartInterval): ScreenerChartInterval {
+  if (value === "1m") return "1m";
+  if (value === "5m") return "5m";
+  if (value === "15m") return "15m";
+  if (value === "30m") return "30m";
+  if (value === "60m") return "60m";
+  if (value === "1wk") return "1wk";
+  if (value === "1mo") return "1mo";
+  if (value === "1d") return "1d";
+  return fallback;
+}
+
+function normalizeChartRange(value: string | undefined, fallback: ScreenerChartRange): ScreenerChartRange {
+  if (value === "1d") return "1d";
+  if (value === "5d") return "5d";
+  if (value === "1mo") return "1mo";
+  if (value === "3mo") return "3mo";
+  if (value === "6mo") return "6mo";
+  if (value === "ytd") return "ytd";
+  if (value === "1y") return "1y";
+  if (value === "2y") return "2y";
+  if (value === "5y") return "5y";
+  if (value === "max") return "max";
+  return fallback;
+}
+
+function timeframeFromInterval(interval: ScreenerChartInterval): MarketTimeframe {
+  if (interval === "1wk") return "weekly";
+  if (interval === "1mo") return "monthly";
+  if (interval === "1d") return "daily";
+  return "intraday";
+}
+
+function formatAssetType(assetType: RecommendationRow["assetType"]): string {
+  if (assetType === "etf") return "ETF";
+  if (assetType === "equities") return "Equities (Stocks)";
+  if (assetType === "index") return "Index";
+  if (assetType === "crypto") return "Crypto";
+  return "Other";
+}
+
+function fmtPercent(value: number | null | undefined, decimalInput = false, decimals = 2): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return "n/a";
+  const scaled = decimalInput ? value * 100 : value;
+  return `${fmtSigned(scaled, decimals)}%`;
+}
+
+function fmtText(value: string | null | undefined): string {
+  if (!value) return "n/a";
+  return value;
+}
+
+function inferTone(value: string): "up" | "down" | null {
+  const v = value.trim();
+  if (v.startsWith("+")) return "up";
+  if (v.startsWith("-")) return "down";
+  return null;
+}
+
+function pathFromPoints(points: Array<{ x: number; y: number }>): string {
+  if (points.length === 0) return "";
+  return points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ");
 }
 
 function AnalysisPanel({
   ticker,
+  row,
   chartLoading,
   chartError,
   chartSummary,
   chartNote,
   quoteSummary,
   chartBars,
+  chartControls,
+  onChartControlsChange,
   ufMetric,
 }: {
   ticker: string;
+  row: RecommendationRow | null;
   chartLoading: boolean;
   chartError: string;
   chartSummary: ChartSummary | null;
   chartNote: string;
   quoteSummary: QuoteSummary;
   chartBars: ChartBar[];
+  chartControls: ScreenerChartControls;
+  onChartControlsChange: (next: ScreenerChartControls) => void;
   ufMetric: WatchlistMetricRow | null;
 }) {
-  const closeSeries = useMemo(() => chartBars.map((b) => b.close), [chartBars]);
-  const sparkPath = useMemo(() => linePath(closeSeries, 960, 260, 16), [closeSeries]);
-  const decision = ufMetric?.decision ?? null;
+  const decision = row?.decision ?? ufMetric?.decision ?? "Hold";
   const insufficientData = insufficientDataMessage(ufMetric);
-  const ufConfidence = ufMetric ? (ufMetric.S_UF + ufMetric.R_UF) / 2 : null;
   const hasChart = Boolean(chartSummary);
+  const peerLine = "SPY IVV SPLG VTI QQQ VTV DIA VIG VYM VUG";
+  const heldByLine = "KHPI TSPX OVL OVLH SPYA RSEE LFEQ HNDL BAMO OCIO";
+
+  const statColumns = useMemo(
+    () =>
+      buildMarketStatColumns({
+        quote: quoteSummary,
+        chartSummary,
+        chartBars,
+      }),
+    [chartBars, chartSummary, quoteSummary],
+  );
+
+  const statRowCount = useMemo(() => Math.max(...statColumns.map((column) => column.length)), [statColumns]);
+
+  const holdingsLegend = useMemo(
+    () => [
+      { name: "Electronic Technology", value: 25.3, color: "#8a6fe8" },
+      { name: "Technology Services", value: 19.7, color: "#2dbb9a" },
+      { name: "Finance", value: 13.9, color: "#ef9f2a" },
+      { name: "Retail Trade", value: 7.9, color: "#1ab7d8" },
+      { name: "Health Technology", value: 7.8, color: "#e44f90" },
+      { name: "Consumer Non Durables", value: 3.3, color: "#9c6ce2" },
+      { name: "Energy Minerals", value: 2.4, color: "#5aa7f0" },
+      { name: "Other", value: 19.7, color: "#dbdbdb" },
+    ],
+    [],
+  );
+
+  const donutGradient = useMemo(() => {
+    let start = 0;
+    const stops: string[] = [];
+    for (const slice of holdingsLegend) {
+      const end = start + (slice.value / 100) * 360;
+      stops.push(`${slice.color} ${start.toFixed(2)}deg ${end.toFixed(2)}deg`);
+      start = end;
+    }
+    return `conic-gradient(${stops.join(", ")})`;
+  }, [holdingsLegend]);
+
+  const topHoldings = [
+    { name: "NVIDIA Corp", pct: "7.83%", sector: "Electronic Technology" },
+    { name: "Apple Inc", pct: "6.46%", sector: "Electronic Technology" },
+    { name: "Microsoft Corporation", pct: "5.39%", sector: "Technology Services" },
+    { name: "Amazon.com Inc.", pct: "3.92%", sector: "Retail Trade" },
+    { name: "Alphabet Inc - Class A", pct: "3.31%", sector: "Technology Services" },
+    { name: "Alphabet Inc - Class C", pct: "2.65%", sector: "Technology Services" },
+    { name: "Broadcom Inc", pct: "2.64%", sector: "Electronic Technology" },
+    { name: "Meta Platforms Inc - Class A", pct: "2.63%", sector: "Technology Services" },
+    { name: "Tesla Inc", pct: "2.04%", sector: "Consumer Durables" },
+    { name: "Berkshire Hathaway Inc - Class B", pct: "1.48%", sector: "Finance" },
+  ];
+
+  const flowChart = useMemo(() => {
+    const source = chartBars.slice(-140);
+    if (source.length < 2) {
+      return {
+        width: 1000,
+        height: 230,
+        points: [] as Array<{ x: number; y: number }>,
+        bars: [] as Array<{ x: number; y: number; w: number; h: number; up: boolean }>,
+        minClose: null as number | null,
+        maxClose: null as number | null,
+        lastClose: null as number | null,
+        netChange: null as number | null,
+        netChangePct: null as number | null,
+        avgVol: null as number | null,
+      };
+    }
+
+    const width = 1000;
+    const height = 230;
+    const left = 22;
+    const right = width - 22;
+    const lineTop = 16;
+    const lineBottom = 162;
+    const barBase = 178;
+    const barMax = 40;
+
+    const closes = source.map((bar) => bar.close);
+    const volumes = source.map((bar) => Math.max(0, bar.volume));
+    const minClose = Math.min(...closes);
+    const maxClose = Math.max(...closes);
+    const closeSpan = Math.max(maxClose - minClose, 0.000001);
+    const maxVol = Math.max(...volumes, 1);
+    const firstClose = closes[0] ?? null;
+    const lastClose = closes[closes.length - 1] ?? null;
+    const netChange = firstClose !== null && lastClose !== null ? lastClose - firstClose : null;
+    const netChangePct = netChange !== null && firstClose !== null && firstClose !== 0 ? (netChange / firstClose) * 100 : null;
+    const avgVol = volumes.length > 0 ? volumes.reduce((sum, value) => sum + value, 0) / volumes.length : null;
+
+    const points = source.map((bar, index) => {
+      const ratio = index / Math.max(source.length - 1, 1);
+      const x = left + ratio * (right - left);
+      const y = lineBottom - ((bar.close - minClose) / closeSpan) * (lineBottom - lineTop);
+      return { x, y };
+    });
+
+    const barWidth = Math.max(((right - left) / source.length) * 0.6, 1.3);
+    const bars = source.map((bar, index) => {
+      const ratio = index / Math.max(source.length - 1, 1);
+      const x = left + ratio * (right - left) - barWidth / 2;
+      const h = (Math.max(0, bar.volume) / maxVol) * barMax;
+      const prevClose = index > 0 ? source[index - 1].close : bar.close;
+      const up = bar.close >= prevClose;
+      return {
+        x,
+        y: up ? barBase - h : barBase,
+        w: barWidth,
+        h,
+        up,
+      };
+    });
+
+    return { width, height, points, bars, minClose, maxClose, lastClose, netChange, netChangePct, avgVol };
+  }, [chartBars]);
+
+  const flowPath = useMemo(() => pathFromPoints(flowChart.points), [flowChart.points]);
 
   return (
     <div className="tfe-analysis-panel">
-      <h3 style={{ margin: "0 0 8px", fontSize: "0.94rem" }}>{ticker} Analysis</h3>
+      <h3 style={{ margin: "0 0 8px", fontSize: "0.96rem" }}>
+        {ticker} Analysis <span className={`tfe-chip ${decisionClass(decision)}`}>{decision}</span>
+      </h3>
 
       {chartLoading ? <p className="tfe-muted">Loading analysis...</p> : null}
       {chartError ? <p className="tfe-error">{chartError}</p> : null}
 
       {!chartLoading && !chartError ? (
-        <div className="tfe-analysis-grid">
-          <div>
-            {hasChart ? (
-              <>
-                <div className="tfe-metric-grid">
-                  <div>Open: {fmtNum(chartSummary?.open, 2)}</div>
-                  <div>High: {fmtNum(chartSummary?.high, 2)}</div>
-                  <div>Low: {fmtNum(chartSummary?.low, 2)}</div>
-                  <div>Prev Close: {fmtNum(chartSummary?.prevClose, 2)}</div>
-                  <div>Change $: {fmtSigned(chartSummary?.change ?? 0, 2)}</div>
-                  <div>Change %: {fmtSigned(chartSummary?.changePct ?? 0, 2)}%</div>
-                  <div>52W High: {fmtNum(chartSummary?.high52, 2)}</div>
-                  <div>52W Low: {fmtNum(chartSummary?.low52, 2)}</div>
-                  <div>Mkt Cap: {fmtCompactNumber(quoteSummary.marketCap)}</div>
-                  <div>PE: {fmtNum(quoteSummary.peRatio ?? null, 2)}</div>
-                  <div>Beta: {fmtNum(quoteSummary.beta ?? null, 2)}</div>
-                  <div>EPS: {fmtNum(quoteSummary.eps ?? null, 2)}</div>
-                  <div>Avg Vol: {fmtCompactNumber(quoteSummary.avgVolume)}</div>
-                  <div>
-                    Div Yield: {quoteSummary.dividendYield == null ? "N/A" : `${(quoteSummary.dividendYield * 100).toFixed(2)}%`}
-                  </div>
-                  <div>Bid: {fmtNum(quoteSummary.bid ?? null, 2)}</div>
-                  <div>Ask: {fmtNum(quoteSummary.ask ?? null, 2)}</div>
-                </div>
-
-                <svg viewBox="0 0 960 260" className="tfe-chart" aria-label={`${ticker} chart`}>
-                  <defs>
-                    <linearGradient id={`lineGradRecommendations-${ticker}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="rgba(107,188,137,0.95)" />
-                      <stop offset="100%" stopColor="rgba(107,188,137,0.2)" />
-                    </linearGradient>
-                  </defs>
-                  <rect x="0" y="0" width="960" height="260" fill="rgba(16, 36, 27, 0.08)" />
-                  <polyline
-                    fill="none"
-                    stroke={`url(#lineGradRecommendations-${ticker})`}
-                    strokeWidth="2.8"
-                    points={sparkPath}
-                  />
-                </svg>
-              </>
-            ) : (
-              <p className="tfe-muted">{chartNote || `No chart data available for ${ticker}.`}</p>
-            )}
+        <div className="tfe-screener-analysis-stack">
+          <div className="tfe-screener-info-strip">
+            <span>
+              <strong>Peers:</strong> {peerLine}
+            </span>
+            <span>
+              <strong>Held by:</strong> {heldByLine}
+            </span>
           </div>
 
-          <aside className="tfe-signal-card">
-            <h4>TFE Signal Card</h4>
+          {hasChart ? (
+            <ScreenerChart
+              ticker={ticker}
+              bars={chartBars}
+              controls={chartControls}
+              loading={chartLoading}
+              onControlsChange={onChartControlsChange}
+            />
+          ) : (
+            <p className="tfe-muted">{chartNote || `No chart data available for ${ticker}.`}</p>
+          )}
 
-            <div className="tfe-kv">Decision</div>
-            <div className="tfe-value">{decision ?? "Unavailable"}</div>
+          {insufficientData ? <p className="tfe-muted">Insufficient Data: {insufficientData}</p> : null}
 
-            {decision ? <div className={`tfe-chip ${decisionClass(decision)}`}>{decision}</div> : null}
+          <section className="tfe-screener-panel">
+            <table className="tfe-screener-stat-table">
+              <tbody>
+                {Array.from({ length: statRowCount }).map((_, rowIndex) => (
+                  <tr key={`screener-stat-row-${rowIndex}`}>
+                    {statColumns.map((column, columnIndex) => {
+                      const cell = column[rowIndex];
+                      const value = fmtText(cell?.value);
+                      const tone = inferTone(value);
+                      return [
+                        <td key={`screener-stat-cell-label-${columnIndex}-${rowIndex}`} className="k">
+                          {cell?.label ?? ""}
+                        </td>,
+                        <td key={`screener-stat-cell-value-${columnIndex}-${rowIndex}`} className={tone ? `v tone-${tone}` : "v"}>
+                          {value}
+                        </td>,
+                      ];
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
 
-            <div style={{ marginTop: 10 }}>
-              <div className="tfe-kv">UF Confidence</div>
-              <div className="tfe-value">{fmtNum(ufConfidence, 3)}</div>
-              <div style={{ fontSize: "0.8rem" }}>
-                S_UF {fmtNum(ufMetric?.S_UF ?? null, 3)} | R_UF {fmtNum(ufMetric?.R_UF ?? null, 3)}
+          <div className="tfe-screener-duo">
+            <section className="tfe-screener-panel">
+              <div className="tfe-screener-panel-head">
+                <h4>Holdings Breakdown</h4>
+                <span>View Holdings as</span>
               </div>
+
+              <div className="tfe-screener-holdings-wrap">
+                <div className="tfe-screener-donut-wrap">
+                  <div className="tfe-screener-donut" style={{ backgroundImage: donutGradient }} />
+                </div>
+                <div className="tfe-screener-legend">
+                  {holdingsLegend.map((slice) => (
+                    <div key={slice.name} className="tfe-screener-legend-item">
+                      <span className="tfe-color-dot" style={{ background: slice.color }} />
+                      <span>{slice.name}</span>
+                      <span>{slice.value.toFixed(1)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="tfe-screener-panel">
+              <div className="tfe-screener-panel-head">
+                <h4>Top 10 Holdings</h4>
+                <span>View Holdings as</span>
+              </div>
+              <table className="tfe-screener-holdings-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>% Holdings</th>
+                    <th>Sector</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topHoldings.map((holding) => (
+                    <tr key={`${holding.name}-${holding.pct}`}>
+                      <td>{holding.name}</td>
+                      <td>{holding.pct}</td>
+                      <td>{holding.sector}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="tfe-screener-panel-foot">10 Holdings</div>
+            </section>
+          </div>
+
+          <section className="tfe-screener-panel">
+            <div className="tfe-screener-panel-head">
+              <h4>Fund Flows</h4>
             </div>
 
-            {insufficientData ? (
-              <div style={{ marginTop: 10 }}>
-                <div className="tfe-kv">Insufficient Data</div>
-                <div style={{ fontSize: "0.8rem" }}>{insufficientData}</div>
-              </div>
-            ) : null}
-          </aside>
+            {flowChart.points.length < 2 ? (
+              <p className="tfe-muted">No flow chart data available.</p>
+            ) : (
+              <>
+                <div className="tfe-screener-flow-metrics">
+                  <span>Last: {fmtNum(flowChart.lastClose, 2)}</span>
+                  <span>
+                    Range: {fmtNum(flowChart.minClose, 2)} - {fmtNum(flowChart.maxClose, 2)}
+                  </span>
+                  <span>
+                    Net: {fmtSigned(flowChart.netChange ?? Number.NaN, 2)} ({fmtSigned(flowChart.netChangePct ?? Number.NaN, 2)}%)
+                  </span>
+                  <span>Avg Vol: {fmtCompactNumber(flowChart.avgVol)}</span>
+                </div>
+                <svg viewBox={`0 0 ${flowChart.width} ${flowChart.height}`} className="tfe-screener-flow-canvas" aria-label="Fund flows chart">
+                  <rect x="0" y="0" width={flowChart.width} height={flowChart.height} fill="rgba(247,250,247,0.86)" />
+                  {[0, 1, 2, 3, 4].map((gridIndex) => {
+                    const ratio = 1 - gridIndex / 4;
+                    const y = 16 + (gridIndex / 4) * 146;
+                    const min = flowChart.minClose ?? 0;
+                    const max = flowChart.maxClose ?? min;
+                    const price = min + ratio * (max - min);
+
+                    return (
+                      <g key={`flow-grid-${gridIndex}`}>
+                        <line x1="20" y1={y} x2={flowChart.width - 20} y2={y} stroke="rgba(31,56,47,0.14)" strokeWidth="1" />
+                        <text x={flowChart.width - 6} y={y + 3} textAnchor="end" fontSize="10" fill="rgba(31,56,47,0.72)">
+                          {fmtNum(price, 2)}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {flowChart.bars.map((bar, index) => (
+                    <rect
+                      key={`flow-bar-${index}`}
+                      x={bar.x}
+                      y={bar.y}
+                      width={bar.w}
+                      height={bar.h}
+                      fill={bar.up ? "rgba(57,182,114,0.70)" : "rgba(219,87,87,0.68)"}
+                      rx="1"
+                    />
+                  ))}
+
+                  <path d={flowPath} fill="none" stroke="#4d90e2" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </>
+            )}
+          </section>
         </div>
       ) : null}
     </div>
@@ -361,41 +694,23 @@ function RecommendationTable({
   rows,
   sort,
   onSortChange,
-  expandedTicker,
-  onToggle,
-  selectedTicker,
-  chartLoading,
-  chartError,
-  chartSummary,
-  chartNote,
-  quoteSummary,
-  chartBars,
-  ufMetric,
+  activeTicker,
+  analysisOpen,
+  onOpen,
   maxHeight,
-  showUfColumns,
   onTableScroll,
 }: {
   title: string;
   rows: RecommendationRow[];
   sort: SortState;
   onSortChange: (next: SortState) => void;
-  expandedTicker: string;
-  onToggle: (ticker: string) => void;
-  selectedTicker: string;
-  chartLoading: boolean;
-  chartError: string;
-  chartSummary: ChartSummary | null;
-  chartNote: string;
-  quoteSummary: QuoteSummary;
-  chartBars: ChartBar[];
-  ufMetric: WatchlistMetricRow | null;
+  activeTicker: string;
+  analysisOpen: boolean;
+  onOpen: (ticker: string) => void;
   maxHeight: number;
-  showUfColumns: boolean;
   onTableScroll?: (event: UIEvent<HTMLDivElement>) => void;
 }) {
-  const baseColumns = 5;
-  const ufColumns = showUfColumns ? 4 : 0;
-  const totalColumns = baseColumns + ufColumns;
+  const totalColumns = 5;
 
   return (
     <section className="section-stack">
@@ -420,22 +735,6 @@ function RecommendationTable({
               <th>
                 <SortHeader label="Regime" column="regime" sort={sort} onChange={onSortChange} />
               </th>
-              {showUfColumns ? (
-                <>
-                  <th style={{ textAlign: "right" }}>
-                    <SortHeader label="S_UF" column="sUf" sort={sort} onChange={onSortChange} />
-                  </th>
-                  <th style={{ textAlign: "right" }}>
-                    <SortHeader label="R_UF" column="rUf" sort={sort} onChange={onSortChange} />
-                  </th>
-                  <th style={{ textAlign: "right" }}>
-                    <SortHeader label="Bars" column="barCount" sort={sort} onChange={onSortChange} />
-                  </th>
-                  <th style={{ textAlign: "right" }}>
-                    <SortHeader label="UF Confidence" column="confidence" sort={sort} onChange={onSortChange} />
-                  </th>
-                </>
-              ) : null}
             </tr>
           </thead>
 
@@ -447,54 +746,33 @@ function RecommendationTable({
             ) : (
               rows.map((row, rowIndex) => {
                 const key = `${row.assetType}-${row.ticker}-${row.regime}-${row.barCount}-${rowIndex}`;
-                const active = expandedTicker === row.ticker;
+                const active = analysisOpen && activeTicker === row.ticker;
+                const rowAssessmentLabel = notAssessedLabel(row);
 
                 return (
-                  <Fragment key={key}>
-                    <tr className={active ? "active-row" : ""}>
-                      <td>
-                        <button
-                          type="button"
-                          className="tfe-row-button"
-                          onClick={() => onToggle(row.ticker)}
-                          title={`Open analysis for ${row.ticker}`}
-                        >
-                          {row.ticker}
-                        </button>
-                      </td>
-                      <td style={{ textTransform: "capitalize" }}>{row.assetType}</td>
-                      <td style={{ textAlign: "right" }}>{fmtNum(row.price, 2)}</td>
-                      <td>
-                        <span className={`tfe-chip ${decisionClass(row.decision)}`}>{row.decision}</span>
-                      </td>
-                      <td>{row.regime}</td>
-                      {showUfColumns ? (
-                        <>
-                          <td style={{ textAlign: "right" }}>{fmtNum(row.S_UF, 3)}</td>
-                          <td style={{ textAlign: "right" }}>{fmtNum(row.R_UF, 3)}</td>
-                          <td style={{ textAlign: "right" }}>{row.barCount}</td>
-                          <td style={{ textAlign: "right" }}>{fmtNum(row.confidence, 3)}</td>
-                        </>
+                  <tr key={key} className={active ? "active-row" : ""}>
+                    <td>
+                      <button
+                        type="button"
+                        className="tfe-row-button"
+                        onClick={() => onOpen(row.ticker)}
+                        title={`Open analysis for ${row.ticker}`}
+                      >
+                        {row.ticker}
+                      </button>
+                    </td>
+                    <td>{formatAssetType(row.assetType)}</td>
+                    <td style={{ textAlign: "right" }}>{fmtNum(row.price, 2)}</td>
+                    <td>
+                      <span className={`tfe-chip ${decisionClass(row.decision)}`}>{row.decision}</span>
+                      {rowAssessmentLabel ? (
+                        <div className="tfe-muted" style={{ fontSize: "0.72rem", marginTop: 4 }}>
+                          {rowAssessmentLabel}
+                        </div>
                       ) : null}
-                    </tr>
-
-                    {active ? (
-                      <tr>
-                        <td colSpan={totalColumns} style={{ padding: 0 }}>
-                          <AnalysisPanel
-                            ticker={row.ticker}
-                            chartLoading={chartLoading && selectedTicker === row.ticker}
-                            chartError={selectedTicker === row.ticker ? chartError : ""}
-                            chartSummary={selectedTicker === row.ticker ? chartSummary : null}
-                            chartNote={selectedTicker === row.ticker ? chartNote : ""}
-                            quoteSummary={selectedTicker === row.ticker ? quoteSummary : {}}
-                            chartBars={selectedTicker === row.ticker ? chartBars : []}
-                            ufMetric={selectedTicker === row.ticker ? ufMetric : null}
-                          />
-                        </td>
-                      </tr>
-                    ) : null}
-                  </Fragment>
+                    </td>
+                    <td>{row.regime}</td>
+                  </tr>
                 );
               })
             )}
@@ -523,7 +801,7 @@ export default function RecommendationsQuickCheck() {
 
   const [lists, setLists] = useState<RecommendationsPayload | null>(null);
 
-  const [expandedTicker, setExpandedTicker] = useState<string>("");
+  const [analysisOpen, setAnalysisOpen] = useState(false);
   const [selectedTicker, setSelectedTicker] = useState<string>("");
   const [chartLoading, setChartLoading] = useState(false);
   const [chartError, setChartError] = useState("");
@@ -531,12 +809,33 @@ export default function RecommendationsQuickCheck() {
   const [chartBars, setChartBars] = useState<ChartBar[]>([]);
   const [chartSummary, setChartSummary] = useState<ChartSummary | null>(null);
   const [quoteSummary, setQuoteSummary] = useState<QuoteSummary>({});
+  const [chartControls, setChartControls] = useState<ScreenerChartControls>(DEFAULT_SCREENER_CHART_CONTROLS);
   const [lookupMetric, setLookupMetric] = useState<WatchlistMetricRow | null>(null);
+  const {
+    flyoutMaximized,
+    flyoutPanelStyle,
+    toggleFlyoutMaximize,
+    onFlyoutHeaderPointerDown,
+    onFlyoutHeaderPointerMove,
+    onFlyoutHeaderPointerUp,
+    onFlyoutHeaderPointerCancel,
+    onFlyoutResizePointerDown,
+    onFlyoutResizePointerMove,
+    onFlyoutResizePointerUp,
+    onFlyoutResizePointerCancel,
+  } = useFlyoutPanel(analysisOpen, closeAnalysis);
 
   const [under50Sort, setUnder50Sort] = useState<SortState>({ key: "ticker", direction: "asc" });
   const [topAssetSort, setTopAssetSort] = useState<SortState>({ key: "ticker", direction: "asc" });
   const [fullSort, setFullSort] = useState<SortState>({ key: "ticker", direction: "asc" });
   const [fullMarketVisibleCount, setFullMarketVisibleCount] = useState(FULL_MARKET_INITIAL_ROWS);
+  const [lastLoadComparison, setLastLoadComparison] = useState<{
+    status: "first_load" | "same_as_previous_load" | "changed_since_previous_load";
+    previousSignature: string | null;
+  }>({
+    status: "first_load",
+    previousSignature: null,
+  });
 
   const selectedTop10Rows = useMemo(() => {
     if (!lists) return [] as RecommendationRow[];
@@ -565,14 +864,8 @@ export default function RecommendationsQuickCheck() {
       let numericValue: number | null;
       if (fullRangeField === "price") {
         numericValue = row.price;
-      } else if (fullRangeField === "S_UF") {
-        numericValue = row.S_UF;
-      } else if (fullRangeField === "R_UF") {
-        numericValue = row.R_UF;
-      } else if (fullRangeField === "barCount") {
-        numericValue = row.barCount;
       } else {
-        numericValue = row.confidence;
+        numericValue = row.barCount;
       }
 
       if (minRangeValue !== null) {
@@ -601,6 +894,30 @@ export default function RecommendationsQuickCheck() {
     () => fullRowsSorted.slice(0, Math.max(FULL_MARKET_INITIAL_ROWS, fullMarketVisibleCount)),
     [fullRowsSorted, fullMarketVisibleCount],
   );
+  const selectedAnalysisRow = useMemo(() => {
+    const pools = [topUnder50RowsSorted, topAssetRowsSorted, fullRowsSorted];
+    for (const rows of pools) {
+      const match = rows.find((row) => row.ticker === selectedTicker);
+      if (match) return match;
+    }
+    return null;
+  }, [fullRowsSorted, selectedTicker, topAssetRowsSorted, topUnder50RowsSorted]);
+
+  const recommendationsSignature = useMemo(() => {
+    if (!lists) return "";
+    const decisionSummary = lists.decisionSummary ?? {};
+    const freshness = lists.freshness ?? {};
+    return JSON.stringify({
+      run_id: String(lists.run_id ?? ""),
+      generated_at_utc: String(lists.generated_at_utc ?? ""),
+      decisionSummary: {
+        accumulate: Number(decisionSummary.accumulate ?? 0),
+        hold: Number(decisionSummary.hold ?? 0),
+        avoid: Number(decisionSummary.avoid ?? 0),
+      },
+      stale: Boolean(freshness.stale),
+    });
+  }, [lists]);
 
   useEffect(() => {
     setFullMarketVisibleCount(FULL_MARKET_INITIAL_ROWS);
@@ -666,18 +983,27 @@ export default function RecommendationsQuickCheck() {
     }
   }
 
-  async function loadChart(symbol: string) {
+  async function loadChart(symbol: string, controls?: ScreenerChartControls) {
     const clean = normalizeTicker(symbol);
     if (!clean) return;
+    const nextControls = controls ?? chartControls;
 
+    setChartControls(nextControls);
     setSelectedTicker(clean);
+    setAnalysisOpen(true);
     setChartLoading(true);
     setChartError("");
     setChartNote("");
     setLookupMetric(null);
 
     try {
-      const res = await fetch(`/api/watchlist/chart?ticker=${encodeURIComponent(clean)}&days=365`, {
+      const params = new URLSearchParams({
+        ticker: clean,
+        interval: nextControls.interval,
+        range: nextControls.range,
+      });
+
+      const res = await fetch(`/api/watchlist/chart?${params.toString()}`, {
         method: "GET",
         cache: "no-store",
       });
@@ -699,6 +1025,14 @@ export default function RecommendationsQuickCheck() {
       setQuoteSummary(data.quote ?? {});
       setChartNote(typeof data.note === "string" ? data.note : "");
       setLookupMetric(data.ufMetric ?? null);
+      const resolvedInterval = normalizeChartInterval(data.interval, nextControls.interval);
+      const resolvedRange = normalizeChartRange(data.range, nextControls.range);
+      setChartControls({
+        ...nextControls,
+        interval: resolvedInterval,
+        range: resolvedRange,
+        timeframe: timeframeFromInterval(resolvedInterval),
+      });
       setMessage(`Loaded ${clean} analysis.`);
     } catch {
       setChartBars([]);
@@ -712,17 +1046,17 @@ export default function RecommendationsQuickCheck() {
     }
   }
 
+  function closeAnalysis() {
+    setAnalysisOpen(false);
+    setSelectedTicker("");
+  }
+
   async function toggleRow(ticker: string) {
-    if (expandedTicker === ticker) {
-      setExpandedTicker("");
+    if (analysisOpen && selectedTicker === ticker) {
+      closeAnalysis();
       return;
     }
-
-    setExpandedTicker(ticker);
-
-    if (selectedTicker !== ticker) {
-      await loadChart(ticker);
-    }
+    await loadChart(ticker);
   }
 
   async function addToWatchlist() {
@@ -780,10 +1114,44 @@ export default function RecommendationsQuickCheck() {
     void loadRecommendations();
   }, []);
 
+  useEffect(() => {
+    if (!recommendationsSignature) return;
+
+    const storageKey = "tfe_recommendations_signature_latest";
+    try {
+      const previous = window.localStorage.getItem(storageKey);
+      if (!previous) {
+        setLastLoadComparison({ status: "first_load", previousSignature: null });
+      } else if (previous === recommendationsSignature) {
+        setLastLoadComparison({ status: "same_as_previous_load", previousSignature: previous });
+      } else {
+        setLastLoadComparison({ status: "changed_since_previous_load", previousSignature: previous });
+      }
+      window.localStorage.setItem(storageKey, recommendationsSignature);
+    } catch {
+      setLastLoadComparison({ status: "first_load", previousSignature: null });
+    }
+  }, [recommendationsSignature]);
+
+  useEffect(() => {
+    if (!analysisOpen) return;
+
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeAnalysis();
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+    };
+  }, [analysisOpen]);
+
   return (
     <div className="section-stack">
       <p className="tfe-muted" style={{ marginTop: 0 }}>
-        Consistent decision rules are applied across recommendations, watchlist, ticker lookup, and portfolio outputs.
+        Consistent decision rules are applied across recommendations, watchlist, ticker lookup, and portfolio outputs. Only Watchlist and Portfolio pages have live market data.
       </p>
 
       <section className="tfe-panel">
@@ -810,23 +1178,125 @@ export default function RecommendationsQuickCheck() {
 
       {lists ? (
         <>
+          <section className="tfe-panel">
+            <h2 style={{ margin: "0 0 6px" }}>Recommendation Runtime Status</h2>
+            <p className="tfe-muted" style={{ marginTop: 0, marginBottom: 8 }}>
+              This shows the exact recommendation snapshot currently rendered by this page.
+            </p>
+
+            <div className="tfe-status-row">
+              <div className={`tfe-status-pill ${String(lists.data_source ?? "").toLowerCase() === "postgres" ? "is-good" : "is-warn"}`}>
+                <span className="k">Data Source</span>
+                <span className="v">{lists.data_source || "N/A"}</span>
+              </div>
+
+              <div className={`tfe-status-pill ${lists.freshness?.stale ? "is-warn" : "is-good"}`}>
+                <span className="k">Freshness</span>
+                <span className="v">
+                  {lists.freshness?.stale ? "Stale" : "Fresh"} ({formatAgeMinutes(lists.freshness?.snapshot_age_minutes)})
+                </span>
+              </div>
+
+              <div className="tfe-status-pill">
+                <span className="k">Snapshot Generated (UTC)</span>
+                <span className="v">{formatIsoUtc(lists.generated_at_utc)}</span>
+              </div>
+
+              <div className="tfe-status-pill">
+                <span className="k">Runtime Run ID</span>
+                <span className="v" title={lists.run_id || "N/A"}>{shortRunId(lists.run_id)}</span>
+              </div>
+
+              <div
+                className={`tfe-status-pill ${
+                  lastLoadComparison.status === "changed_since_previous_load" ? "is-good" : "is-warn"
+                }`}
+              >
+                <span className="k">Changed Since Last Page Load</span>
+                <span className="v">
+                  {lastLoadComparison.status === "first_load"
+                    ? "First Load"
+                    : lastLoadComparison.status === "changed_since_previous_load"
+                      ? "Changed"
+                      : "Unchanged"}
+                </span>
+              </div>
+            </div>
+
+            <div className="tfe-summary-grid" style={{ marginTop: 8 }}>
+              <div className="tfe-summary-card">
+                <div className="k">Accumulate</div>
+                <div className="v">{Number(lists.decisionSummary?.accumulate ?? 0)}</div>
+              </div>
+              <div className="tfe-summary-card">
+                <div className="k">Hold</div>
+                <div className="v">{Number(lists.decisionSummary?.hold ?? 0)}</div>
+              </div>
+              <div className="tfe-summary-card">
+                <div className="k">Avoid</div>
+                <div className="v">{Number(lists.decisionSummary?.avoid ?? 0)}</div>
+              </div>
+              <div className="tfe-summary-card">
+                <div className="k">Assessed Rows</div>
+                <div className="v">
+                  {Number(lists.recommendationHealth?.assessedRows ?? lists.recommendationHealth?.policyMappedRows ?? 0)}
+                </div>
+              </div>
+              <div className="tfe-summary-card">
+                <div className="k">Not Assessed Rows</div>
+                <div className="v">
+                  {Number(lists.recommendationHealth?.notAssessedRows ?? lists.recommendationHealth?.fallbackRows ?? 0)}
+                </div>
+              </div>
+              <div className="tfe-summary-card">
+                <div className="k">Assessed Rate</div>
+                <div className="v">
+                  {formatPctRate(
+                    lists.recommendationHealth?.assessedRate ?? lists.recommendationHealth?.coverageRate,
+                  )}
+                </div>
+              </div>
+              <div className="tfe-summary-card">
+                <div className="k">Not Assessed Rate</div>
+                <div className="v">
+                  {formatPctRate(
+                    lists.recommendationHealth?.notAssessedRate ?? lists.recommendationHealth?.fallbackRate,
+                  )}
+                </div>
+              </div>
+              <div className="tfe-summary-card">
+                <div className="k">Insufficient Data Rows</div>
+                <div className="v">{Number(lists.recommendationHealth?.insufficientBarsRows ?? 0)}</div>
+              </div>
+              <div className="tfe-summary-card">
+                <div className="k">Snapshot Source</div>
+                <div className="v" title={lists.snapshotSource || "N/A"}>{lists.snapshotSource ? "Postgres Runtime Snapshot" : "N/A"}</div>
+              </div>
+            </div>
+
+            {Array.isArray(lists.recommendationHealth?.alerts) && lists.recommendationHealth?.alerts.length > 0 ? (
+              <p className="tfe-error" style={{ marginTop: 8, marginBottom: 0 }}>
+                Health alerts: {lists.recommendationHealth?.alerts.join(", ")}
+              </p>
+            ) : null}
+
+            <p className="tfe-muted" style={{ marginTop: 8, marginBottom: 0 }}>
+              Accuracy scope: assessed symbols only. Not assessed symbols are visible and excluded from accuracy scoring.
+            </p>
+          </section>
+
+          <p className="tfe-muted" style={{ marginTop: 0, marginBottom: 8 }}>
+            Recommendation decisions come from daily market scans. Listed prices use the latest cached quote feed and may lag live market prints.
+          </p>
           <RecommendationTable
             title="Top 5 Under $50"
             rows={topUnder50RowsSorted}
             sort={under50Sort}
             onSortChange={setUnder50Sort}
-            expandedTicker={expandedTicker}
-            onToggle={(ticker) => void toggleRow(ticker)}
-            selectedTicker={selectedTicker}
-            chartLoading={chartLoading}
-            chartError={chartError}
-            chartSummary={chartSummary}
-            chartNote={chartNote}
-            quoteSummary={quoteSummary}
-            chartBars={chartBars}
-            ufMetric={lookupMetric}
+            activeTicker={selectedTicker}
+            analysisOpen={analysisOpen}
+            onOpen={(ticker) => void toggleRow(ticker)}
             maxHeight={360}
-            showUfColumns={false}
           />
 
           <section className="section-stack">
@@ -853,18 +1323,10 @@ export default function RecommendationsQuickCheck() {
               rows={topAssetRowsSorted}
               sort={topAssetSort}
               onSortChange={setTopAssetSort}
-              expandedTicker={expandedTicker}
-              onToggle={(ticker) => void toggleRow(ticker)}
-              selectedTicker={selectedTicker}
-              chartLoading={chartLoading}
-              chartError={chartError}
-              chartSummary={chartSummary}
-              chartNote={chartNote}
-              quoteSummary={quoteSummary}
-              chartBars={chartBars}
-              ufMetric={lookupMetric}
+              activeTicker={selectedTicker}
+              analysisOpen={analysisOpen}
+              onOpen={(ticker) => void toggleRow(ticker)}
               maxHeight={420}
-              showUfColumns={false}
             />
           </section>
 
@@ -913,10 +1375,7 @@ export default function RecommendationsQuickCheck() {
                   value={fullRangeField}
                   onChange={(event) => setFullRangeField(event.target.value as FullRangeField)}
                 >
-                  <option value="confidence">UF Confidence</option>
                   <option value="price">Price</option>
-                  <option value="S_UF">S_UF</option>
-                  <option value="R_UF">R_UF</option>
                   <option value="barCount">Bars</option>
                 </select>
               </div>
@@ -976,22 +1435,74 @@ export default function RecommendationsQuickCheck() {
               rows={fullRowsVisible}
               sort={fullSort}
               onSortChange={setFullSort}
-              expandedTicker={expandedTicker}
-              onToggle={(ticker) => void toggleRow(ticker)}
-              selectedTicker={selectedTicker}
-              chartLoading={chartLoading}
-              chartError={chartError}
-              chartSummary={chartSummary}
-              chartNote={chartNote}
-              quoteSummary={quoteSummary}
-              chartBars={chartBars}
-              ufMetric={lookupMetric}
+              activeTicker={selectedTicker}
+              analysisOpen={analysisOpen}
+              onOpen={(ticker) => void toggleRow(ticker)}
               maxHeight={760}
-              showUfColumns={true}
               onTableScroll={onFullMarketTableScroll}
             />
           </section>
         </>
+      ) : null}
+
+      {analysisOpen && selectedTicker ? (
+        <ClientPortal>
+          <div className="tfe-flyout-backdrop" role="presentation" onClick={() => closeAnalysis()}>
+            <section
+              className="tfe-flyout-panel"
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${selectedTicker} analysis`}
+              onClick={(event) => event.stopPropagation()}
+              style={flyoutPanelStyle}
+            >
+              <header
+                className={`tfe-flyout-header tfe-flyout-drag-handle${flyoutMaximized ? " is-maximized" : ""}`}
+                onPointerDown={onFlyoutHeaderPointerDown}
+                onPointerMove={onFlyoutHeaderPointerMove}
+                onPointerUp={onFlyoutHeaderPointerUp}
+                onPointerCancel={onFlyoutHeaderPointerCancel}
+              >
+                <h2 style={{ margin: 0, fontSize: "1rem" }}>{selectedTicker} Details</h2>
+                <div className="tfe-flyout-actions">
+                  <button type="button" className="btn btn-ghost tfe-flyout-btn" data-flyout-control="true" onClick={() => toggleFlyoutMaximize()}>
+                    {flyoutMaximized ? "Restore" : "Maximize"}
+                  </button>
+                  <button type="button" className="btn btn-ghost tfe-flyout-btn" data-flyout-control="true" onClick={() => closeAnalysis()}>
+                    Close
+                  </button>
+                </div>
+              </header>
+
+              <div className="tfe-flyout-body">
+                <AnalysisPanel
+                  ticker={selectedTicker}
+                  row={selectedAnalysisRow}
+                  chartLoading={chartLoading}
+                  chartError={chartError}
+                  chartSummary={chartSummary}
+                  chartNote={chartNote}
+                  quoteSummary={quoteSummary}
+                  chartBars={chartBars}
+                  chartControls={chartControls}
+                  onChartControlsChange={(next) => {
+                    void loadChart(selectedTicker, next);
+                  }}
+                  ufMetric={lookupMetric}
+                />
+              </div>
+              <div
+                className={`tfe-flyout-resize-handle${flyoutMaximized ? " is-disabled" : ""}`}
+                data-flyout-control="true"
+                role="presentation"
+                onPointerDown={onFlyoutResizePointerDown}
+                onPointerMove={onFlyoutResizePointerMove}
+                onPointerUp={onFlyoutResizePointerUp}
+                onPointerCancel={onFlyoutResizePointerCancel}
+              />
+            </section>
+          </div>
+        </ClientPortal>
       ) : null}
 
       <p className="tfe-muted">For research use only. Not financial advice. No trade execution.</p>

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import csv
 import hashlib
 import itertools
 import json
@@ -26,16 +27,49 @@ UNFAVORABLE_PATH = ROOT / "unfavorable_runs.jsonl"
 AB_STATE_PATH = ROOT / "ab_state.json"
 AB_SUMMARY_PATH = ROOT / "ab_summary.json"
 
-WORKSPACE = Path("/workspaces/Tao_Financial_Engine")
+LEGACY_WORKSPACE = Path("/workspaces/Tao_Financial_Engine")
+
+
+def _resolve_workspace_root() -> Path:
+    explicit_root = str(os.environ.get("TFE_WORKSPACE_ROOT", "")).strip()
+    candidates: List[Path] = []
+    if explicit_root:
+        candidates.append(Path(explicit_root))
+    candidates.append(LEGACY_WORKSPACE)
+    candidates.append(Path(__file__).resolve().parent)
+
+    for candidate in candidates:
+        try:
+            resolved = candidate.resolve()
+        except Exception:
+            resolved = candidate
+        if (resolved / "g32_horse_race_mom_irf.py").exists():
+            return resolved
+
+    raise FileNotFoundError(
+        "Unable to resolve workspace root containing g32_horse_race_mom_irf.py. "
+        f"checked={ [str(p) for p in candidates] }"
+    )
+
+
+WORKSPACE = _resolve_workspace_root()
 RUNNER = WORKSPACE / "g32_horse_race_mom_irf.py"
 ROW_TRACE = WORKSPACE / "real_world_cleaned_universe_l5_row_trace_full.csv"
+ROW_TRACE_FALLBACK = WORKSPACE / "backups/github-fresh-start-run-20260222T172754Z/stage/real_world_cleaned_universe_l5_row_trace_full.csv"
 DATASET = WORKSPACE / "backups/strict-ab-frozen-dataset-20260218T133559Z.json"
+ACTIVE_ROW_TRACE = ROW_TRACE
 
 RNG_SEED = 20260219
-RUN_TIMEOUT_SECONDS = 2400
+_RUN_TIMEOUT_ENV_RAW = str(os.environ.get("G32_RUN_TIMEOUT_SECONDS", "")).strip()
+try:
+    _RUN_TIMEOUT_SECONDS = int(_RUN_TIMEOUT_ENV_RAW) if _RUN_TIMEOUT_ENV_RAW else 2400
+except Exception:
+    _RUN_TIMEOUT_SECONDS = 2400
+RUN_TIMEOUT_SECONDS = max(60, _RUN_TIMEOUT_SECONDS)
 TARGET_AVG_OUTCOME = 80.0
 TARGET_COMPLETED_RUNS = 1000
-BASELINE_REFERENCE = 42.15330258121504
+# Return-lift objective reference: positive means beating SPY.
+BASELINE_REFERENCE = 0.0
 ADAPTIVE_MIN_HISTORY = 20
 ADAPTIVE_EXPLORE_RATE = 0.20
 ADAPTIVE_RETRIES = 500
@@ -52,7 +86,7 @@ AB_WARMUP_RUNS = 24
 AB_ARM_EXPLORATION = 0.20
 AB_ARM_BASELINE = "baseline_estimated"
 AB_ARM_SOFT = "soft_negative_space"
-CURRENT_OBJECTIVE_METRIC = "avg_return_multiple_over_spy_pct_log_v2_mom_irf_v1"
+CURRENT_OBJECTIVE_METRIC = "avg_annualized_return_lift_vs_spy_pct_log_v3_mom_irf_v1"
 
 REQUIRED_CONFIG_KEYS = (
     "min_samples_grid",
@@ -148,9 +182,60 @@ def build_fingerprint() -> Dict[str, Any]:
         "python_version": sys.version.split()[0],
         "runner": _file_fingerprint(RUNNER),
         "loop_runner": _file_fingerprint(loop_runner),
-        "row_trace": _file_fingerprint(ROW_TRACE),
+        "row_trace": _file_fingerprint(ACTIVE_ROW_TRACE),
         "dataset": _file_fingerprint(DATASET),
     }
+
+
+def _row_trace_unique_timestamps_by_horizon(path: Path) -> Dict[int, int]:
+    by_h: Dict[int, set[str]] = {5: set(), 20: set(), 60: set()}
+    with path.open(newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            try:
+                h = int(float(str(row.get("horizon", ""))))
+            except Exception:
+                continue
+            if h not in by_h:
+                continue
+            ts = str(row.get("decision_timestamp", "")).strip()
+            if ts:
+                by_h[h].add(ts)
+    return {h: len(v) for h, v in by_h.items()}
+
+
+def _resolve_active_row_trace() -> Path:
+    primary = ROW_TRACE
+    min_unique_timestamps = 20
+    coverage = _row_trace_unique_timestamps_by_horizon(primary)
+    if all(coverage.get(h, 0) >= min_unique_timestamps for h in (5, 20, 60)):
+        log(f"row_trace_selected path={primary} coverage={coverage}")
+        return primary
+    if ROW_TRACE_FALLBACK.exists():
+        fb_cov = _row_trace_unique_timestamps_by_horizon(ROW_TRACE_FALLBACK)
+        if all(fb_cov.get(h, 0) >= min_unique_timestamps for h in (5, 20, 60)):
+            log(
+                "row_trace_fallback_selected "
+                f"primary={primary} primary_coverage={coverage} "
+                f"fallback={ROW_TRACE_FALLBACK} fallback_coverage={fb_cov}"
+            )
+            return ROW_TRACE_FALLBACK
+        log(
+            "row_trace_fallback_insufficient_unique_timestamps "
+            f"primary={primary} primary_coverage={coverage} "
+            f"fallback={ROW_TRACE_FALLBACK} fallback_coverage={fb_cov} "
+            f"min_unique_timestamps={min_unique_timestamps} "
+            "action=proceed_with_primary"
+        )
+        return primary
+
+    log(
+        "row_trace_insufficient_unique_timestamps_no_fallback "
+        f"primary={primary} coverage={coverage} "
+        f"min_unique_timestamps={min_unique_timestamps} "
+        "action=proceed_with_primary"
+    )
+    return primary
 
 
 def acquire_lock() -> bool:
@@ -261,6 +346,9 @@ def load_seen() -> set[str]:
             obj = json.loads(line)
         except Exception:
             continue
+        metric = str(obj.get("objective_metric", "")).strip()
+        if metric != CURRENT_OBJECTIVE_METRIC:
+            continue
         cfg = obj.get("config")
         if isinstance(cfg, dict):
             normalized = normalize_config(cfg)
@@ -283,8 +371,11 @@ def load_scored_history() -> List[Dict[str, Any]]:
         metric = str(obj.get("objective_metric", "")).strip()
         if metric != CURRENT_OBJECTIVE_METRIC:
             continue
-        score = obj.get("legacy_outcome_score")
+        score = obj.get("objective_score")
         if not isinstance(score, (int, float)):
+            score = obj.get("g32_symbol_return_multiple_over_spy_pct")
+        if not isinstance(score, (int, float)):
+            # Backward compatibility for historical rows that used this key for objective score.
             score = obj.get("g32_symbol_avg_outcome_over_index_pct")
         cfg = obj.get("config")
         if not isinstance(score, (int, float)):
@@ -320,7 +411,11 @@ def load_best_percent_over_index_record() -> Optional[Dict[str, Any]]:
     best: Optional[Dict[str, Any]] = None
     best_score: Optional[float] = None
     for obj in _iter_current_metric_results():
-        score_obj = obj.get("legacy_outcome_score")
+        score_obj = obj.get("objective_score")
+        if not isinstance(score_obj, (int, float)):
+            score_obj = obj.get("g32_symbol_return_multiple_over_spy_pct")
+        if not isinstance(score_obj, (int, float)):
+            score_obj = obj.get("g32_symbol_avg_outcome_over_index_pct")
         if not isinstance(score_obj, (int, float)):
             continue
         cfg = obj.get("config")
@@ -332,7 +427,12 @@ def load_best_percent_over_index_record() -> Optional[Dict[str, Any]]:
         score = float(score_obj)
         if (best_score is None) or (score > best_score):
             best_score = score
-            best = {"score": score, "config": normalized, "run_name": obj.get("run_name")}
+            best = {
+                "score": score,
+                "config": normalized,
+                "run_name": obj.get("run_name"),
+                "objective_score": score,
+            }
     return best
 
 
@@ -347,6 +447,9 @@ def load_unfavorable_configs(max_entries: int = NEG_FIELD_UNFAVORABLE_MAX) -> Li
         try:
             obj = json.loads(line)
         except Exception:
+            continue
+        metric = str(obj.get("objective_metric", "")).strip()
+        if metric != CURRENT_OBJECTIVE_METRIC:
             continue
         cfg = obj.get("config")
         if not isinstance(cfg, dict):
@@ -610,7 +713,11 @@ def update_ab_state(ab_state: Dict[str, Dict[str, Any]], rec: Dict[str, Any]) ->
     arm_state = ab_state[arm]
     arm_state["runs"] = int(arm_state.get("runs", 0)) + 1
 
-    score = rec.get("g32_symbol_avg_outcome_over_index_pct")
+    score = rec.get("objective_score")
+    if not isinstance(score, (int, float)):
+        score = rec.get("g32_symbol_return_multiple_over_spy_pct")
+    if not isinstance(score, (int, float)):
+        score = rec.get("g32_symbol_avg_outcome_over_index_pct")
     status = rec.get("status")
     if status != "ok" or not isinstance(score, (int, float)):
         return
@@ -834,13 +941,16 @@ def load_current_best_score() -> Optional[float]:
     objective_metric = str(best.get("objective_metric", "")).strip()
     if objective_metric != CURRENT_OBJECTIVE_METRIC:
         return None
+    value = best.get("best_objective_score")
+    if isinstance(value, (int, float)):
+        return float(value)
+    value = best.get("best_return_lift_score")
+    if isinstance(value, (int, float)):
+        return float(value)
     value = best.get("best_percent_over_index")
     if isinstance(value, (int, float)):
         return float(value)
     value = best.get("best_legacy_outcome_score")
-    if isinstance(value, (int, float)):
-        return float(value)
-    value = best.get("best_objective_score")
     if isinstance(value, (int, float)):
         return float(value)
     fallback = best.get("best_g32_symbol_avg_outcome_over_index_pct")
@@ -862,7 +972,9 @@ def init_state() -> Dict[str, Any]:
 
 def maybe_update_best(record: Dict[str, Any]) -> bool:
     current: Optional[float] = load_current_best_score()
-    candidate = record.get("legacy_outcome_score")
+    candidate = record.get("objective_score")
+    if not isinstance(candidate, (int, float)):
+        candidate = record.get("g32_symbol_return_multiple_over_spy_pct")
     if not isinstance(candidate, (int, float)):
         candidate = record.get("g32_symbol_avg_outcome_over_index_pct")
     if not isinstance(candidate, (int, float)):
@@ -870,14 +982,16 @@ def maybe_update_best(record: Dict[str, Any]) -> bool:
     cand_v = float(candidate)
 
     if (current is None) or (cand_v > current):
-        learner_obj = record.get("g32_symbol_avg_outcome_over_index_pct")
-        learner_v = float(learner_obj) if isinstance(learner_obj, (int, float)) else None
+        legacy_obj = record.get("legacy_outcome_score")
+        legacy_v = float(legacy_obj) if isinstance(legacy_obj, (int, float)) else None
         payload = {
             "best_percent_over_index": cand_v,
-            "best_legacy_outcome_score": cand_v,
-            "best_learner_metric_score": learner_v,
-            "best_g32_symbol_avg_outcome_over_index_pct": learner_v,
-            "best_objective_score": learner_v,
+            "best_objective_score": cand_v,
+            "best_return_lift_score": cand_v,
+            "best_g32_symbol_return_multiple_over_spy_pct": cand_v,
+            "best_legacy_outcome_score": legacy_v,
+            "best_learner_metric_score": legacy_v,
+            "best_g32_symbol_avg_outcome_over_index_pct": legacy_v,
             "best_delta_vs_reference": record.get("delta_vs_reference"),
             "best_run_name": record.get("run_name"),
             "best_report_path": record.get("report_path"),
@@ -887,7 +1001,7 @@ def maybe_update_best(record: Dict[str, Any]) -> bool:
             "updated_at_utc": utc_now(),
         }
         write_json(BEST_PATH, payload)
-        log(f"new_best_mom_irf run={record.get('run_name')} pct_over_index={cand_v}")
+        log(f"new_best_mom_irf run={record.get('run_name')} return_lift={cand_v}")
         return True
     return False
 
@@ -895,7 +1009,9 @@ def maybe_update_best(record: Dict[str, Any]) -> bool:
 def maybe_log_unfavorable(record: Dict[str, Any], current_best: Optional[float]) -> None:
     reasons: List[str] = []
     status = str(record.get("status"))
-    score_obj = record.get("legacy_outcome_score")
+    score_obj = record.get("objective_score")
+    if not isinstance(score_obj, (int, float)):
+        score_obj = record.get("g32_symbol_return_multiple_over_spy_pct")
     if not isinstance(score_obj, (int, float)):
         score_obj = record.get("g32_symbol_avg_outcome_over_index_pct")
     score: Optional[float] = None
@@ -943,7 +1059,7 @@ def run_one(run_id: int, cfg: Dict[str, str], fingerprint: Dict[str, Any]) -> Di
         sys.executable,
         str(RUNNER),
         "--row-trace",
-        str(ROW_TRACE),
+        str(ACTIVE_ROW_TRACE),
         "--dataset",
         str(DATASET),
         "--output",
@@ -991,7 +1107,7 @@ def run_one(run_id: int, cfg: Dict[str, str], fingerprint: Dict[str, Any]) -> Di
             error = f"{type(exc).__name__}: {exc}"
 
     elapsed = round(time.time() - started, 2)
-    g32_score = None
+    objective_score = None
     legacy_score = None
     objective_metric = None
     delta = None
@@ -1004,9 +1120,9 @@ def run_one(run_id: int, cfg: Dict[str, str], fingerprint: Dict[str, Any]) -> Di
             legacy_v = horse.get("g32_best_symbol_avg_outcome_over_index_pct")
             d = horse.get("delta_vs_reference")
             if isinstance(v, (int, float)):
-                g32_score = float(v)
+                objective_score = float(v)
             elif isinstance(legacy_v, (int, float)):
-                g32_score = float(legacy_v)
+                objective_score = float(legacy_v)
             if isinstance(legacy_v, (int, float)):
                 legacy_score = float(legacy_v)
             if isinstance(d, (int, float)):
@@ -1024,7 +1140,9 @@ def run_one(run_id: int, cfg: Dict[str, str], fingerprint: Dict[str, Any]) -> Di
         "config": cfg,
         "fingerprint": fingerprint,
         "report_path": str(report_path) if report_path.exists() else None,
-        "g32_symbol_avg_outcome_over_index_pct": g32_score,
+        "objective_score": objective_score,
+        "g32_symbol_return_multiple_over_spy_pct": objective_score,
+        "g32_symbol_avg_outcome_over_index_pct": legacy_score,
         "legacy_outcome_score": legacy_score,
         "objective_metric": objective_metric,
         "delta_vs_reference": delta,
@@ -1064,8 +1182,8 @@ def execute_run(
     log(
         "done "
         f"run_id={run_id} status={rec['status']} "
-        f"pct_over_index={rec.get('legacy_outcome_score')} "
-        f"learner={rec.get('g32_symbol_avg_outcome_over_index_pct')} "
+        f"return_lift={rec.get('objective_score')} "
+        f"legacy_outcome={rec.get('legacy_outcome_score')} "
         f"delta={rec.get('delta_vs_reference')} "
         f"elapsed={rec.get('elapsed_seconds')}s "
         f"improved={improved}"
@@ -1084,7 +1202,9 @@ def execute_run(
 def maybe_record_history(history: List[Dict[str, Any]], rec: Dict[str, Any]) -> None:
     if rec.get("status") != "ok":
         return
-    score = rec.get("legacy_outcome_score")
+    score = rec.get("objective_score")
+    if not isinstance(score, (int, float)):
+        score = rec.get("g32_symbol_return_multiple_over_spy_pct")
     if not isinstance(score, (int, float)):
         score = rec.get("g32_symbol_avg_outcome_over_index_pct")
     cfg = rec.get("config")
@@ -1101,8 +1221,10 @@ def maybe_record_history(history: List[Dict[str, Any]], rec: Dict[str, Any]) -> 
 def main() -> None:
     if not RUNNER.exists():
         raise FileNotFoundError(f"Missing runner: {RUNNER}")
-    if not ROW_TRACE.exists():
-        raise FileNotFoundError(f"Missing row trace: {ROW_TRACE}")
+    if not ROW_TRACE.exists() and not ROW_TRACE_FALLBACK.exists():
+        raise FileNotFoundError(
+            f"Missing row trace files: primary={ROW_TRACE} fallback={ROW_TRACE_FALLBACK}"
+        )
     if not DATASET.exists():
         raise FileNotFoundError(f"Missing dataset: {DATASET}")
 
@@ -1111,9 +1233,12 @@ def main() -> None:
 
     try:
         RUNS_DIR.mkdir(parents=True, exist_ok=True)
+        log(f"workspace_resolved path={WORKSPACE}")
         pool = build_pool()
         pool = sorted(pool, key=config_signature)
 
+        global ACTIVE_ROW_TRACE
+        ACTIVE_ROW_TRACE = _resolve_active_row_trace()
         fingerprint = build_fingerprint()
         runner_sha = str(fingerprint.get("runner", {}).get("sha256", ""))[:12]
         loop_sha = str(fingerprint.get("loop_runner", {}).get("sha256", ""))[:12]
@@ -1132,7 +1257,7 @@ def main() -> None:
             "loop_start mom_irf "
             f"pool={len(pool)} seen={len(seen)} history={len(history)} "
             f"target_completed_runs={TARGET_COMPLETED_RUNS} "
-            f"start_best_percent_over_index={load_current_best_score()}"
+            f"start_best_return_lift={load_current_best_score()}"
         )
 
         champion_cfg = load_best_config()

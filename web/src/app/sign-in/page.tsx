@@ -20,6 +20,7 @@ function errorMessageFromCode(errorCode: string): string {
   if (errorCode === "invalid_credentials") return "Sign in failed. Check username/password or account access.";
   if (errorCode === "mfa_required") return "MFA code is required for this account.";
   if (errorCode === "invalid_mfa") return "Invalid MFA code.";
+  if (errorCode === "auth_unavailable") return "Sign in is temporarily unavailable. Please try again.";
   return "";
 }
 

@@ -106,6 +106,52 @@ def _to_json_safe(value: Any) -> Any:
     return value
 
 
+def _extract_envelope_runtime_hints(
+    envelope: Envelope,
+    default_environment: str,
+    default_region: str,
+) -> tuple[str, str]:
+    environment = str(getattr(envelope, "environment", "") or "").strip()
+    region = str(getattr(envelope, "region", "") or "").strip()
+
+    domain_tuple = getattr(envelope, "domain_params_tuple", None)
+    if isinstance(domain_tuple, Mapping):
+        tuple_env = str(domain_tuple.get("environment", "") or "").strip()
+        tuple_region = str(domain_tuple.get("region", "") or "").strip()
+        if tuple_env:
+            environment = tuple_env
+        if tuple_region:
+            region = tuple_region
+
+    if not environment:
+        environment = str(default_environment)
+    if not region:
+        region = str(default_region)
+
+    return environment, region
+
+
+def _decrypt_with_runtime(
+    *,
+    envelope: Envelope,
+    purpose_suffix: str,
+    actor_id: str,
+    environment: str,
+    region: str,
+):
+    ctx = _initialize_ctx(environment=environment, region=region)
+    tenant = _make_tenant(environment=environment)
+    domain = make_domain(ctx=ctx, purpose_suffix=purpose_suffix, version="v1")
+    payload = decrypt_blob(
+        ctx=ctx,
+        tenant=tenant,
+        domain=domain,
+        envelope=envelope,
+        actor_id=actor_id,
+    )
+    return payload, ctx, tenant, domain
+
+
 def _encrypt(args: argparse.Namespace) -> None:
     environment = str(args.environment)
     region = str(args.region)
@@ -150,8 +196,8 @@ def _encrypt(args: argparse.Namespace) -> None:
 
 
 def _decrypt(args: argparse.Namespace) -> None:
-    environment = str(args.environment)
-    region = str(args.region)
+    requested_environment = str(args.environment)
+    requested_region = str(args.region)
     purpose_suffix = str(args.purpose_suffix)
     actor_id = str(args.actor_id)
     asset_id = str(args.asset_id)
@@ -161,17 +207,57 @@ def _decrypt(args: argparse.Namespace) -> None:
     envelope_raw = _read_text(input_path)
     envelope = Envelope.from_json(envelope_raw)
 
-    ctx = _initialize_ctx(environment=environment, region=region)
-    tenant = _make_tenant(environment=environment)
-    domain = make_domain(ctx=ctx, purpose_suffix=purpose_suffix, version="v1")
+    payload = None
+    ctx = None
+    tenant = None
+    domain = None
 
-    payload = decrypt_blob(
-        ctx=ctx,
-        tenant=tenant,
-        domain=domain,
-        envelope=envelope,
-        actor_id=actor_id,
-    )
+    first_error: Exception | None = None
+    try:
+        payload, ctx, tenant, domain = _decrypt_with_runtime(
+            envelope=envelope,
+            purpose_suffix=purpose_suffix,
+            actor_id=actor_id,
+            environment=requested_environment,
+            region=requested_region,
+        )
+    except Exception as exc:
+        first_error = exc
+
+    if payload is None:
+        hint_environment, hint_region = _extract_envelope_runtime_hints(
+            envelope=envelope,
+            default_environment=requested_environment,
+            default_region=requested_region,
+        )
+
+        should_try_hint = (
+            hint_environment != requested_environment or hint_region != requested_region
+        )
+
+        if should_try_hint:
+            try:
+                payload, ctx, tenant, domain = _decrypt_with_runtime(
+                    envelope=envelope,
+                    purpose_suffix=purpose_suffix,
+                    actor_id=actor_id,
+                    environment=hint_environment,
+                    region=hint_region,
+                )
+            except Exception as fallback_exc:
+                first_detail = (
+                    f"{type(first_error).__name__}: {first_error}"
+                    if first_error is not None
+                    else "unknown first decrypt error"
+                )
+                raise RuntimeError(
+                    f"{first_detail}; fallback runtime ({hint_environment}/{hint_region}) failed: "
+                    f"{type(fallback_exc).__name__}: {fallback_exc}"
+                ) from fallback_exc
+        else:
+            if first_error is not None:
+                raise first_error
+            raise RuntimeError("decrypt_failed")
 
     if isinstance(payload, dict) and "value" in payload:
         value = payload["value"]

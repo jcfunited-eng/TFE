@@ -17,4 +17,6 @@
 - No guessing or provisionals; if you are guessing, you must stop and ask for permission to proceed.
 - No long, winded, expositional answers; the simpler the better.
 - When a problem is encountered, fix the problem before progressing.
+- When practical, run actual browser-based production checks before handoff.
 - No experimental anything; only production-level code.
+- Send a Slack ping notification when a requested task is completed, and when work is blocked awaiting user approval.

@@ -12,9 +12,12 @@ schema used by TFE pages (Recommendations, etc.).
 This module:
     - Uses UF-Core structural engine only (no TA).
     - Uses the same structural adapter as Watchlist / live views.
+    - Materializes structural recency fields from published decision lineage.
     - Returns a dict with keys:
         ticker, asset_type, price, regime,
-        S_UF, R_UF, stability_score, max_dd, decision_vector, bar_count
+        S_UF, R_UF, stability_score, max_dd,
+        decision_vector, D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k,
+        bar_count
 
 Intended usage
 --------------
@@ -48,8 +51,12 @@ except ModuleNotFoundError:
     # Direct UF/TFE data service
     from unified_market_data_service import get_unified_market_data  # type: ignore
 
-from tfe_market_data_service import Bar, HistoryRequest, Timespan  # type: ignore
+from structural_recency_snapshot import (
+    build_structural_recency_payload,
+    history_metadata_from_bars,
+)
 from tfe_bar_integrity import DEFAULT_MIN_PRICE_FLOOR, sanitize_daily_bars
+from tfe_market_data_service import Bar, HistoryRequest, Timespan  # type: ignore
 
 # ----------------------------------------------------------------------
 # UF-Core structural engine import
@@ -177,6 +184,22 @@ def _safe_int(value: Any, default: int = 0) -> int:
         return default
 
 
+def _safe_optional_float(value: Any) -> float | None:
+    try:
+        return float(value)
+    except Exception:
+        return None
+
+
+def _safe_vector_value(vector: List[float], index: int, default: float = 0.0) -> float:
+    if index < 0 or index >= len(vector):
+        return float(default)
+    try:
+        return float(vector[index])
+    except Exception:
+        return float(default)
+
+
 # ----------------------------------------------------------------------
 # Public API: single-row UF snapshot evaluator
 # ----------------------------------------------------------------------
@@ -203,29 +226,19 @@ def evaluate_symbol_snapshot(
 
     Output
     ------
-    A dict with the same row fields used in the snapshot envelope payload, plus bar_count:
-
-        {
-            "ticker": "AAPL",
-            "asset_type": "stock",
-            "price": 186.88,
-            "regime": "TRANSITIONAL",
-            "S_UF": 0.73,
-            "R_UF": 0.81,
-            "stability_score": 0.62,
-            "max_dd": -0.24,
-            "decision_vector": [D, M, R_rev, U*, P, B],
-            "bar_count": 1256,
-        }
+    A dict with the same row fields used in the snapshot envelope payload, plus bar_count.
 
     Notes
     -----
     - NO TA is computed here; everything comes from UF-Core structural fields.
+    - Structural recency fields are materialized from published decision lineage,
+      not from request-time heuristics.
     - This function is deliberately small so it can be called from
       refresh_snapshot_full without dragging in any Streamlit / UI code.
     """
     bars, dropped = _fetch_history(symbol, years=years_history, client=client)
     bar_count = len(bars)
+    history_meta = history_metadata_from_bars(bars)
 
     # If we truly have no usable data, still return a row so the UI doesn't break.
     if not bars:
@@ -239,11 +252,33 @@ def evaluate_symbol_snapshot(
             "stability_score": 0.0,
             "max_dd": 0.0,
             "decision_vector": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            "D_k": 0.0,
+            "M_k": 0.0,
+            "R_rev_k": 0.0,
+            "U_star_k": 0.0,
+            "C_k": 0.0,
+            "P_k": 0.0,
+            "B_k": 0.0,
             "bar_count": 0,
             "gate_count": 0,
             "active_gate_count": 0,
             "decision_guard": {"gate_unlock_transient_neutralized": False},
             "integrity_dropped": dropped,
+            "history_available_steps": int(history_meta["history_available_steps"]),
+            "ts_gap_days_from_prev": float(history_meta["ts_gap_days_from_prev"]),
+            "structural_recency_schema_version": "v1",
+            "steps_since_regime_change": 0,
+            "steps_since_pattern_change": 0,
+            "steps_since_reversal_sign_flip": -1,
+            "D_steps_since_sign_flip": -1,
+            "M_steps_since_sign_flip": -1,
+            "R_rev_steps_since_sign_flip": -1,
+            "U_star_steps_since_sign_flip": -1,
+            "C_steps_since_sign_flip": -1,
+            "P_steps_since_sign_flip": -1,
+            "B_steps_since_sign_flip": -1,
+            "S_UF_steps_since_sign_flip": -1,
+            "R_UF_steps_since_sign_flip": -1,
         }
 
     # Use the same structural adapter as Watchlist and other TFE pages.
@@ -258,6 +293,31 @@ def evaluate_symbol_snapshot(
     max_dd = _safe_float(state.get("max_drawdown"), 0.0)
 
     decision_vector = _pad_decision_vector(state.get("decision_vector"))
+    d_k = _safe_optional_float(state.get("D_k"))
+    m_k = _safe_optional_float(state.get("M_k"))
+    r_rev_k = _safe_optional_float(state.get("R_rev_k"))
+    u_star_k = _safe_optional_float(state.get("U_star_k"))
+    c_k = _safe_optional_float(state.get("C_k"))
+    p_k = _safe_optional_float(state.get("P_k"))
+    b_k = _safe_optional_float(state.get("B_k"))
+
+    # Keep L4 basis complete for downstream strict checks; low-data rows are
+    # decision-gated to Hold by bar-count policy in the recommendation layer.
+    if d_k is None:
+        d_k = _safe_vector_value(decision_vector, 0, 0.0)
+    if m_k is None:
+        m_k = _safe_vector_value(decision_vector, 1, 0.0)
+    if r_rev_k is None:
+        r_rev_k = _safe_vector_value(decision_vector, 2, 0.0)
+    if u_star_k is None:
+        u_star_k = _safe_vector_value(decision_vector, 3, 0.0)
+    if c_k is None:
+        c_k = 0.0
+    if p_k is None:
+        p_k = _safe_vector_value(decision_vector, 4, 0.0)
+    if b_k is None:
+        b_k = _safe_vector_value(decision_vector, 5, 0.0)
+
     gate_count = _safe_int(state.get("gate_count"), 0)
     active_gate_count = _safe_int(state.get("active_gate_count"), 0)
 
@@ -274,12 +334,27 @@ def evaluate_symbol_snapshot(
         "stability_score": stability_score,
         "max_dd": max_dd,
         "decision_vector": decision_vector,
+        "D_k": d_k,
+        "M_k": m_k,
+        "R_rev_k": r_rev_k,
+        "U_star_k": u_star_k,
+        "C_k": c_k,
+        "P_k": p_k,
+        "B_k": b_k,
         "bar_count": int(bar_count),
         "gate_count": gate_count,
         "active_gate_count": active_gate_count,
         "decision_guard": decision_guard,
         "integrity_dropped": dropped,
     }
+    row.update(
+        build_structural_recency_payload(
+            symbol=symbol,
+            current_state=row,
+            history_available_steps=int(history_meta["history_available_steps"]),
+            ts_gap_days_from_prev=float(history_meta["ts_gap_days_from_prev"]),
+        )
+    )
 
     return row
 
@@ -295,8 +370,8 @@ def _demo_single_ticker() -> None:
     Example:
         python uf_mdg_snapshot.py AAPL
     """
-    import sys
     import json as _json
+    import sys
 
     if len(sys.argv) < 2:
         print("Usage: python uf_mdg_snapshot.py TICKER [ASSET_TYPE]")

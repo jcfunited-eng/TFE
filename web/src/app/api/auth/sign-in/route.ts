@@ -71,6 +71,14 @@ async function parseCredentials(request: Request): Promise<CredentialsInput | nu
   }
 }
 
+export async function GET(request: Request) {
+  const requestUrl = new URL(request.url);
+  const nextPath = sanitizeNextPath(requestUrl.searchParams.get("next"));
+  const redirectUrl = buildExternalUrl(request, "/sign-in");
+  redirectUrl.searchParams.set("next", nextPath);
+  return NextResponse.redirect(redirectUrl);
+}
+
 export async function POST(request: Request) {
   const parsed = await parseCredentials(request);
 
@@ -84,7 +92,12 @@ export async function POST(request: Request) {
     return resolveFailureResponse(request, nextPath, mode, "missing_credentials");
   }
 
-  const user = await authenticateUser({ username, password });
+  let user: Awaited<ReturnType<typeof authenticateUser>> = null;
+  try {
+    user = await authenticateUser({ username, password });
+  } catch {
+    return resolveFailureResponse(request, nextPath, mode, "auth_unavailable");
+  }
 
   if (!user) {
     return resolveFailureResponse(request, nextPath, mode, "invalid_credentials");

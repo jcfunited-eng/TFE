@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 const BASE_NAV_ITEMS = [
   { href: "/", label: "Home" },
   { href: "/recommendations", label: "Recommendations" },
+  { href: "/screener", label: "Screener" },
   { href: "/watchlist", label: "Watchlist" },
   { href: "/portfolio-advisor", label: "Portfolio" },
   { href: "/legal", label: "Legal" },

@@ -3,6 +3,8 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { Pool } from "pg";
 
+import { resolveSharedStorageBackend } from "@/lib/user-storage-backend";
+
 export type UserRole = "admin" | "member";
 
 type UserRecord = {
@@ -247,12 +249,7 @@ function buildExpiryIso(days: number | null): string | null {
 }
 
 function resolveUserStoreBackend(): UserStoreBackend {
-  const raw = String(process.env.TFE_USER_STORE_BACKEND ?? "file").trim().toLowerCase();
-
-  if (raw === "file") return "file";
-  if (raw === "postgres") return "postgres";
-
-  throw new Error("TFE_USER_STORE_BACKEND must be either 'file' or 'postgres'.");
+  return resolveSharedStorageBackend();
 }
 
 function userStoreCandidates(): string[] {

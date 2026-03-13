@@ -8,6 +8,7 @@ export const UI_PAGE_KEYS = [
   "signIn",
   "account",
   "recommendations",
+  "screener",
   "watchlist",
   "portfolioAdvisor",
   "legal",
@@ -32,6 +33,7 @@ const DEFAULT_CONFIG: UiConfig = {
     signIn: DEFAULT_IMAGE,
     account: DEFAULT_IMAGE,
     recommendations: DEFAULT_IMAGE,
+    screener: DEFAULT_IMAGE,
     watchlist: DEFAULT_IMAGE,
     portfolioAdvisor: DEFAULT_IMAGE,
     legal: DEFAULT_IMAGE,
@@ -65,6 +67,7 @@ function sanitizeBackgroundImages(raw: unknown): UiBackgroundImages {
     signIn: sanitizeImagePath(source.signIn),
     account: sanitizeImagePath(source.account),
     recommendations: sanitizeImagePath(source.recommendations),
+    screener: sanitizeImagePath(source.screener),
     watchlist: sanitizeImagePath(source.watchlist),
     portfolioAdvisor: sanitizeImagePath(source.portfolioAdvisor),
     legal: sanitizeImagePath(source.legal),
@@ -79,6 +82,7 @@ export function pageKeyFromRoute(route: string): UiPageKey {
   if (route === "/sign-in") return "signIn";
   if (route === "/account") return "account";
   if (route === "/recommendations") return "recommendations";
+  if (route === "/screener") return "screener";
   if (route === "/watchlist") return "watchlist";
   if (route === "/portfolio-advisor") return "portfolioAdvisor";
   if (route === "/legal") return "legal";
@@ -126,6 +130,7 @@ export async function setUiConfig(next: Partial<UiBackgroundImages>): Promise<Ui
       signIn: sanitizeImagePath(next.signIn ?? current.backgroundImages.signIn),
       account: sanitizeImagePath(next.account ?? current.backgroundImages.account),
       recommendations: sanitizeImagePath(next.recommendations ?? current.backgroundImages.recommendations),
+      screener: sanitizeImagePath(next.screener ?? current.backgroundImages.screener),
       watchlist: sanitizeImagePath(next.watchlist ?? current.backgroundImages.watchlist),
       portfolioAdvisor: sanitizeImagePath(next.portfolioAdvisor ?? current.backgroundImages.portfolioAdvisor),
       legal: sanitizeImagePath(next.legal ?? current.backgroundImages.legal),

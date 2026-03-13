@@ -192,13 +192,14 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
   const [activeChapter, setActiveChapter] = useState(0);
   const [activeChapterThreeIndex, setActiveChapterThreeIndex] = useState(0);
   const [chapterThreeReplaySeed, setChapterThreeReplaySeed] = useState(0);
-  const [chapterThreeHasStarted, setChapterThreeHasStarted] = useState(false);
   const [chapterThreeIsPlaying, setChapterThreeIsPlaying] = useState(false);
   const [chapterThreeIsPaused, setChapterThreeIsPaused] = useState(false);
   const [chapterFourReplaySeed, setChapterFourReplaySeed] = useState(0);
   const [chapterTwoWordIndex, setChapterTwoWordIndex] = useState(0);
 
   useEffect(() => {
+    let lastBestIndex = 0;
+
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -218,6 +219,21 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
           }
         }
 
+        if (bestIndex !== lastBestIndex) {
+          if (bestIndex === 1) {
+            setChapterTwoWordIndex(0);
+          }
+
+          if (bestIndex === 2) {
+            setActiveChapterThreeIndex(0);
+            setChapterThreeIsPaused(false);
+            setChapterThreeIsPlaying(true);
+            setChapterThreeReplaySeed((seed) => seed + 1);
+          }
+
+          lastBestIndex = bestIndex;
+        }
+
         setActiveChapter(bestIndex);
       },
       {
@@ -234,16 +250,6 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
   }, []);
 
   useEffect(() => {
-    if (activeChapter !== 2 || chapterThreeHasStarted) return;
-
-    setChapterThreeHasStarted(true);
-    setActiveChapterThreeIndex(0);
-    setChapterThreeIsPaused(false);
-    setChapterThreeIsPlaying(true);
-    setChapterThreeReplaySeed((seed) => seed + 1);
-  }, [activeChapter, chapterThreeHasStarted]);
-
-  useEffect(() => {
     if (activeChapter !== 2 || !chapterThreeIsPlaying || chapterThreeIsPaused) return;
 
     const lastFrameIndex = CHAPTER_THREE_FRAMES.length - 1;
@@ -251,13 +257,25 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
     const actDurationMs = activeFrame?.step === "03" ? 36000 : 14000;
 
     if (activeChapterThreeIndex >= lastFrameIndex) {
-      setChapterThreeIsPlaying(false);
-      setChapterThreeIsPaused(false);
-      return;
+      const stopTimer = window.setTimeout(() => {
+        setChapterThreeIsPlaying(false);
+        setChapterThreeIsPaused(false);
+      }, 0);
+
+      return () => {
+        window.clearTimeout(stopTimer);
+      };
     }
 
     const timer = window.setTimeout(() => {
-      setActiveChapterThreeIndex((prev) => Math.min(prev + 1, lastFrameIndex));
+      setActiveChapterThreeIndex((prev) => {
+        const next = Math.min(prev + 1, lastFrameIndex);
+        if (next >= lastFrameIndex) {
+          setChapterThreeIsPlaying(false);
+          setChapterThreeIsPaused(false);
+        }
+        return next;
+      });
     }, actDurationMs);
 
     return () => {
@@ -268,7 +286,6 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
   useEffect(() => {
     if (activeChapter !== 1) return;
 
-    setChapterTwoWordIndex(0);
     const timer = window.setInterval(() => {
       setChapterTwoWordIndex((prev) => (prev + 1) % CHAPTER_TWO_WORDS.length);
     }, 2200);

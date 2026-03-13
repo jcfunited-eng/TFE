@@ -17,16 +17,21 @@ const MAX_BUFFER = 128 * 1024 * 1024;
 
 function normalizeBridgeTimeoutMs(value: unknown): number {
   const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return 30000;
+  if (!Number.isFinite(parsed)) return 15000;
   const whole = Math.floor(parsed);
   if (whole < 1000) return 1000;
-  if (whole > 180000) return 180000;
+  if (whole > 30000) return 30000;
   return whole;
 }
 
 const BRIDGE_TIMEOUT_MS = normalizeBridgeTimeoutMs(process.env.TFE_SES_BRIDGE_TIMEOUT_MS);
 
 type BridgeMode = "encrypt" | "decrypt";
+
+type SesRuntimeOverride = {
+  sesEnvironment?: string;
+  sesRegion?: string;
+};
 
 type BridgeParams = {
   mode: BridgeMode;
@@ -35,7 +40,7 @@ type BridgeParams = {
   assetId: string;
   inputPath: string;
   outputPath: string;
-};
+} & SesRuntimeOverride;
 
 type EncryptParams = {
   value: unknown;
@@ -43,20 +48,25 @@ type EncryptParams = {
   purposeSuffix: string;
   actorId: string;
   assetId: string;
-};
+} & SesRuntimeOverride;
 
 type DecryptParams = {
   envelopePath: string;
   purposeSuffix: string;
   actorId: string;
   assetId: string;
-};
+} & SesRuntimeOverride;
 
 function normalizeToken(value: string): string {
   return String(value ?? "")
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9._:-]/g, "_");
+}
+
+function normalizeSesArg(value: string | undefined): string | null {
+  const normalized = String(value ?? "").trim();
+  return normalized.length > 0 ? normalized : null;
 }
 
 function ensureAbsolutePath(filePath: string): string {
@@ -91,6 +101,8 @@ async function runBridge(params: BridgeParams): Promise<void> {
   const purposeSuffix = normalizeToken(params.purposeSuffix);
   const actorId = normalizeToken(params.actorId);
   const assetId = normalizeToken(params.assetId);
+  const sesEnvironment = normalizeSesArg(params.sesEnvironment);
+  const sesRegion = normalizeSesArg(params.sesRegion);
 
   if (!purposeSuffix) {
     throw new Error("SES purpose suffix is required.");
@@ -118,6 +130,14 @@ async function runBridge(params: BridgeParams): Promise<void> {
     "--output-path",
     ensureAbsolutePath(params.outputPath),
   ];
+
+  if (sesEnvironment) {
+    args.push("--environment", sesEnvironment);
+  }
+
+  if (sesRegion) {
+    args.push("--region", sesRegion);
+  }
 
   try {
     await execFileAsync(PYTHON_BIN, args, {
@@ -171,6 +191,8 @@ export async function encryptJsonToEnvelope(params: EncryptParams): Promise<void
       assetId: params.assetId,
       inputPath: tempInput,
       outputPath: params.envelopePath,
+      sesEnvironment: params.sesEnvironment,
+      sesRegion: params.sesRegion,
     });
   } finally {
     await safeDelete(tempInput);
@@ -190,6 +212,8 @@ export async function decryptEnvelopeToJson<T>(params: DecryptParams): Promise<T
       assetId: params.assetId,
       inputPath: params.envelopePath,
       outputPath: tempOutput,
+      sesEnvironment: params.sesEnvironment,
+      sesRegion: params.sesRegion,
     });
 
     const raw = await fs.readFile(tempOutput, "utf-8");

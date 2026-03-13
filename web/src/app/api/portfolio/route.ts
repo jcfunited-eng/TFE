@@ -2,11 +2,20 @@ import { NextResponse } from "next/server";
 
 import {
   classificationFromDecision,
-  decisionInfoFromRow,
   findTickerRow,
-  loadSnapshotRows,
 } from "@/lib/uf-snapshot";
 import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { loadLivePriceMap, type LivePriceQuote } from "@/lib/live-price";
+import { loadCanonicalPublicationState, publicationContractFields } from "@/lib/publication-state";
+import { loadPublishedDecisionMapForRows, type PublishedDecisionRecord } from "@/lib/published-decision";
+import {
+  quoteCachePriceFromRow,
+  type ScreenerQuoteCacheRow,
+} from "@/lib/screener-quote-cache";
+import {
+  loadRuntimeQuoteCacheFromPostgres,
+  loadRuntimeSnapshotRowsFromPostgres,
+} from "@/lib/runtime-postgres";
 import {
   addPortfolioLot,
   loadPortfolioLots,
@@ -45,6 +54,19 @@ type Summary = {
   totalMarketValue: number | null;
   totalUnrealizedPnL: number | null;
   totalUnrealizedPnLPct: number | null;
+  realizedPnL: number | null;
+  realizedPnLPct: number | null;
+  realizedPnLStatus: "unavailable_no_trade_ledger" | "computed_from_trade_ledger";
+  realizedPnLMethod: "trade_ledger_required" | "trade_ledger_v1";
+};
+
+type BenchmarkComparison = {
+  symbol: "SPY";
+  portfolioReturnPct: number | null;
+  benchmarkReturnPct: number | null;
+  relativeReturnPctPoints: number | null;
+  status: "unavailable_same_dates_same_dollars_ledger_required" | "computed_same_dates_same_dollars_v1";
+  method: "same_dates_same_dollars_ledger_required" | "same_dates_same_dollars_v1";
 };
 
 type AllocatorAction = "BUY_MORE" | "TRIM" | "EXIT" | "HOLD";
@@ -92,9 +114,11 @@ type PutBody = {
   unitCost?: unknown;
 };
 
-type SnapshotLoadResult = Awaited<ReturnType<typeof loadSnapshotRows>>;
+type SnapshotLoadResult = Awaited<ReturnType<typeof loadRuntimeSnapshotRowsFromPostgres>>;
 
 const HOLD_DECISION_MULTIPLIER = 0.5;
+const HOLD_FALLBACK_UNMAPPED_REASON_CODE = "PSCF_FALLBACK_CELL_UNMAPPED";
+const ALLOW_TRIM_WHEN_DECISION_IS_ACCUMULATE = false;
 const REBALANCE_THRESHOLD_PCT_POINTS = 1.0;
 const SNAPSHOT_LOAD_TIMEOUT_MS = normalizeTimeoutMs(process.env.TFE_PORTFOLIO_SNAPSHOT_TIMEOUT_MS, 20000);
 
@@ -118,7 +142,7 @@ function normalizeTimeoutMs(value: unknown, fallbackMs: number): number {
 
   const whole = Math.floor(n);
   if (whole < 1000) return 1000;
-  if (whole > 180000) return 180000;
+  if (whole > 45000) return 45000;
   return whole;
 }
 
@@ -127,7 +151,7 @@ async function loadSnapshotRowsWithTimeout(): Promise<SnapshotLoadResult> {
 
   try {
     return await Promise.race([
-      loadSnapshotRows(),
+      loadRuntimeSnapshotRowsFromPostgres(),
       new Promise<SnapshotLoadResult>((_, reject) => {
         timeoutHandle = setTimeout(() => {
           reject(new Error(`Portfolio snapshot load timed out after ${SNAPSHOT_LOAD_TIMEOUT_MS}ms.`));
@@ -196,6 +220,8 @@ function buildAllocatorPlan(positions: PositionRow[], summary: Summary): Allocat
     .filter((row) => row.marketValue !== null && row.marketValue > 0)
     .map((row) => {
       const confidence = clamp01((row.S_UF + row.R_UF) / 2);
+      const holdIsFallbackUnmapped =
+        row.decision === "Hold" && row.decisionReasonCode === HOLD_FALLBACK_UNMAPPED_REASON_CODE;
       let score = 0;
 
       if (row.decision === "Accumulate") {
@@ -206,7 +232,7 @@ function buildAllocatorPlan(positions: PositionRow[], summary: Summary): Allocat
         score = 0;
       }
 
-      return { row, confidence, score };
+      return { row, confidence, score, holdIsFallbackUnmapped };
     });
 
   const scoreTotal = scored.reduce((sum, item) => sum + item.score, 0);
@@ -232,7 +258,7 @@ function buildAllocatorPlan(positions: PositionRow[], summary: Summary): Allocat
   let exitDollar = 0;
 
   const rows: AllocatorRow[] = scored.map((item) => {
-    const { row, confidence, score } = item;
+    const { row, confidence, score, holdIsFallbackUnmapped } = item;
     const currentValue = row.marketValue ?? 0;
     const currentWeight = portfolioValueUsed > 0 ? currentValue / portfolioValueUsed : 0;
     const targetWeight = row.decision === "Avoid" ? 0 : score / scoreTotal;
@@ -250,11 +276,21 @@ function buildAllocatorPlan(positions: PositionRow[], summary: Summary): Allocat
     } else if (Math.abs(driftPctPoints) > REBALANCE_THRESHOLD_PCT_POINTS) {
       rebalanceDollar = targetValue - currentValue;
       if (rebalanceDollar > 0) {
-        action = "BUY_MORE";
-        buyDollar += rebalanceDollar;
+        if (holdIsFallbackUnmapped) {
+          action = "HOLD";
+          rebalanceDollar = 0;
+        } else {
+          action = "BUY_MORE";
+          buyDollar += rebalanceDollar;
+        }
       } else if (rebalanceDollar < 0) {
-        action = "TRIM";
-        trimDollar += Math.abs(rebalanceDollar);
+        if (row.decision === "Accumulate" && !ALLOW_TRIM_WHEN_DECISION_IS_ACCUMULATE) {
+          action = "HOLD";
+          rebalanceDollar = 0;
+        } else {
+          action = "TRIM";
+          trimDollar += Math.abs(rebalanceDollar);
+        }
       }
     }
 
@@ -265,7 +301,11 @@ function buildAllocatorPlan(positions: PositionRow[], summary: Summary): Allocat
     const reason =
       row.decision === "Avoid"
         ? `PFSC decision is Avoid; target set to 0% for this position. confidence=${confidence.toFixed(3)}.`
-        : `PFSC target derived from decision=${row.decision}, confidence=${confidence.toFixed(3)}, hold_multiplier=${HOLD_DECISION_MULTIPLIER}.`;
+        : holdIsFallbackUnmapped && driftPctPoints > REBALANCE_THRESHOLD_PCT_POINTS
+          ? `Fallback Hold (unmapped PSCF cell) suppresses BUY_MORE; confidence=${confidence.toFixed(3)}.`
+          : row.decision === "Accumulate" && rebalanceDollar === 0 && driftPctPoints < 0 && !ALLOW_TRIM_WHEN_DECISION_IS_ACCUMULATE
+            ? `PFSC decision is Accumulate; overweight trim is suppressed for decision alignment. confidence=${confidence.toFixed(3)}.`
+            : `PFSC target derived from decision=${row.decision}, confidence=${confidence.toFixed(3)}, hold_multiplier=${HOLD_DECISION_MULTIPLIER}.`;
 
     return {
       ticker: row.ticker,
@@ -302,11 +342,19 @@ function buildAllocatorPlan(positions: PositionRow[], summary: Summary): Allocat
   };
 }
 
-function aggregatePositions(lots: PortfolioLot[], snapshotRows: Awaited<ReturnType<typeof loadSnapshotRows>>["rows"]): PositionRow[] {
+function aggregatePositions(
+  lots: PortfolioLot[],
+  snapshotRows: SnapshotLoadResult["rows"],
+  livePriceMap: Map<string, LivePriceQuote>,
+  quoteCacheQuotes: Record<string, ScreenerQuoteCacheRow>,
+  publishedDecisionMap: Record<string, PublishedDecisionRecord>,
+): PositionRow[] {
   const groups = new Map<string, PortfolioLot[]>();
 
   for (const lot of lots) {
-    const ticker = lot.ticker;
+    const ticker = normalizeTicker(lot.ticker);
+    if (!ticker) continue;
+
     const bucket = groups.get(ticker);
     if (bucket) {
       bucket.push(lot);
@@ -329,9 +377,15 @@ function aggregatePositions(lots: PortfolioLot[], snapshotRows: Awaited<ReturnTy
     const avgCost = units > 0 ? costBasis / units : 0;
 
     const row = findTickerRow(snapshotRows, ticker);
-    const decisionInfo = decisionInfoFromRow(row);
+    const published = row ? publishedDecisionMap[ticker] : null;
+    if (!row || !published) {
+      continue;
+    }
 
-    const currentPrice = row ? toNumberOrNull(row.price) : null;
+    const livePrice = livePriceMap.get(ticker)?.price ?? null;
+    const quoteCachePrice = quoteCachePriceFromRow(quoteCacheQuotes[ticker]);
+    const snapshotPrice = toNumberOrNull(row.price);
+    const currentPrice = livePrice ?? quoteCachePrice ?? snapshotPrice;
     const marketValue = currentPrice === null ? null : currentPrice * units;
     const unrealizedPnL = marketValue === null ? null : marketValue - costBasis;
     const unrealizedPnLPct = unrealizedPnL === null || costBasis <= 0 ? null : unrealizedPnL / costBasis;
@@ -346,14 +400,14 @@ function aggregatePositions(lots: PortfolioLot[], snapshotRows: Awaited<ReturnTy
       marketValue,
       unrealizedPnL,
       unrealizedPnLPct,
-      decision: decisionInfo.decision,
-      decisionReason: decisionInfo.reasonText,
-      decisionReasonCode: decisionInfo.reasonCode,
-      classification: classificationFromDecision(decisionInfo.decision),
-      S_UF: row ? toNumber(row.S_UF) : 0,
-      R_UF: row ? toNumber(row.R_UF) : 0,
-      barCount: decisionInfo.barCount,
-      minBarsForAccumulate: decisionInfo.minBarsForAccumulate,
+      decision: published.decision,
+      decisionReason: published.decisionReason,
+      decisionReasonCode: published.decisionReasonCode,
+      classification: classificationFromDecision(published.decision),
+      S_UF: toNumber(row.S_UF),
+      R_UF: toNumber(row.R_UF),
+      barCount: published.barCount,
+      minBarsForAccumulate: published.minBarsForAccumulate,
     });
   }
 
@@ -386,6 +440,12 @@ function buildSummary(lots: PortfolioLot[], positions: PositionRow[]): Summary {
   const totalUnrealizedPnLPct =
     totalUnrealizedPnL === null || totalCostBasis <= 0 ? null : totalUnrealizedPnL / totalCostBasis;
 
+  // Portfolio lots are current-holdings records only; no trade ledger exists yet for realized P/L.
+  const realizedPnL: number | null = null;
+  const realizedPnLPct: number | null = null;
+  const realizedPnLStatus: Summary["realizedPnLStatus"] = "unavailable_no_trade_ledger";
+  const realizedPnLMethod: Summary["realizedPnLMethod"] = "trade_ledger_required";
+
   return {
     totalLots: lots.length,
     totalPositions: positions.length,
@@ -394,6 +454,21 @@ function buildSummary(lots: PortfolioLot[], positions: PositionRow[]): Summary {
     totalMarketValue: resolvedMarketValue,
     totalUnrealizedPnL,
     totalUnrealizedPnLPct,
+    realizedPnL,
+    realizedPnLPct,
+    realizedPnLStatus,
+    realizedPnLMethod,
+  };
+}
+
+function buildBenchmarkComparison(): BenchmarkComparison {
+  return {
+    symbol: "SPY",
+    portfolioReturnPct: null,
+    benchmarkReturnPct: null,
+    relativeReturnPctPoints: null,
+    status: "unavailable_same_dates_same_dollars_ledger_required",
+    method: "same_dates_same_dollars_ledger_required",
   };
 }
 
@@ -408,29 +483,210 @@ export async function GET(request: Request) {
   let snapshotRows: SnapshotLoadResult["rows"] = [];
   let snapshotSource: string | null = null;
   let snapshotFailures: SnapshotLoadResult["failures"] = [];
+  let snapshotRunId: string | null = null;
+  let snapshotGeneratedAtUtc: string | null = null;
 
   try {
     const snapshot = await loadSnapshotRowsWithTimeout();
     snapshotRows = snapshot.rows;
     snapshotSource = snapshot.sourcePath;
     snapshotFailures = snapshot.failures;
+    snapshotRunId = snapshot.runId;
+    snapshotGeneratedAtUtc = snapshot.generatedAtUtc;
   } catch (error) {
     const reason = error instanceof Error ? error.message : "Unknown snapshot load failure.";
-    snapshotFailures = [{ path: "uf_snapshot.ses.json", reason }];
+    snapshotFailures = [{ path: "runtime_decisions_latest", reason }];
   }
 
-  const positions = aggregatePositions(portfolio.lots, snapshotRows);
+  if (!snapshotSource || snapshotRows.length === 0) {
+    const publicationState = await loadCanonicalPublicationState({
+      snapshot: {
+        available: false,
+        runId: snapshotRunId,
+        generatedAtUtc: snapshotGeneratedAtUtc,
+      },
+      quote: { available: false, runId: null },
+    });
+    return NextResponse.json(
+      {
+        error: "Portfolio unavailable because runtime Postgres snapshot is unavailable or empty.",
+        source: portfolio.filePath,
+        snapshotSource,
+        snapshotFailures,
+        ...publicationContractFields(publicationState),
+      },
+      { status: 503 },
+    );
+  }
+
+  const uniqueTickers = Array.from(
+    new Set(
+      portfolio.lots
+        .map((lot) => normalizeTicker(lot.ticker))
+        .filter((ticker) => ticker.length > 0),
+    ),
+  );
+
+  const livePriceMap = await loadLivePriceMap(
+    uniqueTickers.map((ticker) => {
+      const row = findTickerRow(snapshotRows, ticker);
+      return {
+        ticker,
+        assetType: row?.asset_type,
+      };
+    }),
+  );
+
+  const quoteCache = await loadRuntimeQuoteCacheFromPostgres();
+  const publicationState = await loadCanonicalPublicationState({
+    snapshot: {
+      available: true,
+      runId: snapshotRunId,
+      generatedAtUtc: snapshotGeneratedAtUtc,
+    },
+    quote: {
+      available: Boolean(quoteCache.sourcePath && Object.keys(quoteCache.quotes).length > 0),
+      runId: quoteCache.runId,
+    },
+  });
+  const publicationFields = publicationContractFields(publicationState);
+
+  if (!quoteCache.sourcePath || Object.keys(quoteCache.quotes).length === 0) {
+    return NextResponse.json(
+      {
+        error: "Portfolio unavailable because runtime Postgres quote cache is unavailable or empty.",
+        source: portfolio.filePath,
+        snapshotSource,
+        snapshotFailures,
+        quoteFailures: quoteCache.failures,
+        ...publicationFields,
+      },
+      { status: 503 },
+    );
+  }
+
+  if (publicationState.servingState === "blocked") {
+    return NextResponse.json(
+      {
+        error: "Portfolio is unavailable. Canonical publication state blocked this response.",
+        blocked: true,
+        status: "blocked",
+        ...publicationFields,
+        source: portfolio.filePath,
+        snapshotSource,
+        snapshotFailures,
+        quoteSource: quoteCache.sourcePath,
+        quoteFailures: quoteCache.failures,
+        data_source: "postgres",
+        snapshot_generated_at_utc: snapshotGeneratedAtUtc,
+        freshness: publicationState.freshness,
+        sourceRuns: {
+          publication_run_id: publicationState.runId,
+          snapshot_run_id: snapshotRunId,
+          quote_run_id: quoteCache.runId,
+          active_runtime_run_id: publicationState.activeRuntimeRunId,
+        },
+        publicationBundle: {
+          sourcePath: publicationState.sourcePath,
+          failureCount: publicationState.failures.length,
+          generated_at_utc: publicationState.generatedAtUtc,
+          completed_at_utc: publicationState.completedAtUtc,
+          report_generated_at_utc: publicationState.reportGeneratedAtUtc,
+          validation_status: publicationState.validationStatus,
+        },
+        servingBundle: {
+          sourcePath: publicationState.sourcePath,
+          failureCount: publicationState.failures.length,
+          run_id: publicationState.runId,
+          active_runtime_run_id: publicationState.activeRuntimeRunId,
+          active_runtime_bundle_valid: publicationState.activationState === "activated",
+          fallback_applied: false,
+          fallback_reason: publicationState.blockingReasonCode,
+          generated_at_utc: publicationState.generatedAtUtc,
+          validation_status: publicationState.validationStatus,
+          snapshot_publication_id: publicationState.snapshotPublicationId,
+          quote_publication_id: publicationState.quotePublicationId,
+          quote_binding_status: publicationState.quoteBindingStatus,
+        },
+      },
+      { status: 503 },
+    );
+  }
+
+  const publishedDecisionLoad = await loadPublishedDecisionMapForRows(publicationState.runId, snapshotRows, uniqueTickers);
+  if (!publishedDecisionLoad.ok) {
+    return NextResponse.json(
+      {
+        error: "Portfolio is unavailable because persisted published decision provenance is missing or invalid.",
+        blocked: true,
+        status: "blocked",
+        ...publicationFields,
+        source: portfolio.filePath,
+        snapshotSource,
+        snapshotFailures,
+        quoteSource: quoteCache.sourcePath,
+        quoteFailures: quoteCache.failures,
+        provenance: {
+          sourcePath: publishedDecisionLoad.sourcePath,
+          failureCount: publishedDecisionLoad.failures.length,
+          rows_required: publishedDecisionLoad.rowsRequired,
+          rows_valid: publishedDecisionLoad.rowsValid,
+          missingTickers: publishedDecisionLoad.missingTickers,
+          invalidTickers: publishedDecisionLoad.invalidTickers,
+        },
+      },
+      { status: 503 },
+    );
+  }
+
+  const positions = aggregatePositions(
+    portfolio.lots,
+    snapshotRows,
+    livePriceMap,
+    quoteCache.quotes,
+    publishedDecisionLoad.rows,
+  );
   const summary = buildSummary(portfolio.lots, positions);
+  const benchmark = buildBenchmarkComparison();
   const allocatorPlan = buildAllocatorPlan(positions, summary);
 
   return NextResponse.json({
+    ...publicationFields,
     lots: portfolio.lots,
     positions,
     summary,
+    benchmark,
     allocatorPlan,
     source: portfolio.filePath,
     snapshotSource,
     snapshotFailures,
+    data_source: "postgres",
+    snapshot_generated_at_utc: snapshotGeneratedAtUtc,
+    freshness: publicationState.freshness,
+    publicationBundle: {
+      sourcePath: publicationState.sourcePath,
+      failureCount: publicationState.failures.length,
+      generated_at_utc: publicationState.generatedAtUtc,
+      completed_at_utc: publicationState.completedAtUtc,
+      report_generated_at_utc: publicationState.reportGeneratedAtUtc,
+      validation_status: publicationState.validationStatus,
+    },
+    servingBundle: {
+      sourcePath: publicationState.sourcePath,
+      failureCount: publicationState.failures.length,
+      run_id: publicationState.runId,
+      active_runtime_run_id: publicationState.activeRuntimeRunId,
+      active_runtime_bundle_valid: publicationState.activationState === "activated",
+      fallback_applied: false,
+      fallback_reason: publicationState.blockingReasonCode,
+      generated_at_utc: publicationState.generatedAtUtc,
+      validation_status: publicationState.validationStatus,
+      snapshot_publication_id: publicationState.snapshotPublicationId,
+      quote_publication_id: publicationState.quotePublicationId,
+      quote_binding_status: publicationState.quoteBindingStatus,
+    },
+    quoteSource: quoteCache.sourcePath,
+    quoteFailures: quoteCache.failures,
   });
 }
 
@@ -463,6 +719,22 @@ export async function POST(request: Request) {
   let snapshotLoadError: string | null = null;
 
   if (!(unitCost > 0)) {
+    const livePriceMap = await loadLivePriceMap([{ ticker }]);
+    const livePrice = livePriceMap.get(ticker)?.price ?? null;
+    if (livePrice !== null && livePrice > 0) {
+      unitCost = livePrice;
+    }
+  }
+
+  if (!(unitCost > 0)) {
+    const quoteCache = await loadRuntimeQuoteCacheFromPostgres();
+    const quoteCachePrice = quoteCachePriceFromRow(quoteCache.quotes[ticker]);
+    if (quoteCachePrice !== null && quoteCachePrice > 0) {
+      unitCost = quoteCachePrice;
+    }
+  }
+
+  if (!(unitCost > 0)) {
     let snapshotRows: SnapshotLoadResult["rows"] = [];
 
     try {
@@ -481,8 +753,8 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: snapshotLoadError
-          ? `Unit cost is required because snapshot is unavailable (${snapshotLoadError}).`
-          : "Unit cost is required because no valid current price was found in snapshot.",
+          ? `Unit cost is required because runtime snapshot is unavailable (${snapshotLoadError}).`
+          : "Unit cost is required because no valid current price was found from live feed or runtime Postgres data.",
       },
       { status: 400 },
     );

@@ -2,8 +2,8 @@
   "program": "oracle_optimizer",
   "created_at_utc": "2026-02-20T16:35:24Z",
   "latest_session": {
-    "session_id": "short_25_20260220T162536Z",
-    "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_25_20260220T162536Z.json"
+    "session_id": "short_1_20260302T032133Z",
+    "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_1_20260302T032133Z.json"
   },
   "sessions": [
     {
@@ -13,7 +13,79 @@
       "requested_additional_runs": 25,
       "actual_additional_runs": 26,
       "best_score": 65.84995589389956
+    },
+    {
+      "session_id": "short_25_20260223T015950Z",
+      "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_25_20260223T015950Z.json",
+      "finished_at_utc": "2026-02-23T02:11:17Z",
+      "requested_additional_runs": 25,
+      "actual_additional_runs": 26,
+      "best_score": 65.84995589389956
+    },
+    {
+      "session_id": "short_3_20260223T072257Z",
+      "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_3_20260223T072257Z.json",
+      "finished_at_utc": "2026-02-23T07:27:45Z",
+      "requested_additional_runs": 3,
+      "actual_additional_runs": 4,
+      "best_score": 0.3294772149966117
+    },
+    {
+      "session_id": "short_1_20260223T072703Z",
+      "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_1_20260223T072703Z.json",
+      "finished_at_utc": "2026-02-23T07:27:51Z",
+      "requested_additional_runs": 1,
+      "actual_additional_runs": 2,
+      "best_score": 0.3294772149966117
+    },
+    {
+      "session_id": "short_5_20260223T125411Z",
+      "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_5_20260223T125411Z.json",
+      "finished_at_utc": "2026-02-23T12:56:40Z",
+      "requested_additional_runs": 5,
+      "actual_additional_runs": 6,
+      "best_score": 35.53125012967289
+    },
+    {
+      "session_id": "short_1_20260227T025642Z",
+      "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_1_20260227T025642Z.json",
+      "finished_at_utc": "2026-02-27T02:57:34Z",
+      "requested_additional_runs": 1,
+      "actual_additional_runs": 2,
+      "best_score": 67.3119183755922
+    },
+    {
+      "session_id": "short_1_20260301T100553Z",
+      "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_1_20260301T100553Z.json",
+      "finished_at_utc": "2026-03-01T10:06:57Z",
+      "requested_additional_runs": 1,
+      "actual_additional_runs": 2,
+      "best_score": 68.19263851546668
+    },
+    {
+      "session_id": "short_1_20260301T104533Z",
+      "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_1_20260301T104533Z.json",
+      "finished_at_utc": "2026-03-01T10:46:19Z",
+      "requested_additional_runs": 1,
+      "actual_additional_runs": 2,
+      "best_score": 59.24617270167647
+    },
+    {
+      "session_id": "short_1_20260301T143909Z",
+      "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_1_20260301T143909Z.json",
+      "finished_at_utc": "2026-03-01T14:39:57Z",
+      "requested_additional_runs": 1,
+      "actual_additional_runs": 2,
+      "best_score": 59.24617270167647
+    },
+    {
+      "session_id": "short_1_20260302T032133Z",
+      "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/oracle_program/sessions/short_1_20260302T032133Z.json",
+      "finished_at_utc": "2026-03-02T03:22:22Z",
+      "requested_additional_runs": 1,
+      "actual_additional_runs": 2,
+      "best_score": 67.3119183755922
     }
   ],
-  "updated_at_utc": "2026-02-20T16:35:24Z"
+  "updated_at_utc": "2026-03-02T03:22:22Z"
 }

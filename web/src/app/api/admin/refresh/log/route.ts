@@ -1,9 +1,16 @@
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import {
+  ADMIN_REFRESH_PERSIST_KEYS,
+  clampRefreshTextSnapshot,
+  readAdminRefreshPersist,
+  writeAdminRefreshPersist,
+} from "@/lib/admin-refresh-persist";
 import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { resolveWorkspaceRoot } from "@/lib/workspace-root";
 
-const ROOT_DIR = path.resolve(process.cwd(), "..");
+const ROOT_DIR = resolveWorkspaceRoot();
 const LOG_PATH = path.join(ROOT_DIR, "admin_refresh_latest.log");
 const DEFAULT_LINES = 120;
 const MIN_LINES = 20;
@@ -47,6 +54,11 @@ export async function GET(request: Request) {
   try {
     const [raw, logStat] = await Promise.all([readFile(LOG_PATH, "utf-8"), stat(LOG_PATH)]);
     const lines = tailLines(raw, linesRequested);
+    await writeAdminRefreshPersist(ADMIN_REFRESH_PERSIST_KEYS.logSnapshot, {
+      path: LOG_PATH,
+      raw_text: clampRefreshTextSnapshot(raw),
+      updated_at_utc: logStat.mtime.toISOString(),
+    });
 
     return NextResponse.json({
       exists: true,
@@ -57,6 +69,20 @@ export async function GET(request: Request) {
       lines,
     });
   } catch {
+    const persisted = await readAdminRefreshPersist(ADMIN_REFRESH_PERSIST_KEYS.logSnapshot);
+    const persistedRaw = typeof persisted?.raw_text === "string" ? persisted.raw_text : "";
+    if (persistedRaw) {
+      const lines = tailLines(persistedRaw, linesRequested);
+      return NextResponse.json({
+        exists: true,
+        path: typeof persisted?.path === "string" ? persisted.path : LOG_PATH,
+        linesRequested,
+        lineCount: lines.length,
+        updatedAtUtc: typeof persisted?.updated_at_utc === "string" ? persisted.updated_at_utc : null,
+        lines,
+      });
+    }
+
     return NextResponse.json({
       exists: false,
       path: LOG_PATH,

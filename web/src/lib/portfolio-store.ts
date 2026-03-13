@@ -9,6 +9,7 @@ import {
   decryptEnvelopeToJson,
   encryptJsonToEnvelope,
 } from "@/lib/ses-web-blob";
+import { resolveSharedStorageBackend } from "@/lib/user-storage-backend";
 
 export type PortfolioLot = {
   id: string;
@@ -240,22 +241,7 @@ async function writeSesLots(username: string, lots: PortfolioLot[], sesPath: str
 }
 
 function resolveUserDataBackend(): UserDataBackend {
-  const raw = String(process.env.TFE_USER_DATA_BACKEND ?? "auto").trim().toLowerCase();
-
-  if (raw === "file") return "file";
-  if (raw === "postgres") return "postgres";
-
-  if (raw === "auto") {
-    const hasPgCreds =
-      String(process.env.PGHOST ?? process.env.TFE_DB_HOST ?? "").trim().length > 0 &&
-      String(process.env.PGDATABASE ?? process.env.TFE_DB_NAME ?? "").trim().length > 0 &&
-      String(process.env.PGUSER ?? process.env.TFE_DB_USER ?? "").trim().length > 0 &&
-      String(process.env.PGPASSWORD ?? process.env.TFE_DB_PASSWORD ?? "").trim().length > 0;
-
-    return hasPgCreds ? "postgres" : "file";
-  }
-
-  throw new Error("TFE_USER_DATA_BACKEND must be 'file', 'postgres', or 'auto'.");
+  return resolveSharedStorageBackend();
 }
 
 function readRequiredEnv(name: string, fallbackName?: string): string {

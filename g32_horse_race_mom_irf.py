@@ -14,14 +14,17 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 DECISIONS: Tuple[str, str, str] = ("Accumulate", "Hold", "Avoid")
 HORIZONS: Tuple[int, int, int] = (5, 20, 60)
-STAGES: Tuple[str, str, str, str, str] = ("l4_only", "universal", "market", "cluster", "symbol")
-OBJECTIVE_METRIC_ID = "avg_return_multiple_over_spy_pct_log_v2_mom_irf_v1"
+STAGES: Tuple[str, ...] = ("l4_only", "universal", "market", "cluster", "symbol", "horizon_prior")
+OBJECTIVE_METRIC_ID = "avg_annualized_return_lift_vs_spy_pct_log_v3_mom_irf_v1"
+TRADE_COST_PER_ACTION = 0.001  # 10 bps round-trip cost per non-Hold action event.
+ACCUMULATE_LONG_BIAS = 0.01  # Long-bias regularizer on benchmark-relative score.
 
 # MoM/IRF gate (offline optimizer only):
 # - MoM disagreement: if stage views disagree too much, de-risk to Hold.
 # - IRF uncertainty: if uncertainty bucket is high (U2), de-risk to Hold.
 MOM_DISAGREEMENT_HOLD_THRESHOLD = 0.35
 IRF_HIGH_UNCERTAINTY_BUCKET = "U2"
+DISABLE_MOM_IRF_DE_RISK_FOR_H60 = True
 
 
 @dataclass(frozen=True)
@@ -117,9 +120,10 @@ def _irf_phase(m_sgn: int, r_uf: float) -> str:
 
 def _decision_return(decision: str, forward_return: float) -> float:
     if decision == "Accumulate":
-        return forward_return
+        return float(forward_return) - float(TRADE_COST_PER_ACTION)
     if decision == "Avoid":
-        return -forward_return
+        # Avoid/Trim is modeled as risk-off cash, not a short position.
+        return 0.0
     return 0.0
 
 
@@ -423,6 +427,36 @@ def _fit_stats(train_events: List[Event], cluster_map: Dict[str, str]) -> Dict[s
     return stats
 
 
+def _fit_horizon_prior_decisions(train_events: List[Event]) -> Dict[int, str]:
+    sums: Dict[int, Dict[str, float]] = {h: {d: 0.0 for d in DECISIONS} for h in HORIZONS}
+    counts: Dict[int, Dict[str, float]] = {h: {d: 0.0 for d in DECISIONS} for h in HORIZONS}
+    for e in train_events:
+        h = int(e.horizon)
+        if h not in sums:
+            continue
+        for d in DECISIONS:
+            action_ret = _decision_return(d, e.forward_return)
+            ex = float(action_ret - e.bench_return)
+            sums[h][d] += ex
+            counts[h][d] += 1.0
+
+    priors: Dict[int, str] = {}
+    for h in HORIZONS:
+        hh = int(h)
+        best_decision = "Hold"
+        best_mean = float("-inf")
+        for d in DECISIONS:
+            n = float(counts[hh][d])
+            if n <= 0.0:
+                continue
+            mean_ex = float(sums[hh][d] / n)
+            if mean_ex > best_mean:
+                best_mean = mean_ex
+                best_decision = d
+        priors[hh] = best_decision
+    return priors
+
+
 def _best_decision_for_key(
     records: Optional[Dict[str, Dict[str, float]]],
     latest_train_ts: int,
@@ -498,6 +532,8 @@ def _best_decision_for_key(
         if decision == "Hold":
             # Hold is explicitly favored when doubt is high.
             score += float(hold_bias) + (float(uncertainty_penalty) * doubt_index)
+        elif decision == "Accumulate":
+            score += float(ACCUMULATE_LONG_BIAS)
 
         if (score > best_score) or (score == best_score and n > best_n):
             best_score = score
@@ -511,6 +547,7 @@ def _predict_decision(
     event: Event,
     stats: Dict[str, Dict[str, Dict[str, Dict[str, float]]]],
     cluster_map: Dict[str, str],
+    horizon_priors: Dict[int, str],
     latest_train_ts: int,
     oldest_train_ts: int,
     min_samples: int,
@@ -520,8 +557,15 @@ def _predict_decision(
     uncertainty_penalty: float,
     hold_bias: float,
 ) -> str:
+    fallback_prior = str(horizon_priors.get(int(event.horizon), "Hold"))
+    if fallback_prior not in DECISIONS:
+        fallback_prior = "Hold"
+
     if event.s_uf < min_s_uf:
-        return "Hold"
+        return fallback_prior
+
+    if stage == "horizon_prior":
+        return fallback_prior
 
     if stage == "l4_only":
         if event.d > 0:
@@ -558,7 +602,7 @@ def _predict_decision(
         if decision is not None:
             return decision
 
-    return "Hold"
+    return fallback_prior
 
 
 def _init_eval_bucket() -> Dict[int, Dict[str, float]]:
@@ -571,6 +615,9 @@ def _init_eval_bucket() -> Dict[int, Dict[str, float]]:
             "sum_bench": 0.0,
             "sum_log_action": 0.0,
             "sum_log_bench": 0.0,
+            "n_portfolio_timestamps": 0.0,
+            "sum_log_portfolio_action": 0.0,
+            "sum_log_portfolio_bench": 0.0,
         }
         for h in HORIZONS
     }
@@ -588,10 +635,15 @@ def _evaluate_fold(
 ) -> Dict[str, Dict[int, Dict[str, float]]]:
     cluster_map = _cluster_map_from_train(train_events)
     stats = _fit_stats(train_events, cluster_map)
+    horizon_priors = _fit_horizon_prior_decisions(train_events)
     latest_train_ts = max((e.ts_ms for e in train_events), default=0)
     oldest_train_ts = min((e.ts_ms for e in train_events), default=latest_train_ts)
 
     out: Dict[str, Dict[int, Dict[str, float]]] = {stage: _init_eval_bucket() for stage in STAGES}
+    per_ts_portfolio: Dict[str, Dict[Tuple[int, int], Dict[str, float]]] = {
+        stage: defaultdict(lambda: {"sum_action": 0.0, "sum_bench": 0.0, "n": 0.0})
+        for stage in STAGES
+    }
     for e in test_events:
         stage_decisions: Dict[str, str] = {}
         for stage in STAGES:
@@ -600,6 +652,7 @@ def _evaluate_fold(
                 event=e,
                 stats=stats,
                 cluster_map=cluster_map,
+                horizon_priors=horizon_priors,
                 latest_train_ts=latest_train_ts,
                 oldest_train_ts=oldest_train_ts,
                 min_samples=min_samples,
@@ -615,10 +668,14 @@ def _evaluate_fold(
         for stage in STAGES:
             decision = stage_decisions[stage]
             if decision != "Hold":
-                if disagreement > MOM_DISAGREEMENT_HOLD_THRESHOLD:
-                    decision = "Hold"
-                elif str(e.u_b) == IRF_HIGH_UNCERTAINTY_BUCKET:
-                    decision = "Hold"
+                should_apply_de_risk = True
+                if DISABLE_MOM_IRF_DE_RISK_FOR_H60 and int(e.horizon) == 60:
+                    should_apply_de_risk = False
+                if should_apply_de_risk:
+                    if disagreement > MOM_DISAGREEMENT_HOLD_THRESHOLD:
+                        decision = "Hold"
+                    elif str(e.u_b) == IRF_HIGH_UNCERTAINTY_BUCKET:
+                        decision = "Hold"
             action_ret = _decision_return(decision, e.forward_return)
             b = out[stage][e.horizon]
             b["n"] += 1.0
@@ -628,6 +685,23 @@ def _evaluate_fold(
             b["sum_bench"] += float(e.bench_return)
             b["sum_log_action"] += float(math.log1p(max(-0.999999, float(action_ret))))
             b["sum_log_bench"] += float(math.log1p(max(-0.999999, float(e.bench_return))))
+            ts_key = (int(e.horizon), int(e.ts_ms))
+            ts_bucket = per_ts_portfolio[stage][ts_key]
+            ts_bucket["sum_action"] += float(action_ret)
+            ts_bucket["sum_bench"] += float(e.bench_return)
+            ts_bucket["n"] += 1.0
+
+    for stage in STAGES:
+        for (h, _ts), ts_bucket in per_ts_portfolio[stage].items():
+            n = float(ts_bucket["n"])
+            if n <= 0.0:
+                continue
+            mean_action = float(ts_bucket["sum_action"] / n)
+            mean_bench = float(ts_bucket["sum_bench"] / n)
+            rec = out[stage][int(h)]
+            rec["n_portfolio_timestamps"] += 1.0
+            rec["sum_log_portfolio_action"] += float(math.log1p(max(-0.999999, mean_action)))
+            rec["sum_log_portfolio_bench"] += float(math.log1p(max(-0.999999, mean_bench)))
     return out
 
 
@@ -650,17 +724,14 @@ def _build_fold_ranges(events: List[Event], train_fracs: Sequence[float], test_f
 
 
 def _aggregate_fold_metrics(fold_metrics: List[Dict[str, Dict[int, Dict[str, float]]]]) -> Dict[str, Any]:
-    agg: Dict[str, Dict[int, Dict[str, float]]] = {stage: _init_eval_bucket() for stage in STAGES}
-    for fm in fold_metrics:
-        for stage in STAGES:
-            for h in HORIZONS:
-                agg[stage][h]["n"] += fm[stage][h]["n"]
-                agg[stage][h]["wins"] += fm[stage][h]["wins"]
-                agg[stage][h]["sum_ex"] += fm[stage][h]["sum_ex"]
-                agg[stage][h]["sum_action"] += fm[stage][h]["sum_action"]
-                agg[stage][h]["sum_bench"] += fm[stage][h]["sum_bench"]
-                agg[stage][h]["sum_log_action"] += fm[stage][h]["sum_log_action"]
-                agg[stage][h]["sum_log_bench"] += fm[stage][h]["sum_log_bench"]
+    # Equal-fold aggregation:
+    # each fold contributes equally within each horizon to avoid dominance by
+    # highly concentrated timestamp windows.
+    def _avg_or_none(vals: Sequence[Optional[float]]) -> Optional[float]:
+        xs = [float(v) for v in vals if isinstance(v, (int, float))]
+        if not xs:
+            return None
+        return float(sum(xs) / float(len(xs)))
 
     stage_summary: Dict[str, Any] = {}
     for stage in STAGES:
@@ -670,44 +741,125 @@ def _aggregate_fold_metrics(fold_metrics: List[Dict[str, Dict[int, Dict[str, flo
         action_vals: List[float] = []
         bench_vals: List[float] = []
         return_multiple_vals: List[float] = []
+        portfolio_lift_vals: List[float] = []
+        annualized_lift_vals: List[float] = []
+
         for h in HORIZONS:
-            rec = agg[stage][h]
-            n = rec["n"]
-            out_pct = float(100.0 * rec["wins"] / n) if n > 0 else None
-            mean_ex = float(rec["sum_ex"] / n) if n > 0 else None
-            mean_action = float(rec["sum_action"] / n) if n > 0 else None
-            mean_bench = float(rec["sum_bench"] / n) if n > 0 else None
-            cumulative_action = float(math.expm1(rec["sum_log_action"])) if n > 0 else None
-            cumulative_bench = float(math.expm1(rec["sum_log_bench"])) if n > 0 else None
-            geometric_action = None
-            geometric_bench = None
-            log_return_multiple_over_spy_pct = None
-            geometric_return_multiple_over_spy_pct = None
-            return_multiple_vs_spy_pct = None
-            if n > 0:
-                mean_log_action = float(rec["sum_log_action"]) / float(n)
-                mean_log_bench = float(rec["sum_log_bench"]) / float(n)
+            fold_rows: List[Dict[str, Optional[float]]] = []
+            n_total = 0.0
+            n_portfolio_total = 0.0
+
+            for fm in fold_metrics:
+                rec = fm[stage][h]
+                n = float(rec["n"])
+                if n <= 0.0:
+                    continue
+
+                n_total += n
+                out_pct = float(100.0 * rec["wins"] / n)
+                mean_ex = float(rec["sum_ex"] / n)
+                mean_action = float(rec["sum_action"] / n)
+                mean_bench = float(rec["sum_bench"] / n)
+                cumulative_action = float(math.expm1(float(rec["sum_log_action"])))
+                cumulative_bench = float(math.expm1(float(rec["sum_log_bench"])))
+
+                mean_log_action = float(rec["sum_log_action"]) / n
+                mean_log_bench = float(rec["sum_log_bench"]) / n
                 log_return_multiple_over_spy_pct = float(100.0 * (mean_log_action - mean_log_bench))
                 geometric_action = float(math.expm1(mean_log_action))
                 geometric_bench = float(math.expm1(mean_log_bench))
+
+                geometric_return_multiple_over_spy_pct = None
                 if (1.0 + float(geometric_bench)) > 0.0:
                     geometric_return_multiple_over_spy_pct = float(
                         100.0 * (((1.0 + float(geometric_action)) / (1.0 + float(geometric_bench))) - 1.0)
                     )
+
                 # Stable objective: log-return multiple avoids denominator blow-ups.
                 return_multiple_vs_spy_pct = log_return_multiple_over_spy_pct
+                annualized_return_lift_vs_spy_pct = float(
+                    100.0
+                    * (
+                        math.expm1(
+                            (float(log_return_multiple_over_spy_pct) / 100.0)
+                            * (252.0 / float(h))
+                        )
+                    )
+                )
+
+                n_portfolio_ts = float(rec["n_portfolio_timestamps"])
+                n_portfolio_total += n_portfolio_ts
+                portfolio_cumulative_action_return = None
+                portfolio_cumulative_spy_return = None
+                portfolio_return_lift_vs_spy_pct = None
+                if n_portfolio_ts > 0.0:
+                    portfolio_cumulative_action_return = float(math.expm1(float(rec["sum_log_portfolio_action"])))
+                    portfolio_cumulative_spy_return = float(math.expm1(float(rec["sum_log_portfolio_bench"])))
+                    if (1.0 + float(portfolio_cumulative_spy_return)) > 0.0:
+                        portfolio_return_lift_vs_spy_pct = float(
+                            100.0
+                            * (
+                                ((1.0 + float(portfolio_cumulative_action_return)) / (1.0 + float(portfolio_cumulative_spy_return)))
+                                - 1.0
+                            )
+                        )
+
+                fold_rows.append(
+                    {
+                        "outcome_over_index_pct": out_pct,
+                        "mean_excess_vs_spy": mean_ex,
+                        "mean_action_return": mean_action,
+                        "mean_spy_return": mean_bench,
+                        "cumulative_action_return": cumulative_action,
+                        "cumulative_spy_return": cumulative_bench,
+                        "geometric_action_return": geometric_action,
+                        "geometric_spy_return": geometric_bench,
+                        "log_return_multiple_over_spy_pct": log_return_multiple_over_spy_pct,
+                        "geometric_return_multiple_over_spy_pct": geometric_return_multiple_over_spy_pct,
+                        "return_multiple_over_spy_pct": return_multiple_vs_spy_pct,
+                        "annualized_return_lift_vs_spy_pct": annualized_return_lift_vs_spy_pct,
+                        "portfolio_cumulative_action_return": portfolio_cumulative_action_return,
+                        "portfolio_cumulative_spy_return": portfolio_cumulative_spy_return,
+                        "portfolio_return_lift_vs_spy_pct": portfolio_return_lift_vs_spy_pct,
+                    }
+                )
+
+            out_pct = _avg_or_none([r["outcome_over_index_pct"] for r in fold_rows])
+            mean_ex = _avg_or_none([r["mean_excess_vs_spy"] for r in fold_rows])
+            mean_action = _avg_or_none([r["mean_action_return"] for r in fold_rows])
+            mean_bench = _avg_or_none([r["mean_spy_return"] for r in fold_rows])
+            cumulative_action = _avg_or_none([r["cumulative_action_return"] for r in fold_rows])
+            cumulative_bench = _avg_or_none([r["cumulative_spy_return"] for r in fold_rows])
+            geometric_action = _avg_or_none([r["geometric_action_return"] for r in fold_rows])
+            geometric_bench = _avg_or_none([r["geometric_spy_return"] for r in fold_rows])
+            log_return_multiple_over_spy_pct = _avg_or_none([r["log_return_multiple_over_spy_pct"] for r in fold_rows])
+            geometric_return_multiple_over_spy_pct = _avg_or_none(
+                [r["geometric_return_multiple_over_spy_pct"] for r in fold_rows]
+            )
+            return_multiple_vs_spy_pct = _avg_or_none([r["return_multiple_over_spy_pct"] for r in fold_rows])
+            annualized_return_lift_vs_spy_pct = _avg_or_none([r["annualized_return_lift_vs_spy_pct"] for r in fold_rows])
+            portfolio_cumulative_action_return = _avg_or_none([r["portfolio_cumulative_action_return"] for r in fold_rows])
+            portfolio_cumulative_spy_return = _avg_or_none([r["portfolio_cumulative_spy_return"] for r in fold_rows])
+            portfolio_return_lift_vs_spy_pct = _avg_or_none([r["portfolio_return_lift_vs_spy_pct"] for r in fold_rows])
+
             if out_pct is not None:
-                out_vals.append(out_pct)
+                out_vals.append(float(out_pct))
             if mean_ex is not None:
-                ex_vals.append(mean_ex)
+                ex_vals.append(float(mean_ex))
             if mean_action is not None:
-                action_vals.append(mean_action)
+                action_vals.append(float(mean_action))
             if mean_bench is not None:
-                bench_vals.append(mean_bench)
-            if isinstance(return_multiple_vs_spy_pct, (int, float)):
+                bench_vals.append(float(mean_bench))
+            if return_multiple_vs_spy_pct is not None:
                 return_multiple_vals.append(float(return_multiple_vs_spy_pct))
+            if portfolio_return_lift_vs_spy_pct is not None:
+                portfolio_lift_vals.append(float(portfolio_return_lift_vs_spy_pct))
+            if annualized_return_lift_vs_spy_pct is not None:
+                annualized_lift_vals.append(float(annualized_return_lift_vs_spy_pct))
+
             per_h[str(h)] = {
-                "n": int(n),
+                "n": int(n_total),
+                "fold_count": int(len(fold_rows)),
                 "outcome_over_index_pct": out_pct,
                 "mean_excess_vs_spy": mean_ex,
                 "mean_action_return": mean_action,
@@ -719,7 +871,13 @@ def _aggregate_fold_metrics(fold_metrics: List[Dict[str, Dict[int, Dict[str, flo
                 "log_return_multiple_over_spy_pct": log_return_multiple_over_spy_pct,
                 "geometric_return_multiple_over_spy_pct": geometric_return_multiple_over_spy_pct,
                 "return_multiple_over_spy_pct": return_multiple_vs_spy_pct,
+                "annualized_return_lift_vs_spy_pct": annualized_return_lift_vs_spy_pct,
+                "portfolio_timestamp_count": int(n_portfolio_total),
+                "portfolio_cumulative_action_return": portfolio_cumulative_action_return,
+                "portfolio_cumulative_spy_return": portfolio_cumulative_spy_return,
+                "portfolio_return_lift_vs_spy_pct": portfolio_return_lift_vs_spy_pct,
             }
+
         stage_summary[stage] = {
             "horizon_summary": per_h,
             "avg_outcome_over_index_pct": float(sum(out_vals) / len(out_vals)) if out_vals else None,
@@ -728,6 +886,12 @@ def _aggregate_fold_metrics(fold_metrics: List[Dict[str, Dict[int, Dict[str, flo
             "avg_mean_spy_return": float(sum(bench_vals) / len(bench_vals)) if bench_vals else None,
             "avg_return_multiple_over_spy_pct": (
                 float(sum(return_multiple_vals) / len(return_multiple_vals)) if return_multiple_vals else None
+            ),
+            "avg_portfolio_return_lift_vs_spy_pct": (
+                float(sum(portfolio_lift_vals) / len(portfolio_lift_vals)) if portfolio_lift_vals else None
+            ),
+            "avg_annualized_return_lift_vs_spy_pct": (
+                float(sum(annualized_lift_vals) / len(annualized_lift_vals)) if annualized_lift_vals else None
             ),
         }
     return stage_summary
@@ -824,6 +988,12 @@ def run_horse_race(
 
     def stage_score(record: Dict[str, Any], stage: str) -> float:
         summary = record.get("stage_summary", {}).get(stage, {})
+        v = summary.get("avg_annualized_return_lift_vs_spy_pct")
+        if isinstance(v, (int, float)):
+            return float(v)
+        v = summary.get("avg_portfolio_return_lift_vs_spy_pct")
+        if isinstance(v, (int, float)):
+            return float(v)
         v = summary.get("avg_return_multiple_over_spy_pct")
         if isinstance(v, (int, float)):
             return float(v)
@@ -840,12 +1010,68 @@ def run_horse_race(
             "summary": best["stage_summary"][stage],
         }
 
-    best_symbol = best_by_stage["symbol"]["summary"].get("avg_return_multiple_over_spy_pct")
+    def summary_score(summary: Dict[str, Any]) -> float:
+        v = summary.get("avg_annualized_return_lift_vs_spy_pct")
+        if isinstance(v, (int, float)):
+            return float(v)
+        v = summary.get("avg_portfolio_return_lift_vs_spy_pct")
+        if isinstance(v, (int, float)):
+            return float(v)
+        v = summary.get("avg_return_multiple_over_spy_pct")
+        if isinstance(v, (int, float)):
+            return float(v)
+        v = summary.get("avg_outcome_over_index_pct")
+        if isinstance(v, (int, float)):
+            return float(v)
+        return float("-inf")
+
+    best_stage_name = max(STAGES, key=lambda s: summary_score(best_by_stage[s]["summary"]))
+    best_stage_summary = best_by_stage[best_stage_name]["summary"]
+
+    def symbol_horizon_lift(record: Dict[str, Any], horizon: int) -> float:
+        summary = record.get("stage_summary", {}).get("symbol", {})
+        hs = summary.get("horizon_summary", {}).get(str(int(horizon)), {})
+        v = hs.get("portfolio_return_lift_vs_spy_pct")
+        if isinstance(v, (int, float)):
+            return float(v)
+        return float("-inf")
+
+    best_symbol_by_horizon: Dict[str, Any] = {}
+    for h in HORIZONS:
+        best_h = sorted(records, key=lambda r: symbol_horizon_lift(r, h), reverse=True)[0]
+        best_symbol_by_horizon[str(int(h))] = {
+            "config": best_h["config"],
+            "portfolio_return_lift_vs_spy_pct": best_h["stage_summary"]["symbol"]["horizon_summary"][str(int(h))].get(
+                "portfolio_return_lift_vs_spy_pct"
+            ),
+            "outcome_over_index_pct": best_h["stage_summary"]["symbol"]["horizon_summary"][str(int(h))].get(
+                "outcome_over_index_pct"
+            ),
+            "mean_excess_vs_spy": best_h["stage_summary"]["symbol"]["horizon_summary"][str(int(h))].get(
+                "mean_excess_vs_spy"
+            ),
+        }
+
+    best_symbol = best_stage_summary.get("avg_annualized_return_lift_vs_spy_pct")
+    if not isinstance(best_symbol, (int, float)):
+        best_symbol = best_stage_summary.get("avg_portfolio_return_lift_vs_spy_pct")
+    if not isinstance(best_symbol, (int, float)):
+        best_symbol = best_stage_summary.get("avg_return_multiple_over_spy_pct")
     legacy_best_symbol = best_by_stage["symbol"]["summary"].get("avg_outcome_over_index_pct")
     baseline_reference = 0.0
     legacy_baseline_reference = 42.15330258121504
     horse_race = {
         "objective_metric": OBJECTIVE_METRIC_ID,
+        "assumptions": {
+            "trade_cost_per_non_hold_action": float(TRADE_COST_PER_ACTION),
+            "portfolio_method": "timestamp_equal_weight_event_basket_compounded",
+        },
+        "baseline_reference_avg_annualized_return_lift_vs_spy_pct": baseline_reference,
+        "g32_best_symbol_annualized_return_lift_vs_spy_pct": best_symbol,
+        "baseline_reference_avg_portfolio_return_lift_vs_spy_pct": baseline_reference,
+        "g32_best_symbol_portfolio_return_lift_vs_spy_pct": best_symbol,
+        "selected_best_stage": best_stage_name,
+        "delta_vs_portfolio_reference": (float(best_symbol) - baseline_reference) if isinstance(best_symbol, (int, float)) else None,
         "baseline_reference_avg_return_multiple_over_spy_pct": baseline_reference,
         "g32_best_symbol_return_multiple_over_spy_pct": best_symbol,
         "delta_vs_reference": (float(best_symbol) - baseline_reference) if isinstance(best_symbol, (int, float)) else None,
@@ -878,7 +1104,10 @@ def run_horse_race(
             "mom_disagreement_gate": "v1",
             "mom_disagreement_hold_threshold": MOM_DISAGREEMENT_HOLD_THRESHOLD,
             "irf_high_uncertainty_hold_bucket": IRF_HIGH_UNCERTAINTY_BUCKET,
-            "objective_score": "avg_return_multiple_over_spy_pct (geometric per-event return multiple vs SPY)",
+            "disable_mom_irf_de_risk_for_h60": bool(DISABLE_MOM_IRF_DE_RISK_FOR_H60),
+            "objective_score": "avg_annualized_return_lift_vs_spy_pct (annualized from log return multiple by horizon)",
+            "trade_cost_per_non_hold_action": float(TRADE_COST_PER_ACTION),
+            "accumulate_long_bias": float(ACCUMULATE_LONG_BIAS),
         },
         "search_space": {
             "include_irf_phase": [bool(x) for x in include_irf_modes],
@@ -892,6 +1121,7 @@ def run_horse_race(
         "anomaly_filter": anomaly_filter_report,
         "records_evaluated": len(records),
         "best_by_stage": best_by_stage,
+        "best_symbol_by_horizon": best_symbol_by_horizon,
         "horse_race": horse_race,
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
