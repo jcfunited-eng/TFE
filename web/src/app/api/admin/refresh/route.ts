@@ -16,6 +16,7 @@ import {
 } from "@/lib/publication-state";
 import {
   assessPreActivationPublicationCriticalTruth,
+  buildTerminalFailurePhaseTruthReconciliation,
   phaseSummary,
   PRE_ACTIVATION_PUBLICATION_CRITICAL_PHASES as PUBLICATION_CRITICAL_PHASES,
   publicationCriticalPhaseSucceeded,
@@ -313,6 +314,56 @@ async function enforcePreActivationCriticalTruthBeforeTerminalOk(params: {
     failureCode,
     failureDetail,
   };
+}
+
+async function reconcileActivePhaseTruthForTerminalRunError(params: {
+  runId: string;
+  baseStatus: RefreshStatusRecord | null;
+  completedAtIso: string;
+  failureCode: string;
+  failureDetail: string;
+  contextLabel: string;
+}): Promise<void> {
+  const phaseRows = await loadRuntimeRefreshPhaseLedger(params.runId);
+  const reconciliation = buildTerminalFailurePhaseTruthReconciliation({
+    phaseRows,
+    currentPhase: {
+      current_phase: params.baseStatus?.current_phase ?? null,
+      current_phase_process_status: params.baseStatus?.current_phase_process_status ?? null,
+      current_phase_started_at: params.baseStatus?.current_phase_started_at ?? null,
+      current_phase_completed_at: params.baseStatus?.current_phase_completed_at ?? null,
+      current_phase_last_heartbeat_at: params.baseStatus?.current_phase_last_heartbeat_at ?? null,
+      current_phase_failure_code: params.baseStatus?.current_phase_failure_code ?? null,
+      current_phase_failure_detail: params.baseStatus?.current_phase_failure_detail ?? null,
+    },
+    completedAtIso: params.completedAtIso,
+    failureCode: params.failureCode,
+    failureDetail: params.failureDetail,
+    contextLabel: params.contextLabel,
+  });
+  if (!reconciliation.shouldPersist || !reconciliation.phaseName || !reconciliation.processStatus) {
+    return;
+  }
+
+  try {
+    await upsertRuntimeRefreshPhaseLedger({
+      runId: params.runId,
+      phaseName: reconciliation.phaseName,
+      processStatus: reconciliation.processStatus,
+      inputContract: reconciliation.inputContract,
+      outputContract: reconciliation.outputContract,
+      startedAtIso: reconciliation.startedAtIso,
+      completedAtIso: reconciliation.completedAtIso,
+      failureCode: reconciliation.failureCode,
+      failureDetail: reconciliation.failureDetail,
+      lastHeartbeatAtIso: reconciliation.lastHeartbeatAtIso,
+    });
+  } catch (error) {
+    throw createCriticalRefreshFailureError(
+      "ACTIVE_PHASE_TERMINAL_TRUTH_PERSIST_FAILED",
+      error instanceof Error ? error.message : "Unknown active-phase terminal-truth persistence failure.",
+    );
+  }
 }
 
 function reportBelongsToRun(report: RefreshReport | null, startedAtIso: string): boolean {
@@ -1189,6 +1240,19 @@ async function recordCriticalRefreshFailure(params: {
 
   if (runId) {
     try {
+      await reconcileActivePhaseTruthForTerminalRunError({
+        runId,
+        baseStatus: nextStatus,
+        completedAtIso,
+        failureCode: params.failureCode,
+        failureDetail: params.failureDetail,
+        contextLabel: "record_critical_refresh_failure",
+      });
+    } catch (phaseTruthError) {
+      console.error("refresh_critical_failure_phase_truth_write_failed", phaseTruthError);
+    }
+
+    try {
       await persistPublicationStateForRun({
         runId,
         activationState: "activation_failed",
@@ -1924,6 +1988,22 @@ async function finalizeRefreshRunFromChildExit(params: {
     }
     const statusErrorDetail = nonCriticalFailureDetail ?? completionError;
 
+    if (completionStatus !== "ok" || terminalReportStatus !== "ok") {
+      await reconcileActivePhaseTruthForTerminalRunError({
+        runId,
+        baseStatus: latest,
+        completedAtIso,
+        failureCode:
+          toTextOrNull(blockingReasonCode)
+          ?? "RUN_TERMINAL_ERROR_LEFT_ACTIVE_PHASE_NON_TERMINAL",
+        failureDetail:
+          statusErrorDetail
+          ?? toTextOrNull(blockingReasonDetail)
+          ?? missingTerminalReportError,
+        contextLabel: "refresh_child_exit_terminal_error_reconciliation",
+      });
+    }
+
     const shouldLogCompletion = latest.completion_logged_for_run_id !== runId;
     const oracleEvidence = shouldLogCompletion ? await readOracleRunEvidence() : {};
     if (shouldLogCompletion) {
@@ -2190,6 +2270,23 @@ async function normalizeStatus(): Promise<RefreshStatusRecord> {
         terminalReportStatus = completionStatus === "ok" ? "ok" : "error";
       }
 
+      if ((completionStatus !== "ok" || terminalReportStatus !== "ok") && runId) {
+        await reconcileActivePhaseTruthForTerminalRunError({
+          runId,
+          baseStatus: base,
+          completedAtIso,
+          failureCode:
+            toTextOrNull(blockingReasonCode)
+            ?? "RUN_TERMINAL_ERROR_LEFT_ACTIVE_PHASE_NON_TERMINAL",
+          failureDetail:
+            completionError
+            ?? toTextOrNull(blockingReasonDetail)
+            ?? base.last_error
+            ?? "Refresh terminalized with error while the active phase remained non-terminal.",
+          contextLabel: "refresh_status_report_terminal_error_reconciliation",
+        });
+      }
+
       const shouldLogCompletion = Boolean(runId && base.completion_logged_for_run_id !== runId);
       const oracleEvidence = shouldLogCompletion && runId ? await readOracleRunEvidence() : {};
       if (shouldLogCompletion && runId) {
@@ -2326,6 +2423,23 @@ async function normalizeStatus(): Promise<RefreshStatusRecord> {
 
       if (!terminalReportStatus) {
         terminalReportStatus = completionStatus === "ok" ? "ok" : "error";
+      }
+
+      if ((completionStatus !== "ok" || terminalReportStatus !== "ok") && runId) {
+        await reconcileActivePhaseTruthForTerminalRunError({
+          runId,
+          baseStatus: base,
+          completedAtIso,
+          failureCode:
+            toTextOrNull(blockingReasonCode)
+            ?? "RUN_TERMINAL_ERROR_LEFT_ACTIVE_PHASE_NON_TERMINAL",
+          failureDetail:
+            completionError
+            ?? toTextOrNull(blockingReasonDetail)
+            ?? base.last_error
+            ?? staleError,
+          contextLabel: "refresh_status_stale_process_error_reconciliation",
+        });
       }
 
       const shouldLogCompletion = Boolean(runId && base.completion_logged_for_run_id !== runId);
