@@ -42,26 +42,59 @@ function looksLikeTicker(text) {
   return /^[A-Z][A-Z0-9.\-]{0,7}$/.test(String(text || '').trim());
 }
 
+function normalizeTickerTexts(values) {
+  return values.map((item) => String(item || '').trim()).filter(looksLikeTicker);
+}
+
 async function collectTopTickerValues(page, limit = 5) {
-  const all = await page.locator('button.tfe-row-button').allTextContents();
-  const symbols = all.map((item) => String(item || '').trim()).filter(looksLikeTicker);
-  return symbols.slice(0, limit);
+  const all = await page.locator('table.tfe-table tbody tr button.tfe-row-button').allTextContents();
+  return normalizeTickerTexts(all).slice(0, limit);
+}
+
+async function describeRowState(page, limit = 5) {
+  const rowLocator = page.locator('table.tfe-table tbody tr');
+  const rowTexts = await rowLocator.allTextContents().catch(() => []);
+  const normalizedRows = rowTexts.map((item) => String(item || '').trim()).filter(Boolean);
+  const lowerRows = normalizedRows.map((item) => item.toLowerCase());
+  const tickerButtonCount = await page.locator('table.tfe-table tbody tr button.tfe-row-button').count().catch(() => 0);
+  const topTickers = await collectTopTickerValues(page, limit).catch(() => []);
+  return {
+    row_count: normalizedRows.length,
+    ticker_button_count: tickerButtonCount,
+    top_tickers: topTickers,
+    has_loading_row: lowerRows.some((item) => item.includes('loading screener rows')),
+    has_empty_row: lowerRows.some((item) => item.includes('no symbols match current filters')),
+    row_text_sample: normalizedRows.slice(0, limit).map((item) => trimText(item, 180)),
+  };
 }
 
 async function waitForRowsReady(page, timeoutMs) {
-  await page
-    .waitForFunction(
+  try {
+    await page.waitForFunction(
       () => {
-        const rows = Array.from(document.querySelectorAll('table.tfe-table tbody tr'));
+        const normalize = (value) => String(value || '').trim();
+        const looksLikeTickerValue = (text) => /^[A-Z][A-Z0-9.\-]{0,7}$/.test(text);
+        const tickers = Array.from(document.querySelectorAll('table.tfe-table tbody tr button.tfe-row-button'))
+          .map((node) => normalize(node.textContent))
+          .filter(looksLikeTickerValue);
+        if (tickers.length > 0) return true;
+
+        const rows = Array.from(document.querySelectorAll('table.tfe-table tbody tr'))
+          .map((node) => normalize(node.textContent).toLowerCase())
+          .filter(Boolean);
         if (rows.length === 0) return false;
-        const first = String(rows[0]?.textContent || '').toLowerCase();
-        if (first.includes('loading screener rows')) return false;
-        return true;
+        if (rows.some((text) => text.includes('loading screener rows'))) return false;
+        if (rows.some((text) => text.includes('no symbols match current filters'))) return false;
+        return false;
       },
       undefined,
       { timeout: timeoutMs },
-    )
-    .catch(() => {});
+    );
+    return { ok: true, state: await describeRowState(page) };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { ok: false, error: message, state: await describeRowState(page) };
+  }
 }
 
 async function waitForScreenerReady(page, timeoutMs) {
@@ -128,6 +161,11 @@ async function run() {
         ready_marker: '',
         ready_error: '',
         content_sample: '',
+        row_readiness: {
+          ready: false,
+          error: '',
+          state: null,
+        },
       },
       preset: {
         initial_options: [],
@@ -151,6 +189,9 @@ async function run() {
         top_tickers_before: [],
         top_tickers_after_first: [],
         top_tickers_after_second: [],
+        row_state_before: null,
+        row_state_after_first: null,
+        row_state_after_second: null,
       },
       rows_and_jump: {
         rows_options: [],
@@ -199,19 +240,41 @@ async function run() {
     summary.details.page.ready_marker = ready.marker;
     summary.details.page.ready_error = ready.ok ? '' : String(ready.error || 'screener_not_ready');
 
-    await page.screenshot({ path: summary.screenshots.before, fullPage: true });
-
     if (!ready.ok) {
       const bodyText = await page.locator('body').innerText().catch(() => '');
       summary.details.page.content_sample = trimText(bodyText, 4000);
       summary.failures.push({ type: 'screener_ui_not_ready', marker: ready.marker, message: summary.details.page.ready_error });
       summary.status = 'fail';
+      await page.screenshot({ path: summary.screenshots.before, fullPage: true });
       await fs.writeFile(path.join(outDir, 'check-summary.json'), JSON.stringify(summary, null, 2), 'utf8');
       process.stdout.write(`${path.join(outDir, 'check-summary.json')}\n`);
       return;
     }
 
-    await waitForRowsReady(page, args.timeoutMs);
+    const rowReady = await waitForRowsReady(page, args.timeoutMs);
+    summary.details.page.row_readiness = {
+      ready: rowReady.ok,
+      error: rowReady.ok ? '' : String(rowReady.error || 'rows_not_ready'),
+      state: rowReady.state,
+    };
+
+    if (!rowReady.ok) {
+      const bodyText = await page.locator('body').innerText().catch(() => '');
+      summary.details.page.content_sample = trimText(bodyText, 4000);
+      summary.failures.push({
+        type: 'screener_rows_not_ready',
+        message: summary.details.page.row_readiness.error,
+        state: rowReady.state,
+      });
+      summary.status = 'fail';
+      await page.screenshot({ path: summary.screenshots.before, fullPage: true });
+      await page.screenshot({ path: summary.screenshots.after, fullPage: true });
+      await fs.writeFile(path.join(outDir, 'check-summary.json'), JSON.stringify(summary, null, 2), 'utf8');
+      process.stdout.write(`${path.join(outDir, 'check-summary.json')}\n`);
+      return;
+    }
+
+    await page.screenshot({ path: summary.screenshots.before, fullPage: true });
 
     const presetsSelect = page
       .locator('select.tfe-select')
@@ -320,21 +383,24 @@ async function run() {
 
     const tickerSortButton = sortButtons.filter({ hasText: /^Ticker/ }).first();
     if ((await tickerSortButton.count()) > 0) {
-      await waitForRowsReady(page, args.timeoutMs);
+      const beforeSortRows = await waitForRowsReady(page, args.timeoutMs);
+      summary.details.sort.row_state_before = beforeSortRows.state;
       summary.details.sort.top_tickers_before = await collectTopTickerValues(page);
       summary.details.sort.ticker_text_before_click = String((await tickerSortButton.textContent()) || '').trim();
 
       await tickerSortButton.click();
-      await waitForRowsReady(page, args.timeoutMs);
+      const afterFirstRows = await waitForRowsReady(page, args.timeoutMs);
       await page.waitForTimeout(350);
 
+      summary.details.sort.row_state_after_first = afterFirstRows.state;
       summary.details.sort.ticker_text_after_first = String((await tickerSortButton.textContent()) || '').trim();
       summary.details.sort.top_tickers_after_first = await collectTopTickerValues(page);
 
       await tickerSortButton.click();
-      await waitForRowsReady(page, args.timeoutMs);
+      const afterSecondRows = await waitForRowsReady(page, args.timeoutMs);
       await page.waitForTimeout(350);
 
+      summary.details.sort.row_state_after_second = afterSecondRows.state;
       summary.details.sort.ticker_text_after_second = String((await tickerSortButton.textContent()) || '').trim();
       summary.details.sort.top_tickers_after_second = await collectTopTickerValues(page);
 
