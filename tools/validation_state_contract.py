@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import subprocess
 from dataclasses import dataclass
@@ -37,14 +36,6 @@ def git_output(repo_root: Path, args: List[str]) -> str:
 def git_lines(repo_root: Path, args: List[str]) -> List[str]:
     output = git_output(repo_root, args)
     return [line for line in output.splitlines() if line.strip()]
-
-
-def hash_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def matches_any(path_str: str, patterns: Iterable[str]) -> bool:
@@ -333,7 +324,7 @@ def tracked_files(repo_root: Path) -> List[str]:
 
 
 def repo_dirty_tracked_files(repo_root: Path) -> List[str]:
-    return git_lines(repo_root, ["diff", "--name-only", "HEAD", "--"])
+    return git_lines(repo_root, ["ls-files", "-m"])
 
 
 def git_changed_files_between(repo_root: Path, base_rev: str, head_rev: str) -> List[str]:
@@ -344,6 +335,27 @@ def git_untracked_files(repo_root: Path, patterns: List[str]) -> List[str]:
     if not patterns:
         return []
     return git_lines(repo_root, ["ls-files", "--others", "--exclude-standard", "--", *patterns])
+
+
+def current_content_hashes(repo_root: Path, tracked: List[str]) -> Dict[str, str]:
+    tracked_hashes: Dict[str, str] = {}
+    for line in git_lines(repo_root, ["ls-files", "-s"]):
+        parts = line.split(maxsplit=3)
+        if len(parts) != 4:
+            continue
+        tracked_hashes[parts[3]] = parts[1]
+
+    dirty_paths = set(repo_dirty_tracked_files(repo_root))
+    for rel_path in tracked:
+        absolute_path = repo_root / rel_path
+        if rel_path in dirty_paths and absolute_path.exists():
+            tracked_hashes[rel_path] = git_output(repo_root, ["hash-object", "--", rel_path])
+        elif rel_path not in tracked_hashes:
+            if absolute_path.exists():
+                tracked_hashes[rel_path] = git_output(repo_root, ["hash-object", "--", rel_path])
+            else:
+                tracked_hashes[rel_path] = "missing"
+    return tracked_hashes
 
 
 def load_or_initialize_state(
@@ -440,7 +452,7 @@ def prepare(args: argparse.Namespace) -> int:
     evidence_dir.mkdir(parents=True, exist_ok=True)
 
     tracked = tracked_files(repo_root)
-    current_hashes = {rel_path: hash_file(repo_root / rel_path) for rel_path in tracked}
+    current_hashes = current_content_hashes(repo_root, tracked)
     state, state_exists = load_or_initialize_state(
         repo_root=repo_root,
         state_path=state_path,
