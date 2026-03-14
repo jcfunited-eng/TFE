@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import gzip
 import json
 import os
 import shlex
@@ -52,11 +53,50 @@ def extract_json_payload(text: str) -> dict[str, Any] | None:
     if not raw.strip():
         return None
 
+    def parse_candidate(candidate: str) -> dict[str, Any] | None:
+        payload = candidate.strip()
+        if not payload:
+            return None
+        try:
+            parsed = json.loads(payload)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            pass
+
+        base64_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=")
+        compact = "".join(ch for ch in payload if ch in base64_chars)
+        if not compact:
+            return None
+        padded = compact + ("=" * ((4 - (len(compact) % 4)) % 4))
+        try:
+            decoded = base64.b64decode(padded, validate=False)
+        except Exception:
+            return None
+
+        payload_bytes = decoded
+        try:
+            payload_bytes = gzip.decompress(decoded)
+        except Exception:
+            payload_bytes = decoded
+
+        try:
+            parsed = json.loads(payload_bytes.decode("utf-8"))
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            return None
+        return None
+
     candidates: list[str] = []
     marker_start = raw.find(JSON_MARKER_START)
     marker_end = raw.find(JSON_MARKER_END, marker_start + len(JSON_MARKER_START))
-    if marker_start >= 0 and marker_end > marker_start:
-        marked = raw[marker_start + len(JSON_MARKER_START) : marker_end].strip()
+    if marker_start >= 0:
+        if marker_end > marker_start:
+            marked = raw[marker_start + len(JSON_MARKER_START) : marker_end].strip()
+        else:
+            marked = raw[marker_start + len(JSON_MARKER_START) :]
+            marked = marked.split("Cannot perform start session:", 1)[0].strip()
         if marked:
             candidates.append(marked)
 
@@ -78,12 +118,9 @@ def extract_json_payload(text: str) -> dict[str, Any] | None:
         if not candidate or candidate in seen:
             continue
         seen.add(candidate)
-        try:
-            parsed = json.loads(candidate)
-            if isinstance(parsed, dict):
-                return parsed
-        except Exception:
-            continue
+        parsed = parse_candidate(candidate)
+        if isinstance(parsed, dict):
+            return parsed
     return None
 
 
@@ -169,6 +206,7 @@ def build_query_js(requested_run_id: str | None, requested_mode: str | None) -> 
     requested_mode_literal = json.dumps(str(requested_mode or ""))
     return f"""
 const {{ Pool }} = require('pg');
+const {{ gzipSync }} = require('node:zlib');
 const requestedRunId = String({requested_run_id_literal} || '').trim() || null;
 const requestedMode = String({requested_mode_literal} || '').trim() || null;
 
@@ -218,6 +256,12 @@ const summarizeInputContract = (value) => {{
     }}
   }}
   return Object.keys(summary).length > 0 ? summary : {{}};
+}};
+
+const emitPayload = (payload) => {{
+  process.stdout.write(
+    gzipSync(Buffer.from(JSON.stringify(payload), 'utf8')).toString('base64')
+  );
 }};
 
 (async () => {{
@@ -380,7 +424,7 @@ const summarizeInputContract = (value) => {{
       }}));
     }}
 
-    process.stdout.write(JSON.stringify({{
+    emitPayload({{
       status: runRow ? 'pass' : 'fail',
       selection,
       requested_run_id: requestedRunId,
@@ -390,16 +434,16 @@ const summarizeInputContract = (value) => {{
       run_row: runRow,
       active_publication_row: activeQ.rows[0] || null,
       phase_rows: phaseRows
-    }}));
+    }});
   }} finally {{
     client.release();
     await pool.end();
   }}
 }})().catch((err) => {{
-  process.stdout.write(JSON.stringify({{
+  emitPayload({{
     status: 'fail',
     reason: err instanceof Error ? err.message : String(err)
-  }}));
+  }});
   process.exit(1);
 }});
 """.strip()

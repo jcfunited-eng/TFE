@@ -15,6 +15,12 @@ import {
   type PublicationServingState,
 } from "@/lib/publication-state";
 import {
+  assessPreActivationPublicationCriticalTruth,
+  phaseSummary,
+  PRE_ACTIVATION_PUBLICATION_CRITICAL_PHASES as PUBLICATION_CRITICAL_PHASES,
+  publicationCriticalPhaseSucceeded,
+} from "@/lib/refresh-terminal-truth";
+import {
   loadRuntimeQuoteCacheFromPostgres,
   loadRuntimeSnapshotRowsFromPostgres,
 } from "@/lib/runtime-postgres";
@@ -199,38 +205,7 @@ function completionErrorFromReport(
   return fallbackError ?? "Refresh finished without a terminal report status. Check report/log.";
 }
 
-const PUBLICATION_CRITICAL_PHASES = [
-  "snapshot_rebuild",
-  "runtime_postgres_sync",
-  "validation_gate",
-] as const;
 const NON_CRITICAL_FINALIZATION_FAILURE_CODE = "REFRESH_TERMINAL_REPORT_MISSING_AFTER_CRITICAL_SUCCESS";
-
-function phaseOutputStatus(phase: RefreshPhaseLedgerRecord | undefined): string | null {
-  return toLowerTextOrNull(phase?.output_contract?.status);
-}
-
-function publicationCriticalPhaseSucceeded(
-  phaseName: (typeof PUBLICATION_CRITICAL_PHASES)[number],
-  phase: RefreshPhaseLedgerRecord | undefined,
-): boolean {
-  if (!phase) return false;
-  if (toLowerTextOrNull(phase.process_status) !== "completed") return false;
-
-  const outputStatus = phaseOutputStatus(phase);
-  if (phaseName === "snapshot_rebuild") {
-    return outputStatus === "ok";
-  }
-  if (phaseName === "runtime_postgres_sync") {
-    return outputStatus === "ok";
-  }
-  return outputStatus === "pass";
-}
-
-function phaseSummary(phaseName: string, phase: RefreshPhaseLedgerRecord | undefined): string {
-  if (!phase) return `${phaseName}=missing`;
-  return `${phaseName}=${toLowerTextOrNull(phase.process_status) ?? "unknown"}:${phaseOutputStatus(phase) ?? "unknown"}`;
-}
 
 async function recoverMissingTerminalReportAfterPublicationCriticalSuccess(params: {
   runId: string;
@@ -250,6 +225,94 @@ async function recoverMissingTerminalReportAfterPublicationCriticalSuccess(param
   );
   const followupSummary = phaseSummary("quote_cache_refresh", phaseByName.get("quote_cache_refresh"));
   return `${params.exitError} Publication-critical phases already completed in the phase ledger. critical_phases=${criticalSummaries.join(",")}; followup_phase=${followupSummary}.`;
+}
+
+async function enforcePreActivationCriticalTruthBeforeTerminalOk(params: {
+  runId: string;
+  completedAtIso: string;
+  contextLabel: string;
+}): Promise<{
+  ok: boolean;
+  failureCode: string | null;
+  failureDetail: string | null;
+}> {
+  const phaseRows = await loadRuntimeRefreshPhaseLedger(params.runId);
+  const assessment = assessPreActivationPublicationCriticalTruth(phaseRows, params.contextLabel);
+  if (assessment.ok) {
+    return {
+      ok: true,
+      failureCode: null,
+      failureDetail: null,
+    };
+  }
+
+  const failureCode =
+    toTextOrNull(assessment.failureCode)
+    ?? "PUBLICATION_CRITICAL_PHASE_TERMINAL_TRUTH_FAILED";
+  const failureDetail =
+    toTextOrNull(assessment.failureDetail)
+    ?? "Publication-critical terminal truth could not be verified.";
+
+  const blockingPhase = assessment.blockingPhaseName
+    ? phaseRows.find((row) => row.phase_name === assessment.blockingPhaseName)
+    : undefined;
+  const blockingProcessStatus = toLowerTextOrNull(assessment.blockingProcessStatus);
+  if (
+    assessment.blockingPhaseName
+    && blockingProcessStatus
+    && ["running", "launched", "deferred"].includes(blockingProcessStatus)
+  ) {
+    try {
+      const blockingOutputContract = isObjectRecord(blockingPhase?.output_contract)
+        ? blockingPhase.output_contract
+        : null;
+      await upsertRuntimeRefreshPhaseLedger({
+        runId: params.runId,
+        phaseName: assessment.blockingPhaseName,
+        processStatus: "failed",
+        inputContract: isObjectRecord(blockingPhase?.input_contract) ? blockingPhase.input_contract : null,
+        outputContract: {
+          ...(blockingOutputContract ?? {}),
+          status: "error",
+          failure_code: failureCode,
+          failure_detail: failureDetail,
+        },
+        startedAtIso: blockingPhase?.started_at ?? params.completedAtIso,
+        completedAtIso: params.completedAtIso,
+        failureCode,
+        failureDetail,
+        lastHeartbeatAtIso: params.completedAtIso,
+      });
+    } catch (error) {
+      throw createCriticalRefreshFailureError(
+        "PUBLICATION_CRITICAL_PHASE_TERMINAL_TRUTH_PERSIST_FAILED",
+        error instanceof Error ? error.message : "Unknown phase-ledger terminal-truth persistence failure.",
+      );
+    }
+  }
+
+  try {
+    await persistPublicationStateForRun({
+      runId: params.runId,
+      activationState: "activation_failed",
+      servingState: "blocked",
+      blockingReasonCode: failureCode,
+      blockingReasonDetail: failureDetail,
+      failureCode,
+      failureDetail,
+    });
+  } catch (error) {
+    throw createCriticalRefreshFailureError(
+      "PUBLICATION_CRITICAL_PHASE_TERMINAL_STATE_WRITE_FAILED",
+      error instanceof Error ? error.message : "Unknown publication-state terminal-truth persistence failure.",
+    );
+  }
+
+  return {
+    ok: false,
+    failureCode,
+    failureDetail,
+  };
 }
 
 function reportBelongsToRun(report: RefreshReport | null, startedAtIso: string): boolean {
@@ -1822,23 +1885,38 @@ async function finalizeRefreshRunFromChildExit(params: {
     }
 
     if (reportFromCurrentRun && reportStatus === "ok") {
-      const activationOutcome = await evaluateTerminalActivation({
+      const criticalTruth = await enforcePreActivationCriticalTruthBeforeTerminalOk({
         runId,
-        requestedMode: mode,
-        triggerSource: source,
-        requestedBy,
-        startedAtIso,
         completedAtIso,
-        report,
-        baseStatus: latest,
+        contextLabel: "refresh_child_exit_terminalization",
       });
-      completionStatus = activationOutcome.completionStatus;
-      completionError = activationOutcome.completionError;
-      terminalReportStatus = activationOutcome.terminalReportStatus;
-      activationState = activationOutcome.activationState;
-      servingState = activationOutcome.servingState;
-      blockingReasonCode = activationOutcome.blockingReasonCode ?? null;
-      blockingReasonDetail = activationOutcome.blockingReasonDetail ?? null;
+      if (!criticalTruth.ok) {
+        completionStatus = "error";
+        completionError = criticalTruth.failureDetail ?? missingTerminalReportError;
+        terminalReportStatus = "error";
+        activationState = "activation_failed";
+        servingState = "blocked";
+        blockingReasonCode = criticalTruth.failureCode ?? "PUBLICATION_CRITICAL_PHASE_TERMINAL_TRUTH_FAILED";
+        blockingReasonDetail = criticalTruth.failureDetail ?? missingTerminalReportError;
+      } else {
+        const activationOutcome = await evaluateTerminalActivation({
+          runId,
+          requestedMode: mode,
+          triggerSource: source,
+          requestedBy,
+          startedAtIso,
+          completedAtIso,
+          report,
+          baseStatus: latest,
+        });
+        completionStatus = activationOutcome.completionStatus;
+        completionError = activationOutcome.completionError;
+        terminalReportStatus = activationOutcome.terminalReportStatus;
+        activationState = activationOutcome.activationState;
+        servingState = activationOutcome.servingState;
+        blockingReasonCode = activationOutcome.blockingReasonCode ?? null;
+        blockingReasonDetail = activationOutcome.blockingReasonDetail ?? null;
+      }
     }
 
     if (!terminalReportStatus) {
@@ -2060,23 +2138,52 @@ async function normalizeStatus(): Promise<RefreshStatusRecord> {
       let blockingReasonDetail = base.blocking_reason_detail;
 
       if (reportStatus === "ok") {
-        const activationOutcome = await evaluateTerminalActivation({
-          runId,
-          requestedMode,
-          triggerSource: base.trigger_source,
-          requestedBy: base.requested_by,
-          startedAtIso: base.started_at,
-          completedAtIso,
-          report,
-          baseStatus: base,
-        });
-        completionStatus = activationOutcome.completionStatus;
-        completionError = activationOutcome.completionError;
-        terminalReportStatus = activationOutcome.terminalReportStatus;
-        activationState = activationOutcome.activationState;
-        servingState = activationOutcome.servingState;
-        blockingReasonCode = activationOutcome.blockingReasonCode ?? null;
-        blockingReasonDetail = activationOutcome.blockingReasonDetail ?? null;
+        if (!runId) {
+          completionStatus = "error";
+          completionError = "Refresh reported ok but run_id is missing; publication-critical terminal truth cannot be verified.";
+          terminalReportStatus = "error";
+          activationState = "activation_failed";
+          servingState = "blocked";
+          blockingReasonCode = "RUN_ID_MISSING";
+          blockingReasonDetail = "Refresh reported ok but run_id is missing; publication-critical terminal truth cannot be verified.";
+        } else {
+          const criticalTruth = await enforcePreActivationCriticalTruthBeforeTerminalOk({
+            runId,
+            completedAtIso,
+            contextLabel: "refresh_status_normalization_terminalization",
+          });
+          if (!criticalTruth.ok) {
+            completionStatus = "error";
+            completionError = criticalTruth.failureDetail
+              ?? base.last_error
+              ?? "Publication-critical terminal truth failed during refresh status normalization.";
+            terminalReportStatus = "error";
+            activationState = "activation_failed";
+            servingState = "blocked";
+            blockingReasonCode = criticalTruth.failureCode ?? "PUBLICATION_CRITICAL_PHASE_TERMINAL_TRUTH_FAILED";
+            blockingReasonDetail = criticalTruth.failureDetail
+              ?? base.last_error
+              ?? "Publication-critical terminal truth failed during refresh status normalization.";
+          } else {
+            const activationOutcome = await evaluateTerminalActivation({
+              runId,
+              requestedMode,
+              triggerSource: base.trigger_source,
+              requestedBy: base.requested_by,
+              startedAtIso: base.started_at,
+              completedAtIso,
+              report,
+              baseStatus: base,
+            });
+            completionStatus = activationOutcome.completionStatus;
+            completionError = activationOutcome.completionError;
+            terminalReportStatus = activationOutcome.terminalReportStatus;
+            activationState = activationOutcome.activationState;
+            servingState = activationOutcome.servingState;
+            blockingReasonCode = activationOutcome.blockingReasonCode ?? null;
+            blockingReasonDetail = activationOutcome.blockingReasonDetail ?? null;
+          }
+        }
       }
 
       if (!terminalReportStatus) {
@@ -2173,23 +2280,48 @@ async function normalizeStatus(): Promise<RefreshStatusRecord> {
       let blockingReasonDetail = base.blocking_reason_detail;
 
       if (reportStatus === "ok") {
-        const activationOutcome = await evaluateTerminalActivation({
-          runId,
-          requestedMode,
-          triggerSource: base.trigger_source,
-          requestedBy: base.requested_by,
-          startedAtIso: base.started_at,
-          completedAtIso,
-          report,
-          baseStatus: base,
-        });
-        completionStatus = activationOutcome.completionStatus;
-        completionError = activationOutcome.completionError;
-        terminalReportStatus = activationOutcome.terminalReportStatus;
-        activationState = activationOutcome.activationState;
-        servingState = activationOutcome.servingState;
-        blockingReasonCode = activationOutcome.blockingReasonCode ?? null;
-        blockingReasonDetail = activationOutcome.blockingReasonDetail ?? null;
+        if (!runId) {
+          completionStatus = "error";
+          completionError = "Refresh reported ok but run_id is missing; publication-critical terminal truth cannot be verified.";
+          terminalReportStatus = "error";
+          activationState = "activation_failed";
+          servingState = "blocked";
+          blockingReasonCode = "RUN_ID_MISSING";
+          blockingReasonDetail = "Refresh reported ok but run_id is missing; publication-critical terminal truth cannot be verified.";
+        } else {
+          const criticalTruth = await enforcePreActivationCriticalTruthBeforeTerminalOk({
+            runId,
+            completedAtIso,
+            contextLabel: "refresh_status_stale_process_cleanup",
+          });
+          if (!criticalTruth.ok) {
+            completionStatus = "error";
+            completionError = criticalTruth.failureDetail ?? (base.last_error ?? staleError);
+            terminalReportStatus = "error";
+            activationState = "activation_failed";
+            servingState = "blocked";
+            blockingReasonCode = criticalTruth.failureCode ?? "PUBLICATION_CRITICAL_PHASE_TERMINAL_TRUTH_FAILED";
+            blockingReasonDetail = criticalTruth.failureDetail ?? (base.last_error ?? staleError);
+          } else {
+            const activationOutcome = await evaluateTerminalActivation({
+              runId,
+              requestedMode,
+              triggerSource: base.trigger_source,
+              requestedBy: base.requested_by,
+              startedAtIso: base.started_at,
+              completedAtIso,
+              report,
+              baseStatus: base,
+            });
+            completionStatus = activationOutcome.completionStatus;
+            completionError = activationOutcome.completionError;
+            terminalReportStatus = activationOutcome.terminalReportStatus;
+            activationState = activationOutcome.activationState;
+            servingState = activationOutcome.servingState;
+            blockingReasonCode = activationOutcome.blockingReasonCode ?? null;
+            blockingReasonDetail = activationOutcome.blockingReasonDetail ?? null;
+          }
+        }
       }
 
       if (!terminalReportStatus) {
