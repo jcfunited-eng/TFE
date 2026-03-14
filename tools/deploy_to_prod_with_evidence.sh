@@ -104,7 +104,7 @@ json_array_from_existing_args() {
     printf '[]'
     return 0
   fi
-  jq -cn --args "$@" '$ARGS.positional'
+  jq -cn '$ARGS.positional' --args "$@"
 }
 
 TS="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -216,7 +216,7 @@ write_block_artifact() {
   recorded_at_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   unit_json="$(unit_json_for "$unit_id")"
 
-  python3 - <<'PY' "$artifact_path" "$selected_flag" "$status" "$failure_code" "$failure_message" "$skip_reason" "$actual_outputs_json" "$state_update_inputs_json" "$details_json" "$recorded_at_utc" <<<"$unit_json"
+  python3 - "$artifact_path" "$selected_flag" "$status" "$failure_code" "$failure_message" "$skip_reason" "$actual_outputs_json" "$state_update_inputs_json" "$details_json" "$recorded_at_utc" "$unit_json" <<'PY'
 import json
 import sys
 
@@ -230,8 +230,7 @@ actual_outputs_json = sys.argv[7]
 state_update_inputs_json = sys.argv[8]
 details_json = sys.argv[9]
 recorded_at_utc = sys.argv[10]
-
-unit = json.loads(sys.stdin.read())
+unit = json.loads(sys.argv[11])
 
 def parse_json(raw: str, fallback):
     try:
@@ -356,7 +355,7 @@ run_unit_deploy_workspace_integrity() {
     screener_sort_helper_tracked="true"
   fi
 
-  python3 - <<'PY' "${SOURCE_LIST}" "${DIRTY_DEPLOY_INPUTS_PATH}" "${UNTRACKED_DEPLOY_INPUTS_PATH}" "${decision_path}" "${screener_component_tracked}" "${screener_sort_helper_tracked}"
+  python3 - "${SOURCE_LIST}" "${DIRTY_DEPLOY_INPUTS_PATH}" "${UNTRACKED_DEPLOY_INPUTS_PATH}" "${decision_path}" "${screener_component_tracked}" "${screener_sort_helper_tracked}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -671,7 +670,7 @@ run_unit_site_reliability_recommendations_nonregression() {
   local result_path="${EVIDENCE_DIR}/site-reliability-recommendations-nonregression.json"
   state_inputs_json="$(unit_changed_inputs_json "$unit_id")"
 
-  python3 - <<'PY' "${REPO_ROOT}" "${BLOCK_ARTIFACT_DIR}/site_reliability_recommendations.json" "${result_path}" "${TFE_RECO_NONREGRESSION_ENABLED:-1}" "${TFE_RECO_MAX_COVERAGE_DROP:-0.0}" "${TFE_RECO_MAX_FALLBACK_RISE:-0.0}"
+  python3 - "${REPO_ROOT}" "${BLOCK_ARTIFACT_DIR}/site_reliability_recommendations.json" "${result_path}" "${TFE_RECO_NONREGRESSION_ENABLED:-1}" "${TFE_RECO_MAX_COVERAGE_DROP:-0.0}" "${TFE_RECO_MAX_FALLBACK_RISE:-0.0}" <<'PY'
 import datetime
 import glob
 import json
@@ -813,7 +812,7 @@ run_unit_site_reliability_recommendations_quality_nonregression() {
   local result_path="${EVIDENCE_DIR}/site-reliability-recommendations-quality-nonregression.json"
   state_inputs_json="$(unit_changed_inputs_json "$unit_id")"
 
-  python3 - <<'PY' "${REPO_ROOT}" "${BLOCK_ARTIFACT_DIR}/site_reliability_recommendations_quality.json" "${result_path}" "${TFE_RECO_QUALITY_NONREGRESSION_ENABLED:-1}" "${TFE_RECO_QUALITY_MAX_H5_DROP:-0.0}" "${TFE_RECO_QUALITY_MAX_H20_DROP:-0.0}" "${TFE_RECO_QUALITY_MAX_H60_DROP:-0.0}" "${TFE_RECO_QUALITY_MAX_AVG_DROP:-0.0}"
+  python3 - "${REPO_ROOT}" "${BLOCK_ARTIFACT_DIR}/site_reliability_recommendations_quality.json" "${result_path}" "${TFE_RECO_QUALITY_NONREGRESSION_ENABLED:-1}" "${TFE_RECO_QUALITY_MAX_H5_DROP:-0.0}" "${TFE_RECO_QUALITY_MAX_H20_DROP:-0.0}" "${TFE_RECO_QUALITY_MAX_H60_DROP:-0.0}" "${TFE_RECO_QUALITY_MAX_AVG_DROP:-0.0}" <<'PY'
 import datetime
 import glob
 import json

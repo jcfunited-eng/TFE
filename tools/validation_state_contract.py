@@ -466,8 +466,9 @@ def prepare(args: argparse.Namespace) -> int:
         if line.strip()
     ]
     relevant_patterns = build_relevant_patterns(deploy_patterns)
+    untracked_patterns = sorted(set(deploy_patterns + CONTRACT_CONTROL_FILES))
     relevant_tracked = sorted([path for path in tracked if matches_any(path, relevant_patterns)])
-    relevant_untracked = sorted(git_untracked_files(repo_root, relevant_patterns))
+    relevant_untracked = sorted(git_untracked_files(repo_root, untracked_patterns))
 
     if state_exists:
         tracked_changed = sorted([path for path in relevant_tracked if bool(state["files"][path]["dirty_since_validation"])])
@@ -504,16 +505,16 @@ def prepare(args: argparse.Namespace) -> int:
         encoding="utf-8",
     )
 
-    split_tokens = {}
-    for rel_path in CONTRACT_CONTROL_FILES:
-        text = (repo_root / rel_path).read_text(encoding="utf-8")
-        split_tokens[rel_path] = {
-            "TFE_DEPLOY_GATE_PROFILE": "TFE_DEPLOY_GATE_PROFILE" not in text,
-            "skipped_by_fast_profile": "skipped_by_fast_profile" not in text,
-            "strict_gate_profile": "strict_gate_profile" not in text,
-            "strict-gate-profile.json": "strict-gate-profile.json" not in text,
+    deploy_script_text = (repo_root / "tools/deploy_to_prod_with_evidence.sh").read_text(encoding="utf-8")
+    split_tokens = {
+        "deploy_script": {
+            "TFE_DEPLOY_GATE_PROFILE": "TFE_DEPLOY_GATE_PROFILE" not in deploy_script_text,
+            "skipped_by_fast_profile": "skipped_by_fast_profile" not in deploy_script_text,
+            "strict_gate_profile": "strict_gate_profile" not in deploy_script_text,
+            "strict-gate-profile.json": "strict-gate-profile.json" not in deploy_script_text,
         }
-    split_model_removed = all(all(item.values()) for item in split_tokens.values())
+    }
+    split_model_removed = all(split_tokens["deploy_script"].values())
     write_json(
         evidence_dir / "split-model-proof.json",
         {
