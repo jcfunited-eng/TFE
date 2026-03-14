@@ -85,6 +85,13 @@ resolve_git_commit_sha() {
 }
 
 resolve_base_rev() {
+  local explicit_base_rev
+  explicit_base_rev="$(trim_value "${TFE_DEPLOY_DELTA_BASE_REV:-}")"
+  if [ -n "${explicit_base_rev}" ]; then
+    git -C "$REPO_ROOT" rev-parse --verify "${explicit_base_rev}^{commit}" >/dev/null 2>&1
+    printf '%s' "${explicit_base_rev}"
+    return 0
+  fi
   if git -C "$REPO_ROOT" rev-parse --verify HEAD^ >/dev/null 2>&1; then
     git -C "$REPO_ROOT" rev-parse HEAD^
   else
