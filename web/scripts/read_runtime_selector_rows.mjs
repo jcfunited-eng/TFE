@@ -1,9 +1,13 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { Pool } from "pg";
 
 const DEFAULT_DB_PORT = 5432;
 const RUNS_TABLE = "runtime_refresh_runs";
 const DECISIONS_TABLE = "runtime_decisions_latest";
 const DECISIONS_HISTORY_TABLE = "runtime_decisions_history";
+const MODULE_FILE_PATH = fileURLToPath(import.meta.url);
 
 function readRequiredEnv(...names) {
   for (const name of names) {
@@ -43,6 +47,45 @@ function toIsoOrNull(value) {
   return new Date(parsed).toISOString();
 }
 
+function normalizeSqlIdentifier(value) {
+  const text = String(value ?? "").trim();
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(text)) {
+    throw new Error(`invalid_sql_identifier:${text || "empty"}`);
+  }
+  return text;
+}
+
+function normalizeColumnNames(columnNames) {
+  const names = new Set();
+  if (!columnNames || typeof columnNames[Symbol.iterator] !== "function") {
+    return names;
+  }
+  for (const columnName of columnNames) {
+    const normalized = String(columnName ?? "").trim();
+    if (normalized) {
+      names.add(normalized);
+    }
+  }
+  return names;
+}
+
+export function buildSelectorQuery(tableName, columnNames) {
+  const safeTableName = normalizeSqlIdentifier(tableName);
+  const availableColumns = normalizeColumnNames(columnNames);
+  const selectParts = [
+    "snapshot_row_json",
+    "ticker",
+    availableColumns.has("bar_count") ? "bar_count" : "NULL::integer AS bar_count",
+    availableColumns.has("regime") ? "regime" : "NULL::text AS regime",
+  ];
+  return `
+    SELECT ${selectParts.join(", ")}
+    FROM ${safeTableName}
+    WHERE run_id = $1
+    ORDER BY ticker ASC
+  `;
+}
+
 async function tableExists(pool, tableName) {
   const result = await pool.query(
     `
@@ -51,6 +94,21 @@ async function tableExists(pool, tableName) {
     [tableName],
   );
   return String(result.rows[0]?.oid ?? "").trim().length > 0;
+}
+
+async function loadTableColumns(pool, tableName) {
+  const result = await pool.query(
+    `
+      SELECT a.attname AS column_name
+      FROM pg_attribute AS a
+      WHERE a.attrelid = to_regclass($1)
+        AND a.attnum > 0
+        AND NOT a.attisdropped
+      ORDER BY a.attnum ASC
+    `,
+    [tableName],
+  );
+  return normalizeColumnNames(result.rows.map((row) => row.column_name));
 }
 
 async function loadActivePublication(pool) {
@@ -140,13 +198,13 @@ async function main() {
       }
     }
 
+    const selectedTableColumns = await loadTableColumns(pool, selectedTable);
+    if (selectedTableColumns.size === 0) {
+      throw new Error(`table_columns_missing:${selectedTable}`);
+    }
+
     const result = await pool.query(
-      `
-        SELECT snapshot_row_json, ticker, bar_count, regime
-        FROM ${selectedTable}
-        WHERE run_id = $1
-        ORDER BY ticker ASC
-      `,
+      buildSelectorQuery(selectedTable, selectedTableColumns),
       [selectedRunId],
     );
 
@@ -183,8 +241,18 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  const reason = error instanceof Error ? error.message : "runtime_selector_rows_failed";
-  process.stderr.write(`${JSON.stringify({ ok: false, reason })}\n`);
-  process.exit(1);
-});
+function isDirectExecution() {
+  const entryPath = String(process.argv[1] ?? "").trim();
+  if (!entryPath) {
+    return false;
+  }
+  return path.resolve(entryPath) === MODULE_FILE_PATH;
+}
+
+if (isDirectExecution()) {
+  main().catch((error) => {
+    const reason = error instanceof Error ? error.message : "runtime_selector_rows_failed";
+    process.stderr.write(`${JSON.stringify({ ok: false, reason })}\n`);
+    process.exit(1);
+  });
+}
