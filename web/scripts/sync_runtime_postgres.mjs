@@ -625,7 +625,45 @@ async function ensureRuntimeTables(client) {
       ADD COLUMN IF NOT EXISTS snapshot_publication_id TEXT,
       ADD COLUMN IF NOT EXISTS quote_publication_id TEXT,
       ADD COLUMN IF NOT EXISTS quote_binding_status TEXT,
+      ADD COLUMN IF NOT EXISTS activation_state TEXT,
+      ADD COLUMN IF NOT EXISTS serving_state TEXT,
+      ADD COLUMN IF NOT EXISTS blocking_reason_code TEXT,
+      ADD COLUMN IF NOT EXISTS blocking_reason_detail TEXT,
+      ADD COLUMN IF NOT EXISTS failure_code TEXT,
+      ADD COLUMN IF NOT EXISTS failure_detail TEXT,
+      ADD COLUMN IF NOT EXISTS current_phase TEXT,
+      ADD COLUMN IF NOT EXISTS current_phase_process_status TEXT,
+      ADD COLUMN IF NOT EXISTS current_phase_started_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS current_phase_completed_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS current_phase_last_heartbeat_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS current_phase_failure_code TEXT,
+      ADD COLUMN IF NOT EXISTS current_phase_failure_detail TEXT,
       ADD COLUMN IF NOT EXISTS is_active_publication BOOLEAN NOT NULL DEFAULT FALSE
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS runtime_refresh_run_phases (
+        run_id TEXT NOT NULL REFERENCES runtime_refresh_runs(run_id) ON DELETE CASCADE,
+        phase_name TEXT NOT NULL,
+        input_contract JSONB,
+        process_status TEXT NOT NULL,
+        started_at TIMESTAMPTZ,
+        completed_at TIMESTAMPTZ,
+        output_contract JSONB,
+        failure_code TEXT,
+        failure_detail TEXT,
+        last_heartbeat_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        PRIMARY KEY (run_id, phase_name)
+      )
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_runtime_refresh_run_phases_run_id
+      ON runtime_refresh_run_phases (run_id)
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_runtime_refresh_run_phases_running
+      ON runtime_refresh_run_phases (run_id, process_status, last_heartbeat_at DESC)
     `);
     await client.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS idx_runtime_refresh_runs_single_active_publication

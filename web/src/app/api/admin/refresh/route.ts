@@ -57,6 +57,25 @@ type RefreshStatusRecord = {
   serving_state?: string;
   blocking_reason_code?: string | null;
   blocking_reason_detail?: string | null;
+  current_phase?: string;
+  current_phase_process_status?: string;
+  current_phase_started_at?: string;
+  current_phase_completed_at?: string;
+  current_phase_last_heartbeat_at?: string;
+  current_phase_failure_code?: string | null;
+  current_phase_failure_detail?: string | null;
+};
+
+type RefreshPhaseLedgerRecord = {
+  phase_name: string;
+  input_contract: Record<string, unknown> | null;
+  process_status: string;
+  started_at: string | null;
+  completed_at: string | null;
+  output_contract: Record<string, unknown> | null;
+  failure_code: string | null;
+  failure_detail: string | null;
+  last_heartbeat_at: string | null;
 };
 
 type RefreshChildLifecycle = {
@@ -345,7 +364,39 @@ async function ensureRuntimeRefreshRunsTable(): Promise<void> {
       ADD COLUMN IF NOT EXISTS blocking_reason_detail TEXT,
       ADD COLUMN IF NOT EXISTS failure_code TEXT,
       ADD COLUMN IF NOT EXISTS failure_detail TEXT,
+      ADD COLUMN IF NOT EXISTS current_phase TEXT,
+      ADD COLUMN IF NOT EXISTS current_phase_process_status TEXT,
+      ADD COLUMN IF NOT EXISTS current_phase_started_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS current_phase_completed_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS current_phase_last_heartbeat_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS current_phase_failure_code TEXT,
+      ADD COLUMN IF NOT EXISTS current_phase_failure_detail TEXT,
       ADD COLUMN IF NOT EXISTS is_active_publication BOOLEAN NOT NULL DEFAULT FALSE
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS runtime_refresh_run_phases (
+        run_id TEXT NOT NULL REFERENCES runtime_refresh_runs(run_id) ON DELETE CASCADE,
+        phase_name TEXT NOT NULL,
+        input_contract JSONB,
+        process_status TEXT NOT NULL,
+        started_at TIMESTAMPTZ,
+        completed_at TIMESTAMPTZ,
+        output_contract JSONB,
+        failure_code TEXT,
+        failure_detail TEXT,
+        last_heartbeat_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        PRIMARY KEY (run_id, phase_name)
+      )
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_runtime_refresh_run_phases_run_id
+      ON runtime_refresh_run_phases (run_id)
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_runtime_refresh_run_phases_running
+      ON runtime_refresh_run_phases (run_id, process_status, last_heartbeat_at DESC)
     `);
     await pool.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS idx_runtime_refresh_runs_single_active_publication
@@ -492,6 +543,239 @@ async function upsertRuntimeRefreshRunTerminalStrict(params: {
       params.epochLibraryStatus ?? null,
     ],
   );
+}
+
+async function upsertRuntimeRefreshPhaseLedger(params: {
+  runId: string;
+  phaseName: string;
+  processStatus: string;
+  inputContract?: Record<string, unknown> | null;
+  outputContract?: Record<string, unknown> | null;
+  startedAtIso?: string | null;
+  completedAtIso?: string | null;
+  failureCode?: string | null;
+  failureDetail?: string | null;
+  lastHeartbeatAtIso?: string | null;
+}): Promise<void> {
+  if (!isRuntimeDbConfigured()) {
+    throw new Error("Runtime Postgres is not configured; cannot persist refresh phase ledger state.");
+  }
+
+  await ensureRuntimeRefreshRunsTable();
+  const pool = resolveRuntimeRefreshPool();
+  await pool.query(
+    `
+      INSERT INTO runtime_refresh_run_phases (
+        run_id,
+        phase_name,
+        input_contract,
+        process_status,
+        started_at,
+        completed_at,
+        output_contract,
+        failure_code,
+        failure_detail,
+        last_heartbeat_at,
+        updated_at
+      )
+      VALUES (
+        $1,
+        $2,
+        $3::jsonb,
+        $4,
+        $5::timestamptz,
+        $6::timestamptz,
+        $7::jsonb,
+        $8,
+        $9,
+        $10::timestamptz,
+        NOW()
+      )
+      ON CONFLICT (run_id, phase_name)
+      DO UPDATE SET
+        input_contract = COALESCE(EXCLUDED.input_contract, runtime_refresh_run_phases.input_contract),
+        process_status = EXCLUDED.process_status,
+        started_at = COALESCE(EXCLUDED.started_at, runtime_refresh_run_phases.started_at),
+        completed_at = EXCLUDED.completed_at,
+        output_contract = COALESCE(EXCLUDED.output_contract, runtime_refresh_run_phases.output_contract),
+        failure_code = EXCLUDED.failure_code,
+        failure_detail = EXCLUDED.failure_detail,
+        last_heartbeat_at = COALESCE(EXCLUDED.last_heartbeat_at, runtime_refresh_run_phases.last_heartbeat_at),
+        updated_at = NOW()
+    `,
+    [
+      params.runId,
+      params.phaseName,
+      params.inputContract ? JSON.stringify(params.inputContract) : null,
+      params.processStatus,
+      params.startedAtIso ?? null,
+      params.completedAtIso ?? null,
+      params.outputContract ? JSON.stringify(params.outputContract) : null,
+      params.failureCode ?? null,
+      params.failureDetail ?? null,
+      params.lastHeartbeatAtIso ?? params.startedAtIso ?? null,
+    ],
+  );
+
+  await pool.query(
+    `
+      UPDATE runtime_refresh_runs
+      SET current_phase = $2,
+          current_phase_process_status = $3,
+          current_phase_started_at = COALESCE($4::timestamptz, current_phase_started_at),
+          current_phase_completed_at = $5::timestamptz,
+          current_phase_last_heartbeat_at = COALESCE($6::timestamptz, current_phase_last_heartbeat_at),
+          current_phase_failure_code = $7,
+          current_phase_failure_detail = $8,
+          failure_code = CASE
+            WHEN $3 IN ('failed', 'blocked') THEN COALESCE($7, failure_code)
+            ELSE failure_code
+          END,
+          failure_detail = CASE
+            WHEN $3 IN ('failed', 'blocked') THEN COALESCE($8, failure_detail)
+            ELSE failure_detail
+          END,
+          updated_at = NOW()
+      WHERE run_id = $1
+    `,
+    [
+      params.runId,
+      params.phaseName,
+      params.processStatus,
+      params.startedAtIso ?? null,
+      params.completedAtIso ?? null,
+      params.lastHeartbeatAtIso ?? params.startedAtIso ?? null,
+      params.failureCode ?? null,
+      params.failureDetail ?? null,
+    ],
+  );
+}
+
+async function loadRuntimeRefreshPhaseLedger(runId: string): Promise<RefreshPhaseLedgerRecord[]> {
+  if (!isRuntimeDbConfigured()) return [];
+  await ensureRuntimeRefreshRunsTable();
+  const pool = resolveRuntimeRefreshPool();
+  const result = await pool.query<{
+    phase_name: string;
+    input_contract: Record<string, unknown> | null;
+    process_status: string;
+    started_at: Date | null;
+    completed_at: Date | null;
+    output_contract: Record<string, unknown> | null;
+    failure_code: string | null;
+    failure_detail: string | null;
+    last_heartbeat_at: Date | null;
+  }>(
+    `
+      SELECT
+        phase_name,
+        input_contract,
+        process_status,
+        started_at,
+        completed_at,
+        output_contract,
+        failure_code,
+        failure_detail,
+        last_heartbeat_at
+      FROM runtime_refresh_run_phases
+      WHERE run_id = $1
+      ORDER BY COALESCE(started_at, last_heartbeat_at, completed_at) ASC, phase_name ASC
+    `,
+    [runId],
+  );
+  return result.rows.map((row) => ({
+    phase_name: row.phase_name,
+    input_contract: isObjectRecord(row.input_contract) ? row.input_contract : null,
+    process_status: row.process_status,
+    started_at: row.started_at instanceof Date ? row.started_at.toISOString() : null,
+    completed_at: row.completed_at instanceof Date ? row.completed_at.toISOString() : null,
+    output_contract: isObjectRecord(row.output_contract) ? row.output_contract : null,
+    failure_code: toTextOrNull(row.failure_code),
+    failure_detail: toTextOrNull(row.failure_detail),
+    last_heartbeat_at: row.last_heartbeat_at instanceof Date ? row.last_heartbeat_at.toISOString() : null,
+  }));
+}
+
+async function readStatusRecordFromRuntimeDb(): Promise<RefreshStatusRecord | null> {
+  if (!isRuntimeDbConfigured()) return null;
+  await ensureRuntimeRefreshRunsTable();
+  const pool = resolveRuntimeRefreshPool();
+  const result = await pool.query<{
+    run_id: string;
+    mode: string | null;
+    trigger_source: string | null;
+    requested_by: string | null;
+    started_at: Date | null;
+    completed_at: Date | null;
+    report_generated_at_utc: Date | null;
+    report_status: string | null;
+    activation_state: string | null;
+    serving_state: string | null;
+    blocking_reason_code: string | null;
+    blocking_reason_detail: string | null;
+    failure_code: string | null;
+    failure_detail: string | null;
+    current_phase: string | null;
+    current_phase_process_status: string | null;
+    current_phase_started_at: Date | null;
+    current_phase_completed_at: Date | null;
+    current_phase_last_heartbeat_at: Date | null;
+    current_phase_failure_code: string | null;
+    current_phase_failure_detail: string | null;
+  }>(
+    `
+      SELECT
+        run_id,
+        mode,
+        trigger_source,
+        requested_by,
+        started_at,
+        completed_at,
+        report_generated_at_utc,
+        report_status,
+        activation_state,
+        serving_state,
+        blocking_reason_code,
+        blocking_reason_detail,
+        failure_code,
+        failure_detail,
+        current_phase,
+        current_phase_process_status,
+        current_phase_started_at,
+        current_phase_completed_at,
+        current_phase_last_heartbeat_at,
+        current_phase_failure_code,
+        current_phase_failure_detail
+      FROM runtime_refresh_runs
+      ORDER BY COALESCE(started_at, created_at) DESC, created_at DESC
+      LIMIT 1
+    `,
+  );
+  const row = result.rows[0];
+  if (!row) return null;
+  const reportStatus = normalizeReportStatus(row.report_status);
+  return {
+    running: !row.completed_at && reportStatus === "running",
+    run_id: row.run_id,
+    requested_mode: normalizeRefreshMode(row.mode),
+    trigger_source: (row.trigger_source as RefreshTriggerSource | null) ?? undefined,
+    requested_by: toTextOrNull(row.requested_by) ?? undefined,
+    started_at: row.started_at instanceof Date ? row.started_at.toISOString() : undefined,
+    completed_at: row.completed_at instanceof Date ? row.completed_at.toISOString() : undefined,
+    report_generated_at_utc: row.report_generated_at_utc instanceof Date ? row.report_generated_at_utc.toISOString() : undefined,
+    last_error: toTextOrNull(row.failure_detail) ?? toTextOrNull(row.blocking_reason_detail) ?? undefined,
+    activation_state: toTextOrNull(row.activation_state) ?? undefined,
+    serving_state: toTextOrNull(row.serving_state) ?? undefined,
+    blocking_reason_code: toTextOrNull(row.blocking_reason_code),
+    blocking_reason_detail: toTextOrNull(row.blocking_reason_detail),
+    current_phase: toTextOrNull(row.current_phase) ?? undefined,
+    current_phase_process_status: toTextOrNull(row.current_phase_process_status) ?? undefined,
+    current_phase_started_at: row.current_phase_started_at instanceof Date ? row.current_phase_started_at.toISOString() : undefined,
+    current_phase_completed_at: row.current_phase_completed_at instanceof Date ? row.current_phase_completed_at.toISOString() : undefined,
+    current_phase_last_heartbeat_at: row.current_phase_last_heartbeat_at instanceof Date ? row.current_phase_last_heartbeat_at.toISOString() : undefined,
+    current_phase_failure_code: toTextOrNull(row.current_phase_failure_code),
+    current_phase_failure_detail: toTextOrNull(row.current_phase_failure_detail),
+  };
 }
 
 function toTextOrNull(value: unknown): string | null {
@@ -817,6 +1101,16 @@ async function evaluateTerminalActivation(params: {
   baseStatus: RefreshStatusRecord | null;
 }): Promise<TerminalActivationOutcome> {
   const base = params.baseStatus;
+  const publicationActivationInput: Record<string, unknown> = {
+    requested_mode: params.requestedMode ?? null,
+    trigger_source: params.triggerSource ?? null,
+    requested_by: params.requestedBy ?? null,
+    refresh_started_at: params.startedAtIso ?? null,
+    refresh_completed_at: params.completedAtIso,
+    refresh_report_status: params.report?.status ?? null,
+    refresh_report_generated_at_utc: params.report?.generated_at_utc ?? null,
+  };
+  const publicationActivationStartedAtIso = nowIso();
 
   if (!params.runId) {
     return {
@@ -832,6 +1126,14 @@ async function evaluateTerminalActivation(params: {
 
   let activationResult: PublicationActivationResult;
   try {
+    await upsertRuntimeRefreshPhaseLedger({
+      runId: params.runId,
+      phaseName: "publication_activation",
+      processStatus: "running",
+      inputContract: publicationActivationInput,
+      startedAtIso: publicationActivationStartedAtIso,
+      lastHeartbeatAtIso: publicationActivationStartedAtIso,
+    });
     activationResult = await enforcePublicationActivationContract({
       runId: params.runId,
       requestedMode: params.requestedMode,
@@ -842,6 +1144,20 @@ async function evaluateTerminalActivation(params: {
       report: params.report,
     });
   } catch (error) {
+    await upsertRuntimeRefreshPhaseLedger({
+      runId: params.runId,
+      phaseName: "publication_activation",
+      processStatus: "failed",
+      inputContract: publicationActivationInput,
+      outputContract: {
+        status: "error",
+      },
+      startedAtIso: publicationActivationStartedAtIso,
+      completedAtIso: nowIso(),
+      failureCode: "PUBLICATION_ACTIVATION_CONTRACT_FAILED",
+      failureDetail: error instanceof Error ? error.message : "Unknown publication activation contract failure.",
+      lastHeartbeatAtIso: nowIso(),
+    });
     throw createCriticalRefreshFailureError(
       "PUBLICATION_ACTIVATION_CONTRACT_FAILED",
       error instanceof Error ? error.message : "Unknown publication activation contract failure.",
@@ -859,6 +1175,25 @@ async function evaluateTerminalActivation(params: {
   };
 
   if (!activationResult.candidateValid) {
+    await upsertRuntimeRefreshPhaseLedger({
+      runId: params.runId,
+      phaseName: "publication_activation",
+      processStatus: "failed",
+      inputContract: publicationActivationInput,
+      outputContract: {
+        candidate_valid: activationResult.candidateValid,
+        activation_state: activationResult.activationState,
+        serving_state: activationResult.servingState,
+        blocking_reason_code: activationResult.blockingReasonCode,
+        blocking_reason_detail: activationResult.blockingReasonDetail,
+        failure_reasons: activationResult.failureReasons,
+      },
+      startedAtIso: publicationActivationStartedAtIso,
+      completedAtIso: params.completedAtIso,
+      failureCode: activationResult.blockingReasonCode ?? "publication_candidate_invalid",
+      failureDetail: activationResult.blockingReasonDetail ?? buildPublicationActivationFailureMessage(activationResult),
+      lastHeartbeatAtIso: params.completedAtIso,
+    });
     return {
       ...outcome,
       completionStatus: "error",
@@ -868,11 +1203,48 @@ async function evaluateTerminalActivation(params: {
   }
 
   if (activationResult.servingState === "blocked") {
+    await upsertRuntimeRefreshPhaseLedger({
+      runId: params.runId,
+      phaseName: "publication_activation",
+      processStatus: "blocked",
+      inputContract: publicationActivationInput,
+      outputContract: {
+        candidate_valid: activationResult.candidateValid,
+        activation_state: activationResult.activationState,
+        serving_state: activationResult.servingState,
+        blocking_reason_code: activationResult.blockingReasonCode,
+        blocking_reason_detail: activationResult.blockingReasonDetail,
+        failure_reasons: activationResult.failureReasons,
+      },
+      startedAtIso: publicationActivationStartedAtIso,
+      completedAtIso: params.completedAtIso,
+      failureCode: activationResult.blockingReasonCode,
+      failureDetail: activationResult.blockingReasonDetail ?? buildPublicationActivationFailureMessage(activationResult),
+      lastHeartbeatAtIso: params.completedAtIso,
+    });
     return {
       ...outcome,
       completionError: buildPublicationActivationFailureMessage(activationResult),
     };
   }
+
+  await upsertRuntimeRefreshPhaseLedger({
+    runId: params.runId,
+    phaseName: "publication_activation",
+    processStatus: "completed",
+    inputContract: publicationActivationInput,
+    outputContract: {
+      candidate_valid: activationResult.candidateValid,
+      activation_state: activationResult.activationState,
+      serving_state: activationResult.servingState,
+      blocking_reason_code: activationResult.blockingReasonCode,
+      blocking_reason_detail: activationResult.blockingReasonDetail,
+      failure_reasons: activationResult.failureReasons,
+    },
+    startedAtIso: publicationActivationStartedAtIso,
+    completedAtIso: params.completedAtIso,
+    lastHeartbeatAtIso: params.completedAtIso,
+  });
 
   return {
     ...outcome,
@@ -1147,6 +1519,15 @@ async function writeCompletionHistoryEntry(
 }
 
 async function readStatusRecord(): Promise<RefreshStatusRecord | null> {
+  try {
+    const fromRuntimeDb = await readStatusRecordFromRuntimeDb();
+    if (fromRuntimeDb) {
+      return fromRuntimeDb;
+    }
+  } catch {
+    // Fall through to legacy file-backed state only when runtime DB read is unavailable.
+  }
+
   let fromFile: RefreshStatusRecord | null = null;
   try {
     const raw = await readFile(STATUS_PATH, "utf-8");
@@ -1883,6 +2264,7 @@ export async function GET(request: Request) {
   if (denied) return denied;
 
   const status = await normalizeStatus();
+  const phaseLedger = status.run_id ? await loadRuntimeRefreshPhaseLedger(status.run_id) : [];
   const snapshot = await loadRuntimeSnapshotRowsFromPostgres();
   const quote = await loadRuntimeQuoteCacheFromPostgres();
   const publicationState = await loadCanonicalPublicationState({
@@ -1896,7 +2278,7 @@ export async function GET(request: Request) {
       runId: quote.runId,
     },
   });
-  return NextResponse.json({ status, publicationState, refreshScript: REFRESH_SCRIPT });
+  return NextResponse.json({ status, phaseLedger, publicationState, refreshScript: REFRESH_SCRIPT });
 }
 
 export async function POST(request: Request) {

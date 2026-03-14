@@ -36,6 +36,15 @@ DEFAULT_ORACLE_TRIGGER_POLICY = "scheduled_or_explicit"
 DEFAULT_RESUME_MAX_AGE_SECONDS = 6 * 60 * 60
 RESUME_STAGE_POST_L5_PRE_ORACLE = "post_l5_pre_oracle"
 QUOTE_CACHE_FOLLOWUP_LANE = "post_publication_followup"
+PHASE_LEDGER_SCRIPT = Path("web/scripts/update_refresh_phase_ledger.mjs")
+PHASE_HEARTBEAT_SECONDS = 30
+
+
+class RefreshPhaseError(RuntimeError):
+    def __init__(self, failure_code: str, failure_detail: str):
+        super().__init__(failure_detail)
+        self.failure_code = str(failure_code or "").strip() or "REFRESH_PHASE_FAILED"
+        self.failure_detail = str(failure_detail or "").strip() or "Unknown refresh phase failure."
 
 
 def _history_path() -> Path | None:
@@ -71,9 +80,10 @@ def _append_history_event(payload: dict[str, object]) -> None:
         with history_path.open("a", encoding="utf-8") as fp:
             fp.write(json.dumps(entry))
             fp.write("\n")
-    except Exception:
-        # Do not interrupt refresh execution on history-write issues.
-        pass
+    except Exception as exc:
+        error_text = f"{type(exc).__name__}: {exc}"
+        print(f"[REFRESH+L5] History write failed. path={history_path}; error={error_text}", flush=True)
+        raise RefreshPhaseError("REFRESH_HISTORY_WRITE_FAILED", error_text) from exc
 
 
 def _resume_checkpoint_dir() -> Path:
@@ -500,6 +510,97 @@ def _read_env_float(name: str, default_value: float, minimum: float) -> float:
     return value
 
 
+def _normalize_phase_failure_code(phase_name: str, suffix: str = "FAILED") -> str:
+    raw = f"{phase_name}_{suffix}".upper()
+    normalized: list[str] = []
+    last_was_sep = False
+    for ch in raw:
+        if ch.isalnum():
+            normalized.append(ch)
+            last_was_sep = False
+            continue
+        if not last_was_sep:
+            normalized.append("_")
+            last_was_sep = True
+    return "".join(normalized).strip("_") or "REFRESH_PHASE_FAILED"
+
+
+def _extract_phase_failure(phase_name: str, error: Exception) -> tuple[str, str]:
+    if isinstance(error, RefreshPhaseError):
+        return error.failure_code, error.failure_detail
+    return _normalize_phase_failure_code(phase_name), f"{type(error).__name__}: {error}"
+
+
+def _phase_ledger_required() -> bool:
+    return bool(str(os.environ.get("TFE_REFRESH_RUN_ID", "")).strip())
+
+
+def _write_phase_ledger_state(
+    *,
+    phase_name: str,
+    process_status: str,
+    input_contract: dict[str, Any] | None = None,
+    output_contract: dict[str, Any] | None = None,
+    started_at_iso: str | None = None,
+    completed_at_iso: str | None = None,
+    failure_code: str | None = None,
+    failure_detail: str | None = None,
+    last_heartbeat_at_iso: str | None = None,
+) -> None:
+    if not _phase_ledger_required():
+        return
+    if not PHASE_LEDGER_SCRIPT.exists() or not PHASE_LEDGER_SCRIPT.is_file():
+        raise RefreshPhaseError(
+            "REFRESH_PHASE_LEDGER_SCRIPT_MISSING",
+            f"Refresh phase ledger script is missing: {PHASE_LEDGER_SCRIPT}",
+        )
+
+    payload = {
+        "run_id": str(os.environ.get("TFE_REFRESH_RUN_ID", "")).strip(),
+        "phase_name": phase_name,
+        "process_status": process_status,
+        "input_contract": input_contract,
+        "output_contract": output_contract,
+        "started_at": started_at_iso,
+        "completed_at": completed_at_iso,
+        "failure_code": failure_code,
+        "failure_detail": failure_detail,
+        "last_heartbeat_at": last_heartbeat_at_iso,
+    }
+    completed = subprocess.run(
+        ["node", str(PHASE_LEDGER_SCRIPT)],
+        cwd=str(Path.cwd()),
+        env=dict(os.environ),
+        text=True,
+        input=json.dumps(payload),
+        capture_output=True,
+        check=False,
+        timeout=20,
+    )
+    if completed.returncode == 0:
+        return
+    stdout_tail = "\n".join(str(completed.stdout or "").splitlines()[-20:]).strip()
+    stderr_tail = "\n".join(str(completed.stderr or "").splitlines()[-20:]).strip()
+    raise RefreshPhaseError(
+        _normalize_phase_failure_code(phase_name, "LEDGER_WRITE_FAILED"),
+        "Refresh phase ledger update failed. "
+        f"exit_code={completed.returncode}; stdout_tail={stdout_tail or 'n/a'}; stderr_tail={stderr_tail or 'n/a'}",
+    )
+
+
+def _phase_input_contract(mode: str, details: dict[str, Any] | None = None) -> dict[str, Any]:
+    payload = {
+        "refresh_mode": mode,
+        "run_id": str(os.environ.get("TFE_REFRESH_RUN_ID", "")).strip() or None,
+        "requested_mode": str(os.environ.get("TFE_REFRESH_REQUESTED_MODE", "")).strip() or None,
+        "trigger_source": str(os.environ.get("TFE_REFRESH_TRIGGER_SOURCE", "")).strip() or None,
+        "requested_by": str(os.environ.get("TFE_REFRESH_REQUESTED_BY", "")).strip() or None,
+    }
+    if isinstance(details, dict):
+        payload.update(details)
+    return payload
+
+
 def _format_command(cmd: list[str]) -> str:
     return " ".join(str(part) for part in cmd)
 
@@ -610,6 +711,84 @@ def _run_logged_subprocess(
     }
 
 
+def _quote_cache_refresh_input_contract() -> dict[str, Any]:
+    return _phase_input_contract(
+        str(os.environ.get("TFE_REFRESH_REQUESTED_MODE", "")).strip() or "unknown",
+        {
+            "workers": _read_env_int("TFE_QUOTE_CACHE_WORKERS", default_value=12, minimum=1),
+            "timeout_sec": _read_env_int("TFE_QUOTE_CACHE_TIMEOUT_SEC", default_value=35, minimum=5),
+            "min_non_meta_fields": _read_env_int("TFE_QUOTE_CACHE_MIN_NON_META_FIELDS", default_value=20, minimum=1),
+            "save_every": _read_env_int("TFE_QUOTE_CACHE_SAVE_EVERY", default_value=200, minimum=1),
+            "skip_finviz_refresh": str(os.environ.get("TFE_REFRESH_SKIP_FINVIZ_REFRESH", "0")).strip().lower() in {
+                "1",
+                "true",
+                "yes",
+                "on",
+            },
+        },
+    )
+
+
+def _profile_overrides_input_contract() -> dict[str, Any]:
+    return _phase_input_contract(
+        str(os.environ.get("TFE_REFRESH_REQUESTED_MODE", "")).strip() or "unknown",
+        {
+            "workers": _read_env_int("TFE_PROFILE_OVERRIDE_WORKERS", default_value=8, minimum=1),
+            "timeout_sec": _read_env_int("TFE_PROFILE_OVERRIDE_TIMEOUT_SEC", default_value=45, minimum=5),
+            "save_every": _read_env_int("TFE_PROFILE_OVERRIDE_SAVE_EVERY", default_value=200, minimum=1),
+            "limit": _read_env_int("TFE_PROFILE_OVERRIDE_LIMIT", default_value=0, minimum=0),
+        },
+    )
+
+
+def _run_profile_overrides_refresh() -> dict[str, Any]:
+    run_profile_overrides_raw = str(os.environ.get("TFE_REFRESH_BUILD_PROFILE_OVERRIDES", "1")).strip().lower()
+    if run_profile_overrides_raw in {"0", "false", "no", "off"}:
+        return {"status": "skipped", "reason": "disabled_by_env"}
+
+    profile_workers = _read_env_int("TFE_PROFILE_OVERRIDE_WORKERS", default_value=8, minimum=1)
+    profile_timeout_sec = _read_env_int("TFE_PROFILE_OVERRIDE_TIMEOUT_SEC", default_value=45, minimum=5)
+    profile_save_every = _read_env_int("TFE_PROFILE_OVERRIDE_SAVE_EVERY", default_value=200, minimum=1)
+    profile_limit = _read_env_int("TFE_PROFILE_OVERRIDE_LIMIT", default_value=0, minimum=0)
+    profile_cmd = [
+        sys.executable or "python3",
+        "-u",
+        "web/scripts/build_screener_profile_overrides.py",
+        "--workers",
+        str(profile_workers),
+        "--timeout-sec",
+        str(profile_timeout_sec),
+        "--save-every",
+        str(profile_save_every),
+        "--limit",
+        str(profile_limit),
+    ]
+
+    profile_completed = _run_logged_subprocess(
+        phase_label="profile_overrides_refresh",
+        cmd=profile_cmd,
+        cwd=str(Path.cwd()),
+        env={**os.environ, "PYTHONUNBUFFERED": "1"},
+    )
+    profile_stdout_tail = str(profile_completed.get("stdout_tail") or "").strip()
+    profile_stderr_tail = str(profile_completed.get("stderr_tail") or "").strip()
+    if int(profile_completed.get("returncode") or 0) != 0:
+        raise RefreshPhaseError(
+            "PROFILE_OVERRIDES_REFRESH_FAILED",
+            "Profile override refresh failed. "
+            f"exit_code={profile_completed.get('returncode')}; stdout_tail={profile_stdout_tail or 'n/a'}; stderr_tail={profile_stderr_tail or 'n/a'}",
+        )
+
+    return {
+        "status": "ok",
+        "workers": profile_workers,
+        "timeout_sec": profile_timeout_sec,
+        "limit": profile_limit,
+        "stdout_tail": profile_stdout_tail,
+        "stderr_tail": profile_stderr_tail,
+    }
+
+
 def _run_quote_cache_refresh() -> dict[str, Any]:
     enabled_raw = str(os.environ.get("TFE_REFRESH_REBUILD_QUOTE_CACHE", "1")).strip().lower()
     if enabled_raw in {"0", "false", "no", "off"}:
@@ -654,9 +833,10 @@ def _run_quote_cache_refresh() -> dict[str, Any]:
     stdout_tail = str(completed.get("stdout_tail") or "").strip()
     stderr_tail = str(completed.get("stderr_tail") or "").strip()
     if int(completed.get("returncode") or 0) != 0:
-        raise RuntimeError(
+        raise RefreshPhaseError(
+            "QUOTE_CACHE_REFRESH_FAILED",
             "Quote cache refresh failed. "
-            f"exit_code={completed.get('returncode')}; stdout_tail={stdout_tail or 'n/a'}; stderr_tail={stderr_tail or 'n/a'}"
+            f"exit_code={completed.get('returncode')}; stdout_tail={stdout_tail or 'n/a'}; stderr_tail={stderr_tail or 'n/a'}",
         )
 
     summary: dict[str, Any] = {
@@ -669,51 +849,14 @@ def _run_quote_cache_refresh() -> dict[str, Any]:
         "stderr_tail": stderr_tail,
     }
 
-    run_profile_overrides_raw = str(os.environ.get("TFE_REFRESH_BUILD_PROFILE_OVERRIDES", "1")).strip().lower()
-    if run_profile_overrides_raw in {"0", "false", "no", "off"}:
-        summary["profile_overrides"] = {"status": "skipped", "reason": "disabled_by_env"}
-        return summary
-
-    profile_workers = _read_env_int("TFE_PROFILE_OVERRIDE_WORKERS", default_value=8, minimum=1)
-    profile_timeout_sec = _read_env_int("TFE_PROFILE_OVERRIDE_TIMEOUT_SEC", default_value=45, minimum=5)
-    profile_save_every = _read_env_int("TFE_PROFILE_OVERRIDE_SAVE_EVERY", default_value=200, minimum=1)
-    profile_limit = _read_env_int("TFE_PROFILE_OVERRIDE_LIMIT", default_value=0, minimum=0)
-    profile_cmd = [
-        sys.executable or "python3",
-        "-u",
-        "web/scripts/build_screener_profile_overrides.py",
-        "--workers",
-        str(profile_workers),
-        "--timeout-sec",
-        str(profile_timeout_sec),
-        "--save-every",
-        str(profile_save_every),
-        "--limit",
-        str(profile_limit),
-    ]
-
-    profile_completed = _run_logged_subprocess(
-        phase_label="profile_overrides_refresh",
-        cmd=profile_cmd,
-        cwd=str(Path.cwd()),
-        env={**os.environ, "PYTHONUNBUFFERED": "1"},
+    summary["profile_overrides"] = _run_post_rebuild_phase(
+        phase_name="profile_overrides_refresh",
+        runner=_run_profile_overrides_refresh,
+        detail_builder=lambda payload: {
+            "profile_overrides_refresh": payload.get("status"),
+        },
+        input_contract=_profile_overrides_input_contract(),
     )
-    profile_stdout_tail = str(profile_completed.get("stdout_tail") or "").strip()
-    profile_stderr_tail = str(profile_completed.get("stderr_tail") or "").strip()
-    if int(profile_completed.get("returncode") or 0) != 0:
-        raise RuntimeError(
-            "Profile override refresh failed. "
-            f"exit_code={profile_completed.get('returncode')}; stdout_tail={profile_stdout_tail or 'n/a'}; stderr_tail={profile_stderr_tail or 'n/a'}"
-        )
-
-    summary["profile_overrides"] = {
-        "status": "ok",
-        "workers": profile_workers,
-        "timeout_sec": profile_timeout_sec,
-        "limit": profile_limit,
-        "stdout_tail": profile_stdout_tail,
-        "stderr_tail": profile_stderr_tail,
-    }
     return summary
 
 
@@ -727,6 +870,41 @@ def _quote_cache_refresh_detail_payload(payload: dict[str, Any]) -> dict[str, An
         "quote_cache_lane": payload.get("lane"),
         "quote_cache_followup_pid": payload.get("followup_pid"),
     }
+
+
+def _runtime_postgres_sync_input_contract(
+    *,
+    report: dict[str, Any],
+    mode: str,
+    optimizer_summary: dict[str, Any] | None,
+    optimizer_short_cycle_status: str,
+    epoch_schema: str | None,
+    epoch_status: str | None,
+) -> dict[str, Any]:
+    return _phase_input_contract(
+        mode,
+        {
+            "refresh_report_status": report.get("status"),
+            "rows_written": report.get("rows_written"),
+            "optimizer_short_cycle_status": optimizer_short_cycle_status,
+            "optimizer_session_id": optimizer_summary.get("session_id") if isinstance(optimizer_summary, dict) else None,
+            "optimizer_requested_runs": optimizer_summary.get("requested_additional_runs") if isinstance(optimizer_summary, dict) else None,
+            "optimizer_completed_runs": optimizer_summary.get("actual_additional_runs") if isinstance(optimizer_summary, dict) else None,
+            "epoch_schema": epoch_schema,
+            "epoch_status": epoch_status,
+        },
+    )
+
+
+def _validation_gate_input_contract() -> dict[str, Any]:
+    return _phase_input_contract(
+        str(os.environ.get("TFE_REFRESH_REQUESTED_MODE", "")).strip() or "unknown",
+        {
+            "refresh_run_id": str(os.environ.get("TFE_REFRESH_RUN_ID", "")).strip() or None,
+            "refresh_started_at": str(os.environ.get("TFE_REFRESH_STARTED_AT", "")).strip() or None,
+            "refresh_completed_at": str(os.environ.get("TFE_REFRESH_COMPLETED_AT", "")).strip() or None,
+        },
+    )
 
 
 def _should_defer_quote_cache_refresh(mode: str) -> bool:
@@ -873,7 +1051,8 @@ def _run_runtime_postgres_sync(
     stdout_tail = str(completed.get("stdout_tail") or "").strip()
     stderr_tail = str(completed.get("stderr_tail") or "").strip()
     if int(completed.get("returncode") or 0) != 0:
-        raise RuntimeError(
+        raise RefreshPhaseError(
+            "RUNTIME_POSTGRES_SYNC_FAILED",
             "Runtime Postgres sync failed. "
             f"exit_code={completed.get('returncode')}; stdout_tail={stdout_tail or 'n/a'}; stderr_tail={stderr_tail or 'n/a'}"
         )
@@ -898,7 +1077,8 @@ def _run_validation_gate() -> dict[str, Any]:
     stdout_tail = str(completed.get("stdout_tail") or "").strip()
     stderr_tail = str(completed.get("stderr_tail") or "").strip()
     if int(completed.get("returncode") or 0) != 0:
-        raise RuntimeError(
+        raise RefreshPhaseError(
+            "VALIDATION_GATE_FAILED",
             "Validation gate failed. "
             f"exit_code={completed.get('returncode')}; stdout_tail={stdout_tail or 'n/a'}; stderr_tail={stderr_tail or 'n/a'}"
         )
@@ -906,7 +1086,10 @@ def _run_validation_gate() -> dict[str, Any]:
     payload = _extract_json_payload(str(completed.get("stdout") or ""))
     status = str(payload.get("status", "")).strip().lower()
     if status != "pass":
-        raise RuntimeError(f"Validation gate returned non-pass status: {status or 'missing'}")
+        raise RefreshPhaseError(
+            "VALIDATION_GATE_NON_PASS",
+            f"Validation gate returned non-pass status: {status or 'missing'}",
+        )
     return payload
 
 
@@ -1166,8 +1349,41 @@ def _run_post_rebuild_phase(
     phase_name: str,
     runner: Any,
     detail_builder: Any | None = None,
+    input_contract: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     started_at = time.monotonic()
+    started_at_iso = datetime.now(timezone.utc).isoformat()
+    heartbeat_stop = threading.Event()
+    heartbeat_error: list[Exception] = []
+
+    def _heartbeat_loop() -> None:
+        while not heartbeat_stop.wait(PHASE_HEARTBEAT_SECONDS):
+            try:
+                _write_phase_ledger_state(
+                    phase_name=phase_name,
+                    process_status="running",
+                    input_contract=input_contract,
+                    started_at_iso=started_at_iso,
+                    last_heartbeat_at_iso=datetime.now(timezone.utc).isoformat(),
+                )
+            except Exception as exc:
+                heartbeat_error.append(exc)
+                print(
+                    f"[REFRESH+L5] Phase heartbeat failed: {phase_name}; error={type(exc).__name__}: {exc}",
+                    flush=True,
+                )
+                heartbeat_stop.set()
+                return
+
+    _write_phase_ledger_state(
+        phase_name=phase_name,
+        process_status="running",
+        input_contract=input_contract,
+        started_at_iso=started_at_iso,
+        last_heartbeat_at_iso=started_at_iso,
+    )
+    heartbeat_thread = threading.Thread(target=_heartbeat_loop, daemon=True)
+    heartbeat_thread.start()
     _append_history_event(
         {
             "phase": f"{phase_name}_start",
@@ -1179,7 +1395,22 @@ def _run_post_rebuild_phase(
         result = runner()
     except Exception as exc:
         elapsed_seconds = time.monotonic() - started_at
-        error_text = f"{type(exc).__name__}: {exc}"
+        heartbeat_stop.set()
+        heartbeat_thread.join(timeout=5)
+        failure_code, failure_detail = _extract_phase_failure(phase_name, exc)
+        error_text = failure_detail
+        completed_at_iso = datetime.now(timezone.utc).isoformat()
+        _write_phase_ledger_state(
+            phase_name=phase_name,
+            process_status="failed",
+            input_contract=input_contract,
+            output_contract={"status": "error", "failure_code": failure_code, "failure_detail": failure_detail},
+            started_at_iso=started_at_iso,
+            completed_at_iso=completed_at_iso,
+            failure_code=failure_code,
+            failure_detail=failure_detail,
+            last_heartbeat_at_iso=completed_at_iso,
+        )
         print(
             f"[REFRESH+L5] Post-rebuild phase failed: {phase_name}; "
             f"elapsed_seconds={elapsed_seconds:.1f}; error={error_text}",
@@ -1190,19 +1421,51 @@ def _run_post_rebuild_phase(
                 "phase": f"{phase_name}_failed",
                 "status": "error",
                 "elapsed_seconds": elapsed_seconds,
-                "error": error_text,
+                "error": failure_detail,
+                "failure_code": failure_code,
             }
         )
         raise
 
+    heartbeat_stop.set()
+    heartbeat_thread.join(timeout=5)
+    if heartbeat_error:
+        raise heartbeat_error[0]
     if not isinstance(result, dict):
-        raise RuntimeError(f"Post-rebuild phase {phase_name} returned non-dict result.")
+        failure = RefreshPhaseError(
+            _normalize_phase_failure_code(phase_name, "INVALID_OUTPUT"),
+            f"Post-rebuild phase {phase_name} returned non-dict result.",
+        )
+        failure_code, failure_detail = _extract_phase_failure(phase_name, failure)
+        completed_at_iso = datetime.now(timezone.utc).isoformat()
+        _write_phase_ledger_state(
+            phase_name=phase_name,
+            process_status="failed",
+            input_contract=input_contract,
+            output_contract={"status": "error", "failure_code": failure_code, "failure_detail": failure_detail},
+            started_at_iso=started_at_iso,
+            completed_at_iso=completed_at_iso,
+            failure_code=failure_code,
+            failure_detail=failure_detail,
+            last_heartbeat_at_iso=completed_at_iso,
+        )
+        raise failure
 
     elapsed_seconds = time.monotonic() - started_at
     detail_payload = detail_builder(result) if callable(detail_builder) else {}
     if not isinstance(detail_payload, dict):
         detail_payload = {}
     phase_status = str(result.get("status") or "ok")
+    completed_at_iso = datetime.now(timezone.utc).isoformat()
+    _write_phase_ledger_state(
+        phase_name=phase_name,
+        process_status="completed",
+        input_contract=input_contract,
+        output_contract=result,
+        started_at_iso=started_at_iso,
+        completed_at_iso=completed_at_iso,
+        last_heartbeat_at_iso=completed_at_iso,
+    )
     print(
         f"[REFRESH+L5] Post-rebuild phase complete: {phase_name}; "
         f"elapsed_seconds={elapsed_seconds:.1f}; status={phase_status}",
@@ -1242,6 +1505,14 @@ def _run_post_rebuild_pipeline(
             "runtime_postgres_sync": payload.get("status"),
             "runtime_postgres_sync_run_id": payload.get("run_id"),
         },
+        input_contract=_runtime_postgres_sync_input_contract(
+            report=report,
+            mode=mode,
+            optimizer_summary=optimizer_summary,
+            optimizer_short_cycle_status=optimizer_short_cycle_status,
+            epoch_schema=epoch_schema,
+            epoch_status=epoch_status,
+        ),
     )
     validation_report = _run_post_rebuild_phase(
         phase_name="validation_gate",
@@ -1250,6 +1521,7 @@ def _run_post_rebuild_pipeline(
             "validation_gate_status": payload.get("status"),
             "validation_gate_report_run_id": payload.get("run_id"),
         },
+        input_contract=_validation_gate_input_contract(),
     )
     return runtime_sync_report, validation_report
 
@@ -1263,9 +1535,10 @@ def main() -> int:
 
     if bool(args.quote_cache_followup_only):
         quote_cache_refresh_report = _run_post_rebuild_phase(
-            phase_name="quote_cache_refresh_followup",
+            phase_name="quote_cache_refresh",
             runner=_run_quote_cache_refresh,
             detail_builder=_quote_cache_refresh_detail_payload,
+            input_contract=_quote_cache_refresh_input_contract(),
         )
         print("[REFRESH+L5] Quote cache refresh follow-up report:")
         print(json.dumps(quote_cache_refresh_report, indent=2))
@@ -1290,10 +1563,24 @@ def main() -> int:
         print("[REFRESH+L5] Quote cache refresh report (from checkpoint):")
         print(json.dumps(quote_cache_refresh_report, indent=2))
     else:
-        report = rebuild_snapshot(
-            refresh_mode=mode,
-            force_refresh_universe=bool(args.force_refresh_universe),
-            years_history=int(args.years_history),
+        report = _run_post_rebuild_phase(
+            phase_name="snapshot_rebuild",
+            runner=lambda: rebuild_snapshot(
+                refresh_mode=mode,
+                force_refresh_universe=bool(args.force_refresh_universe),
+                years_history=int(args.years_history),
+            ),
+            detail_builder=lambda payload: {
+                "snapshot_rebuild_status": payload.get("status"),
+                "rows_written": payload.get("rows_written"),
+            },
+            input_contract=_phase_input_contract(
+                mode,
+                {
+                    "force_refresh_universe": bool(args.force_refresh_universe),
+                    "years_history": int(args.years_history),
+                },
+            ),
         )
 
         print("[REFRESH+L5] Refresh report:")
@@ -1301,6 +1588,15 @@ def main() -> int:
 
         if _should_defer_quote_cache_refresh(mode):
             quote_cache_refresh_report = _deferred_quote_cache_refresh_report()
+            deferred_at_iso = datetime.now(timezone.utc).isoformat()
+            _write_phase_ledger_state(
+                phase_name="quote_cache_refresh",
+                process_status="deferred",
+                input_contract=_quote_cache_refresh_input_contract(),
+                output_contract=quote_cache_refresh_report,
+                started_at_iso=deferred_at_iso,
+                last_heartbeat_at_iso=deferred_at_iso,
+            )
             print(
                 "[REFRESH+L5] Quote cache refresh deferred. "
                 f"lane={QUOTE_CACHE_FOLLOWUP_LANE}; reason={quote_cache_refresh_report.get('reason')}",
@@ -1319,6 +1615,7 @@ def main() -> int:
                 phase_name="quote_cache_refresh",
                 runner=_run_quote_cache_refresh,
                 detail_builder=_quote_cache_refresh_detail_payload,
+                input_contract=_quote_cache_refresh_input_contract(),
             )
         print("[REFRESH+L5] Quote cache refresh report:")
         print(json.dumps(quote_cache_refresh_report, indent=2))
