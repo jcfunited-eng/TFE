@@ -470,7 +470,17 @@ def prepare(args: argparse.Namespace) -> int:
     relevant_untracked = sorted(git_untracked_files(repo_root, untracked_patterns))
 
     if state_exists:
-        tracked_changed = sorted([path for path in relevant_tracked if bool(state["files"][path]["dirty_since_validation"])])
+        git_delta = set(git_changed_files_between(repo_root, args.base_rev, args.head_rev))
+        tracked_changed = []
+        for path in relevant_tracked:
+            record = state["files"][path]
+            last_validated_hash = record.get("last_validated_hash")
+            if isinstance(last_validated_hash, str):
+                if last_validated_hash != record["content_hash"]:
+                    tracked_changed.append(path)
+            elif path in git_delta:
+                tracked_changed.append(path)
+        tracked_changed = sorted(set(tracked_changed))
         delta_mode = "validation_state"
         delta_reason = "tracked_hash_changed_since_validation"
     else:
