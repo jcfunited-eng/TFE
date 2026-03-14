@@ -10,6 +10,7 @@ import ScreenerChart, {
 } from "@/components/ScreenerChart";
 import ClientPortal from "@/components/ClientPortal";
 import { buildMarketStatColumns, type MarketQuoteSummary } from "@/lib/market-analysis";
+import { sortScreenerRows } from "@/lib/screenerTableSort";
 import {
   SCREENER_FILTER_FIELDS,
   SCREENER_FILTER_GROUP_LAYOUTS,
@@ -3571,7 +3572,10 @@ export default function ScreenerWorkbench() {
 
   const tableColumns = useMemo(() => columnsForDataTab(dataTab), [dataTab]);
 
-  const filteredRows = useMemo(() => rows, [rows]);
+  const filteredRows = useMemo(
+    () => sortScreenerRows(rows, quoteByTicker, sortKey, sortDir),
+    [quoteByTicker, rows, sortDir, sortKey],
+  );
 
   const mapTickersWithMetric = useMemo(() => {
     return mapTickers.map((ticker) => {
