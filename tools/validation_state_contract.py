@@ -10,8 +10,8 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, List
 
 
-SCHEMA_VERSION = "validation_state_schema_v1"
-CONTRACT_VERSION = "validation_state_contract_v1"
+SCHEMA_VERSION = "validation_state_schema_v2"
+CONTRACT_VERSION = "validation_state_contract_v2"
 
 
 def utc_now() -> str:
@@ -583,7 +583,15 @@ def prepare(args: argparse.Namespace) -> int:
             {
                 "unit_id": unit.unit_id,
                 "description": unit.description,
-                "blocking": unit.blocking,
+                "base_blocking": unit.blocking,
+                "blocking": bool(unit.blocking or bool(changed_inputs)),
+                "blocking_reason": (
+                    "changed_delta_first_validation"
+                    if changed_inputs and not unit.blocking
+                    else "blocking_contract"
+                    if unit.blocking
+                    else "non_blocking_contract"
+                ),
                 "patterns": unit.patterns,
                 "wrappers": unit.wrappers,
                 "process": unit.process,
@@ -591,6 +599,7 @@ def prepare(args: argparse.Namespace) -> int:
                 "selected": selected,
                 "selection_reason": selection_reason,
                 "skip_reason": skip_reason,
+                "selected_on_changed_delta": bool(changed_inputs),
                 "mapped_tracked_inputs": mapped_tracked_inputs,
                 "mapped_untracked_inputs": mapped_untracked_inputs,
                 "changed_inputs": changed_inputs,
@@ -640,7 +649,9 @@ def finalize(args: argparse.Namespace) -> int:
                 "unit_id": unit_id,
                 "status": "skip",
                 "selected": False,
+                "base_blocking": bool(unit_payload.get("base_blocking")),
                 "blocking": bool(unit_payload.get("blocking")),
+                "blocking_reason": str(unit_payload.get("blocking_reason") or ""),
                 "skip_reason": "artifact_missing",
                 "failure_code": None,
                 "failure_message": "",
@@ -713,6 +724,20 @@ def finalize(args: argparse.Namespace) -> int:
             for artifact in artifacts
             if str(artifact.get("status")) == "skip"
             and str(artifact.get("skip_reason")) == "no_relevant_delta_selected"
+        ],
+        "changed_selected_blocking_units": [
+            artifact["unit_id"]
+            for artifact in artifacts
+            if bool(artifact.get("selected"))
+            and bool((artifact.get("inputs") or {}).get("changed_inputs"))
+            and bool(artifact.get("blocking"))
+        ],
+        "changed_selected_nonblocking_units": [
+            artifact["unit_id"]
+            for artifact in artifacts
+            if bool(artifact.get("selected"))
+            and bool((artifact.get("inputs") or {}).get("changed_inputs"))
+            and not bool(artifact.get("blocking"))
         ],
     }
     write_json(evidence_dir / "delta-contract-summary.json", summary)

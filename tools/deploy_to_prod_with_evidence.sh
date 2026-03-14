@@ -241,7 +241,15 @@ def parse_json(raw: str, fallback):
 payload = {
     "unit_id": unit["unit_id"],
     "description": unit["description"],
+    "base_blocking": bool(unit.get("base_blocking")),
     "blocking": bool(unit["blocking"]),
+    "blocking_reason": unit.get("blocking_reason"),
+    "blocking_contract": {
+        "base_blocking": bool(unit.get("base_blocking")),
+        "effective_blocking": bool(unit["blocking"]),
+        "effective_blocking_reason": unit.get("blocking_reason"),
+        "selected_on_changed_delta": bool(unit.get("selected_on_changed_delta")),
+    },
     "selected": bool(selected_flag),
     "selection_reason": unit.get("selection_reason"),
     "skip_reason": skip_reason,
@@ -255,6 +263,7 @@ payload = {
         "changed_inputs": unit.get("changed_inputs") or [],
         "dirty_or_unvalidated_inputs": unit.get("dirty_or_unvalidated_inputs") or [],
         "unchanged_validated_inputs": unit.get("unchanged_validated_inputs") or [],
+        "selected_on_changed_delta": bool(unit.get("selected_on_changed_delta")),
     },
     "status": status,
     "failure_code": failure_code,
