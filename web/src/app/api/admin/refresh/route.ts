@@ -199,6 +199,59 @@ function completionErrorFromReport(
   return fallbackError ?? "Refresh finished without a terminal report status. Check report/log.";
 }
 
+const PUBLICATION_CRITICAL_PHASES = [
+  "snapshot_rebuild",
+  "runtime_postgres_sync",
+  "validation_gate",
+] as const;
+const NON_CRITICAL_FINALIZATION_FAILURE_CODE = "REFRESH_TERMINAL_REPORT_MISSING_AFTER_CRITICAL_SUCCESS";
+
+function phaseOutputStatus(phase: RefreshPhaseLedgerRecord | undefined): string | null {
+  return toLowerTextOrNull(phase?.output_contract?.status);
+}
+
+function publicationCriticalPhaseSucceeded(
+  phaseName: (typeof PUBLICATION_CRITICAL_PHASES)[number],
+  phase: RefreshPhaseLedgerRecord | undefined,
+): boolean {
+  if (!phase) return false;
+  if (toLowerTextOrNull(phase.process_status) !== "completed") return false;
+
+  const outputStatus = phaseOutputStatus(phase);
+  if (phaseName === "snapshot_rebuild") {
+    return outputStatus === "ok";
+  }
+  if (phaseName === "runtime_postgres_sync") {
+    return outputStatus === "ok";
+  }
+  return outputStatus === "pass";
+}
+
+function phaseSummary(phaseName: string, phase: RefreshPhaseLedgerRecord | undefined): string {
+  if (!phase) return `${phaseName}=missing`;
+  return `${phaseName}=${toLowerTextOrNull(phase.process_status) ?? "unknown"}:${phaseOutputStatus(phase) ?? "unknown"}`;
+}
+
+async function recoverMissingTerminalReportAfterPublicationCriticalSuccess(params: {
+  runId: string;
+  exitError: string;
+}): Promise<string | null> {
+  const phaseRows = await loadRuntimeRefreshPhaseLedger(params.runId);
+  if (phaseRows.length === 0) return null;
+
+  const phaseByName = new Map(phaseRows.map((row) => [row.phase_name, row] as const));
+  const criticalSuccess = PUBLICATION_CRITICAL_PHASES.every((phaseName) =>
+    publicationCriticalPhaseSucceeded(phaseName, phaseByName.get(phaseName)),
+  );
+  if (!criticalSuccess) return null;
+
+  const criticalSummaries = PUBLICATION_CRITICAL_PHASES.map((phaseName) =>
+    phaseSummary(phaseName, phaseByName.get(phaseName)),
+  );
+  const followupSummary = phaseSummary("quote_cache_refresh", phaseByName.get("quote_cache_refresh"));
+  return `${params.exitError} Publication-critical phases already completed in the phase ledger. critical_phases=${criticalSummaries.join(",")}; followup_phase=${followupSummary}.`;
+}
+
 function reportBelongsToRun(report: RefreshReport | null, startedAtIso: string): boolean {
   const startedAtMs = Date.parse(String(startedAtIso));
   const reportGeneratedMs = Date.parse(String(report?.generated_at_utc ?? ""));
@@ -1710,6 +1763,7 @@ async function finalizeRefreshRunFromChildExit(params: {
     const reportStatus = normalizeReportStatus(report?.status);
     const reportFromCurrentRun = reportBelongsToRun(report, startedAtIso);
     const completedAtIso = nowIso();
+    const missingTerminalReportError = formatRefreshExitError(exitCode, exitSignal, spawnErrorMessage);
 
     let completionStatus: RefreshHistoryStatus;
     let completionError: string | undefined;
@@ -1718,16 +1772,52 @@ async function finalizeRefreshRunFromChildExit(params: {
     let servingState = latest.serving_state;
     let blockingReasonCode = latest.blocking_reason_code;
     let blockingReasonDetail = latest.blocking_reason_detail;
+    let nonCriticalFailureCode: string | null = null;
+    let nonCriticalFailureDetail: string | null = null;
 
     if (reportFromCurrentRun && isTerminalReportStatus(reportStatus)) {
       completionStatus = completionStatusFromReport(reportStatus);
       completionError =
         completionStatus === "ok"
           ? undefined
-          : completionErrorFromReport(reportStatus, formatRefreshExitError(exitCode, exitSignal, spawnErrorMessage));
+          : completionErrorFromReport(reportStatus, missingTerminalReportError);
     } else {
-      completionStatus = "error";
-      completionError = formatRefreshExitError(exitCode, exitSignal, spawnErrorMessage);
+      const recoveredDetail = await recoverMissingTerminalReportAfterPublicationCriticalSuccess({
+        runId,
+        exitError: missingTerminalReportError,
+      });
+      if (recoveredDetail) {
+        const activationOutcome = await evaluateTerminalActivation({
+          runId,
+          requestedMode: mode,
+          triggerSource: source,
+          requestedBy,
+          startedAtIso,
+          completedAtIso,
+          report: reportFromCurrentRun ? report : null,
+          baseStatus: latest,
+        });
+        completionStatus = activationOutcome.completionStatus;
+        completionError = activationOutcome.completionError;
+        terminalReportStatus = activationOutcome.terminalReportStatus;
+        activationState = activationOutcome.activationState;
+        servingState = activationOutcome.servingState;
+        blockingReasonCode = activationOutcome.blockingReasonCode ?? null;
+        blockingReasonDetail = activationOutcome.blockingReasonDetail ?? null;
+        if (
+          completionStatus === "ok"
+          && terminalReportStatus === "ok"
+          && activationState === "activated"
+          && servingState === "allowed"
+          && !blockingReasonCode
+        ) {
+          nonCriticalFailureCode = NON_CRITICAL_FINALIZATION_FAILURE_CODE;
+          nonCriticalFailureDetail = recoveredDetail;
+        }
+      } else {
+        completionStatus = "error";
+        completionError = missingTerminalReportError;
+      }
     }
 
     if (reportFromCurrentRun && reportStatus === "ok") {
@@ -1753,6 +1843,7 @@ async function finalizeRefreshRunFromChildExit(params: {
     if (!terminalReportStatus) {
       terminalReportStatus = completionStatus === "ok" ? "ok" : "error";
     }
+    const statusErrorDetail = nonCriticalFailureDetail ?? completionError;
 
     const shouldLogCompletion = latest.completion_logged_for_run_id !== runId;
     const oracleEvidence = shouldLogCompletion ? await readOracleRunEvidence() : {};
@@ -1802,18 +1893,34 @@ async function finalizeRefreshRunFromChildExit(params: {
       );
     }
 
+    if (nonCriticalFailureCode && nonCriticalFailureDetail) {
+      try {
+        await persistPublicationStateForRun({
+          runId,
+          activationState: "activated",
+          servingState: "allowed",
+          blockingReasonCode: blockingReasonCode ?? null,
+          blockingReasonDetail: blockingReasonDetail ?? nonCriticalFailureDetail,
+          failureCode: nonCriticalFailureCode,
+          failureDetail: nonCriticalFailureDetail,
+        });
+      } catch (error) {
+        console.error("refresh_non_critical_finalization_state_write_failed", error);
+      }
+    }
+
     const normalized: RefreshStatusRecord = {
       ...latest,
       running: false,
       completed_at: completedAtIso,
       report_generated_at_utc: reportFromCurrentRun ? report?.generated_at_utc : latest.report_generated_at_utc,
       last_report: reportFromCurrentRun ? (report ?? latest.last_report) : latest.last_report,
-      last_error: completionError,
+      last_error: statusErrorDetail,
       completion_logged_for_run_id: runId,
       activation_state: activationState,
       serving_state: servingState,
       blocking_reason_code: blockingReasonCode,
-      blocking_reason_detail: blockingReasonDetail ?? completionError ?? null,
+      blocking_reason_detail: blockingReasonDetail ?? nonCriticalFailureDetail ?? completionError ?? null,
     };
 
     try {
