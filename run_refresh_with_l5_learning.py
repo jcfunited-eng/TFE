@@ -908,14 +908,18 @@ def _validation_gate_input_contract() -> dict[str, Any]:
 
 
 def _should_defer_quote_cache_refresh(mode: str) -> bool:
-    return mode == REFRESH_MODE_FULL
+    return mode in {REFRESH_MODE_FULL, REFRESH_MODE_TARGETED}
 
 
-def _deferred_quote_cache_refresh_report() -> dict[str, Any]:
+def _deferred_quote_cache_refresh_report(mode: str) -> dict[str, Any]:
+    reason = "full_universe_publish_should_not_wait_on_quote_cache_refresh"
+    if mode == REFRESH_MODE_TARGETED:
+        reason = "snapshot_publish_should_not_wait_on_quote_cache_refresh"
     return {
         "status": "deferred",
         "lane": QUOTE_CACHE_FOLLOWUP_LANE,
-        "reason": "full_universe_publish_should_not_wait_on_quote_cache_refresh",
+        "publication_blocking": False,
+        "reason": reason,
     }
 
 
@@ -1587,7 +1591,7 @@ def main() -> int:
         print(json.dumps(report, indent=2))
 
         if _should_defer_quote_cache_refresh(mode):
-            quote_cache_refresh_report = _deferred_quote_cache_refresh_report()
+            quote_cache_refresh_report = _deferred_quote_cache_refresh_report(mode)
             deferred_at_iso = datetime.now(timezone.utc).isoformat()
             _write_phase_ledger_state(
                 phase_name="quote_cache_refresh",
