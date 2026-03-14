@@ -207,6 +207,85 @@ def _save_rebuild_report(report: Dict[str, Any]) -> None:
     _write_private_json(REBUILD_REPORT_PATH, report)
 
 
+def _run_pre_ingestion_completeness_check(
+    *,
+    refresh_mode: str,
+    force_refresh_universe: bool,
+) -> Dict[str, Any]:
+    script_path = os.path.join("web", "scripts", "pre_ingestion_completeness_check.py")
+    if not os.path.exists(script_path):
+        return {
+            "status": "script_missing",
+            "publication_blocking": False,
+            "error": f"missing_script:{script_path}",
+        }
+
+    python_bin = str(os.environ.get("TFE_PYTHON_BIN", "")).strip() or shutil.which("python3") or "python3"
+    cmd = [
+        python_bin,
+        script_path,
+        "--refresh-mode",
+        refresh_mode,
+    ]
+
+    run_id = str(os.environ.get("TFE_REFRESH_RUN_ID", "")).strip()
+    if run_id:
+        cmd.extend(["--run-id", run_id])
+    if force_refresh_universe:
+        cmd.append("--force-refresh-universe")
+
+    try:
+        completed = subprocess.run(
+            cmd,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=120,
+            env=os.environ.copy(),
+        )
+    except Exception as exc:
+        return {
+            "status": "probe_error",
+            "publication_blocking": False,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+
+    stdout_lines = [line.strip() for line in str(completed.stdout or "").splitlines() if line.strip()]
+    stderr_lines = [line.strip() for line in str(completed.stderr or "").splitlines() if line.strip()]
+    summary_path = stdout_lines[-1] if stdout_lines else ""
+
+    probe_summary: Dict[str, Any] = {}
+    if summary_path and os.path.exists(summary_path):
+        try:
+            with open(summary_path, "r", encoding="utf-8") as handle:
+                loaded = json.load(handle)
+            if isinstance(loaded, dict):
+                probe_summary = loaded
+        except Exception:
+            probe_summary = {}
+
+    if completed.returncode != 0:
+        return {
+            "status": "probe_failed",
+            "publication_blocking": False,
+            "exit_code": completed.returncode,
+            "summary_path": summary_path or None,
+            "stdout_tail": "\n".join(stdout_lines[-20:]) if stdout_lines else "",
+            "stderr_tail": "\n".join(stderr_lines[-20:]) if stderr_lines else "",
+            "input_readiness_status": probe_summary.get("input_readiness_status"),
+        }
+
+    return {
+        "status": "ok",
+        "publication_blocking": False,
+        "summary_path": summary_path or None,
+        "input_readiness_status": probe_summary.get("input_readiness_status"),
+        "critical_inputs_not_ready": ((probe_summary.get("summary_metrics") or {}).get("critical_inputs_not_ready")),
+        "critical_inputs_ready": ((probe_summary.get("summary_metrics") or {}).get("critical_inputs_ready")),
+        "probe_run_id": probe_summary.get("run_id"),
+    }
+
+
 def _normalize_symbol(symbol: Any) -> str:
     return str(symbol).strip()
 
@@ -648,6 +727,17 @@ def rebuild_snapshot(
         print("[UF-SNAPSHOT] Universe refresh mode: FORCE_REFRESH")
     print(f"[UF-SNAPSHOT] Years history per symbol: {years_history}")
 
+    pre_ingestion_completeness = _run_pre_ingestion_completeness_check(
+        refresh_mode=refresh_mode,
+        force_refresh_universe=force_refresh_universe,
+    )
+    print(
+        "[UF-SNAPSHOT] Pre-ingestion completeness check: "
+        f"status={pre_ingestion_completeness.get('status')} "
+        f"input_readiness={pre_ingestion_completeness.get('input_readiness_status')} "
+        f"summary_path={pre_ingestion_completeness.get('summary_path')}",
+    )
+
     selector_meta: Dict[str, Any] = {}
 
     if refresh_mode == REFRESH_MODE_TARGETED:
@@ -785,6 +875,7 @@ def rebuild_snapshot(
             "progress_log_interval_seconds": progress_log_interval_seconds,
             "skipped_examples": skipped_rows[:25],
             "summary": {},
+            "pre_ingestion_completeness": pre_ingestion_completeness,
             "snapshot_envelope_path": SNAPSHOT_ENVELOPE_PATH,
             "snapshot_envelope_backup_path": SNAPSHOT_ENVELOPE_BACKUP_PATH,
             "status": "no_rows_written",
@@ -815,6 +906,7 @@ def rebuild_snapshot(
         "progress_log_interval_seconds": progress_log_interval_seconds,
         "skipped_examples": skipped_rows[:25],
         "summary": summary,
+        "pre_ingestion_completeness": pre_ingestion_completeness,
         "snapshot_json_fallback_path": SNAPSHOT_JSON_FALLBACK_PATH,
         "snapshot_envelope_path": SNAPSHOT_ENVELOPE_PATH,
         "snapshot_envelope_backup_path": SNAPSHOT_ENVELOPE_BACKUP_PATH,
