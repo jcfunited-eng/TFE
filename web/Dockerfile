@@ -40,6 +40,7 @@ RUN apt-get update \
         ca-certificates \
         postgresql-client \
         python3 \
+        python3-bs4 \
         python3-boto3 \
         python3-cryptography \
         python3-requests \

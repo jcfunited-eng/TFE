@@ -62,7 +62,7 @@ def _requested_mode() -> str:
 
 
 def _should_seed_from_runtime(mode: str) -> bool:
-    if mode != "snapshot":
+    if mode not in {"snapshot", "universe_snapshot"}:
         return False
     return _read_bool_env("TFE_QUOTE_CACHE_SEED_FROM_RUNTIME", True)
 

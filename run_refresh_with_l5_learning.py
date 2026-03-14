@@ -35,6 +35,7 @@ EXPECTED_EPOCH_LIBRARY_SCHEMA = "v1"
 DEFAULT_ORACLE_TRIGGER_POLICY = "scheduled_or_explicit"
 DEFAULT_RESUME_MAX_AGE_SECONDS = 6 * 60 * 60
 RESUME_STAGE_POST_L5_PRE_ORACLE = "post_l5_pre_oracle"
+QUOTE_CACHE_FOLLOWUP_LANE = "post_publication_followup"
 
 
 def _history_path() -> Path | None:
@@ -465,6 +466,11 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Resume from the latest post-L5 checkpoint when available.",
     )
+    parser.add_argument(
+        "--quote-cache-followup-only",
+        action="store_true",
+        help="Run only the detached quote-cache follow-up lane.",
+    )
     return parser.parse_args()
 
 
@@ -709,6 +715,112 @@ def _run_quote_cache_refresh() -> dict[str, Any]:
         "stderr_tail": profile_stderr_tail,
     }
     return summary
+
+
+def _quote_cache_refresh_detail_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    profile_overrides = payload.get("profile_overrides")
+    return {
+        "quote_cache_refresh": payload.get("status"),
+        "quote_cache_profile_overrides": profile_overrides.get("status")
+        if isinstance(profile_overrides, dict)
+        else None,
+        "quote_cache_lane": payload.get("lane"),
+        "quote_cache_followup_pid": payload.get("followup_pid"),
+    }
+
+
+def _should_defer_quote_cache_refresh(mode: str) -> bool:
+    return mode == REFRESH_MODE_FULL
+
+
+def _deferred_quote_cache_refresh_report() -> dict[str, Any]:
+    return {
+        "status": "deferred",
+        "lane": QUOTE_CACHE_FOLLOWUP_LANE,
+        "reason": "full_universe_publish_should_not_wait_on_quote_cache_refresh",
+    }
+
+
+def _quote_cache_refresh_is_deferred(report: dict[str, Any]) -> bool:
+    return (
+        isinstance(report, dict)
+        and str(report.get("status") or "").strip().lower() == "deferred"
+        and str(report.get("lane") or "").strip() == QUOTE_CACHE_FOLLOWUP_LANE
+    )
+
+
+def _stream_fileno(stream: Any, fallback: int) -> int:
+    try:
+        return int(stream.fileno())
+    except Exception:
+        return fallback
+
+
+def _launch_quote_cache_refresh_followup(*, mode: str, quote_cache_refresh_report: dict[str, Any]) -> dict[str, Any]:
+    if not _quote_cache_refresh_is_deferred(quote_cache_refresh_report):
+        return quote_cache_refresh_report
+
+    script_path = Path(__file__).resolve()
+    cmd = [
+        sys.executable or "python3",
+        "-u",
+        str(script_path),
+        "--refresh-mode",
+        mode,
+        "--quote-cache-followup-only",
+    ]
+
+    env = dict(os.environ)
+    env["PYTHONUNBUFFERED"] = "1"
+    env["TFE_REFRESH_QUOTE_CACHE_FOLLOWUP"] = "1"
+
+    try:
+        child = subprocess.Popen(
+            cmd,
+            cwd=str(Path.cwd()),
+            env=env,
+            stdin=subprocess.DEVNULL,
+            stdout=_stream_fileno(sys.stdout, 1),
+            stderr=_stream_fileno(sys.stderr, 2),
+            start_new_session=True,
+        )
+    except Exception as exc:
+        error_text = f"{type(exc).__name__}: {exc}"
+        print(f"[REFRESH+L5] Quote cache follow-up launch failed. error={error_text}", flush=True)
+        _append_history_event(
+            {
+                "phase": "quote_cache_refresh_followup_launch_failed",
+                "status": "error",
+                "lane": QUOTE_CACHE_FOLLOWUP_LANE,
+                "error": error_text,
+            }
+        )
+        return {
+            "status": "launch_failed",
+            "lane": QUOTE_CACHE_FOLLOWUP_LANE,
+            "reason": "detached_followup_launch_failed",
+            "error": error_text,
+        }
+
+    print(
+        "[REFRESH+L5] Quote cache follow-up launched. "
+        f"pid={child.pid}; lane={QUOTE_CACHE_FOLLOWUP_LANE}",
+        flush=True,
+    )
+    _append_history_event(
+        {
+            "phase": "quote_cache_refresh_followup_launch",
+            "status": "launched",
+            "lane": QUOTE_CACHE_FOLLOWUP_LANE,
+            "pid": child.pid,
+        }
+    )
+    return {
+        "status": "launched",
+        "lane": QUOTE_CACHE_FOLLOWUP_LANE,
+        "reason": "detached_followup_launched_after_publication",
+        "followup_pid": child.pid,
+    }
 
 
 def _run_runtime_postgres_sync(
@@ -1149,6 +1261,16 @@ def main() -> int:
     if bool(args.targeted_refresh):
         mode = REFRESH_MODE_TARGETED
 
+    if bool(args.quote_cache_followup_only):
+        quote_cache_refresh_report = _run_post_rebuild_phase(
+            phase_name="quote_cache_refresh_followup",
+            runner=_run_quote_cache_refresh,
+            detail_builder=_quote_cache_refresh_detail_payload,
+        )
+        print("[REFRESH+L5] Quote cache refresh follow-up report:")
+        print(json.dumps(quote_cache_refresh_report, indent=2))
+        return 0
+
     resume_enabled = bool(args.resume_from_checkpoint) or _is_truthy(os.environ.get("TFE_REFRESH_RESUME_FROM_CHECKPOINT", "1"))
     resume_payload = _load_resume_checkpoint(mode=mode, enabled=resume_enabled)
     resumed_from_checkpoint = resume_payload is not None
@@ -1177,16 +1299,27 @@ def main() -> int:
         print("[REFRESH+L5] Refresh report:")
         print(json.dumps(report, indent=2))
 
-        quote_cache_refresh_report = _run_post_rebuild_phase(
-            phase_name="quote_cache_refresh",
-            runner=_run_quote_cache_refresh,
-            detail_builder=lambda payload: {
-                "quote_cache_refresh": payload.get("status"),
-                "quote_cache_profile_overrides": (payload.get("profile_overrides") or {}).get("status")
-                if isinstance(payload.get("profile_overrides"), dict)
-                else None,
-            },
-        )
+        if _should_defer_quote_cache_refresh(mode):
+            quote_cache_refresh_report = _deferred_quote_cache_refresh_report()
+            print(
+                "[REFRESH+L5] Quote cache refresh deferred. "
+                f"lane={QUOTE_CACHE_FOLLOWUP_LANE}; reason={quote_cache_refresh_report.get('reason')}",
+                flush=True,
+            )
+            _append_history_event(
+                {
+                    "phase": "quote_cache_refresh_deferred",
+                    "status": "deferred",
+                    "lane": QUOTE_CACHE_FOLLOWUP_LANE,
+                    "reason": quote_cache_refresh_report.get("reason"),
+                }
+            )
+        else:
+            quote_cache_refresh_report = _run_post_rebuild_phase(
+                phase_name="quote_cache_refresh",
+                runner=_run_quote_cache_refresh,
+                detail_builder=_quote_cache_refresh_detail_payload,
+            )
         print("[REFRESH+L5] Quote cache refresh report:")
         print(json.dumps(quote_cache_refresh_report, indent=2))
 
@@ -1198,6 +1331,10 @@ def main() -> int:
             optimizer_short_cycle_status="skipped_by_skip_l5_learning",
             epoch_schema=None,
             epoch_status=None,
+        )
+        quote_cache_refresh_report = _launch_quote_cache_refresh_followup(
+            mode=mode,
+            quote_cache_refresh_report=quote_cache_refresh_report,
         )
         print("[REFRESH+L5] L5 learning skipped by flag.")
         _append_history_event(
@@ -1232,6 +1369,10 @@ def main() -> int:
             optimizer_short_cycle_status="skipped_targeted_no_l5",
             epoch_schema=None,
             epoch_status=None,
+        )
+        quote_cache_refresh_report = _launch_quote_cache_refresh_followup(
+            mode=mode,
+            quote_cache_refresh_report=quote_cache_refresh_report,
         )
         print("[REFRESH+L5] L5 learning not run for targeted mode unless --run-l5-on-targeted is set.")
         _append_history_event(
@@ -1322,6 +1463,10 @@ def main() -> int:
         optimizer_short_cycle_status=oracle_short_cycle_status,
         epoch_schema=epoch_schema,
         epoch_status=epoch_status,
+    )
+    quote_cache_refresh_report = _launch_quote_cache_refresh_followup(
+        mode=mode,
+        quote_cache_refresh_report=quote_cache_refresh_report,
     )
 
     _append_history_event(
