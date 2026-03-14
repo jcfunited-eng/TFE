@@ -876,6 +876,7 @@ def _runtime_postgres_sync_input_contract(
     *,
     report: dict[str, Any],
     mode: str,
+    quote_cache_refresh_report: dict[str, Any],
     optimizer_summary: dict[str, Any] | None,
     optimizer_short_cycle_status: str,
     epoch_schema: str | None,
@@ -886,6 +887,9 @@ def _runtime_postgres_sync_input_contract(
         {
             "refresh_report_status": report.get("status"),
             "rows_written": report.get("rows_written"),
+            "quote_cache_refresh_status": quote_cache_refresh_report.get("status"),
+            "quote_cache_refresh_lane": quote_cache_refresh_report.get("lane"),
+            "quote_cache_publication_blocking": quote_cache_refresh_report.get("publication_blocking"),
             "optimizer_short_cycle_status": optimizer_short_cycle_status,
             "optimizer_session_id": optimizer_summary.get("session_id") if isinstance(optimizer_summary, dict) else None,
             "optimizer_requested_runs": optimizer_summary.get("requested_additional_runs") if isinstance(optimizer_summary, dict) else None,
@@ -1008,6 +1012,7 @@ def _launch_quote_cache_refresh_followup(*, mode: str, quote_cache_refresh_repor
 def _run_runtime_postgres_sync(
     report: dict[str, Any],
     mode: str,
+    quote_cache_refresh_report: dict[str, Any],
     optimizer_summary: dict[str, Any] | None,
     optimizer_short_cycle_status: str,
     epoch_schema: str | None,
@@ -1021,6 +1026,9 @@ def _run_runtime_postgres_sync(
     env.setdefault("TFE_REFRESH_REQUESTED_MODE", mode)
     env.setdefault("TFE_REFRESH_COMPLETED_AT", datetime.now(timezone.utc).isoformat())
     env.setdefault("TFE_REFRESH_STARTED_AT", str(os.environ.get("TFE_REFRESH_STARTED_AT", "")).strip() or datetime.now(timezone.utc).isoformat())
+    env["TFE_ALLOW_DEFERRED_QUOTE_CACHE_FALLBACK"] = (
+        "1" if _quote_cache_refresh_is_deferred(quote_cache_refresh_report) else "0"
+    )
 
     if optimizer_summary:
         env["TFE_OPTIMIZER_SHORT_CYCLE"] = str(optimizer_short_cycle_status or "run")
@@ -1490,6 +1498,7 @@ def _run_post_rebuild_pipeline(
     *,
     report: dict[str, Any],
     mode: str,
+    quote_cache_refresh_report: dict[str, Any],
     optimizer_summary: dict[str, Any] | None,
     optimizer_short_cycle_status: str,
     epoch_schema: str | None,
@@ -1500,6 +1509,7 @@ def _run_post_rebuild_pipeline(
         runner=lambda: _run_runtime_postgres_sync(
             report=report,
             mode=mode,
+            quote_cache_refresh_report=quote_cache_refresh_report,
             optimizer_summary=optimizer_summary,
             optimizer_short_cycle_status=optimizer_short_cycle_status,
             epoch_schema=epoch_schema,
@@ -1512,6 +1522,7 @@ def _run_post_rebuild_pipeline(
         input_contract=_runtime_postgres_sync_input_contract(
             report=report,
             mode=mode,
+            quote_cache_refresh_report=quote_cache_refresh_report,
             optimizer_summary=optimizer_summary,
             optimizer_short_cycle_status=optimizer_short_cycle_status,
             epoch_schema=epoch_schema,
@@ -1628,6 +1639,7 @@ def main() -> int:
         runtime_sync_report, validation_report = _run_post_rebuild_pipeline(
             report=report,
             mode=mode,
+            quote_cache_refresh_report=quote_cache_refresh_report,
             optimizer_summary=None,
             optimizer_short_cycle_status="skipped_by_skip_l5_learning",
             epoch_schema=None,
@@ -1666,6 +1678,7 @@ def main() -> int:
         runtime_sync_report, validation_report = _run_post_rebuild_pipeline(
             report=report,
             mode=mode,
+            quote_cache_refresh_report=quote_cache_refresh_report,
             optimizer_summary=None,
             optimizer_short_cycle_status="skipped_targeted_no_l5",
             epoch_schema=None,
@@ -1760,6 +1773,7 @@ def main() -> int:
     runtime_sync_report, validation_report = _run_post_rebuild_pipeline(
         report=report,
         mode=mode,
+        quote_cache_refresh_report=quote_cache_refresh_report,
         optimizer_summary=optimizer_summary,
         optimizer_short_cycle_status=oracle_short_cycle_status,
         epoch_schema=epoch_schema,

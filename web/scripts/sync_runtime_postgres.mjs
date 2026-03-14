@@ -2,6 +2,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
 import {
   PROVENANCE_REQUIRED_NON_NULL_FIELDS,
@@ -12,6 +13,7 @@ import {
 
 const DEFAULT_DB_PORT = 5432;
 const DEFAULT_MIN_BARS = 514;
+const MODULE_FILE_PATH = fileURLToPath(import.meta.url);
 
 function resolveWorkspaceRoot() {
   const configured = String(process.env.TFE_WORKSPACE_ROOT ?? "").trim();
@@ -57,6 +59,14 @@ function resolvePgSslRejectUnauthorized() {
   if (["1", "true", "yes", "on"].includes(raw)) return true;
   if (["0", "false", "no", "off"].includes(raw)) return false;
   return true;
+}
+
+function readBooleanEnv(name, defaultValue = false) {
+  const raw = String(process.env[name] ?? "").trim().toLowerCase();
+  if (!raw) return defaultValue;
+  if (["1", "true", "yes", "on"].includes(raw)) return true;
+  if (["0", "false", "no", "off"].includes(raw)) return false;
+  return defaultValue;
 }
 
 function resolvePool() {
@@ -133,7 +143,7 @@ function normalizePositiveAnchor(value) {
   return n;
 }
 
-function buildRuntimeQuote(quote, row) {
+export function buildRuntimeQuote(quote, row) {
   const runtimeQuote = quote && typeof quote === "object" ? { ...quote } : {};
   if (!Object.prototype.hasOwnProperty.call(runtimeQuote, "price")) {
     runtimeQuote.price = toFiniteOrNull(row?.price);
@@ -224,7 +234,7 @@ function resolveSnapshotGeneratedAt(payload) {
   return normalizeIsoOrNull(payload.generated_at_utc);
 }
 
-function resolvePublicationBundleMeta(snapshotPayload, quotePayload) {
+export function resolvePublicationBundleMeta(snapshotPayload, quotePayload) {
   const snapshotPublicationId = toTextOrNull(snapshotPayload?.publication_id);
   const quotePublicationId = toTextOrNull(quotePayload?.publication_id);
   const quoteSourceSnapshotPublicationId = toTextOrNull(quotePayload?.source_snapshot_publication_id);
@@ -250,6 +260,41 @@ function resolvePublicationBundleMeta(snapshotPayload, quotePayload) {
     quotePublicationId,
     quoteBindingStatus,
   };
+}
+
+export function buildDeferredQuoteFallbackPayload(snapshotPayload) {
+  const snapshotPublicationId = toTextOrNull(snapshotPayload?.publication_id);
+  const snapshotGeneratedAtUtc = resolveSnapshotGeneratedAt(snapshotPayload);
+  return {
+    publication_id: snapshotPublicationId,
+    source_snapshot_publication_id: snapshotPublicationId,
+    publication_binding_status: snapshotPublicationId ? "aligned" : null,
+    quote_binding_status: snapshotPublicationId ? "aligned" : null,
+    generated_at_utc: snapshotGeneratedAtUtc,
+    rows: {},
+    quote_input_mode: "snapshot_deferred_fallback",
+  };
+}
+
+export function resolveQuotePayloadInput({
+  snapshotPayload,
+  quotePayloadRaw,
+  quotePath,
+  allowDeferredQuoteFallback,
+}) {
+  if (quotePayloadRaw && typeof quotePayloadRaw === "object" && !Array.isArray(quotePayloadRaw)) {
+    return {
+      quotePayload: quotePayloadRaw,
+      quoteInputMode: "quote_cache_file",
+    };
+  }
+  if (allowDeferredQuoteFallback) {
+    return {
+      quotePayload: buildDeferredQuoteFallbackPayload(snapshotPayload),
+      quoteInputMode: "snapshot_deferred_fallback",
+    };
+  }
+  throw new Error(`Quote cache file not found: ${quotePath}`);
 }
 
 function resolveGeneratedAt(report, snapshotPayload, fallbackIso) {
@@ -768,6 +813,7 @@ async function main() {
   const nowIso = new Date().toISOString();
   const runId = String(process.env.TFE_REFRESH_RUN_ID ?? `manual-${nowIso}`).trim();
   const mode = canonicalRefreshMode(process.env.TFE_REFRESH_REQUESTED_MODE ?? "snapshot");
+  const allowDeferredQuoteFallback = readBooleanEnv("TFE_ALLOW_DEFERRED_QUOTE_CACHE_FALLBACK", false);
   const triggerSource = String(process.env.TFE_REFRESH_TRIGGER_SOURCE ?? "program").trim() || "program";
   const requestedBy = String(process.env.TFE_REFRESH_REQUESTED_BY ?? "system").trim() || "system";
   const startedAt = String(process.env.TFE_REFRESH_STARTED_AT ?? nowIso).trim() || nowIso;
@@ -780,9 +826,6 @@ async function main() {
   if (!existsSync(snapshotPath)) {
     throw new Error(`Snapshot file not found: ${snapshotPath}`);
   }
-  if (!existsSync(quotePath)) {
-    throw new Error(`Quote cache file not found: ${quotePath}`);
-  }
 
   const snapshotText = readFileSync(snapshotPath, "utf-8")
     .replace(/\bNaN\b/g, "null")
@@ -794,7 +837,15 @@ async function main() {
   const generatedAtUtc = timestampResolution.generatedAtUtc;
   const barDate = generatedAtUtc.slice(0, 10);
   const snapshotRowsInput = normalizeSnapshotRows(snapshotRowsRaw);
-  const quoteRowsRaw = JSON.parse(readFileSync(quotePath, "utf-8"));
+  const quoteFileExists = existsSync(quotePath);
+  const quotePayloadRaw = quoteFileExists ? JSON.parse(readFileSync(quotePath, "utf-8")) : null;
+  const quoteInput = resolveQuotePayloadInput({
+    snapshotPayload: snapshotRowsRaw,
+    quotePayloadRaw,
+    quotePath,
+    allowDeferredQuoteFallback,
+  });
+  const quoteRowsRaw = quoteInput.quotePayload;
   const quoteRows = normalizeQuoteRows(quoteRowsRaw);
   const publicationBundleMeta = resolvePublicationBundleMeta(snapshotRowsRaw, quoteRowsRaw);
 
@@ -1320,6 +1371,8 @@ async function main() {
       rows_snapshot_input: snapshotRowsInput.length,
       rows_snapshot_deduped: snapshotRows.length,
       duplicate_rows_dropped: dedupe.duplicateRowsDropped,
+      quote_input_mode: quoteInput.quoteInputMode,
+      quote_file_exists: quoteFileExists,
       rows_quote_cache: Object.keys(quoteRows).length,
       snapshot_publication_id: publicationBundleMeta.snapshotPublicationId,
       quote_publication_id: publicationBundleMeta.quotePublicationId,
@@ -1350,8 +1403,16 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  const message = error instanceof Error ? error.message : "Unknown runtime sync failure.";
-  process.stderr.write(`${message}\n`);
-  process.exit(1);
-});
+function isDirectExecution() {
+  const entryPath = String(process.argv[1] ?? "").trim();
+  if (!entryPath) return false;
+  return path.resolve(entryPath) === MODULE_FILE_PATH;
+}
+
+if (isDirectExecution()) {
+  main().catch((error) => {
+    const message = error instanceof Error ? error.message : "Unknown runtime sync failure.";
+    process.stderr.write(`${message}\n`);
+    process.exit(1);
+  });
+}

@@ -1340,6 +1340,7 @@ async function enforcePublicationActivationContract(params: {
     TFE_REFRESH_REQUESTED_BY: String(params.requestedBy ?? ""),
     TFE_REFRESH_STARTED_AT: String(params.startedAtIso ?? params.completedAtIso),
     TFE_REFRESH_COMPLETED_AT: String(params.completedAtIso),
+    TFE_ALLOW_DEFERRED_QUOTE_CACHE_FALLBACK: "1",
   };
 
   const syncResult = await runNodeScriptForPublicationActivation(RUNTIME_SYNC_SCRIPT, envOverrides);
