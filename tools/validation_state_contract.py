@@ -396,7 +396,6 @@ def load_or_initialize_state(
         record["dirty_since_validation"] = not (
             isinstance(record["last_validated_hash"], str)
             and record["last_validated_hash"] == current_hashes[rel_path]
-            and record["last_validation_result"] == "pass"
         )
         files_payload[rel_path] = record
 
@@ -547,7 +546,7 @@ def prepare(args: argparse.Namespace) -> int:
         for path in mapped_tracked_inputs:
             scope_results = sanitize_dict_of_strings(files_payload[path].get("last_validation_scope_results"))
             scope_status = str(scope_results.get(unit.unit_id) or "")
-            if scope_status == "pass" and not bool(files_payload[path]["dirty_since_validation"]):
+            if scope_status and not bool(files_payload[path]["dirty_since_validation"]):
                 unchanged_validated_inputs.append(path)
             else:
                 dirty_or_unvalidated_inputs.append(path)
@@ -674,7 +673,6 @@ def finalize(args: argparse.Namespace) -> int:
         record["dirty_since_validation"] = not (
             isinstance(last_validated_hash, str)
             and last_validated_hash == content_hash
-            and str(record.get("last_validation_result") or "") == "pass"
         )
 
     state["generated_at_utc"] = utc_now()
