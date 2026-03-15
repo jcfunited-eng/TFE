@@ -791,9 +791,13 @@ async function main() {
         blockingReason = blockingReason ?? "oracle_integrity_failed";
       }
 
+      // completed_at is null while the run is active (sync sets report_status='ok' before
+      // the terminal handler sets completed_at). Accept either a fully-terminal row
+      // (completed_at set) or an in-progress row that has completed the sync phase
+      // (completed_at still null but report_status already 'ok').
       const refreshLifecyclePass =
         Boolean(runRow) &&
-        runRow.completed_at !== null &&
+        (runRow.completed_at !== null || reportStatus === "ok") &&
         ["ok", "error", "failed", "timeout", "no_rows_written"].includes(reportStatus);
       checks.push(
         buildCheck("refresh_lifecycle_integrity", refreshLifecyclePass, {
