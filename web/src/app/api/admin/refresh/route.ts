@@ -922,7 +922,7 @@ async function readStatusRecordFromRuntimeDb(): Promise<RefreshStatusRecord | nu
   if (!row) return null;
   const reportStatus = normalizeReportStatus(row.report_status);
   return {
-    running: !row.completed_at && reportStatus === "running",
+    running: !row.completed_at,
     run_id: row.run_id,
     requested_mode: normalizeRefreshMode(row.mode),
     trigger_source: (row.trigger_source as RefreshTriggerSource | null) ?? undefined,

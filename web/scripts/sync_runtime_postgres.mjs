@@ -1294,6 +1294,7 @@ async function main() {
           quote_publication_id = EXCLUDED.quote_publication_id,
           quote_binding_status = EXCLUDED.quote_binding_status,
           rows_written = EXCLUDED.rows_written,
+          report_status = EXCLUDED.report_status,
           optimizer_short_cycle = EXCLUDED.optimizer_short_cycle,
           optimizer_cycle_requested_runs = EXCLUDED.optimizer_cycle_requested_runs,
           optimizer_cycle_completed_runs = EXCLUDED.optimizer_cycle_completed_runs,
