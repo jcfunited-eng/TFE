@@ -159,6 +159,19 @@ export function assessPreActivationPublicationCriticalTruth(
     }
 
     if (processStatus && NON_TERMINAL_PHASE_STATUSES.has(processStatus)) {
+      // If a later critical phase has already completed, this phase's non-terminal
+      // status is a stale ledger artifact — the phase-complete write to the ledger
+      // failed (e.g. DB connection timeout) but the phase itself succeeded, as
+      // proven by later phases completing. Treat it as implicitly completed.
+      const phaseIndex = PRE_ACTIVATION_PUBLICATION_CRITICAL_PHASES.indexOf(
+        phaseName as PreActivationCriticalPhaseName,
+      );
+      const laterPhaseAlreadyCompleted = PRE_ACTIVATION_PUBLICATION_CRITICAL_PHASES
+        .slice(phaseIndex + 1)
+        .some((laterName) => toLowerTextOrNull(phaseByName.get(laterName)?.process_status) === "completed");
+      if (laterPhaseAlreadyCompleted) {
+        continue;
+      }
       return {
         ok: false,
         failureCode: "PUBLICATION_CRITICAL_PHASE_NON_TERMINAL_AT_TERMINALIZATION",

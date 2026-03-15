@@ -576,7 +576,7 @@ def _write_phase_ledger_state(
         input=json.dumps(payload),
         capture_output=True,
         check=False,
-        timeout=20,
+        timeout=60,
     )
     if completed.returncode == 0:
         return
@@ -1523,15 +1523,46 @@ def _run_post_rebuild_phase(
         detail_payload = {}
     phase_status = str(result.get("status") or "ok")
     completed_at_iso = datetime.now(timezone.utc).isoformat()
-    _write_phase_ledger_state(
-        phase_name=phase_name,
-        process_status="completed",
-        input_contract=input_contract,
-        output_contract=result,
-        started_at_iso=started_at_iso,
-        completed_at_iso=completed_at_iso,
-        last_heartbeat_at_iso=completed_at_iso,
-    )
+    try:
+        _write_phase_ledger_state(
+            phase_name=phase_name,
+            process_status="completed",
+            input_contract=input_contract,
+            output_contract=result,
+            started_at_iso=started_at_iso,
+            completed_at_iso=completed_at_iso,
+            last_heartbeat_at_iso=completed_at_iso,
+        )
+    except Exception as _ledger_exc:
+        _persist_code = _normalize_phase_failure_code(phase_name, "LEDGER_PERSIST_FAILED")
+        _persist_detail = (
+            f"Phase completion ledger write failed for '{phase_name}': "
+            f"{type(_ledger_exc).__name__}: {_ledger_exc}"
+        )
+        print(
+            f"[REFRESH+L5] FATAL: {_persist_code}: {_persist_detail}",
+            flush=True,
+        )
+        _failed_at_iso = datetime.now(timezone.utc).isoformat()
+        try:
+            _write_phase_ledger_state(
+                phase_name=phase_name,
+                process_status="failed",
+                input_contract=input_contract,
+                output_contract={"status": "error", "failure_code": _persist_code, "failure_detail": _persist_detail},
+                started_at_iso=started_at_iso,
+                completed_at_iso=_failed_at_iso,
+                failure_code=_persist_code,
+                failure_detail=_persist_detail,
+                last_heartbeat_at_iso=_failed_at_iso,
+            )
+        except Exception as _settle_exc:
+            print(
+                f"[REFRESH+L5] FATAL: Phase failure settlement also failed for '{phase_name}': "
+                f"{type(_settle_exc).__name__}: {_settle_exc}",
+                flush=True,
+            )
+        raise RefreshPhaseError(_persist_code, _persist_detail) from _ledger_exc
     print(
         f"[REFRESH+L5] Post-rebuild phase complete: {phase_name}; "
         f"elapsed_seconds={elapsed_seconds:.1f}; status={phase_status}",
