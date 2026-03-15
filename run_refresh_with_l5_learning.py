@@ -9,6 +9,7 @@ learning is automatically executed after refresh without manual one-off steps.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -1009,6 +1010,53 @@ def _launch_quote_cache_refresh_followup(*, mode: str, quote_cache_refresh_repor
     }
 
 
+def _stamp_snapshot_publication_id_if_needed(snapshot_path: Path) -> str | None:
+    """Ensure uf_snapshot.json carries a publication_id before sync_runtime_postgres.mjs runs.
+
+    In snapshot (targeted_pfsc) mode, build_screener_quote_cache.py (which calls
+    publication_identity.stamp_snapshot_artifact) is deferred and has not run yet.
+    Without a publication_id on the snapshot file, resolvePublicationBundleMeta in
+    sync_runtime_postgres.mjs returns null for snapshot_publication_id, which blocks
+    publication activation. This function derives the same ID using the same algorithm
+    as publication_identity._derive_snapshot_metadata and writes it to the file so all
+    downstream steps see a stable, non-null publication_id.
+    """
+    try:
+        raw = snapshot_path.read_text(encoding="utf-8")
+        payload: dict[str, Any] = json.loads(
+            raw.replace("NaN", "null").replace("-Infinity", "null").replace("Infinity", "null")
+        )
+    except Exception as exc:
+        print(f"[REFRESH+L5] Snapshot stamp: could not read snapshot; {exc}", flush=True)
+        return None
+
+    existing_id = str(payload.get("publication_id") or "").strip()
+    if existing_id:
+        print(f"[REFRESH+L5] Snapshot stamp: publication_id already present={existing_id}", flush=True)
+        return existing_id
+
+    generated_at_utc: str | None = str(payload.get("generated_at_utc") or "").strip() or None
+    rows = payload.get("rows") if isinstance(payload.get("rows"), list) else []
+    base: dict[str, Any] = {"generated_at_utc": generated_at_utc, "rows": rows}
+    digest = hashlib.sha256(
+        json.dumps(base, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+    ).hexdigest()
+    publication_id = f"snapshot_pub_v1_{digest[:24]}"
+    payload["publication_id"] = publication_id
+    try:
+        tmp_path = snapshot_path.with_suffix(".tmp_stamp")
+        tmp_path.write_text(
+            json.dumps(payload, separators=(",", ":"), ensure_ascii=False),
+            encoding="utf-8",
+        )
+        tmp_path.replace(snapshot_path)
+    except Exception as exc:
+        print(f"[REFRESH+L5] Snapshot stamp: could not write publication_id; {exc}", flush=True)
+        return None
+    print(f"[REFRESH+L5] Snapshot stamp: derived and wrote publication_id={publication_id}", flush=True)
+    return publication_id
+
+
 def _run_runtime_postgres_sync(
     report: dict[str, Any],
     mode: str,
@@ -1021,6 +1069,8 @@ def _run_runtime_postgres_sync(
     script_path = Path("web/scripts/sync_runtime_postgres.mjs")
     if not script_path.exists() or not script_path.is_file():
         raise FileNotFoundError(f"Runtime sync script is missing: {script_path}")
+
+    _stamp_snapshot_publication_id_if_needed(Path("uf_snapshot.json"))
 
     env = dict(os.environ)
     env.setdefault("TFE_REFRESH_REQUESTED_MODE", mode)
@@ -1442,7 +1492,11 @@ def _run_post_rebuild_phase(
     heartbeat_stop.set()
     heartbeat_thread.join(timeout=5)
     if heartbeat_error:
-        raise heartbeat_error[0]
+        print(
+            f"[REFRESH+L5] Post-rebuild phase heartbeat warning (non-fatal, phase work succeeded): "
+            f"{phase_name}; heartbeat_error={heartbeat_error[0]}",
+            flush=True,
+        )
     if not isinstance(result, dict):
         failure = RefreshPhaseError(
             _normalize_phase_failure_code(phase_name, "INVALID_OUTPUT"),
