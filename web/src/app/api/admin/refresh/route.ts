@@ -945,6 +945,77 @@ async function readStatusRecordFromRuntimeDb(): Promise<RefreshStatusRecord | nu
   };
 }
 
+function statusRecordRecencyMs(record: RefreshStatusRecord | null | undefined): number {
+  if (!record) return Number.NaN;
+  const candidates = [
+    record.completed_at,
+    record.report_generated_at_utc,
+    record.current_phase_last_heartbeat_at,
+    record.current_phase_completed_at,
+    record.current_phase_started_at,
+    record.started_at,
+  ];
+  let latest = Number.NaN;
+  for (const candidate of candidates) {
+    const parsed = Date.parse(String(candidate ?? ""));
+    if (!Number.isFinite(parsed)) continue;
+    if (!Number.isFinite(latest) || parsed > latest) {
+      latest = parsed;
+    }
+  }
+  return latest;
+}
+
+function selectNewestStatusRecord(
+  left: RefreshStatusRecord | null,
+  right: RefreshStatusRecord | null,
+): RefreshStatusRecord | null {
+  if (!left) return right;
+  if (!right) return left;
+
+  const leftMs = statusRecordRecencyMs(left);
+  const rightMs = statusRecordRecencyMs(right);
+  if (Number.isFinite(leftMs) && Number.isFinite(rightMs)) {
+    return rightMs >= leftMs ? right : left;
+  }
+  if (Number.isFinite(rightMs)) return right;
+  if (Number.isFinite(leftMs)) return left;
+  return right;
+}
+
+function selectLocalStatusRecordForRun(
+  runId: string | null,
+  candidates: Array<RefreshStatusRecord | null>,
+): RefreshStatusRecord | null {
+  if (!runId) return null;
+
+  let selected: RefreshStatusRecord | null = null;
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    if (toTextOrNull(candidate.run_id) !== runId) continue;
+    selected = selectNewestStatusRecord(selected, candidate);
+  }
+  return selected;
+}
+
+function mergeRuntimeStatusWithLocalProcessState(
+  runtimeStatus: RefreshStatusRecord,
+  localStatus: RefreshStatusRecord | null,
+): RefreshStatusRecord {
+  if (!localStatus) return runtimeStatus;
+
+  return {
+    ...localStatus,
+    ...runtimeStatus,
+    pid: typeof localStatus.pid === "number" && localStatus.pid > 0 ? localStatus.pid : runtimeStatus.pid,
+    last_report: runtimeStatus.last_report ?? localStatus.last_report,
+    completion_logged_for_run_id:
+      toTextOrNull(runtimeStatus.completion_logged_for_run_id)
+      ?? toTextOrNull(localStatus.completion_logged_for_run_id)
+      ?? undefined,
+  };
+}
+
 function toTextOrNull(value: unknown): string | null {
   const text = String(value ?? "").trim();
   return text ? text : null;
@@ -1700,11 +1771,9 @@ async function writeCompletionHistoryEntry(
 }
 
 async function readStatusRecord(): Promise<RefreshStatusRecord | null> {
+  let fromRuntimeDb: RefreshStatusRecord | null = null;
   try {
-    const fromRuntimeDb = await readStatusRecordFromRuntimeDb();
-    if (fromRuntimeDb) {
-      return fromRuntimeDb;
-    }
+    fromRuntimeDb = await readStatusRecordFromRuntimeDb();
   } catch {
     // Fall through to legacy file-backed state only when runtime DB read is unavailable.
   }
@@ -1731,15 +1800,13 @@ async function readStatusRecord(): Promise<RefreshStatusRecord | null> {
     // fall through
   }
 
+  if (fromRuntimeDb) {
+    const localForSameRun = selectLocalStatusRecordForRun(toTextOrNull(fromRuntimeDb.run_id), [fromFile, fromPersisted]);
+    return mergeRuntimeStatusWithLocalProcessState(fromRuntimeDb, localForSameRun);
+  }
+
   if (fromFile && fromPersisted) {
-    const fileTs = Date.parse(String(fromFile.report_generated_at_utc ?? fromFile.started_at ?? ""));
-    const persistedTs = Date.parse(String(fromPersisted.report_generated_at_utc ?? fromPersisted.started_at ?? ""));
-    if (Number.isFinite(fileTs) && Number.isFinite(persistedTs)) {
-      return persistedTs >= fileTs ? fromPersisted : fromFile;
-    }
-    if (Number.isFinite(persistedTs)) return fromPersisted;
-    if (Number.isFinite(fileTs)) return fromFile;
-    return fromPersisted;
+    return selectNewestStatusRecord(fromFile, fromPersisted);
   }
 
   return fromPersisted ?? fromFile;
