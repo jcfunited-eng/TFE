@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -7,6 +8,11 @@ const DEFAULT_DB_PORT = 5432;
 const RUNS_TABLE = "runtime_refresh_runs";
 const DECISIONS_TABLE = "runtime_decisions_latest";
 const DECISIONS_HISTORY_TABLE = "runtime_decisions_history";
+const STEP1_ACTIVE_PUBLICATION_POINTER_TABLE = "active_publication_pointer";
+const STEP1_PUBLICATION_BUNDLES_TABLE = "publication_bundles";
+const STEP1_ACTIVE_POINTER_SOURCE_ENV = "TFE_STEP1_ACTIVE_POINTER_SOURCE";
+const STEP1_FILE_PROOF_STORE_PATH_ENV = "TFE_STEP1_FILE_PROOF_STORE_PATH";
+const STEP1_TARGET_ENVIRONMENT_ENV = "TFE_STEP1_TARGET_ENVIRONMENT";
 const MODULE_FILE_PATH = fileURLToPath(import.meta.url);
 
 function readRequiredEnv(...names) {
@@ -154,7 +160,117 @@ async function loadLatestRuntimeRunId(pool) {
   };
 }
 
+function parseArgs(argv) {
+  return {
+    activePointerOnly: argv.some((arg) => String(arg ?? "").trim() === "--active-pointer-only"),
+  };
+}
+
+function step1TargetEnvironment() {
+  return String(process.env[STEP1_TARGET_ENVIRONMENT_ENV] ?? "production").trim() || "production";
+}
+
+function step1FileProofStorePath() {
+  const value = String(process.env[STEP1_FILE_PROOF_STORE_PATH_ENV] ?? "").trim();
+  return value || null;
+}
+
+function step1ActivePointerSourceEnabled() {
+  return String(process.env[STEP1_ACTIVE_POINTER_SOURCE_ENV] ?? "").trim().toLowerCase() === "cutover";
+}
+
+function loadActivePublicationPointerFromProofStore(targetEnvironment) {
+  const storePath = step1FileProofStorePath();
+  if (!storePath) {
+    throw new Error("active_publication_pointer_proof_store_missing");
+  }
+
+  const parsed = JSON.parse(readFileSync(storePath, "utf8"));
+  const pointerRows = Array.isArray(parsed?.active_publication_pointer) ? parsed.active_publication_pointer : [];
+  const bundleRows = Array.isArray(parsed?.publication_bundles) ? parsed.publication_bundles : [];
+  const pointerRow = pointerRows.find(
+    (row) => String(row?.target_environment ?? "").trim() === targetEnvironment,
+  );
+  if (!pointerRow) {
+    throw new Error(`active_publication_pointer_missing:${targetEnvironment}`);
+  }
+  const publicationBundleId = toTextOrNull(pointerRow.publication_bundle_id);
+  const runId = toTextOrNull(pointerRow.run_id);
+  if (!publicationBundleId || !runId) {
+    throw new Error(`active_publication_pointer_invalid:${targetEnvironment}`);
+  }
+  const bundleRow = bundleRows.find(
+    (row) => String(row?.publication_bundle_id ?? "").trim() === publicationBundleId,
+  );
+  if (!bundleRow) {
+    throw new Error(`publication_bundle_missing:${publicationBundleId}`);
+  }
+  return {
+    publicationBundleId,
+    runId,
+    targetEnvironment,
+    source: "active_publication_pointer",
+  };
+}
+
+async function loadActivePublicationPointerFromPostgres(pool, targetEnvironment) {
+  const [pointerTableExists, bundleTableExists] = await Promise.all([
+    tableExists(pool, STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
+    tableExists(pool, STEP1_PUBLICATION_BUNDLES_TABLE),
+  ]);
+  if (!pointerTableExists || !bundleTableExists) {
+    throw new Error("step1_pointer_tables_missing");
+  }
+
+  const result = await pool.query(
+    `
+      SELECT
+        p.publication_bundle_id,
+        p.run_id,
+        p.target_environment
+      FROM ${STEP1_ACTIVE_PUBLICATION_POINTER_TABLE} AS p
+      INNER JOIN ${STEP1_PUBLICATION_BUNDLES_TABLE} AS b
+        ON b.publication_bundle_id = p.publication_bundle_id
+      WHERE p.target_environment = $1
+      LIMIT 1
+    `,
+    [targetEnvironment],
+  );
+  const row = result.rows[0] ?? null;
+  if (!row) {
+    throw new Error(`active_publication_pointer_missing:${targetEnvironment}`);
+  }
+  const publicationBundleId = toTextOrNull(row.publication_bundle_id);
+  const runId = toTextOrNull(row.run_id);
+  if (!publicationBundleId || !runId) {
+    throw new Error(`active_publication_pointer_invalid:${targetEnvironment}`);
+  }
+  return {
+    publicationBundleId,
+    runId,
+    targetEnvironment,
+    source: "active_publication_pointer",
+  };
+}
+
 async function main() {
+  const args = parseArgs(process.argv);
+  const targetEnvironment = step1TargetEnvironment();
+
+  if (args.activePointerOnly) {
+    if (!step1ActivePointerSourceEnabled()) {
+      throw new Error("step1_active_pointer_source_disabled");
+    }
+
+    if (step1FileProofStorePath()) {
+      process.stdout.write(`${JSON.stringify({
+        ok: true,
+        ...loadActivePublicationPointerFromProofStore(targetEnvironment),
+      })}\n`);
+      return;
+    }
+  }
+
   const pool = new Pool({
     host: readRequiredEnv("PGHOST", "TFE_DB_HOST"),
     database: readRequiredEnv("PGDATABASE", "TFE_DB_NAME"),
@@ -169,6 +285,14 @@ async function main() {
   });
 
   try {
+    if (args.activePointerOnly) {
+      process.stdout.write(`${JSON.stringify({
+        ok: true,
+        ...(await loadActivePublicationPointerFromPostgres(pool, targetEnvironment)),
+      })}\n`);
+      return;
+    }
+
     const runsTableExists = await tableExists(pool, RUNS_TABLE);
     if (!runsTableExists) {
       throw new Error(`table_missing:${RUNS_TABLE}`);

@@ -18,6 +18,17 @@ import {
   toNumberOrNull,
   toTextOrNull,
 } from "@/lib/runtime-db";
+import {
+  readStep1ProofStore,
+  selectStep1ActivePublicationPointerRow,
+  selectStep1PublicationBundleRow,
+} from "./step1/schema";
+
+const STEP1_ACTIVE_PUBLICATION_POINTER_TABLE = "active_publication_pointer";
+const STEP1_PUBLICATION_BUNDLES_TABLE = "publication_bundles";
+const STEP1_ACTIVE_POINTER_SOURCE_ENV = "TFE_STEP1_ACTIVE_POINTER_SOURCE";
+const STEP1_FILE_PROOF_STORE_PATH_ENV = "TFE_STEP1_FILE_PROOF_STORE_PATH";
+const STEP1_TARGET_ENVIRONMENT_ENV = "TFE_STEP1_TARGET_ENVIRONMENT";
 
 export type PublicationActivationState =
   | "activated"
@@ -143,6 +154,15 @@ type RuntimeActiveRowMeta = {
   error: string | null;
 };
 
+export type ActivePublicationBundlePointerResolution = {
+  publicationBundleId: string | null;
+  runId: string | null;
+  targetEnvironment: string | null;
+  sourceKind: "active_publication_pointer" | null;
+  sourcePath: string | null;
+  failures: AttemptFailure[];
+};
+
 type PersistPublicationStateParams = {
   runId: string;
   activationState: PublicationActivationState;
@@ -152,6 +172,210 @@ type PersistPublicationStateParams = {
   failureCode?: string | null;
   failureDetail?: string | null;
 };
+
+function step1ActivePointerSourceEnabled(): boolean {
+  return String(process.env[STEP1_ACTIVE_POINTER_SOURCE_ENV] ?? "").trim().toLowerCase() === "cutover";
+}
+
+function step1FileProofStorePath(): string | null {
+  const value = String(process.env[STEP1_FILE_PROOF_STORE_PATH_ENV] ?? "").trim();
+  return value || null;
+}
+
+function step1TargetEnvironment(): string {
+  return String(process.env[STEP1_TARGET_ENVIRONMENT_ENV] ?? "production").trim() || "production";
+}
+
+function step1ActivePointerSourcePath(targetEnvironment: string): string {
+  const proofStorePath = step1FileProofStorePath();
+  if (proofStorePath) {
+    return `${proofStorePath}#active_publication_pointer/${targetEnvironment}`;
+  }
+  return postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE);
+}
+
+async function resolveStep1ProofStoreActivePublicationBundleId(
+  targetEnvironment: string,
+): Promise<ActivePublicationBundlePointerResolution> {
+  const storePath = step1FileProofStorePath();
+  const sourcePath = step1ActivePointerSourcePath(targetEnvironment);
+  const failures: AttemptFailure[] = [];
+  if (!storePath) {
+    failures.push({
+      path: sourcePath,
+      reason: "TFE_STEP1_FILE_PROOF_STORE_PATH is not configured.",
+    });
+    return {
+      publicationBundleId: null,
+      runId: null,
+      targetEnvironment,
+      sourceKind: "active_publication_pointer",
+      sourcePath,
+      failures,
+    };
+  }
+
+  const store = await readStep1ProofStore(storePath);
+  const pointerRow = selectStep1ActivePublicationPointerRow(store, targetEnvironment);
+  if (!pointerRow) {
+    failures.push({
+      path: sourcePath,
+      reason: `No active_publication_pointer row exists for target_environment='${targetEnvironment}'.`,
+    });
+    return {
+      publicationBundleId: null,
+      runId: null,
+      targetEnvironment,
+      sourceKind: "active_publication_pointer",
+      sourcePath,
+      failures,
+    };
+  }
+
+  const bundleRow = selectStep1PublicationBundleRow(store, pointerRow.publication_bundle_id);
+  if (!bundleRow) {
+    failures.push({
+      path: sourcePath,
+      reason: `publication_bundles row missing for publication_bundle_id='${pointerRow.publication_bundle_id}'.`,
+    });
+    return {
+      publicationBundleId: null,
+      runId: pointerRow.run_id,
+      targetEnvironment,
+      sourceKind: "active_publication_pointer",
+      sourcePath,
+      failures,
+    };
+  }
+
+  return {
+    publicationBundleId: bundleRow.publication_bundle_id,
+    runId: pointerRow.run_id,
+    targetEnvironment,
+    sourceKind: "active_publication_pointer",
+    sourcePath,
+    failures,
+  };
+}
+
+async function resolveStep1PostgresActivePublicationBundleId(
+  pool: Pool,
+  targetEnvironment: string,
+): Promise<ActivePublicationBundlePointerResolution> {
+  const sourcePath = postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE);
+  const failures: AttemptFailure[] = [];
+  const [pointerTableExists, bundleTableExists] = await Promise.all([
+    tableExists(pool, STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
+    tableExists(pool, STEP1_PUBLICATION_BUNDLES_TABLE),
+  ]);
+  if (!pointerTableExists || !bundleTableExists) {
+    failures.push({
+      path: sourcePath,
+      reason: "Step 1 publication pointer tables are not available.",
+    });
+    return {
+      publicationBundleId: null,
+      runId: null,
+      targetEnvironment,
+      sourceKind: "active_publication_pointer",
+      sourcePath,
+      failures,
+    };
+  }
+
+  const result = await pool.query<Record<string, unknown>>(
+    `
+      SELECT
+        p.publication_bundle_id,
+        p.run_id,
+        p.target_environment
+      FROM ${STEP1_ACTIVE_PUBLICATION_POINTER_TABLE} AS p
+      INNER JOIN ${STEP1_PUBLICATION_BUNDLES_TABLE} AS b
+        ON b.publication_bundle_id = p.publication_bundle_id
+      WHERE p.target_environment = $1
+      LIMIT 1
+    `,
+    [targetEnvironment],
+  );
+
+  if (result.rows.length === 0) {
+    failures.push({
+      path: sourcePath,
+      reason: `No active_publication_pointer row exists for target_environment='${targetEnvironment}'.`,
+    });
+    return {
+      publicationBundleId: null,
+      runId: null,
+      targetEnvironment,
+      sourceKind: "active_publication_pointer",
+      sourcePath,
+      failures,
+    };
+  }
+
+  return {
+    publicationBundleId: toTextOrNull(result.rows[0]?.publication_bundle_id),
+    runId: toTextOrNull(result.rows[0]?.run_id),
+    targetEnvironment: toTextOrNull(result.rows[0]?.target_environment) ?? targetEnvironment,
+    sourceKind: "active_publication_pointer",
+    sourcePath,
+    failures,
+  };
+}
+
+export async function resolveAdminActivePublicationBundleId(): Promise<ActivePublicationBundlePointerResolution> {
+  const targetEnvironment = step1TargetEnvironment();
+  if (!step1ActivePointerSourceEnabled()) {
+    return {
+      publicationBundleId: null,
+      runId: null,
+      targetEnvironment,
+      sourceKind: null,
+      sourcePath: null,
+      failures: [],
+    };
+  }
+
+  const proofStorePath = step1FileProofStorePath();
+  if (proofStorePath) {
+    return resolveStep1ProofStoreActivePublicationBundleId(targetEnvironment);
+  }
+
+  if (!runtimeSourceIsPostgres()) {
+    return {
+      publicationBundleId: null,
+      runId: null,
+      targetEnvironment,
+      sourceKind: "active_publication_pointer",
+      sourcePath: postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
+      failures: [
+        {
+          path: postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
+          reason: `Runtime source is '${resolveRuntimeSource()}'; expected 'postgres'.`,
+        },
+      ],
+    };
+  }
+
+  if (!isPostgresConfigured()) {
+    return {
+      publicationBundleId: null,
+      runId: null,
+      targetEnvironment,
+      sourceKind: "active_publication_pointer",
+      sourcePath: postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
+      failures: [
+        {
+          path: postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
+          reason: "Postgres runtime source required, but PGHOST/PGDATABASE/PGUSER/PGPASSWORD is not fully configured.",
+        },
+      ],
+    };
+  }
+
+  const pool = resolveRuntimePostgresPool();
+  return resolveStep1PostgresActivePublicationBundleId(pool, targetEnvironment);
+}
 
 function normalizePositiveInt(value: unknown, fallback: number, minimum: number, maximum: number): number {
   const n = Number(value);
@@ -401,6 +625,14 @@ async function queryLatestRefreshRun(pool: Pool, columns: RefreshRunColumnPresen
 }
 
 async function queryActiveRefreshRun(pool: Pool, columns: RefreshRunColumnPresence): Promise<PublicationRefreshRunRow | null> {
+  if (step1ActivePointerSourceEnabled() && !step1FileProofStorePath()) {
+    const pointerResolution = await resolveStep1PostgresActivePublicationBundleId(pool, step1TargetEnvironment());
+    if (pointerResolution.runId) {
+      return queryRefreshRunByRunId(pool, columns, pointerResolution.runId);
+    }
+    return null;
+  }
+
   if (!columns.isActivePublication) {
     return null;
   }

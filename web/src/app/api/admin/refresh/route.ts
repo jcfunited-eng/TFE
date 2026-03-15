@@ -31,12 +31,37 @@ import {
   readAdminRefreshPersist,
   writeAdminRefreshPersist,
 } from "@/lib/admin-refresh-persist";
+import {
+  dispatchStep1Orchestrator,
+  STEP1_CUTOVER_EXECUTION_PATH,
+  STEP1_CUTOVER_MODE_ENV,
+  STEP1_CUTOVER_PROOF_STORE_ENV,
+  STEP1_CUTOVER_REQUEST_MODE,
+  STEP1_EXISTING_ADMIN_REFRESH_MODE,
+  STEP1_LEGACY_PATH_STATUS,
+  resolveStep1OrchestratorInputFromAdminRefreshRequest,
+  type Step1CutoverExecutionMode,
+} from "@/lib/step1/orchestrator";
 import { resolveWorkspaceRoot } from "@/lib/workspace-root";
 
 type RefreshMode = "snapshot" | "universe_snapshot";
 type RefreshTriggerSource = "manual" | "scheduled" | "program";
 type RefreshHistoryPhase = "start" | "start_failed" | "complete";
 type RefreshHistoryStatus = "running" | "ok" | "error";
+type Step1CutoverRequestBody = {
+  mode?: unknown;
+  runId?: unknown;
+  normalizedPackageId?: unknown;
+  policySetId?: unknown;
+  modelSetId?: unknown;
+  configSetId?: unknown;
+  bundleClass?: unknown;
+  dependencyClassificationRegister?: unknown;
+  targetEnvironment?: unknown;
+  requestedAtUtc?: unknown;
+  assessmentRuleSetId?: unknown;
+  followupDesiredStatus?: unknown;
+};
 
 type RefreshReport = {
   generated_at_utc?: string;
@@ -168,6 +193,21 @@ function nowIso(): string {
 
 function isRefreshMode(value: unknown): value is RefreshMode {
   return value === "snapshot" || value === "universe_snapshot";
+}
+
+function isStep1CutoverMode(value: unknown): boolean {
+  return value === STEP1_CUTOVER_REQUEST_MODE;
+}
+
+function resolveStep1CutoverExecutionMode(): Step1CutoverExecutionMode | null {
+  const raw = String(process.env[STEP1_CUTOVER_MODE_ENV] ?? "").trim().toLowerCase();
+  if (raw === "readonly" || raw === "enabled") return raw;
+  return null;
+}
+
+function resolveStep1ProofStorePath(): string | null {
+  const proofStorePath = String(process.env[STEP1_CUTOVER_PROOF_STORE_ENV] ?? "").trim();
+  return proofStorePath || null;
 }
 
 function normalizeRefreshMode(value: unknown): RefreshMode | undefined {
@@ -2653,11 +2693,13 @@ async function requireAdmin(request: Request): Promise<NextResponse | null> {
   return null;
 }
 
-async function resolveRequestedMode(request: Request): Promise<{ mode?: unknown; parseError?: string }> {
+async function resolveRequestedMode(
+  request: Request,
+): Promise<{ mode?: unknown; body?: Step1CutoverRequestBody | null; parseError?: string }> {
   const url = new URL(request.url);
   const fromQuery = url.searchParams.get("mode");
   if (fromQuery) {
-    return { mode: fromQuery };
+    return { mode: fromQuery, body: null };
   }
 
   let text = "";
@@ -2669,14 +2711,75 @@ async function resolveRequestedMode(request: Request): Promise<{ mode?: unknown;
 
   const trimmed = text.trim();
   if (!trimmed) {
-    return { mode: undefined };
+    return { mode: undefined, body: null };
   }
 
   try {
-    const parsed = JSON.parse(trimmed) as { mode?: unknown };
-    return { mode: parsed.mode };
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return { parseError: "JSON body must be an object." };
+    }
+    const body = parsed as Step1CutoverRequestBody;
+    return { mode: body.mode, body };
   } catch {
     return { parseError: "Invalid JSON body." };
+  }
+}
+
+async function handleStep1CutoverPost(params: {
+  requestedBody: Step1CutoverRequestBody | null;
+  requestedBy: string;
+  cutoverMode: Step1CutoverExecutionMode;
+  requestedMode: string;
+}): Promise<NextResponse> {
+  const proofStorePath = params.cutoverMode === "readonly" ? resolveStep1ProofStorePath() : undefined;
+  if (params.cutoverMode === "readonly" && !proofStorePath) {
+    return NextResponse.json(
+      {
+        error: `Readonly Step 1 cutover requires ${STEP1_CUTOVER_PROOF_STORE_ENV}.`,
+        dispatchPath: STEP1_CUTOVER_EXECUTION_PATH,
+        legacyStep1PathStatus: STEP1_LEGACY_PATH_STATUS,
+        legacyRunnerDispatched: false,
+      },
+      { status: 409 },
+    );
+  }
+
+  try {
+    const resolved = resolveStep1OrchestratorInputFromAdminRefreshRequest({
+      requestBody: params.requestedBody as Record<string, unknown> | null,
+      requestedBy: params.requestedBy,
+      executionMode: params.cutoverMode,
+      requestedMode: params.requestedMode,
+      env: process.env,
+    });
+    const result = await dispatchStep1Orchestrator(resolved.input, {
+      executionMode: params.cutoverMode,
+      proofStorePath: proofStorePath ?? undefined,
+      workspaceRoot: resolveWorkspaceRoot(),
+    });
+    return NextResponse.json({
+      step1Cutover: true,
+      requestedMode: params.requestedMode,
+      step1ContractSource: resolved.contractSource,
+      dispatchPath: STEP1_CUTOVER_EXECUTION_PATH,
+      legacyStep1PathStatus: STEP1_LEGACY_PATH_STATUS,
+      legacyRunnerDispatched: false,
+      result,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Step 1 cutover dispatch failed.";
+    return NextResponse.json(
+      {
+        error: message,
+        step1Cutover: true,
+        requestedMode: params.requestedMode,
+        dispatchPath: STEP1_CUTOVER_EXECUTION_PATH,
+        legacyStep1PathStatus: STEP1_LEGACY_PATH_STATUS,
+        legacyRunnerDispatched: false,
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -2712,9 +2815,28 @@ export async function POST(request: Request) {
     requestedBy = sessionUser?.username ?? "admin";
   }
 
-  const modeInput = await resolveRequestedMode(request);
+  const modeInput = await resolveRequestedMode(request.clone());
   if (modeInput.parseError) {
     return NextResponse.json({ error: modeInput.parseError }, { status: 400 });
+  }
+
+  const cutoverMode = resolveStep1CutoverExecutionMode();
+  if (cutoverMode && modeInput.mode === STEP1_EXISTING_ADMIN_REFRESH_MODE) {
+    return handleStep1CutoverPost({
+      requestedBody: modeInput.body ?? null,
+      requestedBy,
+      cutoverMode,
+      requestedMode: STEP1_EXISTING_ADMIN_REFRESH_MODE,
+    });
+  }
+
+  if (cutoverMode && isStep1CutoverMode(modeInput.mode)) {
+    return handleStep1CutoverPost({
+      requestedBody: modeInput.body ?? null,
+      requestedBy,
+      cutoverMode,
+      requestedMode: STEP1_CUTOVER_REQUEST_MODE,
+    });
   }
 
   const modeValue = modeInput.mode;

@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { Pool } from "pg";
 
 const DEFAULT_DB_PORT = 5432;
 const DEFAULT_MIN_NON_META_FIELDS = 20;
 const DEFAULT_RECOVERY_CANDIDATE_LIMIT = 8;
+const STEP1_ACTIVE_PUBLICATION_POINTER_TABLE = "active_publication_pointer";
+const STEP1_PUBLICATION_BUNDLES_TABLE = "publication_bundles";
+const STEP1_ACTIVE_POINTER_SOURCE_ENV = "TFE_STEP1_ACTIVE_POINTER_SOURCE";
+const STEP1_FILE_PROOF_STORE_PATH_ENV = "TFE_STEP1_FILE_PROOF_STORE_PATH";
+const STEP1_TARGET_ENVIRONMENT_ENV = "TFE_STEP1_TARGET_ENVIRONMENT";
 const MISSING_TEXT_MARKERS = new Set([
   "",
   "NONE",
@@ -95,10 +100,15 @@ function parseArgs(argv) {
   const out = {
     output: "",
     minRows: 1,
+    activePointerOnly: false,
   };
 
   for (let index = 2; index < argv.length; index += 1) {
     const arg = String(argv[index] ?? "").trim();
+    if (arg === "--active-pointer-only") {
+      out.activePointerOnly = true;
+      continue;
+    }
     if (arg === "--output") {
       out.output = String(argv[index + 1] ?? "").trim();
       index += 1;
@@ -113,6 +123,93 @@ function parseArgs(argv) {
   }
 
   return out;
+}
+
+function step1TargetEnvironment() {
+  return String(process.env[STEP1_TARGET_ENVIRONMENT_ENV] ?? "production").trim() || "production";
+}
+
+function step1FileProofStorePath() {
+  const value = String(process.env[STEP1_FILE_PROOF_STORE_PATH_ENV] ?? "").trim();
+  return value || null;
+}
+
+function step1ActivePointerSourceEnabled() {
+  return String(process.env[STEP1_ACTIVE_POINTER_SOURCE_ENV] ?? "").trim().toLowerCase() === "cutover";
+}
+
+function loadActivePublicationPointerFromProofStore(targetEnvironment) {
+  const storePath = step1FileProofStorePath();
+  if (!storePath) {
+    throw new Error("active_publication_pointer_proof_store_missing");
+  }
+
+  const parsed = JSON.parse(readFileSync(storePath, "utf8"));
+  const pointerRows = Array.isArray(parsed?.active_publication_pointer) ? parsed.active_publication_pointer : [];
+  const bundleRows = Array.isArray(parsed?.publication_bundles) ? parsed.publication_bundles : [];
+  const pointerRow = pointerRows.find(
+    (row) => String(row?.target_environment ?? "").trim() === targetEnvironment,
+  );
+  if (!pointerRow) {
+    throw new Error(`active_publication_pointer_missing:${targetEnvironment}`);
+  }
+  const publicationBundleId = toTextOrNull(pointerRow.publication_bundle_id);
+  const runId = toTextOrNull(pointerRow.run_id);
+  if (!publicationBundleId || !runId) {
+    throw new Error(`active_publication_pointer_invalid:${targetEnvironment}`);
+  }
+  const bundleRow = bundleRows.find(
+    (row) => String(row?.publication_bundle_id ?? "").trim() === publicationBundleId,
+  );
+  if (!bundleRow) {
+    throw new Error(`publication_bundle_missing:${publicationBundleId}`);
+  }
+  return {
+    publicationBundleId,
+    runId,
+    targetEnvironment,
+    source: "active_publication_pointer",
+  };
+}
+
+async function loadActivePublicationPointerFromPostgres(client, targetEnvironment) {
+  const [pointerTableExists, bundleTableExists] = await Promise.all([
+    client.query(`SELECT to_regclass($1) AS oid`, [STEP1_ACTIVE_PUBLICATION_POINTER_TABLE]),
+    client.query(`SELECT to_regclass($1) AS oid`, [STEP1_PUBLICATION_BUNDLES_TABLE]),
+  ]);
+  if (!String(pointerTableExists.rows[0]?.oid ?? "").trim() || !String(bundleTableExists.rows[0]?.oid ?? "").trim()) {
+    throw new Error("step1_pointer_tables_missing");
+  }
+
+  const result = await client.query(
+    `
+      SELECT
+        p.publication_bundle_id,
+        p.run_id,
+        p.target_environment
+      FROM ${STEP1_ACTIVE_PUBLICATION_POINTER_TABLE} AS p
+      INNER JOIN ${STEP1_PUBLICATION_BUNDLES_TABLE} AS b
+        ON b.publication_bundle_id = p.publication_bundle_id
+      WHERE p.target_environment = $1
+      LIMIT 1
+    `,
+    [targetEnvironment],
+  );
+  const row = result.rows[0] ?? null;
+  if (!row) {
+    throw new Error(`active_publication_pointer_missing:${targetEnvironment}`);
+  }
+  const publicationBundleId = toTextOrNull(row.publication_bundle_id);
+  const runId = toTextOrNull(row.run_id);
+  if (!publicationBundleId || !runId) {
+    throw new Error(`active_publication_pointer_invalid:${targetEnvironment}`);
+  }
+  return {
+    publicationBundleId,
+    runId,
+    targetEnvironment,
+    source: "active_publication_pointer",
+  };
 }
 
 function toTextOrNull(value) {
@@ -470,6 +567,28 @@ function summarizeCandidate(candidate) {
 
 async function main() {
   const args = parseArgs(process.argv);
+  const targetEnvironment = step1TargetEnvironment();
+
+  if (args.activePointerOnly) {
+    if (!step1ActivePointerSourceEnabled()) {
+      throw new Error("step1_active_pointer_source_disabled");
+    }
+
+    if (step1FileProofStorePath()) {
+      console.log(
+        JSON.stringify(
+          {
+            status: "ok",
+            ...loadActivePublicationPointerFromProofStore(targetEnvironment),
+          },
+          null,
+          2,
+        ),
+      );
+      return;
+    }
+  }
+
   const root = resolveWorkspaceRoot();
   const outputPath = path.resolve(args.output || path.join(root, "web", "data", "screener-quote-cache.json"));
   const seededAtUtc = new Date().toISOString();
@@ -478,6 +597,20 @@ async function main() {
   const pool = resolvePool();
   const client = await pool.connect();
   try {
+    if (args.activePointerOnly) {
+      console.log(
+        JSON.stringify(
+          {
+            status: "ok",
+            ...(await loadActivePublicationPointerFromPostgres(client, targetEnvironment)),
+          },
+          null,
+          2,
+        ),
+      );
+      return;
+    }
+
     const selection = await chooseSeedCandidate(client, minNonMetaFields, seededAtUtc);
     const selected = selection.selected;
     console.log(
