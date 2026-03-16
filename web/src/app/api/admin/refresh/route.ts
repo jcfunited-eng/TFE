@@ -98,6 +98,23 @@ type RefreshStatusRecord = {
   current_phase_failure_detail?: string | null;
 };
 
+type RefreshLaunchResult = {
+  status: RefreshStatusRecord;
+  internalAuthorized: boolean;
+  refreshScript: typeof REFRESH_SCRIPT;
+};
+
+type RefreshLaunchAttempt =
+  | {
+    ok: true;
+    payload: RefreshLaunchResult;
+  }
+  | {
+    ok: false;
+    error: string;
+    status: RefreshStatusRecord;
+  };
+
 type RefreshPhaseLedgerRecord = {
   phase_name: string;
   input_contract: Record<string, unknown> | null;
@@ -2783,6 +2800,182 @@ async function handleStep1CutoverPost(params: {
   }
 }
 
+async function launchRefreshProcess(params: {
+  modeValue: RefreshMode;
+  currentStatus: RefreshStatusRecord;
+  internalAuthorized: boolean;
+  triggerSource: RefreshTriggerSource;
+  requestedBy: string;
+}): Promise<RefreshLaunchAttempt> {
+  const args = buildRefreshArgs(params.modeValue);
+  const pythonBin = resolvePythonBin();
+  const runId = randomUUID();
+
+  try {
+    const logFd = openSync(LOG_PATH, "a");
+    const startedAtIso = nowIso();
+
+    const child = spawn(pythonBin, args, {
+      cwd: ROOT_DIR,
+      detached: true,
+      stdio: ["ignore", logFd, logFd],
+      env: {
+        ...buildRefreshEnv(params.modeValue, process.env),
+        PYTHONUNBUFFERED: String(process.env.PYTHONUNBUFFERED ?? "1"),
+        TFE_REFRESH_HISTORY_PATH: HISTORY_PATH,
+        TFE_REFRESH_RUN_ID: runId,
+        TFE_REFRESH_REQUESTED_MODE: params.modeValue,
+        TFE_REFRESH_TRIGGER_SOURCE: params.triggerSource,
+        TFE_REFRESH_REQUESTED_BY: params.requestedBy,
+        TFE_REFRESH_STARTED_AT: startedAtIso,
+      },
+    });
+
+    closeSync(logFd);
+    child.unref();
+
+    try {
+      await upsertRuntimeRefreshRunStartStrict({
+        runId,
+        mode: params.modeValue,
+        triggerSource: params.triggerSource,
+        requestedBy: params.requestedBy,
+        startedAtIso,
+      });
+    } catch (error) {
+      try {
+        if (typeof child.pid === "number" && child.pid > 0) {
+          process.kill(child.pid, "SIGTERM");
+        }
+      } catch {
+        // Best-effort child termination.
+      }
+      const message = error instanceof Error ? error.message : "runtime_refresh_runs_start_upsert_failed";
+      throw new Error(`Failed to persist runtime_refresh_runs start row for run_id=${runId}: ${message}`);
+    }
+
+    const nextStatus: RefreshStatusRecord = {
+      running: true,
+      pid: child.pid,
+      run_id: runId,
+      requested_mode: params.modeValue,
+      trigger_source: params.triggerSource,
+      requested_by: params.requestedBy,
+      started_at: startedAtIso,
+      completed_at: undefined,
+      last_error: undefined,
+      report_generated_at_utc: params.currentStatus.report_generated_at_utc,
+      last_report: params.currentStatus.last_report,
+      completion_logged_for_run_id: undefined,
+    };
+
+    await writeStatusRecord(nextStatus);
+    await writeStartHistoryEntry("start", runId, params.modeValue, params.triggerSource, params.requestedBy, {
+      pid: child.pid,
+    });
+    registerRefreshChildLifecycle({
+      runId,
+      child,
+      mode: params.modeValue,
+      source: params.triggerSource,
+      requestedBy: params.requestedBy,
+      startedAtIso,
+    });
+
+    return {
+      ok: true,
+      payload: {
+        status: nextStatus,
+        internalAuthorized: params.internalAuthorized,
+        refreshScript: REFRESH_SCRIPT,
+      },
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to start refresh.";
+    const failedAtIso = nowIso();
+    const failedStatus: RefreshStatusRecord = {
+      running: false,
+      run_id: runId,
+      requested_mode: params.modeValue,
+      trigger_source: params.triggerSource,
+      requested_by: params.requestedBy,
+      started_at: failedAtIso,
+      completed_at: failedAtIso,
+      last_error: message,
+      report_generated_at_utc: params.currentStatus.report_generated_at_utc,
+      last_report: params.currentStatus.last_report,
+      completion_logged_for_run_id: runId,
+      activation_state: "activation_failed",
+      serving_state: "blocked",
+      blocking_reason_code: "REFRESH_START_FAILED",
+      blocking_reason_detail: message,
+    };
+
+    try {
+      await upsertRuntimeRefreshRunTerminalStrict({
+        runId,
+        mode: params.modeValue,
+        triggerSource: params.triggerSource,
+        requestedBy: params.requestedBy,
+        startedAtIso: failedAtIso,
+        completedAtIso: failedAtIso,
+        reportStatus: "error",
+      });
+    } catch (terminalPersistError) {
+      const failure = extractCriticalRefreshFailure(
+        createCriticalRefreshFailureError(
+          "RUNTIME_REFRESH_TERMINAL_PERSIST_FAILED",
+          terminalPersistError instanceof Error
+            ? terminalPersistError.message
+            : "Unknown terminal runtime_refresh_runs persistence failure.",
+        ),
+        "RUNTIME_REFRESH_TERMINAL_PERSIST_FAILED",
+      );
+      await recordCriticalRefreshFailure({
+        runId,
+        mode: params.modeValue,
+        source: params.triggerSource,
+        requestedBy: params.requestedBy,
+        startedAtIso: failedAtIso,
+        baseStatus: failedStatus,
+        failureCode: failure.failureCode,
+        failureDetail: failure.failureDetail,
+      });
+    }
+
+    try {
+      await writeStatusRecord(failedStatus);
+    } catch (statusWriteError) {
+      const failure = extractCriticalRefreshFailure(
+        createCriticalRefreshFailureError(
+          "REFRESH_STATUS_WRITE_FAILED",
+          statusWriteError instanceof Error ? statusWriteError.message : "Unknown refresh status write failure.",
+        ),
+        "REFRESH_STATUS_WRITE_FAILED",
+      );
+      await recordCriticalRefreshFailure({
+        runId,
+        mode: params.modeValue,
+        source: params.triggerSource,
+        requestedBy: params.requestedBy,
+        startedAtIso: failedAtIso,
+        baseStatus: failedStatus,
+        failureCode: failure.failureCode,
+        failureDetail: failure.failureDetail,
+      });
+    }
+
+    await writeStartHistoryEntry("start_failed", runId, params.modeValue, params.triggerSource, params.requestedBy, {
+      error: message,
+    });
+    return {
+      ok: false,
+      error: message,
+      status: failedStatus,
+    };
+  }
+}
+
 export async function GET(request: Request) {
   const denied = await requireAdmin(request);
   if (denied) return denied;
@@ -2820,13 +3013,66 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: modeInput.parseError }, { status: 400 });
   }
 
+  const currentStatus = await normalizeStatus();
   const cutoverMode = resolveStep1CutoverExecutionMode();
   if (cutoverMode && modeInput.mode === STEP1_EXISTING_ADMIN_REFRESH_MODE) {
-    return handleStep1CutoverPost({
+    if (currentStatus.running) {
+      return NextResponse.json({ error: "A refresh job is already running.", status: currentStatus }, { status: 409 });
+    }
+
+    if (cutoverMode !== "enabled") {
+      return handleStep1CutoverPost({
+        requestedBody: modeInput.body ?? null,
+        requestedBy,
+        cutoverMode,
+        requestedMode: STEP1_EXISTING_ADMIN_REFRESH_MODE,
+      });
+    }
+
+    const step1Response = await handleStep1CutoverPost({
       requestedBody: modeInput.body ?? null,
       requestedBy,
       cutoverMode,
       requestedMode: STEP1_EXISTING_ADMIN_REFRESH_MODE,
+    });
+    const step1Payload = await step1Response.json();
+    if (!step1Response.ok) {
+      return NextResponse.json(step1Payload, { status: step1Response.status });
+    }
+
+    const triggerSource = resolveTriggerSource(internalAuthorized, request);
+    const launch = await launchRefreshProcess({
+      modeValue: STEP1_EXISTING_ADMIN_REFRESH_MODE,
+      currentStatus,
+      internalAuthorized,
+      triggerSource,
+      requestedBy,
+    });
+    if (!launch.ok) {
+      return NextResponse.json(
+        {
+          error: launch.error,
+          status: launch.status,
+          step1Cutover: true,
+          requestedMode: STEP1_EXISTING_ADMIN_REFRESH_MODE,
+          dispatchPath: STEP1_CUTOVER_EXECUTION_PATH,
+          legacyStep1PathStatus: STEP1_LEGACY_PATH_STATUS,
+          legacyRunnerDispatched: true,
+          result: step1Payload.result ?? null,
+        },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({
+      ...launch.payload,
+      step1Cutover: true,
+      requestedMode: STEP1_EXISTING_ADMIN_REFRESH_MODE,
+      step1ContractSource: step1Payload.step1ContractSource,
+      dispatchPath: STEP1_CUTOVER_EXECUTION_PATH,
+      legacyStep1PathStatus: STEP1_LEGACY_PATH_STATUS,
+      legacyRunnerDispatched: true,
+      result: step1Payload.result,
     });
   }
 
@@ -2847,166 +3093,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const currentStatus = await normalizeStatus();
   if (currentStatus.running) {
     return NextResponse.json({ error: "A refresh job is already running.", status: currentStatus }, { status: 409 });
   }
 
-  const args = buildRefreshArgs(modeValue);
-  const pythonBin = resolvePythonBin();
-  const runId = randomUUID();
   const triggerSource = resolveTriggerSource(internalAuthorized, request);
-
-  try {
-    const logFd = openSync(LOG_PATH, "a");
-    const startedAtIso = nowIso();
-
-    const child = spawn(pythonBin, args, {
-      cwd: ROOT_DIR,
-      detached: true,
-      stdio: ["ignore", logFd, logFd],
-      env: {
-        ...buildRefreshEnv(modeValue, process.env),
-        PYTHONUNBUFFERED: String(process.env.PYTHONUNBUFFERED ?? "1"),
-        TFE_REFRESH_HISTORY_PATH: HISTORY_PATH,
-        TFE_REFRESH_RUN_ID: runId,
-        TFE_REFRESH_REQUESTED_MODE: modeValue,
-        TFE_REFRESH_TRIGGER_SOURCE: triggerSource,
-        TFE_REFRESH_REQUESTED_BY: requestedBy,
-        TFE_REFRESH_STARTED_AT: startedAtIso,
-      },
-    });
-
-    closeSync(logFd);
-    child.unref();
-
-    try {
-      await upsertRuntimeRefreshRunStartStrict({
-        runId,
-        mode: modeValue,
-        triggerSource,
-        requestedBy,
-        startedAtIso,
-      });
-    } catch (error) {
-      try {
-        if (typeof child.pid === "number" && child.pid > 0) {
-          process.kill(child.pid, "SIGTERM");
-        }
-      } catch {
-        // Best-effort child termination.
-      }
-      const message = error instanceof Error ? error.message : "runtime_refresh_runs_start_upsert_failed";
-      throw new Error(`Failed to persist runtime_refresh_runs start row for run_id=${runId}: ${message}`);
-    }
-
-    const nextStatus: RefreshStatusRecord = {
-      running: true,
-      pid: child.pid,
-      run_id: runId,
-      requested_mode: modeValue,
-      trigger_source: triggerSource,
-      requested_by: requestedBy,
-      started_at: startedAtIso,
-      completed_at: undefined,
-      last_error: undefined,
-      report_generated_at_utc: currentStatus.report_generated_at_utc,
-      last_report: currentStatus.last_report,
-      completion_logged_for_run_id: undefined,
-    };
-
-    await writeStatusRecord(nextStatus);
-    await writeStartHistoryEntry("start", runId, modeValue, triggerSource, requestedBy, {
-      pid: child.pid,
-    });
-    registerRefreshChildLifecycle({
-      runId,
-      child,
-      mode: modeValue,
-      source: triggerSource,
-      requestedBy,
-      startedAtIso,
-    });
-
-    return NextResponse.json({ status: nextStatus, internalAuthorized, refreshScript: REFRESH_SCRIPT });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to start refresh.";
-    const failedAtIso = nowIso();
-    const failedStatus: RefreshStatusRecord = {
-      running: false,
-      run_id: runId,
-      requested_mode: modeValue,
-      trigger_source: triggerSource,
-      requested_by: requestedBy,
-      started_at: failedAtIso,
-      completed_at: failedAtIso,
-      last_error: message,
-      report_generated_at_utc: currentStatus.report_generated_at_utc,
-      last_report: currentStatus.last_report,
-      completion_logged_for_run_id: runId,
-      activation_state: "activation_failed",
-      serving_state: "blocked",
-      blocking_reason_code: "REFRESH_START_FAILED",
-      blocking_reason_detail: message,
-    };
-
-    try {
-      await upsertRuntimeRefreshRunTerminalStrict({
-        runId,
-        mode: modeValue,
-        triggerSource,
-        requestedBy,
-        startedAtIso: failedAtIso,
-        completedAtIso: failedAtIso,
-        reportStatus: "error",
-      });
-    } catch (terminalPersistError) {
-      const failure = extractCriticalRefreshFailure(
-        createCriticalRefreshFailureError(
-          "RUNTIME_REFRESH_TERMINAL_PERSIST_FAILED",
-          terminalPersistError instanceof Error
-            ? terminalPersistError.message
-            : "Unknown terminal runtime_refresh_runs persistence failure.",
-        ),
-        "RUNTIME_REFRESH_TERMINAL_PERSIST_FAILED",
-      );
-      await recordCriticalRefreshFailure({
-        runId,
-        mode: modeValue,
-        source: triggerSource,
-        requestedBy,
-        startedAtIso: failedAtIso,
-        baseStatus: failedStatus,
-        failureCode: failure.failureCode,
-        failureDetail: failure.failureDetail,
-      });
-    }
-
-    try {
-      await writeStatusRecord(failedStatus);
-    } catch (statusWriteError) {
-      const failure = extractCriticalRefreshFailure(
-        createCriticalRefreshFailureError(
-          "REFRESH_STATUS_WRITE_FAILED",
-          statusWriteError instanceof Error ? statusWriteError.message : "Unknown refresh status write failure.",
-        ),
-        "REFRESH_STATUS_WRITE_FAILED",
-      );
-      await recordCriticalRefreshFailure({
-        runId,
-        mode: modeValue,
-        source: triggerSource,
-        requestedBy,
-        startedAtIso: failedAtIso,
-        baseStatus: failedStatus,
-        failureCode: failure.failureCode,
-        failureDetail: failure.failureDetail,
-      });
-    }
-
-    await writeStartHistoryEntry("start_failed", runId, modeValue, triggerSource, requestedBy, {
-      error: message,
-    });
-    return NextResponse.json({ error: message, status: failedStatus, refreshScript: REFRESH_SCRIPT }, { status: 500 });
+  const launch = await launchRefreshProcess({
+    modeValue,
+    currentStatus,
+    internalAuthorized,
+    triggerSource,
+    requestedBy,
+  });
+  if (!launch.ok) {
+    return NextResponse.json({ error: launch.error, status: launch.status, refreshScript: REFRESH_SCRIPT }, { status: 500 });
   }
+
+  return NextResponse.json(launch.payload);
 }
