@@ -7,7 +7,11 @@ import {
 import { readSessionUserFromRequest } from "@/lib/auth-session";
 import { loadLivePriceMap, type LivePriceQuote } from "@/lib/live-price";
 import { loadCanonicalPublicationState, publicationContractFields } from "@/lib/publication-state";
-import { loadPublishedDecisionMapForRows, type PublishedDecisionRecord } from "@/lib/published-decision";
+import {
+  loadPublishedDecisionMapForRows,
+  type PublishedDecisionLoadResult,
+  type PublishedDecisionRecord,
+} from "@/lib/published-decision";
 import {
   quoteCachePriceFromRow,
   type ScreenerQuoteCacheRow,
@@ -58,6 +62,25 @@ type Summary = {
   realizedPnLPct: number | null;
   realizedPnLStatus: "unavailable_no_trade_ledger" | "computed_from_trade_ledger";
   realizedPnLMethod: "trade_ledger_required" | "trade_ledger_v1";
+};
+
+type UnresolvedPortfolioTicker = {
+  ticker: string;
+  status: "missing" | "invalid";
+  lots: number;
+  units: number;
+  costBasis: number;
+};
+
+type PortfolioProvenance = {
+  status: "ok" | "partial";
+  sourcePath: string | null;
+  failureCount: number;
+  rows_required: number;
+  rows_valid: number;
+  missingTickers: string[];
+  invalidTickers: string[];
+  unresolvedTickers: UnresolvedPortfolioTicker[];
 };
 
 type BenchmarkComparison = {
@@ -342,6 +365,72 @@ function buildAllocatorPlan(positions: PositionRow[], summary: Summary): Allocat
   };
 }
 
+function buildUnresolvedPortfolioTickers(
+  lots: PortfolioLot[],
+  publishedDecisionLoad: PublishedDecisionLoadResult,
+): UnresolvedPortfolioTicker[] {
+  const statusByTicker = new Map<string, UnresolvedPortfolioTicker["status"]>();
+
+  for (const ticker of publishedDecisionLoad.missingTickers) {
+    statusByTicker.set(ticker, "missing");
+  }
+  for (const ticker of publishedDecisionLoad.invalidTickers) {
+    statusByTicker.set(ticker, "invalid");
+  }
+
+  const aggregate = new Map<string, UnresolvedPortfolioTicker>();
+  for (const lot of lots) {
+    const ticker = normalizeTicker(lot.ticker);
+    const status = statusByTicker.get(ticker);
+    if (!ticker || !status) continue;
+
+    const existing = aggregate.get(ticker);
+    if (existing) {
+      existing.lots += 1;
+      existing.units += lot.units;
+      existing.costBasis += lot.units * lot.unitCost;
+      continue;
+    }
+
+    aggregate.set(ticker, {
+      ticker,
+      status,
+      lots: 1,
+      units: lot.units,
+      costBasis: lot.units * lot.unitCost,
+    });
+  }
+
+  return Array.from(aggregate.values()).sort((a, b) => a.ticker.localeCompare(b.ticker));
+}
+
+function buildPortfolioProvenance(
+  lots: PortfolioLot[],
+  publishedDecisionLoad: PublishedDecisionLoadResult,
+): PortfolioProvenance {
+  const unresolvedTickers = buildUnresolvedPortfolioTickers(lots, publishedDecisionLoad);
+  return {
+    status: unresolvedTickers.length > 0 ? "partial" : "ok",
+    sourcePath: publishedDecisionLoad.sourcePath,
+    failureCount: publishedDecisionLoad.failures.length,
+    rows_required: publishedDecisionLoad.rowsRequired,
+    rows_valid: publishedDecisionLoad.rowsValid,
+    missingTickers: publishedDecisionLoad.missingTickers,
+    invalidTickers: publishedDecisionLoad.invalidTickers,
+    unresolvedTickers,
+  };
+}
+
+function buildPortfolioWarning(unresolvedTickers: UnresolvedPortfolioTicker[]): string | null {
+  if (unresolvedTickers.length === 0) return null;
+
+  const labels = unresolvedTickers.map((row) => row.ticker).join(", ");
+  const unresolvedLotCount = unresolvedTickers.reduce((sum, row) => sum + row.lots, 0);
+  const unresolvedCostBasis = unresolvedTickers.reduce((sum, row) => sum + row.costBasis, 0);
+
+  return `Portfolio analytics exclude unresolved published decision provenance for ${labels}. Excluded lots=${unresolvedLotCount}. Excluded cost basis=${unresolvedCostBasis.toFixed(2)}.`;
+}
+
 function aggregatePositions(
   lots: PortfolioLot[],
   snapshotRows: SnapshotLoadResult["rows"],
@@ -419,9 +508,9 @@ function buildSummary(lots: PortfolioLot[], positions: PositionRow[]): Summary {
   let totalUnits = 0;
   let totalCostBasis = 0;
 
-  for (const lot of lots) {
-    totalUnits += lot.units;
-    totalCostBasis += lot.units * lot.unitCost;
+  for (const position of positions) {
+    totalUnits += position.units;
+    totalCostBasis += position.costBasis;
   }
 
   let totalMarketValue = 0;
@@ -618,30 +707,8 @@ export async function GET(request: Request) {
     snapshotRows,
     uniqueTickers,
   );
-  if (!publishedDecisionLoad.ok) {
-    return NextResponse.json(
-      {
-        error: "Portfolio is unavailable because persisted published decision provenance is missing or invalid.",
-        blocked: true,
-        status: "blocked",
-        ...publicationFields,
-        source: portfolio.filePath,
-        snapshotSource,
-        snapshotFailures,
-        quoteSource: quoteCache.sourcePath,
-        quoteFailures: quoteCache.failures,
-        provenance: {
-          sourcePath: publishedDecisionLoad.sourcePath,
-          failureCount: publishedDecisionLoad.failures.length,
-          rows_required: publishedDecisionLoad.rowsRequired,
-          rows_valid: publishedDecisionLoad.rowsValid,
-          missingTickers: publishedDecisionLoad.missingTickers,
-          invalidTickers: publishedDecisionLoad.invalidTickers,
-        },
-      },
-      { status: 503 },
-    );
-  }
+  const portfolioProvenance = buildPortfolioProvenance(portfolio.lots, publishedDecisionLoad);
+  const portfolioWarning = buildPortfolioWarning(portfolioProvenance.unresolvedTickers);
 
   const positions = aggregatePositions(
     portfolio.lots,
@@ -661,6 +728,8 @@ export async function GET(request: Request) {
     summary,
     benchmark,
     allocatorPlan,
+    warning: portfolioWarning,
+    provenance: portfolioProvenance,
     source: portfolio.filePath,
     snapshotSource,
     snapshotFailures,

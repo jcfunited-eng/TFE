@@ -99,12 +99,33 @@ type AllocatorPlan = {
   rows: AllocatorRow[];
 };
 
+type UnresolvedPortfolioTicker = {
+  ticker: string;
+  status: "missing" | "invalid";
+  lots: number;
+  units: number;
+  costBasis: number;
+};
+
+type PortfolioProvenance = {
+  status: "ok" | "partial";
+  sourcePath: string | null;
+  failureCount: number;
+  rows_required: number;
+  rows_valid: number;
+  missingTickers: string[];
+  invalidTickers: string[];
+  unresolvedTickers: UnresolvedPortfolioTicker[];
+};
+
 type PortfolioResponse = {
   lots: PortfolioLot[];
   positions: PositionRow[];
   summary: PortfolioSummary;
   benchmark?: PortfolioBenchmarkComparison;
   allocatorPlan?: AllocatorPlan;
+  warning?: string | null;
+  provenance?: PortfolioProvenance;
   source?: string;
   snapshotSource?: string;
   quoteSource?: string;
@@ -876,12 +897,23 @@ export default function PortfolioAdvisorManager() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [warning, setWarning] = useState("");
 
   const [lots, setLots] = useState<PortfolioLot[]>([]);
   const [positions, setPositions] = useState<PositionRow[]>([]);
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
   const [benchmark, setBenchmark] = useState<PortfolioBenchmarkComparison | null>(null);
   const [allocatorPlan, setAllocatorPlan] = useState<AllocatorPlan | null>(null);
+  const [portfolioProvenance, setPortfolioProvenance] = useState<PortfolioProvenance>({
+    status: "ok",
+    sourcePath: null,
+    failureCount: 0,
+    rows_required: 0,
+    rows_valid: 0,
+    missingTickers: [],
+    invalidTickers: [],
+    unresolvedTickers: [],
+  });
   const [portfolioMeta, setPortfolioMeta] = useState<{
     source: string;
     snapshotSource: string;
@@ -932,12 +964,23 @@ export default function PortfolioAdvisorManager() {
   async function loadPortfolio() {
     setLoading(true);
     setError("");
+    setWarning("");
 
     try {
       const response = await fetch("/api/portfolio", { method: "GET", cache: "no-store" });
       const payload = (await response.json()) as PortfolioResponse;
 
       if (!response.ok) {
+        setPortfolioProvenance({
+          status: "ok",
+          sourcePath: null,
+          failureCount: 0,
+          rows_required: 0,
+          rows_valid: 0,
+          missingTickers: [],
+          invalidTickers: [],
+          unresolvedTickers: [],
+        });
         setError(payload.error ?? "Failed to load portfolio.");
         return;
       }
@@ -947,6 +990,19 @@ export default function PortfolioAdvisorManager() {
       setSummary(payload.summary ?? null);
       setBenchmark(payload.benchmark ?? null);
       setAllocatorPlan(payload.allocatorPlan ?? null);
+      setWarning(String(payload.warning ?? ""));
+      setPortfolioProvenance(
+        payload.provenance ?? {
+          status: "ok",
+          sourcePath: null,
+          failureCount: 0,
+          rows_required: 0,
+          rows_valid: 0,
+          missingTickers: [],
+          invalidTickers: [],
+          unresolvedTickers: [],
+        },
+      );
       setPortfolioMeta({
         source: String(payload.source ?? ""),
         snapshotSource: String(payload.snapshotSource ?? ""),
@@ -956,6 +1012,16 @@ export default function PortfolioAdvisorManager() {
         generatedAtUtc: String(payload.generated_at_utc ?? ""),
       });
     } catch {
+      setPortfolioProvenance({
+        status: "ok",
+        sourcePath: null,
+        failureCount: 0,
+        rows_required: 0,
+        rows_valid: 0,
+        missingTickers: [],
+        invalidTickers: [],
+        unresolvedTickers: [],
+      });
       setError("Failed to load portfolio due to network error.");
     } finally {
       setLoading(false);
@@ -1317,6 +1383,11 @@ export default function PortfolioAdvisorManager() {
           {message ? <span className="tfe-success">{message}</span> : null}
           {error ? <span className="tfe-error">{error}</span> : null}
         </div>
+        {warning ? (
+          <p className="tfe-error" style={{ marginTop: 8, marginBottom: 0 }}>
+            {warning}
+          </p>
+        ) : null}
       </section>
 
       <section className="tfe-panel">
@@ -1344,6 +1415,14 @@ export default function PortfolioAdvisorManager() {
           >
             <span className="k">Benchmark Compare</span>
             <span className="v">{formatBenchmarkStatusShort(benchmark?.status)}</span>
+          </div>
+          <div className={`tfe-status-pill ${portfolioProvenance.status === "ok" ? "is-good" : "is-warn"}`}>
+            <span className="k">Published Provenance</span>
+            <span className="v">
+              {portfolioProvenance.status === "ok"
+                ? "Complete"
+                : `Partial (${portfolioProvenance.unresolvedTickers.map((row) => row.ticker).join(", ")})`}
+            </span>
           </div>
         </div>
       </section>
@@ -1379,6 +1458,16 @@ export default function PortfolioAdvisorManager() {
         <article className="tfe-summary-card">
           <div className="k">Quote Source</div>
           <div className="v" title={portfolioMeta.quoteSource || "N/A"}>{portfolioMeta.quoteSource || "N/A"}</div>
+        </article>
+
+        <article className="tfe-summary-card">
+          <div className="k">Published Provenance</div>
+          <div className="v">{portfolioProvenance.status === "ok" ? "Complete" : "Partial"}</div>
+          <div className="k" style={{ marginTop: 6 }}>
+            {portfolioProvenance.unresolvedTickers.length > 0
+              ? portfolioProvenance.unresolvedTickers.map((row) => row.ticker).join(", ")
+              : "All saved tickers resolved"}
+          </div>
         </article>
         </section>
       </section>
