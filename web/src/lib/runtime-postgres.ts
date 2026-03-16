@@ -1,7 +1,6 @@
 import { loadServingRuntimePublicationBundleMeta } from "@/lib/runtime-publication-bundle";
 import {
   postgresSourceBase,
-  postgresSourcePath,
   resolveRuntimePostgresPool,
   resolveRuntimeSource,
   runtimeSourceIsPostgres,
@@ -46,6 +45,7 @@ type RuntimeServingBundleSelection = {
   runId: string | null;
   generatedAtUtc: string | null;
   activeRuntimeRunId: string | null;
+  activeRuntimeGeneratedAtUtc: string | null;
   fallbackApplied: boolean;
   failures: AttemptFailure[];
 };
@@ -138,6 +138,20 @@ export type RuntimeDecisionProvenanceLoadResult = {
   dataSource: "postgres";
   runId: string | null;
   generatedAtUtc: string | null;
+};
+
+type SnapshotQueryOutcome = {
+  rows: SnapshotRow[];
+  sourcePath: string;
+  generatedAtUtc: string | null;
+  emptyReason: string | null;
+};
+
+type QuoteQueryOutcome = {
+  quotes: Record<string, ScreenerQuoteCacheRow>;
+  sourcePath: string;
+  generatedAtUtc: string | null;
+  emptyReason: string | null;
 };
 
 type SnapshotCacheEntry = {
@@ -279,6 +293,7 @@ async function resolveServingBundleSelection(): Promise<RuntimeServingBundleSele
     runId: serving.runId,
     generatedAtUtc: serving.generatedAtUtc,
     activeRuntimeRunId: serving.activeRuntimeRunId,
+    activeRuntimeGeneratedAtUtc: serving.activeRuntimeGeneratedAtUtc,
     fallbackApplied: serving.fallbackApplied,
     failures,
   };
@@ -429,6 +444,59 @@ async function loadRuntimeSnapshotRowsFromPostgresRaw(): Promise<RuntimeSnapshot
     const servingBundle = await resolveServingBundleSelection();
     failures.push(...servingBundle.failures);
 
+    const loadRowsForRun = async (
+      runId: string,
+      tableName: string,
+      generatedAtUtcHint: string | null,
+    ): Promise<SnapshotQueryOutcome> => {
+      const sourcePath = `${postgresSourceBase()}#${tableName}?run_id=${runId}`;
+      attemptedPaths.push(sourcePath);
+
+      if (tableName === RUNTIME_DECISIONS_HISTORY_TABLE) {
+        const historyExists = await tableExists(pool, tableName);
+        if (!historyExists) {
+          return {
+            rows: [],
+            sourcePath,
+            generatedAtUtc: generatedAtUtcHint,
+            emptyReason: `Fallback snapshot table '${tableName}' does not exist.`,
+          };
+        }
+      }
+
+      const [rowsResult, meta] = await Promise.all([
+        pool.query<RuntimeSnapshotRowRecord>(
+          `
+            SELECT ticker, snapshot_row_json, run_id, generated_at_utc
+            FROM ${tableName}
+            WHERE run_id = $1
+            ORDER BY ticker ASC
+          `,
+          [runId],
+        ),
+        readRuntimeSourceMeta(pool, tableName, runId),
+      ]);
+
+      const rows: SnapshotRow[] = [];
+      for (const record of rowsResult.rows) {
+        const ticker = normalizeTicker(record.ticker);
+        if (!ticker) continue;
+        const parsed = parseSnapshotRow(record.snapshot_row_json);
+        if (!parsed) continue;
+        rows.push({
+          ...parsed,
+          ticker,
+        });
+      }
+
+      return {
+        rows,
+        sourcePath,
+        generatedAtUtc: generatedAtUtcHint ?? meta.generatedAtUtc,
+        emptyReason: rows.length === 0 ? "Runtime decisions table is empty." : null,
+      };
+    };
+
     const selectedRunId = String(servingBundle.runId ?? "").trim();
     if (!selectedRunId) {
       failures.push({
@@ -448,77 +516,61 @@ async function loadRuntimeSnapshotRowsFromPostgresRaw(): Promise<RuntimeSnapshot
 
     const useHistoryTable = servingBundle.activeRuntimeRunId !== selectedRunId;
     const selectedTable = useHistoryTable ? RUNTIME_DECISIONS_HISTORY_TABLE : RUNTIME_DECISIONS_TABLE;
-    const sourcePath = `${postgresSourceBase()}#${selectedTable}?run_id=${selectedRunId}`;
-    attemptedPaths.push(sourcePath);
-
-    if (useHistoryTable) {
-      const historyExists = await tableExists(pool, selectedTable);
-      if (!historyExists) {
-        failures.push({
-          path: sourcePath,
-          reason: `Fallback snapshot table '${selectedTable}' does not exist.`,
-        });
-        return {
-          rows: [],
-          sourcePath: null,
-          attemptedPaths,
-          failures,
-          dataSource: "postgres",
-          runId: selectedRunId,
-          generatedAtUtc: servingBundle.generatedAtUtc,
-        };
-      }
-    }
-
-    const [rowsResult, meta] = await Promise.all([
-      pool.query<RuntimeSnapshotRowRecord>(
-        `
-          SELECT ticker, snapshot_row_json, run_id, generated_at_utc
-          FROM ${selectedTable}
-          WHERE run_id = $1
-          ORDER BY ticker ASC
-        `,
-        [selectedRunId],
-      ),
-      readRuntimeSourceMeta(pool, selectedTable, selectedRunId),
-    ]);
-
-    const rows: SnapshotRow[] = [];
-    for (const record of rowsResult.rows) {
-      const ticker = normalizeTicker(record.ticker);
-      if (!ticker) continue;
-      const parsed = parseSnapshotRow(record.snapshot_row_json);
-      if (!parsed) continue;
-      rows.push({
-        ...parsed,
-        ticker,
-      });
-    }
-
-    if (rows.length === 0) {
-      failures.push({
-        path: sourcePath,
-        reason: "Runtime decisions table is empty.",
-      });
+    const selectedRows = await loadRowsForRun(selectedRunId, selectedTable, servingBundle.generatedAtUtc);
+    if (!selectedRows.emptyReason) {
       return {
-        rows: [],
-        sourcePath: null,
+        rows: selectedRows.rows,
+        sourcePath: selectedRows.sourcePath,
         attemptedPaths,
         failures,
         dataSource: "postgres",
         runId: selectedRunId,
-        generatedAtUtc: servingBundle.generatedAtUtc ?? meta.generatedAtUtc,
+        generatedAtUtc: selectedRows.generatedAtUtc,
       };
+    }
+    failures.push({
+      path: selectedRows.sourcePath,
+      reason: selectedRows.emptyReason,
+    });
+
+    const fallbackRunId = String(servingBundle.activeRuntimeRunId ?? "").trim();
+    if (fallbackRunId && fallbackRunId !== selectedRunId) {
+      const fallbackRows = await loadRowsForRun(
+        fallbackRunId,
+        RUNTIME_DECISIONS_TABLE,
+        servingBundle.activeRuntimeGeneratedAtUtc,
+      );
+      if (!fallbackRows.emptyReason) {
+        failures.push({
+          path: fallbackRows.sourcePath,
+          reason:
+            `Active publication run_id='${selectedRunId}' has no materialized runtime snapshot rows; `
+            + `serving fallback latest runtime run_id='${fallbackRunId}'.`,
+        });
+        return {
+          rows: fallbackRows.rows,
+          sourcePath: fallbackRows.sourcePath,
+          attemptedPaths,
+          failures,
+          dataSource: "postgres",
+          runId: fallbackRunId,
+          generatedAtUtc: fallbackRows.generatedAtUtc,
+        };
+      }
+      failures.push({
+        path: fallbackRows.sourcePath,
+        reason: fallbackRows.emptyReason,
+      });
     }
 
     return {
-      rows,
-      sourcePath,
+      rows: [],
+      sourcePath: null,
       attemptedPaths,
       failures,
       dataSource: "postgres",
       runId: selectedRunId,
-      generatedAtUtc: servingBundle.generatedAtUtc ?? meta.generatedAtUtc,
+      generatedAtUtc: selectedRows.generatedAtUtc,
     };
   } catch (error) {
     failures.push({
@@ -576,6 +628,55 @@ async function loadRuntimeQuoteCacheFromPostgresRaw(): Promise<RuntimeQuoteLoadR
     const servingBundle = await resolveServingBundleSelection();
     failures.push(...servingBundle.failures);
 
+    const loadQuotesForRun = async (
+      runId: string,
+      tableName: string,
+      generatedAtUtcHint: string | null,
+    ): Promise<QuoteQueryOutcome> => {
+      const sourcePath = `${postgresSourceBase()}#${tableName}?run_id=${runId}`;
+
+      if (tableName === RUNTIME_SYMBOLS_HISTORY_TABLE) {
+        const historyExists = await tableExists(pool, tableName);
+        if (!historyExists) {
+          return {
+            quotes: {},
+            sourcePath,
+            generatedAtUtc: generatedAtUtcHint,
+            emptyReason: `Fallback quote table '${tableName}' does not exist.`,
+          };
+        }
+      }
+
+      const [rowsResult, meta] = await Promise.all([
+        pool.query<RuntimeSymbolRowRecord>(
+          `
+            SELECT ticker, profile_json, run_id, generated_at_utc
+            FROM ${tableName}
+            WHERE run_id = $1
+            ORDER BY ticker ASC
+          `,
+          [runId],
+        ),
+        readRuntimeSourceMeta(pool, tableName, runId),
+      ]);
+
+      const quotes: Record<string, ScreenerQuoteCacheRow> = {};
+      for (const record of rowsResult.rows) {
+        const ticker = normalizeTicker(record.ticker);
+        if (!ticker) continue;
+        const parsed = parseQuoteRow(record.profile_json);
+        if (!parsed) continue;
+        quotes[ticker] = parsed;
+      }
+
+      return {
+        quotes,
+        sourcePath,
+        generatedAtUtc: generatedAtUtcHint ?? meta.generatedAtUtc,
+        emptyReason: Object.keys(quotes).length === 0 ? "Runtime symbols table has no profile rows." : null,
+      };
+    };
+
     const selectedRunId = String(servingBundle.runId ?? "").trim();
     if (!selectedRunId) {
       failures.push({
@@ -594,70 +695,58 @@ async function loadRuntimeQuoteCacheFromPostgresRaw(): Promise<RuntimeQuoteLoadR
 
     const useHistoryTable = servingBundle.activeRuntimeRunId !== selectedRunId;
     const selectedTable = useHistoryTable ? RUNTIME_SYMBOLS_HISTORY_TABLE : RUNTIME_SYMBOLS_TABLE;
-    const sourcePath = `${postgresSourceBase()}#${selectedTable}?run_id=${selectedRunId}`;
-
-    if (useHistoryTable) {
-      const historyExists = await tableExists(pool, selectedTable);
-      if (!historyExists) {
-        failures.push({
-          path: sourcePath,
-          reason: `Fallback quote table '${selectedTable}' does not exist.`,
-        });
-        return {
-          quotes: {},
-          sourcePath: null,
-          failures,
-          dataSource: "postgres",
-          runId: selectedRunId,
-          generatedAtUtc: servingBundle.generatedAtUtc,
-        };
-      }
-    }
-
-    const [rowsResult, meta] = await Promise.all([
-      pool.query<RuntimeSymbolRowRecord>(
-        `
-          SELECT ticker, profile_json, run_id, generated_at_utc
-          FROM ${selectedTable}
-          WHERE run_id = $1
-          ORDER BY ticker ASC
-        `,
-        [selectedRunId],
-      ),
-      readRuntimeSourceMeta(pool, selectedTable, selectedRunId),
-    ]);
-
-    const quotes: Record<string, ScreenerQuoteCacheRow> = {};
-    for (const record of rowsResult.rows) {
-      const ticker = normalizeTicker(record.ticker);
-      if (!ticker) continue;
-      const parsed = parseQuoteRow(record.profile_json);
-      if (!parsed) continue;
-      quotes[ticker] = parsed;
-    }
-
-    if (Object.keys(quotes).length === 0) {
-      failures.push({
-        path: sourcePath,
-        reason: "Runtime symbols table has no profile rows.",
-      });
+    const selectedQuotes = await loadQuotesForRun(selectedRunId, selectedTable, servingBundle.generatedAtUtc);
+    if (!selectedQuotes.emptyReason) {
       return {
-        quotes: {},
-        sourcePath: null,
+        quotes: selectedQuotes.quotes,
+        sourcePath: selectedQuotes.sourcePath,
         failures,
         dataSource: "postgres",
         runId: selectedRunId,
-        generatedAtUtc: servingBundle.generatedAtUtc ?? meta.generatedAtUtc,
+        generatedAtUtc: selectedQuotes.generatedAtUtc,
       };
+    }
+    failures.push({
+      path: selectedQuotes.sourcePath,
+      reason: selectedQuotes.emptyReason,
+    });
+
+    const fallbackRunId = String(servingBundle.activeRuntimeRunId ?? "").trim();
+    if (fallbackRunId && fallbackRunId !== selectedRunId) {
+      const fallbackQuotes = await loadQuotesForRun(
+        fallbackRunId,
+        RUNTIME_SYMBOLS_TABLE,
+        servingBundle.activeRuntimeGeneratedAtUtc,
+      );
+      if (!fallbackQuotes.emptyReason) {
+        failures.push({
+          path: fallbackQuotes.sourcePath,
+          reason:
+            `Active publication run_id='${selectedRunId}' has no materialized runtime quote rows; `
+            + `serving fallback latest runtime run_id='${fallbackRunId}'.`,
+        });
+        return {
+          quotes: fallbackQuotes.quotes,
+          sourcePath: fallbackQuotes.sourcePath,
+          failures,
+          dataSource: "postgres",
+          runId: fallbackRunId,
+          generatedAtUtc: fallbackQuotes.generatedAtUtc,
+        };
+      }
+      failures.push({
+        path: fallbackQuotes.sourcePath,
+        reason: fallbackQuotes.emptyReason,
+      });
     }
 
     return {
-      quotes,
-      sourcePath,
+      quotes: {},
+      sourcePath: null,
       failures,
       dataSource: "postgres",
       runId: selectedRunId,
-      generatedAtUtc: servingBundle.generatedAtUtc ?? meta.generatedAtUtc,
+      generatedAtUtc: selectedQuotes.generatedAtUtc,
     };
   } catch (error) {
     failures.push({

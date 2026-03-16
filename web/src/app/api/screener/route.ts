@@ -1694,7 +1694,10 @@ export async function GET(request: Request) {
     );
   }
 
-  const publishedDecisionLoad = await loadPublishedDecisionMapForRows(publicationState.runId, snapshot.rows);
+  const publishedDecisionLoad = await loadPublishedDecisionMapForRows(
+    publicationState.servingRunId ?? publicationState.runId,
+    snapshot.rows,
+  );
   if (!publishedDecisionLoad.ok) {
     return NextResponse.json(withDiagnostics({
         error: "Screener unavailable because persisted published decision provenance is missing or invalid.",

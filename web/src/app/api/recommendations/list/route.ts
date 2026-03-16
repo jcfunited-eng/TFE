@@ -445,7 +445,10 @@ export async function GET(request: Request) {
     );
   }
 
-  const publishedDecisionLoad = await loadPublishedDecisionMapForRows(publicationState.runId, snapshot.rows);
+  const publishedDecisionLoad = await loadPublishedDecisionMapForRows(
+    publicationState.servingRunId ?? publicationState.runId,
+    snapshot.rows,
+  );
   if (!publishedDecisionLoad.ok) {
     return NextResponse.json(
       {
@@ -531,11 +534,11 @@ export async function GET(request: Request) {
     servingBundle: {
       sourcePath: publicationState.sourcePath,
       failureCount: publicationState.failures.length,
-      run_id: publicationState.runId,
+      run_id: publicationState.servingRunId,
       active_runtime_run_id: publicationState.activeRuntimeRunId,
       active_runtime_bundle_valid: publicationState.activationState === "activated",
-      fallback_applied: false,
-      fallback_reason: publicationState.blockingReasonCode,
+      fallback_applied: publicationState.servingFallbackApplied,
+      fallback_reason: publicationState.servingFallbackReason,
       generated_at_utc: publicationState.generatedAtUtc,
       validation_status: publicationState.validationStatus,
       snapshot_publication_id: publicationState.snapshotPublicationId,

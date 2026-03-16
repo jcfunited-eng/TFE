@@ -117,6 +117,9 @@ export type CanonicalPublicationState = PublicationRefreshRunRow & {
   servingState: PublicationServingState;
   blockingReasonCode: PublicationBlockingReasonCode | null;
   blockingReasonDetail: string | null;
+  servingRunId: string | null;
+  servingFallbackApplied: boolean;
+  servingFallbackReason: string | null;
   activeRuntimeRunId: string | null;
   activeRuntimeGeneratedAtUtc: string | null;
   snapshotRunId: string | null;
@@ -1090,6 +1093,9 @@ function resolveBlockedState(
     servingState: "blocked",
     blockingReasonCode: code,
     blockingReasonDetail: detail,
+    servingRunId: baseRow.runId,
+    servingFallbackApplied: false,
+    servingFallbackReason: null,
     activeRuntimeRunId: activeRuntime.runId,
     activeRuntimeGeneratedAtUtc: activeRuntime.generatedAtUtc,
     snapshotRunId: snapshot?.runId ?? null,
@@ -1386,7 +1392,15 @@ export async function loadCanonicalPublicationState(
       );
     }
 
-    if (snapshot.runId !== baseRow.runId) {
+    const servingFallbackApplied = Boolean(
+      activeRuntime.runId
+      && activeRuntime.runId !== baseRow.runId
+      && snapshot.runId === activeRuntime.runId
+      && quote.runId === activeRuntime.runId,
+    );
+    const servingRunId = servingFallbackApplied ? activeRuntime.runId : baseRow.runId;
+
+    if (!servingFallbackApplied && snapshot.runId !== baseRow.runId) {
       return resolveBlockedState(
         baseWithFailures,
         latestRunId,
@@ -1401,7 +1415,7 @@ export async function loadCanonicalPublicationState(
       );
     }
 
-    if (quote.runId !== baseRow.runId) {
+    if (!servingFallbackApplied && quote.runId !== baseRow.runId) {
       return resolveBlockedState(
         baseWithFailures,
         latestRunId,
@@ -1416,7 +1430,7 @@ export async function loadCanonicalPublicationState(
       );
     }
 
-    const generatedAtUtc = toIsoOrNull(baseRow.generatedAtUtc ?? snapshot.generatedAtUtc);
+    const generatedAtUtc = toIsoOrNull(snapshot.generatedAtUtc ?? baseRow.generatedAtUtc);
     const generatedAtMs = generatedAtUtc ? Date.parse(generatedAtUtc) : Number.NaN;
     const snapshotAgeMinutes = Number.isFinite(generatedAtMs)
       ? Number(Math.max(0, (nowMs - generatedAtMs) / 60000).toFixed(3))
@@ -1447,6 +1461,11 @@ export async function loadCanonicalPublicationState(
       servingState: "allowed",
       blockingReasonCode: null,
       blockingReasonDetail: null,
+      servingRunId,
+      servingFallbackApplied,
+      servingFallbackReason: servingFallbackApplied
+        ? "active_publication_runtime_materialization_missing"
+        : null,
       activeRuntimeRunId: activeRuntime.runId,
       activeRuntimeGeneratedAtUtc: activeRuntime.generatedAtUtc,
       snapshotRunId: snapshot.runId,
@@ -1721,6 +1740,9 @@ export async function loadCanonicalPublicationState(
       servingState: "allowed",
       blockingReasonCode: null,
       blockingReasonDetail: null,
+      servingRunId: baseWithFailures.runId,
+      servingFallbackApplied: false,
+      servingFallbackReason: null,
       activeRuntimeRunId: activeRuntime.runId,
       activeRuntimeGeneratedAtUtc: activeRuntime.generatedAtUtc,
       snapshotRunId: snapshot.runId,

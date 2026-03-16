@@ -248,7 +248,11 @@ export async function GET(request: Request) {
     );
   }
 
-  const publishedDecisionLoad = await loadPublishedDecisionMapForRows(publicationState.runId, snapshotRows, watchlist.symbols);
+  const publishedDecisionLoad = await loadPublishedDecisionMapForRows(
+    publicationState.servingRunId ?? publicationState.runId,
+    snapshotRows,
+    watchlist.symbols,
+  );
   if (!publishedDecisionLoad.ok) {
     return NextResponse.json(
       {
