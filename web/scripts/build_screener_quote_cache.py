@@ -88,9 +88,11 @@ def _print_prefixed_lines(prefix: str, text: str) -> None:
             print(f"{prefix}{line}")
 
 
-def _seed_quote_cache_from_runtime(output_path: Path) -> None:
+def _seed_quote_cache_from_runtime(output_path: Path) -> bool:
     if not SEED_SCRIPT.exists():
-        raise RuntimeError(f"Runtime quote-cache seed script is missing: {SEED_SCRIPT}")
+        print(f"runtime_quote_cache_seed_warning=seed_script_missing:{SEED_SCRIPT}")
+        print("runtime_quote_cache_seed_fallback=true")
+        return False
 
     timeout_sec = _read_positive_int_env("TFE_QUOTE_CACHE_SEED_TIMEOUT_SEC", 180)
     min_rows = str(os.environ.get("TFE_QUOTE_CACHE_SEED_MIN_ROWS", "")).strip()
@@ -110,10 +112,10 @@ def _seed_quote_cache_from_runtime(output_path: Path) -> None:
             timeout=timeout_sec,
             env=dict(os.environ),
         )
-    except subprocess.TimeoutExpired as exc:
-        raise RuntimeError(
-            f"Runtime quote-cache seed timed out after {timeout_sec}s."
-        ) from exc
+    except subprocess.TimeoutExpired:
+        print(f"runtime_quote_cache_seed_warning=seed_timeout_after_{timeout_sec}s")
+        print("runtime_quote_cache_seed_fallback=true")
+        return False
 
     _print_prefixed_lines("runtime_quote_cache_seed_stdout=", completed.stdout)
     _print_prefixed_lines("runtime_quote_cache_seed_stderr=", completed.stderr)
@@ -121,10 +123,17 @@ def _seed_quote_cache_from_runtime(output_path: Path) -> None:
     if completed.returncode != 0:
         stdout_tail = "\n".join(str(completed.stdout or "").splitlines()[-20:]).strip()
         stderr_tail = "\n".join(str(completed.stderr or "").splitlines()[-20:]).strip()
-        raise RuntimeError(
-            "Runtime quote-cache seed failed. "
-            f"exit_code={completed.returncode}; stdout_tail={stdout_tail or 'n/a'}; stderr_tail={stderr_tail or 'n/a'}"
+        print(
+            "runtime_quote_cache_seed_warning="
+            f"seed_failed_exit_{completed.returncode};"
+            f"stdout_tail={stdout_tail or 'n/a'};"
+            f"stderr_tail={stderr_tail or 'n/a'}"
         )
+        print("runtime_quote_cache_seed_fallback=true")
+        return False
+
+    print("runtime_quote_cache_seed_fallback=false")
+    return True
 
 
 def main() -> int:
@@ -138,7 +147,10 @@ def main() -> int:
     print(f"force_refresh={force_refresh}")
 
     if seed_from_runtime:
-        _seed_quote_cache_from_runtime(output_path)
+        seed_ok = _seed_quote_cache_from_runtime(output_path)
+        if not seed_ok:
+            force_refresh = True
+            print("force_refresh_escalated_due_to_seed_failure=true")
 
     sys.argv = _apply_force_refresh(sys.argv, force_refresh)
     rc = int(impl_main() or 0)
