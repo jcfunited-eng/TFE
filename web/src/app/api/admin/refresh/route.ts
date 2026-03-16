@@ -3036,9 +3036,6 @@ export async function POST(request: Request) {
       requestedMode: STEP1_EXISTING_ADMIN_REFRESH_MODE,
     });
     const step1Payload = await step1Response.json();
-    if (!step1Response.ok) {
-      return NextResponse.json(step1Payload, { status: step1Response.status });
-    }
 
     const triggerSource = resolveTriggerSource(internalAuthorized, request);
     const launch = await launchRefreshProcess({
@@ -3055,6 +3052,8 @@ export async function POST(request: Request) {
           status: launch.status,
           step1Cutover: true,
           requestedMode: STEP1_EXISTING_ADMIN_REFRESH_MODE,
+          step1PrepublishOk: step1Response.ok,
+          step1Error: step1Response.ok ? null : String(step1Payload.error ?? "Step 1 prepublish failed."),
           dispatchPath: STEP1_CUTOVER_EXECUTION_PATH,
           legacyStep1PathStatus: STEP1_LEGACY_PATH_STATUS,
           legacyRunnerDispatched: true,
@@ -3068,11 +3067,13 @@ export async function POST(request: Request) {
       ...launch.payload,
       step1Cutover: true,
       requestedMode: STEP1_EXISTING_ADMIN_REFRESH_MODE,
-      step1ContractSource: step1Payload.step1ContractSource,
+      step1PrepublishOk: step1Response.ok,
+      step1Error: step1Response.ok ? null : String(step1Payload.error ?? "Step 1 prepublish failed."),
+      step1ContractSource: step1Payload.step1ContractSource ?? null,
       dispatchPath: STEP1_CUTOVER_EXECUTION_PATH,
       legacyStep1PathStatus: STEP1_LEGACY_PATH_STATUS,
       legacyRunnerDispatched: true,
-      result: step1Payload.result,
+      result: step1Payload.result ?? null,
     });
   }
 
