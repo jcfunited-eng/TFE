@@ -14,7 +14,14 @@ import {
   RUNTIME_SYMBOLS_HISTORY_TABLE,
   RUNTIME_DECISION_PROVENANCE_TABLE,
 } from "@/lib/runtime-db";
-import type { ScreenerQuoteCacheRow } from "@/lib/screener-quote-cache";
+import {
+  loadScreenerQuoteCache,
+  type ScreenerQuoteCacheRow,
+} from "@/lib/screener-quote-cache";
+import {
+  loadScreenerProfileOverrides,
+  type ScreenerProfileOverrideRow,
+} from "@/lib/screener-profile-overrides";
 import type { SnapshotRow } from "@/lib/uf-snapshot";
 import type { Pool } from "pg";
 
@@ -223,6 +230,92 @@ function parseSnapshotRow(payload: unknown): SnapshotRow | null {
 function parseQuoteRow(payload: unknown): ScreenerQuoteCacheRow | null {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
   return payload as ScreenerQuoteCacheRow;
+}
+
+function hasMeaningfulQuoteValue(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  return true;
+}
+
+function mergeQuoteDisplayFields(
+  primary: ScreenerQuoteCacheRow | undefined,
+  supplemental: ScreenerQuoteCacheRow | undefined,
+  profileOverride: ScreenerProfileOverrideRow | undefined,
+): ScreenerQuoteCacheRow | null {
+  const merged: ScreenerQuoteCacheRow = {};
+
+  if (supplemental) {
+    for (const [key, value] of Object.entries(supplemental)) {
+      if (!hasMeaningfulQuoteValue(value)) continue;
+      merged[key] = value;
+    }
+  }
+
+  if (primary) {
+    for (const [key, value] of Object.entries(primary)) {
+      if (!hasMeaningfulQuoteValue(value)) continue;
+      merged[key] = value;
+    }
+  }
+
+  if (profileOverride) {
+    const overrideFields: Array<[string, unknown]> = [
+      ["companyName", profileOverride.companyName],
+      ["sector", profileOverride.sector],
+      ["industry", profileOverride.industry],
+      ["country", profileOverride.country],
+      ["exchange", profileOverride.exchange],
+      ["quoteType", profileOverride.quoteType],
+      ["assetType", profileOverride.assetType],
+    ];
+
+    for (const [key, value] of overrideFields) {
+      if (hasMeaningfulQuoteValue(merged[key])) continue;
+      if (!hasMeaningfulQuoteValue(value)) continue;
+      merged[key] = value;
+    }
+  }
+
+  return Object.keys(merged).length > 0 ? merged : null;
+}
+
+function mergeSupplementalQuoteSources(result: RuntimeQuoteLoadResult): RuntimeQuoteLoadResult {
+  const fileQuoteCache = loadScreenerQuoteCache();
+  const profileOverrides = loadScreenerProfileOverrides();
+  const mergedQuotes: Record<string, ScreenerQuoteCacheRow> = {};
+  const tickers = new Set<string>([
+    ...Object.keys(result.quotes),
+    ...Object.keys(fileQuoteCache.quotes),
+    ...Object.keys(profileOverrides.rows),
+  ]);
+
+  for (const ticker of tickers) {
+    const merged = mergeQuoteDisplayFields(
+      result.quotes[ticker],
+      fileQuoteCache.quotes[ticker],
+      profileOverrides.rows[ticker],
+    );
+    if (!merged) continue;
+    mergedQuotes[ticker] = merged;
+  }
+
+  const sourcePathParts = [
+    result.sourcePath,
+    fileQuoteCache.sourcePath ? `display_quote_cache=${fileQuoteCache.sourcePath}` : null,
+    profileOverrides.sourcePath ? `profile_overrides=${profileOverrides.sourcePath}` : null,
+  ].filter(Boolean);
+
+  return {
+    ...result,
+    quotes: mergedQuotes,
+    sourcePath: sourcePathParts.length > 0 ? sourcePathParts.join(" | ") : null,
+    failures: [
+      ...result.failures,
+      ...fileQuoteCache.failures,
+      ...profileOverrides.failures,
+    ],
+  };
 }
 
 function parseJsonRecord(payload: unknown): Record<string, unknown> {
@@ -807,7 +900,9 @@ export async function loadRuntimeQuoteCacheFromPostgres(): Promise<RuntimeQuoteL
   }
 
   quoteLoadInFlight = (async () => {
-    const current = await loadRuntimeQuoteCacheFromPostgresRawWithRetry();
+    const current = mergeSupplementalQuoteSources(
+      await loadRuntimeQuoteCacheFromPostgresRawWithRetry(),
+    );
 
     if (current.sourcePath && Object.keys(current.quotes).length > 0) {
       quoteCache = {
