@@ -204,6 +204,11 @@ unit_blocking() {
   jq -r --arg unit_id "$unit_id" '.units[] | select(.unit_id == $unit_id) | .blocking' "$DELTA_SELECTION_JSON"
 }
 
+unit_execution_stage() {
+  local unit_id="$1"
+  jq -r --arg unit_id "$unit_id" '.units[] | select(.unit_id == $unit_id) | .execution_stage' "$DELTA_SELECTION_JSON"
+}
+
 write_block_artifact() {
   local unit_id="$1"
   local selected_flag="$2"
@@ -246,6 +251,7 @@ def parse_json(raw: str, fallback):
 payload = {
     "unit_id": unit["unit_id"],
     "description": unit["description"],
+    "execution_stage": unit.get("execution_stage"),
     "base_blocking": bool(unit.get("base_blocking")),
     "blocking": bool(unit["blocking"]),
     "blocking_reason": unit.get("blocking_reason"),
@@ -447,6 +453,58 @@ write_skip_artifacts_for_unselected_units() {
       "[]" \
       "{}"
   done < <(jq -r '.units[] | select(.selected == false) | [.unit_id, (.skip_reason // "")] | @tsv' "$DELTA_SELECTION_JSON")
+}
+
+mark_selected_postdeploy_units_skipped() {
+  local skip_reason="$1"
+  while read -r unit_id; do
+    [ -z "${unit_id}" ] && continue
+    write_block_artifact \
+      "${unit_id}" \
+      "true" \
+      "skip" \
+      "" \
+      "" \
+      "${skip_reason}" \
+      "[]" \
+      "[]" \
+      '{"execution_stage":"postdeploy"}'
+  done < <(jq -r '.units[] | select(.selected == true and .execution_stage == "postdeploy") | .unit_id' "$DELTA_SELECTION_JSON")
+}
+
+STAGE_BLOCKING_FAILURE_UNIT=""
+run_selected_units_for_stage() {
+  local stage="$1"
+  local unit_id=""
+  local selected=""
+  local execution_stage=""
+
+  STAGE_BLOCKING_FAILURE_UNIT=""
+  while read -r unit_id; do
+    selected="$(jq -r --arg unit_id "${unit_id}" '.units[] | select(.unit_id == $unit_id) | .selected' "${DELTA_SELECTION_JSON}")"
+    execution_stage="$(unit_execution_stage "${unit_id}")"
+    if [ "${selected}" != "true" ] || [ "${execution_stage}" != "${stage}" ]; then
+      continue
+    fi
+    if [ -n "${STAGE_BLOCKING_FAILURE_UNIT}" ]; then
+      write_block_artifact \
+        "${unit_id}" \
+        "true" \
+        "skip" \
+        "" \
+        "" \
+        "not_executed_after_prior_blocking_failure" \
+        "[]" \
+        "$(unit_changed_inputs_json "${unit_id}")" \
+        "$(jq -cn --arg prior_blocker "${STAGE_BLOCKING_FAILURE_UNIT}" --arg execution_stage "${stage}" '{prior_blocker:$prior_blocker,execution_stage:$execution_stage}')"
+      continue
+    fi
+
+    run_selected_unit "${unit_id}"
+    if [ "$(jq -r '.status' "${BLOCK_ARTIFACT_DIR}/${unit_id}.json")" = "fail" ] && [ "$(unit_blocking "${unit_id}")" = "true" ]; then
+      STAGE_BLOCKING_FAILURE_UNIT="${unit_id}"
+    fi
+  done < <(jq -r '.units[] | .unit_id' "${DELTA_SELECTION_JSON}")
 }
 
 run_unit_deploy_contract_syntax() {
@@ -1153,27 +1211,11 @@ python3 "${REPO_ROOT}/tools/validation_state_contract.py" prepare \
 VALIDATION_PREPARED="1"
 
 write_skip_artifacts_for_unselected_units
+mark_selected_postdeploy_units_skipped "deferred_until_postdeploy"
+run_selected_units_for_stage "predeploy"
 
-FIRST_BLOCKING_FAILURE_UNIT=""
-while read -r unit_id; do
-  selected="$(jq -r --arg unit_id "${unit_id}" '.units[] | select(.unit_id == $unit_id) | .selected' "${DELTA_SELECTION_JSON}")"
-  if [ "${selected}" != "true" ]; then
-    continue
-  fi
-  if [ -n "${FIRST_BLOCKING_FAILURE_UNIT}" ]; then
-    write_block_artifact "$unit_id" "true" "skip" "" "" "not_executed_after_prior_blocking_failure" "[]" "$(unit_changed_inputs_json "$unit_id")" "$(jq -cn --arg prior_blocker "${FIRST_BLOCKING_FAILURE_UNIT}" '{prior_blocker:$prior_blocker}')"
-    continue
-  fi
-
-  run_selected_unit "${unit_id}"
-  if [ "$(jq -r '.status' "${BLOCK_ARTIFACT_DIR}/${unit_id}.json")" = "fail" ] && [ "$(unit_blocking "${unit_id}")" = "true" ]; then
-    FIRST_BLOCKING_FAILURE_UNIT="${unit_id}"
-  fi
-done < <(jq -r '.units[] | .unit_id' "${DELTA_SELECTION_JSON}")
-
-finalize_validation_state_summary
-
-if jq -e '.exact_blocker != null' "${DELTA_SUMMARY_JSON}" >/dev/null 2>&1; then
+if [ -n "${STAGE_BLOCKING_FAILURE_UNIT}" ]; then
+  finalize_validation_state_summary
   echo "Strict gate failed: validation-state delta contract blocker present." >&2
   jq '.exact_blocker' "${DELTA_SUMMARY_JSON}" >&2 || true
   exit 1
@@ -1182,6 +1224,8 @@ fi
 ensure_current_deployed_identity_artifacts
 
 if [ "${TFE_DEPLOY_PROOF_ONLY}" = "1" ]; then
+  mark_selected_postdeploy_units_skipped "proof_only_no_deploy_postdeploy_not_executed"
+  finalize_validation_state_summary
   jq -n \
     --arg generated_at_utc "${TS_ISO}" \
     --arg reason "proof_only_exit_before_deploy" \
@@ -1470,6 +1514,32 @@ VALIDATION_STATE_PATH=${VALIDATION_STATE_PATH}
 DELTA_CONTRACT_SUMMARY=${DELTA_SUMMARY_JSON}
 DEPLOYMENT_RECORD_ARTIFACT=${DEPLOYMENT_RECORD_ARTIFACT}
 ENV
+
+run_selected_units_for_stage "postdeploy"
+finalize_validation_state_summary
+
+if jq -e '.exact_blocker != null' "${DELTA_SUMMARY_JSON}" >/dev/null 2>&1; then
+  write_phase_d_deployment_record \
+    "deployed_postdeploy_validation_failed" \
+    "${POST_GIT_COMMIT_SHA}" \
+    "${POST_IMAGE}" \
+    "${IMAGE_TAG}" \
+    "${CURRENT_TASKDEF}" \
+    "${DELTA_SUMMARY_JSON}" \
+    "${VALIDATION_STATE_PATH}" \
+    "${EVIDENCE_DIR}/caller-identity.json" \
+    "${EVIDENCE_DIR}/ecs-service-pre.json" \
+    "${EVIDENCE_DIR}/taskdef-current.json" \
+    "${EVIDENCE_DIR}/codebuild-start.json" \
+    "${EVIDENCE_DIR}/codebuild-result.json" \
+    "${EVIDENCE_DIR}/taskdef-register-output.json" \
+    "${EVIDENCE_DIR}/ecs-service-post.json" \
+    "${EVIDENCE_DIR}/ecs-task-post.json" \
+    "${EVIDENCE_DIR}/deploy.env"
+  echo "Deploy failed: post-deploy validation-state delta contract blocker present." >&2
+  jq '.exact_blocker' "${DELTA_SUMMARY_JSON}" >&2 || true
+  exit 1
+fi
 
 write_phase_d_deployment_record \
   "deployed" \

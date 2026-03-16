@@ -113,6 +113,7 @@ class UnitDefinition:
     unit_id: str
     blocking: bool
     gate_class: str
+    execution_stage: str
     patterns: List[str]
     wrappers: List[str]
     outputs_expected: List[str]
@@ -237,6 +238,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="deploy_contract_syntax",
         blocking=True,
         gate_class="runtime_critical",
+        execution_stage="predeploy",
         patterns=CONTRACT_CONTROL_FILES,
         wrappers=[],
         outputs_expected=["deploy-contract-syntax.log"],
@@ -247,6 +249,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="deploy_workspace_integrity",
         blocking=True,
         gate_class="runtime_critical",
+        execution_stage="predeploy",
         patterns=[],
         wrappers=[],
         outputs_expected=[
@@ -263,6 +266,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="recommendation_acceptance",
         blocking=True,
         gate_class="runtime_critical",
+        execution_stage="predeploy",
         patterns=ACCEPTANCE_PATTERNS,
         wrappers=["tools/evaluate_recommendation_policy_snapshot.py"],
         outputs_expected=["recommendation-acceptance-gate.json"],
@@ -273,6 +277,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="typescript",
         blocking=True,
         gate_class="runtime_critical",
+        execution_stage="predeploy",
         patterns=FRONTEND_LINT_PATTERNS,
         wrappers=[],
         outputs_expected=["strict-gate-tsc.log"],
@@ -283,6 +288,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="eslint",
         blocking=True,
         gate_class="runtime_critical",
+        execution_stage="predeploy",
         patterns=FRONTEND_LINT_PATTERNS,
         wrappers=[],
         outputs_expected=["strict-gate-eslint.log", "strict-gate-eslint-files.txt"],
@@ -293,6 +299,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="web_build",
         blocking=True,
         gate_class="runtime_critical",
+        execution_stage="predeploy",
         patterns=WEB_BUILD_PATTERNS,
         wrappers=[],
         outputs_expected=["strict-gate-web-build.log"],
@@ -303,6 +310,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="cache_coverage",
         blocking=True,
         gate_class="publication_consistency",
+        execution_stage="predeploy",
         patterns=CACHE_PATTERNS,
         wrappers=[],
         outputs_expected=["strict-gate-cache-coverage.json"],
@@ -313,6 +321,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="runtime_validation",
         blocking=True,
         gate_class="runtime_critical",
+        execution_stage="predeploy",
         patterns=RUNTIME_VALIDATION_PATTERNS,
         wrappers=["tools/run_validation_gate_v1_in_ecs_network.py"],
         outputs_expected=["strict-gate-validation*.json", "strict-gate-validation*.log"],
@@ -323,6 +332,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="site_reliability_recommendations",
         blocking=True,
         gate_class="runtime_critical",
+        execution_stage="postdeploy",
         patterns=RECOMMENDATION_RUNTIME_PATTERNS + AUTH_SHARED_PATTERNS,
         wrappers=["tools/run_recommendations_consistency_probe_lane.sh"],
         outputs_expected=["recommendations lane summary", "recommendations probe summary"],
@@ -333,6 +343,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="site_reliability_recommendations_nonregression",
         blocking=False,
         gate_class="non_critical_observability",
+        execution_stage="postdeploy",
         patterns=RECOMMENDATION_RUNTIME_PATTERNS + AUTH_SHARED_PATTERNS,
         wrappers=[],
         outputs_expected=["recommendations nonregression report"],
@@ -343,6 +354,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="site_reliability_recommendations_quality",
         blocking=False,
         gate_class="non_critical_observability",
+        execution_stage="postdeploy",
         patterns=RECOMMENDATION_QUALITY_PATTERNS + AUTH_SHARED_PATTERNS,
         wrappers=["tools/run_recommendation_quality_audit_lane.sh"],
         outputs_expected=["recommendation quality lane summary"],
@@ -353,6 +365,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="site_reliability_recommendations_quality_nonregression",
         blocking=False,
         gate_class="non_critical_observability",
+        execution_stage="postdeploy",
         patterns=RECOMMENDATION_QUALITY_PATTERNS + AUTH_SHARED_PATTERNS,
         wrappers=[],
         outputs_expected=["recommendations quality nonregression report"],
@@ -363,6 +376,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="site_reliability_screener",
         blocking=False,
         gate_class="non_critical_product_parity",
+        execution_stage="postdeploy",
         patterns=SCREENER_PATTERNS + AUTH_SHARED_PATTERNS,
         wrappers=["tools/run_screener_ui_parity_probe_lane.sh"],
         outputs_expected=["screener lane summary", "check-summary.json"],
@@ -373,6 +387,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="site_reliability_portfolio",
         blocking=True,
         gate_class="runtime_critical",
+        execution_stage="postdeploy",
         patterns=PORTFOLIO_PATTERNS + AUTH_SHARED_PATTERNS,
         wrappers=["tools/run_portfolio_advisor_confidence_probe_lane.sh"],
         outputs_expected=["portfolio lane summary", "portfolio probe summary"],
@@ -609,6 +624,10 @@ def prepare(args: argparse.Namespace) -> int:
     for unit in UNIT_DEFINITIONS:
         blocking_by_default = gate_class_blocks_by_default(unit.gate_class)
         hotfix_lane_default_action = gate_class_hotfix_lane_action(unit.gate_class)
+        if unit.execution_stage not in {"predeploy", "postdeploy"}:
+            raise RuntimeError(
+                f"unit_id={unit.unit_id} has invalid execution_stage={unit.execution_stage}"
+            )
         if bool(unit.blocking) != blocking_by_default:
             raise RuntimeError(
                 f"unit_id={unit.unit_id} gate_class={unit.gate_class} blocking contract mismatch"
@@ -660,6 +679,7 @@ def prepare(args: argparse.Namespace) -> int:
                 "description": unit.description,
                 "release_lane": release_lane,
                 "gate_class": unit.gate_class,
+                "execution_stage": unit.execution_stage,
                 "blocking_by_default": blocking_by_default,
                 "hotfix_lane_default_action": hotfix_lane_default_action,
                 "base_blocking": unit.blocking,
@@ -732,9 +752,10 @@ def finalize(args: argparse.Namespace) -> int:
             artifact = {
                 "unit_id": unit_id,
                 "status": "skip",
-                "selected": False,
+                "selected": bool(unit_payload.get("selected")),
                 "release_lane": str(unit_payload.get("release_lane") or DEFAULT_RELEASE_LANE),
                 "gate_class": str(unit_payload.get("gate_class") or ""),
+                "execution_stage": str(unit_payload.get("execution_stage") or "predeploy"),
                 "blocking_by_default": bool(unit_payload.get("blocking_by_default")),
                 "hotfix_lane_default_action": str(unit_payload.get("hotfix_lane_default_action") or ""),
                 "base_blocking": bool(unit_payload.get("base_blocking")),
@@ -806,6 +827,9 @@ def finalize(args: argparse.Namespace) -> int:
             {
                 "unit_id": artifact["unit_id"],
                 "gate_class": str((unit_payload_by_id.get(str(artifact["unit_id"])) or {}).get("gate_class") or ""),
+                "execution_stage": str(
+                    (unit_payload_by_id.get(str(artifact["unit_id"])) or {}).get("execution_stage") or ""
+                ),
                 "status": str(artifact.get("status") or ""),
                 "blocking": bool(artifact.get("blocking")),
                 "blocking_reason": str(artifact.get("blocking_reason") or ""),
