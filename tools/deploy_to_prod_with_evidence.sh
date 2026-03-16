@@ -143,6 +143,7 @@ VALIDATION_GATE_STDERR="${EVIDENCE_DIR}/strict-gate-validation.stderr.log"
 VALIDATION_GATE_ECS_STDOUT="${EVIDENCE_DIR}/strict-gate-validation-ecs.stdout.json"
 VALIDATION_GATE_ECS_STDERR="${EVIDENCE_DIR}/strict-gate-validation-ecs.stderr.log"
 PROOF_ONLY_STOP_ARTIFACT="${EVIDENCE_DIR}/proof-only-stop.json"
+DEPLOYMENT_RECORD_ARTIFACT="${EVIDENCE_DIR}/deployment-record.json"
 
 mkdir -p "$TMP_SRC_DIR" "$ARCHIVE_EXTRACT_DIR" "$STAGE_DIR" "$EVIDENCE_DIR" "$BLOCK_ARTIFACT_DIR"
 
@@ -160,6 +161,10 @@ find "$TMP_SRC_DIR" -maxdepth 1 -type f -name "source_*.zip" -mtime +2 -delete 2
 HEAD_ARCHIVE_PREPARED="0"
 VALIDATION_PREPARED="0"
 VALIDATION_FINALIZED="0"
+CURRENT_DEPLOYED_TASKDEF=""
+CURRENT_DEPLOYED_IMAGE=""
+CURRENT_DEPLOYED_IMAGE_TAG=""
+CURRENT_DEPLOYED_COMMIT_SHA=""
 
 build_source_list() {
   awk '/^COPY / {
@@ -289,6 +294,133 @@ finalize_validation_state_summary() {
     --selection-json "${DELTA_SELECTION_JSON}" \
     --block_artifact_dir "${BLOCK_ARTIFACT_DIR}" >/dev/null
   VALIDATION_FINALIZED="1"
+}
+
+extract_image_tag() {
+  local image_uri="$1"
+  local image_name="${image_uri##*/}"
+  if [[ "${image_name}" == *:* ]]; then
+    printf '%s' "${image_name##*:}"
+    return 0
+  fi
+  printf ''
+}
+
+ensure_current_deployed_identity_artifacts() {
+  aws ecs describe-services --cluster "$CLUSTER" --services "$SERVICE" --region "$REGION" --output json >"${EVIDENCE_DIR}/ecs-service-pre.json"
+  CURRENT_DEPLOYED_TASKDEF="$(jq -r '.services[0].taskDefinition // empty' "${EVIDENCE_DIR}/ecs-service-pre.json")"
+  if [ -z "${CURRENT_DEPLOYED_TASKDEF}" ]; then
+    echo "Deployment record failed: unable to resolve current deployed ECS task definition ARN." >&2
+    exit 1
+  fi
+
+  aws ecs describe-task-definition --task-definition "${CURRENT_DEPLOYED_TASKDEF}" --region "$REGION" --output json >"${EVIDENCE_DIR}/taskdef-current.json"
+  CURRENT_DEPLOYED_IMAGE="$(jq -r '.taskDefinition.containerDefinitions[0].image // empty' "${EVIDENCE_DIR}/taskdef-current.json")"
+  CURRENT_DEPLOYED_COMMIT_SHA="$(jq -r '.taskDefinition.containerDefinitions[0].environment[]? | select(.name=="TFE_GIT_COMMIT_SHA") | .value' "${EVIDENCE_DIR}/taskdef-current.json" | head -n 1)"
+  CURRENT_DEPLOYED_IMAGE_TAG="$(extract_image_tag "${CURRENT_DEPLOYED_IMAGE}")"
+
+  if [ -z "${CURRENT_DEPLOYED_IMAGE}" ] || [ -z "${CURRENT_DEPLOYED_IMAGE_TAG}" ] || [ -z "${CURRENT_DEPLOYED_COMMIT_SHA}" ]; then
+    echo "Deployment record failed: current deployed ECS identity is incomplete." >&2
+    exit 1
+  fi
+}
+
+write_phase_d_deployment_record() {
+  local deployment_status="$1"
+  local deployed_commit_sha="$2"
+  local deployed_image_uri="$3"
+  local deployed_image_tag="$4"
+  local ecs_task_definition_arn="$5"
+  shift 5
+
+  local generated_at_utc
+  local deployment_completed_at_utc
+  local evidence_paths_json
+
+  generated_at_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  deployment_completed_at_utc="${generated_at_utc}"
+  evidence_paths_json="$(jq -cn '$ARGS.positional' --args "$@")"
+
+  python3 - "${DEPLOYMENT_RECORD_ARTIFACT}" "${DELTA_SUMMARY_JSON}" "${evidence_paths_json}" "${generated_at_utc}" "${deployment_status}" "${deployed_commit_sha}" "${deployed_image_uri}" "${deployed_image_tag}" "${ecs_task_definition_arn}" "${deployment_completed_at_utc}" "${TS_ISO}" "${SERVICE}" "${CLUSTER}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+record_path = Path(sys.argv[1])
+summary_path = Path(sys.argv[2])
+evidence_paths = json.loads(sys.argv[3])
+generated_at_utc = sys.argv[4]
+deployment_status = sys.argv[5]
+deployed_commit_sha = sys.argv[6]
+deployed_image_uri = sys.argv[7]
+deployed_image_tag = sys.argv[8]
+ecs_task_definition_arn = sys.argv[9]
+deployment_completed_at_utc = sys.argv[10]
+deployment_started_at_utc = sys.argv[11]
+service_name = sys.argv[12]
+cluster_name = sys.argv[13]
+
+summary = json.loads(summary_path.read_text(encoding="utf-8"))
+release_lane = str(summary.get("release_lane") or "").strip()
+release_gate_class_results = summary.get("release_gate_class_results") or []
+blocking_gate_classes = summary.get("blocking_gate_classes") or []
+non_blocking_gate_classes = summary.get("non_blocking_gate_classes") or []
+
+record = {
+    "deployment_record_id": f"deployment_record_{generated_at_utc.replace('-', '').replace(':', '').replace('T', 't').replace('Z', 'z')}",
+    "generated_at_utc": generated_at_utc,
+    "environment": "production",
+    "release_lane": release_lane,
+    "release_gate_class_results": release_gate_class_results,
+    "blocking_gate_classes": blocking_gate_classes,
+    "non_blocking_gate_classes": non_blocking_gate_classes,
+    "deployed_commit_sha": deployed_commit_sha,
+    "deployed_image_uri": deployed_image_uri,
+    "deployed_image_tag": deployed_image_tag,
+    "ecs_task_definition_arn": ecs_task_definition_arn,
+    "service_name": service_name,
+    "cluster_name": cluster_name,
+    "deployment_started_at_utc": deployment_started_at_utc,
+    "deployment_completed_at_utc": deployment_completed_at_utc,
+    "deployment_status": deployment_status,
+    "evidence_artifact_paths": evidence_paths,
+}
+
+required = [
+    "deployment_record_id",
+    "generated_at_utc",
+    "environment",
+    "release_lane",
+    "release_gate_class_results",
+    "blocking_gate_classes",
+    "non_blocking_gate_classes",
+    "deployed_commit_sha",
+    "deployed_image_uri",
+    "deployed_image_tag",
+    "ecs_task_definition_arn",
+    "service_name",
+    "cluster_name",
+    "deployment_started_at_utc",
+    "deployment_completed_at_utc",
+    "deployment_status",
+    "evidence_artifact_paths",
+]
+
+missing = []
+for field_name in required:
+    value = record[field_name]
+    if isinstance(value, list):
+      if len(value) == 0:
+        missing.append(field_name)
+      continue
+    if str(value or "").strip() == "":
+      missing.append(field_name)
+
+if missing:
+    raise SystemExit(f"deployment_record_missing_fields: {', '.join(missing)}")
+
+record_path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+PY
 }
 
 on_exit() {
@@ -1047,6 +1179,8 @@ if jq -e '.exact_blocker != null' "${DELTA_SUMMARY_JSON}" >/dev/null 2>&1; then
   exit 1
 fi
 
+ensure_current_deployed_identity_artifacts
+
 if [ "${TFE_DEPLOY_PROOF_ONLY}" = "1" ]; then
   jq -n \
     --arg generated_at_utc "${TS_ISO}" \
@@ -1060,13 +1194,22 @@ if [ "${TFE_DEPLOY_PROOF_ONLY}" = "1" ]; then
       delta_contract_summary: $delta_summary,
       validation_state_path: $validation_state_path
     }' >"${PROOF_ONLY_STOP_ARTIFACT}"
+  write_phase_d_deployment_record \
+    "proof_only_no_deploy" \
+    "${CURRENT_DEPLOYED_COMMIT_SHA}" \
+    "${CURRENT_DEPLOYED_IMAGE}" \
+    "${CURRENT_DEPLOYED_IMAGE_TAG}" \
+    "${CURRENT_DEPLOYED_TASKDEF}" \
+    "${DELTA_SUMMARY_JSON}" \
+    "${VALIDATION_STATE_PATH}" \
+    "${PROOF_ONLY_STOP_ARTIFACT}" \
+    "${EVIDENCE_DIR}/ecs-service-pre.json" \
+    "${EVIDENCE_DIR}/taskdef-current.json"
   echo "DEPLOY_GATE_PROOF_ONLY_EVIDENCE_DIR=${EVIDENCE_DIR}"
   exit 0
 fi
 
 aws sts get-caller-identity --output json >"${EVIDENCE_DIR}/caller-identity.json"
-aws ecs describe-services --cluster "$CLUSTER" --services "$SERVICE" --region "$REGION" --output json >"${EVIDENCE_DIR}/ecs-service-pre.json"
-aws ecs describe-task-definition --task-definition "$TASK_FAMILY" --region "$REGION" --output json >"${EVIDENCE_DIR}/taskdef-current.json"
 
 mapfile -t DEPLOY_SOURCE_PATTERNS <"$SOURCE_LIST"
 
@@ -1325,7 +1468,26 @@ DEPLOY_ROLLOUT_STATE=${DEPLOY_ROLLOUT_STATE}
 SOURCE_TRACEABILITY_METADATA=${DEPLOY_METADATA_EVIDENCE_PATH}
 VALIDATION_STATE_PATH=${VALIDATION_STATE_PATH}
 DELTA_CONTRACT_SUMMARY=${DELTA_SUMMARY_JSON}
+DEPLOYMENT_RECORD_ARTIFACT=${DEPLOYMENT_RECORD_ARTIFACT}
 ENV
+
+write_phase_d_deployment_record \
+  "deployed" \
+  "${POST_GIT_COMMIT_SHA}" \
+  "${POST_IMAGE}" \
+  "${IMAGE_TAG}" \
+  "${CURRENT_TASKDEF}" \
+  "${DELTA_SUMMARY_JSON}" \
+  "${VALIDATION_STATE_PATH}" \
+  "${EVIDENCE_DIR}/caller-identity.json" \
+  "${EVIDENCE_DIR}/ecs-service-pre.json" \
+  "${EVIDENCE_DIR}/taskdef-current.json" \
+  "${EVIDENCE_DIR}/codebuild-start.json" \
+  "${EVIDENCE_DIR}/codebuild-result.json" \
+  "${EVIDENCE_DIR}/taskdef-register-output.json" \
+  "${EVIDENCE_DIR}/ecs-service-post.json" \
+  "${EVIDENCE_DIR}/ecs-task-post.json" \
+  "${EVIDENCE_DIR}/deploy.env"
 
 cat >"${EVIDENCE_DIR}/deploy-report.tsv" <<TSV
 key	value
@@ -1349,6 +1511,7 @@ copied_entries	${copied_count}
 missing_patterns	${missing_count}
 validation_state_path	${VALIDATION_STATE_PATH}
 delta_contract_summary	${DELTA_SUMMARY_JSON}
+deployment_record_artifact	${DEPLOYMENT_RECORD_ARTIFACT}
 TSV
 
 echo "./backups/deploy-evidence-${TS}" >"${REPO_ROOT}/backups/CURRENT_DEPLOY_EVIDENCE_POINTER.txt"
