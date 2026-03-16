@@ -187,8 +187,33 @@ function sortByTicker(rows: RecommendationRow[]): RecommendationRow[] {
   return [...rows].sort((a, b) => a.ticker.localeCompare(b.ticker));
 }
 
-function isProcessedUfRow(row: RecommendationRow): boolean {
-  return row.regime !== "NO_DATA" && row.regime !== "DEGENERATE" && row.regime !== "INSUFFICIENT_DATA";
+function decisionPriority(row: RecommendationRow): number {
+  if (row.classification === "BUY") return 0;
+  if (row.classification === "HOLD") return 1;
+  return 2;
+}
+
+function sortBySpotlightPriority(rows: RecommendationRow[]): RecommendationRow[] {
+  return [...rows].sort((a, b) => {
+    const priority = decisionPriority(a) - decisionPriority(b);
+    if (priority !== 0) return priority;
+
+    if (b.confidence !== a.confidence) return b.confidence - a.confidence;
+
+    const aPrice = a.price ?? Number.POSITIVE_INFINITY;
+    const bPrice = b.price ?? Number.POSITIVE_INFINITY;
+    if (aPrice !== bPrice) return aPrice - bPrice;
+
+    return a.ticker.localeCompare(b.ticker);
+  });
+}
+
+function isVisibleRecommendationRow(row: RecommendationRow): boolean {
+  if (row.regime !== "NO_DATA" && row.regime !== "DEGENERATE" && row.regime !== "INSUFFICIENT_DATA") {
+    return true;
+  }
+
+  return row.assetType === "index" && row.persistedProvenanceValid && row.decisionReasonCode === "PSCF_POLICY_DECISION";
 }
 
 function normalizeTimeoutMs(value: unknown, fallbackMs: number): number {
@@ -483,7 +508,7 @@ export async function GET(request: Request) {
     if (transformed.row) allRows.push(transformed.row);
   }
 
-  const processedUniverse = allRows.filter(isProcessedUfRow);
+  const processedUniverse = allRows.filter(isVisibleRecommendationRow);
   const decisionSummary = buildDecisionSummary(processedUniverse);
   const recommendationHealth = buildRecommendationHealth(processedUniverse, POLICY_COVERAGE_MIN, POLICY_FALLBACK_MAX);
 
@@ -502,10 +527,10 @@ export async function GET(request: Request) {
   ).slice(0, 5);
 
   const topByAssetType = {
-    equities: sortByConfidence(processedUniverse.filter((row) => row.assetType === "equities" && row.classification === "BUY")).slice(0, 10),
-    index: sortByConfidence(processedUniverse.filter((row) => row.assetType === "index" && row.classification === "BUY")).slice(0, 10),
-    crypto: sortByConfidence(processedUniverse.filter((row) => row.assetType === "crypto" && row.classification === "BUY")).slice(0, 10),
-    etf: sortByConfidence(processedUniverse.filter((row) => row.assetType === "etf" && row.classification === "BUY")).slice(0, 10),
+    equities: sortBySpotlightPriority(processedUniverse.filter((row) => row.assetType === "equities")).slice(0, 10),
+    index: sortBySpotlightPriority(processedUniverse.filter((row) => row.assetType === "index")).slice(0, 10),
+    crypto: sortBySpotlightPriority(processedUniverse.filter((row) => row.assetType === "crypto")).slice(0, 10),
+    etf: sortBySpotlightPriority(processedUniverse.filter((row) => row.assetType === "etf")).slice(0, 10),
   };
 
   return NextResponse.json({
