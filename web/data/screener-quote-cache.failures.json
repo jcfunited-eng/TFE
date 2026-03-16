@@ -1,0 +1,12 @@
+{
+  "artifact_role": "quote_cache_failures",
+  "failure_count": 0,
+  "failures": {},
+  "generated_at_utc": "2026-03-12T05:57:44.860643+00:00",
+  "publication_binding_reason": "aligned",
+  "publication_binding_status": "aligned",
+  "publication_id": "snapshot_pub_v1_849ba7356eb34fbc5037db34",
+  "publication_schema_version": "v1",
+  "refresh_run_id": null,
+  "source_snapshot_publication_id": "snapshot_pub_v1_849ba7356eb34fbc5037db34"
+}

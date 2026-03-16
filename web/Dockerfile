@@ -18,6 +18,10 @@ COPY web/public ./public
 COPY web/scripts ./scripts
 RUN mkdir -p ./data
 COPY web/data/ui-config.json ./data/ui-config.json
+COPY web/data/screener-finviz-overview-cache.json ./data/screener-finviz-overview-cache.json
+COPY web/data/screener-profile-overrides.json ./data/screener-profile-overrides.json
+COPY web/data/screener-quote-cache.json ./data/screener-quote-cache.json
+COPY web/data/screener-quote-cache.failures.json ./data/screener-quote-cache.failures.json
 
 RUN npm run build
 
@@ -60,6 +64,10 @@ COPY --from=builder /app/web/public ./public
 COPY --from=builder /app/web/scripts ./scripts
 RUN mkdir -p ./data
 COPY --from=builder /app/web/data/ui-config.json ./data/ui-config.json
+COPY --from=builder /app/web/data/screener-finviz-overview-cache.json ./data/screener-finviz-overview-cache.json
+COPY --from=builder /app/web/data/screener-profile-overrides.json ./data/screener-profile-overrides.json
+COPY --from=builder /app/web/data/screener-quote-cache.json ./data/screener-quote-cache.json
+COPY --from=builder /app/web/data/screener-quote-cache.failures.json ./data/screener-quote-cache.failures.json
 COPY web/postcss.config.mjs ./postcss.config.mjs
 
 WORKDIR /app

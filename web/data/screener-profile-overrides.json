@@ -1,0 +1,1635 @@
+{
+  "failure_count": 1,
+  "failures": [
+    {
+      "error": "profile_missing",
+      "ticker": "X:BTCUSD"
+    }
+  ],
+  "generated_at_utc": "2026-03-11T22:37:43.862992+00:00",
+  "quote_cache_path": "/workspaces/Tao_Financial_Engine/web/data/screener-quote-cache.json",
+  "row_count": 162,
+  "rows": {
+    "ACWI": {
+      "assetType": "ETF",
+      "companyName": "iShares MSCI ACWI ETF",
+      "country": "USA",
+      "exchange": "NasdaqGM",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Global Large-Stock Blend",
+      "updatedAtUtc": "2026-02-28T02:00:45.300821+00:00"
+    },
+    "ASTS": {
+      "assetType": "EQUITY",
+      "companyName": "AST SpaceMobile, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Communication Equipment",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-28T02:00:36.853022+00:00"
+    },
+    "AVGO": {
+      "assetType": "EQUITY",
+      "companyName": "Broadcom Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Semiconductors",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:22.553226+00:00"
+    },
+    "AXP": {
+      "assetType": "EQUITY",
+      "companyName": "American Express Company",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Credit Services",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:30.288896+00:00"
+    },
+    "BA": {
+      "assetType": "EQUITY",
+      "companyName": "The Boeing Company",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Aerospace & Defense",
+      "quoteType": "EQUITY",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-28T02:00:42.299453+00:00"
+    },
+    "BABA": {
+      "assetType": "EQUITY",
+      "companyName": "Alibaba Group Holding Limited",
+      "country": "Hong Kong",
+      "exchange": "NYSE",
+      "industry": "Internet Retail",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Cyclical",
+      "updatedAtUtc": "2026-02-27T20:28:33.422513+00:00"
+    },
+    "BAC": {
+      "assetType": "EQUITY",
+      "companyName": "Bank of America Corporation",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Banks - Diversified",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:31.389084+00:00"
+    },
+    "BE": {
+      "assetType": "EQUITY",
+      "companyName": "Bloom Energy Corporation",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Electrical Equipment & Parts",
+      "quoteType": "EQUITY",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-27T20:28:41.831741+00:00"
+    },
+    "BIL": {
+      "assetType": "ETF",
+      "companyName": "State Street SPDR Bloomberg 1-3 Month T-Bill ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Ultrashort Bond",
+      "updatedAtUtc": "2026-02-27T20:28:40.284932+00:00"
+    },
+    "BKNG": {
+      "assetType": "EQUITY",
+      "companyName": "Booking Holdings Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Travel Services",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Cyclical",
+      "updatedAtUtc": "2026-02-27T20:28:37.471132+00:00"
+    },
+    "BSX": {
+      "assetType": "EQUITY",
+      "companyName": "Boston Scientific Corporation",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Medical Devices",
+      "quoteType": "EQUITY",
+      "sector": "Healthcare",
+      "updatedAtUtc": "2026-02-28T02:00:36.985353+00:00"
+    },
+    "BX": {
+      "assetType": "EQUITY",
+      "companyName": "Blackstone Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Asset Management",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-28T02:00:45.076753+00:00"
+    },
+    "C": {
+      "assetType": "EQUITY",
+      "companyName": "Citigroup Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Banks - Diversified",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:30.223297+00:00"
+    },
+    "CASY": {
+      "assetType": "EQUITY",
+      "companyName": "Casey's General Stores, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Specialty Retail",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Cyclical",
+      "updatedAtUtc": "2026-02-28T02:00:40.098362+00:00"
+    },
+    "CAT": {
+      "assetType": "EQUITY",
+      "companyName": "Caterpillar Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Farm & Heavy Construction Machinery",
+      "quoteType": "EQUITY",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-27T20:28:36.847058+00:00"
+    },
+    "CEG": {
+      "assetType": "EQUITY",
+      "companyName": "Constellation Energy Corporation",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Utilities - Independent Power Producers",
+      "quoteType": "EQUITY",
+      "sector": "Utilities",
+      "updatedAtUtc": "2026-02-28T02:00:45.890268+00:00"
+    },
+    "COF": {
+      "assetType": "EQUITY",
+      "companyName": "Capital One Financial Corporation",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Credit Services",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:42.356238+00:00"
+    },
+    "COHR": {
+      "assetType": "EQUITY",
+      "companyName": "Coherent Corp.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Scientific & Technical Instruments",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:35.489691+00:00"
+    },
+    "COIN": {
+      "assetType": "EQUITY",
+      "companyName": "Coinbase Global, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Financial Data & Stock Exchanges",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:34.394533+00:00"
+    },
+    "COST": {
+      "assetType": "EQUITY",
+      "companyName": "Costco Wholesale Corporation",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Discount Stores",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Defensive",
+      "updatedAtUtc": "2026-02-27T20:28:41.018919+00:00"
+    },
+    "CPNG": {
+      "assetType": "EQUITY",
+      "companyName": "Coupang, Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Internet Retail",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Cyclical",
+      "updatedAtUtc": "2026-02-27T20:28:39.255132+00:00"
+    },
+    "CRCL": {
+      "assetType": "EQUITY",
+      "companyName": "Circle Internet Group",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Capital Markets",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:32.226894+00:00"
+    },
+    "CRM": {
+      "assetType": "EQUITY",
+      "companyName": "Salesforce, Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Software - Application",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:28.214758+00:00"
+    },
+    "CRWD": {
+      "assetType": "EQUITY",
+      "companyName": "CrowdStrike Holdings, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Software - Infrastructure",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:39.931042+00:00"
+    },
+    "CRWV": {
+      "assetType": "EQUITY",
+      "companyName": "CoreWeave, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Software - Infrastructure",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:22.660754+00:00"
+    },
+    "CSCO": {
+      "assetType": "EQUITY",
+      "companyName": "Cisco Systems, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Communication Equipment",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:46.295347+00:00"
+    },
+    "CVNA": {
+      "assetType": "EQUITY",
+      "companyName": "Carvana Co.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Auto & Truck Dealerships",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Cyclical",
+      "updatedAtUtc": "2026-02-28T02:00:41.912947+00:00"
+    },
+    "CVS": {
+      "assetType": "EQUITY",
+      "companyName": "CVS Health Corporation",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Healthcare Plans",
+      "quoteType": "EQUITY",
+      "sector": "Healthcare",
+      "updatedAtUtc": "2026-02-27T20:28:45.280433+00:00"
+    },
+    "CVX": {
+      "assetType": "EQUITY",
+      "companyName": "Chevron Corporation",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Oil & Gas Integrated",
+      "quoteType": "EQUITY",
+      "sector": "Energy",
+      "updatedAtUtc": "2026-02-28T02:00:35.109561+00:00"
+    },
+    "CW": {
+      "assetType": "EQUITY",
+      "companyName": "Curtiss-Wright Corporation",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Aerospace & Defense",
+      "quoteType": "EQUITY",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-28T02:00:39.286266+00:00"
+    },
+    "DELL": {
+      "assetType": "EQUITY",
+      "companyName": "Dell Technologies Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Computer Hardware",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:23.925750+00:00"
+    },
+    "DHR": {
+      "assetType": "EQUITY",
+      "companyName": "Danaher Corporation",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Diagnostics & Research",
+      "quoteType": "EQUITY",
+      "sector": "Healthcare",
+      "updatedAtUtc": "2026-02-28T02:00:45.865496+00:00"
+    },
+    "DIA": {
+      "assetType": "ETF",
+      "companyName": "State Street SPDR Dow Jones Industrial Average ETF Trust",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Large Value",
+      "updatedAtUtc": "2026-02-27T20:28:25.355540+00:00"
+    },
+    "DT": {
+      "assetType": "EQUITY",
+      "companyName": "Dynatrace, Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Software - Application",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-28T02:00:45.723540+00:00"
+    },
+    "DUOL": {
+      "assetType": "EQUITY",
+      "companyName": "Duolingo, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Software - Application",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:27.385901+00:00"
+    },
+    "EEM": {
+      "assetType": "ETF",
+      "companyName": "iShares MSCI Emerging Markets ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Diversified Emerging Mkts",
+      "updatedAtUtc": "2026-02-27T20:28:37.342673+00:00"
+    },
+    "EFA": {
+      "assetType": "ETF",
+      "companyName": "iShares MSCI EAFE ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Foreign Large Blend",
+      "updatedAtUtc": "2026-02-27T20:28:30.379523+00:00"
+    },
+    "EWY": {
+      "assetType": "ETF",
+      "companyName": "iShares MSCI South Korea ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Miscellaneous Region",
+      "updatedAtUtc": "2026-02-27T20:28:28.033601+00:00"
+    },
+    "EWZ": {
+      "assetType": "ETF",
+      "companyName": "iShares MSCI Brazil ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Latin America Stock",
+      "updatedAtUtc": "2026-02-27T20:28:44.540809+00:00"
+    },
+    "FLUT": {
+      "assetType": "EQUITY",
+      "companyName": "Flutter Entertainment plc",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Gambling",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Cyclical",
+      "updatedAtUtc": "2026-02-27T20:28:38.001438+00:00"
+    },
+    "FTAI": {
+      "assetType": "EQUITY",
+      "companyName": "FTAI Aviation Ltd.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Rental & Leasing Services",
+      "quoteType": "EQUITY",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-28T02:00:41.346467+00:00"
+    },
+    "FXI": {
+      "assetType": "ETF",
+      "companyName": "iShares China Large-Cap ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "China Region",
+      "updatedAtUtc": "2026-02-27T20:28:39.721364+00:00"
+    },
+    "GDX": {
+      "assetType": "ETF",
+      "companyName": "VanEck Gold Miners ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Equity Precious Metals",
+      "updatedAtUtc": "2026-02-27T20:28:31.250893+00:00"
+    },
+    "GE": {
+      "assetType": "EQUITY",
+      "companyName": "GE Aerospace",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Aerospace & Defense",
+      "quoteType": "EQUITY",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-28T02:00:43.573951+00:00"
+    },
+    "GEV": {
+      "assetType": "EQUITY",
+      "companyName": "GE Vernova Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Specialty Industrial Machinery",
+      "quoteType": "EQUITY",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-27T20:28:35.840770+00:00"
+    },
+    "GILD": {
+      "assetType": "EQUITY",
+      "companyName": "Gilead Sciences, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Drug Manufacturers - General",
+      "quoteType": "EQUITY",
+      "sector": "Healthcare",
+      "updatedAtUtc": "2026-02-28T02:00:38.052511+00:00"
+    },
+    "GLW": {
+      "assetType": "EQUITY",
+      "companyName": "Corning Incorporated",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Electronic Components",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:32.043338+00:00"
+    },
+    "GOOG": {
+      "assetType": "EQUITY",
+      "companyName": "Alphabet Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Internet Content & Information",
+      "quoteType": "EQUITY",
+      "sector": "Communication Services",
+      "updatedAtUtc": "2026-02-27T20:28:26.145397+00:00"
+    },
+    "GOOGL": {
+      "assetType": "EQUITY",
+      "companyName": "Alphabet Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Internet Content & Information",
+      "quoteType": "EQUITY",
+      "sector": "Communication Services",
+      "updatedAtUtc": "2026-02-27T20:28:23.159375+00:00"
+    },
+    "GS": {
+      "assetType": "EQUITY",
+      "companyName": "The Goldman Sachs Group, Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Capital Markets",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:26.642313+00:00"
+    },
+    "HOOD": {
+      "assetType": "EQUITY",
+      "companyName": "Robinhood Markets, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Capital Markets",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:32.591881+00:00"
+    },
+    "HYG": {
+      "assetType": "ETF",
+      "companyName": "iShares iBoxx $ High Yield Corporate Bond ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "High Yield Bond",
+      "updatedAtUtc": "2026-02-27T20:28:24.560504+00:00"
+    },
+    "IBIT": {
+      "assetType": "ETF",
+      "companyName": "iShares Bitcoin Trust ETF",
+      "country": "USA",
+      "exchange": "NasdaqGM",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Digital Assets",
+      "updatedAtUtc": "2026-02-27T20:28:31.828102+00:00"
+    },
+    "IEFA": {
+      "assetType": "ETF",
+      "companyName": "iShares Core MSCI EAFE ETF",
+      "country": "USA",
+      "exchange": "Cboe US",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Foreign Large Blend",
+      "updatedAtUtc": "2026-02-27T20:28:45.212415+00:00"
+    },
+    "IEMG": {
+      "assetType": "ETF",
+      "companyName": "iShares Core MSCI Emerging Markets ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Diversified Emerging Mkts",
+      "updatedAtUtc": "2026-02-27T20:28:47.335877+00:00"
+    },
+    "IGV": {
+      "assetType": "ETF",
+      "companyName": "iShares Expanded Tech-Software Sector ETF",
+      "country": "USA",
+      "exchange": "Cboe US",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:28.671673+00:00"
+    },
+    "IJH": {
+      "assetType": "ETF",
+      "companyName": "iShares Core S&P Mid-Cap ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Mid-Cap Blend",
+      "updatedAtUtc": "2026-02-27T20:28:43.019127+00:00"
+    },
+    "INTC": {
+      "assetType": "EQUITY",
+      "companyName": "Intel Corporation",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Semiconductors",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:26.571257+00:00"
+    },
+    "INTU": {
+      "assetType": "EQUITY",
+      "companyName": "Intuit Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Software - Application",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:28.636409+00:00"
+    },
+    "IONQ": {
+      "assetType": "EQUITY",
+      "companyName": "IonQ, Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Computer Hardware",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:41.349930+00:00"
+    },
+    "IREN": {
+      "assetType": "EQUITY",
+      "companyName": "IREN Limited",
+      "country": "Australia",
+      "exchange": "NasdaqGS",
+      "industry": "Capital Markets",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:41.540288+00:00"
+    },
+    "IVV": {
+      "assetType": "ETF",
+      "companyName": "iShares Core S&P 500 ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Large Blend",
+      "updatedAtUtc": "2026-02-27T20:28:29.411022+00:00"
+    },
+    "IWD": {
+      "assetType": "ETF",
+      "companyName": "iShares Russell 1000 Value ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Large Value",
+      "updatedAtUtc": "2026-02-27T20:28:45.982044+00:00"
+    },
+    "IWF": {
+      "assetType": "ETF",
+      "companyName": "iShares Russell 1000 Growth ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Large Growth",
+      "updatedAtUtc": "2026-02-27T20:28:48.715018+00:00"
+    },
+    "IWM": {
+      "assetType": "ETF",
+      "companyName": "iShares Russell 2000 ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Small Blend",
+      "updatedAtUtc": "2026-02-27T20:28:22.575153+00:00"
+    },
+    "JNJ": {
+      "assetType": "EQUITY",
+      "companyName": "Johnson & Johnson",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Drug Manufacturers - General",
+      "quoteType": "EQUITY",
+      "sector": "Healthcare",
+      "updatedAtUtc": "2026-02-28T02:00:33.095143+00:00"
+    },
+    "JPM": {
+      "assetType": "EQUITY",
+      "companyName": "JPMorgan Chase & Co.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Banks - Diversified",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:28.274934+00:00"
+    },
+    "KKR": {
+      "assetType": "EQUITY",
+      "companyName": "KKR & Co. Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Asset Management",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:43.857291+00:00"
+    },
+    "KLAC": {
+      "assetType": "EQUITY",
+      "companyName": "KLA Corporation",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Semiconductor Equipment & Materials",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-28T02:00:36.774462+00:00"
+    },
+    "KRE": {
+      "assetType": "ETF",
+      "companyName": "State Street SPDR S&P Regional Banking ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Financial",
+      "updatedAtUtc": "2026-02-27T20:28:28.317417+00:00"
+    },
+    "KTOS": {
+      "assetType": "EQUITY",
+      "companyName": "Kratos Defense & Security Solutions, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Aerospace & Defense",
+      "quoteType": "EQUITY",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-27T20:28:36.404940+00:00"
+    },
+    "LIN": {
+      "assetType": "EQUITY",
+      "companyName": "Linde plc",
+      "country": "United Kingdom",
+      "exchange": "NasdaqGS",
+      "industry": "Specialty Chemicals",
+      "quoteType": "EQUITY",
+      "sector": "Basic Materials",
+      "updatedAtUtc": "2026-02-28T02:00:38.520010+00:00"
+    },
+    "LITE": {
+      "assetType": "EQUITY",
+      "companyName": "Lumentum Holdings Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Communication Equipment",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:26.408799+00:00"
+    },
+    "LLY": {
+      "assetType": "EQUITY",
+      "companyName": "Eli Lilly and Company",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Drug Manufacturers - General",
+      "quoteType": "EQUITY",
+      "sector": "Healthcare",
+      "updatedAtUtc": "2026-02-27T20:28:37.649587+00:00"
+    },
+    "LQD": {
+      "assetType": "ETF",
+      "companyName": "iShares iBoxx $ Investment Grade Corporate Bond ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Corporate Bond",
+      "updatedAtUtc": "2026-02-27T20:28:27.724234+00:00"
+    },
+    "LRCX": {
+      "assetType": "EQUITY",
+      "companyName": "Lam Research Corporation",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Semiconductor Equipment & Materials",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:39.283927+00:00"
+    },
+    "MA": {
+      "assetType": "EQUITY",
+      "companyName": "Mastercard Incorporated",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Credit Services",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:41.145436+00:00"
+    },
+    "MARA": {
+      "assetType": "EQUITY",
+      "companyName": "MARA Holdings, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqCM",
+      "industry": "Capital Markets",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:39.482722+00:00"
+    },
+    "MCD": {
+      "assetType": "EQUITY",
+      "companyName": "McDonald's Corporation",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Restaurants",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Cyclical",
+      "updatedAtUtc": "2026-02-27T20:28:43.954978+00:00"
+    },
+    "MELI": {
+      "assetType": "EQUITY",
+      "companyName": "MercadoLibre, Inc.",
+      "country": "Uruguay",
+      "exchange": "NasdaqGS",
+      "industry": "Internet Retail",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Cyclical",
+      "updatedAtUtc": "2026-02-27T20:28:37.329969+00:00"
+    },
+    "META": {
+      "assetType": "EQUITY",
+      "companyName": "Meta Platforms, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Internet Content & Information",
+      "quoteType": "EQUITY",
+      "sector": "Communication Services",
+      "updatedAtUtc": "2026-02-27T20:28:24.149143+00:00"
+    },
+    "MNST": {
+      "assetType": "EQUITY",
+      "companyName": "Monster Beverage Corporation",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Beverages - Non-Alcoholic",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Defensive",
+      "updatedAtUtc": "2026-02-28T02:00:44.023422+00:00"
+    },
+    "MRK": {
+      "assetType": "EQUITY",
+      "companyName": "Merck & Co., Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Drug Manufacturers - General",
+      "quoteType": "EQUITY",
+      "sector": "Healthcare",
+      "updatedAtUtc": "2026-02-27T20:28:46.735766+00:00"
+    },
+    "MRVL": {
+      "assetType": "EQUITY",
+      "companyName": "Marvell Technology, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Semiconductors",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-28T02:00:38.344507+00:00"
+    },
+    "MS": {
+      "assetType": "EQUITY",
+      "companyName": "Morgan Stanley",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Capital Markets",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:40.144101+00:00"
+    },
+    "MSFT": {
+      "assetType": "EQUITY",
+      "companyName": "Microsoft Corporation",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Software - Infrastructure",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:22.387393+00:00"
+    },
+    "MSTR": {
+      "assetType": "EQUITY",
+      "companyName": "Strategy Inc",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Software - Application",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:35.915567+00:00"
+    },
+    "MU": {
+      "assetType": "EQUITY",
+      "companyName": "Micron Technology, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Semiconductors",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:22.406658+00:00"
+    },
+    "NBIS": {
+      "assetType": "EQUITY",
+      "companyName": "Nebius Group N.V.",
+      "country": "Netherlands",
+      "exchange": "NasdaqGS",
+      "industry": "Internet Content & Information",
+      "quoteType": "EQUITY",
+      "sector": "Communication Services",
+      "updatedAtUtc": "2026-02-27T20:28:33.866302+00:00"
+    },
+    "NEE": {
+      "assetType": "EQUITY",
+      "companyName": "NextEra Energy, Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Utilities - Regulated Electric",
+      "quoteType": "EQUITY",
+      "sector": "Utilities",
+      "updatedAtUtc": "2026-02-27T20:28:39.246732+00:00"
+    },
+    "NFLX": {
+      "assetType": "EQUITY",
+      "companyName": "Netflix, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Entertainment",
+      "quoteType": "EQUITY",
+      "sector": "Communication Services",
+      "updatedAtUtc": "2026-02-27T20:28:20.337609+00:00"
+    },
+    "NKE": {
+      "assetType": "EQUITY",
+      "companyName": "NIKE, Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Footwear & Accessories",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Cyclical",
+      "updatedAtUtc": "2026-02-27T20:28:43.316251+00:00"
+    },
+    "NOW": {
+      "assetType": "EQUITY",
+      "companyName": "ServiceNow, Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Software - Application",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:34.488757+00:00"
+    },
+    "NU": {
+      "assetType": "EQUITY",
+      "companyName": "Nu Holdings Ltd.",
+      "country": "Brazil",
+      "exchange": "NYSE",
+      "industry": "Banks - Regional",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-28T02:00:39.948890+00:00"
+    },
+    "NVDA": {
+      "assetType": "EQUITY",
+      "companyName": "NVIDIA Corporation",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Semiconductors",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:24.528514+00:00"
+    },
+    "NVDL": {
+      "assetType": "ETF",
+      "companyName": "GraniteShares 2x Long NVDA Daily ETF",
+      "country": "USA",
+      "exchange": "NasdaqGM",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Trading--Leveraged Equity",
+      "updatedAtUtc": "2026-02-27T20:28:34.654145+00:00"
+    },
+    "ORCL": {
+      "assetType": "EQUITY",
+      "companyName": "Oracle Corporation",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Software - Infrastructure",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:26.319684+00:00"
+    },
+    "PANW": {
+      "assetType": "EQUITY",
+      "companyName": "Palo Alto Networks, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Software - Infrastructure",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-28T02:00:41.743485+00:00"
+    },
+    "PEP": {
+      "assetType": "EQUITY",
+      "companyName": "PepsiCo, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Beverages - Non-Alcoholic",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Defensive",
+      "updatedAtUtc": "2026-02-28T02:00:36.635681+00:00"
+    },
+    "PG": {
+      "assetType": "EQUITY",
+      "companyName": "The Procter & Gamble Company",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Household & Personal Products",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Defensive",
+      "updatedAtUtc": "2026-02-28T02:00:34.970612+00:00"
+    },
+    "PLTR": {
+      "assetType": "EQUITY",
+      "companyName": "Palantir Technologies Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Software - Infrastructure",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:22.304802+00:00"
+    },
+    "PSKY": {
+      "assetType": "EQUITY",
+      "companyName": "Paramount Skydance Corporation",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Entertainment",
+      "quoteType": "EQUITY",
+      "sector": "Communication Services",
+      "updatedAtUtc": "2026-02-28T02:00:43.043071+00:00"
+    },
+    "QCOM": {
+      "assetType": "EQUITY",
+      "companyName": "QUALCOMM Incorporated",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Semiconductors",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:44.010735+00:00"
+    },
+    "QQQ": {
+      "assetType": "ETF",
+      "companyName": "Invesco QQQ Trust",
+      "country": "USA",
+      "exchange": "NasdaqGM",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Large Growth",
+      "updatedAtUtc": "2026-02-27T20:28:20.337138+00:00"
+    },
+    "QQQM": {
+      "assetType": "ETF",
+      "companyName": "Invesco NASDAQ 100 ETF",
+      "country": "USA",
+      "exchange": "NasdaqGM",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Large Growth",
+      "updatedAtUtc": "2026-02-27T20:28:41.985903+00:00"
+    },
+    "RKLB": {
+      "assetType": "EQUITY",
+      "companyName": "Rocket Lab Corporation",
+      "country": "United States",
+      "exchange": "NasdaqCM",
+      "industry": "Aerospace & Defense",
+      "quoteType": "EQUITY",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-27T20:28:35.286255+00:00"
+    },
+    "RKT": {
+      "assetType": "EQUITY",
+      "companyName": "Rocket Companies, Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Mortgage Finance",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:47.199374+00:00"
+    },
+    "RSP": {
+      "assetType": "ETF",
+      "companyName": "Invesco S&P 500 Equal Weight ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Large Blend",
+      "updatedAtUtc": "2026-02-27T20:28:26.726148+00:00"
+    },
+    "RTX": {
+      "assetType": "EQUITY",
+      "companyName": "RTX Corporation",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Aerospace & Defense",
+      "quoteType": "EQUITY",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-28T02:00:35.018003+00:00"
+    },
+    "SGOV": {
+      "assetType": "ETF",
+      "companyName": "iShares 0-3 Month Treasury Bond ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Ultrashort Bond",
+      "updatedAtUtc": "2026-02-27T20:28:28.632812+00:00"
+    },
+    "SHOP": {
+      "assetType": "EQUITY",
+      "companyName": "Shopify Inc.",
+      "country": "Canada",
+      "exchange": "NasdaqGS",
+      "industry": "Software - Application",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-28T02:00:43.443882+00:00"
+    },
+    "SMCI": {
+      "assetType": "EQUITY",
+      "companyName": "Super Micro Computer, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Computer Hardware",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:43.286798+00:00"
+    },
+    "SMH": {
+      "assetType": "ETF",
+      "companyName": "VanEck Semiconductor ETF",
+      "country": "USA",
+      "exchange": "NasdaqGM",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:24.641303+00:00"
+    },
+    "SNDK": {
+      "assetType": "EQUITY",
+      "companyName": "Sandisk Corporation",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Computer Hardware",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:20.452881+00:00"
+    },
+    "SNOW": {
+      "assetType": "EQUITY",
+      "companyName": "Snowflake Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Software - Application",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:47.089729+00:00"
+    },
+    "SNPS": {
+      "assetType": "EQUITY",
+      "companyName": "Synopsys, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Software - Infrastructure",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:44.321440+00:00"
+    },
+    "SOFI": {
+      "assetType": "EQUITY",
+      "companyName": "SoFi Technologies, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Credit Services",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:33.505948+00:00"
+    },
+    "SOXL": {
+      "assetType": "ETF",
+      "companyName": "Direxion Daily Semiconductor Bull 3X Shares",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Trading--Leveraged Equity",
+      "updatedAtUtc": "2026-02-27T20:28:24.530492+00:00"
+    },
+    "SOXS": {
+      "assetType": "ETF",
+      "companyName": "Direxion Daily Semiconductor Bear 3X Shares",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Trading--Inverse Equity",
+      "updatedAtUtc": "2026-02-27T20:28:31.574568+00:00"
+    },
+    "SOXX": {
+      "assetType": "ETF",
+      "companyName": "iShares Semiconductor ETF",
+      "country": "USA",
+      "exchange": "NasdaqGM",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:29.906425+00:00"
+    },
+    "SPOT": {
+      "assetType": "EQUITY",
+      "companyName": "Spotify Technology S.A.",
+      "country": "Sweden",
+      "exchange": "NYSE",
+      "industry": "Internet Content & Information",
+      "quoteType": "EQUITY",
+      "sector": "Communication Services",
+      "updatedAtUtc": "2026-02-27T20:28:35.840298+00:00"
+    },
+    "SPY": {
+      "assetType": "ETF",
+      "companyName": "State Street SPDR S&P 500 ETF Trust",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Large Blend",
+      "updatedAtUtc": "2026-02-27T20:28:20.506325+00:00"
+    },
+    "SQQQ": {
+      "assetType": "ETF",
+      "companyName": "ProShares UltraPro Short QQQ",
+      "country": "USA",
+      "exchange": "NasdaqGM",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Trading--Inverse Equity",
+      "updatedAtUtc": "2026-02-27T20:28:24.156752+00:00"
+    },
+    "STX": {
+      "assetType": "EQUITY",
+      "companyName": "Seagate Technology Holdings plc",
+      "country": "Singapore",
+      "exchange": "NasdaqGS",
+      "industry": "Computer Hardware",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:39.420556+00:00"
+    },
+    "TER": {
+      "assetType": "EQUITY",
+      "companyName": "Teradyne, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Semiconductor Equipment & Materials",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-28T02:00:41.240154+00:00"
+    },
+    "TLT": {
+      "assetType": "ETF",
+      "companyName": "iShares 20+ Year Treasury Bond ETF",
+      "country": "USA",
+      "exchange": "NasdaqGM",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Long Government",
+      "updatedAtUtc": "2026-02-27T20:28:26.171635+00:00"
+    },
+    "TMUS": {
+      "assetType": "EQUITY",
+      "companyName": "T-Mobile US, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Telecom Services",
+      "quoteType": "EQUITY",
+      "sector": "Communication Services",
+      "updatedAtUtc": "2026-02-28T02:00:40.393640+00:00"
+    },
+    "TNA": {
+      "assetType": "ETF",
+      "companyName": "Direxion Daily Small Cap Bull 3X Shares",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Trading--Leveraged Equity",
+      "updatedAtUtc": "2026-02-27T20:28:47.119121+00:00"
+    },
+    "TQQQ": {
+      "assetType": "ETF",
+      "companyName": "ProShares UltraPro QQQ",
+      "country": "USA",
+      "exchange": "NasdaqGM",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Trading--Leveraged Equity",
+      "updatedAtUtc": "2026-02-27T20:28:23.472329+00:00"
+    },
+    "TSLA": {
+      "assetType": "EQUITY",
+      "companyName": "Tesla, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Auto Manufacturers",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Cyclical",
+      "updatedAtUtc": "2026-02-27T20:28:20.044050+00:00"
+    },
+    "TSLL": {
+      "assetType": "ETF",
+      "companyName": "Direxion Daily TSLA Bull 2X Shares",
+      "country": "USA",
+      "exchange": "NasdaqGM",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Trading--Leveraged Equity",
+      "updatedAtUtc": "2026-02-27T20:28:43.367391+00:00"
+    },
+    "TSM": {
+      "assetType": "EQUITY",
+      "companyName": "Taiwan Semiconductor Manufacturing Company Limited",
+      "country": "Taiwan",
+      "exchange": "NYSE",
+      "industry": "Semiconductors",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:25.696493+00:00"
+    },
+    "TXN": {
+      "assetType": "EQUITY",
+      "companyName": "Texas Instruments Incorporated",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Semiconductors",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-28T02:00:36.902373+00:00"
+    },
+    "UAL": {
+      "assetType": "EQUITY",
+      "companyName": "United Airlines Holdings, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Airlines",
+      "quoteType": "EQUITY",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-27T20:28:40.868613+00:00"
+    },
+    "UBER": {
+      "assetType": "EQUITY",
+      "companyName": "Uber Technologies, Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Software - Application",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:44.925256+00:00"
+    },
+    "UNH": {
+      "assetType": "EQUITY",
+      "companyName": "UnitedHealth Group Incorporated",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Healthcare Plans",
+      "quoteType": "EQUITY",
+      "sector": "Healthcare",
+      "updatedAtUtc": "2026-02-27T20:28:42.995721+00:00"
+    },
+    "USHY": {
+      "assetType": "ETF",
+      "companyName": "iShares Broad USD High Yield Corporate Bond ETF",
+      "country": "USA",
+      "exchange": "Cboe US",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "High Yield Bond",
+      "updatedAtUtc": "2026-02-27T20:28:46.339286+00:00"
+    },
+    "V": {
+      "assetType": "EQUITY",
+      "companyName": "Visa Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Credit Services",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:34.067323+00:00"
+    },
+    "VCIT": {
+      "assetType": "ETF",
+      "companyName": "Vanguard Intermediate-Term Corporate Bond Index Fund ETF Shares",
+      "country": "USA",
+      "exchange": "NasdaqGM",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Corporate Bond",
+      "updatedAtUtc": "2026-02-28T02:00:44.010651+00:00"
+    },
+    "VEA": {
+      "assetType": "ETF",
+      "companyName": "Vanguard FTSE Developed Markets Index Fund ETF Shares",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Foreign Large Blend",
+      "updatedAtUtc": "2026-02-28T02:00:34.959692+00:00"
+    },
+    "VOO": {
+      "assetType": "ETF",
+      "companyName": "Vanguard S&P 500 ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Large Blend",
+      "updatedAtUtc": "2026-02-27T20:28:24.353766+00:00"
+    },
+    "VRT": {
+      "assetType": "EQUITY",
+      "companyName": "Vertiv Holdings Co",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Electrical Equipment & Parts",
+      "quoteType": "EQUITY",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-27T20:28:42.612065+00:00"
+    },
+    "VTI": {
+      "assetType": "ETF",
+      "companyName": "Vanguard Total Stock Market Index Fund ETF Shares",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Large Blend",
+      "updatedAtUtc": "2026-02-27T20:28:30.559477+00:00"
+    },
+    "VZ": {
+      "assetType": "EQUITY",
+      "companyName": "Verizon Communications Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Telecom Services",
+      "quoteType": "EQUITY",
+      "sector": "Communication Services",
+      "updatedAtUtc": "2026-02-27T20:28:41.104070+00:00"
+    },
+    "WBD": {
+      "assetType": "EQUITY",
+      "companyName": "Warner Bros. Discovery, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Entertainment",
+      "quoteType": "EQUITY",
+      "sector": "Communication Services",
+      "updatedAtUtc": "2026-02-27T20:28:33.324945+00:00"
+    },
+    "WDAY": {
+      "assetType": "EQUITY",
+      "companyName": "Workday, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Software - Application",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:38.141391+00:00"
+    },
+    "WDC": {
+      "assetType": "EQUITY",
+      "companyName": "Western Digital Corporation",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Computer Hardware",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:33.414038+00:00"
+    },
+    "WELL": {
+      "assetType": "EQUITY",
+      "companyName": "Welltower Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "REIT - Healthcare Facilities",
+      "quoteType": "EQUITY",
+      "sector": "Real Estate",
+      "updatedAtUtc": "2026-02-28T02:00:43.149275+00:00"
+    },
+    "WFC": {
+      "assetType": "EQUITY",
+      "companyName": "Wells Fargo & Company",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Banks - Diversified",
+      "quoteType": "EQUITY",
+      "sector": "Financial Services",
+      "updatedAtUtc": "2026-02-27T20:28:38.313057+00:00"
+    },
+    "WMT": {
+      "assetType": "EQUITY",
+      "companyName": "Walmart Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Discount Stores",
+      "quoteType": "EQUITY",
+      "sector": "Consumer Defensive",
+      "updatedAtUtc": "2026-02-27T20:28:29.449756+00:00"
+    },
+    "WTRG": {
+      "assetType": "EQUITY",
+      "companyName": "Essential Utilities, Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Utilities - Regulated Water",
+      "quoteType": "EQUITY",
+      "sector": "Utilities",
+      "updatedAtUtc": "2026-02-28T02:00:44.942647+00:00"
+    },
+    "XLE": {
+      "assetType": "ETF",
+      "companyName": "State Street Energy Select Sector SPDR ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Equity Energy",
+      "updatedAtUtc": "2026-02-27T20:28:28.722652+00:00"
+    },
+    "XLF": {
+      "assetType": "ETF",
+      "companyName": "State Street Financial Select Sector SPDR ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Financial",
+      "updatedAtUtc": "2026-02-27T20:28:25.159315+00:00"
+    },
+    "XLI": {
+      "assetType": "ETF",
+      "companyName": "State Street Industrial Select Sector SPDR ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Industrials",
+      "updatedAtUtc": "2026-02-27T20:28:32.666678+00:00"
+    },
+    "XLK": {
+      "assetType": "ETF",
+      "companyName": "State Street Technology Select Sector SPDR ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:29.994449+00:00"
+    },
+    "XLP": {
+      "assetType": "ETF",
+      "companyName": "State Street Consumer Staples Select Sector SPDR ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Consumer Defensive",
+      "updatedAtUtc": "2026-02-27T20:28:37.693368+00:00"
+    },
+    "XLU": {
+      "assetType": "ETF",
+      "companyName": "State Street Utilities Select Sector SPDR ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Utilities",
+      "updatedAtUtc": "2026-02-27T20:28:35.894907+00:00"
+    },
+    "XLV": {
+      "assetType": "ETF",
+      "companyName": "State Street Health Care Select Sector SPDR ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Health",
+      "updatedAtUtc": "2026-02-27T20:28:32.031715+00:00"
+    },
+    "XLY": {
+      "assetType": "ETF",
+      "companyName": "State Street Consumer Discretionary Select Sector SPDR ETF",
+      "country": "USA",
+      "exchange": "NYSEArca",
+      "industry": "Exchange Traded Fund",
+      "quoteType": "ETF",
+      "sector": "Consumer Cyclical",
+      "updatedAtUtc": "2026-02-27T20:28:47.661456+00:00"
+    },
+    "XOM": {
+      "assetType": "EQUITY",
+      "companyName": "Exxon Mobil Corporation",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Oil & Gas Integrated",
+      "quoteType": "EQUITY",
+      "sector": "Energy",
+      "updatedAtUtc": "2026-02-27T20:28:37.367590+00:00"
+    },
+    "XYZ": {
+      "assetType": "EQUITY",
+      "companyName": "Block, Inc.",
+      "country": "United States",
+      "exchange": "NYSE",
+      "industry": "Software - Infrastructure",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:26.750232+00:00"
+    },
+    "ZS": {
+      "assetType": "EQUITY",
+      "companyName": "Zscaler, Inc.",
+      "country": "United States",
+      "exchange": "NasdaqGS",
+      "industry": "Software - Infrastructure",
+      "quoteType": "EQUITY",
+      "sector": "Technology",
+      "updatedAtUtc": "2026-02-27T20:28:31.359492+00:00"
+    }
+  },
+  "selected_count": 1
+}
