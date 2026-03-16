@@ -602,7 +602,11 @@ export async function GET(request: Request) {
 
   ufRowForInput = findTickerRow(snapshotRows, tickerInput);
   const ticker = String(ufRowForInput?.ticker ?? tickerInput).trim().toUpperCase();
-  const publishedDecisionLoad = await loadPublishedDecisionMapForRows(publicationState.runId, snapshotRows, [ticker]);
+  const publishedDecisionLoad = await loadPublishedDecisionMapForRows(
+    publicationState.servingRunId ?? publicationState.runId,
+    snapshotRows,
+    [ticker],
+  );
   const publishedDecision = publishedDecisionLoad.rows[ticker];
 
   if (!publishedDecisionLoad.ok || !publishedDecision || !ufRowForInput) {
