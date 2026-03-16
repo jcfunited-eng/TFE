@@ -1626,6 +1626,34 @@ def _run_post_rebuild_pipeline(
     return runtime_sync_report, validation_report
 
 
+def _load_followup_refresh_report() -> dict[str, Any]:
+    report_path = Path("uf_snapshot_rebuild_report.json")
+    if not report_path.exists() or not report_path.is_file():
+        return {
+            "status": "unknown",
+            "rows_written": None,
+            "reason": "followup_refresh_report_missing",
+        }
+
+    try:
+        payload = json.loads(report_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        return {
+            "status": "unknown",
+            "rows_written": None,
+            "reason": f"followup_refresh_report_unreadable:{type(exc).__name__}",
+        }
+
+    if not isinstance(payload, dict):
+        return {
+            "status": "unknown",
+            "rows_written": None,
+            "reason": "followup_refresh_report_not_object",
+        }
+
+    return payload
+
+
 def main() -> int:
     args = _parse_args()
 
@@ -1642,6 +1670,20 @@ def main() -> int:
         )
         print("[REFRESH+L5] Quote cache refresh follow-up report:")
         print(json.dumps(quote_cache_refresh_report, indent=2))
+        followup_report = _load_followup_refresh_report()
+        runtime_sync_report, validation_report = _run_post_rebuild_pipeline(
+            report=followup_report,
+            mode=mode,
+            quote_cache_refresh_report=quote_cache_refresh_report,
+            optimizer_summary=None,
+            optimizer_short_cycle_status="followup_quote_cache_resync",
+            epoch_schema=None,
+            epoch_status=None,
+        )
+        print("[REFRESH+L5] Quote cache follow-up runtime sync report:")
+        print(json.dumps(runtime_sync_report, indent=2))
+        print("[REFRESH+L5] Quote cache follow-up validation report:")
+        print(json.dumps(validation_report, indent=2))
         return 0
 
     resume_enabled = bool(args.resume_from_checkpoint) or _is_truthy(os.environ.get("TFE_REFRESH_RESUME_FROM_CHECKPOINT", "1"))
