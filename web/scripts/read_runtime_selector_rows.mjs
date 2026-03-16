@@ -298,21 +298,18 @@ async function main() {
       throw new Error(`table_missing:${RUNS_TABLE}`);
     }
 
-    const activePublication = await loadActivePublication(pool);
-    if (!activePublication) {
-      throw new Error("active_publication_pointer_missing");
-    }
-    if (!activePublicationIsValid(activePublication)) {
-      throw new Error("active_publication_pointer_invalid");
-    }
-
-    const selectedRunId = toTextOrNull(activePublication.run_id);
-    if (!selectedRunId) {
-      throw new Error("active_publication_run_id_missing");
-    }
-
     const latestRuntime = await loadLatestRuntimeRunId(pool);
-    const useHistoryTable = latestRuntime.runId !== null && latestRuntime.runId !== selectedRunId;
+    const activePublication = await loadActivePublication(pool);
+    const activePublicationValid = activePublicationIsValid(activePublication);
+    const selectedRunId = activePublicationValid
+      ? toTextOrNull(activePublication?.run_id)
+      : latestRuntime.runId;
+
+    if (!selectedRunId) {
+      throw new Error(activePublication ? "active_publication_pointer_invalid" : "active_publication_pointer_missing");
+    }
+
+    const useHistoryTable = activePublicationValid && latestRuntime.runId !== null && latestRuntime.runId !== selectedRunId;
     const selectedTable = useHistoryTable ? DECISIONS_HISTORY_TABLE : DECISIONS_TABLE;
 
     if (useHistoryTable) {
@@ -355,8 +352,11 @@ async function main() {
     process.stdout.write(`${JSON.stringify({
       ok: true,
       run_id: selectedRunId,
-      generated_at_utc: toIsoOrNull(activePublication.generated_at_utc) ?? latestRuntime.generatedAtUtc,
+      generated_at_utc: activePublicationValid
+        ? (toIsoOrNull(activePublication?.generated_at_utc) ?? latestRuntime.generatedAtUtc)
+        : latestRuntime.generatedAtUtc,
       source_table: selectedTable,
+      selection_source: activePublicationValid ? "active_publication" : "latest_runtime_fallback",
       row_count: rows.length,
       rows,
     })}\n`);
