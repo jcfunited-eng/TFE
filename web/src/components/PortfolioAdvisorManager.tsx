@@ -12,7 +12,7 @@ import ClientPortal from "@/components/ClientPortal";
 import { buildMarketStatColumns, type MarketQuoteSummary } from "@/lib/market-analysis";
 import { useFlyoutPanel } from "@/lib/use-flyout-panel";
 
-type DecisionLabel = "Accumulate" | "Hold" | "Avoid";
+type DecisionLabel = "Accumulate" | "Hold" | "Avoid" | "Unavailable";
 
 type PortfolioLot = {
   id: string;
@@ -34,9 +34,11 @@ type PositionRow = {
   unrealizedPnL: number | null;
   unrealizedPnLPct: number | null;
   decision: DecisionLabel;
+  decisionAvailable: boolean;
   decisionReason: string;
   decisionReasonCode: string;
-  classification: "BUY" | "HOLD" | "SELL";
+  classification: "BUY" | "HOLD" | "SELL" | "UNAVAILABLE";
+  publishedDecisionStatus: "ok" | "missing" | "invalid";
   S_UF: number;
   R_UF: number;
   barCount: number;
@@ -160,7 +162,7 @@ type QuoteSummary = MarketQuoteSummary;
 
 type UfMetric = {
   ticker: string;
-  decision: DecisionLabel;
+  decision: "Accumulate" | "Hold" | "Avoid";
   decisionReason: string;
   decisionReasonCode: string;
   classification: "BUY" | "HOLD" | "SELL";
@@ -403,14 +405,16 @@ function pathFromPoints(points: Array<{ x: number; y: number }>): string {
   return points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ");
 }
 
-function decisionClass(decision: DecisionLabel): "accumulate" | "hold" | "trim" {
+function decisionClass(decision: DecisionLabel): "accumulate" | "hold" | "trim" | "unavailable" {
   if (decision === "Accumulate") return "accumulate";
   if (decision === "Avoid") return "trim";
+  if (decision === "Unavailable") return "unavailable";
   return "hold";
 }
 
-function portfolioDecisionLabel(decision: DecisionLabel): "Accumulate" | "Hold" | "Trim" {
+function portfolioDecisionLabel(decision: DecisionLabel): "Accumulate" | "Hold" | "Trim" | "Unavailable" {
   if (decision === "Avoid") return "Trim";
+  if (decision === "Unavailable") return "Unavailable";
   return decision;
 }
 
@@ -1289,6 +1293,10 @@ export default function PortfolioAdvisorManager() {
     if (lookupMetric) return lookupMetric;
     if (!selectedPosition) return null;
 
+    if (!selectedPosition.decisionAvailable) {
+      return null;
+    }
+
     return {
       ticker: selectedPosition.ticker,
       decision: selectedPosition.decision,
@@ -1753,14 +1761,18 @@ export default function PortfolioAdvisorManager() {
                   return (
                     <tr key={`${row.ticker}-${row.assetType}-${row.barCount}-${rowIndex}`} className={active ? "active-row" : ""}>
                       <td>
-                        <button
-                          type="button"
-                          className="tfe-row-button"
-                          onClick={() => void loadChart(row.ticker)}
-                          title={`Open analysis for ${row.ticker}`}
-                        >
-                          {row.ticker}
-                        </button>
+                        {row.decisionAvailable ? (
+                          <button
+                            type="button"
+                            className="tfe-row-button"
+                            onClick={() => void loadChart(row.ticker)}
+                            title={`Open analysis for ${row.ticker}`}
+                          >
+                            {row.ticker}
+                          </button>
+                        ) : (
+                          <span title={row.decisionReason}>{row.ticker}</span>
+                        )}
                       </td>
                       <td>{row.assetType}</td>
                       <td style={{ textAlign: "right" }}>{fmtNum(row.units, 4)}</td>
@@ -1778,7 +1790,9 @@ export default function PortfolioAdvisorManager() {
                         {fmtPct(row.unrealizedPnLPct)}
                       </td>
                       <td>
-                        <span className={`tfe-chip ${decisionClass(row.decision)}`}>{decisionLabel}</span>
+                        <span className={`tfe-chip ${decisionClass(row.decision)}`} title={row.decisionReason}>
+                          {decisionLabel}
+                        </span>
                       </td>
                     </tr>
                   );

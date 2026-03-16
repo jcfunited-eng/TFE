@@ -10,7 +10,6 @@ import { loadCanonicalPublicationState, publicationContractFields } from "@/lib/
 import {
   loadPublishedDecisionMapForRows,
   type PublishedDecisionLoadResult,
-  type PublishedDecisionRecord,
 } from "@/lib/published-decision";
 import {
   quoteCachePriceFromRow,
@@ -40,10 +39,12 @@ type PositionRow = {
   marketValue: number | null;
   unrealizedPnL: number | null;
   unrealizedPnLPct: number | null;
-  decision: "Accumulate" | "Hold" | "Avoid";
+  decision: "Accumulate" | "Hold" | "Avoid" | "Unavailable";
+  decisionAvailable: boolean;
   decisionReason: string;
   decisionReasonCode: string;
-  classification: "BUY" | "HOLD" | "SELL";
+  classification: "BUY" | "HOLD" | "SELL" | "UNAVAILABLE";
+  publishedDecisionStatus: "ok" | "missing" | "invalid";
   S_UF: number;
   R_UF: number;
   barCount: number;
@@ -186,7 +187,7 @@ async function loadSnapshotRowsWithTimeout(): Promise<SnapshotLoadResult> {
   }
 }
 
-function normalizeAssetType(value: unknown): PositionRow["assetType"] {
+function normalizeAssetType(value: unknown, ticker?: string): PositionRow["assetType"] {
   const raw = String(value ?? "")
     .trim()
     .toLowerCase();
@@ -195,6 +196,7 @@ function normalizeAssetType(value: unknown): PositionRow["assetType"] {
   if (["index", "indices"].includes(raw)) return "Index";
   if (["crypto", "cryptocurrency", "coin", "token"].includes(raw)) return "Crypto";
   if (["etf", "fund"].includes(raw)) return "ETF";
+  if (String(ticker ?? "").trim().toUpperCase().startsWith("X:")) return "Crypto";
 
   return "Other";
 }
@@ -240,7 +242,20 @@ function buildAllocatorPlan(positions: PositionRow[], summary: Summary): Allocat
     summary.totalMarketValue !== null && summary.totalMarketValue > 0 ? summary.totalMarketValue : pricedPortfolioValue;
 
   const scored = positions
-    .filter((row) => row.marketValue !== null && row.marketValue > 0)
+    .filter(
+      (
+        row,
+      ): row is PositionRow & {
+        decision: "Accumulate" | "Hold" | "Avoid";
+        classification: "BUY" | "HOLD" | "SELL";
+        decisionAvailable: true;
+      } =>
+        row.marketValue !== null
+        && row.marketValue > 0
+        && row.decisionAvailable
+        && row.decision !== "Unavailable"
+        && row.classification !== "UNAVAILABLE",
+    )
     .map((row) => {
       const confidence = clamp01((row.S_UF + row.R_UF) / 2);
       const holdIsFallbackUnmapped =
@@ -431,12 +446,35 @@ function buildPortfolioWarning(unresolvedTickers: UnresolvedPortfolioTicker[]): 
   return `Portfolio analytics exclude unresolved published decision provenance for ${labels}. Excluded lots=${unresolvedLotCount}. Excluded cost basis=${unresolvedCostBasis.toFixed(2)}.`;
 }
 
+function publishedDecisionStatusForTicker(
+  ticker: string,
+  publishedDecisionLoad: PublishedDecisionLoadResult,
+): PositionRow["publishedDecisionStatus"] {
+  if (publishedDecisionLoad.invalidTickers.includes(ticker)) {
+    return "invalid";
+  }
+  if (publishedDecisionLoad.missingTickers.includes(ticker)) {
+    return "missing";
+  }
+  return "ok";
+}
+
+function unresolvedDecisionReason(status: PositionRow["publishedDecisionStatus"], ticker: string): string {
+  if (status === "invalid") {
+    return `Published decision provenance is present but invalid for ${ticker}. Portfolio pricing remains visible, but decision analytics are unavailable.`;
+  }
+  if (status === "missing") {
+    return `Published decision provenance is missing for ${ticker}. Portfolio pricing remains visible, but decision analytics are unavailable.`;
+  }
+  return "Published decision provenance is available.";
+}
+
 function aggregatePositions(
   lots: PortfolioLot[],
   snapshotRows: SnapshotLoadResult["rows"],
   livePriceMap: Map<string, LivePriceQuote>,
   quoteCacheQuotes: Record<string, ScreenerQuoteCacheRow>,
-  publishedDecisionMap: Record<string, PublishedDecisionRecord>,
+  publishedDecisionLoad: PublishedDecisionLoadResult,
 ): PositionRow[] {
   const groups = new Map<string, PortfolioLot[]>();
 
@@ -466,14 +504,12 @@ function aggregatePositions(
     const avgCost = units > 0 ? costBasis / units : 0;
 
     const row = findTickerRow(snapshotRows, ticker);
-    const published = row ? publishedDecisionMap[ticker] : null;
-    if (!row || !published) {
-      continue;
-    }
+    const published = publishedDecisionLoad.rows[ticker] ?? null;
+    const publishedDecisionStatus = publishedDecisionStatusForTicker(ticker, publishedDecisionLoad);
 
     const livePrice = livePriceMap.get(ticker)?.price ?? null;
     const quoteCachePrice = quoteCachePriceFromRow(quoteCacheQuotes[ticker]);
-    const snapshotPrice = toNumberOrNull(row.price);
+    const snapshotPrice = row ? toNumberOrNull(row.price) : null;
     const currentPrice = livePrice ?? quoteCachePrice ?? snapshotPrice;
     const marketValue = currentPrice === null ? null : currentPrice * units;
     const unrealizedPnL = marketValue === null ? null : marketValue - costBasis;
@@ -481,7 +517,7 @@ function aggregatePositions(
 
     positions.push({
       ticker,
-      assetType: normalizeAssetType(row?.asset_type),
+      assetType: normalizeAssetType(row?.asset_type, ticker),
       units,
       avgCost,
       costBasis,
@@ -489,14 +525,18 @@ function aggregatePositions(
       marketValue,
       unrealizedPnL,
       unrealizedPnLPct,
-      decision: published.decision,
-      decisionReason: published.decisionReason,
-      decisionReasonCode: published.decisionReasonCode,
-      classification: classificationFromDecision(published.decision),
-      S_UF: toNumber(row.S_UF),
-      R_UF: toNumber(row.R_UF),
-      barCount: published.barCount,
-      minBarsForAccumulate: published.minBarsForAccumulate,
+      decision: published?.decision ?? "Unavailable",
+      decisionAvailable: Boolean(published),
+      decisionReason: published?.decisionReason ?? unresolvedDecisionReason(publishedDecisionStatus, ticker),
+      decisionReasonCode:
+        published?.decisionReasonCode
+        ?? (publishedDecisionStatus === "invalid" ? "PERSISTED_PROVENANCE_INVALID" : "PERSISTED_PROVENANCE_MISSING"),
+      classification: published ? classificationFromDecision(published.decision) : "UNAVAILABLE",
+      publishedDecisionStatus,
+      S_UF: row ? toNumber(row.S_UF) : 0,
+      R_UF: row ? toNumber(row.R_UF) : 0,
+      barCount: published?.barCount ?? (row ? Math.max(0, Math.floor(toNumber(row.bar_count))) : 0),
+      minBarsForAccumulate: published?.minBarsForAccumulate ?? 0,
     });
   }
 
@@ -715,7 +755,7 @@ export async function GET(request: Request) {
     snapshotRows,
     livePriceMap,
     quoteCache.quotes,
-    publishedDecisionLoad.rows,
+    publishedDecisionLoad,
   );
   const summary = buildSummary(portfolio.lots, positions);
   const benchmark = buildBenchmarkComparison();
