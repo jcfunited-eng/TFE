@@ -131,7 +131,7 @@ AUTH_SHARED_PATTERNS = [
     "tools/run_validation_gate_v1_in_ecs_network.py",
 ]
 
-RECOMMENDATION_PATTERNS = [
+RECOMMENDATION_RUNTIME_PATTERNS = [
     "web/src/app/recommendations/**",
     "web/src/app/api/recommendations/**",
     "web/src/components/*Recommendation*.tsx",
@@ -139,8 +139,13 @@ RECOMMENDATION_PATTERNS = [
     "web/src/lib/recommendation*.tsx",
     "web/scripts/recommendations_consistency_probe.mjs",
     "tools/run_recommendations_consistency_probe_lane.sh",
-    "tools/run_recommendation_quality_audit_lane.sh",
     "tools/run_site_reliability_contract_gate.sh",
+    "pscf_policy_runtime.json",
+    "uf_snapshot.json",
+]
+
+RECOMMENDATION_QUALITY_PATTERNS = [
+    "tools/run_recommendation_quality_audit_lane.sh",
     "tools/recommendation_quality_audit_lane.py",
     "tools/evaluate_recommendation_policy_snapshot.py",
     "pscf_policy_runtime.json",
@@ -318,7 +323,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="site_reliability_recommendations",
         blocking=True,
         gate_class="runtime_critical",
-        patterns=RECOMMENDATION_PATTERNS + AUTH_SHARED_PATTERNS,
+        patterns=RECOMMENDATION_RUNTIME_PATTERNS + AUTH_SHARED_PATTERNS,
         wrappers=["tools/run_recommendations_consistency_probe_lane.sh"],
         outputs_expected=["recommendations lane summary", "recommendations probe summary"],
         process="tools/run_recommendations_consistency_probe_lane.sh",
@@ -328,7 +333,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="site_reliability_recommendations_nonregression",
         blocking=False,
         gate_class="non_critical_observability",
-        patterns=RECOMMENDATION_PATTERNS + AUTH_SHARED_PATTERNS,
+        patterns=RECOMMENDATION_RUNTIME_PATTERNS + AUTH_SHARED_PATTERNS,
         wrappers=[],
         outputs_expected=["recommendations nonregression report"],
         process="inline recommendations nonregression comparator",
@@ -338,7 +343,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="site_reliability_recommendations_quality",
         blocking=False,
         gate_class="non_critical_observability",
-        patterns=RECOMMENDATION_PATTERNS + AUTH_SHARED_PATTERNS,
+        patterns=RECOMMENDATION_QUALITY_PATTERNS + AUTH_SHARED_PATTERNS,
         wrappers=["tools/run_recommendation_quality_audit_lane.sh"],
         outputs_expected=["recommendation quality lane summary"],
         process="tools/run_recommendation_quality_audit_lane.sh",
@@ -348,7 +353,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         unit_id="site_reliability_recommendations_quality_nonregression",
         blocking=False,
         gate_class="non_critical_observability",
-        patterns=RECOMMENDATION_PATTERNS + AUTH_SHARED_PATTERNS,
+        patterns=RECOMMENDATION_QUALITY_PATTERNS + AUTH_SHARED_PATTERNS,
         wrappers=[],
         outputs_expected=["recommendations quality nonregression report"],
         process="inline recommendation-quality nonregression comparator",
