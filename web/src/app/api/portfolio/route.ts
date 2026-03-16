@@ -170,6 +170,14 @@ function normalizeTimeoutMs(value: unknown, fallbackMs: number): number {
   return whole;
 }
 
+function resolvePortfolioOwnerUsername(sessionUser: { username: string; role: string }): string {
+  if (sessionUser.role === "admin") {
+    return "admin";
+  }
+
+  return sessionUser.username;
+}
+
 async function loadSnapshotRowsWithTimeout(): Promise<SnapshotLoadResult> {
   let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
 
@@ -607,7 +615,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
 
-  const portfolio = await loadPortfolioLots(sessionUser.username);
+  const portfolioOwnerUsername = resolvePortfolioOwnerUsername(sessionUser);
+  const portfolio = await loadPortfolioLots(portfolioOwnerUsername);
 
   let snapshotRows: SnapshotLoadResult["rows"] = [];
   let snapshotSource: string | null = null;
@@ -800,6 +809,7 @@ export async function GET(request: Request) {
     },
     quoteSource: quoteCache.sourcePath,
     quoteFailures: quoteCache.failures,
+    portfolioOwnerUsername,
   });
 }
 
@@ -808,6 +818,7 @@ export async function POST(request: Request) {
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
+  const portfolioOwnerUsername = resolvePortfolioOwnerUsername(sessionUser);
 
   let body: PostBody;
 
@@ -874,7 +885,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await addPortfolioLot(sessionUser.username, {
+    const result = await addPortfolioLot(portfolioOwnerUsername, {
       ticker,
       units,
       unitCost,
@@ -885,6 +896,7 @@ export async function POST(request: Request) {
       addedLot: result.addedLot,
       lots: result.lots,
       source: result.filePath,
+      portfolioOwnerUsername,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to add portfolio lot.";
@@ -897,6 +909,7 @@ export async function PUT(request: Request) {
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
+  const portfolioOwnerUsername = resolvePortfolioOwnerUsername(sessionUser);
 
   let body: PutBody;
 
@@ -937,13 +950,14 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const result = await updatePortfolioLot(sessionUser.username, id, patch);
+    const result = await updatePortfolioLot(portfolioOwnerUsername, id, patch);
 
     return NextResponse.json({
       updated: true,
       updatedLot: result.updatedLot,
       lots: result.lots,
       source: result.filePath,
+      portfolioOwnerUsername,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to update portfolio lot.";
@@ -957,6 +971,7 @@ export async function DELETE(request: Request) {
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
+  const portfolioOwnerUsername = resolvePortfolioOwnerUsername(sessionUser);
 
   const { searchParams } = new URL(request.url);
   const id = String(searchParams.get("id") ?? "").trim();
@@ -966,12 +981,13 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    const result = await removePortfolioLot(sessionUser.username, id);
+    const result = await removePortfolioLot(portfolioOwnerUsername, id);
 
     return NextResponse.json({
       removed: result.removed,
       lots: result.lots,
       source: result.filePath,
+      portfolioOwnerUsername,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to remove lot.";
