@@ -7,6 +7,7 @@ import { createStep1RunRequest } from "./run-request";
 import {
   createFileProofStep1Persistence,
   createPostgresStep1Persistence,
+  createStep1SuccessMirrorRunRow,
   type Step1FollowupStatus,
   type Step1Persistence,
 } from "./schema";
@@ -312,6 +313,15 @@ export async function dispatchStep1Orchestrator(
       persistence,
       workspaceRoot,
     },
+  );
+
+  await persistence.writeRunRow(
+    createStep1SuccessMirrorRunRow({
+      baseRunRow: request.runRow,
+      publicationCommittedAtUtc: publicationCommit.manifest.committed_at_utc,
+      followupStatus: followup.ticket.status,
+      followupCreatedAtUtc: followup.ticket.created_at_utc,
+    }),
   );
 
   return {

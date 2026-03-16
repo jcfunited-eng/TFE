@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { resolveWorkspaceRoot } from "../workspace-root";
+import { buildCanonicalPublicationBundleWriteContract } from "../publication-bundle-contract";
 import {
   createActivePublicationPointerRow,
   createPublicationActivationAuditRow,
@@ -10,9 +11,6 @@ import {
   nowExecutionTimestampUtc,
   parseStoredStep1AssessmentReportArtifact,
   parseStoredStep1CandidateBundleManifest,
-  resolveStep1PublicationManifestPath,
-  sha256Text,
-  stableJsonStringify,
   type Step1AssessmentEvidenceReference,
   type Step1PublicationBundleManifest,
   type Step1PublicationCommitPersistence,
@@ -134,49 +132,6 @@ async function loadCandidateBundleManifest(
   }
 }
 
-function buildPublicationBundleManifest(params: {
-  runId: string;
-  assessmentReportPath: string;
-  assessmentReportId: string;
-  candidateBundleManifestPath: string;
-  candidateManifest: NonNullable<ReturnType<typeof parseStoredStep1CandidateBundleManifest>>;
-  targetEnvironment: string;
-  previousActivePublicationId: string | null;
-  committedAtUtc: string;
-}): Step1PublicationBundleManifest {
-  const canonicalIdentity = {
-    run_id: params.runId,
-    candidate_bundle_id: params.candidateManifest.candidate_bundle_id,
-    assessment_report_id: params.assessmentReportId,
-    target_environment: params.targetEnvironment,
-  };
-  const publicationBundleDigestSha256 = sha256Text(stableJsonStringify(canonicalIdentity));
-  const activationAuditDigestSha256 = sha256Text(stableJsonStringify({
-    ...canonicalIdentity,
-    previous_active_publication_id: params.previousActivePublicationId,
-  }));
-  const publicationBundleId = `publication_bundle_v1_${publicationBundleDigestSha256.slice(0, 24)}`;
-  const activationAuditId = `publication_activation_v1_${activationAuditDigestSha256.slice(0, 24)}`;
-
-  return {
-    publication_bundle_id: publicationBundleId,
-    run_id: params.runId,
-    candidate_bundle_id: params.candidateManifest.candidate_bundle_id,
-    assessment_report_id: params.assessmentReportId,
-    normalized_package_id: params.candidateManifest.normalized_package_id,
-    policy_set_id: params.candidateManifest.policy_set_id,
-    model_set_id: params.candidateManifest.model_set_id,
-    config_set_id: params.candidateManifest.config_set_id,
-    bundle_class: params.candidateManifest.bundle_class,
-    target_environment: params.targetEnvironment,
-    previous_active_publication_id: params.previousActivePublicationId,
-    activation_audit_id: activationAuditId,
-    candidate_bundle_manifest_path: params.candidateBundleManifestPath,
-    assessment_report_path: params.assessmentReportPath,
-    committed_at_utc: params.committedAtUtc,
-  };
-}
-
 function classifyPersistenceFailure(
   error: unknown,
   runId: string,
@@ -235,18 +190,20 @@ export async function createPublicationCommitRecord(
   const candidateManifest = await loadCandidateBundleManifest(candidateBundleManifestPath, runId);
   const previousActivePointer = await persistence.readActivePublicationPointer(targetEnvironment);
   const committedAtUtc = nowExecutionTimestampUtc();
-  const manifest = buildPublicationBundleManifest({
+  const publicationContract = buildCanonicalPublicationBundleWriteContract({
+    workspaceRoot,
     runId,
+    assessmentReport: report,
     assessmentReportPath,
-    assessmentReportId: report.assessment_report_id,
     candidateBundleManifestPath,
     candidateManifest,
     targetEnvironment,
     previousActivePublicationId: previousActivePointer?.publication_bundle_id ?? null,
     committedAtUtc,
   });
-  const manifestPath = resolveStep1PublicationManifestPath(workspaceRoot, manifest.publication_bundle_id);
-  const manifestDigestSha256 = sha256Text(stableJsonStringify(manifest));
+  const manifest = publicationContract.manifest;
+  const manifestPath = publicationContract.manifestPath;
+  const manifestDigestSha256 = publicationContract.manifestDigestSha256;
   const publicationBundleRow = createPublicationBundleRow({
     manifest,
     manifestPath,
@@ -283,7 +240,7 @@ export async function createPublicationCommitRecord(
 
   try {
     await mkdir(path.dirname(manifestPath), { recursive: true });
-    await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+    await writeFile(manifestPath, publicationContract.manifestText, "utf8");
   } catch (error) {
     const detail = error instanceof Error ? error.message : "Unable to write publication manifest.";
     throw new PublicationCommitRecordError({

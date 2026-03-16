@@ -46,8 +46,21 @@ export type Step1RuntimeRefreshRunRow = {
   requested_by: string;
   started_at: string;
   completed_at: string | null;
+  report_generated_at_utc?: string | null;
+  rows_written?: number | null;
   report_status: string;
+  validation_status?: string | null;
+  validation_report_path?: string | null;
   request_artifact_path: string;
+  bundle_generated_at_utc?: string | null;
+  snapshot_publication_id?: string | null;
+  quote_publication_id?: string | null;
+  quote_binding_status?: string | null;
+  activation_state?: string | null;
+  serving_state?: string | null;
+  blocking_reason_code?: string | null;
+  blocking_reason_detail?: string | null;
+  is_active_publication?: boolean;
   current_phase: string;
   current_phase_process_status: string;
   current_phase_started_at: string | null;
@@ -397,6 +410,23 @@ function upsertRunRow(rows: Step1RuntimeRefreshRunRow[], row: Step1RuntimeRefres
   return next;
 }
 
+function applyPhaseMirrorToRunRow(
+  row: Step1RuntimeRefreshRunRow,
+  phaseRow: Step1RuntimeRefreshPhaseRow,
+): Step1RuntimeRefreshRunRow {
+  return {
+    ...row,
+    current_phase: phaseRow.phase_name,
+    current_phase_process_status: phaseRow.process_status,
+    current_phase_started_at: phaseRow.started_at,
+    current_phase_completed_at: phaseRow.completed_at,
+    current_phase_last_heartbeat_at: phaseRow.last_heartbeat_at,
+    current_phase_failure_code: phaseRow.failure_code,
+    current_phase_failure_detail: phaseRow.failure_detail,
+    updated_at: phaseRow.updated_at,
+  };
+}
+
 function upsertPhaseRow(
   rows: Step1RuntimeRefreshPhaseRow[],
   row: Step1RuntimeRefreshPhaseRow,
@@ -541,6 +571,13 @@ export function createFileProofStep1Persistence(storePath: string): Step1Persist
     async writePhaseRow(row: Step1RuntimeRefreshPhaseRow): Promise<void> {
       const store = await readProofStore(storePath);
       store.runtime_refresh_run_phases = upsertPhaseRow(store.runtime_refresh_run_phases, row);
+      const existingRunRow = store.runtime_refresh_runs.find((candidate) => candidate.run_id === row.run_id);
+      if (existingRunRow) {
+        store.runtime_refresh_runs = upsertRunRow(
+          store.runtime_refresh_runs,
+          applyPhaseMirrorToRunRow(existingRunRow, row),
+        );
+      }
       await writeProofStore(storePath, store);
     },
     async writeCandidateBundleRow(row: Step1CandidateBundleRow): Promise<void> {
@@ -576,6 +613,15 @@ export function createFileProofStep1Persistence(storePath: string): Step1Persist
         transaction.publicationActivationAuditRow,
       );
       store.runtime_refresh_run_phases = upsertPhaseRow(store.runtime_refresh_run_phases, transaction.phaseRow);
+      const existingRunRow = store.runtime_refresh_runs.find(
+        (candidate) => candidate.run_id === transaction.phaseRow.run_id,
+      );
+      if (existingRunRow) {
+        store.runtime_refresh_runs = upsertRunRow(
+          store.runtime_refresh_runs,
+          applyPhaseMirrorToRunRow(existingRunRow, transaction.phaseRow),
+        );
+      }
       await writeProofStore(storePath, store);
     },
     async writeDeferredFollowupJobRow(row: Step1DeferredFollowupJobRow): Promise<void> {
@@ -809,8 +855,21 @@ export function createPostgresStep1Persistence(): Step1Persistence {
             requested_by,
             started_at,
             completed_at,
+            report_generated_at_utc,
+            rows_written,
             report_status,
+            validation_status,
+            validation_report_path,
             request_artifact_path,
+            bundle_generated_at_utc,
+            snapshot_publication_id,
+            quote_publication_id,
+            quote_binding_status,
+            activation_state,
+            serving_state,
+            blocking_reason_code,
+            blocking_reason_detail,
+            is_active_publication,
             current_phase,
             current_phase_process_status,
             current_phase_started_at,
@@ -830,19 +889,32 @@ export function createPostgresStep1Persistence(): Step1Persistence {
             $4,
             $5::timestamptz,
             $6::timestamptz,
-            $7,
+            $7::timestamptz,
             $8,
             $9,
             $10,
-            $11::timestamptz,
-            $12::timestamptz,
+            $11,
+            $12,
             $13::timestamptz,
             $14,
             $15,
             $16,
             $17,
-            $18::timestamptz,
-            $19::timestamptz
+            $18,
+            $19,
+            $20,
+            $21,
+            $22,
+            $23,
+            $24::timestamptz,
+            $25::timestamptz,
+            $26::timestamptz,
+            $27,
+            $28,
+            $29,
+            $30,
+            $31::timestamptz,
+            $32::timestamptz
           )
           ON CONFLICT (run_id)
           DO UPDATE SET
@@ -851,8 +923,21 @@ export function createPostgresStep1Persistence(): Step1Persistence {
             requested_by = EXCLUDED.requested_by,
             started_at = EXCLUDED.started_at,
             completed_at = EXCLUDED.completed_at,
+            report_generated_at_utc = EXCLUDED.report_generated_at_utc,
+            rows_written = EXCLUDED.rows_written,
             report_status = EXCLUDED.report_status,
+            validation_status = EXCLUDED.validation_status,
+            validation_report_path = EXCLUDED.validation_report_path,
             request_artifact_path = EXCLUDED.request_artifact_path,
+            bundle_generated_at_utc = EXCLUDED.bundle_generated_at_utc,
+            snapshot_publication_id = EXCLUDED.snapshot_publication_id,
+            quote_publication_id = EXCLUDED.quote_publication_id,
+            quote_binding_status = EXCLUDED.quote_binding_status,
+            activation_state = EXCLUDED.activation_state,
+            serving_state = EXCLUDED.serving_state,
+            blocking_reason_code = EXCLUDED.blocking_reason_code,
+            blocking_reason_detail = EXCLUDED.blocking_reason_detail,
+            is_active_publication = EXCLUDED.is_active_publication,
             current_phase = EXCLUDED.current_phase,
             current_phase_process_status = EXCLUDED.current_phase_process_status,
             current_phase_started_at = EXCLUDED.current_phase_started_at,
@@ -871,8 +956,21 @@ export function createPostgresStep1Persistence(): Step1Persistence {
           row.requested_by,
           toIsoUtc(row.started_at, "started_at"),
           row.completed_at ? toIsoUtc(row.completed_at, "completed_at") : null,
+          row.report_generated_at_utc ? toIsoUtc(row.report_generated_at_utc, "report_generated_at_utc") : null,
+          row.rows_written ?? null,
           row.report_status,
+          row.validation_status ?? null,
+          row.validation_report_path ?? null,
           row.request_artifact_path,
+          row.bundle_generated_at_utc ? toIsoUtc(row.bundle_generated_at_utc, "bundle_generated_at_utc") : null,
+          row.snapshot_publication_id ?? null,
+          row.quote_publication_id ?? null,
+          row.quote_binding_status ?? null,
+          row.activation_state ?? null,
+          row.serving_state ?? null,
+          row.blocking_reason_code ?? null,
+          row.blocking_reason_detail ?? null,
+          row.is_active_publication === true,
           row.current_phase,
           row.current_phase_process_status,
           row.current_phase_started_at ? toIsoUtc(row.current_phase_started_at, "current_phase_started_at") : null,
@@ -1505,6 +1603,44 @@ export function createStep1RunRow(params: {
     failure_detail: null,
     created_at: timestamp,
     updated_at: timestamp,
+  };
+}
+
+export function createStep1SuccessMirrorRunRow(params: {
+  baseRunRow: Step1RuntimeRefreshRunRow;
+  publicationCommittedAtUtc: string;
+  followupStatus: Step1FollowupStatus;
+  followupCreatedAtUtc: string;
+}): Step1RuntimeRefreshRunRow {
+  const publicationCommittedAtUtc = toIsoUtc(
+    params.publicationCommittedAtUtc,
+    "step1_success_mirror.publication_committed_at_utc",
+  );
+  const followupCreatedAtUtc = toIsoUtc(
+    params.followupCreatedAtUtc,
+    "step1_success_mirror.followup_created_at_utc",
+  );
+
+  return {
+    ...params.baseRunRow,
+    completed_at: publicationCommittedAtUtc,
+    report_generated_at_utc: publicationCommittedAtUtc,
+    report_status: "ok",
+    bundle_generated_at_utc: publicationCommittedAtUtc,
+    activation_state: "activated",
+    serving_state: "allowed",
+    blocking_reason_code: null,
+    blocking_reason_detail: null,
+    current_phase: STEP1_QUOTE_CACHE_REFRESH_PHASE,
+    current_phase_process_status: params.followupStatus,
+    current_phase_started_at: followupCreatedAtUtc,
+    current_phase_completed_at: params.followupStatus === "failed" ? followupCreatedAtUtc : null,
+    current_phase_last_heartbeat_at: followupCreatedAtUtc,
+    current_phase_failure_code: null,
+    current_phase_failure_detail: null,
+    failure_code: null,
+    failure_detail: null,
+    updated_at: followupCreatedAtUtc,
   };
 }
 
@@ -2231,5 +2367,27 @@ export function selectStep1PublicationBundleRow(
   if (!normalizedPublicationBundleId) return null;
   const match = (Array.isArray(store.publication_bundles) ? store.publication_bundles : [])
     .find((entry) => String(entry.publication_bundle_id ?? "").trim() === normalizedPublicationBundleId);
+  return match ?? null;
+}
+
+export function selectStep1AssessmentReportRow(
+  store: Step1ProofStore,
+  assessmentReportId: string,
+): Step1AssessmentReportRow | null {
+  const normalizedAssessmentReportId = String(assessmentReportId ?? "").trim();
+  if (!normalizedAssessmentReportId) return null;
+  const match = (Array.isArray(store.assessment_reports) ? store.assessment_reports : [])
+    .find((entry) => String(entry.assessment_report_id ?? "").trim() === normalizedAssessmentReportId);
+  return match ?? null;
+}
+
+export function selectStep1RuntimeRefreshRunRow(
+  store: Step1ProofStore,
+  runId: string,
+): Step1RuntimeRefreshRunRow | null {
+  const normalizedRunId = String(runId ?? "").trim();
+  if (!normalizedRunId) return null;
+  const match = (Array.isArray(store.runtime_refresh_runs) ? store.runtime_refresh_runs : [])
+    .find((entry) => String(entry.run_id ?? "").trim() === normalizedRunId);
   return match ?? null;
 }

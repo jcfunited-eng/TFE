@@ -18,10 +18,13 @@ import {
   toNumberOrNull,
   toTextOrNull,
 } from "@/lib/runtime-db";
+import { resolveCanonicalPublicationBundleContract } from "@/lib/publication-bundle-contract";
 import {
   readStep1ProofStore,
   selectStep1ActivePublicationPointerRow,
+  selectStep1AssessmentReportRow,
   selectStep1PublicationBundleRow,
+  selectStep1RuntimeRefreshRunRow,
 } from "./step1/schema";
 
 const STEP1_ACTIVE_PUBLICATION_POINTER_TABLE = "active_publication_pointer";
@@ -159,6 +162,25 @@ export type ActivePublicationBundlePointerResolution = {
   runId: string | null;
   targetEnvironment: string | null;
   sourceKind: "active_publication_pointer" | null;
+  sourcePath: string | null;
+  failures: AttemptFailure[];
+};
+
+export type Step1CutoverActivePublicationResolution = {
+  runId: string | null;
+  publicationBundleId: string | null;
+  assessmentReportId: string | null;
+  targetEnvironment: string | null;
+  generatedAtUtc: string | null;
+  completedAtUtc: string | null;
+  reportGeneratedAtUtc: string | null;
+  bundleGeneratedAtUtc: string | null;
+  mode: string | null;
+  triggerSource: string | null;
+  reportStatus: string | null;
+  candidateValid: boolean;
+  blockingReasonCode: PublicationBlockingReasonCode | null;
+  blockingReasonDetail: string | null;
   sourcePath: string | null;
   failures: AttemptFailure[];
 };
@@ -336,45 +358,382 @@ export async function resolveAdminActivePublicationBundleId(): Promise<ActivePub
     };
   }
 
-  const proofStorePath = step1FileProofStorePath();
-  if (proofStorePath) {
-    return resolveStep1ProofStoreActivePublicationBundleId(targetEnvironment);
-  }
+  const resolution = await resolveCanonicalPublicationBundleContract({
+    targetEnvironment,
+    proofStorePath: step1FileProofStorePath(),
+  });
+  return {
+    publicationBundleId: resolution.publicationBundleId,
+    runId: resolution.runId,
+    targetEnvironment: resolution.targetEnvironment ?? targetEnvironment,
+    sourceKind: "active_publication_pointer",
+    sourcePath: resolution.sourcePath,
+    failures: resolution.failures,
+  };
+}
 
-  if (!runtimeSourceIsPostgres()) {
-    return {
-      publicationBundleId: null,
+function buildStep1CutoverResolution(params: {
+  runId: string | null;
+  publicationBundleId: string | null;
+  assessmentReportId: string | null;
+  targetEnvironment: string | null;
+  generatedAtUtc: string | null;
+  completedAtUtc: string | null;
+  reportGeneratedAtUtc: string | null;
+  bundleGeneratedAtUtc: string | null;
+  mode: string | null;
+  triggerSource: string | null;
+  reportStatus: string | null;
+  candidateValid: boolean;
+  blockingReasonCode: PublicationBlockingReasonCode | null;
+  blockingReasonDetail: string | null;
+  sourcePath: string | null;
+  failures: AttemptFailure[];
+}): Step1CutoverActivePublicationResolution {
+  return {
+    runId: params.runId,
+    publicationBundleId: params.publicationBundleId,
+    assessmentReportId: params.assessmentReportId,
+    targetEnvironment: params.targetEnvironment,
+    generatedAtUtc: params.generatedAtUtc,
+    completedAtUtc: params.completedAtUtc,
+    reportGeneratedAtUtc: params.reportGeneratedAtUtc,
+    bundleGeneratedAtUtc: params.bundleGeneratedAtUtc,
+    mode: params.mode,
+    triggerSource: params.triggerSource,
+    reportStatus: params.reportStatus,
+    candidateValid: params.candidateValid,
+    blockingReasonCode: params.blockingReasonCode,
+    blockingReasonDetail: params.blockingReasonDetail,
+    sourcePath: params.sourcePath,
+    failures: params.failures,
+  };
+}
+
+async function resolveStep1CutoverActivePublicationFromProofStore(
+  targetEnvironment: string,
+): Promise<Step1CutoverActivePublicationResolution> {
+  const storePath = step1FileProofStorePath();
+  const sourcePath = step1ActivePointerSourcePath(targetEnvironment);
+  const failures: AttemptFailure[] = [];
+  if (!storePath) {
+    failures.push({
+      path: sourcePath,
+      reason: "TFE_STEP1_FILE_PROOF_STORE_PATH is not configured.",
+    });
+    return buildStep1CutoverResolution({
       runId: null,
-      targetEnvironment,
-      sourceKind: "active_publication_pointer",
-      sourcePath: postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
-      failures: [
-        {
-          path: postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
-          reason: `Runtime source is '${resolveRuntimeSource()}'; expected 'postgres'.`,
-        },
-      ],
-    };
-  }
-
-  if (!isPostgresConfigured()) {
-    return {
       publicationBundleId: null,
-      runId: null,
+      assessmentReportId: null,
       targetEnvironment,
-      sourceKind: "active_publication_pointer",
-      sourcePath: postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
-      failures: [
-        {
-          path: postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
-          reason: "Postgres runtime source required, but PGHOST/PGDATABASE/PGUSER/PGPASSWORD is not fully configured.",
-        },
-      ],
-    };
+      generatedAtUtc: null,
+      completedAtUtc: null,
+      reportGeneratedAtUtc: null,
+      bundleGeneratedAtUtc: null,
+      mode: null,
+      triggerSource: null,
+      reportStatus: null,
+      candidateValid: false,
+      blockingReasonCode: "ACTIVE_POINTER_MISSING",
+      blockingReasonDetail: "TFE_STEP1_FILE_PROOF_STORE_PATH is not configured.",
+      sourcePath,
+      failures,
+    });
   }
 
-  const pool = resolveRuntimePostgresPool();
-  return resolveStep1PostgresActivePublicationBundleId(pool, targetEnvironment);
+  const store = await readStep1ProofStore(storePath);
+  const pointerRow = selectStep1ActivePublicationPointerRow(store, targetEnvironment);
+  if (!pointerRow) {
+    failures.push({
+      path: sourcePath,
+      reason: `No active_publication_pointer row exists for target_environment='${targetEnvironment}'.`,
+    });
+    return buildStep1CutoverResolution({
+      runId: null,
+      publicationBundleId: null,
+      assessmentReportId: null,
+      targetEnvironment,
+      generatedAtUtc: null,
+      completedAtUtc: null,
+      reportGeneratedAtUtc: null,
+      bundleGeneratedAtUtc: null,
+      mode: null,
+      triggerSource: null,
+      reportStatus: null,
+      candidateValid: false,
+      blockingReasonCode: "ACTIVE_POINTER_MISSING",
+      blockingReasonDetail: `No active_publication_pointer row exists for target_environment='${targetEnvironment}'.`,
+      sourcePath,
+      failures,
+    });
+  }
+
+  const publicationBundleRow = selectStep1PublicationBundleRow(store, pointerRow.publication_bundle_id);
+  if (!publicationBundleRow) {
+    const detail = `publication_bundles row missing for publication_bundle_id='${pointerRow.publication_bundle_id}'.`;
+    failures.push({ path: sourcePath, reason: detail });
+    return buildStep1CutoverResolution({
+      runId: pointerRow.run_id,
+      publicationBundleId: pointerRow.publication_bundle_id,
+      assessmentReportId: null,
+      targetEnvironment,
+      generatedAtUtc: toIsoOrNull(pointerRow.updated_at),
+      completedAtUtc: null,
+      reportGeneratedAtUtc: null,
+      bundleGeneratedAtUtc: null,
+      mode: null,
+      triggerSource: null,
+      reportStatus: null,
+      candidateValid: false,
+      blockingReasonCode: "ACTIVE_POINTER_INVALID",
+      blockingReasonDetail: detail,
+      sourcePath,
+      failures,
+    });
+  }
+
+  const assessmentReportRow = selectStep1AssessmentReportRow(store, publicationBundleRow.assessment_report_id);
+  if (!assessmentReportRow) {
+    const detail = `assessment_reports row missing for assessment_report_id='${publicationBundleRow.assessment_report_id}'.`;
+    failures.push({ path: sourcePath, reason: detail });
+    return buildStep1CutoverResolution({
+      runId: publicationBundleRow.run_id,
+      publicationBundleId: publicationBundleRow.publication_bundle_id,
+      assessmentReportId: publicationBundleRow.assessment_report_id,
+      targetEnvironment,
+      generatedAtUtc: toIsoOrNull(publicationBundleRow.created_at),
+      completedAtUtc: toIsoOrNull(publicationBundleRow.created_at),
+      reportGeneratedAtUtc: null,
+      bundleGeneratedAtUtc: toIsoOrNull(publicationBundleRow.created_at),
+      mode: null,
+      triggerSource: null,
+      reportStatus: null,
+      candidateValid: false,
+      blockingReasonCode: "ACTIVE_POINTER_INVALID",
+      blockingReasonDetail: detail,
+      sourcePath,
+      failures,
+    });
+  }
+
+  const mirrorRunRow = selectStep1RuntimeRefreshRunRow(store, publicationBundleRow.run_id);
+  const candidateValid = assessmentReportRow.disposition === "pass" && assessmentReportRow.publication_allowed === true;
+  const blockingReasonDetail = candidateValid
+    ? null
+    : `assessment_report_id='${assessmentReportRow.assessment_report_id}' disposition='${assessmentReportRow.disposition}' publication_allowed=${assessmentReportRow.publication_allowed}.`;
+
+  return buildStep1CutoverResolution({
+    runId: publicationBundleRow.run_id,
+    publicationBundleId: publicationBundleRow.publication_bundle_id,
+    assessmentReportId: publicationBundleRow.assessment_report_id,
+    targetEnvironment,
+    generatedAtUtc: toIsoOrNull(publicationBundleRow.created_at)
+      ?? toIsoOrNull(assessmentReportRow.created_at)
+      ?? toIsoOrNull(pointerRow.updated_at),
+    completedAtUtc: toIsoOrNull(mirrorRunRow?.completed_at) ?? toIsoOrNull(publicationBundleRow.created_at),
+    reportGeneratedAtUtc: toIsoOrNull(mirrorRunRow?.report_generated_at_utc) ?? toIsoOrNull(assessmentReportRow.created_at),
+    bundleGeneratedAtUtc: toIsoOrNull(publicationBundleRow.created_at),
+    mode: toTextOrNull(mirrorRunRow?.mode),
+    triggerSource: toTextOrNull(mirrorRunRow?.trigger_source),
+    reportStatus: toLowerTextOrNull(mirrorRunRow?.report_status) ?? (candidateValid ? "ok" : "error"),
+    candidateValid,
+    blockingReasonCode: candidateValid ? null : "ACTIVE_POINTER_INVALID",
+    blockingReasonDetail,
+    sourcePath,
+    failures,
+  });
+}
+
+async function resolveStep1CutoverActivePublicationFromPostgres(
+  pool: Pool,
+  targetEnvironment: string,
+): Promise<Step1CutoverActivePublicationResolution> {
+  const sourcePath = postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE);
+  const failures: AttemptFailure[] = [];
+  const assessmentReportsTable = "assessment_reports";
+  const [pointerTableExists, bundleTableExists, assessmentTableExists, runtimeRunsTableExists] = await Promise.all([
+    tableExists(pool, STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
+    tableExists(pool, STEP1_PUBLICATION_BUNDLES_TABLE),
+    tableExists(pool, assessmentReportsTable),
+    tableExists(pool, RUNTIME_REFRESH_RUNS_TABLE),
+  ]);
+
+  if (!pointerTableExists || !bundleTableExists || !assessmentTableExists) {
+    const detail = "Step 1 publication authority tables are not available.";
+    failures.push({ path: sourcePath, reason: detail });
+    return buildStep1CutoverResolution({
+      runId: null,
+      publicationBundleId: null,
+      assessmentReportId: null,
+      targetEnvironment,
+      generatedAtUtc: null,
+      completedAtUtc: null,
+      reportGeneratedAtUtc: null,
+      bundleGeneratedAtUtc: null,
+      mode: null,
+      triggerSource: null,
+      reportStatus: null,
+      candidateValid: false,
+      blockingReasonCode: "ACTIVE_POINTER_MISSING",
+      blockingReasonDetail: detail,
+      sourcePath,
+      failures,
+    });
+  }
+
+  const result = await pool.query<Record<string, unknown>>(
+    `
+      SELECT
+        p.publication_bundle_id,
+        p.run_id,
+        p.target_environment,
+        p.updated_at AS pointer_updated_at,
+        b.assessment_report_id,
+        b.created_at AS publication_bundle_created_at,
+        ar.disposition AS assessment_disposition,
+        ar.publication_allowed AS assessment_publication_allowed,
+        ar.created_at AS assessment_created_at
+      FROM ${STEP1_ACTIVE_PUBLICATION_POINTER_TABLE} AS p
+      INNER JOIN ${STEP1_PUBLICATION_BUNDLES_TABLE} AS b
+        ON b.publication_bundle_id = p.publication_bundle_id
+      INNER JOIN ${assessmentReportsTable} AS ar
+        ON ar.run_id = b.run_id
+       AND ar.assessment_report_id = b.assessment_report_id
+      WHERE p.target_environment = $1
+      LIMIT 1
+    `,
+    [targetEnvironment],
+  );
+
+  if (result.rows.length === 0) {
+    const detail = `No active_publication_pointer row exists for target_environment='${targetEnvironment}'.`;
+    failures.push({ path: sourcePath, reason: detail });
+    return buildStep1CutoverResolution({
+      runId: null,
+      publicationBundleId: null,
+      assessmentReportId: null,
+      targetEnvironment,
+      generatedAtUtc: null,
+      completedAtUtc: null,
+      reportGeneratedAtUtc: null,
+      bundleGeneratedAtUtc: null,
+      mode: null,
+      triggerSource: null,
+      reportStatus: null,
+      candidateValid: false,
+      blockingReasonCode: "ACTIVE_POINTER_MISSING",
+      blockingReasonDetail: detail,
+      sourcePath,
+      failures,
+    });
+  }
+
+  const row = result.rows[0];
+  const runId = toTextOrNull(row.run_id);
+  let mirrorRow: Record<string, unknown> | null = null;
+  if (runtimeRunsTableExists && runId) {
+    const mirrorResult = await pool.query<Record<string, unknown>>(
+      `
+        SELECT
+          mode,
+          trigger_source,
+          report_status,
+          completed_at,
+          report_generated_at_utc
+        FROM ${RUNTIME_REFRESH_RUNS_TABLE}
+        WHERE run_id = $1
+        LIMIT 1
+      `,
+      [runId],
+    );
+    mirrorRow = mirrorResult.rows[0] ?? null;
+  }
+
+  const candidateValid = toLowerTextOrNull(row.assessment_disposition) === "pass"
+    && row.assessment_publication_allowed === true;
+  const blockingReasonDetail = candidateValid
+    ? null
+    : `assessment_report_id='${toTextOrNull(row.assessment_report_id) ?? "null"}' disposition='${toLowerTextOrNull(row.assessment_disposition) ?? "null"}' publication_allowed=${row.assessment_publication_allowed === true}.`;
+
+  return buildStep1CutoverResolution({
+    runId,
+    publicationBundleId: toTextOrNull(row.publication_bundle_id),
+    assessmentReportId: toTextOrNull(row.assessment_report_id),
+    targetEnvironment: toTextOrNull(row.target_environment) ?? targetEnvironment,
+    generatedAtUtc: toIsoOrNull(row.publication_bundle_created_at)
+      ?? toIsoOrNull(row.assessment_created_at)
+      ?? toIsoOrNull(row.pointer_updated_at),
+    completedAtUtc: toIsoOrNull(mirrorRow?.completed_at) ?? toIsoOrNull(row.publication_bundle_created_at),
+    reportGeneratedAtUtc: toIsoOrNull(mirrorRow?.report_generated_at_utc) ?? toIsoOrNull(row.assessment_created_at),
+    bundleGeneratedAtUtc: toIsoOrNull(row.publication_bundle_created_at),
+    mode: toTextOrNull(mirrorRow?.mode),
+    triggerSource: toTextOrNull(mirrorRow?.trigger_source),
+    reportStatus: toLowerTextOrNull(mirrorRow?.report_status) ?? (candidateValid ? "ok" : "error"),
+    candidateValid,
+    blockingReasonCode: candidateValid ? null : "ACTIVE_POINTER_INVALID",
+    blockingReasonDetail,
+    sourcePath,
+    failures,
+  });
+}
+
+export async function resolveStep1CutoverActivePublicationResolution(): Promise<Step1CutoverActivePublicationResolution> {
+  const targetEnvironment = step1TargetEnvironment();
+  const resolution = await resolveCanonicalPublicationBundleContract({
+    targetEnvironment,
+    proofStorePath: step1FileProofStorePath(),
+  });
+  return buildStep1CutoverResolution({
+    runId: resolution.runId,
+    publicationBundleId: resolution.publicationBundleId,
+    assessmentReportId: resolution.assessmentReportId,
+    targetEnvironment: resolution.targetEnvironment ?? targetEnvironment,
+    generatedAtUtc: resolution.generatedAtUtc,
+    completedAtUtc: resolution.completedAtUtc,
+    reportGeneratedAtUtc: resolution.reportGeneratedAtUtc,
+    bundleGeneratedAtUtc: resolution.bundleGeneratedAtUtc,
+    mode: resolution.mode,
+    triggerSource: resolution.triggerSource,
+    reportStatus: resolution.reportStatus,
+    candidateValid: resolution.candidateValid,
+    blockingReasonCode: resolution.blockingReasonCode,
+    blockingReasonDetail: resolution.blockingReasonDetail,
+    sourcePath: resolution.sourcePath,
+    failures: resolution.failures,
+  });
+}
+
+function buildPublicationRefreshRunRowFromStep1CutoverResolution(
+  resolution: Step1CutoverActivePublicationResolution,
+): PublicationRefreshRunRow {
+  return {
+    runId: resolution.runId,
+    generatedAtUtc: resolution.generatedAtUtc,
+    completedAtUtc: resolution.completedAtUtc,
+    reportGeneratedAtUtc: resolution.reportGeneratedAtUtc,
+    bundleGeneratedAtUtc: resolution.bundleGeneratedAtUtc,
+    snapshotPublicationId: resolution.publicationBundleId,
+    quotePublicationId: resolution.publicationBundleId,
+    quoteBindingStatus: resolution.publicationBundleId ? (resolution.candidateValid ? "aligned" : "unbound") : null,
+    validationStatus: resolution.candidateValid ? "pass" : (resolution.assessmentReportId ? "fail" : null),
+    mode: resolution.mode,
+    triggerSource: resolution.triggerSource,
+    rowsWritten: null,
+    reportStatus: resolution.reportStatus,
+    isActivePublication: resolution.publicationBundleId !== null,
+    activationState: resolution.candidateValid
+      ? "activated"
+      : resolution.blockingReasonCode === "ACTIVE_POINTER_MISSING"
+        ? "pointer_missing"
+        : "pointer_invalid",
+    servingState: resolution.candidateValid ? "allowed" : "blocked",
+    blockingReasonCode: resolution.blockingReasonCode,
+    blockingReasonDetail: resolution.blockingReasonDetail,
+    failureCode: null,
+    failureDetail: null,
+    sourcePath: resolution.sourcePath,
+    failures: resolution.failures,
+  };
 }
 
 function normalizePositiveInt(value: unknown, fallback: number, minimum: number, maximum: number): number {
@@ -686,6 +1045,27 @@ async function loadRuntimeActiveRowMeta(pool: Pool): Promise<RuntimeActiveRowMet
   };
 }
 
+async function loadOptionalRuntimeActiveRowMeta(): Promise<RuntimeActiveRowMeta> {
+  if (!runtimeSourceIsPostgres() || !isPostgresConfigured()) {
+    return {
+      runId: null,
+      generatedAtUtc: null,
+      error: null,
+    };
+  }
+
+  try {
+    const pool = resolveRuntimePostgresPool();
+    return await loadRuntimeActiveRowMeta(pool);
+  } catch (error) {
+    return {
+      runId: null,
+      generatedAtUtc: null,
+      error: error instanceof Error ? error.message : "Unknown runtime active row query error.",
+    };
+  }
+}
+
 function resolveBlockedState(
   baseRow: PublicationRefreshRunRow,
   latestRunId: string | null,
@@ -923,6 +1303,165 @@ export async function persistPublicationStateForRun(params: PersistPublicationSt
 export async function loadCanonicalPublicationState(
   input: CanonicalPublicationStateInput = {},
 ): Promise<CanonicalPublicationState> {
+  if (step1ActivePointerSourceEnabled()) {
+    const maxAgeMinutes = normalizePositiveInt(input.maxAgeMinutes, investorServingMaxAgeMinutes(), 5, 20160);
+    const nowMs = Number.isFinite(Number(input.nowMs)) ? Number(input.nowMs) : Date.now();
+    const snapshot = input.snapshot ?? null;
+    const quote = input.quote ?? null;
+    const resolution = await resolveStep1CutoverActivePublicationResolution();
+    const activeRuntime = await loadOptionalRuntimeActiveRowMeta();
+    const activeRuntimeFailures: AttemptFailure[] = [];
+    if (activeRuntime.error) {
+      activeRuntimeFailures.push({
+        path: postgresSourcePath(RUNTIME_DECISIONS_TABLE),
+        reason: activeRuntime.error,
+      });
+    }
+
+    const baseRow = buildPublicationRefreshRunRowFromStep1CutoverResolution(resolution);
+    const baseWithFailures = {
+      ...baseRow,
+      failures: [...baseRow.failures, ...activeRuntimeFailures],
+      sourcePath: baseRow.sourcePath ?? resolution.sourcePath,
+    };
+    const latestRunId = baseRow.runId;
+
+    if (!resolution.candidateValid) {
+      return resolveBlockedState(
+        baseWithFailures,
+        latestRunId,
+        activeRuntime,
+        snapshot,
+        quote,
+        baseRow.activationState ?? "pointer_invalid",
+        resolution.blockingReasonCode ?? "ACTIVE_POINTER_INVALID",
+        resolution.blockingReasonDetail ?? "Active Step 1 publication pointer is not valid for serving.",
+        maxAgeMinutes,
+        baseRow.generatedAtUtc,
+      );
+    }
+
+    if (!baseRow.runId) {
+      return resolveBlockedState(
+        baseWithFailures,
+        latestRunId,
+        activeRuntime,
+        snapshot,
+        quote,
+        baseRow.activationState ?? "pointer_invalid",
+        "PUBLISHED_RUN_ID_MISSING",
+        "Active Step 1 publication pointer row is missing run_id.",
+        maxAgeMinutes,
+        baseRow.generatedAtUtc,
+      );
+    }
+
+    if (!snapshot?.available) {
+      return resolveBlockedState(
+        baseWithFailures,
+        latestRunId,
+        activeRuntime,
+        snapshot,
+        quote,
+        "activated",
+        "RUNTIME_SNAPSHOT_UNAVAILABLE",
+        "Investor serving is blocked because the active published snapshot is unavailable from runtime Postgres.",
+        maxAgeMinutes,
+        baseRow.generatedAtUtc,
+      );
+    }
+
+    if (!quote?.available) {
+      return resolveBlockedState(
+        baseWithFailures,
+        latestRunId,
+        activeRuntime,
+        snapshot,
+        quote,
+        "activated",
+        "RUNTIME_QUOTE_UNAVAILABLE",
+        "Investor serving is blocked because the active published quote cache is unavailable from runtime Postgres.",
+        maxAgeMinutes,
+        baseRow.generatedAtUtc,
+      );
+    }
+
+    if (snapshot.runId !== baseRow.runId) {
+      return resolveBlockedState(
+        baseWithFailures,
+        latestRunId,
+        activeRuntime,
+        snapshot,
+        quote,
+        "activated",
+        "RUNTIME_SNAPSHOT_RUN_MISMATCH",
+        `Runtime snapshot run_id='${snapshot.runId ?? "null"}' does not match active publication run_id='${baseRow.runId}'.`,
+        maxAgeMinutes,
+        baseRow.generatedAtUtc ?? snapshot.generatedAtUtc,
+      );
+    }
+
+    if (quote.runId !== baseRow.runId) {
+      return resolveBlockedState(
+        baseWithFailures,
+        latestRunId,
+        activeRuntime,
+        snapshot,
+        quote,
+        "activated",
+        "RUNTIME_QUOTE_RUN_MISMATCH",
+        `Runtime quote run_id='${quote.runId ?? "null"}' does not match active publication run_id='${baseRow.runId}'.`,
+        maxAgeMinutes,
+        baseRow.generatedAtUtc ?? snapshot.generatedAtUtc,
+      );
+    }
+
+    const generatedAtUtc = toIsoOrNull(baseRow.generatedAtUtc ?? snapshot.generatedAtUtc);
+    const generatedAtMs = generatedAtUtc ? Date.parse(generatedAtUtc) : Number.NaN;
+    const snapshotAgeMinutes = Number.isFinite(generatedAtMs)
+      ? Number(Math.max(0, (nowMs - generatedAtMs) / 60000).toFixed(3))
+      : null;
+    const stale = !Number.isFinite(generatedAtMs) || ((snapshotAgeMinutes ?? Number.POSITIVE_INFINITY) > maxAgeMinutes);
+
+    if (stale) {
+      return resolveBlockedState(
+        baseWithFailures,
+        latestRunId,
+        activeRuntime,
+        snapshot,
+        quote,
+        "activated",
+        "SNAPSHOT_STALE",
+        generatedAtUtc
+          ? `Published snapshot age ${snapshotAgeMinutes ?? "unknown"} minutes exceeds max age ${maxAgeMinutes}.`
+          : "Published snapshot generated_at_utc is missing or invalid.",
+        maxAgeMinutes,
+        generatedAtUtc,
+      );
+    }
+
+    return {
+      ...baseWithFailures,
+      candidateValid: true,
+      activationState: "activated",
+      servingState: "allowed",
+      blockingReasonCode: null,
+      blockingReasonDetail: null,
+      activeRuntimeRunId: activeRuntime.runId,
+      activeRuntimeGeneratedAtUtc: activeRuntime.generatedAtUtc,
+      snapshotRunId: snapshot.runId,
+      quoteRunId: quote.runId,
+      freshness: {
+        generatedAtUtc,
+        generatedAtValid: true,
+        snapshotAgeMinutes,
+        snapshotMaxAgeMinutes: maxAgeMinutes,
+        stale: false,
+      },
+      latestRunId,
+    };
+  }
+
   const failures: AttemptFailure[] = [];
   const sourcePath = postgresSourcePath(RUNTIME_REFRESH_RUNS_TABLE);
   const maxAgeMinutes = normalizePositiveInt(input.maxAgeMinutes, investorServingMaxAgeMinutes(), 5, 20160);

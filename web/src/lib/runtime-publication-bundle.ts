@@ -1,4 +1,8 @@
-import { publicationCandidateIsValid, type PublicationRefreshRunRow } from "@/lib/publication-state";
+import {
+  publicationCandidateIsValid,
+  type PublicationRefreshRunRow,
+} from "@/lib/publication-state";
+import { resolveCanonicalPublicationBundleContract } from "@/lib/publication-bundle-contract";
 import {
   columnExists,
   isPostgresConfigured,
@@ -243,45 +247,18 @@ export async function resolveInvestorActivePublicationBundleId(): Promise<Invest
     };
   }
 
-  const proofStorePath = step1FileProofStorePath();
-  if (proofStorePath) {
-    return resolveStep1ProofStoreInvestorPublicationBundleId(targetEnvironment);
-  }
-
-  if (!runtimeSourceIsPostgres()) {
-    return {
-      publicationBundleId: null,
-      runId: null,
-      targetEnvironment,
-      sourceKind: "active_publication_pointer",
-      sourcePath: postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
-      failures: [
-        {
-          path: postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
-          reason: `Runtime source is '${resolveRuntimeSource()}'; expected 'postgres'.`,
-        },
-      ],
-    };
-  }
-
-  if (!isPostgresConfigured()) {
-    return {
-      publicationBundleId: null,
-      runId: null,
-      targetEnvironment,
-      sourceKind: "active_publication_pointer",
-      sourcePath: postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
-      failures: [
-        {
-          path: postgresSourcePath(STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
-          reason: "Postgres runtime source required, but PGHOST/PGDATABASE/PGUSER/PGPASSWORD is not fully configured.",
-        },
-      ],
-    };
-  }
-
-  const pool = resolveRuntimePostgresPool();
-  return resolveStep1PostgresInvestorPublicationBundleId(pool, targetEnvironment);
+  const resolution = await resolveCanonicalPublicationBundleContract({
+    targetEnvironment,
+    proofStorePath: step1FileProofStorePath(),
+  });
+  return {
+    publicationBundleId: resolution.publicationBundleId,
+    runId: resolution.runId,
+    targetEnvironment: resolution.targetEnvironment ?? targetEnvironment,
+    sourceKind: "active_publication_pointer",
+    sourcePath: resolution.sourcePath,
+    failures: resolution.failures,
+  };
 }
 
 
@@ -327,6 +304,43 @@ function toServingBundleMeta(
     activeRuntimeBundleValid: extras.activeRuntimeBundleValid,
     fallbackApplied: extras.fallbackApplied,
     fallbackReason: extras.fallbackReason,
+  };
+}
+
+function buildRuntimePublicationBundleMetaFromStep1CutoverResolution(
+  resolution: {
+    runId: string | null;
+    generatedAtUtc: string | null;
+    completedAtUtc: string | null;
+    reportGeneratedAtUtc: string | null;
+    bundleGeneratedAtUtc: string | null;
+    publicationBundleId: string | null;
+    assessmentReportId: string | null;
+    candidateValid: boolean;
+    mode: string | null;
+    triggerSource: string | null;
+    reportStatus: string | null;
+    sourcePath: string | null;
+    failures: AttemptFailure[];
+  },
+): RuntimePublicationBundleMeta {
+  return {
+    runId: resolution.runId,
+    generatedAtUtc: resolution.generatedAtUtc,
+    completedAtUtc: resolution.completedAtUtc,
+    reportGeneratedAtUtc: resolution.reportGeneratedAtUtc,
+    bundleGeneratedAtUtc: resolution.bundleGeneratedAtUtc,
+    snapshotPublicationId: resolution.publicationBundleId,
+    quotePublicationId: resolution.publicationBundleId,
+    quoteBindingStatus: resolution.publicationBundleId ? (resolution.candidateValid ? "aligned" : "unbound") : null,
+    validationStatus: resolution.candidateValid ? "pass" : (resolution.assessmentReportId ? "fail" : null),
+    mode: resolution.mode,
+    triggerSource: resolution.triggerSource,
+    rowsWritten: null,
+    reportStatus: resolution.reportStatus,
+    isActivePublication: resolution.publicationBundleId !== null,
+    sourcePath: resolution.sourcePath,
+    failures: resolution.failures,
   };
 }
 
@@ -692,6 +706,76 @@ export async function loadServingRuntimePublicationBundleMeta(): Promise<Runtime
       },
     );
   };
+
+  if (step1ActivePointerSourceEnabled()) {
+    const activeRuntimeMeta = await (async (): Promise<RuntimeActiveRowMeta> => {
+      if (!runtimeSourceIsPostgres() || !isPostgresConfigured()) {
+        return {
+          runId: null,
+          generatedAtUtc: null,
+          error: null,
+        };
+      }
+      try {
+        const pool = resolveRuntimePostgresPool();
+        return await loadRuntimeActiveRowMeta(pool);
+      } catch (error) {
+        return {
+          runId: null,
+          generatedAtUtc: null,
+          error: error instanceof Error ? error.message : "Unknown runtime active row query error.",
+        };
+      }
+    })();
+    if (activeRuntimeMeta.error) {
+      failures.push({
+        path: postgresSourcePath(RUNTIME_DECISIONS_TABLE),
+        reason: activeRuntimeMeta.error,
+      });
+    }
+
+    const resolution = await resolveCanonicalPublicationBundleContract({
+      targetEnvironment: step1TargetEnvironment(),
+      proofStorePath: step1FileProofStorePath(),
+    });
+    const activePublicationMeta = buildRuntimePublicationBundleMetaFromStep1CutoverResolution(resolution);
+    const mergedMeta = {
+      ...activePublicationMeta,
+      failures: [...activePublicationMeta.failures, ...failures],
+    };
+
+    if (!resolution.candidateValid) {
+      return toServingBundleMeta(
+        mergedMeta,
+        {
+          activeRuntimeRunId: activeRuntimeMeta.runId,
+          activeRuntimeGeneratedAtUtc: activeRuntimeMeta.generatedAtUtc,
+          activeRuntimeBundleValid: false,
+          fallbackApplied: false,
+          fallbackReason:
+            resolution.blockingReasonCode === "ACTIVE_POINTER_MISSING"
+            || resolution.blockingReasonCode === "RUNTIME_SOURCE_NOT_POSTGRES"
+            || resolution.blockingReasonCode === "POSTGRES_NOT_CONFIGURED"
+              ? "no_active_publication_pointer"
+              : "active_publication_invalid",
+        },
+      );
+    }
+
+    return toServingBundleMeta(
+      mergedMeta,
+      {
+        activeRuntimeRunId: activeRuntimeMeta.runId,
+        activeRuntimeGeneratedAtUtc: activeRuntimeMeta.generatedAtUtc,
+        activeRuntimeBundleValid: true,
+        fallbackApplied: activeRuntimeMeta.runId !== null && activeRuntimeMeta.runId != resolution.runId,
+        fallbackReason:
+          activeRuntimeMeta.runId !== null && activeRuntimeMeta.runId != resolution.runId
+            ? "runtime_latest_differs_from_active_publication"
+            : null,
+      },
+    );
+  }
 
   if (!runtimeSourceIsPostgres()) {
     return failResult(`Runtime source is '${resolveRuntimeSource()}'; expected 'postgres'.`);
