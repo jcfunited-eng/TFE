@@ -3,6 +3,11 @@ import path from "node:path";
 
 import { resolveWorkspaceRoot } from "../workspace-root";
 import {
+  buildNormalizedPackageManifest,
+  buildPhaseEPackageArtifactReferences,
+  writeStep1PackageContractArtifacts,
+} from "./package-contract";
+import {
   createCandidateBuildCompletedPhaseRow,
   createCandidateBundleRow,
   deterministicTimestampFromDigest,
@@ -10,9 +15,9 @@ import {
   resolveStep1CandidateBundleManifestPath,
   sha256Text,
   stableJsonStringify,
-  type Step1AssessmentArtifactReference,
   type Step1CandidateBundleManifest,
   type Step1CandidateBundlePersistence,
+  type Step1SourcePackageIdentityRecord,
 } from "./schema";
 
 export type CandidateBundleRecordInput = {
@@ -75,32 +80,25 @@ function requireText(value: unknown, fieldName: string, runId: string): string {
   return text;
 }
 
-function buildAssessmentArtifactReferences(params: {
-  normalizedPackageId: string;
-  dependencyClassificationRegister: Record<string, unknown>;
-  candidateInputDigestSha256: string;
-}): Step1AssessmentArtifactReference[] {
-  return [
-    {
-      artifact_kind: "normalized_package_identity",
-      artifact_id: params.normalizedPackageId,
-      artifact_digest_sha256: null,
-    },
-    {
-      artifact_kind: "dependency_classification_register",
-      artifact_id: "dependency_classification_register",
-      artifact_digest_sha256: sha256Text(stableJsonStringify(params.dependencyClassificationRegister)),
-    },
-    {
-      artifact_kind: "candidate_input_digest",
-      artifact_id: "candidate_input_digest",
-      artifact_digest_sha256: params.candidateInputDigestSha256,
-    },
-  ];
+function requireSourcePackageIdentities(
+  value: Step1SourcePackageIdentityRecord[] | undefined,
+  runId: string,
+): Step1SourcePackageIdentityRecord[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new CandidateBundleRecordError({
+      code: "candidate_input_missing",
+      detail: "request_artifact_path is missing exact source_package_identities required by the Phase E package contract.",
+      runId,
+    });
+  }
+  return value;
 }
 
 function buildCandidateManifest(params: {
   normalizedPackageId: string;
+  normalizedPackageManifestId: string;
+  normalizedPackageManifestPath: string;
+  normalizedPackageManifestDigestSha256: string;
   policySetId: string;
   modelSetId: string;
   configSetId: string;
@@ -108,15 +106,19 @@ function buildCandidateManifest(params: {
   requestedRunMode: string;
   targetEnvironment: string;
   dependencyClassificationRegister: Record<string, unknown>;
+  sourcePackageIdentities: Step1SourcePackageIdentityRecord[];
+  phaseEPackageArtifactReferences: Step1CandidateBundleManifest["assessment_artifact_references"];
 }): Step1CandidateBundleManifest {
   const manifestInput = {
     normalized_package_id: params.normalizedPackageId,
+    normalized_package_manifest_id: params.normalizedPackageManifestId,
     policy_set_id: params.policySetId,
     model_set_id: params.modelSetId,
     config_set_id: params.configSetId,
     bundle_class: params.bundleClass,
     requested_run_mode: params.requestedRunMode,
     target_environment: params.targetEnvironment,
+    source_package_identities: params.sourcePackageIdentities,
     dependency_classification_register: params.dependencyClassificationRegister,
   };
   const candidateInputDigestSha256 = sha256Text(stableJsonStringify(manifestInput));
@@ -129,15 +131,15 @@ function buildCandidateManifest(params: {
     model_set_id: params.modelSetId,
     config_set_id: params.configSetId,
     bundle_class: params.bundleClass,
+    normalized_package_manifest_id: params.normalizedPackageManifestId,
+    normalized_package_manifest_path: params.normalizedPackageManifestPath,
+    normalized_package_manifest_digest_sha256: params.normalizedPackageManifestDigestSha256,
+    source_package_identities: params.sourcePackageIdentities,
     requested_run_mode: params.requestedRunMode,
     deterministic_build_timestamp_utc: deterministicTimestampFromDigest(candidateInputDigestSha256),
     target_environment: params.targetEnvironment,
     dependency_classification_register: params.dependencyClassificationRegister,
-    assessment_artifact_references: buildAssessmentArtifactReferences({
-      normalizedPackageId: params.normalizedPackageId,
-      dependencyClassificationRegister: params.dependencyClassificationRegister,
-      candidateInputDigestSha256,
-    }),
+    assessment_artifact_references: params.phaseEPackageArtifactReferences,
   };
 }
 
@@ -186,8 +188,42 @@ export async function createCandidateBundleRecord(
     });
   }
 
+  const sourcePackageIdentities = requireSourcePackageIdentities(requestRecord.source_package_identities, runId);
+  const packageArtifacts = await writeStep1PackageContractArtifacts({
+    workspaceRoot,
+    runId,
+    normalizedPackageId: requestRecord.normalized_package_id,
+    sourcePackageIdentities,
+  });
+  const normalizedPackageManifestIdentity = buildNormalizedPackageManifest({
+    normalizedPackageId: requestRecord.normalized_package_id,
+    sourcePackageManifests: packageArtifacts.sourcePackageManifests,
+  });
+  const phaseEPackageArtifactReferences = buildPhaseEPackageArtifactReferences({
+    normalizedPackageId: requestRecord.normalized_package_id,
+    normalizedPackageManifest: packageArtifacts.normalizedPackageManifest,
+    sourcePackageManifests: packageArtifacts.sourcePackageManifests,
+    dependencyClassificationRegister: requestRecord.dependency_classification_register,
+    candidateInputDigestSha256: sha256Text(
+      stableJsonStringify({
+        normalized_package_id: requestRecord.normalized_package_id,
+        normalized_package_manifest_id: normalizedPackageManifestIdentity.normalized_package_manifest_id,
+        policy_set_id: requestRecord.policy_set_id,
+        model_set_id: requestRecord.model_set_id,
+        config_set_id: requestRecord.config_set_id,
+        bundle_class: requestRecord.bundle_class,
+        requested_run_mode: requestedRunMode,
+        target_environment: requestRecord.target_environment,
+        source_package_identities: sourcePackageIdentities,
+        dependency_classification_register: requestRecord.dependency_classification_register,
+      }),
+    ),
+  });
   const manifest = buildCandidateManifest({
     normalizedPackageId: requestRecord.normalized_package_id,
+    normalizedPackageManifestId: packageArtifacts.normalizedPackageManifest.manifest.normalized_package_manifest_id,
+    normalizedPackageManifestPath: packageArtifacts.normalizedPackageManifest.manifestPath,
+    normalizedPackageManifestDigestSha256: packageArtifacts.normalizedPackageManifest.manifestDigestSha256,
     policySetId: requestRecord.policy_set_id,
     modelSetId: requestRecord.model_set_id,
     configSetId: requestRecord.config_set_id,
@@ -195,6 +231,8 @@ export async function createCandidateBundleRecord(
     requestedRunMode,
     targetEnvironment: requestRecord.target_environment,
     dependencyClassificationRegister: requestRecord.dependency_classification_register,
+    sourcePackageIdentities,
+    phaseEPackageArtifactReferences,
   });
   const manifestDigestSha256 = sha256Text(stableJsonStringify(manifest));
   const manifestPath = resolveStep1CandidateBundleManifestPath(workspaceRoot, runId);
@@ -215,6 +253,10 @@ export async function createCandidateBundleRecord(
     manifestPath,
     candidateBundleId: manifest.candidate_bundle_id,
     manifestDigestSha256,
+    normalizedPackageManifestId: manifest.normalized_package_manifest_id,
+    normalizedPackageManifestPath: manifest.normalized_package_manifest_path,
+    normalizedPackageManifestDigestSha256: manifest.normalized_package_manifest_digest_sha256,
+    sourcePackageIds: manifest.source_package_identities.map((entry) => entry.source_package_id),
   });
 
   try {

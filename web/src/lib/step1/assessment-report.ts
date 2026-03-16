@@ -15,6 +15,7 @@ import {
   type Step1AssessmentEvidenceReference,
   type Step1AssessmentReportArtifact,
   type Step1AssessmentReportPersistence,
+  type Step1AssessmentArtifactReference,
 } from "./schema";
 
 export type AssessmentReportForcedFailure = {
@@ -143,6 +144,7 @@ async function loadCandidateBundleManifest(
 }
 
 function buildEvidenceReferences(params: {
+  candidateManifestArtifactReferences: Step1AssessmentArtifactReference[];
   candidateBundleManifestPath: string;
   candidateBundleManifestDigestSha256: string;
   candidateBundleId: string;
@@ -161,10 +163,17 @@ function buildEvidenceReferences(params: {
       evidence_path: null,
       evidence_digest_sha256: sha256Text(params.assessmentRuleSetId),
     },
+    ...params.candidateManifestArtifactReferences.map((reference) => ({
+      evidence_kind: reference.artifact_kind,
+      evidence_id: reference.artifact_id,
+      evidence_path: reference.artifact_path ?? null,
+      evidence_digest_sha256: reference.artifact_digest_sha256,
+    })),
   ];
 }
 
 function buildAssessmentReport(params: {
+  candidateManifestArtifactReferences: Step1AssessmentArtifactReference[];
   candidateBundleManifestPath: string;
   candidateBundleManifestDigestSha256: string;
   candidateBundleId: string;
@@ -189,6 +198,7 @@ function buildAssessmentReport(params: {
     blocking_reason_codes: params.forcedFailures.map((reason) => reason.reason_code),
     blocking_reason_details: params.forcedFailures,
     evidence_references: buildEvidenceReferences({
+      candidateManifestArtifactReferences: params.candidateManifestArtifactReferences,
       candidateBundleManifestPath: params.candidateBundleManifestPath,
       candidateBundleManifestDigestSha256: params.candidateBundleManifestDigestSha256,
       candidateBundleId: params.candidateBundleId,
@@ -226,6 +236,7 @@ export async function createAssessmentReportRecord(
   const { manifest, raw } = await loadCandidateBundleManifest(candidateBundleManifestPath, runId);
   const candidateBundleManifestDigestSha256 = sha256Text(raw);
   const report = buildAssessmentReport({
+    candidateManifestArtifactReferences: manifest.assessment_artifact_references,
     candidateBundleManifestPath,
     candidateBundleManifestDigestSha256,
     candidateBundleId: manifest.candidate_bundle_id,
@@ -299,6 +310,7 @@ export async function createAssessmentReportRecordAllowFail(
   const { manifest, raw } = await loadCandidateBundleManifest(candidateBundleManifestPath, runId);
   const candidateBundleManifestDigestSha256 = sha256Text(raw);
   const report = buildAssessmentReport({
+    candidateManifestArtifactReferences: manifest.assessment_artifact_references,
     candidateBundleManifestPath,
     candidateBundleManifestDigestSha256,
     candidateBundleId: manifest.candidate_bundle_id,

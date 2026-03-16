@@ -26,6 +26,15 @@ const STEP1_ACTIVE_PUBLICATION_POINTER_TABLE = "active_publication_pointer";
 const STEP1_PUBLICATION_ACTIVATION_AUDIT_TABLE = "publication_activation_audit";
 const STEP1_DEFERRED_FOLLOWUP_JOBS_TABLE = "deferred_followup_jobs";
 
+export type Step1SourcePackageIdentityRecord = {
+  source_package_id: string;
+  source_identity: string;
+  acquisition_timestamp_utc: string;
+  source_class: string;
+  raw_payload_reference: string;
+  integrity_status: string;
+};
+
 export type Step1RunRequestRecord = {
   run_id: string;
   normalized_package_id: string;
@@ -34,6 +43,7 @@ export type Step1RunRequestRecord = {
   config_set_id: string;
   bundle_class: string;
   dependency_classification_register: Record<string, unknown>;
+  source_package_identities?: Step1SourcePackageIdentityRecord[];
   target_environment: string;
   requested_by: string;
   requested_at_utc: string;
@@ -92,6 +102,7 @@ export type Step1RuntimeRefreshPhaseRow = {
 export type Step1AssessmentArtifactReference = {
   artifact_kind: string;
   artifact_id: string;
+  artifact_path?: string | null;
   artifact_digest_sha256: string | null;
 };
 
@@ -102,6 +113,10 @@ export type Step1CandidateBundleManifest = {
   model_set_id: string;
   config_set_id: string;
   bundle_class: string;
+  normalized_package_manifest_id: string;
+  normalized_package_manifest_path: string;
+  normalized_package_manifest_digest_sha256: string;
+  source_package_identities: Step1SourcePackageIdentityRecord[];
   requested_run_mode: string;
   deterministic_build_timestamp_utc: string;
   target_environment: string;
@@ -351,6 +366,58 @@ function asStringArray(value: unknown): string[] {
   return value
     .map((entry) => String(entry ?? "").trim())
     .filter(Boolean);
+}
+
+function parseStoredStep1SourcePackageIdentityRecord(value: unknown): Step1SourcePackageIdentityRecord | null {
+  const record = asObject(value);
+  if (!record) return null;
+
+  const sourcePackageId = String(record.source_package_id ?? "").trim();
+  const sourceIdentity = String(record.source_identity ?? "").trim();
+  const acquisitionTimestampRaw = String(record.acquisition_timestamp_utc ?? "").trim();
+  const sourceClass = String(record.source_class ?? "").trim();
+  const rawPayloadReference = String(record.raw_payload_reference ?? "").trim();
+  const integrityStatus = String(record.integrity_status ?? "").trim();
+
+  if (
+    !sourcePackageId
+    || !sourceIdentity
+    || !acquisitionTimestampRaw
+    || !sourceClass
+    || !rawPayloadReference
+    || !integrityStatus
+  ) {
+    return null;
+  }
+
+  return {
+    source_package_id: sourcePackageId,
+    source_identity: sourceIdentity,
+    acquisition_timestamp_utc: toIsoUtc(
+      acquisitionTimestampRaw,
+      "source_package_identities.acquisition_timestamp_utc",
+    ),
+    source_class: sourceClass,
+    raw_payload_reference: rawPayloadReference,
+    integrity_status: integrityStatus,
+  };
+}
+
+function parseStoredStep1SourcePackageIdentities(
+  value: unknown,
+): Step1SourcePackageIdentityRecord[] | undefined | null {
+  if (typeof value === "undefined") {
+    return undefined;
+  }
+  if (!Array.isArray(value) || value.length === 0) {
+    return null;
+  }
+
+  const parsed = value.map((entry) => parseStoredStep1SourcePackageIdentityRecord(entry));
+  if (parsed.some((entry) => entry === null)) {
+    return null;
+  }
+  return parsed as Step1SourcePackageIdentityRecord[];
 }
 
 function emptyProofStore(): Step1ProofStore {
@@ -1661,6 +1728,7 @@ export function createCandidateBuildPhaseRow(params: {
       model_set_id: params.requestRecord.model_set_id,
       config_set_id: params.requestRecord.config_set_id,
       bundle_class: params.requestRecord.bundle_class,
+      source_package_identities: params.requestRecord.source_package_identities ?? [],
       target_environment: params.requestRecord.target_environment,
       dependency_classification_register: params.requestRecord.dependency_classification_register,
     },
@@ -1685,6 +1753,10 @@ export function createCandidateBuildCompletedPhaseRow(params: {
   manifestPath: string;
   candidateBundleId: string;
   manifestDigestSha256: string;
+  normalizedPackageManifestId: string;
+  normalizedPackageManifestPath: string;
+  normalizedPackageManifestDigestSha256: string;
+  sourcePackageIds: string[];
 }): Step1RuntimeRefreshPhaseRow {
   const startedAtUtc = toIsoUtc(params.startedAtUtc, "startedAtUtc");
   const completedAtUtc = toIsoUtc(params.completedAtUtc, "completedAtUtc");
@@ -1698,6 +1770,7 @@ export function createCandidateBuildCompletedPhaseRow(params: {
       model_set_id: params.requestRecord.model_set_id,
       config_set_id: params.requestRecord.config_set_id,
       bundle_class: params.requestRecord.bundle_class,
+      source_package_identities: params.requestRecord.source_package_identities ?? [],
       target_environment: params.requestRecord.target_environment,
       dependency_classification_register: params.requestRecord.dependency_classification_register,
     },
@@ -1708,6 +1781,11 @@ export function createCandidateBuildCompletedPhaseRow(params: {
       candidate_bundle_id: params.candidateBundleId,
       candidate_bundle_manifest_path: params.manifestPath,
       manifest_digest_sha256: params.manifestDigestSha256,
+      normalized_package_id: params.requestRecord.normalized_package_id,
+      normalized_package_manifest_id: params.normalizedPackageManifestId,
+      normalized_package_manifest_path: params.normalizedPackageManifestPath,
+      normalized_package_manifest_digest_sha256: params.normalizedPackageManifestDigestSha256,
+      source_package_ids: params.sourcePackageIds,
     },
     failure_code: null,
     failure_detail: null,
@@ -1807,6 +1885,22 @@ function assessmentFailureDetail(
   return details || "Assessment failed with one or more blocking reasons.";
 }
 
+function firstEvidenceReferenceByKind(
+  evidenceReferences: Step1AssessmentEvidenceReference[],
+  evidenceKind: string,
+): Step1AssessmentEvidenceReference | null {
+  return evidenceReferences.find((entry) => entry.evidence_kind === evidenceKind) ?? null;
+}
+
+function evidenceIdsByKind(
+  evidenceReferences: Step1AssessmentEvidenceReference[],
+  evidenceKind: string,
+): string[] {
+  return evidenceReferences
+    .filter((entry) => entry.evidence_kind === evidenceKind)
+    .map((entry) => entry.evidence_id);
+}
+
 export function createAssessmentReportRow(params: {
   runId: string;
   candidateBundleManifestPath: string;
@@ -1840,6 +1934,15 @@ export function createAssessmentGatePhaseRow(params: {
   report: Step1AssessmentReportArtifact;
 }): Step1RuntimeRefreshPhaseRow {
   const completedAtUtc = toIsoUtc(params.completedAtUtc, "completedAtUtc");
+  const normalizedPackageIdentity = firstEvidenceReferenceByKind(
+    params.report.evidence_references,
+    "normalized_package_identity",
+  );
+  const normalizedPackageManifest = firstEvidenceReferenceByKind(
+    params.report.evidence_references,
+    "normalized_package_manifest",
+  );
+  const sourcePackageIds = evidenceIdsByKind(params.report.evidence_references, "source_package_manifest");
   return {
     run_id: params.runId,
     phase_name: STEP1_ASSESSMENT_GATE_PHASE,
@@ -1847,6 +1950,9 @@ export function createAssessmentGatePhaseRow(params: {
       candidate_bundle_manifest_path: params.candidateBundleManifestPath,
       assessment_rule_set_id: params.report.assessment_rule_set_id,
       candidate_bundle_id: params.report.candidate_bundle_id,
+      normalized_package_id: normalizedPackageIdentity?.evidence_id ?? null,
+      normalized_package_manifest_path: normalizedPackageManifest?.evidence_path ?? null,
+      source_package_ids: sourcePackageIds,
     },
     process_status: params.report.disposition === "pass" ? "completed" : "blocked",
     started_at: completedAtUtc,
@@ -1855,6 +1961,8 @@ export function createAssessmentGatePhaseRow(params: {
       assessment_report_id: params.report.assessment_report_id,
       assessment_report_path: params.reportPath,
       candidate_bundle_id: params.report.candidate_bundle_id,
+      normalized_package_id: normalizedPackageIdentity?.evidence_id ?? null,
+      source_package_ids: sourcePackageIds,
       disposition: params.report.disposition,
       publication_allowed: params.report.publication_allowed,
       blocking_reason_codes: params.report.blocking_reason_codes,
@@ -2045,6 +2153,7 @@ export function parseStoredStep1RunRequestRecord(value: unknown): Step1RunReques
   const requestedBy = String(record.requested_by ?? "").trim();
   const requestedAtUtcRaw = String(record.requested_at_utc ?? "").trim();
   const dependencyClassificationRegister = asObject(record.dependency_classification_register);
+  const sourcePackageIdentities = parseStoredStep1SourcePackageIdentities(record.source_package_identities);
 
   if (
     !runId
@@ -2057,6 +2166,7 @@ export function parseStoredStep1RunRequestRecord(value: unknown): Step1RunReques
     || !requestedBy
     || !requestedAtUtcRaw
     || !dependencyClassificationRegister
+    || sourcePackageIdentities === null
   ) {
     return null;
   }
@@ -2069,6 +2179,9 @@ export function parseStoredStep1RunRequestRecord(value: unknown): Step1RunReques
     config_set_id: configSetId,
     bundle_class: bundleClass,
     dependency_classification_register: dependencyClassificationRegister,
+    ...(typeof sourcePackageIdentities === "undefined"
+      ? {}
+      : { source_package_identities: sourcePackageIdentities }),
     target_environment: targetEnvironment,
     requested_by: requestedBy,
     requested_at_utc: toIsoUtc(requestedAtUtcRaw, "requested_at_utc"),
@@ -2085,10 +2198,14 @@ export function parseStoredStep1CandidateBundleManifest(value: unknown): Step1Ca
   const modelSetId = String(record.model_set_id ?? "").trim();
   const configSetId = String(record.config_set_id ?? "").trim();
   const bundleClass = String(record.bundle_class ?? "").trim();
+  const normalizedPackageManifestId = String(record.normalized_package_manifest_id ?? "").trim();
+  const normalizedPackageManifestPath = String(record.normalized_package_manifest_path ?? "").trim();
+  const normalizedPackageManifestDigestSha256 = String(record.normalized_package_manifest_digest_sha256 ?? "").trim();
   const requestedRunMode = String(record.requested_run_mode ?? "").trim();
   const deterministicBuildTimestampRaw = String(record.deterministic_build_timestamp_utc ?? "").trim();
   const targetEnvironment = String(record.target_environment ?? "").trim();
   const dependencyClassificationRegister = asObject(record.dependency_classification_register);
+  const sourcePackageIdentities = parseStoredStep1SourcePackageIdentities(record.source_package_identities);
 
   if (
     !candidateBundleId
@@ -2097,10 +2214,14 @@ export function parseStoredStep1CandidateBundleManifest(value: unknown): Step1Ca
     || !modelSetId
     || !configSetId
     || !bundleClass
+    || !normalizedPackageManifestId
+    || !normalizedPackageManifestPath
+    || !normalizedPackageManifestDigestSha256
     || !requestedRunMode
     || !deterministicBuildTimestampRaw
     || !targetEnvironment
     || !dependencyClassificationRegister
+    || !sourcePackageIdentities
   ) {
     return null;
   }
@@ -2112,15 +2233,17 @@ export function parseStoredStep1CandidateBundleManifest(value: unknown): Step1Ca
           if (!item) return null;
           const artifactKind = String(item.artifact_kind ?? "").trim();
           const artifactId = String(item.artifact_id ?? "").trim();
+          const artifactPath = String(item.artifact_path ?? "").trim() || null;
           const digest = String(item.artifact_digest_sha256 ?? "").trim() || null;
           if (!artifactKind || !artifactId) return null;
           return {
             artifact_kind: artifactKind,
             artifact_id: artifactId,
+            artifact_path: artifactPath,
             artifact_digest_sha256: digest,
           } satisfies Step1AssessmentArtifactReference;
         })
-        .filter((entry): entry is Step1AssessmentArtifactReference => entry !== null)
+        .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
     : [];
 
   if (assessmentArtifactReferences.length === 0) {
@@ -2134,6 +2257,10 @@ export function parseStoredStep1CandidateBundleManifest(value: unknown): Step1Ca
     model_set_id: modelSetId,
     config_set_id: configSetId,
     bundle_class: bundleClass,
+    normalized_package_manifest_id: normalizedPackageManifestId,
+    normalized_package_manifest_path: normalizedPackageManifestPath,
+    normalized_package_manifest_digest_sha256: normalizedPackageManifestDigestSha256,
+    source_package_identities: sourcePackageIdentities,
     requested_run_mode: requestedRunMode,
     deterministic_build_timestamp_utc: toIsoUtc(
       deterministicBuildTimestampRaw,

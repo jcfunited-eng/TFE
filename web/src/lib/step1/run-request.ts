@@ -8,9 +8,19 @@ import {
   createCandidateBuildPhaseRow,
   createStep1RunRow,
   resolveStep1RequestArtifactPath,
+  type Step1SourcePackageIdentityRecord,
   type Step1RunRequestPersistence,
   type Step1RunRequestRecord,
 } from "./schema";
+
+export type Step1SourcePackageIdentityInput = {
+  sourcePackageId: string;
+  sourceIdentity: string;
+  acquisitionTimestampUtc: string;
+  sourceClass: string;
+  rawPayloadReference: string;
+  integrityStatus: string;
+};
 
 export type Step1RunRequestInput = {
   runId?: string;
@@ -20,6 +30,7 @@ export type Step1RunRequestInput = {
   configSetId: string;
   bundleClass: string;
   dependencyClassificationRegister: Record<string, unknown>;
+  sourcePackageIdentities?: Step1SourcePackageIdentityInput[];
   targetEnvironment: string;
   requestedBy: string;
   requestedAtUtc?: string;
@@ -124,7 +135,68 @@ function normalizeDependencyClassificationRegister(
   return record;
 }
 
+function normalizeSourcePackageIdentities(
+  value: unknown,
+  runId: string,
+): Step1SourcePackageIdentityRecord[] | undefined {
+  if (typeof value === "undefined") {
+    return undefined;
+  }
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Step1RunRequestError({
+      code: "request_invalid",
+      detail: "sourcePackageIdentities must be a non-empty array of exact source package identities when supplied.",
+      runId,
+    });
+  }
+
+  return value.map((entry, index) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      throw new Step1RunRequestError({
+        code: "request_invalid",
+        detail: `sourcePackageIdentities[${index}] must be an object.`,
+        runId,
+      });
+    }
+
+    const record = entry as Record<string, unknown>;
+    return {
+      source_package_id: requireText(
+        record.sourcePackageId,
+        `sourcePackageIdentities[${index}].sourcePackageId`,
+        runId,
+      ),
+      source_identity: requireText(
+        record.sourceIdentity,
+        `sourcePackageIdentities[${index}].sourceIdentity`,
+        runId,
+      ),
+      acquisition_timestamp_utc: requireIsoTimestamp(
+        record.acquisitionTimestampUtc,
+        `sourcePackageIdentities[${index}].acquisitionTimestampUtc`,
+        runId,
+      ),
+      source_class: requireText(
+        record.sourceClass,
+        `sourcePackageIdentities[${index}].sourceClass`,
+        runId,
+      ),
+      raw_payload_reference: requireText(
+        record.rawPayloadReference,
+        `sourcePackageIdentities[${index}].rawPayloadReference`,
+        runId,
+      ),
+      integrity_status: requireText(
+        record.integrityStatus,
+        `sourcePackageIdentities[${index}].integrityStatus`,
+        runId,
+      ),
+    };
+  });
+}
+
 function createRequestRecord(input: Step1RunRequestInput, runId: string): Step1RunRequestRecord {
+  const sourcePackageIdentities = normalizeSourcePackageIdentities(input.sourcePackageIdentities, runId);
   return {
     run_id: runId,
     normalized_package_id: requireText(input.normalizedPackageId, "normalized_package_id", runId),
@@ -136,6 +208,9 @@ function createRequestRecord(input: Step1RunRequestInput, runId: string): Step1R
       input.dependencyClassificationRegister,
       runId,
     ),
+    ...(typeof sourcePackageIdentities === "undefined"
+      ? {}
+      : { source_package_identities: sourcePackageIdentities }),
     target_environment: requireText(input.targetEnvironment, "target_environment", runId),
     requested_by: requireText(input.requestedBy, "requested_by", runId),
     requested_at_utc: requireIsoTimestamp(input.requestedAtUtc ?? new Date().toISOString(), "requested_at_utc", runId),

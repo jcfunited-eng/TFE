@@ -3,7 +3,7 @@ import { createAssessmentReportRecord } from "./assessment-report";
 import { createCandidateBundleRecord } from "./candidate-bundle";
 import { createQuoteCacheFollowupTicket } from "./followup-ticket";
 import { createPublicationCommitRecord } from "./publication-commit";
-import { createStep1RunRequest } from "./run-request";
+import { createStep1RunRequest, type Step1SourcePackageIdentityInput } from "./run-request";
 import {
   createFileProofStep1Persistence,
   createPostgresStep1Persistence,
@@ -30,6 +30,7 @@ export type Step1OrchestratorInput = {
   configSetId: string;
   bundleClass: string;
   dependencyClassificationRegister: Record<string, unknown>;
+  sourcePackageIdentities?: Step1SourcePackageIdentityInput[];
   targetEnvironment: string;
   requestedBy: string;
   requestedAtUtc?: string;
@@ -117,6 +118,18 @@ function requireAdminRefreshText(
   return text;
 }
 
+function requireAdminRefreshIsoTimestamp(value: unknown, fieldName: string): string {
+  const text = requireAdminRefreshText(value, fieldName);
+  const parsed = Date.parse(text);
+  if (!Number.isFinite(parsed)) {
+    throw new Step1AdminRefreshContractError({
+      code: "request_contract_invalid",
+      detail: `${fieldName} must be a valid ISO timestamp.`,
+    });
+  }
+  return new Date(parsed).toISOString();
+}
+
 function requireAdminRefreshDependencyClassificationRegister(value: unknown): Record<string, unknown> {
   const record = asObjectRecord(value);
   if (!record || Object.keys(record).length === 0) {
@@ -126,6 +139,54 @@ function requireAdminRefreshDependencyClassificationRegister(value: unknown): Re
     });
   }
   return record;
+}
+
+function normalizeAdminRefreshSourcePackageIdentities(value: unknown): Step1SourcePackageIdentityInput[] | undefined {
+  if (typeof value === "undefined") {
+    return undefined;
+  }
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Step1AdminRefreshContractError({
+      code: "request_contract_invalid",
+      detail: "sourcePackageIdentities must be a non-empty array of exact source package identities when supplied.",
+    });
+  }
+
+  return value.map((entry, index) => {
+    const record = asObjectRecord(entry);
+    if (!record) {
+      throw new Step1AdminRefreshContractError({
+        code: "request_contract_invalid",
+        detail: `sourcePackageIdentities[${index}] must be an object.`,
+      });
+    }
+    return {
+      sourcePackageId: requireAdminRefreshText(
+        record.sourcePackageId,
+        `sourcePackageIdentities[${index}].sourcePackageId`,
+      ),
+      sourceIdentity: requireAdminRefreshText(
+        record.sourceIdentity,
+        `sourcePackageIdentities[${index}].sourceIdentity`,
+      ),
+      acquisitionTimestampUtc: requireAdminRefreshIsoTimestamp(
+        record.acquisitionTimestampUtc,
+        `sourcePackageIdentities[${index}].acquisitionTimestampUtc`,
+      ),
+      sourceClass: requireAdminRefreshText(
+        record.sourceClass,
+        `sourcePackageIdentities[${index}].sourceClass`,
+      ),
+      rawPayloadReference: requireAdminRefreshText(
+        record.rawPayloadReference,
+        `sourcePackageIdentities[${index}].rawPayloadReference`,
+      ),
+      integrityStatus: requireAdminRefreshText(
+        record.integrityStatus,
+        `sourcePackageIdentities[${index}].integrityStatus`,
+      ),
+    };
+  });
 }
 
 function parseRequestContractFromEnv(env: NodeJS.ProcessEnv): Record<string, unknown> {
@@ -167,6 +228,7 @@ export function resolveStep1OrchestratorInputFromAdminRefreshRequest(params: {
     "configSetId",
     "bundleClass",
     "dependencyClassificationRegister",
+    "sourcePackageIdentities",
     "targetEnvironment",
     "assessmentRuleSetId",
   ];
@@ -198,6 +260,7 @@ export function resolveStep1OrchestratorInputFromAdminRefreshRequest(params: {
       dependencyClassificationRegister: requireAdminRefreshDependencyClassificationRegister(
         mergedRecord.dependencyClassificationRegister,
       ),
+      sourcePackageIdentities: normalizeAdminRefreshSourcePackageIdentities(mergedRecord.sourcePackageIdentities),
       targetEnvironment: requireAdminRefreshText(mergedRecord.targetEnvironment, "targetEnvironment"),
       requestedBy: params.requestedBy,
       requestedAtUtc: readTrimmedText(mergedRecord.requestedAtUtc) ?? undefined,
@@ -254,6 +317,7 @@ export async function dispatchStep1Orchestrator(
       configSetId: input.configSetId,
       bundleClass: input.bundleClass,
       dependencyClassificationRegister: input.dependencyClassificationRegister,
+      sourcePackageIdentities: input.sourcePackageIdentities,
       targetEnvironment: input.targetEnvironment,
       requestedBy: input.requestedBy,
       requestedAtUtc: input.requestedAtUtc,
