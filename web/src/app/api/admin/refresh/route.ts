@@ -1190,6 +1190,93 @@ async function runNodeScriptForPublicationActivation(
   });
 }
 
+type PublicationActivationPhaseName = "runtime_postgres_sync" | "validation_gate";
+
+function publicationActivationPhaseExpectedStatus(phaseName: PublicationActivationPhaseName): string {
+  return phaseName === "runtime_postgres_sync" ? "ok" : "pass";
+}
+
+function publicationActivationPhaseFailureCode(phaseName: PublicationActivationPhaseName): string {
+  return phaseName === "runtime_postgres_sync" ? "RUNTIME_POSTGRES_SYNC_FAILED" : "VALIDATION_GATE_FAILED";
+}
+
+function buildPublicationActivationPhaseFailureDetail(
+  phaseName: PublicationActivationPhaseName,
+  result: PublicationActivationScriptResult,
+): string {
+  const tail =
+    toTextOrNull(result.error)
+    ?? toTextOrNull(result.stderrTail)
+    ?? toTextOrNull(result.stdoutTail)
+    ?? "Unknown publication activation phase failure.";
+  const detail =
+    `${phaseName} failed. `
+    + `exit_code=${result.exitCode ?? "null"}; `
+    + `exit_signal=${result.exitSignal ?? "null"}; `
+    + `detail=${tail}`;
+  return detail.length <= 1500 ? detail : detail.slice(0, 1500);
+}
+
+function buildPublicationActivationPhaseOutputContract(
+  phaseName: PublicationActivationPhaseName,
+  scriptPath: string,
+  result: PublicationActivationScriptResult,
+): Record<string, unknown> {
+  const payloadStatus = toLowerTextOrNull(result.payload?.status);
+  const outputContract: Record<string, unknown> = {
+    status: result.ok ? publicationActivationPhaseExpectedStatus(phaseName) : (payloadStatus ?? "error"),
+    script_path: scriptPath,
+    exit_code: result.exitCode,
+    exit_signal: result.exitSignal ?? null,
+  };
+
+  const generatedAtUtc = toTextOrNull(result.payload?.generated_at_utc);
+  const runId = toTextOrNull(result.payload?.run_id);
+  const blockingReason = toTextOrNull(result.payload?.blocking_reason);
+  if (generatedAtUtc) outputContract.generated_at_utc = generatedAtUtc;
+  if (runId) outputContract.run_id = runId;
+  if (blockingReason) outputContract.blocking_reason = blockingReason;
+
+  return outputContract;
+}
+
+async function runPublicationActivationPhaseScript(params: {
+  runId: string;
+  phaseName: PublicationActivationPhaseName;
+  scriptPath: string;
+  envOverrides: Record<string, string>;
+}): Promise<PublicationActivationScriptResult> {
+  const startedAtIso = nowIso();
+  const inputContract = {
+    script_path: params.scriptPath,
+    expected_output_status: publicationActivationPhaseExpectedStatus(params.phaseName),
+  };
+  await upsertRuntimeRefreshPhaseLedger({
+    runId: params.runId,
+    phaseName: params.phaseName,
+    processStatus: "running",
+    inputContract,
+    startedAtIso,
+    lastHeartbeatAtIso: startedAtIso,
+  });
+
+  const result = await runNodeScriptForPublicationActivation(params.scriptPath, params.envOverrides);
+  const completedAtIso = nowIso();
+  await upsertRuntimeRefreshPhaseLedger({
+    runId: params.runId,
+    phaseName: params.phaseName,
+    processStatus: result.ok ? "completed" : "failed",
+    inputContract,
+    outputContract: buildPublicationActivationPhaseOutputContract(params.phaseName, params.scriptPath, result),
+    startedAtIso,
+    completedAtIso,
+    failureCode: result.ok ? null : publicationActivationPhaseFailureCode(params.phaseName),
+    failureDetail: result.ok ? null : buildPublicationActivationPhaseFailureDetail(params.phaseName, result),
+    lastHeartbeatAtIso: completedAtIso,
+  });
+  return result;
+}
+
 async function readPublicationActivationRow(runId: string): Promise<PublicationActivationRow | null> {
   if (!isRuntimeDbConfigured()) return null;
   await ensureRuntimeRefreshRunsTable();
@@ -1598,9 +1685,19 @@ async function enforcePublicationActivationContract(params: {
     TFE_ALLOW_DEFERRED_QUOTE_CACHE_FALLBACK: "1",
   };
 
-  const syncResult = await runNodeScriptForPublicationActivation(RUNTIME_SYNC_SCRIPT, envOverrides);
+  const syncResult = await runPublicationActivationPhaseScript({
+    runId: params.runId,
+    phaseName: "runtime_postgres_sync",
+    scriptPath: RUNTIME_SYNC_SCRIPT,
+    envOverrides,
+  });
   const validationResult = syncResult.ok
-    ? await runNodeScriptForPublicationActivation(VALIDATION_GATE_SCRIPT, envOverrides)
+    ? await runPublicationActivationPhaseScript({
+        runId: params.runId,
+        phaseName: "validation_gate",
+        scriptPath: VALIDATION_GATE_SCRIPT,
+        envOverrides,
+      })
     : undefined;
 
   const afterRow = await readPublicationActivationRow(params.runId);
@@ -2073,37 +2170,39 @@ async function finalizeRefreshRunFromChildExit(params: {
     }
 
     if (reportFromCurrentRun && reportStatus === "ok") {
-      const criticalTruth = await enforcePreActivationCriticalTruthBeforeTerminalOk({
+      const activationOutcome = await evaluateTerminalActivation({
         runId,
+        requestedMode: mode,
+        triggerSource: source,
+        requestedBy,
+        startedAtIso,
         completedAtIso,
-        contextLabel: "refresh_child_exit_terminalization",
+        report,
+        baseStatus: latest,
       });
-      if (!criticalTruth.ok) {
-        completionStatus = "error";
-        completionError = criticalTruth.failureDetail ?? missingTerminalReportError;
-        terminalReportStatus = "error";
-        activationState = "activation_failed";
-        servingState = "blocked";
-        blockingReasonCode = criticalTruth.failureCode ?? "PUBLICATION_CRITICAL_PHASE_TERMINAL_TRUTH_FAILED";
-        blockingReasonDetail = criticalTruth.failureDetail ?? missingTerminalReportError;
-      } else {
-        const activationOutcome = await evaluateTerminalActivation({
+      completionStatus = activationOutcome.completionStatus;
+      completionError = activationOutcome.completionError;
+      terminalReportStatus = activationOutcome.terminalReportStatus;
+      activationState = activationOutcome.activationState;
+      servingState = activationOutcome.servingState;
+      blockingReasonCode = activationOutcome.blockingReasonCode ?? null;
+      blockingReasonDetail = activationOutcome.blockingReasonDetail ?? null;
+
+      if (completionStatus === "ok" && terminalReportStatus === "ok") {
+        const criticalTruth = await enforcePreActivationCriticalTruthBeforeTerminalOk({
           runId,
-          requestedMode: mode,
-          triggerSource: source,
-          requestedBy,
-          startedAtIso,
           completedAtIso,
-          report,
-          baseStatus: latest,
+          contextLabel: "refresh_child_exit_terminalization",
         });
-        completionStatus = activationOutcome.completionStatus;
-        completionError = activationOutcome.completionError;
-        terminalReportStatus = activationOutcome.terminalReportStatus;
-        activationState = activationOutcome.activationState;
-        servingState = activationOutcome.servingState;
-        blockingReasonCode = activationOutcome.blockingReasonCode ?? null;
-        blockingReasonDetail = activationOutcome.blockingReasonDetail ?? null;
+        if (!criticalTruth.ok) {
+          completionStatus = "error";
+          completionError = criticalTruth.failureDetail ?? missingTerminalReportError;
+          terminalReportStatus = "error";
+          activationState = "activation_failed";
+          servingState = "blocked";
+          blockingReasonCode = criticalTruth.failureCode ?? "PUBLICATION_CRITICAL_PHASE_TERMINAL_TRUTH_FAILED";
+          blockingReasonDetail = criticalTruth.failureDetail ?? missingTerminalReportError;
+        }
       }
     }
 
@@ -2351,41 +2450,43 @@ async function normalizeStatus(): Promise<RefreshStatusRecord> {
           blockingReasonCode = "RUN_ID_MISSING";
           blockingReasonDetail = "Refresh reported ok but run_id is missing; publication-critical terminal truth cannot be verified.";
         } else {
-          const criticalTruth = await enforcePreActivationCriticalTruthBeforeTerminalOk({
+          const activationOutcome = await evaluateTerminalActivation({
             runId,
+            requestedMode,
+            triggerSource: base.trigger_source,
+            requestedBy: base.requested_by,
+            startedAtIso: base.started_at,
             completedAtIso,
-            contextLabel: "refresh_status_normalization_terminalization",
+            report,
+            baseStatus: base,
           });
-          if (!criticalTruth.ok) {
-            completionStatus = "error";
-            completionError = criticalTruth.failureDetail
-              ?? base.last_error
-              ?? "Publication-critical terminal truth failed during refresh status normalization.";
-            terminalReportStatus = "error";
-            activationState = "activation_failed";
-            servingState = "blocked";
-            blockingReasonCode = criticalTruth.failureCode ?? "PUBLICATION_CRITICAL_PHASE_TERMINAL_TRUTH_FAILED";
-            blockingReasonDetail = criticalTruth.failureDetail
-              ?? base.last_error
-              ?? "Publication-critical terminal truth failed during refresh status normalization.";
-          } else {
-            const activationOutcome = await evaluateTerminalActivation({
+          completionStatus = activationOutcome.completionStatus;
+          completionError = activationOutcome.completionError;
+          terminalReportStatus = activationOutcome.terminalReportStatus;
+          activationState = activationOutcome.activationState;
+          servingState = activationOutcome.servingState;
+          blockingReasonCode = activationOutcome.blockingReasonCode ?? null;
+          blockingReasonDetail = activationOutcome.blockingReasonDetail ?? null;
+
+          if (completionStatus === "ok" && terminalReportStatus === "ok") {
+            const criticalTruth = await enforcePreActivationCriticalTruthBeforeTerminalOk({
               runId,
-              requestedMode,
-              triggerSource: base.trigger_source,
-              requestedBy: base.requested_by,
-              startedAtIso: base.started_at,
               completedAtIso,
-              report,
-              baseStatus: base,
+              contextLabel: "refresh_status_normalization_terminalization",
             });
-            completionStatus = activationOutcome.completionStatus;
-            completionError = activationOutcome.completionError;
-            terminalReportStatus = activationOutcome.terminalReportStatus;
-            activationState = activationOutcome.activationState;
-            servingState = activationOutcome.servingState;
-            blockingReasonCode = activationOutcome.blockingReasonCode ?? null;
-            blockingReasonDetail = activationOutcome.blockingReasonDetail ?? null;
+            if (!criticalTruth.ok) {
+              completionStatus = "error";
+              completionError = criticalTruth.failureDetail
+                ?? base.last_error
+                ?? "Publication-critical terminal truth failed during refresh status normalization.";
+              terminalReportStatus = "error";
+              activationState = "activation_failed";
+              servingState = "blocked";
+              blockingReasonCode = criticalTruth.failureCode ?? "PUBLICATION_CRITICAL_PHASE_TERMINAL_TRUTH_FAILED";
+              blockingReasonDetail = criticalTruth.failureDetail
+                ?? base.last_error
+                ?? "Publication-critical terminal truth failed during refresh status normalization.";
+            }
           }
         }
       }
