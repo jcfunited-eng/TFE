@@ -1252,12 +1252,22 @@ export async function setActivePublicationRun(runId: string): Promise<boolean> {
 
   try {
     await client.query("BEGIN");
+    await client.query(
+      `
+        UPDATE ${RUNTIME_REFRESH_RUNS_TABLE}
+        SET is_active_publication = FALSE,
+            updated_at = NOW()
+        WHERE is_active_publication IS TRUE
+          AND run_id <> $1
+      `,
+      [runId],
+    );
     const result = await client.query(
       `
         UPDATE ${RUNTIME_REFRESH_RUNS_TABLE}
-        SET is_active_publication = CASE WHEN run_id = $1 THEN TRUE ELSE FALSE END,
+        SET is_active_publication = TRUE,
             updated_at = NOW()
-        WHERE is_active_publication IS TRUE OR run_id = $1
+        WHERE run_id = $1
       `,
       [runId],
     );
