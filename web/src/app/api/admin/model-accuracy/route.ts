@@ -150,6 +150,12 @@ async function readLocalLiveAccuracyEpochUtc(): Promise<string | null> {
   }
 }
 
+async function readLatestReportGeneratedAtUtc(reportPath: string | null): Promise<string | null> {
+  if (!reportPath) return null;
+  const parsed = await readOptionalJsonRecord(reportPath);
+  return stringOrNull(parsed?.generated_at_utc);
+}
+
 async function persistLiveAccuracyEpochUtc(startedAtUtc: string): Promise<void> {
   await writeAdminRefreshPersist(LIVE_ACCURACY_EPOCH_PERSIST_KEY, {
     started_at_utc: startedAtUtc,
@@ -165,22 +171,25 @@ async function persistLiveAccuracyEpochUtc(startedAtUtc: string): Promise<void> 
   );
 }
 
-async function resolveLiveAccuracyEpochUtc(): Promise<string> {
+async function resolveLiveAccuracyEpochUtc(reportPath: string | null): Promise<string> {
   const [
     persistedEpochUtc,
     localEpochUtc,
     provenancePersistence,
     provenanceParity,
+    latestReportGeneratedAtUtc,
   ] = await Promise.all([
     readPersistedLiveAccuracyEpochUtc(),
     readLocalLiveAccuracyEpochUtc(),
     readOptionalJsonRecord(PROVENANCE_PERSISTENCE_PATH),
     readOptionalJsonRecord(PROVENANCE_PARITY_PATH),
+    readLatestReportGeneratedAtUtc(reportPath),
   ]);
 
   let resolvedEpochUtc: string | null = null;
   resolvedEpochUtc = earlierIso(resolvedEpochUtc, persistedEpochUtc);
   resolvedEpochUtc = earlierIso(resolvedEpochUtc, localEpochUtc);
+  resolvedEpochUtc = earlierIso(resolvedEpochUtc, latestReportGeneratedAtUtc);
   resolvedEpochUtc = earlierIso(resolvedEpochUtc, stringOrNull(provenancePersistence?.generated_at_utc));
   resolvedEpochUtc = earlierIso(resolvedEpochUtc, stringOrNull(provenancePersistence?.latest_provenance_generated_utc));
   resolvedEpochUtc = earlierIso(resolvedEpochUtc, stringOrNull(provenanceParity?.generated_at_utc));
@@ -278,7 +287,8 @@ export async function GET(request: Request) {
 
   try {
     const nowUtc = isoNow();
-    const liveEpochStartUtc = await resolveLiveAccuracyEpochUtc();
+    const reportPath = await resolveLatestReportPath();
+    const liveEpochStartUtc = await resolveLiveAccuracyEpochUtc(reportPath);
     const daysSinceLiveEpoch = wholeDaysBetween(liveEpochStartUtc, nowUtc);
     const epochMaturity = applyHorizonMaturity(HORIZONS.map((horizon) => ({
       horizon_days: horizon,
@@ -313,7 +323,6 @@ export async function GET(request: Request) {
       });
     }
 
-    const reportPath = await resolveLatestReportPath();
     if (!reportPath) {
       return NextResponse.json({
         exists: false,
