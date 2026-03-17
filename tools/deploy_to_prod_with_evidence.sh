@@ -163,6 +163,7 @@ find "$TMP_SRC_DIR" -mindepth 1 -maxdepth 1 -type d -name "archive_*" -mtime +2 
 find "$TMP_SRC_DIR" -maxdepth 1 -type f -name "source_*.zip" -mtime +2 -delete 2>/dev/null || true
 
 HEAD_ARCHIVE_PREPARED="0"
+HEAD_ARCHIVE_SOURCE_DIR="${ARCHIVE_EXTRACT_DIR}"
 VALIDATION_PREPARED="0"
 VALIDATION_FINALIZED="0"
 CURRENT_DEPLOYED_TASKDEF=""
@@ -185,11 +186,18 @@ LIST
 }
 
 prepare_head_archive_extract() {
-  if [ "${HEAD_ARCHIVE_PREPARED}" = "1" ] && [ -d "${ARCHIVE_EXTRACT_DIR}/web" ]; then
+  if [ "${HEAD_ARCHIVE_PREPARED}" = "1" ]; then
     return 0
   fi
   rm -rf "${ARCHIVE_EXTRACT_DIR}"/*
-  git -C "${REPO_ROOT}" archive --format=tar HEAD | tar -xf - -C "${ARCHIVE_EXTRACT_DIR}"
+  if timeout "${DEPLOY_COPY_TIMEOUT_SECONDS}" bash -lc "git -C \"${REPO_ROOT}\" archive --format=tar HEAD | tar -xf - -C \"${ARCHIVE_EXTRACT_DIR}\""; then
+    HEAD_ARCHIVE_SOURCE_DIR="${ARCHIVE_EXTRACT_DIR}"
+    HEAD_ARCHIVE_PREPARED="1"
+    return 0
+  fi
+
+  echo "prepare_head_archive_extract fallback=workspace_copy reason=git_archive_unavailable_or_timeout" >&2
+  HEAD_ARCHIVE_SOURCE_DIR="${REPO_ROOT}"
   HEAD_ARCHIVE_PREPARED="1"
 }
 
@@ -1430,7 +1438,7 @@ while IFS= read -r pattern; do
   [ -z "$pattern" ] && continue
   pattern_count=$((pattern_count + 1))
 
-  matches=("$ARCHIVE_EXTRACT_DIR"/$pattern)
+  matches=("$HEAD_ARCHIVE_SOURCE_DIR"/$pattern)
   if [ "${#matches[@]}" -eq 0 ]; then
     echo "$pattern" >>"$MISSING_LIST"
     missing_count=$((missing_count + 1))
@@ -1438,7 +1446,7 @@ while IFS= read -r pattern; do
   fi
 
   for src in "${matches[@]}"; do
-    rel="${src#${ARCHIVE_EXTRACT_DIR}/}"
+    rel="${src#${HEAD_ARCHIVE_SOURCE_DIR}/}"
     dst="${STAGE_DIR}/${rel}"
     echo "package_copy_start pattern=${pattern} path=${rel}" | tee -a "$PACKAGE_PROGRESS_LOG"
     if [ -d "$src" ]; then
