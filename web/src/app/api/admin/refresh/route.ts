@@ -2907,10 +2907,11 @@ async function launchRefreshProcess(params: {
   internalAuthorized: boolean;
   triggerSource: RefreshTriggerSource;
   requestedBy: string;
+  preferredRunId?: string;
 }): Promise<RefreshLaunchAttempt> {
   const args = buildRefreshArgs(params.modeValue);
   const pythonBin = resolvePythonBin();
-  const runId = randomUUID();
+  const runId = String(params.preferredRunId ?? "").trim() || randomUUID();
 
   try {
     const logFd = openSync(LOG_PATH, "a");
@@ -3145,6 +3146,7 @@ export async function POST(request: Request) {
       internalAuthorized,
       triggerSource,
       requestedBy,
+      preferredRunId: step1Response.ok ? String(step1Payload.result?.runId ?? "").trim() || undefined : undefined,
     });
     if (!launch.ok) {
       return NextResponse.json(
