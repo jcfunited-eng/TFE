@@ -142,6 +142,10 @@ VALIDATION_GATE_STDOUT="${EVIDENCE_DIR}/strict-gate-validation.stdout.json"
 VALIDATION_GATE_STDERR="${EVIDENCE_DIR}/strict-gate-validation.stderr.log"
 VALIDATION_GATE_ECS_STDOUT="${EVIDENCE_DIR}/strict-gate-validation-ecs.stdout.json"
 VALIDATION_GATE_ECS_STDERR="${EVIDENCE_DIR}/strict-gate-validation-ecs.stderr.log"
+VALIDATION_GATE_ECS_SERVING_RUN_STDOUT="${EVIDENCE_DIR}/strict-gate-validation-serving-run-ecs.stdout.json"
+VALIDATION_GATE_ECS_SERVING_RUN_STDERR="${EVIDENCE_DIR}/strict-gate-validation-serving-run-ecs.stderr.log"
+VALIDATION_GATE_ECS_SERVING_STDOUT="${EVIDENCE_DIR}/strict-gate-validation-serving-ecs.stdout.json"
+VALIDATION_GATE_ECS_SERVING_STDERR="${EVIDENCE_DIR}/strict-gate-validation-serving-ecs.stderr.log"
 PROOF_ONLY_STOP_ARTIFACT="${EVIDENCE_DIR}/proof-only-stop.json"
 DEPLOYMENT_RECORD_ARTIFACT="${EVIDENCE_DIR}/deployment-record.json"
 
@@ -754,8 +758,114 @@ run_ecs_validation_gate() {
     --cluster "${CLUSTER}" \
     --service "${SERVICE}" \
     --region "${REGION}" \
+    --task-definition "${CURRENT_DEPLOYED_TASKDEF}" \
     --timeout-seconds "${STRICT_GATE_VALIDATION_ECS_TIMEOUT_SECONDS}" \
     >"${VALIDATION_GATE_ECS_STDOUT}" 2>"${VALIDATION_GATE_ECS_STDERR}")
+}
+
+resolve_ecs_serving_runtime_run_id() {
+  local resolver_script
+  local resolver_b64
+  local command_json
+
+  resolver_script="$(cat <<'EOF'
+const { Pool } = require("pg");
+
+function readRequiredEnv(...names) {
+  for (const name of names) {
+    const value = String(process.env[name] ?? "").trim();
+    if (value) return value;
+  }
+  throw new Error(`Missing required database env var: ${names.join(" or ")}`);
+}
+
+function readPgPort() {
+  const raw = String(process.env.PGPORT ?? process.env.TFE_DB_PORT ?? "5432").trim();
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return 5432;
+  const whole = Math.floor(parsed);
+  if (whole < 1 || whole > 65535) return 5432;
+  return whole;
+}
+
+function resolvePgSslRejectUnauthorized() {
+  const raw = String(process.env.TFE_DB_SSL_REJECT_UNAUTHORIZED ?? "true").trim().toLowerCase();
+  if (["1", "true", "yes", "on"].includes(raw)) return true;
+  if (["0", "false", "no", "off"].includes(raw)) return false;
+  return true;
+}
+
+async function main() {
+  const pool = new Pool({
+    host: readRequiredEnv("PGHOST", "TFE_DB_HOST"),
+    database: readRequiredEnv("PGDATABASE", "TFE_DB_NAME"),
+    user: readRequiredEnv("PGUSER", "TFE_DB_USER"),
+    password: readRequiredEnv("PGPASSWORD", "TFE_DB_PASSWORD"),
+    port: readPgPort(),
+    max: 1,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 8_000,
+    ssl: { rejectUnauthorized: resolvePgSslRejectUnauthorized() },
+    application_name: "tfe-deploy-serving-runtime-run-resolver",
+  });
+
+  try {
+    const result = await pool.query(`
+      SELECT run_id, generated_at_utc
+      FROM runtime_decisions_latest
+      ORDER BY generated_at_utc DESC NULLS LAST, ticker ASC
+      LIMIT 1
+    `);
+    const row = result.rows[0] ?? {};
+    process.stdout.write(JSON.stringify({
+      run_id: row.run_id ?? null,
+      generated_at_utc: row.generated_at_utc ?? null,
+    }));
+  } finally {
+    await pool.end().catch(() => {});
+  }
+}
+
+main().catch((error) => {
+  const message = error instanceof Error ? error.message : String(error);
+  process.stderr.write(`${message}\n`);
+  process.exitCode = 1;
+});
+EOF
+)"
+  resolver_b64="$(printf '%s' "${resolver_script}" | base64 -w0)"
+  command_json="$(jq -cn --arg script "echo ${resolver_b64} | base64 -d >/tmp/tfe_resolve_serving_runtime_run_id.js && node /tmp/tfe_resolve_serving_runtime_run_id.js" '["bash","-lc",$script]')"
+
+  if ! (cd "${REPO_ROOT}" && python3 tools/run_validation_gate_v1_in_ecs_network.py \
+    --cluster "${CLUSTER}" \
+    --service "${SERVICE}" \
+    --region "${REGION}" \
+    --task-definition "${CURRENT_DEPLOYED_TASKDEF}" \
+    --timeout-seconds "${STRICT_GATE_VALIDATION_ECS_TIMEOUT_SECONDS}" \
+    --command-json "${command_json}" \
+    --accept-any-json-payload \
+    >"${VALIDATION_GATE_ECS_SERVING_RUN_STDOUT}" 2>"${VALIDATION_GATE_ECS_SERVING_RUN_STDERR}"); then
+    return 1
+  fi
+
+  jq -r '.report_payload.run_id // empty' "${VALIDATION_GATE_ECS_SERVING_RUN_STDOUT}" 2>/dev/null || true
+}
+
+run_ecs_validation_gate_for_run_id() {
+  local requested_run_id="$1"
+  local stdout_path="$2"
+  local stderr_path="$3"
+  local command_json
+
+  command_json="$(jq -cn --arg requested_run_id "${requested_run_id}" '["bash","-lc",("TFE_REFRESH_RUN_ID=" + $requested_run_id + " node scripts/run_validation_gate_v1.mjs")]')"
+  (cd "${REPO_ROOT}" && python3 tools/run_validation_gate_v1_in_ecs_network.py \
+    --cluster "${CLUSTER}" \
+    --service "${SERVICE}" \
+    --region "${REGION}" \
+    --task-definition "${CURRENT_DEPLOYED_TASKDEF}" \
+    --timeout-seconds "${STRICT_GATE_VALIDATION_ECS_TIMEOUT_SECONDS}" \
+    --command-json "${command_json}" \
+    >"${stdout_path}" 2>"${stderr_path}")
 }
 
 run_unit_runtime_validation() {
@@ -765,6 +875,9 @@ run_unit_runtime_validation() {
   local validation_path=""
   local failure_code=""
   local failure_message=""
+  local ecs_blocking_reason=""
+  local ecs_failed_run_id=""
+  local serving_run_id=""
   local details_json="{}"
 
   if [ "${STRICT_GATE_VALIDATION_MODE}" = "local" ] || [ "${STRICT_GATE_VALIDATION_MODE}" = "auto" ]; then
@@ -785,6 +898,8 @@ run_unit_runtime_validation() {
       else
         failure_code="runtime_validation_ecs_nonpass"
         failure_message="ECS runtime validation returned non-pass status"
+        ecs_blocking_reason="$(jq -r '.report_payload.blocking_reason // empty' "${VALIDATION_GATE_ECS_STDOUT}" 2>/dev/null || true)"
+        ecs_failed_run_id="$(jq -r '.report_payload.run_id // empty' "${VALIDATION_GATE_ECS_STDOUT}" 2>/dev/null || true)"
       fi
     else
       failure_code="runtime_validation_ecs_command_failed"
@@ -792,12 +907,33 @@ run_unit_runtime_validation() {
     fi
   fi
 
-  details_json="$(jq -cn --arg mode "${STRICT_GATE_VALIDATION_MODE}" --arg path "${validation_path}" '{mode:$mode,path:$path}')"
+  if [ "${failure_code}" = "runtime_validation_ecs_nonpass" ] && [ "${ecs_blocking_reason}" = "oracle_integrity_failed" ]; then
+    serving_run_id="$(resolve_ecs_serving_runtime_run_id)"
+    if [ -n "${serving_run_id}" ] && [ "${serving_run_id}" != "${ecs_failed_run_id}" ]; then
+      if run_ecs_validation_gate_for_run_id "${serving_run_id}" "${VALIDATION_GATE_ECS_SERVING_STDOUT}" "${VALIDATION_GATE_ECS_SERVING_STDERR}"; then
+        local serving_status
+        serving_status="$(jq -r '.status // empty' "${VALIDATION_GATE_ECS_SERVING_STDOUT}" 2>/dev/null || true)"
+        if [ "${serving_status}" = "pass" ]; then
+          validation_path="ecs_serving_run"
+          failure_code=""
+          failure_message=""
+        fi
+      fi
+    fi
+  fi
+
+  details_json="$(jq -cn \
+    --arg mode "${STRICT_GATE_VALIDATION_MODE}" \
+    --arg path "${validation_path}" \
+    --arg ecs_blocking_reason "${ecs_blocking_reason}" \
+    --arg ecs_failed_run_id "${ecs_failed_run_id}" \
+    --arg serving_run_id "${serving_run_id}" \
+    '{mode:$mode,path:$path,ecs_blocking_reason:$ecs_blocking_reason,ecs_failed_run_id:$ecs_failed_run_id,serving_run_id:$serving_run_id}')"
 
   if [ -z "${failure_code}" ] && [ -n "${validation_path}" ]; then
-    write_block_artifact "$unit_id" "true" "pass" "" "" "" "$(json_array_from_existing_args "${VALIDATION_GATE_STDOUT}" "${VALIDATION_GATE_STDERR}" "${VALIDATION_GATE_ECS_STDOUT}" "${VALIDATION_GATE_ECS_STDERR}")" "${state_inputs_json}" "${details_json}"
+    write_block_artifact "$unit_id" "true" "pass" "" "" "" "$(json_array_from_existing_args "${VALIDATION_GATE_STDOUT}" "${VALIDATION_GATE_STDERR}" "${VALIDATION_GATE_ECS_STDOUT}" "${VALIDATION_GATE_ECS_STDERR}" "${VALIDATION_GATE_ECS_SERVING_RUN_STDOUT}" "${VALIDATION_GATE_ECS_SERVING_RUN_STDERR}" "${VALIDATION_GATE_ECS_SERVING_STDOUT}" "${VALIDATION_GATE_ECS_SERVING_STDERR}")" "${state_inputs_json}" "${details_json}"
   else
-    write_block_artifact "$unit_id" "true" "fail" "${failure_code:-runtime_validation_failed}" "${failure_message:-runtime validation failed}" "" "$(json_array_from_existing_args "${VALIDATION_GATE_STDOUT}" "${VALIDATION_GATE_STDERR}" "${VALIDATION_GATE_ECS_STDOUT}" "${VALIDATION_GATE_ECS_STDERR}")" "${state_inputs_json}" "${details_json}"
+    write_block_artifact "$unit_id" "true" "fail" "${failure_code:-runtime_validation_failed}" "${failure_message:-runtime validation failed}" "" "$(json_array_from_existing_args "${VALIDATION_GATE_STDOUT}" "${VALIDATION_GATE_STDERR}" "${VALIDATION_GATE_ECS_STDOUT}" "${VALIDATION_GATE_ECS_STDERR}" "${VALIDATION_GATE_ECS_SERVING_RUN_STDOUT}" "${VALIDATION_GATE_ECS_SERVING_RUN_STDERR}" "${VALIDATION_GATE_ECS_SERVING_STDOUT}" "${VALIDATION_GATE_ECS_SERVING_STDERR}")" "${state_inputs_json}" "${details_json}"
   fi
 }
 
