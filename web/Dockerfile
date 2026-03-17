@@ -22,6 +22,7 @@ COPY web/data/screener-finviz-overview-cache.json ./data/screener-finviz-overvie
 COPY web/data/screener-profile-overrides.json ./data/screener-profile-overrides.json
 COPY web/data/screener-quote-cache.json ./data/screener-quote-cache.json
 COPY web/data/screener-quote-cache.failures.json ./data/screener-quote-cache.failures.json
+COPY web/data/recommendation-quality-latest.json ./data/recommendation-quality-latest.json
 
 RUN npm run build
 
@@ -68,6 +69,7 @@ COPY --from=builder /app/web/data/screener-finviz-overview-cache.json ./data/scr
 COPY --from=builder /app/web/data/screener-profile-overrides.json ./data/screener-profile-overrides.json
 COPY --from=builder /app/web/data/screener-quote-cache.json ./data/screener-quote-cache.json
 COPY --from=builder /app/web/data/screener-quote-cache.failures.json ./data/screener-quote-cache.failures.json
+COPY --from=builder /app/web/data/recommendation-quality-latest.json ./data/recommendation-quality-latest.json
 COPY web/postcss.config.mjs ./postcss.config.mjs
 
 WORKDIR /app
@@ -86,6 +88,7 @@ COPY tools/l4_phase2_structural_snapshot_sync_postgres.py ./tools/l4_phase2_stru
 COPY tools/l5_db_native_preflight.py ./tools/l5_db_native_preflight.py
 COPY tools/l5_phase2_sync_postgres.py ./tools/l5_phase2_sync_postgres.py
 COPY backups/runtime/recommendation-quality-audit-lane-* ./backups/runtime/
+COPY --from=builder /app/web/data/recommendation-quality-latest.json ./web/data/recommendation-quality-latest.json
 
 COPY tfe_ses_core_adapter.py ./tfe_ses_core_adapter.py
 COPY aws_root_key_provider.py ./aws_root_key_provider.py
