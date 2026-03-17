@@ -2,6 +2,7 @@ import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { readAdminRefreshPersist, writeAdminRefreshPersist } from "@/lib/admin-refresh-persist";
 import { resolveWorkspaceRoot } from "@/lib/workspace-root";
 
 const ROOT_DIR = resolveWorkspaceRoot();
@@ -9,6 +10,9 @@ const L5_LATEST_PATH = path.join(ROOT_DIR, "l5_policy_learning_latest.json");
 const L5_OUTPUT_DIR = path.join(ROOT_DIR, "backups", "runtime", "l5_policy_learning");
 const LIVE_ACCURACY_DIR = path.join(ROOT_DIR, "backups", "runtime", "model_accuracy");
 const LIVE_ACCURACY_EPOCH_PATH = path.join(LIVE_ACCURACY_DIR, "live_accuracy_epoch.json");
+const LIVE_ACCURACY_EPOCH_PERSIST_KEY = "model_accuracy_live_epoch_v1";
+const PROVENANCE_PERSISTENCE_PATH = path.join(ROOT_DIR, "current_l5_provenance_persistence_latest.json");
+const PROVENANCE_PARITY_PATH = path.join(ROOT_DIR, "provenance_persistence_parity_latest.json");
 const HORIZONS = [5, 20, 60] as const;
 const HORIZON_MIN_DAYS: Record<(typeof HORIZONS)[number], number> = {
   5: 5,
@@ -93,22 +97,100 @@ function applyHorizonMaturity(horizons: HorizonPayload[], daysSinceLiveEpoch: nu
   };
 }
 
-async function resolveLiveAccuracyEpochUtc(): Promise<string> {
-  try {
-    const parsed = await readJsonRecord(LIVE_ACCURACY_EPOCH_PATH);
-    const existing = stringOrNull(parsed.started_at_utc);
-    if (existing) return existing;
-  } catch {
-    // initialize below
+async function requireAdmin(request: Request): Promise<NextResponse | null> {
+  const user = await readSessionUserFromRequest(request);
+  if (!user) {
+    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
 
-  const startedAtUtc = isoNow();
+  if (user.role !== "admin") {
+    return NextResponse.json({ error: "Admin role required." }, { status: 403 });
+  }
+
+  return null;
+}
+
+async function readJsonRecord(filePath: string): Promise<JsonRecord> {
+  const raw = await readFile(filePath, "utf-8");
+  const parsed = JSON.parse(raw) as unknown;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error(`JSON payload is not an object: ${filePath}`);
+  }
+  return parsed as JsonRecord;
+}
+
+async function readOptionalJsonRecord(filePath: string): Promise<JsonRecord | null> {
+  try {
+    await stat(filePath);
+    return await readJsonRecord(filePath);
+  } catch {
+    return null;
+  }
+}
+
+function earlierIso(a: string | null, b: string | null): string | null {
+  const aMs = parseIsoMs(a);
+  const bMs = parseIsoMs(b);
+  if (aMs === null) return b;
+  if (bMs === null) return a;
+  return aMs <= bMs ? a : b;
+}
+
+async function readPersistedLiveAccuracyEpochUtc(): Promise<string | null> {
+  const persisted = await readAdminRefreshPersist(LIVE_ACCURACY_EPOCH_PERSIST_KEY);
+  return stringOrNull(persisted?.started_at_utc);
+}
+
+async function readLocalLiveAccuracyEpochUtc(): Promise<string | null> {
+  try {
+    const parsed = await readJsonRecord(LIVE_ACCURACY_EPOCH_PATH);
+    return stringOrNull(parsed.started_at_utc);
+  } catch {
+    return null;
+  }
+}
+
+async function persistLiveAccuracyEpochUtc(startedAtUtc: string): Promise<void> {
+  await writeAdminRefreshPersist(LIVE_ACCURACY_EPOCH_PERSIST_KEY, {
+    started_at_utc: startedAtUtc,
+    updated_at_utc: isoNow(),
+    source: "model_accuracy_route",
+  });
+
   await mkdir(LIVE_ACCURACY_DIR, { recursive: true });
   await writeFile(
     LIVE_ACCURACY_EPOCH_PATH,
     `${JSON.stringify({ started_at_utc: startedAtUtc }, null, 2)}\n`,
     "utf-8",
   );
+}
+
+async function resolveLiveAccuracyEpochUtc(): Promise<string> {
+  const [
+    persistedEpochUtc,
+    localEpochUtc,
+    provenancePersistence,
+    provenanceParity,
+  ] = await Promise.all([
+    readPersistedLiveAccuracyEpochUtc(),
+    readLocalLiveAccuracyEpochUtc(),
+    readOptionalJsonRecord(PROVENANCE_PERSISTENCE_PATH),
+    readOptionalJsonRecord(PROVENANCE_PARITY_PATH),
+  ]);
+
+  let resolvedEpochUtc: string | null = null;
+  resolvedEpochUtc = earlierIso(resolvedEpochUtc, persistedEpochUtc);
+  resolvedEpochUtc = earlierIso(resolvedEpochUtc, localEpochUtc);
+  resolvedEpochUtc = earlierIso(resolvedEpochUtc, stringOrNull(provenancePersistence?.generated_at_utc));
+  resolvedEpochUtc = earlierIso(resolvedEpochUtc, stringOrNull(provenancePersistence?.latest_provenance_generated_utc));
+  resolvedEpochUtc = earlierIso(resolvedEpochUtc, stringOrNull(provenanceParity?.generated_at_utc));
+
+  const startedAtUtc = resolvedEpochUtc ?? isoNow();
+
+  if (persistedEpochUtc !== startedAtUtc || localEpochUtc !== startedAtUtc) {
+    await persistLiveAccuracyEpochUtc(startedAtUtc);
+  }
+
   return startedAtUtc;
 }
 
@@ -157,28 +239,6 @@ function buildCurrentEvalHorizon(currentEval: JsonRecord, horizon: (typeof HORIZ
     })(),
     mapped_rate_pct: numberOrNull(mapping.mapped_rate_pct),
   };
-}
-
-async function requireAdmin(request: Request): Promise<NextResponse | null> {
-  const user = await readSessionUserFromRequest(request);
-  if (!user) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
-  }
-
-  if (user.role !== "admin") {
-    return NextResponse.json({ error: "Admin role required." }, { status: 403 });
-  }
-
-  return null;
-}
-
-async function readJsonRecord(filePath: string): Promise<JsonRecord> {
-  const raw = await readFile(filePath, "utf-8");
-  const parsed = JSON.parse(raw) as unknown;
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error(`JSON payload is not an object: ${filePath}`);
-  }
-  return parsed as JsonRecord;
 }
 
 async function resolveLatestReportPath(): Promise<string | null> {
