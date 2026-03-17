@@ -327,6 +327,18 @@ ensure_current_deployed_identity_artifacts() {
   aws ecs describe-task-definition --task-definition "${CURRENT_DEPLOYED_TASKDEF}" --region "$REGION" --output json >"${EVIDENCE_DIR}/taskdef-current.json"
   CURRENT_DEPLOYED_IMAGE="$(jq -r '.taskDefinition.containerDefinitions[0].image // empty' "${EVIDENCE_DIR}/taskdef-current.json")"
   CURRENT_DEPLOYED_COMMIT_SHA="$(jq -r '.taskDefinition.containerDefinitions[0].environment[]? | select(.name=="TFE_GIT_COMMIT_SHA") | .value' "${EVIDENCE_DIR}/taskdef-current.json" | head -n 1)"
+  CURRENT_RUNTIME_DB_SECRET_ARN="$(
+    jq -r '
+      [
+        (.taskDefinition.containerDefinitions[0].environment[]? | select(.name=="TFE_RUNTIME_DB_SECRET_ARN") | .value),
+        (.taskDefinition.containerDefinitions[0].secrets[]? | select(.name=="PGPASSWORD") | .valueFrom)
+      ]
+      | map(select(. != null and . != ""))
+      | first // empty
+    ' "${EVIDENCE_DIR}/taskdef-current.json" \
+      | head -n 1 \
+      | sed -E 's/:(password|username)::$//'
+  )"
   CURRENT_DEPLOYED_IMAGE_TAG="$(extract_image_tag "${CURRENT_DEPLOYED_IMAGE}")"
 
   if [ -z "${CURRENT_DEPLOYED_IMAGE}" ] || [ -z "${CURRENT_DEPLOYED_IMAGE_TAG}" ] || [ -z "${CURRENT_DEPLOYED_COMMIT_SHA}" ]; then
@@ -1573,6 +1585,7 @@ jq \
   --arg IMAGE "$IMAGE_URI" \
   --arg FILTER_SOURCE "$SCREENER_FILTER_SOURCE_BASE_URL" \
   --arg GIT_COMMIT_SHA "$GIT_COMMIT_SHA" \
+  --arg RUNTIME_DB_SECRET_ARN "$CURRENT_RUNTIME_DB_SECRET_ARN" \
   --arg SOURCE_ARCHIVE "$S3_ARCHIVE" \
   --arg SOURCE_DEPLOY "$S3_DEPLOY" \
   --arg DEPLOY_IMAGE_TAG "$IMAGE_TAG" \
@@ -1585,6 +1598,7 @@ jq \
       (.containerDefinitions[0].environment // [])
       | map(select(
           .name != "TFE_GIT_COMMIT_SHA"
+          and .name != "TFE_RUNTIME_DB_SECRET_ARN"
           and .name != "TFE_SOURCE_ARCHIVE_S3"
           and .name != "TFE_SOURCE_DEPLOY_S3"
           and .name != "TFE_DEPLOY_IMAGE_TAG"
@@ -1604,6 +1618,11 @@ jq \
           {name: "TFE_DEPLOY_IMAGE_URI", value: $DEPLOY_IMAGE_URI},
           {name: "TFE_DEPLOY_TIMESTAMP_UTC", value: $DEPLOY_TS}
         ]
+      | . + (if ($RUNTIME_DB_SECRET_ARN | length) > 0 then
+          [{name: "TFE_RUNTIME_DB_SECRET_ARN", value: $RUNTIME_DB_SECRET_ARN}]
+        else
+          []
+        end)
       | . + (if ($FILTER_SOURCE | length) > 0 then
           [{name: "TFE_SCREENER_FILTER_SOURCE_BASE_URL", value: $FILTER_SOURCE}]
         else
