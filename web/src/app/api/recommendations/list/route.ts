@@ -527,10 +527,18 @@ export async function GET(request: Request) {
   ).slice(0, 5);
 
   const topByAssetType = {
-    equities: sortBySpotlightPriority(processedUniverse.filter((row) => row.assetType === "equities")).slice(0, 10),
-    index: sortBySpotlightPriority(processedUniverse.filter((row) => row.assetType === "index")).slice(0, 10),
-    crypto: sortBySpotlightPriority(processedUniverse.filter((row) => row.assetType === "crypto")).slice(0, 10),
-    etf: sortBySpotlightPriority(processedUniverse.filter((row) => row.assetType === "etf")).slice(0, 10),
+    equities: sortByConfidence(
+      processedUniverse.filter((row) => row.assetType === "equities" && row.classification === "BUY"),
+    ).slice(0, 10),
+    index: sortByConfidence(
+      processedUniverse.filter((row) => row.assetType === "index" && row.classification === "BUY"),
+    ).slice(0, 10),
+    crypto: sortByConfidence(
+      processedUniverse.filter((row) => row.assetType === "crypto" && row.classification === "BUY"),
+    ).slice(0, 10),
+    etf: sortByConfidence(
+      processedUniverse.filter((row) => row.assetType === "etf" && row.classification === "BUY"),
+    ).slice(0, 10),
   };
 
   return NextResponse.json({
