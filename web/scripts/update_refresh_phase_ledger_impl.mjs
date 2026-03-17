@@ -175,6 +175,16 @@ async function ensureSchema(client) {
   `);
 }
 
+function shouldRetryAfterSchemaEnsure(error) {
+  const message = String(error instanceof Error ? error.message : error ?? "").toLowerCase();
+  if (!message) return false;
+  return (
+    message.includes("does not exist")
+    || message.includes("undefined column")
+    || message.includes("undefined table")
+  );
+}
+
 async function upsertPhaseState(client, payload) {
   const runId = toTextOrNull(payload.run_id ?? process.env.TFE_REFRESH_RUN_ID);
   const phaseName = toTextOrNull(payload.phase_name);
@@ -339,8 +349,16 @@ async function main() {
 
   try {
     await client.query("BEGIN");
-    await ensureSchema(client);
-    const result = await upsertPhaseState(client, payload);
+    let result;
+    try {
+      result = await upsertPhaseState(client, payload);
+    } catch (error) {
+      if (!shouldRetryAfterSchemaEnsure(error)) {
+        throw error;
+      }
+      await ensureSchema(client);
+      result = await upsertPhaseState(client, payload);
+    }
     await client.query("COMMIT");
     process.stdout.write(`${JSON.stringify(result)}\n`);
   } catch (error) {
