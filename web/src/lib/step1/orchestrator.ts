@@ -4,6 +4,7 @@ import { createCandidateBundleRecord } from "./candidate-bundle";
 import { createQuoteCacheFollowupTicket } from "./followup-ticket";
 import { createPublicationCommitRecord } from "./publication-commit";
 import { createStep1RunRequest, type Step1SourcePackageIdentityInput } from "./run-request";
+import { resolveStep1AdminRefreshSourcePackageIdentities } from "./source-package-identities";
 import {
   createFileProofStep1Persistence,
   createPostgresStep1Persistence,
@@ -213,9 +214,12 @@ export function resolveStep1OrchestratorInputFromAdminRefreshRequest(params: {
   executionMode: Step1CutoverExecutionMode;
   requestedMode: string;
   env?: NodeJS.ProcessEnv;
+  workspaceRoot?: string;
 }): Step1AdminRefreshInputResolution {
   const requestBody = params.requestBody ?? {};
-  const envContract = parseRequestContractFromEnv(params.env ?? process.env);
+  const env = params.env ?? process.env;
+  const workspaceRoot = params.workspaceRoot ?? resolveWorkspaceRoot();
+  const envContract = parseRequestContractFromEnv(env);
   const requestRecord = asObjectRecord(requestBody) ?? {};
   const mergedRecord = {
     ...envContract,
@@ -248,6 +252,22 @@ export function resolveStep1OrchestratorInputFromAdminRefreshRequest(params: {
         ? "request_body"
         : "env_contract";
 
+  let sourcePackageIdentities = normalizeAdminRefreshSourcePackageIdentities(mergedRecord.sourcePackageIdentities);
+  if (typeof sourcePackageIdentities === "undefined") {
+    try {
+      sourcePackageIdentities = resolveStep1AdminRefreshSourcePackageIdentities({
+        workspaceRoot,
+        requestedMode: params.requestedMode,
+        env,
+      });
+    } catch (error) {
+      throw new Step1AdminRefreshContractError({
+        code: "request_contract_missing",
+        detail: error instanceof Error ? error.message : "exact source package identities are unavailable.",
+      });
+    }
+  }
+
   return {
     contractSource,
     input: {
@@ -260,7 +280,7 @@ export function resolveStep1OrchestratorInputFromAdminRefreshRequest(params: {
       dependencyClassificationRegister: requireAdminRefreshDependencyClassificationRegister(
         mergedRecord.dependencyClassificationRegister,
       ),
-      sourcePackageIdentities: normalizeAdminRefreshSourcePackageIdentities(mergedRecord.sourcePackageIdentities),
+      sourcePackageIdentities,
       targetEnvironment: requireAdminRefreshText(mergedRecord.targetEnvironment, "targetEnvironment"),
       requestedBy: params.requestedBy,
       requestedAtUtc: readTrimmedText(mergedRecord.requestedAtUtc) ?? undefined,
