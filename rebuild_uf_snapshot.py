@@ -641,9 +641,27 @@ def _build_targeted_universe() -> Tuple[List[Dict[str, str]], Dict[str, Any]]:
             structural_symbols.add(ticker)
 
     tenant_symbols, tenant_summary = _load_tenant_linked_symbols()
+    index_symbols = {
+        _normalize_symbol(symbol)
+        for symbol in get_index_tickers_from_universe(force_refresh=False)
+    }
+    index_symbols.discard("")
+    crypto_symbols = {
+        _normalize_symbol(symbol)
+        for symbol in get_crypto_tickers_from_universe(force_refresh=False)
+    }
+    crypto_symbols.discard("")
+
+    explicit_asset_types: Dict[str, str] = {}
+    for symbol in index_symbols:
+        explicit_asset_types[symbol] = "index"
+    for symbol in crypto_symbols:
+        explicit_asset_types[symbol] = "crypto"
 
     selected_symbols = set(structural_symbols)
     selected_symbols.update(tenant_symbols)
+    selected_symbols.update(index_symbols)
+    selected_symbols.update(crypto_symbols)
 
     items: List[Dict[str, str]] = []
     for symbol in sorted(selected_symbols):
@@ -653,6 +671,8 @@ def _build_targeted_universe() -> Tuple[List[Dict[str, str]], Dict[str, Any]]:
             raw_asset_type = _normalize_symbol(existing_row.get("asset_type"))
             if raw_asset_type:
                 asset_type = raw_asset_type
+        if asset_type == "unknown":
+            asset_type = explicit_asset_types.get(symbol, "unknown")
         items.append({"symbol": symbol, "asset_type": asset_type})
 
     tenant_only = [symbol for symbol in selected_symbols if symbol not in existing_by_ticker]
@@ -662,14 +682,18 @@ def _build_targeted_universe() -> Tuple[List[Dict[str, str]], Dict[str, Any]]:
         "selector_source_unique": len(existing_by_ticker),
         "selected_structural": len(structural_symbols),
         "selected_tenant_linked": len(tenant_symbols),
+        "selected_indexes": len(index_symbols),
+        "selected_crypto": len(crypto_symbols),
         "selected_union": len(selected_symbols),
         "selected_tenant_only": len(tenant_only),
         "selected_tenant_only_examples": sorted(tenant_only)[:25],
         "rule": {
-            "description": "Include symbol if regime != STABLE OR bar_count < 514 OR symbol is tenant-linked.",
+            "description": "Include symbol if regime != STABLE OR bar_count < 514 OR symbol is tenant-linked OR symbol is in the curated index/crypto universe.",
             "regime_condition": "regime != STABLE",
             "bar_count_condition": f"bar_count < {ACCUMULATE_MIN_BARS}",
             "tenant_condition": "watchlist OR portfolio OR admin-tracked",
+            "curated_index_condition": "always include curated index universe",
+            "curated_crypto_condition": "always include curated crypto universe",
         },
         "tenant_linked": tenant_summary,
     }
