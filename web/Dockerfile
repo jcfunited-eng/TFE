@@ -88,6 +88,7 @@ COPY tools/l4_phase2_structural_snapshot_sync_postgres.py ./tools/l4_phase2_stru
 COPY tools/l5_db_native_preflight.py ./tools/l5_db_native_preflight.py
 COPY tools/l5_phase2_sync_postgres.py ./tools/l5_phase2_sync_postgres.py
 COPY backups/runtime/recommendation-quality-audit-lane-* ./backups/runtime/
+COPY backups/runtime/l5_policy_learning/policy-eval-*.json ./backups/runtime/l5_policy_learning/
 COPY --from=builder /app/web/data/recommendation-quality-latest.json ./web/data/recommendation-quality-latest.json
 
 COPY tfe_ses_core_adapter.py ./tfe_ses_core_adapter.py
@@ -138,6 +139,7 @@ COPY market_data ./market_data
 
 RUN mkdir -p /app/web_user_data/.ses_tmp \
     && mkdir -p /app/web/data \
+    && mkdir -p /app/backups/runtime/l5_policy_learning \
     && chown -R node:node /app
 
 USER node
