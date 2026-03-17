@@ -890,7 +890,12 @@ run_unit_runtime_validation() {
   fi
 
   if [ -z "${failure_code}" ] && { [ "${STRICT_GATE_VALIDATION_MODE}" = "ecs" ] || { [ "${STRICT_GATE_VALIDATION_MODE}" = "auto" ] && [ "${validation_path}" != "local" ]; }; }; then
-    if run_ecs_validation_gate; then
+    local ecs_command_exit
+    set +e
+    run_ecs_validation_gate
+    ecs_command_exit=$?
+    set -e
+    if [ "${ecs_command_exit}" -eq 0 ] || [ -s "${VALIDATION_GATE_ECS_STDOUT}" ]; then
       local ecs_status
       ecs_status="$(jq -r '.status // empty' "${VALIDATION_GATE_ECS_STDOUT}" 2>/dev/null || true)"
       if [ "${ecs_status}" = "pass" ]; then
@@ -910,7 +915,12 @@ run_unit_runtime_validation() {
   if [ "${failure_code}" = "runtime_validation_ecs_nonpass" ] && [ "${ecs_blocking_reason}" = "oracle_integrity_failed" ]; then
     serving_run_id="$(resolve_ecs_serving_runtime_run_id)"
     if [ -n "${serving_run_id}" ] && [ "${serving_run_id}" != "${ecs_failed_run_id}" ]; then
-      if run_ecs_validation_gate_for_run_id "${serving_run_id}" "${VALIDATION_GATE_ECS_SERVING_STDOUT}" "${VALIDATION_GATE_ECS_SERVING_STDERR}"; then
+      local serving_command_exit
+      set +e
+      run_ecs_validation_gate_for_run_id "${serving_run_id}" "${VALIDATION_GATE_ECS_SERVING_STDOUT}" "${VALIDATION_GATE_ECS_SERVING_STDERR}"
+      serving_command_exit=$?
+      set -e
+      if [ "${serving_command_exit}" -eq 0 ] || [ -s "${VALIDATION_GATE_ECS_SERVING_STDOUT}" ]; then
         local serving_status
         serving_status="$(jq -r '.status // empty' "${VALIDATION_GATE_ECS_SERVING_STDOUT}" 2>/dev/null || true)"
         if [ "${serving_status}" = "pass" ]; then
