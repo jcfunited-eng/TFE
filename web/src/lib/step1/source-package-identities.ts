@@ -8,6 +8,8 @@ import type { Step1SourcePackageIdentityInput } from "./run-request";
 
 const TARGETED_SELECTOR_SCRIPT_RELATIVE_PATH = path.join("web", "scripts", "read_runtime_selector_rows.mjs");
 const WEB_USER_DATA_ROOT = "web_user_data";
+const RUNTIME_SELECTOR_MAX_BUFFER_BYTES = 128 * 1024 * 1024;
+const COMMAND_ERROR_SNIPPET_MAX_CHARS = 2000;
 
 function slugify(value: string): string {
   const text = String(value ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
@@ -67,6 +69,45 @@ function parseSelectorPayload(raw: string): Record<string, unknown> {
   }
 }
 
+function normalizeCommandOutput(value: unknown): string {
+  if (Buffer.isBuffer(value)) {
+    return value.toString("utf8").trim();
+  }
+  return String(value ?? "").trim();
+}
+
+function summarizeCommandOutput(value: unknown, label: string): string | null {
+  const text = normalizeCommandOutput(value);
+  if (!text) {
+    return null;
+  }
+  if (text.length <= COMMAND_ERROR_SNIPPET_MAX_CHARS) {
+    return `${label}=${text}`;
+  }
+  const omittedChars = text.length - COMMAND_ERROR_SNIPPET_MAX_CHARS;
+  return `${label}=${text.slice(0, COMMAND_ERROR_SNIPPET_MAX_CHARS)}...[truncated ${omittedChars} chars]`;
+}
+
+function describeSelectorCommandFailure(error: unknown): string {
+  const details: string[] = [];
+  if (error instanceof Error && String(error.message).trim()) {
+    details.push(String(error.message).trim());
+  }
+
+  const stdoutDetail = summarizeCommandOutput((error as { stdout?: unknown }).stdout, "stdout");
+  const stderrDetail = summarizeCommandOutput((error as { stderr?: unknown }).stderr, "stderr");
+  if (stderrDetail) {
+    details.push(stderrDetail);
+  } else if (stdoutDetail) {
+    details.push(stdoutDetail);
+  }
+
+  if (details.length === 0) {
+    return "unknown selector failure";
+  }
+  return details.join("; ");
+}
+
 function resolveRuntimeSelectorRowsSourcePackage(
   workspaceRoot: string,
   env: NodeJS.ProcessEnv,
@@ -87,13 +128,13 @@ function resolveRuntimeSelectorRowsSourcePackage(
       },
       stdio: ["ignore", "pipe", "pipe"],
       timeout: 90_000,
+      maxBuffer: RUNTIME_SELECTOR_MAX_BUFFER_BYTES,
     }).trim();
   } catch (error) {
-    const stdout = String((error as { stdout?: string }).stdout ?? "").trim();
-    const stderr = String((error as { stderr?: string }).stderr ?? "").trim();
-    const detail = stdout || stderr || (error instanceof Error ? error.message : "unknown selector failure");
     throw new Error(
-      `runtime selector rows could not be loaded while synthesizing exact source package identities. ${detail}`,
+      `runtime selector rows could not be loaded while synthesizing exact source package identities. ${
+        describeSelectorCommandFailure(error)
+      }`,
     );
   }
 
