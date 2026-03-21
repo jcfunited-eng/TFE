@@ -1,0 +1,64 @@
+\chapter{Verification, Validation, and Release Criteria}
+\section{Validation Classes}
+\meta{Define the validation layers required for TFE.}{Controlled data, perturbation sets, gold slices, benchmarks, migration comparison artifacts.}{Validation class definitions and release criteria.}
+
+TFE validation shall include at least five classes:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Kernel Conformance:} canonical L0--L4 import, invariants, boundedness, SafeMode, and SES boundary.
+    \item \textbf{Adapter Conformance:} financial input rules, invocation rules, domain binding, and summary integrity.
+    \item \textbf{L5 Thesis Conformance:} event-driven statefulness, multi-scale memory, order sensitivity, and controlled heuristics.
+    \item \textbf{Runtime Conformance:} snapshot selection, freshness gating, serving determinism, and stage-skip semantic equivalence.
+    \item \textbf{Benchmark Validation:} artifact-backed comparative performance against practical alternatives.
+\end{enumerate}
+
+\section{Minimum Kernel and Adapter Tests}
+\meta{Restate minimum imported tests required before any L5 interpretation is considered valid.}{Baseline inputs, perturbed inputs, multiple implementations or runs.}{Pass/fail for structural correctness.}
+
+Minimum tests include:
+\begin{itemize}
+    \item deterministic rerun equivalence;
+    \item gate-boundary stability under perturbation;
+    \item directional stability under perturbation;
+    \item DSF stability under perturbation;
+    \item collapse detection and SafeMode activation;
+    \item SES compatibility and version isolation;
+    \item no leakage of UF-SP or protected derived structures outside allowed boundaries.
+\end{itemize}
+
+\section{L5 Thesis-Conformance Tests}
+\meta{Determine whether an L5 implementation is a faithful test of the thesis.}{Frozen data slice, frozen splits, ordered event tape, ablation controls.}{Thesis-conformant / pragmatic / non-conformant classification.}
+
+At minimum, L5 shall be tested under the following conditions:
+\begin{itemize}
+    \item real ordered sequence;
+    \item shuffled event order;
+    \item reversed event order;
+    \item current-state only;
+    \item lag or history masked;
+    \item fast, medium, and slow memory-band ablations;
+    \item multi-view fusion disabled or perturbed.
+\end{itemize}
+
+Interpretation rule:
+\begin{itemize}
+    \item if ordered-sequence performance is materially indistinguishable from shuffled, reversed, or masked conditions, the implementation is not structurally temporal;
+    \item if memory-band ablations do not materially change behavior, the implementation is not using multi-scale memory;
+    \item if disabling multi-view fusion does not materially change behavior where multiple cores/views are active, the implementation is not using the ensemble structure meaningfully.
+\end{itemize}
+
+\section{Migration Regression Tests}
+\meta{Detect behavioral drift caused by architecture migration.}{Gold slice, laptop/local artifacts, deployed/AWS artifacts, DB-centric and non-DB-centric paths where feasible.}{Earliest divergence report.}
+
+For migration testing, TFE shall compare the earliest stage at which two nominally equivalent paths diverge. The preferred rule is ``first mismatch wins.'' Once the earliest divergence is found, downstream interpretation shall stop until the mismatch is understood.
+
+\section{Release Criteria}
+\meta{Define minimum conditions for a research release.}{All validation results, benchmark package, deviations, CAPAs.}{Release / reject / conditional-release decision.}
+
+A TFE research release is admissible only if:
+\begin{itemize}
+    \item kernel and adapter conformance pass;
+    \item L5 thesis-conformance classification is known and documented;
+    \item runtime freshness and snapshot selection are verified;
+    \item deviations are closed or formally accepted;
+    \item benchmark package is artifact-backed.
+\end{itemize}

@@ -1,0 +1,46 @@
+\chapter{Architecture Overview and Operating Profiles}
+\section{High-Level Architecture}
+\meta{Define the end-to-end structure of TFE.}{Domain input series, configuration, versions, approved rules, protected UF outputs.}{TFE research decisions, explanations, and audit records.}
+
+The system architecture is
+\[
+\text{Market Series} \rightarrow \text{Financial Adapter} \rightarrow L0 \rightarrow L1 \rightarrow L2 \rightarrow L3 \rightarrow L4 \rightarrow \text{SES/UF-Core Boundary} \rightarrow L5 \rightarrow \text{Research Outputs}.
+\]
+
+The protected boundary lies between canonical UF internals (UF-SP) and external consumers. TFE defines two operating profiles:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Conformant Adapter Profile (CAP):} only SES Summary fields enter ordinary TFE logic and external surfaces.
+    \item \textbf{Protected Research Profile (PRP):} richer structural representations are consumed by L5 only inside a protected research boundary that preserves SES-level controls, chain-of-custody, and environment binding.
+\end{enumerate}
+
+
+
+\section{L5 Conformance Profiles}
+\meta{Separate current production reality from transitional experiments and the thesis-faithful target so the specification never conflates them.}{Current code-truth L5, transitional serialized experiments, and target event-tape/shared-state L5.}{A three-profile conformance ladder.}
+
+TFE shall distinguish three L5 conformance profiles:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{CP-0 Current Production Profile.} A governed, productionized PSCF policy runtime built from serialized structural features, policy-cell matching, explicit fallback contracts, validation gates, and advisor/runtime integration.
+    \item \textbf{CP-1 Transitional Hybrid Profile.} A research/intermediate profile using temporal datasets, serialized state bundles, and pragmatic model families to explore temporal behavior without yet satisfying the full structural-memory thesis.
+    \item \textbf{CP-2 Thesis-Faithful Profile.} The target profile in which L5 operates on an ordered structural event tape, preserves explicit cross-core and long/mid/short state, and only splits into horizon-specific interpretations at the terminal head stage.
+\end{enumerate}
+
+The specification shall never claim that a CP-0 or CP-1 result is, by itself, a proof of CP-2 behavior. Every benchmark, quality panel, validation, and commercial claim shall declare which conformance profile produced it.
+
+\section{Section I/O Map}
+\begin{longtable}{p{0.11\textwidth}p{0.26\textwidth}p{0.25\textwidth}p{0.28\textwidth}}
+\toprule
+Section & Purpose & Inputs & Outputs \\
+\midrule
+Adapter-In & Validate financial input and invoke UF deterministically & Daily OHLCV, symbol, timeframe, versions & Closing-price series, domain parameters \\
+L0 & Build normalized structural field & Ordered closing-price series & $NSF=\{SEV(t)\}$ \\
+L1 & Segment structure into gates and descriptors & $NSF$ & $G_k,TVR_k,P_\ell(G_k),C_k,\delta_g$ \\
+L2 & Compute structural interpretations & Gate descriptors & $ISF_k$ \\
+L3 & Compute resonance and gated resonance & $ISF_k$ and $C_k$ & $R(k),Hyst_k,g_k,URF_k$ \\
+L4 & Build DSF structural state & $URF_k$, previous resonance values & $DSF_k$ \\
+SES/UF-Core & Protect UF-SP, expose SES Summary, bind domain and environment & UF-SP, DomainParams, Kroot & SES Envelope, SES Summary, chain-of-custody \\
+L5 & Govern domain interpretation over time & Event tape, SES Summary, rules, metadata & Action state, abstention/block state, runtime snapshot \\
+Persistence & Preserve deterministic artifacts & Envelopes, summaries, event tapes, snapshots, logs & Controlled records \\
+Validation & Verify conformance and stability & Inputs, perturbations, outputs, metadata & Validation results, deviations, release decisions \\
+\bottomrule
+\end{longtable}

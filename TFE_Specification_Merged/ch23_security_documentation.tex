@@ -1,0 +1,120 @@
+\chapter{Security, Data Integrity, and Documentation Controls}
+\section{Data Integrity and Good Documentation Practice}
+\meta{Define records expectations using ALCOA+ principles.}{All controlled records, logs, manifests, approvals, validation outputs.}{Documentation controls and retention obligations.}
+
+All TFE records shall be:
+\begin{itemize}
+    \item attributable;
+    \item legible;
+    \item contemporaneous;
+    \item original or controlled true-copy;
+    \item accurate;
+    \item complete, consistent, enduring, and available.
+\end{itemize}
+
+At minimum, TFE shall maintain:
+\begin{itemize}
+    \item revision history for controlled documents;
+    \item immutable run manifests and validation results;
+    \item chain-of-custody for runtime snapshots and SES events;
+    \item approval records for heuristics and configuration changes;
+    \item environment fingerprints and version declarations.
+\end{itemize}
+
+\section{Audit Trail}
+\meta{Define the canonical audit-trail object, required event classes, tamper-evidence rules, and reconstruction obligations.}{All evaluations, releases, changes, deviations, approvals, overrides, snapshots, and security events.}{Canonical append-only audit trail capable of reconstructing the course of events for any recommendation, suppression, or release.}
+
+For TFE, an audit record shall be:
+\[
+AuditRecord_i =
+(
+id_i,\;
+ts_i^{UTC},\;
+actor_i,\;
+action_i,\;
+objectType_i,\;
+objectId_i,\;
+runId_i,\;
+stageId_i,\;
+profile_i,\;
+domainParamsHash_i,\;
+ufVersion_i,\;
+sesVersion_i,\;
+adapterVersion_i,\;
+tfeSpecVersion_i,\;
+engineVariant_i,\;
+keyRef_i,\;
+configHash_i,\;
+schemaHash_i,\;
+inputDigest_i,\;
+outputDigest_i,\;
+status_i,\;
+reasonCode_i,\;
+prevHash_i,\;
+hash_i
+).
+\]
+
+Minimum rules:
+\begin{enumerate}[leftmargin=1.2cm]
+\item $ts_i^{UTC}$ shall be UTC and monotone within each $(runId_i,stageId_i)$ stream.
+\item $prevHash_i$ shall bind the record to the prior record in the same audit chain.
+\item $hash_i$ shall be the digest of the canonical serialization of all preceding fields including $prevHash_i$.
+\item $domainParamsHash_i$ shall be derived from the canonical domain parameter tuple; plaintext domain parameters may be stored only where policy allows.
+\item $inputDigest_i$ and $outputDigest_i$ shall support reconstruction of what was processed and what was emitted without exposing UF-SP.
+\item No audit record may contain plaintext UF-SP or any prohibited protected derivative.
+\end{enumerate}
+
+Required audit event classes include:
+\begin{itemize}
+\item evaluation started / completed / failed;
+\item SES encode / decode / decode rejection;
+\item snapshot selected / snapshot rejected stale / snapshot published;
+\item runtime recommendation emitted / suppressed / abstained;
+\item heuristic applied;
+\item epoch object added / revised / expired;
+\item validation started / completed / failed;
+\item release approved / rejected / rolled back;
+\item deviation opened / closed;
+\item CAPA opened / effectiveness verified;
+\item security events corresponding to Threat IDs T1--T10;
+\item manual override or exception.
+\end{itemize}
+
+Every recommendation or recommendation suppression shall be reconstructable from the audit trail by linking:
+\[
+(runId,stageId,snapshotId,symbol,horizon,configHash,schemaHash,selected\_artifact,reasonCode).
+\]
+
+Research mode may omit cryptographic signatures on every record, but advisory-grade or higher controlled modes shall add a signer identity or signing reference linked to the audit record chain.
+
+\section{Chain-of-Custody and Record Retention}
+\meta{Ensure every protected artifact and every externally visible research output can be traced back through immutable custody records.}{Audit records, SES envelopes, snapshots, validation records, and benchmark artifacts.}{Traceable custody chain and retention requirements.}
+
+For every controlled artifact $X$, the custody chain shall minimally record:
+\[
+CoC(X)=\{(ts_j, actor_j, action_j, location_j, digest_j, parentDigest_j)\}_{j=1}^{m}.
+\]
+At each handoff or transformation:
+\begin{itemize}
+\item the acting process or person shall be attributable;
+\item the resulting digest shall be recorded;
+\item the parent-child relationship shall be explicit;
+\item retention class and destruction rules shall be assigned.
+\end{itemize}
+
+Minimum retention classes:
+\begin{itemize}
+\item controlled specification records;
+\item approved configuration and heuristic registries;
+\item run manifests and validation outputs;
+\item benchmark packages used for any external claim;
+\item released runtime snapshots and the audit records required to reconstruct them.
+\end{itemize}
+
+Deletion or archival actions shall themselves be auditable events.
+
+\section{Electronic Records and Controlled Approvals}
+\meta{State minimum controls for controlled records and approvals.}{Controlled artifacts and approvals.}{Minimum record-control rule.}
+
+Controlled electronic records shall support unambiguous identification, tamper-evident storage, attributable approvals, and availability for review. Where electronic signatures are used, they shall be linked to the approved record and preserved under the same retention and auditability controls as the record itself.

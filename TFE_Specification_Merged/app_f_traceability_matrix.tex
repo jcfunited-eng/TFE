@@ -1,0 +1,15 @@
+\chapter{Minimum Traceability Matrix}
+\begin{longtable}{p{0.24\textwidth}p{0.52\textwidth}p{0.14\textwidth}}
+\toprule
+Requirement Family & Verification Evidence & Status Field \\
+\midrule
+Canonical UF import preserved & Kernel conformance tests, version declarations, reproducibility results & Required \\
+SES boundary preserved & Envelope checks, no UF-SP leakage, domain-binding checks, security-event logs & Required \\
+L5 event-driven input used & Structural event-tape manifest and schema & Required \\
+Shared long/mid/short state used & L5 state trace and conformance audit & Required \\
+Multi-view fusion used correctly & Multi-core audit and perturbation tests & Required \\
+Heuristics controlled & Heuristics registry and approvals & Required \\
+Snapshot freshness correct & Freshness diagnostics and serving query trace & Required \\
+Commercial claims artifact-backed & Benchmark package references & Required \\
+\bottomrule
+\end{longtable}

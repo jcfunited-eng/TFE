@@ -1,0 +1,196 @@
+\documentclass[11pt]{report}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{array,booktabs,longtable,tabularx,multirow}
+\usepackage{enumitem}
+\usepackage[table]{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{lastpage}
+\usepackage{float}
+\usepackage{pdflscape}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\must}{\textbf{MUST}}
+\newcommand{\should}{\textbf{SHOULD}}
+\newcommand{\mayc}{\textbf{MAY}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\meta}[3]{\textbf{Section Description.} #1\\
+\textbf{Inputs.} #2\\
+\textbf{Outputs.} #3\par}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\onehalfspacing
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!60!black}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{TFE Specification v3.0}
+\rhead{Consolidated Edition}
+\cfoot{\thepage\ / \pageref{LastPage}}
+\titleformat{\chapter}[display]{\bfseries\Huge}{\chaptertitlename\ \thechapter}{0.5em}{\Large}
+\titleformat{\section}{\bfseries\Large}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\bfseries\large}{\thesubsection}{0.6em}{}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\Huge \textbf{Tao Financial Engine (TFE)}}\\[0.35cm]
+{\LARGE TFE Specification v3.0 --- Consolidated Edition}\\[0.25cm]
+{\Large Deterministic System, Mathematical, Architecture, and Governance Specification}\\[0.9cm]
+
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{|p{0.30\textwidth}|Y|}
+\hline
+Document ID & TFE-DSFAI-SPEC-3.0 \\\hline
+Version & 3.0 Consolidated Edition \\\hline
+Status & Controlled consolidated specification \\\hline
+Effective Date & 2026-03-21 \\\hline
+Owner & TFE specification owner to be designated under controlled change management \\\hline
+Source Documents & TFE\_Specification\_v2\_5.tex (Thread A: Mathematical/Strategy/Governance) and TFE\_Specification\_v2\_7.tex (Thread B: Deterministic Architecture Re-Architecture) \\\hline
+Purpose & Merge both specification threads into one authoritative consolidated document. Thread A defines the UF mathematical framework, L5 governance, financial strategy rules, security, and operational controls. Thread B defines the deterministic source-assess-publish-serve architecture, operating planes, phase-ledger state machine, and runtime contracts. Both threads are preserved in full. \\\hline
+Primary Audience & Architecture owners, implementation engineers, validators, release owners, reviewers, quality stewards, security reviewers \\\hline
+Change Control & Semantic changes require revision-history entry, impact assessment, approver sign-off, and updated validation disposition \\\hline
+Compliance Posture & ISO-oriented requirements engineering, life-cycle, quality, and documentation structure; this document does not itself certify compliance \\\hline
+\end{tabularx}
+
+\vfill
+{\large \textbf{Non-Certification Statement}}\\[0.2cm]
+\parbox{0.93\textwidth}{This specification is written to support disciplined requirements engineering, deterministic architecture definition, traceability, validation planning, auditability, controlled change management, and protected handling of financial structural outputs. It does not itself certify compliance with ISO, GxP, GDP, FDA, SEC, FINRA, or any regulatory scheme. Compliance requires validated implementation, approved procedures, controlled execution, and auditable records.}
+\vfill
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\chapter*{Executive Summary}
+\addcontentsline{toc}{chapter}{Executive Summary}
+
+\section*{Thread A Summary (Mathematical and Governance Specification)}
+TFE is a research instantiation of DSF-AI (Deterministic Structural Field AI) applied to financial structural interpretation. The specification defines a canonical five-layer framework (UF L0--L4) for structural geometry, imported deterministically into TFE and protected via SES envelope cryptography. Layer L5 governs financial interpretation: it is event-driven, multi-scale, order-sensitive, and coordinated through the G32 32-channel sphere-of-impact epoch library.
+
+The financial governance rules, strategy families, survivability scoring, valuation tension terms, and sector-condition interaction rules are normative components of TFE. The current production profile (CP-0) uses a structurally governed PSCF-style policy runtime. The target profile (CP-2) aims for a thesis-faithful event-tape/shared-state L5 implementation.
+
+\section*{Thread B Summary (Deterministic Architecture)}
+TFE v2.7 resets the system architecture around one deterministic backbone:
+\[
+\texttt{source} \rightarrow \texttt{normalize} \rightarrow \texttt{assess candidate} \rightarrow \texttt{publish immutable bundle} \rightarrow \texttt{serve active bundle}
+\]
+
+This revision treats TFE as a financial advisor platform and not as a high-frequency trading platform or terminal-grade low-latency infrastructure utility. Therefore v2.7 adapts the commercial patterns that matter for an advisor system:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item normalized multi-source intake,
+    \item canonical data truth,
+    \item deterministic candidate assessment,
+    \item immutable publication bundles,
+    \item in-memory hot serving of active publication artifacts,
+    \item asynchronous non-critical enrichment,
+    \item resilient release and deployment discipline,
+    \item front-office, middle-office, and back-office separation.
+\end{enumerate}
+
+This revision does not treat exchange co-location, FPGA packet handling, or proprietary private backbones as first-line TFE architecture requirements.
+
+\clearpage
+
+%% ============================================================
+\part{Document Foundation}
+%% ============================================================
+
+\input{ch01_document_control}
+\input{ch02_references}
+\input{ch03_definitions}
+
+%% ============================================================
+\part{Mathematical and Structural Framework}
+%% ============================================================
+
+\input{ch04_mathematics}
+\input{ch05_uf_l0_l4}
+\input{ch06_l5_governance}
+
+%% ============================================================
+\part{Architecture}
+%% ============================================================
+
+\input{ch07_architecture_overview}
+\input{ch08_architecture_principles}
+\input{ch09_operating_model}
+\input{ch19_commercial_adaptation}
+
+%% ============================================================
+\part{Operating Planes}
+%% ============================================================
+
+\input{ch10_source_plane}
+\input{ch11_canonical_objects}
+\input{ch12_assessment_publication_plane}
+\input{ch13_serving_plane}
+\input{ch14_enrichment_plane}
+\input{ch15_refresh_state_machine}
+\input{ch16_product_deployment}
+\input{ch17_resilience}
+
+%% ============================================================
+\part{Financial Governance and Strategy Rules}
+%% ============================================================
+
+\input{ch18_financial_governance}
+
+%% ============================================================
+\part{Security, Persistence, and Runtime}
+%% ============================================================
+
+\input{ch20_ses_security}
+\input{ch21_persistence_runtime}
+
+%% ============================================================
+\part{Production Profile and Controls}
+%% ============================================================
+
+\input{ch22_cp0_code_truth}
+\input{ch23_security_documentation}
+
+%% ============================================================
+\part{Mathematical Invariants and Validation}
+%% ============================================================
+
+\input{ch24_mathematical_determinism}
+\input{ch25_verification_validation}
+
+%% ============================================================
+\part{Commercial Benchmarking and Change Control}
+%% ============================================================
+
+\input{ch26_commercial_benchmarking}
+\input{ch27_change_control}
+\input{ch28_risks_limitations}
+\input{ch29_competitiveness_ceiling}
+
+%% ============================================================
+\part{Migration}
+%% ============================================================
+
+\input{ch30_migration_cutover}
+
+%% ============================================================
+\appendix
+%% ============================================================
+
+\input{app_a_epoch_channel_registry}
+\input{app_b_audit_event_registry}
+\input{app_c_lineage}
+\input{app_d_gap_matrix}
+\input{app_e_revision_history}
+\input{app_f_traceability_matrix}
+\input{app_g_parameter_registry}
+
+\end{document}

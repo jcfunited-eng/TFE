@@ -1,0 +1,156 @@
+\chapter{Refresh and Phase-Ledger State Machine}
+\section{Purpose, Inputs, and Outputs}
+\meta{Define durable phase truth for live refresh runs.}{Run request, run mode, phase graph, phase classifications, dependency classifications, and target environment state.}{Run-header truth, child phase-ledger truth, current-phase mirror, terminal disposition, and exact failure classification inputs for evaluation.}
+
+\subsection{Purpose}
+This chapter defines the durable state contract for refresh execution. Its purpose is to ensure that any evaluator can determine the exact current or terminal phase of a run from canonical stored state without inferring from logs.
+
+\subsection{Inputs}
+Every controlled refresh run shall declare, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{run\_id};
+    \item run mode;
+    \item ordered phase graph for the run;
+    \item phase classifications and dependency classifications;
+    \item start timestamp and producer identity.
+\end{enumerate}
+
+\subsection{Outputs}
+Every controlled refresh run shall produce:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item one durable run-header record;
+    \item one or more durable child phase-ledger records;
+    \item one current-phase mirror on the run header while the run is non-terminal;
+    \item a terminal disposition that supports production classification under the production evaluation contract.
+\end{enumerate}
+
+\section{Run Header and Child Ledger Contract}
+The controlled runtime contract shall expose:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{runtime\_refresh\_runs} as the run-header truth object;
+    \item \texttt{runtime\_refresh\_run\_phases} as the child phase-ledger truth object.
+\end{enumerate}
+
+The run-header record shall contain, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{run\_id};
+    \item \texttt{mode};
+    \item \texttt{process\_status};
+    \item \texttt{current\_phase\_name};
+    \item \texttt{current\_phase\_status};
+    \item \texttt{current\_phase\_started\_at};
+    \item \texttt{current\_phase\_last\_heartbeat\_at};
+    \item \texttt{report\_status};
+    \item \texttt{validation\_status};
+    \item \texttt{snapshot\_publication\_id};
+    \item \texttt{quote\_publication\_id};
+    \item \texttt{blocking\_reason\_code};
+    \item \texttt{blocking\_reason\_detail};
+    \item \texttt{started\_at};
+    \item \texttt{completed\_at}.
+\end{enumerate}
+
+Each child phase-ledger record shall contain, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{run\_id};
+    \item \texttt{phase\_seq};
+    \item \texttt{phase\_name};
+    \item \texttt{phase\_class};
+    \item \texttt{input\_contract};
+    \item \texttt{process\_status};
+    \item \texttt{started\_at};
+    \item \texttt{completed\_at};
+    \item \texttt{last\_heartbeat\_at};
+    \item \texttt{output\_contract};
+    \item \texttt{failure\_code};
+    \item \texttt{failure\_detail}.
+\end{enumerate}
+
+\section{Required Phases and Phase Classes}
+The minimum controlled phase-name set shall be:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{snapshot\_rebuild};
+    \item \texttt{quote\_cache\_refresh};
+    \item \texttt{profile\_overrides\_refresh};
+    \item \texttt{runtime\_postgres\_sync};
+    \item \texttt{validation\_gate};
+    \item \texttt{publication\_activation}.
+\end{enumerate}
+
+For the current active workstream, the minimum phase classes shall be:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item publication-critical: \texttt{snapshot\_rebuild}, \texttt{runtime\_postgres\_sync}, \texttt{validation\_gate}, \texttt{publication\_activation};
+    \item non-critical follow-up by default: \texttt{quote\_cache\_refresh}, \texttt{profile\_overrides\_refresh}.
+\end{enumerate}
+
+The required phase-name set shall remain visible even when a phase is non-critical. A phase may be non-critical for activation and still be mandatory for observability, follow-up execution, and later reconciliation.
+
+\section{Current-Phase Mirror Contract}
+While a run is non-terminal, the run-header \texttt{current\_phase\_*} fields shall match the most recent non-terminal child phase-ledger record for that run. If more than one child record is non-terminal, the mirror shall resolve to the child record with the greatest \texttt{phase\_seq} and latest update time.
+
+Mirror divergence between the run header and child phase rows shall be treated as a conformance failure and shall not be repaired by route-level inference.
+
+\section{Ledger-First Truth Rule}
+The phase ledger is the only canonical source of current-phase truth. Logs, dashboards, and free-form route text may summarize ledger truth but shall not override it.
+
+If the system cannot durably persist the required run-header or child phase-ledger state for a phase transition, the run shall fail with \texttt{state\_persistence\_failure}. A missing child row for an entered phase shall not be treated as an acceptable temporary condition.
+
+\section{Process Status Domain}
+Allowed phase process statuses are:
+\[
+\{\texttt{launched}, \texttt{running}, \texttt{completed}, \texttt{failed}, \texttt{blocked}, \texttt{deferred}\}
+\]
+
+For the run header, \texttt{process\_status} shall describe publication-critical lifecycle completion. Therefore a run may be \texttt{completed} even if one or more non-critical follow-up phases later terminate as \texttt{failed}, provided publication activation already completed successfully and those failures remain visible in child phase rows.
+
+\section{State Transitions}
+The minimum allowed run lifecycle shall be:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item create the run-header row with \texttt{process\_status = launched};
+    \item create a child phase row before or at the moment a phase begins executing;
+    \item update the run-header current-phase mirror whenever a phase becomes non-terminal;
+    \item transition publication-critical phases through \texttt{running} to either \texttt{completed}, \texttt{failed}, or \texttt{blocked};
+    \item if all publication-critical phases complete successfully, allow activation to complete and then allow non-critical follow-up phases to continue or begin;
+    \item set the run-header terminal disposition after publication-critical completion or failure, without erasing the visibility of any non-critical follow-up phase outcome.
+\end{enumerate}
+
+The minimum allowed phase-status transitions are:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{deferred} \(\rightarrow\) \texttt{launched} or \texttt{failed};
+    \item \texttt{launched} \(\rightarrow\) \texttt{running} or \texttt{failed};
+    \item \texttt{running} \(\rightarrow\) \texttt{completed}, \texttt{failed}, or \texttt{blocked};
+    \item \texttt{blocked} \(\rightarrow\) \texttt{running} or \texttt{failed}.
+\end{enumerate}
+
+\section{Failure Semantics}
+Refresh and ledger failures shall include, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{launch\_failure};
+    \item \texttt{phase\_entry\_persistence\_failure};
+    \item \texttt{heartbeat\_stalled};
+    \item \texttt{phase\_execution\_failure};
+    \item \texttt{ledger\_mirror\_mismatch};
+    \item \texttt{required\_phase\_missing};
+    \item \texttt{state\_persistence\_failure}.
+\end{enumerate}
+
+If a publication-critical phase fails, the run shall be terminally failed for publication purposes. If a non-critical follow-up phase fails after successful activation, that failure shall remain classified as a follow-up failure and shall not retroactively erase publication success. If the heartbeat for a running phase exceeds the controlled timeout without completion, the phase shall transition to \texttt{blocked} or \texttt{failed}; it shall not remain silently \texttt{running}.
+
+\section{Conformance Criteria}
+Implementation conformance for this chapter requires proof that:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item any live run can be identified to one exact phase by reading the run header and child phase rows only;
+    \item no publication-critical phase failure requires log-tail inference to classify the run;
+    \item the run-header current-phase mirror matches the latest non-terminal child phase row;
+    \item full-universe publication can activate while \texttt{quote\_cache\_refresh} remains a non-critical child phase;
+    \item admin runtime-status routes read ledger truth directly.
+\end{enumerate}
+
+\section{Traceability Targets}
+Traceability records for this chapter shall include:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item exact implementation units responsible for run creation, phase-row creation, current-phase mirroring, heartbeat updates, and admin runtime-status reads;
+    \item runtime objects \texttt{runtime\_refresh\_runs}, \texttt{runtime\_refresh\_run\_phases}, publication identifiers cited by the run header, and the phase ledger;
+    \item conformance tests for exact current-phase identification, mirror consistency, non-blocking quote-cache follow-up behavior, and no-log-inference classification;
+    \item acceptance evidence consisting of run-header rows, child phase rows, heartbeat records, admin route responses, and production-classification records prepared under the production evaluation contract.
+\end{enumerate}

@@ -1,0 +1,23 @@
+\chapter{Canonical Objects and Identities}
+\section{Identity Functions}
+\meta{Define immutable object identity.}{Package manifests and artifact manifests.}{Deterministic identity rules.}
+
+Each canonical object shall have an immutable identity:
+\[
+\operatorname{ID}(x) = H(M_x)
+\]
+where \(H\) is the approved cryptographic digest function and \(M_x\) is the canonical serialized manifest of object \(x\).
+
+\section{Canonical Objects}
+The minimum canonical object set is:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{source\_package}
+    \item \texttt{normalized\_package}
+    \item \texttt{candidate\_bundle}
+    \item \texttt{assessment\_report}
+    \item \texttt{publication\_bundle}
+    \item \texttt{active\_publication\_pointer}
+    \item \texttt{phase\_ledger}
+    \item \texttt{deployment\_record}
+    \item \texttt{hot\_serving\_cache}
+\end{enumerate}

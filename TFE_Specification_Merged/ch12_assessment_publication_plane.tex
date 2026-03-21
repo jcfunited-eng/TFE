@@ -1,0 +1,149 @@
+\chapter{Assessment and Publication Plane}
+\section{Purpose, Inputs, and Outputs}
+\meta{Define the publication-critical path for the active workstream.}{One exact normalized package identity, policy/model/config identities, bundle-class dependency classifications, target environment state, and requested run mode.}{Candidate bundle identity, assessment disposition, immutable publication bundle, pointer activation record, or explicit no-publish failure result.}
+
+\subsection{Purpose}
+This chapter governs the only path by which TFE may convert normalized truth into user-serving truth. The controlled path shall be:
+\[
+\texttt{normalized\_package} \rightarrow \texttt{candidate\_bundle} \rightarrow \texttt{assessment\_report} \rightarrow \texttt{publication\_bundle} \rightarrow \texttt{active\_publication\_pointer}
+\]
+
+No later-serving artifact, enrichment artifact, or deployment-only artifact may replace or skip any element of that chain.
+
+\subsection{Inputs}
+Every publication attempt shall declare, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item exactly one \texttt{normalized\_package\_id};
+    \item the full policy/model/config identity set used to build the candidate bundle;
+    \item the target bundle class and its dependency classifications;
+    \item the requested run mode;
+    \item the current active publication identity for the target environment, if one exists.
+\end{enumerate}
+
+\subsection{Outputs}
+Every publication attempt shall end in exactly one of these outcomes:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item a deterministic \texttt{candidate\_bundle\_id} and an \texttt{assessment\_report\_id};
+    \item an immutable \texttt{publication\_bundle\_id} and one activation audit record;
+    \item a no-publish disposition with explicit failure code and failure detail.
+\end{enumerate}
+
+\section{Candidate Bundle Contract}
+The candidate bundle manifest shall contain, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{candidate\_bundle\_id};
+    \item \texttt{normalized\_package\_id};
+    \item policy/model/config identities;
+    \item bundle class;
+    \item requested run mode;
+    \item deterministic build timestamp;
+    \item exact dependency classification register;
+    \item artifact references required for assessment.
+\end{enumerate}
+
+Candidate generation shall be deterministic over the declared inputs. For a given normalized package \(n\) and policy set \(\pi\),
+\[
+\operatorname{CandidateID}(n,\pi)=H(M_{n,\pi})
+\]
+where \(M_{n,\pi}\) is the canonical candidate manifest serialization.
+
+\section{Assessment Gate Contract}
+The assessment report shall cite exactly one candidate bundle and shall record:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{assessment\_report\_id};
+    \item \texttt{candidate\_bundle\_id};
+    \item assessment rule-set identity;
+    \item pass/fail disposition;
+    \item blocking reason codes and details for every failed blocking rule;
+    \item evidence references used to support the disposition.
+\end{enumerate}
+
+Publication shall be permitted if and only if assessment passes and every dependency classified as publication-critical is satisfied:
+\[
+\operatorname{Publishable}(c) \iff \operatorname{AssessmentStatus}(c)=\texttt{pass} \land \bigwedge_{d\in D_c^{crit}}\operatorname{DependencyStatus}(d)=\texttt{satisfied}
+\]
+
+\section{Publication Bundle and Activation Contract}
+The publication bundle shall be immutable and shall contain, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{publication\_bundle\_id};
+    \item \texttt{candidate\_bundle\_id};
+    \item \texttt{assessment\_report\_id};
+    \item target environment;
+    \item bundle class;
+    \item artifact manifest;
+    \item bundle creation timestamp.
+\end{enumerate}
+
+Activation shall be represented by one atomic pointer transition from the previous active publication \(p_o\) to the next active publication \(p_n\). If \(p_o \neq p_n\), the system shall not expose a mixed interval in which both publications are simultaneously authoritative:
+\[
+A_e(t^-) = p_o,\quad A_e(t^+) = p_n,\quad \left|A_e(t)\right| \le 1
+\]
+
+If activation fails after bundle creation, the newly created publication bundle shall remain inactive, the prior active pointer shall remain authoritative, and the failure shall be durably recorded.
+
+\section{Publication-Critical Dependency Classification}
+Every dependency referenced by the bundle class shall be classified as exactly one of:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{publication\_critical};
+    \item \texttt{non\_critical};
+    \item \texttt{not\_applicable}.
+\end{enumerate}
+
+The default classification for Enrichment Plane dependencies shall be \texttt{non\_critical}. For the current active workstream, \texttt{quote\_cache\_refresh} and \texttt{profile\_overrides\_refresh} shall be treated as required controlled phases but not as publication-critical prerequisites for full-universe publication unless this specification is revised under change control.
+
+\section{Invariants}
+The Assessment and Publication Plane shall satisfy all of the following:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item one candidate bundle cites exactly one normalized package identity;
+    \item one assessment disposition applies to exactly one candidate bundle;
+    \item no publication bundle is activatable without a passing assessment report;
+    \item no activation may occur without an immutable publication bundle;
+    \item no non-critical enrichment result may redefine publication truth after activation.
+\end{enumerate}
+
+\section{State Transitions}
+The allowed publication-critical state progression shall be:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{requested} \(\rightarrow\) \texttt{candidate\_building};
+    \item \texttt{candidate\_building} \(\rightarrow\) \texttt{candidate\_built} or \texttt{failed};
+    \item \texttt{candidate\_built} \(\rightarrow\) \texttt{assessing};
+    \item \texttt{assessing} \(\rightarrow\) \texttt{assessment\_failed} or \texttt{publication\_ready};
+    \item \texttt{publication\_ready} \(\rightarrow\) \texttt{publishing};
+    \item \texttt{publishing} \(\rightarrow\) \texttt{activation\_pending} or \texttt{failed};
+    \item \texttt{activation\_pending} \(\rightarrow\) \texttt{activated} or \texttt{failed}.
+\end{enumerate}
+
+Non-critical enrichment may continue after \texttt{activated}, but it shall not force a transition back to any pre-activation blocking state.
+
+\section{Failure Semantics}
+The publication-critical failure classes shall include, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{candidate\_build\_failure};
+    \item \texttt{assessment\_failure};
+    \item \texttt{critical\_dependency\_failure};
+    \item \texttt{publication\_bundle\_failure};
+    \item \texttt{activation\_failure};
+    \item \texttt{state\_persistence\_failure}.
+\end{enumerate}
+
+If any publication-critical failure occurs before activation, no new active publication pointer may be committed. If durable state cannot be written for any publication-critical transition, the attempt shall fail explicitly and shall not rely on log-only evidence.
+
+\section{Conformance Criteria}
+Implementation conformance for this chapter requires proof that:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item repeated candidate builds from the same declared inputs produce the same candidate identity;
+    \item failed assessment blocks publication activation;
+    \item activation is atomic and leaves at most one active publication per environment;
+    \item full-universe publication can complete while \texttt{quote\_cache\_refresh} remains non-terminal or fails as a non-critical phase;
+    \item no user-facing route serves a candidate bundle that has not been activated.
+\end{enumerate}
+
+\section{Traceability Targets}
+Traceability records for this chapter shall include:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item exact implementation units responsible for candidate build, assessment, publication bundle creation, and pointer activation;
+    \item runtime objects \texttt{candidate\_bundle}, \texttt{assessment\_report}, \texttt{publication\_bundle}, \texttt{active\_publication\_pointer}, and \texttt{phase\_ledger};
+    \item conformance tests for deterministic rebuild, fail-block, atomic activation, and non-critical quote-cache follow-up behavior;
+    \item acceptance evidence consisting of candidate manifests, assessment reports, publication manifests, activation audit rows, and run records that cite dependency classifications.
+\end{enumerate}

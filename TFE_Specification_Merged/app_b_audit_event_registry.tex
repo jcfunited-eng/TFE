@@ -1,0 +1,22 @@
+\chapter{Audit Event Registry (Minimum)}
+\begin{longtable}{p{0.18\textwidth}p{0.22\textwidth}p{0.48\textwidth}}
+\toprule
+Event Code & Event Name & Minimum logged contents \\
+\midrule
+AUD-001 & EvaluationStarted & runId, stageId, symbol-set, horizon-set, versions, config hash \\
+AUD-002 & EvaluationCompleted & runId, stageId, duration, status, output digest \\
+AUD-003 & EvaluationFailed & runId, stageId, reasonCode, error digest \\
+AUD-010 & SESDecodeRejected & envelope id, domainParams hash, failure reason \\
+AUD-020 & SnapshotSelected & selected snapshot id, query path, ordering key, age, threshold \\
+AUD-021 & SnapshotRejectedStale & snapshot id, age, threshold, time source \\
+AUD-030 & RecommendationEmitted & symbol, horizon, action, source snapshot, output digest \\
+AUD-031 & RecommendationSuppressed & symbol, horizon, suppression reason \\
+AUD-040 & HeuristicApplied & heuristic id, scope, approver ref, effect summary \\
+AUD-050 & EpochAddedOrUpdated & epoch id, class, severity, confidence, source provenance \\
+AUD-060 & ValidationResult & test id, status, artifact digests \\
+AUD-070 & ReleaseDecision & release id, status, approver ref \\
+AUD-080 & DeviationOpenedOrClosed & deviation id, related artifact ids, status \\
+AUD-090 & CAPAOpenedOrClosed & CAPA id, root cause class, effectiveness status \\
+AUD-100--109 & Threat Events T1--T10 & threat id, signals, local response, system response \\
+\bottomrule
+\end{longtable}

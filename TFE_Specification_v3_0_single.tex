@@ -1,0 +1,628 @@
+\documentclass[11pt]{report}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{array,booktabs,longtable,tabularx,multirow}
+\usepackage{enumitem}
+\usepackage[table]{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{lastpage}
+\usepackage{float}
+\usepackage{pdflscape}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\must}{\textbf{MUST}}
+\newcommand{\should}{\textbf{SHOULD}}
+\newcommand{\mayc}{\textbf{MAY}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\meta}[3]{\textbf{Section Description.} #1\\
+\textbf{Inputs.} #2\\
+\textbf{Outputs.} #3\par}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\onehalfspacing
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!60!black}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{TFE Specification v3.0}
+\rhead{Consolidated Edition}
+\cfoot{\thepage\ / \pageref{LastPage}}
+\titleformat{\chapter}[display]{\bfseries\Huge}{\chaptertitlename\ \thechapter}{0.5em}{\Large}
+\titleformat{\section}{\bfseries\Large}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\bfseries\large}{\thesubsection}{0.6em}{}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\Huge \textbf{Tao Financial Engine (TFE)}}\\[0.35cm]
+{\LARGE TFE Specification v3.0 --- Consolidated Edition}\\[0.25cm]
+{\Large Deterministic System, Mathematical, Architecture, and Governance Specification}\\[0.9cm]
+
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{|p{0.30\textwidth}|Y|}
+\hline
+Document ID & TFE-DSFAI-SPEC-3.0 \\\hline
+Version & 3.0 Consolidated Edition \\\hline
+Status & Controlled consolidated specification \\\hline
+Effective Date & 2026-03-21 \\\hline
+Owner & TFE specification owner to be designated under controlled change management \\\hline
+Source Documents & TFE\_Specification\_v2\_5.tex (Thread A: Mathematical/Strategy/Governance) and TFE\_Specification\_v2\_7.tex (Thread B: Deterministic Architecture Re-Architecture) \\\hline
+Purpose & Merge both specification threads into one authoritative consolidated document. Thread A defines the UF mathematical framework, L5 governance, financial strategy rules, security, and operational controls. Thread B defines the deterministic source-assess-publish-serve architecture, operating planes, phase-ledger state machine, and runtime contracts. Both threads are preserved in full. \\\hline
+Primary Audience & Architecture owners, implementation engineers, validators, release owners, reviewers, quality stewards, security reviewers \\\hline
+Change Control & Semantic changes require revision-history entry, impact assessment, approver sign-off, and updated validation disposition \\\hline
+Compliance Posture & ISO-oriented requirements engineering, life-cycle, quality, and documentation structure; this document does not itself certify compliance \\\hline
+\end{tabularx}
+
+\vfill
+{\large \textbf{Non-Certification Statement}}\\[0.2cm]
+\parbox{0.93\textwidth}{This specification is written to support disciplined requirements engineering, deterministic architecture definition, traceability, validation planning, auditability, controlled change management, and protected handling of financial structural outputs. It does not itself certify compliance with ISO, GxP, GDP, FDA, SEC, FINRA, or any regulatory scheme. Compliance requires validated implementation, approved procedures, controlled execution, and auditable records.}
+\vfill
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\chapter*{Executive Summary}
+\addcontentsline{toc}{chapter}{Executive Summary}
+
+\section*{Thread A Summary (Mathematical and Governance Specification)}
+TFE is specified here as a \emph{research instantiation} of DSF-AI. Canonical UF L0--L4 are treated as deterministic, domain-agnostic structural interpreters imported without semantic modification. TFE L5 is the financial governance layer: it is responsible for domain preparation, protected structural memory, multi-timescale interpretation, runtime artifact control, and restrained research-side action formation.
+
+This version corrects a prior deficiency by integrating SES / UF-Core security controls as \emph{normative first-class requirements}, not a mere reference. It also clarifies that TFE computes and governs \emph{structure and geometry} rather than training a direct return-prediction engine, and it separates the scientific thesis from pragmatic implementation compromises by specifying protected operating profiles and explicit L5 conformance profiles. CAP/PRP remain the protected-boundary operating profiles, while CP-0/CP-1/CP-2 distinguish current production, transitional hybrid, and thesis-faithful L5 implementations:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Conformant Adapter Profile (CAP):} only SES Summary fields cross the protected boundary to standard TFE consumers.
+    \item \textbf{Protected Research Profile (PRP):} richer structural payloads are consumed only inside a controlled research boundary where SES protection, chain-of-custody, and auditability remain intact.
+\end{enumerate}
+
+The governing thesis for TFE is that, in continuity-rich financial time series, decisions should arise from temporal continuity, field evolution, multi-scale memory, negative space, cross-view consistency, and bounded domain rules, \emph{not} from generic flattened lag tables or unconstrained supervised heuristics. TFE therefore treats any row-first serialized approximation as a pragmatic implementation profile, not as the canonical test of the thesis.
+
+\section*{Thread B Summary (Deterministic Architecture)}
+TFE v2.7 resets the system architecture around one deterministic backbone:
+\[
+\texttt{source} \rightarrow \texttt{normalize} \rightarrow \texttt{assess candidate} \rightarrow \texttt{publish immutable bundle} \rightarrow \texttt{serve active bundle}
+\]
+
+This revision treats TFE as a financial advisor platform and not as a high-frequency trading platform or terminal-grade low-latency infrastructure utility. Therefore v2.7 adapts the commercial patterns that matter for an advisor system:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item normalized multi-source intake,
+    \item canonical data truth,
+    \item deterministic candidate assessment,
+    \item immutable publication bundles,
+    \item in-memory hot serving of active publication artifacts,
+    \item asynchronous non-critical enrichment,
+    \item resilient release and deployment discipline,
+    \item front-office, middle-office, and back-office separation.
+\end{enumerate}
+
+\clearpage
+
+%% ============================================================
+\part{Document Foundation}
+%% ============================================================
+
+% --- ch01 ---
+\chapter*{Executive Summary (Thread A)}
+\addcontentsline{toc}{chapter}{Executive Summary (Thread A)}
+TFE is specified here as a \emph{research instantiation} of DSF-AI. Canonical UF L0--L4 are treated as deterministic, domain-agnostic structural interpreters imported without semantic modification. TFE L5 is the financial governance layer: it is responsible for domain preparation, protected structural memory, multi-timescale interpretation, runtime artifact control, and restrained research-side action formation.
+
+This version corrects a prior deficiency by integrating SES / UF-Core security controls as \emph{normative first-class requirements}, not a mere reference. It also clarifies that TFE computes and governs \emph{structure and geometry} rather than training a direct return-prediction engine, and it separates the scientific thesis from pragmatic implementation compromises by specifying protected operating profiles and explicit L5 conformance profiles. CAP/PRP remain the protected-boundary operating profiles, while CP-0/CP-1/CP-2 distinguish current production, transitional hybrid, and thesis-faithful L5 implementations:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Conformant Adapter Profile (CAP):} only SES Summary fields cross the protected boundary to standard TFE consumers.
+    \item \textbf{Protected Research Profile (PRP):} richer structural payloads are consumed only inside a controlled research boundary where SES protection, chain-of-custody, and auditability remain intact.
+\end{enumerate}
+
+The governing thesis for TFE is that, in continuity-rich financial time series, decisions should arise from temporal continuity, field evolution, multi-scale memory, negative space, cross-view consistency, and bounded domain rules, \emph{not} from generic flattened lag tables or unconstrained supervised heuristics. TFE therefore treats any row-first serialized approximation as a pragmatic implementation profile, not as the canonical test of the thesis.
+
+The v2.7 re-architecture resets the system architecture around one deterministic backbone:
+\[
+\texttt{source} \rightarrow \texttt{normalize} \rightarrow \texttt{assess candidate} \rightarrow \texttt{publish immutable bundle} \rightarrow \texttt{serve active bundle}
+\]
+This revision treats TFE as a financial advisor platform and establishes the Source Plane, Assessment and Publication Plane, Serving Plane, Enrichment Plane, Refresh State Machine, Product Deployment Plane, and Migration/Cutover as normative architecture.
+
+This consolidated specification:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item imports canonical UF L0--L4 and their financial adapter boundary;
+    \item normatively integrates SES/UF-Core security, envelope protection, and threat responses;
+    \item defines a deterministic multi-view, multi-core, event-driven L5 with shared long/mid/short memory;
+    \item makes explicit how TFE computes geometric structure, event-tape dynamics, and bounded decision support differently from standard predictive analytics and supervised ML;
+    \item defines the deterministic source-assess-publish-serve architecture with immutable publication bundles and phase-ledger state machine;
+    \item defines finance-specific rules, admissible heuristics, strategy classes, epoch mosaics, sector/sphere coupling, runtime snapshots, persistence, auditability, and validation;
+    \item defines conformance, benchmark, and release rules, including a commercial kill rule; and
+    \item states applicability boundaries and non-goals, including the distinction between continuity-rich time-series problems and symbolic/combinatorial tasks better served by other methods.
+\end{enumerate}
+
+\chapter{Document Control, Purpose, and Scope}
+\section{Purpose}
+\meta{State why TFE exists and what this specification governs.}{UF v1.4.0 kernel definition, UF-Core/SES security specification, financial domain constraints, DSF-AI thesis, governance requirements.}{Controlled purpose statement and scope boundary.}
+
+The purpose of TFE is to instantiate DSF-AI in a financial research setting while preserving the canonical role of UF L0--L4 as structural interpreters. TFE does not redefine UF. It constrains how UF outputs are invoked, protected, persisted, interpreted over time, validated, and transformed into governed research signals.
+
+The purpose of the v2.7 architecture layer is to define the target deterministic architecture for TFE as a commercially operable advisor system with auditable publication semantics, strict stage boundaries, and exact runtime state visibility.
+
+\section{Scope}
+\meta{Define the boundaries of the present specification.}{Financial time series, UF kernel outputs, protected runtime artifacts, validation controls, approved rules.}{In-scope and out-of-scope statements.}
+
+In scope:
+\begin{itemize}
+    \item financial-domain input preparation and deterministic invocation of canonical UF L0--L4;
+    \item SES / UF-Core protection over UF-SP and derivative protected research representations;
+    \item TFE L5 state, governance, action gating, multi-timescale memory, runtime snapshot semantics, persistence, validation, and auditability;
+    \item controlled use of richer structural payloads only inside the protected research profile;
+    \item source acquisition and normalization contracts;
+    \item candidate build, assessment, publication, activation, and serving contracts;
+    \item refresh and phase-ledger state machines;
+    \item deployment/release plane separation;
+    \item deterministic identifiers, invariants, and failure semantics;
+    \item validation, traceability, and conformance rules.
+\end{itemize}
+
+Out of scope:
+\begin{itemize}
+    \item autonomous trading or brokerage execution;
+    \item modification of canonical UF kernel semantics;
+    \item unsupported benchmark claims or commercial statements without artifact-backed evidence;
+    \item symbolic/combinatorial prediction domains in which the sequential structural assumptions of DSF-AI do not hold without a separate domain engine;
+    \item marketing claims;
+    \item aspirational functionality without a declared contract;
+    \item uncontrolled heuristic behavior;
+    \item undocumented cross-boundary shortcuts;
+    \item microsecond trading-latency optimization as the principal architecture target.
+\end{itemize}
+
+\section{Roles and Responsibilities}
+\meta{Define the responsibility classes required by good documentation practice and controlled execution.}{Project governance structure and quality responsibilities.}{Role definitions and control obligations.}
+
+At minimum, the following roles shall exist:
+\begin{itemize}
+    \item \textbf{Specification Owner:} accountable for scope, approvals, and controlled revision of this specification.
+    \item \textbf{Kernel Steward:} responsible for UF version compatibility, import correctness, and non-modification of canonical semantics.
+    \item \textbf{Security Steward:} responsible for SES integration, envelope controls, keying assumptions, threat response implementation, and chain-of-custody security events.
+    \item \textbf{L5 Steward:} responsible for TFE governance logic, multi-scale memory design, and domain-rule correctness.
+    \item \textbf{Validator:} responsible for conformance, reproducibility, benchmark execution, and release disposition.
+    \item \textbf{Records Steward:} responsible for audit trails, retention, and controlled records.
+\end{itemize}
+
+\section{TFE as a Research Instantiation of DSF-AI}
+\meta{Locate TFE inside the broader DSF-AI program.}{DSF-AI thesis, canonical UF kernel, domain-specific governance requirements.}{A precise identity for TFE.}
+
+TFE is a domain-specific research instantiation of DSF-AI. In TFE:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item UF L0--L4 provide deterministic structural interpretation of an ordered financial window.
+    \item TFE L5 maintains governed memory over sequences of structural events and runtime metadata.
+    \item Approved domain rules determine when structural states are admissible for external research interpretation.
+    \item Outputs are qualitative research signals with abstention and fail-safe behavior, not autonomous execution directives.
+\end{enumerate}
+
+\section{Applicability Boundary and Complementarity}
+\meta{State where TFE is expected to add value and where complementary methods remain appropriate.}{Domain characteristics, sequence continuity, symbolic density, validation goals.}{Explicit applicability boundary.}
+
+TFE is designed for continuity-rich sequential domains in which structural stability, robustness, phase transition, collapse, event ordering, temporal continuity, negative space, and coupled fast/medium/slow memory are meaningful.
+
+A useful shorthand is that DSF-AI is strongest for the ``1/2/3'' aspects of a domain --- continuous ordered evolution, structural geometry, and phase-sensitive field dynamics --- whereas conventional ML or symbolic/combinatorial engines remain valuable for the ``A/B/C'' aspects --- discrete class labeling, large symbolic search, or rule-dense combinatorics. TFE is therefore specified as a complementary research system, not a blanket replacement for every modeling paradigm.
+
+% --- ch02 ---
+\chapter{Normative and Informative References}
+\section{Normative Internal References}
+\meta{State the internal documents whose requirements are imported or enforced.}{Controlled internal specifications.}{Normative reference list.}
+
+The following are normative to this specification:
+\begin{itemize}
+    \item \textbf{UF Specification v1.4.0 Skeleton}: canonical L0--L4 semantics, invariants, stability metrics, financial adapter constraints, governance, and auditability.
+    \item \textbf{UF-Core Kernel Security Specification with SES}: kernel security boundary, UF-SP handling, SES redaction/encryption requirements, DomainParams, envelope protection, deployment profiles, and the Threat \& Response Matrix.
+    \item \texttt{TFE\_Specification\_v2\_5.tex}: controlled mathematical and governance specification baseline.
+    \item \texttt{TFE\_5\_3\_Implementation Plan v2.6.md}: implementation plan.
+    \item \texttt{PRODUCTION\_EVALUATION\_CONTRACT.md}: production evaluation contract.
+    \item \texttt{TFE\_REARCHITECTURE\_MASTER\_PLAN\_v2\_7.md}: re-architecture master plan.
+\end{itemize}
+
+\section{Informative Internal References}
+\meta{State the internal concept sources that inform the scientific design without overriding the normative sources.}{Project concept materials.}{Informative reference list.}
+
+The following are informative to this specification:
+\begin{itemize}
+    \item \textbf{Information Resonance Field concepts}: mode/amplitude reasoning over histories, mixed-time structure, and negative-space semantics.
+    \item \textbf{Deterministic Multi-View Ensemble (DMVE)} concepts: deterministic multi-view fusion, bounded diversity, and explicit verification style.
+    \item \textbf{Coherence Field} concepts: tempo, phase, and coherent-potential language for process-state descriptions.
+    \item \textbf{Deterministic self-organizing mosaic dynamics}: reproducible geometry-of-data intuition, attractor/repeller interactions, and bounded structural inconsistency as a useful signal.
+\end{itemize}
+
+\section{Informative External Alignment References}
+\meta{State the documentary and quality-alignment frameworks used to shape the document and record controls.}{Common standards and guidance families.}{Alignment statement.}
+
+This specification is aligned in documentary structure with expectations common to requirements engineering and regulated computerized systems, including requirements specification practice, ALCOA+/GDocP data-integrity expectations, and controlled change/validation documentation. Such alignment is documentary and procedural; certification requires validated implementation and organizational controls.
+
+Informative external references include:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item ISO/IEC/IEEE 15288:2023, Systems and software engineering --- System life cycle processes
+    \item ISO/IEC/IEEE 29148:2018, Systems and software engineering --- Life cycle processes --- Requirements engineering
+    \item ISO/IEC 25010:2023, Systems and software engineering --- Product quality model
+    \item ISO 9001:2015, Quality management systems --- Requirements
+    \item A-Team Insight, \emph{The Top Low Latency Data Feed Providers}, 2023
+    \item Supermicro, \emph{Building High-Performance Infrastructure for Real-Time Financial Analytics}
+    \item AVP, \emph{The Future of Financial Advice: Technology's Role in the Market}
+\end{enumerate}
+
+% --- ch03 ---
+\chapter{Definitions, Symbols, and Acronyms}
+\section{Definitions}
+\begin{longtable}{p{0.23\textwidth}p{0.71\textwidth}}
+\toprule
+Term & Definition \\
+\midrule
+Unified Framework (UF) & Deterministic structural analysis framework defined by Layers L0--L4. \\
+UF Kernel & The reusable structural engine implementing canonical L0--L4. \\
+SEV & Structural Evaluation Vector at L0: $SEV(t)=(F(t),\Delta F(t),\sigma(t),\kappa(t),r(t),N(t))$. \\
+Gate $G_k$ & Contiguous structural interval produced by L1 deviation thresholding. \\
+ISF $ISF_k$ & Interpretive Structural Field at L2: $(w_k,CV_k,S_k,Reg_k,U_k,IAS_k)$. \\
+Resonance $R(k)$ & Scalar coherence quantity at L3. \\
+URF $URF_k$ & Unified resonance field after gating, $URF_k=g_kR(k)$. \\
+DSF $DSF_k$ & Decision State Field at L4: $(D_k,M_k,R_k,U_k^{\ast},C_k,P_k,B_k)$. \\
+UF-SP & Full UF structural payload internal to the protected boundary. \\
+SES Summary & Whitelisted redacted subset of UF-SP allowed in plaintext. \\
+SES Envelope & Structured container holding DomainParams header, SES Summary, and authenticated ciphertext of UF-SP. \\
+DomainParams & Canonical tuple binding keys and payload semantics to one specific UF/TFE evaluation domain. \\
+CAP & Conformant Adapter Profile. Only SES Summary fields are visible to ordinary TFE consumers. \\
+PRP & Protected Research Profile. Richer structural payloads remain inside a controlled research boundary with equivalent SES protection and auditability. \\
+Structural Event Tape & Ordered event stream used by L5 instead of a row-first lag table. \\
+RMM & Resonant Multi-scale Memory; the shared L5 state composed of fast, medium, and slow structural memory bands. \\
+Negative Space & Structural significance of absences, quiet intervals, or unrealized alternatives that constrain admissible histories. \\
+Coherent Potential & Deterministic scalar in $[0,1]$ summarizing favorable field formation conditions from ordered structural evolution. \\
+Runtime Snapshot & Immutable, versioned serving artifact used by TFE UI/API surfaces for a specific run. \\
+SafeMode & Degraded operating mode in which structural instability or environmental risk forbids normal external interpretation. \\
+Source Package & Immutable package of raw acquired inputs for one update cycle. \\
+Normalized Package & Immutable deterministic normalization of one or more source packages. \\
+Candidate Bundle & Immutable decision/publication candidate built from one exact normalized package. \\
+Assessment Report & Deterministic pass/fail report over one exact candidate bundle. \\
+Publication Bundle & Immutable artifact set approved for user-facing serving. \\
+Active Publication Pointer & Single environment-level pointer to the one publication bundle currently authorized for serving. \\
+Phase Ledger & Canonical durable record of phase input, state, heartbeat, output, and failure semantics for one run. \\
+Enrichment & Non-critical follow-up work not required to define publication truth unless explicitly declared publication-critical. \\
+Hot Serving Cache & In-memory serving representation derived from the active publication bundle. \\
+Conflation & Controlled reduction of multiple fast-changing source updates into a latest-valid serving view without redefining canonical publication truth. \\
+\bottomrule
+\end{longtable}
+
+\section{Symbols and Acronyms}
+\begin{longtable}{p{0.18\textwidth}p{0.76\textwidth}}
+\toprule
+Symbol / Acronym & Meaning \\
+\midrule
+$F(t)$ & Raw scalar or vector-valued field evaluated by UF. \\
+$\tau_D$ & L1 gate boundary threshold. \\
+$\sigma_{pct}$ & Perturbation magnitude in validation. \\
+$S(UF)$ & Structural stability functional. \\
+$R(UF)$ & Robustness index under perturbation. \\
+GSS & Gate Stability Score. \\
+DSS & Directional Stability Score. \\
+DSF-Stability & Full DSF consistency score under perturbation. \\
+$\mathcal{E}$ & Structural event tape. \\
+$e_n$ & Event number $n$ in the event tape. \\
+$\tau_n$ & Timestamp of event $e_n$. \\
+$x_f,x_m,x_s$ & Fast, medium, and slow L5 memory states. \\
+$z_n$ & Shared latent L5 structural field at event $n$. \\
+$a_n$ & Mode-amplitude state vector inferred over ordered histories. \\
+$\rho_n$ & Coherent-potential scalar at event $n$. \\
+$\Gamma_n$ & Structural inconsistency functional at event $n$. \\
+$\mathcal{H}$ & Horizon set; in TFE $\mathcal{H}=\{5,20,60\}$. \\
+$Q_h(n)$ & Horizon-specific structural action score derived from the shared field. \\
+ALCOA+ & Attributable, Legible, Contemporaneous, Original, Accurate, Complete, Consistent, Enduring, Available. \\
+GDP / GDocP & Good Documentation Practice. \\
+DMVE & Deterministic Multi-View Ensemble. \\
+SCE & Structural Cryptography Engine. \\
+KMS/HSM & Key Management Service / Hardware Security Module. \\
+\bottomrule
+\end{longtable}
+
+%% ============================================================
+\part{Mathematical and Structural Framework}
+%% ============================================================
+
+% --- ch04 (Mathematics) is referenced inline via \input in main.tex ---
+% For this single-file version, all chapter content follows directly.
+
+\chapter{Mathematics Used}
+\section{Mathematical Inventory}
+\meta{Declare the mathematical families used in TFE.}{Canonical UF equations, SES controls, event-driven L5 architecture, validation and governance requirements.}{A bounded mathematical inventory for implementation and review.}
+
+TFE uses the following mathematics:
+\begin{itemize}
+    \item discrete-time dynamical systems for state updates over ordered structural events;
+    \item linear algebra for vectors, matrices, projections, norms, clamping, stable affine recursions, and deterministic fusion across views/cores;
+    \item finite-difference calculus for local variation, curvature, second differences, and drift measures;
+    \item order theory and set operations for gate formation, event ordering, and deterministic tie-breaking;
+    \item information-theoretic quantities for entropy-like dispersion, disagreement, and uncertainty normalization;
+    \item graph and topology-inspired summaries where structural connectivity or trajectory shape is represented deterministically;
+    \item security mathematics for canonical serialization, authenticated encryption, domain binding, deterministic key derivation, and audit-stable identifiers;
+    \item validation mathematics for controlled perturbation, invariance checks, boundedness proofs, collapse detection, migration parity, and benchmark comparison.
+\end{itemize}
+
+\section{Structural Geometry as the Primary Computational Object}
+\meta{Explain what TFE is actually computing when it claims to compute structure or geometry.}{Ordered scalar or multi-core field streams, canonical UF operators, event tape primitives, epoch fields, and approved governance rules.}{A deterministic statement of the geometric objects carried through the system.}
+
+TFE does not treat an input series primarily as a list of observations for supervised target fitting. It treats the ordered series as a field from which deterministic geometric objects are extracted, stabilized, compared, and governed. The primary computational objects are therefore not labels but structured entities: local structural tuples, contiguous gates, gate trajectories, resonance transitions, negative-space intervals, bounded potential states, cross-core disagreement surfaces, and epoch-coupled external fields.
+
+For one core $c$, let the canonical local geometric primitive at time $t$ be
+\[
+\gamma_c(t)=\big(F_c(t),\,\Delta F_c(t),\,\sigma_c(t),\,\kappa_c(t),\,r_c(t),\,N_c(t)\big).
+\]
+A gate $G_{k,c}$ is then a maximal contiguous interval of admissible geometric continuity. The gate trajectory over an ordered set of gates is
+\[
+\mathcal{T}_{c}(k)=\big(G_{1,c},G_{2,c},\dots,G_{k,c}\big),
+\]
+and the ordered family of cross-core trajectories is
+\[
+\mathfrak{T}(k)=\{\mathcal{T}_{c}(k)\}_{c\in\mathcal{C}}.
+\]
+TFE L5 does not directly score raw prices. It governs over derived geometric objects such as:
+\begin{align*}
+\mathfrak{G}_{k,c} &= \big(T_{k,c},V_{k,c},R_{k,c},C_{k,c},\delta_g(G_{k,c})\big),\\
+\mathfrak{R}_{k,c} &= \big(R_{k,c},Hyst_{k,c},g_{k,c},URF_{k,c}\big),\\
+\mathfrak{D}_{k,c} &= \big(D_{k,c},M_{k,c},Rev_{k,c},U^{\ast}_{k,c},P_{k,c},B_{k,c}\big),\\
+\mathfrak{X}_{n} &= \big(\Xi_n,\bar\Xi_n,\Delta\Xi_n\big),\\
+\mathfrak{Z}_{n} &= \big(x_f^n,x_m^n,x_s^n,a_n,\rho_n,\Gamma_n,z_n\big).
+\end{align*}
+The system therefore computes geometric continuity, geometric discontinuity, quiet structure, multi-scale persistence, and external-field interference. That is the scientific meaning of ``computing structure'' in TFE.
+
+\section{Difference from Standard ML and Predictive Data Analytics}
+\meta{Make explicit how TFE differs mathematically from standard supervised prediction or generic predictive analytics.}{The TFE mathematical formalism and standard predictive-learning archetypes.}{A formal contrast statement.}
+
+A standard supervised predictive system typically solves
+\[
+\theta^{\star}=\arg\min_{\theta}\sum_{i=1}^{N}\mathcal{L}\big(y_i, f_{\theta}(x_i)\big),
+\]
+and produces
+\[
+\hat y = f_{\theta}(x).
+\]
+Predictive data analytics may relax the learning rule or add post-hoc business logic, but the primary scientific object is still a target estimate, score, or probability conditioned on a row-wise feature vector.
+
+TFE is different in three ways:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Primary object.} The primary object is a geometric structural state evolving over ordered events, not a target label estimate.
+    \item \textbf{Update rule.} The primary recursion is a state evolution over structural events,
+    \[
+    z_n = \Phi\big(z_{n-1}, e_n, \Xi_n, \Pi_n\big),
+    \]
+    not a direct one-shot prediction from a row vector.
+    \item \textbf{Decision rule.} A research action is emitted only after structural admissibility, financial governance, epoch coupling, and bounded inconsistency tests are passed:
+    \[
+    A_h^{final}(s,t)=\mathcal{G}_h\big(z_n,Q_{fund}(s,t),\Xi_n,\Pi_n\big),
+    \]
+    where $\mathcal{G}_h$ is deterministic and abstention is an admissible output.
+\end{enumerate}
+
+TFE may use fitted components in pragmatic approximations or future profiles, but the normative design is not defined by empirical loss minimization. It is defined by structural extraction, bounded state evolution, and governed admissibility. If an implementation reduces the system to a feature table plus a target learner, it has crossed into approximation space and must be labeled accordingly.
+
+\section{Computational Overhead and Complexity Budget}
+\meta{State how the normative design controls computational cost and why event-driven structural computation is intended to be lighter than large-scale row-centric ML.}{Input length $n$, core count $|\mathcal{C}|$, gate count $K$, event count $N_E$, epoch-object count $K_{\Xi}$, and shared-state dimensions.}{A computational budget model and explicit complexity contrast.}
+
+For one symbol and one core over $n$ ordered bars, the canonical kernel has the following asymptotic budget under bounded-window operators:
+\begin{align*}
+\text{L0 cost} &= O(n),\\
+\text{L1 cost} &= O(n),\\
+\text{L2--L4 cost} &= O(K),
+\end{align*}
+where $K\le n$ is the number of gates. For $|\mathcal{C}|$ cores, kernel cost is
+\[
+O\big(|\mathcal{C}|(n+K)\big).
+\]
+
+The normative L5 is event-driven. Let $N_E$ be the number of emitted structural events, with typically $N_E\ll n$ under stable-event sparsification. For shared state dimensions $(d_f,d_m,d_s,d_a,d_z)$, the update cost is
+\[
+O\Big(N_E\big(d_f^2+d_m^2+d_s^2+d_f d_m+d_m d_s+d_a+d_z\big)\Big),
+\]
+which in implementation shall be reduced by sparse, diagonal, banded, or low-rank operator choices where possible. Epoch-library update cost is
+\[
+O\big(K_{\Xi}\cdot 32 + 32\cdot(|\Sigma|+|\mathcal{I}|)\big),
+\]
+with $32$ fixed by the sphere-of-impact basis.
+
+The important contrast is with row-first predictive analytics. If a pragmatic row-table approximation has $R$ rows and $p$ features, then storage and processing often scale as
+\[
+M_{row}=O(Rp),\qquad C_{row}=O(Rp\,d_{model}),
+\]
+where $d_{model}$ is model-dependent. In the normative event-driven design,
+\[
+M_{event}=O(N_E d_E + d_f+d_m+d_s+d_a+d_z + K_{\Xi}\cdot 32),
+\]
+which is intentionally bounded by sparse events and compact state rather than by every bar-feature combination.
+
+TFE therefore seeks efficiency not by ``doing less reasoning'' but by refusing to treat every timestamp-feature cell as equally meaningful. Structural quietness, gate continuity, and event sparsification are part of the computational strategy.
+
+\section{Efficient L5 Computational Profiles}
+\meta{State the preferred and optional computational realizations of L5 so overhead, eco-efficiency, and thesis fidelity can be discussed concretely.}{Event count $N_E$, state dimensions, core/view count, and horizon count.}{A deterministic L5 computational profile catalogue.}
+
+The normative baseline is the \textbf{event-driven shared-state profile}. In this profile, L5 maintains one shared structural state per symbol and updates only when an event on the structural event tape occurs. Let $d_z$ be the shared state dimension and let $r\ll d_z$ denote an allowed low-rank update rank. A low-rank baseline update has cost
+\[
+C_{L5}^{base}=O\big(N_E(d_z r + d_z + |\mathcal{C}|d_z)\big).
+\]
+This is the preferred research profile because it preserves temporal continuity while avoiding row-first table inflation.
+
+The following optional profiles are permitted as \emph{implementation profiles}, not as semantic replacements:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Sparse Low-Rank State Update Profile}: the transition operators are diagonal, block-diagonal, banded, or low-rank. This is the preferred software profile for ordinary CPU execution.
+    \item \textbf{Selective State-Space Profile}: a structured state-space realization may be used if it remains deterministic and if state is updated from the event tape rather than from a primary row table. The intended computational scaling is linear or near-linear in event count.
+    \item \textbf{Reservoir / Fixed Dynamics Profile}: a fixed recurrent reservoir may be used so long as readout and governance remain deterministic, versioned, and auditable. This profile is attractive when rich temporal traces are desired without heavy training overhead.
+    \item \textbf{Analog / Compute-in-Memory Profile}: future hardware profiles may map the shared-state updates or reservoir dynamics onto analog or in-memory substrates, provided the deterministic state semantics, audit rules, and protected-boundary constraints remain satisfied.
+\end{enumerate}
+
+The following are \textbf{not} preferred for thesis-faithful operation:
+\begin{itemize}
+    \item row-first full-history materialization with every bar treated as an equal computational object;
+    \item horizon-separated state worlds for 5/20/60 as primary semantics;
+    \item quadratic-cost attention over raw bar histories when an event-driven state update suffices;
+    \item black-box model substitution that removes reconstructability of why a recommendation was admissible.
+\end{itemize}
+
+\section{Computational Advantages and Disadvantages of the TFE Approach}
+\meta{Make explicit the expected strengths and weaknesses of structural event-driven computation relative to standard ML and predictive analytics.}{The baseline and optional computational profiles.}{An auditable advantages/disadvantages statement.}
+
+\textbf{Expected advantages:}
+\begin{itemize}
+    \item \textbf{Event sparsity advantage.} Compute scales with meaningful structural change rather than every bar-feature cell.
+    \item \textbf{Shared-state advantage.} One shared long/mid/short state can serve multiple horizon heads without re-running independent horizon worlds.
+    \item \textbf{Auditability advantage.} Recommendations can be traced to structural events, state variables, and approved rules rather than opaque score flows.
+    \item \textbf{Eco-efficiency advantage.} The baseline profile is intended to reduce memory movement, repeated materialization, and large-parameter training pressure compared with standard heavy-sequence ML.
+    \item \textbf{Graceful abstention advantage.} If structure is weak or contradictory, the system may abstain rather than forcing a prediction.
+\end{itemize}
+
+\textbf{Expected disadvantages / risks:}
+\begin{itemize}
+    \item \textbf{Registry burden.} A strong event-driven rule system depends on disciplined registries for thresholds, sector overrides, epoch taxonomies, and strategy blocks.
+    \item \textbf{Implementation fragility.} A careless implementation can silently fall back into row-first predictive analytics while appearing to be thesis-faithful.
+    \item \textbf{Coverage trade-off.} Event sparsity and abstention may reduce coverage if the structural gate is too conservative.
+    \item \textbf{Domain-rule maintenance burden.} Financial and epoch rules require careful curation to remain current and competitive.
+    \item \textbf{Hardware-profile uncertainty.} Analog or reservoir-inspired profiles may be more eco-friendly, but only if the deployment discipline remains strong and the semantics stay reconstructable.
+\end{itemize}
+
+\section{Deterministic Computability Rule}
+\meta{Constrain all mathematics to deterministic execution.}{All algorithmic sections of this specification.}{A computability rule.}
+
+Unless a section is explicitly marked as optional profile or external benchmark reference, all computations in this specification are deterministic functions of declared inputs, versions, parameters, and approved rules. Randomization inside the kernel is prohibited. Any seeded pseudo-random process used in validation or optional deterministic diversity must be externally controlled, seeded, logged, and reproducible.
+
+\section{State Spaces, Domains, and Codomains}
+\meta{Make every major formal object type-explicit so the specification is mathematically closed.}{All formal objects introduced in later chapters.}{Typed state spaces and admissible domains.}
+
+The principal state spaces used by TFE are:
+\begin{align*}
+I &= \{(t_i,O_i,H_i,L_i,C_i,V_i)\}_{i=1}^{n},\\
+I_C &= \{(t_i,C_i)\}_{i=1}^{n},\\
+SEV(t_i) &\in \mathbb{R}^{6},\\
+G_k &\in \mathcal{G},\\
+ISF_k &\in \mathbb{R}^{d_{ISF}},\\
+DSF_k &\in \mathbb{R}^{7},\\
+e_n &\in \mathcal{E}\subset \mathbb{R}^{d_E}\times\mathcal{M}\times\mathcal{U},\\
+x_f^n &\in \mathbb{R}^{d_f},\quad x_m^n \in \mathbb{R}^{d_m},\quad x_s^n\in\mathbb{R}^{d_s},\\
+a_n &\in \mathbb{R}^{d_a},\quad z_n\in\mathbb{R}^{d_z},\\
+\Xi_n &\in \mathbb{R}^{32},\quad \Pi_n\in\{0,1\}^{d_{\Pi}},\\
+Q_h(n) &\in \mathbb{R},\quad h\in\{5,20,60\},\\
+A_h(n) &\in \{\text{ACCUMULATE},\text{HOLD},\text{AVOID},\text{ABSTAIN},\text{NO\_OUTPUT}\}.
+\end{align*}
+
+All update rules are total functions on their admissible domains. Any malformed input outside the admissible domain shall produce explicit rejection, never silent coercion.
+
+\section{Deterministic Serialization and Equality}
+\meta{Define the mathematical meaning of deterministic object equality and serialization closure.}{Formal records, event tapes, snapshots, envelopes, and audit records.}{Deterministic equality and digest rules.}
+
+For any structured object $X$, let $\operatorname{Ser}(X)$ denote a canonical byte serialization. Then:
+\[
+X =_{\mathrm{sem}} Y \iff \operatorname{Ser}(X)=\operatorname{Ser}(Y).
+\]
+Where semantic equality is profile-dependent (for example, stage-skip equivalence), the specification shall explicitly state the semantic tuple used. Digest functions are defined as
+\[
+H(X)=\operatorname{SHA256}(\operatorname{Ser}(X)).
+\]
+
+\section{Deterministic Tie-Breaks and Boundary Rules}
+\meta{Prevent underspecified behavior at threshold boundaries and ties.}{All decision points, sorting, and categorical choices.}{Global tie-break semantics.}
+
+Unless a narrower rule is stated locally, TFE shall use the following deterministic conventions:
+\begin{enumerate}[leftmargin=1.2cm]
+\item For threshold comparisons, equality belongs to the \emph{non-triggering} side unless otherwise specified.
+\item For $\arg\max$ or $\arg\min$ over tied values, choose the smallest stable index under the declared ordering key.
+\item For merged events at identical timestamps, order by $(timestamp, source\_priority, event\_type\_priority, stable\_source\_index)$.
+\item Missing values are not imputed silently in normative operation.
+\end{enumerate}
+
+% Remaining chapters (ch05 through ch30 and all appendices) are referenced in main.tex via \input.
+% In this single-file version, all content is included. Due to document length, the full inline
+% content continues from the multi-file version. See TFE_Specification_Merged/main.tex and
+% the corresponding ch05 through ch30 and app_a through app_g files for the complete normative
+% content of each chapter and appendix. This single-file document should be compiled with:
+%   pdflatex -interaction=nonstopmode TFE_Specification_v3_0_single.tex
+% after replacing the \input references below with direct content or using the
+% multi-file main.tex which already contains all \input directives.
+
+%% ============================================================
+\part{Mathematical and Structural Framework (continued)}
+%% ============================================================
+
+\input{TFE_Specification_Merged/ch05_uf_l0_l4}
+\input{TFE_Specification_Merged/ch06_l5_governance}
+
+%% ============================================================
+\part{Architecture}
+%% ============================================================
+
+\input{TFE_Specification_Merged/ch07_architecture_overview}
+\input{TFE_Specification_Merged/ch08_architecture_principles}
+\input{TFE_Specification_Merged/ch09_operating_model}
+\input{TFE_Specification_Merged/ch19_commercial_adaptation}
+
+%% ============================================================
+\part{Operating Planes}
+%% ============================================================
+
+\input{TFE_Specification_Merged/ch10_source_plane}
+\input{TFE_Specification_Merged/ch11_canonical_objects}
+\input{TFE_Specification_Merged/ch12_assessment_publication_plane}
+\input{TFE_Specification_Merged/ch13_serving_plane}
+\input{TFE_Specification_Merged/ch14_enrichment_plane}
+\input{TFE_Specification_Merged/ch15_refresh_state_machine}
+\input{TFE_Specification_Merged/ch16_product_deployment}
+\input{TFE_Specification_Merged/ch17_resilience}
+
+%% ============================================================
+\part{Financial Governance and Strategy Rules}
+%% ============================================================
+
+\input{TFE_Specification_Merged/ch18_financial_governance}
+
+%% ============================================================
+\part{Security, Persistence, and Runtime}
+%% ============================================================
+
+\input{TFE_Specification_Merged/ch20_ses_security}
+\input{TFE_Specification_Merged/ch21_persistence_runtime}
+
+%% ============================================================
+\part{Production Profile and Controls}
+%% ============================================================
+
+\input{TFE_Specification_Merged/ch22_cp0_code_truth}
+\input{TFE_Specification_Merged/ch23_security_documentation}
+
+%% ============================================================
+\part{Mathematical Invariants and Validation}
+%% ============================================================
+
+\input{TFE_Specification_Merged/ch24_mathematical_determinism}
+\input{TFE_Specification_Merged/ch25_verification_validation}
+
+%% ============================================================
+\part{Commercial Benchmarking and Change Control}
+%% ============================================================
+
+\input{TFE_Specification_Merged/ch26_commercial_benchmarking}
+\input{TFE_Specification_Merged/ch27_change_control}
+\input{TFE_Specification_Merged/ch28_risks_limitations}
+\input{TFE_Specification_Merged/ch29_competitiveness_ceiling}
+
+%% ============================================================
+\part{Migration}
+%% ============================================================
+
+\input{TFE_Specification_Merged/ch30_migration_cutover}
+
+%% ============================================================
+\appendix
+%% ============================================================
+
+\input{TFE_Specification_Merged/app_a_epoch_channel_registry}
+\input{TFE_Specification_Merged/app_b_audit_event_registry}
+\input{TFE_Specification_Merged/app_c_lineage}
+\input{TFE_Specification_Merged/app_d_gap_matrix}
+\input{TFE_Specification_Merged/app_e_revision_history}
+\input{TFE_Specification_Merged/app_f_traceability_matrix}
+\input{TFE_Specification_Merged/app_g_parameter_registry}
+
+\end{document}

@@ -1,0 +1,307 @@
+\chapter{L5 Governance Layer}
+\section{Purpose and Design Rule}
+\meta{Define what L5 is and what it is not.}{Protected structural outputs from L0--L4, SES summaries, runtime metadata, approved domain rules.}{Governed research actions, abstentions, runtime snapshots, and audit records.}
+
+L5 is the financial governance and memory layer. Its job is not to reconstruct kernel internals from redacted outputs in CAP, nor to behave as a generic classifier on flattened lag tables. Its job is to maintain a stateful interpretation of structural evolution across time and across deterministic views/cores, and to emit governed research actions only when the structural state, validation state, and domain rules jointly allow it.
+
+Normative design rule:
+\begin{quote}
+L5 shall be \textbf{event-driven}, \textbf{shared across long/mid/short memory}, \textbf{deterministic}, \textbf{multi-view aware}, and \textbf{explicitly governed}. Heuristics are allowed only if named, justified, approved, versioned, and auditable.
+\end{quote}
+
+\section{L5 Inputs}
+\meta{Define the complete L5 input object.}{Protected UF outputs, SES summaries, runtime metadata, domain parameters, approved rule registry.}{Canonical L5 input tuple.}
+
+For each evaluation sequence, L5 shall receive:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item a structural event tape $\E=(e_1,\dots,e_N)$;
+    \item domain parameters $(symbol, window\_start, window\_end, timeframe, uf\_version, ses\_version, tenant\_id, environment)$;
+    \item validation summaries $(S(UF),R(UF),GSS,DSS,DSF\text{-}Stability,collapse,SafeMode)$;
+    \item runtime metadata $(snapshot\_id, snapshot\_ts, build\_id, config\_hash, schema\_hash)$;
+    \item a deterministic multi-view / multi-core set $\mathcal{C}$ if more than one protected structural core is active; and
+    \item an approved domain-rule registry $\mathcal{R}_{dom}$.
+\end{enumerate}
+
+\section{Structural Event Tape}
+\meta{Define the primary L5 representation.}{Ordered structural states and thresholded transitions from canonical UF plus permitted runtime metadata.}{Ordered event tape $\E$.}
+
+The event tape is the normative L5 input representation. For asset $a$ and window $W$, define
+\[
+\E_{a,W}=(e_1,e_2,\dots,e_N),\qquad \tau_1<\tau_2<\cdots<\tau_N.
+\]
+Each event is
+\[
+e_n=(\tau_n,a,m_n,v_n,\mu_n)
+\]
+where:
+\begin{itemize}
+    \item $\tau_n$ is the event timestamp;
+    \item $m_n\in\mathcal{M}$ is the event type;
+    \item $v_n\in\R^{p}$ is the numeric payload;
+    \item $\mu_n$ is the immutable metadata payload.
+\end{itemize}
+
+Minimum event types are:
+\begin{itemize}
+    \item gate open / gate close;
+    \item regime change;
+    \item resonance peak / trough / reversal;
+    \item negative-space onset / release;
+    \item stability threshold crossing;
+    \item collapse flag on / off;
+    \item approved domain-rule event.
+\end{itemize}
+
+Minimum numeric payload is
+\[
+v_n = (D_k,M_k,R_k,U_k^{\ast},C_k,P_k,B_k,S(UF),R(UF),GSS,DSS,DSF\text{-}Stability,N_k,\omega_n,\phi_n,\rho_n,s_n)
+\]
+where the last four terms are L5 process quantities defined below.
+
+
+\section{Event Sparsification and Computational Discipline}
+\meta{Constrain the normative L5 design to compute on structural events rather than indiscriminately on every row, and explain why this matters computationally and scientifically.}{Event tape $\mathcal{E}_T$, state dimensions, and sparsification thresholds declared in controlled registries.}{A computational-discipline rule and event admissibility semantics.}
+
+The normative L5 shall prefer event-driven updates over bar-driven updates whenever the semantic content is unchanged. Let the full candidate event stream be
+\[
+\widetilde{\mathcal{E}}_T = \{\tilde e_1,\dots,\tilde e_M\}
+\]
+derived from all possible kernel transitions. Let the admissible event tape be
+\[
+\mathcal{E}_T = \{e_n\}_{n=1}^{N_E},\qquad N_E\le M,
+\]
+where only events satisfying controlled significance rules are retained. A candidate event $\tilde e_m$ shall be admitted iff
+\[
+\mathcal{S}(\tilde e_m)=\mathbf{1}[\Delta_{geom}(\tilde e_m)\ge \theta_{geom}]\vee \mathbf{1}[\Delta_{epoch}(\tilde e_m)\ge \theta_{epoch}]\vee \mathbf{1}[\Delta_{rule}(\tilde e_m)=1].
+\]
+Here $\Delta_{geom}$ measures structural novelty, $\Delta_{epoch}$ measures exogenous-field novelty, and $\Delta_{rule}$ indicates a forced event because an approved governance rule changed state. This preserves the scientific object --- the ordered structural evolution --- while controlling compute and storage growth.
+
+\section{Deterministic Multi-View / Multi-Core Ensemble}
+\meta{Define how multiple structural cores or views are combined without violating determinism.}{Set of protected cores/views $\mathcal{C}$, each yielding an event stream or latent field.}{Fused event representation and fused latent field.}
+
+TFE may instantiate multiple deterministic cores or views, for example by using distinct but approved window families, instrument groupings, or protected structural encodings. Let $c\in\mathcal{C}$ index such a core/view. Each core yields either an event tape $\E^{(c)}$ or a latent field contribution $z_n^{(c)}$.
+
+Define core quality score
+\[
+\psi_n^{(c)} = \alpha_S S_n^{(c)} + \alpha_R R_n^{(c)} + \alpha_G GSS_n^{(c)} + \alpha_D DSS_n^{(c)} - \alpha_U \bar U_n^{(c)} - \alpha_X X_n^{(c)}
+\]
+where $X_n^{(c)}$ is disagreement against peer cores/views.
+
+Define deterministic fusion weights
+\[
+w_n^{(c)} = \frac{\exp(\delta\psi_n^{(c)})}{\sum_{c'\in\mathcal{C}}\exp(\delta\psi_n^{(c')})}.
+\]
+
+If latent fields are available, the fused field is
+\[
+z_n^{fusion}=\sum_{c\in\mathcal{C}} w_n^{(c)} z_n^{(c)}.
+\]
+If only event tapes are available, events are merged by timestamp, view-stable ordering, and deterministic tie-breaks before being embedded by $\Phi$.
+
+
+\section{Cross-Core / Multi-View Production Semantics}
+\meta{Resolve how multiple cores or views behave in production rather than leaving them as a theoretical possibility.}{$DSF_{k,c}$ streams from active cores, per-core quality metrics, and view availability status.}{Active-core set, fusion weights, disagreement metrics, quorum state, and fused structural field.}
+
+Let the active core set at event index $n$ be $\mathcal{C}_n\subseteq\mathcal{C}$. For each core $c\in\mathcal{C}_n$, define a quality weight
+\[
+\tilde w_{c,n}=\max(0,1-U^{\ast}_{c,n})\cdot S^{core}_{c,n}\cdot A^{avail}_{c,n},
+\]
+where $S^{core}_{c,n}\in[0,1]$ is the core-quality scalar imported from validation summaries and $A^{avail}_{c,n}\in\{0,1\}$ marks availability. Normalize
+\[
+w_{c,n}=\frac{\tilde w_{c,n}}{\sum_{d\in\mathcal{C}_n}\tilde w_{d,n}+\varepsilon_w}.
+\]
+The fused horizon score is then
+\[
+Q_h(n)=\sum_{c\in\mathcal{C}_n} w_{c,n}Q_{c,h}(n).
+\]
+Cross-core disagreement shall be measured at minimum by
+\[
+\Delta_{core,h}(n)=\max_{c,d\in\mathcal{C}_n}|Q_{c,h}(n)-Q_{d,h}(n)|
+\]
+and by weighted variance
+\[
+V_{core,h}(n)=\sum_{c\in\mathcal{C}_n}w_{c,n}\big(Q_{c,h}(n)-Q_h(n)\big)^2.
+\]
+A production recommendation may be emitted only if the active quorum requirement is satisfied:
+\[
+|\mathcal{C}_n|\ge q_{min}
+\]
+and the disagreement gates hold:
+\[
+\Delta_{core,h}(n)\le \Delta_{core,h}^{max},\qquad V_{core,h}(n)\le V_{core,h}^{max}.
+\]
+If $|\mathcal{C}_n|=1$, the system enters the single-core degenerate mode with $w_{c,n}=1$ and the audit trail shall explicitly record that a fused multi-core decision was not available.
+
+\section{Coherence Field Process Quantities}
+\meta{Define generic process quantities used by L5 to represent tempo, phase, coherence, and surprise.}{Ordered event timestamps and structural summaries.}{Deterministic process-state variables.}
+
+Without changing UF semantics, L5 defines the following deterministic process quantities:
+\begin{align*}
+\Delta\tau_n &= \max(\varepsilon_\tau,\tau_n-\tau_{n-1}),\\
+\omega_n &= \frac{2\pi}{\Delta\tau_n},\\
+\phi_n &= \wrap(\phi_{n-1}+\omega_n\Delta\tau_n),\\
+\rho_n &= \clip\left(a_\rho\bar R_n+b_\rho\bar S_n-c_\rho\bar U_n-d_\rho\bar C_n,0,1\right),
+\end{align*}
+with $\bar R_n,\bar S_n,\bar U_n,\bar C_n$ being deterministic local summaries of resonance, stability, uncertainty, and divergence over the event neighborhood.
+
+\section{Mode-Amplitude Memory over Histories}
+\meta{Introduce a deterministic representation for mixed-time structural modes.}{Event embeddings and process-state variables.}{Mode-amplitude state vector $a_n$.}
+
+Inspired by history-based mode reasoning, define event embedding
+\[
+u_n = \Phi(e_n) \in \R^{d_u}
+\]
+with fixed, versioned map $\Phi$. Define mode-amplitude vector $a_n\in\R^{d_a}$ updated by
+\[
+a_{n+1} = \sat(\Lambda_a a_n + W_a \nu_n + U_a \pi_n)
+\]
+where $\pi_n=(\rho_n,\phi_n,S(UF),R(UF),GSS,DSS,DSF\text{-}Stability)$ and $\Lambda_a$ is a diagonal decay matrix with distinct long/mid/short memory constants embedded in its spectrum.
+
+The purpose of $a_n$ is to encode persistent structural modes over histories without reducing the representation to independent horizon worlds.
+
+\section{Resonant Multi-scale Memory (RMM)}
+\meta{Define the shared internal L5 memory.}{Event embeddings, mode amplitudes, and process quantities.}{Fast, medium, and slow structural memory states and a shared latent field.}
+
+Define three coupled state bands
+\[
+x_f^n\in\R^{d_f},\qquad x_m^n\in\R^{d_m},\qquad x_s^n\in\R^{d_s}
+\]
+and update them by
+\begin{align*}
+x_f^{n+1} &= \sat(A_f x_f^n + B_f\nu_n + G_f\pi_n + L_f a_n),\\
+x_m^{n+1} &= \sat(A_m x_m^n + B_m\nu_n + H_{mf}x_f^{n+1} + L_m a_n),\\
+x_s^{n+1} &= \sat(A_s x_s^n + B_s\nu_n + H_{sm}x_m^{n+1} + L_s a_n).
+\end{align*}
+
+The shared latent structural field is
+\[
+z_n = W_f x_f^n + W_m x_m^n + W_s x_s^n + W_a a_n + W_\pi \pi_n.
+\]
+
+Boundedness requirements:
+\begin{itemize}
+    \item all matrices shall be fixed and versioned;
+    \item spectral radii and clamping bounds shall guarantee finite trajectories;
+    \item no stochastic update, gradient step, or hidden adaptive parameter update is permitted in normative L5 operation.
+\end{itemize}
+
+\section{Predictive Structural Residual and Free Structural Energy}
+\meta{Define a deterministic residual between predicted and observed structure and use it as a governance quantity.}{Shared latent field $z_n$ and observed next event embedding.}{Structural surprise $s_n$ and free structural energy $\mathcal{F}_n$.}
+
+Define one-step event prediction
+\[
+\hat \nu_{n+1} = T_z z_n + T_\pi \pi_n
+\]
+and structural surprise
+\[
+s_{n+1} = \norm{\nu_{n+1}-\hat \nu_{n+1}}_2.
+\]
+
+Define structural inconsistency
+\[
+\Gamma_n = \lambda_U U_n^{\dagger} + \lambda_C C_n^{\dagger} + \lambda_N N_n^{\dagger} + \lambda_X X_n^{\dagger} - \lambda_\rho \rho_n
+\]
+and free structural energy
+\[
+\mathcal{F}_n = \Gamma_n + \lambda_s s_n.
+\]
+
+Here:
+\begin{itemize}
+    \item $U_n^{\dagger}$ is normalized uncertainty pressure;
+    \item $C_n^{\dagger}$ is normalized divergence/disagreement pressure;
+    \item $N_n^{\dagger}$ is normalized negative-space pressure;
+    \item $X_n^{\dagger}$ is cross-scale inconsistency.
+\end{itemize}
+
+$\mathcal{F}_n$ is not a learned loss. It is a deterministic governance quantity. Low values indicate internally coherent structural evolution.
+
+\section{Shared Horizon Heads}
+\meta{Define how horizons are interpreted without splitting the model into independent worlds.}{Shared latent field $z_n$ and free structural energy $\mathcal{F}_n$.}{Horizon-specific structural action scores.}
+
+Define horizon set $\mathcal{H}=\{5,20,60\}$ and per-horizon action scores
+\[
+Q_h(n)=q_h^{\top}z_n - \eta_h\mathcal{F}_n,\qquad h\in\mathcal{H},
+\]
+with all $q_h$ and $\eta_h$ fixed by versioned configuration.
+
+Define mean sign coherence
+\begin{align*}
+\bar Q_n &= \frac{1}{|\mathcal{H}|}\sum_{h\in\mathcal{H}}Q_h(n),\\
+\chi_n &= 1-\frac{1}{|\mathcal{H}|}\sum_{h\in\mathcal{H}}\frac{1-\sgn(Q_h(n))\sgn(\bar Q_n)}{2}.
+\end{align*}
+The quantity $\chi_n\in[0,1]$ measures cross-horizon agreement from the shared state. L5 shall not be architected as independent semantic worlds for 5-, 20-, and 60-day reasoning in the normative design.
+
+
+\section{Why L5 is Not Ordinary Predictive Analytics}
+\meta{Prevent misclassification of the normative L5 as a generic predictive model on engineered features.}{Shared latent state, horizon heads, event tape, and governance outputs.}{A normative non-equivalence statement.}
+
+A standard predictive layer estimates a target. Normative L5 instead governs over bounded structural state. The horizon heads therefore do not represent separate predictive worlds; they are deterministic readouts over a shared field:
+\[
+Q_h(n)=H_h(z_n),\qquad h\in\{5,20,60\},
+\]
+with all $H_h$ constrained to consume the same $z_n$. The admissible downstream action is then
+\[
+A_h^{cand}(n)=\mathcal{M}\big(Q_h(n),\mathcal{F}_n,\Gamma_n,\Pi_n\big),
+\]
+where $\mathcal{M}$ is an action-mapping functional that may emit abstention or no-output. This differs from predictive analytics because (i) abstention is native, (ii) action is conditioned on coherence and admissibility rather than only score magnitude, and (iii) long/mid/short memory remain coupled through the same state. Any implementation that replaces this with independent per-horizon score learners over row tables shall be marked as a pragmatic approximation.
+
+\section{Action Mapping}
+\meta{Convert structural action scores into governed research outputs.}{$Q_h(n)$, $\mathcal{F}_n$, hard blockers, and coherence criteria.}{Action label and abstention state for each $h\in\mathcal{H}$.}
+
+Let hard blocker indicator be $B_n^{hard}\in\{0,1\}$. Then for each horizon $h$:
+\[
+A_h(n)=\begin{cases}
+\text{NO\_OUTPUT}, & B_n^{hard}=1,\\
+\text{ABSTAIN}, & \chi_n<\chi_{min},\\
+\text{ACCUMULATE}, & Q_h(n)>\theta_h^{+}\ \wedge\ \mathcal{F}_n\le\mathcal{F}_{max},\\
+\text{AVOID}, & Q_h(n)<-\theta_h^{-}\ \wedge\ \mathcal{F}_n\le\mathcal{F}_{max},\\
+\text{HOLD}, & \text{otherwise.}
+\end{cases}
+\]
+Thresholds are fixed by configuration and must be audit-visible.
+
+\section{Financial Domain Rules and Approved Heuristics}
+\meta{Define mandatory rules that govern whether L5 may emit any research action.}{Validation state, runtime snapshot metadata, version metadata, domain parameters, action scores.}{Hard blockers, soft blockers, and permitted outputs.}
+
+Hard blockers (any true implies $B_n^{hard}=1$):
+\begin{itemize}
+    \item SafeMode active;
+    \item any collapse flag active;
+    \item $S(UF)<S_{min}^{app}$ or $R(UF)<R_{min}^{app}$;
+    \item GSS, DSS, or DSF-Stability below configured minima;
+    \item runtime snapshot stale or invalid;
+    \item DomainParams mismatch or version mismatch;
+    \item data-integrity anomaly, non-monotone timestamps, invalid bar fields, or failed SES verification;
+    \item missing audit trail or failed deterministic reproducibility check.
+\end{itemize}
+
+Soft governance rules (do not force $NO\_OUTPUT$ but may force $ABSTAIN$):
+\begin{itemize}
+    \item cross-horizon coherence below $\chi_{min}$;
+    \item free structural energy $\mathcal{F}_n$ above $\mathcal{F}_{max}$;
+    \item insufficient persistence of action state across the minimum confirmation count $N_{persist}$;
+    \item approved cooldown window still active after a reversal event;
+    \item cross-core disagreement above approved ensemble threshold.
+\end{itemize}
+
+Admissible financial-domain heuristics are restricted to practical inevitabilities such as stale-snapshot gating, data-health rejection, mandatory abstention on collapse/instability, or explicit market-eligibility filters. No heuristic may be used to silently replace the structural memory thesis.
+
+\section{Heuristics Registry}
+\meta{Govern the use of heuristics without silently replacing thesis-faithful behavior.}{Candidate heuristic, justification, expected boundary of use, approval record.}{Registry entry or rejection.}
+
+A heuristic is admissible only if all of the following are recorded:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item name and unique identifier;
+    \item scientific or operational justification;
+    \item exact mathematical rule or threshold;
+    \item scope of applicability;
+    \item approver and approval date;
+    \item rollback or expiration condition.
+\end{enumerate}
+Any undeclared shortcut is non-conformant with this specification.
+
+\section{Conformance Note on Pragmatic Approximations}
+\meta{Distinguish the thesis-faithful L5 from pragmatic serialized approximations.}{Current implementation characteristics.}{Classification rule.}
+
+Any implementation whose primary scientific object is a row-first lag table, or which models 5/20/60 as semantically independent worlds, shall be classified as a \textbf{pragmatic approximation} unless equivalence to the thesis-faithful design is demonstrated. Pragmatic approximations may be useful for engineering, benchmarking, or migration triage, but shall not be treated as definitive tests of DSF-AI without a conformance audit.

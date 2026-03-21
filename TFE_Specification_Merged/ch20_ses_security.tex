@@ -1,0 +1,152 @@
+\chapter{SES / UF-Core Security and Protected Structural Boundary}
+\section{Security Objectives}
+\meta{State the mandatory security objectives inherited into TFE.}{UF-SP, SES Summary, deployment environment, domain parameters, threat model.}{Normative security goals for TFE.}
+
+TFE shall inherit and enforce the following normative security objectives:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item protect the UF Kernel implementation against practical reverse-engineering and tampering;
+    \item protect UF-SP and derivative protected structural representations from disclosure or undetected modification;
+    \item support multi-tenant, multi-environment deployment under a single deterministic model; and
+    \item implement mandatory threat responses when specific security signals are observed.
+\end{enumerate}
+
+\section{UF-SP, SES Summary, and Redaction Policy}
+\meta{Define what is protected and what may be plaintext.}{Kernel outputs, diagnostics, redaction policy.}{UF-SP serialization rule and SES Summary whitelist.}
+
+UF-SP shall include, at minimum:
+\begin{itemize}
+    \item SEV sequences from L0;
+    \item gate boundaries and attributes from L1;
+    \item interpretive vectors from L2;
+    \item resonance curves from L3;
+    \item DSF vectors from L4; and
+    \item validation/hardening diagnostics.
+\end{itemize}
+
+UF-SP must be serialized deterministically prior to encryption.
+
+Plaintext outputs outside the protected boundary shall be restricted to the SES Summary whitelist:
+\begin{itemize}
+    \item $S(UF)$;
+    \item $R(UF)$;
+    \item GSS;
+    \item DSS;
+    \item DSF-Stability scalar;
+    \item collapse flags;
+    \item SafeMode indicator.
+\end{itemize}
+
+No raw SEV, gate internals, full DSF vectors, per-gate diagnostics, resonance curves, or protected research event tapes may cross the boundary in plaintext.
+
+\section{Domain Parameters}
+\meta{Define the canonical domain-binding tuple for TFE.}{Asset identity, window identity, versions, tenant/environment identifiers.}{DomainParams tuple and equality rule.}
+
+For TFE, the canonical domain-binding tuple is
+\[
+\operatorname{DomainParams} = (symbol, window\_start, window\_end, timeframe, uf\_version, ses\_version, tenant\_id, engine\_variant, environment).
+\]
+
+A TFE implementation may add a non-sensitive adapter/profile identifier, but it shall not remove any required field. Two evaluations are domain-equal if and only if all tuple members match exactly.
+
+\section{Key Hierarchy and Envelope Format}
+\meta{Define the mandatory key derivation and envelope structure.}{$K_{root}$, DomainParams, UF-SP, SES Summary.}{$K_{domain}$ and a valid SES Envelope.}
+
+TFE shall use a two-layer key hierarchy:
+\begin{align*}
+K_{domain} &= HKDF(K_{root},\operatorname{DomainParams}).
+\end{align*}
+
+The SES Envelope shall be structured as
+\[
+\operatorname{Envelope} = \{header, summary, ciphertext\}
+\]
+with
+\begin{align*}
+header &= \{\operatorname{DomainParams}\},\\
+summary &= \{S,R,GSS,DSS,DSFStability,collapse\_flags,SafeMode\},\\
+ciphertext &= C.
+\end{align*}
+
+\section{Encode / Decode Algorithms}
+\meta{Specify the mandatory envelope transformation semantics.}{UF-SP, DomainParams, $K_{root}$, deterministic serializer.}{SES Envelope or verified UF-SP.}
+
+Let $\operatorname{Serialize}(\cdot)$ and $\operatorname{Deserialize}(\cdot)$ be canonical deterministic serializers.
+
+\textbf{Encode:}
+\begin{align*}
+header &\leftarrow \operatorname{DomainParams},\\
+summary &\leftarrow \operatorname{Redact}(UF\mbox{-}SP),\\
+K &\leftarrow HKDF(K_{root},\operatorname{DomainParams}),\\
+A &\leftarrow \operatorname{Serialize}(header,summary),\\
+P &\leftarrow \operatorname{Serialize}(UF\mbox{-}SP),\\
+C &\leftarrow SIV\mbox{-}Encrypt(K,P,A),\\
+\operatorname{Envelope} &\leftarrow \{header,summary,C\}.
+\end{align*}
+
+\textbf{Decode:}
+\begin{align*}
+K &\leftarrow HKDF(K_{root},\operatorname{DomainParams}),\\
+A &\leftarrow \operatorname{Serialize}(header,summary),\\
+P &\leftarrow SIV\mbox{-}Decrypt(K,C,A),\\
+UF\mbox{-}SP &\leftarrow \operatorname{Deserialize}(P).
+\end{align*}
+
+Decryption shall fail if any element of DomainParams differs between encode and decode.
+
+\section{Protected Research Profile (PRP) Rule}
+\meta{Define how richer structural representations may be used inside TFE without violating SES.}{SES Envelopes, PRP authorization, controlled research execution.}{Admissible protected use of richer structural payloads.}
+
+In PRP, L5 may derive richer representations --- including structural event tapes, mode-amplitude histories, or protected state checkpoints --- from decrypted UF-SP \emph{only} inside a controlled boundary satisfying all of the following:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item PRP mode is explicitly designated and logged;
+    \item decryption occurs only after successful domain and environment verification;
+    \item derived protected representations are treated as protected structural payloads and must themselves be enveloped or remain memory-resident only;
+    \item plaintext protected representations are never written to disk, logs, or network outside the protected boundary;
+    \item ordinary TFE consumers still receive only SES Summary fields or explicitly approved coarse decisions.
+\end{enumerate}
+
+\section{Threat and Response Matrix}
+\meta{Define mandatory behavior when specific security signals are observed.}{Security signals from kernel, SES, runtime, and hosting environment.}{Local and system responses.}
+
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{p{0.10\textwidth}p{0.26\textwidth}p{0.26\textwidth}p{0.28\textwidth}}
+\toprule
+Threat ID & Description & Detection Signals & Required Response \\
+\midrule
+T1 & Code extraction attempt & Debug / introspection flags, breakpoint patterns, known analysis environments where available & Local: set SafeMode, restrict outputs to coarse summaries, disable UF-SP export. System: log security event and notify operator. \\
+T2 & Code tampering & Bundle / manifest hash mismatch & Local: refuse normal operation, enter compromised state. System: quarantine/replace instance and route workloads away. \\
+T3 & UF-SP exfiltration & Request for raw UF-SP without SES envelope or invalid envelope fields & Local: deny request. System: log and optionally throttle/block caller. \\
+T4 & Envelope replay / misbinding & DomainParams mismatch or SIV authentication failure & Local: reject decryption and return no UF-SP. System: log replay suspicion and optionally rate-limit/review credentials. \\
+T5 & Engine rollback / clone & UF version or engine variant inconsistent with expected deployment & Local: flag anomaly, optionally degrade outputs. System: prevent registration without explicit approval. \\
+T6 & Adversarial environment & Missing integrity guarantees, unknown host, missing KMS access where required & Local: minimum safe mode only. System: deny node registration for production workloads. \\
+T7 & Rogue tenant / interface abuse & Excessive or abnormal query patterns per domain & Local: enforce rate limits. System: throttle or suspend tenant identity. \\
+T8 & Domain parameter manipulation & Repeated attempts to alter symbol/timeframe/tenant/environment for cross-domain reuse & Local: treat as error, never decrypt under mismatch. System: flag suspicious patterns. \\
+T9 & Data integrity tampering & Non-monotone timestamps, impossible bars, structural invalidity & Local: reject input, emit no normal envelope. System: log anomaly and request upstream verification. \\
+T10 & Collapse-induction denial of service & Repeated collapse-driving or SafeMode-triggering inputs & Local: limit repeated processing. System: stronger throttling, source isolation, or blacklist as approved. \\
+\bottomrule
+\end{longtable}
+
+\section{Deployment Profiles Applicable to TFE}
+\meta{State the deployment modes under which TFE may operate.}{Hosting environment and protection capabilities.}{Profile obligations.}
+
+TFE shall support the following profiles:
+\begin{itemize}
+    \item \textbf{Profile C (Cloud Service):} controlled cloud compute, protected storage, KMS/HSM access, SES at rest and in transit.
+    \item \textbf{Profile E (Edge / On-Prem Engine):} same envelope and logging rules, optional TPM/HSM support, restricted local admin interfaces.
+    \item \textbf{Profile D (Constrained Device Wrapper):} device sends raw series to protected engine and receives only summary or coarse decisions.
+\end{itemize}
+
+Optional informative profiles such as shadow approximators or split-brain deployments may be implemented only if their semantics, security posture, and validation obligations are separately specified.
+
+\section{Compliance Requirements}
+\meta{State the minimum conditions for claiming conformance to the TFE security boundary.}{Kernel boundary, envelope controls, plaintext restrictions, threat responses, logging.}{Conformance rule.}
+
+A TFE implementation claiming conformance to this specification shall:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item implement UF L0--L4 inside a clearly defined kernel boundary;
+    \item implement SES/UF-Core envelope protection over UF-SP and equivalent protection over any PRP-derived protected representations;
+    \item ensure that all protected structural payloads at rest and in transit are encrypted and authenticated via SES Envelopes or equivalent profile-approved wrappers;
+    \item restrict plaintext outputs to SES Summary fields only outside the protected boundary;
+    \item implement all mandatory threat responses T1--T10; and
+    \item provide a chain-of-custody log containing versions, domain parameters, environment, and all security events without exposing UF-SP.
+\end{enumerate}

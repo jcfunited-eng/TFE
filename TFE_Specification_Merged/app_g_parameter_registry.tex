@@ -1,0 +1,13 @@
+\chapter{Controlled Parameter Registry (Minimum)}
+\begin{longtable}{p{0.24\textwidth}p{0.20\textwidth}p{0.46\textwidth}}
+\toprule
+Parameter Family & Example Symbols & Control Rule \\
+\midrule
+Kernel thresholds & $\tau_D,\sigma_{min},\delta_{min},\kappa_{min}$ & Imported from canonical UF version; no silent local overrides. \\
+Validation perturbations & $\sigma_{pct}$ & Fixed approved set; changes require minor or major review depending on semantics. \\
+L5 state matrices & $A_*,B_*,H_*,L_*,W_*$ & Fixed and versioned; any semantic change requires major review. \\
+Field coefficients & $a_\rho,b_\rho,c_\rho,d_\rho,\lambda_*$ & Fixed and versioned. \\
+Action thresholds & $\theta_h^{\pm},\chi_{min},\mathcal{F}_{max}$ & Fixed by approved domain profile; all changes auditable. \\
+Snapshot thresholds & $T_{fresh}$ & Controlled by approved runtime policy. \\
+\bottomrule
+\end{longtable}

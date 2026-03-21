@@ -1,0 +1,29 @@
+\chapter{Product Deployment Plane}
+\section{Deployment Independence Rule}
+The Product Deployment Plane shall not be structurally coupled to candidate assessment or publication activation.
+
+\section{Gate Classes}
+Release gates shall be partitioned into:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item critical release gates
+    \item non-critical release gates
+\end{enumerate}
+
+\section{Critical Release Gates}
+Examples include:
+\begin{itemize}
+    \item build failure
+    \item packaging failure
+    \item migration failure
+    \item runtime boot failure
+    \item publication safety failure
+\end{itemize}
+
+\section{Non-Critical Release Gates}
+Examples include:
+\begin{itemize}
+    \item screener UI parity
+    \item non-critical UX parity
+    \item asynchronous quality probes
+    \item non-safety analytical diagnostics
+\end{itemize}

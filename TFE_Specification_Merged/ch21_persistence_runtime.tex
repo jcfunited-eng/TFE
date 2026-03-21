@@ -1,0 +1,50 @@
+\chapter{Persistence, Runtime Semantics, and Data Models}
+\section{Persistent Objects}
+\meta{Define what TFE stores and how.}{Kernel outputs, SES envelopes, L5 outputs, metadata.}{Persistent object classes.}
+
+TFE persistence shall distinguish at least the following object classes:
+\begin{longtable}{p{0.25\textwidth}p{0.67\textwidth}}
+\toprule
+Object Class & Purpose \\
+\midrule
+Raw Market Input & Source OHLCV and source provenance. \\
+UF-SP Envelope & Encrypted canonical kernel payload, never plaintext outside the protected boundary. \\
+SES Summary Record & Whitelisted structural summary and validation indicators. \\
+Structural Event Tape & Ordered L5 input stream for a given symbol/window/run. \\
+RMM State Snapshot & Optional protected checkpoint of $x_f,x_m,x_s,a_n,z_n$. \\
+Runtime Snapshot & Immutable serving artifact for UI/API use. \\
+Audit Record & Chain-of-custody, versioning, configuration, validation, and release records. \\
+\bottomrule
+\end{longtable}
+
+\section{Runtime Snapshot Lifecycle}
+\meta{Define how serving artifacts are created and selected.}{Completed run outputs, run identifiers, config hash, schema hash, timestamps.}{Immutable runtime snapshot.}
+
+Each runtime snapshot shall minimally include:
+\[
+(snapshot\_id, snapshot\_ts, build\_id, symbol\_set, horizon\_set, config\_hash, schema\_hash, source\_run\_id, status).
+\]
+
+A snapshot is immutable once released. Consumers shall select the ``latest valid'' snapshot by explicit ordering key, never by insertion order. The selector shall be deterministic and documented.
+
+\section{Snapshot Freshness Gate}
+\meta{Define stale-recommendation semantics.}{Current serving time $t_{serve}$, snapshot timestamp $t_{snap}$, freshness threshold $T_{fresh}$.}{Stale/not-stale decision and reason code.}
+
+Define snapshot age
+\[
+Age = t_{serve}-t_{snap}.
+\]
+Then
+\[
+Stale = \mathbf{1}\{Age > T_{fresh}\}.
+\]
+If $Stale=1$, TFE shall emit $NO\_OUTPUT$ for all recommendations and record a reason code containing the actual age, threshold, time source, selected snapshot identifier, and query path used to select the snapshot.
+
+\section{Semantic Equality for Stage-Skip and Reuse}
+\meta{Prevent incorrect artifact reuse when hashes match superficially but semantics do not.}{Candidate artifact, content hash, config hash, version tuple, domain parameters, schema hash, operating profile.}{Reuse decision.}
+
+Artifact reuse is permitted only if the full semantic tuple matches:
+\[
+\Theta_{sem}=(H_{content},H_{config},H_{schema},UF_{ver},SES_{ver},Adapter_{ver},DomainParams,Profile).
+\]
+If any field differs, the artifact shall be considered semantically non-equivalent even if content hashes of a subset match.
