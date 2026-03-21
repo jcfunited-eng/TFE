@@ -81,9 +81,14 @@ export type DynamicDecisionTermBreakdown = {
     field_zero_modes: number;
     field_positive_mass: number;
     field_negative_mass: number;
+    field_indefiniteness_mass: number;
+    field_positive_excess: number;
+    field_negative_excess: number;
     field_coherence: number;
     field_diagonal_norm: number;
     field_offdiagonal_norm: number;
+    field_support_mass: number;
+    field_failure_mass: number;
     dominant_relation: DecisionLabel;
   };
 };
@@ -450,10 +455,25 @@ function calculateRelationalFieldState(
     fieldNegativeMass += positivePart(-eigenvalue);
   }
 
-  const positiveExcess = positivePart(fieldPositiveMass - fieldNegativeMass);
-  const accumulateClaim = positiveExcess * fieldCoherence;
-  const holdClaim = positiveExcess * (1 - fieldCoherence);
-  const avoidClaim = fieldNegativeMass;
+  const fieldIndefinitenessMass = Math.min(fieldPositiveMass, fieldNegativeMass);
+  const fieldPositiveExcess = positivePart(fieldPositiveMass - fieldNegativeMass);
+  const fieldNegativeExcess = positivePart(fieldNegativeMass - fieldPositiveMass);
+
+  const fieldSupportMass = clip(
+    (positivePart(supportReserve) + positivePart(resonanceReserve)) / 2,
+    0,
+    1,
+  );
+  const fieldFailureMass = clip(
+    (positivePart(-supportReserve) + positivePart(-resonanceReserve)) / 2,
+    0,
+    1,
+  );
+
+  const accumulateClaim = fieldPositiveExcess * fieldCoherence * fieldSupportMass;
+  const holdClaim =
+    fieldSupportMass * (fieldIndefinitenessMass + fieldPositiveExcess * (1 - fieldCoherence));
+  const avoidClaim = fieldNegativeExcess + fieldFailureMass * fieldNegativeMass;
 
   let dominantRelation: DecisionLabel = "Hold";
   if (
@@ -511,9 +531,14 @@ function calculateRelationalFieldState(
     field_zero_modes: fieldZeroModes,
     field_positive_mass: fieldPositiveMass,
     field_negative_mass: fieldNegativeMass,
+    field_indefiniteness_mass: fieldIndefinitenessMass,
+    field_positive_excess: fieldPositiveExcess,
+    field_negative_excess: fieldNegativeExcess,
     field_coherence: fieldCoherence,
     field_diagonal_norm: fieldDiagonalNorm,
     field_offdiagonal_norm: fieldOffdiagonalNorm,
+    field_support_mass: fieldSupportMass,
+    field_failure_mass: fieldFailureMass,
     dominant_relation: dominantRelation,
   };
 }

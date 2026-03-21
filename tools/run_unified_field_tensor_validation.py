@@ -110,7 +110,7 @@ const transpiled = ts.transpileModule(runtimeSource, {{
     esModuleInterop: true,
   }},
 }}).outputText;
-const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "uf-unified-field-v2-"));
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "uf-unified-field-v3-"));
 const tempModulePath = path.join(tempDir, "uf-dynamic-decision-unified-field.cjs");
 fs.writeFileSync(tempModulePath, transpiled);
 const mod = require(tempModulePath);
@@ -206,7 +206,7 @@ async function main() {{
     latestRows.map((row) => [String(row.symbol).trim().toUpperCase(), row]),
   );
   const latestProfile = {{
-    profileId: "unified_field_tensor_latest_snapshot_v2",
+    profileId: "unified_field_tensor_latest_snapshot_v3",
     generatedAtUtc: {json.dumps(utc_iso())},
     minBars: 252,
   }};
@@ -246,7 +246,7 @@ async function main() {{
 
   const syntheticSuite = JSON.parse(fs.readFileSync(syntheticSuitePath, "utf8"));
   const syntheticProfile = {{
-    profileId: "unified_field_tensor_synthetic_validation_v2",
+    profileId: "unified_field_tensor_synthetic_validation_v3",
     generatedAtUtc: {json.dumps(utc_iso())},
     minBars: 252,
   }};
@@ -267,7 +267,7 @@ async function main() {{
   }}
 
   const fullProfile = {{
-    profileId: "unified_field_tensor_full_fixed_snapshot_v2",
+    profileId: "unified_field_tensor_full_fixed_snapshot_v3",
     generatedAtUtc: {json.dumps(utc_iso())},
     minBars: 252,
   }};
@@ -343,7 +343,7 @@ main().catch((error) => {{
     )
     if proc.returncode != 0:
         raise SystemExit(
-            "unified field tensor v2 validation execution failed\n"
+            "unified field tensor v3 validation execution failed\n"
             + "\n".join(proc.stderr.splitlines()[-80:])
         )
     return load_json(summary_path)
@@ -357,8 +357,8 @@ def main() -> int:
     latest_snapshot_csv = latest_file("canonical_real_snapshot_production_fixed_snapshot_latest_", ".csv")
     synthetic_suite_path = latest_file("canonical_synthetic_suite_production_fixed_snapshot_", ".json")
 
-    with tempfile.TemporaryDirectory(prefix="unified-field-tensor-v2-") as temp_dir:
-        summary_path = Path(temp_dir) / "unified-field-summary-v2.json"
+    with tempfile.TemporaryDirectory(prefix="unified-field-tensor-v3-") as temp_dir:
+        summary_path = Path(temp_dir) / "unified-field-summary-v3.json"
         summary = run_node_validation(summary_path, source_csv, latest_snapshot_csv, synthetic_suite_path)
 
     baseline_synthetic = load_json(BASELINE_SYNTHETIC_VALIDATION)
@@ -426,22 +426,23 @@ def main() -> int:
     baseline_one_sided_avoid_share = baseline_one_sided["totals"]["avoid_share"]
     candidate_one_sided_avoid_share = one_sided_contested_compare["candidate_avoid_share"]
 
-    seam_accumulate_delta = candidate_seam.get("Accumulate", 0) - baseline_seam.get("Accumulate", 0)
-    covered_accumulate_delta = candidate_covered.get("accumulate", 0) - baseline_covered.get("accumulate", 0)
+    baseline_seam_hold = baseline_seam.get("Hold", 0)
+    candidate_seam_hold = candidate_seam.get("Hold", 0)
+    baseline_covered_accumulate = baseline_covered.get("accumulate", 0)
+    candidate_covered_accumulate = candidate_covered.get("accumulate", 0)
 
     verdict_label = "mixed / not ready"
     if (
         candidate_anchor >= baseline_anchor
-        and candidate_seam.get("Accumulate", 0) > 0
-        and seam_accumulate_delta >= 0
-        and covered_accumulate_delta >= 0
+        and candidate_seam_hold >= baseline_seam_hold
+        and candidate_covered_accumulate <= baseline_covered_accumulate * 2
         and candidate_one_sided_avoid_share < baseline_one_sided_avoid_share
     ):
         verdict_label = "better than baseline"
     elif (
         candidate_anchor < baseline_anchor
-        or candidate_seam.get("Accumulate", 0) == 0
-        or covered_accumulate_delta < 0
+        or candidate_seam_hold == 0
+        or candidate_covered_accumulate > baseline_covered_accumulate * 4
     ):
         verdict_label = "worse than baseline"
 
@@ -470,12 +471,14 @@ def main() -> int:
         "seam behavior versus current baseline": {
             "baseline": baseline_seam,
             "candidate": candidate_seam,
-            "accumulate_delta": seam_accumulate_delta,
+            "baseline_hold": baseline_seam_hold,
+            "candidate_hold": candidate_seam_hold,
         },
         "covered-rupture ownership versus current baseline": {
             "baseline": baseline_covered,
             "candidate": candidate_covered,
-            "accumulate_delta": covered_accumulate_delta,
+            "baseline_accumulate": baseline_covered_accumulate,
+            "candidate_accumulate": candidate_covered_accumulate,
         },
         "latest fixed-snapshot decision distribution versus current baseline": {
             "baseline": baseline_latest_counts,
@@ -488,15 +491,16 @@ def main() -> int:
             "candidate_decision_counts": one_sided_contested_compare["candidate_decision_counts"],
         },
         "required verdict question": (
-            "does replacing inertia-only extraction with spectral-mass/coherence extraction preserve the tensor idea "
-            "while fixing still -> Accumulate collapse, seam Accumulate wipeout, and covered-rupture Accumulate annihilation?"
+            "does indefiniteness-aware extraction preserve the tensor idea while restoring seam Hold "
+            "where appropriate, preventing covered-rupture Accumulate explosion, and keeping one-sided "
+            "contested Avoid lower than baseline without redefining the whole surface?"
         ),
         "explicit statement": verdict_label,
         "forced_conclusion": forced_conclusion,
     }
 
     verdict_md = f"""
-# Unified-Field Tensor V2 Verdict
+# Unified-Field Tensor V3 Verdict
 
 ## Anchor Comparison Versus Current Baseline
 - baseline matched anchors: `{baseline_anchor} / {summary["anchors"]["total_cases"]}`
@@ -521,20 +525,20 @@ def main() -> int:
 - candidate decision counts: `{one_sided_contested_compare["candidate_decision_counts"]}`
 
 ## Required Verdict Question
-- does replacing inertia-only extraction with spectral-mass/coherence extraction preserve the tensor idea while fixing still -> Accumulate collapse, seam Accumulate wipeout, and covered-rupture Accumulate annihilation?
+- does indefiniteness-aware extraction preserve the tensor idea while restoring seam Hold where appropriate, preventing covered-rupture Accumulate explosion, and keeping one-sided contested Avoid lower than baseline without redefining the whole surface?
 - answer: `{forced_conclusion}`
 
 ## Explicit Statement
 - `{verdict_label}`
 """.strip()
 
-    anchor_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v2_anchor_report_{stamp}.json"
-    seam_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v2_seam_probe_{stamp}.json"
-    covered_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v2_covered_rupture_compare_{stamp}.json"
-    latest_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v2_latest_snapshot_distribution_{stamp}.json"
-    one_sided_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v2_one_sided_contested_compare_{stamp}.json"
-    verdict_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v2_verdict_{stamp}.json"
-    verdict_md_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v2_verdict_{stamp}.md"
+    anchor_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_anchor_report_{stamp}.json"
+    seam_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_seam_probe_{stamp}.json"
+    covered_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_covered_rupture_compare_{stamp}.json"
+    latest_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_latest_snapshot_distribution_{stamp}.json"
+    one_sided_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_one_sided_contested_compare_{stamp}.json"
+    verdict_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_verdict_{stamp}.json"
+    verdict_md_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_verdict_{stamp}.md"
 
     write_json(anchor_path, anchor_report)
     write_json(seam_path, seam_probe)
