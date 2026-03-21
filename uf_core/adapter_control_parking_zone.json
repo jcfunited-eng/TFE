@@ -1,0 +1,26 @@
+{
+  "status": "active_runtime_controls_parked",
+  "updated_utc": "2026-03-18T02:31:08Z",
+  "scope": "uf_core adapter export path only",
+  "controls": [
+    {
+      "name": "hardening_control_step",
+      "active_runtime": false,
+      "parking_state": "parked_for_lab",
+      "reason": "user directed hardening rules to be ignored in the active adapter path"
+    },
+    {
+      "name": "safemode",
+      "active_runtime": false,
+      "parking_state": "parked_for_lab",
+      "reason": "paired with hardening and not allowed to alter active adapter export"
+    },
+    {
+      "name": "gate_unlock_transient_guard",
+      "active_runtime": false,
+      "parking_state": "parked_for_lab",
+      "reason": "hold for future lab test only if L5 later shows a clear need"
+    }
+  ],
+  "runtime_rule": "adapter must export raw DSF-derived decision_vector without hardening or transient guard mutation"
+}

@@ -1,0 +1,19 @@
+
+% Validation Matrix for Section 13
+\section*{Validation Matrix}
+
+\begin{longtable}{lll}
+\toprule
+\textbf{Test ID} & \textbf{Description} & \textbf{Pass Criteria Summary} \\
+\midrule
+13-1 & Noise Robustness & $\Delta S(\epsilon) \le \kappa_S \epsilon$ \\
+13-2 & Adversarial Inputs & All structural bounds hold \\
+13-3 & Parameter Drift & $\Delta S_{\Theta} \le \kappa_{S\Theta} \epsilon_{\Theta}$ \\
+13-4 & Memory Stress & $S_{\text{count}} \le S_{\max}$ \\
+13-5 & Mosaic Conflict & $C_k \le C_{\max}$ \\
+13-6 & Breathing Sync & $A_B(k)\mu_s(k) \le \beta_{\max}$ \\
+13-7 & SES Evolution & $\Delta K_k \le \kappa_K\epsilon_{\Theta}$ \\
+13-8 & Cross Domain & Stability preserved across domains \\
+13-9 & Shock Test & SafeMode triggers iff $S<S_{\min}$ \\
+\bottomrule
+\end{longtable}

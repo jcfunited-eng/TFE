@@ -1,0 +1,944 @@
+\documentclass[11pt]{report}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{array,booktabs,longtable,tabularx,multirow}
+\usepackage{enumitem}
+\usepackage[table]{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{lastpage}
+\usepackage{float}
+\usepackage{pdflscape}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\must}{\textbf{MUST}}
+\newcommand{\should}{\textbf{SHOULD}}
+\newcommand{\mayc}{\textbf{MAY}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\meta}[3]{\textbf{Section Description.} #1\\
+\textbf{Inputs.} #2\\
+\textbf{Outputs.} #3\par}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\onehalfspacing
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!60!black}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{TFE Specification v2.7}
+\rhead{Deterministic Re-Architecture Draft}
+\cfoot{\thepage\ / \pageref{LastPage}}
+\titleformat{\chapter}[display]{\bfseries\Huge}{\chaptertitlename\ \thechapter}{0.5em}{\Large}
+\titleformat{\section}{\bfseries\Large}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\bfseries\large}{\thesubsection}{0.6em}{}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\Huge \textbf{Tao Financial Engine (TFE)}}\\[0.35cm]
+{\LARGE Deterministic System and Mathematical Specification}\\[0.25cm]
+{\Large Re-Architecture Master Draft}\\[0.9cm]
+
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{|p{0.30\textwidth}|Y|}
+\hline
+Document ID & TFE-DSFAI-SPEC-2.7 \\\hline
+Version & 2.7 draft baseline \\\hline
+Status & Controlled rewrite draft \\\hline
+Effective Date & 2026-03-14 \\\hline
+Owner & TFE specification owner to be designated under controlled change management \\\hline
+Purpose & Replace the coupled refresh/deploy/publication system with a deterministic source-assess-publish-serve architecture and establish a complete normative specification for that architecture \\\hline
+Primary Audience & Architecture owners, implementation engineers, validators, release owners, reviewers, quality stewards, security reviewers \\\hline
+Change Control & Semantic changes require revision-history entry, impact assessment, approver sign-off, and updated validation disposition \\\hline
+Compliance Posture & ISO-oriented requirements engineering, life-cycle, quality, and documentation structure; this document does not itself certify compliance \\\hline
+\end{tabularx}
+
+\vfill
+{\large \textbf{Non-Certification Statement}}\\[0.2cm]
+\parbox{0.93\textwidth}{This specification is written to support disciplined requirements engineering, deterministic architecture definition, traceability, validation planning, auditability, controlled change management, and protected handling of financial structural outputs. It does not itself certify compliance with ISO, GxP, GDP, FDA, SEC, FINRA, or any regulatory scheme. Compliance requires validated implementation, approved procedures, controlled execution, and auditable records.}
+\vfill
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\chapter*{Executive Summary}
+\addcontentsline{toc}{chapter}{Executive Summary}
+TFE v2.7 resets the system architecture around one deterministic backbone:
+\[
+\texttt{source} \rightarrow \texttt{normalize} \rightarrow \texttt{assess candidate} \rightarrow \texttt{publish immutable bundle} \rightarrow \texttt{serve active bundle}
+\]
+
+This revision treats TFE as a financial advisor platform and not as a high-frequency trading platform or terminal-grade low-latency infrastructure utility. Therefore v2.7 adapts the commercial patterns that matter for an advisor system:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item normalized multi-source intake,
+    \item canonical data truth,
+    \item deterministic candidate assessment,
+    \item immutable publication bundles,
+    \item in-memory hot serving of active publication artifacts,
+    \item asynchronous non-critical enrichment,
+    \item resilient release and deployment discipline,
+    \item front-office, middle-office, and back-office separation.
+\end{enumerate}
+
+This revision does not treat exchange co-location, FPGA packet handling, or proprietary private backbones as first-line TFE architecture requirements.
+
+\chapter{Document Control, Purpose, and Scope}
+\section{Purpose}
+\meta{State why v2.7 exists and what it governs.}{TFE v2.5 controlled specification, TFE v2.6 implementation plan, current production failure evidence, production evaluation contract.}{Controlled purpose statement and scope boundary.}
+
+The purpose of v2.7 is to define the target deterministic architecture for TFE as a commercially operable advisor system with auditable publication semantics, strict stage boundaries, and exact runtime state visibility.
+
+\section{Scope}
+\meta{Define the boundaries of the v2.7 rewrite.}{System architecture, lifecycle processes, runtime semantics, publication semantics, serving semantics, deployment semantics, mathematical invariants, validation rules.}{In-scope and out-of-scope statements.}
+
+In scope:
+\begin{itemize}
+    \item source acquisition and normalization contracts;
+    \item candidate build, assessment, publication, activation, and serving contracts;
+    \item refresh and phase-ledger state machines;
+    \item deployment/release plane separation;
+    \item deterministic identifiers, invariants, and failure semantics;
+    \item validation, traceability, and conformance rules.
+\end{itemize}
+
+Out of scope for the present baseline draft:
+\begin{itemize}
+    \item marketing claims;
+    \item aspirational functionality without a declared contract;
+    \item uncontrolled heuristic behavior;
+    \item undocumented cross-boundary shortcuts;
+    \item microsecond trading-latency optimization as the principal architecture target.
+\end{itemize}
+
+\chapter{Normative and Informative References}
+\section{Normative Internal References}
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{TFE\_Specification\_v2\_5.tex}
+    \item \texttt{TFE\_5\_3\_Implementation Plan v2.6.md}
+    \item \texttt{PRODUCTION\_EVALUATION\_CONTRACT.md}
+    \item \texttt{TFE\_REARCHITECTURE\_MASTER\_PLAN\_v2\_7.md}
+\end{enumerate}
+
+\section{Informative External Alignment References}
+\begin{enumerate}[leftmargin=1.2cm]
+    \item ISO/IEC/IEEE 15288:2023, Systems and software engineering --- System life cycle processes
+    \item ISO/IEC/IEEE 29148:2018, Systems and software engineering --- Life cycle processes --- Requirements engineering
+    \item ISO/IEC 25010:2023, Systems and software engineering --- Product quality model
+    \item ISO 9001:2015, Quality management systems --- Requirements
+    \item A-Team Insight, \emph{The Top Low Latency Data Feed Providers}, 2023
+    \item Supermicro, \emph{Building High-Performance Infrastructure for Real-Time Financial Analytics}
+    \item AVP, \emph{The Future of Financial Advice: Technology's Role in the Market}
+\end{enumerate}
+
+\chapter{Definitions, Symbols, and Acronyms}
+\section{Definitions}
+\begin{description}[leftmargin=1.2cm,style=nextline]
+    \item[Source Package] Immutable package of raw acquired inputs for one update cycle.
+    \item[Normalized Package] Immutable deterministic normalization of one or more source packages.
+    \item[Candidate Bundle] Immutable decision/publication candidate built from one exact normalized package.
+    \item[Assessment Report] Deterministic pass/fail report over one exact candidate bundle.
+    \item[Publication Bundle] Immutable artifact set approved for user-facing serving.
+    \item[Active Publication Pointer] Single environment-level pointer to the one publication bundle currently authorized for serving.
+    \item[Phase Ledger] Canonical durable record of phase input, state, heartbeat, output, and failure semantics for one run.
+    \item[Enrichment] Non-critical follow-up work not required to define publication truth unless explicitly declared publication-critical.
+    \item[Hot Serving Cache] In-memory serving representation derived from the active publication bundle.
+    \item[Conflation] Controlled reduction of multiple fast-changing source updates into a latest-valid serving view without redefining canonical publication truth.
+\end{description}
+
+\chapter{Architecture Principles}
+\section{Determinism Rule}
+\meta{Define system-wide determinism.}{Inputs, contracts, identity functions.}{Normative determinism rule.}
+
+For every controlled run \(r\), there shall exist a deterministic mapping:
+\[
+f_r : \mathcal{S}_r \times \mathcal{N}_r \times \mathcal{P}_r \rightarrow \mathcal{C}_r
+\]
+where:
+\begin{itemize}
+    \item \(\mathcal{S}_r\) is the source-package identity set,
+    \item \(\mathcal{N}_r\) is the normalized-package identity set,
+    \item \(\mathcal{P}_r\) is the policy/model/config identity set,
+    \item \(\mathcal{C}_r\) is the candidate-bundle identity.
+\end{itemize}
+
+No user-facing publication may be produced without an explicit identity chain from \(\mathcal{S}_r\) to \(\mathcal{C}_r\).
+
+\section{Advisor-System Rule}
+TFE shall be optimized for advisor-system correctness, workflow efficiency, deterministic publication, and reliable client/advisor outputs before it is optimized for extreme trading latency.
+
+\section{Separation Rule}
+Critical-path publication semantics shall be separated from:
+\begin{itemize}
+    \item deployment-only concerns,
+    \item asynchronous enrichment,
+    \item UI parity probes,
+    \item optional analytics,
+    \item non-critical quality probes.
+\end{itemize}
+
+\section{Single Active Truth Rule}
+For each environment \(e\), there shall exist at most one active publication pointer:
+\[
+\left| A_e \right| \le 1
+\]
+where \(A_e\) is the set of active publication bundles in environment \(e\).
+
+\chapter{Commercial Adaptation Profile}
+\section{Adopted Commercial Patterns}
+TFE shall adopt these commercial patterns:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item normalized multi-source intake behind one canonical contract;
+    \item canonical securities, prices, and reference-data truth before advisor logic;
+    \item in-memory hot serving of current active artifacts;
+    \item controlled conflation for advisor-facing rapidly changing market views;
+    \item bounded parallel processing for independent workloads;
+    \item explicit observability and exact stage state;
+    \item front-office, middle-office, and back-office separation.
+\end{enumerate}
+
+\section{Deferred Commercial Patterns}
+TFE may adopt these later if justified:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item GPU-backed analytics or optimization;
+    \item specialized premium feed handlers;
+    \item regional active-active serving;
+    \item extended edge and replica topologies.
+\end{enumerate}
+
+\section{Non-Target Commercial Patterns}
+The following are not first-line architecture targets for TFE:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item exchange co-location;
+    \item direct market access infrastructure;
+    \item FPGA packet processing;
+    \item proprietary private global networking;
+    \item microsecond trading latency as the principal system objective.
+\end{enumerate}
+
+\chapter{Operating Model}
+\section{Front, Middle, and Back Office Boundary}
+\meta{Define office-level system boundaries.}{Advisor workflows, publication controls, operational records.}{Boundary allocation of functionality.}
+
+The TFE operating model shall separate:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Front Office}: recommendations, portfolio advisor surfaces, proposals, reports, alerts, and dashboards;
+    \item \textbf{Middle Office}: assessment, controls, validation, publication, and suitability/compliance workflows;
+    \item \textbf{Back Office}: records retention, reconciliation, archival, deploy evidence, and operational reporting.
+\end{enumerate}
+
+\section{Operating Planes}
+\meta{Define operational execution planes.}{Source, assessment, serving, enrichment, deployment functions.}{Normative plane separation.}
+
+TFE shall operate with these planes:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item Source Plane
+    \item Assessment and Publication Plane
+    \item Serving Plane
+    \item Enrichment Plane
+    \item Product Deployment Plane
+\end{enumerate}
+
+\chapter{Source Plane}
+\section{Tiered Sourcing Model}
+\meta{Define source classes and their role.}{Vendor feeds, internal data, reference data.}{Normalized source hierarchy.}
+
+TFE shall use three source tiers:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Tier 1}: primary production-critical source used to construct canonical normalized truth;
+    \item \textbf{Tier 2}: secondary or backup source used for reconciliation, backfill, enrichment, or controlled fallback;
+    \item \textbf{Tier 3}: internal operational data used for portfolios, accounts, preferences, and advisor workflows.
+\end{enumerate}
+
+\section{Canonical Normalization Rule}
+All Tier 1 and Tier 2 external data shall be transformed into one canonical normalized contract before use by assessment or publication.
+
+\section{Source Package Contract}
+Each source package shall contain:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item source identity
+    \item acquisition timestamp
+    \item source class
+    \item raw payload reference
+    \item integrity status
+    \item failure code and failure detail if acquisition is incomplete
+\end{enumerate}
+
+\chapter{Canonical Objects and Identities}
+\section{Identity Functions}
+\meta{Define immutable object identity.}{Package manifests and artifact manifests.}{Deterministic identity rules.}
+
+Each canonical object shall have an immutable identity:
+\[
+\operatorname{ID}(x) = H(M_x)
+\]
+where \(H\) is the approved cryptographic digest function and \(M_x\) is the canonical serialized manifest of object \(x\).
+
+\section{Canonical Objects}
+The minimum canonical object set for v2.7 is:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{source\_package}
+    \item \texttt{normalized\_package}
+    \item \texttt{candidate\_bundle}
+    \item \texttt{assessment\_report}
+    \item \texttt{publication\_bundle}
+    \item \texttt{active\_publication\_pointer}
+    \item \texttt{phase\_ledger}
+    \item \texttt{deployment\_record}
+    \item \texttt{hot\_serving\_cache}
+\end{enumerate}
+
+\chapter{Assessment and Publication Plane}
+\section{Purpose, Inputs, and Outputs}
+\meta{Define the publication-critical path for the active workstream.}{One exact normalized package identity, policy/model/config identities, bundle-class dependency classifications, target environment state, and requested run mode.}{Candidate bundle identity, assessment disposition, immutable publication bundle, pointer activation record, or explicit no-publish failure result.}
+
+\subsection{Purpose}
+This chapter governs the only path by which TFE may convert normalized truth into user-serving truth. The controlled v2.7 path shall be:
+\[
+\texttt{normalized\_package} \rightarrow \texttt{candidate\_bundle} \rightarrow \texttt{assessment\_report} \rightarrow \texttt{publication\_bundle} \rightarrow \texttt{active\_publication\_pointer}
+\]
+
+No later-serving artifact, enrichment artifact, or deployment-only artifact may replace or skip any element of that chain.
+
+\subsection{Inputs}
+Every publication attempt shall declare, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item exactly one \texttt{normalized\_package\_id};
+    \item the full policy/model/config identity set used to build the candidate bundle;
+    \item the target bundle class and its dependency classifications;
+    \item the requested run mode;
+    \item the current active publication identity for the target environment, if one exists.
+\end{enumerate}
+
+\subsection{Outputs}
+Every publication attempt shall end in exactly one of these outcomes:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item a deterministic \texttt{candidate\_bundle\_id} and an \texttt{assessment\_report\_id};
+    \item an immutable \texttt{publication\_bundle\_id} and one activation audit record;
+    \item a no-publish disposition with explicit failure code and failure detail.
+\end{enumerate}
+
+\section{Candidate Bundle Contract}
+The candidate bundle manifest shall contain, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{candidate\_bundle\_id};
+    \item \texttt{normalized\_package\_id};
+    \item policy/model/config identities;
+    \item bundle class;
+    \item requested run mode;
+    \item deterministic build timestamp;
+    \item exact dependency classification register;
+    \item artifact references required for assessment.
+\end{enumerate}
+
+Candidate generation shall be deterministic over the declared inputs. For a given normalized package \(n\) and policy set \(\pi\),
+\[
+\operatorname{CandidateID}(n,\pi)=H(M_{n,\pi})
+\]
+where \(M_{n,\pi}\) is the canonical candidate manifest serialization.
+
+\section{Assessment Gate Contract}
+The assessment report shall cite exactly one candidate bundle and shall record:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{assessment\_report\_id};
+    \item \texttt{candidate\_bundle\_id};
+    \item assessment rule-set identity;
+    \item pass/fail disposition;
+    \item blocking reason codes and details for every failed blocking rule;
+    \item evidence references used to support the disposition.
+\end{enumerate}
+
+Publication shall be permitted if and only if assessment passes and every dependency classified as publication-critical is satisfied:
+\[
+\operatorname{Publishable}(c) \iff \operatorname{AssessmentStatus}(c)=\texttt{pass} \land \bigwedge_{d\in D_c^{crit}}\operatorname{DependencyStatus}(d)=\texttt{satisfied}
+\]
+
+\section{Publication Bundle and Activation Contract}
+The publication bundle shall be immutable and shall contain, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{publication\_bundle\_id};
+    \item \texttt{candidate\_bundle\_id};
+    \item \texttt{assessment\_report\_id};
+    \item target environment;
+    \item bundle class;
+    \item artifact manifest;
+    \item bundle creation timestamp.
+\end{enumerate}
+
+Activation shall be represented by one atomic pointer transition from the previous active publication \(p_o\) to the next active publication \(p_n\). If \(p_o \neq p_n\), the system shall not expose a mixed interval in which both publications are simultaneously authoritative:
+\[
+A_e(t^-) = p_o,\quad A_e(t^+) = p_n,\quad \left|A_e(t)\right| \le 1
+\]
+
+If activation fails after bundle creation, the newly created publication bundle shall remain inactive, the prior active pointer shall remain authoritative, and the failure shall be durably recorded.
+
+\section{Publication-Critical Dependency Classification}
+Every dependency referenced by the bundle class shall be classified as exactly one of:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{publication\_critical};
+    \item \texttt{non\_critical};
+    \item \texttt{not\_applicable}.
+\end{enumerate}
+
+The default classification for Enrichment Plane dependencies shall be \texttt{non\_critical}. For the current active workstream, \texttt{quote\_cache\_refresh} and \texttt{profile\_overrides\_refresh} shall be treated as required controlled phases but not as publication-critical prerequisites for full-universe publication unless this specification is revised under change control.
+
+\section{Invariants}
+The Assessment and Publication Plane shall satisfy all of the following:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item one candidate bundle cites exactly one normalized package identity;
+    \item one assessment disposition applies to exactly one candidate bundle;
+    \item no publication bundle is activatable without a passing assessment report;
+    \item no activation may occur without an immutable publication bundle;
+    \item no non-critical enrichment result may redefine publication truth after activation.
+\end{enumerate}
+
+\section{State Transitions}
+The allowed publication-critical state progression shall be:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{requested} \(\rightarrow\) \texttt{candidate\_building};
+    \item \texttt{candidate\_building} \(\rightarrow\) \texttt{candidate\_built} or \texttt{failed};
+    \item \texttt{candidate\_built} \(\rightarrow\) \texttt{assessing};
+    \item \texttt{assessing} \(\rightarrow\) \texttt{assessment\_failed} or \texttt{publication\_ready};
+    \item \texttt{publication\_ready} \(\rightarrow\) \texttt{publishing};
+    \item \texttt{publishing} \(\rightarrow\) \texttt{activation\_pending} or \texttt{failed};
+    \item \texttt{activation\_pending} \(\rightarrow\) \texttt{activated} or \texttt{failed}.
+\end{enumerate}
+
+Non-critical enrichment may continue after \texttt{activated}, but it shall not force a transition back to any pre-activation blocking state.
+
+\section{Failure Semantics}
+The publication-critical failure classes shall include, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{candidate\_build\_failure};
+    \item \texttt{assessment\_failure};
+    \item \texttt{critical\_dependency\_failure};
+    \item \texttt{publication\_bundle\_failure};
+    \item \texttt{activation\_failure};
+    \item \texttt{state\_persistence\_failure}.
+\end{enumerate}
+
+If any publication-critical failure occurs before activation, no new active publication pointer may be committed. If durable state cannot be written for any publication-critical transition, the attempt shall fail explicitly and shall not rely on log-only evidence.
+
+\section{Conformance Criteria}
+Implementation conformance for this chapter requires proof that:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item repeated candidate builds from the same declared inputs produce the same candidate identity;
+    \item failed assessment blocks publication activation;
+    \item activation is atomic and leaves at most one active publication per environment;
+    \item full-universe publication can complete while \texttt{quote\_cache\_refresh} remains non-terminal or fails as a non-critical phase;
+    \item no user-facing route serves a candidate bundle that has not been activated.
+\end{enumerate}
+
+\section{Traceability Targets}
+Traceability records for this chapter shall include:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item exact implementation units responsible for candidate build, assessment, publication bundle creation, and pointer activation;
+    \item runtime objects \texttt{candidate\_bundle}, \texttt{assessment\_report}, \texttt{publication\_bundle}, \texttt{active\_publication\_pointer}, and \texttt{phase\_ledger};
+    \item conformance tests for deterministic rebuild, fail-block, atomic activation, and non-critical quote-cache follow-up behavior;
+    \item acceptance evidence consisting of candidate manifests, assessment reports, publication manifests, activation audit rows, and run records that cite dependency classifications.
+\end{enumerate}
+
+\chapter{Serving Plane}
+\section{Purpose, Inputs, and Outputs}
+\meta{Define serving truth for investor routes and admin runtime-status routes.}{Active publication pointer, active publication bundle, hot serving cache state, approved request contract, and phase-ledger truth for operational status routes.}{Deterministic route response, exact publication identity, exact serving state, and exact blocking reason when serving is unavailable.}
+
+\subsection{Purpose}
+The Serving Plane shall expose one active publication truth for investor-facing outputs and one ledger-sourced operational truth for runtime-status outputs. Investor-serving routes and administrative runtime-status routes are distinct route classes and shall not be allowed to blur their data contracts.
+
+\subsection{Inputs}
+The only permitted investor-serving inputs are:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item the active publication pointer;
+    \item the active publication bundle named by that pointer;
+    \item the hot serving cache derived from that active publication bundle;
+    \item request parameters allowed by the route contract.
+\end{enumerate}
+
+Administrative runtime-status routes may additionally read:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item the phase-ledger run header;
+    \item the phase-ledger child rows;
+    \item deployment records when deployment status is explicitly in scope.
+\end{enumerate}
+
+\subsection{Outputs}
+Every serving response that exposes publication state shall declare:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item the active publication identity used to answer the request;
+    \item the serving state;
+    \item the blocking reason code and detail if the route cannot serve valid truth.
+\end{enumerate}
+
+\section{Serving Contracts}
+Investor-facing routes shall be computed from the active publication bundle only. No route may recompute investor-facing recommendation truth from raw runtime rows, raw vendor data, or local policy files not cited by the active publication manifest.
+
+Administrative runtime-status routes shall read current phase truth from the phase ledger directly. They may summarize or project that truth for response purposes, but they shall not infer current phase from logs, ad hoc timers, or free-form text.
+
+\section{Hot Serving Cache Rule}
+The serving layer may maintain a hot in-memory cache only if:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item the cache is keyed by \texttt{active\_publication\_id};
+    \item the cache contents are derived only from the active publication bundle;
+    \item cache invalidation occurs whenever the active publication pointer changes;
+    \item cache rebuild failure does not authorize fallback to mixed or ad hoc runtime truth.
+\end{enumerate}
+
+If the cache is unavailable, the route may rebuild from the active publication bundle or return an explicit blocked response. It shall not synthesize investor-serving truth from partial runtime state.
+
+\section{Conflation Rule}
+Conflation may be applied only to route fields explicitly designated as non-decision display fields. Conflation shall satisfy all of the following:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item the underlying publication identity remains the active publication identity;
+    \item conflation does not alter recommendation truth, suitability truth, or publication identity;
+    \item conflation does not combine values from different active publication identities;
+    \item the response discloses the serving state required by the route contract.
+\end{enumerate}
+
+\section{Required Route Fields}
+Every route that exposes publication state shall expose, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{active\_publication\_id};
+    \item \texttt{serving\_state};
+    \item \texttt{blocking\_reason\_code};
+    \item \texttt{blocking\_reason\_detail}.
+\end{enumerate}
+
+Every administrative runtime-status route shall additionally expose, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{run\_id};
+    \item \texttt{current\_phase\_name};
+    \item \texttt{current\_phase\_status};
+    \item \texttt{current\_phase\_started\_at};
+    \item \texttt{current\_phase\_last\_heartbeat\_at};
+    \item \texttt{validation\_status};
+    \item \texttt{snapshot\_publication\_id};
+    \item \texttt{quote\_publication\_id};
+    \item \texttt{quote\_binding\_status};
+    \item \texttt{phase\_ledger\_source}.
+\end{enumerate}
+
+If the route cannot read the required ledger or publication truth, it shall return an explicit blocked or unavailable state rather than inferred text.
+
+\section{Invariants}
+The Serving Plane shall satisfy all of the following:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item every investor-facing response resolves to exactly one active publication identity;
+    \item the hot cache identity equals the active publication identity or the cache is invalid;
+    \item administrative current-phase values match the ledger truth used to compute them;
+    \item no route may silently replace missing canonical truth with guessed truth.
+\end{enumerate}
+
+\section{State Transitions}
+The serving cache lifecycle shall allow only these transitions:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{empty} \(\rightarrow\) \texttt{loading};
+    \item \texttt{loading} \(\rightarrow\) \texttt{active} or \texttt{blocked};
+    \item \texttt{active} \(\rightarrow\) \texttt{stale} when the pointer changes;
+    \item \texttt{stale} \(\rightarrow\) \texttt{loading};
+    \item \texttt{blocked} \(\rightarrow\) \texttt{loading} after operator-approved retry or valid pointer refresh.
+\end{enumerate}
+
+The route contract shall not expose \texttt{active} for a cache whose identity does not match the active publication pointer.
+
+\section{Failure Semantics}
+Serving failures shall include, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{publication\_unavailable};
+    \item \texttt{bundle\_identity\_mismatch};
+    \item \texttt{cache\_derivation\_failure};
+    \item \texttt{runtime\_status\_unavailable};
+    \item \texttt{route\_contract\_violation}.
+\end{enumerate}
+
+If an investor-serving route lacks a valid active publication pointer or a valid active publication bundle, the route shall expose \texttt{publication\_unavailable}. If an administrative route cannot read ledger truth, it shall expose \texttt{runtime\_status\_unavailable}. Neither case may be masked by stale success output.
+
+\section{Conformance Criteria}
+Implementation conformance for this chapter requires proof that:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item all investor-serving routes expose the same active publication identity for the same environment at the same observation time;
+    \item pointer changes invalidate and reload the hot serving cache before the new serving identity is declared active;
+    \item administrative runtime-status responses match the run header and phase child-row truth without log inference;
+    \item blocked serving returns exact reason codes and details instead of partial success payloads.
+\end{enumerate}
+
+\section{Traceability Targets}
+Traceability records for this chapter shall include:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item exact implementation units responsible for pointer reads, cache derivation, investor-serving routes, and administrative runtime-status routes;
+    \item runtime objects \texttt{active\_publication\_pointer}, \texttt{publication\_bundle}, \texttt{hot\_serving\_cache}, and \texttt{phase\_ledger};
+    \item conformance tests for bundle identity consistency, pointer-switch cache invalidation, ledger-sourced admin truth, and blocking-reason exposure;
+    \item acceptance evidence consisting of route captures, cache rebuild records, pointer audit rows, and ledger-backed runtime-status responses.
+\end{enumerate}
+
+\chapter{Enrichment Plane}
+\section{Purpose, Inputs, and Outputs}
+\meta{Define the follow-up lane that must not redefine publication truth.}{Triggered run identity, enrichment phase classification, active publication identity when applicable, and bounded input contract for each enrichment phase.}{Enrichment output artifact, enrichment phase ledger row, success/failure disposition, and operator-visible follow-up status.}
+
+\subsection{Purpose}
+The Enrichment Plane performs follow-up work that may improve display quality, completeness, or downstream convenience without redefining the active publication truth. It exists to keep non-critical work visible and controlled without allowing it to block publication by accident.
+
+\subsection{Inputs}
+Every enrichment phase shall declare:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item the triggering \texttt{run\_id};
+    \item the enrichment phase name;
+    \item the phase classification;
+    \item the input contract required for that enrichment phase;
+    \item the publication identity, if the phase is post-activation.
+\end{enumerate}
+
+\subsection{Outputs}
+Every enrichment phase shall produce:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item one phase-ledger record;
+    \item zero or one enrichment artifact set;
+    \item explicit success or failure semantics;
+    \item an operator-visible follow-up status.
+\end{enumerate}
+
+\section{Enrichment Classification Rule}
+Each enrichment phase shall be classified as exactly one of:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{non\_critical\_follow\_up};
+    \item \texttt{publication\_critical};
+    \item \texttt{disabled}.
+\end{enumerate}
+
+The default classification shall be \texttt{non\_critical\_follow\_up}. Reclassifying an enrichment phase to \texttt{publication\_critical} shall require an explicit specification revision and corresponding conformance updates.
+
+\section{Full-Universe Quote-Cache Rule}
+For the current active workstream and for full-universe runs:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{quote\_cache\_refresh} shall execute as a non-critical follow-up phase;
+    \item quote-cache completion shall not be required before publication activation;
+    \item quote-cache failure shall be ledgered explicitly and surfaced to operators;
+    \item quote-cache outputs may improve display responsiveness but shall not redefine the active publication bundle.
+\end{enumerate}
+
+\section{Profile Overrides Follow-Up Rule}
+Unless a later controlled revision states otherwise, \texttt{profile\_overrides\_refresh} shall also be treated as a non-critical follow-up phase for full-universe publication. Any output it produces shall be versioned and linked back to the triggering \texttt{run\_id}.
+
+\section{Invariants}
+The Enrichment Plane shall satisfy all of the following:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item enrichment does not mutate an already activated publication bundle;
+    \item non-critical enrichment failure does not roll back the active publication pointer;
+    \item every enrichment artifact is traceable to the triggering run and input contract;
+    \item every enrichment phase remains visible through ledger state even when it is not publication-blocking.
+\end{enumerate}
+
+\section{State Transitions}
+The allowed enrichment state progression shall be:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{deferred} \(\rightarrow\) \texttt{launched};
+    \item \texttt{launched} \(\rightarrow\) \texttt{running} or \texttt{failed};
+    \item \texttt{running} \(\rightarrow\) \texttt{completed}, \texttt{failed}, or \texttt{blocked};
+    \item \texttt{blocked} \(\rightarrow\) \texttt{running} or \texttt{failed};
+    \item \texttt{disabled} is terminal for that run and shall not masquerade as success.
+\end{enumerate}
+
+If an enrichment phase is explicitly classified publication-critical for a specific bundle class, its terminal state shall be reached before activation. Otherwise, activation may complete while the enrichment phase remains non-terminal.
+
+\section{Failure Semantics}
+Enrichment failures shall include, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{enrichment\_launch\_failure};
+    \item \texttt{enrichment\_runtime\_failure};
+    \item \texttt{enrichment\_output\_invalid};
+    \item \texttt{critical\_enrichment\_block};
+    \item \texttt{state\_persistence\_failure}.
+\end{enumerate}
+
+A non-critical enrichment failure shall not be reclassified as publication failure merely because it is noisy or user-visible. It shall remain an enrichment failure unless the dependency was explicitly marked publication-critical for that bundle class before the run started.
+
+\section{Conformance Criteria}
+Implementation conformance for this chapter requires proof that:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item full-universe publication can activate while \texttt{quote\_cache\_refresh} remains deferred, running, blocked, or failed as a non-critical phase;
+    \item non-critical enrichment failures remain visible in ledger state and operator outputs;
+    \item enrichment artifacts are versioned and linked to the triggering run identity;
+    \item no enrichment path mutates an already activated publication bundle in place.
+\end{enumerate}
+
+\section{Traceability Targets}
+Traceability records for this chapter shall include:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item exact implementation units responsible for quote-cache follow-up, profile-overrides follow-up, and enrichment status exposure;
+    \item runtime objects \texttt{phase\_ledger}, enrichment output artifacts, and publication identities cited by post-activation follow-up work;
+    \item conformance tests for non-blocking quote-cache behavior, enrichment failure visibility, and enrichment-to-run traceability;
+    \item acceptance evidence consisting of phase-ledger rows, operator summaries, enrichment artifact manifests, and publication records showing non-blocking activation.
+\end{enumerate}
+
+\chapter{Refresh and Phase-Ledger State Machine}
+\section{Purpose, Inputs, and Outputs}
+\meta{Define durable phase truth for live refresh runs.}{Run request, run mode, phase graph, phase classifications, dependency classifications, and target environment state.}{Run-header truth, child phase-ledger truth, current-phase mirror, terminal disposition, and exact failure classification inputs for evaluation.}
+
+\subsection{Purpose}
+This chapter defines the durable state contract for refresh execution. Its purpose is to ensure that any evaluator can determine the exact current or terminal phase of a run from canonical stored state without inferring from logs.
+
+\subsection{Inputs}
+Every controlled refresh run shall declare, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{run\_id};
+    \item run mode;
+    \item ordered phase graph for the run;
+    \item phase classifications and dependency classifications;
+    \item start timestamp and producer identity.
+\end{enumerate}
+
+\subsection{Outputs}
+Every controlled refresh run shall produce:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item one durable run-header record;
+    \item one or more durable child phase-ledger records;
+    \item one current-phase mirror on the run header while the run is non-terminal;
+    \item a terminal disposition that supports production classification under the production evaluation contract.
+\end{enumerate}
+
+\section{Run Header and Child Ledger Contract}
+The controlled v2.7 runtime contract shall expose:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{runtime\_refresh\_runs} as the run-header truth object;
+    \item \texttt{runtime\_refresh\_run\_phases} as the child phase-ledger truth object.
+\end{enumerate}
+
+The run-header record shall contain, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{run\_id};
+    \item \texttt{mode};
+    \item \texttt{process\_status};
+    \item \texttt{current\_phase\_name};
+    \item \texttt{current\_phase\_status};
+    \item \texttt{current\_phase\_started\_at};
+    \item \texttt{current\_phase\_last\_heartbeat\_at};
+    \item \texttt{report\_status};
+    \item \texttt{validation\_status};
+    \item \texttt{snapshot\_publication\_id};
+    \item \texttt{quote\_publication\_id};
+    \item \texttt{blocking\_reason\_code};
+    \item \texttt{blocking\_reason\_detail};
+    \item \texttt{started\_at};
+    \item \texttt{completed\_at}.
+\end{enumerate}
+
+Each child phase-ledger record shall contain, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{run\_id};
+    \item \texttt{phase\_seq};
+    \item \texttt{phase\_name};
+    \item \texttt{phase\_class};
+    \item \texttt{input\_contract};
+    \item \texttt{process\_status};
+    \item \texttt{started\_at};
+    \item \texttt{completed\_at};
+    \item \texttt{last\_heartbeat\_at};
+    \item \texttt{output\_contract};
+    \item \texttt{failure\_code};
+    \item \texttt{failure\_detail}.
+\end{enumerate}
+
+\section{Required Phases and Phase Classes}
+The minimum controlled phase-name set for v2.7 shall be:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{snapshot\_rebuild};
+    \item \texttt{quote\_cache\_refresh};
+    \item \texttt{profile\_overrides\_refresh};
+    \item \texttt{runtime\_postgres\_sync};
+    \item \texttt{validation\_gate};
+    \item \texttt{publication\_activation}.
+\end{enumerate}
+
+For the current active workstream, the minimum phase classes shall be:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item publication-critical: \texttt{snapshot\_rebuild}, \texttt{runtime\_postgres\_sync}, \texttt{validation\_gate}, \texttt{publication\_activation};
+    \item non-critical follow-up by default: \texttt{quote\_cache\_refresh}, \texttt{profile\_overrides\_refresh}.
+\end{enumerate}
+
+The required phase-name set shall remain visible even when a phase is non-critical. A phase may be non-critical for activation and still be mandatory for observability, follow-up execution, and later reconciliation.
+
+\section{Current-Phase Mirror Contract}
+While a run is non-terminal, the run-header \texttt{current\_phase\_*} fields shall match the most recent non-terminal child phase-ledger record for that run. If more than one child record is non-terminal, the mirror shall resolve to the child record with the greatest \texttt{phase\_seq} and latest update time.
+
+Mirror divergence between the run header and child phase rows shall be treated as a conformance failure and shall not be repaired by route-level inference.
+
+\section{Ledger-First Truth Rule}
+The phase ledger is the only canonical source of current-phase truth. Logs, dashboards, and free-form route text may summarize ledger truth but shall not override it.
+
+If the system cannot durably persist the required run-header or child phase-ledger state for a phase transition, the run shall fail with \texttt{state\_persistence\_failure}. A missing child row for an entered phase shall not be treated as an acceptable temporary condition.
+
+\section{Process Status Domain}
+Allowed phase process statuses are:
+\[
+\{\texttt{launched}, \texttt{running}, \texttt{completed}, \texttt{failed}, \texttt{blocked}, \texttt{deferred}\}
+\]
+
+For the run header, \texttt{process\_status} shall describe publication-critical lifecycle completion. Therefore a run may be \texttt{completed} even if one or more non-critical follow-up phases later terminate as \texttt{failed}, provided publication activation already completed successfully and those failures remain visible in child phase rows.
+
+\section{State Transitions}
+The minimum allowed run lifecycle shall be:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item create the run-header row with \texttt{process\_status = launched};
+    \item create a child phase row before or at the moment a phase begins executing;
+    \item update the run-header current-phase mirror whenever a phase becomes non-terminal;
+    \item transition publication-critical phases through \texttt{running} to either \texttt{completed}, \texttt{failed}, or \texttt{blocked};
+    \item if all publication-critical phases complete successfully, allow activation to complete and then allow non-critical follow-up phases to continue or begin;
+    \item set the run-header terminal disposition after publication-critical completion or failure, without erasing the visibility of any non-critical follow-up phase outcome.
+\end{enumerate}
+
+The minimum allowed phase-status transitions are:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{deferred} \(\rightarrow\) \texttt{launched} or \texttt{failed};
+    \item \texttt{launched} \(\rightarrow\) \texttt{running} or \texttt{failed};
+    \item \texttt{running} \(\rightarrow\) \texttt{completed}, \texttt{failed}, or \texttt{blocked};
+    \item \texttt{blocked} \(\rightarrow\) \texttt{running} or \texttt{failed}.
+\end{enumerate}
+
+\section{Failure Semantics}
+Refresh and ledger failures shall include, at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \texttt{launch\_failure};
+    \item \texttt{phase\_entry\_persistence\_failure};
+    \item \texttt{heartbeat\_stalled};
+    \item \texttt{phase\_execution\_failure};
+    \item \texttt{ledger\_mirror\_mismatch};
+    \item \texttt{required\_phase\_missing};
+    \item \texttt{state\_persistence\_failure}.
+\end{enumerate}
+
+If a publication-critical phase fails, the run shall be terminally failed for publication purposes. If a non-critical follow-up phase fails after successful activation, that failure shall remain classified as a follow-up failure and shall not retroactively erase publication success. If the heartbeat for a running phase exceeds the controlled timeout without completion, the phase shall transition to \texttt{blocked} or \texttt{failed}; it shall not remain silently \texttt{running}.
+
+\section{Conformance Criteria}
+Implementation conformance for this chapter requires proof that:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item any live run can be identified to one exact phase by reading the run header and child phase rows only;
+    \item no publication-critical phase failure requires log-tail inference to classify the run;
+    \item the run-header current-phase mirror matches the latest non-terminal child phase row;
+    \item full-universe publication can activate while \texttt{quote\_cache\_refresh} remains a non-critical child phase;
+    \item admin runtime-status routes read ledger truth directly.
+\end{enumerate}
+
+\section{Traceability Targets}
+Traceability records for this chapter shall include:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item exact implementation units responsible for run creation, phase-row creation, current-phase mirroring, heartbeat updates, and admin runtime-status reads;
+    \item runtime objects \texttt{runtime\_refresh\_runs}, \texttt{runtime\_refresh\_run\_phases}, publication identifiers cited by the run header, and the phase ledger;
+    \item conformance tests for exact current-phase identification, mirror consistency, non-blocking quote-cache follow-up behavior, and no-log-inference classification;
+    \item acceptance evidence consisting of run-header rows, child phase rows, heartbeat records, admin route responses, and production-classification records prepared under the production evaluation contract.
+\end{enumerate}
+
+\chapter{Product Deployment Plane}
+\section{Deployment Independence Rule}
+The Product Deployment Plane shall not be structurally coupled to candidate assessment or publication activation.
+
+\section{Gate Classes}
+Release gates shall be partitioned into:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item critical release gates
+    \item non-critical release gates
+\end{enumerate}
+
+\section{Critical Release Gates}
+Examples include:
+\begin{itemize}
+    \item build failure
+    \item packaging failure
+    \item migration failure
+    \item runtime boot failure
+    \item publication safety failure
+\end{itemize}
+
+\section{Non-Critical Release Gates}
+Examples include:
+\begin{itemize}
+    \item screener UI parity
+    \item non-critical UX parity
+    \item asynchronous quality probes
+    \item non-safety analytical diagnostics
+\end{itemize}
+
+\chapter{Resilience and Runtime Visibility}
+\section{Resilience Baseline}
+The minimum resilience target for TFE is:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item deterministic deployment records;
+    \item source and publication artifact retention;
+    \item recoverable runtime state;
+    \item cloud-level redundancy before specialized hardware redundancy;
+    \item ordered time and durable event sequencing.
+\end{enumerate}
+
+\section{Ordered Time Rule}
+Runtime events, phase transitions, and activation decisions shall be timestamped in a deterministic ordered manner sufficient to reconstruct run sequence and publication outcome.
+
+\chapter{Mathematical Determinism and Invariants}
+\section{Serving Invariant}
+For any response \(R_t\) at time \(t\), there exists exactly one active publication bundle \(p^\*\) such that:
+\[
+R_t = g(p^\*, q_t)
+\]
+where \(q_t\) is the request and \(g\) is the route-specific serving function.
+
+\section{No Mixed Bundle Invariant}
+No route may construct \(R_t\) from two distinct publication identities \(p_i\) and \(p_j\) with \(p_i \ne p_j\).
+
+\section{Assessment-Then-Publish Invariant}
+For any publication bundle \(p\), there exists an assessment report \(a\) such that:
+\[
+\operatorname{Publishable}(p) \iff \operatorname{AssessmentStatus}(a)=\texttt{pass}
+\]
+
+\section{Canonical-Source Invariant}
+For any candidate bundle \(c\), there exists exactly one normalized package identity \(n\) cited by the candidate manifest, and every external data dependency used to produce \(c\) shall be traceable through \(n\) to source packages.
+
+\chapter{Validation, Verification, and Conformance}
+\section{Minimum Conformance Classes}
+The v2.7 architecture shall define at minimum:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item build conformance
+    \item source-package conformance
+    \item assessment conformance
+    \item publication conformance
+    \item serving conformance
+    \item release/deployment conformance
+\end{enumerate}
+
+\section{Traceability Requirement}
+Every normative section added to this document shall declare:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item normative source files
+    \item normative runtime objects
+    \item conformance test targets
+    \item acceptance evidence outputs
+\end{enumerate}
+
+\chapter{Migration and Cutover Plan}
+\section{Controlled Migration Sequence}
+The controlled migration sequence for v2.7 is:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item split publication critical path from enrichment;
+    \item deploy canonical phase ledger;
+    \item formalize immutable publication bundles;
+    \item separate deployment plane from publication plane;
+    \item formalize source and normalized package identities;
+    \item complete front-office, middle-office, and back-office contracts;
+    \item complete spec, traceability, and conformance program.
+\end{enumerate}
+
+\chapter{Revision History}
+\begin{longtable}{|p{0.18\textwidth}|p{0.14\textwidth}|p{0.18\textwidth}|Y|}
+\hline
+Date & Version & Author & Change \\\hline
+2026-03-14 & 2.7 draft baseline & Codex & Initial controlled re-architecture draft created from production failure evidence and architecture reset plan \\\hline
+2026-03-14 & 2.7 draft baseline r1 & Codex & Revised to adopt a commercial-grade advisor architecture profile adapted to TFE resource limits and informed by source normalization, in-memory serving, conflation, and front/middle/back office separation patterns \\\hline
+2026-03-14 & 2.7 draft baseline r2 & Codex & Replaced the active-workstream chapter set for assessment/publication, serving, enrichment, and refresh/phase-ledger with full normative contracts including invariants, state transitions, failure semantics, conformance criteria, and traceability targets \\\hline
+\end{longtable}
+
+\end{document}

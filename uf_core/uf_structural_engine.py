@@ -3,15 +3,19 @@ uf_structural_engine.py
 -----------------------------------------
 UF-Core Structural Engine Adapter for TFE (v1.0)
 
-THIS MODULE USES THE REAL UF-CORE PIPELINE:
+Active runtime path:
 
     L0: uf_core.layer0.compute_sev_series   (field_col="Close")
     L1: uf_core.layer1.segment_gates
     L2: uf_core.layer2.interpret_gates
     L3: uf_core.layer3.compute_resonance
     L4: uf_core.layer4.compute_directional_signal, compute_dsf
-    Hardening: uf_core.hardening_controller.hardening_control_step
-    SafeMode: uf_core.safemode
+
+Parked for lab-only evaluation:
+
+    - hardening controller
+    - safemode
+    - gate unlock transient guard
 
 Public UF engine:
 
@@ -25,30 +29,38 @@ TFE adapter (at bottom):
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
 
-from uf_core.layer0 import compute_sev_series, SEV
-from uf_core.layer1 import segment_gates, Gate
-from uf_core.layer2 import interpret_gates, GateInterpretation
-from uf_core.layer3 import compute_resonance, ResonanceResult
-from uf_core.layer4 import (
-    compute_directional_signal,
-    compute_dsf,
-    DecisionState,
-    DSF,
-)
-from uf_core.hardening_controller import hardening_control_step
-from uf_core.safemode import init_safemode_state
+from uf_core.layer0 import SEV, compute_sev_series
+from uf_core.layer1 import Gate, segment_gates
+from uf_core.layer2 import GateInterpretation, interpret_gates
+from uf_core.layer3 import ResonanceResult, compute_resonance
+from uf_core.layer4 import DSF, DecisionState, compute_directional_signal, compute_dsf
 
 from tfe_market_data_service import Bar
 
 
-# ============================================================
-# UF Structural State for TFE
-# ============================================================
+PARKED_ADAPTER_CONTROLS: Dict[str, Dict[str, str | bool]] = {
+    "hardening_control": {
+        "active_runtime": False,
+        "status": "parked_for_lab",
+        "reason": "user directed adapter hardening rules to be ignored in active runtime",
+    },
+    "safemode": {
+        "active_runtime": False,
+        "status": "parked_for_lab",
+        "reason": "user directed safemode path to be ignored in active runtime",
+    },
+    "gate_unlock_transient_guard": {
+        "active_runtime": False,
+        "status": "parked_for_lab",
+        "reason": "held for later lab test only; not allowed to mutate active decision export",
+    },
+}
+
 
 @dataclass
 class UFStructuralState:
@@ -59,8 +71,8 @@ class UFStructuralState:
       - All fields are derived from uf_core.*.
       - level5.D_k/M_k/R_rev_k/U_star_k/C_k/P_k/B_k preserve last DSF values
         for full L4 structural provenance.
-      - level5.decision_vector remains the legacy compatibility vector used by
-        existing TFE consumers.
+      - level5.decision_vector now mirrors raw DSF directly.
+      - prior adapter-only controls are parked and inactive.
     """
 
     level1: Dict[str, float]
@@ -69,10 +81,6 @@ class UFStructuralState:
     level4: Dict[str, float]
     level5: Dict[str, Any]
 
-
-# ============================================================
-# Helper functions
-# ============================================================
 
 def _safe_pct_change(series: pd.Series) -> pd.Series:
     return series.pct_change().replace([np.inf, -np.inf], np.nan).dropna()
@@ -88,10 +96,6 @@ def _max_drawdown(returns: pd.Series) -> float:
 
 
 def _compute_basic_features(close: pd.Series) -> Dict[str, float]:
-    """
-    Basic structural features from the raw scalar field (for TFE readability).
-    These are *not* TA indicators; they are scale-aware aggregate descriptors.
-    """
     close = close.astype(float)
     returns = _safe_pct_change(close)
     vol = float(returns.std() * np.sqrt(252)) if len(returns) > 0 else 0.0
@@ -106,9 +110,6 @@ def _compute_basic_features(close: pd.Series) -> Dict[str, float]:
 
 
 def _compute_trend_curvature(close: pd.Series) -> Dict[str, float]:
-    """
-    L2-style aggregate of trend and curvature from the raw scalar field.
-    """
     close = close.astype(float)
     n = len(close)
     if n < 3:
@@ -117,11 +118,10 @@ def _compute_trend_curvature(close: pd.Series) -> Dict[str, float]:
     x = np.arange(n)
     y = close.values
 
-    # Linear trend
-    slope, intercept = np.polyfit(x, y, 1)
+    slope, _intercept = np.polyfit(x, y, 1)
+
     trend_strength = float((slope / close.iloc[0]) * n) if close.iloc[0] != 0 else 0.0
 
-    # Quadratic curvature
     quad = np.polyfit(x, y, 2)
     y_quad = np.polyval(quad, x)
     curvature = float(np.mean(np.abs(y_quad - y)) / close.iloc[0]) if close.iloc[0] != 0 else 0.0
@@ -134,10 +134,6 @@ def _compute_trend_curvature(close: pd.Series) -> Dict[str, float]:
 
 
 def _aggregate_gate_regime(interpretations: List[GateInterpretation]) -> str:
-    """
-    Aggregate L2 regimes across gates; we bias towards the last gate
-    (most recent structural state).
-    """
     if not interpretations:
         return "UNKNOWN"
     return interpretations[-1].regime
@@ -147,12 +143,6 @@ def _compute_stability_from_l4(
     results: List[ResonanceResult],
     decision_states: List[DecisionState],
 ) -> Dict[str, float]:
-    """
-    Derive stability-like metrics from L3/L4 outputs to feed into the
-    hardening framework and TFE-level stability view.
-
-    These are grounded in UF-Core data; threshold calibration lives in UF validation.
-    """
     if not results or not decision_states:
         return {
             "dsf": 1.0,
@@ -164,25 +154,23 @@ def _compute_stability_from_l4(
             "R_mean": 0.0,
         }
 
-    # L3 hysteresis & resonance
     hyst_flags = np.array([r.Hyst_k for r in results], dtype=float)
-    R_vals = np.array([r.R_k for r in results], dtype=float)
+    r_vals = np.array([r.R_k for r in results], dtype=float)
 
     hyst_rate = float(np.mean(hyst_flags))
-    R_mean = float(np.mean(R_vals))
+    r_mean = float(np.mean(r_vals))
 
-    # L4 directional characteristics
-    D_vals = np.array([ds.D_k for ds in decision_states], dtype=float)
-    B_vals = np.array([ds.B_k for ds in decision_states], dtype=float)
-    U_star_vals = np.array([ds.U_star_k for ds in decision_states], dtype=float)
+    d_vals = np.array([ds.D_k for ds in decision_states], dtype=float)
+    b_vals = np.array([ds.B_k for ds in decision_states], dtype=float)
+    u_star_vals = np.array([ds.U_star_k for ds in decision_states], dtype=float)
     rev_flags = np.array([ds.R_rev_k for ds in decision_states], dtype=float)
 
     directional_stability = float(1.0 - np.mean(rev_flags))
-    dsf_instability = float(np.mean((np.abs(D_vals) > 0).astype(float)))
-    breathing_instability = float(np.mean((np.abs(B_vals) != 0).astype(float)))
+    dsf_instability = float(np.mean((np.abs(d_vals) > 0).astype(float)))
+    breathing_instability = float(np.mean((np.abs(b_vals) != 0).astype(float)))
     dsf_stability = float(1.0 - dsf_instability)
 
-    uncertainty_rate = float(1.0 - np.mean(U_star_vals)) if len(U_star_vals) > 0 else 0.0
+    uncertainty_rate = float(1.0 - np.mean(u_star_vals)) if len(u_star_vals) > 0 else 0.0
 
     return {
         "dsf": dsf_stability,
@@ -191,60 +179,27 @@ def _compute_stability_from_l4(
         "breathing_rate": breathing_instability,
         "uncertainty_rate": uncertainty_rate,
         "gate_drift_rate": 0.0,
-        "R_mean": R_mean,
+        "R_mean": r_mean,
     }
 
 
-def _gate_unlock_transient_meta(results: List[ResonanceResult]) -> Dict[str, Any]:
-    """
-    Detect one-step gate-unlock transients at the current edge.
-
-    Structural condition:
-    - at least two resonance points
-    - previous gate is fully gated out (g=0, URF=0)
-    - current gate is active (g=1, URF>0)
-
-    This pattern can emit a positive/negative D from a pure activation jump,
-    not from persistent directional field evolution. We neutralize direction for
-    the latest decision vector in this specific case.
-    """
-
-    meta: Dict[str, Any] = {
-        "active": False,
-        "prev_g": 0,
-        "curr_g": 0,
-        "prev_urf": 0.0,
-        "curr_urf": 0.0,
+def _inactive_control_payload(name: str) -> Dict[str, Any]:
+    item = PARKED_ADAPTER_CONTROLS[name]
+    return {
+        "active_runtime": bool(item["active_runtime"]),
+        "status": str(item["status"]),
+        "reason": str(item["reason"]),
     }
 
-    if len(results) < 2:
-        return meta
-
-    prev_res = results[-2]
-    curr_res = results[-1]
-
-    prev_g = int(prev_res.g_k)
-    curr_g = int(curr_res.g_k)
-    prev_urf = float(prev_res.URF_k)
-    curr_urf = float(curr_res.URF_k)
-
-    is_unlock = (prev_g == 0) and (curr_g == 1) and (prev_urf <= 0.0) and (curr_urf > 0.0)
-
-    meta["active"] = bool(is_unlock)
-    meta["prev_g"] = prev_g
-    meta["curr_g"] = curr_g
-    meta["prev_urf"] = prev_urf
-    meta["curr_urf"] = curr_urf
-    return meta
-
-
-# ============================================================
-# CORE PUBLIC API (YOUR ORIGINAL ENGINE)
-# ============================================================
 
 def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
     """
-    MAIN ENTRYPOINT: true UF-Core pipeline for a single asset.
+    Main entrypoint: true UF-Core pipeline for a single asset.
+
+    Active runtime behavior:
+      - compute raw canonical UF/DSF outputs
+      - export raw last-DSF values directly
+      - do not apply adapter-only hardening or transient guards
     """
 
     close = close.dropna().astype(float)
@@ -264,10 +219,9 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
             "B_k": None,
             "gate_count": 0,
             "active_gate_count": 0,
-            "decision_guard": {"gate_unlock_transient_neutralized": False},
-            "dsf_list": [],
-            "hardening": {},
-            "safemode": {},
+            "decision_guard": _inactive_control_payload("gate_unlock_transient_guard"),
+            "hardening": _inactive_control_payload("hardening_control"),
+            "safemode": _inactive_control_payload("safemode"),
         }
         return UFStructuralState(level1, level2, level3, level4, level5)
 
@@ -290,77 +244,34 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
 
     stab = _compute_stability_from_l4(resonance_results, decision_states)
 
-    S_UF = float(max(0.0, min(1.0, 0.5 * stab["dsf"] + 0.5 * stab["directional"])))
-    R_UF = float(max(0.0, min(1.0, stab["R_mean"])))
+    s_uf = float(max(0.0, min(1.0, 0.5 * stab["dsf"] + 0.5 * stab["directional"])))
+    r_uf = float(max(0.0, min(1.0, stab["R_mean"])))
 
-    composite_metrics = {"S_UF": S_UF, "R_UF": R_UF}
-    stability_scores = {
-        "dsf": stab["dsf"],
-        "directional": stab["directional"],
-        "hysteresis_rate": stab["hysteresis_rate"],
-        "breathing_rate": stab["breathing_rate"],
-        "uncertainty_rate": stab["uncertainty_rate"],
-        "gate_drift_rate": stab["gate_drift_rate"],
-    }
-    sensitivity_data: List[Dict[str, float]] = []
+    raw_d_k: float | None = None
+    raw_m_k: float | None = None
+    raw_r_rev_k: float | None = None
+    raw_u_star_k: float | None = None
+    raw_c_k: float | None = None
+    raw_p_k: float | None = None
+    raw_b_k: float | None = None
 
-    safemode_state = init_safemode_state()
-
-    dsf_after, gates_after, safemode_state, htc_result = hardening_control_step(
-        current_step=0,
-        dsf_list=dsf_list,
-        gates=gates,
-        composite_metrics=composite_metrics,
-        stability_scores=stability_scores,
-        sensitivity_data=sensitivity_data,
-        safemode_state=safemode_state,
-    )
-
-    final_dsf_list = dsf_after
-    gate_count = int(len(gates_after))
-    active_gate_count = int(sum(1 for r in resonance_results if int(r.g_k) == 1))
-
-    unlock_meta = _gate_unlock_transient_meta(resonance_results)
-    unlock_guard_active = bool(unlock_meta.get("active", False))
-
-    # Preserve full L4 DSF output regardless of decision-vector guardrails.
-    raw_D_k: float | None = None
-    raw_M_k: float | None = None
-    raw_R_rev_k: float | None = None
-    raw_U_star_k: float | None = None
-    raw_C_k: float | None = None
-    raw_P_k: float | None = None
-    raw_B_k: float | None = None
-
-    if final_dsf_list:
-        last_dsf = final_dsf_list[-1]
-        raw_D_k = float(last_dsf.D_k)
-        raw_M_k = float(last_dsf.M_k)
-        raw_R_rev_k = float(last_dsf.R_rev_k)
-        raw_U_star_k = float(last_dsf.U_star_k)
-        raw_C_k = float(last_dsf.C_k)
-        raw_P_k = float(last_dsf.P_k)
-        raw_B_k = float(last_dsf.B_k)
-
-        if unlock_guard_active:
-            # Neutralize direction for one-step gate-unlock transient at edge.
-            decision_vector = [
-                0.0,
-                0.0,
-                0.0,
-                float(last_dsf.U_star_k),
-                0.0,
-                float(last_dsf.B_k),
-            ]
-        else:
-            decision_vector = [
-                float(last_dsf.D_k),
-                float(last_dsf.M_k),
-                float(last_dsf.R_rev_k),
-                float(last_dsf.U_star_k),
-                float(last_dsf.P_k),
-                float(last_dsf.B_k),
-            ]
+    if dsf_list:
+        last_dsf = dsf_list[-1]
+        raw_d_k = float(last_dsf.D_k)
+        raw_m_k = float(last_dsf.M_k)
+        raw_r_rev_k = float(last_dsf.R_rev_k)
+        raw_u_star_k = float(last_dsf.U_star_k)
+        raw_c_k = float(last_dsf.C_k)
+        raw_p_k = float(last_dsf.P_k)
+        raw_b_k = float(last_dsf.B_k)
+        decision_vector = [
+            float(last_dsf.D_k),
+            float(last_dsf.M_k),
+            float(last_dsf.R_rev_k),
+            float(last_dsf.U_star_k),
+            float(last_dsf.P_k),
+            float(last_dsf.B_k),
+        ]
     else:
         decision_vector = []
 
@@ -369,9 +280,7 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
             0.0,
             min(
                 1.0,
-                0.5 * stab["dsf"]
-                + 0.3 * stab["directional"]
-                - 2.0 * abs(max_dd),
+                0.5 * stab["dsf"] + 0.3 * stab["directional"] - 2.0 * abs(max_dd),
             ),
         )
     )
@@ -380,39 +289,24 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
     level4 = {
         "max_drawdown": max_dd,
         "stability_score": stability_score,
-        "S_UF": S_UF,
-        "R_UF": R_UF,
+        "S_UF": s_uf,
+        "R_UF": r_uf,
     }
 
     level5 = {
         "decision_vector": decision_vector,
-        "D_k": raw_D_k,
-        "M_k": raw_M_k,
-        "R_rev_k": raw_R_rev_k,
-        "U_star_k": raw_U_star_k,
-        "C_k": raw_C_k,
-        "P_k": raw_P_k,
-        "B_k": raw_B_k,
-        "gate_count": gate_count,
-        "active_gate_count": active_gate_count,
-        "decision_guard": {
-            "gate_unlock_transient_neutralized": unlock_guard_active,
-            "prev_g": int(unlock_meta.get("prev_g", 0)),
-            "curr_g": int(unlock_meta.get("curr_g", 0)),
-            "prev_urf": float(unlock_meta.get("prev_urf", 0.0)),
-            "curr_urf": float(unlock_meta.get("curr_urf", 0.0)),
-        },
-        "dsf_list": [],
-        "hardening": {
-            "flags": vars(htc_result.flags),
-            "raw_metrics": htc_result.raw_metrics,
-            "notes": htc_result.notes,
-        },
-        "safemode": {
-            "safe_mode": safemode_state.safe_mode,
-            "entry_step": safemode_state.entry_step,
-            "entry_reasons": safemode_state.entry_reasons,
-        },
+        "D_k": raw_d_k,
+        "M_k": raw_m_k,
+        "R_rev_k": raw_r_rev_k,
+        "U_star_k": raw_u_star_k,
+        "C_k": raw_c_k,
+        "P_k": raw_p_k,
+        "B_k": raw_b_k,
+        "gate_count": int(len(gates)),
+        "active_gate_count": int(sum(1 for r in resonance_results if int(r.g_k) == 1)),
+        "decision_guard": _inactive_control_payload("gate_unlock_transient_guard"),
+        "hardening": _inactive_control_payload("hardening_control"),
+        "safemode": _inactive_control_payload("safemode"),
     }
 
     return UFStructuralState(
@@ -424,17 +318,14 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
     )
 
 
-# ============================================================
-# TFE ADAPTER
-# ============================================================
-
 def compute_structural_state(symbol: str, bars: List[Bar]) -> Dict[str, Any]:
     """
-    Adapter used by TFE (rebuild_uf_snapshot, Watchlist, etc.).
+    Adapter used by TFE.
 
-    - Converts Bar list → close price Series
-    - Calls the true UF-Core engine: compute_uf_structural_state
-    - Returns a flat dict with fields TFE expects.
+    - Converts Bar list to close-price series
+    - Calls the UF-Core engine
+    - Returns the flat shape TFE expects
+    - Leaves parked controls inactive
     """
     close = pd.Series(
         [b.close for b in bars],
@@ -462,4 +353,6 @@ def compute_structural_state(symbol: str, bars: List[Bar]) -> Dict[str, Any]:
         "gate_count": uf_state.level5.get("gate_count", 0),
         "active_gate_count": uf_state.level5.get("active_gate_count", 0),
         "decision_guard": uf_state.level5.get("decision_guard", {}),
+        "hardening": uf_state.level5.get("hardening", {}),
+        "safemode": uf_state.level5.get("safemode", {}),
     }

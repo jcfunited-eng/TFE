@@ -1,0 +1,51 @@
+UF LESSONS LEARNED (PLAIN LANGUAGE)
+Generated: 2026-02-14 UTC
+
+1) What the what-if test showed
+- Baseline policy is slightly negative on average in this audit window.
+- Best tested policy change was:
+  Change only this pattern from Avoid -> Hold:
+  reg=TRANSITIONAL|D=-1|P=2|Rrev=1|Bsgn=-1
+- This improved profitability metrics with limited change scope.
+
+2) Structural patterns that helped vs hurt
+Helped (Accumulate patterns):
+- reg=TRANSITIONAL|D=1|P=2|Rrev=1|Bsgn=-1
+- reg=TRANSITIONAL|D=1|P=1|Rrev=0|Bsgn=-1
+- reg=TRANSITIONAL|D=1|P=0|Rrev=0|Bsgn=-1
+
+Hurt most (Avoid pattern):
+- reg=TRANSITIONAL|D=-1|P=2|Rrev=1|Bsgn=-1
+  In this dataset, Avoid on this pattern lost more often than it protected.
+
+3) Important data quality fact
+- One extreme outlier row exists (MINE, 20-day forward return about +3,989,999%).
+- This can distort raw means.
+- Robust metrics (trimmed mean, medians) are required in all policy comparisons.
+
+4) What is being done wrong now (relative to your ingestion/schema design)
+- Current pipeline is file-based snapshots and caches, not the canonical DB-first architecture.
+- No persistent canonical ohlcv_daily table with PK(symbol_id, date).
+- No corporate_actions table for auditable reconciliation.
+- Universe fetch uses active=true only (survivorship bias risk).
+- No durable run ledger for per-symbol ingest diagnostics in a DB.
+- No weekly correction overwrite process tied to stored bars.
+
+5) What should be done better
+- Move ingestion to canonical PostgreSQL/TimescaleDB schema.
+- Store full history, active+inactive+delisted symbols.
+- Enforce idempotent upsert rules per (symbol_id, date, timeframe).
+- Add correction job (re-fetch latest 10 trading days and overwrite).
+- Track ingest QA fields per row/batch (source, fetch_time, quality_flags).
+- Keep policy evaluation on robust metrics, not raw mean only.
+
+6) Best current policy action from this audit
+- Recommended now:
+  Keep current policy except this one override:
+  If pattern == reg=TRANSITIONAL|D=-1|P=2|Rrev=1|Bsgn=-1 and baseline decision is Avoid,
+  use Hold instead.
+
+7) Why this recommendation is conservative
+- It changes only 435 / 15,888 rows (~2.74%).
+- It improves robust profitability metrics.
+- It avoids broad rule changes that caused unstable behavior in testing.

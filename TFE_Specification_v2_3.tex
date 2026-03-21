@@ -1,0 +1,2175 @@
+\documentclass[11pt]{report}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{array,booktabs,longtable,tabularx,multirow}
+\usepackage{enumitem}
+\usepackage[table]{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{lastpage}
+\usepackage{float}
+\usepackage{pdflscape}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\must}{\textbf{MUST}}
+\newcommand{\should}{\textbf{SHOULD}}
+\newcommand{\mayc}{\textbf{MAY}}
+\newcommand{\clip}{\operatorname{clip}}
+\newcommand{\sat}{\operatorname{sat}}
+\newcommand{\wrap}{\operatorname{wrap}}
+\newcommand{\sgn}{\operatorname{sgn}}
+\newcommand{\softmax}{\operatorname{softmax}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\meta}[3]{\textbf{Section Description.} #1\\
+\textbf{Inputs.} #2\\
+\textbf{Outputs.} #3\par}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\onehalfspacing
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!60!black}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{TFE Specification v2.3}
+\rhead{DSF-AI Research Instantiation}
+\cfoot{\thepage\ / \pageref{LastPage}}
+\titleformat{\chapter}[display]{\bfseries\Huge}{\chaptertitlename\ \thechapter}{0.5em}{\Large}
+\titleformat{\section}{\bfseries\Large}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\bfseries\large}{\thesubsection}{0.6em}{}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\Huge \textbf{Tao Financial Engine (TFE)}}\\[0.35cm]
+{\LARGE Deterministic System and Mathematical Specification}\\[0.25cm]
+{\Large Research Instantiation of DSF-AI for Financial Structural Interpretation, Shared Structural Memory, Epoch-Aware Governance, Protected Research Decisions, and Auditability}\\[0.9cm]
+
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{|p{0.30\textwidth}|Y|}
+\hline
+Document ID & TFE-DSFAI-SPEC-2.3 \\\hline
+Version & 2.3 (expanded financial strategy and short-side rulebook, company/news and insider-event governance, advanced epoch-trading intelligence, and computational-profile refinement) \\\hline
+Status & Controlled working specification \\\hline
+Effective Date & 2026-03-09 \\\hline
+Owner & TFE specification owner to be designated under controlled change management \\\hline
+Purpose & Specify TFE as a research instantiation of DSF-AI using canonical UF L0--L4, normative SES/UF-Core security controls, a mathematically explicit L5 governance layer, a controlled epoch library, and auditable financial-domain decision rules \\\hline
+Primary Audience & Architecture owners, validators, implementation engineers, reviewers, quality/documentation stewards, security reviewers \\\hline
+Change Control & Semantic changes require revision-history entry, impact assessment, approver sign-off, and updated validation disposition. Kernel semantic changes require major-version review. \\\hline
+Compliance Posture & ISO/GxP/GDocP-oriented structure and data-integrity posture; this document itself does not certify compliance \\\hline
+\end{tabularx}
+
+\vfill
+{\large \textbf{Non-Certification Statement}}\\[0.2cm]
+\parbox{0.93\textwidth}{This specification is written to support disciplined requirements engineering, deterministic architecture definition, good documentation practice, traceability, validation planning, auditability, controlled change management, and protected handling of structural outputs. It does not itself certify compliance with ISO, GxP, GDP, FDA, or any regulatory scheme. Compliance requires validated implementation, approved procedures, controlled execution, and auditable records.}
+\vfill
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\chapter*{Executive Summary}
+\addcontentsline{toc}{chapter}{Executive Summary}
+TFE is specified here as a \emph{research instantiation} of DSF-AI. Canonical UF L0--L4 are treated as deterministic, domain-agnostic structural interpreters imported without semantic modification. TFE L5 is the financial governance layer: it is responsible for domain preparation, protected structural memory, multi-timescale interpretation, runtime artifact control, and restrained research-side action formation.
+
+This version corrects a prior deficiency by integrating SES / UF-Core security controls as \emph{normative first-class requirements}, not a mere reference. It also clarifies that TFE computes and governs \emph{structure and geometry} rather than training a direct return-prediction engine, and it separates the scientific thesis from pragmatic implementation compromises by specifying two operating profiles:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Conformant Adapter Profile (CAP):} only SES Summary fields cross the protected boundary to standard TFE consumers.
+    \item \textbf{Protected Research Profile (PRP):} richer structural payloads are consumed only inside a controlled research boundary where SES protection, chain-of-custody, and auditability remain intact.
+\end{enumerate}
+
+The governing thesis for TFE is that, in continuity-rich financial time series, decisions should arise from temporal continuity, field evolution, multi-scale memory, negative space, cross-view consistency, and bounded domain rules, \emph{not} from generic flattened lag tables or unconstrained supervised heuristics. TFE therefore treats any row-first serialized approximation as a pragmatic implementation profile, not as the canonical test of the thesis.
+
+This specification:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item imports canonical UF L0--L4 and their financial adapter boundary;
+    \item normatively integrates SES/UF-Core security, envelope protection, and threat responses;
+    \item defines a deterministic multi-view, multi-core, event-driven L5 with shared long/mid/short memory;
+    \item makes explicit how TFE computes geometric structure, event-tape dynamics, and bounded decision support differently from standard predictive analytics and supervised ML;
+    \item defines finance-specific rules, admissible heuristics, strategy classes, epoch mosaics, sector/sphere coupling, runtime snapshots, persistence, auditability, and validation;
+    \item defines conformance, benchmark, and release rules, including a commercial kill rule; and
+    \item states applicability boundaries and non-goals, including the distinction between continuity-rich time-series problems and symbolic/combinatorial tasks better served by other methods.
+\end{enumerate}
+
+\chapter{Document Control, Purpose, and Scope}
+\section{Purpose}
+\meta{State why TFE exists and what this specification governs.}{UF v1.4.0 kernel definition, UF-Core/SES security specification, financial domain constraints, DSF-AI thesis, governance requirements.}{Controlled purpose statement and scope boundary.}
+
+The purpose of TFE is to instantiate DSF-AI in a financial research setting while preserving the canonical role of UF L0--L4 as structural interpreters. TFE does not redefine UF. It constrains how UF outputs are invoked, protected, persisted, interpreted over time, validated, and transformed into governed research signals.
+
+\section{Scope}
+\meta{Define the boundaries of the present specification.}{Financial time series, UF kernel outputs, protected runtime artifacts, validation controls, approved rules.}{In-scope and out-of-scope statements.}
+
+In scope:
+\begin{itemize}
+    \item financial-domain input preparation and deterministic invocation of canonical UF L0--L4;
+    \item SES / UF-Core protection over UF-SP and derivative protected research representations;
+    \item TFE L5 state, governance, action gating, multi-timescale memory, runtime snapshot semantics, persistence, validation, and auditability;
+    \item controlled use of richer structural payloads only inside the protected research profile.
+\end{itemize}
+
+Out of scope:
+\begin{itemize}
+    \item autonomous trading or brokerage execution;
+    \item modification of canonical UF kernel semantics;
+    \item unsupported benchmark claims or commercial statements without artifact-backed evidence;
+    \item symbolic/combinatorial prediction domains in which the sequential structural assumptions of DSF-AI do not hold without a separate domain engine.
+\end{itemize}
+
+\section{Roles and Responsibilities}
+\meta{Define the responsibility classes required by good documentation practice and controlled execution.}{Project governance structure and quality responsibilities.}{Role definitions and control obligations.}
+
+At minimum, the following roles shall exist:
+\begin{itemize}
+    \item \textbf{Specification Owner:} accountable for scope, approvals, and controlled revision of this specification.
+    \item \textbf{Kernel Steward:} responsible for UF version compatibility, import correctness, and non-modification of canonical semantics.
+    \item \textbf{Security Steward:} responsible for SES integration, envelope controls, keying assumptions, threat response implementation, and chain-of-custody security events.
+    \item \textbf{L5 Steward:} responsible for TFE governance logic, multi-scale memory design, and domain-rule correctness.
+    \item \textbf{Validator:} responsible for conformance, reproducibility, benchmark execution, and release disposition.
+    \item \textbf{Records Steward:} responsible for audit trails, retention, and controlled records.
+\end{itemize}
+
+\section{TFE as a Research Instantiation of DSF-AI}
+\meta{Locate TFE inside the broader DSF-AI program.}{DSF-AI thesis, canonical UF kernel, domain-specific governance requirements.}{A precise identity for TFE.}
+
+TFE is a domain-specific research instantiation of DSF-AI. In TFE:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item UF L0--L4 provide deterministic structural interpretation of an ordered financial window.
+    \item TFE L5 maintains governed memory over sequences of structural events and runtime metadata.
+    \item Approved domain rules determine when structural states are admissible for external research interpretation.
+    \item Outputs are qualitative research signals with abstention and fail-safe behavior, not autonomous execution directives.
+\end{enumerate}
+
+\section{Applicability Boundary and Complementarity}
+\meta{State where TFE is expected to add value and where complementary methods remain appropriate.}{Domain characteristics, sequence continuity, symbolic density, validation goals.}{Explicit applicability boundary.}
+
+TFE is designed for continuity-rich sequential domains in which structural stability, robustness, phase transition, collapse, event ordering, temporal continuity, negative space, and coupled fast/medium/slow memory are meaningful.
+
+A useful shorthand is that DSF-AI is strongest for the ``1/2/3'' aspects of a domain --- continuous ordered evolution, structural geometry, and phase-sensitive field dynamics --- whereas conventional ML or symbolic/combinatorial engines remain valuable for the ``A/B/C'' aspects --- discrete class labeling, large symbolic search, or rule-dense combinatorics. TFE is therefore specified as a complementary research system, not a blanket replacement for every modeling paradigm.
+
+\chapter{Normative and Informative References}
+\section{Normative Internal References}
+\meta{State the internal documents whose requirements are imported or enforced.}{Controlled internal specifications.}{Normative reference list.}
+
+The following are normative to this specification:
+\begin{itemize}
+    \item \textbf{UF Specification v1.4.0 Skeleton}: canonical L0--L4 semantics, invariants, stability metrics, financial adapter constraints, governance, and auditability.
+    \item \textbf{UF-Core Kernel Security Specification with SES}: kernel security boundary, UF-SP handling, SES redaction/encryption requirements, DomainParams, envelope protection, deployment profiles, and the Threat \& Response Matrix.
+\end{itemize}
+
+\section{Informative Internal References}
+\meta{State the internal concept sources that inform the scientific design without overriding the normative sources.}{Project concept materials.}{Informative reference list.}
+
+The following are informative to this specification:
+\begin{itemize}
+    \item \textbf{Information Resonance Field concepts}: mode/amplitude reasoning over histories, mixed-time structure, and negative-space semantics.
+    \item \textbf{Deterministic Multi-View Ensemble (DMVE)} concepts: deterministic multi-view fusion, bounded diversity, and explicit verification style.
+    \item \textbf{Coherence Field} concepts: tempo, phase, and coherent-potential language for process-state descriptions.
+    \item \textbf{Deterministic self-organizing mosaic dynamics}: reproducible geometry-of-data intuition, attractor/repeller interactions, and bounded structural inconsistency as a useful signal.
+\end{itemize}
+
+\section{Informative External Alignment References}
+\meta{State the documentary and quality-alignment frameworks used to shape the document and record controls.}{Common standards and guidance families.}{Alignment statement.}
+
+This specification is aligned in documentary structure with expectations common to requirements engineering and regulated computerized systems, including requirements specification practice, ALCOA+/GDocP data-integrity expectations, and controlled change/validation documentation. Such alignment is documentary and procedural; certification requires validated implementation and organizational controls.
+
+\chapter{Definitions, Symbols, and Acronyms}
+\section{Definitions}
+\begin{longtable}{p{0.23\textwidth}p{0.71\textwidth}}
+\toprule
+Term & Definition \\
+\midrule
+Unified Framework (UF) & Deterministic structural analysis framework defined by Layers L0--L4. \\
+UF Kernel & The reusable structural engine implementing canonical L0--L4. \\
+SEV & Structural Evaluation Vector at L0: $SEV(t)=(F(t),\Delta F(t),\sigma(t),\kappa(t),r(t),N(t))$. \\
+Gate $G_k$ & Contiguous structural interval produced by L1 deviation thresholding. \\
+ISF $ISF_k$ & Interpretive Structural Field at L2: $(w_k,CV_k,S_k,Reg_k,U_k,IAS_k)$. \\
+Resonance $R(k)$ & Scalar coherence quantity at L3. \\
+URF $URF_k$ & Unified resonance field after gating, $URF_k=g_kR(k)$. \\
+DSF $DSF_k$ & Decision State Field at L4: $(D_k,M_k,R_k,U_k^{\ast},C_k,P_k,B_k)$. \\
+UF-SP & Full UF structural payload internal to the protected boundary. \\
+SES Summary & Whitelisted redacted subset of UF-SP allowed in plaintext. \\
+SES Envelope & Structured container holding DomainParams header, SES Summary, and authenticated ciphertext of UF-SP. \\
+DomainParams & Canonical tuple binding keys and payload semantics to one specific UF/TFE evaluation domain. \\
+CAP & Conformant Adapter Profile. Only SES Summary fields are visible to ordinary TFE consumers. \\
+PRP & Protected Research Profile. Richer structural payloads remain inside a controlled research boundary with equivalent SES protection and auditability. \\
+Structural Event Tape & Ordered event stream used by L5 instead of a row-first lag table. \\
+RMM & Resonant Multi-scale Memory; the shared L5 state composed of fast, medium, and slow structural memory bands. \\
+Negative Space & Structural significance of absences, quiet intervals, or unrealized alternatives that constrain admissible histories. \\
+Coherent Potential & Deterministic scalar in $[0,1]$ summarizing favorable field formation conditions from ordered structural evolution. \\
+Runtime Snapshot & Immutable, versioned serving artifact used by TFE UI/API surfaces for a specific run. \\
+SafeMode & Degraded operating mode in which structural instability or environmental risk forbids normal external interpretation. \\
+\bottomrule
+\end{longtable}
+
+\section{Symbols and Acronyms}
+\begin{longtable}{p{0.18\textwidth}p{0.76\textwidth}}
+\toprule
+Symbol / Acronym & Meaning \\
+\midrule
+$F(t)$ & Raw scalar or vector-valued field evaluated by UF. \\
+$\tau_D$ & L1 gate boundary threshold. \\
+$\sigma_{pct}$ & Perturbation magnitude in validation. \\
+$S(UF)$ & Structural stability functional. \\
+$R(UF)$ & Robustness index under perturbation. \\
+GSS & Gate Stability Score. \\
+DSS & Directional Stability Score. \\
+DSF-Stability & Full DSF consistency score under perturbation. \\
+$\E$ & Structural event tape. \\
+$e_n$ & Event number $n$ in the event tape. \\
+$\tau_n$ & Timestamp of event $e_n$. \\
+$x_f,x_m,x_s$ & Fast, medium, and slow L5 memory states. \\
+$z_n$ & Shared latent L5 structural field at event $n$. \\
+$a_n$ & Mode-amplitude state vector inferred over ordered histories. \\
+$\rho_n$ & Coherent-potential scalar at event $n$. \\
+$\Gamma_n$ & Structural inconsistency functional at event $n$. \\
+$\mathcal{H}$ & Horizon set; in TFE $\mathcal{H}=\{5,20,60\}$. \\
+$Q_h(n)$ & Horizon-specific structural action score derived from the shared field. \\
+ALCOA+ & Attributable, Legible, Contemporaneous, Original, Accurate, Complete, Consistent, Enduring, Available. \\
+GDP / GDocP & Good Documentation Practice. \\
+DMVE & Deterministic Multi-View Ensemble. \\
+SCE & Structural Cryptography Engine. \\
+KMS/HSM & Key Management Service / Hardware Security Module. \\
+\bottomrule
+\end{longtable}
+
+\chapter{Mathematics Used}
+\section{Mathematical Inventory}
+\meta{Declare the mathematical families used in TFE.}{Canonical UF equations, SES controls, event-driven L5 architecture, validation and governance requirements.}{A bounded mathematical inventory for implementation and review.}
+
+TFE uses the following mathematics:
+\begin{itemize}
+    \item discrete-time dynamical systems for state updates over ordered structural events;
+    \item linear algebra for vectors, matrices, projections, norms, clamping, stable affine recursions, and deterministic fusion across views/cores;
+    \item finite-difference calculus for local variation, curvature, second differences, and drift measures;
+    \item order theory and set operations for gate formation, event ordering, and deterministic tie-breaking;
+    \item information-theoretic quantities for entropy-like dispersion, disagreement, and uncertainty normalization;
+    \item graph and topology-inspired summaries where structural connectivity or trajectory shape is represented deterministically;
+    \item security mathematics for canonical serialization, authenticated encryption, domain binding, deterministic key derivation, and audit-stable identifiers;
+    \item validation mathematics for controlled perturbation, invariance checks, boundedness proofs, collapse detection, migration parity, and benchmark comparison.
+\end{itemize}
+
+
+\section{Structural Geometry as the Primary Computational Object}
+\meta{Explain what TFE is actually computing when it claims to compute structure or geometry.}{Ordered scalar or multi-core field streams, canonical UF operators, event tape primitives, epoch fields, and approved governance rules.}{A deterministic statement of the geometric objects carried through the system.}
+
+TFE does not treat an input series primarily as a list of observations for supervised target fitting. It treats the ordered series as a field from which deterministic geometric objects are extracted, stabilized, compared, and governed. The primary computational objects are therefore not labels but structured entities: local structural tuples, contiguous gates, gate trajectories, resonance transitions, negative-space intervals, bounded potential states, cross-core disagreement surfaces, and epoch-coupled external fields.
+
+For one core $c$, let the canonical local geometric primitive at time $t$ be
+\[
+\gamma_c(t)=\big(F_c(t),\,\Delta F_c(t),\,\sigma_c(t),\,\kappa_c(t),\,r_c(t),\,N_c(t)\big).
+\]
+A gate $G_{k,c}$ is then a maximal contiguous interval of admissible geometric continuity. The gate trajectory over an ordered set of gates is
+\[
+\mathcal{T}_{c}(k)=\big(G_{1,c},G_{2,c},\dots,G_{k,c}\big),
+\]
+and the ordered family of cross-core trajectories is
+\[
+\mathfrak{T}(k)=\{\mathcal{T}_{c}(k)\}_{c\in\mathcal{C}}.
+\]
+TFE L5 does not directly score raw prices. It governs over derived geometric objects such as:
+\begin{align*}
+\mathfrak{G}_{k,c} &= \big(T_{k,c},V_{k,c},R_{k,c},C_{k,c},\delta_g(G_{k,c})\big),\\
+\mathfrak{R}_{k,c} &= \big(R_{k,c},Hyst_{k,c},g_{k,c},URF_{k,c}\big),\\
+\mathfrak{D}_{k,c} &= \big(D_{k,c},M_{k,c},Rev_{k,c},U^{\ast}_{k,c},P_{k,c},B_{k,c}\big),\\
+\mathfrak{X}_{n} &= \big(\Xi_n,\bar\Xi_n,\Delta\Xi_n\big),\\
+\mathfrak{Z}_{n} &= \big(x_f^n,x_m^n,x_s^n,a_n,\rho_n,\Gamma_n,z_n\big).
+\end{align*}
+The system therefore computes geometric continuity, geometric discontinuity, quiet structure, multi-scale persistence, and external-field interference. That is the scientific meaning of ``computing structure'' in TFE.
+
+\section{Difference from Standard ML and Predictive Data Analytics}
+\meta{Make explicit how TFE differs mathematically from standard supervised prediction or generic predictive analytics.}{The TFE mathematical formalism and standard predictive-learning archetypes.}{A formal contrast statement.}
+
+A standard supervised predictive system typically solves
+\[
+\theta^{\star}=\arg\min_{\theta}\sum_{i=1}^{N}\mathcal{L}\big(y_i, f_{\theta}(x_i)\big),
+\]
+and produces
+\[
+\hat y = f_{\theta}(x).
+\]
+Predictive data analytics may relax the learning rule or add post-hoc business logic, but the primary scientific object is still a target estimate, score, or probability conditioned on a row-wise feature vector.
+
+TFE is different in three ways:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Primary object.} The primary object is a geometric structural state evolving over ordered events, not a target label estimate.
+    \item \textbf{Update rule.} The primary recursion is a state evolution over structural events,
+    \[
+    z_n = \Phi\big(z_{n-1}, e_n, \Xi_n, \Pi_n\big),
+    \]
+    not a direct one-shot prediction from a row vector.
+    \item \textbf{Decision rule.} A research action is emitted only after structural admissibility, financial governance, epoch coupling, and bounded inconsistency tests are passed:
+    \[
+    A_h^{final}(s,t)=\mathcal{G}_h\big(z_n,Q_{fund}(s,t),\Xi_n,\Pi_n\big),
+    \]
+    where $\mathcal{G}_h$ is deterministic and abstention is an admissible output.
+\end{enumerate}
+
+TFE may use fitted components in pragmatic approximations or future profiles, but the normative design is not defined by empirical loss minimization. It is defined by structural extraction, bounded state evolution, and governed admissibility. If an implementation reduces the system to a feature table plus a target learner, it has crossed into approximation space and must be labeled accordingly.
+
+\section{Computational Overhead and Complexity Budget}
+\meta{State how the normative design controls computational cost and why event-driven structural computation is intended to be lighter than large-scale row-centric ML.}{Input length $n$, core count $|\mathcal{C}|$, gate count $K$, event count $N_E$, epoch-object count $K_{\Xi}$, and shared-state dimensions.}{A computational budget model and explicit complexity contrast.}
+
+For one symbol and one core over $n$ ordered bars, the canonical kernel has the following asymptotic budget under bounded-window operators:
+\begin{align*}
+\text{L0 cost} &= O(n),\\
+\text{L1 cost} &= O(n),\\
+\text{L2--L4 cost} &= O(K),
+\end{align*}
+where $K\le n$ is the number of gates. For $|\mathcal{C}|$ cores, kernel cost is
+\[
+O\big(|\mathcal{C}|(n+K)\big).
+\]
+
+The normative L5 is event-driven. Let $N_E$ be the number of emitted structural events, with typically $N_E\ll n$ under stable-event sparsification. For shared state dimensions $(d_f,d_m,d_s,d_a,d_z)$, the update cost is
+\[
+O\Big(N_E\big(d_f^2+d_m^2+d_s^2+d_f d_m+d_m d_s+d_a+d_z\big)\Big),
+\]
+which in implementation shall be reduced by sparse, diagonal, banded, or low-rank operator choices where possible. Epoch-library update cost is
+\[
+O\big(K_{\Xi}\cdot 32 + 32\cdot(|\Sigma|+|\mathcal{I}|)\big),
+\]
+with $32$ fixed by the sphere-of-impact basis.
+
+The important contrast is with row-first predictive analytics. If a pragmatic row-table approximation has $R$ rows and $p$ features, then storage and processing often scale as
+\[
+M_{row}=O(Rp),\qquad C_{row}=O(Rp\,d_{model}),
+\]
+where $d_{model}$ is model-dependent. In the normative event-driven design,
+\[
+M_{event}=O(N_E d_E + d_f+d_m+d_s+d_a+d_z + K_{\Xi}\cdot 32),
+\]
+which is intentionally bounded by sparse events and compact state rather than by every bar-feature combination.
+
+TFE therefore seeks efficiency not by ``doing less reasoning'' but by refusing to treat every timestamp-feature cell as equally meaningful. Structural quietness, gate continuity, and event sparsification are part of the computational strategy.
+
+\section{Efficient L5 Computational Profiles}
+\meta{State the preferred and optional computational realizations of L5 so overhead, eco-efficiency, and thesis fidelity can be discussed concretely.}{Event count $N_E$, state dimensions, core/view count, and horizon count.}{A deterministic L5 computational profile catalogue.}
+
+The normative baseline is the \textbf{event-driven shared-state profile}. In this profile, L5 maintains one shared structural state per symbol and updates only when an event on the structural event tape occurs. Let $d_z$ be the shared state dimension and let $r\ll d_z$ denote an allowed low-rank update rank. A low-rank baseline update has cost
+\[
+C_{L5}^{base}=O\big(N_E(d_z r + d_z + |\mathcal{C}|d_z)\big).
+\]
+This is the preferred research profile because it preserves temporal continuity while avoiding row-first table inflation.
+
+The following optional profiles are permitted as \emph{implementation profiles}, not as semantic replacements:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Sparse Low-Rank State Update Profile}: the transition operators are diagonal, block-diagonal, banded, or low-rank. This is the preferred software profile for ordinary CPU execution.
+    \item \textbf{Selective State-Space Profile}: a structured state-space realization may be used if it remains deterministic and if state is updated from the event tape rather than from a primary row table. The intended computational scaling is linear or near-linear in event count.
+    \item \textbf{Reservoir / Fixed Dynamics Profile}: a fixed recurrent reservoir may be used so long as readout and governance remain deterministic, versioned, and auditable. This profile is attractive when rich temporal traces are desired without heavy training overhead.
+    \item \textbf{Analog / Compute-in-Memory Profile}: future hardware profiles may map the shared-state updates or reservoir dynamics onto analog or in-memory substrates, provided the deterministic state semantics, audit rules, and protected-boundary constraints remain satisfied.
+\end{enumerate}
+
+The following are \textbf{not} preferred for thesis-faithful operation:
+\begin{itemize}
+    \item row-first full-history materialization with every bar treated as an equal computational object;
+    \item horizon-separated state worlds for 5/20/60 as primary semantics;
+    \item quadratic-cost attention over raw bar histories when an event-driven state update suffices;
+    \item black-box model substitution that removes reconstructability of why a recommendation was admissible.
+\end{itemize}
+
+\section{Computational Advantages and Disadvantages of the TFE Approach}
+\meta{Make explicit the expected strengths and weaknesses of structural event-driven computation relative to standard ML and predictive analytics.}{The baseline and optional computational profiles.}{An auditable advantages/disadvantages statement.}
+
+\textbf{Expected advantages:}
+\begin{itemize}
+    \item \textbf{Event sparsity advantage.} Compute scales with meaningful structural change rather than every bar-feature cell.
+    \item \textbf{Shared-state advantage.} One shared long/mid/short state can serve multiple horizon heads without re-running independent horizon worlds.
+    \item \textbf{Auditability advantage.} Recommendations can be traced to structural events, state variables, and approved rules rather than opaque score flows.
+    \item \textbf{Eco-efficiency advantage.} The baseline profile is intended to reduce memory movement, repeated materialization, and large-parameter training pressure compared with standard heavy-sequence ML.
+    \item \textbf{Graceful abstention advantage.} If structure is weak or contradictory, the system may abstain rather than forcing a prediction.
+\end{itemize}
+
+\textbf{Expected disadvantages / risks:}
+\begin{itemize}
+    \item \textbf{Registry burden.} A strong event-driven rule system depends on disciplined registries for thresholds, sector overrides, epoch taxonomies, and strategy blocks.
+    \item \textbf{Implementation fragility.} A careless implementation can silently fall back into row-first predictive analytics while appearing to be thesis-faithful.
+    \item \textbf{Coverage trade-off.} Event sparsity and abstention may reduce coverage if the structural gate is too conservative.
+    \item \textbf{Domain-rule maintenance burden.} Financial and epoch rules require careful curation to remain current and competitive.
+    \item \textbf{Hardware-profile uncertainty.} Analog or reservoir-inspired profiles may be more eco-friendly, but only if the deployment discipline remains strong and the semantics stay reconstructable.
+\end{itemize}
+
+
+\section{Deterministic Computability Rule}
+\meta{Constrain all mathematics to deterministic execution.}{All algorithmic sections of this specification.}{A computability rule.}
+
+Unless a section is explicitly marked as optional profile or external benchmark reference, all computations in this specification are deterministic functions of declared inputs, versions, parameters, and approved rules. Randomization inside the kernel is prohibited. Any seeded pseudo-random process used in validation or optional deterministic diversity must be externally controlled, seeded, logged, and reproducible.
+
+
+\section{State Spaces, Domains, and Codomains}
+\meta{Make every major formal object type-explicit so the specification is mathematically closed.}{All formal objects introduced in later chapters.}{Typed state spaces and admissible domains.}
+
+The principal state spaces used by TFE are:
+\begin{align*}
+I &= \{(t_i,O_i,H_i,L_i,C_i,V_i)\}_{i=1}^{n},\\
+I_C &= \{(t_i,C_i)\}_{i=1}^{n},\\
+SEV(t_i) &\in \mathbb{R}^{6},\\
+G_k &\in \mathcal{G},\\
+ISF_k &\in \mathbb{R}^{d_{ISF}},\\
+DSF_k &\in \mathbb{R}^{7},\\
+e_n &\in \mathcal{E}\subset \mathbb{R}^{d_E}\times\mathcal{M}\times\mathcal{U},\\
+x_f^n &\in \mathbb{R}^{d_f},\quad x_m^n \in \mathbb{R}^{d_m},\quad x_s^n\in\mathbb{R}^{d_s},\\
+a_n &\in \mathbb{R}^{d_a},\quad z_n\in\mathbb{R}^{d_z},\\
+\Xi_n &\in \mathbb{R}^{32},\quad \Pi_n\in\{0,1\}^{d_{\Pi}},\\
+Q_h(n) &\in \mathbb{R},\quad h\in\{5,20,60\},\\
+A_h(n) &\in \{\text{ACCUMULATE},\text{HOLD},\text{AVOID},\text{ABSTAIN},\text{NO\_OUTPUT}\}.
+\end{align*}
+
+All update rules are total functions on their admissible domains. Any malformed input outside the admissible domain shall produce explicit rejection, never silent coercion.
+
+\section{Deterministic Serialization and Equality}
+\meta{Define the mathematical meaning of deterministic object equality and serialization closure.}{Formal records, event tapes, snapshots, envelopes, and audit records.}{Deterministic equality and digest rules.}
+
+For any structured object $X$, let $\operatorname{Ser}(X)$ denote a canonical byte serialization. Then:
+\[
+X =_{\mathrm{sem}} Y \iff \operatorname{Ser}(X)=\operatorname{Ser}(Y).
+\]
+Where semantic equality is profile-dependent (for example, stage-skip equivalence), the specification shall explicitly state the semantic tuple used. Digest functions are defined as
+\[
+H(X)=\operatorname{SHA256}(\operatorname{Ser}(X)).
+\]
+
+\section{Deterministic Tie-Breaks and Boundary Rules}
+\meta{Prevent underspecified behavior at threshold boundaries and ties.}{All decision points, sorting, and categorical choices.}{Global tie-break semantics.}
+
+Unless a narrower rule is stated locally, TFE shall use the following deterministic conventions:
+\begin{enumerate}[leftmargin=1.2cm]
+\item For threshold comparisons, equality belongs to the \emph{non-triggering} side unless otherwise specified.
+\item For $\arg\max$ or $\arg\min$ over tied values, choose the smallest stable index under the declared ordering key.
+\item For merged events at identical timestamps, order by $(timestamp, source\_priority, event\_type\_priority, stable\_source\_index)$.
+\item Missing values are not imputed silently in normative operation.
+\end{enumerate}
+
+\chapter{Architecture Overview and Operating Profiles}
+\section{High-Level Architecture}
+\meta{Define the end-to-end structure of TFE.}{Domain input series, configuration, versions, approved rules, protected UF outputs.}{TFE research decisions, explanations, and audit records.}
+
+The system architecture is
+\[
+\text{Market Series} \rightarrow \text{Financial Adapter} \rightarrow L0 \rightarrow L1 \rightarrow L2 \rightarrow L3 \rightarrow L4 \rightarrow \text{SES/UF-Core Boundary} \rightarrow L5 \rightarrow \text{Research Outputs}.
+\]
+
+The protected boundary lies between canonical UF internals (UF-SP) and external consumers. TFE defines two operating profiles:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Conformant Adapter Profile (CAP):} only SES Summary fields enter ordinary TFE logic and external surfaces.
+    \item \textbf{Protected Research Profile (PRP):} richer structural representations are consumed by L5 only inside a protected research boundary that preserves SES-level controls, chain-of-custody, and environment binding.
+\end{enumerate}
+
+\section{Section I/O Map}
+\begin{longtable}{p{0.11\textwidth}p{0.26\textwidth}p{0.25\textwidth}p{0.28\textwidth}}
+\toprule
+Section & Purpose & Inputs & Outputs \\
+\midrule
+Adapter-In & Validate financial input and invoke UF deterministically & Daily OHLCV, symbol, timeframe, versions & Closing-price series, domain parameters \\
+L0 & Build normalized structural field & Ordered closing-price series & $NSF=\{SEV(t)\}$ \\
+L1 & Segment structure into gates and descriptors & $NSF$ & $G_k,TVR_k,P_\ell(G_k),C_k,\delta_g$ \\
+L2 & Compute structural interpretations & Gate descriptors & $ISF_k$ \\
+L3 & Compute resonance and gated resonance & $ISF_k$ and $C_k$ & $R(k),Hyst_k,g_k,URF_k$ \\
+L4 & Build DSF structural state & $URF_k$, previous resonance values & $DSF_k$ \\
+SES/UF-Core & Protect UF-SP, expose SES Summary, bind domain and environment & UF-SP, DomainParams, Kroot & SES Envelope, SES Summary, chain-of-custody \\
+L5 & Govern domain interpretation over time & Event tape, SES Summary, rules, metadata & Action state, abstention/block state, runtime snapshot \\
+Persistence & Preserve deterministic artifacts & Envelopes, summaries, event tapes, snapshots, logs & Controlled records \\
+Validation & Verify conformance and stability & Inputs, perturbations, outputs, metadata & Validation results, deviations, release decisions \\
+\bottomrule
+\end{longtable}
+
+\section{Input Domain}
+\meta{Define financial inputs accepted by TFE.}{Daily OHLCV bars, symbol, timeframe, domain parameters, version identifiers.}{Validated closing-price series and invocation metadata.}
+
+Imported financial input rules:
+\[
+I = \{(t_i,O_i,H_i,L_i,C_i,V_i)\}_{i=1}^{n},\quad t_i<t_{i+1},\quad H_i\ge L_i,\quad O_i,C_i\in[L_i,H_i],\quad V_i\ge 0.
+\]
+The adapter shall pass only the closing-price series
+\[
+I_C = \{(t_i,C_i)\}_{i=1}^{n}
+\]
+to canonical L0. Evaluation windows must be contiguous in trading days, minimum-length compliant, and version-bound.
+
+\chapter{Canonical UF L0--L4 Imported into TFE}
+\section{Import Rule}
+\meta{State how TFE uses L0--L4.}{Canonical UF v1.4.0 kernel specification and versions.}{Binding rule for TFE.}
+
+TFE shall treat UF L0--L4 as canonical and imported. TFE shall not modify kernel semantics, reinterpret internal operators, or silently replace invariants with local heuristics. Any semantic kernel change requires a new compatible kernel version and validation package.
+
+
+\section{Structural-Perceptual Role of L0--L4}
+\meta{State what L0--L4 are doing in scientific terms so the specification does not reduce them to a sterile feature list.}{Canonical UF semantics and the DSF-AI thesis.}{A precise description of L0--L4 as deterministic structural perception.}
+
+L0--L4 are the canonical structural-perceptual core of TFE. They do not learn and they do not predict. Their purpose is to transform a strictly ordered stream into a bounded sequence of structural states by repeatedly answering six primitive questions: what is present, how it is changing, how dispersed it is, how sharply it bends, how relevant the local state is to the current field, and whether meaningful absence or quietness is itself informative. In that sense the kernel is ``brain-like'' only in the limited scientific sense that it decomposes perception into ordered deterministic stages rather than jumping directly from raw values to recommendations.
+
+The present financial adapter uses only the closing-price series as the primary scalar signal, but the canonical import rule permits multiple cores $c\in\mathcal{C}$ provided that each core remains semantically canonical and independently auditable. A multi-core TFE therefore consists of parallel canonical perceptions of the same world under different admissible scalarizations or views, not of arbitrary heuristic feature branches. Every downstream TFE object shall therefore retain provenance to the originating core and gate so that the final governance layer interprets a family of structural perceptions rather than a decontextualized table of numbers.
+
+
+\section{Canonical Structural Geometry Objects}
+\meta{Make explicit the intermediate geometric entities that L0--L4 create and preserve so the kernel is not mistaken for a generic feature extractor.}{Ordered scalar field streams, gate descriptors, resonance outputs, DSF outputs, and core provenance.}{A formal catalog of structural geometry objects.}
+
+The canonical kernel induces the following ordered family of geometric objects:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Local structural point} $\gamma_c(t)$: the six-tuple of presence, motion, dispersion, curvature, relevance, and quiet-state indicator.
+    \item \textbf{Gate object} $G_{k,c}$: a maximal contiguous region of bounded geometric continuity.
+    \item \textbf{Gate descriptor manifold} $\mathfrak{G}_{k,c}$: duration, variation, relevance, multi-resolution partition signatures, cardinality, and gate-transition magnitude.
+    \item \textbf{Interpretive object} $ISF_{k,c}$: bounded structural meaning attached to a gate object.
+    \item \textbf{Resonance object} $\mathfrak{R}_{k,c}$: coherence, hysteresis, admissibility, and usable resonance.
+    \item \textbf{Decision-state object} $\mathfrak{D}_{k,c}$: directional sign, curvature, reversal, penalized uncertainty, persistence stress, and bounded potential.
+    \item \textbf{Trajectory object} $\mathcal{T}_{c}(k)$: the ordered history of gate/resonance/DSF objects for one core.
+    \item \textbf{Cross-core structural scene} $\mathfrak{T}(k)$: the collection of trajectory objects viewed together under deterministic fusion.
+\end{enumerate}
+
+A normative implementation shall preserve these objects or their lossless deterministic equivalents. An implementation that immediately flattens them into decontextualized rows without preserving ordered object identity shall be classified as a pragmatic approximation.
+
+\section{L0: Structural Evaluation Vector Construction}
+\meta{Convert the raw ordered input into the primitive structural-perceptual tuple used by every later layer.}{Strictly ordered canonical input series $I_C=\{(t_i,C_i)\}_{i=1}^{n}$ for one core $c$, deterministic adapter parameters, and admissibility checks.}{Normalized structural field $NSF_c = \{SEV_c(t_i)\}_{i=1}^{n}$.}
+
+L0 is the primitive structural-perceptual stage. It is not ``feature engineering'' in the ordinary ML sense. It is the deterministic reduction of an ordered signal into a minimal local state that preserves: magnitude, motion, dispersion, curvature, relevance, and negative-space / quiet-state information. These six quantities are the smallest admissible basis from which downstream gates and structural states are allowed to arise.
+
+For core $c$ at time $t$ let $F_c(t)$ denote the scalar field presented to UF by the adapter. Canonical definitions imported into TFE are:
+\begin{align*}
+\Delta F_c(t) &= F_c(t)-F_c(t-\Delta t),\\
+\bar F_{c,W}(t) &= \frac{1}{W}\sum_{j=0}^{W-1}F_c(t-j\Delta t),\\
+\sigma_c(t) &= \frac{1}{W}\sum_{j=0}^{W-1}\left\lVert F_c(t-j\Delta t)-\bar F_{c,W}(t)\right\rVert^2,\\
+\kappa_c(t) &= \left\lVert F_c(t+\Delta t)-2F_c(t)+F_c(t-\Delta t)\right\rVert,\\
+r_c(t) &= \psi_r\!\left(F_c(t-W_r\Delta t:t)\right),\\
+N_c(t) &= \begin{cases}
+1, & \sigma_c(t)<\sigma_{min}\ \wedge\ \lVert\Delta F_c(t)\rVert<\delta_{min}\ \wedge\ \kappa_c(t)<\kappa_{min},\\
+0, & \text{otherwise,}
+\end{cases}\\
+SEV_c(t) &= \big(F_c(t),\Delta F_c(t),\sigma_c(t),\kappa_c(t),r_c(t),N_c(t)\big).
+\end{align*}
+Here $\psi_r$ is the canonical deterministic relevance operator imported with the UF kernel. TFE may not replace it with a local learned or heuristic score.
+
+Interpretive meaning of the tuple is fixed:
+\begin{itemize}
+    \item $F_c(t)$ = presence / local magnitude;
+    \item $\Delta F_c(t)$ = first-order motion;
+    \item $\sigma_c(t)$ = local field dispersion;
+    \item $\kappa_c(t)$ = local bending / acceleration of structure;
+    \item $r_c(t)$ = relevance of the local state to the active field;
+    \item $N_c(t)$ = negative-space indicator showing that quietness, absence, or lack of dispersion is itself structurally informative.
+\end{itemize}
+
+L0 admissibility rules are strict. The following conditions shall hard-fail the evaluation before L1:
+\begin{itemize}
+    \item non-monotone timestamps;
+    \item missing required bars within a window beyond approved calendar rules;
+    \item non-finite values or invalid price domain;
+    \item duplicate timestamps in one core stream;
+    \item silent imputation not recorded in the audit trail.
+\end{itemize}
+
+L0 invariants:
+\begin{align*}
+\sigma_c(t) &\ge 0,\\
+\kappa_c(t) &\ge 0,\\
+N_c(t) &\in \{0,1\},\\
+SEV_c(t) &\in \mathbb{R}^5\times\{0,1\}.
+\end{align*}
+L0 outputs shall be serializable without loss of ordering, core identity, or deterministic equality.
+
+\section{L1: Gate Segmentation and Structural Quantization}
+\meta{Partition the primitive structural field into coherent intervals and derive gate-level descriptors that can be compared across time and across cores.}{$NSF_c=\{SEV_c(t)\}$.}{$G_{k,c}$, $TVR_{k,c}$, $P_\ell(G_{k,c})$, $C_{k,c}$, $\delta_g(G_{k,c})$, and gate provenance records.}
+
+L1 is the stage at which local perception becomes interval structure. A gate is not simply a moving window. It is a maximal contiguous interval whose internal variation remains below the canonical deviation threshold while preserving ordering. Gates therefore act as the primitive ``objects'' of structural interpretation.
+
+For each core $c$, define the gate boundary functional
+\begin{align*}
+D_c(t) &= \alpha_1\lVert\Delta F_c(t)\rVert + \alpha_2\sigma_c(t) + \alpha_3\kappa_c(t),\\
+D_c(t) &\ge \tau_D \Rightarrow \text{boundary at } t.
+\end{align*}
+A gate $G_{k,c}=[t_a,t_b)$ is the maximal half-open interval satisfying boundary admissibility and ordering consistency. Half-open intervals are required so that adjacent gates tile the ordered stream without overlap ambiguity.
+
+Imported descriptors are:
+\begin{align*}
+TVR_{k,c} &= (T_{k,c},V_{k,c},R_{k,c}),\\
+T_{k,c} &= t_b-t_a,\\
+V_{k,c} &= \int_{t_a}^{t_b}(\beta_1\lVert\Delta F_c\rVert+\beta_2\sigma_c+\beta_3\kappa_c)\,dt,\\
+R_{k,c} &= \int_{t_a}^{t_b}r_c(t)\,dt,\\
+P_\ell(G_{k,c}) &= \left(\left\lfloor\frac{T_{k,c}}{h_1^{(\ell)}}\right\rfloor,\left\lfloor\frac{V_{k,c}}{h_2^{(\ell)}}\right\rfloor,\left\lfloor\frac{R_{k,c}}{h_3^{(\ell)}}\right\rfloor\right),\\
+C_{k,c} &= \left|\{P_1(G_{k,c}),\dots,P_L(G_{k,c})\}\right|,\\
+\delta_g(G_{k,c}) &= \lVert \mu_{k,c}-\mu_{k-1,c}\rVert.
+\end{align*}
+
+Operationally, L1 provides three things:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item a deterministic tiling of ordered history into structural objects;
+    \item a multi-resolution quantization of those objects, so similarity and complexity can be assessed without raw-value dependence;
+    \item a bridge from local perception to interval identity, which later enables resonance, memory, and cross-core comparison.
+\end{enumerate}
+
+Required L1 controls:
+\begin{itemize}
+    \item tie-handling at $D_c(t)=\tau_D$ shall be deterministic and versioned;
+    \item minimum and maximum gate width constraints, if used, must be declared in the controlled parameter registry;
+    \item any merged/split gate post-processing must be prohibited unless it is part of the canonical kernel version.
+\end{itemize}
+
+\section{L2: Interpretive Structural Field}
+\meta{Convert gate objects into bounded, domain-independent interpretations that preserve structure without yet making domain judgments.}{$\{G_{k,c},TVR_{k,c},P_\ell(G_{k,c}),C_{k,c},\delta_g(G_{k,c}),N_c(G_{k,c})\}$.}{$ISF_{k,c}=(w_{k,c},CV_{k,c},S_{k,c},Reg_{k,c},U_{k,c},IAS_{k,c})$.}
+
+L2 is the first interpretive stage. It does not assign financial meaning. It assigns structural meaning. The central requirement is that identical gate objects under the same kernel version map to identical interpretive states regardless of environment, implementation language, or deployment profile.
+
+Canonical structure:
+\begin{align*}
+ISF_{k,c} &= (w_{k,c},CV_{k,c},S_{k,c},Reg_{k,c},U_{k,c},IAS_{k,c}),\\
+CV_{k,c} &= TVR_{k,c}-\mu_{k,c},\\
+S_{k,c} &= \psi_s\!\left(TVR_{k,c},P_1(G_{k,c}),\dots,P_L(G_{k,c}),C_{k,c},\delta_g(G_{k,c})\right),\\
+Reg_{k,c} &= \phi_{reg}\!\left(P_1(G_{k,c}),\dots,P_L(G_{k,c}),C_{k,c}\right),\\
+U_{k,c} &= \psi_u\!\left(C_{k,c},\delta_g(G_{k,c}),N_c(G_{k,c})\right),\\
+IAS_{k,c} &= \phi_{ias}\!\left(S_{k,c},U_{k,c},\delta_g(G_{k,c})\right).
+\end{align*}
+Here $\psi_s$, $\phi_{reg}$, $\psi_u$, and $\phi_{ias}$ are canonical imported operators. TFE may reference their outputs but may not substitute local semantics.
+
+Interpretive roles:
+\begin{itemize}
+    \item $w_{k,c}\in[0,1]$ = normalized structural intensity;
+    \item $CV_{k,c}$ = centered variation tensor / vector used for shape comparison;
+    \item $S_{k,c}$ = bounded structural score;
+    \item $Reg_{k,c}$ = canonical regime label or index;
+    \item $U_{k,c}$ = structural uncertainty only, not market uncertainty or probability;
+    \item $IAS_{k,c}$ = anomaly / instability flag for later suppression logic.
+\end{itemize}
+
+L2 is where the kernel stops being merely descriptive and becomes interpretive, but it remains domain-agnostic. That distinction is crucial: all later financial semantics belong to TFE, not to the UF kernel.
+
+\section{L3: Resonance Engine}
+\meta{Derive second-order structural coherence, suppress unstable transitions, and prepare a bounded field suitable for state formation.}{$ISF_{k,c}$ and divergence-related descriptors.}{$R_{k,c}$, $Hyst_{k,c}$, $g_{k,c}$, and $URF_{k,c}$.}
+
+L3 is the resonance stage. If L2 says what kind of structural object a gate is, L3 says whether adjacent interpretive objects participate in a coherent field or are merely passing noise. Resonance is therefore a second-order structural quantity: it summarizes whether the interpreted gates are mutually supportive under bounded uncertainty.
+
+Imported resonance functional and gating are:
+\begin{align*}
+R_{k,c} &= \frac{1}{Z}\left(\lambda_1w_{k,c} + \lambda_2\frac{\norm{CV_{k,c}}}{\norm{CV}_{max}} + \lambda_3S_{k,c} + \lambda_4\frac{1}{1+C_{k,c}} + \lambda_5(1-U_{k,c})\right),\\
+Hyst_{k,c} &= \mathbf{1}\{|R_{k,c}-R_{k-1,c}|>h_{max}\},\\
+g_{k,c} &= \mathbf{1}\{(U_{k,c}\le U_{max})\wedge(IAS_{k,c}=0)\wedge(Hyst_{k,c}=0)\},\\
+URF_{k,c} &= g_{k,c}\,R_{k,c}.
+\end{align*}
+
+Interpretive meaning:
+\begin{itemize}
+    \item $R_{k,c}$ = raw structural coherence prior to gating;
+    \item $Hyst_{k,c}$ = excessive resonance jump detector;
+    \item $g_{k,c}$ = admissibility gate for resonance;
+    \item $URF_{k,c}$ = usable resonance field entering L4.
+\end{itemize}
+
+Any implementation that bypasses hysteresis or anomaly suppression is non-conformant, because it turns resonance into a generic score rather than a bounded structural field.
+
+\section{L4: Decision State Field}
+\meta{Transform gated resonance into the canonical structural state vector that TFE is allowed to govern but not redefine.}{$URF_{k,c}$, $R_{k,c}$, $R_{k-1,c}$, $R_{k-2,c}$, and uncertainty/anomaly context.}{$DSF_{k,c}=(D_{k,c},M_{k,c},Rev_{k,c},U^{\ast}_{k,c},C_{k,c},P_{k,c},B_{k,c})$.}
+
+L4 is the terminal kernel stage. It is called the Decision State Field not because it is already a decision, but because it is the minimal state that a governance layer may legitimately interpret. TFE is allowed to act \emph{on} DSF, but not to alter what DSF means.
+
+Imported DSF equations are:
+\begin{align*}
+\Delta R_{k,c} &= R_{k,c}-R_{k-1,c},\\
+D_{k,c} &= \begin{cases}+1,& \Delta R_{k,c}>\varepsilon_D,\\0,& |\Delta R_{k,c}|\le \varepsilon_D,\\-1,& \Delta R_{k,c}< -\varepsilon_D,\end{cases}\\
+M_{k,c} &= R_{k,c}-2R_{k-1,c}+R_{k-2,c},\\
+Rev_{k,c} &= \mathbf{1}\{D_{k,c}D_{k-1,c}<0\},\\
+U^{\ast}_{k,c} &= U_{k,c} + \eta_HHyst_{k,c} + \eta_{IAS}IAS_{k,c},\\
+P_{k,c} &= |D_{k,c}-D_{k-1,c}|,\\
+B_{k,c} &= \clip\big(B_{k-1,c}+\xi(1-U^{\ast}_{k,c})\Delta R_{k,c}-\chi U^{\ast}_{k,c},\,B_{min},B_{max}\big),\\
+DSF_{k,c} &= (D_{k,c},M_{k,c},Rev_{k,c},U^{\ast}_{k,c},C_{k,c},P_{k,c},B_{k,c}).
+\end{align*}
+
+Component semantics are fixed:
+\begin{itemize}
+    \item $D_{k,c}$ = directional sign of resonance change;
+    \item $M_{k,c}$ = second-order curvature / momentum of the resonance field;
+    \item $Rev_{k,c}$ = reversal indicator;
+    \item $U^{\ast}_{k,c}$ = penalized uncertainty / instability;
+    \item $C_{k,c}$ = structural complexity/cardinality inherited from L1;
+    \item $P_{k,c}$ = directional discontinuity / persistence stress;
+    \item $B_{k,c}$ = bounded potential integrating stable resonance over time.
+\end{itemize}
+
+DSF is a structural field, not a recommendation, probability, forecast, return target, or utility estimate. Any L5 implementation that directly labels $DSF$ as ``buy'', ``sell'', or ``accuracy'' without the TFE governance rules is non-conformant.
+
+In a multi-core configuration, each core emits its own ordered DSF stream. TFE shall preserve core identity and gate provenance when converting these streams into the structural event tape.
+
+
+\section{How Structural Geometry Supports Decision-Making}
+\meta{Explain precisely how the kernel supports decision-making without itself becoming a recommendation engine.}{Ordered DSF trajectories, cross-core trajectories, and later L5 governance rules.}{A deterministic bridge statement from kernel geometry to governed action.}
+
+The kernel supports decision-making by transforming raw series data into bounded geometric evidence. The support path is:
+\[
+\text{raw field} \rightarrow \text{local structural points} \rightarrow \text{gates} \rightarrow \text{interpretive objects} \rightarrow \text{resonance objects} \rightarrow \text{DSF trajectories}.
+\]
+This path matters because L5 can ask questions that ordinary predictive analytics usually does not ask directly:
+\begin{itemize}
+    \item Is the present state part of a coherent structural trajectory or an isolated fluctuation?
+    \item Is the field bending toward continuation, reversal, or collapse?
+    \item Is the absence of movement itself informative?
+    \item Do multiple cores/views agree on the existence of the structure?
+    \item Does the structure remain admissible under external epoch pressure and financial governance?
+\end{itemize}
+
+The kernel therefore does not decide \emph{what return will occur}. It determines \emph{what structural object exists, how stable it is, how it is changing, and whether that change is geometrically coherent enough to be governed by L5}. L5 then uses this bounded geometric evidence together with domain rules to admit, suppress, or abstain.
+
+\section{Stability, Robustness, and SafeMode}
+\meta{Define the scalar summary quantities that gate external use.}{Canonical DSF outputs over a window and their perturbed variants.}{$S(UF)$, $R(UF)$, GSS, DSS, DSF-Stability, SafeMode.}
+
+Imported summaries:
+\begin{align*}
+S(UF) &= \lambda_c(1-Coh)+\lambda_h(1-H_s)+\lambda_b(1-Var(B))+\lambda_u(1-\bar U)+\lambda_d(1-Drift(T)),\\
+R(UF) &= 1-\frac{1}{K}\sum_{i=1}^{K}\left|S(UF)-S(UF^{(i)})\right|.
+\end{align*}
+
+Perturbation levels are $\sigma_{pct}\in\{0.1\%,0.2\%,0.5\%,1.0\%,2.0\%\}$. SafeMode shall activate whenever structural stability drops below the configured threshold or hardening rules otherwise require degraded operation.
+
+\chapter{SES / UF-Core Security and Protected Structural Boundary}
+\section{Security Objectives}
+\meta{State the mandatory security objectives inherited into TFE.}{UF-SP, SES Summary, deployment environment, domain parameters, threat model.}{Normative security goals for TFE.}
+
+TFE shall inherit and enforce the following normative security objectives:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item protect the UF Kernel implementation against practical reverse-engineering and tampering;
+    \item protect UF-SP and derivative protected structural representations from disclosure or undetected modification;
+    \item support multi-tenant, multi-environment deployment under a single deterministic model; and
+    \item implement mandatory threat responses when specific security signals are observed.
+\end{enumerate}
+
+\section{UF-SP, SES Summary, and Redaction Policy}
+\meta{Define what is protected and what may be plaintext.}{Kernel outputs, diagnostics, redaction policy.}{UF-SP serialization rule and SES Summary whitelist.}
+
+UF-SP shall include, at minimum:
+\begin{itemize}
+    \item SEV sequences from L0;
+    \item gate boundaries and attributes from L1;
+    \item interpretive vectors from L2;
+    \item resonance curves from L3;
+    \item DSF vectors from L4; and
+    \item validation/hardening diagnostics.
+\end{itemize}
+
+UF-SP must be serialized deterministically prior to encryption.
+
+Plaintext outputs outside the protected boundary shall be restricted to the SES Summary whitelist:
+\begin{itemize}
+    \item $S(UF)$;
+    \item $R(UF)$;
+    \item GSS;
+    \item DSS;
+    \item DSF-Stability scalar;
+    \item collapse flags;
+    \item SafeMode indicator.
+\end{itemize}
+
+No raw SEV, gate internals, full DSF vectors, per-gate diagnostics, resonance curves, or protected research event tapes may cross the boundary in plaintext.
+
+\section{Domain Parameters}
+\meta{Define the canonical domain-binding tuple for TFE.}{Asset identity, window identity, versions, tenant/environment identifiers.}{DomainParams tuple and equality rule.}
+
+For TFE, the canonical domain-binding tuple is
+\[
+\operatorname{DomainParams} = (symbol, window\_start, window\_end, timeframe, uf\_version, ses\_version, tenant\_id, engine\_variant, environment).
+\]
+
+A TFE implementation may add a non-sensitive adapter/profile identifier, but it shall not remove any required field. Two evaluations are domain-equal if and only if all tuple members match exactly.
+
+\section{Key Hierarchy and Envelope Format}
+\meta{Define the mandatory key derivation and envelope structure.}{$K_{root}$, DomainParams, UF-SP, SES Summary.}{$K_{domain}$ and a valid SES Envelope.}
+
+TFE shall use a two-layer key hierarchy:
+\begin{align*}
+K_{domain} &= HKDF(K_{root},\operatorname{DomainParams}).
+\end{align*}
+
+The SES Envelope shall be structured as
+\[
+\operatorname{Envelope} = \{header, summary, ciphertext\}
+\]
+with
+\begin{align*}
+header &= \{\operatorname{DomainParams}\},\\
+summary &= \{S,R,GSS,DSS,DSFStability,collapse\_flags,SafeMode\},\\
+ciphertext &= C.
+\end{align*}
+
+\section{Encode / Decode Algorithms}
+\meta{Specify the mandatory envelope transformation semantics.}{UF-SP, DomainParams, $K_{root}$, deterministic serializer.}{SES Envelope or verified UF-SP.}
+
+Let $\operatorname{Serialize}(\cdot)$ and $\operatorname{Deserialize}(\cdot)$ be canonical deterministic serializers.
+
+\textbf{Encode:}
+\begin{align*}
+header &\leftarrow \operatorname{DomainParams},\\
+summary &\leftarrow \operatorname{Redact}(UF\mbox{-}SP),\\
+K &\leftarrow HKDF(K_{root},\operatorname{DomainParams}),\\
+A &\leftarrow \operatorname{Serialize}(header,summary),\\
+P &\leftarrow \operatorname{Serialize}(UF\mbox{-}SP),\\
+C &\leftarrow SIV\mbox{-}Encrypt(K,P,A),\\
+\operatorname{Envelope} &\leftarrow \{header,summary,C\}.
+\end{align*}
+
+\textbf{Decode:}
+\begin{align*}
+K &\leftarrow HKDF(K_{root},\operatorname{DomainParams}),\\
+A &\leftarrow \operatorname{Serialize}(header,summary),\\
+P &\leftarrow SIV\mbox{-}Decrypt(K,C,A),\\
+UF\mbox{-}SP &\leftarrow \operatorname{Deserialize}(P).
+\end{align*}
+
+Decryption shall fail if any element of DomainParams differs between encode and decode.
+
+\section{Protected Research Profile (PRP) Rule}
+\meta{Define how richer structural representations may be used inside TFE without violating SES.}{SES Envelopes, PRP authorization, controlled research execution.}{Admissible protected use of richer structural payloads.}
+
+In PRP, L5 may derive richer representations --- including structural event tapes, mode-amplitude histories, or protected state checkpoints --- from decrypted UF-SP \emph{only} inside a controlled boundary satisfying all of the following:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item PRP mode is explicitly designated and logged;
+    \item decryption occurs only after successful domain and environment verification;
+    \item derived protected representations are treated as protected structural payloads and must themselves be enveloped or remain memory-resident only;
+    \item plaintext protected representations are never written to disk, logs, or network outside the protected boundary;
+    \item ordinary TFE consumers still receive only SES Summary fields or explicitly approved coarse decisions.
+\end{enumerate}
+
+\section{Threat and Response Matrix}
+\meta{Define mandatory behavior when specific security signals are observed.}{Security signals from kernel, SES, runtime, and hosting environment.}{Local and system responses.}
+
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{p{0.10\textwidth}p{0.26\textwidth}p{0.26\textwidth}p{0.28\textwidth}}
+\toprule
+Threat ID & Description & Detection Signals & Required Response \\
+\midrule
+T1 & Code extraction attempt & Debug / introspection flags, breakpoint patterns, known analysis environments where available & Local: set SafeMode, restrict outputs to coarse summaries, disable UF-SP export. System: log security event and notify operator. \\
+T2 & Code tampering & Bundle / manifest hash mismatch & Local: refuse normal operation, enter compromised state. System: quarantine/replace instance and route workloads away. \\
+T3 & UF-SP exfiltration & Request for raw UF-SP without SES envelope or invalid envelope fields & Local: deny request. System: log and optionally throttle/block caller. \\
+T4 & Envelope replay / misbinding & DomainParams mismatch or SIV authentication failure & Local: reject decryption and return no UF-SP. System: log replay suspicion and optionally rate-limit/review credentials. \\
+T5 & Engine rollback / clone & UF version or engine variant inconsistent with expected deployment & Local: flag anomaly, optionally degrade outputs. System: prevent registration without explicit approval. \\
+T6 & Adversarial environment & Missing integrity guarantees, unknown host, missing KMS access where required & Local: minimum safe mode only. System: deny node registration for production workloads. \\
+T7 & Rogue tenant / interface abuse & Excessive or abnormal query patterns per domain & Local: enforce rate limits. System: throttle or suspend tenant identity. \\
+T8 & Domain parameter manipulation & Repeated attempts to alter symbol/timeframe/tenant/environment for cross-domain reuse & Local: treat as error, never decrypt under mismatch. System: flag suspicious patterns. \\
+T9 & Data integrity tampering & Non-monotone timestamps, impossible bars, structural invalidity & Local: reject input, emit no normal envelope. System: log anomaly and request upstream verification. \\
+T10 & Collapse-induction denial of service & Repeated collapse-driving or SafeMode-triggering inputs & Local: limit repeated processing. System: stronger throttling, source isolation, or blacklist as approved. \\
+\bottomrule
+\end{longtable}
+
+\section{Deployment Profiles Applicable to TFE}
+\meta{State the deployment modes under which TFE may operate.}{Hosting environment and protection capabilities.}{Profile obligations.}
+
+TFE shall support the following profiles:
+\begin{itemize}
+    \item \textbf{Profile C (Cloud Service):} controlled cloud compute, protected storage, KMS/HSM access, SES at rest and in transit.
+    \item \textbf{Profile E (Edge / On-Prem Engine):} same envelope and logging rules, optional TPM/HSM support, restricted local admin interfaces.
+    \item \textbf{Profile D (Constrained Device Wrapper):} device sends raw series to protected engine and receives only summary or coarse decisions.
+\end{itemize}
+
+Optional informative profiles such as shadow approximators or split-brain deployments may be implemented only if their semantics, security posture, and validation obligations are separately specified.
+
+\section{Compliance Requirements}
+\meta{State the minimum conditions for claiming conformance to the TFE security boundary.}{Kernel boundary, envelope controls, plaintext restrictions, threat responses, logging.}{Conformance rule.}
+
+A TFE implementation claiming conformance to this specification shall:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item implement UF L0--L4 inside a clearly defined kernel boundary;
+    \item implement SES/UF-Core envelope protection over UF-SP and equivalent protection over any PRP-derived protected representations;
+    \item ensure that all protected structural payloads at rest and in transit are encrypted and authenticated via SES Envelopes or equivalent profile-approved wrappers;
+    \item restrict plaintext outputs to SES Summary fields only outside the protected boundary;
+    \item implement all mandatory threat responses T1--T10; and
+    \item provide a chain-of-custody log containing versions, domain parameters, environment, and all security events without exposing UF-SP.
+\end{enumerate}
+
+\chapter{L5 Governance Layer}
+\section{Purpose and Design Rule}
+\meta{Define what L5 is and what it is not.}{Protected structural outputs from L0--L4, SES summaries, runtime metadata, approved domain rules.}{Governed research actions, abstentions, runtime snapshots, and audit records.}
+
+L5 is the financial governance and memory layer. Its job is not to reconstruct kernel internals from redacted outputs in CAP, nor to behave as a generic classifier on flattened lag tables. Its job is to maintain a stateful interpretation of structural evolution across time and across deterministic views/cores, and to emit governed research actions only when the structural state, validation state, and domain rules jointly allow it.
+
+Normative design rule:
+\begin{quote}
+L5 shall be \textbf{event-driven}, \textbf{shared across long/mid/short memory}, \textbf{deterministic}, \textbf{multi-view aware}, and \textbf{explicitly governed}. Heuristics are allowed only if named, justified, approved, versioned, and auditable.
+\end{quote}
+
+\section{L5 Inputs}
+\meta{Define the complete L5 input object.}{Protected UF outputs, SES summaries, runtime metadata, domain parameters, approved rule registry.}{Canonical L5 input tuple.}
+
+For each evaluation sequence, L5 shall receive:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item a structural event tape $\E=(e_1,\dots,e_N)$;
+    \item domain parameters $(symbol, window\_start, window\_end, timeframe, uf\_version, ses\_version, tenant\_id, environment)$;
+    \item validation summaries $(S(UF),R(UF),GSS,DSS,DSF\text{-}Stability,collapse,SafeMode)$;
+    \item runtime metadata $(snapshot\_id, snapshot\_ts, build\_id, config\_hash, schema\_hash)$;
+    \item a deterministic multi-view / multi-core set $\mathcal{C}$ if more than one protected structural core is active; and
+    \item an approved domain-rule registry $\mathcal{R}_{dom}$.
+\end{enumerate}
+
+\section{Structural Event Tape}
+\meta{Define the primary L5 representation.}{Ordered structural states and thresholded transitions from canonical UF plus permitted runtime metadata.}{Ordered event tape $\E$.}
+
+The event tape is the normative L5 input representation. For asset $a$ and window $W$, define
+\[
+\E_{a,W}=(e_1,e_2,\dots,e_N),\qquad \tau_1<\tau_2<\cdots<\tau_N.
+\]
+Each event is
+\[
+e_n=(\tau_n,a,m_n,v_n,\mu_n)
+\]
+where:
+\begin{itemize}
+    \item $\tau_n$ is the event timestamp;
+    \item $m_n\in\mathcal{M}$ is the event type;
+    \item $v_n\in\R^{p}$ is the numeric payload;
+    \item $\mu_n$ is the immutable metadata payload.
+\end{itemize}
+
+Minimum event types are:
+\begin{itemize}
+    \item gate open / gate close;
+    \item regime change;
+    \item resonance peak / trough / reversal;
+    \item negative-space onset / release;
+    \item stability threshold crossing;
+    \item collapse flag on / off;
+    \item approved domain-rule event.
+\end{itemize}
+
+Minimum numeric payload is
+\[
+v_n = (D_k,M_k,R_k,U_k^{\ast},C_k,P_k,B_k,S(UF),R(UF),GSS,DSS,DSF\text{-}Stability,N_k,\omega_n,\phi_n,\rho_n,s_n)
+\]
+where the last four terms are L5 process quantities defined below.
+
+
+\section{Event Sparsification and Computational Discipline}
+\meta{Constrain the normative L5 design to compute on structural events rather than indiscriminately on every row, and explain why this matters computationally and scientifically.}{Event tape $\mathcal{E}_T$, state dimensions, and sparsification thresholds declared in controlled registries.}{A computational-discipline rule and event admissibility semantics.}
+
+The normative L5 shall prefer event-driven updates over bar-driven updates whenever the semantic content is unchanged. Let the full candidate event stream be
+\[
+\widetilde{\mathcal{E}}_T = \{\tilde e_1,\dots,\tilde e_M\}
+\]
+derived from all possible kernel transitions. Let the admissible event tape be
+\[
+\mathcal{E}_T = \{e_n\}_{n=1}^{N_E},\qquad N_E\le M,
+\]
+where only events satisfying controlled significance rules are retained. A candidate event $\tilde e_m$ shall be admitted iff
+\[
+\mathcal{S}(\tilde e_m)=\mathbf{1}[\Delta_{geom}(\tilde e_m)\ge \theta_{geom}]\vee \mathbf{1}[\Delta_{epoch}(\tilde e_m)\ge \theta_{epoch}]\vee \mathbf{1}[\Delta_{rule}(\tilde e_m)=1].
+\]
+Here $\Delta_{geom}$ measures structural novelty, $\Delta_{epoch}$ measures exogenous-field novelty, and $\Delta_{rule}$ indicates a forced event because an approved governance rule changed state. This preserves the scientific object --- the ordered structural evolution --- while controlling compute and storage growth.
+
+\section{Deterministic Multi-View / Multi-Core Ensemble}
+\meta{Define how multiple structural cores or views are combined without violating determinism.}{Set of protected cores/views $\mathcal{C}$, each yielding an event stream or latent field.}{Fused event representation and fused latent field.}
+
+TFE may instantiate multiple deterministic cores or views, for example by using distinct but approved window families, instrument groupings, or protected structural encodings. Let $c\in\mathcal{C}$ index such a core/view. Each core yields either an event tape $\E^{(c)}$ or a latent field contribution $z_n^{(c)}$.
+
+Define core quality score
+\[
+\psi_n^{(c)} = \alpha_S S_n^{(c)} + \alpha_R R_n^{(c)} + \alpha_G GSS_n^{(c)} + \alpha_D DSS_n^{(c)} - \alpha_U \bar U_n^{(c)} - \alpha_X X_n^{(c)}
+\]
+where $X_n^{(c)}$ is disagreement against peer cores/views.
+
+Define deterministic fusion weights
+\[
+w_n^{(c)} = \frac{\exp(\delta\psi_n^{(c)})}{\sum_{c'\in\mathcal{C}}\exp(\delta\psi_n^{(c')})}.
+\]
+
+If latent fields are available, the fused field is
+\[
+z_n^{fusion}=\sum_{c\in\mathcal{C}} w_n^{(c)} z_n^{(c)}.
+\]
+If only event tapes are available, events are merged by timestamp, view-stable ordering, and deterministic tie-breaks before being embedded by $\Phi$.
+
+
+\section{Cross-Core / Multi-View Production Semantics}
+\meta{Resolve how multiple cores or views behave in production rather than leaving them as a theoretical possibility.}{$DSF_{k,c}$ streams from active cores, per-core quality metrics, and view availability status.}{Active-core set, fusion weights, disagreement metrics, quorum state, and fused structural field.}
+
+Let the active core set at event index $n$ be $\mathcal{C}_n\subseteq\mathcal{C}$. For each core $c\in\mathcal{C}_n$, define a quality weight
+\[
+\tilde w_{c,n}=\max(0,1-U^{\ast}_{c,n})\cdot S^{core}_{c,n}\cdot A^{avail}_{c,n},
+\]
+where $S^{core}_{c,n}\in[0,1]$ is the core-quality scalar imported from validation summaries and $A^{avail}_{c,n}\in\{0,1\}$ marks availability. Normalize
+\[
+w_{c,n}=\frac{\tilde w_{c,n}}{\sum_{d\in\mathcal{C}_n}\tilde w_{d,n}+\varepsilon_w}.
+\]
+The fused horizon score is then
+\[
+Q_h(n)=\sum_{c\in\mathcal{C}_n} w_{c,n}Q_{c,h}(n).
+\]
+Cross-core disagreement shall be measured at minimum by
+\[
+\Delta_{core,h}(n)=\max_{c,d\in\mathcal{C}_n}|Q_{c,h}(n)-Q_{d,h}(n)|
+\]
+and by weighted variance
+\[
+V_{core,h}(n)=\sum_{c\in\mathcal{C}_n}w_{c,n}\big(Q_{c,h}(n)-Q_h(n)\big)^2.
+\]
+A production recommendation may be emitted only if the active quorum requirement is satisfied:
+\[
+|\mathcal{C}_n|\ge q_{min}
+\]
+and the disagreement gates hold:
+\[
+\Delta_{core,h}(n)\le \Delta_{core,h}^{max},\qquad V_{core,h}(n)\le V_{core,h}^{max}.
+\]
+If $|\mathcal{C}_n|=1$, the system enters the single-core degenerate mode with $w_{c,n}=1$ and the audit trail shall explicitly record that a fused multi-core decision was not available.
+
+\section{Coherence Field Process Quantities}
+\meta{Define generic process quantities used by L5 to represent tempo, phase, coherence, and surprise.}{Ordered event timestamps and structural summaries.}{Deterministic process-state variables.}
+
+Without changing UF semantics, L5 defines the following deterministic process quantities:
+\begin{align*}
+\Delta\tau_n &= \max(\varepsilon_\tau,\tau_n-\tau_{n-1}),\\
+\omega_n &= \frac{2\pi}{\Delta\tau_n},\\
+\phi_n &= \wrap(\phi_{n-1}+\omega_n\Delta\tau_n),\\
+\rho_n &= \clip\left(a_\rho\bar R_n+b_\rho\bar S_n-c_\rho\bar U_n-d_\rho\bar C_n,0,1\right),
+\end{align*}
+with $\bar R_n,\bar S_n,\bar U_n,\bar C_n$ being deterministic local summaries of resonance, stability, uncertainty, and divergence over the event neighborhood.
+
+\section{Mode-Amplitude Memory over Histories}
+\meta{Introduce a deterministic representation for mixed-time structural modes.}{Event embeddings and process-state variables.}{Mode-amplitude state vector $a_n$.}
+
+Inspired by history-based mode reasoning, define event embedding
+\[
+u_n = \Phi(e_n) \in \R^{d_u}
+\]
+with fixed, versioned map $\Phi$. Define mode-amplitude vector $a_n\in\R^{d_a}$ updated by
+\[
+a_{n+1} = \sat(\Lambda_a a_n + W_a \nu_n + U_a \pi_n)
+\]
+where $\pi_n=(\rho_n,\phi_n,S(UF),R(UF),GSS,DSS,DSF\text{-}Stability)$ and $\Lambda_a$ is a diagonal decay matrix with distinct long/mid/short memory constants embedded in its spectrum.
+
+The purpose of $a_n$ is to encode persistent structural modes over histories without reducing the representation to independent horizon worlds.
+
+\section{Resonant Multi-scale Memory (RMM)}
+\meta{Define the shared internal L5 memory.}{Event embeddings, mode amplitudes, and process quantities.}{Fast, medium, and slow structural memory states and a shared latent field.}
+
+Define three coupled state bands
+\[
+x_f^n\in\R^{d_f},\qquad x_m^n\in\R^{d_m},\qquad x_s^n\in\R^{d_s}
+\]
+and update them by
+\begin{align*}
+x_f^{n+1} &= \sat(A_f x_f^n + B_f\nu_n + G_f\pi_n + L_f a_n),\\
+x_m^{n+1} &= \sat(A_m x_m^n + B_m\nu_n + H_{mf}x_f^{n+1} + L_m a_n),\\
+x_s^{n+1} &= \sat(A_s x_s^n + B_s\nu_n + H_{sm}x_m^{n+1} + L_s a_n).
+\end{align*}
+
+The shared latent structural field is
+\[
+z_n = W_f x_f^n + W_m x_m^n + W_s x_s^n + W_a a_n + W_\pi \pi_n.
+\]
+
+Boundedness requirements:
+\begin{itemize}
+    \item all matrices shall be fixed and versioned;
+    \item spectral radii and clamping bounds shall guarantee finite trajectories;
+    \item no stochastic update, gradient step, or hidden adaptive parameter update is permitted in normative L5 operation.
+\end{itemize}
+
+\section{Predictive Structural Residual and Free Structural Energy}
+\meta{Define a deterministic residual between predicted and observed structure and use it as a governance quantity.}{Shared latent field $z_n$ and observed next event embedding.}{Structural surprise $s_n$ and free structural energy $\mathcal{F}_n$.}
+
+Define one-step event prediction
+\[
+\hat \nu_{n+1} = T_z z_n + T_\pi \pi_n
+\]
+and structural surprise
+\[
+s_{n+1} = \norm{\nu_{n+1}-\hat \nu_{n+1}}_2.
+\]
+
+Define structural inconsistency
+\[
+\Gamma_n = \lambda_U U_n^{\dagger} + \lambda_C C_n^{\dagger} + \lambda_N N_n^{\dagger} + \lambda_X X_n^{\dagger} - \lambda_\rho \rho_n
+\]
+and free structural energy
+\[
+\mathcal{F}_n = \Gamma_n + \lambda_s s_n.
+\]
+
+Here:
+\begin{itemize}
+    \item $U_n^{\dagger}$ is normalized uncertainty pressure;
+    \item $C_n^{\dagger}$ is normalized divergence/disagreement pressure;
+    \item $N_n^{\dagger}$ is normalized negative-space pressure;
+    \item $X_n^{\dagger}$ is cross-scale inconsistency.
+\end{itemize}
+
+$\mathcal{F}_n$ is not a learned loss. It is a deterministic governance quantity. Low values indicate internally coherent structural evolution.
+
+\section{Shared Horizon Heads}
+\meta{Define how horizons are interpreted without splitting the model into independent worlds.}{Shared latent field $z_n$ and free structural energy $\mathcal{F}_n$.}{Horizon-specific structural action scores.}
+
+Define horizon set $\mathcal{H}=\{5,20,60\}$ and per-horizon action scores
+\[
+Q_h(n)=q_h^{\top}z_n - \eta_h\mathcal{F}_n,\qquad h\in\mathcal{H},
+\]
+with all $q_h$ and $\eta_h$ fixed by versioned configuration.
+
+Define mean sign coherence
+\begin{align*}
+\bar Q_n &= \frac{1}{|\mathcal{H}|}\sum_{h\in\mathcal{H}}Q_h(n),\\
+\chi_n &= 1-\frac{1}{|\mathcal{H}|}\sum_{h\in\mathcal{H}}\frac{1-\sgn(Q_h(n))\sgn(\bar Q_n)}{2}.
+\end{align*}
+The quantity $\chi_n\in[0,1]$ measures cross-horizon agreement from the shared state. L5 shall not be architected as independent semantic worlds for 5-, 20-, and 60-day reasoning in the normative design.
+
+
+\section{Why L5 is Not Ordinary Predictive Analytics}
+\meta{Prevent misclassification of the normative L5 as a generic predictive model on engineered features.}{Shared latent state, horizon heads, event tape, and governance outputs.}{A normative non-equivalence statement.}
+
+A standard predictive layer estimates a target. Normative L5 instead governs over bounded structural state. The horizon heads therefore do not represent separate predictive worlds; they are deterministic readouts over a shared field:
+\[
+Q_h(n)=H_h(z_n),\qquad h\in\{5,20,60\},
+\]
+with all $H_h$ constrained to consume the same $z_n$. The admissible downstream action is then
+\[
+A_h^{cand}(n)=\mathcal{M}\big(Q_h(n),\mathcal{F}_n,\Gamma_n,\Pi_n\big),
+\]
+where $\mathcal{M}$ is an action-mapping functional that may emit abstention or no-output. This differs from predictive analytics because (i) abstention is native, (ii) action is conditioned on coherence and admissibility rather than only score magnitude, and (iii) long/mid/short memory remain coupled through the same state. Any implementation that replaces this with independent per-horizon score learners over row tables shall be marked as a pragmatic approximation.
+
+\section{Action Mapping}
+\meta{Convert structural action scores into governed research outputs.}{$Q_h(n)$, $\mathcal{F}_n$, hard blockers, and coherence criteria.}{Action label and abstention state for each $h\in\mathcal{H}$.}
+
+Let hard blocker indicator be $B_n^{hard}\in\{0,1\}$. Then for each horizon $h$:
+\[
+A_h(n)=\begin{cases}
+\text{NO\_OUTPUT}, & B_n^{hard}=1,\\
+\text{ABSTAIN}, & \chi_n<\chi_{min},\\
+\text{ACCUMULATE}, & Q_h(n)>\theta_h^{+}\ \wedge\ \mathcal{F}_n\le\mathcal{F}_{max},\\
+\text{AVOID}, & Q_h(n)<-\theta_h^{-}\ \wedge\ \mathcal{F}_n\le\mathcal{F}_{max},\\
+\text{HOLD}, & \text{otherwise.}
+\end{cases}
+\]
+Thresholds are fixed by configuration and must be audit-visible.
+
+\section{Financial Domain Rules and Approved Heuristics}
+\meta{Define mandatory rules that govern whether L5 may emit any research action.}{Validation state, runtime snapshot metadata, version metadata, domain parameters, action scores.}{Hard blockers, soft blockers, and permitted outputs.}
+
+Hard blockers (any true implies $B_n^{hard}=1$):
+\begin{itemize}
+    \item SafeMode active;
+    \item any collapse flag active;
+    \item $S(UF)<S_{min}^{app}$ or $R(UF)<R_{min}^{app}$;
+    \item GSS, DSS, or DSF-Stability below configured minima;
+    \item runtime snapshot stale or invalid;
+    \item DomainParams mismatch or version mismatch;
+    \item data-integrity anomaly, non-monotone timestamps, invalid bar fields, or failed SES verification;
+    \item missing audit trail or failed deterministic reproducibility check.
+\end{itemize}
+
+Soft governance rules (do not force $NO\_OUTPUT$ but may force $ABSTAIN$):
+\begin{itemize}
+    \item cross-horizon coherence below $\chi_{min}$;
+    \item free structural energy $\mathcal{F}_n$ above $\mathcal{F}_{max}$;
+    \item insufficient persistence of action state across the minimum confirmation count $N_{persist}$;
+    \item approved cooldown window still active after a reversal event;
+    \item cross-core disagreement above approved ensemble threshold.
+\end{itemize}
+
+Admissible financial-domain heuristics are restricted to practical inevitabilities such as stale-snapshot gating, data-health rejection, mandatory abstention on collapse/instability, or explicit market-eligibility filters. No heuristic may be used to silently replace the structural memory thesis.
+
+\section{Heuristics Registry}
+\meta{Govern the use of heuristics without silently replacing thesis-faithful behavior.}{Candidate heuristic, justification, expected boundary of use, approval record.}{Registry entry or rejection.}
+
+A heuristic is admissible only if all of the following are recorded:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item name and unique identifier;
+    \item scientific or operational justification;
+    \item exact mathematical rule or threshold;
+    \item scope of applicability;
+    \item approver and approval date;
+    \item rollback or expiration condition.
+\end{enumerate}
+Any undeclared shortcut is non-conformant with this specification.
+
+\section{Conformance Note on Pragmatic Approximations}
+\meta{Distinguish the thesis-faithful L5 from pragmatic serialized approximations.}{Current implementation characteristics.}{Classification rule.}
+
+Any implementation whose primary scientific object is a row-first lag table, or which models 5/20/60 as semantically independent worlds, shall be classified as a \textbf{pragmatic approximation} unless equivalence to the thesis-faithful design is demonstrated. Pragmatic approximations may be useful for engineering, benchmarking, or migration triage, but shall not be treated as definitive tests of DSF-AI without a conformance audit.
+
+
+\chapter{Financial Governance, Epoch Library, and Strategy Rules}
+\section{Purpose}
+\meta{Define the financial-domain governance layer that converts structurally admissible states into governed research judgments.}{Shared latent field $z_n$, free structural energy $\mathcal{F}_n$, validation summaries, company fundamentals, sector context, epoch mosaic, approved rules.}{Investability score, strategy class, abstention flags, explanation factors, and bounded research actions.}
+
+This chapter is normative for TFE. Its role is to prevent structurally interesting states from being emitted as research recommendations when the broader domain context makes the interpretation non-admissible, over-speculative, or economically inconsistent.
+
+\section{Fundamental Input Set}
+\meta{Declare the minimum company and sector descriptors required for governed financial interpretation.}{Company fundamentals, sector/industry metadata, market-cap class, valuation metrics, balance-sheet metrics, profitability metrics, analyst/quality metadata if approved, and epoch mosaic channels.}{Normalized governance input vector.}
+
+For symbol $s$ at evaluation time $t$, define the minimum governance vector
+\begin{align*}
+g(s,t)=(&PM,GM,OM,FCFM,RevG,EpsG,LEV,ICOV,ROIC,\\
+&PE,EVEBITDA,PB,MCAP,\sigma_{sec},\sigma_{ind},\Xi_t,\Pi_t)
+\end{align*}
+where:
+\begin{itemize}
+\item $PM$ = profit margin;
+\item $GM$ = gross margin;
+\item $OM$ = operating margin;
+\item $FCFM$ = free-cash-flow margin;
+\item $RevG$ = revenue growth;
+\item $EpsG$ = earnings growth;
+\item $LEV$ = leverage ratio;
+\item $ICOV$ = interest coverage;
+\item $ROIC$ = return on invested capital;
+\item valuation terms use approved deterministic market data definitions;
+\item $\sigma_{sec},\sigma_{ind}$ are sector and industry identifiers;
+\item $\Xi_t$ is the epoch mosaic and $\Pi_t$ is the approved rule activation vector.
+\end{itemize}
+
+\section{Fundamental Quality Classes}
+\meta{Discretize core company health variables into deterministic quality classes.}{Governance vector $g(s,t)$.}{Quality classes and penalty triggers.}
+
+For each metric $m\in\{PM,GM,OM,FCFM,RevG,EpsG,LEV,ICOV,ROIC\}$, TFE shall define a versioned threshold triple $(\theta_m^{weak},\theta_m^{mid},\theta_m^{strong})$ and classify:
+\[
+Class_m(s,t)=
+\begin{cases}
+\text{Weak}, & m(s,t) < \theta_m^{weak},\\
+\text{Marginal}, & \theta_m^{weak}\le m(s,t)<\theta_m^{mid},\\
+\text{Adequate}, & \theta_m^{mid}\le m(s,t)<\theta_m^{strong},\\
+\text{Strong}, & m(s,t)\ge \theta_m^{strong}.
+\end{cases}
+\]
+Where low values are better (for example leverage), the inequality direction shall be reversed in the versioned threshold table.
+
+Define a deterministic quality score
+\[
+Q_{fund}(s,t)=\sum_{m\in\mathcal{M}_{+}} w_m q_m(s,t)-\sum_{m\in\mathcal{M}_{-}} w_m q_m(s,t),
+\]
+where each $q_m$ maps the class into a bounded scalar in $[-1,1]$.
+
+
+\section{Normative Baseline Threshold Tables and Sector Overrides}
+\meta{Resolve open issue 1 by making baseline threshold values explicit rather than leaving them only as an abstract registry obligation.}{Fundamental metrics, sector/industry classes, and controlled revision policy.}{Default threshold tables, override factors, and parameter-governance rules.}
+
+Unless superseded by a controlled revision, the normative baseline thresholds for common equity operating-company analysis are:
+
+\renewcommand{\arraystretch}{1.12}
+\begin{longtable}{p{0.18\textwidth}p{0.16\textwidth}p{0.16\textwidth}p{0.16\textwidth}p{0.16\textwidth}}
+\toprule
+Metric & Weak & Marginal & Adequate & Strong \\
+\midrule
+Profit Margin ($PM$) & $<3\%$ & $[3,7)\%$ & $[7,15)\%$ & $\ge 15\%$ \\
+Gross Margin ($GM$) & $<20\%$ & $[20,30)\%$ & $[30,45)\%$ & $\ge 45\%$ \\
+Operating Margin ($OM$) & $<4\%$ & $[4,10)\%$ & $[10,18)\%$ & $\ge 18\%$ \\
+FCF Margin ($FCFM$) & $<0\%$ & $[0,5)\%$ & $[5,12)\%$ & $\ge 12\%$ \\
+Revenue Growth ($RevG$) & $<0\%$ & $[0,5)\%$ & $[5,12)\%$ & $\ge 12\%$ \\
+EPS Growth ($EpsG$) & $<0\%$ & $[0,5)\%$ & $[5,12)\%$ & $\ge 12\%$ \\
+Return on Invested Capital ($ROIC$) & $<5\%$ & $[5,10)\%$ & $[10,15)\%$ & $\ge 15\%$ \\
+Interest Coverage ($ICOV$) & $<1.5$ & $[1.5,3)$ & $[3,6)$ & $\ge 6$ \\
+Leverage ($LEV$; lower is better) & $>4.5$ & $(3.0,4.5]$ & $(1.5,3.0]$ & $\le 1.5$ \\
+\bottomrule
+\end{longtable}
+
+Sector and industry overrides shall be multiplicative adjustments to threshold boundaries, not silent redefinitions. Let $\upsilon_m^{sec}(\sigma_{sec})$ and $\upsilon_m^{ind}(\sigma_{ind})$ be controlled factors. The effective threshold boundary for metric $m$ is:
+\[
+\theta^{eff}_{m,r}(s,t)=\theta_{m,r}^{base}\cdot \upsilon_m^{sec}(\sigma_{sec}(s))\cdot \upsilon_m^{ind}(\sigma_{ind}(s)),
+\]
+where $r\in\{weak,mid,strong\}$. Example override policies include:
+\begin{itemize}
+    \item regulated utilities and staples may receive tolerance on raw growth but not on leverage/cash-generation failures;
+    \item software and asset-light IP businesses may tolerate lower tangible-book relevance but not persistent negative free-cash-flow without offsetting growth quality;
+    \item construction, engineering, and industrial project businesses shall require stronger backlog quality, cash conversion, and margin discipline when rates, war, or commodity-input stress is elevated;
+    \item early biotech / pre-profit profiles may be admitted only in explicitly speculative strategy classes.
+\end{itemize}
+All override factors shall be named in the controlled parameter registry and referenced in the audit trail when used.
+
+\section{Speculation and Fragility Penalties}
+\meta{Formalize practical financial exclusions and cautionary penalties.}{Governance vector, class assignments, and epoch mosaic.}{Speculative penalty $\Delta_{spec}$ and hard blocks.}
+
+Define the speculative penalty
+\begin{align*}
+\Delta_{spec}(s,t)=&\lambda_{pm}\mathbf{1}[Class_{PM}=\text{Weak}]
++\lambda_{fcf}\mathbf{1}[Class_{FCFM}=\text{Weak}] \\
+&+\lambda_{rev}\mathbf{1}[Class_{RevG}=\text{Weak}]
++\lambda_{eps}\mathbf{1}[Class_{EpsG}=\text{Weak}] \\
+&+\lambda_{lev}\mathbf{1}[Class_{LEV}=\text{Weak}]
++\lambda_{cov}\mathbf{1}[Class_{ICOV}=\text{Weak}] \\
+&+\lambda_{val}\,Penalty_{val}(s,t).
+\end{align*}
+
+Hard governance blockers shall include, at minimum:
+\begin{itemize}
+\item severe data-quality or accounting incompleteness;
+\item unresolved corporate actions that break comparability;
+\item distress signals beyond approved limits;
+\item explicit sector or epoch exclusion approved by governance;
+\item prohibited speculative profile in the active operating mode.
+\end{itemize}
+
+\section{Sector and Industry Sensitivity Matrices}
+\meta{Represent macro and epoch effects by sector and industry instead of only at the symbol level.}{Sector/industry identifiers and epoch mosaic channels.}{Deterministic sector and industry impact multipliers.}
+
+Let $\Sigma$ be the sector set and $\mathcal{I}$ the industry set. For each sphere-of-impact channel $j\in\{1,\dots,32\}$ define deterministic coupling matrices:
+\[
+M^{sec}\in\mathbb{R}^{32\times |\Sigma|},\qquad M^{ind}\in\mathbb{R}^{32\times |\mathcal{I}|}.
+\]
+Then the epoch-induced sector pressure is
+\[
+\Omega_{sec}(s,t)=\sum_{j=1}^{32}\Xi_{t,j}\,M^{sec}_{j,\sigma_{sec}(s)},
+\qquad
+\Omega_{ind}(s,t)=\sum_{j=1}^{32}\Xi_{t,j}\,M^{ind}_{j,\sigma_{ind}(s)}.
+\]
+This supports rules such as ``war-driven infrastructure pressure'', ``building-cycle weakness under rates stress'', or ``energy-cost shock on thin-margin sectors'' without hard-coding one ticker-specific branch.
+
+
+\section{Epoch Source Ingestion and Quantification}
+\meta{Define how real-world events become deterministic epoch objects instead of hand-wavy narrative overlays.}{Approved news/event sources, macro releases, sector data, source reliability registry, and classification taxonomy.}{Quantified epoch candidates ready for library admission.}
+
+Each raw source event $u$ is first normalized into
+\[
+\nu_u=(id_u,src_u,ts_u,class_u,scope_u,dir_u,sev_u,conf_u,pers_u,geo_u,sec_u,ind_u,textHash_u).
+\]
+The admission score for epoch candidacy is
+\[
+\Pi_{epoch}(u)=w_{src}\,Rel(src_u)+w_{sev}\,sev_u+w_{conf}\,conf_u+w_{pers}\,pers_u+w_{scope}\,scope_u-w_{dup}\,Dup(u,\mathcal{L}_{epoch}),
+\]
+where $Rel(src_u)$ is the approved source-reliability score and $Dup(u,\mathcal{L}_{epoch})$ penalizes near-duplicate events already represented in the live library. An event may be admitted as a new epoch object or merged into an existing one only if
+\[
+\Pi_{epoch}(u)\ge \pi_{min}^{epoch}.
+\]
+Sphere-of-impact projection is deterministic:
+\[
+\xi_u = M_{class(class_u)}\,\Gamma_{geo}(geo_u)\,\Gamma_{scope}(scope_u)\,\Gamma_{dir}(dir_u),
+\]
+where $M_{class(class_u)}\in\mathbb{R}^{32}$ is the base sphere vector for the event class and the $\Gamma$ terms are diagonal scaling operators. This mechanism allows world-event news to become part of the epoch library without hand-coded ticker narratives.
+
+\section{Epoch Objects and Epoch Library}
+\meta{Define the controlled external-world event library as a first-class object in TFE.}{Curated event sources, approved taxonomies, source provenance, severity/confidence assessments, and decay settings.}{Versioned epoch objects and the active epoch library.}
+
+Each epoch object $\varepsilon_k$ shall be:
+\[
+\varepsilon_k = (id_k,class_k,t_k^{start},t_k^{end},sev_k,conf_k,pers_k,\xi_k,src_k,decay_k)
+\]
+where:
+\begin{itemize}
+\item $class_k$ is the epoch class (e.g. rates, war, regulation, energy, logistics, labor, consumer stress, building cycle);
+\item $sev_k\in[0,1]$ is severity;
+\item $conf_k\in[0,1]$ is confidence;
+\item $pers_k\in[0,1]$ is persistence weight;
+\item $\xi_k\in\mathbb{R}^{32}$ is the sphere-of-impact vector;
+\item $src_k$ is provenance metadata;
+\item $decay_k$ is the temporal decay constant or kernel.
+\end{itemize}
+
+The active epoch amplitude of object $k$ at time $t$ is
+\[
+\omega_k(t)=sev_k\cdot conf_k\cdot pers_k\cdot \exp(-decay_k\cdot \max(0,t-t_k^{end}))\cdot \mathbf{1}[t\ge t_k^{start}].
+\]
+
+\section{Epoch Mosaic and Sphere-of-Impact Field}
+\meta{Fuse epoch objects into a shared macro-context field that can interact with structural memory.}{Active epoch objects and sphere vectors.}{Epoch mosaic $\Xi_t \in \mathbb{R}^{32}$.}
+
+The 32-channel epoch mosaic is
+\[
+\Xi_t = \sum_{k=1}^{K_t} \omega_k(t)\,\xi_k.
+\]
+Channels shall be versioned and documented; examples include rates, war/geopolitics, credit stress, building cycle, energy, consumer pressure, logistics, regulation, fiscal impulse, labor pressure, technology cycle, and supply-chain strain.
+
+\section{G32 Coordinator}
+\meta{Define the deterministic coordinator that maintains the live epoch mosaic, resolves source conflicts, and couples external event structure into the shared TFE field.}{Admitted epoch objects, source-reliability registry, sector/industry mappings, market-level summaries, and approved priorities.}{Versioned G32 state vector, event resolution decisions, and derived context scalars.}
+
+The G32 Coordinator is the deterministic control process over the epoch library. It is not a discretionary news reader. It performs four duties:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item admit / reject / merge epoch candidates;
+    \item maintain the live 32-channel epoch mosaic;
+    \item resolve conflicts between simultaneous or contradictory epoch objects;
+    \item project the epoch mosaic into sector, industry, and company exposures used by L5.
+\end{enumerate}
+
+Its state is
+\[
+G32_t=(\Xi_t,\bar\Xi_t,\Delta\Xi_t,\Pi_t^{epoch},\mathcal{L}_{epoch,t},\mathcal{R}_t),
+\]
+where $\mathcal{L}_{epoch,t}$ is the active epoch object set and $\mathcal{R}_t$ is the conflict-resolution ledger.
+
+State updates are
+\begin{align*}
+\Xi_t &= \sum_{k=1}^{K_t} \omega_k(t)\,\xi_k,\\
+\bar \Xi_t &= \alpha_g \bar \Xi_{t-1} + (1-\alpha_g)\Xi_t,\\
+\Delta \Xi_t &= \Xi_t-\bar \Xi_t,\\
+\Pi_t^{epoch} &= \phi_{epoch}\!\left(\Xi_t,\Delta\Xi_t,\mathcal{L}_{epoch,t},\mathcal{R}_t\right).
+\end{align*}
+
+Conflict resolution between epoch objects $a$ and $b$ shall be deterministic. Define overlap score
+\[
+O(a,b)=\frac{\langle \xi_a,\xi_b\rangle_+}{\|\xi_a\|\,\|\xi_b\|+\varepsilon_o}
+\]
+and contradiction score
+\[
+K(a,b)=\frac{\langle \xi_a,-\xi_b\rangle_+}{\|\xi_a\|\,\|\xi_b\|+\varepsilon_o}.
+\]
+If $O(a,b)\ge o_{merge}$ and source-class rules permit, the objects may be merged; if $K(a,b)\ge k_{conflict}$ the coordinator shall retain both only with a recorded conflict entry and may force lower confidence until the contradiction resolves.
+
+The coordinator may emit derived context scalars such as
+\[
+WarPressure_t,\; RatesPressure_t,\; BuildCyclePressure_t,\; ConsumerStress_t,\; EnergyInputStress_t,\; ReconstructionImpulse_t,
+\]
+but these are deterministic projections of the epoch mosaic and must be reconstructable from the registered channel map.
+
+\section{Epoch-Symbol Coupling}
+\meta{Map the epoch mosaic to a company-specific impact quantity.}{Epoch mosaic, sector and industry couplings, company exposure flags.}{Company-specific epoch pressure $\Omega_{epoch}(s,t)$.}
+
+Let $\rho_{s,j}\in[-1,1]$ be the approved exposure of symbol $s$ to sphere $j$. Then:
+\[
+\Omega_{epoch}(s,t)=\sum_{j=1}^{32}\rho_{s,j}\,\Xi_{t,j} + \Omega_{sec}(s,t)+\Omega_{ind}(s,t).
+\]
+Positive values may help or hurt depending on the sign convention of the affected strategy class; the sign and interpretation must be fixed in the channel registry.
+
+\section{Structural-Financial Investability Score}
+\meta{Combine structural state, fundamentals, and epoch pressure into one governed investability quantity.}{Structural action score $Q_h$, free structural energy $\mathcal{F}_n$, fundamental score, speculative penalty, epoch pressure, and approved strategy weights.}{Investability score $IS_h(s,t)$.}
+
+For horizon $h$ define
+\begin{align*}
+IS_h(s,t)=&\alpha_h Q_h(n)-\beta_h \mathcal{F}_n+\gamma_h Q_{fund}(s,t)\\
+&-\delta_h \Delta_{spec}(s,t)+\eta_h \Omega_{epoch}(s,t)+\zeta_h \Omega_{strat}(s,t),
+\end{align*}
+where $\Omega_{strat}(s,t)$ is an approved strategy-class adjustment described below.
+
+\section{Strategy Classes}
+\meta{Formalize distinct research strategy families so that the same structural signal can be interpreted differently under value, quality, defensive, cyclic, or speculative lenses.}{Fundamentals, epoch context, and structural state.}{Strategy-class weights and gates.}
+
+At minimum, TFE shall define the following strategy classes:
+\begin{itemize}
+\item \textbf{Quality Defensive}
+\item \textbf{Growth / Innovation}
+\item \textbf{Cyclical / Recovery}
+\item \textbf{Value / Mean Reversion}
+\item \textbf{Speculative Tactical}
+\end{itemize}
+
+Each class $c$ has a deterministic parameter tuple
+\[
+\Theta_c=(\alpha_h,\beta_h,\gamma_h,\delta_h,\eta_h,\zeta_h,\theta_h^+,\theta_h^-,\mathcal{F}_{max},\chi_{min},\mathcal{B}_c)
+\]
+and a blocker set $\mathcal{B}_c$. For example, the Quality Defensive class may block weak margins and weak cash generation entirely, while the Speculative Tactical class may allow them subject to a much larger penalty and mandatory abstention when epoch stress is adverse.
+
+
+\section{Investment Strategy Rule Book}
+\meta{Expand the financial strategy layer into a competitive and maintainable rule set rather than a thin strategy label scaffold.}{Fundamental classes, epoch pressures, sector/industry metadata, structural scores, and active strategy class.}{Strategy-specific admissibility, penalties, preferred structures, and abstention triggers.}
+
+In addition to the minimum strategy classes already defined, TFE shall maintain the following normative strategy families:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Quality Compounder}: requires sustained profitability, strong cash generation, acceptable leverage, and positive structural persistence.
+    \item \textbf{Dividend / Income Defensive}: emphasizes stability, cash generation, balance-sheet resilience, and avoidance of fragility under rates or consumer stress.
+    \item \textbf{Deep Value / Mean Reversion}: tolerates weaker recent trends only if valuation discount, balance-sheet survivability, and structural reversal quality are present.
+    \item \textbf{Cyclical / Recovery}: allows temporally weak fundamentals when epoch and sector conditions imply recoverable cycle transition and collapse risk is controlled.
+    \item \textbf{Capital-Light Growth / Innovation}: emphasizes revenue growth, gross margin strength, and capital efficiency, while penalizing persistent dilution or unstable cash conversion.
+    \item \textbf{Asset / Infrastructure / Industrial Execution}: emphasizes margin discipline, backlog quality, project execution, and rates / commodity / war-sensitive risk modifiers.
+    \item \textbf{Commodity / Energy Leverage}: interprets structural states through commodity and geopolitically coupled epoch channels, with explicit volatility penalties.
+    \item \textbf{Special Situation / Turnaround}: admits distressed or transition names only when structural reversal, survivability, and event-driven epoch support are all strong.
+    \item \textbf{Speculative Tactical}: highest tolerance for fragility, but only with explicit speculative operating mode and mandatory abstention under instability.
+\end{enumerate}
+
+For strategy class $c$, define the admissibility functional
+\[
+\mathcal{A}_c(s,t)=\mathbf{1}[Q_{fund}(s,t)\ge q_c^{min}]\cdot \mathbf{1}[\Delta_{spec}(s,t)\le d_c^{max}]\cdot \mathbf{1}[\Omega_{epoch}^{-}(s,t)\le e_c^{max}]\cdot \mathbf{1}[\mathcal{F}_n\le f_c^{max}],
+\]
+where $\Omega_{epoch}^{-}$ denotes adverse epoch pressure under the sign convention of the class.
+
+Examples of mandatory strategy logic:
+\begin{itemize}
+    \item Thin-margin businesses default to non-admissible in Quality Compounder and Dividend/Income Defensive unless cash conversion, backlog quality, and epoch support jointly offset the weakness.
+    \item Construction / engineering / building-cycle exposed businesses must receive additional penalties under elevated rates pressure, commodity-input inflation, or war-driven project uncertainty unless explicit reconstruction/fiscal impulse epochs dominate and margin discipline is above the class floor.
+    \item High-beta growth names may be attractive in Growth / Innovation only if gross-margin strength and growth quality dominate valuation and dilution penalties.
+    \item Special Situation / Turnaround names require explicit evidence of survivability: interest coverage, liquidity runway, and structural reversal quality must all pass the class minimum.
+\end{itemize}
+
+
+
+\section{Short Exposure and Downside Research Strategy Families}
+\meta{Add explicit downside and short-side research semantics so TFE can reason about avoid/short conditions as structured opportunities rather than only as long-side exclusion.}{Structural state, fragility penalties, epoch pressure, valuation tension, and borrow/shortability metadata if approved.}{Short-side admissibility and downside strategy rules.}
+
+TFE shall support downside-oriented strategy families including at minimum:
+\begin{itemize}
+    \item \textbf{Structural Breakdown Short}: activated when negative structural pressure, adverse epoch field, and weak survivability co-occur.
+    \item \textbf{Frailty / Overvaluation Short}: activated when valuation tension and fragility penalties are jointly elevated and no stabilizing epoch support is present.
+    \item \textbf{Cyclical Downturn / Demand Shock Short}: activated when adverse sector-condition tensors dominate and structural persistence turns negative.
+\end{itemize}
+
+For a short-side family $c^{-}$, define downside admissibility
+\[
+\mathcal{A}_{c^{-}}(s,t)=\mathbf{1}[B^{hard}_{long}(s,t)=1 \;\vee\; IS_h(s,t)\le -\vartheta_{c^{-}}^{-}]\cdot \mathbf{1}[\Omega_{epoch}^{-}(s,t)\ge e_{c^{-}}^{min}]\cdot \mathbf{1}[M_{disc}(s,t)\le m_{c^{-}}^{max}].
+\]
+Short-side outputs remain research states and shall not imply executable shorting unless the operating profile explicitly allows it.
+
+\section{Pattern and Formation Strategy Families}
+\meta{Incorporate deterministic chart-formation and setup families as governed interpretations of structural geometry rather than vendor-style indicator dumping.}{Gate trajectories, resonance changes, moving-average states, momentum/oscillation states, and strategy family.}{Pattern setup activations and penalties.}
+
+The following setup families shall be available as deterministic pattern interpretations:
+\begin{itemize}
+    \item double bottom / double top;
+    \item pivot bottom / pivot top;
+    \item RSI oversold / overbought extremes under structural confirmation;
+    \item Bollinger breakout and squeeze-release under structural confirmation;
+    \item short-term / long-term rising-trend or breakdown families;
+    \item moving-average alignment families including 7/21/35/100-day slope and crossover states;
+    \item golden-cross / death-cross families with structural confirmation requirement.
+\end{itemize}
+
+These setups are not primary decisions by themselves. Each setup contributes a bounded setup field
+\[
+\Psi_{setup}(s,t)=\sum_{u\in\mathcal{U}_{setup}} w_u\,\psi_u(s,t),
+\]
+where each $\psi_u$ is only admissible if supported by structural continuity, not by price pattern alone.
+
+\section{Insider Transaction and Ownership-Signal Rules}
+\meta{Add a controlled mechanism for insider-transaction and ownership signals so company-specific conviction or warning can influence governance without becoming opaque heuristics.}{Approved insider/ownership source events, company identity, role weighting, transaction timing, and structural state.}{Insider-pressure contribution and governance effects.}
+
+Let insider-event stream for symbol $s$ be $\mathcal{I}_{ins}(s,t)$. For each approved insider event $i\in\mathcal{I}_{ins}(s,t)$ define signed contribution
+\[
+\iota_i = \operatorname{sgn}(dir_i)\,w_{role(i)}\,w_{size(i)}\,w_{recency(i)}\,w_{cluster(i)}.
+\]
+The bounded insider field is
+\[
+\Upsilon_{ins}(s,t)=\clip\!\left(\sum_{i\in\mathcal{I}_{ins}(s,t)} \iota_i,-\iota_{max},\iota_{max}\right).
+\]
+Insider-derived boosts or penalties shall never override hard structural or survivability blocks; they only shift admissibility inside the allowed governance envelope.
+
+\section{Company-Specific News and Catalyst Rules}
+\meta{Make company-specific news a first-class governed input rather than an unstructured note.}{Approved company news events, event source reliability, company identity, sphere-of-impact mapping, and epoch/structural state.}{Company-specific catalyst field and governance effect.}
+
+Company-specific news events shall be converted into controlled catalyst objects with at minimum:
+\[
+\chi_i=(type_i,dir_i,scope_i,severity_i,persist_i,sourceRel_i,sectorSpan_i,companySpan_i).
+\]
+Examples include:
+\begin{itemize}
+    \item earnings surprise and guidance change;
+    \item management change;
+    \item contract win/loss;
+    \item major customer concentration change;
+    \item litigation / regulation / accounting issue;
+    \item merger, divestiture, financing, dilution, buyback, or bankruptcy-risk update;
+    \item product launch, recall, cyber incident, or supply disruption.
+\end{itemize}
+The company catalyst field is
+\[
+\Upsilon_{news}(s,t)=\sum_{i\in\mathcal{N}_{comp}(s,t)} sourceRel_i\,severity_i\,persist_i\,\rho_{s,i}\,\operatorname{sgn}(dir_i),
+\]
+with explicit cap and decay rules. Company news may also spawn or reinforce epoch objects if its sphere exceeds company scope.
+
+\section{Advanced Epoch Trading Intelligence}
+\meta{Specify how external world events and trading-context epochs become a structured mosaic that can support tactical and strategic decisions beyond bare long/mid/short memory.}{Epoch candidates, company/news catalysts, sector-condition tensors, source reliability, and G32 coordination.}{An operational epoch-intelligence layer.}
+
+The epoch library is not only a memory aid; it is a live external-field interpreter. In addition to macro epochs, TFE shall support tactical epoch classes such as:
+\begin{itemize}
+    \item earnings season dispersion;
+    \item sector rotation / de-rating / re-rating;
+    \item policy / rates shock;
+    \item war / geopolitical escalation;
+    \item commodity squeeze / relief;
+    \item insider-conviction cluster;
+    \item merger / financing / distress cluster;
+    \item company-news contagion or sympathy effect.
+\end{itemize}
+Each tactical epoch is projected into the sphere-of-impact basis and coordinated by G32 alongside slower macro epochs. The resulting field allows TFE to distinguish, for example, a technically attractive setup occurring inside a hostile external mosaic from the same setup occurring inside a supportive one.
+
+
+\section{Strategy Family Selection and Dominance Logic}
+\meta{Specify how strategy families compete or cooperate for governance authority at a given symbol-time state.}{Investability score components, strategy admissibility functionals, epoch pressures, and structural state.}{Active strategy family weights and dominance ordering.}
+
+TFE shall not assume a single strategy family is globally active. Let $\mathcal{C}_{strat}$ be the approved strategy-family set. For each class $c\in\mathcal{C}_{strat}$ define class activation score
+\[
+\kappa_c(s,t)=\mathcal{A}_c(s,t)\cdot \exp\big(\mu_c\Omega_{strat,c}(s,t)+\nu_c Q_{fund,c}(s,t)-\omega_c\mathcal{F}_n\big).
+\]
+Normalized strategy weights are
+\[
+\pi_c(s,t)=\frac{\kappa_c(s,t)}{\sum_{c'\in\mathcal{C}_{strat}}\kappa_{c'}(s,t)+\varepsilon_{\pi}}.
+\]
+A strategy family is \emph{dominant} if $\pi_c(s,t)\ge \pi_{dom}$; multiple families may remain active if no single dominant family exists. Mixed-family operation is permitted only if all active families agree on action sign or if an explicit class-precedence registry resolves the conflict. Otherwise the governed result shall be \texttt{ABSTAIN}.
+
+\section{Capital Preservation, Survivability, and Exclusion Rules}
+\meta{State the hard financial-protection rules that prevent structurally attractive but economically fragile names from becoming research recommendations.}{Fundamental quality classes, liquidity/distress data where approved, epoch pressures, and strategy family.}{Hard blocks, survivability penalties, and capital-preservation controls.}
+
+Define survivability score
+\[
+S_{surv}(s,t)=\alpha_{liq}Q_{liq}(s,t)+\alpha_{cov}q_{ICOV}(s,t)+\alpha_{lev}q_{LEV}(s,t)+\alpha_{fcf}q_{FCFM}(s,t)-\alpha_{stress}\Omega_{stress}^{+}(s,t),
+\]
+where $\Omega_{stress}^{+}$ aggregates adverse rates, credit, regulation, litigation, war, commodity-input, and demand-stress channels. A symbol shall be hard-blocked if any of the following hold in a non-speculative operating mode:
+\begin{itemize}
+    \item $S_{surv}(s,t) < s_{surv}^{min}$;
+    \item weak interest coverage coexists with adverse refinancing/rates pressure;
+    \item negative free-cash-flow persistence coexists with weak margin quality and no approved turnaround/innovation exemption;
+    \item explicit governance exclusion list or unresolved accounting/material-disclosure defect is present.
+\end{itemize}
+These rules intentionally bias the system toward capital preservation when structural geometry and financial survivability disagree.
+
+\section{Valuation, Margin Discipline, and Re-rating Logic}
+\meta{Differentiate value from cheapness and growth from overpaying by encoding deterministic valuation and margin-discipline logic.}{Valuation metrics, profitability metrics, growth metrics, and strategy family.}{Valuation adjustment term and margin-discipline controls.}
+
+Define a valuation tension term
+\[
+V_{ten}(s,t)=\sum_{m\in\{PE,EVEBITDA,PB\}} w_m^{val}\,\operatorname{clip}\!\left(\frac{m(s,t)-\theta_m^{fair}(\sigma_{sec},\sigma_{ind},c)}{\theta_m^{fair}(\sigma_{sec},\sigma_{ind},c)+\varepsilon_m},-1,1\right).
+\]
+Define margin-discipline term
+\[
+M_{disc}(s,t)=\lambda_{pm}q_{PM}(s,t)+\lambda_{gm}q_{GM}(s,t)+\lambda_{om}q_{OM}(s,t)+\lambda_{fcf}q_{FCFM}(s,t).
+\]
+For asset-heavy, project-driven, or construction-like businesses, positive structural states shall not be sufficient if
+\[
+M_{disc}(s,t)<m_{disc}^{min}
+\]
+under elevated rates or input-cost stress. In other words, TFE distinguishes ``cheap because temporarily misunderstood'' from ``cheap because structurally weak business economics are being punished correctly.''
+
+\section{Epoch-Aligned Opportunity and Avoidance Logic}
+\meta{Make the epoch library operational at the strategy level by defining deterministic opportunity and avoidance transforms.}{Epoch mosaic, sector-condition tensors, company exposure factors, strategy family, and structural state.}{Epoch-conditioned opportunity and avoidance adjustments.}
+
+Let positive and adverse epoch projections be
+\[
+\Omega_{epoch}^{+}(s,t)=\sum_{j=1}^{32} \rho^{+}_{s,j}\,[\Xi_{t,j}]_{+},
+\qquad
+\Omega_{epoch}^{-}(s,t)=\sum_{j=1}^{32} \rho^{-}_{s,j}\,[-\Xi_{t,j}]_{+}.
+\]
+Then the epoch-conditioned opportunity term for strategy class $c$ is
+\[
+\Upsilon_{epoch,c}(s,t)=\eta_c^{+}\Omega_{epoch}^{+}(s,t)-\eta_c^{-}\Omega_{epoch}^{-}(s,t).
+\]
+This supports governance such as:
+\begin{itemize}
+    \item reconstruction or fiscal-capex epochs may help selected infrastructure/industrial names only if margin discipline and survivability are acceptable;
+    \item war-related demand may help defense/security/logistics channels while simultaneously worsening cost, uncertainty, or project-risk channels elsewhere;
+    \item rates and credit stress can dominate otherwise favorable local structure in housing/build products or levered cyclicals;
+    \item regulatory or litigation epochs can force avoidance even when the local structural state looks attractive.
+\end{itemize}
+
+\section{Research Allocation and Concentration Constraints}
+\meta{Add portfolio-like research controls so TFE does not emit unrealistically concentrated or internally contradictory recommendation sets.}{Governed actions, strategy weights, sector exposures, and active epoch mosaic.}{Research allocation flags, concentration penalties, and optional suppression conditions.}
+
+Although TFE is a research system, it shall support deterministic concentration checks over any emitted watchlist or recommendation batch. Let $W_t$ be the active recommendation set at time $t$. Define sector concentration
+\[
+Conc_{sec}(t)=\max_{\sigma\in\Sigma}\frac{|\{s\in W_t:\sigma_{sec}(s)=\sigma\}|}{|W_t|+\varepsilon_W}.
+\]
+If $Conc_{sec}(t)>c_{sec}^{max}$ under a dominant adverse epoch affecting that sector, TFE may emit a concentration warning or suppress lower-ranked candidates according to the approved operating profile. This is not portfolio optimization; it is controlled research hygiene against monoculture recommendations.
+
+\section{Sector-Condition Interaction Rules}
+\meta{Make the interaction between world conditions and sectors explicit so that the epoch library is operational, not decorative.}{Epoch mosaic, strategy class, sector/industry IDs, and company-specific exposures.}{Sector-conditioned penalties, boosts, and hard blocks.}
+
+Let $\Upsilon_{sec}(s,t)$ denote the sector-condition interaction term. Then
+\[
+\Upsilon_{sec}(s,t)=\sum_{j=1}^{32}\Xi_{t,j}\,\Lambda_{j,\sigma_{sec}(s),c}\,+\sum_{j=1}^{32}\Xi_{t,j}\,\Lambda'_{j,\sigma_{ind}(s),c},
+\]
+where $\Lambda$ and $\Lambda'$ are controlled strategy-conditional interaction tensors. Mandatory rule families include:
+\begin{itemize}
+    \item rates and credit stress penalize housing, building products, highly levered industrials, and thin-margin project businesses unless offset by explicit fiscal/reconstruction epochs;
+    \item war/geopolitical conflict may raise opportunity in defense, logistics, energy security, or reconstruction-aligned industries, but simultaneously raise cost/uncertainty penalties in margin-thin builders and globally exposed cyclicals;
+    \item consumer-stress epochs penalize discretionary, retail, and low-pricing-power sectors more strongly than staples or mission-critical enterprise software;
+    \item energy/input-cost stress penalizes businesses with low gross margin and weak pass-through power;
+    \item regulation/litigation epochs may hard-block or heavily penalize affected sectors regardless of short-term structural attractiveness.
+\end{itemize}
+The strategy adjustment term in the investability score shall therefore be
+\begin{align*}
+\Omega_{strat}(s,t)=\Upsilon_{sec}(s,t)+\Upsilon_{company}(s,t),
+\end{align*}
+where $\Upsilon_{company}$ captures company-specific exposures such as contract mix, geographic concentration, backlog quality, capital intensity, and customer concentration.
+
+\section{Domain Decision Rule}
+\meta{Convert structural and financial governance quantities into final research actions.}{Investability scores, hard and soft blockers, strategy class.}{Final governed action state.}
+
+For active strategy class $c$ and horizon $h$:
+\[
+A_h^{final}(s,t)=
+\begin{cases}
+\text{NO\_OUTPUT}, & B^{hard}(s,t)=1,\\
+\text{ABSTAIN}, & B^{soft}(s,t)=1,\\
+\text{ACCUMULATE}, & IS_h(s,t)\ge \vartheta_{c,h}^{+},\\
+\text{AVOID}, & IS_h(s,t)\le -\vartheta_{c,h}^{-},\\
+\text{HOLD}, & \text{otherwise.}
+\end{cases}
+\]
+
+\section{Approved Heuristics and Explicit Non-Heuristics}
+\meta{Separate allowed practical inevitabilities from impermissible thesis-substituting shortcuts.}{Candidate rule and governance registry.}{Approval or rejection.}
+
+Approved heuristics are limited to:
+\begin{itemize}
+\item stale snapshot rejection;
+\item explicit data-integrity rejection;
+\item forced abstention on collapse or SafeMode;
+\item approved sector/epoch hard-blocks;
+\item deterministic cooldowns after explicit structural reversals.
+\end{itemize}
+
+The following are explicitly non-admissible in the normative design unless separately justified and approved:
+\begin{itemize}
+\item replacing the event tape with a primary lag-table representation;
+\item semantic separation of 5/20/60 as independent modeling worlds;
+\item silent retuning of thresholds to ``make the run work'';
+\item undeclared overrides based on one-off stories or ad hoc ticker intuition.
+\end{itemize}
+
+\chapter{Persistence, Runtime Semantics, and Data Models}
+\section{Persistent Objects}
+\meta{Define what TFE stores and how.}{Kernel outputs, SES envelopes, L5 outputs, metadata.}{Persistent object classes.}
+
+TFE persistence shall distinguish at least the following object classes:
+\begin{longtable}{p{0.25\textwidth}p{0.67\textwidth}}
+\toprule
+Object Class & Purpose \\
+\midrule
+Raw Market Input & Source OHLCV and source provenance. \\
+UF-SP Envelope & Encrypted canonical kernel payload, never plaintext outside the protected boundary. \\
+SES Summary Record & Whitelisted structural summary and validation indicators. \\
+Structural Event Tape & Ordered L5 input stream for a given symbol/window/run. \\
+RMM State Snapshot & Optional protected checkpoint of $x_f,x_m,x_s,a_n,z_n$. \\
+Runtime Snapshot & Immutable serving artifact for UI/API use. \\
+Audit Record & Chain-of-custody, versioning, configuration, validation, and release records. \\
+\bottomrule
+\end{longtable}
+
+\section{Runtime Snapshot Lifecycle}
+\meta{Define how serving artifacts are created and selected.}{Completed run outputs, run identifiers, config hash, schema hash, timestamps.}{Immutable runtime snapshot.}
+
+Each runtime snapshot shall minimally include:
+\[
+(snapshot\_id, snapshot\_ts, build\_id, symbol\_set, horizon\_set, config\_hash, schema\_hash, source\_run\_id, status).
+\]
+
+A snapshot is immutable once released. Consumers shall select the ``latest valid'' snapshot by explicit ordering key, never by insertion order. The selector shall be deterministic and documented.
+
+\section{Snapshot Freshness Gate}
+\meta{Define stale-recommendation semantics.}{Current serving time $t_{serve}$, snapshot timestamp $t_{snap}$, freshness threshold $T_{fresh}$.}{Stale/not-stale decision and reason code.}
+
+Define snapshot age
+\[
+Age = t_{serve}-t_{snap}.
+\]
+Then
+\[
+Stale = \mathbf{1}\{Age > T_{fresh}\}.
+\]
+If $Stale=1$, TFE shall emit $NO\_OUTPUT$ for all recommendations and record a reason code containing the actual age, threshold, time source, selected snapshot identifier, and query path used to select the snapshot.
+
+\section{Semantic Equality for Stage-Skip and Reuse}
+\meta{Prevent incorrect artifact reuse when hashes match superficially but semantics do not.}{Candidate artifact, content hash, config hash, version tuple, domain parameters, schema hash, operating profile.}{Reuse decision.}
+
+Artifact reuse is permitted only if the full semantic tuple matches:
+\[
+\Theta_{sem}=(H_{content},H_{config},H_{schema},UF_{ver},SES_{ver},Adapter_{ver},DomainParams,Profile).
+\]
+If any field differs, the artifact shall be considered semantically non-equivalent even if content hashes of a subset match.
+
+\chapter{Security, Data Integrity, and Documentation Controls}
+\section{Data Integrity and Good Documentation Practice}
+\meta{Define records expectations using ALCOA+ principles.}{All controlled records, logs, manifests, approvals, validation outputs.}{Documentation controls and retention obligations.}
+
+All TFE records shall be:
+\begin{itemize}
+    \item attributable;
+    \item legible;
+    \item contemporaneous;
+    \item original or controlled true-copy;
+    \item accurate;
+    \item complete, consistent, enduring, and available.
+\end{itemize}
+
+At minimum, TFE shall maintain:
+\begin{itemize}
+    \item revision history for controlled documents;
+    \item immutable run manifests and validation results;
+    \item chain-of-custody for runtime snapshots and SES events;
+    \item approval records for heuristics and configuration changes;
+    \item environment fingerprints and version declarations.
+\end{itemize}
+
+\section{Audit Trail}
+\meta{Define the canonical audit-trail object, required event classes, tamper-evidence rules, and reconstruction obligations.}{All evaluations, releases, changes, deviations, approvals, overrides, snapshots, and security events.}{Canonical append-only audit trail capable of reconstructing the course of events for any recommendation, suppression, or release.}
+
+For TFE, an audit record shall be:
+\[
+AuditRecord_i =
+(
+id_i,\;
+ts_i^{UTC},\;
+actor_i,\;
+action_i,\;
+objectType_i,\;
+objectId_i,\;
+runId_i,\;
+stageId_i,\;
+profile_i,\;
+domainParamsHash_i,\;
+ufVersion_i,\;
+sesVersion_i,\;
+adapterVersion_i,\;
+tfeSpecVersion_i,\;
+engineVariant_i,\;
+keyRef_i,\;
+configHash_i,\;
+schemaHash_i,\;
+inputDigest_i,\;
+outputDigest_i,\;
+status_i,\;
+reasonCode_i,\;
+prevHash_i,\;
+hash_i
+).
+\]
+
+Minimum rules:
+\begin{enumerate}[leftmargin=1.2cm]
+\item $ts_i^{UTC}$ shall be UTC and monotone within each $(runId_i,stageId_i)$ stream.
+\item $prevHash_i$ shall bind the record to the prior record in the same audit chain.
+\item $hash_i$ shall be the digest of the canonical serialization of all preceding fields including $prevHash_i$.
+\item $domainParamsHash_i$ shall be derived from the canonical domain parameter tuple; plaintext domain parameters may be stored only where policy allows.
+\item $inputDigest_i$ and $outputDigest_i$ shall support reconstruction of what was processed and what was emitted without exposing UF-SP.
+\item No audit record may contain plaintext UF-SP or any prohibited protected derivative.
+\end{enumerate}
+
+Required audit event classes include:
+\begin{itemize}
+\item evaluation started / completed / failed;
+\item SES encode / decode / decode rejection;
+\item snapshot selected / snapshot rejected stale / snapshot published;
+\item runtime recommendation emitted / suppressed / abstained;
+\item heuristic applied;
+\item epoch object added / revised / expired;
+\item validation started / completed / failed;
+\item release approved / rejected / rolled back;
+\item deviation opened / closed;
+\item CAPA opened / effectiveness verified;
+\item security events corresponding to Threat IDs T1--T10;
+\item manual override or exception.
+\end{itemize}
+
+Every recommendation or recommendation suppression shall be reconstructable from the audit trail by linking:
+\[
+(runId,stageId,snapshotId,symbol,horizon,configHash,schemaHash,selected\_artifact,reasonCode).
+\]
+
+Research mode may omit cryptographic signatures on every record, but advisory-grade or higher controlled modes shall add a signer identity or signing reference linked to the audit record chain.
+
+
+\section{Chain-of-Custody and Record Retention}
+\meta{Ensure every protected artifact and every externally visible research output can be traced back through immutable custody records.}{Audit records, SES envelopes, snapshots, validation records, and benchmark artifacts.}{Traceable custody chain and retention requirements.}
+
+For every controlled artifact $X$, the custody chain shall minimally record:
+\[
+CoC(X)=\{(ts_j, actor_j, action_j, location_j, digest_j, parentDigest_j)\}_{j=1}^{m}.
+\]
+At each handoff or transformation:
+\begin{itemize}
+\item the acting process or person shall be attributable;
+\item the resulting digest shall be recorded;
+\item the parent-child relationship shall be explicit;
+\item retention class and destruction rules shall be assigned.
+\end{itemize}
+
+Minimum retention classes:
+\begin{itemize}
+\item controlled specification records;
+\item approved configuration and heuristic registries;
+\item run manifests and validation outputs;
+\item benchmark packages used for any external claim;
+\item released runtime snapshots and the audit records required to reconstruct them.
+\end{itemize}
+
+Deletion or archival actions shall themselves be auditable events.
+
+\section{Electronic Records and Controlled Approvals}
+\meta{State minimum controls for controlled records and approvals.}{Controlled artifacts and approvals.}{Minimum record-control rule.}
+
+Controlled electronic records shall support unambiguous identification, tamper-evident storage, attributable approvals, and availability for review. Where electronic signatures are used, they shall be linked to the approved record and preserved under the same retention and auditability controls as the record itself.
+
+\chapter{Verification, Validation, and Release Criteria}
+\section{Validation Classes}
+\meta{Define the validation layers required for TFE.}{Controlled data, perturbation sets, gold slices, benchmarks, migration comparison artifacts.}{Validation class definitions and release criteria.}
+
+TFE validation shall include at least five classes:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Kernel Conformance:} canonical L0--L4 import, invariants, boundedness, SafeMode, and SES boundary.
+    \item \textbf{Adapter Conformance:} financial input rules, invocation rules, domain binding, and summary integrity.
+    \item \textbf{L5 Thesis Conformance:} event-driven statefulness, multi-scale memory, order sensitivity, and controlled heuristics.
+    \item \textbf{Runtime Conformance:} snapshot selection, freshness gating, serving determinism, and stage-skip semantic equivalence.
+    \item \textbf{Benchmark Validation:} artifact-backed comparative performance against practical alternatives.
+\end{enumerate}
+
+\section{Minimum Kernel and Adapter Tests}
+\meta{Restate minimum imported tests required before any L5 interpretation is considered valid.}{Baseline inputs, perturbed inputs, multiple implementations or runs.}{Pass/fail for structural correctness.}
+
+Minimum tests include:
+\begin{itemize}
+    \item deterministic rerun equivalence;
+    \item gate-boundary stability under perturbation;
+    \item directional stability under perturbation;
+    \item DSF stability under perturbation;
+    \item collapse detection and SafeMode activation;
+    \item SES compatibility and version isolation;
+    \item no leakage of UF-SP or protected derived structures outside allowed boundaries.
+\end{itemize}
+
+\section{L5 Thesis-Conformance Tests}
+\meta{Determine whether an L5 implementation is a faithful test of the thesis.}{Frozen data slice, frozen splits, ordered event tape, ablation controls.}{Thesis-conformant / pragmatic / non-conformant classification.}
+
+At minimum, L5 shall be tested under the following conditions:
+\begin{itemize}
+    \item real ordered sequence;
+    \item shuffled event order;
+    \item reversed event order;
+    \item current-state only;
+    \item lag or history masked;
+    \item fast, medium, and slow memory-band ablations;
+    \item multi-view fusion disabled or perturbed.
+\end{itemize}
+
+Interpretation rule:
+\begin{itemize}
+    \item if ordered-sequence performance is materially indistinguishable from shuffled, reversed, or masked conditions, the implementation is not structurally temporal;
+    \item if memory-band ablations do not materially change behavior, the implementation is not using multi-scale memory;
+    \item if disabling multi-view fusion does not materially change behavior where multiple cores/views are active, the implementation is not using the ensemble structure meaningfully.
+\end{itemize}
+
+\section{Migration Regression Tests}
+\meta{Detect behavioral drift caused by architecture migration.}{Gold slice, laptop/local artifacts, deployed/AWS artifacts, DB-centric and non-DB-centric paths where feasible.}{Earliest divergence report.}
+
+For migration testing, TFE shall compare the earliest stage at which two nominally equivalent paths diverge. The preferred rule is ``first mismatch wins.'' Once the earliest divergence is found, downstream interpretation shall stop until the mismatch is understood.
+
+\section{Release Criteria}
+\meta{Define minimum conditions for a research release.}{All validation results, benchmark package, deviations, CAPAs.}{Release / reject / conditional-release decision.}
+
+A TFE research release is admissible only if:
+\begin{itemize}
+    \item kernel and adapter conformance pass;
+    \item L5 thesis-conformance classification is known and documented;
+    \item runtime freshness and snapshot selection are verified;
+    \item deviations are closed or formally accepted;
+    \item benchmark package is artifact-backed.
+\end{itemize}
+
+\chapter{Commercial Benchmarking and Decision Rules}
+\section{Benchmark Matrix}
+\meta{Define the minimum benchmark set required before commercial claims are made.}{Frozen benchmark dataset, frozen configurations, external comparator data where available.}{Benchmark matrix and decision record.}
+
+The minimum benchmark matrix shall contain:
+\begin{itemize}
+    \item TFE keyed baseline;
+    \item current pragmatic serialized L5 implementation;
+    \item thesis-faithful shared-state L5 implementation;
+    \item simple non-DSF baseline;
+    \item standard ML baseline;
+    \item external practical comparator on overlapping symbols/dates if available;
+    \item SPY or equivalent passive baseline.
+\end{itemize}
+Unsupported benchmark claims are prohibited. Any percentage claim shall point to a named artifact package.
+
+\section{External Comparator Overlap Methodology}
+\meta{Resolve open issue 2 by making comparator methodology explicit enough for advisory-style services or rating platforms.}{Comparator outputs, overlap universe, timestamped captures, and frozen TFE outputs.}{Fair comparator package with exact inclusion/exclusion rules.}
+
+External comparator evaluation shall be based only on overlap observations for which all of the following are available:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item a captured comparator record with timestamp, symbol, visible rating/advice, source identifier, and immutable hash or screenshot/API export;
+    \item a TFE recommendation or suppression record on the same symbol/date under the same market cutoff policy;
+    \item an agreed action-mapping from comparator labels into the TFE action set $\{ACCUMULATE,HOLD,AVOID,ABSTAIN,NO\_OUTPUT\}$;
+    \item the forward return window required for the horizon under test;
+    \item no evidence of ex-post record modification.
+\end{enumerate}
+
+For symbol $s$ and date $t$, let the comparator action be $A^{cmp}(s,t)$ and TFE action be $A^{tfe}(s,t)$. Only records in the overlap set
+\[
+\mathcal{O}_h = \{(s,t): A^{cmp}(s,t)\ \text{defined},\ A^{tfe}(s,t)\ \text{defined or explicitly suppressed},\ \text{label window for } h \text{ available}\}
+\]
+may be used in the benchmark. Missing comparator records are not treated as TFE wins or losses; they are excluded and counted separately.
+
+Comparator action mapping must be deterministic and versioned. For example, a public five-tier rating platform may be mapped by a registry such as:
+\[
+\text{Very Bullish}\to ACCUMULATE,\quad \text{Bullish}\to ACCUMULATE,\quad \text{Neutral}\to HOLD,\quad \text{Bearish}\to AVOID,\quad \text{Very Bearish}\to AVOID.
+\]
+If the external service provides only rank or score rather than discrete actions, the discretization threshold must be frozen before evaluation and recorded.
+
+Both unconditional and conditional metrics shall be reported:
+\begin{align*}
+OutcomePct_h^{all} &= \frac{1}{|\mathcal{O}_h|}\sum_{(s,t)\in\mathcal{O}_h}\mathbf{1}[Ret(A_h,s,t)>Ret(bench,s,t)],\\
+OutcomePct_h^{active} &= \frac{1}{|\mathcal{O}_h^{active}|}\sum_{(s,t)\in\mathcal{O}_h^{active}}\mathbf{1}[Ret(A_h,s,t)>Ret(bench,s,t)],
+\end{align*}
+with $\mathcal{O}_h^{active}$ containing only acted recommendations. Comparator freshness, stale pages, unavailable ratings, and changed label taxonomies shall all be logged as reason-coded exclusions.
+
+\section{Commercial Kill Rule}
+\meta{Define the decision rule for competitiveness.}{Artifact-backed benchmark matrix.}{Competitive / non-competitive decision for the instantiation.}
+
+If TFE does not materially outperform practical alternatives on artifact-backed results, the current instantiation shall be classified as \textbf{non-competitive}. This decision does not automatically invalidate DSF-AI as a research hypothesis; it invalidates the competitiveness of the present instantiation.
+
+\chapter{Change Control, Deviations, and CAPA}
+\section{Versioning}
+\meta{Prevent silent semantic drift.}{Proposed changes to kernel import, L5 equations, summaries, schemas, thresholds, or runtime behavior.}{Major / minor / patch decision and required controls.}
+
+Versioning policy:
+\begin{itemize}
+    \item \textbf{Major:} any semantic change to imported kernel behavior, L5 state equations, L5 action mapping, SES semantics, validation logic, or runtime-snapshot semantics.
+    \item \textbf{Minor:} additive backward-compatible extensions such as new reports, new tests, or new non-semantic fields.
+    \item \textbf{Patch:} documentation corrections, clarifications, or bug fixes that do not alter semantics.
+\end{itemize}
+
+\section{Deviation Handling}
+\meta{Control cases where expected behavior or procedure is not met.}{Observed discrepancy, impacted artifact(s), root-cause status.}{Deviation record and disposition.}
+
+Each deviation shall record:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item unique identifier;
+    \item observed issue;
+    \item impacted runs, snapshots, or documents;
+    \item root-cause status;
+    \item containment action;
+    \item CAPA reference if required.
+\end{enumerate}
+
+\section{CAPA}
+\meta{Define corrective and preventive action handling.}{Closed investigation and approved action plan.}{Verified CAPA closure.}
+
+CAPA closure shall require objective evidence that:
+\begin{itemize}
+    \item the correction was applied;
+    \item the earliest identified divergence was removed;
+    \item no new non-conformances were introduced;
+    \item validation and release status were updated.
+\end{itemize}
+
+\chapter{Risks, Limitations, and Future Profiles}
+\section{Known Risks}
+\meta{State the principal design and operational risks.}{Architecture, runtime semantics, validation findings.}{Risk register summary.}
+
+Principal risks include:
+\begin{itemize}
+    \item migration drift between local and deployed architectures;
+    \item stale runtime snapshots or wrong latest-selection ordering;
+    \item semantically invalid stage-skip reuse;
+    \item silent heuristic substitution for thesis-faithful logic;
+    \item reduced temporal structure caused by row-first materialization.
+\end{itemize}
+
+\section{Limitations}
+\meta{State what TFE does not claim.}{Present architecture and benchmark state.}{Explicit limitation statements.}
+
+TFE does not claim that:
+\begin{itemize}
+    \item structural stability metrics alone are predictive of profit or loss;
+    \item every domain is appropriate for DSF-first treatment;
+    \item a pragmatic serialized implementation is automatically a faithful test of the full DSF-AI thesis;
+    \item unsupported comparative benchmark tables are valid evidence.
+\end{itemize}
+
+\section{Future Profiles (Informative)}
+\meta{Identify computational profiles that may reduce overhead further while preserving thesis fidelity.}{Current normative design and future hardware/software options.}{Informative future-profile catalogue.}
+
+Future profiles of interest include:
+\begin{itemize}
+    \item selective state-space realizations that preserve one shared event-driven latent state while reducing update overhead on long sequences;
+    \item fixed-dynamics reservoir profiles that trade training cost for richer temporal traces;
+    \item analog or compute-in-memory realizations for event-driven state updates under a deterministic audit envelope;
+    \item hybrid profiles in which the canonical UF kernel remains unchanged while L5 uses an efficient structured state machine rather than a row-first learned model.
+\end{itemize}
+These future profiles are informative only until a controlled implementation and conformance review prove semantic equivalence or thesis-improving value.
+\meta{Identify future profiles consistent with the present specification.}{DSF-AI research vision and compute constraints.}{Informative future directions.}
+
+Potential future profiles include:
+\begin{itemize}
+    \item deterministic event-driven reservoir-style L5 profiles with fixed internal dynamics and lightweight governed readout;
+    \item topology-aware structural summaries over event tapes;
+    \item analog or neuromorphic realizations of the shared-state update equations, provided they preserve deterministic equivalence at the specification boundary;
+    \item split-brain protected deployments consistent with SES and domain binding.
+\end{itemize}
+
+
+\chapter{Epoch Channel Registry (Minimum)}
+\renewcommand{\arraystretch}{1.12}
+\begin{longtable}{p{0.08\textwidth}p{0.22\textwidth}p{0.60\textwidth}}
+\toprule
+Channel & Name & Intended interpretation \\
+\midrule
+1 & Rates Pressure & Direct effect of policy rates and financing conditions. \\
+2 & Credit Stress & Corporate and household credit strain. \\
+3 & War / Geopolitics & Conflict, sanctions, military escalation, and security shocks. \\
+4 & Energy Shock & Oil, gas, power, and related cost pressure. \\
+5 & Building Cycle & Construction, engineering, infrastructure and related capital build dynamics. \\
+6 & Consumer Stress & Demand compression, employment fragility, discretionary weakness. \\
+7 & Logistics / Shipping & Transport disruption and cost escalation. \\
+8 & Regulation & Regulatory, legal, compliance, or policy pressure. \\
+9 & Fiscal Impulse & Government spending or withdrawal effects. \\
+10 & Supply Chain & Upstream/downstream continuity and bottlenecks. \\
+11 & Labor Pressure & Wage inflation, labor scarcity, strike risk. \\
+12 & Commodity Input Cost & Materials cost sensitivity. \\
+13 & FX Pressure & Foreign-exchange and translation pressure. \\
+14 & Technology Cycle & Hardware/software/platform investment cycle pressure. \\
+15 & Housing Sensitivity & Mortgage, residential construction, and housing transaction sensitivity. \\
+16 & Defense Demand & Defense procurement and associated industrial tailwinds/headwinds. \\
+17 & Infrastructure Demand & Public/private infrastructure pipeline influence. \\
+18 & Industrial Activity & Broader industrial cycle pressure. \\
+19 & Health / Pandemic & Public health and medical-system effects. \\
+20 & Climate / Weather & Climate events and weather disruptions. \\
+21 & Litigation / Liability & Legal claim and liability pressure. \\
+22 & Counterparty Risk & Counterparty failure or concentration risk. \\
+23 & Inventory Pressure & Overstock / destocking cycle effects. \\
+24 & Pricing Power & Ability to preserve margin under cost stress. \\
+25 & Margin Compression & Aggregate adverse effect on operating profitability. \\
+26 & Capital Access & Ease or difficulty of raising debt/equity capital. \\
+27 & Governance / Fraud Risk & Control weakness, governance deterioration, reporting concern. \\
+28 & Customer Concentration & Revenue dependence on few customers. \\
+29 & Vendor Concentration & Supply dependence on few vendors. \\
+30 & Sovereign / Policy Shock & State policy and sovereign-instability influence. \\
+31 & Narrative / Sentiment Surge & High-amplitude narrative or information regime change. \\
+32 & Residual Context & Versioned spare / residual channel for governed extension. \\
+\bottomrule
+\end{longtable}
+
+\chapter{Audit Event Registry (Minimum)}
+\begin{longtable}{p{0.18\textwidth}p{0.22\textwidth}p{0.48\textwidth}}
+\toprule
+Event Code & Event Name & Minimum logged contents \\
+\midrule
+AUD-001 & EvaluationStarted & runId, stageId, symbol-set, horizon-set, versions, config hash \\
+AUD-002 & EvaluationCompleted & runId, stageId, duration, status, output digest \\
+AUD-003 & EvaluationFailed & runId, stageId, reasonCode, error digest \\
+AUD-010 & SESDecodeRejected & envelope id, domainParams hash, failure reason \\
+AUD-020 & SnapshotSelected & selected snapshot id, query path, ordering key, age, threshold \\
+AUD-021 & SnapshotRejectedStale & snapshot id, age, threshold, time source \\
+AUD-030 & RecommendationEmitted & symbol, horizon, action, source snapshot, output digest \\
+AUD-031 & RecommendationSuppressed & symbol, horizon, suppression reason \\
+AUD-040 & HeuristicApplied & heuristic id, scope, approver ref, effect summary \\
+AUD-050 & EpochAddedOrUpdated & epoch id, class, severity, confidence, source provenance \\
+AUD-060 & ValidationResult & test id, status, artifact digests \\
+AUD-070 & ReleaseDecision & release id, status, approver ref \\
+AUD-080 & DeviationOpenedOrClosed & deviation id, related artifact ids, status \\
+AUD-090 & CAPAOpenedOrClosed & CAPA id, root cause class, effectiveness status \\
+AUD-100--109 & Threat Events T1--T10 & threat id, signals, local response, system response \\
+\bottomrule
+\end{longtable}
+
+\chapter{Revision History}
+\begin{longtable}{p{0.12\textwidth}p{0.15\textwidth}p{0.25\textwidth}p{0.38\textwidth}}
+\toprule
+Version & Date & Author / Owner & Summary of Change \\
+\midrule
+1.1 & 2026-03-09 & Replacement authoring & Replacement specification integrating SES normatively, strengthening L5, separating CAP vs PRP, and clarifying conformance/benchmark rules. \\
+\bottomrule
+\end{longtable}
+
+\appendix
+\chapter{Minimum Traceability Matrix}
+\begin{longtable}{p{0.24\textwidth}p{0.52\textwidth}p{0.14\textwidth}}
+\toprule
+Requirement Family & Verification Evidence & Status Field \\
+\midrule
+Canonical UF import preserved & Kernel conformance tests, version declarations, reproducibility results & Required \\
+SES boundary preserved & Envelope checks, no UF-SP leakage, domain-binding checks, security-event logs & Required \\
+L5 event-driven input used & Structural event-tape manifest and schema & Required \\
+Shared long/mid/short state used & L5 state trace and conformance audit & Required \\
+Multi-view fusion used correctly & Multi-core audit and perturbation tests & Required \\
+Heuristics controlled & Heuristics registry and approvals & Required \\
+Snapshot freshness correct & Freshness diagnostics and serving query trace & Required \\
+Commercial claims artifact-backed & Benchmark package references & Required \\
+\bottomrule
+\end{longtable}
+
+\chapter{Controlled Parameter Registry (Minimum)}
+\begin{longtable}{p{0.24\textwidth}p{0.20\textwidth}p{0.46\textwidth}}
+\toprule
+Parameter Family & Example Symbols & Control Rule \\
+\midrule
+Kernel thresholds & $\tau_D,\sigma_{min},\delta_{min},\kappa_{min}$ & Imported from canonical UF version; no silent local overrides. \\
+Validation perturbations & $\sigma_{pct}$ & Fixed approved set; changes require minor or major review depending on semantics. \\
+L5 state matrices & $A_*,B_*,H_*,L_*,W_*$ & Fixed and versioned; any semantic change requires major review. \\
+Field coefficients & $a_\rho,b_\rho,c_\rho,d_\rho,\lambda_*$ & Fixed and versioned. \\
+Action thresholds & $\theta_h^{\pm},\chi_{min},\mathcal{F}_{max}$ & Fixed by approved domain profile; all changes auditable. \\
+Snapshot thresholds & $T_{fresh}$ & Controlled by approved runtime policy. \\
+\bottomrule
+\end{longtable}
+
+\end{document}

@@ -42,7 +42,6 @@ from tfe_market_data_service import (
 
 log = logging.getLogger(__name__)
 
-# Load .env once
 load_dotenv()
 
 
@@ -163,14 +162,6 @@ class MassiveMarketDataService(MarketDataService):
         return min(self._max_backoff_seconds, backoff)
 
     def _get(self, path: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        GET with retry policy for transient failures.
-
-        Retries:
-        - HTTP 429
-        - HTTP 500/502/503/504
-        - requests.RequestException (timeouts, connection errors)
-        """
         url = f"{self._base_url}{path}"
         base_params = dict(params)
         base_params["apiKey"] = self._api_key
@@ -243,11 +234,16 @@ class MassiveMarketDataService(MarketDataService):
         symbol: str,
         start: date | datetime,
         end: date | datetime,
+        adjusted: bool = True,
     ) -> List[Dict[str, Any]]:
         start_str = _date_str(start)
         end_str = _date_str(end)
         path = f"/v2/aggs/ticker/{symbol}/range/1/day/{start_str}/{end_str}"
-        params = {"adjusted": "true", "sort": "asc", "limit": 5000}
+        params = {
+            "adjusted": "true" if adjusted else "false",
+            "sort": "asc",
+            "limit": 5000,
+        }
 
         try:
             payload = self._get(path, params)
@@ -283,32 +279,31 @@ class MassiveMarketDataService(MarketDataService):
         return bars
 
     def get_history(self, request) -> HistoryResult:
-        """
-        Accept either HistoryRequest or dict-like request.
-        """
         if isinstance(request, HistoryRequest):
             symbol = request.symbol
             start = request.start
             end = request.end
+            adjusted = bool(request.adjusted)
         else:
             symbol = request["symbol"]
             start = request["start"]
             end = request["end"]
+            adjusted = bool(request.get("adjusted", True))
 
-        aggs = self._fetch_daily_aggs(symbol, start, end)
+        aggs = self._fetch_daily_aggs(symbol, start, end, adjusted=adjusted)
         bars = self._bars_from_aggs(aggs)
 
         return HistoryResult(
             symbol=symbol,
             bars=bars,
-            adjusted=True,
+            adjusted=adjusted,
         )
 
     def get_snapshot(self, symbol: str) -> Snapshot:
         today = date.today()
         start = today - timedelta(days=15)
 
-        aggs = self._fetch_daily_aggs(symbol, start, today)
+        aggs = self._fetch_daily_aggs(symbol, start, today, adjusted=True)
         bars = self._bars_from_aggs(aggs)
         if not bars:
             return Snapshot(

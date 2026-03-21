@@ -1,0 +1,64 @@
+{
+  "version": 3,
+  "updated_at_utc": "2026-03-05T13:27:51Z",
+  "canonical_rule": "Runtime recommendation policy remains canonical unless a lane winner passes all required quality/reliability gates and benchmark-beat gate, then is explicitly promoted by this governance gate.",
+  "required_gates": [
+    "gate_5day",
+    "gate_20day",
+    "gate_60day",
+    "gate_sp_plus_4_proxy_avg",
+    "gate_coverage",
+    "gate_fallback"
+  ],
+  "required_benchmark_gate": {
+    "source": "/workspaces/Tao_Financial_Engine/backups/runtime/recommendation-competitive-benchmark-lane-20260305T113329Z/lane-summary.json",
+    "required": "competitive_gate.pass == true AND competitive_gate.external_min_rows_per_horizon >= 20",
+    "state": {
+      "tfe_beats_external_proxy_on_avg_outcome": false,
+      "tfe_beats_external_proxy_on_h60_outcome": true,
+      "tfe_beats_external_proxy_on_avg_excess": false,
+      "external_coverage_ok": false,
+      "external_min_rows_per_horizon": 20,
+      "required_external_min_rows_per_horizon": 20,
+      "meets_external_support_threshold": true,
+      "pass": false,
+      "effective_pass": false
+    }
+  },
+  "promotion_requirements": {
+    "require_all_gates_pass": true,
+    "require_benchmark_pass": true,
+    "require_ranked_winner_from_lane": true,
+    "require_benchmark_min_rows_per_horizon": 20,
+    "auto_promotion_disabled_by_default_in_l5": true,
+    "manual_promotion_command": "python3 tools/promote_runtime_policy_from_lane.py --lane-summary <path> --benchmark-lane-summary <path>"
+  },
+  "current_canonical": {
+    "policy_path": "/workspaces/Tao_Financial_Engine/pscf_policy_runtime.json",
+    "policy_sha256": "b7784e746f3a470c2ecfa8d58d347b2ea50a1a6ba096c1349b8ebba78490dd17",
+    "source_lane_summary": "/workspaces/Tao_Financial_Engine/backups/runtime/recommendation-rule-ablation-lane-20260305T002106Z/lane-summary.json",
+    "winner_variant_name": "runtime_current",
+    "winner_reason": "Winner is ranked by deterministic policy-quality priority (60-day, then average, then 20/5-day) and then reliability (higher coverage, lower fallback) when gate counts tie.",
+    "metrics": {
+      "horizon_outcome_over_index_pct": {
+        "5": 76.92307692307692,
+        "20": 63.716814159292035,
+        "60": 44.5
+      },
+      "avg_outcome_over_index_pct": 61.71329702745632,
+      "coverage_rate": 0.836583787780756,
+      "fallback_rate": 0.16341621221924393
+    },
+    "gates": {
+      "gate_5day": true,
+      "gate_20day": true,
+      "gate_60day": true,
+      "gate_sp_plus_4_proxy_avg": true,
+      "gate_coverage": true,
+      "gate_fallback": true,
+      "quality_gate_count": 4,
+      "reliability_gate_count": 2,
+      "total_gate_count": 6
+    }
+  }
+}
