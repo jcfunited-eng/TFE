@@ -1,105 +1,241 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 import argparse
-import csv
-import math
-from collections import defaultdict
-from pathlib import Path
+import os
+from dataclasses import dataclass
+from decimal import Decimal
+from typing import Any
 
-GATE_COUNTS = defaultdict(int)
-DEFAULT_INPUT = Path("real_world_cleaned_universe_l5_row_trace_full.csv")
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 
-def _to_num(value):
+UNKNOWN_SECTOR = "Unknown"
+MAX_ATTEMPTS = 3
+ACTIVE_EPOCHS: dict[str, float] = {
+    "RATES_PRESSURE": 0.8,
+    "CONSUMER_STRESS": 0.6,
+    "WAR_GEOPOLITICS": 0.7,
+}
+SECTOR_SENSITIVITY_MATRIX: dict[str, dict[str, float]] = {
+    "Communication Services": {
+        "RATES_PRESSURE": -0.2,
+        "CONSUMER_STRESS": -0.3,
+        "WAR_GEOPOLITICS": -0.1,
+    },
+    "Consumer Discretionary": {
+        "RATES_PRESSURE": -0.5,
+        "CONSUMER_STRESS": -1.0,
+        "WAR_GEOPOLITICS": -0.2,
+    },
+    "Consumer Staples": {
+        "RATES_PRESSURE": 0.1,
+        "CONSUMER_STRESS": 0.4,
+        "WAR_GEOPOLITICS": -0.1,
+    },
+    "Energy": {
+        "RATES_PRESSURE": 0.0,
+        "CONSUMER_STRESS": -0.2,
+        "WAR_GEOPOLITICS": 0.9,
+    },
+    "Financials": {
+        "RATES_PRESSURE": 0.2,
+        "CONSUMER_STRESS": -0.5,
+        "WAR_GEOPOLITICS": -0.2,
+    },
+    "Health Care": {
+        "RATES_PRESSURE": 0.0,
+        "CONSUMER_STRESS": 0.3,
+        "WAR_GEOPOLITICS": 0.1,
+    },
+    "Industrials": {
+        "RATES_PRESSURE": -0.2,
+        "CONSUMER_STRESS": -0.3,
+        "WAR_GEOPOLITICS": 0.2,
+    },
+    "Information Technology": {
+        "RATES_PRESSURE": -0.4,
+        "CONSUMER_STRESS": -0.3,
+        "WAR_GEOPOLITICS": 0.0,
+    },
+    "Materials": {
+        "RATES_PRESSURE": -0.1,
+        "CONSUMER_STRESS": -0.3,
+        "WAR_GEOPOLITICS": 0.3,
+    },
+    "Real Estate": {
+        "RATES_PRESSURE": -1.0,
+        "CONSUMER_STRESS": -0.5,
+        "WAR_GEOPOLITICS": 0.0,
+    },
+    "Utilities": {
+        "RATES_PRESSURE": -0.3,
+        "CONSUMER_STRESS": 0.2,
+        "WAR_GEOPOLITICS": 0.1,
+    },
+}
+
+
+@dataclass(frozen=True)
+class ShadowDecision:
+    ticker: str
+    decision: str
+    reason: str
+    sector: str
+    market_cap: float
+
+
+def _to_float(value: Any) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, Decimal):
+        return float(value)
     try:
-        parsed = float(value)
-        return 0.0 if math.isnan(parsed) or math.isinf(parsed) else parsed
+        return float(value)
     except Exception:
-        return 0.0
+        return None
 
 
-def evaluate_l5_primitive(row, memory_buffer):
-    GATE_COUNTS["TOTAL_ROWS"] += 1
-
-    s_uf = _to_num(row.get("S_UF", 0))
-    r_rev_k = _to_num(row.get("R_rev", row.get("R_rev_k", 0)))
-    d_k = _to_num(row.get("D", row.get("D_k", 0)))
-    r_uf = _to_num(row.get("R_UF", 0))
-    p_k = _to_num(row.get("P", row.get("P_k", 0)))
-    b_k = _to_num(row.get("B", row.get("B_k", 0)))
-    m_k = _to_num(row.get("M", row.get("M_k", 0)))
-    u_star = _to_num(row.get("U_star", row.get("U_star_k", 0)))
-    forward_return = _to_num(row.get("forward_return", 0))
-
-    if s_uf < -0.1:
-        GATE_COUNTS["01_KILLED_BY_S_UF"] += 1
-        return "AVOID", 0.0
-
-    if r_rev_k > 0:
-        GATE_COUNTS["02_KILLED_BY_R_REV"] += 1
-        return "AVOID", 0.0
-
-    if d_k < 0:
-        GATE_COUNTS["02_KILLED_BY_D_K_NEGATIVE"] += 1
-        return "AVOID", 0.0
-
-    if len(memory_buffer) < 5:
-        GATE_COUNTS["05_MISSED_INSUFFICIENT_MEMORY"] += 1
-        return "AVOID", 0.0
-
-    old_row = memory_buffer[0]
-    old_b_k = _to_num(old_row.get("B", old_row.get("B_k", 0)))
-
-    if r_uf > 0 and p_k <= 1 and m_k >= 0 and u_star < 0.5 and b_k > old_b_k:
-        GATE_COUNTS["03_STATE_ACCUMULATE"] += 1
-        return "ACCUMULATE", forward_return
-
-    GATE_COUNTS["04_STATE_HOLD"] += 1
-    return "HOLD", 0.0
+def _get_db_connection():
+    return psycopg2.connect(
+        host=str(os.environ.get("PGHOST", "")).strip(),
+        database=str(os.environ.get("PGDATABASE", "")).strip(),
+        user=str(os.environ.get("PGUSER", "")).strip(),
+        password=str(os.environ.get("PGPASSWORD", "")).strip(),
+    )
 
 
-def run(input_path: Path) -> int:
-    if not input_path.exists():
-        print(f"File missing: {input_path}")
-        return 1
+def _fetch_candidate_rows() -> list[dict[str, Any]]:
+    query = """
+        SELECT
+            ticker,
+            sector,
+            gross_profit,
+            current_ratio,
+            free_cash_flow,
+            gross_margin,
+            long_term_debt,
+            market_cap,
+            operating_cash_flow,
+            revenues,
+            attempt_count
+        FROM l5_fundamentals_normalized
+        WHERE sector <> 'Unknown'
+          AND COALESCE(attempt_count, 0) < %s
+        ORDER BY COALESCE(market_cap, 0) DESC, ticker ASC
+    """
+    with _get_db_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(query, (MAX_ATTEMPTS,))
+            return list(cur.fetchall())
 
-    data = defaultdict(list)
-    with input_path.open("r", encoding="utf-8") as handle:
-        for row in csv.DictReader(handle):
-            data[row.get("symbol", "UNK")].append(row)
 
-    results = []
-    for rows in data.values():
-        rows.sort(key=lambda row: row.get("decision_timestamp", ""))
-        memory_buffer = []
+def _evaluate_sector_epoch(sector: str) -> tuple[bool, str]:
+    normalized_sector = str(sector or "").strip()
+    if normalized_sector not in SECTOR_SENSITIVITY_MATRIX:
+        return False, f"Unknown sector: {sector}"
 
-        for row in rows:
-            decision, projected_return = evaluate_l5_primitive(row, memory_buffer)
-            if decision == "ACCUMULATE":
-                results.append(projected_return)
+    sector_vector = SECTOR_SENSITIVITY_MATRIX[normalized_sector]
+    epoch_pressure = sum(
+        float(ACTIVE_EPOCHS[epoch_name]) * float(sector_vector.get(epoch_name, 0.0))
+        for epoch_name in ACTIVE_EPOCHS
+    )
+    if epoch_pressure <= -0.5:
+        return False, f"Adverse Epoch Pressure: {epoch_pressure}"
+    return True, "Epoch Favorable/Neutral"
 
-            memory_buffer.append(row)
-            if len(memory_buffer) > 5:
-                memory_buffer.pop(0)
 
-    count = len(results)
-    avg_return = (sum(results) / count * 100.0) if count > 0 else 0.0
+def _fundamental_decision(row: dict[str, Any]) -> tuple[str, str]:
+    sector = str(row.get("sector") or "").strip() or UNKNOWN_SECTOR
+    if sector == UNKNOWN_SECTOR:
+        return "Avoid", "Unknown sector: Unknown"
 
-    print("\n================ FINAL L5 RESULTS ================")
-    print(f"Input File:               {input_path}")
-    print(f"Total 'Accumulate' Count: {count}")
-    print(f"Projected Average Return: {avg_return:.2f}%")
-    print("================ DIAGNOSTIC FUNNEL ===============")
-    for key, value in sorted(GATE_COUNTS.items()):
-        print(f"{key}: {value}")
-    print("==================================================\n")
+    current_ratio = _to_float(row.get("current_ratio"))
+    free_cash_flow = _to_float(row.get("free_cash_flow"))
+    gross_margin = _to_float(row.get("gross_margin"))
+    gross_profit = _to_float(row.get("gross_profit"))
+    market_cap = _to_float(row.get("market_cap")) or 0.0
+    operating_cash_flow = _to_float(row.get("operating_cash_flow"))
+    revenues = _to_float(row.get("revenues"))
+
+    required_metrics = {
+        "current_ratio": current_ratio,
+        "free_cash_flow": free_cash_flow,
+        "gross_margin": gross_margin,
+        "gross_profit": gross_profit,
+        "operating_cash_flow": operating_cash_flow,
+        "revenues": revenues,
+    }
+    missing = [name for name, value in required_metrics.items() if value is None]
+    if missing:
+        return "Avoid", f"Missing normalized metric(s): {', '.join(missing)}"
+
+    if revenues <= 0:
+        return "Avoid", "Domain C Failure: revenues missing or nonpositive"
+
+    if market_cap >= 200_000_000_000:
+        assigned_tier = "Tier 1"
+        current_ratio_floor = 0.75
+    elif market_cap >= 2_000_000_000:
+        assigned_tier = "Tier 2"
+        current_ratio_floor = 1.0
+    else:
+        assigned_tier = "Tier 3"
+        current_ratio_floor = 1.2
+
+    if current_ratio <= current_ratio_floor:
+        return "Avoid", f"Domain A Failure: {assigned_tier} requires Current Ratio > {current_ratio_floor}"
+
+    if free_cash_flow <= 0:
+        return "Avoid", "Domain B Failure: Free Cash Flow <= 0"
+
+    if gross_margin <= 0:
+        return "Avoid", "Domain C Failure: Gross Margin <= 0"
+
+    if gross_profit <= 0:
+        return "Avoid", "Domain C Failure: Gross Profit <= 0"
+
+    if operating_cash_flow <= 0:
+        return "Avoid", "Domain B Failure: Operating Cash Flow <= 0"
+
+    epoch_ok, epoch_reason = _evaluate_sector_epoch(sector)
+    if not epoch_ok:
+        return "Avoid", epoch_reason
+
+    return "Accumulate", "Passed normalized fundamentals and Epoch constraints."
+
+
+def evaluate_rows(rows: list[dict[str, Any]]) -> list[ShadowDecision]:
+    decisions: list[ShadowDecision] = []
+    for row in rows:
+        ticker = str(row.get("ticker") or "").strip() or "UNKNOWN"
+        sector = str(row.get("sector") or "").strip() or UNKNOWN_SECTOR
+        decision, reason = _fundamental_decision(row)
+        decisions.append(
+            ShadowDecision(
+                ticker=ticker,
+                decision=decision,
+                reason=reason,
+                sector=sector,
+                market_cap=_to_float(row.get("market_cap")) or 0.0,
+            )
+        )
+    return decisions
+
+
+def run() -> int:
+    rows = _fetch_candidate_rows()
+    decisions = evaluate_rows(rows)
+    accumulate_count = sum(1 for item in decisions if item.decision == "Accumulate")
+    print(f"ACCUMULATE_COUNT {accumulate_count}")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run the tightened L5 shadow pipeline on a row-trace CSV.")
-    parser.add_argument("input_csv", nargs="?", default=str(DEFAULT_INPUT))
-    args = parser.parse_args()
-    return run(Path(str(args.input_csv)).resolve())
+    parser = argparse.ArgumentParser(description="Run the database-only L5 shadow pipeline.")
+    parser.parse_args()
+    return run()
 
 
 if __name__ == "__main__":
