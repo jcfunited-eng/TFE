@@ -72,6 +72,7 @@ web/tsconfig.tsbuildinfo
 !tfe_deploy_metadata.json
 !policy_horizon_overrides.json
 !pscf_policy_runtime.json
+!tfe_data_normalizer.py
 
 !g32_horse_race.py
 !g32_horse_race_mom_irf.py
