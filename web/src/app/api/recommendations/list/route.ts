@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
 
 import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { resolveRuntimePostgresPool } from "@/lib/runtime-db";
 
 export const runtime = "nodejs";
 
@@ -107,23 +107,6 @@ const SECTOR_SENSITIVITY_MATRIX: Record<string, Record<string, number>> = {
     WAR_GEOPOLITICS: 0.1,
   },
 };
-
-let pool: Pool | null = null;
-
-function resolvePool(): Pool {
-  if (pool) return pool;
-
-  pool = new Pool({
-    host: String(process.env.PGHOST ?? "").trim(),
-    database: String(process.env.PGDATABASE ?? "").trim(),
-    user: String(process.env.PGUSER ?? "").trim(),
-    password: String(process.env.PGPASSWORD ?? "").trim(),
-    port: Number(process.env.PGPORT ?? 5432),
-    max: 4,
-  });
-
-  return pool;
-}
 
 function toNumber(value: unknown): number | null {
   const n = Number(value);
@@ -236,7 +219,7 @@ async function loadAccumulateRows(): Promise<RecommendationRow[]> {
     ORDER BY COALESCE(market_cap, 0) DESC, ticker ASC
   `;
 
-  const result = await resolvePool().query<DbRow>(query, [MAX_ATTEMPTS]);
+  const result = await resolveRuntimePostgresPool().query<DbRow>(query, [MAX_ATTEMPTS]);
   const rows: RecommendationRow[] = [];
   for (const row of result.rows) {
     const evaluated = toAccumulateRow(row);
