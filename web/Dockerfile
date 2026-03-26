@@ -52,6 +52,7 @@ RUN apt-get update \
         python3-numpy \
         python3-pandas \
         python3-dotenv \
+        python3-psycopg2 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app/web
@@ -137,6 +138,8 @@ COPY backups/pscf-policy-anomaly-watch-*.json ./backups/
 
 COPY data ./data
 COPY market_data ./market_data
+
+COPY tfe_data_normalizer.py ./tfe_data_normalizer.py
 
 RUN mkdir -p /app/web_user_data/.ses_tmp \
     && mkdir -p /app/web/data \
