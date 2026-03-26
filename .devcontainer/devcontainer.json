@@ -6,8 +6,6 @@
     "source=E:\\TFEBackup\\CodexHome,target=/root/.codex,type=bind,consistency=cached",
     "source=C:\\Users\\joeta\\.aws,target=/root/.aws,type=bind,consistency=cached,readonly"
   ],
-  "postCreateCommand": "bash /workspaces/Tao_Financial_Engine/tools/ensure_deploy_runtime.sh",
-  "postStartCommand": "bash /workspaces/Tao_Financial_Engine/tools/ensure_deploy_runtime.sh && bash /workspaces/Tao_Financial_Engine/tools/sync_baseline_to_external.sh",
   "customizations": {
     "vscode": {
       "extensions": [

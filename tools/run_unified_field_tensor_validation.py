@@ -13,6 +13,7 @@ from pathlib import Path
 REPO_ROOT = Path("/workspaces/Tao_Financial_Engine").resolve()
 BACKUPS = REPO_ROOT / "backups" / "runtime"
 WEB_ROOT = REPO_ROOT / "web"
+BASELINE_RUNTIME_SOURCE = WEB_ROOT / "src" / "lib" / "uf-dynamic-decision.ts"
 RUNTIME_SOURCE = WEB_ROOT / "src" / "lib" / "uf-dynamic-decision-unified-field.ts"
 
 BASELINE_SYNTHETIC_VALIDATION = BACKUPS / "dsf_primitive_production_synthetic_validation_20260321T044121Z.json"
@@ -96,25 +97,30 @@ const WEB_PACKAGE_JSON = path.join(WEB_ROOT, "package.json");
 const requireFromWeb = Module.createRequire(WEB_PACKAGE_JSON);
 const ts = requireFromWeb("typescript");
 
+const baselineRuntimePath = {json.dumps(str(BASELINE_RUNTIME_SOURCE))};
 const runtimePath = {json.dumps(str(RUNTIME_SOURCE))};
 const sourceCsv = {json.dumps(str(source_csv))};
 const latestSnapshotCsv = {json.dumps(str(latest_snapshot_csv))};
 const syntheticSuitePath = {json.dumps(str(synthetic_suite_path))};
 const summaryPath = {json.dumps(str(summary_path))};
 
-const runtimeSource = fs.readFileSync(runtimePath, "utf8");
-const transpiled = ts.transpileModule(runtimeSource, {{
-  compilerOptions: {{
-    module: ts.ModuleKind.CommonJS,
-    target: ts.ScriptTarget.ES2020,
-    esModuleInterop: true,
-  }},
-}}).outputText;
-const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "uf-unified-field-v3-"));
-const tempModulePath = path.join(tempDir, "uf-dynamic-decision-unified-field.cjs");
-fs.writeFileSync(tempModulePath, transpiled);
-const mod = require(tempModulePath);
+function loadModule(runtimeFile, tempPrefix) {{
+  const runtimeSource = fs.readFileSync(runtimeFile, "utf8");
+  const transpiled = ts.transpileModule(runtimeSource, {{
+    compilerOptions: {{
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2020,
+      esModuleInterop: true,
+    }},
+  }}).outputText;
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), tempPrefix));
+  const tempModulePath = path.join(tempDir, path.basename(runtimeFile).replace(/\\.ts$/, ".cjs"));
+  fs.writeFileSync(tempModulePath, transpiled);
+  return require(tempModulePath);
+}}
 
+const baselineMod = loadModule(baselineRuntimePath, "uf-unified-baseline-");
+const candidateMod = loadModule(runtimePath, "uf-unified-field-v5-");
 const anchorCases = {json.dumps(ANCHORS)};
 
 function splitCsv(line) {{
@@ -205,8 +211,13 @@ async function main() {{
   const latestBySymbol = Object.fromEntries(
     latestRows.map((row) => [String(row.symbol).trim().toUpperCase(), row]),
   );
-  const latestProfile = {{
-    profileId: "unified_field_tensor_latest_snapshot_v3",
+  const candidateLatestProfile = {{
+    profileId: "unified_field_tensor_latest_snapshot_v5",
+    generatedAtUtc: {json.dumps(utc_iso())},
+    minBars: 252,
+  }};
+  const baselineLatestProfile = {{
+    profileId: "baseline_runtime_latest_snapshot_compare_v5",
     generatedAtUtc: {json.dumps(utc_iso())},
     minBars: 252,
   }};
@@ -215,7 +226,7 @@ async function main() {{
   let matchedExpectedCount = 0;
   for (const [symbol, expectedDecision, note] of anchorCases) {{
     const row = latestBySymbol[symbol] || null;
-    const result = mod.computePrimitiveDynamicDecision(row ? toInputFromRow(row) : null, latestProfile);
+    const result = candidateMod.computePrimitiveDynamicDecision(row ? toInputFromRow(row) : null, candidateLatestProfile);
     const matched = result.decision === expectedDecision;
     if (matched) matchedExpectedCount += 1;
     anchorResults.push({{
@@ -232,42 +243,52 @@ async function main() {{
     topology_counts: {{}},
     trajectory_family_counts: {{}},
     topology_trajectory_counts: {{}},
+    candidate_decision_by_topology_trajectory: {{}},
+    baseline_decision_by_topology_trajectory: {{}},
   }};
   for (const row of latestRows) {{
-    const result = mod.computePrimitiveDynamicDecision(toInputFromRow(row), latestProfile);
-    const rel = result.termBreakdown.relationalFieldState;
-    const topo = topology(rel);
-    const traj = trajectoryFamily(rel);
-    inc(latestDistribution.counts, result.decision);
-    inc(latestDistribution.topology_counts, topo);
-    inc(latestDistribution.trajectory_family_counts, traj);
-    inc(latestDistribution.topology_trajectory_counts, `${{topo}}|${{traj}}`);
+    const input = toInputFromRow(row);
+    const candidateResult = candidateMod.computePrimitiveDynamicDecision(input, candidateLatestProfile);
+    const candidateRel = candidateResult.termBreakdown.relationalFieldState;
+    const candidateTopo = topology(candidateRel);
+    const candidateTraj = trajectoryFamily(candidateRel);
+    inc(latestDistribution.counts, candidateResult.decision);
+    inc(latestDistribution.topology_counts, candidateTopo);
+    inc(latestDistribution.trajectory_family_counts, candidateTraj);
+    inc(latestDistribution.topology_trajectory_counts, `${{candidateTopo}}|${{candidateTraj}}`);
+    inc(
+      latestDistribution.candidate_decision_by_topology_trajectory,
+      `${{candidateResult.decision}}|${{candidateTopo}}|${{candidateTraj}}`,
+    );
+
+    const baselineResult = baselineMod.computePrimitiveDynamicDecision(input, baselineLatestProfile);
+    const baselineRel = baselineResult.termBreakdown.relationalFieldState;
+    const baselineTopo = topology(baselineRel);
+    const baselineTraj = trajectoryFamily(baselineRel);
+    inc(
+      latestDistribution.baseline_decision_by_topology_trajectory,
+      `${{baselineResult.decision}}|${{baselineTopo}}|${{baselineTraj}}`,
+    );
   }}
 
   const syntheticSuite = JSON.parse(fs.readFileSync(syntheticSuitePath, "utf8"));
   const syntheticProfile = {{
-    profileId: "unified_field_tensor_synthetic_validation_v3",
+    profileId: "unified_field_tensor_synthetic_validation_v5",
     generatedAtUtc: {json.dumps(utc_iso())},
     minBars: 252,
   }};
   const seamProbe = {{ count: 0, decision_counts: {{}} }};
-  const coveredProbe = {{ count: 0, decision_counts: {{}} }};
   for (const sample of syntheticSuite.samples) {{
     const input = sample.reconstructed_input;
-    const result = mod.computePrimitiveDynamicDecision(input, syntheticProfile);
-    const rel = result.termBreakdown.relationalFieldState;
+    const result = candidateMod.computePrimitiveDynamicDecision(input, syntheticProfile);
     if (sample.stored_trajectory_family === "constructive" && sample.stored_sign_w2 === "pos") {{
       seamProbe.count += 1;
       inc(seamProbe.decision_counts, result.decision);
     }}
-    if (topology(rel) === "covered" && trajectoryFamily(rel) === "rupture_like") {{
-      coveredProbe.count += 1;
-      inc(coveredProbe.decision_counts, result.decision);
-    }}
   }}
 
   const fullProfile = {{
-    profileId: "unified_field_tensor_full_fixed_snapshot_v3",
+    profileId: "unified_field_tensor_full_fixed_snapshot_v5",
     generatedAtUtc: {json.dumps(utc_iso())},
     minBars: 252,
   }};
@@ -289,7 +310,7 @@ async function main() {{
     if (!line) continue;
     const parts = splitCsv(line);
     const row = Object.fromEntries(header.map((name, idx) => [name, parts[idx]]));
-    const result = mod.computePrimitiveDynamicDecision(toInputFromRow(row), fullProfile);
+    const result = candidateMod.computePrimitiveDynamicDecision(toInputFromRow(row), fullProfile);
     inc(fullDecisionCounts, result.decision);
     const rel = result.termBreakdown.relationalFieldState;
     const topo = topology(rel);
@@ -343,7 +364,7 @@ main().catch((error) => {{
     )
     if proc.returncode != 0:
         raise SystemExit(
-            "unified field tensor v3 validation execution failed\n"
+            "unified field tensor v5 validation execution failed\n"
             + "\n".join(proc.stderr.splitlines()[-80:])
         )
     return load_json(summary_path)
@@ -357,8 +378,8 @@ def main() -> int:
     latest_snapshot_csv = latest_file("canonical_real_snapshot_production_fixed_snapshot_latest_", ".csv")
     synthetic_suite_path = latest_file("canonical_synthetic_suite_production_fixed_snapshot_", ".json")
 
-    with tempfile.TemporaryDirectory(prefix="unified-field-tensor-v3-") as temp_dir:
-        summary_path = Path(temp_dir) / "unified-field-summary-v3.json"
+    with tempfile.TemporaryDirectory(prefix="unified-field-tensor-v5-") as temp_dir:
+        summary_path = Path(temp_dir) / "unified-field-summary-v5.json"
         summary = run_node_validation(summary_path, source_csv, latest_snapshot_csv, synthetic_suite_path)
 
     baseline_synthetic = load_json(BASELINE_SYNTHETIC_VALIDATION)
@@ -402,6 +423,8 @@ def main() -> int:
         "candidate_topology_counts": summary["latest_snapshot_distribution"]["topology_counts"],
         "candidate_trajectory_family_counts": summary["latest_snapshot_distribution"]["trajectory_family_counts"],
         "candidate_topology_trajectory_counts": summary["latest_snapshot_distribution"]["topology_trajectory_counts"],
+        "candidate_decision_by_topology_trajectory": summary["latest_snapshot_distribution"]["candidate_decision_by_topology_trajectory"],
+        "baseline_decision_by_topology_trajectory": summary["latest_snapshot_distribution"]["baseline_decision_by_topology_trajectory"],
     }
 
     one_sided_contested_compare = {
@@ -417,32 +440,28 @@ def main() -> int:
 
     baseline_anchor = anchor_report["baseline_matched_expected_count"]
     candidate_anchor = anchor_report["candidate_matched_expected_count"]
-    baseline_seam = seam_probe["baseline"]["decision_counts"]
-    candidate_seam = seam_probe["candidate"]["decision_counts"]
-    baseline_covered = covered_rupture_compare["baseline_counts"]
-    candidate_covered = covered_rupture_compare["candidate_counts"]
+    baseline_seam_counts = seam_probe["baseline"]["decision_counts"]
+    candidate_seam_counts = seam_probe["candidate"]["decision_counts"]
+    baseline_covered_counts = covered_rupture_compare["baseline_counts"]
+    candidate_covered_counts = covered_rupture_compare["candidate_counts"]
     baseline_latest_counts = latest_snapshot_distribution["baseline_counts"]
     candidate_latest_counts = latest_snapshot_distribution["candidate_counts"]
     baseline_one_sided_avoid_share = baseline_one_sided["totals"]["avoid_share"]
     candidate_one_sided_avoid_share = one_sided_contested_compare["candidate_avoid_share"]
-
-    baseline_seam_hold = baseline_seam.get("Hold", 0)
-    candidate_seam_hold = candidate_seam.get("Hold", 0)
-    baseline_covered_accumulate = baseline_covered.get("accumulate", 0)
-    candidate_covered_accumulate = candidate_covered.get("accumulate", 0)
+    candidate_covered_accumulate = candidate_covered_counts.get("accumulate", 0)
+    candidate_seam_accumulate = candidate_seam_counts.get("Accumulate", 0)
 
     verdict_label = "mixed / not ready"
     if (
         candidate_anchor >= baseline_anchor
-        and candidate_seam_hold >= baseline_seam_hold
-        and candidate_covered_accumulate <= baseline_covered_accumulate * 2
-        and candidate_one_sided_avoid_share < baseline_one_sided_avoid_share
+        and candidate_seam_accumulate > 0
+        and candidate_covered_accumulate <= baseline_covered_counts.get("accumulate", 0)
     ):
         verdict_label = "better than baseline"
     elif (
         candidate_anchor < baseline_anchor
-        or candidate_seam_hold == 0
-        or candidate_covered_accumulate > baseline_covered_accumulate * 4
+        or candidate_seam_accumulate == 0
+        or candidate_covered_accumulate > baseline_covered_counts.get("accumulate", 0)
     ):
         verdict_label = "worse than baseline"
 
@@ -456,7 +475,7 @@ def main() -> int:
         "generated_at_utc": utc_iso(),
         "candidate_runtime_path": str(RUNTIME_SOURCE),
         "candidate_runtime_sha256": sha256_file(RUNTIME_SOURCE),
-        "baseline_runtime_path": str(REPO_ROOT / "web" / "src" / "lib" / "uf-dynamic-decision.ts"),
+        "baseline_runtime_path": str(BASELINE_RUNTIME_SOURCE),
         "baseline_reference_artifacts": {
             "synthetic_validation": str(BASELINE_SYNTHETIC_VALIDATION),
             "full_distribution": str(BASELINE_FULL_DISTRIBUTION),
@@ -469,16 +488,12 @@ def main() -> int:
             "total_cases": summary["anchors"]["total_cases"],
         },
         "seam behavior versus current baseline": {
-            "baseline": baseline_seam,
-            "candidate": candidate_seam,
-            "baseline_hold": baseline_seam_hold,
-            "candidate_hold": candidate_seam_hold,
+            "baseline": baseline_seam_counts,
+            "candidate": candidate_seam_counts,
         },
         "covered-rupture ownership versus current baseline": {
-            "baseline": baseline_covered,
-            "candidate": candidate_covered,
-            "baseline_accumulate": baseline_covered_accumulate,
-            "candidate_accumulate": candidate_covered_accumulate,
+            "baseline": baseline_covered_counts,
+            "candidate": candidate_covered_counts,
         },
         "latest fixed-snapshot decision distribution versus current baseline": {
             "baseline": baseline_latest_counts,
@@ -491,28 +506,27 @@ def main() -> int:
             "candidate_decision_counts": one_sided_contested_compare["candidate_decision_counts"],
         },
         "required verdict question": (
-            "does indefiniteness-aware extraction preserve the tensor idea while restoring seam Hold "
-            "where appropriate, preventing covered-rupture Accumulate explosion, and keeping one-sided "
-            "contested Avoid lower than baseline without redefining the whole surface?"
+            "does bounded resolvent reserve propagation restore justified Accumulate "
+            "(anchors + seam) without reintroducing covered-rupture Accumulate explosion?"
         ),
         "explicit statement": verdict_label,
         "forced_conclusion": forced_conclusion,
     }
 
     verdict_md = f"""
-# Unified-Field Tensor V3 Verdict
+# Unified-Field Tensor V5 Verdict
 
 ## Anchor Comparison Versus Current Baseline
 - baseline matched anchors: `{baseline_anchor} / {summary["anchors"]["total_cases"]}`
 - candidate matched anchors: `{candidate_anchor} / {summary["anchors"]["total_cases"]}`
 
 ## Seam Behavior Versus Current Baseline
-- baseline seam counts: `{baseline_seam}`
-- candidate seam counts: `{candidate_seam}`
+- baseline seam counts: `{baseline_seam_counts}`
+- candidate seam counts: `{candidate_seam_counts}`
 
 ## Covered-Rupture Ownership Versus Current Baseline
-- baseline covered-rupture counts: `{baseline_covered}`
-- candidate covered-rupture counts: `{candidate_covered}`
+- baseline covered-rupture counts: `{baseline_covered_counts}`
+- candidate covered-rupture counts: `{candidate_covered_counts}`
 
 ## Latest Fixed-Snapshot Decision Distribution Versus Current Baseline
 - baseline latest counts: `{baseline_latest_counts}`
@@ -525,20 +539,20 @@ def main() -> int:
 - candidate decision counts: `{one_sided_contested_compare["candidate_decision_counts"]}`
 
 ## Required Verdict Question
-- does indefiniteness-aware extraction preserve the tensor idea while restoring seam Hold where appropriate, preventing covered-rupture Accumulate explosion, and keeping one-sided contested Avoid lower than baseline without redefining the whole surface?
+- does bounded resolvent reserve propagation restore justified Accumulate (anchors + seam) without reintroducing covered-rupture Accumulate explosion?
 - answer: `{forced_conclusion}`
 
 ## Explicit Statement
 - `{verdict_label}`
 """.strip()
 
-    anchor_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_anchor_report_{stamp}.json"
-    seam_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_seam_probe_{stamp}.json"
-    covered_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_covered_rupture_compare_{stamp}.json"
-    latest_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_latest_snapshot_distribution_{stamp}.json"
-    one_sided_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_one_sided_contested_compare_{stamp}.json"
-    verdict_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_verdict_{stamp}.json"
-    verdict_md_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v3_verdict_{stamp}.md"
+    anchor_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v5_anchor_report_{stamp}.json"
+    seam_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v5_seam_probe_{stamp}.json"
+    covered_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v5_covered_rupture_compare_{stamp}.json"
+    latest_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v5_latest_snapshot_distribution_{stamp}.json"
+    one_sided_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v5_one_sided_contested_compare_{stamp}.json"
+    verdict_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v5_verdict_{stamp}.json"
+    verdict_md_path = BACKUPS / f"dsf_primitive_unified_field_tensor_v5_verdict_{stamp}.md"
 
     write_json(anchor_path, anchor_report)
     write_json(seam_path, seam_probe)

@@ -7,46 +7,36 @@ Purpose:
 - support primitive interpretation before full L5 governance is applied
 
 Status:
-- active
+- frozen primitive base
 
 Honest current state:
-- the primitive lane contract is clean again
-- the primitive audit gate is active and currently passing
-- the primitive interpreter has recovered the 9 reference anchors again
-- current 9-anchor pressure result is `9/9`
-- the current runtime now implements the current closed-form primitive candidate from [DSF_PRIMITIVE_LAW_SKETCH.md](/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_LAW_SKETCH.md)
-- the current runtime still treats weakest-reserve coverage as first-class and still avoids raw `U_star_k` as a standalone collapse penalty
-- the latest bounded primitive replay against the previous candidate on the same frozen 5-symbol raw-feed sample is:
-- old candidate: `Accumulate=86`, `Hold=1029`, `Avoid=2900`
-- current candidate: `Accumulate=98`, `Hold=1017`, `Avoid=2900`
-- net frozen transitions in that replay are:
-- `Hold -> Accumulate = 12`
-- `Avoid -> Avoid = 2900`
-- no `Hold -> Avoid` increase in that bounded replay compare
-- that bounded mix comes from a bounded raw-feed primitive diagnostic sample only
-- that bounded mix is not a production policy target and not a claim about full governed L5 behavior
-- the runtime is still `Avoid`-heavy on that bounded sample
-- true interpretation accuracy is still unknown because this lane does not yet have an approved true DSF oracle
+- primitive tuning is complete for now
+- the frozen primitive base is `DSF full-field sortable v3 rationalized`
+- the primitive accuracy gate passed on the fixed-snapshot adjudicated sample
+- the primitive still uses only the approved primitive field surface
+- this lane still does not claim full governed L5
+- future work now moves upward into governance overlays only
 
 Scope:
 - `/workspaces/Tao_Financial_Engine/real_world_cleaned_universe_l5_primitive_only_row_trace_export.py`
 - `/workspaces/Tao_Financial_Engine/tools/run_uf_dynamic_decision_native_rowtrace_eval.py`
 - `/workspaces/Tao_Financial_Engine/web/src/lib/uf-dynamic-decision.ts`
 - `/workspaces/Tao_Financial_Engine/web/src/lib/uf-dynamic-decision-pressure-test.ts`
+- `/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_FULL_FIELD_SORTABLE_V3_RATIONALIZED.md`
 
 ## 1. Scope Boundary
 
 This document is:
 - a primitive DSF interpretation note
 - a diagnostic bridge for the approved primitive field surface
-- a recovery note for missing semantic interpretation
-- a correction contract for primitive-runtime rewrites in this lane
+- a freeze record for the current primitive base
+- a correction contract for future work above the primitive
 
 This document is not:
 - the canonical full L5 governance contract
 - the CP-0 production decision-selection rule
-- the runtime policy-cell selection rule
 - a claim that primitive DSF alone equals full production semantics
+- a claim that full governed L5 is solved
 
 ## 2. Primitive Contract
 
@@ -111,10 +101,11 @@ Purpose of the 9 anchors:
 - check that obvious primitive geometry is not broken
 - not claim broad market correctness
 
-Current anchor state:
+Current frozen anchor state:
 - `Accumulate` anchors: `3/3`
 - `Hold` anchors: `3/3`
 - `Avoid` anchors: `3/3`
+- total: `9/9`
 
 ## 7. Canonical Primitive Meaning
 
@@ -196,69 +187,97 @@ This is not the same thing as full runtime semantics.
 
 Important distinction:
 - primitive `Hold` means viable stillness or unresolved mixed geometry
-- runtime `Hold` may also arise from guard-fail default or broader governance behavior outside this primitive lane
+- runtime `Hold` may also arise from broader governance behavior outside this primitive lane
 
 Important distinction:
 - primitive `Avoid` means collapse-leaning or inadmissible primitive geometry
 - runtime `Avoid` may carry broader protective or governed no-add semantics beyond primitive collapse alone
 
-## 11. Current Rewrite Direction
+## 11. Frozen Primitive Base
 
-The current rewrite direction is:
-- make weakest-reserve coverage first-class
-- keep trajectory relational
-- keep reversal special
-- keep conflict and persistence bounded
-- let covered-side one-sided edge support decay faster once weakest-side coverage is genuinely positive
-- implement the closed-form primitive candidate from [DSF_PRIMITIVE_LAW_SKETCH.md](/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_LAW_SKETCH.md)
+Status:
+- frozen primitive base
 
-The runtime now centers:
-- weakest-reserve coverage
-- one-sided versus double-sided coverage structure
-- explicit forward, contested, and rupture geometry
-- bounded load
-- explicit basin tendencies with tie-to-`Hold`
+Formula family:
+- `DSF full-field sortable v3 rationalized`
 
-It does not treat:
-- raw `U_star_k` as a second independent collapse penalty
+Accuracy gate:
+- passed
 
-This is a primitive field reformulation, not a bucket dampener.
+Accuracy proof:
+- `rational_match = 90.52924791086329%`
+- `conservative_but_plausible = 5.849582172701926%`
+- `suspicious_mismatch = 3.6211699164345257%`
+- `zero_basin_fallback = 0.0%`
+- `plausible_total = 96.37883008356522%`
 
-## 12. What The Primitive Must Not Do
+Proof scope:
+- fixed-snapshot adjudicated sample of `502` rows
+- `sample_split_global = 359`
+- `sample_split_diagnostic = 143`
+- `dropped_or_unscored_rows = 0`
 
-Things the primitive must not do:
-- `D_k > 0 => Accumulate`
-- `S_UF low => Avoid`
-- `U_star_k high => Avoid`
-- `B_k negative => Hold`
-- any single-field threshold ladder
+Frozen candidate behavior:
+- candidate counts matched fixed-snapshot universe totals exactly
+- `Accumulate = 133`
+- `Hold = 1132`
+- `Avoid = 4148`
+- anchors `9 / 9`
 
-Reason:
-- the field is relational
-- the same field value can appear in different surrounding geometry
-- action must come from agreement or conflict across the field, not one parameter alone
+Mismatch concentration:
+- top suspicious symbol: `AIZ` with `2`
+- top miss directions:
+- `Hold -> Accumulate = 30`
+- `Avoid -> Hold = 11`
 
-## 13. Honest Use Of This Note
+Primitive tuning stop rule:
+- active
 
-This note is useful for:
-- explaining what the primitive field is seeing
-- checking whether a primitive interpreter has drifted
-- diagnosing whether one field is being over-read
-- giving a readable vocabulary for continuation, stillness, and collapse
+Next work:
+- governance overlays only
 
-This note is not enough by itself for:
-- full governed L5 semantics
-- CP-0 production policy truth
-- final production decision explanation
+## 12. Do Not Misstate
+
+Do not claim:
+- full governed L5 is solved
+- full-universe hand-labeled truth proof exists
+- primitive accuracy proof is the same thing as governed policy proof
+
+Do not reopen primitive tuning unless:
+- governance later reveals a concrete primitive failure surface
+
+Do not describe this freeze as:
+- production lock
+- final governance completion
+- proof that no future primitive failure can exist
+
+## 13. Governance Move
+
+Future work now moves upward into:
+- hard blockers
+- soft blockers
+- strategy class
+- horizon governance
+- `IS_h`
+- epoch / sector / company adjustments
+
+The first governance stress bucket is:
+- `Hold -> Accumulate = 30`
+
+The first symbol-level review case is:
+- `AIZ`
 
 ## 14. Honest Current Audit Target
 
-This recovery lane is only supposed to prove:
+This recovery lane has now proved:
 - raw feed bars are used
 - adjusted bars are not used
 - integrity-filtered bars are not used
 - the bridge uses only the approved primitive inputs
-- the runtime uses only the approved primitive inputs
-- the pressure-test bridge uses only the approved primitive inputs
-- no out-of-scope primitive names have been introduced
-- blocked and structurally incomplete runtime rows are handled correctly
+- the frozen primitive base clears the stated accuracy gate on the approved adjudicated sample
+
+This recovery lane is not now tasked with:
+- more primitive parameter search
+- more primitive family search
+- lab/runtime swap work
+- governance overlay implementation

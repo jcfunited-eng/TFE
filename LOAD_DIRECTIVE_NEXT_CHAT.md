@@ -1,6 +1,6 @@
 # Load Directive For Next Chat
 
-Generated UTC: 2026-03-20T13:25:00Z
+Generated UTC: 2026-03-26T02:05:00Z
 Workspace: `/workspaces/Tao_Financial_Engine`
 
 ## Read First
@@ -10,10 +10,18 @@ Read these files before doing any work:
 1. `/workspaces/Tao_Financial_Engine/AGENTS.md`
 2. `/workspaces/Tao_Financial_Engine/PRODUCTION_EVALUATION_CONTRACT.md`
 3. `/workspaces/Tao_Financial_Engine/LOAD_DIRECTIVE_NEXT_CHAT.md`
-4. `/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_INTERPRETATION_RECOVERY.md`
-5. `/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_LAW_SKETCH.md`
-6. `/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_INTERPRETATION_RECOVERY_STATUS.md`
-7. `/workspaces/Tao_Financial_Engine/readonly-production-verification-path.json`
+4. `/workspaces/Tao_Financial_Engine/L5_CANONICAL_BASELINE.md`
+5. `/workspaces/Tao_Financial_Engine/tfe_l5_baseline.py`
+6. `/workspaces/Tao_Financial_Engine/tfe_fundamental_fetcher.py`
+7. `/workspaces/Tao_Financial_Engine/quarantine_historical_kernel.py`
+8. `/workspaces/Tao_Financial_Engine/quarantine_backtester.py`
+9. `/workspaces/Tao_Financial_Engine/quarantine_sequential_filter.py`
+10. `/workspaces/Tao_Financial_Engine/quarantine_governance_sweeper.py`
+11. `/workspaces/Tao_Financial_Engine/quarantine_bottleneck_diagnostic.py`
+12. `/workspaces/Tao_Financial_Engine/quarantine_base_pool_truth.py`
+13. `/workspaces/Tao_Financial_Engine/quarantine_primitive_governance_join.py`
+14. `/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_FULL_FIELD_SORTABLE_V3_RATIONALIZED.md`
+15. `/workspaces/Tao_Financial_Engine/DSF_GOVERNANCE_HANDOFF_FROM_FROZEN_PRIMITIVE.md`
 
 ## Mandatory Architecture Honesty Gate
 
@@ -24,6 +32,9 @@ Before any substantial work, the next chat must explicitly state:
 3. `conflict with requested architecture: yes or no`
 4. `what exact mechanism or files will not be extended`
 5. `the single exact next item`
+
+For any L5 or DSF-related work, the next chat must also explicitly state:
+
 6. `am I evaluating the full field or a reduced approximation?`
 7. `if reduced, what exact field structure is being lost?`
 
@@ -36,147 +47,185 @@ These remain active:
 3. no masking, smoothing, or false reassurance
 4. if current code conflicts with requested architecture, say so before any edit
 5. do not extend wrong architecture just because it already exists
-6. do not convert dynamic field logic into static lookup tables, override tables, anomaly patch tables, score-driven pseudo-ML, or serialized heuristics unless the user explicitly approves that exact mechanism
-7. do not treat reports, corpora, contracts, readiness files, or planning files as active architecture unless code and live-serving proof show they are active
-8. do not flatten DSF into a reduced proxy when explicit DSF fields are available
-9. explicit DSF fields are authoritative over legacy transport fields unless the user explicitly approves otherwise
-10. if only a reduced approximation is being evaluated, say that plainly
-11. Slack ping is required on completion or when blocked, and the result must be checked in `/workspaces/Tao_Financial_Engine/backups/runtime/codex-notify.log`
+6. do not flatten DSF into a reduced proxy when explicit DSF fields are available unless explicitly approved
+7. if only a reduced approximation is being evaluated, say that plainly
+8. Slack ping is required on completion or when blocked, and the result must be checked in `/workspaces/Tao_Financial_Engine/backups/runtime/codex-notify.log`
 
-## Files That Must Not Be Extended In The Next Chat
-
-Do not extend these files in the next step unless the user explicitly changes scope:
+## Files That Must Not Be Extended Without Explicit Approval
 
 1. `/workspaces/Tao_Financial_Engine/web/src/lib/uf-dynamic-decision.ts`
 2. `/workspaces/Tao_Financial_Engine/web/src/lib/uf-dynamic-decision-pressure-test.ts`
 3. `/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_LAW_SKETCH.md`
 4. `/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_INTERPRETATION_RECOVERY.md`
-5. `/workspaces/Tao_Financial_Engine/real_world_cleaned_universe_l5_primitive_only_row_trace_export.py`
-6. `/workspaces/Tao_Financial_Engine/real_world_cleaned_universe_l5_row_trace_export.py`
+5. `/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_FULL_FIELD_SORTABLE_V3_RATIONALIZED.md`
 
-## Current Code Reality
+## Current Honest Status
 
-Active primitive runtime under study:
+There are now two parallel lines of truth in this workspace:
 
-1. `/workspaces/Tao_Financial_Engine/web/src/lib/uf-dynamic-decision.ts`
+1. frozen DSF primitive line
+2. quarantine research line
 
-Current truth:
+The frozen DSF primitive line is documented and frozen:
 
-1. this is still a reduced primitive approximation, not full governed L5
-2. the current runtime has already had local seam-shape work applied
-3. the runtime is now frozen for measurement alignment
-4. the current work focus is measurement quality, artifact alignment, and representativeness
-5. no further runtime rewrite should happen until a broader canonical audit is available
+1. `/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_FULL_FIELD_SORTABLE_V3_RATIONALIZED.md`
+2. `/workspaces/Tao_Financial_Engine/DSF_GOVERNANCE_HANDOFF_FROM_FROZEN_PRIMITIVE.md`
 
-## Canonical Measurement Base
+Important frozen primitive facts:
 
-The current source-of-truth audit artifact is:
+1. fixed-snapshot counts:
+   - `Accumulate = 133`
+   - `Hold = 1132`
+   - `Avoid = 4148`
+2. anchors:
+   - `9 / 9`
+3. adjudicated sample metrics:
+   - `rational_match = 90.52924791086329%`
+   - `conservative_but_plausible = 5.849582172701926%`
+   - `suspicious_mismatch = 3.6211699164345257%`
+   - `zero_basin_fallback = 0.0%`
+   - `plausible_total = 96.37883008356522%`
+4. that primitive is frozen for governance work
 
-1. `/workspaces/Tao_Financial_Engine/backups/runtime/dsf_primitive_end_to_end_audit_20260320T064427Z.json`
+The quarantine research line is the most current active research surface in this chat.
 
-Canonical frozen real artifact:
+## Quarantine Data Lake
 
-1. `/workspaces/Tao_Financial_Engine/backups/runtime/canonical_real_rowtrace_20260320T064427Z.csv`
+Critical input/data artifacts:
 
-Canonical frozen synthetic suite:
+1. `/workspaces/Tao_Financial_Engine/quarantine_12k_universe.parquet`
+2. `/workspaces/Tao_Financial_Engine/quarantine_12k_historical_states.parquet`
+3. `/workspaces/Tao_Financial_Engine/quarantine_12k_governed_states.parquet`
+4. `/workspaces/Tao_Financial_Engine/quarantine_12k_l5_trades.csv`
+5. `/workspaces/Tao_Financial_Engine/quarantine_12k_governed_l5_trades.csv`
+6. `/workspaces/Tao_Financial_Engine/quarantine_5yr_universe.parquet`
+7. `/workspaces/Tao_Financial_Engine/quarantine_historical_states.parquet`
+8. `/workspaces/Tao_Financial_Engine/quarantine_l5_trades.csv`
 
-1. `/workspaces/Tao_Financial_Engine/backups/runtime/canonical_synthetic_suite_20260320T064427Z.json`
+Important quarantine facts:
 
-Important canonical facts:
+1. 12k ingest succeeded with:
+   - `11884` symbols saved
+   - `10162966` OHLCV rows
+2. 12k historical kernel succeeded with:
+   - `11884` symbols processed
+   - `8343139` state rows
+3. primitive-only 12k backtest on `quarantine_12k_historical_states.parquet`:
+   - `Total Signals = 7658`
+   - `5d avg = 1.2571%`
+   - `5d win = 54.08%`
+   - `10d avg = 1.4729%`
+   - `10d win = 55.71%`
+   - `20d avg = 2.7036%`
+   - `20d win = 57.13%`
 
-1. canonical frozen real row count: `4011`
-2. canonical frozen real sha256: `c251fa9d306ecb02cd3c753cf55468e00fbab0b5e4243f43d3db7e98419843ac`
-3. gate-style frozen summary on that exact CSV:
-   - blocker behavior passed
-   - row violations `0`
-   - labels `Accumulate=103`, `Hold=1011`, `Avoid=2897`
-4. replay on that exact same CSV:
-   - previous runtime `98 / 1016 / 2897`
-   - current runtime `103 / 1011 / 2897`
-   - changed rows `5`
-   - all `5` are `Hold -> Accumulate`
-5. current forced conclusion in that audit:
-   - `broader law mismatch dominates`
-6. that forced conclusion is valid only on this canonical frozen artifact
-7. it is not yet a broad-universe conclusion
+## Governed Quarantine Findings
 
-## Trusted Local Seam Instrument
+Critical governed scripts:
 
-The first seam-release bucket that is now trusted as a local measurement bucket is:
+1. `/workspaces/Tao_Financial_Engine/quarantine_historical_kernel.py`
+2. `/workspaces/Tao_Financial_Engine/quarantine_backtester.py`
+3. `/workspaces/Tao_Financial_Engine/quarantine_governance_sweeper.py`
+4. `/workspaces/Tao_Financial_Engine/quarantine_bottleneck_diagnostic.py`
+5. `/workspaces/Tao_Financial_Engine/quarantine_base_pool_truth.py`
+6. `/workspaces/Tao_Financial_Engine/quarantine_primitive_governance_join.py`
+7. `/workspaces/Tao_Financial_Engine/quarantine_sequential_filter.py`
 
-1. `/workspaces/Tao_Financial_Engine/backups/runtime/dsf_primitive_constructive_covered_seam_boundary_20260320T125725Z.json`
+Important governed findings:
 
-Its concentration report is:
+1. CV-1.0 governed backtest on `quarantine_12k_governed_states.parquet`:
+   - `Total Signals = 0`
+   - `20d avg = 0.0000%`
+   - `20d win = 0.00%`
+2. bottleneck diagnostic on the base pool:
+   - `Base Pool Rows = 3583`
+   - `chi_n = 1.0` for all base-pool rows
+   - `raw_x_m` median = `1.000000`
+   - `F_n` min = `1.143867`
+   - `F_n` median = `1.643044`
+   - prior governance caps were below the actual `F_n` floor
+3. primitive-governance cross-join on the exact `7658` primitive trades:
+   - winners = `4165`
+   - losers = `3094`
+   - winners had lower `F_n` than losers
+   - `chi_n` was `1.0` for both winners and losers
+   - current governance variables do not cleanly separate winners
+4. base-pool truth without Layer 3 governance:
+   - `Total Signals = 3583`
+   - `20d avg = -0.1151%`
+   - `20d win = 50.09%`
+   - high `F_n` quartile was less bad than low quartiles, but still negative
+5. calibrated governance sweep:
+   - best reported positive-average top-5 candidate was weak
+   - no strong governance-only rescue was found
+6. sequential cognitive filtering on the original `7658` primitive trades:
+   - Filter A: `Close >= 5.0`
+   - Filter B: `raw_x_m <= 0.50`
+   - Filter C: `F_n <= 1.65`
+   - result:
+     - `Total Signals = 3587`
+     - `5d avg = 0.5605%`, `5d win = 60.92%`
+     - `10d avg = 0.6947%`, `10d win = 63.47%`
+     - `20d avg = 1.2524%`, `20d win = 64.66%`
+7. current honest recommendation from the quarantine line:
+   - the sequential filter is the first governance-assisted filter that materially improved the primitive trade set
 
-1. `/workspaces/Tao_Financial_Engine/backups/runtime/dsf_primitive_constructive_covered_seam_boundary_concentration_20260320T130828Z.json`
+## Fundamental Reality Check Module
 
-Exact seam instrument definition:
+Critical new module:
 
-1. covered only:
-   - `weak_coverage > 0`
-   - `secondary_coverage > 0`
-2. constructive only:
-   - `trajectory_forward > trajectory_rupture`
-3. seam neighborhood only:
-   - `|weak_coverage| <= 0.03`
-4. decisions only:
-   - `Accumulate`
-   - `Hold`
+1. `/workspaces/Tao_Financial_Engine/tfe_fundamental_fetcher.py`
 
-Trusted local seam facts:
+What it does:
 
-1. seam bucket size `125`
-2. `Accumulate=102`
-3. `Hold=23`
-4. it is a real local seam-release instrument
-5. it is not broadly representative on the current frozen artifact
-6. concentration result:
-   - `AA = 123`
-   - `AACG = 1`
-   - `AAL = 1`
-   - top symbol share `0.984`
-7. date spread is real across months, so the bucket is not a one-day glitch
-8. use this bucket as a local falsification harness only, not as a global DSF-law design target
+1. standalone `FundamentalCorpora` class
+2. requires `POLYGON_API_KEY`
+3. uses `/vX/reference/financials`
+4. evaluates three equity domains:
+   - Survival via Current Ratio
+   - Energy via Free Cash Flow
+   - Margin via Gross Margin
+5. crypto path explicitly bypasses SEC-style checks
+6. missing required metric fails closed
 
-## Current Block
+Live smoke truth:
 
-The next intended step was a broader canonical real export, but it is blocked.
+1. syntax check passed
+2. `AAPL` failed closed because the live endpoint response did not include `capital_expenditure`
+3. crypto pass path worked
 
-Blocked artifact attempt:
+Important warning:
 
-1. `/workspaces/Tao_Financial_Engine/backups/runtime/canonical_real_rowtrace_broader_20260320T131926Z.csv`
-2. `/workspaces/Tao_Financial_Engine/backups/runtime/canonical_real_rowtrace_broader_metadata_20260320T131926Z.json`
+1. if deployment work depends on this module, the next chat must explicitly decide whether missing `capital_expenditure` from the Polygon response should remain a hard fail or be mapped from another approved endpoint
+2. do not silently weaken that failure rule
 
-Exact block:
+## Current Incomplete Tasks
 
-1. requested broader scope was `max_symbols = 50`
-2. emitted rows were `0`
-3. `symbols_with_emitted_rows = 0`
-4. `skipped.fetch_error = 50`
-5. exact reason:
-   - missing `MASSIVE_API_KEY` or `POLYGON_API_KEY`
+These are the real incomplete items from this chat:
 
-This block is real. Do not fake a broader artifact from the 4-symbol canonical file.
+1. deployment integration work on top of `/workspaces/Tao_Financial_Engine/tfe_l5_baseline.py` has not been done yet
+2. `tfe_fundamental_fetcher.py` exists, but no approved production integration path has been chosen
+3. no approved decision has been made about whether the sequential quarantine filter should become:
+   - a research-only lane
+   - a candidate deployment lane
+   - or only a diagnostic result
+4. no symbol-level concentration audit has been done yet on the improved sequential-filter result beyond the simple top-10 frequency table
 
-## Single Exact Next Item
-
-Do this next and nothing broader until it is answered:
-
-1. restore a valid market-data provider key, then rerun the broader canonical real export and repeat the strict seam bucket plus concentration report on that broader frozen artifact
-
-## Exact Recommended Option
+## Recommended Single Exact Next Item
 
 Recommended option:
 
-1. do not touch the runtime
-2. do not reinterpret the current seam bucket as broad evidence
-3. restore the provider key first
-4. then rerun the broader canonical audit path using the same strict seam filter and the same concentration reporting
+1. decide the integration role of the sequential filter before touching deployment code
 
-## Copyable Resume Command For The Next Chat
+Reason:
+
+1. the sequential filter is the only governance-assisted result that materially improved the primitive trade set in this chat
+2. the standalone fundamental reality-check module now exists, but its production fail-closed behavior must be explicitly accepted before wiring it into baseline or deployment logic
+
+## Copyable Resume Prompt For The Next Chat
 
 Paste this into the next chat:
 
 ```text
-Read `/workspaces/Tao_Financial_Engine/AGENTS.md`, `/workspaces/Tao_Financial_Engine/PRODUCTION_EVALUATION_CONTRACT.md`, `/workspaces/Tao_Financial_Engine/LOAD_DIRECTIVE_NEXT_CHAT.md`, `/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_INTERPRETATION_RECOVERY.md`, `/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_LAW_SKETCH.md`, `/workspaces/Tao_Financial_Engine/DSF_PRIMITIVE_INTERPRETATION_RECOVERY_STATUS.md`, and `/workspaces/Tao_Financial_Engine/readonly-production-verification-path.json` first. Then continue only from the canonical aligned measurement state. Current honest status: the runtime is frozen; the source-of-truth audit is `/workspaces/Tao_Financial_Engine/backups/runtime/dsf_primitive_end_to_end_audit_20260320T064427Z.json`; the canonical frozen real CSV is `/workspaces/Tao_Financial_Engine/backups/runtime/canonical_real_rowtrace_20260320T064427Z.csv` with 4011 rows and sha256 `c251fa9d306ecb02cd3c753cf55468e00fbab0b5e4243f43d3db7e98419843ac`; the trusted local seam instrument is `/workspaces/Tao_Financial_Engine/backups/runtime/dsf_primitive_constructive_covered_seam_boundary_20260320T125725Z.json`; its concentration report is `/workspaces/Tao_Financial_Engine/backups/runtime/dsf_primitive_constructive_covered_seam_boundary_concentration_20260320T130828Z.json`; that seam bucket is valid locally but is AA-heavy and not globally representative; the broader canonical export attempt failed because `/workspaces/Tao_Financial_Engine/backups/runtime/canonical_real_rowtrace_broader_metadata_20260320T131926Z.json` shows 0 emitted rows and 50 fetch errors due to missing `MASSIVE_API_KEY` or `POLYGON_API_KEY`; the single exact next item is to restore the provider key and rerun the broader canonical export plus the exact same strict seam bucket and concentration report before any runtime rewrite.
+Read `/workspaces/Tao_Financial_Engine/AGENTS.md`, `/workspaces/Tao_Financial_Engine/PRODUCTION_EVALUATION_CONTRACT.md`, `/workspaces/Tao_Financial_Engine/LOAD_DIRECTIVE_NEXT_CHAT.md`, `/workspaces/Tao_Financial_Engine/L5_CANONICAL_BASELINE.md`, `/workspaces/Tao_Financial_Engine/tfe_l5_baseline.py`, `/workspaces/Tao_Financial_Engine/tfe_fundamental_fetcher.py`, `/workspaces/Tao_Financial_Engine/quarantine_historical_kernel.py`, `/workspaces/Tao_Financial_Engine/quarantine_backtester.py`, `/workspaces/Tao_Financial_Engine/quarantine_sequential_filter.py`, `/workspaces/Tao_Financial_Engine/quarantine_governance_sweeper.py`, `/workspaces/Tao_Financial_Engine/quarantine_bottleneck_diagnostic.py`, `/workspaces/Tao_Financial_Engine/quarantine_base_pool_truth.py`, and `/workspaces/Tao_Financial_Engine/quarantine_primitive_governance_join.py` first. Then continue from the current honest state. Critical facts: the frozen DSF primitive remains documented and frozen; the quarantine 12k primitive-only backtest produced `7658` signals with `20d avg 2.7036%` and `20d win 57.13%`; the governed CV-1.0 backtest produced `0` signals; the best result in this chat came from the sequential filter on the original primitive trades using `Close >= 5.0`, `raw_x_m <= 0.50`, and `F_n <= 1.65`, which produced `3587` signals with `20d avg 1.2524%` and `20d win 64.66%`; `tfe_fundamental_fetcher.py` was created as a standalone module using `POLYGON_API_KEY`, but live `AAPL` failed closed on missing `capital_expenditure`; the single exact next item is to decide whether the sequential filter is only a research lane or a candidate deployment lane before touching baseline/deployment integration code.
 ```
