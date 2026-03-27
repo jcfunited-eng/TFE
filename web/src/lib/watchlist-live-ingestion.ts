@@ -90,8 +90,13 @@ from pathlib import Path
 from tfe_fundamental_fetcher import FundamentalCorpora
 
 def load_env_file() -> None:
-    env_path = Path("/workspaces/Tao_Financial_Engine/.env")
-    if not env_path.exists():
+    cwd = Path.cwd()
+    candidate_paths = [
+        cwd / ".env",
+        cwd.parent / ".env",
+    ]
+    env_path = next((path for path in candidate_paths if path.exists()), None)
+    if env_path is None:
         return
     for raw_line in env_path.read_text(encoding="utf-8").splitlines():
         line = raw_line.strip()
@@ -393,7 +398,7 @@ async function fetchRawFundamentals(ticker: string): Promise<PersistableFundamen
       "python3",
       ["-c", RAW_FETCHER_CODE, ticker, inferAssetClass(ticker)],
       {
-        cwd: "/workspaces/Tao_Financial_Engine",
+        cwd: process.cwd(),
         timeout: PYTHON_FETCH_TIMEOUT_MS,
         maxBuffer: FUNDAMENTAL_FETCH_MAX_BUFFER_BYTES,
       },
