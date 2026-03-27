@@ -87,13 +87,36 @@ import os
 import sys
 from pathlib import Path
 
+def resolve_repo_root() -> Path | None:
+    cwd = Path.cwd().resolve()
+    candidate_roots = [
+        cwd,
+        cwd.parent,
+        cwd.parent.parent,
+    ]
+    for candidate in candidate_roots:
+        if (candidate / "tfe_fundamental_fetcher.py").exists():
+            return candidate
+    return None
+
+def prime_import_path() -> None:
+    repo_root = resolve_repo_root()
+    if repo_root is None:
+        return
+    repo_root_text = str(repo_root)
+    if repo_root_text not in sys.path:
+        sys.path.append(repo_root_text)
+
+prime_import_path()
+
 from tfe_fundamental_fetcher import FundamentalCorpora
 
 def load_env_file() -> None:
-    cwd = Path.cwd()
+    cwd = Path.cwd().resolve()
     candidate_paths = [
         cwd / ".env",
         cwd.parent / ".env",
+        cwd.parent.parent / ".env",
     ]
     env_path = next((path for path in candidate_paths if path.exists()), None)
     if env_path is None:
@@ -426,15 +449,15 @@ async function fetchRawFundamentals(ticker: string): Promise<PersistableFundamen
 
     const payload = JSON.parse(String(result.stdout ?? "").trim()) as Record<string, unknown>;
     const metrics = payload.metrics && typeof payload.metrics === "object" && !Array.isArray(payload.metrics)
-      ? payload.metrics as Record<string, unknown>
+      ? (payload.metrics as Record<string, unknown>)
       : {};
 
     const grossProfit = toNumberOrNull(metrics.gross_profit);
     const revenues = toNumberOrNull(metrics.revenues);
     const grossMarginRaw = toNumberOrNull(metrics.gross_margin);
-    const grossMargin = grossMarginRaw ?? (
-      grossProfit !== null && revenues !== null && revenues > 0 ? grossProfit / revenues : null
-    );
+    const grossMargin =
+      grossMarginRaw ??
+      (grossProfit !== null && revenues !== null && revenues > 0 ? grossProfit / revenues : null);
 
     return {
       ticker,
