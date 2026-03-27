@@ -72,10 +72,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const cleanSymbols = normalizeSymbols(body.symbols);
+  const incomingSymbols = normalizeSymbols(body.symbols);
 
   try {
-    const saved = await saveWatchlistSymbols(sessionUser.username, cleanSymbols);
+    const existing = await loadWatchlistSymbols(sessionUser.username);
+    const mergedSymbols = Array.from(new Set([...existing.symbols, ...incomingSymbols]));
+    const saved = await saveWatchlistSymbols(sessionUser.username, mergedSymbols);
+
     return NextResponse.json({
       symbols: saved.symbols,
       source: saved.filePath,

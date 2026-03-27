@@ -53,6 +53,8 @@ RUN apt-get update \
         python3-pandas \
         python3-dotenv \
         python3-psycopg2 \
+        python3-pip \
+    && python3 -m pip install --no-cache-dir --break-system-packages yfinance \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app/web
@@ -95,6 +97,7 @@ COPY --from=builder /app/web/data/recommendation-quality-latest.json ./web/data/
 
 COPY tfe_ses_core_adapter.py ./tfe_ses_core_adapter.py
 COPY aws_root_key_provider.py ./aws_root_key_provider.py
+COPY tfe_fundamental_fetcher.py ./tfe_fundamental_fetcher.py
 
 COPY rebuild_uf_snapshot.py ./rebuild_uf_snapshot.py
 COPY uf_mdg_snapshot.py ./uf_mdg_snapshot.py
