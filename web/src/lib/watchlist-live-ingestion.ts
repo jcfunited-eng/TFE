@@ -171,6 +171,12 @@ type DecisionResult = {
   classification: Classification;
 };
 
+type ExecErrorShape = {
+  stderr?: string | Buffer | null;
+  stdout?: string | Buffer | null;
+  message?: string;
+};
+
 export type WatchlistMetricRow = {
   ticker: string;
   decision: DecisionLabel;
@@ -215,6 +221,20 @@ function classificationFromDecision(decision: DecisionLabel): Classification {
 function inferAssetClass(ticker: string): string {
   if (ticker.startsWith("X:")) return "crypto";
   return "equity";
+}
+
+function pythonScoutErrorMessage(error: unknown): string {
+  const execError = error as ExecErrorShape | undefined;
+  const stderr = String(execError?.stderr ?? "").trim();
+  if (stderr) return stderr;
+
+  const stdout = String(execError?.stdout ?? "").trim();
+  if (stdout) return stdout;
+
+  const message = String(execError?.message ?? "").trim();
+  if (message) return message;
+
+  return "Unknown python scout failure.";
 }
 
 function evaluateSectorEpoch(sector: string): { ok: boolean; reason: string } {
@@ -428,8 +448,8 @@ async function fetchRawFundamentals(ticker: string): Promise<PersistableFundamen
       operating_cash_flow: toNumberOrNull(metrics.operating_cash_flow),
       revenues,
     };
-  } catch {
-    return null;
+  } catch (error) {
+    throw new Error(pythonScoutErrorMessage(error));
   }
 }
 
