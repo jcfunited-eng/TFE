@@ -18,6 +18,17 @@
   animation: deckReveal 420ms ease-out;
 }
 
+.deckLog {
+  --deck-paper: rgba(252, 255, 251, 0.96);
+
+  max-width: 1520px;
+  margin: 0 auto;
+  padding: 12px;
+  border-radius: 28px;
+  background: var(--deck-paper) !important;
+  box-shadow: var(--deck-shadow);
+}
+
 .hero {
   position: relative;
   border-radius: 24px;

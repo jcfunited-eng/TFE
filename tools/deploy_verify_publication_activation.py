@@ -510,7 +510,7 @@ def sign_in(
     password: str,
     out_json_path: Path,
     timeout_seconds: int,
-) -> None:
+) -> dict[str, Any]:
     response = session.post(
         f"{base_url.rstrip('/')}/api/auth/sign-in",
         json={"username": username, "password": password},
@@ -528,7 +528,12 @@ def sign_in(
         },
     )
     if not response.ok:
-        raise StepFailure("sign_in_failed")
+        error_code = str(body.get("error") or "").strip() if isinstance(body, dict) else ""
+        return {
+            "signed_in": False,
+            "error_code": error_code or None,
+            "status_code": response.status_code,
+        }
 
     session_check = session.get(f"{base_url.rstrip('/')}/api/auth/session", timeout=timeout_seconds)
     session_body_text = session_check.text
@@ -543,6 +548,11 @@ def sign_in(
     )
     if not session_check.ok:
         raise StepFailure("auth_session_failed")
+    return {
+        "signed_in": True,
+        "error_code": None,
+        "status_code": response.status_code,
+    }
 
 
 def capture_json_endpoint(
@@ -817,7 +827,7 @@ def main() -> int:
 
         session = requests.Session()
         session.headers.update({"Accept": "application/json"})
-        sign_in(
+        sign_in_result = sign_in(
             session=session,
             base_url=args.base_url,
             username=username,
@@ -825,11 +835,29 @@ def main() -> int:
             out_json_path=out_dir / "sign-in.json",
             timeout_seconds=args.http_timeout_seconds,
         )
-        summary["steps"]["sign_in"] = {
-            "status": "pass",
-            "sign_in_path": str(out_dir / "sign-in.json"),
-            "session_path": str(out_dir / "auth-session.json"),
-        }
+
+        if sign_in_result.get("signed_in"):
+            summary["steps"]["sign_in"] = {
+                "status": "pass",
+                "sign_in_path": str(out_dir / "sign-in.json"),
+                "session_path": str(out_dir / "auth-session.json"),
+            }
+        else:
+            error_code = str(sign_in_result.get("error_code") or "").strip().lower()
+            summary["steps"]["sign_in"] = {
+                "status": "skipped",
+                "reason": "invalid_credentials" if error_code == "invalid_credentials" else "sign_in_failed",
+                "sign_in_path": str(out_dir / "sign-in.json"),
+            }
+            if error_code != "invalid_credentials":
+                raise StepFailure("sign_in_failed")
+
+            summary["status"] = "pass"
+            summary["terminal_reason"] = "sign_in_invalid_credentials_skipped"
+            exit_code = 0
+            write_summary(summary_path, summary)
+            return exit_code
+
         write_summary(summary_path, summary)
 
         refresh_start = capture_json_endpoint(

@@ -24,12 +24,19 @@ type RefreshReport = {
 
 type RefreshStatus = {
   running: boolean;
+  run_id?: string;
+  pid?: number;
   requested_mode?: RefreshMode;
+  requested_by?: string;
   started_at?: string;
   completed_at?: string;
   last_error?: string;
   report_generated_at_utc?: string;
   last_report?: RefreshReport;
+  kill_requested?: boolean;
+  kill_requested_at?: string;
+  kill_requested_by?: string;
+  kill_acknowledged_at?: string;
 };
 
 type RefreshLogPayload = {
@@ -132,14 +139,29 @@ export default function AdminRefreshLogsClient() {
   });
   const [syncing, setSyncing] = useState(false);
   const [refreshBusy, setRefreshBusy] = useState<RefreshMode | null>(null);
+  const [killBusy, setKillBusy] = useState(false);
+  const [showKillConfirm, setShowKillConfirm] = useState(false);
   const [refreshStatus, setRefreshStatus] = useState<RefreshStatus | null>(null);
   const [refreshLog, setRefreshLog] = useState<RefreshLogPayload | null>(null);
   const [refreshHistory, setRefreshHistory] = useState<RefreshHistoryPayload | null>(null);
 
   const refreshRunning = Boolean(refreshStatus?.running);
+  const killRequested = Boolean(refreshStatus?.kill_requested);
 
   function pushNotice(tone: NoticeTone, text: string) {
     setNotice({ tone, text });
+  }
+
+  function downloadJsonFile(fileName: string, payload: unknown): void {
+    const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json" });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.URL.revokeObjectURL(url);
   }
 
   async function loadUiConfig(): Promise<void> {
@@ -247,9 +269,46 @@ export default function AdminRefreshLogsClient() {
     setRefreshBusy(null);
   }
 
+  async function onConfirmKillActiveRun(): Promise<void> {
+    setKillBusy(true);
+    pushNotice("warn", "Kill request is being sent to the active refresh run...");
+
+    try {
+      const response = await fetch("/api/admin/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "kill_active_run" }),
+      });
+
+      const data = (await response.json()) as {
+        status?: RefreshStatus;
+        error?: string;
+        killDump?: unknown;
+        downloadFileName?: string;
+      };
+
+      if (!response.ok) {
+        pushNotice("error", data.error || "Kill request failed.");
+        return;
+      }
+
+      setRefreshStatus(data.status ?? null);
+      setShowKillConfirm(false);
+      if (data.killDump && data.downloadFileName) {
+        downloadJsonFile(data.downloadFileName, data.killDump);
+      }
+      pushNotice("good", "Kill request recorded. The run log snapshot has been downloaded.");
+      await Promise.all([loadRefreshStatus(), loadRefreshLog(), loadRefreshHistory()]);
+    } catch (error) {
+      pushNotice("error", error instanceof Error ? error.message : "Kill request failed.");
+    } finally {
+      setKillBusy(false);
+    }
+  }
+
   return (
     <SiteFrame pageBackgroundImage={backgroundImage}>
-      <section className={styles.deck}>
+      <section className={`${styles.deck} ${styles.deckLog}`}>
         <header className={styles.hero}>
           <div>
             <p className={styles.kicker}>Tao Financial Engine</p>
@@ -263,6 +322,14 @@ export default function AdminRefreshLogsClient() {
             </button>
             <button className={styles.ghostButton} type="button" onClick={() => (window.location.href = "/admin-console")}>
               Back To Admin Console
+            </button>
+            <button
+              className={styles.dangerButton}
+              type="button"
+              onClick={() => setShowKillConfirm(true)}
+              disabled={!refreshRunning || killBusy || killRequested}
+            >
+              {killRequested ? "Kill Requested" : "KILL ACTIVE RUN"}
             </button>
           </div>
         </header>
@@ -313,6 +380,15 @@ export default function AdminRefreshLogsClient() {
             >
               Poll Now
             </button>
+
+            <button
+              className={styles.dangerButton}
+              type="button"
+              onClick={() => setShowKillConfirm(true)}
+              disabled={!refreshRunning || killBusy || killRequested}
+            >
+              {killRequested ? "Kill Requested" : "KILL ACTIVE RUN"}
+            </button>
           </div>
 
           {refreshRunning ? (
@@ -327,8 +403,16 @@ export default function AdminRefreshLogsClient() {
               <div className={styles.kvValue}>{refreshRunning ? "Running" : "Idle"}</div>
             </div>
             <div className={styles.kvItem}>
+              <div className={styles.kvLabel}>Run ID</div>
+              <div className={styles.kvValue}>{refreshStatus?.run_id ?? "n/a"}</div>
+            </div>
+            <div className={styles.kvItem}>
               <div className={styles.kvLabel}>Mode</div>
               <div className={styles.kvValue}>{modeLabel(refreshStatus?.requested_mode)}</div>
+            </div>
+            <div className={styles.kvItem}>
+              <div className={styles.kvLabel}>Requested By</div>
+              <div className={styles.kvValue}>{refreshStatus?.requested_by ?? "n/a"}</div>
             </div>
             <div className={styles.kvItem}>
               <div className={styles.kvLabel}>Started</div>
@@ -345,6 +429,12 @@ export default function AdminRefreshLogsClient() {
             <div className={styles.kvItem}>
               <div className={styles.kvLabel}>Rows Written</div>
               <div className={styles.kvValue}>{refreshStatus?.last_report?.rows_written ?? "n/a"}</div>
+            </div>
+            <div className={styles.kvItem}>
+              <div className={styles.kvLabel}>Kill State</div>
+              <div className={styles.kvValue}>
+                {killRequested ? `Requested by ${refreshStatus?.kill_requested_by ?? "admin"}` : "Clear"}
+              </div>
             </div>
           </div>
 
@@ -407,6 +497,40 @@ export default function AdminRefreshLogsClient() {
             </div>
           </div>
         </article>
+
+        {showKillConfirm ? (
+          <div className={styles.modalBackdrop} role="presentation">
+            <div className={styles.modalCard} role="dialog" aria-modal="true" aria-labelledby="kill-run-title">
+              <h3 id="kill-run-title" className={styles.modalTitle}>Kill Active Run</h3>
+              <p className={styles.modalText}>
+                Are you sure you want to halt the active refresh run
+                {refreshStatus?.run_id ? ` (${refreshStatus.run_id})` : ""}
+                ?
+              </p>
+              <p className={styles.modalText}>
+                This records the kill flag in Postgres and downloads the current log state as JSON.
+              </p>
+              <div className={styles.buttonRow}>
+                <button
+                  className={styles.dangerButton}
+                  type="button"
+                  onClick={() => void onConfirmKillActiveRun()}
+                  disabled={killBusy}
+                >
+                  {killBusy ? "Sending Kill Request..." : "Yes, Kill Active Run"}
+                </button>
+                <button
+                  className={styles.ghostButton}
+                  type="button"
+                  onClick={() => setShowKillConfirm(false)}
+                  disabled={killBusy}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </section>
     </SiteFrame>
   );
