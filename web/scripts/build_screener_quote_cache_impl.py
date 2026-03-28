@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import time
@@ -10,6 +11,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+import psycopg2
 
 ROOT = Path(__file__).resolve().parents[2]
 FINVIZ_METADATA_SCRIPT = Path(__file__).resolve().parent / "build_screener_finviz_overview_cache.py"
@@ -47,6 +50,12 @@ MISSING_TEXT_MARKERS = {
   "-",
 }
 
+ADMIN_KILL_FAILURE_CODE = "ADMIN_KILL_REQUESTED"
+
+
+class AdminKillRequested(RuntimeError):
+  pass
+
 
 def _load_snapshot_rows() -> list[dict[str, Any]]:
   snapshot_path = ROOT / "uf_snapshot.json"
@@ -57,6 +66,94 @@ def _load_snapshot_rows() -> list[dict[str, Any]]:
   if not isinstance(rows, list):
     return []
   return [row for row in rows if isinstance(row, dict)]
+
+
+def _env_text(name: str) -> str:
+  return str(os.environ.get(name, "")).strip()
+
+
+def _runtime_kill_connection():
+  run_id = _env_text("TFE_REFRESH_RUN_ID")
+  if not run_id:
+    return None
+
+  required = {
+    "host": _env_text("PGHOST"),
+    "dbname": _env_text("PGDATABASE"),
+    "user": _env_text("PGUSER"),
+    "password": _env_text("PGPASSWORD"),
+  }
+  if any(not value for value in required.values()):
+    return None
+
+  conn = psycopg2.connect(
+    host=required["host"],
+    port=int(_env_text("PGPORT") or "5432"),
+    dbname=required["dbname"],
+    user=required["user"],
+    password=required["password"],
+    sslmode="require",
+  )
+  conn.autocommit = False
+  return conn
+
+
+def _check_for_admin_kill(conn, run_id: str) -> None:
+  with conn.cursor() as cur:
+    cur.execute(
+      """
+      SELECT
+        kill_requested,
+        kill_requested_at,
+        kill_requested_by
+      FROM runtime_refresh_runs
+      WHERE run_id = %s
+      LIMIT 1
+      """,
+      (run_id,),
+    )
+    row = cur.fetchone()
+
+  kill_requested = bool(row[0]) if row else False
+  if not kill_requested:
+    conn.rollback()
+    return
+
+  kill_requested_at = row[1].isoformat() if row and row[1] is not None else None
+  kill_requested_by = str(row[2] or "").strip() or "admin"
+  conn.rollback()
+  with conn.cursor() as cur:
+    cur.execute(
+      """
+      UPDATE runtime_refresh_runs
+      SET
+        report_status = 'aborted',
+        completed_at = NOW(),
+        failure_code = %s,
+        failure_detail = %s,
+        epoch_library_status = 'aborted_by_admin',
+        kill_acknowledged_at = NOW(),
+        updated_at = NOW()
+      WHERE run_id = %s
+      """,
+      (
+        ADMIN_KILL_FAILURE_CODE,
+        f"Kill requested by {kill_requested_by} at {kill_requested_at or 'unknown_time'}.",
+        run_id,
+      ),
+    )
+  conn.commit()
+  raise AdminKillRequested(
+    f"Kill requested by {kill_requested_by} at {kill_requested_at or 'unknown_time'}."
+  )
+
+
+def _cancel_remaining_futures(futures: list[Any]) -> None:
+  for future in futures:
+    try:
+      future.cancel()
+    except Exception:
+      continue
 
 
 def _unique_symbols(rows: list[dict[str, Any]]) -> list[str]:
@@ -689,78 +786,114 @@ def main() -> int:
   finviz_fetch_overlay_rows = 0
   finviz_fetch_overlay_fields = 0
   finviz_seeded_rows = 0
+  kill_run_id = _env_text("TFE_REFRESH_RUN_ID")
+  kill_conn = _runtime_kill_connection()
+  batch_size = max(1, save_every)
 
-  with ThreadPoolExecutor(max_workers=workers) as executor:
-    future_map = {executor.submit(_fetch_quote_row, ticker, timeout_sec): ticker for ticker in pending}
-    for future in as_completed(future_map):
-      ticker = future_map[future]
-      completed_count += 1
+  try:
+    for batch_start in range(0, len(pending), batch_size):
+      if kill_conn is not None and kill_run_id:
+        _check_for_admin_kill(kill_conn, kill_run_id)
+
+      batch = pending[batch_start: batch_start + batch_size]
+      executor = ThreadPoolExecutor(max_workers=workers)
+      future_map = {executor.submit(_fetch_quote_row, ticker, timeout_sec): ticker for ticker in batch}
+      batch_futures = list(future_map.keys())
+      graceful_batch_shutdown = True
 
       try:
-        result_ticker, quote_row, error = future.result()
-      except Exception as error:  # defensive
-        result_ticker = ticker
-        quote_row = None
-        error = f"future_failure: {error}"
+        for future in as_completed(future_map):
+          if kill_conn is not None and kill_run_id:
+            try:
+              _check_for_admin_kill(kill_conn, kill_run_id)
+            except AdminKillRequested:
+              graceful_batch_shutdown = False
+              _cancel_remaining_futures(batch_futures)
+              raise
 
-      if quote_row is not None:
-        existing_before = existing.get(result_ticker)
-        merged_quote_row, copied_count = _merge_preserved_profile_fields(existing_before, quote_row)
-        merged_quote_row, finviz_overlay_count = _apply_finviz_overlay(merged_quote_row, finviz_rows.get(result_ticker))
-        if finviz_overlay_count > 0:
-          finviz_fetch_overlay_rows += 1
-          finviz_fetch_overlay_fields += finviz_overlay_count
+          ticker = future_map[future]
+          completed_count += 1
 
-        merged_incomplete = _looks_like_incomplete_cached_quote(merged_quote_row, min_non_meta_fields)
-        existing_complete = isinstance(existing_before, dict) and not _looks_like_incomplete_cached_quote(
-          existing_before,
-          min_non_meta_fields,
-        )
+          try:
+            result_ticker, quote_row, error = future.result()
+          except Exception as error:  # defensive
+            result_ticker = ticker
+            quote_row = None
+            error = f"future_failure: {error}"
 
-        if merged_incomplete and existing_complete:
-          incomplete_fetch_kept_existing += 1
-        else:
-          existing[result_ticker] = merged_quote_row
-          ok_count += 1
-          if copied_count > 0:
-            preserved_profile_rows += 1
-          if merged_incomplete:
-            incomplete_fetch_cached += 1
-      else:
-        failures[result_ticker] = str(error or "unknown_error")
-        existing_before = existing.get(result_ticker)
-        if not isinstance(existing_before, dict):
-          seeded_row, seeded_overlay_count = _apply_finviz_overlay(
-            {
-              "__quoteFetchTicker": result_ticker,
-              "__quoteFetchAliasUsed": False,
-              "__quoteBarSource": None,
-              "__quoteBarCount": 0,
-              "__updatedAtUtc": datetime.now(timezone.utc).isoformat(),
-            },
-            finviz_rows.get(result_ticker),
-          )
-          if seeded_overlay_count > 0:
-            existing[result_ticker] = seeded_row
-            finviz_seeded_rows += 1
+          if quote_row is not None:
+            existing_before = existing.get(result_ticker)
+            merged_quote_row, copied_count = _merge_preserved_profile_fields(existing_before, quote_row)
+            merged_quote_row, finviz_overlay_count = _apply_finviz_overlay(merged_quote_row, finviz_rows.get(result_ticker))
+            if finviz_overlay_count > 0:
+              finviz_fetch_overlay_rows += 1
+              finviz_fetch_overlay_fields += finviz_overlay_count
 
-      if completed_count % save_every == 0:
-        _write_output(output_path, existing, len(symbols), workers)
-        _write_failures(failures_path, failures)
-        elapsed = time.time() - started
-        print(
-          "progress="
-          f"{completed_count}/{len(pending)} "
-          f"ok={ok_count} "
-          f"fail={len(failures)} "
-          f"preserved_profile_rows={preserved_profile_rows} "
-          f"incomplete_cached={incomplete_fetch_cached} "
-          f"incomplete_kept_existing={incomplete_fetch_kept_existing} "
-          f"finviz_fetch_overlay_rows={finviz_fetch_overlay_rows} "
-          f"finviz_fetch_overlay_fields={finviz_fetch_overlay_fields} "
-          f"finviz_seeded_rows={finviz_seeded_rows} "
-          f"elapsed_sec={elapsed:.1f}"
-        )
+            merged_incomplete = _looks_like_incomplete_cached_quote(merged_quote_row, min_non_meta_fields)
+            existing_complete = isinstance(existing_before, dict) and not _looks_like_incomplete_cached_quote(
+              existing_before,
+              min_non_meta_fields,
+            )
+
+            if merged_incomplete and existing_complete:
+              incomplete_fetch_kept_existing += 1
+            else:
+              existing[result_ticker] = merged_quote_row
+              ok_count += 1
+              if copied_count > 0:
+                preserved_profile_rows += 1
+              if merged_incomplete:
+                incomplete_fetch_cached += 1
+          else:
+            failures[result_ticker] = str(error or "unknown_error")
+            existing_before = existing.get(result_ticker)
+            if not isinstance(existing_before, dict):
+              seeded_row, seeded_overlay_count = _apply_finviz_overlay(
+                {
+                  "__quoteFetchTicker": result_ticker,
+                  "__quoteFetchAliasUsed": False,
+                  "__quoteBarSource": None,
+                  "__quoteBarCount": 0,
+                  "__updatedAtUtc": datetime.now(timezone.utc).isoformat(),
+                },
+                finviz_rows.get(result_ticker),
+              )
+              if seeded_overlay_count > 0:
+                existing[result_ticker] = seeded_row
+                finviz_seeded_rows += 1
+      finally:
+        executor.shutdown(wait=graceful_batch_shutdown, cancel_futures=not graceful_batch_shutdown)
+
+      _write_output(output_path, existing, len(symbols), workers)
+      _write_failures(failures_path, failures)
+      elapsed = time.time() - started
+      print(
+        "progress="
+        f"{completed_count}/{len(pending)} "
+        f"ok={ok_count} "
+        f"fail={len(failures)} "
+        f"preserved_profile_rows={preserved_profile_rows} "
+        f"incomplete_cached={incomplete_fetch_cached} "
+        f"incomplete_kept_existing={incomplete_fetch_kept_existing} "
+        f"finviz_fetch_overlay_rows={finviz_fetch_overlay_rows} "
+        f"finviz_fetch_overlay_fields={finviz_fetch_overlay_fields} "
+        f"finviz_seeded_rows={finviz_seeded_rows} "
+        f"elapsed_sec={elapsed:.1f}"
+      )
+  except AdminKillRequested as error:
+    if kill_conn is not None:
+      try:
+        kill_conn.rollback()
+      except Exception:
+        pass
+    print(f"admin_kill_requested=true detail={error}")
+    return 2
+  finally:
+    if kill_conn is not None:
+      try:
+        kill_conn.close()
+      except Exception:
+        pass
 
   _write_output(output_path, existing, len(symbols), workers)
   _write_failures(failures_path, failures)

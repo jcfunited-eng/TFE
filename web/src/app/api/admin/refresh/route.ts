@@ -1,7 +1,7 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import { closeSync, openSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { Pool } from "pg";
@@ -49,6 +49,7 @@ type RefreshTriggerSource = "manual" | "scheduled" | "program";
 type RefreshHistoryPhase = "start" | "start_failed" | "complete";
 type RefreshHistoryStatus = "running" | "ok" | "error";
 type Step1CutoverRequestBody = {
+  action?: unknown;
   mode?: unknown;
   runId?: unknown;
   normalizedPackageId?: unknown;
@@ -96,6 +97,10 @@ type RefreshStatusRecord = {
   current_phase_last_heartbeat_at?: string;
   current_phase_failure_code?: string | null;
   current_phase_failure_detail?: string | null;
+  kill_requested?: boolean;
+  kill_requested_at?: string;
+  kill_requested_by?: string;
+  kill_acknowledged_at?: string;
 };
 
 type RefreshLaunchResult = {
@@ -183,6 +188,20 @@ type TerminalActivationOutcome = {
   servingState: string | undefined;
   blockingReasonCode: string | null | undefined;
   blockingReasonDetail: string | null | undefined;
+};
+
+type RefreshKillDump = {
+  generated_at_utc: string;
+  run_id: string;
+  requested_by: string;
+  status: RefreshStatusRecord;
+  phase_ledger: RefreshPhaseLedgerRecord[];
+  log_snapshot: {
+    path: string;
+    updated_at_utc: string | null;
+    line_count: number;
+    lines: string[];
+  };
 };
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
@@ -602,6 +621,10 @@ async function ensureRuntimeRefreshRunsTable(): Promise<void> {
       ADD COLUMN IF NOT EXISTS current_phase_last_heartbeat_at TIMESTAMPTZ,
       ADD COLUMN IF NOT EXISTS current_phase_failure_code TEXT,
       ADD COLUMN IF NOT EXISTS current_phase_failure_detail TEXT,
+      ADD COLUMN IF NOT EXISTS kill_requested BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS kill_requested_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS kill_requested_by TEXT,
+      ADD COLUMN IF NOT EXISTS kill_acknowledged_at TIMESTAMPTZ,
       ADD COLUMN IF NOT EXISTS is_active_publication BOOLEAN NOT NULL DEFAULT FALSE
     `);
     await pool.query(`
@@ -953,6 +976,10 @@ async function readStatusRecordFromRuntimeDb(): Promise<RefreshStatusRecord | nu
     current_phase_last_heartbeat_at: Date | null;
     current_phase_failure_code: string | null;
     current_phase_failure_detail: string | null;
+    kill_requested: boolean | null;
+    kill_requested_at: Date | null;
+    kill_requested_by: string | null;
+    kill_acknowledged_at: Date | null;
   }>(
     `
       SELECT
@@ -976,7 +1003,11 @@ async function readStatusRecordFromRuntimeDb(): Promise<RefreshStatusRecord | nu
         current_phase_completed_at,
         current_phase_last_heartbeat_at,
         current_phase_failure_code,
-        current_phase_failure_detail
+        current_phase_failure_detail,
+        kill_requested,
+        kill_requested_at,
+        kill_requested_by,
+        kill_acknowledged_at
       FROM runtime_refresh_runs
       ORDER BY COALESCE(started_at, created_at) DESC, created_at DESC
       LIMIT 1
@@ -1006,6 +1037,10 @@ async function readStatusRecordFromRuntimeDb(): Promise<RefreshStatusRecord | nu
     current_phase_last_heartbeat_at: row.current_phase_last_heartbeat_at instanceof Date ? row.current_phase_last_heartbeat_at.toISOString() : undefined,
     current_phase_failure_code: toTextOrNull(row.current_phase_failure_code),
     current_phase_failure_detail: toTextOrNull(row.current_phase_failure_detail),
+    kill_requested: Boolean(row.kill_requested),
+    kill_requested_at: row.kill_requested_at instanceof Date ? row.kill_requested_at.toISOString() : undefined,
+    kill_requested_by: toTextOrNull(row.kill_requested_by) ?? undefined,
+    kill_acknowledged_at: row.kill_acknowledged_at instanceof Date ? row.kill_acknowledged_at.toISOString() : undefined,
   };
 }
 
@@ -1976,6 +2011,138 @@ async function appendHistoryEntry(entry: Record<string, unknown>): Promise<void>
     await appendAdminRefreshHistorySnapshotLine(payload, HISTORY_PATH);
   } catch {
     // Persistence must not block refresh operations.
+  }
+}
+
+function tailRefreshLogLines(text: string, count: number): string[] {
+  const lines = String(text ?? "").split(/\r?\n/).filter((line) => line.trim().length > 0);
+  if (lines.length <= count) return lines;
+  return lines.slice(lines.length - count);
+}
+
+async function readRefreshLogSnapshot(linesRequested = 200): Promise<{
+  path: string;
+  updatedAtUtc: string | null;
+  lines: string[];
+}> {
+  try {
+    const [raw, logStats] = await Promise.all([readFile(LOG_PATH, "utf-8"), stat(LOG_PATH)]);
+    return {
+      path: LOG_PATH,
+      updatedAtUtc: logStats.mtime.toISOString(),
+      lines: tailRefreshLogLines(raw, linesRequested),
+    };
+  } catch {
+    try {
+      const persisted = await readAdminRefreshPersist(ADMIN_REFRESH_PERSIST_KEYS.logSnapshot);
+      const persistedRaw = typeof persisted?.raw_text === "string" ? persisted.raw_text : "";
+      return {
+        path: typeof persisted?.path === "string" ? persisted.path : LOG_PATH,
+        updatedAtUtc: typeof persisted?.updated_at_utc === "string" ? persisted.updated_at_utc : null,
+        lines: tailRefreshLogLines(persistedRaw, linesRequested),
+      };
+    } catch {
+      return {
+        path: LOG_PATH,
+        updatedAtUtc: null,
+        lines: [],
+      };
+    }
+  }
+}
+
+async function requestKillForActiveRun(params: {
+  runId: string;
+  requestedBy: string;
+  baseStatus: RefreshStatusRecord;
+}): Promise<{ status: RefreshStatusRecord; killDump: RefreshKillDump }> {
+  if (!isRuntimeDbConfigured()) {
+    throw new Error("Runtime Postgres is not configured; cannot request kill for active run.");
+  }
+
+  await ensureRuntimeRefreshRunsTable();
+  const pool = resolveRuntimeRefreshPool();
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+    const update = await client.query<{
+      run_id: string;
+      kill_requested: boolean;
+      kill_requested_at: Date | null;
+      kill_requested_by: string | null;
+      kill_acknowledged_at: Date | null;
+      completed_at: Date | null;
+    }>(
+      `
+        UPDATE runtime_refresh_runs
+        SET kill_requested = TRUE,
+            kill_requested_at = NOW(),
+            kill_requested_by = $2,
+            updated_at = NOW()
+        WHERE run_id = $1
+        RETURNING
+          run_id,
+          kill_requested,
+          kill_requested_at,
+          kill_requested_by,
+          kill_acknowledged_at,
+          completed_at
+      `,
+      [params.runId, params.requestedBy],
+    );
+    await client.query("COMMIT");
+
+    const row = update.rows[0];
+    if (!row) {
+      throw new Error(`Active refresh run not found for kill request. run_id=${params.runId}`);
+    }
+
+    const mergedStatus: RefreshStatusRecord = {
+      ...params.baseStatus,
+      run_id: row.run_id,
+      running: row.completed_at === null,
+      kill_requested: Boolean(row.kill_requested),
+      kill_requested_at: row.kill_requested_at instanceof Date ? row.kill_requested_at.toISOString() : undefined,
+      kill_requested_by: toTextOrNull(row.kill_requested_by) ?? undefined,
+      kill_acknowledged_at: row.kill_acknowledged_at instanceof Date ? row.kill_acknowledged_at.toISOString() : undefined,
+    };
+
+    await writeStatusRecord(mergedStatus);
+    await appendHistoryEntry({
+      event: "refresh_kill_requested",
+      phase: "kill_requested",
+      run_id: params.runId,
+      requested_by: params.requestedBy,
+      status: "running",
+    });
+
+    const phaseLedger = await loadRuntimeRefreshPhaseLedger(params.runId);
+    const logSnapshot = await readRefreshLogSnapshot(240);
+    const killDump: RefreshKillDump = {
+      generated_at_utc: nowIso(),
+      run_id: params.runId,
+      requested_by: params.requestedBy,
+      status: mergedStatus,
+      phase_ledger: phaseLedger,
+      log_snapshot: {
+        path: logSnapshot.path,
+        updated_at_utc: logSnapshot.updatedAtUtc,
+        line_count: logSnapshot.lines.length,
+        lines: logSnapshot.lines,
+      },
+    };
+
+    return { status: mergedStatus, killDump };
+  } catch (error) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // Ignore rollback failures.
+    }
+    throw error;
+  } finally {
+    client.release();
   }
 }
 
@@ -3235,6 +3402,37 @@ export async function POST(request: Request) {
   const modeInput = await resolveRequestedMode(request.clone());
   if (modeInput.parseError) {
     return NextResponse.json({ error: modeInput.parseError }, { status: 400 });
+  }
+
+  const requestedAction = String((modeInput.body as Record<string, unknown> | null)?.action ?? "").trim().toLowerCase();
+  if (requestedAction === "kill_active_run") {
+    const currentStatus = await normalizeStatus();
+    const runId = String(currentStatus.run_id ?? "").trim();
+    if (!currentStatus.running || !runId) {
+      return NextResponse.json({ error: "No active refresh run is available to kill.", status: currentStatus }, { status: 409 });
+    }
+
+    try {
+      const result = await requestKillForActiveRun({
+        runId,
+        requestedBy,
+        baseStatus: currentStatus,
+      });
+      return NextResponse.json({
+        ok: true,
+        status: result.status,
+        downloadFileName: `tfe-kill-run-${runId}.json`,
+        killDump: result.killDump,
+      });
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error: error instanceof Error ? error.message : "Failed to request kill for active run.",
+          status: currentStatus,
+        },
+        { status: 500 },
+      );
+    }
   }
 
   const currentStatus = await normalizeStatus();

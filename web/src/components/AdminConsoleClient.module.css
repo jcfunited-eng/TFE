@@ -217,7 +217,8 @@
 .primaryButton,
 .secondaryButton,
 .ghostButton,
-.opButton {
+.opButton,
+.dangerButton {
   border: 1px solid transparent;
   min-height: 36px;
   border-radius: 999px;
@@ -231,7 +232,8 @@
 .primaryButton:hover,
 .secondaryButton:hover,
 .ghostButton:hover,
-.opButton:hover {
+.opButton:hover,
+.dangerButton:hover {
   transform: translateY(-1px);
 }
 
@@ -259,13 +261,54 @@
   border-color: rgba(157, 122, 49, 0.45);
 }
 
+.dangerButton {
+  background: linear-gradient(180deg, #a83f3f 0%, #7f2323 100%);
+  color: #fff4f4;
+  box-shadow: 0 9px 15px rgba(127, 35, 35, 0.24);
+}
+
 .primaryButton:disabled,
 .secondaryButton:disabled,
 .ghostButton:disabled,
-.opButton:disabled {
+.opButton:disabled,
+.dangerButton:disabled {
   opacity: 0.65;
   transform: none;
   cursor: not-allowed;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(14, 27, 21, 0.46);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 60;
+}
+
+.modalCard {
+  width: min(520px, calc(100vw - 28px));
+  border-radius: 18px;
+  border: 1px solid rgba(127, 35, 35, 0.22);
+  background: rgba(252, 248, 246, 0.98);
+  box-shadow: 0 24px 48px rgba(18, 32, 26, 0.24);
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #611f1f;
+}
+
+.modalText {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: rgba(44, 25, 25, 0.86);
 }
 
 .progressBar {

@@ -34,13 +34,19 @@ type RefreshReport = {
 
 type RefreshStatus = {
   running: boolean;
+  run_id?: string;
   pid?: number;
   requested_mode?: RefreshMode;
+  requested_by?: string;
   started_at?: string;
   completed_at?: string;
   last_error?: string;
   report_generated_at_utc?: string;
   last_report?: RefreshReport;
+  kill_requested?: boolean;
+  kill_requested_at?: string;
+  kill_requested_by?: string;
+  kill_acknowledged_at?: string;
 };
 
 type AdminUserSummary = {
@@ -315,6 +321,8 @@ export default function AdminConsolePage() {
 
   const [refreshStatus, setRefreshStatus] = useState<RefreshStatus | null>(null);
   const [refreshBusy, setRefreshBusy] = useState<RefreshMode | null>(null);
+  const [killBusy, setKillBusy] = useState(false);
+  const [showKillConfirm, setShowKillConfirm] = useState(false);
   const [modelAccuracy, setModelAccuracy] = useState<ModelAccuracyPayload | null>(null);
   const [recommendationQuality, setRecommendationQuality] = useState<RecommendationQualityPayload | null>(null);
 
@@ -340,6 +348,7 @@ export default function AdminConsolePage() {
   const [userTablePageSize, setUserTablePageSize] = useState(25);
 
   const refreshRunning = Boolean(refreshStatus?.running);
+  const killRequested = Boolean(refreshStatus?.kill_requested);
 
   const securityHeadline = useMemo(() => {
     if (!systemStatus) return "Loading";
@@ -446,6 +455,18 @@ export default function AdminConsolePage() {
 
   function pushNotice(tone: NoticeTone, text: string) {
     setNotice({ tone, text });
+  }
+
+  function downloadJsonFile(fileName: string, payload: unknown): void {
+    const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json" });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.URL.revokeObjectURL(url);
   }
 
   async function loadUiConfig(): Promise<void> {
@@ -589,6 +610,42 @@ export default function AdminConsolePage() {
     }
 
     setRefreshBusy(null);
+  }
+
+  async function onConfirmKillActiveRun(): Promise<void> {
+    setKillBusy(true);
+    pushNotice("warn", "Kill request is being sent to the active refresh run...");
+
+    try {
+      const response = await fetch("/api/admin/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "kill_active_run" }),
+      });
+      const data = (await response.json()) as {
+        status?: RefreshStatus;
+        error?: string;
+        killDump?: unknown;
+        downloadFileName?: string;
+      };
+
+      if (!response.ok) {
+        pushNotice("error", data.error || "Kill request failed.");
+        return;
+      }
+
+      setRefreshStatus(data.status ?? null);
+      setShowKillConfirm(false);
+      if (data.killDump && data.downloadFileName) {
+        downloadJsonFile(data.downloadFileName, data.killDump);
+      }
+      pushNotice("good", "Kill request recorded. The run log snapshot has been downloaded.");
+      await Promise.all([loadRefreshStatus(), loadSystemStatus()]);
+    } catch (error) {
+      pushNotice("error", error instanceof Error ? error.message : "Kill request failed.");
+    } finally {
+      setKillBusy(false);
+    }
   }
 
   async function onCreateTestUser(): Promise<void> {
@@ -970,6 +1027,15 @@ export default function AdminConsolePage() {
               >
                 Open Dedicated Refresh Log Page
               </button>
+
+              <button
+                className={styles.dangerButton}
+                type="button"
+                onClick={() => setShowKillConfirm(true)}
+                disabled={!refreshRunning || killBusy || killRequested}
+              >
+                {killRequested ? "Kill Requested" : "KILL ACTIVE RUN"}
+              </button>
             </div>
 
             {refreshRunning ? (
@@ -990,6 +1056,14 @@ export default function AdminConsolePage() {
               <div className={styles.kvItem}>
                 <div className={styles.kvLabel}>Completed</div>
                 <div className={styles.kvValue}>{formatIso(refreshStatus?.completed_at)}</div>
+              </div>
+              <div className={styles.kvItem}>
+                <div className={styles.kvLabel}>Kill State</div>
+                <div className={styles.kvValue}>
+                  {killRequested
+                    ? `Requested by ${refreshStatus?.kill_requested_by ?? "admin"}`
+                    : "Clear"}
+                </div>
               </div>
               <div className={styles.kvItem}>
                 <div className={styles.kvLabel}>Report</div>
@@ -1611,6 +1685,38 @@ export default function AdminConsolePage() {
             </div>
           </article>
         </div>
+        {showKillConfirm ? (
+          <div className={styles.modalBackdrop} role="presentation">
+            <div className={styles.modalCard} role="dialog" aria-modal="true" aria-labelledby="kill-run-title">
+              <h3 id="kill-run-title" className={styles.modalTitle}>Kill Active Run</h3>
+              <p className={styles.modalText}>
+                Are you sure you want to halt the active refresh run
+                {refreshStatus?.run_id ? ` (${refreshStatus.run_id})` : ""}?
+              </p>
+              <p className={styles.modalText}>
+                This records the kill flag in Postgres and downloads the current log state as JSON.
+              </p>
+              <div className={styles.buttonRow}>
+                <button
+                  className={styles.dangerButton}
+                  type="button"
+                  onClick={() => void onConfirmKillActiveRun()}
+                  disabled={killBusy}
+                >
+                  {killBusy ? "Sending Kill Request..." : "Yes, Kill Active Run"}
+                </button>
+                <button
+                  className={styles.ghostButton}
+                  type="button"
+                  onClick={() => setShowKillConfirm(false)}
+                  disabled={killBusy}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </section>
     </SiteFrame>
   );
