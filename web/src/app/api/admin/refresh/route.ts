@@ -138,6 +138,13 @@ type PublicationActivationRow = {
   quoteBindingStatus: string | null;
 };
 
+type PublicationActivationPayloadFields = {
+  validationStatus: string | null;
+  snapshotPublicationId: string | null;
+  quotePublicationId: string | null;
+  quoteBindingStatus: string | null;
+};
+
 type PublicationActivationScriptResult = {
   ok: boolean;
   exitCode: number | null;
@@ -1101,6 +1108,96 @@ function publicationActivationFailureReasons(row: PublicationActivationRow | nul
   return reasons;
 }
 
+function extractPublicationActivationPayloadFields(
+  payload: Record<string, unknown> | null | undefined,
+): PublicationActivationPayloadFields {
+  return {
+    validationStatus: toLowerTextOrNull(
+      payload?.validation_status
+      ?? payload?.validationStatus
+      ?? payload?.status,
+    ),
+    snapshotPublicationId: toTextOrNull(
+      payload?.snapshot_publication_id
+      ?? payload?.snapshotPublicationId,
+    ),
+    quotePublicationId: toTextOrNull(
+      payload?.quote_publication_id
+      ?? payload?.quotePublicationId,
+    ),
+    quoteBindingStatus: toLowerTextOrNull(
+      payload?.quote_binding_status
+      ?? payload?.quoteBindingStatus,
+    ),
+  };
+}
+
+function mergePublicationActivationRows(
+  baseRow: PublicationActivationRow | null | undefined,
+  syncFields: PublicationActivationPayloadFields | null | undefined,
+  validationFields: PublicationActivationPayloadFields | null | undefined,
+): PublicationActivationRow | null {
+  const validationStatus =
+    toLowerTextOrNull(validationFields?.validationStatus)
+    ?? toLowerTextOrNull(syncFields?.validationStatus)
+    ?? toLowerTextOrNull(baseRow?.validationStatus)
+    ?? null;
+  const snapshotPublicationId =
+    toTextOrNull(syncFields?.snapshotPublicationId)
+    ?? toTextOrNull(validationFields?.snapshotPublicationId)
+    ?? toTextOrNull(baseRow?.snapshotPublicationId)
+    ?? null;
+  const quotePublicationId =
+    toTextOrNull(syncFields?.quotePublicationId)
+    ?? toTextOrNull(validationFields?.quotePublicationId)
+    ?? toTextOrNull(baseRow?.quotePublicationId)
+    ?? null;
+  const quoteBindingStatus =
+    toLowerTextOrNull(syncFields?.quoteBindingStatus)
+    ?? toLowerTextOrNull(validationFields?.quoteBindingStatus)
+    ?? toLowerTextOrNull(baseRow?.quoteBindingStatus)
+    ?? null;
+
+  if (!validationStatus && !snapshotPublicationId && !quotePublicationId && !quoteBindingStatus) {
+    return null;
+  }
+
+  return {
+    validationStatus,
+    snapshotPublicationId,
+    quotePublicationId,
+    quoteBindingStatus,
+  };
+}
+
+async function persistPublicationActivationPayloadFields(
+  runId: string,
+  fields: PublicationActivationPayloadFields,
+): Promise<void> {
+  if (!isRuntimeDbConfigured()) return;
+  await ensureRuntimeRefreshRunsTable();
+  const pool = resolveRuntimeRefreshPool();
+  await pool.query(
+    `
+      UPDATE runtime_refresh_runs
+      SET
+        validation_status = COALESCE($2, validation_status),
+        snapshot_publication_id = COALESCE($3, snapshot_publication_id),
+        quote_publication_id = COALESCE($4, quote_publication_id),
+        quote_binding_status = COALESCE($5, quote_binding_status),
+        updated_at = NOW()
+      WHERE run_id = $1
+    `,
+    [
+      runId,
+      fields.validationStatus,
+      fields.snapshotPublicationId,
+      fields.quotePublicationId,
+      fields.quoteBindingStatus,
+    ],
+  );
+}
+
 function appendTailLines(buffer: string[], chunk: string, maxLines = 40): void {
   const lines = chunk.split(/\r?\n/);
   for (const line of lines) {
@@ -1223,6 +1320,7 @@ function buildPublicationActivationPhaseOutputContract(
   result: PublicationActivationScriptResult,
 ): Record<string, unknown> {
   const payloadStatus = toLowerTextOrNull(result.payload?.status);
+  const payloadFields = extractPublicationActivationPayloadFields(result.payload);
   const outputContract: Record<string, unknown> = {
     status: result.ok ? publicationActivationPhaseExpectedStatus(phaseName) : (payloadStatus ?? "error"),
     script_path: scriptPath,
@@ -1236,6 +1334,10 @@ function buildPublicationActivationPhaseOutputContract(
   if (generatedAtUtc) outputContract.generated_at_utc = generatedAtUtc;
   if (runId) outputContract.run_id = runId;
   if (blockingReason) outputContract.blocking_reason = blockingReason;
+  if (payloadFields.validationStatus) outputContract.validation_status = payloadFields.validationStatus;
+  if (payloadFields.snapshotPublicationId) outputContract.snapshot_publication_id = payloadFields.snapshotPublicationId;
+  if (payloadFields.quotePublicationId) outputContract.quote_publication_id = payloadFields.quotePublicationId;
+  if (payloadFields.quoteBindingStatus) outputContract.quote_binding_status = payloadFields.quoteBindingStatus;
 
   return outputContract;
 }
@@ -1700,28 +1802,48 @@ async function enforcePublicationActivationContract(params: {
       })
     : undefined;
 
+  const syncPayloadFields = extractPublicationActivationPayloadFields(syncResult.payload);
+  const validationPayloadFields = extractPublicationActivationPayloadFields(validationResult?.payload);
+  const payloadFields = {
+    validationStatus: validationPayloadFields.validationStatus,
+    snapshotPublicationId: syncPayloadFields.snapshotPublicationId,
+    quotePublicationId: syncPayloadFields.quotePublicationId,
+    quoteBindingStatus: syncPayloadFields.quoteBindingStatus,
+  };
+  await persistPublicationActivationPayloadFields(params.runId, payloadFields);
+
   const afterRow = await readPublicationActivationRow(params.runId);
   const afterRefreshRow = await loadRuntimeRefreshRunById(params.runId);
-  const candidateValid = publicationCandidateIsValid(afterRefreshRow);
-  const reasons = publicationActivationFailureReasons(afterRow);
+  const effectiveRow = mergePublicationActivationRows(afterRow, syncPayloadFields, validationPayloadFields);
+  const effectiveRefreshRow = afterRefreshRow
+    ? {
+        ...afterRefreshRow,
+        validationStatus: effectiveRow?.validationStatus ?? afterRefreshRow.validationStatus,
+        snapshotPublicationId: effectiveRow?.snapshotPublicationId ?? afterRefreshRow.snapshotPublicationId,
+        quotePublicationId: effectiveRow?.quotePublicationId ?? afterRefreshRow.quotePublicationId,
+        quoteBindingStatus: effectiveRow?.quoteBindingStatus ?? afterRefreshRow.quoteBindingStatus,
+      }
+    : afterRefreshRow;
+  const candidateValid = publicationCandidateIsValid(effectiveRefreshRow);
+  const reasons = publicationActivationFailureReasons(effectiveRow);
   if (!syncResult.ok) reasons.push("runtime_sync_failed");
   if (validationResult && !validationResult.ok) reasons.push("validation_gate_failed");
 
   if (!candidateValid) {
-    const blockingReasonCode = afterRefreshRow.validationStatus !== "pass"
+    const blockingReasonCode = effectiveRefreshRow.validationStatus !== "pass"
       ? "validation_status_not_pass"
-      : !afterRefreshRow.snapshotPublicationId || !afterRefreshRow.quotePublicationId
+      : !effectiveRefreshRow.snapshotPublicationId || !effectiveRefreshRow.quotePublicationId
         ? "missing_publication_ids"
-        : afterRefreshRow.quoteBindingStatus !== "aligned"
+        : effectiveRefreshRow.quoteBindingStatus !== "aligned"
           ? "quote_binding_not_aligned"
           : "candidate_publish_invalid";
     const blockingReasonDetail =
-      afterRefreshRow.validationStatus !== "pass"
-        ? `validation_status='${afterRefreshRow.validationStatus ?? "null"}'`
-        : !afterRefreshRow.snapshotPublicationId || !afterRefreshRow.quotePublicationId
+      effectiveRefreshRow.validationStatus !== "pass"
+        ? `validation_status='${effectiveRefreshRow.validationStatus ?? "null"}'`
+        : !effectiveRefreshRow.snapshotPublicationId || !effectiveRefreshRow.quotePublicationId
           ? "snapshot_publication_id or quote_publication_id is missing"
-          : afterRefreshRow.quoteBindingStatus !== "aligned"
-            ? `quote_binding_status='${afterRefreshRow.quoteBindingStatus ?? "null"}'`
+          : effectiveRefreshRow.quoteBindingStatus !== "aligned"
+            ? `quote_binding_status='${effectiveRefreshRow.quoteBindingStatus ?? "null"}'`
             : "Candidate publication row is invalid.";
 
     await persistPublicationStateForRun({
@@ -1743,7 +1865,7 @@ async function enforcePublicationActivationContract(params: {
       blockingReasonDetail,
       attemptedActivation: true,
       beforeRow,
-      afterRow,
+      afterRow: effectiveRow,
       failureReasons: Array.from(new Set(reasons)),
       syncResult,
       validationResult,
@@ -1807,12 +1929,12 @@ async function enforcePublicationActivationContract(params: {
     servingState,
     blockingReasonCode,
     blockingReasonDetail,
-    attemptedActivation: true,
-    beforeRow,
-    afterRow,
-    failureReasons: Array.from(new Set(reasons)),
-    syncResult,
-    validationResult,
+      attemptedActivation: true,
+      beforeRow,
+      afterRow: effectiveRow,
+      failureReasons: Array.from(new Set(reasons)),
+      syncResult,
+      validationResult,
   };
 }
 

@@ -12,6 +12,7 @@ from publication_identity import stamp_active_snapshot_and_quote_artifacts
 
 
 FORCE_REFRESH_FLAG = "--force-refresh"
+FORCED_WORKER_COUNT = "4"
 ROOT = Path(__file__).resolve().parents[2]
 SEED_SCRIPT = ROOT / "web" / "scripts" / "seed_screener_quote_cache_from_runtime.mjs"
 
@@ -81,6 +82,23 @@ def _apply_force_refresh(argv: list[str], enabled: bool) -> list[str]:
     return [filtered[0], FORCE_REFRESH_FLAG, *filtered[1:]]
 
 
+def _normalize_worker_args(argv: list[str]) -> list[str]:
+    normalized = [argv[0]]
+    skip_next = False
+    for index, arg in enumerate(argv[1:], start=1):
+        if skip_next:
+            skip_next = False
+            continue
+        if arg == "--workers":
+            skip_next = True
+            continue
+        if arg.startswith("--workers="):
+            continue
+        normalized.append(arg)
+    normalized.extend(["--workers", FORCED_WORKER_COUNT])
+    return normalized
+
+
 def _print_prefixed_lines(prefix: str, text: str) -> None:
     for raw_line in str(text or "").splitlines():
         line = raw_line.rstrip()
@@ -145,6 +163,7 @@ def main() -> int:
     print(f"requested_mode={requested_mode or 'unknown'}")
     print(f"runtime_quote_cache_seed={seed_from_runtime}")
     print(f"force_refresh={force_refresh}")
+    print(f"forced_worker_count={FORCED_WORKER_COUNT}")
 
     if seed_from_runtime:
         seed_ok = _seed_quote_cache_from_runtime(output_path)
@@ -152,7 +171,10 @@ def main() -> int:
             force_refresh = True
             print("force_refresh_escalated_due_to_seed_failure=true")
 
-    sys.argv = _apply_force_refresh(sys.argv, force_refresh)
+    normalized_argv = _apply_force_refresh(sys.argv, force_refresh)
+    normalized_argv = _normalize_worker_args(normalized_argv)
+    sys.argv = normalized_argv
+
     rc = int(impl_main() or 0)
     if rc != 0:
         return rc
