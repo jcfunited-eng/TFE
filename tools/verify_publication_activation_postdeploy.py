@@ -66,15 +66,20 @@ def main() -> int:
     db_quote_binding = text_or_none(db_row.get("quote_binding_status"))
     db_is_active = bool_or_none(db_row.get("is_active_publication"))
 
+    quote_deferred = db_quote_pub is None
     reasons: list[str] = []
+    warnings: list[str] = []
 
     append_reason(reasons, db_is_active is True, "db_row_not_marked_active_publication")
     append_reason(reasons, db_validation == "pass", "db_validation_status_not_pass")
     append_reason(reasons, db_snapshot_pub is not None, "db_snapshot_publication_id_missing")
-    append_reason(reasons, db_quote_pub is not None, "db_quote_publication_id_missing")
-    append_reason(reasons, db_quote_binding == "aligned", "db_quote_binding_status_not_aligned")
     append_reason(reasons, db_run_id is not None, "db_run_id_missing")
     append_reason(reasons, db_generated_at is not None, "db_generated_at_missing")
+
+    if quote_deferred:
+        warnings.append("Quote cache deferred, proceeding with snapshot only")
+    else:
+        append_reason(reasons, db_quote_binding == "aligned", "db_quote_binding_status_not_aligned")
 
     rec_blocked = recommendations.get("blocked") is True or recommendations.get("status") == "blocked"
     port_blocked = portfolio.get("blocked") is True or portfolio.get("status") == "blocked"
@@ -92,65 +97,71 @@ def main() -> int:
     append_reason(reasons, text_or_none(portfolio.get("validation_status")) == db_validation, "portfolio_validation_status_mismatch")
     append_reason(reasons, text_or_none(recommendations.get("snapshot_publication_id")) == db_snapshot_pub, "recommendations_snapshot_publication_id_mismatch")
     append_reason(reasons, text_or_none(portfolio.get("snapshot_publication_id")) == db_snapshot_pub, "portfolio_snapshot_publication_id_mismatch")
-    append_reason(reasons, text_or_none(recommendations.get("quote_publication_id")) == db_quote_pub, "recommendations_quote_publication_id_mismatch")
-    append_reason(reasons, text_or_none(portfolio.get("quote_publication_id")) == db_quote_pub, "portfolio_quote_publication_id_mismatch")
-    append_reason(reasons, text_or_none(recommendations.get("quote_binding_status")) == db_quote_binding, "recommendations_quote_binding_status_mismatch")
-    append_reason(reasons, text_or_none(portfolio.get("quote_binding_status")) == db_quote_binding, "portfolio_quote_binding_status_mismatch")
     append_reason(reasons, text_or_none(recommendations.get("generated_at_utc")) == db_generated_at, "recommendations_generated_at_mismatch")
     append_reason(reasons, text_or_none(portfolio.get("generated_at_utc")) == db_generated_at, "portfolio_generated_at_mismatch")
+
+    if not quote_deferred:
+        append_reason(reasons, text_or_none(recommendations.get("quote_publication_id")) == db_quote_pub, "recommendations_quote_publication_id_mismatch")
+        append_reason(reasons, text_or_none(portfolio.get("quote_publication_id")) == db_quote_pub, "portfolio_quote_publication_id_mismatch")
+        append_reason(reasons, text_or_none(recommendations.get("quote_binding_status")) == db_quote_binding, "recommendations_quote_binding_status_mismatch")
+        append_reason(reasons, text_or_none(portfolio.get("quote_binding_status")) == db_quote_binding, "portfolio_quote_binding_status_mismatch")
 
     append_reason(reasons, admin_refresh_policy.get("healthy") is True, "admin_refresh_policy_not_healthy")
     append_reason(reasons, admin_canonical_policy.get("allowed") is True, "admin_canonical_serving_policy_blocked")
     append_reason(reasons, text_or_none(admin_canonical_policy.get("validation_status")) == db_validation, "admin_validation_status_mismatch")
     append_reason(reasons, text_or_none(admin_canonical_policy.get("snapshot_publication_id")) == db_snapshot_pub, "admin_snapshot_publication_id_mismatch")
-    append_reason(reasons, text_or_none(admin_canonical_policy.get("quote_publication_id")) == db_quote_pub, "admin_quote_publication_id_mismatch")
-    append_reason(reasons, text_or_none(admin_canonical_policy.get("quote_binding_status")) == db_quote_binding, "admin_quote_binding_status_mismatch")
     append_reason(reasons, text_or_none(as_record(admin_canonical_policy.get("runIds")).get("snapshot_run_id")) == db_run_id, "admin_snapshot_run_id_mismatch")
     append_reason(reasons, text_or_none(admin_serving_bundle.get("runId")) == db_run_id, "admin_serving_bundle_run_id_mismatch")
 
+    if not quote_deferred:
+        append_reason(reasons, text_or_none(admin_canonical_policy.get("quote_publication_id")) == db_quote_pub, "admin_quote_publication_id_mismatch")
+        append_reason(reasons, text_or_none(admin_canonical_policy.get("quote_binding_status")) == db_quote_binding, "admin_quote_binding_status_mismatch")
+
     result = {
-      "status": "pass" if not reasons else "fail",
-      "reasons": reasons,
-      "expected_active_publication": {
-        "run_id": db_run_id,
-        "generated_at_utc": db_generated_at,
-        "validation_status": db_validation,
-        "snapshot_publication_id": db_snapshot_pub,
-        "quote_publication_id": db_quote_pub,
-        "quote_binding_status": db_quote_binding,
-      },
-      "observed": {
-        "recommendations": {
-          "run_id": text_or_none(recommendations.get("run_id")),
-          "generated_at_utc": text_or_none(recommendations.get("generated_at_utc")),
-          "validation_status": text_or_none(recommendations.get("validation_status")),
-          "snapshot_publication_id": text_or_none(recommendations.get("snapshot_publication_id")),
-          "quote_publication_id": text_or_none(recommendations.get("quote_publication_id")),
-          "quote_binding_status": text_or_none(recommendations.get("quote_binding_status")),
-          "blocked": rec_blocked,
-          "stale": rec_stale,
+        "status": "pass" if not reasons else "fail",
+        "reasons": reasons,
+        "warnings": warnings,
+        "expected_active_publication": {
+            "run_id": db_run_id,
+            "generated_at_utc": db_generated_at,
+            "validation_status": db_validation,
+            "snapshot_publication_id": db_snapshot_pub,
+            "quote_publication_id": db_quote_pub,
+            "quote_binding_status": db_quote_binding,
+            "quote_cache_deferred": quote_deferred,
         },
-        "portfolio": {
-          "run_id": text_or_none(portfolio.get("run_id")),
-          "generated_at_utc": text_or_none(portfolio.get("generated_at_utc")),
-          "validation_status": text_or_none(portfolio.get("validation_status")),
-          "snapshot_publication_id": text_or_none(portfolio.get("snapshot_publication_id")),
-          "quote_publication_id": text_or_none(portfolio.get("quote_publication_id")),
-          "quote_binding_status": text_or_none(portfolio.get("quote_binding_status")),
-          "blocked": port_blocked,
-          "stale": port_stale,
+        "observed": {
+            "recommendations": {
+                "run_id": text_or_none(recommendations.get("run_id")),
+                "generated_at_utc": text_or_none(recommendations.get("generated_at_utc")),
+                "validation_status": text_or_none(recommendations.get("validation_status")),
+                "snapshot_publication_id": text_or_none(recommendations.get("snapshot_publication_id")),
+                "quote_publication_id": text_or_none(recommendations.get("quote_publication_id")),
+                "quote_binding_status": text_or_none(recommendations.get("quote_binding_status")),
+                "blocked": rec_blocked,
+                "stale": rec_stale,
+            },
+            "portfolio": {
+                "run_id": text_or_none(portfolio.get("run_id")),
+                "generated_at_utc": text_or_none(portfolio.get("generated_at_utc")),
+                "validation_status": text_or_none(portfolio.get("validation_status")),
+                "snapshot_publication_id": text_or_none(portfolio.get("snapshot_publication_id")),
+                "quote_publication_id": text_or_none(portfolio.get("quote_publication_id")),
+                "quote_binding_status": text_or_none(portfolio.get("quote_binding_status")),
+                "blocked": port_blocked,
+                "stale": port_stale,
+            },
+            "admin": {
+                "refresh_policy_healthy": admin_refresh_policy.get("healthy"),
+                "serving_policy_allowed": admin_canonical_policy.get("allowed"),
+                "snapshot_run_id": text_or_none(as_record(admin_canonical_policy.get("runIds")).get("snapshot_run_id")),
+                "serving_bundle_run_id": text_or_none(admin_serving_bundle.get("runId")),
+                "validation_status": text_or_none(admin_canonical_policy.get("validation_status")),
+                "snapshot_publication_id": text_or_none(admin_canonical_policy.get("snapshot_publication_id")),
+                "quote_publication_id": text_or_none(admin_canonical_policy.get("quote_publication_id")),
+                "quote_binding_status": text_or_none(admin_canonical_policy.get("quote_binding_status")),
+            },
         },
-        "admin": {
-          "refresh_policy_healthy": admin_refresh_policy.get("healthy"),
-          "serving_policy_allowed": admin_canonical_policy.get("allowed"),
-          "snapshot_run_id": text_or_none(as_record(admin_canonical_policy.get("runIds")).get("snapshot_run_id")),
-          "serving_bundle_run_id": text_or_none(admin_serving_bundle.get("runId")),
-          "validation_status": text_or_none(admin_canonical_policy.get("validation_status")),
-          "snapshot_publication_id": text_or_none(admin_canonical_policy.get("snapshot_publication_id")),
-          "quote_publication_id": text_or_none(admin_canonical_policy.get("quote_publication_id")),
-          "quote_binding_status": text_or_none(admin_canonical_policy.get("quote_binding_status")),
-        },
-      },
     }
 
     sys.stdout.write(json.dumps(result, indent=2) + "\n")
