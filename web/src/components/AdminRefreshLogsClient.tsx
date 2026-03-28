@@ -308,6 +308,7 @@ export default function AdminRefreshLogsClient() {
 
   return (
     <SiteFrame pageBackgroundImage={backgroundImage}>
+      <div className={styles.opaqueWrapper}>
       <section className={`${styles.deck} ${styles.deckLog}`}>
         <header className={styles.hero}>
           <div>
@@ -532,6 +533,7 @@ export default function AdminRefreshLogsClient() {
           </div>
         ) : null}
       </section>
+      </div>
     </SiteFrame>
   );
 }
