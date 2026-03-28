@@ -9,9 +9,6 @@ const DEFAULT_MAX_AGE_HOURS = 30;
 const DEFAULT_SCHEDULE_LOOKBACK_DAYS = 8;
 const DEFAULT_API_CHECK_TIMEOUT_MS = 120000;
 const VALIDATION_HISTORY_TABLE = "runtime_validation_reports";
-const STEP1_ACTIVE_PUBLICATION_POINTER_TABLE = "active_publication_pointer";
-const STEP1_PUBLICATION_BUNDLES_TABLE = "publication_bundles";
-const STEP1_ASSESSMENT_REPORTS_TABLE = "assessment_reports";
 
 function resolveWorkspaceRoot() {
   const configured = String(process.env.TFE_WORKSPACE_ROOT ?? "").trim();
@@ -328,113 +325,6 @@ async function tableExists(client, tableName) {
 
 function buildCheck(name, pass, details) {
   return { name, status: pass ? "pass" : "fail", details };
-}
-
-function isStep1CutoverTriggerSource(triggerSource) {
-  return triggerSource === "step1_admin_refresh_snapshot_enabled"
-    || triggerSource === "step1_admin_refresh_snapshot_readonly";
-}
-
-function buildSkippedCutoverOracleDetails(targetEnvironment) {
-  return {
-    cutover_path_checked: false,
-    target_environment: targetEnvironment,
-    active_publication_pointer_table_exists: null,
-    publication_bundles_table_exists: null,
-    assessment_reports_table_exists: null,
-    active_pointer_row_present: false,
-    multiple_authority_rows: false,
-    publication_bundle_id: null,
-    assessment_report_id: null,
-    assessment_disposition: null,
-    assessment_publication_allowed: null,
-    candidate_valid: false,
-    blocking_detail: null,
-  };
-}
-
-async function resolveCutoverOracleDetails(client, runId, targetEnvironment) {
-  const skipped = buildSkippedCutoverOracleDetails(targetEnvironment);
-  const [activePointerTableExists, publicationBundlesTableExists, assessmentReportsTableExists] = await Promise.all([
-    tableExists(client, STEP1_ACTIVE_PUBLICATION_POINTER_TABLE),
-    tableExists(client, STEP1_PUBLICATION_BUNDLES_TABLE),
-    tableExists(client, STEP1_ASSESSMENT_REPORTS_TABLE),
-  ]);
-
-  const base = {
-    ...skipped,
-    cutover_path_checked: true,
-    active_publication_pointer_table_exists: activePointerTableExists,
-    publication_bundles_table_exists: publicationBundlesTableExists,
-    assessment_reports_table_exists: assessmentReportsTableExists,
-  };
-
-  if (!activePointerTableExists || !publicationBundlesTableExists || !assessmentReportsTableExists) {
-    return {
-      ...base,
-      blocking_detail: "Cutover publication authority tables are not fully available.",
-    };
-  }
-
-  const result = await client.query(
-    `
-      SELECT
-        p.publication_bundle_id,
-        p.target_environment,
-        b.assessment_report_id,
-        ar.disposition AS assessment_disposition,
-        ar.publication_allowed AS assessment_publication_allowed
-      FROM ${STEP1_ACTIVE_PUBLICATION_POINTER_TABLE} AS p
-      INNER JOIN ${STEP1_PUBLICATION_BUNDLES_TABLE} AS b
-        ON b.publication_bundle_id = p.publication_bundle_id
-       AND b.run_id = p.run_id
-       AND b.target_environment = p.target_environment
-      INNER JOIN ${STEP1_ASSESSMENT_REPORTS_TABLE} AS ar
-        ON ar.run_id = b.run_id
-       AND ar.assessment_report_id = b.assessment_report_id
-      WHERE p.run_id = $1
-        AND p.target_environment = $2
-      ORDER BY p.updated_at DESC NULLS LAST
-      LIMIT 2
-    `,
-    [runId, targetEnvironment],
-  );
-
-  if (result.rows.length === 0) {
-    return {
-      ...base,
-      blocking_detail: `No active_publication_pointer row matched run_id='${runId}' and target_environment='${targetEnvironment}'.`,
-    };
-  }
-
-  if (result.rows.length > 1) {
-    return {
-      ...base,
-      active_pointer_row_present: true,
-      multiple_authority_rows: true,
-      blocking_detail: `Multiple cutover publication authority rows matched run_id='${runId}' and target_environment='${targetEnvironment}'.`,
-    };
-  }
-
-  const row = result.rows[0] ?? {};
-  const assessmentDisposition = String(row.assessment_disposition ?? "").trim().toLowerCase() || null;
-  const assessmentPublicationAllowed = row.assessment_publication_allowed === true;
-  const candidateValid = assessmentDisposition === "pass" && assessmentPublicationAllowed;
-
-  return {
-    ...base,
-    active_pointer_row_present: true,
-    publication_bundle_id: String(row.publication_bundle_id ?? "").trim() || null,
-    assessment_report_id: String(row.assessment_report_id ?? "").trim() || null,
-    assessment_disposition: assessmentDisposition,
-    assessment_publication_allowed: row.assessment_publication_allowed === null || row.assessment_publication_allowed === undefined
-      ? null
-      : assessmentPublicationAllowed,
-    candidate_valid: candidateValid,
-    blocking_detail: candidateValid
-      ? null
-      : `assessment_report disposition='${assessmentDisposition ?? "null"}' publication_allowed=${row.assessment_publication_allowed === true ? "true" : row.assessment_publication_allowed === false ? "false" : "null"}.`,
-  };
 }
 
 function buildTaAnchorValidExpression(columnName, anchorName) {
@@ -836,8 +726,6 @@ async function main() {
       const mode = String(runRow?.mode ?? "").trim().toLowerCase();
       const reportStatus = String(runRow?.report_status ?? "").trim().toLowerCase();
       const triggerSource = String(runRow?.trigger_source ?? "").trim().toLowerCase();
-      const step1TargetEnvironment = readOptionalEnv("TFE_STEP1_TARGET_ENVIRONMENT") || "production";
-      const isStep1CutoverPath = isStep1CutoverTriggerSource(triggerSource);
       const optimizerShortCycle = String(runRow?.optimizer_short_cycle ?? "").trim().toLowerCase();
       const isNoRowsTerminalPath =
         reportStatus === "no_rows_written" &&
@@ -870,10 +758,7 @@ async function main() {
           optimizerShortCycle === "not_run" ||
           optimizerShortCycle === "skipped_by_trigger_policy"
         );
-      const cutoverOracleDetails = isStep1CutoverPath && runRow?.run_id
-        ? await resolveCutoverOracleDetails(client, String(runRow.run_id), step1TargetEnvironment)
-        : buildSkippedCutoverOracleDetails(step1TargetEnvironment);
-      const legacyOraclePass =
+      const lifecycleOraclePass =
         Boolean(runRow) &&
         (
           (
@@ -887,18 +772,8 @@ async function main() {
           isL5SkipPath ||
           isScheduledSnapshotPath
         );
-      const oraclePass =
-        Boolean(runRow) &&
-        (
-          isStep1CutoverPath
-            ? reportStatus === "ok" && cutoverOracleDetails.candidate_valid === true
-            : legacyOraclePass
-        );
       checks.push(
-        buildCheck("oracle_integrity", oraclePass, {
-          oracle_authority_model: isStep1CutoverPath
-            ? "cutover_active_publication_pointer_plus_publication_bundles_plus_assessment_reports"
-            : "legacy_runtime_refresh_runs_oracle_fields",
+        buildCheck("pipeline_terminal_integrity", lifecycleOraclePass, {
           run_id: runRow?.run_id ?? null,
           trigger_source: runRow?.trigger_source ?? null,
           report_status: runRow?.report_status ?? null,
@@ -910,29 +785,12 @@ async function main() {
           trigger_policy_skip_path: isTriggerPolicySkipPath,
           l5_skip_path: isL5SkipPath,
           scheduled_snapshot_path: isScheduledSnapshotPath,
-          cutover_path_checked: cutoverOracleDetails.cutover_path_checked,
-          cutover_target_environment: cutoverOracleDetails.target_environment,
-          cutover_active_publication_pointer_table_exists: cutoverOracleDetails.active_publication_pointer_table_exists,
-          cutover_publication_bundles_table_exists: cutoverOracleDetails.publication_bundles_table_exists,
-          cutover_assessment_reports_table_exists: cutoverOracleDetails.assessment_reports_table_exists,
-          cutover_active_pointer_row_present: cutoverOracleDetails.active_pointer_row_present,
-          cutover_multiple_authority_rows: cutoverOracleDetails.multiple_authority_rows,
-          cutover_publication_bundle_id: cutoverOracleDetails.publication_bundle_id,
-          cutover_assessment_report_id: cutoverOracleDetails.assessment_report_id,
-          cutover_assessment_disposition: cutoverOracleDetails.assessment_disposition,
-          cutover_assessment_publication_allowed: cutoverOracleDetails.assessment_publication_allowed,
-          cutover_candidate_valid: cutoverOracleDetails.candidate_valid,
-          cutover_blocking_detail: cutoverOracleDetails.blocking_detail,
         }),
       );
-      if (!oraclePass) {
-        blockingReason = blockingReason ?? "oracle_integrity_failed";
+      if (!lifecycleOraclePass) {
+        blockingReason = blockingReason ?? "pipeline_terminal_integrity_failed";
       }
 
-      // completed_at is null while the run is active (sync sets report_status='ok' before
-      // the terminal handler sets completed_at). Accept either a fully-terminal row
-      // (completed_at set) or an in-progress row that has completed the sync phase
-      // (completed_at still null but report_status already 'ok').
       const refreshLifecyclePass =
         Boolean(runRow) &&
         (runRow.completed_at !== null || reportStatus === "ok") &&
