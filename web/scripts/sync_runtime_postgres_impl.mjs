@@ -13,6 +13,9 @@ import {
 
 const DEFAULT_DB_PORT = 5432;
 const DEFAULT_MIN_BARS = 514;
+const DEADLOCK_ERROR_CODE = "40P01";
+const DEADLOCK_RETRY_ATTEMPTS = 5;
+const DEADLOCK_RETRY_BASE_DELAY_MS = 500;
 const MODULE_FILE_PATH = fileURLToPath(import.meta.url);
 
 function resolveWorkspaceRoot() {
@@ -67,6 +70,51 @@ function readBooleanEnv(name, defaultValue = false) {
   if (["1", "true", "yes", "on"].includes(raw)) return true;
   if (["0", "false", "no", "off"].includes(raw)) return false;
   return defaultValue;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isDeadlockError(error) {
+  if (!error || typeof error !== "object") return false;
+  return String(error.code ?? "").trim() === DEADLOCK_ERROR_CODE;
+}
+
+async function runTransactionWithDeadlockRetry(pool, work) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= DEADLOCK_RETRY_ATTEMPTS; attempt += 1) {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const result = await work(client, attempt);
+      await client.query("COMMIT");
+      return result;
+    } catch (error) {
+      lastError = error;
+      try {
+        await client.query("ROLLBACK");
+      } catch {
+        // Ignore rollback errors.
+      }
+
+      if (isDeadlockError(error) && attempt < DEADLOCK_RETRY_ATTEMPTS) {
+        const delayMs = DEADLOCK_RETRY_BASE_DELAY_MS * attempt;
+        process.stderr.write(
+          `runtime_sync_postgres deadlock detected; retrying attempt ${attempt + 1}/${DEADLOCK_RETRY_ATTEMPTS} after ${delayMs}ms\n`,
+        );
+        await sleep(delayMs);
+        continue;
+      }
+
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  throw lastError ?? new Error("Runtime sync deadlock retries exhausted.");
 }
 
 function resolvePool() {
@@ -762,47 +810,46 @@ async function main() {
   const provenanceMinBars = minBarsForAccumulate();
 
   const pool = resolvePool();
-  const client = await pool.connect();
   try {
-    await client.query("BEGIN");
-    await ensureRuntimeTables(client);
-
-    await client.query("DELETE FROM runtime_decisions_latest");
-    await client.query("DELETE FROM runtime_symbols");
-    await client.query("DELETE FROM runtime_metrics_latest");
-    await client.query("DELETE FROM runtime_bars_daily");
-
-    let decisionsInserted = 0;
-    let decisionsHistoryInserted = 0;
-    let provenanceInserted = 0;
-    let symbolsInserted = 0;
-    let symbolsHistoryInserted = 0;
-    let metricsInserted = 0;
-    let barsInserted = 0;
-    const provenanceStats = initializeProvenanceStats();
     const provenanceArtifactPath = path.join(root, "current_l5_provenance_persistence_latest.json");
+    const transactionResult = await runTransactionWithDeadlockRetry(pool, async (client) => {
+      await ensureRuntimeTables(client);
 
-    for (const row of snapshotRows) {
-      const ticker = normalizeTicker(row.ticker);
-      if (!ticker) continue;
+      await client.query("DELETE FROM runtime_decisions_latest");
+      await client.query("DELETE FROM runtime_symbols");
+      await client.query("DELETE FROM runtime_metrics_latest");
+      await client.query("DELETE FROM runtime_bars_daily");
 
-      const snapshotRow = { ...row, ticker };
-      const quoteBase = quoteRows[ticker] && typeof quoteRows[ticker] === "object" ? quoteRows[ticker] : {};
-      const quote = buildRuntimeQuote(quoteBase, row);
-      const persistedProvenance = buildPersistedProvenanceRecord({
-        row: snapshotRow,
-        ticker,
-        runId,
-        generatedAtUtc,
-        snapshotTimestampUtc: generatedAtUtc,
-        runtimeSyncCompletedUtc: completedAt,
-        policyRuntime,
-        minBars: provenanceMinBars,
-        writerBuildHash: process.env.TFE_PROVENANCE_WRITER_BUILD_HASH ?? null,
-      });
-      updateProvenanceStats(provenanceStats, persistedProvenance);
+      let decisionsInserted = 0;
+      let decisionsHistoryInserted = 0;
+      let provenanceInserted = 0;
+      let symbolsInserted = 0;
+      let symbolsHistoryInserted = 0;
+      let metricsInserted = 0;
+      let barsInserted = 0;
+      const provenanceStats = initializeProvenanceStats();
 
-      await client.query(
+      for (const row of snapshotRows) {
+        const ticker = normalizeTicker(row.ticker);
+        if (!ticker) continue;
+
+        const snapshotRow = { ...row, ticker };
+        const quoteBase = quoteRows[ticker] && typeof quoteRows[ticker] === "object" ? quoteRows[ticker] : {};
+        const quote = buildRuntimeQuote(quoteBase, row);
+        const persistedProvenance = buildPersistedProvenanceRecord({
+          row: snapshotRow,
+          ticker,
+          runId,
+          generatedAtUtc,
+          snapshotTimestampUtc: generatedAtUtc,
+          runtimeSyncCompletedUtc: completedAt,
+          policyRuntime,
+          minBars: provenanceMinBars,
+          writerBuildHash: process.env.TFE_PROVENANCE_WRITER_BUILD_HASH ?? null,
+        });
+        updateProvenanceStats(provenanceStats, persistedProvenance);
+
+        await client.query(
         `
           INSERT INTO runtime_decisions_latest (
             ticker, run_id, generated_at_utc, snapshot_row_json,
@@ -845,10 +892,10 @@ async function main() {
           toFiniteOrNull(row.stability_score),
           toFiniteOrNull(row.max_dd),
         ],
-      );
-      decisionsInserted += 1;
+        );
+        decisionsInserted += 1;
 
-      await client.query(
+        await client.query(
         `
           INSERT INTO runtime_decisions_history (
             run_id, ticker, generated_at_utc, snapshot_row_json, updated_at
@@ -868,10 +915,10 @@ async function main() {
           generatedAtUtc,
           JSON.stringify(snapshotRow),
         ],
-      );
-      decisionsHistoryInserted += 1;
+        );
+        decisionsHistoryInserted += 1;
 
-      await client.query(
+        await client.query(
         `
           INSERT INTO runtime_decision_provenance_latest (
             run_id, ticker, generated_at_utc, snapshot_timestamp_utc, runtime_sync_completed_utc, decision_timestamp_utc, snapshot_row_digest_sha256,
@@ -957,10 +1004,10 @@ async function main() {
           persistedProvenance.provenance_valid,
           JSON.stringify(persistedProvenance.provenance_json),
         ],
-      );
-      provenanceInserted += 1;
+        );
+        provenanceInserted += 1;
 
-      await client.query(
+        await client.query(
         `
           INSERT INTO runtime_symbols (
             ticker, run_id, generated_at_utc, asset_type, quote_type, exchange, company_name,
@@ -1003,10 +1050,10 @@ async function main() {
           firstPositiveNumber(quote.sharesFloat, quote.floatShares),
           JSON.stringify(quote),
         ],
-      );
-      symbolsInserted += 1;
+        );
+        symbolsInserted += 1;
 
-      await client.query(
+        await client.query(
         `
           INSERT INTO runtime_symbols_history (
             run_id, ticker, generated_at_utc, asset_type, quote_type, exchange, company_name,
@@ -1048,10 +1095,10 @@ async function main() {
           firstPositiveNumber(quote.sharesFloat, quote.floatShares),
           JSON.stringify(quote),
         ],
-      );
-      symbolsHistoryInserted += 1;
+        );
+        symbolsHistoryInserted += 1;
 
-      await client.query(
+        await client.query(
         `
           INSERT INTO runtime_metrics_latest (
             ticker, run_id, generated_at_utc, atr14, rsi14, sma20, sma50, sma200,
@@ -1110,15 +1157,15 @@ async function main() {
           toFiniteOrNull(quote.perfYear),
           JSON.stringify(quote),
         ],
-      );
-      metricsInserted += 1;
+        );
+        metricsInserted += 1;
 
-      const closePrice = firstPositiveNumber(quote.price, row.price);
-      const openPrice = firstPositiveNumber(quote.open, quote.prevClose, closePrice);
-      const highPrice = firstPositiveNumber(quote.dayHigh, quote.high, closePrice);
-      const lowPrice = firstPositiveNumber(quote.dayLow, quote.low, closePrice);
+        const closePrice = firstPositiveNumber(quote.price, row.price);
+        const openPrice = firstPositiveNumber(quote.open, quote.prevClose, closePrice);
+        const highPrice = firstPositiveNumber(quote.dayHigh, quote.high, closePrice);
+        const lowPrice = firstPositiveNumber(quote.dayLow, quote.low, closePrice);
 
-      await client.query(
+        await client.query(
         `
           INSERT INTO runtime_bars_daily (
             ticker, bar_date, run_id, generated_at_utc, open, high, low, close, volume, source
@@ -1147,26 +1194,26 @@ async function main() {
           toFiniteOrNull(quote.volume),
           "bridge_snapshot_quote_cache",
         ],
-      );
-      barsInserted += 1;
-    }
+        );
+        barsInserted += 1;
+      }
 
-    if (decisionsInserted === 0 || symbolsInserted === 0 || metricsInserted === 0) {
-      throw new Error("Runtime sync produced empty critical table insert counts.");
-    }
+      if (decisionsInserted === 0 || symbolsInserted === 0 || metricsInserted === 0) {
+        throw new Error("Runtime sync produced empty critical table insert counts.");
+      }
 
-    if (decisionsInserted !== symbolsInserted || decisionsInserted !== metricsInserted) {
-      throw new Error(
-        `Runtime table insert mismatch: decisions=${decisionsInserted}, symbols=${symbolsInserted}, metrics=${metricsInserted}`,
-      );
-    }
-    if (decisionsHistoryInserted !== decisionsInserted || symbolsHistoryInserted !== symbolsInserted) {
-      throw new Error(
-        `Runtime history insert mismatch: decisions_history=${decisionsHistoryInserted}, decisions=${decisionsInserted}, symbols_history=${symbolsHistoryInserted}, symbols=${symbolsInserted}`,
-      );
-    }
+      if (decisionsInserted !== symbolsInserted || decisionsInserted !== metricsInserted) {
+        throw new Error(
+          `Runtime table insert mismatch: decisions=${decisionsInserted}, symbols=${symbolsInserted}, metrics=${metricsInserted}`,
+        );
+      }
+      if (decisionsHistoryInserted !== decisionsInserted || symbolsHistoryInserted !== symbolsInserted) {
+        throw new Error(
+          `Runtime history insert mismatch: decisions_history=${decisionsHistoryInserted}, decisions=${decisionsInserted}, symbols_history=${symbolsInserted}, symbols=${symbolsInserted}`,
+        );
+      }
 
-    await client.query(
+      await client.query(
       `
         INSERT INTO runtime_refresh_runs (
           run_id, mode, trigger_source, requested_by, started_at, completed_at, report_generated_at_utc,
@@ -1228,11 +1275,21 @@ async function main() {
         process.env.TFE_EPOCH_LIBRARY_CONFIDENCE_SCHEMA ?? null,
         process.env.TFE_EPOCH_LIBRARY_STATUS ?? null,
       ],
-    );
+      );
 
-    await client.query("COMMIT");
+      return {
+        decisionsInserted,
+        decisionsHistoryInserted,
+        provenanceInserted,
+        symbolsInserted,
+        symbolsHistoryInserted,
+        metricsInserted,
+        barsInserted,
+        provenanceStats,
+      };
+    });
 
-    const provenanceSummary = await client.query(
+    const provenanceSummary = await pool.query(
       `
         SELECT
           (SELECT COUNT(*)::int FROM runtime_decisions_latest WHERE run_id = $1) AS runtime_decision_row_count,
@@ -1244,7 +1301,7 @@ async function main() {
       [runId],
     );
     const summaryRow = provenanceSummary.rows[0] ?? {};
-    const provenanceArtifact = buildProvenanceArtifact(provenanceStats, runId, {
+    const provenanceArtifact = buildProvenanceArtifact(transactionResult.provenanceStats, runId, {
       runtime_decision_row_count: summaryRow.runtime_decision_row_count,
       provenance_row_count: summaryRow.provenance_row_count,
       latest_provenance_generated_utc:
@@ -1275,27 +1332,19 @@ async function main() {
       quote_publication_id: publicationBundleMeta.quotePublicationId,
       quote_binding_status: publicationBundleMeta.quoteBindingStatus,
       inserted: {
-        runtime_decisions_latest: decisionsInserted,
-        runtime_decisions_history: decisionsHistoryInserted,
-        runtime_decision_provenance_latest: provenanceInserted,
-        runtime_symbols: symbolsInserted,
-        runtime_symbols_history: symbolsHistoryInserted,
-        runtime_metrics_latest: metricsInserted,
-        runtime_bars_daily: barsInserted,
+        runtime_decisions_latest: transactionResult.decisionsInserted,
+        runtime_decisions_history: transactionResult.decisionsHistoryInserted,
+        runtime_decision_provenance_latest: transactionResult.provenanceInserted,
+        runtime_symbols: transactionResult.symbolsInserted,
+        runtime_symbols_history: transactionResult.symbolsHistoryInserted,
+        runtime_metrics_latest: transactionResult.metricsInserted,
+        runtime_bars_daily: transactionResult.barsInserted,
       },
       provenance_artifact_path: provenanceArtifactPath,
     };
 
     process.stdout.write(`${JSON.stringify(summary)}\n`);
-  } catch (error) {
-    try {
-      await client.query("ROLLBACK");
-    } catch {
-      // Ignore rollback errors.
-    }
-    throw error;
   } finally {
-    client.release();
     await pool.end();
   }
 }

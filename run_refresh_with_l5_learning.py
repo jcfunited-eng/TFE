@@ -716,7 +716,7 @@ def _quote_cache_refresh_input_contract() -> dict[str, Any]:
     return _phase_input_contract(
         str(os.environ.get("TFE_REFRESH_REQUESTED_MODE", "")).strip() or "unknown",
         {
-            "workers": _read_env_int("TFE_QUOTE_CACHE_WORKERS", default_value=12, minimum=1),
+            "workers": _read_env_int("TFE_QUOTE_CACHE_WORKERS", default_value=4, minimum=1),
             "timeout_sec": _read_env_int("TFE_QUOTE_CACHE_TIMEOUT_SEC", default_value=35, minimum=5),
             "min_non_meta_fields": _read_env_int("TFE_QUOTE_CACHE_MIN_NON_META_FIELDS", default_value=20, minimum=1),
             "save_every": _read_env_int("TFE_QUOTE_CACHE_SAVE_EVERY", default_value=200, minimum=1),
@@ -798,7 +798,7 @@ def _run_quote_cache_refresh() -> dict[str, Any]:
             "reason": "disabled_by_env",
         }
 
-    workers = _read_env_int("TFE_QUOTE_CACHE_WORKERS", default_value=12, minimum=1)
+    workers = _read_env_int("TFE_QUOTE_CACHE_WORKERS", default_value=4, minimum=1)
     timeout_sec = _read_env_int("TFE_QUOTE_CACHE_TIMEOUT_SEC", default_value=35, minimum=5)
     min_non_meta_fields = _read_env_int("TFE_QUOTE_CACHE_MIN_NON_META_FIELDS", default_value=20, minimum=1)
     save_every = _read_env_int("TFE_QUOTE_CACHE_SAVE_EVERY", default_value=200, minimum=1)
