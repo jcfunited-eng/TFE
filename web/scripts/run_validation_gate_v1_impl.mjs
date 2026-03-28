@@ -758,6 +758,12 @@ async function main() {
           optimizerShortCycle === "not_run" ||
           optimizerShortCycle === "skipped_by_trigger_policy"
         );
+      const isAdminAbortedManualPath =
+        (triggerSource === "manual" || triggerSource === "program") &&
+        (
+          reportStatus === "aborted" ||
+          String(runRow?.epoch_library_status ?? "").trim().toLowerCase() === "aborted_by_admin"
+        );
       const lifecycleOraclePass =
         Boolean(runRow) &&
         (
@@ -770,7 +776,8 @@ async function main() {
           isNoRowsTerminalPath ||
           isTriggerPolicySkipPath ||
           isL5SkipPath ||
-          isScheduledSnapshotPath
+          isScheduledSnapshotPath ||
+          isAdminAbortedManualPath
         );
       checks.push(
         buildCheck("pipeline_terminal_integrity", lifecycleOraclePass, {
@@ -785,6 +792,7 @@ async function main() {
           trigger_policy_skip_path: isTriggerPolicySkipPath,
           l5_skip_path: isL5SkipPath,
           scheduled_snapshot_path: isScheduledSnapshotPath,
+          admin_aborted_manual_path: isAdminAbortedManualPath,
         }),
       );
       if (!lifecycleOraclePass) {
@@ -794,7 +802,7 @@ async function main() {
       const refreshLifecyclePass =
         Boolean(runRow) &&
         (runRow.completed_at !== null || reportStatus === "ok") &&
-        ["ok", "error", "failed", "timeout", "no_rows_written"].includes(reportStatus);
+        ["ok", "error", "failed", "timeout", "no_rows_written", "aborted"].includes(reportStatus);
       checks.push(
         buildCheck("refresh_lifecycle_integrity", refreshLifecyclePass, {
           run_id: runRow?.run_id ?? null,
