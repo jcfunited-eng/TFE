@@ -309,230 +309,230 @@ export default function AdminRefreshLogsClient() {
   return (
     <SiteFrame pageBackgroundImage={backgroundImage}>
       <div className={styles.opaqueWrapper}>
-      <section className={`${styles.deck} ${styles.deckLog}`}>
-        <header className={styles.hero}>
-          <div>
-            <p className={styles.kicker}>Tao Financial Engine</p>
-            <h1 className={styles.title}>Admin Refresh Logs</h1>
-            <p className={styles.subtitle}>Dedicated route for refresh status lifecycle, live log tail, and refresh history records.</p>
-          </div>
+        <section className={`${styles.deck} ${styles.deckLog}`}>
+          <header className={styles.hero}>
+            <div>
+              <p className={styles.kicker}>Tao Financial Engine</p>
+              <h1 className={styles.title}>Admin Refresh Logs</h1>
+              <p className={styles.subtitle}>Dedicated route for refresh status lifecycle, live log tail, and refresh history records.</p>
+            </div>
 
-          <div className={styles.heroActionRow}>
-            <button className={styles.primaryButton} type="button" onClick={() => void reloadPanel(true)} disabled={syncing}>
-              {syncing ? "Syncing..." : "Sync Log Panels"}
-            </button>
-            <button className={styles.ghostButton} type="button" onClick={() => (window.location.href = "/admin-console")}>
-              Back To Admin Console
-            </button>
-            <button
-              className={styles.dangerButton}
-              type="button"
-              onClick={() => setShowKillConfirm(true)}
-              disabled={!refreshRunning || killBusy || killRequested}
-            >
-              {killRequested ? "Kill Requested" : "KILL ACTIVE RUN"}
-            </button>
-          </div>
-        </header>
-
-        <div
-          className={`${styles.notice} ${
-            notice.tone === "good"
-              ? styles.noticeGood
-              : notice.tone === "warn"
-                ? styles.noticeWarn
-                : notice.tone === "error"
-                  ? styles.noticeError
-                  : styles.noticeInfo
-          }`}
-        >
-          {notice.text}
-        </div>
-
-        <article className={styles.panel}>
-          <header className={styles.panelHeader}>
-            <h2 className={styles.panelTitle}>Refresh Lifecycle</h2>
-            <p className={styles.panelSub}>Run refresh jobs and verify status/log/history reconciliation on one page.</p>
+            <div className={styles.heroActionRow}>
+              <button className={styles.primaryButton} type="button" onClick={() => void reloadPanel(true)} disabled={syncing}>
+                {syncing ? "Syncing..." : "Sync Log Panels"}
+              </button>
+              <button className={styles.ghostButton} type="button" onClick={() => (window.location.href = "/admin-console")}>
+                Back To Admin Console
+              </button>
+              <button
+                className={styles.dangerButton}
+                type="button"
+                onClick={() => setShowKillConfirm(true)}
+                disabled={!refreshRunning || killBusy || killRequested}
+              >
+                {killRequested ? "Kill Requested" : "KILL ACTIVE RUN"}
+              </button>
+            </div>
           </header>
 
-          <div className={styles.buttonRow}>
-            <button
-              className={styles.opButton}
-              type="button"
-              onClick={() => void onTriggerRefresh("snapshot")}
-              disabled={Boolean(refreshBusy) || refreshRunning}
-            >
-              ⟳ Snapshot Refresh
-            </button>
-
-            <button
-              className={styles.opButton}
-              type="button"
-              onClick={() => void onTriggerRefresh("universe_snapshot")}
-              disabled={Boolean(refreshBusy) || refreshRunning}
-            >
-              ↻ Universe + Snapshot
-            </button>
-
-            <button
-              className={styles.secondaryButton}
-              type="button"
-              onClick={() => void Promise.all([loadRefreshStatus(), loadRefreshLog(), loadRefreshHistory()])}
-            >
-              Poll Now
-            </button>
-
-            <button
-              className={styles.dangerButton}
-              type="button"
-              onClick={() => setShowKillConfirm(true)}
-              disabled={!refreshRunning || killBusy || killRequested}
-            >
-              {killRequested ? "Kill Requested" : "KILL ACTIVE RUN"}
-            </button>
+          <div
+            className={`${styles.notice} ${
+              notice.tone === "good"
+                ? styles.noticeGood
+                : notice.tone === "warn"
+                  ? styles.noticeWarn
+                  : notice.tone === "error"
+                    ? styles.noticeError
+                    : styles.noticeInfo
+            }`}
+          >
+            {notice.text}
           </div>
 
-          {refreshRunning ? (
-            <div className={styles.progressBar} role="status" aria-label="Refresh in progress">
-              <span className={styles.progressBarInner} />
+          <article className={styles.panel}>
+            <header className={styles.panelHeader}>
+              <h2 className={styles.panelTitle}>Refresh Lifecycle</h2>
+              <p className={styles.panelSub}>Run refresh jobs and verify status/log/history reconciliation on one page.</p>
+            </header>
+
+            <div className={styles.buttonRow}>
+              <button
+                className={styles.opButton}
+                type="button"
+                onClick={() => void onTriggerRefresh("snapshot")}
+                disabled={Boolean(refreshBusy) || refreshRunning}
+              >
+                ⟳ Snapshot Refresh
+              </button>
+
+              <button
+                className={styles.opButton}
+                type="button"
+                onClick={() => void onTriggerRefresh("universe_snapshot")}
+                disabled={Boolean(refreshBusy) || refreshRunning}
+              >
+                ↻ Universe + Snapshot
+              </button>
+
+              <button
+                className={styles.secondaryButton}
+                type="button"
+                onClick={() => void Promise.all([loadRefreshStatus(), loadRefreshLog(), loadRefreshHistory()])}
+              >
+                Poll Now
+              </button>
+
+              <button
+                className={styles.dangerButton}
+                type="button"
+                onClick={() => setShowKillConfirm(true)}
+                disabled={!refreshRunning || killBusy || killRequested}
+              >
+                {killRequested ? "Kill Requested" : "KILL ACTIVE RUN"}
+              </button>
+            </div>
+
+            {refreshRunning ? (
+              <div className={styles.progressBar} role="status" aria-label="Refresh in progress">
+                <span className={styles.progressBarInner} />
+              </div>
+            ) : null}
+
+            <div className={styles.keyValueGrid}>
+              <div className={styles.kvItem}>
+                <div className={styles.kvLabel}>State</div>
+                <div className={styles.kvValue}>{refreshRunning ? "Running" : "Idle"}</div>
+              </div>
+              <div className={styles.kvItem}>
+                <div className={styles.kvLabel}>Run ID</div>
+                <div className={styles.kvValue}>{refreshStatus?.run_id ?? "n/a"}</div>
+              </div>
+              <div className={styles.kvItem}>
+                <div className={styles.kvLabel}>Mode</div>
+                <div className={styles.kvValue}>{modeLabel(refreshStatus?.requested_mode)}</div>
+              </div>
+              <div className={styles.kvItem}>
+                <div className={styles.kvLabel}>Requested By</div>
+                <div className={styles.kvValue}>{refreshStatus?.requested_by ?? "n/a"}</div>
+              </div>
+              <div className={styles.kvItem}>
+                <div className={styles.kvLabel}>Started</div>
+                <div className={styles.kvValue}>{formatIso(refreshStatus?.started_at)}</div>
+              </div>
+              <div className={styles.kvItem}>
+                <div className={styles.kvLabel}>Completed</div>
+                <div className={styles.kvValue}>{formatIso(refreshStatus?.completed_at)}</div>
+              </div>
+              <div className={styles.kvItem}>
+                <div className={styles.kvLabel}>Report Status</div>
+                <div className={styles.kvValue}>{refreshStatus?.last_report?.status || "n/a"}</div>
+              </div>
+              <div className={styles.kvItem}>
+                <div className={styles.kvLabel}>Rows Written</div>
+                <div className={styles.kvValue}>{refreshStatus?.last_report?.rows_written ?? "n/a"}</div>
+              </div>
+              <div className={styles.kvItem}>
+                <div className={styles.kvLabel}>Kill State</div>
+                <div className={styles.kvValue}>
+                  {killRequested ? `Requested by ${refreshStatus?.kill_requested_by ?? "admin"}` : "Clear"}
+                </div>
+              </div>
+            </div>
+
+            {refreshStatus?.last_error ? <p className={`${styles.inlineMsg} ${styles.msgError}`}>Refresh error: {refreshStatus.last_error}</p> : null}
+
+            <div className={styles.logBox}>
+              <div className={styles.logMeta}>
+                <strong>Refresh Log Tail</strong>
+                <span>{refreshLog?.exists ? `Updated: ${formatIso(refreshLog?.updatedAtUtc)}` : "No log yet"}</span>
+              </div>
+              <pre className={styles.logPre}>
+                {refreshLog?.exists
+                  ? refreshLog.lines.join("\n") || "Log exists but currently empty."
+                  : "No refresh log file found yet. Run a refresh to generate logs."}
+              </pre>
+            </div>
+
+            <div className={styles.logBox} style={{ marginTop: 12 }}>
+              <div className={styles.logMeta}>
+                <strong>Refresh History Report</strong>
+                <span>{refreshHistory?.exists ? `Updated: ${formatIso(refreshHistory?.updatedAtUtc)}` : "No history yet"}</span>
+              </div>
+              <div className={styles.scrollWrap} style={{ maxHeight: 320 }}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Phase</th>
+                      <th>Source</th>
+                      <th>Mode</th>
+                      <th>By</th>
+                      <th>Status</th>
+                      <th>Rows</th>
+                      <th>Elapsed</th>
+                      <th>Detail</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {refreshHistory?.entries?.length ? (
+                      [...refreshHistory.entries].reverse().map((entry, index) => (
+                        <tr key={`${entry.run_id ?? "run"}-${entry.phase ?? "phase"}-${entry.logged_at_utc ?? "time"}-${index}`}>
+                          <td>{formatIso(entry.logged_at_utc)}</td>
+                          <td>{entry.phase ?? "n/a"}</td>
+                          <td>{triggerSourceLabel(entry.trigger_source)}</td>
+                          <td>{modeLabel(entry.mode === "snapshot" || entry.mode === "universe_snapshot" ? entry.mode : undefined)}</td>
+                          <td>{entry.requested_by ?? "n/a"}</td>
+                          <td>{entry.status ?? "n/a"}</td>
+                          <td>{entry.rows_written ?? "n/a"}</td>
+                          <td>{typeof entry.elapsed_seconds === "number" ? `${entry.elapsed_seconds.toFixed(2)}s` : "n/a"}</td>
+                          <td>{refreshHistoryDetail(entry)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={9}>No refresh history entries recorded yet.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </article>
+
+          {showKillConfirm ? (
+            <div className={styles.modalBackdrop} role="presentation">
+              <div className={styles.modalCard} role="dialog" aria-modal="true" aria-labelledby="kill-run-title">
+                <h3 id="kill-run-title" className={styles.modalTitle}>Kill Active Run</h3>
+                <p className={styles.modalText}>
+                  Are you sure you want to halt the active refresh run
+                  {refreshStatus?.run_id ? ` (${refreshStatus.run_id})` : ""}
+                  ?
+                </p>
+                <p className={styles.modalText}>
+                  This records the kill flag in Postgres and downloads the current log state as JSON.
+                </p>
+                <div className={styles.buttonRow}>
+                  <button
+                    className={styles.dangerButton}
+                    type="button"
+                    onClick={() => void onConfirmKillActiveRun()}
+                    disabled={killBusy}
+                  >
+                    {killBusy ? "Sending Kill Request..." : "Yes, Kill Active Run"}
+                  </button>
+                  <button
+                    className={styles.ghostButton}
+                    type="button"
+                    onClick={() => setShowKillConfirm(false)}
+                    disabled={killBusy}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </div>
           ) : null}
-
-          <div className={styles.keyValueGrid}>
-            <div className={styles.kvItem}>
-              <div className={styles.kvLabel}>State</div>
-              <div className={styles.kvValue}>{refreshRunning ? "Running" : "Idle"}</div>
-            </div>
-            <div className={styles.kvItem}>
-              <div className={styles.kvLabel}>Run ID</div>
-              <div className={styles.kvValue}>{refreshStatus?.run_id ?? "n/a"}</div>
-            </div>
-            <div className={styles.kvItem}>
-              <div className={styles.kvLabel}>Mode</div>
-              <div className={styles.kvValue}>{modeLabel(refreshStatus?.requested_mode)}</div>
-            </div>
-            <div className={styles.kvItem}>
-              <div className={styles.kvLabel}>Requested By</div>
-              <div className={styles.kvValue}>{refreshStatus?.requested_by ?? "n/a"}</div>
-            </div>
-            <div className={styles.kvItem}>
-              <div className={styles.kvLabel}>Started</div>
-              <div className={styles.kvValue}>{formatIso(refreshStatus?.started_at)}</div>
-            </div>
-            <div className={styles.kvItem}>
-              <div className={styles.kvLabel}>Completed</div>
-              <div className={styles.kvValue}>{formatIso(refreshStatus?.completed_at)}</div>
-            </div>
-            <div className={styles.kvItem}>
-              <div className={styles.kvLabel}>Report Status</div>
-              <div className={styles.kvValue}>{refreshStatus?.last_report?.status || "n/a"}</div>
-            </div>
-            <div className={styles.kvItem}>
-              <div className={styles.kvLabel}>Rows Written</div>
-              <div className={styles.kvValue}>{refreshStatus?.last_report?.rows_written ?? "n/a"}</div>
-            </div>
-            <div className={styles.kvItem}>
-              <div className={styles.kvLabel}>Kill State</div>
-              <div className={styles.kvValue}>
-                {killRequested ? `Requested by ${refreshStatus?.kill_requested_by ?? "admin"}` : "Clear"}
-              </div>
-            </div>
-          </div>
-
-          {refreshStatus?.last_error ? <p className={`${styles.inlineMsg} ${styles.msgError}`}>Refresh error: {refreshStatus.last_error}</p> : null}
-
-          <div className={styles.logBox}>
-            <div className={styles.logMeta}>
-              <strong>Refresh Log Tail</strong>
-              <span>{refreshLog?.exists ? `Updated: ${formatIso(refreshLog?.updatedAtUtc)}` : "No log yet"}</span>
-            </div>
-            <pre className={styles.logPre}>
-              {refreshLog?.exists
-                ? refreshLog.lines.join("\n") || "Log exists but currently empty."
-                : "No refresh log file found yet. Run a refresh to generate logs."}
-            </pre>
-          </div>
-
-          <div className={styles.logBox} style={{ marginTop: 12 }}>
-            <div className={styles.logMeta}>
-              <strong>Refresh History Report</strong>
-              <span>{refreshHistory?.exists ? `Updated: ${formatIso(refreshHistory?.updatedAtUtc)}` : "No history yet"}</span>
-            </div>
-            <div className={styles.scrollWrap} style={{ maxHeight: 320 }}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Time</th>
-                    <th>Phase</th>
-                    <th>Source</th>
-                    <th>Mode</th>
-                    <th>By</th>
-                    <th>Status</th>
-                    <th>Rows</th>
-                    <th>Elapsed</th>
-                    <th>Detail</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {refreshHistory?.entries?.length ? (
-                    [...refreshHistory.entries].reverse().map((entry, index) => (
-                      <tr key={`${entry.run_id ?? "run"}-${entry.phase ?? "phase"}-${entry.logged_at_utc ?? "time"}-${index}`}>
-                        <td>{formatIso(entry.logged_at_utc)}</td>
-                        <td>{entry.phase ?? "n/a"}</td>
-                        <td>{triggerSourceLabel(entry.trigger_source)}</td>
-                        <td>{modeLabel(entry.mode === "snapshot" || entry.mode === "universe_snapshot" ? entry.mode : undefined)}</td>
-                        <td>{entry.requested_by ?? "n/a"}</td>
-                        <td>{entry.status ?? "n/a"}</td>
-                        <td>{entry.rows_written ?? "n/a"}</td>
-                        <td>{typeof entry.elapsed_seconds === "number" ? `${entry.elapsed_seconds.toFixed(2)}s` : "n/a"}</td>
-                        <td>{refreshHistoryDetail(entry)}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={9}>No refresh history entries recorded yet.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </article>
-
-        {showKillConfirm ? (
-          <div className={styles.modalBackdrop} role="presentation">
-            <div className={styles.modalCard} role="dialog" aria-modal="true" aria-labelledby="kill-run-title">
-              <h3 id="kill-run-title" className={styles.modalTitle}>Kill Active Run</h3>
-              <p className={styles.modalText}>
-                Are you sure you want to halt the active refresh run
-                {refreshStatus?.run_id ? ` (${refreshStatus.run_id})` : ""}
-                ?
-              </p>
-              <p className={styles.modalText}>
-                This records the kill flag in Postgres and downloads the current log state as JSON.
-              </p>
-              <div className={styles.buttonRow}>
-                <button
-                  className={styles.dangerButton}
-                  type="button"
-                  onClick={() => void onConfirmKillActiveRun()}
-                  disabled={killBusy}
-                >
-                  {killBusy ? "Sending Kill Request..." : "Yes, Kill Active Run"}
-                </button>
-                <button
-                  className={styles.ghostButton}
-                  type="button"
-                  onClick={() => setShowKillConfirm(false)}
-                  disabled={killBusy}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : null}
-      </section>
+        </section>
       </div>
     </SiteFrame>
   );
