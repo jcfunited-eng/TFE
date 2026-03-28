@@ -31,6 +31,27 @@
   z-index: 2;
 }
 
+.logViewportRoot {
+  position: relative;
+  min-height: 100vh;
+}
+
+.logViewportShield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #fcfbfb !important;
+  opacity: 1 !important;
+}
+
+.logViewportContent {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  padding-bottom: 24px;
+}
+
 .opaqueWrapper {
   background-color: #fcfbfb !important;
   opacity: 1 !important;

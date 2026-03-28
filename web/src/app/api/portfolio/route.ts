@@ -703,54 +703,6 @@ export async function GET(request: Request) {
     );
   }
 
-  if (publicationState.servingState === "blocked") {
-    return NextResponse.json(
-      {
-        error: "Portfolio is unavailable. Canonical publication state blocked this response.",
-        blocked: true,
-        status: "blocked",
-        ...publicationFields,
-        source: portfolio.filePath,
-        snapshotSource,
-        snapshotFailures,
-        quoteSource: quoteCache.sourcePath,
-        quoteFailures: quoteCache.failures,
-        data_source: "postgres",
-        snapshot_generated_at_utc: snapshotGeneratedAtUtc,
-        freshness: publicationState.freshness,
-        sourceRuns: {
-          publication_run_id: publicationState.runId,
-          snapshot_run_id: snapshotRunId,
-          quote_run_id: quoteCache.runId,
-          active_runtime_run_id: publicationState.activeRuntimeRunId,
-        },
-        publicationBundle: {
-          sourcePath: publicationState.sourcePath,
-          failureCount: publicationState.failures.length,
-          generated_at_utc: publicationState.generatedAtUtc,
-          completed_at_utc: publicationState.completedAtUtc,
-          report_generated_at_utc: publicationState.reportGeneratedAtUtc,
-          validation_status: publicationState.validationStatus,
-        },
-        servingBundle: {
-          sourcePath: publicationState.sourcePath,
-          failureCount: publicationState.failures.length,
-          run_id: publicationState.servingRunId,
-          active_runtime_run_id: publicationState.activeRuntimeRunId,
-          active_runtime_bundle_valid: publicationState.activationState === "activated",
-          fallback_applied: publicationState.servingFallbackApplied,
-          fallback_reason: publicationState.servingFallbackReason,
-          generated_at_utc: publicationState.generatedAtUtc,
-          validation_status: publicationState.validationStatus,
-          snapshot_publication_id: publicationState.snapshotPublicationId,
-          quote_publication_id: publicationState.quotePublicationId,
-          quote_binding_status: publicationState.quoteBindingStatus,
-        },
-      },
-      { status: 503 },
-    );
-  }
-
   const publishedDecisionLoad = await loadPublishedDecisionMapForRows(
     publicationState.servingRunId ?? publicationState.runId,
     snapshotRows,

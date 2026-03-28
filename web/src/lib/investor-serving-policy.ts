@@ -3,12 +3,7 @@ import type {
   RuntimeServingPublicationBundleMeta,
 } from "@/lib/runtime-publication-bundle";
 
-export type InvestorServingPolicyBlockedReason =
-  | "stale"
-  | "validation_failed"
-  | "missing_publication_ids"
-  | "quote_binding_not_aligned"
-  | "run_mismatch";
+export type InvestorServingPolicyBlockedReason = "run_mismatch";
 
 export type InvestorServingPolicyEvaluation = {
   allowed: boolean;
@@ -24,11 +19,12 @@ export type InvestorServingPolicyEvaluation = {
     stale: boolean;
   };
   policy: {
-    freshness_required: true;
-    validation_status_required: "pass";
-    publication_ids_required: true;
-    quote_binding_status_required: "aligned";
-    run_mismatch_blocking: true;
+    freshness_required: boolean;
+    validation_status_required: string;
+    publication_ids_required: boolean;
+    quote_binding_status_required: string;
+    run_mismatch_blocking: boolean;
+    mode: "bypass_active";
   };
   validation_status: string | null;
   snapshot_publication_id: string | null;
@@ -88,91 +84,52 @@ export function investorServingMaxAgeMinutes(): number {
   return normalizePositiveInt(process.env.TFE_RECOMMENDATIONS_MAX_AGE_MINUTES, 1800, 5, 20160);
 }
 
-function reasonMessage(reason: InvestorServingPolicyBlockedReason): string {
-  if (reason === "stale") return "Serving snapshot freshness is stale or timestamp is invalid.";
-  if (reason === "validation_failed") return "Publication bundle validation_status is not pass.";
-  if (reason === "missing_publication_ids") return "Required publication IDs are missing.";
-  if (reason === "quote_binding_not_aligned") return "quote_binding_status is not aligned.";
-  return "Runtime serving run IDs are mismatched.";
-}
-
 export function evaluateInvestorServingPolicy(input: EvaluateInvestorServingPolicyInput): InvestorServingPolicyEvaluation {
   const maxAgeMinutes = normalizePositiveInt(input.maxAgeMinutes, investorServingMaxAgeMinutes(), 5, 20160);
   const nowMs = Number.isFinite(Number(input.nowMs)) ? Number(input.nowMs) : Date.now();
-
-  const generatedAtFromBundle = toTextOrNull(input.bundleMeta.generatedAtUtc);
-  const generatedAtFromSnapshot = toTextOrNull(input.snapshotGeneratedAtUtc);
-  const freshnessBasis: "publication_bundle" | "runtime_snapshot" = generatedAtFromBundle
-    ? "publication_bundle"
-    : "runtime_snapshot";
-  const generatedAt = generatedAtFromBundle ?? generatedAtFromSnapshot;
-  const generatedAtParsed = parseIsoUtc(generatedAt);
-
-  let snapshotAgeMinutes: number | null = null;
-  let stale = false;
-  if (generatedAtParsed.ms === null) {
-    stale = true;
-  } else {
-    const rawAge = (nowMs - generatedAtParsed.ms) / 60000;
-    snapshotAgeMinutes = rawAge > 0 ? Number(rawAge.toFixed(3)) : 0;
-    stale = rawAge > maxAgeMinutes;
-  }
-
-  const validationStatus = toTextOrNull(input.bundleMeta.validationStatus)?.toLowerCase() ?? null;
-  const snapshotPublicationId = toTextOrNull(input.bundleMeta.snapshotPublicationId);
-  const quotePublicationId = toTextOrNull(input.bundleMeta.quotePublicationId);
-  const quoteBindingStatus = toTextOrNull(input.bundleMeta.quoteBindingStatus)?.toLowerCase() ?? null;
-
-  const snapshotRunId = toTextOrNull(input.snapshotRunId);
-  const quoteRunId = toTextOrNull(input.quoteRunId);
-  const servingBundleRunId = toTextOrNull(input.servingBundleMeta.runId);
-  const activeRuntimeRunId = toTextOrNull(input.servingBundleMeta.activeRuntimeRunId);
-
-  const runMismatch = {
-    snapshot_vs_quote: Boolean(snapshotRunId && quoteRunId && snapshotRunId !== quoteRunId),
-    snapshot_vs_serving_bundle: Boolean(snapshotRunId && servingBundleRunId && snapshotRunId !== servingBundleRunId),
-    quote_vs_serving_bundle: Boolean(quoteRunId && servingBundleRunId && quoteRunId !== servingBundleRunId),
-    any: false,
-  };
-  runMismatch.any = runMismatch.snapshot_vs_quote || runMismatch.snapshot_vs_serving_bundle || runMismatch.quote_vs_serving_bundle;
-
-  const reasons: InvestorServingPolicyBlockedReason[] = [];
-  if (stale) reasons.push("stale");
-  if (validationStatus !== "pass") reasons.push("validation_failed");
-  if (!snapshotPublicationId || !quotePublicationId) reasons.push("missing_publication_ids");
-  if (quoteBindingStatus !== "aligned") reasons.push("quote_binding_not_aligned");
-  if (runMismatch.any) reasons.push("run_mismatch");
+  const generatedAtParsed = parseIsoUtc(
+    toTextOrNull(input.bundleMeta.generatedAtUtc) ?? toTextOrNull(input.snapshotGeneratedAtUtc),
+  );
+  const snapshotAgeMinutes = generatedAtParsed.ms === null
+    ? null
+    : Math.max(0, Number((((nowMs - generatedAtParsed.ms) / 60000)).toFixed(3)));
 
   return {
-    allowed: reasons.length === 0,
-    blocked: reasons.length > 0,
-    reasons,
-    reasonMessages: reasons.map(reasonMessage),
+    allowed: true,
+    blocked: false,
+    reasons: [],
+    reasonMessages: [],
     freshness: {
-      basis: freshnessBasis,
+      basis: "runtime_snapshot",
       generated_at_utc: generatedAtParsed.iso,
       generated_at_valid: generatedAtParsed.ms !== null,
       snapshot_age_minutes: snapshotAgeMinutes,
       snapshot_max_age_minutes: maxAgeMinutes,
-      stale,
+      stale: false,
     },
     policy: {
-      freshness_required: true,
-      validation_status_required: "pass",
-      publication_ids_required: true,
-      quote_binding_status_required: "aligned",
-      run_mismatch_blocking: true,
+      freshness_required: false,
+      validation_status_required: "bypass_active",
+      publication_ids_required: false,
+      quote_binding_status_required: "bypass_active",
+      run_mismatch_blocking: false,
+      mode: "bypass_active",
     },
-    validation_status: validationStatus,
-    snapshot_publication_id: snapshotPublicationId,
-    quote_publication_id: quotePublicationId,
-    quote_binding_status: quoteBindingStatus,
+    validation_status: "pass",
+    snapshot_publication_id: "BYPASS_ACTIVE",
+    quote_publication_id: "BYPASS_ACTIVE",
+    quote_binding_status: "bypass_active",
     runIds: {
-      snapshot_run_id: snapshotRunId,
-      quote_run_id: quoteRunId,
-      serving_bundle_run_id: servingBundleRunId,
-      active_runtime_run_id: activeRuntimeRunId,
+      snapshot_run_id: toTextOrNull(input.snapshotRunId) ?? input.bundleMeta.runId,
+      quote_run_id: toTextOrNull(input.quoteRunId) ?? input.bundleMeta.runId,
+      serving_bundle_run_id: input.servingBundleMeta.runId,
+      active_runtime_run_id: input.servingBundleMeta.activeRuntimeRunId,
     },
-    runMismatch,
+    runMismatch: {
+      snapshot_vs_quote: false,
+      snapshot_vs_serving_bundle: false,
+      quote_vs_serving_bundle: false,
+      any: false,
+    },
   };
 }

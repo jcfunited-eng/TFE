@@ -88,6 +88,7 @@ type RefreshPolicyHealth = {
   checks: RefreshPolicyCheck[];
   canonicalServingPolicy: {
     allowed: boolean;
+    mode: "bypass_active";
     freshness: CanonicalPublicationState["freshness"];
     validation_status: string | null;
     snapshot_publication_id: string | null;
@@ -447,6 +448,7 @@ async function evaluateRefreshPolicyHealth(
     checks,
     canonicalServingPolicy: {
       allowed: publicationState.servingState === "allowed",
+      mode: "bypass_active",
       freshness: publicationState.freshness,
       validation_status: publicationState.validationStatus,
       snapshot_publication_id: publicationState.snapshotPublicationId,
@@ -548,6 +550,10 @@ export async function GET(request: Request) {
     generatedAtUtc: new Date().toISOString(),
     git_commit_sha: runtimeBuild.gitCommitSha,
     ...publicationContractFields(investorServing.publicationState),
+    servingAuthority: {
+      mode: "bypass_active",
+      source: "runtime_postgres",
+    },
     environment: {
       nodeEnv: process.env.NODE_ENV ?? "development",
       webProcessCwd: process.cwd(),

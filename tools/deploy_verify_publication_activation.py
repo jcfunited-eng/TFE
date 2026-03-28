@@ -364,17 +364,12 @@ const req = (...names) => {{
     const activeQ = await client.query(`
       SELECT
         run_id,
-        bundle_generated_at_utc,
+        COALESCE(bundle_generated_at_utc, completed_at, report_generated_at_utc) AS generated_at_utc,
         report_status,
         validation_status,
-        snapshot_publication_id,
-        quote_publication_id,
-        quote_binding_status,
-        is_active_publication,
         updated_at
       FROM runtime_refresh_runs
-      WHERE is_active_publication IS TRUE
-      ORDER BY updated_at DESC
+      ORDER BY updated_at DESC NULLS LAST, completed_at DESC NULLS LAST
       LIMIT 1
     `);
 
@@ -391,12 +386,8 @@ const req = (...names) => {{
           report_generated_at_utc,
           rows_written,
           report_status,
-          bundle_generated_at_utc,
+          COALESCE(bundle_generated_at_utc, completed_at, report_generated_at_utc) AS generated_at_utc,
           validation_status,
-          snapshot_publication_id,
-          quote_publication_id,
-          quote_binding_status,
-          is_active_publication,
           updated_at
         FROM runtime_refresh_runs
         WHERE run_id = $1

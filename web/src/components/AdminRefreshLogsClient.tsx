@@ -308,8 +308,10 @@ export default function AdminRefreshLogsClient() {
 
   return (
     <SiteFrame pageBackgroundImage={backgroundImage}>
-      <div className={styles.opaqueWrapper}>
-        <section className={`${styles.deck} ${styles.deckLog}`}>
+      <div className={styles.logViewportRoot}>
+        <div className={styles.logViewportShield} aria-hidden="true" />
+        <div className={styles.logViewportContent}>
+          <section className={`${styles.deck} ${styles.deckLog}`}>
           <header className={styles.hero}>
             <div>
               <p className={styles.kicker}>Tao Financial Engine</p>
@@ -532,7 +534,8 @@ export default function AdminRefreshLogsClient() {
               </div>
             </div>
           ) : null}
-        </section>
+          </section>
+        </div>
       </div>
     </SiteFrame>
   );

@@ -1027,15 +1027,6 @@ export default function AdminConsolePage() {
               >
                 Open Dedicated Refresh Log Page
               </button>
-
-              <button
-                className={styles.dangerButton}
-                type="button"
-                onClick={() => setShowKillConfirm(true)}
-                disabled={!refreshRunning || killBusy || killRequested}
-              >
-                {killRequested ? "Kill Requested" : "KILL ACTIVE RUN"}
-              </button>
             </div>
 
             {refreshRunning ? (

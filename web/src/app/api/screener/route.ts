@@ -1682,18 +1682,6 @@ export async function GET(request: Request) {
     );
   }
 
-  if (publicationState.servingState === "blocked") {
-    return NextResponse.json(withDiagnostics({
-        error: "Screener unavailable because canonical publication state blocked this response.",
-        blocked: true,
-        status: "blocked",
-        tab,
-        ...publicationFields,
-      }, "publication_state_blocked"),
-      { status: 503 },
-    );
-  }
-
   const publishedDecisionLoad = await loadPublishedDecisionMapForRows(
     publicationState.servingRunId ?? publicationState.runId,
     snapshot.rows,

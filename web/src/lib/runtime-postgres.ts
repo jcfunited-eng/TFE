@@ -1,4 +1,3 @@
-import { loadServingRuntimePublicationBundleMeta } from "@/lib/runtime-publication-bundle";
 import {
   postgresSourceBase,
   resolveRuntimePostgresPool,
@@ -55,9 +54,6 @@ type RuntimeSourceMeta = {
 type RuntimeServingBundleSelection = {
   runId: string | null;
   generatedAtUtc: string | null;
-  activeRuntimeRunId: string | null;
-  activeRuntimeGeneratedAtUtc: string | null;
-  fallbackApplied: boolean;
   failures: AttemptFailure[];
 };
 
@@ -401,20 +397,72 @@ async function readRuntimeSourceMeta(
 }
 
 async function resolveServingBundleSelection(): Promise<RuntimeServingBundleSelection> {
-  const serving = await loadServingRuntimePublicationBundleMeta();
-  const failures: AttemptFailure[] = serving.failures.map((failure) => ({
-    path: failure.path,
-    reason: failure.reason,
-  }));
+  const sourcePath = `${postgresSourceBase()}#${RUNTIME_DECISIONS_TABLE}`;
+  const failures: AttemptFailure[] = [];
 
-  return {
-    runId: serving.runId,
-    generatedAtUtc: serving.generatedAtUtc,
-    activeRuntimeRunId: serving.activeRuntimeRunId,
-    activeRuntimeGeneratedAtUtc: serving.activeRuntimeGeneratedAtUtc,
-    fallbackApplied: serving.fallbackApplied,
-    failures,
-  };
+  if (!runtimeSourceIsPostgres()) {
+    failures.push({
+      path: sourcePath,
+      reason: `Runtime source is '${resolveRuntimeSource()}'; expected 'postgres'.`,
+    });
+    return {
+      runId: null,
+      generatedAtUtc: null,
+      failures,
+    };
+  }
+
+  if (!isPostgresConfigured()) {
+    failures.push({
+      path: sourcePath,
+      reason: "Postgres runtime source required, but PGHOST/PGDATABASE/PGUSER/PGPASSWORD is not fully configured.",
+    });
+    return {
+      runId: null,
+      generatedAtUtc: null,
+      failures,
+    };
+  }
+
+  try {
+    const pool = resolveRuntimePostgresPool();
+    const decisionsTableExists = await tableExists(pool, RUNTIME_DECISIONS_TABLE);
+    if (!decisionsTableExists) {
+      failures.push({
+        path: sourcePath,
+        reason: `Table '${RUNTIME_DECISIONS_TABLE}' does not exist.`,
+      });
+      return {
+        runId: null,
+        generatedAtUtc: null,
+        failures,
+      };
+    }
+
+    const meta = await readRuntimeSourceMeta(pool, RUNTIME_DECISIONS_TABLE);
+    if (!meta.runId) {
+      failures.push({
+        path: sourcePath,
+        reason: `Table '${RUNTIME_DECISIONS_TABLE}' is empty.`,
+      });
+    }
+
+    return {
+      runId: meta.runId,
+      generatedAtUtc: meta.generatedAtUtc,
+      failures,
+    };
+  } catch (error) {
+    failures.push({
+      path: sourcePath,
+      reason: error instanceof Error ? error.message : "Unknown runtime decisions query error.",
+    });
+    return {
+      runId: null,
+      generatedAtUtc: null,
+      failures,
+    };
+  }
 }
 
 function failuresContainNonRetriableConfigReason(failures: AttemptFailure[]): boolean {
@@ -632,8 +680,7 @@ async function loadRuntimeSnapshotRowsFromPostgresRaw(): Promise<RuntimeSnapshot
       };
     }
 
-    const useHistoryTable = servingBundle.fallbackApplied || servingBundle.activeRuntimeRunId !== selectedRunId;
-    const selectedTable = useHistoryTable ? RUNTIME_DECISIONS_HISTORY_TABLE : RUNTIME_DECISIONS_TABLE;
+    const selectedTable = RUNTIME_DECISIONS_TABLE;
     const selectedRows = await loadRowsForRun(selectedRunId, selectedTable, servingBundle.generatedAtUtc);
     if (!selectedRows.emptyReason) {
       return {
@@ -650,38 +697,6 @@ async function loadRuntimeSnapshotRowsFromPostgresRaw(): Promise<RuntimeSnapshot
       path: selectedRows.sourcePath,
       reason: selectedRows.emptyReason,
     });
-
-    const fallbackRunId = String(servingBundle.activeRuntimeRunId ?? "").trim();
-    if (fallbackRunId && fallbackRunId !== selectedRunId) {
-      for (const fallbackTable of [RUNTIME_DECISIONS_HISTORY_TABLE, RUNTIME_DECISIONS_TABLE]) {
-        const fallbackRows = await loadRowsForRun(
-          fallbackRunId,
-          fallbackTable,
-          servingBundle.activeRuntimeGeneratedAtUtc,
-        );
-        if (!fallbackRows.emptyReason) {
-          failures.push({
-            path: fallbackRows.sourcePath,
-            reason:
-              `Active publication run_id='${selectedRunId}' has no materialized runtime snapshot rows; `
-              + `serving fallback latest runtime run_id='${fallbackRunId}'.`,
-          });
-          return {
-            rows: fallbackRows.rows,
-            sourcePath: fallbackRows.sourcePath,
-            attemptedPaths,
-            failures,
-            dataSource: "postgres",
-            runId: fallbackRunId,
-            generatedAtUtc: fallbackRows.generatedAtUtc,
-          };
-        }
-        failures.push({
-          path: fallbackRows.sourcePath,
-          reason: fallbackRows.emptyReason,
-        });
-      }
-    }
 
     return {
       rows: [],
@@ -813,8 +828,7 @@ async function loadRuntimeQuoteCacheFromPostgresRaw(): Promise<RuntimeQuoteLoadR
       };
     }
 
-    const useHistoryTable = servingBundle.fallbackApplied || servingBundle.activeRuntimeRunId !== selectedRunId;
-    const selectedTable = useHistoryTable ? RUNTIME_SYMBOLS_HISTORY_TABLE : RUNTIME_SYMBOLS_TABLE;
+    const selectedTable = RUNTIME_SYMBOLS_TABLE;
     const selectedQuotes = await loadQuotesForRun(selectedRunId, selectedTable, servingBundle.generatedAtUtc);
     if (!selectedQuotes.emptyReason) {
       return {
@@ -830,37 +844,6 @@ async function loadRuntimeQuoteCacheFromPostgresRaw(): Promise<RuntimeQuoteLoadR
       path: selectedQuotes.sourcePath,
       reason: selectedQuotes.emptyReason,
     });
-
-    const fallbackRunId = String(servingBundle.activeRuntimeRunId ?? "").trim();
-    if (fallbackRunId && fallbackRunId !== selectedRunId) {
-      for (const fallbackTable of [RUNTIME_SYMBOLS_HISTORY_TABLE, RUNTIME_SYMBOLS_TABLE]) {
-        const fallbackQuotes = await loadQuotesForRun(
-          fallbackRunId,
-          fallbackTable,
-          servingBundle.activeRuntimeGeneratedAtUtc,
-        );
-        if (!fallbackQuotes.emptyReason) {
-          failures.push({
-            path: fallbackQuotes.sourcePath,
-            reason:
-              `Active publication run_id='${selectedRunId}' has no materialized runtime quote rows; `
-              + `serving fallback latest runtime run_id='${fallbackRunId}'.`,
-          });
-          return {
-            quotes: fallbackQuotes.quotes,
-            sourcePath: fallbackQuotes.sourcePath,
-            failures,
-            dataSource: "postgres",
-            runId: fallbackRunId,
-            generatedAtUtc: fallbackQuotes.generatedAtUtc,
-          };
-        }
-        failures.push({
-          path: fallbackQuotes.sourcePath,
-          reason: fallbackQuotes.emptyReason,
-        });
-      }
-    }
 
     return {
       quotes: {},
