@@ -30,6 +30,10 @@
   - Session/sign-in auth path no longer throws unhandled server exception on transient user-store failures.
   - Production rollout evidence: `backups/deploy-evidence-20260225T010556Z`.
   - Post-deploy verification evidence: `backups/deploy-evidence-20260225T010556Z/postdeploy-verify-20260225T011624Z/summary.json`.
+- DONE Phase 2 global publisher teardown and Phase 1 UI data bypass deployed and live-verified on 2026-03-28 UTC.
+  - Production deploy succeeded with evidence: `backups/deploy-evidence-20260328T184716Z`.
+  - Live verification passed with `BYPASS_ACTIVE` mock publication contracts for Recommendations, Portfolio, and Admin/System Status.
+  - Post-deploy verification evidence: `backups/deploy-verify-publication-activation-20260328T184716Z/summary.json` and `backups/deploy-verify-publication-activation-20260328T184716Z/postdeploy-verifier.result.json`.
 
 ## Active TODO Queue
 1. PARTIAL Deterministic performance objective track (former Item 3 / +200% target work). Current v3 single-gate status: +4.0 target met (best_score=35.53125012967289, evidence: `backups/runtime/oracle_program/objective_v3_enablement_latest.json`). Robustness matrix status after equal-fold aggregation fix: PREPARE_FOR_PROMOTE (total_runs=4, pass_count=4, fail_count=0, all_runs_pass_target=true, min_score=23.60905846557193, evidence: `backups/runtime/oracle_program/objective_v3_robustness_latest.json`). Pending explicit production promotion approval.
