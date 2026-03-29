@@ -5,24 +5,118 @@ import argparse
 import json
 import os
 import re
-import subprocess
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 import psycopg2
 
 ROOT = Path(__file__).resolve().parents[2]
-FINVIZ_METADATA_SCRIPT = Path(__file__).resolve().parent / "build_screener_finviz_overview_cache.py"
+if str(ROOT) not in sys.path:
+  sys.path.insert(0, str(ROOT))
+
+from tfe_market_data import get_unified_market_data
+from tfe_market_data_service import HistoryRequest, Timespan
+
 DEFAULT_OUTPUT = ROOT / "web" / "data" / "screener-quote-cache.json"
 DEFAULT_FAILURES = ROOT / "web" / "data" / "screener-quote-cache.failures.json"
-DEFAULT_FINVIZ_METADATA = ROOT / "web" / "data" / "screener-finviz-overview-cache.json"
 DEFAULT_MIN_NON_META_FIELDS = 12
+LOOKBACK_DAYS = 366
 PREFERRED_SUFFIX_PATTERN = re.compile(r"^([A-Z]{1,6})P([A-Z]{1,2})$")
 
-from get_history_json import build_quote_only_payload
+QUOTE_FIELDS = (
+  "companyName",
+  "category",
+  "assetType",
+  "quoteType",
+  "exchange",
+  "country",
+  "sector",
+  "industry",
+  "fundFamily",
+  "employees",
+  "ipoDate",
+  "earningsDate",
+  "indexName",
+  "marketCap",
+  "enterpriseValue",
+  "income",
+  "sales",
+  "bookValue",
+  "cashPerShare",
+  "freeCashflow",
+  "ebitda",
+  "dividendRate",
+  "dividendYield",
+  "trailingDividendRate",
+  "trailingDividendYield",
+  "exDividendDate",
+  "payoutRatio",
+  "peRatio",
+  "forwardPE",
+  "pegRatio",
+  "priceToSales",
+  "priceToBook",
+  "priceToCash",
+  "priceToFreeCashFlow",
+  "evToEbitda",
+  "evToSales",
+  "quickRatio",
+  "currentRatio",
+  "debtToEquity",
+  "longTermDebtToEquity",
+  "eps",
+  "forwardEps",
+  "epsNextQ",
+  "earningsGrowth",
+  "earningsQuarterlyGrowth",
+  "revenueGrowth",
+  "revenueQuarterlyGrowth",
+  "grossMargin",
+  "operatingMargin",
+  "profitMargin",
+  "roa",
+  "roe",
+  "roic",
+  "insiderOwn",
+  "insiderTrans",
+  "instOwn",
+  "instTrans",
+  "sharesOutstanding",
+  "sharesFloat",
+  "shortFloat",
+  "shortInterest",
+  "shortRatio",
+  "beta",
+  "target1Y",
+  "targetLow",
+  "targetHigh",
+  "recommendationMean",
+  "avgVolume",
+  "volume",
+  "relVolume",
+  "prevClose",
+  "price",
+  "open",
+  "dayHigh",
+  "dayLow",
+  "change",
+  "changePct",
+  "high52",
+  "low52",
+  "sma20",
+  "sma50",
+  "sma200",
+  "atr14",
+  "rsi14",
+  "bid",
+  "ask",
+  "optionable",
+  "shortable",
+)
 
 PROFILE_PRESERVE_FIELDS = (
   "companyName",
@@ -35,6 +129,9 @@ PROFILE_PRESERVE_FIELDS = (
   "indexName",
   "assetType",
   "quoteType",
+  "marketCap",
+  "sharesOutstanding",
+  "sharesFloat",
 )
 
 MISSING_TEXT_MARKERS = {
@@ -197,74 +294,6 @@ def _load_existing(path: Path) -> dict[str, dict[str, Any]]:
   return out
 
 
-def _load_finviz_metadata(path: Path) -> dict[str, dict[str, Any]]:
-  if not path.exists():
-    return {}
-
-  try:
-    parsed = json.loads(path.read_text(encoding="utf-8"))
-  except Exception:
-    return {}
-
-  if not isinstance(parsed, dict):
-    return {}
-
-  raw_rows = parsed.get("rows")
-  if not isinstance(raw_rows, dict):
-    return {}
-
-  out: dict[str, dict[str, Any]] = {}
-  for key, value in raw_rows.items():
-    ticker = str(key).strip().upper()
-    if not ticker:
-      continue
-    if not isinstance(value, dict):
-      continue
-    out[ticker] = value
-  return out
-
-
-def _run_finviz_metadata_refresh(
-  output_path: Path,
-  max_pages: int,
-  timeout_sec: int,
-  sleep_ms: int,
-  save_every: int,
-) -> tuple[bool, str]:
-  cmd = [
-    "python3",
-    str(FINVIZ_METADATA_SCRIPT),
-    "--output",
-    str(output_path),
-    "--max-pages",
-    str(max_pages),
-    "--sleep-ms",
-    str(sleep_ms),
-    "--save-every",
-    str(save_every),
-  ]
-
-  completed = subprocess.run(
-    cmd,
-    check=False,
-    capture_output=True,
-    text=True,
-    timeout=timeout_sec,
-  )
-  stdout_tail = "\n".join(completed.stdout.splitlines()[-20:]).strip()
-  stderr_tail = "\n".join(completed.stderr.splitlines()[-20:]).strip()
-  if completed.returncode != 0:
-    return False, (
-      f"finviz_metadata_refresh_failed exit_code={completed.returncode} "
-      f"stdout_tail={stdout_tail or 'n/a'} stderr_tail={stderr_tail or 'n/a'}"
-    )
-
-  return True, (
-    f"finviz_metadata_refresh_ok "
-    f"stdout_tail={stdout_tail or 'n/a'} stderr_tail={stderr_tail or 'n/a'}"
-  )
-
-
 def _text(value: Any) -> str:
   if value is None:
     return ""
@@ -275,9 +304,10 @@ def _is_missing_value(value: Any) -> bool:
   if value is None:
     return True
   if isinstance(value, str):
-    if not value.strip():
+    text = value.strip()
+    if not text:
       return True
-    if value.strip().upper() in MISSING_TEXT_MARKERS:
+    if text.upper() in MISSING_TEXT_MARKERS:
       return True
   return False
 
@@ -289,18 +319,9 @@ def _to_finite_number(value: Any) -> float | None:
     parsed = float(value)
   except Exception:
     return None
-  if parsed != parsed:  # NaN
+  if parsed != parsed:
     return None
   if parsed in (float("inf"), float("-inf")):
-    return None
-  return parsed
-
-
-def _to_positive_number(value: Any) -> float | None:
-  parsed = _to_finite_number(value)
-  if parsed is None:
-    return None
-  if parsed <= 0:
     return None
   return parsed
 
@@ -333,7 +354,6 @@ def _looks_like_missing_profile(row: dict[str, Any]) -> bool:
   if not company_name:
     return True
 
-  # ETFs/funds should still carry category/industry labels for map and table rows.
   if quote_type in {"ETF", "MUTUALFUND", "MUTUAL FUND"} or asset_type in {"ETF", "MUTUALFUND", "MUTUAL FUND"}:
     category = _text(row.get("category"))
     fund_family = _text(row.get("fundFamily"))
@@ -345,7 +365,6 @@ def _looks_like_missing_profile(row: dict[str, Any]) -> bool:
       return True
     return False
 
-  # Equities should normally expose all three profile fields.
   if not sector:
     return True
   if not industry:
@@ -455,15 +474,12 @@ def _quote_fetch_candidates(ticker: str) -> list[str]:
 
   _append(normalized)
 
-  # Evidence-backed class-share alias: BRK.B -> BRK-B
   if "." in normalized:
     _append(normalized.replace(".", "-"))
 
-  # Common slash alias: RDS/A -> RDS-A
   if "/" in normalized:
     _append(normalized.replace("/", "-"))
 
-  # Evidence-backed preferred-share alias: BACPB -> BAC-PB, ABRPF -> ABR-PF
   preferred_match = PREFERRED_SUFFIX_PATTERN.match(normalized)
   if preferred_match:
     base = preferred_match.group(1)
@@ -473,24 +489,283 @@ def _quote_fetch_candidates(ticker: str) -> list[str]:
   return out
 
 
-def _fetch_quote_for_symbol(fetch_symbol: str, timeout_sec: int) -> tuple[dict[str, Any] | None, str | None]:
-  try:
-    payload = build_quote_only_payload(fetch_symbol)
-  except Exception as error:
-    return None, f"exec_failure: {error}"
+def _empty_quote_template() -> dict[str, Any]:
+  return {field: None for field in QUOTE_FIELDS}
 
-  quote = payload.get("quote")
-  if not isinstance(quote, dict):
-    return None, "quote_missing_or_invalid"
+
+def _bar_timestamp_text(value: Any) -> str | None:
+  if value is None:
+    return None
+  try:
+    if hasattr(value, "date"):
+      return value.date().isoformat()
+  except Exception:
+    pass
+  try:
+    return str(value)
+  except Exception:
+    return None
+
+
+def _history_bar_rows(symbol: str) -> list[dict[str, Any]]:
+  client = get_unified_market_data()
+  end = datetime.now(timezone.utc)
+  start = end - timedelta(days=LOOKBACK_DAYS)
+  request = HistoryRequest(
+    symbol=symbol,
+    timespan=Timespan.DAY,
+    multiplier=1,
+    start=start,
+    end=end,
+    adjusted=True,
+    limit=None,
+  )
+  result = client.get_history(request)
+  raw_bars = list(getattr(result, "bars", []) or [])
+
+  rows: list[dict[str, Any]] = []
+  for bar in raw_bars:
+    close_value = _to_finite_number(getattr(bar, "close", None))
+    if close_value is None or close_value == 0.0:
+      continue
+
+    rows.append(
+      {
+        "time": _bar_timestamp_text(getattr(bar, "timestamp", None)),
+        "open": _to_finite_number(getattr(bar, "open", None)),
+        "high": _to_finite_number(getattr(bar, "high", None)),
+        "low": _to_finite_number(getattr(bar, "low", None)),
+        "close": close_value,
+        "volume": _to_finite_number(getattr(bar, "volume", None)),
+      }
+    )
+
+  rows.sort(key=lambda row: str(row.get("time") or ""))
+  return rows
+
+
+def _derive_avg_volume_from_bars(bars: list[dict[str, Any]]) -> float | None:
+  if not bars:
+    return None
+
+  recent = bars[-30:]
+  values: list[float] = []
+  for bar in recent:
+    volume = _to_finite_number(bar.get("volume"))
+    if volume is None:
+      continue
+    if volume <= 0:
+      continue
+    values.append(volume)
+
+  if not values:
+    return None
+
+  return sum(values) / len(values)
+
+
+def _calculate_sma(bars: list[dict[str, Any]], period: int) -> float | None:
+  if period < 1 or len(bars) < period:
+    return None
+
+  closes: list[float] = []
+  for bar in bars[-period:]:
+    close_value = _to_finite_number(bar.get("close"))
+    if close_value is None:
+      return None
+    closes.append(close_value)
+
+  if not closes:
+    return None
+
+  return sum(closes) / len(closes)
+
+
+def _calculate_atr14(bars: list[dict[str, Any]]) -> float | None:
+  if len(bars) < 15:
+    return None
+
+  trs: list[float] = []
+  for index in range(1, len(bars)):
+    prev_close = _to_finite_number(bars[index - 1].get("close"))
+    high = _to_finite_number(bars[index].get("high"))
+    low = _to_finite_number(bars[index].get("low"))
+    if prev_close is None or high is None or low is None:
+      continue
+    tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
+    trs.append(tr)
+
+  if len(trs) < 14:
+    return None
+
+  tail = trs[-14:]
+  return sum(tail) / len(tail)
+
+
+def _calculate_rsi14(bars: list[dict[str, Any]]) -> float | None:
+  if len(bars) < 15:
+    return None
+
+  closes: list[float] = []
+  for bar in bars:
+    close_value = _to_finite_number(bar.get("close"))
+    if close_value is None:
+      continue
+    closes.append(close_value)
+
+  if len(closes) < 15:
+    return None
+
+  gains: list[float] = []
+  losses: list[float] = []
+
+  for index in range(len(closes) - 14, len(closes)):
+    if index <= 0:
+      continue
+    diff = closes[index] - closes[index - 1]
+    if diff > 0:
+      gains.append(diff)
+      losses.append(0.0)
+    else:
+      gains.append(0.0)
+      losses.append(abs(diff))
+
+  if not gains or not losses:
+    return None
+
+  avg_gain = sum(gains) / len(gains)
+  avg_loss = sum(losses) / len(losses)
+
+  if avg_loss == 0:
+    if avg_gain == 0:
+      return 50.0
+    return 100.0
+
+  rs = avg_gain / avg_loss
+  return 100.0 - (100.0 / (1.0 + rs))
+
+
+def _derive_quote_from_bars(
+  quote: dict[str, Any],
+  bars: list[dict[str, Any]],
+  shares_outstanding: float | None,
+) -> dict[str, Any]:
+  if not bars:
+    return quote
+
+  latest = bars[-1]
+  previous = bars[-2] if len(bars) > 1 else latest
+
+  latest_close = _to_finite_number(latest.get("close"))
+  latest_open = _to_finite_number(latest.get("open"))
+  latest_high = _to_finite_number(latest.get("high"))
+  latest_low = _to_finite_number(latest.get("low"))
+  latest_volume = _to_finite_number(latest.get("volume"))
+  prev_close = _to_finite_number(previous.get("close"))
+
+  if _is_missing_value(quote.get("price")):
+    quote["price"] = latest_close
+  if _is_missing_value(quote.get("open")):
+    quote["open"] = latest_open
+  if _is_missing_value(quote.get("dayHigh")):
+    quote["dayHigh"] = latest_high
+  if _is_missing_value(quote.get("dayLow")):
+    quote["dayLow"] = latest_low
+  if _is_missing_value(quote.get("volume")):
+    quote["volume"] = latest_volume
+  if _is_missing_value(quote.get("prevClose")):
+    quote["prevClose"] = prev_close
+
+  if _is_missing_value(quote.get("avgVolume")):
+    quote["avgVolume"] = _derive_avg_volume_from_bars(bars)
+
+  if _is_missing_value(quote.get("high52")):
+    high_values = [_to_finite_number(bar.get("high")) for bar in bars]
+    high_values = [value for value in high_values if value is not None]
+    quote["high52"] = max(high_values) if high_values else None
+
+  if _is_missing_value(quote.get("low52")):
+    low_values = [_to_finite_number(bar.get("low")) for bar in bars]
+    low_values = [value for value in low_values if value is not None]
+    quote["low52"] = min(low_values) if low_values else None
+
+  if _is_missing_value(quote.get("marketCap")) and shares_outstanding is not None and latest_close is not None:
+    quote["marketCap"] = shares_outstanding * latest_close
+
+  if _is_missing_value(quote.get("sma20")):
+    quote["sma20"] = _calculate_sma(bars, 20)
+  if _is_missing_value(quote.get("sma50")):
+    quote["sma50"] = _calculate_sma(bars, 50)
+  if _is_missing_value(quote.get("sma200")):
+    quote["sma200"] = _calculate_sma(bars, 200)
+
+  if _is_missing_value(quote.get("atr14")):
+    quote["atr14"] = _calculate_atr14(bars)
+  if _is_missing_value(quote.get("rsi14")):
+    quote["rsi14"] = _calculate_rsi14(bars)
+
+  price_value = _to_finite_number(quote.get("price"))
+  prev_value = _to_finite_number(quote.get("prevClose"))
+  if _is_missing_value(quote.get("change")) and price_value is not None and prev_value is not None:
+    quote["change"] = price_value - prev_value
+
+  if _is_missing_value(quote.get("changePct")) and price_value is not None and prev_value is not None and abs(prev_value) > 1e-12:
+    quote["changePct"] = ((price_value - prev_value) / prev_value) * 100.0
+
+  avg_volume = _to_finite_number(quote.get("avgVolume"))
+  volume = _to_finite_number(quote.get("volume"))
+  if _is_missing_value(quote.get("relVolume")) and avg_volume is not None and volume is not None and abs(avg_volume) > 1e-12:
+    quote["relVolume"] = volume / avg_volume
+
+  return quote
+
+
+def _populate_ticker_info_fields(symbol: str, quote: dict[str, Any]) -> dict[str, Any]:
+  try:
+    info = get_unified_market_data().get_ticker_info(symbol)
+  except Exception:
+    return quote
+
+  name = _text(getattr(info, "name", None))
+  exchange = _text(getattr(info, "exchange", None))
+  asset_type = _text(getattr(info, "asset_type", None)).upper()
+
+  if _is_missing_value(quote.get("companyName")) and name:
+    quote["companyName"] = name
+  if _is_missing_value(quote.get("exchange")) and exchange:
+    quote["exchange"] = exchange
+  if asset_type:
+    if _is_missing_value(quote.get("assetType")):
+      quote["assetType"] = asset_type
+    if _is_missing_value(quote.get("quoteType")):
+      quote["quoteType"] = asset_type
+
+  return quote
+
+
+def _fetch_quote_for_symbol(fetch_symbol: str, timeout_sec: int) -> tuple[dict[str, Any] | None, str | None]:
+  del timeout_sec
+
+  try:
+    bars = _history_bar_rows(fetch_symbol)
+  except Exception as error:
+    return None, f"official_history_failure: {error}"
+
+  if not bars:
+    return None, "official_history_empty"
+
+  quote = _empty_quote_template()
+  quote = _populate_ticker_info_fields(fetch_symbol, quote)
+  quote = _derive_quote_from_bars(quote, bars, None)
 
   normalized_quote = dict(quote)
-  normalized_quote["__quoteBarSource"] = payload.get("quoteBarSource")
-  normalized_quote["__quoteBarCount"] = payload.get("quoteBarCount")
+  normalized_quote["__quoteBarSource"] = "unified_market_data_daily"
+  normalized_quote["__quoteBarCount"] = len(bars)
   normalized_quote["__updatedAtUtc"] = datetime.now(timezone.utc).isoformat()
   normalized_quote["__quoteFetchTicker"] = fetch_symbol
 
   if not _quote_has_values(normalized_quote):
-    return None, "quote_empty_after_fetch"
+    return None, "quote_empty_after_official_fetch"
 
   return normalized_quote, None
 
@@ -527,7 +802,7 @@ def _fetch_quote_row(ticker: str, timeout_sec: int) -> tuple[str, dict[str, Any]
   if errors:
     return ticker, None, "; ".join(errors)[:1200]
 
-  return ticker, None, "quote_fetch_failed"
+  return ticker, None, "official_quote_fetch_failed"
 
 
 def _merge_preserved_profile_fields(
@@ -551,79 +826,11 @@ def _merge_preserved_profile_fields(
 
   if copied_fields:
     profile_source = _text(existing_row.get("__profileSource"))
-    merged["__profileSource"] = profile_source or "screener_table"
+    merged["__profileSource"] = profile_source or "runtime_seed"
     merged["__profileOverlayFieldCount"] = len(copied_fields)
     merged["__profileOverlayFields"] = ",".join(copied_fields)
 
   return merged, len(copied_fields)
-
-
-def _normalize_finviz_label(value: Any) -> str | None:
-  text = _text(value)
-  if _is_missing_value(text):
-    return None
-  return text
-
-
-def _apply_finviz_overlay(row: dict[str, Any], finviz_row: dict[str, Any] | None) -> tuple[dict[str, Any], int]:
-  if not isinstance(row, dict):
-    return {}, 0
-  if not isinstance(finviz_row, dict):
-    return dict(row), 0
-
-  merged = dict(row)
-  overlay_fields: list[str] = []
-
-  company_name = _normalize_finviz_label(finviz_row.get("companyName"))
-  sector = _normalize_finviz_label(finviz_row.get("sector"))
-  industry = _normalize_finviz_label(finviz_row.get("industry"))
-  country = _normalize_finviz_label(finviz_row.get("country"))
-  market_cap = _to_positive_number(finviz_row.get("marketCap"))
-
-  if _is_missing_value(merged.get("companyName")) and company_name is not None:
-    merged["companyName"] = company_name
-    overlay_fields.append("companyName")
-
-  if _is_missing_value(merged.get("sector")) and sector is not None:
-    merged["sector"] = sector
-    overlay_fields.append("sector")
-
-  if _is_missing_value(merged.get("industry")) and industry is not None:
-    merged["industry"] = industry
-    overlay_fields.append("industry")
-
-  if _is_missing_value(merged.get("country")) and country is not None:
-    merged["country"] = country
-    overlay_fields.append("country")
-
-  existing_market_cap = _to_positive_number(merged.get("marketCap"))
-  if existing_market_cap is None and market_cap is not None:
-    merged["marketCap"] = market_cap
-    overlay_fields.append("marketCap")
-
-  industry_upper = _text(industry).upper()
-  inferred_quote_type: str | None = None
-  inferred_asset_type: str | None = None
-  if "EXCHANGE TRADED FUND" in industry_upper or "ETF" in industry_upper:
-    inferred_quote_type = "ETF"
-    inferred_asset_type = "ETF"
-  elif market_cap is not None and sector is not None and industry is not None:
-    inferred_quote_type = "EQUITY"
-    inferred_asset_type = "EQUITY"
-
-  if _is_missing_value(merged.get("quoteType")) and inferred_quote_type is not None:
-    merged["quoteType"] = inferred_quote_type
-    overlay_fields.append("quoteType")
-  if _is_missing_value(merged.get("assetType")) and inferred_asset_type is not None:
-    merged["assetType"] = inferred_asset_type
-    overlay_fields.append("assetType")
-
-  if overlay_fields:
-    merged["__profileSource"] = "finviz_overview"
-    merged["__profileOverlayFieldCount"] = len(overlay_fields)
-    merged["__profileOverlayFields"] = ",".join(overlay_fields)
-
-  return merged, len(overlay_fields)
 
 
 def _write_output(path: Path, rows: dict[str, dict[str, Any]], symbols_total: int, workers: int) -> None:
@@ -659,12 +866,6 @@ def main() -> int:
   parser.add_argument("--save-every", type=int, default=100)
   parser.add_argument("--limit", type=int, default=0)
   parser.add_argument("--force-refresh", action="store_true")
-  parser.add_argument("--finviz-metadata-output", default=str(DEFAULT_FINVIZ_METADATA))
-  parser.add_argument("--finviz-max-pages", type=int, default=1500)
-  parser.add_argument("--finviz-refresh-timeout-sec", type=int, default=2400)
-  parser.add_argument("--finviz-sleep-ms", type=int, default=150)
-  parser.add_argument("--finviz-save-every", type=int, default=50)
-  parser.add_argument("--skip-finviz-refresh", action="store_true")
   parser.add_argument(
     "--refresh-missing-profile",
     action="store_true",
@@ -685,25 +886,6 @@ def main() -> int:
   save_every = max(1, int(args.save_every))
   limit = max(0, int(args.limit))
   min_non_meta_fields = max(1, int(args.min_non_meta_fields))
-  finviz_metadata_output = Path(args.finviz_metadata_output).resolve()
-  finviz_max_pages = max(1, int(args.finviz_max_pages))
-  finviz_refresh_timeout_sec = max(30, int(args.finviz_refresh_timeout_sec))
-  finviz_sleep_ms = max(0, int(args.finviz_sleep_ms))
-  finviz_save_every = max(1, int(args.finviz_save_every))
-
-  if not args.skip_finviz_refresh:
-    finviz_refresh_ok, finviz_refresh_message = _run_finviz_metadata_refresh(
-      output_path=finviz_metadata_output,
-      max_pages=finviz_max_pages,
-      timeout_sec=finviz_refresh_timeout_sec,
-      sleep_ms=finviz_sleep_ms,
-      save_every=finviz_save_every,
-    )
-    print(finviz_refresh_message)
-    if not finviz_refresh_ok:
-      print("warning=finviz_metadata_refresh_unavailable_using_cached_rows_if_present")
-  else:
-    print("finviz_metadata_refresh_skipped=true")
 
   rows = _load_snapshot_rows()
   symbols = _unique_symbols(rows)
@@ -714,24 +896,6 @@ def main() -> int:
   if args.force_refresh:
     symbol_set = set(symbols)
     existing = {ticker: row for ticker, row in existing.items() if ticker in symbol_set}
-
-  finviz_rows = _load_finviz_metadata(finviz_metadata_output)
-  if limit > 0:
-    symbol_set = set(symbols)
-    finviz_rows = {ticker: row for ticker, row in finviz_rows.items() if ticker in symbol_set}
-
-  finviz_rows_with_marketcap = sum(1 for row in finviz_rows.values() if _to_positive_number(row.get("marketCap")) is not None)
-  print(f"finviz_rows_total={len(finviz_rows)}")
-  print(f"finviz_rows_with_marketcap={finviz_rows_with_marketcap}")
-
-  finviz_existing_overlay_rows = 0
-  finviz_existing_overlay_fields = 0
-  for ticker in list(existing.keys()):
-    enriched_row, overlay_count = _apply_finviz_overlay(existing[ticker], finviz_rows.get(ticker))
-    if overlay_count > 0:
-      existing[ticker] = enriched_row
-      finviz_existing_overlay_rows += 1
-      finviz_existing_overlay_fields += overlay_count
 
   failures: dict[str, str] = {}
 
@@ -767,8 +931,6 @@ def main() -> int:
   print(f"stale_incomplete_rows={len(stale_incomplete)}")
   print(f"pending={len(pending)}")
   print(f"workers={workers}")
-  print(f"finviz_existing_overlay_rows={finviz_existing_overlay_rows}")
-  print(f"finviz_existing_overlay_fields={finviz_existing_overlay_fields}")
 
   if not pending:
     _write_output(output_path, existing, len(symbols), workers)
@@ -783,9 +945,6 @@ def main() -> int:
   preserved_profile_rows = 0
   incomplete_fetch_cached = 0
   incomplete_fetch_kept_existing = 0
-  finviz_fetch_overlay_rows = 0
-  finviz_fetch_overlay_fields = 0
-  finviz_seeded_rows = 0
   kill_run_id = _env_text("TFE_REFRESH_RUN_ID")
   kill_conn = _runtime_kill_connection()
   batch_size = max(1, save_every)
@@ -816,7 +975,7 @@ def main() -> int:
 
           try:
             result_ticker, quote_row, error = future.result()
-          except Exception as error:  # defensive
+          except Exception as error:
             result_ticker = ticker
             quote_row = None
             error = f"future_failure: {error}"
@@ -824,11 +983,6 @@ def main() -> int:
           if quote_row is not None:
             existing_before = existing.get(result_ticker)
             merged_quote_row, copied_count = _merge_preserved_profile_fields(existing_before, quote_row)
-            merged_quote_row, finviz_overlay_count = _apply_finviz_overlay(merged_quote_row, finviz_rows.get(result_ticker))
-            if finviz_overlay_count > 0:
-              finviz_fetch_overlay_rows += 1
-              finviz_fetch_overlay_fields += finviz_overlay_count
-
             merged_incomplete = _looks_like_incomplete_cached_quote(merged_quote_row, min_non_meta_fields)
             existing_complete = isinstance(existing_before, dict) and not _looks_like_incomplete_cached_quote(
               existing_before,
@@ -846,21 +1000,6 @@ def main() -> int:
                 incomplete_fetch_cached += 1
           else:
             failures[result_ticker] = str(error or "unknown_error")
-            existing_before = existing.get(result_ticker)
-            if not isinstance(existing_before, dict):
-              seeded_row, seeded_overlay_count = _apply_finviz_overlay(
-                {
-                  "__quoteFetchTicker": result_ticker,
-                  "__quoteFetchAliasUsed": False,
-                  "__quoteBarSource": None,
-                  "__quoteBarCount": 0,
-                  "__updatedAtUtc": datetime.now(timezone.utc).isoformat(),
-                },
-                finviz_rows.get(result_ticker),
-              )
-              if seeded_overlay_count > 0:
-                existing[result_ticker] = seeded_row
-                finviz_seeded_rows += 1
       finally:
         executor.shutdown(wait=graceful_batch_shutdown, cancel_futures=not graceful_batch_shutdown)
 
@@ -875,9 +1014,6 @@ def main() -> int:
         f"preserved_profile_rows={preserved_profile_rows} "
         f"incomplete_cached={incomplete_fetch_cached} "
         f"incomplete_kept_existing={incomplete_fetch_kept_existing} "
-        f"finviz_fetch_overlay_rows={finviz_fetch_overlay_rows} "
-        f"finviz_fetch_overlay_fields={finviz_fetch_overlay_fields} "
-        f"finviz_seeded_rows={finviz_seeded_rows} "
         f"elapsed_sec={elapsed:.1f}"
       )
   except AdminKillRequested as error:
@@ -907,9 +1043,6 @@ def main() -> int:
     f"preserved_profile_rows={preserved_profile_rows} "
     f"incomplete_cached={incomplete_fetch_cached} "
     f"incomplete_kept_existing={incomplete_fetch_kept_existing} "
-    f"finviz_fetch_overlay_rows={finviz_fetch_overlay_rows} "
-    f"finviz_fetch_overlay_fields={finviz_fetch_overlay_fields} "
-    f"finviz_seeded_rows={finviz_seeded_rows} "
     f"elapsed_sec={elapsed:.1f}"
   )
   print(f"output={output_path}")

@@ -14,10 +14,6 @@ import {
   RUNTIME_DECISION_PROVENANCE_TABLE,
 } from "@/lib/runtime-db";
 import {
-  loadScreenerFinvizOverviewCache,
-  type ScreenerFinvizOverviewRow,
-} from "@/lib/screener-finviz-overview-cache";
-import {
   loadScreenerQuoteCache,
   type ScreenerQuoteCacheRow,
 } from "@/lib/screener-quote-cache";
@@ -240,26 +236,10 @@ function hasMeaningfulQuoteValue(value: unknown): boolean {
 
 function mergeQuoteDisplayFields(
   primary: ScreenerQuoteCacheRow | undefined,
-  finvizOverview: ScreenerFinvizOverviewRow | undefined,
   supplemental: ScreenerQuoteCacheRow | undefined,
   profileOverride: ScreenerProfileOverrideRow | undefined,
 ): ScreenerQuoteCacheRow | null {
   const merged: ScreenerQuoteCacheRow = {};
-
-  if (finvizOverview) {
-    const finvizFields: Array<[string, unknown]> = [
-      ["companyName", finvizOverview.companyName],
-      ["sector", finvizOverview.sector],
-      ["industry", finvizOverview.industry],
-      ["country", finvizOverview.country],
-      ["marketCap", finvizOverview.marketCap],
-    ];
-
-    for (const [key, value] of finvizFields) {
-      if (!hasMeaningfulQuoteValue(value)) continue;
-      merged[key] = value;
-    }
-  }
 
   if (supplemental) {
     for (const [key, value] of Object.entries(supplemental)) {
@@ -297,13 +277,11 @@ function mergeQuoteDisplayFields(
 }
 
 function mergeSupplementalQuoteSources(result: RuntimeQuoteLoadResult): RuntimeQuoteLoadResult {
-  const finvizOverview = loadScreenerFinvizOverviewCache();
   const fileQuoteCache = loadScreenerQuoteCache();
   const profileOverrides = loadScreenerProfileOverrides();
   const mergedQuotes: Record<string, ScreenerQuoteCacheRow> = {};
   const tickers = new Set<string>([
     ...Object.keys(result.quotes),
-    ...Object.keys(finvizOverview.rows),
     ...Object.keys(fileQuoteCache.quotes),
     ...Object.keys(profileOverrides.rows),
   ]);
@@ -311,7 +289,6 @@ function mergeSupplementalQuoteSources(result: RuntimeQuoteLoadResult): RuntimeQ
   for (const ticker of tickers) {
     const merged = mergeQuoteDisplayFields(
       result.quotes[ticker],
-      finvizOverview.rows[ticker],
       fileQuoteCache.quotes[ticker],
       profileOverrides.rows[ticker],
     );
@@ -321,7 +298,6 @@ function mergeSupplementalQuoteSources(result: RuntimeQuoteLoadResult): RuntimeQ
 
   const sourcePathParts = [
     result.sourcePath,
-    finvizOverview.sourcePath ? `finviz_overview=${finvizOverview.sourcePath}` : null,
     fileQuoteCache.sourcePath ? `display_quote_cache=${fileQuoteCache.sourcePath}` : null,
     profileOverrides.sourcePath ? `profile_overrides=${profileOverrides.sourcePath}` : null,
   ].filter(Boolean);
@@ -332,7 +308,6 @@ function mergeSupplementalQuoteSources(result: RuntimeQuoteLoadResult): RuntimeQ
     sourcePath: sourcePathParts.length > 0 ? sourcePathParts.join(" | ") : null,
     failures: [
       ...result.failures,
-      ...finvizOverview.failures,
       ...fileQuoteCache.failures,
       ...profileOverrides.failures,
     ],

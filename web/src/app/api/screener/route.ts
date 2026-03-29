@@ -72,6 +72,7 @@ type ScreenerRow = {
   minBarsForAccumulate: number;
   stabilityScore: number | null;
   maxDrawdown: number | null;
+  externalResearchUrl: string;
 };
 
 type ScreenerMapCell = {
@@ -107,6 +108,7 @@ type ScreenerMapTicker = {
   perfYear?: number | null;
   price: number | null;
   volume: number;
+  externalResearchUrl: string;
 };
 
 type SortKey = string;
@@ -346,6 +348,11 @@ function normalizeTimeoutMs(value: unknown, fallbackMs: number): number {
   return whole;
 }
 
+function buildExternalResearchUrl(ticker: string): string {
+  const normalizedTicker = String(ticker ?? "").trim().toUpperCase();
+  return `https://finance.yahoo.com/quote/${encodeURIComponent(normalizedTicker)}`;
+}
+
 function toScreenerRow(
   row: SnapshotRow,
   quoteCacheQuotes: Record<string, ScreenerQuoteCacheRow>,
@@ -370,6 +377,7 @@ function toScreenerRow(
     minBarsForAccumulate: published.minBarsForAccumulate,
     stabilityScore: toNumberOrNull(row.stability_score),
     maxDrawdown: toNumberOrNull(row.max_dd),
+    externalResearchUrl: buildExternalResearchUrl(ticker),
   };
 }
 
@@ -1429,6 +1437,7 @@ function buildMapTickers(
       perfYear: isFiniteValue(perfYear) ? perfYear : null,
       price: isFiniteValue(price) ? price : null,
       volume,
+      externalResearchUrl: buildExternalResearchUrl(ticker),
     });
   }
 

@@ -15,6 +15,12 @@ FORCE_REFRESH_FLAG = "--force-refresh"
 FORCED_WORKER_COUNT = "4"
 ROOT = Path(__file__).resolve().parents[2]
 SEED_SCRIPT = ROOT / "web" / "scripts" / "seed_screener_quote_cache_from_runtime.mjs"
+LEGACY_DISABLED_SCRAPER_ARGS = {
+    "--skip-finviz-refresh",
+}
+LEGACY_DISABLED_SCRAPER_ARG_PREFIXES = (
+    "--finviz-",
+)
 
 
 def _resolve_paths(argv: list[str]) -> tuple[Path, Path]:
@@ -82,10 +88,36 @@ def _apply_force_refresh(argv: list[str], enabled: bool) -> list[str]:
     return [filtered[0], FORCE_REFRESH_FLAG, *filtered[1:]]
 
 
+def _strip_legacy_disabled_scraper_args(argv: list[str]) -> list[str]:
+    normalized = [argv[0]]
+    skip_next = False
+
+    for arg in argv[1:]:
+        if skip_next:
+            skip_next = False
+            continue
+
+        if arg in LEGACY_DISABLED_SCRAPER_ARGS:
+            continue
+
+        matched_prefix = next(
+            (prefix for prefix in LEGACY_DISABLED_SCRAPER_ARG_PREFIXES if arg.startswith(prefix)),
+            None,
+        )
+        if matched_prefix:
+            if "=" not in arg:
+                skip_next = True
+            continue
+
+        normalized.append(arg)
+
+    return normalized
+
+
 def _normalize_worker_args(argv: list[str]) -> list[str]:
     normalized = [argv[0]]
     skip_next = False
-    for index, arg in enumerate(argv[1:], start=1):
+    for arg in argv[1:]:
         if skip_next:
             skip_next = False
             continue
@@ -171,7 +203,8 @@ def main() -> int:
             force_refresh = True
             print("force_refresh_escalated_due_to_seed_failure=true")
 
-    normalized_argv = _apply_force_refresh(sys.argv, force_refresh)
+    normalized_argv = _strip_legacy_disabled_scraper_args(sys.argv)
+    normalized_argv = _apply_force_refresh(normalized_argv, force_refresh)
     normalized_argv = _normalize_worker_args(normalized_argv)
     sys.argv = normalized_argv
 

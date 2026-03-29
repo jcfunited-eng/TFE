@@ -45,10 +45,15 @@ type PositionRow = {
   decisionReasonCode: string;
   classification: "BUY" | "HOLD" | "SELL" | "UNAVAILABLE";
   publishedDecisionStatus: "ok" | "missing" | "invalid";
+  regime: string;
+  stabilityScore: number | null;
+  maxDrawdown: number | null;
+  changePct: number | null;
   S_UF: number;
   R_UF: number;
   barCount: number;
   minBarsForAccumulate: number;
+  externalResearchUrl: string;
 };
 
 type Summary = {
@@ -158,6 +163,11 @@ function toNumberOrNull(value: unknown): number | null {
 
 function normalizeTicker(value: unknown): string {
   return String(value ?? "").trim().toUpperCase();
+}
+
+function buildExternalResearchUrl(ticker: string): string {
+  const normalizedTicker = normalizeTicker(ticker);
+  return `https://finance.yahoo.com/quote/${encodeURIComponent(normalizedTicker)}`;
 }
 
 function normalizeTimeoutMs(value: unknown, fallbackMs: number): number {
@@ -523,6 +533,11 @@ function aggregatePositions(
     const unrealizedPnL = marketValue === null ? null : marketValue - costBasis;
     const unrealizedPnLPct = unrealizedPnL === null || costBasis <= 0 ? null : unrealizedPnL / costBasis;
 
+    const regime = String(row?.regime ?? "UNKNOWN");
+    const stabilityScore = row ? toNumberOrNull(row.stability_score) : null;
+    const maxDrawdown = row ? toNumberOrNull(row.max_dd) : null;
+    const changePct = quoteCacheQuotes[ticker] ? toNumberOrNull(quoteCacheQuotes[ticker].changePct) : null;
+
     positions.push({
       ticker,
       assetType: normalizeAssetType(row?.asset_type, ticker),
@@ -541,10 +556,15 @@ function aggregatePositions(
         ?? (publishedDecisionStatus === "invalid" ? "PERSISTED_PROVENANCE_INVALID" : "PERSISTED_PROVENANCE_MISSING"),
       classification: published ? classificationFromDecision(published.decision) : "UNAVAILABLE",
       publishedDecisionStatus,
+      regime,
+      stabilityScore,
+      maxDrawdown,
+      changePct,
       S_UF: row ? toNumber(row.S_UF) : 0,
       R_UF: row ? toNumber(row.R_UF) : 0,
       barCount: published?.barCount ?? (row ? Math.max(0, Math.floor(toNumber(row.bar_count))) : 0),
       minBarsForAccumulate: published?.minBarsForAccumulate ?? 0,
+      externalResearchUrl: buildExternalResearchUrl(ticker),
     });
   }
 

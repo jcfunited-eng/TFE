@@ -150,10 +150,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Ticker is required." }, { status: 400 });
   }
 
-  const ufMetric = await loadOrIngestWatchlistMetric(ticker);
+  let ufMetric: any = null;
   const scriptPath = path.resolve(process.cwd(), "scripts", "get_history_json.py");
 
   try {
+    ufMetric = await loadOrIngestWatchlistMetric(ticker);
     const result = await execFileAsync(
       "python3",
       [
