@@ -13,6 +13,7 @@ import {
 
 const DEFAULT_DB_PORT = 5432;
 const DEFAULT_MIN_BARS = 514;
+const DEFAULT_RUNTIME_SYNC_BATCH_SIZE = 500;
 const DEADLOCK_ERROR_CODE = "40P01";
 const DEADLOCK_RETRY_ATTEMPTS = 5;
 const DEADLOCK_RETRY_BASE_DELAY_MS = 500;
@@ -70,6 +71,15 @@ function readBooleanEnv(name, defaultValue = false) {
   if (["1", "true", "yes", "on"].includes(raw)) return true;
   if (["0", "false", "no", "off"].includes(raw)) return false;
   return defaultValue;
+}
+
+function readRuntimeSyncBatchSize() {
+  const raw = String(process.env.TFE_RUNTIME_SYNC_BATCH_SIZE ?? `${DEFAULT_RUNTIME_SYNC_BATCH_SIZE}`).trim();
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return DEFAULT_RUNTIME_SYNC_BATCH_SIZE;
+  const whole = Math.floor(n);
+  if (whole < 1) return DEFAULT_RUNTIME_SYNC_BATCH_SIZE;
+  return whole;
 }
 
 function sleep(ms) {
@@ -754,6 +764,810 @@ function buildProvenanceArtifact(stats, runId, extras = {}) {
   };
 }
 
+function chunkArray(values, chunkSize) {
+  if (!Array.isArray(values) || values.length === 0) return [];
+
+  const normalizedChunkSize = Math.max(1, Math.floor(Number(chunkSize) || DEFAULT_RUNTIME_SYNC_BATCH_SIZE));
+  const chunks = [];
+  for (let index = 0; index < values.length; index += normalizedChunkSize) {
+    chunks.push(values.slice(index, index + normalizedChunkSize));
+  }
+  return chunks;
+}
+
+function buildPreparedRuntimeRecords({
+  snapshotRows,
+  quoteRows,
+  runId,
+  generatedAtUtc,
+  completedAt,
+  policyRuntime,
+  provenanceMinBars,
+}) {
+  const records = [];
+  const provenanceStats = initializeProvenanceStats();
+  const barDate = generatedAtUtc.slice(0, 10);
+
+  for (const row of snapshotRows) {
+    const ticker = normalizeTicker(row.ticker);
+    if (!ticker) continue;
+
+    const snapshotRow = { ...row, ticker };
+    const quoteBase = quoteRows[ticker] && typeof quoteRows[ticker] === "object" ? quoteRows[ticker] : {};
+    const quote = buildRuntimeQuote(quoteBase, row);
+    const persistedProvenance = buildPersistedProvenanceRecord({
+      row: snapshotRow,
+      ticker,
+      runId,
+      generatedAtUtc,
+      snapshotTimestampUtc: generatedAtUtc,
+      runtimeSyncCompletedUtc: completedAt,
+      policyRuntime,
+      minBars: provenanceMinBars,
+      writerBuildHash: process.env.TFE_PROVENANCE_WRITER_BUILD_HASH ?? null,
+    });
+    updateProvenanceStats(provenanceStats, persistedProvenance);
+
+    const closePrice = firstPositiveNumber(quote.price, row.price);
+    const openPrice = firstPositiveNumber(quote.open, quote.prevClose, closePrice);
+    const highPrice = firstPositiveNumber(quote.dayHigh, quote.high, closePrice);
+    const lowPrice = firstPositiveNumber(quote.dayLow, quote.low, closePrice);
+
+    records.push({
+      ticker,
+      runId,
+      generatedAtUtc,
+      barDate,
+      snapshotRowJson: JSON.stringify(snapshotRow),
+      decisionLabel: inferDecisionLabel(row),
+      barCount: toIntOrNull(row.bar_count),
+      minBarsForAccumulate: DEFAULT_MIN_BARS,
+      regime: String(row.regime ?? "UNKNOWN"),
+      stabilityScore: toFiniteOrNull(row.stability_score),
+      maxDd: toFiniteOrNull(row.max_dd),
+      assetType: String(row.asset_type ?? quote.assetType ?? ""),
+      quoteType: String(quote.quoteType ?? ""),
+      exchange: String(quote.exchange ?? ""),
+      companyName: String(quote.companyName ?? ""),
+      sector: String(quote.sector ?? ""),
+      industry: String(quote.industry ?? ""),
+      country: String(quote.country ?? ""),
+      marketCap: toFiniteOrNull(quote.marketCap),
+      sharesOutstanding: toFiniteOrNull(quote.sharesOutstanding),
+      floatShares: firstPositiveNumber(quote.sharesFloat, quote.floatShares),
+      profileJson: JSON.stringify(quote),
+      atr14: firstPositiveNumber(quote.atr14, quote.atr),
+      rsi14: toFiniteOrNull(quote.rsi14),
+      sma20: toFiniteOrNull(quote.sma20),
+      sma50: toFiniteOrNull(quote.sma50),
+      sma200: toFiniteOrNull(quote.sma200),
+      changePct: toFiniteOrNull(quote.changePct),
+      changeAmount: toFiniteOrNull(quote.change),
+      gapPct: toFiniteOrNull(quote.gap),
+      relVolume: toFiniteOrNull(quote.relVolume),
+      avgVolume: firstPositiveNumber(quote.avgVolume, quote.averageVolume),
+      volume: toFiniteOrNull(quote.volume),
+      perfWeek: toFiniteOrNull(quote.perfWeek),
+      perfMonth: toFiniteOrNull(quote.perfMonth),
+      perfQuarter: toFiniteOrNull(quote.perfQuarter),
+      perfHalf: toFiniteOrNull(quote.perfHalf),
+      perfYtd: toFiniteOrNull(quote.perfYtd),
+      perfYear: toFiniteOrNull(quote.perfYear),
+      metricsJson: JSON.stringify(quote),
+      barOpen: openPrice,
+      barHigh: highPrice,
+      barLow: lowPrice,
+      barClose: closePrice,
+      barVolume: toFiniteOrNull(quote.volume),
+      barSource: "bridge_snapshot_quote_cache",
+      provenance: {
+        generatedAtUtc,
+        snapshotTimestampUtc: persistedProvenance.snapshot_timestamp_utc,
+        runtimeSyncCompletedUtc: persistedProvenance.runtime_sync_completed_utc,
+        decisionTimestampUtc: persistedProvenance.decision_timestamp_utc,
+        snapshotRowDigestSha256: persistedProvenance.snapshot_row_digest_sha256,
+        policyArtifactId: persistedProvenance.policy_artifact_id,
+        policyArtifactHashSha256: persistedProvenance.policy_artifact_hash_sha256,
+        policySourceMode: persistedProvenance.policy_source_mode,
+        candidateKeyChainJson: JSON.stringify(persistedProvenance.candidate_key_chain_json),
+        matchedKey: persistedProvenance.matched_key,
+        matchLevel: persistedProvenance.match_level,
+        fallbackLadderLevel: persistedProvenance.fallback_ladder_level,
+        matchedExactBool: persistedProvenance.matched_exact_bool,
+        fallbackUsed: persistedProvenance.fallback_used,
+        fallbackReasonCode: persistedProvenance.fallback_reason_code,
+        decision: persistedProvenance.decision,
+        decisionReasonCode: persistedProvenance.decision_reason_code,
+        anomalyFlagsUsedJson: JSON.stringify(persistedProvenance.anomaly_flags_used_json),
+        structuralRecencyComponentsUsedJson: JSON.stringify(
+          persistedProvenance.structural_recency_components_used_json,
+        ),
+        epochComponentsUsedJson: JSON.stringify(persistedProvenance.epoch_components_used_json),
+        coverageClass: persistedProvenance.coverage_class,
+        provenanceSchemaVersion: persistedProvenance.provenance_schema_version,
+        writerComponent: persistedProvenance.writer_component,
+        writerBuildHash: persistedProvenance.writer_build_hash,
+        cpProfile: persistedProvenance.cp_profile,
+        provenanceGeneratedUtc: persistedProvenance.provenance_generated_utc,
+        provenanceValid: persistedProvenance.provenance_valid,
+        provenanceJson: JSON.stringify(persistedProvenance.provenance_json),
+      },
+    });
+  }
+
+  return {
+    records,
+    provenanceStats,
+  };
+}
+
+async function upsertRuntimeBatch(client, records) {
+  if (!Array.isArray(records) || records.length === 0) {
+    return {
+      decisionsInserted: 0,
+      decisionsHistoryInserted: 0,
+      provenanceInserted: 0,
+      symbolsInserted: 0,
+      symbolsHistoryInserted: 0,
+      metricsInserted: 0,
+      barsInserted: 0,
+    };
+  }
+
+  const tickers = records.map((record) => record.ticker);
+  const runIds = records.map((record) => record.runId);
+  const generatedAtUtcValues = records.map((record) => record.generatedAtUtc);
+  const snapshotRowJsonTexts = records.map((record) => record.snapshotRowJson);
+  const decisionLabels = records.map((record) => record.decisionLabel);
+  const barCounts = records.map((record) => record.barCount);
+  const minBarsValues = records.map((record) => record.minBarsForAccumulate);
+  const regimes = records.map((record) => record.regime);
+  const stabilityScores = records.map((record) => record.stabilityScore);
+  const maxDds = records.map((record) => record.maxDd);
+
+  await client.query(
+    `
+      INSERT INTO runtime_decisions_latest (
+        ticker, run_id, generated_at_utc, snapshot_row_json,
+        decision_label, reason_code, reason_text,
+        bar_count, min_bars_for_accumulate, regime, stability_score, max_dd,
+        policy_source_path, policy_generated_at_utc, policy_cell_key_requested, policy_cell_key_matched,
+        policy_scoring_mode, fallback_used, fallback_reason, anomaly_flagged, structural_complete, structural_missing_fields_json,
+        updated_at
+      )
+      SELECT
+        batch.ticker,
+        batch.run_id,
+        batch.generated_at_utc,
+        batch.snapshot_row_json_text::jsonb,
+        batch.decision_label,
+        NULL,
+        NULL,
+        batch.bar_count,
+        batch.min_bars_for_accumulate,
+        batch.regime,
+        batch.stability_score,
+        batch.max_dd,
+        NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL, NULL, '[]'::jsonb,
+        NOW()
+      FROM UNNEST(
+        $1::text[],
+        $2::text[],
+        $3::timestamptz[],
+        $4::text[],
+        $5::text[],
+        $6::integer[],
+        $7::integer[],
+        $8::text[],
+        $9::double precision[],
+        $10::double precision[]
+      ) AS batch(
+        ticker, run_id, generated_at_utc, snapshot_row_json_text,
+        decision_label, bar_count, min_bars_for_accumulate, regime, stability_score, max_dd
+      )
+      ON CONFLICT (ticker)
+      DO UPDATE SET
+        run_id = EXCLUDED.run_id,
+        generated_at_utc = EXCLUDED.generated_at_utc,
+        snapshot_row_json = EXCLUDED.snapshot_row_json,
+        decision_label = EXCLUDED.decision_label,
+        bar_count = EXCLUDED.bar_count,
+        min_bars_for_accumulate = EXCLUDED.min_bars_for_accumulate,
+        regime = EXCLUDED.regime,
+        stability_score = EXCLUDED.stability_score,
+        max_dd = EXCLUDED.max_dd,
+        updated_at = NOW()
+    `,
+    [
+      tickers,
+      runIds,
+      generatedAtUtcValues,
+      snapshotRowJsonTexts,
+      decisionLabels,
+      barCounts,
+      minBarsValues,
+      regimes,
+      stabilityScores,
+      maxDds,
+    ],
+  );
+
+  await client.query(
+    `
+      INSERT INTO runtime_decisions_history (
+        run_id, ticker, generated_at_utc, snapshot_row_json, updated_at
+      )
+      SELECT
+        batch.run_id,
+        batch.ticker,
+        batch.generated_at_utc,
+        batch.snapshot_row_json_text::jsonb,
+        NOW()
+      FROM UNNEST(
+        $1::text[],
+        $2::text[],
+        $3::timestamptz[],
+        $4::text[]
+      ) AS batch(run_id, ticker, generated_at_utc, snapshot_row_json_text)
+      ON CONFLICT (run_id, ticker)
+      DO UPDATE SET
+        generated_at_utc = EXCLUDED.generated_at_utc,
+        snapshot_row_json = EXCLUDED.snapshot_row_json,
+        updated_at = NOW()
+    `,
+    [
+      runIds,
+      tickers,
+      generatedAtUtcValues,
+      snapshotRowJsonTexts,
+    ],
+  );
+
+  const provenanceGeneratedAtUtcValues = records.map((record) => record.provenance.generatedAtUtc);
+  const provenanceSnapshotTimestampUtcValues = records.map((record) => record.provenance.snapshotTimestampUtc);
+  const provenanceRuntimeSyncCompletedUtcValues = records.map((record) => record.provenance.runtimeSyncCompletedUtc);
+  const provenanceDecisionTimestampUtcValues = records.map((record) => record.provenance.decisionTimestampUtc);
+  const provenanceSnapshotRowDigestValues = records.map((record) => record.provenance.snapshotRowDigestSha256);
+  const provenancePolicyArtifactIdValues = records.map((record) => record.provenance.policyArtifactId);
+  const provenancePolicyArtifactHashValues = records.map((record) => record.provenance.policyArtifactHashSha256);
+  const provenancePolicySourceModeValues = records.map((record) => record.provenance.policySourceMode);
+  const provenanceCandidateKeyChainValues = records.map((record) => record.provenance.candidateKeyChainJson);
+  const provenanceMatchedKeyValues = records.map((record) => record.provenance.matchedKey);
+  const provenanceMatchLevelValues = records.map((record) => record.provenance.matchLevel);
+  const provenanceFallbackLadderValues = records.map((record) => record.provenance.fallbackLadderLevel);
+  const provenanceMatchedExactValues = records.map((record) => record.provenance.matchedExactBool);
+  const provenanceFallbackUsedValues = records.map((record) => record.provenance.fallbackUsed);
+  const provenanceFallbackReasonValues = records.map((record) => record.provenance.fallbackReasonCode);
+  const provenanceDecisionValues = records.map((record) => record.provenance.decision);
+  const provenanceDecisionReasonValues = records.map((record) => record.provenance.decisionReasonCode);
+  const provenanceAnomalyFlagsValues = records.map((record) => record.provenance.anomalyFlagsUsedJson);
+  const provenanceStructuralRecencyValues = records.map(
+    (record) => record.provenance.structuralRecencyComponentsUsedJson,
+  );
+  const provenanceEpochComponentsValues = records.map((record) => record.provenance.epochComponentsUsedJson);
+  const provenanceCoverageValues = records.map((record) => record.provenance.coverageClass);
+  const provenanceSchemaVersionValues = records.map((record) => record.provenance.provenanceSchemaVersion);
+  const provenanceWriterComponentValues = records.map((record) => record.provenance.writerComponent);
+  const provenanceWriterBuildHashValues = records.map((record) => record.provenance.writerBuildHash);
+  const provenanceCpProfileValues = records.map((record) => record.provenance.cpProfile);
+  const provenanceGeneratedUtcValues = records.map((record) => record.provenance.provenanceGeneratedUtc);
+  const provenanceValidValues = records.map((record) => record.provenance.provenanceValid);
+  const provenanceJsonValues = records.map((record) => record.provenance.provenanceJson);
+
+  await client.query(
+    `
+      INSERT INTO runtime_decision_provenance_latest (
+        run_id, ticker, generated_at_utc, snapshot_timestamp_utc, runtime_sync_completed_utc, decision_timestamp_utc, snapshot_row_digest_sha256,
+        policy_artifact_id, policy_artifact_hash_sha256, policy_source_mode,
+        candidate_key_chain_json, matched_key, match_level, fallback_ladder_level, matched_exact_bool,
+        fallback_used, fallback_reason_code, decision, decision_reason_code,
+        anomaly_flags_used_json, structural_recency_components_used_json, epoch_components_used_json,
+        coverage_class,
+        provenance_schema_version, writer_component, writer_build_hash, cp_profile, provenance_generated_utc,
+        provenance_valid, provenance_json, updated_at
+      )
+      SELECT
+        batch.run_id,
+        batch.ticker,
+        batch.generated_at_utc,
+        batch.snapshot_timestamp_utc,
+        batch.runtime_sync_completed_utc,
+        batch.decision_timestamp_utc,
+        batch.snapshot_row_digest_sha256,
+        batch.policy_artifact_id,
+        batch.policy_artifact_hash_sha256,
+        batch.policy_source_mode,
+        batch.candidate_key_chain_json_text::jsonb,
+        batch.matched_key,
+        batch.match_level,
+        batch.fallback_ladder_level,
+        batch.matched_exact_bool,
+        batch.fallback_used,
+        batch.fallback_reason_code,
+        batch.decision,
+        batch.decision_reason_code,
+        batch.anomaly_flags_used_json_text::jsonb,
+        batch.structural_recency_components_used_json_text::jsonb,
+        batch.epoch_components_used_json_text::jsonb,
+        batch.coverage_class,
+        batch.provenance_schema_version,
+        batch.writer_component,
+        batch.writer_build_hash,
+        batch.cp_profile,
+        batch.provenance_generated_utc,
+        batch.provenance_valid,
+        batch.provenance_json_text::jsonb,
+        NOW()
+      FROM UNNEST(
+        $1::text[],
+        $2::text[],
+        $3::timestamptz[],
+        $4::timestamptz[],
+        $5::timestamptz[],
+        $6::timestamptz[],
+        $7::text[],
+        $8::text[],
+        $9::text[],
+        $10::text[],
+        $11::text[],
+        $12::text[],
+        $13::text[],
+        $14::text[],
+        $15::boolean[],
+        $16::boolean[],
+        $17::text[],
+        $18::text[],
+        $19::text[],
+        $20::text[],
+        $21::text[],
+        $22::text[],
+        $23::text[],
+        $24::text[],
+        $25::text[],
+        $26::text[],
+        $27::text[],
+        $28::timestamptz[],
+        $29::boolean[],
+        $30::text[]
+      ) AS batch(
+        run_id, ticker, generated_at_utc, snapshot_timestamp_utc, runtime_sync_completed_utc, decision_timestamp_utc, snapshot_row_digest_sha256,
+        policy_artifact_id, policy_artifact_hash_sha256, policy_source_mode,
+        candidate_key_chain_json_text, matched_key, match_level, fallback_ladder_level, matched_exact_bool,
+        fallback_used, fallback_reason_code, decision, decision_reason_code,
+        anomaly_flags_used_json_text, structural_recency_components_used_json_text, epoch_components_used_json_text,
+        coverage_class,
+        provenance_schema_version, writer_component, writer_build_hash, cp_profile, provenance_generated_utc,
+        provenance_valid, provenance_json_text
+      )
+      ON CONFLICT (run_id, ticker)
+      DO UPDATE SET
+        generated_at_utc = EXCLUDED.generated_at_utc,
+        snapshot_timestamp_utc = EXCLUDED.snapshot_timestamp_utc,
+        runtime_sync_completed_utc = EXCLUDED.runtime_sync_completed_utc,
+        decision_timestamp_utc = EXCLUDED.decision_timestamp_utc,
+        snapshot_row_digest_sha256 = EXCLUDED.snapshot_row_digest_sha256,
+        policy_artifact_id = EXCLUDED.policy_artifact_id,
+        policy_artifact_hash_sha256 = EXCLUDED.policy_artifact_hash_sha256,
+        policy_source_mode = EXCLUDED.policy_source_mode,
+        candidate_key_chain_json = EXCLUDED.candidate_key_chain_json,
+        matched_key = EXCLUDED.matched_key,
+        match_level = EXCLUDED.match_level,
+        fallback_ladder_level = EXCLUDED.fallback_ladder_level,
+        matched_exact_bool = EXCLUDED.matched_exact_bool,
+        fallback_used = EXCLUDED.fallback_used,
+        fallback_reason_code = EXCLUDED.fallback_reason_code,
+        decision = EXCLUDED.decision,
+        decision_reason_code = EXCLUDED.decision_reason_code,
+        anomaly_flags_used_json = EXCLUDED.anomaly_flags_used_json,
+        structural_recency_components_used_json = EXCLUDED.structural_recency_components_used_json,
+        epoch_components_used_json = EXCLUDED.epoch_components_used_json,
+        coverage_class = EXCLUDED.coverage_class,
+        provenance_schema_version = EXCLUDED.provenance_schema_version,
+        writer_component = EXCLUDED.writer_component,
+        writer_build_hash = EXCLUDED.writer_build_hash,
+        cp_profile = EXCLUDED.cp_profile,
+        provenance_generated_utc = EXCLUDED.provenance_generated_utc,
+        provenance_valid = EXCLUDED.provenance_valid,
+        provenance_json = EXCLUDED.provenance_json,
+        updated_at = NOW()
+    `,
+    [
+      runIds,
+      tickers,
+      provenanceGeneratedAtUtcValues,
+      provenanceSnapshotTimestampUtcValues,
+      provenanceRuntimeSyncCompletedUtcValues,
+      provenanceDecisionTimestampUtcValues,
+      provenanceSnapshotRowDigestValues,
+      provenancePolicyArtifactIdValues,
+      provenancePolicyArtifactHashValues,
+      provenancePolicySourceModeValues,
+      provenanceCandidateKeyChainValues,
+      provenanceMatchedKeyValues,
+      provenanceMatchLevelValues,
+      provenanceFallbackLadderValues,
+      provenanceMatchedExactValues,
+      provenanceFallbackUsedValues,
+      provenanceFallbackReasonValues,
+      provenanceDecisionValues,
+      provenanceDecisionReasonValues,
+      provenanceAnomalyFlagsValues,
+      provenanceStructuralRecencyValues,
+      provenanceEpochComponentsValues,
+      provenanceCoverageValues,
+      provenanceSchemaVersionValues,
+      provenanceWriterComponentValues,
+      provenanceWriterBuildHashValues,
+      provenanceCpProfileValues,
+      provenanceGeneratedUtcValues,
+      provenanceValidValues,
+      provenanceJsonValues,
+    ],
+  );
+
+  const assetTypes = records.map((record) => record.assetType);
+  const quoteTypes = records.map((record) => record.quoteType);
+  const exchanges = records.map((record) => record.exchange);
+  const companyNames = records.map((record) => record.companyName);
+  const sectors = records.map((record) => record.sector);
+  const industries = records.map((record) => record.industry);
+  const countries = records.map((record) => record.country);
+  const marketCaps = records.map((record) => record.marketCap);
+  const sharesOutstandingValues = records.map((record) => record.sharesOutstanding);
+  const floatSharesValues = records.map((record) => record.floatShares);
+  const profileJsonTexts = records.map((record) => record.profileJson);
+
+  await client.query(
+    `
+      INSERT INTO runtime_symbols (
+        ticker, run_id, generated_at_utc, asset_type, quote_type, exchange, company_name,
+        sector, industry, country, market_cap, shares_outstanding, float_shares, profile_json, updated_at
+      )
+      SELECT
+        batch.ticker,
+        batch.run_id,
+        batch.generated_at_utc,
+        batch.asset_type,
+        batch.quote_type,
+        batch.exchange,
+        batch.company_name,
+        batch.sector,
+        batch.industry,
+        batch.country,
+        batch.market_cap,
+        batch.shares_outstanding,
+        batch.float_shares,
+        batch.profile_json_text::jsonb,
+        NOW()
+      FROM UNNEST(
+        $1::text[],
+        $2::text[],
+        $3::timestamptz[],
+        $4::text[],
+        $5::text[],
+        $6::text[],
+        $7::text[],
+        $8::text[],
+        $9::text[],
+        $10::text[],
+        $11::double precision[],
+        $12::double precision[],
+        $13::double precision[],
+        $14::text[]
+      ) AS batch(
+        ticker, run_id, generated_at_utc, asset_type, quote_type, exchange, company_name,
+        sector, industry, country, market_cap, shares_outstanding, float_shares, profile_json_text
+      )
+      ON CONFLICT (ticker)
+      DO UPDATE SET
+        run_id = EXCLUDED.run_id,
+        generated_at_utc = EXCLUDED.generated_at_utc,
+        asset_type = EXCLUDED.asset_type,
+        quote_type = EXCLUDED.quote_type,
+        exchange = EXCLUDED.exchange,
+        company_name = EXCLUDED.company_name,
+        sector = EXCLUDED.sector,
+        industry = EXCLUDED.industry,
+        country = EXCLUDED.country,
+        market_cap = EXCLUDED.market_cap,
+        shares_outstanding = EXCLUDED.shares_outstanding,
+        float_shares = EXCLUDED.float_shares,
+        profile_json = EXCLUDED.profile_json,
+        updated_at = NOW()
+    `,
+    [
+      tickers,
+      runIds,
+      generatedAtUtcValues,
+      assetTypes,
+      quoteTypes,
+      exchanges,
+      companyNames,
+      sectors,
+      industries,
+      countries,
+      marketCaps,
+      sharesOutstandingValues,
+      floatSharesValues,
+      profileJsonTexts,
+    ],
+  );
+
+  await client.query(
+    `
+      INSERT INTO runtime_symbols_history (
+        run_id, ticker, generated_at_utc, asset_type, quote_type, exchange, company_name,
+        sector, industry, country, market_cap, shares_outstanding, float_shares, profile_json, updated_at
+      )
+      SELECT
+        batch.run_id,
+        batch.ticker,
+        batch.generated_at_utc,
+        batch.asset_type,
+        batch.quote_type,
+        batch.exchange,
+        batch.company_name,
+        batch.sector,
+        batch.industry,
+        batch.country,
+        batch.market_cap,
+        batch.shares_outstanding,
+        batch.float_shares,
+        batch.profile_json_text::jsonb,
+        NOW()
+      FROM UNNEST(
+        $1::text[],
+        $2::text[],
+        $3::timestamptz[],
+        $4::text[],
+        $5::text[],
+        $6::text[],
+        $7::text[],
+        $8::text[],
+        $9::text[],
+        $10::text[],
+        $11::double precision[],
+        $12::double precision[],
+        $13::double precision[],
+        $14::text[]
+      ) AS batch(
+        run_id, ticker, generated_at_utc, asset_type, quote_type, exchange, company_name,
+        sector, industry, country, market_cap, shares_outstanding, float_shares, profile_json_text
+      )
+      ON CONFLICT (run_id, ticker)
+      DO UPDATE SET
+        generated_at_utc = EXCLUDED.generated_at_utc,
+        asset_type = EXCLUDED.asset_type,
+        quote_type = EXCLUDED.quote_type,
+        exchange = EXCLUDED.exchange,
+        company_name = EXCLUDED.company_name,
+        sector = EXCLUDED.sector,
+        industry = EXCLUDED.industry,
+        country = EXCLUDED.country,
+        market_cap = EXCLUDED.market_cap,
+        shares_outstanding = EXCLUDED.shares_outstanding,
+        float_shares = EXCLUDED.float_shares,
+        profile_json = EXCLUDED.profile_json,
+        updated_at = NOW()
+    `,
+    [
+      runIds,
+      tickers,
+      generatedAtUtcValues,
+      assetTypes,
+      quoteTypes,
+      exchanges,
+      companyNames,
+      sectors,
+      industries,
+      countries,
+      marketCaps,
+      sharesOutstandingValues,
+      floatSharesValues,
+      profileJsonTexts,
+    ],
+  );
+
+  const atr14Values = records.map((record) => record.atr14);
+  const rsi14Values = records.map((record) => record.rsi14);
+  const sma20Values = records.map((record) => record.sma20);
+  const sma50Values = records.map((record) => record.sma50);
+  const sma200Values = records.map((record) => record.sma200);
+  const changePctValues = records.map((record) => record.changePct);
+  const changeAmountValues = records.map((record) => record.changeAmount);
+  const gapPctValues = records.map((record) => record.gapPct);
+  const relVolumeValues = records.map((record) => record.relVolume);
+  const avgVolumeValues = records.map((record) => record.avgVolume);
+  const volumeValues = records.map((record) => record.volume);
+  const perfWeekValues = records.map((record) => record.perfWeek);
+  const perfMonthValues = records.map((record) => record.perfMonth);
+  const perfQuarterValues = records.map((record) => record.perfQuarter);
+  const perfHalfValues = records.map((record) => record.perfHalf);
+  const perfYtdValues = records.map((record) => record.perfYtd);
+  const perfYearValues = records.map((record) => record.perfYear);
+  const metricsJsonTexts = records.map((record) => record.metricsJson);
+
+  await client.query(
+    `
+      INSERT INTO runtime_metrics_latest (
+        ticker, run_id, generated_at_utc, atr14, rsi14, sma20, sma50, sma200,
+        change_pct, change_amount, gap_pct, rel_volume, avg_volume, volume,
+        perf_week, perf_month, perf_quarter, perf_half, perf_ytd, perf_year, metrics_json, updated_at
+      )
+      SELECT
+        batch.ticker,
+        batch.run_id,
+        batch.generated_at_utc,
+        batch.atr14,
+        batch.rsi14,
+        batch.sma20,
+        batch.sma50,
+        batch.sma200,
+        batch.change_pct,
+        batch.change_amount,
+        batch.gap_pct,
+        batch.rel_volume,
+        batch.avg_volume,
+        batch.volume,
+        batch.perf_week,
+        batch.perf_month,
+        batch.perf_quarter,
+        batch.perf_half,
+        batch.perf_ytd,
+        batch.perf_year,
+        batch.metrics_json_text::jsonb,
+        NOW()
+      FROM UNNEST(
+        $1::text[],
+        $2::text[],
+        $3::timestamptz[],
+        $4::double precision[],
+        $5::double precision[],
+        $6::double precision[],
+        $7::double precision[],
+        $8::double precision[],
+        $9::double precision[],
+        $10::double precision[],
+        $11::double precision[],
+        $12::double precision[],
+        $13::double precision[],
+        $14::double precision[],
+        $15::double precision[],
+        $16::double precision[],
+        $17::double precision[],
+        $18::double precision[],
+        $19::double precision[],
+        $20::double precision[],
+        $21::text[]
+      ) AS batch(
+        ticker, run_id, generated_at_utc, atr14, rsi14, sma20, sma50, sma200,
+        change_pct, change_amount, gap_pct, rel_volume, avg_volume, volume,
+        perf_week, perf_month, perf_quarter, perf_half, perf_ytd, perf_year, metrics_json_text
+      )
+      ON CONFLICT (ticker)
+      DO UPDATE SET
+        run_id = EXCLUDED.run_id,
+        generated_at_utc = EXCLUDED.generated_at_utc,
+        atr14 = EXCLUDED.atr14,
+        rsi14 = EXCLUDED.rsi14,
+        sma20 = EXCLUDED.sma20,
+        sma50 = EXCLUDED.sma50,
+        sma200 = EXCLUDED.sma200,
+        change_pct = EXCLUDED.change_pct,
+        change_amount = EXCLUDED.change_amount,
+        gap_pct = EXCLUDED.gap_pct,
+        rel_volume = EXCLUDED.rel_volume,
+        avg_volume = EXCLUDED.avg_volume,
+        volume = EXCLUDED.volume,
+        perf_week = EXCLUDED.perf_week,
+        perf_month = EXCLUDED.perf_month,
+        perf_quarter = EXCLUDED.perf_quarter,
+        perf_half = EXCLUDED.perf_half,
+        perf_ytd = EXCLUDED.perf_ytd,
+        perf_year = EXCLUDED.perf_year,
+        metrics_json = EXCLUDED.metrics_json,
+        updated_at = NOW()
+    `,
+    [
+      tickers,
+      runIds,
+      generatedAtUtcValues,
+      atr14Values,
+      rsi14Values,
+      sma20Values,
+      sma50Values,
+      sma200Values,
+      changePctValues,
+      changeAmountValues,
+      gapPctValues,
+      relVolumeValues,
+      avgVolumeValues,
+      volumeValues,
+      perfWeekValues,
+      perfMonthValues,
+      perfQuarterValues,
+      perfHalfValues,
+      perfYtdValues,
+      perfYearValues,
+      metricsJsonTexts,
+    ],
+  );
+
+  const barDates = records.map((record) => record.barDate);
+  const barOpenValues = records.map((record) => record.barOpen);
+  const barHighValues = records.map((record) => record.barHigh);
+  const barLowValues = records.map((record) => record.barLow);
+  const barCloseValues = records.map((record) => record.barClose);
+  const barVolumeValues = records.map((record) => record.barVolume);
+  const barSourceValues = records.map((record) => record.barSource);
+
+  await client.query(
+    `
+      INSERT INTO runtime_bars_daily (
+        ticker, bar_date, run_id, generated_at_utc, open, high, low, close, volume, source
+      )
+      SELECT
+        batch.ticker,
+        batch.bar_date,
+        batch.run_id,
+        batch.generated_at_utc,
+        batch.open,
+        batch.high,
+        batch.low,
+        batch.close,
+        batch.volume,
+        batch.source
+      FROM UNNEST(
+        $1::text[],
+        $2::date[],
+        $3::text[],
+        $4::timestamptz[],
+        $5::double precision[],
+        $6::double precision[],
+        $7::double precision[],
+        $8::double precision[],
+        $9::double precision[],
+        $10::text[]
+      ) AS batch(
+        ticker, bar_date, run_id, generated_at_utc, open, high, low, close, volume, source
+      )
+      ON CONFLICT (ticker, bar_date)
+      DO UPDATE SET
+        run_id = EXCLUDED.run_id,
+        generated_at_utc = EXCLUDED.generated_at_utc,
+        open = EXCLUDED.open,
+        high = EXCLUDED.high,
+        low = EXCLUDED.low,
+        close = EXCLUDED.close,
+        volume = EXCLUDED.volume,
+        source = EXCLUDED.source
+    `,
+    [
+      tickers,
+      barDates,
+      runIds,
+      generatedAtUtcValues,
+      barOpenValues,
+      barHighValues,
+      barLowValues,
+      barCloseValues,
+      barVolumeValues,
+      barSourceValues,
+    ],
+  );
+
+  return {
+    decisionsInserted: records.length,
+    decisionsHistoryInserted: records.length,
+    provenanceInserted: records.length,
+    symbolsInserted: records.length,
+    symbolsHistoryInserted: records.length,
+    metricsInserted: records.length,
+    barsInserted: records.length,
+  };
+}
+
 async function main() {
   const root = resolveWorkspaceRoot();
   const nowIso = new Date().toISOString();
@@ -801,6 +1615,7 @@ async function main() {
 
   const dedupe = dedupeSnapshotRows(snapshotRowsInput, quoteRows);
   const snapshotRows = dedupe.rows;
+  const runtimeSyncBatchSize = readRuntimeSyncBatchSize();
 
   if (snapshotRows.length === 0) {
     throw new Error("Snapshot row set is empty after dedupe; refusing runtime sync.");
@@ -808,6 +1623,16 @@ async function main() {
 
   const policyRuntime = loadPolicyRuntimeArtifact(root);
   const provenanceMinBars = minBarsForAccumulate();
+  const preparedRecords = buildPreparedRuntimeRecords({
+    snapshotRows,
+    quoteRows,
+    runId,
+    generatedAtUtc,
+    completedAt,
+    policyRuntime,
+    provenanceMinBars,
+  });
+  const runtimeSyncBatches = chunkArray(preparedRecords.records, runtimeSyncBatchSize);
 
   const pool = resolvePool();
   try {
@@ -827,375 +1652,15 @@ async function main() {
       let symbolsHistoryInserted = 0;
       let metricsInserted = 0;
       let barsInserted = 0;
-      const provenanceStats = initializeProvenanceStats();
-
-      for (const row of snapshotRows) {
-        const ticker = normalizeTicker(row.ticker);
-        if (!ticker) continue;
-
-        const snapshotRow = { ...row, ticker };
-        const quoteBase = quoteRows[ticker] && typeof quoteRows[ticker] === "object" ? quoteRows[ticker] : {};
-        const quote = buildRuntimeQuote(quoteBase, row);
-        const persistedProvenance = buildPersistedProvenanceRecord({
-          row: snapshotRow,
-          ticker,
-          runId,
-          generatedAtUtc,
-          snapshotTimestampUtc: generatedAtUtc,
-          runtimeSyncCompletedUtc: completedAt,
-          policyRuntime,
-          minBars: provenanceMinBars,
-          writerBuildHash: process.env.TFE_PROVENANCE_WRITER_BUILD_HASH ?? null,
-        });
-        updateProvenanceStats(provenanceStats, persistedProvenance);
-
-        await client.query(
-        `
-          INSERT INTO runtime_decisions_latest (
-            ticker, run_id, generated_at_utc, snapshot_row_json,
-            decision_label, reason_code, reason_text,
-            bar_count, min_bars_for_accumulate, regime, stability_score, max_dd,
-            policy_source_path, policy_generated_at_utc, policy_cell_key_requested, policy_cell_key_matched,
-            policy_scoring_mode, fallback_used, fallback_reason, anomaly_flagged, structural_complete, structural_missing_fields_json,
-            updated_at
-          )
-          VALUES (
-            $1, $2, $3::timestamptz, $4::jsonb,
-            $5, NULL, NULL,
-            $6, $7, $8, $9, $10,
-            NULL, NULL, NULL, NULL,
-            NULL, NULL, NULL, NULL, NULL, '[]'::jsonb,
-            NOW()
-          )
-          ON CONFLICT (ticker)
-          DO UPDATE SET
-            run_id = EXCLUDED.run_id,
-            generated_at_utc = EXCLUDED.generated_at_utc,
-            snapshot_row_json = EXCLUDED.snapshot_row_json,
-            decision_label = EXCLUDED.decision_label,
-            bar_count = EXCLUDED.bar_count,
-            min_bars_for_accumulate = EXCLUDED.min_bars_for_accumulate,
-            regime = EXCLUDED.regime,
-            stability_score = EXCLUDED.stability_score,
-            max_dd = EXCLUDED.max_dd,
-            updated_at = NOW()
-        `,
-        [
-          ticker,
-          runId,
-          generatedAtUtc,
-          JSON.stringify(snapshotRow),
-          inferDecisionLabel(row),
-          toIntOrNull(row.bar_count),
-          DEFAULT_MIN_BARS,
-          String(row.regime ?? "UNKNOWN"),
-          toFiniteOrNull(row.stability_score),
-          toFiniteOrNull(row.max_dd),
-        ],
-        );
-        decisionsInserted += 1;
-
-        await client.query(
-        `
-          INSERT INTO runtime_decisions_history (
-            run_id, ticker, generated_at_utc, snapshot_row_json, updated_at
-          )
-          VALUES (
-            $1, $2, $3::timestamptz, $4::jsonb, NOW()
-          )
-          ON CONFLICT (run_id, ticker)
-          DO UPDATE SET
-            generated_at_utc = EXCLUDED.generated_at_utc,
-            snapshot_row_json = EXCLUDED.snapshot_row_json,
-            updated_at = NOW()
-        `,
-        [
-          runId,
-          ticker,
-          generatedAtUtc,
-          JSON.stringify(snapshotRow),
-        ],
-        );
-        decisionsHistoryInserted += 1;
-
-        await client.query(
-        `
-          INSERT INTO runtime_decision_provenance_latest (
-            run_id, ticker, generated_at_utc, snapshot_timestamp_utc, runtime_sync_completed_utc, decision_timestamp_utc, snapshot_row_digest_sha256,
-            policy_artifact_id, policy_artifact_hash_sha256, policy_source_mode,
-            candidate_key_chain_json, matched_key, match_level, fallback_ladder_level, matched_exact_bool,
-            fallback_used, fallback_reason_code, decision, decision_reason_code,
-            anomaly_flags_used_json, structural_recency_components_used_json, epoch_components_used_json,
-            coverage_class,
-            provenance_schema_version, writer_component, writer_build_hash, cp_profile, provenance_generated_utc,
-            provenance_valid, provenance_json, updated_at
-          )
-          VALUES (
-            $1, $2, $3::timestamptz, $4::timestamptz, $5::timestamptz, $6::timestamptz, $7,
-            $8, $9, $10,
-            $11::jsonb, $12, $13, $14, $15,
-            $16, $17, $18, $19,
-            $20::jsonb, $21::jsonb, $22::jsonb,
-            $23,
-            $24, $25, $26, $27, $28::timestamptz,
-            $29, $30::jsonb, NOW()
-          )
-          ON CONFLICT (run_id, ticker)
-          DO UPDATE SET
-            generated_at_utc = EXCLUDED.generated_at_utc,
-            snapshot_timestamp_utc = EXCLUDED.snapshot_timestamp_utc,
-            runtime_sync_completed_utc = EXCLUDED.runtime_sync_completed_utc,
-            decision_timestamp_utc = EXCLUDED.decision_timestamp_utc,
-            snapshot_row_digest_sha256 = EXCLUDED.snapshot_row_digest_sha256,
-            policy_artifact_id = EXCLUDED.policy_artifact_id,
-            policy_artifact_hash_sha256 = EXCLUDED.policy_artifact_hash_sha256,
-            policy_source_mode = EXCLUDED.policy_source_mode,
-            candidate_key_chain_json = EXCLUDED.candidate_key_chain_json,
-            matched_key = EXCLUDED.matched_key,
-            match_level = EXCLUDED.match_level,
-            fallback_ladder_level = EXCLUDED.fallback_ladder_level,
-            matched_exact_bool = EXCLUDED.matched_exact_bool,
-            fallback_used = EXCLUDED.fallback_used,
-            fallback_reason_code = EXCLUDED.fallback_reason_code,
-            decision = EXCLUDED.decision,
-            decision_reason_code = EXCLUDED.decision_reason_code,
-            anomaly_flags_used_json = EXCLUDED.anomaly_flags_used_json,
-            structural_recency_components_used_json = EXCLUDED.structural_recency_components_used_json,
-            epoch_components_used_json = EXCLUDED.epoch_components_used_json,
-            coverage_class = EXCLUDED.coverage_class,
-            provenance_schema_version = EXCLUDED.provenance_schema_version,
-            writer_component = EXCLUDED.writer_component,
-            writer_build_hash = EXCLUDED.writer_build_hash,
-            cp_profile = EXCLUDED.cp_profile,
-            provenance_generated_utc = EXCLUDED.provenance_generated_utc,
-            provenance_valid = EXCLUDED.provenance_valid,
-            provenance_json = EXCLUDED.provenance_json,
-            updated_at = NOW()
-        `,
-        [
-          runId,
-          ticker,
-          generatedAtUtc,
-          persistedProvenance.snapshot_timestamp_utc,
-          persistedProvenance.runtime_sync_completed_utc,
-          persistedProvenance.decision_timestamp_utc,
-          persistedProvenance.snapshot_row_digest_sha256,
-          persistedProvenance.policy_artifact_id,
-          persistedProvenance.policy_artifact_hash_sha256,
-          persistedProvenance.policy_source_mode,
-          JSON.stringify(persistedProvenance.candidate_key_chain_json),
-          persistedProvenance.matched_key,
-          persistedProvenance.match_level,
-          persistedProvenance.fallback_ladder_level,
-          persistedProvenance.matched_exact_bool,
-          persistedProvenance.fallback_used,
-          persistedProvenance.fallback_reason_code,
-          persistedProvenance.decision,
-          persistedProvenance.decision_reason_code,
-          JSON.stringify(persistedProvenance.anomaly_flags_used_json),
-          JSON.stringify(persistedProvenance.structural_recency_components_used_json),
-          JSON.stringify(persistedProvenance.epoch_components_used_json),
-          persistedProvenance.coverage_class,
-          persistedProvenance.provenance_schema_version,
-          persistedProvenance.writer_component,
-          persistedProvenance.writer_build_hash,
-          persistedProvenance.cp_profile,
-          persistedProvenance.provenance_generated_utc,
-          persistedProvenance.provenance_valid,
-          JSON.stringify(persistedProvenance.provenance_json),
-        ],
-        );
-        provenanceInserted += 1;
-
-        await client.query(
-        `
-          INSERT INTO runtime_symbols (
-            ticker, run_id, generated_at_utc, asset_type, quote_type, exchange, company_name,
-            sector, industry, country, market_cap, shares_outstanding, float_shares, profile_json, updated_at
-          )
-          VALUES (
-            $1, $2, $3::timestamptz, $4, $5, $6, $7,
-            $8, $9, $10, $11, $12, $13, $14::jsonb, NOW()
-          )
-          ON CONFLICT (ticker)
-          DO UPDATE SET
-            run_id = EXCLUDED.run_id,
-            generated_at_utc = EXCLUDED.generated_at_utc,
-            asset_type = EXCLUDED.asset_type,
-            quote_type = EXCLUDED.quote_type,
-            exchange = EXCLUDED.exchange,
-            company_name = EXCLUDED.company_name,
-            sector = EXCLUDED.sector,
-            industry = EXCLUDED.industry,
-            country = EXCLUDED.country,
-            market_cap = EXCLUDED.market_cap,
-            shares_outstanding = EXCLUDED.shares_outstanding,
-            float_shares = EXCLUDED.float_shares,
-            profile_json = EXCLUDED.profile_json,
-            updated_at = NOW()
-        `,
-        [
-          ticker,
-          runId,
-          generatedAtUtc,
-          String(row.asset_type ?? quote.assetType ?? ""),
-          String(quote.quoteType ?? ""),
-          String(quote.exchange ?? ""),
-          String(quote.companyName ?? ""),
-          String(quote.sector ?? ""),
-          String(quote.industry ?? ""),
-          String(quote.country ?? ""),
-          toFiniteOrNull(quote.marketCap),
-          toFiniteOrNull(quote.sharesOutstanding),
-          firstPositiveNumber(quote.sharesFloat, quote.floatShares),
-          JSON.stringify(quote),
-        ],
-        );
-        symbolsInserted += 1;
-
-        await client.query(
-        `
-          INSERT INTO runtime_symbols_history (
-            run_id, ticker, generated_at_utc, asset_type, quote_type, exchange, company_name,
-            sector, industry, country, market_cap, shares_outstanding, float_shares, profile_json, updated_at
-          )
-          VALUES (
-            $1, $2, $3::timestamptz, $4, $5, $6, $7,
-            $8, $9, $10, $11, $12, $13, $14::jsonb, NOW()
-          )
-          ON CONFLICT (run_id, ticker)
-          DO UPDATE SET
-            generated_at_utc = EXCLUDED.generated_at_utc,
-            asset_type = EXCLUDED.asset_type,
-            quote_type = EXCLUDED.quote_type,
-            exchange = EXCLUDED.exchange,
-            company_name = EXCLUDED.company_name,
-            sector = EXCLUDED.sector,
-            industry = EXCLUDED.industry,
-            country = EXCLUDED.country,
-            market_cap = EXCLUDED.market_cap,
-            shares_outstanding = EXCLUDED.shares_outstanding,
-            float_shares = EXCLUDED.float_shares,
-            profile_json = EXCLUDED.profile_json,
-            updated_at = NOW()
-        `,
-        [
-          runId,
-          ticker,
-          generatedAtUtc,
-          String(row.asset_type ?? quote.assetType ?? ""),
-          String(quote.quoteType ?? ""),
-          String(quote.exchange ?? ""),
-          String(quote.companyName ?? ""),
-          String(quote.sector ?? ""),
-          String(quote.industry ?? ""),
-          String(quote.country ?? ""),
-          toFiniteOrNull(quote.marketCap),
-          toFiniteOrNull(quote.sharesOutstanding),
-          firstPositiveNumber(quote.sharesFloat, quote.floatShares),
-          JSON.stringify(quote),
-        ],
-        );
-        symbolsHistoryInserted += 1;
-
-        await client.query(
-        `
-          INSERT INTO runtime_metrics_latest (
-            ticker, run_id, generated_at_utc, atr14, rsi14, sma20, sma50, sma200,
-            change_pct, change_amount, gap_pct, rel_volume, avg_volume, volume,
-            perf_week, perf_month, perf_quarter, perf_half, perf_ytd, perf_year, metrics_json, updated_at
-          )
-          VALUES (
-            $1, $2, $3::timestamptz, $4, $5, $6, $7, $8,
-            $9, $10, $11, $12, $13, $14,
-            $15, $16, $17, $18, $19, $20, $21::jsonb, NOW()
-          )
-          ON CONFLICT (ticker)
-          DO UPDATE SET
-            run_id = EXCLUDED.run_id,
-            generated_at_utc = EXCLUDED.generated_at_utc,
-            atr14 = EXCLUDED.atr14,
-            rsi14 = EXCLUDED.rsi14,
-            sma20 = EXCLUDED.sma20,
-            sma50 = EXCLUDED.sma50,
-            sma200 = EXCLUDED.sma200,
-            change_pct = EXCLUDED.change_pct,
-            change_amount = EXCLUDED.change_amount,
-            gap_pct = EXCLUDED.gap_pct,
-            rel_volume = EXCLUDED.rel_volume,
-            avg_volume = EXCLUDED.avg_volume,
-            volume = EXCLUDED.volume,
-            perf_week = EXCLUDED.perf_week,
-            perf_month = EXCLUDED.perf_month,
-            perf_quarter = EXCLUDED.perf_quarter,
-            perf_half = EXCLUDED.perf_half,
-            perf_ytd = EXCLUDED.perf_ytd,
-            perf_year = EXCLUDED.perf_year,
-            metrics_json = EXCLUDED.metrics_json,
-            updated_at = NOW()
-        `,
-        [
-          ticker,
-          runId,
-          generatedAtUtc,
-          firstPositiveNumber(quote.atr14, quote.atr),
-          toFiniteOrNull(quote.rsi14),
-          toFiniteOrNull(quote.sma20),
-          toFiniteOrNull(quote.sma50),
-          toFiniteOrNull(quote.sma200),
-          toFiniteOrNull(quote.changePct),
-          toFiniteOrNull(quote.change),
-          toFiniteOrNull(quote.gap),
-          toFiniteOrNull(quote.relVolume),
-          firstPositiveNumber(quote.avgVolume, quote.averageVolume),
-          toFiniteOrNull(quote.volume),
-          toFiniteOrNull(quote.perfWeek),
-          toFiniteOrNull(quote.perfMonth),
-          toFiniteOrNull(quote.perfQuarter),
-          toFiniteOrNull(quote.perfHalf),
-          toFiniteOrNull(quote.perfYtd),
-          toFiniteOrNull(quote.perfYear),
-          JSON.stringify(quote),
-        ],
-        );
-        metricsInserted += 1;
-
-        const closePrice = firstPositiveNumber(quote.price, row.price);
-        const openPrice = firstPositiveNumber(quote.open, quote.prevClose, closePrice);
-        const highPrice = firstPositiveNumber(quote.dayHigh, quote.high, closePrice);
-        const lowPrice = firstPositiveNumber(quote.dayLow, quote.low, closePrice);
-
-        await client.query(
-        `
-          INSERT INTO runtime_bars_daily (
-            ticker, bar_date, run_id, generated_at_utc, open, high, low, close, volume, source
-          )
-          VALUES ($1, $2::date, $3, $4::timestamptz, $5, $6, $7, $8, $9, $10)
-          ON CONFLICT (ticker, bar_date)
-          DO UPDATE SET
-            run_id = EXCLUDED.run_id,
-            generated_at_utc = EXCLUDED.generated_at_utc,
-            open = EXCLUDED.open,
-            high = EXCLUDED.high,
-            low = EXCLUDED.low,
-            close = EXCLUDED.close,
-            volume = EXCLUDED.volume,
-            source = EXCLUDED.source
-        `,
-        [
-          ticker,
-          barDate,
-          runId,
-          generatedAtUtc,
-          openPrice,
-          highPrice,
-          lowPrice,
-          closePrice,
-          toFiniteOrNull(quote.volume),
-          "bridge_snapshot_quote_cache",
-        ],
-        );
-        barsInserted += 1;
+      for (const batch of runtimeSyncBatches) {
+        const batchResult = await upsertRuntimeBatch(client, batch);
+        decisionsInserted += batchResult.decisionsInserted;
+        decisionsHistoryInserted += batchResult.decisionsHistoryInserted;
+        provenanceInserted += batchResult.provenanceInserted;
+        symbolsInserted += batchResult.symbolsInserted;
+        symbolsHistoryInserted += batchResult.symbolsHistoryInserted;
+        metricsInserted += batchResult.metricsInserted;
+        barsInserted += batchResult.barsInserted;
       }
 
       if (decisionsInserted === 0 || symbolsInserted === 0 || metricsInserted === 0) {
@@ -1285,7 +1750,7 @@ async function main() {
         symbolsHistoryInserted,
         metricsInserted,
         barsInserted,
-        provenanceStats,
+        provenanceStats: preparedRecords.provenanceStats,
       };
     });
 
@@ -1340,6 +1805,8 @@ async function main() {
         runtime_metrics_latest: transactionResult.metricsInserted,
         runtime_bars_daily: transactionResult.barsInserted,
       },
+      batch_size: runtimeSyncBatchSize,
+      batch_count: runtimeSyncBatches.length,
       provenance_artifact_path: provenanceArtifactPath,
     };
 

@@ -720,12 +720,6 @@ def _quote_cache_refresh_input_contract() -> dict[str, Any]:
             "timeout_sec": _read_env_int("TFE_QUOTE_CACHE_TIMEOUT_SEC", default_value=35, minimum=5),
             "min_non_meta_fields": _read_env_int("TFE_QUOTE_CACHE_MIN_NON_META_FIELDS", default_value=20, minimum=1),
             "save_every": _read_env_int("TFE_QUOTE_CACHE_SAVE_EVERY", default_value=200, minimum=1),
-            "skip_finviz_refresh": str(os.environ.get("TFE_REFRESH_SKIP_FINVIZ_REFRESH", "0")).strip().lower() in {
-                "1",
-                "true",
-                "yes",
-                "on",
-            },
         },
     )
 
@@ -802,12 +796,6 @@ def _run_quote_cache_refresh() -> dict[str, Any]:
     timeout_sec = _read_env_int("TFE_QUOTE_CACHE_TIMEOUT_SEC", default_value=35, minimum=5)
     min_non_meta_fields = _read_env_int("TFE_QUOTE_CACHE_MIN_NON_META_FIELDS", default_value=20, minimum=1)
     save_every = _read_env_int("TFE_QUOTE_CACHE_SAVE_EVERY", default_value=200, minimum=1)
-    skip_finviz_refresh = str(os.environ.get("TFE_REFRESH_SKIP_FINVIZ_REFRESH", "0")).strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
 
     cmd = [
         sys.executable or "python3",
@@ -822,8 +810,6 @@ def _run_quote_cache_refresh() -> dict[str, Any]:
         "--min-non-meta-fields",
         str(min_non_meta_fields),
     ]
-    if skip_finviz_refresh:
-        cmd.append("--skip-finviz-refresh")
 
     completed = _run_logged_subprocess(
         phase_label="quote_cache_refresh",
@@ -845,7 +831,6 @@ def _run_quote_cache_refresh() -> dict[str, Any]:
         "workers": workers,
         "timeout_sec": timeout_sec,
         "min_non_meta_fields": min_non_meta_fields,
-        "skip_finviz_refresh": skip_finviz_refresh,
         "stdout_tail": stdout_tail,
         "stderr_tail": stderr_tail,
     }

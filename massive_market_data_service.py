@@ -111,6 +111,7 @@ class MassiveMarketDataService(MarketDataService):
         base_backoff_seconds: float = 2.0,
         max_backoff_seconds: float = 60.0,
         min_429_backoff_seconds: float = 10.0,
+        crypto_min_429_backoff_seconds: float = 30.0,
     ) -> None:
         self._api_key = api_key or _env("MASSIVE_API_KEY") or _env("POLYGON_API_KEY")
         if not self._api_key:
@@ -139,12 +140,17 @@ class MassiveMarketDataService(MarketDataService):
             0.1,
             _env_float("MASSIVE_MIN_429_BACKOFF_SECONDS", float(min_429_backoff_seconds)),
         )
+        self._crypto_min_429_backoff_seconds = max(
+            self._min_429_backoff_seconds,
+            _env_float("MASSIVE_CRYPTO_MIN_429_BACKOFF_SECONDS", float(crypto_min_429_backoff_seconds)),
+        )
 
     def _compute_backoff_seconds(
         self,
         attempt: int,
         retry_after: Optional[str],
         status_code: Optional[int] = None,
+        path: Optional[str] = None,
     ) -> float:
         if retry_after is not None:
             try:
@@ -158,6 +164,8 @@ class MassiveMarketDataService(MarketDataService):
 
         if status_code == 429:
             backoff = max(backoff, self._min_429_backoff_seconds)
+            if isinstance(path, str) and path.startswith("/v2/aggs/ticker/X:"):
+                backoff = max(backoff, self._crypto_min_429_backoff_seconds)
 
         return min(self._max_backoff_seconds, backoff)
 
@@ -181,7 +189,7 @@ class MassiveMarketDataService(MarketDataService):
                 if attempt >= self._max_retries:
                     raise MassiveHTTPError(last_error) from exc
 
-                sleep_seconds = self._compute_backoff_seconds(attempt, None)
+                sleep_seconds = self._compute_backoff_seconds(attempt, None, path=path)
                 log.warning(
                     "Massive request exception (attempt %s/%s) path=%s error=%s; retrying in %.2fs",
                     attempt + 1,
@@ -206,6 +214,7 @@ class MassiveMarketDataService(MarketDataService):
                     attempt,
                     retry_after,
                     status_code=response.status_code,
+                    path=path,
                 )
                 log.warning(
                     "Massive transient HTTP %s (attempt %s/%s) path=%s; retrying in %.2fs",

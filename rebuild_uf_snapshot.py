@@ -334,10 +334,34 @@ def _resolve_web_user_data_root() -> str:
 
 
 def _build_universe(force_refresh_universe: bool) -> Tuple[List[Dict[str, str]], Dict[str, int]]:
-    stocks = get_stock_tickers_from_universe(force_refresh=force_refresh_universe)
-    etfs = get_etf_tickers_from_universe(force_refresh=force_refresh_universe)
-    indexes = get_index_tickers_from_universe(force_refresh=force_refresh_universe)
-    crypto = get_crypto_tickers_from_universe(force_refresh=force_refresh_universe)
+    stocks: List[str]
+    etfs: List[str]
+    indexes: List[str]
+    crypto: List[str]
+
+    try:
+        stocks = get_stock_tickers_from_universe(force_refresh=force_refresh_universe)
+    except Exception as exc:
+        print(f"[UF-SNAPSHOT] WARNING: Failed to fetch stock universe: {exc}")
+        stocks = []
+
+    try:
+        etfs = get_etf_tickers_from_universe(force_refresh=force_refresh_universe)
+    except Exception as exc:
+        print(f"[UF-SNAPSHOT] WARNING: Failed to fetch etf universe: {exc}")
+        etfs = []
+
+    try:
+        indexes = get_index_tickers_from_universe(force_refresh=force_refresh_universe)
+    except Exception as exc:
+        print(f"[UF-SNAPSHOT] WARNING: Failed to fetch index universe: {exc}")
+        indexes = []
+
+    try:
+        crypto = get_crypto_tickers_from_universe(force_refresh=force_refresh_universe)
+    except Exception as exc:
+        print(f"[UF-SNAPSHOT] WARNING: Failed to fetch crypto universe: {exc}")
+        crypto = []
 
     items: List[Dict[str, str]] = []
     seen: Set[str] = set()
@@ -740,14 +764,31 @@ def _build_targeted_universe(existing_rows: Optional[List[Dict[str, Any]]] = Non
             structural_symbols.add(ticker)
 
     tenant_symbols, tenant_summary = _load_tenant_linked_symbols()
+
+    index_symbols_raw: List[str]
+    crypto_symbols_raw: List[str]
+
+    try:
+        index_symbols_raw = get_index_tickers_from_universe(force_refresh=False)
+    except Exception as exc:
+        print(f"[UF-SNAPSHOT] WARNING: Failed to fetch index universe: {exc}")
+        index_symbols_raw = []
+
     index_symbols = {
         _normalize_symbol(symbol)
-        for symbol in get_index_tickers_from_universe(force_refresh=False)
+        for symbol in index_symbols_raw
     }
     index_symbols.discard("")
+
+    try:
+        crypto_symbols_raw = get_crypto_tickers_from_universe(force_refresh=False)
+    except Exception as exc:
+        print(f"[UF-SNAPSHOT] WARNING: Failed to fetch crypto universe: {exc}")
+        crypto_symbols_raw = []
+
     crypto_symbols = {
         _normalize_symbol(symbol)
-        for symbol in get_crypto_tickers_from_universe(force_refresh=False)
+        for symbol in crypto_symbols_raw
     }
     crypto_symbols.discard("")
 

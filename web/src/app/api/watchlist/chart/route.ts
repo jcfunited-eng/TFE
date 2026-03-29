@@ -5,7 +5,13 @@ import { promisify } from "node:util";
 import { NextResponse } from "next/server";
 
 import { readSessionUserFromRequest } from "@/lib/auth-session";
-import { loadOrIngestWatchlistMetric } from "@/lib/watchlist-live-ingestion";
+import {
+  classificationFromDecision,
+  decisionInfoFromRow,
+  findTickerRow,
+  type SnapshotRow,
+} from "@/lib/uf-snapshot";
+import { loadRuntimeSnapshotRowsFromPostgres } from "@/lib/runtime-postgres";
 
 export const runtime = "nodejs";
 
@@ -48,6 +54,23 @@ type ScriptPayload = {
   source?: string;
   interval?: string;
   range?: string;
+};
+
+type WatchlistMetricRow = {
+  ticker: string;
+  decision: "Accumulate" | "Hold" | "Avoid";
+  decisionReason: string;
+  decisionReasonCode: string;
+  classification: "BUY" | "HOLD" | "SELL";
+  price: number | null;
+  changePct: number | null;
+  regime: string;
+  S_UF: number;
+  R_UF: number;
+  barCount: number;
+  minBarsForAccumulate: number;
+  stability_score: number | null;
+  max_dd: number | null;
 };
 
 const ALLOWED_INTERVALS: readonly ChartInterval[] = ["1m", "5m", "15m", "30m", "60m", "1d", "1wk", "1mo"];
@@ -93,6 +116,16 @@ function toNum(value: number | undefined): number {
   return Number.isFinite(value) ? Number(value) : 0;
 }
 
+function toNumber(value: unknown): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function toNumberOrNull(value: unknown): number | null {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 function summarize(bars: Bar[]) {
   if (bars.length === 0) return null;
 
@@ -133,6 +166,42 @@ function parseScriptPayload(text: string): ScriptPayload | null {
   }
 }
 
+function summarizeFailures(failures: Array<{ path: string; reason: string }>): string | null {
+  if (failures.length === 0) return null;
+  return failures
+    .map((failure) => `${failure.path}: ${failure.reason}`)
+    .join(" | ");
+}
+
+function mergeNotes(...notes: Array<string | null | undefined>): string | null {
+  const merged = notes
+    .map((note) => String(note ?? "").trim())
+    .filter((note) => note.length > 0);
+
+  if (merged.length === 0) return null;
+  return merged.join(" | ");
+}
+
+function buildRuntimeMetricRow(row: SnapshotRow): WatchlistMetricRow {
+  const decisionInfo = decisionInfoFromRow(row);
+  return {
+    ticker: normalizeTicker(String(row.ticker ?? "")),
+    decision: decisionInfo.decision,
+    decisionReason: decisionInfo.reasonText,
+    decisionReasonCode: decisionInfo.reasonCode,
+    classification: classificationFromDecision(decisionInfo.decision),
+    price: toNumberOrNull(row.price),
+    changePct: null,
+    regime: String(row.regime ?? "").trim() || "UNKNOWN",
+    S_UF: toNumber(row.S_UF),
+    R_UF: toNumber(row.R_UF),
+    barCount: Math.max(0, Math.trunc(toNumber(row.bar_count ?? decisionInfo.barCount))),
+    minBarsForAccumulate: Math.max(0, Math.trunc(decisionInfo.minBarsForAccumulate)),
+    stability_score: toNumberOrNull(row.stability_score),
+    max_dd: toNumberOrNull(row.max_dd),
+  };
+}
+
 export async function GET(request: Request) {
   const sessionUser = await readSessionUserFromRequest(request);
   if (!sessionUser) {
@@ -150,11 +219,26 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Ticker is required." }, { status: 400 });
   }
 
-  let ufMetric: any = null;
-  const scriptPath = path.resolve(process.cwd(), "scripts", "get_history_json.py");
+  let ufMetric: WatchlistMetricRow | null = null;
+  let runtimeNote: string | null = null;
 
   try {
-    ufMetric = await loadOrIngestWatchlistMetric(ticker);
+    const snapshotLoad = await loadRuntimeSnapshotRowsFromPostgres();
+    if (snapshotLoad.sourcePath && snapshotLoad.rows.length > 0) {
+      const row = findTickerRow(snapshotLoad.rows, ticker);
+      ufMetric = row ? buildRuntimeMetricRow(row) : null;
+      if (!row) {
+        runtimeNote = `Runtime snapshot has no row for ${ticker}.`;
+      }
+    } else {
+      runtimeNote = mergeNotes(
+        runtimeNote,
+        summarizeFailures(snapshotLoad.failures),
+        "Runtime snapshot is unavailable for watchlist UF metrics.",
+      );
+    }
+
+    const scriptPath = path.resolve(process.cwd(), "scripts", "get_history_json.py");
     const result = await execFileAsync(
       "python3",
       [
@@ -185,7 +269,7 @@ export async function GET(request: Request) {
         interval,
         range,
         ufMetric,
-        note: "Chart parser fallback in use.",
+        note: mergeNotes(runtimeNote, "Chart parser fallback in use."),
       });
     }
 
@@ -198,7 +282,10 @@ export async function GET(request: Request) {
       interval: parsed.interval ?? interval,
       range: parsed.range ?? range,
       ufMetric,
-      note: parsed.error ? `Chart data temporarily unavailable: ${parsed.error}` : null,
+      note: mergeNotes(
+        runtimeNote,
+        parsed.error ? `Chart data temporarily unavailable: ${parsed.error}` : null,
+      ),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "History chart request failed.";
@@ -210,7 +297,7 @@ export async function GET(request: Request) {
       interval,
       range,
       ufMetric,
-      note: `Chart data temporarily unavailable: ${message}`,
+      note: mergeNotes(runtimeNote, `Chart data temporarily unavailable: ${message}`),
     });
   }
 }

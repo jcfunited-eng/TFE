@@ -91,7 +91,7 @@ export function resolveRuntimePostgresPool(): Pool {
     port,
     max: 8,
     idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: 12_000,
+    connectionTimeoutMillis: 60_000,
     ssl: { rejectUnauthorized },
     application_name: "tfe-runtime-shared",
   });

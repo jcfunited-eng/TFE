@@ -34,6 +34,8 @@ export PROD_SOURCE_DEPLOY_PATH_S3="s3://tfe-codebuild-src-418384447921-us-east-1
 export PROD_SOURCE_ARCHIVE_S3="s3://tfe-codebuild-src-418384447921-us-east-1/deploy/archive/tfe_codebuild_src-${PROD_IMAGE_TAG#manual-}.zip"
 aws s3api head-object --bucket tfe-codebuild-src-418384447921-us-east-1 --key "deploy/archive/tfe_codebuild_src-${PROD_IMAGE_TAG#manual-}.zip" --region us-east-1 >/dev/null
 export PROD_LOCAL_REPO="/workspaces/Tao_Financial_Engine"
+export PROD_TASKDEF_JSON="$(aws ecs describe-task-definition --task-definition "$PROD_TASKDEF_ARN" --region us-east-1 --output json)"
+export TFE_RUNTIME_DB_SECRET_ARN="$(python3 -c 'import json,os; data=json.loads(os.environ["PROD_TASKDEF_JSON"]); container=((data.get("taskDefinition") or {}).get("containerDefinitions") or [{}])[0]; env_map={item.get("name"): item.get("value") for item in (container.get("environment") or []) if item.get("name")}; secret_map={item.get("name"): item.get("valueFrom") for item in (container.get("secrets") or []) if item.get("name")}; value=str(env_map.get("TFE_RUNTIME_DB_SECRET_ARN") or secret_map.get("PGPASSWORD") or "").strip(); suffixes=(":password::", ":username::"); print(next((value[:-len(s)] for s in suffixes if value.endswith(s)), value))')"
 
 export PG_SECRET_JSON="$(aws secretsmanager get-secret-value --secret-id 'tfe/codex/prod/postgres-readonly' --region us-east-1 --query SecretString --output text)"
 export PGHOST="$(python3 -c 'import json,os; print(json.loads(os.environ["PG_SECRET_JSON"])["host"])')"
@@ -47,5 +49,6 @@ export NODE_EXTRA_CA_CERTS="/workspaces/Tao_Financial_Engine/certs/rds-global-bu
 unset BOOTSTRAP_JSON
 unset ASSUME_JSON
 unset PG_SECRET_JSON
+unset PROD_TASKDEF_JSON
 
 echo "Loaded Codex production read-only verification env." >&2

@@ -1,275 +1,61 @@
 {
-  "generated_at_utc": "2026-03-01T14:32:22.314353Z",
-  "started_at_utc": "2026-03-01T14:31:24.365574Z",
-  "elapsed_seconds": 57.95,
-  "refresh_mode": "targeted_pfsc",
-  "force_refresh_universe": false,
+  "generated_at_utc": "2026-03-29T19:12:17.185756Z",
+  "started_at_utc": "2026-03-29T19:12:12.384089Z",
+  "elapsed_seconds": 2034.76,
+  "refresh_mode": "full_universe",
+  "force_refresh_universe": true,
   "years_history": 5,
   "universe_counts": {
-    "selector_source_rows": 10819,
-    "selector_source_unique": 10819,
-    "selected_structural": 6007,
-    "selected_tenant_linked": 0,
-    "selected_union": 6007,
-    "selected_tenant_only": 0,
-    "selected_tenant_only_examples": [],
-    "rule": {
-      "description": "Include symbol if regime != STABLE OR bar_count < 514 OR symbol is tenant-linked.",
-      "regime_condition": "regime != STABLE",
-      "bar_count_condition": "bar_count < 514",
-      "tenant_condition": "watchlist OR portfolio OR admin-tracked"
+    "stocks": 6079,
+    "etfs": 4838,
+    "indexes": 1,
+    "crypto": 8,
+    "universe_unique": 10926
+  },
+  "rows_written": 10926,
+  "skipped_count": 0,
+  "symbol_timeout_count": 0,
+  "symbol_timeout_seconds": 120,
+  "progress_log_interval_seconds": 30,
+  "skipped_examples": [],
+  "fast_path_count": 0,
+  "fast_path_counts": {
+    "zero-delta": 0,
+    "zombie": 0
+  },
+  "fast_path_examples": [],
+  "existing_runtime_rows_loaded": 0,
+  "existing_runtime_rows_error": "RuntimeError: Connection terminated due to connection timeout",
+  "summary": {
+    "rows_total": 10926,
+    "rows_processed": 8857,
+    "rows_excluded": 2069,
+    "asset_type_counts": {
+      "stock": 6079,
+      "etf": 4838,
+      "index": 1,
+      "crypto": 8
     },
-    "tenant_linked": {
-      "watchlist_symbols": 0,
-      "portfolio_symbols": 0,
-      "admin_tracked_symbols": 0,
-      "scanned_user_dirs": 4,
-      "decrypt_errors": [
-        {
-          "user": "admin",
-          "kind": "watchlist",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/admin/watchlist.ses.json",
-          "error": "RuntimeError: purpose=watchlist: ValueError: Envelope purpose mismatch"
-        },
-        {
-          "user": "admin",
-          "kind": "portfolio",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/admin/portfolio_manual.ses.json",
-          "error": "RuntimeError: purpose=portfolio-manual: ValueError: Envelope purpose mismatch"
-        },
-        {
-          "user": "member",
-          "kind": "watchlist",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/member/watchlist.ses.json",
-          "error": "RuntimeError: purpose=watchlist: ValueError: Envelope purpose mismatch"
-        },
-        {
-          "user": "member",
-          "kind": "portfolio",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/member/portfolio_manual.ses.json",
-          "error": "RuntimeError: purpose=portfolio-manual: ValueError: Envelope purpose mismatch"
-        },
-        {
-          "user": "member1",
-          "kind": "watchlist",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/member1/watchlist.ses.json",
-          "error": "RuntimeError: purpose=watchlist: ValueError: Envelope purpose mismatch"
-        },
-        {
-          "user": "member3",
-          "kind": "watchlist",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/member3/watchlist.ses.json",
-          "error": "RuntimeError: purpose=watchlist: ValueError: Envelope purpose mismatch"
-        },
-        {
-          "user": "member3",
-          "kind": "portfolio",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/member3/portfolio_manual.ses.json",
-          "error": "RuntimeError: purpose=portfolio-manual: ValueError: Envelope purpose mismatch"
-        }
-      ],
-      "tenant_linked_unique": 0,
-      "decrypt_error_count": 7
+    "regime_counts": {
+      "DEGENERATE": 2007,
+      "STABLE": 6715,
+      "TRANSITIONAL": 1974,
+      "VOLATILE": 168,
+      "INSUFFICIENT_DATA": 61,
+      "NO_DATA": 1
     }
   },
-  "targeted_selector": {
-    "selector_source_rows": 10819,
-    "selector_source_unique": 10819,
-    "selected_structural": 6007,
-    "selected_tenant_linked": 0,
-    "selected_union": 6007,
-    "selected_tenant_only": 0,
-    "selected_tenant_only_examples": [],
-    "rule": {
-      "description": "Include symbol if regime != STABLE OR bar_count < 514 OR symbol is tenant-linked.",
-      "regime_condition": "regime != STABLE",
-      "bar_count_condition": "bar_count < 514",
-      "tenant_condition": "watchlist OR portfolio OR admin-tracked"
-    },
-    "tenant_linked": {
-      "watchlist_symbols": 0,
-      "portfolio_symbols": 0,
-      "admin_tracked_symbols": 0,
-      "scanned_user_dirs": 4,
-      "decrypt_errors": [
-        {
-          "user": "admin",
-          "kind": "watchlist",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/admin/watchlist.ses.json",
-          "error": "RuntimeError: purpose=watchlist: ValueError: Envelope purpose mismatch"
-        },
-        {
-          "user": "admin",
-          "kind": "portfolio",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/admin/portfolio_manual.ses.json",
-          "error": "RuntimeError: purpose=portfolio-manual: ValueError: Envelope purpose mismatch"
-        },
-        {
-          "user": "member",
-          "kind": "watchlist",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/member/watchlist.ses.json",
-          "error": "RuntimeError: purpose=watchlist: ValueError: Envelope purpose mismatch"
-        },
-        {
-          "user": "member",
-          "kind": "portfolio",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/member/portfolio_manual.ses.json",
-          "error": "RuntimeError: purpose=portfolio-manual: ValueError: Envelope purpose mismatch"
-        },
-        {
-          "user": "member1",
-          "kind": "watchlist",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/member1/watchlist.ses.json",
-          "error": "RuntimeError: purpose=watchlist: ValueError: Envelope purpose mismatch"
-        },
-        {
-          "user": "member3",
-          "kind": "watchlist",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/member3/watchlist.ses.json",
-          "error": "RuntimeError: purpose=watchlist: ValueError: Envelope purpose mismatch"
-        },
-        {
-          "user": "member3",
-          "kind": "portfolio",
-          "path": "/workspaces/Tao_Financial_Engine/web_user_data/member3/portfolio_manual.ses.json",
-          "error": "RuntimeError: purpose=portfolio-manual: ValueError: Envelope purpose mismatch"
-        }
-      ],
-      "tenant_linked_unique": 0,
-      "decrypt_error_count": 7
-    }
+  "pre_ingestion_completeness": {
+    "status": "ok",
+    "publication_blocking": false,
+    "summary_path": "/workspaces/Tao_Financial_Engine/backups/runtime/pre-ingestion-completeness-20260329T191217Z-pre-ingestion-proof-20260329T191212Z/summary.json",
+    "input_readiness_status": "ready",
+    "critical_inputs_not_ready": 0,
+    "critical_inputs_ready": 5,
+    "probe_run_id": "pre-ingestion-proof-20260329T191212Z"
   },
-  "rows_written": 0,
-  "skipped_count": 6007,
-  "skipped_examples": [
-    {
-      "symbol": "A",
-      "asset_type": "stock",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAAA",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAAC",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AACB",
-      "asset_type": "stock",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AADR",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAEQ",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AALG",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAMI",
-      "asset_type": "stock",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAPB",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAPG",
-      "asset_type": "stock",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAPL",
-      "asset_type": "stock",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAPR",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAPU",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAPW",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAPX",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AARD",
-      "asset_type": "stock",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAUC",
-      "asset_type": "stock",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAUM",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAUS",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AAVM",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "AB",
-      "asset_type": "stock",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "ABBV",
-      "asset_type": "stock",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "ABCB",
-      "asset_type": "stock",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "ABCS",
-      "asset_type": "etf",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    },
-    {
-      "symbol": "ABEO",
-      "asset_type": "stock",
-      "reason": "evaluation_error: RuntimeError: Failed to initialize UnifiedMarketDataService: UnifiedMarketDataService: Massive initialization failed: MassiveMarketDataService: API key is missing. Set MASSIVE_API_KEY (or POLYGON_API_KEY) in your .env."
-    }
-  ],
-  "summary": {},
+  "snapshot_json_fallback_path": "uf_snapshot.json",
   "snapshot_envelope_path": "uf_snapshot.ses.json",
   "snapshot_envelope_backup_path": "uf_snapshot_old_backup.ses.json",
-  "status": "no_rows_written"
+  "status": "ok"
 }
