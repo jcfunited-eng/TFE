@@ -81,6 +81,7 @@ YEARS_HISTORY: int = 5
 # Production policy evidence floor:
 # decision layer requires this many daily bars before allowing Accumulate.
 ACCUMULATE_MIN_BARS: int = 514
+RECENT_BAR_LOOKBACK_DAYS: int = 10
 
 # Strict OHLC integrity floor used by production ingestion.
 MIN_PRICE_FLOOR: float = DEFAULT_MIN_PRICE_FLOOR
@@ -139,6 +140,76 @@ def _fetch_history(
 
     close_clean.sort(key=lambda b: b.timestamp)
     return close_clean, dropped
+
+
+def load_recent_daily_bar_metrics(
+    symbol: str,
+    client: Optional[Any] = None,
+    lookback_days: int = RECENT_BAR_LOOKBACK_DAYS,
+) -> Dict[str, Any]:
+    if client is None:
+        client = get_unified_market_data()
+
+    end = datetime.utcnow()
+    start = end - timedelta(days=max(2, int(lookback_days)))
+
+    req = HistoryRequest(
+        symbol=symbol,
+        timespan=Timespan.DAY,
+        multiplier=1,
+        start=start,
+        end=end,
+        adjusted=True,
+        limit=None,
+    )
+
+    result = client.get_history(req)
+    raw_bars: List[Bar] = getattr(result, "bars", []) or []
+    cleaned_bars, dropped = sanitize_daily_bars(raw_bars, min_price_floor=MIN_PRICE_FLOOR)
+
+    close_clean: List[Bar] = []
+    for bar in cleaned_bars:
+        try:
+            close_value = getattr(bar, "close", None)
+            if close_value is None:
+                continue
+            float(close_value)
+        except Exception:
+            continue
+        close_clean.append(bar)
+
+    close_clean.sort(key=lambda bar: bar.timestamp)
+    latest = close_clean[-1] if close_clean else None
+    previous = close_clean[-2] if len(close_clean) >= 2 else None
+
+    latest_close = _safe_optional_float(getattr(latest, "close", None)) if latest is not None else None
+    latest_volume = _safe_optional_float(getattr(latest, "volume", None)) if latest is not None else None
+    previous_close = _safe_optional_float(getattr(previous, "close", None)) if previous is not None else None
+    previous_volume = _safe_optional_float(getattr(previous, "volume", None)) if previous is not None else None
+
+    latest_timestamp = None
+    if latest is not None:
+        try:
+            latest_timestamp = getattr(latest, "timestamp", None)
+            if latest_timestamp is not None:
+                latest_timestamp = latest_timestamp.isoformat()
+        except Exception:
+            latest_timestamp = None
+
+    latest_traded_dollar_volume = None
+    if latest_close is not None and latest_volume is not None:
+        latest_traded_dollar_volume = float(latest_close) * float(latest_volume)
+
+    return {
+        "bar_count": len(close_clean),
+        "dropped": dropped,
+        "latest_close": latest_close,
+        "latest_volume": latest_volume,
+        "previous_close": previous_close,
+        "previous_volume": previous_volume,
+        "latest_traded_dollar_volume": latest_traded_dollar_volume,
+        "latest_timestamp": latest_timestamp,
+    }
 
 
 def _pad_decision_vector(raw_dv: Any, length: int = 6) -> List[float]:

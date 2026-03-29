@@ -52,7 +52,7 @@ from tfe_ses_core_adapter import (
     make_domain,
     record_custody_event,
 )
-from uf_mdg_snapshot import evaluate_symbol_snapshot
+from uf_mdg_snapshot import evaluate_symbol_snapshot, load_recent_daily_bar_metrics
 
 
 STRUCTURAL_CACHE_PATH = "uf_structural_cache.json"
@@ -74,7 +74,12 @@ REFRESH_MODE_TARGETED = "targeted_pfsc"
 
 ACCUMULATE_MIN_BARS = 514
 WEB_USER_DATA_ROOT = "web_user_data"
-REQUIRED_PG_ENV = ("PGHOST", "PGDATABASE", "PGUSER", "PGPASSWORD")
+REQUIRED_DB_ENV_ALIASES = (
+    ("PGHOST", "TFE_DB_HOST"),
+    ("PGDATABASE", "TFE_DB_NAME"),
+    ("PGUSER", "TFE_DB_USER"),
+    ("PGPASSWORD", "TFE_DB_PASSWORD"),
+)
 
 REQUIRED_KEYS = (
     "ticker",
@@ -425,7 +430,13 @@ def _decrypt_user_envelope(
 
 
 def _load_existing_snapshot_rows() -> List[Dict[str, Any]]:
-    missing_env = [key for key in REQUIRED_PG_ENV if not str(os.environ.get(key, "")).strip()]
+    missing_env: List[str] = []
+    for primary_name, alias_name in REQUIRED_DB_ENV_ALIASES:
+        primary_value = str(os.environ.get(primary_name, "")).strip()
+        alias_value = str(os.environ.get(alias_name, "")).strip()
+        if primary_value or alias_value:
+            continue
+        missing_env.append(f"{primary_name}|{alias_name}")
     if missing_env:
         raise RuntimeError(
             "targeted_selector_runtime_postgres_env_missing:"
@@ -486,6 +497,93 @@ def _load_existing_snapshot_rows() -> List[Dict[str, Any]]:
         f"{len(rows)} rows from {source_table}."
     )
     return rows
+
+
+def _index_existing_rows_by_ticker(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    indexed: Dict[str, Dict[str, Any]] = {}
+    for row in rows:
+        ticker = _normalize_symbol(row.get("ticker"))
+        if not ticker or ticker in indexed:
+            continue
+        indexed[ticker] = row
+    return indexed
+
+
+def _clone_previous_snapshot_row(
+    previous_row: Dict[str, Any],
+    *,
+    symbol: str,
+    asset_type: str,
+    run_id: Optional[str],
+    generated_at_utc: str,
+) -> Dict[str, Any]:
+    cloned = dict(previous_row)
+    cloned["ticker"] = symbol
+    cloned["asset_type"] = asset_type
+    cloned["generated_at_utc"] = generated_at_utc
+    if run_id:
+        cloned["run_id"] = run_id
+    return cloned
+
+
+def _zero_delta_skip_applies(metrics: Dict[str, Any]) -> bool:
+    latest_close = metrics.get("latest_close")
+    previous_close = metrics.get("previous_close")
+    latest_volume = metrics.get("latest_volume")
+    if latest_close is None or previous_close is None or latest_volume is None:
+        return False
+    return float(latest_close) == float(previous_close) and float(latest_volume) == 0.0
+
+
+def _zombie_fast_path_applies(previous_row: Dict[str, Any], metrics: Dict[str, Any]) -> bool:
+    regime = str(previous_row.get("regime", "")).strip().upper()
+    if regime != "DEGENERATE":
+        return False
+    traded_dollar_volume = metrics.get("latest_traded_dollar_volume")
+    if traded_dollar_volume is None:
+        return False
+    return float(traded_dollar_volume) < 50000.0
+
+
+def _resolve_skip_reuse_row(
+    *,
+    symbol: str,
+    asset_type: str,
+    previous_row: Optional[Dict[str, Any]],
+    recent_metrics: Dict[str, Any],
+    run_id: Optional[str],
+    generated_at_utc: str,
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    if previous_row is None:
+        return None, None
+    if not _row_has_required_keys(previous_row):
+        return None, None
+
+    if _zero_delta_skip_applies(recent_metrics):
+        return (
+            _clone_previous_snapshot_row(
+                previous_row,
+                symbol=symbol,
+                asset_type=asset_type,
+                run_id=run_id,
+                generated_at_utc=generated_at_utc,
+            ),
+            "zero-delta",
+        )
+
+    if _zombie_fast_path_applies(previous_row, recent_metrics):
+        return (
+            _clone_previous_snapshot_row(
+                previous_row,
+                symbol=symbol,
+                asset_type=asset_type,
+                run_id=run_id,
+                generated_at_utc=generated_at_utc,
+            ),
+            "zombie",
+        )
+
+    return None, None
 
 
 def _load_admin_tracked_symbols() -> Set[str]:
@@ -621,8 +719,9 @@ def _load_tenant_linked_symbols() -> Tuple[Set[str], Dict[str, Any]]:
     return all_symbols, summary
 
 
-def _build_targeted_universe() -> Tuple[List[Dict[str, str]], Dict[str, Any]]:
-    existing_rows = _load_existing_snapshot_rows()
+def _build_targeted_universe(existing_rows: Optional[List[Dict[str, Any]]] = None) -> Tuple[List[Dict[str, str]], Dict[str, Any]]:
+    if existing_rows is None:
+        existing_rows = _load_existing_snapshot_rows()
 
     existing_by_ticker: Dict[str, Dict[str, Any]] = {}
     for row in existing_rows:
@@ -763,9 +862,22 @@ def rebuild_snapshot(
     )
 
     selector_meta: Dict[str, Any] = {}
+    current_run_id = str(os.environ.get("TFE_REFRESH_RUN_ID", "")).strip() or None
+    generated_at_utc = datetime.datetime.utcnow().isoformat() + "Z"
+
+    existing_runtime_rows: List[Dict[str, Any]] = []
+    existing_runtime_rows_error: Optional[str] = None
+    try:
+        existing_runtime_rows = _load_existing_snapshot_rows()
+    except Exception as exc:
+        existing_runtime_rows_error = f"{type(exc).__name__}: {exc}"
+        print(f"[UF-SNAPSHOT] Previous runtime row load unavailable: {existing_runtime_rows_error}")
+    existing_rows_by_ticker = _index_existing_rows_by_ticker(existing_runtime_rows)
 
     if refresh_mode == REFRESH_MODE_TARGETED:
-        universe_items, universe_counts = _build_targeted_universe()
+        universe_items, universe_counts = _build_targeted_universe(
+            existing_rows=existing_runtime_rows if existing_runtime_rows else None,
+        )
         selector_meta = {"targeted_selector": universe_counts}
         print(
             "[UF-SNAPSHOT] Targeted selector counts: "
@@ -789,6 +901,8 @@ def rebuild_snapshot(
 
     snapshot_rows: List[Dict[str, Any]] = []
     skipped_rows: List[Dict[str, str]] = []
+    fast_path_rows: List[Dict[str, str]] = []
+    fast_path_counts = {"zero-delta": 0, "zombie": 0}
     symbol_timeout_count = 0
     symbol_timeout_seconds = max(
         0,
@@ -814,6 +928,28 @@ def rebuild_snapshot(
         previous_alarm_handler = None
 
         try:
+            recent_metrics = load_recent_daily_bar_metrics(symbol)
+            reuse_row, reuse_reason = _resolve_skip_reuse_row(
+                symbol=symbol,
+                asset_type=asset_type,
+                previous_row=existing_rows_by_ticker.get(symbol),
+                recent_metrics=recent_metrics,
+                run_id=current_run_id,
+                generated_at_utc=generated_at_utc,
+            )
+            if reuse_row is not None and reuse_reason is not None:
+                snapshot_rows.append(reuse_row)
+                fast_path_counts[reuse_reason] += 1
+                fast_path_rows.append(
+                    {
+                        "symbol": symbol,
+                        "asset_type": asset_type,
+                        "reason": reuse_reason,
+                    }
+                )
+                print(f"[UF-SNAPSHOT] symbol={symbol} skipped ({reuse_reason})")
+                continue
+
             if symbol_timeout_seconds > 0:
                 previous_alarm_handler = signal.getsignal(signal.SIGALRM)
                 signal.signal(signal.SIGALRM, _snapshot_symbol_timeout_handler)
@@ -898,6 +1034,11 @@ def rebuild_snapshot(
             "symbol_timeout_seconds": symbol_timeout_seconds,
             "progress_log_interval_seconds": progress_log_interval_seconds,
             "skipped_examples": skipped_rows[:25],
+            "fast_path_count": len(fast_path_rows),
+            "fast_path_counts": fast_path_counts,
+            "fast_path_examples": fast_path_rows[:25],
+            "existing_runtime_rows_loaded": len(existing_runtime_rows),
+            "existing_runtime_rows_error": existing_runtime_rows_error,
             "summary": {},
             "pre_ingestion_completeness": pre_ingestion_completeness,
             "snapshot_envelope_path": SNAPSHOT_ENVELOPE_PATH,
@@ -909,7 +1050,6 @@ def rebuild_snapshot(
 
     _backup_old_snapshot_envelope()
 
-    generated_at_utc = datetime.datetime.utcnow().isoformat() + "Z"
     _save_snapshot_json_fallback(snapshot_rows, generated_at_utc=generated_at_utc)
     _save_snapshot_envelope(snapshot_rows, generated_at_utc=generated_at_utc)
 
@@ -929,6 +1069,11 @@ def rebuild_snapshot(
         "symbol_timeout_seconds": symbol_timeout_seconds,
         "progress_log_interval_seconds": progress_log_interval_seconds,
         "skipped_examples": skipped_rows[:25],
+        "fast_path_count": len(fast_path_rows),
+        "fast_path_counts": fast_path_counts,
+        "fast_path_examples": fast_path_rows[:25],
+        "existing_runtime_rows_loaded": len(existing_runtime_rows),
+        "existing_runtime_rows_error": existing_runtime_rows_error,
         "summary": summary,
         "pre_ingestion_completeness": pre_ingestion_completeness,
         "snapshot_json_fallback_path": SNAPSHOT_JSON_FALLBACK_PATH,
