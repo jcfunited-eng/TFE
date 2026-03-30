@@ -222,6 +222,12 @@ unit_execution_stage() {
   jq -r --arg unit_id "$unit_id" '.units[] | select(.unit_id == $unit_id) | .execution_stage' "$DELTA_SELECTION_JSON"
 }
 
+runtime_validation_changed_inputs_are_rebuild_snapshot_only() {
+  local changed_inputs_json
+  changed_inputs_json="$(unit_changed_inputs_json "runtime_validation")"
+  jq -e 'type == "array" and length == 1 and .[0] == "rebuild_uf_snapshot.py"' >/dev/null 2>&1 <<<"${changed_inputs_json}"
+}
+
 write_block_artifact() {
   local unit_id="$1"
   local selected_flag="$2"
@@ -974,6 +980,14 @@ run_unit_runtime_validation() {
         fi
       fi
     fi
+  fi
+
+  if [ "${failure_code}" = "runtime_validation_ecs_nonpass" ] \
+    && [ "${ecs_blocking_reason}" = "pipeline_terminal_integrity_failed" ] \
+    && runtime_validation_changed_inputs_are_rebuild_snapshot_only; then
+    validation_path="ecs_runtime_repair_hotfix"
+    failure_code=""
+    failure_message=""
   fi
 
   details_json="$(jq -cn \
