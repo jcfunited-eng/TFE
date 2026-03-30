@@ -405,8 +405,10 @@ def tracked_files(repo_root: Path) -> List[str]:
     return git_lines(repo_root, ["ls-files"])
 
 
-def repo_dirty_tracked_files(repo_root: Path) -> List[str]:
-    return git_lines(repo_root, ["ls-files", "-m"])
+def repo_dirty_tracked_files(repo_root: Path, paths: List[str]) -> List[str]:
+    if not paths:
+        return []
+    return git_lines(repo_root, ["ls-files", "-m", "--", *paths])
 
 
 def git_changed_files_between(repo_root: Path, base_rev: str, head_rev: str) -> List[str]:
@@ -419,7 +421,11 @@ def git_untracked_files(repo_root: Path, patterns: List[str]) -> List[str]:
     return git_lines(repo_root, ["ls-files", "--others", "--exclude-standard", "--", *patterns])
 
 
-def current_content_hashes(repo_root: Path, tracked: List[str]) -> Dict[str, str]:
+def current_content_hashes(
+    repo_root: Path,
+    tracked: List[str],
+    dirty_paths: set[str],
+) -> Dict[str, str]:
     tracked_hashes: Dict[str, str] = {}
     for line in git_lines(repo_root, ["ls-files", "-s"]):
         parts = line.split(maxsplit=3)
@@ -427,7 +433,6 @@ def current_content_hashes(repo_root: Path, tracked: List[str]) -> Dict[str, str
             continue
         tracked_hashes[parts[3]] = parts[1]
 
-    dirty_paths = set(repo_dirty_tracked_files(repo_root))
     for rel_path in tracked:
         absolute_path = repo_root / rel_path
         if rel_path in dirty_paths and absolute_path.exists():
@@ -533,14 +538,6 @@ def prepare(args: argparse.Namespace) -> int:
     evidence_dir.mkdir(parents=True, exist_ok=True)
 
     tracked = tracked_files(repo_root)
-    current_hashes = current_content_hashes(repo_root, tracked)
-    state, state_exists = load_or_initialize_state(
-        repo_root=repo_root,
-        state_path=state_path,
-        tracked=tracked,
-        current_hashes=current_hashes,
-    )
-
     deploy_patterns = [
         line.strip()
         for line in deploy_pattern_file.read_text(encoding="utf-8").splitlines()
@@ -550,6 +547,14 @@ def prepare(args: argparse.Namespace) -> int:
     untracked_patterns = sorted(set(deploy_patterns + CONTRACT_CONTROL_FILES))
     relevant_tracked = sorted([path for path in tracked if matches_any(path, relevant_patterns)])
     relevant_untracked = sorted(git_untracked_files(repo_root, untracked_patterns))
+    dirty_relevant_tracked = set(repo_dirty_tracked_files(repo_root, relevant_tracked))
+    current_hashes = current_content_hashes(repo_root, tracked, dirty_relevant_tracked)
+    state, state_exists = load_or_initialize_state(
+        repo_root=repo_root,
+        state_path=state_path,
+        tracked=tracked,
+        current_hashes=current_hashes,
+    )
 
     if state_exists:
         git_delta = set(git_changed_files_between(repo_root, args.base_rev, args.head_rev))
@@ -567,7 +572,7 @@ def prepare(args: argparse.Namespace) -> int:
         delta_reason = "tracked_hash_changed_since_validation"
     else:
         git_delta = set(git_changed_files_between(repo_root, args.base_rev, args.head_rev))
-        worktree_dirty = set(repo_dirty_tracked_files(repo_root))
+        worktree_dirty = set(dirty_relevant_tracked)
         tracked_changed = sorted([path for path in relevant_tracked if path in git_delta or path in worktree_dirty])
         delta_mode = "bootstrap_current_delta"
         delta_reason = "state_missing_using_current_git_delta"
