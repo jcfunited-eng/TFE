@@ -285,6 +285,11 @@ function AnalysisPanel({
   const stability = toNumberOrNull(ufMetric?.stability_score) ?? position.stabilityScore;
   const maxDrawdown = toNumberOrNull(ufMetric?.max_dd) ?? position.maxDrawdown;
   const decision = ufMetric?.decision ?? position.decision;
+  const decisionReason = ufMetric?.decisionReason ?? position.decisionReason;
+  const decisionReasonCode = ufMetric?.decisionReasonCode ?? position.decisionReasonCode;
+  const classification = ufMetric?.classification ?? position.classification;
+  const structuralSupport = toNumberOrNull(ufMetric?.S_UF) ?? position.S_UF;
+  const structuralResistance = toNumberOrNull(ufMetric?.R_UF) ?? position.R_UF;
 
   return (
     <ClientPortal>
@@ -317,7 +322,7 @@ function AnalysisPanel({
                 {position.ticker} <span className={`tfe-chip ${decisionClass(decision)}`}>{decision}</span>
               </h2>
               <p className="tfe-muted" style={{ margin: "0.35rem 0 0" }}>
-                {position.decisionReason}
+                {decisionReason}
               </p>
             </div>
             <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
@@ -329,6 +334,37 @@ function AnalysisPanel({
               </button>
             </div>
           </div>
+
+          <section className="tfe-panel" style={{ display: "grid", gap: "0.75rem" }}>
+            <h3 style={{ margin: 0 }}>L5 Decision Context</h3>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                gap: "0.75rem",
+              }}
+            >
+              <div className="tfe-panel">
+                <strong>Decision</strong>
+                <div>{decision}</div>
+              </div>
+              <div className="tfe-panel">
+                <strong>Classification</strong>
+                <div>{classification}</div>
+              </div>
+              <div className="tfe-panel">
+                <strong>Reason Code</strong>
+                <div>{fmtText(decisionReasonCode)}</div>
+              </div>
+              <div className="tfe-panel">
+                <strong>Published Status</strong>
+                <div>{fmtText(position.publishedDecisionStatus)}</div>
+              </div>
+            </div>
+            <p className="tfe-muted" style={{ margin: 0 }}>
+              {decisionReason}
+            </p>
+          </section>
 
           <section className="tfe-panel" style={{ display: "grid", gap: "0.75rem" }}>
             <h3 style={{ margin: 0 }}>Native Engine Metrics</h3>
@@ -361,11 +397,11 @@ function AnalysisPanel({
               </div>
               <div className="tfe-panel">
                 <strong>S_UF</strong>
-                <div>{fmtNumber(position.S_UF, 2)}</div>
+                <div>{fmtNumber(structuralSupport, 2)}</div>
               </div>
               <div className="tfe-panel">
                 <strong>R_UF</strong>
-                <div>{fmtNumber(position.R_UF, 2)}</div>
+                <div>{fmtNumber(structuralResistance, 2)}</div>
               </div>
               <div className="tfe-panel">
                 <strong>Stability</strong>
