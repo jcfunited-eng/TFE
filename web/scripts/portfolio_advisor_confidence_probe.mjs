@@ -123,12 +123,12 @@ async function run() {
       portfolio_add_lots_success: false,
       portfolio_get_success: false,
       portfolio_page_http_200: false,
-      portfolio_page_provenance_cards_present: false,
-      portfolio_page_confidence_strip_present: false,
+      portfolio_page_guidance_rails_present: false,
+      portfolio_page_summary_cards_present: false,
       portfolio_page_section_headers_present: false,
       portfolio_page_table_headers_present: false,
       portfolio_page_table_rows_present: false,
-      portfolio_page_table_wrappers_present: false,
+      portfolio_page_research_links_present: false,
       portfolio_contains_saved_lots: false,
       portfolio_contains_saved_positions: false,
       advisor_decision_audit_fields_present: false,
@@ -253,39 +253,37 @@ async function run() {
     await page.screenshot({ path: summary.screenshots.portfolio_page, fullPage: true });
 
     const pageText = await page.locator('body').innerText();
-    const expectedProvenanceLabels = [
-      'Data Source',
-      'Runtime Run ID',
-      'Generated (UTC)',
-      'Data Freshness',
-      'Snapshot Source',
-      'Quote Source',
+
+    const expectedGuidanceLabels = [
+      'How This Page Works',
+      'Decision Context',
     ];
-    const missingPageLabels = expectedProvenanceLabels.filter((label) => !String(pageText).includes(label));
-    if (missingPageLabels.length === 0) {
-      summary.checks.portfolio_page_provenance_cards_present = true;
+    const missingGuidanceLabels = expectedGuidanceLabels.filter((label) => !String(pageText).includes(label));
+    if (missingGuidanceLabels.length === 0) {
+      summary.checks.portfolio_page_guidance_rails_present = true;
     } else {
-      summary.failures.push('portfolio_page_provenance_cards_missing');
-      summary.details.portfolio_page.missing_labels = missingPageLabels;
+      summary.failures.push('portfolio_page_guidance_rails_missing');
+      summary.details.portfolio_page.missing_guidance_labels = missingGuidanceLabels;
     }
 
-    const expectedConfidenceStripLabels = [
-      'Portfolio Confidence',
-      'Freshness',
-      'Realized P/L',
-      'Benchmark Compare',
+    const expectedSummaryCardLabels = [
+      'Total Market Value',
+      'Total Cost Basis',
+      'Unrealized P/L',
+      'Unrealized P/L %',
     ];
-    const missingConfidenceStripLabels = expectedConfidenceStripLabels.filter((label) => !String(pageText).includes(label));
-    if (missingConfidenceStripLabels.length === 0) {
-      summary.checks.portfolio_page_confidence_strip_present = true;
+    const missingSummaryCardLabels = expectedSummaryCardLabels.filter((label) => !String(pageText).includes(label));
+    if (missingSummaryCardLabels.length === 0) {
+      summary.checks.portfolio_page_summary_cards_present = true;
     } else {
-      summary.failures.push('portfolio_page_confidence_strip_missing');
-      summary.details.portfolio_page.missing_confidence_strip_labels = missingConfidenceStripLabels;
+      summary.failures.push('portfolio_page_summary_cards_missing');
+      summary.details.portfolio_page.missing_summary_card_labels = missingSummaryCardLabels;
     }
 
     const expectedSectionHeaders = [
-      'Runtime Provenance',
-      'Performance And Benchmark Snapshot',
+      'Manual Portfolio',
+      'Positions',
+      'Lots',
     ];
     const missingSectionHeaders = expectedSectionHeaders.filter((label) => !String(pageText).includes(label));
     if (missingSectionHeaders.length === 0) {
@@ -299,8 +297,13 @@ async function run() {
       const headers = Array.from(document.querySelectorAll('table th'))
         .map((header) => String(header.textContent ?? '').replace(/\s+/g, ' ').trim())
         .filter((header) => header.length > 0);
+      const researchLinkCount = Array.from(document.querySelectorAll('a, button'))
+        .map((node) => String(node.textContent ?? '').replace(/\s+/g, ' ').trim())
+        .filter((text) => text.startsWith('Research'))
+        .length;
       return {
         headers,
+        researchLinkCount,
       };
     });
     const normalizedTableHeaders = tableHeaderStats.headers.map((header) =>
@@ -311,24 +314,25 @@ async function run() {
     );
     summary.details.portfolio_page.table_headers = tableHeaderStats.headers;
     summary.details.portfolio_page.table_headers_normalized = normalizedTableHeaders;
+    summary.details.portfolio_page.research_link_count = tableHeaderStats.researchLinkCount;
 
     const expectedTableHeaderGroups = [
       ['Ticker'],
-      ['Asset Type'],
+      ['Asset'],
       ['Units'],
       ['Avg Cost'],
-      ['Market Value', 'Current Value', 'Value'],
-      ['Cost Basis'],
+      ['Price'],
+      ['Market Value'],
+      ['Net P/L %'],
       ['Decision'],
-      ['Action'],
-      ['Current %'],
-      ['Target %'],
-      ['Drift (pp)'],
-      ['Rebalance $'],
-      ['Reason'],
+      ['S_UF'],
+      ['R_UF'],
+      ['Bars'],
+      ['Research'],
       ['Unit Cost'],
       ['Added'],
       ['Updated'],
+      ['Action'],
     ];
     const missingTableHeaders = expectedTableHeaderGroups
       .filter(
@@ -347,26 +351,18 @@ async function run() {
 
     const tableStats = await page.evaluate(() => {
       const tables = Array.from(document.querySelectorAll('table'));
-      const tableWrappers = document.querySelectorAll('.tfe-table-wrap').length;
       const rowCounts = tables.map((table) => table.querySelectorAll('tbody tr').length);
       return {
         tableCount: tables.length,
-        tableWrappers,
         rowCounts,
       };
     });
     summary.details.portfolio_page.table_stats = tableStats;
 
-    if (tableStats.tableWrappers >= 3) {
-      summary.checks.portfolio_page_table_wrappers_present = true;
-    } else {
-      summary.failures.push('portfolio_page_table_wrappers_missing');
-    }
-
     const nonEmptyTableCount = Array.isArray(tableStats.rowCounts)
       ? tableStats.rowCounts.filter((value) => Number(value) > 0).length
       : 0;
-    if (tableStats.tableCount >= 3 && nonEmptyTableCount >= 2) {
+    if (tableStats.tableCount >= 2 && nonEmptyTableCount >= 2) {
       summary.checks.portfolio_page_table_rows_present = true;
     } else {
       summary.failures.push('portfolio_page_table_rows_missing_or_empty');
@@ -376,6 +372,13 @@ async function run() {
     const positions = Array.isArray(getBody?.positions) ? getBody.positions : [];
     const summaryObj = getBody?.summary && typeof getBody.summary === 'object' ? getBody.summary : {};
     const allocatorPlan = getBody?.allocatorPlan && typeof getBody.allocatorPlan === 'object' ? getBody.allocatorPlan : null;
+
+    if (positions.length > 0 && tableHeaderStats.researchLinkCount >= positions.length) {
+      summary.checks.portfolio_page_research_links_present = true;
+    } else {
+      summary.failures.push('portfolio_page_research_links_missing');
+      summary.details.portfolio_page.expected_research_links_min = positions.length;
+    }
 
     const expectedTickers = new Set(args.symbols);
     const lotTickers = new Set(
@@ -493,6 +496,7 @@ async function run() {
     if (!('generated_at_utc' in (getBody || {}))) {
       pushGap(summary.gaps, 'portfolio_runtime_generated_at_not_exposed', 'GET /api/portfolio response does not expose generated_at_utc for freshness audit.');
     }
+
     const realizedContractFields = ['realizedPnL', 'realizedPnLPct', 'realizedPnLStatus', 'realizedPnLMethod'];
     const missingRealizedContractFields = realizedContractFields.filter((field) => !(field in summaryObj));
     const realizedStatus = String(summaryObj?.realizedPnLStatus ?? '').trim();
@@ -511,39 +515,40 @@ async function run() {
         `missing_fields=${missingRealizedContractFields.join(',') || '<none>'}; status=${realizedStatus || '<empty>'}; method=${realizedMethod || '<empty>'}`,
       );
     }
-    const benchmarkObj = getBody?.benchmark && typeof getBody.benchmark === "object" ? getBody.benchmark : null;
+
+    const benchmarkObj = getBody?.benchmark && typeof getBody.benchmark === 'object' ? getBody.benchmark : null;
     const benchmarkContractFields = [
-      "symbol",
-      "portfolioReturnPct",
-      "benchmarkReturnPct",
-      "relativeReturnPctPoints",
-      "status",
-      "method",
+      'symbol',
+      'portfolioReturnPct',
+      'benchmarkReturnPct',
+      'relativeReturnPctPoints',
+      'status',
+      'method',
     ];
     const missingBenchmarkContractFields = benchmarkContractFields.filter((field) => !(field in (benchmarkObj || {})));
-    const benchmarkSymbol = String(benchmarkObj?.symbol ?? "").trim();
-    const benchmarkStatus = String(benchmarkObj?.status ?? "").trim();
-    const benchmarkMethod = String(benchmarkObj?.method ?? "").trim();
+    const benchmarkSymbol = String(benchmarkObj?.symbol ?? '').trim();
+    const benchmarkStatus = String(benchmarkObj?.status ?? '').trim();
+    const benchmarkMethod = String(benchmarkObj?.method ?? '').trim();
     const benchmarkStatusValid =
-      benchmarkStatus === "unavailable_same_dates_same_dollars_ledger_required" ||
-      benchmarkStatus === "computed_same_dates_same_dollars_v1";
+      benchmarkStatus === 'unavailable_same_dates_same_dollars_ledger_required' ||
+      benchmarkStatus === 'computed_same_dates_same_dollars_v1';
     const benchmarkMethodValid =
-      benchmarkMethod === "same_dates_same_dollars_ledger_required" ||
-      benchmarkMethod === "same_dates_same_dollars_v1";
+      benchmarkMethod === 'same_dates_same_dollars_ledger_required' ||
+      benchmarkMethod === 'same_dates_same_dollars_v1';
 
     if (
       missingBenchmarkContractFields.length === 0 &&
-      benchmarkSymbol === "SPY" &&
+      benchmarkSymbol === 'SPY' &&
       benchmarkStatusValid &&
       benchmarkMethodValid
     ) {
       summary.checks.portfolio_benchmark_compare_contract_present = true;
     } else {
-      summary.failures.push("portfolio_benchmark_compare_contract_missing_or_invalid");
+      summary.failures.push('portfolio_benchmark_compare_contract_missing_or_invalid');
       pushGap(
         summary.gaps,
-        "portfolio_benchmark_compare_contract_not_present",
-        `missing_fields=${missingBenchmarkContractFields.join(",") || "<none>"}; symbol=${benchmarkSymbol || "<empty>"}; status=${benchmarkStatus || "<empty>"}; method=${benchmarkMethod || "<empty>"}`,
+        'portfolio_benchmark_compare_contract_not_present',
+        `missing_fields=${missingBenchmarkContractFields.join(',') || '<none>'}; symbol=${benchmarkSymbol || '<empty>'}; status=${benchmarkStatus || '<empty>'}; method=${benchmarkMethod || '<empty>'}`,
       );
     }
   } finally {

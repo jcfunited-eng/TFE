@@ -11,6 +11,65 @@ TS="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT_DIR="$ROOT/backups/runtime/portfolio-advisor-confidence-probe-${TS}"
 mkdir -p "$OUT_DIR"
 
+resolve_playwright_executable_path() {
+  (
+    cd "$ROOT/web"
+    node - <<'NODE'
+const { chromium } = require('playwright');
+process.stdout.write(chromium.executablePath());
+NODE
+  )
+}
+
+resolve_missing_playwright_deps() {
+  local executable_path="$1"
+  if [[ ! -x "$executable_path" ]]; then
+    return 0
+  fi
+  ldd "$executable_path" 2>/dev/null | awk '/not found/{print $1}'
+}
+
+ensure_playwright_browser() {
+  local executable_path
+  local missing_deps
+
+  executable_path="$(resolve_playwright_executable_path)"
+  missing_deps="$(resolve_missing_playwright_deps "$executable_path")"
+
+  if [[ -x "$executable_path" && -z "$missing_deps" ]]; then
+    return 0
+  fi
+
+  if [[ ! -x "$executable_path" ]]; then
+    echo "[portfolio-probe] Playwright Chromium missing; installing browser and system dependencies..." >&2
+  else
+    echo "[portfolio-probe] Playwright Chromium system dependencies missing: $missing_deps" >&2
+    echo "[portfolio-probe] Installing browser and system dependencies..." >&2
+  fi
+
+  (
+    cd "$ROOT/web"
+    npx playwright install --with-deps chromium
+  )
+
+  executable_path="$(resolve_playwright_executable_path)"
+  missing_deps="$(resolve_missing_playwright_deps "$executable_path")"
+
+  if [[ ! -x "$executable_path" ]]; then
+    echo "[portfolio-probe] ERROR: Playwright Chromium install did not produce an executable browser." >&2
+    return 1
+  fi
+
+  if [[ -n "$missing_deps" ]]; then
+    echo "[portfolio-probe] ERROR: Playwright Chromium still has unresolved dependencies: $missing_deps" >&2
+    return 1
+  fi
+
+  return 0
+}
+
+ensure_playwright_browser
+
 USERNAME="codex_portfolio_conf_${TS//[^0-9]/}"
 PASSWORD="codexprobe_${TS//[^0-9]/}"
 
