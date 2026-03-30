@@ -8,7 +8,7 @@ const PRIMITIVE_ARTIFACT_ID = "gemini_l5_primitive_v1";
 const PRIMITIVE_FORMULA_TEXT = [
   "Step 1: if S_UF <= 0 => Avoid",
   "Step 2: if R_rev_k < 0 => Avoid",
-  "Step 3: if D_k > 0 and R_UF > 0 and C_k <= prev_C_k and P_k < abs(B_k) => Accumulate",
+  "Step 3: if D_k > 0 and R_UF > 0 and (S_UF > 0.8 ? C_k <= prev_C_k : C_k < prev_C_k) and P_k < abs(B_k) => Accumulate",
   "Step 4: if D_k >= 0 and P_k < (abs(B_k) * 1.5) => Hold",
   "Step 5: default => Avoid",
 ].join(" | ");
@@ -256,10 +256,14 @@ function primitiveReasonCodeFromInputs(inputs) {
   if (inputs.missing_fields.length > 0) return "GEMINI_MISSING_REQUIRED_FIELDS";
   if (inputs.S_UF <= 0) return "GEMINI_STEP_1_VIABILITY";
   if (inputs.R_rev_k < 0) return "GEMINI_STEP_2_KILL_SWITCH";
+  const decelGatePassed =
+    inputs.S_UF > 0.8
+      ? inputs.C_k <= inputs.prev_C_k
+      : inputs.C_k < inputs.prev_C_k;
   if (
     inputs.D_k > 0 &&
     inputs.R_UF > 0 &&
-    inputs.C_k <= inputs.prev_C_k &&
+    decelGatePassed &&
     inputs.P_k < Math.abs(inputs.B_k)
   ) {
     return "GEMINI_STEP_3_ACCUMULATE";
