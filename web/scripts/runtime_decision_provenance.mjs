@@ -103,7 +103,7 @@ const REQUIRED_PRIMITIVE_FIELDS = [
   ["b_k", "B_k"],
   ["d_k", "D_k"],
   ["r_rev_k", "R_rev_k"],
-] ;
+];
 
 export function normalizeTicker(value) {
   return String(value ?? "").trim().toUpperCase();

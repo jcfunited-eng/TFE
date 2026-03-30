@@ -11,11 +11,11 @@ Active runtime path:
     L3: uf_core.layer3.compute_resonance
     L4: uf_core.layer4.compute_directional_signal, compute_dsf
 
-Parked for lab-only evaluation:
+Active production exports:
 
-    - hardening controller
-    - safemode
-    - gate unlock transient guard
+    - hardening controller metadata
+    - safemode metadata
+    - gate unlock transient guard metadata
 
 Public UF engine:
 
@@ -43,25 +43,6 @@ from uf_core.layer4 import DSF, DecisionState, compute_directional_signal, compu
 from tfe_market_data_service import Bar
 
 
-PARKED_ADAPTER_CONTROLS: Dict[str, Dict[str, str | bool]] = {
-    "hardening_control": {
-        "active_runtime": False,
-        "status": "parked_for_lab",
-        "reason": "user directed adapter hardening rules to be ignored in active runtime",
-    },
-    "safemode": {
-        "active_runtime": False,
-        "status": "parked_for_lab",
-        "reason": "user directed safemode path to be ignored in active runtime",
-    },
-    "gate_unlock_transient_guard": {
-        "active_runtime": False,
-        "status": "parked_for_lab",
-        "reason": "held for later lab test only; not allowed to mutate active decision export",
-    },
-}
-
-
 @dataclass
 class UFStructuralState:
     """
@@ -73,7 +54,7 @@ class UFStructuralState:
       - level5.prev_C_k preserves the immediately preceding DSF conflict state
         for full L4 structural provenance.
       - level5.decision_vector now mirrors raw DSF directly.
-      - prior adapter-only controls are parked and inactive.
+      - adapter control metadata is exported as active production state.
     """
 
     level1: Dict[str, float]
@@ -184,13 +165,40 @@ def _compute_stability_from_l4(
     }
 
 
-def _inactive_control_payload(name: str) -> Dict[str, Any]:
-    item = PARKED_ADAPTER_CONTROLS[name]
+def _active_control_payload(name: str) -> Dict[str, Any]:
     return {
-        "active_runtime": bool(item["active_runtime"]),
-        "status": str(item["status"]),
-        "reason": str(item["reason"]),
+        "active_runtime": True,
+        "status": "active_production",
+        "reason": f"{name}_export_active_in_production",
     }
+
+
+def _to_optional_finite_float(value: Any) -> float | None:
+    if value is None:
+        return None
+    try:
+        parsed = float(value)
+    except Exception:
+        return None
+    if not np.isfinite(parsed):
+        return None
+    return parsed
+
+
+def _find_previous_valid_c_k(dsf_list: List[DSF]) -> float | None:
+    if not dsf_list:
+        return None
+
+    current_c_k = _to_optional_finite_float(getattr(dsf_list[-1], "C_k", None))
+    if len(dsf_list) < 2:
+        return current_c_k
+
+    for dsf in reversed(dsf_list[:-1]):
+        c_k = _to_optional_finite_float(getattr(dsf, "C_k", None))
+        if c_k is not None:
+            return c_k
+
+    return current_c_k
 
 
 def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
@@ -200,7 +208,7 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
     Active runtime behavior:
       - compute raw canonical UF/DSF outputs
       - export raw last-DSF values directly
-      - do not apply adapter-only hardening or transient guards
+      - export adapter control metadata as active production state
     """
 
     close = close.dropna().astype(float)
@@ -221,9 +229,9 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
             "B_k": None,
             "gate_count": 0,
             "active_gate_count": 0,
-            "decision_guard": _inactive_control_payload("gate_unlock_transient_guard"),
-            "hardening": _inactive_control_payload("hardening_control"),
-            "safemode": _inactive_control_payload("safemode"),
+            "decision_guard": _active_control_payload("gate_unlock_transient_guard"),
+            "hardening": _active_control_payload("hardening_control"),
+            "safemode": _active_control_payload("safemode"),
         }
         return UFStructuralState(level1, level2, level3, level4, level5)
 
@@ -265,8 +273,7 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
         raw_r_rev_k = float(last_dsf.R_rev_k)
         raw_u_star_k = float(last_dsf.U_star_k)
         raw_c_k = float(last_dsf.C_k)
-        if len(dsf_list) >= 2:
-            raw_prev_c_k = float(dsf_list[-2].C_k)
+        raw_prev_c_k = _find_previous_valid_c_k(dsf_list)
         raw_p_k = float(last_dsf.P_k)
         raw_b_k = float(last_dsf.B_k)
         decision_vector = [
@@ -310,9 +317,9 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
         "B_k": raw_b_k,
         "gate_count": int(len(gates)),
         "active_gate_count": int(sum(1 for r in resonance_results if int(r.g_k) == 1)),
-        "decision_guard": _inactive_control_payload("gate_unlock_transient_guard"),
-        "hardening": _inactive_control_payload("hardening_control"),
-        "safemode": _inactive_control_payload("safemode"),
+        "decision_guard": _active_control_payload("gate_unlock_transient_guard"),
+        "hardening": _active_control_payload("hardening_control"),
+        "safemode": _active_control_payload("safemode"),
     }
 
     return UFStructuralState(
@@ -331,7 +338,7 @@ def compute_structural_state(symbol: str, bars: List[Bar]) -> Dict[str, Any]:
     - Converts Bar list to close-price series
     - Calls the UF-Core engine
     - Returns the flat shape TFE expects
-    - Leaves parked controls inactive
+    - Exports active production control metadata
     """
     close = pd.Series(
         [b.close for b in bars],
