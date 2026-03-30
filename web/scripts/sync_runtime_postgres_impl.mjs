@@ -417,8 +417,8 @@ function resolveGeneratedAt(report, snapshotPayload, fallbackIso) {
 }
 
 function inferDecisionLabel(row) {
-  const sUf = toFiniteOrNull(row?.S_UF);
-  const rUf = toFiniteOrNull(row?.R_UF);
+  const sUf = toFiniteOrNull(row?.S_UF ?? row?.s_uf);
+  const rUf = toFiniteOrNull(row?.R_UF ?? row?.r_uf);
   if (sUf !== null && rUf !== null) {
     if (sUf >= 0.5 && rUf >= 0.5) return "Accumulate";
     if (sUf <= -0.5 && rUf <= -0.5) return "Avoid";
