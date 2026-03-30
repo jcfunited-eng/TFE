@@ -51,9 +51,10 @@ function toNumber(value: unknown): number {
 }
 
 function persistedDecisionLabel(value: unknown): PublishedDecisionLabel | null {
-  if (value === "Accumulate" || value === "Hold" || value === "Avoid") {
-    return value;
-  }
+  const raw = String(value ?? "").trim().toLowerCase();
+  if (raw === "accumulate") return "Accumulate";
+  if (raw === "hold") return "Hold";
+  if (raw === "avoid") return "Avoid";
   return null;
 }
 
@@ -68,6 +69,24 @@ export function persistedProvenanceUsable(value: RuntimeDecisionPersistedProvena
 }
 
 function decisionReasonText(reasonCode: string, decision: PublishedDecisionLabel, matchedKey: string | null): string {
+  if (reasonCode === "GEMINI_STEP_1_VIABILITY") {
+    return "GEMINI Step 1: S_UF <= 0, so the ticker is Avoid.";
+  }
+  if (reasonCode === "GEMINI_STEP_2_KILL_SWITCH") {
+    return "GEMINI Step 2: R_rev_k > 0, so the kill switch forces Avoid.";
+  }
+  if (reasonCode === "GEMINI_STEP_3_ACCUMULATE") {
+    return "GEMINI Step 3: positive drive, positive R_UF, decelerating C_k, and P_k below B_k triggered Accumulate.";
+  }
+  if (reasonCode === "GEMINI_STEP_4_HOLD") {
+    return "GEMINI Step 4: the ticker stayed inside the Hold orbit gate.";
+  }
+  if (reasonCode === "GEMINI_STEP_5_DEFAULT_AVOID") {
+    return "GEMINI Step 5: no prior gate fired, so the default is Avoid.";
+  }
+  if (reasonCode === "GEMINI_MISSING_REQUIRED_FIELDS") {
+    return "GEMINI input set is incomplete, so the ticker defaults to Avoid.";
+  }
   if (reasonCode === "PSCF_POLICY_DECISION") {
     return `PSCF/L5 policy decision ${decision} from matched cell ${matchedKey ?? "unknown"}.`;
   }

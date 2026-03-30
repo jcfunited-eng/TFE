@@ -16,7 +16,7 @@ This module:
     - Returns a dict with keys:
         ticker, asset_type, price, regime,
         S_UF, R_UF, stability_score, max_dd,
-        decision_vector, D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k,
+        decision_vector, D_k, M_k, R_rev_k, U_star_k, C_k, prev_C_k, P_k, B_k,
         bar_count
 
 Intended usage
@@ -328,6 +328,7 @@ def evaluate_symbol_snapshot(
             "R_rev_k": 0.0,
             "U_star_k": 0.0,
             "C_k": 0.0,
+            "prev_C_k": None,
             "P_k": 0.0,
             "B_k": 0.0,
             "bar_count": 0,
@@ -369,6 +370,7 @@ def evaluate_symbol_snapshot(
     r_rev_k = _safe_optional_float(state.get("R_rev_k"))
     u_star_k = _safe_optional_float(state.get("U_star_k"))
     c_k = _safe_optional_float(state.get("C_k"))
+    prev_c_k = _safe_optional_float(state.get("prev_C_k"))
     p_k = _safe_optional_float(state.get("P_k"))
     b_k = _safe_optional_float(state.get("B_k"))
 
@@ -410,6 +412,7 @@ def evaluate_symbol_snapshot(
         "R_rev_k": r_rev_k,
         "U_star_k": u_star_k,
         "C_k": c_k,
+        "prev_C_k": prev_c_k,
         "P_k": p_k,
         "B_k": b_k,
         "bar_count": int(bar_count),

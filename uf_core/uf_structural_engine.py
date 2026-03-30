@@ -70,6 +70,7 @@ class UFStructuralState:
     NOTE:
       - All fields are derived from uf_core.*.
       - level5.D_k/M_k/R_rev_k/U_star_k/C_k/P_k/B_k preserve last DSF values
+      - level5.prev_C_k preserves the immediately preceding DSF conflict state
         for full L4 structural provenance.
       - level5.decision_vector now mirrors raw DSF directly.
       - prior adapter-only controls are parked and inactive.
@@ -215,6 +216,7 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
             "R_rev_k": None,
             "U_star_k": None,
             "C_k": None,
+            "prev_C_k": None,
             "P_k": None,
             "B_k": None,
             "gate_count": 0,
@@ -252,6 +254,7 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
     raw_r_rev_k: float | None = None
     raw_u_star_k: float | None = None
     raw_c_k: float | None = None
+    raw_prev_c_k: float | None = None
     raw_p_k: float | None = None
     raw_b_k: float | None = None
 
@@ -262,6 +265,8 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
         raw_r_rev_k = float(last_dsf.R_rev_k)
         raw_u_star_k = float(last_dsf.U_star_k)
         raw_c_k = float(last_dsf.C_k)
+        if len(dsf_list) >= 2:
+            raw_prev_c_k = float(dsf_list[-2].C_k)
         raw_p_k = float(last_dsf.P_k)
         raw_b_k = float(last_dsf.B_k)
         decision_vector = [
@@ -300,6 +305,7 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
         "R_rev_k": raw_r_rev_k,
         "U_star_k": raw_u_star_k,
         "C_k": raw_c_k,
+        "prev_C_k": raw_prev_c_k,
         "P_k": raw_p_k,
         "B_k": raw_b_k,
         "gate_count": int(len(gates)),
@@ -348,6 +354,7 @@ def compute_structural_state(symbol: str, bars: List[Bar]) -> Dict[str, Any]:
         "R_rev_k": uf_state.level5.get("R_rev_k"),
         "U_star_k": uf_state.level5.get("U_star_k"),
         "C_k": uf_state.level5.get("C_k"),
+        "prev_C_k": uf_state.level5.get("prev_C_k"),
         "P_k": uf_state.level5.get("P_k"),
         "B_k": uf_state.level5.get("B_k"),
         "gate_count": uf_state.level5.get("gate_count", 0),

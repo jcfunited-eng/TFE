@@ -819,7 +819,7 @@ function buildPreparedRuntimeRecords({
       generatedAtUtc,
       barDate,
       snapshotRowJson: JSON.stringify(snapshotRow),
-      decisionLabel: inferDecisionLabel(row),
+      decisionLabel: String(persistedProvenance.decision ?? "Avoid"),
       barCount: toIntOrNull(row.bar_count),
       minBarsForAccumulate: DEFAULT_MIN_BARS,
       regime: String(row.regime ?? "UNKNOWN"),

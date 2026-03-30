@@ -1,12 +1,19 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
 
-const FALLBACK_DECISION = "Hold";
 const DECISION_VALUES = new Set(["Accumulate", "Hold", "Avoid"]);
 const DEFAULT_PROVENANCE_SCHEMA_VERSION = "v1";
 const DEFAULT_WRITER_COMPONENT = "web/scripts/sync_runtime_postgres.mjs";
 const DEFAULT_CP_PROFILE = "CP-0";
+const PRIMITIVE_ARTIFACT_ID = "gemini_l5_primitive_v1";
+const PRIMITIVE_FORMULA_TEXT = [
+  "Step 1: if S_UF <= 0 => Avoid",
+  "Step 2: if R_rev_k > 0 => Avoid",
+  "Step 3: if D_k > 0 and R_UF > 0 and C_k < prev_C_k and P_k < B_k => Accumulate",
+  "Step 4: if D_k >= 0 and P_k < (B_k * 1.5) => Hold",
+  "Step 5: default => Avoid",
+].join(" | ");
+const PRIMITIVE_ARTIFACT_HASH = createHash("sha256").update(PRIMITIVE_FORMULA_TEXT).digest("hex");
+
 export const CURRENT_ST_ANCHORED_EXACT_FAMILY = "CURRENT_ST_ANCHORED_EXACT_FAMILY";
 export const NO_ST_EXACT_FAMILY_KEEP_CD_PHASE_SPIDER_STRICT = "NO_ST_EXACT_FAMILY_KEEP_CD_PHASE_SPIDER_STRICT";
 export const DEFAULT_PSCF_EXACT_ANCHOR_MODE = NO_ST_EXACT_FAMILY_KEEP_CD_PHASE_SPIDER_STRICT;
@@ -18,15 +25,15 @@ export const TYPED_FALLBACK_LEVELS = [
     structural_coverage: true,
     exact_structural: true,
     quality_assessed_under_current_contract: true,
-    description: "Exact matched key with no fallback.",
+    description: "Exact GEMINI primitive decision with all required inputs present.",
   },
   {
     id: "L1_RELAXED_STRUCTURAL_MATCH",
     order: 1,
-    structural_coverage: true,
+    structural_coverage: false,
     exact_structural: false,
-    quality_assessed_under_current_contract: true,
-    description: "Matched via allowed candidate-key relaxation path.",
+    quality_assessed_under_current_contract: false,
+    description: "Legacy reserved level. Unused by the GEMINI primitive sorter.",
   },
   {
     id: "L2_SAFE_POLICY_FALLBACK",
@@ -34,7 +41,7 @@ export const TYPED_FALLBACK_LEVELS = [
     structural_coverage: false,
     exact_structural: false,
     quality_assessed_under_current_contract: false,
-    description: "Safe fallback path used instead of a reliable structural recommendation.",
+    description: "Legacy reserved level. Unused by the GEMINI primitive sorter.",
   },
   {
     id: "L3_DEGRADED_UNMAPPED",
@@ -42,7 +49,7 @@ export const TYPED_FALLBACK_LEVELS = [
     structural_coverage: false,
     exact_structural: false,
     quality_assessed_under_current_contract: false,
-    description: "Policy missing, cell unavailable, or structurally unmapped/degraded.",
+    description: "Legacy reserved level. Unused by the GEMINI primitive sorter.",
   },
   {
     id: "L4_UNAVAILABLE_OR_BLOCKED",
@@ -50,16 +57,13 @@ export const TYPED_FALLBACK_LEVELS = [
     structural_coverage: false,
     exact_structural: false,
     quality_assessed_under_current_contract: false,
-    description: "Unavailable or blocked due to insufficiency/incompleteness at decision time.",
+    description: "Required primitive inputs are missing, so the row defaults to Avoid.",
   },
 ];
 
 export const TYPED_FALLBACK_ORTHOGONAL_FLAGS = [
-  "anomaly_flag",
-  "freshness_or_stale_flag",
+  "primitive_input_complete",
   "provenance_source",
-  "insufficiency_or_block_reason_code",
-  "matched_exact_bool",
 ];
 
 export const PROVENANCE_REQUIRED_NON_NULL_FIELDS = [
@@ -90,11 +94,35 @@ export const PROVENANCE_REQUIRED_NON_NULL_FIELDS = [
   "provenance_generated_utc",
 ];
 
+const REQUIRED_PRIMITIVE_FIELDS = [
+  ["s_uf", "S_UF"],
+  ["r_uf", "R_UF"],
+  ["c_k", "C_k"],
+  ["prev_c_k", "prev_C_k"],
+  ["p_k", "P_k"],
+  ["b_k", "B_k"],
+  ["d_k", "D_k"],
+  ["r_rev_k", "R_rev_k"],
+] ;
+
 export function normalizeTicker(value) {
   return String(value ?? "").trim().toUpperCase();
 }
 
-function normalizeBoolean(value, fallback = false) {
+function toRecord(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value;
+}
+
+function toFinite(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string" && value.trim().length === 0) return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  return n;
+}
+
+function toBoolean(value, fallback = false) {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value !== 0;
   if (typeof value === "string") {
@@ -103,22 +131,6 @@ function normalizeBoolean(value, fallback = false) {
     if (["0", "false", "no", "off", "n", ""].includes(text)) return false;
   }
   return fallback;
-}
-
-function toFinite(value) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return null;
-  return n;
-}
-
-function toInt(value) {
-  const n = toFinite(value);
-  if (n === null) return null;
-  return Math.trunc(n);
-}
-
-function toBoolean(value) {
-  return normalizeBoolean(value, false);
 }
 
 export function stableStringify(value) {
@@ -150,21 +162,6 @@ export function minBarsForAccumulate() {
   return whole;
 }
 
-function anomalyFallbackEnabled() {
-  return normalizeBoolean(process.env.TFE_RECOMMENDATIONS_ANOMALY_FALLBACK, false);
-}
-
-function sign3(value) {
-  if (value > 0) return 1;
-  if (value < 0) return -1;
-  return 0;
-}
-
-function toRecord(value) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  return value;
-}
-
 export function normalizeDecisionTraceRow(value) {
   if (Array.isArray(value)) {
     return value.map((item) => normalizeDecisionTraceRow(item));
@@ -181,221 +178,15 @@ export function normalizeDecisionTraceRow(value) {
   );
 }
 
-function dvValue(row, index) {
-  const dv = row.decision_vector;
-  if (!Array.isArray(dv)) return null;
-  if (index < 0 || index >= dv.length) return null;
-  return toFinite(dv[index]);
-}
-
-function rowNumberField(row, key) {
-  return toFinite(row[key]);
-}
-
-function resolveBasis(row) {
-  const regime = String(row?.regime ?? "UNKNOWN");
-
-  let dVal = dvValue(row, 0);
-  if (dVal === null) dVal = rowNumberField(row, "d_k");
-
-  let mVal = dvValue(row, 1);
-  if (mVal === null) mVal = rowNumberField(row, "m_k");
-
-  let rVal = dvValue(row, 2);
-  if (rVal === null) rVal = rowNumberField(row, "r_rev_k");
-
-  let uVal = dvValue(row, 3);
-  if (uVal === null) uVal = rowNumberField(row, "u_star_k");
-
-  const dv = row.decision_vector;
-  const dvLen = Array.isArray(dv) ? dv.length : 0;
-
-  let cVal = null;
-  let pVal = null;
-  let bVal = null;
-
-  if (dvLen >= 7) {
-    cVal = dvValue(row, 4);
-    pVal = dvValue(row, 5);
-    bVal = dvValue(row, 6);
-  } else if (dvLen >= 6) {
-    pVal = dvValue(row, 4);
-    bVal = dvValue(row, 5);
-  }
-
-  if (cVal === null) cVal = rowNumberField(row, "c_k");
-  if (pVal === null) pVal = rowNumberField(row, "p_k");
-  if (bVal === null) bVal = rowNumberField(row, "b_k");
-
-  const basis = {
-    regime,
-    D_k: dVal === null ? null : Math.round(dVal),
-    M_k: mVal,
-    M_sign: mVal === null ? null : sign3(mVal),
-    R_rev_k: rVal === null ? null : (rVal > 0.5 ? 1 : 0),
-    U_star_k: uVal,
-    C_k: cVal === null ? null : Math.round(cVal),
-    P_k: pVal === null ? null : Math.round(pVal),
-    B_k: bVal === null ? null : sign3(bVal),
-    missing_fields: [],
-  };
-
-  if (basis.D_k === null) basis.missing_fields.push("D_k");
-  if (basis.M_k === null) basis.missing_fields.push("M_k");
-  if (basis.R_rev_k === null) basis.missing_fields.push("R_rev_k");
-  if (basis.U_star_k === null) basis.missing_fields.push("U_star_k");
-  if (basis.C_k === null) basis.missing_fields.push("C_k");
-  if (basis.P_k === null) basis.missing_fields.push("P_k");
-  if (basis.B_k === null) basis.missing_fields.push("B_k");
-
-  return basis;
-}
-
-function uBucket(value) {
-  if (value < 0.33) return "U0";
-  if (value < 0.66) return "U1";
-  return "U2";
-}
-
-function pBucket(value) {
-  if (value <= 0) return "P0";
-  if (value === 1) return "P1";
-  return "P2";
-}
-
-function bucket3(value) {
-  if (value < 0.33) return "B0";
-  if (value < 0.66) return "B1";
-  return "B2";
-}
-
-function bucketCdOpt(value) {
-  if (value < -0.6) return "B0";
-  if (value < -0.4) return "B1";
-  if (value < -0.3) return "B2";
-  if (value < -0.2) return "B3";
-  return "B4";
-}
-
-function bucketStability(value) {
-  if (value < 0.33) return "B0";
-  if (value < 0.66) return "B1";
-  return "B2";
-}
-
-function irfPhase(mSign, rUf) {
-  if (rUf < 0.33 && mSign > 0) return "U2UP";
-  if (rUf > 0.66 && mSign < 0) return "U2DN";
-  return "UFLAT";
-}
-
-function anomalyFlagsFromRow(row) {
-  const guard = toRecord(row.decision_guard);
-  const guardGateUnlock = guard
-    ? toBoolean(guard.gate_unlock_transient_neutralized)
-    : toBoolean(row.gate_unlock_transient_neutralized);
-
-  const hardening = toRecord(row.hardening);
-  const hardeningFlags = hardening ? toRecord(hardening.flags) : null;
-  const hardeningHysteresisOverload = hardeningFlags
-    ? toBoolean(hardeningFlags.hysteresis_overload)
-    : toBoolean(row.hysteresis_overload);
-
-  return {
-    guard_gate_unlock_transient_neutralized: guardGateUnlock,
-    hardening_hysteresis_overload: hardeningHysteresisOverload,
-    anomaly_any: guardGateUnlock || hardeningHysteresisOverload,
-  };
-}
-
-function spiderEyesTag(flags) {
-  if (flags.guard_gate_unlock_transient_neutralized && flags.hardening_hysteresis_overload) return "GU_HO";
-  if (flags.guard_gate_unlock_transient_neutralized) return "GU";
-  if (flags.hardening_hysteresis_overload) return "HO";
-  return "NONE";
-}
-
-function suffixVariants(core, phaseTag, spiderTag) {
-  const keys = [];
-  if (phaseTag && spiderTag) keys.push(`${core}${phaseTag}${spiderTag}`);
-  if (phaseTag) keys.push(`${core}${phaseTag}`);
-  if (spiderTag) keys.push(`${core}${spiderTag}`);
-  keys.push(core);
-  return keys;
-}
-
-function uniqueStrings(values) {
-  const out = [];
-  const seen = new Set();
-  for (const value of values) {
-    const text = String(value ?? "");
-    if (!text || seen.has(text)) continue;
-    seen.add(text);
-    out.push(text);
-  }
-  return out;
-}
-
-function exactFamilyOrder(exactAnchorMode = DEFAULT_PSCF_EXACT_ANCHOR_MODE) {
-  if (exactAnchorMode === CURRENT_ST_ANCHORED_EXACT_FAMILY) {
-    return ["enrichedCdSt", "enrichedSrSt", "enrichedCd", "enrichedSr", "baseSpider", "baseOnly"];
-  }
-
-  return ["enrichedCd", "enrichedCdSt", "enrichedSrSt", "enrichedSr", "baseSpider", "baseOnly"];
-}
-
-function keyCandidates(row, basis, anomalyFlags, exactAnchorMode = DEFAULT_PSCF_EXACT_ANCHOR_MODE) {
-  if (basis.missing_fields.length > 0) return [];
-
-  const base =
-    `reg=${basis.regime}|D=${basis.D_k}|M=${basis.M_sign}|Rrev=${basis.R_rev_k}|` +
-    `${uBucket(basis.U_star_k)}|C=${basis.C_k}|${pBucket(basis.P_k)}|B=${basis.B_k}`;
-
-  const sUf = toFinite(row.s_uf) ?? 0;
-  const rUf = toFinite(row.r_uf) ?? 0;
-  const cd = sUf - rUf;
-  const st = bucketStability(toFinite(row.stability_score) ?? 0);
-  const phaseTag = `|PH=${irfPhase(basis.M_sign ?? 0, rUf)}`;
-  const spiderTag = `|SE=${spiderEyesTag(anomalyFlags)}`;
-
-  const familyKeys = {
-    enrichedCdSt: `${base}|S=${bucket3(sUf)}|R=${bucket3(rUf)}|CD=${bucketCdOpt(cd)}|ST=${st}`,
-    enrichedSrSt: `${base}|S=${bucket3(sUf)}|R=${bucket3(rUf)}|ST=${st}`,
-    enrichedCd: `${base}|S=${bucket3(sUf)}|R=${bucket3(rUf)}|CD=${bucketCdOpt(cd)}`,
-    enrichedSr: `${base}|S=${bucket3(sUf)}|R=${bucket3(rUf)}`,
-    baseSpider: `${base}|SE=${spiderEyesTag(anomalyFlags)}`,
-    baseOnly: base,
-  };
-
-  const keys = [];
-  for (const familyId of exactFamilyOrder(exactAnchorMode)) {
-    if (familyId === "baseSpider") {
-      keys.push(familyKeys.baseSpider);
-      continue;
-    }
-    if (familyId === "baseOnly") {
-      keys.push(familyKeys.baseOnly);
-      continue;
-    }
-    keys.push(...suffixVariants(familyKeys[familyId], phaseTag, spiderTag));
-  }
-
-  return uniqueStrings(keys);
-}
-
 function decisionLabel(value) {
   if (DECISION_VALUES.has(value)) return value;
-  return FALLBACK_DECISION;
+  return "Avoid";
 }
 
 function extractStructuralRecencyComponents(row) {
   const components = {};
   for (const [key, value] of Object.entries(row)) {
-    if (key.startsWith("steps_since_")) {
-      components[key] = value;
-      continue;
-    }
-    if (key.includes("recency")) {
+    if (key.startsWith("steps_since_") || key.includes("recency")) {
       components[key] = value;
     }
   }
@@ -411,6 +202,7 @@ function extractStructuralRecencyComponents(row) {
 function extractEpochComponents(row) {
   const components = {};
   const epochObj = toRecord(row.epoch);
+
   if (epochObj) {
     for (const [key, value] of Object.entries(epochObj)) {
       components[`epoch.${key}`] = value;
@@ -431,55 +223,86 @@ function extractEpochComponents(row) {
   };
 }
 
-export function deriveTypedFallbackLadderLevel({ decisionReasonCode, matchedIndex }) {
+function primitiveInputFromRow(row) {
+  const normalized = normalizeDecisionTraceRow(row && typeof row === "object" ? row : {});
+  const missingFields = [];
+
+  const extracted = {};
+  for (const [lowerKey, label] of REQUIRED_PRIMITIVE_FIELDS) {
+    const value = toFinite(normalized[lowerKey]);
+    extracted[label] = value;
+    if (value === null) {
+      missingFields.push(label);
+    }
+  }
+
+  return {
+    regime: String(normalized.regime ?? "UNKNOWN").trim() || "UNKNOWN",
+    D_k: extracted.D_k,
+    M_k: toFinite(normalized.m_k),
+    R_rev_k: extracted.R_rev_k,
+    U_star_k: toFinite(normalized.u_star_k),
+    C_k: extracted.C_k,
+    prev_C_k: extracted.prev_C_k,
+    P_k: extracted.P_k,
+    B_k: extracted.B_k,
+    S_UF: extracted.S_UF,
+    R_UF: extracted.R_UF,
+    missing_fields: missingFields,
+  };
+}
+
+function primitiveReasonCodeFromInputs(inputs) {
+  if (inputs.missing_fields.length > 0) return "GEMINI_MISSING_REQUIRED_FIELDS";
+  if (inputs.S_UF <= 0) return "GEMINI_STEP_1_VIABILITY";
+  if (inputs.R_rev_k > 0) return "GEMINI_STEP_2_KILL_SWITCH";
+  if (inputs.D_k > 0 && inputs.R_UF > 0 && inputs.C_k < inputs.prev_C_k && inputs.P_k < inputs.B_k) {
+    return "GEMINI_STEP_3_ACCUMULATE";
+  }
+  if (inputs.D_k >= 0 && inputs.P_k < (inputs.B_k * 1.5)) {
+    return "GEMINI_STEP_4_HOLD";
+  }
+  return "GEMINI_STEP_5_DEFAULT_AVOID";
+}
+
+function primitiveDecisionFromReasonCode(reasonCode) {
+  if (reasonCode === "GEMINI_STEP_3_ACCUMULATE") return "Accumulate";
+  if (reasonCode === "GEMINI_STEP_4_HOLD") return "Hold";
+  return "Avoid";
+}
+
+function primitiveFallbackReason(reasonCode, missingFields) {
+  if (reasonCode !== "GEMINI_MISSING_REQUIRED_FIELDS") return null;
+  const joined = Array.isArray(missingFields) ? missingFields.join(",") : "";
+  return joined ? `missing_required_fields:${joined}` : "missing_required_fields";
+}
+
+function primitiveWitness(reasonCode, missingFields) {
+  const witness = [PRIMITIVE_ARTIFACT_ID, reasonCode];
+  if (reasonCode === "GEMINI_MISSING_REQUIRED_FIELDS" && Array.isArray(missingFields) && missingFields.length > 0) {
+    witness.push(`missing:${missingFields.join(",")}`);
+  }
+  return witness;
+}
+
+export function deriveTypedFallbackLadderLevel({ decisionReasonCode }) {
   const reasonCode = String(decisionReasonCode ?? "").trim();
-  const index = Number.isFinite(Number(matchedIndex)) ? Number(matchedIndex) : -1;
-
-  if (reasonCode === "PSCF_POLICY_DECISION") {
-    if (index === 0) return "L0_EXACT_STRUCTURAL_MATCH";
-    if (index > 0) return "L1_RELAXED_STRUCTURAL_MATCH";
-  }
-
-  if (reasonCode === "PSCF_FALLBACK_ANOMALOUS") {
-    return "L2_SAFE_POLICY_FALLBACK";
-  }
-
-  if (
-    reasonCode === "PSCF_FALLBACK_POLICY_MISSING" ||
-    reasonCode === "PSCF_FALLBACK_CELL_KEY_UNAVAILABLE" ||
-    reasonCode === "PSCF_FALLBACK_CELL_UNMAPPED"
-  ) {
-    return "L3_DEGRADED_UNMAPPED";
-  }
-
-  if (
-    reasonCode === "PSCF_FALLBACK_INSUFFICIENT_BARS" ||
-    reasonCode === "PSCF_FALLBACK_STRUCTURAL_INCOMPLETE"
-  ) {
+  if (reasonCode === "GEMINI_MISSING_REQUIRED_FIELDS") {
     return "L4_UNAVAILABLE_OR_BLOCKED";
   }
-
-  return "L3_DEGRADED_UNMAPPED";
+  return "L0_EXACT_STRUCTURAL_MATCH";
 }
 
-function matchLevelFromDecision(decisionReasonCode, matchedIndex) {
-  if (decisionReasonCode !== "PSCF_POLICY_DECISION") {
-    return "L3_ABSTAIN_HOLD_ONLY";
+function matchLevelFromDecision(decisionReasonCode) {
+  if (decisionReasonCode === "GEMINI_MISSING_REQUIRED_FIELDS") {
+    return "L4_PRIMITIVE_INPUT_MISSING";
   }
-
-  if (!Number.isFinite(matchedIndex) || matchedIndex < 0) {
-    return "L3_ABSTAIN_HOLD_ONLY";
-  }
-  if (matchedIndex === 0) return "L0_EXACT_STRUCTURAL_KEY";
-  if (matchedIndex <= 5) return "L1_EXACT_CORE_RELAXED_SUFFIX";
-  return "L2_REGIME_RECENCY_CORE_RELAXED_BUCKETS";
+  return "L0_PRIMITIVE_DIRECT";
 }
 
-function coverageClassFromTrace(decisionReasonCode, matchedIndex) {
-  if (decisionReasonCode !== "PSCF_POLICY_DECISION") return "fallback";
-  if (matchedIndex === 0) return "exact";
-  if (matchedIndex > 0) return "degraded";
-  return "fallback";
+function coverageClassFromTrace(decisionReasonCode) {
+  if (decisionReasonCode === "GEMINI_MISSING_REQUIRED_FIELDS") return "fallback";
+  return "exact";
 }
 
 export function computeDecisionTrace(
@@ -488,138 +311,61 @@ export function computeDecisionTrace(
   minBars,
   exactAnchorMode = DEFAULT_PSCF_EXACT_ANCHOR_MODE,
 ) {
-  const basis = resolveBasis(row);
-  const anomalyFlags = anomalyFlagsFromRow(row);
-  const candidates = keyCandidates(row, basis, anomalyFlags, exactAnchorMode);
-  const barCount = Math.max(0, toInt(row.bar_count) ?? 0);
+  void policyRuntime;
+  void minBars;
+  void exactAnchorMode;
 
-  const cells = policyRuntime?.cells && typeof policyRuntime.cells === "object" ? policyRuntime.cells : null;
-
-  let decision = FALLBACK_DECISION;
-  let decisionReasonCode = "PSCF_FALLBACK_POLICY_MISSING";
-  let fallbackReasonCode = "policy_missing";
-  let matchedKey = null;
-  let matchedIndex = -1;
-
-  if (barCount < minBars) {
-    decisionReasonCode = "PSCF_FALLBACK_INSUFFICIENT_BARS";
-    fallbackReasonCode = "insufficient_bars";
-  } else if (basis.missing_fields.length > 0) {
-    decisionReasonCode = "PSCF_FALLBACK_STRUCTURAL_INCOMPLETE";
-    fallbackReasonCode = "structural_incomplete";
-  } else if (!cells || Object.keys(cells).length === 0) {
-    decisionReasonCode = "PSCF_FALLBACK_POLICY_MISSING";
-    fallbackReasonCode = "policy_missing";
-  } else if (candidates.length === 0) {
-    decisionReasonCode = "PSCF_FALLBACK_CELL_KEY_UNAVAILABLE";
-    fallbackReasonCode = "cell_key_unavailable";
-  } else {
-    for (let index = 0; index < candidates.length; index += 1) {
-      const candidate = candidates[index];
-      const cell = cells[candidate];
-      if (!cell || typeof cell !== "object") continue;
-      matchedKey = candidate;
-      matchedIndex = index;
-      break;
-    }
-
-    if (!matchedKey) {
-      decisionReasonCode = "PSCF_FALLBACK_CELL_UNMAPPED";
-      fallbackReasonCode = "cell_unmapped";
-    } else if (anomalyFallbackEnabled() && anomalyFlags.anomaly_any) {
-      decisionReasonCode = "PSCF_FALLBACK_ANOMALOUS";
-      fallbackReasonCode = "anomalous_row";
-    } else {
-      const matchedCell = cells[matchedKey] ?? {};
-      decision = decisionLabel(matchedCell.decision);
-      decisionReasonCode = "PSCF_POLICY_DECISION";
-      fallbackReasonCode = null;
-    }
-  }
-
-  const fallbackUsed = decisionReasonCode !== "PSCF_POLICY_DECISION";
-  const matchLevel = matchLevelFromDecision(decisionReasonCode, matchedIndex);
-  const fallbackLadderLevel = deriveTypedFallbackLadderLevel({
-    decisionReasonCode,
-    matchedIndex,
-  });
-  const coverageClass = coverageClassFromTrace(decisionReasonCode, matchedIndex);
+  const normalizedRow = normalizeDecisionTraceRow(row && typeof row === "object" ? row : {});
+  const basis = primitiveInputFromRow(normalizedRow);
+  const decisionReasonCode = primitiveReasonCodeFromInputs(basis);
+  const decision = primitiveDecisionFromReasonCode(decisionReasonCode);
+  const fallbackUsed = decisionReasonCode === "GEMINI_MISSING_REQUIRED_FIELDS";
+  const candidateKeyChain = primitiveWitness(decisionReasonCode, basis.missing_fields);
+  const matchedKey = fallbackUsed ? null : PRIMITIVE_ARTIFACT_ID;
+  const matchedIndex = fallbackUsed ? -1 : 0;
+  const anomalyFlags = {
+    primitive_input_complete: !fallbackUsed,
+    anomaly_any: false,
+  };
 
   return {
     basis,
     anomalyFlags,
-    candidateKeyChain: candidates,
+    candidateKeyChain,
     matchedKey,
     matchedIndex,
-    matchLevel,
-    fallbackLadderLevel,
-    matchedExactBool: matchedIndex === 0,
+    matchLevel: matchLevelFromDecision(decisionReasonCode),
+    fallbackLadderLevel: deriveTypedFallbackLadderLevel({ decisionReasonCode, matchedIndex }),
+    matchedExactBool: !fallbackUsed,
     fallbackUsed,
-    fallbackReasonCode,
+    fallbackReasonCode: primitiveFallbackReason(decisionReasonCode, basis.missing_fields),
     decision,
     decisionReasonCode,
-    coverageClass,
+    coverageClass: coverageClassFromTrace(decisionReasonCode),
   };
 }
 
 export function loadPolicyRuntimeArtifact(rootDir) {
-  const configured = String(process.env.TFE_PSCF_POLICY_PATH ?? "").trim();
-  const candidates = [];
-  if (configured) candidates.push(path.resolve(configured));
-  candidates.push(path.resolve(rootDir, "pscf_policy_runtime.json"));
-  candidates.push(path.resolve(rootDir, "backups", "runtime", "pscf_policy_runtime.json"));
-
-  for (const candidate of candidates) {
-    if (!existsSync(candidate)) continue;
-    try {
-      const raw = readFileSync(candidate, "utf-8");
-      const payload = JSON.parse(raw);
-      if (!payload || typeof payload !== "object" || Array.isArray(payload)) continue;
-      const cells = payload.cells && typeof payload.cells === "object" ? payload.cells : {};
-      const generatedAtUtc = typeof payload.generated_at_utc === "string" ? payload.generated_at_utc : null;
-      const artifactHash = sha256Hex(raw);
-      return {
-        source_path: candidate,
-        policy_artifact_id: path.basename(candidate),
-        policy_artifact_hash_sha256: artifactHash,
-        policy_source_mode: String(process.env.TFE_POLICY_SOURCE_MODE ?? "runtime_file") || "runtime_file",
-        generated_at_utc: generatedAtUtc,
-        cells,
-      };
-    } catch {
-      // Try next candidate.
-    }
-  }
-
+  void rootDir;
   return {
     source_path: null,
-    policy_artifact_id: "policy_unavailable",
-    policy_artifact_hash_sha256: sha256Hex("policy_unavailable"),
-    policy_source_mode: String(process.env.TFE_POLICY_SOURCE_MODE ?? "runtime_file") || "runtime_file",
+    policy_artifact_id: PRIMITIVE_ARTIFACT_ID,
+    policy_artifact_hash_sha256: PRIMITIVE_ARTIFACT_HASH,
+    policy_source_mode: "gemini_l5_primitive",
     generated_at_utc: null,
     cells: {},
   };
 }
 
-function isNonEmptyArray(value) {
-  return Array.isArray(value) && value.length > 0;
-}
+function isProvenanceRecordValid(record) {
+  if (!record || typeof record !== "object") return false;
 
-export function isProvenanceRecordValid(record) {
   for (const field of PROVENANCE_REQUIRED_NON_NULL_FIELDS) {
-    const value = record[field];
-    if (value === null || value === undefined) return false;
-    if (typeof value === "string" && !value.trim()) return false;
-    if ((field === "candidate_key_chain_json" || field.endsWith("_json")) && !Array.isArray(value) && typeof value !== "object") {
-      return false;
-    }
+    if (!Object.prototype.hasOwnProperty.call(record, field)) return false;
+    if (record[field] === null || record[field] === undefined) return false;
   }
 
-  if (!isNonEmptyArray(record.candidate_key_chain_json) && record.decision_reason_code === "PSCF_POLICY_DECISION") {
-    return false;
-  }
-
-  return true;
+  return DECISION_VALUES.has(String(record.decision ?? ""));
 }
 
 export function buildPersistedProvenanceRecord({
@@ -643,8 +389,9 @@ export function buildPersistedProvenanceRecord({
   const decisionTimestampUtc = String(generatedAtUtc ?? "").trim() || snapshotTimestamp;
   const provenanceGeneratedUtc = new Date().toISOString();
   const effectiveWriterBuildHash =
-    String(writerBuildHash ?? "").trim() || sha256Hex(`${writerComponent}:${provenanceSchemaVersion}`);
-  const trace = computeDecisionTrace(snapshotRow, policyRuntime, minBars);
+    String(writerBuildHash ?? "").trim() || sha256Hex(`${writerComponent}:${provenanceSchemaVersion}:${PRIMITIVE_ARTIFACT_ID}`);
+  const runtimeArtifact = policyRuntime && typeof policyRuntime === "object" ? policyRuntime : loadPolicyRuntimeArtifact(null);
+  const trace = computeDecisionTrace(snapshotRow, runtimeArtifact, minBars);
 
   const structuralRecency = extractStructuralRecencyComponents(snapshotRow);
   const epochComponents = extractEpochComponents(snapshotRow);
@@ -657,9 +404,9 @@ export function buildPersistedProvenanceRecord({
     generated_at_utc: decisionTimestampUtc,
     decision_timestamp_utc: decisionTimestampUtc,
     snapshot_row_digest_sha256: sha256Hex(stableStringify(snapshotRow)),
-    policy_artifact_id: String(policyRuntime?.policy_artifact_id ?? "policy_unavailable"),
-    policy_artifact_hash_sha256: String(policyRuntime?.policy_artifact_hash_sha256 ?? sha256Hex("policy_unavailable")),
-    policy_source_mode: String(policyRuntime?.policy_source_mode ?? "runtime_file"),
+    policy_artifact_id: String(runtimeArtifact.policy_artifact_id ?? PRIMITIVE_ARTIFACT_ID),
+    policy_artifact_hash_sha256: String(runtimeArtifact.policy_artifact_hash_sha256 ?? PRIMITIVE_ARTIFACT_HASH),
+    policy_source_mode: String(runtimeArtifact.policy_source_mode ?? "gemini_l5_primitive"),
     candidate_key_chain_json: trace.candidateKeyChain,
     matched_key: trace.matchedKey,
     match_level: trace.matchLevel,
@@ -667,7 +414,7 @@ export function buildPersistedProvenanceRecord({
     matched_exact_bool: trace.matchedExactBool,
     fallback_used: trace.fallbackUsed,
     fallback_reason_code: trace.fallbackReasonCode,
-    decision: trace.decision,
+    decision: decisionLabel(trace.decision),
     decision_reason_code: trace.decisionReasonCode,
     anomaly_flags_used_json: trace.anomalyFlags,
     structural_recency_components_used_json: structuralRecency,
