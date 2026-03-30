@@ -141,7 +141,6 @@ RECOMMENDATION_RUNTIME_PATTERNS = [
     "web/scripts/recommendations_consistency_probe.mjs",
     "tools/run_recommendations_consistency_probe_lane.sh",
     "tools/run_site_reliability_contract_gate.sh",
-    "pscf_policy_runtime.json",
     "uf_snapshot.json",
 ]
 
@@ -149,7 +148,6 @@ RECOMMENDATION_QUALITY_PATTERNS = [
     "tools/run_recommendation_quality_audit_lane.sh",
     "tools/recommendation_quality_audit_lane.py",
     "tools/evaluate_recommendation_policy_snapshot.py",
-    "pscf_policy_runtime.json",
     "uf_snapshot.json",
 ]
 
@@ -218,13 +216,15 @@ CACHE_PATTERNS = [
     "web/scripts/build_screener_profile_overrides.py",
 ]
 
+# CP-2: Acceptance patterns reference only the CP-2 deterministic physics files.
+# Removed: l5_policy_learning_pipeline.py, pscf_policy_runtime.json.
 ACCEPTANCE_PATTERNS = [
     "tools/evaluate_recommendation_policy_snapshot.py",
-    "pscf_policy_runtime.json",
     "uf_snapshot.json",
     "run_refresh_with_l5_learning.py",
     "rebuild_uf_snapshot.py",
-    "l5_policy_learning_pipeline.py",
+    "tfe_l5_baseline.py",
+    "web/scripts/runtime_decision_provenance.mjs",
 ]
 
 CONTRACT_CONTROL_FILES = [
@@ -271,7 +271,7 @@ UNIT_DEFINITIONS: List[UnitDefinition] = [
         wrappers=["tools/evaluate_recommendation_policy_snapshot.py"],
         outputs_expected=["recommendation-acceptance-gate.json"],
         process="python3 tools/evaluate_recommendation_policy_snapshot.py --strict-conformance ...",
-        description="Protect recommendation policy decision correctness when recommendation logic changes.",
+        description="Protect recommendation decision correctness when recommendation logic changes.",
     ),
     UnitDefinition(
         unit_id="typescript",

@@ -1,17 +1,39 @@
 import { createHash } from "node:crypto";
 
+// ---------------------------------------------------------------------------
+// CP-2: DSF Primitive Full-Field Sortable V3 Rationalized
+// Frozen rational constants — do not modify without governance approval.
+// ---------------------------------------------------------------------------
+const BETA = 37 / 64;
+const MOTION_WEIGHT = 3 / 5;
+const MOTION_POWER = 5 / 4;
+const REVERSAL_BALANCE_POWER = 16;
+const CARRY_BALANCE_POWER = 4;
+const BURDEN_SCALE = 1 / 128;
+const V3_TIE_EPS = 1e-12;
+
 const DECISION_VALUES = new Set(["Accumulate", "Hold", "Avoid"]);
 const DEFAULT_PROVENANCE_SCHEMA_VERSION = "v1";
 const DEFAULT_WRITER_COMPONENT = "web/scripts/sync_runtime_postgres.mjs";
-const DEFAULT_CP_PROFILE = "CP-0";
-const PRIMITIVE_ARTIFACT_ID = "gemini_l5_primitive_v1";
+const DEFAULT_CP_PROFILE = "CP-2";
+const PRIMITIVE_ARTIFACT_ID = "dsf_v3_primitive_v1";
+
 const PRIMITIVE_FORMULA_TEXT = [
-  "Step 1: if S_UF <= 0 => Avoid",
-  "Step 2: if R_rev_k < 0 => Avoid",
-  "Step 3: if D_k > 0 and R_UF > 0 and (S_UF > 0.8 ? C_k <= prev_C_k : C_k < prev_C_k) and P_k < (abs(B_k) * (S_UF > 0 ? TITAN_BREACH_MULTIPLIER : 1.0)) => Accumulate",
-  "Step 4: if D_k >= 0 and P_k < (abs(B_k) * 1.5) => Hold",
-  "Step 5: default => Avoid",
+  "beta=37/64 motion_weight=3/5 motion_power=5/4 reversal_balance_power=16 carry_balance_power=4 burden_scale=1/128 TIE_EPS=1e-12",
+  "M_hat=clamp(M_k,-1,1)",
+  "s=S_UF-U_star_k r=R_UF-U_star_k core=min(max(s,0),max(r,0)) edge=max(max(s,0),max(r,0))-core",
+  "live=core+beta*edge contested=(1-beta)*edge balance=core/(core+edge+1e-12) rupture=max(-max(s,r),0)",
+  "D_nonadverse=(1+D_k)/2 D_adverse=max(-D_k,0) M_continue=(1+M_hat)/2 M_bend=(1-M_hat)/2",
+  "motion=(motion_weight*D_nonadverse^motion_power+(1-motion_weight)*M_continue^motion_power)^(1/motion_power)",
+  "adverse_break=D_adverse*M_bend reversal_break=R_rev_k*(1-balance)^reversal_balance_power",
+  "carry_break=(-B_k)*R_rev_k*(1-balance)^carry_balance_power*(1-adverse_break)",
+  "burden=burden_scale*(C_k/(1+C_k))*(P_k/(1+P_k)) break_agreement=max(adverse_break,reversal_break,carry_break)",
+  "Accumulate_basin=live*motion*(1-R_rev_k)*(1-adverse_break)*(1-burden)",
+  "Hold_basin=contested*(1-break_agreement)+live*R_rev_k*balance+live*(1-R_rev_k)*((1-motion)*(1-adverse_break)+motion*burden)",
+  "Avoid_basin=rupture+(live+contested)*break_agreement",
+  "decision=argmax(basins) tie->Hold if two_or_more_within_TIE_EPS",
 ].join(" | ");
+
 const PRIMITIVE_ARTIFACT_HASH = createHash("sha256").update(PRIMITIVE_FORMULA_TEXT).digest("hex");
 
 export const CURRENT_ST_ANCHORED_EXACT_FAMILY = "CURRENT_ST_ANCHORED_EXACT_FAMILY";
@@ -25,7 +47,7 @@ export const TYPED_FALLBACK_LEVELS = [
     structural_coverage: true,
     exact_structural: true,
     quality_assessed_under_current_contract: true,
-    description: "Exact GEMINI primitive decision with all required inputs present.",
+    description: "Exact DSF V3 basin decision with all required inputs present.",
   },
   {
     id: "L1_RELAXED_STRUCTURAL_MATCH",
@@ -33,7 +55,7 @@ export const TYPED_FALLBACK_LEVELS = [
     structural_coverage: false,
     exact_structural: false,
     quality_assessed_under_current_contract: false,
-    description: "Legacy reserved level. Unused by the GEMINI primitive sorter.",
+    description: "Legacy reserved level. Unused by the DSF V3 primitive sorter.",
   },
   {
     id: "L2_SAFE_POLICY_FALLBACK",
@@ -41,7 +63,7 @@ export const TYPED_FALLBACK_LEVELS = [
     structural_coverage: false,
     exact_structural: false,
     quality_assessed_under_current_contract: false,
-    description: "Legacy reserved level. Unused by the GEMINI primitive sorter.",
+    description: "Legacy reserved level. Unused by the DSF V3 primitive sorter.",
   },
   {
     id: "L3_DEGRADED_UNMAPPED",
@@ -49,7 +71,7 @@ export const TYPED_FALLBACK_LEVELS = [
     structural_coverage: false,
     exact_structural: false,
     quality_assessed_under_current_contract: false,
-    description: "Legacy reserved level. Unused by the GEMINI primitive sorter.",
+    description: "Legacy reserved level. Unused by the DSF V3 primitive sorter.",
   },
   {
     id: "L4_UNAVAILABLE_OR_BLOCKED",
@@ -94,15 +116,19 @@ export const PROVENANCE_REQUIRED_NON_NULL_FIELDS = [
   "provenance_generated_utc",
 ];
 
+// V3 required fields: [normalized_key, label]
+// Removed: prev_c_k — not used in V3 basin math.
+// Added:   m_k (motion geometry), u_star_k (live reserve geometry).
 const REQUIRED_PRIMITIVE_FIELDS = [
-  ["s_uf", "S_UF"],
-  ["r_uf", "R_UF"],
-  ["c_k", "C_k"],
-  ["prev_c_k", "prev_C_k"],
-  ["p_k", "P_k"],
-  ["b_k", "B_k"],
-  ["d_k", "D_k"],
-  ["r_rev_k", "R_rev_k"],
+  ["s_uf",     "S_UF"],
+  ["r_uf",     "R_UF"],
+  ["d_k",      "D_k"],
+  ["m_k",      "M_k"],
+  ["r_rev_k",  "R_rev_k"],
+  ["u_star_k", "U_star_k"],
+  ["c_k",      "C_k"],
+  ["p_k",      "P_k"],
+  ["b_k",      "B_k"],
 ];
 
 export function normalizeTicker(value) {
@@ -120,17 +146,6 @@ function toFinite(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return null;
   return n;
-}
-
-function toBoolean(value, fallback = false) {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "number") return value !== 0;
-  if (typeof value === "string") {
-    const text = value.trim().toLowerCase();
-    if (["1", "true", "yes", "on", "y"].includes(text)) return true;
-    if (["0", "false", "no", "off", "n", ""].includes(text)) return false;
-  }
-  return fallback;
 }
 
 export function stableStringify(value) {
@@ -162,22 +177,12 @@ export function minBarsForAccumulate() {
   return whole;
 }
 
-export function titanBreachMultiplier() {
-  const raw = Number(process.env.TFE_TITAN_BREACH_MULTIPLIER ?? 1.2);
-  if (!Number.isFinite(raw)) return 1.2;
-  if (raw < 1.0) return 1.0;
-  if (raw > 1.49) return 1.49;
-  return raw;
-}
-
 export function normalizeDecisionTraceRow(value) {
   if (Array.isArray(value)) {
     return value.map((item) => normalizeDecisionTraceRow(item));
   }
-
   const record = toRecord(value);
   if (!record) return value;
-
   return Object.fromEntries(
     Object.entries(record).map(([key, item]) => [
       String(key).toLowerCase(),
@@ -198,7 +203,6 @@ function extractStructuralRecencyComponents(row) {
       components[key] = value;
     }
   }
-
   return {
     available: Object.keys(components).length > 0,
     source: "snapshot_row_top_level",
@@ -210,19 +214,16 @@ function extractStructuralRecencyComponents(row) {
 function extractEpochComponents(row) {
   const components = {};
   const epochObj = toRecord(row.epoch);
-
   if (epochObj) {
     for (const [key, value] of Object.entries(epochObj)) {
       components[`epoch.${key}`] = value;
     }
   }
-
   for (const [key, value] of Object.entries(row)) {
     if (key.includes("epoch") || key === "regime_code" || key === "gap_state") {
       components[key] = value;
     }
   }
-
   return {
     available: Object.keys(components).length > 0,
     source: "snapshot_row_top_level",
@@ -234,8 +235,8 @@ function extractEpochComponents(row) {
 function primitiveInputFromRow(row) {
   const normalized = normalizeDecisionTraceRow(row && typeof row === "object" ? row : {});
   const missingFields = [];
-
   const extracted = {};
+
   for (const [lowerKey, label] of REQUIRED_PRIMITIVE_FIELDS) {
     const value = toFinite(normalized[lowerKey]);
     extracted[label] = value;
@@ -245,62 +246,105 @@ function primitiveInputFromRow(row) {
   }
 
   return {
-    regime: String(normalized.regime ?? "UNKNOWN").trim() || "UNKNOWN",
-    D_k: extracted.D_k,
-    M_k: toFinite(normalized.m_k),
-    R_rev_k: extracted.R_rev_k,
-    U_star_k: toFinite(normalized.u_star_k),
-    C_k: extracted.C_k,
-    prev_C_k: extracted.prev_C_k,
-    P_k: extracted.P_k,
-    B_k: extracted.B_k,
-    S_UF: extracted.S_UF,
-    R_UF: extracted.R_UF,
+    regime:   String(normalized.regime ?? "UNKNOWN").trim() || "UNKNOWN",
+    S_UF:     extracted.S_UF,
+    R_UF:     extracted.R_UF,
+    D_k:      extracted.D_k,
+    M_k:      extracted.M_k,
+    R_rev_k:  extracted.R_rev_k,
+    U_star_k: extracted.U_star_k,
+    C_k:      extracted.C_k,
+    P_k:      extracted.P_k,
+    B_k:      extracted.B_k,
     missing_fields: missingFields,
   };
 }
 
+// ---------------------------------------------------------------------------
+// DSF V3 Basin Computation
+// Implements DSF_PRIMITIVE_FULL_FIELD_SORTABLE_V3_RATIONALIZED exactly.
+// All constants are frozen rationals. No heuristics. No gates.
+// ---------------------------------------------------------------------------
+function computeV3Basins(inputs) {
+  const { S_UF, R_UF, D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k } = inputs;
+
+  const M_hat = Math.max(-1.0, Math.min(1.0, M_k));
+
+  const s = S_UF - U_star_k;
+  const r = R_UF - U_star_k;
+  const sPos = Math.max(s, 0.0);
+  const rPos = Math.max(r, 0.0);
+  const core = Math.min(sPos, rPos);
+  const edge = Math.max(sPos, rPos) - core;
+  const live = core + BETA * edge;
+  const contested = (1.0 - BETA) * edge;
+  const balance = core / (core + edge + 1e-12);
+  const rupture = Math.max(-Math.max(s, r), 0.0);
+
+  const D_nonadverse = (1.0 + D_k) / 2.0;
+  const D_adverse = Math.max(-D_k, 0.0);
+  const M_continue = (1.0 + M_hat) / 2.0;
+  const M_bend = (1.0 - M_hat) / 2.0;
+
+  const motion = Math.pow(
+    MOTION_WEIGHT * Math.pow(D_nonadverse, MOTION_POWER) +
+    (1.0 - MOTION_WEIGHT) * Math.pow(M_continue, MOTION_POWER),
+    1.0 / MOTION_POWER,
+  );
+
+  const adverse_break   = D_adverse * M_bend;
+  const reversal_break  = R_rev_k * Math.pow(1.0 - balance, REVERSAL_BALANCE_POWER);
+  const carry_break     = (-B_k) * R_rev_k * Math.pow(1.0 - balance, CARRY_BALANCE_POWER) * (1.0 - adverse_break);
+  const burden          = BURDEN_SCALE * (C_k / (1.0 + C_k)) * (P_k / (1.0 + P_k));
+  const break_agreement = Math.max(adverse_break, reversal_break, carry_break);
+
+  const accumulateBasin =
+    live * motion * (1.0 - R_rev_k) * (1.0 - adverse_break) * (1.0 - burden);
+
+  const holdBasin =
+    contested * (1.0 - break_agreement) +
+    live * R_rev_k * balance +
+    live * (1.0 - R_rev_k) * ((1.0 - motion) * (1.0 - adverse_break) + motion * burden);
+
+  const avoidBasin =
+    rupture + (live + contested) * break_agreement;
+
+  return { accumulateBasin, holdBasin, avoidBasin };
+}
+
 function primitiveReasonCodeFromInputs(inputs) {
-  if (inputs.missing_fields.length > 0) return "GEMINI_MISSING_REQUIRED_FIELDS";
-  if (inputs.S_UF <= 0) return "GEMINI_STEP_1_VIABILITY";
-  if (inputs.R_rev_k < 0) return "GEMINI_STEP_2_KILL_SWITCH";
-  const decelGatePassed =
-    inputs.S_UF > 0.8
-      ? inputs.C_k <= inputs.prev_C_k
-      : inputs.C_k < inputs.prev_C_k;
-  const breachCeiling =
-    inputs.S_UF > 0
-      ? Math.abs(inputs.B_k) * titanBreachMultiplier()
-      : Math.abs(inputs.B_k);
-  if (
-    inputs.D_k > 0 &&
-    inputs.R_UF > 0 &&
-    decelGatePassed &&
-    inputs.P_k < breachCeiling
-  ) {
-    return "GEMINI_STEP_3_ACCUMULATE";
-  }
-  if (inputs.D_k >= 0 && inputs.P_k < (Math.abs(inputs.B_k) * 1.5)) {
-    return "GEMINI_STEP_4_HOLD";
-  }
-  return "GEMINI_STEP_5_DEFAULT_AVOID";
+  if (inputs.missing_fields.length > 0) return "DSF_V3_MISSING_REQUIRED_FIELDS";
+
+  const { accumulateBasin, holdBasin, avoidBasin } = computeV3Basins(inputs);
+  const maxBasin = Math.max(accumulateBasin, holdBasin, avoidBasin);
+
+  const nearMax = (v) => Math.abs(v - maxBasin) <= V3_TIE_EPS;
+  const tieCount =
+    (nearMax(accumulateBasin) ? 1 : 0) +
+    (nearMax(holdBasin)       ? 1 : 0) +
+    (nearMax(avoidBasin)      ? 1 : 0);
+
+  if (tieCount > 1)              return "DSF_V3_TIE_HOLD";
+  if (nearMax(accumulateBasin))  return "DSF_V3_ACCUMULATE";
+  if (nearMax(holdBasin))        return "DSF_V3_HOLD";
+  return "DSF_V3_AVOID";
 }
 
 function primitiveDecisionFromReasonCode(reasonCode) {
-  if (reasonCode === "GEMINI_STEP_3_ACCUMULATE") return "Accumulate";
-  if (reasonCode === "GEMINI_STEP_4_HOLD") return "Hold";
+  if (reasonCode === "DSF_V3_ACCUMULATE")                          return "Accumulate";
+  if (reasonCode === "DSF_V3_HOLD" || reasonCode === "DSF_V3_TIE_HOLD") return "Hold";
   return "Avoid";
 }
 
 function primitiveFallbackReason(reasonCode, missingFields) {
-  if (reasonCode !== "GEMINI_MISSING_REQUIRED_FIELDS") return null;
+  if (reasonCode !== "DSF_V3_MISSING_REQUIRED_FIELDS") return null;
   const joined = Array.isArray(missingFields) ? missingFields.join(",") : "";
   return joined ? `missing_required_fields:${joined}` : "missing_required_fields";
 }
 
 function primitiveWitness(reasonCode, missingFields) {
   const witness = [PRIMITIVE_ARTIFACT_ID, reasonCode];
-  if (reasonCode === "GEMINI_MISSING_REQUIRED_FIELDS" && Array.isArray(missingFields) && missingFields.length > 0) {
+  if (reasonCode === "DSF_V3_MISSING_REQUIRED_FIELDS" && Array.isArray(missingFields) && missingFields.length > 0) {
     witness.push(`missing:${missingFields.join(",")}`);
   }
   return witness;
@@ -308,21 +352,21 @@ function primitiveWitness(reasonCode, missingFields) {
 
 export function deriveTypedFallbackLadderLevel({ decisionReasonCode }) {
   const reasonCode = String(decisionReasonCode ?? "").trim();
-  if (reasonCode === "GEMINI_MISSING_REQUIRED_FIELDS") {
+  if (reasonCode === "DSF_V3_MISSING_REQUIRED_FIELDS") {
     return "L4_UNAVAILABLE_OR_BLOCKED";
   }
   return "L0_EXACT_STRUCTURAL_MATCH";
 }
 
 function matchLevelFromDecision(decisionReasonCode) {
-  if (decisionReasonCode === "GEMINI_MISSING_REQUIRED_FIELDS") {
+  if (decisionReasonCode === "DSF_V3_MISSING_REQUIRED_FIELDS") {
     return "L4_PRIMITIVE_INPUT_MISSING";
   }
   return "L0_PRIMITIVE_DIRECT";
 }
 
 function coverageClassFromTrace(decisionReasonCode) {
-  if (decisionReasonCode === "GEMINI_MISSING_REQUIRED_FIELDS") return "fallback";
+  if (decisionReasonCode === "DSF_V3_MISSING_REQUIRED_FIELDS") return "fallback";
   return "exact";
 }
 
@@ -340,7 +384,7 @@ export function computeDecisionTrace(
   const basis = primitiveInputFromRow(normalizedRow);
   const decisionReasonCode = primitiveReasonCodeFromInputs(basis);
   const decision = primitiveDecisionFromReasonCode(decisionReasonCode);
-  const fallbackUsed = decisionReasonCode === "GEMINI_MISSING_REQUIRED_FIELDS";
+  const fallbackUsed = decisionReasonCode === "DSF_V3_MISSING_REQUIRED_FIELDS";
   const candidateKeyChain = primitiveWitness(decisionReasonCode, basis.missing_fields);
   const matchedKey = fallbackUsed ? null : PRIMITIVE_ARTIFACT_ID;
   const matchedIndex = fallbackUsed ? -1 : 0;
@@ -372,7 +416,7 @@ export function loadPolicyRuntimeArtifact(rootDir) {
     source_path: null,
     policy_artifact_id: PRIMITIVE_ARTIFACT_ID,
     policy_artifact_hash_sha256: PRIMITIVE_ARTIFACT_HASH,
-    policy_source_mode: "gemini_l5_primitive",
+    policy_source_mode: "dsf_v3_primitive",
     generated_at_utc: null,
     cells: {},
   };
@@ -380,12 +424,10 @@ export function loadPolicyRuntimeArtifact(rootDir) {
 
 function isProvenanceRecordValid(record) {
   if (!record || typeof record !== "object") return false;
-
   for (const field of PROVENANCE_REQUIRED_NON_NULL_FIELDS) {
     if (!Object.prototype.hasOwnProperty.call(record, field)) return false;
     if (record[field] === null || record[field] === undefined) return false;
   }
-
   return DECISION_VALUES.has(String(record.decision ?? ""));
 }
 
@@ -427,7 +469,7 @@ export function buildPersistedProvenanceRecord({
     snapshot_row_digest_sha256: sha256Hex(stableStringify(snapshotRow)),
     policy_artifact_id: String(runtimeArtifact.policy_artifact_id ?? PRIMITIVE_ARTIFACT_ID),
     policy_artifact_hash_sha256: String(runtimeArtifact.policy_artifact_hash_sha256 ?? PRIMITIVE_ARTIFACT_HASH),
-    policy_source_mode: String(runtimeArtifact.policy_source_mode ?? "gemini_l5_primitive"),
+    policy_source_mode: String(runtimeArtifact.policy_source_mode ?? "dsf_v3_primitive"),
     candidate_key_chain_json: trace.candidateKeyChain,
     matched_key: trace.matchedKey,
     match_level: trace.matchLevel,

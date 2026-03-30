@@ -80,7 +80,6 @@ WORKDIR /app
 COPY certs ./certs
 COPY ses_core ./ses_core
 COPY uf_core ./uf_core
-COPY tools/oracle_program ./tools/oracle_program
 COPY tools/l0_phase1_sync_postgres.py ./tools/l0_phase1_sync_postgres.py
 COPY tools/l0_phase2_bars_sync_postgres.py ./tools/l0_phase2_bars_sync_postgres.py
 COPY tools/l1_phase1_sync_postgres.py ./tools/l1_phase1_sync_postgres.py
@@ -91,8 +90,6 @@ COPY tools/l4_phase2_structural_snapshot_sync_postgres.py ./tools/l4_phase2_stru
 COPY tools/l5_db_native_preflight.py ./tools/l5_db_native_preflight.py
 COPY tools/l5_phase2_sync_postgres.py ./tools/l5_phase2_sync_postgres.py
 COPY backups/runtime/recommendation-quality-audit-lane-* ./backups/runtime/
-RUN mkdir -p /app/backups/runtime/l5_policy_learning
-COPY backups/runtime/l5_policy_learning/policy-eval-current-*.json ./backups/runtime/l5_policy_learning/
 COPY --from=builder /app/web/data/recommendation-quality-latest.json ./web/data/recommendation-quality-latest.json
 
 COPY tfe_ses_core_adapter.py ./tfe_ses_core_adapter.py
@@ -103,12 +100,7 @@ COPY rebuild_uf_snapshot.py ./rebuild_uf_snapshot.py
 COPY uf_mdg_snapshot.py ./uf_mdg_snapshot.py
 COPY structural_recency_snapshot.py ./structural_recency_snapshot.py
 COPY run_refresh_with_l5_learning.py ./run_refresh_with_l5_learning.py
-COPY l5_policy_learning_pipeline.py ./l5_policy_learning_pipeline.py
-COPY l5_postgres_io.py ./l5_postgres_io.py
-COPY l5_policy_learning_latest.json ./l5_policy_learning_latest.json
-COPY policy_horizon_overrides.json ./policy_horizon_overrides.json
-COPY pscf_policy_runtime.json ./pscf_policy_runtime.json
-COPY real_world_cleaned_universe_l5_row_trace_full.csv ./real_world_cleaned_universe_l5_row_trace_full.csv
+COPY tfe_l5_baseline.py ./tfe_l5_baseline.py
 COPY structural_episodes.csv ./structural_episodes.csv
 COPY uf_structural_cache.json ./uf_structural_cache.json
 COPY unified_market_data_service.py ./unified_market_data_service.py
@@ -124,20 +116,10 @@ COPY massive_universe_index.py ./massive_universe_index.py
 COPY massive_universe_crypto.py ./massive_universe_crypto.py
 COPY tfe_deploy_metadata.json ./tfe_deploy_metadata.json
 
-COPY g32_horse_race.py ./g32_horse_race.py
-COPY g32_horse_race_mom_irf.py ./g32_horse_race_mom_irf.py
-COPY g32_mom_irf_loop_runner.py ./g32_mom_irf_loop_runner.py
-COPY g32_horse_race_loop_runner.py ./g32_horse_race_loop_runner.py
-COPY overnight_optimizer_manager.py ./overnight_optimizer_manager.py
-COPY horse_race_status.py ./horse_race_status.py
-
 COPY massive_universe_stocks.json ./massive_universe_stocks.json
 COPY massive_universe_etf.json ./massive_universe_etf.json
 COPY massive_universe_index.json ./massive_universe_index.json
 COPY massive_universe_crypto.json ./massive_universe_crypto.json
-
-COPY backups/strict-ab-frozen-dataset-*.json ./backups/
-COPY backups/pscf-policy-anomaly-watch-*.json ./backups/
 
 COPY data ./data
 COPY market_data ./market_data
