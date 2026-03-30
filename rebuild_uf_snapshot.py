@@ -578,36 +578,9 @@ def _resolve_skip_reuse_row(
     run_id: Optional[str],
     generated_at_utc: str,
 ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-    if previous_row is None:
-        return None, None
-    if not _row_has_required_keys(previous_row):
-        return None, None
-
-    if _zero_delta_skip_applies(recent_metrics):
-        return (
-            _clone_previous_snapshot_row(
-                previous_row,
-                symbol=symbol,
-                asset_type=asset_type,
-                run_id=run_id,
-                generated_at_utc=generated_at_utc,
-            ),
-            "zero-delta",
-        )
-
-    if _zombie_fast_path_applies(previous_row, recent_metrics):
-        return (
-            _clone_previous_snapshot_row(
-                previous_row,
-                symbol=symbol,
-                asset_type=asset_type,
-                run_id=run_id,
-                generated_at_utc=generated_at_utc,
-            ),
-            "zombie",
-        )
-
-    return None, None
+    # Temporary clean-slate override: force fresh evaluation for every selected symbol.
+    # The code path still receives the prior-row and metrics inputs, but it never reuses them.
+    return None, "forced_rebuild"
 
 
 def _load_admin_tracked_symbols() -> Set[str]:

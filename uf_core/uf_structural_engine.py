@@ -193,30 +193,6 @@ def _inactive_control_payload(name: str) -> Dict[str, Any]:
     }
 
 
-def _to_optional_finite_float(value: Any) -> float | None:
-    if value is None:
-        return None
-    try:
-        parsed = float(value)
-    except Exception:
-        return None
-    if not np.isfinite(parsed):
-        return None
-    return parsed
-
-
-def _find_previous_valid_c_k(dsf_list: List[DSF]) -> float | None:
-    if len(dsf_list) < 2:
-        return None
-
-    for dsf in reversed(dsf_list[:-1]):
-        c_k = _to_optional_finite_float(getattr(dsf, "C_k", None))
-        if c_k is not None:
-            return c_k
-
-    return None
-
-
 def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
     """
     Main entrypoint: true UF-Core pipeline for a single asset.
@@ -289,7 +265,8 @@ def compute_uf_structural_state(close: pd.Series) -> UFStructuralState:
         raw_r_rev_k = float(last_dsf.R_rev_k)
         raw_u_star_k = float(last_dsf.U_star_k)
         raw_c_k = float(last_dsf.C_k)
-        raw_prev_c_k = _find_previous_valid_c_k(dsf_list)
+        if len(dsf_list) >= 2:
+            raw_prev_c_k = float(dsf_list[-2].C_k)
         raw_p_k = float(last_dsf.P_k)
         raw_b_k = float(last_dsf.B_k)
         decision_vector = [
