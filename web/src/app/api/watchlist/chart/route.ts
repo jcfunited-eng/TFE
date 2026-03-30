@@ -73,6 +73,15 @@ type WatchlistMetricRow = {
   max_dd: number | null;
 };
 
+type SnapshotMetricCompatRow = SnapshotRow & {
+  s_uf?: unknown;
+  r_uf?: unknown;
+  barCount?: unknown;
+  assetType?: unknown;
+  stabilityScore?: unknown;
+  maxDrawdown?: unknown;
+};
+
 const ALLOWED_INTERVALS: readonly ChartInterval[] = ["1m", "5m", "15m", "30m", "60m", "1d", "1wk", "1mo"];
 const ALLOWED_RANGES: readonly ChartRange[] = ["1d", "5d", "1mo", "3mo", "6mo", "ytd", "1y", "2y", "5y", "max"];
 
@@ -124,6 +133,46 @@ function toNumber(value: unknown): number {
 function toNumberOrNull(value: unknown): number | null {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
+}
+
+function normalizeRuntimeSnapshotRow(row: SnapshotRow | null | undefined): SnapshotRow | null {
+  if (!row) return null;
+
+  const source = row as SnapshotMetricCompatRow;
+  const normalized: SnapshotRow = { ...source };
+
+  if (normalized.S_UF === undefined && source.s_uf !== undefined && source.s_uf !== null) {
+    normalized.S_UF = source.s_uf as number | string;
+  }
+  if (normalized.R_UF === undefined && source.r_uf !== undefined && source.r_uf !== null) {
+    normalized.R_UF = source.r_uf as number | string;
+  }
+  if (normalized.bar_count === undefined && source.barCount !== undefined && source.barCount !== null) {
+    normalized.bar_count = source.barCount as number | string;
+  }
+  if (normalized.asset_type === undefined && source.assetType !== undefined && source.assetType !== null) {
+    normalized.asset_type = String(source.assetType);
+  }
+  if (normalized.stability_score === undefined && source.stabilityScore !== undefined && source.stabilityScore !== null) {
+    normalized.stability_score = source.stabilityScore as number | string;
+  }
+  if (normalized.max_dd === undefined && source.maxDrawdown !== undefined && source.maxDrawdown !== null) {
+    normalized.max_dd = source.maxDrawdown as number | string;
+  }
+
+  return normalized;
+}
+
+function normalizeRuntimeSnapshotRows(rows: SnapshotRow[]): SnapshotRow[] {
+  const normalized: SnapshotRow[] = [];
+
+  for (const row of rows) {
+    const next = normalizeRuntimeSnapshotRow(row);
+    if (!next) continue;
+    normalized.push(next);
+  }
+
+  return normalized;
 }
 
 function summarize(bars: Bar[]) {
@@ -224,8 +273,9 @@ export async function GET(request: Request) {
 
   try {
     const snapshotLoad = await loadRuntimeSnapshotRowsFromPostgres();
-    if (snapshotLoad.sourcePath && snapshotLoad.rows.length > 0) {
-      const row = findTickerRow(snapshotLoad.rows, ticker);
+    const snapshotRows = normalizeRuntimeSnapshotRows(snapshotLoad.rows);
+    if (snapshotLoad.sourcePath && snapshotRows.length > 0) {
+      const row = findTickerRow(snapshotRows, ticker);
       ufMetric = row ? buildRuntimeMetricRow(row) : null;
       if (!row) {
         runtimeNote = `Runtime snapshot has no row for ${ticker}.`;

@@ -52,6 +52,14 @@ type WatchlistResponse = {
 
 type SnapshotLoadResult = Awaited<ReturnType<typeof loadRuntimeSnapshotRowsFromPostgres>>;
 type QuoteLoadResult = Awaited<ReturnType<typeof loadRuntimeQuoteCacheFromPostgres>>;
+type SnapshotMetricCompatRow = SnapshotRow & {
+  s_uf?: unknown;
+  r_uf?: unknown;
+  barCount?: unknown;
+  assetType?: unknown;
+  stabilityScore?: unknown;
+  maxDrawdown?: unknown;
+};
 
 function normalizeTicker(value: unknown): string {
   return String(value ?? "").trim().toUpperCase();
@@ -80,6 +88,46 @@ function toNumber(value: unknown): number {
 function toNumberOrNull(value: unknown): number | null {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
+}
+
+function normalizeRuntimeSnapshotRow(row: SnapshotRow | null | undefined): SnapshotRow | null {
+  if (!row) return null;
+
+  const source = row as SnapshotMetricCompatRow;
+  const normalized: SnapshotRow = { ...source };
+
+  if (normalized.S_UF === undefined && source.s_uf !== undefined && source.s_uf !== null) {
+    normalized.S_UF = source.s_uf as number | string;
+  }
+  if (normalized.R_UF === undefined && source.r_uf !== undefined && source.r_uf !== null) {
+    normalized.R_UF = source.r_uf as number | string;
+  }
+  if (normalized.bar_count === undefined && source.barCount !== undefined && source.barCount !== null) {
+    normalized.bar_count = source.barCount as number | string;
+  }
+  if (normalized.asset_type === undefined && source.assetType !== undefined && source.assetType !== null) {
+    normalized.asset_type = String(source.assetType);
+  }
+  if (normalized.stability_score === undefined && source.stabilityScore !== undefined && source.stabilityScore !== null) {
+    normalized.stability_score = source.stabilityScore as number | string;
+  }
+  if (normalized.max_dd === undefined && source.maxDrawdown !== undefined && source.maxDrawdown !== null) {
+    normalized.max_dd = source.maxDrawdown as number | string;
+  }
+
+  return normalized;
+}
+
+function normalizeRuntimeSnapshotRows(rows: SnapshotRow[]): SnapshotRow[] {
+  const normalized: SnapshotRow[] = [];
+
+  for (const row of rows) {
+    const next = normalizeRuntimeSnapshotRow(row);
+    if (!next) continue;
+    normalized.push(next);
+  }
+
+  return normalized;
 }
 
 function summarizeFailures(
@@ -120,14 +168,14 @@ function buildMetricRow(
 
 function buildWatchlistPayload(
   symbols: string[],
-  snapshotLoad: SnapshotLoadResult,
+  snapshotRows: SnapshotRow[],
   quoteLoad: QuoteLoadResult,
 ): Pick<WatchlistResponse, "metrics" | "missingSymbols"> {
   const metrics: WatchlistMetricRow[] = [];
   const missingSymbols: string[] = [];
 
   for (const ticker of symbols) {
-    const row = findTickerRow(snapshotLoad.rows, ticker);
+    const row = findTickerRow(snapshotRows, ticker);
     if (!row) {
       missingSymbols.push(ticker);
       continue;
@@ -162,8 +210,9 @@ export async function GET(request: Request) {
       loadRuntimeSnapshotRowsFromPostgres(),
       loadRuntimeQuoteCacheFromPostgres(),
     ]);
+    const snapshotRows = normalizeRuntimeSnapshotRows(snapshotLoad.rows);
 
-    if (!snapshotLoad.sourcePath || snapshotLoad.rows.length === 0) {
+    if (!snapshotLoad.sourcePath || snapshotRows.length === 0) {
       return NextResponse.json(
         {
           error: summarizeFailures(
@@ -184,7 +233,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const payload = buildWatchlistPayload(watchlist.symbols, snapshotLoad, quoteLoad);
+    const payload = buildWatchlistPayload(watchlist.symbols, snapshotRows, quoteLoad);
     return NextResponse.json({
       symbols: watchlist.symbols,
       source: watchlist.filePath,

@@ -19,6 +19,7 @@ type WatchlistMetricRow = {
   decisionReasonCode: string;
   classification: "BUY" | "HOLD" | "SELL";
   price: number | null;
+  changePct: number | null;
   regime: string;
   S_UF: number;
   R_UF: number;
@@ -80,6 +81,11 @@ type SortState = {
 
 function normalize(input: string): string {
   return input.trim().toUpperCase();
+}
+
+function toNumberOrNull(value: unknown): number | null {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
 }
 
 function fmtNum(value: number | null | undefined, decimals = 3): string {
@@ -264,6 +270,10 @@ function AnalysisPanel({
   const decision = ufMetric?.decision ?? "Hold";
   const peerLine = "SPY IVV SPLG VTI QQQ VTV DIA VIG VYM VUG";
   const heldByLine = "KHPI TSPX OVL OVLH SPYA RSEE LFEQ HNDL BAMO OCIO";
+  const displayPrice = toNumberOrNull(chartSummary?.close) ?? toNumberOrNull(quoteSummary.price) ?? ufMetric?.price ?? null;
+  const displayChangePct =
+    toNumberOrNull(chartSummary?.changePct) ?? toNumberOrNull(quoteSummary.changePct) ?? ufMetric?.changePct ?? null;
+  const coverage = ufMetric ? `${ufMetric.barCount}/${ufMetric.minBarsForAccumulate}` : "n/a";
 
   const statColumns = useMemo(
     () =>
@@ -404,6 +414,52 @@ function AnalysisPanel({
               <strong>Held by:</strong> {heldByLine}
             </span>
           </div>
+
+          <section className="tfe-screener-panel">
+            <div className="tfe-screener-panel-head">
+              <h4>Native Engine Metrics</h4>
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                gap: "0.75rem",
+              }}
+            >
+              <div className="tfe-panel">
+                <strong>Price</strong>
+                <div>{fmtNum(displayPrice, 2)}</div>
+              </div>
+              <div className="tfe-panel">
+                <strong>Change</strong>
+                <div>{fmtPercent(displayChangePct, false, 2)}</div>
+              </div>
+              <div className="tfe-panel">
+                <strong>Regime</strong>
+                <div>{fmtText(ufMetric?.regime)}</div>
+              </div>
+              <div className="tfe-panel">
+                <strong>S_UF</strong>
+                <div>{fmtNum(ufMetric?.S_UF, 2)}</div>
+              </div>
+              <div className="tfe-panel">
+                <strong>R_UF</strong>
+                <div>{fmtNum(ufMetric?.R_UF, 2)}</div>
+              </div>
+              <div className="tfe-panel">
+                <strong>Stability</strong>
+                <div>{fmtNum(ufMetric?.stability_score, 2)}</div>
+              </div>
+              <div className="tfe-panel">
+                <strong>Max DD</strong>
+                <div>{fmtNum(ufMetric?.max_dd, 2)}</div>
+              </div>
+              <div className="tfe-panel">
+                <strong>Coverage</strong>
+                <div>{coverage}</div>
+              </div>
+            </div>
+          </section>
 
           {hasChart ? (
             <ScreenerChart
