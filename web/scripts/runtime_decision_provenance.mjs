@@ -8,7 +8,7 @@ const PRIMITIVE_ARTIFACT_ID = "gemini_l5_primitive_v1";
 const PRIMITIVE_FORMULA_TEXT = [
   "Step 1: if S_UF <= 0 => Avoid",
   "Step 2: if R_rev_k < 0 => Avoid",
-  "Step 3: if D_k > 0 and R_UF > 0 and (S_UF > 0.8 ? C_k <= prev_C_k : C_k < prev_C_k) and P_k < abs(B_k) => Accumulate",
+  "Step 3: if D_k > 0 and R_UF > 0 and (S_UF > 0.8 ? C_k <= prev_C_k : C_k < prev_C_k) and P_k < (abs(B_k) * (S_UF > 0.8 ? TITAN_BREACH_MULTIPLIER : 1.0)) => Accumulate",
   "Step 4: if D_k >= 0 and P_k < (abs(B_k) * 1.5) => Hold",
   "Step 5: default => Avoid",
 ].join(" | ");
@@ -162,6 +162,14 @@ export function minBarsForAccumulate() {
   return whole;
 }
 
+export function titanBreachMultiplier() {
+  const raw = Number(process.env.TFE_TITAN_BREACH_MULTIPLIER ?? 1.2);
+  if (!Number.isFinite(raw)) return 1.2;
+  if (raw < 1.0) return 1.0;
+  if (raw > 1.49) return 1.49;
+  return raw;
+}
+
 export function normalizeDecisionTraceRow(value) {
   if (Array.isArray(value)) {
     return value.map((item) => normalizeDecisionTraceRow(item));
@@ -260,11 +268,15 @@ function primitiveReasonCodeFromInputs(inputs) {
     inputs.S_UF > 0.8
       ? inputs.C_k <= inputs.prev_C_k
       : inputs.C_k < inputs.prev_C_k;
+  const breachCeiling =
+    inputs.S_UF > 0.8
+      ? Math.abs(inputs.B_k) * titanBreachMultiplier()
+      : Math.abs(inputs.B_k);
   if (
     inputs.D_k > 0 &&
     inputs.R_UF > 0 &&
     decelGatePassed &&
-    inputs.P_k < Math.abs(inputs.B_k)
+    inputs.P_k < breachCeiling
   ) {
     return "GEMINI_STEP_3_ACCUMULATE";
   }
