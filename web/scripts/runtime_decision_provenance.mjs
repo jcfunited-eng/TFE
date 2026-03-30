@@ -165,6 +165,22 @@ function toRecord(value) {
   return value;
 }
 
+export function normalizeDecisionTraceRow(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeDecisionTraceRow(item));
+  }
+
+  const record = toRecord(value);
+  if (!record) return value;
+
+  return Object.fromEntries(
+    Object.entries(record).map(([key, item]) => [
+      String(key).toLowerCase(),
+      normalizeDecisionTraceRow(item),
+    ]),
+  );
+}
+
 function dvValue(row, index) {
   const dv = row.decision_vector;
   if (!Array.isArray(dv)) return null;
@@ -180,16 +196,16 @@ function resolveBasis(row) {
   const regime = String(row?.regime ?? "UNKNOWN");
 
   let dVal = dvValue(row, 0);
-  if (dVal === null) dVal = rowNumberField(row, "D_k");
+  if (dVal === null) dVal = rowNumberField(row, "d_k");
 
   let mVal = dvValue(row, 1);
-  if (mVal === null) mVal = rowNumberField(row, "M_k");
+  if (mVal === null) mVal = rowNumberField(row, "m_k");
 
   let rVal = dvValue(row, 2);
-  if (rVal === null) rVal = rowNumberField(row, "R_rev_k");
+  if (rVal === null) rVal = rowNumberField(row, "r_rev_k");
 
   let uVal = dvValue(row, 3);
-  if (uVal === null) uVal = rowNumberField(row, "U_star_k");
+  if (uVal === null) uVal = rowNumberField(row, "u_star_k");
 
   const dv = row.decision_vector;
   const dvLen = Array.isArray(dv) ? dv.length : 0;
@@ -207,9 +223,9 @@ function resolveBasis(row) {
     bVal = dvValue(row, 5);
   }
 
-  if (cVal === null) cVal = rowNumberField(row, "C_k");
-  if (pVal === null) pVal = rowNumberField(row, "P_k");
-  if (bVal === null) bVal = rowNumberField(row, "B_k");
+  if (cVal === null) cVal = rowNumberField(row, "c_k");
+  if (pVal === null) pVal = rowNumberField(row, "p_k");
+  if (bVal === null) bVal = rowNumberField(row, "b_k");
 
   const basis = {
     regime,
@@ -335,8 +351,8 @@ function keyCandidates(row, basis, anomalyFlags, exactAnchorMode = DEFAULT_PSCF_
     `reg=${basis.regime}|D=${basis.D_k}|M=${basis.M_sign}|Rrev=${basis.R_rev_k}|` +
     `${uBucket(basis.U_star_k)}|C=${basis.C_k}|${pBucket(basis.P_k)}|B=${basis.B_k}`;
 
-  const sUf = toFinite(row.S_UF) ?? 0;
-  const rUf = toFinite(row.R_UF) ?? 0;
+  const sUf = toFinite(row.s_uf) ?? 0;
+  const rUf = toFinite(row.r_uf) ?? 0;
   const cd = sUf - rUf;
   const st = bucketStability(toFinite(row.stability_score) ?? 0);
   const phaseTag = `|PH=${irfPhase(basis.M_sign ?? 0, rUf)}`;
@@ -621,7 +637,7 @@ export function buildPersistedProvenanceRecord({
   cpProfile = DEFAULT_CP_PROFILE,
 }) {
   const normalizedTicker = normalizeTicker(ticker ?? row?.ticker);
-  const snapshotRow = { ...(row && typeof row === "object" ? row : {}), ticker: normalizedTicker };
+  const snapshotRow = normalizeDecisionTraceRow({ ...(row && typeof row === "object" ? row : {}), ticker: normalizedTicker });
   const snapshotTimestamp = String(snapshotTimestampUtc ?? generatedAtUtc ?? "").trim() || new Date().toISOString();
   const runtimeSyncCompleted = String(runtimeSyncCompletedUtc ?? generatedAtUtc ?? "").trim() || snapshotTimestamp;
   const decisionTimestampUtc = String(generatedAtUtc ?? "").trim() || snapshotTimestamp;
