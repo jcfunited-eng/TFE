@@ -556,21 +556,36 @@ run_unit_deploy_contract_syntax() {
 run_unit_deploy_workspace_integrity() {
   local unit_id="deploy_workspace_integrity"
   local decision_path="${EVIDENCE_DIR}/deploy-package-decision.json"
+  local mapped_tracked_inputs_path="${EVIDENCE_DIR}/deploy-relevant-tracked-inputs.txt"
   local state_inputs_json
   state_inputs_json="$(unit_changed_inputs_json "$unit_id")"
 
   : >"${DIRTY_DEPLOY_INPUTS_PATH}"
   : >"${UNTRACKED_DEPLOY_INPUTS_PATH}"
+  : >"${mapped_tracked_inputs_path}"
   mapfile -t deploy_source_patterns <"${SOURCE_LIST}"
 
-  if [ ! -f "${DELTA_SELECTED_FILES_JSON}" ]; then
-    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_delta_selection_missing" "deploy delta selection artifact is missing before workspace integrity validation" "" "$(json_array_from_existing_args "${SOURCE_LIST}")" "${state_inputs_json}" "{}"
+  if [ ! -f "${DELTA_SELECTION_JSON}" ]; then
+    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_selection_missing" "deploy unit selection artifact is missing before workspace integrity validation" "" "$(json_array_from_existing_args "${SOURCE_LIST}")" "${state_inputs_json}" "{}"
     return 0
   fi
 
-  if ! jq -r '.tracked_changed_files[]?' "${DELTA_SELECTED_FILES_JSON}" >"${DIRTY_DEPLOY_INPUTS_PATH}"; then
-    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_delta_read_failed" "unable to read tracked changed files from deploy delta selection artifact" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DELTA_SELECTED_FILES_JSON}" "${DIRTY_DEPLOY_INPUTS_PATH}")" "${state_inputs_json}" "{}"
+  if [ ! -f "${DELTA_SELECTED_FILES_JSON}" ]; then
+    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_delta_selection_missing" "deploy delta selected files artifact is missing before workspace integrity validation" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DELTA_SELECTION_JSON}")" "${state_inputs_json}" "{}"
     return 0
+  fi
+
+  if ! jq -r '.units[] | select(.unit_id == "deploy_workspace_integrity") | .inputs.mapped_tracked_inputs[]?' "${DELTA_SELECTION_JSON}" >"${mapped_tracked_inputs_path}"; then
+    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_selection_read_failed" "unable to read mapped tracked inputs from deploy unit selection artifact" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DELTA_SELECTION_JSON}" "${mapped_tracked_inputs_path}")" "${state_inputs_json}" "{}"
+    return 0
+  fi
+
+  mapfile -t integrity_tracked_inputs <"${mapped_tracked_inputs_path}"
+  if [ ${#integrity_tracked_inputs[@]} -gt 0 ]; then
+    if ! git -C "${REPO_ROOT}" diff --name-only HEAD -- "${integrity_tracked_inputs[@]}" >"${DIRTY_DEPLOY_INPUTS_PATH}"; then
+      write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_diff_failed" "unable to diff deploy-relevant tracked files against HEAD" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DELTA_SELECTION_JSON}" "${mapped_tracked_inputs_path}" "${DIRTY_DEPLOY_INPUTS_PATH}")" "${state_inputs_json}" "{}"
+      return 0
+    fi
   fi
 
   if ! jq -r '.relevant_untracked_files[]?' "${DELTA_SELECTED_FILES_JSON}" >"${UNTRACKED_DEPLOY_INPUTS_PATH}"; then
@@ -623,9 +638,9 @@ decision_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 PYTHON
 
   if [ -s "${DIRTY_DEPLOY_INPUTS_PATH}" ] || [ -s "${UNTRACKED_DEPLOY_INPUTS_PATH}" ]; then
-    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_not_clean" "deploy-relevant workspace files do not match HEAD" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DELTA_SELECTED_FILES_JSON}" "${DIRTY_DEPLOY_INPUTS_PATH}" "${UNTRACKED_DEPLOY_INPUTS_PATH}" "${decision_path}")" "${state_inputs_json}" "{}"
+    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_not_clean" "deploy-relevant workspace files do not match HEAD" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DELTA_SELECTION_JSON}" "${DELTA_SELECTED_FILES_JSON}" "${mapped_tracked_inputs_path}" "${DIRTY_DEPLOY_INPUTS_PATH}" "${UNTRACKED_DEPLOY_INPUTS_PATH}" "${decision_path}")" "${state_inputs_json}" "{}"
   else
-    write_block_artifact "$unit_id" "true" "pass" "" "" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DELTA_SELECTED_FILES_JSON}" "${DIRTY_DEPLOY_INPUTS_PATH}" "${UNTRACKED_DEPLOY_INPUTS_PATH}" "${decision_path}")" "${state_inputs_json}" "{}"
+    write_block_artifact "$unit_id" "true" "pass" "" "" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DELTA_SELECTION_JSON}" "${DELTA_SELECTED_FILES_JSON}" "${mapped_tracked_inputs_path}" "${DIRTY_DEPLOY_INPUTS_PATH}" "${UNTRACKED_DEPLOY_INPUTS_PATH}" "${decision_path}")" "${state_inputs_json}" "{}"
   fi
 }
 
