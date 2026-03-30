@@ -562,13 +562,21 @@ run_unit_deploy_workspace_integrity() {
   : >"${DIRTY_DEPLOY_INPUTS_PATH}"
   : >"${UNTRACKED_DEPLOY_INPUTS_PATH}"
   mapfile -t deploy_source_patterns <"${SOURCE_LIST}"
-  local integrity_patterns=("${deploy_source_patterns[@]}" "tools/deploy_to_prod_with_evidence.sh" "tools/validation_state_contract.py")
 
-  if ! git -C "${REPO_ROOT}" diff --name-only HEAD -- "${integrity_patterns[@]}" >"${DIRTY_DEPLOY_INPUTS_PATH}"; then
-    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_diff_failed" "unable to diff deploy-relevant tracked files against HEAD" "" "$(json_array_from_existing_args "${DIRTY_DEPLOY_INPUTS_PATH}")" "${state_inputs_json}" "{}"
+  if [ ! -f "${DELTA_SELECTED_FILES_JSON}" ]; then
+    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_delta_selection_missing" "deploy delta selection artifact is missing before workspace integrity validation" "" "$(json_array_from_existing_args "${SOURCE_LIST}")" "${state_inputs_json}" "{}"
     return 0
   fi
-  git -C "${REPO_ROOT}" ls-files --others --exclude-standard -- "${integrity_patterns[@]}" >"${UNTRACKED_DEPLOY_INPUTS_PATH}"
+
+  if ! jq -r '.tracked_changed_files[]?' "${DELTA_SELECTED_FILES_JSON}" >"${DIRTY_DEPLOY_INPUTS_PATH}"; then
+    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_delta_read_failed" "unable to read tracked changed files from deploy delta selection artifact" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DELTA_SELECTED_FILES_JSON}" "${DIRTY_DEPLOY_INPUTS_PATH}")" "${state_inputs_json}" "{}"
+    return 0
+  fi
+
+  if ! jq -r '.relevant_untracked_files[]?' "${DELTA_SELECTED_FILES_JSON}" >"${UNTRACKED_DEPLOY_INPUTS_PATH}"; then
+    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_delta_read_failed" "unable to read untracked files from deploy delta selection artifact" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DELTA_SELECTED_FILES_JSON}" "${UNTRACKED_DEPLOY_INPUTS_PATH}")" "${state_inputs_json}" "{}"
+    return 0
+  fi
 
   local screener_component_tracked="false"
   local screener_sort_helper_tracked="false"
@@ -579,7 +587,7 @@ run_unit_deploy_workspace_integrity() {
     screener_sort_helper_tracked="true"
   fi
 
-  python3 - "${SOURCE_LIST}" "${DIRTY_DEPLOY_INPUTS_PATH}" "${UNTRACKED_DEPLOY_INPUTS_PATH}" "${decision_path}" "${screener_component_tracked}" "${screener_sort_helper_tracked}" <<'PY'
+  python3 - "${SOURCE_LIST}" "${DIRTY_DEPLOY_INPUTS_PATH}" "${UNTRACKED_DEPLOY_INPUTS_PATH}" "${decision_path}" "${screener_component_tracked}" "${screener_sort_helper_tracked}" <<'PYTHON'
 import json
 import sys
 from pathlib import Path
@@ -612,12 +620,12 @@ payload["decision"] = (
 )
 
 decision_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-PY
+PYTHON
 
   if [ -s "${DIRTY_DEPLOY_INPUTS_PATH}" ] || [ -s "${UNTRACKED_DEPLOY_INPUTS_PATH}" ]; then
-    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_not_clean" "deploy-relevant workspace files do not match HEAD" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DIRTY_DEPLOY_INPUTS_PATH}" "${UNTRACKED_DEPLOY_INPUTS_PATH}" "${decision_path}")" "${state_inputs_json}" "{}"
+    write_block_artifact "$unit_id" "true" "fail" "deploy_workspace_not_clean" "deploy-relevant workspace files do not match HEAD" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DELTA_SELECTED_FILES_JSON}" "${DIRTY_DEPLOY_INPUTS_PATH}" "${UNTRACKED_DEPLOY_INPUTS_PATH}" "${decision_path}")" "${state_inputs_json}" "{}"
   else
-    write_block_artifact "$unit_id" "true" "pass" "" "" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DIRTY_DEPLOY_INPUTS_PATH}" "${UNTRACKED_DEPLOY_INPUTS_PATH}" "${decision_path}")" "${state_inputs_json}" "{}"
+    write_block_artifact "$unit_id" "true" "pass" "" "" "" "$(json_array_from_existing_args "${SOURCE_LIST}" "${DELTA_SELECTED_FILES_JSON}" "${DIRTY_DEPLOY_INPUTS_PATH}" "${UNTRACKED_DEPLOY_INPUTS_PATH}" "${decision_path}")" "${state_inputs_json}" "{}"
   fi
 }
 
