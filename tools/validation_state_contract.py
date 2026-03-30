@@ -408,7 +408,21 @@ def tracked_files(repo_root: Path) -> List[str]:
 def repo_dirty_tracked_files(repo_root: Path, paths: List[str]) -> List[str]:
     if not paths:
         return []
-    return git_lines(repo_root, ["ls-files", "-m", "--", *paths])
+    dirty: List[str] = []
+    for rel_path in paths:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "diff", "--quiet", "--", rel_path],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if completed.returncode == 1:
+            dirty.append(rel_path)
+            continue
+        if completed.returncode != 0:
+            stderr = (completed.stderr or completed.stdout or "git_diff_failed").strip()
+            raise RuntimeError(f"repo_dirty_tracked_files_failed:{rel_path}:{stderr}")
+    return dirty
 
 
 def git_changed_files_between(repo_root: Path, base_rev: str, head_rev: str) -> List[str]:
