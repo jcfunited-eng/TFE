@@ -183,10 +183,22 @@ type RecommendationQualityWinner = {
   reason: string | null;
 };
 
+type Cp2AuditContext = {
+  profile: string | null;
+  decisionPhysics: string | null;
+  totalRows: number | null;
+  evaluatedRows: number | null;
+  fallbackRows: number | null;
+  accumulateDecisionsInWindow: number | null;
+  historyWindowDays: number | null;
+  reasonCodeDistribution: Record<string, number> | null;
+};
+
 type RecommendationQualityPayload = {
   exists: boolean;
   status: string | null;
   generatedAtUtc: string | null;
+  cpProfile: string | null;
   laneDir: string | null;
   summaryPath: string | null;
   rankedTablePath: string | null;
@@ -200,6 +212,7 @@ type RecommendationQualityPayload = {
     target_fallback_max: number | null;
   };
   winner: RecommendationQualityWinner | null;
+  cp2?: Cp2AuditContext | null;
   error?: string;
 };
 
@@ -1206,14 +1219,16 @@ export default function AdminConsolePage() {
                       <div className={styles.kvValue}>{formatPercent((recommendationQuality.winner.fallback_rate ?? 0) * 100, 1)}</div>
                     </div>
                     <div className={styles.kvItem}>
-                      <div className={styles.kvLabel}>Winner</div>
+                      <div className={styles.kvLabel}>Profile</div>
                       <div className={styles.kvValue}>
                         {recommendationQuality.winner.variant_name || "n/a"} | {recommendationQuality.winner.min_bars ?? "n/a"} bars
                       </div>
                     </div>
                     <div className={styles.kvItem}>
-                      <div className={styles.kvLabel}>Gate Count</div>
-                      <div className={styles.kvValue}>{recommendationQuality.winner.gates.total_gate_count}</div>
+                      <div className={styles.kvLabel}>Evaluated</div>
+                      <div className={styles.kvValue}>
+                        {recommendationQuality.cp2?.evaluatedRows?.toLocaleString() ?? recommendationQuality.winner.gates.total_gate_count}
+                      </div>
                     </div>
                   </div>
 

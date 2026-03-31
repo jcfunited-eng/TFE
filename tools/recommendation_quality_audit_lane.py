@@ -1,4 +1,16 @@
 #!/usr/bin/env python3
+# DEPRECATED — CP-2 SEVERANCE 2026-03-31
+# This script depends on l5_policy_learning_pipeline.py and
+# pscf_policy_runtime.json, both of which were removed as part of the CP-2
+# deployment profile migration.  It will fail at import time in production.
+#
+# Replacement: tools/cp2_quality_audit.py
+# The new generator uses deterministic DSF V3 basin physics and queries
+# runtime_decisions_history directly.  No ML.  No tournament.  No PSCF.
+raise ImportError(
+    "recommendation_quality_audit_lane.py is deprecated (CP-2 severance). "
+    "Use tools/cp2_quality_audit.py instead."
+)
 from __future__ import annotations
 
 import argparse

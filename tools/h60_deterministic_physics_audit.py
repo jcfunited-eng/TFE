@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+# DEPRECATED — CP-2 SEVERANCE 2026-03-31
+# This script imports l5_policy_learning_pipeline.py which was removed as part
+# of the CP-2 deployment profile migration.  It will fail at import time.
+#
+# The outcome-over-index calculation is now performed by
+# tools/cp2_quality_audit.py using runtime_decisions_history + yfinance.
+raise ImportError(
+    "h60_deterministic_physics_audit.py is deprecated (CP-2 severance). "
+    "Use tools/cp2_quality_audit.py instead."
+)
 from __future__ import annotations
 
 import argparse

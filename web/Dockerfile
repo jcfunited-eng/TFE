@@ -89,6 +89,8 @@ COPY tools/l4_phase1_decision_sync_postgres.py ./tools/l4_phase1_decision_sync_p
 COPY tools/l4_phase2_structural_snapshot_sync_postgres.py ./tools/l4_phase2_structural_snapshot_sync_postgres.py
 COPY tools/l5_db_native_preflight.py ./tools/l5_db_native_preflight.py
 COPY tools/l5_phase2_sync_postgres.py ./tools/l5_phase2_sync_postgres.py
+COPY tools/evaluate_recommendation_policy_snapshot.py ./tools/evaluate_recommendation_policy_snapshot.py
+COPY tools/cp2_quality_audit.py ./tools/cp2_quality_audit.py
 COPY backups/runtime/recommendation-quality-audit-lane-* ./backups/runtime/
 COPY --from=builder /app/web/data/recommendation-quality-latest.json ./web/data/recommendation-quality-latest.json
 

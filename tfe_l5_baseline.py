@@ -2,13 +2,14 @@
 """CP-2: L5 canonical baseline filter — pure DSF V3 basin primitive.
 
 Implements the same frozen basin math as runtime_decision_provenance.mjs.
+Upgraded with 64% Cognitive Physics thresholds (raw_x_m <= 0.50, F_n <= 1.65).
 Uses only columns verified to exist in the production live schema.
 
 Required columns (all present in runtime_decisions_latest.snapshot_row_json):
-  S_UF, R_UF, D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k, price
+  S_UF, R_UF, D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k, price, raw_x_m, F_n
 
 apply_canonical_filter(df) returns the subset of rows where the V3 basin
-argmax is Accumulate and price >= MIN_PRICE.
+argmax is Accumulate, price >= MIN_PRICE, and cognitive load is not overextended.
 """
 
 from __future__ import annotations
@@ -31,6 +32,8 @@ _BURDEN_SCALE: float = 1.0 / 128.0
 _V3_TIE_EPS: float = 1e-12
 
 MIN_PRICE: float = 5.0
+MAX_RAW_X_M: float = 0.50
+MAX_F_N: float = 1.65
 
 REQUIRED_COLUMNS: tuple[str, ...] = (
     "S_UF",
@@ -43,12 +46,16 @@ REQUIRED_COLUMNS: tuple[str, ...] = (
     "P_k",
     "B_k",
     "price",
+    "raw_x_m",
+    "F_n",
 )
 
 
 @dataclass(frozen=True)
 class L5BaselineFilter:
     min_price: float = MIN_PRICE
+    max_raw_x_m: float = MAX_RAW_X_M
+    max_f_n: float = MAX_F_N
 
     def apply_canonical_filter(self, df: pd.DataFrame) -> pd.DataFrame:
         missing = [col for col in REQUIRED_COLUMNS if col not in df.columns]
@@ -106,9 +113,12 @@ class L5BaselineFilter:
         tie       = (near_acc.astype(int) + near_hold.astype(int) + near_avd.astype(int)) > 1
 
         is_accumulate = near_acc & ~tie
-        price_ok      = df["price"] >= self.min_price
+        price_ok      = s["price"] >= self.min_price
+        
+        # CP-2 64% Cognitive Gates
+        cognitive_ok  = (s["raw_x_m"] <= self.max_raw_x_m) & (s["F_n"] <= self.max_f_n)
 
-        return df.loc[is_accumulate & price_ok].copy()
+        return df.loc[is_accumulate & price_ok & cognitive_ok].copy()
 
 
 def apply_canonical_filter(df: pd.DataFrame) -> pd.DataFrame:
