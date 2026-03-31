@@ -924,6 +924,8 @@ async function upsertRuntimeBatch(client, records) {
   const regimes = records.map((record) => record.regime);
   const stabilityScores = records.map((record) => record.stabilityScore);
   const maxDds = records.map((record) => record.maxDd);
+  // CP-2: wire decision_reason_code from provenance into runtime_decisions_latest.reason_code
+  const decisionReasonCodes = records.map((record) => record.provenance.decisionReasonCode ?? null);
 
   await client.query(
     `
@@ -941,7 +943,7 @@ async function upsertRuntimeBatch(client, records) {
         batch.generated_at_utc,
         batch.snapshot_row_json_text::jsonb,
         batch.decision_label,
-        NULL,
+        batch.decision_reason_code,
         NULL,
         batch.bar_count,
         batch.min_bars_for_accumulate,
@@ -961,10 +963,12 @@ async function upsertRuntimeBatch(client, records) {
         $7::integer[],
         $8::text[],
         $9::double precision[],
-        $10::double precision[]
+        $10::double precision[],
+        $11::text[]
       ) AS batch(
         ticker, run_id, generated_at_utc, snapshot_row_json_text,
-        decision_label, bar_count, min_bars_for_accumulate, regime, stability_score, max_dd
+        decision_label, bar_count, min_bars_for_accumulate, regime, stability_score, max_dd,
+        decision_reason_code
       )
       ON CONFLICT (ticker)
       DO UPDATE SET
@@ -972,6 +976,7 @@ async function upsertRuntimeBatch(client, records) {
         generated_at_utc = EXCLUDED.generated_at_utc,
         snapshot_row_json = EXCLUDED.snapshot_row_json,
         decision_label = EXCLUDED.decision_label,
+        reason_code = EXCLUDED.reason_code,
         bar_count = EXCLUDED.bar_count,
         min_bars_for_accumulate = EXCLUDED.min_bars_for_accumulate,
         regime = EXCLUDED.regime,
@@ -990,6 +995,7 @@ async function upsertRuntimeBatch(client, records) {
       regimes,
       stabilityScores,
       maxDds,
+      decisionReasonCodes,
     ],
   );
 
