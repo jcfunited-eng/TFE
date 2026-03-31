@@ -56,6 +56,7 @@ web/tsconfig.tsbuildinfo
 !uf_mdg_snapshot.py
 !structural_recency_snapshot.py
 !run_refresh_with_l5_learning.py
+!tfe_l5_baseline.py
 !unified_market_data_service.py
 !tfe_market_data.py
 !tfe_market_data_service.py
