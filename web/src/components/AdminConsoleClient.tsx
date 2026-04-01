@@ -216,6 +216,46 @@ type RecommendationQualityPayload = {
   error?: string;
 };
 
+type SignalFilterStage = {
+  label: string;
+  count: number;
+  pct: number;
+};
+
+type SignalFilterSector = {
+  sector: string;
+  count: number;
+  pct: number;
+};
+
+type SignalFilterFieldStats = {
+  min: number | null;
+  p25: number | null;
+  median: number | null;
+  p75: number | null;
+  max: number | null;
+  populated: number;
+  populationPct: number;
+};
+
+type SignalFilterPayload = {
+  generatedAtUtc: string;
+  thresholds: { closeMin: number; rawXmMax: number; fnMax: number };
+  totalAccumulate: number;
+  fieldPopulation: {
+    close: SignalFilterFieldStats;
+    rawXm: SignalFilterFieldStats;
+    fn: SignalFilterFieldStats;
+  };
+  filterStages: SignalFilterStage[];
+  survivors: number;
+  survivorSymbols: string[];
+  sectorConcentration: SignalFilterSector[];
+  fnNotPopulated: boolean;
+  rawXmNotPopulated: boolean;
+  error?: string;
+};
+
 type NoticeTone = "info" | "good" | "warn" | "error";
 
 type NoticeState = {
@@ -338,6 +378,7 @@ export default function AdminConsolePage() {
   const [showKillConfirm, setShowKillConfirm] = useState(false);
   const [modelAccuracy, setModelAccuracy] = useState<ModelAccuracyPayload | null>(null);
   const [recommendationQuality, setRecommendationQuality] = useState<RecommendationQualityPayload | null>(null);
+  const [signalFilter, setSignalFilter] = useState<SignalFilterPayload | null>(null);
 
   const [systemStatus, setSystemStatus] = useState<SystemStatusPayload | null>(null);
 
@@ -524,6 +565,13 @@ export default function AdminConsolePage() {
     setRecommendationQuality(data);
   }
 
+  async function loadSignalFilter(): Promise<void> {
+    const response = await fetch("/api/admin/signal-filter", { cache: "no-store" });
+    if (!response.ok) return;
+    const data = (await response.json()) as SignalFilterPayload;
+    setSignalFilter(data);
+  }
+
   async function loadSystemStatus(): Promise<void> {
     const response = await fetch("/api/admin/system-status", { cache: "no-store" });
     if (!response.ok) {
@@ -562,6 +610,7 @@ export default function AdminConsolePage() {
         loadRefreshStatus(),
         loadModelAccuracy(),
         loadRecommendationQuality(),
+        loadSignalFilter(),
         loadSystemStatus(),
         loadTestUsers(),
       ]);
@@ -1266,6 +1315,82 @@ export default function AdminConsolePage() {
             <p className={styles.inlineMsg}>
               Refresh log and history are rendered only on the dedicated <strong>/admin-console/refresh-log</strong> page.
             </p>
+          </article>
+
+          <article className={styles.panel}>
+            <header className={styles.panelHeader}>
+              <h2 className={styles.panelTitle}>Sequential Signal Filter</h2>
+              <p className={styles.panelSub}>
+                Cognitive filter applied to current Accumulate signals: Close ≥ {signalFilter?.thresholds.closeMin ?? 5.0} · raw_x_m ≤ {signalFilter?.thresholds.rawXmMax ?? 0.50} · F_n ≤ {signalFilter?.thresholds.fnMax ?? 1.65}
+              </p>
+              {signalFilter?.generatedAtUtc ? (
+                <p className={styles.panelSub}>Updated: {formatIso(signalFilter.generatedAtUtc)}</p>
+              ) : null}
+            </header>
+
+            {signalFilter?.error ? (
+              <p className={`${styles.inlineMsg} ${styles.msgError}`}>{signalFilter.error}</p>
+            ) : signalFilter ? (
+              <>
+                <div className={styles.kvGrid}>
+                  <div className={styles.kvRow}>
+                    <div className={styles.kvLabel}>Total Accumulate</div>
+                    <div className={styles.kvValue}>{signalFilter.totalAccumulate.toLocaleString()}</div>
+                  </div>
+                  <div className={styles.kvRow}>
+                    <div className={styles.kvLabel}>Filter Survivors</div>
+                    <div className={styles.kvValue}>{signalFilter.survivors.toLocaleString()}</div>
+                  </div>
+                  <div className={styles.kvRow}>
+                    <div className={styles.kvLabel}>F_n populated</div>
+                    <div className={styles.kvValue}>{signalFilter.fnNotPopulated ? "⚠ not populated" : `${signalFilter.fieldPopulation.fn.populationPct}%`}</div>
+                  </div>
+                  <div className={styles.kvRow}>
+                    <div className={styles.kvLabel}>raw_x_m populated</div>
+                    <div className={styles.kvValue}>{signalFilter.rawXmNotPopulated ? "⚠ not populated" : `${signalFilter.fieldPopulation.rawXm.populationPct}%`}</div>
+                  </div>
+                </div>
+
+                {signalFilter.filterStages.length > 0 ? (
+                  <>
+                    <p className={styles.inlineMsg}><strong>Filter funnel</strong></p>
+                    {signalFilter.filterStages.map((stage) => (
+                      <div key={stage.label} className={styles.kvRow}>
+                        <div className={styles.kvLabel}>{stage.label}</div>
+                        <div className={styles.kvValue}>{stage.count.toLocaleString()} ({stage.pct}%)</div>
+                      </div>
+                    ))}
+                  </>
+                ) : null}
+
+                {!signalFilter.fnNotPopulated && !signalFilter.rawXmNotPopulated && signalFilter.fieldPopulation.fn.median !== null ? (
+                  <>
+                    <p className={styles.inlineMsg}><strong>F_n distribution</strong> (median {signalFilter.fieldPopulation.fn.median?.toFixed(3)} · p75 {signalFilter.fieldPopulation.fn.p75?.toFixed(3)} · max {signalFilter.fieldPopulation.fn.max?.toFixed(3)})</p>
+                    <p className={styles.inlineMsg}><strong>raw_x_m distribution</strong> (median {signalFilter.fieldPopulation.rawXm.median?.toFixed(4)} · p75 {signalFilter.fieldPopulation.rawXm.p75?.toFixed(4)} · max {signalFilter.fieldPopulation.rawXm.max?.toFixed(4)})</p>
+                  </>
+                ) : null}
+
+                {signalFilter.sectorConcentration.length > 0 ? (
+                  <>
+                    <p className={styles.inlineMsg}><strong>Survivor sector concentration</strong></p>
+                    {signalFilter.sectorConcentration.map((s) => (
+                      <div key={s.sector} className={styles.kvRow}>
+                        <div className={styles.kvLabel}>{s.sector}</div>
+                        <div className={styles.kvValue}>{s.count} ({s.pct}%)</div>
+                      </div>
+                    ))}
+                  </>
+                ) : null}
+
+                {signalFilter.survivors > 0 ? (
+                  <p className={styles.inlineMsg}>
+                    <strong>Survivors:</strong> {signalFilter.survivorSymbols.join(", ")}
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <p className={styles.inlineMsg}>Loading signal filter analysis...</p>
+            )}
           </article>
 
           <article className={styles.panel}>
