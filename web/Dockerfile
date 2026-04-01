@@ -113,6 +113,7 @@ COPY tfe_bar_integrity.py ./tfe_bar_integrity.py
 COPY tfe_market_data_factory.py ./tfe_market_data_factory.py
 COPY massive_market_data_service.py ./massive_market_data_service.py
 COPY alpaca_market_data_service.py ./alpaca_market_data_service.py
+COPY yahoo_index_market_data_service.py ./yahoo_index_market_data_service.py
 COPY massive_universe_cache.py ./massive_universe_cache.py
 COPY massive_universe_cache_etf.py ./massive_universe_cache_etf.py
 COPY massive_universe_index.py ./massive_universe_index.py
