@@ -1363,6 +1363,21 @@ def main() -> int:
     except Exception as _qa_exc:
         print(f"[REFRESH+CP2] Quality audit step failed (non-fatal): {_qa_exc}", flush=True)
 
+    # CP-2: Fill financial data gaps for Accumulate tickers after every
+    # successful refresh.  This runs as a best-effort step — failures are
+    # logged but do not abort the pipeline.  Respects Polygon rate limits
+    # (1.5 s between tickers) so a full 150-ticker pass takes ~4 minutes.
+    try:
+        import importlib.util as _ilu2, pathlib as _pl2
+        _backfill_src = _pl2.Path(__file__).resolve().parent / "tools" / "backfill_accumulate_fundamentals.py"
+        _spec2 = _ilu2.spec_from_file_location("backfill_accumulate_fundamentals", _backfill_src)
+        _mod2 = _ilu2.module_from_spec(_spec2)  # type: ignore[arg-type]
+        _spec2.loader.exec_module(_mod2)  # type: ignore[union-attr]
+        _mod2.run()
+        print("[REFRESH+CP2] Fundamentals gap-fill complete.", flush=True)
+    except Exception as _bf_exc:
+        print(f"[REFRESH+CP2] Fundamentals gap-fill failed (non-fatal): {_bf_exc}", flush=True)
+
     _clear_resume_checkpoint(mode=mode, reason="completed_successfully")
     return 0
 
