@@ -14,6 +14,7 @@ type RecommendationRow = {
   revenues: number;
   decision: "Accumulate";
   decisionReason: string;
+  isNewListing?: boolean;
 };
 
 type RecommendationsPayload = {
@@ -163,7 +164,12 @@ function BucketTable({
           <tbody>
             {pageRows.map((row) => (
               <tr key={`${title}-${row.ticker}`}>
-                <td>{row.ticker}</td>
+                <td>
+                  {row.ticker}
+                  {row.isNewListing ? (
+                    <span style={{ marginLeft: 6, fontSize: "0.65rem", fontWeight: 700, color: "#fff", background: "#16a34a", borderRadius: 3, padding: "1px 4px", verticalAlign: "middle", letterSpacing: "0.04em" }}>NEW</span>
+                  ) : null}
+                </td>
                 <td>{row.sector}</td>
                 <td>{formatMoney(row.marketCap)}</td>
                 <td>{formatRatio(row.currentRatio)}</td>

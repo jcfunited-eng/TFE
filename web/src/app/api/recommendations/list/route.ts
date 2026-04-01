@@ -17,6 +17,7 @@ type RecommendationRow = {
   revenues: number;
   decision: "Accumulate";
   decisionReason: string;
+  isNewListing: boolean;
 };
 
 type RecommendationsPayload = {
@@ -41,6 +42,7 @@ type DbRow = {
   revenues: number | string | null;
   decision_label: string | null;
   decision_reason: string | null;
+  bar_count: number | string | null;
 };
 
 const UNKNOWN_SECTOR = "Unknown";
@@ -95,6 +97,7 @@ function toRecommendationRow(row: DbRow): RecommendationRow | null {
     revenues,
     decision: "Accumulate",
     decisionReason: String(row.decision_reason ?? "").trim() || "Runtime decision selected from latest table.",
+    isNewListing: toNumber(row.bar_count) !== null && (toNumber(row.bar_count) as number) <= 20,
   };
 }
 
@@ -132,7 +135,8 @@ async function loadAccumulateRows(): Promise<RecommendationRow[]> {
         CAST(NULLIF(r.snapshot_row_json->>'revenues', '') AS DOUBLE PRECISION)
       ) AS revenues,
       r.decision_label,
-      COALESCE(NULLIF(TRIM(r.reason_text), ''), NULLIF(TRIM(r.reason_code), '')) AS decision_reason
+      COALESCE(NULLIF(TRIM(r.reason_text), ''), NULLIF(TRIM(r.reason_code), '')) AS decision_reason,
+      CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) AS bar_count
     FROM runtime_decisions_latest AS r
     LEFT JOIN l5_fundamentals_normalized AS f
       ON f.ticker = r.ticker

@@ -216,12 +216,6 @@ type RecommendationQualityPayload = {
   error?: string;
 };
 
-type SignalFilterStage = {
-  label: string;
-  count: number;
-  pct: number;
-};
-
 type SignalFilterSector = {
   sector: string;
   count: number;
@@ -238,21 +232,24 @@ type SignalFilterFieldStats = {
   populationPct: number;
 };
 
-type SignalFilterPayload = {
-  generatedAtUtc: string;
-  thresholds: { closeMin: number; rawXmMax: number; fnMax: number };
-  totalAccumulate: number;
-  fieldPopulation: {
-    close: SignalFilterFieldStats;
-    rawXm: SignalFilterFieldStats;
-    fn: SignalFilterFieldStats;
-  };
-  filterStages: SignalFilterStage[];
+type SignalLaneResult = {
+  label: string;
+  thresholds: Record<string, number>;
+  backtestWinRate: number;
+  backtestN: number;
   survivors: number;
   survivorSymbols: string[];
   sectorConcentration: SignalFilterSector[];
-  fnNotPopulated: boolean;
-  rawXmNotPopulated: boolean;
+};
+
+type SignalLaneAResult = SignalLaneResult & { fnStats: SignalFilterFieldStats };
+
+type SignalFilterPayload = {
+  generatedAtUtc: string;
+  totalAccumulate: number;
+  laneA: SignalLaneAResult;
+  laneB: SignalLaneResult;
+  baselineWinRate: number;
   error?: string;
 };
 
@@ -1319,12 +1316,12 @@ export default function AdminConsolePage() {
 
           <article className={styles.panel}>
             <header className={styles.panelHeader}>
-              <h2 className={styles.panelTitle}>Sequential Signal Filter</h2>
+              <h2 className={styles.panelTitle}>Signal Lanes</h2>
               <p className={styles.panelSub}>
-                Cognitive filter applied to current Accumulate signals: Close ≥ {signalFilter?.thresholds.closeMin ?? 5.0} · raw_x_m ≤ {signalFilter?.thresholds.rawXmMax ?? 0.50} · F_n ≤ {signalFilter?.thresholds.fnMax ?? 1.65}
+                Two validated signal lanes from quarantine forensics (Mar 2021–Mar 2026). Baseline DSF Accumulate 20d win rate: {signalFilter ? `${signalFilter.baselineWinRate}%` : "54.4%"}.
               </p>
               {signalFilter?.generatedAtUtc ? (
-                <p className={styles.panelSub}>Updated: {formatIso(signalFilter.generatedAtUtc)}</p>
+                <p className={styles.panelSub}>Updated: {formatIso(signalFilter.generatedAtUtc)} · Total Accumulate: {signalFilter.totalAccumulate.toLocaleString()}</p>
               ) : null}
             </header>
 
@@ -1332,48 +1329,30 @@ export default function AdminConsolePage() {
               <p className={`${styles.inlineMsg} ${styles.msgError}`}>{signalFilter.error}</p>
             ) : signalFilter ? (
               <>
+                {/* Lane A — F_n Established */}
+                <p className={styles.inlineMsg}>
+                  <strong>Lane A — {signalFilter.laneA.label}</strong>
+                </p>
                 <div className={styles.kvGrid}>
                   <div className={styles.kvRow}>
-                    <div className={styles.kvLabel}>Total Accumulate</div>
-                    <div className={styles.kvValue}>{signalFilter.totalAccumulate.toLocaleString()}</div>
+                    <div className={styles.kvLabel}>Backtest win rate</div>
+                    <div className={styles.kvValue}>{signalFilter.laneA.backtestWinRate}% (n={signalFilter.laneA.backtestN.toLocaleString()})</div>
                   </div>
                   <div className={styles.kvRow}>
-                    <div className={styles.kvLabel}>Filter Survivors</div>
-                    <div className={styles.kvValue}>{signalFilter.survivors.toLocaleString()}</div>
+                    <div className={styles.kvLabel}>Live survivors</div>
+                    <div className={styles.kvValue}>{signalFilter.laneA.survivors.toLocaleString()}</div>
                   </div>
-                  <div className={styles.kvRow}>
-                    <div className={styles.kvLabel}>F_n populated</div>
-                    <div className={styles.kvValue}>{signalFilter.fnNotPopulated ? "⚠ not populated" : `${signalFilter.fieldPopulation.fn.populationPct}%`}</div>
-                  </div>
-                  <div className={styles.kvRow}>
-                    <div className={styles.kvLabel}>raw_x_m populated</div>
-                    <div className={styles.kvValue}>{signalFilter.rawXmNotPopulated ? "⚠ not populated" : `${signalFilter.fieldPopulation.rawXm.populationPct}%`}</div>
-                  </div>
+                  {signalFilter.laneA.fnStats.median !== null ? (
+                    <div className={styles.kvRow}>
+                      <div className={styles.kvLabel}>F_n (median · p75)</div>
+                      <div className={styles.kvValue}>{signalFilter.laneA.fnStats.median.toFixed(3)} · {signalFilter.laneA.fnStats.p75?.toFixed(3)}</div>
+                    </div>
+                  ) : null}
                 </div>
-
-                {signalFilter.filterStages.length > 0 ? (
+                {signalFilter.laneA.sectorConcentration.length > 0 ? (
                   <>
-                    <p className={styles.inlineMsg}><strong>Filter funnel</strong></p>
-                    {signalFilter.filterStages.map((stage) => (
-                      <div key={stage.label} className={styles.kvRow}>
-                        <div className={styles.kvLabel}>{stage.label}</div>
-                        <div className={styles.kvValue}>{stage.count.toLocaleString()} ({stage.pct}%)</div>
-                      </div>
-                    ))}
-                  </>
-                ) : null}
-
-                {!signalFilter.fnNotPopulated && !signalFilter.rawXmNotPopulated && signalFilter.fieldPopulation.fn.median !== null ? (
-                  <>
-                    <p className={styles.inlineMsg}><strong>F_n distribution</strong> (median {signalFilter.fieldPopulation.fn.median?.toFixed(3)} · p75 {signalFilter.fieldPopulation.fn.p75?.toFixed(3)} · max {signalFilter.fieldPopulation.fn.max?.toFixed(3)})</p>
-                    <p className={styles.inlineMsg}><strong>raw_x_m distribution</strong> (median {signalFilter.fieldPopulation.rawXm.median?.toFixed(4)} · p75 {signalFilter.fieldPopulation.rawXm.p75?.toFixed(4)} · max {signalFilter.fieldPopulation.rawXm.max?.toFixed(4)})</p>
-                  </>
-                ) : null}
-
-                {signalFilter.sectorConcentration.length > 0 ? (
-                  <>
-                    <p className={styles.inlineMsg}><strong>Survivor sector concentration</strong></p>
-                    {signalFilter.sectorConcentration.map((s) => (
+                    <p className={styles.inlineMsg}>Sector concentration:</p>
+                    {signalFilter.laneA.sectorConcentration.map((s) => (
                       <div key={s.sector} className={styles.kvRow}>
                         <div className={styles.kvLabel}>{s.sector}</div>
                         <div className={styles.kvValue}>{s.count} ({s.pct}%)</div>
@@ -1381,15 +1360,45 @@ export default function AdminConsolePage() {
                     ))}
                   </>
                 ) : null}
-
-                {signalFilter.survivors > 0 ? (
+                {signalFilter.laneA.survivors > 0 ? (
                   <p className={styles.inlineMsg}>
-                    <strong>Survivors:</strong> {signalFilter.survivorSymbols.join(", ")}
+                    <strong>Symbols:</strong> {signalFilter.laneA.survivorSymbols.join(", ")}
+                  </p>
+                ) : null}
+
+                {/* Lane B — New Listing */}
+                <p className={styles.inlineMsg} style={{ marginTop: "0.75rem" }}>
+                  <strong>Lane B — {signalFilter.laneB.label}</strong>
+                </p>
+                <div className={styles.kvGrid}>
+                  <div className={styles.kvRow}>
+                    <div className={styles.kvLabel}>Backtest win rate</div>
+                    <div className={styles.kvValue}>{signalFilter.laneB.backtestWinRate}% (n={signalFilter.laneB.backtestN.toLocaleString()})</div>
+                  </div>
+                  <div className={styles.kvRow}>
+                    <div className={styles.kvLabel}>Live survivors</div>
+                    <div className={styles.kvValue}>{signalFilter.laneB.survivors.toLocaleString()}{signalFilter.laneB.survivors === 0 ? " — run Universe + Snapshot to populate" : ""}</div>
+                  </div>
+                </div>
+                {signalFilter.laneB.sectorConcentration.length > 0 ? (
+                  <>
+                    <p className={styles.inlineMsg}>Sector concentration:</p>
+                    {signalFilter.laneB.sectorConcentration.map((s) => (
+                      <div key={s.sector} className={styles.kvRow}>
+                        <div className={styles.kvLabel}>{s.sector}</div>
+                        <div className={styles.kvValue}>{s.count} ({s.pct}%)</div>
+                      </div>
+                    ))}
+                  </>
+                ) : null}
+                {signalFilter.laneB.survivors > 0 ? (
+                  <p className={styles.inlineMsg}>
+                    <strong>Symbols:</strong> {signalFilter.laneB.survivorSymbols.join(", ")}
                   </p>
                 ) : null}
               </>
             ) : (
-              <p className={styles.inlineMsg}>Loading signal filter analysis...</p>
+              <p className={styles.inlineMsg}>Loading signal lanes...</p>
             )}
           </article>
 

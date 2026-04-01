@@ -6,22 +6,19 @@ import {
   RUNTIME_DECISIONS_TABLE,
 } from "@/lib/runtime-db";
 
-// Sequential cognitive filter thresholds
-const CLOSE_MIN   = 5.0;
-const RAW_XM_MAX  = 0.50;
-const FN_MAX      = 1.65;
+// ── Validated signal thresholds (from quarantine parquet forensics) ──────────
+const CLOSE_MIN       = 5.0;
+const FN_MAX          = 1.65;
+const NEW_LISTING_BARS = 20;   // bar_count <= this = new listing
 
-type FilterStage = {
-  label: string;
-  count: number;
-  pct: number;
-};
+// ── Backtest reference stats (quarantine_12k, Mar 2021–Mar 2026) ─────────────
+const BASELINE_WIN_RATE   = 54.4;
+const LANE_A_WIN_RATE     = 57.5;
+const LANE_A_BACKTEST_N   = 5187;
+const LANE_B_WIN_RATE     = 65.3;
+const LANE_B_BACKTEST_N   = 2906;
 
-type SectorCount = {
-  sector: string;
-  count: number;
-  pct: number;
-};
+type SectorCount = { sector: string; count: number; pct: number };
 
 type FieldStats = {
   min: number | null;
@@ -33,25 +30,24 @@ type FieldStats = {
   populationPct: number;
 };
 
-export type SignalFilterPayload = {
-  generatedAtUtc: string;
-  thresholds: {
-    closeMin: number;
-    rawXmMax: number;
-    fnMax: number;
-  };
-  totalAccumulate: number;
-  fieldPopulation: {
-    close: FieldStats;
-    rawXm: FieldStats;
-    fn: FieldStats;
-  };
-  filterStages: FilterStage[];
+type LaneResult = {
+  label: string;
+  thresholds: Record<string, number>;
+  backtestWinRate: number;
+  backtestN: number;
   survivors: number;
   survivorSymbols: string[];
   sectorConcentration: SectorCount[];
-  fnNotPopulated: boolean;
-  rawXmNotPopulated: boolean;
+};
+
+type LaneAResult = LaneResult & { fnStats: FieldStats };
+
+export type SignalFilterPayload = {
+  generatedAtUtc: string;
+  totalAccumulate: number;
+  laneA: LaneAResult;
+  laneB: LaneResult;
+  baselineWinRate: number;
   error?: string;
 };
 
@@ -66,6 +62,12 @@ function safeFloat(val: unknown): number | null {
   if (val === null || val === undefined) return null;
   const f = typeof val === "number" ? val : parseFloat(String(val));
   return isFinite(f) ? f : null;
+}
+
+function safeInt(val: unknown): number | null {
+  if (val === null || val === undefined) return null;
+  const n = typeof val === "number" ? Math.round(val) : parseInt(String(val), 10);
+  return isFinite(n) ? n : null;
 }
 
 function percentile(sorted: number[], pct: number): number | null {
@@ -87,11 +89,47 @@ function fieldStats(values: number[], total: number): FieldStats {
   };
 }
 
+function sectorConcentration(items: { sector: string }[]): SectorCount[] {
+  const map = new Map<string, number>();
+  for (const { sector } of items) {
+    map.set(sector, (map.get(sector) ?? 0) + 1);
+  }
+  return [...map.entries()]
+    .map(([sector, count]) => ({
+      sector,
+      count,
+      pct: Math.round(count / items.length * 1000) / 10,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 15);
+}
+
 export async function GET(request: Request) {
   const denied = await requireAdmin(request);
   if (denied) return denied;
 
   const pool = resolveRuntimePostgresPool();
+
+  const emptyLaneA: LaneAResult = {
+    label: `F_n Established (bar_count > ${NEW_LISTING_BARS})`,
+    thresholds: { closeMin: CLOSE_MIN, fnMax: FN_MAX, barCountMin: NEW_LISTING_BARS },
+    backtestWinRate: LANE_A_WIN_RATE,
+    backtestN: LANE_A_BACKTEST_N,
+    survivors: 0,
+    survivorSymbols: [],
+    sectorConcentration: [],
+    fnStats: fieldStats([], 0),
+  };
+
+  const emptyLaneB: LaneResult = {
+    label: `New Listing (bar_count ≤ ${NEW_LISTING_BARS})`,
+    thresholds: { closeMin: CLOSE_MIN, barCountMax: NEW_LISTING_BARS },
+    backtestWinRate: LANE_B_WIN_RATE,
+    backtestN: LANE_B_BACKTEST_N,
+    survivors: 0,
+    survivorSymbols: [],
+    sectorConcentration: [],
+  };
 
   try {
     const result = await pool.query<{ ticker: string; snapshot_row_json: unknown }>(
@@ -104,28 +142,18 @@ export async function GET(request: Request) {
     if (total === 0) {
       return NextResponse.json({
         generatedAtUtc: new Date().toISOString(),
-        thresholds: { closeMin: CLOSE_MIN, rawXmMax: RAW_XM_MAX, fnMax: FN_MAX },
         totalAccumulate: 0,
-        fieldPopulation: {
-          close: fieldStats([], 0),
-          rawXm: fieldStats([], 0),
-          fn:    fieldStats([], 0),
-        },
-        filterStages: [],
-        survivors: 0,
-        survivorSymbols: [],
-        sectorConcentration: [],
-        fnNotPopulated: true,
-        rawXmNotPopulated: true,
+        laneA: emptyLaneA,
+        laneB: emptyLaneB,
+        baselineWinRate: BASELINE_WIN_RATE,
       } satisfies SignalFilterPayload);
     }
 
-    // Parse each row's snapshot JSON
     type ParsedRow = {
       ticker: string;
       close: number | null;
-      rawXm: number | null;
       fn: number | null;
+      barCount: number | null;
       sector: string;
     };
 
@@ -135,82 +163,67 @@ export async function GET(request: Request) {
           ? (r.snapshot_row_json as Record<string, unknown>)
           : {};
 
-      const close  = safeFloat(snap["price"] ?? snap["close"] ?? snap["Close"]);
-      const rawXm  = safeFloat(snap["raw_x_m"]);
-      const fn     = safeFloat(snap["F_n"] ?? snap["f_n"]);
-      const sector = typeof snap["sector"] === "string" && snap["sector"].trim()
+      const close    = safeFloat(snap["price"] ?? snap["close"] ?? snap["Close"]);
+      const fn       = safeFloat(snap["F_n"] ?? snap["f_n"]);
+      const barCount = safeInt(snap["bar_count"]);
+      const sector   = typeof snap["sector"] === "string" && snap["sector"].trim()
         ? snap["sector"].trim()
         : "Unknown";
 
-      return { ticker: r.ticker, close, rawXm, fn, sector };
+      return { ticker: r.ticker, close, fn, barCount, sector };
     });
 
-    // Field distributions
-    const closeVals = parsed.flatMap(p => p.close !== null ? [p.close] : []);
-    const xmVals    = parsed.flatMap(p => p.rawXm !== null ? [p.rawXm] : []);
-    const fnVals    = parsed.flatMap(p => p.fn    !== null ? [p.fn]    : []);
+    // ── Lane A: F_n established ───────────────────────────────────────────────
+    const laneARows = parsed.filter(
+      p => p.close !== null && p.close >= CLOSE_MIN &&
+           p.fn !== null && p.fn <= FN_MAX &&
+           p.barCount !== null && p.barCount > NEW_LISTING_BARS
+    );
+    const fnVals = laneARows.flatMap(p => p.fn !== null ? [p.fn] : []);
 
-    // Filter stages
-    const afterClose = parsed.filter(p => p.close !== null && p.close >= CLOSE_MIN);
-    const afterXm    = afterClose.filter(p => p.rawXm !== null && p.rawXm <= RAW_XM_MAX);
-    const afterFn    = afterXm.filter(p => p.fn !== null && p.fn <= FN_MAX);
+    const laneA: LaneAResult = {
+      label: `F_n Established (bar_count > ${NEW_LISTING_BARS})`,
+      thresholds: { closeMin: CLOSE_MIN, fnMax: FN_MAX, barCountMin: NEW_LISTING_BARS },
+      backtestWinRate: LANE_A_WIN_RATE,
+      backtestN: LANE_A_BACKTEST_N,
+      survivors: laneARows.length,
+      survivorSymbols: laneARows.map(p => p.ticker).sort(),
+      sectorConcentration: laneARows.length > 0 ? sectorConcentration(laneARows.map(p => ({ sector: p.sector }))) : [],
+      fnStats: fieldStats(fnVals, laneARows.length),
+    };
 
-    const filterStages: FilterStage[] = [
-      { label: `Close ≥ ${CLOSE_MIN}`,      count: afterClose.length, pct: Math.round(afterClose.length / total * 1000) / 10 },
-      { label: `raw_x_m ≤ ${RAW_XM_MAX}`,  count: afterXm.length,   pct: Math.round(afterXm.length   / total * 1000) / 10 },
-      { label: `F_n ≤ ${FN_MAX}`,           count: afterFn.length,   pct: Math.round(afterFn.length   / total * 1000) / 10 },
-    ];
+    // ── Lane B: New listing ───────────────────────────────────────────────────
+    const laneBRows = parsed.filter(
+      p => p.close !== null && p.close >= CLOSE_MIN &&
+           p.barCount !== null && p.barCount <= NEW_LISTING_BARS
+    );
 
-    // Sector concentration
-    const sectorMap = new Map<string, number>();
-    for (const p of afterFn) {
-      sectorMap.set(p.sector, (sectorMap.get(p.sector) ?? 0) + 1);
-    }
-    const sectorConcentration: SectorCount[] = [...sectorMap.entries()]
-      .map(([sector, count]) => ({
-        sector,
-        count,
-        pct: Math.round(count / afterFn.length * 1000) / 10,
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 15);
-
-    const survivorSymbols = afterFn.map(p => p.ticker).sort();
+    const laneB: LaneResult = {
+      label: `New Listing (bar_count ≤ ${NEW_LISTING_BARS})`,
+      thresholds: { closeMin: CLOSE_MIN, barCountMax: NEW_LISTING_BARS },
+      backtestWinRate: LANE_B_WIN_RATE,
+      backtestN: LANE_B_BACKTEST_N,
+      survivors: laneBRows.length,
+      survivorSymbols: laneBRows.map(p => p.ticker).sort(),
+      sectorConcentration: laneBRows.length > 0 ? sectorConcentration(laneBRows.map(p => ({ sector: p.sector }))) : [],
+    };
 
     return NextResponse.json({
       generatedAtUtc: new Date().toISOString(),
-      thresholds: { closeMin: CLOSE_MIN, rawXmMax: RAW_XM_MAX, fnMax: FN_MAX },
       totalAccumulate: total,
-      fieldPopulation: {
-        close: fieldStats(closeVals, total),
-        rawXm: fieldStats(xmVals, total),
-        fn:    fieldStats(fnVals, total),
-      },
-      filterStages,
-      survivors: afterFn.length,
-      survivorSymbols,
-      sectorConcentration,
-      fnNotPopulated:    fnVals.length === 0,
-      rawXmNotPopulated: xmVals.length === 0,
+      laneA,
+      laneB,
+      baselineWinRate: BASELINE_WIN_RATE,
     } satisfies SignalFilterPayload);
 
   } catch (error) {
     const message = error instanceof Error ? error.message : "Signal filter query failed.";
     return NextResponse.json({
       generatedAtUtc: new Date().toISOString(),
-      thresholds: { closeMin: CLOSE_MIN, rawXmMax: RAW_XM_MAX, fnMax: FN_MAX },
       totalAccumulate: 0,
-      fieldPopulation: {
-        close: fieldStats([], 0),
-        rawXm: fieldStats([], 0),
-        fn:    fieldStats([], 0),
-      },
-      filterStages: [],
-      survivors: 0,
-      survivorSymbols: [],
-      sectorConcentration: [],
-      fnNotPopulated: true,
-      rawXmNotPopulated: true,
+      laneA: emptyLaneA,
+      laneB: emptyLaneB,
+      baselineWinRate: BASELINE_WIN_RATE,
       error: message,
     } satisfies SignalFilterPayload);
   }
