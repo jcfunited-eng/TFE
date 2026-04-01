@@ -109,19 +109,19 @@ async function run() {
       sign_in_success: false,
       recommendations_api_success: false,
       recommendations_page_http_200: false,
-      response_data_source_postgres: false,
-      response_has_run_id: false,
-      response_has_generated_at_utc: false,
-      freshness_not_stale: false,
-      freshness_within_budget: false,
-      response_nonempty_all_market: false,
-      decision_summary_matches_all_market: false,
-      classification_decision_consistency: false,
-      confidence_range_consistency: false,
-      reason_code_allowed: false,
-      fallback_flag_consistency: false,
-      health_counts_consistency: false,
-      top_lists_consistency: false,
+      response_has_buckets: false,
+      response_has_total_accumulate: false,
+      total_accumulate_matches_bucket_sum: false,
+      titans_market_cap_threshold: false,
+      heavyweights_market_cap_threshold: false,
+      mid_tier_market_cap_threshold: false,
+      hunters_market_cap_threshold: false,
+      all_rows_decision_accumulate: false,
+      all_rows_have_required_numeric_fields: false,
+      all_rows_ticker_nonempty: false,
+      all_rows_sector_nonempty: false,
+      no_ticker_duplicates_across_buckets: false,
+      is_new_listing_boolean: false,
     },
     failures: [],
     details: {
@@ -129,23 +129,25 @@ async function run() {
       recommendations_api: {},
       recommendations_page: {},
       computed: {
-        decision_counts: {
-          accumulate: 0,
-          hold: 0,
-          avoid: 0,
+        bucket_counts: {
+          titans: 0,
+          heavyweights: 0,
+          mid_tier: 0,
+          hunters: 0,
+          total: 0,
         },
-        policy_mapped_rows: 0,
-        fallback_rows: 0,
-        bad_classification_rows: 0,
-        bad_confidence_rows: 0,
-        bad_reason_code_rows: 0,
-        bad_fallback_flag_rows: 0,
-        top_under50_invalid_rows: 0,
-        top_asset_invalid_rows: 0,
-      },
-      freshness: {
-        max_age_minutes: args.maxAgeMinutes,
-        age_minutes: null,
+        bad_decision_rows: 0,
+        bad_numeric_rows: 0,
+        bad_ticker_rows: 0,
+        bad_sector_rows: 0,
+        duplicate_tickers: [],
+        bad_new_listing_rows: 0,
+        bad_threshold_rows: {
+          titans: 0,
+          heavyweights: 0,
+          mid_tier: 0,
+          hunters: 0,
+        },
       },
     },
     screenshots: {
@@ -212,204 +214,179 @@ async function run() {
     await page.screenshot({ path: summary.screenshots.recommendations_page, fullPage: true });
 
     const payload = recBody && typeof recBody === 'object' ? recBody : {};
-    const allMarket = Array.isArray(payload.allMarket) ? payload.allMarket : [];
-    const topUnder50 = Array.isArray(payload.topUnder50) ? payload.topUnder50 : [];
-    const topByAssetType = payload.topByAssetType && typeof payload.topByAssetType === 'object' ? payload.topByAssetType : {};
-    const decisionSummary = payload.decisionSummary && typeof payload.decisionSummary === 'object' ? payload.decisionSummary : {};
-    const recommendationHealth = payload.recommendationHealth && typeof payload.recommendationHealth === 'object' ? payload.recommendationHealth : {};
-    const freshness = payload.freshness && typeof payload.freshness === 'object' ? payload.freshness : {};
 
-    const dataSource = String(payload.data_source ?? '').trim().toLowerCase();
-    if (dataSource === 'postgres') {
-      summary.checks.response_data_source_postgres = true;
+    // ── Check 4: response has buckets structure ────────────────────────────────
+    const buckets = payload.buckets && typeof payload.buckets === 'object' ? payload.buckets : null;
+    const titans = Array.isArray(buckets?.titans) ? buckets.titans : [];
+    const heavyweights = Array.isArray(buckets?.heavyweights) ? buckets.heavyweights : [];
+    const midTier = Array.isArray(buckets?.midTier) ? buckets.midTier : [];
+    const hunters = Array.isArray(buckets?.hunters) ? buckets.hunters : [];
+
+    if (buckets !== null) {
+      summary.checks.response_has_buckets = true;
     } else {
-      summary.failures.push('recommendations_data_source_not_postgres');
+      summary.failures.push('recommendations_missing_buckets');
     }
 
-    const runId = String(payload.run_id ?? '').trim();
-    if (runId) {
-      summary.checks.response_has_run_id = true;
+    // ── Check 5: totalAccumulate is a non-negative integer ────────────────────
+    const totalAccumulate = Number(payload.totalAccumulate ?? NaN);
+    if (Number.isFinite(totalAccumulate) && totalAccumulate >= 0 && Number.isInteger(totalAccumulate)) {
+      summary.checks.response_has_total_accumulate = true;
     } else {
-      summary.failures.push('recommendations_missing_run_id');
+      summary.failures.push('recommendations_missing_total_accumulate');
     }
 
-    const generatedAtIso = validIso(payload.generated_at_utc);
-    if (generatedAtIso) {
-      summary.checks.response_has_generated_at_utc = true;
-      const ageMinutes = (Date.now() - Date.parse(generatedAtIso)) / 60000;
-      summary.details.freshness.age_minutes = Number(ageMinutes.toFixed(3));
-      if (ageMinutes <= args.maxAgeMinutes) {
-        summary.checks.freshness_within_budget = true;
+    // ── Check 6: totalAccumulate === sum of bucket lengths ────────────────────
+    const bucketSum = titans.length + heavyweights.length + midTier.length + hunters.length;
+    summary.details.computed.bucket_counts = {
+      titans: titans.length,
+      heavyweights: heavyweights.length,
+      mid_tier: midTier.length,
+      hunters: hunters.length,
+      total: bucketSum,
+    };
+    if (Number.isFinite(totalAccumulate) && totalAccumulate === bucketSum) {
+      summary.checks.total_accumulate_matches_bucket_sum = true;
+    } else {
+      summary.failures.push('recommendations_total_accumulate_bucket_sum_mismatch');
+    }
+
+    // ── Checks 7–10: market cap thresholds per bucket ─────────────────────────
+    // Only check rows where marketCap > 0 (0 means data unavailable, falls through to hunters)
+    const TITAN_MIN = 200_000_000_000;
+    const HW_MIN = 50_000_000_000;
+    const MT_MIN = 10_000_000_000;
+
+    let badTitans = 0;
+    for (const row of titans) {
+      const mc = Number(row?.marketCap ?? 0);
+      if (mc > 0 && mc < TITAN_MIN) badTitans += 1;
+    }
+    let badHeavyweights = 0;
+    for (const row of heavyweights) {
+      const mc = Number(row?.marketCap ?? 0);
+      if (mc > 0 && (mc < HW_MIN || mc >= TITAN_MIN)) badHeavyweights += 1;
+    }
+    let badMidTier = 0;
+    for (const row of midTier) {
+      const mc = Number(row?.marketCap ?? 0);
+      if (mc > 0 && (mc < MT_MIN || mc >= HW_MIN)) badMidTier += 1;
+    }
+    let badHunters = 0;
+    for (const row of hunters) {
+      const mc = Number(row?.marketCap ?? 0);
+      if (mc > 0 && mc >= MT_MIN) badHunters += 1;
+    }
+
+    summary.details.computed.bad_threshold_rows = { titans: badTitans, heavyweights: badHeavyweights, mid_tier: badMidTier, hunters: badHunters };
+
+    if (badTitans === 0) {
+      summary.checks.titans_market_cap_threshold = true;
+    } else {
+      summary.failures.push('recommendations_titans_market_cap_invalid');
+    }
+    if (badHeavyweights === 0) {
+      summary.checks.heavyweights_market_cap_threshold = true;
+    } else {
+      summary.failures.push('recommendations_heavyweights_market_cap_invalid');
+    }
+    if (badMidTier === 0) {
+      summary.checks.mid_tier_market_cap_threshold = true;
+    } else {
+      summary.failures.push('recommendations_mid_tier_market_cap_invalid');
+    }
+    if (badHunters === 0) {
+      summary.checks.hunters_market_cap_threshold = true;
+    } else {
+      summary.failures.push('recommendations_hunters_market_cap_invalid');
+    }
+
+    // ── Checks 11–16: per-row integrity across all buckets ────────────────────
+    const allRows = [...titans, ...heavyweights, ...midTier, ...hunters];
+    let badDecision = 0;
+    let badNumeric = 0;
+    let badTicker = 0;
+    let badSector = 0;
+    let badNewListing = 0;
+    const seenTickers = new Map();
+    const duplicateTickers = [];
+
+    for (const row of allRows) {
+      if (String(row?.decision ?? '') !== 'Accumulate') badDecision += 1;
+
+      const mc = Number(row?.marketCap ?? NaN);
+      const cr = Number(row?.currentRatio ?? NaN);
+      const fcf = Number(row?.freeCashFlow ?? NaN);
+      const gm = Number(row?.grossMargin ?? NaN);
+      if (!Number.isFinite(mc) || !Number.isFinite(cr) || !Number.isFinite(fcf) || !Number.isFinite(gm)) {
+        badNumeric += 1;
+      }
+
+      const ticker = String(row?.ticker ?? '').trim();
+      if (!ticker) {
+        badTicker += 1;
       } else {
-        summary.failures.push('recommendations_snapshot_too_old');
-      }
-    } else {
-      summary.failures.push('recommendations_generated_at_invalid');
-    }
-
-    if (freshness.stale === false) {
-      summary.checks.freshness_not_stale = true;
-    } else {
-      summary.failures.push('recommendations_freshness_marked_stale');
-    }
-
-    if (allMarket.length > 0) {
-      summary.checks.response_nonempty_all_market = true;
-    } else {
-      summary.failures.push('recommendations_all_market_empty');
-    }
-
-    let accumulate = 0;
-    let hold = 0;
-    let avoid = 0;
-    let policyMappedRows = 0;
-    let fallbackRows = 0;
-    let badClassificationRows = 0;
-    let badConfidenceRows = 0;
-    let badReasonCodeRows = 0;
-    let badFallbackFlagRows = 0;
-
-    for (const row of allMarket) {
-      const decision = String(row?.decision ?? '');
-      const classification = String(row?.classification ?? '');
-      const reasonCode = String(row?.decisionReasonCode ?? '');
-      const fallbackUsed = Boolean(row?.fallbackUsed);
-
-      if (decision === 'Accumulate') accumulate += 1;
-      else if (decision === 'Avoid') avoid += 1;
-      else hold += 1;
-
-      if (reasonCode === 'PSCF_POLICY_DECISION') {
-        policyMappedRows += 1;
-      }
-      if (fallbackUsed) {
-        fallbackRows += 1;
+        if (seenTickers.has(ticker)) {
+          duplicateTickers.push(ticker);
+        } else {
+          seenTickers.set(ticker, true);
+        }
       }
 
-      if (classification !== decisionToClassification(decision)) {
-        badClassificationRows += 1;
-      }
+      const sector = String(row?.sector ?? '').trim();
+      if (!sector) badSector += 1;
 
-      const sUf = Number(row?.S_UF);
-      const rUf = Number(row?.R_UF);
-      const confidence = Number(row?.confidence);
-      const expectedConfidence = (sUf + rUf) / 2;
-      const numericOk = isFiniteNumber(sUf) && isFiniteNumber(rUf) && isFiniteNumber(confidence);
-      const rangeOk = confidence >= 0 && confidence <= 1 && sUf >= 0 && sUf <= 1 && rUf >= 0 && rUf <= 1;
-      const confidenceOk = numericOk && rangeOk && approxEqual(confidence, expectedConfidence, args.epsilon);
-      if (!confidenceOk) {
-        badConfidenceRows += 1;
-      }
-
-      if (!ALLOWED_REASON_CODES.has(reasonCode)) {
-        badReasonCodeRows += 1;
-      }
-
-      if (reasonCode === 'PSCF_POLICY_DECISION' && fallbackUsed) {
-        badFallbackFlagRows += 1;
-      }
-      if (reasonCode !== 'PSCF_POLICY_DECISION' && !fallbackUsed) {
-        badFallbackFlagRows += 1;
+      if ('isNewListing' in Object(row) && typeof row.isNewListing !== 'boolean') {
+        badNewListing += 1;
       }
     }
 
-    summary.details.computed.decision_counts = { accumulate, hold, avoid };
-    summary.details.computed.policy_mapped_rows = policyMappedRows;
-    summary.details.computed.fallback_rows = fallbackRows;
-    summary.details.computed.bad_classification_rows = badClassificationRows;
-    summary.details.computed.bad_confidence_rows = badConfidenceRows;
-    summary.details.computed.bad_reason_code_rows = badReasonCodeRows;
-    summary.details.computed.bad_fallback_flag_rows = badFallbackFlagRows;
+    summary.details.computed.bad_decision_rows = badDecision;
+    summary.details.computed.bad_numeric_rows = badNumeric;
+    summary.details.computed.bad_ticker_rows = badTicker;
+    summary.details.computed.bad_sector_rows = badSector;
+    summary.details.computed.duplicate_tickers = duplicateTickers;
+    summary.details.computed.bad_new_listing_rows = badNewListing;
 
-    const summaryMatch =
-      Number(decisionSummary.accumulate ?? -1) === accumulate &&
-      Number(decisionSummary.hold ?? -1) === hold &&
-      Number(decisionSummary.avoid ?? -1) === avoid;
-    if (summaryMatch) {
-      summary.checks.decision_summary_matches_all_market = true;
+    if (badDecision === 0) {
+      summary.checks.all_rows_decision_accumulate = true;
     } else {
-      summary.failures.push('recommendations_decision_summary_mismatch');
+      summary.failures.push('recommendations_non_accumulate_rows_in_buckets');
     }
 
-    if (badClassificationRows === 0) {
-      summary.checks.classification_decision_consistency = true;
+    if (badNumeric === 0) {
+      summary.checks.all_rows_have_required_numeric_fields = true;
     } else {
-      summary.failures.push('recommendations_classification_mismatch');
+      summary.failures.push('recommendations_rows_missing_numeric_fields');
     }
 
-    if (badConfidenceRows === 0) {
-      summary.checks.confidence_range_consistency = true;
+    if (badTicker === 0) {
+      summary.checks.all_rows_ticker_nonempty = true;
     } else {
-      summary.failures.push('recommendations_confidence_inconsistent');
+      summary.failures.push('recommendations_rows_empty_ticker');
     }
 
-    if (badReasonCodeRows === 0) {
-      summary.checks.reason_code_allowed = true;
+    if (badSector === 0) {
+      summary.checks.all_rows_sector_nonempty = true;
     } else {
-      summary.failures.push('recommendations_reason_code_invalid');
+      summary.failures.push('recommendations_rows_empty_sector');
     }
 
-    if (badFallbackFlagRows === 0) {
-      summary.checks.fallback_flag_consistency = true;
+    if (duplicateTickers.length === 0) {
+      summary.checks.no_ticker_duplicates_across_buckets = true;
     } else {
-      summary.failures.push('recommendations_fallback_flag_inconsistent');
+      summary.failures.push('recommendations_duplicate_tickers_across_buckets');
     }
 
-    const total = allMarket.length;
-    const coverageRate = total > 0 ? policyMappedRows / total : 0;
-    const fallbackRate = total > 0 ? fallbackRows / total : 0;
-
-    const healthCountsOk =
-      Number(recommendationHealth.policyMappedRows ?? -1) === policyMappedRows &&
-      Number(recommendationHealth.fallbackRows ?? -1) === fallbackRows &&
-      approxEqual(Number(recommendationHealth.coverageRate ?? NaN), coverageRate, args.epsilon) &&
-      approxEqual(Number(recommendationHealth.fallbackRate ?? NaN), fallbackRate, args.epsilon);
-
-    if (healthCountsOk) {
-      summary.checks.health_counts_consistency = true;
+    if (badNewListing === 0) {
+      summary.checks.is_new_listing_boolean = true;
     } else {
-      summary.failures.push('recommendations_health_counts_mismatch');
-    }
-
-    let badTopUnder50 = 0;
-    for (const row of topUnder50) {
-      const ok =
-        String(row?.classification ?? '') === 'BUY' &&
-        String(row?.assetType ?? '') === 'equities' &&
-        isFiniteNumber(row?.price) &&
-        Number(row?.price) < 50;
-      if (!ok) badTopUnder50 += 1;
-    }
-
-    let badTopAsset = 0;
-    for (const [assetType, rows] of Object.entries(topByAssetType)) {
-      if (!Array.isArray(rows)) continue;
-      for (const row of rows) {
-        const ok =
-          String(row?.classification ?? '') === 'BUY' &&
-          String(row?.assetType ?? '') === String(assetType);
-        if (!ok) badTopAsset += 1;
-      }
-    }
-
-    summary.details.computed.top_under50_invalid_rows = badTopUnder50;
-    summary.details.computed.top_asset_invalid_rows = badTopAsset;
-
-    if (badTopUnder50 === 0 && badTopAsset === 0) {
-      summary.checks.top_lists_consistency = true;
-    } else {
-      summary.failures.push('recommendations_top_lists_inconsistent');
+      summary.failures.push('recommendations_is_new_listing_not_boolean');
     }
 
     summary.details.recommendations_api.meta = {
-      run_id: payload.run_id ?? null,
-      generated_at_utc: payload.generated_at_utc ?? null,
-      snapshotSource: payload.snapshotSource ?? null,
-      data_source: payload.data_source ?? null,
-      freshness,
-      universeStats: payload.universeStats ?? null,
-      decisionSummary: payload.decisionSummary ?? null,
-      recommendationHealth: payload.recommendationHealth ?? null,
+      totalAccumulate: payload.totalAccumulate ?? null,
+      bucket_counts: summary.details.computed.bucket_counts,
     };
   } finally {
     await context.close();
