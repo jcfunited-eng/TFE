@@ -95,7 +95,7 @@ export async function GET(request: Request) {
 
   try {
     const result = await pool.query<{ ticker: string; snapshot_row_json: unknown }>(
-      `SELECT ticker, snapshot_row_json FROM ${RUNTIME_DECISIONS_TABLE} WHERE decision = 'Accumulate' ORDER BY ticker`
+      `SELECT ticker, snapshot_row_json FROM ${RUNTIME_DECISIONS_TABLE} WHERE decision_label = 'Accumulate' ORDER BY ticker`
     );
 
     const rows = result.rows;
