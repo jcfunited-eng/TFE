@@ -67,6 +67,7 @@ web/tsconfig.tsbuildinfo
 !tfe_market_data_factory.py
 !massive_market_data_service.py
 !alpaca_market_data_service.py
+!yahoo_index_market_data_service.py
 !massive_universe_cache.py
 !massive_universe_cache_etf.py
 !massive_universe_index.py
