@@ -1202,6 +1202,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--years-history", type=int, default=5)
     parser.add_argument("--resume-from-checkpoint", action="store_true", help="Resume from the latest post-baseline-filter checkpoint when available.")
     parser.add_argument("--quote-cache-followup-only", action="store_true", help="Run only the detached quote-cache follow-up lane.")
+    # CP-2: L5 learning is permanently removed. Accept --skip-l5-learning as a
+    # no-op so the admin console (which still passes this flag for legacy
+    # compatibility) does not trigger an argparse error (exit_code=2).
+    parser.add_argument("--skip-l5-learning", action="store_true", help="No-op. L5 learning is not used in CP-2.")
     return parser.parse_args()
 
 
@@ -1344,6 +1348,20 @@ def main() -> int:
         "validation_gate_report_run_id": validation_report.get("run_id"),
         "resume_checkpoint_used": resumed_from_checkpoint,
     })
+
+    # CP-2: Regenerate quality audit JSON after every successful refresh so the
+    # Admin UI never shows stale or zombie PSCF content.  This runs as a
+    # best-effort step — failures are logged but do not abort the pipeline.
+    try:
+        import importlib.util as _ilu, pathlib as _pl
+        _audit_src = _pl.Path(__file__).resolve().parent / "tools" / "cp2_quality_audit.py"
+        _spec = _ilu.spec_from_file_location("cp2_quality_audit", _audit_src)
+        _mod = _ilu.module_from_spec(_spec)  # type: ignore[arg-type]
+        _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
+        _mod.run_audit()
+        print("[REFRESH+CP2] Quality audit JSON regenerated.", flush=True)
+    except Exception as _qa_exc:
+        print(f"[REFRESH+CP2] Quality audit step failed (non-fatal): {_qa_exc}", flush=True)
 
     _clear_resume_checkpoint(mode=mode, reason="completed_successfully")
     return 0
