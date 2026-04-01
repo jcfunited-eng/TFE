@@ -2,14 +2,33 @@
 """CP-2: L5 canonical baseline filter — pure DSF V3 basin primitive.
 
 Implements the same frozen basin math as runtime_decision_provenance.mjs.
-Upgraded with 64% Cognitive Physics thresholds (raw_x_m <= 0.50, F_n <= 1.65).
 Uses only columns verified to exist in the production live schema.
 
-Required columns (all present in runtime_decisions_latest.snapshot_row_json):
-  S_UF, R_UF, D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k, price, raw_x_m, F_n
+Two-layer filter
+----------------
+Layer 1 (V3 Structural Primitive — always active):
+    - V3 basin argmax is tie-free Accumulate
+    - price >= MIN_PRICE (5.0)
+    - bar_count >= ACCUMULATE_MIN_BARS (verified via snapshot row, not re-checked
+      here since uf_snapshot.json rows already passed the bar gate)
 
-apply_canonical_filter(df) returns the subset of rows where the V3 basin
-argmax is Accumulate, price >= MIN_PRICE, and cognitive load is not overextended.
+Layer 2 (CP-2 Cognitive Gate — SOFT: activates per-row only when F_n and
+raw_x_m are non-null):
+    - F_n     <= MAX_F_N    (1.65) — cognitive load not overextended
+    - raw_x_m <= MAX_RAW_X_M (0.50) — memory state not overextended
+
+Null-pass contract: if F_n or raw_x_m is NULL/NaN for a given row, that
+row passes the cognitive gate unconditionally.  This ensures the "Healthy
+Titans" set (~144 Accumulates) is fully recovered during the transition
+period while the cognitive pipe (uf_mdg_snapshot.py) populates those fields
+into the production snapshot.  Once the pipe completes a full refresh cycle,
+the gate narrows automatically to the calibrated Titan subset.
+
+Required columns (Layer 1):
+    S_UF, R_UF, D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k, price
+
+Optional columns (Layer 2, null-safe):
+    F_n, raw_x_m
 """
 
 from __future__ import annotations
@@ -32,32 +51,33 @@ _BURDEN_SCALE: float = 1.0 / 128.0
 _V3_TIE_EPS: float = 1e-12
 
 MIN_PRICE: float = 5.0
-MAX_RAW_X_M: float = 0.50
-MAX_F_N: float = 1.65
 
+# Layer 2 cognitive gate thresholds
+# These are calibrated to the 64% Cognitive Physics operating point.
+# Applied per-row only when F_n and raw_x_m are non-null.
+MAX_F_N: float = 1.65
+MAX_RAW_X_M: float = 0.50
+
+# Layer 1 required columns
 REQUIRED_COLUMNS: tuple[str, ...] = (
-    "S_UF",
-    "R_UF",
-    "D_k",
-    "M_k",
-    "R_rev_k",
-    "U_star_k",
-    "C_k",
-    "P_k",
-    "B_k",
-    "price",
-    "raw_x_m",
-    "F_n",
+    "S_UF", "R_UF", "D_k", "M_k", "R_rev_k",
+    "U_star_k", "C_k", "P_k", "B_k", "price",
 )
+
+# Layer 2 optional cognitive columns
+COGNITIVE_COLUMNS: tuple[str, ...] = ("F_n", "raw_x_m")
 
 
 @dataclass(frozen=True)
 class L5BaselineFilter:
     min_price: float = MIN_PRICE
-    max_raw_x_m: float = MAX_RAW_X_M
     max_f_n: float = MAX_F_N
+    max_raw_x_m: float = MAX_RAW_X_M
 
     def apply_canonical_filter(self, df: pd.DataFrame) -> pd.DataFrame:
+        # ------------------------------------------------------------------
+        # Guard: Layer 1 required columns must be present
+        # ------------------------------------------------------------------
         missing = [col for col in REQUIRED_COLUMNS if col not in df.columns]
         if missing:
             raise ValueError(f"Missing required columns: {missing}")
@@ -65,6 +85,9 @@ class L5BaselineFilter:
         # Float64 working copy — avoids object-dtype arithmetic surprises
         s = df.reindex(columns=list(REQUIRED_COLUMNS)).astype(float)
 
+        # ------------------------------------------------------------------
+        # Layer 1: V3 Basin Argmax
+        # ------------------------------------------------------------------
         M_hat = s["M_k"].clip(-1.0, 1.0)
 
         sv    = s["S_UF"] - s["U_star_k"]
@@ -90,7 +113,11 @@ class L5BaselineFilter:
 
         adverse_break   = D_adverse * M_bend
         reversal_break  = s["R_rev_k"] * (1.0 - balance) ** _REVERSAL_BALANCE_POWER
-        carry_break     = (-s["B_k"]) * s["R_rev_k"] * (1.0 - balance) ** _CARRY_BALANCE_POWER * (1.0 - adverse_break)
+        carry_break     = (
+            (-s["B_k"]) * s["R_rev_k"]
+            * (1.0 - balance) ** _CARRY_BALANCE_POWER
+            * (1.0 - adverse_break)
+        )
         burden          = _BURDEN_SCALE * (s["C_k"] / (1.0 + s["C_k"])) * (s["P_k"] / (1.0 + s["P_k"]))
         break_agreement = np.maximum(np.maximum(adverse_break, reversal_break), carry_break)
 
@@ -106,7 +133,6 @@ class L5BaselineFilter:
 
         max_basin = np.maximum(np.maximum(accumulate_basin, hold_basin), avoid_basin)
 
-        # Tie -> Hold when two or more basins within V3_TIE_EPS of max
         near_acc  = (max_basin - accumulate_basin).abs() <= _V3_TIE_EPS
         near_hold = (max_basin - hold_basin).abs() <= _V3_TIE_EPS
         near_avd  = (max_basin - avoid_basin).abs() <= _V3_TIE_EPS
@@ -114,11 +140,38 @@ class L5BaselineFilter:
 
         is_accumulate = near_acc & ~tie
         price_ok      = s["price"] >= self.min_price
-        
-        # CP-2 64% Cognitive Gates
-        cognitive_ok  = (s["raw_x_m"] <= self.max_raw_x_m) & (s["F_n"] <= self.max_f_n)
 
-        return df.loc[is_accumulate & price_ok & cognitive_ok].copy()
+        layer1_mask = is_accumulate & price_ok
+
+        # ------------------------------------------------------------------
+        # Layer 2: Cognitive Gate (soft — null-pass per row)
+        # Applied only when BOTH F_n and raw_x_m columns exist in the frame.
+        # ------------------------------------------------------------------
+        fn_present  = "F_n"    in df.columns
+        rxm_present = "raw_x_m" in df.columns
+
+        if fn_present and rxm_present:
+            fn_series  = pd.to_numeric(df["F_n"],    errors="coerce")
+            rxm_series = pd.to_numeric(df["raw_x_m"], errors="coerce")
+
+            both_populated = fn_series.notna() & rxm_series.notna()
+
+            # Null-pass contract: rows where either field is null are not disqualified
+            cognitive_ok = (
+                ~both_populated
+                | (
+                    (fn_series  <= self.max_f_n)
+                    & (rxm_series <= self.max_raw_x_m)
+                )
+            )
+            cognitive_ok = cognitive_ok.reindex(df.index).fillna(True)
+        else:
+            # Cognitive columns absent — pass all rows (pre-pipe state)
+            cognitive_ok = pd.Series(True, index=df.index)
+
+        final_mask = layer1_mask & cognitive_ok
+
+        return df.loc[final_mask].copy()
 
 
 def apply_canonical_filter(df: pd.DataFrame) -> pd.DataFrame:
