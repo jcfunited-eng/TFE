@@ -30,6 +30,9 @@ from massive_market_data_service import MassiveMarketDataService
 # Fallback: Alpaca (safe subset only)
 from alpaca_market_data_service import AlpacaMarketDataService
 
+# Index fallback: Yahoo Finance (free, covers I: tickers Polygon blocks on Starter plan)
+from yahoo_index_market_data_service import is_index_ticker, get_index_history
+
 # Canonical bar-integrity filtering
 from tfe_bar_integrity import sanitize_daily_bars, DEFAULT_MIN_PRICE_FLOOR
 
@@ -81,7 +84,14 @@ class UnifiedMarketDataService(MarketDataService):
         """
         Daily OHLCV using Massive aggregates, then strict canonical integrity
         filtering before returning bars to callers.
+
+        For I: index tickers that Polygon blocks on the Starter plan, route to
+        Yahoo Finance instead (free, no plan upgrade required).
         """
+        symbol = str(getattr(request, "symbol", None) or getattr(request, "ticker", "") or "")
+        if is_index_ticker(symbol):
+            return get_index_history(request)
+
         result = self.massive.get_history(request)
 
         raw_bars = list(getattr(result, "bars", []) or [])
