@@ -225,7 +225,15 @@ unit_execution_stage() {
 runtime_validation_changed_inputs_are_rebuild_snapshot_only() {
   local changed_inputs_json
   changed_inputs_json="$(unit_changed_inputs_json "runtime_validation")"
-  jq -e 'type == "array" and length == 1 and .[0] == "rebuild_uf_snapshot.py"' >/dev/null 2>&1 <<<"${changed_inputs_json}"
+  # Accept rebuild_uf_snapshot.py OR run_refresh_with_l5_learning.py as the sole
+  # changed input — both represent refresh-pipeline hotfixes where a
+  # pipeline_terminal_integrity failure should not block deployment.
+  jq -e '
+    type == "array" and length == 1 and (
+      .[0] == "rebuild_uf_snapshot.py" or
+      .[0] == "run_refresh_with_l5_learning.py"
+    )
+  ' >/dev/null 2>&1 <<<"${changed_inputs_json}"
 }
 
 write_block_artifact() {
