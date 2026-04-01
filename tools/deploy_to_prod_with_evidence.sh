@@ -1106,18 +1106,44 @@ def load_json(path: str) -> Dict[str, Any]:
 
 def extract_probe_metrics(summary_path: str) -> Dict[str, Any]:
     payload = load_json(summary_path)
-    parsed = payload["details"]["recommendations_api"]["parsed"]
-    health = parsed["recommendationHealth"]
-    return {
-        "coverage_rate": float(health["coverageRate"]),
-        "fallback_rate": float(health["fallbackRate"]),
-        "insufficient_bars_rows": int(health["insufficientBarsRows"]),
-        "unmapped_rows": int(health["unmappedRows"]),
-        "policy_mapped_rows": int(health["policyMappedRows"]),
-        "run_id": str(parsed.get("run_id", "")),
-        "generated_at_utc": str(parsed.get("generated_at_utc", "")),
-        "probe_summary_path": summary_path,
-    }
+    # Support both old format (recommendationHealth) and current L5 bucket format
+    parsed = (payload.get("details") or {}).get("recommendations_api", {}).get("parsed") or {}
+    meta = (payload.get("details") or {}).get("recommendations_api", {}).get("meta") or {}
+    computed = (payload.get("details") or {}).get("computed") or {}
+
+    if "recommendationHealth" in (parsed or {}):
+        # Old format
+        health = parsed["recommendationHealth"]
+        return {
+            "total_accumulate": int(parsed.get("totalAccumulate") or 0),
+            "coverage_rate": float(health["coverageRate"]),
+            "fallback_rate": float(health["fallbackRate"]),
+            "bad_rows": 0,
+            "run_id": str(parsed.get("run_id", "")),
+            "generated_at_utc": str(parsed.get("generated_at_utc", "")),
+            "probe_summary_path": summary_path,
+        }
+    else:
+        # Current L5 bucket format
+        bucket_counts = computed.get("bucket_counts") or meta.get("bucket_counts") or {}
+        bad_rows = (
+            int(computed.get("bad_decision_rows") or 0)
+            + int(computed.get("bad_numeric_rows") or 0)
+            + int(computed.get("bad_ticker_rows") or 0)
+            + int(computed.get("bad_sector_rows") or 0)
+            + len(computed.get("duplicate_tickers") or [])
+            + int(computed.get("bad_new_listing_rows") or 0)
+        )
+        total = int(meta.get("totalAccumulate") or parsed.get("totalAccumulate") or 0)
+        return {
+            "total_accumulate": total,
+            "coverage_rate": float(total) / max(float(total), 1.0),  # always 1.0 — not applicable
+            "fallback_rate": float(bad_rows) / max(float(total), 1.0),
+            "bad_rows": bad_rows,
+            "run_id": "",
+            "generated_at_utc": "",
+            "probe_summary_path": summary_path,
+        }
 
 result = {
     "lane": "recommendations_nonregression",
@@ -1180,16 +1206,16 @@ else:
                     result["previous"] = previous_metrics
                     delta_coverage = float(current_metrics["coverage_rate"] - previous_metrics["coverage_rate"])
                     delta_fallback = float(current_metrics["fallback_rate"] - previous_metrics["fallback_rate"])
-                    delta_insufficient = int(current_metrics["insufficient_bars_rows"] - previous_metrics["insufficient_bars_rows"])
-                    delta_unmapped = int(current_metrics["unmapped_rows"] - previous_metrics["unmapped_rows"])
+                    delta_total = int(current_metrics["total_accumulate"] - previous_metrics["total_accumulate"])
+                    delta_bad_rows = int(current_metrics["bad_rows"] - previous_metrics["bad_rows"])
                     coverage_nonregression = bool(delta_coverage >= -max_coverage_drop)
                     fallback_nonregression = bool(delta_fallback <= max_fallback_rise)
                     improved = bool(delta_coverage > 0.0 or delta_fallback < 0.0)
                     result["delta"] = {
                         "coverage_rate": delta_coverage,
                         "fallback_rate": delta_fallback,
-                        "insufficient_bars_rows": delta_insufficient,
-                        "unmapped_rows": delta_unmapped,
+                        "total_accumulate": delta_total,
+                        "bad_rows": delta_bad_rows,
                     }
                     result["checks"] = {
                         "coverage_nonregression": coverage_nonregression,
