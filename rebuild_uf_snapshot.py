@@ -1030,6 +1030,24 @@ def rebuild_snapshot(
 
     _save_structural_cache(structural_cache)
 
+    # In targeted mode, carry-forward stable rows that were not reprocessed so
+    # the sync's DELETE+INSERT preserves full symbol coverage in the DB.
+    if refresh_mode == REFRESH_MODE_TARGETED and existing_rows_by_ticker:
+        targeted_tickers = {item["symbol"] for item in universe_items}
+        passthrough_count = 0
+        for ticker, existing_row in existing_rows_by_ticker.items():
+            if ticker not in targeted_tickers and _row_has_required_keys(existing_row):
+                row_copy = dict(existing_row)
+                if current_run_id:
+                    row_copy["run_id"] = current_run_id
+                snapshot_rows.append(row_copy)
+                passthrough_count += 1
+        if passthrough_count:
+            print(
+                f"[UF-SNAPSHOT] Targeted passthrough: included {passthrough_count} "
+                "existing stable rows unchanged."
+            )
+
     if not snapshot_rows:
         print("[UF-SNAPSHOT] No rows produced; preserving old snapshot envelope if present.")
 

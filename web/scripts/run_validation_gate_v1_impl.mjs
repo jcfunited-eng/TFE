@@ -746,7 +746,8 @@ async function main() {
         reportStatus === "ok" &&
         (
           optimizerShortCycle === "skipped_by_skip_l5_learning" ||
-          optimizerShortCycle === "skipped_targeted_no_l5"
+          optimizerShortCycle === "skipped_targeted_no_l5" ||
+          optimizerShortCycle === "not_run_cp2"
         ) &&
         (triggerSource === "manual" || triggerSource === "program");
       const isScheduledSnapshotPath =
@@ -756,7 +757,8 @@ async function main() {
         (
           optimizerShortCycle === "" ||
           optimizerShortCycle === "not_run" ||
-          optimizerShortCycle === "skipped_by_trigger_policy"
+          optimizerShortCycle === "skipped_by_trigger_policy" ||
+          optimizerShortCycle === "not_run_cp2"
         );
       const isAdminAbortedManualPath =
         (triggerSource === "manual" || triggerSource === "program") &&
