@@ -5,6 +5,18 @@ import { resolveRuntimePostgresPool } from "@/lib/runtime-db";
 
 export const runtime = "nodejs";
 
+// signal_class encodes which structural attractor state the Accumulate signal
+// occupies, based on Three-Wave Alignment (3WA) analysis of quarantine_12k data.
+//
+//  "3WA"       — Wave 1 (bar_count ≤ 20) + Wave 3 (SPY D_k=1) confirmed active.
+//                Backtest win rate: 84.5% (Waves 1+3, n=375) or 86.7% with species.
+//  "W1"        — Wave 1 (new listing, bar_count ≤ 20) only; SPY wave not active.
+//                Backtest win rate: 72.1% (n=1064).
+//  "standard"  — Established stock (bar_count > 20). F_n ≤ 1.65 backtest: 57.5%.
+//
+// Wave 2 (species profile) is deferred until species_profiles table is populated.
+type SignalClass = "3WA" | "W1" | "standard";
+
 type RecommendationRow = {
   ticker: string;
   sector: string;
@@ -18,6 +30,7 @@ type RecommendationRow = {
   decision: "Accumulate";
   decisionReason: string;
   isNewListing: boolean;
+  signalClass: SignalClass;
 };
 
 type RecommendationsPayload = {
@@ -59,7 +72,16 @@ function sortByMarketCap(rows: RecommendationRow[]): RecommendationRow[] {
   });
 }
 
-function toRecommendationRow(row: DbRow): RecommendationRow | null {
+const NEW_LISTING_BAR_THRESHOLD = 20;
+
+function classifySignal(barCount: number | null, spyWaveActive: boolean): SignalClass {
+  const isNewListing = barCount !== null && barCount <= NEW_LISTING_BAR_THRESHOLD;
+  if (isNewListing && spyWaveActive) return "3WA";
+  if (isNewListing) return "W1";
+  return "standard";
+}
+
+function toRecommendationRow(row: DbRow, spyWaveActive: boolean): RecommendationRow | null {
   const ticker = String(row.ticker ?? "").trim().toUpperCase();
   const sector = String(row.sector ?? "").trim() || UNKNOWN_SECTOR;
   const marketCap = toNumber(row.market_cap);
@@ -85,6 +107,7 @@ function toRecommendationRow(row: DbRow): RecommendationRow | null {
     return null;
   }
 
+  const barCount = toNumber(row.bar_count);
   return {
     ticker,
     sector,
@@ -97,8 +120,26 @@ function toRecommendationRow(row: DbRow): RecommendationRow | null {
     revenues,
     decision: "Accumulate",
     decisionReason: String(row.decision_reason ?? "").trim() || "Runtime decision selected from latest table.",
-    isNewListing: toNumber(row.bar_count) !== null && (toNumber(row.bar_count) as number) <= 20,
+    isNewListing: barCount !== null && barCount <= NEW_LISTING_BAR_THRESHOLD,
+    signalClass: classifySignal(barCount, spyWaveActive),
   };
+}
+
+async function querySpyWaveActive(pool: ReturnType<typeof resolveRuntimePostgresPool>): Promise<boolean> {
+  try {
+    const res = await pool.query<{ decision_label: string | null; snapshot_row_json: unknown }>(
+      `SELECT decision_label, snapshot_row_json FROM runtime_decisions_latest WHERE ticker = 'SPY' LIMIT 1`
+    );
+    if (res.rows.length === 0) return false;
+    const row = res.rows[0];
+    const snap = row.snapshot_row_json && typeof row.snapshot_row_json === "object" && !Array.isArray(row.snapshot_row_json)
+      ? (row.snapshot_row_json as Record<string, unknown>)
+      : {};
+    const dk = Number(snap["D_k"]);
+    return row.decision_label === "Accumulate" || dk === 1;
+  } catch {
+    return false;
+  }
 }
 
 async function loadAccumulateRows(): Promise<RecommendationRow[]> {
@@ -150,10 +191,14 @@ async function loadAccumulateRows(): Promise<RecommendationRow[]> {
       r.ticker ASC
   `;
 
-  const result = await resolveRuntimePostgresPool().query<DbRow>(query);
+  const pool = resolveRuntimePostgresPool();
+  const [result, spyWaveActive] = await Promise.all([
+    pool.query<DbRow>(query),
+    querySpyWaveActive(pool),
+  ]);
   const rows: RecommendationRow[] = [];
   for (const row of result.rows) {
-    const mapped = toRecommendationRow(row);
+    const mapped = toRecommendationRow(row, spyWaveActive);
     if (mapped) rows.push(mapped);
   }
   return sortByMarketCap(rows);

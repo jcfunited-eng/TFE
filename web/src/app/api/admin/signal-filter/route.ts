@@ -18,6 +18,14 @@ const LANE_A_BACKTEST_N   = 5187;
 const LANE_B_WIN_RATE     = 65.3;
 const LANE_B_BACKTEST_N   = 2906;
 
+// ── Three-Wave Alignment backtest reference (quarantine_12k) ─────────────────
+// Wave 1+2+3 combined (Structure A + calm species + SPY D_k=1): 86.7%, n=75
+// Wave 1+3 only (Structure A + SPY D_k=1): 84.5%, n=375
+// Wave 1 only (Structure A): 72.1%, n=1064
+const THREE_WAVE_WIN_RATE_FULL  = 86.7;  // all three waves
+const THREE_WAVE_WIN_RATE_W1W3  = 84.5;  // waves 1+3 (no species filter)
+const THREE_WAVE_WIN_RATE_W1    = 72.1;  // wave 1 only
+
 type SectorCount = { sector: string; count: number; pct: number };
 
 type FieldStats = {
@@ -42,12 +50,28 @@ type LaneResult = {
 
 type LaneAResult = LaneResult & { fnStats: FieldStats };
 
+// ── Market wave state (Component 1: SPY D_k) ─────────────────────────────────
+// SPY D_k=1 signals structural market expansion (Wave 3 in 3WA model).
+// When active, Lane B new-listing win rate escalates toward 84.5% (Waves 1+3).
+type MarketWaveState = {
+  active: boolean;          // true when SPY D_k = 1
+  spyDecision: string | null;  // raw decision_label from DB for SPY
+  spyDk: number | null;     // raw D_k from snapshot_row_json for audit
+  note: string;
+};
+
 export type SignalFilterPayload = {
   generatedAtUtc: string;
   totalAccumulate: number;
   laneA: LaneAResult;
   laneB: LaneResult;
   baselineWinRate: number;
+  marketWave: MarketWaveState;
+  threeWaveBacktest: {
+    fullWinRate: number;   // 86.7% (Waves 1+2+3)
+    w1w3WinRate: number;   // 84.5% (Waves 1+3, no species)
+    w1WinRate: number;     // 72.1% (Wave 1 only)
+  };
   error?: string;
 };
 
@@ -104,6 +128,36 @@ function sectorConcentration(items: { sector: string }[]): SectorCount[] {
     .slice(0, 15);
 }
 
+async function queryMarketWave(pool: ReturnType<typeof resolveRuntimePostgresPool>): Promise<MarketWaveState> {
+  try {
+    const res = await pool.query<{ decision_label: string | null; snapshot_row_json: unknown }>(
+      `SELECT decision_label, snapshot_row_json
+       FROM ${RUNTIME_DECISIONS_TABLE}
+       WHERE ticker = 'SPY'
+       LIMIT 1`
+    );
+    if (res.rows.length === 0) {
+      return { active: false, spyDecision: null, spyDk: null, note: "SPY not found in runtime_decisions_latest" };
+    }
+    const row = res.rows[0];
+    const snap = row.snapshot_row_json && typeof row.snapshot_row_json === "object" && !Array.isArray(row.snapshot_row_json)
+      ? (row.snapshot_row_json as Record<string, unknown>)
+      : {};
+    const dk = safeFloat(snap["D_k"]);
+    const active = row.decision_label === "Accumulate" || dk === 1;
+    return {
+      active,
+      spyDecision: row.decision_label ?? null,
+      spyDk: dk,
+      note: active
+        ? "SPY in structural expansion (D_k=1) — Wave 3 active. Lane B escalates toward 84.5%."
+        : "SPY not in structural expansion — Wave 3 inactive. Standard win rates apply.",
+    };
+  } catch {
+    return { active: false, spyDecision: null, spyDk: null, note: "Market wave query failed — SPY state unknown" };
+  }
+}
+
 export async function GET(request: Request) {
   const denied = await requireAdmin(request);
   if (denied) return denied;
@@ -131,10 +185,19 @@ export async function GET(request: Request) {
     sectorConcentration: [],
   };
 
+  const threeWaveBacktest = {
+    fullWinRate: THREE_WAVE_WIN_RATE_FULL,
+    w1w3WinRate: THREE_WAVE_WIN_RATE_W1W3,
+    w1WinRate: THREE_WAVE_WIN_RATE_W1,
+  };
+
   try {
-    const result = await pool.query<{ ticker: string; snapshot_row_json: unknown }>(
-      `SELECT ticker, snapshot_row_json FROM ${RUNTIME_DECISIONS_TABLE} WHERE decision_label = 'Accumulate' ORDER BY ticker`
-    );
+    const [result, marketWave] = await Promise.all([
+      pool.query<{ ticker: string; snapshot_row_json: unknown }>(
+        `SELECT ticker, snapshot_row_json FROM ${RUNTIME_DECISIONS_TABLE} WHERE decision_label = 'Accumulate' ORDER BY ticker`
+      ),
+      queryMarketWave(pool),
+    ]);
 
     const rows = result.rows;
     const total = rows.length;
@@ -146,6 +209,8 @@ export async function GET(request: Request) {
         laneA: emptyLaneA,
         laneB: emptyLaneB,
         baselineWinRate: BASELINE_WIN_RATE,
+        marketWave,
+        threeWaveBacktest,
       } satisfies SignalFilterPayload);
     }
 
@@ -214,16 +279,21 @@ export async function GET(request: Request) {
       laneA,
       laneB,
       baselineWinRate: BASELINE_WIN_RATE,
+      marketWave,
+      threeWaveBacktest,
     } satisfies SignalFilterPayload);
 
   } catch (error) {
     const message = error instanceof Error ? error.message : "Signal filter query failed.";
+    const fallbackWave: MarketWaveState = { active: false, spyDecision: null, spyDk: null, note: "Market wave unavailable due to query error" };
     return NextResponse.json({
       generatedAtUtc: new Date().toISOString(),
       totalAccumulate: 0,
       laneA: emptyLaneA,
       laneB: emptyLaneB,
       baselineWinRate: BASELINE_WIN_RATE,
+      marketWave: fallbackWave,
+      threeWaveBacktest,
       error: message,
     } satisfies SignalFilterPayload);
   }

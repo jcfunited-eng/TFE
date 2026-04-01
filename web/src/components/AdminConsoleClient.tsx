@@ -244,12 +244,21 @@ type SignalLaneResult = {
 
 type SignalLaneAResult = SignalLaneResult & { fnStats: SignalFilterFieldStats };
 
+type MarketWaveState = {
+  active: boolean;
+  spyDecision: string | null;
+  spyDk: number | null;
+  note: string;
+};
+
 type SignalFilterPayload = {
   generatedAtUtc: string;
   totalAccumulate: number;
   laneA: SignalLaneAResult;
   laneB: SignalLaneResult;
   baselineWinRate: number;
+  marketWave?: MarketWaveState;
+  threeWaveBacktest?: { fullWinRate: number; w1w3WinRate: number; w1WinRate: number };
   error?: string;
 };
 
@@ -1395,6 +1404,39 @@ export default function AdminConsolePage() {
                   <p className={styles.inlineMsg}>
                     <strong>Symbols:</strong> {signalFilter.laneB.survivorSymbols.join(", ")}
                   </p>
+                ) : null}
+
+                {/* Wave 3: SPY Market Expansion State */}
+                <hr style={{ border: "none", borderTop: "1px solid #374151", margin: "0.75rem 0" }} />
+                <div className={styles.kvRow}>
+                  <div className={styles.kvLabel} style={{ fontWeight: 700 }}>Wave 3 — Market Expansion (SPY D_k)</div>
+                  <div className={styles.kvValue} style={{ color: signalFilter.marketWave?.active ? "#16a34a" : "#6b7280" }}>
+                    {signalFilter.marketWave?.active ? "ACTIVE" : "INACTIVE"}
+                    {signalFilter.marketWave?.spyDk !== null && signalFilter.marketWave?.spyDk !== undefined
+                      ? ` (D_k=${signalFilter.marketWave.spyDk})`
+                      : ""}
+                  </div>
+                </div>
+                <p className={styles.inlineMsg} style={{ fontStyle: "italic", color: "#6b7280" }}>
+                  {signalFilter.marketWave?.note ?? "SPY wave state unavailable."}
+                </p>
+
+                {/* Three-Wave Alignment reference */}
+                {signalFilter.threeWaveBacktest ? (
+                  <>
+                    <div className={styles.kvRow}>
+                      <div className={styles.kvLabel}>3WA backtest (Waves 1+2+3)</div>
+                      <div className={styles.kvValue}>{signalFilter.threeWaveBacktest.fullWinRate}% win</div>
+                    </div>
+                    <div className={styles.kvRow}>
+                      <div className={styles.kvLabel}>3WA backtest (Waves 1+3, no species)</div>
+                      <div className={styles.kvValue}>{signalFilter.threeWaveBacktest.w1w3WinRate}% win</div>
+                    </div>
+                    <div className={styles.kvRow}>
+                      <div className={styles.kvLabel}>Wave 1 only (Structure A)</div>
+                      <div className={styles.kvValue}>{signalFilter.threeWaveBacktest.w1WinRate}% win</div>
+                    </div>
+                  </>
                 ) : null}
               </>
             ) : (

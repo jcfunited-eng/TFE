@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 
+type SignalClass = "3WA" | "W1" | "standard";
+
 type RecommendationRow = {
   ticker: string;
   sector: string;
@@ -15,6 +17,7 @@ type RecommendationRow = {
   decision: "Accumulate";
   decisionReason: string;
   isNewListing?: boolean;
+  signalClass?: SignalClass;
 };
 
 type RecommendationsPayload = {
@@ -166,8 +169,10 @@ function BucketTable({
               <tr key={`${title}-${row.ticker}`}>
                 <td>
                   {row.ticker}
-                  {row.isNewListing ? (
-                    <span style={{ marginLeft: 6, fontSize: "0.65rem", fontWeight: 700, color: "#fff", background: "#16a34a", borderRadius: 3, padding: "1px 4px", verticalAlign: "middle", letterSpacing: "0.04em" }}>NEW</span>
+                  {row.signalClass === "3WA" ? (
+                    <span style={{ marginLeft: 6, fontSize: "0.65rem", fontWeight: 700, color: "#fff", background: "#7c3aed", borderRadius: 3, padding: "1px 4px", verticalAlign: "middle", letterSpacing: "0.04em" }} title="Three-Wave Alignment — Structure A + SPY expansion. Backtest: 84.5% win.">3WA</span>
+                  ) : row.signalClass === "W1" || row.isNewListing ? (
+                    <span style={{ marginLeft: 6, fontSize: "0.65rem", fontWeight: 700, color: "#fff", background: "#16a34a", borderRadius: 3, padding: "1px 4px", verticalAlign: "middle", letterSpacing: "0.04em" }} title="Wave 1 — New listing in structural ground state. Backtest: 72.1% win.">NEW</span>
                   ) : null}
                 </td>
                 <td>{row.sector}</td>
