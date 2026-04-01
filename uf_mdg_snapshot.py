@@ -357,7 +357,10 @@ def _compute_l4_dsf(res: List[_Resonance]) -> List[_DSFState]:
 # CV-1.0 cognitive scalars — compute the latest F_n and raw_x_m from bars
 # ---------------------------------------------------------------------------
 
-def compute_cognitive_scalars(close_prices: np.ndarray) -> Dict[str, Optional[float]]:
+def compute_cognitive_scalars(
+    close_prices: np.ndarray,
+    max_bars: int = 252,
+) -> Dict[str, Optional[float]]:
     """
     Run the full L0→L4 + CV-1.0 kernel on close_prices and return the final
     gate's F_n and raw_x_m.
@@ -368,11 +371,19 @@ def compute_cognitive_scalars(close_prices: np.ndarray) -> Dict[str, Optional[fl
     raw_x_m = Q_20 + 2.0 * F_n  (verified from quarantine_sequential_filter.py)
     Q_20 = x_m - eta_h * F_n  (q_20 = [0, 1, 0] so dot(q_20, z_n) = x_m)
     => raw_x_m = x_m - 2.0 * F_n + 2.0 * F_n = x_m
+
+    max_bars: cap the input to the most recent N bars before running the
+    kernel. The CV-1.0 integrators (especially x_m with A_m=0.98) saturate
+    at the clip boundary when fed 5-year history, making raw_x_m useless as
+    a discriminator. 252 bars (~1 year) is enough warm-up to settle state
+    without saturation.
     """
     _null: Dict[str, Optional[float]] = {"F_n": None, "raw_x_m": None}
 
     try:
         F = close_prices.astype(float)
+        if max_bars > 0 and len(F) > max_bars:
+            F = F[-max_bars:]
         if len(F) < 2:
             return _null
 
