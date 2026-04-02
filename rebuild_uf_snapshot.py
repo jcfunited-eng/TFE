@@ -860,6 +860,15 @@ def rebuild_snapshot(
 
     print("[UF-SNAPSHOT] Starting unified rebuild via uf_mdg_snapshot.")
     print(f"[UF-SNAPSHOT] Refresh mode: {refresh_mode}")
+
+    # Refresh epoch severity cache before evaluating any tickers so that all
+    # sector epoch gates in this run use current market conditions.
+    try:
+        from tfe_epoch_auto_severity import refresh_and_cache as _refresh_epochs
+        epoch_severities = _refresh_epochs()
+        print(f"[UF-SNAPSHOT] Epoch severities refreshed: {epoch_severities}")
+    except Exception as _epoch_err:
+        print(f"[UF-SNAPSHOT] Epoch severity refresh skipped ({_epoch_err}) — using cached/fallback")
     if force_refresh_universe:
         print("[UF-SNAPSHOT] Universe refresh mode: FORCE_REFRESH")
     print(f"[UF-SNAPSHOT] Years history per symbol: {years_history}")

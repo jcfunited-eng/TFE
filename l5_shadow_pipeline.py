@@ -10,71 +10,12 @@ from typing import Any
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
+from tfe_epoch_library import get_active_epochs, SECTOR_SENSITIVITY_MATRIX as _EPOCH_SECTOR_MATRIX
+
 
 UNKNOWN_SECTOR = "Unknown"
 MAX_ATTEMPTS = 3
-ACTIVE_EPOCHS: dict[str, float] = {
-    "RATES_PRESSURE": 0.8,
-    "CONSUMER_STRESS": 0.6,
-    "WAR_GEOPOLITICS": 0.7,
-}
-SECTOR_SENSITIVITY_MATRIX: dict[str, dict[str, float]] = {
-    "Communication Services": {
-        "RATES_PRESSURE": -0.2,
-        "CONSUMER_STRESS": -0.3,
-        "WAR_GEOPOLITICS": -0.1,
-    },
-    "Consumer Discretionary": {
-        "RATES_PRESSURE": -0.5,
-        "CONSUMER_STRESS": -1.0,
-        "WAR_GEOPOLITICS": -0.2,
-    },
-    "Consumer Staples": {
-        "RATES_PRESSURE": 0.1,
-        "CONSUMER_STRESS": 0.4,
-        "WAR_GEOPOLITICS": -0.1,
-    },
-    "Energy": {
-        "RATES_PRESSURE": 0.0,
-        "CONSUMER_STRESS": -0.2,
-        "WAR_GEOPOLITICS": 0.9,
-    },
-    "Financials": {
-        "RATES_PRESSURE": 0.2,
-        "CONSUMER_STRESS": -0.5,
-        "WAR_GEOPOLITICS": -0.2,
-    },
-    "Health Care": {
-        "RATES_PRESSURE": 0.0,
-        "CONSUMER_STRESS": 0.3,
-        "WAR_GEOPOLITICS": 0.1,
-    },
-    "Industrials": {
-        "RATES_PRESSURE": -0.2,
-        "CONSUMER_STRESS": -0.3,
-        "WAR_GEOPOLITICS": 0.2,
-    },
-    "Information Technology": {
-        "RATES_PRESSURE": -0.4,
-        "CONSUMER_STRESS": -0.3,
-        "WAR_GEOPOLITICS": 0.0,
-    },
-    "Materials": {
-        "RATES_PRESSURE": -0.1,
-        "CONSUMER_STRESS": -0.3,
-        "WAR_GEOPOLITICS": 0.3,
-    },
-    "Real Estate": {
-        "RATES_PRESSURE": -1.0,
-        "CONSUMER_STRESS": -0.5,
-        "WAR_GEOPOLITICS": 0.0,
-    },
-    "Utilities": {
-        "RATES_PRESSURE": -0.3,
-        "CONSUMER_STRESS": 0.2,
-        "WAR_GEOPOLITICS": 0.1,
-    },
-}
+SECTOR_SENSITIVITY_MATRIX = _EPOCH_SECTOR_MATRIX
 
 
 @dataclass(frozen=True)
@@ -136,13 +77,14 @@ def _evaluate_sector_epoch(sector: str) -> tuple[bool, str]:
     if normalized_sector not in SECTOR_SENSITIVITY_MATRIX:
         return False, f"Unknown sector: {sector}"
 
+    active_epochs = get_active_epochs()
     sector_vector = SECTOR_SENSITIVITY_MATRIX[normalized_sector]
     epoch_pressure = sum(
-        float(ACTIVE_EPOCHS[epoch_name]) * float(sector_vector.get(epoch_name, 0.0))
-        for epoch_name in ACTIVE_EPOCHS
+        float(active_epochs[epoch_name]) * float(sector_vector.get(epoch_name, 0.0))
+        for epoch_name in active_epochs
     )
     if epoch_pressure <= -0.5:
-        return False, f"Adverse Epoch Pressure: {epoch_pressure}"
+        return False, f"Adverse Epoch Pressure: {epoch_pressure:.3f}"
     return True, "Epoch Favorable/Neutral"
 
 

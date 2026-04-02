@@ -4,12 +4,27 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict
 
-
-ACTIVE_EPOCHS: Dict[str, float] = {
+# Hardcoded fallback — used when live market data is unavailable
+_HARDCODED_EPOCHS: Dict[str, float] = {
     "RATES_PRESSURE": 0.8,
     "CONSUMER_STRESS": 0.6,
     "WAR_GEOPOLITICS": 0.7,
 }
+
+# Legacy alias kept for any direct imports (l5_shadow_pipeline etc.)
+ACTIVE_EPOCHS: Dict[str, float] = _HARDCODED_EPOCHS
+
+
+def get_active_epochs() -> Dict[str, float]:
+    """
+    Return epoch severities from live market indicators (cached, 6h TTL).
+    Falls back to hardcoded values if market data is unavailable.
+    """
+    try:
+        from tfe_epoch_auto_severity import load_live_epochs
+        return load_live_epochs()
+    except Exception:
+        return dict(_HARDCODED_EPOCHS)
 
 
 SECTOR_SENSITIVITY_MATRIX: Dict[str, Dict[str, float]] = {
@@ -77,7 +92,9 @@ class EpochCorpora:
     sector_sensitivity_matrix: Dict[str, Dict[str, float]] = None  # type: ignore[assignment]
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "active_epochs", dict(ACTIVE_EPOCHS) if self.active_epochs is None else dict(self.active_epochs))
+        # Use live-scored severities (cached) instead of hardcoded when constructed with defaults
+        live = get_active_epochs() if self.active_epochs is None else dict(self.active_epochs)
+        object.__setattr__(self, "active_epochs", live)
         object.__setattr__(
             self,
             "sector_sensitivity_matrix",
@@ -96,7 +113,7 @@ class EpochCorpora:
         )
 
         if epoch_pressure <= -0.5:
-            return {"status": "FAIL", "reason": f"Adverse Epoch Pressure: {epoch_pressure}"}
+            return {"status": "FAIL", "reason": f"Adverse Epoch Pressure: {epoch_pressure:.3f}"}
 
         return {
             "status": "PASS",
@@ -107,5 +124,6 @@ class EpochCorpora:
 
 if __name__ == "__main__":
     corpora = EpochCorpora()
+    print("Active epochs:", corpora.active_epochs)
     print("Real Estate", corpora.evaluate_sector_epoch("Real Estate"))
     print("Energy", corpora.evaluate_sector_epoch("Energy"))

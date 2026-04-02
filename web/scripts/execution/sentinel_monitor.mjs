@@ -4,13 +4,15 @@
  *
  * Runs after each market day against all open positions in personal_trade_ledger.
  *
- * Three kill conditions (all result in immediate market sell):
- *   1. ZOMBIE:   position age > tau_in_max bars (default 10) with no exit
- *   2. CALAMITY: R_rev_k > 0 (reversion factor triggered)
- *   3. SPY FLIP: SPY D_k flipped to 0 or -1 — Wave 3 gone, full liquidation
+ * Four kill conditions:
+ *   1. CIRCUIT BREAKER: portfolio dropped > max_drawdown_pct in session
+ *      → liquidate ALL positions, halt new trades for circuit_breaker_hours
+ *   2. SPY FLIP: SPY D_k flipped to 0/-1 → liquidate ALL positions
+ *   3. CALAMITY: R_rev_k > 0 on individual position → market sell that position
+ *   4. ZOMBIE:   position age > tau_in_max bars → market sell that position
  *
- * For each kill: places a market sell via Alpaca, updates ledger with exit reason.
- * If a kill cannot be placed (Alpaca error) → logs CRITICAL and continues to next.
+ * Circuit breaker state is written to pee1_circuit_breaker table.
+ * pee1_runner checks this table before executing any new orders.
  */
 
 import pg from "pg";
@@ -173,14 +175,92 @@ async function killPosition(pos, exitReason) {
   });
 }
 
+// ── Circuit breaker ───────────────────────────────────────────────────────
+async function fetchConfig(key) {
+  const res = await pool.query(
+    `SELECT value FROM pee1_execution_config WHERE key = $1`, [key]
+  );
+  return res.rows[0]?.value ?? null;
+}
+
+async function isCircuitBreakerActive() {
+  const res = await pool.query(
+    `SELECT id, trigger_reason, expires_at FROM pee1_circuit_breaker
+     WHERE cleared_at IS NULL AND expires_at > NOW()
+     ORDER BY triggered_at DESC LIMIT 1`
+  );
+  if (!res.rows.length) return null;
+  return res.rows[0];
+}
+
+async function triggerCircuitBreaker({ equityOpen, equityNow, drawdownPct, thresholdPct, hours }) {
+  const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+  await pool.query(
+    `INSERT INTO pee1_circuit_breaker
+       (trigger_reason, expires_at, vault_equity_open, vault_equity_low, drawdown_pct, threshold_pct)
+     VALUES ('max_drawdown', $1, $2, $3, $4, $5)`,
+    [expiresAt, equityOpen, equityNow, drawdownPct, thresholdPct]
+  );
+  console.log(`[SENTINEL] ⚡ CIRCUIT BREAKER TRIGGERED | drawdown=${drawdownPct.toFixed(2)}% > ${thresholdPct}% | halt until ${expiresAt}`);
+}
+
+async function checkMaxDrawdown(equityNow) {
+  // Session open equity = equity at the earliest 'submitted' trade today, or current
+  const res = await pool.query(
+    `SELECT vault_equity_at_signal FROM personal_trade_ledger
+     WHERE DATE(signal_detected_at) = CURRENT_DATE
+     ORDER BY signal_detected_at ASC LIMIT 1`
+  );
+  const equityOpen = parseFloat(res.rows[0]?.vault_equity_at_signal ?? equityNow);
+  if (equityOpen <= 0) return null;
+
+  const drawdownPct = ((equityOpen - equityNow) / equityOpen) * 100;
+  const thresholdPct = parseFloat(await fetchConfig("max_drawdown_pct") ?? "5.0");
+  const hours = parseInt(await fetchConfig("circuit_breaker_hours") ?? "24", 10);
+
+  if (drawdownPct >= thresholdPct) {
+    await triggerCircuitBreaker({ equityOpen, equityNow, drawdownPct, thresholdPct, hours });
+    return { triggered: true, drawdownPct, thresholdPct };
+  }
+  return { triggered: false, drawdownPct, thresholdPct };
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────
 export async function runSentinel() {
   console.log("[SENTINEL] Starting position audit...");
 
-  const [positions, spyDk] = await Promise.all([
+  // Circuit breaker: check if already halted
+  const existingHalt = await isCircuitBreakerActive().catch(() => null);
+  if (existingHalt) {
+    console.log(`[SENTINEL] ⚡ Circuit breaker ACTIVE (${existingHalt.trigger_reason}) — expires ${existingHalt.expires_at}. No new actions.`);
+    return { halted: true, reason: existingHalt.trigger_reason, expires: existingHalt.expires_at };
+  }
+
+  const [positions, spyDk, accountRaw] = await Promise.all([
     fetchOpenPositions(),
     fetchSpyDk(),
+    alpacaGet("/v2/account").catch(() => null),
   ]);
+
+  const equityNow = parseFloat(accountRaw?.equity ?? "0");
+  console.log(`[SENTINEL] Open positions: ${positions.length} | SPY D_k: ${spyDk ?? "unknown"} | Equity: $${equityNow.toFixed(2)}`);
+
+  // Max drawdown circuit breaker check (runs before any per-position logic)
+  if (equityNow > 0) {
+    const ddCheck = await checkMaxDrawdown(equityNow).catch(e => {
+      console.error("[SENTINEL] Drawdown check failed:", e.message);
+      return null;
+    });
+    if (ddCheck?.triggered) {
+      console.log(`[SENTINEL] ⚡ MAX DRAWDOWN — liquidating all ${positions.length} positions`);
+      for (const pos of positions) {
+        await killPosition(pos, "sentinel_max_drawdown");
+      }
+      return { halted: true, reason: "max_drawdown", drawdownPct: ddCheck.drawdownPct };
+    } else if (ddCheck) {
+      console.log(`[SENTINEL] Drawdown check: ${ddCheck.drawdownPct.toFixed(2)}% / ${ddCheck.thresholdPct}% threshold — OK`);
+    }
+  }
 
   console.log(`[SENTINEL] Open positions: ${positions.length} | SPY D_k: ${spyDk ?? "unknown"}`);
 

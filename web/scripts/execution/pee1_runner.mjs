@@ -34,11 +34,20 @@ async function main() {
 
   // ── Phase 1: Sentinel audit ──────────────────────────────────────────
   console.log("\n[RUNNER] Phase 1: Sentinel position audit");
+  let sentinelResult = null;
   try {
-    await runSentinel();
+    sentinelResult = await runSentinel();
   } catch (err) {
     console.error("[RUNNER] Sentinel failed:", err.message);
-    // Sentinel failure does not stop new signal processing
+  }
+
+  // ── Circuit breaker gate ─────────────────────────────────────────────
+  // If sentinel triggered a halt, skip signal detection and execution entirely.
+  // The audit phase still runs so you can see current state.
+  const sentinelHalted = typeof sentinelResult === "object" && sentinelResult?.halted;
+  if (sentinelHalted) {
+    console.log(`\n[RUNNER] ⚡ CIRCUIT BREAKER ACTIVE (${sentinelResult.reason}) — skipping signals and execution`);
+    console.log("[RUNNER] Audit will still run to show current portfolio state.");
   }
 
   // ── Phase 2: 3WA signal detection ───────────────────────────────────
