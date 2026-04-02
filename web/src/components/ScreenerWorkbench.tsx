@@ -244,6 +244,9 @@ function buildColumns(tab: ScreenerTab, onOpen: (row: ScreenerRow, quote: QuoteS
     render: (row, quote) => (
       <button type="button" className="btn btn-ghost btn-sm" onClick={() => onOpen(row, quote)}>
         {row.ticker}
+        {row.decision === "Accumulate" && row.barCount > 0 && row.barCount <= 20 ? (
+          <span style={{ marginLeft: 5, fontSize: "0.6rem", fontWeight: 700, color: "#fff", background: "#16a34a", borderRadius: 3, padding: "1px 4px", verticalAlign: "middle", letterSpacing: "0.04em" }} title="New listing — structural ground state. Backtest: 72%+ win.">NEW</span>
+        ) : null}
       </button>
     ),
   };

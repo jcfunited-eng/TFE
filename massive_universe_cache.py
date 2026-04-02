@@ -10,7 +10,9 @@ then applies a strict stock allowlist for TFE ingestion.
 Default stock allowlist (production):
 - CS    (Common Stock)
 - ADRC  (ADR Common)
-- PFD   (Preferred)
+
+Removed from allowlist:
+- PFD   (Preferred) — bond-like instruments, not purchaseable common equity
 
 Why this exists:
 - Massive market=stocks contains many non-common instruments (ETF, WARRANT,
@@ -43,7 +45,13 @@ CACHE_PATH = Path("massive_universe_stocks.json")
 MASSIVE_BASE_URL = "https://api.massive.com/v3/reference/tickers"
 
 # Production stock-type allowlist used by ingestion.
-DEFAULT_STOCK_TYPES: Tuple[str, ...] = ("CS", "ADRC", "PFD")
+DEFAULT_STOCK_TYPES: Tuple[str, ...] = ("CS", "ADRC")
+
+# Name-based exclusions for CS items that are non-purchaseable fund vehicles
+# (e.g. interval funds, non-traded LLCs mis-classified as CS by the data provider).
+# Pattern: name contains "Fund" AND ", LLC" (e.g. "Fundrise Innovation Fund, LLC")
+import re as _re
+_FUND_LLC_PATTERN = _re.compile(r"fund.+llc|interval\s+fund", _re.IGNORECASE)
 
 
 def _get_api_key() -> str:
@@ -161,6 +169,12 @@ def filter_stock_universe(
 
         ticker = item.get("ticker")
         if not ticker:
+            continue
+
+        # Exclude CS items that are non-purchaseable fund vehicles
+        # (interval funds, non-traded LLCs mis-classified as common stock)
+        name = str(item.get("name", ""))
+        if _FUND_LLC_PATTERN.search(name):
             continue
 
         filtered.append(item)
