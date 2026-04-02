@@ -27,17 +27,27 @@ const pool = new pg.Pool({
 
 function alpacaHeaders() {
   return {
-    "APCA-API-KEY-ID":     process.env.ALPACA_API_KEY,
-    "APCA-API-SECRET-KEY": process.env.ALPACA_SECRET_KEY,
+    "APCA-API-KEY-ID":     process.env.APCA_API_KEY_ID,
+    "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY,
   };
 }
-const ALPACA_BASE = process.env.ALPACA_PAPER !== "0"
-  ? "https://paper-api.alpaca.markets"
-  : "https://api.alpaca.markets";
 
-async function fetchAlpacaOrder(orderId) {
+async function resolveAlpacaBase() {
   try {
-    const res = await fetch(`${ALPACA_BASE}/v2/orders/${orderId}`, { headers: alpacaHeaders() });
+    const res = await pool.query(
+      `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
+    );
+    return (res.rows[0]?.value ?? "paper") === "live"
+      ? "https://api.alpaca.markets"
+      : "https://paper-api.alpaca.markets";
+  } catch {
+    return "https://paper-api.alpaca.markets";
+  }
+}
+
+async function fetchAlpacaOrder(orderId, base) {
+  try {
+    const res = await fetch(`${base}/v2/orders/${orderId}`, { headers: alpacaHeaders() });
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -47,6 +57,7 @@ async function fetchAlpacaOrder(orderId) {
 
 // ── Sync fills from Alpaca back into ledger ───────────────────────────────
 async function syncFills() {
+  const base = await resolveAlpacaBase();
   const res = await pool.query(
     `SELECT id, ticker, alpaca_order_id, alpaca_stop_loss_order_id, shares, status
      FROM personal_trade_ledger
@@ -55,7 +66,7 @@ async function syncFills() {
   );
 
   for (const row of res.rows) {
-    const order = await fetchAlpacaOrder(row.alpaca_order_id);
+    const order = await fetchAlpacaOrder(row.alpaca_order_id, base);
     if (!order) continue;
 
     const fields = {};

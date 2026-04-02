@@ -32,8 +32,8 @@ import { createHash } from "crypto";
 
 // ── Environment validation ─────────────────────────────────────────────────
 const REQUIRED_ENV = [
-  "ALPACA_API_KEY",
-  "ALPACA_SECRET_KEY",
+  "APCA_API_KEY_ID",
+  "APCA_API_SECRET_KEY",
   "PGHOST",
   "PGDATABASE",
   "PGUSER",
@@ -45,16 +45,10 @@ for (const key of REQUIRED_ENV) {
   }
 }
 
-// Fail-safe: default to paper unless explicitly set to '0'.
-const IS_PAPER = process.env.ALPACA_PAPER !== "0";
-const ALPACA_BASE_URL = IS_PAPER
-  ? "https://paper-api.alpaca.markets"
-  : "https://api.alpaca.markets";
+// Paper/live mode: read from DB config (pee1_execution_config.execution_mode).
+// Resolved at order-execution time by readExecutionMode().
+// Fail-safe: if DB read fails, always default to paper.
 const ALPACA_DATA_URL = "https://data.alpaca.markets";
-
-if (IS_PAPER) {
-  console.warn("[BRIDGE] WARNING: Running in PAPER mode. Set ALPACA_PAPER=0 to use live account.");
-}
 
 // ── Constants ─────────────────────────────────────────────────────────────
 const ATR_PERIOD           = 14;
@@ -76,16 +70,34 @@ const pool = new pg.Pool({
   connectionTimeoutMillis: 5_000,
 });
 
+// ── Execution mode (paper vs live) from DB ────────────────────────────────
+async function readExecutionMode() {
+  try {
+    const res = await pool.query(
+      `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
+    );
+    return res.rows[0]?.value ?? "paper";
+  } catch {
+    return "paper";  // fail-safe
+  }
+}
+
+function alpacaBaseUrl(mode) {
+  return mode === "live"
+    ? "https://api.alpaca.markets"
+    : "https://paper-api.alpaca.markets";
+}
+
 // ── Alpaca REST helpers ───────────────────────────────────────────────────
 function alpacaHeaders() {
   return {
-    "APCA-API-KEY-ID":     process.env.ALPACA_API_KEY,
-    "APCA-API-SECRET-KEY": process.env.ALPACA_SECRET_KEY,
+    "APCA-API-KEY-ID":     process.env.APCA_API_KEY_ID,
+    "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY,
     "Content-Type":        "application/json",
   };
 }
 
-async function alpacaGet(path, base = ALPACA_BASE_URL) {
+async function alpacaGet(path, base) {
   const res = await fetch(`${base}${path}`, { headers: alpacaHeaders() });
   const body = await res.json();
   if (!res.ok) {
@@ -94,8 +106,8 @@ async function alpacaGet(path, base = ALPACA_BASE_URL) {
   return body;
 }
 
-async function alpacaPost(path, payload) {
-  const res = await fetch(`${ALPACA_BASE_URL}${path}`, {
+async function alpacaPost(path, payload, base) {
+  const res = await fetch(`${base}${path}`, {
     method: "POST",
     headers: alpacaHeaders(),
     body: JSON.stringify(payload),
@@ -179,8 +191,8 @@ async function fetchLatestPrice(ticker) {
 }
 
 // ── Account equity ────────────────────────────────────────────────────────
-async function fetchAccountEquity() {
-  const account = await alpacaGet("/v2/account");
+async function fetchAccountEquity(base) {
+  const account = await alpacaGet("/v2/account", base);
   const equity = parseFloat(account?.equity ?? account?.portfolio_value ?? 0);
   if (!isFinite(equity) || equity <= 0) {
     throw new Error("[BRIDGE] fetchAccountEquity: account equity is zero or unavailable");
@@ -321,6 +333,12 @@ export async function executeBracketOrder(signal, opts = {}) {
     MAX_SINGLE_TRADE_PCT,
   );
 
+  // ── Step 0: resolve execution mode (paper vs live) ────────────────────
+  const executionMode = await readExecutionMode();
+  const BASE = alpacaBaseUrl(executionMode);
+  const isPaper = executionMode !== "live";
+  console.log(`[BRIDGE] Execution mode: ${executionMode.toUpperCase()} | base=${BASE}`);
+
   // ── Step 1: validate signal (binary) ──────────────────────────────────
   const validation = validateSignal(signal);
   if (!validation.valid) {
@@ -334,7 +352,7 @@ export async function executeBracketOrder(signal, opts = {}) {
   // ── Step 2: fetch live market data (all must succeed) ─────────────────
   try {
     [vaultEquity, currentPrice, atr] = await Promise.all([
-      fetchAccountEquity(),
+      fetchAccountEquity(BASE),
       fetchLatestPrice(ticker),
       computeATR(ticker),
     ]);
@@ -399,7 +417,7 @@ export async function executeBracketOrder(signal, opts = {}) {
         run_id:        signal.run_id,
         vault_equity:  vaultEquity,
         atr_14:        atr,
-        paper_mode:    IS_PAPER,
+        paper_mode:    isPaper,
       },
     });
   } catch (dbErr) {
@@ -426,7 +444,7 @@ export async function executeBracketOrder(signal, opts = {}) {
         stop_price:   stopLossPrice,
         // No limit_price → stop-market order on trigger (as specified)
       },
-    });
+    }, BASE);
   } catch (orderErr) {
     const errMsg = `order_placement_failed: ${orderErr.message}`;
     console.error(`[BRIDGE] ${ticker}: ${errMsg}`);

@@ -12,8 +12,8 @@
  *   node pee1_runner.mjs
  *
  * Required environment variables (set before running):
- *   ALPACA_API_KEY     — your Alpaca key ID
- *   ALPACA_SECRET_KEY  — your Alpaca secret key
+ *   APCA_API_KEY_ID    — your Alpaca key ID
+ *   APCA_API_SECRET_KEY — your Alpaca secret key
  *   ALPACA_PAPER       — '1' = paper (safe default), '0' = live real money
  *   PGHOST / PGPORT / PGDATABASE / PGUSER / PGPASSWORD — TFE database
  */

@@ -33,25 +33,36 @@ const ZOMBIE_BAR_THRESHOLD = parseInt(process.env.SENTINEL_ZOMBIE_BARS ?? "10", 
 // ── Alpaca helpers (duplicated intentionally — sentinel is independent) ───
 function alpacaHeaders() {
   return {
-    "APCA-API-KEY-ID":     process.env.ALPACA_API_KEY,
-    "APCA-API-SECRET-KEY": process.env.ALPACA_SECRET_KEY,
+    "APCA-API-KEY-ID":     process.env.APCA_API_KEY_ID,
+    "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY,
     "Content-Type":        "application/json",
   };
 }
-const ALPACA_BASE = process.env.ALPACA_PAPER !== "0"
-  ? "https://paper-api.alpaca.markets"
-  : "https://api.alpaca.markets";
+
+async function resolveAlpacaBase() {
+  try {
+    const res = await pool.query(
+      `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
+    );
+    return (res.rows[0]?.value ?? "paper") === "live"
+      ? "https://api.alpaca.markets"
+      : "https://paper-api.alpaca.markets";
+  } catch {
+    return "https://paper-api.alpaca.markets";
+  }
+}
+
 const ALPACA_DATA = "https://data.alpaca.markets";
 
-async function alpacaGet(path, base = ALPACA_BASE) {
+async function alpacaGet(path, base) {
   const res = await fetch(`${base}${path}`, { headers: alpacaHeaders() });
   const body = await res.json();
   if (!res.ok) throw new Error(`Alpaca GET ${path} → ${res.status}: ${JSON.stringify(body)}`);
   return body;
 }
 
-async function alpacaPost(path, payload) {
-  const res = await fetch(`${ALPACA_BASE}${path}`, {
+async function alpacaPost(path, payload, base) {
+  const res = await fetch(`${base}${path}`, {
     method: "POST",
     headers: alpacaHeaders(),
     body: JSON.stringify(payload),
@@ -62,9 +73,9 @@ async function alpacaPost(path, payload) {
 }
 
 // ── Cancel open bracket legs before liquidating ──────────────────────────
-async function cancelOrder(orderId) {
+async function cancelOrder(orderId, base) {
   try {
-    await fetch(`${ALPACA_BASE}/v2/orders/${orderId}`, {
+    await fetch(`${base}/v2/orders/${orderId}`, {
       method: "DELETE",
       headers: alpacaHeaders(),
     });
@@ -74,14 +85,14 @@ async function cancelOrder(orderId) {
 }
 
 // ── Market sell ───────────────────────────────────────────────────────────
-async function marketSell(ticker, qty) {
+async function marketSell(ticker, qty, base) {
   return alpacaPost("/v2/orders", {
     symbol:        ticker,
     qty,
     side:          "sell",
     type:          "market",
     time_in_force: "day",
-  });
+  }, base);
 }
 
 // ── Current SPY D_k ──────────────────────────────────────────────────────
@@ -145,17 +156,17 @@ async function ledgerClose(id, exitReason, exitOrderId) {
 }
 
 // ── Kill a single position ────────────────────────────────────────────────
-async function killPosition(pos, exitReason) {
+async function killPosition(pos, exitReason, base) {
   const { ticker, shares, alpaca_take_profit_order_id, alpaca_stop_loss_order_id } = pos;
   console.log(`[SENTINEL] KILL ${ticker} | reason=${exitReason} | shares=${shares}`);
 
   // Cancel pending bracket legs so market sell doesn't conflict
-  if (alpaca_take_profit_order_id) await cancelOrder(alpaca_take_profit_order_id);
-  if (alpaca_stop_loss_order_id)   await cancelOrder(alpaca_stop_loss_order_id);
+  if (alpaca_take_profit_order_id) await cancelOrder(alpaca_take_profit_order_id, base);
+  if (alpaca_stop_loss_order_id)   await cancelOrder(alpaca_stop_loss_order_id, base);
 
   let exitOrderId = null;
   try {
-    const sellOrder = await marketSell(ticker, shares);
+    const sellOrder = await marketSell(ticker, shares, base);
     exitOrderId = sellOrder.id;
     console.log(`[SENTINEL] Market sell placed | ${ticker} | orderId=${exitOrderId}`);
   } catch (err) {
@@ -236,10 +247,13 @@ export async function runSentinel() {
     return { halted: true, reason: existingHalt.trigger_reason, expires: existingHalt.expires_at };
   }
 
+  const ALPACA_BASE = await resolveAlpacaBase();
+  console.log(`[SENTINEL] Alpaca base: ${ALPACA_BASE}`);
+
   const [positions, spyDk, accountRaw] = await Promise.all([
     fetchOpenPositions(),
     fetchSpyDk(),
-    alpacaGet("/v2/account").catch(() => null),
+    alpacaGet("/v2/account", ALPACA_BASE).catch(() => null),
   ]);
 
   const equityNow = parseFloat(accountRaw?.equity ?? "0");
@@ -254,7 +268,7 @@ export async function runSentinel() {
     if (ddCheck?.triggered) {
       console.log(`[SENTINEL] ⚡ MAX DRAWDOWN — liquidating all ${positions.length} positions`);
       for (const pos of positions) {
-        await killPosition(pos, "sentinel_max_drawdown");
+        await killPosition(pos, "sentinel_max_drawdown", ALPACA_BASE);
       }
       return { halted: true, reason: "max_drawdown", drawdownPct: ddCheck.drawdownPct };
     } else if (ddCheck) {
@@ -269,7 +283,7 @@ export async function runSentinel() {
   if (spyFlip) {
     console.log(`[SENTINEL] SPY D_k=${spyDk} — Wave 3 GONE — liquidating all positions`);
     for (const pos of positions) {
-      await killPosition(pos, "sentinel_spy_flip");
+      await killPosition(pos, "sentinel_spy_flip", ALPACA_BASE);
     }
     return;
   }
@@ -280,14 +294,14 @@ export async function runSentinel() {
 
     // Calamity check: R_rev_k > 0
     if (isFinite(fields.r_rev_k) && fields.r_rev_k > 0) {
-      await killPosition(pos, "sentinel_calamity");
+      await killPosition(pos, "sentinel_calamity", ALPACA_BASE);
       continue;
     }
 
     // Zombie check: position older than tau_in_max bars
     const barCount = isFinite(fields.bar_count) ? fields.bar_count : null;
     if (barCount !== null && barCount > ZOMBIE_BAR_THRESHOLD) {
-      await killPosition(pos, "sentinel_zombie");
+      await killPosition(pos, "sentinel_zombie", ALPACA_BASE);
       continue;
     }
 
