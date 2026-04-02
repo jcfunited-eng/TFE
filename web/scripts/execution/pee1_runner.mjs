@@ -18,6 +18,7 @@
  *   PGHOST / PGPORT / PGDATABASE / PGUSER / PGPASSWORD — TFE database
  */
 
+import pg from "pg";
 import { runSentinel, closeSentinelPool }       from "./sentinel_monitor.mjs";
 import { get3WASignals, closeStrategistPool }    from "./3wa_strategist.mjs";
 import { executeBracketOrder, closeBridgePool }  from "./alpaca_bridge.mjs";
@@ -25,12 +26,47 @@ import { runAudit, closeAuditorPool }            from "./trade_auditor.mjs";
 
 const IS_PAPER = process.env.ALPACA_PAPER !== "0";
 
+const configPool = new pg.Pool({
+  host:     process.env.PGHOST,
+  port:     parseInt(process.env.PGPORT ?? "5432", 10),
+  database: process.env.PGDATABASE,
+  user:     process.env.PGUSER,
+  password: process.env.PGPASSWORD,
+  max: 2,
+  idleTimeoutMillis: 10_000,
+  connectionTimeoutMillis: 5_000,
+});
+
+async function readConfig(key) {
+  try {
+    const res = await configPool.query(
+      `SELECT value FROM pee1_execution_config WHERE key = $1`, [key]
+    );
+    return res.rows[0]?.value ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function main() {
   console.log("═══════════════════════════════════════════════════");
   console.log("  PEE-1 Personal Execution Engine");
   console.log(`  Mode: ${IS_PAPER ? "PAPER (safe)" : "⚠️  LIVE REAL MONEY"}`);
   console.log(`  Time: ${new Date().toISOString()}`);
   console.log("═══════════════════════════════════════════════════");
+
+  // ── Read DB config ────────────────────────────────────────────────────
+  const [autoTFEValue, executionMode] = await Promise.all([
+    readConfig("auto_tfe_enabled"),
+    readConfig("execution_mode"),
+  ]);
+  const autoTFEEnabled = autoTFEValue !== "false";  // default true if missing
+  console.log(`[RUNNER] Auto-TFE: ${autoTFEEnabled ? "ON" : "OFF"} | Execution mode: ${executionMode ?? "paper"}`);
+
+  // ── Auto-TFE gate ─────────────────────────────────────────────────────
+  if (!autoTFEEnabled) {
+    console.log("\n[RUNNER] Auto-TFE is OFF — sentinel will still run, but no new orders will be placed.");
+  }
 
   // ── Phase 1: Sentinel audit ──────────────────────────────────────────
   console.log("\n[RUNNER] Phase 1: Sentinel position audit");
@@ -42,13 +78,14 @@ async function main() {
   }
 
   // ── Circuit breaker gate ─────────────────────────────────────────────
-  // If sentinel triggered a halt, skip signal detection and execution entirely.
-  // The audit phase still runs so you can see current state.
   const sentinelHalted = typeof sentinelResult === "object" && sentinelResult?.halted;
   if (sentinelHalted) {
     console.log(`\n[RUNNER] ⚡ CIRCUIT BREAKER ACTIVE (${sentinelResult.reason}) — skipping signals and execution`);
     console.log("[RUNNER] Audit will still run to show current portfolio state.");
   }
+
+  // Skip signals + execution if circuit breaker OR auto-TFE is off
+  const skipExecution = sentinelHalted || !autoTFEEnabled;
 
   // ── Phase 2: 3WA signal detection ───────────────────────────────────
   console.log("\n[RUNNER] Phase 2: 3WA signal detection");
@@ -62,10 +99,15 @@ async function main() {
 
   if (signals.length === 0) {
     console.log("[RUNNER] No 3WA signals today. Nothing to execute.");
+  } else if (!autoTFEEnabled) {
+    console.log(`[RUNNER] ${signals.length} signal(s) found but Auto-TFE is OFF — not placing orders.`);
+    for (const s of signals) {
+      console.log(`[RUNNER]   (dry-run) ${s.ticker} | bar_count=${s.bar_count} | s_uf=${s.s_uf}`);
+    }
   }
 
   // ── Phase 3: Execute orders ──────────────────────────────────────────
-  if (signals.length > 0) {
+  if (signals.length > 0 && !skipExecution) {
     console.log(`\n[RUNNER] Phase 3: Executing ${signals.length} signal(s)`);
     for (const signal of signals) {
       try {
@@ -99,6 +141,7 @@ main()
   })
   .finally(async () => {
     await Promise.allSettled([
+      configPool.end(),
       closeSentinelPool(),
       closeStrategistPool(),
       closeBridgePool(),
