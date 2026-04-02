@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readSessionUserFromRequest } from "@/lib/server-auth";
+import { readSessionUserFromRequest } from "@/lib/auth-session";
 import { resolveRuntimePostgresPool } from "@/lib/runtime-db";
 
 export const dynamic = "force-dynamic";

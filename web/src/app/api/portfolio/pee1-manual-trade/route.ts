@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readSessionUserFromRequest } from "@/lib/server-auth";
+import { readSessionUserFromRequest } from "@/lib/auth-session";
 import { resolveRuntimePostgresPool } from "@/lib/runtime-db";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         shares,
         entryPrice,
         dollarAllocation,
-        JSON.stringify({ source: "manual_entry", notes, entered_by: user.email ?? "user" }),
+        JSON.stringify({ source: "manual_entry", notes, entered_by: user.username ?? "user" }),
       ]
     );
     return NextResponse.json({ ok: true, id: res.rows[0].id });
