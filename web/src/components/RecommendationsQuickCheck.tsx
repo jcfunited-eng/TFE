@@ -657,26 +657,28 @@ export default function RecommendationsQuickCheck() {
         </div>
       </section>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <input
-          type="search"
-          placeholder="Search by ticker, company name, or sector…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ flex: "1 1 280px", maxWidth: 400 }}
-          aria-label="Search recommendations"
-        />
-        {matchCount !== null && (
-          <span className="tfe-muted">
-            {matchCount} result{matchCount === 1 ? "" : "s"} across all buckets
-          </span>
-        )}
-      </div>
+      <section className="surface-card" style={{ display: "grid", gap: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <input
+            type="search"
+            placeholder="Search by ticker, company name, or sector…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ flex: "1 1 280px", maxWidth: 400 }}
+            aria-label="Search recommendations"
+          />
+          {matchCount !== null && (
+            <span className="tfe-muted">
+              {matchCount} result{matchCount === 1 ? "" : "s"} across all buckets
+            </span>
+          )}
+        </div>
 
-      <BucketTable title="The Titans" rows={payload.buckets.titans} search={search} companyNames={companyNames} onTickerClick={openRow} />
-      <BucketTable title="The Heavyweights" rows={payload.buckets.heavyweights} search={search} companyNames={companyNames} onTickerClick={openRow} />
-      <BucketTable title="The Mid-Tier" rows={payload.buckets.midTier} search={search} companyNames={companyNames} onTickerClick={openRow} />
-      <BucketTable title="The Hunters" rows={payload.buckets.hunters} search={search} companyNames={companyNames} onTickerClick={openRow} />
+        <BucketTable title="The Titans" rows={payload.buckets.titans} search={search} companyNames={companyNames} onTickerClick={openRow} />
+        <BucketTable title="The Heavyweights" rows={payload.buckets.heavyweights} search={search} companyNames={companyNames} onTickerClick={openRow} />
+        <BucketTable title="The Mid-Tier" rows={payload.buckets.midTier} search={search} companyNames={companyNames} onTickerClick={openRow} />
+        <BucketTable title="The Hunters" rows={payload.buckets.hunters} search={search} companyNames={companyNames} onTickerClick={openRow} />
+      </section>
     </div>
   );
 }

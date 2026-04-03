@@ -602,6 +602,7 @@ export default function ScreenerWorkbench() {
   const [decision, setDecision] = useState("all");
   const [regime, setRegime] = useState("all");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [sortKey, setSortKey] = useState<SortKey>("ticker");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [loading, setLoading] = useState(false);
@@ -633,7 +634,7 @@ export default function ScreenerWorkbench() {
         const query = new URLSearchParams();
         query.set("tab", tab);
         query.set("page", String(page));
-        query.set("pageSize", String(DEFAULT_PAGE_SIZE));
+        query.set("pageSize", String(pageSize));
         if (search.trim()) query.set("search", search.trim());
         if (assetType !== "all") query.set("assetType", assetType);
         if (decision !== "all") query.set("decision", decision);
@@ -678,7 +679,7 @@ export default function ScreenerWorkbench() {
 
     void loadRows();
     return () => controller.abort();
-  }, [assetType, decision, page, regime, search, tab]);
+  }, [assetType, decision, page, pageSize, regime, search, tab]);
 
   useEffect(() => {
     if (!analysis) {
@@ -854,6 +855,22 @@ export default function ScreenerWorkbench() {
                   {option}
                 </option>
               ))}
+            </select>
+          </label>
+
+          <label style={{ display: "grid", gap: "0.35rem" }}>
+            <span>Rows</span>
+            <select
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value));
+                setPage(1);
+              }}
+            >
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={200}>200</option>
             </select>
           </label>
         </div>
