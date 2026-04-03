@@ -262,6 +262,21 @@ type SignalFilterPayload = {
   error?: string;
 };
 
+type MarketBannerRow = {
+  id: number;
+  conditionKey: string;
+  backgroundImagePath: string;
+  instructionalText: string;
+  textColorHex: string;
+  updatedAt: string;
+};
+
+const BANNER_KEY_LABELS: Record<string, string> = {
+  D_k_minus_1: "D_k = −1  (Contraction / Storm)",
+  D_k_0:       "D_k = 0   (Neutral / Overcast)",
+  D_k_plus_1:  "D_k = +1  (Expansion / Sunny)",
+};
+
 type NoticeTone = "info" | "good" | "warn" | "error";
 
 type NoticeState = {
@@ -377,6 +392,12 @@ export default function AdminConsolePage() {
   const [syncingDeck, setSyncingDeck] = useState(false);
   const [uploadTarget, setUploadTarget] = useState<keyof UiBackgroundImages>("home");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+
+  // Market Banner CMS
+  const [bannerRows, setBannerRows] = useState<MarketBannerRow[]>([]);
+  const [bannerSaving, setBannerSaving] = useState<string | null>(null);
+  const [bannerUploading, setBannerUploading] = useState<string | null>(null);
+  const [bannerFiles, setBannerFiles] = useState<Record<string, File | null>>({});
 
   const [refreshStatus, setRefreshStatus] = useState<RefreshStatus | null>(null);
   const [refreshBusy, setRefreshBusy] = useState<RefreshMode | null>(null);
@@ -629,6 +650,15 @@ export default function AdminConsolePage() {
     }
     setSyncingDeck(false);
   }
+
+  useEffect(() => {
+    fetch("/api/admin/market-banner", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { rows?: MarketBannerRow[] } | null) => {
+        if (d?.rows) setBannerRows(d.rows);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     void reloadDeck(false);
@@ -990,6 +1020,62 @@ export default function AdminConsolePage() {
 
   function updateField(key: keyof UiBackgroundImages, value: string) {
     setImages((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function updateBannerField(conditionKey: string, field: keyof MarketBannerRow, value: string) {
+    setBannerRows((prev) =>
+      prev.map((r) => (r.conditionKey === conditionKey ? { ...r, [field]: value } : r))
+    );
+  }
+
+  async function onSaveBannerRow(row: MarketBannerRow): Promise<void> {
+    setBannerSaving(row.conditionKey);
+    try {
+      const res = await fetch("/api/admin/market-banner", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conditionKey: row.conditionKey,
+          instructionalText: row.instructionalText,
+          textColorHex: row.textColorHex,
+          backgroundImagePath: row.backgroundImagePath,
+        }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        pushNotice("error", data.error ?? "Save failed.");
+      } else {
+        pushNotice("good", `Saved banner for ${BANNER_KEY_LABELS[row.conditionKey] ?? row.conditionKey}.`);
+      }
+    } catch {
+      pushNotice("error", "Save request failed.");
+    } finally {
+      setBannerSaving(null);
+    }
+  }
+
+  async function onUploadBannerImage(conditionKey: string): Promise<void> {
+    const file = bannerFiles[conditionKey];
+    if (!file) return;
+    setBannerUploading(conditionKey);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("conditionKey", conditionKey);
+      const res = await fetch("/api/admin/market-banner/upload", { method: "POST", body: form });
+      const data = (await res.json()) as { ok?: boolean; path?: string; error?: string };
+      if (!res.ok || !data.ok) {
+        pushNotice("error", data.error ?? "Upload failed.");
+      } else {
+        pushNotice("good", `Image uploaded for ${BANNER_KEY_LABELS[conditionKey] ?? conditionKey}.`);
+        setBannerFiles((prev) => ({ ...prev, [conditionKey]: null }));
+        updateBannerField(conditionKey, "backgroundImagePath", data.path ?? "");
+      }
+    } catch {
+      pushNotice("error", "Upload request failed.");
+    } finally {
+      setBannerUploading(null);
+    }
   }
 
   return (
@@ -1876,6 +1962,106 @@ export default function AdminConsolePage() {
                 </div>
               ))}
             </div>
+          </article>
+
+          {/* ── Market Condition Banner CMS ──────────────────────────────── */}
+          <article className={styles.panel}>
+            <header className={styles.panelHeader}>
+              <h2 className={styles.panelTitle}>Market Condition Banner CMS</h2>
+              <p className={styles.panelSub}>
+                Configure the hero ribbon on the Recommendations page for each SPY D_k state.
+                Upload a background image and set the instructional text and text color for each condition.
+              </p>
+            </header>
+
+            {bannerRows.length === 0 ? (
+              <p className={styles.panelSub}>Loading banner config… (run migration 005 if this persists)</p>
+            ) : (
+              bannerRows.map((row) => (
+                <div key={row.conditionKey} style={{ borderTop: "1px solid rgba(0,0,0,0.08)", paddingTop: 16, marginTop: 16 }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.85rem", marginBottom: 12 }}>
+                    {BANNER_KEY_LABELS[row.conditionKey] ?? row.conditionKey}
+                  </div>
+
+                  <div className={styles.formGrid}>
+                    <label className={styles.field}>
+                      <span>Instructional text (ALL-CAPS overlay)</span>
+                      <input
+                        className={styles.input}
+                        type="text"
+                        value={row.instructionalText}
+                        onChange={(e) => updateBannerField(row.conditionKey, "instructionalText", e.target.value)}
+                      />
+                    </label>
+
+                    <label className={styles.field}>
+                      <span>Text color hex (e.g. #FFFFFF)</span>
+                      <input
+                        className={styles.input}
+                        type="text"
+                        value={row.textColorHex}
+                        onChange={(e) => updateBannerField(row.conditionKey, "textColorHex", e.target.value)}
+                      />
+                    </label>
+
+                    <label className={styles.field}>
+                      <span>Background image path (read-only — use upload below)</span>
+                      <input
+                        className={styles.input}
+                        type="text"
+                        value={row.backgroundImagePath}
+                        readOnly
+                      />
+                    </label>
+
+                    <label className={styles.field}>
+                      <span>Upload new background (JPG/PNG/WEBP, max 8MB)</span>
+                      <input
+                        className={styles.input}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(e) =>
+                          setBannerFiles((prev) => ({
+                            ...prev,
+                            [row.conditionKey]: e.target.files?.[0] ?? null,
+                          }))
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  {row.backgroundImagePath && (
+                    <div style={{ marginTop: 8, marginBottom: 8 }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={row.backgroundImagePath}
+                        alt={`Preview for ${BANNER_KEY_LABELS[row.conditionKey] ?? row.conditionKey}`}
+                        style={{ maxHeight: 80, borderRadius: 6, border: "1px solid rgba(0,0,0,0.12)", objectFit: "cover" }}
+                      />
+                    </div>
+                  )}
+
+                  <div className={styles.buttonRow}>
+                    <button
+                      className={styles.opButton}
+                      type="button"
+                      disabled={!bannerFiles[row.conditionKey] || bannerUploading === row.conditionKey}
+                      onClick={() => void onUploadBannerImage(row.conditionKey)}
+                    >
+                      {bannerUploading === row.conditionKey ? "Uploading…" : "Upload Image"}
+                    </button>
+                    <button
+                      className={styles.primaryButton}
+                      type="button"
+                      disabled={bannerSaving === row.conditionKey}
+                      onClick={() => void onSaveBannerRow(row)}
+                    >
+                      {bannerSaving === row.conditionKey ? "Saving…" : "Save Text & Color"}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </article>
         </div>
         {showKillConfirm ? (
