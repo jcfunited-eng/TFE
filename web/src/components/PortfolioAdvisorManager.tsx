@@ -747,7 +747,7 @@ export default function PortfolioAdvisorManager() {
           <h2 style={{ margin: 0 }}>Positions</h2>
           <span className="tfe-muted">{loading ? "Loading positions..." : `${positions.length} positions`}</span>
         </div>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table className="tfe-table">
           <caption className="sr-only">Portfolio Positions</caption>
           <thead>
             <tr>
@@ -774,41 +774,41 @@ export default function PortfolioAdvisorManager() {
                     key={key}
                     scope="col"
                     aria-sort={ariaSort}
-                    style={{ textAlign: isText ? "left" : "right", padding: "0.75rem 0.6rem" }}
+                    style={{ textAlign: isText ? "left" : "right" }}
                   >
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => toggleSort(key)}>
+                    <button type="button" className="tfe-sort-btn" onClick={() => toggleSort(key)}>
                       {label}
                       {sortKey === key ? (sortDirection === "asc" ? " ↑" : " ↓") : ""}
                     </button>
                   </th>
                 );
               })}
-              <th scope="col" style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>Research</th>
+              <th scope="col" style={{ textAlign: "right" }}>Research</th>
             </tr>
           </thead>
           <tbody>
             {sortedPositions.map((row) => (
               <tr key={row.ticker}>
-                <td style={{ padding: "0.75rem 0.6rem" }}>
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setSelectedPosition(row)}>
+                <td>
+                  <button type="button" className="tfe-ticker-btn" onClick={() => setSelectedPosition(row)}>
                     {row.ticker}
                   </button>
                 </td>
-                <td style={{ padding: "0.75rem 0.6rem" }}>{row.assetType}</td>
-                <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtNumber(row.units, 4)}</td>
-                <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtPrice(row.avgCost)}</td>
-                <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtPrice(row.currentPrice)}</td>
-                <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtPrice(row.marketValue)}</td>
-                <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtPercentRatio(row.unrealizedPnLPct)}</td>
-                <td style={{ padding: "0.75rem 0.6rem" }}>
+                <td>{row.assetType}</td>
+                <td style={{ textAlign: "right" }}>{fmtNumber(row.units, 4)}</td>
+                <td style={{ textAlign: "right" }}>{fmtPrice(row.avgCost)}</td>
+                <td style={{ textAlign: "right" }}>{fmtPrice(row.currentPrice)}</td>
+                <td style={{ textAlign: "right" }}>{fmtPrice(row.marketValue)}</td>
+                <td style={{ textAlign: "right" }}>{fmtPercentRatio(row.unrealizedPnLPct)}</td>
+                <td>
                   <span className={`tfe-chip ${decisionClass(row.decision)}`}>{row.decision}</span>
                 </td>
-                <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtNumber(row.S_UF, 2)}</td>
-                <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtNumber(row.R_UF, 2)}</td>
-                <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>
+                <td style={{ textAlign: "right" }}>{fmtNumber(row.S_UF, 2)}</td>
+                <td style={{ textAlign: "right" }}>{fmtNumber(row.R_UF, 2)}</td>
+                <td style={{ textAlign: "right" }}>
                   {row.barCount}/{row.minBarsForAccumulate}
                 </td>
-                <td style={{ padding: "0.75rem 0.6rem", textAlign: "right", whiteSpace: "nowrap" }}>
+                <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
                   <a href={row.externalResearchUrl} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
                     Research ↗
                   </a>
@@ -817,7 +817,7 @@ export default function PortfolioAdvisorManager() {
             ))}
             {!loading && sortedPositions.length === 0 ? (
               <tr>
-                <td colSpan={12} style={{ padding: "1rem" }}>
+                <td colSpan={12}>
                   <span className="tfe-muted">No manual positions have been added yet.</span>
                 </td>
               </tr>
@@ -831,27 +831,27 @@ export default function PortfolioAdvisorManager() {
           <h2 style={{ margin: 0 }}>Lots</h2>
           <span className="tfe-muted">{lots.length} lots</span>
         </div>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table className="tfe-table">
           <caption className="sr-only">Portfolio Lots</caption>
           <thead>
             <tr>
-              <th scope="col" style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>Ticker</th>
-              <th scope="col" style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>Units</th>
-              <th scope="col" style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>Unit Cost</th>
-              <th scope="col" style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>Added</th>
-              <th scope="col" style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>Updated</th>
-              <th scope="col" style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>Action</th>
+              <th scope="col" style={{ textAlign: "left" }}>Ticker</th>
+              <th scope="col" style={{ textAlign: "right" }}>Units</th>
+              <th scope="col" style={{ textAlign: "right" }}>Unit Cost</th>
+              <th scope="col" style={{ textAlign: "left" }}>Added</th>
+              <th scope="col" style={{ textAlign: "left" }}>Updated</th>
+              <th scope="col" style={{ textAlign: "right" }}>Action</th>
             </tr>
           </thead>
           <tbody>
             {lots.map((lot) => (
               <tr key={lot.id}>
-                <td style={{ padding: "0.75rem 0.6rem" }}>{lot.ticker}</td>
-                <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtNumber(lot.units, 4)}</td>
-                <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtPrice(lot.unitCost)}</td>
-                <td style={{ padding: "0.75rem 0.6rem" }}>{fmtDateTime(lot.addedAt)}</td>
-                <td style={{ padding: "0.75rem 0.6rem" }}>{fmtDateTime(lot.updatedAt)}</td>
-                <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>
+                <td>{lot.ticker}</td>
+                <td style={{ textAlign: "right" }}>{fmtNumber(lot.units, 4)}</td>
+                <td style={{ textAlign: "right" }}>{fmtPrice(lot.unitCost)}</td>
+                <td>{fmtDateTime(lot.addedAt)}</td>
+                <td>{fmtDateTime(lot.updatedAt)}</td>
+                <td style={{ textAlign: "right" }}>
                   <button type="button" className="btn btn-ghost btn-sm" disabled={saving} onClick={() => void handleDeleteLot(lot.id)}>
                     Remove
                   </button>
@@ -860,7 +860,7 @@ export default function PortfolioAdvisorManager() {
             ))}
             {lots.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: "1rem" }}>
+                <td colSpan={6}>
                   <span className="tfe-muted">No lots are stored for this manual portfolio.</span>
                 </td>
               </tr>

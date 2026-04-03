@@ -380,7 +380,7 @@ export default function PortfolioTFEManager() {
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+            <table className="tfe-table">
               <caption style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>PEE-1 Open Positions</caption>
               <thead>
                 <tr style={{ background: "rgba(0,0,0,0.03)", textAlign: "left" }}>
@@ -391,13 +391,7 @@ export default function PortfolioTFEManager() {
                         key={h}
                         scope="col"
                         style={{
-                          padding: "8px 14px",
-                          fontWeight: 600,
-                          fontSize: "0.72rem",
-                          textTransform: "uppercase",
-                          color: "#6b7280",
                           whiteSpace: "nowrap",
-                          letterSpacing: "0.04em",
                           textAlign: isNumeric ? "right" : "left",
                         }}
                       >{h}</th>
@@ -408,21 +402,21 @@ export default function PortfolioTFEManager() {
               <tbody>
                 {positions.map((pos, i) => (
                   <tr key={pos.id} style={{ borderTop: "1px solid rgba(0,0,0,0.05)", background: i % 2 === 0 ? "transparent" : "rgba(0,0,0,0.015)" }}>
-                    <td style={{ padding: "9px 14px", fontWeight: 700, fontFamily: "var(--font-geist-mono, monospace)", textAlign: "left" }}>{pos.ticker}</td>
-                    <td style={{ padding: "9px 14px", textAlign: "left" }}>{signalBadge(pos.signal_class)}</td>
-                    <td style={{ padding: "9px 14px", textAlign: "right" }}>{pos.shares.toLocaleString()}</td>
-                    <td style={{ padding: "9px 14px", textAlign: "right" }}>{fmtDollar(pos.entry_price)}</td>
-                    <td style={{ padding: "9px 14px", textAlign: "right" }}>{fmtDollar(pos.current_price)}</td>
-                    <td style={{ padding: "9px 14px", fontWeight: 600, color: plColor(pos.unrealized_pl), textAlign: "right" }}>{fmtDollar(pos.unrealized_pl)}</td>
-                    <td style={{ padding: "9px 14px", color: plColor(pos.unrealized_pl_pct), textAlign: "right" }}>
+                    <td style={{ fontWeight: 700, fontFamily: "var(--font-geist-mono, monospace)", textAlign: "left" }}>{pos.ticker}</td>
+                    <td style={{ textAlign: "left" }}>{signalBadge(pos.signal_class)}</td>
+                    <td style={{ textAlign: "right" }}>{pos.shares.toLocaleString()}</td>
+                    <td style={{ textAlign: "right" }}>{fmtDollar(pos.entry_price)}</td>
+                    <td style={{ textAlign: "right" }}>{fmtDollar(pos.current_price)}</td>
+                    <td style={{ fontWeight: 600, color: plColor(pos.unrealized_pl), textAlign: "right" }}>{fmtDollar(pos.unrealized_pl)}</td>
+                    <td style={{ color: plColor(pos.unrealized_pl_pct), textAlign: "right" }}>
                       {pos.unrealized_pl_pct !== null ? `${pos.unrealized_pl_pct >= 0 ? "+" : ""}${fmt(pos.unrealized_pl_pct)}%` : "—"}
                     </td>
-                    <td style={{ padding: "9px 14px" }}>
+                    <td>
                       <span style={{ fontSize: "0.72rem", background: pos.status === "filled" ? "rgba(22,163,74,0.12)" : "rgba(37,99,235,0.1)", color: pos.status === "filled" ? "#15803d" : "#1d4ed8", borderRadius: 4, padding: "2px 6px", fontWeight: 600 }}>
                         {pos.status.toUpperCase()}
                       </span>
                     </td>
-                    <td style={{ padding: "9px 14px", color: "#6b7280", fontSize: "0.78rem" }}>
+                    <td style={{ color: "#6b7280" }}>
                       {new Date(pos.signal_detected_at).toLocaleDateString()}
                     </td>
                   </tr>

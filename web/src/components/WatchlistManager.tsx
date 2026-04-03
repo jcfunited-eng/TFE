@@ -187,7 +187,7 @@ function SortHeader({
   return (
     <button
       type="button"
-      className="btn btn-ghost btn-sm"
+      className="tfe-sort-btn"
       style={{ justifyContent: align === "right" ? "flex-end" : "flex-start" }}
       onClick={() => {
         if (!active) {
@@ -775,35 +775,35 @@ export default function WatchlistManager() {
             style={{ maxWidth: 200 }}
           />
         </div>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table className="tfe-table">
           <caption className="sr-only">Native Engine Watchlist Metrics</caption>
           <thead>
             <tr>
-              <th scope="col" aria-sort={thAriaSort(tableSort, "ticker")} style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "ticker")} style={{ textAlign: "left" }}>
                 <SortHeader label="Ticker" column="ticker" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th scope="col" aria-sort={thAriaSort(tableSort, "decision")} style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "decision")} style={{ textAlign: "left" }}>
                 <SortHeader label="Decision" column="decision" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th scope="col" aria-sort={thAriaSort(tableSort, "classification")} style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "classification")} style={{ textAlign: "left" }}>
                 <SortHeader label="Class" column="classification" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th scope="col" aria-sort={thAriaSort(tableSort, "price")} style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "price")} style={{ textAlign: "right" }}>
                 <SortHeader label="Price" column="price" align="right" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th scope="col" aria-sort={thAriaSort(tableSort, "changePct")} style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "changePct")} style={{ textAlign: "right" }}>
                 <SortHeader label="Change" column="changePct" align="right" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th scope="col" aria-sort={thAriaSort(tableSort, "regime")} style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "regime")} style={{ textAlign: "left" }}>
                 <SortHeader label="Regime" column="regime" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th scope="col" aria-sort={thAriaSort(tableSort, "stability")} style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "stability")} style={{ textAlign: "right" }}>
                 <SortHeader label="Stability" column="stability" align="right" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th scope="col" aria-sort={thAriaSort(tableSort, "maxDrawdown")} style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "maxDrawdown")} style={{ textAlign: "right" }}>
                 <SortHeader label="Max DD" column="maxDrawdown" align="right" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th scope="col" aria-sort={thAriaSort(tableSort, "barCount")} style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "barCount")} style={{ textAlign: "right" }}>
                 <SortHeader label="Bars" column="barCount" align="right" sort={tableSort} onChange={setTableSort} />
               </th>
             </tr>
@@ -811,7 +811,7 @@ export default function WatchlistManager() {
           <tbody>
             {sortedMetrics.length === 0 ? (
               <tr>
-                <td colSpan={9} style={{ padding: "1rem" }}>
+                <td colSpan={9}>
                   <span className="tfe-muted">No metrics loaded yet.</span>
                 </td>
               </tr>
@@ -821,26 +821,26 @@ export default function WatchlistManager() {
 
                 return (
                   <tr key={`${row.ticker}-${row.regime}-${row.barCount}-${index}`} style={active ? { background: "rgba(133,213,160,0.12)" } : undefined}>
-                    <td style={{ padding: "0.75rem 0.6rem" }}>
+                    <td>
                       <button
                         type="button"
-                        className="btn btn-ghost btn-sm"
+                        className="tfe-ticker-btn"
                         onClick={() => void loadChart(row.ticker)}
                         title={`Open analysis for ${row.ticker}`}
                       >
                         {row.ticker}
                       </button>
                     </td>
-                    <td style={{ padding: "0.75rem 0.6rem" }}>
+                    <td>
                       <span className={`tfe-chip ${decisionClass(row.decision)}`}>{row.decision}</span>
                     </td>
-                    <td style={{ padding: "0.75rem 0.6rem" }}>{row.classification}</td>
-                    <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtPrice(row.price)}</td>
-                    <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtPercent(row.changePct)}</td>
-                    <td style={{ padding: "0.75rem 0.6rem" }}>{row.regime || "—"}</td>
-                    <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtNumber(row.stability_score, 2)}</td>
-                    <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtNumber(row.max_dd, 2)}</td>
-                    <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>
+                    <td>{row.classification}</td>
+                    <td style={{ textAlign: "right" }}>{fmtPrice(row.price)}</td>
+                    <td style={{ textAlign: "right" }}>{fmtPercent(row.changePct)}</td>
+                    <td>{row.regime || "—"}</td>
+                    <td style={{ textAlign: "right" }}>{fmtNumber(row.stability_score, 2)}</td>
+                    <td style={{ textAlign: "right" }}>{fmtNumber(row.max_dd, 2)}</td>
+                    <td style={{ textAlign: "right" }}>
                       {row.barCount}/{row.minBarsForAccumulate}
                     </td>
                   </tr>
