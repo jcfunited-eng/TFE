@@ -150,13 +150,27 @@ function BucketTable({
       </div>
       <div style={{ overflowX: "auto" }}>
         <table className="tfe-table">
+          <caption className="sr-only">{title} — Accumulate Recommendations</caption>
           <thead>
             <tr>
               {COLUMNS.map((col) => (
                 <th
                   key={col.key}
+                  scope="col"
+                  aria-sort={
+                    sortKey === col.key
+                      ? sortDir === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none"
+                  }
                   onClick={() => handleSort(col.key)}
-                  style={{ cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" }}
+                  style={{
+                    cursor: "pointer",
+                    userSelect: "none",
+                    whiteSpace: "nowrap",
+                    textAlign: col.key === "ticker" || col.key === "sector" ? "left" : "right",
+                  }}
                 >
                   {col.label}
                   <SortIcon active={sortKey === col.key} dir={sortDir} />
@@ -167,7 +181,7 @@ function BucketTable({
           <tbody>
             {pageRows.map((row) => (
               <tr key={`${title}-${row.ticker}`}>
-                <td>
+                <td style={{ textAlign: "left" }}>
                   {row.ticker}
                   {row.signalClass === "3WA" ? (
                     <span style={{ marginLeft: 6, fontSize: "0.65rem", fontWeight: 700, color: "#fff", background: "#7c3aed", borderRadius: 3, padding: "1px 4px", verticalAlign: "middle", letterSpacing: "0.04em" }} title="Three-Wave Alignment — Structure A + SPY expansion. Backtest: 84.5% win.">3WA</span>
@@ -175,11 +189,11 @@ function BucketTable({
                     <span style={{ marginLeft: 6, fontSize: "0.65rem", fontWeight: 700, color: "#fff", background: "#16a34a", borderRadius: 3, padding: "1px 4px", verticalAlign: "middle", letterSpacing: "0.04em" }} title="Wave 1 — New listing in structural ground state. Backtest: 72.1% win.">NEW</span>
                   ) : null}
                 </td>
-                <td>{row.sector}</td>
-                <td>{formatMoney(row.marketCap)}</td>
-                <td>{formatRatio(row.currentRatio)}</td>
-                <td>{formatMoney(row.freeCashFlow)}</td>
-                <td>{formatPercent(row.grossMargin)}</td>
+                <td style={{ textAlign: "left" }}>{row.sector || "—"}</td>
+                <td style={{ textAlign: "right" }}>{formatMoney(row.marketCap)}</td>
+                <td style={{ textAlign: "right" }}>{formatRatio(row.currentRatio)}</td>
+                <td style={{ textAlign: "right" }}>{formatMoney(row.freeCashFlow)}</td>
+                <td style={{ textAlign: "right" }}>{formatPercent(row.grossMargin)}</td>
               </tr>
             ))}
             {pageRows.length === 0 ? (

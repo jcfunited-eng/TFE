@@ -1166,11 +1166,12 @@ export default function AdminConsolePage() {
             {systemStatus?.refreshPolicy?.checks?.length ? (
               <div className={styles.scrollWrap} style={{ maxHeight: 180 }}>
                 <table className={styles.table}>
+                  <caption style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>Refresh Policy Checks</caption>
                   <thead>
                     <tr>
-                      <th>Policy Check</th>
-                      <th>Status</th>
-                      <th>Detail</th>
+                      <th scope="col">Policy Check</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Detail</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1501,13 +1502,14 @@ export default function AdminConsolePage() {
 
             <div className={styles.scrollWrap}>
               <table className={styles.table}>
+                <caption style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>System Secrets Security Status</caption>
                 <thead>
                   <tr>
-                    <th>Secret</th>
-                    <th>Mode</th>
-                    <th>Size</th>
-                    <th>Updated</th>
-                    <th>Status</th>
+                    <th scope="col">Secret</th>
+                    <th scope="col">Mode</th>
+                    <th scope="col">Size</th>
+                    <th scope="col">Updated</th>
+                    <th scope="col">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1753,15 +1755,16 @@ export default function AdminConsolePage() {
 
             <div className={`${styles.scrollWrap} ${styles.userTableWrap}`}>
               <table className={`${styles.table} ${styles.userTable}`}>
+                <caption style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>Admin User Management</caption>
                 <thead>
                   <tr>
-                    <th>Username</th>
-                    <th>Role</th>
-                    <th>Active</th>
-                    <th>Test</th>
-                    <th>Expires</th>
-                    <th>Created</th>
-                    <th>Actions</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">Role</th>
+                    <th scope="col">Active</th>
+                    <th scope="col">Test</th>
+                    <th scope="col">Expires</th>
+                    <th scope="col">Created</th>
+                    <th scope="col">Actions</th>
                   </tr>
                 </thead>
                 <tbody>

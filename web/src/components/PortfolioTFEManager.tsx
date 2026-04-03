@@ -381,23 +381,40 @@ export default function PortfolioTFEManager() {
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+              <caption style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>PEE-1 Open Positions</caption>
               <thead>
                 <tr style={{ background: "rgba(0,0,0,0.03)", textAlign: "left" }}>
-                  {["Ticker", "Signal", "Shares", "Entry", "Current", "Unreal. P&L", "P&L %", "Status", "Detected"].map(h => (
-                    <th key={h} style={{ padding: "8px 14px", fontWeight: 600, fontSize: "0.72rem", textTransform: "uppercase", color: "#6b7280", whiteSpace: "nowrap", letterSpacing: "0.04em" }}>{h}</th>
-                  ))}
+                  {(["Ticker", "Signal", "Shares", "Entry", "Current", "Unreal. P&L", "P&L %", "Status", "Detected"]).map(h => {
+                    const isNumeric = h === "Shares" || h === "Entry" || h === "Current" || h === "Unreal. P&L" || h === "P&L %";
+                    return (
+                      <th
+                        key={h}
+                        scope="col"
+                        style={{
+                          padding: "8px 14px",
+                          fontWeight: 600,
+                          fontSize: "0.72rem",
+                          textTransform: "uppercase",
+                          color: "#6b7280",
+                          whiteSpace: "nowrap",
+                          letterSpacing: "0.04em",
+                          textAlign: isNumeric ? "right" : "left",
+                        }}
+                      >{h}</th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
                 {positions.map((pos, i) => (
                   <tr key={pos.id} style={{ borderTop: "1px solid rgba(0,0,0,0.05)", background: i % 2 === 0 ? "transparent" : "rgba(0,0,0,0.015)" }}>
-                    <td style={{ padding: "9px 14px", fontWeight: 700, fontFamily: "var(--font-geist-mono, monospace)" }}>{pos.ticker}</td>
-                    <td style={{ padding: "9px 14px" }}>{signalBadge(pos.signal_class)}</td>
-                    <td style={{ padding: "9px 14px" }}>{pos.shares.toLocaleString()}</td>
-                    <td style={{ padding: "9px 14px" }}>{fmtDollar(pos.entry_price)}</td>
-                    <td style={{ padding: "9px 14px" }}>{fmtDollar(pos.current_price)}</td>
-                    <td style={{ padding: "9px 14px", fontWeight: 600, color: plColor(pos.unrealized_pl) }}>{fmtDollar(pos.unrealized_pl)}</td>
-                    <td style={{ padding: "9px 14px", color: plColor(pos.unrealized_pl_pct) }}>
+                    <td style={{ padding: "9px 14px", fontWeight: 700, fontFamily: "var(--font-geist-mono, monospace)", textAlign: "left" }}>{pos.ticker}</td>
+                    <td style={{ padding: "9px 14px", textAlign: "left" }}>{signalBadge(pos.signal_class)}</td>
+                    <td style={{ padding: "9px 14px", textAlign: "right" }}>{pos.shares.toLocaleString()}</td>
+                    <td style={{ padding: "9px 14px", textAlign: "right" }}>{fmtDollar(pos.entry_price)}</td>
+                    <td style={{ padding: "9px 14px", textAlign: "right" }}>{fmtDollar(pos.current_price)}</td>
+                    <td style={{ padding: "9px 14px", fontWeight: 600, color: plColor(pos.unrealized_pl), textAlign: "right" }}>{fmtDollar(pos.unrealized_pl)}</td>
+                    <td style={{ padding: "9px 14px", color: plColor(pos.unrealized_pl_pct), textAlign: "right" }}>
                       {pos.unrealized_pl_pct !== null ? `${pos.unrealized_pl_pct >= 0 ? "+" : ""}${fmt(pos.unrealized_pl_pct)}%` : "—"}
                     </td>
                     <td style={{ padding: "9px 14px" }}>

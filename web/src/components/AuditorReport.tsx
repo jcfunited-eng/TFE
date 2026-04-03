@@ -275,25 +275,26 @@ export default function AuditorReport() {
       {!loading && activeTab === "trades" && rows && (
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
+            <caption style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>PEE-1 Trade Ledger</caption>
             <thead>
               <tr className="text-gray-500 text-[10px] border-b border-gray-700">
-                <th className="pr-3 py-1">Ticker</th>
-                <th className="pr-3 py-1">Class</th>
-                <th className="pr-3 py-1">Status</th>
-                <th className="pr-3 py-1">Signal At</th>
-                <th className="pr-3 py-1">Shares</th>
-                <th className="pr-3 py-1">Entry$</th>
-                <th className="pr-3 py-1">TP$</th>
-                <th className="pr-3 py-1">SL$</th>
-                <th className="pr-3 py-1">Fill$</th>
-                <th className="pr-3 py-1">Exit$</th>
-                <th className="pr-3 py-1">P&L</th>
-                <th className="pr-3 py-1">ATR</th>
-                <th className="pr-3 py-1">s_uf</th>
-                <th className="pr-3 py-1">bar</th>
-                <th className="pr-3 py-1">f_n</th>
-                <th className="pr-3 py-1">Exit Reason</th>
-                <th className="py-1">Order ID</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Ticker</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Class</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Status</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Signal At</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>Shares</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>Entry$</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>TP$</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>SL$</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>Fill$</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>Exit$</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>P&L</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>ATR</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>s_uf</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>bar</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>f_n</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Exit Reason</th>
+                <th scope="col" className="py-1" style={{textAlign:"left"}}>Order ID</th>
               </tr>
             </thead>
             <tbody>
@@ -306,29 +307,29 @@ export default function AuditorReport() {
                     className="border-b border-gray-800 hover:bg-gray-800/40 cursor-pointer"
                     onClick={() => setExpandedId(expandedId === row.id ? null : row.id)}
                   >
-                    <td className="pr-3 py-1 font-bold text-white">{row.ticker}</td>
-                    <td className="pr-3 py-1">
+                    <td className="pr-3 py-1 font-bold text-white" style={{textAlign:"left"}}>{row.ticker}</td>
+                    <td className="pr-3 py-1" style={{textAlign:"left"}}>
                       <span className={`rounded px-1 py-0.5 text-[10px] ${signalBadge(row.signal_class)}`}>
                         {row.signal_class ?? "—"}
                       </span>
                     </td>
-                    <td className={`pr-3 py-1 ${statusColor(row.status)}`}>{row.status}</td>
-                    <td className="pr-3 py-1 text-gray-400">{fmtDate(row.signal_detected_at)}</td>
-                    <td className="pr-3 py-1 text-gray-300">{row.shares ?? "—"}</td>
-                    <td className="pr-3 py-1 text-gray-300">{fmt(row.entry_limit_price)}</td>
-                    <td className="pr-3 py-1 text-green-600">{fmt(row.take_profit_price)}</td>
-                    <td className="pr-3 py-1 text-red-600">{fmt(row.stop_loss_price)}</td>
-                    <td className="pr-3 py-1 text-sky-300">{fmt(row.entry_filled_price)}</td>
-                    <td className="pr-3 py-1 text-sky-300">{fmt(row.exit_filled_price)}</td>
-                    <td className={`pr-3 py-1 font-semibold ${plColor(row.p_l)}`}>
+                    <td className={`pr-3 py-1 ${statusColor(row.status)}`} style={{textAlign:"left"}}>{row.status}</td>
+                    <td className="pr-3 py-1 text-gray-400" style={{textAlign:"left"}}>{fmtDate(row.signal_detected_at)}</td>
+                    <td className="pr-3 py-1 text-gray-300" style={{textAlign:"right"}}>{row.shares ?? "—"}</td>
+                    <td className="pr-3 py-1 text-gray-300" style={{textAlign:"right"}}>{fmt(row.entry_limit_price)}</td>
+                    <td className="pr-3 py-1 text-green-600" style={{textAlign:"right"}}>{fmt(row.take_profit_price)}</td>
+                    <td className="pr-3 py-1 text-red-600" style={{textAlign:"right"}}>{fmt(row.stop_loss_price)}</td>
+                    <td className="pr-3 py-1 text-sky-300" style={{textAlign:"right"}}>{fmt(row.entry_filled_price)}</td>
+                    <td className="pr-3 py-1 text-sky-300" style={{textAlign:"right"}}>{fmt(row.exit_filled_price)}</td>
+                    <td className={`pr-3 py-1 font-semibold ${plColor(row.p_l)}`} style={{textAlign:"right"}}>
                       {row.p_l ? `$${fmt(row.p_l)}` : "—"}
                     </td>
-                    <td className="pr-3 py-1 text-gray-500">{fmt(row.atr_14, 4)}</td>
-                    <td className="pr-3 py-1 text-gray-400">{fmt(row.s_uf, 3)}</td>
-                    <td className="pr-3 py-1 text-gray-400">{row.bar_count ?? "—"}</td>
-                    <td className="pr-3 py-1 text-gray-400">{fmt(row.f_n, 3)}</td>
-                    <td className="pr-3 py-1 text-gray-500 max-w-[120px] truncate">{row.exit_reason ?? "—"}</td>
-                    <td className="py-1 text-gray-600 text-[9px] max-w-[80px] truncate">{row.alpaca_order_id ?? "—"}</td>
+                    <td className="pr-3 py-1 text-gray-500" style={{textAlign:"right"}}>{fmt(row.atr_14, 4)}</td>
+                    <td className="pr-3 py-1 text-gray-400" style={{textAlign:"right"}}>{fmt(row.s_uf, 3)}</td>
+                    <td className="pr-3 py-1 text-gray-400" style={{textAlign:"right"}}>{row.bar_count ?? "—"}</td>
+                    <td className="pr-3 py-1 text-gray-400" style={{textAlign:"right"}}>{fmt(row.f_n, 3)}</td>
+                    <td className="pr-3 py-1 text-gray-500 max-w-[120px] truncate" style={{textAlign:"left"}}>{row.exit_reason ?? "—"}</td>
+                    <td className="py-1 text-gray-600 text-[9px] max-w-[80px] truncate" style={{textAlign:"left"}}>{row.alpaca_order_id ?? "—"}</td>
                   </tr>
 
                   {/* Expanded detail row — signal provenance + rationale */}
@@ -368,19 +369,20 @@ export default function AuditorReport() {
       {!loading && activeTab === "stealth" && stealth && (
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
+            <caption style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>Stealth Execution Queue</caption>
             <thead>
               <tr className="text-gray-500 text-[10px] border-b border-gray-700">
-                <th className="pr-3 py-1">QID</th>
-                <th className="pr-3 py-1">Ticker</th>
-                <th className="pr-3 py-1">Agent</th>
-                <th className="pr-3 py-1">Type</th>
-                <th className="pr-3 py-1">Shares</th>
-                <th className="pr-3 py-1">Entry$</th>
-                <th className="pr-3 py-1">Status</th>
-                <th className="pr-3 py-1">Scheduled</th>
-                <th className="pr-3 py-1">Executed</th>
-                <th className="pr-3 py-1">Alpaca ID</th>
-                <th className="py-1">Error</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>QID</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Ticker</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>Agent</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Type</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>Shares</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>Entry$</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Status</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Scheduled</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Executed</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Alpaca ID</th>
+                <th scope="col" className="py-1" style={{textAlign:"left"}}>Error</th>
               </tr>
             </thead>
             <tbody>
@@ -389,21 +391,21 @@ export default function AuditorReport() {
               )}
               {stealth.map(row => (
                 <tr key={row.id} className="border-b border-gray-800 hover:bg-gray-800/40">
-                  <td className="pr-3 py-1 text-gray-500">{row.id}</td>
-                  <td className="pr-3 py-1 font-bold text-white">{row.ticker}</td>
-                  <td className="pr-3 py-1 text-gray-400">{row.agent_index}/{row.total_agents - 1}</td>
-                  <td className="pr-3 py-1">
+                  <td className="pr-3 py-1 text-gray-500" style={{textAlign:"right"}}>{row.id}</td>
+                  <td className="pr-3 py-1 font-bold text-white" style={{textAlign:"left"}}>{row.ticker}</td>
+                  <td className="pr-3 py-1 text-gray-400" style={{textAlign:"right"}}>{row.agent_index}/{row.total_agents - 1}</td>
+                  <td className="pr-3 py-1" style={{textAlign:"left"}}>
                     <span className={`rounded px-1 py-0.5 text-[10px] ${row.order_type === "midpoint" ? "bg-amber-900 text-amber-200 border border-amber-700" : "bg-sky-900 text-sky-200 border border-sky-700"}`}>
                       {row.order_type}
                     </span>
                   </td>
-                  <td className="pr-3 py-1 text-gray-300">{row.shares}</td>
-                  <td className="pr-3 py-1 text-gray-300">{fmt(row.entry_limit_price)}</td>
-                  <td className={`pr-3 py-1 ${statusColor(row.status)}`}>{row.status}</td>
-                  <td className="pr-3 py-1 text-gray-400">{fmtDate(row.scheduled_at)}</td>
-                  <td className="pr-3 py-1 text-gray-400">{fmtDate(row.executed_at)}</td>
-                  <td className="pr-3 py-1 text-gray-600 text-[9px]">{row.alpaca_order_id ?? "—"}</td>
-                  <td className="py-1 text-red-400 text-[9px] max-w-[160px] truncate">{row.error ?? "—"}</td>
+                  <td className="pr-3 py-1 text-gray-300" style={{textAlign:"right"}}>{row.shares}</td>
+                  <td className="pr-3 py-1 text-gray-300" style={{textAlign:"right"}}>{fmt(row.entry_limit_price)}</td>
+                  <td className={`pr-3 py-1 ${statusColor(row.status)}`} style={{textAlign:"left"}}>{row.status}</td>
+                  <td className="pr-3 py-1 text-gray-400" style={{textAlign:"left"}}>{fmtDate(row.scheduled_at)}</td>
+                  <td className="pr-3 py-1 text-gray-400" style={{textAlign:"left"}}>{fmtDate(row.executed_at)}</td>
+                  <td className="pr-3 py-1 text-gray-600 text-[9px]" style={{textAlign:"left"}}>{row.alpaca_order_id ?? "—"}</td>
+                  <td className="py-1 text-red-400 text-[9px] max-w-[160px] truncate" style={{textAlign:"left"}}>{row.error ?? "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -415,15 +417,16 @@ export default function AuditorReport() {
       {!loading && activeTab === "cb" && circuitBreaker && (
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
+            <caption style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>Circuit Breaker Event Log</caption>
             <thead>
               <tr className="text-gray-500 text-[10px] border-b border-gray-700">
-                <th className="pr-3 py-1">ID</th>
-                <th className="pr-3 py-1">Reason</th>
-                <th className="pr-3 py-1">Triggered</th>
-                <th className="pr-3 py-1">Expires</th>
-                <th className="pr-3 py-1">Drawdown%</th>
-                <th className="pr-3 py-1">Threshold%</th>
-                <th className="py-1">Cleared</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>ID</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Reason</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Triggered</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"left"}}>Expires</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>Drawdown%</th>
+                <th scope="col" className="pr-3 py-1" style={{textAlign:"right"}}>Threshold%</th>
+                <th scope="col" className="py-1" style={{textAlign:"left"}}>Cleared</th>
               </tr>
             </thead>
             <tbody>
@@ -434,13 +437,13 @@ export default function AuditorReport() {
                 const isActive = !row.cleared_at && new Date(row.expires_at) > new Date();
                 return (
                   <tr key={row.id} className={`border-b border-gray-800 ${isActive ? "bg-red-950/30" : ""}`}>
-                    <td className="pr-3 py-1 text-gray-500">{row.id}</td>
-                    <td className="pr-3 py-1 text-red-300">{row.trigger_reason}</td>
-                    <td className="pr-3 py-1 text-gray-400">{fmtDate(row.triggered_at)}</td>
-                    <td className={`pr-3 py-1 ${isActive ? "text-red-400 font-semibold" : "text-gray-500"}`}>{fmtDate(row.expires_at)}</td>
-                    <td className="pr-3 py-1 text-red-300">{fmt(row.drawdown_pct, 2)}%</td>
-                    <td className="pr-3 py-1 text-gray-400">{fmt(row.threshold_pct, 2)}%</td>
-                    <td className="py-1 text-green-500">{row.cleared_at ? fmtDate(row.cleared_at) : isActive ? "ACTIVE" : "—"}</td>
+                    <td className="pr-3 py-1 text-gray-500" style={{textAlign:"right"}}>{row.id}</td>
+                    <td className="pr-3 py-1 text-red-300" style={{textAlign:"left"}}>{row.trigger_reason}</td>
+                    <td className="pr-3 py-1 text-gray-400" style={{textAlign:"left"}}>{fmtDate(row.triggered_at)}</td>
+                    <td className={`pr-3 py-1 ${isActive ? "text-red-400 font-semibold" : "text-gray-500"}`} style={{textAlign:"left"}}>{fmtDate(row.expires_at)}</td>
+                    <td className="pr-3 py-1 text-red-300" style={{textAlign:"right"}}>{fmt(row.drawdown_pct, 2)}%</td>
+                    <td className="pr-3 py-1 text-gray-400" style={{textAlign:"right"}}>{fmt(row.threshold_pct, 2)}%</td>
+                    <td className="py-1 text-green-500" style={{textAlign:"left"}}>{row.cleared_at ? fmtDate(row.cleared_at) : isActive ? "ACTIVE" : "—"}</td>
                   </tr>
                 );
               })}

@@ -870,11 +870,22 @@ export default function ScreenerWorkbench() {
 
       <section className="tfe-panel" style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <caption className="sr-only">Native Engine Screener Results</caption>
           <thead>
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.id}
+                  scope="col"
+                  aria-sort={
+                    column.sortKey && sortKey === column.sortKey
+                      ? sortDirection === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : column.sortKey
+                        ? "none"
+                        : undefined
+                  }
                   style={{
                     textAlign: column.align ?? "left",
                     padding: "0.75rem 0.6rem",

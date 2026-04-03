@@ -204,6 +204,11 @@ function SortHeader({
   );
 }
 
+function thAriaSort(sort: SortState, column: SortKey): "ascending" | "descending" | "none" {
+  if (sort.key !== column) return "none";
+  return sort.direction === "asc" ? "ascending" : "descending";
+}
+
 function insufficientDataMessage(metric: WatchlistMetricRow | null): string | null {
   if (!metric) return null;
   if (metric.decision !== "Hold") return null;
@@ -468,6 +473,7 @@ export default function WatchlistManager() {
   const [lookupMetric, setLookupMetric] = useState<WatchlistMetricRow | null>(null);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [tableSort, setTableSort] = useState<SortState>({ key: "ticker", direction: "asc" });
+  const [tickerSearch, setTickerSearch] = useState("");
 
   async function load() {
     setLoading(true);
@@ -654,7 +660,11 @@ export default function WatchlistManager() {
     };
   }, [analysisOpen]);
 
-  const sortedMetrics = useMemo(() => sortRows(metrics, tableSort), [metrics, tableSort]);
+  const sortedMetrics = useMemo(() => {
+    const q = tickerSearch.trim().toUpperCase();
+    const base = q ? metrics.filter((r) => r.ticker.includes(q)) : metrics;
+    return sortRows(base, tableSort);
+  }, [metrics, tableSort, tickerSearch]);
   const selectedMetric = useMemo(
     () => sortedMetrics.find((metric) => metric.ticker === selectedTicker) ?? null,
     [selectedTicker, sortedMetrics],
@@ -754,34 +764,46 @@ export default function WatchlistManager() {
           <h2 style={{ margin: 0 }}>Native Engine Watchlist</h2>
           <span className="tfe-muted">{loading ? "Loading watchlist..." : `${sortedMetrics.length} rows`}</span>
         </div>
+        <div style={{ marginBottom: "0.5rem" }}>
+          <input
+            className="tfe-input"
+            type="search"
+            placeholder="Filter by ticker…"
+            value={tickerSearch}
+            onChange={(e) => setTickerSearch(e.target.value)}
+            aria-label="Filter watchlist by ticker"
+            style={{ maxWidth: 200 }}
+          />
+        </div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <caption className="sr-only">Native Engine Watchlist Metrics</caption>
           <thead>
             <tr>
-              <th style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "ticker")} style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>
                 <SortHeader label="Ticker" column="ticker" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "decision")} style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>
                 <SortHeader label="Decision" column="decision" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "classification")} style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>
                 <SortHeader label="Class" column="classification" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "price")} style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
                 <SortHeader label="Price" column="price" align="right" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "changePct")} style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
                 <SortHeader label="Change" column="changePct" align="right" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "regime")} style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>
                 <SortHeader label="Regime" column="regime" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "stability")} style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
                 <SortHeader label="Stability" column="stability" align="right" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "maxDrawdown")} style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
                 <SortHeader label="Max DD" column="maxDrawdown" align="right" sort={tableSort} onChange={setTableSort} />
               </th>
-              <th style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
+              <th scope="col" aria-sort={thAriaSort(tableSort, "barCount")} style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>
                 <SortHeader label="Bars" column="barCount" align="right" sort={tableSort} onChange={setTableSort} />
               </th>
             </tr>
@@ -815,7 +837,7 @@ export default function WatchlistManager() {
                     <td style={{ padding: "0.75rem 0.6rem" }}>{row.classification}</td>
                     <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtPrice(row.price)}</td>
                     <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtPercent(row.changePct)}</td>
-                    <td style={{ padding: "0.75rem 0.6rem" }}>{row.regime}</td>
+                    <td style={{ padding: "0.75rem 0.6rem" }}>{row.regime || "—"}</td>
                     <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtNumber(row.stability_score, 2)}</td>
                     <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>{fmtNumber(row.max_dd, 2)}</td>
                     <td style={{ padding: "0.75rem 0.6rem", textAlign: "right" }}>

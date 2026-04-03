@@ -748,29 +748,42 @@ export default function PortfolioAdvisorManager() {
           <span className="tfe-muted">{loading ? "Loading positions..." : `${positions.length} positions`}</span>
         </div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <caption className="sr-only">Portfolio Positions</caption>
           <thead>
             <tr>
-              {[
-                ["ticker", "Ticker"],
-                ["assetType", "Asset"],
-                ["units", "Units"],
-                ["avgCost", "Avg Cost"],
-                ["currentPrice", "Price"],
-                ["marketValue", "Market Value"],
-                ["unrealizedPnLPct", "Net P/L %"],
-                ["decision", "Decision"],
-                ["S_UF", "S_UF"],
-                ["R_UF", "R_UF"],
-                ["barCount", "Bars"],
-              ].map(([key, label]) => (
-                <th key={key} style={{ textAlign: key === "ticker" || key === "assetType" || key === "decision" ? "left" : "right", padding: "0.75rem 0.6rem" }}>
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => toggleSort(key as PositionSortKey)}>
-                    {label}
-                    {sortKey === key ? (sortDirection === "asc" ? " ↑" : " ↓") : ""}
-                  </button>
-                </th>
-              ))}
-              <th style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>Research</th>
+              {(
+                [
+                  ["ticker", "Ticker"],
+                  ["assetType", "Asset"],
+                  ["units", "Units"],
+                  ["avgCost", "Avg Cost"],
+                  ["currentPrice", "Price"],
+                  ["marketValue", "Market Value"],
+                  ["unrealizedPnLPct", "Net P/L %"],
+                  ["decision", "Decision"],
+                  ["S_UF", "S_UF"],
+                  ["R_UF", "R_UF"],
+                  ["barCount", "Bars"],
+                ] as [PositionSortKey, string][]
+              ).map(([key, label]) => {
+                const isText = key === "ticker" || key === "assetType" || key === "decision";
+                const ariaSort: "ascending" | "descending" | "none" =
+                  sortKey === key ? (sortDirection === "asc" ? "ascending" : "descending") : "none";
+                return (
+                  <th
+                    key={key}
+                    scope="col"
+                    aria-sort={ariaSort}
+                    style={{ textAlign: isText ? "left" : "right", padding: "0.75rem 0.6rem" }}
+                  >
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => toggleSort(key)}>
+                      {label}
+                      {sortKey === key ? (sortDirection === "asc" ? " ↑" : " ↓") : ""}
+                    </button>
+                  </th>
+                );
+              })}
+              <th scope="col" style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>Research</th>
             </tr>
           </thead>
           <tbody>
@@ -819,14 +832,15 @@ export default function PortfolioAdvisorManager() {
           <span className="tfe-muted">{lots.length} lots</span>
         </div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <caption className="sr-only">Portfolio Lots</caption>
           <thead>
             <tr>
-              <th style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>Ticker</th>
-              <th style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>Units</th>
-              <th style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>Unit Cost</th>
-              <th style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>Added</th>
-              <th style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>Updated</th>
-              <th style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>Action</th>
+              <th scope="col" style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>Ticker</th>
+              <th scope="col" style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>Units</th>
+              <th scope="col" style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>Unit Cost</th>
+              <th scope="col" style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>Added</th>
+              <th scope="col" style={{ textAlign: "left", padding: "0.75rem 0.6rem" }}>Updated</th>
+              <th scope="col" style={{ textAlign: "right", padding: "0.75rem 0.6rem" }}>Action</th>
             </tr>
           </thead>
           <tbody>

@@ -462,17 +462,18 @@ export default function AdminRefreshLogsClient() {
               </div>
               <div className={styles.scrollWrap} style={{ maxHeight: 320 }}>
                 <table className={styles.table}>
+                  <caption style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>Refresh History Log</caption>
                   <thead>
                     <tr>
-                      <th>Time</th>
-                      <th>Phase</th>
-                      <th>Source</th>
-                      <th>Mode</th>
-                      <th>By</th>
-                      <th>Status</th>
-                      <th>Rows</th>
-                      <th>Elapsed</th>
-                      <th>Detail</th>
+                      <th scope="col">Time</th>
+                      <th scope="col">Phase</th>
+                      <th scope="col">Source</th>
+                      <th scope="col">Mode</th>
+                      <th scope="col">By</th>
+                      <th scope="col">Status</th>
+                      <th scope="col" style={{textAlign:"right"}}>Rows</th>
+                      <th scope="col" style={{textAlign:"right"}}>Elapsed</th>
+                      <th scope="col">Detail</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -485,8 +486,8 @@ export default function AdminRefreshLogsClient() {
                           <td>{modeLabel(entry.mode === "snapshot" || entry.mode === "universe_snapshot" ? entry.mode : undefined)}</td>
                           <td>{entry.requested_by ?? "n/a"}</td>
                           <td>{entry.status ?? "n/a"}</td>
-                          <td>{entry.rows_written ?? "n/a"}</td>
-                          <td>{typeof entry.elapsed_seconds === "number" ? `${entry.elapsed_seconds.toFixed(2)}s` : "n/a"}</td>
+                          <td style={{textAlign:"right"}}>{entry.rows_written ?? "n/a"}</td>
+                          <td style={{textAlign:"right"}}>{typeof entry.elapsed_seconds === "number" ? `${entry.elapsed_seconds.toFixed(2)}s` : "n/a"}</td>
                           <td>{refreshHistoryDetail(entry)}</td>
                         </tr>
                       ))
