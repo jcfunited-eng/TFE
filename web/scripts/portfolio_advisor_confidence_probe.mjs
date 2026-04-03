@@ -250,12 +250,15 @@ async function run() {
     }
 
     await page.waitForTimeout(1500);
+    // Open any collapsed <details> sections so PortfolioAdvisorManager content is visible to innerText
+    await page.evaluate(() => document.querySelectorAll('details').forEach((d) => { d.open = true; }));
+    await page.waitForTimeout(400);
     await page.screenshot({ path: summary.screenshots.portfolio_page, fullPage: true });
 
     const pageText = await page.locator('body').innerText();
 
     const expectedGuidanceLabels = [
-      'How This Page Works',
+      'How This Works',
       'Decision Context',
     ];
     const missingGuidanceLabels = expectedGuidanceLabels.filter((label) => !String(pageText).includes(label));
