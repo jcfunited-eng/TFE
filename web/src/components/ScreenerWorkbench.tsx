@@ -940,8 +940,21 @@ export default function ScreenerWorkbench() {
         <button type="button" className="btn btn-ghost btn-sm" disabled={page <= 1 || loading} onClick={() => setPage((current) => Math.max(1, current - 1))}>
           Previous
         </button>
-        <span className="tfe-muted">
-          Page {page} of {totalPages}
+        <span className="tfe-muted" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          Page{" "}
+          <input
+            type="number"
+            min={1}
+            max={totalPages}
+            value={page}
+            aria-label="Go to page"
+            onChange={(e) => {
+              const n = parseInt(e.target.value, 10);
+              if (Number.isFinite(n) && n >= 1 && n <= totalPages) setPage(n);
+            }}
+            style={{ width: 56, textAlign: "center" }}
+          />{" "}
+          of {totalPages}
         </span>
         <button
           type="button"

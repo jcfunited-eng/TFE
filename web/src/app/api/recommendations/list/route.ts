@@ -31,6 +31,13 @@ type RecommendationRow = {
   decisionReason: string;
   isNewListing: boolean;
   signalClass: SignalClass;
+  // Native engine metadata for popup analysis panel
+  regime: string;
+  stabilityScore: number | null;
+  maxDrawdown: number | null;
+  barCount: number | null;
+  minBarsForAccumulate: number;
+  externalResearchUrl: string;
 };
 
 type RecommendationsPayload = {
@@ -56,7 +63,15 @@ type DbRow = {
   decision_label: string | null;
   decision_reason: string | null;
   bar_count: number | string | null;
+  regime: string | null;
+  stability_score: number | string | null;
+  max_dd: number | string | null;
+  min_bars_for_accumulate: number | string | null;
 };
+
+function buildResearchUrl(ticker: string): string {
+  return `https://finance.yahoo.com/quote/${encodeURIComponent(ticker.trim().toUpperCase())}`;
+}
 
 const UNKNOWN_SECTOR = "Unknown";
 
@@ -122,6 +137,12 @@ function toRecommendationRow(row: DbRow, spyWaveActive: boolean): Recommendation
     decisionReason: String(row.decision_reason ?? "").trim() || "Runtime decision selected from latest table.",
     isNewListing: barCount !== null && barCount <= NEW_LISTING_BAR_THRESHOLD,
     signalClass: classifySignal(barCount, spyWaveActive),
+    regime: String(row.regime ?? "").trim() || "—",
+    stabilityScore: toNumber(row.stability_score),
+    maxDrawdown: toNumber(row.max_dd),
+    barCount,
+    minBarsForAccumulate: toNumber(row.min_bars_for_accumulate) ?? NEW_LISTING_BAR_THRESHOLD,
+    externalResearchUrl: buildResearchUrl(ticker),
   };
 }
 
@@ -177,7 +198,11 @@ async function loadAccumulateRows(): Promise<RecommendationRow[]> {
       ) AS revenues,
       r.decision_label,
       COALESCE(NULLIF(TRIM(r.reason_text), ''), NULLIF(TRIM(r.reason_code), '')) AS decision_reason,
-      CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) AS bar_count
+      CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) AS bar_count,
+      NULLIF(TRIM(r.snapshot_row_json->>'regime'), '') AS regime,
+      CAST(NULLIF(r.snapshot_row_json->>'stability_score', '') AS DOUBLE PRECISION) AS stability_score,
+      CAST(NULLIF(r.snapshot_row_json->>'max_dd', '') AS DOUBLE PRECISION) AS max_dd,
+      CAST(NULLIF(r.snapshot_row_json->>'min_bars_for_accumulate', '') AS INTEGER) AS min_bars_for_accumulate
     FROM runtime_decisions_latest AS r
     LEFT JOIN l5_fundamentals_normalized AS f
       ON f.ticker = r.ticker
