@@ -41,6 +41,7 @@ interface StealthRow {
   total_agents: number;
   shares: number;
   order_type: string;
+  entry_limit_price: string | null;
   scheduled_at: string;
   executed_at: string | null;
   status: string;
