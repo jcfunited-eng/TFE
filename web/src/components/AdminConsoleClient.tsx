@@ -1095,6 +1095,14 @@ export default function AdminConsolePage() {
               >
                 Open Dedicated Refresh Log Page
               </button>
+
+              <button
+                className={styles.ghostButton}
+                type="button"
+                onClick={() => (window.location.href = "/admin-console/auditor")}
+              >
+                Trade Audit Console
+              </button>
             </div>
 
             {refreshRunning ? (
