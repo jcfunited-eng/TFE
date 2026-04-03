@@ -474,7 +474,7 @@ export default function RecommendationsQuickCheck() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [isMarketLocked, setIsMarketLocked] = useState(false);
+  // Market lock overlay removed per user request — banner handles the warning
 
   // Analysis popup state
   const [activeRow, setActiveRow] = useState<RecommendationRow | null>(null);
@@ -488,15 +488,6 @@ export default function RecommendationsQuickCheck() {
   // company name cache for search
   const [companyNames, setCompanyNames] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    // Fetch market lock state
-    fetch("/api/market-banner")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: { isMarketLocked?: boolean } | null) => {
-        if (d?.isMarketLocked) setIsMarketLocked(true);
-      })
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -683,56 +674,10 @@ export default function RecommendationsQuickCheck() {
         )}
       </div>
 
-      {/* Market lock overlay — applied when SPY D_k = -1 */}
-      <div style={{ position: "relative" }}>
-        {isMarketLocked && (
-          <div
-            role="status"
-            aria-live="polite"
-            style={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 10,
-              background: "rgba(10, 10, 10, 0.72)",
-              backdropFilter: "blur(3px)",
-              borderRadius: 8,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 12,
-              padding: "clamp(24px, 4vw, 48px)",
-              textAlign: "center",
-            }}
-          >
-            <div style={{
-              fontSize: "clamp(0.9rem, 2.5vw, 1.3rem)",
-              fontWeight: 800,
-              color: "#fff",
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              textShadow: "0 2px 8px rgba(0,0,0,0.8)",
-            }}>
-              MARKET LOCK: NO PURCHASES RECOMMENDED
-            </div>
-            <div style={{
-              fontSize: "clamp(0.72rem, 1.5vw, 0.88rem)",
-              color: "rgba(255,255,255,0.65)",
-              maxWidth: 480,
-              lineHeight: 1.5,
-            }}>
-              SPY structural contraction detected (D_k = −1). TFE has suspended buy recommendations. Data remains visible for research purposes.
-            </div>
-          </div>
-        )}
-
-        <div style={{ filter: isMarketLocked ? "grayscale(0.6) opacity(0.45)" : undefined, pointerEvents: isMarketLocked ? "none" : undefined }}>
-          <BucketTable title="The Titans" rows={payload.buckets.titans} search={search} companyNames={companyNames} onTickerClick={openRow} />
-          <BucketTable title="The Heavyweights" rows={payload.buckets.heavyweights} search={search} companyNames={companyNames} onTickerClick={openRow} />
-          <BucketTable title="The Mid-Tier" rows={payload.buckets.midTier} search={search} companyNames={companyNames} onTickerClick={openRow} />
-          <BucketTable title="The Hunters" rows={payload.buckets.hunters} search={search} companyNames={companyNames} onTickerClick={openRow} />
-        </div>
-      </div>
+      <BucketTable title="The Titans" rows={payload.buckets.titans} search={search} companyNames={companyNames} onTickerClick={openRow} />
+      <BucketTable title="The Heavyweights" rows={payload.buckets.heavyweights} search={search} companyNames={companyNames} onTickerClick={openRow} />
+      <BucketTable title="The Mid-Tier" rows={payload.buckets.midTier} search={search} companyNames={companyNames} onTickerClick={openRow} />
+      <BucketTable title="The Hunters" rows={payload.buckets.hunters} search={search} companyNames={companyNames} onTickerClick={openRow} />
     </div>
   );
 }
