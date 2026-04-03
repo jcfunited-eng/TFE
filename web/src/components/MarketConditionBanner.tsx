@@ -45,7 +45,7 @@ export default function MarketConditionBanner() {
       style={{
         position: "relative",
         width: "100%",
-        minHeight: "clamp(90px, 10vw, 150px)",
+        minHeight: "clamp(105px, 16.5vw, 210px)",
         borderRadius: 10,
         overflow: "hidden",
         marginBottom: 28,
