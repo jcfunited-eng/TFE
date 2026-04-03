@@ -540,25 +540,28 @@ textarea {
   color: #25282e;
 }
 
+/* ── Data table wrapper ────────────────────────────────────────────────── */
 .tfe-table-wrap {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: rgba(251, 254, 251, 0.35);
+  background: rgba(251, 254, 251, 0.5);
   overflow: auto;
-  max-height: 520px;
+  max-height: 560px;
 }
 
+/* ── Core table ────────────────────────────────────────────────────────── */
 .tfe-table {
   width: 100%;
-  min-width: 1240px;
   border-collapse: collapse;
-  font-size: 0.78rem;
-  line-height: 1.3;
+  font-size: 0.83rem;
+  line-height: 1.45;
+  color: var(--hunter-deep);
 }
 
+/* ── Cells ─────────────────────────────────────────────────────────────── */
 .tfe-table th,
 .tfe-table td {
-  padding: 6px 8px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--line-soft);
   vertical-align: middle;
   white-space: nowrap;
@@ -568,54 +571,113 @@ textarea {
   white-space: normal;
 }
 
+/* ── Column headers ────────────────────────────────────────────────────── */
 .tfe-table thead th {
   position: sticky;
   top: 0;
   z-index: 3;
-  background: rgba(235, 245, 236, 0.52);
+  background: rgba(228, 242, 231, 0.97);
+  backdrop-filter: blur(4px);
+  font-size: 0.72rem;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--hunter-soft);
   text-align: left;
+  border-bottom: 2px solid rgba(31, 58, 46, 0.15);
+  user-select: none;
+}
+
+/* ── Row rhythm ────────────────────────────────────────────────────────── */
+.tfe-table tbody tr:nth-child(even) {
+  background: rgba(240, 249, 242, 0.45);
 }
 
 .tfe-table tbody tr:hover {
-  background: rgba(133, 213, 160, 0.13);
+  background: rgba(136, 215, 164, 0.18);
 }
 
 .tfe-table tbody tr.active-row {
-  background: rgba(133, 213, 160, 0.24);
+  background: rgba(136, 215, 164, 0.28);
 }
 
+/* ── Sort button inside <th> ───────────────────────────────────────────── */
+.tfe-sort-btn {
+  border: 0;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tfe-sort-btn:hover {
+  color: var(--hunter);
+}
+
+/* ── Clickable ticker cell button ─────────────────────────────────────── */
+.tfe-ticker-btn {
+  border: 0;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  color: var(--hunter);
+  font-family: var(--font-geist-mono, "IBM Plex Mono", monospace);
+  font-size: 0.83rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: rgba(31, 77, 58, 0.35);
+  text-underline-offset: 3px;
+  transition: color 120ms ease, text-decoration-color 120ms ease;
+}
+
+.tfe-ticker-btn:hover {
+  color: var(--hunter-soft);
+  text-decoration-color: var(--hunter-soft);
+}
+
+/* ── Pagination row ───────────────────────────────────────────────────── */
+.tfe-page-btn {
+  border: 1px solid var(--line);
+  background: rgba(247, 252, 246, 0.8);
+  border-radius: var(--radius-sm);
+  padding: 5px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--hunter);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.tfe-page-btn:hover:not(:disabled) {
+  background: rgba(136, 215, 164, 0.25);
+  border-color: rgba(31, 77, 58, 0.35);
+}
+
+.tfe-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── portfolio-advisor variant (unchanged behaviour) ──────────────────── */
 .portfolio-advisor-view .tfe-table-wrap {
   border-color: rgba(31, 58, 46, 0.28);
   background: rgba(251, 254, 251, 0.55);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
 }
 
-.portfolio-advisor-view .tfe-table {
-  font-size: 0.8rem;
-  line-height: 1.36;
-}
-
-.portfolio-advisor-view .tfe-table th,
-.portfolio-advisor-view .tfe-table td {
-  padding: 8px 10px;
-}
-
 .portfolio-advisor-view .tfe-table thead th {
-  background: rgba(226, 239, 230, 0.9);
+  background: rgba(226, 239, 230, 0.97);
   color: #1d4737;
-  font-size: 0.75rem;
-  letter-spacing: 0.015em;
-  text-transform: uppercase;
-  border-bottom: 1px solid rgba(31, 58, 46, 0.2);
-}
-
-.portfolio-advisor-view .tfe-table tbody tr:nth-child(odd) {
-  background: rgba(240, 248, 241, 0.5);
-}
-
-.portfolio-advisor-view .tfe-table tbody tr:hover {
-  background: rgba(133, 213, 160, 0.2);
+  border-bottom-color: rgba(31, 58, 46, 0.2);
 }
 
 .portfolio-advisor-view .tfe-table td {
@@ -625,17 +687,6 @@ textarea {
 .portfolio-advisor-view .tfe-table td.wrap {
   white-space: normal;
   line-height: 1.42;
-}
-
-.tfe-sort-btn {
-  border: 0;
-  background: transparent;
-  margin: 0;
-  padding: 0;
-  color: inherit;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 .tfe-row-button {

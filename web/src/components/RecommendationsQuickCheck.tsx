@@ -404,10 +404,9 @@ function BucketTable({
                 <td style={{ textAlign: "left" }}>
                   <button
                     type="button"
-                    className="btn btn-ghost btn-sm"
+                    className="tfe-ticker-btn"
                     onClick={() => onTickerClick(row)}
                     title={`View analysis for ${row.ticker}${companyNames[row.ticker] ? ` — ${companyNames[row.ticker]}` : ""}`}
-                    style={{ fontWeight: 700, fontFamily: "var(--font-geist-mono, monospace)", padding: "2px 8px" }}
                   >
                     {row.ticker}
                   </button>
@@ -436,7 +435,7 @@ function BucketTable({
       {totalPages > 1 && (
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, flexWrap: "wrap" }}>
           <button
-            className="tfe-btn-secondary"
+            className="tfe-page-btn"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={clampedPage <= 1}
           >
@@ -456,7 +455,7 @@ function BucketTable({
             of {totalPages}
           </span>
           <button
-            className="tfe-btn-secondary"
+            className="tfe-page-btn"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={clampedPage >= totalPages}
           >

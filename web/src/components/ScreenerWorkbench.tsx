@@ -242,7 +242,7 @@ function buildColumns(tab: ScreenerTab, onOpen: (row: ScreenerRow, quote: QuoteS
     label: "Ticker",
     sortKey: "ticker",
     render: (row, quote) => (
-      <button type="button" className="btn btn-ghost btn-sm" onClick={() => onOpen(row, quote)}>
+      <button type="button" className="tfe-ticker-btn" onClick={() => onOpen(row, quote)}>
         {row.ticker}
         {row.decision === "Accumulate" && row.barCount > 0 && row.barCount <= 20 ? (
           <span style={{ marginLeft: 5, fontSize: "0.6rem", fontWeight: 700, color: "#fff", background: "#16a34a", borderRadius: 3, padding: "1px 4px", verticalAlign: "middle", letterSpacing: "0.04em" }} title="New listing — structural ground state. Backtest: 72%+ win.">NEW</span>
@@ -869,7 +869,7 @@ export default function ScreenerWorkbench() {
       {error ? <p className="tfe-error">{error}</p> : null}
 
       <section className="tfe-panel" style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table className="tfe-table">
           <caption className="sr-only">Native Engine Screener Results</caption>
           <thead>
             <tr>
@@ -886,14 +886,10 @@ export default function ScreenerWorkbench() {
                         ? "none"
                         : undefined
                   }
-                  style={{
-                    textAlign: column.align ?? "left",
-                    padding: "0.75rem 0.6rem",
-                    whiteSpace: "nowrap",
-                  }}
+                  style={{ textAlign: column.align ?? "left" }}
                 >
                   {column.sortKey ? (
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => toggleSort(column.sortKey ?? "ticker")}>
+                    <button type="button" className="tfe-sort-btn" onClick={() => toggleSort(column.sortKey ?? "ticker")}>
                       {column.label}
                       {sortKey === column.sortKey ? (sortDirection === "asc" ? " ↑" : " ↓") : ""}
                     </button>
@@ -913,7 +909,6 @@ export default function ScreenerWorkbench() {
                     <td
                       key={`${row.ticker}-${column.id}`}
                       style={{
-                        padding: "0.75rem 0.6rem",
                         textAlign: column.align ?? "left",
                         verticalAlign: "top",
                         whiteSpace: column.id === "research" ? "nowrap" : "normal",
@@ -937,8 +932,8 @@ export default function ScreenerWorkbench() {
       </section>
 
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
-        <button type="button" className="btn btn-ghost btn-sm" disabled={page <= 1 || loading} onClick={() => setPage((current) => Math.max(1, current - 1))}>
-          Previous
+        <button type="button" className="tfe-page-btn" disabled={page <= 1 || loading} onClick={() => setPage((current) => Math.max(1, current - 1))}>
+          ← Previous
         </button>
         <span className="tfe-muted" style={{ display: "flex", alignItems: "center", gap: 6 }}>
           Page{" "}
@@ -958,11 +953,11 @@ export default function ScreenerWorkbench() {
         </span>
         <button
           type="button"
-          className="btn btn-ghost btn-sm"
+          className="tfe-page-btn"
           disabled={page >= totalPages || loading}
           onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
         >
-          Next
+          Next →
         </button>
       </div>
 
