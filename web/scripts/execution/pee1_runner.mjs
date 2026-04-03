@@ -35,6 +35,7 @@ const configPool = new pg.Pool({
   max: 2,
   idleTimeoutMillis: 10_000,
   connectionTimeoutMillis: 5_000,
+  ssl: { rejectUnauthorized: false },
 });
 
 async function readConfig(key) {

@@ -26,6 +26,7 @@ const pool = new pg.Pool({
   max: 3,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
+  ssl: { rejectUnauthorized: false },
 });
 
 const ZOMBIE_BAR_THRESHOLD = parseInt(process.env.SENTINEL_ZOMBIE_BARS ?? "10", 10);

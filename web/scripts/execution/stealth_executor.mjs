@@ -25,6 +25,7 @@ const pool = new pg.Pool({
   max: 3,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
+  ssl: { rejectUnauthorized: false },
 });
 
 const ALPACA_DATA_URL = "https://data.alpaca.markets";

@@ -26,6 +26,7 @@ const pool = new pg.Pool({
   max: 3,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
+  ssl: { rejectUnauthorized: false },
 });
 
 const NEW_LISTING_BAR_THRESHOLD = 20;
