@@ -128,7 +128,7 @@ function exportCSV(rows: LedgerRow[]) {
   const lines = [
     headers.join(","),
     ...rows.map(r =>
-      headers.map(h => esc((r as Record<string, unknown>)[h])).join(",")
+      headers.map(h => esc((r as unknown as Record<string, unknown>)[h])).join(",")
     ),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/csv" });
