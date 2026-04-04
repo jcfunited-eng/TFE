@@ -180,8 +180,8 @@
   --from-y: -11vh;
   --mid-x: 37vw;
   --mid-y: 20vh;
-  --out-x: 40vw;
-  --out-y: 18vh;
+  --out-x: 110vw;
+  --out-y: 55vh;
 }
 
 .signalFromNorthEast {
@@ -191,8 +191,8 @@
   --from-y: -11vh;
   --mid-x: -37vw;
   --mid-y: 20vh;
-  --out-x: -40vw;
-  --out-y: 18vh;
+  --out-x: -110vw;
+  --out-y: 55vh;
 }
 
 .signalFromWest {
@@ -202,8 +202,8 @@
   --from-y: 0;
   --mid-x: 39vw;
   --mid-y: -6vh;
-  --out-x: 42vw;
-  --out-y: -10vh;
+  --out-x: 115vw;
+  --out-y: -30vh;
 }
 
 .signalFromEast {
@@ -213,8 +213,8 @@
   --from-y: 0;
   --mid-x: -39vw;
   --mid-y: -6vh;
-  --out-x: -42vw;
-  --out-y: -10vh;
+  --out-x: -115vw;
+  --out-y: -30vh;
 }
 
 .signalFromSouth {
@@ -226,7 +226,7 @@
   --mid-x: -50%;
   --mid-y: -25vh;
   --out-x: -50%;
-  --out-y: -28vh;
+  --out-y: -120vh;
 }
 
 .centerWordsOnly {
