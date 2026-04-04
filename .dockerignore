@@ -56,6 +56,8 @@ web/tsconfig.tsbuildinfo
 !aws_root_key_provider.py
 !tfe_fundamental_fetcher.py
 !rebuild_uf_snapshot.py
+!tfe_snapshot_restore.py
+!tfe_startup.sh
 !uf_mdg_snapshot.py
 !structural_recency_snapshot.py
 !run_refresh_with_l5_learning.py
