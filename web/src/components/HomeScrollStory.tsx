@@ -64,8 +64,8 @@ const ACT_THREE_WATCHLIST_COPY =
   "Add any candidate to your Watchlist to track price action and signal changes over time — a clean starting point for conversations with your broker.";
 const ACT_THREE_WATCHLIST_MAINTAIN_COPY = "Track signals, not just prices.";
 const ACT_FOUR_PORTFOLIO_COPY =
-  "TFE offers a way to play What-If scenarios by providing a Portfolio where you can put in assets and see how they perform.";
-const ACT_FOUR_OVERLINE_COPY = "Portfolios are a manually maintain research tool";
+  "Model your positions before you commit. Add assets, adjust lot sizes, and watch your allocation shift in real time.";
+const ACT_FOUR_OVERLINE_COPY = "What-if analysis. No execution, no broker access.";
 const CHAPTER_FOUR_NEON_COPY =
   "TFE is a proprietary new class of experimental AI. It is not machine learning, and it is not an algorithm. It's new and as such it is much riskier than more established tech, so you use this site at your own risk! More to come...";
 
@@ -578,19 +578,11 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
                 </div>
               </>
             ) : isActFourFrame ? (
-              <>
-                <p key={`act-four-intro-${chapterThreeReplaySeed}`} className={styles.actFourIntroText}>
-                  {ACT_FOUR_PORTFOLIO_COPY}
-                </p>
-
-                <div key={`act-four-portfolio-${chapterThreeReplaySeed}`} className={styles.actFourPortfolioWrap}>
-                  <img src="/uploads/Act4Portfolio.png" alt="Act 4 portfolio research board" className={`${styles.jetonResearchScreen} ${styles.jetonResearchScreenActFour}`} />
-                </div>
-
-                <p key={`act-four-overline-${chapterThreeReplaySeed}`} className={styles.actFourOverlineText}>
-                  {ACT_FOUR_OVERLINE_COPY}
-                </p>
-              </>
+              <div key={`act4-portfolio-${chapterThreeReplaySeed}`} className={styles.actFourPanel}>
+                <p className={styles.actThreePanelHeading}>{ACT_FOUR_PORTFOLIO_COPY}</p>
+                <img src="/uploads/Act4Portfolio.png" alt="Portfolio what-if tool" className={styles.actThreePanelImg} />
+                <p className={styles.actThreePanelCaption}>{ACT_FOUR_OVERLINE_COPY}</p>
+              </div>
             ) : (
               <>
                 <div className={styles.jetonResearchHeader}>
