@@ -784,87 +784,65 @@ export default function ScreenerWorkbench() {
           ))}
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: "0.75rem",
-          }}
-        >
-          <label style={{ display: "grid", gap: "0.35rem" }}>
-            <span>Search</span>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "flex-end" }}>
+          <label className="tfe-filter-label">
+            <span>SEARCH</span>
             <input
+              className="tfe-filter-input"
               value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setPage(1);
-              }}
-              placeholder="Ticker"
+              onChange={(event) => { setSearch(event.target.value); setPage(1); }}
+              placeholder="Ticker or name…"
             />
           </label>
 
-          <label style={{ display: "grid", gap: "0.35rem" }}>
-            <span>Asset</span>
+          <label className="tfe-filter-label">
+            <span>ASSET</span>
             <select
+              className="tfe-filter-select"
               value={assetType}
-              onChange={(event) => {
-                setAssetType(event.target.value);
-                setPage(1);
-              }}
+              onChange={(event) => { setAssetType(event.target.value); setPage(1); }}
             >
               <option value="all">All</option>
               {assetOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
+                <option key={option} value={option}>{option}</option>
               ))}
             </select>
           </label>
 
-          <label style={{ display: "grid", gap: "0.35rem" }}>
-            <span>Decision</span>
+          <label className="tfe-filter-label">
+            <span>DECISION</span>
             <select
+              className="tfe-filter-select"
               value={decision}
-              onChange={(event) => {
-                setDecision(event.target.value);
-                setPage(1);
-              }}
+              onChange={(event) => { setDecision(event.target.value); setPage(1); }}
             >
               <option value="all">All</option>
               {decisionOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
+                <option key={option} value={option}>{option}</option>
               ))}
             </select>
           </label>
 
-          <label style={{ display: "grid", gap: "0.35rem" }}>
-            <span>Regime</span>
+          <label className="tfe-filter-label">
+            <span>REGIME</span>
             <select
+              className="tfe-filter-select"
               value={regime}
-              onChange={(event) => {
-                setRegime(event.target.value);
-                setPage(1);
-              }}
+              onChange={(event) => { setRegime(event.target.value); setPage(1); }}
             >
               <option value="all">All</option>
               {regimeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
+                <option key={option} value={option}>{option}</option>
               ))}
             </select>
           </label>
 
-          <label style={{ display: "grid", gap: "0.35rem" }}>
-            <span>Rows</span>
+          <label className="tfe-filter-label" style={{ minWidth: 80 }}>
+            <span>ROWS</span>
             <select
+              className="tfe-filter-select"
               value={pageSize}
-              onChange={(event) => {
-                setPageSize(Number(event.target.value));
-                setPage(1);
-              }}
+              onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }}
             >
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -872,13 +850,10 @@ export default function ScreenerWorkbench() {
               <option value={200}>200</option>
             </select>
           </label>
-        </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
-          <span className="tfe-muted">
-            {loading ? "Loading native engine rows..." : `${total.toLocaleString()} rows matched. Page ${page} of ${totalPages}.`}
+          <span className="tfe-muted" style={{ marginLeft: "auto", alignSelf: "center", fontSize: "0.78rem" }}>
+            {loading ? "Loading…" : `${total.toLocaleString()} rows · Page ${page} of ${totalPages}`}
           </span>
-          <span className="tfe-muted">Fundamental taxonomy columns are intentionally removed from this UI.</span>
         </div>
       </section>
 

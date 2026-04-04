@@ -658,17 +658,21 @@ export default function RecommendationsQuickCheck() {
       </section>
 
       <section className="tfe-panel" style={{ display: "grid", gap: "1rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <input
-            type="search"
-            placeholder="Search by ticker, company name, or sector…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ flex: "1 1 280px", maxWidth: 400 }}
-            aria-label="Search recommendations"
-          />
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
+          <label className="tfe-filter-label" style={{ flex: "1 1 260px", maxWidth: 400 }}>
+            <span>SEARCH</span>
+            <input
+              className="tfe-filter-input"
+              type="search"
+              placeholder="Ticker, company name, or sector…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search recommendations"
+              style={{ width: "100%" }}
+            />
+          </label>
           {matchCount !== null && (
-            <span className="tfe-muted">
+            <span className="tfe-muted" style={{ alignSelf: "center" }}>
               {matchCount} result{matchCount === 1 ? "" : "s"} across all buckets
             </span>
           )}

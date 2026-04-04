@@ -667,6 +667,47 @@ textarea {
   cursor: not-allowed;
 }
 
+/* ── Filter bar controls ─────────────────────────────────────────────── */
+.tfe-filter-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+
+.tfe-filter-label > span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--hunter-soft);
+}
+
+.tfe-filter-input,
+.tfe-filter-select {
+  height: 34px;
+  padding: 0 10px;
+  border: 1.5px solid rgba(31, 77, 58, 0.35);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--hunter-deep);
+  font-size: 0.82rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.tfe-filter-input:focus,
+.tfe-filter-select:focus {
+  border-color: var(--hunter);
+  box-shadow: 0 0 0 3px rgba(31, 77, 58, 0.12);
+}
+
+.tfe-filter-select {
+  padding-right: 28px;
+  appearance: auto;
+  cursor: pointer;
+}
+
 /* ── portfolio-advisor variant (unchanged behaviour) ──────────────────── */
 .portfolio-advisor-view .tfe-table-wrap {
   border-color: rgba(31, 58, 46, 0.28);
