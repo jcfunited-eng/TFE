@@ -291,8 +291,8 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
     }
 
     if (activeChapter !== 1) {
-      setChapterTwoWordIndex(-1);
-      return;
+      const resetTimer = window.setTimeout(() => setChapterTwoWordIndex(-1), 0);
+      return () => window.clearTimeout(resetTimer);
     }
 
     // Last card (index 4) delay=18400ms, fully exits at 18400 + 72% of 10000 = 25600ms
