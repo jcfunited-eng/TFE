@@ -564,29 +564,18 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
               </>
             ) : isActThreeFrame ? (
               <>
-                <p key={`act-three-intro-${chapterThreeReplaySeed}`} className={styles.actThreeIntroText}>
-                  {ACT_THREE_RECOMMENDATIONS_COPY}
-                </p>
-
-                <div key={`act-three-reco-image-${chapterThreeReplaySeed}`} className={styles.actThreeRecommendationsWrap}>
-                  <img src="/uploads/Act3Recommendations.png" alt="Act 3 recommendations board" className={`${styles.jetonResearchScreen} ${styles.jetonResearchScreenActThree}`} />
+                {/* Panel A — Recommendations */}
+                <div key={`act3-reco-${chapterThreeReplaySeed}`} className={styles.actThreePanelReco}>
+                  <p className={styles.actThreePanelHeading}>{ACT_THREE_RECOMMENDATIONS_COPY}</p>
+                  <img src="/uploads/Act3Recommendations.png" alt="Recommendations board" className={styles.actThreePanelImg} />
+                  <p className={styles.actThreePanelCaption}>{ACT_THREE_UNBIASED_COPY}</p>
                 </div>
-
-                <p key={`act-three-unbiased-${chapterThreeReplaySeed}`} className={styles.actThreeUnbiasedText}>
-                  {ACT_THREE_UNBIASED_COPY}
-                </p>
-
-                <p key={`act-three-watchlist-copy-${chapterThreeReplaySeed}`} className={styles.actThreeWatchlistCopy}>
-                  {ACT_THREE_WATCHLIST_COPY}
-                </p>
-
-                <div key={`act-three-watchlist-image-${chapterThreeReplaySeed}`} className={styles.actThreeWatchlistImageWrap}>
-                  <img src="/uploads/Act3Watchlist.png" alt="Act 3 watchlist board" className={`${styles.jetonResearchScreen} ${styles.jetonResearchScreenActThree}`} />
+                {/* Panel B — Watchlist */}
+                <div key={`act3-watch-${chapterThreeReplaySeed}`} className={styles.actThreePanelWatch}>
+                  <p className={styles.actThreePanelHeading}>{ACT_THREE_WATCHLIST_COPY}</p>
+                  <img src="/uploads/Act3Watchlist.png" alt="Watchlist board" className={styles.actThreePanelImg} />
+                  <p className={styles.actThreePanelCaption}>{ACT_THREE_WATCHLIST_MAINTAIN_COPY}</p>
                 </div>
-
-                <p key={`act-three-maintain-${chapterThreeReplaySeed}`} className={styles.actThreeMaintainText}>
-                  {ACT_THREE_WATCHLIST_MAINTAIN_COPY}
-                </p>
               </>
             ) : isActFourFrame ? (
               <>
