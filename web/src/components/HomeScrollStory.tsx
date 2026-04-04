@@ -482,7 +482,7 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
             <article
               key={stream.label}
               className={`${styles.signalImageCard} ${styles[stream.origin]} ${styles[stream.cardClass]} ${activeChapter === 1 ? styles.signalImageCardActive : ""}`}
-              style={{ ["--signal-delay" as string]: `${index * 1700}ms` }}
+              style={{ ["--signal-delay" as string]: `${index * 4600}ms` }}
               aria-label={stream.label}
             >
               <img src={stream.imageSrc} alt={stream.label} className={styles.signalImage} />
