@@ -133,16 +133,11 @@
     transform: translate3d(var(--from-x, 0), var(--from-y, 0), 0) scale(0.78);
   }
 
-  16% {
+  15% {
     opacity: 1;
   }
 
-  56% {
-    opacity: 1;
-    transform: translate3d(var(--mid-x, 0), var(--mid-y, 0), 0) scale(1);
-  }
-
-  72% {
+  50% {
     opacity: 1;
     transform: translate3d(var(--mid-x, 0), var(--mid-y, 0), 0) scale(1);
   }
