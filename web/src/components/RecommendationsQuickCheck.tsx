@@ -364,9 +364,9 @@ function BucketTable({
       : "";
 
   return (
-    <section className="section-stack">
-      <h2>{title}</h2>
-      <div className="tfe-muted" style={{ marginBottom: 8 }}>
+    <div style={{ display: "grid", gap: "0.5rem" }}>
+      <h2 style={{ margin: 0 }}>{title}</h2>
+      <div className="tfe-muted">
         {rows.length} result{rows.length === 1 ? "" : "s"}
         {matchLabel}
       </div>
@@ -463,7 +463,7 @@ function BucketTable({
           </button>
         </div>
       )}
-    </section>
+    </div>
   );
 }
 
@@ -614,7 +614,7 @@ export default function RecommendationsQuickCheck() {
     : null;
 
   return (
-    <div className="section-stack">
+    <div style={{ display: "grid", gap: "1rem" }}>
       {/* Analysis popup */}
       {activeRow && (
         <AnalysisPanel
@@ -631,9 +631,9 @@ export default function RecommendationsQuickCheck() {
         />
       )}
 
-      <section className="surface-card">
-        <h2>Strict L5 Kernel</h2>
-        <div className="tfe-summary-grid" style={{ marginTop: 8 }}>
+      <section className="tfe-panel" style={{ display: "grid", gap: "0.75rem" }}>
+        <h2 style={{ margin: 0 }}>Strict L5 Kernel</h2>
+        <div className="tfe-summary-grid">
           <div className="tfe-summary-card">
             <div className="k">Accumulate</div>
             <div className="v">{payload.totalAccumulate}</div>
@@ -657,7 +657,7 @@ export default function RecommendationsQuickCheck() {
         </div>
       </section>
 
-      <section className="surface-card" style={{ display: "grid", gap: 20 }}>
+      <section className="tfe-panel" style={{ display: "grid", gap: "1rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <input
             type="search"
