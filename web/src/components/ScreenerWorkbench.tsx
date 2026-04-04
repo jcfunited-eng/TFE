@@ -135,7 +135,6 @@ const DATA_TABS: Array<{ key: ScreenerTab; label: string }> = [
   { key: "etf", label: "ETF" },
 ];
 
-const DEFAULT_PAGE_SIZE = 100;
 const DEFAULT_ASSET_OPTIONS: AssetType[] = ["equities", "index", "crypto", "etf", "other"];
 const DEFAULT_DECISION_OPTIONS: Decision[] = ["Accumulate", "Hold", "Avoid"];
 
