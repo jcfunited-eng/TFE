@@ -118,7 +118,7 @@ const CHAPTER_THREE_FRAMES: ChapterThreeFrame[] = [
     title: "Compare Signals",
     subtitle: "Read context before commitment",
     detail: "Review signal evidence side-by-side so trend pressure and setup quality are clear before entry.",
-    imageSrc: "/uploads/Act2Compare.png",
+    imageSrc: "/uploads/couplewithadvisor2.jpg",
     iconSrc: "/uploads/Act2iconGlass.png",
   },
   {
@@ -451,7 +451,7 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
         <div className={styles.heroContent}>
           <h1
             style={{
-              fontSize: "clamp(2.35rem, 5.6vw, 5.15rem)",
+              fontSize: "clamp(2.7rem, 6.4vw, 5.9rem)",
               color: "#ffffff",
               textShadow: "0 12px 36px rgba(0, 0, 0, 0.7), 0 4px 10px rgba(0, 0, 0, 0.55)",
               lineHeight: 0.9,
@@ -532,12 +532,19 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
             ) : isActTwoFrame ? (
               <>
                 <div className={styles.actTwoImageWrap}>
-                  <img
-                    key={`${activeChapterThree.step}-${activeChapterThree.imageSrc}-${chapterThreeReplaySeed}`}
-                    src={activeChapterThree.imageSrc}
-                    alt="Act 2 comparison scene"
-                    className={`${styles.jetonResearchScreen} ${styles.jetonResearchScreenActTwo}`}
-                  />
+                  <div className={styles.actTwoImageInner}>
+                    <img
+                      key={`${activeChapterThree.step}-${activeChapterThree.imageSrc}-${chapterThreeReplaySeed}`}
+                      src={activeChapterThree.imageSrc}
+                      alt="Act 2 comparison scene"
+                      className={`${styles.jetonResearchScreen} ${styles.jetonResearchScreenActTwo}`}
+                    />
+                    <div key={`act-two-reco-overlay-${chapterThreeReplaySeed}`} className={styles.actTwoRecoOverlay}>
+                      <p className={styles.actTwoRecoOverlayText}>
+                        Using <strong>TFE Recommendations</strong> you get a way to quickly find potential opportunities that you can compare with your favorite analytical tool and <strong>talk</strong> it over with your broker.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <p key={`act-two-right-${chapterThreeReplaySeed}`} className={styles.actTwoResearchOnlyText}>
