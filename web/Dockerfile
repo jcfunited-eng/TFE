@@ -129,9 +129,12 @@ COPY data ./data
 COPY market_data ./market_data
 
 COPY tfe_data_normalizer.py ./tfe_data_normalizer.py
+COPY tfe_snapshot_restore.py ./tfe_snapshot_restore.py
+COPY tfe_startup.sh ./tfe_startup.sh
 
 RUN mkdir -p /app/web_user_data/.ses_tmp \
     && mkdir -p /app/web/data \
+    && chmod +x /app/tfe_startup.sh \
     && chown -R node:node /app
 
 USER node
@@ -140,4 +143,4 @@ WORKDIR /app/web
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start", "--", "-H", "0.0.0.0", "-p", "3000"]
+CMD ["/app/tfe_startup.sh"]

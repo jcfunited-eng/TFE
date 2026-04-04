@@ -61,6 +61,9 @@ SNAPSHOT_ENVELOPE_BACKUP_PATH = "uf_snapshot_old_backup.ses.json"
 SNAPSHOT_JSON_FALLBACK_PATH = "uf_snapshot.json"
 REBUILD_REPORT_PATH = "uf_snapshot_rebuild_report.json"
 
+S3_SNAPSHOT_BUCKET = "tfe-codebuild-src-418384447921-us-east-1"
+S3_SNAPSHOT_PREFIX = "runtime-refresh-checkpoints"
+
 PRIVATE_FILE_MODE = 0o600
 SES_PURPOSE_PREFIX = "tfe-web"
 SES_PURPOSE_SUFFIX = "uf-snapshot"
@@ -210,6 +213,25 @@ def _save_snapshot_json_fallback(rows: List[Dict[str, Any]], generated_at_utc: s
 
 def _save_rebuild_report(report: Dict[str, Any]) -> None:
     _write_private_json(REBUILD_REPORT_PATH, report)
+
+
+def _upload_snapshot_to_s3() -> None:
+    """Upload snapshot files to S3 so they survive container restarts and deploys."""
+    try:
+        import boto3  # type: ignore[import]
+        s3 = boto3.client("s3")
+        uploads = [
+            (SNAPSHOT_JSON_FALLBACK_PATH, f"{S3_SNAPSHOT_PREFIX}/uf_snapshot.json"),
+            (SNAPSHOT_ENVELOPE_PATH, f"{S3_SNAPSHOT_PREFIX}/uf_snapshot.ses.json"),
+            (REBUILD_REPORT_PATH, f"{S3_SNAPSHOT_PREFIX}/uf_snapshot_rebuild_report.json"),
+        ]
+        for local_path, s3_key in uploads:
+            if os.path.exists(local_path):
+                s3.upload_file(local_path, S3_SNAPSHOT_BUCKET, s3_key)
+                print(f"[UF-SNAPSHOT] S3 upload: {local_path} → s3://{S3_SNAPSHOT_BUCKET}/{s3_key}")
+        print("[UF-SNAPSHOT] Snapshot persisted to S3.")
+    except Exception as exc:
+        print(f"[UF-SNAPSHOT] S3 upload failed (non-fatal): {exc}")
 
 
 def _run_pre_ingestion_completeness_check(
@@ -1132,6 +1154,7 @@ def rebuild_snapshot(
     print(f"[UF-SNAPSHOT] Plaintext snapshot written: {SNAPSHOT_JSON_FALLBACK_PATH}")
     print(f"[UF-SNAPSHOT] SES envelope written: {SNAPSHOT_ENVELOPE_PATH}")
     print(f"[UF-SNAPSHOT] Report written: {REBUILD_REPORT_PATH}")
+    _upload_snapshot_to_s3()
 
     return report
 
