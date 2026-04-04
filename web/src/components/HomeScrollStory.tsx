@@ -442,7 +442,7 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
             muted
             playsInline
             preload="auto"
-            style={{ filter: "contrast(1.06) saturate(1.04) brightness(1)", transform: "translate3d(0,0,0)" }}
+            style={{ filter: "contrast(1.18) saturate(1.22) brightness(1.06)", transform: "translate3d(0,0,0)" }}
           >
             <source src={HERO_STORY_VIDEO_SRC} type="video/mp4" />
           </video>
@@ -464,16 +464,6 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
 
           <p
             className={`${styles.heroTagline} ${metallicSerif.className}`}
-            style={{
-              background: "none",
-              WebkitBackgroundClip: "border-box",
-              backgroundClip: "border-box",
-              color: "#f0f8f2",
-              WebkitTextFillColor: "#f0f8f2",
-              WebkitTextStroke: "0",
-              textShadow:
-                "0 1px 0 rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.95), 0 4px 18px rgba(0,0,0,0.88), 0 8px 36px rgba(0,0,0,0.65)",
-            }}
           >
             Let TFE help you with your Investment Research
           </p>
