@@ -468,10 +468,11 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
               background: "none",
               WebkitBackgroundClip: "border-box",
               backgroundClip: "border-box",
-              color: "#315f3d",
-              WebkitTextFillColor: "#315f3d",
+              color: "#f0f8f2",
+              WebkitTextFillColor: "#f0f8f2",
               WebkitTextStroke: "0",
-              textShadow: "0 2px 8px rgba(7, 24, 13, 0.34)",
+              textShadow:
+                "0 1px 0 rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.95), 0 4px 18px rgba(0,0,0,0.88), 0 8px 36px rgba(0,0,0,0.65)",
             }}
           >
             Let TFE help you with your Investment Research

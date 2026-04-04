@@ -24,10 +24,11 @@ export type UiConfig = {
 };
 
 const DEFAULT_IMAGE = "/landing-zen.jpg";
+const DEFAULT_HOME_IMAGE = "/uploads/mountainscene.jpg";
 
 const DEFAULT_CONFIG: UiConfig = {
   backgroundImages: {
-    home: DEFAULT_IMAGE,
+    home: DEFAULT_HOME_IMAGE,
     help: DEFAULT_IMAGE,
     support: DEFAULT_IMAGE,
     signIn: DEFAULT_IMAGE,
