@@ -142,7 +142,7 @@
     transform: translate3d(var(--mid-x, 0), var(--mid-y, 0), 0) scale(1);
   }
 
-  58% {
+  72% {
     opacity: 0;
     transform: translate3d(var(--out-x, 0), var(--out-y, 0), 0) scale(0.7);
   }
