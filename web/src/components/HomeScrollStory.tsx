@@ -58,11 +58,11 @@ const ACT_TWO_COIN_RESULT_COPY = "All Investments have risk. Talk with your Brok
 const ACT_TWO_BROKAGE_COPY = "TFE is not a Brokage Site";
 
 const ACT_THREE_RECOMMENDATIONS_COPY =
-  "TFE sees what has potential to Accumulate from its latest Market scan then gives its top ten Recommendations for Equities, Index, Crypto, and ETF's";
-const ACT_THREE_UNBIASED_COPY = "Recommendations are Unbiased";
+  "Daily scans across market cap, volume profile, and momentum signals surface candidates showing buy-side setups in Equities, ETFs, Index, and Crypto.";
+const ACT_THREE_UNBIASED_COPY = "Signal-based. No opinions.";
 const ACT_THREE_WATCHLIST_COPY =
-  "You can add any recommendation to your Watchlist to see how it performs over time or just as a reminder for discussions with your broker.";
-const ACT_THREE_WATCHLIST_MAINTAIN_COPY = "The Watchlist is easy to read easy to maintain";
+  "Add any candidate to your Watchlist to track price action and signal changes over time — a clean starting point for conversations with your broker.";
+const ACT_THREE_WATCHLIST_MAINTAIN_COPY = "Track signals, not just prices.";
 const ACT_FOUR_PORTFOLIO_COPY =
   "TFE offers a way to play What-If scenarios by providing a Portfolio where you can put in assets and see how they perform.";
 const ACT_FOUR_OVERLINE_COPY = "Portfolios are a manually maintain research tool";

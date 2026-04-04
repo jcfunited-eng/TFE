@@ -631,6 +631,26 @@
   100% { opacity: 0; transform: translateY(-12px); }
 }
 
+/* Dark interstitial overlay — flashes between Panel A and B */
+.jetonResearchShellActThree::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 18, 12, 0.92);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 10;
+  animation: actThreeInterstitial 36000ms linear 160ms 1 both;
+}
+
+@keyframes actThreeInterstitial {
+  0%   { opacity: 0; }
+  46%  { opacity: 0; }
+  50%  { opacity: 1; }
+  54%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+
 /* ── (legacy act-three absolute classes kept for CSS module integrity) ── */
 .actThreeIntroText,
 .actThreeWatchlistCopy {
