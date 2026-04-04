@@ -188,6 +188,7 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
   const visibilityRef = useRef<number[]>([]);
   const heroVideoRef = useRef<HTMLVideoElement | null>(null);
   const chapterFourVideoRef = useRef<HTMLVideoElement | null>(null);
+  const chapterTwoWordIntervalRef = useRef<number | null>(null);
 
   const [activeChapter, setActiveChapter] = useState(0);
   const [activeChapterThreeIndex, setActiveChapterThreeIndex] = useState(0);
@@ -195,7 +196,7 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
   const [chapterThreeIsPlaying, setChapterThreeIsPlaying] = useState(false);
   const [chapterThreeIsPaused, setChapterThreeIsPaused] = useState(false);
   const [chapterFourReplaySeed, setChapterFourReplaySeed] = useState(0);
-  const [chapterTwoWordIndex, setChapterTwoWordIndex] = useState(0);
+  const [chapterTwoWordIndex, setChapterTwoWordIndex] = useState(-1);
 
   useEffect(() => {
     let lastBestIndex = 0;
@@ -221,7 +222,7 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
 
         if (bestIndex !== lastBestIndex) {
           if (bestIndex === 1) {
-            setChapterTwoWordIndex(0);
+            setChapterTwoWordIndex(-1);
           }
 
           if (bestIndex === 2) {
@@ -284,13 +285,31 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
   }, [activeChapter, activeChapterThreeIndex, chapterThreeIsPaused, chapterThreeIsPlaying]);
 
   useEffect(() => {
-    if (activeChapter !== 1) return;
+    if (chapterTwoWordIntervalRef.current) {
+      window.clearInterval(chapterTwoWordIntervalRef.current);
+      chapterTwoWordIntervalRef.current = null;
+    }
 
-    const timer = window.setInterval(() => {
-      setChapterTwoWordIndex((prev) => (prev + 1) % CHAPTER_TWO_WORDS.length);
-    }, 2200);
+    if (activeChapter !== 1) {
+      setChapterTwoWordIndex(-1);
+      return;
+    }
 
-    return () => window.clearInterval(timer);
+    // Last card (index 4) delay=18400ms, fully exits at 18400 + 72% of 10000 = 25600ms
+    const startTimer = window.setTimeout(() => {
+      setChapterTwoWordIndex(0);
+      chapterTwoWordIntervalRef.current = window.setInterval(() => {
+        setChapterTwoWordIndex((prev) => (prev + 1) % CHAPTER_TWO_WORDS.length);
+      }, 2200);
+    }, 26000);
+
+    return () => {
+      window.clearTimeout(startTimer);
+      if (chapterTwoWordIntervalRef.current) {
+        window.clearInterval(chapterTwoWordIntervalRef.current);
+        chapterTwoWordIntervalRef.current = null;
+      }
+    };
   }, [activeChapter]);
 
   useEffect(() => {
@@ -491,9 +510,11 @@ export default function HomeScrollStory({ backgroundImage }: HomeScrollStoryProp
         </div>
 
         <div className={styles.centerWordsOnly} aria-live="polite" aria-atomic="true">
-          <span key={CHAPTER_TWO_WORDS[chapterTwoWordIndex]} className={styles.wordPulse}>
-            {CHAPTER_TWO_WORDS[chapterTwoWordIndex]}
-          </span>
+          {chapterTwoWordIndex >= 0 && (
+            <span key={chapterTwoWordIndex} className={styles.wordPulse}>
+              {CHAPTER_TWO_WORDS[chapterTwoWordIndex]}
+            </span>
+          )}
         </div>
       </section>
 
