@@ -96,30 +96,32 @@ async function clearRunPhases() {
     return;
   }
 
-  // Mark any non-terminal runs as failed
+  // Mark any incomplete runs (no completed_at) as aborted
   const staleRuns = await pool.query(
     `UPDATE ${RUNS_TABLE}
-     SET process_status = 'failed',
-         completed_at   = NOW(),
-         error_message  = 'Container restarted — run abandoned'
-     WHERE process_status NOT IN ('completed', 'failed', 'cancelled')
+     SET report_status  = 'aborted',
+         epoch_library_status = 'aborted_by_admin',
+         failure_code   = 'container_restart',
+         failure_detail = 'Container restarted — run abandoned',
+         completed_at   = NOW()
+     WHERE completed_at IS NULL
      RETURNING run_id`,
   );
 
   if (staleRuns.rowCount === 0) {
-    console.log("[STARTUP] No stale runs in runtime_refresh_runs — nothing to clear.");
+    console.log("[STARTUP] No incomplete runs in runtime_refresh_runs — nothing to clear.");
   } else {
     const ids = staleRuns.rows.map(r => r.run_id).join(", ");
-    console.log(`[STARTUP] Marked ${staleRuns.rowCount} stale run(s) as failed: ${ids}`);
+    console.log(`[STARTUP] Marked ${staleRuns.rowCount} stale run(s) as aborted: ${ids}`);
   }
 
   // Mark any non-terminal phases as failed
   const stalePhases = await pool.query(
     `UPDATE ${PHASES_TABLE}
      SET process_status = 'failed',
-         output_status  = 'error',
-         completed_at   = NOW(),
-         error_message  = 'Container restarted — phase abandoned'
+         failure_code   = 'container_restart',
+         failure_detail = 'Container restarted — phase abandoned',
+         completed_at   = NOW()
      WHERE process_status NOT IN ('completed', 'failed', 'cancelled', 'skipped')
      RETURNING phase_name`,
   );
