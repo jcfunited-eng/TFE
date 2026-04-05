@@ -5,8 +5,10 @@ import { Pool } from "pg";
 import {
   buildSesActorId,
   buildSesAssetId,
+  decryptEnvelopeObjectToJson,
   decryptEnvelopeToJson,
   encryptJsonToEnvelope,
+  encryptJsonToEnvelopeObject,
 } from "@/lib/ses-web-blob";
 import { resolveSharedStorageBackend } from "@/lib/user-storage-backend";
 
@@ -18,8 +20,13 @@ const WATCHLIST_TABLE_NAME = "tfe_watchlists";
 
 type UserDataBackend = "file" | "postgres";
 
+// ses_envelope holds the SES-encrypted ciphertext of the watchlist symbols.
+// symbols is retained for schema compatibility and migration; it is cleared
+// to ARRAY[]::TEXT[] on the first SES write and must not be read as
+// authoritative once ses_envelope is present.
 type PostgresWatchlistRow = {
   symbols: string[] | null;
+  ses_envelope: unknown;
 };
 
 let postgresPool: Pool | null = null;
@@ -277,12 +284,22 @@ async function ensurePostgresInitialized(): Promise<void> {
   const pool = resolvePostgresPool();
 
   postgresInitPromise = (async () => {
+    // Create table with ses_envelope column for SES-encrypted data.
+    // symbols column is kept for schema compatibility and migration; it is
+    // cleared to ARRAY[]::TEXT[] on the first SES write.
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ${WATCHLIST_TABLE_NAME} (
-        username VARCHAR(64) PRIMARY KEY,
-        symbols TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        username     VARCHAR(64)  PRIMARY KEY,
+        symbols      TEXT[]       NOT NULL DEFAULT ARRAY[]::TEXT[],
+        ses_envelope JSONB        NULL,
+        updated_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
       )
+    `);
+
+    // Idempotent column addition for tables created before SES was introduced.
+    await pool.query(`
+      ALTER TABLE ${WATCHLIST_TABLE_NAME}
+      ADD COLUMN IF NOT EXISTS ses_envelope JSONB NULL
     `);
   })();
 
@@ -294,6 +311,13 @@ async function ensurePostgresInitialized(): Promise<void> {
   }
 }
 
+// ── Postgres read ─────────────────────────────────────────────────────────────
+//
+// Priority:
+//   1. Decrypt ses_envelope if present  — authoritative, SES-protected
+//   2. Migrate plaintext symbols to SES — one-time migration on first read
+//   3. Return null (caller bootstraps)
+
 async function readWatchlistPostgres(username: string): Promise<string[] | null> {
   await ensurePostgresInitialized();
   const pool = resolvePostgresPool();
@@ -301,7 +325,7 @@ async function readWatchlistPostgres(username: string): Promise<string[] | null>
 
   const result = await pool.query<PostgresWatchlistRow>(
     `
-      SELECT symbols
+      SELECT symbols, ses_envelope
       FROM ${WATCHLIST_TABLE_NAME}
       WHERE username = $1
       LIMIT 1
@@ -310,9 +334,34 @@ async function readWatchlistPostgres(username: string): Promise<string[] | null>
   );
 
   if (result.rows.length === 0) return null;
-  const symbols = Array.isArray(result.rows[0]?.symbols) ? result.rows[0].symbols : [];
-  return uniqueSymbols(symbols.map((value) => String(value ?? "")));
+
+  const row = result.rows[0];
+
+  // Path 1: SES envelope present — decrypt it.
+  if (row.ses_envelope !== null && row.ses_envelope !== undefined && typeof row.ses_envelope === "object") {
+    const envelope = row.ses_envelope as Record<string, unknown>;
+    const payload = await decryptEnvelopeObjectToJson<{ symbols?: unknown }>({
+      envelope,
+      purposeSuffix: watchlistPurposeSuffix(username),
+      actorId: buildSesActorId(username),
+      assetId: buildSesAssetId("watchlist", username),
+    });
+    return sanitizeEncryptedPayload(payload);
+  }
+
+  // Path 2: No envelope yet — plaintext symbols exist from before SES was
+  // introduced. Encrypt them now and clear the plaintext column.
+  const plaintextSymbols = Array.isArray(row.symbols)
+    ? uniqueSymbols(row.symbols.map((v) => String(v ?? "")))
+    : [];
+  await writeWatchlistPostgres(username, plaintextSymbols);
+  return plaintextSymbols;
 }
+
+// ── Postgres write ────────────────────────────────────────────────────────────
+//
+// Always encrypts via SES before writing. The plaintext symbols column is
+// explicitly cleared to ARRAY[]::TEXT[] so no unencrypted data persists.
 
 async function writeWatchlistPostgres(username: string, symbols: string[]): Promise<string[]> {
   await ensurePostgresInitialized();
@@ -320,20 +369,30 @@ async function writeWatchlistPostgres(username: string, symbols: string[]): Prom
   const normalizedUsername = normalizeUsername(username);
   const clean = uniqueSymbols(symbols);
 
+  const envelope = await encryptJsonToEnvelopeObject({
+    value: { symbols: clean },
+    purposeSuffix: watchlistPurposeSuffix(username),
+    actorId: buildSesActorId(username),
+    assetId: buildSesAssetId("watchlist", username),
+  });
+
   await pool.query(
     `
-      INSERT INTO ${WATCHLIST_TABLE_NAME} (username, symbols, updated_at)
-      VALUES ($1, $2::text[], NOW())
+      INSERT INTO ${WATCHLIST_TABLE_NAME} (username, symbols, ses_envelope, updated_at)
+      VALUES ($1, ARRAY[]::TEXT[], $2::jsonb, NOW())
       ON CONFLICT (username)
       DO UPDATE SET
-        symbols = EXCLUDED.symbols,
-        updated_at = NOW()
+        symbols      = ARRAY[]::TEXT[],
+        ses_envelope = EXCLUDED.ses_envelope,
+        updated_at   = NOW()
     `,
-    [normalizedUsername, clean],
+    [normalizedUsername, JSON.stringify(envelope)],
   );
 
   return clean;
 }
+
+// ── File backend read/write ───────────────────────────────────────────────────
 
 async function tryLoadWatchlistFromFiles(username: string): Promise<string[] | null> {
   const paths = await resolveWatchlistPaths(username);
@@ -423,6 +482,8 @@ async function saveWatchlistSymbolsToFileBackend(username: string, symbols: stri
   return { symbols: clean, filePath: paths.sesPath };
 }
 
+// ── Public API ────────────────────────────────────────────────────────────────
+
 export async function loadWatchlistSymbols(username: string): Promise<{ symbols: string[]; filePath: string }> {
   const backend = resolveUserDataBackend();
 
@@ -432,6 +493,7 @@ export async function loadWatchlistSymbols(username: string): Promise<{ symbols:
       return { symbols: fromDb, filePath: postgresSourcePath() };
     }
 
+    // No row yet — migrate from files if available, then bootstrap encrypted.
     const migrated = await tryLoadWatchlistFromFiles(username);
     const initial = uniqueSymbols(migrated ?? []);
     await writeWatchlistPostgres(username, initial);

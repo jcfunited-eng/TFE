@@ -6,8 +6,10 @@ import { Pool } from "pg";
 import {
   buildSesActorId,
   buildSesAssetId,
+  decryptEnvelopeObjectToJson,
   decryptEnvelopeToJson,
   encryptJsonToEnvelope,
+  encryptJsonToEnvelopeObject,
 } from "@/lib/ses-web-blob";
 import { resolveSharedStorageBackend } from "@/lib/user-storage-backend";
 
@@ -28,8 +30,13 @@ const PORTFOLIO_TABLE_NAME = "tfe_portfolio_manual";
 
 type UserDataBackend = "file" | "postgres";
 
+// ses_envelope holds the SES-encrypted ciphertext of the portfolio lots.
+// lots is retained for schema compatibility only; it is cleared to '[]' on
+// the first SES write and must never be read as authoritative once ses_envelope
+// is present.
 type PostgresPortfolioRow = {
   lots: unknown;
+  ses_envelope: unknown;
 };
 
 let postgresPool: Pool | null = null;
@@ -320,12 +327,22 @@ async function ensurePostgresInitialized(): Promise<void> {
   const pool = resolvePostgresPool();
 
   postgresInitPromise = (async () => {
+    // Create table with ses_envelope column for SES-encrypted data.
+    // lots column is kept for schema compatibility and migration; it is
+    // cleared to '[]' on the first SES write and treated as stale thereafter.
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ${PORTFOLIO_TABLE_NAME} (
-        username VARCHAR(64) PRIMARY KEY,
-        lots JSONB NOT NULL DEFAULT '[]'::jsonb,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        username     VARCHAR(64)  PRIMARY KEY,
+        lots         JSONB        NOT NULL DEFAULT '[]'::jsonb,
+        ses_envelope JSONB        NULL,
+        updated_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
       )
+    `);
+
+    // Idempotent column addition for tables created before SES was introduced.
+    await pool.query(`
+      ALTER TABLE ${PORTFOLIO_TABLE_NAME}
+      ADD COLUMN IF NOT EXISTS ses_envelope JSONB NULL
     `);
   })();
 
@@ -337,6 +354,13 @@ async function ensurePostgresInitialized(): Promise<void> {
   }
 }
 
+// ── Postgres read ─────────────────────────────────────────────────────────────
+//
+// Priority:
+//   1. Decrypt ses_envelope if present  — authoritative, SES-protected
+//   2. Migrate plaintext lots to SES    — one-time migration on first read
+//   3. Return empty and write encrypted — bootstraps a new user
+
 async function readLotsPostgres(username: string): Promise<PortfolioLot[] | null> {
   await ensurePostgresInitialized();
   const pool = resolvePostgresPool();
@@ -344,7 +368,7 @@ async function readLotsPostgres(username: string): Promise<PortfolioLot[] | null
 
   const result = await pool.query<PostgresPortfolioRow>(
     `
-      SELECT lots
+      SELECT lots, ses_envelope
       FROM ${PORTFOLIO_TABLE_NAME}
       WHERE username = $1
       LIMIT 1
@@ -354,10 +378,31 @@ async function readLotsPostgres(username: string): Promise<PortfolioLot[] | null
 
   if (result.rows.length === 0) return null;
 
-  const rawLots = result.rows[0]?.lots;
-  const parsed = parseLegacyPortfolioJson(rawLots);
-  return normalizeLots(parsed);
+  const row = result.rows[0];
+
+  // Path 1: SES envelope present — decrypt it.
+  if (row.ses_envelope !== null && row.ses_envelope !== undefined && typeof row.ses_envelope === "object") {
+    const envelope = row.ses_envelope as Record<string, unknown>;
+    const payload = await decryptEnvelopeObjectToJson<{ lots?: unknown }>({
+      envelope,
+      purposeSuffix: portfolioPurposeSuffix(username),
+      actorId: buildSesActorId(username),
+      assetId: buildSesAssetId("portfolio", username),
+    });
+    return normalizeLots(parseEncryptedPayload(payload));
+  }
+
+  // Path 2: No envelope yet — plaintext lots exist from before SES was
+  // introduced. Encrypt them now and clear the plaintext column.
+  const plaintextLots = normalizeLots(parseLegacyPortfolioJson(row.lots));
+  await writeLotsPostgres(username, plaintextLots);
+  return plaintextLots;
 }
+
+// ── Postgres write ────────────────────────────────────────────────────────────
+//
+// Always encrypts via SES before writing. The plaintext lots column is
+// explicitly set to '[]' so no unencrypted data persists in the database.
 
 async function writeLotsPostgres(username: string, lots: PortfolioLot[]): Promise<PortfolioLot[]> {
   await ensurePostgresInitialized();
@@ -365,20 +410,33 @@ async function writeLotsPostgres(username: string, lots: PortfolioLot[]): Promis
   const normalizedUsername = normalizeUsername(username);
   const normalized = normalizeLots(lots);
 
+  const envelope = await encryptJsonToEnvelopeObject({
+    value: {
+      lots: normalized,
+      updatedAt: new Date().toISOString(),
+    },
+    purposeSuffix: portfolioPurposeSuffix(username),
+    actorId: buildSesActorId(username),
+    assetId: buildSesAssetId("portfolio", username),
+  });
+
   await pool.query(
     `
-      INSERT INTO ${PORTFOLIO_TABLE_NAME} (username, lots, updated_at)
-      VALUES ($1, $2::jsonb, NOW())
+      INSERT INTO ${PORTFOLIO_TABLE_NAME} (username, lots, ses_envelope, updated_at)
+      VALUES ($1, '[]'::jsonb, $2::jsonb, NOW())
       ON CONFLICT (username)
       DO UPDATE SET
-        lots = EXCLUDED.lots,
-        updated_at = NOW()
+        lots         = '[]'::jsonb,
+        ses_envelope = EXCLUDED.ses_envelope,
+        updated_at   = NOW()
     `,
-    [normalizedUsername, JSON.stringify(normalized)],
+    [normalizedUsername, JSON.stringify(envelope)],
   );
 
   return normalized;
 }
+
+// ── File backend read/write ───────────────────────────────────────────────────
 
 async function readLotsFromFileBackend(
   username: string,
@@ -460,6 +518,8 @@ async function writeLotsToFileBackend(
   };
 }
 
+// ── Backend router ────────────────────────────────────────────────────────────
+
 async function readLots(username: string): Promise<{ lots: PortfolioLot[]; filePath: string; legacyPath: string }> {
   const backend = resolveUserDataBackend();
 
@@ -473,6 +533,7 @@ async function readLots(username: string): Promise<{ lots: PortfolioLot[]; fileP
       };
     }
 
+    // No row for this user yet — try to migrate from files, then bootstrap.
     const migratedFromFiles = await readLotsFromFileBackend(username, { bootstrapIfMissing: false });
     const initialLots = normalizeLots(migratedFromFiles?.lots ?? []);
     const written = await writeLotsPostgres(username, initialLots);
@@ -508,6 +569,8 @@ async function writeLots(
 
   return writeLotsToFileBackend(username, lots);
 }
+
+// ── Public API ────────────────────────────────────────────────────────────────
 
 export async function loadPortfolioLots(username: string): Promise<{ lots: PortfolioLot[]; filePath: string }> {
   const result = await readLots(username);

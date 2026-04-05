@@ -57,6 +57,20 @@ type DecryptParams = {
   assetId: string;
 } & SesRuntimeOverride;
 
+type EncryptToObjectParams = {
+  value: unknown;
+  purposeSuffix: string;
+  actorId: string;
+  assetId: string;
+} & SesRuntimeOverride;
+
+type DecryptFromObjectParams = {
+  envelope: Record<string, unknown>;
+  purposeSuffix: string;
+  actorId: string;
+  assetId: string;
+} & SesRuntimeOverride;
+
 function normalizeToken(value: string): string {
   return String(value ?? "")
     .trim()
@@ -176,6 +190,8 @@ async function safeDelete(filePath: string): Promise<void> {
   }
 }
 
+// ── File-path-based encrypt/decrypt (file backend) ────────────────────────────
+
 export async function encryptJsonToEnvelope(params: EncryptParams): Promise<void> {
   await ensurePrivateTmpDir();
 
@@ -222,6 +238,81 @@ export async function decryptEnvelopeToJson<T>(params: DecryptParams): Promise<T
     await safeDelete(tempOutput);
   }
 }
+
+// ── Object-based encrypt/decrypt (Postgres backend) ───────────────────────────
+//
+// These functions encrypt to / decrypt from an in-memory SES envelope object
+// rather than a persistent file path. They are used by the Postgres write/read
+// paths in portfolio-store and watchlist-store so that user data is SES-encrypted
+// before it reaches the database — the plaintext never touches the wire.
+//
+// Both functions still route through the Python SES bridge via temp files so that
+// the cryptographic implementation (HKDF key hierarchy, SCE-SIV AEAD, chain of
+// custody) remains identical to the file-backend path.
+
+export async function encryptJsonToEnvelopeObject(params: EncryptToObjectParams): Promise<Record<string, unknown>> {
+  await ensurePrivateTmpDir();
+
+  const tempInput = tempJsonPath("ses-obj-enc-in");
+  const tempOutput = tempJsonPath("ses-obj-enc-out");
+
+  try {
+    await writePrivateJson(tempInput, params.value);
+
+    await runBridge({
+      mode: "encrypt",
+      purposeSuffix: params.purposeSuffix,
+      actorId: params.actorId,
+      assetId: params.assetId,
+      inputPath: tempInput,
+      outputPath: tempOutput,
+      sesEnvironment: params.sesEnvironment,
+      sesRegion: params.sesRegion,
+    });
+
+    const raw = await fs.readFile(tempOutput, "utf-8");
+    const parsed = JSON.parse(raw) as unknown;
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("SES bridge returned non-object envelope.");
+    }
+
+    return parsed as Record<string, unknown>;
+  } finally {
+    await safeDelete(tempInput);
+    await safeDelete(tempOutput);
+  }
+}
+
+export async function decryptEnvelopeObjectToJson<T>(params: DecryptFromObjectParams): Promise<T> {
+  await ensurePrivateTmpDir();
+
+  const tempInput = tempJsonPath("ses-obj-dec-in");
+  const tempOutput = tempJsonPath("ses-obj-dec-out");
+
+  try {
+    await writePrivateJson(tempInput, params.envelope);
+
+    await runBridge({
+      mode: "decrypt",
+      purposeSuffix: params.purposeSuffix,
+      actorId: params.actorId,
+      assetId: params.assetId,
+      inputPath: tempInput,
+      outputPath: tempOutput,
+      sesEnvironment: params.sesEnvironment,
+      sesRegion: params.sesRegion,
+    });
+
+    const raw = await fs.readFile(tempOutput, "utf-8");
+    return JSON.parse(raw) as T;
+  } finally {
+    await safeDelete(tempInput);
+    await safeDelete(tempOutput);
+  }
+}
+
+// ── Path / identity helpers ───────────────────────────────────────────────────
 
 export function buildSesActorId(username: string): string {
   return `web-user:${normalizeToken(username)}`;
