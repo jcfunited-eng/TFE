@@ -8,6 +8,11 @@ RUN npm ci
 
 FROM public.ecr.aws/docker/library/node:22-bookworm-slim AS builder
 
+# Clerk publishable key must be inlined by Next.js at build time.
+# It is a public key by design and safe to pass as a build arg.
+ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=""
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+
 WORKDIR /app/web
 
 COPY --from=deps /app/web/node_modules ./node_modules
