@@ -1764,6 +1764,17 @@ async function enforcePublicationActivationContract(params: {
   }
 
   const beforeRow = await readPublicationActivationRow(params.runId);
+
+  // If the Python refresh script already ran runtime_postgres_sync and
+  // validation_gate successfully, skip re-running them here. Re-running under
+  // heavy post-publication load (concurrent quote_cache_refresh processes) can
+  // cause SIGKILL (OOM) which writes a false "failed" phase truth, causing
+  // every successful refresh to appear as an error.
+  const existingPhaseRows = await loadRuntimeRefreshPhaseLedger(params.runId);
+  const existingPhaseByName = new Map(existingPhaseRows.map((r) => [String(r.phase_name ?? "").trim(), r]));
+  const syncAlreadyOk = publicationCriticalPhaseSucceeded("runtime_postgres_sync", existingPhaseByName.get("runtime_postgres_sync") as Parameters<typeof publicationCriticalPhaseSucceeded>[1]);
+  const validationAlreadyOk = publicationCriticalPhaseSucceeded("validation_gate", existingPhaseByName.get("validation_gate") as Parameters<typeof publicationCriticalPhaseSucceeded>[1]);
+
   const envOverrides: Record<string, string> = {
     TFE_REFRESH_RUN_ID: params.runId,
     TFE_REFRESH_REQUESTED_MODE: resolveActivationRefreshMode(params.report, params.requestedMode),
@@ -1774,19 +1785,23 @@ async function enforcePublicationActivationContract(params: {
     TFE_ALLOW_DEFERRED_QUOTE_CACHE_FALLBACK: "1",
   };
 
-  const syncResult = await runPublicationActivationPhaseScript({
-    runId: params.runId,
-    phaseName: "runtime_postgres_sync",
-    scriptPath: RUNTIME_SYNC_SCRIPT,
-    envOverrides,
-  });
-  const validationResult = syncResult.ok
-    ? await runPublicationActivationPhaseScript({
+  const syncResult: PublicationActivationScriptResult = syncAlreadyOk
+    ? { ok: true, exitCode: 0, exitSignal: null, stdoutTail: "", stderrTail: "", payload: null }
+    : await runPublicationActivationPhaseScript({
         runId: params.runId,
-        phaseName: "validation_gate",
-        scriptPath: VALIDATION_GATE_SCRIPT,
+        phaseName: "runtime_postgres_sync",
+        scriptPath: RUNTIME_SYNC_SCRIPT,
         envOverrides,
-      })
+      });
+  const validationResult: PublicationActivationScriptResult | undefined = syncResult.ok
+    ? (validationAlreadyOk
+        ? { ok: true, exitCode: 0, exitSignal: null, stdoutTail: "", stderrTail: "", payload: null }
+        : await runPublicationActivationPhaseScript({
+            runId: params.runId,
+            phaseName: "validation_gate",
+            scriptPath: VALIDATION_GATE_SCRIPT,
+            envOverrides,
+          }))
     : undefined;
 
   const syncPayloadFields = extractPublicationActivationPayloadFields(syncResult.payload);
