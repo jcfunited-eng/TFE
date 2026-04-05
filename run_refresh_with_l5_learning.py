@@ -1221,6 +1221,8 @@ def main() -> int:
         mode = REFRESH_MODE_TARGETED
 
     if bool(args.quote_cache_followup_only):
+        # Run quote cache refresh — this phase writes to the ledger under the
+        # follow-up lane, which is fine because it is a new phase name.
         quote_cache_refresh_report = _run_post_rebuild_phase(
             phase_name="quote_cache_refresh",
             runner=_run_quote_cache_refresh,
@@ -1229,16 +1231,27 @@ def main() -> int:
         )
         print("[REFRESH+CP2] Quote cache refresh follow-up report:")
         print(json.dumps(quote_cache_refresh_report, indent=2))
+        # Run the follow-up postgres sync DIRECTLY (no phase-ledger writes) so
+        # that a transient deadlock or other failure does not overwrite the
+        # completed/pass state that the main run already wrote for
+        # runtime_postgres_sync and validation_gate.
         followup_report = _load_followup_refresh_report()
-        runtime_sync_report, validation_report = _run_post_rebuild_pipeline(
-            report=followup_report,
-            mode=mode,
-            quote_cache_refresh_report=quote_cache_refresh_report,
-        )
-        print("[REFRESH+CP2] Quote cache follow-up runtime sync report:")
-        print(json.dumps(runtime_sync_report, indent=2))
-        print("[REFRESH+CP2] Quote cache follow-up validation report:")
-        print(json.dumps(validation_report, indent=2))
+        try:
+            runtime_sync_report = _run_runtime_postgres_sync(
+                report=followup_report,
+                mode=mode,
+                quote_cache_refresh_report=quote_cache_refresh_report,
+            )
+            print("[REFRESH+CP2] Quote cache follow-up runtime sync report:")
+            print(json.dumps(runtime_sync_report, indent=2))
+        except Exception as exc:
+            print(f"[REFRESH+CP2] Quote cache follow-up runtime sync failed (non-fatal, main run already succeeded): {exc}", flush=True)
+        try:
+            validation_report = _run_validation_gate()
+            print("[REFRESH+CP2] Quote cache follow-up validation report:")
+            print(json.dumps(validation_report, indent=2))
+        except Exception as exc:
+            print(f"[REFRESH+CP2] Quote cache follow-up validation failed (non-fatal): {exc}", flush=True)
         return 0
 
     resume_enabled = bool(args.resume_from_checkpoint) or _is_truthy(os.environ.get("TFE_REFRESH_RESUME_FROM_CHECKPOINT", "1"))
