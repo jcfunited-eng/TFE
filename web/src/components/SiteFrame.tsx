@@ -1,6 +1,6 @@
 "use client";
 
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { useAuth, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -31,6 +31,7 @@ export default function SiteFrame({
 }: SiteFrameProps) {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const { isSignedIn, isLoaded } = useAuth();
 
   return (
     <div
@@ -87,23 +88,22 @@ export default function SiteFrame({
               </Link>
             </div>
 
-            <SignedOut>
-              <Link
-                href="/sign-in"
-                className="btn btn-ghost"
-                style={{ fontSize: "1.04rem", minHeight: 42, padding: "7px 12px" }}
-              >
-                Sign In
-              </Link>
-            </SignedOut>
-
-            <SignedIn>
-              <UserButton
-                afterSignOutUrl="/sign-in"
-                userProfileMode="navigation"
-                userProfileUrl="/account"
-              />
-            </SignedIn>
+            {isLoaded ? (
+              isSignedIn ? (
+                <UserButton
+                  userProfileMode="navigation"
+                  userProfileUrl="/account"
+                />
+              ) : (
+                <Link
+                  href="/sign-in"
+                  className="btn btn-ghost"
+                  style={{ fontSize: "1.04rem", minHeight: 42, padding: "7px 12px" }}
+                >
+                  Sign In
+                </Link>
+              )
+            ) : null}
           </div>
         </header>
       ) : null}
