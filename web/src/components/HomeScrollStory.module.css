@@ -2360,4 +2360,25 @@
     grid-template-columns: 1fr 1fr;
     gap: 10px;
   }
+
+  /* Act 3 / Act 4 panel layout fix */
+  .actThreePanelReco,
+  .actThreePanelWatch {
+    padding: clamp(16px, 3vw, 28px) clamp(12px, 3vw, 24px);
+    gap: clamp(10px, 2vh, 18px);
+  }
+
+  .actThreePanelHeading {
+    font-size: clamp(1rem, 5vw, 1.3rem);
+    max-width: 90vw;
+  }
+
+  .actThreePanelImg {
+    width: min(95vw, 480px);
+    max-height: clamp(180px, 40vh, 320px);
+  }
+
+  .actThreePanelCaption {
+    font-size: clamp(0.76rem, 3.2vw, 0.9rem);
+  }
 }
