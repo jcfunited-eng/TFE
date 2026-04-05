@@ -1,11 +1,11 @@
 "use client";
 
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-const BASE_NAV_ITEMS = [
+const NAV_ITEMS = [
   { href: "/", label: "Home" },
   { href: "/recommendations", label: "Recommendations" },
   { href: "/screener", label: "Screener" },
@@ -13,15 +13,6 @@ const BASE_NAV_ITEMS = [
   { href: "/portfolio-advisor", label: "Portfolio" },
   { href: "/legal", label: "Legal" },
 ] as const;
-
-const ADMIN_NAV_ITEM = { href: "/admin-console", label: "Admin" } as const;
-
-type SessionPayload = {
-  authenticated?: boolean;
-  user?: {
-    role?: string;
-  };
-};
 
 type SiteFrameProps = {
   children: ReactNode;
@@ -40,45 +31,6 @@ export default function SiteFrame({
 }: SiteFrameProps) {
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadSessionRole() {
-      try {
-        const response = await fetch("/api/auth/session", { cache: "no-store" });
-        if (!response.ok) {
-          if (!cancelled) setIsAdmin(false);
-          return;
-        }
-
-        const payload = (await response.json()) as SessionPayload;
-        const role = String(payload.user?.role ?? "").trim().toLowerCase();
-        if (!cancelled) {
-          setIsAdmin(role === "admin");
-        }
-      } catch {
-        if (!cancelled) {
-          setIsAdmin(false);
-        }
-      }
-    }
-
-    void loadSessionRole();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [pathname]);
-
-  const navItems = useMemo(() => {
-    if (isAdmin) {
-      return [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM];
-    }
-
-    return [...BASE_NAV_ITEMS];
-  }, [isAdmin]);
 
   return (
     <div
@@ -100,10 +52,15 @@ export default function SiteFrame({
           </div>
 
           <nav className="site-nav" aria-label="Primary">
-            {navItems.map((item) => {
+            {NAV_ITEMS.map((item) => {
               const active = pathname === item.href;
               return (
-                <Link key={item.href} href={item.href} className={`site-nav-link ${active ? "active" : ""}`} style={{ fontSize: "1.03rem" }}>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`site-nav-link ${active ? "active" : ""}`}
+                  style={{ fontSize: "1.03rem" }}
+                >
                   {item.label}
                 </Link>
               );
@@ -128,20 +85,25 @@ export default function SiteFrame({
                 </svg>
                 <span className="sr-only">Support</span>
               </Link>
-
-              <Link href="/account" className="site-icon-link site-icon-link-account" title="Account">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="12" cy="12" r="9" />
-                  <circle cx="12" cy="9.3" r="2.6" />
-                  <path d="M7.7 16.9a5.2 5.2 0 0 1 8.6 0" />
-                </svg>
-                <span className="sr-only">Account</span>
-              </Link>
             </div>
 
-            <Link href="/sign-in" className="btn btn-ghost" style={{ fontSize: "1.04rem", minHeight: 42, padding: "7px 12px" }}>
-              Sign In
-            </Link>
+            <SignedOut>
+              <Link
+                href="/sign-in"
+                className="btn btn-ghost"
+                style={{ fontSize: "1.04rem", minHeight: 42, padding: "7px 12px" }}
+              >
+                Sign In
+              </Link>
+            </SignedOut>
+
+            <SignedIn>
+              <UserButton
+                afterSignOutUrl="/sign-in"
+                userProfileMode="navigation"
+                userProfileUrl="/account"
+              />
+            </SignedIn>
           </div>
         </header>
       ) : null}
