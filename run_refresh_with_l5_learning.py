@@ -652,9 +652,9 @@ def _run_profile_overrides_refresh() -> dict[str, Any]:
     run_raw = str(os.environ.get("TFE_REFRESH_BUILD_PROFILE_OVERRIDES", "1")).strip().lower()
     if run_raw in {"0", "false", "no", "off"}:
         return {"status": "skipped", "reason": "disabled_by_env"}
-    workers = _read_env_int("TFE_PROFILE_OVERRIDE_WORKERS", default_value=8, minimum=1)
-    timeout_sec = _read_env_int("TFE_PROFILE_OVERRIDE_TIMEOUT_SEC", default_value=45, minimum=5)
-    save_every = _read_env_int("TFE_PROFILE_OVERRIDE_SAVE_EVERY", default_value=200, minimum=1)
+    workers = _read_env_int("TFE_PROFILE_OVERRIDE_WORKERS", default_value=32, minimum=1)
+    timeout_sec = _read_env_int("TFE_PROFILE_OVERRIDE_TIMEOUT_SEC", default_value=10, minimum=3)
+    save_every = _read_env_int("TFE_PROFILE_OVERRIDE_SAVE_EVERY", default_value=500, minimum=1)
     limit = _read_env_int("TFE_PROFILE_OVERRIDE_LIMIT", default_value=0, minimum=0)
     cmd = [
         sys.executable or "python3", "-u",

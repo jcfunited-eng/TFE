@@ -7,14 +7,15 @@ export const dynamic = "force-dynamic";
 const ALLOWED_KEYS = ["execution_mode", "auto_tfe_enabled", "vault_funded_amount", "risk_per_trade_pct"] as const;
 type ConfigKey = (typeof ALLOWED_KEYS)[number];
 
-async function requireUser(request: NextRequest) {
+async function requireAdminUser(request: NextRequest) {
   const user = await readSessionUserFromRequest(request);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   return null;
 }
 
 export async function GET(request: NextRequest) {
-  const authError = await requireUser(request);
+  const authError = await requireAdminUser(request);
   if (authError) return authError;
 
   const pool = resolveRuntimePostgresPool();
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const authError = await requireUser(request);
+  const authError = await requireAdminUser(request);
   if (authError) return authError;
 
   let body: Partial<Record<ConfigKey, string | boolean | number>>;

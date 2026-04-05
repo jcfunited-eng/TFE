@@ -51,6 +51,7 @@ async function fetchCurrentPrices(tickers: string[]): Promise<Record<string, num
 export async function GET(request: NextRequest) {
   const user = await readSessionUserFromRequest(request);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const pool = resolveRuntimePostgresPool();
   try {

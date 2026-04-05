@@ -139,6 +139,7 @@ async function fetchOpenPositions() {
             entry_filled_at, signal_detected_at
      FROM personal_trade_ledger
      WHERE status IN ('submitted', 'filled')
+       AND (signal_class IS NULL OR signal_class != 'manual')
      ORDER BY created_at ASC`
   );
   return res.rows;

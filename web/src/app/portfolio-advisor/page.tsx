@@ -6,7 +6,8 @@ import { getUiConfig } from "@/lib/ui-config";
 import styles from "./page.module.css";
 
 export default async function PortfolioPage() {
-  await requireServerUser("/portfolio-advisor");
+  const user = await requireServerUser("/portfolio-advisor");
+  const isAdmin = user.role === "admin";
   const config = await getUiConfig();
 
   return (
@@ -14,10 +15,12 @@ export default async function PortfolioPage() {
       <section className="surface-card">
         <h1>Portfolio</h1>
 
-        {/* ── TFE Automated Portfolio Manager ─────────────────────────── */}
-        <div style={{ marginBottom: 40 }}>
-          <PortfolioTFEManager />
-        </div>
+        {/* ── TFE Automated Portfolio Manager — admin only ─────────────── */}
+        {isAdmin && (
+          <div style={{ marginBottom: 40 }}>
+            <PortfolioTFEManager />
+          </div>
+        )}
 
         {/* ── Manual / Scenario Tracker ─────────────────────────────────── */}
         <details style={{ marginTop: 8 }}>

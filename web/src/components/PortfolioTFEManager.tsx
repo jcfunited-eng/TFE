@@ -96,13 +96,15 @@ export default function PortfolioTFEManager() {
   const [fundedInput, setFundedInput]   = useState("");
   const [riskInput, setRiskInput]       = useState("");
 
-  // Manual entry state
-  const [manualTicker, setManualTicker]   = useState("");
-  const [manualShares, setManualShares]   = useState("");
-  const [manualPrice, setManualPrice]     = useState("");
-  const [manualNotes, setManualNotes]     = useState("");
-  const [addingManual, setAddingManual]   = useState(false);
-  const [manualMsg, setManualMsg]         = useState<string | null>(null);
+  // Manual order state
+  const [orderSide, setOrderSide]         = useState<"buy" | "sell">("buy");
+  const [orderTicker, setOrderTicker]     = useState("");
+  const [orderShares, setOrderShares]     = useState("");
+  const [orderType, setOrderType]         = useState<"market" | "limit">("market");
+  const [orderLimitPrice, setOrderLimitPrice] = useState("");
+  const [orderNotes, setOrderNotes]       = useState("");
+  const [placingOrder, setPlacingOrder]   = useState(false);
+  const [orderMsg, setOrderMsg]           = useState<{ text: string; ok: boolean } | null>(null);
 
   const refreshInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -114,16 +116,29 @@ export default function PortfolioTFEManager() {
         fetch("/api/portfolio/pee1-config"),
       ]);
 
+      if (sumRes.status === 401 || sumRes.status === 403) {
+        setError("Access denied — admin account required.");
+        setLoading(false);
+        return;
+      }
+
       if (sumRes.status === 503 || posRes.status === 503) {
         setNotInit(true);
         setLoading(false);
         return;
       }
 
+      // Guard: only call .json() if response has a body
+      const readJson = async (res: Response) => {
+        const text = await res.text();
+        if (!text) throw new Error(`Empty response (status ${res.status})`);
+        return JSON.parse(text) as unknown;
+      };
+
       const [sumData, posData, cfgData] = await Promise.all([
-        sumRes.json() as Promise<PEE1Summary & { error?: string }>,
-        posRes.json() as Promise<{ positions: PEE1Position[]; error?: string }>,
-        cfgRes.json() as Promise<PEE1Config & { error?: string }>,
+        readJson(sumRes) as Promise<PEE1Summary & { error?: string }>,
+        readJson(posRes) as Promise<{ positions: PEE1Position[]; error?: string }>,
+        readJson(cfgRes) as Promise<PEE1Config & { error?: string }>,
       ]);
 
       if (cfgData.error === "tables_not_initialized") { setNotInit(true); setLoading(false); return; }
@@ -191,32 +206,45 @@ export default function PortfolioTFEManager() {
     await saveConfig({ risk_per_trade_pct: n });
   }
 
-  async function addManualTrade() {
-    setManualMsg(null);
-    const ticker = manualTicker.trim().toUpperCase();
-    const shares = parseFloat(manualShares);
-    const price  = parseFloat(manualPrice);
-    if (!ticker || isNaN(shares) || isNaN(price) || shares <= 0 || price <= 0) {
-      setManualMsg("Ticker, shares, and price are required.");
-      return;
+  async function placeManualOrder() {
+    setOrderMsg(null);
+    const ticker = orderTicker.trim().toUpperCase();
+    const shares = parseFloat(orderShares);
+    const limitPrice = orderType === "limit" ? parseFloat(orderLimitPrice) : undefined;
+
+    if (!ticker) { setOrderMsg({ text: "Ticker is required.", ok: false }); return; }
+    if (isNaN(shares) || shares <= 0) { setOrderMsg({ text: "Shares must be a positive number.", ok: false }); return; }
+    if (orderType === "limit" && (!limitPrice || isNaN(limitPrice) || limitPrice <= 0)) {
+      setOrderMsg({ text: "Limit price required for limit orders.", ok: false }); return;
     }
-    setAddingManual(true);
+
+    setPlacingOrder(true);
     try {
-      const res = await fetch("/api/portfolio/pee1-manual-trade", {
+      const res = await fetch("/api/portfolio/pee1-place-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticker, shares, entry_price: price, notes: manualNotes }),
+        body: JSON.stringify({
+          ticker,
+          side: orderSide,
+          shares,
+          order_type: orderType,
+          limit_price: limitPrice,
+          notes: orderNotes,
+        }),
       });
-      const data = await res.json() as { ok?: boolean; error?: string };
+      const data = await res.json() as { ok?: boolean; error?: string; warning?: string; alpaca_status?: string; execution_mode?: string };
       if (data.ok) {
-        setManualTicker(""); setManualShares(""); setManualPrice(""); setManualNotes("");
-        setManualMsg("Position added.");
+        const mode = data.execution_mode === "live" ? "LIVE" : "paper";
+        const status = data.alpaca_status ?? "submitted";
+        const warn = data.warning ? ` ⚠ ${data.warning}` : "";
+        setOrderMsg({ text: `Order ${status} on Alpaca (${mode}).${warn}`, ok: true });
+        setOrderTicker(""); setOrderShares(""); setOrderLimitPrice(""); setOrderNotes("");
         await load();
       } else {
-        setManualMsg(data.error ?? "Failed to add position.");
+        setOrderMsg({ text: data.error ?? "Order failed.", ok: false });
       }
     } finally {
-      setAddingManual(false);
+      setPlacingOrder(false);
     }
   }
 
@@ -442,77 +470,161 @@ export default function PortfolioTFEManager() {
         </div>
       )}
 
-      {/* ── Manual Trade Entry ───────────────────────────────────────────────── */}
+      {/* ── Manual Order ────────────────────────────────────────────────────── */}
       <div className="tfe-panel" style={{ padding: "16px 20px" }}>
-        <h3 style={{ margin: "0 0 14px", fontSize: "0.95rem", fontWeight: 700 }}>Add Position Manually</h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700 }}>Place Manual Order</h3>
+          <span style={{ background: "#64748b", color: "#fff", borderRadius: 4, padding: "1px 7px", fontSize: "0.72rem", fontWeight: 700 }}>MANUAL</span>
+          <span style={{ fontSize: "0.75rem", color: "#9ca3af", marginLeft: 4 }}>Sent directly to Alpaca · not managed by TFE engine</span>
+        </div>
+
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end" }}>
+
+          {/* Buy / Sell toggle */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Side</label>
+            <div style={{ display: "flex", borderRadius: 6, overflow: "hidden", border: "1px solid rgba(0,0,0,0.15)" }}>
+              <button
+                onClick={() => setOrderSide("buy")}
+                style={{
+                  padding: "6px 16px",
+                  border: "none",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                  background: orderSide === "buy" ? "#16a34a" : "#f3f4f6",
+                  color: orderSide === "buy" ? "#fff" : "#6b7280",
+                  transition: "background 0.15s",
+                }}
+              >BUY</button>
+              <button
+                onClick={() => setOrderSide("sell")}
+                style={{
+                  padding: "6px 16px",
+                  border: "none",
+                  borderLeft: "1px solid rgba(0,0,0,0.1)",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                  background: orderSide === "sell" ? "#ef4444" : "#f3f4f6",
+                  color: orderSide === "sell" ? "#fff" : "#6b7280",
+                  transition: "background 0.15s",
+                }}
+              >SELL</button>
+            </div>
+          </div>
+
+          {/* Ticker */}
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Ticker</label>
             <input
-              value={manualTicker}
-              onChange={e => setManualTicker(e.target.value.toUpperCase())}
+              value={orderTicker}
+              onChange={e => setOrderTicker(e.target.value.toUpperCase())}
               placeholder="AAPL"
               style={{ width: 90, padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(0,0,0,0.15)", fontSize: "0.9rem", fontFamily: "var(--font-geist-mono, monospace)", fontWeight: 700 }}
             />
           </div>
+
+          {/* Shares */}
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Shares</label>
             <input
               type="number"
-              value={manualShares}
-              onChange={e => setManualShares(e.target.value)}
+              value={orderShares}
+              onChange={e => setOrderShares(e.target.value)}
               placeholder="10"
               min={0.0001}
               step={1}
               style={{ width: 90, padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(0,0,0,0.15)", fontSize: "0.9rem" }}
             />
           </div>
+
+          {/* Order type toggle */}
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Price Paid ($)</label>
-            <input
-              type="number"
-              value={manualPrice}
-              onChange={e => setManualPrice(e.target.value)}
-              placeholder="150.00"
-              min={0.01}
-              step={0.01}
-              style={{ width: 110, padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(0,0,0,0.15)", fontSize: "0.9rem" }}
-            />
+            <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Type</label>
+            <div style={{ display: "flex", borderRadius: 6, overflow: "hidden", border: "1px solid rgba(0,0,0,0.15)" }}>
+              <button
+                onClick={() => setOrderType("market")}
+                style={{
+                  padding: "6px 12px",
+                  border: "none",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  fontSize: "0.82rem",
+                  background: orderType === "market" ? "#2563eb" : "#f3f4f6",
+                  color: orderType === "market" ? "#fff" : "#6b7280",
+                  transition: "background 0.15s",
+                }}
+              >Market</button>
+              <button
+                onClick={() => setOrderType("limit")}
+                style={{
+                  padding: "6px 12px",
+                  border: "none",
+                  borderLeft: "1px solid rgba(0,0,0,0.1)",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  fontSize: "0.82rem",
+                  background: orderType === "limit" ? "#2563eb" : "#f3f4f6",
+                  color: orderType === "limit" ? "#fff" : "#6b7280",
+                  transition: "background 0.15s",
+                }}
+              >Limit</button>
+            </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 160 }}>
+
+          {/* Limit price (shown only for limit orders) */}
+          {orderType === "limit" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Limit Price ($)</label>
+              <input
+                type="number"
+                value={orderLimitPrice}
+                onChange={e => setOrderLimitPrice(e.target.value)}
+                placeholder="150.00"
+                min={0.01}
+                step={0.01}
+                style={{ width: 110, padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(0,0,0,0.15)", fontSize: "0.9rem" }}
+              />
+            </div>
+          )}
+
+          {/* Notes */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 140 }}>
             <label style={{ fontSize: "0.72rem", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em" }}>Notes (optional)</label>
             <input
-              value={manualNotes}
-              onChange={e => setManualNotes(e.target.value)}
+              value={orderNotes}
+              onChange={e => setOrderNotes(e.target.value)}
               placeholder="Optional notes"
               style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(0,0,0,0.15)", fontSize: "0.88rem" }}
             />
           </div>
+
+          {/* Submit */}
           <button
-            onClick={addManualTrade}
-            disabled={addingManual}
+            onClick={placeManualOrder}
+            disabled={placingOrder}
             style={{
-              padding: "7px 18px",
+              padding: "7px 20px",
               borderRadius: 6,
               border: "none",
-              cursor: "pointer",
-              background: "#2563eb",
+              cursor: placingOrder ? "not-allowed" : "pointer",
+              background: orderSide === "sell" ? "#ef4444" : "#16a34a",
               color: "#fff",
               fontWeight: 700,
               fontSize: "0.85rem",
-              opacity: addingManual ? 0.6 : 1,
+              opacity: placingOrder ? 0.6 : 1,
               height: 36,
+              whiteSpace: "nowrap",
             }}
           >
-            {addingManual ? "Adding..." : "Add Position"}
+            {placingOrder ? "Placing..." : `Place ${orderSide === "sell" ? "Sell" : "Buy"} Order`}
           </button>
         </div>
-        {manualMsg && (
-          <p style={{ margin: "10px 0 0", fontSize: "0.82rem", color: manualMsg.includes("added") ? "#16a34a" : "#ef4444" }}>{manualMsg}</p>
+
+        {orderMsg && (
+          <p style={{ margin: "10px 0 0", fontSize: "0.82rem", color: orderMsg.ok ? "#16a34a" : "#ef4444" }}>{orderMsg.text}</p>
         )}
-        <p style={{ margin: "10px 0 0", fontSize: "0.75rem", color: "#9ca3af" }}>
-          Manually entered positions are tracked in the ledger but NOT automatically managed by TFE unless Auto-TFE re-enters them on a future signal.
-        </p>
       </div>
 
     </div>

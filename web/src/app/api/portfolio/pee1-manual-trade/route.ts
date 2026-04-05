@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   const user = await readSessionUserFromRequest(request);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   let body: { ticker?: string; shares?: number; entry_price?: number; notes?: string };
   try {
