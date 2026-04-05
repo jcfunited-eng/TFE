@@ -191,10 +191,24 @@ function sanitizeStore(raw: unknown): UserStore {
 }
 
 function defaultStore(): UserStore {
-  const adminUsername = normalizeUsername(process.env.TFE_ADMIN_USERNAME ?? "admin") || "admin";
-  const adminPassword = String(process.env.TFE_ADMIN_PASSWORD ?? "admin-change-me");
-  const memberUsername = normalizeUsername(process.env.TFE_USER_USERNAME ?? "member") || "member";
-  const memberPassword = String(process.env.TFE_USER_PASSWORD ?? "member-change-me");
+  // Bootstrap usernames: override via TFE_ADMIN_USERNAME / TFE_USER_USERNAME.
+  // Defaults are non-obvious to reduce credential-stuffing exposure on fresh deploys.
+  const adminUsername = normalizeUsername(process.env.TFE_ADMIN_USERNAME ?? "tao_admin") || "tao_admin";
+  const memberUsername = normalizeUsername(process.env.TFE_USER_USERNAME ?? "tao_member") || "tao_member";
+
+  // Bootstrap passwords: TFE_ADMIN_PASSWORD / TFE_USER_PASSWORD MUST be set via
+  // the ECS task definition secrets. If absent the account is bootstrapped with an
+  // empty-string password hash which cannot authenticate (authenticateUser rejects
+  // empty passwords), effectively locking the account until the env var is provided.
+  const adminPassword = String(process.env.TFE_ADMIN_PASSWORD ?? "");
+  const memberPassword = String(process.env.TFE_USER_PASSWORD ?? "");
+
+  if (!adminPassword) {
+    console.error(
+      "[TFE-SECURITY] TFE_ADMIN_PASSWORD is not set. The bootstrap admin account will be " +
+      "inaccessible until this variable is configured in the ECS task definition.",
+    );
+  }
 
   return {
     version: 1,

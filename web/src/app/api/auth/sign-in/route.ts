@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { authenticateUser } from "@/lib/user-store";
 import { createSessionToken, sanitizeNextPath, setSessionCookie } from "@/lib/auth-session";
 import { buildExternalUrl } from "@/lib/external-url";
-import { isAdminMfaEnabled, verifyAdminTotpCode } from "@/lib/mfa";
+import { isAdminMfaEnabled, verifyAdminTotpCode, warnIfAdminMfaNotConfigured } from "@/lib/mfa";
 
 type CredentialsInput = {
   username: string;
@@ -101,6 +101,10 @@ export async function POST(request: Request) {
 
   if (!user) {
     return resolveFailureResponse(request, nextPath, mode, "invalid_credentials");
+  }
+
+  if (user.role === "admin") {
+    warnIfAdminMfaNotConfigured();
   }
 
   const requiresAdminMfa = user.role === "admin" && isAdminMfaEnabled();

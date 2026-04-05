@@ -58,13 +58,37 @@ export function isAdminMfaEnabled(): boolean {
   return readAdminMfaTotpSecret().length > 0;
 }
 
+/**
+ * Emits a CloudWatch-visible error if admin MFA is not configured.
+ * Call this from any admin-gated path (e.g. sign-in) to ensure the gap
+ * is surfaced in logs even though sign-in still proceeds (fail-open by design
+ * until TFE_ADMIN_MFA_TOTP_SECRET is provisioned in the task definition).
+ */
+export function warnIfAdminMfaNotConfigured(): void {
+  if (!isAdminMfaEnabled()) {
+    console.error(
+      "[TFE-SECURITY] Admin MFA is not configured. " +
+      "Set TFE_ADMIN_MFA_TOTP_SECRET in the ECS task definition to enforce TOTP " +
+      "for all admin logins. Until then admin accounts sign in with password only.",
+    );
+  }
+}
+
 export function normalizeMfaCode(value: unknown): string {
   return String(value ?? "").replace(/\s+/g, "").trim();
 }
 
 export function verifyAdminTotpCode(code: unknown): boolean {
   const secretText = readAdminMfaTotpSecret();
-  if (!secretText) return true;
+  if (!secretText) {
+    // MFA not configured — fail-open with a loud error so the gap is visible in
+    // CloudWatch logs. Replace with fail-closed by setting TFE_ADMIN_MFA_TOTP_SECRET.
+    console.error(
+      "[TFE-SECURITY] verifyAdminTotpCode called with no MFA secret configured. " +
+      "Admin sign-in is proceeding without TOTP enforcement.",
+    );
+    return true;
+  }
 
   const normalizedCode = normalizeMfaCode(code);
   if (!/^\d{6}$/.test(normalizedCode)) return false;

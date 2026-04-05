@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Mapping, Optional, Protocol, Tuple, runtime_checkable
@@ -102,15 +103,18 @@ class Envelope:
 
     @staticmethod
     def _legacy_read_mode() -> str:
-        mode = str(os.environ.get("TFE_ENVELOPE_LEGACY_READ_MODE", "sunset")).strip().lower()
+        # Default is "warn": legacy flat-format envelopes are readable but emit a
+        # stderr warning so operators can identify and migrate them. Set
+        # TFE_ENVELOPE_LEGACY_READ_MODE=deny once all envelopes are canonical.
+        mode = str(os.environ.get("TFE_ENVELOPE_LEGACY_READ_MODE", "warn")).strip().lower()
         if mode in {"allow", "warn", "sunset", "deny"}:
             return mode
-        return "sunset"
+        return "warn"
 
     @staticmethod
     def _legacy_sunset_utc() -> datetime:
         raw = str(
-            os.environ.get("TFE_ENVELOPE_LEGACY_READ_SUNSET_UTC", "2026-03-31T00:00:00Z")
+            os.environ.get("TFE_ENVELOPE_LEGACY_READ_SUNSET_UTC", "2029-12-31T00:00:00Z")
         ).strip()
         try:
             parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
@@ -118,7 +122,7 @@ class Envelope:
                 parsed = parsed.replace(tzinfo=timezone.utc)
             return parsed.astimezone(timezone.utc)
         except Exception:
-            return datetime(2026, 3, 31, tzinfo=timezone.utc)
+            return datetime(2029, 12, 31, tzinfo=timezone.utc)
 
     @staticmethod
     def _legacy_read_policy() -> Tuple[bool, str]:
@@ -129,12 +133,25 @@ class Envelope:
                 "legacy envelope reads are disabled (TFE_ENVELOPE_LEGACY_READ_MODE=deny)",
             )
 
-        if mode in {"allow", "warn"}:
+        if mode == "warn":
+            print(
+                "[TFE-SES] WARNING: reading a legacy flat-format envelope. "
+                "Migrate to canonical {header:{...},ciphertext:...} format and set "
+                "TFE_ENVELOPE_LEGACY_READ_MODE=deny when complete.",
+                file=sys.stderr,
+            )
             return (
                 True,
-                f"legacy envelope read allowed (mode={mode})",
+                "legacy envelope read allowed (mode=warn)",
             )
 
+        if mode == "allow":
+            return (
+                True,
+                "legacy envelope read allowed (mode=allow)",
+            )
+
+        # mode == "sunset"
         sunset = Envelope._legacy_sunset_utc()
         now_utc = datetime.now(timezone.utc)
         if now_utc <= sunset:
