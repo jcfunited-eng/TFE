@@ -276,9 +276,7 @@ export async function POST(request: Request) {
   const incomingSymbols = normalizeSymbols(body.symbols);
 
   try {
-    const existing = await loadWatchlistSymbols(sessionUser.username);
-    const mergedSymbols = Array.from(new Set([...existing.symbols, ...incomingSymbols]));
-    const saved = await saveWatchlistSymbols(sessionUser.username, mergedSymbols);
+    const saved = await saveWatchlistSymbols(sessionUser.username, incomingSymbols);
 
     return NextResponse.json({
       symbols: saved.symbols,
