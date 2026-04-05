@@ -2114,9 +2114,16 @@
 
 /* ── Phone breakpoint (≤ 640px) ────────────────────────────────────────────── */
 @media (max-width: 640px) {
+  /* Chapter needs more room so control rail isn't clipped */
   .chapter {
-    padding: 72px 14px 80px;
+    padding: 64px 14px 16px;
     align-items: flex-start;
+  }
+
+  /* Jeton chapter specifically: even less bottom padding since
+     the control rail lives inside jetonStage, not below it */
+  .chapterJeton {
+    padding-bottom: 8px;
   }
 
   /* Hero */
@@ -2192,12 +2199,14 @@
     font-size: clamp(2rem, 14vw, 3.2rem);
   }
 
-  /* Jeton / acts */
+  /* ── Jeton / acts ───────────────────────────────────────────────────────── */
+  /* Stage fills the chapter minus its own padding — no overflow clip */
   .jetonStage {
-    min-height: calc(100svh - 120px);
-    padding-top: 12px;
+    min-height: calc(100svh - 80px);
+    padding: 8px 8px 72px; /* bottom pad reserves space for the control rail */
   }
 
+  /* All shell variants: full width, single column, no overflow */
   .jetonResearchShell,
   .jetonResearchShellActOne,
   .jetonResearchShellActTwo,
@@ -2209,38 +2218,11 @@
     overflow: hidden;
   }
 
-  .jetonResearchShellActTwo {
-    min-height: clamp(480px, 72vh, 720px);
-    --act-two-image-width: clamp(200px, 54vw, 300px);
-    --act-two-image-right: 8px;
-  }
-
-  .jetonResearchShellActThree {
-    min-height: clamp(540px, 78vh, 820px);
-    --act-three-text-center-x: 50%;
-    --act-three-text-width: min(86vw, 320px);
-    --act-three-art-left: 50%;
-    --act-three-art-top: 46%;
-    --act-three-art-width: min(28vw, 180px);
-    --act-three-art-height: clamp(80px, 11vh, 130px);
-  }
-
-  .jetonResearchShellActFour {
-    min-height: clamp(540px, 78vh, 820px);
-    --act-four-text-center-x: 50%;
-    --act-four-text-width: min(86vw, 320px);
-    --act-four-art-left: calc(50% - 3.2in);
-    --act-four-art-top: 46%;
-    --act-four-art-width: min(290vw, 1600px);
-    --act-four-art-height: clamp(900px, 130vh, 1400px);
-  }
-
-  .jetonResearchHeader h3 {
-    font-size: clamp(1.4rem, 8.5vw, 1.9rem);
-  }
-
-  .jetonResearchScreen {
-    max-height: clamp(200px, 38vh, 320px);
+  /* Act 1 */
+  .jetonResearchShellActOne {
+    min-height: auto;
+    gap: 10px;
+    align-items: start;
   }
 
   .actOneCopyWrap {
@@ -2257,55 +2239,106 @@
     transform: none;
   }
 
+  .jetonResearchScreenActOne {
+    width: 100%;
+    max-height: clamp(180px, 34vh, 280px);
+  }
+
   .actOneDailyScanText {
+    position: relative;
+    top: auto;
+    right: auto;
+    transform: none;        /* was translateX(88px / 56px) — pushed off-screen */
+    margin-top: 6px;
     font-size: clamp(1.05rem, 5.6vw, 1.5rem);
-    transform: translateX(56px);
+  }
+
+  /* Act 2 */
+  .jetonResearchShellActTwo {
+    min-height: clamp(440px, 68vh, 680px);
+    --act-two-image-width: clamp(180px, 48vw, 270px);
+    --act-two-image-right: 6px;
+  }
+
+  .jetonResearchScreen {
+    max-height: clamp(180px, 34vh, 300px);
   }
 
   .actTwoResearchOnlyText {
-    top: clamp(48px, 7vh, 72px);
-    right: 8px;
-    max-width: clamp(200px, 72vw, 290px);
-    font-size: clamp(1rem, 5.2vw, 1.3rem);
+    top: clamp(40px, 6vh, 64px);
+    right: 6px;
+    max-width: clamp(180px, 68vw, 270px);
+    font-size: clamp(0.96rem, 5vw, 1.24rem);
   }
 
+  /* Brokage text was using right: image-width+20px which overflowed.
+     Pin it to the left side of the screen instead. */
   .actTwoBrokageText {
-    top: clamp(120px, 18vh, 175px);
-    max-width: clamp(150px, 50vw, 240px);
-    font-size: clamp(0.94rem, 4.4vw, 1.2rem);
+    top: clamp(110px, 17vh, 165px);
+    right: auto;
+    left: 8px;
+    max-width: clamp(140px, 46vw, 220px);
+    font-size: clamp(0.9rem, 4.2vw, 1.14rem);
+  }
+
+  .actTwoBrokageText::before {
+    width: calc(100% + 4ch);
   }
 
   .actTwoCoinFlipWrap {
-    top: clamp(220px, 40vh, 310px);
-    right: 10px;
+    top: clamp(200px, 36vh, 290px);
+    right: 8px;
   }
 
   .actTwoCoinFlipResult {
-    max-width: clamp(190px, 68vw, 290px);
-    font-size: clamp(1rem, 4.8vw, 1.3rem);
+    max-width: clamp(170px, 64vw, 270px);
+    font-size: clamp(0.96rem, 4.6vw, 1.24rem);
   }
 
-  .actThreeIntroText,
-  .actThreeWatchlistCopy {
-    font-size: clamp(0.96rem, 4.8vw, 1.3rem);
-    line-height: 1.44;
+  /* Acts 3 & 4 — full-panel centered layout */
+  .jetonResearchShellActThree,
+  .jetonResearchShellActFour {
+    min-height: clamp(420px, 68vh, 680px);
+    position: relative;
   }
 
-  .actThreeUnbiasedText,
-  .actThreeMaintainText {
-    width: min(84vw, 460px);
-    font-size: clamp(0.92rem, 4.4vw, 1.2rem);
+  .actThreePanelReco,
+  .actThreePanelWatch {
+    padding: 16px 12px;
+    gap: clamp(8px, 1.8vh, 16px);
+    justify-content: center;
   }
 
-  .actFourIntroText {
-    font-size: clamp(0.96rem, 4.8vw, 1.3rem);
-    line-height: 1.44;
+  .actThreePanelHeading {
+    font-size: clamp(1rem, 5vw, 1.28rem);
+    max-width: 92vw;
+    text-align: center;
   }
 
-  .actFourOverlineText {
-    font-size: clamp(0.92rem, 4.4vw, 1.2rem);
+  .actThreePanelImg {
+    width: min(92vw, 460px);
+    max-height: clamp(160px, 36vh, 300px);
+    object-fit: contain;
   }
 
+  .actThreePanelCaption {
+    font-size: clamp(0.74rem, 3vw, 0.9rem);
+    text-align: center;
+  }
+
+  /* Act 4 panel reuses actThreePanelHeading/Img/Caption classes */
+  .actFourPanel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 1.8vh, 16px);
+    padding: 16px 12px;
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Chapter 4 (chapterFour, not act four) */
   .chapterFourNeonCopy {
     top: clamp(44px, 7vh, 80px);
     right: 8px;
@@ -2318,30 +2351,38 @@
     left: calc(50% + 44px);
   }
 
-  /* Nav controls */
+  /* ── Act navigation controls ────────────────────────────────────────────── */
+  /* Position rail at the bottom of jetonStage (which has bottom padding:72px
+     reserved), so it's always within view and never clipped by chapter overflow */
   .jetonControlRail {
-    left: 4px;
-    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);  /* centre horizontally on phone */
+    bottom: 10px;
+  }
+
+  .jetonStepDots {
+    gap: 4px;
+    justify-content: center;
   }
 
   .jetonStepDotGlass {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
   }
 
   .jetonRestartDotGlass {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
   }
 
   .jetonPauseButton {
-    min-width: 64px;
-    height: 42px;
-    font-size: 0.72rem;
+    min-width: 60px;
+    height: 40px;
+    font-size: 0.7rem;
     padding: 0 8px;
   }
 
-  /* Chapter text panels */
+  /* ── Chapter text panels (non-jeton chapters) ───────────────────────────── */
   .chapterPanel,
   .chapterPanelWide {
     width: calc(100vw - 28px);
@@ -2361,24 +2402,7 @@
     gap: 10px;
   }
 
-  /* Act 3 / Act 4 panel layout fix */
-  .actThreePanelReco,
-  .actThreePanelWatch {
-    padding: clamp(16px, 3vw, 28px) clamp(12px, 3vw, 24px);
-    gap: clamp(10px, 2vh, 18px);
-  }
-
-  .actThreePanelHeading {
-    font-size: clamp(1rem, 5vw, 1.3rem);
-    max-width: 90vw;
-  }
-
-  .actThreePanelImg {
-    width: min(95vw, 480px);
-    max-height: clamp(180px, 40vh, 320px);
-  }
-
-  .actThreePanelCaption {
-    font-size: clamp(0.76rem, 3.2vw, 0.9rem);
+  .jetonResearchHeader h3 {
+    font-size: clamp(1.35rem, 8vw, 1.85rem);
   }
 }
