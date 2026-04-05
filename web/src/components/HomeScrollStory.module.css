@@ -36,6 +36,13 @@
   background: var(--story-bg-image, url("/landing-zen.jpg")) center / cover no-repeat fixed;
 }
 
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari: background-attachment:fixed is broken — fall back to scroll */
+  .chapterHero {
+    background-attachment: scroll;
+  }
+}
+
 .chapterHero::before {
   background:
     linear-gradient(112deg, rgba(8, 20, 15, 0.08) 0%, rgba(8, 20, 15, 0.03) 56%, rgba(8, 20, 15, 0.02) 100%),
@@ -92,6 +99,12 @@
   background:
     linear-gradient(132deg, rgba(14, 12, 10, 0.44) 0%, rgba(18, 15, 12, 0.38) 52%, rgba(16, 13, 11, 0.36) 100%),
     url("/uploads/home-story-2-library.png") center / cover no-repeat fixed;
+}
+
+@supports (-webkit-touch-callout: none) {
+  .chapterSignals {
+    background-attachment: scroll;
+  }
 }
 
 .chapterSignals::before {
@@ -263,6 +276,12 @@
 
 .chapterJeton {
   background: url("/uploads/AdminPage.jpeg") center / cover no-repeat fixed;
+}
+
+@supports (-webkit-touch-callout: none) {
+  .chapterJeton {
+    background-attachment: scroll;
+  }
 }
 
 .chapterJeton::before {
@@ -2090,5 +2109,255 @@
 
   .footerInner {
     grid-template-columns: repeat(auto-fit, minmax(144px, 1fr));
+  }
+}
+
+/* ── Phone breakpoint (≤ 640px) ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .chapter {
+    padding: 72px 14px 80px;
+    align-items: flex-start;
+  }
+
+  /* Hero */
+  .heroContent {
+    transform: translateY(-40px);
+    padding: 0 4px;
+  }
+
+  .heroContent h1 {
+    font-size: clamp(2.1rem, 11.5vw, 3rem);
+    line-height: 0.95;
+  }
+
+  .heroTagline {
+    font-size: clamp(1.05rem, 6.2vw, 1.4rem);
+    margin-top: 12px;
+    -webkit-text-stroke: 0.36px rgba(74, 37, 3, 0.95);
+  }
+
+  /* Signals chapter */
+  .signalImageCard {
+    width: clamp(120px, 38vw, 180px);
+  }
+
+  .signalTicker,
+  .signalBarIntegrity {
+    width: clamp(160px, 52vw, 230px);
+  }
+
+  .signalFromNorthWest {
+    top: 6%;
+    left: 0;
+    --mid-x: 38vw;
+    --mid-y: 16vh;
+    --out-x: 40vw;
+    --out-y: 14vh;
+  }
+
+  .signalFromNorthEast {
+    top: 6%;
+    right: 0;
+    --mid-x: -38vw;
+    --mid-y: 16vh;
+    --out-x: -40vw;
+    --out-y: 14vh;
+  }
+
+  .signalFromWest {
+    top: 40%;
+    left: 0;
+    --mid-x: 40vw;
+    --mid-y: -2vh;
+    --out-x: 42vw;
+    --out-y: -6vh;
+  }
+
+  .signalFromEast {
+    top: 40%;
+    right: 0;
+    --mid-x: -40vw;
+    --mid-y: -2vh;
+    --out-x: -42vw;
+    --out-y: -6vh;
+  }
+
+  .signalFromSouth {
+    bottom: 4%;
+    --mid-y: -18vh;
+    --out-y: -22vh;
+  }
+
+  .wordPulse {
+    font-size: clamp(2rem, 14vw, 3.2rem);
+  }
+
+  /* Jeton / acts */
+  .jetonStage {
+    min-height: calc(100svh - 120px);
+    padding-top: 12px;
+  }
+
+  .jetonResearchShell,
+  .jetonResearchShellActOne,
+  .jetonResearchShellActTwo,
+  .jetonResearchShellActThree,
+  .jetonResearchShellActFour {
+    width: calc(100vw - 16px);
+    grid-template-columns: 1fr;
+    gap: 8px;
+    overflow: hidden;
+  }
+
+  .jetonResearchShellActTwo {
+    min-height: clamp(480px, 72vh, 720px);
+    --act-two-image-width: clamp(200px, 54vw, 300px);
+    --act-two-image-right: 8px;
+  }
+
+  .jetonResearchShellActThree {
+    min-height: clamp(540px, 78vh, 820px);
+    --act-three-text-center-x: 50%;
+    --act-three-text-width: min(86vw, 320px);
+    --act-three-art-left: 50%;
+    --act-three-art-top: 46%;
+    --act-three-art-width: min(28vw, 180px);
+    --act-three-art-height: clamp(80px, 11vh, 130px);
+  }
+
+  .jetonResearchShellActFour {
+    min-height: clamp(540px, 78vh, 820px);
+    --act-four-text-center-x: 50%;
+    --act-four-text-width: min(86vw, 320px);
+    --act-four-art-left: calc(50% - 3.2in);
+    --act-four-art-top: 46%;
+    --act-four-art-width: min(290vw, 1600px);
+    --act-four-art-height: clamp(900px, 130vh, 1400px);
+  }
+
+  .jetonResearchHeader h3 {
+    font-size: clamp(1.4rem, 8.5vw, 1.9rem);
+  }
+
+  .jetonResearchScreen {
+    max-height: clamp(200px, 38vh, 320px);
+  }
+
+  .actOneCopyWrap {
+    transform: none;
+    padding-top: 0;
+  }
+
+  .actOneNarrativeText {
+    font-size: clamp(0.96rem, 4.4vw, 1.14rem);
+    line-height: 1.6;
+  }
+
+  .actOneImageWrap {
+    transform: none;
+  }
+
+  .actOneDailyScanText {
+    font-size: clamp(1.05rem, 5.6vw, 1.5rem);
+    transform: translateX(56px);
+  }
+
+  .actTwoResearchOnlyText {
+    top: clamp(48px, 7vh, 72px);
+    right: 8px;
+    max-width: clamp(200px, 72vw, 290px);
+    font-size: clamp(1rem, 5.2vw, 1.3rem);
+  }
+
+  .actTwoBrokageText {
+    top: clamp(120px, 18vh, 175px);
+    max-width: clamp(150px, 50vw, 240px);
+    font-size: clamp(0.94rem, 4.4vw, 1.2rem);
+  }
+
+  .actTwoCoinFlipWrap {
+    top: clamp(220px, 40vh, 310px);
+    right: 10px;
+  }
+
+  .actTwoCoinFlipResult {
+    max-width: clamp(190px, 68vw, 290px);
+    font-size: clamp(1rem, 4.8vw, 1.3rem);
+  }
+
+  .actThreeIntroText,
+  .actThreeWatchlistCopy {
+    font-size: clamp(0.96rem, 4.8vw, 1.3rem);
+    line-height: 1.44;
+  }
+
+  .actThreeUnbiasedText,
+  .actThreeMaintainText {
+    width: min(84vw, 460px);
+    font-size: clamp(0.92rem, 4.4vw, 1.2rem);
+  }
+
+  .actFourIntroText {
+    font-size: clamp(0.96rem, 4.8vw, 1.3rem);
+    line-height: 1.44;
+  }
+
+  .actFourOverlineText {
+    font-size: clamp(0.92rem, 4.4vw, 1.2rem);
+  }
+
+  .chapterFourNeonCopy {
+    top: clamp(44px, 7vh, 80px);
+    right: 8px;
+    max-width: min(88vw, 380px);
+    font-size: clamp(0.82rem, 4vw, 0.98rem);
+    line-height: 1.42;
+  }
+
+  .chapterFourReplayGlassButton {
+    left: calc(50% + 44px);
+  }
+
+  /* Nav controls */
+  .jetonControlRail {
+    left: 4px;
+    bottom: 6px;
+  }
+
+  .jetonStepDotGlass {
+    width: 50px;
+    height: 50px;
+  }
+
+  .jetonRestartDotGlass {
+    width: 60px;
+    height: 60px;
+  }
+
+  .jetonPauseButton {
+    min-width: 64px;
+    height: 42px;
+    font-size: 0.72rem;
+    padding: 0 8px;
+  }
+
+  /* Chapter text panels */
+  .chapterPanel,
+  .chapterPanelWide {
+    width: calc(100vw - 28px);
+    padding: clamp(20px, 4vw, 32px);
+  }
+
+  .chapterPanel h2 {
+    font-size: clamp(1.5rem, 8vw, 2.1rem);
+  }
+
+  .chapterPanel p {
+    font-size: clamp(0.95rem, 4.2vw, 1.08rem);
+  }
+
+  .footerInner {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
 }
