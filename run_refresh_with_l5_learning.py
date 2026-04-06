@@ -1392,6 +1392,19 @@ def main() -> int:
         print(f"[REFRESH+CP2] Fundamentals gap-fill failed (non-fatal): {_bf_exc}", flush=True)
 
     _clear_resume_checkpoint(mode=mode, reason="completed_successfully")
+
+    # Auto-fire PEE-1 after every successful refresh.
+    # PEE-1 checks auto_tfe_enabled internally — if OFF, it logs signals only.
+    try:
+        import subprocess as _sp, pathlib as _pl3
+        _pee1_script = _pl3.Path(__file__).resolve().parent / "web" / "scripts" / "execution" / "pee1_runner.mjs"
+        _node_bin = __import__("os").environ.get("TFE_NODE_BIN", "node")
+        _env = {**__import__("os").environ, "PGSSLMODE": "require"}
+        _pee1 = _sp.Popen([_node_bin, str(_pee1_script)], env=_env, stdin=_sp.DEVNULL, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL, start_new_session=True)
+        print(f"[REFRESH+PEE1] Execution engine launched (pid={_pee1.pid}).", flush=True)
+    except Exception as _pee1_exc:
+        print(f"[REFRESH+PEE1] Failed to launch execution engine (non-fatal): {_pee1_exc}", flush=True)
+
     return 0
 
 
