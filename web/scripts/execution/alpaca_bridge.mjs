@@ -497,6 +497,202 @@ export async function executeBracketOrder(signal, opts = {}) {
   };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Chapter 2 — Mid S_UF Acceleration Layer
+// Independent execution path. Does NOT modify or share logic with 3WA above.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Dynamic Expectancy Multiplier sizing (derived from structural_episodes.csv):
+//   Chapter 1 (3WA sustained): win_rate=0.725, avg_return=0.220 → edge=0.1595
+//   Chapter 2 (mid S_UF):      win_rate=0.649, avg_return=0.150 → edge=0.0974
+//   Multiplier = 0.0974 / 0.1595 = 0.611
+//   Ch2 risk pct = 1.5% (3WA base) × 0.611 = 0.917%
+const CH2_RISK_PCT         = 0.917; // derived expectancy multiplier: 0.611 × 3WA base
+const CH2_TAKE_PROFIT_MULT = 1.0;   // tighter TP: median hold ~91 bars, not 223
+const CH2_STOP_LOSS_MULT   = 1.0;   // same SL distance
+
+/**
+ * Validate a Ch2 signal. Binary — every check must pass or the trade fails.
+ */
+function validateCh2Signal(signal) {
+  const check = (condition, reason) => condition ? null : reason;
+
+  const failures = [
+    check(signal != null && typeof signal === "object",                                "signal_null_or_not_object"),
+    check(typeof signal.ticker === "string" && signal.ticker.trim().length > 0,        "ticker_missing"),
+    check(typeof signal.run_id === "string" && signal.run_id.trim().length > 0,        "run_id_missing"),
+    check(signal.signal_class === "CH2",                                               `signal_class_not_ch2:${signal.signal_class}`),
+    check(typeof signal.s_uf === "number" && signal.s_uf >= 0.50 && signal.s_uf < 0.75, `s_uf_out_of_ch2_band:${signal.s_uf}`),
+    check(signal.d_k === 1,                                                            `d_k_not_1:${signal.d_k}`),
+    check(typeof signal.bar_count === "number" && signal.bar_count > 20,               `bar_count_not_established:${signal.bar_count}`),
+    check(signal.regime === "TRANSITIONAL",                                            `regime_not_transitional:${signal.regime}`),
+  ].filter(Boolean);
+
+  if (failures.length > 0) {
+    return { valid: false, reason: failures.join("; ") };
+  }
+  return { valid: true };
+}
+
+/**
+ * Validate, size, and place a bracket order for a Ch2 signal.
+ * Mirrors executeBracketOrder() structure but uses Ch2-specific parameters.
+ *
+ * @param {Object} signal — from ch2_strategist, must include:
+ *   { ticker, run_id, signal_class, s_uf, d_k, bar_count, regime, f_n, b_k }
+ * @returns {Promise<{ok: boolean, orderId?: string, ledgerId?: number, ...}>}
+ */
+export async function executeCh2BracketOrder(signal) {
+  const ticker  = String(signal?.ticker ?? "").trim().toUpperCase();
+  const riskPct = Math.min(CH2_RISK_PCT, MAX_SINGLE_TRADE_PCT);
+
+  const executionMode = await readExecutionMode();
+  const BASE = alpacaBaseUrl(executionMode);
+  console.log(`[CH2-BRIDGE] Execution mode: ${executionMode.toUpperCase()} | base=${BASE}`);
+
+  // Step 1: validate
+  const validation = validateCh2Signal(signal);
+  if (!validation.valid) {
+    return rejectSignal(signal, validation.reason);
+  }
+  console.log(`[CH2-BRIDGE] Signal validated: ${ticker} | class=${signal.signal_class} | s_uf=${signal.s_uf} | D_k=${signal.d_k}`);
+
+  let vaultEquity, currentPrice, atr;
+  try {
+    [vaultEquity, currentPrice, atr] = await Promise.all([
+      fetchAccountEquity(BASE),
+      fetchLatestPrice(ticker),
+      computeATR(ticker),
+    ]);
+  } catch (err) {
+    return rejectSignal(signal, `market_data_fetch_failed: ${err.message}`);
+  }
+
+  if (currentPrice < MIN_SHARE_PRICE) {
+    return rejectSignal(signal, `price_below_minimum: ${currentPrice} < ${MIN_SHARE_PRICE}`);
+  }
+
+  const dollarAllocation = vaultEquity * (riskPct / 100);
+  const shares           = Math.floor(dollarAllocation / currentPrice);
+  if (shares < MIN_SHARES) {
+    return rejectSignal(signal, `shares_below_minimum: allocation=${dollarAllocation.toFixed(2)} price=${currentPrice} shares=${shares}`);
+  }
+
+  const entryPrice      = parseFloat(currentPrice.toFixed(2));
+  const takeProfitPrice = parseFloat((entryPrice + CH2_TAKE_PROFIT_MULT * atr).toFixed(2));
+  const stopLossPrice   = parseFloat((entryPrice - CH2_STOP_LOSS_MULT   * atr).toFixed(2));
+
+  if (stopLossPrice <= 0) {
+    return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice} (ATR=${atr.toFixed(4)})`);
+  }
+
+  console.log(`[CH2-BRIDGE] ${ticker} | shares=${shares} | entry=${entryPrice} | TP=${takeProfitPrice} | SL=${stopLossPrice} | ATR=${atr.toFixed(4)}`);
+
+  let ledgerId;
+  try {
+    ledgerId = await ledgerInsert({
+      ticker,
+      run_id:            signal.run_id,
+      signal_class:      "CH2",
+      spy_dk:            null,
+      s_uf:              signal.s_uf,
+      bar_count:         signal.bar_count,
+      f_n:               signal.f_n ?? null,
+      d_k:               signal.d_k,
+      b_k:               signal.b_k ?? null,
+      vault_equity:      vaultEquity,
+      risk_per_trade_pct: riskPct,
+      dollar_allocation: dollarAllocation,
+      shares,
+      atr_14:            atr,
+      entry_limit_price: entryPrice,
+      take_profit_price: takeProfitPrice,
+      stop_loss_price:   stopLossPrice,
+      status:            "pending",
+      rationale_json: {
+        chapter:          2,
+        regime:           signal.regime,
+        s_uf:             signal.s_uf,
+        d_k:              signal.d_k,
+        bar_count:        signal.bar_count,
+        exit_trigger_a:   "s_uf >= 0.75",
+        exit_trigger_b:   "d_k != 1",
+        run_id:           signal.run_id,
+        vault_equity:     vaultEquity,
+      },
+    });
+  } catch (err) {
+    return rejectSignal(signal, `ledger_insert_failed: ${err.message}`);
+  }
+
+  const dedupeKey = createHash("sha256")
+    .update(`CH2:${ticker}:${signal.run_id}`)
+    .digest("hex")
+    .slice(0, 16);
+
+  let order;
+  try {
+    order = await alpacaPost("/v2/orders", {
+      symbol:         ticker,
+      qty:            shares,
+      side:           "buy",
+      type:           "limit",
+      limit_price:    entryPrice,
+      time_in_force:  "day",
+      client_order_id: dedupeKey,
+      order_class:    "bracket",
+      take_profit: {
+        limit_price: takeProfitPrice,
+      },
+      stop_loss: {
+        stop_price: stopLossPrice,
+      },
+    }, BASE);
+  } catch (err) {
+    const errMsg = err.message ?? "unknown";
+    if (ledgerId != null) {
+      await pool.query(
+        `UPDATE personal_trade_ledger SET status='rejected', exit_reason=$1 WHERE id=$2`,
+        [errMsg, ledgerId],
+      ).catch(() => {});
+    }
+    return { ok: false, rejected: true, reason: errMsg, ledgerId };
+  }
+
+  const orderId = order.id;
+  const legIds  = (order.legs ?? []).reduce((acc, leg) => {
+    if (leg.order_class === "take_profit") acc.tp = leg.id;
+    if (leg.order_class === "stop_loss")   acc.sl = leg.id;
+    return acc;
+  }, {});
+
+  if (ledgerId != null) {
+    await pool.query(
+      `UPDATE personal_trade_ledger
+       SET alpaca_order_id=$1, alpaca_take_profit_order_id=$2,
+           alpaca_stop_loss_order_id=$3, status='submitted'
+       WHERE id=$4`,
+      [orderId, legIds.tp ?? null, legIds.sl ?? null, ledgerId],
+    ).catch(e => console.error("[CH2-BRIDGE] Ledger submitted-update failed:", e.message));
+  }
+
+  console.log(`[CH2-BRIDGE] ORDER SUBMITTED | ${ticker} | orderId=${orderId} | ledgerId=${ledgerId}`);
+
+  return {
+    ok:               true,
+    ticker,
+    orderId,
+    ledgerId,
+    shares,
+    entryPrice,
+    takeProfitPrice,
+    stopLossPrice,
+    atr,
+    vaultEquity,
+    dollarAllocation,
+  };
+}
+
 // ── Cleanup ───────────────────────────────────────────────────────────────
 export async function closeBridgePool() {
   await pool.end();

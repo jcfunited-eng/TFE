@@ -112,7 +112,7 @@ async function fetchSpyDk() {
   }
 }
 
-// ── Current R_rev_k and bar age for a ticker ─────────────────────────────
+// ── Current R_rev_k, bar age, S_UF, D_k for a ticker ────────────────────
 async function fetchStructuralFields(ticker) {
   try {
     const res = await pool.query(
@@ -125,6 +125,8 @@ async function fetchStructuralFields(ticker) {
     return {
       r_rev_k:   parseFloat(snap.R_rev_k ?? snap.r_rev_k ?? "NaN"),
       bar_count: parseInt(snap.bar_count ?? "", 10),
+      s_uf:      parseFloat(snap.S_UF ?? snap.s_uf ?? "NaN"),
+      d_k:       parseInt(snap.D_k ?? snap.d_k ?? "NaN", 10),
     };
   } catch {
     return {};
@@ -134,7 +136,7 @@ async function fetchStructuralFields(ticker) {
 // ── Open positions from ledger ────────────────────────────────────────────
 async function fetchOpenPositions() {
   const res = await pool.query(
-    `SELECT id, ticker, shares, alpaca_order_id,
+    `SELECT id, ticker, shares, signal_class, alpaca_order_id,
             alpaca_take_profit_order_id, alpaca_stop_loss_order_id,
             entry_filled_at, signal_detected_at
      FROM personal_trade_ledger
@@ -293,6 +295,32 @@ export async function runSentinel() {
   // Per-position checks
   for (const pos of positions) {
     const fields = await fetchStructuralFields(pos.ticker);
+    const signalClass = String(pos.signal_class ?? "").trim().toUpperCase();
+
+    // ── Chapter 2 exit logic (independent path) ─────────────────────────
+    if (signalClass === "CH2") {
+      const currentSUf = isFinite(fields.s_uf) ? fields.s_uf : null;
+      const currentDk  = isFinite(fields.d_k)  ? fields.d_k  : null;
+
+      // Exit A — Acceleration complete: S_UF crossed into high-conviction band
+      if (currentSUf !== null && currentSUf >= 0.75) {
+        console.log(`[SENTINEL] CH2 EXIT-A ${pos.ticker} | S_UF=${currentSUf} >= 0.75 — acceleration complete, taking profit`);
+        await killPosition(pos, "ch2_exit_acceleration_complete", ALPACA_BASE);
+        continue;
+      }
+
+      // Exit B — Directional collapse: D_k no longer 1
+      if (currentDk !== null && currentDk !== 1) {
+        console.log(`[SENTINEL] CH2 EXIT-B ${pos.ticker} | D_k=${currentDk} — directional collapse, exiting`);
+        await killPosition(pos, "ch2_exit_dk_collapse", ALPACA_BASE);
+        continue;
+      }
+
+      console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"}`);
+      continue;
+    }
+
+    // ── Chapter 1 (3WA) and legacy exit logic ───────────────────────────
 
     // Calamity check: R_rev_k > 0
     if (isFinite(fields.r_rev_k) && fields.r_rev_k > 0) {
