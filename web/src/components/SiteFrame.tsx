@@ -35,7 +35,7 @@ export default function SiteFrame({
   const { user } = useUser();
   const isAdmin = user?.publicMetadata?.role === "admin";
   const NAV_ITEMS = isAdmin
-    ? [...BASE_NAV_ITEMS, { href: "/admin", label: "Admin" } as const]
+    ? [...BASE_NAV_ITEMS, { href: "/admin-console", label: "Admin" } as const]
     : BASE_NAV_ITEMS;
 
   return (
