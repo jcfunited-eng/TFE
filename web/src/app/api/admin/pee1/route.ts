@@ -24,14 +24,13 @@ export async function POST(request: Request) {
   const scriptPath = path.resolve(root, "web/scripts/execution/pee1_runner.mjs");
 
   // Inherit all process env (DB creds, Alpaca keys already in ECS task definition)
+  const childEnv = Object.assign({} as Record<string, string>, process.env, { PGSSLMODE: "require" });
+
   const child = spawn(
     process.env.TFE_NODE_BIN ?? "node",
     ["--env-file-if-exists=/dev/null", scriptPath],
     {
-      env: {
-        ...process.env,
-        PGSSLMODE: "require",
-      },
+      env: childEnv,
       detached: true,
       stdio: "ignore",
     }
