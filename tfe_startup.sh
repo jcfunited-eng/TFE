@@ -14,6 +14,14 @@ echo "[TFE-STARTUP] Restoring UF snapshot from S3..."
 cd /app
 python3 tfe_snapshot_restore.py || echo "[TFE-STARTUP] Snapshot restore non-fatal failure — continuing."
 
+# Harden secret file permissions to owner-only (600)
+echo "[TFE-STARTUP] Hardening secret file permissions..."
+for secret_file in /app/tfe_session_secret.bin /app/tfe_root_key.bin /app/tfe_users.json; do
+  if [ -f "$secret_file" ]; then
+    chmod 600 "$secret_file" && echo "[TFE-STARTUP] Hardened: $secret_file" || echo "[TFE-STARTUP] chmod failed (non-fatal): $secret_file"
+  fi
+done
+
 # Step 2: Clear any stale running=true refresh state from previous container
 echo "[TFE-STARTUP] Clearing stale refresh state..."
 PGSSLMODE=require node /app/web/scripts/clear_stale_refresh_state.mjs || echo "[TFE-STARTUP] Stale state clear non-fatal failure — continuing."
