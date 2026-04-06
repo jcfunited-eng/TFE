@@ -13,6 +13,8 @@ import {
 } from "@/lib/runtime-postgres";
 import { quoteCachePriceFromRow } from "@/lib/screener-quote-cache";
 import { loadWatchlistSymbols, saveWatchlistSymbols } from "@/lib/watchlist-store";
+import { loadPublishedDecisionMapForRows, type PublishedDecisionRecord } from "@/lib/published-decision";
+import { loadCanonicalPublicationState } from "@/lib/publication-state";
 
 export const runtime = "nodejs";
 
@@ -143,24 +145,33 @@ function summarizeFailures(
 function buildMetricRow(
   row: SnapshotRow,
   quoteLoad: QuoteLoadResult,
+  publishedDecisionMap: Record<string, PublishedDecisionRecord>,
 ): WatchlistMetricRow {
   const ticker = normalizeTicker(row.ticker);
-  const decisionInfo = decisionInfoFromRow(row);
   const quoteRow = quoteLoad.quotes[ticker] ?? null;
+
+  // Use the published decision (same source as screener) so both pages agree.
+  // Fall back to decisionInfoFromRow only if the ticker isn't in the published map.
+  const published = publishedDecisionMap[ticker];
+  const decision = published?.decision ?? decisionInfoFromRow(row).decision;
+  const decisionReason = published?.decisionReason ?? decisionInfoFromRow(row).reasonText;
+  const decisionReasonCode = published?.decisionReasonCode ?? decisionInfoFromRow(row).reasonCode;
+  const barCount = published?.barCount ?? Math.max(0, Math.trunc(toNumber(row.bar_count)));
+  const minBarsForAccumulate = published?.minBarsForAccumulate ?? Math.max(0, Math.trunc(toNumber(row.bar_count)));
 
   return {
     ticker,
-    decision: decisionInfo.decision,
-    decisionReason: decisionInfo.reasonText,
-    decisionReasonCode: decisionInfo.reasonCode,
-    classification: classificationFromDecision(decisionInfo.decision),
+    decision,
+    decisionReason,
+    decisionReasonCode,
+    classification: classificationFromDecision(decision),
     price: quoteCachePriceFromRow(quoteRow) ?? toNumberOrNull(row.price),
     changePct: quoteRow ? toNumberOrNull(quoteRow.changePct) : null,
     regime: String(row.regime ?? "").trim() || "UNKNOWN",
     S_UF: toNumber(row.S_UF),
     R_UF: toNumber(row.R_UF),
-    barCount: Math.max(0, Math.trunc(toNumber(row.bar_count ?? decisionInfo.barCount))),
-    minBarsForAccumulate: Math.max(0, Math.trunc(decisionInfo.minBarsForAccumulate)),
+    barCount,
+    minBarsForAccumulate,
     stability_score: toNumberOrNull(row.stability_score),
     max_dd: toNumberOrNull(row.max_dd),
   };
@@ -170,6 +181,7 @@ function buildWatchlistPayload(
   symbols: string[],
   snapshotRows: SnapshotRow[],
   quoteLoad: QuoteLoadResult,
+  publishedDecisionMap: Record<string, PublishedDecisionRecord>,
 ): Pick<WatchlistResponse, "metrics" | "missingSymbols"> {
   const metrics: WatchlistMetricRow[] = [];
   const missingSymbols: string[] = [];
@@ -180,7 +192,7 @@ function buildWatchlistPayload(
       missingSymbols.push(ticker);
       continue;
     }
-    metrics.push(buildMetricRow(row, quoteLoad));
+    metrics.push(buildMetricRow(row, quoteLoad, publishedDecisionMap));
   }
 
   return {
@@ -206,9 +218,10 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [snapshotLoad, quoteLoad] = await Promise.all([
+    const [snapshotLoad, quoteLoad, publicationState] = await Promise.all([
       loadRuntimeSnapshotRowsFromPostgres(),
       loadRuntimeQuoteCacheFromPostgres(),
+      loadCanonicalPublicationState({}),
     ]);
     const snapshotRows = normalizeRuntimeSnapshotRows(snapshotLoad.rows);
 
@@ -233,7 +246,14 @@ export async function GET(request: Request) {
       );
     }
 
-    const payload = buildWatchlistPayload(watchlist.symbols, snapshotRows, quoteLoad);
+    const publishedDecisionLoad = await loadPublishedDecisionMapForRows(
+      publicationState.servingRunId ?? publicationState.runId,
+      snapshotRows,
+      watchlist.symbols,
+    );
+    const publishedDecisionMap = publishedDecisionLoad.rows;
+
+    const payload = buildWatchlistPayload(watchlist.symbols, snapshotRows, quoteLoad, publishedDecisionMap);
     return NextResponse.json({
       symbols: watchlist.symbols,
       source: watchlist.filePath,
