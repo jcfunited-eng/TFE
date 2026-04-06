@@ -14,8 +14,15 @@ echo "[TFE-STARTUP] Restoring UF snapshot from S3..."
 cd /app
 python3 tfe_snapshot_restore.py || echo "[TFE-STARTUP] Snapshot restore non-fatal failure — continuing."
 
-# Harden secret file permissions to owner-only (600)
+# Harden secret file permissions to owner-only (600).
+# tfe_session_secret.bin is created here if missing (Clerk is primary auth
+# but the legacy TFE session key must exist for the security posture check).
 echo "[TFE-STARTUP] Hardening secret file permissions..."
+if [ ! -f /app/tfe_session_secret.bin ]; then
+  node -e "require('fs').writeFileSync('/app/tfe_session_secret.bin', require('crypto').randomBytes(32), {mode: 0o600})" \
+    && echo "[TFE-STARTUP] Created /app/tfe_session_secret.bin" \
+    || echo "[TFE-STARTUP] Failed to create tfe_session_secret.bin (non-fatal)"
+fi
 for secret_file in /app/tfe_session_secret.bin /app/tfe_root_key.bin /app/tfe_users.json; do
   if [ -f "$secret_file" ]; then
     chmod 600 "$secret_file" && echo "[TFE-STARTUP] Hardened: $secret_file" || echo "[TFE-STARTUP] chmod failed (non-fatal): $secret_file"
