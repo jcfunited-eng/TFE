@@ -1,5 +1,3 @@
-import { spawn } from "node:child_process";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import { getCurrentServerUser } from "@/lib/server-auth";
 import { resolveWorkspaceRoot } from "@/lib/workspace-root";
@@ -20,21 +18,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
   }
 
+  // Dynamic imports bypass Turbopack static analysis of node built-ins
+  const [{ spawn }, { default: path }] = await Promise.all([
+    import("child_process"),
+    import("path"),
+  ]);
+
   const root = resolveWorkspaceRoot();
   const scriptPath = path.resolve(root, "web/scripts/execution/pee1_runner.mjs");
+  const nodeBin = process.env.TFE_NODE_BIN ?? "node";
 
-  // Inherit all process env (DB creds, Alpaca keys already in ECS task definition)
+  // Build env without spread syntax (Turbopack restriction)
   const childEnv = Object.assign({} as Record<string, string>, process.env, { PGSSLMODE: "require" });
 
-  const child = spawn(
-    process.env.TFE_NODE_BIN ?? "node",
-    ["--env-file-if-exists=/dev/null", scriptPath],
-    {
-      env: childEnv,
-      detached: true,
-      stdio: "ignore",
-    }
-  );
+  const child = spawn(nodeBin, [scriptPath], {
+    env: childEnv,
+    detached: true,
+    stdio: "ignore",
+  });
 
   const pid = child.pid ?? null;
   child.unref();
