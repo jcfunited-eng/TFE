@@ -7,7 +7,7 @@ import {
   readAdminRefreshPersist,
   writeAdminRefreshPersist,
 } from "@/lib/admin-refresh-persist";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import { resolveWorkspaceRoot } from "@/lib/workspace-root";
 
 const ROOT_DIR = resolveWorkspaceRoot();
@@ -101,7 +101,7 @@ function parseHistoryEntries(text: string, count: number): HistoryEntry[] {
 }
 
 async function requireAdmin(request: Request): Promise<NextResponse | null> {
-  const user = await readSessionUserFromRequest(request);
+  const user = await getCurrentServerUser();
   if (!user) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }

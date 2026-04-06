@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { UI_PAGE_KEYS, type UiPageKey } from "@/lib/ui-config";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 
 const ALLOWED_TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -23,7 +23,7 @@ function isUiPageKey(value: string): value is UiPageKey {
 }
 
 export async function POST(request: Request) {
-  const sessionUser = await readSessionUserFromRequest(request);
+  const sessionUser = await getCurrentServerUser();
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }

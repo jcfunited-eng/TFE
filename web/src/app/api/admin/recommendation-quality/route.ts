@@ -2,7 +2,7 @@ import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import { resolveWorkspaceRoot } from "@/lib/workspace-root";
 
 // ---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ function recordOrEmpty(value: unknown): JsonRecord {
 }
 
 async function requireAdmin(request: Request): Promise<NextResponse | null> {
-  const user = await readSessionUserFromRequest(request);
+  const user = await getCurrentServerUser();
   if (!user) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }

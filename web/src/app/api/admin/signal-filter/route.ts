@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import {
   resolveRuntimePostgresPool,
   RUNTIME_DECISIONS_TABLE,
@@ -76,7 +76,7 @@ export type SignalFilterPayload = {
 };
 
 async function requireAdmin(request: Request): Promise<NextResponse | null> {
-  const user = await readSessionUserFromRequest(request);
+  const user = await getCurrentServerUser();
   if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   if (user.role !== "admin") return NextResponse.json({ error: "Admin role required." }, { status: 403 });
   return null;

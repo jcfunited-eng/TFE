@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import {
   type SnapshotRow,
 } from "@/lib/uf-snapshot";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import { loadCanonicalPublicationState, publicationContractFields } from "@/lib/publication-state";
 import { loadPublishedDecisionMapForRows, type PublishedDecisionRecord } from "@/lib/published-decision";
 import {
@@ -1564,7 +1564,7 @@ async function loadSnapshotRowsWithTimeout(
 }
 
 export async function GET(request: Request) {
-  const sessionUser = await readSessionUserFromRequest(request);
+  const sessionUser = await getCurrentServerUser();
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }

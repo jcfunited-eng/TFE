@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import { resolveRuntimePostgresPool } from "@/lib/runtime-db";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +48,7 @@ async function getExecutionMode(pool: ReturnType<typeof resolveRuntimePostgresPo
 }
 
 export async function GET(request: NextRequest) {
-  const user = await readSessionUserFromRequest(request);
+  const user = await getCurrentServerUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

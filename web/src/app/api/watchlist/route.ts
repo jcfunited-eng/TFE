@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import {
   classificationFromDecision,
   decisionInfoFromRow,
@@ -190,7 +190,7 @@ function buildWatchlistPayload(
 }
 
 export async function GET(request: Request) {
-  const sessionUser = await readSessionUserFromRequest(request);
+  const sessionUser = await getCurrentServerUser();
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
@@ -261,7 +261,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const sessionUser = await readSessionUserFromRequest(request);
+  const sessionUser = await getCurrentServerUser();
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }

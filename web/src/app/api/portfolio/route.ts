@@ -4,7 +4,7 @@ import {
   classificationFromDecision,
   findTickerRow,
 } from "@/lib/uf-snapshot";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import { loadLivePriceMap, type LivePriceQuote } from "@/lib/live-price";
 import { loadCanonicalPublicationState, publicationContractFields } from "@/lib/publication-state";
 import {
@@ -630,7 +630,7 @@ function buildBenchmarkComparison(): BenchmarkComparison {
 }
 
 export async function GET(request: Request) {
-  const sessionUser = await readSessionUserFromRequest(request);
+  const sessionUser = await getCurrentServerUser();
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
@@ -786,7 +786,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const sessionUser = await readSessionUserFromRequest(request);
+  const sessionUser = await getCurrentServerUser();
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
@@ -877,7 +877,7 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const sessionUser = await readSessionUserFromRequest(request);
+  const sessionUser = await getCurrentServerUser();
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
@@ -939,7 +939,7 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const sessionUser = await readSessionUserFromRequest(request);
+  const sessionUser = await getCurrentServerUser();
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }

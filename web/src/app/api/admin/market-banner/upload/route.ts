@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import { resolveRuntimePostgresPool } from "@/lib/runtime-db";
 
 const ALLOWED_TYPES: Record<string, string> = {
@@ -13,7 +13,7 @@ const MAX_BYTES = 8 * 1024 * 1024;
 const ALLOWED_KEYS = new Set(["D_k_minus_1", "D_k_0", "D_k_plus_1"]);
 
 export async function POST(request: Request) {
-  const user = await readSessionUserFromRequest(request);
+  const user = await getCurrentServerUser();
   if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   if (user.role !== "admin") return NextResponse.json({ error: "Admin role required." }, { status: 403 });
 

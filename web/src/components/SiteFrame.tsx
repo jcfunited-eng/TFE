@@ -1,11 +1,11 @@
 "use client";
 
-import { useAuth, UserButton } from "@clerk/nextjs";
+import { useAuth, useUser, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { href: "/", label: "Home" },
   { href: "/recommendations", label: "Recommendations" },
   { href: "/screener", label: "Screener" },
@@ -32,6 +32,11 @@ export default function SiteFrame({
   const pathname = usePathname();
   const isHome = pathname === "/";
   const { isSignedIn, isLoaded } = useAuth();
+  const { user } = useUser();
+  const isAdmin = user?.publicMetadata?.role === "admin";
+  const NAV_ITEMS = isAdmin
+    ? [...BASE_NAV_ITEMS, { href: "/admin", label: "Admin" } as const]
+    : BASE_NAV_ITEMS;
 
   return (
     <div

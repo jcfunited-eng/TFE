@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ function noStoreJson(body: unknown, init?: ResponseInit): NextResponse {
 }
 
 export async function GET(request: Request) {
-  const user = await readSessionUserFromRequest(request);
+  const user = await getCurrentServerUser();
 
   if (!user) {
     return noStoreJson({ error: "not_authenticated" }, { status: 401 });

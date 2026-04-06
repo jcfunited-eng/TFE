@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import { resolveRuntimePostgresPool } from "@/lib/runtime-db";
 
 export type MarketBannerRow = {
@@ -14,7 +14,7 @@ export type MarketBannerRow = {
 const ALLOWED_KEYS = new Set(["D_k_minus_1", "D_k_0", "D_k_plus_1"]);
 
 async function requireAdmin(request: Request): Promise<NextResponse | null> {
-  const user = await readSessionUserFromRequest(request);
+  const user = await getCurrentServerUser();
   if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   if (user.role !== "admin") return NextResponse.json({ error: "Admin role required." }, { status: 403 });
   return null;

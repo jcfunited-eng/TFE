@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import { resolveRuntimePostgresPool } from "@/lib/runtime-db";
 
 export const dynamic = "force-dynamic";
@@ -60,7 +60,7 @@ async function getCurrentPrice(ticker: string): Promise<number | null> {
 }
 
 export async function POST(request: NextRequest) {
-  const user = await readSessionUserFromRequest(request);
+  const user = await getCurrentServerUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

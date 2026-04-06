@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createTestUser, listUsers, removeUser, resetUserPassword, setUserActive } from "@/lib/user-store";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 
 type CreateBody = {
   username?: unknown;
@@ -20,7 +20,7 @@ type ActivationBody = {
 };
 
 async function requireAdmin(request: Request): Promise<NextResponse | null> {
-  const user = await readSessionUserFromRequest(request);
+  const user = await getCurrentServerUser();
   if (!user) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
@@ -178,7 +178,7 @@ export async function DELETE(request: Request) {
   const denied = await requireAdmin(request);
   if (denied) return denied;
 
-  const sessionUser = await readSessionUserFromRequest(request);
+  const sessionUser = await getCurrentServerUser();
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }

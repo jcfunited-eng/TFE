@@ -5,7 +5,7 @@ import { readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { Pool } from "pg";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import {
   loadCanonicalPublicationState,
   loadRuntimeRefreshRunById,
@@ -2976,7 +2976,7 @@ function buildRefreshEnv(mode: RefreshMode, baseEnv: NodeJS.ProcessEnv): NodeJS.
 }
 
 async function requireAdmin(request: Request): Promise<NextResponse | null> {
-  const user = await readSessionUserFromRequest(request);
+  const user = await getCurrentServerUser();
   if (!user) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
@@ -3283,7 +3283,7 @@ export async function POST(request: Request) {
   if (!internalAuthorized) {
     const denied = await requireAdmin(request);
     if (denied) return denied;
-    const sessionUser = await readSessionUserFromRequest(request);
+    const sessionUser = await getCurrentServerUser();
     requestedBy = sessionUser?.username ?? "admin";
   }
 

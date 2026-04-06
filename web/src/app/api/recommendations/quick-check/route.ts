@@ -6,7 +6,7 @@ import {
   findTickerRow,
   loadSnapshotRows,
 } from "@/lib/uf-snapshot";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import { loadScreenerQuoteCache, quoteCachePriceFromRow } from "@/lib/screener-quote-cache";
 
 export const runtime = "nodejs";
@@ -63,7 +63,7 @@ async function loadSnapshotRowsWithTimeout(): Promise<SnapshotLoadResult> {
 }
 
 export async function GET(request: Request) {
-  const sessionUser = await readSessionUserFromRequest(request);
+  const sessionUser = await getCurrentServerUser();
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }

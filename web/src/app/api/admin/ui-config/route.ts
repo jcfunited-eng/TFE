@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { UI_PAGE_KEYS, getUiConfig, setUiConfig, type UiBackgroundImages } from "@/lib/ui-config";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 
 async function requireAdmin(request: Request): Promise<NextResponse | null> {
-  const user = await readSessionUserFromRequest(request);
+  const user = await getCurrentServerUser();
   if (!user) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }

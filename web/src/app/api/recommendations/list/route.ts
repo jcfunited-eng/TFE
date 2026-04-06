@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import { resolveRuntimePostgresPool } from "@/lib/runtime-db";
 
 export const runtime = "nodejs";
@@ -243,7 +243,7 @@ function buildPayload(rows: RecommendationRow[]): RecommendationsPayload {
 }
 
 export async function GET(request: Request) {
-  const sessionUser = await readSessionUserFromRequest(request);
+  const sessionUser = await getCurrentServerUser();
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }

@@ -7,7 +7,7 @@
  *   { conditionKey, backgroundImagePath, instructionalText, textColorHex, spyDk, isMarketLocked }
  */
 import { NextResponse } from "next/server";
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import { resolveRuntimePostgresPool, RUNTIME_DECISIONS_TABLE } from "@/lib/runtime-db";
 
 function safeFloat(val: unknown): number | null {
@@ -24,7 +24,7 @@ function dkToKey(dk: number | null): string {
 }
 
 export async function GET(request: Request) {
-  const user = await readSessionUserFromRequest(request);
+  const user = await getCurrentServerUser();
   if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
 
   const pool = resolveRuntimePostgresPool();

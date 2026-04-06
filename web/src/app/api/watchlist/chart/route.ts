@@ -4,7 +4,7 @@ import { promisify } from "node:util";
 
 import { NextResponse } from "next/server";
 
-import { readSessionUserFromRequest } from "@/lib/auth-session";
+import { getCurrentServerUser } from "@/lib/server-auth";
 import {
   classificationFromDecision,
   decisionInfoFromRow,
@@ -252,7 +252,7 @@ function buildRuntimeMetricRow(row: SnapshotRow): WatchlistMetricRow {
 }
 
 export async function GET(request: Request) {
-  const sessionUser = await readSessionUserFromRequest(request);
+  const sessionUser = await getCurrentServerUser();
   if (!sessionUser) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
