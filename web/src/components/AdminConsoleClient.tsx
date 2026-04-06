@@ -1246,6 +1246,19 @@ export default function AdminConsolePage() {
                   <div className={styles.kvLabel}>Last Error</div>
                   <div className={styles.kvValue}>{systemStatus.refreshPolicy.lastError || "none"}</div>
                 </div>
+                <div className={styles.kvItem}>
+                  <div className={styles.kvLabel}>Scheduled Refresh</div>
+                  <div className={styles.kvValue}>{(() => {
+                    const now = new Date();
+                    const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 12, 15, 0, 0));
+                    if (now >= next) next.setUTCDate(next.getUTCDate() + 1);
+                    const diffMs = next.getTime() - now.getTime();
+                    const diffH = Math.floor(diffMs / 3600000);
+                    const diffM = Math.floor((diffMs % 3600000) / 60000);
+                    const localStr = next.toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" });
+                    return `${localStr} (in ${diffH}h ${diffM}m)`;
+                  })()}</div>
+                </div>
               </div>
             ) : null}
 
