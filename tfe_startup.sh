@@ -72,6 +72,10 @@ tfe_refresh_daemon() {
 tfe_refresh_daemon &
 echo "[TFE-STARTUP] Refresh daemon started (PID $!)."
 
+# Step 3b: Start sentinel daemon — syncs Alpaca fills to DB every 5 min during market hours
+PGSSLMODE=require node /app/web/scripts/execution/sentinel_daemon.mjs &
+echo "[TFE-STARTUP] Sentinel daemon started (PID $!)."
+
 # Step 4: Start Next.js (foreground — this is PID 1)
 echo "[TFE-STARTUP] Starting Next.js..."
 cd /app/web
