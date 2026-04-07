@@ -121,31 +121,13 @@ async function alpacaPost(path, payload, base) {
 }
 
 // ── ATR-14 calculation ────────────────────────────────────────────────────
-/**
- * Fetch last (ATR_PERIOD + 1) daily bars from Alpaca and compute ATR-14.
- * Uses simple average of True Range over the period.
- *
- * @param {string} ticker
- * @returns {Promise<number>} ATR value in dollars
- * @throws if bars are unavailable or insufficient
- */
-async function computeATR(ticker) {
-  const bars = await alpacaGet(
-    `/v2/stocks/${encodeURIComponent(ticker)}/bars?timeframe=1Day&limit=${ATR_PERIOD + 1}&feed=iex`,
-    ALPACA_DATA_URL,
-  );
-
-  const barList = bars?.bars ?? bars?.data?.bars ?? [];
-  if (!Array.isArray(barList) || barList.length < 2) {
-    throw new Error(`[BRIDGE] ATR: insufficient bar data for ${ticker} (got ${barList.length})`);
-  }
-
+function calcATRFromBars(barList) {
   const trValues = [];
   for (let i = 1; i < barList.length; i++) {
     const curr = barList[i];
     const prev = barList[i - 1];
-    const high    = parseFloat(curr.h);
-    const low     = parseFloat(curr.l);
+    const high     = parseFloat(curr.h);
+    const low      = parseFloat(curr.l);
     const prevClose = parseFloat(prev.c);
     const tr = Math.max(
       high - low,
@@ -154,12 +136,44 @@ async function computeATR(ticker) {
     );
     trValues.push(tr);
   }
-
   const atr = trValues.reduce((sum, v) => sum + v, 0) / trValues.length;
-  if (!isFinite(atr) || atr <= 0) {
-    throw new Error(`[BRIDGE] ATR: computed invalid value ${atr} for ${ticker}`);
+  return isFinite(atr) && atr > 0 ? atr : null;
+}
+
+/**
+ * Compute ATR-14 for a ticker. Tries IEX feed first, then SIP feed.
+ * If both fail, falls back to 2% of current price (never blocks a valid signal).
+ *
+ * @param {string} ticker
+ * @param {number} [fallbackPrice] — used only if bar data unavailable
+ * @returns {Promise<{ atr: number, source: string }>}
+ */
+async function computeATR(ticker, fallbackPrice = null) {
+  for (const feed of ["iex", "sip"]) {
+    try {
+      const bars = await alpacaGet(
+        `/v2/stocks/${encodeURIComponent(ticker)}/bars?timeframe=1Day&limit=${ATR_PERIOD + 1}&feed=${feed}`,
+        ALPACA_DATA_URL,
+      );
+      const barList = bars?.bars ?? bars?.data?.bars ?? [];
+      if (Array.isArray(barList) && barList.length >= 2) {
+        const atr = calcATRFromBars(barList);
+        if (atr) {
+          console.log(`[BRIDGE] ATR(${ticker}) = ${atr.toFixed(4)} via ${feed} (${barList.length} bars)`);
+          return { atr, source: feed };
+        }
+      }
+    } catch { /* try next feed */ }
   }
-  return atr;
+
+  // Fallback: 2% of price — reasonable bracket for any liquid stock
+  if (fallbackPrice && fallbackPrice > 0) {
+    const atr = parseFloat((fallbackPrice * 0.02).toFixed(4));
+    console.log(`[BRIDGE] ATR(${ticker}) = ${atr.toFixed(4)} via price_fallback (2% of ${fallbackPrice})`);
+    return { atr, source: "price_fallback" };
+  }
+
+  throw new Error(`[BRIDGE] ATR: no bar data and no fallback price for ${ticker}`);
 }
 
 // ── Latest quote ──────────────────────────────────────────────────────────
@@ -350,13 +364,13 @@ export async function executeBracketOrder(signal, opts = {}) {
 
   let vaultEquity, currentPrice, atr;
 
-  // ── Step 2: fetch live market data (all must succeed) ─────────────────
+  // ── Step 2: fetch live market data ───────────────────────────────────
   try {
-    [vaultEquity, currentPrice, atr] = await Promise.all([
+    [vaultEquity, currentPrice] = await Promise.all([
       fetchAccountEquity(BASE),
       fetchLatestPrice(ticker),
-      computeATR(ticker),
     ]);
+    ({ atr } = await computeATR(ticker, currentPrice));
   } catch (err) {
     return rejectSignal(signal, `market_data_fetch_failed: ${err.message}`);
   }
@@ -559,11 +573,11 @@ export async function executeCh2BracketOrder(signal) {
 
   let vaultEquity, currentPrice, atr;
   try {
-    [vaultEquity, currentPrice, atr] = await Promise.all([
+    [vaultEquity, currentPrice] = await Promise.all([
       fetchAccountEquity(BASE),
       fetchLatestPrice(ticker),
-      computeATR(ticker),
     ]);
+    ({ atr } = await computeATR(ticker, currentPrice));
   } catch (err) {
     return rejectSignal(signal, `market_data_fetch_failed: ${err.message}`);
   }
