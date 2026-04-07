@@ -34,10 +34,11 @@ echo "[TFE-STARTUP] Clearing stale refresh state..."
 PGSSLMODE=require node /app/web/scripts/clear_stale_refresh_state.mjs || echo "[TFE-STARTUP] Stale state clear non-fatal failure — continuing."
 
 # Step 3: Start scheduled refresh daemon in background
-# Fires daily at 12:15 UTC via the internal refresh API (targeted_pfsc mode).
+# Fires daily at 13:00 UTC (9:00 AM ET) — after previous day's bars are fully settled
+# and 30 min before market open, so PEE-1 orders are queued before 9:30 AM ET.
 tfe_refresh_daemon() {
-  local SCHEDULED_HOUR=12
-  local SCHEDULED_MINUTE=15
+  local SCHEDULED_HOUR=13
+  local SCHEDULED_MINUTE=0
   local BASE_URL="http://localhost:3000"
   local API_PATH="/api/admin/refresh"
 
