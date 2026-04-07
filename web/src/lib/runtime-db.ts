@@ -73,9 +73,7 @@ export function postgresSourcePath(tableName: string): string {
   return `${postgresSourceBase()}#${tableName}`;
 }
 
-export function resolveRuntimePostgresPool(): Pool {
-  if (runtimePool) return runtimePool;
-
+function createRuntimePool(): Pool {
   const host = readRequiredEnv("PGHOST", "TFE_DB_HOST");
   const database = readRequiredEnv("PGDATABASE", "TFE_DB_NAME");
   const user = readRequiredEnv("PGUSER", "TFE_DB_USER");
@@ -83,7 +81,7 @@ export function resolveRuntimePostgresPool(): Pool {
   const port = readPgPort();
   const rejectUnauthorized = resolvePgSslRejectUnauthorized();
 
-  runtimePool = new Pool({
+  const pool = new Pool({
     host,
     database,
     user,
@@ -96,6 +94,22 @@ export function resolveRuntimePostgresPool(): Pool {
     application_name: "tfe-runtime-shared",
   });
 
+  // If auth fails (e.g. secret rotation), destroy pool so next call recreates it
+  // with fresh credentials from the updated environment.
+  pool.on("error", (err) => {
+    const code = (err as NodeJS.ErrnoException & { code?: string }).code;
+    if (code === "28P01" || String(err.message).includes("password authentication failed")) {
+      console.error("[runtime-db] Auth failure detected — invalidating pool for recreation.");
+      runtimePool = null;
+      pool.end().catch(() => undefined);
+    }
+  });
+
+  return pool;
+}
+
+export function resolveRuntimePostgresPool(): Pool {
+  if (!runtimePool) runtimePool = createRuntimePool();
   return runtimePool;
 }
 
