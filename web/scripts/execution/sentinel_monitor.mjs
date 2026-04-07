@@ -285,14 +285,19 @@ export async function runSentinel() {
 
   console.log(`[SENTINEL] Open positions: ${positions.length} | SPY D_k: ${spyDk ?? "unknown"}`);
 
-  // Wave 3 flip — liquidate ALL positions if SPY D_k is no longer 1
+  // Wave 3 flip — liquidate Ch1 (3WA) positions only if SPY D_k is no longer 1
+  // Ch2 positions use their own per-ticker D_k exit (Exit B) — SPY flip does not apply
   const spyFlip = spyDk !== null && spyDk !== 1;
   if (spyFlip) {
-    console.log(`[SENTINEL] SPY D_k=${spyDk} — Wave 3 GONE — liquidating all positions`);
-    for (const pos of positions) {
-      await killPosition(pos, "sentinel_spy_flip", ALPACA_BASE);
+    const ch1Positions = positions.filter(p => String(p.signal_class ?? "").trim().toUpperCase() !== "CH2");
+    if (ch1Positions.length > 0) {
+      console.log(`[SENTINEL] SPY D_k=${spyDk} — Wave 3 GONE — liquidating ${ch1Positions.length} Ch1 position(s)`);
+      for (const pos of ch1Positions) {
+        await killPosition(pos, "sentinel_spy_flip", ALPACA_BASE);
+      }
+    } else {
+      console.log(`[SENTINEL] SPY D_k=${spyDk} — Wave 3 GONE — no Ch1 positions to liquidate (Ch2 positions use ticker-level D_k exit)`);
     }
-    return;
   }
 
   // ── Sync fill status from Alpaca → ledger ────────────────────────────────
