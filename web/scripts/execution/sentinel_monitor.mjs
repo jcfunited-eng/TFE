@@ -161,12 +161,16 @@ async function ledgerClose(id, exitReason, exitOrderId) {
 
 // ── Kill a single position ────────────────────────────────────────────────
 async function killPosition(pos, exitReason, base) {
-  const { ticker, shares, alpaca_take_profit_order_id, alpaca_stop_loss_order_id } = pos;
+  const { ticker, shares, alpaca_order_id, alpaca_take_profit_order_id, alpaca_stop_loss_order_id } = pos;
   console.log(`[SENTINEL] KILL ${ticker} | reason=${exitReason} | shares=${shares}`);
 
-  // Cancel pending bracket legs so market sell doesn't conflict
+  // Cancel parent bracket order first (releases held shares), then individual legs
+  if (alpaca_order_id)             await cancelOrder(alpaca_order_id, base);
   if (alpaca_take_profit_order_id) await cancelOrder(alpaca_take_profit_order_id, base);
   if (alpaca_stop_loss_order_id)   await cancelOrder(alpaca_stop_loss_order_id, base);
+
+  // Small delay to let Alpaca process the cancellations before selling
+  await new Promise(r => setTimeout(r, 1500));
 
   let exitOrderId = null;
   try {
@@ -175,7 +179,6 @@ async function killPosition(pos, exitReason, base) {
     console.log(`[SENTINEL] Market sell placed | ${ticker} | orderId=${exitOrderId}`);
   } catch (err) {
     console.error(`[SENTINEL] CRITICAL: market sell FAILED for ${ticker}: ${err.message}`);
-    // Still update ledger so the position is flagged — operator must intervene
     await pool.query(
       `UPDATE personal_trade_ledger
        SET rationale_json = rationale_json || $1::jsonb
@@ -290,6 +293,34 @@ export async function runSentinel() {
       await killPosition(pos, "sentinel_spy_flip", ALPACA_BASE);
     }
     return;
+  }
+
+  // ── Sync fill status from Alpaca → ledger ────────────────────────────────
+  const submittedPositions = positions.filter(p => p.status === "submitted" || !p.entry_filled_at);
+  if (submittedPositions.length > 0) {
+    console.log(`[SENTINEL] Syncing fill status for ${submittedPositions.length} submitted positions...`);
+    for (const pos of submittedPositions) {
+      if (!pos.alpaca_order_id) continue;
+      try {
+        const order = await alpacaGet(`/v2/orders/${pos.alpaca_order_id}`, ALPACA_BASE);
+        if (order?.status === "filled" || order?.status === "partially_filled") {
+          const filledPrice = parseFloat(order.filled_avg_price ?? "0");
+          const filledAt = order.filled_at ?? new Date().toISOString();
+          if (filledPrice > 0) {
+            await pool.query(
+              `UPDATE personal_trade_ledger
+               SET status='filled', entry_filled_price=$1, entry_filled_at=$2
+               WHERE id=$3 AND status='submitted'`,
+              [filledPrice, filledAt, pos.id]
+            );
+            console.log(`[SENTINEL] Fill synced: ${pos.ticker} @ $${filledPrice}`);
+            pos.status = "filled"; // update in-memory so exit checks work
+          }
+        }
+      } catch (e) {
+        console.warn(`[SENTINEL] Fill sync failed for ${pos.ticker}: ${e.message}`);
+      }
+    }
   }
 
   // Per-position checks
