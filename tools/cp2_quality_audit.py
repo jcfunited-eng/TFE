@@ -108,6 +108,9 @@ def _connect_db():
         sslrootcert = os.environ.get("PGSSLROOTCERT", "/app/certs/rds-global-bundle.pem")
         if sslrootcert and Path(sslrootcert).exists():
             conn_kwargs["sslrootcert"] = sslrootcert
+    # 300-second statement timeout — history table can exceed 500K rows
+    conn_kwargs["options"] = "-c statement_timeout=300000"
+    conn_kwargs["connect_timeout"] = 10
     return psycopg2.connect(**conn_kwargs)
 
 
@@ -175,20 +178,48 @@ def _query_current_stats(conn) -> Dict[str, Any]:
 
 def _query_history(conn) -> List[Dict[str, Any]]:
     """
-    Return all rows from runtime_decisions_history within HISTORY_DAYS.
+    Return candidate Accumulate rows from runtime_decisions_history.
 
-    Each row: {ticker, run_id, generated_at_utc, snapshot_row_json}
+    Pre-filters in SQL: bar_count >= ACCUMULATE_MIN_BARS and all 9 required
+    V3 fields present. Only extracts the 9 basin-physics fields (not the full
+    JSONB blob) to keep memory and transfer time low on 500K+ row tables.
     """
+    min_bars = ev.ACCUMULATE_MIN_BARS
     cutoff = datetime.now(timezone.utc) - timedelta(days=HISTORY_DAYS)
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT ticker, run_id, generated_at_utc, snapshot_row_json
+            SELECT
+                ticker,
+                run_id,
+                generated_at_utc,
+                jsonb_build_object(
+                    'bar_count',  (snapshot_row_json->>'bar_count')::int,
+                    'S_UF',       (snapshot_row_json->>'S_UF')::float,
+                    'R_UF',       (snapshot_row_json->>'R_UF')::float,
+                    'D_k',        (snapshot_row_json->>'D_k')::float,
+                    'M_k',        (snapshot_row_json->>'M_k')::float,
+                    'R_rev_k',    (snapshot_row_json->>'R_rev_k')::float,
+                    'U_star_k',   (snapshot_row_json->>'U_star_k')::float,
+                    'C_k',        (snapshot_row_json->>'C_k')::float,
+                    'P_k',        (snapshot_row_json->>'P_k')::float,
+                    'B_k',        (snapshot_row_json->>'B_k')::float
+                ) AS snapshot_row_json
             FROM runtime_decisions_history
             WHERE generated_at_utc >= %s
+              AND (snapshot_row_json->>'bar_count')::int >= %s
+              AND snapshot_row_json->>'S_UF'     IS NOT NULL
+              AND snapshot_row_json->>'R_UF'     IS NOT NULL
+              AND snapshot_row_json->>'D_k'      IS NOT NULL
+              AND snapshot_row_json->>'M_k'      IS NOT NULL
+              AND snapshot_row_json->>'R_rev_k'  IS NOT NULL
+              AND snapshot_row_json->>'U_star_k' IS NOT NULL
+              AND snapshot_row_json->>'C_k'      IS NOT NULL
+              AND snapshot_row_json->>'P_k'      IS NOT NULL
+              AND snapshot_row_json->>'B_k'      IS NOT NULL
             ORDER BY generated_at_utc ASC
             """,
-            (cutoff,),
+            (cutoff, min_bars),
         )
         rows = cur.fetchall()
 
