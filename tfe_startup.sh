@@ -55,13 +55,21 @@ tfe_refresh_daemon() {
 
     if [ "${NOW_H_INT}" -eq "${SCHEDULED_HOUR}" ] && [ "${NOW_M_INT}" -eq "${SCHEDULED_MINUTE}" ]; then
       echo "[REFRESH-DAEMON] Triggering scheduled refresh at $(date -u '+%Y-%m-%dT%H:%M:%SZ')..."
-      curl -sf -X POST "${BASE_URL}${API_PATH}" \
-        -H "Content-Type: application/json" \
-        -H "x-tfe-internal-refresh-token: ${TFE_INTERNAL_REFRESH_TOKEN:-}" \
-        -d '{"action":"start","mode":"snapshot","triggerSource":"scheduled"}' \
-        -o /tmp/refresh-daemon-response.json 2>/tmp/refresh-daemon-curl.log \
-        && echo "[REFRESH-DAEMON] Refresh triggered. Response: $(cat /tmp/refresh-daemon-response.json | head -c 200)" \
-        || echo "[REFRESH-DAEMON] Trigger failed — see /tmp/refresh-daemon-curl.log"
+      node -e "
+        const http = require('http');
+        const body = JSON.stringify({action:'start',mode:'snapshot',triggerSource:'scheduled'});
+        const req = http.request({
+          hostname:'localhost', port:3000, path:'/api/admin/refresh',
+          method:'POST',
+          headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body),
+                   'x-tfe-internal-refresh-token':process.env.TFE_INTERNAL_REFRESH_TOKEN||''}
+        }, res => {
+          let d=''; res.on('data',c=>d+=c);
+          res.on('end',()=>{ console.log('[REFRESH-DAEMON] Response HTTP '+res.statusCode+': '+d.slice(0,200)); });
+        });
+        req.on('error', e => console.error('[REFRESH-DAEMON] Request error: '+e.message));
+        req.write(body); req.end();
+      " && echo "[REFRESH-DAEMON] Refresh triggered." || echo "[REFRESH-DAEMON] Trigger failed."
       # Sleep 90s to avoid double-firing within the same minute
       sleep 90
     fi
