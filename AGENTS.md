@@ -40,8 +40,8 @@ Once the physics is validated in the financial domain:
 - **Medical devices** — physiological signal interpretation
 - **Thermal sensors** — structural anomaly detection
 - **Autonomous vehicles** — environmental state cognition
-- **ArcLoom processor** — hardware instantiation of DSF-AI
-- **Android-level cognition** — emergent structural awareness
+- **ArcLoom processor** — ternary processor that supports kernel outputs; minimizes power consumption and interprets analog inputs for direct decision fulfillment (next step, not destination)
+- **Android-level cognition** — emergent structural awareness (destination)
 
 ## What This Means for Any Agent Working Here
 
