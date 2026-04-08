@@ -6,8 +6,8 @@ export const dynamic = "force-dynamic";
 
 function alpacaHeaders() {
   return {
-    "APCA-API-KEY-ID": process.env.ALPACA_API_KEY ?? "",
-    "APCA-API-SECRET-KEY": process.env.ALPACA_SECRET_KEY ?? "",
+    "APCA-API-KEY-ID": process.env.APCA_API_KEY_ID ?? process.env.ALPACA_API_KEY ?? "",
+    "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY ?? process.env.ALPACA_SECRET_KEY ?? "",
   };
 }
 

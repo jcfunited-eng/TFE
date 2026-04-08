@@ -6,8 +6,8 @@ export const dynamic = "force-dynamic";
 
 function alpacaHeaders() {
   return {
-    "APCA-API-KEY-ID": process.env.ALPACA_API_KEY ?? "",
-    "APCA-API-SECRET-KEY": process.env.ALPACA_SECRET_KEY ?? "",
+    "APCA-API-KEY-ID": process.env.APCA_API_KEY_ID ?? process.env.ALPACA_API_KEY ?? "",
+    "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY ?? process.env.ALPACA_SECRET_KEY ?? "",
   };
 }
 
@@ -87,16 +87,17 @@ export async function GET(request: NextRequest) {
     const executionMode = configMap.execution_mode ?? "paper";
 
     const openTrades = ledgerRes.rows.filter(r => ["submitted", "filled"].includes(r.status));
+    const filledTrades = ledgerRes.rows.filter(r => r.status === "filled" && r.entry_filled_price);
     const closedTrades = ledgerRes.rows.filter(r => r.status === "closed");
 
-    // Fetch current prices for open positions
-    const openTickers = [...new Set(openTrades.map(r => r.ticker))];
-    const prices = await fetchCurrentPrices(openTickers);
+    // Fetch current prices for filled (active) positions only
+    const filledTickers = [...new Set(filledTrades.map(r => r.ticker))];
+    const prices = await fetchCurrentPrices(filledTickers);
 
-    // Unrealized P&L from open positions
+    // Unrealized P&L from filled positions only (submitted = pending, no fill yet)
     let totalUnrealized = 0;
     let totalInvested = 0;
-    for (const trade of openTrades) {
+    for (const trade of filledTrades) {
       const entry = parseFloat(trade.entry_filled_price ?? "0") || 0;
       const shares = Number(trade.shares) || 0;
       const current = prices[trade.ticker] ?? entry;

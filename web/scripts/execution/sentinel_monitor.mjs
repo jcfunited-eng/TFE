@@ -147,21 +147,42 @@ async function fetchOpenPositions() {
   return res.rows;
 }
 
-// ── Ledger: mark closed ───────────────────────────────────────────────────
-async function ledgerClose(id, exitReason, exitOrderId) {
+// ── Ledger: mark closed, compute P&L if exit price known ─────────────────
+async function ledgerClose(id, exitReason, exitOrderId, exitFilledPrice = null) {
+  // Fetch entry data to compute P&L
+  let pl = null;
+  let plPct = null;
+  if (exitFilledPrice != null) {
+    try {
+      const posRes = await pool.query(
+        `SELECT entry_filled_price, shares FROM personal_trade_ledger WHERE id=$1`, [id]
+      );
+      const pos = posRes.rows[0];
+      const entry = parseFloat(pos?.entry_filled_price ?? "0");
+      const shares = parseFloat(pos?.shares ?? "0");
+      if (entry > 0 && shares > 0) {
+        pl = (exitFilledPrice - entry) * shares;
+        plPct = ((exitFilledPrice - entry) / entry) * 100;
+      }
+    } catch { /* non-fatal */ }
+  }
   await pool.query(
     `UPDATE personal_trade_ledger
      SET status='closed', exit_reason=$1,
          rationale_json = rationale_json || $2::jsonb,
-         exit_filled_at = NOW()
+         exit_filled_at = NOW(),
+         exit_filled_price = COALESCE($4, exit_filled_price),
+         p_l = COALESCE($5, p_l),
+         p_l_pct = COALESCE($6, p_l_pct)
      WHERE id=$3`,
-    [exitReason, JSON.stringify({ sentinel_exit_order_id: exitOrderId ?? null }), id]
+    [exitReason, JSON.stringify({ sentinel_exit_order_id: exitOrderId ?? null }), id,
+     exitFilledPrice, pl, plPct]
   );
 }
 
 // ── Kill a single position ────────────────────────────────────────────────
 async function killPosition(pos, exitReason, base) {
-  const { ticker, shares, alpaca_order_id, alpaca_take_profit_order_id, alpaca_stop_loss_order_id } = pos;
+  const { id, ticker, shares, alpaca_order_id, alpaca_take_profit_order_id, alpaca_stop_loss_order_id } = pos;
   console.log(`[SENTINEL] KILL ${ticker} | reason=${exitReason} | shares=${shares}`);
 
   // Cancel parent bracket order first (releases held shares), then individual legs
@@ -172,7 +193,46 @@ async function killPosition(pos, exitReason, base) {
   // Small delay to let Alpaca process the cancellations before selling
   await new Promise(r => setTimeout(r, 1500));
 
+  // Verify position still exists in Alpaca — bracket TP/SL may have already closed it
+  try {
+    const alpacaPos = await alpacaGet(`/v2/positions/${encodeURIComponent(ticker)}`, base);
+    const alpacaQty = parseFloat(alpacaPos?.qty ?? "0");
+    if (alpacaQty <= 0) {
+      // Short or zero — don't sell, just close DB record
+      console.log(`[SENTINEL] ${ticker} — Alpaca qty=${alpacaQty} (already closed or short). Marking DB closed without sell.`);
+      await ledgerClose(id, `${exitReason}_bracket_exit`, null).catch(e => {
+        console.error(`[SENTINEL] Ledger close failed for ${ticker}:`, e.message);
+      });
+      return;
+    }
+  } catch (e) {
+    const msg = String(e.message);
+    if (msg.includes("40410000") || msg.toLowerCase().includes("position does not exist")) {
+      // Bracket already closed the position (TP or SL fired) — try to get exit price from legs
+      let bracketExitPrice = null;
+      if (alpaca_order_id) {
+        try {
+          const parentOrder = await alpacaGet(`/v2/orders/${alpaca_order_id}`, base);
+          for (const leg of (parentOrder?.legs ?? [])) {
+            if (leg.filled_avg_price && leg.side === "sell") {
+              bracketExitPrice = parseFloat(leg.filled_avg_price);
+              break;
+            }
+          }
+        } catch { /* non-fatal */ }
+      }
+      console.log(`[SENTINEL] ${ticker} — position already closed in Alpaca (bracket exit @ $${bracketExitPrice ?? "unknown"}). Marking DB closed.`);
+      await ledgerClose(id, `${exitReason}_bracket_exit`, null, bracketExitPrice).catch(ex => {
+        console.error(`[SENTINEL] Ledger close failed for ${ticker}:`, ex.message);
+      });
+      return;
+    }
+    // Other error — log but continue and attempt sell anyway
+    console.warn(`[SENTINEL] ${ticker} — position existence check error: ${msg}. Attempting sell anyway.`);
+  }
+
   let exitOrderId = null;
+  let exitFilledPrice = null;
   try {
     const sellOrder = await marketSell(ticker, shares, base);
     exitOrderId = sellOrder.id;
@@ -183,12 +243,24 @@ async function killPosition(pos, exitReason, base) {
       `UPDATE personal_trade_ledger
        SET rationale_json = rationale_json || $1::jsonb
        WHERE id=$2`,
-      [JSON.stringify({ sentinel_kill_failed: err.message, kill_reason: exitReason }), pos.id]
+      [JSON.stringify({ sentinel_kill_failed: err.message, kill_reason: exitReason }), id]
     ).catch(() => {});
     return;
   }
 
-  await ledgerClose(pos.id, exitReason, exitOrderId).catch(e => {
+  // Brief wait for market order to fill, then capture exit price for P&L
+  if (exitOrderId) {
+    await new Promise(r => setTimeout(r, 2000));
+    try {
+      const fillCheck = await alpacaGet(`/v2/orders/${exitOrderId}`, base);
+      if (fillCheck?.filled_avg_price) {
+        exitFilledPrice = parseFloat(fillCheck.filled_avg_price);
+        console.log(`[SENTINEL] Exit fill: ${ticker} @ $${exitFilledPrice}`);
+      }
+    } catch { /* non-fatal — p_l will be null */ }
+  }
+
+  await ledgerClose(id, exitReason, exitOrderId, exitFilledPrice).catch(e => {
     console.error(`[SENTINEL] Ledger close failed for ${ticker}:`, e.message);
   });
 }
@@ -300,7 +372,7 @@ export async function runSentinel() {
     }
   }
 
-  // ── Sync fill status from Alpaca → ledger ────────────────────────────────
+  // ── Sync fill/cancel status from Alpaca → ledger ─────────────────────────
   const submittedPositions = positions.filter(p => p.status === "submitted" || !p.entry_filled_at);
   if (submittedPositions.length > 0) {
     console.log(`[SENTINEL] Syncing fill status for ${submittedPositions.length} submitted positions...`);
@@ -321,6 +393,14 @@ export async function runSentinel() {
             console.log(`[SENTINEL] Fill synced: ${pos.ticker} @ $${filledPrice}`);
             pos.status = "filled"; // update in-memory so exit checks work
           }
+        } else if (order?.status === "canceled" && parseFloat(order.filled_qty ?? "0") === 0) {
+          // Order was cancelled before filling — mark ledger record as cancelled
+          await pool.query(
+            `UPDATE personal_trade_ledger SET status='cancelled' WHERE id=$1 AND status='submitted'`,
+            [pos.id]
+          );
+          console.log(`[SENTINEL] Cancel synced: ${pos.ticker} — order cancelled, never filled`);
+          pos.status = "cancelled"; // skip exit checks below
         }
       } catch (e) {
         console.warn(`[SENTINEL] Fill sync failed for ${pos.ticker}: ${e.message}`);
@@ -328,8 +408,40 @@ export async function runSentinel() {
     }
   }
 
-  // Per-position checks
+  // ── Sync filled positions that were closed by bracket TP/SL ──────────────
+  const filledPositions = positions.filter(p => p.status === "filled" && p.entry_filled_at);
+  for (const pos of filledPositions) {
+    try {
+      await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE);
+      // Position still open — no action needed
+    } catch (e) {
+      const msg = String(e.message);
+      if (msg.includes("40410000") || msg.toLowerCase().includes("position does not exist")) {
+        // Bracket TP or SL closed this position — get exit price from bracket legs
+        let bracketExitPrice = null;
+        if (pos.alpaca_order_id) {
+          try {
+            const parentOrder = await alpacaGet(`/v2/orders/${pos.alpaca_order_id}`, ALPACA_BASE);
+            for (const leg of (parentOrder?.legs ?? [])) {
+              if (leg.filled_avg_price && leg.side === "sell") {
+                bracketExitPrice = parseFloat(leg.filled_avg_price);
+                break;
+              }
+            }
+          } catch { /* non-fatal */ }
+        }
+        console.log(`[SENTINEL] Bracket exit detected: ${pos.ticker} @ $${bracketExitPrice ?? "unknown"} — marking DB closed.`);
+        await ledgerClose(pos.id, "bracket_tp_sl_exit", null, bracketExitPrice).catch(ex => {
+          console.error(`[SENTINEL] Ledger close failed for ${pos.ticker}:`, ex.message);
+        });
+        pos.status = "closed"; // skip exit checks below
+      }
+    }
+  }
+
+  // Per-position checks (skip cancelled or already-closed records)
   for (const pos of positions) {
+    if (pos.status === "cancelled" || pos.status === "closed") continue;
     const fields = await fetchStructuralFields(pos.ticker);
     const signalClass = String(pos.signal_class ?? "").trim().toUpperCase();
 
