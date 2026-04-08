@@ -1,3 +1,69 @@
+# What This Project Is
+
+TFE (Tao Financial Engine) is **not** a financial application. It is the first
+domain-specific proving ground for **DSF-AI** (Deterministic Structural Field AI)
+— a universal structural cognition engine.
+
+## The Kernel (L0–L4) Is Domain-Agnostic
+
+The UF kernel (Layers 0–4) dimensionalizes raw time-series data into deterministic
+structural geometry. It does not know or care what the data represents. It computes
+structural displacement ($D_k$), stability ($S_{UF}$), motion ($M_k$), reversal
+($R_{rev,k}$), uncertainty ($U^*_k$), cohesion ($C_k$), pressure ($P_k$), and
+breathing ($B_k$) from **any** temporal signal — financial, thermal, acoustic,
+biological, electromagnetic, or otherwise.
+
+The kernel is a primitive structural unit akin to a neuron. Its purpose is to
+interpret time-series data and form the basis for emergent cognition.
+
+## L5 Is the First Domain Governance Layer
+
+Layer 5 translates L4's geometric output into domain-specific decisions. The
+current implementation governs financial structural interpretation (Accumulate /
+Hold / Avoid) using DSF V3 deterministic basin physics. This is the first of many
+possible domain governance layers.
+
+## Why Financial Data
+
+Financial markets were chosen as the first test domain because the data is:
+- **Messy** — noisy, adversarial, non-stationary
+- **Abundant** — 10,000+ tickers, daily bars, decades of history
+- **Measurable** — outcomes are binary and objective (did the physics predict correctly?)
+
+Gemini (w3.1) suggested this domain. The goal is not to "beat the market" or
+operate as a quant. The goal is to prove that the L0–L4 kernel reliably detects
+structural state transitions in hostile data.
+
+## Target Domains Beyond Finance
+
+Once the physics is validated in the financial domain:
+- **Medical devices** — physiological signal interpretation
+- **Thermal sensors** — structural anomaly detection
+- **Autonomous vehicles** — environmental state cognition
+- **ArcLoom processor** — hardware instantiation of DSF-AI
+- **Android-level cognition** — emergent structural awareness
+
+## What This Means for Any Agent Working Here
+
+1. You are solving **physics problems** (entropy, cohesion, structural greed),
+   not market problems.
+2. Win rate is a **physics accuracy metric**, not a financial performance metric.
+   85% is the floor, not a target.
+3. The Negative Space operator, Quiescence, Asymmetric Exhaustion, and the Greed
+   Operator ($\Gamma$) are **structural physics concepts** being stress-tested in
+   a financial domain.
+4. L0–L4 is **frozen and canonical**. It is the kernel. Do not modify it.
+5. TFE needs to work reliably so the physics can be validated and the project can
+   advance to its real applications. Stability is the priority.
+6. The user (Joseph Forrester) is the physicist and architect of the kernel. He is
+   **not a developer**. Frame all explanations in physics terms, not market terms.
+   Never assume developer knowledge.
+7. Any AI agent that introduces ML approximations, heuristic smoothing, or
+   probabilistic shortcuts into the deterministic physics is actively sabotaging
+   the project. This has happened before (see E5.4 history) and cost months.
+
+---
+
 # Maximum Hard Constraints
 
 - It is acceptable for you to ask clarifying questions.
