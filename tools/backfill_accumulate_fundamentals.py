@@ -33,7 +33,7 @@ from tfe_fundamental_fetcher import FundamentalCorpora
 # Config
 # ---------------------------------------------------------------------------
 
-SLEEP_BETWEEN_TICKERS = 1.5   # seconds — respects Polygon rate limit
+SLEEP_BETWEEN_TICKERS = 0.8   # seconds — Polygon rate limit + yfinance fallback
 MAX_ATTEMPTS_PER_TICKER = 3
 
 

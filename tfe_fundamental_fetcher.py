@@ -371,26 +371,46 @@ class FundamentalCorpora:
         if normalized_asset_class != "equity":
             return {"status": "FAIL", "reason": f"Unsupported asset class: {asset_class}", "sector": "Unknown"}
 
+        polygon_available = True
         try:
             financials = self._latest_financials(ticker)
             market_cap = self._get_market_cap(ticker)
-        except Exception as exc:
-            return {"status": "FAIL", "reason": f"Financial data unavailable: {exc}", "sector": "Unknown"}
+        except Exception:
+            polygon_available = False
+            financials = {}
+            market_cap = 0.0
 
-        current_assets = self._extract_value(financials, "balance_sheet", "current_assets")
-        current_liabilities = self._extract_value(financials, "balance_sheet", "current_liabilities")
-        long_term_debt = self._extract_value(financials, "balance_sheet", "long_term_debt")
-        operating_cash_flow = self._extract_value(
-            financials,
-            "cash_flow_statement",
-            "net_cash_flow_from_operating_activities",
-        )
-        capital_expenditure = self._extract_value(financials, "cash_flow_statement", "capital_expenditure")
-        gross_profit = self._extract_value(financials, "income_statement", "gross_profit")
-        revenues = self._extract_value(financials, "income_statement", "revenues")
+        if polygon_available:
+            current_assets = self._extract_value(financials, "balance_sheet", "current_assets")
+            current_liabilities = self._extract_value(financials, "balance_sheet", "current_liabilities")
+            long_term_debt = self._extract_value(financials, "balance_sheet", "long_term_debt")
+            operating_cash_flow = self._extract_value(
+                financials,
+                "cash_flow_statement",
+                "net_cash_flow_from_operating_activities",
+            )
+            capital_expenditure = self._extract_value(financials, "cash_flow_statement", "capital_expenditure")
+            gross_profit = self._extract_value(financials, "income_statement", "gross_profit")
+            revenues = self._extract_value(financials, "income_statement", "revenues")
+        else:
+            current_assets = None
+            current_liabilities = None
+            long_term_debt = None
+            operating_cash_flow = None
+            capital_expenditure = None
+            gross_profit = None
+            revenues = None
 
+        # Yahoo Finance fallback — used when Polygon has no filings at all,
+        # or when individual metrics are missing from Polygon data.
         yfinance_payload: Optional[Dict[str, Any]] = None
-        if gross_profit is None or revenues is None or operating_cash_flow is None:
+        needs_yfinance = (
+            not polygon_available
+            or gross_profit is None
+            or revenues is None
+            or operating_cash_flow is None
+        )
+        if needs_yfinance:
             yfinance_payload = self._get_yfinance_payload(ticker)
             if str(yfinance_payload.get("status")) != "data_unavailable":
                 healed = self._heal_metrics_with_yfinance(
@@ -404,6 +424,21 @@ class FundamentalCorpora:
                 revenues = healed["revenues"]
                 operating_cash_flow = healed["operating_cash_flow"]
                 market_cap = healed["market_cap"] if healed["market_cap"] is not None else market_cap
+
+                # Fill balance sheet gaps from yfinance when Polygon had nothing
+                if current_assets is None or current_liabilities is None:
+                    info = (yfinance_payload or {}).get("info") or {}
+                    if current_assets is None:
+                        current_assets = self._coerce_numeric(info.get("totalCurrentAssets"))
+                    if current_liabilities is None:
+                        current_liabilities = self._coerce_numeric(info.get("totalCurrentLiabilities"))
+                    if long_term_debt is None:
+                        long_term_debt = self._coerce_numeric(info.get("longTermDebt"))
+                    if capital_expenditure is None:
+                        # yfinance reports capex as negative
+                        raw_capex = self._coerce_numeric(info.get("capitalExpenditures"))
+                        if raw_capex is not None:
+                            capital_expenditure = abs(raw_capex)
 
         sector_meta = self._resolve_sector(
             ticker=ticker,
