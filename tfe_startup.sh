@@ -44,8 +44,16 @@ tfe_refresh_daemon() {
 
   echo "[REFRESH-DAEMON] Started. Will trigger refresh daily at ${SCHEDULED_HOUR}:$(printf '%02d' ${SCHEDULED_MINUTE}) UTC."
 
-  # Wait for Next.js to be ready before first potential trigger
+  # Wait for Next.js to be ready, then verify HTTP trigger works
   sleep 30
+  echo "[REFRESH-DAEMON] Verifying HTTP trigger connectivity..."
+  node -e "
+    const http = require('http');
+    const req = http.request({hostname:'localhost',port:3000,path:'/api/health',method:'GET'},
+      res => console.log('[REFRESH-DAEMON] Connectivity OK — HTTP '+res.statusCode));
+    req.on('error', e => console.error('[REFRESH-DAEMON] Connectivity FAILED: '+e.message));
+    req.end();
+  " 2>&1 || true
 
   while true; do
     NOW_H=$(date -u +%H)
