@@ -50,19 +50,31 @@ import evaluate_recommendation_policy_snapshot as ev  # noqa: E402
 OUTPUT_PATH = REPO_ROOT / "web" / "data" / "recommendation-quality-latest.json"
 
 # ---------------------------------------------------------------------------
-# Frozen gate targets — match legacy values exactly
+# Observational mode — no pass/fail targets during validation
 # ---------------------------------------------------------------------------
-TARGET_5: float = 95.0
-TARGET_20: float = 97.0
-TARGET_60: float = 69.0
-TARGET_AVG: float = 64.0
+# Previous targets (95%, 97%, 69%, 64%) were artifacts of E5.4 ML
+# hallucinations and are not grounded in the actual physics.  During the
+# 60-day validation period all horizon metrics are observational only.
+# Real targets will be set after clean data accumulates.
+TARGET_5:  Optional[float] = None   # observational
+TARGET_20: Optional[float] = None   # observational
+TARGET_60: Optional[float] = None   # observational
+TARGET_AVG: Optional[float] = None  # observational
 TARGET_COVERAGE: float = 0.95
 TARGET_FALLBACK_MAX: float = 0.05
 
 # Minimum number of mature decisions required to emit a horizon metric
 MIN_SAMPLE: int = 10
 
-# Calendar-day lookback window for history (120d ≈ 85 trading days)
+# ---------------------------------------------------------------------------
+# Validation-era history cutoff — ignore all zombie/E5.4-era data
+# ---------------------------------------------------------------------------
+# Clean DSF V3 deterministic physics validation began 2026-04-06.
+# Only decisions generated on or after this date are evaluated.
+VALIDATION_START_UTC = datetime(2026, 4, 6, tzinfo=timezone.utc)
+
+# Calendar-day lookback window (used only if VALIDATION_START_UTC would go
+# further back — effectively overridden by the start date during validation)
 HISTORY_DAYS: int = 120
 
 # Trading-day horizons
@@ -185,7 +197,9 @@ def _query_history(conn) -> List[Dict[str, Any]]:
     JSONB blob) to keep memory and transfer time low on 500K+ row tables.
     """
     min_bars = ev.ACCUMULATE_MIN_BARS
-    cutoff = datetime.now(timezone.utc) - timedelta(days=HISTORY_DAYS)
+    lookback_cutoff = datetime.now(timezone.utc) - timedelta(days=HISTORY_DAYS)
+    # Use the later of lookback_cutoff and VALIDATION_START_UTC
+    cutoff = max(lookback_cutoff, VALIDATION_START_UTC)
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -463,13 +477,17 @@ def run_audit(output_path: Path = OUTPUT_PATH) -> Dict[str, Any]:
     )
 
     # -----------------------------------------------------------------------
-    # 5. Gate evaluation
+    # 5. Gate evaluation — observational during validation
     # -----------------------------------------------------------------------
-    def _gate_gte(metric: Optional[float], target: float) -> bool:
-        return metric is not None and metric >= target
+    def _gate_gte(metric: Optional[float], target: Optional[float]) -> bool:
+        if target is None or metric is None:
+            return False
+        return metric >= target
 
-    def _gate_lte(metric: Optional[float], target: float) -> bool:
-        return metric is not None and metric <= target
+    def _gate_lte(metric: Optional[float], target: Optional[float]) -> bool:
+        if target is None or metric is None:
+            return False
+        return metric <= target
 
     gate_5day    = _gate_gte(horizon_pcts.get("5"),  TARGET_5)
     gate_20day   = _gate_gte(horizon_pcts.get("20"), TARGET_20)
@@ -478,9 +496,12 @@ def run_audit(output_path: Path = OUTPUT_PATH) -> Dict[str, Any]:
     gate_coverage= _gate_gte(coverage_rate * 100.0,  TARGET_COVERAGE * 100.0)
     gate_fallback= _gate_lte(fallback_rate * 100.0,  TARGET_FALLBACK_MAX * 100.0)
 
+    # During observational mode (targets=None), quality gates are all False
     quality_gate_count     = sum([gate_5day, gate_20day, gate_60day, gate_avg])
     reliability_gate_count = sum([gate_coverage, gate_fallback])
     total_gate_count       = quality_gate_count + reliability_gate_count
+
+    observational = TARGET_5 is None  # True during validation period
 
     # -----------------------------------------------------------------------
     # 6. Status + reason text
@@ -489,9 +510,19 @@ def run_audit(output_path: Path = OUTPUT_PATH) -> Dict[str, Any]:
     if not any_horizon_ready:
         status = "insufficient_history"
         reason_text = (
-            f"Insufficient history for outcome scoring: "
-            f"{len(accumulate_records)} Accumulate decisions found in last "
-            f"{HISTORY_DAYS}d, need >= {MIN_SAMPLE} mature decisions per horizon."
+            f"Validation period — observational. "
+            f"{len(accumulate_records)} Accumulate decisions since "
+            f"{VALIDATION_START_UTC.strftime('%Y-%m-%d')}, "
+            f"need >= {MIN_SAMPLE} mature decisions per horizon."
+        )
+    elif observational:
+        status = "observational"
+        reason_text = (
+            f"Validation period — observational. "
+            f"DSF V3 deterministic basin physics. "
+            f"{len(accumulate_records)} Accumulate decisions since "
+            f"{VALIDATION_START_UTC.strftime('%Y-%m-%d')}. "
+            f"No pass/fail targets set — collecting clean baseline data."
         )
     elif total_gate_count >= 4:
         status = "pass"

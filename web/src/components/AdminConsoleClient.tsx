@@ -1363,7 +1363,7 @@ export default function AdminConsolePage() {
 
             <div className={styles.qualityPanel}>
               <div className={styles.logMeta}>
-                <strong>Recommendation Quality Status (Beat S&P 500)</strong>
+                <strong>Recommendation Quality Status (Beat S&amp;P 500) — Observational</strong>
                 <span>
                   {recommendationQuality?.exists
                     ? `Updated: ${formatIso(recommendationQuality.generatedAtUtc)}`
@@ -1378,28 +1378,36 @@ export default function AdminConsolePage() {
                       <div className={styles.qualityLabel}>5D</div>
                       <div className={styles.qualityValue}>{formatPercent(recommendationQuality.winner.horizon_outcome_over_index_pct["5"], 1)}</div>
                       <div className={styles.qualityTarget}>
-                        Target {formatPercent(recommendationQuality.targets.target_5, 1)}
+                        {recommendationQuality.targets.target_5 != null
+                          ? `Target ${formatPercent(recommendationQuality.targets.target_5, 1)}`
+                          : "Observational"}
                       </div>
                     </div>
                     <div className={styles.qualityTile}>
                       <div className={styles.qualityLabel}>20D</div>
                       <div className={styles.qualityValue}>{formatPercent(recommendationQuality.winner.horizon_outcome_over_index_pct["20"], 1)}</div>
                       <div className={styles.qualityTarget}>
-                        Target {formatPercent(recommendationQuality.targets.target_20, 1)}
+                        {recommendationQuality.targets.target_20 != null
+                          ? `Target ${formatPercent(recommendationQuality.targets.target_20, 1)}`
+                          : "Observational"}
                       </div>
                     </div>
                     <div className={styles.qualityTile}>
                       <div className={styles.qualityLabel}>60D</div>
                       <div className={styles.qualityValue}>{formatPercent(recommendationQuality.winner.horizon_outcome_over_index_pct["60"], 1)}</div>
                       <div className={styles.qualityTarget}>
-                        Target {formatPercent(recommendationQuality.targets.target_60, 1)}
+                        {recommendationQuality.targets.target_60 != null
+                          ? `Target ${formatPercent(recommendationQuality.targets.target_60, 1)}`
+                          : "Observational"}
                       </div>
                     </div>
                     <div className={styles.qualityTile}>
                       <div className={styles.qualityLabel}>Avg</div>
                       <div className={styles.qualityValue}>{formatPercent(recommendationQuality.winner.avg_outcome_over_index_pct, 1)}</div>
                       <div className={styles.qualityTarget}>
-                        Target {formatPercent(recommendationQuality.targets.target_avg, 1)}
+                        {recommendationQuality.targets.target_avg != null
+                          ? `Target ${formatPercent(recommendationQuality.targets.target_avg, 1)}`
+                          : "Observational"}
                       </div>
                     </div>
                   </div>
