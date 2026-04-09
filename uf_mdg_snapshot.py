@@ -483,22 +483,54 @@ def _fetch_history(
     symbol: str,
     years: int = YEARS_HISTORY,
     client: Optional[Any] = None,
+    _bar_cache_conn=None,
 ) -> Tuple[List[Bar], Dict[str, int]]:
     """
-    Fetch daily OHLCV bars for `symbol` using the unified market data service.
+    Fetch daily OHLCV bars for `symbol`, using the persistent bar cache.
 
-    Production ingestion behavior:
-    - Apply strict bar integrity filter via sanitize_daily_bars
-      (finite/positive/consistent OHLC + min price floor + timestamp dedupe).
-    - Keep only bars with parseable close values after integrity filtering.
-    - Return bars sorted by timestamp.
+    Strategy:
+    1. Read cached bars from Postgres (daily_bars table).
+    2. If cached data exists, fetch only the delta (bars after the latest
+       cached date) from the API.
+    3. If no cached data, fetch full history from the API (first run only).
+    4. Write any new API bars to the cache for next time.
+    5. Apply bar integrity filter and return.
+
+    This reduces a typical daily refresh from ~6,000 full-history API calls
+    to ~6,000 single-day delta fetches (or zero if bars are already current).
     """
     if client is None:
         client = get_unified_market_data()
 
-    end = datetime.utcnow()
-    start = end - timedelta(days=years * 365)
+    # ── Step 1: Read from bar cache ──────────────────────────────────────
+    cached_bars: List[Bar] = []
+    cache_available = False
+    try:
+        from bar_cache import read_cached_bars, get_latest_bar_date, write_bars, ensure_schema
+        if _bar_cache_conn is not None:
+            ensure_schema(_bar_cache_conn)
+        cached_bars = read_cached_bars(symbol, conn=_bar_cache_conn)
+        cache_available = True
+    except Exception:
+        # Cache not available (table doesn't exist yet, DB not reachable, etc.)
+        # Fall through to full API fetch
+        pass
 
+    # ── Step 2: Determine what to fetch from API ─────────────────────────
+    end = datetime.utcnow()
+    if cached_bars:
+        # Fetch only bars after the latest cached date (delta)
+        latest_cached = max(b.timestamp for b in cached_bars)
+        # Start from the day after the latest cached bar
+        start = latest_cached + timedelta(days=1)
+        if start >= end:
+            # Cache is already current — no API call needed
+            return _finalize_bars(cached_bars), {}
+    else:
+        # No cache — full history fetch
+        start = end - timedelta(days=years * 365)
+
+    # ── Step 3: Fetch delta (or full) from API ───────────────────────────
     req = HistoryRequest(
         symbol=symbol,
         timespan=Timespan.DAY,
@@ -512,11 +544,62 @@ def _fetch_history(
     result = client.get_history(req)
     raw_bars: List[Bar] = getattr(result, "bars", []) or []
 
+    # Fallback: if Polygon returned nothing and we have no cache, try yfinance
+    if not raw_bars and not cached_bars:
+        try:
+            import yfinance as yf
+            yf_data = yf.download(
+                symbol, start=start.strftime("%Y-%m-%d"),
+                end=end.strftime("%Y-%m-%d"),
+                auto_adjust=True, progress=False,
+            )
+            if yf_data is not None and not yf_data.empty:
+                for idx_date, row in yf_data.iterrows():
+                    try:
+                        ts = datetime(idx_date.year, idx_date.month, idx_date.day,
+                                      tzinfo=None)
+                        raw_bars.append(Bar(
+                            timestamp=ts,
+                            open=float(row.get("Open", row.get("Close", 0))),
+                            high=float(row.get("High", row.get("Close", 0))),
+                            low=float(row.get("Low", row.get("Close", 0))),
+                            close=float(row["Close"]),
+                            volume=float(row.get("Volume", 0)),
+                        ))
+                    except Exception:
+                        continue
+                if raw_bars:
+                    print(f"[UF-SNAPSHOT] {symbol}: yfinance fallback provided {len(raw_bars)} bars")
+        except Exception:
+            pass  # yfinance unavailable — continue with empty bars
+
     cleaned_bars, dropped = sanitize_daily_bars(raw_bars, min_price_floor=MIN_PRICE_FLOOR)
 
-    # Keep only bars with a usable close
+    # ── Step 4: Write new bars to cache ──────────────────────────────────
+    if cache_available and cleaned_bars:
+        try:
+            bar_source = "yfinance" if (not cached_bars and not getattr(result, "bars", None)) else "polygon"
+            write_bars(symbol, cleaned_bars, source=bar_source, conn=_bar_cache_conn)
+        except Exception as exc:
+            # Non-fatal — cache write failure doesn't break the refresh
+            print(f"[UF-SNAPSHOT] Bar cache write failed for {symbol}: {exc}")
+
+    # ── Step 5: Merge cached + new bars, finalize ────────────────────────
+    all_bars = cached_bars + cleaned_bars
+    return _finalize_bars(all_bars), dropped
+
+
+def _finalize_bars(bars: List[Bar]) -> List[Bar]:
+    """Deduplicate by date, filter usable closes, sort by timestamp."""
+    seen_dates: Dict[Any, Bar] = {}
+    for b in bars:
+        ts = b.timestamp
+        date_key = ts.date() if hasattr(ts, "date") else ts
+        # Later bars (from API) override cached bars for the same date
+        seen_dates[date_key] = b
+
     close_clean: List[Bar] = []
-    for b in cleaned_bars:
+    for b in seen_dates.values():
         try:
             close_value = getattr(b, "close", None)
             if close_value is None:
@@ -527,7 +610,7 @@ def _fetch_history(
         close_clean.append(b)
 
     close_clean.sort(key=lambda b: b.timestamp)
-    return close_clean, dropped
+    return close_clean
 
 
 def load_recent_daily_bar_metrics(
@@ -668,6 +751,7 @@ def evaluate_symbol_snapshot(
     asset_type: str = "stock",
     years_history: int = YEARS_HISTORY,
     client: Optional[Any] = None,
+    _bar_cache_conn=None,
 ) -> Dict[str, Any]:
     """
     Compute a UF-Core + MDG snapshot row for one symbol.
@@ -682,6 +766,7 @@ def evaluate_symbol_snapshot(
     years_history : number of years of daily bars to use.
     client      : optional unified market data client; if None, a new one
                   is obtained via get_unified_market_data().
+    _bar_cache_conn : optional psycopg2 connection for the bar cache DB.
 
     Output
     ------
@@ -696,7 +781,8 @@ def evaluate_symbol_snapshot(
     - This function is deliberately small so it can be called from
       refresh_snapshot_full without dragging in any Streamlit / UI code.
     """
-    bars, dropped = _fetch_history(symbol, years=years_history, client=client)
+    bars, dropped = _fetch_history(symbol, years=years_history, client=client,
+                                    _bar_cache_conn=_bar_cache_conn)
     bar_count = len(bars)
     history_meta = history_metadata_from_bars(bars)
 

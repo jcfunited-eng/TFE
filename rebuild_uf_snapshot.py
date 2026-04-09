@@ -958,6 +958,29 @@ def rebuild_snapshot(
         _safe_int(os.environ.get("TFE_SNAPSHOT_PROGRESS_LOG_INTERVAL_SECONDS", 30), 30),
     )
 
+    # Open a shared DB connection for the bar cache (reused across all symbols)
+    _bar_cache_conn = None
+    try:
+        from bar_cache import ensure_schema as _bc_ensure
+        import psycopg2 as _bc_pg
+        _bc_kwargs = {
+            "host": os.environ.get("PGHOST", ""),
+            "port": int(os.environ.get("PGPORT", "5432")),
+            "dbname": os.environ.get("PGDATABASE", ""),
+            "user": os.environ.get("PGUSER", ""),
+            "password": os.environ.get("PGPASSWORD", ""),
+        }
+        _bc_sslmode = os.environ.get("PGSSLMODE", "require")
+        if _bc_sslmode and _bc_sslmode != "disable":
+            _bc_kwargs["sslmode"] = _bc_sslmode
+        _bc_kwargs["connect_timeout"] = 10
+        _bar_cache_conn = _bc_pg.connect(**_bc_kwargs)
+        _bc_ensure(_bar_cache_conn)
+        print("[UF-SNAPSHOT] Bar cache: connected (incremental mode active)")
+    except Exception as _bc_err:
+        print(f"[UF-SNAPSHOT] Bar cache: unavailable ({_bc_err}) — full API fetch mode")
+        _bar_cache_conn = None
+
     total = len(universe_items)
     last_progress_log_ts = time.time()
     for idx, item in enumerate(universe_items, start=1):
@@ -1004,6 +1027,7 @@ def rebuild_snapshot(
                 symbol=symbol,
                 asset_type=asset_type,
                 years_history=years_history,
+                _bar_cache_conn=_bar_cache_conn,
             )
         except _SnapshotSymbolTimeout:
             symbol_timeout_count += 1
@@ -1145,6 +1169,13 @@ def rebuild_snapshot(
         "status": "ok",
     }
     _save_rebuild_report(report)
+
+    # Close bar cache connection
+    if _bar_cache_conn is not None:
+        try:
+            _bar_cache_conn.close()
+        except Exception:
+            pass
 
     print(
         "[UF-SNAPSHOT] Rebuild complete. "
