@@ -36,11 +36,28 @@ PGSSLMODE=require node /app/web/scripts/clear_stale_refresh_state.mjs || echo "[
 # Step 3: Start scheduled refresh daemon in background
 # Fires daily at 13:00 UTC (9:00 AM ET) — after previous day's bars are fully settled
 # and 30 min before market open, so PEE-1 orders are queued before 9:30 AM ET.
+tfe_trigger_refresh() {
+  echo "[REFRESH-DAEMON] Triggering refresh at $(date -u '+%Y-%m-%dT%H:%M:%SZ')..."
+  node -e "
+    const http = require('http');
+    const body = JSON.stringify({action:'start',mode:'snapshot',triggerSource:'scheduled'});
+    const req = http.request({
+      hostname:'localhost', port:3000, path:'/api/admin/refresh',
+      method:'POST',
+      headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body),
+               'x-tfe-internal-refresh-token':process.env.TFE_INTERNAL_REFRESH_TOKEN||''}
+    }, res => {
+      let d=''; res.on('data',c=>d+=c);
+      res.on('end',()=>{ console.log('[REFRESH-DAEMON] Response HTTP '+res.statusCode+': '+d.slice(0,200)); });
+    });
+    req.on('error', e => console.error('[REFRESH-DAEMON] Request error: '+e.message));
+    req.write(body); req.end();
+  " && echo "[REFRESH-DAEMON] Refresh triggered." || echo "[REFRESH-DAEMON] Trigger failed."
+}
+
 tfe_refresh_daemon() {
   local SCHEDULED_HOUR=13
   local SCHEDULED_MINUTE=0
-  local BASE_URL="http://localhost:3000"
-  local API_PATH="/api/admin/refresh"
 
   echo "[REFRESH-DAEMON] Started. Will trigger refresh daily at ${SCHEDULED_HOUR}:$(printf '%02d' ${SCHEDULED_MINUTE}) UTC."
 
@@ -55,29 +72,59 @@ tfe_refresh_daemon() {
     req.end();
   " 2>&1 || true
 
+  # Catch-up check: if container started after the scheduled time and no
+  # refresh ran today, fire immediately.  This prevents deploys or restarts
+  # from causing missed refresh days.
+  NOW_H_INT=$((10#$(date -u +%H)))
+  if [ "${NOW_H_INT}" -ge "${SCHEDULED_HOUR}" ]; then
+    LAST_COMPLETED=""
+    if [ -f /app/admin_refresh_status.json ]; then
+      LAST_COMPLETED=$(node -e "
+        try {
+          const s = JSON.parse(require('fs').readFileSync('/app/admin_refresh_status.json','utf8'));
+          const c = s.completed_at || s.last_report?.generated_at_utc || '';
+          if (c) {
+            const d = new Date(c);
+            const today = new Date();
+            if (d.getUTCFullYear() === today.getUTCFullYear() &&
+                d.getUTCMonth() === today.getUTCMonth() &&
+                d.getUTCDate() === today.getUTCDate()) {
+              console.log('TODAY');
+            } else {
+              console.log('STALE');
+            }
+          } else { console.log('STALE'); }
+        } catch { console.log('STALE'); }
+      " 2>/dev/null || echo "STALE")
+    else
+      LAST_COMPLETED="STALE"
+    fi
+
+    if [ "${LAST_COMPLETED}" != "TODAY" ]; then
+      echo "[REFRESH-DAEMON] Catch-up: container started after ${SCHEDULED_HOUR}:00 UTC and no refresh ran today. Firing now."
+      tfe_trigger_refresh
+      sleep 90
+    else
+      echo "[REFRESH-DAEMON] Today's refresh already completed. No catch-up needed."
+    fi
+  fi
+
+  # Main scheduling loop
+  local FIRED_TODAY=0
   while true; do
     NOW_H=$(date -u +%H)
     NOW_M=$(date -u +%M)
     NOW_H_INT=$((10#${NOW_H}))
     NOW_M_INT=$((10#${NOW_M}))
 
-    if [ "${NOW_H_INT}" -eq "${SCHEDULED_HOUR}" ] && [ "${NOW_M_INT}" -eq "${SCHEDULED_MINUTE}" ]; then
-      echo "[REFRESH-DAEMON] Triggering scheduled refresh at $(date -u '+%Y-%m-%dT%H:%M:%SZ')..."
-      node -e "
-        const http = require('http');
-        const body = JSON.stringify({action:'start',mode:'snapshot',triggerSource:'scheduled'});
-        const req = http.request({
-          hostname:'localhost', port:3000, path:'/api/admin/refresh',
-          method:'POST',
-          headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body),
-                   'x-tfe-internal-refresh-token':process.env.TFE_INTERNAL_REFRESH_TOKEN||''}
-        }, res => {
-          let d=''; res.on('data',c=>d+=c);
-          res.on('end',()=>{ console.log('[REFRESH-DAEMON] Response HTTP '+res.statusCode+': '+d.slice(0,200)); });
-        });
-        req.on('error', e => console.error('[REFRESH-DAEMON] Request error: '+e.message));
-        req.write(body); req.end();
-      " && echo "[REFRESH-DAEMON] Refresh triggered." || echo "[REFRESH-DAEMON] Trigger failed."
+    # Reset fired flag at midnight
+    if [ "${NOW_H_INT}" -eq 0 ] && [ "${NOW_M_INT}" -eq 0 ]; then
+      FIRED_TODAY=0
+    fi
+
+    if [ "${NOW_H_INT}" -eq "${SCHEDULED_HOUR}" ] && [ "${NOW_M_INT}" -eq "${SCHEDULED_MINUTE}" ] && [ "${FIRED_TODAY}" -eq 0 ]; then
+      tfe_trigger_refresh
+      FIRED_TODAY=1
       # Sleep 90s to avoid double-firing within the same minute
       sleep 90
     fi
