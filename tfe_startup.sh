@@ -77,35 +77,31 @@ tfe_refresh_daemon() {
   # from causing missed refresh days.
   NOW_H_INT=$((10#$(date -u +%H)))
   if [ "${NOW_H_INT}" -ge "${SCHEDULED_HOUR}" ]; then
-    LAST_COMPLETED=""
-    if [ -f /app/admin_refresh_status.json ]; then
-      LAST_COMPLETED=$(node -e "
+    # Check DB for a successful refresh today (not just any run — must be status=ok)
+    NEEDS_CATCHUP=$(node -e "
+      const pg = require('pg');
+      const pool = new pg.Pool({ssl:{rejectUnauthorized:false}});
+      (async () => {
         try {
-          const s = JSON.parse(require('fs').readFileSync('/app/admin_refresh_status.json','utf8'));
-          const c = s.completed_at || s.last_report?.generated_at_utc || '';
-          if (c) {
-            const d = new Date(c);
-            const today = new Date();
-            if (d.getUTCFullYear() === today.getUTCFullYear() &&
-                d.getUTCMonth() === today.getUTCMonth() &&
-                d.getUTCDate() === today.getUTCDate()) {
-              console.log('TODAY');
-            } else {
-              console.log('STALE');
-            }
-          } else { console.log('STALE'); }
-        } catch { console.log('STALE'); }
-      " 2>/dev/null || echo "STALE")
-    else
-      LAST_COMPLETED="STALE"
-    fi
+          const r = await pool.query(
+            \"SELECT COUNT(*) as cnt FROM runtime_refresh_runs WHERE report_status = 'ok' AND completed_at >= (CURRENT_DATE AT TIME ZONE 'UTC')\"
+          );
+          const cnt = parseInt(r.rows[0]?.cnt ?? '0', 10);
+          console.log(cnt > 0 ? 'NO' : 'YES');
+        } catch (e) {
+          console.log('YES');
+        } finally {
+          await pool.end();
+        }
+      })();
+    " 2>/dev/null || echo "YES")
 
-    if [ "${LAST_COMPLETED}" != "TODAY" ]; then
-      echo "[REFRESH-DAEMON] Catch-up: container started after ${SCHEDULED_HOUR}:00 UTC and no refresh ran today. Firing now."
+    if [ "${NEEDS_CATCHUP}" = "YES" ]; then
+      echo "[REFRESH-DAEMON] Catch-up: container started after ${SCHEDULED_HOUR}:00 UTC and no successful refresh today. Firing now."
       tfe_trigger_refresh
       sleep 90
     else
-      echo "[REFRESH-DAEMON] Today's refresh already completed. No catch-up needed."
+      echo "[REFRESH-DAEMON] Today's refresh already completed successfully. No catch-up needed."
     fi
   fi
 
