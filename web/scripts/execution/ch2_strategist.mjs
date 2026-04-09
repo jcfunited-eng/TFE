@@ -124,6 +124,19 @@ function parseSignal(row) {
  * Main entry point.
  * Returns array of validated Ch2 signal objects ready for alpaca_bridge.
  */
+/**
+ * Fetch tickers that already have open positions in the ledger.
+ * Prevents duplicate position entries on the same ticker.
+ */
+async function fetchOpenPositionTickers() {
+  const res = await pool.query(
+    `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
+     FROM personal_trade_ledger
+     WHERE status IN ('submitted', 'filled')`
+  );
+  return new Set(res.rows.map(r => r.ticker));
+}
+
 export async function getCh2Signals() {
   const runId = await resolveLatestRunId();
   console.log(`[CH2-STRATEGIST] run_id=${runId}`);
@@ -131,12 +144,22 @@ export async function getCh2Signals() {
   const rows    = await fetchCandidateRows(runId);
   const signals = rows.map(parseSignal).filter(Boolean);
 
-  console.log(`[CH2-STRATEGIST] ${rows.length} candidates → ${signals.length} valid Ch2 signals`);
-  for (const s of signals) {
+  // Exclude tickers that already have open positions
+  const openTickers = await fetchOpenPositionTickers();
+  const deduped = signals.filter(s => {
+    if (openTickers.has(s.ticker)) {
+      console.log(`[CH2-STRATEGIST]   ${s.ticker} — SKIPPED (open position exists)`);
+      return false;
+    }
+    return true;
+  });
+
+  console.log(`[CH2-STRATEGIST] ${rows.length} candidates → ${signals.length} valid → ${deduped.length} after dedup`);
+  for (const s of deduped) {
     console.log(`[CH2-STRATEGIST]   ${s.ticker} | bar_count=${s.bar_count} | s_uf=${s.s_uf} | D_k=${s.d_k} | regime=${s.regime}`);
   }
 
-  return signals;
+  return deduped;
 }
 
 export async function closeCh2StrategistPool() {

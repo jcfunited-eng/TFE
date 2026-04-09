@@ -131,6 +131,19 @@ function parseSignal(row, spyDk) {
  * Returns array of validated 3WA signal objects ready for alpaca_bridge.
  * Returns [] if Wave 3 (SPY D_k) is not active.
  */
+/**
+ * Fetch tickers that already have open positions in the ledger.
+ * Prevents duplicate position entries on the same ticker.
+ */
+async function fetchOpenPositionTickers() {
+  const res = await pool.query(
+    `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
+     FROM personal_trade_ledger
+     WHERE status IN ('submitted', 'filled')`
+  );
+  return new Set(res.rows.map(r => r.ticker));
+}
+
 export async function get3WASignals() {
   const runId = await resolveLatestRunId();
   console.log(`[STRATEGIST] run_id=${runId}`);
@@ -154,12 +167,22 @@ export async function get3WASignals() {
   const rows    = await fetchCandidateRows(runId);
   const signals = rows.map(r => parseSignal(r, spyDk)).filter(Boolean);
 
-  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} valid 3WA signals`);
-  for (const s of signals) {
+  // Exclude tickers that already have open positions
+  const openTickers = await fetchOpenPositionTickers();
+  const deduped = signals.filter(s => {
+    if (openTickers.has(s.ticker)) {
+      console.log(`[STRATEGIST]   ${s.ticker} — SKIPPED (open position exists)`);
+      return false;
+    }
+    return true;
+  });
+
+  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} valid → ${deduped.length} after dedup`);
+  for (const s of deduped) {
     console.log(`[STRATEGIST]   ${s.ticker} | bar_count=${s.bar_count} | s_uf=${s.s_uf} | D_k=${s.d_k}`);
   }
 
-  return signals;
+  return deduped;
 }
 
 export async function closeStrategistPool() {
