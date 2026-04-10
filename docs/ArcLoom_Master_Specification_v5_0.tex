@@ -833,7 +833,7 @@ safety monitoring, telemetry (UART/BLE).
 \section{Build Sequence}
 
 \begin{enumerate}[label=\textbf{Phase \arabic*} (Months \arabic*--\arabic*):, start=1]
-  \item[Phase 1 (Months 1--3):] FPGA simulation. Validate trit stability, parity chains, Schmitt trigger.
+  \item[Phase 1 (Months 1--3):] FPGA simulation. Validate trit stability, parity chains, Schmitt trigger, and MathLoom global settle (exhaustive 4-trit + scaling to 32-trit).
   \item[Phase 2 (Months 3--6):] Hybrid robot. Connect sensors and motors. Validate H1-C. Demo person-following.
   \item[Phase 3 (Months 6--12):] Pure ternary. Disable BCP. Characterize noise tolerance and power.
   \item[Phase 4 (Months 12--18):] Analog fabric. Replace FPGA with physical oscillator arrays.
@@ -902,18 +902,28 @@ Timeline & 12--18 months & 6--9 months \\
 
 \appendix
 
-\chapter{MathLoom: Balanced Ternary Arithmetic (Theoretical)}
+\chapter{MathLoom: Balanced Ternary Arithmetic via Global Settling}
 
-\textit{This appendix documents the Math Loom subsystem as an abstract
-theoretical thought experiment. It explores whether exact arithmetic can
-be performed using the TAL relaxation substrate without binary logic.
-Implementation is deferred; this section is not normative.}
+\textit{This appendix defines the Math Loom (ML) subsystem for exact
+arithmetic on the TAL substrate. Originally conceived as a theoretical
+thought experiment, analysis of the global settling property of coupled
+TAL lattices suggests MathLoom may achieve practical arithmetic speeds
+by exploiting physics parallelism for carry propagation. Validation is
+scheduled for Phase~1 FPGA simulation alongside trit stability testing.}
 
 \section{Concept}
 
 Rather than using rigid binary logic gates, MathLoom represents numbers
 as balanced ternary digit strings and implements arithmetic through
-\textbf{local constraint relaxation} in the TAL medium.
+\textbf{constraint relaxation} in the TAL medium. Operands are injected
+as biases into a coupled lattice. The lattice settles to the energy
+minimum that satisfies all digit constraints simultaneously.
+
+The key insight: the TAL lattice settles \textit{globally}, not locally.
+Carry propagation is not a sequential chain --- it is a physical coupling
+that resolves through the medium at the speed of oscillator interaction,
+potentially producing correct results in a single settle cycle regardless
+of word width.
 
 \section{Digit Constraint}
 
@@ -922,13 +932,137 @@ For each digit position $i$:
   a_i + b_i + c_i = s_i + 3 \cdot c_{i+1}
 \end{equation}
 where $a_i, b_i$ are input digits, $s_i$ is the sum digit, and $c_{i+1}$
-is the carry to the next position.
+is the carry to the next position. All values are balanced ternary:
+$a_i, b_i, s_i \in \{-1, 0, +1\}$, $c_i \in \{-1, 0, +1\}$.
 
-\section{Implementation Sketch}
+\section{The Carry Problem and Three Solutions}
 
-Each digit position maps to a local TAL constraint element coupled to
-positions $i$ and $i+1$. Operands are injected as biases. The lattice
-settles until all digit constraints are satisfied.
+In binary ALUs, carry-lookahead logic computes all carries in parallel
+using combinatorial AND/OR gates. In a naive MathLoom implementation,
+each digit position must settle sequentially because carry $c_{i+1}$
+depends on the settled state of position $i$. For an $n$-trit word,
+this gives worst-case latency of $n \times t_{settle}$.
+
+Three approaches resolve this:
+
+\subsection{Approach 1: Ternary Carry-Lookahead Tree}
+
+The balanced ternary carry function is associative:
+\begin{equation}
+  c_{i+1} = \left\lfloor \frac{a_i + b_i + c_i + 1}{3} \right\rfloor - 1
+\end{equation}
+
+This composes across digit groups. A carry-lookahead tree computes group
+carries in parallel using $\lceil \log_3 n \rceil$ levels of TAL cells.
+
+\textbf{Latency:} $\lceil \log_3 n \rceil \times t_{settle}$.
+For 32 trits: $\sim$3 levels $\times$ 3~ns $=$ 9~ns.
+
+\textbf{Assessment:} Approximately 30$\times$ slower than binary ALU.
+Viable for structural computation where arithmetic is infrequent.
+
+\subsection{Approach 2: Redundant Ternary Representation}
+
+Allow intermediate digits to temporarily hold values in the extended set
+$\{-2, -1, 0, +1, +2\}$. This eliminates carry propagation entirely:
+each digit absorbs its carry locally.
+
+\begin{equation}
+  s_i' = a_i + b_i \in \{-2, \ldots, +2\}
+\end{equation}
+
+A subsequent normalization pass converts redundant digits back to
+$\{-1, 0, +1\}$. Normalization is fully parallel --- every digit
+normalizes independently:
+\begin{equation}
+  s_i = s_i' - 3 \cdot \text{round}(s_i'/3), \qquad
+  c_{i+1} = \text{round}(s_i'/3)
+\end{equation}
+
+\textbf{Latency:} Two parallel settle cycles (sum + normalize).
+For any word width: $\sim$2 $\times$ $t_{settle}$ $=$ 6~ns.
+
+\textbf{Assessment:} Approximately 20$\times$ slower than binary ALU.
+Independent of word width. Requires TAL cells with 5 stable basins
+instead of 3 (extended TSAC).
+
+\subsection{Approach 3: Global Lattice Settling (Primary Candidate)}
+
+\begin{axiom}[Global Settle Hypothesis]
+When all digit constraints are encoded as coupling terms in a single TAL
+lattice, and both operands are injected simultaneously as bias fields,
+the global energy minimization produces the correct arithmetic result in
+a single settle cycle --- regardless of word width.
+\end{axiom}
+
+\textbf{Physical basis:} The TAL lattice does not ``know'' about digits
+or carries. It minimizes total energy:
+\begin{equation}
+  E_{ML}(\mathbf{s}, \mathbf{c}; \mathbf{a}, \mathbf{b}) =
+    \sum_{i=0}^{n-1} \left[ V(s_i) + V(c_i) \right]
+    + \lambda_{digit} \sum_{i=0}^{n-1} (a_i + b_i + c_i - s_i - 3c_{i+1})^2
+    + \lambda_{parity} \sum_{chains} \left(\sum_j w_j - K\right)^2
+\end{equation}
+
+where:
+\begin{itemize}[nosep]
+  \item $V(\cdot)$ is the tri-well potential (TSAC basins)
+  \item $\lambda_{digit}$ is the digit-constraint coupling strength
+        (frozen rational)
+  \item $\lambda_{parity}$ is the parity-chain coupling (geometric
+        error correction)
+  \item $a_i, b_i$ are injected as fixed biases (not free variables)
+\end{itemize}
+
+The carry ``propagates'' through the coupling matrix at the speed of the
+physical medium (oscillator coupling velocity), not through sequential
+cell settling. The entire lattice converges simultaneously because all
+constraints are applied in parallel through the energy functional.
+
+\textbf{Latency:} $\sim$1 $\times$ $t_{settle}$ for any word width.
+For 32 trits: $\sim$3~ns.
+
+\textbf{Assessment:} If validated, this is approximately 10$\times$ slower
+than binary ALU --- but \textbf{independent of word width}. A 256-trit
+addition takes the same time as a 4-trit addition. Binary carry-lookahead
+scales as $O(\log n)$; global settling scales as $O(1)$.
+
+For very wide words (cryptographic, scientific), MathLoom could
+potentially \textbf{match or exceed} binary ALU performance because the
+binary carry tree grows logarithmically while MathLoom remains constant.
+
+\textbf{Critical validation requirement:} Phase~1 FPGA simulation must
+demonstrate that global settling produces correct 32-trit addition in a
+single settle cycle. If it does not converge (oscillates or settles to
+incorrect state), fall back to Approach~1 or 2.
+
+\section{Multiplication (Profile M1)}
+
+Multiplication of two $n$-trit numbers $A \times B$ can be decomposed
+into:
+\begin{enumerate}[nosep]
+  \item \textbf{Partial product generation:} $n$ partial products, each
+        a single-trit $\times$ $n$-trit multiplication (trit-by-word).
+        Since trits are $\{-1, 0, +1\}$, this is trivial: negate, zero,
+        or pass-through.
+  \item \textbf{Partial product accumulation:} $n$ additions via MathLoom.
+        If global settling works, all partial products can be injected
+        into a single extended lattice and accumulated in one settle cycle.
+\end{enumerate}
+
+\textbf{Latency estimate (global settle):} $\sim$1--2 $\times$ $t_{settle}$
+for any word width. This is speculative and requires Phase~1 validation.
+
+\section{Division and Comparison (Profile M2)}
+
+Division via iterative constraint: inject dividend and divisor as biases,
+add constraint $q \times b + r = a$ with $0 \leq |r| < |b|$. The lattice
+settles to quotient $q$ and remainder $r$.
+
+Comparison is a special case: $A > B$ iff the sign trit of $(A - B)$
+settles to $+1$.
+
+Both are deferred to Phase~2 validation.
 
 \section{Safety}
 
@@ -937,23 +1071,41 @@ exceed $R_{max}$, the output is \textbf{Neutral} (Valid=0) --- not a
 wrong answer. The system fails gracefully rather than silently producing
 incorrect arithmetic.
 
-\section{Limitations}
+\section{MathLoom Validation Protocol (Phase 1)}
 
+\begin{enumerate}[nosep]
+  \item \textbf{Exhaustive small-width:} Verify all $3^4 \times 3^4 = 6561$
+        possible 4-trit additions produce correct results via global settle.
+  \item \textbf{Scaling test:} Verify 8-trit, 16-trit, and 32-trit
+        additions converge in a single settle cycle.
+  \item \textbf{Settle time measurement:} Record median, p95, p99 settle
+        times. If p99 exceeds $5 \times t_{settle}$ of a single cell,
+        global settling is not achieving carry parallelism.
+  \item \textbf{Noise robustness:} Inject phase noise during settling.
+        Verify output is either correct or Neutral --- never a wrong answer.
+  \item \textbf{Width independence:} Plot settle time vs. word width.
+        If the slope is near zero, global settling is confirmed $O(1)$.
+        If it grows linearly, fall back to Approach~1 (carry tree).
+\end{enumerate}
+
+\section{Significance}
+
+If global settling is validated, MathLoom represents a fundamentally new
+approach to arithmetic computation:
 \begin{itemize}[nosep]
-  \item Multiplication and division are deferred (optional profiles M1, M2)
-  \item Settle time per operation may be orders of magnitude slower than
-        binary ALU
-  \item Carry chain propagation in radix-3 is sequential
-  \item For practical arithmetic needs, the hybrid BCP is recommended
+  \item \textbf{No carry chain:} The physical medium propagates carry
+        through coupling, not through sequential logic.
+  \item \textbf{$O(1)$ word-width scaling:} Addition time is independent
+        of operand size.
+  \item \textbf{No instruction set required:} Arithmetic is a consequence
+        of energy minimization, not instruction execution.
+  \item \textbf{Unified substrate:} The same TAL fabric that performs
+        structural perception also performs arithmetic. No separate ALU.
 \end{itemize}
 
-\section{Value}
-
-MathLoom demonstrates that the TAL substrate is computationally complete
---- it can, in principle, perform any computation a binary system can,
-through constraint relaxation rather than instruction execution. This is
-theoretically significant even if practically the hybrid BCP is preferred
-for arithmetic tasks.
+This would upgrade MathLoom from ``theoretical appendix'' to a core
+architectural capability of ArcLoom, potentially eliminating the need
+for the binary coprocessor for arithmetic tasks.
 
 % ============================================================
 \chapter{Risk Register}
@@ -977,6 +1129,10 @@ R5 & BSIL capture completeness & Insufficient observables to reproduce
      observable set \\
 R6 & Ecosystem adoption & No tooling, no developers, no community &
      Hybrid mode provides familiar MCU interface; WeaveSpec is JSON \\
+R7 & MathLoom global settle failure & Carry does not propagate through
+     coupling; arithmetic requires sequential settling &
+     Fall back to Approach 1 (carry tree) or 2 (redundant representation);
+     validate in Phase 1 with width-independence test \\
 \bottomrule
 \end{longtable}
 
@@ -1000,6 +1156,9 @@ v1.4 & 2026-01-07 & MathLoom addendum (balanced ternary arithmetic) \\
 v4.0 & 2026-04-10 & Physical implementation: triple-node rings, Schmitt trigger, parity chains,
                      krimelack I/O, robot BOM \\
 \textbf{v5.0} & \textbf{2026-04-10} & \textbf{Master Canon.} Consolidates all prior specs. Supersedes all. \\
+v5.0.1 & 2026-04-10 & MathLoom upgraded: global settle hypothesis, carry-lookahead \\
+       &            & tree, redundant ternary, multiplication sketch, validation protocol. \\
+       &            & MathLoom promoted from theoretical appendix to Phase~1 validation target. \\
 \bottomrule
 \end{longtable}
 
