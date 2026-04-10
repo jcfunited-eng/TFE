@@ -1213,6 +1213,14 @@ export default function AdminConsolePage() {
               </button>
 
               <button
+                className={styles.ghostButton}
+                type="button"
+                onClick={() => (window.location.href = "/admin-console/validation")}
+              >
+                Validation Dashboard
+              </button>
+
+              <button
                 className={styles.opButton}
                 type="button"
                 onClick={() => void onRunPee1()}
