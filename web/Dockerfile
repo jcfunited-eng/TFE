@@ -104,6 +104,7 @@ COPY tfe_ses_core_adapter.py ./tfe_ses_core_adapter.py
 COPY aws_root_key_provider.py ./aws_root_key_provider.py
 COPY tfe_fundamental_fetcher.py ./tfe_fundamental_fetcher.py
 
+COPY bar_cache.py ./bar_cache.py
 COPY rebuild_uf_snapshot.py ./rebuild_uf_snapshot.py
 COPY uf_mdg_snapshot.py ./uf_mdg_snapshot.py
 COPY structural_recency_snapshot.py ./structural_recency_snapshot.py
