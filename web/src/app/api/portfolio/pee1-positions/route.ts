@@ -17,8 +17,8 @@ async function fetchCurrentPrices(tickers: string[], executionMode: string): Pro
     ? "https://api.alpaca.markets"
     : "https://paper-api.alpaca.markets";
   try {
-    const params = tickers.map(t => `symbols=${encodeURIComponent(t)}`).join("&");
-    const res = await fetch(`https://data.alpaca.markets/v2/stocks/snapshots?${params}&feed=iex`, {
+    const symbolList = tickers.map(t => encodeURIComponent(t)).join(",");
+    const res = await fetch(`https://data.alpaca.markets/v2/stocks/snapshots?symbols=${symbolList}&feed=iex`, {
       headers: alpacaHeaders(),
     });
     if (!res.ok) return {};

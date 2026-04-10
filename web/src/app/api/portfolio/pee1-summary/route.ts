@@ -31,8 +31,8 @@ async function fetchAlpacaAccount(executionMode: string): Promise<{ equity: numb
 async function fetchCurrentPrices(tickers: string[]): Promise<Record<string, number>> {
   if (!tickers.length) return {};
   try {
-    const params = tickers.map(t => `symbols=${encodeURIComponent(t)}`).join("&");
-    const res = await fetch(`https://data.alpaca.markets/v2/stocks/snapshots?${params}&feed=iex`, {
+    const symbolList = tickers.map(t => encodeURIComponent(t)).join(",");
+    const res = await fetch(`https://data.alpaca.markets/v2/stocks/snapshots?symbols=${symbolList}&feed=iex`, {
       headers: alpacaHeaders(),
     });
     if (!res.ok) return {};
