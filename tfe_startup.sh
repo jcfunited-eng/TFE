@@ -37,10 +37,21 @@ PGSSLMODE=require node /app/web/scripts/clear_stale_refresh_state.mjs || echo "[
 # Fires daily at 13:00 UTC (9:00 AM ET) — after previous day's bars are fully settled
 # and 30 min before market open, so PEE-1 orders are queued before 9:30 AM ET.
 tfe_trigger_refresh() {
-  echo "[REFRESH-DAEMON] Triggering refresh at $(date -u '+%Y-%m-%dT%H:%M:%SZ')..."
+  # Sunday = universe + snapshot (discover new symbols)
+  # All other days = snapshot only (incremental)
+  local DAY_OF_WEEK
+  DAY_OF_WEEK=$(date -u +%u)  # 1=Monday ... 7=Sunday
+  local REFRESH_MODE="snapshot"
+  if [ "${DAY_OF_WEEK}" -eq 7 ]; then
+    REFRESH_MODE="universe_snapshot"
+    echo "[REFRESH-DAEMON] Sunday — triggering Universe + Snapshot refresh at $(date -u '+%Y-%m-%dT%H:%M:%SZ')..."
+  else
+    echo "[REFRESH-DAEMON] Triggering Snapshot refresh at $(date -u '+%Y-%m-%dT%H:%M:%SZ')..."
+  fi
   node -e "
     const http = require('http');
-    const body = JSON.stringify({action:'start',mode:'snapshot',triggerSource:'scheduled'});
+    const mode = '${REFRESH_MODE}';
+    const body = JSON.stringify({action:'start',mode:mode,triggerSource:'scheduled'});
     const req = http.request({
       hostname:'localhost', port:3000, path:'/api/admin/refresh',
       method:'POST',
@@ -52,7 +63,7 @@ tfe_trigger_refresh() {
     });
     req.on('error', e => console.error('[REFRESH-DAEMON] Request error: '+e.message));
     req.write(body); req.end();
-  " && echo "[REFRESH-DAEMON] Refresh triggered." || echo "[REFRESH-DAEMON] Trigger failed."
+  " && echo "[REFRESH-DAEMON] Refresh triggered (mode=${REFRESH_MODE})." || echo "[REFRESH-DAEMON] Trigger failed."
 }
 
 tfe_refresh_daemon() {
