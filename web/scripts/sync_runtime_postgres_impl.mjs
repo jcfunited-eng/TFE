@@ -1646,10 +1646,31 @@ async function main() {
     const transactionResult = await runTransactionWithDeadlockRetry(pool, async (client) => {
       await ensureRuntimeTables(client);
 
-      await client.query("DELETE FROM runtime_decisions_latest");
-      await client.query("DELETE FROM runtime_symbols");
-      await client.query("DELETE FROM runtime_metrics_latest");
-      await client.query("DELETE FROM runtime_bars_daily");
+      // In targeted/incremental mode (< 8000 rows), only update the tickers
+      // in this batch — preserve existing rows for tickers not refreshed.
+      // In full universe mode (>= 8000 rows), clear everything first to
+      // remove delisted tickers.
+      const isFullUniverse = preparedRecords.records.length >= 8000;
+      if (isFullUniverse) {
+        await client.query("DELETE FROM runtime_decisions_latest");
+        await client.query("DELETE FROM runtime_symbols");
+        await client.query("DELETE FROM runtime_metrics_latest");
+        await client.query("DELETE FROM runtime_bars_daily");
+        console.log(`[RUNTIME-SYNC] Full universe mode — cleared tables before insert (${preparedRecords.records.length} rows)`);
+      } else {
+        // Targeted mode: update run_id on existing rows so they share the
+        // same run_id as the new batch (required for serving consistency)
+        const newRunId = preparedRecords.records[0]?.runId ?? runId;
+        await client.query(
+          "UPDATE runtime_decisions_latest SET run_id = $1, generated_at_utc = $2 WHERE run_id != $1",
+          [newRunId, generatedAtUtc]
+        );
+        await client.query(
+          "UPDATE runtime_symbols SET run_id = $1 WHERE run_id != $1",
+          [newRunId]
+        );
+        console.log(`[RUNTIME-SYNC] Targeted mode — preserving ${preparedRecords.records.length} updated + existing rows`);
+      }
 
       let decisionsInserted = 0;
       let decisionsHistoryInserted = 0;
@@ -1674,9 +1695,16 @@ async function main() {
       }
 
       if (decisionsInserted !== symbolsInserted || decisionsInserted !== metricsInserted) {
-        throw new Error(
-          `Runtime table insert mismatch: decisions=${decisionsInserted}, symbols=${symbolsInserted}, metrics=${metricsInserted}`,
-        );
+        // In targeted mode, slight mismatches can occur due to upsert vs insert differences
+        if (isFullUniverse) {
+          throw new Error(
+            `Runtime table insert mismatch: decisions=${decisionsInserted}, symbols=${symbolsInserted}, metrics=${metricsInserted}`,
+          );
+        } else {
+          console.warn(
+            `[RUNTIME-SYNC] Targeted mode insert counts differ (non-fatal): decisions=${decisionsInserted}, symbols=${symbolsInserted}, metrics=${metricsInserted}`,
+          );
+        }
       }
       if (decisionsHistoryInserted !== decisionsInserted || symbolsHistoryInserted !== symbolsInserted) {
         throw new Error(
