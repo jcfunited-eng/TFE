@@ -1663,6 +1663,14 @@ async function main() {
         "UPDATE runtime_symbols SET run_id = $1 WHERE run_id != $1",
         [newRunId]
       );
+      await client.query(
+        "UPDATE runtime_decision_provenance_latest SET run_id = $1 WHERE run_id != $1",
+        [newRunId]
+      );
+      await client.query(
+        "UPDATE runtime_metrics_latest SET run_id = $1 WHERE run_id != $1",
+        [newRunId]
+      );
       console.log(`[RUNTIME-SYNC] Upsert mode — ${preparedRecords.records.length} records to upsert, existing rows preserved`);
 
       let decisionsInserted = 0;
