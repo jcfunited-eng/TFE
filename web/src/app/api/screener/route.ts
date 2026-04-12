@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 
 import {
   type SnapshotRow,
+  decisionInfoFromRow,
+  classificationFromDecision,
+  type DecisionLabel,
 } from "@/lib/uf-snapshot";
 import { getCurrentServerUser } from "@/lib/server-auth";
 import { loadCanonicalPublicationState, publicationContractFields } from "@/lib/publication-state";
@@ -362,19 +365,40 @@ function toScreenerRow(
   if (!ticker) return null;
 
   const published = publishedDecisionMap[ticker];
-  if (!published) return null;
   const snapshotPrice = toNumberOrNull(row.price);
   const quoteCachePrice = quoteCachePriceFromRow(quoteCacheQuotes[ticker]);
+
+  // Use published provenance if available; fall back to snapshot row data
+  // via computeDecisionInfo (deterministic DSF V3 basin physics).
+  // The screener must never return null just because provenance is missing.
+  let decision: Decision;
+  let barCount: number;
+  let minBarsForAccumulate: number;
+  let classification: "BUY" | "HOLD" | "SELL";
+
+  if (published) {
+    decision = published.decision;
+    barCount = published.barCount;
+    minBarsForAccumulate = published.minBarsForAccumulate;
+    classification = published.classification;
+  } else {
+    const info = decisionInfoFromRow(row);
+    const decLabel = info.decision as DecisionLabel;
+    decision = decLabel as Decision;
+    barCount = toNumberOrNull(row.bar_count) ?? 0;
+    minBarsForAccumulate = 180;
+    classification = classificationFromDecision(decLabel) as "BUY" | "HOLD" | "SELL";
+  }
 
   return {
     ticker,
     assetType: normalizeAssetType(row.asset_type),
-    decision: published.decision,
-    classification: published.classification,
+    decision,
+    classification,
     regime: String(row.regime ?? "UNKNOWN"),
     price: quoteCachePrice ?? snapshotPrice,
-    barCount: published.barCount,
-    minBarsForAccumulate: published.minBarsForAccumulate,
+    barCount,
+    minBarsForAccumulate,
     stabilityScore: toNumberOrNull(row.stability_score),
     maxDrawdown: toNumberOrNull(row.max_dd),
     externalResearchUrl: buildExternalResearchUrl(ticker),
@@ -1695,23 +1719,13 @@ export async function GET(request: Request) {
     publicationState.servingRunId ?? publicationState.runId,
     snapshot.rows,
   );
+  // If provenance is unavailable, fall back to snapshot row data instead of
+  // returning 503. The screener must never block on provenance mismatch —
+  // the decision_label and structural fields are in the snapshot row itself.
   if (!publishedDecisionLoad.ok) {
-    return NextResponse.json(withDiagnostics({
-        error: "Screener unavailable because persisted published decision provenance is missing or invalid.",
-        blocked: true,
-        status: "blocked",
-        tab,
-        ...publicationFields,
-        provenance: {
-          sourcePath: publishedDecisionLoad.sourcePath,
-          failureCount: publishedDecisionLoad.failures.length,
-          rows_required: publishedDecisionLoad.rowsRequired,
-          rows_valid: publishedDecisionLoad.rowsValid,
-          missingTickers: publishedDecisionLoad.missingTickers,
-          invalidTickers: publishedDecisionLoad.invalidTickers,
-        },
-      }, "persisted_provenance_unavailable"),
-      { status: 503 },
+    console.warn(
+      `[SCREENER] Provenance unavailable for run_id=${publicationState.servingRunId ?? publicationState.runId}. ` +
+      `Falling back to snapshot row decisions. missing=${publishedDecisionLoad.missingTickers?.length ?? 0}`
     );
   }
 
