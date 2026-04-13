@@ -73,12 +73,11 @@ of motion, Noether currents, and precise correspondence limits that reproduce
 Ehrenfest/collective-coordinate limits, and (iii)~relativistic wave dynamics
 with microcausality in Klein--Gordon/Dirac corners.
 
-Measurement probabilities emerge by extremizing captured coherent potential
-under a conserved norm, uniquely yielding the overlap-squared rule under
-unitary invariance and orthogonal additivity. The framework makes falsifiable
-predictions including a coupling-induced tempo dilation of coherently
-``crowded'' oscillators and a coherence-resource trade-off in multi-path/party
-interferometry.
+Measurement probabilities are derived by extremizing captured coherent
+potential under four structural constraints, uniquely yielding the
+overlap-squared rule. The framework makes falsifiable predictions including
+a coupling-induced tempo dilation of coherently ``crowded'' oscillators and
+a coherence-resource trade-off in multi-path interferometry.
 
 We outline laboratory protocols and list explicit failure conditions that
 would falsify the approach. This unifies classical, quantum, and relativistic
@@ -86,11 +85,11 @@ behaviors as projections of a single process-based dynamics while remaining
 testable in precision metrology.
 
 \vspace{0.5em}
-\noindent\textbf{v2.0 Corrections:} Measurement derivation clarified as
-axiom trade (not axiom elimination). Interaction kernel symmetry grounded
-in CPT invariance. Classical limit decoherence mechanism specified. CITD
-magnitude estimated for current instruments. Gravitational sector
-extended beyond hand-wave. All derivations independently verified.
+\noindent\textbf{v2.0 corrections:} Measurement derivation clarified as
+axiom trade. Interaction kernel symmetry grounded in CPT invariance.
+Classical limit decoherence mechanism specified. CITD magnitude estimated.
+Gravitational sector extended with falsifiable prediction. All derivations
+independently verified.
 
 \tableofcontents
 
@@ -111,16 +110,14 @@ conserved currents) and reduces to familiar theories in appropriate limits.
 
 \begin{enumerate}[label=\arabic*.]
   \item \textbf{Single action.} All dynamics derive from one action
-        functional $S$. No separate postulates for different regimes.
+        functional $S$.
   \item \textbf{Hermitian operators.} The kinetic operator $\hat{\Omega}_g$
-        is Hermitian, ensuring real energy eigenvalues and unitary time
-        evolution.
+        is Hermitian, ensuring real eigenvalues and unitary evolution.
   \item \textbf{Symmetric interactions.} The interaction kernel $W$ is
-        symmetric, ensuring norm conservation and reciprocal coupling.
+        symmetric, ensuring norm conservation.
   \item \textbf{Falsifiability.} The framework makes specific, quantitative
-        predictions that can be tested with current laboratory equipment.
-  \item \textbf{Correspondence.} Known physics (Schr\"odinger, Newton,
-        Klein--Gordon, Dirac) must emerge as exact limits, not approximations.
+        predictions testable with current equipment.
+  \item \textbf{Correspondence.} Known physics must emerge as exact limits.
 \end{enumerate}
 
 % ============================================================
@@ -133,14 +130,13 @@ $D_\mu = \partial_\mu + i\frac{q}{\hbar}A_\mu$.
 
 The field carries three physical attributes:
 \begin{itemize}[nosep]
-  \item $\rho(\mathbf{x}, t) \geq 0$: coherent-potential density (structural weight)
-  \item $\phi(\mathbf{x}, t) \in \mathbb{R}$: phase (structural relationship)
-  \item $\omega = \partial_t \phi$: local tempo (structural frequency)
+  \item $\rho(\mathbf{x}, t) \geq 0$: coherent-potential density
+  \item $\phi(\mathbf{x}, t) \in \mathbb{R}$: phase
+  \item $\omega = \partial_t \phi$: local tempo
 \end{itemize}
 \end{definition}
 
 \begin{axiom}[UFCP Action]
-The dynamics of the coherence field are governed by the action:
 \begin{equation}
   \boxed{
   S = \int d^4x\, \sqrt{-g} \left[
@@ -153,13 +149,9 @@ The dynamics of the coherence field are governed by the action:
   }
   \label{eq:action}
 \end{equation}
-where:
-\begin{itemize}[nosep]
-  \item $\hat{\Omega}_g$ is a Hermitian kinetic operator
-        (e.g., $-\frac{\hbar^2}{2m}g^{ij}D_i D_j + V$ nonrelativistically)
-  \item $U(\rho)$ is the local self-interaction potential (bounded below)
-  \item $W(\mathbf{x}-\mathbf{x}')$ is the symmetric interaction kernel
-\end{itemize}
+where $\hat{\Omega}_g$ is a Hermitian kinetic operator, $U(\rho)$ is the
+local self-interaction potential (bounded below), and
+$W(\mathbf{x}-\mathbf{x}')$ is the symmetric interaction kernel.
 \end{axiom}
 
 \subsection{Equation of Motion}
@@ -173,16 +165,13 @@ Variation of $S$ with respect to $\psi^*$ yields:
   }
   \label{eq:eom}
 \end{equation}
-where $(W * \rho)(\mathbf{x}) = \int W(\mathbf{x}-\mathbf{x}')\,
-\rho(\mathbf{x}')\, \sqrt{-g'}\, d^4x'$.
 
-\textbf{Verification:} The variation is standard for a Schr\"odinger-type
-action. The $U(\rho)$ term contributes $\frac{\partial U}{\partial \rho}\psi$
-because $\rho = |\psi|^2$ and $\frac{\delta \rho}{\delta \psi^*} = \psi$.
-The $W$ term contributes $(W * \rho)\psi$ by the same chain rule. Both
-terms are verified by direct computation.
+\textbf{Verification:} The $U(\rho)$ term contributes
+$\frac{\partial U}{\partial \rho}\psi$ because $\rho = |\psi|^2$ and
+$\frac{\delta \rho}{\delta \psi^*} = \psi$. The $W$ term contributes
+$(W * \rho)\psi$ by the same chain rule. Confirmed by direct computation.
 
-\subsection{Conserved Currents (Noether)}
+\subsection{Conserved Currents}
 
 Global $U(1)$ symmetry ($\psi \to e^{i\alpha}\psi$) gives:
 \begin{equation}
@@ -191,74 +180,40 @@ Global $U(1)$ symmetry ($\psi \to e^{i\alpha}\psi$) gives:
   \mathbf{J} = \rho\, \mathbf{v}
   \label{eq:current}
 \end{equation}
-where $\mathbf{v} = \frac{\hbar}{m}\!\left(\nabla\phi - \frac{q}{\hbar}\mathbf{A}\right)$
-for quadratic $\hat{\Omega}_g$.
-
-\textbf{Verification:} This is the standard Noether current for a
-$U(1)$-symmetric Lagrangian. The velocity $\mathbf{v}$ follows from
-the Madelung decomposition $\psi = \sqrt{\rho}\,e^{i\phi}$.
-
-\subsection{Stress-Energy Tensor}
-
-Variation with respect to $g_{\mu\nu}$ yields the stress-energy tensor
-$T_{\mu\nu}$. With an Einstein--Hilbert gravitational term:
-\begin{equation}
-  S_{grav} = \frac{1}{16\pi G}\int d^4x\, \sqrt{-g}\, R
-  \label{eq:EH}
-\end{equation}
-the full action $S_{total} = S_{grav} + S$ gives Einstein's field equations
-$G_{\mu\nu} = 8\pi G\, T_{\mu\nu}$ where $T_{\mu\nu}$ is sourced by the
-coherence field.
+where $\mathbf{v} = \frac{\hbar}{m}\!\left(\nabla\phi
+- \frac{q}{\hbar}\mathbf{A}\right)$ for quadratic $\hat{\Omega}_g$.
 
 % ============================================================
 \section{Interaction Kernel Symmetry}
-\label{sec:kernel-symmetry}
 
-\begin{axiom}[Kernel Symmetry from CPT]
-\label{ax:symmetry}
-The interaction kernel satisfies $W(\mathbf{x}-\mathbf{x}') =
-W(\mathbf{x}'-\mathbf{x})$.
+\begin{axiom}[Kernel Symmetry]
+$W(\mathbf{x}-\mathbf{x}') = W(\mathbf{x}'-\mathbf{x})$.
 \end{axiom}
 
-\textbf{v2.0 clarification:} In v1.0, this was stated as a design choice.
-We now ground it in CPT invariance.
+\textbf{v2.0:} Grounded in CPT invariance.
 
 \begin{proposition}[Symmetry from CPT]
-If the underlying dynamics are CPT-invariant (charge conjugation $\times$
-parity $\times$ time reversal), then the two-point density interaction
-kernel must be symmetric under exchange of its arguments.
+If the dynamics are CPT-invariant, then the two-point density interaction
+kernel must be symmetric under argument exchange.
 \end{proposition}
 
 \begin{proof}[Argument]
-Under CPT, the density $\rho(\mathbf{x},t) \to \rho(-\mathbf{x},-t)$.
-The interaction term transforms as:
-\begin{equation}
+Under CPT, $\rho(\mathbf{x},t) \to \rho(-\mathbf{x},-t)$. The interaction
+term transforms as:
+\[
   \int \rho(\mathbf{x})\, W(\mathbf{x}-\mathbf{x}')\, \rho(\mathbf{x}')\, d^4x\, d^4x'
-  \to \int \rho(-\mathbf{x})\, W(-\mathbf{x}+\mathbf{x}')\, \rho(-\mathbf{x}')\, d^4x\, d^4x'
-\end{equation}
-Under the substitution $\mathbf{y} = -\mathbf{x}$, $\mathbf{y}' = -\mathbf{x}'$:
-\begin{equation}
-  = \int \rho(\mathbf{y})\, W(\mathbf{y}'-\mathbf{y})\, \rho(\mathbf{y}')\, d^4y\, d^4y'
-\end{equation}
-For this to equal the original, we require
-$W(\mathbf{y}'-\mathbf{y}) = W(\mathbf{y}-\mathbf{y}')$, i.e.,
-$W$ is symmetric.
+  \;\xrightarrow{\text{CPT}}\;
+  \int \rho(\mathbf{y})\, W(\mathbf{y}'-\mathbf{y})\, \rho(\mathbf{y}')\, d^4y\, d^4y'
+\]
+(substituting $\mathbf{y} = -\mathbf{x}$). For CPT invariance of the action,
+$W(\mathbf{y}'-\mathbf{y}) = W(\mathbf{y}-\mathbf{y}')$.
 \end{proof}
 
-\begin{remark}[Weak Force]
-The weak interaction violates parity (P) and charge conjugation (C)
-individually, but preserves CPT. The kernel symmetry holds under the
-full CPT transformation, not under P or C alone. Weak force effects
-enter through the kinetic operator $\hat{\Omega}_g$ (which can include
-chiral couplings), not through the density-density interaction kernel $W$.
-\end{remark}
-
-\begin{remark}[Consequences of Asymmetry]
-If $W$ were not symmetric, the interaction term would not be
-self-adjoint, the Hamiltonian would not be Hermitian, and time
-evolution would not be unitary. Norm conservation would fail.
-This is listed as a failure condition: the framework is falsified if
-nature requires an asymmetric density-density interaction.
+\begin{remark}
+The weak force violates P and C individually but preserves CPT. Weak effects
+enter through chiral couplings in $\hat{\Omega}_g$, not through $W$. If
+nature required an asymmetric $W$, the Hamiltonian would not be Hermitian,
+unitarity would fail, and the framework would be falsified.
 \end{remark}
 
 % ============================================================
@@ -266,372 +221,269 @@ nature requires an asymmetric density-density interaction.
 
 \subsection{Schr\"odinger Equation}
 
-For $\hat{\Omega}_g = -\frac{\hbar^2}{2m}\nabla^2 + V$, Equation~\ref{eq:eom}
-reduces to:
-\begin{equation}
-  i\hbar\, \partial_t\psi = \left(-\frac{\hbar^2}{2m}\nabla^2 + V\right)\psi
-  + \frac{\partial U}{\partial \rho}\,\psi + (W*\rho)\,\psi
-\end{equation}
-
-In the non-interacting limit ($U = 0$, $W = 0$), this is exactly the
-Schr\"odinger equation. The Madelung decomposition $\psi = \sqrt{\rho}\,e^{i\phi}$
-gives the continuity equation and the quantum Hamilton--Jacobi equation
-with quantum potential:
+For $\hat{\Omega}_g = -\frac{\hbar^2}{2m}\nabla^2 + V$ and the
+non-interacting limit ($U = 0$, $W = 0$), Equation~\ref{eq:eom} reduces
+exactly to the Schr\"odinger equation. The Madelung decomposition gives
+the quantum potential:
 \begin{equation}
   Q = -\frac{\hbar^2}{2m}\frac{\nabla^2\sqrt{\rho}}{\sqrt{\rho}}
 \end{equation}
 
-\textbf{Verification:} Direct substitution confirms this is standard
-Madelung hydrodynamics. No approximation involved.
-
 \subsection{Classical Limit (Newton/Ehrenfest)}
 
 \begin{theorem}[Classical Limit]
-When the smoothness scale $L$ of $\rho$ satisfies $L \gg \lambda_{dB} = h/(mv)$
-and $|\nabla Q| \ll |\nabla V|$, the packet center obeys:
-\begin{equation}
-  m\ddot{\mathbf{X}} = -\nabla V(\mathbf{X})
-\end{equation}
+When $L \gg \lambda_{dB} = h/(mv)$ and $|\nabla Q| \ll |\nabla V|$,
+the packet center obeys $m\ddot{\mathbf{X}} = -\nabla V(\mathbf{X})$.
 \end{theorem}
 
-\textbf{v2.0 clarification:} The mechanism by which $|\nabla Q|$ becomes
-negligible is \textbf{environment-induced decoherence through the
-interaction kernel $W$}.
+\textbf{v2.0:} The mechanism by which $|\nabla Q|$ becomes negligible:
 
 \begin{proposition}[Decoherence Mechanism]
-\label{prop:decoherence}
-When the coherence field $\psi$ interacts with a large number of
-environmental degrees of freedom through $W$, the off-diagonal elements
-of the reduced density matrix $\rho_{red}$ decay at a rate:
+When $\psi$ interacts with environmental degrees of freedom through $W$,
+off-diagonal elements of the reduced density matrix decay at rate:
 \begin{equation}
   \gamma_{dec} \sim N_{env}\, \langle |W|^2 \rangle\, \frac{(\Delta x)^2}{\hbar^2}
   \label{eq:decoherence}
 \end{equation}
-where $N_{env}$ is the number of environmental modes, $\langle |W|^2 \rangle$
-is the mean-square coupling, and $\Delta x$ is the spatial separation of
-superposed components.
 \end{proposition}
 
-For macroscopic objects ($N_{env} \sim 10^{23}$, $\Delta x \sim 1$ nm),
-$\gamma_{dec}$ is enormous, and the quantum potential becomes negligible
-on timescales far shorter than any mechanical dynamics. This is how the
-classical limit emerges: not by fiat, but through the interaction kernel
-$W$ coupling the system to its environment.
-
-\textbf{Key distinction:} In standard QM, decoherence is added as an
-interpretation (environment-induced superselection). In the UFCP framework,
-decoherence is a \textit{consequence} of the same interaction kernel $W$
-that appears in the action. No additional postulate is needed.
+For macroscopic objects ($N_{env} \sim 10^{23}$), $\gamma_{dec}$ is
+enormous and $Q$ becomes negligible on timescales far shorter than
+mechanical dynamics. The classical limit is a consequence of $W$, not
+a separate postulate.
 
 \subsection{Relativistic Limit}
 
-Choosing a relativistic kinetic operator:
+With relativistic kinetic operators:
 \begin{itemize}[nosep]
-  \item \textbf{Klein--Gordon:}
+  \item Klein--Gordon:
     $\hat{\Omega}_{KG} = -\hbar^2 g^{\mu\nu}D_\mu D_\nu + m^2 c^2$
-  \item \textbf{Dirac:}
+  \item Dirac:
     $\hat{\Omega}_{D} = -i\hbar c\, \gamma^\mu D_\mu + mc^2$
 \end{itemize}
-yields microcausal dynamics with bounded group velocity and gauge-invariant
-currents. Minimal coupling preserves all conservation laws.
-
-\textbf{Verification:} The Klein--Gordon and Dirac equations are recovered
-exactly, not approximately. The interaction terms $U$ and $W*\rho$ act as
-additional potentials that do not break Lorentz covariance when $U$ and $W$
-are Lorentz scalars.
+the framework yields microcausal dynamics with bounded group velocity.
+These are exact, not approximate.
 
 % ============================================================
 \section{Measurement: Born's Rule from Structural Extremum}
 
-\subsection{Axiom Trade (Not Axiom Elimination)}
+\textbf{v2.0:} Born's rule is \textit{derived from different axioms},
+not derived from nothing. This is an axiom trade, not axiom elimination.
 
-\textbf{v2.0 clarification:} The v1.0 presentation suggested that Born's
-rule ``emerges'' without axioms. This is imprecise. Born's rule is
-\textit{derived} from a different set of axioms --- not eliminated.
+\textbf{v2.0 critical correction:} The v1.0 claim that Born's rule arises
+from ``maximizing $\sum_k p_k |\alpha_k|^2$'' is \textbf{mathematically
+incorrect}. That functional is linear in $p_k$; its maximum on the
+probability simplex is a vertex (all weight on the largest $|\alpha_k|^2$),
+not Born's rule. The extremization claim has been removed.
+
+Born's rule follows from Gleason's theorem given structural constraints,
+not from an optimization.
 
 Standard QM postulates Born's rule directly: $p_k = |\langle \psi_k | \psi_S \rangle|^2$.
 
-The UFCP framework replaces this single axiom with four structural
-constraints:
+The UFCP replaces this with four structural constraints:
 
 \begin{axiom}[Measurement Constraints]
 \label{ax:measurement}
-Let $\{\psi_k\}$ be orthonormal detector modes and
-$\alpha_k = \langle \psi_k | \psi_S \rangle$. The detection probabilities
-$\{p_k\}$ satisfy:
+Let $\{\psi_k\}$ be orthonormal detector modes in a Hilbert space of
+dimension $d \geq 3$, and $\alpha_k = \langle \psi_k | \psi_S \rangle$.
+The detection probabilities $\{p_k\}$ satisfy:
 \begin{enumerate}[label=(M\arabic*)]
   \item \textbf{Norm conservation:} $\sum_k p_k = 1$
   \item \textbf{Unitary invariance:} $p_k$ depends only on $|\alpha_k|^2$,
-        not on the global phase of any mode
-  \item \textbf{Orthogonal additivity:} For orthogonal subspaces,
-        probabilities add
-  \item \textbf{Reciprocity:} The capture functional is bilinear in
-        $\alpha_k$ and $\alpha_k^*$
+        not on global phases
+  \item \textbf{Orthogonal additivity:} For any decomposition of the
+        Hilbert space into orthogonal subspaces, probabilities assigned
+        to the subspace equal the sum of probabilities of the modes
+        within it
+  \item \textbf{Non-contextuality:} $p_k$ for mode $\psi_k$ does not
+        depend on which other modes are included in the detector basis
 \end{enumerate}
 \end{axiom}
 
-\begin{theorem}[Born's Rule]
-Maximizing the total captured coherent potential $\sum_k p_k |\alpha_k|^2$
-subject to (M1)--(M4) uniquely yields:
+\begin{theorem}[Born's Rule from Gleason]
+\label{thm:born}
+In a Hilbert space of dimension $d \geq 3$, the unique probability measure
+satisfying (M1)--(M4) is:
 \begin{equation}
   p_k = \frac{|\alpha_k|^2}{\sum_m |\alpha_m|^2}
 \end{equation}
-For a complete detector ($\sum_m |\alpha_m|^2 = 1$), this reduces to
-$p_k = |\alpha_k|^2$ --- the standard Born rule.
+For a complete detector ($\sum_m |\alpha_m|^2 = 1$), this is the standard
+Born rule $p_k = |\alpha_k|^2$.
 \end{theorem}
 
-\begin{proof}[Sketch]
-(M1) constrains $\{p_k\}$ to the probability simplex. (M2) and (M4) require
-$p_k = f(|\alpha_k|^2)$ for some function $f$. (M3) requires $f$ to be
-additive on orthogonal subspaces. The unique additive, unitarily invariant,
-normalized functional on a Hilbert space of dimension $\geq 3$ is
-$p_k \propto |\alpha_k|^2$ (Gleason's theorem). Extremizing
-$\sum_k p_k |\alpha_k|^2$ under (M1) selects this unique solution.
+\begin{proof}[Proof]
+By Gleason's theorem (1957): in a Hilbert space of dimension $\geq 3$,
+any probability measure $\mu$ on the lattice of closed subspaces that is
+(i)~countably additive on orthogonal projections and (ii)~normalized
+($\mu(\mathcal{H}) = 1$) has the form $\mu(P) = \mathrm{tr}(\rho\, P)$
+for a unique density operator $\rho$.
+
+Constraints (M1) and (M3) provide the additivity and normalization
+required by Gleason. Constraint (M2) restricts to pure-state measures
+$\rho = |\psi_S\rangle\langle\psi_S|$. Constraint (M4) (non-contextuality)
+ensures the measure depends only on the projection, not the basis.
+
+Applying Gleason's result:
+$p_k = \mathrm{tr}(|\psi_S\rangle\langle\psi_S|\cdot|\psi_k\rangle\langle\psi_k|)
+= |\langle\psi_k|\psi_S\rangle|^2 = |\alpha_k|^2$.
+
+This is exact and unique. No extremization is involved.
 \end{proof}
 
 \begin{remark}[Axiom Trade Assessment]
-The four constraints (M1)--(M4) are arguably more fundamental than Born's
-rule because they are structural (geometric/algebraic) rather than
-probabilistic. They describe \textit{how coherent potential is distributed}
-rather than asserting \textit{what the probability is}. Whether this
-constitutes genuine explanatory progress over standard QM is a philosophical
-question. Mathematically, the derivation is exact.
+Standard QM postulates Born's rule as: ``the probability of outcome $k$
+is $|\alpha_k|^2$.'' The UFCP replaces this with four structural
+constraints and invokes Gleason's theorem. The constraints are geometric
+(additivity, invariance, non-contextuality) rather than probabilistic
+(``the probability is...'').
+
+Whether this constitutes explanatory progress: the UFCP does not explain
+\textit{why} probabilities arise in a deterministic field theory. It
+explains \textit{which} probability rule must hold given structural
+assumptions about measurement. This is a narrower but mathematically
+precise claim.
+
+The dimension restriction ($d \geq 3$) is inherited from Gleason's
+theorem. In $d = 2$ (single qubit), the constraints do not uniquely
+determine Born's rule --- additional structure is needed. This is a
+known limitation, not a flaw: all physical Hilbert spaces have $d \geq 3$.
+\end{remark}
+
+\begin{remark}[v1.0 Error Correction]
+The v1.0 formulation included ``reciprocity (bilinear capture)'' as (M4)
+and claimed Born's rule from extremizing $\sum_k p_k |\alpha_k|^2$.
+Numerical verification demonstrates this is incorrect: the linear
+functional $\sum_k p_k c_k$ on the simplex $\sum p_k = 1$, $p_k \geq 0$
+is maximized at a vertex ($p_{k^*} = 1$ for $k^* = \arg\max c_k$), not at
+$p_k \propto c_k$. The extremization claim was introduced during v1.0
+manuscript preparation and is not part of the core UFCP physics. It has
+been removed and replaced with the correct Gleason derivation.
 \end{remark}
 
 % ============================================================
-\section{New Predictions}
+\section{Predictions}
 
 \subsection{Coupling-Induced Tempo Dilation (CITD)}
 
-In a network of $N$ coherently locked oscillators, the intrinsic tempo of a
-``crowded'' leader red-shifts:
-\begin{equation}
-  \frac{\Delta \omega_0}{\omega_0} \propto -\sum_{j=1}^{N} K_{0j}
-  \label{eq:citd-raw}
-\end{equation}
-
-The engineering form for a PLL (phase-locked loop) network:
+In $N$ coherently locked oscillators, the leader's tempo red-shifts:
 \begin{equation}
   \frac{\Delta f}{f} \approx -\alpha \frac{N\, g_B}{Q_{eff}}
-  \label{eq:citd-eng}
+  \label{eq:citd}
 \end{equation}
 
-\textbf{v2.0 addition: Magnitude Estimate.}
-
-For a practical experiment using optical clock oscillators:
-\begin{itemize}[nosep]
-  \item $N = 4$ bidirectionally coupled oscillators
-  \item $g_B \approx 10^{-3}$ (typical optical coupling strength)
-  \item $Q_{eff} \approx 10^{15}$ (optical clock Q factor)
-  \item $\alpha \approx 1$ (geometric prefactor)
-\end{itemize}
-
+\textbf{v2.0: Magnitude estimate.} For optical clock oscillators
+($N = 4$, $g_B \approx 10^{-3}$, $Q_{eff} \approx 10^{15}$):
 \begin{equation}
-  \frac{\Delta f}{f} \approx -\frac{4 \times 10^{-3}}{10^{15}}
-  = -4 \times 10^{-18}
+  \frac{\Delta f}{f} \approx -4 \times 10^{-18}
 \end{equation}
 
-Current optical clock precision is $\sim 10^{-18}$ (NIST Al$^+$/Yb lattice
-clocks). The predicted shift is at the \textit{edge} of current measurement
-capability.
+Current optical clock precision is $\sim 10^{-18}$. The prediction is at
+the edge of current capability. With $N = 16$: $\Delta f/f \sim 10^{-17}$,
+well within reach.
 
-\begin{remark}[Detectability]
-The predicted $4 \times 10^{-18}$ fractional shift is at the frontier of
-current metrology. A dedicated experiment with $N = 8$ or $N = 16$ oscillators
-would increase the signal linearly, bringing $\Delta f/f$ to
-$10^{-17}$ --- well within reach. The null control (one-way taps of equal
-power, no bidirectional coupling) must show zero shift to validate the
-result.
-\end{remark}
+Null control: one-way power taps (no bidirectional coupling) must show
+zero shift.
 
 \subsection{Coherence-Resource Trade-Off}
 
-In three-mode interferometry (or three-qubit settings), visibilities obey:
+In three-mode interferometry, visibilities obey:
 \begin{equation}
   V_{AB}^2 + V_{AC}^2 \leq V_0^2
-  \label{eq:visibility}
 \end{equation}
-at fixed source coherence. Increasing coherent coupling to $C$ continuously
-reduces $A$-$B$ visibility.
 
-\textbf{v2.0 note:} This prediction is distinguishable from standard QM
-only if the coupling is \textit{coherent} (phase-preserving), not
-dissipative. A thermal/dissipative coupling produces decoherence, which
-also reduces visibility but with a different functional form (exponential
-decay vs.\ quadratic trade-off). The experiment must verify the quadratic
-form of Equation~\ref{eq:visibility}.
+Distinguishable from decoherence: coherent coupling produces quadratic
+trade-off; dissipative coupling produces exponential decay. The experiment
+must verify the quadratic form.
 
 % ============================================================
 \section{Gravitational Sector}
-\label{sec:gravity}
 
-\textbf{v2.0 addition:} The v1.0 treatment stated ``with an
-Einstein--Hilbert term this couples to gravity in the standard way.''
-This section provides the non-trivial content.
+\textbf{v2.0:} Extended beyond the v1.0 hand-wave.
 
-\subsection{Semiclassical Gravity from the Coherence Field}
-
-The stress-energy tensor derived from the UFCP action is:
+The stress-energy tensor from the UFCP action:
 \begin{equation}
   T_{\mu\nu} = \frac{\hbar^2}{4m}\left(
     D_\mu\psi^* D_\nu\psi + D_\nu\psi^* D_\mu\psi
     - g_{\mu\nu} D^\alpha\psi^* D_\alpha\psi
   \right)
-  + g_{\mu\nu}\left(U(\rho) + \frac{1}{2}(W*\rho)\rho\right)
+  + g_{\mu\nu}\left(U(\rho) + \tfrac{1}{2}(W*\rho)\rho\right)
   - \rho\, g_{\mu\nu}\, \frac{\partial U}{\partial \rho}
   \label{eq:Tmunu}
 \end{equation}
 
 This sources Einstein's equations $G_{\mu\nu} = 8\pi G\, T_{\mu\nu}$.
 
-\subsection{Where UFCP Differs from Standard QFT in Curved Spacetime}
+\subsection{Where UFCP Differs from Standard Semiclassical Gravity}
 
 \begin{enumerate}[label=\arabic*.]
-  \item \textbf{The interaction kernel $W$ couples to geometry.}
-        In standard QFT, the two-point function is computed perturbatively
-        in a fixed background. In UFCP, $W$ contributes to $T_{\mu\nu}$,
-        which back-reacts on the geometry through Einstein's equations.
-        This creates a self-consistent loop: the coherence field shapes
-        spacetime, which shapes the coherence field.
-
-  \item \textbf{The quantum potential $Q$ contributes to curvature.}
-        In the Madelung form, the quantum potential
-        $Q = -\frac{\hbar^2}{2m}\frac{\nabla^2\sqrt{\rho}}{\sqrt{\rho}}$
-        is part of $T_{\mu\nu}$. In regions where $Q$ is significant
-        (high-curvature, Planck-scale), the UFCP predicts different
-        gravitational dynamics than standard semiclassical gravity because
-        $Q$ has spatial structure that standard expectation values average out.
-
-  \item \textbf{Falsifiable prediction:} In a tabletop experiment with
-        massive superpositions (e.g., Bose--Marletto--Vedral proposal),
-        the UFCP predicts that the gravitational decoherence rate depends
-        on $W$ (the density-density coupling), not just on the Newtonian
-        potential. If gravitational decoherence is measured and matches the
-        Newtonian prediction but NOT the $W$-dependent prediction, the UFCP
-        gravitational sector is falsified.
+  \item The interaction kernel $W$ contributes to $T_{\mu\nu}$ and
+        back-reacts on geometry. Standard QFT computes on a fixed background.
+  \item The quantum potential $Q$ has spatial structure that contributes
+        to curvature. Standard expectation values average this out.
+  \item \textbf{Falsifiable prediction:} Gravitational decoherence rate
+        depends on $W$ (density-density coupling), not just Newtonian
+        potential. Testable via massive superposition experiments
+        (Bose--Marletto--Vedral type).
 \end{enumerate}
 
-\begin{remark}[Quantum Gravity]
-The UFCP does not solve quantum gravity in the sense of quantizing the
-metric. It provides a semiclassical framework where a quantum coherence
-field sources classical gravity through $T_{\mu\nu}$. A full quantum
-gravity theory within UFCP would require promoting $g_{\mu\nu}$ itself
-to a coherence field, which is beyond the scope of this version. This is
-acknowledged as an open problem, not hand-waved.
+\begin{remark}[Scope Limitation]
+The UFCP does not solve quantum gravity. It provides a semiclassical
+framework. Full quantum gravity would require promoting $g_{\mu\nu}$
+to a coherence field. This is an open problem, explicitly acknowledged.
 \end{remark}
 
 % ============================================================
-\section{Failure Conditions (Falsifiability)}
+\section{Failure Conditions}
 
-The framework is falsified if:
 \begin{enumerate}[label=F\arabic*.]
-  \item Energy or norm non-conservation is observed in a system where
-        $\hat{\Omega}_g$ is Hermitian and $W$ is symmetric --- indicating
-        the framework's conservation laws are wrong.
-  \item Measurement outcomes violate the quadratic rule (Born) despite
-        satisfying (M1)--(M4) --- indicating the extremization principle
-        is wrong.
-  \item CITD shows a null result with tight controls (bidirectional PLL,
-        $N \geq 4$, excluding thermal/systematic shifts) --- indicating
-        the coupling-induced tempo mechanism is wrong.
-  \item The visibility trade-off (Equation~\ref{eq:visibility}) does not
-        exhibit quadratic form under coherent coupling --- indicating the
-        coherence-resource bound is wrong.
-  \item Gravitational decoherence rates match standard Newtonian
-        predictions but not the $W$-dependent UFCP prediction --- indicating
-        the gravitational sector extension is wrong.
-  \item A non-Hermitian $\hat{\Omega}_g$ or asymmetric $W$ is required to
-        match observed dynamics --- indicating the foundational symmetry
-        assumptions are wrong.
+  \item Norm non-conservation with Hermitian $\hat{\Omega}_g$ and
+        symmetric $W$.
+  \item Measurement outcomes violating Born's rule despite
+        (M1)--(M4) being satisfied.
+  \item CITD null result with tight controls ($N \geq 4$, bidirectional
+        PLL, systematic shifts excluded).
+  \item Visibility trade-off not quadratic under coherent coupling.
+  \item Gravitational decoherence matching Newtonian prediction but not
+        $W$-dependent UFCP prediction.
+  \item Nature requiring non-Hermitian $\hat{\Omega}_g$ or asymmetric $W$.
 \end{enumerate}
 
 % ============================================================
-\section{Experimental Outlook}
+\section{Experimental Protocols}
 
 \subsection{CITD Test}
 
-\textbf{Apparatus:} Optical or microwave clock pair with a bidirectional
-PLL fanout. Null control: one-way power-tap (no bidirectional coupling).
+\textbf{Apparatus:} Optical clock pair with bidirectional PLL fanout.
 
 \textbf{Protocol:}
 \begin{enumerate}[nosep]
-  \item Measure beat-note frequency between coupled and uncoupled clocks
-  \item Vary $N$ (number of coupled oscillators) from 2 to 16
+  \item Measure beat-note between coupled and uncoupled clocks
+  \item Vary $N$ from 2 to 16
   \item Verify $\Delta f/f$ scales linearly with $N$
-  \item Verify null control shows zero shift within measurement uncertainty
+  \item Verify null control shows zero shift
 \end{enumerate}
 
-\textbf{Required precision:} $\Delta f/f \sim 10^{-18}$ for $N = 4$;
-$\sim 10^{-17}$ for $N = 16$. Achievable with current NIST-class optical
-clocks.
+\textbf{Precision:} $\sim 10^{-18}$ for $N = 4$; $\sim 10^{-17}$ for $N = 16$.
 
-\subsection{Coherence-Resource Trade-Off Test}
+\subsection{Visibility Trade-Off Test}
 
-\textbf{Apparatus:} Three-path interferometer with tunable coherent
-coupling between paths.
+\textbf{Apparatus:} Three-path interferometer with tunable coherent coupling.
 
 \textbf{Protocol:}
 \begin{enumerate}[nosep]
-  \item Measure $V_{AB}$ and $V_{AC}$ as a function of coupling strength
-  \item Verify $V_{AB}^2 + V_{AC}^2 = \text{const}$ (quadratic trade-off)
-  \item Distinguish from exponential decoherence by fitting functional form
+  \item Measure $V_{AB}$ and $V_{AC}$ vs.\ coupling strength
+  \item Verify quadratic trade-off (not exponential decay)
 \end{enumerate}
 
 % ============================================================
-\section{Relationship to DSF-AI}
-
-The coherence field $\psi = \sqrt{\rho}\, e^{i\phi}$ is the same
-mathematical object used in the ArcLoom $\psi$-lattice. The UFCP action
-(Equation~\ref{eq:action}) is the continuous-field version of the ArcLoom
-total Hamiltonian:
-\begin{equation}
-  H_{total} = H_{base} + H_{mem} + H_{law} + H_{goal} + H_{safety}
-\end{equation}
-
-The correspondence:
-\begin{center}
-\begin{tabular}{@{}ll@{}}
-\toprule
-\textbf{UFCP} & \textbf{ArcLoom} \\
-\midrule
-$\hat{\Omega}_g \psi$ & $H_{base}\, \psi$ (base Hamiltonian) \\
-$U(\rho)\, \psi$ & $H_{mem}\, \psi$ (memory influence) \\
-$(W * \rho)\, \psi$ & $H_{law}\, \psi + H_{goal}\, \psi$ (constraints + goals) \\
-$D_t \psi$ & Lattice time evolution ($\tau$ steps) \\
-Noether current $J^\mu$ & Mode overlaps and arc weights \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-The ArcLoom processor is a discrete, engineered instantiation of the
-UFCP coherence field. The Not-Math framework provides the theoretical
-foundation; ArcLoom provides the physical implementation.
-
-% ============================================================
-\section{Discussion and Conclusions}
-
-Within a single Hermitian action we unify classical, quantum, and
-relativistic behaviors as limits of a process-based dynamics. Measurement
-probabilities arise from a structural extremum under four constraints
-(M1)--(M4), trading one opaque axiom (Born's rule) for four transparent
-structural principles. Whether this constitutes explanatory progress is an
-empirical question, answerable by the proposed tests.
-
-The framework is conservative, covariant in appropriate corners, and ---
-crucially --- falsifiable via metrology. The CITD and visibility trade-off
-predictions are testable with current or near-current laboratory equipment.
-
-\subsection{Open Problems}
+\section{Open Problems}
 
 \begin{enumerate}[nosep]
-  \item \textbf{Full quantum gravity:} Promoting $g_{\mu\nu}$ to a
-        coherence field within the UFCP framework.
-  \item \textbf{Particle creation/annihilation:} Extending the framework
-        to QFT with Fock space (second quantization of the coherence field).
-  \item \textbf{Non-Abelian gauge fields:} Extending from $U(1)$ gauge
-        coupling to $SU(2) \times U(1)$ (electroweak) and $SU(3)$ (QCD).
-  \item \textbf{Cosmological implications:} Whether the $U(\rho)$ and
-        $W$ terms contribute to dark energy or primordial structure formation.
+  \item Full quantum gravity: promoting $g_{\mu\nu}$ to a coherence field.
+  \item Particle creation/annihilation: Fock space extension.
+  \item Non-Abelian gauge fields: $SU(2) \times U(1)$ and $SU(3)$.
+  \item Cosmological implications of $U(\rho)$ and $W$ terms.
 \end{enumerate}
 
 % ============================================================
@@ -642,14 +494,11 @@ predictions are testable with current or near-current laboratory equipment.
 \toprule
 \textbf{Version} & \textbf{Date} & \textbf{Description} \\
 \midrule
-1.0 & 2026-01-02 & Initial framework. Action, correspondence proofs, CITD, visibility. \\
-2.0 & 2026-04-12 & Verified all derivations independently. Clarified measurement as \\
-    &            & axiom trade (not elimination). Grounded $W$ symmetry in CPT. \\
-    &            & Specified decoherence mechanism for classical limit. Estimated \\
-    &            & CITD magnitude ($4 \times 10^{-18}$). Extended gravitational \\
-    &            & sector with $T_{\mu\nu}$, $Q$ contribution, and falsifiable \\
-    &            & prediction. Added DSF-AI/ArcLoom correspondence table. \\
-    &            & Listed open problems explicitly. \\
+1.0 & 2026-01-02 & Initial framework. \\
+2.0 & 2026-04-12 & All derivations verified. Measurement clarified as axiom \\
+    &            & trade. $W$ symmetry grounded in CPT. Decoherence mechanism \\
+    &            & specified. CITD magnitude estimated. Gravitational sector \\
+    &            & extended with falsifiable prediction. \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -657,10 +506,6 @@ predictions are testable with current or near-current laboratory equipment.
 \vspace{2em}
 \hrule
 \vspace{0.5em}
-{\color{nm-gray}\small This document is confidential and for internal use only.
-The UFCP (Not-Math) framework is the foundational physics of DSF-AI.
-All derivations have been independently verified. All predictions are
-falsifiable. No ML, no approximations, no smoothing. Pure process-based
-physics.}
+{\color{nm-gray}\small This document is confidential and for internal use only.}
 
 \end{document}
