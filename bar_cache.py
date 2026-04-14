@@ -118,7 +118,7 @@ def read_cached_bars(ticker: str, conn=None) -> List[Bar]:
             rows = cur.fetchall()
         bars = []
         for bar_date, o, h, l, c, v in rows:
-            ts = datetime(bar_date.year, bar_date.month, bar_date.day)
+            ts = datetime(bar_date.year, bar_date.month, bar_date.day, tzinfo=timezone.utc)
             bars.append(Bar(
                 timestamp=ts,
                 open=float(o) if o is not None else float(c),
@@ -148,7 +148,7 @@ def get_latest_bar_date(ticker: str, conn=None) -> Optional[datetime]:
             row = cur.fetchone()
         if row and row[0]:
             d = row[0]
-            return datetime(d.year, d.month, d.day)
+            return datetime(d.year, d.month, d.day, tzinfo=timezone.utc)
         return None
     finally:
         if close_conn:

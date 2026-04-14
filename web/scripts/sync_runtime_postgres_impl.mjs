@@ -598,9 +598,10 @@ async function ensureRuntimeTables(client) {
     CREATE INDEX IF NOT EXISTS idx_runtime_decision_provenance_latest_ticker
     ON runtime_decision_provenance_latest (ticker)
   `);
+  // Dropped: the old (run_id, ticker) unique index is replaced by ticker-only PK.
+  // The migration in the sync transaction handles removing the old constraint.
   await client.query(`
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_runtime_decision_provenance_latest_run_ticker_unique
-    ON runtime_decision_provenance_latest (run_id, ticker)
+    DROP INDEX IF EXISTS idx_runtime_decision_provenance_latest_run_ticker_unique
   `);
   await client.query(`
     CREATE INDEX IF NOT EXISTS idx_runtime_decision_provenance_latest_run_id
@@ -1146,8 +1147,9 @@ async function upsertRuntimeBatch(client, records) {
         provenance_schema_version, writer_component, writer_build_hash, cp_profile, provenance_generated_utc,
         provenance_valid, provenance_json_text
       )
-      ON CONFLICT (run_id, ticker)
+      ON CONFLICT (ticker)
       DO UPDATE SET
+        run_id = EXCLUDED.run_id,
         generated_at_utc = EXCLUDED.generated_at_utc,
         snapshot_timestamp_utc = EXCLUDED.snapshot_timestamp_utc,
         runtime_sync_completed_utc = EXCLUDED.runtime_sync_completed_utc,
@@ -1663,6 +1665,34 @@ async function main() {
         "UPDATE runtime_symbols SET run_id = $1 WHERE run_id != $1",
         [newRunId]
       );
+      // Fix: drop the composite PK and use ticker-only PK for _latest tables.
+      // The (run_id, ticker) PK was wrong — a _latest table should have one row
+      // per ticker, not one row per (run_id, ticker). The composite PK caused
+      // duplicate key violations when updating run_id across batches.
+      await client.query(`
+        DO $$
+        BEGIN
+          -- Remove the old composite primary key if it exists
+          IF EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conname = 'runtime_decision_provenance_latest_pkey'
+              AND conrelid = 'runtime_decision_provenance_latest'::regclass
+          ) THEN
+            -- Deduplicate: keep only the latest row per ticker before dropping PK
+            DELETE FROM runtime_decision_provenance_latest a
+            USING runtime_decision_provenance_latest b
+            WHERE a.ticker = b.ticker
+              AND a.ctid < b.ctid;
+
+            ALTER TABLE runtime_decision_provenance_latest
+              DROP CONSTRAINT runtime_decision_provenance_latest_pkey;
+
+            ALTER TABLE runtime_decision_provenance_latest
+              ADD PRIMARY KEY (ticker);
+          END IF;
+        END
+        $$
+      `);
       await client.query(
         "UPDATE runtime_decision_provenance_latest SET run_id = $1 WHERE run_id != $1",
         [newRunId]

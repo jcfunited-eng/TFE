@@ -37,7 +37,7 @@ It is purely a governance-aware structural snapshot builder.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -517,7 +517,7 @@ def _fetch_history(
         pass
 
     # ── Step 2: Determine what to fetch from API ─────────────────────────
-    end = datetime.utcnow()
+    end = datetime.now(timezone.utc)
     if cached_bars:
         # Fetch only bars after the latest cached date (delta)
         latest_cached = max(b.timestamp for b in cached_bars)
@@ -621,7 +621,7 @@ def load_recent_daily_bar_metrics(
     if client is None:
         client = get_unified_market_data()
 
-    end = datetime.utcnow()
+    end = datetime.now(timezone.utc)
     start = end - timedelta(days=max(2, int(lookback_days)))
 
     req = HistoryRequest(
