@@ -134,7 +134,6 @@ COPY massive_universe_crypto.json ./massive_universe_crypto.json
 COPY data ./data
 COPY market_data ./market_data
 
-COPY tfe_data_normalizer.py ./tfe_data_normalizer.py
 COPY tfe_snapshot_restore.py ./tfe_snapshot_restore.py
 COPY tfe_startup.sh ./tfe_startup.sh
 
