@@ -194,6 +194,7 @@ async function killPosition(pos, exitReason, base) {
   await new Promise(r => setTimeout(r, 1500));
 
   // Verify position still exists in Alpaca — bracket TP/SL may have already closed it
+  let sellQty = shares;  // default to DB value, override with Alpaca actual
   try {
     const alpacaPos = await alpacaGet(`/v2/positions/${encodeURIComponent(ticker)}`, base);
     const alpacaQty = parseFloat(alpacaPos?.qty ?? "0");
@@ -205,6 +206,11 @@ async function killPosition(pos, exitReason, base) {
       });
       return;
     }
+    // Use Alpaca's actual qty — DB may be stale (e.g. partial fill on entry)
+    if (alpacaQty !== shares) {
+      console.log(`[SENTINEL] ${ticker} — qty mismatch: DB=${shares}, Alpaca=${alpacaQty}. Using Alpaca qty.`);
+    }
+    sellQty = alpacaQty;
   } catch (e) {
     const msg = String(e.message);
     if (msg.includes("40410000") || msg.toLowerCase().includes("position does not exist")) {
@@ -234,7 +240,7 @@ async function killPosition(pos, exitReason, base) {
   let exitOrderId = null;
   let exitFilledPrice = null;
   try {
-    const sellOrder = await marketSell(ticker, shares, base);
+    const sellOrder = await marketSell(ticker, sellQty, base);
     exitOrderId = sellOrder.id;
     console.log(`[SENTINEL] Market sell placed | ${ticker} | orderId=${exitOrderId}`);
   } catch (err) {
