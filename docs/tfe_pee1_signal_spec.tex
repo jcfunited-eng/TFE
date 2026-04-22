@@ -1,0 +1,406 @@
+% ============================================================
+%  TFE PEE-1 Signal Architecture Specification
+%  Personal Execution Engine — Chapter 1 & Chapter 2
+%  Tao Financial Engine
+% ============================================================
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{mathtools}
+\usepackage{caption}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue,
+}
+
+\definecolor{tfe-gold}{RGB}{180, 140, 60}
+\definecolor{tfe-dark}{RGB}{30, 30, 30}
+\definecolor{tfe-green}{RGB}{40, 120, 60}
+\definecolor{tfe-red}{RGB}{160, 40, 40}
+\definecolor{tfe-gray}{RGB}{100, 100, 100}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textcolor{tfe-gray}{\small TFE PEE-1 Signal Architecture}}
+\lhead{\textcolor{tfe-gray}{\small Confidential — Internal Use Only}}
+\rfoot{\textcolor{tfe-gray}{\small Page \thepage}}
+
+\titleformat{\section}{\large\bfseries\color{tfe-dark}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{tfe-dark}}{}{0em}{}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+% ============================================================
+\begin{document}
+
+\begin{center}
+  {\LARGE \textbf{TFE Personal Execution Engine}}\\[6pt]
+  {\large Signal Architecture Specification}\\[4pt]
+  {\large Chapter 1 (3WA) \quad\&\quad Chapter 2 (Mid $S_{UF}$ Acceleration)}\\[8pt]
+  {\color{tfe-gray}\small Version 1.0 \quad|\quad Tao Financial Engine \quad|\quad Confidential}
+\end{center}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ============================================================
+\section{Purpose and Scope}
+
+This document specifies the complete signal detection, position sizing, execution, and
+exit logic for the Personal Execution Engine (PEE-1) Chapter 1 and Chapter 2 signal
+layers. Both chapters operate as \textbf{independent execution paths} within PEE-1.
+Chapter 1 logic is never modified by Chapter 2 and vice versa.
+
+The specifications herein are the authoritative record of what is deployed in the
+TFE production environment. Any deviation from this document in code constitutes
+a breaking change and requires a new version of this specification.
+
+% ============================================================
+\section{Unified Field (UF) Engine Prerequisites}
+
+Both chapters consume output from the UF Engine Layer 4 decision vector. The relevant
+fields from \texttt{runtime\_decisions\_latest} are defined as follows:
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Definition} \\
+\midrule
+$D_k$          & $\{-1, 0, 1\}$ & Directional signal. $+1$ = structural expansion, $-1$ = contraction, $0$ = stillness \\
+$S_{UF}$       & $[0, 1]$       & Stability score. Structural entropy order parameter \\
+$\text{regime}$ & string        & \texttt{TRANSITIONAL} or \texttt{STABLE} \\
+$\text{bar\_count}$ & integer   & Number of trading bars in history for the ticker \\
+$R_{rev,k}$    & $\{0, 1\}$    & Reversal flag. $1$ iff $D_k \cdot D_{k-1} < 0$ \\
+$B_k$          & $\mathbb{R}$  & Breath signal. Conviction accumulation state \\
+$F_n$          & $\mathbb{R}$  & Cognitive scalar. Structural field intensity \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Data source:} \texttt{runtime\_decisions\_latest} (Postgres). All fields read
+from \texttt{snapshot\_row\_json} column. No fallbacks — missing field $\Rightarrow$
+signal excluded.
+
+% ============================================================
+\section{Chapter 1: Three-Wave Alignment (3WA)}
+
+\subsection{Theoretical Basis}
+
+The 3WA signal requires simultaneous confirmation of three structural waves:
+
+\begin{enumerate}[label=\textbf{Wave \arabic*.}]
+  \item \textbf{New Listing Ground State} — The ticker is in its structural infancy
+        ($\text{bar\_count} \leq 20$, approximately $\leq 1$ month of trading history).
+        At this stage the UF field has not yet accumulated noise, and the initial
+        structural attractor is cleanest.
+
+  \item \textbf{Positive Field} — $S_{UF} > 0$. The structural entropy order parameter
+        must be non-zero, confirming that the field is ordered rather than chaotic.
+
+  \item \textbf{Market Structural Expansion (SPY)} — SPY $D_k = 1$. The macro structural
+        environment is in directional expansion. SPY is used as the market-wide wave
+        because it is the largest, most liquid US equity instrument and its $D_k$
+        reliably captures macro regime transitions.
+\end{enumerate}
+
+\subsection{Entry Conditions}
+
+All conditions are binary. Any failure $\Rightarrow$ signal excluded. No partial
+qualification.
+
+\begin{align}
+  &\text{decision\_label} = \texttt{"Accumulate"} \label{eq:3wa-1}\\
+  &\text{bar\_count} \in [1,\, 20] \label{eq:3wa-2}\\
+  &S_{UF} > 0 \label{eq:3wa-3}\\
+  &D_k^{(\text{SPY})} = 1 \label{eq:3wa-4}\\
+  &\text{ticker} \neq \texttt{SPY} \label{eq:3wa-5}
+\end{align}
+
+\textbf{Signal class assigned:} \texttt{signal\_class = "3WA"}
+
+\subsection{Position Sizing}
+
+\begin{equation}
+  \text{risk\_pct}_{3WA} = 1.5\%
+\end{equation}
+
+\begin{equation}
+  \text{dollar\_allocation} = \text{vault\_equity} \times \frac{\text{risk\_pct}}{100}
+\end{equation}
+
+\begin{equation}
+  \text{shares} = \left\lfloor \frac{\text{dollar\_allocation}}{\text{current\_price}} \right\rfloor
+\end{equation}
+
+Hard cap: $\text{risk\_pct} \leq 5.0\%$ (enforced at bridge level regardless of input).
+Minimum viable position: $\text{shares} \geq 1$. Minimum share price: $\$5.00$.
+
+\subsection{Bracket Order Parameters}
+
+\begin{align}
+  \text{entry\_price}       &= \text{round}(\text{current\_price},\, 2) \\
+  \text{take\_profit\_price} &= \text{entry\_price} + 1.2 \times \text{ATR}_{14} \\
+  \text{stop\_loss\_price}   &= \text{entry\_price} - 1.0 \times \text{ATR}_{14}
+\end{align}
+
+Order type: \texttt{limit}, time-in-force: \texttt{DAY}, order class: \texttt{bracket}.
+
+\subsection{Exit Conditions}
+
+Exits are evaluated by the Sentinel Monitor on each daily run. For 3WA positions
+(\texttt{signal\_class = "3WA"} or null):
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Exit Type} & \textbf{Trigger} & \textbf{Action} \\
+\midrule
+SPY Flip       & $D_k^{(\text{SPY})} \neq 1$           & Liquidate ALL open positions \\
+Calamity       & $R_{rev,k} > 0$ on position ticker    & Market sell this position \\
+Zombie         & $\text{bar\_count} > \tau_{\max}$ (default 10) & Market sell this position \\
+Circuit Breaker & Portfolio drawdown $> \text{max\_dd\_pct}$ & Liquidate all, halt for $N$ hours \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Empirical Performance (structural\_episodes.csv)}
+
+Basis: 1,820 structural episodes. Chapter 1 proxy = sustained $D_k$ (entry $D=1$,
+exit $D=1$, TRANSITIONAL regime, LONG):
+
+\begin{center}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Condition} & \textbf{Count} & \textbf{Win Rate} & \textbf{Avg Return} & \textbf{Edge Proxy} \\
+\midrule
+Entry $D_k=1$, Exit $D_k=1$ & 160 & 72.5\% & 22.0\% & 0.1595 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{equation}
+  \mathcal{E}_{3WA} = \text{win\_rate} \times \text{avg\_return} = 0.725 \times 0.220 = 0.1595
+\end{equation}
+
+% ============================================================
+\section{Chapter 2: Mid $S_{UF}$ Acceleration Layer}
+
+\subsection{Theoretical Basis}
+
+The mid-$S_{UF}$ band ($S_{UF} \in [0.50,\, 0.75)$) captures tickers in the
+\textit{acceleration phase} of structural ordering. Unlike the high-$S_{UF}$ band
+($S_{UF} \geq 0.75$), which represents mature structural states where the field has
+already converged, mid-$S_{UF}$ positions are catching the field \textit{during its
+rise} toward high conviction. The empirical data shows this phase outperforms the
+high-$S_{UF}$ band on average return (15.0\% vs 13.6\%) with a higher win rate
+(64.9\% vs 60.4\%), because entry occurs before the field is fully priced in.
+
+Chapter 2 is \textbf{strictly independent} of Chapter 1. It does not require SPY
+$D_k = 1$ (the ticker's own $D_k$ is sufficient), and it excludes new listings
+($\text{bar\_count} \leq 20$) which are reserved for 3WA.
+
+\subsection{Entry Conditions}
+
+All conditions are binary. Any failure $\Rightarrow$ signal excluded.
+
+\begin{align}
+  &\text{decision\_label} = \texttt{"Accumulate"} \label{eq:ch2-1}\\
+  &\text{regime} = \texttt{"TRANSITIONAL"} \label{eq:ch2-2}\\
+  &S_{UF} \in [0.50,\, 0.75) \label{eq:ch2-3}\\
+  &D_k = 1 \label{eq:ch2-4}\\
+  &\text{bar\_count} \geq 21 \label{eq:ch2-5}\\
+  &\text{ticker} \neq \texttt{SPY} \label{eq:ch2-6}
+\end{align}
+
+\textbf{Signal class assigned:} \texttt{signal\_class = "CH2"}
+
+\subsection{Position Sizing — Dynamic Expectancy Multiplier}
+
+Chapter 2 position size is derived from the ratio of its empirical edge to Chapter 1's
+edge. This ensures position size is a function of demonstrated statistical advantage,
+not an arbitrary heuristic.
+
+\begin{equation}
+  \mathcal{E}_{CH2} = \text{win\_rate}_{CH2} \times \text{avg\_return}_{CH2}
+                    = 0.649 \times 0.150 = 0.0974
+\end{equation}
+
+\begin{equation}
+  \mu_{DEM} = \frac{\mathcal{E}_{CH2}}{\mathcal{E}_{3WA}} = \frac{0.0974}{0.1595} = 0.611
+\end{equation}
+
+\begin{equation}
+  \text{risk\_pct}_{CH2} = \text{risk\_pct}_{3WA} \times \mu_{DEM}
+                         = 1.5\% \times 0.611 = 0.917\%
+\end{equation}
+
+Position size computation follows the same formula as Chapter 1:
+
+\begin{equation}
+  \text{dollar\_allocation} = \text{vault\_equity} \times \frac{0.917}{100}
+\end{equation}
+
+\begin{equation}
+  \text{shares} = \left\lfloor \frac{\text{dollar\_allocation}}{\text{current\_price}} \right\rfloor
+\end{equation}
+
+\subsection{Bracket Order Parameters}
+
+\begin{align}
+  \text{entry\_price}        &= \text{round}(\text{current\_price},\, 2) \\
+  \text{take\_profit\_price}  &= \text{entry\_price} + 1.0 \times \text{ATR}_{14} \\
+  \text{stop\_loss\_price}    &= \text{entry\_price} - 1.0 \times \text{ATR}_{14}
+\end{align}
+
+Take profit multiplier is tighter than 3WA (1.0× vs 1.2×), reflecting the shorter
+median holding period (91 bars vs 223 bars for high-$S_{UF}$ positions).
+
+\subsection{Exit Conditions}
+
+Chapter 2 exits are evaluated by the Sentinel Monitor, routed by \texttt{signal\_class = "CH2"}:
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Exit Type} & \textbf{Label} & \textbf{Trigger} & \textbf{Action} \\
+\midrule
+Exit A & Acceleration complete & $S_{UF} \geq 0.75$ & Market sell (profit take) \\
+Exit B & Directional collapse  & $D_k \neq 1$       & Market sell (stop) \\
+Circuit Breaker & Portfolio drawdown & $> \text{max\_dd\_pct}$ & Liquidate all, halt \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Exit A is the intended exit — the position is held until the structural field accelerates
+into high conviction, at which point the edge rationale has been fully captured.
+Exit B is the protective exit — directional collapse invalidates the entry thesis.
+
+\textbf{Note:} Chapter 2 positions do NOT use the SPY Flip or Calamity/Zombie exits
+from Chapter 1. Their own structural exit conditions (A and B above) are sufficient
+and appropriate to the different holding horizon.
+
+\subsection{Empirical Performance}
+
+Basis: S_UF 0.5--0.75 bucket, TRANSITIONAL regime, LONG, structural\_episodes.csv:
+
+\begin{center}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{$S_{UF}$ Band} & \textbf{Count} & \textbf{Win Rate} & \textbf{Avg Return} & \textbf{Med Hold (bars)} \\
+\midrule
+$[0.50, 0.75)$ — Ch2 & 94  & 64.9\% & 15.0\% & 91  \\
+$[0.75, 1.0]$ — high  & 379 & 60.4\% & 13.6\% & 223 \\
+$[0.00, 0.50)$ — low  & 354 & 54.0\% &  4.8\% &  44 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Comparative Summary}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Chapter 1 (3WA)} & \textbf{Chapter 2 (Mid $S_{UF}$)} \\
+\midrule
+Signal class            & \texttt{3WA}               & \texttt{CH2} \\
+Regime required         & any                        & \texttt{TRANSITIONAL} \\
+$S_{UF}$ range          & $> 0$                      & $[0.50,\, 0.75)$ \\
+Bar count               & $1 \leq n \leq 20$         & $n \geq 21$ \\
+$D_k$ gate              & SPY $D_k = 1$              & Ticker $D_k = 1$ \\
+Risk per trade          & $1.5\%$                    & $0.917\%$ \\
+TP multiplier           & $1.2 \times \text{ATR}$    & $1.0 \times \text{ATR}$ \\
+SL multiplier           & $1.0 \times \text{ATR}$    & $1.0 \times \text{ATR}$ \\
+Primary exit trigger    & SPY $D_k$ flip             & $S_{UF} \geq 0.75$ or $D_k \neq 1$ \\
+Edge proxy $\mathcal{E}$ & $0.1595$                  & $0.0974$ \\
+DEM multiplier $\mu$    & $1.000$ (base)             & $0.611$ \\
+Median hold (bars)      & $\sim 223$                 & $\sim 91$ \\
+Win rate (empirical)    & $72.5\%$                   & $64.9\%$ \\
+Avg return (empirical)  & $22.0\%$                   & $15.0\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Execution Flow}
+
+\begin{enumerate}
+  \item \textbf{Sentinel} (\texttt{sentinel\_monitor.mjs}) — audit all open positions.
+        Apply circuit breaker, then route exits by \texttt{signal\_class}:
+        Ch2 $\to$ exits A/B; 3WA/null $\to$ SPY flip, calamity, zombie.
+
+  \item \textbf{Phase 2a} (\texttt{3wa\_strategist.mjs}) — detect 3WA signals from
+        \texttt{runtime\_decisions\_latest}. Check SPY $D_k$ gate first; return
+        \texttt{[]} if Wave 3 inactive.
+
+  \item \textbf{Phase 2b} (\texttt{ch2\_strategist.mjs}) — detect Ch2 signals from
+        \texttt{runtime\_decisions\_latest}. Independent of Phase 2a result.
+
+  \item \textbf{Phase 3a} (\texttt{alpaca\_bridge.mjs::executeBracketOrder}) — place
+        3WA bracket orders.
+
+  \item \textbf{Phase 3b} (\texttt{alpaca\_bridge.mjs::executeCh2BracketOrder}) — place
+        Ch2 bracket orders.
+
+  \item \textbf{Audit} (\texttt{trade\_auditor.mjs}) — sync fills, print report.
+\end{enumerate}
+
+All phases share the same circuit breaker gate. If the breaker is active,
+phases 2a, 2b, 3a, and 3b are skipped. Sentinel and Audit always run.
+
+% ============================================================
+\section{Invariants and Constraints}
+
+\begin{enumerate}
+  \item Chapter 1 code (\texttt{3wa\_strategist.mjs}, \texttt{executeBracketOrder}) is
+        \textbf{never modified} by Chapter 2 additions.
+
+  \item A ticker may generate both a 3WA and a Ch2 signal in the same run only if it
+        simultaneously satisfies both entry condition sets — which is impossible by
+        construction ($\text{bar\_count} \leq 20$ for 3WA, $\geq 21$ for Ch2).
+
+  \item The DEM multiplier $\mu = 0.611$ is computed from historical episode data and
+        is fixed at deployment. It is revisited when a statistically significant number
+        of new Ch2 episodes accumulate ($n \geq 200$ recommended review threshold).
+
+  \item No signal is ever retried within the same run\_id. Deduplication is enforced
+        via \texttt{client\_order\_id} (SHA-256 hash of \texttt{signal\_class:ticker:run\_id}).
+
+  \item The \texttt{personal\_trade\_ledger} is the single source of truth for all
+        open positions. Alpaca account state is cross-referenced but never overrides
+        the ledger.
+\end{enumerate}
+
+% ============================================================
+\section{Version History}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Version} & \textbf{Date} & \textbf{Description} \\
+\midrule
+1.0 & 2026-04-06 & Initial specification. Chapter 1 (3WA) and Chapter 2 (Mid $S_{UF}$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{2em}
+\hrule
+\vspace{0.5em}
+{\color{tfe-gray}\small This document is confidential and for internal use only.
+It constitutes the authoritative specification for PEE-1 signal logic as deployed
+in the Tao Financial Engine production environment.}
+
+\end{document}

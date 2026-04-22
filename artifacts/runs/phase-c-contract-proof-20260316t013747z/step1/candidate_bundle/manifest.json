@@ -1,0 +1,34 @@
+{
+  "candidate_bundle_id": "candidate_bundle_v1_cb86c27555d4ed6c35516958",
+  "normalized_package_id": "normalized-package-demo",
+  "policy_set_id": "policy-set-demo",
+  "model_set_id": "model-set-demo",
+  "config_set_id": "config-set-demo",
+  "bundle_class": "publication_candidate",
+  "requested_run_mode": "snapshot",
+  "deterministic_build_timestamp_utc": "2026-02-06T07:23:00.000Z",
+  "target_environment": "production",
+  "dependency_classification_register": {
+    "normalized_package": "classified",
+    "policy_bundle": "classified",
+    "model_bundle": "classified",
+    "config_bundle": "classified"
+  },
+  "assessment_artifact_references": [
+    {
+      "artifact_kind": "normalized_package_identity",
+      "artifact_id": "normalized-package-demo",
+      "artifact_digest_sha256": null
+    },
+    {
+      "artifact_kind": "dependency_classification_register",
+      "artifact_id": "dependency_classification_register",
+      "artifact_digest_sha256": "e11b5a232dafd9cbf2261a36f132cbb697c293c03974b6ff3ee43a47253e38db"
+    },
+    {
+      "artifact_kind": "candidate_input_digest",
+      "artifact_id": "candidate_input_digest",
+      "artifact_digest_sha256": "cb86c27555d4ed6c355169588b430bbbcb8db63c3b1af619a4f1cb73666395a1"
+    }
+  ]
+}

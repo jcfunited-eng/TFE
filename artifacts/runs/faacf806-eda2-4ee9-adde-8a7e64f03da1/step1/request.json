@@ -1,0 +1,19 @@
+{
+  "run_id": "faacf806-eda2-4ee9-adde-8a7e64f03da1",
+  "normalized_package_id": "normalized-package-demo",
+  "policy_set_id": "policy-set-demo",
+  "model_set_id": "model-set-demo",
+  "config_set_id": "config-set-demo",
+  "bundle_class": "publication_candidate",
+  "dependency_classification_register": {
+    "normalized_package": "classified",
+    "policy_bundle": "classified",
+    "model_bundle": "classified",
+    "config_bundle": "classified"
+  },
+  "target_environment": "production",
+  "requested_by": "internal_token",
+  "requested_at_utc": "2026-03-15T23:58:56.631Z",
+  "request_artifact_path": "/workspaces/Tao_Financial_Engine/artifacts/runs/faacf806-eda2-4ee9-adde-8a7e64f03da1/step1/request.json",
+  "request_artifact_relative_path": "artifacts/runs/faacf806-eda2-4ee9-adde-8a7e64f03da1/step1/request.json"
+}

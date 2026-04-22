@@ -69,3 +69,4 @@ validation-report-v1.json
 validation_sample.csv
 readonly-production-verification-path.json
 data/tfe.db
+docs/pynq_z2_v3.0.1.zip

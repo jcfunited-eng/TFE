@@ -1,0 +1,24 @@
+{
+  "assessment_report_id": "assessment_report_v1_c8915d750e9120bd261f89bc",
+  "candidate_bundle_id": "candidate_bundle_v1_9b03db0812e59c8721c6eea8",
+  "assessment_rule_set_id": "assessment-rules-v1",
+  "disposition": "pass",
+  "blocking_reason_codes": [],
+  "blocking_reason_details": [],
+  "evidence_references": [
+    {
+      "evidence_kind": "candidate_bundle_manifest",
+      "evidence_id": "candidate_bundle_v1_9b03db0812e59c8721c6eea8",
+      "evidence_path": "/workspaces/Tao_Financial_Engine/artifacts/runs/step1-final-cutover-20260315t223316z/step1/candidate_bundle/manifest.json",
+      "evidence_digest_sha256": "2ad3c593356489d41d0e7e977967349507b58a8384a070584ff3fe6ae355eb3d"
+    },
+    {
+      "evidence_kind": "assessment_rule_set",
+      "evidence_id": "assessment-rules-v1",
+      "evidence_path": null,
+      "evidence_digest_sha256": "cc61ce21fa90aae1648d2b12e96b3e0935e1331a7f32c03197865d8091c223a9"
+    }
+  ],
+  "publication_allowed": true,
+  "created_at_utc": "2026-03-15T22:33:53.249Z"
+}

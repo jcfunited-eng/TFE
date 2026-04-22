@@ -1,0 +1,17 @@
+{
+  "publication_bundle_id": "publication_bundle_v1_9c3ffa3d4a70cae3dcd26e67",
+  "run_id": "0f80f8a4-8645-4c12-8a85-ffe80c3b984d",
+  "candidate_bundle_id": "candidate_bundle_v1_cb86c27555d4ed6c35516958",
+  "assessment_report_id": "assessment_report_v1_3782c40a751176fbd0fae005",
+  "normalized_package_id": "normalized-package-demo",
+  "policy_set_id": "policy-set-demo",
+  "model_set_id": "model-set-demo",
+  "config_set_id": "config-set-demo",
+  "bundle_class": "publication_candidate",
+  "target_environment": "production",
+  "previous_active_publication_id": null,
+  "activation_audit_id": "publication_activation_v1_c0a0980bd818b3acf6687b45",
+  "candidate_bundle_manifest_path": "/workspaces/Tao_Financial_Engine/artifacts/runs/0f80f8a4-8645-4c12-8a85-ffe80c3b984d/step1/candidate_bundle/manifest.json",
+  "assessment_report_path": "/workspaces/Tao_Financial_Engine/artifacts/runs/0f80f8a4-8645-4c12-8a85-ffe80c3b984d/step1/assessment_report.json",
+  "committed_at_utc": "2026-03-16T00:29:55.536Z"
+}

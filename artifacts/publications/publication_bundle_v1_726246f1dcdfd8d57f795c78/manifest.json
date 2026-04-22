@@ -1,0 +1,17 @@
+{
+  "publication_bundle_id": "publication_bundle_v1_726246f1dcdfd8d57f795c78",
+  "run_id": "step1-final-cutover-20260315t223316z",
+  "candidate_bundle_id": "candidate_bundle_v1_9b03db0812e59c8721c6eea8",
+  "assessment_report_id": "assessment_report_v1_c8915d750e9120bd261f89bc",
+  "normalized_package_id": "normalized-package-cutover",
+  "policy_set_id": "policy-set-cutover",
+  "model_set_id": "model-set-cutover",
+  "config_set_id": "config-set-cutover",
+  "bundle_class": "publication_candidate",
+  "target_environment": "production",
+  "previous_active_publication_id": null,
+  "activation_audit_id": "publication_activation_v1_325d10535852365d2b8fb3cb",
+  "candidate_bundle_manifest_path": "/workspaces/Tao_Financial_Engine/artifacts/runs/step1-final-cutover-20260315t223316z/step1/candidate_bundle/manifest.json",
+  "assessment_report_path": "/workspaces/Tao_Financial_Engine/artifacts/runs/step1-final-cutover-20260315t223316z/step1/assessment_report.json",
+  "committed_at_utc": "2026-03-15T22:33:53.431Z"
+}

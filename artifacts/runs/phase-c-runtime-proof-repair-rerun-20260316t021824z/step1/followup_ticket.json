@@ -1,0 +1,12 @@
+{
+  "followup_job_id": "followup_job_v1_8a943d5d5bc78ef9b6012357",
+  "triggering_run_id": "phase-c-runtime-proof-repair-rerun-20260316t021824z",
+  "publication_bundle_id": "publication_bundle_v1_6be747d3f22518052431ab0c",
+  "target_environment": "production",
+  "phase_name": "quote_cache_refresh",
+  "classification": "non_critical_follow_up",
+  "status": "deferred",
+  "publication_manifest_path": "/workspaces/Tao_Financial_Engine/artifacts/publications/publication_bundle_v1_6be747d3f22518052431ab0c/manifest.json",
+  "operator_visible_status": "quote_cache_refresh deferred; publication_bundle_id=publication_bundle_v1_6be747d3f22518052431ab0c; publication remains active while follow-up proceeds independently.",
+  "created_at_utc": "2026-03-16T02:18:50.501Z"
+}

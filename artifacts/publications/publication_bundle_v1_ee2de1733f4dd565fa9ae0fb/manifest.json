@@ -1,0 +1,17 @@
+{
+  "publication_bundle_id": "publication_bundle_v1_ee2de1733f4dd565fa9ae0fb",
+  "run_id": "phase-c-runtime-proof-repair-20260316t021230z",
+  "candidate_bundle_id": "candidate_bundle_v1_cb86c27555d4ed6c35516958",
+  "assessment_report_id": "assessment_report_v1_3782c40a751176fbd0fae005",
+  "normalized_package_id": "normalized-package-demo",
+  "policy_set_id": "policy-set-demo",
+  "model_set_id": "model-set-demo",
+  "config_set_id": "config-set-demo",
+  "bundle_class": "publication_candidate",
+  "target_environment": "production",
+  "previous_active_publication_id": "publication_bundle_v1_d752a02143d95c8c6b457e81",
+  "activation_audit_id": "publication_activation_v1_7e8a3e1b38ca8db718e362b1",
+  "candidate_bundle_manifest_path": "/workspaces/Tao_Financial_Engine/artifacts/runs/phase-c-runtime-proof-repair-20260316t021230z/step1/candidate_bundle/manifest.json",
+  "assessment_report_path": "/workspaces/Tao_Financial_Engine/artifacts/runs/phase-c-runtime-proof-repair-20260316t021230z/step1/assessment_report.json",
+  "committed_at_utc": "2026-03-16T02:15:22.264Z"
+}
