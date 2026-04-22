@@ -68,3 +68,4 @@ uf_policy_what_if_recommended_changes.csv
 validation-report-v1.json
 validation_sample.csv
 readonly-production-verification-path.json
+data/tfe.db
