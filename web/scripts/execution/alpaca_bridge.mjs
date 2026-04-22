@@ -707,6 +707,135 @@ export async function executeCh2BracketOrder(signal) {
   };
 }
 
+// ── Chapter 3 — Scalp "Smash and Grab" market buy ─────────────────────────
+/**
+ * CH3 uses a MARKET BUY (not bracket) — exits are managed by sentinel.
+ * Fixed dollar amount per trade, not percentage of equity.
+ */
+export async function executeCh3MarketOrder(signal) {
+  const ticker      = String(signal?.ticker ?? "").trim().toUpperCase();
+  const tradeAmount = signal.ch3_trade_amount ?? 2500;
+
+  const executionMode = await readExecutionMode();
+  const BASE = alpacaBaseUrl(executionMode);
+  console.log(`[CH3-BRIDGE] Execution mode: ${executionMode.toUpperCase()} | base=${BASE}`);
+
+  if (!ticker || signal.signal_class !== "CH3") {
+    return rejectSignal(signal, "invalid_ch3_signal");
+  }
+
+  let currentPrice;
+  try {
+    currentPrice = await fetchLatestPrice(ticker);
+  } catch (err) {
+    return rejectSignal(signal, `market_data_fetch_failed: ${err.message}`);
+  }
+
+  if (currentPrice < MIN_SHARE_PRICE) {
+    return rejectSignal(signal, `price_below_minimum: ${currentPrice} < ${MIN_SHARE_PRICE}`);
+  }
+
+  const shares = Math.floor(tradeAmount / currentPrice);
+  if (shares < MIN_SHARES) {
+    return rejectSignal(signal, `shares_below_minimum: amount=${tradeAmount} price=${currentPrice} shares=${shares}`);
+  }
+
+  const entryPrice      = parseFloat(currentPrice.toFixed(2));
+  const takeProfitPrice = parseFloat((entryPrice * (1 + signal.ch3_take_profit_pct)).toFixed(2));
+  const stopLossPrice   = parseFloat((entryPrice * (1 - signal.ch3_stop_loss_pct)).toFixed(2));
+
+  console.log(`[CH3-BRIDGE] ${ticker} | shares=${shares} | entry≈${entryPrice} | TP=${takeProfitPrice} | SL=${stopLossPrice} | amount=$${tradeAmount}`);
+
+  let ledgerId;
+  try {
+    ledgerId = await ledgerInsert({
+      ticker,
+      run_id:            signal.run_id,
+      signal_class:      "CH3",
+      spy_dk:            null,
+      s_uf:              signal.s_uf,
+      bar_count:         signal.bar_count,
+      f_n:               null,
+      d_k:               signal.d_k,
+      b_k:               null,
+      vault_equity:      tradeAmount,
+      risk_per_trade_pct: (tradeAmount / 100000) * 100,
+      dollar_allocation: tradeAmount,
+      shares,
+      atr_14:            null,
+      entry_limit_price: entryPrice,
+      take_profit_price: takeProfitPrice,
+      stop_loss_price:   stopLossPrice,
+      status:            "pending",
+      rationale_json: {
+        chapter:           3,
+        scalp:             true,
+        s_uf:              signal.s_uf,
+        d_k:               signal.d_k,
+        bar_count:         signal.bar_count,
+        trade_amount:      tradeAmount,
+        take_profit_pct:   signal.ch3_take_profit_pct,
+        stop_loss_pct:     signal.ch3_stop_loss_pct,
+        run_id:            signal.run_id,
+      },
+    });
+  } catch (err) {
+    return rejectSignal(signal, `ledger_insert_failed: ${err.message}`);
+  }
+
+  const dedupeKey = createHash("sha256")
+    .update(`CH3:${ticker}:${signal.run_id}:${Date.now()}`)
+    .digest("hex")
+    .slice(0, 16);
+
+  let order;
+  try {
+    // Market buy — no bracket, sentinel handles exits
+    order = await alpacaPost("/v2/orders", {
+      symbol:          ticker,
+      qty:             shares,
+      side:            "buy",
+      type:            "market",
+      time_in_force:   "day",
+      client_order_id: dedupeKey,
+    }, BASE);
+  } catch (err) {
+    const errMsg = err.message ?? "unknown";
+    if (ledgerId != null) {
+      await pool.query(
+        `UPDATE personal_trade_ledger SET status='rejected', exit_reason=$1 WHERE id=$2`,
+        [errMsg, ledgerId],
+      ).catch(() => {});
+    }
+    return { ok: false, rejected: true, reason: errMsg, ledgerId };
+  }
+
+  const orderId = order.id;
+
+  if (ledgerId != null) {
+    await pool.query(
+      `UPDATE personal_trade_ledger
+       SET alpaca_order_id=$1, status='submitted'
+       WHERE id=$2`,
+      [orderId, ledgerId],
+    ).catch(e => console.error("[CH3-BRIDGE] Ledger submitted-update failed:", e.message));
+  }
+
+  console.log(`[CH3-BRIDGE] ORDER SUBMITTED | ${ticker} | orderId=${orderId} | shares=${shares} | ledgerId=${ledgerId}`);
+
+  return {
+    ok:          true,
+    ticker,
+    orderId,
+    ledgerId,
+    shares,
+    entryPrice,
+    takeProfitPrice,
+    stopLossPrice,
+    tradeAmount,
+  };
+}
+
 // ── Cleanup ───────────────────────────────────────────────────────────────
 export async function closeBridgePool() {
   await pool.end();

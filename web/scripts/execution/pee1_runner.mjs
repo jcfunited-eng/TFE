@@ -22,8 +22,9 @@ import pg from "pg";
 import { runSentinel, closeSentinelPool }                        from "./sentinel_monitor.mjs";
 import { get3WASignals, closeStrategistPool }                    from "./3wa_strategist.mjs";
 import { getCh2Signals, closeCh2StrategistPool }                 from "./ch2_strategist.mjs";
+import { getCh3Signals, closeCh3StrategistPool }                 from "./ch3_scalp_strategist.mjs";
 import { executeBracketOrder, executeCh2BracketOrder,
-         closeBridgePool }                                       from "./alpaca_bridge.mjs";
+         executeCh3MarketOrder, closeBridgePool }                from "./alpaca_bridge.mjs";
 import { runAudit, closeAuditorPool }                            from "./trade_auditor.mjs";
 
 const IS_PAPER = process.env.ALPACA_PAPER !== "0";
@@ -164,7 +165,34 @@ async function main() {
       }
     }
 
-    if (signals.length === 0 && ch2Signals.length === 0) {
+    // Ch3 scalp orders
+    console.log(`\n[RUNNER] Phase 2c/3c: Chapter 3 — Scalp "Smash and Grab"`);
+    let ch3Signals = [];
+    try {
+      ch3Signals = await getCh3Signals();
+    } catch (err) {
+      console.error("[RUNNER] Ch3 Strategist failed:", err.message);
+      ch3Signals = [];
+    }
+
+    if (ch3Signals.length > 0) {
+      for (const signal of ch3Signals) {
+        try {
+          const result = await executeCh3MarketOrder(signal);
+          if (result.ok) {
+            console.log(`[RUNNER] ✓ CH3 ${signal.ticker} | orderId=${result.orderId} | shares=${result.shares} | entry≈${result.entryPrice} | TP=${result.takeProfitPrice} | SL=${result.stopLossPrice}`);
+          } else {
+            console.log(`[RUNNER] ✗ CH3 ${signal.ticker} | rejected: ${result.reason}`);
+          }
+        } catch (err) {
+          console.error(`[RUNNER] Ch3 order error for ${signal.ticker}:`, err.message);
+        }
+      }
+    } else {
+      console.log("[RUNNER] No Ch3 scalp signals.");
+    }
+
+    if (signals.length === 0 && ch2Signals.length === 0 && ch3Signals.length === 0) {
       console.log("[RUNNER] No signals today. Nothing to execute.");
     }
   }
@@ -191,6 +219,7 @@ main()
       closeSentinelPool(),
       closeStrategistPool(),
       closeCh2StrategistPool(),
+      closeCh3StrategistPool(),
       closeBridgePool(),
       closeAuditorPool(),
     ]);

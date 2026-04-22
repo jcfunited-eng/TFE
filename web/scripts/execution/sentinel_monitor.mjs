@@ -474,6 +474,47 @@ export async function runSentinel() {
       continue;
     }
 
+    // ── Chapter 3 — Scalp "Smash and Grab" exit logic ───────────────────
+    if (signalClass === "CH3") {
+      // CH3 exits are price-based and time-based, not structural
+      try {
+        const alpacaPos = await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE);
+        const currentPrice = parseFloat(alpacaPos?.current_price ?? "0");
+        const entryPrice   = parseFloat(alpacaPos?.avg_entry_price ?? "0");
+        const plPct        = entryPrice > 0 ? (currentPrice - entryPrice) / entryPrice : 0;
+
+        // Exit PROFIT — +1%
+        if (plPct >= 0.01) {
+          console.log(`[SENTINEL] CH3 PROFIT ${pos.ticker} | +${(plPct*100).toFixed(2)}% — taking profit`);
+          await killPosition(pos, "ch3_scalp_take_profit", ALPACA_BASE);
+          continue;
+        }
+
+        // Exit STOP — -0.5%
+        if (plPct <= -0.005) {
+          console.log(`[SENTINEL] CH3 STOP ${pos.ticker} | ${(plPct*100).toFixed(2)}% — stop loss`);
+          await killPosition(pos, "ch3_scalp_stop_loss", ALPACA_BASE);
+          continue;
+        }
+
+        // Exit TIME — 4 hours
+        const entryTime = pos.entry_filled_at ? new Date(pos.entry_filled_at) : null;
+        if (entryTime) {
+          const hoursHeld = (Date.now() - entryTime.getTime()) / (1000 * 60 * 60);
+          if (hoursHeld >= 4) {
+            console.log(`[SENTINEL] CH3 TIMEOUT ${pos.ticker} | held ${hoursHeld.toFixed(1)}h — time limit`);
+            await killPosition(pos, "ch3_scalp_time_limit", ALPACA_BASE);
+            continue;
+          }
+        }
+
+        console.log(`[SENTINEL] CH3 ${pos.ticker} HOLD | P&L=${(plPct*100).toFixed(2)}% | entry=${entryPrice} | current=${currentPrice}`);
+      } catch (e) {
+        console.warn(`[SENTINEL] CH3 ${pos.ticker} — position check error: ${e.message}`);
+      }
+      continue;
+    }
+
     // ── Chapter 1 (3WA) and legacy exit logic ───────────────────────────
 
     // Calamity check: R_rev_k > 0
