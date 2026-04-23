@@ -1,8 +1,10 @@
 {
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": [
-      "WebSearch"
-    ]
+      "WebSearch",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }
