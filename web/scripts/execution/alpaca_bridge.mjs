@@ -724,7 +724,7 @@ export async function executeCh3MarketOrder(signal) {
     return rejectSignal(signal, "invalid_ch3_signal");
   }
 
-  let currentPrice;
+  let currentPrice, atr;
   try {
     currentPrice = await fetchLatestPrice(ticker);
   } catch (err) {
@@ -735,16 +735,28 @@ export async function executeCh3MarketOrder(signal) {
     return rejectSignal(signal, `price_below_minimum: ${currentPrice} < ${MIN_SHARE_PRICE}`);
   }
 
+  // Compute ATR for price-scaled stops
+  try {
+    ({ atr } = await computeATR(ticker, currentPrice));
+  } catch (err) {
+    return rejectSignal(signal, `atr_fetch_failed: ${err.message}`);
+  }
+
   const shares = Math.floor(tradeAmount / currentPrice);
   if (shares < MIN_SHARES) {
     return rejectSignal(signal, `shares_below_minimum: amount=${tradeAmount} price=${currentPrice} shares=${shares}`);
   }
 
   const entryPrice      = parseFloat(currentPrice.toFixed(2));
-  const takeProfitPrice = parseFloat((entryPrice * (1 + signal.ch3_take_profit_pct)).toFixed(2));
-  const stopLossPrice   = parseFloat((entryPrice * (1 - signal.ch3_stop_loss_pct)).toFixed(2));
+  // ATR-scaled exits: stop = 0.5×ATR, profit = 1.0×ATR
+  const takeProfitPrice = parseFloat((entryPrice + 1.0 * atr).toFixed(2));
+  const stopLossPrice   = parseFloat((entryPrice - 0.5 * atr).toFixed(2));
 
-  console.log(`[CH3-BRIDGE] ${ticker} | shares=${shares} | entry≈${entryPrice} | TP=${takeProfitPrice} | SL=${stopLossPrice} | amount=$${tradeAmount}`);
+  if (stopLossPrice <= 0) {
+    return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice} (ATR=${atr.toFixed(4)})`);
+  }
+
+  console.log(`[CH3-BRIDGE] ${ticker} | shares=${shares} | entry≈${entryPrice} | TP=${takeProfitPrice} | SL=${stopLossPrice} | ATR=${atr.toFixed(4)} | amount=$${tradeAmount}`);
 
   let ledgerId;
   try {
@@ -762,7 +774,7 @@ export async function executeCh3MarketOrder(signal) {
       risk_per_trade_pct: (tradeAmount / 100000) * 100,
       dollar_allocation: tradeAmount,
       shares,
-      atr_14:            null,
+      atr_14:            atr,
       entry_limit_price: entryPrice,
       take_profit_price: takeProfitPrice,
       stop_loss_price:   stopLossPrice,
@@ -774,8 +786,9 @@ export async function executeCh3MarketOrder(signal) {
         d_k:               signal.d_k,
         bar_count:         signal.bar_count,
         trade_amount:      tradeAmount,
-        take_profit_pct:   signal.ch3_take_profit_pct,
-        stop_loss_pct:     signal.ch3_stop_loss_pct,
+        atr_14:            atr,
+        take_profit_price: takeProfitPrice,
+        stop_loss_price:   stopLossPrice,
         run_id:            signal.run_id,
       },
     });

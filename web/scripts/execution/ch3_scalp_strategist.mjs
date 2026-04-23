@@ -14,9 +14,9 @@
  *   5. Daily loss limit not hit
  *
  * Exit conditions (evaluated by sentinel_monitor per signal_class='CH3'):
- *   EXIT PROFIT — price >= entry + 1.0%  → market sell (take profit)
- *   EXIT STOP   — price <= entry - 0.5%  → market sell (stop loss)
- *   EXIT TIME   — position age > 4 hours → market sell (time limit)
+ *   EXIT PROFIT — price >= entry + 1.0 × ATR-14  → market sell (take profit)
+ *   EXIT STOP   — price <= entry - 0.5 × ATR-14  → market sell (stop loss)
+ *   EXIT TIME   — position age > 4 hours          → market sell (time limit)
  *
  * Pool rules:
  *   - $5,000 scalp pool (configurable)
@@ -50,8 +50,9 @@ const CH3_REQUIRED_DK      = null;    // ANY D_k — scalp works all the time
 const CH3_BAR_COUNT_MIN    = 21;      // established stocks only
 const CH3_POOL_TOTAL       = 5000;    // total scalp pool $
 const CH3_MAX_PER_TRADE    = 2500;    // max $ per scalp
-const CH3_TAKE_PROFIT_PCT  = 0.01;    // +1.0% take profit
-const CH3_STOP_LOSS_PCT    = 0.005;   // -0.5% stop loss
+// Stops are ATR-based, computed per-trade in alpaca_bridge:
+//   Take profit: entry + 1.0 × ATR-14
+//   Stop loss:   entry - 0.5 × ATR-14
 const CH3_TIME_LIMIT_HOURS = 4;       // close after 4 hours
 const CH3_DAILY_LOSS_LIMIT = 1000;    // stop after $1K daily loss
 
@@ -217,9 +218,8 @@ export async function getCh3Signals() {
   console.log(`[CH3-SCALP] SIGNAL: ${best.ticker} | S_UF=${best.s_uf} | D_k=${best.d_k} | pool=$${poolRemaining.toFixed(0)} | trade=$${tradeAmount.toFixed(0)}`);
 
   // Override the sizing — CH3 uses fixed dollar amount, not percentage
+  // Stops are ATR-based, computed in alpaca_bridge at execution time
   best.ch3_trade_amount = tradeAmount;
-  best.ch3_take_profit_pct = CH3_TAKE_PROFIT_PCT;
-  best.ch3_stop_loss_pct = CH3_STOP_LOSS_PCT;
 
   return [best];
 }
@@ -228,8 +228,6 @@ export async function getCh3Signals() {
  * CH3 exit thresholds — exported for sentinel to use.
  */
 export const CH3_CONFIG = {
-  TAKE_PROFIT_PCT:  CH3_TAKE_PROFIT_PCT,
-  STOP_LOSS_PCT:    CH3_STOP_LOSS_PCT,
   TIME_LIMIT_HOURS: CH3_TIME_LIMIT_HOURS,
   DAILY_LOSS_LIMIT: CH3_DAILY_LOSS_LIMIT,
 };

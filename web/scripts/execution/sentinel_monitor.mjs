@@ -138,7 +138,8 @@ async function fetchOpenPositions() {
   const res = await pool.query(
     `SELECT id, ticker, shares, signal_class, alpaca_order_id,
             alpaca_take_profit_order_id, alpaca_stop_loss_order_id,
-            entry_filled_at, signal_detected_at
+            entry_filled_at, signal_detected_at,
+            take_profit_price, stop_loss_price
      FROM personal_trade_ledger
      WHERE status IN ('submitted', 'filled')
        AND (signal_class IS NULL OR signal_class != 'manual')
@@ -476,23 +477,27 @@ export async function runSentinel() {
 
     // ── Chapter 3 — Scalp "Smash and Grab" exit logic ───────────────────
     if (signalClass === "CH3") {
-      // CH3 exits are price-based and time-based, not structural
+      // CH3 exits are ATR-scaled and time-based, not structural
       try {
         const alpacaPos = await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE);
         const currentPrice = parseFloat(alpacaPos?.current_price ?? "0");
         const entryPrice   = parseFloat(alpacaPos?.avg_entry_price ?? "0");
         const plPct        = entryPrice > 0 ? (currentPrice - entryPrice) / entryPrice : 0;
 
-        // Exit PROFIT — +1%
-        if (plPct >= 0.01) {
-          console.log(`[SENTINEL] CH3 PROFIT ${pos.ticker} | +${(plPct*100).toFixed(2)}% — taking profit`);
+        // Read ATR-based prices from ledger (set at entry by bridge)
+        const tpPrice = parseFloat(pos.take_profit_price ?? "0");
+        const slPrice = parseFloat(pos.stop_loss_price ?? "0");
+
+        // Exit PROFIT — price hit ATR-based take profit
+        if (tpPrice > 0 && currentPrice >= tpPrice) {
+          console.log(`[SENTINEL] CH3 PROFIT ${pos.ticker} | +${(plPct*100).toFixed(2)}% | price=${currentPrice} >= TP=${tpPrice}`);
           await killPosition(pos, "ch3_scalp_take_profit", ALPACA_BASE);
           continue;
         }
 
-        // Exit STOP — -0.5%
-        if (plPct <= -0.005) {
-          console.log(`[SENTINEL] CH3 STOP ${pos.ticker} | ${(plPct*100).toFixed(2)}% — stop loss`);
+        // Exit STOP — price hit ATR-based stop loss
+        if (slPrice > 0 && currentPrice <= slPrice) {
+          console.log(`[SENTINEL] CH3 STOP ${pos.ticker} | ${(plPct*100).toFixed(2)}% | price=${currentPrice} <= SL=${slPrice}`);
           await killPosition(pos, "ch3_scalp_stop_loss", ALPACA_BASE);
           continue;
         }
@@ -508,7 +513,7 @@ export async function runSentinel() {
           }
         }
 
-        console.log(`[SENTINEL] CH3 ${pos.ticker} HOLD | P&L=${(plPct*100).toFixed(2)}% | entry=${entryPrice} | current=${currentPrice}`);
+        console.log(`[SENTINEL] CH3 ${pos.ticker} HOLD | P&L=${(plPct*100).toFixed(2)}% | entry=${entryPrice} | current=${currentPrice} | TP=${tpPrice} | SL=${slPrice}`);
       } catch (e) {
         console.warn(`[SENTINEL] CH3 ${pos.ticker} — position check error: ${e.message}`);
       }
