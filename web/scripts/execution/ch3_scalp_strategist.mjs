@@ -118,6 +118,20 @@ async function fetchOpenPositionTickers() {
 }
 
 /**
+ * Fetch tickers that CH3 already traded today (win or loss).
+ * No same-day re-entry — avoid chasing the same stock twice.
+ */
+async function fetchTodayCh3Tickers() {
+  const res = await pool.query(
+    `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
+     FROM personal_trade_ledger
+     WHERE signal_class = 'CH3'
+       AND signal_detected_at >= CURRENT_DATE`
+  );
+  return new Set(res.rows.map(r => r.ticker));
+}
+
+/**
  * Fetch all CH3 candidate rows — highest S_UF signals.
  */
 async function fetchCandidateRows() {
@@ -196,11 +210,16 @@ export async function getCh3Signals() {
   const rows = await fetchCandidateRows();
   const signals = rows.map(parseSignal).filter(Boolean);
 
-  // Exclude tickers with existing positions (any channel)
+  // Exclude tickers with existing positions (any channel) or already traded today by CH3
   const openTickers = await fetchOpenPositionTickers();
+  const todayCh3Tickers = await fetchTodayCh3Tickers();
   const available = signals.filter(s => {
     if (openTickers.has(s.ticker)) {
       console.log(`[CH3-SCALP]   ${s.ticker} — SKIPPED (position exists in another channel)`);
+      return false;
+    }
+    if (todayCh3Tickers.has(s.ticker)) {
+      console.log(`[CH3-SCALP]   ${s.ticker} — SKIPPED (already traded by CH3 today)`);
       return false;
     }
     return true;

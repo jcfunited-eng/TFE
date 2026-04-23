@@ -368,7 +368,8 @@ export async function runSentinel() {
   // Ch2 positions use their own per-ticker D_k exit (Exit B) — SPY flip does not apply
   const spyFlip = spyDk !== null && spyDk !== 1;
   if (spyFlip) {
-    const ch1Positions = positions.filter(p => String(p.signal_class ?? "").trim().toUpperCase() !== "CH2");
+    const exemptClasses = new Set(["CH2", "CH3"]);
+    const ch1Positions = positions.filter(p => !exemptClasses.has(String(p.signal_class ?? "").trim().toUpperCase()));
     if (ch1Positions.length > 0) {
       console.log(`[SENTINEL] SPY D_k=${spyDk} — Wave 3 GONE — liquidating ${ch1Positions.length} Ch1 position(s)`);
       for (const pos of ch1Positions) {
