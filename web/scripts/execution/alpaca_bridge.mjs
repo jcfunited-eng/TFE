@@ -803,7 +803,7 @@ export async function executeCh3MarketOrder(signal) {
 
   let order;
   try {
-    // Market buy — no bracket, sentinel handles exits
+    // Bracket order: market buy + ATR-based TP/SL enforced by Alpaca in real-time
     order = await alpacaPost("/v2/orders", {
       symbol:          ticker,
       qty:             shares,
@@ -811,6 +811,13 @@ export async function executeCh3MarketOrder(signal) {
       type:            "market",
       time_in_force:   "day",
       client_order_id: dedupeKey,
+      order_class:     "bracket",
+      take_profit: {
+        limit_price:   takeProfitPrice,
+      },
+      stop_loss: {
+        stop_price:    stopLossPrice,
+      },
     }, BASE);
   } catch (err) {
     const errMsg = err.message ?? "unknown";
@@ -825,16 +832,23 @@ export async function executeCh3MarketOrder(signal) {
 
   const orderId = order.id;
 
+  // Extract bracket leg order IDs for sentinel tracking
+  const legs = order.legs ?? [];
+  const tpOrderId = legs.find(l => l.type === "limit")?.id ?? null;
+  const slOrderId = legs.find(l => l.type === "stop")?.id ?? null;
+
   if (ledgerId != null) {
     await pool.query(
       `UPDATE personal_trade_ledger
-       SET alpaca_order_id=$1, status='submitted'
+       SET alpaca_order_id=$1, status='submitted',
+           alpaca_take_profit_order_id=$3,
+           alpaca_stop_loss_order_id=$4
        WHERE id=$2`,
-      [orderId, ledgerId],
+      [orderId, ledgerId, tpOrderId, slOrderId],
     ).catch(e => console.error("[CH3-BRIDGE] Ledger submitted-update failed:", e.message));
   }
 
-  console.log(`[CH3-BRIDGE] ORDER SUBMITTED | ${ticker} | orderId=${orderId} | shares=${shares} | ledgerId=${ledgerId}`);
+  console.log(`[CH3-BRIDGE] BRACKET ORDER SUBMITTED | ${ticker} | orderId=${orderId} | TP_id=${tpOrderId} | SL_id=${slOrderId} | shares=${shares} | ledgerId=${ledgerId}`);
 
   return {
     ok:          true,
