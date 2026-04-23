@@ -103,6 +103,10 @@
 
 34. **XADC analog pin constraints need PACKAGE_PIN only, no IOSTANDARD.** Analog pins to the XADC are not digital I/O — they don't use LVCMOS33 or any standard. Just `set_property PACKAGE_PIN E17 [get_ports vauxp1]`. Adding IOSTANDARD causes DRC errors.
 
+35. **XADC VAUX pins MUST be exposed as module ports and routed to top-level.** The working configuration (April 23, 2026): expose vauxp1/vauxn1 as input ports on arcloom_xadc_reader, connect VAUXP={14'b0,vauxp1,1'b0} and VAUXN={14'b0,vauxn1,1'b0}, route through Block Design to top-level ports, constrain to E17/D18 in XDC. **PROVEN: real-time sensor-to-decision with zero CPU involvement.**
+
+36. **Reboot the PYNQ board between overlay changes.** Loading a new overlay after a failed or different overlay can hang. A clean reboot takes 30 seconds and avoids debugging phantom issues.
+
 ---
 
 ## What Works (Proven on Hardware)
