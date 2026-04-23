@@ -112,6 +112,7 @@ function plColor(pl: string | null): string {
 function signalBadge(cls: string | null): string {
   if (cls === "3WA")    return "bg-purple-900 text-purple-200 border border-purple-700";
   if (cls === "W1")     return "bg-green-900 text-green-200 border border-green-700";
+  if (cls === "CH3")    return "bg-amber-900 text-amber-200 border border-amber-700";
   if (cls === "manual") return "bg-gray-700 text-gray-300 border border-gray-600";
   return "bg-gray-800 text-gray-400 border border-gray-700";
 }

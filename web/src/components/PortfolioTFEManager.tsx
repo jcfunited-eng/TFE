@@ -77,6 +77,7 @@ function plColor(n: number | null): string {
 function signalBadge(cls: string): React.ReactNode {
   if (cls === "3WA") return <span style={{ background: "#7c3aed", color: "#fff", borderRadius: 4, padding: "1px 6px", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.04em" }}>3WA</span>;
   if (cls === "W1")  return <span style={{ background: "#16a34a", color: "#fff", borderRadius: 4, padding: "1px 6px", fontSize: "0.72rem", fontWeight: 700 }}>W1</span>;
+  if (cls === "CH3") return <span style={{ background: "#d97706", color: "#fff", borderRadius: 4, padding: "1px 6px", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.04em" }}>CH3 ⚡</span>;
   if (cls === "manual") return <span style={{ background: "#64748b", color: "#fff", borderRadius: 4, padding: "1px 6px", fontSize: "0.72rem", fontWeight: 700 }}>MANUAL</span>;
   return <span style={{ background: "#374151", color: "#fff", borderRadius: 4, padding: "1px 6px", fontSize: "0.72rem" }}>{cls}</span>;
 }

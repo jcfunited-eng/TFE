@@ -15,7 +15,7 @@ export const runtime = "nodejs";
 //  "standard"  — Established stock (bar_count > 20). F_n ≤ 1.65 backtest: 57.5%.
 //
 // Wave 2 (species profile) is deferred until species_profiles table is populated.
-type SignalClass = "3WA" | "W1" | "standard";
+type SignalClass = "3WA" | "W1" | "CH3" | "standard";
 
 type RecommendationRow = {
   ticker: string;

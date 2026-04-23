@@ -7,7 +7,7 @@ import ScreenerChart, {
   type ScreenerChartControls,
 } from "@/components/ScreenerChart";
 
-type SignalClass = "3WA" | "W1" | "standard";
+type SignalClass = "3WA" | "W1" | "CH3" | "standard";
 
 type RecommendationRow = {
   ticker: string;
@@ -215,7 +215,10 @@ function AnalysisPanel({
                 {row.signalClass === "3WA" && (
                   <span style={{ marginLeft: 6, fontSize: "0.65rem", fontWeight: 700, color: "#fff", background: "#7c3aed", borderRadius: 3, padding: "2px 6px", verticalAlign: "middle" }}>3WA</span>
                 )}
-                {(row.signalClass === "W1" || row.isNewListing) && row.signalClass !== "3WA" && (
+                {row.signalClass === "CH3" && (
+                  <span style={{ marginLeft: 6, fontSize: "0.65rem", fontWeight: 700, color: "#fff", background: "#d97706", borderRadius: 3, padding: "2px 6px", verticalAlign: "middle" }}>CH3 ⚡</span>
+                )}
+                {(row.signalClass === "W1" || row.isNewListing) && row.signalClass !== "3WA" && row.signalClass !== "CH3" && (
                   <span style={{ marginLeft: 6, fontSize: "0.65rem", fontWeight: 700, color: "#fff", background: "#16a34a", borderRadius: 3, padding: "2px 6px", verticalAlign: "middle" }}>NEW</span>
                 )}
               </h2>
