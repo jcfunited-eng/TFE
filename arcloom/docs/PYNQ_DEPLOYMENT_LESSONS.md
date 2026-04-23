@@ -99,7 +99,9 @@
 
 32. **Always check the PYNQ-Z2 master XDC before guessing pin mappings.** The file is at `docs/pynq-z2_v1.0.xdc (1).zip` in the repo. It has every pin mapping including XADC analog channels. Don't search the web, don't query Vivado Tcl — just read the XDC. The Arduino analog pin mapping (A0=VAUX1, not VAUX3) was wrong for weeks because nobody checked the XDC.
 
-33. **XADC VAUXP/VAUXN tied to 16'b0 may still work** — the physical analog pins are hardwired in silicon on Zynq-7000. The XADC was reading 0V because it was configured for the WRONG channel (VAUX3 instead of VAUX1), not because the pin routing was broken. The fix was changing the channel config registers, not adding PL ports.
+33. **XADC VAUXP/VAUXN tied to 16'b0 DOES NOT WORK — confirmed twice.** Tested with both VAUX3 and VAUX1 channels. Both read 0V. The "hardwired in silicon" claim is FALSE for auxiliary channels. VAUX pins MUST be routed through the PL fabric to actual package pins. The fix: expose vauxp1/vauxn1 as module ports, route through Block Design to top-level ports, constrain to E17/D18 in XDC (no IOSTANDARD — analog pins).
+
+34. **XADC analog pin constraints need PACKAGE_PIN only, no IOSTANDARD.** Analog pins to the XADC are not digital I/O — they don't use LVCMOS33 or any standard. Just `set_property PACKAGE_PIN E17 [get_ports vauxp1]`. Adding IOSTANDARD causes DRC errors.
 
 ---
 

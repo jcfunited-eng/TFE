@@ -26,6 +26,10 @@ module arcloom_xadc_reader (
     input  wire        clk,        // system clock (50-100 MHz)
     input  wire        rst_n,
 
+    // Analog inputs — route to package pins E17 (AD1P) and D18 (AD1N)
+    input  wire        vauxp1,     // VAUX1 positive (Arduino A0+)
+    input  wire        vauxn1,     // VAUX1 negative (Arduino A0-)
+
     // ADC output — 16-bit aligned (data in [15:4], matches XADC DRP format)
     output reg  [15:0] adc_data,   // 16-bit: ADC result in [15:4], [3:0]=0
     output reg         adc_valid,  // pulse: new data available
@@ -141,12 +145,10 @@ module arcloom_xadc_reader (
         .VP(1'b0),
         .VN(1'b0),
 
-        // Auxiliary analog inputs
-        // On Zynq-7000, VAUX pins are hardwired in silicon to the XADC.
-        // No PL routing needed — tie to 0, physical connection exists.
-        // INIT_40 selects VAUX3 channel, INIT_48 enables it.
-        .VAUXP(16'b0),
-        .VAUXN(16'b0),
+        // Auxiliary analog inputs — route VAUX1 to actual package pins
+        // All other VAUX channels tied to 0 (unused)
+        .VAUXP({14'b0, vauxp1, 1'b0}),   // bit[1] = VAUX1P
+        .VAUXN({14'b0, vauxn1, 1'b0}),   // bit[1] = VAUX1N
 
         // Conversion control
         .CONVST(1'b0),
