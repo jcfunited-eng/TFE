@@ -31,22 +31,21 @@ create_bd_cell -type module -reference arcloom_axi_wrapper arcloom_0
 # Force ADDR_WIDTH to 4
 set_property CONFIG.C_S_AXI_ADDR_WIDTH 4 [get_bd_cells arcloom_0]
 
-# Add XADC reader — direct PL hardware sensor path
-create_bd_cell -type module -reference arcloom_xadc_reader xadc_0
+# XADC hardware sensor path — DISABLED for now.
+# Tying VAUXP/VAUXN to 0 reads 0V, not the actual sensor.
+# The analog pins need proper routing which requires more work.
+# For now, use the software sensor path (ARM reads sensor, writes via AXI).
+#
+# Tie hw_sensor_valid to GND so software path is selected by the mux.
+create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 gnd_const
+set_property CONFIG.CONST_VAL 0 [get_bd_cells gnd_const]
+connect_bd_net [get_bd_pins gnd_const/dout] [get_bd_pins arcloom_0/hw_sensor_valid]
 
-# Wire XADC reader outputs → AXI wrapper hw_sensor inputs
-connect_bd_net [get_bd_pins xadc_0/adc_data]  [get_bd_pins arcloom_0/hw_sensor_data]
-connect_bd_net [get_bd_pins xadc_0/adc_valid] [get_bd_pins arcloom_0/hw_sensor_valid]
-
-# Wire XADC clock and reset from PS
-connect_bd_net [get_bd_pins xadc_0/clk]   [get_bd_pins ps7/FCLK_CLK0]
-connect_bd_net [get_bd_pins xadc_0/rst_n] [get_bd_pins ps7/FCLK_RESET0_N]
-
-# Make XADC analog inputs external (physical pins)
-create_bd_port -dir I vauxp3
-create_bd_port -dir I vauxn3
-connect_bd_net [get_bd_ports vauxp3] [get_bd_pins xadc_0/vauxp3]
-connect_bd_net [get_bd_ports vauxn3] [get_bd_pins xadc_0/vauxn3]
+# Tie hw_sensor_data to 0 (unused when valid=0)
+create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 gnd_data
+set_property CONFIG.CONST_WIDTH 16 [get_bd_cells gnd_data]
+set_property CONFIG.CONST_VAL 0 [get_bd_cells gnd_data]
+connect_bd_net [get_bd_pins gnd_data/dout] [get_bd_pins arcloom_0/hw_sensor_data]
 
 # Wire AXI
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 \

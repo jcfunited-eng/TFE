@@ -48,7 +48,7 @@
 
 ### XADC Limitations
 
-14. **XADC DOES work from PL via the raw primitive.** The Zynq's XADC auxiliary input pins are hardwired in silicon to the XADC hard block. Instantiate the XADC primitive directly, configure INIT_40 with the correct channel (VAUX3 = 0x13 in CH[4:0]), and tie VAUXP/VAUXN to 16'b0. Do NOT create top-level ports for the analog pins — Vivado inserts IBUFs that conflict with the XADC shape. No XDC constraints needed for analog pins. **PROVEN April 21, 2026.**
+14. **XADC primitive instantiates and runs but DOES NOT read the sensor with VAUXP/VAUXN tied to 0.** The XADC fires EOC continuously and reads 0 ADC (0V). VAUX auxiliary channels are NOT hardwired — they need package pin routing. The April 21 "PROVEN" claim was wrong: it proved the primitive compiles and runs, not that it reads real analog values. See lesson #28. Need to route VAUX3 (AD3P/AD3N) package pins properly.
 
 15. **XADC `channel_out` is NOT ADC data.** It's a 5-bit channel number indicating which channel was just sampled. The actual ADC data is only accessible through AXI register reads.
 
@@ -83,6 +83,20 @@
 
 25. **Keep all .v files in Downloads together.** The Tcl script uses `glob C:/Users/joeta/Downloads/*.v` to find them. Don't have extra copies (like `ARC1_arcloom_ternary_loom.v`) or testbench files (`arcloom_tb.v`) in the same folder — they'll get included and may cause duplicate module errors.
 
+### Session: April 23, 2026
+
+26. **Never do incremental file changes in Vivado.** `remove_files` + `add_files` corrupts the project even after `reset_runs`. The MathLoom broke (gave wrong results) on a design where only BSIL thresholds changed. Always start a fresh project from `create_block_design.tcl`. Lesson #4 still applies.
+
+27. **MathLoom inputs must be valid balanced ternary.** Each trit is 2 bits: 00=null, 01=+1, 10=-1, 11=INVALID. Writing raw binary integers (e.g., decimal 5 = 0b00000101) produces trit 0 = 01(+1), trit 1 = 01(+1) = BT value 4, NOT decimal 5. Writing decimal 3 = 0b00000011 → trit 0 = 11 = INVALID. Always encode operands in BT before writing.
+
+28. **XADC tying VAUXP/VAUXN to 16'b0 reads 0V, not the sensor.** The claim that "VAUX pins are hardwired in silicon" was wrong for auxiliary channels. Only VP/VN (dedicated pair) are hardwired. VAUX3 needs actual package pin routing through PL fabric. The XADC primitive runs and fires EOC, but reads 0 ADC. This was misdiagnosed as "PROVEN" on April 21.
+
+29. **XADC overrides software sensor path when connected.** The AXI wrapper mux: `hw_sensor_valid ? hw_adc : sw_sensor_adc`. If XADC fires continuously (it does), software writes to register 0x00 are silently ignored. Symptom: BSIL output never changes regardless of what you write. Fix: tie hw_sensor_valid to GND via xlconstant in Block Design when XADC isn't properly routed.
+
+30. **Simulate/validate before deploying to PYNQ.** Run Python simulation of threshold logic before burning a bitstream. Catches bugs in seconds vs. hours of rebuild-upload-test cycles. The April 23 BSIL thresholds were validated in Python simulation and matched hardware exactly on first try after the clean build.
+
+31. **Zip all .v files in Codespace for download.** Downloading 14 files one at a time is error-prone. Use `zip arcloom_hdl.zip *.v` (excluding testbench) and download one file. Extract to Downloads, overwriting old copies.
+
 ---
 
 ## What Works (Proven on Hardware)
@@ -91,21 +105,25 @@
 - MathLoom: 19,683/19,683 operations (add+multiply+compare) zero errors
 - L6 structural lock at Euler knee
 - BSIL distance/direction/acceleration encoding
+- **BSIL calibrated to real Sharp sensor** (April 23, 2026):
+  - 5cm=3030 ADC → [+1,+1,+1] DANGER, steer=+1 speed=+1 conf=+1
+  - 10cm=1611 → [+1,null,null] nearby, steer=null speed=+1
+  - 20cm=741 → [null,-1,-1] far, steer=-1 speed=-1
+  - 30cm=452 → [-1,-1,-1] nothing, steer=-1 speed=-1
 - Krimelack commit gating
 - TB6612FNG motor control (all 4 directions)
 - Sensor → loom → motor decision chain (ARM-mediated)
 
 ## What Doesn't Work Yet
 
-- ~~Direct HW sensor path~~ **PROVEN April 21** (XADC primitive, no Pmod AD5 needed)
-- Coupling weight calibration for Sharp sensor
+- **XADC direct HW sensor path** — XADC primitive instantiates and runs, BUT tying VAUXP/VAUXN to 16'b0 reads 0V not the actual sensor. Need to route VAUX3 package pins (AD3P/AD3N) properly. Previous "PROVEN April 21" claim was wrong — it compiled but read 0.
 - Camera BSIL encoding
-- Continuous autonomous loop (overlay swapping too slow)
+- Continuous autonomous loop (overlay swapping too slow — can't load base + ArcLoom simultaneously)
 
 ## Hardware State
 
 - PYNQ-Z2 at 192.168.2.99:9090
-- Working Vivado project: `C:\Users\joeta\arcloom_pynq2`
+- Working Vivado project: `C:\Users\joeta\arcloom_pynq2` (clean build from create_block_design.tcl)
 - Bitstream on PYNQ: `/home/xilinx/jupyter_notebooks/ArcLoom/arcloom.bit`
 - TB6612FNG wired and tested on Pmod A (control) + Pmod B (PWM power)
 - Sharp sensor on Arduino AR0
