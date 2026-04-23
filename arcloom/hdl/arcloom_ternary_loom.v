@@ -114,13 +114,17 @@ module arcloom_bsil (
     output reg [5:0]   accel_strand      // 3 trits
 );
     // Threshold constants (12-bit ADC scale: 0-4095)
-    // Sharp sensor: high value = close, low value = far
-    localparam [11:0] DIST_LO_0 = 12'd400;   // ~0.3V
-    localparam [11:0] DIST_HI_0 = 12'd1860;  // ~1.5V
-    localparam [11:0] DIST_LO_1 = 12'd990;   // ~0.8V
-    localparam [11:0] DIST_HI_1 = 12'd2480;  // ~2.0V
-    localparam [11:0] DIST_LO_2 = 12'd1860;  // ~1.5V
-    localparam [11:0] DIST_HI_2 = 12'd3100;  // ~2.5V
+    // Sharp GP2Y0A41SK0F calibrated April 23, 2026:
+    //   5cm=3030, 10cm=1611, 20cm=741, 30cm=452
+    // Trit 0: "something nearby?" — broad detection
+    localparam [11:0] DIST_LO_0 = 12'd550;   // >25cm = nothing (-1)
+    localparam [11:0] DIST_HI_0 = 12'd1400;  // <12cm = nearby (+1)
+    // Trit 1: "getting close?" — medium resolution
+    localparam [11:0] DIST_LO_1 = 12'd850;   // >18cm = far (-1)
+    localparam [11:0] DIST_HI_1 = 12'd2200;  // <8cm  = close (+1)
+    // Trit 2: "DANGER — about to hit?" — fine resolution
+    localparam [11:0] DIST_LO_2 = 12'd1400;  // >12cm = not danger (-1)
+    localparam [11:0] DIST_HI_2 = 12'd2800;  // <6cm  = DANGER (+1)
 
     localparam [11:0] DELTA_THRESH_0 = 12'd62;   // ~0.05V
     localparam [11:0] DELTA_THRESH_1 = 12'd186;  // ~0.15V
