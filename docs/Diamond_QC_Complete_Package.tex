@@ -20,6 +20,8 @@
 \usepackage{longtable}
 \usepackage{enumitem}
 \usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,patterns,decorations.markings}
 
 % Define colors
 \definecolor{darkblue}{HTML}{003366}
@@ -151,7 +153,7 @@
 \tableofcontents
 
 % ================================================================
-\chapter{System Overview}
+\chapter{System Overview}\label{ch:overview}
 % ================================================================
 
 \section{Architecture Summary}
@@ -167,6 +169,77 @@ This document specifies a \textbf{room-temperature quantum computer} using 100,0
   \item \textbf{Computation model}: Non-von Neumann --- parallel evolution, not sequential gates
   \item \textbf{Operating temperature}: 300~K (room temperature)
 \end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  block/.style={draw, rectangle, minimum width=1.8cm, minimum height=0.8cm, align=center, font=\scriptsize},
+  bigblock/.style={draw, rectangle, minimum width=2.2cm, minimum height=1cm, align=center, font=\scriptsize, thick},
+  diamond/.style={draw, rectangle, rounded corners=3pt, minimum width=1.6cm, minimum height=1cm, align=center, font=\scriptsize\bfseries, fill=cyan!15, thick},
+  optpath/.style={red, dashed, thick, -{Stealth[length=2.5mm]}},
+  rfpath/.style={blue, thick, -{Stealth[length=2.5mm]}},
+  digpath/.style={black, thick, -{Stealth[length=2.5mm]}},
+  anapath/.style={green!50!black, thick, -{Stealth[length=2.5mm]}},
+]
+% Host PC
+\node[bigblock] (pc) at (-5, 2.5) {Host PC};
+% FPGA
+\node[bigblock, fill=yellow!10] (fpga) at (-2, 2.5) {FPGA\\(Zedboard)};
+% Optical path
+\node[block] (dac1) at (0.8, 3.5) {DAC};
+\node[block] (aom) at (3, 3.5) {AOM\\Driver};
+\node[block] (laser) at (5.5, 3.5) {637~nm\\Laser};
+% MW path
+\node[block] (dac2) at (0.8, 1.5) {DAC};
+\node[block] (mwsynth) at (3, 1.5) {MW\\Synth};
+\node[block] (pa) at (5, 1.5) {Power\\Amp};
+\node[block] (circ) at (6.8, 1.5) {Circulator};
+\node[block] (ant) at (6.8, 0) {Antenna};
+% Diamond
+\node[diamond] (dia) at (5.5, 0) {Diamond\\NV Array};
+% Detection path
+\node[block] (apd) at (3, -1.5) {APDs\\(2x)};
+\node[block] (tia) at (0.8, -1.5) {Transimpedance\\Amps};
+\node[block] (sum) at (-1.5, -1.5) {Summing\\Amp};
+\node[block] (lockin) at (-1.5, -0.2) {Lock-in\\Amp};
+\node[block] (adc) at (-1.5, 1.2) {ADC};
+
+% Digital: PC to FPGA
+\draw[digpath] (pc) -- (fpga);
+% FPGA to DACs
+\draw[digpath] (fpga) |- (dac1);
+\draw[digpath] (fpga) |- (dac2);
+% Optical chain
+\draw[anapath] (dac1) -- (aom);
+\draw[optpath] (aom) -- (laser);
+\draw[optpath] (laser) -- (dia);
+% MW chain
+\draw[anapath] (dac2) -- (mwsynth);
+\draw[rfpath] (mwsynth) -- (pa);
+\draw[rfpath] (pa) -- (circ);
+\draw[rfpath] (circ) -- (ant);
+\draw[rfpath] (ant) -- (dia);
+% Detection chain
+\draw[optpath] (dia) -- (apd);
+\draw[anapath] (apd) -- (tia);
+\draw[anapath] (tia) -- (sum);
+\draw[anapath] (sum) -- (lockin);
+\draw[anapath] (lockin) -- (adc);
+\draw[digpath] (adc) -- (fpga);
+
+% Legend
+\node[anchor=north west, font=\scriptsize] at (-5.5, -0.5) {
+\begin{tabular}{ll}
+\textcolor{red}{\bfseries - - -} & Optical \\
+\textcolor{blue}{\bfseries ---} & RF \\
+\textcolor{black}{\bfseries ---} & Digital \\
+\textcolor{green!50!black}{\bfseries ---} & Analog \\
+\end{tabular}
+};
+\end{tikzpicture}
+\caption{System block diagram showing complete signal flow. The diamond NV array is at the center, with optical excitation from above, microwave control from the right, and detection feeding back to the FPGA.}
+\label{fig:system-block}
+\end{figure}
 
 \subsection{Why This Works}
 
@@ -193,11 +266,106 @@ Measurement time & 10~ns per basis \\
 Full cycle time & ${\sim}150$~ms (3 bases + evolution) \\
 Coupling parameter $\lambda$ & 0.01 \\
 Operating temperature & 300~K (no cryogenics) \\
-Budget & \$50,000 (see Chapter~8) \\
+Budget & \$50,000 (see Chapter~\ref{ch:bom}) \\
 Build timeline & 20 weeks \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+\subsection{Conceptual Diagram: What This Machine Is}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners, minimum width=2.8cm, minimum height=1.2cm, align=center, font=\small},
+  bigbox/.style={draw, rounded corners, minimum width=4cm, minimum height=2cm, align=center, font=\normalsize, thick, fill=lightblue},
+  arr/.style={-{Stealth[length=3mm]}, thick},
+  label/.style={font=\scriptsize, align=center}
+]
+
+% The diamond — center of everything
+\node[bigbox, fill=lightblue!60, minimum width=5cm, minimum height=2.5cm] (diamond) at (0,0) {\textbf{DIAMOND WAFER}\\10$\times$10$\times$1~mm\\100,000 NV Centers\\(the quantum computer)};
+
+% Laser input — left
+\node[box, fill=red!15] (laser) at (-7, 1.5) {637~nm Laser\\100~mW};
+\node[box, fill=red!10] (mzi) at (-4, 1.5) {Interferometer\\(Mach-Zehnder)};
+\draw[arr, red!70!black, thick] (laser) -- (mzi);
+\draw[arr, red!70!black, thick] (mzi) -- (diamond.west |- mzi) node[midway, above, label] {weak probe\\$\lambda = 0.01$};
+
+% MW input — top
+\node[box, fill=blue!15] (mw) at (0, 3.5) {Microwave\\2.87~GHz, 10~W};
+\draw[arr, blue!70!black, thick] (mw) -- (diamond.north) node[midway, right, label] {spin control\\$\pi/2$ pulses};
+
+% Detection — right
+\node[box, fill=green!15] (apd) at (5, 1.5) {APD Detectors\\(homodyne pair)};
+\node[box, fill=green!10] (lockin) at (5, -1) {Lock-in Amp\\(Stanford SR844)};
+\draw[arr, red!70!black, thick] (diamond.east |- apd) -- (apd) node[midway, above, label] {fluorescence\\637~nm};
+\draw[arr, green!60!black, thick] (apd) -- (lockin) node[midway, right, label] {difference\\signal};
+
+% FPGA — bottom
+\node[box, fill=yellow!20, minimum width=3.5cm] (fpga) at (0, -3.5) {FPGA (Zedboard)\\100~MHz real-time\\state machine};
+\draw[arr, thick] (lockin) -| (fpga) node[pos=0.75, right, label] {weak values\\$\langle\sigma_z\otimes\sigma_z\rangle$};
+\draw[arr, thick, dashed] (fpga) -| (mw) node[pos=0.25, left, label] {pulse\\timing};
+\draw[arr, thick, dashed] (fpga) -| (mzi) node[pos=0.25, left, label] {AOM\\control};
+
+% Host PC — bottom right
+\node[box, fill=gray!15] (pc) at (5, -3.5) {Host PC\\Ubuntu 22.04\\Python control};
+\draw[arr, thick, <->] (fpga) -- (pc) node[midway, above, label] {Ethernet};
+
+% Annotations
+\node[font=\scriptsize\itshape, text=darkblue, align=center] at (0, -5.5) {No cryogenics. No vacuum. Room temperature. Standard optical table.\\Total power: 760~W. Footprint: 2.0~m $\times$ 1.2~m.};
+
+\end{tikzpicture}
+\caption{Conceptual diagram of the Diamond Quantum Computer. Red paths are optical (637~nm). Blue is microwave (2.87~GHz). Green is analog signal. Black dashed is digital control. The diamond wafer at center \textbf{is} the quantum computer --- everything else is measurement and control infrastructure.}
+\label{fig:concept}
+\end{figure}
+
+\subsection{Physical Footprint and Power Requirements}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\multicolumn{2}{l}{\textbf{Physical Footprint}} \\
+\midrule
+Optical table & 2.0~m $\times$ 1.2~m (Thorlabs T1220C or equiv.) \\
+Electronics rack & 19" $\times$ 0.6~m deep, 12U height (0.6~m $\times$ 0.6~m floor) \\
+Host PC + monitors & Standard desk, 1.2~m $\times$ 0.6~m \\
+Total room needed & 4~m $\times$ 3~m minimum (12~m$^2$) \\
+Total weight & ${\sim}400$~kg (table 300~kg + equipment 100~kg) \\
+Floor requirement & Ground floor, $> 200$~kg/m$^2$ load capacity \\
+\midrule
+\multicolumn{2}{l}{\textbf{Power Requirements}} \\
+\midrule
+Total system power & 760~W continuous \\
+Circuit requirement & Dedicated 20~A / 120~V (or 16~A / 240~V) \\
+Outlets needed & 10 (via rack-mount PDU with surge protection) \\
+UPS & 1500~VA for host PC only (APC SMT1500) \\
+\midrule
+\multicolumn{2}{l}{\textbf{Major Power Consumers}} \\
+\midrule
+Host PC & 300~W \\
+Oscilloscope & 100~W \\
+Toptica laser & 80~W \\
+MW synthesizer & 60~W \\
+MW power amplifier & 50~W \\
+FPGA + digital & 50~W \\
+Lock-in amplifier & 40~W \\
+Monitors (2$\times$) & 60~W \\
+APD power supply & 20~W \\
+\midrule
+\multicolumn{2}{l}{\textbf{Environmental}} \\
+\midrule
+Heat output & 760~W (all electrical $\to$ heat eventually) \\
+HVAC requirement & Room AC must handle 760~W additional heat load \\
+Cooling & No water cooling, no chiller. All air-cooled. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+\textbf{For comparison}: A standard IBM/Google superconducting quantum computer requires a dilution refrigerator (10~mK), ${\sim}50$~kW power, a dedicated room with raised floor, and costs \$10--15~million. This system runs at room temperature on a single 20~A circuit for under \$50,000.
 
 \subsection{Non-von Neumann Computation}
 
@@ -214,7 +382,7 @@ Programming consists of specifying the pairwise coupling weights between NV cent
 
 
 % ================================================================
-\chapter{Empirical Basis: Geometry-Dependent Quantum Coupling}
+\chapter{Empirical Basis: Geometry-Dependent Quantum Coupling}\label{ch:empirical}
 % ================================================================
 
 This chapter presents the \textbf{published experimental evidence} demonstrating that quantum coupling strength depends on device geometry. These are empirical observations from peer-reviewed literature --- they motivate the design choices in this system.
@@ -279,11 +447,11 @@ London moment measurements across 24 different superconducting materials (YBa$_2
 
 \section{Design Consequence}
 
-Based on these published observations, this system uses \textbf{ring/toroidal NV array geometry} to maximize quantum coupling. The $4.5\times$ geometry advantage observed in both superconductors and pulsars is the empirical basis for the array layout described in Chapter~3.
+Based on these published observations, this system uses \textbf{ring/toroidal NV array geometry} to maximize quantum coupling. The $4.5\times$ geometry advantage observed in both superconductors and pulsars is the empirical basis for the array layout described in Chapter~\ref{ch:array}.
 
 
 % ================================================================
-\chapter{NV Center Array Design}
+\chapter{NV Center Array Design}\label{ch:array}
 % ================================================================
 
 \section{Diamond Substrate}
@@ -328,7 +496,7 @@ Quantum yield & 3--5\% fluorescence \\
 
 \section{Array Coupling Architecture}
 
-The NV array uses ring/toroidal geometry to maximize coupling, based on the empirical observation that ring geometry amplifies quantum coupling by $4.5\times$ over sphere geometry (see Chapter~2).
+The NV array uses ring/toroidal geometry to maximize coupling, based on the empirical observation that ring geometry amplifies quantum coupling by $4.5\times$ over sphere geometry (see Chapter~\ref{ch:empirical}).
 
 \begin{center}
 \begin{tabular}{ll}
@@ -379,7 +547,235 @@ Key properties:
 
 
 % ================================================================
-\chapter{Weak Measurement Apparatus}
+\chapter{NV Center Fabrication and Characterization}\label{ch:fabrication}
+% ================================================================
+
+\section{Overview of NV Center Creation}
+
+Nitrogen-vacancy (NV) centers are point defects in the diamond lattice: one nitrogen atom substitutes for a carbon atom at a lattice site, and the adjacent lattice site is vacant. The negatively charged NV$^-$ state is the useful one for quantum computing (spin-1 ground state with optical readout).
+
+NV centers are created by nitrogen ion implantation followed by high-temperature annealing. The implantation energy controls the depth of the nitrogen atoms below the diamond surface, and the dose controls the areal density. Annealing at high temperature mobilizes vacancies in the lattice, allowing them to migrate and pair with the implanted nitrogen atoms to form NV centers.
+
+Not every implanted nitrogen atom becomes an NV center. The conversion efficiency is approximately 1--10\%, depending on implantation energy, annealing temperature, and diamond quality. The remaining nitrogen atoms become substitutional nitrogen (P1 centers) or form NV$^0$ (the neutral charge state, which does not have the useful spin properties).
+
+\section{Starting Material}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Specification} \\
+\midrule
+Growth method & CVD (chemical vapor deposition) \\
+Dimensions & 10~mm $\times$ 10~mm $\times$ 1~mm \\
+Type & IIa (low nitrogen) \\
+Nitrogen content & $< 5$~ppb (electronic grade) \\
+Crystal orientation & (100) or (111); (111) preferred for NV alignment \\
+Surface finish & Mechanical polish to $R_a < 1$~nm \\
+Supplier & Element Six (electronic grade CVD) \\
+Cost & ${\sim}\$3{,}000$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+\textbf{Surface preparation before implantation}: Tri-acid boil (H$_2$SO$_4$ : HNO$_3$ : HClO$_4$ at 1:1:1, 200$^\circ$C, 1~hr) to remove organic contamination and surface damage from polishing. This step is critical --- surface contamination degrades NV charge-state stability.
+
+\section{Ion Implantation Parameters}
+
+For 100,000 NV centers at 50--100~nm depth:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Notes} \\
+\midrule
+Ion species & $^{15}$N$^+$ or $^{14}$N$^+$ & $^{15}$N preferred (distinguishable from native $^{14}$N by NMR) \\
+Energy & 30~keV & Mean implantation depth ${\sim}50$~nm (SRIM simulation) \\
+Dose & $1 \times 10^{11}$~ions/cm$^2$ & Gives ${\sim}10$~NV/$\mu$m$^2$ after conversion (${\sim}10\%$ yield) \\
+Beam current & 1--10~nA & Low current for uniform dose \\
+Tilt angle & 7$^\circ$ off-axis & Prevents channeling along crystal axes \\
+Temperature & Room temperature & No heating during implantation \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+\textbf{Conversion efficiency}: Approximately 1--10\% of implanted nitrogen atoms become NV$^-$ centers after annealing. The rest remain as substitutional nitrogen (P1 centers) or form NV$^0$ (neutral, not useful for quantum operations).
+
+\noindent
+\textbf{Dose calculation for 100,000 NV centers}:
+\begin{itemize}[nosep]
+  \item Full wafer area: 100~mm$^2$ = $1 \times 10^8$~$\mu$m$^2$
+  \item 100,000 NV centers in full area $\to$ 1~NV per 1000~$\mu$m$^2$ (very sparse)
+  \item In a smaller active area (e.g., $1 \times 1$~mm = $10^6$~$\mu$m$^2$) $\to$ 0.1~NV/$\mu$m$^2$
+  \item At 10\% conversion: need $1 \times 10^9$ ions in $10^6$~$\mu$m$^2$ = $10^3$~ions/$\mu$m$^2$ = $10^{11}$~ions/cm$^2$
+\end{itemize}
+
+\noindent
+\textbf{Implantation depth profile} (from SRIM simulation at 30~keV):
+\begin{itemize}[nosep]
+  \item Mean depth: 52~nm
+  \item Straggle (width): $\pm 18$~nm
+  \item 95\% of ions between 16~nm and 88~nm depth
+\end{itemize}
+
+\section{Ring Geometry Patterning}
+
+To create ring/toroidal NV geometry for maximum coupling (per Chapter~\ref{ch:empirical}):
+
+\subsection{Option A: Masked Implantation (Simplest)}
+
+\begin{itemize}[nosep]
+  \item Deposit 200~nm PMMA resist on diamond surface
+  \item Pattern ring geometry using electron-beam lithography (EBL)
+  \item Ring parameters: outer diameter 5~mm, inner diameter 3~mm, centered on the 10$\times$10~mm wafer
+  \item The PMMA blocks N$^+$ ions in masked areas
+  \item Implant through the open windows
+  \item Strip resist with acetone after implantation
+  \item Cost: ${\sim}\$500$ for EBL time at university cleanroom
+  \item Resolution: ${\sim}100$~nm (far better than needed for mm-scale ring)
+\end{itemize}
+
+\subsection{Option B: Focused Ion Beam (FIB) Direct Write}
+
+\begin{itemize}[nosep]
+  \item Use FIB system with nitrogen source
+  \item Write NV positions directly (no mask needed)
+  \item Can place individual NV centers with ${\sim}30$~nm precision
+  \item Very slow for 100,000 centers (${\sim}$hours)
+  \item Cost: \$2,000--5,000 for FIB time
+  \item Best for: small arrays with precise positioning
+\end{itemize}
+
+\subsection{Option C: No Patterning (Uniform Implantation)}
+
+\begin{itemize}[nosep]
+  \item Simplest approach for prototype
+  \item Implant entire surface uniformly
+  \item Ring geometry achieved by selective readout (only measure NV centers in ring region)
+  \item Less coupling advantage but much cheaper and faster
+  \item \textbf{Recommended for Phase 1 prototype}
+\end{itemize}
+
+\section{Annealing Protocol}
+
+After implantation, anneal to mobilize vacancies and form NV centers:
+
+\begin{enumerate}[nosep]
+  \item \textbf{Load}: Place diamond into tube furnace (quartz tube)
+  \item \textbf{Pump}: Evacuate to $< 10^{-5}$~Torr, or flow forming gas (95\% N$_2$ / 5\% H$_2$)
+  \item \textbf{Stage 1}: Ramp to 400$^\circ$C at 5$^\circ$C/min, hold 2~hours (removes surface damage)
+  \item \textbf{Stage 2}: Ramp to 800$^\circ$C at 5$^\circ$C/min, hold 2~hours (mobilizes vacancies)
+  \item \textbf{Stage 3}: Ramp to 1200$^\circ$C at 5$^\circ$C/min, hold 2~hours (maximizes NV yield --- only if furnace reaches this temperature)
+  \item \textbf{Cool}: Cool naturally (do NOT quench --- thermal shock can crack diamond)
+\end{enumerate}
+
+\noindent
+\textbf{Equipment needed}:
+\begin{itemize}[nosep]
+  \item Tube furnace capable of 1200$^\circ$C (e.g., Lindberg/Blue M, ${\sim}\$5{,}000$ --- borrow from university materials science department)
+  \item Quartz tube, 50~mm diameter
+  \item Vacuum pump or forming gas supply
+  \item Thermocouple readout
+\end{itemize}
+
+\noindent
+\textbf{Post-anneal surface cleaning}: The diamond surface may have graphitized during high-temperature annealing. Clean with:
+\begin{itemize}[nosep]
+  \item Tri-acid boil (H$_2$SO$_4$ : HNO$_3$ : HClO$_4$, 1:1:1, 200$^\circ$C, 1~hr) to remove graphite
+  \item Oxygen plasma etch (optional, 5~min at 100~W) for final surface cleaning
+\end{itemize}
+
+\section{NV Characterization (Pre-System)}
+
+Before installing in the apparatus, verify NV quality with the following tests.
+
+\subsection{Test 1: Confocal Fluorescence Microscopy}
+
+\begin{itemize}[nosep]
+  \item Use 532~nm excitation laser (green), detect $> 637$~nm fluorescence (red)
+  \item Scan across implanted area
+  \item Count bright spots = NV centers
+  \item Verify density matches dose calculation
+  \item Expected: ${\sim}10$~NV/$\mu$m$^2$ in implanted region
+\end{itemize}
+
+\subsection{Test 2: ODMR (Optically Detected Magnetic Resonance)}
+
+\begin{itemize}[nosep]
+  \item Sweep MW frequency 2.8--2.95~GHz while monitoring fluorescence
+  \item NV centers show fluorescence dip at 2.87~GHz (zero-field splitting)
+  \item Dip contrast: $> 10\%$ indicates good NV$^-$ charge state
+  \item If no dip: NV yield too low, or NV$^0$ dominant $\to$ anneal again at higher temperature
+\end{itemize}
+
+\subsection{Test 3: Single-NV Rabi Oscillation}
+
+\begin{itemize}[nosep]
+  \item Find isolated NV center (low-density region of sample)
+  \item Apply MW $\pi$ pulse at 2.87~GHz
+  \item Measure Rabi oscillation frequency
+  \item Target: $10 \pm 2$~MHz
+\end{itemize}
+
+\noindent
+\textbf{Equipment for pre-characterization}:
+\begin{itemize}[nosep]
+  \item Confocal microscope with 532~nm laser (borrow from university optics lab)
+  \item MW source (the R\&S SMB100A from the main BOM works)
+  \item Photodetector (the APD410 from the main BOM works)
+  \item OR: contract pre-characterization to diamond vendor (Element Six offers this service)
+\end{itemize}
+
+\section{Buy vs.\ Make Decision}
+
+\subsection{Option 1: Buy Pre-Characterized Diamond (\$5,000--10,000)}
+
+\begin{itemize}[nosep]
+  \item Element Six or Applied Diamond offer NV-implanted, annealed, characterized diamond
+  \item Specify: 10$\times$10$\times$1~mm, (111) orientation, NV density ${\sim}10$/$\mu$m$^2$, depth $50 \pm 20$~nm
+  \item Vendor performs implantation, annealing, and characterization
+  \item Deliverables: certified NV density, $T_2$ measurement, confocal map
+  \item Lead time: 4--8 weeks
+  \item \textbf{RECOMMENDED FOR PROTOTYPE} --- eliminates fabrication risk
+\end{itemize}
+
+\subsection{Option 2: Buy Bare Diamond + Implant Yourself (\$3,500--5,000)}
+
+\begin{itemize}[nosep]
+  \item Buy electronic-grade CVD diamond from Element Six (\$3,000)
+  \item Contract ion implantation to university ion beam facility (\$500--2,000)
+  \item Anneal in borrowed furnace (free if university collaborator)
+  \item Characterize yourself (need confocal microscope access)
+  \item Total: \$3,500--5,000
+  \item More work but full control over parameters
+\end{itemize}
+
+\subsection{Option 3: Buy Bare Diamond + Contract Everything (\$6,000--8,000)}
+
+\begin{itemize}[nosep]
+  \item Buy diamond, send to university lab that does NV work
+  \item They perform implantation, annealing, characterization
+  \item You get back a characterized diamond
+  \item Total: \$6,000--8,000
+  \item Less control but hands-off
+\end{itemize}
+
+\importantbox{For first prototype, Option 1 (buy pre-characterized) is the lowest-risk path. The \$2,000--5,000 premium over Option 2 is worth it to eliminate fabrication uncertainty. Switch to Option 2 for subsequent iterations once the system is understood.}
+
+\section{Handling and Storage}
+
+\begin{itemize}[nosep]
+  \item Store in original vendor packaging, in a dry nitrogen-purged container
+  \item Handle only with vacuum pen (Ted Pella 5503) or clean stainless steel tweezers
+  \item Never touch the implanted face with bare fingers (oils degrade NV charge-state stability)
+  \item If contaminated: tri-acid boil to clean, then re-characterize
+  \item Shelf life: indefinite if stored properly (NV centers are permanent lattice defects)
+\end{itemize}
+
+
+% ================================================================
+\chapter{Weak Measurement Apparatus}\label{ch:weakmeas}
 % ================================================================
 
 \importantbox{This chapter contains the complete signal chain with actual component models and part numbers. This is the core of the system --- every component must be correct.}
@@ -442,6 +838,76 @@ Collimating lens & Thorlabs AC254-050-A & \$200 & $f = 50$~mm, $\phi$25.4~mm \\
 \end{tabular}
 \end{center}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  comp/.style={draw, rectangle, minimum width=1.2cm, minimum height=0.8cm, align=center, font=\scriptsize},
+  mirror/.style={draw, fill=gray!40, minimum width=0.15cm, minimum height=0.8cm},
+  bs/.style={draw, fill=blue!10, minimum width=0.8cm, minimum height=0.8cm, rotate=45, font=\tiny},
+  beam/.style={red, thick, -{Stealth[length=2.5mm]}},
+]
+% Laser input
+\node[comp, fill=red!10] (laser) at (-2, 4) {Laser\\637~nm};
+
+% BS1
+\node[bs] (bs1) at (1, 4) {};
+\node[font=\scriptsize, above right=0.1cm] at (bs1.north) {BS1};
+\node[font=\tiny, below=0.3cm] at (bs1.south) {50/50};
+
+% Path B (reference) - goes right
+\node[mirror, rotate=0] (m2) at (5, 4) {};
+\node[font=\scriptsize, above=0.15cm] at (m2.north) {M2};
+
+% Path A (system) - goes down
+\node[mirror, rotate=90] (m1) at (1, 1) {};
+\node[font=\scriptsize, left=0.15cm] at (m1.west) {M1};
+
+% AOM in path A
+\node[comp, fill=orange!10] (aom) at (2.5, 1) {AOM};
+
+% Diamond holder in path A
+\node[comp, fill=cyan!15, thick] (diamond) at (4, 1) {Diamond\\Holder};
+
+% BS2
+\node[bs] (bs2) at (5, 1) {};
+\node[font=\scriptsize, above right=0.1cm] at (bs2.north) {BS2};
+\node[font=\tiny, below=0.3cm] at (bs2.south) {50/50};
+
+% APDs
+\node[comp, fill=green!10] (apd1) at (7, 1) {APD1};
+\node[comp, fill=green!10] (apd2) at (5, -1) {APD2};
+
+% Beam paths
+% Laser to BS1
+\draw[beam] (laser.east) -- (bs1);
+% BS1 Path A (down)
+\draw[beam] (bs1) -- (m1);
+% M1 to AOM
+\draw[beam] (m1) -- (aom.west);
+% AOM to diamond
+\draw[beam] (aom.east) -- (diamond.west);
+% Diamond to BS2
+\draw[beam] (diamond.east) -- (bs2);
+% BS1 Path B (right)
+\draw[beam] (bs1) -- (m2);
+% M2 down to BS2
+\draw[beam] (m2) -- (5, 1.6);
+% BS2 outputs
+\draw[beam] (bs2) -- (apd1.west);
+\draw[beam] (bs2) -- (apd2.north);
+
+% Path labels
+\node[font=\scriptsize, color=red!70!black, rotate=90] at (0.4, 2.5) {Path A (system)};
+\node[font=\scriptsize, color=red!70!black] at (3, 4.4) {Path B (reference)};
+
+% Lambda annotation
+\node[font=\scriptsize, fill=white, draw, rounded corners] at (3, 0.3) {$\lambda = 0.01$};
+
+\end{tikzpicture}
+\caption{Mach-Zehnder interferometer layout. Path A carries the weak measurement probe through the diamond; Path B is the phase reference. The two paths recombine at BS2 for balanced homodyne detection.}
+\label{fig:mzi-layout}
+\end{figure}
+
 \section{Detection System}
 
 \begin{center}
@@ -493,7 +959,7 @@ The balanced homodyne detection operates as follows:
 MW synthesizer & Rohde \& Schwarz SMB100A & \$4,000 & 10~MHz--2~GHz \\
 Power amplifier & Mini-Circuits ZVE-3W-83+ & \$800 & 2--8~GHz, 10~W \\
 Circulator & Rad-Com CS-3-2 & \$400 & 2~GHz \\
-NV control antenna & Custom stripline on holder & \$1,000 & See Chapter~6 \\
+NV control antenna & Custom stripline on holder & \$1,000 & See Chapter~\ref{ch:antenna} \\
 Frequency counter & Agilent 53181A & \$500 & Calibration \\
 RF cables & Rosenberger 11~S & \$200 & 50~$\Omega$ matched \\
 \midrule
@@ -504,7 +970,7 @@ RF cables & Rosenberger 11~S & \$200 & 50~$\Omega$ matched \\
 
 
 % ================================================================
-\chapter{FPGA Real-Time Control}
+\chapter{FPGA Real-Time Control}\label{ch:fpga}
 % ================================================================
 
 \section{Platform}
@@ -565,6 +1031,43 @@ The FPGA implements a 9-state machine with ${\sim}150$~ms per full cycle:
 \end{tabular}
 \end{center}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  state/.style={draw, circle, minimum size=1.1cm, align=center, font=\tiny, thick},
+  trans/.style={-{Stealth[length=2mm]}, thick},
+  lbl/.style={font=\tiny, fill=white, inner sep=1pt},
+]
+% States arranged in a flow
+\node[state, fill=gray!20] (idle) at (0, 0) {IDLE\\(0)};
+\node[state, fill=yellow!20] (init) at (2.5, 0) {INIT\\(1)};
+\node[state, fill=orange!20] (evolve) at (5, 0) {EVOLVE\\(2)};
+\node[state, fill=green!20] (mzz) at (7.5, 0) {MEAS\\ZZ (3)};
+\node[state, fill=blue!10] (rx) at (9.5, -1.5) {ROT\\X (4)};
+\node[state, fill=green!20] (mxx) at (7.5, -3) {MEAS\\XX (5)};
+\node[state, fill=blue!10] (ry) at (5, -3) {ROT\\Y (6)};
+\node[state, fill=green!20] (myy) at (2.5, -3) {MEAS\\YY (7)};
+\node[state, fill=red!10] (recon) at (0, -1.5) {RECON\\(8)};
+
+% Transitions
+\draw[trans] (idle) -- node[lbl, above] {trigger} (init);
+\draw[trans] (init) -- node[lbl, above] {timer $\geq$ INIT} (evolve);
+\draw[trans] (evolve) -- node[lbl, above] {timer $\geq$ EVOLVE} (mzz);
+\draw[trans] (mzz) -- node[lbl, right] {timer $\geq$ MEAS} (rx);
+\draw[trans] (rx) -- node[lbl, right] {timer $\geq$ ROT} (mxx);
+\draw[trans] (mxx) -- node[lbl, below] {timer $\geq$ MEAS} (ry);
+\draw[trans] (ry) -- node[lbl, below] {timer $\geq$ ROT} (myy);
+\draw[trans] (myy) -- node[lbl, left] {timer $\geq$ MEAS} (recon);
+\draw[trans] (recon) -- node[lbl, left] {done=1} (idle);
+
+% Reset arrow
+\draw[trans, dashed] (-1.5, 1) -- node[lbl, above] {rst} (idle);
+
+\end{tikzpicture}
+\caption{FPGA state machine diagram. The controller cycles through 9 states per measurement: initialization, free evolution, three measurement/rotation pairs (ZZ, XX, YY bases), and density matrix reconstruction. Each transition is triggered by a timer expiry.}
+\label{fig:state-machine}
+\end{figure}
+
 \section{Key Verilog Parameters}
 
 \begin{center}
@@ -602,7 +1105,7 @@ The FPGA performs digital lock-in demodulation at the AOM modulation frequency:
 
 
 % ================================================================
-\chapter{Microwave Antenna PCB}
+\chapter{Microwave Antenna PCB}\label{ch:antenna}
 % ================================================================
 
 \section{Substrate and Board Parameters}
@@ -704,7 +1207,7 @@ Thermal & $< 30$\textdegree C rise at 1~W for 10~min \\
 
 
 % ================================================================
-\chapter{Diamond Holder Mechanical Assembly}
+\chapter{Diamond Holder Mechanical Assembly}\label{ch:holder}
 % ================================================================
 
 \section{Material Specification}
@@ -742,6 +1245,53 @@ Ground plane vias & 4$\times$ 2.0~mm, 10~mm deep around SMA \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  layer/.style={draw, thick, minimum height=#1, minimum width=5cm, align=center, font=\scriptsize},
+  dim/.style={|<->|, thick, font=\tiny},
+]
+% Base frame
+\node[layer=1.5cm, fill=gray!30] (base) at (0, 0) {Base Frame (Al 6061)\\80 $\times$ 60 $\times$ 40~mm};
+
+% Pt100 location
+\draw[thick, -{Stealth}] (-3.5, -0.3) -- (-2.5, -0.3);
+\node[font=\scriptsize, left] at (-3.5, -0.3) {Pt100 RTD};
+\fill[red!60] (-2.5, -0.5) rectangle (-2.2, -0.1);
+
+% Spacer ring
+\node[layer=0.5cm, fill=gray!50] (spacer) at (0, 1.0) {Spacer Ring (3~mm)};
+
+% Diamond wafer
+\node[layer=0.2cm, fill=cyan!40] (diamond) at (0, 1.4) {\textbf{Diamond Wafer (1~mm)}};
+
+% Antenna PCB
+\node[layer=0.5cm, fill=green!20] (pcb) at (0, 2.1) {Antenna PCB};
+
+% 2.5mm gap annotation
+\draw[dim] (2.8, 1.5) -- node[right, font=\tiny] {2.5~mm gap} (2.8, 1.85);
+
+% Optical window
+\node[layer=0.2cm, fill=blue!10, minimum width=2cm] (window) at (0, 2.8) {Optical Window (BK7)};
+
+% Lens assembly
+\node[draw, thick, fill=blue!5, minimum width=1.5cm, minimum height=0.4cm, align=center, font=\scriptsize] (lens) at (0, 3.4) {Lens Assembly};
+
+% Fiber input from left
+\draw[thick, red, dashed, -{Stealth}] (-4, 3.4) -- node[above, font=\tiny] {Fiber input} (lens.west);
+
+% SMA connector from right
+\draw[thick, blue, -{Stealth}] (4, 2.1) -- node[above, font=\tiny] {SMA (RF)} (pcb.east);
+
+% Dimension annotations
+\draw[dim] (-3.2, -0.75) -- node[left, font=\tiny] {40~mm} (-3.2, 0.75);
+\draw[dim] (3.5, -0.75) -- node[right, font=\tiny] {Total stack} (3.5, 3.6);
+
+\end{tikzpicture}
+\caption{Diamond holder assembly cross-section (side view). Layers from bottom to top: aluminum base frame with Pt100 RTD, spacer ring, diamond wafer, antenna PCB (with 2.5~mm gap to diamond), optical window, and focusing lens assembly. Fiber input enters from the left; SMA RF connector from the right.}
+\label{fig:holder-cross-section}
+\end{figure}
 
 \section{Part 2: Spacer Ring}
 
@@ -863,7 +1413,7 @@ Vibration isolation (Thorlabs RS4D) & \$400 \\
 
 
 % ================================================================
-\chapter{Complete Bill of Materials}
+\chapter{Complete Bill of Materials}\label{ch:bom}
 % ================================================================
 
 \section{Itemized BOM}
@@ -944,7 +1494,7 @@ Translation stage & Thorlabs PT1 & 1 & \$80 & \$80 \\
 \midrule
 \multicolumn{5}{l}{\textbf{Tools and Safety Equipment (\$3,200)}} \\
 \midrule
-Tools \& equipment & See Chapter~11 & 1 & \$3,200 & \$3,200 \\
+Tools \& equipment & See Chapter~\ref{ch:tools} & 1 & \$3,200 & \$3,200 \\
 \midrule
 \multicolumn{5}{l}{\textbf{Power and Infrastructure (\$550)}} \\
 \midrule
@@ -1017,7 +1567,7 @@ PCBWay & Antenna PCB & 3--5 days \\
 
 
 % ================================================================
-\chapter{Assembly, Calibration, and Characterization}
+\chapter{Assembly, Calibration, and Characterization}\label{ch:assembly}
 % ================================================================
 
 \section{Assembly Step 1: Optical Path (Week 1)}
@@ -1187,7 +1737,7 @@ PCBWay & Antenna PCB & 3--5 days \\
 
 
 % ================================================================
-\chapter{Success Metrics, Risk Mitigation, and Troubleshooting}
+\chapter{Success Metrics, Risk Mitigation, and Troubleshooting}\label{ch:metrics}
 % ================================================================
 
 \section{Success Metrics: Phase 1 --- NV Characterization}
@@ -1342,7 +1892,7 @@ Thermal drift & Peltier + PID temperature controller & +\$1,000 \\
 
 
 % ================================================================
-\chapter{Laboratory Environment and Safety}
+\chapter{Laboratory Environment and Safety}\label{ch:safety}
 % ================================================================
 
 \safetybox{This chapter specifies mandatory safety requirements. The laser in this system is Class 3B (100~mW at 637~nm) and can cause permanent eye injury in less than 0.25 seconds. Read this chapter completely before entering the laboratory.}
@@ -1521,7 +2071,7 @@ Power & Dedicated 20~A / 120~V circuit (or 16~A / 240~V) \\
 
 
 % ================================================================
-\chapter{Tools, Equipment, and Consumables}
+\chapter{Tools, Equipment, and Consumables}\label{ch:tools}
 % ================================================================
 
 This chapter lists everything needed beyond the main BOM components: the tools to assemble them, the consumables used during assembly, and the safety equipment.
@@ -1717,7 +2267,7 @@ Budget approximately \$3,200 to account for shipping and incidentals.
 
 
 % ================================================================
-\chapter{Host Computer and Peripherals}
+\chapter{Host Computer and Peripherals}\label{ch:hostpc}
 % ================================================================
 
 \section{Host PC Specification}
@@ -1847,7 +2397,7 @@ sudo nmcli con up fpga-link
 
 
 % ================================================================
-\chapter{Power Distribution and Grounding}
+\chapter{Power Distribution and Grounding}\label{ch:power}
 % ================================================================
 
 \section{Total System Power Budget}
@@ -1899,6 +2449,54 @@ Three separate ground buses, all terminating at the star point:
   \item \textbf{RF ground}: MW synthesizer, power amplifier, circulator, antenna
 \end{enumerate}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  bus/.style={very thick, rounded corners=2pt},
+  inst/.style={draw, rectangle, minimum width=1.6cm, minimum height=0.6cm, align=center, font=\tiny, thick},
+  star/.style={draw, circle, fill=yellow!30, minimum size=1cm, font=\scriptsize\bfseries, thick, align=center},
+]
+% Star point
+\node[star] (sp) at (0, 0) {STAR\\GND};
+\node[font=\tiny, below=0.3cm] at (sp.south) {PDU Earth Terminal};
+
+% ANALOG bus (green)
+\draw[bus, green!50!black] (sp.north) -- ++(0, 1) -- ++(-4, 0) coordinate (abusend);
+\node[font=\scriptsize\bfseries, color=green!50!black, above] at (-2, 1) {ANALOG BUS};
+\node[inst, fill=green!10] (lockin) at (-4.5, 2.5) {Lock-in\\SR844};
+\node[inst, fill=green!10] (apdpsu) at (-2.5, 2.5) {APD\\PSU};
+\node[inst, fill=green!10] (anaboard) at (-0.5, 2.5) {Analog\\Board};
+\draw[green!50!black, thick] (lockin.south) -- (-4.5, 1);
+\draw[green!50!black, thick] (apdpsu.south) -- (-2.5, 1);
+\draw[green!50!black, thick] (anaboard.south) -- (-0.5, 1);
+
+% DIGITAL bus (black)
+\draw[bus, black] (sp.east) -- ++(1, 0) -- ++(0, -2.5) -- ++(4, 0) coordinate (dbusend);
+\node[font=\scriptsize\bfseries, below] at (3, -2.5) {DIGITAL BUS};
+\node[inst, fill=gray!10] (fpga) at (1.5, -3.8) {FPGA};
+\node[inst, fill=gray!10] (dac) at (3, -3.8) {DAC};
+\node[inst, fill=gray!10] (adc) at (4.5, -3.8) {ADC};
+\node[inst, fill=gray!10] (pc) at (6, -3.8) {Host PC};
+\draw[black, thick] (fpga.north) -- (1.5, -2.5);
+\draw[black, thick] (dac.north) -- (3, -2.5);
+\draw[black, thick] (adc.north) -- (4.5, -2.5);
+\draw[black, thick] (pc.north) -- (6, -2.5);
+
+% RF bus (blue)
+\draw[bus, blue] (sp.west) -- ++(-1, 0) -- ++(0, -2.5) -- ++(-4, 0) coordinate (rbusend);
+\node[font=\scriptsize\bfseries, color=blue, below] at (-3, -2.5) {RF BUS};
+\node[inst, fill=blue!10] (mw) at (-1.5, -3.8) {MW\\Synth};
+\node[inst, fill=blue!10] (pa) at (-3, -3.8) {Power\\Amp};
+\node[inst, fill=blue!10] (circ) at (-4.5, -3.8) {Circulator};
+\draw[blue, thick] (mw.north) -- (-1.5, -2.5);
+\draw[blue, thick] (pa.north) -- (-3, -2.5);
+\draw[blue, thick] (circ.north) -- (-4.5, -2.5);
+
+\end{tikzpicture}
+\caption{Star ground topology. All three ground buses (analog, digital, RF) converge at a single star point: the PDU earth terminal. No daisy-chaining between instruments. Each instrument connects to its designated bus only.}
+\label{fig:grounding}
+\end{figure}
+
 \subsection{Grounding Rules}
 
 \begin{itemize}[nosep]
@@ -1946,7 +2544,7 @@ Power filtering: 100~nF ceramic + 10~$\mu$F electrolytic bypass on each rail at 
 
 
 % ================================================================
-\chapter{System Layout and Enclosure}
+\chapter{System Layout and Enclosure}\label{ch:layout}
 % ================================================================
 
 \section{Optical Table}
@@ -2007,6 +2605,63 @@ The table is oriented with its long axis (2000~mm) left-to-right. All positions 
   \item Light-tight enclosure around APDs: anodized aluminum box, 300 $\times$ 200 $\times$ 200~mm, with BNC feedthroughs
 \end{itemize}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  x=0.008cm, y=0.008cm,
+  comp/.style={draw, rectangle, minimum width=0.8cm, minimum height=0.6cm, align=center, font=\tiny, thick},
+  beam/.style={red, thick, -{Stealth[length=2mm]}},
+]
+% Table outline
+\draw[very thick] (0,0) rectangle (2000, 1200);
+\node[font=\scriptsize, anchor=south] at (1000, 1200) {Optical Table: 2000 $\times$ 1200~mm};
+
+% Grid reference
+\draw[gray!30, thin, step=200] (0,0) grid (2000, 1200);
+
+% Left: Laser and fiber coupling
+\node[comp, fill=red!20] (laser) at (100, 900) {Laser};
+\node[comp, fill=orange!10] (fc) at (250, 900) {Fiber\\Coupler};
+\node[comp, fill=yellow!10] (iso) at (400, 900) {Isolator};
+
+% Center-left: MZI
+\node[comp, fill=blue!10, rotate=45, minimum width=0.5cm, minimum height=0.5cm] (bs1) at (550, 900) {BS1};
+\node[comp, fill=gray!30, minimum width=0.15cm, minimum height=0.5cm] (m1) at (550, 500) {M1};
+\node[comp, fill=gray!30, minimum width=0.15cm, minimum height=0.5cm, rotate=90] (m2) at (900, 900) {M2};
+\node[comp, fill=blue!10, rotate=45, minimum width=0.5cm, minimum height=0.5cm] (bs2) at (900, 500) {BS2};
+
+% AOM in path A
+\node[comp, fill=orange!10] (aom) at (700, 500) {AOM};
+
+% Center-right: Diamond holder on stage
+\node[comp, fill=cyan!20, minimum width=1.2cm, minimum height=0.8cm, thick] (dia) at (1100, 700) {Diamond\\on XYZ};
+
+% Right: APD enclosure
+\node[comp, fill=green!15, minimum width=1.5cm, minimum height=1cm] (apds) at (1350, 700) {APD\\Enclosure};
+
+% Beam paths
+\draw[beam] (laser) -- (fc);
+\draw[beam] (fc) -- (iso);
+\draw[beam] (iso) -- (bs1);
+% BS1 to M1 (Path A down)
+\draw[red, thick] (550, 850) -- (550, 550);
+\draw[beam] (550, 550) -- (aom);
+\draw[beam] (aom) -- (bs2);
+% BS1 to M2 (Path B right)
+\draw[red, thick] (600, 900) -- (850, 900);
+\draw[red, thick] (900, 850) -- (900, 550);
+% BS2 to APDs
+\draw[beam] (bs2) -- (1100, 500) -- (1100, 650);
+\draw[beam] (950, 500) -- (1350, 500) -- (1350, 650);
+
+% Scale bar
+\draw[|<->|, thick] (0, -80) -- node[below, font=\tiny] {500~mm} (500, -80);
+
+\end{tikzpicture}
+\caption{Optical table layout (top view). Components are positioned along the 2000~mm long axis. Beam paths are shown in red. The Mach-Zehnder interferometer occupies the center-left region, with the diamond holder and detection on the right.}
+\label{fig:table-layout}
+\end{figure}
+
 \section{Electronics Rack}
 
 \begin{itemize}[nosep]
@@ -2039,10 +2694,10 @@ The table is oriented with its long axis (2000~mm) left-to-right. All positions 
 
 
 % ================================================================
-\chapter{Analog Detection Electronics}
+\chapter{Analog Detection Electronics}\label{ch:analog}
 % ================================================================
 
-\importantbox{The transimpedance amplifiers, summing amplifier, and coupling capacitors described in Chapter~4 need a physical board to live on. This chapter specifies that board.}
+\importantbox{The transimpedance amplifiers, summing amplifier, and coupling capacitors described in Chapter~\ref{ch:weakmeas} need a physical board to live on. This chapter specifies that board.}
 
 \section{Board Options}
 
@@ -2138,9 +2793,86 @@ J5 & SMA & Output (to lock-in amplifier RF input) \\
 
 \begin{itemize}[nosep]
   \item Continuous copper pour on bottom layer
-  \item Tied to analog ground bus (see Chapter~13)
+  \item Tied to analog ground bus (see Chapter~\ref{ch:power})
   \item No digital signals on this board
 \end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  opamp/.style={draw, thick, regular polygon, regular polygon sides=3, minimum size=1.2cm, shape border rotate=-90, font=\scriptsize},
+  comp/.style={font=\scriptsize},
+  wire/.style={thick},
+  bnc/.style={draw, circle, minimum size=0.4cm, thick, font=\tiny},
+]
+% J1 input
+\node[bnc] (j1) at (-1, 3) {J1};
+\node[comp, left=0.1cm] at (j1.west) {BNC};
+
+% U1 - TIA for APD1
+\node[opamp] (u1) at (2, 3) {};
+\node[comp, below=0.1cm] at (u1.south) {U1: OPA128};
+% Rf and Cf for U1
+\draw[wire] (u1.west) ++(0, 0.3) -- ++(0, 1) -- node[above, font=\tiny] {$R_f = 1$~G$\Omega$} ++(1.8, 0) -- ++(0, -1);
+\draw[wire] (u1.west) ++(0, 0.3) -- ++(0, 1.5) -- node[above, font=\tiny] {$C_f = 0.1$~pF} ++(1.8, 0) -- ++(0, -1.5);
+% Wire J1 to U1
+\draw[wire] (j1.east) -- (u1.west |- j1) -- ++(0, 0.3);
+
+% C1 after U1
+\node[comp] at (4.2, 3) {C1};
+\node[comp, font=\tiny] at (4.2, 2.5) {1~$\mu$F};
+\draw[wire] (u1.east) -- ++(0.3, 0);
+\draw[wire] (3.8, 3) -- (4.6, 3);
+
+% J2 input
+\node[bnc] (j2) at (-1, 0) {J2};
+\node[comp, left=0.1cm] at (j2.west) {BNC};
+
+% U2 - TIA for APD2
+\node[opamp] (u2) at (2, 0) {};
+\node[comp, below=0.1cm] at (u2.south) {U2: OPA128};
+% Rf and Cf for U2
+\draw[wire] (u2.west) ++(0, 0.3) -- ++(0, 1) -- node[above, font=\tiny] {$R_f = 1$~G$\Omega$} ++(1.8, 0) -- ++(0, -1);
+\draw[wire] (u2.west) ++(0, 0.3) -- ++(0, 1.5) -- node[above, font=\tiny] {$C_f = 0.1$~pF} ++(1.8, 0) -- ++(0, -1.5);
+% Wire J2 to U2
+\draw[wire] (j2.east) -- (u2.west |- j2) -- ++(0, 0.3);
+
+% C2 after U2
+\node[comp] at (4.2, 0) {C2};
+\node[comp, font=\tiny] at (4.2, -0.5) {1~$\mu$F};
+\draw[wire] (u2.east) -- ++(0.3, 0);
+\draw[wire] (3.8, 0) -- (4.6, 0);
+
+% U3 - Difference amplifier
+\node[opamp] (u3) at (7, 1.5) {};
+\node[comp, below=0.1cm] at (u3.south) {U3: OPA2134};
+
+% Resistors to U3
+\draw[wire] (4.6, 3) -- node[above, font=\tiny] {$R_3 = 10$~k$\Omega$} (u3.west |- {(0,1.8)});
+\draw[wire] (4.6, 0) -- node[below, font=\tiny] {$R_4 = 10$~k$\Omega$} (u3.west |- {(0,1.2)});
+
+% Feedback resistors
+\draw[wire] (u3.west) ++(0, 0.3) -- ++(0, 1) -- node[above, font=\tiny] {$R_5 = 10$~k$\Omega$} ++(1.8, 0) -- ++(0, -1);
+\draw[wire] (u3.west) ++(0, -0.3) |- ++(0.3, -0.8) -- node[below, font=\tiny] {$R_6 = 10$~k$\Omega$} ++(1.2, 0) -- ++(0, 0.3);
+
+% Output J3
+\node[bnc] (j3) at (10, 1.5) {J3};
+\node[comp, right=0.1cm] at (j3.east) {BNC};
+\draw[wire] (u3.east) -- (j3.west);
+
+% Output J5 (SMA)
+\node[bnc] (j5) at (10, 0) {J5};
+\node[comp, right=0.1cm] at (j5.east) {SMA};
+\draw[wire] (9, 1.5) -- (9, 0) -- (j5.west);
+
+% Power rails
+\node[comp, color=red] at (2, 4.5) {$+15$~V};
+\node[comp, color=blue] at (2, -1.5) {$-15$~V};
+
+\end{tikzpicture}
+\caption{Analog detection board schematic. Two transimpedance amplifiers (U1, U2) convert APD photocurrents to voltage, AC-coupled through C1 and C2, then differenced by U3 to produce the homodyne signal output at J3 (BNC to oscilloscope) and J5 (SMA to lock-in amplifier).}
+\label{fig:analog-schematic}
+\end{figure}
 
 \section{Assembly Notes}
 
@@ -2153,7 +2885,7 @@ J5 & SMA & Output (to lock-in amplifier RF input) \\
 
 
 % ================================================================
-\chapter{Complete Wiring Schedule}
+\chapter{Complete Wiring Schedule}\label{ch:wiring}
 % ================================================================
 
 Every cable in the system is listed below. Before operating the system, verify each cable is connected and labeled at both ends.
@@ -2278,7 +3010,7 @@ Every cable in the system is listed below. Before operating the system, verify e
 
 
 % ================================================================
-\chapter{Optical Alignment Procedures}
+\chapter{Optical Alignment Procedures}\label{ch:alignment}
 % ================================================================
 
 \safetybox{PUT ON LASER SAFETY GOGGLES (Thorlabs LG9) BEFORE turning on the laser. Keep goggles on for the entire alignment procedure. No exceptions.}
@@ -2396,7 +3128,7 @@ Once centered, lock all set screws with Loctite 243 (medium-strength threadlocke
 
 
 % ================================================================
-\chapter{Firmware Build and Deployment}
+\chapter{Firmware Build and Deployment}\label{ch:firmware}
 % ================================================================
 
 This chapter provides the complete procedure to go from Verilog source code to a running FPGA.
@@ -2802,7 +3534,7 @@ Register map:
 
 
 % ================================================================
-\chapter{Host Control Software}
+\chapter{Host Control Software}\label{ch:software}
 % ================================================================
 
 This chapter provides the host PC software for controlling the measurement apparatus. The complete source code is in Python 3.10.
