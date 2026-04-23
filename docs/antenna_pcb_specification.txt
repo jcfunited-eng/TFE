@@ -1,0 +1,439 @@
+================================================================================
+MICROWAVE ANTENNA PCB - TECHNICAL SPECIFICATION
+================================================================================
+
+Date: April 23, 2026
+Frequency: 2.87 GHz (NV Larmor frequency)
+PCB Substrate: Rogers RO4003C
+Target impedance: 50 Ω coplanar waveguide
+Manufacturing: Standard PCB fabrication (PCBWay, Gerber files)
+
+================================================================================
+PCB LAYER STACK
+================================================================================
+
+Configuration: 2-Layer PCB (signal + ground plane)
+
+Layer 1 (Top):
+  Material: Copper, 35 μm (1 oz)
+  Features: Signal traces, antenna elements, component pads
+  Finish: ENIG (Electroless Nickel/Immersion Gold), 2.5-5 μm Au
+
+Layer 2 (Bottom):
+  Material: Copper, 35 μm (1 oz)
+  Features: Ground plane (continuous)
+  Finish: ENIG
+
+Substrate (Between layers):
+  Material: Rogers RO4003C
+  Thickness: 0.508 mm (20 mils)
+  Dielectric constant εᵣ = 3.55
+  Loss tangent tanδ = 0.0027 @ 10 GHz
+
+Solder mask:
+  Color: Black (better thermal absorption)
+  Thickness: 10-15 μm
+  Coverage: Top and bottom layers
+
+Silkscreen:
+  Color: White
+  Content: "WEAK MEASUREMENT ANTENNA PCB | 2.87 GHz | v1.0"
+
+================================================================================
+DIMENSIONAL SPECIFICATIONS
+================================================================================
+
+Overall board size: 50 mm (L) × 30 mm (W)
+Border clearance: 2 mm from edge (no traces near edge)
+Corner radius: 2 mm (optional, for appearance)
+
+Mounting holes (4× M3):
+  Location 1: (x=5 mm, y=5 mm)
+  Location 2: (x=45 mm, y=5 mm)
+  Location 3: (x=45 mm, y=25 mm)
+  Location 4: (x=5 mm, y=25 mm)
+  Diameter: ø3.2 mm (clearance for M3 screw)
+  Plating: Through-hole plated, copper ring ø6.0 mm
+
+SMA Connector hole (Right side):
+  Location: (x=48 mm, y=15 mm)
+  Diameter: ø4.4 mm (push-fit hole for SMA)
+  Plating: Through-hole plated
+  Solder pad: Annular ring ø7.0 mm
+  Purpose: RF input from microwave synthesizer
+
+================================================================================
+TRANSMISSION LINE DESIGN (50 Ω Coplanar Waveguide)
+================================================================================
+
+Objective: Route 2.87 GHz signal from SMA input to antenna with minimal loss
+
+Design frequency: 2.87 GHz (NV Larmor)
+Wavelength in material: λ = c / (f × √εᵣ) = (3×10⁸) / (2.87×10⁹ × 1.88) = 55 mm
+
+CPW (Coplanar Waveguide) impedance formula:
+  Z₀ = (120π / √εᵣ_eff) × ln[(2w + 2s) / (πw)]
+
+  where:
+    w = trace width
+    s = gap width (trace to ground)
+    εᵣ_eff ≈ (εᵣ + 1) / 2 (for CPW on 0.508 mm substrate)
+
+Target: Z₀ = 50 Ω
+
+Solving for w and s:
+  For Rogers RO4003: εᵣ_eff ≈ 2.27
+  Target: w = 1.27 mm, s = 0.64 mm (from design curves)
+
+Signal path:
+  1. SMA input @ (48 mm, 15 mm)
+  2. Straight CPW line → (35 mm, 15 mm) [13 mm length, quarter-wavelength ≈ 13.75 mm]
+  3. Antenna element @ (22 mm, 15 mm)
+
+CPW dimensions (Top layer):
+  Trace width (w): 1.27 mm ±0.1 mm (CRITICAL)
+  Gap to ground (s): 0.64 mm ±0.1 mm (CRITICAL)
+  Trace length: 13 mm ± 0.5 mm
+  Trace thickness: 35 μm (copper thickness)
+
+Impedance verification:
+  Network analyzer @ 2.87 GHz:
+    S₁₁ (return loss): < -10 dB (good matching)
+    S₂₁ (transmission): > -3 dB (low loss)
+
+================================================================================
+ANTENNA ELEMENT DESIGN
+================================================================================
+
+Type: Microstrip patch antenna (simplified)
+Resonance: 2.87 GHz
+Coupling: Magnetic field (radiates near H field)
+
+Geometry:
+  Antenna patch:
+    Length: λ/2 in material ≈ 27.5 mm ÷ 1.88 ≈ 14.6 mm
+    Width: λ/4 in material ≈ 7 mm
+    Location: (22 mm, 15 mm) center
+    Shape: Rectangle (simple, efficient)
+    Orientation: Horizontal (length along x-axis)
+
+  Feeding:
+    Type: Direct connection to CPW line
+    Location: Center of patch length
+    Feed line width: 1.27 mm (matches CPW)
+
+  Radiation pattern:
+    Predominant: Magnetic field (H), not electric field (E)
+    Radiation lobe: Perpendicular to board (toward diamond)
+    Gain: Approximately 3 dBi (omnidirectional in horizontal plane)
+
+Ground plane:
+  Coverage: Full bottom layer (Layer 2)
+  Vias: 4× ø0.5 mm vias around SMA connector (connect top/bottom grounds)
+  Via spacing: 2 mm apart (RF grounding)
+
+================================================================================
+TRANSMISSION LINE LAYOUT (Detailed)
+================================================================================
+
+Layer 1 (Top copper) - Signal traces:
+
+SMA input pad (right side):
+  Center pad: ø1.2 mm (gold-plated)
+  Ground pad (annular): ø7.0 mm
+  Clearance to traces: 0.5 mm
+
+CPW line from SMA to antenna:
+  ```
+  SMA (48,15)
+    ↓
+  ┌─────────────────────────────┐  ← Signal line (1.27 mm wide)
+  │                             │
+  ├─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─┤  ← Ground plane below
+  │ 0.64 mm gap (each side)    │
+  │ from signal to ground       │
+  │                             │
+  └─────────────────────────────┘
+    ↓ (13 mm)
+  Antenna patch (22,15)
+  ┌───────────┐
+  │  14.6 mm  │  ← Length (resonant at 2.87 GHz)
+  │    ×      │
+  │   7 mm    │  ← Width
+  └───────────┘
+    (center feed point)
+  ```
+
+Antenna element (Top layer):
+  Rectangle: 14.6 mm (L) × 7.0 mm (W)
+  Center location: (22 mm, 15 mm)
+  Copper fill: Solid rectangle
+  Clearance to board edge: 3 mm
+  Clearance to mounting holes: 5 mm
+
+Feed line to antenna:
+  Width: 1.27 mm
+  Length: ~2 mm (connects CPW to patch center)
+
+Layer 2 (Bottom copper) - Ground plane:
+
+  Coverage: Entire bottom layer (50 mm × 30 mm)
+  Vias to ground plane:
+    4× around SMA connector:
+    Location: (46, 13), (46, 17), (50, 15), (52, 15) [approx]
+    Diameter: ø0.5 mm, plated
+    Spacing: 2 mm apart (RF shielding)
+
+  Clearance:
+    Leave 0.2 mm clearance under all top traces (no shorts)
+
+================================================================================
+FABRICATION SPECIFICATIONS
+================================================================================
+
+PCB manufacturer settings (for PCBWay or similar):
+
+Layer stackup:
+  ☐ 2-layer PCB
+  ☐ Rogers RO4003C substrate
+  ☐ 35 μm copper (1 oz) both sides
+  ☐ 0.508 mm substrate thickness
+
+Trace specifications:
+  ☐ Minimum trace width: 1.0 mm (our traces are 1.27 mm, OK)
+  ☐ Minimum trace spacing: 0.2 mm (our gaps are 0.64 mm, OK)
+  ☐ Via diameter: ø0.5 mm (plated through-hole)
+
+Solder mask:
+  ☐ Black solder mask
+  ☐ Coverage: Both sides
+  ☐ Thickness: 10-15 μm
+  ☐ Mask opening around pads: Standard (tented where possible)
+
+Finish:
+  ☐ ENIG (Electroless Nickel/Immersion Gold)
+  ☐ Nickel: 2-5 μm
+  ☐ Gold: 0.1-0.5 μm
+  ☐ (Not HASL due to lead-free issues with RF traces)
+
+SMA connector hole:
+  ☐ Diameter: ø4.4 mm
+  ☐ Plating: Through-hole plated
+  ☐ Hole location tolerance: ±0.15 mm
+
+Mounting holes:
+  ☐ Diameter: ø3.2 mm
+  ☐ Plating: Through-hole plated
+  ☐ Location tolerance: ±0.2 mm
+
+Silkscreen:
+  ☐ "WEAK MEASUREMENT ANTENNA PCB"
+  ☐ "2.87 GHz NV Larmor"
+  ☐ "v1.0"
+  ☐ Layer: Top side only
+  ☐ Font size: 3 mm (readable)
+
+Panelization:
+  ☐ Single board (1× piece)
+  ☐ No paneling needed
+  ☐ Tab break optional
+
+Quality control:
+  ☐ AOI (Automated Optical Inspection) for defects
+  ☐ Electrical test: Continuity check on all traces
+  ☐ Impedance test: Optional (if available)
+
+================================================================================
+GERBER FILES GENERATION
+================================================================================
+
+To create Gerber files for manufacturing, use PCB design software:
+  Software: KiCad (free, open-source) or Altium Designer
+
+Layer files needed:
+
+1. F_Cu (Top copper):
+   - Signal traces (CPW line)
+   - Antenna patch (rectangle)
+   - SMA pad and mounting holes
+   - Via pads (annular rings)
+
+2. B_Cu (Bottom copper):
+   - Ground plane (entire layer)
+   - Via pads (annular rings)
+
+3. F_Mask (Top solder mask):
+   - Mask openings (pad clearances)
+   - Antenna area exposed (to radiative surface)
+
+4. B_Mask (Bottom solder mask):
+   - Standard coverage
+
+5. F_SilkS (Top silkscreen):
+   - Text labels
+   - Component outline (optional)
+
+6. Drill file (NC drill):
+   - SMA hole (ø4.4 mm)
+   - Mounting holes (4× ø3.2 mm)
+   - Vias (4× ø0.5 mm)
+
+7. Edge.Cuts (Board outline):
+   - Rectangle: 50 mm × 30 mm
+   - Corner radius: 2 mm (optional)
+
+Gerber format:
+  ☐ RS-274-X format (modern standard)
+  ☐ Metric units (mm)
+  ☐ All files named consistently (e.g., antenna-v1.0-F_Cu.gbr)
+
+================================================================================
+ASSEMBLY & TESTING
+================================================================================
+
+Component mounting:
+
+SMA connector:
+  Model: SMA-RP-RA (reverse-polarity, right-angle)
+  Supplier: Mini-Circuits or similar
+  Assembly: Push-fit onto ø4.4 mm hole, solder from bottom
+  Solder: Lead-free SAC305 (Pb-free)
+  Flux: No-clean rosin flux
+
+Soldering:
+  Method: Solder reflow or hand soldering
+  Temperature: 250°C for 5 seconds (lead-free process)
+  Inspection: All joints shiny, no cold joints
+
+Testing:
+
+Network analyzer measurement @ 2.87 GHz:
+  ☐ Connect VNA port 1 to SMA connector
+  ☐ Measure S-parameters (S₁₁, S₂₁)
+  ☐ Expected S₁₁: < -10 dB (good impedance match)
+  ☐ Expected S₂₁: > -3 dB (low loss)
+  ☐ Phase response: Linear (no ripple)
+
+Radiation pattern test (optional):
+  ☐ Place RF pickup coil 10 mm from antenna
+  ☐ Apply 1 W CW at 2.87 GHz
+  ☐ Measure coil voltage vs position (directional)
+  ☐ Expected: Maximum at center of antenna face
+
+Thermal test:
+  ☐ Apply 1 W input for 10 minutes
+  ☐ Measure temperature with IR camera
+  ☐ Expected: < 30°C rise (good thermal design)
+  ☐ Check for component damage or solder reflow
+
+================================================================================
+MANUFACTURING CHECKLIST
+================================================================================
+
+Before sending to fab:
+
+Design validation:
+  ☐ Trace impedance verified (50 Ω @ 2.87 GHz)
+  ☐ Via placement checked (no shorts)
+  ☐ SMA connector pad sized correctly
+  ☐ Mounting hole clearances verified
+  ☐ Board outline is closed (no gaps)
+
+Gerber files:
+  ☐ All 7 files generated (layers + drill + outline)
+  ☐ File names consistent (antenna-v1-*)
+  ☐ Drill file checked for correct hole sizes
+  ☐ Edge file checked for correct board size
+
+Fab submission:
+  ☐ Upload Gerber files to PCBWay.com (or equivalent)
+  ☐ Select: Rogers RO4003C, 2-layer, 0.508 mm thickness
+  ☐ Copper: 35 μm (1 oz) both sides
+  ☐ Finish: ENIG
+  ☐ Solder mask: Black
+  ☐ Silkscreen: White, top side
+  ☐ Qty: 1 (prototype), or 10 (small production run)
+  ☐ Estimated cost: $150-300 (1-10 boards)
+  ☐ Lead time: 3-5 business days
+
+Assembly:
+  ☐ Order SMA connector (push-fit type)
+  ☐ Upon PCB arrival, solder SMA connector
+  ☐ Perform electrical test with network analyzer
+  ☐ If S₁₁ > -10 dB, debug (impedance mismatch likely)
+
+================================================================================
+TROUBLESHOOTING GUIDE
+================================================================================
+
+If S₁₁ > -10 dB (impedance mismatch):
+
+Possible causes:
+  1. Trace width too wide or too narrow
+     Solution: Adjust trace width by ±0.1 mm in new iteration
+
+  2. Substrate thickness wrong
+     Solution: Verify PCB thickness is exactly 0.508 mm
+
+  3. SMA connector impedance mismatch
+     Solution: Check connector specifications (must be 50 Ω)
+
+  4. Via placement bad
+     Solution: Move vias further from feed point (>5 mm away)
+
+If S₂₁ < -3 dB (excessive loss):
+
+Possible causes:
+  1. Substrate loss (tanδ too high)
+     Solution: RO4003C is already low-loss; check if correct material used
+
+  2. Copper surface oxidation
+     Solution: ENIG finish prevents this; check if gold plating applied
+
+  3. Trace contamination
+     Solution: Clean board with isopropyl alcohol before testing
+
+If antenna doesn't radiate (B field not measured):
+
+Possible causes:
+  1. Antenna patch dimensions wrong
+     Solution: Verify patch is exactly 14.6 mm × 7.0 mm
+
+  2. Feed point in wrong location
+     Solution: Feed should be at center of patch length (7.3 mm)
+
+  3. Ground plane not connected
+     Solution: Check vias are plated and connected to bottom copper
+
+================================================================================
+FILES TO SUBMIT TO FAB
+================================================================================
+
+Compress all files into single ZIP:
+  - antenna-v1.0-F_Cu.gbr (top copper)
+  - antenna-v1.0-B_Cu.gbr (bottom copper)
+  - antenna-v1.0-F_Mask.gbr (top mask)
+  - antenna-v1.0-B_Mask.gbr (bottom mask)
+  - antenna-v1.0-F_SilkS.gbr (top silkscreen)
+  - antenna-v1.0-Edge_Cuts.gbr (board outline)
+  - antenna-v1.0-PTH.xln (NC drill file)
+  - antenna-v1.0-Schematic.pdf (reference, not fab file)
+  - antenna-v1.0-README.txt (this specification)
+
+Upload to PCBWay, select options:
+  ☐ Product: Printed Circuit Board (PCB)
+  ☐ Type: 2-layer
+  ☐ Substrate: Rogers RO4003C
+  ☐ Thickness: 0.508 mm
+  ☐ Copper weight: 1 oz (35 μm) both sides
+  ☐ Finish: ENIG
+  ☐ Solder mask: Black
+  ☐ Silkscreen: White (top)
+  ☐ Qty: 1 (or 10 for small run)
+  ☐ Quantity per order: 1 board
+
+Estimated cost: $200-300 for 10 boards, 5-day lead time
+
+================================================================================
+END OF SPECIFICATION
+================================================================================

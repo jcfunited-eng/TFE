@@ -1,0 +1,363 @@
+================================================================================
+DIAMOND HOLDER ASSEMBLY - TECHNICAL DRAWING SPECIFICATION
+================================================================================
+
+Date: April 23, 2026
+Material: Aluminum 6061-T6
+Finish: Type II Black Anodize (25-50 μm)
+Tolerances: ±0.1 mm (unless noted)
+Manufacturing: CNC machining + manual assembly
+
+================================================================================
+PART 1: BASE FRAME (Main body)
+================================================================================
+
+Function: Holds diamond wafer, antenna PCB, optics, and temperature sensor
+
+Dimensions:
+  Overall: 80 mm (L) × 60 mm (W) × 40 mm (H)
+  Material: Aluminum 6061-T6
+  Weight: ~300 g (estimated)
+
+Features:
+
+1. DIAMOND WAFER MOUNTING HOLE (Center, TOP surface)
+   Location: Center of top surface
+   Diameter: ø10.0 mm ±0.05 mm (diamond wafer is 10×10 mm)
+   Depth: 1.5 mm
+   Type: Cylindrical through-hole
+   Purpose: Diamond wafer sits in this hole with soft clamp
+
+   Soft clamp assembly (see Part 3):
+   - Two M3 springs on top (push down gently)
+   - Non-contact mounting (no stress on diamond)
+
+2. ANTENNA PCB MOUNTING HOLES (Top surface, around diamond)
+   Pattern: 4× M3 threaded holes
+   Location:
+     - Hole 1: (x= -15 mm, y= -15 mm) from center
+     - Hole 2: (x= +15 mm, y= -15 mm)
+     - Hole 3: (x= +15 mm, y= +15 mm)
+     - Hole 4: (x= -15 mm, y= +15 mm)
+   Depth: 8 mm (tapped, M3 × 0.5 mm pitch)
+   Clearance: 0.2 mm from diamond edge
+
+3. SMA CONNECTOR MOUNTING HOLE (Right side, TOP surface)
+   Location: (x= +30 mm, y= 0) from center
+   Diameter: ø4.4 mm (SMA push-fit hole)
+   Depth: 10 mm (must be deep enough for SMA connector nut)
+   Type: Cylindrical
+   Purpose: Microwave RF input from stripline antenna PCB
+
+4. FIBER COUPLER INPUT HOLE (Left side, TOP surface)
+   Location: (x= -30 mm, y= 0) from center
+   Diameter: ø5.0 mm (clearance for fiber ferrule)
+   Depth: 15 mm
+   Threads: None (loose fit for adjustable fiber holder)
+   Purpose: Single-mode fiber 637 nm input
+
+5. TEMPERATURE SENSOR MOUNTING (Bottom surface)
+   Location: (x= 0, y= -20 mm) from center
+   Diameter: ø4.0 mm
+   Depth: 5 mm
+   Type: Press-fit hole for Pt100 RTD probe
+   Purpose: Monitor diamond wafer temperature
+
+6. OPTICAL WINDOW MOUNT (Top center, above diamond)
+   Type: Threaded mount (M25 × 0.75 mm)
+   Location: Centered over diamond hole
+   Height: 5 mm above diamond surface
+   Purpose: Holds BK7 glass window with AR coating
+
+7. FOCUSING LENS ASSEMBLY MOUNT (Top surface, above window)
+   Type: Threaded mount (M25 × 0.75 mm)
+   Location: Coaxial with optical window
+   Height: Adjustable (10-30 mm above window)
+   Purpose: f=25 mm and f=50 mm lens assembly
+   X-Y Adjustability: Via kinematic mount (3 set screws at 120°)
+
+8. GROUND PLANE CONNECTION (RF grounding)
+   Via holes (4×): ø2.0 mm, 10 mm deep
+   Location: Around SMA connector (10 mm radius)
+   Purpose: Star-point grounding for RF shielding
+
+================================================================================
+PART 2: DIAMOND WAFER MOUNT (Spacer Ring)
+================================================================================
+
+Function: Sits between antenna PCB and diamond, sets optical gap
+
+Dimensions:
+  Outer diameter: 20 mm
+  Inner hole diameter: ø10.0 mm (for diamond)
+  Thickness: 3.0 mm
+  Material: Aluminum 6061-T6
+
+Features:
+
+1. DIAMOND MOUNTING HOLE
+   Diameter: ø10.0 mm (tight fit, 0 mm clearance)
+   Depth: 3.0 mm (full thickness)
+   Type: Cylindrical
+   Purpose: Diamond wafer sits in this hole, provides mechanical support
+
+2. ALIGNMENT FEATURES
+   Three alignment pins (ø1.0 mm × 5 mm tall, press-fit):
+   Location: At 0°, 120°, 240° around outer edge
+   Purpose: Ensure repeatable positioning relative to antenna PCB
+
+3. THERMAL INTERFACE
+   Location: Bottom surface (facing antenna)
+   Surface finish: Smooth (Ra < 0.8 μm)
+   Material: Keep as aluminum (will apply silver epoxy)
+   Purpose: Thermal path to heat sink
+
+================================================================================
+PART 3: SOFT CLAMP ASSEMBLY (Diamond retention)
+================================================================================
+
+Function: Hold diamond gently without stress
+
+Components:
+  - 2× Compression springs (stainless steel)
+  - 2× M3 screws (stainless steel)
+  - 2× Soft rubber pads (neoprene, 0.5 mm thick)
+
+Assembly:
+  1. Place diamond in mounting hole (sits on spacer ring)
+  2. Attach rubber pad to bottom of each spring
+  3. Insert spring + screw assembly through top mounting holes
+  4. Torque: 0.5 Nm (gentle - just enough to hold, not crush)
+  5. Verify diamond is flush with holder surface
+
+================================================================================
+PART 4: OPTICAL WINDOW MOUNT
+================================================================================
+
+Function: Hold BK7 glass window (637 nm AR coating)
+
+Specifications:
+  Window: 10 mm diameter, 1 mm thick, BK7 glass
+  Coating: Anti-reflection @ 637 nm (R < 1%)
+  Mount type: Threaded collar (M25 × 0.75 mm)
+
+Assembly:
+  1. Insert window into mount
+  2. Screw collar down (torque: 2 Nm)
+  3. Align perpendicular to optical path (level)
+  4. Verify no stress on window (no cracks)
+
+Distance from diamond:
+  Nominal: 2.5 mm (set by spacer ring thickness)
+  Adjust by changing collar depth if needed
+
+================================================================================
+PART 5: FOCUSING OPTICS MOUNT
+================================================================================
+
+Function: Hold f=50mm and f=25mm lenses for focused beam
+
+Configuration:
+  ```
+  [Fiber input]
+       ↓
+    [f=50mm lens] (collimate)
+       ↓ (collimated beam)
+   [Optical window] (on holder)
+       ↓
+    [f=25mm lens] (focus)
+       ↓
+    [Diamond NV array]
+  ```
+
+Mount specifications:
+  Type: Adjustable kinematic mount
+  Threads: M25 × 0.75 mm (to holder)
+  X-Y adjustment: 3 set screws at 120° (0.5 mm travel each)
+  Focus adjustment: Screw to move mount up/down (20 mm range)
+
+Lens specifications:
+  - f=50mm lens: Thorlabs AC254-050-A (diameter 25.4 mm)
+  - f=25mm lens: Thorlabs AC254-025-A (diameter 25.4 mm)
+  - Both: Uncoated BK7 glass
+
+Alignment procedure:
+  1. Place fiber input at 50 mm from f=50mm lens
+  2. Focus with card at 100 mm (check collimation)
+  3. Place f=25mm lens at proper distance
+  4. Focus beam on diamond (use fluorescence feedback)
+  5. Lock set screws (Loctite 243)
+
+================================================================================
+PART 6: MICROWAVE ANTENNA PCB INTEGRATION
+================================================================================
+
+Function: Mount stripline antenna near diamond
+
+PCB specifications:
+  Dimensions: 50 mm (L) × 30 mm (W) × 0.5 mm (thick)
+  Material: Rogers RO4003C
+  Copper: 35 μm (1 oz) both sides
+  SMA connector: Right-angle, PCB-mount, gold-plated
+
+Assembly:
+  1. Place PCB on top of base frame
+  2. Align antenna with diamond hole (centered ±0.5 mm)
+  3. Insert M3 screws through mounting holes
+  4. Torque: 1.5 Nm (firm but not over-tight)
+  5. Verify antenna is 2-3 mm above diamond
+
+Gap verification:
+  - Use feeler gauge to check spacing
+  - Expected: 2.5 ± 0.5 mm
+  - Too close: RF field too strong (λ > 0.01)
+  - Too far: RF field too weak (no Rabi oscillations)
+
+================================================================================
+PART 7: TEMPERATURE MANAGEMENT
+================================================================================
+
+Thermal interface material (TIM):
+  Type: Silver-filled epoxy (e.g., Epotek H20E)
+  Application: Between diamond and base frame
+  Thickness: ~0.5 mm (thin layer for good thermal contact)
+  Cure time: 24 hours at room temperature
+  Thermal conductivity: ~1 W/m·K (adequate for dissipation)
+
+Heat dissipation (optional):
+  If temperature control needed:
+  - Aluminum fin pack (50 mm × 40 mm × 30 mm)
+  - Mount below base frame
+  - Provides passive cooling to ~22°C ambient
+
+Temperature sensor (Pt100 RTD):
+  Model: Minco Electronics
+  Accuracy: ±0.1°C
+  Mount: Press-fit in ø4.0 mm hole (bottom of holder)
+  Connection: 2-wire or 3-wire to FPGA ADC
+
+================================================================================
+ASSEMBLY SEQUENCE
+================================================================================
+
+Phase 1: Machining (CNC shop, 3-4 weeks)
+  1. Machine base frame (aluminum 6061-T6)
+  2. Machine spacer ring
+  3. Anodize all aluminum parts (Type II, black, 25-50 μm)
+  4. Machine soft clamp components
+
+Phase 2: Component procurement (2-3 weeks)
+  1. Order optical window (BK7, AR coated 637 nm)
+  2. Order lenses (f=50mm and f=25mm)
+  3. Order SMA connector (right-angle, PCB-mount)
+  4. Order springs, screws, fasteners (stainless steel)
+  5. Order fiber coupler assembly
+  6. Order Pt100 RTD temperature sensor
+
+Phase 3: Assembly (1 week)
+  1. Apply silver epoxy TIM to diamond mounting surface
+  2. Insert diamond in spacer ring (allow epoxy to cure)
+  3. Mount spacer ring to base frame with M3 screws
+  4. Install temperature sensor in ø4.0 mm hole
+  5. Install antenna PCB on top (align carefully)
+  6. Install SMA connector (thread onto antenna trace)
+  7. Install optical window mount + window
+  8. Install focusing optics mount + lenses
+  9. Install fiber coupler assembly
+  10. Perform final alignment and focus
+
+Phase 4: Testing (1 week)
+  1. Verify mechanical stability (no wobble)
+  2. Test microwave field (measure B₁ with small coil)
+  3. Test optical coupling (637 nm laser, measure power)
+  4. Test temperature sensor (should read room temp)
+  5. Thermal cycle test (freeze-thaw, check for cracks)
+
+================================================================================
+MANUFACTURING DRAWING CHECKLIST
+================================================================================
+
+Base Frame CAD:
+  ☐ Overall dimensions (80×60×40 mm)
+  ☐ Diamond hole (ø10 mm, centered)
+  ☐ Antenna PCB mounting holes (4× M3, 15 mm pattern)
+  ☐ SMA hole (ø4.4 mm, right side)
+  ☐ Fiber hole (ø5.0 mm, left side)
+  ☐ Temperature sensor hole (ø4.0 mm, bottom)
+  ☐ Optical window threads (M25)
+  ☐ Lens mount threads (M25)
+  ☐ Ground plane vias (4× ø2.0 mm around SMA)
+  ☐ Finish: Black anodize 25-50 μm
+  ☐ Tolerances: ±0.1 mm (critical dimensions noted)
+
+Spacer Ring CAD:
+  ☐ Outer diameter: 20 mm
+  ☐ Inner hole: ø10 mm (0 mm clearance)
+  ☐ Thickness: 3.0 mm
+  ☐ Alignment pins (3× ø1.0 mm, 120° spacing)
+  ☐ Bottom surface finish: Ra < 0.8 μm
+  ☐ Material: 6061-T6, anodized black
+
+Assembly Drawing:
+  ☐ Exploded view (all components)
+  ☐ Cross-section (side view showing layers)
+  ☐ Isometric view (3D perspective)
+  ☐ Bill of materials (all parts, quantities, suppliers)
+  ☐ Assembly sequence (numbered steps)
+  ☐ Critical dimensions highlighted (diamonds, underlines, etc.)
+  ☐ Torque specifications (all fasteners)
+  ☐ Notes (material grades, finishes, testing)
+
+================================================================================
+SUPPLIER RECOMMENDATIONS
+================================================================================
+
+CNC Machining (Base frame + spacer ring):
+  Vendor: Local machine shop (5 suppliers)
+  Lead time: 3-4 weeks
+  Cost estimate: $1,500
+  Requirement: Provide STEP files with this specification
+
+Anodizing:
+  Vendor: Metal finishing shop
+  Type: Type II (hard coat), black dye
+  Cost: $200 (2 parts)
+  Lead time: 2 weeks
+
+Optical components:
+  - Window (BK7, AR coated): Thorlabs or Edmund Optics, $150
+  - Lenses: Thorlabs AC254 series, $200 each, $400 total
+
+Electronics/Fasteners:
+  - SMA connector: SMA-RP-RA from Mini-Circuits, $10
+  - Springs: McMaster-Carr, $20
+  - M3 screws (stainless): Local hardware, $10
+  - Pt100 RTD: Minco or Omega, $50
+
+================================================================================
+QUALITY CONTROL CHECKLIST
+================================================================================
+
+Visual inspection:
+  ☐ No cracks or chips in aluminum
+  ☐ No scratches on anodized surfaces
+  ☐ Diamond is level (measured with level, ±0.5 mm)
+  ☐ All holes are clean (no debris)
+  ☐ No excess epoxy or adhesive
+
+Dimensional verification:
+  ☐ Diamond hole depth: 1.5 ± 0.1 mm
+  ☐ Antenna mounting holes: All within ±0.1 mm of spec
+  ☐ SMA hole: ø4.4 ± 0.1 mm
+  ☐ Diamond to antenna gap: 2.5 ± 0.5 mm
+
+Functional testing:
+  ☐ Diamond sits flush in holder (no rocking)
+  ☐ Antenna PCB mounts flush (0 mm gap)
+  ☐ SMA connector fits smoothly (no forcing)
+  ☐ Temperature sensor reads room temperature
+  ☐ Optical beam centers on diamond (verified with IR viewer)
+
+================================================================================
+END OF SPECIFICATION
+================================================================================
