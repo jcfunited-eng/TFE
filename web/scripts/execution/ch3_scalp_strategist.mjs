@@ -7,12 +7,11 @@
  * The kernel is NOT modified — this is a new execution path only.
  *
  * Entry conditions (ALL must be true):
- *   1. S_UF >= 0.70          — high conviction (near acceleration complete)
- *   2. D_k = 1               — directional expansion confirmed
- *   3. bar_count > 20        — established stock
- *   4. Pool has funds remaining (daily pool not depleted)
- *   5. No existing CH3 position open (one at a time)
- *   6. Daily loss limit not hit
+ *   1. S_UF >= 0.50          — moderate-to-high conviction (all market regimes)
+ *   2. bar_count > 20        — established stock
+ *   3. Pool has funds remaining (daily pool not depleted)
+ *   4. No existing CH3 position open (one at a time)
+ *   5. Daily loss limit not hit
  *
  * Exit conditions (evaluated by sentinel_monitor per signal_class='CH3'):
  *   EXIT PROFIT — price >= entry + 1.0%  → market sell (take profit)
@@ -46,8 +45,8 @@ const pool = new pg.Pool({
 });
 
 // ── CH3 Scalp thresholds ─────────────────────────────────────────────────
-const CH3_S_UF_MIN         = 0.70;    // high conviction entry
-const CH3_REQUIRED_DK      = 1;       // directional expansion required
+const CH3_S_UF_MIN         = 0.50;    // moderate conviction entry (works in any market regime)
+const CH3_REQUIRED_DK      = null;    // ANY D_k — scalp works all the time
 const CH3_BAR_COUNT_MIN    = 21;      // established stocks only
 const CH3_POOL_TOTAL       = 5000;    // total scalp pool $
 const CH3_MAX_PER_TRADE    = 2500;    // max $ per scalp
@@ -132,10 +131,9 @@ async function fetchCandidateRows() {
        AND ticker != 'SPY'
        AND CAST(NULLIF(snapshot_row_json->>'bar_count', '') AS INTEGER) > $1
        AND CAST(NULLIF(snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) >= $2
-       AND CAST(NULLIF(snapshot_row_json->>'D_k', '') AS INTEGER) = $3
      ORDER BY CAST(NULLIF(snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) DESC
      LIMIT 10`,
-    [CH3_BAR_COUNT_MIN - 1, CH3_S_UF_MIN, CH3_REQUIRED_DK]
+    [CH3_BAR_COUNT_MIN - 1, CH3_S_UF_MIN]
   );
   return res.rows;
 }
@@ -153,7 +151,7 @@ function parseSignal(row) {
 
   if (!ticker) return null;
   if (sUf === null || sUf < CH3_S_UF_MIN) return null;
-  if (dk !== CH3_REQUIRED_DK) return null;
+  // D_k gate removed — works in any regime
   if (barCount === null || barCount < CH3_BAR_COUNT_MIN) return null;
 
   return {
@@ -208,7 +206,7 @@ export async function getCh3Signals() {
   });
 
   if (available.length === 0) {
-    console.log(`[CH3-SCALP] No candidates found (need S_UF >= ${CH3_S_UF_MIN}, D_k = ${CH3_REQUIRED_DK})`);
+    console.log(`[CH3-SCALP] No candidates found (need S_UF >= ${CH3_S_UF_MIN})`);
     return [];
   }
 
