@@ -48,7 +48,7 @@
 
 ### XADC Limitations
 
-14. **XADC primitive instantiates and runs but DOES NOT read the sensor with VAUXP/VAUXN tied to 0.** The XADC fires EOC continuously and reads 0 ADC (0V). VAUX auxiliary channels are NOT hardwired — they need package pin routing. The April 21 "PROVEN" claim was wrong: it proved the primitive compiles and runs, not that it reads real analog values. See lesson #28. Need to route VAUX3 (AD3P/AD3N) package pins properly.
+14. **Arduino A0 = XADC VAUX1 (AD1P=E17, AD1N=D18), NOT VAUX3.** The original code used channel 0x13 (VAUX3) but the PYNQ-Z2 master XDC (`docs/pynq-z2_v1.0.xdc`) shows `ar_an0_p=E17` with pin name `IO_L3P_T0_DQS_AD1P_35`. The "1" in AD1P means VAUX1, channel 0x11. INIT_40=0x0011, INIT_48=0x0002, DRP addr=0x11. The specs were in the repo the whole time — always check the master XDC first.
 
 15. **XADC `channel_out` is NOT ADC data.** It's a 5-bit channel number indicating which channel was just sampled. The actual ADC data is only accessible through AXI register reads.
 
@@ -96,6 +96,10 @@
 30. **Simulate/validate before deploying to PYNQ.** Run Python simulation of threshold logic before burning a bitstream. Catches bugs in seconds vs. hours of rebuild-upload-test cycles. The April 23 BSIL thresholds were validated in Python simulation and matched hardware exactly on first try after the clean build.
 
 31. **Zip all .v files in Codespace for download.** Downloading 14 files one at a time is error-prone. Use `zip arcloom_hdl.zip *.v` (excluding testbench) and download one file. Extract to Downloads, overwriting old copies.
+
+32. **Always check the PYNQ-Z2 master XDC before guessing pin mappings.** The file is at `docs/pynq-z2_v1.0.xdc (1).zip` in the repo. It has every pin mapping including XADC analog channels. Don't search the web, don't query Vivado Tcl — just read the XDC. The Arduino analog pin mapping (A0=VAUX1, not VAUX3) was wrong for weeks because nobody checked the XDC.
+
+33. **XADC VAUXP/VAUXN tied to 16'b0 may still work** — the physical analog pins are hardwired in silicon on Zynq-7000. The XADC was reading 0V because it was configured for the WRONG channel (VAUX3 instead of VAUX1), not because the pin routing was broken. The fix was changing the channel config registers, not adding PL ports.
 
 ---
 

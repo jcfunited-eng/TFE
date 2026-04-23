@@ -2,7 +2,7 @@
 // ArcLoom XADC DRP Reader — Direct PL Analog Input
 // ============================================================
 //
-// Reads XADC auxiliary channel VAUX3 (Arduino A0 on PYNQ-Z2)
+// Reads XADC auxiliary channel VAUX1 (Arduino A0 on PYNQ-Z2)
 // directly through the Dynamic Reconfiguration Port (DRP).
 //
 // NO ARM involvement. NO AXI. Pure PL hardware path.
@@ -10,8 +10,11 @@
 // The XADC is instantiated directly in the PL fabric using
 // the XADC primitive (XADC #(...) in Zynq-7000).
 //
-// Arduino A0 → PCB resistor divider → XADC VAUX3 (AD3P/AD3N)
+// Arduino A0 → PCB resistor divider → XADC VAUX1 (AD1P=E17/AD1N=D18)
 // → DRP read → 12-bit ADC value → BSIL → SPPU
+//
+// CRITICAL: Arduino A0 = VAUX1 (AD1), NOT VAUX3 (AD3).
+// Source: PYNQ-Z2 master XDC: ar_an0_p=E17 IO_L3P_T0_DQS_AD1P_35
 //
 // Sampling: continuous, free-running at ~1 MSPS (XADC default)
 // Output: 12-bit ADC value + valid pulse on each conversion
@@ -55,7 +58,7 @@ module arcloom_xadc_reader (
         //   [8]    = 0: continuous (not event-driven)
         //   [9]    = 0: unipolar
         //   [11:10]= 00: no averaging
-        .INIT_40(16'h0013),  // Config reg 0: VAUX3 (channel 0x13)
+        .INIT_40(16'h0011),  // Config reg 0: VAUX1 (channel 0x11) — Arduino A0 = AD1, NOT AD3
 
         // INIT_41: Configuration Register 1
         //   [15:12] = 0011: continuous sequence mode
@@ -69,8 +72,8 @@ module arcloom_xadc_reader (
         .INIT_42(16'h0400),  // Config reg 2: DCLK/4
 
         // INIT_48: Sequence register - enable VAUX3 in sequence
-        //   Bit 3 = VAUX3 enable
-        .INIT_48(16'h0008),  // Enable VAUX3 in channel sequencer
+        //   Bit 1 = VAUX1 enable (Arduino A0 = AD1P/AD1N on PYNQ-Z2)
+        .INIT_48(16'h0002),  // Enable VAUX1 in channel sequencer
 
         // INIT_49: Sequence register for VAUX8-15
         .INIT_49(16'h0000),
@@ -156,7 +159,7 @@ module arcloom_xadc_reader (
     // When EOC fires, read the status register for VAUX3
     // VAUX3 status register DRP address = 7'h13
 
-    localparam VAUX3_ADDR = 7'h13;
+    localparam VAUX1_ADDR = 7'h11;  // DRP address for VAUX1 status register
 
     reg [1:0] state;
     localparam IDLE = 2'd0;
@@ -179,8 +182,8 @@ module arcloom_xadc_reader (
             case (state)
                 IDLE: begin
                     if (eoc) begin
-                        // End of conversion — read VAUX3 result
-                        daddr <= VAUX3_ADDR;
+                        // End of conversion — read VAUX1 result
+                        daddr <= VAUX1_ADDR;
                         den   <= 1'b1;
                         dwe   <= 1'b0;
                         state <= WAIT;
