@@ -123,6 +123,11 @@
 - Krimelack commit gating
 - TB6612FNG motor control (all 4 directions)
 - Sensor → loom → motor decision chain (ARM-mediated)
+- **Sensor → XADC → BSIL → SPPU → Motors: FULL HARDWARE CHAIN (April 23, 2026)**
+  - Zero CPU, zero ARM, zero software in the loop
+  - Sharp sensor → XADC VAUX1 (E17/D18) → calibrated BSIL → SPPU decision → TB6612FNG motors
+  - Motors reverse at ~10cm (matches calibrated threshold)
+  - Combinational: sensor change → motor response in nanoseconds
 
 ## What Doesn't Work Yet
 
