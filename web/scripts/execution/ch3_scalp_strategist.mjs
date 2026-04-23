@@ -7,7 +7,7 @@
  * The kernel is NOT modified — this is a new execution path only.
  *
  * Entry conditions (ALL must be true):
- *   1. S_UF >= 0.50          — moderate-to-high conviction (all market regimes)
+ *   1. S_UF >= 0.70          — high conviction (all market regimes)
  *   2. bar_count > 20        — established stock
  *   3. Pool has funds remaining (daily pool not depleted)
  *   4. No existing CH3 position open (one at a time)
@@ -45,7 +45,7 @@ const pool = new pg.Pool({
 });
 
 // ── CH3 Scalp thresholds ─────────────────────────────────────────────────
-const CH3_S_UF_MIN         = 0.50;    // moderate conviction entry (works in any market regime)
+const CH3_S_UF_MIN         = 0.70;    // high conviction entry
 const CH3_REQUIRED_DK      = null;    // ANY D_k — scalp works all the time
 const CH3_BAR_COUNT_MIN    = 21;      // established stocks only
 const CH3_POOL_TOTAL       = 5000;    // total scalp pool $
