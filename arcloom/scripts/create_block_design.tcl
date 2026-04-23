@@ -55,9 +55,30 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 \
               ddr_seg {Auto} intc_ip {New AXI Interconnect} master_apm {0}} \
     [get_bd_intf_pins arcloom_0/S_AXI]
 
+# Route motor drive outputs to Pmod A pins
+create_bd_port -dir O motor_ain1
+create_bd_port -dir O motor_ain2
+create_bd_port -dir O motor_bin1
+create_bd_port -dir O motor_bin2
+connect_bd_net [get_bd_pins arcloom_0/motor_ain1] [get_bd_ports motor_ain1]
+connect_bd_net [get_bd_pins arcloom_0/motor_ain2] [get_bd_ports motor_ain2]
+connect_bd_net [get_bd_pins arcloom_0/motor_bin1] [get_bd_ports motor_bin1]
+connect_bd_net [get_bd_pins arcloom_0/motor_bin2] [get_bd_ports motor_bin2]
+
 # Add XDC constraints for XADC analog pins (no IOSTANDARD for analog)
 set xdc_file [file normalize ${hdl_dir}/arcloom_xadc_pins.xdc]
 set xdc_fh [open $xdc_file w]
+puts $xdc_fh "## Motor drive — Pmod A (TB6612FNG)"
+puts $xdc_fh "## AIN1=pin0, AIN2=pin1, BIN1=pin2, BIN2=pin3"
+puts $xdc_fh "set_property PACKAGE_PIN Y18 \[get_ports motor_ain1\]"
+puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports motor_ain1\]"
+puts $xdc_fh "set_property PACKAGE_PIN Y19 \[get_ports motor_ain2\]"
+puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports motor_ain2\]"
+puts $xdc_fh "set_property PACKAGE_PIN Y16 \[get_ports motor_bin1\]"
+puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports motor_bin1\]"
+puts $xdc_fh "set_property PACKAGE_PIN Y17 \[get_ports motor_bin2\]"
+puts $xdc_fh "set_property IOSTANDARD LVCMOS33 \[get_ports motor_bin2\]"
+puts $xdc_fh ""
 puts $xdc_fh "## XADC VAUX1 analog pins — Arduino A0 on PYNQ-Z2"
 puts $xdc_fh "## From master XDC: ar_an0_p=E17 (AD1P), ar_an0_n=D18 (AD1N)"
 puts $xdc_fh "## No IOSTANDARD — these are dedicated analog pins"

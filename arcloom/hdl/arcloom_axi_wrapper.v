@@ -47,7 +47,13 @@ module arcloom_axi_wrapper #(
     input  wire                                S_AXI_RREADY,
 
     input  wire [15:0] hw_sensor_data,
-    input  wire        hw_sensor_valid
+    input  wire        hw_sensor_valid,
+
+    // Motor drive outputs — directly from SPPU decision (no ARM)
+    output wire        motor_ain1,    // Pmod A pin 0 (Y18)
+    output wire        motor_ain2,    // Pmod A pin 1 (Y19)
+    output wire        motor_bin1,    // Pmod A pin 2 (Y16)
+    output wire        motor_bin2     // Pmod A pin 3 (Y17)
 );
 
     reg  axi_awready, axi_wready, axi_bvalid;
@@ -234,5 +240,18 @@ module arcloom_axi_wrapper #(
                 axi_rvalid <= 1'b0;
         end
     end
+
+    // ---- Motor control — combinational from SPPU decision ----
+    // TB6612FNG: AIN1/AIN2 = motor A, BIN1/BIN2 = motor B
+    //   1,0 = forward | 0,1 = reverse | 0,0 = stop
+    //
+    // Decision mapping:
+    //   steer = +1 (01) → obstacle close → REVERSE both
+    //   steer = null (00) → uncertain → STOP
+    //   steer = -1 (10) → clear → STOP (safe for demo)
+    assign motor_ain1 = 1'b0;                                    // never drive forward
+    assign motor_ain2 = (decision_steer == 2'b01) ? 1'b1 : 1'b0; // reverse when obstacle
+    assign motor_bin1 = 1'b0;
+    assign motor_bin2 = (decision_steer == 2'b01) ? 1'b1 : 1'b0;
 
 endmodule
