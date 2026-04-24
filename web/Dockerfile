@@ -98,6 +98,7 @@ COPY tools/evaluate_recommendation_policy_snapshot.py ./tools/evaluate_recommend
 COPY tools/cp2_quality_audit.py ./tools/cp2_quality_audit.py
 COPY tools/backfill_accumulate_fundamentals.py ./tools/backfill_accumulate_fundamentals.py
 COPY tools/tavily_fundamental_fetcher.py ./tools/tavily_fundamental_fetcher.py
+COPY tools/claude_fundamental_fallback.py ./tools/claude_fundamental_fallback.py
 COPY backups/runtime/recommendation-quality-audit-lane-* ./backups/runtime/
 COPY --from=builder /app/web/data/recommendation-quality-latest.json ./web/data/recommendation-quality-latest.json
 

@@ -528,6 +528,41 @@ def run() -> None:
         elif tavily_already_tried and is_data_missing:
             print(f"  → [TAVILY] Already tried — skipping", flush=True)
 
+        # ── Tier 4: Claude fallback (hardcoded known fundamentals) ───────
+        # Re-check if fields are still missing after Tavily
+        if is_data_missing:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    "SELECT * FROM l5_fundamentals_normalized WHERE ticker = %s",
+                    (ticker,),
+                )
+                db_row_post = cur.fetchone()
+            still_missing = [f for f in REQUIRED_FIELDS if not db_row_post or db_row_post.get(f) is None] if db_row_post else REQUIRED_FIELDS
+
+            if still_missing:
+                try:
+                    from claude_fundamental_fallback import get_fallback_fundamentals
+                    fallback = get_fallback_fundamentals(ticker)
+                    if fallback:
+                        _upsert_fundamentals(conn, ticker, fallback)
+                        # Track source
+                        source_map = {f: "claude_fallback" for f in REQUIRED_FIELDS}
+                        with conn.cursor() as _cur:
+                            _cur.execute("""
+                                UPDATE l5_fundamentals_normalized
+                                SET data_source = COALESCE(data_source, '{}'::jsonb) || %s::jsonb
+                                WHERE ticker = %s
+                            """, (json.dumps(source_map), ticker))
+                        conn.commit()
+                        print(f"  → [CLAUDE] Fallback data written for {ticker}", flush=True)
+                        passed += 1
+                        time.sleep(SLEEP_BETWEEN_TICKERS)
+                        continue
+                except ImportError:
+                    pass
+                except Exception as exc:
+                    print(f"  → [CLAUDE] Fallback error: {exc}", flush=True)
+
         failed += 1
         time.sleep(SLEEP_BETWEEN_TICKERS)
 
