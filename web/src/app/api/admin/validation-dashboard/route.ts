@@ -54,10 +54,16 @@ export async function GET() {
     `);
 
     const closedTrades = closedRes.rows;
-    const wins = closedTrades.filter(r => safeFloat(r.p_l)! > 0);
-    const losses = closedTrades.filter(r => safeFloat(r.p_l)! <= 0);
 
-    const winRate = pct(wins.length, closedTrades.length);
+    // Fence CH3 from CH1/CH2 validation — separate tracks
+    const closedCh1Ch2 = closedTrades.filter(r => (r.signal_class ?? "CH2") !== "CH3");
+    const closedCh3 = closedTrades.filter(r => r.signal_class === "CH3");
+
+    // Primary validation: CH1/CH2 only
+    const wins = closedCh1Ch2.filter(r => safeFloat(r.p_l)! > 0);
+    const losses = closedCh1Ch2.filter(r => safeFloat(r.p_l)! <= 0);
+
+    const winRate = pct(wins.length, closedCh1Ch2.length);
     const avgWinPct = wins.length > 0
       ? wins.reduce((s, r) => s + (safeFloat(r.p_l_pct) ?? 0), 0) / wins.length
       : 0;
@@ -66,11 +72,17 @@ export async function GET() {
       : 0;
 
     // Mathematical Expectancy: E = (W × AvgW) - (L × AvgL)
-    const winRateDecimal = wins.length / Math.max(closedTrades.length, 1);
-    const lossRateDecimal = losses.length / Math.max(closedTrades.length, 1);
+    const winRateDecimal = wins.length / Math.max(closedCh1Ch2.length, 1);
+    const lossRateDecimal = losses.length / Math.max(closedCh1Ch2.length, 1);
     const expectancy = (winRateDecimal * avgWinPct / 100) - (lossRateDecimal * avgLossPct / 100);
 
-    const totalRealizedPL = closedTrades.reduce((s, r) => s + (safeFloat(r.p_l) ?? 0), 0);
+    const totalRealizedPL = closedCh1Ch2.reduce((s, r) => s + (safeFloat(r.p_l) ?? 0), 0);
+
+    // CH3 separate validation track
+    const ch3Wins = closedCh3.filter(r => safeFloat(r.p_l)! > 0);
+    const ch3Losses = closedCh3.filter(r => safeFloat(r.p_l)! <= 0);
+    const ch3WinRate = pct(ch3Wins.length, closedCh3.length);
+    const ch3TotalPL = closedCh3.reduce((s, r) => s + (safeFloat(r.p_l) ?? 0), 0);
 
     // ── Exit breakdown ──────────────────────────────────────────────────
     const exitRes = await pool.query(`
@@ -79,6 +91,7 @@ export async function GET() {
              AVG(CAST(p_l_pct AS NUMERIC)) as avg_pl_pct
       FROM personal_trade_ledger
       WHERE status = 'closed' AND exit_reason IS NOT NULL
+        AND (signal_class IS NULL OR signal_class != 'CH3')
       GROUP BY exit_reason
       ORDER BY cnt DESC
     `);
@@ -209,19 +222,28 @@ export async function GET() {
         value: Math.round(expectancy * 100000) / 100000,
         target: 0.052,
         threshold: 0.02,
-        status: closedTrades.length < 10
+        status: closedCh1Ch2.length < 10
           ? "insufficient_data"
           : expectancy >= 0.052 ? "exceeds_target"
           : expectancy >= 0.02 ? "above_threshold"
           : expectancy > 0 ? "positive_but_below_threshold"
           : "negative",
-        closed_trades: closedTrades.length,
+        note: "CH1/CH2 only — CH3 reported separately",
+        closed_trades: closedCh1Ch2.length,
         win_rate: winRate,
         avg_win_pct: Math.round(avgWinPct * 100) / 100,
         avg_loss_pct: Math.round(avgLossPct * 100) / 100,
         total_realized_pl: Math.round(totalRealizedPL * 100) / 100,
         wins: wins.length,
         losses: losses.length,
+      },
+      ch3_validation: {
+        note: "CH3 (Scalp) — separate development track, not part of primary validation",
+        closed_trades: closedCh3.length,
+        win_rate: ch3WinRate,
+        wins: ch3Wins.length,
+        losses: ch3Losses.length,
+        total_realized_pl: Math.round(ch3TotalPL * 100) / 100,
       },
       exits: exitRes.rows.map(r => ({
         reason: r.exit_reason,

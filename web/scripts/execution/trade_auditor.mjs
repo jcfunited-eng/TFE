@@ -125,19 +125,23 @@ async function buildReport() {
 
   const rows = res.rows;
 
+  // Fence CH3 from primary validation — separate track
+  const ch1ch2 = rows.filter(r => (r.signal_class ?? "CH2") !== "CH3");
+  const ch3 = rows.filter(r => r.signal_class === "CH3");
+
   const summary = {
-    total_signals:   rows.length,
-    executed:        rows.filter(r => !["rejected"].includes(r.status)).length,
-    rejected:        rows.filter(r => r.status === "rejected").length,
-    open:            rows.filter(r => ["submitted","filled"].includes(r.status)).length,
-    closed:          rows.filter(r => r.status === "closed").length,
-    total_pl:        rows.reduce((s, r) => s + (parseFloat(r.p_l) || 0), 0),
-    wins:            rows.filter(r => parseFloat(r.p_l) > 0).length,
-    losses:          rows.filter(r => parseFloat(r.p_l) < 0).length,
+    total_signals:   ch1ch2.length,
+    executed:        ch1ch2.filter(r => !["rejected"].includes(r.status)).length,
+    rejected:        ch1ch2.filter(r => r.status === "rejected").length,
+    open:            ch1ch2.filter(r => ["submitted","filled"].includes(r.status)).length,
+    closed:          ch1ch2.filter(r => r.status === "closed").length,
+    total_pl:        ch1ch2.reduce((s, r) => s + (parseFloat(r.p_l) || 0), 0),
+    wins:            ch1ch2.filter(r => parseFloat(r.p_l) > 0).length,
+    losses:          ch1ch2.filter(r => parseFloat(r.p_l) < 0).length,
     exit_reasons:    {},
   };
 
-  for (const r of rows.filter(r => r.exit_reason)) {
+  for (const r of ch1ch2.filter(r => r.exit_reason)) {
     summary.exit_reasons[r.exit_reason] = (summary.exit_reasons[r.exit_reason] ?? 0) + 1;
   }
 
@@ -145,7 +149,24 @@ async function buildReport() {
     ? ((summary.wins / (summary.wins + summary.losses)) * 100).toFixed(1) + "%"
     : "n/a";
 
-  return { summary: { ...summary, win_rate }, rows };
+  // CH3 separate summary
+  const ch3_closed = ch3.filter(r => r.status === "closed");
+  const ch3_wins = ch3_closed.filter(r => parseFloat(r.p_l) > 0).length;
+  const ch3_losses = ch3_closed.filter(r => parseFloat(r.p_l) < 0).length;
+  const ch3_summary = {
+    note: "CH3 (Scalp) — separate development track",
+    total_signals: ch3.length,
+    open: ch3.filter(r => ["submitted","filled"].includes(r.status)).length,
+    closed: ch3_closed.length,
+    wins: ch3_wins,
+    losses: ch3_losses,
+    total_pl: ch3_closed.reduce((s, r) => s + (parseFloat(r.p_l) || 0), 0),
+    win_rate: ch3_wins + ch3_losses > 0
+      ? ((ch3_wins / (ch3_wins + ch3_losses)) * 100).toFixed(1) + "%"
+      : "n/a",
+  };
+
+  return { summary: { ...summary, win_rate }, ch3_summary, rows };
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────

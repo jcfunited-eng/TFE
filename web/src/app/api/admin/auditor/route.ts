@@ -129,19 +129,24 @@ export async function GET(request: NextRequest) {
     );
     const all = allRes.rows;
 
+    // Fence CH3 from primary validation — separate track
+    const ch1ch2 = all.filter(r => (r.signal_class ?? "CH2") !== "CH3");
+    const ch3 = all.filter(r => r.signal_class === "CH3");
+
     const summary = {
-      total:      all.length,
-      open:       all.filter(r => ["submitted","filled"].includes(r.status)).length,
-      closed:     all.filter(r => r.status === "closed").length,
-      rejected:   all.filter(r => r.status === "rejected").length,
-      wins:       all.filter(r => parseFloat(r.p_l) > 0).length,
-      losses:     all.filter(r => parseFloat(r.p_l) < 0).length,
-      total_pl:   all.reduce((s, r) => s + (parseFloat(r.p_l) || 0), 0),
+      note:       "CH1/CH2 only — CH3 reported separately",
+      total:      ch1ch2.length,
+      open:       ch1ch2.filter(r => ["submitted","filled"].includes(r.status)).length,
+      closed:     ch1ch2.filter(r => r.status === "closed").length,
+      rejected:   ch1ch2.filter(r => r.status === "rejected").length,
+      wins:       ch1ch2.filter(r => parseFloat(r.p_l) > 0).length,
+      losses:     ch1ch2.filter(r => parseFloat(r.p_l) < 0).length,
+      total_pl:   ch1ch2.reduce((s, r) => s + (parseFloat(r.p_l) || 0), 0),
       exit_reasons: {} as Record<string, number>,
       by_signal_class: {} as Record<string, number>,
     };
 
-    for (const r of all) {
+    for (const r of ch1ch2) {
       if (r.exit_reason) {
         summary.exit_reasons[r.exit_reason] = (summary.exit_reasons[r.exit_reason] ?? 0) + 1;
       }
@@ -153,6 +158,22 @@ export async function GET(request: NextRequest) {
     const wl = summary.wins + summary.losses;
     const win_rate = wl > 0 ? ((summary.wins / wl) * 100).toFixed(1) + "%" : "n/a";
 
+    // CH3 separate validation track
+    const ch3Closed = ch3.filter(r => r.status === "closed");
+    const ch3Wins = ch3Closed.filter(r => parseFloat(r.p_l) > 0).length;
+    const ch3Losses = ch3Closed.filter(r => parseFloat(r.p_l) < 0).length;
+    const ch3WL = ch3Wins + ch3Losses;
+    const ch3_summary = {
+      note: "CH3 (Scalp) — separate development track",
+      total: ch3.length,
+      open: ch3.filter(r => ["submitted","filled"].includes(r.status)).length,
+      closed: ch3Closed.length,
+      wins: ch3Wins,
+      losses: ch3Losses,
+      total_pl: ch3Closed.reduce((s, r) => s + (parseFloat(r.p_l) || 0), 0),
+      win_rate: ch3WL > 0 ? ((ch3Wins / ch3WL) * 100).toFixed(1) + "%" : "n/a",
+    };
+
     return NextResponse.json({
       rows:           ledgerRes.rows,
       totalRows,
@@ -161,6 +182,7 @@ export async function GET(request: NextRequest) {
       stealth:        stealthRows,
       circuitBreaker,
       summary:        { ...summary, win_rate },
+      ch3_summary,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

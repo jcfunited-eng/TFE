@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
         ticker: string;
         shares: number;
         status: string;
+        signal_class: string | null;
         entry_filled_price: string | null;
         exit_filled_price: string | null;
         dollar_allocation: string | null;
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
         exit_reason: string | null;
         signal_detected_at: string;
       }>(
-        `SELECT id, ticker, shares, status,
+        `SELECT id, ticker, shares, status, signal_class,
                 entry_filled_price, exit_filled_price, dollar_allocation,
                 p_l, p_l_pct, exit_reason, signal_detected_at
          FROM personal_trade_ledger
@@ -105,12 +106,14 @@ export async function GET(request: NextRequest) {
       totalInvested += entry * shares;
     }
 
-    // Realized P&L from closed trades
+    // Realized P&L from all closed trades (total portfolio view)
     const totalRealized = closedTrades.reduce((sum, r) => sum + (parseFloat(r.p_l ?? "0") || 0), 0);
     const totalPl = totalRealized + totalUnrealized;
 
-    const wins = closedTrades.filter(r => (parseFloat(r.p_l ?? "0") || 0) > 0).length;
-    const losses = closedTrades.filter(r => (parseFloat(r.p_l ?? "0") || 0) < 0).length;
+    // Win rate: fence CH3 from primary validation
+    const closedCh1Ch2 = closedTrades.filter(r => r.signal_class !== "CH3");
+    const wins = closedCh1Ch2.filter(r => (parseFloat(r.p_l ?? "0") || 0) > 0).length;
+    const losses = closedCh1Ch2.filter(r => (parseFloat(r.p_l ?? "0") || 0) < 0).length;
     const winRate = wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(1) + "%" : "n/a";
 
     const exitReasons: Record<string, number> = {};
