@@ -45,6 +45,7 @@ web/tsconfig.tsbuildinfo
 !tools/cp2_quality_audit.py
 !tools/evaluate_recommendation_policy_snapshot.py
 !tools/backfill_accumulate_fundamentals.py
+!tools/tavily_fundamental_fetcher.py
 !backups/runtime/oracle_program/
 !backups/runtime/oracle_program/**
 !backups/runtime/l5_policy_learning/
