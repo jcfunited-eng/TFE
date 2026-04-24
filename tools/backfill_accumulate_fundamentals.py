@@ -18,6 +18,7 @@ This is a data plumbing job. No logic changes. No ML.
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 import time
@@ -265,6 +266,115 @@ def _load_tavily_fetcher():
         return None
 
 
+def _fix_unknown_sectors(conn, polygon_key: str) -> int:
+    """Fix all Accumulate tickers with Unknown/NULL sector.
+
+    Sector is public knowledge. There is zero reason for it to be Unknown.
+    Chain: Polygon SIC → Yahoo Finance → hardcoded fallback.
+    """
+    import requests
+
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("""
+            SELECT r.ticker
+            FROM runtime_decisions_latest r
+            LEFT JOIN l5_fundamentals_normalized f ON f.ticker = r.ticker
+            WHERE r.decision_label = 'Accumulate'
+              AND (f.sector IS NULL OR TRIM(f.sector) = '' OR f.sector = 'Unknown')
+            ORDER BY r.ticker
+        """)
+        unknown = [dict(r)["ticker"] for r in cur.fetchall()]
+
+    if not unknown:
+        return 0
+
+    print(f"[backfill_sectors] {len(unknown)} Accumulate tickers have Unknown sector.", flush=True)
+
+    session = requests.Session()
+    fixed = 0
+
+    for ticker in unknown:
+        sector = None
+
+        # Tier 1: Polygon SIC description
+        try:
+            resp = session.get(
+                f"https://api.polygon.io/v3/reference/tickers/{ticker}",
+                params={"apiKey": polygon_key},
+                timeout=10,
+            )
+            if resp.status_code == 200:
+                data = resp.json().get("results", {})
+                sector = (data.get("sic_description") or "").strip()
+        except Exception:
+            pass
+
+        # Tier 2: Yahoo Finance
+        if not sector:
+            try:
+                import yfinance as yf
+                info = yf.Ticker(ticker).info
+                sector = (info.get("sector") or info.get("industry") or "").strip()
+            except Exception:
+                pass
+
+        # Tier 3: Tavily
+        if not sector:
+            try:
+                tavily_key = os.environ.get("TAVILY_API_KEY", "").strip()
+                if not tavily_key:
+                    import boto3
+                    sm_client = boto3.client("secretsmanager", region_name=os.environ.get("AWS_REGION", "us-east-1"))
+                    sec = sm_client.get_secret_value(SecretId="tfe/tavily/prod")
+                    tavily_key = json.loads(sec["SecretString"]).get("TAVILY_API_KEY", "")
+                if tavily_key:
+                    resp = session.post(
+                        "https://api.tavily.com/search",
+                        json={"query": f"{ticker} stock sector industry", "max_results": 1,
+                              "include_answer": "basic", "topic": "finance"},
+                        headers={"Authorization": f"Bearer {tavily_key}"},
+                        timeout=15,
+                    )
+                    if resp.status_code == 200:
+                        answer = (resp.json().get("answer") or "").strip()
+                        # Look for common sector names in the answer
+                        for s in ["Technology", "Healthcare", "Health Care", "Financial",
+                                  "Consumer Discretionary", "Consumer Staples", "Energy",
+                                  "Industrials", "Materials", "Real Estate", "Utilities",
+                                  "Communication Services", "Information Technology",
+                                  "Aerospace", "Defense", "Pharmaceutical", "Biotechnology",
+                                  "Semiconductor", "Software", "Banking", "Insurance",
+                                  "Oil & Gas", "Retail", "Automotive", "Telecommunications"]:
+                            if s.lower() in answer.lower():
+                                sector = s
+                                break
+            except Exception:
+                pass
+
+        if sector:
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        INSERT INTO l5_fundamentals_normalized (ticker, sector, updated_at)
+                        VALUES (%s, %s, NOW())
+                        ON CONFLICT (ticker) DO UPDATE SET
+                            sector = EXCLUDED.sector, updated_at = NOW()
+                        WHERE l5_fundamentals_normalized.sector IS NULL
+                           OR l5_fundamentals_normalized.sector = 'Unknown'
+                           OR TRIM(l5_fundamentals_normalized.sector) = ''
+                    """, (ticker, sector))
+                conn.commit()
+                fixed += 1
+                print(f"  [SECTOR] {ticker} → {sector}", flush=True)
+            except Exception as exc:
+                print(f"  [SECTOR] {ticker} DB write failed: {exc}", flush=True)
+
+        time.sleep(0.15)
+
+    print(f"[backfill_sectors] Fixed {fixed}/{len(unknown)} sectors.", flush=True)
+    return fixed
+
+
 def run() -> None:
     polygon_key = os.environ.get("MASSIVE_API_KEY") or os.environ.get("POLYGON_API_KEY")
     if not polygon_key:
@@ -278,6 +388,9 @@ def run() -> None:
 
     conn = _connect()
     _ensure_extra_columns(conn)
+
+    # Fix sectors FIRST — sector=Unknown blocks Recommends display
+    _fix_unknown_sectors(conn, polygon_key)
 
     missing = _get_missing_tickers(conn)
     total = len(missing)
