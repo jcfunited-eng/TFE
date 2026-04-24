@@ -8,6 +8,7 @@
  */
 
 import { runSentinel, closeSentinelPool } from "./sentinel_monitor.mjs";
+import { runEntryTimingCheck, closeEntryTimingPool } from "./entry_timing_watcher.mjs";
 
 const POLL_INTERVAL_MS  = 5 * 60 * 1000;  // 5 minutes
 const MARKET_OPEN_UTC_H  = 13;  // 9:30 ET = 13:30 UTC
@@ -46,6 +47,13 @@ async function main() {
       } catch (err) {
         console.error(`[SENTINEL-DAEMON] Error: ${err.message}`);
       }
+
+      // Real-time entry timing: check primed tickers for entry opportunities
+      try {
+        await runEntryTimingCheck();
+      } catch (err) {
+        console.error(`[ENTRY-TIMING] Error: ${err.message}`);
+      }
     } else {
       console.log(`[SENTINEL-DAEMON] Outside market hours — sleeping.`);
     }
@@ -54,6 +62,7 @@ async function main() {
   }
 
   await closeSentinelPool();
+  await closeEntryTimingPool();
   console.log("[SENTINEL-DAEMON] Stopped.");
 }
 
