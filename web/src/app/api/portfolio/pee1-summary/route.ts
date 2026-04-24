@@ -128,6 +128,11 @@ export async function GET(request: NextRequest) {
     // Try to get Alpaca account equity for validation
     const alpacaAccount = await fetchAlpacaAccount(executionMode);
 
+    // Realized P&L split: CH1/CH2 vs CH3
+    const realizedCh1Ch2 = closedCh1Ch2.reduce((sum, r) => sum + (parseFloat(r.p_l ?? "0") || 0), 0);
+    const closedCh3 = closedTrades.filter(r => r.signal_class === "CH3");
+    const realizedCh3 = closedCh3.reduce((sum, r) => sum + (parseFloat(r.p_l ?? "0") || 0), 0);
+
     return NextResponse.json({
       funded_amount: fundedAmount,
       cash_on_hand: Math.round(cashOnHand * 100) / 100,
@@ -136,13 +141,18 @@ export async function GET(request: NextRequest) {
       total_pl: Math.round(totalPl * 100) / 100,
       total_pl_pct: totalPlPct !== null ? Math.round(totalPlPct * 100) / 100 : null,
       total_realized: Math.round(totalRealized * 100) / 100,
+      total_realized_ch1ch2: Math.round(realizedCh1Ch2 * 100) / 100,
+      total_realized_ch3: Math.round(realizedCh3 * 100) / 100,
       total_unrealized: Math.round(totalUnrealized * 100) / 100,
       open_positions: openTrades.length,
       total_trades: ledgerRes.rows.length,
       closed_trades: closedTrades.length,
+      closed_trades_ch1ch2: closedCh1Ch2.length,
+      closed_trades_ch3: closedCh3.length,
       wins,
       losses,
       win_rate: winRate,
+      win_rate_note: "CH1/CH2 only — CH3 on separate track",
       exit_reasons: exitReasons,
       execution_mode: executionMode,
       auto_tfe_enabled: configMap.auto_tfe_enabled === "true",
