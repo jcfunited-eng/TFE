@@ -44,16 +44,19 @@ const pool = new pg.Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-// ── CH3 Scalp thresholds ─────────────────────────────────────────────────
+// ── CH3 thresholds ───────────────────────────────────────────────────────
 const CH3_S_UF_MIN         = 0.70;    // high conviction entry
-const CH3_REQUIRED_DK      = null;    // ANY D_k — scalp works all the time
+const CH3_REQUIRED_DK      = null;    // ANY D_k — works in all regimes
 const CH3_BAR_COUNT_MIN    = 21;      // established stocks only
-const CH3_POOL_TOTAL       = 5000;    // total scalp pool $
-const CH3_MAX_PER_TRADE    = 2500;    // max $ per scalp
+const CH3_POOL_TOTAL       = 5000;    // total CH3 pool $
+const CH3_MAX_PER_TRADE    = 2500;    // max $ per trade
 // Stops are ATR-based, computed per-trade in alpaca_bridge:
 //   Take profit: entry + 1.0 × ATR-14
 //   Stop loss:   entry - 0.5 × ATR-14
-const CH3_TIME_LIMIT_HOURS = 4;       // close after 4 hours
+// NO TIME LIMIT — hold until bracket resolves (TP or SL).
+// The structural move plays out on its own timeline.
+// One position at a time — don't stack until current resolves.
+const CH3_TIME_LIMIT_HOURS = null;    // REMOVED — bracket decides, not a clock
 const CH3_DAILY_LOSS_LIMIT = 1000;    // stop after $1K daily loss
 
 function toFloat(v) {
@@ -244,10 +247,10 @@ export async function getCh3Signals() {
 }
 
 /**
- * CH3 exit thresholds — exported for sentinel to use.
+ * CH3 config — exported for sentinel to use.
  */
 export const CH3_CONFIG = {
-  TIME_LIMIT_HOURS: CH3_TIME_LIMIT_HOURS,
+  TIME_LIMIT_HOURS: null,  // no time limit — bracket decides
   DAILY_LOSS_LIMIT: CH3_DAILY_LOSS_LIMIT,
 };
 

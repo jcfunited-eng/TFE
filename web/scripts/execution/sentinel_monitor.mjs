@@ -476,10 +476,11 @@ export async function runSentinel() {
       continue;
     }
 
-    // ── Chapter 3 — Scalp "Smash and Grab" exit logic ───────────────────
+    // ── Chapter 3 — exit logic ──────────────────────────────────────────
     if (signalClass === "CH3") {
       // CH3 uses bracket orders — Alpaca enforces TP/SL in real-time.
-      // Sentinel only handles: time limit + detecting bracket exits.
+      // NO TIME LIMIT — hold until bracket resolves.
+      // The structural move plays out on its own timeline.
       try {
         // Check if bracket already closed this position
         const alpacaPos = await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE).catch(() => null);
@@ -495,17 +496,6 @@ export async function runSentinel() {
         const currentPrice = parseFloat(alpacaPos?.current_price ?? "0");
         const entryPrice   = parseFloat(alpacaPos?.avg_entry_price ?? "0");
         const plPct        = entryPrice > 0 ? (currentPrice - entryPrice) / entryPrice : 0;
-
-        // Exit TIME — 4 hours (only exit sentinel manages)
-        const entryTime = pos.entry_filled_at ? new Date(pos.entry_filled_at) : null;
-        if (entryTime) {
-          const hoursHeld = (Date.now() - entryTime.getTime()) / (1000 * 60 * 60);
-          if (hoursHeld >= 4) {
-            console.log(`[SENTINEL] CH3 TIMEOUT ${pos.ticker} | held ${hoursHeld.toFixed(1)}h — time limit`);
-            await killPosition(pos, "ch3_scalp_time_limit", ALPACA_BASE);
-            continue;
-          }
-        }
 
         const tpPrice = parseFloat(pos.take_profit_price ?? "0");
         const slPrice = parseFloat(pos.stop_loss_price ?? "0");
