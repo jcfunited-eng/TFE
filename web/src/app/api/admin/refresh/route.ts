@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { randomUUID, timingSafeEqual } from "node:crypto";
-import { closeSync, openSync } from "node:fs";
+import { createWriteStream } from "node:fs";
 import { readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
@@ -3091,13 +3091,12 @@ async function launchRefreshProcess(params: {
   const runId = String(params.preferredRunId ?? "").trim() || randomUUID();
 
   try {
-    const logFd = openSync(LOG_PATH, "a");
     const startedAtIso = nowIso();
 
     const child = spawn(pythonBin, args, {
       cwd: ROOT_DIR,
       detached: true,
-      stdio: ["ignore", logFd, logFd],
+      stdio: ["ignore", "pipe", "pipe"],
       env: {
         ...buildRefreshEnv(params.modeValue, process.env),
         PYTHONUNBUFFERED: String(process.env.PYTHONUNBUFFERED ?? "1"),
@@ -3110,7 +3109,23 @@ async function launchRefreshProcess(params: {
       },
     });
 
-    closeSync(logFd);
+    // Tee child stdout/stderr to both the log file AND container stdout
+    // so CloudWatch captures refresh pipeline output.
+    const logStream = createWriteStream(LOG_PATH, { flags: "a" });
+    if (child.stdout) {
+      child.stdout.on("data", (chunk: Buffer) => {
+        logStream.write(chunk);
+        process.stdout.write(chunk);
+      });
+    }
+    if (child.stderr) {
+      child.stderr.on("data", (chunk: Buffer) => {
+        logStream.write(chunk);
+        process.stderr.write(chunk);
+      });
+    }
+    child.once("exit", () => { logStream.end(); });
+
     child.unref();
 
     try {

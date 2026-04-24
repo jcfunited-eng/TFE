@@ -147,6 +147,23 @@ echo "[TFE-STARTUP] Refresh daemon started (PID $!)."
 PGSSLMODE=require node /app/web/scripts/execution/sentinel_daemon.mjs &
 echo "[TFE-STARTUP] Sentinel daemon started (PID $!)."
 
+# Step 3c: Run fundamentals backfill after startup.
+# The backfill populates l5_fundamentals_normalized for Accumulate tickers.
+# It is normally a post-refresh step, but the refresh may crash before
+# reaching it.  This standalone run ensures the table is populated even if
+# the refresh pipeline has issues.  Waits 3 min for Next.js + any catch-up
+# refresh to start, then runs once.  Safe to overlap with refresh — it only
+# reads runtime_decisions_latest and upserts fundamentals.
+(
+  sleep 180
+  echo "[TFE-BACKFILL] Starting standalone fundamentals backfill..."
+  cd /app
+  PGSSLMODE=require python3 tools/backfill_accumulate_fundamentals.py 2>&1 \
+    && echo "[TFE-BACKFILL] Backfill completed successfully." \
+    || echo "[TFE-BACKFILL] Backfill failed (non-fatal)."
+) &
+echo "[TFE-STARTUP] Fundamentals backfill scheduled (PID $!, fires in 3 min)."
+
 # Step 4: Start Next.js (foreground — this is PID 1)
 echo "[TFE-STARTUP] Starting Next.js..."
 cd /app/web

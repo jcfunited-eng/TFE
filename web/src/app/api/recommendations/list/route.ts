@@ -42,6 +42,8 @@ type RecommendationRow = {
 
 type RecommendationsPayload = {
   totalAccumulate: number;
+  totalAccumulateInDb: number;
+  filteredOutMissingFundamentals: number;
   buckets: {
     titans: RecommendationRow[];
     heavyweights: RecommendationRow[];
@@ -164,7 +166,7 @@ async function querySpyWaveActive(pool: ReturnType<typeof resolveRuntimePostgres
   }
 }
 
-async function loadAccumulateRows(): Promise<RecommendationRow[]> {
+async function loadAccumulateRows(): Promise<{ filtered: RecommendationRow[]; totalDbRows: number }> {
   const query = `
     SELECT
       r.ticker,
@@ -223,16 +225,25 @@ async function loadAccumulateRows(): Promise<RecommendationRow[]> {
     querySpyWaveActive(pool),
   ]);
   const rows: RecommendationRow[] = [];
+  let filteredOutCount = 0;
   for (const row of result.rows) {
     const mapped = toRecommendationRow(row, spyWaveActive);
     if (mapped) rows.push(mapped);
+    else filteredOutCount++;
   }
-  return sortByMarketCap(rows);
+  if (filteredOutCount > 0) {
+    console.warn(
+      `[RECOMMENDS] ${filteredOutCount} of ${result.rows.length} Accumulate tickers filtered out (missing fundamentals or sector). ${rows.length} passed.`,
+    );
+  }
+  return { filtered: sortByMarketCap(rows), totalDbRows: result.rows.length };
 }
 
-function buildPayload(rows: RecommendationRow[]): RecommendationsPayload {
+function buildPayload(rows: RecommendationRow[], totalDbRows?: number): RecommendationsPayload {
   return {
     totalAccumulate: rows.length,
+    totalAccumulateInDb: totalDbRows ?? rows.length,
+    filteredOutMissingFundamentals: (totalDbRows ?? rows.length) - rows.length,
     buckets: {
       titans: rows.filter((row) => row.marketCap >= 200_000_000_000),
       heavyweights: rows.filter((row) => row.marketCap >= 50_000_000_000 && row.marketCap < 200_000_000_000),
@@ -250,7 +261,7 @@ export async function GET(request: Request) {
 
   try {
     const rows = await loadAccumulateRows();
-    return NextResponse.json(buildPayload(rows));
+    return NextResponse.json(buildPayload(rows.filtered, rows.totalDbRows));
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown recommendations load error.";
     return NextResponse.json({ error: message }, { status: 500 });

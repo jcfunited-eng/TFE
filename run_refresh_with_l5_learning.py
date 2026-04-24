@@ -1374,7 +1374,9 @@ def main() -> int:
         _mod.run_audit()
         print("[REFRESH+CP2] Quality audit JSON regenerated.", flush=True)
     except Exception as _qa_exc:
+        import traceback as _tb_qa
         print(f"[REFRESH+CP2] Quality audit step failed (non-fatal): {_qa_exc}", flush=True)
+        _tb_qa.print_exc()
 
     # CP-2: Fill financial data gaps for Accumulate tickers after every
     # successful refresh.  This runs as a best-effort step — failures are
@@ -1389,7 +1391,9 @@ def main() -> int:
         _mod2.run()
         print("[REFRESH+CP2] Fundamentals gap-fill complete.", flush=True)
     except Exception as _bf_exc:
+        import traceback as _tb_bf
         print(f"[REFRESH+CP2] Fundamentals gap-fill failed (non-fatal): {_bf_exc}", flush=True)
+        _tb_bf.print_exc()
 
     _clear_resume_checkpoint(mode=mode, reason="completed_successfully")
 
@@ -1400,10 +1404,12 @@ def main() -> int:
         _pee1_script = _pl3.Path(__file__).resolve().parent / "web" / "scripts" / "execution" / "pee1_runner.mjs"
         _node_bin = __import__("os").environ.get("TFE_NODE_BIN", "node")
         _env = {**__import__("os").environ, "PGSSLMODE": "require"}
-        _pee1 = _sp.Popen([_node_bin, str(_pee1_script)], env=_env, stdin=_sp.DEVNULL, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL, start_new_session=True)
+        _pee1 = _sp.Popen([_node_bin, str(_pee1_script)], env=_env, stdin=_sp.DEVNULL, stdout=None, stderr=None, start_new_session=True)
         print(f"[REFRESH+PEE1] Execution engine launched (pid={_pee1.pid}).", flush=True)
     except Exception as _pee1_exc:
+        import traceback as _tb_pee1
         print(f"[REFRESH+PEE1] Failed to launch execution engine (non-fatal): {_pee1_exc}", flush=True)
+        _tb_pee1.print_exc()
 
     return 0
 
