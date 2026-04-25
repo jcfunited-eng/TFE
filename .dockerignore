@@ -57,6 +57,10 @@ web/tsconfig.tsbuildinfo
 !tfe_ses_core_adapter.py
 !aws_root_key_provider.py
 !tfe_fundamental_fetcher.py
+!tfe_epoch_library.py
+!tfe_epoch_auto_severity.py
+!information_event_registry_v1.json
+!sector_sphere_coupling_registry_v1.json
 !bar_cache.py
 !rebuild_uf_snapshot.py
 !tfe_snapshot_restore.py

@@ -105,6 +105,10 @@ COPY --from=builder /app/web/data/recommendation-quality-latest.json ./web/data/
 COPY tfe_ses_core_adapter.py ./tfe_ses_core_adapter.py
 COPY aws_root_key_provider.py ./aws_root_key_provider.py
 COPY tfe_fundamental_fetcher.py ./tfe_fundamental_fetcher.py
+COPY tfe_epoch_library.py ./tfe_epoch_library.py
+COPY tfe_epoch_auto_severity.py ./tfe_epoch_auto_severity.py
+COPY information_event_registry_v1.json ./information_event_registry_v1.json
+COPY sector_sphere_coupling_registry_v1.json ./sector_sphere_coupling_registry_v1.json
 
 COPY bar_cache.py ./bar_cache.py
 COPY rebuild_uf_snapshot.py ./rebuild_uf_snapshot.py
