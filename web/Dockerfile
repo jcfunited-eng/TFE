@@ -107,6 +107,7 @@ COPY aws_root_key_provider.py ./aws_root_key_provider.py
 COPY tfe_fundamental_fetcher.py ./tfe_fundamental_fetcher.py
 COPY tfe_epoch_library.py ./tfe_epoch_library.py
 COPY tfe_epoch_auto_severity.py ./tfe_epoch_auto_severity.py
+COPY tfe_g32_coordinator.py ./tfe_g32_coordinator.py
 COPY information_event_registry_v1.json ./information_event_registry_v1.json
 COPY sector_sphere_coupling_registry_v1.json ./sector_sphere_coupling_registry_v1.json
 

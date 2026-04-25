@@ -59,6 +59,7 @@ web/tsconfig.tsbuildinfo
 !tfe_fundamental_fetcher.py
 !tfe_epoch_library.py
 !tfe_epoch_auto_severity.py
+!tfe_g32_coordinator.py
 !information_event_registry_v1.json
 !sector_sphere_coupling_registry_v1.json
 !bar_cache.py

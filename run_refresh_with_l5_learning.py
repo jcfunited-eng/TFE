@@ -1362,6 +1362,23 @@ def main() -> int:
         "resume_checkpoint_used": resumed_from_checkpoint,
     })
 
+    # G32: Update epoch mosaic with live market data.
+    # The G32 coordinator maintains the epoch field that L5 governance uses
+    # for sector pressure computation. Runs every refresh to keep the mosaic
+    # current. Non-fatal — fallback severities used if market data unavailable.
+    try:
+        from tfe_g32_coordinator import G32Coordinator
+        from tfe_epoch_auto_severity import load_live_epochs
+        _g32 = G32Coordinator()
+        _live_epochs = load_live_epochs()
+        _g32_state = _g32.update(_live_epochs)
+        _delta = _g32.compute_epoch_delta_signal()
+        print(f"[REFRESH+G32] Epoch mosaic updated. Phase: {_delta['phase']} | Delta: {_delta['delta_magnitude']:.4f}", flush=True)
+    except Exception as _g32_exc:
+        import traceback as _tb_g32
+        print(f"[REFRESH+G32] Epoch update failed (non-fatal): {_g32_exc}", flush=True)
+        _tb_g32.print_exc()
+
     # CP-2: Regenerate quality audit JSON after every successful refresh so the
     # Admin UI never shows stale or zombie PSCF content.  This runs as a
     # best-effort step — failures are logged but do not abort the pipeline.
