@@ -93,9 +93,125 @@ def read_loom():
     }
 
 
+def bt_encode(n, digits=4):
+    """Encode integer to balanced ternary."""
+    trits = []
+    neg = n < 0
+    n = abs(n)
+    for _ in range(digits):
+        r = n % 3
+        if r == 2:
+            trits.append(0b10)
+            n += 1
+        elif r == 1:
+            trits.append(0b01)
+        else:
+            trits.append(0b00)
+        n //= 3
+    result = 0
+    for i, t in enumerate(trits):
+        result |= (t << (2 * i))
+    if neg:
+        nr = 0
+        for i in range(digits):
+            t = (result >> (2*i)) & 0x3
+            if t == 0b01: t = 0b10
+            elif t == 0b10: t = 0b01
+            nr |= (t << (2*i))
+        return nr
+    return result
+
+def bt_decode(val, digits=4):
+    """Decode balanced ternary to integer."""
+    n = 0
+    power = 1
+    for i in range(digits):
+        t = (val >> (2*i)) & 0x3
+        if t == 0b01: n += power
+        elif t == 0b10: n -= power
+        power *= 3
+    return n
+
+def bt_trits(val, digits=4):
+    """Get trit list for display."""
+    out = []
+    for i in range(digits):
+        t = (val >> (2*i)) & 0x3
+        if t == 0b01: out.append("+1")
+        elif t == 0b10: out.append("-1")
+        else: out.append("0")
+    return out
+
+
 @app.route('/api/loom')
 def api_loom():
     return jsonify(read_loom())
+
+
+@app.route('/api/calc')
+def api_calc():
+    """Hardware calculator — sends math to FPGA, returns result."""
+    from flask import request
+    a = int(request.args.get('a', 0))
+    b = int(request.args.get('b', 0))
+    op = request.args.get('op', 'add')
+
+    # Range check: 4-trit BT = -40 to +40
+    if abs(a) > 40 or abs(b) > 40:
+        return jsonify({"error": "Range: -40 to +40 (4-trit balanced ternary)"})
+
+    a_bt = bt_encode(a)
+    b_bt = bt_encode(b)
+
+    import time
+
+    if op == 'add':
+        arcloom.write(0x04, a_bt)
+        arcloom.write(0x08, b_bt)
+        time.sleep(0.01)
+        raw = arcloom.read(0x08)
+        result = bt_decode(raw & 0xFF)
+        return jsonify({
+            "a": a, "b": b, "op": "+", "result": result,
+            "a_bt": bt_trits(a_bt), "b_bt": bt_trits(b_bt),
+            "result_bt": bt_trits(raw & 0xFF),
+            "hardware": True
+        })
+
+    elif op == 'mul':
+        arcloom.write(0x04, a_bt)
+        arcloom.write(0x08, b_bt)
+        time.sleep(0.01)
+        raw = arcloom.read(0x0C)
+        result = bt_decode(raw & 0xFFFF, 8)
+        return jsonify({
+            "a": a, "b": b, "op": "\u00d7", "result": result,
+            "a_bt": bt_trits(a_bt), "b_bt": bt_trits(b_bt),
+            "result_bt": bt_trits(raw & 0xFFFF, 8),
+            "hardware": True
+        })
+
+    elif op == 'div':
+        if b == 0:
+            return jsonify({"error": "Division by zero"})
+        arcloom.write(0x04, a_bt)
+        arcloom.write(0x08, b_bt)
+        arcloom.write(0x0C, 1 << 16)  # trigger division
+        time.sleep(0.05)
+        raw = arcloom.read(0x0C)
+        q = bt_decode(raw & 0xFF)
+        r = bt_decode((raw >> 8) & 0xFF)
+        cycles = (raw >> 17) & 0x3F
+        return jsonify({
+            "a": a, "b": b, "op": "\u00f7", "result": q, "remainder": r,
+            "a_bt": bt_trits(a_bt), "b_bt": bt_trits(b_bt),
+            "quotient_bt": bt_trits(raw & 0xFF),
+            "remainder_bt": bt_trits((raw >> 8) & 0xFF),
+            "cycles": cycles,
+            "hardware": True
+        })
+
+    return jsonify({"error": f"Unknown operation: {op}"})
 
 
 @app.route('/')
@@ -262,6 +378,27 @@ body {
     </div>
 
     <div class="status-bar" id="status">connecting...</div>
+
+    <!-- Calculator -->
+    <div style="margin-top:12px; padding:12px; background:#111; border-radius:8px; border:1px solid #222;">
+        <div style="text-align:center; margin-bottom:8px;">
+            <div style="font-size:0.9em; color:#00ff88; font-weight:bold; letter-spacing:0.1em;">HARDWARE CALCULATOR</div>
+            <div style="font-size:0.55em; color:#666; margin-top:2px;">DEMO: All arithmetic executes on FPGA silicon (XC7Z020) via balanced ternary MathLoom.</div>
+            <div style="font-size:0.55em; color:#666;">Range: -40 to +40 (4-trit BT). Results computed in hardware, not software.</div>
+        </div>
+        <div style="display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap;">
+            <input type="number" id="calc-a" value="9" min="-40" max="40" style="width:60px; padding:8px; background:#1a1a1a; color:#fff; border:1px solid #333; border-radius:4px; text-align:center; font-size:1.1em; font-family:monospace;">
+            <select id="calc-op" style="padding:8px; background:#1a1a1a; color:#00ff88; border:1px solid #333; border-radius:4px; font-size:1.1em; font-family:monospace;">
+                <option value="add">+</option>
+                <option value="mul">&times;</option>
+                <option value="div">&divide;</option>
+            </select>
+            <input type="number" id="calc-b" value="3" min="-40" max="40" style="width:60px; padding:8px; background:#1a1a1a; color:#fff; border:1px solid #333; border-radius:4px; text-align:center; font-size:1.1em; font-family:monospace;">
+            <button onclick="doCalc()" style="padding:8px 16px; background:#00ff88; color:#000; border:none; border-radius:4px; font-weight:bold; font-size:1.1em; cursor:pointer;">=</button>
+            <span id="calc-result" style="font-size:1.4em; font-weight:bold; color:#00ff88; min-width:60px; text-align:center;">--</span>
+        </div>
+        <div id="calc-detail" style="text-align:center; margin-top:8px; font-size:0.65em; color:#555;"></div>
+    </div>
 </div>
 
 <script>
@@ -357,6 +494,49 @@ async function poll() {
 
 setInterval(poll, 150);  // ~7 fps
 poll();
+
+async function doCalc() {
+    const a = document.getElementById('calc-a').value;
+    const b = document.getElementById('calc-b').value;
+    const op = document.getElementById('calc-op').value;
+    const resultEl = document.getElementById('calc-result');
+    const detailEl = document.getElementById('calc-detail');
+
+    resultEl.textContent = '...';
+    resultEl.style.color = '#888';
+
+    try {
+        const resp = await fetch('/api/calc?a=' + a + '&b=' + b + '&op=' + op);
+        const data = await resp.json();
+
+        if (data.error) {
+            resultEl.textContent = 'ERR';
+            resultEl.style.color = '#ff4444';
+            detailEl.textContent = data.error;
+            return;
+        }
+
+        if (op === 'div') {
+            resultEl.textContent = data.result + (data.remainder ? ' R ' + data.remainder : '');
+            detailEl.innerHTML =
+                'A trits: [' + data.a_bt.join(', ') + '] &rarr; ' +
+                'Q trits: [' + data.quotient_bt.join(', ') + ']' +
+                (data.remainder ? ' R [' + data.remainder_bt.join(', ') + ']' : '') +
+                ' | ' + data.cycles + ' fold cycles | FPGA silicon';
+        } else {
+            resultEl.textContent = data.result;
+            detailEl.innerHTML =
+                '[' + data.a_bt.join(', ') + '] ' + data.op +
+                ' [' + data.b_bt.join(', ') + '] = [' + data.result_bt.join(', ') + ']' +
+                ' | FPGA silicon';
+        }
+        resultEl.style.color = '#00ff88';
+    } catch (e) {
+        resultEl.textContent = 'ERR';
+        resultEl.style.color = '#ff4444';
+        detailEl.textContent = e.message;
+    }
+}
 </script>
 </body>
 </html>
