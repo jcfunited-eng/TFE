@@ -141,6 +141,7 @@ module arcloom_axi_wrapper #(
     reg  [7:0]  div_quot_r, div_rem_r;
     reg         div_dbz_r;
     reg  [5:0]  div_cyc_r;
+    reg         div_result_ready;  // set after division completes, cleared on next B write
 
     arcloom_mathloom_div div_inst (
         .clk(S_AXI_ACLK), .rst_n(S_AXI_ARESETN),
@@ -175,6 +176,7 @@ module arcloom_axi_wrapper #(
             div_rem_r      <= 8'd0;
             div_dbz_r      <= 1'b0;
             div_cyc_r      <= 6'd0;
+            div_result_ready <= 1'b0;
         end else begin
             if (sw_valid_stretch != 3'd0)
                 sw_valid_stretch <= sw_valid_stretch - 3'd1;
@@ -186,6 +188,7 @@ module arcloom_axi_wrapper #(
                 div_rem_r  <= div_remainder;
                 div_dbz_r  <= div_by_zero;
                 div_cyc_r  <= div_cycles;
+                div_result_ready <= 1'b1;
             end
 
             if (~axi_awready && S_AXI_AWVALID && S_AXI_WVALID) begin
@@ -207,6 +210,7 @@ module arcloom_axi_wrapper #(
                     end
                     2'd2: begin  // 0x08: mathloom B + latch results
                         mathloom_b <= S_AXI_WDATA[7:0];
+                        div_result_ready <= 1'b0;  // clear division flag — multiply mode
                         // Latch current ALU outputs (they'll settle
                         // combinationally from mathloom_a and the OLD
                         // mathloom_b - we latch NEXT cycle for new B)
@@ -270,18 +274,18 @@ module arcloom_axi_wrapper #(
                                         ml_lt_r, ml_gt_r, ml_eq_r,
                                         6'd0,
                                         ml_carry_r, ml_sum_r};
-                    // 0x0C: MathLoom MULTIPLY [15:0] + division results
-                    //   [7:0]   = quotient
-                    //   [15:8]  = remainder
-                    //   [16]    = div_by_zero flag
-                    //   [22:17] = cycle count
-                    //   [23]    = division done (latched)
-                    2'd3: axi_rdata <= {8'd0,
-                                        1'b1,           // done flag (reading means done)
-                                        div_cyc_r,
-                                        div_dbz_r,
-                                        div_rem_r,
-                                        div_quot_r};
+                    // 0x0C: MathLoom — shared between MULTIPLY and DIVISION
+                    //   When div_result_ready=0: [15:0] = multiply product
+                    //   When div_result_ready=1: [7:0]=quotient, [15:8]=remainder,
+                    //     [16]=div_by_zero, [22:17]=cycles, [23]=done
+                    2'd3: axi_rdata <= div_result_ready ?
+                                        {8'd0,
+                                         1'b1,
+                                         div_cyc_r,
+                                         div_dbz_r,
+                                         div_rem_r,
+                                         div_quot_r}
+                                      : {loom_state[47:32], ml_product_r};
                 endcase
             end else if (axi_rvalid && S_AXI_RREADY)
                 axi_rvalid <= 1'b0;
