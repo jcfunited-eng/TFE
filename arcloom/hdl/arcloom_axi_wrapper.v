@@ -133,6 +133,24 @@ module arcloom_axi_wrapper #(
         .cmp_eq(ml_eq_w), .cmp_gt(ml_gt_w), .cmp_lt(ml_lt_w)
     );
 
+    // ---- MathLoom Folding Division (clocked — iterative) ----
+    reg         div_start;
+    wire [7:0]  div_quotient, div_remainder;
+    wire        div_done, div_by_zero;
+    wire [5:0]  div_cycles;
+    reg  [7:0]  div_quot_r, div_rem_r;
+    reg         div_dbz_r;
+    reg  [5:0]  div_cyc_r;
+
+    arcloom_mathloom_div div_inst (
+        .clk(S_AXI_ACLK), .rst_n(S_AXI_ARESETN),
+        .start(div_start),
+        .a_in(mathloom_a), .b_in(mathloom_b),
+        .quotient(div_quotient), .remainder(div_remainder),
+        .done(div_done), .div_by_zero(div_by_zero),
+        .cycle_count(div_cycles)
+    );
+
     // ---- Write channel ----
     always @(posedge S_AXI_ACLK) begin
         if (!S_AXI_ARESETN) begin
@@ -152,9 +170,23 @@ module arcloom_axi_wrapper #(
             ml_eq_r        <= 1'b0;
             ml_gt_r        <= 1'b0;
             ml_lt_r        <= 1'b0;
+            div_start      <= 1'b0;
+            div_quot_r     <= 8'd0;
+            div_rem_r      <= 8'd0;
+            div_dbz_r      <= 1'b0;
+            div_cyc_r      <= 6'd0;
         end else begin
             if (sw_valid_stretch != 3'd0)
                 sw_valid_stretch <= sw_valid_stretch - 3'd1;
+
+            // Latch division results when done
+            div_start <= 1'b0;
+            if (div_done) begin
+                div_quot_r <= div_quotient;
+                div_rem_r  <= div_remainder;
+                div_dbz_r  <= div_by_zero;
+                div_cyc_r  <= div_cycles;
+            end
 
             if (~axi_awready && S_AXI_AWVALID && S_AXI_WVALID) begin
                 axi_awready <= 1'b1;
@@ -179,9 +211,14 @@ module arcloom_axi_wrapper #(
                         // combinationally from mathloom_a and the OLD
                         // mathloom_b - we latch NEXT cycle for new B)
                     end
-                    2'd3: begin  // 0x0C: camera strands
-                        cam_edge_reg   <= S_AXI_WDATA[5:0];
-                        cam_motion_reg <= S_AXI_WDATA[11:6];
+                    2'd3: begin  // 0x0C: camera strands OR division trigger
+                        if (S_AXI_WDATA[16]) begin
+                            // Bit 16 set = trigger folding division using current A and B
+                            div_start <= 1'b1;
+                        end else begin
+                            cam_edge_reg   <= S_AXI_WDATA[5:0];
+                            cam_motion_reg <= S_AXI_WDATA[11:6];
+                        end
                     end
                 endcase
             end else
@@ -233,8 +270,18 @@ module arcloom_axi_wrapper #(
                                         ml_lt_r, ml_gt_r, ml_eq_r,
                                         6'd0,
                                         ml_carry_r, ml_sum_r};
-                    // 0x0C: MathLoom MULTIPLY [15:0] + loom_state[47:32]
-                    2'd3: axi_rdata <= {loom_state[47:32], ml_product_r};
+                    // 0x0C: MathLoom MULTIPLY [15:0] + division results
+                    //   [7:0]   = quotient
+                    //   [15:8]  = remainder
+                    //   [16]    = div_by_zero flag
+                    //   [22:17] = cycle count
+                    //   [23]    = division done (latched)
+                    2'd3: axi_rdata <= {8'd0,
+                                        1'b1,           // done flag (reading means done)
+                                        div_cyc_r,
+                                        div_dbz_r,
+                                        div_rem_r,
+                                        div_quot_r};
                 endcase
             end else if (axi_rvalid && S_AXI_RREADY)
                 axi_rvalid <= 1'b0;
