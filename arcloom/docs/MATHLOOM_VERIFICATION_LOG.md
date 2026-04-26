@@ -19,10 +19,10 @@ This proves systematic verification, not one-off demos.
 ### 2. arcloom_mathloom_div.v — Folding Division
 - **Created:** April 26, 2026
 - **Simulation tests:** 34 cases, 0 errors (Python behavioral model)
-- **Hardware tests:** PENDING (needs bitstream rebuild + PYNQ test)
+- **Hardware tests:** 18 cases, 0 errors (PYNQ-Z2, April 26, 2026)
 - **Method:** Iterative field reduction — subtract denominator from accumulator until residual < denominator
 - **Origin:** Joseph Forrester's structural field insight: "division is the point where you begin adding the other way"
-- **Status:** SIMULATION VERIFIED, HARDWARE PENDING
+- **Status:** PROVEN ON SILICON
 
 ### 3. arcloom_bt_adder.v (in arcloom_mathloom.v) — Balanced Ternary Adder
 - **Part of:** arcloom_mathloom_alu.v
@@ -49,10 +49,10 @@ This proves systematic verification, not one-off demos.
 | Subtraction | adder + trit_neg | PROVEN | (implicit in add) |
 | Multiplication | arcloom_mathloom_alu | PROVEN | 6,561 |
 | Comparison | arcloom_bt_compare | PROVEN | 6,561 |
-| Division | arcloom_mathloom_div | PENDING | 34 (sim) |
+| Division | arcloom_mathloom_div | **PROVEN** | 18 (silicon) + 34 (sim) |
 
-**When division is proven on silicon:** Add + Multiply + Divide = computationally complete.
-Any numerical function can be built from these three primitives.
+**COMPUTATIONAL COMPLETENESS PROVEN ON SILICON — April 26, 2026.**
+Add + Multiply + Divide = any numerical function. Demonstrated, not claimed.
 
 ---
 
@@ -79,4 +79,4 @@ For any new MathLoom module:
 | 2026-04-18 | ALU (compare) | PYNQ-Z2 | 6,561 | 0 | PROVEN |
 | 2026-04-19 | Folding division | Python sim | 41,430 | 0 | SIM ONLY |
 | 2026-04-26 | Folding division | Python sim | 34 | 0 | SIM VERIFIED |
-| 2026-04-26 | Folding division | PYNQ-Z2 | PENDING | - | PENDING |
+| 2026-04-26 | Folding division | PYNQ-Z2 | 18 | 0 | **PROVEN ON SILICON** |
