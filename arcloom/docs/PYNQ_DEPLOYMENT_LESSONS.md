@@ -107,6 +107,47 @@
 
 36. **Reboot the PYNQ board between overlay changes.** Loading a new overlay after a failed or different overlay can hang. A clean reboot takes 30 seconds and avoids debugging phantom issues.
 
+### Autostart / WiFi / Display Server (April 26, 2026)
+
+37. **WiFi dongle driver (rtl8xxxu) fails to load on first boot.** The firmware write fails silently. Fix: the systemd service must `modprobe -r rtl8xxxu` then `modprobe rtl8xxxu` before bringing up wlan0. This reload trick works every time.
+
+38. **systemd service must use full Python path.** Flask is installed in the PYNQ venv at `/usr/local/share/pynq-venv/bin/python3`. The systemd service needs `Environment=PATH=/usr/local/share/pynq-venv/bin:...` AND `ExecStart=/usr/local/share/pynq-venv/bin/python3` or Flask import fails with "No module named 'flask'".
+
+39. **Old SysV init script blocks systemd enable.** If `/etc/init.d/arcloom` exists, `systemctl enable` fails silently with "update-rc.d: error: arcloom Default-Start contains no runlevels, aborting." Fix: `sudo rm -f /etc/init.d/arcloom` then `systemctl enable`. Confirmed working April 26.
+
+40. **Display server must load overlay with download=True (default).** Using `download=False` connects to whatever is already on the FPGA (usually base overlay from boot), not ArcLoom. The server script must use `Overlay("arcloom.bit")` without `download=False`.
+
+41. **Working autostart systemd service (PROVEN April 26, 2026):**
+```
+[Unit]
+Description=ArcLoom Autostart
+After=network.target
+
+[Service]
+Type=simple
+Environment=PATH=/usr/local/share/pynq-venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=XILINX_XRT=/usr
+ExecStartPre=/bin/sleep 20
+ExecStartPre=/sbin/modprobe -r rtl8xxxu
+ExecStartPre=/bin/sleep 2
+ExecStartPre=/sbin/modprobe rtl8xxxu
+ExecStartPre=/bin/sleep 3
+ExecStartPre=/sbin/ip link set wlan0 up
+ExecStartPre=/bin/sleep 2
+ExecStartPre=/sbin/wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf
+ExecStartPre=/bin/sleep 5
+ExecStartPre=/sbin/dhclient wlan0
+ExecStartPre=/bin/sleep 3
+ExecStart=/usr/local/share/pynq-venv/bin/python3 /home/xilinx/jupyter_notebooks/ArcLoom/loom_display_server.py
+Restart=on-failure
+RestartSec=10
+User=root
+
+[Install]
+WantedBy=multi-user.target
+```
+Must NOT have `/etc/init.d/arcloom` present. WiFi password in `/etc/wpa_supplicant/wpa_supplicant.conf`.
+
 ---
 
 ## What Works (Proven on Hardware)

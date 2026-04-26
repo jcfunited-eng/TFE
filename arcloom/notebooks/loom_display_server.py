@@ -20,11 +20,8 @@ import threading, time
 
 app = Flask(__name__)
 
-# Load overlay if not already loaded
-try:
-    ol = Overlay("/home/xilinx/jupyter_notebooks/ArcLoom/arcloom.bit", download=False)
-except:
-    ol = Overlay("/home/xilinx/jupyter_notebooks/ArcLoom/arcloom.bit")
+# Always load overlay fresh — ensures FPGA has ArcLoom bitstream
+ol = Overlay("/home/xilinx/jupyter_notebooks/ArcLoom/arcloom.bit")
 
 arcloom = ol.arcloom_0
 
