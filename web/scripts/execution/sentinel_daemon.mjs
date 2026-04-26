@@ -9,6 +9,7 @@
 
 import { runSentinel, closeSentinelPool } from "./sentinel_monitor.mjs";
 import { runEntryTimingCheck, closeEntryTimingPool } from "./entry_timing_watcher.mjs";
+import { runStrikeZoneCheck, closeStrikeZonePool } from "./ch3_strike_zone_detector.mjs";
 
 const POLL_INTERVAL_MS  = 5 * 60 * 1000;  // 5 minutes
 const MARKET_OPEN_UTC_H  = 13;  // 9:30 ET = 13:30 UTC
@@ -54,6 +55,13 @@ async function main() {
       } catch (err) {
         console.error(`[ENTRY-TIMING] Error: ${err.message}`);
       }
+
+      // CH3 Strike Zone: phase + swarm + G32 epoch direction
+      try {
+        await runStrikeZoneCheck();
+      } catch (err) {
+        console.error(`[STRIKE-ZONE] Error: ${err.message}`);
+      }
     } else {
       console.log(`[SENTINEL-DAEMON] Outside market hours — sleeping.`);
     }
@@ -63,6 +71,7 @@ async function main() {
 
   await closeSentinelPool();
   await closeEntryTimingPool();
+  await closeStrikeZonePool();
   console.log("[SENTINEL-DAEMON] Stopped.");
 }
 
