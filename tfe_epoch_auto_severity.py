@@ -4,27 +4,21 @@ tfe_epoch_auto_severity.py
 Auto-severity scoring for TFE epoch library.
 
 Fetches live market indicators via yfinance and computes severity scores
-for each named epoch. Caches results to a JSON file with a 6-hour TTL so
-individual ticker evaluations don't make repeated network calls.
+for each named epoch channel. Caches results to JSON with 6-hour TTL.
 
-Epoch → Indicator mapping
-─────────────────────────
-WAR_GEOPOLITICS
-  • VIX level            (fear/uncertainty proxy; >15 = elevated)
-  • Crude oil vs 60d MA  (energy shock proxy; >20% above MA = high)
-  • ITA vs SPY 20d rel.  (defense sector outperformance proxy)
+8 Active Channels (of 32 in spec):
+─────────────────────────────────
+RATES_PRESSURE      — 10yr yield, 2s10s spread, credit stress (HYG/LQD)
+CONSUMER_STRESS     — XLY/XLP rotation, VIX
+WAR_GEOPOLITICS     — VIX, crude oil, defense sector (ITA) outperformance
+ENERGY_COMMODITY    — crude oil vs MA, natural gas vs MA, XLE vs SPY
+TECH_CYCLE          — semiconductor (SOXX) vs SPY, QQQ vs SPY
+CURRENCY_FX         — dollar index (UUP), emerging markets (EEM) vs SPY
+FISCAL_INFRA        — infrastructure ETF (PAVE) vs SPY, industrials (XLI)
+VOLATILITY_REGIME   — VIX level, VIX term structure (VIX vs VIX3M proxy)
 
-RATES_PRESSURE
-  • 10yr yield (^TNX)    (absolute rate level; 2%=low, 5%=high)
-  • 2s10s spread inversion (^IRX vs ^TNX; inversion = pressure)
-  • HYG vs LQD 20d rel.  (credit stress; HYG underperf = widening spreads)
-
-CONSUMER_STRESS
-  • XLY/XLP ratio 20d change (discretionary vs staples flight)
-  • VIX (consumer fear component)
-
-All scores are normalized 0.0–1.0 and blended to a single severity per epoch.
-Fallback to hardcoded values if market data fetch fails.
+All scores normalized 0.0–1.0. No ML. Deterministic from market data.
+Fallback to defaults if fetch fails.
 """
 from __future__ import annotations
 
@@ -42,13 +36,30 @@ _CACHE_TTL_HOURS = 6
 
 # Hardcoded fallback — used if network unavailable
 _FALLBACK_SEVERITIES: Dict[str, float] = {
-    "WAR_GEOPOLITICS":  0.7,
-    "RATES_PRESSURE":   0.8,
-    "CONSUMER_STRESS":  0.6,
+    "RATES_PRESSURE":    0.5,
+    "CONSUMER_STRESS":   0.3,
+    "WAR_GEOPOLITICS":   0.3,
+    "ENERGY_COMMODITY":  0.3,
+    "TECH_CYCLE":        0.3,
+    "CURRENCY_FX":       0.3,
+    "FISCAL_INFRA":      0.3,
+    "VOLATILITY_REGIME": 0.3,
 }
 
 # ── Market data fetch ─────────────────────────────────────────────────────────
-_TICKERS = ["^VIX", "CL=F", "^TNX", "^IRX", "HYG", "LQD", "XLY", "XLP", "ITA", "SPY"]
+_TICKERS = [
+    # Original 3 channels
+    "^VIX", "CL=F", "^TNX", "^IRX", "HYG", "LQD", "XLY", "XLP", "ITA", "SPY",
+    # New channels
+    "NG=F",     # natural gas futures
+    "XLE",      # energy sector ETF
+    "SOXX",     # semiconductor index
+    "QQQ",      # tech-heavy Nasdaq
+    "UUP",      # dollar index ETF
+    "EEM",      # emerging markets ETF
+    "PAVE",     # infrastructure ETF
+    "XLI",      # industrials ETF
+]
 
 
 def _fetch_closes(period: str = "3mo") -> Dict[str, "np.ndarray"]:
@@ -60,7 +71,6 @@ def _fetch_closes(period: str = "3mo") -> Dict[str, "np.ndarray"]:
         progress=False,
         threads=True,
     )
-    # yfinance returns MultiIndex columns when multiple tickers requested
     closes: Dict[str, np.ndarray] = {}
     if hasattr(raw.columns, "levels"):
         price_df = raw["Close"] if "Close" in raw.columns.get_level_values(0) else raw
@@ -70,92 +80,175 @@ def _fetch_closes(period: str = "3mo") -> Dict[str, "np.ndarray"]:
                 if len(arr) > 0:
                     closes[ticker] = arr.astype(float)
     else:
-        # Single ticker fallback (should not happen here)
         closes["^VIX"] = raw["Close"].dropna().values.astype(float)
     return closes
+
+
+def _relative_return(closes, ticker_a, ticker_b, days=20):
+    """Compute relative return of A vs B over N days."""
+    if ticker_a not in closes or ticker_b not in closes:
+        return None
+    a, b = closes[ticker_a], closes[ticker_b]
+    if len(a) <= days or len(b) <= days:
+        return None
+    a_ret = float(a[-1]) / float(a[-days]) - 1.0
+    b_ret = float(b[-1]) / float(b[-days]) - 1.0
+    return a_ret - b_ret
+
+
+def _pct_above_ma(closes, ticker, ma_days=60):
+    """Compute how far price is above its moving average."""
+    if ticker not in closes:
+        return None
+    arr = closes[ticker]
+    if len(arr) < ma_days:
+        return None
+    ma = float(np.mean(arr[-ma_days:]))
+    if ma <= 0:
+        return None
+    return (float(arr[-1]) - ma) / ma
 
 
 # ── Per-epoch scoring ─────────────────────────────────────────────────────────
 
 def _score_war_geopolitics(closes: Dict[str, np.ndarray]) -> float:
     scores = []
-
-    # VIX: 15 = baseline calm, 50 = extreme fear
     if "^VIX" in closes and len(closes["^VIX"]) > 0:
         vix = float(closes["^VIX"][-1])
         scores.append(float(np.clip((vix - 15.0) / 35.0, 0.0, 1.0)))
-
-    # Crude oil: % above 60-day moving average
-    if "CL=F" in closes and len(closes["CL=F"]) > 20:
-        oil = closes["CL=F"]
-        ma60 = float(np.mean(oil[-60:])) if len(oil) >= 60 else float(np.mean(oil))
-        pct_above = (float(oil[-1]) - ma60) / max(ma60, 1.0)
-        # 30% above 60d MA = severity 1.0; below MA = 0
-        scores.append(float(np.clip(pct_above / 0.30, 0.0, 1.0)))
-
-    # Defense sector (ITA) vs SPY 20-day relative return
-    if "ITA" in closes and "SPY" in closes:
-        ita, spy = closes["ITA"], closes["SPY"]
-        if len(ita) > 20 and len(spy) > 20:
-            ita_ret = float(ita[-1]) / float(ita[-20]) - 1.0
-            spy_ret = float(spy[-1]) / float(spy[-20]) - 1.0
-            rel = ita_ret - spy_ret
-            # 15% outperformance = severity 1.0
-            scores.append(float(np.clip(rel / 0.15, 0.0, 1.0)))
-
+    pct = _pct_above_ma(closes, "CL=F", 60)
+    if pct is not None:
+        scores.append(float(np.clip(pct / 0.30, 0.0, 1.0)))
+    rel = _relative_return(closes, "ITA", "SPY", 20)
+    if rel is not None:
+        scores.append(float(np.clip(rel / 0.15, 0.0, 1.0)))
     return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["WAR_GEOPOLITICS"]
 
 
 def _score_rates_pressure(closes: Dict[str, np.ndarray]) -> float:
     scores = []
-
-    # 10yr yield: 2% = low, 5% = high
     if "^TNX" in closes and len(closes["^TNX"]) > 0:
         tnx = float(closes["^TNX"][-1])
         scores.append(float(np.clip((tnx - 2.0) / 3.0, 0.0, 1.0)))
-
-    # Yield curve: 2s10s spread — inversion = max pressure
-    # ^IRX is the 3-month T-bill rate (quoted as annualised %)
     if "^IRX" in closes and "^TNX" in closes:
         irx = float(closes["^IRX"][-1])
         tnx = float(closes["^TNX"][-1])
-        spread = tnx - irx  # negative = inverted
-        # Inversion of -2pp = severity 1.0; positive spread = 0
+        spread = tnx - irx
         scores.append(float(np.clip(-spread / 2.0, 0.0, 1.0)))
-
-    # HYG vs LQD 20-day relative return (credit stress)
     if "HYG" in closes and "LQD" in closes:
         hyg, lqd = closes["HYG"], closes["LQD"]
         if len(hyg) > 20 and len(lqd) > 20:
             hyg_ret = float(hyg[-1]) / float(hyg[-20]) - 1.0
             lqd_ret = float(lqd[-1]) / float(lqd[-20]) - 1.0
-            # HYG underperforming LQD = credit widening
-            spread_move = lqd_ret - hyg_ret
-            # 5% spread widening = severity 1.0
-            scores.append(float(np.clip(spread_move / 0.05, 0.0, 1.0)))
-
+            scores.append(float(np.clip((lqd_ret - hyg_ret) / 0.05, 0.0, 1.0)))
     return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["RATES_PRESSURE"]
 
 
 def _score_consumer_stress(closes: Dict[str, np.ndarray]) -> float:
     scores = []
-
-    # XLY/XLP ratio 20-day change — declining = flight to staples = stress
     if "XLY" in closes and "XLP" in closes:
         xly, xlp = closes["XLY"], closes["XLP"]
         if len(xly) > 20 and len(xlp) > 20:
-            ratio_now   = float(xly[-1])  / float(xlp[-1])
-            ratio_20d   = float(xly[-20]) / float(xlp[-20])
-            ratio_chg   = ratio_now / ratio_20d - 1.0
-            # 10% decline in ratio = severity 1.0
+            ratio_now = float(xly[-1]) / float(xlp[-1])
+            ratio_20d = float(xly[-20]) / float(xlp[-20])
+            ratio_chg = ratio_now / ratio_20d - 1.0
             scores.append(float(np.clip(-ratio_chg / 0.10, 0.0, 1.0)))
-
-    # VIX component (broad fear = consumer fear)
     if "^VIX" in closes and len(closes["^VIX"]) > 0:
         vix = float(closes["^VIX"][-1])
         scores.append(float(np.clip((vix - 15.0) / 25.0, 0.0, 1.0)))
-
     return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["CONSUMER_STRESS"]
+
+
+def _score_energy_commodity(closes: Dict[str, np.ndarray]) -> float:
+    """Energy/commodity input cost pressure.
+    High crude + high nat gas + energy sector outperforming = commodity stress for consumers.
+    """
+    scores = []
+    # Crude oil vs 60d MA
+    pct = _pct_above_ma(closes, "CL=F", 60)
+    if pct is not None:
+        scores.append(float(np.clip(pct / 0.25, 0.0, 1.0)))
+    # Natural gas vs 60d MA
+    pct_ng = _pct_above_ma(closes, "NG=F", 60)
+    if pct_ng is not None:
+        scores.append(float(np.clip(pct_ng / 0.40, 0.0, 1.0)))
+    # XLE (energy) vs SPY — energy outperformance = commodity pressure
+    rel = _relative_return(closes, "XLE", "SPY", 20)
+    if rel is not None:
+        scores.append(float(np.clip(rel / 0.10, 0.0, 1.0)))
+    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["ENERGY_COMMODITY"]
+
+
+def _score_tech_cycle(closes: Dict[str, np.ndarray]) -> float:
+    """Tech sector cycle stress.
+    Semiconductors underperforming + QQQ underperforming SPY = tech rotation out.
+    Inverted: SOXX outperforming = tech strength (low stress).
+    """
+    scores = []
+    # SOXX vs SPY — semiconductor underperformance = tech stress
+    rel_soxx = _relative_return(closes, "SOXX", "SPY", 20)
+    if rel_soxx is not None:
+        # Negative relative = stress (tech falling behind)
+        scores.append(float(np.clip(-rel_soxx / 0.15, 0.0, 1.0)))
+    # QQQ vs SPY — tech-heavy underperformance
+    rel_qqq = _relative_return(closes, "QQQ", "SPY", 20)
+    if rel_qqq is not None:
+        scores.append(float(np.clip(-rel_qqq / 0.10, 0.0, 1.0)))
+    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["TECH_CYCLE"]
+
+
+def _score_currency_fx(closes: Dict[str, np.ndarray]) -> float:
+    """Currency/FX stress.
+    Strong dollar (UUP rising) = pressure on multinationals, EM stress.
+    EEM underperforming SPY = emerging market stress from dollar/rates.
+    """
+    scores = []
+    # Dollar strength: UUP 20d return
+    if "UUP" in closes and len(closes["UUP"]) > 20:
+        uup = closes["UUP"]
+        uup_ret = float(uup[-1]) / float(uup[-20]) - 1.0
+        # 5% dollar appreciation in 20d = max stress
+        scores.append(float(np.clip(uup_ret / 0.05, 0.0, 1.0)))
+    # EM underperformance
+    rel_eem = _relative_return(closes, "EEM", "SPY", 20)
+    if rel_eem is not None:
+        # EM underperforming SPY = FX stress
+        scores.append(float(np.clip(-rel_eem / 0.10, 0.0, 1.0)))
+    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["CURRENCY_FX"]
+
+
+def _score_fiscal_infra(closes: Dict[str, np.ndarray]) -> float:
+    """Fiscal/infrastructure spending signal.
+    PAVE (infrastructure) and XLI (industrials) outperforming = fiscal tailwind.
+    This is a POSITIVE epoch — high severity means infrastructure is hot.
+    """
+    scores = []
+    rel_pave = _relative_return(closes, "PAVE", "SPY", 20)
+    if rel_pave is not None:
+        # Infrastructure outperforming = fiscal support active
+        scores.append(float(np.clip(rel_pave / 0.10, 0.0, 1.0)))
+    rel_xli = _relative_return(closes, "XLI", "SPY", 20)
+    if rel_xli is not None:
+        scores.append(float(np.clip(rel_xli / 0.08, 0.0, 1.0)))
+    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["FISCAL_INFRA"]
+
+
+def _score_volatility_regime(closes: Dict[str, np.ndarray]) -> float:
+    """Volatility regime.
+    VIX level + VIX acceleration (is fear increasing?).
+    High and rising VIX = stressed volatility regime.
+    """
+    scores = []
+    if "^VIX" in closes and len(closes["^VIX"]) > 20:
+        vix_arr = closes["^VIX"]
+        vix_now = float(vix_arr[-1])
+        vix_20d = float(np.mean(vix_arr[-20:]))
+        # Absolute level: 15 = calm, 40 = panic
+        scores.append(float(np.clip((vix_now - 15.0) / 25.0, 0.0, 1.0)))
+        # Acceleration: VIX rising above its own 20d average
+        vix_accel = (vix_now - vix_20d) / max(vix_20d, 1.0)
+        scores.append(float(np.clip(vix_accel / 0.30, 0.0, 1.0)))
+    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["VOLATILITY_REGIME"]
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
@@ -165,9 +258,14 @@ def compute_live_severities() -> Dict[str, float]:
     try:
         closes = _fetch_closes(period="3mo")
         severities = {
-            "WAR_GEOPOLITICS":  _score_war_geopolitics(closes),
-            "RATES_PRESSURE":   _score_rates_pressure(closes),
-            "CONSUMER_STRESS":  _score_consumer_stress(closes),
+            "RATES_PRESSURE":    _score_rates_pressure(closes),
+            "CONSUMER_STRESS":   _score_consumer_stress(closes),
+            "WAR_GEOPOLITICS":   _score_war_geopolitics(closes),
+            "ENERGY_COMMODITY":  _score_energy_commodity(closes),
+            "TECH_CYCLE":        _score_tech_cycle(closes),
+            "CURRENCY_FX":       _score_currency_fx(closes),
+            "FISCAL_INFRA":      _score_fiscal_infra(closes),
+            "VOLATILITY_REGIME": _score_volatility_regime(closes),
         }
         print(f"[EPOCH-AUTO] Live severities computed: {severities}")
         return severities

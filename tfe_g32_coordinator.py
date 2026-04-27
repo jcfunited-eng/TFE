@@ -39,14 +39,15 @@ EPOCH_CHANNELS = [
     "RATES_PRESSURE",       # Channel 0: interest rates, yield curve, credit stress
     "CONSUMER_STRESS",      # Channel 1: consumer spending rotation, fear
     "WAR_GEOPOLITICS",      # Channel 2: conflict, energy shock, defense rotation
+    "ENERGY_COMMODITY",     # Channel 3: oil/gas/commodity input costs
+    "TECH_CYCLE",           # Channel 4: semiconductor/tech rotation
+    "CURRENCY_FX",          # Channel 5: dollar strength, EM stress
+    "FISCAL_INFRA",         # Channel 6: infrastructure/fiscal spending
+    "VOLATILITY_REGIME",    # Channel 7: VIX level and acceleration
     # Future channels (spec allows up to 32):
-    # "ENERGY_COMMODITY",   # Channel 3: oil/gas/commodity input costs
-    # "REGULATION",         # Channel 4: regulatory/litigation pressure
-    # "TECH_DISRUPTION",    # Channel 5: technology cycle shifts
-    # "FISCAL_INFRASTRUCTURE", # Channel 6: government spending, reconstruction
-    # "LABOR_MARKET",       # Channel 7: employment, wage pressure
-    # "CURRENCY_FX",        # Channel 8: dollar strength, EM stress
-    # "PANDEMIC_HEALTH",    # Channel 9: health crisis, supply chain
+    # "REGULATION",         # Channel 8: regulatory/litigation pressure
+    # "LABOR_MARKET",       # Channel 9: employment, wage pressure
+    # "PANDEMIC_HEALTH",    # Channel 10: health crisis, supply chain
 ]
 
 N_CHANNELS = len(EPOCH_CHANNELS)
@@ -61,50 +62,53 @@ N_CHANNELS = len(EPOCH_CHANNELS)
 # ═════════════════════════════════════════════════════════════════════════
 
 SECTOR_COUPLING: Dict[str, Dict[str, float]] = {
+    # Each value: how sector responds to this epoch channel.
+    # Positive = benefits. Negative = hurt. Zero = neutral.
+    # 8 channels: RATES, CONSUMER, WAR, ENERGY, TECH, FX, FISCAL, VOL
     "Communication Services": {
-        "RATES_PRESSURE": -0.2,
-        "CONSUMER_STRESS": -0.3,
-        "WAR_GEOPOLITICS": -0.1,
+        "RATES_PRESSURE": -0.2, "CONSUMER_STRESS": -0.3, "WAR_GEOPOLITICS": -0.1,
+        "ENERGY_COMMODITY": -0.1, "TECH_CYCLE": -0.5,     "CURRENCY_FX": -0.2,
+        "FISCAL_INFRA": 0.1,     "VOLATILITY_REGIME": -0.3,
     },
     "Consumer Discretionary": {
-        "RATES_PRESSURE": -0.5,
-        "CONSUMER_STRESS": -1.0,
-        "WAR_GEOPOLITICS": -0.2,
+        "RATES_PRESSURE": -0.5, "CONSUMER_STRESS": -1.0, "WAR_GEOPOLITICS": -0.2,
+        "ENERGY_COMMODITY": -0.4, "TECH_CYCLE": -0.1,     "CURRENCY_FX": -0.2,
+        "FISCAL_INFRA": 0.1,     "VOLATILITY_REGIME": -0.5,
     },
     "Consumer Staples": {
-        "RATES_PRESSURE": 0.1,
-        "CONSUMER_STRESS": 0.4,   # flight to staples
-        "WAR_GEOPOLITICS": -0.1,
+        "RATES_PRESSURE": 0.1,  "CONSUMER_STRESS": 0.4,  "WAR_GEOPOLITICS": -0.1,
+        "ENERGY_COMMODITY": -0.3, "TECH_CYCLE": 0.0,      "CURRENCY_FX": -0.2,
+        "FISCAL_INFRA": 0.0,     "VOLATILITY_REGIME": 0.2,  # defensive
     },
     "Energy": {
-        "RATES_PRESSURE": 0.0,
-        "CONSUMER_STRESS": -0.2,
-        "WAR_GEOPOLITICS": 0.9,   # energy benefits from geopolitical tension
+        "RATES_PRESSURE": 0.0,  "CONSUMER_STRESS": -0.2, "WAR_GEOPOLITICS": 0.9,
+        "ENERGY_COMMODITY": 0.9,  "TECH_CYCLE": 0.0,      "CURRENCY_FX": 0.3,
+        "FISCAL_INFRA": 0.2,     "VOLATILITY_REGIME": 0.1,
     },
     "Financial Services": {
-        "RATES_PRESSURE": 0.2,    # banks earn more on rate spread
-        "CONSUMER_STRESS": -0.5,
-        "WAR_GEOPOLITICS": -0.2,
+        "RATES_PRESSURE": 0.2,  "CONSUMER_STRESS": -0.5, "WAR_GEOPOLITICS": -0.2,
+        "ENERGY_COMMODITY": 0.0,  "TECH_CYCLE": -0.1,     "CURRENCY_FX": 0.1,
+        "FISCAL_INFRA": 0.1,     "VOLATILITY_REGIME": -0.4,
     },
     "Financials": {
-        "RATES_PRESSURE": 0.2,
-        "CONSUMER_STRESS": -0.5,
-        "WAR_GEOPOLITICS": -0.2,
+        "RATES_PRESSURE": 0.2,  "CONSUMER_STRESS": -0.5, "WAR_GEOPOLITICS": -0.2,
+        "ENERGY_COMMODITY": 0.0,  "TECH_CYCLE": -0.1,     "CURRENCY_FX": 0.1,
+        "FISCAL_INFRA": 0.1,     "VOLATILITY_REGIME": -0.4,
     },
     "Health Care": {
-        "RATES_PRESSURE": 0.0,
-        "CONSUMER_STRESS": 0.3,   # defensive sector
-        "WAR_GEOPOLITICS": 0.1,
+        "RATES_PRESSURE": 0.0,  "CONSUMER_STRESS": 0.3,  "WAR_GEOPOLITICS": 0.1,
+        "ENERGY_COMMODITY": -0.1, "TECH_CYCLE": 0.1,      "CURRENCY_FX": -0.1,
+        "FISCAL_INFRA": 0.1,     "VOLATILITY_REGIME": 0.1,  # defensive
     },
     "Healthcare": {
-        "RATES_PRESSURE": 0.0,
-        "CONSUMER_STRESS": 0.3,
-        "WAR_GEOPOLITICS": 0.1,
+        "RATES_PRESSURE": 0.0,  "CONSUMER_STRESS": 0.3,  "WAR_GEOPOLITICS": 0.1,
+        "ENERGY_COMMODITY": -0.1, "TECH_CYCLE": 0.1,      "CURRENCY_FX": -0.1,
+        "FISCAL_INFRA": 0.1,     "VOLATILITY_REGIME": 0.1,
     },
     "Industrials": {
-        "RATES_PRESSURE": -0.2,
-        "CONSUMER_STRESS": -0.3,
-        "WAR_GEOPOLITICS": 0.2,   # defense/reconstruction
+        "RATES_PRESSURE": -0.2, "CONSUMER_STRESS": -0.3, "WAR_GEOPOLITICS": 0.2,
+        "ENERGY_COMMODITY": -0.3, "TECH_CYCLE": 0.0,      "CURRENCY_FX": -0.2,
+        "FISCAL_INFRA": 0.8,     "VOLATILITY_REGIME": -0.3,  # big fiscal beneficiary
     },
     "Information Technology": {
         "RATES_PRESSURE": -0.4,   # growth stocks hurt by rates
