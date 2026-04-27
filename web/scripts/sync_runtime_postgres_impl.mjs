@@ -417,6 +417,14 @@ function resolveGeneratedAt(report, snapshotPayload, fallbackIso) {
 }
 
 function inferDecisionLabel(row) {
+  // Use L5 basin physics decision if available (written by L5 canonical filter).
+  // Falls back to simple S_UF/R_UF threshold for pre-filter snapshots.
+  const basinDecision = row?.l5_basin_decision;
+  if (basinDecision === "Accumulate" || basinDecision === "Hold" || basinDecision === "Avoid") {
+    return basinDecision;
+  }
+
+  // Fallback: simple threshold (used when l5_basin_decision not in snapshot)
   const sUf = toFiniteOrNull(row?.S_UF ?? row?.s_uf);
   const rUf = toFiniteOrNull(row?.R_UF ?? row?.r_uf);
   if (sUf !== null && rUf !== null) {

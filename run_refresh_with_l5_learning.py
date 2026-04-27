@@ -847,6 +847,19 @@ def _run_l5_canonical_filter() -> dict[str, Any]:
     filtered_rows = len(filtered_df)
     filter_rate = filtered_rows / total_rows if total_rows > 0 else 0.0
 
+    # Write L5 basin decision back into snapshot so runtime sync uses it.
+    # Tickers that pass the basin filter get 'Accumulate'; all others get 'Hold'.
+    accumulate_tickers = set(filtered_df["ticker"].values) if "ticker" in filtered_df.columns else set()
+    for row in rows:
+        row["l5_basin_decision"] = "Accumulate" if row.get("ticker") in accumulate_tickers else "Hold"
+    try:
+        if isinstance(payload, dict):
+            payload["rows"] = rows
+        snapshot_path.write_text(json.dumps(payload), encoding="utf-8")
+        print(f"[REFRESH+CP2] L5 basin decisions written to snapshot ({len(accumulate_tickers)} Accumulate).", flush=True)
+    except Exception as _wr_exc:
+        print(f"[REFRESH+CP2] Failed to write basin decisions to snapshot: {_wr_exc}", flush=True)
+
     print(
         f"[REFRESH+CP2] Canonical filter applied. "
         f"total_rows={total_rows}; filtered_rows={filtered_rows}; filter_rate={filter_rate:.4f}",
