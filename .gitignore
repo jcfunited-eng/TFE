@@ -70,3 +70,4 @@ validation_sample.csv
 readonly-production-verification-path.json
 data/tfe.db
 docs/pynq_z2_v3.0.1.zip
+g32_state.json
