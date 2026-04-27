@@ -847,18 +847,15 @@ def _run_l5_canonical_filter() -> dict[str, Any]:
     filtered_rows = len(filtered_df)
     filter_rate = filtered_rows / total_rows if total_rows > 0 else 0.0
 
-    # Write L5 basin decision back into snapshot so runtime sync uses it.
-    # Tickers that pass the basin filter get 'Accumulate'; all others get 'Hold'.
+    # Write L5 basin Accumulate ticker list to a separate file.
+    # The runtime sync reads this to determine decision_label.
     accumulate_tickers = set(filtered_df["ticker"].values) if "ticker" in filtered_df.columns else set()
-    for row in rows:
-        row["l5_basin_decision"] = "Accumulate" if row.get("ticker") in accumulate_tickers else "Hold"
+    l5_acc_path = Path("l5_accumulate_tickers.json")
     try:
-        if isinstance(payload, dict):
-            payload["rows"] = rows
-        snapshot_path.write_text(json.dumps(payload), encoding="utf-8")
-        print(f"[REFRESH+CP2] L5 basin decisions written to snapshot ({len(accumulate_tickers)} Accumulate).", flush=True)
+        l5_acc_path.write_text(json.dumps(sorted(accumulate_tickers)), encoding="utf-8")
+        print(f"[REFRESH+CP2] L5 basin decisions written ({len(accumulate_tickers)} Accumulate) to {l5_acc_path}.", flush=True)
     except Exception as _wr_exc:
-        print(f"[REFRESH+CP2] Failed to write basin decisions to snapshot: {_wr_exc}", flush=True)
+        print(f"[REFRESH+CP2] Failed to write basin ticker list: {_wr_exc}", flush=True)
 
     print(
         f"[REFRESH+CP2] Canonical filter applied. "

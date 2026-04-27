@@ -416,15 +416,44 @@ function resolveGeneratedAt(report, snapshotPayload, fallbackIso) {
   };
 }
 
+// L5 basin Accumulate ticker set — loaded once from file written by L5 filter
+let _l5AccumulateTickers = null;
+
+function _loadL5AccumulateTickers() {
+  if (_l5AccumulateTickers !== null) return _l5AccumulateTickers;
+  try {
+    const fs = await import("fs");
+    const path = await import("path");
+    const filePath = path.default.resolve("/app/l5_accumulate_tickers.json");
+    const raw = fs.default.readFileSync(filePath, "utf-8");
+    _l5AccumulateTickers = new Set(JSON.parse(raw));
+    console.log();
+  } catch {
+    _l5AccumulateTickers = null;
+  }
+  return _l5AccumulateTickers;
+}
+
 function inferDecisionLabel(row) {
-  // Use L5 basin physics decision if available (written by L5 canonical filter).
-  // Falls back to simple S_UF/R_UF threshold for pre-filter snapshots.
-  const basinDecision = row?.l5_basin_decision;
-  if (basinDecision === "Accumulate" || basinDecision === "Hold" || basinDecision === "Avoid") {
-    return basinDecision;
+  // Use L5 basin physics Accumulate list if available.
+  const ticker = String(row?.ticker ?? "").trim().toUpperCase();
+  if (_l5AccumulateTickers === null) {
+    try {
+      const fs = require("fs");
+      const path = require("path");
+      const filePath = path.resolve("/app/l5_accumulate_tickers.json");
+      const raw = fs.readFileSync(filePath, "utf-8");
+      _l5AccumulateTickers = new Set(JSON.parse(raw));
+    } catch {
+      _l5AccumulateTickers = new Set();
+    }
   }
 
-  // Fallback: simple threshold (used when l5_basin_decision not in snapshot)
+  if (_l5AccumulateTickers.size > 0) {
+    return _l5AccumulateTickers.has(ticker) ? "Accumulate" : "Hold";
+  }
+
+  // Fallback: simple threshold (used when L5 ticker list not available)
   const sUf = toFiniteOrNull(row?.S_UF ?? row?.s_uf);
   const rUf = toFiniteOrNull(row?.R_UF ?? row?.r_uf);
   if (sUf !== null && rUf !== null) {
