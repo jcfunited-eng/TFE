@@ -144,32 +144,25 @@ class L5BaselineFilter:
         layer1_mask = is_accumulate & price_ok
 
         # ------------------------------------------------------------------
-        # Layer 2: Cognitive Gate (soft — null-pass per row)
-        # Applied only when BOTH F_n and raw_x_m columns exist in the frame.
+        # Layer 2: Cognitive Gate — REMOVED
+        #
+        # The E5.4-injected cognitive gate (F_n, raw_x_m thresholds) was
+        # killing 99.99% of Accumulate decisions because raw_x_m saturates
+        # at 1.0 with 5-year bar history.  The code itself documented this:
+        # "at the clip boundary when fed 5-year history, making raw_x_m
+        # useless" (uf_mdg_snapshot.py line 377).
+        #
+        # E5.4 history:
+        #   2026-03-31 Codex: injected CP-2 cognitive kernel
+        #   2026-04-01 Codex: "cap to 252 bars to prevent saturation" (didn't work)
+        #   2026-04-01 Codex: "restore soft-gate null-pass contract"
+        # Result: gate killed 50 of 51 Accumulate stocks silently.
+        #
+        # Removed 2026-04-27 by Claude. Basin physics (Layer 1) is the
+        # sole Accumulate filter until a working cognitive gate is designed.
         # ------------------------------------------------------------------
-        fn_present  = "F_n"    in df.columns
-        rxm_present = "raw_x_m" in df.columns
 
-        if fn_present and rxm_present:
-            fn_series  = pd.to_numeric(df["F_n"],    errors="coerce")
-            rxm_series = pd.to_numeric(df["raw_x_m"], errors="coerce")
-
-            both_populated = fn_series.notna() & rxm_series.notna()
-
-            # Null-pass contract: rows where either field is null are not disqualified
-            cognitive_ok = (
-                ~both_populated
-                | (
-                    (fn_series  <= self.max_f_n)
-                    & (rxm_series <= self.max_raw_x_m)
-                )
-            )
-            cognitive_ok = cognitive_ok.reindex(df.index).fillna(True)
-        else:
-            # Cognitive columns absent — pass all rows (pre-pipe state)
-            cognitive_ok = pd.Series(True, index=df.index)
-
-        final_mask = layer1_mask & cognitive_ok
+        final_mask = layer1_mask
 
         return df.loc[final_mask].copy()
 
