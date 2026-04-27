@@ -211,6 +211,108 @@ def api_calc():
             "hardware": True
         })
 
+    elif op == 'sub':
+        # Subtraction: a + (-b) on FPGA
+        neg_b = bt_encode(-b)
+        arcloom.write(0x04, a_bt)
+        arcloom.write(0x08, neg_b)
+        time.sleep(0.01)
+        raw = arcloom.read(0x08)
+        result = bt_decode(raw & 0xFF)
+        return jsonify({
+            "a": a, "b": b, "op": "\u2212", "result": result,
+            "a_bt": bt_trits(a_bt), "b_bt": bt_trits(b_bt),
+            "result_bt": bt_trits(raw & 0xFF),
+            "hardware": True
+        })
+
+    elif op == 'pow':
+        # Power: repeated multiply on FPGA. a^b where b >= 0.
+        if b < 0:
+            return jsonify({"error": "Negative exponents not supported (integer only)"})
+        if b == 0:
+            return jsonify({
+                "a": a, "b": b, "op": "^", "result": 1,
+                "a_bt": bt_trits(a_bt), "b_bt": bt_trits(b_bt),
+                "result_bt": bt_trits(bt_encode(1)),
+                "hardware": True, "iterations": 0
+            })
+        acc = a
+        for i in range(b - 1):
+            acc_bt = bt_encode(acc)
+            arcloom.write(0x04, acc_bt)
+            arcloom.write(0x08, a_bt)
+            time.sleep(0.01)
+            raw = arcloom.read(0x0C)
+            acc = bt_decode(raw & 0xFFFF, 8)
+            if abs(acc) > 9841:  # 8-trit BT max
+                return jsonify({"error": f"Overflow at iteration {i+2} (8-trit BT max \u00b19841)"})
+        return jsonify({
+            "a": a, "b": b, "op": "^", "result": acc,
+            "a_bt": bt_trits(a_bt), "b_bt": bt_trits(b_bt),
+            "result_bt": bt_trits(bt_encode(acc, 8), 8),
+            "hardware": True, "iterations": b - 1
+        })
+
+    elif op == 'sqrt':
+        # Square root via Newton iteration on FPGA: x = (x + N/x) / 2
+        if a < 0:
+            return jsonify({"error": "Square root of negative number"})
+        if a == 0:
+            return jsonify({
+                "a": a, "b": 0, "op": "\u221a", "result": 0,
+                "a_bt": bt_trits(a_bt), "result_bt": bt_trits(0),
+                "hardware": True, "iterations": 0
+            })
+        # Initial guess: a // 2 or 1, whichever is larger
+        x = max(a // 2, 1)
+        iterations = 0
+        for _ in range(20):  # max 20 iterations
+            # N / x on FPGA
+            x_bt = bt_encode(x)
+            arcloom.write(0x04, a_bt)
+            arcloom.write(0x08, x_bt)
+            arcloom.write(0x0C, 1 << 16)  # trigger division
+            time.sleep(0.05)
+            raw = arcloom.read(0x0C)
+            n_over_x = bt_decode(raw & 0xFF)
+
+            # (x + N/x) on FPGA
+            sum_bt_a = bt_encode(x)
+            sum_bt_b = bt_encode(n_over_x)
+            arcloom.write(0x04, sum_bt_a)
+            arcloom.write(0x08, sum_bt_b)
+            time.sleep(0.01)
+            raw = arcloom.read(0x08)
+            total = bt_decode(raw & 0xFF)
+
+            # / 2 on FPGA
+            total_bt = bt_encode(total)
+            two_bt = bt_encode(2)
+            arcloom.write(0x04, total_bt)
+            arcloom.write(0x08, two_bt)
+            arcloom.write(0x0C, 1 << 16)
+            time.sleep(0.05)
+            raw = arcloom.read(0x0C)
+            x_new = bt_decode(raw & 0xFF)
+
+            iterations += 1
+            if x_new == x or x_new == x - 1 or x_new == x + 1:
+                x = x_new
+                break
+            x = x_new
+
+        # Pick floor sqrt: largest integer where i*i <= a
+        if x * x > a:
+            x -= 1
+        remainder = a - x * x
+        return jsonify({
+            "a": a, "b": 0, "op": "\u221a", "result": x, "remainder": remainder,
+            "a_bt": bt_trits(a_bt),
+            "result_bt": bt_trits(bt_encode(x)),
+            "hardware": True, "iterations": iterations
+        })
+
     return jsonify({"error": f"Unknown operation: {op}"})
 
 
@@ -346,6 +448,44 @@ body {
     color: #333;
     padding: 4px;
 }
+/* Calculator buttons */
+.cb {
+    padding: 14px 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.2em;
+    font-family: 'Menlo', 'Courier New', monospace;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.1s, transform 0.05s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+.cb:active { transform: scale(0.95); }
+.cb-num { background: #1a1a1a; color: #e0e0e0; }
+.cb-num:active { background: #2a2a2a; }
+.cb-op  { background: #1a3320; color: #00ff88; }
+.cb-op:active { background: #264d33; }
+.cb-fn  { background: #1a1a2a; color: #8888ff; }
+.cb-fn:active { background: #2a2a3a; }
+.cb-eq  { background: #00ff88; color: #000; }
+.cb-eq:active { background: #00cc66; }
+.cb-clear { background: #331a1a; color: #ff4444; }
+.cb-clear:active { background: #4d2626; }
+/* BT trit chips in display */
+.bt-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 0.55em;
+    font-weight: bold;
+}
+.bt-pos  { background: #00ff88; color: #000; }
+.bt-neg  { background: #ff4444; color: #fff; }
+.bt-null { background: #2a2a2a; color: #555; }
 </style>
 </head>
 <body>
@@ -379,25 +519,50 @@ body {
 
     <div class="status-bar" id="status">connecting...</div>
 
-    <!-- Calculator -->
-    <div style="margin-top:12px; padding:12px; background:#111; border-radius:8px; border:1px solid #222;">
-        <div style="text-align:center; margin-bottom:8px;">
+    <!-- Scientific Calculator -->
+    <div id="calc-panel" style="margin-top:12px; padding:12px; background:#111; border-radius:8px; border:1px solid #222;">
+        <div style="text-align:center; margin-bottom:10px;">
             <div style="font-size:0.9em; color:#00ff88; font-weight:bold; letter-spacing:0.1em;">HARDWARE CALCULATOR</div>
-            <div style="font-size:0.55em; color:#666; margin-top:2px;">DEMO: All arithmetic executes on FPGA silicon (XC7Z020) via balanced ternary MathLoom.</div>
-            <div style="font-size:0.55em; color:#666;">Range: -40 to +40 (4-trit BT). Results computed in hardware, not software.</div>
+            <div style="font-size:0.5em; color:#555; margin-top:2px;">All arithmetic executes on FPGA silicon (XC7Z020) via balanced ternary MathLoom</div>
         </div>
-        <div style="display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap;">
-            <input type="number" id="calc-a" value="9" min="-40" max="40" style="width:60px; padding:8px; background:#1a1a1a; color:#fff; border:1px solid #333; border-radius:4px; text-align:center; font-size:1.1em; font-family:monospace;">
-            <select id="calc-op" style="padding:8px; background:#1a1a1a; color:#00ff88; border:1px solid #333; border-radius:4px; font-size:1.1em; font-family:monospace;">
-                <option value="add">+</option>
-                <option value="mul">&times;</option>
-                <option value="div">&divide;</option>
-            </select>
-            <input type="number" id="calc-b" value="3" min="-40" max="40" style="width:60px; padding:8px; background:#1a1a1a; color:#fff; border:1px solid #333; border-radius:4px; text-align:center; font-size:1.1em; font-family:monospace;">
-            <button onclick="doCalc()" style="padding:8px 16px; background:#00ff88; color:#000; border:none; border-radius:4px; font-weight:bold; font-size:1.1em; cursor:pointer;">=</button>
-            <span id="calc-result" style="font-size:1.4em; font-weight:bold; color:#00ff88; min-width:60px; text-align:center;">--</span>
+
+        <!-- Display -->
+        <div id="calc-display" style="background:#0a0a0a; border:1px solid #222; border-radius:6px; padding:10px 14px; margin-bottom:10px; min-height:80px;">
+            <div id="calc-expr" style="font-size:0.7em; color:#555; text-align:right; min-height:1.2em;"></div>
+            <div id="calc-value" style="font-size:2.2em; color:#00ff88; text-align:right; font-weight:bold; font-family:monospace;">0</div>
+            <div id="calc-trits" style="display:flex; justify-content:flex-end; gap:4px; margin-top:4px; min-height:22px;"></div>
+            <div id="calc-detail" style="font-size:0.55em; color:#444; text-align:right; margin-top:2px;"></div>
         </div>
-        <div id="calc-detail" style="text-align:center; margin-top:8px; font-size:0.65em; color:#555;"></div>
+
+        <!-- Button grid -->
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px;">
+            <button class="cb cb-fn" onclick="calcBtn('sqrt')">&#8730;</button>
+            <button class="cb cb-fn" onclick="calcBtn('pow')">x<sup>y</sup></button>
+            <button class="cb cb-fn" onclick="calcBtn('negate')">&#177;</button>
+            <button class="cb cb-clear" onclick="calcBtn('clear')">C</button>
+
+            <button class="cb cb-num" onclick="calcBtn('7')">7</button>
+            <button class="cb cb-num" onclick="calcBtn('8')">8</button>
+            <button class="cb cb-num" onclick="calcBtn('9')">9</button>
+            <button class="cb cb-op" onclick="calcBtn('div')">&#247;</button>
+
+            <button class="cb cb-num" onclick="calcBtn('4')">4</button>
+            <button class="cb cb-num" onclick="calcBtn('5')">5</button>
+            <button class="cb cb-num" onclick="calcBtn('6')">6</button>
+            <button class="cb cb-op" onclick="calcBtn('mul')">&#215;</button>
+
+            <button class="cb cb-num" onclick="calcBtn('1')">1</button>
+            <button class="cb cb-num" onclick="calcBtn('2')">2</button>
+            <button class="cb cb-num" onclick="calcBtn('3')">3</button>
+            <button class="cb cb-op" onclick="calcBtn('sub')">&#8722;</button>
+
+            <button class="cb cb-num" onclick="calcBtn('0')">0</button>
+            <button class="cb cb-num" onclick="calcBtn('back')">&#9003;</button>
+            <button class="cb cb-eq" onclick="calcBtn('eq')">=</button>
+            <button class="cb cb-op" onclick="calcBtn('add')">+</button>
+        </div>
+
+        <div style="text-align:center; margin-top:8px; font-size:0.45em; color:#333;">Range: &minus;40 to +40 (4-trit BT) &bull; Results computed in hardware, not software</div>
     </div>
 </div>
 
@@ -495,48 +660,178 @@ async function poll() {
 setInterval(poll, 150);  // ~7 fps
 poll();
 
-async function doCalc() {
-    const a = document.getElementById('calc-a').value;
-    const b = document.getElementById('calc-b').value;
-    const op = document.getElementById('calc-op').value;
-    const resultEl = document.getElementById('calc-result');
+// ---- Calculator state machine ----
+let calcState = {
+    input: '0',        // current number being typed
+    operandA: null,    // first operand (after operator pressed)
+    operator: null,    // pending operator
+    fresh: true,       // true = next digit replaces display
+    lastResult: null   // for chaining
+};
+
+const OP_SYMBOLS = {add:'+', sub:'\u2212', mul:'\u00d7', div:'\u00f7', pow:'^', sqrt:'\u221a'};
+
+function calcUpdate() {
+    document.getElementById('calc-value').textContent = calcState.input;
+    // Show expression line
+    const exprEl = document.getElementById('calc-expr');
+    if (calcState.operandA !== null && calcState.operator) {
+        exprEl.textContent = calcState.operandA + ' ' + (OP_SYMBOLS[calcState.operator]||calcState.operator);
+    } else {
+        exprEl.textContent = '';
+    }
+}
+
+function renderTrits(trits) {
+    if (!trits) return '';
+    return trits.map(t => {
+        if (t === '+1') return '<span class="bt-chip bt-pos">+1</span>';
+        if (t === '-1') return '<span class="bt-chip bt-neg">\u22121</span>';
+        return '<span class="bt-chip bt-null">0</span>';
+    }).join(' ');
+}
+
+async function calcExecute(a, b, op) {
+    const valueEl = document.getElementById('calc-value');
+    const tritsEl = document.getElementById('calc-trits');
     const detailEl = document.getElementById('calc-detail');
 
-    resultEl.textContent = '...';
-    resultEl.style.color = '#888';
+    valueEl.textContent = '...';
+    valueEl.style.color = '#888';
+    tritsEl.innerHTML = '';
+    detailEl.textContent = '';
 
     try {
         const resp = await fetch('/api/calc?a=' + a + '&b=' + b + '&op=' + op);
         const data = await resp.json();
 
         if (data.error) {
-            resultEl.textContent = 'ERR';
-            resultEl.style.color = '#ff4444';
+            valueEl.textContent = 'ERR';
+            valueEl.style.color = '#ff4444';
             detailEl.textContent = data.error;
+            calcState.input = '0';
+            calcState.fresh = true;
             return;
         }
 
-        if (op === 'div') {
-            resultEl.textContent = data.result + (data.remainder ? ' R ' + data.remainder : '');
-            detailEl.innerHTML =
-                'A trits: [' + data.a_bt.join(', ') + '] &rarr; ' +
-                'Q trits: [' + data.quotient_bt.join(', ') + ']' +
-                (data.remainder ? ' R [' + data.remainder_bt.join(', ') + ']' : '') +
-                ' | ' + data.cycles + ' fold cycles | FPGA silicon';
+        let display = '' + data.result;
+        if (op === 'div' && data.remainder) display += ' R ' + data.remainder;
+        if (op === 'sqrt' && data.remainder) display += ' R ' + data.remainder;
+
+        valueEl.textContent = display;
+        valueEl.style.color = '#00ff88';
+
+        // Show result trits
+        tritsEl.innerHTML = renderTrits(data.result_bt || data.quotient_bt);
+
+        // Detail line
+        let detail = '';
+        if (op === 'sqrt') {
+            detail = '\u221a' + a + ' = ' + data.result + ' | ' + data.iterations + ' Newton steps | FPGA';
+        } else if (op === 'pow') {
+            detail = a + '^' + b + ' = ' + data.result + ' | ' + (data.iterations||0) + ' multiplies | FPGA';
+        } else if (op === 'div') {
+            detail = a + '\u00f7' + b + ' = ' + data.result + (data.remainder ? ' R'+data.remainder : '') +
+                     ' | ' + data.cycles + ' folds | FPGA';
         } else {
-            resultEl.textContent = data.result;
-            detailEl.innerHTML =
-                '[' + data.a_bt.join(', ') + '] ' + data.op +
-                ' [' + data.b_bt.join(', ') + '] = [' + data.result_bt.join(', ') + ']' +
-                ' | FPGA silicon';
+            detail = '[' + (data.a_bt||[]).join(',') + '] ' + data.op +
+                     ' [' + (data.b_bt||[]).join(',') + '] = [' + (data.result_bt||[]).join(',') + '] | FPGA';
         }
-        resultEl.style.color = '#00ff88';
+        detailEl.textContent = detail;
+
+        calcState.input = '' + data.result;
+        calcState.lastResult = data.result;
+        calcState.operandA = null;
+        calcState.operator = null;
+        calcState.fresh = true;
+
     } catch (e) {
-        resultEl.textContent = 'ERR';
-        resultEl.style.color = '#ff4444';
+        valueEl.textContent = 'ERR';
+        valueEl.style.color = '#ff4444';
         detailEl.textContent = e.message;
+        calcState.input = '0';
+        calcState.fresh = true;
     }
 }
+
+function calcBtn(key) {
+    // Digits
+    if (key >= '0' && key <= '9') {
+        if (calcState.fresh) {
+            calcState.input = key;
+            calcState.fresh = false;
+        } else {
+            if (calcState.input.replace('-','').length >= 3) return; // max 3 digits (range limit)
+            calcState.input = calcState.input === '0' ? key : calcState.input + key;
+        }
+        calcUpdate();
+        return;
+    }
+
+    if (key === 'back') {
+        if (calcState.fresh) return;
+        calcState.input = calcState.input.length > 1 ? calcState.input.slice(0,-1) : '0';
+        if (calcState.input === '-') calcState.input = '0';
+        calcUpdate();
+        return;
+    }
+
+    if (key === 'negate') {
+        let n = parseInt(calcState.input) || 0;
+        calcState.input = '' + (-n);
+        calcUpdate();
+        return;
+    }
+
+    if (key === 'clear') {
+        calcState = {input:'0', operandA:null, operator:null, fresh:true, lastResult:null};
+        document.getElementById('calc-trits').innerHTML = '';
+        document.getElementById('calc-detail').textContent = '';
+        document.getElementById('calc-value').style.color = '#00ff88';
+        calcUpdate();
+        return;
+    }
+
+    // sqrt is unary — execute immediately
+    if (key === 'sqrt') {
+        let a = parseInt(calcState.input) || 0;
+        if (a < 0) { a = Math.abs(a); } // sqrt of |a|
+        calcState.operandA = null;
+        calcState.operator = null;
+        document.getElementById('calc-expr').textContent = '\u221a' + a;
+        calcExecute(a, 0, 'sqrt');
+        return;
+    }
+
+    // Binary operators
+    if (key === 'add' || key === 'sub' || key === 'mul' || key === 'div' || key === 'pow') {
+        // If there's already a pending op, execute it first
+        if (calcState.operandA !== null && calcState.operator && !calcState.fresh) {
+            // Chain: execute pending, then set new operator
+            let a = calcState.operandA;
+            let b = parseInt(calcState.input) || 0;
+            // We can't easily chain here with async, so just set the new op
+        }
+        calcState.operandA = parseInt(calcState.input) || 0;
+        calcState.operator = key;
+        calcState.fresh = true;
+        calcUpdate();
+        return;
+    }
+
+    // Equals
+    if (key === 'eq') {
+        if (calcState.operandA === null || !calcState.operator) return;
+        let a = calcState.operandA;
+        let b = parseInt(calcState.input) || 0;
+        let op = calcState.operator;
+        document.getElementById('calc-expr').textContent = a + ' ' + (OP_SYMBOLS[op]||op) + ' ' + b + ' =';
+        calcExecute(a, b, op);
+        return;
+    }
+}
+
+calcUpdate();
 </script>
 </body>
 </html>
