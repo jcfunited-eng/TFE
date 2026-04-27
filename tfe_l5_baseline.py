@@ -162,7 +162,26 @@ class L5BaselineFilter:
         # sole Accumulate filter until a working cognitive gate is designed.
         # ------------------------------------------------------------------
 
-        final_mask = layer1_mask
+        # ------------------------------------------------------------------
+        # Layer 2: Stable Titan Scaler
+        # For deeply established, high-conviction stable stocks (D_k=0),
+        # stability IS the accumulation signal. The basin formula requires
+        # D_k=+1 (expansion) which excludes mega-caps in equilibrium.
+        # This scaler adds them: S_UF >= 0.85, bars >= 1000, stock, no reversal.
+        # Additive only — does not remove any basin Accumulate decisions.
+        # ------------------------------------------------------------------
+        stable_titan_mask = (
+            (s["D_k"] == 0)
+            & (s["S_UF"] >= 0.85)
+            & (s["R_rev_k"] == 0)
+            & (s["price"] >= 10.0)
+            & (df["bar_count"].astype(float) >= 1000)
+            & (df["asset_type"].isin(["stock", "equity", ""]))
+            & (~df["ticker"].str.startswith("I:"))
+            & (~df["ticker"].str.startswith("X:"))
+        )
+
+        final_mask = layer1_mask | stable_titan_mask
 
         return df.loc[final_mask].copy()
 
