@@ -158,13 +158,16 @@ export async function runEntryTimingCheck() {
         ? (snapshot.todayVolume / (snapshot.prevDayVolume * expectedVolumeRatio))
         : 1.0;
 
+      // Route by S_UF band: CH2 = 0.50-0.74, CH3 = 0.75+
+      const signalClass = signal.s_uf >= 0.75 ? "CH3" : "CH2";
+
       candidates.push({
         ...signal,
         price: snapshot.price,
         todayVolume: snapshot.todayVolume,
         prevDayVolume: snapshot.prevDayVolume,
         normalizedVolume,
-        signal_class: "CH2",
+        signal_class: signalClass,
       });
     } catch (err) {
       // Skip ticker on error, don't abort the whole run
@@ -188,15 +191,21 @@ export async function runEntryTimingCheck() {
       `D_k=${c.d_k} | retry=${c.is_retry}`
     );
 
-    // Import and execute the CH2 bracket order
+    // Route to correct bridge based on signal class
     try {
-      const { executeCh2BracketOrder } = await import("./alpaca_bridge.mjs");
-      const result = await executeCh2BracketOrder(c);
+      const { executeCh2BracketOrder, executeCh3MarketOrder } = await import("./alpaca_bridge.mjs");
+      let result;
+      if (c.signal_class === "CH3") {
+        c.ch3_trade_amount = 2500;  // CH3 pool sizing
+        result = await executeCh3MarketOrder(c);
+      } else {
+        result = await executeCh2BracketOrder(c);
+      }
       if (result?.status === "submitted" || result?.status === "filled") {
         entriesThisRun++;
-        console.log(`[ENTRY-TIMING] FIRED: ${c.ticker} — order ${result.status}`);
+        console.log(`[ENTRY-TIMING] FIRED: ${c.ticker} (${c.signal_class}) — order ${result.status}`);
       } else {
-        console.log(`[ENTRY-TIMING] ${c.ticker} — ${result?.status ?? "unknown"}: ${result?.exit_reason ?? ""}`);
+        console.log(`[ENTRY-TIMING] ${c.ticker} (${c.signal_class}) — ${result?.status ?? "unknown"}: ${result?.exit_reason ?? ""}`);
       }
     } catch (err) {
       console.error(`[ENTRY-TIMING] ${c.ticker} order failed: ${err.message}`);

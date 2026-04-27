@@ -109,17 +109,25 @@ function getSectorPressure(g32State, sector) {
  */
 async function detectPhase() {
   try {
-    // Get regime change counts over last 10 refresh cycles
+    // Get regime change counts over last 10 refresh cycles.
+    // Compare each run's regime to the PREVIOUS run's regime per ticker
+    // using a CTE (window functions not allowed inside FILTER on RDS).
     const res = await pool.query(`
+      WITH ranked AS (
+        SELECT
+          run_id,
+          ticker,
+          snapshot_row_json->>'regime' AS regime,
+          created_at,
+          LAG(snapshot_row_json->>'regime') OVER (PARTITION BY ticker ORDER BY created_at) AS prev_regime
+        FROM runtime_decisions_history
+        WHERE created_at >= NOW() - INTERVAL '14 days'
+      )
       SELECT
         run_id,
-        COUNT(*) as total_decisions,
-        COUNT(*) FILTER (WHERE
-          snapshot_row_json->>'regime' IS DISTINCT FROM
-          LAG(snapshot_row_json->>'regime') OVER (PARTITION BY ticker ORDER BY created_at)
-        ) as regime_changes
-      FROM runtime_decisions_history
-      WHERE created_at >= NOW() - INTERVAL '14 days'
+        COUNT(*) AS total_decisions,
+        COUNT(*) FILTER (WHERE regime IS DISTINCT FROM prev_regime AND prev_regime IS NOT NULL) AS regime_changes
+      FROM ranked
       GROUP BY run_id
       ORDER BY MAX(created_at) DESC
       LIMIT 10
