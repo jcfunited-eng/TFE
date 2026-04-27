@@ -174,11 +174,23 @@ export async function runEntryTimingCheck() {
     }
   }
 
+  // CH3 one-at-a-time: check if CH3 already has an open position
+  const ch3OpenRes = await pool.query(`
+    SELECT COUNT(*) AS cnt FROM personal_trade_ledger
+    WHERE signal_class = 'CH3' AND status IN ('submitted', 'filled')
+  `);
+  const ch3HasOpen = parseInt(ch3OpenRes.rows[0]?.cnt ?? "0") > 0;
+
   // Sort by volume strength — highest volume ratio first
   candidates.sort((a, b) => b.normalizedVolume - a.normalizedVolume);
 
   for (const c of candidates) {
     if (entriesThisRun >= MAX_ENTRIES_PER_RUN) break;
+
+    // CH3 one-at-a-time rule
+    if (c.signal_class === "CH3" && ch3HasOpen) {
+      continue;
+    }
 
     // Entry condition: volume at or above normal pace
     if (c.normalizedVolume < VOLUME_RATIO_MIN) {
