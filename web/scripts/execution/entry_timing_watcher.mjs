@@ -174,12 +174,14 @@ export async function runEntryTimingCheck() {
     }
   }
 
-  // CH3 one-at-a-time: check if CH3 already has an open position
-  const ch3OpenRes = await pool.query(`
-    SELECT COUNT(*) AS cnt FROM personal_trade_ledger
+  // CH3 pool check: how much of the $5K pool is already invested?
+  const ch3PoolRes = await pool.query(`
+    SELECT COALESCE(SUM(CAST(dollar_allocation AS NUMERIC)), 0) AS invested
+    FROM personal_trade_ledger
     WHERE signal_class = 'CH3' AND status IN ('submitted', 'filled')
   `);
-  const ch3HasOpen = parseInt(ch3OpenRes.rows[0]?.cnt ?? "0") > 0;
+  const ch3Invested = parseFloat(ch3PoolRes.rows[0]?.invested ?? "0");
+  const ch3Available = Math.max(0, 5000 - ch3Invested);
 
   // Sort by volume strength — highest volume ratio first
   candidates.sort((a, b) => b.normalizedVolume - a.normalizedVolume);
@@ -187,8 +189,8 @@ export async function runEntryTimingCheck() {
   for (const c of candidates) {
     if (entriesThisRun >= MAX_ENTRIES_PER_RUN) break;
 
-    // CH3 one-at-a-time rule
-    if (c.signal_class === "CH3" && ch3HasOpen) {
+    // CH3 pool limit — skip if pool exhausted
+    if (c.signal_class === "CH3" && ch3Available < 500) {
       continue;
     }
 

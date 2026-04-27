@@ -202,10 +202,17 @@ export async function getCh3Signals() {
     return [];
   }
 
-  // Gate 3: one at a time
-  const hasOpen = await hasOpenCh3Position();
-  if (hasOpen) {
-    console.log(`[CH3-SCALP] SKIP — CH3 position already open`);
+  // Gate 3: check invested amount in open CH3 positions
+  const ch3InvestedRes = await pool.query(`
+    SELECT COALESCE(SUM(CAST(dollar_allocation AS NUMERIC)), 0) AS invested
+    FROM personal_trade_ledger
+    WHERE signal_class = 'CH3' AND status IN ('submitted', 'filled')
+  `);
+  const ch3Invested = parseFloat(ch3InvestedRes.rows[0]?.invested ?? "0");
+  const availablePool = Math.max(0, poolRemaining - ch3Invested);
+
+  if (availablePool < 500) {
+    console.log(`[CH3-SCALP] SKIP — pool fully allocated ($${availablePool.toFixed(0)} available, $${ch3Invested.toFixed(0)} invested)`);
     return [];
   }
 
@@ -218,11 +225,9 @@ export async function getCh3Signals() {
   const todayCh3Tickers = await fetchTodayCh3Tickers();
   const available = signals.filter(s => {
     if (openTickers.has(s.ticker)) {
-      console.log(`[CH3-SCALP]   ${s.ticker} — SKIPPED (position exists in another channel)`);
       return false;
     }
     if (todayCh3Tickers.has(s.ticker)) {
-      console.log(`[CH3-SCALP]   ${s.ticker} — SKIPPED (already traded by CH3 today)`);
       return false;
     }
     return true;
@@ -233,15 +238,22 @@ export async function getCh3Signals() {
     return [];
   }
 
-  // Pick the BEST one (highest S_UF)
-  const best = available[0];
-  const tradeAmount = Math.min(CH3_MAX_PER_TRADE, poolRemaining);
+  // Pool-limited multi-position: divide available pool among candidates
+  // Max per trade caps each position, pool caps total exposure
+  const maxPositions = Math.floor(availablePool / 500);  // minimum $500 per position
+  const candidates = available.slice(0, Math.min(available.length, maxPositions));
+  const perTradeAmount = Math.min(CH3_MAX_PER_TRADE, Math.floor(availablePool / candidates.length));
 
-  console.log(`[CH3-SCALP] SIGNAL: ${best.ticker} | S_UF=${best.s_uf} | D_k=${best.d_k} | pool=$${poolRemaining.toFixed(0)} | trade=$${tradeAmount.toFixed(0)}`);
+  console.log(`[CH3-SCALP] ${candidates.length} candidate(s) | pool=$${availablePool.toFixed(0)} | per_trade=$${perTradeAmount}`);
 
-  // Override the sizing — CH3 uses fixed dollar amount, not percentage
-  // Stops are ATR-based, computed in alpaca_bridge at execution time
-  best.ch3_trade_amount = tradeAmount;
+  for (const sig of candidates) {
+    sig.ch3_trade_amount = perTradeAmount;
+    console.log(`[CH3-SCALP] SIGNAL: ${sig.ticker} | S_UF=${sig.s_uf} | D_k=${sig.d_k} | $${perTradeAmount}`);
+  }
+
+  // Return all candidates (PEE-1 runner will execute each)
+  const best = candidates[0];
+  best.ch3_trade_amount = perTradeAmount;
 
   return [best];
 }

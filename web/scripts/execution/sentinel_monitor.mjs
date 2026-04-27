@@ -476,16 +476,14 @@ export async function runSentinel() {
       continue;
     }
 
-    // ── Chapter 3 — exit logic ──────────────────────────────────────────
+    // ── Chapter 3 — fuel gauge exit logic ────────────────────────────────
     if (signalClass === "CH3") {
-      // CH3 uses bracket orders — Alpaca enforces TP/SL in real-time.
-      // NO TIME LIMIT — hold until bracket resolves.
-      // The structural move plays out on its own timeline.
+      // CH3 exits: bracket (TP/SL) as safety net, fuel gauge as primary.
+      // Fuel gauge: monitor real-time volume flow. When fuel runs out, exit.
       try {
         // Check if bracket already closed this position
         const alpacaPos = await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE).catch(() => null);
         if (!alpacaPos) {
-          // Position gone from Alpaca — bracket TP or SL fired
           console.log(`[SENTINEL] CH3 ${pos.ticker} — position closed by bracket (TP/SL). Marking DB closed.`);
           await ledgerClose(pos.id, "ch3_bracket_exit", null).catch(e => {
             console.error(`[SENTINEL] CH3 ledger close failed for ${pos.ticker}:`, e.message);
@@ -496,10 +494,65 @@ export async function runSentinel() {
         const currentPrice = parseFloat(alpacaPos?.current_price ?? "0");
         const entryPrice   = parseFloat(alpacaPos?.avg_entry_price ?? "0");
         const plPct        = entryPrice > 0 ? (currentPrice - entryPrice) / entryPrice : 0;
-
         const tpPrice = parseFloat(pos.take_profit_price ?? "0");
         const slPrice = parseFloat(pos.stop_loss_price ?? "0");
-        console.log(`[SENTINEL] CH3 ${pos.ticker} HOLD | P&L=${(plPct*100).toFixed(2)}% | entry=${entryPrice} | current=${currentPrice} | TP=${tpPrice} | SL=${slPrice}`);
+
+        // ── Fuel Gauge: check real-time volume vs previous day ──────────
+        // Volume is the fuel. When it dries up, the move is over.
+        let fuelStatus = "UNKNOWN";
+        let volumeRatio = null;
+        try {
+          const POLYGON_KEY = process.env.MASSIVE_API_KEY ?? process.env.POLYGON_API_KEY ?? "";
+          if (POLYGON_KEY) {
+            const snapResp = await fetch(
+              `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${pos.ticker}?apiKey=${POLYGON_KEY}`
+            );
+            if (snapResp.ok) {
+              const snapData = await snapResp.json();
+              const snap = snapData?.ticker;
+              if (snap) {
+                const todayVol  = snap.day?.v ?? 0;
+                const prevDayVol = snap.prevDay?.v ?? 0;
+
+                // Normalize by time of day (early = low volume is normal)
+                const now = new Date();
+                const marketMins = (now.getUTCHours() - 13) * 60 + (now.getUTCMinutes() - 30);
+                const tradingMinutes = Math.max(1, Math.min(390, marketMins));
+                const expectedRatio = tradingMinutes / 390;
+
+                volumeRatio = prevDayVol > 0
+                  ? todayVol / (prevDayVol * expectedRatio)
+                  : 1.0;
+
+                // Fuel classification
+                if (volumeRatio >= 1.5)      fuelStatus = "SURGING";
+                else if (volumeRatio >= 1.0)  fuelStatus = "FLOWING";
+                else if (volumeRatio >= 0.7)  fuelStatus = "THINNING";
+                else                          fuelStatus = "EXHAUSTED";
+              }
+            }
+          }
+        } catch (volErr) {
+          // Volume check is best-effort
+        }
+
+        // ── Fuel-based exit decision ────────────────────────────────────
+        // Only exit on fuel exhaustion if we're in profit (protect gains).
+        // If in loss, let the SL bracket handle it.
+        if (fuelStatus === "EXHAUSTED" && plPct > 0.005) {
+          console.log(
+            `[SENTINEL] CH3 ${pos.ticker} FUEL EXHAUSTED | P&L=${(plPct*100).toFixed(2)}% | ` +
+            `vol=${volumeRatio?.toFixed(2) ?? "?"}x | Selling to lock profit`
+          );
+          await killPosition(pos, "ch3_fuel_exhausted", ALPACA_BASE);
+          continue;
+        }
+
+        console.log(
+          `[SENTINEL] CH3 ${pos.ticker} HOLD | P&L=${(plPct*100).toFixed(2)}% | ` +
+          `entry=${entryPrice} | current=${currentPrice} | TP=${tpPrice} | SL=${slPrice} | ` +
+          `fuel=${fuelStatus}${volumeRatio ? `(${volumeRatio.toFixed(2)}x)` : ""}`
+        );
       } catch (e) {
         console.warn(`[SENTINEL] CH3 ${pos.ticker} — position check error: ${e.message}`);
       }

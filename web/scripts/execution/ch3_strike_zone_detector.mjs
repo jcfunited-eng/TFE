@@ -51,7 +51,7 @@ const SWARM_DEAD_THRESHOLD = 0.04;   // today's rcr below this = swarm coiled
 const B_NEAR_ZERO_MAX = 0.15;        // |B_k| < this = free to move
 const CH3_POOL_TOTAL = 5000;
 const CH3_MAX_PER_TRADE = 2500;
-const MAX_ENTRIES_PER_CHECK = 1;     // one at a time
+const MAX_ENTRIES_PER_CHECK = 5;     // pool-limited, not count-limited
 
 // ── G32 State Reader ────────────────────────────────────────────────────
 
@@ -209,13 +209,16 @@ async function getStrikeZoneCandidates(g32State) {
   `);
   const openTickers = new Set(openRes.rows.map(r => r.ticker));
 
-  // Check if CH3 already has an open position (one at a time)
-  const ch3Open = await pool.query(`
-    SELECT COUNT(*) AS cnt FROM personal_trade_ledger
+  // Pool check: how much of the CH3 pool is already invested?
+  const ch3PoolRes = await pool.query(`
+    SELECT COALESCE(SUM(CAST(dollar_allocation AS NUMERIC)), 0) AS invested
+    FROM personal_trade_ledger
     WHERE signal_class = 'CH3' AND status IN ('submitted', 'filled')
   `);
-  if (parseInt(ch3Open.rows[0]?.cnt ?? "0") > 0) {
-    return { candidates: [], reason: "CH3 position already open" };
+  const ch3Invested = parseFloat(ch3PoolRes.rows[0]?.invested ?? "0");
+  const availablePool = Math.max(0, CH3_POOL_TOTAL - ch3Invested);
+  if (availablePool < 500) {
+    return { candidates: [], reason: `CH3 pool exhausted ($${availablePool.toFixed(0)} available)` };
   }
 
   // No same-day re-entry
