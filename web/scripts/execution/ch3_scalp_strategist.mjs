@@ -186,7 +186,13 @@ function parseSignal(row) {
  * Main entry point — returns at most ONE CH3 signal (best candidate).
  */
 export async function getCh3Signals() {
-  console.log(`[CH3-SCALP] Scanning for high-conviction scalp candidates...`);
+  // CH3 entries come ONLY from the strike zone detector now.
+  // The old S_UF threshold picking was producing dead-money positions
+  // with no structural energy or volume. The strike zone detector
+  // checks phase + swarm + G32 direction before firing.
+  // PEE-1 should not independently generate CH3 signals.
+  console.log(`[CH3-SCALP] CH3 signals via strike zone detector only. PEE-1 CH3 disabled.`);
+  return [];
 
   // Gate 1: daily loss limit
   const todayPL = await getTodayCh3PL();

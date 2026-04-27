@@ -205,13 +205,28 @@ export async function runEntryTimingCheck() {
       `D_k=${c.d_k} | retry=${c.is_retry}`
     );
 
-    // Route to correct bridge based on signal class
+    // CH3 entries MUST be gated by strike zone detector.
+    // Volume alone is never enough — need phase + swarm + G32 direction.
+    if (c.signal_class === "CH3") {
+      try {
+        const { runStrikeZoneCheck } = await import("./ch3_strike_zone_detector.mjs");
+        // Strike zone check is done at the sentinel level every 5 min.
+        // The entry timing watcher should NOT independently fire CH3.
+        // CH3 entries come ONLY from the strike zone detector.
+        console.log(`[ENTRY-TIMING] ${c.ticker} (CH3) — skipped, CH3 entries via strike zone detector only`);
+        continue;
+      } catch (e) {
+        continue;
+      }
+    }
+
+    // Route CH2 to bridge
     try {
       const { executeCh2BracketOrder, executeCh3MarketOrder } = await import("./alpaca_bridge.mjs");
       let result;
       if (c.signal_class === "CH3") {
-        c.ch3_trade_amount = 2500;  // CH3 pool sizing
-        result = await executeCh3MarketOrder(c);
+        // Should not reach here — CH3 gated above
+        continue;
       } else {
         result = await executeCh2BracketOrder(c);
       }
