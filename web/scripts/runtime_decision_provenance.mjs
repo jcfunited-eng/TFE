@@ -330,6 +330,31 @@ function primitiveReasonCodeFromInputs(inputs) {
   return "DSF_V3_AVOID";
 }
 
+// ── L5 Stable Titan Scaler ──────────────────────────────────────────────
+// D_k=0 mega-caps with very high S_UF are structurally stable — stability
+// IS the accumulation signal for established companies.
+// Applied AFTER basin argmax: overrides Hold → Accumulate for qualifying stocks.
+function stableTitanOverride(row, basinReasonCode) {
+  if (basinReasonCode === "DSF_V3_ACCUMULATE" || basinReasonCode === "DSF_V3_AVOID") {
+    return basinReasonCode;  // don't override Accumulate or Avoid
+  }
+  const dK   = Number(row?.d_k ?? row?.D_k ?? NaN);
+  const sUf  = Number(row?.s_uf ?? row?.S_UF ?? NaN);
+  const rRev = Number(row?.r_rev_k ?? row?.R_rev_k ?? NaN);
+  const bars = Number(row?.bar_count ?? NaN);
+  const price = Number(row?.price ?? NaN);
+  const asset = String(row?.asset_type ?? "").trim().toLowerCase();
+  const ticker = String(row?.ticker ?? "").trim();
+
+  if (dK === 0 && sUf >= 0.85 && rRev === 0 &&
+      bars >= 1000 && price >= 10 &&
+      (asset === "stock" || asset === "equity" || asset === "") &&
+      !ticker.startsWith("I:") && !ticker.startsWith("X:")) {
+    return "DSF_V3_ACCUMULATE";
+  }
+  return basinReasonCode;
+}
+
 function primitiveDecisionFromReasonCode(reasonCode) {
   if (reasonCode === "DSF_V3_ACCUMULATE")                          return "Accumulate";
   if (reasonCode === "DSF_V3_HOLD" || reasonCode === "DSF_V3_TIE_HOLD") return "Hold";
@@ -382,7 +407,8 @@ export function computeDecisionTrace(
 
   const normalizedRow = normalizeDecisionTraceRow(row && typeof row === "object" ? row : {});
   const basis = primitiveInputFromRow(normalizedRow);
-  const decisionReasonCode = primitiveReasonCodeFromInputs(basis);
+  const rawReasonCode = primitiveReasonCodeFromInputs(basis);
+  const decisionReasonCode = stableTitanOverride(normalizedRow, rawReasonCode);
   const decision = primitiveDecisionFromReasonCode(decisionReasonCode);
   const fallbackUsed = decisionReasonCode === "DSF_V3_MISSING_REQUIRED_FIELDS";
   const candidateKeyChain = primitiveWitness(decisionReasonCode, basis.missing_fields);
