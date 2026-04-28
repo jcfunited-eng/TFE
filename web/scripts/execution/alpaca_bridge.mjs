@@ -542,7 +542,7 @@ function validateCh2Signal(signal) {
     check(typeof signal.s_uf === "number" && signal.s_uf >= 0.50 && signal.s_uf < 0.75, `s_uf_out_of_ch2_band:${signal.s_uf}`),
     check(signal.d_k === 1,                                                            `d_k_not_1:${signal.d_k}`),
     check(typeof signal.bar_count === "number" && signal.bar_count > 20,               `bar_count_not_established:${signal.bar_count}`),
-    check(signal.regime === "TRANSITIONAL",                                            `regime_not_transitional:${signal.regime}`),
+    // Regime check REMOVED — validation finding: TRANSITIONAL-only was too restrictive
   ].filter(Boolean);
 
   if (failures.length > 0) {

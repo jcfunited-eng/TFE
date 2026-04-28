@@ -103,7 +103,8 @@ function parseSignal(row) {
   if (barCount === null || barCount < CH2_BAR_COUNT_MIN) return null;
   if (sUf === null || sUf < CH2_S_UF_MIN || sUf >= CH2_S_UF_MAX) return null;
   if (dk !== CH2_REQUIRED_DK)                          return null;
-  if (regime !== CH2_REQUIRED_REGIME)                  return null;
+  // Regime gate REMOVED — validation finding: TRANSITIONAL-only was too restrictive
+  // CH2 now accepts any regime with D_k=+1 in the S_UF acceleration band
 
   return {
     ticker,
