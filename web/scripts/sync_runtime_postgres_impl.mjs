@@ -419,20 +419,7 @@ function resolveGeneratedAt(report, snapshotPayload, fallbackIso) {
 // L5 basin Accumulate ticker set — loaded once from file written by L5 filter
 let _l5AccumulateTickers = null;
 
-function _loadL5AccumulateTickers() {
-  if (_l5AccumulateTickers !== null) return _l5AccumulateTickers;
-  try {
-    const fs = await import("fs");
-    const path = await import("path");
-    const filePath = path.default.resolve("/app/l5_accumulate_tickers.json");
-    const raw = fs.default.readFileSync(filePath, "utf-8");
-    _l5AccumulateTickers = new Set(JSON.parse(raw));
-    console.log();
-  } catch {
-    _l5AccumulateTickers = null;
-  }
-  return _l5AccumulateTickers;
-}
+// _loadL5AccumulateTickers removed — logic in inferDecisionLabel
 
 function inferDecisionLabel(row) {
   // Use L5 basin physics Accumulate list if available.
