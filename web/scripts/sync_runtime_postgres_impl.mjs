@@ -417,36 +417,82 @@ function resolveGeneratedAt(report, snapshotPayload, fallbackIso) {
 }
 
 // L5 basin Accumulate ticker set — loaded once from file written by L5 filter
-let _l5AccumulateTickers = null;
 
-// _loadL5AccumulateTickers removed — logic in inferDecisionLabel
 
 function inferDecisionLabel(row) {
-  // Use L5 basin physics Accumulate list if available.
-  const ticker = String(row?.ticker ?? "").trim().toUpperCase();
-  if (_l5AccumulateTickers === null) {
-    try {
-      const fs = require("fs");
-      const path = require("path");
-      const filePath = path.resolve("/app/l5_accumulate_tickers.json");
-      const raw = fs.readFileSync(filePath, "utf-8");
-      _l5AccumulateTickers = new Set(JSON.parse(raw));
-    } catch {
-      _l5AccumulateTickers = new Set();
-    }
-  }
-
-  if (_l5AccumulateTickers.size > 0) {
-    return _l5AccumulateTickers.has(ticker) ? "Accumulate" : "Hold";
-  }
-
-  // Fallback: simple threshold (used when L5 ticker list not available)
+  // L5 Basin Physics (V3 argmax) + Stable Titan Scaler
+  // Same deterministic math as tfe_l5_baseline.py — no file dependency.
   const sUf = toFiniteOrNull(row?.S_UF ?? row?.s_uf);
   const rUf = toFiniteOrNull(row?.R_UF ?? row?.r_uf);
-  if (sUf !== null && rUf !== null) {
-    if (sUf >= 0.5 && rUf >= 0.5) return "Accumulate";
-    if (sUf <= -0.5 && rUf <= -0.5) return "Avoid";
+  const uStar = toFiniteOrNull(row?.U_star_k ?? row?.u_star_k) ?? 0;
+  const dK = toFiniteOrNull(row?.D_k ?? row?.d_k) ?? 0;
+  const mK = toFiniteOrNull(row?.M_k ?? row?.m_k) ?? 0;
+  const rRev = toFiniteOrNull(row?.R_rev_k ?? row?.r_rev_k) ?? 0;
+  const cK = toFiniteOrNull(row?.C_k ?? row?.c_k) ?? 0;
+  const pK = toFiniteOrNull(row?.P_k ?? row?.p_k) ?? 0;
+  const bK = toFiniteOrNull(row?.B_k ?? row?.b_k) ?? 0;
+  const price = toFiniteOrNull(row?.price) ?? 0;
+  const barCount = toFiniteOrNull(row?.bar_count) ?? 0;
+  const assetType = String(row?.asset_type ?? "").trim().toLowerCase();
+  const ticker = String(row?.ticker ?? "").trim();
+
+  if (sUf === null || rUf === null) return "Hold";
+  if (price < 5.0) return "Hold";
+
+  // ── Stable Titan Scaler (L5 Layer 2) ────────────────────────────────
+  // D_k=0, S_UF>=0.85, R_rev=0, bars>=1000, stock, not index
+  if (dK === 0 && sUf >= 0.85 && rRev === 0 && barCount >= 1000 && price >= 10 &&
+      (assetType === "stock" || assetType === "equity" || assetType === "") &&
+      !ticker.startsWith("I:") && !ticker.startsWith("X:")) {
+    return "Accumulate";
   }
+
+  // ── V3 Basin Argmax (L5 Layer 1) ────────────────────────────────────
+  const BETA = 37/64;
+  const MW = 3/5;
+  const MP = 2;
+  const RBP = 2;
+  const CBP = 1;
+  const BS = 0.5;
+  const TIE = 0.01;
+
+  const mHat = Math.max(-1, Math.min(1, mK));
+  const sv = sUf - uStar;
+  const rv = rUf - uStar;
+  const sPos = Math.max(sv, 0);
+  const rPos = Math.max(rv, 0);
+  const core = Math.min(sPos, rPos);
+  const edge = Math.max(sPos, rPos) - core;
+  const live = core + BETA * edge;
+  const contested = (1 - BETA) * edge;
+  const balance = core / (core + edge + 1e-12);
+  const rupture = Math.max(-Math.max(sv, rv), 0);
+
+  const dNa = (1 + dK) / 2;
+  const dA = Math.max(-dK, 0);
+  const mC = (1 + mHat) / 2;
+  const mB = (1 - mHat) / 2;
+
+  const motion = Math.pow(MW * Math.pow(dNa, MP) + (1 - MW) * Math.pow(mC, MP), 1/MP);
+  const ab = dA * mB;
+  const rb = rRev * Math.pow(1 - balance, RBP);
+  const cb = (-bK) * rRev * Math.pow(1 - balance, CBP) * (1 - ab);
+  const burden = BS * (cK / (1 + cK)) * (pK / (1 + pK));
+  const ba = Math.max(ab, rb, cb);
+
+  const accBasin = live * motion * (1 - rRev) * (1 - ab) * (1 - burden);
+  const holdBasin = contested * (1 - ba) + live * rRev * balance +
+    live * (1 - rRev) * ((1 - motion) * (1 - ab) + motion * burden);
+  const avoidBasin = rupture + (live + contested) * ba;
+
+  const maxBasin = Math.max(accBasin, holdBasin, avoidBasin);
+  const nearAcc = Math.abs(maxBasin - accBasin) <= TIE;
+  const nearHold = Math.abs(maxBasin - holdBasin) <= TIE;
+  const nearAvd = Math.abs(maxBasin - avoidBasin) <= TIE;
+  const tie = (nearAcc ? 1 : 0) + (nearHold ? 1 : 0) + (nearAvd ? 1 : 0) > 1;
+
+  if (nearAcc && !tie) return "Accumulate";
+  if (nearAvd && !tie) return "Avoid";
   return "Hold";
 }
 
