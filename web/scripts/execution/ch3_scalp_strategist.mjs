@@ -1,33 +1,36 @@
 /**
  * web/scripts/execution/ch3_scalp_strategist.mjs
- * PEE-1 Chapter 3 Strategist — "Smash and Grab" Scalp Channel
+ * PEE-1 Chapter 3 — Structural Spike Hunter
  *
- * High-conviction, concentrated, fast-exit trades.
- * Uses EXISTING kernel signals (S_UF from runtime_decisions_latest).
- * The kernel is NOT modified — this is a new execution path only.
+ * Selects from the FULL snapshot, NOT from Accumulates.
+ * Uses L4 coupled geometry proximity to the profitable center
+ * discovered via 500-ticker structural register forensics (Apr 29, 2026).
  *
- * Entry conditions (ALL must be true):
- *   1. S_UF >= 0.70          — high conviction (all market regimes)
- *   2. bar_count > 20        — established stock
- *   3. Pool has funds remaining (daily pool not depleted)
- *   4. No existing CH3 position open (one at a time)
- *   5. Daily loss limit not hit
+ * Selection (ALL must be true):
+ *   1. L4 distance to profitable center < 0.65 (coupled 7D geometry)
+ *   2. B_k <= -0.95         — fully compressed (loaded spring)
+ *   3. R_rev_k = 1          — recent reversal (spring just loaded)
+ *   4. price < $50           — small/micro cap proxy (moves faster)
+ *   5. price >= $1           — not a sub-penny stock
+ *   6. bar_count > 20        — established stock
+ *   7. No existing position on this ticker (any channel)
+ *   8. Not already traded today by CH3
+ *   9. Pool has funds remaining
+ *  10. Daily loss limit not hit
+ *  11. Epoch sector not ADVERSE
  *
- * Exit conditions (evaluated by sentinel_monitor per signal_class='CH3'):
- *   EXIT PROFIT — price >= entry + 1.0 × ATR-14  → market sell (take profit)
- *   EXIT STOP   — price <= entry - 0.5 × ATR-14  → market sell (stop loss)
- *   EXIT TIME   — position age > 4 hours          → market sell (time limit)
+ * Exit (enforced by Alpaca bracket order):
+ *   STOP LOSS:   entry × 0.95  (-5% hard stop)
+ *   TAKE PROFIT: entry × 1.50  (wide ceiling — sentinel trails)
  *
  * Pool rules:
- *   - $5,000 scalp pool (configurable)
- *   - Max $2,500 per scalp position
- *   - Daily loss limit: $1,000 (stop trading for the day)
- *   - Wins sweep to cash immediately (pool stays fixed)
- *   - Pool depletes on losses; refilled manually or from CH2 profits
+ *   - $5,000 scalp pool
+ *   - Max $2,500 per trade
+ *   - Daily loss limit: $1,000
  *
- * Position sizing:
- *   - $2,500 per trade OR pool remainder, whichever is less
- *   - shares = floor(trade_amount / current_price)
+ * The L4 tuple is NEVER decomposed. Distance is computed in the
+ * full 7D coupled space. The profitable center is a fixed structural
+ * constant derived from 13,014 entries across 500 tickers.
  */
 
 import pg from "pg";
@@ -44,34 +47,70 @@ const pool = new pg.Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-// ── CH3 thresholds ───────────────────────────────────────────────────────
-const CH3_S_UF_MIN         = 0.70;    // high conviction entry
-const CH3_REQUIRED_DK      = null;    // ANY D_k — works in all regimes
-const CH3_BAR_COUNT_MIN    = 21;      // established stocks only
-const CH3_POOL_TOTAL       = 5000;    // total CH3 pool $
-const CH3_MAX_PER_TRADE    = 2500;    // max $ per trade
-// Stops are ATR-based, computed per-trade in alpaca_bridge:
-//   Take profit: entry + 1.0 × ATR-14
-//   Stop loss:   entry - 0.5 × ATR-14
-// NO TIME LIMIT — hold until bracket resolves (TP or SL).
-// The structural move plays out on its own timeline.
-// One position at a time — don't stack until current resolves.
-const CH3_TIME_LIMIT_HOURS = null;    // REMOVED — bracket decides, not a clock
-const CH3_DAILY_LOSS_LIMIT = 1000;    // stop after $1K daily loss
+// ── CH3 Structural Constants ────────────────────────────────────────────
+// Profitable center in coupled L4 space (from 500-ticker register forensics)
+// Validated across random halves: Half A PF=3.85, Half B PF=3.77
+const PROFIT_CENTER = {
+  D_k:      0.2875,
+  M_k:      0.0196,
+  R_rev_k:  0.6649,
+  U_star_k: 0.2978,
+  C_k:      2.2506,
+  P_k:      1.3766,
+  B_k:     -0.9771,
+};
+
+// Normalization ranges for distance calculation (keeps coupling intact)
+const NORMS = {
+  D_k:      2.0,
+  M_k:      2.0,
+  R_rev_k:  1.0,
+  U_star_k: 1.0,
+  C_k:      3.0,
+  P_k:      2.0,
+  B_k:      2.0,
+};
+
+const L4_FIELDS = ['D_k', 'M_k', 'R_rev_k', 'U_star_k', 'C_k', 'P_k', 'B_k'];
+
+// Selection thresholds
+const CH3_MAX_DISTANCE     = 0.65;   // max L4 distance to profitable center
+const CH3_B_K_RAIL         = -0.95;  // B_k must be at or below this (loaded spring)
+const CH3_MAX_PRICE        = 50;     // small/micro cap proxy
+const CH3_MIN_PRICE        = 1;      // no sub-penny
+const CH3_BAR_COUNT_MIN    = 21;     // established stocks only
+
+// Pool & risk
+const CH3_POOL_TOTAL       = 5000;
+const CH3_MAX_PER_TRADE    = 2500;
+const CH3_DAILY_LOSS_LIMIT = 1000;
+
+// Exit: -5% hard stop, wide TP (sentinel trails)
+const CH3_STOP_LOSS_PCT    = 0.05;   // 5% below entry
+const CH3_TAKE_PROFIT_PCT  = 0.50;   // 50% above entry (wide ceiling)
 
 function toFloat(v) {
   const n = parseFloat(v);
   return isFinite(n) ? n : null;
 }
-function toInt(v) {
-  const n = parseInt(v, 10);
-  return isFinite(n) ? n : null;
-}
 
 /**
- * Get today's CH3 P&L — sum of all closed CH3 trades today.
- * Used to enforce daily loss limit.
+ * Compute coupled L4 distance to profitable center.
+ * The full 7-value tuple stays coupled — distance is in 7D space.
  */
+function computeL4Distance(snap) {
+  let sumSq = 0;
+  for (const f of L4_FIELDS) {
+    const val = toFloat(snap[f]) ?? 0;
+    const center = PROFIT_CENTER[f];
+    const norm = NORMS[f];
+    sumSq += ((val - center) / norm) ** 2;
+  }
+  return Math.sqrt(sumSq);
+}
+
+// ── Pool & risk management ──────────────────────────────────────────────
+
 async function getTodayCh3PL() {
   const res = await pool.query(
     `SELECT COALESCE(SUM(p_l), 0) AS total_pl
@@ -83,9 +122,6 @@ async function getTodayCh3PL() {
   return parseFloat(res.rows[0]?.total_pl ?? "0");
 }
 
-/**
- * Get remaining CH3 pool — total pool minus unrealized losses on closed CH3 trades.
- */
 async function getCh3PoolRemaining() {
   const res = await pool.query(
     `SELECT COALESCE(SUM(CASE WHEN p_l < 0 THEN p_l ELSE 0 END), 0) AS total_losses
@@ -97,20 +133,6 @@ async function getCh3PoolRemaining() {
   return Math.max(0, CH3_POOL_TOTAL - totalLosses);
 }
 
-/**
- * Check if there's already an open CH3 position (one at a time).
- */
-async function hasOpenCh3Position() {
-  const res = await pool.query(
-    `SELECT COUNT(*) AS cnt FROM personal_trade_ledger
-     WHERE signal_class = 'CH3' AND status IN ('submitted', 'filled')`
-  );
-  return parseInt(res.rows[0]?.cnt ?? "0", 10) > 0;
-}
-
-/**
- * Fetch tickers that already have open positions (any channel).
- */
 async function fetchOpenPositionTickers() {
   const res = await pool.query(
     `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
@@ -120,10 +142,6 @@ async function fetchOpenPositionTickers() {
   return new Set(res.rows.map(r => r.ticker));
 }
 
-/**
- * Fetch tickers that CH3 already traded today (win or loss).
- * No same-day re-entry — avoid chasing the same stock twice.
- */
 async function fetchTodayCh3Tickers() {
   const res = await pool.query(
     `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
@@ -134,11 +152,13 @@ async function fetchTodayCh3Tickers() {
   return new Set(res.rows.map(r => r.ticker));
 }
 
+// ── Candidate selection ─────────────────────────────────────────────────
+
 /**
- * Fetch all CH3 candidate rows — highest S_UF signals.
+ * Fetch candidates from the FULL snapshot — not filtered by Accumulate.
+ * Selection is purely by L4 coupled geometry proximity.
  */
 async function fetchCandidateRows() {
-  // Full structural selection: high conviction, expanding, no reversal, free to move
   const res = await pool.query(
     `SELECT
        r.ticker,
@@ -148,38 +168,39 @@ async function fetchCandidateRows() {
        COALESCE(f.sector, 'Unknown') AS sector
      FROM runtime_decisions_latest r
      LEFT JOIN l5_fundamentals_normalized f ON f.ticker = r.ticker
-     WHERE r.decision_label = 'Accumulate'
-       AND r.ticker != 'SPY'
+     WHERE r.ticker != 'SPY'
+       AND r.ticker NOT LIKE 'I:%'
+       AND r.ticker NOT LIKE 'X:%'
        AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $1
-       AND CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) >= $2
-       AND CAST(NULLIF(r.snapshot_row_json->>'D_k', '') AS DOUBLE PRECISION) = 1
-       AND CAST(NULLIF(r.snapshot_row_json->>'R_rev_k', '') AS DOUBLE PRECISION) = 0
-       AND ABS(CAST(NULLIF(r.snapshot_row_json->>'B_k', '') AS DOUBLE PRECISION)) < 0.8
-     ORDER BY CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) DESC
-     LIMIT 20`,
-    [CH3_BAR_COUNT_MIN - 1, CH3_S_UF_MIN]
+       AND CAST(NULLIF(r.snapshot_row_json->>'R_rev_k', '') AS DOUBLE PRECISION) = 1
+       AND CAST(NULLIF(r.snapshot_row_json->>'B_k', '') AS DOUBLE PRECISION) <= $2
+       AND CAST(NULLIF(r.snapshot_row_json->>'price', '') AS DOUBLE PRECISION) < $3
+       AND CAST(NULLIF(r.snapshot_row_json->>'price', '') AS DOUBLE PRECISION) >= $4
+     ORDER BY CAST(NULLIF(r.snapshot_row_json->>'B_k', '') AS DOUBLE PRECISION) ASC
+     LIMIT 50`,
+    [CH3_BAR_COUNT_MIN - 1, CH3_B_K_RAIL, CH3_MAX_PRICE, CH3_MIN_PRICE]
   );
   return res.rows;
 }
 
 /**
- * Parse a candidate row into a CH3 signal.
+ * Parse and score a candidate row.
  */
 function parseSignal(row) {
   const snap     = row.snapshot_row_json ?? {};
   const ticker   = String(row.ticker ?? "").trim().toUpperCase();
   const runId    = String(row.run_id ?? "").trim();
-  const barCount = toInt(snap.bar_count);
-  const sUf      = toFloat(snap.S_UF ?? snap.s_uf);
-  const dk       = toInt(snap.D_k ?? snap.d_k);
-  const bk       = toFloat(snap.B_k ?? snap.b_k);
-  const mk       = toFloat(snap.M_k ?? snap.m_k);
+  const barCount = parseInt(snap.bar_count, 10);
+  const price    = toFloat(snap.price);
   const sector   = String(row.sector ?? "").trim();
 
-  if (!ticker) return null;
-  if (sUf === null || sUf < CH3_S_UF_MIN) return null;
-  if (dk !== 1) return null;  // must be expanding
-  if (barCount === null || barCount < CH3_BAR_COUNT_MIN) return null;
+  if (!ticker || !runId) return null;
+  if (!isFinite(barCount) || barCount < CH3_BAR_COUNT_MIN) return null;
+  if (price === null || price < CH3_MIN_PRICE || price >= CH3_MAX_PRICE) return null;
+
+  // Compute coupled L4 distance
+  const dist = computeL4Distance(snap);
+  if (dist >= CH3_MAX_DISTANCE) return null;
 
   // G32 epoch sector filter — skip ADVERSE sectors
   let epochStatus = "UNKNOWN";
@@ -206,7 +227,7 @@ function parseSignal(row) {
   } catch {}
 
   if (epochStatus === "ADVERSE") {
-    console.log(`[CH3-SCALP]   ${ticker} — skipped (sector ${sector} ADVERSE epoch pressure)`);
+    console.log(`[CH3-HUNTER]   ${ticker} — skipped (sector ${sector} ADVERSE epoch pressure)`);
     return null;
   }
 
@@ -214,33 +235,41 @@ function parseSignal(row) {
     ticker,
     run_id:       runId,
     signal_class: "CH3",
-    s_uf:         sUf,
-    d_k:          dk,
-    b_k:          bk,
-    m_k:          mk,
+    s_uf:         toFloat(snap.S_UF),
+    d_k:          toFloat(snap.D_k),
+    b_k:          toFloat(snap.B_k),
+    m_k:          toFloat(snap.M_k),
+    r_rev_k:      toFloat(snap.R_rev_k),
+    u_star_k:     toFloat(snap.U_star_k),
+    c_k:          toFloat(snap.C_k),
+    p_k:          toFloat(snap.P_k),
     bar_count:    barCount,
+    price:        price,
     sector:       sector,
     epoch_status: epochStatus,
+    l4_distance:  dist,
+    // CH3 bracket prices: -5% stop, +50% ceiling
+    ch3_stop_loss_pct:    CH3_STOP_LOSS_PCT,
+    ch3_take_profit_pct:  CH3_TAKE_PROFIT_PCT,
   };
 }
 
-/**
- * Main entry point — returns at most ONE CH3 signal (best candidate).
- */
+// ── Main entry point ────────────────────────────────────────────────────
+
 export async function getCh3Signals() {
-  console.log(`[CH3-SCALP] Structural hunter scanning...`);
+  console.log(`[CH3-HUNTER] Structural spike hunter scanning...`);
 
   // Gate 1: daily loss limit
   const todayPL = await getTodayCh3PL();
   if (todayPL <= -CH3_DAILY_LOSS_LIMIT) {
-    console.log(`[CH3-SCALP] HALTED — daily loss limit hit ($${todayPL.toFixed(2)} today)`);
+    console.log(`[CH3-HUNTER] HALTED — daily loss limit hit ($${todayPL.toFixed(2)} today)`);
     return [];
   }
 
   // Gate 2: pool remaining
   const poolRemaining = await getCh3PoolRemaining();
   if (poolRemaining <= 0) {
-    console.log(`[CH3-SCALP] HALTED — scalp pool depleted ($${poolRemaining.toFixed(2)} remaining)`);
+    console.log(`[CH3-HUNTER] HALTED — scalp pool depleted`);
     return [];
   }
 
@@ -254,58 +283,48 @@ export async function getCh3Signals() {
   const availablePool = Math.max(0, poolRemaining - ch3Invested);
 
   if (availablePool < 500) {
-    console.log(`[CH3-SCALP] SKIP — pool fully allocated ($${availablePool.toFixed(0)} available, $${ch3Invested.toFixed(0)} invested)`);
+    console.log(`[CH3-HUNTER] SKIP — pool fully allocated ($${availablePool.toFixed(0)} available)`);
     return [];
   }
 
-  // Fetch candidates
+  // Fetch candidates from full snapshot (not Accumulate-only)
   const rows = await fetchCandidateRows();
   const signals = rows.map(parseSignal).filter(Boolean);
 
-  // Exclude tickers with existing positions (any channel) or already traded today by CH3
+  console.log(`[CH3-HUNTER] ${rows.length} raw candidates → ${signals.length} passed L4 proximity filter`);
+
+  // Exclude tickers with existing positions or already traded today
   const openTickers = await fetchOpenPositionTickers();
   const todayCh3Tickers = await fetchTodayCh3Tickers();
   const available = signals.filter(s => {
-    if (openTickers.has(s.ticker)) {
-      return false;
-    }
-    if (todayCh3Tickers.has(s.ticker)) {
-      return false;
-    }
+    if (openTickers.has(s.ticker)) return false;
+    if (todayCh3Tickers.has(s.ticker)) return false;
     return true;
   });
 
   if (available.length === 0) {
-    console.log(`[CH3-SCALP] No candidates found (need S_UF >= ${CH3_S_UF_MIN})`);
+    console.log(`[CH3-HUNTER] No candidates passed all filters`);
     return [];
   }
 
-  // Pool-limited multi-position: divide available pool among candidates
-  // Max per trade caps each position, pool caps total exposure
-  const maxPositions = Math.floor(availablePool / 500);  // minimum $500 per position
-  const candidates = available.slice(0, Math.min(available.length, maxPositions));
-  const perTradeAmount = Math.min(CH3_MAX_PER_TRADE, Math.floor(availablePool / candidates.length));
+  // Sort by L4 distance — closest to center = most loaded
+  available.sort((a, b) => a.l4_distance - b.l4_distance);
 
-  console.log(`[CH3-SCALP] ${candidates.length} candidate(s) | pool=$${availablePool.toFixed(0)} | per_trade=$${perTradeAmount}`);
-
-  for (const sig of candidates) {
-    sig.ch3_trade_amount = perTradeAmount;
-    console.log(`[CH3-SCALP] SIGNAL: ${sig.ticker} | S_UF=${sig.s_uf} | D_k=${sig.d_k} | $${perTradeAmount}`);
-  }
-
-  // Return all candidates (PEE-1 runner will execute each)
-  const best = candidates[0];
+  // Pool-limited: one position at a time to start
+  const perTradeAmount = Math.min(CH3_MAX_PER_TRADE, availablePool);
+  const best = available[0];
   best.ch3_trade_amount = perTradeAmount;
+
+  console.log(`[CH3-HUNTER] SIGNAL: ${best.ticker} | dist=${best.l4_distance.toFixed(3)} | D=${best.d_k} M=${best.m_k?.toFixed(4)} Rrev=${best.r_rev_k} U*=${best.u_star_k?.toFixed(3)} C=${best.c_k} P=${best.p_k} B=${best.b_k?.toFixed(4)} | $${perTradeAmount}`);
 
   return [best];
 }
 
-/**
- * CH3 config — exported for sentinel to use.
- */
 export const CH3_CONFIG = {
-  TIME_LIMIT_HOURS: null,  // no time limit — bracket decides
+  TIME_LIMIT_HOURS: null,
   DAILY_LOSS_LIMIT: CH3_DAILY_LOSS_LIMIT,
+  STOP_LOSS_PCT: CH3_STOP_LOSS_PCT,
+  TAKE_PROFIT_PCT: CH3_TAKE_PROFIT_PCT,
 };
 
 export async function closeCh3StrategistPool() {

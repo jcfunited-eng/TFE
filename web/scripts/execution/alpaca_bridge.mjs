@@ -753,9 +753,13 @@ export async function executeCh3MarketOrder(signal) {
   }
 
   const entryPrice      = parseFloat(currentPrice.toFixed(2));
-  // ATR-scaled exits: stop = 0.5×ATR, profit = 1.0×ATR
-  const takeProfitPrice = parseFloat((entryPrice + 1.0 * atr).toFixed(2));
-  const stopLossPrice   = parseFloat((entryPrice - 0.5 * atr).toFixed(2));
+  // Percentage-based exits from structural register forensics:
+  //   Stop: -5% hard stop (profit factor 3.81 across 1832 trades)
+  //   TP: +50% wide ceiling (sentinel manages trailing)
+  const slPct = signal.ch3_stop_loss_pct ?? 0.05;
+  const tpPct = signal.ch3_take_profit_pct ?? 0.50;
+  const takeProfitPrice = parseFloat((entryPrice * (1 + tpPct)).toFixed(2));
+  const stopLossPrice   = parseFloat((entryPrice * (1 - slPct)).toFixed(2));
 
   if (stopLossPrice <= 0) {
     return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice} (ATR=${atr.toFixed(4)})`);
