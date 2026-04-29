@@ -138,19 +138,25 @@ async function fetchTodayCh3Tickers() {
  * Fetch all CH3 candidate rows — highest S_UF signals.
  */
 async function fetchCandidateRows() {
+  // Full structural selection: high conviction, expanding, no reversal, free to move
   const res = await pool.query(
     `SELECT
-       ticker,
-       run_id,
-       decision_label,
-       snapshot_row_json
-     FROM runtime_decisions_latest
-     WHERE decision_label = 'Accumulate'
-       AND ticker != 'SPY'
-       AND CAST(NULLIF(snapshot_row_json->>'bar_count', '') AS INTEGER) > $1
-       AND CAST(NULLIF(snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) >= $2
-     ORDER BY CAST(NULLIF(snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) DESC
-     LIMIT 10`,
+       r.ticker,
+       r.run_id,
+       r.decision_label,
+       r.snapshot_row_json,
+       COALESCE(f.sector, 'Unknown') AS sector
+     FROM runtime_decisions_latest r
+     LEFT JOIN l5_fundamentals_normalized f ON f.ticker = r.ticker
+     WHERE r.decision_label = 'Accumulate'
+       AND r.ticker != 'SPY'
+       AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $1
+       AND CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) >= $2
+       AND CAST(NULLIF(r.snapshot_row_json->>'D_k', '') AS DOUBLE PRECISION) = 1
+       AND CAST(NULLIF(r.snapshot_row_json->>'R_rev_k', '') AS DOUBLE PRECISION) = 0
+       AND ABS(CAST(NULLIF(r.snapshot_row_json->>'B_k', '') AS DOUBLE PRECISION)) < 0.8
+     ORDER BY CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) DESC
+     LIMIT 20`,
     [CH3_BAR_COUNT_MIN - 1, CH3_S_UF_MIN]
   );
   return res.rows;
@@ -166,11 +172,43 @@ function parseSignal(row) {
   const barCount = toInt(snap.bar_count);
   const sUf      = toFloat(snap.S_UF ?? snap.s_uf);
   const dk       = toInt(snap.D_k ?? snap.d_k);
+  const bk       = toFloat(snap.B_k ?? snap.b_k);
+  const mk       = toFloat(snap.M_k ?? snap.m_k);
+  const sector   = String(row.sector ?? "").trim();
 
   if (!ticker) return null;
   if (sUf === null || sUf < CH3_S_UF_MIN) return null;
-  // D_k gate removed — works in any regime
+  if (dk !== 1) return null;  // must be expanding
   if (barCount === null || barCount < CH3_BAR_COUNT_MIN) return null;
+
+  // G32 epoch sector filter — skip ADVERSE sectors
+  let epochStatus = "UNKNOWN";
+  try {
+    const fs = require("fs");
+    const g32Raw = fs.readFileSync("/app/g32_state.json", "utf-8");
+    const g32 = JSON.parse(g32Raw);
+    if (g32?.xi && sector) {
+      const COUPLING = {
+        "Energy": {RATES_PRESSURE:0,CONSUMER_STRESS:-0.2,WAR_GEOPOLITICS:0.9,ENERGY_COMMODITY:0.9,TECH_CYCLE:0,CURRENCY_FX:0.3,FISCAL_INFRA:0.2,VOLATILITY_REGIME:0.1},
+        "Technology": {RATES_PRESSURE:-0.4,CONSUMER_STRESS:-0.3,WAR_GEOPOLITICS:0,ENERGY_COMMODITY:-0.1,TECH_CYCLE:-0.5,CURRENCY_FX:-0.2,FISCAL_INFRA:0.1,VOLATILITY_REGIME:-0.3},
+        "Financial Services": {RATES_PRESSURE:0.2,CONSUMER_STRESS:-0.5,WAR_GEOPOLITICS:-0.2,ENERGY_COMMODITY:0,TECH_CYCLE:-0.1,CURRENCY_FX:0.1,FISCAL_INFRA:0.1,VOLATILITY_REGIME:-0.4},
+        "Healthcare": {RATES_PRESSURE:0,CONSUMER_STRESS:0.3,WAR_GEOPOLITICS:0.1,ENERGY_COMMODITY:-0.1,TECH_CYCLE:0.1,CURRENCY_FX:-0.1,FISCAL_INFRA:0.1,VOLATILITY_REGIME:0.1},
+        "Real Estate": {RATES_PRESSURE:-1.0,CONSUMER_STRESS:-0.5,WAR_GEOPOLITICS:0,ENERGY_COMMODITY:-0.1,TECH_CYCLE:0,CURRENCY_FX:-0.1,FISCAL_INFRA:0.1,VOLATILITY_REGIME:-0.3},
+        "Consumer Discretionary": {RATES_PRESSURE:-0.5,CONSUMER_STRESS:-1.0,WAR_GEOPOLITICS:-0.2,ENERGY_COMMODITY:-0.4,TECH_CYCLE:-0.1,CURRENCY_FX:-0.2,FISCAL_INFRA:0.1,VOLATILITY_REGIME:-0.5},
+      };
+      const c = COUPLING[sector];
+      if (c) {
+        let pressure = 0;
+        for (const [ch, w] of Object.entries(c)) pressure += (g32.xi[ch] ?? 0) * w;
+        epochStatus = pressure <= -0.5 ? "ADVERSE" : pressure > 0.3 ? "TAILWIND" : "NEUTRAL";
+      }
+    }
+  } catch {}
+
+  if (epochStatus === "ADVERSE") {
+    console.log(`[CH3-SCALP]   ${ticker} — skipped (sector ${sector} ADVERSE epoch pressure)`);
+    return null;
+  }
 
   return {
     ticker,
@@ -178,7 +216,11 @@ function parseSignal(row) {
     signal_class: "CH3",
     s_uf:         sUf,
     d_k:          dk,
+    b_k:          bk,
+    m_k:          mk,
     bar_count:    barCount,
+    sector:       sector,
+    epoch_status: epochStatus,
   };
 }
 
@@ -186,13 +228,7 @@ function parseSignal(row) {
  * Main entry point — returns at most ONE CH3 signal (best candidate).
  */
 export async function getCh3Signals() {
-  // CH3 entries come ONLY from the strike zone detector now.
-  // The old S_UF threshold picking was producing dead-money positions
-  // with no structural energy or volume. The strike zone detector
-  // checks phase + swarm + G32 direction before firing.
-  // PEE-1 should not independently generate CH3 signals.
-  console.log(`[CH3-SCALP] CH3 signals via strike zone detector only. PEE-1 CH3 disabled.`);
-  return [];
+  console.log(`[CH3-SCALP] Structural hunter scanning...`);
 
   // Gate 1: daily loss limit
   const todayPL = await getTodayCh3PL();

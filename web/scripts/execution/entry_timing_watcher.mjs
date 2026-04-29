@@ -205,20 +205,8 @@ export async function runEntryTimingCheck() {
       `D_k=${c.d_k} | retry=${c.is_retry}`
     );
 
-    // CH3 entries MUST be gated by strike zone detector.
-    // Volume alone is never enough — need phase + swarm + G32 direction.
-    if (c.signal_class === "CH3") {
-      try {
-        const { runStrikeZoneCheck } = await import("./ch3_strike_zone_detector.mjs");
-        // Strike zone check is done at the sentinel level every 5 min.
-        // The entry timing watcher should NOT independently fire CH3.
-        // CH3 entries come ONLY from the strike zone detector.
-        console.log(`[ENTRY-TIMING] ${c.ticker} (CH3) — skipped, CH3 entries via strike zone detector only`);
-        continue;
-      } catch (e) {
-        continue;
-      }
-    }
+    // CH3 entries: structural hunter — full L4 geometry + epoch filter
+    // Volume confirms the energy is flowing, structure confirms the opportunity
 
     // Route CH2 to bridge
     try {
