@@ -259,6 +259,17 @@ function parseSignal(row) {
 export async function getCh3Signals() {
   console.log(`[CH3-HUNTER] Structural spike hunter scanning...`);
 
+  // Gate 0: market hours check — don't submit orders when market is closed
+  const now = new Date();
+  const utcHour = now.getUTCHours();
+  const utcMinute = now.getUTCMinutes();
+  const utcTime = utcHour * 60 + utcMinute;
+  // Market hours: 13:30-20:00 UTC (9:30 AM - 4:00 PM ET)
+  if (utcTime < 13 * 60 + 30 || utcTime >= 20 * 60) {
+    console.log(`[CH3-HUNTER] SKIP — market closed (${utcHour}:${String(utcMinute).padStart(2,'0')} UTC)`);
+    return [];
+  }
+
   // Gate 1: daily loss limit
   const todayPL = await getTodayCh3PL();
   if (todayPL <= -CH3_DAILY_LOSS_LIMIT) {

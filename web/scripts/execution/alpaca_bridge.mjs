@@ -510,7 +510,7 @@ export async function executeBracketOrder(signal, opts = {}) {
     atr,
     vaultEquity,
     dollarAllocation,
-    paperMode:        IS_PAPER,
+    paperMode:        isPaper,
   };
 }
 
