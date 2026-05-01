@@ -481,7 +481,7 @@ export async function runSentinel() {
       try {
         const entryDate = pos.signal_detected_at ?? pos.created_at;
         if (entryDate) {
-          const tauRes = await sentinelPool.query(`
+          const tauRes = await pool.query(`
             WITH pre_entry AS (
               SELECT
                 generated_at_utc::date AS bar_date,
@@ -515,7 +515,7 @@ export async function runSentinel() {
 
           if (tauIn > 0 && tauOut > 0) {
             // How many trading days has this position been open?
-            const ageRes = await sentinelPool.query(`
+            const ageRes = await pool.query(`
               SELECT COUNT(DISTINCT generated_at_utc::date) AS trading_days
               FROM runtime_decisions_history
               WHERE ticker = $1
