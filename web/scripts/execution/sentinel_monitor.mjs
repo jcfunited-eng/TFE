@@ -472,7 +472,82 @@ export async function runSentinel() {
         continue;
       }
 
-      console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"}`);
+      // Exit C — Exhaustion Timer (τ_out)
+      // The energy of a Titan's expansion is proportional to its compression duration.
+      // τ_in = consecutive days D_k was compressed (≤0) before entry
+      // τ_out = floor(τ_in / 3) = trading days of expansion energy
+      // If position age exceeds τ_out, the structural energy is spent.
+      // Computed dynamically from runtime_decisions_history — no schema change.
+      try {
+        const entryDate = pos.signal_detected_at ?? pos.created_at;
+        if (entryDate) {
+          const tauRes = await sentinelPool.query(`
+            WITH pre_entry AS (
+              SELECT
+                generated_at_utc::date AS bar_date,
+                CAST(NULLIF(snapshot_row_json->>'D_k', '') AS DOUBLE PRECISION) AS d_k
+              FROM runtime_decisions_history
+              WHERE ticker = $1
+                AND generated_at_utc::date < $2::date
+              ORDER BY generated_at_utc DESC
+              LIMIT 120
+            ),
+            ranked AS (
+              SELECT bar_date, d_k,
+                ROW_NUMBER() OVER (ORDER BY bar_date DESC) AS rn
+              FROM pre_entry
+            ),
+            compressed AS (
+              SELECT rn, d_k
+              FROM ranked
+              WHERE d_k <= 0
+                AND rn <= (
+                  SELECT COALESCE(MIN(rn) - 1, 120)
+                  FROM ranked
+                  WHERE d_k > 0
+                )
+            )
+            SELECT COUNT(*) AS tau_in FROM compressed
+          `, [pos.ticker, entryDate]);
+
+          const tauIn = parseInt(tauRes.rows[0]?.tau_in ?? "0", 10);
+          const tauOut = Math.floor(tauIn / 3);
+
+          if (tauIn > 0 && tauOut > 0) {
+            // How many trading days has this position been open?
+            const ageRes = await sentinelPool.query(`
+              SELECT COUNT(DISTINCT generated_at_utc::date) AS trading_days
+              FROM runtime_decisions_history
+              WHERE ticker = $1
+                AND generated_at_utc::date >= $2::date
+                AND generated_at_utc::date <= CURRENT_DATE
+            `, [pos.ticker, entryDate]);
+
+            const positionAge = parseInt(ageRes.rows[0]?.trading_days ?? "0", 10);
+
+            if (positionAge > tauOut) {
+              console.log(
+                `[SENTINEL] CH2 EXIT-C ${pos.ticker} | τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d — ` +
+                `structural energy spent, exiting`
+              );
+              await killPosition(pos, "ch2_exit_tau_exhaustion", ALPACA_BASE);
+              continue;
+            }
+
+            console.log(
+              `[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | ` +
+              `τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d (${tauOut - positionAge}d remaining)`
+            );
+          } else {
+            console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | τ_in=0 (no compression history)`);
+          }
+        } else {
+          console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | no entry_date for τ`);
+        }
+      } catch (tauErr) {
+        // τ check is best-effort — don't block sentinel on query failure
+        console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | τ query error: ${tauErr.message}`);
+      }
       continue;
     }
 
