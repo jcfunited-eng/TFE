@@ -536,15 +536,51 @@ export async function runSentinel() {
           // Volume check is best-effort
         }
 
-        // ── Fuel-based exit decision ────────────────────────────────────
-        // Only exit on fuel exhaustion if we're in profit (protect gains).
-        // If in loss, let the SL bracket handle it.
-        if (fuelStatus === "EXHAUSTED" && plPct > 0.005) {
+        // ── Smash and Grab exit logic ──────────────────────────────────
+        // CH3 is fast in, fast out. Ride the surge, grab the moment
+        // momentum decelerates. Never let a winner become a loser.
+        //
+        // Exit physics: the spring's kinetic energy is the fuel ratio.
+        // When the fuel DECELERATES across two consecutive checks while
+        // in profit, the expansion is over. Grab immediately.
+        // Don't wait for fuel to drop below 1.0x — that's too late.
+        //
+        // Track fuel history per ticker in memory for derivative check.
+
+        // Store fuel reading for deceleration check
+        if (!global._ch3FuelHistory) global._ch3FuelHistory = {};
+        const fuelHist = global._ch3FuelHistory[pos.ticker] || [];
+        fuelHist.push(volumeRatio ?? 0);
+        if (fuelHist.length > 5) fuelHist.shift(); // keep last 5 readings
+        global._ch3FuelHistory[pos.ticker] = fuelHist;
+
+        // Check deceleration: fuel dropping across last 2 consecutive checks
+        const fuelDecelerating = fuelHist.length >= 2 &&
+          fuelHist[fuelHist.length - 1] < fuelHist[fuelHist.length - 2];
+        const fuelDecel2 = fuelHist.length >= 3 &&
+          fuelHist[fuelHist.length - 1] < fuelHist[fuelHist.length - 2] &&
+          fuelHist[fuelHist.length - 2] < fuelHist[fuelHist.length - 3];
+
+        // Exit trigger: in profit + fuel decelerating across 2 consecutive checks
+        if (plPct > 0.005 && fuelDecel2) {
           console.log(
-            `[SENTINEL] CH3 ${pos.ticker} FUEL EXHAUSTED | P&L=${(plPct*100).toFixed(2)}% | ` +
-            `vol=${volumeRatio?.toFixed(2) ?? "?"}x | Selling to lock profit`
+            `[SENTINEL] CH3 ${pos.ticker} GRAB | P&L=${(plPct*100).toFixed(2)}% | ` +
+            `fuel=${volumeRatio?.toFixed(2) ?? "?"}x (decel: ${fuelHist.slice(-3).map(f=>f.toFixed(2)).join('→')}) | ` +
+            `Spring expansion over — taking profit`
+          );
+          await killPosition(pos, "ch3_smash_grab_decel", ALPACA_BASE);
+          delete global._ch3FuelHistory[pos.ticker];
+          continue;
+        }
+
+        // Backstop: fuel fully exhausted at any profit
+        if (fuelStatus === "EXHAUSTED" && plPct > 0) {
+          console.log(
+            `[SENTINEL] CH3 ${pos.ticker} FUEL OUT | P&L=${(plPct*100).toFixed(2)}% | ` +
+            `Grabbing remaining profit`
           );
           await killPosition(pos, "ch3_fuel_exhausted", ALPACA_BASE);
+          delete global._ch3FuelHistory[pos.ticker];
           continue;
         }
 

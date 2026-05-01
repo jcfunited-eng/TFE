@@ -85,9 +85,10 @@ const CH3_POOL_TOTAL       = 5000;
 const CH3_MAX_PER_TRADE    = 2500;
 const CH3_DAILY_LOSS_LIMIT = 1000;
 
-// Exit: -5% hard stop, wide TP (sentinel trails)
+// Exit: -5% hard stop, sentinel grabs on fuel fade
+// TP is a safety ceiling — the sentinel exits on fuel, not TP
 const CH3_STOP_LOSS_PCT    = 0.05;   // 5% below entry
-const CH3_TAKE_PROFIT_PCT  = 0.50;   // 50% above entry (wide ceiling)
+const CH3_TAKE_PROFIT_PCT  = 0.10;   // 10% ceiling (backstop only — sentinel grabs earlier)
 
 function toFloat(v) {
   const n = parseFloat(v);
