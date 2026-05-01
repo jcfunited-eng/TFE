@@ -472,81 +472,68 @@ export async function runSentinel() {
         continue;
       }
 
-      // Exit C — Exhaustion Timer (τ_out)
-      // The energy of a Titan's expansion is proportional to its compression duration.
-      // τ_in = consecutive days D_k was compressed (≤0) before entry
+      // Exit C — Exhaustion Timer (τ_out) — bar-level resolution
+      // τ_in = consecutive TRADING DAYS D_k was compressed before expansion
       // τ_out = floor(τ_in / 3) = trading days of expansion energy
-      // If position age exceeds τ_out, the structural energy is spent.
-      // Computed dynamically from runtime_decisions_history — no schema change.
+      //
+      // Uses backfill cache (tau_backfill_days.json) for bar-level accuracy.
+      // The DB (runtime_decisions_history) only has gate-level data which
+      // collapses months of compression into 1 gate — wrong unit of measure.
+      // The backfill ran the L0-L4 kernel on Polygon bars to get true day counts.
       try {
-        const entryDate = pos.signal_detected_at ?? pos.created_at;
-        if (entryDate) {
-          const tauRes = await pool.query(`
-            WITH pre_entry AS (
-              SELECT
-                generated_at_utc::date AS bar_date,
-                CAST(NULLIF(snapshot_row_json->>'D_k', '') AS DOUBLE PRECISION) AS d_k
-              FROM runtime_decisions_history
-              WHERE ticker = $1
-                AND generated_at_utc::date < $2::date
-              ORDER BY generated_at_utc DESC
-              LIMIT 120
-            ),
-            ranked AS (
-              SELECT bar_date, d_k,
-                ROW_NUMBER() OVER (ORDER BY bar_date DESC) AS rn
-              FROM pre_entry
-            ),
-            compressed AS (
-              SELECT rn, d_k
-              FROM ranked
-              WHERE d_k <= 0
-                AND rn <= (
-                  SELECT COALESCE(MIN(rn) - 1, 120)
-                  FROM ranked
-                  WHERE d_k > 0
-                )
-            )
-            SELECT COUNT(*) AS tau_in FROM compressed
-          `, [pos.ticker, entryDate]);
-
-          const tauIn = parseInt(tauRes.rows[0]?.tau_in ?? "0", 10);
-          const tauOut = Math.floor(tauIn / 3);
-
-          if (tauIn > 0 && tauOut > 0) {
-            // How many trading days has this position been open?
-            const ageRes = await pool.query(`
-              SELECT COUNT(DISTINCT generated_at_utc::date) AS trading_days
-              FROM runtime_decisions_history
-              WHERE ticker = $1
-                AND generated_at_utc::date >= $2::date
-                AND generated_at_utc::date <= CURRENT_DATE
-            `, [pos.ticker, entryDate]);
-
-            const positionAge = parseInt(ageRes.rows[0]?.trading_days ?? "0", 10);
-
-            if (positionAge > tauOut) {
-              console.log(
-                `[SENTINEL] CH2 EXIT-C ${pos.ticker} | τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d — ` +
-                `structural energy spent, exiting`
-              );
-              await killPosition(pos, "ch2_exit_tau_exhaustion", ALPACA_BASE);
-              continue;
-            }
-
-            console.log(
-              `[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | ` +
-              `τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d (${tauOut - positionAge}d remaining)`
-            );
-          } else {
-            console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | τ_in=0 (no compression history)`);
+        // Load backfill cache (computed by tfe_cold_start_backfill)
+        if (!global._tauCache) {
+          try {
+            const fs = require("fs");
+            const raw = fs.readFileSync("/app/tau_backfill_days.json", "utf-8");
+            global._tauCache = JSON.parse(raw);
+          } catch {
+            global._tauCache = {};
           }
+        }
+
+        const cached = global._tauCache[pos.ticker];
+        if (cached && cached.tau_out_days > 0) {
+          const tauIn = cached.tau_in_days;
+          const tauOut = cached.tau_out_days;
+          const expansionDays = cached.expansion_days ?? 0;
+
+          // Position age: days since entry
+          const entryDate = pos.signal_detected_at ?? pos.created_at;
+          let positionAge = expansionDays; // fallback to backfill expansion count
+          if (entryDate) {
+            const entryMs = new Date(entryDate).getTime();
+            const nowMs = Date.now();
+            positionAge = Math.floor((nowMs - entryMs) / (1000 * 60 * 60 * 24));
+          }
+
+          if (positionAge > tauOut) {
+            console.log(
+              `[SENTINEL] CH2 EXIT-C ${pos.ticker} | τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d — ` +
+              `structural energy spent, exiting`
+            );
+            await killPosition(pos, "ch2_exit_tau_exhaustion", ALPACA_BASE);
+            continue;
+          }
+
+          const remaining = tauOut - positionAge;
+          console.log(
+            `[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | ` +
+            `τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d (${remaining}d remaining)`
+          );
+        } else if (cached && cached.status === "EXPIRED") {
+          // Backfill already flagged this as expired
+          console.log(
+            `[SENTINEL] CH2 EXIT-C ${pos.ticker} | EXPIRED per backfill ` +
+            `(compressed ${cached.tau_in_days}d, budget ${cached.tau_out_days}d, expanded ${cached.expansion_days}d)`
+          );
+          await killPosition(pos, "ch2_exit_tau_exhaustion", ALPACA_BASE);
+          continue;
         } else {
-          console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | no entry_date for τ`);
+          console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | no τ data`);
         }
       } catch (tauErr) {
-        // τ check is best-effort — don't block sentinel on query failure
-        console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | τ query error: ${tauErr.message}`);
+        console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | τ error: ${tauErr.message}`);
       }
       continue;
     }

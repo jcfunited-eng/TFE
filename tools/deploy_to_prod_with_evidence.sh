@@ -1575,6 +1575,13 @@ echo "package_copy_start pattern=workspace-explicit path=uf_structural_cache.jso
 cp -a "${REPO_ROOT}/uf_structural_cache.json" "${STAGE_DIR}/uf_structural_cache.json"
 echo "package_copy_done pattern=workspace-explicit path=uf_structural_cache.json" | tee -a "$PACKAGE_PROGRESS_LOG"
 
+# τ_out backfill cache — bar-level compression history for CH2 exhaustion timer
+if [ -f "${REPO_ROOT}/tau_backfill_days.json" ]; then
+  echo "package_copy_start pattern=workspace-explicit path=tau_backfill_days.json" | tee -a "$PACKAGE_PROGRESS_LOG"
+  cp -a "${REPO_ROOT}/tau_backfill_days.json" "${STAGE_DIR}/tau_backfill_days.json"
+  echo "package_copy_done pattern=workspace-explicit path=tau_backfill_days.json" | tee -a "$PACKAGE_PROGRESS_LOG"
+fi
+
 python3 - <<PY
 import json
 from pathlib import Path
