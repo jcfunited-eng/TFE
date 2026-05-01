@@ -28,6 +28,96 @@ import { executeBracketOrder, executeCh2BracketOrder,
 import { runAudit, closeAuditorPool }                            from "./trade_auditor.mjs";
 
 const IS_PAPER = process.env.ALPACA_PAPER !== "0";
+const POLYGON_KEY = process.env.MASSIVE_API_KEY ?? process.env.POLYGON_API_KEY ?? "";
+const TAU_CACHE_PATH = "/app/tau_backfill_days.json";
+
+/**
+ * Compute τ_in (compression days) for a ticker by fetching Polygon bars
+ * and running the L0-L4 kernel. Updates the backfill cache file.
+ *
+ * This runs at entry time for new CH2 positions so the sentinel has
+ * day-level τ_out data from the start — no cold start problem.
+ */
+async function computeAndCacheTauIn(ticker) {
+  if (!POLYGON_KEY) {
+    console.log(`[RUNNER] τ_in: no Polygon key — skipping ${ticker}`);
+    return;
+  }
+
+  // Fetch 400 days of bars
+  const endDate = new Date().toISOString().slice(0, 10);
+  const startDate = new Date(Date.now() - 400 * 86400000).toISOString().slice(0, 10);
+  const url = `https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/day/${startDate}/${endDate}?adjusted=true&sort=asc&limit=50000&apiKey=${POLYGON_KEY}`;
+
+  const resp = await fetch(url);
+  const data = await resp.json();
+  const bars = data?.results ?? [];
+
+  if (bars.length < 30) {
+    console.log(`[RUNNER] τ_in: ${ticker} only ${bars.length} bars — skipping`);
+    return;
+  }
+
+  // Run the kernel via Python subprocess (the kernel is Python, runner is Node)
+  const { execSync } = await import("child_process");
+  const pythonScript = `
+import sys, json
+sys.path.insert(0, '/app')
+import pandas as pd
+from uf_core.layer0 import compute_sev_series
+from uf_core.layer1 import segment_gates
+from uf_core.layer2 import interpret_gates
+from uf_core.layer3 import compute_resonance
+from uf_core.layer4 import compute_directional_signal, compute_dsf
+
+bars = json.loads(sys.stdin.read())
+closes = pd.Series([b['c'] for b in bars], index=[pd.Timestamp(b['t'], unit='ms') for b in bars]).sort_index()
+frame = pd.DataFrame({"Close": closes})
+sev = compute_sev_series(frame, field_col="Close")
+gates = segment_gates(sev)
+interps = interpret_gates(sev, gates)
+resonance = compute_resonance(interps)
+decisions = compute_directional_signal(resonance)
+dsf_list = compute_dsf(decisions)
+
+# Count compression days (bar-level, not gate-level)
+gate_spans = [{'D_k': d.D_k, 'start': d.gate.start_idx, 'end': d.gate.end_idx, 'days': d.gate.end_idx - d.gate.start_idx + 1} for d in dsf_list]
+
+# Find current expansion, then count compression before it
+expansion_days = 0
+idx = len(gate_spans) - 1
+while idx >= 0 and gate_spans[idx]['D_k'] > 0:
+    expansion_days += gate_spans[idx]['days']
+    idx -= 1
+
+tau_in_days = 0
+while idx >= 0 and gate_spans[idx]['D_k'] <= 0:
+    tau_in_days += gate_spans[idx]['days']
+    idx -= 1
+
+print(json.dumps({'tau_in_days': tau_in_days, 'tau_out_days': tau_in_days // 3, 'expansion_days': expansion_days, 'total_gates': len(dsf_list), 'total_bars': len(bars), 'current_dk': dsf_list[-1].D_k if dsf_list else 0}))
+`;
+
+  try {
+    const result = execSync(`echo '${JSON.stringify(bars).replace(/'/g, "\\'")}' | python3 -c "${pythonScript.replace(/"/g, '\\"')}"`, {
+      timeout: 30000,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    const tauData = JSON.parse(result.toString().trim());
+    tauData.status = tauData.expansion_days > tauData.tau_out_days ? "EXPIRED" : `${tauData.tau_out_days - tauData.expansion_days}d left`;
+
+    // Update cache file
+    const fs = await import("fs");
+    let cache = {};
+    try { cache = JSON.parse(fs.readFileSync(TAU_CACHE_PATH, "utf-8")); } catch {}
+    cache[ticker] = tauData;
+    fs.writeFileSync(TAU_CACHE_PATH, JSON.stringify(cache, null, 2));
+
+    console.log(`[RUNNER] τ_in: ${ticker} compressed=${tauData.tau_in_days}d budget=${tauData.tau_out_days}d expansion=${tauData.expansion_days}d → ${tauData.status}`);
+  } catch (kernelErr) {
+    console.warn(`[RUNNER] τ_in kernel failed for ${ticker}: ${kernelErr.message?.slice(0, 100)}`);
+  }
+}
 
 const configPool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -156,6 +246,12 @@ async function main() {
           const result = await executeCh2BracketOrder(signal);
           if (result.ok) {
             console.log(`[RUNNER] ✓ CH2 ${signal.ticker} | orderId=${result.orderId} | shares=${result.shares} | entry=${result.entryPrice}`);
+            // Compute τ_in for this new position and update the backfill cache
+            try {
+              await computeAndCacheTauIn(signal.ticker);
+            } catch (tauErr) {
+              console.warn(`[RUNNER] τ_in compute failed for ${signal.ticker}: ${tauErr.message}`);
+            }
           } else {
             console.log(`[RUNNER] ✗ CH2 ${signal.ticker} | rejected: ${result.reason}`);
           }
