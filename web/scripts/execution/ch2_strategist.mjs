@@ -149,37 +149,26 @@ export async function getCh2Signals() {
     try { g32 = JSON.parse(fs.readFileSync("/app/g32_state.json", "utf-8")); } catch {}
     const xi = g32.xi ?? {};
 
-    const stressChannels = ["RATES_PRESSURE", "CONSUMER_STRESS", "WAR_GEOPOLITICS", "ENERGY_COMMODITY", "VOLATILITY_REGIME"];
-    let stress = 0;
-    for (const ch of stressChannels) {
-      const v = parseFloat(xi[ch] ?? "0");
-      if (v > 0) stress += v;
-    }
+    // Aggregate D_k shield — macro signal from structurally rich tickers
+    // Not SPY (too smooth for kernel). The universe of active tickers IS the macro barometer.
+    const dkRes = await pool.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE CAST(NULLIF(snapshot_row_json->>'D_k','') AS DOUBLE PRECISION) > 0) AS expanding,
+        COUNT(*) FILTER (WHERE CAST(NULLIF(snapshot_row_json->>'D_k','') AS DOUBLE PRECISION) < 0) AS contracting
+      FROM runtime_decisions_latest
+      WHERE decision_label = 'Accumulate'
+        AND ticker != 'SPY'
+        AND CAST(NULLIF(snapshot_row_json->>'bar_count','') AS INTEGER) > 20
+    `);
+    const expanding = parseInt(dkRes.rows[0]?.expanding ?? "0", 10);
+    const contracting = parseInt(dkRes.rows[0]?.contracting ?? "0", 10);
+    const total = expanding + contracting;
 
-    const spyRes = await pool.query(
-      `SELECT CAST(NULLIF(snapshot_row_json->>'D_k', '') AS DOUBLE PRECISION) AS spy_dk
-       FROM runtime_decisions_latest WHERE ticker = 'SPY' LIMIT 1`
-    );
-    const spyDk = parseFloat(spyRes.rows[0]?.spy_dk ?? "0");
-
-    const xiDelta = g32.xi_delta ?? {};
-    const deltaVals = Object.values(xiDelta).map(v => parseFloat(v) || 0);
-    const deltaMag = Math.sqrt(deltaVals.reduce((s, v) => s + v * v, 0));
-
-    let epochPhase = "NEUTRAL";
-    if (stress > 1.0 && spyDk <= 0 && deltaMag > 0.05) epochPhase = "HOSTILE";
-    else if (stress > 1.0 && spyDk <= 0) epochPhase = "STRESSED";
-    else if (stress > 1.0) epochPhase = "CAUTIOUS";
-
-    if (epochPhase === "HOSTILE") {
-      console.log(`[CH2-STRATEGIST] SHIELD BLOCK — epoch HOSTILE (stress=${stress.toFixed(2)} SPY_Dk=${spyDk} delta=${deltaMag.toFixed(3)})`);
+    if (total >= 5 && contracting > expanding) {
+      console.log(`[CH2-STRATEGIST] SHIELD BLOCK — majority contracting (expanding=${expanding} contracting=${contracting})`);
       return [];
     }
-    if (epochPhase === "STRESSED") {
-      console.log(`[CH2-STRATEGIST] SHIELD BLOCK — epoch STRESSED (stress=${stress.toFixed(2)} SPY_Dk=${spyDk})`);
-      return [];
-    }
-    console.log(`[CH2-STRATEGIST] Shield: ${epochPhase} (stress=${stress.toFixed(2)} SPY_Dk=${spyDk} delta=${deltaMag.toFixed(3)})`);
+    console.log(`[CH2-STRATEGIST] Shield: CLEAR (expanding=${expanding} contracting=${contracting})`);
   } catch (shieldErr) {
     console.log(`[CH2-STRATEGIST] Shield check failed: ${shieldErr.message} — proceeding`);
   }
