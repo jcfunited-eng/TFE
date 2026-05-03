@@ -781,6 +781,163 @@ When SafeMode is active:
 \end{enumerate}
 
 % ============================================================
+\chapter{Familiarity Feedback: Clockless Habituation}
+
+\section{Motivation}
+
+A purely combinational SPPU with fixed coupling weights and a fixed dead
+zone produces identical output for identical input. This is deterministic
+and correct, but creates a failure mode: the system cannot escape repeated
+situations (e.g.\ a robot trapped in a corner repeating the same action).
+
+Traditional solutions (timers, counters, randomness) require a clock and
+violate the clockless principle of the SPPU.
+
+\section{The Biological Principle}
+
+Nothing in nature has a clock. Biological systems escape repetition through
+mechanisms that share one principle: \textbf{the act of responding to a
+specific input depletes the system's ability to respond to that same input
+again.}
+
+\begin{itemize}[nosep]
+  \item \textbf{Synaptic depletion:} Repeated firing exhausts neurotransmitter
+        supply at the synapse. Signal weakens because the resource was consumed,
+        not because time passed.
+  \item \textbf{Receptor saturation:} Olfactory receptors fill with the same
+        molecule and stop responding. Novel molecules use different receptors
+        at full sensitivity.
+  \item \textbf{Neural adaptation:} Photoreceptors change sensitivity based on
+        sustained stimulation. The substrate itself alters its response.
+  \item \textbf{Refractory period:} After firing, ion channels require physical
+        recovery. The neuron cannot fire regardless of input strength.
+\end{itemize}
+
+The common thread: the medium itself remembers what it has been doing, and
+doing the same thing exhausts the response. Not time. Not a counter.
+Experiential depletion.
+
+\section{Mechanism: Krimelack Recall as Dead-Zone Feedback}
+
+Krimelack recall is combinational --- the loom state is compared against all
+stored motifs in parallel and a match score appears on the output wire in
+one propagation delay.
+
+\textbf{The match score feeds back into the SPPU dead zone:}
+
+\begin{equation}
+  \Delta_{\text{eff}} = \Delta_{\text{base}} + \text{match\_score}
+\end{equation}
+
+Each \texttt{arcloom\_local\_field} instance receives the krimelack match score
+as an additional input. The tri-state comparator uses $\Delta_{\text{eff}}$
+instead of the fixed $\Delta_{\text{base}}$.
+
+This creates a combinational feedback loop:
+
+\begin{enumerate}[nosep]
+  \item SPPU settles $\rightarrow$ 48-bit loom state
+  \item Loom state $\rightarrow$ krimelack recall $\rightarrow$ match score
+  \item Match score $\rightarrow$ raises dead zone in SPPU
+  \item Raised dead zone $\rightarrow$ marginally committed trits drop to null
+  \item Different loom state $\rightarrow$ different match score
+  \item Loop finds equilibrium: the settlement \textbf{maximally unlike}
+        anything in krimelack, consistent with coupling pressures
+\end{enumerate}
+
+No clock. No timer. No register in the feedback path. Purely combinational.
+
+\section{Behavioral Consequences}
+
+\begin{description}[nosep]
+  \item[Novel input] (no matching motif): match score $\approx 0$, dead zone
+    stays at base, full sensitivity, normal response.
+  \item[First repetition] (one matching motif): match score moderate, dead zone
+    rises to $\sim$30--35. Trits with coupling pressure in $[20, 35]$ drop to
+    null. Different decision emerges.
+  \item[Multiple similar experiences] (several similar motifs): match score high,
+    dead zone rises to 40+. Only very strongly coupled trits commit. System
+    forced into a maximally novel response.
+  \item[New situation] (after leaving the repeated state): different loom state
+    $\rightarrow$ low match score $\rightarrow$ dead zone returns to base
+    $\rightarrow$ full sensitivity restored.
+\end{description}
+
+\section{Loop Stability}
+
+The combinational loop either finds a stable fixed point (the most novel
+response consistent with coupling pressures) or oscillates between two
+states (visible hesitation --- correct behavior for genuine indecision).
+
+If oscillation is unstable, feedback gain is reduced:
+
+\begin{equation}
+  \Delta_{\text{eff}} = \Delta_{\text{base}} + (\text{match\_score} \gg k)
+\end{equation}
+
+where $k = 1, 2, 3$ reduces feedback strength by factors of 2, 4, 8.
+Optimal $k$ is determined experimentally.
+
+\section{TSAC ASIC: Native Substrate Habituation}
+
+On ferroelectric TSACs, habituation is a free physical property. Sustained
+polarization causes \textbf{dielectric fatigue} --- the potential barrier
+rises with sustained identical state:
+
+\begin{itemize}[nosep]
+  \item Trit at $+1$, coupling pressure 25, base barrier 20 $\rightarrow$ commits
+  \item Sustained $+1$ $\rightarrow$ barrier rises: 20 $\rightarrow$ 22 $\rightarrow$ 25 $\rightarrow$ 28
+  \item Barrier exceeds pressure (28 $>$ 25) $\rightarrow$ trit falls to null
+  \item Null (rest) $\rightarrow$ barrier recovers $\rightarrow$ fresh sensitivity
+\end{itemize}
+
+The RC time constant of the ferroelectric material IS the habituation rate.
+No circuit. No logic. Physics.
+
+On ASIC, two habituation layers operate simultaneously:
+\begin{itemize}[nosep]
+  \item \textbf{Substrate} (TSAC fatigue): fast, local, per-trit depletion
+  \item \textbf{Cognitive} (krimelack feedback): slower, global, pattern-level familiarity
+\end{itemize}
+
+\section{Cognitive Implications}
+
+Familiarity feedback is not an engineering patch. It is a fundamental
+property of any system that learns from experience:
+
+\begin{itemize}[nosep]
+  \item \textbf{Novelty seeking:} Familiar states are harder to commit to.
+    The system naturally gravitates toward unfamiliar states. Curiosity as
+    a physical property, not a reward signal.
+  \item \textbf{Attention:} Novel stimuli receive full coupling sensitivity.
+    Repeated stimuli receive diminished sensitivity. Attention emerges from
+    dead-zone dynamics.
+  \item \textbf{Boredom:} Sustained identical input raises the dead zone until
+    no trits can commit. The system goes silent. Change the input and full
+    sensitivity returns.
+  \item \textbf{Creativity:} When familiar responses are suppressed, the only
+    available decisions are ones the system has never produced before.
+    Structured novelty constrained by coupling weights.
+\end{itemize}
+
+\section{Implementation Summary}
+
+\begin{longtable}{@{}lll@{}}
+\toprule
+\textbf{File} & \textbf{Change} & \textbf{Type} \\
+\midrule
+\endhead
+\texttt{arcloom\_local\_field} & Add \texttt{dead\_zone\_adj} input (8-bit) & Combinational \\
+\texttt{arcloom\_sppu.v} & Add \texttt{familiarity} input, pass to all fields & Combinational \\
+\texttt{arcloom\_top} & Wire \texttt{match\_score} $\rightarrow$ \texttt{familiarity} & Wire \\
+\texttt{arcloom\_axi\_wrapper.v} & Expose \texttt{match\_score} on read register & Read-only \\
+\bottomrule
+\end{longtable}
+
+No clock added. No register in feedback path. All changes preserve the
+SPPU's purely combinational nature.
+
+% ============================================================
 \chapter{Reference Platform: Autonomous Wheeled Robot}
 
 \section{Purpose}
@@ -1159,6 +1316,9 @@ v4.0 & 2026-04-10 & Physical implementation: triple-node rings, Schmitt trigger,
 v5.0.1 & 2026-04-10 & MathLoom upgraded: global settle hypothesis, carry-lookahead \\
        &            & tree, redundant ternary, multiplication sketch, validation protocol. \\
        &            & MathLoom promoted from theoretical appendix to Phase~1 validation target. \\
+v5.1 & 2026-05-03 & Familiarity Feedback: clockless habituation via krimelack \\
+     &            & dead-zone coupling. Biological principle, FPGA implementation, \\
+     &            & TSAC substrate fatigue, loop stability, cognitive implications. \\
 \bottomrule
 \end{longtable}
 
