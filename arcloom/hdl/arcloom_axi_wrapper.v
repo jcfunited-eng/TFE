@@ -46,8 +46,12 @@ module arcloom_axi_wrapper #(
     output wire                                S_AXI_RVALID,
     input  wire                                S_AXI_RREADY,
 
-    input  wire [15:0] hw_sensor_data,
+    input  wire [15:0] hw_sensor_data,       // Front sensor (VAUX1/A0)
     input  wire        hw_sensor_valid,
+    input  wire [15:0] hw_sensor_data_left,  // Left sensor (VAUX9/A1)
+    input  wire        hw_sensor_valid_left,
+    input  wire [15:0] hw_sensor_data_right, // Right sensor (VAUX6/A2)
+    input  wire        hw_sensor_valid_right,
 
     // Motor drive outputs — directly from SPPU decision (no ARM)
     output wire        motor_ain1,    // Pmod A pin 0 (Y18)
