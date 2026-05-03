@@ -611,6 +611,118 @@ BRAM & 0 & Krimelack fits in distributed RAM \\
 \end{itemize}
 
 %==============================================================================
+\section{Familiarity Feedback: Clockless Habituation}
+%==============================================================================
+
+\subsection{The Corner Problem}
+
+A purely combinational SPPU with fixed coupling weights and a fixed dead zone produces the same output for the same input every time. This is deterministic and correct --- but it means the system cannot escape a repeated situation. A robot in a corner sees the same sensor readings, settles to the same decision (reverse), returns to the same position, and repeats indefinitely.
+
+Traditional solutions add a clock: timers, counters, randomness, state machines that track ``how long have I been stuck.'' All of these violate the clockless principle of the SPPU and introduce the information-energy tax the architecture was designed to eliminate.
+
+\subsection{The Biological Principle}
+
+Nothing in nature has a clock. Yet biological systems escape repetition through at least four mechanisms, all sharing one principle:
+
+\begin{description}
+    \item[Synaptic Depletion] A neuron fires repeatedly and its neurotransmitter supply at the synapse decreases. The signal weakens not because time passed, but because the resource was consumed by repeated use.
+    \item[Receptor Saturation] Olfactory receptors fill with the same molecule and stop responding. Novel molecules use different receptors at full sensitivity.
+    \item[Neural Adaptation] Photoreceptors physically change sensitivity based on sustained stimulation. The substrate itself alters its response characteristics.
+    \item[Refractory Period] After firing, ion channels require physical recovery. The neuron cannot fire again regardless of input strength.
+\end{description}
+
+The common principle: \textbf{the act of responding to a specific input depletes the system's ability to respond to that same input again.} Not time. Not a counter. The medium itself remembers what it has been doing, and doing the same thing exhausts the response.
+
+\subsection{Krimelack Recall as Dead-Zone Feedback}
+
+ArcLoom already has the mechanism. Krimelack recall is \textbf{combinational} --- the loom settles, the 48-bit state is compared against all stored motifs in parallel, and a match score appears on the output wire in one propagation delay.
+
+The architectural modification: \textbf{wire the match score back into the SPPU's dead zone.}
+
+\begin{equation}
+\Delta_{\text{eff}} = \Delta_{\text{base}} + \text{match\_score}
+\label{eq:familiarity}
+\end{equation}
+
+Each \texttt{arcloom\_local\_field} instance receives the krimelack match score as an additional input. The dead zone comparator (Equation~\ref{eq:deadzone}) uses $\Delta_{\text{eff}}$ instead of the fixed $\Delta$.
+
+This creates a combinational feedback loop:
+
+\begin{enumerate}
+    \item SPPU settles $\rightarrow$ 48-bit loom state
+    \item Loom state $\rightarrow$ krimelack recall $\rightarrow$ match score
+    \item Match score $\rightarrow$ raises dead zone in SPPU
+    \item Raised dead zone $\rightarrow$ some trits that barely committed drop to null
+    \item Different loom state $\rightarrow$ different match score
+    \item Loop finds equilibrium: the settlement that is \textbf{maximally unlike} anything in krimelack while remaining consistent with the coupling pressures
+\end{enumerate}
+
+No clock. No timer. No register in the feedback path. Purely combinational.
+
+\subsection{Behavior}
+
+\textbf{Novel input} (empty krimelack or no matching motif): match score $\approx 0$, effective dead zone equals base ($\Delta_{\text{base}} = 20$), full sensitivity, system responds normally.
+
+\textbf{First repetition} (one matching motif): match score moderate, dead zone rises to $\sim$30--35. Trits with coupling pressure in the range $[20, 35]$ that previously committed now fall to null. Different trit pattern $\rightarrow$ different decision. The system tries a different response.
+
+\textbf{Multiple similar experiences} (several motifs resembling the current state): match score high, dead zone rises to 40+. Only trits with very strong coupling pressure (well above 40) can commit. Most trits drop to null. The system is forced into a maximally novel response --- the only decisions it can still make are ones it has \textit{never} made in this situation before.
+
+\textbf{Completely new situation} (after turning away from the corner): different sensor readings $\rightarrow$ different loom state $\rightarrow$ low match score $\rightarrow$ dead zone returns to base $\rightarrow$ full sensitivity restored.
+
+This is habituation: \textbf{familiarity breeds resistance.} The system's own memory of having been in a state before makes it harder to commit to the same response. The depletion is experiential, not temporal.
+
+\subsection{Combinational Loop Stability}
+
+The feedback loop (SPPU $\rightarrow$ krimelack $\rightarrow$ dead zone $\rightarrow$ SPPU) is combinational. In digital logic, combinational feedback either:
+
+\begin{enumerate}
+    \item \textbf{Finds a stable fixed point:} The loom state produces a match score that produces a dead zone that produces that same loom state. This fixed point is the most novel response consistent with the coupling pressures --- the desired behavior.
+
+    \item \textbf{Oscillates between two states:} The loom state A produces a match score that pushes the dead zone high enough to flip some trits, producing state B. State B produces a different match score that lowers the dead zone, flipping back to state A. The decision outputs flicker, producing visible hesitation --- which is the \textit{correct} behavior for genuine indecision.
+\end{enumerate}
+
+If oscillation is too rapid or unstable, the feedback gain can be reduced by scaling the match score:
+
+\begin{equation}
+\Delta_{\text{eff}} = \Delta_{\text{base}} + (\text{match\_score} \gg k)
+\end{equation}
+
+where $k = 1, 2, 3$ reduces the feedback strength by factors of 2, 4, 8 respectively. The optimal $k$ is determined experimentally.
+
+\subsection{On TSAC ASIC: Native Substrate Habituation}
+
+On a ferroelectric TSAC, this mechanism becomes a free physical property of the material. Sustained polarization in one direction causes \textbf{dielectric fatigue} --- the potential barrier between wells rises with sustained identical state. This is a real, well-documented effect in ferroelectric materials (typically considered a defect; here it is the feature):
+
+\begin{itemize}
+    \item Trit commits to $+1$ at coupling pressure 25 (above base barrier of 20)
+    \item Sustained $+1$ polarization $\rightarrow$ barrier rises: 20 $\rightarrow$ 22 $\rightarrow$ 25 $\rightarrow$ 28
+    \item Barrier exceeds coupling pressure (28 $>$ 25) $\rightarrow$ trit falls to null
+    \item Different trit pattern $\rightarrow$ different decision
+    \item Null state (rest) $\rightarrow$ barrier recovers $\rightarrow$ fresh sensitivity
+\end{itemize}
+
+The RC time constant of the ferroelectric material IS the habituation rate. No circuit. No logic. No krimelack feedback needed for the substrate-level mechanism. Physics does it natively.
+
+On the ASIC, two layers of habituation would operate simultaneously:
+\begin{itemize}
+    \item \textbf{Substrate layer} (TSAC fatigue): fast, local, per-trit. Physical depletion of the commitment mechanism.
+    \item \textbf{Cognitive layer} (krimelack feedback): slower, global, pattern-level. Experiential familiarity across the full loom state.
+\end{itemize}
+
+This mirrors biology, where receptor saturation (fast, local) and cortical habituation (slow, global) operate at different scales on the same sensory input.
+
+\subsection{Relationship to Cognition}
+
+Familiarity feedback is not just an engineering solution to corner trapping. It is a fundamental property of any system that learns from experience:
+
+\begin{itemize}
+    \item \textbf{Novelty seeking:} The system naturally gravitates toward unfamiliar states because familiar states are harder to commit to. This is curiosity as a physical property, not a programmed reward signal.
+    \item \textbf{Attention:} Novel stimuli receive full coupling sensitivity. Repeated stimuli receive diminished sensitivity. Attention to novelty emerges from the dead-zone dynamics, not from a separate attention mechanism.
+    \item \textbf{Boredom:} Sustained identical input eventually raises the dead zone high enough that NO trits can commit. The system goes silent --- all null. This is the loom equivalent of ``I've seen this enough, there is nothing left to perceive here.'' Change the input and full sensitivity returns.
+    \item \textbf{Creativity:} When familiar responses are suppressed, the system is forced to settle on states it has never produced before. The only available decisions are novel ones. This is not random exploration --- it is structured novelty constrained by the coupling weights.
+\end{itemize}
+
+%==============================================================================
 \section{Coupling Weight Derivation: The Proprietary Layer}
 %==============================================================================
 
@@ -710,6 +822,8 @@ DSF-AI weight derivation:
 \item[Euler Knee] The threshold (currently 9 out of 24 trits) below which effective dimensionality triggers structural lock. Named for the inflection point in dimensional collapse curves.
 
 \item[FPGA] Field-Programmable Gate Array. Reconfigurable silicon consisting of Look-Up Tables (LUTs), flip-flops, and routing fabric. Used for ArcLoom prototyping on the Xilinx Zynq-7020 (PYNQ-Z2 board).
+
+\item[Familiarity Feedback] The mechanism by which krimelack's match score feeds back into the SPPU's dead zone, raising the commitment barrier for states the system has experienced before. Produces habituation, novelty seeking, and corner escape without any clock or timer. On TSAC ASIC, augmented by native ferroelectric dielectric fatigue at the substrate level.
 
 \item[Folding Division] Joseph's novel division method: the numerator is treated as a field with energy $A$; each ``fold'' subtracts the denominator $B$; when the remaining energy falls below $B$ (into the dead zone), the fold count is the quotient and the residual is the remainder. Same principle as SPPU dead-zone settling applied to arithmetic.
 
