@@ -1,0 +1,422 @@
+{
+  "AAMI": {
+    "tau_in": 2,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 2,
+    "current_dk": -1.0
+  },
+  "AGNC": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "AIZ": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "ARDT": {
+    "tau_in": 3,
+    "tau_out": 1,
+    "expansion_gates": 1,
+    "total_gates": 4,
+    "current_dk": 1.0
+  },
+  "ARW": {
+    "tau_in": 3,
+    "tau_out": 1,
+    "expansion_gates": 0,
+    "total_gates": 3,
+    "current_dk": -1.0
+  },
+  "ASR": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "BDX": {
+    "tau_in": 2,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 2,
+    "current_dk": -1.0
+  },
+  "BELFB": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 2,
+    "total_gates": 3,
+    "current_dk": 1.0
+  },
+  "BIRK": {
+    "tau_in": 2,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 2,
+    "current_dk": -1.0
+  },
+  "BOH": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "BSM": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "CCB": {
+    "tau_in": 4,
+    "tau_out": 1,
+    "expansion_gates": 0,
+    "total_gates": 4,
+    "current_dk": 0.0
+  },
+  "CHIQ": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "CMDB": {
+    "tau_in": 2,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 2,
+    "current_dk": -1.0
+  },
+  "COPP": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 1,
+    "total_gates": 2,
+    "current_dk": 1.0
+  },
+  "COPZ": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 14,
+    "current_dk": -1.0
+  },
+  "CRTO": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "CTRI": {
+    "tau_in": 2,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 2,
+    "current_dk": -1.0
+  },
+  "DEI": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "DHI": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "DINO": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 1,
+    "total_gates": 2,
+    "current_dk": 1.0
+  },
+  "FOXA": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "FSCO": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 1,
+    "total_gates": 2,
+    "current_dk": 1.0
+  },
+  "FSS": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "FTDR": {
+    "tau_in": 2,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 5,
+    "current_dk": -1.0
+  },
+  "HTBK": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "IMAX": {
+    "tau_in": 3,
+    "tau_out": 1,
+    "expansion_gates": 0,
+    "total_gates": 3,
+    "current_dk": -1.0
+  },
+  "INR": {
+    "tau_in": 2,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 2,
+    "current_dk": -1.0
+  },
+  "JJSF": {
+    "tau_in": 2,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 2,
+    "current_dk": -1.0
+  },
+  "KBA": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "KSPI": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 1,
+    "total_gates": 2,
+    "current_dk": 1.0
+  },
+  "LPLA": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "MED": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "MSBI": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "MSCI": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "NBIX": {
+    "tau_in": 2,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 2,
+    "current_dk": -1.0
+  },
+  "NOMD": {
+    "tau_in": 2,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 2,
+    "current_dk": -1.0
+  },
+  "NPKI": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "NVT": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "PHM": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "PNFP": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "PODD": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 2,
+    "total_gates": 3,
+    "current_dk": 1.0
+  },
+  "REGN": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "RRX": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "SGU": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "SMHX": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "SOHU": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "SONO": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "STC": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "TLX": {
+    "tau_in": 4,
+    "tau_out": 1,
+    "expansion_gates": 0,
+    "total_gates": 4,
+    "current_dk": 0.0
+  },
+  "TMF": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "TOL": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "TSMZ": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "TXRH": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "USCB": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "VRTS": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "VSTL": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 24,
+    "current_dk": -1.0
+  },
+  "WCLD": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  },
+  "WKC": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 1,
+    "total_gates": 2,
+    "current_dk": 1.0
+  },
+  "WOR": {
+    "tau_in": 1,
+    "tau_out": 0,
+    "expansion_gates": 0,
+    "total_gates": 1,
+    "current_dk": 0.0
+  }
+}
