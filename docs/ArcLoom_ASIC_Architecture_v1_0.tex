@@ -520,6 +520,80 @@ Disruption gate & 5 \\
 \end{center}
 
 % ============================================================
+\section{Familiarity Feedback — Clockless Habituation}
+
+\subsection{Problem}
+
+A combinational SPPU with a fixed dead zone produces identical output for
+identical input. This prevents escape from repeated situations (corner
+trapping). Traditional solutions require clocks or timers.
+
+\subsection{Mechanism}
+
+Krimelack recall is combinational. The match score feeds back directly
+into the SPPU dead zone:
+
+\begin{equation}
+  \Delta_{\text{eff}} = \Delta_{\text{base}} + \text{match\_score}
+\end{equation}
+
+Familiar states (high match score) raise the commitment barrier. Trits
+that barely committed drop to null. Different loom state emerges.
+Novel states (low match score) have full sensitivity. No clock. No timer.
+Purely combinational feedback loop.
+
+\subsection{TSAC Native Habituation}
+
+On ferroelectric TSACs, habituation is a free physical property of the
+substrate. Sustained polarization in one direction causes
+\textbf{dielectric fatigue} --- the potential barrier rises with
+sustained identical state:
+
+\begin{itemize}[nosep]
+  \item Sustained $+1$ polarization $\rightarrow$ barrier rises:
+        20 $\rightarrow$ 22 $\rightarrow$ 25 $\rightarrow$ 28
+  \item Barrier exceeds coupling pressure $\rightarrow$ trit falls to null
+  \item Null (rest) $\rightarrow$ barrier recovers $\rightarrow$ fresh
+        sensitivity
+\end{itemize}
+
+The RC time constant of the ferroelectric material IS the habituation
+rate. No circuit. No logic. Physics.
+
+\subsection{Two-Layer Architecture}
+
+On ASIC, both layers operate simultaneously:
+\begin{itemize}[nosep]
+  \item \textbf{Substrate layer} (TSAC fatigue): fast, local, per-trit.
+        Physical depletion of the commitment mechanism.
+  \item \textbf{Cognitive layer} (krimelack feedback): slower, global,
+        pattern-level. Experiential familiarity across the full loom state.
+\end{itemize}
+
+This mirrors biology: receptor saturation (fast, local) and cortical
+habituation (slow, global) operating at different scales.
+
+\subsection{Cognitive Consequences}
+
+\begin{itemize}[nosep]
+  \item \textbf{Novelty seeking:} familiar states harder to commit to;
+        system gravitates toward unfamiliar states
+  \item \textbf{Attention:} novel stimuli get full sensitivity; repeated
+        stimuli get diminished sensitivity
+  \item \textbf{Boredom:} sustained identical input raises dead zone until
+        no trits commit; system goes silent
+  \item \textbf{Creativity:} familiar responses suppressed; only novel
+        decisions remain available
+\end{itemize}
+
+\subsection{Gate Count}
+
+Krimelack-to-SPPU feedback adds one 8-bit adder per
+\texttt{arcloom\_local\_field} instance ($\sim$16 gates each).
+For 9 field instances: $\sim$144 additional gates per SPPU tile.
+TSAC substrate fatigue requires zero additional gates.
+
+% ============================================================
 \section{Perception Cluster}
 
 \subsection{Architecture}
@@ -678,12 +752,14 @@ L6 structural lock detection & \textbf{PROVEN} & Demonstrated on FPGA \\
 8-strand SPPU decisions & \textbf{PROVEN} & Live sensor on FPGA \\
 BSIL sensor-to-trit encoding & \textbf{PROVEN} & Distance/direction/accel on FPGA \\
 Krimelack commit gating & \textbf{PROVEN} & Motif storage verified on FPGA \\
-Folding division correctness & \textbf{PROVEN} & 41,430/41,430 in simulation \\
+Folding division correctness & \textbf{PROVEN} & 41,430/41,430 simulation; 18/18 silicon \\
 Computational completeness & \textbf{PROVEN} & Complex, matrix, polynomial, trig \\
-Direct HW sensor path (no CPU) & \textbf{PENDING} & Awaiting Pmod AD5 \\
+Direct HW sensor path (no CPU) & \textbf{PROVEN} & XADC VAUX1 DRP, April 2026 \\
 Motor actuation from decisions & \textbf{PROVEN} & TB6612FNG, all 4 directions verified \\
-Camera BSIL encoding & \textbf{PENDING} & Camera not connected \\
-Domain agnosticism & \textbf{PENDING} & Single sensor type tested \\
+Full sensor-to-motor chain & \textbf{PROVEN} & Sharp $\rightarrow$ XADC $\rightarrow$ BSIL $\rightarrow$ SPPU $\rightarrow$ motor \\
+Vision discrimination & \textbf{PROVEN (sim)} & 5 objects, 0.11--0.36 gaps, 4KB/object \\
+Camera BSIL encoding & \textbf{PENDING} & PCAM 5C DVP modules written \\
+Domain agnosticism & \textbf{PROVEN (sim)} & Financial, IR distance, camera pixels \\
 Multi-SPPU coupling & \textbf{UNPROVEN} & Architecture defined, not built \\
 \bottomrule
 \end{tabular}
@@ -727,9 +803,9 @@ Multi-SPPU coupling & \textbf{UNPROVEN} & Architecture defined, not built \\
 \toprule
 \textbf{Phase} & \textbf{Milestone} & \textbf{Deliverable} \\
 \midrule
-Phase 0 (current) & FPGA proof of concept & PYNQ-Z2 demo \\
-Phase 1 & Direct HW sensor path & Pmod AD5 integration \\
-Phase 2 & Multi-sensor demo & Camera + distance + motor \\
+Phase 0 (complete) & FPGA proof of concept & PYNQ-Z2 demo, 19,683 ops verified \\
+Phase 1 (complete) & Direct HW sensor path & XADC VAUX1, zero CPU \\
+Phase 2 (current) & Multi-sensor demo & 3$\times$Sharp + PCAM camera + motor \\
 Phase 3 & Patent filing & Architecture claims \\
 Phase 4 & ASIC design (ArcLoom-256) & RTL + synthesis scripts \\
 Phase 5 & Tape-out & Shuttle run (e.g., Efabless) \\
@@ -747,6 +823,10 @@ Phase 6 & Silicon validation & Chip-on-board demo \\
 \textbf{Version} & \textbf{Date} & \textbf{Description} \\
 \midrule
 1.0 & 2026-04-19 & Initial specification. FPGA-validated architecture. \\
+1.1 & 2026-05-03 & Familiarity feedback (clockless habituation via krimelack \\
+    &            & dead-zone coupling + TSAC dielectric fatigue). Validation \\
+    &            & status updated: HW sensor path proven, vision sim proven, \\
+    &            & folding division verified on silicon. Roadmap updated. \\
 \bottomrule
 \end{tabular}
 \end{center}
