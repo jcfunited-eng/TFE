@@ -491,11 +491,9 @@ export async function runSentinel() {
               global._tauCache = JSON.parse(raw);
               console.log(`[SENTINEL] τ cache loaded: ${Object.keys(global._tauCache).length} entries`);
             } else {
-              console.log(`[SENTINEL] τ cache: file not found at ${tauPath}`);
               global._tauCache = {};
             }
-          } catch (tauErr) {
-            console.log(`[SENTINEL] τ cache load FAILED: ${tauErr.message}`);
+          } catch {
             global._tauCache = {};
           }
         }
