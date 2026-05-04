@@ -63,11 +63,13 @@ The deliverables are:
 \toprule
 \textbf{Parameter} & \textbf{Specification} \\
 \midrule
-Material & LaAlO$_3$ (LAO), single crystal \\
-Orientation & (111) face \\
+Material & LaAlO$_3$ (LAO), single crystal --- primary \\
+ & SrTiO$_3$ (STO), single crystal --- secondary
+  (1--2 samples for strain comparison) \\
+Orientation & (111) face (both substrates) \\
 Miscut & $< 0.3^\circ$ \\
 Size & 5~mm $\times$ 5~mm or 10~mm $\times$ 10~mm \\
-Quantity & 5 substrates minimum \\
+Quantity & 5 LAO + 2 STO substrates minimum \\
 Supplier & MTI Corporation, CrysTec, or equivalent \\
 \bottomrule
 \end{tabular}
@@ -100,7 +102,8 @@ Supplier & MTI Corporation, CrysTec, or equivalent \\
 \midrule
 Source & E-beam evaporator, 99.999\% Cu \\
 Substrate temperature & $650^\circ$C ($\pm 10^\circ$C) \\
-O$_2$ background pressure & $5 \times 10^{-5}$~Torr \\
+Oxygen source & RF oxygen plasma (remote configuration),
+  equivalent flux to $5 \times 10^{-5}$~Torr molecular O$_2$ \\
 Deposition rate & 0.005~\AA/s (monitored by quartz crystal
   microbalance) \\
 Target coverage & 0.5 monolayer equivalent \\
@@ -133,9 +136,14 @@ Estimated duration & $\sim 25$~minutes \\
   \item $650^\circ$C provides sufficient Cu surface diffusion
         for thermodynamic equilibrium while remaining below the
         Cu desorption threshold. Window: 400--750$^\circ$C.
-  \item O$_2$ pressure maintains Cu$^{2+}$ ($d^9$
-        configuration), which favors kagome coordination via
-        the Jahn--Teller effect.
+  \item RF oxygen plasma (remote): Atomic oxygen oxidizes Cu
+        to Cu$^{2+}$ on contact, reducing the metallic Cu$^0$
+        lifetime by $\sim 1000\times$ compared to molecular
+        O$_2$. This suppresses Cu-Cu clustering and favors
+        2D kagome formation. Remote plasma configuration
+        prevents energetic ion damage to the substrate.
+        Equivalent O flux to $5 \times 10^{-5}$~Torr
+        molecular O$_2$.
   \item 0.005~\AA/s ensures each deposited atom has time
         ($\sim 10^{11}$ hops) to reach its equilibrium position
         before the next atom arrives. This prevents kinetic
@@ -201,7 +209,7 @@ Application & Drop of ionic liquid covering the film surface
   between the contact pads \\
 Gate electrode & Pt wire or coil suspended in the ionic liquid,
   not touching the film \\
-Gate voltage range & $V_g = 0$ to $+3$~V in 0.5~V steps \\
+Gate voltage range & $V_g = 0$ to $+4.5$~V in 0.5~V steps \\
 Leakage check & Gate current $< 1$~$\mu$A at each $V_g$ \\
 \bottomrule
 \end{tabular}
@@ -244,10 +252,10 @@ Perform the following runs on each verified sample:
 \begin{enumerate}[nosep]
   \item $V_g = 0$~V: baseline (film likely insulating)
   \item $V_g = +1.0$~V: light gating
-  \item $V_g = +1.5$~V
   \item $V_g = +2.0$~V
-  \item $V_g = +2.5$~V
-  \item $V_g = +3.0$~V: maximum gating
+  \item $V_g = +3.0$~V
+  \item $V_g = +4.0$~V
+  \item $V_g = +4.5$~V: maximum gating
 \end{enumerate}
 
 At each gate voltage:

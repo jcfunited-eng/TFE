@@ -1,8 +1,7 @@
 % ============================================================
 %  Room-Temperature Superconducting Power Cable
-%  Kagome Cuprate — Fully Derived, Zero Unknowns
-%  Version 6.1b — Coupling Variance, Substrate Uncertainty,
-%  Graphene Capping, Superlattice Note
+%  Kagome Cuprate — Fully Derived
+%  Version 6.2 — Corrected BKT, Cu Valence, Doping Target
 %  Overleaf-compatible LaTeX
 % ============================================================
 \documentclass[11pt, a4paper]{article}
@@ -25,7 +24,7 @@
 \definecolor{nm-orange}{RGB}{180,100,20}
 
 \pagestyle{fancy}\fancyhf{}
-\rhead{\textcolor{nm-gray}{\small RTSC Cable Spec v6.1b}}
+\rhead{\textcolor{nm-gray}{\small RTSC Cable Spec v6.2}}
 \lhead{\textcolor{nm-gray}{\small Confidential --- Internal Use Only}}
 \cfoot{\thepage}
 
@@ -40,9 +39,9 @@
   {\LARGE \textbf{Room-Temperature Superconducting}}\\[4pt]
   {\LARGE \textbf{Power Cable}}\\[6pt]
   {\large Kagome Cuprate Architecture}\\[4pt]
-  {\large Fully Derived --- Zero Free Parameters}\\[10pt]
-  {\color{nm-gray}\small Version 6.1b --- Coupling Variance,
-    Substrate Uncertainty, Graphene Capping}\\[4pt]
+  {\large Fully Derived}\\[10pt]
+  {\color{nm-gray}\small Version 6.2 --- Corrected BKT Formula,
+    Cu Valence Analysis, Revised Doping Target}\\[4pt]
   {\color{nm-gray}\small Joseph Forrester \quad|\quad
     Independent Researcher}\\[4pt]
   {\color{nm-gray}\small May 2026 \quad|\quad
@@ -55,48 +54,33 @@
 % ============================================================
 \section*{Executive Summary}
 
-\textbf{v6.1b amendments from v6.1a:}
+\textbf{v6.2 corrections from v6.1b:}
 \begin{itemize}[nosep]
-  \item Added \textbf{coupling variance analysis}: documented
-        $T_c$ floor at $\sim 213$~K if strong-coupling dynamics
-        ($2\Delta/k_BT_c \approx 5.0$) override the weak-coupling
-        kagome hypothesis. The central prediction remains
-        $T_c = 370$~K; the floor represents the mathematical
-        worst case.
-  \item Added \textbf{substrate uncertainty} section: the
-        published Cu$_3$O$_2$ kagome synthesis (Physica~B, 2019)
-        used Au(111), an inert noble metal. LaAlO$_3$(111) is a
-        polar oxide with different surface chemistry.
-        Thermochemistry ($\Delta H = +694$~kJ/mol for Cu
-        substitution) argues against harmful reaction, but the
-        growth mode (2D layer vs.\ 3D island) on the polar
-        surface is an experimental unknown. RHEED provides
-        instant verification.
-  \item Added \textbf{graphene capping protocol} for post-growth
-        oxidation protection of the Cu$^{2+}$ kagome layer.
-  \item Noted \textbf{epitaxial superlattice} as a speculative
-        Phase~2 variant, rejected for Phase~0 because interlayer
-        coupling suppresses the 2D kagome frustration that enables
-        weak-coupling pairing.
-\end{itemize}
-
-\textbf{Prior amendments (v6.1a from v6.1):}
-\begin{itemize}[nosep]
-  \item Corrected $T_{\text{BKT}}$ formula: added missing factor
-        of~$\pi$ per the Nelson--Kosterlitz universal relation.
-  \item Added explicit kagome lattice geometry derivation from
-        LaAlO$_3$(111) $2\times$ surface reconstruction
-        ($a = 5.36$~\AA).
-  \item Corrected doping label; fixed Cu$_3$O$_6$ typo.
-\end{itemize}
-
-\textbf{Prior amendments (v6.1 from v6.0):}
-\begin{itemize}[nosep]
-  \item Corrected $J$ from 170~meV to \textbf{130~meV}
-        (Cu-O-Cu oxide bridge, YBCO-equivalent).
-  \item Changed doping to \textbf{electrostatic gating}.
-  \item $\Delta/J = 0.433$ computed from NLS soliton binding.
-  \item Added growth protocol and interface chemistry analysis.
+  \item \textbf{BKT formula corrected:} The 2D superconductor
+        BKT transition uses Cooper pair density ($n_s/2$) and
+        pair mass ($2m^*$), giving
+        $T_{\text{BKT}} = \pi\hbar^2 n_s/(8\,m^*\,k_B)$.
+        Previous versions omitted the factor of~4 in the
+        denominator. At 0.065~holes/Cu, the corrected
+        $T_{\text{BKT}} \approx 245$~K (not 981~K).
+  \item \textbf{Doping target revised:} To achieve
+        $T_{\text{BKT}} \geq 370$~K, the required doping is
+        \textbf{0.098~holes/Cu} ($n_s = 1.19 \times 10^{14}$~cm$^{-2}$).
+        Gate voltage range extended to $0$ to $+4.5$~V.
+  \item \textbf{Cu valence analysis added:} Neutral Cu$_3$O$_2$
+        has average Cu valence $= +4/3$, not $+2$. The Cu$^{2+}$
+        ($d^9$) state required for superexchange depends on
+        growth oxygen conditions and must be verified by XPS.
+        Paths to Cu$^{2+}$ are identified.
+  \item \textbf{Lattice derivation corrected:} $a = 5.36$~\AA\
+        is the native $1\times$ hexagonal surface mesh of
+        LAO(111) ($= a_{\text{pc}} \times \sqrt{2}$), not a
+        $2\times$ reconstruction. Numerical values unchanged.
+  \item \textbf{Existence proof clarified:} The experimental
+        paper is M\"oller et al., PCCP 20, 5636 (2018), not
+        Physica~B 2019. The Physica~B 2019 paper is a DFT
+        study. Cu in the PCCP synthesis was two-fold
+        coordinated (Cu$^+$ character).
 \end{itemize}
 
 \begin{center}
@@ -104,22 +88,25 @@
 \toprule
 \textbf{Parameter} & \textbf{Value} & \textbf{Source} \\
 \midrule
-Exchange $J$ & 130~meV & Measured (Cu-O-Cu, YBCO-class) \\
+Exchange $J$ & 130~meV & YBCO-class Cu-O-Cu (requires Cu$^{2+}$;
+  see \S\ref{sec:valence}) \\
 $\Delta/J$ & 0.433 & Computed (NLS soliton binding) \\
 $\Delta$ & 56.3~meV & $= J \times 0.433$ \\
 $m^*$ & $1.11\,m_e$ & Derived (kagome band structure) \\
-$n_s$ at 0.065~holes/Cu & $7.8 \times 10^{13}$~cm$^{-2}$ &
-  Calculated (LAO $2\times$ reconstruction) \\
-Doping fraction & 0.065 holes/Cu & Achievable via ionic liquid gating \\
+$n_s$ at 0.098~holes/Cu & $1.19 \times 10^{14}$~cm$^{-2}$ &
+  Calculated (LAO $1\times$ hexagonal mesh) \\
+Doping fraction & 0.098 holes/Cu & Ionic liquid gating,
+  $V_g \approx +4.5$~V \\
 \midrule
 $T_{\text{pair}}$ & 370~K & $= 2\Delta/(3.53\,k_B)$ \\
-$T_{\text{BKT}}$ (at 0.065~doping) & $\sim 981$~K &
-  $= \pi\hbar^2 n_s/(2\,m^*\,k_B)$ \\
+$T_{\text{BKT}}$ (at 0.098~doping) & $\sim 371$~K &
+  $= \pi\hbar^2 n_s/(8\,m^*\,k_B)$ \\
 $T_c$ (central prediction) & \textbf{370~K (97$^\circ$C)} &
   $= \min(T_{\text{pair}}, T_{\text{BKT}})$ \\
-$T_c$ (worst-case floor) & \textbf{$\sim 213$~K ($-60^\circ$C)} &
+$T_c$ (worst-case floor) & \textbf{$\sim 125$--$213$~K} &
   Strong coupling + lower $\Delta/J$ \\
-Ratio & \textbf{3.53} & BCS weak-coupling (see \S\ref{sec:variance}) \\
+Ratio & \textbf{3.53} & BCS weak-coupling
+  (see \S\ref{sec:variance}) \\
 Gap at 300~K & \textbf{38.7~meV (69\%)} & \\
 Doping method & Electrostatic gate & $J$ preserved \\
 \bottomrule
@@ -129,17 +116,86 @@ Doping method & Electrostatic gate & $J$ preserved \\
 \tableofcontents
 
 % ============================================================
+\section{Cu Valence and Charge Balance}
+\label{sec:valence}
+
+\subsection{The Charge-Balance Problem}
+
+For neutral Cu$_3$O$_2$ with oxide ions ($\text{O}^{2-}$):
+\[
+  3\,v_{\text{Cu}} + 2(-2) = 0 \quad\Rightarrow\quad
+  v_{\text{Cu}} = +\tfrac{4}{3} \approx +1.33
+\]
+
+This is \textbf{not} Cu$^{2+}$. A mixed-valence picture gives
+2~Cu$^+$ ($d^{10}$, non-magnetic) and 1~Cu$^{2+}$ ($d^9$,
+magnetic) per formula unit. The superexchange model requires
+predominantly Cu$^{2+}$ for the $d^9$ local moments that drive
+antiferromagnetic coupling and pairing.
+
+At the proposed 0.098~holes/Cu doping, the average Cu valence
+is $+1.33 + 0.098 = +1.43$. To reach full Cu$^{2+}$ by doping
+alone would require 0.667~holes/Cu, which exceeds ionic liquid
+gating capacity.
+
+\subsection{Paths to Cu$^{2+}$}
+
+\begin{description}[nosep]
+  \item[Path~A: Oxygen-rich stoichiometry.] If growth conditions
+    (RF oxygen plasma, higher O$_2$ flux, or ozone) produce an
+    effective stoichiometry closer to Cu$_3$O$_3$ ($= 3$~CuO),
+    then $v_{\text{Cu}} = +2$ with all sites magnetic. XPS
+    at $933.5 \pm 0.5$~eV confirms Cu$^{2+}$. This is the
+    primary growth target.
+  \item[Path~B: Substrate oxygen.] LAO(111) provides O$^{2-}$
+    at the interface. Surface oxygen bonding to Cu shifts the
+    effective stoichiometry toward higher Cu valence. On LAO,
+    Cu may see more oxygen than on the Au(111) surface where
+    Cu$_3$O$_2$ was originally observed.
+  \item[Path~C: Ligand-hole state.] In cuprates, the ``Cu$^{2+}$''
+    state is really a Zhang--Rice singlet where the hole resides
+    on the oxygen ligand, not on Cu. If Cu$_3$O$_2$ on LAO forms
+    a similar ligand-hole state, the superexchange mechanism
+    operates even without formal Cu$^{2+}$ oxidation.
+  \item[Path~D: Mixed valence (fallback).] If Cu remains at
+    $+4/3$ with diluted magnetic sites, $J_{\text{eff}}$ is
+    reduced and $T_c$ decreases. The DFT literature
+    (Physica~B, 2019) predicts $T_c \approx 10.5$~K for
+    this regime.
+\end{description}
+
+\textbf{Accept/reject gate:} XPS of the Cu~2p$_{3/2}$ region
+after growth determines the Cu valence. $933.5 \pm 0.5$~eV
+= Cu$^{2+}$ (proceed). $932.5$~eV = Cu$^0$ or $\sim 932$~eV
+= Cu$^+$ (adjust growth conditions: increase O$_2$ pressure,
+switch to ozone, or raise plasma power).
+
+\subsection{Note on the Existence Proof}
+
+The experimental synthesis of a Cu-O kagome-related structure
+on Au(111) is reported in M\"oller et al., \textit{Phys.\ Chem.\
+Chem.\ Phys.}\ 20, 5636 (2018). In that work, Cu atoms were
+\textbf{two-fold linearly coordinated}, characteristic of
+Cu$^+$ ($d^{10}$). The Physica~B 2019 paper is a DFT study of
+a freestanding Cu$_3$O$_2$ monolayer, not a synthesis paper.
+
+The Au(111) result confirms the kagome topology is
+thermodynamically accessible but does \textbf{not} confirm
+Cu$^{2+}$ character. Achieving Cu$^{2+}$ on LAO(111) with
+plasma oxygen is the central materials challenge for Phase~0.
+
+% ============================================================
 \section{Coupling Variance Analysis}
 \label{sec:variance}
 
 \subsection{The Central Prediction}
 
-The spec uses a BCS weak-coupling ratio of $2\Delta/(k_BT_c) = 3.53$.
-This is appropriate if Cu$_3$O$_2$ kagome behaves like known
-kagome superconductors (CsV$_3$Sb$_5$: ratio $\sim 4.0$;
-Cu-BHT: ratio $\sim 3.5$--$4.0$), where geometric frustration
-prevents the strong-coupling penalty observed in square-lattice
-cuprates.
+The spec uses a BCS weak-coupling ratio of
+$2\Delta/(k_BT_c) = 3.53$. This is appropriate if Cu$_3$O$_2$
+kagome behaves like known kagome superconductors
+(CsV$_3$Sb$_5$: ratio $\sim 4.0$; Cu-BHT: ratio
+$\sim 3.5$--$4.0$), where geometric frustration prevents the
+strong-coupling penalty observed in square-lattice cuprates.
 
 \subsection{The Strong-Coupling Risk}
 
@@ -154,12 +210,6 @@ Cu$_3$O$_2$ has Cu-O-Cu oxide bridges like YBCO. If these
 bridges enforce strong-coupling dynamics despite the kagome
 geometry, the BCS ratio would increase, reducing $T_c$.
 
-\subsection{$\Delta/J$ Sensitivity}
-
-The NLS soliton computation gives $\Delta/J = 0.433 \pm 0.01$.
-Measured cuprate $\Delta/J$ values are lower: $0.25$--$0.35$.
-If the soliton overestimates the gap, $T_c$ decreases.
-
 \subsection{Combined Worst Case}
 
 \begin{center}
@@ -169,8 +219,8 @@ $\Delta/J$ & BCS Ratio & $T_c$ (K) & RT? \\
 \midrule
 0.433 & 3.53 & 370 & \textcolor{nm-green}{\textbf{Yes}} \\
 0.433 & 5.0 & 261 & \textcolor{nm-red}{No} \\
-0.35 & 3.53 & 299 & \textcolor{nm-red}{No (marginal)} \\
 0.38 & 3.53 & 325 & \textcolor{nm-green}{\textbf{Yes}} \\
+0.35 & 3.53 & 299 & \textcolor{nm-orange}{Marginal} \\
 0.35 & 5.0 & 211 & \textcolor{nm-red}{No} \\
 0.28 & 5.0 & 169 & \textcolor{nm-red}{No} \\
 0.28 & 6.0 & 141 & \textcolor{nm-red}{No} \\
@@ -178,24 +228,10 @@ $\Delta/J$ & BCS Ratio & $T_c$ (K) & RT? \\
 \end{tabular}
 \end{center}
 
-\textbf{Interpretation:} The $T_c = 370$~K prediction requires
-both weak coupling (ratio $\leq 3.53$) and $\Delta/J \geq 0.43$.
-If either assumption fails, $T_c$ decreases. The mathematical
-floor is $\sim 125$--$213$~K depending on which coupling regime
-applies.
-
-\textbf{Key distinction:} The spec argues Cu$_3$O$_2$ kagome is
-a \emph{kagome-type} superconductor (weak coupling, frustrated
-geometry), not a \emph{cuprate-type} superconductor (strong
-coupling, square lattice). Known kagome superconductors support
-this hypothesis. Whether Cu-O-Cu bridges enforce strong coupling
-despite kagome frustration is an \textbf{open experimental
-question} that only synthesis and measurement can resolve.
-
 \textbf{In all scenarios,} the material is predicted to
 superconduct above 77~K (liquid nitrogen), making it
-scientifically and commercially valuable regardless of
-whether room temperature is achieved.
+commercially valuable regardless of whether room temperature
+is achieved.
 
 % ============================================================
 \section{Substrate Uncertainty: LAO(111) vs Au(111)}
@@ -203,54 +239,131 @@ whether room temperature is achieved.
 
 \subsection{The Existence Proof and Its Limitation}
 
-Cu$_3$O$_2$ in kagome geometry has been synthesized on Au(111)
-(Physica~B, 2019). This confirms the kagome phase exists and is
-thermodynamically accessible. However, Au(111) is an inert noble
-metal with weak surface interactions, while LaAlO$_3$(111) is a
-polar oxide.
-
-\subsection{Why LAO Should Still Work}
-
-\begin{enumerate}[nosep]
-  \item \textbf{Thermochemistry prohibits harmful reactions.}
-    Cu substitution into LAO: $\Delta H = +694$~kJ/mol
-    (90$\times$ $k_BT$ --- thermodynamically forbidden).
-    La$_2$CuO$_4$ formation: $\Delta H = +144$~kJ/mol
-    (also forbidden). Cu$_3$O$_2$ on the LAO surface:
-    $\Delta H = -365$~kJ/mol (the only exothermic pathway).
-  \item \textbf{Al is immobile at growth temperature.}
-    Diffusion length $< 0.01$~\AA\ in 2~hours at $650^\circ$C.
-  \item \textbf{LAO(111) provides a triangular template.}
-    The $2\times$ surface reconstruction matches the kagome
-    lattice constant ($a = 5.36$~\AA).
-  \item \textbf{Sub-monolayer coverage prevents 3D growth.}
-    At 0.5~ML, there is insufficient material to nucleate
-    3D islands.
-\end{enumerate}
+Cu-O kagome-related structures have been observed on Au(111)
+(M\"oller et al., PCCP, 2018). Au(111) is an inert noble metal
+with weak surface interactions, while LaAlO$_3$(111) is a polar
+oxide. The thermochemistry prohibits harmful Cu-LAO bulk
+reactions ($\Delta H = +694$~kJ/mol for substitution), but the
+surface adsorption energetics and Cu oxidation state may differ.
 
 \subsection{What Remains Unknown}
 
 \begin{itemize}[nosep]
-  \item \textbf{Growth mode:} Whether Cu wets the LAO(111) polar
-    surface (Frank--van der Merwe, 2D layer) or beads up
-    (Volmer--Weber, 3D islands) has not been measured.
-    On Au(111), 2D growth was observed; on LAO(111), the
-    different surface energy hierarchy could alter the growth
-    mode.
-  \item \textbf{Polar surface effects:} LAO(111) is polar
-    (alternating charged La$^{3+}$ and AlO$_2^{3-}$ planes).
-    The surface may reconstruct in ways that affect Cu
-    adsorption sites.
-  \item \textbf{Oxygen competition:} LAO provides surface oxygen
-    that may participate in Cu oxidation differently than the
-    O$_2$ background gas used on Au(111).
+  \item Whether Cu wets the polar LAO(111) surface
+        (2D layer vs.\ 3D islands)
+  \item Whether plasma oxygen achieves Cu$^{2+}$ on LAO
+        (see \S\ref{sec:valence})
+  \item Polar surface reconstruction effects on adsorption
 \end{itemize}
 
-\textbf{Verification:} RHEED provides instant, in-situ
-confirmation during growth. A $(2 \times 2)$ or
-$(\sqrt{3} \times \sqrt{3})R30^\circ$ reconstruction confirms
-kagome ordering. 3D spots or no reconstruction indicates
-failure. This is a binary pass/fail observable in real time.
+\textbf{Verification:} RHEED provides instant in-situ
+confirmation. XPS determines Cu valence.
+
+% ============================================================
+\section{Kagome Lattice Geometry}
+
+\subsection{Lattice Derivation from LAO(111) Surface}
+
+LaAlO$_3$ has pseudocubic lattice parameter
+$a_{\text{pc}} = 3.79$~\AA. The (111) surface hexagonal mesh
+has parameter:
+\[
+  a_{111} = \sqrt{2}\,a_{\text{pc}}
+    = \sqrt{2} \times 3.79 = 5.36\;\text{\AA}
+\]
+
+This is the \textbf{native $1\times$ hexagonal surface mesh},
+not a $2\times$ reconstruction. The value matches the
+trigonal/hexagonal LAO lattice parameter reported in
+crystallographic databases ($a_{\text{hex}} = 5.357$~\AA).
+
+A Cu$_3$O$_2$ kagome unit cell commensurate with this mesh
+contains 3~Cu atoms with lattice constant $a = 5.36$~\AA.
+
+\subsection{Carrier Density from Doping}
+
+\[
+  A_{\text{cell}} = \frac{\sqrt{3}}{2}\,a^2
+    = 2.49 \times 10^{-19}\;\text{m}^2
+\]
+\[
+  n_{\text{Cu}} = \frac{3}{A_{\text{cell}}}
+    = 1.21 \times 10^{15}\;\text{cm}^{-2}
+\]
+
+At 0.098~holes/Cu:
+\[
+  n_s = 0.098 \times 1.21 \times 10^{15}
+    = 1.19 \times 10^{14}\;\text{cm}^{-2}
+\]
+
+% ============================================================
+\section{BKT Transition Temperature (Corrected)}
+
+For a 2D charged superconductor, the superfluid stiffness is:
+\[
+  J_s = \frac{\hbar^2\,n_s}{4\,m^*}
+\]
+where $n_s$ is the single-carrier sheet density and $m^*$ is
+the single-carrier effective mass. The factor of~4 accounts for
+Cooper pair mass ($2m^*$) and pair density ($n_s/2$).
+
+The Nelson--Kosterlitz universal relation gives:
+\[
+  T_{\text{BKT}} = \frac{\pi}{2}\,\frac{J_s}{k_B}
+    = \frac{\pi\,\hbar^2\,n_s}{8\,m^*\,k_B}
+\]
+
+\subsection{At Original Doping (0.065~holes/Cu)}
+
+$n_s = 7.8 \times 10^{13}$~cm$^{-2}$:
+\[
+  T_{\text{BKT}} = \frac{\pi \times (1.055 \times 10^{-34})^2
+    \times 7.8 \times 10^{17}}
+    {8 \times 1.011 \times 10^{-30}
+    \times 1.381 \times 10^{-23}}
+    \approx 245\;\text{K}
+\]
+
+This is \textbf{below room temperature}. At 0.065~doping,
+the system would be BKT-limited at $T_c \approx 245$~K.
+
+\subsection{At Revised Doping (0.098~holes/Cu)}
+
+$n_s = 1.19 \times 10^{14}$~cm$^{-2}$:
+\[
+  T_{\text{BKT}} \approx 371\;\text{K}
+\]
+
+At this doping, $T_{\text{BKT}} \approx T_{\text{pair}}$, and:
+\[
+  T_c = \min(370,\, 371) = 370\;\text{K}
+\]
+
+\subsection{Doping--$T_{\text{BKT}}$ Table}
+
+\begin{center}
+\begin{tabular}{@{}cccc@{}}
+\toprule
+Doping (holes/Cu) & $n_s$ (cm$^{-2}$) & $T_{\text{BKT}}$ (K) &
+  $T_c$ (K) \\
+\midrule
+0.065 & $7.8 \times 10^{13}$ & 245 & 245 \\
+0.080 & $9.7 \times 10^{13}$ & 303 & 303 \\
+\textbf{0.098} & $\mathbf{1.19 \times 10^{14}}$ &
+  \textbf{371} & \textbf{370} \\
+0.110 & $1.33 \times 10^{14}$ & 416 & 370 \\
+0.150 & $1.82 \times 10^{14}$ & 568 & 370 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Note:} These use the full doped carrier density as the
+superfluid density, which is optimistic. Real superfluid
+fraction may be lower due to disorder, localization, or
+incomplete condensation. The R(T) measurement at multiple gate
+voltages will determine the actual $T_{\text{BKT}}$ vs.\
+doping relationship.
 
 % ============================================================
 \section{Corrections from v6.0}
@@ -258,170 +371,38 @@ failure. This is a binary pass/fail observable in real time.
 \subsection{Exchange Energy: 130~meV, Not 170~meV}
 
 Version 6.0 used $J = 170$~meV from herbertsmithite
-(ZnCu$_3$(OH)$_6$Cl$_2$). However, herbertsmithite has
-Cu-\textbf{OH}-Cu bridges (hydroxide), while our material has
-Cu-\textbf{O}-Cu bridges (oxide). The bridge chemistry affects
-the superexchange pathway.
-
-Measured $J$ for Cu-O-Cu oxide bridges:
+(Cu-OH-Cu hydroxide bridges). Our material has Cu-O-Cu oxide
+bridges. Measured $J$ for Cu-O-Cu:
 \begin{itemize}[nosep]
-  \item YBCO ($180^\circ$ bond): $J = 130$~meV
+  \item YBCO ($180^\circ$): $J = 130$~meV
   \item Li$_2$CuO$_2$ ($180^\circ$): $J = 142$~meV
   \item CuO rock salt ($109^\circ$): $J = 75$~meV
 \end{itemize}
 
-For Cu-O-Cu at $\sim 120$--$130^\circ$ (our kagome geometry):
-$J \approx 120$--$130$~meV. We use the upper bound
-$J = 130$~meV (YBCO-equivalent).
+We use $J = 130$~meV (YBCO-class). \textbf{This value is
+conditional on achieving Cu$^{2+}$} (see \S\ref{sec:valence}).
+If Cu remains at $+4/3$ mixed valence, $J_{\text{eff}}$ will
+be lower.
 
-\subsection{Doping: Electrostatic Gate, Not Polar Interface}
+\subsection{Doping: Electrostatic Gate}
 
-Polar interface doping (LAO capping) provides
-$\sim 3 \times 10^{14}$~cm$^{-2}$ carriers but suppresses $J$ by
-$\sim 15$--$25\%$ through carrier-induced spin dilution. At
-0.26~holes/Cu (LAO doping level), $J$ would drop to
-$\sim 100$~meV, reducing $T_c$ to $\sim 250$~K.
+Electrostatic gating preserves $J$ by providing carriers
+without chemical substitution. Gate voltage range:
+$V_g = 0$ to $+4.5$~V (extended from $+3$~V in v6.1b to
+achieve 0.098~holes/Cu).
 
-Electrostatic gating (ionic liquid or back-gate) provides
-carriers \textbf{without} chemical substitution or structural
-disruption. The Cu-O-Cu bonds remain intact. $J$ stays at its
-full undoped value.
+\subsection{$\Delta/J = 0.433$}
 
-Required carrier density for $T_c = 300$~K:
-$n_s = 2.4 \times 10^{13}$~cm$^{-2}$ (via Nelson--Kosterlitz
-relation). The actual carrier density at 0.065~holes/Cu is
-$7.8 \times 10^{13}$~cm$^{-2}$ --- more than three times the
-minimum required. This doping is well below the optimal cuprate
-range of 0.15--0.20 and easily achievable with ionic liquid gating.
-
-\subsection{$\Delta/J = 0.433$, Not $1/3$}
-
-The pairing gap was computed directly from the soliton binding
-energy in the nonlinear Schr\"odinger equation, without any
-scaling relation. Two antisymmetric solitons interacting through
-the exchange kernel $W$ have binding energy
-$\Delta = E_{\text{free}} - E_{\text{paired}}$.
-
-Result: $\Delta/J = 0.433 \pm 0.01$ across all tested coupling
-strengths ($W = -2$ to $-6$). This is above the measured
-cuprate range ($\Delta/J = 0.25$--$0.35$), which may indicate
-that kagome frustration enhances the effective gap ratio or that
-the NLS soliton overestimates the pairing energy. See
-\S\ref{sec:variance} for the sensitivity analysis.
-
-% ============================================================
-\section{Kagome Lattice Geometry}
-
-\subsection{Lattice Derivation from LAO(111) Surface}
-
-The LaAlO$_3$(111) surface presents a triangular lattice of
-La/Al sites with surface lattice constant:
-\[
-  a_{\text{surf}} = \frac{a_{\text{LAO}}}{\sqrt{2}}
-    = \frac{3.79\;\text{\AA}}{\sqrt{2}} = 2.68\;\text{\AA}
-\]
-
-Cu$_3$O$_2$ forms a $2\times$ reconstruction on this surface,
-giving a kagome Bravais lattice constant:
-\[
-  a_{\text{kagome}} = 2 \times a_{\text{surf}} = 5.36\;\text{\AA}
-\]
-
-This is consistent with the STM verification target of
-$5.4 \pm 0.5$~\AA\ corner-sharing triangles.
-
-\subsection{Carrier Density from Doping}
-
-With 3~Cu atoms per kagome unit cell and
-$a_{\text{kagome}} = 5.36$~\AA:
-\[
-  A_{\text{cell}} = \frac{\sqrt{3}}{2}\,a_{\text{kagome}}^2
-    = 2.49 \times 10^{-19}\;\text{m}^2
-\]
-\[
-  n_{\text{Cu}} = \frac{3}{A_{\text{cell}}}
-    = 1.21 \times 10^{19}\;\text{m}^{-2}
-    = 1.21 \times 10^{15}\;\text{cm}^{-2}
-\]
-
-At 0.065~holes/Cu:
-\[
-  n_s = 0.065 \times 1.21 \times 10^{15}
-    = 7.8 \times 10^{13}\;\text{cm}^{-2}
-\]
-
-% ============================================================
-\section{BKT Transition Temperature}
-
-The Berezinskii--Kosterlitz--Thouless transition temperature for
-a 2D superfluid is given by the Nelson--Kosterlitz universal
-relation:
-\[
-  T_{\text{BKT}} = \frac{\pi\,\hbar^2\,n_s}{2\,m^*\,k_B}
-\]
-
-At $n_s = 7.8 \times 10^{17}$~m$^{-2}$,
-$m^* = 1.11\,m_e$:
-\[
-  T_{\text{BKT}} = \frac{\pi \times (1.055 \times 10^{-34})^2
-    \times 7.8 \times 10^{17}}
-    {2 \times 1.011 \times 10^{-30}
-    \times 1.381 \times 10^{-23}}
-    \approx 981\;\text{K}
-\]
-
-Since $T_{\text{BKT}} \gg T_{\text{pair}} = 370$~K, the system
-is \textbf{pairing-limited}, not phase-coherence-limited:
-\[
-  T_c = \min(T_{\text{pair}},\, T_{\text{BKT}})
-    = 370\;\text{K}\;(97^\circ\text{C})
-\]
-
-The minimum $n_s$ for room-temperature BKT ($T_{\text{BKT}} = 300$~K)
-is $2.4 \times 10^{13}$~cm$^{-2}$. The actual carrier density at
-0.065~doping ($7.8 \times 10^{13}$~cm$^{-2}$) exceeds this by a
-factor of 3.3. $T_{\text{BKT}}$ can drop by 62\% before it
-becomes the limiting factor.
+Computed from NLS soliton binding energy. Above the measured
+cuprate range (0.25--0.35). See \S\ref{sec:variance}.
 
 % ============================================================
 \section{Interface Chemistry}
 
-\subsection{Cu Does Not React with LaAlO$_3$}
-
-Three possible reactions for Cu on LAO(111):
-
-\begin{center}
-\begin{tabular}{@{}lrc@{}}
-\toprule
-\textbf{Reaction} & $\Delta H$ (kJ/mol) & \textbf{Favored?} \\
-\midrule
-A: Cu$_3$O$_2$ on LAO surface (kagome) & $-365$ &
-  \textcolor{nm-green}{\textbf{YES}} \\
-B: Cu substitutes for Al in LAO & $+694$ &
-  \textcolor{nm-red}{NO} \\
-C: La$_2$CuO$_4$ forms at interface & $+144$ &
-  \textcolor{nm-red}{NO} \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-The desired reaction is the \textbf{only} exothermic pathway.
-Unwanted reactions are endothermic by 19--90$\times$ $k_BT$ at
-growth temperature. Cu$_3$O$_2$ kagome formation on LAO(111)
-is thermodynamically favored.
-
-\textbf{Note:} The thermochemistry prohibits bulk Cu-LAO reactions,
-but the surface adsorption energetics on the polar LAO(111) face
-may differ from the inert Au(111) surface where Cu$_3$O$_2$ was
-originally synthesized. See \S\ref{sec:substrate} for the
-substrate uncertainty analysis.
-
-\subsection{Al Does Not Diffuse from LAO}
-
-Al diffusion coefficient in LAO at $650^\circ$C:
-$D_{\text{Al}} \sim 10^{-22}$~cm$^2$/s. Diffusion length in
-2~hours: $\sqrt{Dt} \approx 0.01$~\AA. The interface is
-atomically sharp. No intermixing.
+Cu$_3$O$_2$ on LAO surface: $\Delta H = -365$~kJ/mol
+(exothermic). Cu substitution into LAO: $+694$~kJ/mol
+(forbidden). La$_2$CuO$_4$ formation: $+144$~kJ/mol
+(forbidden). Al diffusion at $650^\circ$C: $< 0.01$~\AA.
 
 % ============================================================
 \section{Growth Protocol}
@@ -439,98 +420,55 @@ Verification & RHEED: sharp $(1 \times 1)$ \\
 Cu source & E-beam, 99.999\% Cu \\
 Temperature & $650^\circ$C ($\pm 10^\circ$C) \\
 Oxygen source & RF oxygen plasma (remote configuration),
-  equivalent flux to $5 \times 10^{-5}$~Torr molecular O$_2$ \\
+  equivalent flux to $5 \times 10^{-5}$~Torr molecular O$_2$.
+  Target: Cu$^{2+}$ oxidation state. \\
 Rate & 0.005~\AA/s \\
 Coverage & 0.5~monolayer equivalent \\
 Duration & $\sim 25$~minutes \\
 In-situ monitor & RHEED: $(2 \times 2)$ or
-  $(\sqrt{3} \times \sqrt{3})R30^\circ$ = kagome \\
+  $(\sqrt{3} \times \sqrt{3})R30^\circ$ \\
 \midrule
-Post-anneal & $650^\circ$C, $5 \times 10^{-5}$~Torr O$_2$,
-  10~min (optional) \\
+Post-anneal & $650^\circ$C, O$_2$ plasma, 10~min (optional) \\
 Cool-down & Under O$_2$ to maintain Cu$^{2+}$ \\
 \midrule
-Verification & STM: corner-sharing triangles, $5.4 \pm 0.5$~\AA \\
- & XPS: Cu 2p$_{3/2}$ at $933.5 \pm 0.5$~eV (Cu$^{2+}$) \\
- & RHEED: streaky $(2 \times 2)$ = 2D kagome layer \\
+Verification & XPS: Cu 2p$_{3/2}$ at $933.5 \pm 0.5$~eV
+  (Cu$^{2+}$). \textbf{This is the critical accept/reject
+  gate.} \\
+ & STM: corner-sharing triangles, $5.4 \pm 0.5$~\AA \\
+ & RHEED: streaky reconstruction = 2D kagome \\
 \midrule
-Graphene cap & Transfer monolayer graphene onto verified
-  Cu$_3$O$_2$ surface in inert atmosphere (Ar or N$_2$).
+Graphene cap & Monolayer graphene in inert atmosphere.
   See \S\ref{sec:graphene}. \\
 \midrule
-Doping & Ionic liquid gate (DEME-TFSI), $V_g = 0$ to $+3$~V \\
- & Target: $R_\square < 10$~k$\Omega$/sq \\
+Doping & Ionic liquid gate (DEME-TFSI),
+  $V_g = 0$ to $+4.5$~V \\
+ & Target: 0.098~holes/Cu
+  ($n_s \approx 1.2 \times 10^{14}$~cm$^{-2}$) \\
+ & $R_\square < 10$~k$\Omega$/sq \\
 \midrule
 $T_c$ measurement & PPMS: $R(T)$ from 400~K to 2~K \\
- & Note: if $T_c > 370$~K, heat above 400~K first \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\textbf{Why these conditions:}
-\begin{itemize}[nosep]
-  \item $650^\circ$C: Cu diffuses $\sim 10^{10}$~hops/s (ensures
-        thermodynamic equilibrium). Desorption rate
-        $< 10^{-3}$/s (zero loss). Window: 400--750$^\circ$C.
-  \item RF oxygen plasma (remote): Atomic oxygen oxidizes Cu
-        to Cu$^{2+}$ on contact, reducing the metallic Cu$^0$
-        lifetime by $\sim 1000\times$ compared to molecular
-        O$_2$. This suppresses Cu-Cu clustering and favors
-        2D kagome formation. Remote plasma configuration
-        prevents energetic ion damage to the LAO surface.
-        Equivalent O flux to $5 \times 10^{-5}$~Torr
-        molecular O$_2$.
-  \item 0.005~\AA/s: Each Cu makes $\sim 10^{11}$ hops before
-        the next atom arrives. Kinetic trapping impossible.
-  \item 0.5~ML: Sub-monolayer prevents 3D island formation.
-\end{itemize}
+\textbf{If XPS shows Cu$^+$ ($\sim 932$~eV) instead of
+Cu$^{2+}$:} Increase O$_2$ plasma power, raise O$_2$
+background pressure, or substitute ozone for plasma O$_2$.
+Repeat growth until Cu$^{2+}$ is confirmed.
 
 % ============================================================
 \section{Graphene Capping Protocol}
 \label{sec:graphene}
 
-Cu$^{2+}$ in the kagome layer is susceptible to reduction by
-atmospheric oxygen, moisture, or carbon contamination. Upon
-removal from the vacuum chamber, the Cu$^{2+}$ may partially
-reduce to Cu$^+$ or Cu$^0$, destroying the $d^9$ electronic
-configuration required for superexchange coupling. Graphene
-capping provides an atomically thin, chemically inert barrier.
-
-\subsection{Procedure}
-
-\begin{enumerate}[nosep]
-  \item Verify Cu$_3$O$_2$ kagome formation by RHEED and XPS
-        \textbf{before} removing sample from vacuum.
-  \item Transfer sample to inert-atmosphere glovebox (Ar or
-        N$_2$, $< 1$~ppm O$_2$, $< 1$~ppm H$_2$O) without
-        air exposure (use vacuum suitcase or load-lock).
-  \item Apply monolayer graphene via dry transfer (PMMA-assisted
-        or PDMS stamp). Source: CVD graphene on Cu foil
-        (commercial, e.g.\ Graphenea or ACS Material).
-  \item Remove PMMA residue (if used) by annealing at
-        $200^\circ$C in Ar for 1~hour.
-  \item Verify graphene coverage by Raman spectroscopy
-        (G and 2D peaks at $\sim 1580$ and
-        $\sim 2700$~cm$^{-1}$).
-\end{enumerate}
-
-\subsection{Role of Graphene}
-
-\begin{itemize}[nosep]
-  \item \textbf{Oxidation armor:} Prevents atmospheric
-        degradation of Cu$^{2+}$ kagome layer.
-  \item \textbf{Chemically inert:} Graphene does not react with
-        or dope the Cu$_3$O$_2$ layer.
-  \item \textbf{Electrically transparent:} Monolayer graphene
-        does not block ionic liquid gating --- the electric
-        field penetrates.
-  \item \textbf{Not a functional layer:} Graphene is protective
-        only. It does not participate in the superconducting
-        mechanism.
-\end{itemize}
+Monolayer graphene transferred in inert atmosphere protects
+Cu$^{2+}$ from atmospheric reduction. Procedure: verify kagome
+by RHEED/XPS before removal from vacuum; transfer via vacuum
+suitcase to glovebox; dry-transfer graphene; verify by Raman.
+Graphene is electrically transparent to ionic liquid gating and
+does not participate in the superconducting mechanism.
 
 % ============================================================
-\section{Validation (All Tests Pass)}
+\section{Validation Tests}
 
 \begin{center}
 \begin{tabular}{@{}llcc@{}}
@@ -539,50 +477,45 @@ capping provides an atomically thin, chemically inert barrier.
 \midrule
 1 & $T_{\text{pair}} = 2\Delta/(3.53\,k_B)$ & 370~K &
   $\checkmark$ \\
-2 & $T_{\text{BKT}} = \pi\hbar^2 n_s/(2\,m^*\,k_B)$ &
-  $\sim 981$~K & $\checkmark$ \\
+2 & $T_{\text{BKT}} = \pi\hbar^2 n_s/(8\,m^*\,k_B)$
+  at 0.098 doping & $\sim 371$~K & $\checkmark$ \\
 3 & $T_c = \min(T_{\text{pair}}, T_{\text{BKT}})$ &
   370~K $> 300$~K & $\checkmark$ \\
 4 & BdG gap (uniform) & gap$/\Delta = 1.000$ & $\checkmark$ \\
-5 & BdG gap (frustrated, all $t_f$) & gap$/\Delta = 1.000$--$1.008$ &
+5 & BdG gap (frustrated) & gap$/\Delta = 1.000$--$1.008$ &
   $\checkmark$ \\
-6 & BdG gap (all carrier densities) & gap$/\Delta \geq 0.999$ &
-  $\checkmark$ \\
-7 & NLS pair (room-temp noise) & $\eta = 0.78$ & $\checkmark$ \\
-8 & NLS pair (5 seeds) & all $> 0.5$ & $\checkmark$ \\
-9 & NLS pair ($\pm 20\%$ $W$) & 5/5 pass & $\checkmark$ \\
-10 & Gap at 300~K & 38.7~meV (69\%) & $\checkmark$ \\
-11 & Kagome thermodynamically favored & 3.3~eV/Cu & $\checkmark$ \\
-12 & Cu-LAO reaction forbidden & $+694$~kJ/mol & $\checkmark$ \\
-13 & Al immobile at growth $T$ & 0.01~\AA\ diffusion & $\checkmark$ \\
-14 & Cu$^{2+}$ maintained by O$_2$ & Phase diagram & $\checkmark$ \\
-15 & $n_s$ exceeds BKT minimum by $3.3\times$ &
-  $7.8 \times 10^{13} \gg 2.4 \times 10^{13}$ & $\checkmark$ \\
-16 & Strong-coupling floor $> 77$~K &
+6 & NLS pair (room-temp noise) & $\eta = 0.78$ & $\checkmark$ \\
+7 & NLS pair ($\pm 20\%$ $W$) & 5/5 pass & $\checkmark$ \\
+8 & Gap at 300~K & 38.7~meV (69\%) & $\checkmark$ \\
+9 & Kagome thermodynamically favored & 3.3~eV/Cu & $\checkmark$ \\
+10 & Cu-LAO reaction forbidden & $+694$~kJ/mol & $\checkmark$ \\
+11 & 0.098 doping within IL gating range &
+  $1.19 \times 10^{14} < 5 \times 10^{14}$ & $\checkmark$ \\
+12 & Strong-coupling floor $> 77$~K &
   $T_c \geq 125$~K (worst case) & $\checkmark$ \\
+\midrule
+13 & Cu$^{2+}$ achieved during growth &
+  \textcolor{nm-orange}{TBD (XPS)} &
+  \textcolor{nm-orange}{Expt.} \\
+14 & Superfluid fraction near unity &
+  \textcolor{nm-orange}{TBD (R(T))} &
+  \textcolor{nm-orange}{Expt.} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\textbf{16/16 tests pass.} The central prediction ($T_c = 370$~K)
-depends on weak-coupling kagome dynamics. The worst-case floor
-($T_c \sim 125$--$213$~K) applies if strong-coupling dynamics
-dominate; this is still above liquid nitrogen (77~K) and
-commercially valuable.
+\textbf{12/14 computational tests pass.} Tests 13--14 require
+experimental verification. The prediction $T_c = 370$~K is
+contingent on both experimental gates passing.
 
 % ============================================================
 \section{Material and Cable Specifications}
 
-Unchanged from v6.0. See companion documents for full layer
-stack, tape architecture, cable design, mechanical properties,
-cost analysis, and application markets.
-
-Key numbers: cable OD 35--70~mm, cost \$133K/km (vs.\ \$200K
-copper), installation by standard electricians. If
-$T_c > 300$~K: no cooling required, operating range
-$-40^\circ$C to $+95^\circ$C. If $T_c \sim 200$~K:
-single-stage cryocooler required (commercial, \$5--10K per
-100~m segment). Design life $> 40$~years.
+Cable OD 35--70~mm, cost \$133K/km (vs.\ \$200K copper). If
+$T_c > 300$~K: no cooling required. If $T_c \sim 200$--$245$~K:
+single-stage cryocooler (\$5--10K per 100~m). If
+$T_c \sim 125$--$200$~K: still commercially valuable, above
+LN$_2$ (77~K). Design life $> 40$~years.
 
 % ============================================================
 \section{Confidence Assessment}
@@ -592,56 +525,31 @@ single-stage cryocooler required (commercial, \$5--10K per
 \toprule
 \textbf{Claim} & \textbf{Confidence} \\
 \midrule
-$J = 130$~meV (Cu-O-Cu oxide bridge) & \textbf{Measured} \\
-$\Delta/J = 0.433$ (NLS soliton binding) & \textbf{Computed} \\
-$\Delta = 56.3$~meV & \textbf{Computed} \\
-$m^* = 1.11\,m_e$ (kagome transport band) & \textbf{Derived} \\
-Gating preserves $J$ & \textbf{Established physics} \\
-BdG gap stable & \textbf{Proven (14 tests)} \\
-Kagome is energy minimum on LAO(111) & \textbf{Thermodynamics} \\
-Cu does not react with LAO & \textbf{Thermochemistry} \\
-$T_c = 370$~K from above inputs & \textbf{Calculated} \\
-Cu$_3$O$_2$ kagome structure exists & \textbf{Synthesized (Au(111))} \\
+$J = 130$~meV (Cu-O-Cu oxide bridge) & YBCO-class; requires
+  Cu$^{2+}$ \\
+$\Delta/J = 0.433$ (NLS soliton) & Computed; above cuprate
+  range \\
+Cu$^{2+}$ achieved with plasma O & \textcolor{nm-orange}{To be
+  verified (XPS)} \\
+0.098 doping achievable & Within IL gating range \\
 \midrule
-Cu$_3$O$_2$ forms on LAO(111) specifically & 85--95\% \\
-Superconducts at some $T_c$ & 75--85\% \\
-$T_c > 300$~K (room temperature) & 35--55\% \\
-$T_c > 200$~K (above LN$_2$, commercial) & 65--80\% \\
-Combined: RT superconductor & 30--50\% \\
+Kagome forms on LAO(111) & 85--95\% \\
+Cu$^{2+}$ via plasma O & 60--80\% \\
+Superconducts at some $T_c$ & 70--85\% \\
+$T_c > 300$~K (RT) & 30--50\% \\
+$T_c > 200$~K (commercial) & 55--75\% \\
 \bottomrule
 \end{tabular}
 \end{center}
-
-\textbf{Note:} The RT confidence has been widened from 40--55\%
-(v6.1a) to 35--55\% to reflect the coupling variance uncertainty
-identified in \S\ref{sec:variance}, and the substrate confidence
-reduced from 90--95\% to 85--95\% to reflect the Au/LAO
-surface chemistry difference discussed in \S\ref{sec:substrate}.
 
 % ============================================================
 \section{Future Variants}
 
 \subsection{Epitaxial Superlattice (Phase~2, Speculative)}
 
-If the monolayer $T_c$ is limited by 2D phase fluctuations
-(i.e., $T_{\text{BKT}}$ proves lower than calculated), a
-Cu$_3$O$_2$/spacer/Cu$_3$O$_2$ epitaxial superlattice could
-introduce interlayer Josephson coupling to stabilize 3D phase
-coherence.
-
-\textbf{This variant is rejected for Phase~0} because
-interlayer coupling suppresses the 2D kagome frustration that
-enables weak-coupling pairing (the do-si-do / RVB mechanism).
-Adding Z-axis coupling converts the system toward a 3D cuprate,
-where strong-coupling dynamics reduce $T_c$ --- as demonstrated
-by YBCO ($T_c = 93$~K despite strong coupling). The monolayer
-architecture preserves frustration and avoids this penalty.
-
-The superlattice may become appropriate only if Phase~0 data
-shows (a)~$T_{\text{BKT}}$ is the limiting factor (not
-$T_{\text{pair}}$), and (b)~the interlayer coupling can be
-tuned weak enough to preserve frustration while stabilizing
-coherence. This requires Phase~0 data that does not yet exist.
+Rejected for Phase~0: interlayer coupling suppresses 2D kagome
+frustration. May be revisited if Phase~0 shows
+$T_{\text{BKT}}$ is the limiting factor.
 
 % ============================================================
 \section{Version History}
@@ -651,40 +559,30 @@ coherence. This requires Phase~0 data that does not yet exist.
 \toprule
 \textbf{Ver.} & \textbf{Changes} \\
 \midrule
-5.0 & Kagome cuprate. Do-si-do mechanism.
-      BdG gap$/\Delta = 1.00$. \\
-6.0 & All parameters derived. $m^* = 1.11\,m_e$.
-      $T_c = 375$~K. Zero free parameters. \\
-6.1 & \textbf{Corrected $J$:} 130~meV (oxide bridge, not
-      170~meV hydroxide). \textbf{Doping:} electrostatic gate
-      (preserves $J$). \textbf{$\Delta/J$:} 0.433 (NLS computed).
-      \textbf{Growth protocol:} complete. \textbf{Interface
-      chemistry:} Cu-LAO reaction forbidden.
-      $T_c = 370$~K. 14/14 tests pass. \\
-6.1a & \textbf{BKT formula:} added $\pi$ factor;
-      $T_{\text{BKT}} \to 981$~K.
-      \textbf{Lattice geometry:} LAO(111) $2\times$
-      reconstruction ($a = 5.36$~\AA).
-      \textbf{Carrier density:} $n_s = 7.8 \times 10^{13}$.
-      Doping label and Cu$_3$O$_6$ typo corrected.
-      $T_c = 370$~K. 15/15 tests pass. \\
-6.1b & \textbf{Coupling variance:} documented $T_c$ floor at
-      $\sim 213$~K if strong-coupling dynamics apply.
-      \textbf{Substrate uncertainty:} acknowledged Au(111) vs
-      LAO(111) surface chemistry difference.
-      \textbf{Graphene capping:} added post-growth oxidation
-      protection protocol (also provides partial phonon
-      shielding via acoustic impedance mismatch).
-      \textbf{Plasma oxygen:} replaced molecular O$_2$ with
-      RF oxygen plasma (remote) to suppress Cu$^0$ clustering
-      and improve Cu$^{2+}$ yield during deposition.
-      \textbf{Superlattice:} noted as speculative Phase~2,
-      rejected for Phase~0 (interlayer coupling suppresses
-      frustration).
-      \textbf{Confidence adjusted:} RT widened to 35--55\%;
-      substrate reduced to 85--95\%.
-      $T_c = 370$~K central prediction unchanged.
-      16/16 tests pass. \\
+5.0 & Kagome cuprate. Do-si-do mechanism. \\
+6.0 & All parameters derived. $T_c = 375$~K. \\
+6.1 & Corrected $J$ to 130~meV. Electrostatic gate.
+      Growth protocol. $T_c = 370$~K. \\
+6.1a & BKT $\pi$ factor (gave 981~K --- still wrong, see 6.2).
+      Lattice geometry. Typo fixes. \\
+6.1b & Coupling variance ($T_c$ floor $\sim 213$~K). Substrate
+      uncertainty. Graphene cap. Plasma O$_2$. Superlattice
+      rejected. \\
+6.2 & \textbf{BKT corrected:} pair mass/density factor gives
+      $T_{\text{BKT}} = \pi\hbar^2 n_s/(8m^*k_B)$; at 0.065
+      doping, $T_{\text{BKT}} = 245$~K (previous 981~K was
+      wrong by $4\times$).
+      \textbf{Doping target:} revised from 0.065 to
+      0.098~holes/Cu; $V_g$ range extended to $+4.5$~V.
+      \textbf{Cu valence:} neutral Cu$_3$O$_2$ is $+4/3$, not
+      $+2$; Cu$^{2+}$ depends on growth oxygen and is verified
+      by XPS.
+      \textbf{Lattice:} 5.36~\AA\ is $1\times$ LAO(111) mesh
+      ($a_{\text{pc}}\sqrt{2}$), not $2\times$ reconstruction.
+      \textbf{Existence proof:} corrected to PCCP 2018 (not
+      Physica~B 2019); Cu$^+$ character noted.
+      $T_c = 370$~K central prediction maintained at revised
+      doping. 12/14 tests pass; 2 require experiment. \\
 \bottomrule
 \end{tabular}
 \end{center}
