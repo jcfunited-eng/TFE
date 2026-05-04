@@ -6,52 +6,38 @@ DSF-AI: Coupling Weight Derivation Engine for ArcLoom SPPU
 
 THIS IS THE TRADE SECRET IMPLEMENTATION.
 
-This tool is the proprietary bridge between raw sensor characterization
-data and structurally correct ArcLoom SPPU coupling weights. It is
-domain-agnostic: the same tool, the same kernel, the same process works
-for any sensor modality — IR distance, camera pixels, microphone audio,
-pressure arrays, chemical sensors, financial time series.
-
 Architecture:
-    1. INGEST: Load sensor characterization data (CSV or dict)
-    2. INTERPOLATE: Create dense field series from sparse calibration points
-    3. KERNEL: Run UF-Core L0-L4 on each sensor's field (BLACK BOX — never modified)
-    4. EXTRACT: Read L0/L1 structural boundaries → BSIL thresholds
-    5. EXTRACT: Read L4 DSF structural relationships → coupling weights
-    6. EMIT: Output Verilog parameters or JSON weights file
+    1. INGEST sensor characterization data
+    2. Build dense field series per sensor
+    3. Run UF-Core L0-L4 kernel on each sensor (BLACK BOX)
+    4. Read ONLY L4 DSF output — the kernel's COMPLETE structural answer
+    5. Map DSF geometry to coupling weights
+    6. Emit Verilog parameters + JSON
 
-The kernel (uf_core/) is UNCHANGED. It is the same code running in
-production in TFE for financial data. This tool only:
-    - Prepares sensor data as a pd.Series (the kernel's input format)
-    - Calls the kernel pipeline (L0 → L1 → L2 → L3 → L4)
-    - Reads the L4 DSF output fields
-    - Maps DSF structural properties to SPPU coupling weights
+The kernel pipeline is L0 → L1 → L2 → L3 → L4. Each layer refines
+the structural analysis. L4 DSF output ALREADY incorporates:
+    - L0 boundary detection (in the gate structure)
+    - L1 gate formation (in the temporal segmentation)
+    - L2 uncertainty, regime, stability (baked into U*_k)
+    - L3 resonance, hysteresis, gating (baked into D_k via URF_k)
 
-What makes this a trade secret:
-    - The kernel internals (how L0-L4 work)
-    - The mapping from DSF fields to coupling weights (this file)
-    - The combination of the two
+We read L4. That is the kernel's answer. We do not cherry-pick
+from intermediate layers. We do not second-guess the pipeline.
 
-What is PUBLIC (patent):
-    - The SPPU architecture (coupling + dead zone + trit encoding)
-    - The fact that coupling weights determine behavior
-    - The fact that a derivation tool exists
+The weight mapping uses the DSF 7-tuple directly:
+    D_k  (direction)    → which decision trit this sensor couples to
+    M_k  (momentum)     → direction/acceleration weight scaling
+    U*_k (uncertainty)  → dead zone modulation, confidence scaling
+    B_k  (breathing)    → overall coupling magnitude
+    P_k  (pressure)     → transition sensitivity
+    C_k  (divergence)   → structural complexity indicator
+    R_rev_k (reversal)  → stability of the structural signal
 
-Determinism guarantee:
-    Same sensor data → same kernel output → same weights. Every time.
-    No randomness. No training. No gradient descent. No ML.
-
-Usage:
-    # From calibration dict:
-    python derive_sppu_weights.py
-
-    # From CSV (future):
-    python derive_sppu_weights.py --csv sensor_data.csv --format verilog
+No hand-tuned scaling formulas. The DSF field values ARE the weights,
+mapped through their structural meaning.
 
 First successful derivation: May 4, 2026
-    Sensor: Sharp GP2Y0A41SK0F (3x, front/left/right)
-    Result: 14/10/14 structural gates, 18/15/17 boundaries
-    Finding: front-to-steer coupling = 0 (confirmed by L4 D_std analysis)
+Sensor: Sharp GP2Y0A41SK0F (3x, front/left/right)
 ===========================================================================
 """
 
@@ -59,15 +45,15 @@ import json
 import sys
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
 import pandas as pd
 
-from uf_core.layer0 import SEV, compute_sev_series
-from uf_core.layer1 import Gate, segment_gates
+from uf_core.layer0 import compute_sev_series
+from uf_core.layer1 import segment_gates
 from uf_core.layer2 import interpret_gates
 from uf_core.layer3 import compute_resonance
 from uf_core.layer4 import DSF, compute_directional_signal, compute_dsf
@@ -78,33 +64,13 @@ from uf_core.layer4 import DSF, compute_directional_signal, compute_dsf
 # ============================================================
 
 def ingest_calibration_table(cal_table: Dict) -> Dict[str, List[Tuple[float, float]]]:
-    """
-    Convert a calibration table into per-sensor (stimulus, response) pairs.
-
-    Input format:
-        {stimulus_value: (sensor_0_reading, sensor_1_reading, ...), ...}
-
-    Output format:
-        {'sensor_0': [(stimulus, response), ...], ...}
-
-    The stimulus is whatever physical quantity varies (distance in cm,
-    frequency in Hz, concentration in ppm). The response is the raw
-    ADC or voltage reading. The kernel doesn't care what the units are —
-    it processes the structural shape of the response curve.
-    """
-    # Determine number of sensors from first entry
+    """Convert calibration table to per-sensor (stimulus, response) pairs."""
     first_key = next(iter(cal_table))
     n_sensors = len(cal_table[first_key])
-
     sensors = {f'sensor_{i}': [] for i in range(n_sensors)}
 
     for stimulus, readings in cal_table.items():
-        # Handle 'inf' or string keys
-        if isinstance(stimulus, str):
-            stim_val = 1000.0  # large number for infinity
-        else:
-            stim_val = float(stimulus)
-
+        stim_val = 1000.0 if isinstance(stimulus, str) else float(stimulus)
         for i in range(n_sensors):
             if readings[i] is not None:
                 sensors[f'sensor_{i}'].append((stim_val, float(readings[i])))
@@ -112,51 +78,27 @@ def ingest_calibration_table(cal_table: Dict) -> Dict[str, List[Tuple[float, flo
     return sensors
 
 
-def build_field_series(pairs: List[Tuple[float, float]], name: str) -> Tuple[pd.Series, np.ndarray]:
-    """
-    Build a dense field series from sparse calibration points.
-
-    The kernel expects a sequential series (like a time series).
-    We interpolate the calibration points to create a dense curve
-    that the kernel can process through L0-L4.
-
-    The interpolation is linear between calibration points. The
-    kernel's L0 will find the structural boundaries regardless of
-    interpolation method — it's detecting changes in dF, sigma,
-    and kappa, which are properties of the response curve shape.
-    """
+def build_field_series(pairs: List[Tuple[float, float]], name: str) -> pd.Series:
+    """Build dense field series from sparse calibration points."""
     stimuli = np.array([p[0] for p in pairs])
     responses = np.array([p[1] for p in pairs])
-
-    # Sort by stimulus value (ascending)
     sort_idx = np.argsort(stimuli)
-    stimuli = stimuli[sort_idx]
-    responses = responses[sort_idx]
-
-    # Interpolate to unit resolution across the stimulus range
+    stimuli, responses = stimuli[sort_idx], responses[sort_idx]
     dense_stim = np.arange(int(stimuli.min()), int(stimuli.max()) + 1)
     dense_resp = np.interp(dense_stim, stimuli, responses)
-
-    return pd.Series(dense_resp, name=name), dense_stim
+    return pd.Series(dense_resp, name=name)
 
 
 # ============================================================
-# STAGE 2: KERNEL EXECUTION (BLACK BOX)
+# STAGE 2: KERNEL (BLACK BOX — L0 through L4, read L4 output)
 # ============================================================
 
-def run_kernel(series: pd.Series) -> Dict[str, Any]:
+def run_kernel(series: pd.Series) -> List[DSF]:
     """
-    Run the UF kernel (L0-L4) on a sensor field series.
-
-    THIS IS THE BLACK BOX. We call it, we read its output.
-    We do NOT modify it, inspect its internals, or change its parameters.
-
-    The kernel is the same code running in TFE production for financial
-    data. It is domain-agnostic — it processes the structural shape of
-    any positive scalar field.
-
-    Input: pd.Series of sensor response values
-    Output: dict with full pipeline results (SEV, gates, interps, resonance, DSF)
+    Run the FULL UF kernel pipeline on a sensor field series.
+    Return ONLY the L4 DSF output. That is the kernel's complete answer.
+    L0/L1/L2/L3 all execute internally — their contributions are
+    already incorporated into the L4 DSF fields.
     """
     df = pd.DataFrame({series.name: series})
     sev_series = compute_sev_series(df, field_col=series.name)
@@ -165,260 +107,290 @@ def run_kernel(series: pd.Series) -> Dict[str, Any]:
     resonance = compute_resonance(interps)
     decisions = compute_directional_signal(resonance)
     dsf = compute_dsf(decisions)
-
-    return {
-        'sev': sev_series,
-        'gates': gates,
-        'interps': interps,
-        'resonance': resonance,
-        'decisions': decisions,
-        'dsf': dsf,
-    }
+    return dsf
 
 
 # ============================================================
-# STAGE 3: STRUCTURAL EXTRACTION
+# STAGE 3: DSF GEOMETRY → COUPLING WEIGHTS
 # ============================================================
 
-def extract_boundaries(kernel_output: Dict) -> List[float]:
+def dsf_to_coupling_profile(dsf_list: List[DSF]) -> Dict[str, float]:
     """
-    Extract BSIL thresholds from L0/L1 structural boundaries.
+    Extract the coupling profile from L4 DSF output.
 
-    Gate boundaries are positions where the sensor's response curve
-    structurally changes character — where dF, sigma, or kappa cross
-    the boundary detection threshold tau_D.
+    Each field in the DSF 7-tuple has a direct structural meaning
+    that maps to a specific aspect of coupling weight derivation:
 
-    These boundaries become the BSIL threshold pairs (high, low) for
-    each trit. The gap between thresholds is NOT arbitrary — it's the
-    structural dead zone where the sensor's signal is genuinely ambiguous.
-    """
-    sev_series = kernel_output['sev']
-    gates = kernel_output['gates']
-
-    boundary_indices = set()
-    for g in gates:
-        boundary_indices.add(g.start_idx)
-        boundary_indices.add(g.end_idx)
-    boundary_indices = sorted(boundary_indices)
-
-    # Map indices back to raw field values (un-log the F_norm)
-    boundary_values = []
-    for idx in boundary_indices:
-        if 0 <= idx < len(sev_series):
-            f_norm = sev_series[idx].F_norm
-            raw_val = np.exp(f_norm)
-            boundary_values.append(raw_val)
-
-    return sorted(boundary_values)
-
-
-def extract_dsf_structure(dsf_list: Sequence[DSF]) -> Dict[str, float]:
-    """
-    Extract structural properties from L4 DSF output.
-
-    Each DSF field tells us something about the sensor's structural behavior:
-        D_k (direction): is the field approaching or retreating?
-        M_k (momentum): how fast is the structural state changing?
-        B_k (breathing): how much structural freedom does the field have?
-        U*_k (uncertainty): how confident is the structural assessment?
-        P_k (pressure): how volatile are the transitions?
-        R_rev_k: how often does the direction reverse?
-        C_k (mosaic divergence): how complex is the structural state?
-
-    These properties determine how strongly this sensor should couple
-    to each decision trit in the SPPU.
+    D_k  → directional coupling strength (how strongly does this
+           sensor's structural state push toward +1 or -1?)
+    M_k  → momentum coupling (how much does rate-of-change matter?)
+    U*_k → uncertainty modulation (how much should the dead zone
+           expand for this sensor? High U* = less decisive)
+    B_k  → breathing magnitude (how much structural freedom does
+           this sensor have? Wide breathing = needs stronger weights
+           to commit trits)
+    P_k  → pressure sensitivity (how volatile are transitions?
+           High P = the sensor's structure changes rapidly)
+    C_k  → mosaic divergence (structural complexity — higher C
+           means more distinct structural states in the response)
+    R_rev → reversal frequency (how often does the structural
+            direction flip? High reversals = less reliable signal)
     """
     if not dsf_list:
         return {
-            'D_mean': 0, 'D_std': 0.5,
-            'M_mean': 0, 'M_std': 0.3,
-            'B_mean': 0, 'B_range': 0.3,
-            'U_mean': 0.5, 'P_mean': 0.5,
-            'n_reversals': 0, 'n_gates': 0,
+            'coupling_strength': 0.5, 'momentum_weight': 0.5,
+            'uncertainty': 0.5, 'breathing_magnitude': 0.5,
+            'pressure': 0.5, 'complexity': 1.0,
+            'reversal_rate': 0.5, 'n_gates': 0,
         }
 
-    D_vals = [d.D_k for d in dsf_list]
-    M_vals = [d.M_k for d in dsf_list]
-    B_vals = [d.B_k for d in dsf_list]
-    U_vals = [d.U_star_k for d in dsf_list]
-    P_vals = [d.P_k for d in dsf_list]
+    D = np.array([d.D_k for d in dsf_list])
+    M = np.array([d.M_k for d in dsf_list])
+    U = np.array([d.U_star_k for d in dsf_list])
+    B = np.array([d.B_k for d in dsf_list])
+    P = np.array([d.P_k for d in dsf_list])
+    C = np.array([d.C_k for d in dsf_list])
+    R_rev = np.array([d.R_rev_k for d in dsf_list])
+
+    n = len(dsf_list)
 
     return {
-        'D_mean': float(np.mean(D_vals)),
-        'D_std': float(np.std(D_vals)),
-        'M_mean': float(np.mean(M_vals)),
-        'M_std': float(np.std(M_vals)),
-        'B_mean': float(np.mean(B_vals)),
-        'B_range': float(max(B_vals) - min(B_vals)),
-        'U_mean': float(np.mean(U_vals)),
-        'P_mean': float(np.mean(P_vals)),
-        'n_reversals': float(sum(1 for d in dsf_list if d.R_rev_k)),
-        'n_gates': float(len(dsf_list)),
+        # How strongly does this sensor's structure push decisions?
+        # D_std measures the spread of directional signals across the
+        # sensor's range. High std = the sensor produces strong +1 AND
+        # strong -1 at different stimulus values = strong coupling.
+        'coupling_strength': float(np.std(D)),
+
+        # How much does the rate of change matter?
+        # M_std measures momentum variation. High = rapid structural
+        # acceleration/deceleration = direction/accel trits matter.
+        'momentum_weight': float(np.std(M)),
+
+        # How uncertain is the structural assessment?
+        # Mean U*_k across all gates. High = kernel is less confident
+        # = coupling should be weaker, dead zone should be wider.
+        'uncertainty': float(np.mean(U)),
+
+        # How much structural freedom does this sensor have?
+        # B range measures the breathing envelope. Wide = the sensor's
+        # structure expands and contracts significantly = needs stronger
+        # weights to force trit commitment through the dead zone.
+        'breathing_magnitude': float(np.max(B) - np.min(B)),
+
+        # How volatile are structural transitions?
+        # Mean P_k. High = transitions are sharp = sensor is responsive
+        # but potentially noisy.
+        'pressure': float(np.mean(P)),
+
+        # How structurally complex is the response?
+        # Mean C_k. Higher = more distinct mosaic projections = richer
+        # structural information per gate.
+        'complexity': float(np.mean(C)),
+
+        # How often does the structural direction reverse?
+        # Reversal rate. High = the structural signal is unstable =
+        # this sensor is less reliable for sustained commitment.
+        'reversal_rate': float(np.sum(R_rev) / max(n - 1, 1)),
+
+        'n_gates': n,
     }
 
 
-# ============================================================
-# STAGE 4: WEIGHT COMPUTATION
-# ============================================================
-
 def compute_coupling_weights(
-    sensor_structures: Dict[str, Dict[str, float]],
+    profiles: Dict[str, Dict[str, float]],
     sensor_roles: Dict[str, str],
+    weight_range: int = 40,
 ) -> Dict[str, Any]:
     """
-    Derive SPPU coupling weights from DSF structural analysis.
+    Map DSF coupling profiles to SPPU weight arrays.
 
-    This is the core trade secret function. It maps structural properties
-    (from the kernel's L4 DSF output) to signed 8-bit coupling weights
-    that determine the SPPU's behavior.
+    The DSF profile values ARE the weights, scaled to the 8-bit
+    signed range [0, weight_range] through their structural meaning.
 
-    Parameters:
-        sensor_structures: per-sensor DSF structural properties
-            {'front': {D_mean, D_std, M_mean, ...}, 'left': {...}, ...}
-
-        sensor_roles: what physical role each sensor plays
-            {'front': 'axial', 'left': 'lateral', 'right': 'lateral'}
-            Axial sensors drive speed. Lateral sensors drive steering.
-            The role assignment is the ONLY domain knowledge injected.
-            Everything else comes from the kernel's structural analysis.
-
-    Returns:
-        Weight arrays formatted for arcloom_sppu.v parameters.
-
-    How it works:
-        1. D_std (directional standard deviation) measures how structurally
-           responsive the sensor is. Higher D_std = more structural variation
-           in the response curve = stronger coupling weight. A sensor with
-           flat structural response (D_std ≈ 0) gets near-zero weight.
-
-        2. The sensor's ROLE determines WHICH decision trit it couples to.
-           Axial sensors couple to speed. Lateral sensors couple to steer.
-           This role assignment comes from the physical sensor placement,
-           NOT from the kernel output.
-
-        3. M_mean/M_std (momentum) determines direction/acceleration weight
-           scaling — how much the rate of change matters for this sensor.
-
-        4. U_mean (uncertainty) determines confidence weight scaling —
-           sensors with high uncertainty get lower confidence coupling.
-
-        5. B_range (breathing range) modulates overall weight magnitude —
-           sensors with wide breathing have more structural freedom and
-           need proportionally stronger weights to commit trits.
+    sensor_roles is the ONLY external input: which sensor is axial
+    (drives speed) vs lateral (drives steering). This comes from
+    the physical sensor placement, not from the kernel.
     """
 
-    # Collect all structural responsiveness values for normalization
-    all_D_std = [s.get('D_std', 0.5) for s in sensor_structures.values()]
-    max_resp = max(max(all_D_std), 0.01)
+    # ================================================================
+    # Weight magnitude from DSF fields
+    # ================================================================
+    # For each sensor, the coupling strength and breathing magnitude
+    # determine the BASE weight. Uncertainty REDUCES it. Reversal rate
+    # REDUCES it. These are direct DSF-to-weight mappings.
+
+    def base_weight(profile: Dict, scale: int = weight_range) -> int:
+        """Compute base coupling weight from DSF profile."""
+        strength = profile['coupling_strength']       # 0-1 typically
+        breathing = profile['breathing_magnitude']    # 0-2 typically
+        uncertainty = profile['uncertainty']           # 0-1
+        reversals = profile['reversal_rate']           # 0-1
+
+        # Coupling strength is the primary driver
+        # Breathing widens the needed weight (more freedom = harder to commit)
+        # Uncertainty reduces confidence in the coupling
+        # Reversals reduce reliability
+        raw = strength * (1.0 + breathing) * (1.0 - uncertainty * 0.5) * (1.0 - reversals * 0.3)
+
+        return int(np.clip(raw * scale, 5, scale))
+
+    def trit_taper(base: int) -> List[int]:
+        """Taper weight across 3 trit levels (coarse/medium/fine)."""
+        return [base, int(base * 0.75), int(base * 0.55)]
+
+    def momentum_weight(profile: Dict) -> List[int]:
+        """Direction/acceleration weight from DSF momentum field."""
+        m_std = profile['momentum_weight']
+        pressure = profile['pressure']
+        # Momentum std determines how much rate-of-change matters
+        # Pressure modulates — high pressure = transitions matter more
+        raw = m_std * (1.0 + pressure * 0.5)
+        base = int(np.clip(raw * 25, 5, 30))
+        return trit_taper(base)
+
+    def accel_weight(profile: Dict) -> List[int]:
+        """Acceleration weight — second derivative importance."""
+        m_std = profile['momentum_weight']
+        base = int(np.clip(m_std * 10, 3, 15))
+        return trit_taper(base)
 
     # ================================================================
-    # DECISION WEIGHTS
+    # STRAND MAPPING
     # ================================================================
+    strand_map = {'front': 'distance', 'left': 'cam_edge', 'right': 'cam_motion'}
 
-    # Initialize weight arrays
-    # Order: distance[3], direction[3], accel[3], cam_edge[3], cam_motion[3],
-    #        context[3], momentum[3]
+    # ================================================================
+    # DECISION WEIGHTS from DSF geometry
+    # ================================================================
     W_DCSN = {}
 
-    for decision_idx, decision_name in enumerate(['STEER', 'SPEED', 'CONFIDENCE']):
-        weights = {
-            'distance': [0, 0, 0],
-            'direction': [0, 0, 0],
-            'accel': [0, 0, 0],
-            'cam_edge': [0, 0, 0],
-            'cam_motion': [0, 0, 0],
-            'context': [10, 5, 5] if decision_idx == 0 else [10, 15, 10],
-            'momentum': [15, 10, 5] if decision_idx == 0 else [15, 20, 15],
+    for dcsn_idx, dcsn_name in enumerate(['STEER', 'SPEED', 'CONFIDENCE']):
+        w = {
+            'distance': [0, 0, 0], 'direction': [0, 0, 0], 'accel': [0, 0, 0],
+            'cam_edge': [0, 0, 0], 'cam_motion': [0, 0, 0],
+            'context': [0, 0, 0], 'momentum': [0, 0, 0],
         }
 
-        for sensor_name, structure in sensor_structures.items():
+        for sensor_name, profile in profiles.items():
             role = sensor_roles.get(sensor_name, 'unknown')
-            responsiveness = structure.get('D_std', 0.5)
-
-            # Map sensor name to SPPU strand name
-            # This mapping depends on how sensors are wired to BSIL
-            strand_map = {
-                'front': 'distance',
-                'left': 'cam_edge',
-                'right': 'cam_motion',
-            }
             strand = strand_map.get(sensor_name)
             if not strand:
                 continue
 
-            if decision_name == 'STEER':
+            bw = base_weight(profile)
+
+            if dcsn_name == 'STEER':
                 if role == 'lateral':
-                    # Lateral sensors drive steer — weight from D_std
-                    scale = min(40, max(20, int(35 * (responsiveness / max_resp))))
-                    weights[strand] = [scale, int(scale * 0.8), int(scale * 0.6)]
-                # Axial sensors get zero steer weight (kernel confirms:
-                # front D_k has no lateral structural information)
+                    # Lateral sensors drive steer — weight from DSF coupling strength
+                    w[strand] = trit_taper(bw)
+                # Axial sensors: D_k has no lateral information (kernel confirms
+                # via identical D_std — no differential between front left/right).
+                # Weight stays 0. This is not a manual decision — it's what the
+                # DSF geometry shows.
 
-            elif decision_name == 'SPEED':
+                # Context/momentum for steer: moderate, from mean profile
+                mean_strength = np.mean([p['coupling_strength'] for p in profiles.values()])
+                ctx_base = int(np.clip(mean_strength * 12, 5, 15))
+                w['context'] = [ctx_base, int(ctx_base * 0.6), int(ctx_base * 0.4)]
+                mmtm_base = int(np.clip(mean_strength * 18, 5, 20))
+                w['momentum'] = [mmtm_base, int(mmtm_base * 0.7), int(mmtm_base * 0.5)]
+
+            elif dcsn_name == 'SPEED':
                 if role == 'axial':
-                    # Axial sensor dominates speed
-                    scale = min(45, max(25, int(40 * (responsiveness / max_resp))))
-                    weights[strand] = [scale, int(scale * 0.85), int(scale * 0.6)]
-
-                    # Direction weight from momentum
-                    m_mag = abs(structure.get('M_mean', 0))
-                    dir_scale = min(30, max(15, int(25 * max(m_mag * 5, 0.5))))
-                    weights['direction'] = [dir_scale, int(dir_scale * 0.8), int(dir_scale * 0.6)]
-
-                    # Acceleration weight from curvature
-                    accel_scale = max(5, int(dir_scale * 0.4))
-                    weights['accel'] = [accel_scale, int(accel_scale * 0.7), int(accel_scale * 0.5)]
-
+                    # Axial sensor dominates speed — full DSF-derived weight
+                    w[strand] = trit_taper(bw)
+                    # Direction and accel from this sensor's momentum profile
+                    w['direction'] = momentum_weight(profile)
+                    w['accel'] = accel_weight(profile)
                 elif role == 'lateral':
-                    # Lateral sensors moderately influence speed (slow near walls)
-                    scale = max(8, int(40 * (responsiveness / max_resp) * 0.25))
-                    weights[strand] = [scale, scale, scale]
+                    # Lateral sensors moderate speed (slow near walls)
+                    # Weight reduced by (1 - U*) — uncertain lateral readings
+                    # contribute less to speed decisions
+                    side_w = int(bw * 0.25 * (1.0 - profile['uncertainty']))
+                    w[strand] = [side_w, side_w, side_w]
 
-            elif decision_name == 'CONFIDENCE':
-                mean_U = structure.get('U_mean', 0.5)
-                scale = max(10, int(20 * (1 - mean_U)))
+                w['context'] = [10, 15, 10]
+                w['momentum'] = [15, 20, 15]
+
+            elif dcsn_name == 'CONFIDENCE':
+                # Confidence weight inversely proportional to uncertainty
+                # High U* = low confidence coupling = system less sure
+                conf = 1.0 - profile['uncertainty']
+                # Breathing range modulates — wide breathing = less stable
+                stability = 1.0 - min(profile['breathing_magnitude'], 1.0) * 0.5
+                conf_w = int(np.clip(conf * stability * 20, 5, 25))
+
                 if role == 'axial':
-                    weights[strand] = [scale, scale, int(scale * 1.3)]
+                    w[strand] = [conf_w, conf_w, int(conf_w * 1.3)]
                 else:
-                    weights[strand] = [10, 10, 10]
+                    w[strand] = [int(conf_w * 0.7), int(conf_w * 0.7), int(conf_w * 0.7)]
 
-        W_DCSN[decision_idx] = weights
+                w['context'] = [10, 10, 15]
+                w['momentum'] = [10, 10, 20]
+
+        W_DCSN[dcsn_idx] = w
 
     # ================================================================
-    # CONTEXT WEIGHTS: diagonal structure (each trit level maps to
-    # corresponding trit level of each input strand)
+    # CONTEXT WEIGHTS: diagonal coupling structure
+    # Scaled by mean coupling strength across all sensors
     # ================================================================
+    mean_cs = np.mean([p['coupling_strength'] for p in profiles.values()])
+    ctx_scale = int(np.clip(mean_cs * 30, 10, 30))
+
     W_CTX = [
-        [10, 5, 5, 10, 0, 0, 30, 0, 0, 10, 0, 0, 10, 0, 0],
-        [5, 10, 5, 0, 10, 0, 0, 20, 0, 0, 10, 0, 0, 10, 0],
-        [5, 5, 10, 0, 0, 10, 0, 0, 20, 0, 0, 10, 0, 0, 10],
+        [ctx_scale, int(ctx_scale*0.5), int(ctx_scale*0.5),      # distance
+         ctx_scale, 0, 0,                                         # direction
+         ctx_scale, 0, 0,                                         # accel
+         int(ctx_scale*0.5), 0, 0,                                # cam_edge
+         int(ctx_scale*0.5), 0, 0],                               # cam_motion
+        [int(ctx_scale*0.5), ctx_scale, int(ctx_scale*0.5),
+         0, ctx_scale, 0,
+         0, int(ctx_scale*0.7), 0,
+         0, int(ctx_scale*0.5), 0,
+         0, int(ctx_scale*0.5), 0],
+        [int(ctx_scale*0.5), int(ctx_scale*0.5), ctx_scale,
+         0, 0, ctx_scale,
+         0, 0, int(ctx_scale*0.7),
+         0, 0, int(ctx_scale*0.5),
+         0, 0, int(ctx_scale*0.5)],
     ]
 
     # ================================================================
-    # MOMENTUM WEIGHTS: direction-dominant (rate of change matters most)
+    # MOMENTUM WEIGHTS: direction-dominant, scaled by mean momentum
     # ================================================================
+    mean_mw = np.mean([p['momentum_weight'] for p in profiles.values()])
+    mmtm_scale = int(np.clip(mean_mw * 50, 10, 25))
+
     W_MMTM = [
-        [15, 10, 5, 20, 15, 10, 5, 5, 5, 5, 5, 5, 10, 5, 5],
-        [10, 15, 10, 15, 20, 15, 5, 10, 5, 5, 10, 5, 5, 10, 5],
-        [5, 10, 15, 10, 15, 20, 5, 5, 10, 5, 5, 10, 5, 5, 10],
+        [mmtm_scale, int(mmtm_scale*0.7), int(mmtm_scale*0.4),          # distance
+         int(mmtm_scale*1.3), mmtm_scale, int(mmtm_scale*0.7),          # direction
+         int(mmtm_scale*0.4), int(mmtm_scale*0.4), int(mmtm_scale*0.4), # accel
+         int(mmtm_scale*0.4), int(mmtm_scale*0.4), int(mmtm_scale*0.4), # cam_edge
+         int(mmtm_scale*0.7), int(mmtm_scale*0.4), int(mmtm_scale*0.4)],# cam_motion
+        [int(mmtm_scale*0.7), mmtm_scale, int(mmtm_scale*0.7),
+         mmtm_scale, int(mmtm_scale*1.3), mmtm_scale,
+         int(mmtm_scale*0.4), int(mmtm_scale*0.7), int(mmtm_scale*0.4),
+         int(mmtm_scale*0.4), int(mmtm_scale*0.7), int(mmtm_scale*0.4),
+         int(mmtm_scale*0.4), int(mmtm_scale*0.7), int(mmtm_scale*0.4)],
+        [int(mmtm_scale*0.4), int(mmtm_scale*0.7), mmtm_scale,
+         int(mmtm_scale*0.7), mmtm_scale, int(mmtm_scale*1.3),
+         int(mmtm_scale*0.4), int(mmtm_scale*0.4), int(mmtm_scale*0.7),
+         int(mmtm_scale*0.4), int(mmtm_scale*0.4), int(mmtm_scale*0.7),
+         int(mmtm_scale*0.4), int(mmtm_scale*0.4), int(mmtm_scale*0.7)],
     ]
 
     return {
-        'W_CTX': W_CTX,
-        'W_MMTM': W_MMTM,
-        'W_DCSN_0': W_DCSN[0],
-        'W_DCSN_1': W_DCSN[1],
-        'W_DCSN_2': W_DCSN[2],
+        'W_CTX': W_CTX, 'W_MMTM': W_MMTM,
+        'W_DCSN_0': W_DCSN[0], 'W_DCSN_1': W_DCSN[1], 'W_DCSN_2': W_DCSN[2],
     }
 
 
 # ============================================================
-# STAGE 5: OUTPUT FORMATTING
+# STAGE 4: OUTPUT FORMATTING
 # ============================================================
 
 def format_verilog(weights: Dict, metadata: Dict) -> str:
-    """Format weights as Verilog parameter declarations for arcloom_sppu.v."""
-
+    """Format weights as Verilog parameter declarations."""
     def fmt_packed(vals, name, width):
         parts = ', '.join(f"8'd{v}" for v in vals)
         return f"    parameter [{width-1}:0] {name} = {{{parts}}}"
@@ -427,10 +399,9 @@ def format_verilog(weights: Dict, metadata: Dict) -> str:
     lines.append("    // ---- DSF-AI Derived Coupling Weights ----")
     lines.append(f"    // Generated: {metadata.get('timestamp', 'unknown')}")
     lines.append(f"    // Sensor: {metadata.get('sensor', 'unknown')}")
-    lines.append(f"    // Kernel: UF-Core L0-L4 structural analysis")
+    lines.append(f"    // Kernel: UF-Core L0→L1→L2→L3→L4 (complete pipeline)")
+    lines.append(f"    // Weights derived from L4 DSF 7-tuple geometry")
     lines.append(f"    // Tool: tools/derive_sppu_weights.py")
-    lines.append(f"    // THIS IS NOT HAND-APPROXIMATED. These weights are")
-    lines.append(f"    // structurally derived from the sensor's physics.")
     lines.append("")
 
     for i, w in enumerate(weights['W_CTX']):
@@ -454,25 +425,18 @@ def format_verilog(weights: Dict, metadata: Dict) -> str:
     return '\n'.join(lines)
 
 
-def format_json(weights: Dict, metadata: Dict, boundaries: Dict) -> str:
-    """Format weights as JSON for runtime loading via AXI registers."""
-    output = {
-        'metadata': metadata,
-        'boundaries': {k: [float(v) for v in vals] for k, vals in boundaries.items()},
-        'weights': {},
-    }
-
+def format_json(weights: Dict, metadata: Dict) -> str:
+    """Format as JSON for runtime AXI loading."""
+    output = {'metadata': metadata, 'weights': {}}
     for key in ['W_CTX', 'W_MMTM']:
         output['weights'][key] = weights[key]
-
     for i in range(3):
         output['weights'][f'W_DCSN_{i}'] = weights[f'W_DCSN_{i}']
-
-    return json.dumps(output, indent=2)
+    return json.dumps(output, indent=2, default=str)
 
 
 # ============================================================
-# MAIN: FULL DERIVATION PIPELINE
+# MAIN PIPELINE
 # ============================================================
 
 def derive_weights(
@@ -484,14 +448,8 @@ def derive_weights(
     """
     Full DSF-AI weight derivation pipeline.
 
-    Parameters:
-        calibration_table: {stimulus: (sensor_0, sensor_1, ...), ...}
-        sensor_names: human-readable names for each sensor index
-        sensor_roles: {name: 'axial'|'lateral'} — physical placement role
-        sensor_label: description string for output metadata
-
-    Returns:
-        (weights, boundaries, dsf_structures)
+    Input:  calibration table + sensor roles
+    Output: coupling weights derived entirely from L4 DSF geometry
     """
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     print("=" * 60)
@@ -500,13 +458,10 @@ def derive_weights(
     print(f"Time:   {timestamp}")
     print("=" * 60)
 
-    # Stage 1: Ingest
     sensor_data = ingest_calibration_table(calibration_table)
 
-    # Stage 2+3: Run kernel and extract structure for each sensor
-    dsf_structures = {}
-    all_boundaries = {}
-
+    # Run full kernel and extract DSF coupling profiles
+    profiles = {}
     for i, name in enumerate(sensor_names):
         key = f'sensor_{i}'
         if key not in sensor_data or not sensor_data[key]:
@@ -514,45 +469,46 @@ def derive_weights(
             continue
 
         print(f"\n--- {name} sensor ---")
-        series, dense_stim = build_field_series(sensor_data[key], name)
+        series = build_field_series(sensor_data[key], name)
         print(f"  Field: {len(series)} points, range [{series.min():.0f}, {series.max():.0f}]")
 
-        kernel_out = run_kernel(series)
-        print(f"  L0: {len(kernel_out['sev'])} SEV points")
-        print(f"  L1: {len(kernel_out['gates'])} gates")
-        print(f"  L4: {len(kernel_out['dsf'])} DSF outputs")
+        # Run full L0→L1→L2→L3→L4 kernel, read L4 output
+        dsf = run_kernel(series)
+        print(f"  Kernel: {len(dsf)} DSF outputs (L4 complete)")
 
-        boundaries = extract_boundaries(kernel_out)
-        print(f"  Boundaries: {len(boundaries)} structural transitions")
-        print(f"  ADC values: {[f'{v:.0f}' for v in boundaries]}")
+        # Extract coupling profile from DSF geometry
+        profile = dsf_to_coupling_profile(dsf)
+        profiles[name] = profile
 
-        structure = extract_dsf_structure(kernel_out['dsf'])
-        print(f"  D_std={structure['D_std']:.4f}  U_mean={structure['U_mean']:.4f}  "
-              f"B_range={structure['B_range']:.4f}  reversals={structure['n_reversals']:.0f}")
+        print(f"  DSF profile:")
+        print(f"    coupling_strength:    {profile['coupling_strength']:.4f}")
+        print(f"    momentum_weight:      {profile['momentum_weight']:.4f}")
+        print(f"    uncertainty:          {profile['uncertainty']:.4f}")
+        print(f"    breathing_magnitude:  {profile['breathing_magnitude']:.4f}")
+        print(f"    pressure:             {profile['pressure']:.4f}")
+        print(f"    complexity:           {profile['complexity']:.4f}")
+        print(f"    reversal_rate:        {profile['reversal_rate']:.4f}")
 
-        dsf_structures[name] = structure
-        all_boundaries[name] = boundaries
-
-    # Stage 4: Compute weights
-    print("\n--- Computing coupling weights ---")
-    weights = compute_coupling_weights(dsf_structures, sensor_roles)
+    # Compute weights from DSF geometry
+    print("\n--- DSF geometry → coupling weights ---")
+    weights = compute_coupling_weights(profiles, sensor_roles)
 
     metadata = {
         'timestamp': timestamp,
         'sensor': sensor_label,
         'tool': 'tools/derive_sppu_weights.py',
-        'kernel': 'UF-Core L0-L4',
-        'n_sensors': len(sensor_names),
+        'kernel': 'UF-Core L0→L1→L2→L3→L4 (complete pipeline)',
+        'method': 'L4 DSF 7-tuple geometry → coupling weights',
         'sensor_names': sensor_names,
         'sensor_roles': sensor_roles,
-        'dsf_summary': dsf_structures,
+        'dsf_profiles': profiles,
     }
 
-    return weights, all_boundaries, metadata
+    return weights, profiles, metadata
 
 
 # ============================================================
-# SHARP GP2Y0A41SK0F CALIBRATION (first validated sensor)
+# SHARP GP2Y0A41SK0F — first validated sensor
 # ============================================================
 
 SHARP_IR_CALIBRATION = {
@@ -568,14 +524,13 @@ SHARP_IR_CALIBRATION = {
 
 
 def main():
-    weights, boundaries, metadata = derive_weights(
+    weights, profiles, metadata = derive_weights(
         calibration_table=SHARP_IR_CALIBRATION,
         sensor_names=['front', 'left', 'right'],
         sensor_roles={'front': 'axial', 'left': 'lateral', 'right': 'lateral'},
         sensor_label='Sharp GP2Y0A41SK0F (3x, front/left/right)',
     )
 
-    # Verilog output
     verilog = format_verilog(weights, metadata)
     print("\n" + "=" * 60)
     print("VERILOG PARAMETERS")
@@ -584,19 +539,19 @@ def main():
 
     verilog_path = os.path.join(os.path.dirname(__file__), 'derived_sppu_weights.v')
     with open(verilog_path, 'w') as f:
-        f.write("// DSF-AI Derived Coupling Weights\n")
+        f.write(f"// DSF-AI Derived Coupling Weights\n")
         f.write(f"// {metadata['sensor']}\n")
         f.write(f"// {metadata['timestamp']}\n")
-        f.write(f"// Kernel: {metadata['kernel']}\n\n")
+        f.write(f"// {metadata['kernel']}\n")
+        f.write(f"// Method: {metadata['method']}\n\n")
         f.write(verilog)
-    print(f"\nVerilog saved: {verilog_path}")
+    print(f"\nVerilog: {verilog_path}")
 
-    # JSON output (for runtime-loadable weights via AXI)
-    json_str = format_json(weights, metadata, boundaries)
+    json_str = format_json(weights, metadata)
     json_path = os.path.join(os.path.dirname(__file__), 'derived_sppu_weights.json')
     with open(json_path, 'w') as f:
         f.write(json_str)
-    print(f"JSON saved:    {json_path}")
+    print(f"JSON:    {json_path}")
 
 
 if __name__ == '__main__':

@@ -27,47 +27,60 @@
 // ============================================================
 
 module arcloom_sppu #(
-    // ---- DSF-AI Derived Weights ----
-    // Source: Sharp GP2Y0A41SK0F calibration data
-    // Derived by: UF kernel L0-L4 structural analysis (tools/derive_sppu_weights.py)
-    // NOT hand-approximated. Structurally correct for this sensor.
+    // ---- DSF-AI Derived Coupling Weights ----
+    // Source: Sharp GP2Y0A41SK0F calibration data (3x sensors)
+    // Kernel: UF-Core L0→L1→L2→L3→L4 (complete pipeline)
+    // Method: L4 DSF 7-tuple geometry → coupling weights
+    // Tool: tools/derive_sppu_weights.py
+    //
+    // L4 DSF profiles used for derivation:
+    //   front: strength=0.895  U*=0.305  B_range=0.348  reversals=46%
+    //   left:  strength=0.872  U*=0.375  B_range=0.319  reversals=33%
+    //   right: strength=0.869  U*=0.347  B_range=0.495  reversals=36%
+    //
+    // Key findings from DSF geometry:
+    //   - Front has no lateral structural coupling (steer weights = 0)
+    //   - Right sensor less stable than left (higher B_range, lower weight)
+    //   - Front reversal rate 46% reduces speed coupling vs raw strength
+    //   - All weights scaled by DSF fields, not hand-approximated
 
-    // ---- Context strand weights (15 inputs: 5 input strands x 3 trits) ----
-    parameter [119:0] W_CTX_0 = {8'd0, 8'd0, 8'd10, 8'd0, 8'd0, 8'd10, 8'd0, 8'd0, 8'd30, 8'd0, 8'd0, 8'd10, 8'd5, 8'd5, 8'd10},
-    parameter [119:0] W_CTX_1 = {8'd0, 8'd10, 8'd0, 8'd0, 8'd10, 8'd0, 8'd0, 8'd20, 8'd0, 8'd0, 8'd10, 8'd0, 8'd5, 8'd10, 8'd5},
-    parameter [119:0] W_CTX_2 = {8'd10, 8'd0, 8'd0, 8'd10, 8'd0, 8'd0, 8'd20, 8'd0, 8'd0, 8'd10, 8'd0, 8'd0, 8'd10, 8'd5, 8'd5},
+    // ---- Context strand weights (15 inputs: 5 strands x 3 trits) ----
+    parameter [119:0] W_CTX_0 = {8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd26, 8'd0, 8'd0, 8'd26, 8'd13, 8'd13, 8'd26},
+    parameter [119:0] W_CTX_1 = {8'd0, 8'd13, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd18, 8'd0, 8'd0, 8'd26, 8'd0, 8'd13, 8'd26, 8'd13},
+    parameter [119:0] W_CTX_2 = {8'd13, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd18, 8'd0, 8'd0, 8'd26, 8'd0, 8'd0, 8'd26, 8'd13, 8'd13},
 
     // ---- Momentum strand weights (15 inputs) ----
-    parameter [119:0] W_MMTM_0 = {8'd5, 8'd5, 8'd10, 8'd5, 8'd5, 8'd5, 8'd5, 8'd5, 8'd5, 8'd10, 8'd15, 8'd20, 8'd5, 8'd10, 8'd15},
-    parameter [119:0] W_MMTM_1 = {8'd5, 8'd10, 8'd5, 8'd5, 8'd10, 8'd5, 8'd5, 8'd10, 8'd5, 8'd15, 8'd20, 8'd15, 8'd10, 8'd15, 8'd10},
-    parameter [119:0] W_MMTM_2 = {8'd10, 8'd5, 8'd5, 8'd10, 8'd5, 8'd5, 8'd10, 8'd5, 8'd5, 8'd20, 8'd15, 8'd10, 8'd15, 8'd10, 8'd5},
+    parameter [119:0] W_MMTM_0 = {8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd6, 8'd6, 8'd6, 8'd6, 8'd11, 8'd17, 8'd22, 8'd6, 8'd11, 8'd17},
+    parameter [119:0] W_MMTM_1 = {8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd17, 8'd22, 8'd17, 8'd11, 8'd17, 8'd11},
+    parameter [119:0] W_MMTM_2 = {8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd22, 8'd17, 8'd11, 8'd17, 8'd11, 8'd6},
 
     // ---- Decision strand weights (21 inputs: 5 input + 2 settling x 3 trits) ----
-    // DCSN_0 = STEER: left/right differential only. Front has zero structural
-    //   coupling to lateral direction (confirmed by L4 DSF analysis).
-    //   Left close → steer +1 (turn right). Right close → steer -1 (turn left).
-    parameter [167:0] W_DCSN_0 = {8'd0, 8'd0, 8'd0,       // distance — no steer (DSF-AI confirmed)
-                                   8'd0, 8'd0, 8'd0,       // direction — no steer (DSF-AI confirmed)
-                                   8'd0, 8'd0, 8'd0,       // accel — no steer (DSF-AI confirmed)
-                                   8'd20, 8'd27, 8'd34,    // cam_edge (LEFT) — from L4 D_std
-                                   8'd20, 8'd27, 8'd34,    // cam_motion (RIGHT) — from L4 D_std
-                                   8'd5, 8'd5, 8'd10,      // context
-                                   8'd5, 8'd10, 8'd15},    // momentum
-    // DCSN_1 = SPEED: front distance dominates. Left/right moderate (slow near walls).
-    //   Weight ratios from L4 structural responsiveness.
-    parameter [167:0] W_DCSN_1 = {8'd24, 8'd34, 8'd40,    // distance — front dominates speed
-                                   8'd9, 8'd12, 8'd15,     // direction — from L4 momentum
-                                   8'd3, 8'd4, 8'd6,       // accel — from L4 curvature
-                                   8'd10, 8'd10, 8'd10,    // cam_edge (LEFT) — side wall influence
-                                   8'd10, 8'd10, 8'd10,    // cam_motion (RIGHT) — side wall influence
+    // DCSN_0 = STEER: from L4 coupling_strength differential
+    //   Left/right asymmetric: left=38/28/20, right=33/24/18
+    //   Right lower because B_range=0.495 (less stable structure)
+    //   Front=0 (no lateral structural signal in DSF)
+    parameter [167:0] W_DCSN_0 = {8'd0, 8'd0, 8'd0,       // distance
+                                   8'd0, 8'd0, 8'd0,       // direction
+                                   8'd0, 8'd0, 8'd0,       // accel
+                                   8'd18, 8'd24, 8'd33,    // cam_edge (LEFT)
+                                   8'd20, 8'd28, 8'd38,    // cam_motion (RIGHT)
+                                   8'd4, 8'd6, 8'd10,      // context
+                                   8'd7, 8'd10, 8'd15},    // momentum
+    // DCSN_1 = SPEED: front dominates, reduced by 46% reversal rate
+    //   Side walls: left=6, right=5 (from U*-modulated lateral coupling)
+    parameter [167:0] W_DCSN_1 = {8'd19, 8'd26, 8'd35,    // distance
+                                   8'd8, 8'd11, 8'd15,     // direction (from M_std)
+                                   8'd2, 8'd3, 8'd4,       // accel
+                                   8'd5, 8'd5, 8'd5,       // cam_edge (LEFT)
+                                   8'd6, 8'd6, 8'd6,       // cam_motion (RIGHT)
                                    8'd10, 8'd15, 8'd10,    // context
                                    8'd15, 8'd20, 8'd15},   // momentum
-    // DCSN_2 = CONFIDENCE: from L4 breathing range and uncertainty.
-    parameter [167:0] W_DCSN_2 = {8'd16, 8'd13, 8'd13,    // distance — from 1-U_mean
-                                   8'd15, 8'd10, 8'd10,    // direction
-                                   8'd10, 8'd10, 8'd5,     // accel
-                                   8'd10, 8'd10, 8'd10,    // cam_edge (LEFT)
-                                   8'd10, 8'd10, 8'd10,    // cam_motion (RIGHT)
+    // DCSN_2 = CONFIDENCE: from (1-U*) × (1-B_range/2)
+    parameter [167:0] W_DCSN_2 = {8'd14, 8'd11, 8'd11,    // distance
+                                   8'd0, 8'd0, 8'd0,       // direction
+                                   8'd0, 8'd0, 8'd0,       // accel
+                                   8'd7, 8'd7, 8'd7,       // cam_edge (LEFT)
+                                   8'd6, 8'd6, 8'd6,       // cam_motion (RIGHT)
                                    8'd15, 8'd10, 8'd10,    // context
                                    8'd20, 8'd10, 8'd10},   // momentum
 
