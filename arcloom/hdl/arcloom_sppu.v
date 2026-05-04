@@ -55,17 +55,19 @@ module arcloom_sppu #(
     parameter [119:0] W_MMTM_2 = {8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd22, 8'd17, 8'd11, 8'd17, 8'd11, 8'd6},
 
     // ---- Decision strand weights (21 inputs: 5 input + 2 settling x 3 trits) ----
-    // DCSN_0 = STEER: from L4 coupling_strength differential
-    //   Left/right asymmetric: left=38/28/20, right=33/24/18
-    //   Right lower because B_range=0.495 (less stable structure)
-    //   Front=0 (no lateral structural signal in DSF)
-    parameter [167:0] W_DCSN_0 = {8'd0, 8'd0, 8'd0,       // distance
-                                   8'd0, 8'd0, 8'd0,       // direction
-                                   8'd0, 8'd0, 8'd0,       // accel
-                                   8'd18, 8'd24, 8'd33,    // cam_edge (LEFT)
-                                   8'd20, 8'd28, 8'd38,    // cam_motion (RIGHT)
-                                   8'd4, 8'd6, 8'd10,      // context
-                                   8'd7, 8'd10, 8'd15},    // momentum
+    // DCSN_0 = STEER: purely left-right differential, signed weights
+    //   Left:  +33/+24/+18 (positive → steer +1 = turn right, away from left)
+    //   Right: -38/-28/-20 (negative → steer -1 = turn left, away from right)
+    //   Right magnitude higher: B_range=0.495 needs more coupling force
+    //   Front/direction/accel/context/momentum = 0 (no lateral info)
+    //   Directionality in WEIGHTS, not encoding. Both sensors: close=+1, far=-1.
+    parameter [167:0] W_DCSN_0 = {8'd0, 8'd0, 8'd0,       // distance — no steer
+                                   8'd0, 8'd0, 8'd0,       // direction — no steer
+                                   8'd0, 8'd0, 8'd0,       // accel — no steer
+                                   8'd18, 8'd24, 8'd33,    // cam_edge (LEFT) — +33/+24/+18
+                                   8'hEC, 8'hE4, 8'hDA,    // cam_motion (RIGHT) — -20/-28/-38
+                                   8'd0, 8'd0, 8'd0,       // context — no lateral info
+                                   8'd0, 8'd0, 8'd0},      // momentum — no lateral info
     // DCSN_1 = SPEED: front dominates, reduced by 46% reversal rate
     //   Side walls: left=6, right=5 (from U*-modulated lateral coupling)
     parameter [167:0] W_DCSN_1 = {8'd19, 8'd26, 8'd35,    // distance

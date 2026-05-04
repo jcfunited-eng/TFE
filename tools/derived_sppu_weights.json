@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "timestamp": "2026-05-04 03:13:37",
+    "timestamp": "2026-05-04 04:03:00",
     "sensor": "Sharp GP2Y0A41SK0F (3x, front/left/right)",
     "tool": "tools/derive_sppu_weights.py",
     "kernel": "UF-Core L0\u2192L1\u2192L2\u2192L3\u2192L4 (complete pipeline)",
@@ -226,19 +226,19 @@
         18
       ],
       "cam_motion": [
-        38,
-        28,
-        20
+        -38,
+        -28,
+        -20
       ],
       "context": [
-        10,
-        6,
-        4
+        0,
+        0,
+        0
       ],
       "momentum": [
-        15,
-        10,
-        7
+        0,
+        0,
+        0
       ]
     },
     "W_DCSN_1": {

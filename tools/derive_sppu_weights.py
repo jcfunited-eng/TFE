@@ -377,19 +377,32 @@ def compute_coupling_weights(
 
             if dcsn_name == 'STEER':
                 if role == 'lateral':
-                    # Lateral sensors drive steer — weight from DSF coupling strength
-                    w[strand] = trit_taper(bw)
+                    # Lateral sensors drive steer — weight from DSF coupling strength.
+                    # LEFT sensor: positive weights → close pushes steer toward +1 (turn right)
+                    # RIGHT sensor: negative weights → close pushes steer toward -1 (turn left)
+                    # Directionality is in the WEIGHTS, not the trit encoding.
+                    # Both sensors encode identically: close=+1, far=-1.
+                    tapered = trit_taper(bw)
+                    if sensor_name == 'right' or strand == 'cam_motion':
+                        w[strand] = [-v for v in tapered]  # negative = push steer opposite
+                    else:
+                        w[strand] = tapered
+
                 # Axial sensors: D_k has no lateral information (kernel confirms
                 # via identical D_std — no differential between front left/right).
                 # Weight stays 0. This is not a manual decision — it's what the
                 # DSF geometry shows.
 
-                # Context/momentum for steer: moderate, from mean profile
-                mean_strength = np.mean([p['coupling_strength'] for p in profiles.values()])
-                ctx_base = int(np.clip(mean_strength * 12, 5, 15))
-                w['context'] = [ctx_base, int(ctx_base * 0.6), int(ctx_base * 0.4)]
-                mmtm_base = int(np.clip(mean_strength * 18, 5, 20))
-                w['momentum'] = [mmtm_base, int(mmtm_base * 0.7), int(mmtm_base * 0.5)]
+                # Context and momentum: ZERO for steer.
+                # Context and momentum are computed from ALL input strands
+                # symmetrically. They carry environmental assessment and
+                # trend — no lateral information. At rest, all inputs are
+                # -1 (far), so context/momentum settle to -1, and any
+                # non-zero weight here creates a steer bias with nothing
+                # around. Only the left-right sensor differential has
+                # lateral information.
+                w['context'] = [0, 0, 0]
+                w['momentum'] = [0, 0, 0]
 
             elif dcsn_name == 'SPEED':
                 if role == 'axial':
@@ -488,7 +501,12 @@ def compute_coupling_weights(
 def format_verilog(weights: Dict, metadata: Dict) -> str:
     """Format weights as Verilog parameter declarations."""
     def fmt_packed(vals, name, width):
-        parts = ', '.join(f"8'd{v}" for v in vals)
+        def fmt_val(v):
+            if v < 0:
+                # Signed 8-bit: -33 → 256-33 = 223 = 0xDF
+                return f"8'h{(256 + v) & 0xFF:02X}"
+            return f"8'd{v}"
+        parts = ', '.join(fmt_val(v) for v in vals)
         return f"    parameter [{width-1}:0] {name} = {{{parts}}}"
 
     lines = []
