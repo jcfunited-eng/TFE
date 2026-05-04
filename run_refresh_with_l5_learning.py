@@ -540,6 +540,7 @@ def _run_logged_subprocess(
     cwd: str,
     env: dict[str, str] | None = None,
     heartbeat_seconds: int = 60,
+    max_runtime_seconds: int = 600,
 ) -> dict[str, Any]:
     started_at = time.monotonic()
     print(f"[REFRESH+CP2] {phase_label} starting. cwd={cwd}; cmd={_format_command(cmd)}", flush=True)
@@ -590,10 +591,20 @@ def _run_logged_subprocess(
             break
         except subprocess.TimeoutExpired:
             now_seconds = time.monotonic()
+            elapsed_seconds = now_seconds - started_at
+            if max_runtime_seconds > 0 and elapsed_seconds > max_runtime_seconds:
+                print(
+                    f"[REFRESH+CP2] {phase_label} KILLED — exceeded {max_runtime_seconds}s max runtime. "
+                    f"elapsed_seconds={elapsed_seconds:.1f}; pid={process.pid}",
+                    flush=True,
+                )
+                process.kill()
+                process.wait(timeout=10)
+                return_code = -9
+                break
             if now_seconds - last_heartbeat_seconds >= float(max(heartbeat_seconds, 5)):
                 with activity_lock:
                     idle_seconds = now_seconds - last_activity_seconds
-                elapsed_seconds = now_seconds - started_at
                 print(
                     f"[REFRESH+CP2] {phase_label} still running. "
                     f"elapsed_seconds={elapsed_seconds:.1f}; idle_output_seconds={idle_seconds:.1f}; pid={process.pid}",

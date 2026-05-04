@@ -144,6 +144,8 @@ function resolvePool() {
     max: 2,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 8_000,
+    query_timeout: 120_000,
+    statement_timeout: 120_000,
     ssl: { rejectUnauthorized },
     application_name: "tfe-runtime-bridge-sync",
   });
