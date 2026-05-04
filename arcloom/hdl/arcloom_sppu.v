@@ -45,46 +45,53 @@ module arcloom_sppu #(
     //   - All weights scaled by DSF fields, not hand-approximated
 
     // ---- Context strand weights (15 inputs: 5 strands x 3 trits) ----
-    parameter [119:0] W_CTX_0 = {8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd26, 8'd0, 8'd0, 8'd26, 8'd13, 8'd13, 8'd26},
-    parameter [119:0] W_CTX_1 = {8'd0, 8'd13, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd18, 8'd0, 8'd0, 8'd26, 8'd0, 8'd13, 8'd26, 8'd13},
-    parameter [119:0] W_CTX_2 = {8'd13, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd18, 8'd0, 8'd0, 8'd26, 8'd0, 8'd0, 8'd26, 8'd13, 8'd13},
+    // Packed LSB-first: index 0=distance_t0 ... index 14=cam_motion_t2
+    // Input order: {cam_motion, cam_edge, accel, direction, distance}
+    parameter [119:0] W_CTX_0 = {8'd26, 8'd13, 8'd13, 8'd26, 8'd0, 8'd0, 8'd26, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0},
+    parameter [119:0] W_CTX_1 = {8'd13, 8'd26, 8'd13, 8'd0, 8'd26, 8'd0, 8'd0, 8'd18, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd13, 8'd0},
+    parameter [119:0] W_CTX_2 = {8'd13, 8'd13, 8'd26, 8'd0, 8'd0, 8'd26, 8'd0, 8'd0, 8'd18, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd13},
 
     // ---- Momentum strand weights (15 inputs) ----
-    parameter [119:0] W_MMTM_0 = {8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd6, 8'd6, 8'd6, 8'd6, 8'd11, 8'd17, 8'd22, 8'd6, 8'd11, 8'd17},
-    parameter [119:0] W_MMTM_1 = {8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd17, 8'd22, 8'd17, 8'd11, 8'd17, 8'd11},
-    parameter [119:0] W_MMTM_2 = {8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd22, 8'd17, 8'd11, 8'd17, 8'd11, 8'd6},
+    // Packed LSB-first: index 0=distance_t0 ... index 14=cam_motion_t2
+    parameter [119:0] W_MMTM_0 = {8'd17, 8'd11, 8'd6, 8'd22, 8'd17, 8'd11, 8'd6, 8'd6, 8'd6, 8'd6, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6},
+    parameter [119:0] W_MMTM_1 = {8'd11, 8'd17, 8'd11, 8'd17, 8'd22, 8'd17, 8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6},
+    parameter [119:0] W_MMTM_2 = {8'd6, 8'd11, 8'd17, 8'd11, 8'd17, 8'd22, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd11},
 
     // ---- Decision strand weights (21 inputs: 5 input + 2 settling x 3 trits) ----
+    // Packed LSB-first: index 0=distance_t0 ... index 20=momentum_t2
+    // Input order: {momentum, context, cam_motion, cam_edge, accel, direction, distance}
+    //
     // DCSN_0 = STEER: purely left-right differential, signed weights
     //   Left:  +33/+24/+18 (positive → steer +1 = turn right, away from left)
     //   Right: -38/-28/-20 (negative → steer -1 = turn left, away from right)
-    //   Right magnitude higher: B_range=0.495 needs more coupling force
-    //   Front/direction/accel/context/momentum = 0 (no lateral info)
     //   Directionality in WEIGHTS, not encoding. Both sensors: close=+1, far=-1.
-    parameter [167:0] W_DCSN_0 = {8'd0, 8'd0, 8'd0,       // distance — no steer
-                                   8'd0, 8'd0, 8'd0,       // direction — no steer
-                                   8'd0, 8'd0, 8'd0,       // accel — no steer
-                                   8'd18, 8'd24, 8'd33,    // cam_edge (LEFT) — +33/+24/+18
-                                   8'hEC, 8'hE4, 8'hDA,    // cam_motion (RIGHT) — -20/-28/-38
+    parameter [167:0] W_DCSN_0 = {8'd0, 8'd0, 8'd0,       // momentum — no lateral info
                                    8'd0, 8'd0, 8'd0,       // context — no lateral info
-                                   8'd0, 8'd0, 8'd0},      // momentum — no lateral info
+                                   8'hDA, 8'hE4, 8'hEC,    // cam_motion (RIGHT) — -38/-28/-20
+                                   8'd33, 8'd24, 8'd18,    // cam_edge (LEFT) — +33/+24/+18
+                                   8'd0, 8'd0, 8'd0,       // accel — no steer
+                                   8'd0, 8'd0, 8'd0,       // direction — no steer
+                                   8'd0, 8'd0, 8'd0},      // distance — no steer
     // DCSN_1 = SPEED: front dominates, reduced by 46% reversal rate
-    //   Side walls: left=6, right=5 (from U*-modulated lateral coupling)
-    parameter [167:0] W_DCSN_1 = {8'd19, 8'd26, 8'd35,    // distance
-                                   8'd8, 8'd11, 8'd15,     // direction (from M_std)
-                                   8'd2, 8'd3, 8'd4,       // accel
+    //   Context/momentum budgeted from headroom:
+    //   primary(80) - lateral(33) - dead_zone(20) = 27 headroom
+    //   ctx+mmtm budget = 60% of 27 = 16 → ctx=6, mmtm=9
+    parameter [167:0] W_DCSN_1 = {8'd3, 8'd3, 8'd3,       // momentum — headroom-budgeted
+                                   8'd2, 8'd2, 8'd2,       // context — headroom-budgeted
+                                   8'd6, 8'd6, 8'd6,       // cam_motion (RIGHT)
                                    8'd5, 8'd5, 8'd5,       // cam_edge (LEFT)
-                                   8'd6, 8'd6, 8'd6,       // cam_motion (RIGHT)
-                                   8'd10, 8'd15, 8'd10,    // context
-                                   8'd15, 8'd20, 8'd15},   // momentum
+                                   8'd4, 8'd3, 8'd2,       // accel
+                                   8'd15, 8'd11, 8'd8,     // direction (from M_std)
+                                   8'd35, 8'd26, 8'd19},   // distance
     // DCSN_2 = CONFIDENCE: from (1-U*) × (1-B_range/2)
-    parameter [167:0] W_DCSN_2 = {8'd14, 8'd11, 8'd11,    // distance
-                                   8'd0, 8'd0, 8'd0,       // direction
-                                   8'd0, 8'd0, 8'd0,       // accel
-                                   8'd7, 8'd7, 8'd7,       // cam_edge (LEFT)
+    //   Context/momentum budgeted from sensor headroom
+    parameter [167:0] W_DCSN_2 = {8'd5, 8'd5, 8'd5,       // momentum — headroom-budgeted
+                                   8'd3, 8'd3, 8'd3,       // context — headroom-budgeted
                                    8'd6, 8'd6, 8'd6,       // cam_motion (RIGHT)
-                                   8'd15, 8'd10, 8'd10,    // context
-                                   8'd20, 8'd10, 8'd10},   // momentum
+                                   8'd7, 8'd7, 8'd7,       // cam_edge (LEFT)
+                                   8'd0, 8'd0, 8'd0,       // accel
+                                   8'd0, 8'd0, 8'd0,       // direction
+                                   8'd11, 8'd11, 8'd14},   // distance
 
     parameter [15:0] DEAD_ZONE = 16'd20
 )(

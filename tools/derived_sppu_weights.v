@@ -1,11 +1,11 @@
 // DSF-AI Derived Coupling Weights + BSIL Thresholds
 // Sharp GP2Y0A41SK0F (3x, front/left/right)
-// 2026-05-04 04:03:00
+// 2026-05-04 05:17:45
 // UF-Core L0→L1→L2→L3→L4 (complete pipeline)
 // Method: L4 DSF → coupling weights; L1 gates → BSIL thresholds
 
     // ---- DSF-AI Derived Coupling Weights ----
-    // Generated: 2026-05-04 04:03:00
+    // Generated: 2026-05-04 05:17:45
     // Sensor: Sharp GP2Y0A41SK0F (3x, front/left/right)
     // Kernel: UF-Core L0→L1→L2→L3→L4 (complete pipeline)
     // Weights derived from L4 DSF 7-tuple geometry
@@ -22,9 +22,9 @@
     // DCSN_0 = STEER
     parameter [167:0] W_DCSN_0 = {8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd18, 8'd24, 8'd33, 8'hEC, 8'hE4, 8'hDA, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0},
     // DCSN_1 = SPEED
-    parameter [167:0] W_DCSN_1 = {8'd19, 8'd26, 8'd35, 8'd8, 8'd11, 8'd15, 8'd2, 8'd3, 8'd4, 8'd5, 8'd5, 8'd5, 8'd6, 8'd6, 8'd6, 8'd10, 8'd15, 8'd10, 8'd15, 8'd20, 8'd15},
+    parameter [167:0] W_DCSN_1 = {8'd19, 8'd26, 8'd35, 8'd8, 8'd11, 8'd15, 8'd2, 8'd3, 8'd4, 8'd5, 8'd5, 8'd5, 8'd6, 8'd6, 8'd6, 8'd2, 8'd2, 8'd2, 8'd3, 8'd3, 8'd3},
     // DCSN_2 = CONFIDENCE
-    parameter [167:0] W_DCSN_2 = {8'd14, 8'd11, 8'd11, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd7, 8'd7, 8'd7, 8'd6, 8'd6, 8'd6, 8'd15, 8'd10, 8'd10, 8'd20, 8'd10, 8'd10}
+    parameter [167:0] W_DCSN_2 = {8'd14, 8'd11, 8'd11, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd7, 8'd7, 8'd7, 8'd6, 8'd6, 8'd6, 8'd3, 8'd3, 8'd3, 8'd5, 8'd5, 8'd5}
 
 // ---- DSF-AI Derived BSIL Thresholds ----
 // From L1 structural gate boundaries

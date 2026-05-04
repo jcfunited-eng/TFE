@@ -418,8 +418,41 @@ def compute_coupling_weights(
                     side_w = int(bw * 0.25 * (1.0 - profile['uncertainty']))
                     w[strand] = [side_w, side_w, side_w]
 
-                w['context'] = [10, 15, 10]
-                w['momentum'] = [15, 20, 15]
+                # Context/momentum for SPEED: budget from actual headroom.
+                #
+                # At rest, all input trits are -1. Context/momentum settle to -1.
+                # When the primary sensor fires (+1,+1,+1), the net field must
+                # exceed the BASE dead zone (20) AFTER subtracting ALL other
+                # negative contributions (lateral sensors + context + momentum).
+                #
+                # Constraint: primary_total - lateral_total - ctx_mmtm_total > DEAD_ZONE
+                # Therefore: ctx_mmtm_total < primary_total - lateral_total - DEAD_ZONE
+                #
+                # Compute worst-case lateral contribution at rest
+                lateral_total = 0
+                for sn, p in profiles.items():
+                    if sensor_roles.get(sn) == 'lateral':
+                        sw = int(base_weight(p) * 0.25 * (1.0 - p['uncertainty']))
+                        lateral_total += sw * 3  # 3 trits, all at -1
+
+                axial_profiles = [p for sn, p in profiles.items() if sensor_roles.get(sn) == 'axial']
+                if axial_profiles:
+                    axial_bw = base_weight(axial_profiles[0])
+                    primary_total = axial_bw + int(axial_bw * 0.75) + int(axial_bw * 0.55)
+                    # Available headroom after laterals and dead zone
+                    headroom = primary_total - lateral_total - 20  # 20 = base dead zone
+                    # Context+momentum budget: 60% of headroom (leave margin)
+                    budget = max(6, int(headroom * 0.6))
+                else:
+                    budget = 6
+
+                # Split 40/60 between context/momentum, distribute across 3 trits
+                ctx_total = max(3, int(budget * 0.4))
+                mmtm_total = max(3, int(budget * 0.6))
+                ctx_per = max(1, ctx_total // 3)
+                mmtm_per = max(1, mmtm_total // 3)
+                w['context'] = [ctx_per, ctx_per, ctx_per]
+                w['momentum'] = [mmtm_per, mmtm_per, mmtm_per]
 
             elif dcsn_name == 'CONFIDENCE':
                 # Confidence weight inversely proportional to uncertainty
@@ -434,8 +467,15 @@ def compute_coupling_weights(
                 else:
                     w[strand] = [int(conf_w * 0.7), int(conf_w * 0.7), int(conf_w * 0.7)]
 
-                w['context'] = [10, 10, 15]
-                w['momentum'] = [10, 10, 20]
+                # Context/momentum for CONFIDENCE: same headroom constraint.
+                # Compute total sensor contribution to confidence
+                sensor_total = sum(abs(v) for v in w['distance'] + w['cam_edge'] + w['cam_motion'])
+                headroom = max(6, sensor_total - 20)  # subtract base dead zone
+                budget = max(6, int(headroom * 0.5))
+                ctx_per = max(1, int(budget * 0.4) // 3)
+                mmtm_per = max(1, int(budget * 0.6) // 3)
+                w['context'] = [ctx_per, ctx_per, ctx_per]
+                w['momentum'] = [mmtm_per, mmtm_per, mmtm_per]
 
         W_DCSN[dcsn_idx] = w
 
