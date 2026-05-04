@@ -472,6 +472,37 @@ export async function runSentinel() {
         continue;
       }
 
+      // Exit D — Trailing profit ratchet
+      // Once gain exceeds 5%, set a rising floor that locks in profit.
+      // Floor = max(0, (max_gain - 5%) * 0.5). Ratchets up only, never down.
+      // Checked every sentinel cycle (~5 min during market hours).
+      try {
+        const costBasis = parseFloat(pos.cost_basis ?? pos.avg_entry_price ?? "0");
+        const currentPrice = parseFloat(pos.current_price ?? "0");
+        if (costBasis > 0 && currentPrice > 0) {
+          const gainPct = ((currentPrice / costBasis) - 1) * 100;
+          // Track max gain per position in global cache
+          if (!global._maxGainCache) global._maxGainCache = {};
+          const prevMax = global._maxGainCache[pos.ticker] ?? 0;
+          const maxGain = Math.max(prevMax, gainPct);
+          global._maxGainCache[pos.ticker] = maxGain;
+
+          if (maxGain >= 5.0) {
+            const floorPct = (maxGain - 5.0) * 0.5;
+            if (gainPct <= floorPct) {
+              console.log(
+                `[SENTINEL] CH2 EXIT-D ${pos.ticker} | trailing profit hit floor ` +
+                `(current=${gainPct.toFixed(1)}% max=${maxGain.toFixed(1)}% floor=${floorPct.toFixed(1)}%)`
+              );
+              await killPosition(pos, "ch2_exit_trailing_profit", ALPACA_BASE);
+              continue;
+            }
+          }
+        }
+      } catch (trailErr) {
+        // Non-fatal — continue to other exit checks
+      }
+
       // Exit C — Exhaustion Timer (τ_out) — bar-level resolution
       // τ_in = consecutive TRADING DAYS D_k was compressed before expansion
       // τ_out = floor(τ_in / 3) = trading days of expansion energy

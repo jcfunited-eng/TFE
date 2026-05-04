@@ -39,6 +39,7 @@ const CH2_S_UF_MAX        = 0.75;   // exclusive — above this is 3WA territory
 const CH2_BAR_COUNT_MIN   = 21;     // must be established (> 3WA threshold of 20)
 const CH2_REQUIRED_DK     = 1;      // directional expansion required
 const CH2_REQUIRED_REGIME = "TRANSITIONAL";
+const CH2_MIN_MARKET_CAP  = 500_000_000;  // $500M — liquidity floor
 
 function toFloat(v) {
   const n = parseFloat(v);
@@ -65,19 +66,21 @@ async function resolveLatestRunId() {
 async function fetchCandidateRows(runId) {
   const res = await pool.query(
     `SELECT
-       ticker,
-       run_id,
-       decision_label,
-       snapshot_row_json
-     FROM runtime_decisions_latest
-     WHERE run_id = $1
-       AND decision_label = 'Accumulate'
-       AND ticker != 'SPY'
-       AND CAST(NULLIF(snapshot_row_json->>'bar_count', '') AS INTEGER) > $2
-       AND CAST(NULLIF(snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) >= $3
-       AND CAST(NULLIF(snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) <  $4
-     ORDER BY ticker ASC`,
-    [runId, CH2_BAR_COUNT_MIN - 1, CH2_S_UF_MIN, CH2_S_UF_MAX]
+       r.ticker,
+       r.run_id,
+       r.decision_label,
+       r.snapshot_row_json
+     FROM runtime_decisions_latest r
+     LEFT JOIN runtime_symbols s ON s.ticker = r.ticker
+     WHERE r.run_id = $1
+       AND r.decision_label = 'Accumulate'
+       AND r.ticker != 'SPY'
+       AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $2
+       AND CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) >= $3
+       AND CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) <  $4
+       AND COALESCE(s.market_cap, 0) >= $5
+     ORDER BY r.ticker ASC`,
+    [runId, CH2_BAR_COUNT_MIN - 1, CH2_S_UF_MIN, CH2_S_UF_MAX, CH2_MIN_MARKET_CAP]
   );
   return res.rows;
 }
