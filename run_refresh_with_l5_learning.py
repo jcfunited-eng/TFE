@@ -1389,17 +1389,45 @@ def main() -> int:
         print(f"[REFRESH+G32] Epoch update failed (non-fatal): {_g32_exc}", flush=True)
         _tb_g32.print_exc()
 
+    # Auto-fire PEE-1 after every successful refresh.
+    # PEE-1 checks auto_tfe_enabled internally — if OFF, it logs signals only.
+    # CRITICAL: must run BEFORE quality audit and gap-fill — those steps can
+    # hang on slow DB queries and block PEE-1 indefinitely (May 4 2026 bug).
+    try:
+        import subprocess as _sp, pathlib as _pl3
+        _pee1_script = _pl3.Path(__file__).resolve().parent / "web" / "scripts" / "execution" / "pee1_runner.mjs"
+        _node_bin = __import__("os").environ.get("TFE_NODE_BIN", "node")
+        _env = {**__import__("os").environ, "PGSSLMODE": "require"}
+        _pee1 = _sp.Popen([_node_bin, str(_pee1_script)], env=_env, stdin=_sp.DEVNULL, stdout=None, stderr=None, start_new_session=True)
+        print(f"[REFRESH+PEE1] Execution engine launched (pid={_pee1.pid}).", flush=True)
+    except Exception as _pee1_exc:
+        import traceback as _tb_pee1
+        print(f"[REFRESH+PEE1] Failed to launch execution engine (non-fatal): {_pee1_exc}", flush=True)
+        _tb_pee1.print_exc()
+
     # CP-2: Regenerate quality audit JSON after every successful refresh so the
     # Admin UI never shows stale or zombie PSCF content.  This runs as a
     # best-effort step — failures are logged but do not abort the pipeline.
+    # Timeout after 120s to prevent blocking the pipeline (hung May 4 2026).
     try:
         import importlib.util as _ilu, pathlib as _pl
         _audit_src = _pl.Path(__file__).resolve().parent / "tools" / "cp2_quality_audit.py"
         _spec = _ilu.spec_from_file_location("cp2_quality_audit", _audit_src)
         _mod = _ilu.module_from_spec(_spec)  # type: ignore[arg-type]
         _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
-        _mod.run_audit()
-        print("[REFRESH+CP2] Quality audit JSON regenerated.", flush=True)
+        import signal as _sig_qa
+
+        def _qa_timeout_handler(_signum, _frame):
+            raise TimeoutError("Quality audit exceeded 120s timeout")
+
+        _prev_handler = _sig_qa.signal(_sig_qa.SIGALRM, _qa_timeout_handler)
+        _sig_qa.alarm(120)
+        try:
+            _mod.run_audit()
+            print("[REFRESH+CP2] Quality audit JSON regenerated.", flush=True)
+        finally:
+            _sig_qa.alarm(0)
+            _sig_qa.signal(_sig_qa.SIGALRM, _prev_handler)
     except Exception as _qa_exc:
         import traceback as _tb_qa
         print(f"[REFRESH+CP2] Quality audit step failed (non-fatal): {_qa_exc}", flush=True)
@@ -1423,20 +1451,6 @@ def main() -> int:
         _tb_bf.print_exc()
 
     _clear_resume_checkpoint(mode=mode, reason="completed_successfully")
-
-    # Auto-fire PEE-1 after every successful refresh.
-    # PEE-1 checks auto_tfe_enabled internally — if OFF, it logs signals only.
-    try:
-        import subprocess as _sp, pathlib as _pl3
-        _pee1_script = _pl3.Path(__file__).resolve().parent / "web" / "scripts" / "execution" / "pee1_runner.mjs"
-        _node_bin = __import__("os").environ.get("TFE_NODE_BIN", "node")
-        _env = {**__import__("os").environ, "PGSSLMODE": "require"}
-        _pee1 = _sp.Popen([_node_bin, str(_pee1_script)], env=_env, stdin=_sp.DEVNULL, stdout=None, stderr=None, start_new_session=True)
-        print(f"[REFRESH+PEE1] Execution engine launched (pid={_pee1.pid}).", flush=True)
-    except Exception as _pee1_exc:
-        import traceback as _tb_pee1
-        print(f"[REFRESH+PEE1] Failed to launch execution engine (non-fatal): {_pee1_exc}", flush=True)
-        _tb_pee1.print_exc()
 
     return 0
 

@@ -132,6 +132,7 @@ COPY massive_universe_cache_etf.py ./massive_universe_cache_etf.py
 COPY massive_universe_index.py ./massive_universe_index.py
 COPY massive_universe_crypto.py ./massive_universe_crypto.py
 COPY tfe_deploy_metadata.json ./tfe_deploy_metadata.json
+COPY tau_backfill_days.json ./tau_backfill_days.json
 
 COPY massive_universe_stocks.json ./massive_universe_stocks.json
 COPY massive_universe_etf.json ./massive_universe_etf.json
