@@ -484,15 +484,14 @@ export async function runSentinel() {
         // Load backfill cache (computed by tfe_cold_start_backfill)
         if (!global._tauCache) {
           try {
-            const fs = require("fs");
+            const { readFileSync, existsSync } = await import("fs");
             const tauPath = "/app/tau_backfill_days.json";
-            const exists = fs.existsSync(tauPath);
-            console.log(`[SENTINEL] τ cache load: path=${tauPath} exists=${exists}`);
-            if (exists) {
-              const raw = fs.readFileSync(tauPath, "utf-8");
+            if (existsSync(tauPath)) {
+              const raw = readFileSync(tauPath, "utf-8");
               global._tauCache = JSON.parse(raw);
               console.log(`[SENTINEL] τ cache loaded: ${Object.keys(global._tauCache).length} entries`);
             } else {
+              console.log(`[SENTINEL] τ cache: file not found at ${tauPath}`);
               global._tauCache = {};
             }
           } catch (tauErr) {
