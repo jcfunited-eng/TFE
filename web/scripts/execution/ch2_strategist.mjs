@@ -144,9 +144,9 @@ export async function getCh2Signals() {
 
   // Epoch Resonance Shield — block entries in hostile macro environments
   try {
-    const fs = require("fs");
+    const { readFileSync } = await import("fs");
     let g32 = {};
-    try { g32 = JSON.parse(fs.readFileSync("/app/g32_state.json", "utf-8")); } catch {}
+    try { g32 = JSON.parse(readFileSync("/app/g32_state.json", "utf-8")); } catch {}
     const xi = g32.xi ?? {};
 
     // Aggregate D_k shield — macro signal from structurally rich tickers
