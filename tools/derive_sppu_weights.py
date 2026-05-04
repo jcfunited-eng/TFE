@@ -93,12 +93,19 @@ def build_field_series(pairs: List[Tuple[float, float]], name: str) -> pd.Series
 # STAGE 2: KERNEL (BLACK BOX — L0 through L4, read L4 output)
 # ============================================================
 
-def run_kernel(series: pd.Series) -> List[DSF]:
+def run_kernel(series: pd.Series) -> Dict[str, Any]:
     """
     Run the FULL UF kernel pipeline on a sensor field series.
-    Return ONLY the L4 DSF output. That is the kernel's complete answer.
-    L0/L1/L2/L3 all execute internally — their contributions are
-    already incorporated into the L4 DSF fields.
+
+    Returns two things for two different purposes:
+        - L4 DSF output → coupling weights (how strands influence each other)
+        - L1 gate boundaries → BSIL thresholds (where to segment ADC into trits)
+
+    These are NOT double-counting. They answer different questions:
+        L4: "how should these sensor signals couple in the SPPU?"
+        L1: "where does this sensor's response structurally change?"
+
+    The kernel runs once. Both outputs come from the same run.
     """
     df = pd.DataFrame({series.name: series})
     sev_series = compute_sev_series(df, field_col=series.name)
@@ -107,11 +114,100 @@ def run_kernel(series: pd.Series) -> List[DSF]:
     resonance = compute_resonance(interps)
     decisions = compute_directional_signal(resonance)
     dsf = compute_dsf(decisions)
-    return dsf
+
+    # Extract gate boundary ADC values from L1
+    # These are where the sensor's response curve structurally changes
+    boundary_indices = set()
+    for g in gates:
+        boundary_indices.add(g.start_idx)
+        boundary_indices.add(g.end_idx)
+
+    boundary_adc = []
+    for idx in sorted(boundary_indices):
+        if 0 <= idx < len(sev_series):
+            boundary_adc.append(float(np.exp(sev_series[idx].F_norm)))
+    boundary_adc = sorted(boundary_adc)
+
+    return {
+        'dsf': dsf,
+        'boundaries': boundary_adc,
+        'n_gates': len(gates),
+    }
 
 
 # ============================================================
-# STAGE 3: DSF GEOMETRY → COUPLING WEIGHTS
+# STAGE 3a: L1 BOUNDARIES → BSIL THRESHOLDS
+# ============================================================
+
+def derive_bsil_thresholds(boundaries: List[float], baseline_adc: float) -> Dict[str, List[int]]:
+    """
+    Derive BSIL threshold pairs from L1 structural boundaries.
+
+    BSIL needs 3 trit levels (coarse/medium/fine), each with a
+    (low, high) threshold pair. The gap between low and high IS
+    the structural dead zone — where the sensor's response is
+    genuinely ambiguous (L0 found that dF, sigma, and kappa are
+    all below threshold in these regions).
+
+    Strategy: cluster boundaries into 3 groups representing the
+    major structural transitions in the sensor's response curve.
+    The lowest boundary in each cluster is 'low', highest is 'high'.
+    """
+    # Remove the baseline (infinity reading) — it's below all thresholds
+    boundaries = [b for b in boundaries if b > baseline_adc * 1.5]
+
+    if len(boundaries) < 6:
+        # Not enough boundaries — fall back to even spacing
+        bmin, bmax = boundaries[0] if boundaries else 200, boundaries[-1] if boundaries else 2000
+        third = (bmax - bmin) / 3
+        return {
+            'coarse': [int(bmin), int(bmin + third)],
+            'medium': [int(bmin + third), int(bmin + 2 * third)],
+            'fine': [int(bmin + 2 * third), int(bmax)],
+        }
+
+    # Split boundaries into 3 clusters (low/mid/high response regions)
+    n = len(boundaries)
+    cut1 = n // 3
+    cut2 = 2 * n // 3
+
+    cluster_low = boundaries[:cut1]
+    cluster_mid = boundaries[cut1:cut2]
+    cluster_high = boundaries[cut2:]
+
+    return {
+        'coarse': [int(cluster_low[0]), int(cluster_low[-1])],
+        'medium': [int(cluster_mid[0]), int(cluster_mid[-1])],
+        'fine': [int(cluster_high[0]), int(cluster_high[-1])],
+    }
+
+
+def format_bsil_thresholds(all_thresholds: Dict[str, Dict]) -> str:
+    """Format BSIL thresholds as Verilog parameters."""
+    lines = []
+    lines.append("// ---- DSF-AI Derived BSIL Thresholds ----")
+    lines.append("// From L1 structural gate boundaries")
+    lines.append("// Gap between low/high = structural ambiguity (dead zone)")
+    lines.append("")
+
+    for sensor_name, thresholds in all_thresholds.items():
+        lines.append(f"// {sensor_name} sensor thresholds:")
+        for level, (lo, hi) in thresholds.items():
+            lines.append(f"//   {level}: low={lo}, high={hi}  (gap={hi-lo})")
+
+        # Emit as Verilog parameters
+        prefix = sensor_name.upper()
+        for i, level in enumerate(['coarse', 'medium', 'fine']):
+            lo, hi = thresholds[level]
+            lines.append(f"parameter [11:0] THRESH_{prefix}_{level.upper()}_LO = 12'd{lo};")
+            lines.append(f"parameter [11:0] THRESH_{prefix}_{level.upper()}_HI = 12'd{hi};")
+        lines.append("")
+
+    return '\n'.join(lines)
+
+
+# ============================================================
+# STAGE 3b: DSF GEOMETRY → COUPLING WEIGHTS
 # ============================================================
 
 def dsf_to_coupling_profile(dsf_list: List[DSF]) -> Dict[str, float]:
@@ -460,8 +556,20 @@ def derive_weights(
 
     sensor_data = ingest_calibration_table(calibration_table)
 
-    # Run full kernel and extract DSF coupling profiles
+    # Get baseline ADC values (infinity/no-stimulus readings)
+    baselines = {}
+    for i, name in enumerate(sensor_names):
+        for stim, readings in calibration_table.items():
+            if isinstance(stim, str) and stim.lower() == 'inf':
+                if readings[i] is not None:
+                    baselines[name] = float(readings[i])
+                break
+
+    # Run full kernel and extract both outputs
     profiles = {}
+    all_boundaries = {}
+    bsil_thresholds = {}
+
     for i, name in enumerate(sensor_names):
         key = f'sensor_{i}'
         if key not in sensor_data or not sensor_data[key]:
@@ -472,13 +580,23 @@ def derive_weights(
         series = build_field_series(sensor_data[key], name)
         print(f"  Field: {len(series)} points, range [{series.min():.0f}, {series.max():.0f}]")
 
-        # Run full L0→L1→L2→L3→L4 kernel, read L4 output
-        dsf = run_kernel(series)
-        print(f"  Kernel: {len(dsf)} DSF outputs (L4 complete)")
+        # Run full L0→L1→L2→L3→L4 kernel
+        kernel_out = run_kernel(series)
+        dsf = kernel_out['dsf']
+        boundaries = kernel_out['boundaries']
+        print(f"  L4: {len(dsf)} DSF outputs")
+        print(f"  L1: {kernel_out['n_gates']} gates, {len(boundaries)} boundaries")
+        print(f"  Boundaries: {[f'{v:.0f}' for v in boundaries]}")
 
-        # Extract coupling profile from DSF geometry
+        # L4 DSF → coupling profile
         profile = dsf_to_coupling_profile(dsf)
         profiles[name] = profile
+        all_boundaries[name] = boundaries
+
+        # L1 boundaries → BSIL thresholds
+        baseline = baselines.get(name, 100.0)
+        thresholds = derive_bsil_thresholds(boundaries, baseline)
+        bsil_thresholds[name] = thresholds
 
         print(f"  DSF profile:")
         print(f"    coupling_strength:    {profile['coupling_strength']:.4f}")
@@ -488,23 +606,33 @@ def derive_weights(
         print(f"    pressure:             {profile['pressure']:.4f}")
         print(f"    complexity:           {profile['complexity']:.4f}")
         print(f"    reversal_rate:        {profile['reversal_rate']:.4f}")
+        print(f"  BSIL thresholds:")
+        for level, (lo, hi) in thresholds.items():
+            print(f"    {level}: low={lo}, high={hi}  (gap={hi-lo})")
 
     # Compute weights from DSF geometry
     print("\n--- DSF geometry → coupling weights ---")
     weights = compute_coupling_weights(profiles, sensor_roles)
+
+    # Format BSIL thresholds
+    print("\n--- L1 boundaries → BSIL thresholds ---")
+    bsil_verilog = format_bsil_thresholds(bsil_thresholds)
+    print(bsil_verilog)
 
     metadata = {
         'timestamp': timestamp,
         'sensor': sensor_label,
         'tool': 'tools/derive_sppu_weights.py',
         'kernel': 'UF-Core L0→L1→L2→L3→L4 (complete pipeline)',
-        'method': 'L4 DSF 7-tuple geometry → coupling weights',
+        'method': 'L4 DSF → coupling weights; L1 gates → BSIL thresholds',
         'sensor_names': sensor_names,
         'sensor_roles': sensor_roles,
         'dsf_profiles': profiles,
+        'bsil_thresholds': bsil_thresholds,
+        'baselines': baselines,
     }
 
-    return weights, profiles, metadata
+    return weights, bsil_thresholds, metadata
 
 
 # ============================================================
@@ -524,29 +652,33 @@ SHARP_IR_CALIBRATION = {
 
 
 def main():
-    weights, profiles, metadata = derive_weights(
+    weights, bsil_thresholds, metadata = derive_weights(
         calibration_table=SHARP_IR_CALIBRATION,
         sensor_names=['front', 'left', 'right'],
         sensor_roles={'front': 'axial', 'left': 'lateral', 'right': 'lateral'},
         sensor_label='Sharp GP2Y0A41SK0F (3x, front/left/right)',
     )
 
+    # Coupling weights — Verilog
     verilog = format_verilog(weights, metadata)
     print("\n" + "=" * 60)
-    print("VERILOG PARAMETERS")
+    print("COUPLING WEIGHTS (Verilog)")
     print("=" * 60)
     print(verilog)
 
     verilog_path = os.path.join(os.path.dirname(__file__), 'derived_sppu_weights.v')
     with open(verilog_path, 'w') as f:
-        f.write(f"// DSF-AI Derived Coupling Weights\n")
+        f.write(f"// DSF-AI Derived Coupling Weights + BSIL Thresholds\n")
         f.write(f"// {metadata['sensor']}\n")
         f.write(f"// {metadata['timestamp']}\n")
         f.write(f"// {metadata['kernel']}\n")
         f.write(f"// Method: {metadata['method']}\n\n")
         f.write(verilog)
+        f.write("\n\n")
+        f.write(format_bsil_thresholds(bsil_thresholds))
     print(f"\nVerilog: {verilog_path}")
 
+    # Full output — JSON (weights + BSIL thresholds)
     json_str = format_json(weights, metadata)
     json_path = os.path.join(os.path.dirname(__file__), 'derived_sppu_weights.json')
     with open(json_path, 'w') as f:
