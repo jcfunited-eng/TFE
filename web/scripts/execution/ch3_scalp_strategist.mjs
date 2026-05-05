@@ -34,6 +34,7 @@
  */
 
 import pg from "pg";
+import { readFileSync } from "fs";
 
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -206,7 +207,6 @@ function parseSignal(row) {
   // G32 epoch sector filter — skip ADVERSE sectors
   let epochStatus = "UNKNOWN";
   try {
-    const { readFileSync } = await import("fs");
     const g32Raw = readFileSync("/app/g32_state.json", "utf-8");
     const g32 = JSON.parse(g32Raw);
     if (g32?.xi && sector) {
@@ -303,9 +303,8 @@ export async function getCh3Signals() {
   // Reads G32 mosaic + SPY structural state as a coupled assessment.
   // In hostile epochs, even structurally attractive setups get crushed.
   try {
-    const { readFileSync: readFileSync2 } = await import("fs");
     let g32 = {};
-    try { g32 = JSON.parse(readFileSync2("/app/g32_state.json", "utf-8")); } catch {}
+    try { g32 = JSON.parse(readFileSync("/app/g32_state.json", "utf-8")); } catch {}
     const xi = g32.xi ?? {};
 
     // Stress aggregate: sum of active adverse pressure channels

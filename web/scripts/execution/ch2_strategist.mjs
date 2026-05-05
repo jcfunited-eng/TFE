@@ -20,6 +20,7 @@
  */
 
 import pg from "pg";
+import { readFileSync } from "fs";
 
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -147,7 +148,6 @@ export async function getCh2Signals() {
 
   // Epoch Resonance Shield — block entries in hostile macro environments
   try {
-    const { readFileSync } = await import("fs");
     let g32 = {};
     try { g32 = JSON.parse(readFileSync("/app/g32_state.json", "utf-8")); } catch {}
     const xi = g32.xi ?? {};

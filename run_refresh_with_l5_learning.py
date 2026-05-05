@@ -1419,7 +1419,7 @@ def main() -> int:
     # CP-2: Regenerate quality audit JSON after every successful refresh so the
     # Admin UI never shows stale or zombie PSCF content.  This runs as a
     # best-effort step — failures are logged but do not abort the pipeline.
-    # Timeout after 120s to prevent blocking the pipeline (hung May 4 2026).
+    # Timeout after 300s — needs time for yfinance price downloads (120s was too short).
     try:
         import importlib.util as _ilu, pathlib as _pl
         _audit_src = _pl.Path(__file__).resolve().parent / "tools" / "cp2_quality_audit.py"
@@ -1429,10 +1429,10 @@ def main() -> int:
         import signal as _sig_qa
 
         def _qa_timeout_handler(_signum, _frame):
-            raise TimeoutError("Quality audit exceeded 120s timeout")
+            raise TimeoutError("Quality audit exceeded 300s timeout")
 
         _prev_handler = _sig_qa.signal(_sig_qa.SIGALRM, _qa_timeout_handler)
-        _sig_qa.alarm(120)
+        _sig_qa.alarm(300)
         try:
             _mod.run_audit()
             print("[REFRESH+CP2] Quality audit JSON regenerated.", flush=True)
