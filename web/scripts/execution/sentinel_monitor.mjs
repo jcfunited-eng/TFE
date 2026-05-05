@@ -476,9 +476,11 @@ export async function runSentinel() {
       // Once gain exceeds 5%, set a rising floor that locks in profit.
       // Floor = max(0, (max_gain - 5%) * 0.5). Ratchets up only, never down.
       // Checked every sentinel cycle (~5 min during market hours).
+      // Must use Alpaca live price — DB has no current_price field.
       try {
-        const costBasis = parseFloat(pos.cost_basis ?? pos.avg_entry_price ?? "0");
-        const currentPrice = parseFloat(pos.current_price ?? "0");
+        const alpacaCh2Pos = await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE).catch(() => null);
+        const costBasis = parseFloat(alpacaCh2Pos?.avg_entry_price ?? pos.avg_entry_price ?? "0");
+        const currentPrice = parseFloat(alpacaCh2Pos?.current_price ?? "0");
         if (costBasis > 0 && currentPrice > 0) {
           const gainPct = ((currentPrice / costBasis) - 1) * 100;
           // Track max gain per position in global cache
