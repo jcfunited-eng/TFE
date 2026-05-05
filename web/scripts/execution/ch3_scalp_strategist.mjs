@@ -340,11 +340,18 @@ export async function getCh3Signals() {
   // Exclude tickers with existing positions or already traded today
   const openTickers = await fetchOpenPositionTickers();
   const todayCh3Tickers = await fetchTodayCh3Tickers();
-  const available = signals.filter(s => {
-    if (openTickers.has(s.ticker)) return false;
-    if (todayCh3Tickers.has(s.ticker)) return false;
-    return true;
-  });
+  const available = [];
+  for (const s of signals) {
+    if (openTickers.has(s.ticker)) {
+      console.log(`[CH3-HUNTER]   ${s.ticker} — skipped (open position exists)`);
+      continue;
+    }
+    if (todayCh3Tickers.has(s.ticker)) {
+      console.log(`[CH3-HUNTER]   ${s.ticker} — skipped (already traded today)`);
+      continue;
+    }
+    available.push(s);
+  }
 
   if (available.length === 0) {
     console.log(`[CH3-HUNTER] No candidates passed all filters`);
@@ -354,14 +361,22 @@ export async function getCh3Signals() {
   // Sort by L4 distance — closest to center = most loaded
   available.sort((a, b) => a.l4_distance - b.l4_distance);
 
-  // Pool-limited: one position at a time to start
-  const perTradeAmount = Math.min(CH3_MAX_PER_TRADE, availablePool);
-  const best = available[0];
-  best.ch3_trade_amount = perTradeAmount;
+  // Pool-limited: up to 3 signals per run, constrained by available capital
+  const maxSignals = 3;
+  const results = [];
+  let remainingPool = availablePool;
 
-  console.log(`[CH3-HUNTER] SIGNAL: ${best.ticker} | dist=${best.l4_distance.toFixed(3)} | D=${best.d_k} M=${best.m_k?.toFixed(4)} Rrev=${best.r_rev_k} U*=${best.u_star_k?.toFixed(3)} C=${best.c_k} P=${best.p_k} B=${best.b_k?.toFixed(4)} | $${perTradeAmount}`);
+  for (const candidate of available.slice(0, maxSignals)) {
+    if (remainingPool < 500) break;
+    const perTradeAmount = Math.min(CH3_MAX_PER_TRADE, remainingPool);
+    candidate.ch3_trade_amount = perTradeAmount;
+    remainingPool -= perTradeAmount;
 
-  return [best];
+    console.log(`[CH3-HUNTER] SIGNAL: ${candidate.ticker} | dist=${candidate.l4_distance.toFixed(3)} | D=${candidate.d_k} M=${candidate.m_k?.toFixed(4)} Rrev=${candidate.r_rev_k} U*=${candidate.u_star_k?.toFixed(3)} C=${candidate.c_k} P=${candidate.p_k} B=${candidate.b_k?.toFixed(4)} | $${perTradeAmount}`);
+    results.push(candidate);
+  }
+
+  return results;
 }
 
 export const CH3_CONFIG = {
