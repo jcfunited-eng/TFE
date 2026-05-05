@@ -483,22 +483,42 @@ export async function runSentinel() {
         const currentPrice = parseFloat(alpacaCh2Pos?.current_price ?? "0");
         if (costBasis > 0 && currentPrice > 0) {
           const gainPct = ((currentPrice / costBasis) - 1) * 100;
+
           // Track max gain per position in global cache
           if (!global._maxGainCache) global._maxGainCache = {};
           const prevMax = global._maxGainCache[pos.ticker] ?? 0;
           const maxGain = Math.max(prevMax, gainPct);
           global._maxGainCache[pos.ticker] = maxGain;
 
-          if (maxGain >= 5.0) {
-            const floorPct = (maxGain - 5.0) * 0.5;
-            if (gainPct <= floorPct) {
-              console.log(
-                `[SENTINEL] CH2 EXIT-D ${pos.ticker} | trailing profit hit floor ` +
-                `(current=${gainPct.toFixed(1)}% max=${maxGain.toFixed(1)}% floor=${floorPct.toFixed(1)}%)`
-              );
-              await killPosition(pos, "ch2_exit_trailing_profit", ALPACA_BASE);
-              continue;
-            }
+          // Momentum-aware profit exit using τ_out energy ratio
+          // High gain + exhausted energy = take profit now
+          // High gain + plenty of energy = let it run with wide trail
+          const cached = (global._tauCache ?? {})[pos.ticker];
+          const tauOut = cached?.tau_out_days ?? 0;
+          const entryDate = pos.signal_detected_at ?? pos.created_at;
+          let posAge = 0;
+          if (entryDate) {
+            posAge = Math.floor((Date.now() - new Date(entryDate).getTime()) / (1000*60*60*24));
+          }
+          // energyRatio: 0 = fully spent, 1 = just entered
+          const energyRatio = tauOut > 0 ? Math.max(0, 1 - posAge / tauOut) : 0.5;
+
+          // Tighten trail as energy depletes:
+          //   Full energy (1.0): floor = (max - 5%) * 0.4  (wide, let it run)
+          //   Half energy (0.5): floor = (max - 4%) * 0.55
+          //   Low energy  (0.2): floor = (max - 3%) * 0.65 (tight, protect gains)
+          //   Exhausted   (0.0): floor = (max - 2%) * 0.75 (very tight)
+          const cushion = 2 + 3 * energyRatio;       // 2-5% cushion
+          const trailPct = 0.75 - 0.35 * energyRatio; // 40-75% trail factor
+          const floorPct = Math.max(0, (maxGain - cushion) * trailPct);
+
+          if (maxGain >= 5.0 && gainPct <= floorPct) {
+            console.log(
+              `[SENTINEL] CH2 EXIT-D ${pos.ticker} | trailing profit hit floor ` +
+              `(current=${gainPct.toFixed(1)}% max=${maxGain.toFixed(1)}% floor=${floorPct.toFixed(1)}% energy=${energyRatio.toFixed(2)})`
+            );
+            await killPosition(pos, "ch2_exit_trailing_profit", ALPACA_BASE);
+            continue;
           }
         }
       } catch (trailErr) {
