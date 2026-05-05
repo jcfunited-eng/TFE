@@ -1,30 +1,58 @@
 // DSF-AI Derived Coupling Weights + BSIL Thresholds
 // Sharp GP2Y0A41SK0F (3x, front/left/right)
-// 2026-05-04 05:17:45
+// 2026-05-05 23:09:05
 // UF-Core L0→L1→L2→L3→L4 (complete pipeline)
 // Method: L4 DSF → coupling weights; L1 gates → BSIL thresholds
 
-    // ---- DSF-AI Derived Coupling Weights ----
-    // Generated: 2026-05-04 05:17:45
+    // ---- DSF-AI Derived Coupling Weights (8-trit architecture) ----
+    // Generated: 2026-05-05 23:09:05
     // Sensor: Sharp GP2Y0A41SK0F (3x, front/left/right)
     // Kernel: UF-Core L0→L1→L2→L3→L4 (complete pipeline)
-    // Weights derived from L4 DSF 7-tuple geometry
+    // Architecture: 5 strands × 8 trits = 40 input trits
+    // Trit taper: 3^i positional significance (MSB=full weight, LSB=15%)
     // Tool: tools/derive_sppu_weights.py
 
-    parameter [119:0] W_CTX_0 = {8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd26, 8'd0, 8'd0, 8'd26, 8'd13, 8'd13, 8'd26},
-    parameter [119:0] W_CTX_1 = {8'd0, 8'd13, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd18, 8'd0, 8'd0, 8'd26, 8'd0, 8'd13, 8'd26, 8'd13},
-    parameter [119:0] W_CTX_2 = {8'd13, 8'd0, 8'd0, 8'd13, 8'd0, 8'd0, 8'd18, 8'd0, 8'd0, 8'd26, 8'd0, 8'd0, 8'd26, 8'd13, 8'd13},
+    // CTX_0: front_dist, front_dir, front_accel, left_dist, right_dist
+    parameter [319:0] W_CTX_0 = {8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1},
+    // CTX_1: front_dist, front_dir, front_accel, left_dist, right_dist
+    parameter [319:0] W_CTX_1 = {8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1},
+    // CTX_2: front_dist, front_dir, front_accel, left_dist, right_dist
+    parameter [319:0] W_CTX_2 = {8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd13, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1},
 
-    parameter [119:0] W_MMTM_0 = {8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd6, 8'd6, 8'd6, 8'd6, 8'd11, 8'd17, 8'd22, 8'd6, 8'd11, 8'd17},
-    parameter [119:0] W_MMTM_1 = {8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd17, 8'd22, 8'd17, 8'd11, 8'd17, 8'd11},
-    parameter [119:0] W_MMTM_2 = {8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd11, 8'd6, 8'd6, 8'd22, 8'd17, 8'd11, 8'd17, 8'd11, 8'd6},
+    // MMTM_0: front_dist, front_dir, front_accel, left_dist, right_dist
+    parameter [319:0] W_MMTM_0 = {8'd8, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd8, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd8, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd14, 8'd4, 8'd2, 8'd2, 8'd2, 8'd2, 8'd2, 8'd2, 8'd8, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1},
+    // MMTM_1: front_dist, front_dir, front_accel, left_dist, right_dist
+    parameter [319:0] W_MMTM_1 = {8'd8, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd8, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd8, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd14, 8'd4, 8'd2, 8'd2, 8'd2, 8'd2, 8'd2, 8'd2, 8'd8, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1},
+    // MMTM_2: front_dist, front_dir, front_accel, left_dist, right_dist
+    parameter [319:0] W_MMTM_2 = {8'd8, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd8, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd8, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd14, 8'd4, 8'd2, 8'd2, 8'd2, 8'd2, 8'd2, 8'd2, 8'd8, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1},
 
     // DCSN_0 = STEER
-    parameter [167:0] W_DCSN_0 = {8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd18, 8'd24, 8'd33, 8'hEC, 8'hE4, 8'hDA, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0},
+    //   front_dist: [0, 0, 0, 0, 0, 0, 0, 0]
+    //   front_dir: [0, 0, 0, 0, 0, 0, 0, 0]
+    //   front_accel: [0, 0, 0, 0, 0, 0, 0, 0]
+    //   left_dist: [4, 4, 4, 4, 4, 4, 11, 33]
+    //   right_dist: [-5, -5, -5, -5, -5, -5, -12, -38]
+    //   context: [0, 0, 0]  momentum: [0, 0, 0]
+    parameter [367:0] W_DCSN_0 = {8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'hDA, 8'hF4, 8'hFB, 8'hFB, 8'hFB, 8'hFB, 8'hFB, 8'hFB, 8'd33, 8'd11, 8'd4, 8'd4, 8'd4, 8'd4, 8'd4, 8'd4, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0},
+
     // DCSN_1 = SPEED
-    parameter [167:0] W_DCSN_1 = {8'd19, 8'd26, 8'd35, 8'd8, 8'd11, 8'd15, 8'd2, 8'd3, 8'd4, 8'd5, 8'd5, 8'd5, 8'd6, 8'd6, 8'd6, 8'd2, 8'd2, 8'd2, 8'd3, 8'd3, 8'd3},
+    //   front_dist: [5, 5, 5, 5, 5, 5, 11, 35]
+    //   front_dir: [2, 2, 2, 2, 2, 2, 5, 15]
+    //   front_accel: [1, 1, 1, 1, 1, 1, 1, 4]
+    //   left_dist: [1, 1, 1, 1, 1, 1, 1, 5]
+    //   right_dist: [1, 1, 1, 1, 1, 1, 2, 6]
+    //   context: [2, 2, 2]  momentum: [3, 3, 3]
+    parameter [367:0] W_DCSN_1 = {8'd3, 8'd3, 8'd3, 8'd2, 8'd2, 8'd2, 8'd6, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd5, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd4, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd15, 8'd5, 8'd2, 8'd2, 8'd2, 8'd2, 8'd2, 8'd2, 8'd35, 8'd11, 8'd5, 8'd5, 8'd5, 8'd5, 8'd5, 8'd5},
+
     // DCSN_2 = CONFIDENCE
-    parameter [167:0] W_DCSN_2 = {8'd14, 8'd11, 8'd11, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd7, 8'd7, 8'd7, 8'd6, 8'd6, 8'd6, 8'd3, 8'd3, 8'd3, 8'd5, 8'd5, 8'd5}
+    //   front_dist: [1, 1, 1, 1, 1, 1, 3, 11]
+    //   front_dir: [0, 0, 0, 0, 0, 0, 0, 0]
+    //   front_accel: [0, 0, 0, 0, 0, 0, 0, 0]
+    //   left_dist: [1, 1, 1, 1, 1, 1, 2, 7]
+    //   right_dist: [1, 1, 1, 1, 1, 1, 2, 6]
+    //   context: [1, 1, 1]  momentum: [2, 2, 2]
+    parameter [367:0] W_DCSN_2 = {8'd2, 8'd2, 8'd2, 8'd1, 8'd1, 8'd1, 8'd6, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd7, 8'd2, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd0, 8'd11, 8'd3, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1, 8'd1}
+
 
 // ---- DSF-AI Derived BSIL Thresholds ----
 // From L1 structural gate boundaries

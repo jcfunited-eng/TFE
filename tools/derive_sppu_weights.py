@@ -330,16 +330,35 @@ def compute_coupling_weights(
 
         return int(np.clip(raw * scale, 5, scale))
 
-    def trit_taper(base: int) -> List[int]:
-        """Taper weight across 3 trit levels (coarse/medium/fine)."""
-        return [base, int(base * 0.75), int(base * 0.55)]
+    # Number of trits per strand
+    N_TRITS = 8
+
+    def trit_taper(base: int, n: int = N_TRITS) -> List[int]:
+        """Taper weight across n trit levels by positional significance.
+
+        In balanced ternary, trit position i represents 3^i.
+        Position 0 (LSB) has value 1. Position 7 (MSB) has value 2187.
+        Higher positions carry more structural significance, so they
+        get higher coupling weights.
+
+        The taper follows 3^i scaling, normalized to the base weight
+        at the highest position.
+        """
+        # 3^i significance for each position, normalized
+        powers = [3**i for i in range(n)]
+        max_pow = powers[-1]
+        # Scale: MSB gets full base weight, LSB gets proportionally less
+        # But floor at ~15% of base to keep even LSB meaningful
+        weights = []
+        for p in powers:
+            w = max(max(1, int(base * 0.15)), int(base * p / max_pow))
+            weights.append(w)
+        return weights  # index 0 = LSB (smallest weight), index n-1 = MSB (base weight)
 
     def momentum_weight(profile: Dict) -> List[int]:
         """Direction/acceleration weight from DSF momentum field."""
         m_std = profile['momentum_weight']
         pressure = profile['pressure']
-        # Momentum std determines how much rate-of-change matters
-        # Pressure modulates — high pressure = transitions matter more
         raw = m_std * (1.0 + pressure * 0.5)
         base = int(np.clip(raw * 25, 5, 30))
         return trit_taper(base)
@@ -351,126 +370,89 @@ def compute_coupling_weights(
         return trit_taper(base)
 
     # ================================================================
-    # STRAND MAPPING
+    # STRAND MAPPING (8-trit architecture)
+    # Input order in SPPU: front_dist, front_dir, front_accel, left_dist, right_dist
     # ================================================================
-    strand_map = {'front': 'distance', 'left': 'cam_edge', 'right': 'cam_motion'}
+    STRANDS = ['front_dist', 'front_dir', 'front_accel', 'left_dist', 'right_dist']
+    N_INPUT_TRITS = len(STRANDS) * N_TRITS  # 40
+    ZERO_STRAND = [0] * N_TRITS
+
+    # Map sensor names to strand names
+    sensor_to_strands = {
+        'front': ['front_dist', 'front_dir', 'front_accel'],
+        'left': ['left_dist'],
+        'right': ['right_dist'],
+    }
 
     # ================================================================
-    # DECISION WEIGHTS from DSF geometry
+    # DECISION WEIGHTS from DSF geometry (46 entries: 40 input + 6 settling)
     # ================================================================
     W_DCSN = {}
 
     for dcsn_idx, dcsn_name in enumerate(['STEER', 'SPEED', 'CONFIDENCE']):
-        w = {
-            'distance': [0, 0, 0], 'direction': [0, 0, 0], 'accel': [0, 0, 0],
-            'cam_edge': [0, 0, 0], 'cam_motion': [0, 0, 0],
-            'context': [0, 0, 0], 'momentum': [0, 0, 0],
-        }
+        # Initialize all weights to zero
+        w = {s: list(ZERO_STRAND) for s in STRANDS}
+        w['context'] = [0, 0, 0]
+        w['momentum'] = [0, 0, 0]
 
         for sensor_name, profile in profiles.items():
             role = sensor_roles.get(sensor_name, 'unknown')
-            strand = strand_map.get(sensor_name)
-            if not strand:
-                continue
-
             bw = base_weight(profile)
 
             if dcsn_name == 'STEER':
                 if role == 'lateral':
-                    # Lateral sensors drive steer — weight from DSF coupling strength.
-                    # LEFT sensor: positive weights → close pushes steer toward +1 (turn right)
-                    # RIGHT sensor: negative weights → close pushes steer toward -1 (turn left)
-                    # Directionality is in the WEIGHTS, not the trit encoding.
-                    # Both sensors encode identically: close=+1, far=-1.
                     tapered = trit_taper(bw)
-                    if sensor_name == 'right' or strand == 'cam_motion':
-                        w[strand] = [-v for v in tapered]  # negative = push steer opposite
+                    strand = 'left_dist' if sensor_name == 'left' else 'right_dist'
+                    if sensor_name == 'right':
+                        w[strand] = [-v for v in tapered]
                     else:
                         w[strand] = tapered
-
-                # Axial sensors: D_k has no lateral information (kernel confirms
-                # via identical D_std — no differential between front left/right).
-                # Weight stays 0. This is not a manual decision — it's what the
-                # DSF geometry shows.
-
-                # Context and momentum: ZERO for steer.
-                # Context and momentum are computed from ALL input strands
-                # symmetrically. They carry environmental assessment and
-                # trend — no lateral information. At rest, all inputs are
-                # -1 (far), so context/momentum settle to -1, and any
-                # non-zero weight here creates a steer bias with nothing
-                # around. Only the left-right sensor differential has
-                # lateral information.
+                # Axial strands: zero (no lateral info in DSF)
+                # Context/momentum: zero (no lateral info)
                 w['context'] = [0, 0, 0]
                 w['momentum'] = [0, 0, 0]
 
             elif dcsn_name == 'SPEED':
                 if role == 'axial':
-                    # Axial sensor dominates speed — full DSF-derived weight
-                    w[strand] = trit_taper(bw)
-                    # Direction and accel from this sensor's momentum profile
-                    w['direction'] = momentum_weight(profile)
-                    w['accel'] = accel_weight(profile)
+                    w['front_dist'] = trit_taper(bw)
+                    w['front_dir'] = momentum_weight(profile)
+                    w['front_accel'] = accel_weight(profile)
                 elif role == 'lateral':
-                    # Lateral sensors moderate speed (slow near walls)
-                    # Weight reduced by (1 - U*) — uncertain lateral readings
-                    # contribute less to speed decisions
                     side_w = int(bw * 0.25 * (1.0 - profile['uncertainty']))
-                    w[strand] = [side_w, side_w, side_w]
+                    strand = 'left_dist' if sensor_name == 'left' else 'right_dist'
+                    w[strand] = trit_taper(side_w)
 
-                # Context/momentum for SPEED: budget from actual headroom.
-                #
-                # At rest, all input trits are -1. Context/momentum settle to -1.
-                # When the primary sensor fires (+1,+1,+1), the net field must
-                # exceed the BASE dead zone (20) AFTER subtracting ALL other
-                # negative contributions (lateral sensors + context + momentum).
-                #
-                # Constraint: primary_total - lateral_total - ctx_mmtm_total > DEAD_ZONE
-                # Therefore: ctx_mmtm_total < primary_total - lateral_total - DEAD_ZONE
-                #
-                # Compute worst-case lateral contribution at rest
+                # Context/momentum: headroom-budgeted
                 lateral_total = 0
                 for sn, p in profiles.items():
                     if sensor_roles.get(sn) == 'lateral':
                         sw = int(base_weight(p) * 0.25 * (1.0 - p['uncertainty']))
-                        lateral_total += sw * 3  # 3 trits, all at -1
+                        lateral_total += sum(trit_taper(sw))
 
                 axial_profiles = [p for sn, p in profiles.items() if sensor_roles.get(sn) == 'axial']
                 if axial_profiles:
-                    axial_bw = base_weight(axial_profiles[0])
-                    primary_total = axial_bw + int(axial_bw * 0.75) + int(axial_bw * 0.55)
-                    # Available headroom after laterals and dead zone
-                    headroom = primary_total - lateral_total - 20  # 20 = base dead zone
-                    # Context+momentum budget: 60% of headroom (leave margin)
+                    primary_total = sum(trit_taper(base_weight(axial_profiles[0])))
+                    headroom = primary_total - lateral_total - 20
                     budget = max(6, int(headroom * 0.6))
                 else:
                     budget = 6
-
-                # Split 40/60 between context/momentum, distribute across 3 trits
-                ctx_total = max(3, int(budget * 0.4))
-                mmtm_total = max(3, int(budget * 0.6))
-                ctx_per = max(1, ctx_total // 3)
-                mmtm_per = max(1, mmtm_total // 3)
+                ctx_per = max(1, int(budget * 0.4) // 3)
+                mmtm_per = max(1, int(budget * 0.6) // 3)
                 w['context'] = [ctx_per, ctx_per, ctx_per]
                 w['momentum'] = [mmtm_per, mmtm_per, mmtm_per]
 
             elif dcsn_name == 'CONFIDENCE':
-                # Confidence weight inversely proportional to uncertainty
-                # High U* = low confidence coupling = system less sure
                 conf = 1.0 - profile['uncertainty']
-                # Breathing range modulates — wide breathing = less stable
                 stability = 1.0 - min(profile['breathing_magnitude'], 1.0) * 0.5
                 conf_w = int(np.clip(conf * stability * 20, 5, 25))
-
                 if role == 'axial':
-                    w[strand] = [conf_w, conf_w, int(conf_w * 1.3)]
+                    w['front_dist'] = trit_taper(conf_w)
                 else:
-                    w[strand] = [int(conf_w * 0.7), int(conf_w * 0.7), int(conf_w * 0.7)]
+                    strand = 'left_dist' if sensor_name == 'left' else 'right_dist'
+                    w[strand] = trit_taper(int(conf_w * 0.7))
 
-                # Context/momentum for CONFIDENCE: same headroom constraint.
-                # Compute total sensor contribution to confidence
-                sensor_total = sum(abs(v) for v in w['distance'] + w['cam_edge'] + w['cam_motion'])
-                headroom = max(6, sensor_total - 20)  # subtract base dead zone
+                sensor_total = sum(sum(abs(v) for v in w[s]) for s in STRANDS)
+                headroom = max(6, sensor_total - 20)
                 budget = max(6, int(headroom * 0.5))
                 ctx_per = max(1, int(budget * 0.4) // 3)
                 mmtm_per = max(1, int(budget * 0.6) // 3)
@@ -480,57 +462,48 @@ def compute_coupling_weights(
         W_DCSN[dcsn_idx] = w
 
     # ================================================================
-    # CONTEXT WEIGHTS: diagonal coupling structure
-    # Scaled by mean coupling strength across all sensors
+    # CONTEXT WEIGHTS (40 inputs)
+    # Each context trit couples to all 40 input trits.
+    # Scaled by mean coupling strength, with positional taper.
     # ================================================================
     mean_cs = np.mean([p['coupling_strength'] for p in profiles.values()])
-    ctx_scale = int(np.clip(mean_cs * 30, 10, 30))
+    ctx_base = int(np.clip(mean_cs * 15, 5, 15))
+    # Each strand gets tapered weights, scaled down for context
+    ctx_strand = trit_taper(ctx_base)
 
-    W_CTX = [
-        [ctx_scale, int(ctx_scale*0.5), int(ctx_scale*0.5),      # distance
-         ctx_scale, 0, 0,                                         # direction
-         ctx_scale, 0, 0,                                         # accel
-         int(ctx_scale*0.5), 0, 0,                                # cam_edge
-         int(ctx_scale*0.5), 0, 0],                               # cam_motion
-        [int(ctx_scale*0.5), ctx_scale, int(ctx_scale*0.5),
-         0, ctx_scale, 0,
-         0, int(ctx_scale*0.7), 0,
-         0, int(ctx_scale*0.5), 0,
-         0, int(ctx_scale*0.5), 0],
-        [int(ctx_scale*0.5), int(ctx_scale*0.5), ctx_scale,
-         0, 0, ctx_scale,
-         0, 0, int(ctx_scale*0.7),
-         0, 0, int(ctx_scale*0.5),
-         0, 0, int(ctx_scale*0.5)],
-    ]
+    W_CTX = []
+    for ci in range(3):  # 3 context trits
+        row = []
+        for s in STRANDS:
+            row.extend(ctx_strand)
+        W_CTX.append(row)
 
     # ================================================================
-    # MOMENTUM WEIGHTS: direction-dominant, scaled by mean momentum
+    # MOMENTUM WEIGHTS (40 inputs)
+    # Direction-dominant, scaled by mean momentum
     # ================================================================
     mean_mw = np.mean([p['momentum_weight'] for p in profiles.values()])
-    mmtm_scale = int(np.clip(mean_mw * 50, 10, 25))
+    mmtm_base = int(np.clip(mean_mw * 25, 5, 15))
+    mmtm_strand = trit_taper(mmtm_base)
 
-    W_MMTM = [
-        [mmtm_scale, int(mmtm_scale*0.7), int(mmtm_scale*0.4),          # distance
-         int(mmtm_scale*1.3), mmtm_scale, int(mmtm_scale*0.7),          # direction
-         int(mmtm_scale*0.4), int(mmtm_scale*0.4), int(mmtm_scale*0.4), # accel
-         int(mmtm_scale*0.4), int(mmtm_scale*0.4), int(mmtm_scale*0.4), # cam_edge
-         int(mmtm_scale*0.7), int(mmtm_scale*0.4), int(mmtm_scale*0.4)],# cam_motion
-        [int(mmtm_scale*0.7), mmtm_scale, int(mmtm_scale*0.7),
-         mmtm_scale, int(mmtm_scale*1.3), mmtm_scale,
-         int(mmtm_scale*0.4), int(mmtm_scale*0.7), int(mmtm_scale*0.4),
-         int(mmtm_scale*0.4), int(mmtm_scale*0.7), int(mmtm_scale*0.4),
-         int(mmtm_scale*0.4), int(mmtm_scale*0.7), int(mmtm_scale*0.4)],
-        [int(mmtm_scale*0.4), int(mmtm_scale*0.7), mmtm_scale,
-         int(mmtm_scale*0.7), mmtm_scale, int(mmtm_scale*1.3),
-         int(mmtm_scale*0.4), int(mmtm_scale*0.4), int(mmtm_scale*0.7),
-         int(mmtm_scale*0.4), int(mmtm_scale*0.4), int(mmtm_scale*0.7),
-         int(mmtm_scale*0.4), int(mmtm_scale*0.4), int(mmtm_scale*0.7)],
-    ]
+    # Direction strand gets boosted weight for momentum
+    mmtm_dir_base = int(np.clip(mean_mw * 40, 8, 25))
+    mmtm_dir_strand = trit_taper(mmtm_dir_base)
+
+    W_MMTM = []
+    for mi in range(3):
+        row = []
+        for s in STRANDS:
+            if s == 'front_dir':
+                row.extend(mmtm_dir_strand)
+            else:
+                row.extend(mmtm_strand)
+        W_MMTM.append(row)
 
     return {
         'W_CTX': W_CTX, 'W_MMTM': W_MMTM,
         'W_DCSN_0': W_DCSN[0], 'W_DCSN_1': W_DCSN[1], 'W_DCSN_2': W_DCSN[2],
+        'STRANDS': STRANDS, 'N_TRITS': N_TRITS,
     }
 
 
@@ -539,42 +512,65 @@ def compute_coupling_weights(
 # ============================================================
 
 def format_verilog(weights: Dict, metadata: Dict) -> str:
-    """Format weights as Verilog parameter declarations."""
+    """Format weights as Verilog parameter declarations for 8-trit architecture."""
+
+    n_trits = weights.get('N_TRITS', 8)
+    strands = weights.get('STRANDS', ['front_dist', 'front_dir', 'front_accel', 'left_dist', 'right_dist'])
+    n_input_trits = len(strands) * n_trits  # 40
+
+    def fmt_val(v):
+        if v < 0:
+            return f"8'h{(256 + v) & 0xFF:02X}"
+        return f"8'd{v}"
+
     def fmt_packed(vals, name, width):
-        def fmt_val(v):
-            if v < 0:
-                # Signed 8-bit: -33 → 256-33 = 223 = 0xDF
-                return f"8'h{(256 + v) & 0xFF:02X}"
-            return f"8'd{v}"
         parts = ', '.join(fmt_val(v) for v in vals)
         return f"    parameter [{width-1}:0] {name} = {{{parts}}}"
 
     lines = []
-    lines.append("    // ---- DSF-AI Derived Coupling Weights ----")
+    lines.append("    // ---- DSF-AI Derived Coupling Weights (8-trit architecture) ----")
     lines.append(f"    // Generated: {metadata.get('timestamp', 'unknown')}")
     lines.append(f"    // Sensor: {metadata.get('sensor', 'unknown')}")
     lines.append(f"    // Kernel: UF-Core L0→L1→L2→L3→L4 (complete pipeline)")
-    lines.append(f"    // Weights derived from L4 DSF 7-tuple geometry")
+    lines.append(f"    // Architecture: {len(strands)} strands × {n_trits} trits = {n_input_trits} input trits")
+    lines.append(f"    // Trit taper: 3^i positional significance (MSB=full weight, LSB=15%)")
     lines.append(f"    // Tool: tools/derive_sppu_weights.py")
     lines.append("")
 
+    # Context weights: 40 entries each = 320 bits
+    ctx_bits = n_input_trits * 8
     for i, w in enumerate(weights['W_CTX']):
-        lines.append(fmt_packed(w[::-1], f"W_CTX_{i}", 120) + ",")
+        lines.append(f"    // CTX_{i}: {', '.join(s for s in strands)}")
+        lines.append(fmt_packed(w[::-1], f"W_CTX_{i}", ctx_bits) + ",")
     lines.append("")
 
+    # Momentum weights: 40 entries each = 320 bits
     for i, w in enumerate(weights['W_MMTM']):
-        lines.append(fmt_packed(w[::-1], f"W_MMTM_{i}", 120) + ",")
+        lines.append(f"    // MMTM_{i}: {', '.join(s for s in strands)}")
+        lines.append(fmt_packed(w[::-1], f"W_MMTM_{i}", ctx_bits) + ",")
     lines.append("")
 
+    # Decision weights: 46 entries each (40 input + 6 settling) = 368 bits
+    dcsn_entries = n_input_trits + 6  # + context(3) + momentum(3)
+    dcsn_bits = dcsn_entries * 8
     for i in range(3):
         dcsn = weights[f'W_DCSN_{i}']
-        vals = (dcsn['momentum'] + dcsn['context'] +
-                dcsn['cam_motion'] + dcsn['cam_edge'] +
-                dcsn['accel'] + dcsn['direction'] + dcsn['distance'])
+        # Pack order: LSB=front_dist ... right_dist, context, momentum=MSB
+        vals = []
+        for s in strands:
+            vals.extend(dcsn[s])
+        vals.extend(dcsn['context'])
+        vals.extend(dcsn['momentum'])
         comment = ['STEER', 'SPEED', 'CONFIDENCE'][i]
         lines.append(f"    // DCSN_{i} = {comment}")
-        lines.append(fmt_packed(vals[::-1], f"W_DCSN_{i}", 168) +
+        # Show per-strand breakdown
+        for s in strands:
+            sv = dcsn[s]
+            lines.append(f"    //   {s}: [{', '.join(str(v) for v in sv)}]")
+        lines.append(f"    //   context: {dcsn['context']}  momentum: {dcsn['momentum']}")
+        lines.append(fmt_packed(vals[::-1], f"W_DCSN_{i}", dcsn_bits) +
                      ("," if i < 2 else ""))
+        lines.append("")
 
     return '\n'.join(lines)
 
