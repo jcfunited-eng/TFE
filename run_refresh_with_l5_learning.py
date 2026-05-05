@@ -708,6 +708,7 @@ def _run_quote_cache_refresh() -> dict[str, Any]:
     completed = _run_logged_subprocess(
         phase_label="quote_cache_refresh", cmd=cmd,
         cwd=str(Path.cwd()), env={**os.environ, "PYTHONUNBUFFERED": "1"},
+        max_runtime_seconds=3600,
     )
     stdout_tail = str(completed.get("stdout_tail") or "").strip()
     stderr_tail = str(completed.get("stderr_tail") or "").strip()
