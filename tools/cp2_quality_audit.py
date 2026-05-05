@@ -324,6 +324,15 @@ def _fetch_forward_returns(
         f"({fetch_start} → {fetch_end})"
     )
     try:
+        # Limit to 50 unique tickers to keep yfinance download under 60s.
+        # More tickers = more data but diminishing statistical returns.
+        if len(tickers) > 50:
+            import random
+            random.seed(42)  # deterministic sample
+            tickers = random.sample(tickers, 50)
+            all_symbols = tickers + ["SPY"]
+            print(f"[cp2_quality_audit] Sampled 50 tickers (of {len({r['ticker'] for r in accumulate_records})}) for price fetch")
+            accumulate_records = [r for r in accumulate_records if r["ticker"] in set(tickers)]
         raw = yf.download(
             all_symbols,
             start=str(fetch_start),
@@ -331,6 +340,7 @@ def _fetch_forward_returns(
             auto_adjust=True,
             progress=False,
             threads=True,
+            timeout=30,
         )
     except Exception as exc:
         print(f"[cp2_quality_audit] yfinance download failed: {exc}")

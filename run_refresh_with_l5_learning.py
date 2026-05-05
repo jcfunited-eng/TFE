@@ -1417,29 +1417,25 @@ def main() -> int:
         print(f"[REFRESH+PEE1] Failed to launch execution engine (non-fatal): {_pee1_exc}", flush=True)
         _tb_pee1.print_exc()
 
-    # CP-2: Regenerate quality audit JSON after every successful refresh so the
-    # Admin UI never shows stale or zombie PSCF content.  This runs as a
-    # best-effort step — failures are logged but do not abort the pipeline.
-    # Timeout after 300s — needs time for yfinance price downloads (120s was too short).
+    # CP-2: Regenerate quality audit JSON after every successful refresh.
+    # Runs as a SUBPROCESS so the 300s kill actually works — SIGALRM can't
+    # interrupt psycopg2 C-level blocking calls (discovered May 5 2026).
     try:
-        import importlib.util as _ilu, pathlib as _pl
-        _audit_src = _pl.Path(__file__).resolve().parent / "tools" / "cp2_quality_audit.py"
-        _spec = _ilu.spec_from_file_location("cp2_quality_audit", _audit_src)
-        _mod = _ilu.module_from_spec(_spec)  # type: ignore[arg-type]
-        _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
-        import signal as _sig_qa
-
-        def _qa_timeout_handler(_signum, _frame):
-            raise TimeoutError("Quality audit exceeded 300s timeout")
-
-        _prev_handler = _sig_qa.signal(_sig_qa.SIGALRM, _qa_timeout_handler)
-        _sig_qa.alarm(300)
-        try:
-            _mod.run_audit()
+        import pathlib as _pl_qa
+        _audit_script = str(_pl_qa.Path(__file__).resolve().parent / "tools" / "cp2_quality_audit.py")
+        _qa_result = _run_logged_subprocess(
+            phase_label="cp2_quality_audit",
+            cmd=[sys.executable or "python3", "-u", _audit_script],
+            cwd=str(Path.cwd()),
+            env={**os.environ, "PYTHONUNBUFFERED": "1"},
+            max_runtime_seconds=300,
+        )
+        if int(_qa_result.get("returncode") or 0) == 0:
             print("[REFRESH+CP2] Quality audit JSON regenerated.", flush=True)
-        finally:
-            _sig_qa.alarm(0)
-            _sig_qa.signal(_sig_qa.SIGALRM, _prev_handler)
+        elif int(_qa_result.get("returncode") or 0) == -9:
+            print("[REFRESH+CP2] Quality audit KILLED (exceeded 300s) — non-fatal.", flush=True)
+        else:
+            print(f"[REFRESH+CP2] Quality audit failed (exit={_qa_result.get('returncode')}) — non-fatal.", flush=True)
     except Exception as _qa_exc:
         import traceback as _tb_qa
         print(f"[REFRESH+CP2] Quality audit step failed (non-fatal): {_qa_exc}", flush=True)
