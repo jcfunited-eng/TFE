@@ -334,26 +334,27 @@ def compute_coupling_weights(
     N_TRITS = 8
 
     def trit_taper(base: int, n: int = N_TRITS) -> List[int]:
-        """Taper weight across n trit levels by positional significance.
+        """Taper weight across n trit levels.
 
-        In balanced ternary, trit position i represents 3^i.
-        Position 0 (LSB) has value 1. Position 7 (MSB) has value 2187.
-        Higher positions carry more structural significance, so they
-        get higher coupling weights.
+        The 3^i scaling was mathematically correct for numerical
+        significance but wrong for coupling. The DIFFERENCE between
+        two close readings lives in the LOWER trit positions. If the
+        MSB has all the weight and the lower trits have nearly zero,
+        two similar-but-different readings produce almost identical
+        coupling force — the SPPU can't tell them apart.
 
-        The taper follows 3^i scaling, normalized to the base weight
-        at the highest position.
+        Correct taper: sqrt scaling. MSB gets full weight, LSB gets
+        ~35% of base. The gradient discrimination in the lower trits
+        carries enough force to exceed the dead zone.
+
+        sqrt(i/n) gives roughly: [0.35, 0.50, 0.61, 0.71, 0.79, 0.87, 0.93, 1.0]
         """
-        # 3^i significance for each position, normalized
-        powers = [3**i for i in range(n)]
-        max_pow = powers[-1]
-        # Scale: MSB gets full base weight, LSB gets proportionally less
-        # But floor at ~15% of base to keep even LSB meaningful
         weights = []
-        for p in powers:
-            w = max(max(1, int(base * 0.15)), int(base * p / max_pow))
+        for i in range(n):
+            scale = max(0.35, (float(i + 1) / n) ** 0.5)
+            w = max(max(1, int(base * 0.35)), int(base * scale))
             weights.append(w)
-        return weights  # index 0 = LSB (smallest weight), index n-1 = MSB (base weight)
+        return weights  # index 0 = LSB, index n-1 = MSB
 
     def momentum_weight(profile: Dict) -> List[int]:
         """Direction/acceleration weight from DSF momentum field."""
