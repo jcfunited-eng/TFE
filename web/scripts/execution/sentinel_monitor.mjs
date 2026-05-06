@@ -416,34 +416,52 @@ export async function runSentinel() {
     }
   }
 
-  // ── Sync filled positions that were closed by bracket TP/SL ──────────────
-  const filledPositions = positions.filter(p => p.status === "filled" && p.entry_filled_at);
-  for (const pos of filledPositions) {
+  // ── Sync ALL open positions against Alpaca (zombie detection) ─────────
+  // Checks both 'filled' AND 'submitted' positions. If Alpaca has no
+  // position for a ticker, the DB record is stale (bracket exit, cancelled
+  // order, or phantom entry). This was missing before May 6 2026 — caused
+  // 27 zombie positions to persist for weeks across deploys.
+  const openPositions = positions.filter(p => p.status === "filled" || p.status === "submitted");
+  for (const pos of openPositions) {
     try {
       await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE);
-      // Position still open — no action needed
+      // Position still open on Alpaca — no action needed
     } catch (e) {
       const msg = String(e.message);
-      if (msg.includes("40410000") || msg.toLowerCase().includes("position does not exist")) {
-        // Bracket TP or SL closed this position — get exit price from bracket legs
-        let bracketExitPrice = null;
-        if (pos.alpaca_order_id) {
-          try {
-            const parentOrder = await alpacaGet(`/v2/orders/${pos.alpaca_order_id}`, ALPACA_BASE);
-            for (const leg of (parentOrder?.legs ?? [])) {
-              if (leg.filled_avg_price && leg.side === "sell") {
-                bracketExitPrice = parseFloat(leg.filled_avg_price);
-                break;
-              }
-            }
-          } catch { /* non-fatal */ }
-        }
-        console.log(`[SENTINEL] Bracket exit detected: ${pos.ticker} @ $${bracketExitPrice ?? "unknown"} — marking DB closed.`);
-        await ledgerClose(pos.id, "bracket_tp_sl_exit", null, bracketExitPrice).catch(ex => {
-          console.error(`[SENTINEL] Ledger close failed for ${pos.ticker}:`, ex.message);
-        });
-        pos.status = "closed"; // skip exit checks below
+      // Only act on definitive "not found" — not network errors
+      if (!msg.includes("40410000") && !msg.toLowerCase().includes("position does not exist") && !msg.includes("404")) {
+        continue; // transient error, skip
       }
+
+      if (pos.status === "submitted" && !pos.entry_filled_at) {
+        // Phantom entry — never filled on Alpaca, clean it up
+        await pool.query(
+          `UPDATE personal_trade_ledger SET status='cancelled' WHERE id=$1`,
+          [pos.id]
+        );
+        console.log(`[SENTINEL] Phantom cleanup: ${pos.ticker} — submitted but never existed on Alpaca. Marked cancelled.`);
+        pos.status = "cancelled";
+        continue;
+      }
+
+      // Filled position no longer on Alpaca — bracket TP/SL closed it
+      let bracketExitPrice = null;
+      if (pos.alpaca_order_id) {
+        try {
+          const parentOrder = await alpacaGet(`/v2/orders/${pos.alpaca_order_id}`, ALPACA_BASE);
+          for (const leg of (parentOrder?.legs ?? [])) {
+            if (leg.filled_avg_price && leg.side === "sell") {
+              bracketExitPrice = parseFloat(leg.filled_avg_price);
+              break;
+            }
+          }
+        } catch { /* non-fatal */ }
+      }
+      console.log(`[SENTINEL] Bracket exit detected: ${pos.ticker} @ $${bracketExitPrice ?? "unknown"} — marking DB closed.`);
+      await ledgerClose(pos.id, "bracket_tp_sl_exit", null, bracketExitPrice).catch(ex => {
+        console.error(`[SENTINEL] Ledger close failed for ${pos.ticker}:`, ex.message);
+      });
+      pos.status = "closed";
     }
   }
 
