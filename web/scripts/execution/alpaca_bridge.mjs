@@ -525,8 +525,8 @@ export async function executeBracketOrder(signal, opts = {}) {
 //   Multiplier = 0.0974 / 0.1595 = 0.611
 //   Ch2 risk pct = 1.5% (3WA base) × 0.611 = 0.917%
 const CH2_RISK_PCT         = 0.917; // derived expectancy multiplier: 0.611 × 3WA base
-const CH2_TAKE_PROFIT_MULT = 1.0;   // tighter TP: median hold ~91 bars, not 223
-const CH2_STOP_LOSS_MULT   = 1.0;   // same SL distance
+const CH2_TAKE_PROFIT_MULT = 1.0;   // bracket TP kept as wide ceiling (sentinel trailing handles real exit)
+const CH2_STOP_LOSS_PCT    = 0.10;  // -10% catastrophic stop — not noise, only disaster. ATR stops killed 13/14 winners.
 
 /**
  * Validate a Ch2 signal. Binary — every check must pass or the trade fails.
@@ -599,13 +599,13 @@ export async function executeCh2BracketOrder(signal) {
   const KINETIC_BUFFER = 1.001;
   const entryPrice      = parseFloat((currentPrice * KINETIC_BUFFER).toFixed(2));
   const takeProfitPrice = parseFloat((entryPrice + CH2_TAKE_PROFIT_MULT * atr).toFixed(2));
-  const stopLossPrice   = parseFloat((entryPrice - CH2_STOP_LOSS_MULT   * atr).toFixed(2));
+  const stopLossPrice   = parseFloat((entryPrice * (1 - CH2_STOP_LOSS_PCT)).toFixed(2));
 
   if (stopLossPrice <= 0) {
-    return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice} (ATR=${atr.toFixed(4)})`);
+    return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice}`);
   }
 
-  console.log(`[CH2-BRIDGE] ${ticker} | shares=${shares} | entry=${entryPrice} | TP=${takeProfitPrice} | SL=${stopLossPrice} | ATR=${atr.toFixed(4)}`);
+  console.log(`[CH2-BRIDGE] ${ticker} | shares=${shares} | entry=${entryPrice} | TP=${takeProfitPrice} | SL=${stopLossPrice} (-10%) | ATR=${atr.toFixed(4)}`);
 
   let ledgerId;
   try {
