@@ -218,11 +218,11 @@ export async function runEntryTimingCheck() {
       } else {
         result = await executeCh2BracketOrder(c);
       }
-      if (result?.status === "submitted" || result?.status === "filled") {
+      if (result?.ok) {
         entriesThisRun++;
-        console.log(`[ENTRY-TIMING] FIRED: ${c.ticker} (${c.signal_class}) — order ${result.status}`);
+        console.log(`[ENTRY-TIMING] FIRED: ${c.ticker} (${c.signal_class}) — orderId=${result.orderId}`);
       } else {
-        console.log(`[ENTRY-TIMING] ${c.ticker} (${c.signal_class}) — ${result?.status ?? "unknown"}: ${result?.exit_reason ?? ""}`);
+        console.log(`[ENTRY-TIMING] ${c.ticker} (${c.signal_class}) — rejected: ${result?.reason ?? "unknown"}`);
       }
     } catch (err) {
       console.error(`[ENTRY-TIMING] ${c.ticker} order failed: ${err.message}`);

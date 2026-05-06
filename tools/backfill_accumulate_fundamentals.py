@@ -45,9 +45,13 @@ SLEEP_BETWEEN_TICKERS = 0.8   # seconds — Polygon rate limit + yfinance fallba
 MAX_ATTEMPTS_PER_TICKER = 3
 
 # Fields required by Recommends 7-field filter
+# Fields required for trading decisions.
+# market_cap: CH2 $500M floor.  sector: CH3 epoch coupling.
+# gross_profit removed — no trading logic uses it, and Polygon/Yahoo
+# don't carry it for ~70% of tickers, causing 226/242 permanent failures.
 REQUIRED_FIELDS = [
     "market_cap", "current_ratio", "free_cash_flow",
-    "gross_margin", "gross_profit", "operating_cash_flow", "revenues",
+    "gross_margin", "operating_cash_flow", "revenues",
 ]
 
 
@@ -126,7 +130,6 @@ def _get_missing_tickers(conn) -> List[Dict[str, str]]:
             WHERE r.decision_label = 'Accumulate'
               AND (
                     f.ticker IS NULL
-                    OR f.gross_profit IS NULL
                     OR f.current_ratio IS NULL
                     OR f.free_cash_flow IS NULL
                     OR f.gross_margin IS NULL
