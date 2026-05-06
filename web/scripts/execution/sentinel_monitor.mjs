@@ -138,9 +138,8 @@ async function fetchOpenPositions() {
   const res = await pool.query(
     `SELECT id, ticker, shares, signal_class, alpaca_order_id,
             alpaca_take_profit_order_id, alpaca_stop_loss_order_id,
-            entry_filled_at, signal_detected_at, created_at,
-            take_profit_price, stop_loss_price, status,
-            avg_entry_price, cost_basis
+            entry_filled_at, entry_filled_price, signal_detected_at, created_at,
+            take_profit_price, stop_loss_price, status
      FROM personal_trade_ledger
      WHERE status IN ('submitted', 'filled')
        AND (signal_class IS NULL OR signal_class != 'manual')
@@ -505,7 +504,7 @@ export async function runSentinel() {
       // Must use Alpaca live price — DB has no current_price field.
       try {
         const alpacaCh2Pos = await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE).catch(() => null);
-        const costBasis = parseFloat(alpacaCh2Pos?.avg_entry_price ?? pos.avg_entry_price ?? "0");
+        const costBasis = parseFloat(alpacaCh2Pos?.avg_entry_price ?? pos.entry_filled_price ?? "0");
         const currentPrice = parseFloat(alpacaCh2Pos?.current_price ?? "0");
         if (costBasis > 0 && currentPrice > 0) {
           const gainPct = ((currentPrice / costBasis) - 1) * 100;
