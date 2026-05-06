@@ -154,11 +154,23 @@ async function fetchTodayCh3Tickers() {
   return new Set(res.rows.map(r => r.ticker));
 }
 
+async function fetchRecentCh3Losers() {
+  const res = await pool.query(
+    `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
+     FROM personal_trade_ledger
+     WHERE signal_class = 'CH3'
+       AND status = 'closed'
+       AND COALESCE(p_l, 0) < 0
+       AND updated_at >= NOW() - INTERVAL '7 days'`
+  );
+  return new Set(res.rows.map(r => r.ticker));
+}
+
 // ── Candidate selection ─────────────────────────────────────────────────
 
 /**
- * Fetch candidates from the FULL snapshot — not filtered by Accumulate.
- * Selection is purely by L4 coupled geometry proximity.
+ * Fetch Accumulate candidates with structural spike characteristics.
+ * Selection is by L4 coupled geometry proximity + kernel confidence.
  */
 async function fetchCandidateRows() {
   const res = await pool.query(
@@ -173,7 +185,7 @@ async function fetchCandidateRows() {
      WHERE r.ticker != 'SPY'
        AND r.ticker NOT LIKE 'I:%'
        AND r.ticker NOT LIKE 'X:%'
-       AND r.decision_label != 'Avoid'
+       AND r.decision_label = 'Accumulate'
        AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $1
        AND CAST(NULLIF(r.snapshot_row_json->>'R_rev_k', '') AS DOUBLE PRECISION) = 1
        AND CAST(NULLIF(r.snapshot_row_json->>'B_k', '') AS DOUBLE PRECISION) <= $2
@@ -338,9 +350,10 @@ export async function getCh3Signals() {
 
   console.log(`[CH3-HUNTER] ${rows.length} raw candidates → ${signals.length} passed L4 proximity filter`);
 
-  // Exclude tickers with existing positions or already traded today
+  // Exclude tickers with existing positions, already traded today, or recent losers
   const openTickers = await fetchOpenPositionTickers();
   const todayCh3Tickers = await fetchTodayCh3Tickers();
+  const recentLosers = await fetchRecentCh3Losers();
   const available = [];
   for (const s of signals) {
     if (openTickers.has(s.ticker)) {
@@ -349,6 +362,10 @@ export async function getCh3Signals() {
     }
     if (todayCh3Tickers.has(s.ticker)) {
       console.log(`[CH3-HUNTER]   ${s.ticker} — skipped (already traded today)`);
+      continue;
+    }
+    if (recentLosers.has(s.ticker)) {
+      console.log(`[CH3-HUNTER]   ${s.ticker} — skipped (lost money in last 7 days)`);
       continue;
     }
     available.push(s);

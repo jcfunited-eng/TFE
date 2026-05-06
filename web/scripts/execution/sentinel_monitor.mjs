@@ -550,6 +550,44 @@ export async function runSentinel() {
         // Non-fatal — continue to other exit checks
       }
 
+      // Exit H — Structural Harvest: extract energy while the getting is good.
+      // Don't wait for exhaustion — harvest once past the midpoint of the
+      // structural window AND profitable enough to justify the exit.
+      // The spring is more than half unwound. Take the energy on the table.
+      try {
+        const cached_h = (global._tauCache ?? {})[pos.ticker];
+        const tauOut_h = cached_h?.tau_out_days ?? 0;
+        if (tauOut_h > 0) {
+          const entryDate_h = pos.signal_detected_at ?? pos.created_at;
+          let posAge_h = 0;
+          if (entryDate_h) {
+            posAge_h = Math.floor((Date.now() - new Date(entryDate_h).getTime()) / (1000*60*60*24));
+          }
+          const energyUsed = posAge_h / tauOut_h; // 0 = just entered, 1 = fully spent
+
+          if (energyUsed >= 0.5) {
+            // Past midpoint — check if profitable enough to harvest
+            const alpacaHPos = await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE).catch(() => null);
+            const hEntry = parseFloat(alpacaHPos?.avg_entry_price ?? pos.entry_filled_price ?? "0");
+            const hCurrent = parseFloat(alpacaHPos?.current_price ?? "0");
+            if (hEntry > 0 && hCurrent > 0) {
+              const hGainPct = ((hCurrent / hEntry) - 1) * 100;
+              if (hGainPct >= 5.0) {
+                console.log(
+                  `[SENTINEL] CH2 EXIT-H ${pos.ticker} | structural harvest ` +
+                  `(gain=${hGainPct.toFixed(1)}% energy=${((1-energyUsed)*100).toFixed(0)}% remaining ` +
+                  `age=${posAge_h}d τ_out=${tauOut_h}d)`
+                );
+                await killPosition(pos, "ch2_exit_structural_harvest", ALPACA_BASE);
+                continue;
+              }
+            }
+          }
+        }
+      } catch (harvestErr) {
+        // Non-fatal — continue to τ_out check
+      }
+
       // Exit C — Exhaustion Timer (τ_out) — bar-level resolution
       // τ_in = consecutive TRADING DAYS D_k was compressed before expansion
       // τ_out = floor(τ_in / 3) = trading days of expansion energy
