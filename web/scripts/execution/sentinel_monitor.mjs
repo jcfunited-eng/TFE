@@ -138,8 +138,9 @@ async function fetchOpenPositions() {
   const res = await pool.query(
     `SELECT id, ticker, shares, signal_class, alpaca_order_id,
             alpaca_take_profit_order_id, alpaca_stop_loss_order_id,
-            entry_filled_at, signal_detected_at,
-            take_profit_price, stop_loss_price
+            entry_filled_at, signal_detected_at, created_at,
+            take_profit_price, stop_loss_price, status,
+            avg_entry_price, cost_basis
      FROM personal_trade_ledger
      WHERE status IN ('submitted', 'filled')
        AND (signal_class IS NULL OR signal_class != 'manual')
