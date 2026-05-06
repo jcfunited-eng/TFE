@@ -422,8 +422,13 @@ export async function runSentinel() {
   // position for a ticker, the DB record is stale (bracket exit, cancelled
   // order, or phantom entry). This was missing before May 6 2026 — caused
   // 27 zombie positions to persist for weeks across deploys.
+  // Debug: log first position's status to diagnose filtering
+  if (positions.length > 0) {
+    const p0 = positions[0];
+    console.log(`[SENTINEL] Zombie debug: pos[0].ticker=${p0.ticker} pos[0].status='${p0.status}' type=${typeof p0.status} keys=${Object.keys(p0).slice(0,15).join(',')}`);
+  }
   const openPositions = positions.filter(p => p.status === "filled" || p.status === "submitted");
-  console.log(`[SENTINEL] Zombie check: ${openPositions.length} open positions to verify against Alpaca`);
+  console.log(`[SENTINEL] Zombie check: ${openPositions.length} open positions to verify against Alpaca (total=${positions.length})`);
   for (const pos of openPositions) {
     try {
       await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE);
