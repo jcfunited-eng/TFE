@@ -509,11 +509,28 @@ export async function runSentinel() {
         if (costBasis > 0 && currentPrice > 0) {
           const gainPct = ((currentPrice / costBasis) - 1) * 100;
 
-          // Track max gain per position in global cache
-          if (!global._maxGainCache) global._maxGainCache = {};
+          // Track max gain per position — persisted to survive restarts
+          const MAX_GAIN_PATH = "/app/max_gain_cache.json";
+          if (!global._maxGainCache) {
+            try {
+              const { readFileSync, existsSync } = await import("fs");
+              if (existsSync(MAX_GAIN_PATH)) {
+                global._maxGainCache = JSON.parse(readFileSync(MAX_GAIN_PATH, "utf-8"));
+                console.log(`[SENTINEL] Max gain cache loaded: ${Object.keys(global._maxGainCache).length} entries`);
+              } else {
+                global._maxGainCache = {};
+              }
+            } catch { global._maxGainCache = {}; }
+          }
           const prevMax = global._maxGainCache[pos.ticker] ?? 0;
           const maxGain = Math.max(prevMax, gainPct);
-          global._maxGainCache[pos.ticker] = maxGain;
+          if (maxGain > prevMax) {
+            global._maxGainCache[pos.ticker] = maxGain;
+            try {
+              const { writeFileSync } = await import("fs");
+              writeFileSync(MAX_GAIN_PATH, JSON.stringify(global._maxGainCache), "utf-8");
+            } catch {}
+          }
 
           // Momentum-aware profit exit using τ_out energy ratio
           // High gain + exhausted energy = take profit now
