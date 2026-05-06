@@ -422,12 +422,14 @@ export async function runSentinel() {
   // order, or phantom entry). This was missing before May 6 2026 — caused
   // 27 zombie positions to persist for weeks across deploys.
   const openPositions = positions.filter(p => p.status === "filled" || p.status === "submitted");
+  console.log(`[SENTINEL] Zombie check: ${openPositions.length} open positions to verify against Alpaca`);
   for (const pos of openPositions) {
     try {
       await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE);
       // Position still open on Alpaca — no action needed
     } catch (e) {
       const msg = String(e.message);
+      console.log(`[SENTINEL] Zombie check ${pos.ticker}: Alpaca error — ${msg.slice(0, 150)}`);
       // Only act on definitive "not found" — not network errors
       if (!msg.includes("40410000") && !msg.toLowerCase().includes("position does not exist") && !msg.includes("404")) {
         continue; // transient error, skip
