@@ -173,6 +173,7 @@ async function fetchCandidateRows() {
      WHERE r.ticker != 'SPY'
        AND r.ticker NOT LIKE 'I:%'
        AND r.ticker NOT LIKE 'X:%'
+       AND r.decision_label != 'Avoid'
        AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $1
        AND CAST(NULLIF(r.snapshot_row_json->>'R_rev_k', '') AS DOUBLE PRECISION) = 1
        AND CAST(NULLIF(r.snapshot_row_json->>'B_k', '') AS DOUBLE PRECISION) <= $2
