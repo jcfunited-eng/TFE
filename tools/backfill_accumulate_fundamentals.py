@@ -104,7 +104,11 @@ def _ensure_extra_columns(conn) -> None:
 
 
 def _get_missing_tickers(conn) -> List[Dict[str, str]]:
-    """Return tickers that are Accumulate but missing complete fundamentals."""
+    """Return tickers that are Accumulate, missing data, AND not already exhausted.
+
+    Skip tickers where all 3 tiers (Polygon, Yahoo, Tavily) already failed
+    within the last 7 days. No point re-trying — the data doesn't exist.
+    """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute("""
             SELECT
@@ -118,7 +122,6 @@ def _get_missing_tickers(conn) -> List[Dict[str, str]]:
                     'Unknown'
                 ) AS sector_hint,
                 f.tavily_tried_at,
-                f.gross_profit,
                 f.current_ratio,
                 f.free_cash_flow,
                 f.gross_margin,
@@ -136,6 +139,10 @@ def _get_missing_tickers(conn) -> List[Dict[str, str]]:
                     OR f.operating_cash_flow IS NULL
                     OR f.revenues IS NULL
                     OR f.sector = 'Unknown'
+              )
+              AND (
+                    f.tavily_tried_at IS NULL
+                    OR f.tavily_tried_at < NOW() - INTERVAL '30 days'
               )
             ORDER BY r.ticker
         """)
@@ -528,6 +535,11 @@ def run() -> None:
                     print(f"  → [TAVILY] Error: {exc}", flush=True)
 
             _mark_tavily_tried(conn, ticker, tavily_found_fields if missing_fields else None)
+        elif is_data_missing and not tavily_already_tried:
+            # Tavily not available but data is missing — mark as tried so
+            # the 7-day cooldown kicks in and we stop retrying every cycle
+            _mark_tavily_tried(conn, ticker, None)
+            print(f"  → All sources exhausted — cooldown 7 days", flush=True)
         elif tavily_already_tried and is_data_missing:
             print(f"  → [TAVILY] Already tried — skipping", flush=True)
 
