@@ -497,6 +497,44 @@ export async function runSentinel() {
         continue;
       }
 
+      // ── Pre-fetch τ data from DB (used by EXIT-D, EXIT-H, EXIT-C) ────────
+      if (!global._tauCache) global._tauCache = {};
+      if (!global._tauCache[pos.ticker]) {
+        try {
+          const histRes = await pool.query(
+            `SELECT generated_at_utc::date AS day,
+                    CAST(NULLIF(snapshot_row_json->>'D_k','') AS DOUBLE PRECISION) AS d_k
+             FROM runtime_decisions_history
+             WHERE ticker = $1
+             ORDER BY generated_at_utc DESC
+             LIMIT 400`,
+            [pos.ticker]
+          );
+          const rows = histRes.rows;
+          if (rows.length > 1) {
+            const byDay = [];
+            const seen = new Set();
+            for (const r of rows) {
+              const d = String(r.day);
+              if (!seen.has(d)) { seen.add(d); byDay.push(r); }
+            }
+            let compressionDays = 0;
+            let phase = "expansion";
+            for (const r of byDay) {
+              if (phase === "expansion") {
+                if (r.d_k !== 1) { phase = "compression"; compressionDays++; }
+              } else {
+                if (r.d_k !== 1) { compressionDays++; }
+                else { break; }
+              }
+            }
+            const tauIn = compressionDays;
+            const tauOut = Math.floor(tauIn / 3);
+            global._tauCache[pos.ticker] = { tau_in_days: tauIn, tau_out_days: tauOut };
+          }
+        } catch { /* non-fatal */ }
+      }
+
       // Exit D — Trailing profit ratchet
       // Once gain exceeds 5%, set a rising floor that locks in profit.
       // Floor = max(0, (max_gain - 5%) * 0.5). Ratchets up only, never down.
@@ -605,45 +643,18 @@ export async function runSentinel() {
         // Non-fatal — continue to τ_out check
       }
 
-      // Exit C — Exhaustion Timer (τ_out) — bar-level resolution
-      // τ_in = consecutive TRADING DAYS D_k was compressed before expansion
-      // τ_out = floor(τ_in / 3) = trading days of expansion energy
-      //
-      // Uses backfill cache (tau_backfill_days.json) for bar-level accuracy.
-      // The DB (runtime_decisions_history) only has gate-level data which
-      // collapses months of compression into 1 gate — wrong unit of measure.
-      // The backfill ran the L0-L4 kernel on Polygon bars to get true day counts.
+      // Exit C — Exhaustion Timer (τ_out)
+      // τ already computed in pre-fetch above.
       try {
-        // Load backfill cache (computed by tfe_cold_start_backfill)
-        if (!global._tauCache) {
-          try {
-            const { readFileSync, existsSync } = await import("fs");
-            const tauPath = "/app/tau_backfill_days.json";
-            if (existsSync(tauPath)) {
-              const raw = readFileSync(tauPath, "utf-8");
-              global._tauCache = JSON.parse(raw);
-              console.log(`[SENTINEL] τ cache loaded: ${Object.keys(global._tauCache).length} entries`);
-            } else {
-              global._tauCache = {};
-            }
-          } catch {
-            global._tauCache = {};
-          }
-        }
-
-        const cached = global._tauCache[pos.ticker];
+        const cached = (global._tauCache ?? {})[pos.ticker];
         if (cached && cached.tau_out_days > 0) {
           const tauIn = cached.tau_in_days;
           const tauOut = cached.tau_out_days;
-          const expansionDays = cached.expansion_days ?? 0;
 
-          // Position age: days since entry
           const entryDate = pos.signal_detected_at ?? pos.created_at;
-          let positionAge = expansionDays; // fallback to backfill expansion count
+          let positionAge = 0;
           if (entryDate) {
-            const entryMs = new Date(entryDate).getTime();
-            const nowMs = Date.now();
-            positionAge = Math.floor((nowMs - entryMs) / (1000 * 60 * 60 * 24));
+            positionAge = Math.floor((Date.now() - new Date(entryDate).getTime()) / (1000*60*60*24));
           }
 
           if (positionAge > tauOut) {
@@ -660,14 +671,6 @@ export async function runSentinel() {
             `[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | ` +
             `τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d (${remaining}d remaining)`
           );
-        } else if (cached && cached.status === "EXPIRED") {
-          // Backfill already flagged this as expired
-          console.log(
-            `[SENTINEL] CH2 EXIT-C ${pos.ticker} | EXPIRED per backfill ` +
-            `(compressed ${cached.tau_in_days}d, budget ${cached.tau_out_days}d, expanded ${cached.expansion_days}d)`
-          );
-          await killPosition(pos, "ch2_exit_tau_exhaustion", ALPACA_BASE);
-          continue;
         } else {
           console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | no τ data`);
         }
