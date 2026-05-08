@@ -345,6 +345,54 @@ export async function runSentinel() {
   const equityNow = parseFloat(accountRaw?.equity ?? "0");
   console.log(`[SENTINEL] Open positions: ${positions.length} | SPY D_k: ${spyDk ?? "unknown"} | Equity: $${equityNow.toFixed(2)}`);
 
+  // ── Orphan sync: adopt Alpaca positions missing from the ledger ────────
+  // Runs once per container (not every cycle). Finds real positions on Alpaca
+  // that have no ledger row and inserts them so EXIT-F/H/C/D can manage them.
+  if (!global._orphanSyncDone) {
+    global._orphanSyncDone = true;
+    try {
+      const alpacaPositions = await alpacaGet("/v2/positions", ALPACA_BASE).catch(() => []);
+      if (Array.isArray(alpacaPositions) && alpacaPositions.length > 0) {
+        const ledgerTickers = new Set(positions.map(p => String(p.ticker).trim().toUpperCase()));
+        const orphans = alpacaPositions.filter(ap => !ledgerTickers.has(ap.symbol.trim().toUpperCase()));
+        if (orphans.length > 0) {
+          console.log(`[SENTINEL] Orphan sync: ${orphans.length} Alpaca positions not in ledger — adopting.`);
+          for (const ap of orphans) {
+            const ticker = ap.symbol.trim().toUpperCase();
+            const qty = parseInt(ap.qty, 10);
+            const entryPrice = parseFloat(ap.avg_entry_price);
+            try {
+              // Check if already in ledger (any open row for this ticker)
+              const existing = await pool.query(
+                `SELECT id FROM personal_trade_ledger
+                 WHERE UPPER(TRIM(ticker)) = $1 AND status IN ('submitted','filled')
+                 LIMIT 1`, [ticker]
+              );
+              if (existing.rows.length > 0) continue;
+              await pool.query(
+                `INSERT INTO personal_trade_ledger
+                   (ticker, run_id, signal_class, shares, status,
+                    entry_filled_price, entry_filled_at, signal_detected_at)
+                 VALUES ($1, 'orphan_sync', 'CH2', $2, 'filled', $3, NOW(), NOW())`,
+                [ticker, qty, entryPrice]
+              );
+              console.log(`[SENTINEL] Adopted orphan: ${ticker} qty=${qty} entry=$${entryPrice.toFixed(2)}`);
+            } catch (e) {
+              console.warn(`[SENTINEL] Orphan insert failed for ${ticker}: ${e.message}`);
+            }
+          }
+          // Re-fetch positions to include the newly adopted ones
+          const refreshed = await fetchOpenPositions();
+          positions.length = 0;
+          positions.push(...refreshed);
+          console.log(`[SENTINEL] Open positions after orphan sync: ${positions.length}`);
+        }
+      }
+    } catch (orphanErr) {
+      console.warn(`[SENTINEL] Orphan sync error: ${orphanErr.message}`);
+    }
+  }
+
   // Max drawdown circuit breaker check (runs before any per-position logic)
   if (equityNow > 0) {
     const ddCheck = await checkMaxDrawdown(equityNow).catch(e => {
