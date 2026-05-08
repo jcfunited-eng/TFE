@@ -58,36 +58,35 @@ endmodule
 // Ternary local field: sum of coupled trit contributions
 // ============================================================
 module arcloom_local_field #(
-    parameter N_INPUTS = 9  // number of input trits coupled to this trit
+    parameter N_INPUTS = 9,
+    parameter signed [31:0] DEAD_ZONE = 32'd20
 )(
-    input  wire [2*N_INPUTS-1:0] coupled_trits,  // packed trit inputs
-    input  wire [8*N_INPUTS-1:0] weights,        // packed signed weights
-    input  wire [7:0]            external_h,     // external field (from sensor)
-    output wire [1:0]            trit_out,       // settled trit value
-    output wire [15:0]           field_value     // for debug: raw field
+    input  wire [2*N_INPUTS-1:0]  coupled_trits,
+    input  wire [16*N_INPUTS-1:0] weights,       // 16-bit signed weights (3^i positional)
+    input  wire signed [15:0]     external_h,    // 16-bit signed external field
+    input  wire [7:0]             dead_zone_adj, // familiarity raises dead zone
+    output wire [1:0]             trit_out,
+    output wire signed [31:0]     field_value    // 32-bit for debug
 );
-    // Compute weighted sum of all coupled trits + external field
     integer i;
-    reg signed [15:0] total;
+    reg signed [31:0] total;
 
     always @(coupled_trits or weights or external_h) begin
-        total = {{8{external_h[7]}}, external_h};  // sign-extend external
+        total = {{16{external_h[15]}}, external_h};  // sign-extend 16→32
         for (i = 0; i < N_INPUTS; i = i + 1) begin
             case (coupled_trits[2*i +: 2])
-                2'b01:   total = total + {{8{weights[8*i+7]}}, weights[8*i +: 8]};
-                2'b10:   total = total - {{8{weights[8*i+7]}}, weights[8*i +: 8]};
-                default: ;  // null contributes nothing
+                2'b01:   total = total + {{16{weights[16*i+15]}}, weights[16*i +: 16]};
+                2'b10:   total = total - {{16{weights[16*i+15]}}, weights[16*i +: 16]};
+                default: ;
             endcase
         end
     end
 
-    // Dead zone: the ternary threshold
-    // If |field| < DEAD_ZONE, trit stays at 0 (null/undecided)
-    localparam signed [15:0] DEAD_ZONE = 16'd20;
+    wire signed [31:0] effective_dz = DEAD_ZONE + {24'd0, dead_zone_adj};
 
-    assign trit_out = (total > DEAD_ZONE)  ? 2'b01 :   // +1
-                      (total < -DEAD_ZONE) ? 2'b10 :    // -1
-                      2'b00;                              //  0 (null)
+    assign trit_out = (total > effective_dz)  ? 2'b01 :
+                      (total < -effective_dz) ? 2'b10 :
+                      2'b00;
 
     assign field_value = total;
 endmodule
@@ -113,18 +112,18 @@ module arcloom_bsil (
     output reg [5:0]   direction_strand, // 3 trits
     output reg [5:0]   accel_strand      // 3 trits
 );
-    // Threshold constants (12-bit ADC scale: 0-4095)
-    // Sharp GP2Y0A41SK0F calibrated April 23, 2026:
-    //   5cm=3030, 10cm=1611, 20cm=741, 30cm=452
-    // Trit 0: "something nearby?" — broad detection
-    localparam [11:0] DIST_LO_0 = 12'd550;   // >25cm = nothing (-1)
-    localparam [11:0] DIST_HI_0 = 12'd1400;  // <12cm = nearby (+1)
-    // Trit 1: "getting close?" — medium resolution
-    localparam [11:0] DIST_LO_1 = 12'd850;   // >18cm = far (-1)
-    localparam [11:0] DIST_HI_1 = 12'd2200;  // <8cm  = close (+1)
-    // Trit 2: "DANGER — about to hit?" — fine resolution
-    localparam [11:0] DIST_LO_2 = 12'd1400;  // >12cm = not danger (-1)
-    localparam [11:0] DIST_HI_2 = 12'd2800;  // <6cm  = DANGER (+1)
+    // Threshold constants — DSF-AI derived structural boundaries
+    // Source: L1 boundary clustering via tools/derive_sppu_weights.py
+    // NOT hand-approximated. Gaps between lo/hi are kernel-identified ambiguity.
+    // Trit 0 (coarse): "something ahead?"
+    localparam [11:0] DIST_LO_0 = 12'd446;
+    localparam [11:0] DIST_HI_0 = 12'd584;
+    // Trit 1 (medium): "getting close"
+    localparam [11:0] DIST_LO_1 = 12'd619;
+    localparam [11:0] DIST_HI_1 = 12'd818;
+    // Trit 2 (fine): "close/danger"
+    localparam [11:0] DIST_LO_2 = 12'd1006;
+    localparam [11:0] DIST_HI_2 = 12'd2406;
 
     localparam [11:0] DELTA_THRESH_0 = 12'd62;   // ~0.05V
     localparam [11:0] DELTA_THRESH_1 = 12'd186;  // ~0.15V
@@ -242,13 +241,17 @@ module arcloom_top (
     input  wire        clk,
     input  wire        rst_n,
 
-    // Sensor input (from XADC or external ADC)
-    input  wire [11:0] sensor_adc,
-    input  wire        sensor_valid,
+    // 3 sensor inputs (from XADC)
+    input  wire [11:0] sensor_adc_front,
+    input  wire        sensor_valid_front,
+    input  wire [11:0] sensor_adc_left,
+    input  wire        sensor_valid_left,
+    input  wire [11:0] sensor_adc_right,
+    input  wire        sensor_valid_right,
 
-    // Camera strands (from ARM via AXI — null when camera not connected)
-    input  wire [5:0]  cam_edge_strand,
-    input  wire [5:0]  cam_motion_strand,
+    // Software familiarity override
+    input  wire [7:0]  sw_familiarity,
+    input  wire        sw_fam_enable,
 
     // Decision output
     output wire [1:0]  decision_steer,
@@ -263,7 +266,7 @@ module arcloom_top (
     output wire        dsf_R_rev,
 
     // Monitor outputs (via AXI)
-    output wire [47:0] loom_state,
+    output wire [97:0] loom_state,
     output wire [4:0]  n_effective,
     output wire [7:0]  omega,
 
@@ -272,7 +275,10 @@ module arcloom_top (
     output wire [7:0]  krimelack_score,
     output wire        krimelack_recall_valid,
     output wire        krimelack_commit_accepted,
-    output wire        krimelack_commit_rejected
+    output wire        krimelack_commit_rejected,
+
+    // Debug: raw steer field value (signed 16-bit)
+    output wire signed [31:0] debug_steer_field
 );
 
     // Internal UF pipeline signals
@@ -281,16 +287,37 @@ module arcloom_top (
     wire        l0_boundary_w;
 
     // ================================================================
-    // BSIL: Binary Sensor → Ternary Strands (CLOCKED)
+    // BSIL-BT: Full Balanced Ternary Sensor Encoding (3 sensors)
+    // 8 trits per strand = 16 bits. Preserves full ADC gradient.
     // ================================================================
-    wire [5:0] dist_strand, dir_strand, accl_strand;
+    wire [15:0] front_dist, front_dir, front_accel;
+    wire        front_bsil_valid;
 
-    arcloom_bsil bsil_inst (
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd80)) bsil_front (
         .clk(clk), .rst_n(rst_n),
-        .adc_value(sensor_adc), .adc_valid(sensor_valid),
-        .distance_strand(dist_strand),
-        .direction_strand(dir_strand),
-        .accel_strand(accl_strand)
+        .adc_value(sensor_adc_front), .adc_valid(sensor_valid_front),
+        .bt_distance(front_dist), .bt_direction(front_dir),
+        .bt_acceleration(front_accel), .out_valid(front_bsil_valid)
+    );
+
+    wire [15:0] left_dist, left_dir, left_accel;
+    wire        left_bsil_valid;
+
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd111)) bsil_left (
+        .clk(clk), .rst_n(rst_n),
+        .adc_value(sensor_adc_left), .adc_valid(sensor_valid_left),
+        .bt_distance(left_dist), .bt_direction(left_dir),
+        .bt_acceleration(left_accel), .out_valid(left_bsil_valid)
+    );
+
+    wire [15:0] right_dist, right_dir, right_accel;
+    wire        right_bsil_valid;
+
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd144)) bsil_right (
+        .clk(clk), .rst_n(rst_n),
+        .adc_value(sensor_adc_right), .adc_valid(sensor_valid_right),
+        .bt_distance(right_dist), .bt_direction(right_dir),
+        .bt_acceleration(right_accel), .out_valid(right_bsil_valid)
     );
 
     // ================================================================
@@ -316,24 +343,56 @@ module arcloom_top (
     end
 
     // ================================================================
-    // SPPU: 8-Strand Loom Fabric (COMBINATIONAL — NO CLOCK)
+    // Damped Familiarity: coupling barrier on feedback path
+    // Match score changes must exceed FAM_DEADZONE to propagate.
+    // This prevents oscillation — small score fluctuations are absorbed.
+    // Same physics as the SPPU dead zone, applied to the feedback itself.
+    // ================================================================
+    localparam [7:0] FAM_DEADZONE = 8'd15;  // barrier for familiarity changes
+
+    reg [7:0] damped_fam;
+    reg [7:0] prev_match_score;
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            damped_fam       <= 8'd0;
+            prev_match_score <= 8'd0;
+        end else begin
+            prev_match_score <= krimelack_score;
+            // Only update familiarity when score change exceeds barrier
+            if (krimelack_score > prev_match_score + FAM_DEADZONE ||
+                prev_match_score > krimelack_score + FAM_DEADZONE) begin
+                damped_fam <= krimelack_score >> 2;  // scaled as before
+            end
+        end
+    end
+
+    // Familiarity source: Python override > damped hardware > zero
+    wire [7:0] active_familiarity = sw_fam_enable ? sw_familiarity : damped_fam;
+
+    // ================================================================
+    // SPPU: 8-trit Loom Fabric (COMBINATIONAL — NO CLOCK)
+    // 5 input strands × 8 trits + 2 settling × 3 + 1 decision × 3
     // ================================================================
     arcloom_sppu sppu_inst (
-        .in_distance(dist_strand),
-        .in_direction(dir_strand),
-        .in_accel(accl_strand),
-        .in_cam_edge(cam_edge_strand),
-        .in_cam_motion(cam_motion_strand),
-        .ext_h_ctx(8'd0),
-        .ext_h_mmtm(dsf_bias_mmtm),
-        .ext_h_dcsn(dsf_bias_dcsn),
+        .in_front_dist(front_dist),
+        .in_front_dir(front_dir),
+        .in_front_accel(front_accel),
+        .in_left_dist(left_dist),
+        .in_right_dist(right_dist),
+        .familiarity(active_familiarity),
+        .ext_h_ctx(16'd0),
+        .ext_h_mmtm({8'd0, dsf_bias_mmtm}),
+        .ext_h_steer(16'd0),
+        .ext_h_speed(-16'd800),          // "when in doubt, go forward" (300 margin past DZ_SPEED=500)
+        .ext_h_conf(16'd0),
         .loom_state(loom_state),
         .decision_steer(decision_steer),
         .decision_speed(decision_speed),
         .decision_conf(decision_conf),
         .field_ctx_0(), .field_ctx_1(), .field_ctx_2(),
         .field_mmtm_0(), .field_mmtm_1(), .field_mmtm_2(),
-        .field_dcsn_0(), .field_dcsn_1(), .field_dcsn_2()
+        .field_dcsn_0(debug_steer_field), .field_dcsn_1(), .field_dcsn_2()
     );
 
     // ================================================================
@@ -346,14 +405,16 @@ module arcloom_top (
     wire [31:0] resonance_proxy = (dsf_U_star <= 32'h00008000) ?
                                    32'h0000C000 : 32'h00004000;
 
+    // Krimelack uses bottom 48 bits of loom state (decision + settling + partial input)
+    // Full 98-bit motifs would waste BRAM. 48 bits captures the structural signature.
     arcloom_krimelack #(.TRIT_WIDTH(48), .DEPTH(32)) krimelack_inst (
         .clk(clk), .rst_n(rst_n),
         .commit_request(dsf_valid),
-        .state_in(loom_state),
+        .state_in(loom_state[47:0]),
         .u_star(dsf_U_star),
         .resonance(resonance_proxy),
         .safe_mode(dsf_safe_mode),
-        .query(loom_state),
+        .query(loom_state[47:0]),
         .best_match(recalled_motif),
         .match_score(krimelack_score),
         .recall_valid(krimelack_recall_valid),
@@ -365,11 +426,11 @@ module arcloom_top (
     // ================================================================
     // UF Pipeline: L0 → L1 → L2 → L3 → L4 (CLOCKED)
     // ================================================================
-    wire [31:0] f_norm_approx = {4'd0, sensor_adc, 16'd0};
+    wire [31:0] f_norm_approx = {4'd0, sensor_adc_front, 16'd0};
 
     arcloom_uf_pipeline uf_pipeline_inst (
         .clk(clk), .rst_n(rst_n),
-        .valid_in(sensor_valid),
+        .valid_in(sensor_valid_front),
         .F_norm_in(f_norm_approx),
         .dsf_valid(dsf_valid),
         .dsf_D(dsf_D),
@@ -386,10 +447,10 @@ module arcloom_top (
 
     // ================================================================
     // L6: Topological Constraint Layer (COMBINATIONAL)
-    // 24 trits, knee at 24/e ≈ 8.83 → KNEE=9
-    // SL-1 fires when 16+ of 24 trits are non-null
+    // 49 trits, knee at 49/e ≈ 18.03 → KNEE=18
+    // SL-1 fires when 31+ of 49 trits are non-null
     // ================================================================
-    arcloom_l6_tcl #(.N_TRITS(24), .KNEE(9)) l6_inst (
+    arcloom_l6_tcl #(.N_TRITS(49), .KNEE(18)) l6_inst (
         .loom_state(loom_state),
         .disruption_active(l0_boundary_w),
         .recovery_pending(dsf_safe_mode),

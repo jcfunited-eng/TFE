@@ -11,6 +11,7 @@
 // Target: PYNQ-Z2 (XC7Z020-1CLG400C)
 // ============================================================
 
+(* DONT_TOUCH = "TRUE" *)
 module arcloom_cam_clkgen (
     input  wire clk,      // 100MHz system clock
     input  wire rst_n,
