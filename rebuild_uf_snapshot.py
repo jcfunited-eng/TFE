@@ -379,11 +379,9 @@ def _build_universe(force_refresh_universe: bool) -> Tuple[List[Dict[str, str]],
         print(f"[UF-SNAPSHOT] WARNING: Failed to fetch index universe: {exc}")
         indexes = []
 
-    try:
-        crypto = get_crypto_tickers_from_universe(force_refresh=force_refresh_universe)
-    except Exception as exc:
-        print(f"[UF-SNAPSHOT] WARNING: Failed to fetch crypto universe: {exc}")
-        crypto = []
+    # Crypto tickers (X:*USD) skipped — Polygon plan doesn't include crypto.
+    # Each ticker burns a 403 + 30s retry, wasting minutes per refresh cycle.
+    crypto = []
 
     items: List[Dict[str, str]] = []
     seen: Set[str] = set()

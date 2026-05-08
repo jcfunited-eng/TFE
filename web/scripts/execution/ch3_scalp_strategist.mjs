@@ -1,34 +1,26 @@
 /**
  * web/scripts/execution/ch3_scalp_strategist.mjs
- * PEE-1 Chapter 3 — Accumulate Pullback Grab
+ * PEE-1 Chapter 3 — Accumulate Quick Grab
  *
- * Quick in-and-out cash grabs on Accumulate stocks in pullback.
- * The kernel already validated the stock (Accumulate = structurally sound).
- * D_k = -1 means it's temporarily contracting — that's the entry.
- * Grab 3%, stop 1.5%. Rapid fire, all day.
+ * Rapid in-and-out cash grabs on Accumulate stocks.
+ * The kernel's coupled decision IS the filter — no individual field gates.
+ * Grab 3%, stop 1.5%. Rapid fire, all day, every day.
  *
  * Selection (ALL must be true):
  *   1. decision_label = 'Accumulate'  — kernel says good stock
- *   2. D_k = -1                       — currently contracting (pullback)
- *   3. bar_count > 20                 — established stock
- *   4. No existing position on this ticker (any channel)
- *   5. Not already traded today by CH3
- *   6. No loss on this ticker in last 7 days
- *   7. Pool has funds remaining
- *   8. Daily loss limit not hit
- *   9. Epoch sector not ADVERSE
+ *   2. bar_count > 20                 — established stock
+ *   3. No existing position on this ticker (any channel)
+ *   4. Not already traded today by CH3
+ *   5. No loss on this ticker in last 7 days
+ *   6. Pool has funds remaining
+ *   7. Daily loss limit not hit
+ *   8. Epoch sector not ADVERSE
  *
- * Exit (enforced by Alpaca bracket order):
+ * Exit:
  *   TAKE PROFIT: entry × 1.03  (+3% grab)
- *   STOP LOSS:   entry × 0.985 (-1.5% cut fast)
+ *   STOP LOSS:   entry × 0.985 (-1.5% cut fast, EXIT-F backs this up)
  *
- * Pool rules:
- *   - $5,000 scalp pool
- *   - Max $2,500 per trade
- *   - Daily loss limit: $1,000
- *
- * Backtested on 48 Accumulate stocks, 3yr history, 69 D_k=-1 entries:
- *   Asymmetric 3%/1.5%: WR=54%, PF=2.31, ~$875/mo on $5K pool
+ * Pool: $5K total, $2.5K per trade, $1K daily loss limit
  */
 
 import pg from "pg";
@@ -123,9 +115,9 @@ async function fetchRecentCh3Losers() {
 // ── Candidate selection ─────────────────────────────────────────────────
 
 /**
- * Fetch Accumulate stocks in pullback (D_k = -1).
- * The kernel says these are good stocks. D_k = -1 means they're
- * temporarily contracting — that's the entry for a quick grab.
+ * Fetch all Accumulate stocks with structural history.
+ * The kernel's coupled decision is the filter. No D_k gate.
+ * Sorted by S_UF so highest structural stability picks first.
  */
 async function fetchCandidateRows() {
   const res = await pool.query(
@@ -141,7 +133,6 @@ async function fetchCandidateRows() {
        AND r.ticker NOT LIKE 'I:%'
        AND r.ticker NOT LIKE 'X:%'
        AND r.decision_label = 'Accumulate'
-       AND CAST(NULLIF(r.snapshot_row_json->>'D_k', '') AS DOUBLE PRECISION) = -1
        AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $1
      ORDER BY CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) DESC
      LIMIT 50`,
@@ -289,7 +280,7 @@ export async function getCh3Signals() {
   const rows = await fetchCandidateRows();
   const signals = rows.map(parseSignal).filter(Boolean);
 
-  console.log(`[CH3-HUNTER] ${rows.length} raw candidates (Accumulate + D_k=-1) → ${signals.length} passed filters`);
+  console.log(`[CH3-HUNTER] ${rows.length} Accumulate candidates → ${signals.length} passed filters`);
 
   // Exclude tickers with existing positions, already traded today, or recent losers
   const openTickers = await fetchOpenPositionTickers();
