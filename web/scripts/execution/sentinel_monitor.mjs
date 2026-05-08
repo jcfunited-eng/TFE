@@ -475,6 +475,58 @@ export async function runSentinel() {
   // Per-position checks (skip cancelled or already-closed records)
   for (const pos of positions) {
     if (pos.status === "cancelled" || pos.status === "closed") continue;
+
+    // ── EXIT-F: Catastrophic Floor ─────────────────────────────────────
+    // Runs FIRST, before any structural check. Insurance against price
+    // collapse when structural fields still say "fine."
+    // Bracket orders use DAY TIF and expire after day 1 — this is the
+    // permanent replacement. Does not depend on τ, D_k, S_UF, or any
+    // structural field. Pure price-based disaster protection.
+    try {
+      const signalClassRaw = String(pos.signal_class ?? "").trim().toUpperCase();
+      const catastrophicPct = signalClassRaw === "CH3" ? -0.015 : -0.10;
+      const catastrophicLabel = signalClassRaw === "CH3"
+        ? "ch3_catastrophic_floor" : "ch2_catastrophic_floor";
+
+      // Skip same-day entries — give thesis at least 1 day
+      const entryTime = pos.entry_filled_at ?? pos.signal_detected_at ?? pos.created_at;
+      const entryDate = entryTime ? new Date(entryTime) : null;
+      const posAgeDays = entryDate
+        ? Math.floor((Date.now() - entryDate.getTime()) / (1000 * 60 * 60 * 24))
+        : 999; // unknown age → don't skip
+
+      if (posAgeDays >= 1) {
+        const alpacaFloorPos = await alpacaGet(
+          `/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE
+        ).catch(() => null);
+
+        if (alpacaFloorPos) {
+          const floorEntry = parseFloat(
+            alpacaFloorPos.avg_entry_price ?? pos.entry_filled_price ?? "0"
+          );
+          const floorCurrent = parseFloat(alpacaFloorPos.current_price ?? "0");
+
+          if (floorEntry > 0 && floorCurrent > 0) {
+            const floorLoss = (floorCurrent - floorEntry) / floorEntry;
+
+            if (floorLoss <= catastrophicPct) {
+              console.log(
+                `[SENTINEL] EXIT-F ${pos.ticker} | catastrophic floor ` +
+                `(loss=${(floorLoss * 100).toFixed(1)}% threshold=${(catastrophicPct * 100).toFixed(1)}% ` +
+                `entry=$${floorEntry.toFixed(2)} current=$${floorCurrent.toFixed(2)} age=${posAgeDays}d)`
+              );
+              await killPosition(pos, catastrophicLabel, ALPACA_BASE);
+              continue;
+            }
+          }
+        }
+      }
+    } catch (floorErr) {
+      // Non-fatal — continue to structural checks. Log so we know if
+      // the floor check itself is failing.
+      console.warn(`[SENTINEL] EXIT-F error for ${pos.ticker}: ${floorErr.message}`);
+    }
+
     const fields = await fetchStructuralFields(pos.ticker);
     const signalClass = String(pos.signal_class ?? "").trim().toUpperCase();
 
