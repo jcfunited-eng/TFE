@@ -64,12 +64,12 @@ function updateAuthUI() {
         <a href="#" id="sign-out-link" class="nav-auth" style="margin-left:0.5rem;font-size:0.8rem;">Sign Out</a>
       </span>`;
 
-    // Account link — show credits
+    // Account link — go to account page
     const accountLink = document.getElementById('account-link');
     if (accountLink) {
-      accountLink.addEventListener('click', async (e) => {
+      accountLink.addEventListener('click', (e) => {
         e.preventDefault();
-        showAccountInfo(clerk.user.id);
+        window.location.href = '/static/account.html';
       });
     }
 
