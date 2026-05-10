@@ -24,11 +24,8 @@ from uf_core.layer2 import interpret_gates
 
 # SES/SCE imports for internal state encryption
 try:
-    from ses_core.envelope import Envelope, EnvelopeService
-    from ses_core.aead_backend import AESGCMBackend
-    from ses_core.key_derivation import KeyDerivationService
-    from ses_core.domain_params import DomainParameters
-    from ses_core.chain_of_custody import ChainOfCustodyService, ChainOfCustodyEvent
+    from ses_core.envelope import Envelope
+    from ses_core.aead_backend import SCESIVBackend
     SES_AVAILABLE = True
 except ImportError:
     SES_AVAILABLE = False
@@ -59,7 +56,7 @@ def _encrypt_internal_state(internal_state: Dict, data_hash: str) -> Dict:
         # Derive a 256-bit key from root key + data hash
         root_key = hashlib.sha256(SES_ROOT_KEY.encode()).digest()
         derived_key = hashlib.sha256(root_key + data_hash.encode()).digest()
-        backend = AESGCMBackend()
+        backend = SCESIVBackend()
         nonce = os.urandom(12)
 
         # Associated data binds this envelope to this specific analysis
@@ -69,6 +66,8 @@ def _encrypt_internal_state(internal_state: Dict, data_hash: str) -> Dict:
             'data_hash': data_hash,
         }).encode('utf-8')
 
+        # SCE-SIV: structural engine generates keystream from mosaic
+        # extraction — the full SCE pipeline, not legacy AES-GCM
         ciphertext = backend.encrypt(
             key=derived_key,
             nonce=nonce,
@@ -82,7 +81,7 @@ def _encrypt_internal_state(internal_state: Dict, data_hash: str) -> Dict:
             region='us-east-1',
             purpose='analysis-internal-state',
             version='1.0',
-            algorithm='aes-gcm',
+            algorithm='sce-siv-v1',
             created_at=datetime.now(timezone.utc).isoformat(),
             nonce=Envelope._b64encode(nonce),
             key_id=f'dsf-ai:analysis:{data_hash[:16]}',
@@ -111,6 +110,13 @@ def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
     The customer gets: transitions, precursors, regimes, uncertainty.
     Internal computation state never leaves this function.
     """
+    # T2: Verify code integrity before every analysis
+    from dsf_ai_service.integrity import verify_integrity, is_compromised
+    if is_compromised():
+        return {'status': 'error', 'error': 'Service integrity check failed. Contact support.'}
+    integrity = verify_integrity()
+    if not integrity['intact']:
+        return {'status': 'error', 'error': 'Service integrity check failed. Contact support.'}
     # Build field series
     series = build_field_series(pairs, name='measurement')
 

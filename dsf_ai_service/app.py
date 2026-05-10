@@ -28,6 +28,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 from dsf_ai_service.kernel_runner import run_analysis
+from dsf_ai_service.integrity import initialize_integrity, get_integrity_status
 from dsf_ai_service.cluster_screener import (
     predict_cluster,
     screen_clusters,
@@ -208,6 +209,17 @@ async def thermocouple(req: ThermocoupleRequest):
 # Health check
 # ════════════════════════════════════════════════════════════════
 
+@app.on_event("startup")
+async def startup():
+    result = initialize_integrity()
+    print(f"[DSF-AI] Integrity initialized: {result['files_present']}/{result['files_checked']} files hashed")
+
+
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "dsf-ai", "version": "1.0.0"}
+    return {
+        "status": "ok",
+        "service": "dsf-ai",
+        "version": "1.0.0",
+        "integrity": get_integrity_status(),
+    }
