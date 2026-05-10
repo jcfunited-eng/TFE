@@ -77,6 +77,24 @@ nav a:hover { color: var(--accent); }
   align-items: center;
 }
 
+.user-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.user-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
 /* ── Hero ───────────────────────────────────────────── */
 .hero {
   text-align: center;

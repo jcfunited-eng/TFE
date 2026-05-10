@@ -53,8 +53,23 @@ function updateAuthUI() {
   if (!clerk) return;
 
   if (clerk.user) {
-    userBtnEl.innerHTML = '';
-    clerk.mountUserButton(userBtnEl);
+    // Show user info + sign out link
+    const name = clerk.user.firstName || clerk.user.emailAddresses?.[0]?.emailAddress || 'Account';
+    const img = clerk.user.imageUrl;
+    userBtnEl.innerHTML = `
+      <span class="user-info">
+        ${img ? `<img src="${img}" class="user-avatar" alt="">` : ''}
+        <span class="user-name">${name}</span>
+        <a href="#" id="sign-out-link" class="nav-auth" style="margin-left:0.5rem;font-size:0.8rem;">Sign Out</a>
+      </span>`;
+    const signOutLink = document.getElementById('sign-out-link');
+    if (signOutLink) {
+      signOutLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await clerk.signOut();
+        location.reload();
+      });
+    }
   } else {
     showSignInFallback();
   }
