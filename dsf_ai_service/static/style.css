@@ -63,6 +63,20 @@ nav a {
 
 nav a:hover { color: var(--accent); }
 
+.nav-auth {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 1.5rem;
+  font-size: 0.9rem;
+}
+
+#user-button {
+  margin-left: 1rem;
+  display: inline-flex;
+  align-items: center;
+}
+
 /* ── Hero ───────────────────────────────────────────── */
 .hero {
   text-align: center;
@@ -196,6 +210,10 @@ nav a:hover { color: var(--accent); }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.9rem;
+  background: #fff;
+  cursor: text;
+  position: relative;
+  z-index: 10;
 }
 
 .status {
@@ -213,9 +231,16 @@ nav a:hover { color: var(--accent); }
 
 .result-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
+}
+
+.file-selected {
+  font-weight: 600;
+  color: var(--success);
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
 }
 
 .card {
@@ -224,6 +249,8 @@ nav a:hover { color: var(--accent); }
   border-radius: var(--radius);
   padding: 1.25rem;
   box-shadow: var(--shadow);
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .card h4 {
@@ -447,22 +474,36 @@ footer {
 .regime-TRANSITIONAL { background: var(--warning); }
 .regime-DEGENERATE { background: #6b7280; }
 
-.regime-legend {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
+.regime-list {
+  margin-top: 0.5rem;
 }
 
-.regime-legend span::before {
-  content: '';
-  display: inline-block;
+.regime-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.regime-row:last-child { border-bottom: none; }
+
+.regime-dot {
   width: 10px;
   height: 10px;
   border-radius: 2px;
-  margin-right: 4px;
-  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.regime-dot.regime-STABLE { background: var(--success); }
+.regime-dot.regime-VOLATILE { background: #dc2626; }
+.regime-dot.regime-TRANSITIONAL { background: var(--warning); }
+.regime-dot.regime-DEGENERATE { background: #6b7280; }
+
+.regime-range {
+  margin-left: auto;
+  color: var(--text-muted);
 }
 
 /* ── Responsive ─────────────────────────────────────── */

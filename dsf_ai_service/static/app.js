@@ -2,10 +2,100 @@
    DSF-AI Frontend — plain JS, no framework
    ════════════════════════════════════════════════════════ */
 
-const API = 'https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
+const API = 'http://100.55.90.161:8080';
+const FREE_ANALYSIS_KEY = 'dsf_ai_free_used';
 
 let selectedFile = null;
 let lastReport = null;
+let clerkReady = false;
+
+// ── Clerk Auth ─────────────────────────────────────────
+async function initClerk() {
+  // Wait for the Clerk script to finish loading
+  let attempts = 0;
+  while (!window.Clerk && attempts < 30) {
+    await new Promise(r => setTimeout(r, 200));
+    attempts++;
+  }
+
+  try {
+    const clerk = window.Clerk;
+    if (!clerk) {
+      console.log('Clerk not available after waiting');
+      showSignInFallback();
+      return;
+    }
+    await clerk.load({ appearance: {} });
+    clerkReady = true;
+
+    updateAuthUI();
+    clerk.addListener(() => updateAuthUI());
+  } catch (e) {
+    console.log('Clerk init error:', e.message);
+    showSignInFallback();
+  }
+}
+
+function updateAuthUI() {
+  const userBtnEl = document.getElementById('user-button');
+  const clerk = window.Clerk;
+  if (!clerk) return;
+
+  if (clerk.user) {
+    userBtnEl.innerHTML = '';
+    clerk.mountUserButton(userBtnEl);
+  } else {
+    showSignInFallback();
+  }
+}
+
+function showSignInFallback() {
+  const userBtnEl = document.getElementById('user-button');
+  userBtnEl.innerHTML = '<a href="#" id="sign-in-link" class="nav-auth">Sign In</a>';
+  const link = document.getElementById('sign-in-link');
+  if (link) {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (clerkReady && window.Clerk) {
+        window.Clerk.openSignIn();
+      } else {
+        alert('Authentication is loading. Please try again in a moment.');
+      }
+    });
+  }
+}
+
+function isLoggedIn() {
+  return clerkReady && window.Clerk && window.Clerk.user;
+}
+
+function hasFreeAnalysis() {
+  return !localStorage.getItem(FREE_ANALYSIS_KEY);
+}
+
+function markFreeUsed() {
+  localStorage.setItem(FREE_ANALYSIS_KEY, 'true');
+}
+
+async function requireAuth() {
+  // First analysis is free
+  if (hasFreeAnalysis()) return true;
+
+  // After that, must be logged in
+  if (isLoggedIn()) return true;
+
+  // Prompt sign-in
+  if (clerkReady && window.Clerk) {
+    window.Clerk.openSignIn();
+    return false;
+  }
+
+  // Clerk not loaded — allow anyway (graceful degradation)
+  return true;
+}
+
+// Initialize Clerk when DOM is ready
+document.addEventListener('DOMContentLoaded', initClerk);
 
 // ── CSV Upload ─────────────────────────────────────────
 const dropzone = document.getElementById('dropzone');
@@ -13,7 +103,11 @@ const fileInput = document.getElementById('csv-file');
 const analyzeBtn = document.getElementById('analyze-btn');
 const statusEl = document.getElementById('analyze-status');
 
-dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('click', (e) => {
+  // Don't trigger file picker if clicking on the context input or other interactive elements
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') return;
+  fileInput.click();
+});
 
 dropzone.addEventListener('dragover', (e) => {
   e.preventDefault();
@@ -45,13 +139,21 @@ function selectFile(file) {
     return;
   }
   selectedFile = file;
-  statusEl.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  // Show filename in the dropzone
+  const fileNameEl = document.getElementById('file-name');
+  fileNameEl.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  fileNameEl.hidden = false;
+  statusEl.textContent = '';
   statusEl.className = 'status';
   analyzeBtn.disabled = false;
 }
 
 analyzeBtn.addEventListener('click', async () => {
   if (!selectedFile) return;
+
+  // Auth gate
+  const allowed = await requireAuth();
+  if (!allowed) return;
 
   analyzeBtn.disabled = true;
   statusEl.textContent = 'Analyzing...';
@@ -81,6 +183,7 @@ analyzeBtn.addEventListener('click', async () => {
     const report = await resp.json();
     lastReport = report;
     displayReport(report);
+    markFreeUsed();
     statusEl.textContent = '';
   } catch (e) {
     if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
@@ -123,15 +226,14 @@ function displayReport(r) {
     });
 
     barHtml += '</div>';
-    regimeSet.forEach(regime => {
-      legendHtml += `<span class="legend-${regime}">${regime}: `;
-      const segs = r.regime_map.filter(s => s.regime === regime);
-      legendHtml += segs.map(s => `${s.start}-${s.end}`).join(', ');
-      legendHtml += '</span>';
-    });
-    legendHtml += '</div>';
 
-    regEl.innerHTML = barHtml + legendHtml;
+    let listHtml = '<div class="regime-list">';
+    r.regime_map.forEach(seg => {
+      listHtml += `<div class="regime-row"><span class="regime-dot regime-${seg.regime}"></span><strong>${seg.regime}</strong><span class="regime-range">${seg.start} — ${seg.end}</span></div>`;
+    });
+    listHtml += '</div>';
+
+    regEl.innerHTML = barHtml + listHtml;
   } else {
     regEl.textContent = 'No regime data.';
   }
@@ -167,7 +269,8 @@ function displayReport(r) {
 
   // Meta
   document.getElementById('result-points').textContent = `${r.data_points} data points`;
-  document.getElementById('result-gates').textContent = `${r.n_gates} structural gates`;
+  const segs = r.structural_segments || r.n_gates || '';
+  document.getElementById('result-gates').textContent = segs ? `${segs} structural segments` : '';
   document.getElementById('result-time').textContent = r.compute_time_s ? `${r.compute_time_s}s` : '';
 }
 
@@ -190,6 +293,10 @@ document.getElementById('cluster-btn').addEventListener('click', async () => {
   const lattice = document.getElementById('cluster-lattice').value;
   const btn = document.getElementById('cluster-btn');
 
+  // Auth gate
+  const allowed = await requireAuth();
+  if (!allowed) return;
+
   btn.disabled = true;
   btn.textContent = 'Predicting...';
 
@@ -207,6 +314,7 @@ document.getElementById('cluster-btn').addEventListener('click', async () => {
 
     const r = await resp.json();
     displayCluster(r);
+    markFreeUsed();
   } catch (e) {
     alert(`Error: ${e.message}`);
   }

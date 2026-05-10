@@ -124,7 +124,7 @@ def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
         'data_points': len(pairs),
         'stimulus_range': [round(stim_min, 4), round(stim_max, 4)],
         'measurement_range': [round(float(series.min()), 6), round(float(series.max()), 6)],
-        'n_gates': n_gates,
+        'structural_segments': n_gates,
         'transitions': transitions,
         'precursor_onset': precursor_onset,
         'regime_map': regime_spans,

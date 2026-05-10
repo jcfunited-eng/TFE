@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DSF-AI — Structural Analysis Service</title>
   <link rel="stylesheet" href="/static/style.css">
+  <script async
+    data-clerk-publishable-key="pk_test_cG9saXNoZWQta29hbGEtODcuY2xlcmsuYWNjb3VudHMuZGV2JA"
+    src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+    crossorigin="anonymous"
+  ></script>
 </head>
 <body>
 
@@ -16,6 +21,7 @@
       <a href="#cluster">Cluster Screener</a>
       <a href="#example">Example</a>
       <a href="#pricing">Pricing</a>
+      <span id="user-button"></span>
     </nav>
   </div>
 </header>
@@ -44,10 +50,11 @@
     <p>Drop your CSV here or <label for="csv-file" class="file-label">browse</label></p>
     <input type="file" id="csv-file" accept=".csv" hidden>
     <p class="upload-hint">Two columns. First analysis free. Max 10 MB.</p>
+    <p id="file-name" class="file-selected" hidden></p>
   </div>
 
   <div class="context-row">
-    <input type="text" id="context-input" placeholder="Optional: what kind of data is this? (e.g., 'R(T) for a thin film sample')">
+    <input type="text" id="context-input" placeholder="Optional: what kind of data is this? (e.g., 'temperature vs resistance for a thin film')">
   </div>
 
   <button id="analyze-btn" class="btn btn-primary" disabled>Analyze</button>
@@ -200,12 +207,12 @@
         <li>Transition at <strong>93K</strong> (confirmed)</li>
         <li>Precursor onset at <strong>106K</strong> — structural changes begin 13K before the transition</li>
         <li>Uncertainty peaks at <strong>0.667</strong> exactly at the transition — maximum structural ambiguity</li>
-        <li>VOLATILE regime from 78K to 106K — the kernel sees the transition coming</li>
+        <li>VOLATILE regime from 78K to 106K — DSF-AI sees the transition coming</li>
       </ul>
     </div>
     <div class="card">
       <h4>What Standard Analysis Misses</h4>
-      <p>The pseudogap / superconducting fluctuation regime above T<sub>c</sub>. It took the physics community a decade and specialized probes (ARPES, NMR, tunneling) to characterize this region. The kernel found it from the R(T) curve alone.</p>
+      <p>The pseudogap / superconducting fluctuation regime above T<sub>c</sub>. It took the physics community a decade and specialized probes (ARPES, NMR, tunneling) to characterize this region. DSF-AI found it from the R(T) curve alone.</p>
     </div>
     <div class="card">
       <h4>6 Materials Tested</h4>
@@ -218,7 +225,7 @@
         <tr><td>BaTiO<sub>3</sub></td><td>FE at 393K</td><td>Yes</td></tr>
         <tr><td>FeSe/STO</td><td>SC at 65K</td><td>Yes</td></tr>
       </table>
-      <p class="table-note">Same kernel. Zero physics assumptions. No per-material tuning.</p>
+      <p class="table-note">Same engine. Zero physics assumptions. No per-material tuning.</p>
     </div>
   </div>
 </section>
@@ -256,7 +263,7 @@
 <!-- FOOTER -->
 <!-- ════════════════════════════════════════════════════════ -->
 <footer>
-  <p>DSF-AI &copy; 2026. Structural analysis powered by the UF-Core kernel.</p>
+  <p>DSF-AI &copy; 2026. Universal structural analysis service.</p>
   <p class="footer-note">The analysis engine is proprietary. Results are factual observations. <a href="mailto:contact@dsf-ai.com">Contact</a></p>
 </footer>
 
