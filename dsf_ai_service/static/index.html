@@ -5,11 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DSF-AI — Structural Analysis Service</title>
   <link rel="stylesheet" href="/static/style.css">
-  <script async
-    data-clerk-publishable-key="pk_test_cG9saXNoZWQta29hbGEtODcuY2xlcmsuYWNjb3VudHMuZGV2JA"
-    src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
-    crossorigin="anonymous"
-  ></script>
+  <script>
+    // Load Clerk with UI components
+    const CLERK_PK = 'pk_test_cG9saXNoZWQta29hbGEtODcuY2xlcmsuYWNjb3VudHMuZGV2JA';
+    (async () => {
+      const { Clerk } = await import('https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/+esm');
+      const clerk = new Clerk(CLERK_PK);
+      await clerk.load();
+      window.Clerk = clerk;
+      window.dispatchEvent(new Event('clerk-loaded'));
+    })();
+  </script>
 </head>
 <body>
 

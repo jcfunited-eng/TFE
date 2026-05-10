@@ -11,21 +11,26 @@ let clerkReady = false;
 
 // ── Clerk Auth ─────────────────────────────────────────
 async function initClerk() {
-  // Wait for the Clerk script to finish loading
-  let attempts = 0;
-  while (!window.Clerk && attempts < 30) {
-    await new Promise(r => setTimeout(r, 200));
-    attempts++;
+  // Show sign-in link immediately
+  showSignInFallback();
+
+  // If Clerk already loaded, use it; otherwise wait for event
+  if (window.Clerk) {
+    clerkReady = true;
+  } else {
+    await new Promise(resolve => {
+      window.addEventListener('clerk-loaded', resolve, { once: true });
+      // Timeout after 10s
+      setTimeout(resolve, 10000);
+    });
   }
 
   try {
     const clerk = window.Clerk;
     if (!clerk) {
-      console.log('Clerk not available after waiting');
-      showSignInFallback();
+      console.log('Clerk not available');
       return;
     }
-    await clerk.load({ appearance: {} });
     clerkReady = true;
 
     updateAuthUI();
@@ -56,12 +61,26 @@ function showSignInFallback() {
   if (link) {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      if (clerkReady && window.Clerk) {
-        window.Clerk.openSignIn();
-      } else {
-        alert('Authentication is loading. Please try again in a moment.');
-      }
+      doSignIn();
     });
+  }
+}
+
+function doSignIn() {
+  if (clerkReady && window.Clerk) {
+    // Try modal first
+    try {
+      window.Clerk.openSignIn({
+        redirectUrl: window.location.href,
+        afterSignInUrl: window.location.href,
+      });
+    } catch (err) {
+      // Fallback: redirect to Clerk's hosted sign-in
+      console.log('Modal failed, using redirect:', err.message);
+      window.Clerk.redirectToSignIn({ redirectUrl: window.location.href });
+    }
+  } else {
+    alert('Authentication is loading. Please try again in a moment.');
   }
 }
 
@@ -86,7 +105,7 @@ async function requireAuth() {
 
   // Prompt sign-in
   if (clerkReady && window.Clerk) {
-    window.Clerk.openSignIn();
+    doSignIn();
     return false;
   }
 
