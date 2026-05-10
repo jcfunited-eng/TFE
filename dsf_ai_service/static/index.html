@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSF-AI — Structural Analysis Service</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1 class="logo">DSF<span class="logo-ai">-AI</span></h1>
+    <nav>
+      <a href="#analyze">Analyze</a>
+      <a href="#cluster">Cluster Screener</a>
+      <a href="#example">Example</a>
+      <a href="#pricing">Pricing</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- HERO -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <h2>Upload your measurement data.<br>Get structural analysis in 60 seconds.</h2>
+  <p class="hero-sub">Phase transitions. Precursors. Regime maps. From any measurement type. No physics knowledge required.</p>
+  <div class="hero-actions">
+    <a href="#analyze" class="btn btn-primary">Analyze a CSV</a>
+    <a href="#cluster" class="btn btn-secondary">Screen Clusters</a>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- TAB 1: CSV ANALYSIS -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section id="analyze" class="section">
+  <h2>Structural Analysis</h2>
+  <p>Upload a two-column CSV (stimulus, measurement). Temperature vs resistance, pressure vs volume, time vs voltage — anything.</p>
+
+  <div class="upload-area" id="dropzone">
+    <div class="upload-icon">&#x1F4C4;</div>
+    <p>Drop your CSV here or <label for="csv-file" class="file-label">browse</label></p>
+    <input type="file" id="csv-file" accept=".csv" hidden>
+    <p class="upload-hint">Two columns. First analysis free. Max 10 MB.</p>
+  </div>
+
+  <div class="context-row">
+    <input type="text" id="context-input" placeholder="Optional: what kind of data is this? (e.g., 'R(T) for a thin film sample')">
+  </div>
+
+  <button id="analyze-btn" class="btn btn-primary" disabled>Analyze</button>
+  <div id="analyze-status" class="status"></div>
+
+  <!-- Results -->
+  <div id="analyze-results" class="results" hidden>
+    <h3>Results</h3>
+
+    <div class="result-cards">
+      <div class="card">
+        <h4>Transitions</h4>
+        <div id="result-transitions"></div>
+      </div>
+      <div class="card">
+        <h4>Regime Map</h4>
+        <div id="result-regimes"></div>
+      </div>
+      <div class="card">
+        <h4>Precursor</h4>
+        <div id="result-precursor"></div>
+      </div>
+      <div class="card">
+        <h4>Uncertainty Peak</h4>
+        <div id="result-uncertainty"></div>
+      </div>
+    </div>
+
+    <div id="result-narrative" class="narrative" hidden>
+      <h4>Analysis Summary</h4>
+      <p id="narrative-text"></p>
+    </div>
+
+    <div class="result-meta">
+      <span id="result-points"></span>
+      <span id="result-gates"></span>
+      <span id="result-time"></span>
+    </div>
+
+    <div class="download-row">
+      <button id="download-json" class="btn btn-small">Download JSON</button>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- TAB 2: CLUSTER SCREENER -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section id="cluster" class="section section-alt">
+  <h2>Nanoparticle Cluster Screener</h2>
+  <p>Predict magnetic moment, electron affinity, Seebeck coefficient, and HOMO-LUMO gap for any d-metal cluster. No DFT. Milliseconds per prediction.</p>
+
+  <div class="cluster-form">
+    <div class="form-group">
+      <label for="cluster-element">Element</label>
+      <select id="cluster-element">
+        <option value="Au">Au — Gold</option>
+        <option value="Ag">Ag — Silver</option>
+        <option value="Cu">Cu — Copper</option>
+        <option value="Pt">Pt — Platinum</option>
+        <option value="Pd">Pd — Palladium</option>
+        <option value="Ni">Ni — Nickel</option>
+        <option value="Co">Co — Cobalt</option>
+        <option value="Fe">Fe — Iron</option>
+        <option value="Mn">Mn — Manganese</option>
+        <option value="Cr">Cr — Chromium</option>
+        <option value="Ir">Ir — Iridium</option>
+        <option value="Rh">Rh — Rhodium</option>
+        <option value="Ru">Ru — Ruthenium</option>
+        <option value="Os">Os — Osmium</option>
+        <option value="Re">Re — Rhenium</option>
+        <option value="W">W — Tungsten</option>
+        <option value="Mo">Mo — Molybdenum</option>
+        <option value="Ta">Ta — Tantalum</option>
+        <option value="Nb">Nb — Niobium</option>
+        <option value="Hf">Hf — Hafnium</option>
+        <option value="Zr">Zr — Zirconium</option>
+        <option value="Ti">Ti — Titanium</option>
+        <option value="V">V — Vanadium</option>
+        <option value="Sc">Sc — Scandium</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="cluster-size">Cluster Size</label>
+      <select id="cluster-size">
+        <option value="13">13 atoms (1 shell)</option>
+        <option value="55">55 atoms (2 shells)</option>
+        <option value="147">147 atoms (3 shells)</option>
+        <option value="309">309 atoms (4 shells)</option>
+        <option value="561">561 atoms (5 shells)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="cluster-lattice">Superlattice</label>
+      <select id="cluster-lattice">
+        <option value="cubic">Cubic</option>
+        <option value="hexagonal">Hexagonal</option>
+      </select>
+    </div>
+    <button id="cluster-btn" class="btn btn-primary">Predict</button>
+  </div>
+
+  <div id="cluster-results" class="results" hidden>
+    <h3 id="cluster-title"></h3>
+    <div class="property-grid">
+      <div class="property-card">
+        <div class="property-label">Magnetic Moment</div>
+        <div class="property-value" id="prop-moment"></div>
+        <div class="property-unit">&mu;<sub>B</sub>/atom</div>
+      </div>
+      <div class="property-card">
+        <div class="property-label">Electron Affinity</div>
+        <div class="property-value" id="prop-ea"></div>
+        <div class="property-unit">eV</div>
+      </div>
+      <div class="property-card">
+        <div class="property-label">Seebeck Coefficient</div>
+        <div class="property-value" id="prop-seebeck"></div>
+        <div class="property-unit">&mu;V/K</div>
+      </div>
+      <div class="property-card">
+        <div class="property-label">HOMO-LUMO Gap</div>
+        <div class="property-value" id="prop-gap"></div>
+        <div class="property-unit">eV</div>
+      </div>
+    </div>
+    <div class="cluster-meta">
+      <span id="cluster-geometry"></span>
+      <span id="cluster-dband"></span>
+      <span id="cluster-disruption"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- WORKED EXAMPLE -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section id="example" class="section">
+  <h2>What DSF-AI Finds</h2>
+  <p>Here's what the service found in the most famous R(T) curve in physics — YBCO, the first high-temperature superconductor (Wu et al., 1987).</p>
+
+  <div class="example-grid">
+    <div class="card">
+      <h4>The Data</h4>
+      <p>Resistance vs temperature, 4K to 300K. Everyone knows the transition is at 93K.</p>
+    </div>
+    <div class="card">
+      <h4>What DSF-AI Found</h4>
+      <ul>
+        <li>Transition at <strong>93K</strong> (confirmed)</li>
+        <li>Precursor onset at <strong>106K</strong> — structural changes begin 13K before the transition</li>
+        <li>Uncertainty peaks at <strong>0.667</strong> exactly at the transition — maximum structural ambiguity</li>
+        <li>VOLATILE regime from 78K to 106K — the kernel sees the transition coming</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>What Standard Analysis Misses</h4>
+      <p>The pseudogap / superconducting fluctuation regime above T<sub>c</sub>. It took the physics community a decade and specialized probes (ARPES, NMR, tunneling) to characterize this region. The kernel found it from the R(T) curve alone.</p>
+    </div>
+    <div class="card">
+      <h4>6 Materials Tested</h4>
+      <table class="example-table">
+        <tr><th>Material</th><th>Transition</th><th>Found?</th></tr>
+        <tr><td>YBCO</td><td>SC at 93K</td><td>Yes</td></tr>
+        <tr><td>MgB<sub>2</sub></td><td>SC at 39K</td><td>Yes</td></tr>
+        <tr><td>CsV<sub>3</sub>Sb<sub>5</sub></td><td>SC at 2.5K</td><td>Yes</td></tr>
+        <tr><td>VO<sub>2</sub></td><td>MIT at 340K</td><td>Yes</td></tr>
+        <tr><td>BaTiO<sub>3</sub></td><td>FE at 393K</td><td>Yes</td></tr>
+        <tr><td>FeSe/STO</td><td>SC at 65K</td><td>Yes</td></tr>
+      </table>
+      <p class="table-note">Same kernel. Zero physics assumptions. No per-material tuning.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- PRICING -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section id="pricing" class="section section-alt">
+  <h2>Pricing</h2>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <h4>Free Trial</h4>
+      <div class="price">$0</div>
+      <p>First analysis free. No signup.</p>
+    </div>
+    <div class="pricing-card">
+      <h4>Per Analysis</h4>
+      <div class="price">$25</div>
+      <p>Pay per curve. Web upload.</p>
+    </div>
+    <div class="pricing-card featured">
+      <h4>Academic</h4>
+      <div class="price">$3-5K/yr</div>
+      <p>Unlimited analyses. API access.</p>
+    </div>
+    <div class="pricing-card">
+      <h4>Industry</h4>
+      <div class="price">$25-50K/yr</div>
+      <p>API + SLA. Batch processing.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ════════════════════════════════════════════════════════ -->
+<footer>
+  <p>DSF-AI &copy; 2026. Structural analysis powered by the UF-Core kernel.</p>
+  <p class="footer-note">The analysis engine is proprietary. Results are factual observations. <a href="mailto:contact@dsf-ai.com">Contact</a></p>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
