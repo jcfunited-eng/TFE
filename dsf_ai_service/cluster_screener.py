@@ -1,11 +1,10 @@
 """
-Cluster Screener — wraps UFCP nanoparticle predictions for the DSF-AI service.
+Cluster Screener — nanoparticle property predictions for the DSF-AI service.
 
 Predicts magnetic moment, electron affinity, Seebeck coefficient, and
-HOMO-LUMO gap for d-metal clusters from geometry alone.
+HOMO-LUMO gap for d-metal clusters.
 
-Customers receive PROPERTY VALUES ONLY — never the formulas, angles,
-projections, or coupling constants.
+Customers receive PROPERTY VALUES ONLY.
 
 TRADE SECRET — DO NOT DISTRIBUTE
 """
@@ -23,8 +22,8 @@ SIN2_THETA = SIN_THETA ** 2
 SIN_COS = SIN_THETA * COS_THETA
 HEX_SMEAR = 1.0 / math.sqrt(5)
 
-# d-band screening threshold
-DBAND_THRESHOLD = SIN2_THETA  # sin²(θ) = 0.2764
+# Internal threshold (trade secret)
+DBAND_THRESHOLD = SIN2_THETA
 
 # Magic cluster sizes (icosahedral shells)
 SHELL_SIZES = {1: 13, 2: 55, 3: 147, 4: 309, 5: 561}
@@ -220,8 +219,7 @@ def predict_cluster(
         'seebeck_uV_K': seebeck,
         'homo_lumo_gap_eV': gap,
         'geometry': geometry,
-        'd_band_screening': round(screening, 4),
-        'disruption_active': disruption,
+        'shell_model_intact': not disruption,
         'lattice': lattice,
         'temperature_K': temperature_K,
         'coherence_temperature_K': t_coherence,

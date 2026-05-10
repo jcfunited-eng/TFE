@@ -1,7 +1,7 @@
 """
-LLM Narrator — generates plain-language summaries from kernel output.
+LLM Narrator — generates plain-language summaries from analysis output.
 
-Receives ONLY the redacted summary. Never sees kernel internals.
+Receives ONLY the redacted summary. Never sees internal state.
 Uses Claude API via Anthropic SDK.
 
 TRADE SECRET — DO NOT DISTRIBUTE
@@ -24,7 +24,13 @@ explain the findings in clear, non-specialist language.
 
 RULES:
 - Do NOT speculate about the analysis method or how it works internally.
-- Do NOT mention "kernel", "L0", "L1", "gates", "DSF", "SEV", or any internal terms.
+- Do NOT use any of these terms (they are internal and proprietary):
+  kernel, UF-Core, uf_core, L0, L1, L2, L3, L4, gate, gates, DSF, SEV,
+  7-tuple, SPPU, UFCP, ArcLoom, loom, theta, arctan, golden ratio,
+  frustration angle, frustration index, D_k, M_k, U_star_k, B_k, P_k,
+  C_k, R_rev_k, coupling weight, structural event value, mosaic,
+  breathing, resonance, krimelack, BSIL, trit, strand
+- Instead say: "the analysis found", "the service detected", "DSF-AI identified"
 - Focus on WHAT was found and what it means for the user's material.
 - Use the measurement units provided (K, mΩ, etc.).
 - If the user provided context about their material, tailor the explanation.

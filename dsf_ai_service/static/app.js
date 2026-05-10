@@ -296,7 +296,7 @@ function displayReport(r) {
   const transEl = document.getElementById('result-transitions');
   if (r.transitions && r.transitions.length > 0) {
     transEl.innerHTML = '<ul>' + r.transitions.map(t =>
-      `<li>At <strong>${t.stimulus_value}</strong> (uncertainty: ${t.uncertainty_at_transition})</li>`
+      `<li>At <strong>${t.stimulus_value}</strong> (uncertainty: ${t.uncertainty || t.uncertainty_at_transition})</li>`
     ).join('') + '</ul>';
   } else {
     transEl.textContent = 'No transitions detected.';
@@ -360,8 +360,8 @@ function displayReport(r) {
 
   // Meta
   document.getElementById('result-points').textContent = `${r.data_points} data points`;
-  const segs = r.structural_segments || r.n_gates || '';
-  document.getElementById('result-gates').textContent = segs ? `${segs} structural segments` : '';
+  const segs = r.structural_segments || '';
+  document.getElementById('result-segments').textContent = segs ? `${segs} structural segments` : '';
   document.getElementById('result-time').textContent = r.compute_time_s ? `${r.compute_time_s}s` : '';
 }
 
@@ -426,10 +426,9 @@ function displayCluster(r) {
     r.homo_lumo_gap_eV !== null ? r.homo_lumo_gap_eV.toFixed(4) : '—';
 
   document.getElementById('cluster-geometry').textContent = `Geometry: ${r.geometry}`;
-  document.getElementById('cluster-dband').textContent =
-    `d-band screening: ${r.d_band_screening.toFixed(3)}`;
+  document.getElementById('cluster-dband').textContent = '';
   document.getElementById('cluster-disruption').textContent =
-    r.disruption_active ? 'Superatom disrupted' : 'Superatom shell intact';
+    r.shell_model_intact ? 'Standard shell model applies' : 'Modified shell structure';
 
   // Viability warning
   const warnEl = document.getElementById('cluster-warning');

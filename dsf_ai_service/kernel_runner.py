@@ -1,9 +1,8 @@
 """
-Kernel Runner — wraps UF-Core L0-L4 for the DSF-AI service.
+Analysis Runner — structural analysis for the DSF-AI service.
 
-Accepts (stimulus, measurement) pairs, runs the full kernel pipeline,
-and returns a REDACTED report. Kernel internals (SEV sequences, gate
-structures, DSF 7-tuples) NEVER leave this module.
+Accepts (stimulus, measurement) pairs, runs the analysis pipeline,
+and returns a redacted report. Internal state never leaves this module.
 
 TRADE SECRET — DO NOT DISTRIBUTE
 """
@@ -20,10 +19,10 @@ from uf_core.layer2 import interpret_gates
 
 def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
     """
-    Run the full L0-L4 kernel and return a REDACTED summary.
+    Run the full analysis pipeline and return a redacted summary.
 
     The customer gets: transitions, precursors, regimes, uncertainty.
-    The customer NEVER gets: SEV values, gate indices, DSF 7-tuples.
+    Internal computation state never leaves this function.
     """
     # Build field series
     series = build_field_series(pairs, name='measurement')
@@ -53,7 +52,7 @@ def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
             return stim_min
         return stim_min + idx / (n_points - 1) * (stim_max - stim_min)
 
-    # ── Build regime map (SAFE — no kernel internals) ──
+    # ── Build regime map ──
     regime_spans = []
     current_regime = None
     span_start_stim = None
@@ -76,7 +75,7 @@ def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
             'end': round(stim_max, 4),
         })
 
-    # ── Find transitions (D_k reversals — SAFE, just locations) ──
+    # ── Find transitions ──
     transitions = []
     for i in range(1, len(dsf_list)):
         d_prev = dsf_list[i - 1].D_k
@@ -88,11 +87,11 @@ def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
             transitions.append({
                 'stimulus_value': round(t_mid, 4),
                 'direction_change': f"{'+' if d_prev > 0 else '-'} → {'+' if d_curr > 0 else '-'}",
-                'uncertainty_at_transition': round(dsf_list[i].U_star_k, 4),
-                'pressure': round(dsf_list[i].P_k, 4),
+                'uncertainty': round(dsf_list[i].U_star_k, 4),
+                'severity': round(abs(dsf_list[i].P_k) + abs(d_curr - d_prev), 4),
             })
 
-    # ── Find precursor onset (first sigma spike — SAFE, just a location) ──
+    # ── Find precursor onset ──
     # Baseline sigma is the median of the first 20% of points
     n_baseline = max(5, len(sev_series) // 5)
     baseline_sigmas = [sev_series[j].sigma for j in range(min(n_baseline, len(sev_series)))]
@@ -106,7 +105,7 @@ def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
             precursor_onset = round(idx_to_stimulus(j), 4)
             break
 
-    # ── Uncertainty profile (max U_k and where) ──
+    # ── Uncertainty profile ──
     max_u = 0
     max_u_location = None
     for i, dsf in enumerate(dsf_list):
@@ -118,7 +117,7 @@ def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
             max_u_location = round(t_mid, 4)
     max_u = round(max_u, 4)
 
-    # ── Build REDACTED report ──
+    # ── Build output report ──
     return {
         'status': 'ok',
         'data_points': len(pairs),
@@ -132,11 +131,9 @@ def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
             'value': max_u,
             'location': max_u_location,
         },
-        'structural_complexity': {
-            'coupling_strength': round(profile['coupling_strength'], 4),
-            'momentum_weight': round(profile['momentum_weight'], 4),
-            'pressure': round(profile['pressure'], 4),
-            'complexity': round(profile['complexity'], 4),
-            'reversal_rate': round(profile['reversal_rate'], 4),
+        'signal_quality': {
+            'strength': round(profile['coupling_strength'], 4),
+            'stability': round(1.0 - profile['reversal_rate'], 4),
+            'richness': round(profile['complexity'], 4),
         },
     }
