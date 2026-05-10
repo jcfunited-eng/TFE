@@ -53,15 +53,26 @@ function updateAuthUI() {
   if (!clerk) return;
 
   if (clerk.user) {
-    // Show user info + sign out link
+    // Show user info + account link + sign out
     const name = clerk.user.firstName || clerk.user.emailAddresses?.[0]?.emailAddress || 'Account';
     const img = clerk.user.imageUrl;
     userBtnEl.innerHTML = `
       <span class="user-info">
         ${img ? `<img src="${img}" class="user-avatar" alt="">` : ''}
         <span class="user-name">${name}</span>
+        <a href="#" id="account-link" class="nav-auth" style="margin-left:0.5rem;font-size:0.8rem;">Account</a>
         <a href="#" id="sign-out-link" class="nav-auth" style="margin-left:0.5rem;font-size:0.8rem;">Sign Out</a>
       </span>`;
+
+    // Account link — show credits
+    const accountLink = document.getElementById('account-link');
+    if (accountLink) {
+      accountLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        showAccountInfo(clerk.user.id);
+      });
+    }
+
     const signOutLink = document.getElementById('sign-out-link');
     if (signOutLink) {
       signOutLink.addEventListener('click', async (e) => {
@@ -70,6 +81,9 @@ function updateAuthUI() {
         location.reload();
       });
     }
+
+    // Auto-fetch credits on login
+    fetchCredits(clerk.user.id);
   } else {
     showSignInFallback();
   }
@@ -84,6 +98,42 @@ function showSignInFallback() {
       e.preventDefault();
       doSignIn();
     });
+  }
+}
+
+async function fetchCredits(userId) {
+  try {
+    const resp = await fetch(`${API}/api/v1/check-access`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId }),
+    });
+    const data = await resp.json();
+    // Update the account link with credit count
+    const accountLink = document.getElementById('account-link');
+    if (accountLink && data.credits !== undefined) {
+      const creditsText = data.credits === -1 ? 'Unlimited' : `${data.credits} credits`;
+      accountLink.textContent = creditsText;
+    }
+  } catch (e) {
+    console.log('Failed to fetch credits:', e.message);
+  }
+}
+
+async function showAccountInfo(userId) {
+  try {
+    const resp = await fetch(`${API}/api/v1/check-access`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId }),
+    });
+    const data = await resp.json();
+    const credits = data.credits === -1 ? 'Unlimited' : data.credits;
+    const used = data.analyses_used || 0;
+    const tier = data.reason === 'subscription' ? ' (Subscription)' : '';
+    alert(`Account Summary\n\nAnalyses used: ${used}\nCredits remaining: ${credits}${tier}\n\nPurchase more credits in the Pricing section.`);
+  } catch (e) {
+    alert('Unable to load account info. Please try again.');
   }
 }
 
@@ -214,9 +264,15 @@ function selectFile(file) {
 analyzeBtn.addEventListener('click', async () => {
   if (!selectedFile) return;
 
-  // Check if user has access (free trial or paid)
+  // Check if user has access — server is the single source of truth
   const userId = (clerkReady && window.Clerk && window.Clerk.user)
     ? window.Clerk.user.id : 'anonymous';
+
+  // If not logged in and localStorage says free is used, require login first
+  if (userId === 'anonymous' && !hasFreeAnalysis()) {
+    doSignIn();
+    return;
+  }
 
   try {
     const accessResp = await fetch(`${API}/api/v1/check-access`, {
@@ -227,13 +283,21 @@ analyzeBtn.addEventListener('click', async () => {
     const access = await accessResp.json();
 
     if (!access.allowed) {
-      // Need to pay — redirect to checkout
-      statusEl.innerHTML = 'You\'ve used your free analysis. <a href="#pricing" style="color:var(--accent)">Purchase more</a> or subscribe for unlimited access.';
+      // Need to pay
+      const remaining = access.credits || 0;
+      const used = access.analyses_used || 0;
+      statusEl.innerHTML = `You've used ${used} analyses and have ${remaining} credits remaining. <a href="#pricing" style="color:var(--accent)">Purchase more</a> or subscribe for unlimited access.`;
       statusEl.className = 'status error';
       return;
     }
   } catch (e) {
-    // If access check fails, allow anyway (graceful degradation)
+    // If access check fails and user is logged in, allow (graceful degradation)
+    // If anonymous, check localStorage
+    if (userId === 'anonymous' && !hasFreeAnalysis()) {
+      statusEl.textContent = 'Please sign in to continue analyzing.';
+      statusEl.className = 'status error';
+      return;
+    }
     console.log('Access check failed, allowing:', e.message);
   }
 
