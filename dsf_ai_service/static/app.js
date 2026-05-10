@@ -135,7 +135,30 @@ async function requireAuth() {
 }
 
 // Initialize Clerk when DOM is ready
-document.addEventListener('DOMContentLoaded', initClerk);
+document.addEventListener('DOMContentLoaded', () => {
+  initClerk();
+  checkPaymentReturn();
+});
+
+function checkPaymentReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const payment = params.get('payment');
+  if (payment === 'success') {
+    const tier = params.get('tier') || 'per_analysis';
+    const msg = tier === 'per_analysis'
+      ? 'Payment successful! You have 1 analysis credit.'
+      : `Subscription activated! You have unlimited analyses.`;
+    // Show a success banner
+    const banner = document.createElement('div');
+    banner.className = 'payment-success-banner';
+    banner.textContent = msg;
+    document.body.insertBefore(banner, document.body.firstChild);
+    // Clean URL
+    window.history.replaceState({}, '', '/');
+  } else if (payment === 'cancelled') {
+    window.history.replaceState({}, '', '/');
+  }
+}
 
 // ── CSV Upload ─────────────────────────────────────────
 const dropzone = document.getElementById('dropzone');
@@ -191,9 +214,28 @@ function selectFile(file) {
 analyzeBtn.addEventListener('click', async () => {
   if (!selectedFile) return;
 
-  // Auth gate
-  const allowed = await requireAuth();
-  if (!allowed) return;
+  // Check if user has access (free trial or paid)
+  const userId = (clerkReady && window.Clerk && window.Clerk.user)
+    ? window.Clerk.user.id : 'anonymous';
+
+  try {
+    const accessResp = await fetch(`${API}/api/v1/check-access`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId }),
+    });
+    const access = await accessResp.json();
+
+    if (!access.allowed) {
+      // Need to pay — redirect to checkout
+      statusEl.innerHTML = 'You\'ve used your free analysis. <a href="#pricing" style="color:var(--accent)">Purchase more</a> or subscribe for unlimited access.';
+      statusEl.className = 'status error';
+      return;
+    }
+  } catch (e) {
+    // If access check fails, allow anyway (graceful degradation)
+    console.log('Access check failed, allowing:', e.message);
+  }
 
   analyzeBtn.disabled = true;
   statusEl.textContent = 'Analyzing...';
@@ -225,6 +267,15 @@ analyzeBtn.addEventListener('click', async () => {
     displayReport(report);
     markFreeUsed();
     statusEl.textContent = '';
+
+    // Record usage in backend
+    const recUserId = (clerkReady && window.Clerk && window.Clerk.user)
+      ? window.Clerk.user.id : 'anonymous';
+    fetch(`${API}/api/v1/record-analysis`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: recUserId }),
+    }).catch(() => {});
   } catch (e) {
     if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
       statusEl.textContent = 'CSV analysis is coming soon. Try the Cluster Screener below.';
@@ -408,10 +459,12 @@ document.querySelectorAll('.buy-btn').forEach(btn => {
     btn.textContent = 'Loading...';
 
     try {
+      const checkoutUserId = (clerkReady && window.Clerk && window.Clerk.user)
+        ? window.Clerk.user.id : 'anonymous';
       const resp = await fetch(`${API}/api/v1/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({ tier, user_id: checkoutUserId }),
       });
 
       if (!resp.ok) throw new Error('Checkout failed');
