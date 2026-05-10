@@ -678,6 +678,7 @@ def _run_profile_overrides_refresh() -> dict[str, Any]:
     completed = _run_logged_subprocess(
         phase_label="profile_overrides_refresh", cmd=cmd,
         cwd=str(Path.cwd()), env={**os.environ, "PYTHONUNBUFFERED": "1"},
+        max_runtime_seconds=1200,  # 10K+ tickers at ~12/s needs ~14 min
     )
     stdout_tail = str(completed.get("stdout_tail") or "").strip()
     stderr_tail = str(completed.get("stderr_tail") or "").strip()
