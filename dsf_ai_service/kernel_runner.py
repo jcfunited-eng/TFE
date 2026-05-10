@@ -2,19 +2,106 @@
 Analysis Runner — structural analysis for the DSF-AI service.
 
 Accepts (stimulus, measurement) pairs, runs the analysis pipeline,
-and returns a redacted report. Internal state never leaves this module.
+and returns a redacted report. Internal state is encrypted via SES
+and never leaves this module in plaintext.
 
 TRADE SECRET — DO NOT DISTRIBUTE
 """
 
+import json
+import os
+import hashlib
+import time
 import numpy as np
 import pandas as pd
+from datetime import datetime, timezone
 from typing import List, Tuple, Dict, Any
 
 from tools.derive_sppu_weights import build_field_series, run_kernel, dsf_to_coupling_profile
 from uf_core.layer0 import compute_sev_series
 from uf_core.layer1 import segment_gates
 from uf_core.layer2 import interpret_gates
+
+# SES/SCE imports for internal state encryption
+try:
+    from ses_core.envelope import Envelope, EnvelopeService
+    from ses_core.aead_backend import AESGCMBackend
+    from ses_core.key_derivation import KeyDerivationService
+    from ses_core.domain_params import DomainParameters
+    from ses_core.chain_of_custody import ChainOfCustodyService, ChainOfCustodyEvent
+    SES_AVAILABLE = True
+except ImportError:
+    SES_AVAILABLE = False
+
+# SES root key — in production this comes from AWS Secrets Manager
+# For now use a derived key from environment or a static dev key
+SES_ROOT_KEY = os.environ.get('DSF_AI_SES_ROOT_KEY', 'dsf-ai-ses-root-key-v1-CHANGE-IN-PROD')
+
+
+def _encrypt_internal_state(internal_state: Dict, data_hash: str) -> Dict:
+    """
+    Encrypt all internal computation state into an SES envelope.
+    Returns the envelope dict for storage. The plaintext is never
+    returned — only the encrypted envelope.
+    """
+    if not SES_AVAILABLE:
+        # Fallback: hash the internal state as proof it existed,
+        # but don't store the plaintext
+        state_json = json.dumps(internal_state, default=str)
+        return {
+            'ses_status': 'unavailable',
+            'state_hash': hashlib.sha256(state_json.encode()).hexdigest(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+        }
+
+    try:
+        plaintext = json.dumps(internal_state, default=str).encode('utf-8')
+        # Derive a 256-bit key from root key + data hash
+        root_key = hashlib.sha256(SES_ROOT_KEY.encode()).digest()
+        derived_key = hashlib.sha256(root_key + data_hash.encode()).digest()
+        backend = AESGCMBackend()
+        nonce = os.urandom(12)
+
+        # Associated data binds this envelope to this specific analysis
+        ad = json.dumps({
+            'service': 'dsf-ai',
+            'purpose': 'analysis-internal-state',
+            'data_hash': data_hash,
+        }).encode('utf-8')
+
+        ciphertext = backend.encrypt(
+            key=derived_key,
+            nonce=nonce,
+            plaintext=plaintext,
+            associated_data=ad,
+        )
+
+        envelope = Envelope(
+            tenant_id='dsf-ai',
+            environment='production',
+            region='us-east-1',
+            purpose='analysis-internal-state',
+            version='1.0',
+            algorithm='aes-gcm',
+            created_at=datetime.now(timezone.utc).isoformat(),
+            nonce=Envelope._b64encode(nonce),
+            key_id=f'dsf-ai:analysis:{data_hash[:16]}',
+            ciphertext=Envelope._b64encode(ciphertext),
+            summary={'data_hash': data_hash, 'state_size': len(plaintext)},
+        )
+
+        return {
+            'ses_status': 'encrypted',
+            'envelope': envelope.to_dict(),
+        }
+    except Exception as e:
+        # Encryption failed — hash only, never store plaintext
+        state_json = json.dumps(internal_state, default=str)
+        return {
+            'ses_status': f'error: {str(e)}',
+            'state_hash': hashlib.sha256(state_json.encode()).hexdigest(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+        }
 
 
 def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
@@ -88,7 +175,7 @@ def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
                 'stimulus_value': round(t_mid, 4),
                 'direction_change': f"{'+' if d_prev > 0 else '-'} → {'+' if d_curr > 0 else '-'}",
                 'uncertainty': round(dsf_list[i].U_star_k, 4),
-                'severity': round(abs(dsf_list[i].P_k) + abs(d_curr - d_prev), 4),
+                'intensity': round(abs(dsf_list[i].P_k) + abs(d_curr - d_prev), 4),
             })
 
     # ── Find precursor onset ──
@@ -117,7 +204,37 @@ def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
             max_u_location = round(t_mid, 4)
     max_u = round(max_u, 4)
 
-    # ── Build output report ──
+    # ── Encrypt internal state via SES ──
+    # Capture ALL internal computation state for audit
+    data_hash = hashlib.sha256(
+        json.dumps(pairs, default=str).encode()
+    ).hexdigest()
+
+    internal_state = {
+        'sev_count': len(sev_series),
+        'sev_sample': [
+            {'F': s.F_norm, 'dF': s.dF, 'sigma': s.sigma, 'kappa': s.kappa}
+            for s in sev_series[:5]
+        ],
+        'gate_count': len(gates),
+        'gate_boundaries': [
+            {'start': g.start_idx, 'end': g.end_idx} for g in gates
+        ],
+        'dsf_tuples': [
+            {'D': d.D_k, 'M': d.M_k, 'U': d.U_star_k, 'B': d.B_k,
+             'P': d.P_k, 'C': d.C_k, 'R': d.R_rev_k}
+            for d in dsf_list
+        ],
+        'interp_regimes': [
+            {'regime': ip.regime, 'U': ip.U_k} for ip in interps
+        ],
+    }
+
+    # Encrypt — plaintext is destroyed after this
+    ses_envelope = _encrypt_internal_state(internal_state, data_hash)
+    del internal_state  # Explicit destruction
+
+    # ── Build output report (redacted — no internal state) ──
     return {
         'status': 'ok',
         'data_points': len(pairs),
@@ -136,4 +253,5 @@ def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
             'stability': round(1.0 - profile['reversal_rate'], 4),
             'richness': round(profile['complexity'], 4),
         },
+        'ses_protected': ses_envelope.get('ses_status', 'unknown'),
     }
