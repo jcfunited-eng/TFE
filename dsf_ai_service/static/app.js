@@ -33,8 +33,14 @@ async function initClerk() {
     }
     clerkReady = true;
 
+    // Update UI immediately and on every auth state change
     updateAuthUI();
     clerk.addListener(() => updateAuthUI());
+
+    // Also retry after a short delay — session restore after
+    // OAuth redirect can take a moment
+    setTimeout(() => updateAuthUI(), 1000);
+    setTimeout(() => updateAuthUI(), 3000);
   } catch (e) {
     console.log('Clerk init error:', e.message);
     showSignInFallback();
@@ -358,4 +364,17 @@ function displayCluster(r) {
     `d-band screening: ${r.d_band_screening.toFixed(3)}`;
   document.getElementById('cluster-disruption').textContent =
     r.disruption_active ? 'Superatom disrupted' : 'Superatom shell intact';
+
+  // Viability warning
+  const warnEl = document.getElementById('cluster-warning');
+  if (r.viable_at_operating_temp === false && r.viability_warning) {
+    warnEl.textContent = r.viability_warning;
+    warnEl.hidden = false;
+  } else if (r.coherence_temperature_K) {
+    warnEl.textContent = `Coherent up to ${r.coherence_temperature_K}K — viable at ${r.temperature_K}K.`;
+    warnEl.hidden = false;
+    warnEl.className = 'cluster-viable';
+  } else {
+    warnEl.hidden = true;
+  }
 }

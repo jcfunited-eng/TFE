@@ -164,6 +164,14 @@ def _predict_seebeck(sym: str, N: int, T: float, lattice: str) -> float:
     return round(sign * S_mag, 2)
 
 
+def _coherence_temperature(sym: str, N: int) -> float:
+    """Temperature above which quantum confinement effects decohere.
+    Kubo gap / k_B — the scale at which thermal energy exceeds level spacing."""
+    e = ELEMENTS[sym]
+    delta = (e['Ef'] / (e['Z'] * N)) * e['rel']
+    return round(delta / k_B, 1)
+
+
 # ════════════════════════════════════════════════════════════════
 # PUBLIC API
 # ════════════════════════════════════════════════════════════════
@@ -185,12 +193,24 @@ def predict_cluster(
     ea = _predict_ea(element, N_atoms)
     gap = _predict_gap(element, N_atoms)
     seebeck = _predict_seebeck(element, N_atoms, temperature_K, lattice)
+    t_coherence = _coherence_temperature(element, N_atoms)
 
     # Geometry label
     if N_atoms in SHELL_SIZES.values():
         geometry = "icosahedral"
     else:
         geometry = "interpolated"
+
+    # Viability assessment
+    viable = t_coherence > temperature_K
+    if not viable:
+        viability_warning = (
+            f"Quantum confinement effects decohere above {t_coherence:.0f}K. "
+            f"At {temperature_K:.0f}K this cluster behaves more like bulk {element}. "
+            f"Seebeck and gap predictions require T < {t_coherence:.0f}K to be physically meaningful."
+        )
+    else:
+        viability_warning = None
 
     return {
         'element': element,
@@ -204,6 +224,9 @@ def predict_cluster(
         'disruption_active': disruption,
         'lattice': lattice,
         'temperature_K': temperature_K,
+        'coherence_temperature_K': t_coherence,
+        'viable_at_operating_temp': viable,
+        'viability_warning': viability_warning,
         'validation_note': "Validated against 63 experiments, 6.5% avg error",
     }
 

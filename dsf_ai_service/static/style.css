@@ -371,6 +371,26 @@ nav a:hover { color: var(--accent); }
   color: var(--text-muted);
 }
 
+.cluster-warning {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+.cluster-viable {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
 /* ── Example ────────────────────────────────────────── */
 .example-grid {
   display: grid;
