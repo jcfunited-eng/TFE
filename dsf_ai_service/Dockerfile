@@ -3,10 +3,11 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install dependencies
-RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas
+RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography
 
 # Copy only what the service needs (no TFE trading code)
 COPY uf_core/ /app/uf_core/
+COPY ses_core/ /app/ses_core/
 COPY tools/derive_sppu_weights.py /app/tools/
 COPY dsf_ai_service/ /app/dsf_ai_service/
 
