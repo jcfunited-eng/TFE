@@ -393,3 +393,35 @@ function displayCluster(r) {
     warnEl.hidden = true;
   }
 }
+
+// ── Stripe Checkout ────────────────────────────────────
+document.querySelectorAll('.buy-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const tier = btn.dataset.tier;
+
+    if (tier === 'industry') {
+      window.location.href = 'mailto:contact@dsf-ai.com?subject=DSF-AI Industry Plan Inquiry';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Loading...';
+
+    try {
+      const resp = await fetch(`${API}/api/v1/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier }),
+      });
+
+      if (!resp.ok) throw new Error('Checkout failed');
+
+      const data = await resp.json();
+      window.location.href = data.checkout_url;
+    } catch (e) {
+      alert(`Payment error: ${e.message}`);
+      btn.disabled = false;
+      btn.textContent = tier === 'academic' ? 'Subscribe' : 'Buy Analysis';
+    }
+  });
+});

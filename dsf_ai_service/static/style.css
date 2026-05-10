@@ -492,6 +492,16 @@ nav a:hover { color: var(--accent); }
   margin-bottom: 0.5rem;
 }
 
+.pricing-card .buy-btn {
+  margin-top: 0.75rem;
+  background: var(--accent);
+  color: #fff;
+}
+
+.pricing-card .buy-btn:hover {
+  background: var(--accent-hover);
+}
+
 /* ── Footer ─────────────────────────────────────────── */
 footer {
   text-align: center;
