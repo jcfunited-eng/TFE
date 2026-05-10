@@ -186,12 +186,26 @@ async function killPosition(pos, exitReason, base) {
   const { id, ticker, shares, alpaca_order_id, alpaca_take_profit_order_id, alpaca_stop_loss_order_id } = pos;
   console.log(`[SENTINEL] KILL ${ticker} | reason=${exitReason} | shares=${shares}`);
 
-  // Cancel parent bracket order first (releases held shares), then individual legs
+  // Cancel ALL open orders for this ticker — not just the bracket legs.
+  // Previous kill attempts may have left pending sell orders that hold shares.
+  try {
+    const openOrders = await alpacaGet(`/v2/orders?status=open&symbols=${encodeURIComponent(ticker)}`, base).catch(() => []);
+    if (Array.isArray(openOrders)) {
+      for (const o of openOrders) {
+        await cancelOrder(o.id, base);
+      }
+      if (openOrders.length > 0) {
+        console.log(`[SENTINEL] ${ticker} — cancelled ${openOrders.length} open order(s) before sell`);
+      }
+    }
+  } catch { /* non-fatal — fall through to bracket cancels */ }
+
+  // Also cancel known bracket legs (may already be cancelled above, but safe to retry)
   if (alpaca_order_id)             await cancelOrder(alpaca_order_id, base);
   if (alpaca_take_profit_order_id) await cancelOrder(alpaca_take_profit_order_id, base);
   if (alpaca_stop_loss_order_id)   await cancelOrder(alpaca_stop_loss_order_id, base);
 
-  // Small delay to let Alpaca process the cancellations before selling
+  // Delay to let Alpaca process all cancellations before selling
   await new Promise(r => setTimeout(r, 1500));
 
   // Verify position still exists in Alpaca — bracket TP/SL may have already closed it
