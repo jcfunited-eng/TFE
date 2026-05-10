@@ -2,7 +2,7 @@
    DSF-AI Frontend — plain JS, no framework
    ════════════════════════════════════════════════════════ */
 
-const API = 'http://100.55.90.161:8080';
+const API = 'https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
 const FREE_ANALYSIS_KEY = 'dsf_ai_free_used';
 
 let selectedFile = null;
