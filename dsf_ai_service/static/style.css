@@ -410,6 +410,22 @@ nav a:hover { color: var(--accent); }
   gap: 1rem;
 }
 
+.pricing-free-note {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  color: #166534;
+}
+
+.pricing-subtitle {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+}
+
 .pricing-card {
   background: var(--card-bg);
   border: 1px solid var(--border);

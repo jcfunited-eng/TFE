@@ -293,9 +293,7 @@ document.getElementById('cluster-btn').addEventListener('click', async () => {
   const lattice = document.getElementById('cluster-lattice').value;
   const btn = document.getElementById('cluster-btn');
 
-  // Auth gate
-  const allowed = await requireAuth();
-  if (!allowed) return;
+  // Cluster screener is always free — no auth gate
 
   btn.disabled = true;
   btn.textContent = 'Predicting...';
@@ -314,7 +312,6 @@ document.getElementById('cluster-btn').addEventListener('click', async () => {
 
     const r = await resp.json();
     displayCluster(r);
-    markFreeUsed();
   } catch (e) {
     alert(`Error: ${e.message}`);
   }
