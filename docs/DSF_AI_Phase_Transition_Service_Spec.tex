@@ -1378,4 +1378,113 @@ YBCO worked example & Already done & --- \\
 already exist. The remaining work is plumbing.}
 \end{table}
 
+% ==================================================================
+\section{Deployment Status (May 11, 2026)}
+% ==================================================================
+
+The service is \textbf{live} at \texttt{https://dsf-ai.com}.
+
+\subsection{What Shipped}
+
+\begin{enumerate}
+  \item \textbf{CSV Structural Analysis.} Upload any two-column CSV.
+    Returns transitions, precursors, regime map, uncertainty profile.
+    Tested on 7 materials across 4 physical phenomena plus
+    pharmaceutical DSC data (5/5 transitions detected).
+
+  \item \textbf{Nanoparticle Cluster Screener.} Predicts magnetic moment,
+    electron affinity, Seebeck coefficient, HOMO-LUMO gap for any
+    d-metal cluster. 23 elements, 5 cluster sizes. Always free.
+
+  \item \textbf{Thermocouple Pair Finder.} Ranks all element pairs by
+    Seebeck difference. Auto-updates on filter change.
+
+  \item \textbf{Validation Evidence Page.} 63 experiments, 4 property
+    types, 6 phase transitions, all sources cited. Zero free parameters.
+    Average error 6.5\%.
+
+  \item \textbf{Predictions Database.} 240 Seebeck predictions,
+    filterable by element, cluster size, lattice type, viability.
+    Sortable columns.
+
+  \item \textbf{Account System.} Clerk authentication (Google OAuth),
+    account page showing credits, usage, plan type.
+
+  \item \textbf{Billing.} Stripe integration. Per-analysis (\$25),
+    Academic (\$5K/yr), Industry (\$50K/yr). Credits tracked in
+    DynamoDB. Failed analyses are not charged.
+
+  \item \textbf{Security.}
+    \begin{itemize}
+      \item SCE-SIV encryption of all internal computation state
+      \item T2 code tampering detection (12 files hashed at startup)
+      \item 30+ trade secret terms blocked from LLM narrator
+      \item All internal field names removed from API responses
+      \item Rate limiting (10 burst, 5/s sustained)
+    \end{itemize}
+
+  \item \textbf{Multi-Domain Messaging.} Site addresses physics,
+    pharma, battery, semiconductor, medical, and geological
+    audiences. Pharma DSC example shown alongside physics examples.
+\end{enumerate}
+
+\subsection{Infrastructure}
+
+\begin{itemize}
+  \item Domain: dsf-ai.com (Porkbun, DNS to CloudFront)
+  \item CDN: CloudFront distribution E17JT9XGBFU493
+  \item SSL: ACM certificate (auto-renewing)
+  \item API: API Gateway (HTTPS) $\to$ Lambda (cluster screener,
+    billing, usage tracking) + ECS Fargate (CSV analysis)
+  \item Auth: Clerk production instance, Google OAuth
+  \item Billing: Stripe (sandbox; switch to live for real payments)
+  \item Storage: DynamoDB (usage tracking), S3 (static site, SES
+    envelopes)
+  \item Email: support@dsf-ai.com (Porkbun forwarding)
+\end{itemize}
+
+\subsection{Pharma DSC Capability}
+
+On May 11, 2026, the service was tested on simulated
+pharmaceutical DSC (Differential Scanning Calorimetry) data.
+All five transitions were detected:
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Transition} & \textbf{Expected} & \textbf{Detected} &
+  \textbf{Regime} \\
+\midrule
+Glass transition & 55$^\circ$C & 62$^\circ$C & VOLATILE \\
+Polymorph I & 86$^\circ$C & 86$^\circ$C & VOLATILE \\
+Polymorph II & 143$^\circ$C & 143$^\circ$C & VOLATILE \\
+Melt & 211$^\circ$C & 211$^\circ$C & VOLATILE \\
+Decomposition & 265$^\circ$C & 263$^\circ$C & VOLATILE \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+This confirms DSF-AI works on DSC heat flow data, not just
+resistance or dielectric measurements. Polymorph screening is
+an FDA regulatory requirement, creating non-optional demand
+in the pharmaceutical market.
+
+\subsection{Data Normalization}
+
+The service normalizes all input data before analysis:
+$x_{\text{norm}} = ((x - x_{\min}) / (x_{\max} - x_{\min}))
+\times 1000 + 1$. This ensures the analysis pipeline handles
+any input range (milliohms, milliwatts, gigapascals, microvolts)
+without domain-specific configuration.
+
+\subsection{Remaining Work}
+
+\begin{itemize}
+  \item Sensor coupling weights tab (ArcLoom calibration data)
+  \item Admin dashboard (usage statistics, customer management)
+  \item Switch Stripe to live mode for real payments
+  \item Stable ECS endpoint (ALB instead of ephemeral IP)
+  \item PDF report download
+\end{itemize}
+
 \end{document}
