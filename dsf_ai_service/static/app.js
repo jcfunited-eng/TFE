@@ -502,13 +502,9 @@ function displayCluster(r) {
 }
 
 // ── Thermocouple Pair Finder ───────────────────────────
-document.getElementById('tc-btn').addEventListener('click', async () => {
+async function searchThermocouples() {
   const N = parseInt(document.getElementById('tc-size').value);
   const minDelta = parseInt(document.getElementById('tc-min-delta').value);
-  const btn = document.getElementById('tc-btn');
-
-  btn.disabled = true;
-  btn.textContent = 'Searching...';
 
   try {
     const resp = await fetch(`${API}/api/v1/cluster/thermocouple`, {
@@ -538,12 +534,13 @@ document.getElementById('tc-btn').addEventListener('click', async () => {
       `For comparison: Type K thermocouple (Chromel-Alumel) = ~41 μV/K`;
     document.getElementById('tc-results').hidden = false;
   } catch (e) {
-    alert(`Error: ${e.message}`);
+    // silent on auto-search
   }
+}
 
-  btn.disabled = false;
-  btn.textContent = 'Find Pairs';
-});
+document.getElementById('tc-btn').addEventListener('click', searchThermocouples);
+document.getElementById('tc-size').addEventListener('change', searchThermocouples);
+document.getElementById('tc-min-delta').addEventListener('change', searchThermocouples);
 
 // ── Stripe Checkout ────────────────────────────────────
 document.querySelectorAll('.buy-btn').forEach(btn => {
