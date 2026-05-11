@@ -501,6 +501,50 @@ function displayCluster(r) {
   }
 }
 
+// ── Thermocouple Pair Finder ───────────────────────────
+document.getElementById('tc-btn').addEventListener('click', async () => {
+  const N = parseInt(document.getElementById('tc-size').value);
+  const minDelta = parseInt(document.getElementById('tc-min-delta').value);
+  const btn = document.getElementById('tc-btn');
+
+  btn.disabled = true;
+  btn.textContent = 'Searching...';
+
+  try {
+    const resp = await fetch(`${API}/api/v1/cluster/thermocouple`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ N_atoms: N, min_delta_S: minDelta }),
+    });
+
+    if (!resp.ok) throw new Error('Search failed');
+    const data = await resp.json();
+
+    const tbody = document.getElementById('tc-tbody');
+    tbody.innerHTML = data.pairs.map((p, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${p.A}</td>
+        <td>${p.B}</td>
+        <td class="tc-delta">${p.delta_S.toFixed(1)}</td>
+        <td>${p.S_A > 0 ? '+' : ''}${p.S_A.toFixed(1)}</td>
+        <td>${p.S_B > 0 ? '+' : ''}${p.S_B.toFixed(1)}</td>
+      </tr>
+    `).join('');
+
+    document.getElementById('tc-title').textContent =
+      `${data.pairs.length} pairs found for ${N}-atom clusters (ΔS ≥ ${minDelta} μV/K)`;
+    document.getElementById('tc-note').textContent =
+      `For comparison: Type K thermocouple (Chromel-Alumel) = ~41 μV/K`;
+    document.getElementById('tc-results').hidden = false;
+  } catch (e) {
+    alert(`Error: ${e.message}`);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Find Pairs';
+});
+
 // ── Stripe Checkout ────────────────────────────────────
 document.querySelectorAll('.buy-btn').forEach(btn => {
   btn.addEventListener('click', async () => {

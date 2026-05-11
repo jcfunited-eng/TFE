@@ -454,6 +454,32 @@ nav a:hover { color: var(--accent); }
   margin-top: 0.5rem;
 }
 
+.tc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+.tc-table th {
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 2px solid var(--border);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.tc-table td {
+  padding: 0.5rem 0.8rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tc-table tr:hover { background: #f8faff; }
+
+.tc-delta { font-weight: 700; color: var(--accent); }
+
 /* ── Pricing ────────────────────────────────────────── */
 .pricing-grid {
   display: grid;

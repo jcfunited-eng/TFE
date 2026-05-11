@@ -25,7 +25,9 @@
     <nav>
       <a href="#analyze">Analyze</a>
       <a href="#cluster">Cluster Screener</a>
+      <a href="#thermocouple">Thermocouples</a>
       <a href="#example">Example</a>
+      <a href="/static/validation.html">Validation</a>
       <a href="#pricing">Pricing</a>
       <a href="/static/account.html" id="nav-account" class="nav-account" hidden>Account</a>
       <span id="user-button"></span>
@@ -194,6 +196,53 @@
       <span id="cluster-disruption"></span>
     </div>
     <div id="cluster-warning" class="cluster-warning" hidden></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- THERMOCOUPLE PAIR FINDER -->
+<!-- ════════════════════════════════════════════════════════ -->
+<section id="thermocouple" class="section">
+  <h2>Thermocouple Pair Finder</h2>
+  <p>Find optimal nanoparticle thermocouple pairs. Maximizes the Seebeck difference between two cluster materials for highest voltage output.</p>
+
+  <div class="cluster-form">
+    <div class="form-group">
+      <label for="tc-size">Cluster Size</label>
+      <select id="tc-size">
+        <option value="13">13 atoms (1 shell)</option>
+        <option value="55">55 atoms (2 shells)</option>
+        <option value="147">147 atoms (3 shells)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="tc-min-delta">Min &Delta;S (&mu;V/K)</label>
+      <select id="tc-min-delta">
+        <option value="50">50</option>
+        <option value="80" selected>80</option>
+        <option value="100">100</option>
+        <option value="120">120</option>
+      </select>
+    </div>
+    <button id="tc-btn" class="btn btn-primary">Find Pairs</button>
+  </div>
+
+  <div id="tc-results" hidden>
+    <h3 id="tc-title"></h3>
+    <table class="tc-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Material A</th>
+          <th>Material B</th>
+          <th>&Delta;S (&mu;V/K)</th>
+          <th>S<sub>A</sub></th>
+          <th>S<sub>B</sub></th>
+        </tr>
+      </thead>
+      <tbody id="tc-tbody"></tbody>
+    </table>
+    <p class="table-note" id="tc-note"></p>
   </div>
 </section>
 

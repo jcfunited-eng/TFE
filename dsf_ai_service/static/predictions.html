@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSF-AI — Predictions Database</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .pred-page { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+    .pred-page h2 { margin-bottom: 0.5rem; }
+    .pred-page > p { color: #666; margin-bottom: 1.5rem; }
+    .pred-filters {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      align-items: flex-end; margin-bottom: 1rem;
+    }
+    .pred-filters .form-group { min-width: 140px; }
+    .pred-filters select, .pred-filters input {
+      padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px;
+      font-size: 0.9rem; width: 100%;
+    }
+    .pred-table {
+      width: 100%; border-collapse: collapse; font-size: 0.85rem;
+    }
+    .pred-table th {
+      text-align: left; padding: 0.5rem 0.6rem;
+      border-bottom: 2px solid #ddd; font-size: 0.75rem;
+      text-transform: uppercase; letter-spacing: 0.5px; color: #666;
+      cursor: pointer;
+    }
+    .pred-table th:hover { color: #2563eb; }
+    .pred-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #f0f0f0; }
+    .pred-table tr:hover { background: #f8faff; }
+    .pred-positive { color: #16a34a; }
+    .pred-negative { color: #dc2626; }
+    .pred-viable { color: #16a34a; font-weight: 600; }
+    .pred-not-viable { color: #dc2626; font-size: 0.8rem; }
+    .pred-count { font-size: 0.85rem; color: #666; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/" style="text-decoration:none;"><h1 class="logo">DSF<span class="logo-ai">-AI</span></h1></a>
+    <nav>
+      <a href="/#analyze">Analyze</a>
+      <a href="/#cluster">Cluster Screener</a>
+      <a href="/#thermocouple">Thermocouples</a>
+      <a href="/static/predictions.html" style="font-weight:600;color:#2563eb;">Predictions</a>
+      <a href="/static/validation.html">Validation</a>
+    </nav>
+  </div>
+</header>
+
+<div class="pred-page">
+  <h2>Seebeck Predictions Database</h2>
+  <p>240 predictions for 24 d-metal elements, 5 cluster sizes, 2 lattice types. All at 300K. Filter and sort to find your material.</p>
+
+  <div class="pred-filters">
+    <div class="form-group">
+      <label>Element</label>
+      <select id="filter-element">
+        <option value="">All elements</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Cluster Size</label>
+      <select id="filter-size">
+        <option value="">All sizes</option>
+        <option value="13">13 atoms</option>
+        <option value="55">55 atoms</option>
+        <option value="147">147 atoms</option>
+        <option value="309">309 atoms</option>
+        <option value="561">561 atoms</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Lattice</label>
+      <select id="filter-lattice">
+        <option value="">Both</option>
+        <option value="cubic">Cubic</option>
+        <option value="hexagonal">Hexagonal</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Viable at 300K</label>
+      <select id="filter-viable">
+        <option value="">All</option>
+        <option value="yes">Viable only</option>
+        <option value="no">Non-viable only</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Min |S| (&mu;V/K)</label>
+      <input type="number" id="filter-min-s" value="0" min="0" step="10">
+    </div>
+  </div>
+
+  <div class="pred-count" id="pred-count"></div>
+
+  <table class="pred-table">
+    <thead>
+      <tr>
+        <th data-sort="element">Element</th>
+        <th data-sort="N_atoms">Atoms</th>
+        <th data-sort="lattice">Lattice</th>
+        <th data-sort="S_uV_K">S (&mu;V/K)</th>
+        <th data-sort="S_magnitude">|S|</th>
+        <th data-sort="T_geometric_K">T<sub>coherence</sub></th>
+        <th data-sort="viable">Viable 300K?</th>
+        <th data-sort="bulk_S_uV_K">Bulk S</th>
+      </tr>
+    </thead>
+    <tbody id="pred-tbody"></tbody>
+  </table>
+</div>
+
+<footer>
+  <p>DSF-AI &copy; 2026. Universal structural analysis service. <a href="mailto:support@dsf-ai.com">support@dsf-ai.com</a></p>
+</footer>
+
+<script>
+const API = 'https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
+let allPredictions = [];
+let sortField = 'S_magnitude';
+let sortDir = -1;
+
+// Load all predictions by screening all elements at all sizes
+async function loadPredictions() {
+  const elements = ['Ag','Au','Co','Cr','Cu','Fe','Hf','Ir','Mn','Mo','Nb','Ni','Os','Pd','Pt','Re','Rh','Ru','Sc','Ta','Ti','V','W','Zr'];
+  const sizes = [13, 55, 147, 309, 561];
+
+  // Populate element filter
+  const elemFilter = document.getElementById('filter-element');
+  elements.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e; opt.textContent = e;
+    elemFilter.appendChild(opt);
+  });
+
+  // Fetch predictions for each element/size/lattice
+  for (const elem of elements) {
+    for (const N of sizes) {
+      for (const lat of ['cubic', 'hexagonal']) {
+        try {
+          const resp = await fetch(`${API}/api/v1/cluster`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ element: elem, N_atoms: N, lattice: lat, temperature_K: 300 }),
+          });
+          if (resp.ok) {
+            const r = await resp.json();
+            allPredictions.push({
+              element: elem,
+              N_atoms: N,
+              lattice: lat,
+              S_uV_K: r.seebeck_uV_K,
+              S_magnitude: Math.abs(r.seebeck_uV_K),
+              T_geometric_K: r.coherence_temperature_K,
+              viable: r.viable_at_operating_temp,
+              bulk_S_uV_K: 0, // not in API response
+              moment: r.magnetic_moment_uB,
+              EA: r.electron_affinity_eV,
+              gap: r.homo_lumo_gap_eV,
+            });
+          }
+        } catch (e) { /* skip errors */ }
+      }
+    }
+    // Update display after each element loads
+    renderTable();
+  }
+}
+
+function renderTable() {
+  const elemFilter = document.getElementById('filter-element').value;
+  const sizeFilter = document.getElementById('filter-size').value;
+  const latFilter = document.getElementById('filter-lattice').value;
+  const viableFilter = document.getElementById('filter-viable').value;
+  const minS = parseFloat(document.getElementById('filter-min-s').value) || 0;
+
+  let filtered = allPredictions.filter(p => {
+    if (elemFilter && p.element !== elemFilter) return false;
+    if (sizeFilter && p.N_atoms !== parseInt(sizeFilter)) return false;
+    if (latFilter && p.lattice !== latFilter) return false;
+    if (viableFilter === 'yes' && !p.viable) return false;
+    if (viableFilter === 'no' && p.viable) return false;
+    if (p.S_magnitude < minS) return false;
+    return true;
+  });
+
+  // Sort
+  filtered.sort((a, b) => {
+    const av = a[sortField] ?? 0;
+    const bv = b[sortField] ?? 0;
+    if (typeof av === 'string') return sortDir * av.localeCompare(bv);
+    return sortDir * (av - bv);
+  });
+
+  const tbody = document.getElementById('pred-tbody');
+  tbody.innerHTML = filtered.map(p => {
+    const sClass = p.S_uV_K >= 0 ? 'pred-positive' : 'pred-negative';
+    const vClass = p.viable ? 'pred-viable' : 'pred-not-viable';
+    const vText = p.viable ? 'Yes' : `No (${p.T_geometric_K}K)`;
+    return `<tr>
+      <td><strong>${p.element}</strong></td>
+      <td>${p.N_atoms}</td>
+      <td>${p.lattice === 'cubic' ? 'Cubic' : 'Hex'}</td>
+      <td class="${sClass}">${p.S_uV_K > 0 ? '+' : ''}${p.S_uV_K.toFixed(1)}</td>
+      <td>${p.S_magnitude.toFixed(1)}</td>
+      <td>${p.T_geometric_K}K</td>
+      <td class="${vClass}">${vText}</td>
+      <td>${p.bulk_S_uV_K || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('pred-count').textContent =
+    `Showing ${filtered.length} of ${allPredictions.length} predictions`;
+}
+
+// Sort on header click
+document.querySelectorAll('.pred-table th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const field = th.dataset.sort;
+    if (sortField === field) sortDir *= -1;
+    else { sortField = field; sortDir = -1; }
+    renderTable();
+  });
+});
+
+// Filter on change
+['filter-element','filter-size','filter-lattice','filter-viable','filter-min-s'].forEach(id => {
+  document.getElementById(id).addEventListener('change', renderTable);
+  document.getElementById(id).addEventListener('input', renderTable);
+});
+
+// Load on page load
+document.addEventListener('DOMContentLoaded', loadPredictions);
+</script>
+</body>
+</html>
