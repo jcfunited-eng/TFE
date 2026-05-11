@@ -323,6 +323,16 @@ nav a:hover { color: var(--accent); }
   margin-bottom: 1rem;
 }
 
+.download-warning {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: #92400e;
+}
+
 .download-row {
   display: flex;
   gap: 0.5rem;
