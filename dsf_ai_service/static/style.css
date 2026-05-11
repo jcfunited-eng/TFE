@@ -502,6 +502,17 @@ nav a:hover { color: var(--accent); }
   background: var(--accent-hover);
 }
 
+.pricing-contact {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.pricing-contact a {
+  color: var(--accent);
+}
+
 /* ── Footer ─────────────────────────────────────────── */
 footer {
   text-align: center;
