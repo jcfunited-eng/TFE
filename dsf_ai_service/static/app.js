@@ -514,7 +514,7 @@ document.querySelectorAll('.buy-btn').forEach(btn => {
     const tier = btn.dataset.tier;
 
     if (tier === 'industry') {
-      window.location.href = 'mailto:contact@dsf-ai.com?subject=DSF-AI Industry Plan Inquiry';
+      window.location.href = 'mailto:support@dsf-ai.com?subject=DSF-AI Industry Plan Inquiry';
       return;
     }
 
