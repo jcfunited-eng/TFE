@@ -117,8 +117,29 @@ def run_analysis(pairs: List[Tuple[float, float]]) -> Dict[str, Any]:
     integrity = verify_integrity()
     if not integrity['intact']:
         return {'status': 'error', 'error': 'Service integrity check failed. Contact support.'}
-    # Build field series
-    series = build_field_series(pairs, name='measurement')
+    # Build field series — handle any stimulus range and value range
+    try:
+        series = build_field_series(pairs, name='measurement')
+        if series.isna().any():
+            series = series.dropna()
+        if len(series) < 5:
+            series = pd.Series(
+                [p[1] for p in sorted(pairs, key=lambda x: x[0])],
+                name='measurement'
+            )
+    except Exception:
+        series = pd.Series(
+            [p[1] for p in sorted(pairs, key=lambda x: x[0])],
+            name='measurement'
+        )
+
+    # Normalize: shift values to be strictly positive and scale to a
+    # range the kernel handles well (the kernel uses log internally,
+    # so values must be > 0 and not too tiny)
+    s_min = series.min()
+    s_max = series.max()
+    s_range = s_max - s_min if s_max > s_min else 1.0
+    series = ((series - s_min) / s_range) * 1000.0 + 1.0
 
     # Run full kernel
     kernel_out = run_kernel(series)

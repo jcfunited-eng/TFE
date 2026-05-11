@@ -320,19 +320,26 @@ analyzeBtn.addEventListener('click', async () => {
     }
 
     const report = await resp.json();
-    lastReport = report;
-    displayReport(report);
-    markFreeUsed();
-    statusEl.textContent = '';
 
-    // Record usage in backend
-    const recUserId = (clerkReady && window.Clerk && window.Clerk.user)
-      ? window.Clerk.user.id : 'anonymous';
-    fetch(`${API}/api/v1/record-analysis`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: recUserId }),
-    }).catch(() => {});
+    // Only charge if analysis actually succeeded
+    if (report.status === 'ok') {
+      lastReport = report;
+      displayReport(report);
+      markFreeUsed();
+      statusEl.textContent = '';
+
+      // Record usage in backend
+      const recUserId = (clerkReady && window.Clerk && window.Clerk.user)
+        ? window.Clerk.user.id : 'anonymous';
+      fetch(`${API}/api/v1/record-analysis`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: recUserId }),
+      }).catch(() => {});
+    } else {
+      // Analysis returned but failed — don't charge
+      throw new Error(report.error || 'Analysis failed — no credit charged');
+    }
   } catch (e) {
     if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
       statusEl.textContent = 'CSV analysis is coming soon. Try the Cluster Screener below.';
