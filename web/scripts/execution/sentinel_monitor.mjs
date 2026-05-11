@@ -865,45 +865,30 @@ export async function runSentinel() {
           // Volume check is best-effort
         }
 
-        // ── Smash and Grab exit logic ──────────────────────────────────
-        // CH3 is fast in, fast out. Ride the surge, grab the moment
-        // momentum decelerates. Never let a winner become a loser.
-        //
-        // Exit physics: the spring's kinetic energy is the fuel ratio.
-        // When the fuel DECELERATES across two consecutive checks while
-        // in profit, the expansion is over. Grab immediately.
-        // Don't wait for fuel to drop below 1.0x — that's too late.
-        //
-        // Track fuel history per ticker in memory for derivative check.
+        // ── CH3 exit: brackets are primary, sentinel is backstop ────────
+        // The 3%/1.5% brackets on Alpaca handle normal exits.
+        // Sentinel only intervenes for positions stuck past day 1
+        // (brackets use DAY TIF and expire — EXIT-F catches the downside,
+        // this catches stale positions that are slightly profitable but
+        // the bracket TP never hit and expired).
+        const ch3EntryTime = pos.entry_filled_at ?? pos.signal_detected_at ?? pos.created_at;
+        const ch3AgeDays = ch3EntryTime
+          ? Math.floor((Date.now() - new Date(ch3EntryTime).getTime()) / (1000*60*60*24))
+          : 0;
 
-        // Store fuel reading for deceleration check
-        if (!global._ch3FuelHistory) global._ch3FuelHistory = {};
-        const fuelHist = global._ch3FuelHistory[pos.ticker] || [];
-        fuelHist.push(volumeRatio ?? 0);
-        if (fuelHist.length > 5) fuelHist.shift(); // keep last 5 readings
-        global._ch3FuelHistory[pos.ticker] = fuelHist;
-
-        // Check deceleration: fuel dropping across last 2 consecutive checks
-        const fuelDecelerating = fuelHist.length >= 2 &&
-          fuelHist[fuelHist.length - 1] < fuelHist[fuelHist.length - 2];
-        const fuelDecel2 = fuelHist.length >= 3 &&
-          fuelHist[fuelHist.length - 1] < fuelHist[fuelHist.length - 2] &&
-          fuelHist[fuelHist.length - 2] < fuelHist[fuelHist.length - 3];
-
-        // Exit trigger: in profit + fuel decelerating across 2 consecutive checks
-        if (plPct > 0.005 && fuelDecel2) {
+        // Day 1: let the brackets work. Don't interfere.
+        // Day 2+: brackets expired. If profitable, grab it. If losing, EXIT-F handles it.
+        if (ch3AgeDays >= 1 && plPct > 0.005) {
           console.log(
-            `[SENTINEL] CH3 ${pos.ticker} GRAB | P&L=${(plPct*100).toFixed(2)}% | ` +
-            `fuel=${volumeRatio?.toFixed(2) ?? "?"}x (decel: ${fuelHist.slice(-3).map(f=>f.toFixed(2)).join('→')}) | ` +
-            `Spring expansion over — taking profit`
+            `[SENTINEL] CH3 ${pos.ticker} STALE GRAB | P&L=${(plPct*100).toFixed(2)}% | ` +
+            `age=${ch3AgeDays}d | brackets expired, taking profit`
           );
-          await killPosition(pos, "ch3_smash_grab_decel", ALPACA_BASE);
-          delete global._ch3FuelHistory[pos.ticker];
+          await killPosition(pos, "ch3_stale_grab", ALPACA_BASE);
           continue;
         }
 
-        // Backstop: fuel fully exhausted at any profit
-        if (fuelStatus === "EXHAUSTED" && plPct > 0) {
+        // Backstop: fuel fully exhausted AND position old — exit even at tiny loss
+        if (fuelStatus === "EXHAUSTED" && ch3AgeDays >= 1 && plPct > -0.01) {
           console.log(
             `[SENTINEL] CH3 ${pos.ticker} FUEL OUT | P&L=${(plPct*100).toFixed(2)}% | ` +
             `Grabbing remaining profit`
