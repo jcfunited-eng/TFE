@@ -305,4 +305,4 @@ def find_thermocouple_pairs(N_atoms: int = 13, min_delta_S: float = 50) -> Dict[
                 })
 
     pairs.sort(key=lambda p: p['delta_S'], reverse=True)
-    return {'pairs': pairs[:20], 'N_atoms': N_atoms}
+    return {'pairs': pairs, 'N_atoms': N_atoms, 'total_found': len(pairs)}
