@@ -95,6 +95,19 @@ nav a:hover { color: var(--accent); }
   color: var(--text);
 }
 
+.user-credits {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.nav-account {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 1.5rem;
+  font-size: 0.9rem;
+}
+
 /* ── Hero ───────────────────────────────────────────── */
 .hero {
   text-align: center;

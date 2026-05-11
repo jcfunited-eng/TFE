@@ -53,25 +53,19 @@ function updateAuthUI() {
   if (!clerk) return;
 
   if (clerk.user) {
-    // Show user info + account link + sign out
     const name = clerk.user.firstName || clerk.user.emailAddresses?.[0]?.emailAddress || 'Account';
     const img = clerk.user.imageUrl;
     userBtnEl.innerHTML = `
       <span class="user-info">
         ${img ? `<img src="${img}" class="user-avatar" alt="">` : ''}
         <span class="user-name">${name}</span>
-        <a href="#" id="account-link" class="nav-auth" style="margin-left:0.5rem;font-size:0.8rem;">Account</a>
+        <span class="user-credits" id="nav-credits"></span>
         <a href="#" id="sign-out-link" class="nav-auth" style="margin-left:0.5rem;font-size:0.8rem;">Sign Out</a>
       </span>`;
 
-    // Account link — go to account page
-    const accountLink = document.getElementById('account-link');
-    if (accountLink) {
-      accountLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.location.href = '/static/account.html';
-      });
-    }
+    // Show Account nav link
+    const navAccount = document.getElementById('nav-account');
+    if (navAccount) navAccount.hidden = false;
 
     const signOutLink = document.getElementById('sign-out-link');
     if (signOutLink) {
@@ -82,7 +76,7 @@ function updateAuthUI() {
       });
     }
 
-    // Auto-fetch credits on login
+    // Fetch and display credits
     fetchCredits(clerk.user.id);
   } else {
     showSignInFallback();
@@ -109,11 +103,10 @@ async function fetchCredits(userId) {
       body: JSON.stringify({ user_id: userId }),
     });
     const data = await resp.json();
-    // Update the account link with credit count
-    const accountLink = document.getElementById('account-link');
-    if (accountLink && data.credits !== undefined) {
-      const creditsText = data.credits === -1 ? 'Unlimited' : `${data.credits} credits`;
-      accountLink.textContent = creditsText;
+    const creditsEl = document.getElementById('nav-credits');
+    if (creditsEl && data.credits !== undefined) {
+      const creditsText = data.credits === -1 ? '(unlimited)' : `(${data.credits} credits)`;
+      creditsEl.textContent = creditsText;
     }
   } catch (e) {
     console.log('Failed to fetch credits:', e.message);
