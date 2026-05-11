@@ -48,8 +48,8 @@ const CH3_DAILY_LOSS_LIMIT = 1000;
 
 // Exit: +3% grab, -1.5% cut. Asymmetric — wins are 2x losses.
 // Backtested PF=2.31 on Accumulate D_k=-1 entries.
-const CH3_STOP_LOSS_PCT    = 0.015;  // 1.5% below entry — cut fast
-const CH3_TAKE_PROFIT_PCT  = 0.03;   // 3% above entry — grab and go
+const CH3_STOP_LOSS_PCT    = 0.01;   // 1% below entry — cut fast
+const CH3_TAKE_PROFIT_PCT  = 0.015;  // 1.5% above entry — matches actual daily range
 
 function toFloat(v) {
   const n = parseFloat(v);

@@ -546,7 +546,7 @@ export async function runSentinel() {
     // structural field. Pure price-based disaster protection.
     try {
       const signalClassRaw = String(pos.signal_class ?? "").trim().toUpperCase();
-      const catastrophicPct = signalClassRaw === "CH3" ? -0.015 : -0.10;
+      const catastrophicPct = signalClassRaw === "CH3" ? -0.01 : -0.10;
       const catastrophicLabel = signalClassRaw === "CH3"
         ? "ch3_catastrophic_floor" : "ch2_catastrophic_floor";
 
