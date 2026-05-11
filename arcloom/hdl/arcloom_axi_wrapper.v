@@ -72,6 +72,7 @@ module arcloom_axi_wrapper #(
     input  wire        cam_line_valid,
     input  wire        cam_frame_active,
     input  wire [7:0]  cam_frame_count,
+    input  wire        cam_xclk_fb,       // Clock feedback — keeps Vivado from trimming cam_clk_0
 
     // Motor drive outputs
     output wire        motor_ain1,
@@ -388,8 +389,8 @@ module arcloom_axi_wrapper #(
                                         krim_score[7:0],
                                         2'd0, krim_count};
 
-                    // 0x24: Camera frame status + line number
-                    4'd9: axi_rdata <= {15'd0,
+                    // 0x24: Camera frame status + line number + xclk feedback
+                    4'd9: axi_rdata <= {13'd0, cam_xclk_fb,
                                         cam_frame_active, cam_frame_count,
                                         cam_line_num_r};
 

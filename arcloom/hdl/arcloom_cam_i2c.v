@@ -76,7 +76,7 @@ module arcloom_cam_i2c (
     reg [3:0]  reg_idx;
     reg [3:0]  state;
     reg [23:0] shift_reg;  // addr_hi, addr_lo, data
-    reg [15:0] wait_cnt;
+    reg [19:0] wait_cnt;   // 2^20 = ~10ms at 100MHz (OV5640 needs 5ms after reset)
 
     localparam S_IDLE     = 4'd0;
     localparam S_WAIT     = 4'd1;  // post-reset delay
@@ -109,7 +109,7 @@ module arcloom_cam_i2c (
             bit_cnt   <= 5'd0;
             reg_idx   <= 4'd0;
             shift_reg <= 24'd0;
-            wait_cnt  <= 16'd0;
+            wait_cnt  <= 20'd0;
             scl_phase <= 1'b0;
         end else begin
             init_done <= 1'b0;
@@ -128,8 +128,8 @@ module arcloom_cam_i2c (
 
                 S_WAIT: begin
                     // Wait for camera to power up (20ms at 100MHz = 2M cycles)
-                    wait_cnt <= wait_cnt + 16'd1;
-                    if (wait_cnt == 16'hFFFF) begin
+                    wait_cnt <= wait_cnt + 20'd1;
+                    if (wait_cnt == 20'hFFFFF) begin
                         if (reg_idx == 4'd2) begin
                             // Extra delay after software reset
                             state <= S_START;
@@ -305,7 +305,7 @@ module arcloom_cam_i2c (
                         reg_idx  <= reg_idx + 4'd1;
                         // Add delay after software reset (reg index 1)
                         if (reg_idx == 4'd1) begin
-                            wait_cnt <= 16'd0;
+                            wait_cnt <= 20'd0;
                             state    <= S_WAIT;
                         end else begin
                             state <= S_START;
