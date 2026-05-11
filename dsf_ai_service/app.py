@@ -101,8 +101,8 @@ async def analyze_csv(
 
     if len(pairs) < 5:
         raise HTTPException(400, "Need at least 5 data points")
-    if len(pairs) > 100000:
-        raise HTTPException(400, "Too many data points (max 100,000)")
+    if len(pairs) > 500000:
+        raise HTTPException(400, "Too many data points (max 500,000)")
 
     t0 = time.time()
 
