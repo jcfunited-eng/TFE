@@ -40,10 +40,19 @@
 <!-- ════════════════════════════════════════════════════════ -->
 <section class="hero">
   <h2>Upload your measurement data.<br>Get structural analysis in 60 seconds.</h2>
-  <p class="hero-sub">Phase transitions. Precursors. Regime maps. From any measurement type. No physics knowledge required.</p>
+  <p class="hero-sub">Phase transitions. Polymorph screening. Regime detection. Battery degradation. From any measurement type — physics, pharma, materials, medical. No domain expertise required.</p>
   <div class="hero-actions">
     <a href="#analyze" class="btn btn-primary">Analyze a CSV</a>
     <a href="#cluster" class="btn btn-secondary">Screen Clusters</a>
+  </div>
+  <div class="hero-domains">
+    <span class="domain-tag">Superconductors</span>
+    <span class="domain-tag">Pharma / Polymorph Screening</span>
+    <span class="domain-tag">Battery Materials</span>
+    <span class="domain-tag">Semiconductors</span>
+    <span class="domain-tag">Ferroelectrics</span>
+    <span class="domain-tag">Medical Devices</span>
+    <span class="domain-tag">Geological Data</span>
   </div>
 </section>
 
@@ -257,38 +266,50 @@
 <!-- ════════════════════════════════════════════════════════ -->
 <section id="example" class="section">
   <h2>What DSF-AI Finds</h2>
-  <p>Here's what the service found in the most famous R(T) curve in physics — YBCO, the first high-temperature superconductor (Wu et al., 1987).</p>
+  <p>The same engine analyzes data from any domain. Here are real results from physics and pharmaceutical data.</p>
 
   <div class="example-grid">
     <div class="card">
-      <h4>The Data</h4>
-      <p>Resistance vs temperature, 4K to 300K. Everyone knows the transition is at 93K.</p>
-    </div>
-    <div class="card">
-      <h4>What DSF-AI Found</h4>
+      <h4>Physics: Superconductor R(T)</h4>
+      <p>YBCO — the most studied superconductor in history.</p>
       <ul>
         <li>Transition at <strong>93K</strong> (confirmed)</li>
-        <li>Precursor onset at <strong>106K</strong> — structural changes begin 13K before the transition</li>
-        <li>Uncertainty peaks at <strong>0.667</strong> exactly at the transition — maximum structural ambiguity</li>
-        <li>VOLATILE regime from 78K to 106K — DSF-AI sees the transition coming</li>
+        <li>Precursor onset at <strong>106K</strong> — 13K early warning</li>
+        <li>Structural precursors typically require specialized probes (ARPES, NMR). DSF-AI finds them from the transport curve alone.</li>
       </ul>
     </div>
     <div class="card">
-      <h4>What's Usually Invisible in R(T)</h4>
-      <p>The structural precursors above T<sub>c</sub> are typically only detectable with specialized probes (ARPES, NMR, tunneling spectroscopy). DSF-AI identifies them directly from the transport measurement.</p>
+      <h4>Pharma: DSC Polymorph Screening</h4>
+      <p>Simulated drug compound — heat flow vs temperature.</p>
+      <ul>
+        <li>Glass transition at <strong>62°C</strong></li>
+        <li>Polymorph I at <strong>86°C</strong></li>
+        <li>Polymorph II at <strong>143°C</strong></li>
+        <li>Melt at <strong>211°C</strong></li>
+        <li>Decomposition onset at <strong>263°C</strong></li>
+      </ul>
+      <p style="font-size:0.85rem;color:#666;margin-top:0.5rem;">5 transitions found automatically. FDA polymorph screening requires identifying all crystalline forms.</p>
     </div>
     <div class="card">
-      <h4>6 Materials Tested</h4>
+      <h4>7 Materials, 4 Phenomena</h4>
       <table class="example-table">
-        <tr><th>Material</th><th>Transition</th><th>Found?</th></tr>
-        <tr><td>YBCO</td><td>SC at 93K</td><td>Yes</td></tr>
-        <tr><td>MgB<sub>2</sub></td><td>SC at 39K</td><td>Yes</td></tr>
-        <tr><td>CsV<sub>3</sub>Sb<sub>5</sub></td><td>SC at 2.5K</td><td>Yes</td></tr>
-        <tr><td>VO<sub>2</sub></td><td>MIT at 340K</td><td>Yes</td></tr>
-        <tr><td>BaTiO<sub>3</sub></td><td>FE at 393K</td><td>Yes</td></tr>
-        <tr><td>FeSe/STO</td><td>SC at 65K</td><td>Yes</td></tr>
+        <tr><th>Data Type</th><th>Domain</th><th>Transitions Found</th></tr>
+        <tr><td>R(T)</td><td>Superconductors (4)</td><td>All detected</td></tr>
+        <tr><td>R(T)</td><td>Metal-insulator</td><td>Yes</td></tr>
+        <tr><td>Dielectric(T)</td><td>Ferroelectric</td><td>Yes</td></tr>
+        <tr><td>DSC</td><td>Pharma polymorph</td><td>5 of 5</td></tr>
       </table>
-      <p class="table-note">Same engine. Zero physics assumptions. No per-material tuning.</p>
+      <p class="table-note">Same engine. No domain configuration. No per-material tuning. <a href="/static/validation.html">Full validation evidence</a>.</p>
+    </div>
+    <div class="card">
+      <h4>Try It On Your Data</h4>
+      <p>Download a sample CSV and upload it above:</p>
+      <ul>
+        <li><a href="/static/sample_ybco.csv">Superconductor R(T)</a> (0.5 KB)</li>
+        <li><a href="/static/sample_pharma_dsc.csv">Pharma DSC</a> (29 KB)</li>
+        <li><a href="/static/sample_vo2.csv">Metal-insulator</a> (0.3 KB)</li>
+        <li><a href="/static/sample_batio3.csv">Ferroelectric</a> (0.4 KB)</li>
+      </ul>
     </div>
   </div>
 </section>
