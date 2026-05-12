@@ -886,7 +886,22 @@ def rebuild_snapshot(
     try:
         from tfe_epoch_auto_severity import refresh_and_cache as _refresh_epochs
         epoch_severities = _refresh_epochs()
-        print(f"[UF-SNAPSHOT] Epoch severities refreshed: {epoch_severities}")
+        print(f"[UF-SNAPSHOT] Epoch severities (market data): {epoch_severities}")
+
+        # Layer news signals on top of market data severities
+        try:
+            from tfe_epoch_news_signal import compute_news_boosts, merge_with_auto_severity
+            news_boosts = compute_news_boosts()
+            if news_boosts:
+                epoch_severities = merge_with_auto_severity(epoch_severities, news_boosts)
+                print(f"[UF-SNAPSHOT] Epoch severities (with news): {epoch_severities}")
+                # Update the cache with merged values
+                import json as _json
+                _cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "epoch_live_severities.json")
+                with open(_cache_path, "w") as _f:
+                    _json.dump({"severities": epoch_severities, "updated_at": datetime.now(timezone.utc).isoformat()}, _f)
+        except Exception as _news_err:
+            print(f"[UF-SNAPSHOT] News signal skipped ({_news_err}) — using market data only")
     except Exception as _epoch_err:
         print(f"[UF-SNAPSHOT] Epoch severity refresh skipped ({_epoch_err}) — using cached/fallback")
     if force_refresh_universe:

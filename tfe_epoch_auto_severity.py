@@ -118,11 +118,11 @@ def _score_war_geopolitics(closes: Dict[str, np.ndarray]) -> float:
         scores.append(float(np.clip((vix - 15.0) / 35.0, 0.0, 1.0)))
     pct = _pct_above_ma(closes, "CL=F", 60)
     if pct is not None:
-        scores.append(float(np.clip(pct / 0.30, 0.0, 1.0)))
+        scores.append(float(np.clip(pct / 0.15, 0.0, 1.0)))  # oil +15% = max severity
     rel = _relative_return(closes, "ITA", "SPY", 20)
     if rel is not None:
-        scores.append(float(np.clip(rel / 0.15, 0.0, 1.0)))
-    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["WAR_GEOPOLITICS"]
+        scores.append(float(np.clip(rel / 0.08, 0.0, 1.0)))  # defense +8% vs SPY = max
+    return round(float(max(scores)), 3) if scores else _FALLBACK_SEVERITIES["WAR_GEOPOLITICS"]
 
 
 def _score_rates_pressure(closes: Dict[str, np.ndarray]) -> float:
@@ -141,7 +141,7 @@ def _score_rates_pressure(closes: Dict[str, np.ndarray]) -> float:
             hyg_ret = float(hyg[-1]) / float(hyg[-20]) - 1.0
             lqd_ret = float(lqd[-1]) / float(lqd[-20]) - 1.0
             scores.append(float(np.clip((lqd_ret - hyg_ret) / 0.05, 0.0, 1.0)))
-    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["RATES_PRESSURE"]
+    return round(float(max(scores)), 3) if scores else _FALLBACK_SEVERITIES["RATES_PRESSURE"]
 
 
 def _score_consumer_stress(closes: Dict[str, np.ndarray]) -> float:
@@ -156,7 +156,7 @@ def _score_consumer_stress(closes: Dict[str, np.ndarray]) -> float:
     if "^VIX" in closes and len(closes["^VIX"]) > 0:
         vix = float(closes["^VIX"][-1])
         scores.append(float(np.clip((vix - 15.0) / 25.0, 0.0, 1.0)))
-    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["CONSUMER_STRESS"]
+    return round(float(max(scores)), 3) if scores else _FALLBACK_SEVERITIES["CONSUMER_STRESS"]
 
 
 def _score_energy_commodity(closes: Dict[str, np.ndarray]) -> float:
@@ -167,16 +167,16 @@ def _score_energy_commodity(closes: Dict[str, np.ndarray]) -> float:
     # Crude oil vs 60d MA
     pct = _pct_above_ma(closes, "CL=F", 60)
     if pct is not None:
-        scores.append(float(np.clip(pct / 0.25, 0.0, 1.0)))
+        scores.append(float(np.clip(pct / 0.15, 0.0, 1.0)))
     # Natural gas vs 60d MA
     pct_ng = _pct_above_ma(closes, "NG=F", 60)
     if pct_ng is not None:
-        scores.append(float(np.clip(pct_ng / 0.40, 0.0, 1.0)))
+        scores.append(float(np.clip(pct_ng / 0.20, 0.0, 1.0)))
     # XLE (energy) vs SPY — energy outperformance = commodity pressure
     rel = _relative_return(closes, "XLE", "SPY", 20)
     if rel is not None:
         scores.append(float(np.clip(rel / 0.10, 0.0, 1.0)))
-    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["ENERGY_COMMODITY"]
+    return round(float(max(scores)), 3) if scores else _FALLBACK_SEVERITIES["ENERGY_COMMODITY"]
 
 
 def _score_tech_cycle(closes: Dict[str, np.ndarray]) -> float:
@@ -194,7 +194,7 @@ def _score_tech_cycle(closes: Dict[str, np.ndarray]) -> float:
     rel_qqq = _relative_return(closes, "QQQ", "SPY", 20)
     if rel_qqq is not None:
         scores.append(float(np.clip(-rel_qqq / 0.10, 0.0, 1.0)))
-    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["TECH_CYCLE"]
+    return round(float(max(scores)), 3) if scores else _FALLBACK_SEVERITIES["TECH_CYCLE"]
 
 
 def _score_currency_fx(closes: Dict[str, np.ndarray]) -> float:
@@ -214,7 +214,7 @@ def _score_currency_fx(closes: Dict[str, np.ndarray]) -> float:
     if rel_eem is not None:
         # EM underperforming SPY = FX stress
         scores.append(float(np.clip(-rel_eem / 0.10, 0.0, 1.0)))
-    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["CURRENCY_FX"]
+    return round(float(max(scores)), 3) if scores else _FALLBACK_SEVERITIES["CURRENCY_FX"]
 
 
 def _score_fiscal_infra(closes: Dict[str, np.ndarray]) -> float:
@@ -230,7 +230,7 @@ def _score_fiscal_infra(closes: Dict[str, np.ndarray]) -> float:
     rel_xli = _relative_return(closes, "XLI", "SPY", 20)
     if rel_xli is not None:
         scores.append(float(np.clip(rel_xli / 0.08, 0.0, 1.0)))
-    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["FISCAL_INFRA"]
+    return round(float(max(scores)), 3) if scores else _FALLBACK_SEVERITIES["FISCAL_INFRA"]
 
 
 def _score_volatility_regime(closes: Dict[str, np.ndarray]) -> float:
@@ -248,7 +248,7 @@ def _score_volatility_regime(closes: Dict[str, np.ndarray]) -> float:
         # Acceleration: VIX rising above its own 20d average
         vix_accel = (vix_now - vix_20d) / max(vix_20d, 1.0)
         scores.append(float(np.clip(vix_accel / 0.30, 0.0, 1.0)))
-    return round(float(np.mean(scores)), 3) if scores else _FALLBACK_SEVERITIES["VOLATILITY_REGIME"]
+    return round(float(max(scores)), 3) if scores else _FALLBACK_SEVERITIES["VOLATILITY_REGIME"]
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
