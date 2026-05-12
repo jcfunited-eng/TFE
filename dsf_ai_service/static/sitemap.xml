@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://dsf-ai.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://dsf-ai.com/static/pharma.html</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://dsf-ai.com/static/battery.html</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
   <url><loc>https://dsf-ai.com/static/validation.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://dsf-ai.com/static/predictions.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://dsf-ai.com/static/account.html</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>

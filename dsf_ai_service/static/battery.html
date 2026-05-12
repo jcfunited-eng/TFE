@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSF-AI for Battery R&amp;D | Electrode Phase Transition &amp; Degradation Detection</title>
+  <meta name="description" content="Automated detection of phase transitions and degradation onset in battery cycling data. Upload voltage-capacity or impedance CSV, get transition detection in 60 seconds. Early warning for electrode degradation.">
+  <meta name="keywords" content="battery cycling analysis, electrode phase transition, battery degradation detection, voltage capacity analysis, impedance spectroscopy analysis, lithium ion battery characterization, cathode phase transition, solid electrolyte interphase">
+  <link rel="canonical" href="https://dsf-ai.com/static/battery.html">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .bat-page { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+    .bat-hero { text-align: center; padding: 3rem 0 2rem; }
+    .bat-hero h1 { font-size: 2.2rem; line-height: 1.3; margin-bottom: 1rem; }
+    .bat-hero .subtitle { color: #666; font-size: 1.1rem; max-width: 650px; margin: 0 auto 2rem; }
+    .bat-section { margin: 2.5rem 0; }
+    .bat-section h2 { font-size: 1.4rem; margin-bottom: 0.75rem; }
+    .bat-section p { color: #444; line-height: 1.7; margin-bottom: 1rem; }
+    .use-cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .use-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 1.25rem; }
+    .use-card h4 { margin-bottom: 0.5rem; font-size: 1rem; }
+    .use-card p { font-size: 0.9rem; color: #555; margin: 0; }
+    .data-types { background: #f8faff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 1.25rem; margin: 1.5rem 0; }
+    .data-types h4 { margin-bottom: 0.5rem; }
+    .data-types ul { margin-left: 1.5rem; }
+    .data-types li { padding: 0.2rem 0; font-size: 0.9rem; }
+    .evidence-box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 1.25rem; margin: 1.5rem 0; }
+    .evidence-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center; }
+    .ev-stat-num { font-size: 2rem; font-weight: 700; color: #2563eb; }
+    .ev-stat-label { font-size: 0.8rem; color: #666; }
+    .cta-section { text-align: center; padding: 2.5rem; background: #f8faff; border-radius: 12px; margin: 2rem 0; }
+    .cta-section h2 { margin-bottom: 0.5rem; }
+    .cta-section p { color: #666; margin-bottom: 1.5rem; }
+    .bat-faq { margin: 2rem 0; }
+    .faq-item { border-bottom: 1px solid #eee; padding: 1rem 0; }
+    .faq-q { font-weight: 600; margin-bottom: 0.3rem; }
+    .faq-a { color: #555; font-size: 0.9rem; line-height: 1.6; }
+    @media (max-width: 600px) { .evidence-stats { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/" style="text-decoration:none;"><h1 class="logo">DSF<span class="logo-ai">-AI</span></h1></a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/static/pharma.html">Pharma</a>
+      <a href="/static/battery.html" style="font-weight:600;color:#2563eb;">Battery</a>
+      <a href="/static/validation.html">Validation</a>
+      <a href="/#pricing">Pricing</a>
+    </nav>
+  </div>
+</header>
+
+<div class="bat-page">
+
+  <div class="bat-hero">
+    <h1>Find the Transitions That Kill Your Cells</h1>
+    <p class="subtitle">Automated detection of phase transitions, degradation onset, and stability boundaries in battery cycling and characterization data. Upload a CSV, get answers in 60 seconds.</p>
+    <a href="/#analyze" class="btn btn-primary" style="font-size:1.1rem;padding:0.8rem 2rem;">Analyze Your Data Free</a>
+  </div>
+
+  <!-- USE CASES -->
+  <div class="bat-section">
+    <h2>What DSF-AI Detects in Battery Data</h2>
+    <div class="use-cases">
+      <div class="use-card">
+        <h4>Cathode Phase Transitions</h4>
+        <p>Detects ordering transitions in NMC, LFP, and other cathode materials during charge/discharge. Identifies the voltage plateaus where the crystal structure reorganizes.</p>
+      </div>
+      <div class="use-card">
+        <h4>Degradation Onset</h4>
+        <p>Finds the cycle number or voltage where capacity fade begins accelerating. Early warning before the cell fails — analogous to finding precursors before a phase transition.</p>
+      </div>
+      <div class="use-card">
+        <h4>SEI Layer Changes</h4>
+        <p>Detects impedance transitions associated with solid electrolyte interphase evolution during formation and aging. Identifies when the SEI destabilizes.</p>
+      </div>
+      <div class="use-card">
+        <h4>Thermal Stability</h4>
+        <p>Analyzes DSC data from cathode materials to find exothermic decomposition onsets and thermal runaway precursors. Same analysis used in pharmaceutical polymorph screening.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT DATA -->
+  <div class="bat-section">
+    <h2>What Data Can You Upload?</h2>
+    <div class="data-types">
+      <h4>Any two-column CSV. DSF-AI is measurement-agnostic.</h4>
+      <ul>
+        <li><strong>Voltage vs. capacity</strong> — charge/discharge curves</li>
+        <li><strong>Capacity vs. cycle number</strong> — cycling degradation</li>
+        <li><strong>Impedance vs. temperature</strong> — EIS characterization</li>
+        <li><strong>Impedance vs. cycle number</strong> — aging studies</li>
+        <li><strong>DSC heat flow vs. temperature</strong> — thermal stability of electrode materials</li>
+        <li><strong>dQ/dV vs. voltage</strong> — differential capacity analysis</li>
+      </ul>
+    </div>
+    <p>No configuration, no material parameters, no model assumptions. The analysis is purely data-driven.</p>
+  </div>
+
+  <!-- EVIDENCE -->
+  <div class="bat-section">
+    <h2>Validated Across Multiple Domains</h2>
+    <div class="evidence-box">
+      <div class="evidence-stats">
+        <div><div class="ev-stat-num">63</div><div class="ev-stat-label">Experiments validated</div></div>
+        <div><div class="ev-stat-num">6.5%</div><div class="ev-stat-label">Average error</div></div>
+        <div><div class="ev-stat-num">7+</div><div class="ev-stat-label">Material types tested</div></div>
+      </div>
+    </div>
+    <p>DSF-AI has been validated on superconductors, metal-insulator transitions, ferroelectrics, and pharmaceutical DSC data. The same analysis that finds the 93K transition in YBCO and the glass transition in pharmaceutical compounds finds the phase transitions in your electrode material. <a href="/static/validation.html">Full validation evidence.</a></p>
+  </div>
+
+  <!-- WHY NOT IN-HOUSE -->
+  <div class="bat-section">
+    <h2>Why Not Use an In-House Script?</h2>
+    <p>Most battery labs have Python scripts for dQ/dV and basic peak finding. DSF-AI finds what those scripts miss:</p>
+    <ul style="line-height:2; color:#444;">
+      <li><strong>Precursors</strong> — subtle changes before a transition that indicate the material is approaching failure</li>
+      <li><strong>Broad transitions</strong> — gradual changes that don't produce sharp peaks in dQ/dV</li>
+      <li><strong>Stability boundaries</strong> — where the data shifts from one behavior to another, even without an obvious transition</li>
+      <li><strong>Consistency</strong> — automated detection removes human judgment from the analysis, making results reproducible across analysts</li>
+    </ul>
+  </div>
+
+  <!-- PRICING -->
+  <div class="bat-section">
+    <h2>Pricing</h2>
+    <p><strong>First analysis free</strong> — try it on your cycling data right now.</p>
+    <ul style="line-height:2; color:#444;">
+      <li><strong>Per analysis:</strong> $25 per curve</li>
+      <li><strong>Academic labs:</strong> $5,000/year — unlimited analyses + API access</li>
+      <li><strong>Industry R&amp;D:</strong> $50,000/year — unlimited + SLA + batch processing + API</li>
+    </ul>
+    <p style="font-size:0.9rem; color:#666;">API access lets you integrate DSF-AI into your cycling automation pipeline. Every curve analyzed automatically as data comes off the cycler.</p>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <h2>Try It on Your Data</h2>
+    <p>Export a charge/discharge curve or cycling summary as a two-column CSV. Upload it. See what you've been missing.</p>
+    <a href="/#analyze" class="btn btn-primary" style="font-size:1.1rem;padding:0.8rem 2rem;">Free Battery Data Analysis</a>
+  </div>
+
+  <!-- FAQ -->
+  <div class="bat-faq">
+    <h2>Questions</h2>
+    <div class="faq-item">
+      <div class="faq-q">Is my data stored?</div>
+      <div class="faq-a">No. Your CSV is processed in memory and deleted immediately after analysis. We cannot recover your data or results.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Can I automate this with my cycling setup?</div>
+      <div class="faq-a">Yes — Academic and Industry plans include API access. POST a CSV to the API endpoint, get JSON results back. Integrate with your data pipeline.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How is this different from dQ/dV analysis?</div>
+      <div class="faq-a">dQ/dV finds peaks in the derivative. DSF-AI finds transitions and stability boundaries in the raw data — including gradual changes, precursors, and broad transitions that don't produce sharp dQ/dV features. The analysis method is proprietary.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What format does the data need to be in?</div>
+      <div class="faq-a">Two columns, CSV. Column 1 is the independent variable (voltage, cycle number, temperature), column 2 is the measurement (capacity, impedance, heat flow). Headers are ignored.</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>DSF-AI &copy; 2026. <a href="/static/legal.html">Terms &amp; Privacy</a> | <a href="mailto:support@dsf-ai.com">support@dsf-ai.com</a></p>
+</footer>
+
+</body>
+</html>
