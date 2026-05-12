@@ -17,7 +17,7 @@ module arcloom_cam_i2c_iobuf (
     inout  wire cam_sda,
     output wire cam_scl,
     output wire init_done,
-    output wire [3:0] init_step
+    output wire [6:0] init_step
 );
 
     wire sda_out, sda_oe, sda_in;

@@ -1,18 +1,22 @@
 // ============================================================
-// ArcLoom OV5640 I2C Configuration — Minimal Init Sequence
+// ArcLoom OV5640 I2C Configuration — Full QVGA DVP Init
 // ============================================================
 //
-// Writes the minimum register set to configure OV5640 for:
-//   - QVGA output (320x240)
-//   - YUV422 format (YUYV)
-//   - DVP 8-bit parallel output
-//   - Free-running mode
+// Known-good register set for OV5640 QVGA 320x240 YUV422 DVP.
+// Based on OV5640 application note + Linux driver defaults.
+//
+// Groups:
+//   1. System/PLL — clock tree
+//   2. Timing — sensor window, HTS/VTS (controls integration time)
+//   3. Subsample — 2592x1944 sensor → 320x240 output
+//   4. ISP — image processing enables
+//   5. AEC/AGC — auto exposure/gain for usable brightness
+//   6. Format — YUV422 DVP output
+//   7. DVP — pin enables
 //
 // I2C address: 0x3C (7-bit), or 0x78/0x79 (8-bit R/W)
 // OV5640 uses 16-bit register addresses + 8-bit data.
-//
-// This module runs once on reset and then goes idle.
-// It's a simple state machine that clocks out I2C writes.
+// Runs once on reset, then goes idle.
 //
 // Target: PYNQ-Z2 (XC7Z020-1CLG400C)
 // ============================================================
@@ -22,7 +26,6 @@ module arcloom_cam_i2c (
     input  wire        rst_n,
 
     // I2C pins (directly mapped to AR SDA/SCL)
-    // Active-low open-drain: drive 0 to pull low, tristate for high
     output reg         sda_out,    // SDA drive value
     output reg         sda_oe,     // SDA output enable (1=driving)
     input  wire        sda_in,     // SDA read value
@@ -31,7 +34,7 @@ module arcloom_cam_i2c (
 
     // Status
     output reg         init_done,  // pulses when initialization complete
-    output reg  [3:0]  init_step   // current init register being written
+    output reg  [6:0]  init_step   // current init register being written
 );
 
     // I2C clock: 100MHz / 1000 = 100kHz
@@ -40,40 +43,98 @@ module arcloom_cam_i2c (
 
     // ---- Init register table ----
     // Format: {16-bit addr, 8-bit data}
-    // Minimal set to get QVGA YUV422 DVP output
-    localparam NUM_REGS = 12;
+    localparam NUM_REGS = 55;
 
     reg [23:0] init_regs [0:NUM_REGS-1];
 
     initial begin
-        // System reset
+        // ======== 1. SYSTEM ========
         init_regs[0]  = {16'h3103, 8'h11};  // Clock from PLL
-        init_regs[1]  = {16'h3008, 8'h82};  // Software reset
-        // After reset, need delay — handled by wait counter
+        init_regs[1]  = {16'h3008, 8'h82};  // Software reset (delay after)
 
-        // Clock config
-        init_regs[2]  = {16'h3034, 8'h1A};  // MIPI 10-bit mode (also sets DVP)
-        init_regs[3]  = {16'h3035, 8'h11};  // PLL clock divider
-        init_regs[4]  = {16'h3036, 8'h46};  // PLL multiplier
+        // ======== 2. PLL ========
+        // XCLK=25MHz, PCLK target ~36MHz for QVGA
+        init_regs[2]  = {16'h3034, 8'h1A};  // PLL charge pump, MIPI 10-bit
+        init_regs[3]  = {16'h3035, 8'h21};  // System clk div: PLL/2 (was /1)
+        init_regs[4]  = {16'h3036, 8'h46};  // PLL multiplier = 70
+        init_regs[5]  = {16'h3037, 8'h13};  // PLL root div /1, pre-div /3
+        init_regs[6]  = {16'h3108, 8'h01};  // PCLK root div /2
+        init_regs[7]  = {16'h3824, 8'h01};  // DVP PCLK divider
 
-        // Output format: YUV422
-        init_regs[5]  = {16'h4300, 8'h30};  // YUV422, YUYV order
+        // ======== 3. TIMING — sensor window ========
+        // Full sensor array 2592x1944, subsampled to 320x240
+        init_regs[8]  = {16'h3800, 8'h00};  // X start high
+        init_regs[9]  = {16'h3801, 8'h00};  // X start low = 0
+        init_regs[10] = {16'h3802, 8'h00};  // Y start high
+        init_regs[11] = {16'h3803, 8'h04};  // Y start low = 4
+        init_regs[12] = {16'h3804, 8'h0A};  // X end high
+        init_regs[13] = {16'h3805, 8'h3F};  // X end low = 2623
+        init_regs[14] = {16'h3806, 8'h07};  // Y end high
+        init_regs[15] = {16'h3807, 8'h9B};  // Y end low = 1947
 
-        // Output size: QVGA (320x240)
-        init_regs[6]  = {16'h3808, 8'h01};  // X output size high = 1
-        init_regs[7]  = {16'h3809, 8'h40};  // X output size low = 0x40 = 320
-        init_regs[8]  = {16'h380A, 8'h00};  // Y output size high = 0
-        init_regs[9]  = {16'h380B, 8'hF0};  // Y output size low = 0xF0 = 240
+        // ======== 4. OUTPUT SIZE ========
+        init_regs[16] = {16'h3808, 8'h01};  // X output high
+        init_regs[17] = {16'h3809, 8'h40};  // X output low = 320
+        init_regs[18] = {16'h380A, 8'h00};  // Y output high
+        init_regs[19] = {16'h380B, 8'hF0};  // Y output low = 240
 
-        // DVP output enable
-        init_regs[10] = {16'h3017, 8'hFF};  // Enable DVP data pins
-        init_regs[11] = {16'h3018, 8'hFF};  // Enable DVP control pins
+        // ======== 5. HTS/VTS — total line/frame size ========
+        // Controls integration time. THIS is why exposure was stuck.
+        init_regs[20] = {16'h380C, 8'h07};  // HTS high
+        init_regs[21] = {16'h380D, 8'h68};  // HTS low = 1896
+        init_regs[22] = {16'h380E, 8'h03};  // VTS high
+        init_regs[23] = {16'h380F, 8'hD8};  // VTS low = 984
+
+        // ======== 6. ISP OFFSET ========
+        init_regs[24] = {16'h3810, 8'h00};  // X offset high
+        init_regs[25] = {16'h3811, 8'h10};  // X offset low = 16
+        init_regs[26] = {16'h3812, 8'h00};  // Y offset high
+        init_regs[27] = {16'h3813, 8'h06};  // Y offset low = 6
+
+        // ======== 7. SUBSAMPLE ========
+        init_regs[28] = {16'h3814, 8'h31};  // X subsample odd inc = 3, even = 1
+        init_regs[29] = {16'h3815, 8'h31};  // Y subsample odd inc = 3, even = 1
+        init_regs[30] = {16'h3820, 8'h41};  // Timing: vertical subsample
+        init_regs[31] = {16'h3821, 8'h07};  // Timing: horizontal mirror + subsample
+
+        // ======== 8. BLC (black level) ========
+        init_regs[32] = {16'h4002, 8'h45};  // BLC: auto, 4-line target
+        init_regs[33] = {16'h4005, 8'h18};  // BLC: update always
+
+        // ======== 9. ISP ENABLE ========
+        init_regs[34] = {16'h5000, 8'hA7};  // ISP: lenc, gamma, AWB, BLC, AEC
+        init_regs[35] = {16'h5001, 8'hA3};  // ISP: SDE, scale, UV avg, color matrix, AWB
+        init_regs[36] = {16'h501F, 8'h00};  // Format mux: ISP output = YUV
+
+        // ======== 10. AEC/AGC ========
+        init_regs[37] = {16'h3A00, 8'h78};  // AEC: band enable, gain enable, exposure enable
+        init_regs[38] = {16'h3503, 8'h00};  // Auto mode (bit0=0 auto exp, bit1=0 auto gain)
+        init_regs[39] = {16'h3A08, 8'h01};  // B50 step high
+        init_regs[40] = {16'h3A09, 8'h27};  // B50 step low = 295
+        init_regs[41] = {16'h3A0A, 8'h00};  // B60 step high
+        init_regs[42] = {16'h3A0B, 8'hF6};  // B60 step low = 246
+        init_regs[43] = {16'h3A0D, 8'h08};  // B50 max step count
+        init_regs[44] = {16'h3A0E, 8'h06};  // B60 max step count
+        init_regs[45] = {16'h3A0F, 8'h58};  // Stable range high = 88 (target ~80)
+        init_regs[46] = {16'h3A10, 8'h50};  // Stable range low = 80
+        init_regs[47] = {16'h3A1B, 8'h58};  // Fast zone high = 88
+        init_regs[48] = {16'h3A1E, 8'h50};  // Fast zone low = 80
+        init_regs[49] = {16'h3A11, 8'hF0};  // Max gain ceiling = 15x
+        init_regs[50] = {16'h3A1F, 8'h14};  // AEC max step
+
+        // ======== 11. OUTPUT FORMAT ========
+        init_regs[51] = {16'h4300, 8'h30};  // YUV422, YUYV order
+
+        // ======== 12. DVP ENABLE ========
+        init_regs[52] = {16'h3017, 8'hFF};  // DVP data pins enable
+        init_regs[53] = {16'h3018, 8'hFF};  // DVP control pins enable
+        init_regs[54] = {16'h3019, 8'h00};  // DVP PCLK polarity: normal
     end
 
     // ---- I2C state machine ----
     reg [15:0] clk_cnt;
     reg [4:0]  bit_cnt;
-    reg [3:0]  reg_idx;
+    reg [5:0]  reg_idx;
     reg [3:0]  state;
     reg [23:0] shift_reg;  // addr_hi, addr_lo, data
     reg [19:0] wait_cnt;   // 2^20 = ~10ms at 100MHz (OV5640 needs 5ms after reset)
@@ -107,7 +168,7 @@ module arcloom_cam_i2c (
             init_step <= 4'd0;
             clk_cnt   <= 16'd0;
             bit_cnt   <= 5'd0;
-            reg_idx   <= 4'd0;
+            reg_idx   <= 6'd0;
             shift_reg <= 24'd0;
             wait_cnt  <= 20'd0;
             scl_phase <= 1'b0;
@@ -121,7 +182,7 @@ module arcloom_cam_i2c (
                     scl_oe  <= 1'b1;
                     sda_out <= 1'b1;
                     scl_out <= 1'b1;
-                    reg_idx <= 4'd0;
+                    reg_idx <= 6'd0;
                     wait_cnt <= 16'd0;
                     state   <= S_WAIT;
                 end
@@ -130,7 +191,7 @@ module arcloom_cam_i2c (
                     // Wait for camera to power up (20ms at 100MHz = 2M cycles)
                     wait_cnt <= wait_cnt + 20'd1;
                     if (wait_cnt == 20'hFFFFF) begin
-                        if (reg_idx == 4'd2) begin
+                        if (reg_idx == 6'd2) begin
                             // Extra delay after software reset
                             state <= S_START;
                         end else begin
@@ -302,9 +363,9 @@ module arcloom_cam_i2c (
                         init_done <= 1'b1;
                         state     <= S_DONE;
                     end else begin
-                        reg_idx  <= reg_idx + 4'd1;
+                        reg_idx  <= reg_idx + 6'd1;
                         // Add delay after software reset (reg index 1)
-                        if (reg_idx == 4'd1) begin
+                        if (reg_idx == 6'd1) begin
                             wait_cnt <= 20'd0;
                             state    <= S_WAIT;
                         end else begin

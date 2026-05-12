@@ -101,6 +101,12 @@ module arcloom_cam_dvp (
     // Edge detection threshold (luminance change > 16 = boundary)
     localparam EDGE_THRESH = 8'd16;
 
+    // Mean approximation: 320 Y pixels/line, so mean = y_sum/320
+    // Approximate as y_sum*3/1024 (~6% underread, fine for loom)
+    wire [20:0] y_sum_x3 = {1'b0, y_sum} + {y_sum, 1'b0};
+    wire [20:0] u_sum_x3 = {1'b0, u_sum} + {u_sum, 1'b0};
+    wire [20:0] v_sum_x3 = {1'b0, v_sum} + {v_sum, 1'b0};
+
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             prev_vsync   <= 1'b1;
@@ -149,12 +155,12 @@ module arcloom_cam_dvp (
             // HREF falling edge = end of line → emit line features
             if (prev_href && !href_s && in_frame && pixel_count > 10'd0) begin
                 // Compute means
-                line_y_mean     <= y_sum[19:10] + y_sum[9];  // divide by ~pixel_count (approx /1024)
+                line_y_mean     <= y_sum_x3[17:10];  // y_sum*3/1024 ≈ y_sum/341 ≈ y_sum/320
                 line_y_min      <= y_min_acc;
                 line_y_max      <= y_max_acc;
                 line_edge_count <= edge_cnt;
-                line_u_mean     <= u_sum[19:10] + u_sum[9];
-                line_v_mean     <= v_sum[19:10] + v_sum[9];
+                line_u_mean     <= u_sum_x3[16:9];   // 160 U samples: *3/512 ≈ /170 ≈ /160
+                line_v_mean     <= v_sum_x3[16:9];   // 160 V samples: *3/512 ≈ /170 ≈ /160
                 line_number     <= cur_line;
                 line_valid      <= 1'b1;
 
