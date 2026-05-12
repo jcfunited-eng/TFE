@@ -15,7 +15,7 @@ import io
 import csv
 import time
 import traceback
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -203,6 +203,71 @@ async def thermocouple(req: ThermocoupleRequest):
         traceback.print_exc()
         raise HTTPException(500, str(e))
     return result
+
+
+# ════════════════════════════════════════════════════════════════
+# Endpoint 5: Hardware weight derivation (hidden, auth required)
+# ════════════════════════════════════════════════════════════════
+
+class HWDeriveRequest(BaseModel):
+    calibration_table: Dict
+    sensor_names: List[str]
+    sensor_roles: Dict[str, str]
+    sensor_label: str = "unknown sensor"
+
+
+@app.post("/api/v1/hw/derive")
+async def hw_derive(req: HWDeriveRequest):
+    """
+    Derive coupling weights + BSIL thresholds from sensor calibration data.
+    Hidden endpoint — not linked from any public page.
+    """
+    t0 = time.time()
+    try:
+        from tools.derive_sppu_weights import (
+            derive_weights, format_verilog, format_json, format_bsil_thresholds
+        )
+
+        # Convert string keys back to proper types
+        cal_table = {}
+        for k, v in req.calibration_table.items():
+            if k == 'inf' or k == 'Inf':
+                cal_table['inf'] = tuple(v)
+            else:
+                cal_table[float(k)] = tuple(
+                    None if x is None else float(x) for x in v
+                )
+
+        weights, bsil_thresholds, metadata = derive_weights(
+            calibration_table=cal_table,
+            sensor_names=req.sensor_names,
+            sensor_roles=req.sensor_roles,
+            sensor_label=req.sensor_label,
+        )
+
+        verilog = format_verilog(weights, metadata)
+        verilog += "\n\n" + format_bsil_thresholds(bsil_thresholds)
+        json_str = format_json(weights, metadata)
+
+        # Build profiles summary
+        profiles_lines = []
+        for name, profile in metadata.get('dsf_profiles', {}).items():
+            profiles_lines.append(f"--- {name} ---")
+            for k, v in profile.items():
+                profiles_lines.append(f"  {k}: {v}")
+            profiles_lines.append("")
+        profiles_str = "\n".join(profiles_lines)
+
+        return {
+            'status': 'ok',
+            'verilog': verilog,
+            'json': json_str,
+            'profiles': profiles_str,
+            'compute_time_s': round(time.time() - t0, 3),
+        }
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(500, str(e))
 
 
 # ════════════════════════════════════════════════════════════════

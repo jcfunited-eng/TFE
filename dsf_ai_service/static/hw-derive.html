@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSF-AI — Hardware Weight Derivation</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="/static/style.css">
+  <script>
+    const CLERK_PK = 'pk_live_Y2xlcmsuZHNmLWFpLmNvbSQ';
+    (async () => {
+      const { Clerk } = await import('https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/+esm');
+      const clerk = new Clerk(CLERK_PK);
+      await clerk.load();
+      window.Clerk = clerk;
+      window.dispatchEvent(new Event('clerk-loaded'));
+    })();
+  </script>
+  <style>
+    .hw-page { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+    .hw-page h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .hw-page p { color: #666; margin-bottom: 1rem; }
+    .hw-gate { text-align: center; padding: 3rem; }
+    .hw-gate h2 { margin-bottom: 1rem; }
+    .hw-form { margin: 1.5rem 0; }
+    .hw-form label { display: block; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: #666; margin-bottom: 0.3rem; margin-top: 1rem; }
+    .hw-form input, .hw-form select, .hw-form textarea { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; font-family: monospace; }
+    .hw-form textarea { height: 150px; resize: vertical; }
+    .sensor-config { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+    .sensor-item { background: #f8f8f8; border: 1px solid #ddd; border-radius: 6px; padding: 0.75rem; }
+    .sensor-item label { margin-top: 0; }
+    .output-section { margin-top: 2rem; }
+    .output-block { background: #1a1a1a; color: #4ade80; border-radius: 8px; padding: 1rem; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; overflow-x: auto; margin: 0.5rem 0; max-height: 400px; overflow-y: auto; }
+    .output-label { font-size: 0.85rem; font-weight: 600; color: #666; margin-top: 1rem; margin-bottom: 0.25rem; }
+    .copy-btn { padding: 0.3rem 0.8rem; background: #333; color: #eee; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-left: 0.5rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/" style="text-decoration:none;"><h1 class="logo">DSF<span class="logo-ai">-AI</span></h1></a>
+    <nav><span id="user-button"></span></nav>
+  </div>
+</header>
+
+<div class="hw-page">
+  <div id="hw-gate" class="hw-gate">
+    <h2>Sign in required</h2>
+    <p>This tool requires authentication.</p>
+    <button class="btn btn-primary" id="hw-signin">Sign In</button>
+  </div>
+
+  <div id="hw-content" hidden>
+    <h1>Hardware Weight Derivation</h1>
+    <p>Upload sensor calibration data. Get coupling weights + thresholds as Verilog parameters and JSON.</p>
+
+    <div class="hw-form">
+      <label>Sensor Label</label>
+      <input type="text" id="hw-label" value="Sharp GP2Y0A41SK0F (3x, front/left/right)" placeholder="Sensor description">
+
+      <label>Calibration Data (CSV)</label>
+      <textarea id="hw-csv" placeholder="distance_cm, sensor_front, sensor_left, sensor_right
+inf, 79, 111, 144
+30, 477, 478, 411
+25, 446, 535, 483
+20, 619, 690, 718
+15, 772, 909, 974
+10, 1006, 1375, 1384
+7, 1742, 2323, 2592
+5, 2406, , ">distance_cm, sensor_front, sensor_left, sensor_right
+inf, 79, 111, 144
+30, 477, 478, 411
+25, 446, 535, 483
+20, 619, 690, 718
+15, 772, 909, 974
+10, 1006, 1375, 1384
+7, 1742, 2323, 2592
+5, 2406, , </textarea>
+
+      <label>Sensor Names (comma-separated, matching CSV columns)</label>
+      <input type="text" id="hw-names" value="front, left, right">
+
+      <label>Sensor Roles</label>
+      <div class="sensor-config" id="hw-roles">
+        <div class="sensor-item">
+          <label>front</label>
+          <select data-sensor="front"><option value="axial" selected>Axial (speed)</option><option value="lateral">Lateral (steer)</option></select>
+        </div>
+        <div class="sensor-item">
+          <label>left</label>
+          <select data-sensor="left"><option value="axial">Axial (speed)</option><option value="lateral" selected>Lateral (steer)</option></select>
+        </div>
+        <div class="sensor-item">
+          <label>right</label>
+          <select data-sensor="right"><option value="axial">Axial (speed)</option><option value="lateral" selected>Lateral (steer)</option></select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="hw-derive" style="margin-top:1rem;">Derive Weights</button>
+      <div id="hw-status" style="margin-top:0.5rem;color:#666;"></div>
+    </div>
+
+    <div id="hw-output" class="output-section" hidden>
+      <h2>Results</h2>
+
+      <div class="output-label">Verilog Parameters <button class="copy-btn" onclick="copyOutput('verilog')">Copy</button></div>
+      <div class="output-block" id="out-verilog"></div>
+
+      <div class="output-label">JSON <button class="copy-btn" onclick="copyOutput('json')">Copy</button></div>
+      <div class="output-block" id="out-json"></div>
+
+      <div class="output-label">DSF Profiles <button class="copy-btn" onclick="copyOutput('profiles')">Copy</button></div>
+      <div class="output-block" id="out-profiles"></div>
+
+      <div style="margin-top:1rem;">
+        <button class="btn btn-small" onclick="downloadOutput('verilog', 'derived_weights.v')">Download Verilog</button>
+        <button class="btn btn-small" onclick="downloadOutput('json', 'derived_weights.json')">Download JSON</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
+
+// Auth gate
+async function initAuth() {
+  if (!window.Clerk) {
+    await new Promise(r => {
+      window.addEventListener('clerk-loaded', r, { once: true });
+      setTimeout(r, 10000);
+    });
+  }
+  const clerk = window.Clerk;
+  if (clerk && clerk.user) {
+    document.getElementById('hw-gate').hidden = true;
+    document.getElementById('hw-content').hidden = false;
+    // Show user in nav
+    const ub = document.getElementById('user-button');
+    ub.innerHTML = `<span style="font-size:0.9rem;">${clerk.user.firstName || 'User'}</span>`;
+  } else {
+    document.getElementById('hw-signin').addEventListener('click', () => {
+      if (clerk) clerk.openSignIn({ redirectUrl: window.location.href });
+    });
+  }
+}
+document.addEventListener('DOMContentLoaded', initAuth);
+
+// Derive weights
+document.getElementById('hw-derive').addEventListener('click', async () => {
+  const btn = document.getElementById('hw-derive');
+  const status = document.getElementById('hw-status');
+  btn.disabled = true;
+  status.textContent = 'Running derivation...';
+
+  const csvText = document.getElementById('hw-csv').value.trim();
+  const label = document.getElementById('hw-label').value.trim();
+  const names = document.getElementById('hw-names').value.split(',').map(s => s.trim());
+
+  // Parse roles from selects
+  const roles = {};
+  document.querySelectorAll('#hw-roles select').forEach(sel => {
+    roles[sel.dataset.sensor] = sel.value;
+  });
+
+  // Parse CSV into calibration table
+  const lines = csvText.split('\n').filter(l => l.trim());
+  const header = lines[0].split(',').map(s => s.trim());
+  const calTable = {};
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(',').map(s => s.trim());
+    const stim = parts[0].toLowerCase() === 'inf' ? 'inf' : parseFloat(parts[0]);
+    const readings = [];
+    for (let j = 1; j < parts.length; j++) {
+      readings.push(parts[j] === '' ? null : parseFloat(parts[j]));
+    }
+    calTable[stim] = readings;
+  }
+
+  try {
+    const resp = await fetch(`${API}/api/v1/hw/derive`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        calibration_table: calTable,
+        sensor_names: names,
+        sensor_roles: roles,
+        sensor_label: label,
+      }),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error || 'Derivation failed');
+    }
+
+    const result = await resp.json();
+    document.getElementById('out-verilog').textContent = result.verilog;
+    document.getElementById('out-json').textContent = JSON.stringify(JSON.parse(result.json), null, 2);
+    document.getElementById('out-profiles').textContent = result.profiles;
+    document.getElementById('hw-output').hidden = false;
+    status.textContent = `Done in ${result.compute_time_s || '?'}s`;
+  } catch (e) {
+    status.textContent = `Error: ${e.message}`;
+    status.style.color = '#dc2626';
+  }
+
+  btn.disabled = false;
+});
+
+function copyOutput(id) {
+  const el = document.getElementById('out-' + id);
+  navigator.clipboard.writeText(el.textContent);
+}
+
+function downloadOutput(id, filename) {
+  const el = document.getElementById('out-' + id);
+  const blob = new Blob([el.textContent], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>
