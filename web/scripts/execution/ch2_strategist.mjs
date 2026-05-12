@@ -69,9 +69,11 @@ async function fetchCandidateRows(runId) {
        r.ticker,
        r.run_id,
        r.decision_label,
-       r.snapshot_row_json
+       r.snapshot_row_json,
+       COALESCE(f.sector, 'Unknown') AS sector
      FROM runtime_decisions_latest r
      LEFT JOIN runtime_symbols s ON s.ticker = r.ticker
+     LEFT JOIN l5_fundamentals_normalized f ON f.ticker = r.ticker
      WHERE r.run_id = $1
        AND r.decision_label = 'Accumulate'
        AND r.ticker != 'SPY'
@@ -120,6 +122,7 @@ function parseSignal(row) {
     regime,
     f_n:          fn,
     b_k:          bk,
+    sector:       String(row.sector ?? "Unknown").trim(),
     // No spy_dk gate for Ch2 — D_k=1 on the ticker itself is sufficient
     spy_dk:       null,
   };
@@ -189,12 +192,34 @@ export async function getCh2Signals() {
     return true;
   });
 
-  console.log(`[CH2-STRATEGIST] ${rows.length} candidates → ${signals.length} valid → ${deduped.length} after dedup`);
+  // L5 epoch governance — sort by sector pressure, block epoch-adverse stocks
+  let g32 = {};
+  try { g32 = JSON.parse(readFileSync("/app/g32_state.json", "utf-8")); } catch {}
+  const sectorPressures = g32.sector_pressures ?? {};
+
+  // Add epoch pressure to each signal
   for (const s of deduped) {
-    console.log(`[CH2-STRATEGIST]   ${s.ticker} | bar_count=${s.bar_count} | s_uf=${s.s_uf} | D_k=${s.d_k} | regime=${s.regime}`);
+    s.epoch_pressure = sectorPressures[s.sector] ?? 0;
   }
 
-  return deduped;
+  // Block stocks in heavily adverse sectors (pressure < -0.5)
+  const governed = deduped.filter(s => {
+    if (s.epoch_pressure < -0.5) {
+      console.log(`[CH2-STRATEGIST]   ${s.ticker} — BLOCKED (sector ${s.sector} epoch pressure ${s.epoch_pressure.toFixed(2)})`);
+      return false;
+    }
+    return true;
+  });
+
+  // Sort: epoch-favored sectors first, then by S_UF
+  governed.sort((a, b) => (b.epoch_pressure - a.epoch_pressure) || (b.s_uf - a.s_uf));
+
+  console.log(`[CH2-STRATEGIST] ${rows.length} candidates → ${signals.length} valid → ${deduped.length} dedup → ${governed.length} after epoch governance`);
+  for (const s of governed) {
+    console.log(`[CH2-STRATEGIST]   ${s.ticker} | s_uf=${s.s_uf} | D_k=${s.d_k} | sector=${s.sector} | epoch=${s.epoch_pressure?.toFixed(2) ?? "?"}`);
+  }
+
+  return governed;
 }
 
 export async function closeCh2StrategistPool() {

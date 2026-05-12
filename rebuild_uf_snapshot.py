@@ -895,11 +895,19 @@ def rebuild_snapshot(
             from tfe_epoch_library import build_epoch_mosaic
             coordinator, epoch_severities = build_epoch_mosaic(auto_severities)
             print(f"[UF-SNAPSHOT] Epoch mosaic (market + news): {epoch_severities}")
-            # Cache the G32 state for sentinel/CH3 to read
+            # Cache the G32 state + sector pressures for sentinel/CH2/CH3
             import json as _json
             g32_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "g32_state.json")
+            g32_data = coordinator.to_dict()
+            try:
+                from tfe_l5_epoch_governance import compute_all_sector_pressures
+                sector_pressures = compute_all_sector_pressures(coordinator.xi_current)
+                g32_data["sector_pressures"] = sector_pressures
+                print(f"[UF-SNAPSHOT] L5 sector pressures: {sector_pressures}")
+            except Exception as _gov_err:
+                print(f"[UF-SNAPSHOT] L5 governance failed ({_gov_err}) — no sector pressures")
             with open(g32_path, "w") as _f:
-                _json.dump(coordinator.to_dict(), _f)
+                _json.dump(g32_data, _f)
         except Exception as _lib_err:
             print(f"[UF-SNAPSHOT] Epoch library failed ({_lib_err}) — using auto-severity only")
             epoch_severities = auto_severities

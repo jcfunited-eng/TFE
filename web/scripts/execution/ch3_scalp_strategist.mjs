@@ -156,31 +156,19 @@ function parseSignal(row) {
   if (!isFinite(barCount) || barCount < CH3_BAR_COUNT_MIN) return null;
   if (price === null || price < 1) return null;
 
-  // G32 epoch sector filter — skip ADVERSE sectors
-  let epochStatus = "UNKNOWN";
+  // L5 epoch governance — use pre-computed sector pressures from G32
+  let epochPressure = 0;
+  let epochStatus = "NEUTRAL";
   try {
     const g32Raw = readFileSync("/app/g32_state.json", "utf-8");
     const g32 = JSON.parse(g32Raw);
-    if (g32?.xi && sector) {
-      const COUPLING = {
-        "Energy": {RATES_PRESSURE:0,CONSUMER_STRESS:-0.2,WAR_GEOPOLITICS:0.9,ENERGY_COMMODITY:0.9,TECH_CYCLE:0,CURRENCY_FX:0.3,FISCAL_INFRA:0.2,VOLATILITY_REGIME:0.1},
-        "Technology": {RATES_PRESSURE:-0.4,CONSUMER_STRESS:-0.3,WAR_GEOPOLITICS:0,ENERGY_COMMODITY:-0.1,TECH_CYCLE:-0.5,CURRENCY_FX:-0.2,FISCAL_INFRA:0.1,VOLATILITY_REGIME:-0.3},
-        "Financial Services": {RATES_PRESSURE:0.2,CONSUMER_STRESS:-0.5,WAR_GEOPOLITICS:-0.2,ENERGY_COMMODITY:0,TECH_CYCLE:-0.1,CURRENCY_FX:0.1,FISCAL_INFRA:0.1,VOLATILITY_REGIME:-0.4},
-        "Healthcare": {RATES_PRESSURE:0,CONSUMER_STRESS:0.3,WAR_GEOPOLITICS:0.1,ENERGY_COMMODITY:-0.1,TECH_CYCLE:0.1,CURRENCY_FX:-0.1,FISCAL_INFRA:0.1,VOLATILITY_REGIME:0.1},
-        "Real Estate": {RATES_PRESSURE:-1.0,CONSUMER_STRESS:-0.5,WAR_GEOPOLITICS:0,ENERGY_COMMODITY:-0.1,TECH_CYCLE:0,CURRENCY_FX:-0.1,FISCAL_INFRA:0.1,VOLATILITY_REGIME:-0.3},
-        "Consumer Discretionary": {RATES_PRESSURE:-0.5,CONSUMER_STRESS:-1.0,WAR_GEOPOLITICS:-0.2,ENERGY_COMMODITY:-0.4,TECH_CYCLE:-0.1,CURRENCY_FX:-0.2,FISCAL_INFRA:0.1,VOLATILITY_REGIME:-0.5},
-      };
-      const c = COUPLING[sector];
-      if (c) {
-        let pressure = 0;
-        for (const [ch, w] of Object.entries(c)) pressure += (g32.xi[ch] ?? 0) * w;
-        epochStatus = pressure <= -0.5 ? "ADVERSE" : pressure > 0.3 ? "TAILWIND" : "NEUTRAL";
-      }
-    }
+    const sectorPressures = g32.sector_pressures ?? {};
+    epochPressure = sectorPressures[sector] ?? 0;
+    epochStatus = epochPressure <= -0.5 ? "ADVERSE" : epochPressure > 0.3 ? "TAILWIND" : "NEUTRAL";
   } catch {}
 
   if (epochStatus === "ADVERSE") {
-    console.log(`[CH3-HUNTER]   ${ticker} — skipped (sector ${sector} ADVERSE epoch pressure)`);
+    console.log(`[CH3-HUNTER]   ${ticker} — skipped (sector ${sector} ADVERSE pressure=${epochPressure.toFixed(2)})`);
     return null;
   }
 
@@ -195,6 +183,7 @@ function parseSignal(row) {
     price:        price,
     sector:       sector,
     epoch_status: epochStatus,
+    epoch_pressure: epochPressure,
     ch3_stop_loss_pct:    CH3_STOP_LOSS_PCT,
     ch3_take_profit_pct:  CH3_TAKE_PROFIT_PCT,
   };
@@ -308,8 +297,8 @@ export async function getCh3Signals() {
     return [];
   }
 
-  // Sort by S_UF descending — highest stability = strongest structural thesis
-  available.sort((a, b) => (b.s_uf ?? 0) - (a.s_uf ?? 0));
+  // Sort by epoch pressure first (favored sectors), then S_UF
+  available.sort((a, b) => (b.epoch_pressure ?? 0) - (a.epoch_pressure ?? 0) || (b.s_uf ?? 0) - (a.s_uf ?? 0));
 
   // Pool-limited: up to 3 signals per run, constrained by available capital
   const maxSignals = 3;
@@ -322,7 +311,7 @@ export async function getCh3Signals() {
     candidate.ch3_trade_amount = perTradeAmount;
     remainingPool -= perTradeAmount;
 
-    console.log(`[CH3-HUNTER] SIGNAL: ${candidate.ticker} | D_k=${candidate.d_k} B_k=${candidate.b_k?.toFixed(3)} S_UF=${candidate.s_uf?.toFixed(2)} | $${perTradeAmount} | TP=+3% SL=-1.5%`);
+    console.log(`[CH3-HUNTER] SIGNAL: ${candidate.ticker} | D_k=${candidate.d_k} B_k=${candidate.b_k?.toFixed(3)} S_UF=${candidate.s_uf?.toFixed(2)} | sector=${candidate.sector} epoch=${candidate.epoch_pressure?.toFixed(2)} | $${perTradeAmount}`);
     results.push(candidate);
   }
 
