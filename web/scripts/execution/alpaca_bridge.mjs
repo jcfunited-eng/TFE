@@ -540,7 +540,7 @@ function validateCh2Signal(signal) {
     check(typeof signal.run_id === "string" && signal.run_id.trim().length > 0,        "run_id_missing"),
     check(signal.signal_class === "CH2",                                               `signal_class_not_ch2:${signal.signal_class}`),
     check(typeof signal.s_uf === "number" && signal.s_uf >= 0.50 && signal.s_uf < 0.75, `s_uf_out_of_ch2_band:${signal.s_uf}`),
-    check(signal.d_k === 1,                                                            `d_k_not_1:${signal.d_k}`),
+    // D_k gate REMOVED — kernel's Accumulate decision is the filter. D_k stays as EXIT-B.
     check(typeof signal.bar_count === "number" && signal.bar_count > 20,               `bar_count_not_established:${signal.bar_count}`),
     // Regime check REMOVED — validation finding: TRANSITIONAL-only was too restrictive
   ].filter(Boolean);

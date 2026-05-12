@@ -5,11 +5,10 @@
  * Independent execution path. Does NOT touch or depend on 3WA (Chapter 1) logic.
  *
  * Entry conditions (ALL must be true):
- *   1. decision_label = 'Accumulate'
- *   2. regime = 'TRANSITIONAL'
- *   3. S_UF ∈ [0.5, 0.75)  — mid-conviction acceleration band
- *   4. D_k = 1              — directional expansion confirmed
- *   5. bar_count > 20       — established stock (not a new listing / 3WA candidate)
+ *   1. decision_label = 'Accumulate'  — kernel's coupled decision
+ *   2. S_UF ∈ [0.5, 0.75)            — mid-conviction acceleration band
+ *   3. bar_count > 20                 — established stock
+ *   4. market_cap >= $500M            — liquidity floor
  *
  * Exit conditions (evaluated by sentinel_monitor per signal_class='CH2'):
  *   EXIT A — Acceleration complete:  S_UF crosses above 0.75
@@ -106,9 +105,10 @@ function parseSignal(row) {
   if (!runId)                                           return null;
   if (barCount === null || barCount < CH2_BAR_COUNT_MIN) return null;
   if (sUf === null || sUf < CH2_S_UF_MIN || sUf >= CH2_S_UF_MAX) return null;
-  if (dk !== CH2_REQUIRED_DK)                          return null;
-  // Regime gate REMOVED — validation finding: TRANSITIONAL-only was too restrictive
-  // CH2 now accepts any regime with D_k=+1 in the S_UF acceleration band
+  // D_k gate REMOVED — the kernel's Accumulate decision already accounts for
+  // the full coupled structural state. D_k=1 blocked 49 primed candidates with
+  // volume flowing. D_k stays as EXIT-B (exit if D_k collapses to -1 after entry).
+  // Regime gate also removed (validation finding: too restrictive).
 
   return {
     ticker,
