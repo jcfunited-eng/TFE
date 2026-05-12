@@ -25,10 +25,21 @@
     .hw-form { margin: 1.5rem 0; }
     .hw-form label { display: block; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: #666; margin-bottom: 0.3rem; margin-top: 1rem; }
     .hw-form input, .hw-form select, .hw-form textarea { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; font-family: monospace; }
-    .hw-form textarea { height: 150px; resize: vertical; }
-    .sensor-config { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+    .hw-form textarea { height: 180px; resize: vertical; }
+    .sensor-config { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin: 1rem 0; }
     .sensor-item { background: #f8f8f8; border: 1px solid #ddd; border-radius: 6px; padding: 0.75rem; }
     .sensor-item label { margin-top: 0; }
+    .mode-tabs { display: flex; gap: 0; margin: 1.5rem 0 0.5rem; }
+    .mode-tab { padding: 0.6rem 1.5rem; border: 1px solid #ddd; background: #f0f0f0; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+    .mode-tab:first-child { border-radius: 6px 0 0 6px; }
+    .mode-tab:last-child { border-radius: 0 6px 6px 0; }
+    .mode-tab.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .mode-panel { display: none; }
+    .mode-panel.active { display: block; }
+    .bg-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin: 0.5rem 0; }
+    .bg-field { background: #f8f8f8; border: 1px solid #ddd; border-radius: 6px; padding: 0.75rem; }
+    .bg-field label { margin-top: 0; font-size: 0.75rem; }
+    .bg-field input { font-size: 0.9rem; }
     .output-section { margin-top: 2rem; }
     .output-block { background: #1a1a1a; color: #4ade80; border-radius: 8px; padding: 1rem; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; overflow-x: auto; margin: 0.5rem 0; max-height: 400px; overflow-y: auto; }
     .output-label { font-size: 0.85rem; font-weight: 600; color: #666; margin-top: 1rem; margin-bottom: 0.25rem; }
@@ -53,22 +64,24 @@
 
   <div id="hw-content" hidden>
     <h1>Hardware Weight Derivation</h1>
-    <p>Upload sensor calibration data. Get coupling weights + thresholds as Verilog parameters and JSON.</p>
+    <p>Derive coupling weights + BSIL thresholds from sensor calibration data. Outputs Verilog parameters and JSON.</p>
 
-    <div class="hw-form">
-      <label>Sensor Label</label>
-      <input type="text" id="hw-label" value="Sharp GP2Y0A41SK0F (3x, front/left/right)" placeholder="Sensor description">
+    <!-- MODE TABS -->
+    <div class="mode-tabs">
+      <div class="mode-tab active" data-mode="ir">IR Distance Sensors</div>
+      <div class="mode-tab" data-mode="camera">Camera Vision</div>
+    </div>
 
-      <label>Calibration Data (CSV)</label>
-      <textarea id="hw-csv" placeholder="distance_cm, sensor_front, sensor_left, sensor_right
-inf, 79, 111, 144
-30, 477, 478, 411
-25, 446, 535, 483
-20, 619, 690, 718
-15, 772, 909, 974
-10, 1006, 1375, 1384
-7, 1742, 2323, 2592
-5, 2406, , ">distance_cm, sensor_front, sensor_left, sensor_right
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- IR DISTANCE MODE -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="mode-panel active" id="panel-ir">
+      <div class="hw-form">
+        <label>Sensor Label</label>
+        <input type="text" id="ir-label" value="Sharp GP2Y0A41SK0F (3x, front/left/right)">
+
+        <label>Calibration Data (CSV)</label>
+        <textarea id="ir-csv">distance_cm, sensor_front, sensor_left, sensor_right
 inf, 79, 111, 144
 30, 477, 478, 411
 25, 446, 535, 483
@@ -78,41 +91,118 @@ inf, 79, 111, 144
 7, 1742, 2323, 2592
 5, 2406, , </textarea>
 
-      <label>Sensor Names (comma-separated, matching CSV columns)</label>
-      <input type="text" id="hw-names" value="front, left, right">
+        <label>Sensor Names</label>
+        <input type="text" id="ir-names" value="front, left, right">
 
-      <label>Sensor Roles</label>
-      <div class="sensor-config" id="hw-roles">
-        <div class="sensor-item">
-          <label>front</label>
-          <select data-sensor="front"><option value="axial" selected>Axial (speed)</option><option value="lateral">Lateral (steer)</option></select>
+        <label>Sensor Roles</label>
+        <div class="sensor-config">
+          <div class="sensor-item">
+            <label>front</label>
+            <select data-ir-role="front"><option value="axial" selected>Axial (speed)</option><option value="lateral">Lateral (steer)</option></select>
+          </div>
+          <div class="sensor-item">
+            <label>left</label>
+            <select data-ir-role="left"><option value="axial">Axial (speed)</option><option value="lateral" selected>Lateral (steer)</option></select>
+          </div>
+          <div class="sensor-item">
+            <label>right</label>
+            <select data-ir-role="right"><option value="axial">Axial (speed)</option><option value="lateral" selected>Lateral (steer)</option></select>
+          </div>
         </div>
-        <div class="sensor-item">
-          <label>left</label>
-          <select data-sensor="left"><option value="axial">Axial (speed)</option><option value="lateral" selected>Lateral (steer)</option></select>
-        </div>
-        <div class="sensor-item">
-          <label>right</label>
-          <select data-sensor="right"><option value="axial">Axial (speed)</option><option value="lateral" selected>Lateral (steer)</option></select>
-        </div>
+
+        <button class="btn btn-primary" id="ir-derive" style="margin-top:1rem;">Derive IR Weights</button>
       </div>
-
-      <button class="btn btn-primary" id="hw-derive" style="margin-top:1rem;">Derive Weights</button>
-      <div id="hw-status" style="margin-top:0.5rem;color:#666;"></div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- CAMERA VISION MODE -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="mode-panel" id="panel-camera">
+      <div class="hw-form">
+        <label>Object Label</label>
+        <input type="text" id="cam-label" value="Turntable capture — object 1">
+
+        <label>Background Baselines (empty light box readings)</label>
+        <div class="bg-fields">
+          <div class="bg-field">
+            <label>Y Mean (brightness)</label>
+            <input type="number" id="bg-y" value="45" min="0" max="255">
+          </div>
+          <div class="bg-field">
+            <label>Edge Count (texture)</label>
+            <input type="number" id="bg-edge" value="2" min="0" max="255">
+          </div>
+          <div class="bg-field">
+            <label>U Mean (color)</label>
+            <input type="number" id="bg-u" value="128" min="0" max="255">
+          </div>
+        </div>
+
+        <label>Turntable Capture (CSV)</label>
+        <textarea id="cam-csv" placeholder="sample, orientation, y_mean, edge_count, u_mean
+1, lying, 52, 8, 135
+2, lying, 55, 12, 132
+3, lying, 58, 15, 130
+...
+21, standing, 48, 22, 140
+22, standing, 50, 25, 138
+...">sample, orientation, y_mean, edge_count, u_mean
+1, lying, 52, 8, 135
+2, lying, 55, 12, 132
+3, lying, 58, 15, 130
+4, lying, 62, 18, 128
+5, lying, 65, 22, 125
+6, lying, 63, 20, 127
+7, lying, 60, 16, 129
+8, lying, 56, 11, 133
+9, lying, 53, 9, 134
+10, lying, 51, 7, 136
+11, lying, 50, 6, 136
+12, lying, 51, 7, 135
+13, lying, 53, 9, 134
+14, lying, 56, 12, 132
+15, lying, 60, 17, 129
+16, lying, 64, 21, 126
+17, lying, 66, 24, 124
+18, lying, 63, 19, 127
+19, lying, 58, 14, 131
+20, lying, 54, 10, 133
+21, standing, 48, 22, 140
+22, standing, 50, 28, 138
+23, standing, 55, 35, 133
+24, standing, 60, 42, 128
+25, standing, 65, 48, 123
+26, standing, 68, 52, 120
+27, standing, 66, 50, 122
+28, standing, 62, 44, 126
+29, standing, 57, 36, 131
+30, standing, 52, 26, 136
+31, standing, 49, 23, 139
+32, standing, 48, 22, 140
+33, standing, 50, 25, 138
+34, standing, 55, 34, 133
+35, standing, 62, 43, 127
+36, standing, 67, 51, 121
+37, standing, 69, 54, 119
+38, standing, 64, 46, 125
+39, standing, 58, 37, 130
+40, standing, 53, 27, 135</textarea>
+
+        <button class="btn btn-primary" id="cam-derive" style="margin-top:1rem;">Derive Camera Weights</button>
+      </div>
+    </div>
+
+    <div id="hw-status" style="margin-top:0.5rem;color:#666;"></div>
+
+    <!-- OUTPUT (shared) -->
     <div id="hw-output" class="output-section" hidden>
       <h2>Results</h2>
-
       <div class="output-label">Verilog Parameters <button class="copy-btn" onclick="copyOutput('verilog')">Copy</button></div>
       <div class="output-block" id="out-verilog"></div>
-
       <div class="output-label">JSON <button class="copy-btn" onclick="copyOutput('json')">Copy</button></div>
       <div class="output-block" id="out-json"></div>
-
-      <div class="output-label">DSF Profiles <button class="copy-btn" onclick="copyOutput('profiles')">Copy</button></div>
+      <div class="output-label">Profiles <button class="copy-btn" onclick="copyOutput('profiles')">Copy</button></div>
       <div class="output-block" id="out-profiles"></div>
-
       <div style="margin-top:1rem;">
         <button class="btn btn-small" onclick="downloadOutput('verilog', 'derived_weights.v')">Download Verilog</button>
         <button class="btn btn-small" onclick="downloadOutput('json', 'derived_weights.json')">Download JSON</button>
@@ -124,19 +214,15 @@ inf, 79, 111, 144
 <script>
 const API = 'https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
 
-// Auth gate
+// Auth
 async function initAuth() {
   if (!window.Clerk) {
-    await new Promise(r => {
-      window.addEventListener('clerk-loaded', r, { once: true });
-      setTimeout(r, 10000);
-    });
+    await new Promise(r => { window.addEventListener('clerk-loaded', r, { once: true }); setTimeout(r, 10000); });
   }
   const clerk = window.Clerk;
   if (clerk && clerk.user) {
     document.getElementById('hw-gate').hidden = true;
     document.getElementById('hw-content').hidden = false;
-    // Show user in nav
     const ub = document.getElementById('user-button');
     ub.innerHTML = `<span style="font-size:0.9rem;">${clerk.user.firstName || 'User'}</span>`;
   } else {
@@ -147,36 +233,97 @@ async function initAuth() {
 }
 document.addEventListener('DOMContentLoaded', initAuth);
 
-// Derive weights
-document.getElementById('hw-derive').addEventListener('click', async () => {
-  const btn = document.getElementById('hw-derive');
+// Tab switching
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.mode).classList.add('active');
+    document.getElementById('hw-output').hidden = true;
+  });
+});
+
+// IR Derive
+document.getElementById('ir-derive').addEventListener('click', async () => {
+  const btn = document.getElementById('ir-derive');
   const status = document.getElementById('hw-status');
   btn.disabled = true;
-  status.textContent = 'Running derivation...';
+  status.textContent = 'Running IR derivation...';
+  status.style.color = '#666';
 
-  const csvText = document.getElementById('hw-csv').value.trim();
-  const label = document.getElementById('hw-label').value.trim();
-  const names = document.getElementById('hw-names').value.split(',').map(s => s.trim());
-
-  // Parse roles from selects
+  const csvText = document.getElementById('ir-csv').value.trim();
+  const label = document.getElementById('ir-label').value.trim();
+  const names = document.getElementById('ir-names').value.split(',').map(s => s.trim());
   const roles = {};
-  document.querySelectorAll('#hw-roles select').forEach(sel => {
-    roles[sel.dataset.sensor] = sel.value;
-  });
+  document.querySelectorAll('[data-ir-role]').forEach(sel => { roles[sel.dataset.irRole] = sel.value; });
 
-  // Parse CSV into calibration table
   const lines = csvText.split('\n').filter(l => l.trim());
-  const header = lines[0].split(',').map(s => s.trim());
   const calTable = {};
   for (let i = 1; i < lines.length; i++) {
     const parts = lines[i].split(',').map(s => s.trim());
     const stim = parts[0].toLowerCase() === 'inf' ? 'inf' : parseFloat(parts[0]);
-    const readings = [];
-    for (let j = 1; j < parts.length; j++) {
-      readings.push(parts[j] === '' ? null : parseFloat(parts[j]));
-    }
+    const readings = parts.slice(1).map(v => v === '' ? null : parseFloat(v));
     calTable[stim] = readings;
   }
+
+  try {
+    const resp = await fetch(`${API}/api/v1/hw/derive`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ calibration_table: calTable, sensor_names: names, sensor_roles: roles, sensor_label: label }),
+    });
+    if (!resp.ok) throw new Error((await resp.json()).detail || 'Failed');
+    const result = await resp.json();
+    showOutput(result);
+    status.textContent = `Done in ${result.compute_time_s || '?'}s`;
+  } catch (e) {
+    status.textContent = `Error: ${e.message}`;
+    status.style.color = '#dc2626';
+  }
+  btn.disabled = false;
+});
+
+// Camera Derive
+document.getElementById('cam-derive').addEventListener('click', async () => {
+  const btn = document.getElementById('cam-derive');
+  const status = document.getElementById('hw-status');
+  btn.disabled = true;
+  status.textContent = 'Running camera derivation...';
+  status.style.color = '#666';
+
+  const label = document.getElementById('cam-label').value.trim();
+  const bgY = parseInt(document.getElementById('bg-y').value);
+  const bgEdge = parseInt(document.getElementById('bg-edge').value);
+  const bgU = parseInt(document.getElementById('bg-u').value);
+  const csvText = document.getElementById('cam-csv').value.trim();
+
+  // Parse camera CSV
+  const lines = csvText.split('\n').filter(l => l.trim());
+  const samples = [];
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(',').map(s => s.trim());
+    if (parts.length >= 5) {
+      samples.push({
+        sample: parseInt(parts[0]),
+        orientation: parts[1],
+        y_mean: parseInt(parts[2]),
+        edge_count: parseInt(parts[3]),
+        u_mean: parseInt(parts[4]),
+      });
+    }
+  }
+
+  // Convert to calibration table format the backend expects
+  // Each sample becomes a row, the three features are the "sensors"
+  const calTable = {};
+  calTable['inf'] = [bgY, bgEdge, bgU];  // background = baseline
+  samples.forEach(s => {
+    calTable[s.sample] = [s.y_mean, s.edge_count, s.u_mean];
+  });
+
+  const names = ['y_mean', 'edge_count', 'u_mean'];
+  const roles = { 'y_mean': 'structural', 'edge_count': 'structural', 'u_mean': 'structural' };
 
   try {
     const resp = await fetch(`${API}/api/v1/hw/derive`, {
@@ -186,43 +333,44 @@ document.getElementById('hw-derive').addEventListener('click', async () => {
         calibration_table: calTable,
         sensor_names: names,
         sensor_roles: roles,
-        sensor_label: label,
+        sensor_label: label + ' (camera: Y/Edge/U)',
+        camera_mode: true,
+        background: { y_mean: bgY, edge_count: bgEdge, u_mean: bgU },
       }),
     });
-
-    if (!resp.ok) {
-      const err = await resp.json();
-      throw new Error(err.error || 'Derivation failed');
-    }
-
+    if (!resp.ok) throw new Error((await resp.json()).detail || 'Failed');
     const result = await resp.json();
-    document.getElementById('out-verilog').textContent = result.verilog;
-    document.getElementById('out-json').textContent = JSON.stringify(JSON.parse(result.json), null, 2);
-    document.getElementById('out-profiles').textContent = result.profiles;
-    document.getElementById('hw-output').hidden = false;
+    showOutput(result);
     status.textContent = `Done in ${result.compute_time_s || '?'}s`;
   } catch (e) {
     status.textContent = `Error: ${e.message}`;
     status.style.color = '#dc2626';
   }
-
   btn.disabled = false;
 });
 
+function showOutput(result) {
+  document.getElementById('out-verilog').textContent = result.verilog;
+  try {
+    document.getElementById('out-json').textContent = JSON.stringify(JSON.parse(result.json), null, 2);
+  } catch (e) {
+    document.getElementById('out-json').textContent = result.json;
+  }
+  document.getElementById('out-profiles').textContent = result.profiles;
+  document.getElementById('hw-output').hidden = false;
+}
+
 function copyOutput(id) {
-  const el = document.getElementById('out-' + id);
-  navigator.clipboard.writeText(el.textContent);
+  navigator.clipboard.writeText(document.getElementById('out-' + id).textContent);
 }
 
 function downloadOutput(id, filename) {
-  const el = document.getElementById('out-' + id);
-  const blob = new Blob([el.textContent], { type: 'text/plain' });
+  const blob = new Blob([document.getElementById('out-' + id).textContent], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
 </script>
-
 </body>
 </html>
