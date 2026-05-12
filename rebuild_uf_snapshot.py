@@ -884,24 +884,25 @@ def rebuild_snapshot(
     # Refresh epoch severity cache before evaluating any tickers so that all
     # sector epoch gates in this run use current market conditions.
     try:
+        # Step 1: Market data severity (price-derived signals)
         from tfe_epoch_auto_severity import refresh_and_cache as _refresh_epochs
-        epoch_severities = _refresh_epochs()
-        print(f"[UF-SNAPSHOT] Epoch severities (market data): {epoch_severities}")
+        auto_severities = _refresh_epochs()
+        print(f"[UF-SNAPSHOT] Epoch auto-severity (market data): {auto_severities}")
 
-        # Layer news signals on top of market data severities
+        # Step 2: Build full epoch mosaic (market data + news + temporal decay)
+        # This is the L5 epoch library per spec §Epoch Source Ingestion
         try:
-            from tfe_epoch_news_signal import compute_news_boosts, merge_with_auto_severity
-            news_boosts = compute_news_boosts()
-            if news_boosts:
-                epoch_severities = merge_with_auto_severity(epoch_severities, news_boosts)
-                print(f"[UF-SNAPSHOT] Epoch severities (with news): {epoch_severities}")
-                # Update the cache with merged values
-                import json as _json
-                _cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "epoch_live_severities.json")
-                with open(_cache_path, "w") as _f:
-                    _json.dump({"severities": epoch_severities, "updated_at": datetime.now(timezone.utc).isoformat()}, _f)
-        except Exception as _news_err:
-            print(f"[UF-SNAPSHOT] News signal skipped ({_news_err}) — using market data only")
+            from tfe_epoch_library import build_epoch_mosaic
+            coordinator, epoch_severities = build_epoch_mosaic(auto_severities)
+            print(f"[UF-SNAPSHOT] Epoch mosaic (market + news): {epoch_severities}")
+            # Cache the G32 state for sentinel/CH3 to read
+            import json as _json
+            g32_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "g32_state.json")
+            with open(g32_path, "w") as _f:
+                _json.dump(coordinator.to_dict(), _f)
+        except Exception as _lib_err:
+            print(f"[UF-SNAPSHOT] Epoch library failed ({_lib_err}) — using auto-severity only")
+            epoch_severities = auto_severities
     except Exception as _epoch_err:
         print(f"[UF-SNAPSHOT] Epoch severity refresh skipped ({_epoch_err}) — using cached/fallback")
     if force_refresh_universe:
