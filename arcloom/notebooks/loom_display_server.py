@@ -87,8 +87,8 @@ def read_sensors():
     motif_count = reg_20 & 0x3F
 
     reg_24 = arcloom.read(0x24)
-    cam_frame_active = bool(reg_24 & (1 << 16))
-    cam_frame_count = (reg_24 >> 8) & 0xFF
+    cam_frame_active = bool(reg_24 & (1 << 17))
+    cam_frame_count = (reg_24 >> 9) & 0xFF
 
     return {
         "front": front_adc,
@@ -99,6 +99,17 @@ def read_sensors():
         "motif_count": motif_count,
         "cam_active": cam_frame_active,
         "cam_frames": cam_frame_count,
+    }
+
+
+def read_camera():
+    """Read camera line features from register 0x18."""
+    reg_18 = arcloom.read(0x18)
+    return {
+        "y_mean": reg_18 & 0xFF,
+        "y_min": (reg_18 >> 8) & 0xFF,
+        "y_max": (reg_18 >> 16) & 0xFF,
+        "edge_count": (reg_18 >> 24) & 0xFF,
     }
 
 
@@ -163,6 +174,8 @@ def api_loom():
     try:
         data = read_loom()
         data["sensors"] = read_sensors()
+        cam = read_camera()
+        data["camera"] = cam
 
         # Log during demo run
         if demo_logging:
@@ -175,6 +188,8 @@ def api_loom():
                 "steer": data["output"]["steer"],
                 "speed": data["output"]["speed"],
                 "motor": data["sensors"]["motor_on"],
+                "y_mean": cam["y_mean"],
+                "edge": cam["edge_count"],
             })
 
         return jsonify(data)
@@ -406,7 +421,7 @@ tr:hover { background: #111; }
     <div class="chart-title">DECISION LOG</div>
     <div style="max-height: 400px; overflow-y: auto;">
         <table id="logTable">
-            <thead><tr><th>#</th><th>Time</th><th>Front</th><th>Left</th><th>Right</th><th>Speed</th><th>Steer</th><th>Check</th></tr></thead>
+            <thead><tr><th>#</th><th>Time</th><th>Front</th><th>Left</th><th>Right</th><th>Speed</th><th>Steer</th><th>Y</th><th>Edge</th></tr></thead>
             <tbody id="logBody"></tbody>
         </table>
     </div>
@@ -428,33 +443,9 @@ async function loadReport() {
     document.getElementById('subtitle').textContent =
         log.length + ' samples | ' + dur + 's | ' + t0.toLocaleTimeString();
 
-    // Analyze decisions
-    let correct = 0, wrong = 0, neutral = 0;
-    const issues = [];
-    log.forEach((r, i) => {
-        let speedOk = true, steerOk = true;
-
-        // Speed: front > 1500 should be +1 (reverse) or null; front < 500 should be -1 (forward)
-        if (r.front > 1500 && r.speed === '-1') { speedOk = false; issues.push(i); }
-        if (r.front < 500 && r.speed === '+1') { speedOk = false; issues.push(i); }
-
-        // Steer: left high + right low should be +1 (turn right); opposite = -1
-        if (r.left > 800 && r.right < 200 && r.steer === '-1') { steerOk = false; issues.push(i); }
-        if (r.right > 800 && r.left < 200 && r.steer === '+1') { steerOk = false; issues.push(i); }
-
-        if (r.speed === 'null' && r.steer === 'null') neutral++;
-        else if (speedOk && steerOk) correct++;
-        else wrong++;
-    });
-
-    const pct = log.length > 0 ? Math.round(correct / (correct + wrong) * 100) : 0;
-
     document.getElementById('summary').innerHTML = `
         <div class="stat"><div class="stat-val">${log.length}</div><div class="stat-label">Samples</div></div>
         <div class="stat"><div class="stat-val">${dur}s</div><div class="stat-label">Duration</div></div>
-        <div class="stat"><div class="stat-val" style="color:${pct>70?'#00ff88':'#ff4444'}">${pct}%</div><div class="stat-label">Correct</div></div>
-        <div class="stat"><div class="stat-val" style="color:#ff4444">${wrong}</div><div class="stat-label">Wrong</div></div>
-        <div class="stat"><div class="stat-val" style="color:#555">${neutral}</div><div class="stat-label">Neutral</div></div>
     `;
 
     // Sensor chart
@@ -499,18 +490,12 @@ async function loadReport() {
     const tbody = document.getElementById('logBody');
     log.forEach((r, i) => {
         const tr = document.createElement('tr');
-        const isBad = issues.includes(i);
-        if (isBad) tr.className = 'bad';
-
         const elapsed = (r.t - log[0].t).toFixed(1);
         const fmtTrit = (v) => v === '+1' ? '<span class="pos">+1</span>' : v === '-1' ? '<span class="neg">-1</span>' : '<span class="nul">0</span>';
 
-        let check = '';
-        if (isBad) check = '<span class="wrong">BAD</span>';
-        else if (r.speed === 'null' && r.steer === 'null') check = '<span class="nul">--</span>';
-        else check = '<span class="correct">OK</span>';
-
-        tr.innerHTML = `<td>${i+1}</td><td>${elapsed}s</td><td>${r.front}</td><td>${r.left}</td><td>${r.right}</td><td>${fmtTrit(r.speed)}</td><td>${fmtTrit(r.steer)}</td><td>${check}</td>`;
+        const yCol = r.y_mean !== undefined ? r.y_mean : '';
+        const eCol = r.edge !== undefined ? r.edge : '';
+        tr.innerHTML = `<td>${i+1}</td><td>${elapsed}s</td><td>${r.front}</td><td>${r.left}</td><td>${r.right}</td><td>${fmtTrit(r.speed)}</td><td>${fmtTrit(r.steer)}</td><td>${yCol}</td><td>${eCol}</td>`;
         tbody.appendChild(tr);
     });
 }
@@ -642,6 +627,7 @@ body {
 .cb-clear { background: #331a1a; color: #ff4444; }
 
 .status-bar { text-align: center; font-size: 0.55em; color: #333; padding: 8px; }
+
 </style>
 </head>
 <body>
@@ -677,8 +663,24 @@ body {
         <div class="sensor-status">
             <span>Familiarity: <b id="val-fam">0</b></span>
             <span>Motifs: <b id="val-motifs">0</b></span>
-            <span>Camera: <b id="val-cam">OFF</b></span>
             <span id="motor-status" style="color:#ff4444;">MOTORS OFF</span>
+        </div>
+    </div>
+
+    <!-- CAMERA — live features (not yet wired into SPPU) -->
+    <div class="sensor-panel" id="cam-panel">
+        <div style="margin-bottom:8px;">
+            <span style="font-size:0.75em; color:#aa88ff; font-weight:bold;">CAMERA</span>
+        </div>
+        <div class="sensor-row">
+            <span class="sensor-label">Y Mean</span>
+            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-ymean" style="width:0%;background:#aa88ff;"></div></div>
+            <span class="sensor-val" id="val-ymean">0</span>
+        </div>
+        <div class="sensor-row">
+            <span class="sensor-label">Edges</span>
+            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-edge" style="width:0%;background:#ff88ff;"></div></div>
+            <span class="sensor-val" id="val-edge">0</span>
         </div>
     </div>
 
@@ -827,11 +829,19 @@ async function poll() {
 
         document.getElementById('val-fam').textContent = s.familiarity;
         document.getElementById('val-motifs').textContent = s.motif_count;
-        document.getElementById('val-cam').textContent = s.cam_active ? 'ACTIVE (' + s.cam_frames + ')' : 'OFF';
 
         const mstat = document.getElementById('motor-status');
         mstat.textContent = s.motor_on ? 'MOTORS ON' : 'MOTORS OFF';
         mstat.style.color = s.motor_on ? '#00ff88' : '#ff4444';
+
+        // Camera features
+        const cam = data.camera || {};
+        const yPct = Math.min(100, (cam.y_mean / 255) * 100);
+        const ePct = Math.min(100, (cam.edge_count / 255) * 100);
+        document.getElementById('bar-ymean').style.width = yPct + '%';
+        document.getElementById('val-ymean').textContent = cam.y_mean;
+        document.getElementById('bar-edge').style.width = ePct + '%';
+        document.getElementById('val-edge').textContent = cam.edge_count;
 
         document.getElementById('status').textContent =
             'LIVE | ' + new Date().toLocaleTimeString();

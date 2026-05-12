@@ -221,21 +221,21 @@ endmodule
 
 
 // ============================================================
-// ArcLoom Top Module — 8-Strand SPPU + UF Pipeline + Krimelack
+// ArcLoom Top Module — SPPU + Krimelack + L6
 // ============================================================
 //
-// 8 strands x 3 trits = 24 trits = 48 bits.
-//
 // Architecture:
-//   clk/rst_n drive ONLY: BSIL, Krimelack, UF Pipeline
+//   clk/rst_n drive ONLY: BSIL, Krimelack
 //   The SPPU (loom fabric) is PURELY COMBINATIONAL — no clock.
+//   L6 (topological constraint) is COMBINATIONAL.
 //
-//   BSIL (clocked) → 3 input strands (distance/direction/accel)
-//   Camera BSIL (ARM) → 2 input strands (edge/motion) via AXI
-//   SPPU (combinational) → 48-bit loom_state
-//   Krimelack (clocked) → structural memory with commit gating
-//   UF Pipeline (clocked) → DSF → feedback bias into SPPU
-//   L6 (combinational) → structural lock detection
+//   BSIL-BT (clocked) → 3 sensor strands (distance/direction/accel)
+//   SPPU (combinational) → loom_state + decisions
+//   Krimelack (clocked) → structural memory
+//   L6 (combinational) → structural lock / dimensional exhaustion
+//
+// NO TFE/DSF-AI code. The SPPU is the razor.
+// DSF-AI provides coupling weights and thresholds externally.
 // ============================================================
 module arcloom_top (
     input  wire        clk,
@@ -281,10 +281,12 @@ module arcloom_top (
     output wire signed [31:0] debug_steer_field
 );
 
-    // Internal UF pipeline signals
-    wire [31:0] dsf_M, dsf_U_star, dsf_P, dsf_B;
-    wire [3:0]  dsf_C;
-    wire        l0_boundary_w;
+    // DSF outputs — not driven, no UF pipeline in ArcLoom
+    // These ports remain for AXI wrapper compatibility
+    assign dsf_safe_mode = 1'b0;
+    assign dsf_valid = 1'b0;
+    assign dsf_D = 2'b00;
+    assign dsf_R_rev = 1'b0;
 
     // ================================================================
     // BSIL-BT: Full Balanced Ternary Sensor Encoding (3 sensors)
@@ -319,28 +321,6 @@ module arcloom_top (
         .bt_distance(right_dist), .bt_direction(right_dir),
         .bt_acceleration(right_accel), .out_valid(right_bsil_valid)
     );
-
-    // ================================================================
-    // DSF Feedback Bias
-    // ================================================================
-    reg [7:0] dsf_bias_dcsn, dsf_bias_mmtm;
-
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            dsf_bias_dcsn <= 8'd0;
-            dsf_bias_mmtm <= 8'd0;
-        end else if (dsf_valid && !dsf_safe_mode) begin
-            case (dsf_D)
-                2'b01:   dsf_bias_dcsn <= dsf_B[23:16];
-                2'b10:   dsf_bias_dcsn <= ~dsf_B[23:16] + 8'd1;
-                default: dsf_bias_dcsn <= 8'd0;
-            endcase
-            dsf_bias_mmtm <= dsf_M[31] ? (~dsf_M[23:16] + 8'd1) : dsf_M[23:16];
-        end else if (dsf_valid && dsf_safe_mode) begin
-            dsf_bias_dcsn <= 8'd0;
-            dsf_bias_mmtm <= 8'd0;
-        end
-    end
 
     // ================================================================
     // Damped Familiarity: coupling barrier on feedback path
@@ -382,9 +362,9 @@ module arcloom_top (
         .in_right_dist(right_dist),
         .familiarity(active_familiarity),
         .ext_h_ctx(16'd0),
-        .ext_h_mmtm({8'd0, dsf_bias_mmtm}),
+        .ext_h_mmtm(16'd0),
         .ext_h_steer(16'd0),
-        .ext_h_speed(-16'd800),          // "when in doubt, go forward" (300 margin past DZ_SPEED=500)
+        .ext_h_speed(-16'd800),          // Tilted potential well: null trits contribute zero, bias tilts toward forward
         .ext_h_conf(16'd0),
         .loom_state(loom_state),
         .decision_steer(decision_steer),
@@ -396,24 +376,38 @@ module arcloom_top (
     );
 
     // ================================================================
-    // Krimelack: Structural Memory (CLOCKED — spec-compliant)
+    // Krimelack: Structural Memory (CLOCKED)
+    // ================================================================
+    // Commit trigger: structural_lock from L6.
+    //   When the loom state has collapsed (enough trits non-null),
+    //   the state is stable and worth remembering.
+    //
+    // Uncertainty: derived from L6 n_effective.
+    //   More null trits = more uncertain = higher u_star.
+    //   n_effective is 0-49. Scale: u_star = n_effective/49 in 16.16.
+    //   Approximation: (n_effective << 16) / 49 ≈ n_effective * 1337
+    //
+    // Resonance: derived from L6 omega (confinement ratio).
+    //   High omega = many trits collapsed = high resonance.
+    //   omega is 0-255 (scaled). resonance = omega << 8 as 16.16.
+    //
+    // Safe mode: none. Krimelack gates itself via its own thresholds.
     // ================================================================
     wire [47:0] recalled_motif;
 
-    // DSF resonance for commit eligibility
-    // Use a simple proxy: resonance high when uncertainty low
-    wire [31:0] resonance_proxy = (dsf_U_star <= 32'h00008000) ?
-                                   32'h0000C000 : 32'h00004000;
+    // Uncertainty from dimensional freedom: more null trits = more uncertain
+    wire [31:0] u_star_from_l6 = {15'd0, n_effective, 12'd0};  // n_eff/49 ≈ n_eff << 12
 
-    // Krimelack uses bottom 48 bits of loom state (decision + settling + partial input)
-    // Full 98-bit motifs would waste BRAM. 48 bits captures the structural signature.
+    // Resonance from confinement: high omega = high resonance
+    wire [31:0] resonance_from_l6 = {16'd0, omega, 8'd0};      // omega/255 ≈ omega << 8
+
     arcloom_krimelack #(.TRIT_WIDTH(48), .DEPTH(32)) krimelack_inst (
         .clk(clk), .rst_n(rst_n),
-        .commit_request(dsf_valid),
+        .commit_request(structural_lock),
         .state_in(loom_state[47:0]),
-        .u_star(dsf_U_star),
-        .resonance(resonance_proxy),
-        .safe_mode(dsf_safe_mode),
+        .u_star(u_star_from_l6),
+        .resonance(resonance_from_l6),
+        .safe_mode(1'b0),
         .query(loom_state[47:0]),
         .best_match(recalled_motif),
         .match_score(krimelack_score),
@@ -424,36 +418,16 @@ module arcloom_top (
     );
 
     // ================================================================
-    // UF Pipeline: L0 → L1 → L2 → L3 → L4 (CLOCKED)
-    // ================================================================
-    wire [31:0] f_norm_approx = {4'd0, sensor_adc_front, 16'd0};
-
-    arcloom_uf_pipeline uf_pipeline_inst (
-        .clk(clk), .rst_n(rst_n),
-        .valid_in(sensor_valid_front),
-        .F_norm_in(f_norm_approx),
-        .dsf_valid(dsf_valid),
-        .dsf_D(dsf_D),
-        .dsf_M(dsf_M),
-        .dsf_R_rev(dsf_R_rev),
-        .dsf_U_star(dsf_U_star),
-        .dsf_C(dsf_C),
-        .dsf_P(dsf_P),
-        .dsf_B(dsf_B),
-        .dsf_safe_mode(dsf_safe_mode),
-        .l0_valid(), .l0_dF(), .l0_sigma(), .l0_kappa(),
-        .l0_N(), .l0_boundary(l0_boundary_w), .l0_D_t()
-    );
-
-    // ================================================================
     // L6: Topological Constraint Layer (COMBINATIONAL)
+    // ArcLoom's own layer — observes dimensional exhaustion.
     // 49 trits, knee at 49/e ≈ 18.03 → KNEE=18
     // SL-1 fires when 31+ of 49 trits are non-null
+    // Pure observer — no external gating, no TFE dependencies.
     // ================================================================
     arcloom_l6_tcl #(.N_TRITS(49), .KNEE(18)) l6_inst (
         .loom_state(loom_state),
-        .disruption_active(l0_boundary_w),
-        .recovery_pending(dsf_safe_mode),
+        .disruption_active(1'b0),
+        .recovery_pending(1'b0),
         .structural_lock(structural_lock),
         .n_effective(n_effective),
         .n_collapsed(),
