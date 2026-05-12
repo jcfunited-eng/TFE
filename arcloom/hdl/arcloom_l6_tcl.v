@@ -40,8 +40,8 @@ module arcloom_l6_tcl #(
 
     // Outputs
     output wire                 structural_lock,  // SL-1
-    output wire [4:0]           n_effective,      // residual degrees of freedom
-    output wire [4:0]           n_collapsed,      // number of decided trits
+    output wire [6:0]           n_effective,      // residual degrees of freedom
+    output wire [6:0]           n_collapsed,      // number of decided trits
     output wire [7:0]           omega             // Ω approximation [0,255] ≈ [0.0, 1.0]
 );
 
@@ -50,19 +50,19 @@ module arcloom_l6_tcl #(
     // A trit is null (undecided) if 00.
     // Encoding 11 is invalid — treat as null.
 
-    reg [4:0] collapsed;
+    reg [6:0] collapsed;
     integer t;
 
     always @(loom_state) begin
-        collapsed = 5'd0;
+        collapsed = 7'd0;
         for (t = 0; t < N_TRITS; t = t + 1) begin
             if (loom_state[2*t +: 2] == 2'b01 || loom_state[2*t +: 2] == 2'b10)
-                collapsed = collapsed + 5'd1;
+                collapsed = collapsed + 7'd1;
         end
     end
 
     // ---- Effective dimensionality ----
-    wire [4:0] n_eff = N_TRITS - collapsed;
+    wire [6:0] n_eff = N_TRITS - collapsed;
 
     // ---- Omega: geometric confinement ratio ----
     // Ω ≈ collapsed / N_TRITS, scaled to [0, 255]
@@ -70,7 +70,7 @@ module arcloom_l6_tcl #(
     // The actual Gamma-function ratio is steeper near the knee,
     // but for detection purposes the linear proxy suffices
     // because we only care about the threshold crossing.
-    wire [12:0] omega_wide = (collapsed * 8'd255) / N_TRITS;
+    wire [14:0] omega_wide = (collapsed * 8'd255) / N_TRITS;
     wire [7:0]  omega_raw = omega_wide[7:0];
 
     // ---- Disruption gate ----

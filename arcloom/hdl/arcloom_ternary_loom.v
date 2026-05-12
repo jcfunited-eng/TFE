@@ -249,6 +249,12 @@ module arcloom_top (
     input  wire [11:0] sensor_adc_right,
     input  wire        sensor_valid_right,
 
+    // Camera features (from DVP capture, latched in AXI wrapper)
+    input  wire [7:0]  cam_y_mean,
+    input  wire [7:0]  cam_edge_count,
+    input  wire [7:0]  cam_u_mean,
+    input  wire        cam_valid,
+
     // Software familiarity override
     input  wire [7:0]  sw_familiarity,
     input  wire        sw_fam_enable,
@@ -266,8 +272,9 @@ module arcloom_top (
     output wire        dsf_R_rev,
 
     // Monitor outputs (via AXI)
-    output wire [97:0] loom_state,
-    output wire [4:0]  n_effective,
+    // 73 trits = 146 bits: 8 input strands × 8 trits + 6 settling + 3 decision
+    output wire [145:0] loom_state,
+    output wire [6:0]  n_effective,
     output wire [7:0]  omega,
 
     // Krimelack status
@@ -323,6 +330,43 @@ module arcloom_top (
     );
 
     // ================================================================
+    // BSIL-BT: Camera Feature Encoding (3 features)
+    // 8-bit features zero-extended to 12-bit for BSIL-BT input.
+    // Baselines are starting values — DSF-AI hw-derive will refine.
+    // Camera features only produce distance (magnitude from baseline),
+    // not direction or acceleration — those are IR sensor concepts.
+    // ================================================================
+    wire [15:0] cam_y_dist, cam_y_dir, cam_y_accel;
+    wire        cam_y_valid;
+
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd120)) bsil_cam_y (
+        .clk(clk), .rst_n(rst_n),
+        .adc_value({4'd0, cam_y_mean}), .adc_valid(cam_valid),
+        .bt_distance(cam_y_dist), .bt_direction(cam_y_dir),
+        .bt_acceleration(cam_y_accel), .out_valid(cam_y_valid)
+    );
+
+    wire [15:0] cam_edge_dist, cam_edge_dir, cam_edge_accel;
+    wire        cam_edge_valid;
+
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd80)) bsil_cam_edge (
+        .clk(clk), .rst_n(rst_n),
+        .adc_value({4'd0, cam_edge_count}), .adc_valid(cam_valid),
+        .bt_distance(cam_edge_dist), .bt_direction(cam_edge_dir),
+        .bt_acceleration(cam_edge_accel), .out_valid(cam_edge_valid)
+    );
+
+    wire [15:0] cam_u_dist, cam_u_dir, cam_u_accel;
+    wire        cam_u_valid;
+
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd128)) bsil_cam_u (
+        .clk(clk), .rst_n(rst_n),
+        .adc_value({4'd0, cam_u_mean}), .adc_valid(cam_valid),
+        .bt_distance(cam_u_dist), .bt_direction(cam_u_dir),
+        .bt_acceleration(cam_u_accel), .out_valid(cam_u_valid)
+    );
+
+    // ================================================================
     // Damped Familiarity: coupling barrier on feedback path
     // Match score changes must exceed FAM_DEADZONE to propagate.
     // This prevents oscillation — small score fluctuations are absorbed.
@@ -360,6 +404,9 @@ module arcloom_top (
         .in_front_accel(front_accel),
         .in_left_dist(left_dist),
         .in_right_dist(right_dist),
+        .in_cam_y(cam_y_dist),
+        .in_cam_edge(cam_edge_dist),
+        .in_cam_u(cam_u_dist),
         .familiarity(active_familiarity),
         .ext_h_ctx(16'd0),
         .ext_h_mmtm(16'd0),
@@ -384,8 +431,9 @@ module arcloom_top (
     //
     // Uncertainty: derived from L6 n_effective.
     //   More null trits = more uncertain = higher u_star.
-    //   n_effective is 0-49. Scale: u_star = n_effective/49 in 16.16.
-    //   Approximation: (n_effective << 16) / 49 ≈ n_effective * 1337
+    //   n_effective is 0-73. Scale: u_star = n_effective/73 in 16.16.
+    //   Approximation: n_effective << 10 (÷1024 ≈ ÷73 within factor of ~14x)
+    //   This overestimates u_star, making commits harder. Acceptable — conservative.
     //
     // Resonance: derived from L6 omega (confinement ratio).
     //   High omega = many trits collapsed = high resonance.
@@ -396,10 +444,10 @@ module arcloom_top (
     wire [47:0] recalled_motif;
 
     // Uncertainty from dimensional freedom: more null trits = more uncertain
-    wire [31:0] u_star_from_l6 = {15'd0, n_effective, 12'd0};  // n_eff/49 ≈ n_eff << 12
+    wire [31:0] u_star_from_l6 = {15'd0, n_effective, 10'd0};
 
     // Resonance from confinement: high omega = high resonance
-    wire [31:0] resonance_from_l6 = {16'd0, omega, 8'd0};      // omega/255 ≈ omega << 8
+    wire [31:0] resonance_from_l6 = {16'd0, omega, 8'd0};
 
     arcloom_krimelack #(.TRIT_WIDTH(48), .DEPTH(32)) krimelack_inst (
         .clk(clk), .rst_n(rst_n),
@@ -420,11 +468,11 @@ module arcloom_top (
     // ================================================================
     // L6: Topological Constraint Layer (COMBINATIONAL)
     // ArcLoom's own layer — observes dimensional exhaustion.
-    // 49 trits, knee at 49/e ≈ 18.03 → KNEE=18
-    // SL-1 fires when 31+ of 49 trits are non-null
+    // 73 trits, knee at 73/e ≈ 26.9 → KNEE=27
+    // SL-1 fires when 46+ of 73 trits are non-null
     // Pure observer — no external gating, no TFE dependencies.
     // ================================================================
-    arcloom_l6_tcl #(.N_TRITS(49), .KNEE(18)) l6_inst (
+    arcloom_l6_tcl #(.N_TRITS(73), .KNEE(27)) l6_inst (
         .loom_state(loom_state),
         .disruption_active(1'b0),
         .recovery_pending(1'b0),

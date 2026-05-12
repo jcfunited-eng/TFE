@@ -250,6 +250,10 @@ add_files -norecurse [glob C:/Users/joeta/arcloom_pynq2/arcloom_pynq2.gen/source
 set_property top arcloom_bd_wrapper [current_fileset]
 update_compile_order -fileset sources_1
 
+# Raise pwropt fanin/fanout limit — wider SPPU (64 inputs × 9 fields)
+# exceeds the default ratio. This prevents the HACOOException in opt_design.
+set_param pwropt.maxFaninFanoutToNetRatio 10000
+
 # Synthesize
 launch_runs synth_1 -jobs 10
 wait_on_run synth_1

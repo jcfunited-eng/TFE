@@ -147,8 +147,8 @@ module arcloom_axi_wrapper #(
     wire        structural_lock_w, dsf_safe_mode_w, dsf_valid_w;
     wire [1:0]  dsf_D_w;
     wire        dsf_R_rev_w;
-    wire [97:0] loom_state_w;
-    wire [4:0]  n_effective_w;
+    wire [145:0] loom_state_w;
+    wire [6:0]  n_effective_w;
     wire [7:0]  omega_w;
     wire [5:0]  krim_count_w;
     wire [7:0]  krim_score_w;
@@ -196,6 +196,10 @@ module arcloom_axi_wrapper #(
         .sensor_valid_left(hw_sensor_valid_left),
         .sensor_adc_right(hw_sensor_data_right[15:4]),
         .sensor_valid_right(hw_sensor_valid_right),
+        .cam_y_mean(cam_y_mean_r),
+        .cam_edge_count(cam_edge_cnt_r),
+        .cam_u_mean(cam_u_mean_r),
+        .cam_valid(cam_line_valid),
         .sw_familiarity(sw_familiarity),
         .sw_fam_enable(sw_fam_enable),
         .decision_steer(decision_steer_w), .decision_speed(decision_speed_w),
