@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSF-AI for Pharma | Automated DSC Polymorph Screening Software</title>
+  <meta name="description" content="Automated DSC analysis for pharmaceutical polymorph screening. Detects glass transitions, polymorphic conversions, melting, and decomposition that manual peak-picking misses. FDA polymorph screening compliance. Free first analysis.">
+  <meta name="keywords" content="DSC analysis software, polymorph screening, pharmaceutical thermal analysis, glass transition detection, polymorphic form identification, ICH Q6A, 21 CFR Part 11, automated DSC peak detection, drug polymorph characterization">
+  <meta property="og:title" content="DSF-AI | Automated DSC Polymorph Screening">
+  <meta property="og:description" content="Stop missing critical transitions. DSF-AI found 5 transitions in DSC data where manual analysis typically finds 3. Free first analysis.">
+  <link rel="canonical" href="https://dsf-ai.com/static/pharma.html">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .pharma-page { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+    .pharma-hero { text-align: center; padding: 3rem 0 2rem; }
+    .pharma-hero h1 { font-size: 2.2rem; line-height: 1.3; margin-bottom: 1rem; }
+    .pharma-hero .subtitle { color: #666; font-size: 1.1rem; max-width: 650px; margin: 0 auto 2rem; }
+    .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 2rem 0; }
+    .comp-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; }
+    .comp-card h3 { font-size: 1rem; margin-bottom: 0.75rem; }
+    .comp-card.manual { border-color: #fca5a5; }
+    .comp-card.dsfai { border-color: #86efac; }
+    .comp-card ul { list-style: none; padding: 0; }
+    .comp-card li { padding: 0.3rem 0; font-size: 0.9rem; }
+    .comp-card .found { color: #16a34a; }
+    .comp-card .found::before { content: "\2713 "; font-weight: 700; }
+    .comp-card .missed { color: #dc2626; text-decoration: line-through; opacity: 0.6; }
+    .comp-card .missed::before { content: "\2717 "; font-weight: 700; }
+    .pharma-section { margin: 2.5rem 0; }
+    .pharma-section h2 { font-size: 1.4rem; margin-bottom: 0.75rem; }
+    .pharma-section p { color: #444; line-height: 1.7; }
+    .evidence-box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 1.25rem; margin: 1.5rem 0; }
+    .evidence-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center; }
+    .ev-stat-num { font-size: 2rem; font-weight: 700; color: #2563eb; }
+    .ev-stat-label { font-size: 0.8rem; color: #666; }
+    .reg-list { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 1.25rem; margin: 1rem 0; }
+    .reg-list h4 { margin-bottom: 0.5rem; font-size: 0.9rem; color: #666; text-transform: uppercase; }
+    .reg-list ul { margin-left: 1.5rem; }
+    .reg-list li { padding: 0.3rem 0; font-size: 0.9rem; color: #333; }
+    .cta-section { text-align: center; padding: 2.5rem 0; background: #f8faff; border-radius: 12px; margin: 2rem 0; }
+    .cta-section h2 { margin-bottom: 0.5rem; }
+    .cta-section p { color: #666; margin-bottom: 1.5rem; }
+    .pharma-faq { margin: 2rem 0; }
+    .faq-item { border-bottom: 1px solid #eee; padding: 1rem 0; }
+    .faq-q { font-weight: 600; margin-bottom: 0.3rem; }
+    .faq-a { color: #555; font-size: 0.9rem; line-height: 1.6; }
+    @media (max-width: 600px) { .comparison { grid-template-columns: 1fr; } .evidence-stats { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/" style="text-decoration:none;"><h1 class="logo">DSF<span class="logo-ai">-AI</span></h1></a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/static/pharma.html" style="font-weight:600;color:#2563eb;">Pharma</a>
+      <a href="/static/validation.html">Validation</a>
+      <a href="/#pricing">Pricing</a>
+    </nav>
+  </div>
+</header>
+
+<div class="pharma-page">
+
+  <div class="pharma-hero">
+    <h1>Stop Missing Critical Polymorph Transitions</h1>
+    <p class="subtitle">Automated DSC analysis that detects glass transitions, polymorphic conversions, and decomposition onsets that manual peak-picking misses. Upload a CSV, get every transition in 60 seconds.</p>
+    <a href="/#analyze" class="btn btn-primary" style="font-size:1.1rem;padding:0.8rem 2rem;">Analyze Your DSC Data Free</a>
+  </div>
+
+  <!-- COMPARISON -->
+  <div class="pharma-section">
+    <h2>What Manual Analysis Misses</h2>
+    <p>Standard DSC software finds obvious peaks. DSF-AI finds the structural transitions between them.</p>
+
+    <div class="comparison">
+      <div class="comp-card manual">
+        <h3 style="color:#dc2626;">Manual Peak-Picking (Typical)</h3>
+        <ul>
+          <li class="missed">Glass transition at 62&deg;C</li>
+          <li class="found">Polymorph I at 86&deg;C</li>
+          <li class="found">Polymorph II at 143&deg;C</li>
+          <li class="found">Melt at 211&deg;C</li>
+          <li class="missed">Decomposition onset at 263&deg;C</li>
+        </ul>
+        <p style="font-size:0.8rem;color:#999;margin-top:0.5rem;">3 of 5 transitions found. Subtle glass transition and early decomposition missed.</p>
+      </div>
+      <div class="comp-card dsfai">
+        <h3 style="color:#16a34a;">DSF-AI (Automated)</h3>
+        <ul>
+          <li class="found">Glass transition at 62&deg;C</li>
+          <li class="found">Polymorph I at 86&deg;C</li>
+          <li class="found">Polymorph II at 143&deg;C</li>
+          <li class="found">Melt at 211&deg;C</li>
+          <li class="found">Decomposition onset at 263&deg;C</li>
+        </ul>
+        <p style="font-size:0.8rem;color:#16a34a;margin-top:0.5rem;">5 of 5 transitions found. Including precursor regions.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVIDENCE -->
+  <div class="pharma-section">
+    <h2>Validated, Not Promised</h2>
+    <div class="evidence-box">
+      <div class="evidence-stats">
+        <div><div class="ev-stat-num">63</div><div class="ev-stat-label">Experiments validated</div></div>
+        <div><div class="ev-stat-num">6.5%</div><div class="ev-stat-label">Average error</div></div>
+        <div><div class="ev-stat-num">0</div><div class="ev-stat-label">Free parameters</div></div>
+      </div>
+    </div>
+    <p>Every prediction is tested against published experimental measurements across superconductors, metal-insulator transitions, ferroelectrics, and thermal analysis data. <a href="/static/validation.html">See the full validation evidence.</a></p>
+  </div>
+
+  <!-- REGULATORY -->
+  <div class="pharma-section">
+    <h2>Why This Matters for Regulatory Compliance</h2>
+    <div class="reg-list">
+      <h4>FDA / ICH Requirements</h4>
+      <ul>
+        <li><strong>ICH Q6A:</strong> Requires identification and characterization of all polymorphic forms of a drug substance</li>
+        <li><strong>21 CFR 211.84:</strong> Drug substance identity testing must account for polymorphic variability</li>
+        <li><strong>FDA Guidance (ANDAs):</strong> Polymorph screening is required to demonstrate bioequivalence</li>
+      </ul>
+    </div>
+    <p>Missing a polymorph means missing a regulatory filing requirement. DSF-AI reduces the risk of overlooked transitions by detecting structural changes that sit below the noise floor of manual analysis.</p>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="pharma-section">
+    <h2>How It Works</h2>
+    <ol style="line-height:2; color:#444;">
+      <li>Export your DSC data as a two-column CSV (temperature, heat flow)</li>
+      <li>Upload at <a href="/#analyze">dsf-ai.com</a></li>
+      <li>Get every structural transition, precursor onset, and regime boundary in ~60 seconds</li>
+      <li>Download the JSON report for your records</li>
+    </ol>
+    <p style="margin-top:1rem;">No software installation. No configuration. No domain expertise required. Your data is processed in memory and <strong>not stored</strong> — deleted immediately after analysis.</p>
+  </div>
+
+  <!-- PRICING -->
+  <div class="pharma-section">
+    <h2>Pricing</h2>
+    <p><strong>First analysis free</strong> — no account, no credit card. Try it on your data right now.</p>
+    <ul style="line-height:2; color:#444;">
+      <li><strong>Per analysis:</strong> $25 per DSC curve</li>
+      <li><strong>Academic labs:</strong> $5,000/year — unlimited analyses + API access</li>
+      <li><strong>Industry / QC teams:</strong> $50,000/year — unlimited + SLA + batch processing</li>
+    </ul>
+    <p style="margin-top:0.5rem; font-size:0.9rem; color:#666;">For context: a single HPLC polymorph screen costs $500-2,000. A full DSC characterization at a contract lab costs $200-500 per sample.</p>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <h2>Try It Now</h2>
+    <p>Upload your DSC data. See what you've been missing.</p>
+    <a href="/#analyze" class="btn btn-primary" style="font-size:1.1rem;padding:0.8rem 2rem;">Free DSC Analysis</a>
+    <p style="margin-top:1rem;font-size:0.85rem;color:#999;">Or download our <a href="/static/sample_pharma_dsc.csv">sample DSC file</a> to see how it works.</p>
+  </div>
+
+  <!-- FAQ -->
+  <div class="pharma-faq">
+    <h2>Questions</h2>
+    <div class="faq-item">
+      <div class="faq-q">Is my data stored on your servers?</div>
+      <div class="faq-a">No. Your CSV is processed in memory and deleted immediately after analysis. Internal computation state is encrypted and destroyed. We cannot recover your data or results after you leave the page.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How is this different from TA Instruments software?</div>
+      <div class="faq-a">Standard DSC software fits peaks and baselines. DSF-AI performs structural field analysis — it detects regime changes in the data geometry, not just peaks. This catches glass transitions, broad decomposition onsets, and other structural changes that don't produce sharp peaks.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Can it replace HPLC or XRPD for polymorph identification?</div>
+      <div class="faq-a">No. DSF-AI tells you WHERE transitions occur and how many there are. You still need XRPD to identify WHICH polymorph you have. Think of it as a fast first pass that tells you exactly where to focus your structural characterization.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How do I format my data?</div>
+      <div class="faq-a">Two columns: temperature and heat flow. CSV format. Column headers are ignored. Any temperature unit works (C, K, F) — the analysis is unit-agnostic.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Is this validated for regulatory submissions?</div>
+      <div class="faq-a">DSF-AI is an analytical tool, not a validated pharmaceutical system. Results should be independently verified before inclusion in regulatory filings. The tool is best used as a screening step to identify transitions that warrant further characterization.</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>DSF-AI &copy; 2026. <a href="/static/legal.html">Terms &amp; Privacy</a> | <a href="mailto:support@dsf-ai.com">support@dsf-ai.com</a></p>
+</footer>
+
+</body>
+</html>

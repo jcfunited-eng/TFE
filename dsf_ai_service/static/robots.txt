@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /static/admin.html
+
+Sitemap: https://dsf-ai.com/static/sitemap.xml
