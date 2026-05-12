@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Case Study: FeSe/STO Iron-Based Superconductor (Tc=65K) | DSF-AI</title>
+  <meta name="description" content="DSF-AI detected the 65K superconducting transition in FeSe/STO and found precursors extending 20K above Tc. Digitized from Wang et al., CPL 2012.">
+  <link rel="canonical" href="https://dsf-ai.com/static/case-fese.html">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .case-page { max-width: 800px; margin: 2rem auto; padding: 0 1.5rem; }
+    .case-page h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .case-meta { color: #666; font-size: 0.85rem; margin-bottom: 2rem; }
+    .case-page h2 { font-size: 1.3rem; margin-top: 2rem; margin-bottom: 0.75rem; }
+    .case-page p { line-height: 1.7; color: #333; margin-bottom: 1rem; }
+    .result-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    .result-table th { text-align: left; padding: 0.5rem; border-bottom: 2px solid #ddd; color: #666; font-size: 0.8rem; text-transform: uppercase; }
+    .result-table td { padding: 0.5rem; border-bottom: 1px solid #eee; }
+    .detected { color: #16a34a; font-weight: 600; }
+    .highlight { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+    .case-cta { text-align: center; padding: 2rem; background: #f8faff; border-radius: 12px; margin: 2rem 0; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a href="/" style="text-decoration:none;"><h1 class="logo">DSF<span class="logo-ai">-AI</span></h1></a>
+    <nav><a href="/">Home</a> <a href="/static/validation.html">Validation</a></nav>
+  </div>
+</header>
+<div class="case-page">
+  <h1>FeSe/STO — Iron-Based Superconductor</h1>
+  <p class="case-meta">Data: Wang et al., Chinese Physics Letters 29, 037402 (2012). R(T) for single-layer FeSe on SrTiO<sub>3</sub>. Known T<sub>c</sub> ≈ 65K.</p>
+
+  <h2>Results</h2>
+  <table class="result-table">
+    <thead><tr><th>Feature</th><th>Known</th><th>DSF-AI</th></tr></thead>
+    <tbody>
+      <tr><td>Transition temperature</td><td>~65K</td><td class="detected">61–63K (transitions detected)</td></tr>
+      <tr><td>Precursor onset</td><td>Not reported</td><td class="detected">VOLATILE region extends to 83K — 20K above T<sub>c</sub></td></tr>
+      <tr><td>Zero-resistance state</td><td>Below 60K</td><td class="detected">STABLE from 4K to 60K</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Stability Map</h2>
+  <table class="result-table">
+    <thead><tr><th>Region</th><th>Range</th><th>Interpretation</th></tr></thead>
+    <tbody>
+      <tr><td>STABLE</td><td>4 — 60K</td><td>Superconducting state</td></tr>
+      <tr><td>VOLATILE</td><td>60 — 83K</td><td>Transition region with precursors above T<sub>c</sub></td></tr>
+      <tr><td>DEGENERATE</td><td>83 — 300K</td><td>Normal metallic state</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight">
+    <strong>Notable finding:</strong> Iron-based superconductors have a different pairing mechanism than cuprates (YBCO) and conventional superconductors (MgB<sub>2</sub>). DSF-AI produces the same precursor pattern regardless of the underlying physics — 20K of precursor activity above T<sub>c</sub>, detected from R(T) alone.
+  </div>
+
+  <div class="case-cta">
+    <p><a href="/static/real_fese_sto_wang.csv" class="btn btn-secondary">Download FeSe/STO Data (CSV)</a></p>
+    <p style="margin-top:1rem;"><a href="/#analyze" class="btn btn-primary">Upload &amp; Analyze Free</a></p>
+  </div>
+</div>
+<footer><p>DSF-AI &copy; 2026. <a href="/static/legal.html">Terms &amp; Privacy</a> | <a href="mailto:support@dsf-ai.com">support@dsf-ai.com</a></p></footer>
+</body>
+</html>
