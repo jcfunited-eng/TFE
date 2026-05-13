@@ -2007,6 +2007,23 @@ async function requestKillForActiveRun(params: {
 
     const phaseLedger = await loadRuntimeRefreshPhaseLedger(params.runId);
     const logSnapshot = await readRefreshLogSnapshot(240);
+    // Actually kill the refresh process if PID is available
+    const refreshPid = params.baseStatus.pid;
+    let killResult = "no_pid";
+    if (typeof refreshPid === "number" && refreshPid > 0) {
+      try {
+        process.kill(refreshPid, 0); // check alive
+        process.kill(refreshPid, "SIGTERM");
+        killResult = `SIGTERM_sent_to_pid_${refreshPid}`;
+        console.log(`[KILL] Sent SIGTERM to refresh process pid=${refreshPid} run_id=${params.runId}`);
+      } catch (killErr) {
+        killResult = `kill_failed: ${killErr instanceof Error ? killErr.message : String(killErr)}`;
+        console.log(`[KILL] Failed to kill pid=${refreshPid}: ${killResult}`);
+      }
+    } else {
+      console.log(`[KILL] No valid PID for run_id=${params.runId} — DB flag set but process not killed`);
+    }
+
     const killDump: RefreshKillDump = {
       generated_at_utc: nowIso(),
       run_id: params.runId,

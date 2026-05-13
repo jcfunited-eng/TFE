@@ -201,6 +201,7 @@ def _query_history(conn) -> List[Dict[str, Any]]:
     # Use the later of lookback_cutoff and VALIDATION_START_UTC
     cutoff = max(lookback_cutoff, VALIDATION_START_UTC)
     with conn.cursor() as cur:
+        cur.execute("SET statement_timeout = '120s'")
         cur.execute(
             """
             SELECT

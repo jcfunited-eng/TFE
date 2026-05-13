@@ -193,8 +193,14 @@ export async function GET(request: Request) {
 
   try {
     const [result, marketWave] = await Promise.all([
-      pool.query<{ ticker: string; snapshot_row_json: unknown }>(
-        `SELECT ticker, snapshot_row_json FROM ${RUNTIME_DECISIONS_TABLE} WHERE decision_label = 'Accumulate' ORDER BY ticker`
+      pool.query<{ ticker: string; snapshot_row_json: unknown; resolved_sector: string }>(
+        `SELECT r.ticker, r.snapshot_row_json,
+                COALESCE(NULLIF(f.sector, 'Unknown'), NULLIF(s.sector, ''), 'Unknown') AS resolved_sector
+         FROM ${RUNTIME_DECISIONS_TABLE} r
+         LEFT JOIN runtime_symbols s ON s.ticker = r.ticker
+         LEFT JOIN l5_fundamentals_normalized f ON f.ticker = r.ticker
+         WHERE r.decision_label = 'Accumulate'
+         ORDER BY r.ticker`
       ),
       queryMarketWave(pool),
     ]);
@@ -231,8 +237,8 @@ export async function GET(request: Request) {
       const close    = safeFloat(snap["price"] ?? snap["close"] ?? snap["Close"]);
       const fn       = safeFloat(snap["F_n"] ?? snap["f_n"]);
       const barCount = safeInt(snap["bar_count"]);
-      const sector   = typeof snap["sector"] === "string" && snap["sector"].trim()
-        ? snap["sector"].trim()
+      const sector   = typeof r.resolved_sector === "string" && r.resolved_sector.trim()
+        ? r.resolved_sector.trim()
         : "Unknown";
 
       return { ticker: r.ticker, close, fn, barCount, sector };
