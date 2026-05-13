@@ -188,8 +188,15 @@ def api_loom():
         data["capture_samples"] = len(capture_log)
         data["capture_orientation"] = capture_orientation
 
-        # Record camera data during turntable capture
+        # During turntable capture: record camera data AND
+        # trigger Krimelack commit so the SPPU stores the motif.
+        # The loom state includes camera strands — the motif IS
+        # the structural signature of what the camera sees.
         if capture_active:
+            # Trigger Krimelack commit via AXI (bit 1 of register 0x10)
+            # Motors are off during capture, so just write bit 1
+            arcloom.write(0x10, 0x02)
+
             capture_log.append({
                 "sample": len(capture_log) + 1,
                 "orientation": capture_orientation,

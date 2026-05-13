@@ -99,6 +99,7 @@ module arcloom_axi_wrapper #(
     reg [11:0] sw_sensor_adc;
     reg [2:0]  sw_valid_stretch;
     reg        motor_enable;
+    reg        sw_krim_commit;  // software Krimelack commit request
     reg [7:0]  sw_familiarity;
     reg        sw_fam_enable;
     reg [23:0] mathloom_a, mathloom_b;
@@ -202,6 +203,7 @@ module arcloom_axi_wrapper #(
         .cam_valid(cam_line_valid),
         .sw_familiarity(sw_familiarity),
         .sw_fam_enable(sw_fam_enable),
+        .sw_krim_commit(sw_krim_commit),
         .decision_steer(decision_steer_w), .decision_speed(decision_speed_w),
         .decision_conf(decision_conf_w),
         .structural_lock(structural_lock_w), .dsf_safe_mode(dsf_safe_mode_w),
@@ -256,6 +258,7 @@ module arcloom_axi_wrapper #(
             sw_sensor_adc    <= 12'd0;
             sw_valid_stretch <= 3'd0;
             motor_enable     <= 1'b0;
+            sw_krim_commit   <= 1'b0;
             sw_familiarity   <= 8'd0;
             sw_fam_enable    <= 1'b0;
             mathloom_a       <= 24'd0;
@@ -275,6 +278,10 @@ module arcloom_axi_wrapper #(
         end else begin
             if (sw_valid_stretch != 3'd0)
                 sw_valid_stretch <= sw_valid_stretch - 3'd1;
+
+            // Auto-clear commit pulse after one cycle
+            if (sw_krim_commit)
+                sw_krim_commit <= 1'b0;
 
             div_start <= 1'b0;
             if (div_done) begin
@@ -310,8 +317,9 @@ module arcloom_axi_wrapper #(
                         if (S_AXI_WDATA[16])
                             div_start <= 1'b1;
                     end
-                    4'd4: begin  // 0x10: motor enable [2]
+                    4'd4: begin  // 0x10: motor enable [2], krimelack commit [1]
                         motor_enable <= S_AXI_WDATA[2];
+                        sw_krim_commit <= S_AXI_WDATA[1];
                     end
                     4'd5: begin  // 0x14: familiarity override [7:0], enable [8]
                         sw_familiarity <= S_AXI_WDATA[7:0];

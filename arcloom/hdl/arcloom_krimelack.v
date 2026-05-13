@@ -34,7 +34,8 @@ module arcloom_krimelack #(
     input  wire                    rst_n,
 
     // Motif commit interface
-    input  wire                    commit_request,  // pulse: attempt to commit
+    input  wire                    commit_request,  // pulse: attempt to commit (eligibility-gated)
+    input  wire                    force_commit,    // pulse: commit unconditionally (software capture)
     input  wire [TRIT_WIDTH-1:0]   state_in,        // loom state to commit
     input  wire [31:0]             u_star,          // adjusted uncertainty (16.16)
     input  wire [31:0]             resonance,       // scalar resonance R(k) (16.16)
@@ -103,8 +104,8 @@ module arcloom_krimelack #(
             commit_accepted <= 1'b0;
             commit_rejected <= 1'b0;
 
-            if (commit_request) begin
-                if (commit_eligible) begin
+            if (commit_request | force_commit) begin
+                if (commit_eligible | (force_commit & ~duplicate_found)) begin
                     motifs[write_ptr]     <= state_in;
                     hash_table[write_ptr] <= state_hash;
                     write_ptr <= (write_ptr == DEPTH-1) ? {ADDR_BITS{1'b0}} :

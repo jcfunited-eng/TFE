@@ -1,0 +1,323 @@
+{
+  "timestamp": "2026-05-13T05:20:16.379097",
+  "overall": {
+    "spearman_rho": 0.12614673292988768,
+    "spearman_p": 0.47024343805753077,
+    "pearson_r": -0.03025764959671426,
+    "pearson_p": 0.863009128090149,
+    "kendall_tau": 0.0836868796217162,
+    "kendall_p": 0.49675326265456077,
+    "n": 35
+  },
+  "loco": {
+    "per_family": [
+      {
+        "category": "layered",
+        "n": 5,
+        "spearman_rho": 0.19999999999999998,
+        "spearman_p": 0.7470600781046621
+      },
+      {
+        "category": "olivine",
+        "n": 3,
+        "spearman_rho": 0.8660254037844387,
+        "spearman_p": 0.33333333333333326
+      },
+      {
+        "category": "layered_variation",
+        "n": 6,
+        "spearman_rho": 0.4285714285714286,
+        "spearman_p": 0.3965014577259473
+      },
+      {
+        "category": "spinel_variation",
+        "n": 6,
+        "spearman_rho": -0.3714285714285715,
+        "spearman_p": 0.4684781341107872
+      }
+    ],
+    "mean_spearman": 0.280792065231824
+  },
+  "results": [
+    {
+      "formula": "LiCoO2",
+      "e_hull": 0.0,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered",
+      "dsf_stability_score": 0.4131701209419117
+    },
+    {
+      "formula": "LiNiO2",
+      "e_hull": 0.012,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered",
+      "dsf_stability_score": 0.41902155169077177
+    },
+    {
+      "formula": "LiMnO2_layered",
+      "e_hull": 0.045,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered",
+      "dsf_stability_score": 0.41305957712375524
+    },
+    {
+      "formula": "LiNi1/3Mn1/3Co1/3O2",
+      "e_hull": 0.005,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered",
+      "dsf_stability_score": 0.34767073234963813
+    },
+    {
+      "formula": "LiMn2O4",
+      "e_hull": 0.0,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel",
+      "dsf_stability_score": 0.395609521072428
+    },
+    {
+      "formula": "LiNi0.5Mn1.5O4",
+      "e_hull": 0.02,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel",
+      "dsf_stability_score": 0.41828746905286857
+    },
+    {
+      "formula": "LiFePO4",
+      "e_hull": 0.0,
+      "crystal_system": "orthorhombic",
+      "spacegroup": "Pnma",
+      "category": "olivine",
+      "dsf_stability_score": 0.3289646296638276
+    },
+    {
+      "formula": "LiMnPO4",
+      "e_hull": 0.0,
+      "crystal_system": "orthorhombic",
+      "spacegroup": "Pnma",
+      "category": "olivine",
+      "dsf_stability_score": 0.3625699388103728
+    },
+    {
+      "formula": "LiCoPO4",
+      "e_hull": 0.03,
+      "crystal_system": "orthorhombic",
+      "spacegroup": "Pnma",
+      "category": "olivine",
+      "dsf_stability_score": 0.37049372167764577
+    },
+    {
+      "formula": "LiMnO2_rocksalt",
+      "e_hull": 0.15,
+      "crystal_system": "cubic",
+      "spacegroup": "Fm-3m",
+      "category": "rocksalt",
+      "dsf_stability_score": 0.36311611154237156
+    },
+    {
+      "formula": "LiNiO2_rocksalt",
+      "e_hull": 0.18,
+      "crystal_system": "cubic",
+      "spacegroup": "Fm-3m",
+      "category": "rocksalt",
+      "dsf_stability_score": 0.311075576222912
+    },
+    {
+      "formula": "Li2MnO3",
+      "e_hull": 0.0,
+      "crystal_system": "monoclinic",
+      "spacegroup": "C2/m",
+      "category": "layered_extra",
+      "dsf_stability_score": 0.35831359666839513
+    },
+    {
+      "formula": "LiCoO2_stretched",
+      "e_hull": 0.12,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_distorted",
+      "dsf_stability_score": 0.4530341187729133
+    },
+    {
+      "formula": "LiMn2O4_expanded",
+      "e_hull": 0.2,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_distorted",
+      "dsf_stability_score": 0.40842672308286804
+    },
+    {
+      "formula": "LiFePO4_compressed",
+      "e_hull": 0.095,
+      "crystal_system": "orthorhombic",
+      "spacegroup": "Pnma",
+      "category": "olivine_distorted",
+      "dsf_stability_score": 0.346432859156799
+    },
+    {
+      "formula": "Li2MnO3_hex",
+      "e_hull": 0.015,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered",
+      "dsf_stability_score": 0.4265679215207855
+    },
+    {
+      "formula": "TiO2_rutile",
+      "e_hull": 0.0,
+      "crystal_system": "tetragonal",
+      "spacegroup": "P42/mnm",
+      "category": "control",
+      "dsf_stability_score": 0.3129138700422205
+    },
+    {
+      "formula": "BaTiO3",
+      "e_hull": 0.0,
+      "crystal_system": "cubic",
+      "spacegroup": "Pm-3m",
+      "category": "control",
+      "dsf_stability_score": 0.3275523203744563
+    },
+    {
+      "formula": "Li7La3Zr2O12",
+      "e_hull": 0.0,
+      "crystal_system": "cubic",
+      "spacegroup": "Ia-3d",
+      "category": "garnet",
+      "dsf_stability_score": 0.3774016520125539
+    },
+    {
+      "formula": "Li2O",
+      "e_hull": 0.0,
+      "crystal_system": "cubic",
+      "spacegroup": "Fm-3m",
+      "category": "binary",
+      "dsf_stability_score": 0.2919787300155577
+    },
+    {
+      "formula": "NaCoO2",
+      "e_hull": 0.01,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_Na",
+      "dsf_stability_score": 0.4544828242411042
+    },
+    {
+      "formula": "LiMnO3_disordered",
+      "e_hull": 0.35,
+      "crystal_system": "cubic",
+      "spacegroup": "P1",
+      "category": "disordered",
+      "dsf_stability_score": 0.3705693505254801
+    },
+    {
+      "formula": "LiCoO2_disordered",
+      "e_hull": 0.25,
+      "crystal_system": "cubic",
+      "spacegroup": "P1",
+      "category": "disordered",
+      "dsf_stability_score": 0.3640721693463063
+    },
+    {
+      "formula": "LiCoO2_ca4.5",
+      "e_hull": 0.02,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_variation",
+      "dsf_stability_score": 0.3647085701706483
+    },
+    {
+      "formula": "LiCoO2_ca4.8",
+      "e_hull": 0.005,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_variation",
+      "dsf_stability_score": 0.4187429957168904
+    },
+    {
+      "formula": "LiCoO2_ca5.0",
+      "e_hull": 0.0,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_variation",
+      "dsf_stability_score": 0.41317517196953996
+    },
+    {
+      "formula": "LiCoO2_ca5.2",
+      "e_hull": 0.01,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_variation",
+      "dsf_stability_score": 0.4131244959058679
+    },
+    {
+      "formula": "LiCoO2_ca5.5",
+      "e_hull": 0.05,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_variation",
+      "dsf_stability_score": 0.4543249040326344
+    },
+    {
+      "formula": "LiCoO2_ca6.0",
+      "e_hull": 0.15,
+      "crystal_system": "trigonal",
+      "spacegroup": "R-3m",
+      "category": "layered_variation",
+      "dsf_stability_score": 0.4525113480765374
+    },
+    {
+      "formula": "LiMn2O4_a7.8",
+      "e_hull": 0.15,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_variation",
+      "dsf_stability_score": 0.400184729639379
+    },
+    {
+      "formula": "LiMn2O4_a8.0",
+      "e_hull": 0.05,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_variation",
+      "dsf_stability_score": 0.3948824667181946
+    },
+    {
+      "formula": "LiMn2O4_a8.2",
+      "e_hull": 0.0,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_variation",
+      "dsf_stability_score": 0.395609521072428
+    },
+    {
+      "formula": "LiMn2O4_a8.4",
+      "e_hull": 0.03,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_variation",
+      "dsf_stability_score": 0.39045651808770115
+    },
+    {
+      "formula": "LiMn2O4_a8.6",
+      "e_hull": 0.1,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_variation",
+      "dsf_stability_score": 0.3869559512456397
+    },
+    {
+      "formula": "LiMn2O4_a8.8",
+      "e_hull": 0.25,
+      "crystal_system": "cubic",
+      "spacegroup": "Fd-3m",
+      "category": "spinel_variation",
+      "dsf_stability_score": 0.36265849791076116
+    }
+  ]
+}

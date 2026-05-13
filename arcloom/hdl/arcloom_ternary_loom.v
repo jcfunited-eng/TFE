@@ -259,6 +259,9 @@ module arcloom_top (
     input  wire [7:0]  sw_familiarity,
     input  wire        sw_fam_enable,
 
+    // Software Krimelack commit (for turntable capture)
+    input  wire        sw_krim_commit,
+
     // Decision output
     output wire [1:0]  decision_steer,
     output wire [1:0]  decision_speed,
@@ -452,6 +455,7 @@ module arcloom_top (
     arcloom_krimelack #(.TRIT_WIDTH(48), .DEPTH(32)) krimelack_inst (
         .clk(clk), .rst_n(rst_n),
         .commit_request(structural_lock),
+        .force_commit(sw_krim_commit),
         .state_in(loom_state[47:0]),
         .u_star(u_star_from_l6),
         .resonance(resonance_from_l6),
