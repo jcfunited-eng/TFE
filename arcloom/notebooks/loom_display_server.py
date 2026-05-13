@@ -103,13 +103,16 @@ def read_sensors():
 
 
 def read_camera():
-    """Read camera line features from register 0x18."""
+    """Read camera line features from registers 0x18 and 0x30."""
     reg_18 = arcloom.read(0x18)
+    reg_30 = arcloom.read(0x30)
     return {
         "y_mean": reg_18 & 0xFF,
         "y_min": (reg_18 >> 8) & 0xFF,
         "y_max": (reg_18 >> 16) & 0xFF,
         "edge_count": (reg_18 >> 24) & 0xFF,
+        "u_mean": reg_30 & 0xFF,
+        "v_mean": (reg_30 >> 8) & 0xFF,
     }
 
 
@@ -167,6 +170,11 @@ def bt_trits(val, digits=12):
 demo_log = []
 demo_logging = False
 
+# ---- Camera capture log (for hw-derive turntable CSV) ----
+capture_log = []
+capture_active = False
+capture_orientation = "lying"
+
 # ---- API routes ----
 
 @app.route('/api/loom')
@@ -176,6 +184,26 @@ def api_loom():
         data["sensors"] = read_sensors()
         cam = read_camera()
         data["camera"] = cam
+        data["capture_active"] = capture_active
+        data["capture_samples"] = len(capture_log)
+        data["capture_orientation"] = capture_orientation
+
+        # Record camera data during turntable capture
+        if capture_active:
+            capture_log.append({
+                "sample": len(capture_log) + 1,
+                "orientation": capture_orientation,
+                "y_mean": cam["y_mean"],
+                "edge_count": cam["edge_count"],
+                "u_mean": cam["u_mean"],
+            })
+
+        # Krimelack status for display
+        reg_20 = arcloom.read(0x20)
+        data["krimelack"] = {
+            "motif_count": reg_20 & 0x3F,
+            "match_score": (reg_20 >> 6) & 0xFF,
+        }
 
         # Log during demo run
         if demo_logging:
@@ -195,6 +223,46 @@ def api_loom():
         return jsonify(data)
     except Exception as e:
         return jsonify({"error": str(e)})
+
+
+@app.route('/api/capture', methods=['POST'])
+def api_capture():
+    """Start/stop turntable camera capture for hw-derive CSV."""
+    global capture_active, capture_log, capture_orientation
+    try:
+        body = request.get_json(force=True)
+        action = body.get("action", "")
+        if action == "start":
+            capture_log = []
+            capture_orientation = body.get("orientation", "lying")
+            capture_active = True
+            return jsonify({"capturing": True, "samples": 0})
+        elif action == "orientation":
+            capture_orientation = body.get("orientation", "standing")
+            return jsonify({"capturing": capture_active, "orientation": capture_orientation})
+        elif action == "stop":
+            capture_active = False
+            return jsonify({"capturing": False, "samples": len(capture_log)})
+        elif action == "clear":
+            capture_active = False
+            capture_log = []
+            return jsonify({"capturing": False, "samples": 0})
+        return jsonify({"error": "action must be start, stop, orientation, or clear"})
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
+@app.route('/api/capture_csv')
+def api_capture_csv():
+    """Download capture log as CSV for hw-derive."""
+    if not capture_log:
+        return Response("No capture data", mimetype='text/plain')
+    lines = ["sample, orientation, y_mean, edge_count, u_mean"]
+    for r in capture_log:
+        lines.append(f"{r['sample']}, {r['orientation']}, {r['y_mean']}, {r['edge_count']}, {r['u_mean']}")
+    csv_text = "\n".join(lines)
+    return Response(csv_text, mimetype='text/csv',
+                    headers={"Content-Disposition": "attachment; filename=turntable_capture.csv"})
 
 
 @app.route('/api/motor', methods=['POST'])
@@ -667,7 +735,7 @@ body {
         </div>
     </div>
 
-    <!-- CAMERA — live features (not yet wired into SPPU) -->
+    <!-- CAMERA — live features (wired into SPPU as BT strands) -->
     <div class="sensor-panel" id="cam-panel">
         <div style="margin-bottom:8px;">
             <span style="font-size:0.75em; color:#aa88ff; font-weight:bold;">CAMERA</span>
@@ -681,6 +749,28 @@ body {
             <span class="sensor-label">Edges</span>
             <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-edge" style="width:0%;background:#ff88ff;"></div></div>
             <span class="sensor-val" id="val-edge">0</span>
+        </div>
+        <div class="sensor-row">
+            <span class="sensor-label">U Color</span>
+            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-umean" style="width:0%;background:#88aaff;"></div></div>
+            <span class="sensor-val" id="val-umean">0</span>
+        </div>
+    </div>
+
+    <!-- TURNTABLE CAPTURE — records camera data for hw-derive CSV -->
+    <div class="sensor-panel" id="capture-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:0.75em; color:#ffaa44; font-weight:bold;">TURNTABLE CAPTURE</span>
+            <span id="capture-status" style="font-size:0.65em; color:#666;">idle</span>
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <button class="demo-btn" id="btn-cap-lying" onclick="startCapture('lying')" style="flex:1; padding:10px 0; font-size:0.85em; background:#ffaa44; color:#000;">LYING</button>
+            <button class="demo-btn" id="btn-cap-standing" onclick="startCapture('standing')" style="flex:1; padding:10px 0; font-size:0.85em; background:#ff8844; color:#000;">STANDING</button>
+            <button class="demo-btn" id="btn-cap-stop" onclick="stopCapture()" style="flex:0.6; padding:10px 0; font-size:0.85em; background:#442200; color:#ffaa44;">STOP</button>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <button class="demo-btn" onclick="downloadCSV()" style="flex:1; padding:8px 0; font-size:0.75em; background:#1a1a1a; color:#ffaa44; border:1px solid #333;">DOWNLOAD CSV</button>
+            <button class="demo-btn" onclick="clearCapture()" style="flex:0.5; padding:8px 0; font-size:0.75em; background:#1a1a1a; color:#664422; border:1px solid #222;">CLEAR</button>
         </div>
     </div>
 
@@ -754,6 +844,20 @@ async function endDemo() {
     demoRunning = false;
     document.getElementById('btn-run').classList.remove('active');
     document.getElementById('btn-end').classList.add('disabled');
+}
+
+// ---- Turntable capture ----
+async function startCapture(orientation) {
+    await fetch('/api/capture', {method:'POST', body:JSON.stringify({action:'start', orientation: orientation})});
+}
+async function stopCapture() {
+    await fetch('/api/capture', {method:'POST', body:JSON.stringify({action:'stop'})});
+}
+async function clearCapture() {
+    await fetch('/api/capture', {method:'POST', body:JSON.stringify({action:'clear'})});
+}
+function downloadCSV() {
+    window.open('/api/capture_csv', '_blank');
 }
 
 // ---- Loom display ----
@@ -838,10 +942,26 @@ async function poll() {
         const cam = data.camera || {};
         const yPct = Math.min(100, (cam.y_mean / 255) * 100);
         const ePct = Math.min(100, (cam.edge_count / 255) * 100);
+        const uPct = Math.min(100, (cam.u_mean / 255) * 100);
         document.getElementById('bar-ymean').style.width = yPct + '%';
         document.getElementById('val-ymean').textContent = cam.y_mean;
         document.getElementById('bar-edge').style.width = ePct + '%';
         document.getElementById('val-edge').textContent = cam.edge_count;
+        document.getElementById('bar-umean').style.width = uPct + '%';
+        document.getElementById('val-umean').textContent = cam.u_mean;
+
+        // Capture status
+        const capStat = document.getElementById('capture-status');
+        if (data.capture_active) {
+            capStat.textContent = data.capture_orientation + ' | ' + data.capture_samples + ' samples';
+            capStat.style.color = '#ffaa44';
+        } else if (data.capture_samples > 0) {
+            capStat.textContent = data.capture_samples + ' samples ready';
+            capStat.style.color = '#888';
+        } else {
+            capStat.textContent = 'idle';
+            capStat.style.color = '#666';
+        }
 
         document.getElementById('status').textContent =
             'LIVE | ' + new Date().toLocaleTimeString();

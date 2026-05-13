@@ -404,6 +404,9 @@ module arcloom_axi_wrapper #(
                     // 0x2C: Debug — raw steer field value (signed 32-bit)
                     4'd11: axi_rdata <= debug_steer_field;
 
+                    // 0x30: Camera color (U/V chrominance)
+                    4'd12: axi_rdata <= {16'd0, cam_v_mean_r, cam_u_mean_r};
+
                     default: axi_rdata <= 32'd0;
                 endcase
             end else if (axi_rvalid && S_AXI_RREADY)
