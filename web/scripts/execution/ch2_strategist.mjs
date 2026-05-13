@@ -149,14 +149,16 @@ export async function getCh2Signals() {
   const runId = await resolveLatestRunId();
   console.log(`[CH2-STRATEGIST] run_id=${runId}`);
 
-  // Diagnostic: count candidates at each filter step
+  // Diagnostic: count candidates at each filter step (scoped to current run_id)
   try {
-    const diag1 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest WHERE decision_label = 'Accumulate'`);
-    const diag2 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest WHERE decision_label = 'Accumulate' AND CAST(NULLIF(snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) >= 0.50 AND CAST(NULLIF(snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) < 0.75`);
-    const diag3 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest WHERE decision_label = 'Accumulate' AND CAST(NULLIF(snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) >= 0.50 AND CAST(NULLIF(snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) < 0.75 AND CAST(NULLIF(snapshot_row_json->>'bar_count','') AS INTEGER) > 20`);
-    const diag4 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest r LEFT JOIN runtime_symbols s ON s.ticker = r.ticker WHERE r.decision_label = 'Accumulate' AND CAST(NULLIF(r.snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) >= 0.50 AND CAST(NULLIF(r.snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) < 0.75 AND CAST(NULLIF(r.snapshot_row_json->>'bar_count','') AS INTEGER) > 20 AND COALESCE(s.market_cap, 0) >= 500000000`);
+    const diag1 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest WHERE run_id = $1 AND decision_label = 'Accumulate'`, [runId]);
+    const diag2 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest WHERE run_id = $1 AND decision_label = 'Accumulate' AND CAST(NULLIF(snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) >= 0.50 AND CAST(NULLIF(snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) < 0.75`, [runId]);
+    const diag3 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest WHERE run_id = $1 AND decision_label = 'Accumulate' AND CAST(NULLIF(snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) >= 0.50 AND CAST(NULLIF(snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) < 0.75 AND CAST(NULLIF(snapshot_row_json->>'bar_count','') AS INTEGER) > 20`, [runId]);
+    const diag4 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest r LEFT JOIN runtime_symbols s ON s.ticker = r.ticker WHERE r.run_id = $1 AND r.decision_label = 'Accumulate' AND CAST(NULLIF(r.snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) >= 0.50 AND CAST(NULLIF(r.snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) < 0.75 AND CAST(NULLIF(r.snapshot_row_json->>'bar_count','') AS INTEGER) > 20 AND COALESCE(s.market_cap, 0) >= 500000000`, [runId]);
     const diag5 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_symbols WHERE market_cap IS NOT NULL AND market_cap > 0`);
-    console.log(`[CH2-DIAG] Accumulate total: ${diag1.rows[0].cnt} | S_UF band: ${diag2.rows[0].cnt} | +bar_count: ${diag3.rows[0].cnt} | +market_cap>=500M: ${diag4.rows[0].cnt} | runtime_symbols with market_cap: ${diag5.rows[0].cnt}`);
+    // Check how many in-band candidates have market_cap in l5_fundamentals_normalized (the OTHER table)
+    const diag6 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest r LEFT JOIN l5_fundamentals_normalized f ON f.ticker = r.ticker WHERE r.run_id = $1 AND r.decision_label = 'Accumulate' AND CAST(NULLIF(r.snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) >= 0.50 AND CAST(NULLIF(r.snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) < 0.75 AND CAST(NULLIF(r.snapshot_row_json->>'bar_count','') AS INTEGER) > 20 AND COALESCE(f.market_cap, 0) >= 500000000`, [runId]);
+    console.log(`[CH2-DIAG] run_id=${runId} | Accumulate: ${diag1.rows[0].cnt} | S_UF band: ${diag2.rows[0].cnt} | +bar_count: ${diag3.rows[0].cnt} | +mktcap(runtime_symbols): ${diag4.rows[0].cnt} | +mktcap(l5_fundamentals): ${diag6.rows[0].cnt} | runtime_symbols w/mktcap: ${diag5.rows[0].cnt}`);
   } catch (diagErr) {
     console.log(`[CH2-DIAG] Error: ${diagErr.message}`);
   }
