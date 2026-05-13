@@ -86,33 +86,62 @@ tfe_refresh_daemon() {
   # Catch-up check: if container started after the scheduled time and no
   # refresh ran today, fire immediately.  This prevents deploys or restarts
   # from causing missed refresh days.
+  #
+  # HOWEVER: if the S3 snapshot was restored and is fresh (< 18 hours old),
+  # skip the catch-up.  Deploys should not trigger full rebuilds when the
+  # data is already current.  The next scheduled refresh (13:00 UTC daily)
+  # will update normally.
   NOW_H_INT=$((10#$(date -u +%H)))
   if [ "${NOW_H_INT}" -ge "${SCHEDULED_HOUR}" ]; then
-    # Check DB for a successful refresh today (not just any run — must be status=ok)
-    NEEDS_CATCHUP=$(node -e "
-      const pg = require('pg');
-      const pool = new pg.Pool({ssl:{rejectUnauthorized:false}});
-      (async () => {
-        try {
-          const r = await pool.query(
-            \"SELECT COUNT(*) as cnt FROM runtime_refresh_runs WHERE report_status = 'ok' AND completed_at >= (CURRENT_DATE AT TIME ZONE 'UTC')\"
-          );
-          const cnt = parseInt(r.rows[0]?.cnt ?? '0', 10);
-          console.log(cnt > 0 ? 'NO' : 'YES');
-        } catch (e) {
-          console.log('YES');
-        } finally {
-          await pool.end();
-        }
-      })();
-    " 2>/dev/null || echo "YES")
+    # First: check if the restored snapshot is fresh enough to skip rebuild
+    SNAPSHOT_FRESH="NO"
+    if [ -f /app/uf_snapshot.json ]; then
+      SNAPSHOT_AGE_HOURS=$(python3 -c "
+import os, time
+try:
+    mtime = os.path.getmtime('/app/uf_snapshot.json')
+    age_hours = (time.time() - mtime) / 3600
+    print(f'{age_hours:.1f}')
+except Exception:
+    print('999')
+" 2>/dev/null || echo "999")
+      echo "[REFRESH-DAEMON] Snapshot age: ${SNAPSHOT_AGE_HOURS} hours"
+      # Fresh = less than 18 hours old (covers overnight + deploy next morning)
+      IS_FRESH=$(python3 -c "print('YES' if float('${SNAPSHOT_AGE_HOURS}') < 18 else 'NO')" 2>/dev/null || echo "NO")
+      if [ "${IS_FRESH}" = "YES" ]; then
+        SNAPSHOT_FRESH="YES"
+      fi
+    fi
 
-    if [ "${NEEDS_CATCHUP}" = "YES" ]; then
-      echo "[REFRESH-DAEMON] Catch-up: container started after ${SCHEDULED_HOUR}:00 UTC and no successful refresh today. Firing now."
-      tfe_trigger_refresh
-      sleep 90
+    if [ "${SNAPSHOT_FRESH}" = "YES" ]; then
+      echo "[REFRESH-DAEMON] Snapshot is fresh (${SNAPSHOT_AGE_HOURS}h old). Skipping catch-up rebuild — next scheduled refresh at ${SCHEDULED_HOUR}:00 UTC."
     else
-      echo "[REFRESH-DAEMON] Today's refresh already completed successfully. No catch-up needed."
+      # Snapshot is stale or missing — check DB as final fallback
+      NEEDS_CATCHUP=$(node -e "
+        const pg = require('pg');
+        const pool = new pg.Pool({ssl:{rejectUnauthorized:false}});
+        (async () => {
+          try {
+            const r = await pool.query(
+              \"SELECT COUNT(*) as cnt FROM runtime_refresh_runs WHERE report_status = 'ok' AND completed_at >= (CURRENT_DATE AT TIME ZONE 'UTC')\"
+            );
+            const cnt = parseInt(r.rows[0]?.cnt ?? '0', 10);
+            console.log(cnt > 0 ? 'NO' : 'YES');
+          } catch (e) {
+            console.log('YES');
+          } finally {
+            await pool.end();
+          }
+        })();
+      " 2>/dev/null || echo "YES")
+
+      if [ "${NEEDS_CATCHUP}" = "YES" ]; then
+        echo "[REFRESH-DAEMON] Catch-up: snapshot stale/missing and no successful refresh today. Firing now."
+        tfe_trigger_refresh
+        sleep 90
+      else
+        echo "[REFRESH-DAEMON] Today's refresh already completed successfully. No catch-up needed."
+      fi
     fi
   fi
 
