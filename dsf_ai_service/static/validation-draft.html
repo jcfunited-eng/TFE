@@ -91,8 +91,8 @@
         <tr><td><a href="/static/case-pharma-dsc.html">Pharma DSC</a></td><td>5 transitions</td><td>DSC polymorph screening</td><td class="val-exact">5 of 5</td><td>—</td></tr>
       </tbody>
     </table>
-    <p style="margin-top:0.5rem;font-size:0.85rem;color:#666;">Same kernel, no domain configuration, no per-material tuning. The kernel does not know what the data represents. Click material names for full case studies. <a href="/#analyze">Try it on your data</a>.</p>
-    <p style="font-size:0.85rem;color:#666;">The precursor leads (13–22 K before the known transition) are the most interesting finding — the kernel detects changes in the data before the transition is conventionally visible. Whether these correspond to real physical precursors (e.g., superconducting fluctuations above T<sub>c</sub>) requires independent experimental confirmation.</p>
+    <p style="margin-top:0.5rem;font-size:0.85rem;color:#666;">Same pipeline, same parameters across all domains tested. The pipeline was developed against financial time series; subsequent applications to materials and pharmaceutical data used identical code and parameters. Click material names for full case studies. <a href="/#analyze">Try it on your data</a>.</p>
+    <p style="font-size:0.85rem;color:#666;">The precursor leads (13–22 K before the known transition) are the most interesting finding — the analyzer detects changes in the data before the transition is conventionally visible. Whether these correspond to real physical precursors (e.g., superconducting fluctuations above T<sub>c</sub>) requires independent experimental confirmation.</p>
   </div>
 
   <!-- ════════════════════════════════════════════════ -->
@@ -136,7 +136,7 @@
         <tr><td>Fe<sub>700</sub></td><td>2.25</td><td>2.25</td><td class="val-exact">~0%</td><td>Billas et al., Science 1994</td></tr>
       </tbody>
     </table>
-    <p style="font-size:0.85rem;color:#666;"><strong>Note:</strong> The size scaling uses one assumption (surface-to-volume ratio decay) and the Ni pair correction uses tabulated constants (spin-orbit &lambda; and Stoner I from NIST). No values were adjusted to match the larger-cluster data.</p>
+    <p style="font-size:0.85rem;color:#666;"><strong>Note:</strong> The exchange-fraction formula was calibrated at N=13 for Fe and Co. Its predictions at larger sizes (Fe<sub>55</sub>, Fe<sub>147</sub>, Fe<sub>700</sub>) test whether the size-scaling implicit in the formula is correct. The Ni pair correction uses tabulated constants (spin-orbit &lambda; and Stoner I from NIST) and was not fitted to Ni's experimental value.</p>
   </div>
 
   <!-- ELECTRON AFFINITY -->
@@ -154,8 +154,10 @@
         <tr><td>Ag<sub>13</sub></td><td>2.69</td><td>2.50</td><td class="val-ok">7.6%</td><td>Ho et al., JCP 1990</td></tr>
         <tr><td>Ag<sub>7</sub></td><td>2.38</td><td>2.40</td><td class="val-good">0.8%</td><td>Ho et al., JCP 1990</td></tr>
         <tr><td>Cu<sub>13</sub></td><td>2.94</td><td>2.85</td><td class="val-good">3.2%</td><td>Ho et al., JCP 1990</td></tr>
+        <tr style="background:#fef2f2;"><td>Ag<sub>8</sub></td><td>2.85</td><td>1.60</td><td style="color:#dc2626;font-weight:700;">78%</td><td>Ho et al., JCP 1990</td></tr>
       </tbody>
     </table>
+    <p style="font-size:0.85rem;color:#dc2626;margin-top:0.5rem;"><strong>Known failure:</strong> Ag<sub>8</sub> is a non-magic cluster size (between icosahedral shells). The metallic sphere model breaks for N &lt; 10–12 atoms, where quantum shell effects dominate over classical electrostatics. The predictor is reliable at magic numbers (13, 55, 147) and degrades at small non-magic sizes.</p>
   </div>
 
   <!-- SEEBECK -->
@@ -175,8 +177,8 @@
 
   <!-- HOMO-LUMO GAP -->
   <div class="val-section">
-    <h3>HOMO-LUMO Gap (eV) <span class="category-label cat-prediction">Prediction</span></h3>
-    <p style="font-size:0.85rem;color:#666;">Spin-orbit coupling projected through the icosahedral axis. Uses tabulated spin-orbit constants.</p>
+    <h3>HOMO-LUMO Gap (eV) <span class="category-label cat-prediction">Prediction*</span></h3>
+    <p style="font-size:0.85rem;color:#666;">Spin-orbit coupling projected through the icosahedral axis. Uses tabulated spin-orbit constants. *Timeline of computation vs. literature comparison not fully reconstructed — labeled as prediction but may be consistent-with rather than blind.</p>
     <table class="val-table">
       <thead>
         <tr><th>Cluster</th><th>Predicted</th><th>Experiment</th><th>Error</th><th>Source</th></tr>
@@ -213,8 +215,16 @@
   <!-- WHAT'S MISSING -->
   <div class="val-section">
     <h3>What Would Strengthen This</h3>
+    <h4>Current limitations</h4>
     <ul style="line-height:2;color:#444;">
-      <li><strong>Blind predictions on new data:</strong> Running the cluster predictor on materials not yet measured and publishing the predictions before experimental results become available.</li>
+      <li><strong>No third-party reproduction yet.</strong> All results are author-validated. No external user has independently confirmed the findings.</li>
+      <li><strong>Cluster predictor:</strong> The icosahedral assumption fails at non-magic sizes. Ag<sub>8</sub> shows 78% error. Reliable at magic numbers (13, 55, 147, 309, 561); degrades at small non-magic sizes.</li>
+      <li><strong>Structural analyzer:</strong> Precursor detection claims are author-validated only. Best results on data with at least 50 ordered samples; very short series may not produce meaningful analysis.</li>
+      <li><strong>240 Seebeck predictions</strong> for non-Au clusters are untested — no experimental comparison exists for most of them.</li>
+    </ul>
+    <h4>What would strengthen this</h4>
+    <ul style="line-height:2;color:#444;">
+      <li><strong>Blind predictions on new data:</strong> Running the cluster predictor on materials not yet measured and publishing predictions before experimental results become available.</li>
       <li><strong>Independent replication:</strong> Someone outside this project running their own data through the structural analyzer and reporting what they find.</li>
       <li><strong>Cross-validation:</strong> Holding out known data during formula development and testing against the held-out set.</li>
     </ul>

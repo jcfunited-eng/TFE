@@ -47,8 +47,8 @@
 <!-- HERO -->
 <!-- ════════════════════════════════════════════════════════ -->
 <section class="hero">
-  <h2>Upload your measurement data.<br>Get structural analysis in 60 seconds.</h2>
-  <p class="hero-sub">Phase transitions. Polymorph screening. Regime detection. Battery degradation. From any measurement type — physics, pharma, materials, medical. No domain expertise required.</p>
+  <h2>Structural analysis tools<br>for measurement data and material properties.</h2>
+  <p class="hero-sub">A family of tools: detect phase transitions in any ordered measurement series, predict nanoparticle properties from geometry, find optimal thermocouple pairs. Different computations, one service.</p>
   <div class="hero-actions">
     <a href="#analyze" class="btn btn-primary">Analyze a CSV</a>
     <a href="#cluster" class="btn btn-secondary">Screen Clusters</a>
@@ -56,7 +56,6 @@
   <div class="hero-domains">
     <span class="domain-tag">Superconductors</span>
     <span class="domain-tag">Pharma / Polymorph Screening</span>
-    <span class="domain-tag">Battery Materials</span>
     <span class="domain-tag">Semiconductors</span>
     <span class="domain-tag">Ferroelectrics</span>
     <span class="domain-tag">Medical Devices</span>
@@ -68,8 +67,8 @@
 <!-- TAB 1: CSV ANALYSIS -->
 <!-- ════════════════════════════════════════════════════════ -->
 <section id="analyze" class="section">
-  <h2>Structural Analysis</h2>
-  <p>Upload a two-column CSV (stimulus, measurement). Temperature vs resistance, pressure vs volume, time vs voltage — anything.</p>
+  <h2>DSF Structural Analyzer</h2>
+  <p>Upload a two-column CSV of any ordered positive scalar series — temperature vs resistance, pressure vs volume, time vs voltage. Get transition detection, precursor onset, and stability classification. Deterministic. No training. Same pipeline, same parameters across all domains.</p>
 
   <div class="upload-area" id="dropzone">
     <div class="upload-icon">&#x1F4C4;</div>
@@ -133,8 +132,8 @@
 <!-- TAB 2: CLUSTER SCREENER -->
 <!-- ════════════════════════════════════════════════════════ -->
 <section id="cluster" class="section section-alt">
-  <h2>Nanoparticle Cluster Screener</h2>
-  <p>Predict magnetic moment, electron affinity, Seebeck coefficient, and HOMO-LUMO gap for any d-metal cluster. No DFT. Milliseconds per prediction.</p>
+  <h2>Icosahedral Cluster Predictor</h2>
+  <p>Predict nanoparticle properties from element, cluster size, and lattice type. Geometric model based on icosahedral frustration angle — a different computation from the CSV analyzer above. 4 property types, 23 d-metals, 5 magic sizes. No DFT. Milliseconds per prediction.</p>
 
   <div class="cluster-form">
     <div class="form-group">
@@ -224,7 +223,7 @@
 <!-- ════════════════════════════════════════════════════════ -->
 <section id="thermocouple" class="section">
   <h2>Thermocouple Pair Finder</h2>
-  <p>Find optimal nanoparticle thermocouple pairs. Maximizes the Seebeck difference between two cluster materials for highest voltage output.</p>
+  <p>Utility built on the Cluster Predictor's Seebeck output. Finds the nanoparticle pair with maximum Seebeck difference for highest voltage output.</p>
 
   <div class="cluster-form">
     <div class="form-group">
@@ -278,7 +277,7 @@
 
   <div class="example-grid">
     <div class="card">
-      <h4>Physics: Superconductor R(T)</h4>
+      <h4><span style="background:#dbeafe;color:#1e40af;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.7rem;font-weight:600;">Structural Analyzer</span> Superconductor R(T)</h4>
       <p>YBCO — the most studied superconductor in history.</p>
       <ul>
         <li>Transition at <strong>93K</strong> (confirmed)</li>
@@ -287,7 +286,7 @@
       </ul>
     </div>
     <div class="card">
-      <h4>Pharma: DSC Polymorph Screening</h4>
+      <h4><span style="background:#dbeafe;color:#1e40af;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.7rem;font-weight:600;">Structural Analyzer</span> Pharma DSC</h4>
       <p>Simulated drug compound — heat flow vs temperature.</p>
       <ul>
         <li>Glass transition at <strong>62°C</strong></li>
@@ -299,7 +298,16 @@
       <p style="font-size:0.85rem;color:#666;margin-top:0.5rem;">5 transitions found automatically. FDA polymorph screening requires identifying all crystalline forms.</p>
     </div>
     <div class="card">
-      <h4>7 Materials, 4 Phenomena</h4>
+      <h4><span style="background:#fce7f3;color:#9d174d;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.7rem;font-weight:600;">Cluster Predictor</span> Au<sub>13</sub></h4>
+      <ul>
+        <li>HOMO-LUMO gap: <strong>0.648 eV</strong> (measured: 0.650 eV, 0.3% off)</li>
+        <li>Seebeck: <strong>+87.6 &mu;V/K</strong> (measured: +93, 5.8% off)</li>
+        <li>Electron affinity: <strong>3.71 eV</strong> (measured: 3.80 eV, 2.4% off)</li>
+      </ul>
+      <p style="font-size:0.85rem;color:#666;margin-top:0.5rem;">Geometric model, not the CSV analyzer. <a href="/static/validation.html">Validation details</a>.</p>
+    </div>
+    <div class="card">
+      <h4><span style="background:#dbeafe;color:#1e40af;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.7rem;font-weight:600;">Structural Analyzer</span> 7 Materials</h4>
       <table class="example-table">
         <tr><th>Data Type</th><th>Domain</th><th>Transitions Found</th></tr>
         <tr><td>R(T)</td><td>Superconductors (4)</td><td>All detected</td></tr>
@@ -366,7 +374,8 @@
 <!-- ════════════════════════════════════════════════════════ -->
 <footer>
   <p>DSF-AI &copy; 2026. Universal structural analysis service.</p>
-  <p class="footer-note">The analysis engine is proprietary. Results are factual observations. <a href="/static/legal.html">Terms &amp; Privacy</a> | <a href="mailto:support@dsf-ai.com">support@dsf-ai.com</a></p>
+  <p class="footer-note"><a href="/static/legal.html">Terms &amp; Privacy</a> | <a href="mailto:support@dsf-ai.com">support@dsf-ai.com</a></p>
+  <p class="footer-note" style="font-size:0.8rem;color:#999;">Tried DSF-AI on your own data? Tell us what happened — what worked, what didn't, what surprised you. <a href="mailto:support@dsf-ai.com?subject=DSF-AI%20Feedback">Send feedback</a></p>
 </footer>
 
 <script src="/static/app.js"></script>
