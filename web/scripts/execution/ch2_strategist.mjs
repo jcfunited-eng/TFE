@@ -80,7 +80,7 @@ async function fetchCandidateRows(runId) {
        AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $2
        AND CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) >= $3
        AND CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) <  $4
-       AND COALESCE(s.market_cap, f.market_cap, 0) >= $5
+       AND COALESCE(NULLIF(s.market_cap, 0), f.market_cap, 0) >= $5
      ORDER BY r.ticker ASC`,
     [runId, CH2_BAR_COUNT_MIN - 1, CH2_S_UF_MIN, CH2_S_UF_MAX, CH2_MIN_MARKET_CAP]
   );
