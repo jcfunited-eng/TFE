@@ -249,11 +249,20 @@ module arcloom_top (
     input  wire [11:0] sensor_adc_right,
     input  wire        sensor_valid_right,
 
-    // Camera features (from DVP capture, latched in AXI wrapper)
+    // Camera per-line features (from DVP capture)
     input  wire [7:0]  cam_y_mean,
     input  wire [7:0]  cam_edge_count,
     input  wire [7:0]  cam_u_mean,
     input  wire        cam_valid,
+
+    // Camera frame-level features (owl trick — upper/lower split)
+    input  wire [7:0]  cam_y_upper,
+    input  wire [7:0]  cam_y_lower,
+    input  wire [7:0]  cam_edge_upper,
+    input  wire [7:0]  cam_edge_lower,
+    input  wire [7:0]  cam_u_upper,
+    input  wire [7:0]  cam_u_lower,
+    input  wire [7:0]  cam_density,
 
     // Software familiarity override
     input  wire [7:0]  sw_familiarity,
@@ -275,8 +284,8 @@ module arcloom_top (
     output wire        dsf_R_rev,
 
     // Monitor outputs (via AXI)
-    // 73 trits = 146 bits: 8 input strands × 8 trits + 6 settling + 3 decision
-    output wire [145:0] loom_state,
+    // 105 trits = 210 bits: 12 input strands × 8 trits + 6 settling + 3 decision
+    output wire [209:0] loom_state,
     output wire [6:0]  n_effective,
     output wire [7:0]  omega,
 
@@ -333,40 +342,78 @@ module arcloom_top (
     );
 
     // ================================================================
-    // BSIL-BT: Camera Feature Encoding (3 features)
+    // BSIL-BT: Camera Feature Encoding (7 strands — owl trick)
+    // Upper/lower split for spatial position + density for worm gradient.
     // 8-bit features zero-extended to 12-bit for BSIL-BT input.
     // Baselines are starting values — DSF-AI hw-derive will refine.
-    // Camera features only produce distance (magnitude from baseline),
-    // not direction or acceleration — those are IR sensor concepts.
     // ================================================================
-    wire [15:0] cam_y_dist, cam_y_dir, cam_y_accel;
-    wire        cam_y_valid;
 
-    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd120)) bsil_cam_y (
+    // cam_valid serves as the update trigger for frame-level features.
+    // Frame features update once per frame (at VSYNC), not per line.
+    // Using cam_valid (per-line) is safe — BSIL-BT just overwrites with
+    // the latest value, which stabilizes after the frame completes.
+
+    wire [15:0] cam_yu_dist, cam_yu_dir, cam_yu_accel;
+    wire        cam_yu_valid;
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd120)) bsil_cam_y_upper (
         .clk(clk), .rst_n(rst_n),
-        .adc_value({4'd0, cam_y_mean}), .adc_valid(cam_valid),
-        .bt_distance(cam_y_dist), .bt_direction(cam_y_dir),
-        .bt_acceleration(cam_y_accel), .out_valid(cam_y_valid)
+        .adc_value({4'd0, cam_y_upper}), .adc_valid(cam_valid),
+        .bt_distance(cam_yu_dist), .bt_direction(cam_yu_dir),
+        .bt_acceleration(cam_yu_accel), .out_valid(cam_yu_valid)
     );
 
-    wire [15:0] cam_edge_dist, cam_edge_dir, cam_edge_accel;
-    wire        cam_edge_valid;
-
-    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd80)) bsil_cam_edge (
+    wire [15:0] cam_yl_dist, cam_yl_dir, cam_yl_accel;
+    wire        cam_yl_valid;
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd120)) bsil_cam_y_lower (
         .clk(clk), .rst_n(rst_n),
-        .adc_value({4'd0, cam_edge_count}), .adc_valid(cam_valid),
-        .bt_distance(cam_edge_dist), .bt_direction(cam_edge_dir),
-        .bt_acceleration(cam_edge_accel), .out_valid(cam_edge_valid)
+        .adc_value({4'd0, cam_y_lower}), .adc_valid(cam_valid),
+        .bt_distance(cam_yl_dist), .bt_direction(cam_yl_dir),
+        .bt_acceleration(cam_yl_accel), .out_valid(cam_yl_valid)
     );
 
-    wire [15:0] cam_u_dist, cam_u_dir, cam_u_accel;
-    wire        cam_u_valid;
-
-    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd128)) bsil_cam_u (
+    wire [15:0] cam_eu_dist, cam_eu_dir, cam_eu_accel;
+    wire        cam_eu_valid;
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd40)) bsil_cam_edge_upper (
         .clk(clk), .rst_n(rst_n),
-        .adc_value({4'd0, cam_u_mean}), .adc_valid(cam_valid),
-        .bt_distance(cam_u_dist), .bt_direction(cam_u_dir),
-        .bt_acceleration(cam_u_accel), .out_valid(cam_u_valid)
+        .adc_value({4'd0, cam_edge_upper}), .adc_valid(cam_valid),
+        .bt_distance(cam_eu_dist), .bt_direction(cam_eu_dir),
+        .bt_acceleration(cam_eu_accel), .out_valid(cam_eu_valid)
+    );
+
+    wire [15:0] cam_el_dist, cam_el_dir, cam_el_accel;
+    wire        cam_el_valid;
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd40)) bsil_cam_edge_lower (
+        .clk(clk), .rst_n(rst_n),
+        .adc_value({4'd0, cam_edge_lower}), .adc_valid(cam_valid),
+        .bt_distance(cam_el_dist), .bt_direction(cam_el_dir),
+        .bt_acceleration(cam_el_accel), .out_valid(cam_el_valid)
+    );
+
+    wire [15:0] cam_uu_dist, cam_uu_dir, cam_uu_accel;
+    wire        cam_uu_valid;
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd128)) bsil_cam_u_upper (
+        .clk(clk), .rst_n(rst_n),
+        .adc_value({4'd0, cam_u_upper}), .adc_valid(cam_valid),
+        .bt_distance(cam_uu_dist), .bt_direction(cam_uu_dir),
+        .bt_acceleration(cam_uu_accel), .out_valid(cam_uu_valid)
+    );
+
+    wire [15:0] cam_ul_dist, cam_ul_dir, cam_ul_accel;
+    wire        cam_ul_valid;
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd128)) bsil_cam_u_lower (
+        .clk(clk), .rst_n(rst_n),
+        .adc_value({4'd0, cam_u_lower}), .adc_valid(cam_valid),
+        .bt_distance(cam_ul_dist), .bt_direction(cam_ul_dir),
+        .bt_acceleration(cam_ul_accel), .out_valid(cam_ul_valid)
+    );
+
+    wire [15:0] cam_dens_dist, cam_dens_dir, cam_dens_accel;
+    wire        cam_dens_valid;
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd20)) bsil_cam_density (
+        .clk(clk), .rst_n(rst_n),
+        .adc_value({4'd0, cam_density}), .adc_valid(cam_valid),
+        .bt_distance(cam_dens_dist), .bt_direction(cam_dens_dir),
+        .bt_acceleration(cam_dens_accel), .out_valid(cam_dens_valid)
     );
 
     // ================================================================
@@ -407,9 +454,13 @@ module arcloom_top (
         .in_front_accel(front_accel),
         .in_left_dist(left_dist),
         .in_right_dist(right_dist),
-        .in_cam_y(cam_y_dist),
-        .in_cam_edge(cam_edge_dist),
-        .in_cam_u(cam_u_dist),
+        .in_cam_y_upper(cam_yu_dist),
+        .in_cam_y_lower(cam_yl_dist),
+        .in_cam_edge_upper(cam_eu_dist),
+        .in_cam_edge_lower(cam_el_dist),
+        .in_cam_u_upper(cam_uu_dist),
+        .in_cam_u_lower(cam_ul_dist),
+        .in_cam_density(cam_dens_dist),
         .familiarity(active_familiarity),
         .ext_h_ctx(16'd0),
         .ext_h_mmtm(16'd0),
@@ -472,11 +523,11 @@ module arcloom_top (
     // ================================================================
     // L6: Topological Constraint Layer (COMBINATIONAL)
     // ArcLoom's own layer — observes dimensional exhaustion.
-    // 73 trits, knee at 73/e ≈ 26.9 → KNEE=27
-    // SL-1 fires when 46+ of 73 trits are non-null
+    // 105 trits, knee at 105/e ≈ 38.6 → KNEE=39
+    // SL-1 fires when 66+ of 105 trits are non-null
     // Pure observer — no external gating, no TFE dependencies.
     // ================================================================
-    arcloom_l6_tcl #(.N_TRITS(73), .KNEE(27)) l6_inst (
+    arcloom_l6_tcl #(.N_TRITS(105), .KNEE(39)) l6_inst (
         .loom_state(loom_state),
         .disruption_active(1'b0),
         .recovery_pending(1'b0),

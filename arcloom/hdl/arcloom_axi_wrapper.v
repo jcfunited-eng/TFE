@@ -72,6 +72,15 @@ module arcloom_axi_wrapper #(
     input  wire        cam_line_valid,
     input  wire        cam_frame_active,
     input  wire [7:0]  cam_frame_count,
+    // Frame-level features (owl trick — upper/lower split)
+    input  wire [7:0]  cam_frame_y_upper,
+    input  wire [7:0]  cam_frame_y_lower,
+    input  wire [7:0]  cam_frame_edge_upper,
+    input  wire [7:0]  cam_frame_edge_lower,
+    input  wire [7:0]  cam_frame_u_upper,
+    input  wire [7:0]  cam_frame_u_lower,
+    input  wire [7:0]  cam_frame_density,
+
     input  wire        cam_xclk_fb,       // Clock feedback — keeps Vivado from trimming cam_clk_0
 
     // Motor drive outputs
@@ -148,7 +157,7 @@ module arcloom_axi_wrapper #(
     wire        structural_lock_w, dsf_safe_mode_w, dsf_valid_w;
     wire [1:0]  dsf_D_w;
     wire        dsf_R_rev_w;
-    wire [145:0] loom_state_w;
+    wire [209:0] loom_state_w;
     wire [6:0]  n_effective_w;
     wire [7:0]  omega_w;
     wire [5:0]  krim_count_w;
@@ -201,6 +210,13 @@ module arcloom_axi_wrapper #(
         .cam_edge_count(cam_edge_cnt_r),
         .cam_u_mean(cam_u_mean_r),
         .cam_valid(cam_line_valid),
+        .cam_y_upper(cam_frame_y_upper),
+        .cam_y_lower(cam_frame_y_lower),
+        .cam_edge_upper(cam_frame_edge_upper),
+        .cam_edge_lower(cam_frame_edge_lower),
+        .cam_u_upper(cam_frame_u_upper),
+        .cam_u_lower(cam_frame_u_lower),
+        .cam_density(cam_frame_density),
         .sw_familiarity(sw_familiarity),
         .sw_fam_enable(sw_fam_enable),
         .sw_krim_commit(sw_krim_commit),
@@ -414,6 +430,14 @@ module arcloom_axi_wrapper #(
 
                     // 0x30: Camera color (U/V chrominance)
                     4'd12: axi_rdata <= {16'd0, cam_v_mean_r, cam_u_mean_r};
+
+                    // 0x34: Frame features — upper/lower Y and edge (owl trick)
+                    4'd13: axi_rdata <= {cam_frame_edge_lower, cam_frame_edge_upper,
+                                         cam_frame_y_lower, cam_frame_y_upper};
+
+                    // 0x38: Frame features — upper/lower U + structural density
+                    4'd14: axi_rdata <= {cam_frame_density, 8'd0,
+                                         cam_frame_u_lower, cam_frame_u_upper};
 
                     default: axi_rdata <= 32'd0;
                 endcase

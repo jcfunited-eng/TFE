@@ -29,7 +29,9 @@
       "WebFetch(domain:www.reddit.com)",
       "WebFetch(domain:old.reddit.com)",
       "WebFetch(domain:search.brave.com)",
-      "Bash(GIT_PAGER=cat bash /workspaces/Tao_Financial_Engine/tools/deploy_to_prod_with_evidence.sh)"
+      "Bash(GIT_PAGER=cat bash /workspaces/Tao_Financial_Engine/tools/deploy_to_prod_with_evidence.sh)",
+      "Bash(python3 -c ':*)",
+      "WebFetch(domain:api.reddit.com)"
     ],
     "defaultMode": "bypassPermissions"
   }

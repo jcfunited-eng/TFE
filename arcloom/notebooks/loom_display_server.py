@@ -103,16 +103,27 @@ def read_sensors():
 
 
 def read_camera():
-    """Read camera line features from registers 0x18 and 0x30."""
+    """Read camera features from registers 0x18, 0x30, 0x34, 0x38."""
     reg_18 = arcloom.read(0x18)
     reg_30 = arcloom.read(0x30)
+    reg_34 = arcloom.read(0x34)
+    reg_38 = arcloom.read(0x38)
     return {
+        # Per-line (last scanline)
         "y_mean": reg_18 & 0xFF,
         "y_min": (reg_18 >> 8) & 0xFF,
         "y_max": (reg_18 >> 16) & 0xFF,
         "edge_count": (reg_18 >> 24) & 0xFF,
         "u_mean": reg_30 & 0xFF,
         "v_mean": (reg_30 >> 8) & 0xFF,
+        # Frame-level (owl trick — upper/lower)
+        "y_upper": reg_34 & 0xFF,
+        "y_lower": (reg_34 >> 8) & 0xFF,
+        "edge_upper": (reg_34 >> 16) & 0xFF,
+        "edge_lower": (reg_34 >> 24) & 0xFF,
+        "u_upper": reg_38 & 0xFF,
+        "u_lower": (reg_38 >> 8) & 0xFF,
+        "density": (reg_38 >> 24) & 0xFF,
     }
 
 
@@ -742,25 +753,45 @@ body {
         </div>
     </div>
 
-    <!-- CAMERA — live features (wired into SPPU as BT strands) -->
+    <!-- CAMERA — 12-strand vision (owl trick: upper/lower + density) -->
     <div class="sensor-panel" id="cam-panel">
         <div style="margin-bottom:8px;">
-            <span style="font-size:0.75em; color:#aa88ff; font-weight:bold;">CAMERA</span>
+            <span style="font-size:0.75em; color:#aa88ff; font-weight:bold;">CAMERA &mdash; 7 STRANDS</span>
         </div>
         <div class="sensor-row">
-            <span class="sensor-label">Y Mean</span>
-            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-ymean" style="width:0%;background:#aa88ff;"></div></div>
-            <span class="sensor-val" id="val-ymean">0</span>
+            <span class="sensor-label">Y Upper</span>
+            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-yupper" style="width:0%;background:#aa88ff;"></div></div>
+            <span class="sensor-val" id="val-yupper">0</span>
         </div>
         <div class="sensor-row">
-            <span class="sensor-label">Edges</span>
-            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-edge" style="width:0%;background:#ff88ff;"></div></div>
-            <span class="sensor-val" id="val-edge">0</span>
+            <span class="sensor-label">Y Lower</span>
+            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-ylower" style="width:0%;background:#8866dd;"></div></div>
+            <span class="sensor-val" id="val-ylower">0</span>
         </div>
         <div class="sensor-row">
-            <span class="sensor-label">U Color</span>
-            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-umean" style="width:0%;background:#88aaff;"></div></div>
-            <span class="sensor-val" id="val-umean">0</span>
+            <span class="sensor-label">Edge Up</span>
+            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-edgeupper" style="width:0%;background:#ff88ff;"></div></div>
+            <span class="sensor-val" id="val-edgeupper">0</span>
+        </div>
+        <div class="sensor-row">
+            <span class="sensor-label">Edge Low</span>
+            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-edgelower" style="width:0%;background:#dd66dd;"></div></div>
+            <span class="sensor-val" id="val-edgelower">0</span>
+        </div>
+        <div class="sensor-row">
+            <span class="sensor-label">U Upper</span>
+            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-uupper" style="width:0%;background:#88aaff;"></div></div>
+            <span class="sensor-val" id="val-uupper">0</span>
+        </div>
+        <div class="sensor-row">
+            <span class="sensor-label">U Lower</span>
+            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-ulower" style="width:0%;background:#6688dd;"></div></div>
+            <span class="sensor-val" id="val-ulower">0</span>
+        </div>
+        <div class="sensor-row">
+            <span class="sensor-label">Density</span>
+            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-density" style="width:0%;background:#ffaa44;"></div></div>
+            <span class="sensor-val" id="val-density">0</span>
         </div>
     </div>
 
@@ -945,17 +976,20 @@ async function poll() {
         mstat.textContent = s.motor_on ? 'MOTORS ON' : 'MOTORS OFF';
         mstat.style.color = s.motor_on ? '#00ff88' : '#ff4444';
 
-        // Camera features
+        // Camera frame features (owl trick)
         const cam = data.camera || {};
-        const yPct = Math.min(100, (cam.y_mean / 255) * 100);
-        const ePct = Math.min(100, (cam.edge_count / 255) * 100);
-        const uPct = Math.min(100, (cam.u_mean / 255) * 100);
-        document.getElementById('bar-ymean').style.width = yPct + '%';
-        document.getElementById('val-ymean').textContent = cam.y_mean;
-        document.getElementById('bar-edge').style.width = ePct + '%';
-        document.getElementById('val-edge').textContent = cam.edge_count;
-        document.getElementById('bar-umean').style.width = uPct + '%';
-        document.getElementById('val-umean').textContent = cam.u_mean;
+        function camBar(id, val) {
+            const pct = Math.min(100, (val / 255) * 100);
+            document.getElementById('bar-' + id).style.width = pct + '%';
+            document.getElementById('val-' + id).textContent = val;
+        }
+        camBar('yupper', cam.y_upper || 0);
+        camBar('ylower', cam.y_lower || 0);
+        camBar('edgeupper', cam.edge_upper || 0);
+        camBar('edgelower', cam.edge_lower || 0);
+        camBar('uupper', cam.u_upper || 0);
+        camBar('ulower', cam.u_lower || 0);
+        camBar('density', cam.density || 0);
 
         // Capture status
         const capStat = document.getElementById('capture-status');

@@ -111,6 +111,15 @@ connect_bd_net [get_bd_pins cam_dvp_0/line_valid]      [get_bd_pins arcloom_0/ca
 connect_bd_net [get_bd_pins cam_dvp_0/frame_active]    [get_bd_pins arcloom_0/cam_frame_active]
 connect_bd_net [get_bd_pins cam_dvp_0/frame_count]     [get_bd_pins arcloom_0/cam_frame_count]
 
+# Frame-level features — owl trick (upper/lower split) + density
+connect_bd_net [get_bd_pins cam_dvp_0/frame_y_upper]     [get_bd_pins arcloom_0/cam_frame_y_upper]
+connect_bd_net [get_bd_pins cam_dvp_0/frame_y_lower]     [get_bd_pins arcloom_0/cam_frame_y_lower]
+connect_bd_net [get_bd_pins cam_dvp_0/frame_edge_upper]  [get_bd_pins arcloom_0/cam_frame_edge_upper]
+connect_bd_net [get_bd_pins cam_dvp_0/frame_edge_lower]  [get_bd_pins arcloom_0/cam_frame_edge_lower]
+connect_bd_net [get_bd_pins cam_dvp_0/frame_u_upper]     [get_bd_pins arcloom_0/cam_frame_u_upper]
+connect_bd_net [get_bd_pins cam_dvp_0/frame_u_lower]     [get_bd_pins arcloom_0/cam_frame_u_lower]
+connect_bd_net [get_bd_pins cam_dvp_0/frame_density]     [get_bd_pins arcloom_0/cam_frame_density]
+
 # ============================================================
 # AXI bus — arcloom_0 first (creates interconnect)
 # ============================================================

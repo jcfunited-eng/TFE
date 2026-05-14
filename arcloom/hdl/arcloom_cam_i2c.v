@@ -61,16 +61,18 @@ module arcloom_cam_i2c (
         init_regs[6]  = {16'h3108, 8'h01};  // PCLK root div /2
         init_regs[7]  = {16'h3824, 8'h01};  // DVP PCLK divider
 
-        // ======== 3. TIMING — sensor window ========
-        // Full sensor array 2592x1944, subsampled to 320x240
-        init_regs[8]  = {16'h3800, 8'h00};  // X start high
-        init_regs[9]  = {16'h3801, 8'h00};  // X start low = 0
-        init_regs[10] = {16'h3802, 8'h00};  // Y start high
-        init_regs[11] = {16'h3803, 8'h04};  // Y start low = 4
-        init_regs[12] = {16'h3804, 8'h0A};  // X end high
-        init_regs[13] = {16'h3805, 8'h3F};  // X end low = 2623
-        init_regs[14] = {16'h3806, 8'h07};  // Y end high
-        init_regs[15] = {16'h3807, 8'h9B};  // Y end low = 1947
+        // ======== 3. TIMING — sensor window (center crop for ~80° FOV) ========
+        // Full sensor: 2592x1944. Center half: 656-1968 x 486-1458
+        // 2x zoom from 160° fish eye — object fills more of the frame
+        // Output still 320x240 via subsampling
+        init_regs[8]  = {16'h3800, 8'h02};  // X start high
+        init_regs[9]  = {16'h3801, 8'h90};  // X start low = 656
+        init_regs[10] = {16'h3802, 8'h01};  // Y start high
+        init_regs[11] = {16'h3803, 8'hE6};  // Y start low = 486
+        init_regs[12] = {16'h3804, 8'h07};  // X end high
+        init_regs[13] = {16'h3805, 8'hB0};  // X end low = 1968
+        init_regs[14] = {16'h3806, 8'h05};  // Y end high
+        init_regs[15] = {16'h3807, 8'hB2};  // Y end low = 1458
 
         // ======== 4. OUTPUT SIZE ========
         init_regs[16] = {16'h3808, 8'h01};  // X output high

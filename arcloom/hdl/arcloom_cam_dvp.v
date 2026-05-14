@@ -55,6 +55,16 @@ module arcloom_cam_dvp (
     output reg  [8:0]  line_number,    // which scanline (0-239)
     output reg         line_valid,     // pulse: new line data ready
 
+    // Frame-level features — owl trick (upper/lower split)
+    // Updated once per frame at VSYNC rising edge
+    output reg  [7:0]  frame_y_upper,  // mean Y for lines 0-119
+    output reg  [7:0]  frame_y_lower,  // mean Y for lines 120-239
+    output reg  [7:0]  frame_edge_upper, // mean edge count for upper half
+    output reg  [7:0]  frame_edge_lower, // mean edge count for lower half
+    output reg  [7:0]  frame_u_upper,  // mean U for upper half
+    output reg  [7:0]  frame_u_lower,  // mean U for lower half
+    output reg  [7:0]  frame_density,  // structural density: count of high-edge lines per frame
+
     // Frame status
     output reg         frame_active,   // high during active frame
     output reg  [7:0]  frame_count     // frame counter (wraps at 255)
@@ -101,6 +111,17 @@ module arcloom_cam_dvp (
     // Edge detection threshold (luminance change > 16 = boundary)
     localparam EDGE_THRESH = 8'd16;
 
+    // Structural density threshold — lines with edge count above this
+    // are "structurally interesting" (object present, not flat background)
+    localparam DENSITY_THRESH = 8'd20;
+
+    // ---- Frame-level accumulators (upper/lower split at line 120) ----
+    reg [19:0] frame_y_sum_upper, frame_y_sum_lower;
+    reg [15:0] frame_edge_sum_upper, frame_edge_sum_lower;
+    reg [19:0] frame_u_sum_upper, frame_u_sum_lower;
+    reg [7:0]  frame_line_count_upper, frame_line_count_lower;
+    reg [7:0]  density_count;  // lines with edge > DENSITY_THRESH
+
     // Mean approximation: 320 Y pixels/line, so mean = y_sum/320
     // Approximate as y_sum*3/1024 (~6% underread, fine for loom)
     wire [20:0] y_sum_x3 = {1'b0, y_sum} + {y_sum, 1'b0};
@@ -132,24 +153,62 @@ module arcloom_cam_dvp (
             line_u_mean  <= 8'd128;
             line_v_mean  <= 8'd128;
             line_number  <= 9'd0;
+            frame_y_upper <= 8'd0;
+            frame_y_lower <= 8'd0;
+            frame_edge_upper <= 8'd0;
+            frame_edge_lower <= 8'd0;
+            frame_u_upper <= 8'd128;
+            frame_u_lower <= 8'd128;
+            frame_density <= 8'd0;
+            frame_y_sum_upper <= 20'd0;
+            frame_y_sum_lower <= 20'd0;
+            frame_edge_sum_upper <= 16'd0;
+            frame_edge_sum_lower <= 16'd0;
+            frame_u_sum_upper <= 20'd0;
+            frame_u_sum_lower <= 20'd0;
+            frame_line_count_upper <= 8'd0;
+            frame_line_count_lower <= 8'd0;
+            density_count <= 8'd0;
         end else begin
             line_valid <= 1'b0;
             prev_vsync <= vsync_s;
             prev_href  <= href_s;
 
             // VSYNC falling edge = start of frame
-            // (OV5640 default: VSYNC active high between frames)
             if (prev_vsync && !vsync_s) begin
                 in_frame    <= 1'b1;
                 frame_active <= 1'b1;
                 cur_line    <= 9'd0;
+                // Reset frame-level accumulators
+                frame_y_sum_upper <= 20'd0;
+                frame_y_sum_lower <= 20'd0;
+                frame_edge_sum_upper <= 16'd0;
+                frame_edge_sum_lower <= 16'd0;
+                frame_u_sum_upper <= 20'd0;
+                frame_u_sum_lower <= 20'd0;
+                frame_line_count_upper <= 8'd0;
+                frame_line_count_lower <= 8'd0;
+                density_count <= 8'd0;
             end
 
-            // VSYNC rising edge = end of frame
+            // VSYNC rising edge = end of frame — compute frame means
             if (!prev_vsync && vsync_s) begin
                 in_frame    <= 1'b0;
                 frame_active <= 1'b0;
                 frame_count <= frame_count + 8'd1;
+
+                // Upper half means (divide by ~120 lines ≈ /128 = >>7)
+                frame_y_upper    <= frame_y_sum_upper[19:7] + frame_y_sum_upper[6];
+                frame_edge_upper <= frame_edge_sum_upper[14:7] + frame_edge_sum_upper[6];
+                frame_u_upper    <= frame_u_sum_upper[19:7] + frame_u_sum_upper[6];
+
+                // Lower half means
+                frame_y_lower    <= frame_y_sum_lower[19:7] + frame_y_sum_lower[6];
+                frame_edge_lower <= frame_edge_sum_lower[14:7] + frame_edge_sum_lower[6];
+                frame_u_lower    <= frame_u_sum_lower[19:7] + frame_u_sum_lower[6];
+
+                // Structural density
+                frame_density <= density_count;
             end
 
             // HREF falling edge = end of line → emit line features
@@ -163,6 +222,25 @@ module arcloom_cam_dvp (
                 line_v_mean     <= v_sum_x3[16:9];   // 160 V samples: *3/512 ≈ /170 ≈ /160
                 line_number     <= cur_line;
                 line_valid      <= 1'b1;
+
+                // Accumulate into upper or lower frame halves
+                if (cur_line < 9'd120) begin
+                    // Upper half
+                    frame_y_sum_upper <= frame_y_sum_upper + {12'd0, y_sum_x3[17:10]};
+                    frame_edge_sum_upper <= frame_edge_sum_upper + {8'd0, edge_cnt};
+                    frame_u_sum_upper <= frame_u_sum_upper + {12'd0, u_sum_x3[16:9]};
+                    frame_line_count_upper <= frame_line_count_upper + 8'd1;
+                end else begin
+                    // Lower half
+                    frame_y_sum_lower <= frame_y_sum_lower + {12'd0, y_sum_x3[17:10]};
+                    frame_edge_sum_lower <= frame_edge_sum_lower + {8'd0, edge_cnt};
+                    frame_u_sum_lower <= frame_u_sum_lower + {12'd0, u_sum_x3[16:9]};
+                    frame_line_count_lower <= frame_line_count_lower + 8'd1;
+                end
+
+                // Structural density: count lines with significant edges
+                if (edge_cnt > DENSITY_THRESH)
+                    density_count <= density_count + 8'd1;
 
                 // Reset accumulators for next line
                 cur_line    <= cur_line + 9'd1;
