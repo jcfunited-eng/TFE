@@ -148,7 +148,7 @@ export default function PortfolioTFEManager() {
       setPositions(posData.positions ?? []);
       setConfig(cfgData);
       if (!fundedInput) setFundedInput(String(cfgData.vault_funded_amount ?? 0));
-      if (!riskInput)   setRiskInput(String(cfgData.risk_per_trade_pct ?? 1.5));
+      if (!riskInput)   setRiskInput(String(cfgData.risk_per_trade_pct ?? 2.5));
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Load failed");
