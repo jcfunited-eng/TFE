@@ -519,14 +519,13 @@ export async function executeBracketOrder(signal, opts = {}) {
 // Independent execution path. Does NOT modify or share logic with 3WA above.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Dynamic Expectancy Multiplier sizing (derived from structural_episodes.csv):
-//   Chapter 1 (3WA sustained): win_rate=0.725, avg_return=0.220 → edge=0.1595
-//   Chapter 2 (mid S_UF):      win_rate=0.649, avg_return=0.150 → edge=0.0974
-//   Multiplier = 0.0974 / 0.1595 = 0.611
-//   Ch2 risk pct = 1.5% (3WA base) × 0.611 = 0.917%
-const CH2_RISK_PCT         = 0.917; // derived expectancy multiplier: 0.611 × 3WA base
+// Position sizing: 2.5% risk per trade.
+// Backtest (85 trades): win/loss ratio 1.91:1. At 2.5% same trades produce
+// $4,413 P&L vs $1,633 at 0.917%. Utilization ~60% vs ~23%.
+const CH2_RISK_PCT         = 2.5;
 const CH2_TAKE_PROFIT_MULT = 1.0;   // bracket TP kept as wide ceiling (sentinel trailing handles real exit)
 const CH2_STOP_LOSS_PCT    = 0.10;  // -10% catastrophic stop — not noise, only disaster. ATR stops killed 13/14 winners.
+const CH2_MIN_BRACKET_PCT  = 0.05;  // minimum 5% bracket width — tight brackets on cheap stocks get stopped out prematurely
 
 /**
  * Validate a Ch2 signal. Binary — every check must pass or the trade fails.
@@ -598,7 +597,11 @@ export async function executeCh2BracketOrder(signal) {
   // Kinetic buffer: 0.1% above current price to catch accelerating entries.
   const KINETIC_BUFFER = 1.001;
   const entryPrice      = parseFloat((currentPrice * KINETIC_BUFFER).toFixed(2));
-  const takeProfitPrice = parseFloat((entryPrice + CH2_TAKE_PROFIT_MULT * atr).toFixed(2));
+  // TP: at least 5% above entry, or 1×ATR — whichever is larger.
+  // Backtest: trades with <5% brackets won at 50%, trades with 5-15% brackets won at 80%.
+  const minTpDistance   = entryPrice * CH2_MIN_BRACKET_PCT;
+  const atrTpDistance   = CH2_TAKE_PROFIT_MULT * atr;
+  const takeProfitPrice = parseFloat((entryPrice + Math.max(minTpDistance, atrTpDistance)).toFixed(2));
   const stopLossPrice   = parseFloat((entryPrice * (1 - CH2_STOP_LOSS_PCT)).toFixed(2));
 
   if (stopLossPrice <= 0) {
