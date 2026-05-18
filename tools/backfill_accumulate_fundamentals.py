@@ -133,6 +133,7 @@ def _get_missing_tickers(conn) -> List[Dict[str, str]]:
             WHERE r.decision_label = 'Accumulate'
               AND (
                     f.ticker IS NULL
+                    OR f.market_cap IS NULL
                     OR f.current_ratio IS NULL
                     OR f.free_cash_flow IS NULL
                     OR f.gross_margin IS NULL
