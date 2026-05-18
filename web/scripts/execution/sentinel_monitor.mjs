@@ -141,7 +141,7 @@ async function fetchOpenPositions() {
             entry_filled_at, entry_filled_price, signal_detected_at, created_at,
             take_profit_price, stop_loss_price, status
      FROM personal_trade_ledger
-     WHERE status IN ('submitted', 'filled')
+     WHERE status IN ('pending', 'submitted', 'filled')
        AND (signal_class IS NULL OR signal_class != 'manual')
      ORDER BY created_at ASC`
   );
@@ -360,10 +360,11 @@ export async function runSentinel() {
   console.log(`[SENTINEL] Open positions: ${positions.length} | SPY D_k: ${spyDk ?? "unknown"} | Equity: $${equityNow.toFixed(2)}`);
 
   // ── Orphan sync: adopt Alpaca positions missing from the ledger ────────
-  // Runs once per container (not every cycle). Finds real positions on Alpaca
-  // that have no ledger row and inserts them so EXIT-F/H/C/D can manage them.
-  if (!global._orphanSyncDone) {
-    global._orphanSyncDone = true;
+  // Runs every cycle. Finds real positions on Alpaca that have no ledger row
+  // and inserts them so EXIT-F/H/C/D can manage them. entry_timing_watcher
+  // places orders throughout the day — if the ledger status update fails,
+  // those positions become invisible to sentinel. This catches them.
+  {
     try {
       const alpacaPositions = await alpacaGet("/v2/positions", ALPACA_BASE).catch(() => []);
       if (Array.isArray(alpacaPositions) && alpacaPositions.length > 0) {
@@ -488,7 +489,7 @@ export async function runSentinel() {
     const p0 = positions[0];
     console.log(`[SENTINEL] Zombie debug: pos[0].ticker=${p0.ticker} pos[0].status='${p0.status}' type=${typeof p0.status} keys=${Object.keys(p0).slice(0,15).join(',')}`);
   }
-  const openPositions = positions.filter(p => p.status === "filled" || p.status === "submitted");
+  const openPositions = positions.filter(p => p.status === "filled" || p.status === "submitted" || p.status === "pending");
   console.log(`[SENTINEL] Zombie check: ${openPositions.length} open positions to verify against Alpaca (total=${positions.length})`);
   for (const pos of openPositions) {
     try {
@@ -502,13 +503,13 @@ export async function runSentinel() {
         continue; // transient error, skip
       }
 
-      if (pos.status === "submitted" && !pos.entry_filled_at) {
+      if ((pos.status === "submitted" || pos.status === "pending") && !pos.entry_filled_at) {
         // Phantom entry — never filled on Alpaca, clean it up
         await pool.query(
           `UPDATE personal_trade_ledger SET status='cancelled' WHERE id=$1`,
           [pos.id]
         );
-        console.log(`[SENTINEL] Phantom cleanup: ${pos.ticker} — submitted but never existed on Alpaca. Marked cancelled.`);
+        console.log(`[SENTINEL] Phantom cleanup: ${pos.ticker} — ${pos.status} but never existed on Alpaca. Marked cancelled.`);
         pos.status = "cancelled";
         continue;
       }

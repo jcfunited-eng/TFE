@@ -129,6 +129,12 @@ export async function runEntryTimingCheck() {
     return;
   }
 
+  // No new entries on Fridays — weekend gap risk is unmanageable
+  const dayOfWeek = new Date().getUTCDay();
+  if (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0) {
+    return;
+  }
+
   const primed = await getPrimedTickers();
   if (primed.length === 0) {
     console.log("[ENTRY-TIMING] No primed tickers without positions.");

@@ -59,11 +59,16 @@ export async function GET() {
     const closedCh1Ch2 = closedTrades.filter(r => (r.signal_class ?? "CH2") !== "CH3");
     const closedCh3 = closedTrades.filter(r => r.signal_class === "CH3");
 
-    // Primary validation: CH1/CH2 only
-    const wins = closedCh1Ch2.filter(r => safeFloat(r.p_l)! > 0);
-    const losses = closedCh1Ch2.filter(r => safeFloat(r.p_l)! <= 0);
+    // Administrative closures — excluded from win/loss scoring
+    const ADMIN_EXIT_REASONS = ["stale_position_cleanup", "manual_close_stale"];
+    const closedStrategy = closedCh1Ch2.filter(r => !ADMIN_EXIT_REASONS.includes(r.exit_reason));
+    const adminClosures = closedCh1Ch2.length - closedStrategy.length;
 
-    const winRate = pct(wins.length, closedCh1Ch2.length);
+    // Primary validation: CH1/CH2 strategy trades only
+    const wins = closedStrategy.filter(r => safeFloat(r.p_l)! > 0);
+    const losses = closedStrategy.filter(r => safeFloat(r.p_l)! <= 0);
+
+    const winRate = pct(wins.length, closedStrategy.length);
     const avgWinPct = wins.length > 0
       ? wins.reduce((s, r) => s + (safeFloat(r.p_l_pct) ?? 0), 0) / wins.length
       : 0;
@@ -72,8 +77,8 @@ export async function GET() {
       : 0;
 
     // Mathematical Expectancy: E = (W × AvgW) - (L × AvgL)
-    const winRateDecimal = wins.length / Math.max(closedCh1Ch2.length, 1);
-    const lossRateDecimal = losses.length / Math.max(closedCh1Ch2.length, 1);
+    const winRateDecimal = wins.length / Math.max(closedStrategy.length, 1);
+    const lossRateDecimal = losses.length / Math.max(closedStrategy.length, 1);
     const expectancy = (winRateDecimal * avgWinPct / 100) - (lossRateDecimal * avgLossPct / 100);
 
     const totalRealizedPL = closedCh1Ch2.reduce((s, r) => s + (safeFloat(r.p_l) ?? 0), 0);
@@ -222,14 +227,15 @@ export async function GET() {
         value: Math.round(expectancy * 100000) / 100000,
         target: 0.052,
         threshold: 0.02,
-        status: closedCh1Ch2.length < 10
+        status: closedStrategy.length < 10
           ? "insufficient_data"
           : expectancy >= 0.052 ? "exceeds_target"
           : expectancy >= 0.02 ? "above_threshold"
           : expectancy > 0 ? "positive_but_below_threshold"
           : "negative",
-        note: "CH1/CH2 only — CH3 reported separately",
-        closed_trades: closedCh1Ch2.length,
+        note: "CH1/CH2 strategy trades only — admin closures and CH3 excluded",
+        closed_trades: closedStrategy.length,
+        admin_closures: adminClosures,
         win_rate: winRate,
         avg_win_pct: Math.round(avgWinPct * 100) / 100,
         avg_loss_pct: Math.round(avgLossPct * 100) / 100,

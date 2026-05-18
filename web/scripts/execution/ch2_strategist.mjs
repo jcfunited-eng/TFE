@@ -163,6 +163,17 @@ export async function getCh2Signals() {
     console.log(`[CH2-DIAG] Error: ${diagErr.message}`);
   }
 
+  // ── Friday block: no new entries on Fridays ────────────────────────────
+  // Weekend gap risk is unmanageable — REGN dropped 12% over a weekend,
+  // blowing through the -10% stop. Positions entered Mon-Thu have time to
+  // build a buffer before the weekend. Friday entries hold weekend risk
+  // with zero cushion.
+  const dayOfWeek = new Date().getUTCDay(); // 0=Sun, 5=Fri, 6=Sat
+  if (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0) {
+    console.log(`[CH2-STRATEGIST] FRIDAY BLOCK — no new entries on weekends/Fridays (day=${dayOfWeek})`);
+    return [];
+  }
+
   // Epoch Resonance Shield — block entries in hostile macro environments
   try {
     let g32 = {};

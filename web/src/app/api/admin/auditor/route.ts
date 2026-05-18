@@ -133,14 +133,21 @@ export async function GET(request: NextRequest) {
     const ch1ch2 = all.filter(r => (r.signal_class ?? "CH2") !== "CH3");
     const ch3 = all.filter(r => r.signal_class === "CH3");
 
+    // Administrative closures — excluded from win/loss scoring
+    const ADMIN_EXIT_REASONS = ["stale_position_cleanup", "manual_close_stale"];
+    const isStrategyTrade = (r: typeof all[0]) => !ADMIN_EXIT_REASONS.includes(r.exit_reason);
+    const closedStrategy = ch1ch2.filter(r => r.status === "closed" && isStrategyTrade(r));
+    const closedAdmin = ch1ch2.filter(r => r.status === "closed" && !isStrategyTrade(r));
+
     const summary = {
-      note:       "CH1/CH2 only — CH3 reported separately",
+      note:       "CH1/CH2 only — CH3 reported separately. Admin closures excluded from win/loss.",
       total:      ch1ch2.length,
       open:       ch1ch2.filter(r => ["submitted","filled"].includes(r.status)).length,
       closed:     ch1ch2.filter(r => r.status === "closed").length,
+      admin_closures: closedAdmin.length,
       rejected:   ch1ch2.filter(r => r.status === "rejected").length,
-      wins:       ch1ch2.filter(r => parseFloat(r.p_l) > 0).length,
-      losses:     ch1ch2.filter(r => parseFloat(r.p_l) < 0).length,
+      wins:       closedStrategy.filter(r => parseFloat(r.p_l) > 0).length,
+      losses:     closedStrategy.filter(r => parseFloat(r.p_l) < 0).length,
       total_pl:   ch1ch2.reduce((s, r) => s + (parseFloat(r.p_l) || 0), 0),
       exit_reasons: {} as Record<string, number>,
       by_signal_class: {} as Record<string, number>,

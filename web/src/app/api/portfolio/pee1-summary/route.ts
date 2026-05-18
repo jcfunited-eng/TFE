@@ -110,10 +110,12 @@ export async function GET(request: NextRequest) {
     const totalRealized = closedTrades.reduce((sum, r) => sum + (parseFloat(r.p_l ?? "0") || 0), 0);
     const totalPl = totalRealized + totalUnrealized;
 
-    // Win rate: fence CH3 from primary validation
+    // Win rate: fence CH3 and admin closures from primary validation
+    const ADMIN_EXIT_REASONS = ["stale_position_cleanup", "manual_close_stale"];
     const closedCh1Ch2 = closedTrades.filter(r => r.signal_class !== "CH3");
-    const wins = closedCh1Ch2.filter(r => (parseFloat(r.p_l ?? "0") || 0) > 0).length;
-    const losses = closedCh1Ch2.filter(r => (parseFloat(r.p_l ?? "0") || 0) < 0).length;
+    const closedStrategy = closedCh1Ch2.filter(r => !ADMIN_EXIT_REASONS.includes(r.exit_reason ?? ""));
+    const wins = closedStrategy.filter(r => (parseFloat(r.p_l ?? "0") || 0) > 0).length;
+    const losses = closedStrategy.filter(r => (parseFloat(r.p_l ?? "0") || 0) < 0).length;
     const winRate = wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(1) + "%" : "n/a";
 
     const exitReasons: Record<string, number> = {};
