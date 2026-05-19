@@ -141,6 +141,7 @@ def _get_missing_tickers(conn) -> List[Dict[str, str]]:
                     OR f.revenues IS NULL
                     OR f.sector = 'Unknown'
               )
+              AND COALESCE(f.market_cap, -1) != 0  -- skip ETFs with market_cap=0 placeholder
               AND (
                     f.tavily_tried_at IS NULL
                     OR f.tavily_tried_at < NOW() - INTERVAL '30 days'
@@ -438,11 +439,16 @@ def run() -> None:
         )
 
         # Non-equity assets cannot have meaningful fundamentals — write a
-        # placeholder so we don't retry them endlessly.
+        # placeholder with market_cap=0 so they stop appearing in missing queries
+        # and never pass the CH2 $500M market cap filter.
         if asset_type not in ("equity", "stock", ""):
             print(f"  → Skipping non-equity asset type: {asset_type}", flush=True)
             try:
-                _upsert_fundamentals(conn, ticker, {"sector": sector_hint or "Unknown", "metrics": {}})
+                _upsert_fundamentals(conn, ticker, {
+                    "sector": sector_hint or "Unknown",
+                    "metrics": {"market_cap": 0},  # 0 ensures CH2 $500M filter blocks it
+                })
+                _mark_tavily_tried(conn, ticker, None)  # prevent future retries
             except Exception as exc:
                 print(f"  → Placeholder write failed: {exc}", flush=True)
             skipped += 1
