@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
     const ch3 = all.filter(r => r.signal_class === "CH3");
 
     // Administrative closures — excluded from win/loss scoring
-    const ADMIN_EXIT_REASONS = ["stale_position_cleanup", "manual_close_stale"];
+    const ADMIN_EXIT_REASONS = ["stale_position_cleanup", "manual_close_stale", "manual_portfolio_reset"];
     const isStrategyTrade = (r: typeof all[0]) => !ADMIN_EXIT_REASONS.includes(r.exit_reason);
     const closedStrategy = ch1ch2.filter(r => r.status === "closed" && isStrategyTrade(r));
     const closedAdmin = ch1ch2.filter(r => r.status === "closed" && !isStrategyTrade(r));

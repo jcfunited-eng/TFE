@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
     const totalPl = totalRealized + totalUnrealized;
 
     // Win rate: fence CH3 and admin closures from primary validation
-    const ADMIN_EXIT_REASONS = ["stale_position_cleanup", "manual_close_stale"];
+    const ADMIN_EXIT_REASONS = ["stale_position_cleanup", "manual_close_stale", "manual_portfolio_reset"];
     const closedCh1Ch2 = closedTrades.filter(r => r.signal_class !== "CH3");
     const closedStrategy = closedCh1Ch2.filter(r => !ADMIN_EXIT_REASONS.includes(r.exit_reason ?? ""));
     const wins = closedStrategy.filter(r => (parseFloat(r.p_l ?? "0") || 0) > 0).length;
