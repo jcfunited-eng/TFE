@@ -15,7 +15,6 @@
  *   2026-05-19  ENTRY-R3  Minimum share price $5 (penny stock filter)
  *   2026-05-19  ENTRY-R4  Minimum 5% bracket width (tight brackets lose at 50%)
  *   2026-05-19  ENTRY-R5  Market cap >= $500M (liquidity floor)
- *   2026-05-19  ENTRY-R6  Energy gate: block if >70% of τ_out budget already spent
  *   2026-05-19  EXIT-R1   Catastrophic floor: -10% CH2, -1% CH3
  *   2026-05-19  EXIT-R2   Acceleration complete: S_UF >= 0.75
  *   2026-05-19  EXIT-R3   D_k collapse: D_k != 1 after entry
@@ -147,45 +146,6 @@ export function entryR5_MarketCapFloor(marketCap) {
   }
 
   return { blocked: false, rule: RULE };
-}
-
-
-/**
- * ENTRY-R6: Energy gate
- * The kernel's structural momentum (S_UF, D_k) reflects accumulated history.
- * A stock can look "Accumulate" but be 90% through its expansion cycle.
- * τ_out = τ_in / 3 is the energy budget. expansion_days is how much is spent.
- *
- * If expansion_days / tau_out_days > 0.70, the move is >70% over.
- * Don't buy — you're catching the tail, not the wave.
- *
- * This is the primitive core at ~57% without L5: buy stocks on their way UP
- * (energy remaining), not stocks at the TOP (energy spent). With this gate,
- * the system should approach ~76%.
- *
- * @param {{ tau_in_days: number, tau_out_days: number, expansion_days: number }} tauData
- * @returns {{ blocked: boolean, rule: string, energySpent?: number, reason?: string }}
- */
-export function entryR6_EnergyGate(tauData) {
-  const RULE = "ENTRY-R6";
-  const MAX_ENERGY_SPENT = 0.70;
-
-  if (!tauData || tauData.tau_out_days <= 0) {
-    return { blocked: false, rule: RULE, reason: "no_tau_data" };
-  }
-
-  const energySpent = tauData.expansion_days / tauData.tau_out_days;
-
-  if (energySpent > MAX_ENERGY_SPENT) {
-    return {
-      blocked: true,
-      rule: RULE,
-      energySpent,
-      reason: `${(energySpent * 100).toFixed(0)}% energy spent (τ_in=${tauData.tau_in_days}d τ_out=${tauData.tau_out_days}d expansion=${tauData.expansion_days}d)`,
-    };
-  }
-
-  return { blocked: false, rule: RULE, energySpent };
 }
 
 
