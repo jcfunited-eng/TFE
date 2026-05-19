@@ -389,13 +389,12 @@ export async function executeBracketOrder(signal, opts = {}) {
   }
 
   // ── Step 5: bracket prices ────────────────────────────────────────────
-  // Entry discount: 1% below current price to avoid peak entries.
-  // The kernel catches stocks mid-acceleration — by definition they've
-  // already moved up. Buying below current price means we only fill on
-  // intraday pullbacks, which filters out overextended entries.
-  // If the stock doesn't dip 1%, we didn't want it at that price anyway.
-  const ENTRY_DISCOUNT = 0.99;
-  const entryPrice      = parseFloat((currentPrice * ENTRY_DISCOUNT).toFixed(2));
+  // Kinetic buffer: 0.1% above current price to catch accelerating entries.
+  // 0.99x discount tested May 19 — killed 4/12 fills (33% loss rate).
+  // Fill volume matters more than entry price at $2,500 sizing.
+  // Reverted to 1.001x. Solve peak-entry problem differently (intraday timing).
+  const KINETIC_BUFFER = 1.001;
+  const entryPrice      = parseFloat((currentPrice * KINETIC_BUFFER).toFixed(2));
   const takeProfitPrice = parseFloat((entryPrice + TAKE_PROFIT_MULT * atr).toFixed(2));
   const stopLossPrice   = parseFloat((entryPrice - STOP_LOSS_MULT   * atr).toFixed(2));
 
@@ -596,11 +595,10 @@ export async function executeCh2BracketOrder(signal) {
     return rejectSignal(signal, `shares_below_minimum: allocation=${dollarAllocation.toFixed(2)} price=${currentPrice} shares=${shares}`);
   }
 
-  // Entry discount: 1% below current price to avoid peak entries.
-  // Kernel catches mid-acceleration stocks that have already moved up.
-  // Only fill on pullbacks — if it never dips 1%, it was overextended.
-  const ENTRY_DISCOUNT = 0.99;
-  const entryPrice      = parseFloat((currentPrice * ENTRY_DISCOUNT).toFixed(2));
+  // Kinetic buffer: 0.1% above current price to catch accelerating entries.
+  // 0.99x discount tested May 19 — killed 4/12 fills. Reverted.
+  const KINETIC_BUFFER = 1.001;
+  const entryPrice      = parseFloat((currentPrice * KINETIC_BUFFER).toFixed(2));
   // TP: at least 5% above entry, or 1×ATR — whichever is larger.
   // Backtest: trades with <5% brackets won at 50%, trades with 5-15% brackets won at 80%.
   const minTpDistance   = entryPrice * CH2_MIN_BRACKET_PCT;
