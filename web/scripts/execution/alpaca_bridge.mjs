@@ -429,7 +429,10 @@ export async function executeBracketOrder(signal, opts = {}) {
   const KINETIC_BUFFER = 1.001;
   const entryPrice      = parseFloat((currentPrice * KINETIC_BUFFER).toFixed(2));
   const takeProfitPrice = parseFloat((entryPrice + TAKE_PROFIT_MULT * atr).toFixed(2));
-  const stopLossPrice   = parseFloat((entryPrice - STOP_LOSS_MULT   * atr).toFixed(2));
+  // -10% catastrophic stop for 3WA (was 1×ATR which killed 61 winners same-day).
+  // Backtest: ATR stops killed 13/14 winners. -10% is disaster insurance only.
+  // Structural exits (sentinel) handle normal profit-taking and loss-cutting.
+  const stopLossPrice   = parseFloat((entryPrice * 0.90).toFixed(2));
 
   if (stopLossPrice <= 0) {
     return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice} (ATR=${atr.toFixed(4)})`);

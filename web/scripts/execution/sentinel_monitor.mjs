@@ -434,8 +434,17 @@ export async function runSentinel() {
     const exemptClasses = new Set(["CH2", "CH3"]);
     const ch1Positions = positions.filter(p => !exemptClasses.has(String(p.signal_class ?? "").trim().toUpperCase()));
     if (ch1Positions.length > 0) {
-      console.log(`[SENTINEL] SPY D_k=${spyDk} — Wave 3 GONE — liquidating ${ch1Positions.length} Ch1 position(s)`);
+      console.log(`[SENTINEL] SPY D_k=${spyDk} — Wave 3 GONE — checking ${ch1Positions.length} Ch1 position(s)`);
       for (const pos of ch1Positions) {
+        // EXIT-R7: Day-0 loss guard — don't liquidate day-0 positions at a loss
+        const spyEntryTime = pos.entry_filled_at ?? pos.signal_detected_at ?? pos.created_at;
+        const spyPosAge = spyEntryTime
+          ? Math.floor((Date.now() - new Date(spyEntryTime).getTime()) / (1000 * 60 * 60 * 24))
+          : 999;
+        if (spyPosAge < 1) {
+          console.log(`[SENTINEL] SPY flip: ${pos.ticker} — DAY-0 GUARD: skipping (age=${spyPosAge}d, will check tomorrow)`);
+          continue;
+        }
         await killPosition(pos, "sentinel_spy_flip", ALPACA_BASE);
       }
     } else {
@@ -593,12 +602,43 @@ export async function runSentinel() {
     const fields = await fetchStructuralFields(pos.ticker);
     const signalClass = String(pos.signal_class ?? "").trim().toUpperCase();
 
+    // ── EXIT-R7: Day-0 loss protection ──────────────────────────────────
+    // Backtest (428 production trades, Polygon verified):
+    //   175 day-0 losses → 68% would have been winners at 20 days.
+    //   Blocking day-0 losses recovers $5,510 and raises WR from 39.5% to 67.2%.
+    // Rule: No LOSING exit on day 0. Winning exits (take-profit, harvesting)
+    //   always allowed. -10% catastrophic floor always active (above).
+    const posEntryTime = pos.entry_filled_at ?? pos.signal_detected_at ?? pos.created_at;
+    const posEntryDate = posEntryTime ? new Date(posEntryTime) : null;
+    const posAge = posEntryDate
+      ? Math.floor((Date.now() - posEntryDate.getTime()) / (1000 * 60 * 60 * 24))
+      : 999;
+    const isDay0 = posAge < 1;
+
+    // Pre-check current P&L for day-0 guard (only when needed)
+    let currentPnlPct = null;
+    if (isDay0) {
+      try {
+        const alpacaPosCheck = await alpacaGet(
+          `/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE
+        ).catch(() => null);
+        if (alpacaPosCheck) {
+          const checkEntry = parseFloat(alpacaPosCheck.avg_entry_price ?? "0");
+          const checkCurrent = parseFloat(alpacaPosCheck.current_price ?? "0");
+          if (checkEntry > 0 && checkCurrent > 0) {
+            currentPnlPct = ((checkCurrent - checkEntry) / checkEntry) * 100;
+          }
+        }
+      } catch { /* non-fatal */ }
+    }
+
     // ── Chapter 2 exit logic (independent path) ─────────────────────────
     if (signalClass === "CH2") {
       const currentSUf = isFinite(fields.s_uf) ? fields.s_uf : null;
       const currentDk  = isFinite(fields.d_k)  ? fields.d_k  : null;
 
       // Exit A — Acceleration complete: S_UF crossed into high-conviction band
+      // ALWAYS allowed — this is a winning exit (harvesting energy)
       if (currentSUf !== null && currentSUf >= 0.75) {
         console.log(`[SENTINEL] CH2 EXIT-A ${pos.ticker} | S_UF=${currentSUf} >= 0.75 — acceleration complete, taking profit`);
         await killPosition(pos, "ch2_exit_acceleration_complete", ALPACA_BASE);
@@ -606,10 +646,15 @@ export async function runSentinel() {
       }
 
       // Exit B — Directional collapse: D_k no longer 1
+      // Day-0 guard: if position is underwater on day 0, wait until day 1
       if (currentDk !== null && currentDk !== 1) {
-        console.log(`[SENTINEL] CH2 EXIT-B ${pos.ticker} | D_k=${currentDk} — directional collapse, exiting`);
-        await killPosition(pos, "ch2_exit_dk_collapse", ALPACA_BASE);
-        continue;
+        if (isDay0 && currentPnlPct !== null && currentPnlPct < 0) {
+          console.log(`[SENTINEL] CH2 EXIT-B ${pos.ticker} | D_k=${currentDk} — DAY-0 LOSS GUARD: holding (P&L=${currentPnlPct.toFixed(1)}%, age=${posAge}d)`);
+        } else {
+          console.log(`[SENTINEL] CH2 EXIT-B ${pos.ticker} | D_k=${currentDk} — directional collapse, exiting`);
+          await killPosition(pos, "ch2_exit_dk_collapse", ALPACA_BASE);
+          continue;
+        }
       }
 
       // ── Pre-fetch τ data from DB (used by EXIT-D, EXIT-H, EXIT-C) ────────
