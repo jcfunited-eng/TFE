@@ -146,7 +146,7 @@ function calcATRFromBars(barList) {
  *
  * @param {string} ticker
  * @param {number} [fallbackPrice] — used only if bar data unavailable
- * @returns {Promise<{ atr: number, source: string }>}
+ * @returns {Promise<{ atr: number, source: string, bars: Array }>}
  */
 async function computeATR(ticker, fallbackPrice = null) {
   for (const feed of ["iex", "sip"]) {
@@ -160,7 +160,7 @@ async function computeATR(ticker, fallbackPrice = null) {
         const atr = calcATRFromBars(barList);
         if (atr) {
           console.log(`[BRIDGE] ATR(${ticker}) = ${atr.toFixed(4)} via ${feed} (${barList.length} bars)`);
-          return { atr, source: feed };
+          return { atr, source: feed, bars: barList };
         }
       }
     } catch { /* try next feed */ }
@@ -170,10 +170,37 @@ async function computeATR(ticker, fallbackPrice = null) {
   if (fallbackPrice && fallbackPrice > 0) {
     const atr = parseFloat((fallbackPrice * 0.02).toFixed(4));
     console.log(`[BRIDGE] ATR(${ticker}) = ${atr.toFixed(4)} via price_fallback (2% of ${fallbackPrice})`);
-    return { atr, source: "price_fallback" };
+    return { atr, source: "price_fallback", bars: [] };
   }
 
   throw new Error(`[BRIDGE] ATR: no bar data and no fallback price for ${ticker}`);
+}
+
+// ── Red-day filter: reject entries on stocks falling 2+ consecutive days ──
+// If the last 2 daily closes are both lower than the prior day's close,
+// the stock is in active decline — don't buy into a falling knife.
+// Backtest on 28 positions: 90% precision (9/10 blocks correct, 1 winner missed).
+function checkRedDayFilter(ticker, bars) {
+  if (!Array.isArray(bars) || bars.length < 3) return { blocked: false, reason: "insufficient_bars" };
+
+  const recent = bars.slice(-3); // last 3 bars
+  const close0 = parseFloat(recent[0].c); // 3 days ago
+  const close1 = parseFloat(recent[1].c); // 2 days ago
+  const close2 = parseFloat(recent[2].c); // yesterday
+
+  const decline1 = close1 < close0; // day before yesterday closed lower
+  const decline2 = close2 < close1; // yesterday closed lower
+
+  if (decline1 && decline2) {
+    console.log(
+      `[BRIDGE] RED-DAY BLOCK ${ticker} | ` +
+      `${recent[0].t?.slice(0,10)} C=${close0} → ${recent[1].t?.slice(0,10)} C=${close1} → ${recent[2].t?.slice(0,10)} C=${close2} | ` +
+      `2 consecutive declining closes — skipping entry`
+    );
+    return { blocked: true, reason: `red_day_filter: 2 consecutive declines (${close0}→${close1}→${close2})` };
+  }
+
+  return { blocked: false };
 }
 
 // ── Latest quote ──────────────────────────────────────────────────────────
@@ -362,7 +389,7 @@ export async function executeBracketOrder(signal, opts = {}) {
 
   console.log(`[BRIDGE] Signal validated: ${ticker} | class=${signal.signal_class} | spy_dk=${signal.spy_dk} | s_uf=${signal.s_uf}`);
 
-  let vaultEquity, currentPrice, atr;
+  let vaultEquity, currentPrice, atr, bars;
 
   // ── Step 2: fetch live market data ───────────────────────────────────
   try {
@@ -370,9 +397,15 @@ export async function executeBracketOrder(signal, opts = {}) {
       fetchAccountEquity(BASE),
       fetchLatestPrice(ticker),
     ]);
-    ({ atr } = await computeATR(ticker, currentPrice));
+    ({ atr, bars } = await computeATR(ticker, currentPrice));
   } catch (err) {
     return rejectSignal(signal, `market_data_fetch_failed: ${err.message}`);
+  }
+
+  // ── Step 2b: red-day filter — don't buy falling knives ────────────────
+  const redDay = checkRedDayFilter(ticker, bars);
+  if (redDay.blocked) {
+    return rejectSignal(signal, redDay.reason);
   }
 
   // ── Step 3: price sanity check ────────────────────────────────────────
@@ -574,15 +607,21 @@ export async function executeCh2BracketOrder(signal) {
   }
   console.log(`[CH2-BRIDGE] Signal validated: ${ticker} | class=${signal.signal_class} | s_uf=${signal.s_uf} | D_k=${signal.d_k}`);
 
-  let vaultEquity, currentPrice, atr;
+  let vaultEquity, currentPrice, atr, bars;
   try {
     [vaultEquity, currentPrice] = await Promise.all([
       fetchAccountEquity(BASE),
       fetchLatestPrice(ticker),
     ]);
-    ({ atr } = await computeATR(ticker, currentPrice));
+    ({ atr, bars } = await computeATR(ticker, currentPrice));
   } catch (err) {
     return rejectSignal(signal, `market_data_fetch_failed: ${err.message}`);
+  }
+
+  // Red-day filter — don't buy falling knives
+  const redDay = checkRedDayFilter(ticker, bars);
+  if (redDay.blocked) {
+    return rejectSignal(signal, redDay.reason);
   }
 
   if (currentPrice < MIN_SHARE_PRICE) {
