@@ -114,8 +114,10 @@ print(json.dumps({'tau_in_days': tau_in_days, 'tau_out_days': tau_in_days // 3, 
     fs.writeFileSync(TAU_CACHE_PATH, JSON.stringify(cache, null, 2));
 
     console.log(`[RUNNER] τ_in: ${ticker} compressed=${tauData.tau_in_days}d budget=${tauData.tau_out_days}d expansion=${tauData.expansion_days}d → ${tauData.status}`);
+    return tauData;
   } catch (kernelErr) {
     console.warn(`[RUNNER] τ_in kernel failed for ${ticker}: ${kernelErr.message?.slice(0, 100)}`);
+    return null;
   }
 }
 
@@ -238,20 +240,43 @@ async function main() {
       }
     }
 
-    // Ch2 orders
+    // Ch2 orders — with energy gate: compute τ BEFORE order, reject if energy spent
     if (ch2Signals.length > 0) {
-      console.log(`\n[RUNNER] Phase 3b: Executing ${ch2Signals.length} Ch2 signal(s)`);
+      console.log(`\n[RUNNER] Phase 3b: Executing ${ch2Signals.length} Ch2 signal(s) (energy gate enabled)`);
       for (const signal of ch2Signals) {
         try {
+          // ENTRY-R6: Energy gate — compute τ BEFORE order placement.
+          // If the stock has already used >70% of its expansion budget,
+          // the move is nearly over — don't enter a spent position.
+          // This is what separates "stock on its way up" from "stock at the top."
+          const MAX_ENERGY_SPENT = 0.70;
+          let tauData = null;
+          try {
+            tauData = await computeAndCacheTauIn(signal.ticker);
+          } catch (tauErr) {
+            console.warn(`[RUNNER] τ_in compute failed for ${signal.ticker}: ${tauErr.message} — proceeding without energy gate`);
+          }
+
+          if (tauData && tauData.tau_out_days > 0) {
+            const energySpent = tauData.expansion_days / tauData.tau_out_days;
+            const energyRemaining = Math.max(0, 1 - energySpent);
+            console.log(
+              `[RUNNER] ENTRY-R6 ${signal.ticker} | τ_in=${tauData.tau_in_days}d τ_out=${tauData.tau_out_days}d ` +
+              `expansion=${tauData.expansion_days}d | energy=${(energyRemaining * 100).toFixed(0)}% remaining`
+            );
+            if (energySpent > MAX_ENERGY_SPENT) {
+              console.log(
+                `[RUNNER] ✗ CH2 ${signal.ticker} | ENTRY-R6 BLOCKED — ` +
+                `${(energySpent * 100).toFixed(0)}% energy spent (>${(MAX_ENERGY_SPENT * 100).toFixed(0)}% threshold). ` +
+                `Move is nearly over.`
+              );
+              continue;
+            }
+          }
+
           const result = await executeCh2BracketOrder(signal);
           if (result.ok) {
             console.log(`[RUNNER] ✓ CH2 ${signal.ticker} | orderId=${result.orderId} | shares=${result.shares} | entry=${result.entryPrice}`);
-            // Compute τ_in for this new position and update the backfill cache
-            try {
-              await computeAndCacheTauIn(signal.ticker);
-            } catch (tauErr) {
-              console.warn(`[RUNNER] τ_in compute failed for ${signal.ticker}: ${tauErr.message}`);
-            }
           } else {
             console.log(`[RUNNER] ✗ CH2 ${signal.ticker} | rejected: ${result.reason}`);
           }
