@@ -107,10 +107,24 @@ function parseSignal(row) {
   if (!runId)                                           return null;
   if (barCount === null || barCount < CH2_BAR_COUNT_MIN) return null;
   if (sUf === null || sUf < CH2_S_UF_MIN || sUf >= CH2_S_UF_MAX) return null;
-  // D_k gate REMOVED — the kernel's Accumulate decision already accounts for
-  // the full coupled structural state. D_k=1 blocked 49 primed candidates with
-  // volume flowing. D_k stays as EXIT-B (exit if D_k collapses to -1 after entry).
-  // Regime gate also removed (validation finding: too restrictive).
+
+  // ENTRY-R6: B_k > -0.80 — boundary must not be deeply compressed.
+  // Backtest (7658 trades): B_k > -0.80 + rising = 81.1% WR vs 57.1% baseline.
+  // B_k close to zero = expanded boundary = structural room to move.
+  // B_k deeply negative = compressed = coin flip territory.
+  if (bk === null || bk <= -0.80) {
+    console.log(`[CH2-STRATEGIST]   ${ticker} — BLOCKED (B_k=${bk?.toFixed(4) ?? "null"} <= -0.80, boundary compressed)`);
+    return null;
+  }
+
+  // ENTRY-R7: F_n > 1.65 — structural energy available (production-calibrated).
+  // Backtest (580 trades, production kernel): F_n > 1.65 = 70.1% WR.
+  // F_n > 1.72 = 77.6%. Higher F_n = more surprise = more energy to harvest.
+  // In production, F_n ranges 1.3-2.7 (inverted from quarantine due to 252-bar cap).
+  if (fn !== null && fn <= 1.65) {
+    console.log(`[CH2-STRATEGIST]   ${ticker} — BLOCKED (F_n=${fn.toFixed(3)} <= 1.65, low structural energy)`);
+    return null;
+  }
 
   return {
     ticker,

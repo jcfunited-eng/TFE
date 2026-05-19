@@ -81,7 +81,7 @@ async function getPrimedTickers() {
   `);
   const retriableTickers = new Set(triedRes.rows.map(r => r.ticker));
 
-  // Get Accumulate tickers meeting CH2 criteria
+  // Get Accumulate tickers meeting CH2 criteria + L5 canonical baseline gates
   const candidateRes = await pool.query(`
     SELECT
       ticker,
@@ -89,12 +89,14 @@ async function getPrimedTickers() {
       CAST(NULLIF(snapshot_row_json->>'bar_count', '') AS INTEGER) AS bar_count,
       CAST(NULLIF(snapshot_row_json->>'D_k', '') AS DOUBLE PRECISION) AS d_k,
       CAST(NULLIF(snapshot_row_json->>'B_k', '') AS DOUBLE PRECISION) AS b_k,
+      CAST(NULLIF(snapshot_row_json->>'F_n', '') AS DOUBLE PRECISION) AS f_n,
       snapshot_row_json->>'regime' AS regime,
       run_id
     FROM runtime_decisions_latest
     WHERE decision_label = 'Accumulate'
       AND CAST(NULLIF(snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) >= $1
       AND CAST(NULLIF(snapshot_row_json->>'bar_count', '') AS INTEGER) > $2
+      AND COALESCE(CAST(NULLIF(snapshot_row_json->>'B_k', '') AS DOUBLE PRECISION), -1) > -0.80
       AND ticker != 'SPY'
     ORDER BY CAST(NULLIF(snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) DESC
     LIMIT 50
