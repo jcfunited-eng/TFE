@@ -15,8 +15,6 @@
  *   2026-05-19  ENTRY-R3  Minimum share price $5 (penny stock filter)
  *   2026-05-19  ENTRY-R4  Minimum 5% bracket width (tight brackets lose at 50%)
  *   2026-05-19  ENTRY-R5  Market cap >= $500M (liquidity floor)
- *   2026-05-19  ENTRY-R6  B_k > -0.80: boundary not deeply compressed (81.1% WR backtest)
- *   2026-05-19  ENTRY-R7  F_n > 1.65: structural energy available (70.1% WR prod-calibrated)
  *   2026-05-19  EXIT-R1   Catastrophic floor: -10% CH2, -1% CH3
  *   2026-05-19  EXIT-R2   Acceleration complete: S_UF >= 0.75
  *   2026-05-19  EXIT-R3   D_k collapse: D_k != 1 after entry
@@ -145,70 +143,6 @@ export function entryR5_MarketCapFloor(marketCap) {
 
   if (marketCap < MIN_CAP) {
     return { blocked: true, rule: RULE, reason: `${marketCap} < $500M` };
-  }
-
-  return { blocked: false, rule: RULE };
-}
-
-
-/**
- * ENTRY-R6: Boundary expansion gate (B_k > -0.80)
- * B_k measures the structural boundary position from the coupled L4 field.
- * B_k is always negative for Accumulate signals (range [-1.0, -0.025]).
- * Closer to zero = more expanded = more structural room to move.
- * Deeply negative = compressed = coin flip territory.
- *
- * Backtest (7658 trades):
- *   B_k > -0.80 + rising: 81.1% WR (2072 trades)
- *   B_k <= -0.80:         50.5% WR (random)
- *   Delta: +30.6% win rate
- *
- * @param {number|null} bk — B_k from snapshot_row_json
- * @returns {{ blocked: boolean, rule: string, reason?: string }}
- */
-export function entryR6_BoundaryExpansion(bk) {
-  const RULE = "ENTRY-R6";
-  const B_K_MIN = -0.80;
-
-  if (bk === null || bk === undefined) {
-    return { blocked: false, rule: RULE, reason: "no_bk_data" };
-  }
-
-  if (bk <= B_K_MIN) {
-    return { blocked: true, rule: RULE, reason: `B_k=${bk.toFixed(4)} <= ${B_K_MIN} (boundary compressed)` };
-  }
-
-  return { blocked: false, rule: RULE };
-}
-
-/**
- * ENTRY-R7: Structural energy gate (F_n > 1.65, production-calibrated)
- * F_n measures free structural energy from the coupled L4 cognitive kernel.
- *
- * CRITICAL: Production F_n is INVERTED from quarantine F_n.
- * - Quarantine (full history): F_n <= 1.65 was the good zone
- * - Production (252-bar cap): F_n > 1.65 is the good zone
- * The CV-1.0 integrators saturate differently with the bar cap.
- * Higher F_n in production = more surprise = more energy available to harvest.
- *
- * Backtest (580 trades, production kernel):
- *   F_n > 1.65: 70.1% WR (174 trades)
- *   F_n > 1.72: 77.6% WR (116 trades)
- *   F_n <= 1.65: 49.5% WR (random)
- *
- * @param {number|null} fn — F_n from snapshot_row_json
- * @returns {{ blocked: boolean, rule: string, reason?: string }}
- */
-export function entryR7_StructuralEnergy(fn) {
-  const RULE = "ENTRY-R7";
-  const F_N_MIN = 1.65;
-
-  if (fn === null || fn === undefined) {
-    return { blocked: false, rule: RULE, reason: "no_fn_data" };
-  }
-
-  if (fn <= F_N_MIN) {
-    return { blocked: true, rule: RULE, reason: `F_n=${fn.toFixed(3)} <= ${F_N_MIN} (low structural energy)` };
   }
 
   return { blocked: false, rule: RULE };
