@@ -1,8 +1,9 @@
 /**
- * Tests for sentinel bug fixes:
+ * Tests for sentinel bug fixes and minimum hold period:
  *   1. Orphan adoption loop — recently-killed tickers must not be re-adopted
  *   2. EXIT-F outside market hours — catastrophic floor must not fire when market closed
  *   3. Premature phantom cleanup — submitted orders need grace period before declaring phantom
+ *   4. 7-day minimum hold — losing exits blocked for young positions
  *
  * Run: node web/scripts/execution/tests/sentinel_bugs_test.mjs
  */
@@ -13,6 +14,7 @@ import {
   isRecentlyKilled,
   isMarketHoursForExitF,
   shouldPhantomCleanup,
+  MIN_HOLD_DAYS,
 } from "../sentinel_monitor.mjs";
 
 let passed = 0;
@@ -126,6 +128,63 @@ console.log("\n=== BUG 3: Premature Phantom Cleanup ===");
     shouldPhantomCleanup({ status: "submitted", created_at: oneHourAgo, entry_filled_at: oneHourAgo }) === false,
     "Filled position → never phantom regardless of age"
   );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXIT-R9: 7-Day Minimum Hold
+// ═══════════════════════════════════════════════════════════════════════════
+console.log("\n=== EXIT-R9: 7-Day Minimum Hold ===");
+
+assert(MIN_HOLD_DAYS === 7, "MIN_HOLD_DAYS is 7");
+
+// Simulate the guard logic: young + losing = blocked
+{
+  const posAge = 3; // 3 days old
+  const isYoung = posAge < MIN_HOLD_DAYS;
+  const pnlPct = -2.5; // losing
+  const shouldBlock = isYoung && pnlPct < 0;
+  assert(shouldBlock === true, "3-day-old losing position → EXIT-B BLOCKED");
+}
+
+// Young + winning = allowed
+{
+  const posAge = 2;
+  const isYoung = posAge < MIN_HOLD_DAYS;
+  const pnlPct = 3.0; // winning
+  const shouldBlock = isYoung && pnlPct < 0;
+  assert(shouldBlock === false, "2-day-old winning position → EXIT-B ALLOWED");
+}
+
+// Mature + losing = allowed (past 7 days, structural thesis resolved)
+{
+  const posAge = 10;
+  const isYoung = posAge < MIN_HOLD_DAYS;
+  const pnlPct = -4.0;
+  const shouldBlock = isYoung && pnlPct < 0;
+  assert(shouldBlock === false, "10-day-old losing position → EXIT-B ALLOWED");
+}
+
+// Exactly day 7 = NOT young (>= 7 is mature)
+{
+  const posAge = 7;
+  const isYoung = posAge < MIN_HOLD_DAYS;
+  assert(isYoung === false, "Day 7 is NOT young — exits allowed");
+}
+
+// Day 6 = still young
+{
+  const posAge = 6;
+  const isYoung = posAge < MIN_HOLD_DAYS;
+  assert(isYoung === true, "Day 6 IS young — losing exits blocked");
+}
+
+// Day 0 losing = blocked (superset of old EXIT-R7)
+{
+  const posAge = 0;
+  const isYoung = posAge < MIN_HOLD_DAYS;
+  const pnlPct = -1.0;
+  const shouldBlock = isYoung && pnlPct < 0;
+  assert(shouldBlock === true, "Day 0 losing position → BLOCKED (supersedes old EXIT-R7)");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

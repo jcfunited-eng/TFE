@@ -93,6 +93,11 @@
  *                          adopt→kill→adopt loop (AM/BCPC/FOXA each killed 5x)
  *   2026-05-20  SYNC-R2   Phantom cleanup grace: 30-min grace period before declaring
  *                          unfilled orders as phantom (GENB killed at 5min, filled at 43min)
+ *   2026-05-20  EXIT-R9   7-day minimum hold: no losing exits before 7 calendar days.
+ *                          Supersedes EXIT-R7 (day-0 only). Production data: 85% of D_k
+ *                          collapse exits recovered at 10-20 days. 73% of early losers
+ *                          (0-3d) were winners at 20d. Projected WR: 67.1%.
+ *                          Winning exits (EXIT-A, EXIT-H) always fire. -10% always active.
  */
 
 // ═══════════════════════════════════════════════════════════════════════════
