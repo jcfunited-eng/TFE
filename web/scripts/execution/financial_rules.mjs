@@ -87,6 +87,12 @@
  *   2026-05-19  SIZE-R1   CH2 risk per trade: 2.5% of equity ($2,500 on $100K)
  *   2026-05-19  SIZE-R2   ATR stops killed 13/14 winners — use -10% catastrophic only
  *   2026-05-19  SIZE-R3   3WA bracket SL widened from 1×ATR to -10% (matching CH2)
+ *   2026-05-20  EXIT-R8   Market hours guard on EXIT-F: stale overnight prices triggered
+ *                          false catastrophic exits (BELFB -33.6% phantom, MYE -18.4% phantom)
+ *   2026-05-20  SYNC-R1   Orphan adoption cooldown: 15-min kill cooldown prevents
+ *                          adopt→kill→adopt loop (AM/BCPC/FOXA each killed 5x)
+ *   2026-05-20  SYNC-R2   Phantom cleanup grace: 30-min grace period before declaring
+ *                          unfilled orders as phantom (GENB killed at 5min, filled at 43min)
  */
 
 // ═══════════════════════════════════════════════════════════════════════════

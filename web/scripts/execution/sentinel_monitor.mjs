@@ -31,6 +31,55 @@ const pool = new pg.Pool({
 
 const ZOMBIE_BAR_THRESHOLD = parseInt(process.env.SENTINEL_ZOMBIE_BARS ?? "10", 10);
 
+// ── Recently-killed tracking (prevents orphan re-adoption loop) ──────────
+// When sentinel kills a position, Alpaca may still show it for 1-2 cycles
+// while the sell settles. Without this, orphan sync re-adopts the position,
+// EXIT-A re-kills it, generating 5+ duplicate sell orders per ticker.
+// Entries expire after 15 minutes (well past settlement).
+export const recentlyKilledTickers = new Map(); // ticker → timestamp
+const KILL_COOLDOWN_MS = 15 * 60 * 1000; // 15 minutes
+
+export function markRecentlyKilled(ticker) {
+  recentlyKilledTickers.set(ticker.trim().toUpperCase(), Date.now());
+}
+
+export function isRecentlyKilled(ticker) {
+  const key = ticker.trim().toUpperCase();
+  const killedAt = recentlyKilledTickers.get(key);
+  if (!killedAt) return false;
+  if (Date.now() - killedAt > KILL_COOLDOWN_MS) {
+    recentlyKilledTickers.delete(key);
+    return false;
+  }
+  return true;
+}
+
+// ── Market hours check for EXIT-F (prevents stale overnight price exits) ─
+// Paper API returns unreliable prices outside market hours. BELFB showed
+// $170 overnight (actual $252), triggering a false -33.6% catastrophic exit.
+// EXIT-F must only fire during real market hours.
+export function isMarketHoursForExitF(now = new Date()) {
+  const h = now.getUTCHours();
+  const m = now.getUTCMinutes();
+  const minuteOfDay = h * 60 + m;
+  const open  = 13 * 60 + 30;  // 13:30 UTC = 9:30 AM ET
+  const close = 20 * 60;       // 20:00 UTC = 4:00 PM ET
+  return minuteOfDay >= open && minuteOfDay <= close;
+}
+
+// ── Phantom cleanup grace period (prevents killing orders still filling) ──
+// GENB was submitted at 13:34, zombie check at 13:39 (5 min) declared it
+// phantom because Alpaca hadn't filled yet. Grace period: 30 minutes.
+const PHANTOM_GRACE_MS = 30 * 60 * 1000; // 30 minutes
+
+export function shouldPhantomCleanup(pos) {
+  if (pos.entry_filled_at) return false; // filled = never phantom
+  const createdAt = pos.created_at ?? pos.signal_detected_at;
+  if (!createdAt) return true; // no timestamp = stale, clean up
+  const age = Date.now() - new Date(createdAt).getTime();
+  return age > PHANTOM_GRACE_MS;
+}
+
 // ── Alpaca helpers (duplicated intentionally — sentinel is independent) ───
 function alpacaHeaders() {
   return {
@@ -185,6 +234,9 @@ async function ledgerClose(id, exitReason, exitOrderId, exitFilledPrice = null) 
 async function killPosition(pos, exitReason, base) {
   const { id, ticker, shares, alpaca_order_id, alpaca_take_profit_order_id, alpaca_stop_loss_order_id } = pos;
   console.log(`[SENTINEL] KILL ${ticker} | reason=${exitReason} | shares=${shares}`);
+
+  // Track this kill so orphan sync won't re-adopt while Alpaca settles
+  markRecentlyKilled(ticker);
 
   // Cancel ALL open orders for this ticker — not just the bracket legs.
   // Previous kill attempts may have left pending sell orders that hold shares.
@@ -369,7 +421,15 @@ export async function runSentinel() {
       const alpacaPositions = await alpacaGet("/v2/positions", ALPACA_BASE).catch(() => []);
       if (Array.isArray(alpacaPositions) && alpacaPositions.length > 0) {
         const ledgerTickers = new Set(positions.map(p => String(p.ticker).trim().toUpperCase()));
-        const orphans = alpacaPositions.filter(ap => !ledgerTickers.has(ap.symbol.trim().toUpperCase()));
+        const orphans = alpacaPositions.filter(ap => {
+          const sym = ap.symbol.trim().toUpperCase();
+          if (ledgerTickers.has(sym)) return false;
+          if (isRecentlyKilled(sym)) {
+            // Position was just killed — Alpaca hasn't settled yet. Skip.
+            return false;
+          }
+          return true;
+        });
         if (orphans.length > 0) {
           console.log(`[SENTINEL] Orphan sync: ${orphans.length} Alpaca positions not in ledger — adopting.`);
           for (const ap of orphans) {
@@ -513,12 +573,19 @@ export async function runSentinel() {
       }
 
       if ((pos.status === "submitted" || pos.status === "pending") && !pos.entry_filled_at) {
-        // Phantom entry — never filled on Alpaca, clean it up
+        // Phantom entry — never filled on Alpaca.
+        // Grace period: wait 30 min before declaring phantom.
+        // GENB was submitted at 13:34, zombie check at 13:39 (5 min) declared
+        // it phantom because Alpaca hadn't filled yet. It filled at 14:17.
+        if (!shouldPhantomCleanup(pos)) {
+          console.log(`[SENTINEL] Phantom grace: ${pos.ticker} — ${pos.status}, Alpaca 404, but within 30min grace period. Waiting.`);
+          continue;
+        }
         await pool.query(
           `UPDATE personal_trade_ledger SET status='cancelled' WHERE id=$1`,
           [pos.id]
         );
-        console.log(`[SENTINEL] Phantom cleanup: ${pos.ticker} — ${pos.status} but never existed on Alpaca. Marked cancelled.`);
+        console.log(`[SENTINEL] Phantom cleanup: ${pos.ticker} — ${pos.status} but never existed on Alpaca after 30min. Marked cancelled.`);
         pos.status = "cancelled";
         continue;
       }
@@ -554,7 +621,14 @@ export async function runSentinel() {
     // Bracket orders use DAY TIF and expire after day 1 — this is the
     // permanent replacement. Does not depend on τ, D_k, S_UF, or any
     // structural field. Pure price-based disaster protection.
+    //
+    // GUARD: Only run during market hours. Paper API returns stale prices
+    // overnight — BELFB showed $170 (actual $252) causing false -33.6% exit.
+    // MYE showed $18.06 (actual $21.04) causing false -18.4% exit.
     try {
+      if (!isMarketHoursForExitF()) {
+        // Skip EXIT-F outside market hours — prices unreliable
+      } else {
       const signalClassRaw = String(pos.signal_class ?? "").trim().toUpperCase();
       const catastrophicPct = signalClassRaw === "CH3" ? -0.01 : -0.10;
       const catastrophicLabel = signalClassRaw === "CH3"
@@ -593,6 +667,7 @@ export async function runSentinel() {
           }
         }
       }
+      } // close else (market hours guard)
     } catch (floorErr) {
       // Non-fatal — continue to structural checks. Log so we know if
       // the floor check itself is failing.
