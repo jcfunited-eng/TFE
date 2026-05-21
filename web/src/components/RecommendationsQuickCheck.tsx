@@ -9,6 +9,19 @@ import ScreenerChart, {
 
 type SignalClass = "3WA" | "W1" | "CH3" | "standard";
 
+type ConvictionLevel = "High" | "Moderate" | "Developing";
+
+type ConvictionProfile = {
+  conviction: ConvictionLevel;
+  convictionScore: number;
+  signalStrength: string;
+  trendExpansion: string;
+  priceDirection: string;
+  financialHealth: string;
+  momentumRunway: string;
+  summary: string;
+};
+
 type RecommendationRow = {
   ticker: string;
   sector: string;
@@ -29,10 +42,12 @@ type RecommendationRow = {
   barCount?: number | null;
   minBarsForAccumulate?: number;
   externalResearchUrl?: string;
+  profile?: ConvictionProfile;
 };
 
 type RecommendationsPayload = {
   totalAccumulate: number;
+  topPicks?: RecommendationRow[];
   buckets: {
     titans: RecommendationRow[];
     heavyweights: RecommendationRow[];
@@ -236,9 +251,30 @@ function AnalysisPanel({
             </div>
           </div>
 
-          {/* Native Engine Metrics */}
+          {/* Conviction Profile */}
+          {row.profile && (
+            <section className="tfe-panel" style={{ display: "grid", gap: "0.75rem" }}>
+              <h3 style={{ margin: 0 }}>Conviction Profile</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem" }}>
+                <div className="tfe-panel">
+                  <strong>Overall</strong>
+                  <div style={{ fontWeight: 700, color: row.profile.conviction === "High" ? "#2e7d32" : row.profile.conviction === "Moderate" ? "#f57f17" : "#757575" }}>
+                    {row.profile.conviction}
+                  </div>
+                </div>
+                <div className="tfe-panel"><strong>Signal Strength</strong><div>{row.profile.signalStrength}</div></div>
+                <div className="tfe-panel"><strong>Trend Expansion</strong><div>{row.profile.trendExpansion}</div></div>
+                <div className="tfe-panel"><strong>Price Direction</strong><div>{row.profile.priceDirection}</div></div>
+                <div className="tfe-panel"><strong>Financial Health</strong><div>{row.profile.financialHealth}</div></div>
+                <div className="tfe-panel"><strong>Momentum</strong><div>{row.profile.momentumRunway}</div></div>
+              </div>
+              <p className="tfe-muted" style={{ margin: 0, fontSize: "0.82rem" }}>{row.profile.summary}</p>
+            </section>
+          )}
+
+          {/* Market Metrics */}
           <section className="tfe-panel" style={{ display: "grid", gap: "0.75rem" }}>
-            <h3 style={{ margin: 0 }}>Native Engine Metrics</h3>
+            <h3 style={{ margin: 0 }}>Market Metrics</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem" }}>
               <div className="tfe-panel"><strong>Price</strong><div>{fmtPrice(livePrice)}</div></div>
               <div className="tfe-panel"><strong>Change</strong><div>{fmtPct(changePct ? changePct / 100 : null)}</div></div>
@@ -593,7 +629,7 @@ export default function RecommendationsQuickCheck() {
   }
 
   if (loading) {
-    return <p className="tfe-muted">Loading verified L5 research tool…</p>;
+    return <p className="tfe-muted">Loading curated recommendations…</p>;
   }
 
   if (error || !payload) {
@@ -635,11 +671,15 @@ export default function RecommendationsQuickCheck() {
       )}
 
       <section className="tfe-panel" style={{ display: "grid", gap: "0.75rem" }}>
-        <h2 style={{ margin: 0 }}>Strict L5 Kernel</h2>
+        <h2 style={{ margin: 0 }}>Curated Recommendations</h2>
         <div className="tfe-summary-grid">
           <div className="tfe-summary-card">
             <div className="k">Accumulate</div>
             <div className="v">{payload.totalAccumulate}</div>
+          </div>
+          <div className="tfe-summary-card">
+            <div className="k">Top Picks</div>
+            <div className="v">{payload.topPicks?.length ?? 0}</div>
           </div>
           <div className="tfe-summary-card">
             <div className="k">The Titans</div>
@@ -659,6 +699,59 @@ export default function RecommendationsQuickCheck() {
           </div>
         </div>
       </section>
+
+      {/* ── Top Picks ── */}
+      {payload.topPicks && payload.topPicks.length > 0 && (
+        <section className="tfe-panel" style={{ display: "grid", gap: "0.75rem" }}>
+          <h3 style={{ margin: 0 }}>Today&apos;s Top Picks</h3>
+          <p className="tfe-muted" style={{ margin: 0, fontSize: "0.85rem" }}>
+            Ranked by structural conviction — signal strength, trend expansion, price direction, and financial health.
+          </p>
+          <div style={{ display: "grid", gap: "0.5rem" }}>
+            {payload.topPicks.map((row, i) => {
+              const p = row.profile;
+              const convictionColor = p?.conviction === "High" ? "#2e7d32"
+                : p?.conviction === "Moderate" ? "#f57f17" : "#757575";
+              return (
+                <div
+                  key={row.ticker}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "2rem 5rem 1fr auto",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    padding: "0.6rem 0.75rem",
+                    background: i < 3 ? "rgba(46, 125, 50, 0.06)" : "transparent",
+                    borderRadius: 6,
+                    borderLeft: `3px solid ${convictionColor}`,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => openRow(row)}
+                >
+                  <span style={{ fontWeight: 700, color: "#888", fontSize: "0.85rem" }}>#{i + 1}</span>
+                  <span style={{ fontWeight: 700, fontSize: "1rem" }}>{row.ticker}</span>
+                  <span style={{ fontSize: "0.85rem", color: "#555" }}>
+                    {p?.summary ?? row.sector}
+                  </span>
+                  <span
+                    style={{
+                      fontWeight: 600,
+                      fontSize: "0.8rem",
+                      color: convictionColor,
+                      background: `${convictionColor}15`,
+                      padding: "2px 10px",
+                      borderRadius: 12,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {p?.conviction ?? "—"} Conviction
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="tfe-panel" style={{ display: "grid", gap: "1rem" }}>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>

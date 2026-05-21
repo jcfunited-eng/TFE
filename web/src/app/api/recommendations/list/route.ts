@@ -17,6 +17,26 @@ export const runtime = "nodejs";
 // Wave 2 (species profile) is deferred until species_profiles table is populated.
 type SignalClass = "3WA" | "W1" | "CH3" | "standard";
 
+// ── Conviction scoring (subscriber-facing language) ────────────────────
+// Maps internal structural fields to generic financial terms.
+// No kernel IP exposed. Sounds like any premium screener.
+type ConvictionLevel = "High" | "Moderate" | "Developing";
+type SignalStrength = "Strong" | "Moderate" | "Emerging";
+type TrendExpansion = "Expanding" | "Neutral" | "Compressed";
+type PriceDirection = "Rising" | "Stable" | "Declining";
+type FinancialHealth = "Strong" | "Adequate" | "Weak";
+
+type ConvictionProfile = {
+  conviction: ConvictionLevel;
+  convictionScore: number;         // 0-100, internal sort key
+  signalStrength: SignalStrength;
+  trendExpansion: TrendExpansion;
+  priceDirection: PriceDirection;
+  financialHealth: FinancialHealth;
+  momentumRunway: string;          // e.g. "14 days remaining"
+  summary: string;                 // one-line subscriber-facing summary
+};
+
 type RecommendationRow = {
   ticker: string;
   sector: string;
@@ -38,12 +58,15 @@ type RecommendationRow = {
   barCount: number | null;
   minBarsForAccumulate: number;
   externalResearchUrl: string;
+  // Conviction scoring (subscriber-facing)
+  profile: ConvictionProfile;
 };
 
 type RecommendationsPayload = {
   totalAccumulate: number;
   totalAccumulateInDb: number;
   filteredOutMissingFundamentals: number;
+  topPicks: RecommendationRow[];   // top 10 by conviction score
   buckets: {
     titans: RecommendationRow[];
     heavyweights: RecommendationRow[];
@@ -69,6 +92,10 @@ type DbRow = {
   stability_score: number | string | null;
   max_dd: number | string | null;
   min_bars_for_accumulate: number | string | null;
+  // Structural fields for conviction scoring (from snapshot_row_json)
+  s_uf: number | string | null;
+  d_k: number | string | null;
+  b_k: number | string | null;
 };
 
 function buildResearchUrl(ticker: string): string {
@@ -99,6 +126,99 @@ function classifySignal(barCount: number | null, spyWaveActive: boolean): Signal
   return "standard";
 }
 
+// ── Conviction scoring engine ────────────────────────────────────────────
+// Translates structural kernel output to subscriber-facing conviction profile.
+// Uses only L4 output fields. No kernel internals exposed.
+function scoreConviction(
+  sUf: number | null,
+  dK: number | null,
+  bK: number | null,
+  barCount: number | null,
+  currentRatio: number,
+  freeCashFlow: number,
+  grossMargin: number,
+): ConvictionProfile {
+  let score = 0;
+
+  // Signal Strength (from S_UF — 0-1 range)
+  // Sweet spot is 0.50-0.75: acceleration underway but not exhausted
+  let signalStrength: SignalStrength = "Emerging";
+  if (sUf !== null) {
+    if (sUf >= 0.50 && sUf < 0.75) { signalStrength = "Strong"; score += 30; }
+    else if (sUf >= 0.40 && sUf < 0.50) { signalStrength = "Moderate"; score += 20; }
+    else if (sUf >= 0.75) { signalStrength = "Moderate"; score += 15; } // nearing exhaustion
+    else { signalStrength = "Emerging"; score += 5; }
+  }
+
+  // Trend Expansion (from B_k — -1 to 0 range)
+  // Quarantine data: B_k > -0.50 = 64% WR (expanded), < -0.67 = 50% (compressed)
+  let trendExpansion: TrendExpansion = "Neutral";
+  if (bK !== null) {
+    if (bK > -0.50) { trendExpansion = "Expanding"; score += 25; }
+    else if (bK > -0.80) { trendExpansion = "Neutral"; score += 10; }
+    else { trendExpansion = "Compressed"; score += 0; }
+  }
+
+  // Price Direction (from D_k — -1, 0, or 1)
+  let priceDirection: PriceDirection = "Stable";
+  if (dK !== null) {
+    if (dK === 1) { priceDirection = "Rising"; score += 20; }
+    else if (dK === 0) { priceDirection = "Stable"; score += 5; }
+    else { priceDirection = "Declining"; score += 0; }
+  }
+
+  // Financial Health (from fundamentals)
+  let financialHealth: FinancialHealth = "Adequate";
+  let healthScore = 0;
+  if (currentRatio >= 1.5) healthScore++;
+  if (freeCashFlow > 0) healthScore++;
+  if (grossMargin > 0.30) healthScore++;
+  if (healthScore >= 3) { financialHealth = "Strong"; score += 15; }
+  else if (healthScore >= 2) { financialHealth = "Adequate"; score += 8; }
+  else { financialHealth = "Weak"; score += 0; }
+
+  // Momentum Runway (from bar_count — more coverage = more established signal)
+  let momentumRunway = "Assessing";
+  if (barCount !== null) {
+    if (barCount <= 20) momentumRunway = "New signal — early momentum";
+    else if (barCount <= 100) momentumRunway = "Building momentum";
+    else if (barCount <= 252) momentumRunway = "Established trend";
+    else momentumRunway = "Long-term position";
+    if (barCount >= 20 && barCount <= 252) score += 10;
+    else if (barCount > 252) score += 5;
+  }
+
+  // Cap score at 100
+  score = Math.min(100, score);
+
+  // Conviction level from total score
+  let conviction: ConvictionLevel;
+  if (score >= 70) conviction = "High";
+  else if (score >= 40) conviction = "Moderate";
+  else conviction = "Developing";
+
+  // Build subscriber-facing summary
+  const parts: string[] = [];
+  parts.push(`${signalStrength} signal strength`);
+  if (trendExpansion === "Expanding") parts.push("expanding trend");
+  if (priceDirection === "Rising") parts.push("rising price direction");
+  if (financialHealth === "Strong") parts.push("strong financials");
+  else if (financialHealth === "Adequate") parts.push("adequate financials");
+  parts.push(momentumRunway.toLowerCase());
+  const summary = parts.join(", ");
+
+  return {
+    conviction,
+    convictionScore: score,
+    signalStrength,
+    trendExpansion,
+    priceDirection,
+    financialHealth,
+    momentumRunway,
+    summary: summary.charAt(0).toUpperCase() + summary.slice(1),
+  };
+}
+
 function toRecommendationRow(row: DbRow, spyWaveActive: boolean): RecommendationRow | null {
   const ticker = String(row.ticker ?? "").trim().toUpperCase();
   const sector = String(row.sector ?? "").trim() || UNKNOWN_SECTOR;
@@ -126,6 +246,12 @@ function toRecommendationRow(row: DbRow, spyWaveActive: boolean): Recommendation
   }
 
   const barCount = toNumber(row.bar_count);
+  const sUf = toNumber(row.s_uf);
+  const dK = toNumber(row.d_k);
+  const bK = toNumber(row.b_k);
+
+  const profile = scoreConviction(sUf, dK, bK, barCount, currentRatio, freeCashFlow, grossMargin);
+
   return {
     ticker,
     sector,
@@ -146,6 +272,7 @@ function toRecommendationRow(row: DbRow, spyWaveActive: boolean): Recommendation
     barCount,
     minBarsForAccumulate: toNumber(row.min_bars_for_accumulate) ?? NEW_LISTING_BAR_THRESHOLD,
     externalResearchUrl: buildResearchUrl(ticker),
+    profile,
   };
 }
 
@@ -205,7 +332,10 @@ async function loadAccumulateRows(): Promise<{ filtered: RecommendationRow[]; to
       NULLIF(TRIM(r.snapshot_row_json->>'regime'), '') AS regime,
       CAST(NULLIF(r.snapshot_row_json->>'stability_score', '') AS DOUBLE PRECISION) AS stability_score,
       CAST(NULLIF(r.snapshot_row_json->>'max_dd', '') AS DOUBLE PRECISION) AS max_dd,
-      CAST(NULLIF(r.snapshot_row_json->>'min_bars_for_accumulate', '') AS INTEGER) AS min_bars_for_accumulate
+      CAST(NULLIF(r.snapshot_row_json->>'min_bars_for_accumulate', '') AS INTEGER) AS min_bars_for_accumulate,
+      CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) AS s_uf,
+      CAST(NULLIF(r.snapshot_row_json->>'D_k', '') AS DOUBLE PRECISION) AS d_k,
+      CAST(NULLIF(r.snapshot_row_json->>'B_k', '') AS DOUBLE PRECISION) AS b_k
     FROM runtime_decisions_latest AS r
     LEFT JOIN l5_fundamentals_normalized AS f
       ON f.ticker = r.ticker
@@ -239,11 +369,18 @@ async function loadAccumulateRows(): Promise<{ filtered: RecommendationRow[]; to
   return { filtered: sortByMarketCap(rows), totalDbRows: result.rows.length };
 }
 
+const TOP_PICKS_COUNT = 10;
+
 function buildPayload(rows: RecommendationRow[], totalDbRows?: number): RecommendationsPayload {
+  // Top picks: sorted by conviction score descending, take top 10
+  const byConviction = [...rows].sort((a, b) => b.profile.convictionScore - a.profile.convictionScore);
+  const topPicks = byConviction.slice(0, TOP_PICKS_COUNT);
+
   return {
     totalAccumulate: rows.length,
     totalAccumulateInDb: totalDbRows ?? rows.length,
     filteredOutMissingFundamentals: (totalDbRows ?? rows.length) - rows.length,
+    topPicks,
     buckets: {
       titans: rows.filter((row) => row.marketCap >= 200_000_000_000),
       heavyweights: rows.filter((row) => row.marketCap >= 50_000_000_000 && row.marketCap < 200_000_000_000),
