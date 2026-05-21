@@ -31,28 +31,28 @@ function assert(condition, label) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// BUG 1: Orphan adoption loop
+// BUG 1: Orphan adoption loop (in-memory fallback — DB tested via integration)
 // ═══════════════════════════════════════════════════════════════════════════
 console.log("\n=== BUG 1: Orphan Adoption Loop ===");
 
 // Clear state
 recentlyKilledTickers.clear();
 
-// After killing a position, it should be marked
-markRecentlyKilled("AM");
-assert(isRecentlyKilled("AM") === true, "AM is recently killed immediately after marking");
-assert(isRecentlyKilled("FOXA") === false, "FOXA is NOT recently killed (never marked)");
+// After killing a position, it should be marked (in-memory path)
+await markRecentlyKilled("AM");
+assert(await isRecentlyKilled("AM") === true, "AM is recently killed immediately after marking");
+assert(await isRecentlyKilled("FOXA") === false, "FOXA is NOT recently killed (never marked)");
 
 // Case-insensitive check
-markRecentlyKilled("bcpc");
-assert(isRecentlyKilled("BCPC") === true, "Case-insensitive: bcpc marked, BCPC found");
+await markRecentlyKilled("bcpc");
+assert(await isRecentlyKilled("BCPC") === true, "Case-insensitive: bcpc marked, BCPC found");
 
 // Expiry: simulate 16 minutes passing (should expire after 15 min)
 {
   recentlyKilledTickers.clear();
   const sixteenMinAgo = Date.now() - 16 * 60 * 1000;
   recentlyKilledTickers.set("OLD", sixteenMinAgo);
-  assert(isRecentlyKilled("OLD") === false, "Expired kill (16 min old) is NOT recently killed");
+  assert(await isRecentlyKilled("OLD") === false, "Expired kill (16 min old) is NOT recently killed");
 }
 
 // Non-expired: 5 minutes ago should still be active
@@ -60,7 +60,7 @@ assert(isRecentlyKilled("BCPC") === true, "Case-insensitive: bcpc marked, BCPC f
   recentlyKilledTickers.clear();
   const fiveMinAgo = Date.now() - 5 * 60 * 1000;
   recentlyKilledTickers.set("FRESH", fiveMinAgo);
-  assert(isRecentlyKilled("FRESH") === true, "Recent kill (5 min old) IS recently killed");
+  assert(await isRecentlyKilled("FRESH") === true, "Recent kill (5 min old) IS recently killed");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

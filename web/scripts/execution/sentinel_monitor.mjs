@@ -36,22 +36,50 @@ const ZOMBIE_BAR_THRESHOLD = parseInt(process.env.SENTINEL_ZOMBIE_BARS ?? "10", 
 // while the sell settles. Without this, orphan sync re-adopts the position,
 // EXIT-A re-kills it, generating 5+ duplicate sell orders per ticker.
 // Entries expire after 15 minutes (well past settlement).
-export const recentlyKilledTickers = new Map(); // ticker → timestamp
+//
+// CRITICAL: Uses DB, not in-memory Map, because the PEE-1 Runner and
+// Sentinel Daemon are SEPARATE PROCESSES with separate module state.
+// Runner killed UTZ at 13:33:47, Daemon adopted it at 13:33:53 because
+// the in-memory Map existed only in the Runner's process.
+export const recentlyKilledTickers = new Map(); // in-memory fallback
 const KILL_COOLDOWN_MS = 15 * 60 * 1000; // 15 minutes
 
-export function markRecentlyKilled(ticker) {
-  recentlyKilledTickers.set(ticker.trim().toUpperCase(), Date.now());
+export async function markRecentlyKilled(ticker) {
+  const key = ticker.trim().toUpperCase();
+  recentlyKilledTickers.set(key, Date.now());
+  // Persist to DB so other processes (Runner vs Daemon) see the kill
+  try {
+    await pool.query(
+      `INSERT INTO pee1_execution_config (key, value)
+       VALUES ($1, $2)
+       ON CONFLICT (key) DO UPDATE SET value = $2`,
+      [`kill_cooldown_${key}`, new Date().toISOString()]
+    );
+  } catch { /* non-fatal — in-memory fallback still works within same process */ }
 }
 
-export function isRecentlyKilled(ticker) {
+export async function isRecentlyKilled(ticker) {
   const key = ticker.trim().toUpperCase();
+  // Check in-memory first (same process)
   const killedAt = recentlyKilledTickers.get(key);
-  if (!killedAt) return false;
-  if (Date.now() - killedAt > KILL_COOLDOWN_MS) {
+  if (killedAt && Date.now() - killedAt <= KILL_COOLDOWN_MS) return true;
+  if (killedAt && Date.now() - killedAt > KILL_COOLDOWN_MS) {
     recentlyKilledTickers.delete(key);
-    return false;
   }
-  return true;
+  // Check DB (cross-process)
+  try {
+    const res = await pool.query(
+      `SELECT value FROM pee1_execution_config WHERE key = $1`,
+      [`kill_cooldown_${key}`]
+    );
+    if (res.rows.length > 0) {
+      const dbTime = new Date(res.rows[0].value).getTime();
+      if (Date.now() - dbTime <= KILL_COOLDOWN_MS) return true;
+      // Expired — clean up
+      await pool.query(`DELETE FROM pee1_execution_config WHERE key = $1`, [`kill_cooldown_${key}`]);
+    }
+  } catch { /* non-fatal */ }
+  return false;
 }
 
 // ── Market hours check for EXIT-F (prevents stale overnight price exits) ─
@@ -246,7 +274,7 @@ async function killPosition(pos, exitReason, base) {
   console.log(`[SENTINEL] KILL ${ticker} | reason=${exitReason} | shares=${shares}`);
 
   // Track this kill so orphan sync won't re-adopt while Alpaca settles
-  markRecentlyKilled(ticker);
+  await markRecentlyKilled(ticker);
 
   // Cancel ALL open orders for this ticker — not just the bracket legs.
   // Previous kill attempts may have left pending sell orders that hold shares.
@@ -431,15 +459,17 @@ export async function runSentinel() {
       const alpacaPositions = await alpacaGet("/v2/positions", ALPACA_BASE).catch(() => []);
       if (Array.isArray(alpacaPositions) && alpacaPositions.length > 0) {
         const ledgerTickers = new Set(positions.map(p => String(p.ticker).trim().toUpperCase()));
-        const orphans = alpacaPositions.filter(ap => {
+        // Filter orphans — exclude recently killed (cross-process DB check)
+        const orphans = [];
+        for (const ap of alpacaPositions) {
           const sym = ap.symbol.trim().toUpperCase();
-          if (ledgerTickers.has(sym)) return false;
-          if (isRecentlyKilled(sym)) {
-            // Position was just killed — Alpaca hasn't settled yet. Skip.
-            return false;
+          if (ledgerTickers.has(sym)) continue;
+          if (await isRecentlyKilled(sym)) {
+            console.log(`[SENTINEL] Orphan skip: ${sym} — recently killed, Alpaca still settling`);
+            continue;
           }
-          return true;
-        });
+          orphans.push(ap);
+        }
         if (orphans.length > 0) {
           console.log(`[SENTINEL] Orphan sync: ${orphans.length} Alpaca positions not in ledger — adopting.`);
           for (const ap of orphans) {
