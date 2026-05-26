@@ -107,10 +107,11 @@ function parseSignal(row) {
   if (!runId)                                           return null;
   if (barCount === null || barCount < CH2_BAR_COUNT_MIN) return null;
   if (sUf === null || sUf < CH2_S_UF_MIN || sUf >= CH2_S_UF_MAX) return null;
-  // D_k gate REMOVED — the kernel's Accumulate decision already accounts for
-  // the full coupled structural state. D_k=1 blocked 49 primed candidates with
-  // volume flowing. D_k stays as EXIT-B (exit if D_k collapses to -1 after entry).
-  // Regime gate also removed (validation finding: too restrictive).
+  // D_k=1 gate RE-ENABLED (reverts commit bb0590a from May 12).
+  // All 7,658 verified quarantine primitive trades had D_k=1.
+  // Removing this gate admitted signals without directional alignment.
+  // See KERNEL_PHILOSOPHY.md Section 7, purge #1.
+  if (dk !== 1) return null;
 
   return {
     ticker,
