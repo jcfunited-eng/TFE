@@ -1,3 +1,5 @@
+import * as _marketCalendar from "./market_calendar.mjs";
+
 /**
  * web/scripts/execution/financial_rules.mjs
  * TFE Financial Rules Library — Deterministic Entry/Exit Governance
@@ -159,18 +161,12 @@ export function entryR2_FridayBlock() {
     return { blocked: true, rule: RULE, reason: `day=${day} (Fri/Sat/Sun)` };
   }
 
-  // Holiday check — uses market_calendar.mjs
+  // Holiday check — computed from NYSE rules, works for any year
   try {
-    // Dynamic import to avoid circular deps in test environments
-    const etStr = now.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
-    const holidays = new Set([
-      "2026-01-01","2026-01-19","2026-02-16","2026-04-03","2026-05-25",
-      "2026-06-19","2026-07-03","2026-09-07","2026-11-26","2026-12-25",
-      "2027-01-01","2027-01-18","2027-02-15","2027-03-26","2027-05-31",
-      "2027-06-18","2027-07-05","2027-09-06","2027-11-25","2027-12-24",
-    ]);
-    if (holidays.has(etStr)) {
-      return { blocked: true, rule: RULE, reason: `market holiday (${etStr})` };
+    const { isMarketHoliday, getHolidayName } = _marketCalendar ?? {};
+    if (isMarketHoliday && isMarketHoliday(now)) {
+      const name = (getHolidayName && getHolidayName(now)) ?? "unknown";
+      return { blocked: true, rule: RULE, reason: `market holiday (${name})` };
     }
   } catch { /* non-fatal — weekend check still active */ }
 

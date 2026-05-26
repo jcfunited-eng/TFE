@@ -1,43 +1,119 @@
 /**
  * web/scripts/execution/market_calendar.mjs
- * US stock market holiday calendar.
+ * US stock market holiday calendar — computed, never needs updating.
  *
  * NYSE/NASDAQ observed holidays. The market is CLOSED on these days.
  * No entries, no exits (except catastrophic), no sentinel audits.
  *
- * Holidays that fall on Saturday are observed Friday.
- * Holidays that fall on Sunday are observed Monday.
+ * All 10 NYSE holidays are computed algorithmically:
+ *   - Fixed-date holidays observe Fri if Sat, Mon if Sun
+ *   - Floating holidays use Nth-weekday-of-month rules
+ *   - Good Friday uses the Anonymous Gregorian Easter algorithm
  *
  * Source: NYSE holiday calendar (nyse.com/markets/hours-calendars)
  */
 
-// Holidays stored as "YYYY-MM-DD" strings for fast lookup.
-// Covers 2026-2027. Extend annually.
-const MARKET_HOLIDAYS = new Set([
-  // 2026
-  "2026-01-01", // New Year's Day
-  "2026-01-19", // MLK Jr. Day
-  "2026-02-16", // Presidents' Day
-  "2026-04-03", // Good Friday
-  "2026-05-25", // Memorial Day
-  "2026-06-19", // Juneteenth
-  "2026-07-03", // Independence Day (observed — July 4 is Saturday)
-  "2026-09-07", // Labor Day
-  "2026-11-26", // Thanksgiving
-  "2026-12-25", // Christmas
+// ── Holiday computation ─────────────────────────────────────────────────
 
-  // 2027
-  "2027-01-01", // New Year's Day
-  "2027-01-18", // MLK Jr. Day
-  "2027-02-15", // Presidents' Day
-  "2027-03-26", // Good Friday
-  "2027-05-31", // Memorial Day
-  "2027-06-18", // Juneteenth (observed — June 19 is Saturday)
-  "2027-07-05", // Independence Day (observed — July 4 is Sunday)
-  "2027-09-06", // Labor Day
-  "2027-11-25", // Thanksgiving
-  "2027-12-24", // Christmas (observed — Dec 25 is Saturday)
-]);
+/** Observed date: if Sat → Fri, if Sun → Mon */
+function observed(month, day, year) {
+  const d = new Date(year, month - 1, day);
+  const dow = d.getDay();
+  if (dow === 6) return new Date(year, month - 1, day - 1); // Sat → Fri
+  if (dow === 0) return new Date(year, month - 1, day + 1); // Sun → Mon
+  return d;
+}
+
+/** Nth occurrence of a weekday in a month (1-indexed). weekday: 0=Sun..6=Sat */
+function nthWeekday(year, month, weekday, n) {
+  const first = new Date(year, month - 1, 1);
+  let dayOfMonth = 1 + ((weekday - first.getDay() + 7) % 7);
+  dayOfMonth += (n - 1) * 7;
+  return new Date(year, month - 1, dayOfMonth);
+}
+
+/** Last occurrence of a weekday in a month */
+function lastWeekday(year, month, weekday) {
+  const last = new Date(year, month, 0); // last day of month
+  const diff = (last.getDay() - weekday + 7) % 7;
+  return new Date(year, month - 1, last.getDate() - diff);
+}
+
+/**
+ * Easter date via Anonymous Gregorian algorithm.
+ * Returns Date for Easter Sunday of the given year.
+ */
+function easter(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+
+/** Good Friday = 2 days before Easter Sunday */
+function goodFriday(year) {
+  const e = easter(year);
+  return new Date(e.getFullYear(), e.getMonth(), e.getDate() - 2);
+}
+
+/** Format Date as "YYYY-MM-DD" */
+function fmt(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ * Compute all NYSE holidays for a given year.
+ * Returns array of { date: "YYYY-MM-DD", name: string }
+ */
+export function nyseHolidays(year) {
+  return [
+    { date: fmt(observed(1, 1, year)),                   name: "New Year's Day" },
+    { date: fmt(nthWeekday(year, 1, 1, 3)),              name: "MLK Jr. Day" },
+    { date: fmt(nthWeekday(year, 2, 1, 3)),              name: "Presidents' Day" },
+    { date: fmt(goodFriday(year)),                        name: "Good Friday" },
+    { date: fmt(lastWeekday(year, 5, 1)),                name: "Memorial Day" },
+    { date: fmt(observed(6, 19, year)),                   name: "Juneteenth" },
+    { date: fmt(observed(7, 4, year)),                    name: "Independence Day" },
+    { date: fmt(nthWeekday(year, 9, 1, 1)),              name: "Labor Day" },
+    { date: fmt(nthWeekday(year, 11, 4, 4)),             name: "Thanksgiving" },
+    { date: fmt(observed(12, 25, year)),                  name: "Christmas" },
+  ];
+}
+
+// ── Build lookup caches ─────────────────────────────────────────────────
+// Pre-compute current year and next year. Cache is rebuilt if year changes.
+let _cachedYear = 0;
+let _holidaySet = new Set();
+let _holidayNames = {};
+
+function ensureCache(year) {
+  if (_cachedYear === year) return;
+  _holidaySet = new Set();
+  _holidayNames = {};
+  for (const y of [year, year + 1]) {
+    for (const h of nyseHolidays(y)) {
+      _holidaySet.add(h.date);
+      _holidayNames[h.date] = h.name;
+    }
+  }
+  _cachedYear = year;
+}
+
+// ── Public API (unchanged signatures) ───────────────────────────────────
 
 /**
  * Check if a given date is a US market holiday.
@@ -45,12 +121,10 @@ const MARKET_HOLIDAYS = new Set([
  * @returns {boolean} true if the market is closed for a holiday
  */
 export function isMarketHoliday(now = new Date()) {
-  // Format as YYYY-MM-DD in US Eastern time (UTC-5 or UTC-4 DST)
-  // Use UTC and offset manually since Intl may not be available in all envs
-  const eastern = new Date(now.getTime() - 5 * 60 * 60 * 1000); // approximate EST
-  // Better: use the actual date in ET
   const etStr = now.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
-  return MARKET_HOLIDAYS.has(etStr);
+  const year = parseInt(etStr.slice(0, 4), 10);
+  ensureCache(year);
+  return _holidaySet.has(etStr);
 }
 
 /**
@@ -59,19 +133,10 @@ export function isMarketHoliday(now = new Date()) {
  * @returns {boolean} true if the market should be open today
  */
 export function isTradingDay(now = new Date()) {
-  // Get day of week in Eastern time
-  const etDay = parseInt(
-    new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "narrow" })
-      .formatToParts(now)
-      .find(p => p.type === "weekday")?.value ?? "0",
-    10
-  );
-  // Simpler: just get the day directly
   const dayET = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
   const day = dayET.getDay(); // 0=Sun, 6=Sat
-
-  if (day === 0 || day === 6) return false; // weekend
-  if (isMarketHoliday(now)) return false;   // holiday
+  if (day === 0 || day === 6) return false;
+  if (isMarketHoliday(now)) return false;
   return true;
 }
 
@@ -82,27 +147,7 @@ export function isTradingDay(now = new Date()) {
  */
 export function getHolidayName(now = new Date()) {
   const etStr = now.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
-  const names = {
-    "2026-01-01": "New Year's Day",
-    "2026-01-19": "MLK Jr. Day",
-    "2026-02-16": "Presidents' Day",
-    "2026-04-03": "Good Friday",
-    "2026-05-25": "Memorial Day",
-    "2026-06-19": "Juneteenth",
-    "2026-07-03": "Independence Day (observed)",
-    "2026-09-07": "Labor Day",
-    "2026-11-26": "Thanksgiving",
-    "2026-12-25": "Christmas",
-    "2027-01-01": "New Year's Day",
-    "2027-01-18": "MLK Jr. Day",
-    "2027-02-15": "Presidents' Day",
-    "2027-03-26": "Good Friday",
-    "2027-05-31": "Memorial Day",
-    "2027-06-18": "Juneteenth (observed)",
-    "2027-07-05": "Independence Day (observed)",
-    "2027-09-06": "Labor Day",
-    "2027-11-25": "Thanksgiving",
-    "2027-12-24": "Christmas (observed)",
-  };
-  return names[etStr] ?? null;
+  const year = parseInt(etStr.slice(0, 4), 10);
+  ensureCache(year);
+  return _holidayNames[etStr] ?? null;
 }
