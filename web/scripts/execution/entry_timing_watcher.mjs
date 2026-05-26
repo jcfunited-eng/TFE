@@ -129,10 +129,21 @@ export async function runEntryTimingCheck() {
     return;
   }
 
-  // No new entries on Fridays — weekend gap risk is unmanageable
-  const dayOfWeek = new Date().getUTCDay();
-  if (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0) {
-    return;
+  // No new entries on weekends or market holidays
+  {
+    const now = new Date();
+    const dayOfWeek = now.getUTCDay();
+    if (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0) return;
+    try {
+      const etStr = now.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+      const holidays = new Set([
+        "2026-01-01","2026-01-19","2026-02-16","2026-04-03","2026-05-25",
+        "2026-06-19","2026-07-03","2026-09-07","2026-11-26","2026-12-25",
+        "2027-01-01","2027-01-18","2027-02-15","2027-03-26","2027-05-31",
+        "2027-06-18","2027-07-05","2027-09-06","2027-11-25","2027-12-24",
+      ]);
+      if (holidays.has(etStr)) return;
+    } catch {}
   }
 
   const primed = await getPrimedTickers();

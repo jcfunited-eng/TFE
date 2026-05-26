@@ -93,6 +93,8 @@
  *                          adopt→kill→adopt loop (AM/BCPC/FOXA each killed 5x)
  *   2026-05-20  SYNC-R2   Phantom cleanup grace: 30-min grace period before declaring
  *                          unfilled orders as phantom (GENB killed at 5min, filled at 43min)
+ *   2026-05-26  ENTRY-R2  Holiday block added: Memorial Day 2026 placed 66 orders on
+ *                          closed market. Now checks NYSE holiday calendar 2026-2027.
  *   2026-05-20  EXIT-R9   7-day minimum hold: no losing exits before 7 calendar days.
  *                          Supersedes EXIT-R7 (day-0 only). Production data: 85% of D_k
  *                          collapse exits recovered at 10-20 days. 73% of early losers
@@ -141,19 +143,36 @@ export function entryR1_RedDayFilter(bars) {
 }
 
 /**
- * ENTRY-R2: Friday block
- * No new entries on Friday, Saturday, or Sunday.
+ * ENTRY-R2: Weekend + Holiday block
+ * No new entries on Friday, Saturday, Sunday, or market holidays.
  * Weekend gaps are unmanageable — REGN lost 12% over a weekend.
+ * Memorial Day 2026: 66 orders placed on a closed market. Never again.
  *
  * @returns {{ blocked: boolean, rule: string, reason?: string }}
  */
 export function entryR2_FridayBlock() {
   const RULE = "ENTRY-R2";
-  const day = new Date().getUTCDay(); // 0=Sun, 5=Fri, 6=Sat
+  const now = new Date();
+  const day = now.getUTCDay(); // 0=Sun, 5=Fri, 6=Sat
 
   if (day === 5 || day === 6 || day === 0) {
     return { blocked: true, rule: RULE, reason: `day=${day} (Fri/Sat/Sun)` };
   }
+
+  // Holiday check — uses market_calendar.mjs
+  try {
+    // Dynamic import to avoid circular deps in test environments
+    const etStr = now.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+    const holidays = new Set([
+      "2026-01-01","2026-01-19","2026-02-16","2026-04-03","2026-05-25",
+      "2026-06-19","2026-07-03","2026-09-07","2026-11-26","2026-12-25",
+      "2027-01-01","2027-01-18","2027-02-15","2027-03-26","2027-05-31",
+      "2027-06-18","2027-07-05","2027-09-06","2027-11-25","2027-12-24",
+    ]);
+    if (holidays.has(etStr)) {
+      return { blocked: true, rule: RULE, reason: `market holiday (${etStr})` };
+    }
+  } catch { /* non-fatal — weekend check still active */ }
 
   return { blocked: false, rule: RULE };
 }

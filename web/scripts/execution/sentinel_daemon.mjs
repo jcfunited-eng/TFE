@@ -12,6 +12,7 @@ import { runEntryTimingCheck, closeEntryTimingPool } from "./entry_timing_watche
 import { runStrikeZoneCheck, closeStrikeZonePool } from "./ch3_strike_zone_detector.mjs";
 import { getCh3Signals, closeCh3StrategistPool } from "./ch3_scalp_strategist.mjs";
 import { executeCh3MarketOrder } from "./alpaca_bridge.mjs";
+import { isTradingDay, getHolidayName } from "./market_calendar.mjs";
 
 const POLL_INTERVAL_MS  = 5 * 60 * 1000;  // 5 minutes
 const MARKET_OPEN_UTC_H  = 13;  // 9:30 ET = 13:30 UTC
@@ -42,6 +43,14 @@ async function main() {
   console.log("[SENTINEL-DAEMON] Started. Polling every 5 min during market hours.");
 
   while (running) {
+    if (!isTradingDay()) {
+      const holiday = getHolidayName();
+      console.log(`[SENTINEL-DAEMON] Market holiday${holiday ? ` (${holiday})` : ""} — no trading today.`);
+      // Sleep longer on holidays — no need to check every 5 min
+      await sleep(30 * 60 * 1000); // 30 min
+      continue;
+    }
+
     if (isMarketHours()) {
       try {
         console.log(`[SENTINEL-DAEMON] Running sentinel check at ${new Date().toISOString()}`);
