@@ -2,7 +2,7 @@
 // ArcLoom AXI-Lite Wrapper — 16 Registers
 // ============================================================
 //
-// ADDR_WIDTH=6 (64 bytes, 16 registers).
+// ADDR_WIDTH=8 (256 bytes, 64 registers).
 // Expanded for 3 sensors, camera, 12-trit MathLoom.
 //
 // WRITE:
@@ -29,7 +29,7 @@
 
 module arcloom_axi_wrapper #(
     parameter C_S_AXI_DATA_WIDTH = 32,
-    parameter C_S_AXI_ADDR_WIDTH = 6
+    parameter C_S_AXI_ADDR_WIDTH = 8
 )(
     input  wire                                S_AXI_ACLK,
     input  wire                                S_AXI_ARESETN,
@@ -109,6 +109,19 @@ module arcloom_axi_wrapper #(
     reg [2:0]  sw_valid_stretch;
     reg        motor_enable;
     reg        sw_krim_commit;  // software Krimelack commit request
+    // Runtime camera baselines (written by Python at startup)
+    reg [7:0]  cam_bl_y;       // Y mean baseline
+    reg [7:0]  cam_bl_edge;    // Edge count baseline
+    reg [7:0]  cam_bl_u;       // U chrominance baseline
+    reg [7:0]  cam_bl_density; // Structural density baseline
+    // Target motif for hunt/inspect (210-bit, 7 AXI writes)
+    reg [31:0] target_motif_0;   // target_motif[31:0]
+    reg [31:0] target_motif_1;   // target_motif[63:32]
+    reg [31:0] target_motif_2;   // target_motif[95:64]
+    reg [31:0] target_motif_3;   // target_motif[127:96]
+    reg [31:0] target_motif_4;   // target_motif[159:128]
+    reg [31:0] target_motif_5;   // target_motif[191:160]
+    reg [17:0] target_motif_6;   // target_motif[209:192]
     reg [7:0]  sw_familiarity;
     reg        sw_fam_enable;
     reg [23:0] mathloom_a, mathloom_b;
@@ -161,6 +174,7 @@ module arcloom_axi_wrapper #(
     wire [6:0]  n_effective_w;
     wire [7:0]  omega_w;
     wire [5:0]  krim_count_w;
+    wire [7:0]  target_match_score_w;
     wire [7:0]  krim_score_w;
     wire        krim_recall_w, krim_commit_ok_w, krim_commit_rej_w;
     wire signed [31:0] debug_steer_field_w;
@@ -170,7 +184,7 @@ module arcloom_axi_wrapper #(
     reg        structural_lock, dsf_safe_mode, dsf_valid;
     reg [1:0]  dsf_D;
     reg        dsf_R_rev;
-    reg [31:0] loom_state_lo;
+    reg [31:0] loom_state_r [0:6];  // 7 × 32-bit = 224 bits (covers 210)
     reg [5:0]  krim_count;
     reg [7:0]  krim_score;
     reg        krim_recall, krim_commit_ok, krim_commit_rej;
@@ -185,7 +199,13 @@ module arcloom_axi_wrapper #(
         dsf_valid       <= dsf_valid_w;
         dsf_D           <= dsf_D_w;
         dsf_R_rev       <= dsf_R_rev_w;
-        loom_state_lo   <= loom_state_w[31:0];
+        loom_state_r[0] <= loom_state_w[31:0];
+        loom_state_r[1] <= loom_state_w[63:32];
+        loom_state_r[2] <= loom_state_w[95:64];
+        loom_state_r[3] <= loom_state_w[127:96];
+        loom_state_r[4] <= loom_state_w[159:128];
+        loom_state_r[5] <= loom_state_w[191:160];
+        loom_state_r[6] <= {14'd0, loom_state_w[209:192]};
         krim_count      <= krim_count_w;
         krim_score      <= krim_score_w;
         krim_recall     <= krim_recall_w;
@@ -220,6 +240,13 @@ module arcloom_axi_wrapper #(
         .sw_familiarity(sw_familiarity),
         .sw_fam_enable(sw_fam_enable),
         .sw_krim_commit(sw_krim_commit),
+        .cam_bl_y(cam_bl_y),
+        .cam_bl_edge(cam_bl_edge),
+        .cam_bl_u(cam_bl_u),
+        .cam_bl_density(cam_bl_density),
+        .target_motif({target_motif_6, target_motif_5, target_motif_4,
+                       target_motif_3, target_motif_2, target_motif_1, target_motif_0}),
+        .target_match_score(target_match_score_w),
         .decision_steer(decision_steer_w), .decision_speed(decision_speed_w),
         .decision_conf(decision_conf_w),
         .structural_lock(structural_lock_w), .dsf_safe_mode(dsf_safe_mode_w),
@@ -275,6 +302,17 @@ module arcloom_axi_wrapper #(
             sw_valid_stretch <= 3'd0;
             motor_enable     <= 1'b0;
             sw_krim_commit   <= 1'b0;
+            cam_bl_y         <= 8'd0;
+            cam_bl_edge      <= 8'd0;
+            cam_bl_u         <= 8'd0;
+            cam_bl_density   <= 8'd0;
+            target_motif_0   <= 32'd0;
+            target_motif_1   <= 32'd0;
+            target_motif_2   <= 32'd0;
+            target_motif_3   <= 32'd0;
+            target_motif_4   <= 32'd0;
+            target_motif_5   <= 32'd0;
+            target_motif_6   <= 18'd0;
             sw_familiarity   <= 8'd0;
             sw_fam_enable    <= 1'b0;
             mathloom_a       <= 24'd0;
@@ -316,30 +354,45 @@ module arcloom_axi_wrapper #(
 
             if (~axi_wready && S_AXI_AWVALID && S_AXI_WVALID) begin
                 axi_wready <= 1'b1;
-                case (S_AXI_AWADDR[5:2])
-                    4'd0: begin  // 0x00: sensor
+                case (S_AXI_AWADDR[7:2])
+                    6'd0: begin  // 0x00: sensor
                         sw_sensor_adc <= S_AXI_WDATA[11:0];
                         if (S_AXI_WDATA[16])
                             sw_valid_stretch <= 3'd4;
                     end
-                    4'd1: begin  // 0x04: mathloom A (24-bit)
+                    6'd1: begin  // 0x04: mathloom A (24-bit)
                         mathloom_a <= S_AXI_WDATA[23:0];
                     end
-                    4'd2: begin  // 0x08: mathloom B (24-bit) + latch
+                    6'd2: begin  // 0x08: mathloom B (24-bit) + latch
                         mathloom_b <= S_AXI_WDATA[23:0];
                         div_result_ready <= 1'b0;
                     end
-                    4'd3: begin  // 0x0C: division trigger
+                    6'd3: begin  // 0x0C: division trigger
                         if (S_AXI_WDATA[16])
                             div_start <= 1'b1;
                     end
-                    4'd4: begin  // 0x10: motor enable [2], krimelack commit [1]
+                    6'd4: begin  // 0x10: motor enable [2], krimelack commit [1]
                         motor_enable <= S_AXI_WDATA[2];
                         sw_krim_commit <= S_AXI_WDATA[1];
                     end
-                    4'd5: begin  // 0x14: familiarity override [7:0], enable [8]
+                    6'd5: begin  // 0x14: familiarity override [7:0], enable [8]
                         sw_familiarity <= S_AXI_WDATA[7:0];
                         sw_fam_enable  <= S_AXI_WDATA[8];
+                    end
+                    6'd16: target_motif_0 <= S_AXI_WDATA;          // 0x40
+                    6'd17: target_motif_1 <= S_AXI_WDATA;          // 0x44
+                    6'd18: target_motif_2 <= S_AXI_WDATA;          // 0x48
+                    6'd19: target_motif_3 <= S_AXI_WDATA;          // 0x4C
+                    6'd20: target_motif_4 <= S_AXI_WDATA;          // 0x50
+                    6'd21: target_motif_5 <= S_AXI_WDATA;          // 0x54
+                    6'd22: begin                                    // 0x58
+                        target_motif_6 <= S_AXI_WDATA[17:0];
+                    end
+                    6'd15: begin  // 0x3C: camera baselines {density, u, edge, y}
+                        cam_bl_y       <= S_AXI_WDATA[7:0];
+                        cam_bl_edge    <= S_AXI_WDATA[15:8];
+                        cam_bl_u       <= S_AXI_WDATA[23:16];
+                        cam_bl_density <= S_AXI_WDATA[31:24];
                     end
                 endcase
             end else
@@ -376,68 +429,80 @@ module arcloom_axi_wrapper #(
 
             if (axi_arready && S_AXI_ARVALID && ~axi_rvalid) begin
                 axi_rvalid <= 1'b1;
-                case (axi_araddr[5:2])
+                case (axi_araddr[7:2])
                     // 0x00: Decision + status
-                    4'd0: axi_rdata <= {18'd0,
+                    6'd0: axi_rdata <= {18'd0,
                                         dsf_R_rev, dsf_D, dsf_valid,
                                         dsf_safe_mode, structural_lock,
                                         2'd0, decision_conf,
                                         decision_speed, decision_steer};
                     // 0x04: Loom state [31:0]
-                    4'd1: axi_rdata <= loom_state_lo;
+                    6'd1: axi_rdata <= loom_state_r[0];
 
                     // 0x08: MathLoom ADD (12-trit) + compare
-                    4'd2: axi_rdata <= {ml_lt_r, ml_gt_r, ml_eq_r,
+                    6'd2: axi_rdata <= {ml_lt_r, ml_gt_r, ml_eq_r,
                                         3'd0,
                                         ml_carry_r, ml_sum_r};
 
                     // 0x0C: MathLoom MUL or DIV (muxed)
-                    4'd3: axi_rdata <= div_result_ready ?
+                    6'd3: axi_rdata <= div_result_ready ?
                                         {6'd0, 1'b1, div_dbz_r, div_quot_r}
                                       : ml_product_r[31:0];
 
                     // 0x10: DIV remainder + cycles
-                    4'd4: axi_rdata <= {div_cyc_r[7:0], div_rem_r};
+                    6'd4: axi_rdata <= {div_cyc_r[7:0], div_rem_r};
 
                     // 0x14: MUL product high
-                    4'd5: axi_rdata <= {16'd0, ml_product_r[47:32]};
+                    // 0x14: MUL product high
+                    6'd5: axi_rdata <= {16'd0, ml_product_r[47:32]};
 
                     // 0x18: Camera line features
-                    4'd6: axi_rdata <= {cam_edge_cnt_r, cam_y_max_r,
+                    6'd6: axi_rdata <= {cam_edge_cnt_r, cam_y_max_r,
                                         cam_y_min_r, cam_y_mean_r};
 
                     // 0x1C: Left/Right sensor raw ADC
-                    4'd7: axi_rdata <= {4'd0, right_adc_r, 4'd0, left_adc_r};
+                    6'd7: axi_rdata <= {4'd0, right_adc_r, 4'd0, left_adc_r};
 
-                    // 0x20: Krimelack status
-                    4'd8: axi_rdata <= {16'd0,
-                                        krim_commit_rej, krim_commit_ok,
-                                        krim_recall,
-                                        1'b0,
-                                        krim_score[7:0],
-                                        2'd0, krim_count};
+                    // 0x20: Krimelack status + target match
+                    // [31:24] target_match_score, [23:22] pad, [21:14] krim_score,
+                    // [13] pad, [12] recall, [11] commit_ok, [10] commit_rej,
+                    // [9:6] pad, [5:0] krim_count
+                    6'd8: axi_rdata <= {target_match_score_w,
+                                        2'd0, krim_score[7:0],
+                                        1'b0, krim_recall,
+                                        krim_commit_ok, krim_commit_rej,
+                                        4'd0, krim_count};
 
                     // 0x24: Camera frame status + line number + xclk feedback
-                    4'd9: axi_rdata <= {13'd0, cam_xclk_fb,
+                    6'd9: axi_rdata <= {13'd0, cam_xclk_fb,
                                         cam_frame_active, cam_frame_count,
                                         cam_line_num_r};
 
                     // 0x28: Front sensor raw ADC + motor_enable status
-                    4'd10: axi_rdata <= {19'd0, motor_enable, live_adc};
+                    6'd10: axi_rdata <= {19'd0, motor_enable, live_adc};
 
                     // 0x2C: Debug — raw steer field value (signed 32-bit)
-                    4'd11: axi_rdata <= debug_steer_field;
+                    6'd11: axi_rdata <= debug_steer_field;
 
                     // 0x30: Camera color (U/V chrominance)
-                    4'd12: axi_rdata <= {16'd0, cam_v_mean_r, cam_u_mean_r};
+                    6'd12: axi_rdata <= {16'd0, cam_v_mean_r, cam_u_mean_r};
 
                     // 0x34: Frame features — upper/lower Y and edge (owl trick)
-                    4'd13: axi_rdata <= {cam_frame_edge_lower, cam_frame_edge_upper,
+                    6'd13: axi_rdata <= {cam_frame_edge_lower, cam_frame_edge_upper,
                                          cam_frame_y_lower, cam_frame_y_upper};
 
                     // 0x38: Frame features — upper/lower U + structural density
-                    4'd14: axi_rdata <= {cam_frame_density, 8'd0,
+                    6'd14: axi_rdata <= {cam_frame_density, 8'd0,
                                          cam_frame_u_lower, cam_frame_u_upper};
+
+                    // 0x40-0x58: Full loom_state (7 registers, 210 bits)
+                    6'd16: axi_rdata <= loom_state_r[0];
+                    6'd17: axi_rdata <= loom_state_r[1];
+                    6'd18: axi_rdata <= loom_state_r[2];
+                    6'd19: axi_rdata <= loom_state_r[3];
+                    6'd20: axi_rdata <= loom_state_r[4];
+                    6'd21: axi_rdata <= loom_state_r[5];
+                    6'd22: axi_rdata <= loom_state_r[6];
 
                     default: axi_rdata <= 32'd0;
                 endcase

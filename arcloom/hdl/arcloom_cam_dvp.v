@@ -113,7 +113,8 @@ module arcloom_cam_dvp (
 
     // Structural density threshold — lines with edge count above this
     // are "structurally interesting" (object present, not flat background)
-    localparam DENSITY_THRESH = 8'd20;
+    // Room baseline edge count is ~145. Set threshold above that.
+    localparam DENSITY_THRESH = 8'd160;
 
     // ---- Frame-level accumulators (upper/lower split at line 120) ----
     reg [19:0] frame_y_sum_upper, frame_y_sum_lower;

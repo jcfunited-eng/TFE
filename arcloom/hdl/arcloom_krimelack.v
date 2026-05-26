@@ -41,11 +41,15 @@ module arcloom_krimelack #(
     input  wire [31:0]             resonance,       // scalar resonance R(k) (16.16)
     input  wire                    safe_mode,       // SafeMode flag
 
-    // Recall interface
+    // Recall interface (global CAM)
     input  wire [TRIT_WIDTH-1:0]   query,           // partial state to match
     output reg  [TRIT_WIDTH-1:0]   best_match,      // closest stored motif
     output reg  [7:0]              match_score,     // match quality (0-255)
     output reg                     recall_valid,    // match found
+
+    // Target match interface (single-slot, task-specific)
+    input  wire [TRIT_WIDTH-1:0]   target_motif,    // AXI-writable target (0 = no target)
+    output wire [7:0]              target_match_score, // match vs target (combinational)
 
     // Status
     output wire [ADDR_BITS:0]      motif_count,     // number of stored motifs
@@ -162,5 +166,25 @@ module arcloom_krimelack #(
             recall_valid = 1'b0;
         end
     end
+
+    // ---- Target match: single-slot parallel comparator ----
+    // Same scoring as global CAM recall but against one AXI-writable motif.
+    // Purely combinational. When target_motif = 0 (all null), score = 0.
+    // Used for hunt (high match → approach) and inspect (low match → alert).
+    integer tt;
+    reg [7:0] target_score_r;
+
+    always @(query or target_motif) begin
+        target_score_r = 8'd0;
+        for (tt = 0; tt < TRIT_WIDTH/2; tt = tt + 1) begin
+            if (query[2*tt +: 2] != 2'b00 &&
+                target_motif[2*tt +: 2] != 2'b00 &&
+                query[2*tt +: 2] == target_motif[2*tt +: 2]) begin
+                target_score_r = target_score_r + 8'd1;
+            end
+        end
+    end
+
+    assign target_match_score = target_score_r;
 
 endmodule

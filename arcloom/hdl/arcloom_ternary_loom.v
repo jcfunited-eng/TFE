@@ -271,6 +271,15 @@ module arcloom_top (
     // Software Krimelack commit (for turntable capture)
     input  wire        sw_krim_commit,
 
+    // Runtime camera baselines (from AXI — DSF-AI calibration)
+    input  wire [7:0]  cam_bl_y,
+    input  wire [7:0]  cam_bl_edge,
+    input  wire [7:0]  cam_bl_u,
+    input  wire [7:0]  cam_bl_density,
+
+    // Target motif for hunt/inspect (AXI-writable, full loom state width)
+    input  wire [209:0] target_motif,
+
     // Decision output
     output wire [1:0]  decision_steer,
     output wire [1:0]  decision_speed,
@@ -295,6 +304,7 @@ module arcloom_top (
     output wire        krimelack_recall_valid,
     output wire        krimelack_commit_accepted,
     output wire        krimelack_commit_rejected,
+    output wire [7:0]  target_match_score,
 
     // Debug: raw steer field value (signed 16-bit)
     output wire signed [31:0] debug_steer_field
@@ -317,6 +327,7 @@ module arcloom_top (
     arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd80)) bsil_front (
         .clk(clk), .rst_n(rst_n),
         .adc_value(sensor_adc_front), .adc_valid(sensor_valid_front),
+        .baseline_in(12'd0),
         .bt_distance(front_dist), .bt_direction(front_dir),
         .bt_acceleration(front_accel), .out_valid(front_bsil_valid)
     );
@@ -327,6 +338,7 @@ module arcloom_top (
     arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd111)) bsil_left (
         .clk(clk), .rst_n(rst_n),
         .adc_value(sensor_adc_left), .adc_valid(sensor_valid_left),
+        .baseline_in(12'd0),
         .bt_distance(left_dist), .bt_direction(left_dir),
         .bt_acceleration(left_accel), .out_valid(left_bsil_valid)
     );
@@ -337,6 +349,7 @@ module arcloom_top (
     arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd144)) bsil_right (
         .clk(clk), .rst_n(rst_n),
         .adc_value(sensor_adc_right), .adc_valid(sensor_valid_right),
+        .baseline_in(12'd0),
         .bt_distance(right_dist), .bt_direction(right_dir),
         .bt_acceleration(right_accel), .out_valid(right_bsil_valid)
     );
@@ -355,63 +368,70 @@ module arcloom_top (
 
     wire [15:0] cam_yu_dist, cam_yu_dir, cam_yu_accel;
     wire        cam_yu_valid;
-    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd120)) bsil_cam_y_upper (
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd180)) bsil_cam_y_upper (
         .clk(clk), .rst_n(rst_n),
         .adc_value({4'd0, cam_y_upper}), .adc_valid(cam_valid),
+        .baseline_in({4'd0, cam_bl_y}),
         .bt_distance(cam_yu_dist), .bt_direction(cam_yu_dir),
         .bt_acceleration(cam_yu_accel), .out_valid(cam_yu_valid)
     );
 
     wire [15:0] cam_yl_dist, cam_yl_dir, cam_yl_accel;
     wire        cam_yl_valid;
-    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd120)) bsil_cam_y_lower (
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd180)) bsil_cam_y_lower (
         .clk(clk), .rst_n(rst_n),
         .adc_value({4'd0, cam_y_lower}), .adc_valid(cam_valid),
+        .baseline_in({4'd0, cam_bl_y}),
         .bt_distance(cam_yl_dist), .bt_direction(cam_yl_dir),
         .bt_acceleration(cam_yl_accel), .out_valid(cam_yl_valid)
     );
 
     wire [15:0] cam_eu_dist, cam_eu_dir, cam_eu_accel;
     wire        cam_eu_valid;
-    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd40)) bsil_cam_edge_upper (
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd145)) bsil_cam_edge_upper (
         .clk(clk), .rst_n(rst_n),
         .adc_value({4'd0, cam_edge_upper}), .adc_valid(cam_valid),
+        .baseline_in({4'd0, cam_bl_edge}),
         .bt_distance(cam_eu_dist), .bt_direction(cam_eu_dir),
         .bt_acceleration(cam_eu_accel), .out_valid(cam_eu_valid)
     );
 
     wire [15:0] cam_el_dist, cam_el_dir, cam_el_accel;
     wire        cam_el_valid;
-    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd40)) bsil_cam_edge_lower (
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd145)) bsil_cam_edge_lower (
         .clk(clk), .rst_n(rst_n),
         .adc_value({4'd0, cam_edge_lower}), .adc_valid(cam_valid),
+        .baseline_in({4'd0, cam_bl_edge}),
         .bt_distance(cam_el_dist), .bt_direction(cam_el_dir),
         .bt_acceleration(cam_el_accel), .out_valid(cam_el_valid)
     );
 
     wire [15:0] cam_uu_dist, cam_uu_dir, cam_uu_accel;
     wire        cam_uu_valid;
-    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd128)) bsil_cam_u_upper (
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd121)) bsil_cam_u_upper (
         .clk(clk), .rst_n(rst_n),
         .adc_value({4'd0, cam_u_upper}), .adc_valid(cam_valid),
+        .baseline_in({4'd0, cam_bl_u}),
         .bt_distance(cam_uu_dist), .bt_direction(cam_uu_dir),
         .bt_acceleration(cam_uu_accel), .out_valid(cam_uu_valid)
     );
 
     wire [15:0] cam_ul_dist, cam_ul_dir, cam_ul_accel;
     wire        cam_ul_valid;
-    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd128)) bsil_cam_u_lower (
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd121)) bsil_cam_u_lower (
         .clk(clk), .rst_n(rst_n),
         .adc_value({4'd0, cam_u_lower}), .adc_valid(cam_valid),
+        .baseline_in({4'd0, cam_bl_u}),
         .bt_distance(cam_ul_dist), .bt_direction(cam_ul_dir),
         .bt_acceleration(cam_ul_accel), .out_valid(cam_ul_valid)
     );
 
     wire [15:0] cam_dens_dist, cam_dens_dir, cam_dens_accel;
     wire        cam_dens_valid;
-    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd20)) bsil_cam_density (
+    arcloom_bsil_bt #(.N_TRITS(8), .BASELINE(12'd145)) bsil_cam_density (
         .clk(clk), .rst_n(rst_n),
         .adc_value({4'd0, cam_density}), .adc_valid(cam_valid),
+        .baseline_in({4'd0, cam_bl_density}),
         .bt_distance(cam_dens_dist), .bt_direction(cam_dens_dir),
         .bt_acceleration(cam_dens_accel), .out_valid(cam_dens_valid)
     );
@@ -445,7 +465,14 @@ module arcloom_top (
     wire [7:0] active_familiarity = sw_fam_enable ? sw_familiarity : damped_fam;
 
     // ================================================================
-    // SPPU: 8-trit Loom Fabric (COMBINATIONAL — NO CLOCK)
+    // Speed bias: base forward tilt + target match amplifies forward.
+    // target_match_score 0-105 (full loom width). Scaled: score * 4 via << 2.
+    // Max boost: 105 * 4 = 420. Total: -(800 + 420) = -1220.
+    // When target_motif = 0, score = 0, bias = -800 (unchanged).
+    wire signed [15:0] target_speed_boost = {6'd0, target_match_score, 2'd0}; // score << 2
+    wire signed [15:0] speed_bias_with_target = -16'sd800 - target_speed_boost;
+
+    // SPPU: 12-strand Loom Fabric (COMBINATIONAL — NO CLOCK)
     // 5 input strands × 8 trits + 2 settling × 3 + 1 decision × 3
     // ================================================================
     arcloom_sppu sppu_inst (
@@ -465,7 +492,9 @@ module arcloom_top (
         .ext_h_ctx(16'd0),
         .ext_h_mmtm(16'd0),
         .ext_h_steer(16'd0),
-        .ext_h_speed(-16'd800),          // Tilted potential well: null trits contribute zero, bias tilts toward forward
+        // Speed bias: -800 base forward + target match amplifies forward push.
+        // target_match_score << 5 = * 32. Max: 24*32 = 768 additional forward.
+        .ext_h_speed(speed_bias_with_target),
         .ext_h_conf(16'd0),
         .loom_state(loom_state),
         .decision_steer(decision_steer),
@@ -495,7 +524,7 @@ module arcloom_top (
     //
     // Safe mode: none. Krimelack gates itself via its own thresholds.
     // ================================================================
-    wire [47:0] recalled_motif;
+    wire [209:0] recalled_motif;
 
     // Uncertainty from dimensional freedom: more null trits = more uncertain
     wire [31:0] u_star_from_l6 = {15'd0, n_effective, 10'd0};
@@ -503,18 +532,20 @@ module arcloom_top (
     // Resonance from confinement: high omega = high resonance
     wire [31:0] resonance_from_l6 = {16'd0, omega, 8'd0};
 
-    arcloom_krimelack #(.TRIT_WIDTH(48), .DEPTH(32)) krimelack_inst (
+    arcloom_krimelack #(.TRIT_WIDTH(210), .DEPTH(32)) krimelack_inst (
         .clk(clk), .rst_n(rst_n),
         .commit_request(structural_lock),
         .force_commit(sw_krim_commit),
-        .state_in(loom_state[47:0]),
+        .state_in(loom_state),
         .u_star(u_star_from_l6),
         .resonance(resonance_from_l6),
         .safe_mode(1'b0),
-        .query(loom_state[47:0]),
+        .query(loom_state),
         .best_match(recalled_motif),
         .match_score(krimelack_score),
         .recall_valid(krimelack_recall_valid),
+        .target_motif(target_motif),
+        .target_match_score(target_match_score),
         .motif_count(krimelack_count),
         .commit_accepted(krimelack_commit_accepted),
         .commit_rejected(krimelack_commit_rejected)

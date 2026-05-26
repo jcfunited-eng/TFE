@@ -22,6 +22,23 @@ app = Flask(__name__)
 
 ol = Overlay("/home/xilinx/jupyter_notebooks/ArcLoom/arcloom.bit")
 arcloom = ol.arcloom_0
+MMIO_SIZE = 0x100  # 256 bytes for wider AXI address space
+
+# ---- Auto-calibrate camera baselines from room ----
+# Read current room values and write them as baselines.
+# This makes "room = silence" so only deviations from room
+# produce non-null trits. DSF-AI blade function, running locally.
+import time as _init_time
+_init_time.sleep(2)  # let camera stabilize after overlay load
+_room_34 = arcloom.read(0x34)
+_room_38 = arcloom.read(0x38)
+_bl_y = ((_room_34 & 0xFF) + ((_room_34 >> 8) & 0xFF)) // 2
+_bl_edge = (((_room_34 >> 16) & 0xFF) + ((_room_34 >> 24) & 0xFF)) // 2
+_bl_u = ((_room_38 & 0xFF) + ((_room_38 >> 8) & 0xFF)) // 2
+_bl_density = (_room_38 >> 24) & 0xFF
+# Pack and write: register 0x3C = {density, u, edge, y}
+arcloom.write(0x3C, (_bl_density << 24) | (_bl_u << 16) | (_bl_edge << 8) | _bl_y)
+print(f"Camera baselines set: Y={_bl_y}, Edge={_bl_edge}, U={_bl_u}, Density={_bl_density}")
 
 TRIT_NAMES = {0: "null", 1: "+1", 2: "-1", 3: "INV"}
 TRIT_COLORS = {0: "#555555", 1: "#00ff88", 2: "#ff4444", 3: "#ff00ff"}
@@ -83,8 +100,9 @@ def read_sensors():
     right_adc = (reg_1c >> 16) & 0xFFF
 
     reg_20 = arcloom.read(0x20)
-    familiarity = (reg_20 >> 6) & 0xFF
     motif_count = reg_20 & 0x3F
+    krim_score = (reg_20 >> 14) & 0xFF
+    target_match = (reg_20 >> 24) & 0xFF
 
     reg_24 = arcloom.read(0x24)
     cam_frame_active = bool(reg_24 & (1 << 17))
@@ -95,8 +113,9 @@ def read_sensors():
         "left": left_adc,
         "right": right_adc,
         "motor_on": motor_on,
-        "familiarity": familiarity,
+        "krim_score": krim_score,
         "motif_count": motif_count,
+        "target_match": target_match,
         "cam_active": cam_frame_active,
         "cam_frames": cam_frame_count,
     }
@@ -281,6 +300,45 @@ def api_capture_csv():
     csv_text = "\n".join(lines)
     return Response(csv_text, mimetype='text/csv',
                     headers={"Content-Disposition": "attachment; filename=turntable_capture.csv"})
+
+
+@app.route('/api/set_target', methods=['POST'])
+def api_set_target():
+    """Capture current loom state as the hunt target.
+    Reads loom_state[47:0] and writes it to target_motif registers.
+    This is the blade function: Python reads the structural state
+    and configures the razor's target register."""
+    try:
+        body = request.get_json(force=True)
+        action = body.get("action", "capture")
+        if action == "capture":
+            # Multi-slot capture: read loom_state 8 times over 4 seconds,
+            # force-commit each to Krimelack. Spans flicker and small
+            # variations. Target motif set to the LAST capture.
+            # Krimelack's best-match-across-all-slots handles the rest.
+            import time as _t
+            n_slots = 8
+            for s in range(n_slots):
+                # Force Krimelack commit (bit 1 of register 0x10)
+                arcloom.write(0x10, 0x02)
+                _t.sleep(0.5)
+
+            # Set target motif to current loom state
+            loom_regs = []
+            for i in range(7):
+                loom_regs.append(arcloom.read(0x40 + i * 4))
+            for i in range(7):
+                arcloom.write(0x40 + i * 4, loom_regs[i])
+
+            return jsonify({"target_set": True, "slots": n_slots,
+                            "motif": [hex(r) for r in loom_regs]})
+        elif action == "clear":
+            for i in range(7):
+                arcloom.write(0x40 + i * 4, 0)
+            return jsonify({"target_set": False})
+        return jsonify({"error": "action must be capture or clear"})
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 
 @app.route('/api/motor', methods=['POST'])
@@ -795,20 +853,20 @@ body {
         </div>
     </div>
 
-    <!-- TURNTABLE CAPTURE — records camera data for hw-derive CSV -->
-    <div class="sensor-panel" id="capture-panel">
+    <!-- TARGET HUNT — capture target motif + show match score -->
+    <div class="sensor-panel" id="target-panel">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="font-size:0.75em; color:#ffaa44; font-weight:bold;">TURNTABLE CAPTURE</span>
-            <span id="capture-status" style="font-size:0.65em; color:#666;">idle</span>
+            <span style="font-size:0.75em; color:#ff4488; font-weight:bold;">TARGET</span>
+            <span id="target-score" style="font-size:1.2em; font-weight:bold; color:#555;">0</span>
         </div>
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-            <button class="demo-btn" id="btn-cap-lying" onclick="startCapture('lying')" style="flex:1; padding:10px 0; font-size:0.85em; background:#ffaa44; color:#000;">LYING</button>
-            <button class="demo-btn" id="btn-cap-standing" onclick="startCapture('standing')" style="flex:1; padding:10px 0; font-size:0.85em; background:#ff8844; color:#000;">STANDING</button>
-            <button class="demo-btn" id="btn-cap-stop" onclick="stopCapture()" style="flex:0.6; padding:10px 0; font-size:0.85em; background:#442200; color:#ffaa44;">STOP</button>
+        <div class="sensor-row">
+            <span class="sensor-label">Match</span>
+            <div class="sensor-bar-bg"><div class="sensor-bar" id="bar-target" style="width:0%;background:#ff4488;"></div></div>
+            <span class="sensor-val" id="val-target">0</span>
         </div>
-        <div style="display:flex; gap:8px;">
-            <button class="demo-btn" onclick="downloadCSV()" style="flex:1; padding:8px 0; font-size:0.75em; background:#1a1a1a; color:#ffaa44; border:1px solid #333;">DOWNLOAD CSV</button>
-            <button class="demo-btn" onclick="clearCapture()" style="flex:0.5; padding:8px 0; font-size:0.75em; background:#1a1a1a; color:#664422; border:1px solid #222;">CLEAR</button>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="demo-btn" onclick="captureTarget()" style="flex:1; padding:12px 0; font-size:1em; background:#ff4488; color:#fff;">CAPTURE TARGET</button>
+            <button class="demo-btn" onclick="clearTarget()" style="flex:0.5; padding:12px 0; font-size:0.8em; background:#331122; color:#ff4488;">CLEAR</button>
         </div>
     </div>
 
@@ -898,6 +956,14 @@ function downloadCSV() {
     window.open('/api/capture_csv', '_blank');
 }
 
+// ---- Target capture ----
+async function captureTarget() {
+    await fetch('/api/set_target', {method:'POST', body:JSON.stringify({action:'capture'})});
+}
+async function clearTarget() {
+    await fetch('/api/set_target', {method:'POST', body:JSON.stringify({action:'clear'})});
+}
+
 // ---- Loom display ----
 const STRAND_ORDER = [
     'context', 'momentum', 'decision'
@@ -969,8 +1035,16 @@ async function poll() {
         document.getElementById('bar-right').style.background = barColor(s.right);
         document.getElementById('val-right').textContent = s.right;
 
-        document.getElementById('val-fam').textContent = s.familiarity;
+        document.getElementById('val-fam').textContent = s.krim_score || 0;
         document.getElementById('val-motifs').textContent = s.motif_count;
+
+        // Target match score
+        const tms = s.target_match || 0;
+        const tmPct = Math.min(100, (tms / 24) * 100);
+        document.getElementById('bar-target').style.width = tmPct + '%';
+        document.getElementById('val-target').textContent = tms;
+        document.getElementById('target-score').textContent = tms;
+        document.getElementById('target-score').style.color = tms > 12 ? '#ff4488' : '#555';
 
         const mstat = document.getElementById('motor-status');
         mstat.textContent = s.motor_on ? 'MOTORS ON' : 'MOTORS OFF';

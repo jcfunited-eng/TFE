@@ -1,0 +1,734 @@
+% ============================================================
+%  Krimelack: Content-Addressable Structural Memory
+%  with Clockless Habituation for Ternary Perception Systems
+%  Version 1.0 — May 2026
+%  Confidential — Internal Use Only
+% ============================================================
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{booktabs, array, longtable}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+% algorithm packages removed (not available in this TeX distribution)
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!60!black,
+}
+
+\definecolor{nm-dark}{RGB}{30, 30, 30}
+\definecolor{nm-gray}{RGB}{100, 100, 100}
+\definecolor{nm-green}{RGB}{20, 100, 40}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textcolor{nm-gray}{\small Krimelack Paper v1.0}}
+\lhead{\textcolor{nm-gray}{\small Confidential --- Internal Use Only}}
+\cfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries\color{nm-dark}}{\thesection}{0.6em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{nm-dark}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\itshape\color{nm-dark}}{\thesubsubsection}{0.6em}{}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\onehalfspacing
+
+\newtheorem{definition}{Definition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{remark}{Remark}[section]
+
+\begin{document}
+
+\begin{center}
+  {\LARGE \textbf{Krimelack}}\\[6pt]
+  {\large Content-Addressable Structural Memory with}\\[2pt]
+  {\large Clockless Habituation for Ternary Perception Systems}\\[10pt]
+  {\color{nm-gray}\small Version 1.0 \quad|\quad May 2026 \quad|\quad Confidential}\\[4pt]
+  {\color{nm-gray}\small Joseph Forrester \quad|\quad DSF-AI Architecture}
+\end{center}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ============================================================
+\section*{Abstract}
+
+We present Krimelack, a content-addressable structural memory
+architecture for balanced ternary perception systems. Krimelack
+stores \textit{structural motifs} --- settled states of a
+combinational coupling fabric --- and provides cue-based recall
+with clockless habituation feedback. Unlike conventional
+content-addressable memories (CAMs) that match bit patterns,
+Krimelack stores coupled multi-field patterns in balanced ternary
+($-1, 0, +1$) and scores matches by counting agreeing non-null
+trits, giving the null state ($0$) a computational role: it
+represents structural uncertainty, not a value to be matched.
+
+The architecture combines four capabilities that do not exist
+together in any prior system: (i)~structural motif storage with
+quality-gated commits, (ii)~parallel cue-based recall from partial
+signatures, (iii)~pattern-level habituation via combinational
+dead-zone feedback, and (iv)~autonomous commit gating based on
+dimensional exhaustion detection. Krimelack has been implemented
+in Verilog, validated on Xilinx Zynq-7020 FPGA silicon, and
+demonstrated in autonomous robot navigation with camera and IR
+sensor fusion (351 samples, 176 seconds continuous operation).
+
+\textbf{Gate count:} $\sim$4,600 equivalent gates per block
+(64-entry, 48-bit). \textbf{Recall latency:} combinational
+(zero clock cycles). \textbf{Prior art:} none for the combined
+architecture.
+
+\tableofcontents
+
+% ============================================================
+\section{Introduction}
+
+\subsection{The Problem}
+
+Perception systems that operate without training --- where a
+single exposure must suffice for future recognition --- require
+a memory architecture fundamentally different from neural network
+weight matrices or conventional lookup tables.
+
+The requirements are:
+\begin{enumerate}[nosep]
+  \item \textbf{Store structural patterns, not raw data.}
+        The memory must capture the settled state of a
+        perception system, not the sensor input that caused it.
+  \item \textbf{Recall from partial cues.}
+        A noisy or incomplete sensor input must retrieve the
+        closest stored pattern, not fail on exact mismatch.
+  \item \textbf{Reject noise.}
+        Patterns captured during ambiguous or uncertain
+        perception must be blocked from storage.
+  \item \textbf{Habituate to familiarity.}
+        Repeated exposure to the same environment must not
+        produce the same response indefinitely. The system
+        must seek novelty.
+  \item \textbf{Operate without a clock in the recall path.}
+        For integration with combinational perception
+        hardware (nanosecond settling), recall must be
+        combinational.
+\end{enumerate}
+
+No existing memory architecture satisfies all five requirements.
+
+\subsection{Context: The SPPU Perception Fabric}
+
+Krimelack is designed for the ArcLoom Structural Perception
+Processing Unit (SPPU), a combinational balanced ternary
+coupling fabric that settles to perception decisions through
+wire propagation in $\sim$5~ns. The SPPU produces a
+\textit{loom state}: a vector of balanced ternary trits
+($-1, 0, +1$) encoded as 2-bit pairs across multiple
+coupled strands.
+
+The loom state captures what the perception system
+\textit{committed to} given a set of sensor inputs. Trits
+at $\pm 1$ represent structural commitments. Trits at $0$
+represent dimensions where coupling pressure was insufficient
+to force a decision --- structural uncertainty, not missing
+data.
+
+Krimelack stores these loom states as \textit{motifs} and
+provides cue-based recall to enable temporal pattern recognition
+across perception events.
+
+\subsection{Naming}
+
+``Krimelack'' derives from the concept of a ``crime of the
+lacquer'' --- a structural record that cannot be erased once
+committed, like a flaw sealed under a coat of lacquer. A
+committed motif is a permanent structural fact, not a mutable
+variable.
+
+% ============================================================
+\section{Architecture}
+
+\subsection{Memory Structure}
+
+\begin{definition}[Motif]
+A \textbf{motif} is a stored loom state: a vector of $N$
+balanced ternary trits encoded as $2N$ bits.
+\begin{itemize}[nosep]
+  \item \texttt{00} = null ($0$): structural uncertainty
+  \item \texttt{01} = positive ($+1$): excitatory commitment
+  \item \texttt{10} = negative ($-1$): inhibitory commitment
+  \item \texttt{11} = invalid (never stored)
+\end{itemize}
+\end{definition}
+
+The current FPGA implementation uses:
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Trits per motif & 24 (8 strands $\times$ 3 settling/decision trits) \\
+Bits per motif & 48 \\
+Motif depth & 32 entries (circular buffer) \\
+Hash width & 8 bits (XOR-fold duplicate detection) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Functional Blocks}
+
+Krimelack consists of four functional blocks:
+
+\begin{enumerate}
+  \item \textbf{Motif Store:} A register array holding $D$ motifs
+        of $W$ bits each, with a circular write pointer and
+        occupancy counter.
+
+  \item \textbf{Commit Gate:} Quality filter that determines
+        whether a candidate motif is eligible for storage.
+        Prevents committing noise, duplicates, or ambiguous
+        states.
+
+  \item \textbf{Recall Engine:} Parallel comparator that scores
+        every stored motif against a query pattern simultaneously.
+        Returns the best match and its score. Purely combinational
+        --- zero clock cycles for recall.
+
+  \item \textbf{Habituation Feedback:} The match score feeds back
+        into the SPPU's dead-zone thresholds, raising the
+        commitment barrier for familiar patterns. This is the
+        mechanism by which Krimelack produces novelty-seeking
+        behavior without any clock or timer.
+\end{enumerate}
+
+% ============================================================
+\section{Commit Gating}
+
+\subsection{The Problem of Noisy Commits}
+
+A perception system that stores every loom state would fill its
+memory with noise --- transient states, sensor glitches, and
+ambiguous readings. Krimelack uses \textit{commit gating} to
+ensure that only structurally significant states are stored.
+
+\subsection{Commit Eligibility Criteria}
+
+A motif is committed if and only if ALL of the following hold:
+
+\begin{enumerate}[nosep]
+  \item \textbf{Structural lock (L6):} The dimensional exhaustion
+        detector has fired, indicating that the loom state has
+        collapsed to a geometrically inevitable configuration.
+        Formally: the number of non-null trits exceeds the
+        threshold $n_{start}/e$, where $n_{start}$ is the total
+        number of trits and $e = 2.718\ldots$ is Euler's number.
+
+  \item \textbf{Low uncertainty:} The adjusted uncertainty
+        $U^* \leq U_{settle}$ (default: $0.35$ in Q16.16
+        fixed-point). This ensures the perception system is
+        confident about the current state.
+
+  \item \textbf{Sufficient resonance:} The resonance score
+        $R \geq R_{commit}$ (default: $0.72$ in Q16.16).
+        This ensures the state has structural coherence, not
+        just low noise.
+
+  \item \textbf{SafeMode inactive:} The system is not in a
+        protective mode that suppresses storage.
+
+  \item \textbf{No duplicate:} The candidate motif does not
+        already exist in memory. Checked via hash-based
+        comparison (XOR-fold to 8 bits, followed by exact
+        bit comparison on hash collision).
+\end{enumerate}
+
+\subsection{Forced Commit (Software Capture)}
+
+For calibration and training scenarios (e.g., turntable object
+capture), software can trigger a commit via AXI register write.
+The forced commit bypasses criteria (1)--(4) but still enforces
+criterion (5) --- duplicate detection is never disabled. This
+ensures idempotency: presenting the same stimulus twice never
+produces two motifs.
+
+\subsection{Formal Specification}
+
+\begin{equation}
+  \text{commit} =
+  \begin{cases}
+    1 & \text{if } (\text{L6\_fire} \wedge U^* \leq U_s
+        \wedge R \geq R_c \wedge \neg\text{safe}
+        \wedge \neg\text{dup}) \\
+      & \quad \vee\; (\text{force} \wedge \neg\text{dup}) \\
+    0 & \text{otherwise}
+  \end{cases}
+\end{equation}
+
+% ============================================================
+\section{Recall: Parallel Pattern Matching}
+
+\subsection{Scoring Function}
+
+The recall engine compares a query pattern $Q$ against every
+stored motif $M_k$ ($k = 0, \ldots, D-1$) simultaneously.
+The score counts the number of trits where both the query
+and the motif are non-null and agree:
+
+\begin{equation}
+  \text{score}(Q, M_k) = \sum_{i=0}^{N-1}
+  \begin{cases}
+    1 & \text{if } Q_i \neq 0 \wedge M_{k,i} \neq 0
+        \wedge Q_i = M_{k,i} \\
+    0 & \text{otherwise}
+  \end{cases}
+\end{equation}
+
+\subsection{The Role of the Null Trit}
+
+This scoring function treats the null trit ($0$) differently
+from $+1$ and $-1$:
+
+\begin{itemize}[nosep]
+  \item A null trit in the query means ``I don't have information
+        about this dimension.'' It neither contributes to nor
+        penalizes the score.
+  \item A null trit in the motif means ``the perception system
+        was uncertain about this dimension when the motif was
+        committed.'' It neither contributes to nor penalizes the
+        score.
+  \item Only trits where \textit{both} query and motif are
+        committed ($\pm 1$) and \textit{agree} contribute to
+        the score.
+\end{itemize}
+
+This is fundamentally different from binary CAM matching, where
+every bit contributes. In Krimelack, the null trit is \textit{not}
+a value --- it is the absence of commitment. Two patterns can
+match perfectly on all committed dimensions while having different
+numbers of null trits. This is correct behavior: if the perception
+system was uncertain about a dimension, that dimension should not
+affect recognition.
+
+\subsection{Best-Match Selection}
+
+The motif with the highest score is returned as the best match.
+Ties are broken by index (earliest stored motif wins --- temporal
+priority).
+
+\begin{equation}
+  k^* = \arg\max_{k:\, k < D,\, \text{count}[k] > 0}
+  \text{score}(Q, M_k)
+\end{equation}
+
+The recall outputs are:
+\begin{itemize}[nosep]
+  \item \texttt{best\_match}: the full motif $M_{k^*}$
+  \item \texttt{match\_score}: $\text{score}(Q, M_{k^*})$
+        as an 8-bit integer
+  \item \texttt{recall\_valid}: $1$ if any match was found,
+        $0$ if memory is empty
+\end{itemize}
+
+\subsection{Combinational Implementation}
+
+The entire recall engine is implemented as combinational logic.
+No clock is required. The query propagates through the comparator
+array and the best-match result appears at the output wires
+within one propagation delay.
+
+For a 32-entry, 48-bit implementation:
+\begin{itemize}[nosep]
+  \item 32 parallel comparators ($\times$ 24 trits each)
+  \item 32 score accumulators (8-bit each)
+  \item 5-stage binary max-tree to find the best score
+  \item Total: $\sim$2,000 equivalent gates
+\end{itemize}
+
+Recall latency is determined by propagation delay through the
+comparator tree, approximately 3--5~ns in 7nm FinFET. This
+matches the SPPU settling time, allowing the recall result to
+feed back into the same perception cycle.
+
+% ============================================================
+\section{Clockless Habituation}
+
+\subsection{The Corner-Trapping Problem}
+
+A combinational perception system with a fixed dead zone
+produces identical output for identical input. If the system
+encounters a corner (a sensor state that produces a strong
+coupling response), it will commit to the same decision
+indefinitely. There is no escape. No clock-based timeout.
+No iteration counter. The system is trapped by its own
+correct behavior.
+
+Traditional solutions require clocks or timers. Krimelack
+solves this without either.
+
+\subsection{Dead-Zone Feedback Mechanism}
+
+The match score from recall feeds directly into the SPPU's
+dead-zone threshold:
+
+\begin{equation}
+  \boxed{
+  \tau_{\text{eff}} = \tau_{\text{base}} + f(\text{match\_score})
+  }
+\end{equation}
+
+where $f$ is a damped mapping (score changes must exceed a
+barrier of $\sim$15 units to propagate, preventing oscillation
+from small score fluctuations).
+
+\textbf{Familiar states} (high match score) raise the
+commitment barrier. Trits that barely exceeded the dead zone
+now fall below it and revert to null. The loom state changes.
+A different decision emerges.
+
+\textbf{Novel states} (low match score) leave the dead zone
+at its baseline. Full sensitivity. Maximum coupling.
+
+\textbf{No clock. No timer. No iteration.} The feedback is a
+combinational loop: SPPU output $\to$ Krimelack recall $\to$
+match score $\to$ SPPU dead zone $\to$ different SPPU output.
+The loop settles to a fixed point where the dead-zone
+adjustment is self-consistent.
+
+\subsection{Cognitive Consequences}
+
+The dead-zone feedback produces emergent behaviors that mirror
+biological cognition:
+
+\begin{center}
+\begin{tabular}{@{}lp{9cm}@{}}
+\toprule
+\textbf{Behavior} & \textbf{Mechanism} \\
+\midrule
+\textbf{Novelty seeking} & Familiar states are harder to commit
+  to; system gravitates toward unfamiliar states \\
+\textbf{Attention} & Novel stimuli get full sensitivity; repeated
+  stimuli get diminished sensitivity \\
+\textbf{Boredom} & Sustained identical input raises dead zone
+  until no trits commit; system goes silent \\
+\textbf{Creativity} & Familiar responses suppressed; only novel
+  decisions remain available \\
+\textbf{Recognition} & Partial cue retrieves full motif; system
+  ``remembers'' the structural state \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+These behaviors are not designed or programmed. They are
+mathematical consequences of dead-zone feedback from a
+content-addressable memory. They emerge from the architecture.
+
+\subsection{Stability Analysis}
+
+The feedback loop is stable because:
+\begin{enumerate}[nosep]
+  \item The damping barrier prevents small fluctuations from
+        propagating (hysteresis)
+  \item The dead-zone increase is monotonic with match score
+        (no oscillation)
+  \item The maximum dead-zone increase is bounded (cannot
+        exceed the maximum coupling pressure, which would
+        prevent all commitment)
+  \item The loop settles in one propagation delay (no
+        multi-cycle ringing)
+\end{enumerate}
+
+% ============================================================
+\section{TSAC Native Habituation (Future)}
+
+On ferroelectric substrates (e.g., HfO$_2$-based Ternary
+State Analog Cells), habituation becomes a free physical
+property of the material.
+
+\subsection{Mechanism}
+
+Sustained polarization in one direction causes dielectric
+fatigue --- the potential barrier rises with repeated identical
+state:
+\begin{itemize}[nosep]
+  \item Sustained $+1$ $\to$ barrier: 20 $\to$ 22 $\to$ 25
+        $\to$ 28
+  \item Barrier exceeds coupling pressure $\to$ trit falls to null
+  \item Null (rest) $\to$ barrier recovers $\to$ fresh sensitivity
+\end{itemize}
+
+The RC time constant of the ferroelectric material IS the
+habituation rate. No circuit. No logic. Physics.
+
+\subsection{Two-Layer Architecture}
+
+On ASIC, both layers operate simultaneously:
+\begin{itemize}[nosep]
+  \item \textbf{Substrate layer} (TSAC fatigue): fast, local,
+        per-trit. Physical depletion of the commitment mechanism.
+  \item \textbf{Cognitive layer} (Krimelack feedback): slower,
+        global, pattern-level. Experiential familiarity across
+        the full loom state.
+\end{itemize}
+
+This mirrors biology: receptor saturation (fast, local) and
+cortical habituation (slow, global) operating at different
+scales.
+
+% ============================================================
+\section{Gate Count and Physical Implementation}
+
+\subsection{CMOS Gate Count}
+
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Component} & \textbf{Equivalent Gates} \\
+\midrule
+Motif register array (32 entries $\times$ 48 bits) & 1,536 \\
+Hash table (32 entries $\times$ 8 bits) & 256 \\
+Duplicate detection (32 parallel hash + exact compare) & 200 \\
+Commit control (eligibility logic + write pointer) & 100 \\
+Recall comparators (32 $\times$ 24-trit parallel match) & 1,600 \\
+Score accumulators (32 $\times$ 8-bit) & 400 \\
+Best-match tree (5-stage binary max) & 200 \\
+Habituation feedback (match score $\to$ dead-zone adder) & 144 \\
+\midrule
+\textbf{Total per Krimelack block} & \textbf{$\sim$4,600} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Scaling}
+
+\begin{center}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Configuration} & \textbf{Entries} & \textbf{Gates} &
+\textbf{Recall (7nm)} \\
+\midrule
+Minimal (FPGA demo) & 32 & 4,600 & $\sim$3~ns \\
+Standard (ArcLoom-256) & 64 & 8,400 & $\sim$4~ns \\
+Extended (vision) & 256 & 30,000 & $\sim$6~ns \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Recall latency scales logarithmically with depth (max-tree
+depth = $\log_2 D$). Even at 256 entries, recall completes
+within the SPPU settling window.
+
+\subsection{Power}
+
+Krimelack's recall path is combinational: zero dynamic power
+between queries. The commit path requires a clock edge for
+register writes, but commits are rare (only when L6 fires
+and all eligibility criteria are met). Typical commit rate:
+$<$1~Hz. Power contribution: negligible.
+
+% ============================================================
+\section{Comparison with Prior Art}
+
+\subsection{Ternary Content-Addressable Memory (TCAM)}
+
+TCAMs are deployed in every enterprise network router. They
+match against three states (0, 1, X = don't care) in parallel.
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Property} & \textbf{TCAM} & \textbf{Krimelack} \\
+\midrule
+Third state meaning & Wildcard (don't care) & Structural uncertainty \\
+Match scoring & Exact match or fail & Graded (count of agreements) \\
+Null contribution & Matches anything & Contributes nothing \\
+Habituation & None & Dead-zone feedback \\
+Commit gating & None & Quality-filtered \\
+Application & Address lookup & Structural perception \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Hopfield Networks}
+
+Hopfield networks store patterns as energy minima and recall
+via iterative energy minimization.
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Property} & \textbf{Hopfield} & \textbf{Krimelack} \\
+\midrule
+Storage method & Distributed in weights & Explicit motif registers \\
+Recall method & Iterative settling & Single combinational pass \\
+Weight symmetry & Required ($W_{ij} = W_{ji}$) & Not applicable \\
+Training & Hebbian learning rule & None (commit gating) \\
+Capacity & $\sim$0.14$N$ patterns & $D$ entries (configurable) \\
+Spurious attractors & Yes (mixture states) & No (exact storage) \\
+Recall time & Multiple iterations & $\sim$3--5~ns \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Memristor Habituation (Nature Communications, 2025)}
+
+Third-order HfO$_2$/TiO$_x$ memristors with physical habituation.
+Robot arm ignores 71\% of familiar stimuli.
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Property} & \textbf{Memristor} & \textbf{Krimelack} \\
+\midrule
+Habituation level & Per-synapse (local) & Pattern-level (global) \\
+Habituation type & Analog (continuous) & Digital (threshold) \\
+Context & Embedded in trained SNN & Standalone, no ML \\
+Recall type & SNN inference & Combinational CAM \\
+Training required & Yes (SNN weights) & No \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Summary: What Krimelack Has That Nobody Else Has}
+
+\begin{enumerate}[nosep]
+  \item \textbf{Structural motif storage} --- coupled multi-field
+        ternary patterns, not bit vectors or weight distributions
+  \item \textbf{Null-trit-aware scoring} --- uncertainty dimensions
+        excluded from matching, not wildcarded
+  \item \textbf{Quality-gated commits} --- dimensional exhaustion
+        + uncertainty + resonance filtering prevents noise storage
+  \item \textbf{Clockless pattern-level habituation} --- dead-zone
+        feedback from match score, no clock, no timer
+  \item \textbf{Combined in one architecture} --- no prior system
+        provides all four
+\end{enumerate}
+
+% ============================================================
+\section{Validation}
+
+\subsection{FPGA Implementation}
+
+Krimelack is implemented in Verilog
+(\texttt{arcloom\_krimelack.v}, 167 lines) and validated on
+Xilinx Zynq-7020 (PYNQ-Z2 board).
+
+\subsection{Demonstrated Capabilities}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Capability} & \textbf{Status} & \textbf{Evidence} \\
+\midrule
+Motif commit gating (L6) & \textbf{Proven} & Motifs stored only on
+  structural lock \\
+Forced commit (AXI) & \textbf{Proven} & Software-triggered capture
+  via register write \\
+Duplicate detection & \textbf{Proven} & Same stimulus never produces
+  two motifs \\
+Cue-based recall & \textbf{Proven} & Partial query retrieves best
+  match \\
+Dead-zone feedback & \textbf{Proven} & Familiarity damping in live
+  sensor loop \\
+Autonomous navigation & \textbf{Proven} & 351 samples, 176s,
+  3 IR + camera \\
+Vision discrimination & \textbf{Proven (sim)} & 5 objects,
+  0.11--0.36 match gaps \\
+One-shot learning & \textbf{Proven} & Single turntable capture
+  $\to$ recognition \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Vision Results}
+
+Five realistic objects discriminated using camera-derived motifs:
+
+\begin{itemize}[nosep]
+  \item Match gap between objects: 0.11--0.36 (robust discrimination)
+  \item Same object with different noise: 0.895--0.954 (reliable recall)
+  \item Memory per object: $\sim$4~KB structural fingerprint
+  \item Training: zero. Single exposure via forced commit.
+  \item Hardware: $\sim$4,600 gates of Krimelack + $\sim$2,250 gates
+        of SPPU = $<$7,000 gates total
+\end{itemize}
+
+% ============================================================
+\section{Applications}
+
+\subsection{Immediate (FPGA)}
+
+\begin{itemize}[nosep]
+  \item Autonomous robot obstacle memory (``I've been here before'')
+  \item Object recognition from turntable capture (one-shot learning)
+  \item Sensor anomaly detection (novel states vs familiar baseline)
+\end{itemize}
+
+\subsection{Near-Term (ASIC)}
+
+\begin{itemize}[nosep]
+  \item Implantable medical sensors: cardiac rhythm motifs stored
+        on-chip, anomaly = novel pattern not matching any stored motif
+  \item Environmental monitoring: decade-life sensors that learn
+        their ``normal'' environment and alert on structural novelty
+  \item Safety-critical systems: deterministic pattern recognition
+        with provable behavior (combinational, no software)
+\end{itemize}
+
+\subsection{Long-Term (TSAC)}
+
+\begin{itemize}[nosep]
+  \item Ferroelectric substrate: per-trit habituation as a free
+        physical property
+  \item Two-layer habituation: substrate (fast, local) + Krimelack
+        (slow, global)
+  \item Brain-scale structural memory: millions of motifs with
+        physics-based adaptation
+\end{itemize}
+
+% ============================================================
+\section{Conclusion}
+
+Krimelack is a content-addressable structural memory architecture
+that stores balanced ternary motifs with quality-gated commits,
+parallel cue-based recall, and clockless pattern-level habituation.
+It is the first memory system to combine all four capabilities in
+a single architecture.
+
+The null trit is not a wildcard or a don't-care bit. It is
+structural uncertainty --- a first-class computational state that
+influences matching, habituation, and dimensional exhaustion
+detection. This distinction is fundamental: Krimelack does not
+\textit{match patterns}. It recognizes structural states by
+measuring how many committed dimensions agree. Dimensions where
+the system was uncertain are honestly excluded.
+
+The habituation mechanism --- dead-zone feedback from match
+score --- produces novelty-seeking, attention, boredom, and
+creativity as emergent consequences of the architecture, not as
+designed behaviors. These cognitive properties arise from the
+mathematics of a combinational feedback loop between a
+content-addressable memory and a coupling fabric with dead zones.
+
+Krimelack has been validated on FPGA silicon in autonomous robot
+navigation with camera and IR sensor fusion. It operates at
+$\sim$4,600 gates with combinational recall latency of
+$\sim$3--5~ns. No prior art exists for the combined architecture.
+
+\vspace{2em}
+\hrule
+\vspace{0.5em}
+{\color{nm-gray}\small This document is confidential and for
+internal use only. Krimelack is a component of the ArcLoom SPPU
+architecture, the intellectual property of Joseph Forrester /
+DSF-AI. The coupling weight derivation methodology and UF pipeline
+internals are trade secrets and are not disclosed in this document.}
+
+\end{document}

@@ -43,7 +43,7 @@ module arcloom_cam_i2c (
 
     // ---- Init register table ----
     // Format: {16-bit addr, 8-bit data}
-    localparam NUM_REGS = 55;
+    localparam NUM_REGS = 56;
 
     reg [23:0] init_regs [0:NUM_REGS-1];
 
@@ -108,29 +108,34 @@ module arcloom_cam_i2c (
         init_regs[35] = {16'h5001, 8'hA3};  // ISP: SDE, scale, UV avg, color matrix, AWB
         init_regs[36] = {16'h501F, 8'h00};  // Format mux: ISP output = YUV
 
-        // ======== 10. AEC/AGC ========
-        init_regs[37] = {16'h3A00, 8'h78};  // AEC: band enable, gain enable, exposure enable
-        init_regs[38] = {16'h3503, 8'h00};  // Auto mode (bit0=0 auto exp, bit1=0 auto gain)
-        init_regs[39] = {16'h3A08, 8'h01};  // B50 step high
-        init_regs[40] = {16'h3A09, 8'h27};  // B50 step low = 295
-        init_regs[41] = {16'h3A0A, 8'h00};  // B60 step high
-        init_regs[42] = {16'h3A0B, 8'hF6};  // B60 step low = 246
-        init_regs[43] = {16'h3A0D, 8'h08};  // B50 max step count
-        init_regs[44] = {16'h3A0E, 8'h06};  // B60 max step count
-        init_regs[45] = {16'h3A0F, 8'h58};  // Stable range high = 88 (target ~80)
-        init_regs[46] = {16'h3A10, 8'h50};  // Stable range low = 80
-        init_regs[47] = {16'h3A1B, 8'h58};  // Fast zone high = 88
-        init_regs[48] = {16'h3A1E, 8'h50};  // Fast zone low = 80
-        init_regs[49] = {16'h3A11, 8'hF0};  // Max gain ceiling = 15x
-        init_regs[50] = {16'h3A1F, 8'h14};  // AEC max step
+        // ======== 10. AEC/AGC with 60Hz flicker band filter ========
+        // Indoor fluorescent lights flicker at 2× mains frequency (120Hz for US 60Hz).
+        // Without band filtering, exposure spans non-integer flicker periods,
+        // producing alternating bright/dark frames that dominate structural data.
+        // Band filter synchronizes exposure to mains period — standard indoor setup.
+        init_regs[37] = {16'h3C01, 8'h80};  // Enable auto 50/60Hz band detection
+        init_regs[38] = {16'h3A00, 8'h7C};  // AEC: band ON, band auto, gain step, gain, exposure
+        init_regs[39] = {16'h3503, 8'h02};  // Manual AGC (bit1=1), auto AEC (bit0=0)
+        init_regs[40] = {16'h3A08, 8'h01};  // B50 step high
+        init_regs[41] = {16'h3A09, 8'h27};  // B50 step low = 295
+        init_regs[42] = {16'h3A0A, 8'h00};  // B60 step high
+        init_regs[43] = {16'h3A0B, 8'hF6};  // B60 step low = 246
+        init_regs[44] = {16'h3A0D, 8'h08};  // B50 max step count
+        init_regs[45] = {16'h3A0E, 8'h06};  // B60 max step count
+        init_regs[46] = {16'h3A0F, 8'h58};  // Stable range high = 88
+        init_regs[47] = {16'h3A10, 8'h50};  // Stable range low = 80
+        init_regs[48] = {16'h3A1B, 8'h58};  // Fast zone high = 88
+        init_regs[49] = {16'h3A1E, 8'h50};  // Fast zone low = 80
+        init_regs[50] = {16'h350A, 8'h00};  // Manual gain high = 0
+        init_regs[51] = {16'h350B, 8'h10};  // Manual gain low = 16 (1.0x gain)
 
         // ======== 11. OUTPUT FORMAT ========
-        init_regs[51] = {16'h4300, 8'h30};  // YUV422, YUYV order
+        init_regs[52] = {16'h4300, 8'h30};  // YUV422, YUYV order
 
         // ======== 12. DVP ENABLE ========
-        init_regs[52] = {16'h3017, 8'hFF};  // DVP data pins enable
-        init_regs[53] = {16'h3018, 8'hFF};  // DVP control pins enable
-        init_regs[54] = {16'h3019, 8'h00};  // DVP PCLK polarity: normal
+        init_regs[53] = {16'h3017, 8'hFF};  // DVP data pins enable
+        init_regs[54] = {16'h3018, 8'hFF};  // DVP control pins enable
+        init_regs[55] = {16'h3019, 8'h00};  // DVP PCLK polarity: normal
     end
 
     // ---- I2C state machine ----

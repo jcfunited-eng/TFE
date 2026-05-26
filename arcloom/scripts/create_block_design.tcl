@@ -26,9 +26,9 @@ apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 \
     [get_bd_cells ps7]
 
 
-# Add ArcLoom wrapper (now ADDR_WIDTH=6 for 16 registers)
+# Add ArcLoom wrapper (ADDR_WIDTH=8 for 64 registers)
 create_bd_cell -type module -reference arcloom_axi_wrapper arcloom_0
-set_property CONFIG.C_S_AXI_ADDR_WIDTH 6 [get_bd_cells arcloom_0]
+set_property CONFIG.C_S_AXI_ADDR_WIDTH 8 [get_bd_cells arcloom_0]
 
 # ============================================================
 # XADC — 3-channel reader (front/left/right sensors)

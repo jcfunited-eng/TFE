@@ -35,6 +35,7 @@ from dsf_ai_service.cluster_screener import (
     find_thermocouple_pairs,
 )
 from dsf_ai_service.narrator import narrate_results
+from dsf_ai_service.cff_discovery import run_discovery, verify_candidate
 
 app = FastAPI(
     title="DSF-AI Structural Analysis Service",
@@ -387,6 +388,64 @@ async def hw_derive(req: HWDeriveRequest):
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(500, str(e))
+
+
+# ════════════════════════════════════════════════════════════════
+# Endpoint 6: CFF Discovery Algorithm
+# ════════════════════════════════════════════════════════════════
+
+class DiscoveryRequest(BaseModel):
+    target_property: str = "RTSC"
+    max_pressure_GPa: float = 0
+    must_be_2D: bool = False
+    must_be_gateable: bool = False
+    exclude_families: Optional[List[str]] = None
+
+
+@app.post("/api/v1/discover")
+async def discover(req: DiscoveryRequest):
+    """
+    CFF Discovery Algorithm: given a target property,
+    output the forced architectural class and ranked candidates.
+    """
+    t0 = time.time()
+    try:
+        result = run_discovery(
+            target_property=req.target_property,
+            max_pressure_GPa=req.max_pressure_GPa,
+            must_be_2D=req.must_be_2D,
+            must_be_gateable=req.must_be_gateable,
+            exclude_families=req.exclude_families,
+        )
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(500, str(e))
+    result['compute_time_ms'] = round((time.time() - t0) * 1000, 1)
+    return result
+
+
+class VerifyRequest(BaseModel):
+    composition: str
+    substrate: str
+    target_property: str = "RTSC"
+
+
+@app.post("/api/v1/discover/verify")
+async def discover_verify(req: VerifyRequest):
+    """
+    Verify mode: check which CFF filters a specific
+    candidate passes or fails.
+    """
+    try:
+        result = verify_candidate(
+            composition=req.composition,
+            substrate=req.substrate,
+            target_property=req.target_property,
+        )
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(500, str(e))
+    return result
 
 
 # ════════════════════════════════════════════════════════════════

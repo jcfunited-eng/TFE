@@ -31,7 +31,17 @@
       "WebFetch(domain:search.brave.com)",
       "Bash(GIT_PAGER=cat bash /workspaces/Tao_Financial_Engine/tools/deploy_to_prod_with_evidence.sh)",
       "Bash(python3 -c ':*)",
-      "WebFetch(domain:api.reddit.com)"
+      "WebFetch(domain:api.reddit.com)",
+      "Bash(ls -la /workspaces/Tao_Financial_Engine/docs/UFCP_* /workspaces/Tao_Financial_Engine/docs/Not_Math*)",
+      "Bash(aws codebuild:*)",
+      "Bash(ls -la /workspaces/Tao_Financial_Engine/quarantine*.py)",
+      "Bash(ls /workspaces/Tao_Financial_Engine/quarantine_*.parquet /workspaces/Tao_Financial_Engine/quarantine_*.csv)",
+      "Bash(find /workspaces/Tao_Financial_Engine -name \"*.md\" -type f -exec grep -l \"Fe13\\\\|Co13\\\\|Billas\\\\|magnetic moment\\\\|exchange fraction\" {} \\\\;)",
+      "Bash(git commit:*)",
+      "Bash(xargs kill:*)",
+      "Bash(rm -f /tmp/deploy_lock*)",
+      "Bash(kill -9 36611)",
+      "Read(//workspaces/Tao_Financial_Engine/**)"
     ],
     "defaultMode": "bypassPermissions"
   }

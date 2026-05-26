@@ -18,13 +18,14 @@
 
 module arcloom_bsil_bt #(
     parameter N_TRITS = 8,
-    parameter BASELINE = 12'd80
+    parameter BASELINE = 12'd80       // default, overridden by baseline_in if nonzero
 )(
     input  wire        clk,
     input  wire        rst_n,
 
     input  wire [11:0] adc_value,
     input  wire        adc_valid,
+    input  wire [11:0] baseline_in,   // runtime baseline from AXI (0 = use parameter)
 
     output reg  [2*N_TRITS-1:0] bt_distance,
     output reg  [2*N_TRITS-1:0] bt_direction,
@@ -83,11 +84,14 @@ module arcloom_bsil_bt #(
     // ================================================================
     // Address computation (combinational)
     // ================================================================
+    // Runtime baseline: use baseline_in if nonzero, else parameter default
+    wire [11:0] active_baseline = (baseline_in != 12'd0) ? baseline_in : BASELINE;
+
     // Centered value: subtract baseline so "nothing" ≈ 0
     // Clamp to 3280 max — 8-trit BT range is ±3280.
     // Values above 3280 overflow the encoding and INVERT the sign.
-    wire [11:0] centered_raw = (adc_value > BASELINE) ?
-                                (adc_value - BASELINE) : 12'd0;
+    wire [11:0] centered_raw = (adc_value > active_baseline) ?
+                                (adc_value - active_baseline) : 12'd0;
     wire [11:0] centered = (centered_raw > 12'd3280) ? 12'd3280 : centered_raw;
 
     // ================================================================

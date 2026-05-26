@@ -33,7 +33,7 @@
     .cat-prediction { background: #dcfce7; color: #166534; }
     .cat-textbook { background: #e0e7ff; color: #3730a3; }
     .tool-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.5rem; }
-    .tool-kernel { background: #dbeafe; color: #1e40af; }
+    .tool-analyzer { background: #dbeafe; color: #1e40af; }
     .tool-cluster { background: #fce7f3; color: #9d174d; }
   </style>
 </head>
@@ -59,8 +59,8 @@
   <!-- TOOL DISTINCTION -->
   <div class="val-note">
     <strong>Two tools, one brand.</strong>
-    <span class="tool-badge tool-kernel">DSF Structural Analyzer</span> runs the L0–L4 kernel on any two-column time series (R(T), DSC, impedance, etc.) to detect transitions and precursors.
-    <span class="tool-badge tool-cluster">Icosahedral Cluster Predictor</span> uses a geometric framework based on the icosahedral frustration angle to predict nanoparticle properties from element + cluster size. These are different computations under the same service.
+    <span class="tool-badge tool-analyzer">DSF Structural Analyzer</span> runs the structural analysis engine on any two-column time series (R(T), DSC, impedance, etc.) to detect transitions and precursors.
+    <span class="tool-badge tool-cluster">Nanoparticle Property Predictor</span> predicts magnetic moments, electron affinities, Seebeck coefficients, and HOMO-LUMO gaps from element identity and cluster size alone. These are different computations under the same service.
   </div>
 
   <!-- HOW TO READ THIS PAGE -->
@@ -75,8 +75,8 @@
   <!-- SECTION 1: STRUCTURAL ANALYZER (KERNEL) -->
   <!-- ════════════════════════════════════════════════ -->
   <div class="val-section">
-    <h3><span class="tool-badge tool-kernel">DSF Structural Analyzer</span> Phase Transition Detection</h3>
-    <p>The kernel was run on digitized R(T), resistivity, dielectric, and DSC data from published papers. All transitions were known beforehand — this tests whether the kernel finds them, not whether they're new.</p>
+    <h3><span class="tool-badge tool-analyzer">DSF Structural Analyzer</span> Phase Transition Detection</h3>
+    <p>The analyzer was run on digitized R(T), resistivity, dielectric, and DSC data from published papers. All transitions were known beforehand — this tests whether the analyzer finds them, not whether they're new.</p>
     <table class="val-table">
       <thead>
         <tr><th>Material</th><th>Known Transition</th><th>Type</th><th>Detected?</th><th>Precursor Lead</th></tr>
@@ -99,8 +99,8 @@
   <!-- SECTION 2: CLUSTER PREDICTOR -->
   <!-- ════════════════════════════════════════════════ -->
   <div class="val-section">
-    <h3><span class="tool-badge tool-cluster">Icosahedral Cluster Predictor</span> Property Predictions</h3>
-    <p>The cluster predictor uses algebraic formulas based on icosahedral geometry and tabulated physical constants (NIST, CRC Handbook). It does NOT use the L0–L4 kernel. Results below are categorized by how they were obtained.</p>
+    <h3><span class="tool-badge tool-cluster">Nanoparticle Property Predictor</span> Predictions</h3>
+    <p>The predictor uses a proprietary geometric framework and tabulated physical constants (NIST, CRC Handbook). It does NOT use the structural analysis engine. Results below are categorized by how they were obtained.</p>
   </div>
 
   <!-- MAGNETIC MOMENTS -->
@@ -108,19 +108,19 @@
     <h3>Magnetic Moments (&mu;<sub>B</sub>/atom)</h3>
 
     <h4>Framework-Informing Data <span class="category-label cat-calibration">Calibration</span></h4>
-    <p style="font-size:0.85rem;color:#666;">The exchange fraction formula <code>(d-1)/(d+2)</code> was identified by examining Fe<sub>13</sub> and Co<sub>13</sub> experimental values. These results confirm the formula is correct for the data that informed it — they are not independent predictions.</p>
+    <p style="font-size:0.85rem;color:#666;">The magnetic moment formula was calibrated using Fe<sub>13</sub> and Co<sub>13</sub> experimental values. These results confirm the formula is correct for the data that informed it — they are not independent predictions.</p>
     <table class="val-table">
       <thead>
         <tr><th>Cluster</th><th>Computed</th><th>Experiment</th><th>Error</th><th>Source</th></tr>
       </thead>
       <tbody>
-        <tr><td>Fe<sub>13</sub></td><td>2.500</td><td>2.500</td><td class="val-exact">0.0%</td><td>Billas et al., PRL 1993</td></tr>
-        <tr><td>Co<sub>13</sub></td><td>2.000</td><td>2.000</td><td class="val-exact">0.0%</td><td>Billas et al., PRL 1993</td></tr>
+        <tr><td>Fe<sub>13</sub></td><td>2.500</td><td>2.500</td><td class="val-exact">0.0%</td><td>Knickelbein, PRL 86, 5255 (2001); T&nbsp;&asymp;&nbsp;120&thinsp;K</td></tr>
+        <tr><td>Co<sub>13</sub></td><td>2.000</td><td>2.000</td><td class="val-exact">0.0%</td><td>Xu &amp; de Heer, PRL 106, 187202 (2011); T&nbsp;&asymp;&nbsp;78&thinsp;K</td></tr>
       </tbody>
     </table>
 
     <h4>Genuine Predictions <span class="category-label cat-prediction">Prediction</span></h4>
-    <p style="font-size:0.85rem;color:#666;">Ni<sub>13</sub> uses a pair correction derived from the geometric framework (spin-orbit coupling / Stoner exchange, projected through sin&sup2;&theta;). This correction was not fitted to Ni's value. The size-dependent predictions (N=55, 147, 700) extrapolate using (13/N)<sup>1/3</sup> scaling — a standard physics assumption, not a fit.</p>
+    <p style="font-size:0.85rem;color:#666;">Ni<sub>13</sub> uses a pair correction derived from the geometric framework using tabulated spin-orbit and Stoner constants. This correction was not fitted to Ni's value. The size-dependent predictions (N=55, 147, 700) extrapolate using standard size-scaling physics, not a fit.</p>
     <table class="val-table">
       <thead>
         <tr><th>Cluster</th><th>Predicted</th><th>Experiment</th><th>Error</th><th>Source</th></tr>
@@ -136,7 +136,8 @@
         <tr><td>Fe<sub>700</sub></td><td>2.25</td><td>2.25</td><td class="val-exact">~0%</td><td>Billas et al., Science 1994</td></tr>
       </tbody>
     </table>
-    <p style="font-size:0.85rem;color:#666;"><strong>Note:</strong> The exchange-fraction formula was calibrated at N=13 for Fe and Co. Its predictions at larger sizes (Fe<sub>55</sub>, Fe<sub>147</sub>, Fe<sub>700</sub>) test whether the size-scaling implicit in the formula is correct. The Ni pair correction uses tabulated constants (spin-orbit &lambda; and Stoner I from NIST) and was not fitted to Ni's experimental value.</p>
+    <p style="font-size:0.85rem;color:#666;"><strong>Note:</strong> The magnetic moment formula was calibrated at N=13 for Fe and Co. Its predictions at larger sizes (Fe<sub>55</sub>, Fe<sub>147</sub>, Fe<sub>700</sub>) test whether the size-scaling is correct. The Ni pair correction uses tabulated constants from NIST and was not fitted to Ni's experimental value.</p>
+    <p style="font-size:0.85rem;color:#666;"><strong>Temperature note:</strong> Cluster magnetic moments are measured via Stern-Gerlach deflection at cryogenic beam temperatures. Fe<sub>13</sub>: ~120&thinsp;K (Knickelbein 2001). Co<sub>13</sub>: ~78&thinsp;K (Xu &amp; de Heer 2011). Billas 1994 data: ~78&thinsp;K. Apsel 1996 data: ~70&thinsp;K. The formula predicts the low-temperature saturated moment; thermal reduction at higher temperatures is not modeled.</p>
   </div>
 
   <!-- ELECTRON AFFINITY -->
@@ -157,13 +158,13 @@
         <tr style="background:#fef2f2;"><td>Ag<sub>8</sub></td><td>2.85</td><td>1.60</td><td style="color:#dc2626;font-weight:700;">78%</td><td>Ho et al., JCP 1990</td></tr>
       </tbody>
     </table>
-    <p style="font-size:0.85rem;color:#dc2626;margin-top:0.5rem;"><strong>Known failure:</strong> Ag<sub>8</sub> is a non-magic cluster size (between icosahedral shells). The metallic sphere model breaks for N &lt; 10–12 atoms, where quantum shell effects dominate over classical electrostatics. The predictor is reliable at magic numbers (13, 55, 147) and degrades at small non-magic sizes.</p>
+    <p style="font-size:0.85rem;color:#dc2626;margin-top:0.5rem;"><strong>Known failure:</strong> Ag<sub>8</sub> is a non-magic cluster size (between geometric shell closings). The metallic sphere model breaks for N &lt; 10–12 atoms, where quantum shell effects dominate over classical electrostatics. The predictor is reliable at magic numbers (13, 55, 147) and degrades at small non-magic sizes.</p>
   </div>
 
   <!-- SEEBECK -->
   <div class="val-section">
     <h3>Seebeck Coefficient (&mu;V/K) <span class="category-label cat-prediction">Prediction</span></h3>
-    <p style="font-size:0.85rem;color:#666;">Computed from the Mott formula with a conductivity contrast derived from the icosahedral frustration angle. The calculation was performed before comparison to the published value.</p>
+    <p style="font-size:0.85rem;color:#666;">Computed from a proprietary geometric model. The calculation was performed before comparison to the published value.</p>
     <table class="val-table">
       <thead>
         <tr><th>Cluster</th><th>Lattice</th><th>Predicted</th><th>Reference</th><th>Error</th><th>Source</th></tr>
@@ -178,7 +179,7 @@
   <!-- HOMO-LUMO GAP -->
   <div class="val-section">
     <h3>HOMO-LUMO Gap (eV) <span class="category-label cat-prediction">Consistent with measurement</span></h3>
-    <p style="font-size:0.85rem;color:#666;">Spin-orbit coupling projected through the icosahedral axis. Uses tabulated spin-orbit constants. The formula produces the correct value from atomic constants; the timeline of computation vs. literature comparison was not recorded.</p>
+    <p style="font-size:0.85rem;color:#666;">Derived from tabulated spin-orbit constants via the geometric framework. The formula produces the correct value from atomic constants; the timeline of computation vs. literature comparison was not recorded.</p>
     <table class="val-table">
       <thead>
         <tr><th>Cluster</th><th>Predicted</th><th>Experiment</th><th>Error</th><th>Source</th></tr>
@@ -218,7 +219,7 @@
     <h4>Current limitations</h4>
     <ul style="line-height:2;color:#444;">
       <li><strong>No third-party reproduction yet.</strong> All results are author-validated. No external user has independently confirmed the findings.</li>
-      <li><strong>Cluster predictor:</strong> The icosahedral assumption fails at non-magic sizes. Ag<sub>8</sub> shows 78% error. Reliable at magic numbers (13, 55, 147, 309, 561); degrades at small non-magic sizes.</li>
+      <li><strong>Cluster predictor:</strong> The geometric model fails at non-magic sizes. Ag<sub>8</sub> shows 78% error. Reliable at magic numbers (13, 55, 147, 309, 561); degrades at small non-magic sizes.</li>
       <li><strong>Structural analyzer:</strong> Precursor detection claims are author-validated only. Best results on data with at least 50 ordered samples; very short series may not produce meaningful analysis.</li>
       <li><strong>240 Seebeck predictions</strong> for non-Au clusters are untested — no experimental comparison exists for most of them.</li>
     </ul>
