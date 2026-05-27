@@ -66,7 +66,16 @@ def load_universe():
     with open(path) as f:
         data = json.load(f)
     if isinstance(data, list):
-        return [str(s).strip().upper() for s in data if s]
+        tickers = []
+        for item in data:
+            if isinstance(item, dict):
+                t = item.get("ticker", "")
+            else:
+                t = str(item)
+            t = t.strip().upper()
+            if t:
+                tickers.append(t)
+        return tickers
     return []
 
 
