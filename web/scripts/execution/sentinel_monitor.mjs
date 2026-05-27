@@ -573,13 +573,14 @@ export async function runSentinel() {
             console.log(`[SENTINEL] Fill synced: ${pos.ticker} @ $${filledPrice}`);
             pos.status = "filled"; // update in-memory so exit checks work
           }
-        } else if (order?.status === "canceled" && parseFloat(order.filled_qty ?? "0") === 0) {
-          // Order was cancelled before filling — mark ledger record as cancelled
+        } else if ((order?.status === "canceled" || order?.status === "expired") && parseFloat(order.filled_qty ?? "0") === 0) {
+          // Order was cancelled or expired before filling — mark ledger record as cancelled
+          // REGN was stuck as "submitted" for 8 days because "expired" wasn't handled.
           await pool.query(
             `UPDATE personal_trade_ledger SET status='cancelled' WHERE id=$1 AND status='submitted'`,
             [pos.id]
           );
-          console.log(`[SENTINEL] Cancel synced: ${pos.ticker} — order cancelled, never filled`);
+          console.log(`[SENTINEL] Cancel synced: ${pos.ticker} — order ${order.status}, never filled`);
           pos.status = "cancelled"; // skip exit checks below
         }
       } catch (e) {
