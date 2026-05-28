@@ -39,7 +39,7 @@ from uf_core.uf_structural_engine import compute_uf_structural_state
 from uf_mdg_snapshot import compute_cognitive_scalars
 
 POLYGON_KEY = os.environ.get("MASSIVE_API_KEY", "")
-YEARS_HISTORY = 5
+YEARS_HISTORY = 5  # Must match production exactly (uf_mdg_snapshot.py line 84)
 BATCH_LOG_EVERY = 200
 
 
