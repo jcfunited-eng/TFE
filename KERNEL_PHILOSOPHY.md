@@ -234,3 +234,34 @@ You will be tempted to "improve" it by making it correlate better with returns. 
 If you are about to make a change and you cannot explain it in terms of "this makes the kernel perceive structure more correctly" or "this makes L5 translate structure into domain action more correctly," do not make the change.
 
 The working versions of TFE have been destroyed three times. Do not be the fourth.
+
+---
+
+## Banned Artifacts — February 2026 ML Deploy
+
+The following files are remnants of a failed ML-based deploy by ChatGPT (GPT-5.4) in January–March 2026. They contain scikit-learn, model.fit/model.predict patterns, grid search, and other ML infrastructure that violates the core constraint: **no ML, no heuristics, no smoothing, deterministic only.**
+
+These files must never be imported, referenced as working code, or used as a basis for new work. Their names (especially "horse_race") collide with the legitimate "horse" architecture (pure numpy nearest-neighbor tuple distance in 8-dim coupled space). The legitimate horse is `compute_neighbor_wr()` — pure numpy, no ML libraries.
+
+### Dead files (deleted or pending deletion)
+
+| File | Status | Notes |
+|---|---|---|
+| `g32_horse_race_mom_irf.py` | **DELETED** (commit da45a87, May 28 2026) | 1,224 lines of sklearn model.fit/predict. Name collision with legitimate horse. |
+| `g32_horse_race.py` | DEAD — pending review | Hierarchical confidence mixer with ML patterns |
+| `g32_horse_race_loop_runner.py` | DEAD — pending review | ML loop runner |
+| `g32_insanity_loop_runner.py` | DEAD — pending review | ML loop runner |
+| `g32_mom_irf_loop_runner.py` | DEAD — pending review | ML momentum/IRF loop runner |
+| `g32_thoroughbred_loop_runner.py` | DEAD — pending review | ML loop runner |
+| `g32_state.json` | DEAD — pending review | ML grid search state |
+| `backups/g32_*.json` (8 files, Feb 23 2026) | DEAD — pending review | ML grid search result snapshots |
+
+### ML scan results (May 28, 2026)
+
+Full repo scan for ML imports (`sklearn`, `xgboost`, `lightgbm`, `torch`, `tensorflow`, `keras`, `statsmodels`, `prophet`) and ML patterns (`model.fit`, `model.predict`, `.train()`, `.save_model`, `joblib.load`):
+
+- **Code files with ML imports:** 0
+- **Code files with ML patterns:** 0
+- **Documentation mentioning ML (warning text only):** `docs/tfe_system_recovery_architecture.tex` line 460
+
+The repo is clean of active ML code as of this scan.
