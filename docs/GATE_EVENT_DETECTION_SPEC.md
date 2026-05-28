@@ -68,8 +68,10 @@ The event detector:
 1. Loads the stock's previous gate count from the last refresh (stored in runtime_decisions_latest)
 2. Runs the kernel on the full bar history
 3. Compares the new gate count to the previous
-4. If new gates formed: evaluates each NEW gate as a potential signal event
+4. If new gates formed: evaluates EVERY new gate as a potential signal event
 5. If no new gates: no events emitted
+
+**Refresh gap handling (reviewer item #1):** If `new_gate_count - prev_gate_count > 1` (multiple gates formed during a missed refresh, Codespace suspension, holiday gap), the detector evaluates ALL intervening gates, not just the latest. This prevents silently missing signal events during refresh gaps. The loop iterates from `prev_gate_count + 1` to `new_gate_count`, evaluating each gate's tuple against filter conditions.
 
 This is lightweight — most stocks on most days produce zero events.
 
@@ -100,6 +102,8 @@ A gate event is a 3WA Wave 1 signal if ALL of these are true:
 4. SPY D_k = 1 at the same date (Wave 3 — market expanding)
 
 All conditions use completed gate values and current SPY state.
+
+**Note (reviewer feedback):** The s_n range [0.954, 0.969] and |Δs_n| range [0.67, 0.72] are from 2021 quarantine data. These are PROVISIONAL — they may need per-regime recalibration when SPY D_k flips to +1 and live crystallisation events become available for comparison. Do not treat these bounds as permanent law. Flag for review when first live 3WA signals fire.
 
 ### 4.3 Structural Exit Assessment Event
 
@@ -162,11 +166,19 @@ CREATE INDEX idx_ge_ticker_date ON gate_events(ticker, gate_date);
 CREATE INDEX idx_ge_type_unconsumed ON gate_events(event_type, consumed) WHERE consumed = FALSE;
 ```
 
-### 6.2 Event Consumption
+### 6.2 Event Consumption and Staleness
 
-The execution layer (CH2 strategist, entry timing watcher) reads from gate_events where consumed = FALSE. When it acts on an event (places an order), it marks consumed = TRUE.
+The execution layer (CH2 strategist, entry timing watcher) reads from gate_events where consumed = FALSE AND NOT expired. When it acts on an event (places an order), it marks consumed = TRUE.
 
-This decouples detection from execution. Events can be detected during the refresh cycle and consumed during market hours.
+**Staleness rule (reviewer item #2):** An unconsumed event expires and becomes ineligible when EITHER:
+- A newer gate has formed for that ticker (the structural state has moved on — the crest passed), OR
+- 5 calendar days have elapsed since detection (weekend/holiday buffer)
+
+Whichever comes first. Expired events are marked `consumed = TRUE, consumed_reason = 'expired_stale'`.
+
+**Rationale:** A signal detected Friday after close that sits unconsumed until Monday may point to a crest that already passed. Acting on it Monday reintroduces the bad-timing problem that killed the system before. The staleness rule ensures the execution layer only acts on current structural crests.
+
+This decouples detection from execution while preventing stale-crest entries.
 
 ## 7. How Existing Components Consume Events
 
@@ -206,7 +218,7 @@ Additive table. No existing tables are modified. The event detector runs AFTER t
 
 1. Create gate_events table in validation env and production
 2. Build event detector as a post-processing step in the refresh pipeline
-3. Test on validation env: run detector over stored bar history, verify Mar 26 filter produces signal volume consistent with quarantine (dozens per refresh, not thousands — because each refresh only has new gates from the last day)
+3. **Full-history reproduction test (reviewer item #3):** Run the event detector over the FULL stored bar history in the validation env (the full 5-year movie, not just recent gates). Confirm it reproduces the quarantine result: **3,587 ± 10% Mar 26 filter signals at 60-68% 20d WR.** This is the ground truth equivalence gate. If the detector run over 5 years matches the known number, the detector is correct. The per-refresh incremental version is the same logic applied to new gates only. **This test must pass before any production change.**
 4. Verify lookahead safety: every event's gate_date <= the latest bar date
 5. Wire CH2 strategist to read from gate_events instead of (or in addition to) runtime_decisions_latest
 6. Shadow-run: emit events but don't consume them for 1 week. Compare event volume and quality to existing CH2 signal generation
