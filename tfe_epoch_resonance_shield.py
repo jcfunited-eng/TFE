@@ -92,7 +92,7 @@ def assess_epoch(g32_state_path: str = "/app/g32_state.json",
     # Sector-specific pressure if sector provided
     sector_pressure = 0.0
     if sector:
-        from tfe_g32_coordinator import SECTOR_COUPLING, EPOCH_CHANNELS
+        from tfe_epoch_mosaic_coordinator import SECTOR_COUPLING, EPOCH_CHANNELS
         coupling = SECTOR_COUPLING.get(sector, {})
         for ch in EPOCH_CHANNELS:
             weight = coupling.get(ch, 0.0)

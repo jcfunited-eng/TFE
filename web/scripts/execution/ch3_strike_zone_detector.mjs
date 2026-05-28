@@ -68,7 +68,7 @@ function loadG32State() {
 function getSectorPressure(g32State, sector) {
   if (!g32State || !g32State.xi) return { pressure: 0, status: "UNKNOWN" };
 
-  // Coupling matrix (same as tfe_g32_coordinator.py)
+  // Coupling matrix (same as tfe_epoch_mosaic_coordinator.py)
   const COUPLING = {
     "Communication Services": { RATES_PRESSURE: -0.2, CONSUMER_STRESS: -0.3, WAR_GEOPOLITICS: -0.1 },
     "Consumer Discretionary": { RATES_PRESSURE: -0.5, CONSUMER_STRESS: -1.0, WAR_GEOPOLITICS: -0.2 },

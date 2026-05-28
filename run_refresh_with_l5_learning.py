@@ -1390,7 +1390,7 @@ def main() -> int:
     # for sector pressure computation. Runs every refresh to keep the mosaic
     # current. Non-fatal — fallback severities used if market data unavailable.
     try:
-        from tfe_g32_coordinator import G32Coordinator
+        from tfe_epoch_mosaic_coordinator import G32Coordinator
         from tfe_epoch_auto_severity import load_live_epochs
         _g32 = G32Coordinator()
         _live_epochs = load_live_epochs()
