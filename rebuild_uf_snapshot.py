@@ -233,6 +233,77 @@ def _upload_snapshot_to_s3() -> None:
     except Exception as exc:
         print(f"[UF-SNAPSHOT] S3 upload failed (non-fatal): {exc}")
 
+    # ── Bar cache export to S3 (Mode B for validation environment) ──────
+    # Dumps production's daily_bars table so the validation env can import
+    # the exact same bars (same dividend-adjustment vintage) and reproduce
+    # production's kernel output. Runs AFTER all trading-critical work is
+    # done (snapshot persisted, decisions written). Failure is non-fatal.
+    #
+    # ORDERING: dump first → verify → meta file last. The validation env
+    # keys on meta file existence to decide whether to import. If meta
+    # lands before dump, validation imports a partial dump. Do NOT
+    # "optimize" into parallel uploads.
+    try:
+        import subprocess
+        import json as _json
+        from datetime import datetime, timezone
+
+        dump_path = "/tmp/daily_bars_export.sql.gz"
+        meta_path = "/tmp/daily_bars_export.meta.json"
+        s3_dump_key = f"{S3_SNAPSHOT_PREFIX}/daily_bars_export.sql.gz"
+        s3_meta_key = f"{S3_SNAPSHOT_PREFIX}/daily_bars_export.meta.json"
+
+        # pg_dump uses PGHOST/PGDATABASE/PGUSER/PGPASSWORD from environment
+        # (same connection bar_cache.py uses). --clean --if-exists makes the
+        # import idempotent and self-contained.
+        dump_cmd = (
+            "pg_dump --clean --if-exists -t daily_bars "
+            f"--dbname={os.environ.get('PGDATABASE', 'tfeapp')} "
+            f"--host={os.environ.get('PGHOST', 'localhost')} "
+            f"--port={os.environ.get('PGPORT', '5432')} "
+            f"--username={os.environ.get('PGUSER', 'postgres')} "
+            "--no-password "
+            f"| gzip > {dump_path}"
+        )
+        env = {**os.environ, "PGPASSWORD": os.environ.get("PGPASSWORD", "")}
+        result = subprocess.run(dump_cmd, shell=True, env=env, capture_output=True, timeout=300)
+
+        if result.returncode != 0:
+            stderr = result.stderr.decode()[:200] if result.stderr else ""
+            print(f"[UF-SNAPSHOT] Bar cache dump failed (rc={result.returncode}): {stderr}")
+        elif os.path.exists(dump_path) and os.path.getsize(dump_path) > 1000:
+            dump_size_mb = os.path.getsize(dump_path) / (1024 * 1024)
+
+            # Step 1: Upload dump
+            s3.upload_file(dump_path, S3_SNAPSHOT_BUCKET, s3_dump_key)
+            print(f"[UF-SNAPSHOT] Bar cache dump uploaded: {dump_size_mb:.1f} MB → s3://{S3_SNAPSHOT_BUCKET}/{s3_dump_key}")
+
+            # Step 2: Get row count and max date for meta
+            from bar_cache import _connect as _bc_connect
+            bc_conn = _bc_connect()
+            bc_cur = bc_conn.cursor()
+            bc_cur.execute("SELECT COUNT(*), MAX(bar_date) FROM daily_bars")
+            row_count, max_date = bc_cur.fetchone()
+            bc_cur.close()
+            bc_conn.close()
+
+            # Step 3: Write and upload meta file (AFTER dump confirmed)
+            meta = {
+                "row_count": row_count,
+                "max_bar_date": str(max_date),
+                "export_timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                "dump_size_mb": round(dump_size_mb, 1),
+                "pg_version": "17.6",
+            }
+            with open(meta_path, "w") as f:
+                _json.dump(meta, f, indent=2)
+            s3.upload_file(meta_path, S3_SNAPSHOT_BUCKET, s3_meta_key)
+            print(f"[UF-SNAPSHOT] Bar cache meta uploaded: {row_count} rows, max_date={max_date}")
+        else:
+            print(f"[UF-SNAPSHOT] Bar cache dump too small or missing — skipped S3 upload")
+    except Exception as exc:
+        print(f"[UF-SNAPSHOT] Bar cache export failed (non-fatal): {exc}")
+
 
 def _run_pre_ingestion_completeness_check(
     *,
