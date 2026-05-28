@@ -248,59 +248,67 @@ def _upload_snapshot_to_s3() -> None:
         import json as _json
         from datetime import datetime, timezone
 
-        dump_path = "/tmp/daily_bars_export.sql.gz"
+        dump_path = "/tmp/daily_bars_export.csv.gz"
         meta_path = "/tmp/daily_bars_export.meta.json"
-        s3_dump_key = f"{S3_SNAPSHOT_PREFIX}/daily_bars_export.sql.gz"
+        s3_dump_key = f"{S3_SNAPSHOT_PREFIX}/daily_bars_export.csv.gz"
         s3_meta_key = f"{S3_SNAPSHOT_PREFIX}/daily_bars_export.meta.json"
 
-        # pg_dump uses PGHOST/PGDATABASE/PGUSER/PGPASSWORD from environment
-        # (same connection bar_cache.py uses). --clean --if-exists makes the
-        # import idempotent and self-contained.
-        dump_cmd = (
-            "pg_dump --clean --if-exists -t daily_bars "
-            f"--dbname={os.environ.get('PGDATABASE', 'tfeapp')} "
-            f"--host={os.environ.get('PGHOST', 'localhost')} "
-            f"--port={os.environ.get('PGPORT', '5432')} "
-            f"--username={os.environ.get('PGUSER', 'postgres')} "
-            "--no-password "
-            f"| gzip > {dump_path}"
-        )
-        env = {**os.environ, "PGPASSWORD": os.environ.get("PGPASSWORD", "")}
-        result = subprocess.run(dump_cmd, shell=True, env=env, capture_output=True, timeout=300)
+        # Use psql \COPY instead of pg_dump — the container has psql 15.18 but
+        # the server is PostgreSQL 17.6. pg_dump refuses the version mismatch.
+        # psql \COPY works across versions because it's a client-side command.
+        # Proven working via ECS execute-command on May 28, 2026.
+        from bar_cache import _connect as _bc_connect
+        bc_conn = _bc_connect()
+        bc_cur = bc_conn.cursor()
 
-        if result.returncode != 0:
-            stderr = result.stderr.decode()[:200] if result.stderr else ""
-            print(f"[UF-SNAPSHOT] Bar cache dump failed (rc={result.returncode}): {stderr}")
-        elif os.path.exists(dump_path) and os.path.getsize(dump_path) > 1000:
-            dump_size_mb = os.path.getsize(dump_path) / (1024 * 1024)
+        # Get row count and max date FIRST (for meta file)
+        bc_cur.execute("SELECT COUNT(*), MAX(bar_date) FROM daily_bars")
+        row_count, max_date = bc_cur.fetchone()
 
-            # Step 1: Upload dump
-            s3.upload_file(dump_path, S3_SNAPSHOT_BUCKET, s3_dump_key)
-            print(f"[UF-SNAPSHOT] Bar cache dump uploaded: {dump_size_mb:.1f} MB → s3://{S3_SNAPSHOT_BUCKET}/{s3_dump_key}")
+        if row_count and row_count > 1000:
+            # Export via psql \COPY to CSV, pipe through gzip
+            copy_cmd = (
+                f"psql "
+                f"--host={os.environ.get('PGHOST', 'localhost')} "
+                f"--port={os.environ.get('PGPORT', '5432')} "
+                f"--dbname={os.environ.get('PGDATABASE', 'tfeapp')} "
+                f"--username={os.environ.get('PGUSER', 'postgres')} "
+                f"--no-password "
+                f"-c \"\\COPY daily_bars TO STDOUT WITH CSV HEADER\" "
+                f"| gzip > {dump_path}"
+            )
+            env = {**os.environ, "PGPASSWORD": os.environ.get("PGPASSWORD", "")}
+            result = subprocess.run(copy_cmd, shell=True, env=env, capture_output=True, timeout=600)
 
-            # Step 2: Get row count and max date for meta
-            from bar_cache import _connect as _bc_connect
-            bc_conn = _bc_connect()
-            bc_cur = bc_conn.cursor()
-            bc_cur.execute("SELECT COUNT(*), MAX(bar_date) FROM daily_bars")
-            row_count, max_date = bc_cur.fetchone()
-            bc_cur.close()
-            bc_conn.close()
+            if result.returncode != 0:
+                stderr = result.stderr.decode()[:200] if result.stderr else ""
+                print(f"[UF-SNAPSHOT] Bar cache COPY failed (rc={result.returncode}): {stderr}")
+            elif os.path.exists(dump_path) and os.path.getsize(dump_path) > 1000:
+                dump_size_mb = os.path.getsize(dump_path) / (1024 * 1024)
 
-            # Step 3: Write and upload meta file (AFTER dump confirmed)
-            meta = {
-                "row_count": row_count,
-                "max_bar_date": str(max_date),
-                "export_timestamp_utc": datetime.now(timezone.utc).isoformat(),
-                "dump_size_mb": round(dump_size_mb, 1),
-                "pg_version": "17.6",
-            }
-            with open(meta_path, "w") as f:
-                _json.dump(meta, f, indent=2)
-            s3.upload_file(meta_path, S3_SNAPSHOT_BUCKET, s3_meta_key)
-            print(f"[UF-SNAPSHOT] Bar cache meta uploaded: {row_count} rows, max_date={max_date}")
+                # Step 1: Upload dump (BEFORE meta — ordering matters)
+                s3.upload_file(dump_path, S3_SNAPSHOT_BUCKET, s3_dump_key)
+                print(f"[UF-SNAPSHOT] Bar cache exported: {dump_size_mb:.1f} MB → s3://{S3_SNAPSHOT_BUCKET}/{s3_dump_key}")
+
+                # Step 2: Write and upload meta file (AFTER dump confirmed)
+                meta = {
+                    "row_count": row_count,
+                    "max_bar_date": str(max_date),
+                    "export_timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                    "dump_size_mb": round(dump_size_mb, 1),
+                    "format": "csv.gz",
+                }
+                with open(meta_path, "w") as f:
+                    _json.dump(meta, f, indent=2)
+                s3.upload_file(meta_path, S3_SNAPSHOT_BUCKET, s3_meta_key)
+                print(f"[UF-SNAPSHOT] Bar cache meta: {row_count} rows, max_date={max_date}")
+            else:
+                print(f"[UF-SNAPSHOT] Bar cache COPY produced empty file — skipped")
         else:
-            print(f"[UF-SNAPSHOT] Bar cache dump too small or missing — skipped S3 upload")
+            print(f"[UF-SNAPSHOT] daily_bars has {row_count} rows — too few, skipped export")
+
+        bc_cur.close()
+        bc_conn.close()
     except Exception as exc:
         print(f"[UF-SNAPSHOT] Bar cache export failed (non-fatal): {exc}")
 
