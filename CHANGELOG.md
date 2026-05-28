@@ -17,6 +17,18 @@ Append-only log. Every session writes what it changed, tested, concluded, and wh
 - This is NOT fixable by matching fetch parameters. It requires either: (a) Mode B import of production's actual bar cache, or (b) accepting ~25% divergence on dividend-paying stocks as a property of adjusted-price staleness.
 - D_k is HIGHLY sensitive to bar values — a few cents of dividend adjustment on one bar can flip D_k from +1 to -1. This is expected behavior, not a bug. The kernel is deterministic; different inputs produce different outputs.
 
+### Protection layer additions
+- KERNEL_PHILOSOPHY.md sections 8.5 (data substrate rules), 8.6 (framing discipline), 8.7 (architecture approval), 8.8 (spec discipline)
+- PROJECT_STATE.md section 3.4 (validation substrate binding rule) and section 7.1 (additional documented destruction patterns: quarantine drift, tuple decomposition, financial-frame collapse, sensitivity-as-defect, silent canonical change)
+- These encode rules Joseph stated in conversation but were never written down. Now binding.
+
+### Equivalence PROVEN
+- Production bar cache exported via ECS execute-command → psql \COPY → S3 → validation env import
+- 20-ticker proof run on production's exact bars: **100.0% match, 0 mismatches**
+- BELFA, BLK, BSM, UVV D_k flips all resolved — root cause was dividend-vintage bar difference
+- The validation environment is equivalent to production when using production's bar cache
+- pg_dump version mismatch found (container has pg_dump 15.18, server is 17.6) — used psql \COPY as workaround
+
 ### What was NOT verified
 - Universe filter still broken (CS-only not yet applied)
 - L2 comparison still unresolved

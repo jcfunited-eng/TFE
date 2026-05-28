@@ -43,6 +43,25 @@ TFE is a domain-agnostic structural perception engine (L0-L4) plus a domain tran
 ### Spec conformance
 - The TFE spec (`docs/TFE_Specification_Merged_v3_0.pdf`) calls the current production CP-0 (lowest conformance profile). CP-2 is the target (event tape, shared latent field, free structural energy, horizon heads, cross-horizon coherence, multi-scale reading). Nothing built so far is CP-2.
 
+### 3.4 Validation Substrate (binding rule)
+
+**Quarantine is closed.** It is historical reference only. All forward validation runs against production-equivalent data only.
+
+**Production-equivalent** means the validation environment with production's actual bar cache imported via S3. The bar export pipeline was deployed May 28, 2026 (rebuild_uf_snapshot.py). After the first successful export and import, the validation env's `daily_bars` table is the production-equivalent substrate.
+
+Until the first import completes, **no forward validation can produce trustworthy results.** All work that depends on production-equivalent data is blocked on this import.
+
+**Specifically forbidden:**
+- Citing quarantine signal counts (e.g. "3,587") as validation targets
+- Reproducing quarantine WR numbers as proof that the system works
+- Running comparison tests against quarantine as the reference
+- Treating "matches quarantine" as a passing condition
+
+**Specifically required:**
+- All backtest, signal volume, and WR claims must be computed on production-equivalent data
+- Sample sizes must support the claim (Wilson confidence interval reported for any WR claim)
+- Universe must be CS-only (common stock), filtered before any kernel run
+
 ## 4. What We Are Working On (Plan, In Priority Order)
 
 These are the active steps that move TFE toward a credible commercial-grade system. Sequencing matters. Don't reorder without explicit reasoning.
@@ -155,6 +174,20 @@ The destruction pattern (KERNEL_PHILOSOPHY.md Section 3) has happened three time
 1. **bb0590a (May 12 2026):** Removed D_k=1 gate from CH2 entry — "trust the kernel." Step 1 reverses this.
 2. **e002f20 (Apr 27 2026):** Removed cognitive gate (F_n ≤ 1.65, raw_x_m ≤ 0.50) — "killing 99.99% of decisions." The gate was miscalibrated for production's log-normalized kernel, not broken. Step 2 (per-stock relative thresholds) addresses the calibration problem properly.
 3. **1868aeb (Apr 28 2026):** Removed TRANSITIONAL-only regime restriction from CH2 — "validation finding." Based on V3 basin output which has no edge. May matter under the Step 4 L5.
+
+### 7.1 Additional Documented Destruction Patterns
+
+These are patterns observed across multiple sessions that destroy working state. Future sessions must check against this list before proposing changes.
+
+1. **Quarantine drift.** Quarantine data slips back into active comparison as a "verified" target. Symptoms: reports that cite quarantine signal counts as targets, framing like "matches quarantine = working." Effect: production results get measured against the wrong substrate. Caught and named May 28, 2026.
+
+2. **Tuple decomposition.** The kernel output tuple gets treated as eight separable fields instead of one coupled geometric object. Field-by-field comparisons, field-by-field "improvements," single-field-against-price correlations. Symptoms: phrases like "B_k carries the edge," scoring fields independently then voting. Effect: the perception that the tuple represents is destroyed.
+
+3. **Financial-frame collapse.** Validation drifts from "does the kernel perceive structure correctly" to "does the signal correlate with price." Symptoms: confidence intervals on win rates without confidence intervals on perception correctness, "tradeable" used as a quality criterion, Sharpe ratio prioritized over kernel fidelity. Effect: kernel gets fitted to financial outcome, perception is corrupted.
+
+4. **Sensitivity-as-defect framing.** Kernel sensitivity to small input perturbations gets labeled as instability or fragility. Symptoms: "too sensitive to trade on," proposals to smooth or stabilize the kernel. Effect: criticality detection is destroyed; the kernel can no longer correctly resolve states near phase boundaries. Counter: near-τ_D flips are correct perception, not defects.
+
+5. **Silent canonical change.** An LLM modifies or replaces a user-approved component without explicit authorization, then treats the new version as canonical. Symptoms: code changes labeled "cleanup," "purge legacy," "improvement," or "refactor" that overwrite previously approved logic. Effect: the user-approved system is destroyed and the new system claims its legitimacy. Caught after March 30, 2026 V3 basin purge.
 
 ## 8. Anti-Destruction Rules
 
