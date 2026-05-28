@@ -243,18 +243,28 @@ The following files are remnants of a failed ML-based deploy by ChatGPT (GPT-5.4
 
 These files must never be imported, referenced as working code, or used as a basis for new work. Their names (especially "horse_race") collide with the legitimate "horse" architecture (pure numpy nearest-neighbor tuple distance in 8-dim coupled space). The legitimate horse is `compute_neighbor_wr()` — pure numpy, no ML libraries.
 
-### Dead files (deleted or pending deletion)
+### Deleted files (all removed from repo)
 
-| File | Status | Notes |
+| File | Commit | Notes |
 |---|---|---|
-| `g32_horse_race_mom_irf.py` | **DELETED** (commit da45a87, May 28 2026) | 1,224 lines of sklearn model.fit/predict. Name collision with legitimate horse. |
-| `g32_horse_race.py` | DEAD — pending review | Hierarchical confidence mixer with ML patterns |
-| `g32_horse_race_loop_runner.py` | DEAD — pending review | ML loop runner |
-| `g32_insanity_loop_runner.py` | DEAD — pending review | ML loop runner |
-| `g32_mom_irf_loop_runner.py` | DEAD — pending review | ML momentum/IRF loop runner |
-| `g32_thoroughbred_loop_runner.py` | DEAD — pending review | ML loop runner |
-| `g32_state.json` | DEAD — pending review | ML grid search state |
-| `backups/g32_*.json` (8 files, Feb 23 2026) | DEAD — pending review | ML grid search result snapshots |
+| `g32_horse_race_mom_irf.py` | da45a87, May 28 2026 | 1,224 lines of sklearn model.fit/predict. Name collision with legitimate horse. |
+| `g32_horse_race.py` | c409718, May 28 2026 | Hierarchical confidence mixer with ML patterns |
+| `g32_horse_race_loop_runner.py` | c409718, May 28 2026 | ML loop runner |
+| `g32_insanity_loop_runner.py` | c409718, May 28 2026 | ML loop runner |
+| `g32_mom_irf_loop_runner.py` | c409718, May 28 2026 | ML momentum/IRF loop runner |
+| `g32_thoroughbred_loop_runner.py` | c409718, May 28 2026 | ML loop runner |
+| `g32_state.json` | untracked, deleted May 28 2026 | ML grid search state |
+| `backups/g32_*.json` (13 files) | untracked, deleted May 28 2026 | ML grid search result snapshots |
+
+### Renamed file (NOT banned — legitimate code)
+
+| Old Name | New Name | Commit | Notes |
+|---|---|---|---|
+| `tfe_g32_coordinator.py` | `tfe_epoch_mosaic_coordinator.py` | 70f4b00, May 28 2026 | Deterministic epoch mosaic engine. No ML. Renamed to eliminate g32_ prefix confusion. |
+
+### Protection rule
+
+**No file matching `g32_*` may exist in the repo root or any production path.** The g32_ prefix is permanently associated with the banned Feb 2026 ML artifacts. Historical copies in `backups/` subdirectories are inert forensic records and are not subject to this rule.
 
 ### ML scan results (May 28, 2026)
 
