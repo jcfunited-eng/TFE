@@ -16,6 +16,7 @@ import {
   isHorseShadowEnabled,
   HORSE_CONFIG,
 } from "./horse_decision_engine.mjs";
+import { shadowLog, L5_MODES } from "./l5_unified_shadow.mjs";
 
 const DEFAULT_DB_PORT = 5432;
 const DEFAULT_MIN_BARS = 514;
@@ -1800,6 +1801,70 @@ async function main() {
     }
   }
   // ── End Horse Decision Engine ─────────────────────────────────────
+
+  // ── L5 Unified Shadow ─────────────────────────────────────────────
+  // Run all L5 components in shadow mode: log what each would decide
+  // alongside what production is currently doing.
+  const anyL5Shadow = ["TFE_L5_ENTRY_MODE", "TFE_L5_SIZING_MODE", "TFE_L5_EPOCH_MODE",
+    "TFE_L5_EXIT_MODE", "TFE_L5_REGIME_MODE"].some(k => (process.env[k] ?? "").toUpperCase() === "SHADOW");
+
+  if (anyL5Shadow || isHorseShadowEnabled()) {
+    try {
+      // Fetch SPY snapshot for regime assessment
+      const spyClient = await pool.connect();
+      let spySnap = {};
+      try {
+        const spyRes = await spyClient.query(
+          `SELECT snapshot_row_json FROM runtime_decisions_latest WHERE ticker = 'SPY' LIMIT 1`
+        );
+        if (spyRes.rows.length > 0) {
+          spySnap = typeof spyRes.rows[0].snapshot_row_json === "string"
+            ? JSON.parse(spyRes.rows[0].snapshot_row_json)
+            : spyRes.rows[0].snapshot_row_json;
+        }
+      } finally {
+        spyClient.release();
+      }
+
+      // Sample up to 50 records for shadow logging (don't spam for 6000+ tickers)
+      const sampleSize = Math.min(50, preparedRecords.records.length);
+      const step = Math.max(1, Math.floor(preparedRecords.records.length / sampleSize));
+      let shadowCount = 0;
+      let overrideCount = 0;
+
+      for (let i = 0; i < preparedRecords.records.length && shadowCount < sampleSize; i += step) {
+        const rec = preparedRecords.records[i];
+        const snap = JSON.parse(rec.snapshotRowJson);
+
+        // Use horse WR if already computed (stored as reason code)
+        let neighborWR = null;
+        const wrMatch = rec.decisionLabel === "Accumulate" ? 0.65 : null; // placeholder
+        // Parse WR from horse reason if available
+        if (snap._horse_wr !== undefined) neighborWR = snap._horse_wr;
+
+        const result = shadowLog({
+          ticker: rec.ticker,
+          snap,
+          neighborWR,
+          spySnap,
+          sector: rec.sector ?? snap.sector ?? "Unknown",
+          unrealizedReturn: null, // no open position at sync time
+          currentPositionCount: 0, // unknown at sync time
+          maxPositions: 30,
+          cashPct: 1.0,
+          currentDecision: rec.decisionLabel,
+        });
+
+        shadowCount++;
+        if (result.override) overrideCount++;
+      }
+
+      console.log(`[L5-SHADOW] Summary: ${shadowCount} sampled, ${overrideCount} would override production`);
+    } catch (err) {
+      console.error(`[L5-SHADOW] Error: ${err.message}`);
+    }
+  }
+  // ── End L5 Unified Shadow ─────────────────────────────────────────
 
   const runtimeSyncBatches = chunkArray(preparedRecords.records, runtimeSyncBatchSize);
   try {
