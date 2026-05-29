@@ -1750,7 +1750,7 @@ async function main() {
           const barRes = await horseClient.query(
             `SELECT bar_date::text, close
              FROM daily_bars
-             WHERE symbol = $1
+             WHERE ticker = $1
              ORDER BY bar_date ASC`,
             [ticker]
           );
