@@ -12,8 +12,6 @@ import {
 } from "./runtime_decision_provenance.mjs";
 import {
   computeHorseDecision,
-  isHorseEnabled,
-  isHorseShadowEnabled,
   HORSE_CONFIG,
 } from "./horse_decision_engine.mjs";
 import { shadowLog, L5_MODES } from "./l5_unified_shadow.mjs";
@@ -425,85 +423,7 @@ function resolveGeneratedAt(report, snapshotPayload, fallbackIso) {
   };
 }
 
-// L5 basin Accumulate ticker set — loaded once from file written by L5 filter
-
-
-function inferDecisionLabel(row) {
-  // L5 Basin Physics (V3 argmax) + Stable Titan Scaler
-  // Same deterministic math as tfe_l5_baseline.py — no file dependency.
-  const sUf = toFiniteOrNull(row?.S_UF ?? row?.s_uf);
-  const rUf = toFiniteOrNull(row?.R_UF ?? row?.r_uf);
-  const uStar = toFiniteOrNull(row?.U_star_k ?? row?.u_star_k) ?? 0;
-  const dK = toFiniteOrNull(row?.D_k ?? row?.d_k) ?? 0;
-  const mK = toFiniteOrNull(row?.M_k ?? row?.m_k) ?? 0;
-  const rRev = toFiniteOrNull(row?.R_rev_k ?? row?.r_rev_k) ?? 0;
-  const cK = toFiniteOrNull(row?.C_k ?? row?.c_k) ?? 0;
-  const pK = toFiniteOrNull(row?.P_k ?? row?.p_k) ?? 0;
-  const bK = toFiniteOrNull(row?.B_k ?? row?.b_k) ?? 0;
-  const price = toFiniteOrNull(row?.price) ?? 0;
-  const barCount = toFiniteOrNull(row?.bar_count) ?? 0;
-  const assetType = String(row?.asset_type ?? "").trim().toLowerCase();
-  const ticker = String(row?.ticker ?? "").trim();
-
-  if (sUf === null || rUf === null) return "Hold";
-  if (price < 5.0) return "Hold";
-
-  // ── Stable Titan Scaler (L5 Layer 2) ────────────────────────────────
-  // D_k=0, S_UF>=0.85, R_rev=0, bars>=1000, stock, not index
-  if (dK === 0 && sUf >= 0.85 && rRev === 0 && barCount >= 1000 && price >= 10 &&
-      (assetType === "stock" || assetType === "equity" || assetType === "") &&
-      !ticker.startsWith("I:") && !ticker.startsWith("X:")) {
-    return "Accumulate";
-  }
-
-  // ── V3 Basin Argmax (L5 Layer 1) ────────────────────────────────────
-  const BETA = 37/64;
-  const MW = 3/5;
-  const MP = 2;
-  const RBP = 2;
-  const CBP = 1;
-  const BS = 0.5;
-  const TIE = 0.01;
-
-  const mHat = Math.max(-1, Math.min(1, mK));
-  const sv = sUf - uStar;
-  const rv = rUf - uStar;
-  const sPos = Math.max(sv, 0);
-  const rPos = Math.max(rv, 0);
-  const core = Math.min(sPos, rPos);
-  const edge = Math.max(sPos, rPos) - core;
-  const live = core + BETA * edge;
-  const contested = (1 - BETA) * edge;
-  const balance = core / (core + edge + 1e-12);
-  const rupture = Math.max(-Math.max(sv, rv), 0);
-
-  const dNa = (1 + dK) / 2;
-  const dA = Math.max(-dK, 0);
-  const mC = (1 + mHat) / 2;
-  const mB = (1 - mHat) / 2;
-
-  const motion = Math.pow(MW * Math.pow(dNa, MP) + (1 - MW) * Math.pow(mC, MP), 1/MP);
-  const ab = dA * mB;
-  const rb = rRev * Math.pow(1 - balance, RBP);
-  const cb = (-bK) * rRev * Math.pow(1 - balance, CBP) * (1 - ab);
-  const burden = BS * (cK / (1 + cK)) * (pK / (1 + pK));
-  const ba = Math.max(ab, rb, cb);
-
-  const accBasin = live * motion * (1 - rRev) * (1 - ab) * (1 - burden);
-  const holdBasin = contested * (1 - ba) + live * rRev * balance +
-    live * (1 - rRev) * ((1 - motion) * (1 - ab) + motion * burden);
-  const avoidBasin = rupture + (live + contested) * ba;
-
-  const maxBasin = Math.max(accBasin, holdBasin, avoidBasin);
-  const nearAcc = Math.abs(maxBasin - accBasin) <= TIE;
-  const nearHold = Math.abs(maxBasin - holdBasin) <= TIE;
-  const nearAvd = Math.abs(maxBasin - avoidBasin) <= TIE;
-  const tie = (nearAcc ? 1 : 0) + (nearHold ? 1 : 0) + (nearAvd ? 1 : 0) > 1;
-
-  if (nearAcc && !tie) return "Accumulate";
-  if (nearAvd && !tie) return "Avoid";
-  return "Hold";
-}
+// V3 basin removed. Decision labels come from tuple-proximity engine.
 
 function scoreSnapshotRowForDedupe(row, quote) {
   const barCount = toIntOrNull(row?.bar_count) ?? 0;
@@ -1724,21 +1644,24 @@ async function main() {
   // If HORSE or HORSE_SHADOW mode, compute horse decisions from
   // runtime_decisions_history and override/shadow V3 basin decisions.
   const pool = resolvePool();
-  if (isHorseEnabled() || isHorseShadowEnabled()) {
+  // ── Tuple-Proximity Decision Engine ────────────────────────────────
+  // Computes decision_label for CS-only tickers with sufficient history.
+  // This is the sole decision source. No fallback engine.
+  {
     try {
-      const horseClient = await pool.connect();
+      const tpClient = await pool.connect();
       try {
-        let horseApplied = 0;
-        let horseSkipped = 0;
+        let tpApplied = 0;
+        let tpSkipped = 0;
         for (const rec of preparedRecords.records) {
           const ticker = rec.ticker;
 
           // CS-only, minimum history depth — matches validation backtest substrate
-          if (rec.assetType !== "stock") { horseSkipped++; continue; }
-          if ((rec.barCount ?? 0) < 120) { horseSkipped++; continue; }
+          if (rec.assetType !== "stock") { tpSkipped++; continue; }
+          if ((rec.barCount ?? 0) < 120) { tpSkipped++; continue; }
 
           // Fetch historical snapshot rows for this ticker
-          const histRes = await horseClient.query(
+          const histRes = await tpClient.query(
             `SELECT snapshot_row_json, generated_at_utc
              FROM runtime_decisions_history
              WHERE ticker = $1
@@ -1746,12 +1669,12 @@ async function main() {
             [ticker]
           );
           if (histRes.rows.length <= HORSE_CONFIG.N_NEIGHBORS) {
-            horseSkipped++;
+            tpSkipped++;
             continue;
           }
 
           // Fetch price history for forward return computation
-          const barRes = await horseClient.query(
+          const barRes = await tpClient.query(
             `SELECT bar_date::text, close
              FROM daily_bars
              WHERE ticker = $1
@@ -1766,8 +1689,8 @@ async function main() {
           // Parse current snapshot
           const currentSnap = JSON.parse(rec.snapshotRowJson);
 
-          // Compute horse decision
-          const horseResult = computeHorseDecision(
+          // Compute tuple-proximity decision
+          const tpResult = computeHorseDecision(
             currentSnap,
             histRes.rows.map(r => ({
               snapshot_row_json: typeof r.snapshot_row_json === "string"
@@ -1777,31 +1700,18 @@ async function main() {
             priceHistory
           );
 
-          if (isHorseShadowEnabled()) {
-            // Shadow mode: log horse decision alongside V3, don't override
-            console.log(
-              `[HORSE_SHADOW] ${ticker}: V3=${rec.decisionLabel} HORSE=${horseResult.decision} ` +
-              `WR=${horseResult.neighborWR?.toFixed(3) ?? "N/A"} ` +
-              `history=${horseResult.historySize} reason=${horseResult.reason}`
-            );
-          } else {
-            // Horse mode: override V3 decision
-            rec.decisionLabel = horseResult.decision;
-          }
-
-          horseApplied++;
+          rec.decisionLabel = tpResult.decision;
+          tpApplied++;
         }
         console.log(
-          `[HORSE] ${isHorseShadowEnabled() ? "SHADOW" : "ACTIVE"}: ` +
-          `applied=${horseApplied}, skipped=${horseSkipped} (insufficient history), ` +
+          `[TUPLE-PROXIMITY] applied=${tpApplied}, skipped=${tpSkipped} (non-stock or insufficient history), ` +
           `threshold=${HORSE_CONFIG.ENTRY_THRESHOLD}`
         );
       } finally {
-        horseClient.release();
+        tpClient.release();
       }
     } catch (err) {
-      console.error(`[HORSE] Error computing horse decisions: ${err.message}`);
-      // Non-fatal: fall through to V3 decisions
+      console.error(`[TUPLE-PROXIMITY] Error: ${err.message}`);
     }
   }
   // ── End Horse Decision Engine ─────────────────────────────────────
@@ -1812,7 +1722,7 @@ async function main() {
   const anyL5Shadow = ["TFE_L5_ENTRY_MODE", "TFE_L5_SIZING_MODE", "TFE_L5_EPOCH_MODE",
     "TFE_L5_EXIT_MODE", "TFE_L5_REGIME_MODE"].some(k => (process.env[k] ?? "").toUpperCase() === "SHADOW");
 
-  if (anyL5Shadow || isHorseShadowEnabled()) {
+  if (anyL5Shadow) {
     try {
       // Fetch SPY snapshot for regime assessment
       const spyClient = await pool.connect();

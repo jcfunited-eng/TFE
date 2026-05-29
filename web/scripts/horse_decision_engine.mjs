@@ -166,20 +166,6 @@ export function computeHorseDecision(currentSnap, historyRows, priceHistory) {
   return { decision, neighborWR: wr, historySize: historyTuples.length, reason };
 }
 
-/**
- * Check if horse decision engine is enabled.
- */
-export function isHorseEnabled() {
-  return (process.env.TFE_DECISION_ENGINE ?? "V3").toUpperCase() === "HORSE";
-}
-
-/**
- * Check if horse shadow mode is enabled (log horse decisions alongside V3).
- */
-export function isHorseShadowEnabled() {
-  return (process.env.TFE_DECISION_ENGINE ?? "V3").toUpperCase() === "HORSE_SHADOW";
-}
-
 export const HORSE_CONFIG = {
   N_NEIGHBORS,
   FORWARD_DAYS,
