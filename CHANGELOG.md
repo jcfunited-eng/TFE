@@ -4,6 +4,64 @@ Append-only log. Every session writes what it changed, tested, concluded, and wh
 
 ---
 
+## 2026-05-28/29 (c1, Claude Opus 4.6)
+
+### What was changed
+- **V3 basin DELETED** from runtime_decision_provenance.mjs and sync_runtime_postgres_impl.mjs (commit 048ab3c). 305 lines removed. computeV3Basins, primitiveReasonCodeFromInputs, stableTitanOverride, inferDecisionLabel, all V3 constants — gone.
+- **Tuple-proximity engine deployed** as sole decision source. computeHorseDecision() in horse_decision_engine.mjs. 30 nearest neighbors, 7-dim tuple space, CS-only, bar_count >= 120.
+- **History backfill** — 974,434 rows across 5,093 tickers in production runtime_decisions_history. Kernel at every 5th bar position.
+- **All g32_* ML artifacts deleted** (5,011 lines). tfe_g32_coordinator.py renamed to tfe_epoch_mosaic_coordinator.py. BANNED ARTIFACTS section added to KERNEL_PHILOSOPHY.md.
+- **G32 epoch mosaic populated** on production container (g32_state.json, 790 bytes).
+- **Full repo inventory** at REPO_INVENTORY.csv (1,330 files catalogued).
+- Production running task tfe-web-task:519, commit 048ab3c.
+
+### What was tested
+- Tuple-proximity backtest: 60.3% WR at ≥0.65, 61.2% at ≥0.70 (seed 42). Reproduced on seed 99 (56.1% / 57.9%).
+- Portfolio simulation: $100K → $328K (≥0.65), $100K → $247K (≥0.70, Sharpe 1.92, 8.5% DD). Both beat SPY +62%.
+- Production shadow: 5,407 CS-only tickers, 1,728 Accumulate (32%). With regime gate (SPY D_k=-1): 0 Accumulate.
+- Full universe validation: 5,025 CS-only, 15.4% Accumulate, 62.2% Hold, 22.4% Avoid. 0 errors on 200-sample.
+- V3 absent from deployed container: grep confirmed 0 hits.
+
+### What was concluded
+- Tuple-proximity engine discriminates: WR range 0.000-1.000, sensible stock-level decisions.
+- SPY D_k=-1 regime gate correctly blocks all entries — system in defensive posture.
+- V3 basin is permanently removed. Tuple-proximity is the sole decision path.
+- Six plumbing bugs surfaced during production integration (column names, field names, Date handling, schema mismatches). All fixed.
+
+### What was NOT verified
+- **First production sync has NOT run yet** — next at 13:00 UTC May 30. DB still has V3 decisions from task 518.
+- **computeSizing NOT WIRED** to alpaca_bridge.mjs (code exists in l5_unified_shadow.mjs)
+- **assessExit NOT WIRED** to sentinel_monitor.mjs
+- **computeRegimeExposure NOT WIRED** to CH2/CH3 execution
+- **Species profile (Wave 2) NOT BUILT** — 3WA detector skips species classification
+- **3WA Wave 1 conditions incomplete** — missing s_n [0.954,0.969] and Δs_n [0.67,0.72] bands
+- Sector pressures in epoch governance degrade to no-op until fundamentals backfill populates sector data
+
+---
+
+## 2026-05-28/29 (c1, Claude Opus 4.6)
+
+### What was changed
+- **V3 basin DELETED** from runtime_decision_provenance.mjs and sync_runtime_postgres_impl.mjs (commit 048ab3c). 305 lines removed.
+- **Tuple-proximity engine deployed** as sole decision source. 30 nearest neighbors, 7-dim tuple space, CS-only, bar_count >= 120.
+- **History backfill** — 974,434 rows across 5,093 tickers in production runtime_decisions_history.
+- **All g32_* ML artifacts deleted** (5,011 lines). tfe_g32_coordinator.py renamed to tfe_epoch_mosaic_coordinator.py.
+- **G32 epoch mosaic populated** on production container.
+- Production running task tfe-web-task:519, commit 048ab3c.
+
+### What was tested
+- Tuple-proximity backtest: 60.3% WR at >=0.65 (seed 42), reproduced at 56.1% (seed 99).
+- Portfolio sim: $100K->$328K (>=0.65, Sharpe 0.83), $100K->$247K (>=0.70, Sharpe 1.92, 8.5% DD). Both beat SPY +62%.
+- Production shadow: 5,407 CS-only tickers. With regime gate (SPY D_k=-1): 0 Accumulate. Correct defensive posture.
+
+### What was NOT verified
+- First production sync not yet run (13:00 UTC May 30)
+- computeSizing, assessExit, computeRegimeExposure NOT WIRED
+- Species profile (Wave 2) NOT BUILT
+- 3WA Wave 1 s_n/delta_s_n bands incomplete
+
+---
+
 ## 2026-05-28 EVENING (c1, Claude Opus 4.6)
 
 ### Equivalence testing
