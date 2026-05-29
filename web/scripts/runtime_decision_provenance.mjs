@@ -1,10 +1,8 @@
 import { createHash } from "node:crypto";
-import { isHorseEnabled, isHorseShadowEnabled } from "./horse_decision_engine.mjs";
 
 // ---------------------------------------------------------------------------
 // CP-2: DSF Primitive Full-Field Sortable V3 Rationalized
-// DEPRECATED: V3 basin is no longer the active decision path when
-// TFE_DECISION_ENGINE=HORSE. Retained for provenance record compatibility.
+// Frozen rational constants — do not modify without governance approval.
 // ---------------------------------------------------------------------------
 const BETA = 37 / 64;
 const MOTION_WEIGHT = 3 / 5;
@@ -409,29 +407,6 @@ export function computeDecisionTrace(
 
   const normalizedRow = normalizeDecisionTraceRow(row && typeof row === "object" ? row : {});
   const basis = primitiveInputFromRow(normalizedRow);
-
-  // When horse is the active decision engine, skip V3 basin computation.
-  // The decision_label is set by the horse in sync_runtime_postgres_impl.mjs.
-  // Provenance records "HORSE_DEFERRED" — the actual decision comes from the horse loop.
-  if (isHorseEnabled() || isHorseShadowEnabled()) {
-    const horseReasonCode = "HORSE_DEFERRED";
-    return {
-      basis,
-      anomalyFlags: { primitive_input_complete: basis.missing_fields.length === 0, anomaly_any: false },
-      candidateKeyChain: ["horse_tuple_proximity_v1", horseReasonCode],
-      matchedKey: "horse_tuple_proximity_v1",
-      matchedIndex: 0,
-      matchLevel: "L0_HORSE_TUPLE_PROXIMITY",
-      fallbackLadderLevel: "L0_EXACT_STRUCTURAL_MATCH",
-      matchedExactBool: true,
-      fallbackUsed: false,
-      fallbackReasonCode: null,
-      decision: "Hold",  // Placeholder — overridden by horse in sync module
-      decisionReasonCode: horseReasonCode,
-      coverageClass: "exact",
-    };
-  }
-
   const rawReasonCode = primitiveReasonCodeFromInputs(basis);
   const decisionReasonCode = stableTitanOverride(normalizedRow, rawReasonCode);
   const decision = primitiveDecisionFromReasonCode(decisionReasonCode);
@@ -463,16 +438,6 @@ export function computeDecisionTrace(
 
 export function loadPolicyRuntimeArtifact(rootDir) {
   void rootDir;
-  if (isHorseEnabled() || isHorseShadowEnabled()) {
-    return {
-      source_path: null,
-      policy_artifact_id: "horse_tuple_proximity_v1",
-      policy_artifact_hash_sha256: createHash("sha256").update("horse_tuple_proximity_v1").digest("hex"),
-      policy_source_mode: "horse_tuple_proximity",
-      generated_at_utc: null,
-      cells: {},
-    };
-  }
   return {
     source_path: null,
     policy_artifact_id: PRIMITIVE_ARTIFACT_ID,
