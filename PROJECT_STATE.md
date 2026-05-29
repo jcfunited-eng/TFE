@@ -94,8 +94,8 @@ This step is more urgent than 3WA Components 2-3 because it addresses the harves
 ### Step 3: Implement 3WA Components 2 and 3
 After per-stock thresholds. Components:
 - Component 1 (SPY D_k in decision layer) — already done
-- Component 2 (species profile precomputation) — script exists at `tools/compute_species_profiles.py`, ready to run
-- Component 3 (live 3WA detector) — needs to be built, tags signals as 3WA when crystallisation + calm species + SPY expansion all align
+- Component 2 (species profile precomputation) — **DONE.** `tools/compute_species_profiles.py` run May 29 2026. 4,979 tickers classified (calm/normal/volatile) using D_k proxy. Table `species_profiles` populated. Findings at `docs/SPECIES_PROXY_FINDINGS.md`.
+- Component 3 (live 3WA detector) — **DONE.** `web/scripts/execution/3wa_strategist.mjs` joins `species_profiles` at signal time. Tags `signal_class` as `3WA` (W1+W2+W3), `1+3` (W1+W3), or `standard`. Wave 1 conditions unchanged (bar_count ≤ 20, S_UF > 0) — validated set per 84.6%/371 reproduction.
 
 The 3WA detector is a post-processing tagging layer. Fully additive. Per-stock relative thresholds from Step 2 generalize the species concept and make Component 2 better-grounded.
 
@@ -200,6 +200,7 @@ These are patterns observed across multiple sessions that destroy working state.
 
 ## 9. Quick Reference: Who Built What
 
+- **Wave 2 species classification:** see `docs/SPECIES_PROXY_FINDINGS.md` — D_k proxy is the validated method
 - **Kernel (L0-L4) production code:** Frozen since Feb 2026, multiple Claude sessions
 - **Mar 26 filter:** Joe + earlier Claude session, locked in `L5_CANONICAL_BASELINE.md` on Mar 25
 - **V3 basin-argmax:** Introduced Mar 30 by a Claude session in the "purge CP-0 legacy ML" commit blitz. **Considered deprecated.**

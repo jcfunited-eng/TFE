@@ -9,9 +9,10 @@ Purpose:
   Accumulate universe. This implements Wave 2 of the Three-Wave Alignment
   (3WA) model from docs/structural_wave_alignment_spec.tex.
 
-  Species classification (from quarantine_12k forensics):
+  Species classification (from quarantine_12k forensics, spec Definition 4):
     - Calm species (δ̄_i ≤ p25 of universe): +13.7pp premium on Wave 1 signals
-    - Active species (δ̄_i > p25): standard structural dynamics
+    - Normal species (p25 < δ̄_i ≤ p75): standard structural dynamics
+    - Volatile species (δ̄_i > p75): large routine transitions
 
   In production, the ideal proxy is mean|Δs_n| (bar-to-bar structural entropy
   change) per ticker from runtime_decisions_history. Since s_n is not yet in
@@ -67,7 +68,7 @@ DELTA_FIELD = "D_k"
 
 
 def parse_args() -> dict:
-    args = {"out_csv": None, "days": HISTORY_DAYS}
+    args = {"out_csv": None, "days": HISTORY_DAYS, "dry_run": False}
     i = 1
     while i < len(sys.argv):
         tok = sys.argv[i]
@@ -81,28 +82,33 @@ def parse_args() -> dict:
             except ValueError:
                 pass
             i += 2
+        elif tok == "--dry-run":
+            args["dry_run"] = True
+            i += 1
         else:
             i += 1
     return args
 
 
 def connect():
-    required = ("PGHOST", "PGDATABASE", "PGUSER", "PGPASSWORD")
+    required = ("PGHOST", "PGDATABASE", "PGUSER")
     missing = [v for v in required if not os.environ.get(v)]
     if missing:
         print(f"Missing env vars: {', '.join(missing)}", file=sys.stderr)
         print("Run: source <(tools/run_local_sync_via_tunnel.sh --print-env)", file=sys.stderr)
         sys.exit(1)
 
-    return psycopg2.connect(
+    conn_kwargs = dict(
         host=os.environ.get("PGHOST", "localhost"),
         port=int(os.environ.get("PGPORT", 5432)),
         user=os.environ["PGUSER"],
-        password=os.environ["PGPASSWORD"],
         dbname=os.environ["PGDATABASE"],
         sslmode="disable" if os.environ.get("TFE_DB_SSL_REJECT_UNAUTHORIZED") == "false" else "prefer",
         cursor_factory=psycopg2.extras.RealDictCursor,
     )
+    if os.environ.get("PGPASSWORD"):
+        conn_kwargs["password"] = os.environ["PGPASSWORD"]
+    return psycopg2.connect(**conn_kwargs)
 
 
 def safe_float(value) -> Optional[float]:
@@ -123,14 +129,16 @@ def fetch_field_history(cur, field: str, days: int) -> dict[str, list[float]]:
     Returns {ticker: [field_oldest, ..., field_newest]}.
     """
     json_key = field  # D_k, s_n, F_n etc.
+    # Species baseline uses ALL bars regardless of decision label —
+    # we're measuring the ticker's inherent structural activity, not filtering
+    # to a decision cohort.
     cur.execute(f"""
         SELECT
             ticker,
             generated_at_utc,
             snapshot_row_json->>%s AS field_raw
         FROM runtime_decisions_history
-        WHERE decision_label = 'Accumulate'
-          AND generated_at_utc >= NOW() - INTERVAL '{days} days'
+        WHERE generated_at_utc >= NOW() - INTERVAL '{days} days'
         ORDER BY ticker, generated_at_utc ASC
     """, [json_key])
 
@@ -176,7 +184,7 @@ def main() -> None:
 
     print(f"\nFetching {DELTA_FIELD} history from runtime_decisions_history...")
     field_history = fetch_field_history(cur, DELTA_FIELD, days)
-    print(f"  {len(field_history)} Accumulate tickers with {DELTA_FIELD} history.")
+    print(f"  {len(field_history)} tickers with {DELTA_FIELD} history (all decision labels).")
 
     if not field_history:
         print("No history found. Ensure runtime_decisions_history is populated.", file=sys.stderr)
@@ -231,16 +239,25 @@ def main() -> None:
     except statistics.StatisticsError:
         pass
 
-    # ── Classify each ticker ──────────────────────────────────────────────────
+    # ── Classify each ticker (3-tier per spec Definition 4) ────────────────
     calm_count = 0
+    normal_count = 0
+    volatile_count = 0
     for p in profiles:
-        p["classification"] = "calm" if p["delta_bar"] <= p25 else "active"
-        if p["classification"] == "calm":
+        if p["delta_bar"] <= p25:
+            p["classification"] = "calm"
             calm_count += 1
+        elif p["delta_bar"] > p75:
+            p["classification"] = "volatile"
+            volatile_count += 1
+        else:
+            p["classification"] = "normal"
+            normal_count += 1
 
     print(f"\n=== Species Classification (DELTA_FIELD={DELTA_FIELD}) ===")
-    print(f"  Calm species  (δ̄_i ≤ p25={p25:.6f}): {calm_count}/{n} ({100*calm_count/n:.1f}%)")
-    print(f"  Active species (δ̄_i > p25):           {n-calm_count}/{n} ({100*(n-calm_count)/n:.1f}%)")
+    print(f"  Calm species     (δ̄_i ≤ p25={p25:.6f}): {calm_count}/{n} ({100*calm_count/n:.1f}%)")
+    print(f"  Normal species   (p25 < δ̄_i ≤ p75={p75:.6f}): {normal_count}/{n} ({100*normal_count/n:.1f}%)")
+    print(f"  Volatile species (δ̄_i > p75):           {volatile_count}/{n} ({100*volatile_count/n:.1f}%)")
     print(f"\n  Note: Calm species in Wave 1 context → +13.7pp premium")
     print(f"  (Waves 1+2+3 backtest: 86.7% vs Waves 1+3: 84.5%, n=75)")
 
@@ -264,13 +281,49 @@ def main() -> None:
                 writer.writerow(p)
         print(f"\nWrote {len(profiles)} profiles to: {out_path}")
 
+    # ── Write to species_profiles table ──────────────────────────────────────
+    if not args.get("dry_run"):
+        print(f"\n=== Writing to species_profiles table ===")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS species_profiles (
+                ticker TEXT PRIMARY KEY,
+                delta_bar DOUBLE PRECISION,
+                sigma_bar DOUBLE PRECISION,
+                classification TEXT,
+                field_used TEXT,
+                computed_at TIMESTAMPTZ,
+                n_bars INT
+            );
+        """)
+        # Truncate and repopulate — species profiles are a full recomputation
+        cur.execute("DELETE FROM species_profiles;")
+        insert_sql = """
+            INSERT INTO species_profiles (ticker, delta_bar, classification, field_used, computed_at, n_bars)
+            VALUES (%s, %s, %s, %s, NOW(), %s)
+        """
+        for p in profiles:
+            cur.execute(insert_sql, (
+                p["ticker"], p["delta_bar"], p["classification"],
+                DELTA_FIELD, p["n_bars"],
+            ))
+        conn.commit()
+        verify_cur = conn.cursor()
+        verify_cur.execute("SELECT COUNT(*) AS cnt FROM species_profiles;")
+        row_count = verify_cur.fetchone()["cnt"]
+        verify_cur.execute("SELECT classification, COUNT(*) AS cnt FROM species_profiles GROUP BY classification ORDER BY classification;")
+        dist = {r["classification"]: r["cnt"] for r in verify_cur.fetchall()}
+        verify_cur.close()
+        print(f"  Wrote {row_count} rows to species_profiles.")
+        for cls, cnt in sorted(dist.items()):
+            print(f"    {cls}: {cnt}")
+    else:
+        print(f"\n=== DRY RUN — no DB write ===")
+
     print(f"\n=== 3WA Readiness ===")
-    print(f"  Wave 2 (species profiles) computed from {n} Accumulate tickers.")
+    print(f"  Wave 2 (species profiles) computed from {n} tickers.")
     print(f"  Field used: {DELTA_FIELD} (proxy; upgrade to s_n when available in snapshot_row_json).")
     print(f"  p25 boundary: {p25:.6f}")
-    print(f"  Next step: store these profiles in species_profiles table for live classification.")
-    print(f"  SQL: CREATE TABLE species_profiles (ticker TEXT PRIMARY KEY, delta_bar DOUBLE PRECISION,")
-    print(f"       classification TEXT, field_used TEXT, computed_at TIMESTAMPTZ, n_bars INT);")
+    print(f"  p75 boundary: {p75:.6f}")
 
     cur.close()
     conn.close()

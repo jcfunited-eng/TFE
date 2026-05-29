@@ -3,16 +3,21 @@
  * PEE-1 Three-Wave Alignment Strategist
  *
  * Queries runtime_decisions_latest for the current run_id.
- * Returns only signals where ALL of the following are true:
+ * Joins species_profiles to classify signals:
+ *
+ *   signal_class = '3WA'      — Wave 1 + Wave 3 + calm species
+ *   signal_class = '1+3'      — Wave 1 + Wave 3 without calm
+ *   signal_class = 'standard' — Wave 3 active but Wave 1 conditions not met
+ *
+ * Wave 1 conditions (validated at 84.6% on n=371):
  *   1. decision_label = 'Accumulate'
- *   2. bar_count <= 20  (Wave 1: structural ground state)
- *   3. SPY D_k = 1      (Wave 3: market structural expansion)
- *   4. s_uf > 0         (structural entropy order parameter present)
+ *   2. bar_count <= 20  (structural ground state)
+ *   3. s_uf > 0         (structural entropy order parameter present)
  *
- * Any missing field → signal is excluded. No fallbacks.
+ * Wave 3: SPY D_k = 1 (market structural expansion)
+ * Wave 2: species = 'calm' from species_profiles table
  *
- * Also queries SPY's row to confirm Wave 3 is active before returning
- * any signals. If SPY is not in structural expansion → returns [].
+ * If SPY is not in structural expansion → returns [].
  */
 
 import pg from "pg";
@@ -71,7 +76,8 @@ async function fetchSpyRow(runId) {
 }
 
 /**
- * Fetch all Accumulate rows for the given run_id with bar_count <= 20.
+ * Fetch all Accumulate rows for the given run_id.
+ * Wave 1 bar_count filtering happens in parseSignal (tagging, not exclusion).
  */
 async function fetchCandidateRows(runId) {
   const res = await pool.query(
@@ -79,24 +85,38 @@ async function fetchCandidateRows(runId) {
        ticker,
        run_id,
        decision_label,
-       bar_count,
        snapshot_row_json
      FROM runtime_decisions_latest
      WHERE run_id = $1
        AND decision_label = 'Accumulate'
-       AND CAST(NULLIF(snapshot_row_json->>'bar_count', '') AS INTEGER) <= $2
        AND ticker != 'SPY'
      ORDER BY ticker ASC`,
-    [runId, NEW_LISTING_BAR_THRESHOLD]
+    [runId]
   );
   return res.rows;
 }
 
 /**
- * Parse a DB row into a validated signal object.
- * Returns null if any required field is missing or invalid.
+ * Fetch species classifications from species_profiles table.
+ * Returns a Map of ticker → classification ('calm', 'normal', 'volatile').
  */
-function parseSignal(row, spyDk) {
+async function fetchSpeciesProfiles() {
+  const res = await pool.query(
+    `SELECT ticker, classification FROM species_profiles`
+  );
+  const map = new Map();
+  for (const row of res.rows) {
+    map.set(String(row.ticker).trim().toUpperCase(), row.classification);
+  }
+  return map;
+}
+
+/**
+ * Parse a DB row into a validated signal object.
+ * Returns null if decision_label is not Accumulate or required fields missing.
+ * Tags signal_class based on Wave 1/2/3 alignment.
+ */
+function parseSignal(row, spyDk, speciesMap) {
   const snap     = row.snapshot_row_json ?? {};
   const ticker   = String(row.ticker ?? "").trim().toUpperCase();
   const runId    = String(row.run_id ?? "").trim();
@@ -106,17 +126,33 @@ function parseSignal(row, spyDk) {
   const fn       = toFloat(snap.F_n ?? snap.f_n);
   const bk       = toFloat(snap.B_k ?? snap.b_k);
 
-  // Binary checks — all must pass
-  if (!ticker)                                return null;
-  if (!runId)                                 return null;
-  if (barCount === null || barCount < 1 || barCount > NEW_LISTING_BAR_THRESHOLD) return null;
-  if (sUf === null || sUf <= 0)              return null;
-  if (spyDk !== 1)                            return null;  // Wave 3 not active
+  if (!ticker)  return null;
+  if (!runId)   return null;
+  if (spyDk !== 1) return null;  // Wave 3 not active — no signals at all
+
+  // Wave 1 conditions (validated set — do not modify)
+  const wave1 = barCount !== null && barCount >= 1 && barCount <= NEW_LISTING_BAR_THRESHOLD
+             && sUf !== null && sUf > 0;
+
+  // Wave 2: species classification
+  const species = speciesMap.get(ticker) ?? "unknown";
+  const wave2 = species === "calm";
+
+  // Classify signal
+  let signalClass;
+  if (wave1 && wave2) {
+    signalClass = "3WA";
+  } else if (wave1) {
+    signalClass = "1+3";
+  } else {
+    signalClass = "standard";
+  }
 
   return {
     ticker,
     run_id:       runId,
-    signal_class: "3WA",
+    signal_class: signalClass,
+    species,
     spy_dk:       spyDk,
     s_uf:         sUf,
     bar_count:    barCount,
@@ -163,9 +199,14 @@ export async function get3WASignals() {
 
   console.log(`[STRATEGIST] SPY D_k=1 — Wave 3 ACTIVE`);
 
-  // Fetch and parse candidates
-  const rows    = await fetchCandidateRows(runId);
-  const signals = rows.map(r => parseSignal(r, spyDk)).filter(Boolean);
+  // Fetch species profiles and candidates
+  const [speciesMap, rows] = await Promise.all([
+    fetchSpeciesProfiles(),
+    fetchCandidateRows(runId),
+  ]);
+  console.log(`[STRATEGIST] species_profiles loaded: ${speciesMap.size} tickers`);
+
+  const signals = rows.map(r => parseSignal(r, spyDk, speciesMap)).filter(Boolean);
 
   // Exclude tickers that already have open positions
   const openTickers = await fetchOpenPositionTickers();
@@ -177,9 +218,15 @@ export async function get3WASignals() {
     return true;
   });
 
-  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} valid → ${deduped.length} after dedup`);
+  // Report signal_class distribution
+  const classCounts = { "3WA": 0, "1+3": 0, "standard": 0 };
   for (const s of deduped) {
-    console.log(`[STRATEGIST]   ${s.ticker} | bar_count=${s.bar_count} | s_uf=${s.s_uf} | D_k=${s.d_k}`);
+    classCounts[s.signal_class] = (classCounts[s.signal_class] || 0) + 1;
+  }
+  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} valid → ${deduped.length} after dedup`);
+  console.log(`[STRATEGIST] signal_class distribution: 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]} | standard=${classCounts["standard"]}`);
+  for (const s of deduped) {
+    console.log(`[STRATEGIST]   ${s.ticker} | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | s_uf=${s.s_uf}`);
   }
 
   return deduped;
