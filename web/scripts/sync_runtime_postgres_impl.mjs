@@ -1733,6 +1733,10 @@ async function main() {
         for (const rec of preparedRecords.records) {
           const ticker = rec.ticker;
 
+          // CS-only, minimum history depth — matches validation backtest substrate
+          if (rec.assetType !== "stock") { horseSkipped++; continue; }
+          if ((rec.barCount ?? 0) < 120) { horseSkipped++; continue; }
+
           // Fetch historical snapshot rows for this ticker
           const histRes = await horseClient.query(
             `SELECT snapshot_row_json, generated_at_utc
