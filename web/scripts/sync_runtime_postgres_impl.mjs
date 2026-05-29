@@ -10,6 +10,12 @@ import {
   loadPolicyRuntimeArtifact,
   minBarsForAccumulate,
 } from "./runtime_decision_provenance.mjs";
+import {
+  computeHorseDecision,
+  isHorseEnabled,
+  isHorseShadowEnabled,
+  HORSE_CONFIG,
+} from "./horse_decision_engine.mjs";
 
 const DEFAULT_DB_PORT = 5432;
 const DEFAULT_MIN_BARS = 514;
@@ -1712,9 +1718,90 @@ async function main() {
     policyRuntime,
     provenanceMinBars,
   });
-  const runtimeSyncBatches = chunkArray(preparedRecords.records, runtimeSyncBatchSize);
 
+  // ── Horse Decision Engine ─────────────────────────────────────────
+  // If HORSE or HORSE_SHADOW mode, compute horse decisions from
+  // runtime_decisions_history and override/shadow V3 basin decisions.
   const pool = resolvePool();
+  if (isHorseEnabled() || isHorseShadowEnabled()) {
+    try {
+      const horseClient = await pool.connect();
+      try {
+        let horseApplied = 0;
+        let horseSkipped = 0;
+        for (const rec of preparedRecords.records) {
+          const ticker = rec.ticker;
+
+          // Fetch historical snapshot rows for this ticker
+          const histRes = await horseClient.query(
+            `SELECT snapshot_row_json, generated_at_utc
+             FROM runtime_decisions_history
+             WHERE ticker = $1
+             ORDER BY generated_at_utc ASC`,
+            [ticker]
+          );
+          if (histRes.rows.length <= HORSE_CONFIG.N_NEIGHBORS) {
+            horseSkipped++;
+            continue;
+          }
+
+          // Fetch price history for forward return computation
+          const barRes = await horseClient.query(
+            `SELECT bar_date::text, close
+             FROM daily_bars
+             WHERE symbol = $1
+             ORDER BY bar_date ASC`,
+            [ticker]
+          );
+          const priceHistory = {};
+          for (const b of barRes.rows) {
+            priceHistory[b.bar_date] = parseFloat(b.close);
+          }
+
+          // Parse current snapshot
+          const currentSnap = JSON.parse(rec.snapshotRowJson);
+
+          // Compute horse decision
+          const horseResult = computeHorseDecision(
+            currentSnap,
+            histRes.rows.map(r => ({
+              snapshot_row_json: typeof r.snapshot_row_json === "string"
+                ? JSON.parse(r.snapshot_row_json) : r.snapshot_row_json,
+              generated_at_utc: r.generated_at_utc,
+            })),
+            priceHistory
+          );
+
+          if (isHorseShadowEnabled()) {
+            // Shadow mode: log horse decision alongside V3, don't override
+            console.log(
+              `[HORSE_SHADOW] ${ticker}: V3=${rec.decisionLabel} HORSE=${horseResult.decision} ` +
+              `WR=${horseResult.neighborWR?.toFixed(3) ?? "N/A"} ` +
+              `history=${horseResult.historySize} reason=${horseResult.reason}`
+            );
+          } else {
+            // Horse mode: override V3 decision
+            rec.decisionLabel = horseResult.decision;
+          }
+
+          horseApplied++;
+        }
+        console.log(
+          `[HORSE] ${isHorseShadowEnabled() ? "SHADOW" : "ACTIVE"}: ` +
+          `applied=${horseApplied}, skipped=${horseSkipped} (insufficient history), ` +
+          `threshold=${HORSE_CONFIG.ENTRY_THRESHOLD}`
+        );
+      } finally {
+        horseClient.release();
+      }
+    } catch (err) {
+      console.error(`[HORSE] Error computing horse decisions: ${err.message}`);
+      // Non-fatal: fall through to V3 decisions
+    }
+  }
+  // ── End Horse Decision Engine ─────────────────────────────────────
+
+  const runtimeSyncBatches = chunkArray(preparedRecords.records, runtimeSyncBatchSize);
   try {
     const provenanceArtifactPath = path.join(root, "current_l5_provenance_persistence_latest.json");
     const transactionResult = await runTransactionWithDeadlockRetry(pool, async (client) => {
