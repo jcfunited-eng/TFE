@@ -103,6 +103,10 @@ export function computeHorseDecision(currentSnap, historyRows, priceHistory) {
   const historyTuples = [];
   const historyReturns = [];
 
+  // Pre-sort price dates once (not per row)
+  const priceDates = Object.keys(priceHistory).sort();
+  const dateIndex = new Map(priceDates.map((d, i) => [d, i]));
+
   for (const row of historyRows) {
     const snap = typeof row.snapshot_row_json === "string"
       ? JSON.parse(row.snapshot_row_json)
@@ -112,21 +116,23 @@ export function computeHorseDecision(currentSnap, historyRows, priceHistory) {
     if (!tuple) continue;
 
     // Get the date of this historical point
-    const dateStr = String(row.generated_at_utc ?? "").slice(0, 10);
-    if (!dateStr) continue;
+    const rawDate = row.generated_at_utc;
+    const dateStr = rawDate instanceof Date
+      ? rawDate.toISOString().slice(0, 10)
+      : String(rawDate ?? "").slice(0, 10);
+    if (!dateStr || dateStr.length !== 10) continue;
 
     // Get close price on this date and FORWARD_DAYS later
     const entryPrice = priceHistory[dateStr] ?? snap.price;
     if (!entryPrice || entryPrice <= 0) continue;
 
     // Find price ~FORWARD_DAYS later
-    const dates = Object.keys(priceHistory).sort();
-    const dateIdx = dates.indexOf(dateStr);
-    if (dateIdx < 0) continue;
+    const dateIdx = dateIndex.get(dateStr);
+    if (dateIdx === undefined) continue;
     const fwdIdx = dateIdx + FORWARD_DAYS;
-    if (fwdIdx >= dates.length) continue;
+    if (fwdIdx >= priceDates.length) continue;
 
-    const exitPrice = priceHistory[dates[fwdIdx]];
+    const exitPrice = priceHistory[priceDates[fwdIdx]];
     if (!exitPrice || exitPrice <= 0) continue;
 
     const fwdReturn = (exitPrice - entryPrice) / entryPrice;
