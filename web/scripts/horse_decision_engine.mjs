@@ -18,7 +18,9 @@ const FORWARD_DAYS = 20;
 const ENTRY_THRESHOLD = parseFloat(process.env.TFE_HORSE_ENTRY_THRESHOLD ?? "0.65");
 const EXIT_THRESHOLD = 0.40;
 
+// Both lowercase (DB columns) and camelCase (snapshot JSON) variants
 const TUPLE_FIELDS = ["d_k", "m_k", "b_k", "r_rev_k", "u_star_k", "c_k", "p_k"];
+const TUPLE_FIELDS_ALT = ["D_k", "M_k", "B_k", "R_rev_k", "U_star_k", "C_k", "P_k"];
 const N_DIM = TUPLE_FIELDS.length;
 
 /**
@@ -27,9 +29,8 @@ const N_DIM = TUPLE_FIELDS.length;
  */
 function extractTuple(snap) {
   const vals = [];
-  for (const f of TUPLE_FIELDS) {
-    // Try lowercase and uppercase variants
-    const v = snap[f] ?? snap[f.toUpperCase()] ?? null;
+  for (let i = 0; i < TUPLE_FIELDS.length; i++) {
+    const v = snap[TUPLE_FIELDS[i]] ?? snap[TUPLE_FIELDS_ALT[i]] ?? null;
     if (v === null || v === undefined || isNaN(Number(v))) return null;
     vals.push(Number(v));
   }
