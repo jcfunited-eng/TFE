@@ -1678,6 +1678,7 @@ jq \
   --arg DEPLOY_IMAGE_TAG "$IMAGE_TAG" \
   --arg DEPLOY_IMAGE_URI "$IMAGE_URI" \
   --arg DEPLOY_TS "$TS_ISO" \
+  --arg DECISION_ENGINE "${TFE_DECISION_ENGINE:-}" \
   '.taskDefinition
   | del(.taskDefinitionArn,.revision,.status,.requiresAttributes,.compatibilities,.registeredAt,.registeredBy)
   | .containerDefinitions[0].image = $IMAGE
@@ -1691,6 +1692,7 @@ jq \
           and .name != "TFE_DEPLOY_IMAGE_TAG"
           and .name != "TFE_DEPLOY_IMAGE_URI"
           and .name != "TFE_DEPLOY_TIMESTAMP_UTC"
+          and .name != "TFE_DECISION_ENGINE"
         ))
       | if ($FILTER_SOURCE | length) > 0 then
           map(select(.name != "TFE_SCREENER_FILTER_SOURCE_BASE_URL"))
@@ -1712,6 +1714,11 @@ jq \
         end)
       | . + (if ($FILTER_SOURCE | length) > 0 then
           [{name: "TFE_SCREENER_FILTER_SOURCE_BASE_URL", value: $FILTER_SOURCE}]
+        else
+          []
+        end)
+      | . + (if ($DECISION_ENGINE | length) > 0 then
+          [{name: "TFE_DECISION_ENGINE", value: $DECISION_ENGINE}]
         else
           []
         end)
