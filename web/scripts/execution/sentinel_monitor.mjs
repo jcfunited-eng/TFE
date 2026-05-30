@@ -16,6 +16,7 @@
  */
 
 import pg from "pg";
+import { assessExit } from "../l5_unified_shadow.mjs";
 
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -210,10 +211,11 @@ async function fetchStructuralFields(ticker) {
     if (!res.rows.length) return {};
     const snap = res.rows[0].snapshot_row_json ?? {};
     return {
-      r_rev_k:   parseFloat(snap.R_rev_k ?? snap.r_rev_k ?? "NaN"),
-      bar_count: parseInt(snap.bar_count ?? "", 10),
-      s_uf:      parseFloat(snap.S_UF ?? snap.s_uf ?? "NaN"),
-      d_k:       parseInt(snap.D_k ?? snap.d_k ?? "NaN", 10),
+      r_rev_k:     parseFloat(snap.R_rev_k ?? snap.r_rev_k ?? "NaN"),
+      bar_count:   parseInt(snap.bar_count ?? "", 10),
+      s_uf:        parseFloat(snap.S_UF ?? snap.s_uf ?? "NaN"),
+      d_k:         parseInt(snap.D_k ?? snap.d_k ?? "NaN", 10),
+      neighbor_wr: parseFloat(snap.neighbor_wr ?? "NaN"),
     };
   } catch {
     return {};
@@ -736,21 +738,55 @@ export async function runSentinel() {
       : 999;
     const isYoung = posAge < MIN_HOLD_DAYS;
 
-    // Pre-check current P&L for minimum hold guard (only for young positions)
+    // Pre-check current P&L (used by minimum hold guard AND structural exit assessment)
     let currentPnlPct = null;
-    if (isYoung) {
-      try {
-        const alpacaPosCheck = await alpacaGet(
-          `/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE
-        ).catch(() => null);
-        if (alpacaPosCheck) {
-          const checkEntry = parseFloat(alpacaPosCheck.avg_entry_price ?? "0");
-          const checkCurrent = parseFloat(alpacaPosCheck.current_price ?? "0");
-          if (checkEntry > 0 && checkCurrent > 0) {
-            currentPnlPct = ((checkCurrent - checkEntry) / checkEntry) * 100;
-          }
+    try {
+      const alpacaPosCheck = await alpacaGet(
+        `/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE
+      ).catch(() => null);
+      if (alpacaPosCheck) {
+        const checkEntry = parseFloat(alpacaPosCheck.avg_entry_price ?? "0");
+        const checkCurrent = parseFloat(alpacaPosCheck.current_price ?? "0");
+        if (checkEntry > 0 && checkCurrent > 0) {
+          currentPnlPct = ((checkCurrent - checkEntry) / checkEntry) * 100;
         }
-      } catch { /* non-fatal */ }
+      }
+    } catch { /* non-fatal */ }
+
+    // ── EXIT-S: Structural Exit Assessment (L5 assessExit) ─────────────
+    // Fires in the -2% to -10% intermediate loss zone.
+    // Uses tuple-proximity neighbor WR to decide CUT vs HOLD.
+    // Respects EXIT-R9 minimum hold: young losing positions are held.
+    // EXIT-F (catastrophic -10%) has already fired above — this covers
+    // the structural assessment zone between -2% and -10%.
+    if (currentPnlPct !== null) {
+      const unrealizedReturn = currentPnlPct / 100;  // assessExit expects fraction
+      const neighborWR = isFinite(fields.neighbor_wr) ? fields.neighbor_wr : null;
+      const exitAssessment = assessExit(unrealizedReturn, neighborWR);
+
+      if (exitAssessment.action === "CUT_STRUCTURAL" || exitAssessment.action === "CUT_CATASTROPHIC") {
+        if (isYoung && currentPnlPct < 0) {
+          console.log(
+            `[SENTINEL] EXIT-S ${pos.ticker} | ${exitAssessment.action} — MIN HOLD GUARD: ` +
+            `holding (P&L=${currentPnlPct.toFixed(1)}%, WR=${neighborWR?.toFixed(3) ?? "null"}, ` +
+            `age=${posAge}d, need ${MIN_HOLD_DAYS}d, reason=${exitAssessment.reason})`
+          );
+        } else {
+          console.log(
+            `[SENTINEL] EXIT-S ${pos.ticker} | ${exitAssessment.action} — structural exit ` +
+            `(P&L=${currentPnlPct.toFixed(1)}%, WR=${neighborWR?.toFixed(3) ?? "null"}, ` +
+            `age=${posAge}d, reason=${exitAssessment.reason})`
+          );
+          await killPosition(pos, `structural_exit_${exitAssessment.action.toLowerCase()}`, ALPACA_BASE);
+          continue;
+        }
+      } else if (exitAssessment.action !== "HOLD_ABOVE_ZONE") {
+        // Log non-cut assessments for visibility (HOLD_STRUCTURAL, AMBIGUOUS, HOLD_NO_DATA)
+        console.log(
+          `[SENTINEL] EXIT-S ${pos.ticker} | ${exitAssessment.action} ` +
+          `(P&L=${currentPnlPct.toFixed(1)}%, WR=${neighborWR?.toFixed(3) ?? "null"}, reason=${exitAssessment.reason})`
+        );
+      }
     }
 
     // ── Chapter 2 exit logic (independent path) ─────────────────────────

@@ -415,7 +415,8 @@ export async function executeBracketOrder(signal, opts = {}) {
   }
 
   // ── Step 4: position sizing (L5 computeSizing) ────────────────────────
-  const entryLayer = signal.signal_class === "3WA" ? "3WA" : "TP";
+  const entryLayer = signal.signal_class === "3WA" ? "3WA"
+                   : signal.signal_class === "1+3" ? "1+3" : "TP";
   const confidence = signal.signal_class === "3WA" ? "HIGH" : "MEDIUM";
   const signalWR = signal.neighbor_wr ?? null;
   const epochState = checkEpochGovernance(signal.sector ?? "Unknown");

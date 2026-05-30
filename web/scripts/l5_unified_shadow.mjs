@@ -38,9 +38,10 @@ const ENTRY_3WA_BAR_MAX = 20;
 const ENTRY_3WA_SUF_LOW = 0.954;
 const ENTRY_3WA_SUF_HIGH = 0.969;
 
-const SIZING_3WA = 0.035;       // 3.5% for 3WA-aligned
-const SIZING_TP_HIGH = 0.025; // 2.5% for neighbor-WR >= 0.70
-const SIZING_TP_MED = 0.015;  // 1.5% for neighbor-WR 0.65-0.70
+const SIZING_3WA = 0.035;       // 3.5% for 3WA-aligned (Wave 1+2+3)
+const SIZING_W1_W3 = 0.025;    // 2.5% for Wave 1+3 without calm species
+const SIZING_TP_HIGH = 0.025;   // 2.5% for neighbor-WR >= 0.70
+const SIZING_TP_MED = 0.015;    // 1.5% for neighbor-WR 0.65-0.70
 const SIZING_DEFAULT = 0.025;    // Current default
 
 const EPOCH_ADVERSE_THRESHOLD = -0.5;
@@ -121,6 +122,9 @@ export function computeSizing(entryLayer, confidence, neighborWR, epochPhase) {
   if (entryLayer === "3WA") {
     basePct = SIZING_3WA;
     reason = "3WA_FULL";
+  } else if (entryLayer === "1+3") {
+    basePct = SIZING_W1_W3;
+    reason = "W1_W3";
   } else if (neighborWR !== null && neighborWR >= 0.70) {
     basePct = SIZING_TP_HIGH;
     reason = "TP_HIGH";
