@@ -28,6 +28,7 @@ import pg from "pg";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { computeRegimeExposure } from "../l5_unified_shadow.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -295,7 +296,34 @@ async function getStrikeZoneCandidates(g32State) {
  * Run the full strike zone detection and fire CH3 if conditions align.
  * Called by sentinel daemon every 5 minutes during market hours.
  */
+function toInt(v) {
+  const n = parseInt(v, 10);
+  return isFinite(n) ? n : null;
+}
+
 export async function runStrikeZoneCheck() {
+  // ── Regime exposure gate (L5 computeRegimeExposure) ──────────────────
+  {
+    const spyRes = await pool.query(
+      `SELECT snapshot_row_json FROM runtime_decisions_latest WHERE ticker = 'SPY' LIMIT 1`
+    );
+    const spySnap = spyRes.rows[0]?.snapshot_row_json ?? {};
+    const spyDk = toInt(spySnap.D_k ?? spySnap.d_k) ?? 0;
+
+    const openRes = await pool.query(
+      `SELECT COUNT(*) AS cnt FROM personal_trade_ledger WHERE status IN ('submitted', 'filled')`
+    );
+    const openCount = parseInt(openRes.rows[0]?.cnt ?? "0", 10);
+
+    const regime = computeRegimeExposure(spyDk, openCount, 30, 0);
+    console.log(`[STRIKE-ZONE] Regime: ${regime.reason} | openPositions=${openCount}`);
+
+    if (!regime.newEntriesAllowed) {
+      console.log(`[STRIKE-ZONE] REGIME BLOCK — ${regime.reason}`);
+      return;
+    }
+  }
+
   // Step 1: Detect phase
   const phaseData = await detectPhase();
 

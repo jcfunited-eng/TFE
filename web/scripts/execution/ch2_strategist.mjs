@@ -20,6 +20,7 @@
 
 import pg from "pg";
 import { readFileSync } from "fs";
+import { computeRegimeExposure } from "../l5_unified_shadow.mjs";
 
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -181,6 +182,28 @@ export async function getCh2Signals() {
         return [];
       }
     } catch {}
+  }
+
+  // ── Regime exposure gate (L5 computeRegimeExposure) ──────────────────
+  {
+    const spyRes = await pool.query(
+      `SELECT snapshot_row_json FROM runtime_decisions_latest WHERE ticker = 'SPY' LIMIT 1`
+    );
+    const spySnap = spyRes.rows[0]?.snapshot_row_json ?? {};
+    const spyDk = toInt(spySnap.D_k ?? spySnap.d_k) ?? 0;
+
+    const openRes = await pool.query(
+      `SELECT COUNT(*) AS cnt FROM personal_trade_ledger WHERE status IN ('submitted', 'filled')`
+    );
+    const openCount = parseInt(openRes.rows[0]?.cnt ?? "0", 10);
+
+    const regime = computeRegimeExposure(spyDk, openCount, 30, 0);
+    console.log(`[CH2-STRATEGIST] Regime: ${regime.reason} | openPositions=${openCount}`);
+
+    if (!regime.newEntriesAllowed) {
+      console.log(`[CH2-STRATEGIST] REGIME BLOCK — ${regime.reason}`);
+      return [];
+    }
   }
 
   // Epoch Resonance Shield — block entries in hostile macro environments

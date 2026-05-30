@@ -21,6 +21,7 @@
  */
 
 import pg from "pg";
+import { computeRegimeExposure } from "../l5_unified_shadow.mjs";
 
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -198,6 +199,22 @@ export async function get3WASignals() {
   }
 
   console.log(`[STRATEGIST] SPY D_k=1 — Wave 3 ACTIVE`);
+
+  // ── Regime exposure gate (position capacity check) ──────────────────
+  {
+    const openRes = await pool.query(
+      `SELECT COUNT(*) AS cnt FROM personal_trade_ledger WHERE status IN ('submitted', 'filled')`
+    );
+    const openCount = parseInt(openRes.rows[0]?.cnt ?? "0", 10);
+
+    const regime = computeRegimeExposure(spyDk, openCount, 30, 0);
+    console.log(`[STRATEGIST] Regime: ${regime.reason} | openPositions=${openCount}`);
+
+    if (!regime.newEntriesAllowed) {
+      console.log(`[STRATEGIST] REGIME BLOCK — ${regime.reason}`);
+      return [];
+    }
+  }
 
   // Fetch species profiles and candidates
   const [speciesMap, rows] = await Promise.all([
