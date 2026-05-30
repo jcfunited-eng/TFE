@@ -29,6 +29,7 @@
 
 import pg from "pg";
 import { createHash } from "crypto";
+import { computeSizing, checkEpochGovernance } from "../l5_unified_shadow.mjs";
 
 // ── Environment validation ─────────────────────────────────────────────────
 const REQUIRED_ENV = [
@@ -413,8 +414,16 @@ export async function executeBracketOrder(signal, opts = {}) {
     return rejectSignal(signal, `price_below_minimum: ${currentPrice} < ${MIN_SHARE_PRICE}`);
   }
 
-  // ── Step 4: position sizing ───────────────────────────────────────────
-  const dollarAllocation = vaultEquity * (riskPct / 100);
+  // ── Step 4: position sizing (L5 computeSizing) ────────────────────────
+  const entryLayer = signal.signal_class === "3WA" ? "3WA" : "TP";
+  const confidence = signal.signal_class === "3WA" ? "HIGH" : "MEDIUM";
+  const signalWR = signal.neighbor_wr ?? null;
+  const epochState = checkEpochGovernance(signal.sector ?? "Unknown");
+  const l5Sizing = computeSizing(entryLayer, confidence, signalWR, epochState.phase);
+  const effectiveRiskPct = l5Sizing.sizePct * 100;  // computeSizing returns fraction, bridge uses percentage
+  console.log(`[BRIDGE] L5 sizing: ${l5Sizing.reason} → ${effectiveRiskPct.toFixed(2)}% | neighbor_wr=${signalWR?.toFixed(3) ?? "null"} (was fixed ${riskPct}%)`);
+
+  const dollarAllocation = vaultEquity * (effectiveRiskPct / 100);
   const shares           = Math.floor(dollarAllocation / currentPrice);
 
   if (shares < MIN_SHARES) {
@@ -454,7 +463,7 @@ export async function executeBracketOrder(signal, opts = {}) {
       d_k:               signal.d_k          ?? null,
       b_k:               signal.b_k          ?? null,
       vault_equity:      vaultEquity,
-      risk_per_trade_pct: riskPct,
+      risk_per_trade_pct: effectiveRiskPct,
       dollar_allocation: dollarAllocation,
       shares,
       atr_14:            atr,
@@ -631,7 +640,14 @@ export async function executeCh2BracketOrder(signal) {
     return rejectSignal(signal, `price_below_minimum: ${currentPrice} < ${MIN_SHARE_PRICE}`);
   }
 
-  const dollarAllocation = vaultEquity * (riskPct / 100);
+  // L5 graduated sizing — CH2 = TP layer, neighborWR from snapshot
+  const ch2SignalWR = signal.neighbor_wr ?? null;
+  const ch2EpochState = checkEpochGovernance(signal.sector ?? "Unknown");
+  const ch2L5Sizing = computeSizing("TP", "MEDIUM", ch2SignalWR, ch2EpochState.phase);
+  const ch2EffectiveRiskPct = ch2L5Sizing.sizePct * 100;
+  console.log(`[CH2-BRIDGE] L5 sizing: ${ch2L5Sizing.reason} → ${ch2EffectiveRiskPct.toFixed(2)}% | neighbor_wr=${ch2SignalWR?.toFixed(3) ?? "null"} (was fixed ${riskPct}%)`);
+
+  const dollarAllocation = vaultEquity * (ch2EffectiveRiskPct / 100);
   const shares           = Math.floor(dollarAllocation / currentPrice);
   if (shares < MIN_SHARES) {
     return rejectSignal(signal, `shares_below_minimum: allocation=${dollarAllocation.toFixed(2)} price=${currentPrice} shares=${shares}`);
@@ -667,7 +683,7 @@ export async function executeCh2BracketOrder(signal) {
       d_k:               signal.d_k,
       b_k:               signal.b_k ?? null,
       vault_equity:      vaultEquity,
-      risk_per_trade_pct: riskPct,
+      risk_per_trade_pct: ch2EffectiveRiskPct,
       dollar_allocation: dollarAllocation,
       shares,
       atr_14:            atr,

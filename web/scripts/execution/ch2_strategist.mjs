@@ -102,6 +102,7 @@ function parseSignal(row) {
   const regime    = String(snap.regime ?? "").trim().toUpperCase();
   const bk        = toFloat(snap.B_k ?? snap.b_k);
   const fn        = toFloat(snap.F_n ?? snap.f_n);
+  const neighborWR = toFloat(snap.neighbor_wr);
 
   // Hard entry gates — all must pass
   if (!ticker)                                          return null;
@@ -125,6 +126,7 @@ function parseSignal(row) {
     f_n:          fn,
     b_k:          bk,
     sector:       String(row.sector ?? "Unknown").trim(),
+    neighbor_wr:  neighborWR,
     // No spy_dk gate for Ch2 — D_k=1 on the ticker itself is sufficient
     spy_dk:       null,
   };

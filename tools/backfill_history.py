@@ -4,7 +4,7 @@ Backfill runtime_decisions_history with historical kernel outputs.
 
 Runs the kernel at weekly bar positions for each CS-only ticker,
 producing ~260 historical snapshots per ticker (5 years × 52 weeks).
-Writes results to runtime_decisions_history so the horse decision
+Writes results to runtime_decisions_history so the tuple-proximity decision
 engine has enough neighbors (needs 30+) to compute WR.
 
 Validation env only. Do not run against production without explicit approval.

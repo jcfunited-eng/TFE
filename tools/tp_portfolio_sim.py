@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Portfolio simulation on horse backtest trade list.
+Portfolio simulation on tuple-proximity backtest trade list.
 
-Takes the trade list JSON from horse_backtest.py and simulates:
+Takes the trade list JSON from tp_backtest.py and simulates:
 - Starting capital: $100,000
 - Equal weight: 2.5% per position ($2,500)
 - Max concurrent positions: 30
@@ -237,13 +237,13 @@ def simulate(trades, threshold_label):
 
 def main():
     print("=" * 60)
-    print("HORSE PORTFOLIO SIMULATION")
+    print("TP PORTFOLIO SIMULATION")
     print("=" * 60)
     print(f"Capital: ${STARTING_CAPITAL:,.0f} | Position: {POSITION_WEIGHT*100:.1f}% | Max: {MAX_POSITIONS}")
     print()
 
     for threshold in ["0.65", "0.70"]:
-        trades_file = f"/tmp/horse_trades_{threshold}.json"
+        trades_file = f"/tmp/tp_trades_{threshold}.json"
         if not os.path.exists(trades_file):
             print(f"  Trade file not found: {trades_file}")
             continue

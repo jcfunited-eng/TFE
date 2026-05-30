@@ -1,5 +1,5 @@
 /**
- * Horse Decision Engine — pure nearest-neighbor tuple distance.
+ * Tuple-Proximity Decision Engine — pure nearest-neighbor tuple distance.
  *
  * Reads the 7-dim kernel tuple (D_k, M_k, B_k, R_rev_k, U_star_k, C_k, P_k)
  * from historical snapshot rows, computes per-stock-normalized Euclidean
@@ -15,7 +15,7 @@
 // ── Config ──────────────────────────────────────────────────────────
 const N_NEIGHBORS = 30;
 const FORWARD_DAYS = 20;
-const ENTRY_THRESHOLD = parseFloat(process.env.TFE_HORSE_ENTRY_THRESHOLD ?? "0.65");
+const ENTRY_THRESHOLD = parseFloat(process.env.TFE_TP_ENTRY_THRESHOLD ?? process.env.TFE_HORSE_ENTRY_THRESHOLD ?? "0.65");
 const EXIT_THRESHOLD = 0.40;
 
 // Both lowercase (DB columns) and camelCase (snapshot JSON) variants
@@ -85,7 +85,7 @@ function computeNeighborWR(currentTuple, historyTuples, historyReturns) {
 }
 
 /**
- * Compute horse decision for a single ticker.
+ * Compute tuple-proximity decision for a single ticker.
  *
  * @param {object} currentSnap - Current kernel snapshot row (from this refresh)
  * @param {object[]} historyRows - Past snapshot rows from runtime_decisions_history
@@ -93,10 +93,10 @@ function computeNeighborWR(currentTuple, historyTuples, historyReturns) {
  * @param {object} priceHistory - Map of date string → close price for this ticker
  * @returns {{ decision: string, neighborWR: number|null, historySize: number, reason: string }}
  */
-export function computeHorseDecision(currentSnap, historyRows, priceHistory) {
+export function computeTupleProximityDecision(currentSnap, historyRows, priceHistory) {
   const currentTuple = extractTuple(currentSnap);
   if (!currentTuple) {
-    return { decision: "Avoid", neighborWR: null, historySize: 0, reason: "HORSE_MISSING_FIELDS" };
+    return { decision: "Avoid", neighborWR: null, historySize: 0, reason: "TP_MISSING_FIELDS" };
   }
 
   // Build historical tuples and forward returns
@@ -147,29 +147,35 @@ export function computeHorseDecision(currentSnap, historyRows, priceHistory) {
       decision: "Hold",
       neighborWR: null,
       historySize: historyTuples.length,
-      reason: "HORSE_INSUFFICIENT_HISTORY",
+      reason: "TP_INSUFFICIENT_HISTORY",
     };
   }
 
   let decision, reason;
   if (wr >= ENTRY_THRESHOLD) {
     decision = "Accumulate";
-    reason = `HORSE_ACCUMULATE_WR_${(wr * 100).toFixed(0)}`;
+    reason = `TP_ACCUMULATE_WR_${(wr * 100).toFixed(0)}`;
   } else if (wr < EXIT_THRESHOLD) {
     decision = "Avoid";
-    reason = `HORSE_AVOID_WR_${(wr * 100).toFixed(0)}`;
+    reason = `TP_AVOID_WR_${(wr * 100).toFixed(0)}`;
   } else {
     decision = "Hold";
-    reason = `HORSE_HOLD_WR_${(wr * 100).toFixed(0)}`;
+    reason = `TP_HOLD_WR_${(wr * 100).toFixed(0)}`;
   }
 
   return { decision, neighborWR: wr, historySize: historyTuples.length, reason };
 }
 
-export const HORSE_CONFIG = {
+// Backward-compatible alias (callers importing old name still work during transition)
+export const computeHorseDecision = computeTupleProximityDecision;
+
+export const TP_CONFIG = {
   N_NEIGHBORS,
   FORWARD_DAYS,
   ENTRY_THRESHOLD,
   EXIT_THRESHOLD,
   TUPLE_FIELDS,
 };
+
+// Backward-compatible alias
+export const HORSE_CONFIG = TP_CONFIG;

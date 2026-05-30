@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verify the horse produces real WR values on backfilled history.
+Verify the tuple-proximity produces real WR values on backfilled history.
 Runs on the validation env. Simulates what production sync would do.
 """
 
@@ -139,7 +139,7 @@ def main():
 
     # Report
     print(f"\n{'=' * 60}")
-    print(f"HORSE VERIFICATION ON BACKFILLED DATA")
+    print(f"TP VERIFICATION ON BACKFILLED DATA")
     print(f"{'=' * 60}")
     print(f"Tickers sampled: {len(tickers)}")
     print(f"Tickers with WR: {len(results)}")

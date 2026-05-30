@@ -126,6 +126,7 @@ function parseSignal(row, spyDk, speciesMap) {
   const dk       = toInt(snap.D_k ?? snap.d_k);
   const fn       = toFloat(snap.F_n ?? snap.f_n);
   const bk       = toFloat(snap.B_k ?? snap.b_k);
+  const neighborWR = toFloat(snap.neighbor_wr);
 
   if (!ticker)  return null;
   if (!runId)   return null;
@@ -160,6 +161,7 @@ function parseSignal(row, spyDk, speciesMap) {
     d_k:          dk,
     f_n:          fn,
     b_k:          bk,
+    neighbor_wr:  neighborWR,
   };
 }
 

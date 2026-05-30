@@ -11,9 +11,9 @@ import {
   minBarsForAccumulate,
 } from "./runtime_decision_provenance.mjs";
 import {
-  computeHorseDecision,
-  HORSE_CONFIG,
-} from "./horse_decision_engine.mjs";
+  computeTupleProximityDecision,
+  TP_CONFIG,
+} from "./tuple_proximity_engine.mjs";
 import { shadowLog, L5_MODES } from "./l5_unified_shadow.mjs";
 
 const DEFAULT_DB_PORT = 5432;
@@ -1640,8 +1640,8 @@ async function main() {
     provenanceMinBars,
   });
 
-  // ── Horse Decision Engine ─────────────────────────────────────────
-  // If HORSE or HORSE_SHADOW mode, compute horse decisions from
+  // ── Tuple-Proximity Decision Engine ──────────────────────────────
+  // If tuple-proximity mode active, compute decisions from
   // runtime_decisions_history and override/shadow V3 basin decisions.
   const pool = resolvePool();
   // ── Tuple-Proximity Decision Engine ────────────────────────────────
@@ -1668,7 +1668,7 @@ async function main() {
              ORDER BY generated_at_utc ASC`,
             [ticker]
           );
-          if (histRes.rows.length <= HORSE_CONFIG.N_NEIGHBORS) {
+          if (histRes.rows.length <= TP_CONFIG.N_NEIGHBORS) {
             tpSkipped++;
             continue;
           }
@@ -1690,7 +1690,7 @@ async function main() {
           const currentSnap = JSON.parse(rec.snapshotRowJson);
 
           // Compute tuple-proximity decision
-          const tpResult = computeHorseDecision(
+          const tpResult = computeTupleProximityDecision(
             currentSnap,
             histRes.rows.map(r => ({
               snapshot_row_json: typeof r.snapshot_row_json === "string"
@@ -1701,11 +1701,17 @@ async function main() {
           );
 
           rec.decisionLabel = tpResult.decision;
+          // Persist neighborWR into snapshot so downstream consumers
+          // (strategists, bridge sizing) can read it without recomputing.
+          if (tpResult.neighborWR !== null && tpResult.neighborWR !== undefined) {
+            currentSnap.neighbor_wr = tpResult.neighborWR;
+            rec.snapshotRowJson = JSON.stringify(currentSnap);
+          }
           tpApplied++;
         }
         console.log(
           `[TUPLE-PROXIMITY] applied=${tpApplied}, skipped=${tpSkipped} (non-stock or insufficient history), ` +
-          `threshold=${HORSE_CONFIG.ENTRY_THRESHOLD}`
+          `threshold=${TP_CONFIG.ENTRY_THRESHOLD}`
         );
       } finally {
         tpClient.release();
@@ -1714,7 +1720,7 @@ async function main() {
       console.error(`[TUPLE-PROXIMITY] Error: ${err.message}`);
     }
   }
-  // ── End Horse Decision Engine ─────────────────────────────────────
+  // ── End Tuple-Proximity Decision Engine ──────────────────────────
 
   // ── L5 Unified Shadow ─────────────────────────────────────────────
   // Run all L5 components in shadow mode: log what each would decide
@@ -1750,11 +1756,12 @@ async function main() {
         const rec = preparedRecords.records[i];
         const snap = JSON.parse(rec.snapshotRowJson);
 
-        // Use horse WR if already computed (stored as reason code)
+        // Use neighbor WR if already computed (stored in snapshot)
         let neighborWR = null;
         const wrMatch = rec.decisionLabel === "Accumulate" ? 0.65 : null; // placeholder
-        // Parse WR from horse reason if available
+        // Parse WR from snapshot if available
         if (snap._horse_wr !== undefined) neighborWR = snap._horse_wr;
+        if (snap.neighbor_wr !== undefined) neighborWR = snap.neighbor_wr;
 
         const result = shadowLog({
           ticker: rec.ticker,

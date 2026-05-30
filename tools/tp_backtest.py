@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Horse-driven backtest — pure numpy nearest-neighbor tuple distance.
+Tuple-proximity-driven backtest — pure numpy nearest-neighbor tuple distance.
 
 Entry: gate event where neighbor-WR >= threshold
 Exit: neighbor-WR < 0.40, -10% catastrophic floor, 20d max hold
 No SPY gate. No Mar 26 region. No threshold conjunctions.
-Reads whatever the kernel emits. The horse IS the L5 signal.
+Reads whatever the kernel emits. The tuple-proximity IS the L5 signal.
 """
 
 import json
@@ -95,7 +95,7 @@ def compute_neighbor_wr(current_tuple, history_tuples, history_returns, n=N_NEIG
 
 
 def run_backtest_for_ticker(ticker, bars_df):
-    """Run the horse backtest for one ticker.
+    """Run the tuple-proximity backtest for one ticker.
 
     bars_df: DataFrame with columns [bar_date, close], sorted ascending.
 
@@ -136,7 +136,7 @@ def run_backtest_for_ticker(ticker, bars_df):
         if fwd_idx < n_bars:
             forward_returns[j] = (closes[fwd_idx] - closes[idx]) / closes[idx]
 
-    # Step 3: Walk forward — at each bar, compute horse using ONLY past history
+    # Step 3: Walk forward — at each bar, compute tuple-proximity using ONLY past history
     signals = []
     for j in range(N_NEIGHBORS, len(tuples)):
         bar_idx = tuple_indices[j]
@@ -200,7 +200,7 @@ def simulate_trades(signals, bars_lookup, entry_threshold):
             elif hold_days >= MAX_HOLD:
                 exit_reason = "TIME_CAP"
             elif wr < EXIT_WR_THRESHOLD:
-                exit_reason = "HORSE_EXIT"
+                exit_reason = "TP_EXIT"
 
             if exit_reason:
                 active_trade["exit_price"] = price
@@ -242,7 +242,7 @@ def simulate_trades(signals, bars_lookup, entry_threshold):
 
 def main():
     print("=" * 70)
-    print("HORSE BACKTEST — pure numpy, no ML, no SPY gate, no conjunctions")
+    print("TP BACKTEST — pure numpy, no ML, no SPY gate, no conjunctions")
     print("=" * 70)
     print(f"Config: {N_NEIGHBORS} neighbors, {N_DIM}-dim tuple, {FORWARD_DAYS}d horizon")
     print(f"Entry thresholds: {ENTRY_THRESHOLDS}")
@@ -269,7 +269,7 @@ def main():
     print(f"Eligible (>= {MIN_HISTORY + FORWARD_DAYS} bars): {len(eligible)} tickers")
 
     # Sample with explicit seed for reproducibility
-    seed = int(os.environ.get("HORSE_SEED", "42"))
+    seed = int(os.environ.get("TP_SEED", "42"))
     rng = random.Random(seed)
     eligible_shuffled = list(eligible)
     rng.shuffle(eligible_shuffled)
@@ -394,7 +394,7 @@ def main():
             print(f"    {reason}: {count} ({count/n_trades*100:.0f}%)")
 
         # Save trade list for portfolio simulation
-        trades_file = f"/tmp/horse_trades_{threshold:.2f}.json"
+        trades_file = f"/tmp/tp_trades_{threshold:.2f}.json"
         with open(trades_file, "w") as f:
             json.dump(all_trades, f)
         print(f"  Trades saved: {trades_file}")

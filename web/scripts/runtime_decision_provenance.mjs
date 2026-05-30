@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 // L5 Decision Engine: Tuple-Proximity Perception
 //
 // Decision labels (Accumulate/Hold/Avoid) are computed by the tuple-proximity
-// engine in horse_decision_engine.mjs via sync_runtime_postgres_impl.mjs.
+// engine in tuple_proximity_engine.mjs via sync_runtime_postgres_impl.mjs.
 // This module provides provenance record structure and input normalization.
 // ---------------------------------------------------------------------------
 
