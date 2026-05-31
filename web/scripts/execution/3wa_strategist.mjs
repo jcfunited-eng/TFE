@@ -219,11 +219,23 @@ export async function get3WASignals() {
   }
 
   // Fetch species profiles and candidates
-  const [speciesMap, rows] = await Promise.all([
-    fetchSpeciesProfiles(),
-    fetchCandidateRows(runId),
-  ]);
-  console.log(`[STRATEGIST] species_profiles loaded: ${speciesMap.size} tickers`);
+  let speciesMap = new Map();
+  let rows;
+  try {
+    [speciesMap, rows] = await Promise.all([
+      fetchSpeciesProfiles(),
+      fetchCandidateRows(runId),
+    ]);
+    console.log(`[STRATEGIST] species_profiles loaded: ${speciesMap.size} tickers`);
+  } catch (speciesErr) {
+    // species_profiles table missing or query failed — degrade gracefully.
+    // Signals tag as '1+3' or 'standard' instead of '3WA'. No sizing change
+    // upward, no additional trades. The only effect is down-tagging: signals
+    // that would be '3WA' (3.5% sizing) become '1+3' (2.5% sizing).
+    console.warn(`[STRATEGIST] species_profiles unavailable: ${speciesErr.message} — degrading to empty species map`);
+    speciesMap = new Map();
+    rows = rows ?? await fetchCandidateRows(runId);
+  }
 
   const signals = rows.map(r => parseSignal(r, spyDk, speciesMap)).filter(Boolean);
 
