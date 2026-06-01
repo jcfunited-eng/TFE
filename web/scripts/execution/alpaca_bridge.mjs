@@ -234,12 +234,19 @@ async function fetchLatestPrice(ticker) {
 }
 
 // ── Account equity ────────────────────────────────────────────────────────
-async function fetchAccountEquity(base) {
+async function fetchAccountState(base) {
   const account = await alpacaGet("/v2/account", base);
   const equity = parseFloat(account?.equity ?? account?.portfolio_value ?? 0);
+  const cash = parseFloat(account?.cash ?? 0);
   if (!isFinite(equity) || equity <= 0) {
-    throw new Error("[BRIDGE] fetchAccountEquity: account equity is zero or unavailable");
+    throw new Error("[BRIDGE] fetchAccountState: account equity is zero or unavailable");
   }
+  return { equity, cash };
+}
+
+// Backward-compatible wrapper (used by callers that only need equity)
+async function fetchAccountEquity(base) {
+  const { equity } = await fetchAccountState(base);
   return equity;
 }
 
@@ -390,12 +397,12 @@ export async function executeBracketOrder(signal, opts = {}) {
 
   console.log(`[BRIDGE] Signal validated: ${ticker} | class=${signal.signal_class} | spy_dk=${signal.spy_dk} | s_uf=${signal.s_uf}`);
 
-  let vaultEquity, currentPrice, atr, bars;
+  let vaultEquity, vaultCash, currentPrice, atr, bars;
 
   // ── Step 2: fetch live market data ───────────────────────────────────
   try {
-    [vaultEquity, currentPrice] = await Promise.all([
-      fetchAccountEquity(BASE),
+    [{ equity: vaultEquity, cash: vaultCash }, currentPrice] = await Promise.all([
+      fetchAccountState(BASE),
       fetchLatestPrice(ticker),
     ]);
     ({ atr, bars } = await computeATR(ticker, currentPrice));
@@ -429,6 +436,12 @@ export async function executeBracketOrder(signal, opts = {}) {
 
   if (shares < MIN_SHARES) {
     return rejectSignal(signal, `shares_below_minimum: allocation=${dollarAllocation.toFixed(2)} price=${currentPrice} shares=${shares}`);
+  }
+
+  // ── Step 4b: cash ceiling — position cost must not exceed available cash ──
+  const positionCost = shares * currentPrice;
+  if (positionCost > vaultCash) {
+    return rejectSignal(signal, `insufficient_cash: cost=$${positionCost.toFixed(2)} cash=$${vaultCash.toFixed(2)} (equity=$${vaultEquity.toFixed(2)})`);
   }
 
   // ── Step 5: bracket prices ────────────────────────────────────────────
@@ -620,10 +633,10 @@ export async function executeCh2BracketOrder(signal) {
   }
   console.log(`[CH2-BRIDGE] Signal validated: ${ticker} | class=${signal.signal_class} | s_uf=${signal.s_uf} | D_k=${signal.d_k}`);
 
-  let vaultEquity, currentPrice, atr, bars;
+  let vaultEquity, vaultCash, currentPrice, atr, bars;
   try {
-    [vaultEquity, currentPrice] = await Promise.all([
-      fetchAccountEquity(BASE),
+    [{ equity: vaultEquity, cash: vaultCash }, currentPrice] = await Promise.all([
+      fetchAccountState(BASE),
       fetchLatestPrice(ticker),
     ]);
     ({ atr, bars } = await computeATR(ticker, currentPrice));
@@ -652,6 +665,12 @@ export async function executeCh2BracketOrder(signal) {
   const shares           = Math.floor(dollarAllocation / currentPrice);
   if (shares < MIN_SHARES) {
     return rejectSignal(signal, `shares_below_minimum: allocation=${dollarAllocation.toFixed(2)} price=${currentPrice} shares=${shares}`);
+  }
+
+  // Cash ceiling — position cost must not exceed available cash
+  const ch2PositionCost = shares * currentPrice;
+  if (ch2PositionCost > vaultCash) {
+    return rejectSignal(signal, `insufficient_cash: cost=$${ch2PositionCost.toFixed(2)} cash=$${vaultCash.toFixed(2)} (equity=$${vaultEquity.toFixed(2)})`);
   }
 
   // Kinetic buffer: 0.1% above current price to catch accelerating entries.
@@ -793,9 +812,12 @@ export async function executeCh3MarketOrder(signal) {
     return rejectSignal(signal, "invalid_ch3_signal");
   }
 
-  let currentPrice, atr;
+  let currentPrice, atr, ch3Cash;
   try {
-    currentPrice = await fetchLatestPrice(ticker);
+    [{ cash: ch3Cash }, currentPrice] = await Promise.all([
+      fetchAccountState(BASE),
+      fetchLatestPrice(ticker),
+    ]);
   } catch (err) {
     return rejectSignal(signal, `market_data_fetch_failed: ${err.message}`);
   }
@@ -814,6 +836,12 @@ export async function executeCh3MarketOrder(signal) {
   const shares = Math.floor(tradeAmount / currentPrice);
   if (shares < MIN_SHARES) {
     return rejectSignal(signal, `shares_below_minimum: amount=${tradeAmount} price=${currentPrice} shares=${shares}`);
+  }
+
+  // Cash ceiling — position cost must not exceed available cash
+  const ch3PositionCost = shares * currentPrice;
+  if (ch3PositionCost > ch3Cash) {
+    return rejectSignal(signal, `insufficient_cash: cost=$${ch3PositionCost.toFixed(2)} cash=$${ch3Cash.toFixed(2)}`);
   }
 
   const entryPrice      = parseFloat(currentPrice.toFixed(2));
