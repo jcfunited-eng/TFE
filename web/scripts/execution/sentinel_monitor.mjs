@@ -273,6 +273,17 @@ async function ledgerClose(id, exitReason, exitOrderId, exitFilledPrice = null) 
 // ── Kill a single position ────────────────────────────────────────────────
 async function killPosition(pos, exitReason, base) {
   const { id, ticker, shares, alpaca_order_id, alpaca_take_profit_order_id, alpaca_stop_loss_order_id } = pos;
+
+  // ── Market-hours gate: defer sells to next open-market cycle ──────
+  // DAY market orders submitted outside market hours are accepted by Alpaca
+  // but never fill. The ledger gets marked closed on a sell that didn't
+  // execute, creating ledger/broker divergence. Gate ALL exit-driven sells
+  // on market hours, matching EXIT-F's existing guard.
+  if (!isMarketHoursForExitF()) {
+    console.log(`[SENTINEL] KILL DEFERRED ${ticker} | reason=${exitReason} — market closed, will retry next open cycle`);
+    return;
+  }
+
   console.log(`[SENTINEL] KILL ${ticker} | reason=${exitReason} | shares=${shares}`);
 
   // Track this kill so orphan sync won't re-adopt while Alpaca settles
@@ -373,9 +384,19 @@ async function killPosition(pos, exitReason, base) {
     } catch { /* non-fatal — p_l will be null */ }
   }
 
-  await ledgerClose(id, exitReason, exitOrderId, exitFilledPrice).catch(e => {
-    console.error(`[SENTINEL] Ledger close failed for ${ticker}:`, e.message);
-  });
+  // Only mark ledger closed if the sell actually filled.
+  // An unfilled order (null fill price) means the position is still open —
+  // closing the ledger on an unfilled sell creates ledger/broker divergence.
+  if (exitFilledPrice != null) {
+    await ledgerClose(id, exitReason, exitOrderId, exitFilledPrice).catch(e => {
+      console.error(`[SENTINEL] Ledger close failed for ${ticker}:`, e.message);
+    });
+  } else {
+    console.warn(
+      `[SENTINEL] SELL UNFILLED ${ticker} | orderId=${exitOrderId} | reason=${exitReason} — ` +
+      `ledger NOT closed (position still open). Will retry next cycle.`
+    );
+  }
 }
 
 // ── Circuit breaker ───────────────────────────────────────────────────────
@@ -486,14 +507,30 @@ export async function runSentinel() {
                  LIMIT 1`, [ticker]
               );
               if (existing.rows.length > 0) continue;
+              // Recover real entry date: check for the most recent closed row
+              // for this ticker to carry the original entry_filled_at forward.
+              // Never use NOW() — that resets hold timers off phantom timestamps.
+              let realEntryAt = null;
+              try {
+                const prev = await pool.query(
+                  `SELECT entry_filled_at FROM personal_trade_ledger
+                   WHERE UPPER(TRIM(ticker)) = $1 AND status = 'closed'
+                     AND entry_filled_at IS NOT NULL
+                   ORDER BY entry_filled_at DESC LIMIT 1`, [ticker]
+                );
+                if (prev.rows.length > 0) {
+                  realEntryAt = prev.rows[0].entry_filled_at;
+                }
+              } catch { /* non-fatal — fall back to NOW */ }
+              const entryAt = realEntryAt ?? new Date().toISOString();
               await pool.query(
                 `INSERT INTO personal_trade_ledger
                    (ticker, run_id, signal_class, shares, status,
                     entry_filled_price, entry_filled_at, signal_detected_at)
-                 VALUES ($1, 'orphan_sync', 'CH2', $2, 'filled', $3, NOW(), NOW())`,
-                [ticker, qty, entryPrice]
+                 VALUES ($1, 'orphan_sync', 'CH2', $2, 'filled', $3, $4, $4)`,
+                [ticker, qty, entryPrice, entryAt]
               );
-              console.log(`[SENTINEL] Adopted orphan: ${ticker} qty=${qty} entry=$${entryPrice.toFixed(2)}`);
+              console.log(`[SENTINEL] Adopted orphan: ${ticker} qty=${qty} entry=$${entryPrice.toFixed(2)} entryAt=${entryAt}${realEntryAt ? ' (recovered)' : ' (no prior row)'}`);
             } catch (e) {
               console.warn(`[SENTINEL] Orphan insert failed for ${ticker}: ${e.message}`);
             }
