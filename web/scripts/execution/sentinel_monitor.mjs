@@ -274,11 +274,18 @@ async function ledgerClose(id, exitReason, exitOrderId, exitFilledPrice = null) 
 async function killPosition(pos, exitReason, base) {
   const { id, ticker, shares, alpaca_order_id, alpaca_take_profit_order_id, alpaca_stop_loss_order_id } = pos;
 
+  // ── Exit-blocked check: don't retry positions that can't be sold ──────
+  // Delisted/inactive assets get marked exit_blocked. Don't spam Alpaca.
+  try {
+    const blockedCheck = await pool.query(
+      `SELECT rationale_json->>'exit_blocked' AS blocked FROM personal_trade_ledger WHERE id=$1`, [id]
+    );
+    if (blockedCheck.rows[0]?.blocked === "true") {
+      return; // Silently skip — already logged when blocked was set
+    }
+  } catch { /* non-fatal */ }
+
   // ── Market-hours gate: defer sells to next open-market cycle ──────
-  // DAY market orders submitted outside market hours are accepted by Alpaca
-  // but never fill. The ledger gets marked closed on a sell that didn't
-  // execute, creating ledger/broker divergence. Gate ALL exit-driven sells
-  // on market hours, matching EXIT-F's existing guard.
   if (!isMarketHoursForExitF()) {
     console.log(`[SENTINEL] KILL DEFERRED ${ticker} | reason=${exitReason} — market closed, will retry next open cycle`);
     return;
@@ -355,6 +362,41 @@ async function killPosition(pos, exitReason, base) {
     console.warn(`[SENTINEL] ${ticker} — position existence check error: ${msg}. Attempting sell anyway.`);
   }
 
+  // ── Idempotent kill: check if this position already has a pending exit ───
+  // If a prior cycle submitted a sell but the fill wasn't confirmed, don't
+  // re-submit. Instead, poll the existing order for fill status.
+  try {
+    const pendingCheck = await pool.query(
+      `SELECT rationale_json->>'sentinel_exit_order_id' AS order_id
+       FROM personal_trade_ledger WHERE id=$1`, [id]
+    );
+    const pendingOrderId = pendingCheck.rows[0]?.order_id;
+    if (pendingOrderId && pendingOrderId !== "null") {
+      // Prior sell exists — check its status instead of re-submitting
+      try {
+        const orderStatus = await alpacaGet(`/v2/orders/${pendingOrderId}`, base);
+        if (orderStatus?.filled_avg_price) {
+          const fillPrice = parseFloat(orderStatus.filled_avg_price);
+          console.log(`[SENTINEL] Pending sell confirmed filled: ${ticker} @ $${fillPrice} (order ${pendingOrderId})`);
+          await ledgerClose(id, exitReason, pendingOrderId, fillPrice).catch(e => {
+            console.error(`[SENTINEL] Ledger close failed for ${ticker}:`, e.message);
+          });
+          return;
+        }
+        if (orderStatus?.status === "canceled" || orderStatus?.status === "cancelled" || orderStatus?.status === "expired") {
+          console.log(`[SENTINEL] Pending sell ${orderStatus.status}: ${ticker} — clearing, will retry`);
+          // Clear the pending order so next cycle can retry
+          await pool.query(
+            `UPDATE personal_trade_ledger SET rationale_json = rationale_json - 'sentinel_exit_order_id' WHERE id=$1`, [id]
+          ).catch(() => {});
+        } else {
+          console.log(`[SENTINEL] Pending sell still open: ${ticker} status=${orderStatus?.status} — waiting`);
+          return; // Don't re-submit while order is pending
+        }
+      } catch { /* order lookup failed — fall through to re-submit */ }
+    }
+  } catch { /* non-fatal */ }
+
   let exitOrderId = null;
   let exitFilledPrice = null;
   try {
@@ -362,14 +404,36 @@ async function killPosition(pos, exitReason, base) {
     exitOrderId = sellOrder.id;
     console.log(`[SENTINEL] Market sell placed | ${ticker} | orderId=${exitOrderId}`);
   } catch (err) {
-    console.error(`[SENTINEL] CRITICAL: market sell FAILED for ${ticker}: ${err.message}`);
+    const errMsg = String(err.message);
+    // Handle delisted/inactive assets — stop retrying, mark position blocked
+    if (errMsg.includes("not active") || errMsg.includes("40010001")) {
+      console.error(`[SENTINEL] ASSET INACTIVE: ${ticker} — cannot sell, marking exit_blocked`);
+      await pool.query(
+        `UPDATE personal_trade_ledger
+         SET rationale_json = rationale_json || $1::jsonb
+         WHERE id=$2`,
+        [JSON.stringify({ exit_blocked: true, exit_blocked_reason: "asset_not_active", kill_reason: exitReason }), id]
+      ).catch(() => {});
+      return;
+    }
+    console.error(`[SENTINEL] CRITICAL: market sell FAILED for ${ticker}: ${errMsg}`);
     await pool.query(
       `UPDATE personal_trade_ledger
        SET rationale_json = rationale_json || $1::jsonb
        WHERE id=$2`,
-      [JSON.stringify({ sentinel_kill_failed: err.message, kill_reason: exitReason }), id]
+      [JSON.stringify({ sentinel_kill_failed: errMsg, kill_reason: exitReason }), id]
     ).catch(() => {});
     return;
+  }
+
+  // Store exit order ID immediately so idempotent check works on next cycle
+  if (exitOrderId) {
+    await pool.query(
+      `UPDATE personal_trade_ledger
+       SET rationale_json = rationale_json || $1::jsonb
+       WHERE id=$2`,
+      [JSON.stringify({ sentinel_exit_order_id: exitOrderId }), id]
+    ).catch(() => {});
   }
 
   // Brief wait for market order to fill, then capture exit price for P&L
