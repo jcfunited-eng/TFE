@@ -5,10 +5,14 @@
  * Independent execution path. Does NOT touch or depend on 3WA (Chapter 1) logic.
  *
  * Entry conditions (ALL must be true):
- *   1. decision_label = 'Accumulate'  — kernel's coupled decision
- *   2. S_UF ∈ [0.5, 0.75)            — mid-conviction acceleration band
+ *   1. decision_label = 'Accumulate'  — tuple-proximity WR >= 0.65
+ *   2. D_k = 1                        — per-ticker directional expansion
  *   3. bar_count > 20                 — established stock
  *   4. market_cap >= $500M            — liquidity floor
+ *
+ * S_UF band [0.50, 0.75) REMOVED June 2026 — validated as primary alpha drag.
+ * Tuple-proximity reads S_UF as part of the coupled state; the scalar gate
+ * was redundant and blocked high-WR picks (NVDA WR=0.933 rejected at S_UF=0.34).
  *
  * Exit conditions (evaluated by sentinel_monitor per signal_class='CH2'):
  *   EXIT A — Acceleration complete:  S_UF crosses above 0.75
@@ -79,11 +83,9 @@ async function fetchCandidateRows(runId) {
        AND r.decision_label = 'Accumulate'
        AND r.ticker != 'SPY'
        AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $2
-       AND CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) >= $3
-       AND CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) <  $4
-       AND COALESCE(NULLIF(s.market_cap, 0), f.market_cap, 0) >= $5
+       AND COALESCE(NULLIF(s.market_cap, 0), f.market_cap, 0) >= $3
      ORDER BY r.ticker ASC`,
-    [runId, CH2_BAR_COUNT_MIN - 1, CH2_S_UF_MIN, CH2_S_UF_MAX, CH2_MIN_MARKET_CAP]
+    [runId, CH2_BAR_COUNT_MIN - 1, CH2_MIN_MARKET_CAP]
   );
   return res.rows;
 }
@@ -108,11 +110,15 @@ function parseSignal(row) {
   if (!ticker)                                          return null;
   if (!runId)                                           return null;
   if (barCount === null || barCount < CH2_BAR_COUNT_MIN) return null;
-  if (sUf === null || sUf < CH2_S_UF_MIN || sUf >= CH2_S_UF_MAX) return null;
-  // D_k=1 gate RE-ENABLED (reverts commit bb0590a from May 12).
-  // All 7,658 verified quarantine primitive trades had D_k=1.
-  // Removing this gate admitted signals without directional alignment.
-  // See KERNEL_PHILOSOPHY.md Section 7, purge #1.
+  // S_UF band gate REMOVED. Validated as primary drag on alpha:
+  // with S_UF band [0.50, 0.75): -8.65pp vs SPY (rejected NVDA WR=0.933, AMD, etc.)
+  // without S_UF band (tuple-only): +2.73pp vs SPY on same leak-free deep-pool window.
+  // The band blocked high-WR picks whose structural field strength sat outside
+  // an arbitrary acceleration range. Tuple-proximity WR already reads the full
+  // coupled structural state including S_UF — the scalar gate was redundant
+  // and destructive.
+  // D_k=1 gate stays — it's part of the 7-dim tuple the TP engine reads,
+  // and validates as a legitimate per-ticker directional alignment check.
   if (dk !== 1) return null;
 
   return {
