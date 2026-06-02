@@ -668,6 +668,26 @@ def _zombie_fast_path_applies(previous_row: Dict[str, Any], metrics: Dict[str, A
     return float(traded_dollar_volume) < 50000.0
 
 
+def _no_new_bar_since_snapshot(previous_row: Dict[str, Any], recent_metrics: Dict[str, Any]) -> bool:
+    """Check if the latest bar is the same as what the previous snapshot processed.
+
+    Compares the latest bar's timestamp against the snapshot's stored bar timestamp.
+    If they match, no new market data exists — the kernel output won't change.
+    This is the primary mechanism for incremental (delta-only) refresh:
+    ~250 tickers have new bars on a trading day, ~10K carry forward.
+    """
+    latest_ts = recent_metrics.get("latest_timestamp")
+    if latest_ts is None:
+        return False  # Can't determine — recompute to be safe
+
+    prev_bar_ts = previous_row.get("last_bar_timestamp")
+    if prev_bar_ts is None:
+        return False  # Previous snapshot didn't store this — recompute
+
+    # Compare as strings (both are ISO format)
+    return str(latest_ts).strip() == str(prev_bar_ts).strip()
+
+
 def _resolve_skip_reuse_row(
     *,
     symbol: str,
@@ -681,6 +701,21 @@ def _resolve_skip_reuse_row(
         return None, None
     if not _row_has_required_keys(previous_row):
         return None, None
+
+    # Incremental refresh: skip if no new bar since last snapshot.
+    # This is the primary fast path — most tickers have no new data
+    # between daily refreshes. ~250 tickers trade per day, ~10K don't.
+    if _no_new_bar_since_snapshot(previous_row, recent_metrics):
+        return (
+            _clone_previous_snapshot_row(
+                previous_row,
+                symbol=symbol,
+                asset_type=asset_type,
+                run_id=run_id,
+                generated_at_utc=generated_at_utc,
+            ),
+            "no-new-bar",
+        )
 
     if _zero_delta_skip_applies(recent_metrics):
         return (
@@ -1075,7 +1110,7 @@ def rebuild_snapshot(
     snapshot_rows: List[Dict[str, Any]] = []
     skipped_rows: List[Dict[str, str]] = []
     fast_path_rows: List[Dict[str, str]] = []
-    fast_path_counts = {"zero-delta": 0, "zombie": 0}
+    fast_path_counts = {"zero-delta": 0, "zombie": 0, "no-new-bar": 0}
     symbol_timeout_count = 0
     symbol_timeout_seconds = max(
         0,

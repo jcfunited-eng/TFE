@@ -727,8 +727,14 @@ export async function executeCh2BracketOrder(signal) {
     return rejectSignal(signal, `ledger_insert_failed: ${err.message}`);
   }
 
+  // Unique order ID per attempt. The old sha256(CH2:ticker:run_id) was constant
+  // across the entire refresh cycle, so re-evaluations within the same run_id
+  // all got the same client_order_id → Alpaca rejected 186 orders as duplicates.
+  // Use timestamp + random to ensure uniqueness per attempt. Duplicate-entry
+  // prevention is handled by the open-position check in the strategist, not
+  // by Alpaca's client_order_id.
   const dedupeKey = createHash("sha256")
-    .update(`CH2:${ticker}:${signal.run_id}`)
+    .update(`CH2:${ticker}:${signal.run_id}:${Date.now()}:${Math.random()}`)
     .digest("hex")
     .slice(0, 16);
 
@@ -898,7 +904,7 @@ export async function executeCh3MarketOrder(signal) {
   }
 
   const dedupeKey = createHash("sha256")
-    .update(`CH3:${ticker}:${signal.run_id}:${Date.now()}`)
+    .update(`CH3:${ticker}:${signal.run_id}:${Date.now()}:${Math.random()}`)
     .digest("hex")
     .slice(0, 16);
 

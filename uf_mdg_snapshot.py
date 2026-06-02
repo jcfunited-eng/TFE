@@ -909,6 +909,9 @@ def evaluate_symbol_snapshot(
         # CP-2: cognitive scalars — None when kernel cannot compute (insufficient bars)
         "F_n": f_n,
         "raw_x_m": raw_x_m,
+        # Incremental refresh: store the latest bar's timestamp so the next
+        # refresh can skip recomputation when no new bars exist.
+        "last_bar_timestamp": bars[-1].timestamp.isoformat() if bars and hasattr(bars[-1], 'timestamp') and bars[-1].timestamp else None,
     }
     row.update(
         build_structural_recency_payload(
