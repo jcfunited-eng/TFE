@@ -4,6 +4,43 @@ Append-only log. Every session writes what it changed, tested, concluded, and wh
 
 ---
 
+## 2026-06-02 (c1, Claude Opus 4.6)
+
+### What was changed
+- **S_UF band gate REMOVED** from CH2 entry. Tuple-proximity WR >= 0.65 is now the sole entry decision for established stocks. S_UF validated as primary alpha drag: with band -8.65pp vs SPY, without +2.73pp. 28/30 top SPY contributors were gate-rejected, 18 by S_UF.
+- **HTBK kill loop fixed** (task 524, commit 7809c02). Idempotent stateful kills + delisted asset handling. HTBK was inactive on Alpaca, sell orders rejected 422 every cycle.
+
+### What was tested
+- Tuple-only entry validated leak-free on deep pool (2M daily snapshots, 8,774 tickers ≥30 resolved neighbors): +17.48% return, +2.73pp vs SPY, 75.9% WR, -9.04% max DD, 290 trades. First positive alpha configuration.
+- SPY attribution: 28/30 top index movers structurally rejected by TFE gates (D_k!=1: 20, S_UF out of band: 18). Only 2 passed gates and were cap-blocked.
+- Conviction-sourced deployment (block-removal + tuple-sized): +9.06%, -5.69pp vs SPY, -6.28% max DD. Better than baseline but not as good as tuple-only + flat sizing.
+
+### What was NOT verified
+- Tuple-only entry in falling market (validation window was rising-defensive, SPY +14.75%)
+- D_k=1 gate removal (kept as validated per-ticker directional check, but never independently validated on production-equivalent data — original quarantine-based justification)
+- Max drawdown behavior under correlated stress (9.04% in rising market → unknown in falling)
+
+---
+
+## 2026-06-01 (c1, Claude Opus 4.6)
+
+### What was changed
+- Cash-ceiling fix deployed (task 523, commit e369107). position cost <= available cash before order.
+- Closed-market sell fix deployed (task 522, commit bc86579). Market-hours gate + fill confirmation.
+- Ledger reconciliation: 20 diverged + 2 ghost positions fixed against Alpaca ground truth.
+- Species profiles graceful degradation (task 521). Horse->tuple-proximity rename (commit 9313f78).
+
+### What was tested
+- Leak-free backtest (Apr 7-May 29, D_k=-1): +4.78%, -9.97pp vs SPY, 71.8% WR, -2.23% max DD
+- Structural EXIT-H (floor-validated, NOT deployed): +6.10%, -8.65pp vs SPY
+- Conviction-sourced deployment (NOT deployed): +4.93%, -9.83pp vs SPY, -2.06% max DD
+- REGIME_DEFENSIVE_POSITION_MULT=0.5: arbitrary, no derivation
+
+### What was NOT verified
+- Structural EXIT-H in D_k=+1; conviction deployment in falling market; 3WA/1+3 tiers; species_profiles in prod RDS
+
+---
+
 ## 2026-05-28/29 (c1, Claude Opus 4.6)
 
 ### What was changed
