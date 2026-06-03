@@ -78,3 +78,7 @@ DOC_UPDATES_MAY28.md
 # Large Aurelion files — too big for GitHub
 docs/Aurelion/language_memory*.json
 docs/Aurelion/.venv.zip
+
+# Large Aurelion files (too big for GitHub)
+docs/Aurelion/language_memory*.json
+docs/Aurelion/.venv.zip
