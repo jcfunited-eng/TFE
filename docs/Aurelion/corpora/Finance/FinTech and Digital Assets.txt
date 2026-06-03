@@ -1,0 +1,13 @@
+FinTech and Digital Assets.txt
+
+Evolution of financial technology: ATMs → online banking → blockchains
+
+Payment rails and settlement speed (ACH, SWIFT, FedNow, SEPA)
+
+Cryptocurrencies and tokens – consensus mechanisms, proof of work/stake
+
+Stablecoins and CBDCs (central bank digital currencies)
+
+Regulatory responses: KYC/AML for digital assets, MiCA framework
+
+Example: contrast between a crypto exchange and a regulated broker-dealer

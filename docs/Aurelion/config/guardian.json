@@ -1,0 +1,19 @@
+{
+  "autonomy": true,
+  "max_steps_per_session": 20,
+  "min_delay_sec": 20,
+  "osf": {
+    "entropy_jump": 0.6,
+    "affect_polarity": 0.9
+  },
+  "ethics_floor": {
+    "care": 0.35,
+    "fairness": 0.25,
+    "autonomy": 0.2,
+    "prudence": 0.15
+  },
+  "teach_paths": [
+    "corpora"
+  ],
+  "allow_shell_calls": false
+}

@@ -1,0 +1,25 @@
+{
+  "energy_budget": 160,
+  "overlap_factor": 0.35,
+  "daydream_budget": 28,
+  "daydream_overlap": 0.18,
+  "higgs_kernel_chance": 0.08,
+  "higgs_kernel_daydream": 0.04,
+  "osf": {
+    "entropy_jump": 0.58,
+    "affect_polarity": 0.85
+  },
+  "decay": {
+    "quarantine_days": 7,
+    "half_life_days": 7
+  },
+  "ethics_floor": {
+    "care": 0.4,
+    "fairness": 0.25,
+    "autonomy": 0.2,
+    "prudence": 0.15
+  },
+  "bias_window": 64,
+  "dream_interval_sec": 900,
+  "random_seed": null
+}

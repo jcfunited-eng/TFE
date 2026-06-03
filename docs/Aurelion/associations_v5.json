@@ -1,0 +1,54 @@
+{
+  "weights": {
+    "mother": {
+      "hugs": 0.02,
+      "her": 0.08,
+      "child": 0.08
+    },
+    "hugs": {
+      "mother": 0.02,
+      "her": 0.08,
+      "child": 0.08
+    },
+    "her": {
+      "mother": 0.08,
+      "hugs": 0.08,
+      "child": 0.14
+    },
+    "child": {
+      "mother": 0.08,
+      "hugs": 0.08,
+      "her": 0.14
+    },
+    "the": {
+      "family": 0.02,
+      "eats": 0.08,
+      "soup": 0.02,
+      "together": 0.06
+    },
+    "family": {
+      "the": 0.02,
+      "eats": 0.08,
+      "soup": 0.02,
+      "together": 0.08
+    },
+    "eats": {
+      "the": 0.08,
+      "family": 0.08,
+      "soup": 0.08,
+      "together": 0.14
+    },
+    "soup": {
+      "the": 0.02,
+      "family": 0.02,
+      "eats": 0.08,
+      "together": 0.08
+    },
+    "together": {
+      "family": 0.08,
+      "eats": 0.14,
+      "soup": 0.08,
+      "the": 0.06
+    }
+  }
+}

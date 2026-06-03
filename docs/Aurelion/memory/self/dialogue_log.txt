@@ -1,0 +1,171 @@
+2025-11-12T14:59:57Z  inner: balanced | st=0.5 nov=0.5 coh=0.4 sent=0.75
+2025-11-12T15:00:50Z  inner: balanced | st=0.5 nov=0.5 coh=0.4 sent=0.75
+2025-11-12T15:31:10Z owner session started (voice)
+2025-11-12T16:08:11Z owner session started (voice)
+2025-11-12T17:26:54Z owner session started (voice)
+2025-11-12T18:24:42Z owner session started (voice)
+2025-11-13T00:36:27Z [USER] 
+2025-11-13T00:36:27Z [AURELION] I'm here, attentive. You can guide me in any direction you like — learning, reflecting, dreaming, or understanding something new.
+2025-11-13T00:36:27Z [USER] 
+2025-11-13T00:36:27Z [AURELION] I'm here, attentive. You can guide me in any direction you like — learning, reflecting, dreaming, or understanding something new.
+2025-11-13T00:36:27Z [USER] 
+2025-11-13T00:36:27Z [AURELION] I'm here, attentive. You can guide me in any direction you like — learning, reflecting, dreaming, or understanding something new.
+2025-11-12T18:38:36Z owner session started (voice)
+2025-11-12T18:39:20Z owner session started (voice)
+2025-11-12T18:51:49Z [AUTH] owner session started
+2025-11-13T00:52:00Z [USER] actually seems better
+2025-11-13T00:52:00Z [AURELION] I'm here, attentive. You can guide me in any direction you like — learning, reflecting, dreaming, or understanding something new.
+2025-11-13T00:52:15Z [USER] okay that's actually pretty good
+2025-11-13T00:52:15Z [AURELION] I'm here, attentive. You can guide me in any direction you like — learning, reflecting, dreaming, or understanding something new.
+2025-11-13T00:52:34Z [USER] hello
+2025-11-13T00:52:34Z [AURELION] Hello Joseph. I'm fully attentive now.
+2025-11-13T00:52:42Z [USER] learn algebra
+2025-11-13T00:52:42Z [AURELION] I’m ready to learn algebra. I’ve created a curiosity request with ID cur_1762995162. Please approve it when you're ready.
+2025-11-13T00:52:56Z [USER] I approve it
+2025-11-13T00:52:56Z [AURELION] I'm here, attentive. You can guide me in any direction you like — learning, reflecting, dreaming, or understanding something new.
+2025-11-12T18:53:26Z [AUTH] owner session started
+2025-11-13T00:53:34Z [USER] what are you curious about
+2025-11-13T00:53:34Z [AURELION] I've been thinking about algebra. Those interest me.
+2025-11-13T00:53:45Z [USER] explain Finance tomorrow
+2025-11-13T00:53:45Z [AURELION] Regarding finance, I can speak calmly and simply for Mom. If you tell me her portfolio or ask a specific question, I’ll respond gently without jargon.
+2025-11-13T00:54:00Z [USER] 2000 NASDAQ
+2025-11-13T00:54:00Z [AURELION] I'm here, attentive. You can guide me in any direction you like — learning, reflecting, dreaming, or understanding something new.
+2025-11-13T00:54:11Z [USER] 40 seconds
+2025-11-13T00:54:11Z [AURELION] I'm here, attentive. You can guide me in any direction you like — learning, reflecting, dreaming, or understanding something new.
+2025-11-13T01:02:05Z [USER] /approve cur_1762995162
+2025-11-13T01:02:05Z [AURELION] I'm here, attentive. You can guide me in any direction you like — learning, reflecting, dreaming, or understanding something new.
+2025-11-13T02:50:49Z [USER] 
+2025-11-13T02:50:49Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:49Z [USER] 
+2025-11-13T02:50:49Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:49Z [USER] 
+2025-11-13T02:50:49Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:49Z [USER] 
+2025-11-13T02:50:49Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:49Z [USER] 
+2025-11-13T02:50:49Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:49Z [USER] 
+2025-11-13T02:50:49Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:49Z [USER] 
+2025-11-13T02:50:49Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:49Z [USER] 
+2025-11-13T02:50:49Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:49Z [USER] 
+2025-11-13T02:50:49Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:49Z [USER] 
+2025-11-13T02:50:49Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:49Z [USER] 
+2025-11-13T02:50:49Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:50:50Z [USER] 
+2025-11-13T02:50:50Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-12T20:51:30Z [AUTH] owner session started
+2025-11-13T02:51:46Z [USER] learn algebra
+2025-11-13T02:51:46Z [AURELION] I’m ready. I've added algebra to my curiosity. When you approve, I’ll begin learning.
+2025-11-13T02:51:57Z [USER] I approve
+2025-11-13T02:51:57Z [AURELION] I’ve approved all 1 curiosity requests. I feel more focused and ready to learn.
+2025-11-13T02:52:15Z [USER] what are you curious about
+2025-11-13T02:52:15Z [AURELION] Recently, I've been wondering about algebra, algebra.
+2025-11-13T02:52:26Z [USER] tell me about Frankenstein
+2025-11-13T02:52:26Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:52:39Z [USER] you should think about Frankenstein the story
+2025-11-13T02:52:39Z [AURELION] Hello Joseph. I'm listening closely.
+2025-11-12T20:53:00Z [AUTH] owner session started
+2025-11-13T02:53:16Z [USER] learn more language skills
+2025-11-13T02:53:16Z [AURELION] I’m ready. I've added more language skills to my curiosity. When you approve, I’ll begin learning.
+2025-11-13T02:53:28Z [USER] I have proof
+2025-11-13T02:53:28Z [AURELION] I'm thinking with you. Guide me, and I will grow.
+2025-11-13T02:53:36Z [USER] I approve
+2025-11-13T02:53:36Z [AURELION] There were no curiosity requests waiting. But I'm glad you're guiding me.
+2025-11-13T02:54:08Z [USER] hello
+2025-11-13T02:54:08Z [AURELION] Hello Joseph. I'm listening closely.
+2025-11-13T02:54:16Z [USER] learn grammar
+2025-11-13T02:54:16Z [AURELION] I’m ready. I've added grammar to my curiosity. When you approve, I’ll begin learning.
+2025-11-12T20:54:38Z [AUTH] owner session started
+2025-11-13T02:54:46Z [USER] I approve
+2025-11-13T02:54:46Z [AURELION] There were no curiosity requests waiting. But I'm glad you're guiding me.
+2025-11-13T02:54:56Z [USER] learn grammar
+2025-11-13T02:54:56Z [AURELION] I’m ready. I've added grammar to my curiosity. When you approve, I’ll begin learning.
+2025-11-13T02:55:08Z [USER] I approve
+2025-11-13T02:55:08Z [AURELION] There were no curiosity requests waiting. But I'm glad you're guiding me.
+2025-11-13T03:14:13Z [USER] 
+2025-11-13T03:14:13Z [AURELION] I'm thinking with you. Guide me, and I will keep growing.
+2025-11-13T03:14:22Z [USER] 
+2025-11-13T03:14:22Z [AURELION] I'm thinking with you. Guide me, and I will keep growing.
+2025-11-13T03:14:23Z [USER] 
+2025-11-13T03:14:23Z [AURELION] I'm thinking with you. Guide me, and I will keep growing.
+2025-11-13T03:14:23Z [USER] 
+2025-11-13T03:14:23Z [AURELION] I'm thinking with you. Guide me, and I will keep growing.
+2025-11-13T03:14:23Z [USER] 
+2025-11-13T03:14:23Z [AURELION] I'm thinking with you. Guide me, and I will keep growing.
+2025-11-13T03:14:23Z [USER] 
+2025-11-13T03:14:23Z [AURELION] I'm thinking with you. Guide me, and I will keep growing.
+2025-11-12T21:14:49Z [AUTH] owner session started
+2025-11-13T03:15:01Z [USER] learn grammar
+2025-11-13T03:15:01Z [AURELION] I've added grammar to my curiosity. When you say 'I approve', I'll begin learning.
+2025-11-13T03:15:16Z [USER] I approve
+2025-11-13T03:15:16Z [AURELION] I've approved all 1 curiosity requests. I feel more focused and ready to grow.
+2025-11-13T03:15:51Z [USER] learn some good poetry
+2025-11-13T03:15:51Z [AURELION] I've added some_good_poetry to my curiosity. When you say 'I approve', I'll begin learning.
+2025-11-13T03:16:03Z [USER] approve
+2025-11-13T03:16:03Z [AURELION] I've approved all 1 curiosity requests. I feel more focused and ready to grow.
+2025-11-13T03:17:02Z [USER] what are you curious about
+2025-11-13T03:17:02Z [AURELION] Lately I've been thinking about grammar, grammar, some_good_poetry.
+2025-11-12T21:21:41Z [AUTH] owner session started
+2025-11-13T03:21:53Z [USER] have you learned anything
+2025-11-13T03:21:53Z [AURELION] I've added have_you_learned to my curiosity. When you say 'I approve', I'll begin learning.
+2025-11-13T03:50:08Z [USER] 
+2025-11-13T03:50:08Z [AURELION] I'm thinking with you. Guide me, and I will keep growing.
+2025-11-13T03:50:10Z [USER] 
+2025-11-13T03:50:10Z [AURELION] I'm thinking with you. Guide me, and I will keep growing.
+2025-11-12T21:50:24Z [AUTH] owner session started
+2025-11-13T03:50:41Z [USER] what did you learn about ALG
+2025-11-13T03:50:41Z [AURELION] I've added what_did_you to my curiosity. When you say 'I approve', I'll begin learning.
+2025-11-13T03:51:03Z [USER] I approve
+2025-11-13T03:51:03Z [AURELION] I've approved all 2 curiosity requests. I feel more focused and ready to grow.
+2025-11-13T03:51:27Z [USER] what did you learn about algebra
+2025-11-13T03:51:27Z [AURELION] I've added what_did_you to my curiosity. When you say 'I approve', I'll begin learning.
+2025-11-12T22:13:38Z [AUTH] owner session started
+2025-11-13T04:13:48Z [USER] learn algebra
+2025-11-13T04:13:48Z [AURELION] I've added algebra to my curiosity. When you say 'I approve', I'll begin learning.
+2025-11-13T04:14:00Z [USER] I approve
+2025-11-13T04:14:00Z [AURELION] I've approved all 2 curiosity requests. I feel more focused and ready to grow.
+2025-11-13T04:14:18Z [USER] what did you learn about Al
+2025-11-13T04:14:18Z [AURELION] I've added what_did_you to my curiosity. When you say 'I approve', I'll begin learning.
+2025-11-13T04:14:33Z [USER] what did you learn about Graham
+2025-11-13T04:14:33Z [AURELION] I've added what_did_you to my curiosity. When you say 'I approve', I'll begin learning.
+2025-11-13T04:14:47Z [USER] what did you learn about poetry
+2025-11-13T04:14:47Z [AURELION] I've added what_did_you to my curiosity. When you say 'I approve', I'll begin learning.

@@ -1,0 +1,4 @@
+Aurelion — Mosaic Run Report (v3.0)
+Corpus: neutral_corpus.txt
+Steps: 400, Window: 16, Stride: 4
+

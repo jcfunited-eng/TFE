@@ -1,0 +1,24 @@
+Financial Crises and Systemic Risk.txt
+
+A crisis begins quietly—too much leverage, too little margin of safety.
+
+Mechanics
+
+Leverage amplifies returns until volatility reverses direction.
+
+Falling prices trigger margin calls → forced sales → further price drops.
+
+Liquidity evaporates as everyone tries to exit simultaneously.
+
+Historic snapshots
+
+1929: margin loans on stocks, no deposit insurance.
+
+1997: Asian contagion through pegged currencies and short-term debt.
+
+2008: mortgage derivatives, opaque counterparty chains.
+
+Central banks act as lenders of last resort, injecting liquidity and guaranteeing critical institutions to halt panic.
+Afterward, regulation tightens: higher capital ratios, stress testing, and systemic-risk councils.
+
+Lesson: in complex networks, safety lies not in strength of parts but in slack between them.

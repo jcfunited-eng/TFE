@@ -1,0 +1,27 @@
+Global Monetary Systems and Exchange Rates.txt
+
+Currencies are the blood vessels of global trade.
+
+Historical evolution
+Gold standard → Bretton Woods → floating rates after 1971.
+
+Exchange-rate regimes
+
+Fixed: currency pegged to another (e.g., HKD ↔ USD).
+
+Managed float: central bank intervenes occasionally.
+
+Free float: market determines price (USD, EUR).
+
+Notation
+Pairs such as EUR/USD express “how many USD per 1 EUR.”
+Appreciation of USD means fewer dollars buy the same euro—stronger dollar.
+
+Parity relationships
+
+Interest-rate parity: differences in interest rates predict forward exchange rates.
+
+Purchasing-power parity: identical goods should cost the same globally once FX is adjusted.
+
+Example:
+When U.S. rates rise faster than Europe’s, capital flows into USD assets, strengthening the dollar and pressuring emerging-market borrowers with dollar debt.

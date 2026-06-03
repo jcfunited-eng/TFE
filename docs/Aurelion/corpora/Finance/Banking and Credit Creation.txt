@@ -1,0 +1,13 @@
+Banking and Credit Creation.txt
+
+Fractional-reserve banking and money multipliers
+
+Loan origination → deposit expansion cycle
+
+Interest margin and liquidity management
+
+Central bank reserve requirements and open-market operations
+
+Basel III capital ratios, liquidity coverage, stress tests
+
+Example: how a commercial bank turns $100 of reserves into $900 of credit safely

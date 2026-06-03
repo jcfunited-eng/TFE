@@ -73,7 +73,6 @@ module arcloom_cam_dvp (
     // ---- PCLK domain synchronization ----
     // Synchronize DVP signals to system clock
     reg [2:0] pclk_sync, vsync_sync, href_sync;
-    reg [7:0] pixel_sync;
 
     always @(posedge clk) begin
         pclk_sync  <= {pclk_sync[1:0], pclk};
@@ -85,11 +84,9 @@ module arcloom_cam_dvp (
     wire vsync_s   = vsync_sync[2];
     wire href_s    = href_sync[2];
 
-    // Latch pixel data on PCLK rising edge
-    always @(posedge clk) begin
-        if (pclk_rise)
-            pixel_sync <= pixel_data;
-    end
+    // pixel_data is read directly in the accumulator below.
+    // pclk_rise is already delayed 2 clocks by the synchronizer,
+    // so pixel_data is stable when pclk_rise asserts.
 
     // ---- Frame and line tracking ----
     reg        prev_vsync;
@@ -113,8 +110,7 @@ module arcloom_cam_dvp (
 
     // Structural density threshold — lines with edge count above this
     // are "structurally interesting" (object present, not flat background)
-    // Room baseline edge count is ~145. Set threshold above that.
-    localparam DENSITY_THRESH = 8'd160;
+    localparam DENSITY_THRESH = 8'd20;
 
     // ---- Frame-level accumulators (upper/lower split at line 120) ----
     reg [19:0] frame_y_sum_upper, frame_y_sum_lower;
@@ -260,29 +256,29 @@ module arcloom_cam_dvp (
             if (pclk_rise && href_s && in_frame) begin
                 if (!byte_toggle) begin
                     // Even byte = Y (luminance)
-                    y_sum     <= y_sum + {12'd0, pixel_sync};
+                    y_sum     <= y_sum + {12'd0, pixel_data};
                     pixel_count <= pixel_count + 10'd1;
 
                     // Min/max tracking
-                    if (pixel_sync < y_min_acc)
-                        y_min_acc <= pixel_sync;
-                    if (pixel_sync > y_max_acc)
-                        y_max_acc <= pixel_sync;
+                    if (pixel_data < y_min_acc)
+                        y_min_acc <= pixel_data;
+                    if (pixel_data > y_max_acc)
+                        y_max_acc <= pixel_data;
 
                     // Edge detection: |Y_current - Y_previous| > threshold
-                    if (pixel_sync > y_prev + EDGE_THRESH ||
-                        y_prev > pixel_sync + EDGE_THRESH)
+                    if (pixel_data > y_prev + EDGE_THRESH ||
+                        y_prev > pixel_data + EDGE_THRESH)
                         edge_cnt <= edge_cnt + 8'd1;
 
-                    y_prev <= pixel_sync;
+                    y_prev <= pixel_data;
                 end else begin
                     // Odd byte = U or V (alternating)
                     // U on bytes 1, 5, 9, ... (pixel_count odd after Y)
                     // V on bytes 3, 7, 11, ...
                     if (pixel_count[0])
-                        u_sum <= u_sum + {12'd0, pixel_sync};
+                        u_sum <= u_sum + {12'd0, pixel_data};
                     else
-                        v_sum <= v_sum + {12'd0, pixel_sync};
+                        v_sum <= v_sum + {12'd0, pixel_data};
                 end
 
                 byte_toggle <= ~byte_toggle;

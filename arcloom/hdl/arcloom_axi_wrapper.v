@@ -81,6 +81,29 @@ module arcloom_axi_wrapper #(
     input  wire [7:0]  cam_frame_u_lower,
     input  wire [7:0]  cam_frame_density,
 
+    // I2C monitor read port (monitor lives inside cam_i2c_0)
+    output wire [9:0]  i2c_mon_addr_out,
+    input  wire [31:0] i2c_mon_data_in,
+    input  wire [9:0]  i2c_mon_count_in,
+    input  wire        i2c_mon_overflow_in,
+
+    // Snapshot buffer interface (module in block design)
+    output wire        snapshot_trigger_out,
+    output wire [10:0] snapshot_rd_addr_out,
+    input  wire        snapshot_done_ext,
+    input  wire        snapshot_busy_ext,
+    input  wire [31:0] snapshot_data_ext,
+
+    // Runtime I2C write interface (to cam_i2c_0 in block design)
+    output wire [15:0] i2c_rt_addr,
+    output wire [7:0]  i2c_rt_data,
+    output wire        i2c_rt_write,
+    output wire        i2c_rt_read,
+    input  wire        i2c_rt_busy,
+    input  wire        i2c_rt_done,
+    input  wire [7:0]  i2c_rt_read_data,
+    input  wire        i2c_rt_read_valid,
+
     input  wire        cam_xclk_fb,       // Clock feedback — keeps Vivado from trimming cam_clk_0
 
     // Motor drive outputs
@@ -109,6 +132,15 @@ module arcloom_axi_wrapper #(
     reg [2:0]  sw_valid_stretch;
     reg        motor_enable;
     reg        sw_krim_commit;  // software Krimelack commit request
+    reg        snapshot_trigger; // pulse: capture one frame to BRAM
+    // Runtime I2C camera control
+    reg [15:0] i2c_reg_addr;
+    reg [7:0]  i2c_reg_data;
+    reg        i2c_write_trigger;
+    reg        i2c_read_trigger;
+    // I2C read result latch
+    reg [7:0]  i2c_read_result;
+    reg        i2c_read_done;
     // Runtime camera baselines (written by Python at startup)
     reg [7:0]  cam_bl_y;       // Y mean baseline
     reg [7:0]  cam_bl_edge;    // Edge count baseline
@@ -244,8 +276,6 @@ module arcloom_axi_wrapper #(
         .cam_bl_edge(cam_bl_edge),
         .cam_bl_u(cam_bl_u),
         .cam_bl_density(cam_bl_density),
-        .target_motif({target_motif_6, target_motif_5, target_motif_4,
-                       target_motif_3, target_motif_2, target_motif_1, target_motif_0}),
         .target_match_score(target_match_score_w),
         .decision_steer(decision_steer_w), .decision_speed(decision_speed_w),
         .decision_conf(decision_conf_w),
@@ -301,7 +331,16 @@ module arcloom_axi_wrapper #(
             sw_sensor_adc    <= 12'd0;
             sw_valid_stretch <= 3'd0;
             motor_enable     <= 1'b0;
-            sw_krim_commit   <= 1'b0;
+            sw_krim_commit    <= 1'b0;
+            snapshot_trigger  <= 1'b0;
+            snapshot_rd_addr  <= 11'd0;
+            i2c_mon_rd_addr   <= 10'd0;
+            i2c_reg_addr      <= 16'd0;
+            i2c_reg_data      <= 8'd0;
+            i2c_write_trigger <= 1'b0;
+            i2c_read_trigger  <= 1'b0;
+            i2c_read_result   <= 8'd0;
+            i2c_read_done     <= 1'b0;
             cam_bl_y         <= 8'd0;
             cam_bl_edge      <= 8'd0;
             cam_bl_u         <= 8'd0;
@@ -333,9 +372,21 @@ module arcloom_axi_wrapper #(
             if (sw_valid_stretch != 3'd0)
                 sw_valid_stretch <= sw_valid_stretch - 3'd1;
 
-            // Auto-clear commit pulse after one cycle
+            // Auto-clear pulses after one cycle
             if (sw_krim_commit)
                 sw_krim_commit <= 1'b0;
+            if (snapshot_trigger)
+                snapshot_trigger <= 1'b0;
+            if (i2c_write_trigger)
+                i2c_write_trigger <= 1'b0;
+            if (i2c_read_trigger)
+                i2c_read_trigger <= 1'b0;
+
+            // Latch I2C read result when it arrives
+            if (i2c_rt_read_valid) begin
+                i2c_read_result <= i2c_rt_read_data;
+                i2c_read_done   <= 1'b1;
+            end
 
             div_start <= 1'b0;
             if (div_done) begin
@@ -388,11 +439,28 @@ module arcloom_axi_wrapper #(
                     6'd22: begin                                    // 0x58
                         target_motif_6 <= S_AXI_WDATA[17:0];
                     end
+                    6'd23: begin  // 0x5C: snapshot trigger [0], read addr [12:2]
+                        snapshot_trigger <= S_AXI_WDATA[0];
+                        snapshot_rd_addr <= S_AXI_WDATA[12:2];
+                    end
+                    6'd26: begin  // 0x68: I2C monitor read address [9:0]
+                        i2c_mon_rd_addr <= S_AXI_WDATA[9:0];
+                    end
+                    6'd25: begin  // 0x64: I2C camera write {trigger[24], data[23:16], addr[15:0]}
+                        i2c_reg_addr      <= S_AXI_WDATA[15:0];
+                        i2c_reg_data      <= S_AXI_WDATA[23:16];
+                        i2c_write_trigger <= S_AXI_WDATA[24];
+                    end
                     6'd15: begin  // 0x3C: camera baselines {density, u, edge, y}
                         cam_bl_y       <= S_AXI_WDATA[7:0];
                         cam_bl_edge    <= S_AXI_WDATA[15:8];
                         cam_bl_u       <= S_AXI_WDATA[23:16];
                         cam_bl_density <= S_AXI_WDATA[31:24];
+                    end
+                    6'd28: begin  // 0x70: I2C read request {addr[15:0]}
+                        i2c_reg_addr     <= S_AXI_WDATA[15:0];
+                        i2c_read_trigger <= 1'b1;
+                        i2c_read_done    <= 1'b0;  // clear done flag
                     end
                 endcase
             end else
@@ -504,12 +572,49 @@ module arcloom_axi_wrapper #(
                     6'd21: axi_rdata <= loom_state_r[5];
                     6'd22: axi_rdata <= loom_state_r[6];
 
+                    // 0x5C: Snapshot status {done, busy}
+                    6'd23: axi_rdata <= {30'd0, snapshot_busy_w, snapshot_done_w};
+
+                    // 0x60: Snapshot BRAM read data (set addr via write to 0x5C)
+                    6'd24: axi_rdata <= snapshot_rd_data;
+
+                    // 0x64: I2C runtime status {done, busy}
+                    6'd25: axi_rdata <= {30'd0, i2c_rt_busy, i2c_rt_done};
+
+                    // 0x68: I2C monitor data (set addr via write to 0x68)
+                    6'd26: axi_rdata <= i2c_mon_rd_data;
+
+                    // 0x6C: I2C monitor status {overflow, write_count}
+                    6'd27: axi_rdata <= {21'd0, i2c_mon_overflow, i2c_mon_write_count};
+
+                    // 0x70: I2C read result {done[9], busy[8], data[7:0]}
+                    6'd28: axi_rdata <= {22'd0, i2c_read_done, i2c_rt_busy, i2c_read_result};
+
                     default: axi_rdata <= 32'd0;
                 endcase
             end else if (axi_rvalid && S_AXI_RREADY)
                 axi_rvalid <= 1'b0;
         end
     end
+
+    // ---- I2C Bus Monitor (lives inside cam_i2c_0, read port here) ----
+    reg  [9:0]  i2c_mon_rd_addr;
+    wire [31:0] i2c_mon_rd_data = i2c_mon_data_in;
+    wire [9:0]  i2c_mon_write_count = i2c_mon_count_in;
+    wire        i2c_mon_overflow = i2c_mon_overflow_in;
+    assign i2c_mon_addr_out = i2c_mon_rd_addr;
+
+    // ---- Snapshot buffer (external module in block design) ----
+    reg  [10:0] snapshot_rd_addr;
+    wire [31:0] snapshot_rd_data = snapshot_data_ext;
+    wire        snapshot_done_w = snapshot_done_ext;
+    wire        snapshot_busy_w = snapshot_busy_ext;
+    assign snapshot_trigger_out = snapshot_trigger;
+    assign snapshot_rd_addr_out = snapshot_rd_addr;
+    assign i2c_rt_addr  = i2c_reg_addr;
+    assign i2c_rt_data  = i2c_reg_data;
+    assign i2c_rt_write = i2c_write_trigger;
+    assign i2c_rt_read  = i2c_read_trigger;
 
     // ---- Motor control ----
     // Steer: 01=+1 (turn right), 10=-1 (turn left), 00=straight

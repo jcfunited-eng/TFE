@@ -1,0 +1,22 @@
+Risk_and_Settlement.txt
+
+Risk is the shadow of opportunity.
+Markets classify it so they can measure and manage it.
+
+Market risk – prices move unfavorably.
+
+Credit risk – a counterparty defaults.
+
+Liquidity risk – positions cannot be exited quickly.
+
+Operational risk – system or human failure.
+
+Clearinghouses demand margin—collateral posted by both sides—to absorb potential losses.
+If losses exceed margin, a margin call occurs.
+Daily mark-to-market ensures accounts stay solvent.
+
+Settlement finalizes ownership transfer; in modern systems it is largely electronic.
+Central securities depositories like DTCC or Euroclear record the definitive ledger entries.
+
+Risk cannot be eliminated, only transformed.
+The art of finance is to choose which risks to keep and which to lay off.

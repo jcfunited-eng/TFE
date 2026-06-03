@@ -312,29 +312,23 @@ def api_set_target():
         body = request.get_json(force=True)
         action = body.get("action", "capture")
         if action == "capture":
-            # Multi-slot capture: read loom_state 8 times over 4 seconds,
-            # force-commit each to Krimelack. Spans flicker and small
-            # variations. Target motif set to the LAST capture.
-            # Krimelack's best-match-across-all-slots handles the rest.
+            # Multi-slot capture: force-commit 8 motifs to Krimelack
+            # target partition (slots 0-7). Rotate/move object during
+            # capture to span structural variation.
+            # Krimelack target_match_score computes best-of-8 automatically.
             import time as _t
             n_slots = 8
             for s in range(n_slots):
-                # Force Krimelack commit (bit 1 of register 0x10)
-                arcloom.write(0x10, 0x02)
+                arcloom.write(0x10, 0x02)  # force_commit
                 _t.sleep(0.5)
-
-            # Set target motif to current loom state
-            loom_regs = []
-            for i in range(7):
-                loom_regs.append(arcloom.read(0x40 + i * 4))
-            for i in range(7):
-                arcloom.write(0x40 + i * 4, loom_regs[i])
-
-            return jsonify({"target_set": True, "slots": n_slots,
-                            "motif": [hex(r) for r in loom_regs]})
+            return jsonify({"target_set": True, "slots": n_slots})
         elif action == "clear":
-            for i in range(7):
-                arcloom.write(0x40 + i * 4, 0)
+            # Clear target: force-commit 8 null-ish motifs
+            # Point camera at empty room first, then clear
+            import time as _t
+            for s in range(8):
+                arcloom.write(0x10, 0x02)
+                _t.sleep(0.1)
             return jsonify({"target_set": False})
         return jsonify({"error": "action must be capture or clear"})
     except Exception as e:

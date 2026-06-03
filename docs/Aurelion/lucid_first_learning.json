@@ -1,0 +1,34 @@
+[
+  [
+    "finance",
+    {
+      "a": "curiosity",
+      "b": "topic:calm",
+      "weight": 0.18
+    }
+  ],
+  [
+    "self",
+    {
+      "a": "curiosity",
+      "b": "topic:calm",
+      "weight": 0.18
+    }
+  ],
+  [
+    "curiosity",
+    {
+      "a": "curiosity",
+      "b": "topic:calm",
+      "weight": 0.18
+    }
+  ],
+  [
+    "topic:calm",
+    {
+      "a": "curiosity",
+      "b": "topic:calm",
+      "weight": 0.18
+    }
+  ]
+]

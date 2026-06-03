@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Aurelion Meta Monitor Token (Extended)",
+  "type": "object",
+  "properties": {
+    "intent": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "number"
+    },
+    "explain": {
+      "type": "string"
+    },
+    "emotion": {
+      "$ref": "./emotion_schema.json"
+    },
+    "tone_shift": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "tone_label": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "intent",
+    "confidence"
+  ]
+}

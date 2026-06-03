@@ -47,9 +47,8 @@ module arcloom_krimelack #(
     output reg  [7:0]              match_score,     // match quality (0-255)
     output reg                     recall_valid,    // match found
 
-    // Target match interface (single-slot, task-specific)
-    input  wire [TRIT_WIDTH-1:0]   target_motif,    // AXI-writable target (0 = no target)
-    output wire [7:0]              target_match_score, // match vs target (combinational)
+    // Target match interface (best-of-N across target slots 0-7)
+    output wire [7:0]              target_match_score, // best match vs target partition
 
     // Status
     output wire [ADDR_BITS:0]      motif_count,     // number of stored motifs
@@ -92,11 +91,24 @@ module arcloom_krimelack #(
                            (resonance >= R_COMMIT) &
                            ~duplicate_found;
 
-    // ---- Commit logic ----
+    // ---- Partitioned commit logic ----
+    // Slots 0-7: target (force_commit writes here)
+    // Slots 8-31: autonomous (commit_request writes here)
+    // Target slots store the object being hunted/inspected.
+    // Autonomous slots store environmental motifs for habituation.
+    localparam TARGET_SLOTS = 8;
+    reg [2:0]  target_ptr;            // 0-7
+    reg [ADDR_BITS-1:0] auto_ptr;    // 8 to DEPTH-1
+    reg [2:0]  target_count;
+    reg [ADDR_BITS:0] auto_count;
+
     integer c;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            write_ptr       <= 0;
+            target_ptr      <= 3'd0;
+            auto_ptr        <= TARGET_SLOTS;
+            target_count    <= 3'd0;
+            auto_count      <= 0;
             count           <= 0;
             commit_accepted <= 1'b0;
             commit_rejected <= 1'b0;
@@ -108,57 +120,87 @@ module arcloom_krimelack #(
             commit_accepted <= 1'b0;
             commit_rejected <= 1'b0;
 
-            if (commit_request | force_commit) begin
-                if (commit_eligible | (force_commit & ~duplicate_found)) begin
-                    motifs[write_ptr]     <= state_in;
-                    hash_table[write_ptr] <= state_hash;
-                    write_ptr <= (write_ptr == DEPTH-1) ? {ADDR_BITS{1'b0}} :
-                                 write_ptr + {{(ADDR_BITS-1){1'b0}}, 1'b1};
-                    if (count < DEPTH)
-                        count <= count + 1;
+            if (force_commit) begin
+                // Target partition: slots 0-7
+                if (~duplicate_found) begin
+                    motifs[{2'b00, target_ptr}]     <= state_in;
+                    hash_table[{2'b00, target_ptr}] <= state_hash;
+                    target_ptr <= (target_ptr == 3'd7) ? 3'd0 : target_ptr + 3'd1;
+                    if (target_count < TARGET_SLOTS)
+                        target_count <= target_count + 3'd1;
+                    commit_accepted <= 1'b1;
+                end else begin
+                    commit_rejected <= 1'b1;
+                end
+            end else if (commit_request) begin
+                // Autonomous partition: slots 8-31
+                if (commit_eligible) begin
+                    motifs[auto_ptr]     <= state_in;
+                    hash_table[auto_ptr] <= state_hash;
+                    auto_ptr <= (auto_ptr == DEPTH-1) ? TARGET_SLOTS[ADDR_BITS-1:0] :
+                                auto_ptr + {{(ADDR_BITS-1){1'b0}}, 1'b1};
+                    if (auto_count < (DEPTH - TARGET_SLOTS))
+                        auto_count <= auto_count + 1;
                     commit_accepted <= 1'b1;
                 end else begin
                     commit_rejected <= 1'b1;
                 end
             end
+
+            count <= {1'b0, target_count} + auto_count;
         end
     end
 
-    // ---- Recall: parallel pattern match ----
-    // Compares query against all stored motifs simultaneously.
-    // Score = count of matching non-null trits.
+    // ---- Recall: partitioned parallel pattern match ----
+    // Global recall: best match across autonomous slots (8-31)
+    // Target recall: best match across target slots (0-7)
+    // Both combinational, both run every cycle.
     integer m, t;
     reg [7:0]  scores [0:DEPTH-1];
-    reg [7:0]  best;
-    reg [ADDR_BITS-1:0] best_idx;
-    reg        found;
 
-    always @(query or count) begin
-        best     = 0;
-        best_idx = 0;
-        found    = 1'b0;
+    // Global (autonomous) best match — slots 8-31
+    reg [7:0]  global_best;
+    reg [ADDR_BITS-1:0] global_best_idx;
+    reg        global_found;
 
+    // Target best match — slots 0-7
+    reg [7:0]  target_best;
+
+    always @(query or target_count or auto_count) begin
+        global_best     = 0;
+        global_best_idx = 0;
+        global_found    = 1'b0;
+        target_best     = 0;
+
+        // Score all slots
         for (m = 0; m < DEPTH; m = m + 1) begin
             scores[m] = 0;
-            if (m < count) begin
-                for (t = 0; t < TRIT_WIDTH/2; t = t + 1) begin
-                    if (query[2*t +: 2] != 2'b00 &&
-                        motifs[m][2*t +: 2] != 2'b00 &&
-                        query[2*t +: 2] == motifs[m][2*t +: 2]) begin
-                        scores[m] = scores[m] + 8'd1;
-                    end
+            for (t = 0; t < TRIT_WIDTH/2; t = t + 1) begin
+                if (query[2*t +: 2] != 2'b00 &&
+                    motifs[m][2*t +: 2] != 2'b00 &&
+                    query[2*t +: 2] == motifs[m][2*t +: 2]) begin
+                    scores[m] = scores[m] + 8'd1;
                 end
-                if (scores[m] > best) begin
-                    best     = scores[m];
-                    best_idx = m[ADDR_BITS-1:0];
-                    found    = 1'b1;
+            end
+
+            // Partition the results
+            if (m < TARGET_SLOTS) begin
+                // Target slot (0-7)
+                if (m < target_count && scores[m] > target_best)
+                    target_best = scores[m];
+            end else begin
+                // Autonomous slot (8-31)
+                if ((m - TARGET_SLOTS) < auto_count && scores[m] > global_best) begin
+                    global_best     = scores[m];
+                    global_best_idx = m[ADDR_BITS-1:0];
+                    global_found    = 1'b1;
                 end
             end
         end
 
-        if (found && count > 0) begin
-            best_match   = motifs[best_idx];
-            match_score  = best;
+        if (global_found) begin
+            best_match   = motifs[global_best_idx];
+            match_score  = global_best;
             recall_valid = 1'b1;
         end else begin
             best_match   = {TRIT_WIDTH{1'b0}};
@@ -167,24 +209,8 @@ module arcloom_krimelack #(
         end
     end
 
-    // ---- Target match: single-slot parallel comparator ----
-    // Same scoring as global CAM recall but against one AXI-writable motif.
-    // Purely combinational. When target_motif = 0 (all null), score = 0.
-    // Used for hunt (high match → approach) and inspect (low match → alert).
-    integer tt;
-    reg [7:0] target_score_r;
-
-    always @(query or target_motif) begin
-        target_score_r = 8'd0;
-        for (tt = 0; tt < TRIT_WIDTH/2; tt = tt + 1) begin
-            if (query[2*tt +: 2] != 2'b00 &&
-                target_motif[2*tt +: 2] != 2'b00 &&
-                query[2*tt +: 2] == target_motif[2*tt +: 2]) begin
-                target_score_r = target_score_r + 8'd1;
-            end
-        end
-    end
-
-    assign target_match_score = target_score_r;
+    // Target match score: best-of-N across target slots 0-7
+    // When no target captured (target_count=0), score=0.
+    assign target_match_score = target_best;
 
 endmodule

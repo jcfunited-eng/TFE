@@ -1,0 +1,45 @@
+{
+  "scanned_at": "2025-11-12T12:20:23Z",
+  "total_files": 7,
+  "window_size": 50,
+  "considered_files": 7,
+  "dream_count": 3,
+  "daydream_count": 4,
+  "approved": 1,
+  "quarantine": 6,
+  "osf_aborts": 6,
+  "avg_ethics": 0.369,
+  "bias_clean": 7,
+  "bias_flagged": 0,
+  "entropy_tail": [
+    0.063,
+    0.44,
+    0.153,
+    0.0,
+    0.028,
+    0.313,
+    0.166
+  ],
+  "energy_tail": [
+    0.17,
+    0.791,
+    0.186,
+    0.697,
+    0.666,
+    0.658,
+    0.546
+  ],
+  "entropy_trend": "up",
+  "energy_trend": "up",
+  "top_tapestries": [
+    "self",
+    "curiosity",
+    "random_5",
+    "finance",
+    "random_7"
+  ],
+  "top_motifs": [],
+  "last_residue": "20251112T052000Z-6ae42669188f-daydream.json",
+  "last_timestamp": "2025-11-12T05:20:00Z",
+  "lucid_pairs": null
+}

@@ -1,0 +1,14 @@
+Aurelion — Experiment Self-Report
+Start: 20251109_022608
+Steps: 90
+
+What I tried:
+ - Periodic perturbations to probe sensitivity.
+ - Intent-driven micro-actions per node.
+
+What I learned:
+ - No strong, stable couplings discovered yet.
+
+What I'll try next:
+ - Adjust smoothing and probe amplitude to refine sensitivity.
+ - Extend runs and memory tiers for more persistent structure.

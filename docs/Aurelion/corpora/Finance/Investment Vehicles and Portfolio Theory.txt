@@ -1,0 +1,21 @@
+Investment Vehicles and Portfolio Theory.txt
+
+Investors assemble portfolios much like engineers build structures—balancing load and flexibility.
+
+Asset classes
+Equities, fixed income, alternatives (real estate, commodities), and cash.
+Each offers a different blend of risk and return.
+
+Diversification reduces unsystematic risk.
+When one asset falls, another may rise.
+Mathematically, correlation is the glue or the fault line between assets.
+
+Portfolio theory (Markowitz) seeks the efficient frontier: the highest expected return for a given risk.
+CAPM adds a market perspective:
+expected return = risk-free rate + β × (market premium).
+
+Active vs. passive
+Active managers try to beat benchmarks; passive funds track indexes cheaply.
+Rebalancing restores intended weights as prices drift.
+
+Analogy: a balanced diet—proteins (bonds) for stability, carbohydrates (equities) for energy, and spices (alternatives) for flavor but potential burn.

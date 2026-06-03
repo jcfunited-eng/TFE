@@ -74,3 +74,7 @@ g32_state.json
 quarantine_12k_governed_states.parquet
 quarantine_12k_universe.parquet
 DOC_UPDATES_MAY28.md
+
+# Large Aurelion files — too big for GitHub
+docs/Aurelion/language_memory*.json
+docs/Aurelion/.venv.zip

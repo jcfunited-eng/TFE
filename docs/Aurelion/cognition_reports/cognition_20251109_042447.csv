@@ -1,0 +1,4 @@
+file,domain,phi,H,energy,intent,reason,tokens
+finance_news.txt,finance,0.0,0.0,0.0,EXPLORE,"Mixed signal (φ=0.00, H=0.00, e=0.00).",
+nasa_mission.txt,science,0.0,0.0,0.0,EXPLORE,"Mixed signal (φ=0.00, H=0.00, e=0.00).",
+weather_noaa.txt,weather,0.0,0.0,0.0,EXPLORE,"Mixed signal (φ=0.00, H=0.00, e=0.00).",

@@ -16,8 +16,54 @@ import { getCh2Signals, closeCh2StrategistPool } from "./ch2_strategist.mjs";
 import { executeBracketOrder, executeCh2BracketOrder,
          executeCh3MarketOrder } from "./alpaca_bridge.mjs";
 import { isTradingDay, getHolidayName } from "./market_calendar.mjs";
+import pg from "pg";
 
 const POLL_INTERVAL_MS  = 5 * 60 * 1000;  // 5 minutes
+
+// ── DB pool for execution mode lookup ────────────────────────────────────
+const pool = new pg.Pool({
+  host:     process.env.PGHOST,
+  port:     parseInt(process.env.PGPORT ?? "5432", 10),
+  database: process.env.PGDATABASE,
+  user:     process.env.PGUSER,
+  password: process.env.PGPASSWORD,
+  max: 2,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 5_000,
+  ssl: { rejectUnauthorized: false },
+});
+
+/**
+ * Fetch available cash from Alpaca account.
+ * Returns { cash } — the ground truth for gating orders.
+ * The funded amount is the hard ceiling. Invested must never exceed it.
+ * Position count is not a constraint — only available cash matters.
+ */
+async function fetchAvailableCash() {
+  let cash = 0;
+  try {
+    const modeRes = await pool.query(
+      `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
+    );
+    const mode = modeRes.rows[0]?.value ?? "paper";
+    const base = mode === "live"
+      ? "https://api.alpaca.markets"
+      : "https://paper-api.alpaca.markets";
+    const res = await fetch(`${base}/v2/account`, {
+      headers: {
+        "APCA-API-KEY-ID":     process.env.APCA_API_KEY_ID,
+        "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY,
+      },
+    });
+    const acct = await res.json();
+    cash = parseFloat(acct?.cash ?? 0);
+  } catch (err) {
+    console.error(`[SENTINEL-DAEMON] fetchAvailableCash error: ${err.message}`);
+    cash = 0; // fail-safe: no cash = no orders
+  }
+
+  return { cash };
+}
 const MARKET_OPEN_UTC_H  = 13;  // 9:30 ET = 13:30 UTC
 const MARKET_OPEN_UTC_M  = 30;
 const MARKET_CLOSE_UTC_H = 20;  // 4:00 PM ET = 20:00 UTC
@@ -63,45 +109,74 @@ async function main() {
         console.error(`[SENTINEL-DAEMON] Error: ${err.message}`);
       }
 
+      // ── Cash gate: shared across ALL entry channels ────────────────────
+      // Fetch once per cycle, decrement locally after each successful order.
+      // This prevents burst-ordering: placing N orders in one loop when
+      // cash runs out after order M. The funded amount ($100K) is the hard
+      // ceiling — invested must never exceed it. Position count is not a
+      // constraint; only available cash matters.
+      let capacity;
+      try {
+        capacity = await fetchAvailableCash();
+        console.log(`[SENTINEL-DAEMON] Available cash: $${capacity.cash.toFixed(2)}`);
+      } catch (err) {
+        console.error(`[SENTINEL-DAEMON] Cash fetch failed: ${err.message} — skipping all entries this cycle`);
+        capacity = null;
+      }
+
       // ── 3WA + CH2 entry: evaluate and place orders during market hours ──
       // These strategists read runtime_decisions_latest (updated by refresh)
       // and place bracket orders via the bridge. Previously only ran during
       // the overnight refresh (00:17 UTC) — orders couldn't fill because
       // the market was closed. Now runs every sentinel cycle during market hours.
-      try {
-        const signals3wa = await get3WASignals();
-        for (const signal of signals3wa) {
-          try {
-            const result = await executeBracketOrder(signal);
-            if (result.ok) {
-              console.log(`[3WA-ENTRY] ✓ ${signal.ticker} | class=${signal.signal_class} | orderId=${result.orderId}`);
-            } else if (!result.rejected) {
-              console.log(`[3WA-ENTRY] ✗ ${signal.ticker} | ${result.reason}`);
+      if (capacity && capacity.cash > 0) {
+        try {
+          const signals3wa = await get3WASignals();
+          for (const signal of signals3wa) {
+            if (capacity.cash <= 0) {
+              console.log(`[3WA-ENTRY] CASH EXHAUSTED — $${capacity.cash.toFixed(2)} — skipping remaining signals`);
+              break;
             }
-          } catch (orderErr) {
-            console.error(`[3WA-ENTRY] Order error ${signal.ticker}: ${orderErr.message}`);
+            try {
+              const result = await executeBracketOrder(signal);
+              if (result.ok) {
+                console.log(`[3WA-ENTRY] ✓ ${signal.ticker} | class=${signal.signal_class} | orderId=${result.orderId}`);
+                capacity.cash -= result.dollarAllocation ?? 0;
+              } else if (!result.rejected) {
+                console.log(`[3WA-ENTRY] ✗ ${signal.ticker} | ${result.reason}`);
+              }
+            } catch (orderErr) {
+              console.error(`[3WA-ENTRY] Order error ${signal.ticker}: ${orderErr.message}`);
+            }
           }
+        } catch (err) {
+          console.error(`[3WA-ENTRY] Error: ${err.message}`);
         }
-      } catch (err) {
-        console.error(`[3WA-ENTRY] Error: ${err.message}`);
       }
 
-      try {
-        const signalsCh2 = await getCh2Signals();
-        for (const signal of signalsCh2) {
-          try {
-            const result = await executeCh2BracketOrder(signal);
-            if (result.ok) {
-              console.log(`[CH2-ENTRY] ✓ ${signal.ticker} | orderId=${result.orderId}`);
-            } else if (!result.rejected) {
-              console.log(`[CH2-ENTRY] ✗ ${signal.ticker} | ${result.reason}`);
+      if (capacity && capacity.cash > 0) {
+        try {
+          const signalsCh2 = await getCh2Signals();
+          for (const signal of signalsCh2) {
+            if (capacity.cash <= 0) {
+              console.log(`[CH2-ENTRY] CASH EXHAUSTED — $${capacity.cash.toFixed(2)} — skipping remaining signals`);
+              break;
             }
-          } catch (orderErr) {
-            console.error(`[CH2-ENTRY] Order error ${signal.ticker}: ${orderErr.message}`);
+            try {
+              const result = await executeCh2BracketOrder(signal);
+              if (result.ok) {
+                console.log(`[CH2-ENTRY] ✓ ${signal.ticker} | orderId=${result.orderId}`);
+                capacity.cash -= result.dollarAllocation ?? 0;
+              } else if (!result.rejected) {
+                console.log(`[CH2-ENTRY] ✗ ${signal.ticker} | ${result.reason}`);
+              }
+            } catch (orderErr) {
+              console.error(`[CH2-ENTRY] Order error ${signal.ticker}: ${orderErr.message}`);
+            }
           }
+        } catch (err) {
+          console.error(`[CH2-ENTRY] Error: ${err.message}`);
         }
-      } catch (err) {
-        console.error(`[CH2-ENTRY] Error: ${err.message}`);
       }
 
       // Real-time entry timing: check primed tickers for entry opportunities
@@ -119,22 +194,29 @@ async function main() {
       }
 
       // CH3 intraday scan: check for spike candidates every cycle
-      try {
-        const ch3Signals = await getCh3Signals();
-        for (const signal of ch3Signals) {
-          try {
-            const result = await executeCh3MarketOrder(signal);
-            if (result.ok) {
-              console.log(`[CH3-INTRADAY] ✓ ${signal.ticker} | orderId=${result.orderId} | shares=${result.shares} | entry≈${result.entryPrice}`);
-            } else {
-              console.log(`[CH3-INTRADAY] ✗ ${signal.ticker} | rejected: ${result.reason}`);
+      if (capacity && capacity.cash > 0) {
+        try {
+          const ch3Signals = await getCh3Signals();
+          for (const signal of ch3Signals) {
+            if (capacity.cash <= 0) {
+              console.log(`[CH3-INTRADAY] CASH EXHAUSTED — $${capacity.cash.toFixed(2)} — skipping remaining signals`);
+              break;
             }
-          } catch (orderErr) {
-            console.error(`[CH3-INTRADAY] Order error ${signal.ticker}: ${orderErr.message}`);
+            try {
+              const result = await executeCh3MarketOrder(signal);
+              if (result.ok) {
+                console.log(`[CH3-INTRADAY] ✓ ${signal.ticker} | orderId=${result.orderId} | shares=${result.shares} | entry≈${result.entryPrice}`);
+                capacity.cash -= result.tradeAmount ?? result.dollarAllocation ?? 0;
+              } else {
+                console.log(`[CH3-INTRADAY] ✗ ${signal.ticker} | rejected: ${result.reason}`);
+              }
+            } catch (orderErr) {
+              console.error(`[CH3-INTRADAY] Order error ${signal.ticker}: ${orderErr.message}`);
+            }
           }
+        } catch (err) {
+          console.error(`[CH3-INTRADAY] Error: ${err.message}`);
         }
-      } catch (err) {
-        console.error(`[CH3-INTRADAY] Error: ${err.message}`);
       }
     } else {
       console.log(`[SENTINEL-DAEMON] Outside market hours — sleeping.`);
@@ -149,6 +231,7 @@ async function main() {
   await closeCh3StrategistPool();
   await closeStrategistPool();
   await closeCh2StrategistPool();
+  await pool.end();
   console.log("[SENTINEL-DAEMON] Stopped.");
 }
 

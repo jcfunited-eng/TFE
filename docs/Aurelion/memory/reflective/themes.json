@@ -1,0 +1,18 @@
+{
+  "finance": {
+    "count": 1,
+    "ethics_avg": 0.42
+  },
+  "self": {
+    "count": 1,
+    "ethics_avg": 0.42
+  },
+  "curiosity": {
+    "count": 1,
+    "ethics_avg": 0.42
+  },
+  "topic:calm": {
+    "count": 1,
+    "ethics_avg": 0.42
+  }
+}

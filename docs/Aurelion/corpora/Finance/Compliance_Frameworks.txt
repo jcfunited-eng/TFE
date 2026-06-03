@@ -1,0 +1,19 @@
+Compliance_Frameworks.txt
+
+Financial markets run on trust enforced by rule.
+In the U.S., the Securities and Exchange Commission (SEC) sets disclosure and fair-dealing standards; FINRA oversees broker-dealers; the CFTC governs derivatives.
+
+Key pillars:
+
+Reg NMS – requires best execution across venues.
+
+Short-Sale Rule (Reg SHO) – prevents unchecked downward pressure.
+
+Know-Your-Customer (KYC) and Anti-Money-Laundering (AML) – verify identities and trace funds.
+
+Suitability – recommendations must fit the client’s risk tolerance.
+
+In Europe, MiFID II harmonizes transparency and investor protection.
+Firms must record communications, disclose costs, and publish execution quality.
+
+Compliance staff act like the nervous system’s reflex arcs: constantly monitoring, correcting, and reporting to keep the organism healthy.

@@ -1,0 +1,23 @@
+Order_Book_Structure.txt
+
+An order book is a real-time ledger of bids and asks for a security.
+Each price level holds queued orders waiting for a counterparty.
+
+Example snapshot:
+
+Price	Bid Size	Ask Size
+101.00	1 200	–
+100.99	800	–
+100.98	400	–
+–	–	500 @ 101.01
+–	–	900 @ 101.02
+
+The best bid = highest buy price; the best ask = lowest sell price.
+Together they form the top of book.
+Depth beyond those levels shows how much liquidity hides below the surface.
+
+Algorithms may hide part of an order as an iceberg, showing only a small tip.
+Fee models often reward makers (who add liquidity) and charge takers (who remove it).
+
+Large orders risk market impact: moving price against themselves.
+Smart-order routers split trades across venues to minimize that effect.

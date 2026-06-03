@@ -10,6 +10,10 @@ COPY uf_core/ /app/uf_core/
 COPY ses_core/ /app/ses_core/
 COPY tools/derive_sppu_weights.py /app/tools/
 COPY dsf_ai_service/ /app/dsf_ai_service/
+COPY dsf_ai_service/corpus/ /app/corpus/
+
+# GualaLoom state dir (persists via ECS volume or recreates on deploy)
+RUN mkdir -p /app/state/dreams
 
 ENV PYTHONPATH=/app
 

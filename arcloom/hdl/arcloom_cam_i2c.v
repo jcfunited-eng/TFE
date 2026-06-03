@@ -34,7 +34,17 @@ module arcloom_cam_i2c (
 
     // Status
     output reg         init_done,  // pulses when initialization complete
-    output reg  [6:0]  init_step   // current init register being written
+    output reg  [6:0]  init_step,  // current init register being written
+
+    // Runtime I2C write (available after init completes)
+    input  wire [15:0] rt_reg_addr,  // OV5640 register address (16-bit)
+    input  wire [7:0]  rt_reg_data,  // data to write (8-bit)
+    input  wire        rt_write,     // pulse: start runtime I2C write
+    input  wire        rt_read,      // pulse: start runtime I2C read
+    output reg         rt_busy,      // high during runtime transaction
+    output reg         rt_done,      // pulse when runtime write completes
+    output reg  [7:0]  rt_read_data, // data read back from OV5640
+    output reg         rt_read_valid // pulse when read data is ready
 );
 
     // I2C clock: 100MHz / 1000 = 100kHz
@@ -81,7 +91,6 @@ module arcloom_cam_i2c (
         init_regs[19] = {16'h380B, 8'hF0};  // Y output low = 240
 
         // ======== 5. HTS/VTS — total line/frame size ========
-        // Controls integration time. THIS is why exposure was stuck.
         init_regs[20] = {16'h380C, 8'h07};  // HTS high
         init_regs[21] = {16'h380D, 8'h68};  // HTS low = 1896
         init_regs[22] = {16'h380E, 8'h03};  // VTS high
@@ -108,61 +117,72 @@ module arcloom_cam_i2c (
         init_regs[35] = {16'h5001, 8'hA3};  // ISP: SDE, scale, UV avg, color matrix, AWB
         init_regs[36] = {16'h501F, 8'h00};  // Format mux: ISP output = YUV
 
-        // ======== 10. AEC/AGC with 60Hz flicker band filter ========
-        // Indoor fluorescent lights flicker at 2× mains frequency (120Hz for US 60Hz).
-        // Without band filtering, exposure spans non-integer flicker periods,
-        // producing alternating bright/dark frames that dominate structural data.
-        // Band filter synchronizes exposure to mains period — standard indoor setup.
-        init_regs[37] = {16'h3C01, 8'h80};  // Enable auto 50/60Hz band detection
-        init_regs[38] = {16'h3A00, 8'h7C};  // AEC: band ON, band auto, gain step, gain, exposure
-        init_regs[39] = {16'h3503, 8'h02};  // Manual AGC (bit1=1), auto AEC (bit0=0)
-        init_regs[40] = {16'h3A08, 8'h01};  // B50 step high
-        init_regs[41] = {16'h3A09, 8'h27};  // B50 step low = 295
-        init_regs[42] = {16'h3A0A, 8'h00};  // B60 step high
-        init_regs[43] = {16'h3A0B, 8'hF6};  // B60 step low = 246
-        init_regs[44] = {16'h3A0D, 8'h08};  // B50 max step count
-        init_regs[45] = {16'h3A0E, 8'h06};  // B60 max step count
-        init_regs[46] = {16'h3A0F, 8'h58};  // Stable range high = 88
-        init_regs[47] = {16'h3A10, 8'h50};  // Stable range low = 80
-        init_regs[48] = {16'h3A1B, 8'h58};  // Fast zone high = 88
-        init_regs[49] = {16'h3A1E, 8'h50};  // Fast zone low = 80
-        init_regs[50] = {16'h350A, 8'h00};  // Manual gain high = 0
-        init_regs[51] = {16'h350B, 8'h10};  // Manual gain low = 16 (1.0x gain)
+        // ======== 10. AEC/AGC — full auto (proven working 275d3d4) ========
+        init_regs[37] = {16'h3A00, 8'h78};  // AEC: band enable, gain enable, exposure enable
+        init_regs[38] = {16'h3503, 8'h00};  // Auto mode (bit0=0 auto exp, bit1=0 auto gain)
+        init_regs[39] = {16'h3A08, 8'h01};  // B50 step high
+        init_regs[40] = {16'h3A09, 8'h27};  // B50 step low = 295
+        init_regs[41] = {16'h3A0A, 8'h00};  // B60 step high
+        init_regs[42] = {16'h3A0B, 8'hF6};  // B60 step low = 246
+        init_regs[43] = {16'h3A0D, 8'h08};  // B50 max step count
+        init_regs[44] = {16'h3A0E, 8'h06};  // B60 max step count
+        init_regs[45] = {16'h3A0F, 8'h58};  // Stable range high = 88 (target ~80)
+        init_regs[46] = {16'h3A10, 8'h50};  // Stable range low = 80
+        init_regs[47] = {16'h3A1B, 8'h58};  // Fast zone high = 88
+        init_regs[48] = {16'h3A1E, 8'h50};  // Fast zone low = 80
+        init_regs[49] = {16'h3A11, 8'hF0};  // Max gain ceiling = 15x
+        init_regs[50] = {16'h3A1F, 8'h14};  // AEC max step
 
-        // ======== 11. OUTPUT FORMAT ========
-        init_regs[52] = {16'h4300, 8'h30};  // YUV422, YUYV order
+        // ======== 11. OUTPUT FORMAT — YUV422 ========
+        init_regs[51] = {16'h4300, 8'h30};  // YUV422, YUYV order
 
         // ======== 12. DVP ENABLE ========
-        init_regs[53] = {16'h3017, 8'hFF};  // DVP data pins enable
-        init_regs[54] = {16'h3018, 8'hFF};  // DVP control pins enable
-        init_regs[55] = {16'h3019, 8'h00};  // DVP PCLK polarity: normal
+        init_regs[52] = {16'h3017, 8'hFF};  // DVP data pins enable
+        init_regs[53] = {16'h3018, 8'hFF};  // DVP control pins enable
+        init_regs[54] = {16'h3019, 8'h00};  // DVP PCLK polarity: normal
+
+        // ======== 13. ISP TEST PATTERN OFF ========
+        init_regs[55] = {16'h503D, 8'h00};  // Test pattern OFF — live sensor data
     end
 
     // ---- I2C state machine ----
     reg [15:0] clk_cnt;
     reg [4:0]  bit_cnt;
     reg [5:0]  reg_idx;
-    reg [3:0]  state;
+    reg [4:0]  state;
     reg [23:0] shift_reg;  // addr_hi, addr_lo, data
     reg [19:0] wait_cnt;   // 2^20 = ~10ms at 100MHz (OV5640 needs 5ms after reset)
 
-    localparam S_IDLE     = 4'd0;
-    localparam S_WAIT     = 4'd1;  // post-reset delay
-    localparam S_START    = 4'd2;
-    localparam S_ADDR     = 4'd3;  // send device address byte
-    localparam S_ACK1     = 4'd4;
-    localparam S_REG_HI   = 4'd5;  // send register address high byte
-    localparam S_ACK2     = 4'd6;
-    localparam S_REG_LO   = 4'd7;  // send register address low byte
-    localparam S_ACK3     = 4'd8;
-    localparam S_DATA     = 4'd9;  // send data byte
-    localparam S_ACK4     = 4'd10;
-    localparam S_STOP     = 4'd11;
-    localparam S_NEXT     = 4'd12;
-    localparam S_DONE     = 4'd13;
+    localparam S_IDLE     = 5'd0;
+    localparam S_WAIT     = 5'd1;  // post-reset delay
+    localparam S_START    = 5'd2;
+    localparam S_ADDR     = 5'd3;  // send device address byte
+    localparam S_ACK1     = 5'd4;
+    localparam S_REG_HI   = 5'd5;  // send register address high byte
+    localparam S_ACK2     = 5'd6;
+    localparam S_REG_LO   = 5'd7;  // send register address low byte
+    localparam S_ACK3     = 5'd8;
+    localparam S_DATA     = 5'd9;  // send data byte
+    localparam S_ACK4     = 5'd10;
+    localparam S_STOP     = 5'd11;
+    localparam S_NEXT     = 5'd12;
+    localparam S_DONE     = 5'd13;
+    localparam S_RT_WAIT  = 5'd14;  // runtime: wait for request
+    // I2C read states: repeated start, send read addr, ACK, read byte, NAK, stop
+    localparam S_RD_RSTART = 5'd15; // repeated start for read
+    localparam S_RD_ADDR   = 5'd16; // send read address (0x79)
+    localparam S_RD_ACK    = 5'd17; // ACK after read address
+    localparam S_RD_DATA   = 5'd18; // clock in 8 data bits
+    localparam S_RD_NAK    = 5'd19; // send NAK (master not reading more)
+    localparam S_RD_STOP   = 5'd20; // stop after read
 
     // SCL/SDA timing
     reg scl_phase;  // 0=low, 1=high
+    reg runtime_mode; // 0=init sequence, 1=runtime single writes
+    reg rt_is_read;   // 1=current runtime op is a read, 0=write
+    reg [7:0] rd_shift; // shift register for read data
+
+    localparam ADDR_R = 8'h79; // OV5640 read address (0x3C << 1 | 1)
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -173,6 +193,13 @@ module arcloom_cam_i2c (
             scl_oe    <= 1'b0;
             init_done <= 1'b0;
             init_step <= 4'd0;
+            rt_busy      <= 1'b0;
+            rt_done      <= 1'b0;
+            rt_read_data <= 8'd0;
+            rt_read_valid <= 1'b0;
+            rt_is_read   <= 1'b0;
+            rd_shift     <= 8'd0;
+            runtime_mode <= 1'b0;
             clk_cnt   <= 16'd0;
             bit_cnt   <= 5'd0;
             reg_idx   <= 6'd0;
@@ -180,7 +207,8 @@ module arcloom_cam_i2c (
             wait_cnt  <= 20'd0;
             scl_phase <= 1'b0;
         end else begin
-            init_done <= 1'b0;
+            init_done     <= 1'b0;
+            rt_read_valid <= 1'b0;
 
             case (state)
                 S_IDLE: begin
@@ -216,8 +244,10 @@ module arcloom_cam_i2c (
                     end else if (clk_cnt < CLK_DIV * 2) begin
                         scl_out <= 1'b0;  // SCL low
                     end else begin
-                        clk_cnt   <= 16'd0;
-                        shift_reg <= init_regs[reg_idx];
+                        clk_cnt <= 16'd0;
+                        // Only load from init table during init; runtime already loaded shift_reg
+                        if (!runtime_mode)
+                            shift_reg <= init_regs[reg_idx];
                         bit_cnt   <= 5'd7;
                         state     <= S_ADDR;
                         init_step <= reg_idx;
@@ -316,7 +346,9 @@ module arcloom_cam_i2c (
                         sda_oe  <= 1'b1;
                         clk_cnt <= 16'd0;
                         bit_cnt <= 5'd7;
-                        state   <= S_DATA;
+                        // For reads: register address sent, now do repeated start + read
+                        // For writes: proceed to send data byte
+                        state   <= rt_is_read ? S_RD_RSTART : S_DATA;
                     end
                 end
 
@@ -366,7 +398,14 @@ module arcloom_cam_i2c (
                 end
 
                 S_NEXT: begin
-                    if (reg_idx == NUM_REGS - 1) begin
+                    if (runtime_mode) begin
+                        // Runtime write complete — return to wait
+                        rt_busy <= 1'b0;
+                        rt_done <= 1'b1;
+                        sda_oe  <= 1'b0;
+                        scl_oe  <= 1'b0;
+                        state   <= S_RT_WAIT;
+                    end else if (reg_idx == NUM_REGS - 1) begin
                         init_done <= 1'b1;
                         state     <= S_DONE;
                     end else begin
@@ -382,12 +421,143 @@ module arcloom_cam_i2c (
                 end
 
                 S_DONE: begin
-                    // Initialization complete — stay idle
-                    sda_oe  <= 1'b0;
-                    scl_oe  <= 1'b0;
-                    sda_out <= 1'b1;
-                    scl_out <= 1'b1;
+                    // Initialization complete — enter runtime mode
+                    sda_oe       <= 1'b0;
+                    scl_oe       <= 1'b0;
+                    sda_out      <= 1'b1;
+                    scl_out      <= 1'b1;
+                    rt_busy      <= 1'b0;
+                    runtime_mode <= 1'b1;
+                    state        <= S_RT_WAIT;
                 end
+
+                S_RT_WAIT: begin
+                    // Runtime mode: wait for I2C write or read request from AXI
+                    rt_done <= 1'b0;
+                    if (rt_write || rt_read) begin
+                        // Load shift register with address (+ data for writes)
+                        shift_reg  <= {rt_reg_addr, rt_reg_data};
+                        rt_busy    <= 1'b1;
+                        rt_is_read <= rt_read;
+                        sda_oe     <= 1'b1;
+                        scl_oe     <= 1'b1;
+                        sda_out    <= 1'b1;
+                        scl_out    <= 1'b1;
+                        clk_cnt    <= 16'd0;
+                        bit_cnt    <= 5'd7;
+                        state      <= S_START;
+                    end
+                end
+                // ---- I2C READ states ----
+
+                S_RD_RSTART: begin
+                    // Repeated start: SDA high then low while SCL high
+                    clk_cnt <= clk_cnt + 16'd1;
+                    if (clk_cnt == 0) begin
+                        sda_out <= 1'b1;  // SDA high first
+                    end else if (clk_cnt == CLK_DIV) begin
+                        scl_out <= 1'b1;  // SCL high
+                    end else if (clk_cnt == CLK_DIV * 2) begin
+                        sda_out <= 1'b0;  // SDA falls while SCL high = repeated start
+                    end else if (clk_cnt == CLK_DIV * 3) begin
+                        scl_out <= 1'b0;
+                        clk_cnt <= 16'd0;
+                        bit_cnt <= 5'd7;
+                        state   <= S_RD_ADDR;
+                    end
+                end
+
+                S_RD_ADDR: begin
+                    // Send read address (0x79)
+                    clk_cnt <= clk_cnt + 16'd1;
+                    if (clk_cnt == 0) begin
+                        sda_out <= ADDR_R[bit_cnt[2:0]];
+                        scl_out <= 1'b0;
+                    end else if (clk_cnt == CLK_DIV) begin
+                        scl_out <= 1'b1;
+                    end else if (clk_cnt == CLK_DIV * 2) begin
+                        scl_out <= 1'b0;
+                        clk_cnt <= 16'd0;
+                        if (bit_cnt == 5'd0)
+                            state <= S_RD_ACK;
+                        else
+                            bit_cnt <= bit_cnt - 5'd1;
+                    end
+                end
+
+                S_RD_ACK: begin
+                    // Read ACK from slave after read address
+                    clk_cnt <= clk_cnt + 16'd1;
+                    if (clk_cnt == 0) begin
+                        sda_oe <= 1'b0;  // release SDA
+                    end else if (clk_cnt == CLK_DIV) begin
+                        scl_out <= 1'b1;
+                    end else if (clk_cnt == CLK_DIV * 2) begin
+                        scl_out <= 1'b0;
+                        clk_cnt <= 16'd0;
+                        bit_cnt <= 5'd7;
+                        rd_shift <= 8'd0;
+                        state   <= S_RD_DATA;
+                        // Keep SDA released — slave drives it during read
+                    end
+                end
+
+                S_RD_DATA: begin
+                    // Clock in 8 data bits from slave (MSB first)
+                    clk_cnt <= clk_cnt + 16'd1;
+                    if (clk_cnt == 0) begin
+                        scl_out <= 1'b0;
+                    end else if (clk_cnt == CLK_DIV) begin
+                        scl_out <= 1'b1;
+                        // Sample SDA on rising edge
+                        rd_shift <= {rd_shift[6:0], sda_in};
+                    end else if (clk_cnt == CLK_DIV * 2) begin
+                        scl_out <= 1'b0;
+                        clk_cnt <= 16'd0;
+                        if (bit_cnt == 5'd0)
+                            state <= S_RD_NAK;
+                        else
+                            bit_cnt <= bit_cnt - 5'd1;
+                    end
+                end
+
+                S_RD_NAK: begin
+                    // Send NAK (SDA high during 9th clock = no more bytes)
+                    clk_cnt <= clk_cnt + 16'd1;
+                    if (clk_cnt == 0) begin
+                        sda_oe  <= 1'b1;
+                        sda_out <= 1'b1;  // NAK = SDA high
+                    end else if (clk_cnt == CLK_DIV) begin
+                        scl_out <= 1'b1;
+                    end else if (clk_cnt == CLK_DIV * 2) begin
+                        scl_out <= 1'b0;
+                        clk_cnt <= 16'd0;
+                        // Latch read result
+                        rt_read_data  <= rd_shift;
+                        rt_read_valid <= 1'b1;
+                        state   <= S_RD_STOP;
+                    end
+                end
+
+                S_RD_STOP: begin
+                    // Stop: SDA rises while SCL high
+                    clk_cnt <= clk_cnt + 16'd1;
+                    if (clk_cnt == 0) begin
+                        sda_out <= 1'b0;
+                    end else if (clk_cnt == CLK_DIV) begin
+                        scl_out <= 1'b1;
+                    end else if (clk_cnt == CLK_DIV * 2) begin
+                        sda_out <= 1'b1;  // SDA high = stop
+                    end else if (clk_cnt == CLK_DIV * 3) begin
+                        clk_cnt   <= 16'd0;
+                        rt_busy   <= 1'b0;
+                        rt_done   <= 1'b1;
+                        sda_oe    <= 1'b0;
+                        scl_oe    <= 1'b0;
+                        state     <= S_RT_WAIT;
+                    end
+                end
+
             endcase
         end
     end

@@ -1,0 +1,15 @@
+{"domain": "finance", "phi": 0.0, "H": 0.0, "energy": 0.0, "intent": "EXPLORE", "tokens": [], "timestamp": "2025-11-09T04:24:47"}
+{"domain": "science", "phi": 0.0, "H": 0.0, "energy": 0.0, "intent": "EXPLORE", "tokens": [], "timestamp": "2025-11-09T04:24:47"}
+{"domain": "weather", "phi": 0.0, "H": 0.0, "energy": 0.0, "intent": "EXPLORE", "tokens": [], "timestamp": "2025-11-09T04:24:47"}
+{"domain": "finance", "phi": 0.0, "H": 0.0, "energy": 0.0, "intent": "EXPLORE", "tokens": [], "timestamp": "2025-11-09T04:33:27"}
+{"domain": "science", "phi": 1.0, "H": 0.0, "energy": 0.3823529411764706, "intent": "STABILIZE", "tokens": ["remains schedule", "remains", "protocols agency", "protocols", "program eventual", "program", "procedures ensuring", "procedures", "power systems", "power"], "timestamp": "2025-11-09T04:33:29"}
+{"domain": "weather", "phi": 0.0, "H": 0.0, "energy": 0.0, "intent": "EXPLORE", "tokens": [], "timestamp": "2025-11-09T04:33:29"}
+{"domain": "finance", "phi": 0.0, "H": 0.0, "energy": 0.0, "intent": "EXPLORE", "tokens": [], "timestamp": "2025-11-09T04:34:39"}
+{"domain": "science", "phi": 1.0, "H": 0.0, "energy": 0.3823529411764706, "intent": "STABILIZE", "tokens": ["remains schedule", "remains", "protocols agency", "protocols", "program eventual", "program", "procedures ensuring", "procedures", "power systems", "power"], "timestamp": "2025-11-09T04:34:41"}
+{"domain": "weather", "phi": 0.0, "H": 0.0, "energy": 0.0, "intent": "EXPLORE", "tokens": [], "timestamp": "2025-11-09T04:34:41"}
+{"domain": "finance", "phi": 0.194, "H": -0.0, "energy": 0.194, "intent": "EXPLORE", "tokens": ["market", "investors", "data", "yields", "stay", "remained elevated", "longer", "rates stay", "rates", "reserve indicated"], "timestamp": "2025-11-09T05:07:00"}
+{"domain": "science", "phi": 0.291, "H": -0.0, "energy": 0.291, "intent": "EXPLORE", "tokens": ["artemis", "mission", "updated", "updated spaceflight", "surface", "surface landing", "trajectory simulations", "trajectory", "spaceflight", "spaceflight safety"], "timestamp": "2025-11-09T05:07:01"}
+{"domain": "weather", "phi": 0.366, "H": -0.0, "energy": 0.366, "intent": "EXPLORE", "tokens": ["air", "low", "secondary cold", "likely", "wednesday", "secondary", "likely follow", "cooler", "bringing cooler", "cooler drier"], "timestamp": "2025-11-09T05:07:02"}
+{"domain": "finance", "phi": 0.6370834112167358, "H": 0.99999999711461, "energy": 0.5764569090452231, "intent": "GROW", "tokens": [], "timestamp": "2025-11-09T05:44:47"}
+{"domain": "science", "phi": 0.7080419063568115, "H": 0.99999999711461, "energy": 0.6406628105940122, "intent": "GROW", "tokens": [], "timestamp": "2025-11-09T05:44:48"}
+{"domain": "weather", "phi": 0.7477280497550964, "H": 0.99999999711461, "energy": 0.6765723181286825, "intent": "GROW", "tokens": [], "timestamp": "2025-11-09T05:44:49"}

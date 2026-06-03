@@ -17,7 +17,23 @@ module arcloom_cam_i2c_iobuf (
     inout  wire cam_sda,
     output wire cam_scl,
     output wire init_done,
-    output wire [6:0] init_step
+    output wire [6:0] init_step,
+
+    // Runtime I2C write/read (from AXI wrapper)
+    input  wire [15:0] rt_reg_addr,
+    input  wire [7:0]  rt_reg_data,
+    input  wire        rt_write,
+    input  wire        rt_read,
+    output wire        rt_busy,
+    output wire        rt_done,
+    output wire [7:0]  rt_read_data,
+    output wire        rt_read_valid,
+
+    // I2C bus monitor (read port)
+    input  wire [9:0]  mon_rd_addr,
+    output wire [31:0] mon_rd_data,
+    output wire [9:0]  mon_write_count,
+    output wire        mon_overflow
 );
 
     wire sda_out, sda_oe, sda_in;
@@ -44,7 +60,26 @@ module arcloom_cam_i2c_iobuf (
         .scl_out(scl_out),
         .scl_oe(scl_oe),
         .init_done(init_done),
-        .init_step(init_step)
+        .init_step(init_step),
+        .rt_reg_addr(rt_reg_addr),
+        .rt_reg_data(rt_reg_data),
+        .rt_write(rt_write),
+        .rt_read(rt_read),
+        .rt_busy(rt_busy),
+        .rt_done(rt_done),
+        .rt_read_data(rt_read_data),
+        .rt_read_valid(rt_read_valid)
+    );
+
+    // ---- I2C Bus Monitor (passive, taps internal wires) ----
+    arcloom_i2c_monitor i2c_mon (
+        .clk(clk), .rst_n(rst_n),
+        .scl_in(cam_scl),    // tap SCL from actual pin output
+        .sda_in(sda_in),     // tap SDA from IOBUF (actual bus state)
+        .read_addr(mon_rd_addr),
+        .read_data(mon_rd_data),
+        .write_count(mon_write_count),
+        .overflow(mon_overflow)
     );
 
 endmodule

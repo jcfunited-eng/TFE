@@ -1,0 +1,39 @@
+{
+  "series": {
+    "^IXIC (1)": {
+      "n": 261,
+      "features": [
+        "close",
+        "return",
+        "vol"
+      ]
+    },
+    "AAPL": {
+      "n": 261,
+      "features": [
+        "close",
+        "return",
+        "vol"
+      ]
+    },
+    "TSLA": {
+      "n": 261,
+      "features": [
+        "close",
+        "return",
+        "vol"
+      ]
+    }
+  },
+  "tags": {
+    "^IXIC (1)": [
+      "volatility"
+    ],
+    "AAPL": [
+      "volatility"
+    ],
+    "TSLA": [
+      "volatility"
+    ]
+  }
+}

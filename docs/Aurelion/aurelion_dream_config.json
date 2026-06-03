@@ -1,0 +1,18 @@
+{
+  "energy_budget": 137,
+  "overlap_factor": 0.35,
+  "entropy_jump": 0.6,
+  "affect_polarity": 0.87,
+  "ethics": {
+    "care": 0.4,
+    "fairness": 0.25,
+    "autonomy": 0.2,
+    "prudence": 0.15
+  },
+  "last_feedback": "2025-11-12T12:28:09Z",
+  "last_notes": [
+    "↓energy (too many OSF)",
+    "↓energy (low approval)",
+    "↑OSF threshold (stable growth)"
+  ]
+}

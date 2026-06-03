@@ -277,8 +277,7 @@ module arcloom_top (
     input  wire [7:0]  cam_bl_u,
     input  wire [7:0]  cam_bl_density,
 
-    // Target motif for hunt/inspect (AXI-writable, full loom state width)
-    input  wire [209:0] target_motif,
+    // Target motif removed — target is now partitioned slots 0-7 in Krimelack
 
     // Decision output
     output wire [1:0]  decision_steer,
@@ -544,7 +543,6 @@ module arcloom_top (
         .best_match(recalled_motif),
         .match_score(krimelack_score),
         .recall_valid(krimelack_recall_valid),
-        .target_motif(target_motif),
         .target_match_score(target_match_score),
         .motif_count(krimelack_count),
         .commit_accepted(krimelack_commit_accepted),

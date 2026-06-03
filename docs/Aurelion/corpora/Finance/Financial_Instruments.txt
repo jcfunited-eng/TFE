@@ -1,0 +1,19 @@
+Financial_Instruments.txt
+
+Financial instruments are contracts transferring value or risk.
+
+Equities give ownership; holders share profits and voting rights.
+Debt instruments—bonds, notes, bills—lend capital for fixed interest.
+Derivatives derive value from an underlying asset:
+
+Options grant rights but not obligations to buy/sell.
+
+Futures obligate both sides at a fixed future price.
+
+Swaps exchange cash-flow streams.
+
+Commodities (energy, metals, agriculture) and foreign exchange extend diversification.
+ETFs bundle baskets of assets that trade like stocks.
+Leverage magnifies both gains and losses; margin requirements limit exposure.
+
+Each instrument is a tool—powerful in skilled hands, dangerous in careless ones.

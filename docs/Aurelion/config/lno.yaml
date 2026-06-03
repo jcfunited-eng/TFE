@@ -1,0 +1,25 @@
+# config/lno.yaml (SAFE MODE — relaxed OSF/steps for demo)
+version: "10.4.0"
+phi_cap: 0.14
+depth_cap: 28
+step_cap: 196
+random_jitter: 0.02
+osf:
+  entropy_jump: 0.60
+  affect_polarity: 0.8
+ethics_floor:
+  care: 0.20
+  fairness: 0.20
+  autonomy: 0.15
+  prudence: 0.15
+bias_window: 64
+residue_decay:
+  reject_fast: 3
+  quarantine: 14
+logging:
+  level: INFO
+  file: "C:/Users/joeta/OneDrive/Desktop/Aurelion/logs/lno_events.ndjson"
+persistence:
+  base_dir: "C:/Users/joeta/OneDrive/Desktop/Aurelion/memory/morphogen"
+  atomic_writes: true
+  versions_per_law: 10

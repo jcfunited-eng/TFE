@@ -99,6 +99,24 @@ connect_bd_net [get_bd_ports cam_vsync]      [get_bd_pins cam_dvp_0/vsync]
 connect_bd_net [get_bd_ports cam_href]       [get_bd_pins cam_dvp_0/href]
 connect_bd_net [get_bd_ports cam_pixel_data] [get_bd_pins cam_dvp_0/pixel_data]
 
+# Snapshot buffer — standalone module, shares DVP signals with cam_dvp_0
+create_bd_cell -type module -reference arcloom_cam_snapshot snapshot_0
+connect_bd_net [get_bd_pins snapshot_0/clk]   [get_bd_pins ps7/FCLK_CLK0]
+connect_bd_net [get_bd_pins snapshot_0/rst_n] [get_bd_pins ps7/FCLK_RESET0_N]
+
+# DVP inputs to snapshot (same external ports as cam_dvp_0)
+connect_bd_net [get_bd_ports cam_pclk]       [get_bd_pins snapshot_0/pclk]
+connect_bd_net [get_bd_ports cam_vsync]      [get_bd_pins snapshot_0/vsync]
+connect_bd_net [get_bd_ports cam_href]       [get_bd_pins snapshot_0/href]
+connect_bd_net [get_bd_ports cam_pixel_data] [get_bd_pins snapshot_0/pixel_data]
+
+# Snapshot control: trigger and read_addr from AXI wrapper, data/status back
+connect_bd_net [get_bd_pins arcloom_0/snapshot_trigger_out] [get_bd_pins snapshot_0/snapshot_trigger]
+connect_bd_net [get_bd_pins arcloom_0/snapshot_rd_addr_out] [get_bd_pins snapshot_0/read_addr]
+connect_bd_net [get_bd_pins snapshot_0/snapshot_done]       [get_bd_pins arcloom_0/snapshot_done_ext]
+connect_bd_net [get_bd_pins snapshot_0/snapshot_busy]       [get_bd_pins arcloom_0/snapshot_busy_ext]
+connect_bd_net [get_bd_pins snapshot_0/read_data]           [get_bd_pins arcloom_0/snapshot_data_ext]
+
 # Wire DVP outputs → AXI wrapper camera inputs
 connect_bd_net [get_bd_pins cam_dvp_0/line_y_mean]     [get_bd_pins arcloom_0/cam_line_y_mean]
 connect_bd_net [get_bd_pins cam_dvp_0/line_y_min]      [get_bd_pins arcloom_0/cam_line_y_min]
@@ -145,6 +163,42 @@ connect_bd_net [get_bd_pins cam_i2c_0/cam_sda] [get_bd_ports cam_sda]
 # SCL = output (push-pull, single master)
 create_bd_port -dir O cam_scl
 connect_bd_net [get_bd_pins cam_i2c_0/cam_scl] [get_bd_ports cam_scl]
+
+# I2C monitor read port: cam_i2c_0 → AXI wrapper
+connect_bd_net [get_bd_pins arcloom_0/i2c_mon_addr_out]     [get_bd_pins cam_i2c_0/mon_rd_addr]
+connect_bd_net [get_bd_pins cam_i2c_0/mon_rd_data]          [get_bd_pins arcloom_0/i2c_mon_data_in]
+connect_bd_net [get_bd_pins cam_i2c_0/mon_write_count]      [get_bd_pins arcloom_0/i2c_mon_count_in]
+connect_bd_net [get_bd_pins cam_i2c_0/mon_overflow]         [get_bd_pins arcloom_0/i2c_mon_overflow_in]
+
+# Runtime I2C control: AXI wrapper → cam_i2c_0
+connect_bd_net [get_bd_pins arcloom_0/i2c_rt_addr]  [get_bd_pins cam_i2c_0/rt_reg_addr]
+connect_bd_net [get_bd_pins arcloom_0/i2c_rt_data]  [get_bd_pins cam_i2c_0/rt_reg_data]
+connect_bd_net [get_bd_pins arcloom_0/i2c_rt_write] [get_bd_pins cam_i2c_0/rt_write]
+connect_bd_net [get_bd_pins arcloom_0/i2c_rt_read]  [get_bd_pins cam_i2c_0/rt_read]
+connect_bd_net [get_bd_pins cam_i2c_0/rt_busy]      [get_bd_pins arcloom_0/i2c_rt_busy]
+connect_bd_net [get_bd_pins cam_i2c_0/rt_done]      [get_bd_pins arcloom_0/i2c_rt_done]
+connect_bd_net [get_bd_pins cam_i2c_0/rt_read_data]  [get_bd_pins arcloom_0/i2c_rt_read_data]
+connect_bd_net [get_bd_pins cam_i2c_0/rt_read_valid] [get_bd_pins arcloom_0/i2c_rt_read_valid]
+
+# ---- Validate I2C port connections ----
+puts ""
+puts "============================================"
+puts " I2C PORT VALIDATION"
+puts "============================================"
+set i2c_pins [get_bd_pins cam_i2c_0/*]
+puts " cam_i2c_0 ports: [llength $i2c_pins]"
+foreach p $i2c_pins { puts "   $p" }
+puts ""
+set rt_pins [get_bd_pins cam_i2c_0/rt_*]
+puts " Runtime I2C pins found: [llength $rt_pins]"
+foreach p $rt_pins { puts "   $p" }
+if {[llength $rt_pins] < 5} {
+    puts " WARNING: Expected 5 runtime I2C pins, found [llength $rt_pins]"
+    puts " Runtime I2C control will NOT work in this build!"
+} else {
+    puts " All 5 runtime I2C pins present - OK"
+}
+puts "============================================"
 
 # ============================================================
 # Motor drive — Pmod A
@@ -269,6 +323,26 @@ wait_on_run synth_1
 
 puts ""
 puts "============================================"
-puts " Synthesis complete."
-puts " 3 sensors + camera clock + DVP + 12-trit MathLoom"
+puts " Synthesis complete. Starting implementation..."
+puts "============================================"
+
+# Disable ALL power optimization — wide Krimelack (210-bit × 32 entries)
+# causes power analysis to hang for hours on the PYNQ-Z2.
+set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
+set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED false [get_runs impl_1]
+set_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE {NoBramPowerOpt} [get_runs impl_1]
+
+# Run implementation (without -to_step so disabled steps stay disabled)
+launch_runs impl_1 -jobs 10
+wait_on_run impl_1
+
+# Then generate bitstream
+launch_runs impl_1 -to_step write_bitstream -jobs 10
+wait_on_run impl_1
+
+puts ""
+puts "============================================"
+puts " Bitstream complete."
+puts " .bit and .hwh in:"
+puts " C:/Users/joeta/arcloom_pynq2/arcloom_pynq2.runs/impl_1/"
 puts "============================================"

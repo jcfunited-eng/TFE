@@ -4,6 +4,43 @@ Append-only log. Every session writes what it changed, tested, concluded, and wh
 
 ---
 
+## 2026-06-03 (c1, Claude Opus 4.6)
+
+### What was changed
+- 3WA + CH2 entry in sentinel daemon market-hours loop (task 528)
+- Aggregate D_k shield removed from CH2 (task 529)
+- Regime position cap removal deployed (task 526)
+
+### What broke
+- BURST-ORDERING BUG (OPEN). 43 orders in one loop, 56 positions on 30-cap, -$28K margin.
+- No validation env testing on any change this session.
+
+### LESSON
+11 deploys, most untested in validation env. Every failure would have been caught by one end-to-end val run. Validation env first, always.
+
+---
+
+## 2026-06-03 (c1, Claude Opus 4.6)
+
+### What was changed
+- 3WA + CH2 entry logic added to sentinel daemon market-hours loop (task 528). Previously entries only fired during overnight refresh (00:17 UTC) — market was closed, no orders could fill.
+- Aggregate D_k shield removed from CH2 (task 529). Was blocking all entries when contracting > expanding across universe.
+- Regime position cap removal deployed (task 526). REGIME_DEFENSIVE_POSITION_MULT=0.5 removed.
+
+### What broke
+- **BURST-ORDERING BUG (OPEN).** 43 CH2 orders placed in a single sentinel cycle without re-checking position count or cash between orders. Result: 56 positions on 30-cap account, -$28K cash margin. The cash ceiling and MAX_POSITIONS checks fire BEFORE the order loop, not within it. Each order in the loop sees the same stale position count and cash balance.
+- **No validation env testing.** All three changes went straight to prod. None were tested in the validation environment.
+
+### What was NOT verified
+- Burst-ordering under load (the actual failure scenario)
+- Cash ceiling behavior when multiple orders submit in rapid succession
+- End-to-end validation env run of any change this session
+
+### LESSON
+This session deployed 11 tasks to production. Most were not validated in the validation environment. The burst-ordering bug, the days of zero entries, the orphan loop, the HTBK kill spam, and the duplicate order IDs all would have been caught by a single end-to-end validation run. The pattern: backtest says it works → deploy → discover it doesn't → hotfix → deploy → discover the next thing. This must stop. Validation env first, always.
+
+---
+
 ## 2026-06-02 (c1, Claude Opus 4.6)
 
 ### What was changed
