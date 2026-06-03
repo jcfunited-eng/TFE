@@ -11,7 +11,10 @@ import { runSentinel, closeSentinelPool } from "./sentinel_monitor.mjs";
 import { runEntryTimingCheck, closeEntryTimingPool } from "./entry_timing_watcher.mjs";
 import { runStrikeZoneCheck, closeStrikeZonePool } from "./ch3_strike_zone_detector.mjs";
 import { getCh3Signals, closeCh3StrategistPool } from "./ch3_scalp_strategist.mjs";
-import { executeCh3MarketOrder } from "./alpaca_bridge.mjs";
+import { get3WASignals, closeStrategistPool } from "./3wa_strategist.mjs";
+import { getCh2Signals, closeCh2StrategistPool } from "./ch2_strategist.mjs";
+import { executeBracketOrder, executeCh2BracketOrder,
+         executeCh3MarketOrder } from "./alpaca_bridge.mjs";
 import { isTradingDay, getHolidayName } from "./market_calendar.mjs";
 
 const POLL_INTERVAL_MS  = 5 * 60 * 1000;  // 5 minutes
@@ -60,6 +63,47 @@ async function main() {
         console.error(`[SENTINEL-DAEMON] Error: ${err.message}`);
       }
 
+      // ── 3WA + CH2 entry: evaluate and place orders during market hours ──
+      // These strategists read runtime_decisions_latest (updated by refresh)
+      // and place bracket orders via the bridge. Previously only ran during
+      // the overnight refresh (00:17 UTC) — orders couldn't fill because
+      // the market was closed. Now runs every sentinel cycle during market hours.
+      try {
+        const signals3wa = await get3WASignals();
+        for (const signal of signals3wa) {
+          try {
+            const result = await executeBracketOrder(signal);
+            if (result.ok) {
+              console.log(`[3WA-ENTRY] ✓ ${signal.ticker} | class=${signal.signal_class} | orderId=${result.orderId}`);
+            } else if (!result.rejected) {
+              console.log(`[3WA-ENTRY] ✗ ${signal.ticker} | ${result.reason}`);
+            }
+          } catch (orderErr) {
+            console.error(`[3WA-ENTRY] Order error ${signal.ticker}: ${orderErr.message}`);
+          }
+        }
+      } catch (err) {
+        console.error(`[3WA-ENTRY] Error: ${err.message}`);
+      }
+
+      try {
+        const signalsCh2 = await getCh2Signals();
+        for (const signal of signalsCh2) {
+          try {
+            const result = await executeCh2BracketOrder(signal);
+            if (result.ok) {
+              console.log(`[CH2-ENTRY] ✓ ${signal.ticker} | orderId=${result.orderId}`);
+            } else if (!result.rejected) {
+              console.log(`[CH2-ENTRY] ✗ ${signal.ticker} | ${result.reason}`);
+            }
+          } catch (orderErr) {
+            console.error(`[CH2-ENTRY] Order error ${signal.ticker}: ${orderErr.message}`);
+          }
+        }
+      } catch (err) {
+        console.error(`[CH2-ENTRY] Error: ${err.message}`);
+      }
+
       // Real-time entry timing: check primed tickers for entry opportunities
       try {
         await runEntryTimingCheck();
@@ -103,6 +147,8 @@ async function main() {
   await closeEntryTimingPool();
   await closeStrikeZonePool();
   await closeCh3StrategistPool();
+  await closeStrategistPool();
+  await closeCh2StrategistPool();
   console.log("[SENTINEL-DAEMON] Stopped.");
 }
 
