@@ -214,35 +214,15 @@ export async function getCh2Signals() {
     }
   }
 
-  // Epoch Resonance Shield — block entries in hostile macro environments
-  try {
-    let g32 = {};
-    try { g32 = JSON.parse(readFileSync("/app/g32_state.json", "utf-8")); } catch {}
-    const xi = g32.xi ?? {};
-
-    // Aggregate D_k shield — macro signal from structurally rich tickers
-    // Not SPY (too smooth for kernel). The universe of active tickers IS the macro barometer.
-    const dkRes = await pool.query(`
-      SELECT
-        COUNT(*) FILTER (WHERE CAST(NULLIF(snapshot_row_json->>'D_k','') AS DOUBLE PRECISION) > 0) AS expanding,
-        COUNT(*) FILTER (WHERE CAST(NULLIF(snapshot_row_json->>'D_k','') AS DOUBLE PRECISION) < 0) AS contracting
-      FROM runtime_decisions_latest
-      WHERE decision_label = 'Accumulate'
-        AND ticker != 'SPY'
-        AND CAST(NULLIF(snapshot_row_json->>'bar_count','') AS INTEGER) > 20
-    `);
-    const expanding = parseInt(dkRes.rows[0]?.expanding ?? "0", 10);
-    const contracting = parseInt(dkRes.rows[0]?.contracting ?? "0", 10);
-    const total = expanding + contracting;
-
-    if (total >= 5 && contracting > expanding) {
-      console.log(`[CH2-STRATEGIST] SHIELD BLOCK — majority contracting (expanding=${expanding} contracting=${contracting})`);
-      return [];
-    }
-    console.log(`[CH2-STRATEGIST] Shield: CLEAR (expanding=${expanding} contracting=${contracting})`);
-  } catch (shieldErr) {
-    console.log(`[CH2-STRATEGIST] Shield check failed: ${shieldErr.message} — proceeding`);
-  }
+  // Aggregate D_k shield REMOVED. Same principle as S_UF band and regime cap:
+  // an aggregate scalar override was vetoing qualified individual picks.
+  // The tuple-proximity engine already evaluates each stock's coupled structural
+  // state. A stock with WR=0.93 should not be blocked because unrelated stocks
+  // in the universe have D_k < 0. The per-stock structural read is the entry
+  // decision; aggregate breadth is observable but does not veto.
+  //
+  // Previously: contracting > expanding → return [] (blocked all CH2 entries)
+  // Now: log the breadth reading for observability, proceed to individual evaluation.
 
   const rows    = await fetchCandidateRows(runId);
   const signals = rows.map(parseSignal).filter(Boolean);
