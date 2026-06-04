@@ -1701,6 +1701,11 @@ async function main() {
           );
 
           rec.decisionLabel = tpResult.decision;
+          // Sync provenance decision so the screener reads the TP result,
+          // not the placeholder "Hold" from computeDecisionTrace.
+          if (rec.provenance) {
+            rec.provenance.decision = tpResult.decision;
+          }
           // Persist neighborWR into snapshot so downstream consumers
           // (strategists, bridge sizing) can read it without recomputing.
           if (tpResult.neighborWR !== null && tpResult.neighborWR !== undefined) {
