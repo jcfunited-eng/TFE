@@ -24,6 +24,11 @@ web/tsconfig.tsbuildinfo
 !web/data/
 !web/data/ui-config.json
 
+# DSF-AI service (GualaLoom) build inputs.
+!dsf_ai_service/
+!dsf_ai_service/**
+!tools/derive_sppu_weights.py
+
 # Root runtime files copied by the Dockerfile.
 !certs/
 !certs/**
