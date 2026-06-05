@@ -536,6 +536,60 @@ async def gualaloom_chat(msg: GLMessage):
             "atlas_health": s.get("atlas_health", {}),
         }
 
+    # ── /diag — reach distribution + strength histogram for wC ──
+    if cmd == "/diag":
+        from collections import Counter, defaultdict
+        atlas = _guala.atlas
+        FTHRESH = 0.02
+        # Reach distribution: for each (section, motif), how many chi values does it appear in (alive)?
+        motif_reach = Counter()
+        for chi_k, entries in atlas.entries.items():
+            seen = set()
+            for e in entries:
+                if e["strength"] >= FTHRESH:
+                    key = (e["section"], e["motif"])
+                    if key not in seen:
+                        motif_reach[key] += 1
+                        seen.add(key)
+        # Histogram of reach counts
+        reach_hist = Counter()
+        for key, reach in motif_reach.items():
+            reach_hist[reach] += 1
+        max_reach_key = motif_reach.most_common(1)[0] if motif_reach else (("?", 0), 0)
+        # Look up what word the max-reach mode is
+        max_word = "?"
+        if motif_reach:
+            mk = max_reach_key[0]
+            sec = _guala.sections.get(mk[0])
+            if sec and mk[1] < len(sec.modes):
+                _, _, max_word = sec.modes[mk[1]]
+        # Strength histogram (finer buckets: 0.0-0.1, 0.1-0.2, ..., 0.9-1.0)
+        strength_hist = {}
+        for i in range(10):
+            lo = i * 0.1
+            hi = (i + 1) * 0.1
+            strength_hist[f"{lo:.1f}-{hi:.1f}"] = 0
+        for entries in atlas.entries.values():
+            for e in entries:
+                bucket = min(9, int(e["strength"] * 10))
+                lo = bucket * 0.1
+                hi = (bucket + 1) * 0.1
+                strength_hist[f"{lo:.1f}-{hi:.1f}"] += 1
+        return {
+            "response": "diagnostic data attached",
+            "reach_distribution": dict(sorted(reach_hist.items())),
+            "max_reach_mode": {
+                "section": max_reach_key[0][0] if motif_reach else "?",
+                "motif_id": max_reach_key[0][1] if motif_reach else 0,
+                "word": max_word,
+                "reach": max_reach_key[1] if motif_reach else 0,
+            },
+            "strength_histogram_fine": strength_hist,
+            "n_live_bindings": atlas.n_live_bindings(),
+            "total_strength": round(atlas.total_strength(), 2),
+            "n_modes_with_reach": len(motif_reach),
+        }
+
     # ── Normal conversation — v5 substrate responds ──
     text = msg.text.strip()
     if not text:
