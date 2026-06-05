@@ -31,6 +31,7 @@ const DEFAULT_RUNTIME_READ_RETRY_DELAY_MS = 120;
 type RuntimeSnapshotRowRecord = {
   ticker: string;
   snapshot_row_json: unknown;
+  decision_label: string | null;
   run_id: string | null;
   generated_at_utc: string | Date | null;
 };
@@ -605,10 +606,15 @@ async function loadRuntimeSnapshotRowsFromPostgresRaw(): Promise<RuntimeSnapshot
         }
       }
 
+      // runtime_decisions_latest has decision_label; runtime_decisions_history does not.
+      const hasDecisionLabel = tableName !== RUNTIME_DECISIONS_HISTORY_TABLE;
+      const selectCols = hasDecisionLabel
+        ? "ticker, snapshot_row_json, decision_label, run_id, generated_at_utc"
+        : "ticker, snapshot_row_json, NULL::text AS decision_label, run_id, generated_at_utc";
       const [rowsResult, meta] = await Promise.all([
         pool.query<RuntimeSnapshotRowRecord>(
           `
-            SELECT ticker, snapshot_row_json, run_id, generated_at_utc
+            SELECT ${selectCols}
             FROM ${tableName}
             WHERE run_id = $1
             ORDER BY ticker ASC
@@ -627,6 +633,7 @@ async function loadRuntimeSnapshotRowsFromPostgresRaw(): Promise<RuntimeSnapshot
         rows.push({
           ...parsed,
           ticker,
+          decision_label: typeof record.decision_label === "string" ? record.decision_label : null,
         });
       }
 
