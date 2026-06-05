@@ -449,28 +449,90 @@ async def discover_verify(req: VerifyRequest):
 
 
 # ════════════════════════════════════════════════════════════════
-# GualaLoom — private substrate chat (not linked from nav)
+# GualaLoom — substrate below, dialog above
+# GUALALOOM-INTEGRATE-WC-2026-06-05
 # ════════════════════════════════════════════════════════════════
 
 import numpy as np
+
+# Substrate layer (motifs, sleep, dream, persistence)
+from dsf_ai_service.gualaloom_engine import (
+    Krimelack as EngineKrimelack, Loom as EngineLoom,
+    load as engine_load, save as engine_save,
+    seed_corpus as engine_seed_corpus,
+    sleep_cycle as engine_sleep, dream_cycle as engine_dream,
+)
+
+# Dialog layer (v6 SVO composition, growth, MathLoom routing)
 from dsf_ai_service.gualaloom_dialog.composer import VocabManager, build_guala
 from dsf_ai_service.gualaloom_dialog.memory import ConversationMemory
 from dsf_ai_service.gualaloom_dialog.driver import say_to_guala
 
-_gl_guala = None
-_gl_vocab = None
-_gl_memory = None
+# Shared state: engine is authoritative for substrate, dialog for conversation
+_engine_k = None      # Engine krimelack (motifs, sleep, dream)
+_engine_loom = None   # Engine loom (character-level settle)
+_gl_guala = None      # Dialog-layer System (DNA sections)
+_gl_vocab = None      # Dialog-layer vocab (gap: holds own vectors, not yet migrated to engine)
+_gl_memory = None     # Dialog-layer conversation memory
 _gl_rng = None
+_gl_exchange_count = 0  # for periodic persistence
+_gl_dream_log = []      # persisted dream emissions
+
+PERSIST_EVERY = 20  # exchanges between auto-persists
 
 def _gl_init():
-    global _gl_guala, _gl_vocab, _gl_memory, _gl_rng
-    if _gl_guala is not None:
+    global _engine_k, _engine_loom, _gl_guala, _gl_vocab, _gl_memory, _gl_rng, _gl_dream_log
+    if _engine_k is not None:
         return
+
+    # Engine layer: load persisted state or seed from corpus
+    import os
+    engine_state_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "state")
+    os.makedirs(engine_state_dir, exist_ok=True)
+    # gualaloom_engine uses STATE_DIR = "state" relative to cwd
+    os.makedirs("state/dreams", exist_ok=True)
+
+    fresh = not os.path.exists("state/krimelack.json")
+    _engine_k, _engine_loom = engine_load()
+    if fresh:
+        print("[GualaLoom] First boot — seeding corpus")
+        n = engine_seed_corpus(_engine_k, _engine_loom)
+        engine_save(_engine_k, _engine_loom)
+        print(f"[GualaLoom] Seeded {n} chars, {_engine_k.size()} motifs")
+    else:
+        print(f"[GualaLoom] Loaded {_engine_k.size()} motifs from disk")
+
+    # Load dream log if it exists
+    dream_log_path = "state/dreams/dream_log.json"
+    if os.path.exists(dream_log_path):
+        import json
+        with open(dream_log_path) as f:
+            _gl_dream_log = json.load(f)
+        print(f"[GualaLoom] Loaded {len(_gl_dream_log)} dream records")
+
+    # Dialog layer: v6 growth
     _gl_rng = np.random.default_rng(42)
     _gl_vocab = VocabManager(seed=42)
     _gl_vocab.seed_minimal()
     _gl_guala = build_guala(_gl_rng, _gl_vocab)
     _gl_memory = ConversationMemory()
+
+
+def _gl_persist():
+    """Save engine state + dream log to disk."""
+    engine_save(_engine_k, _engine_loom)
+    import json
+    with open("state/dreams/dream_log.json", "w") as f:
+        json.dump(_gl_dream_log, f)
+
+
+def _gl_observe(text):
+    """Inform the engine about heard text. Engine decides how it becomes motifs."""
+    global _gl_exchange_count
+    _engine_loom.feed(text + " ")
+    _gl_exchange_count += 1
+    if _gl_exchange_count % PERSIST_EVERY == 0:
+        _gl_persist()
 
 
 class GLMessage(BaseModel):
@@ -488,19 +550,94 @@ async def gualaloom_chat(msg: GLMessage):
     _gl_init()
 
     cmd = (msg.command or "").strip().lower()
+
+    # ── /status — real counts from engine + dialog ──
     if cmd == "/status":
         return {
-            "response": (f"vocab: {len(_gl_vocab.vocab)} tokens | "
-                         f"classes: {len(_gl_vocab.vocab_classes)} | "
-                         f"templates: {len(_gl_vocab.response_templates)} | "
-                         f"turns: {len(_gl_memory.turns)}"),
+            "response": (
+                f"motifs: {_engine_k.size()} | "
+                f"vocab: {len(_gl_vocab.vocab)} | "
+                f"classes: {len(_gl_vocab.vocab_classes)} | "
+                f"templates: {len(_gl_vocab.response_templates)} | "
+                f"dreams: {len(_gl_dream_log)} | "
+                f"turns: {len(_gl_memory.turns)}"
+            ),
             "motifs": len(_gl_vocab.vocab),
         }
 
+    # ── /sleep — engine consolidation + persist ──
+    if cmd == "/sleep":
+        before = _engine_k.size()
+        _, culled = engine_sleep(_engine_k, 200)
+        after = _engine_k.size()
+        _gl_persist()
+        return {
+            "response": (
+                f"slept. motifs: {before} -> {after} "
+                f"(culled {culled}). state saved."
+            ),
+            "motifs": len(_gl_vocab.vocab),
+        }
+
+    # ── /dream — engine free-settle + record ──
+    if cmd == "/dream":
+        before = _engine_k.size()
+        new_fps = engine_dream(_engine_k, 50)
+        after = _engine_k.size()
+        # Record dream emissions
+        import time
+        dream_entry = {
+            "time": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "new_motifs": len(new_fps),
+            "motifs_before": before,
+            "motifs_after": after,
+            "fps": new_fps[:5],  # first 5 fingerprints
+        }
+        _gl_dream_log.append(dream_entry)
+        _gl_persist()
+        if new_fps:
+            return {
+                "response": (
+                    f"dreamed. {len(new_fps)} new motifs from free-settling. "
+                    f"motifs: {before} -> {after}."
+                ),
+                "motifs": len(_gl_vocab.vocab),
+            }
+        else:
+            return {
+                "response": f"dreamed. no new motifs emerged. motifs: {after}.",
+                "motifs": len(_gl_vocab.vocab),
+            }
+
+    # ── /dreams — read dream log ──
+    if cmd == "/dreams":
+        if not _gl_dream_log:
+            return {
+                "response": "no dreams yet.",
+                "motifs": len(_gl_vocab.vocab),
+            }
+        # Last 5 dreams
+        recent = _gl_dream_log[-5:]
+        lines = [f"last {len(recent)} dreams:"]
+        for d in recent:
+            lines.append(
+                f"  {d['time']}: {d['new_motifs']} new motifs "
+                f"({d['motifs_before']}->{d['motifs_after']})"
+            )
+        return {
+            "response": "\n".join(lines),
+            "motifs": len(_gl_vocab.vocab),
+        }
+
+    # ── Normal conversation — dialog layer responds, engine observes ──
     text = msg.text.strip()
     if not text:
         return {"response": "...", "motifs": len(_gl_vocab.vocab)}
 
+    # Engine observes the input (builds motifs from character stream)
+    _gl_observe(text)
+
+    # Dialog layer generates the response
     response, intro_log, response_classes, growth = say_to_guala(
         _gl_guala, text, _gl_vocab, _gl_memory, _gl_rng)
 
@@ -511,6 +648,8 @@ async def gualaloom_chat(msg: GLMessage):
     if response:
         words = " ".join(r["token"] for r in response)
         parts.append(words)
+        # Engine also observes the response
+        _gl_observe(words)
     else:
         parts.append("...")
 
