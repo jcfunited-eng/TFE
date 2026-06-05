@@ -533,6 +533,7 @@ async def gualaloom_chat(msg: GLMessage):
             ),
             "motifs": s["vocab"],
             "persistence_health": ph,
+            "atlas_health": s.get("atlas_health", {}),
         }
 
     # ── Normal conversation — v5 substrate responds ──

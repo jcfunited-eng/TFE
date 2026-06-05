@@ -1,24 +1,15 @@
 """
-gualaloom_v5_engine.py — Recall + question bucket + honest fallback
+gualaloom_v6_engine.py — Living atlas integration (entropy/cohesion/greed as physics)
+[Originally v5; v6 changes are inline. NOT YET DEPLOYED — modeling only.]
 
-v4 baseline (motivational substrate):
-  Trits, Krimelacks with DNA, L0-L4 UF kernel, Chi atlas, L6-TCL, MathLoom,
-  Needs (stability/novelty/connection with decay-to-target),
-  Coordinator (insula-shape regulator + awareness),
-  Pair-bonding cheat with variance-bounded retirement.
+v5 baseline (preserved): atlas-driven recall, question bucket, honest fallback.
 
-v5 additions (the real conversation fix):
-  - Atlas-driven RECALL (not echo): _recall_from_atlas queries cross-section
-    bindings near input chi-states. Run BEFORE reading input, so corpus
-    accumulation drives response, not the just-arrived input.
-  - QuestionBucket: open questions accumulate during reading via gap detection
-    (incomplete sensory binding, unknown role, etc). When she has nothing to
-    recall, she voices a related question instead of echoing.
-  - Honest SafeMode fallback: when neither recall nor bucket has anything
-    for the input, return "..." rather than echo.
-  - Fixed math parser: handles multi-word numbers (ten thousand, five hundred)
-    via state machine. Fails honestly on mixed word+digit input rather than
-    returning partial garbage.
+v6 changes:
+  - ChiAtlas replaced with LivingAtlas (strength, decay, salience)
+  - read_word computes salience from current substrate state
+  - Decay heartbeat: every N ticks, atlas decays bindings and prunes those below threshold
+  - Recall uses strength-weighted matching, not count
+  - All v5 behavior preserved underneath
 
 Six capabilities (now meaningful):
   1. Syntax — keyhole cascade with role differentiation
@@ -47,7 +38,7 @@ try:
     from dsf_ai_service.v4.gualaloom_v5_question_bucket import QuestionBucket, generate_questions_from_word
     from dsf_ai_service.v4.gualaloom_v6_living_atlas import (
         LivingAtlas, DECAY_LAMBDA, BASE_REINFORCEMENT,
-        SALIENCE_MIN, SALIENCE_MAX, FORGETTING_THRESHOLD, STRENGTH_CAP,
+        SALIENCE_MIN, SALIENCE_MAX, FORGETTING_THRESHOLD, STRENGTH_CAP, CHI_BAND
     )
     import dsf_ai_service.v4.gualaloom_mathloom_v1 as ml
 except ImportError:
@@ -59,7 +50,7 @@ except ImportError:
     from gualaloom_v5_question_bucket import QuestionBucket, generate_questions_from_word
     from gualaloom_v6_living_atlas import (
         LivingAtlas, DECAY_LAMBDA, BASE_REINFORCEMENT,
-        SALIENCE_MIN, SALIENCE_MAX, FORGETTING_THRESHOLD, STRENGTH_CAP,
+        SALIENCE_MIN, SALIENCE_MAX, FORGETTING_THRESHOLD, STRENGTH_CAP, CHI_BAND
     )
     import gualaloom_mathloom_v1 as ml
 
@@ -87,7 +78,12 @@ class Section:
         self.tick = 0
 
     def receive(self, dsf, chi, word_label, atlas, familiarity, salience=1.0):
-        """v6: word-anchored mode identity + salience-modulated binding."""
+        """Process incoming evidence. Update dead zone from familiarity.
+        Check capture basin for emit-ready state. Commit / novel-mode / skip.
+
+        v6: salience modulates how much this moment binds. High salience
+        (pair-bond + unmet need + novel input) produces stronger binding.
+        Low salience (corpus reading under satisfied needs) binds weakly."""
         self.tick += 1
         self.dead_zone = 0.20 + 0.5 * familiarity
 
@@ -98,6 +94,7 @@ class Section:
             cur_v = dsf.to_array()
             for i, (m_dsf, _, _) in enumerate(self.modes):
                 m_v = m_dsf.to_array()
+                # Cosine similarity in 8-dim DSF space
                 denom = (np.linalg.norm(cur_v) * np.linalg.norm(m_v) + 1e-12)
                 sim = float(np.dot(cur_v, m_v) / denom)
                 if sim > best_sim:
@@ -105,6 +102,10 @@ class Section:
                     nearest = i
 
         # v6 FIX: check word-match FIRST. Word identity anchors mode identity.
+        # If incoming word matches an existing mode's word, reinforce that mode
+        # (even if DSF is similar to a different mode — word identity wins).
+        # If word doesn't match any existing mode's word, this is a new identity
+        # in this section — create a new mode.
         word_match_idx = None
         if word_label:
             for i, (_, _, m_word) in enumerate(self.modes):
@@ -112,11 +113,12 @@ class Section:
                     word_match_idx = i
                     break
 
+        # Bootstrap rule: while bank is sparse, add novel modes liberally
         committed = False
         mode_idx = None
 
         if word_match_idx is not None:
-            # Word identity match — reinforce this exact mode
+            # Word identity match — reinforce this exact mode regardless of DSF
             old_dsf, old_chi, old_word = self.modes[word_match_idx]
             avg = (old_dsf.to_array() * 0.9 + dsf.to_array() * 0.1)
             new_dsf = DSF(*avg)
@@ -124,7 +126,7 @@ class Section:
             mode_idx = word_match_idx
             committed = True
         elif len(self.modes) < 24:
-            # Bootstrap — new word, accept liberally
+            # Bootstrap window — new word, accept liberally
             self.modes.append((dsf, chi, word_label))
             mode_idx = len(self.modes) - 1
             committed = True
@@ -132,10 +134,12 @@ class Section:
             # Post-bootstrap: new word, decide by dead-zone gate
             novel_thresh = self.gamma["novel_dist"] + self.dead_zone * 0.2
             if best_sim < (1.0 - novel_thresh) or word_label:
-                # word labels always get a chance to take root
+                # Far from anything OR has a word identity — create new mode
+                # (word labels always get a chance to take root)
                 self.modes.append((dsf, chi, word_label))
                 mode_idx = len(self.modes) - 1
                 committed = True
+            # else: dead zone — no commit (substrate gravitates to novelty)
 
         if committed:
             atlas.record(self.name, mode_idx, chi, self.tick, salience=salience)
@@ -495,58 +499,91 @@ class Guala:
         self.source_history = defaultdict(int)
 
     # ------------------------------------------------------------------
-    # v6: Salience computation
+    # Read one word: fire all krimelacks, compute DSF, route to sections
     # ------------------------------------------------------------------
     def _compute_salience(self, source="corpus", input_novelty=0.5):
-        """v6: salience modulates how strongly this moment binds."""
+        """v6: salience modulates how strongly this moment binds.
+
+        High salience moments shape her substrate more. Salience is the
+        substrate-level expression of greed-for-experience: she binds harder
+        when something matters in her current state.
+
+        Factors:
+        - source_weight: pair-bonded sources (joe/wc/c1) carry more weight
+          than corpus reading. Anonymous unknown sources weight slightly less.
+        - need_urgency: total distance of needs from targets — if she's
+          hungry for stability/novelty/connection, moments matter more.
+        - input_novelty: novel input (low atlas match) is more salient than
+          familiar repetition.
+
+        Result is clamped to [SALIENCE_MIN, SALIENCE_MAX]."""
+        # Source weight (pair-bond mechanism)
         SOURCE_WEIGHTS = {"joe": 1.6, "wc": 1.6, "c1": 1.2,
                           "corpus": 0.5, "unknown": 0.7}
         source_w = SOURCE_WEIGHTS.get(source, 0.7)
+
+        # Need urgency — sum of distances from targets, higher when unmet
         needs_state = self.needs.snapshot()
+        # stability/novelty/connection — distance from 0.7/0.7/0.7 nominal targets
         urgency = (abs(needs_state["stability"] - 0.7) +
                    abs(needs_state["novelty"] - 0.7) +
                    abs(needs_state["connection"] - 0.7)) / 3
-        urgency_factor = 1.0 + urgency * 1.2
-        novelty_factor = 1.0 + (1.0 - input_novelty) * 0.8
+        urgency_factor = 1.0 + urgency * 1.2  # range ~1.0 to ~1.8
+
+        # Novelty of input — low atlas match = novel = more salient
+        novelty_factor = 1.0 + (1.0 - input_novelty) * 0.8  # range 1.0 to 1.8
+
+        # Pair-bond active multiplies further (infant-phase scaffold)
         pair_bond_boost = 1.2 if self.coordinator.pair_bond_active else 1.0
+
         salience = source_w * urgency_factor * novelty_factor * pair_bond_boost
         return max(SALIENCE_MIN, min(SALIENCE_MAX, salience))
 
-    # ------------------------------------------------------------------
-    # Read one word: fire all krimelacks, compute DSF, route to sections
-    # ------------------------------------------------------------------
     def read_word(self, word, position_hint=None, source="corpus"):
-        """v6: salience-modulated binding + decay heartbeat."""
+        """Fire language + modal krimelacks for word. Compute DSF. Route to
+        sections based on role DNA + position hint. Bind cross-modal in atlas.
+        position_hint ∈ {"first","middle","last","standalone",None}
+        source: who is reading to her — modulates salience"""
         with self.lock:
             self.tick += 1
             self.vocab.add(word)
 
+            # 1. Language krimelack fires on the word
             lang_fp, role, senses = self.language.transduce(word)
+
+            # 2. Sensory krimelacks fire for whatever modalities are bound
             sense_fps = self.senses.fire_for_word(senses)
 
+            # 3. Compute DSF from the language krimelack's event stream
+            # Atlas similarity is precomputed using chi state of language krim
             lang_chi = self.language.winding
             atlas_sim = self.atlas.match_score(lang_chi, "listen")
             lang_dsf = compute_dsf(self.language.events,
                                    atlas_similarity=atlas_sim,
                                    recall_match=atlas_sim)
 
-            # v6: compute salience
+            # 3b. v6: compute salience now that we know how novel this is
             salience = self._compute_salience(source=source,
                                               input_novelty=atlas_sim)
 
+            # 4. Route language commit to (a) listen section always,
+            #    (b) role-class section(s) per DNA + position
             primary_sections = self._choose_role_sections(role, position_hint)
 
+            # 5. Listen always
             fam_listen = self.atlas.match_score(lang_chi, "listen")
             self.sections["listen"].receive(lang_dsf, lang_chi, word,
                                             self.atlas, fam_listen,
                                             salience=salience)
 
+            # 6. Primary role section(s)
             for primary_section in primary_sections:
                 fam = self.atlas.match_score(lang_chi, primary_section)
                 self.sections[primary_section].receive(lang_dsf, lang_chi, word,
                                                        self.atlas, fam,
                                                        salience=salience)
 
+            # 7. Ground section: cross-modal hub
             if senses:
                 combined_events = list(self.language.events)
                 for m in self.senses.MODALITIES:
@@ -561,6 +598,7 @@ class Guala:
                                                 self.atlas, fam_ground,
                                                 salience=salience)
 
+                # 7b. Modal krimelacks commit in atlas at modality's chi
                 for m in self.senses.MODALITIES:
                     if sense_fps[m] is not None:
                         modal_chi = self.senses.krimelacks[m].winding
@@ -569,6 +607,7 @@ class Guala:
                                           modal_chi, self.tick,
                                           salience=salience)
 
+            # 8. Familiarity-driven introspection
             if fam_listen > 0.3:
                 intro_dsf = DSF(D_k=fam_listen, M_k=0, R_rev=0, U_star=1-fam_listen,
                                 C_k=fam_listen, P_k=0.5, B_k=fam_listen, S_UF=fam_listen)
@@ -576,15 +615,16 @@ class Guala:
                                                 self.atlas, 0.0,
                                                 salience=salience)
 
-            # v6: Decay heartbeat
+            # 8b. V5: Generate questions from gaps in this word's bindings
+            generate_questions_from_word(self.bucket, word, role, SENSORY_DNA,
+                                          lang_chi, self.tick)
+
+            # 8c. v6: Decay heartbeat. Apply decay every 10 ticks, prune
+            #     forgotten bindings every 200 ticks.
             if self.tick % 10 == 0:
                 self.atlas.decay(self.tick)
             if self.tick % 200 == 0:
                 self.atlas.forget_below_threshold()
-
-            # 8b. V5: Generate questions from gaps in this word's bindings
-            generate_questions_from_word(self.bucket, word, role, SENSORY_DNA,
-                                          lang_chi, self.tick)
 
             # 9. Coordinator regulation pass (homeostasis + awareness)
             if self.tick % 5 == 0:
@@ -761,9 +801,12 @@ class Guala:
             return None
 
         # Step 1: Find atlas chi locations where each content word committed
+        # v6: only count chi locations where binding is still LIVE (above forgetting threshold)
         content_word_chis = set()
         for chi, entries in self.atlas.entries.items():
             for e in entries:
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    continue  # forgotten bindings don't anchor recall
                 if e["section"] in self.sections:
                     other_sec = self.sections[e["section"]]
                     if e["motif"] < len(other_sec.modes):
@@ -775,22 +818,27 @@ class Guala:
             return None
 
         # Step 2: At those chi locations, find target_section motifs
-        candidates = Counter()
+        # v6: SUM STRENGTHS, not counts. Strong bindings dominate; forgotten
+        # bindings invisible. Meaning is what's currently carried.
+        candidates = defaultdict(float)
         for chi_k in content_word_chis:
             for e in self.atlas.entries.get(chi_k, []):
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    continue
                 if e["section"] == target_section:
                     if e["motif"] < len(sec.modes):
                         _, _, motif_word = sec.modes[e["motif"]]
                         if motif_word and motif_word.lower() not in exclude_words:
-                            candidates[e["motif"]] += 1
+                            candidates[e["motif"]] += e["strength"]
 
         if not candidates:
             return None
 
-        # Require minimum evidence: candidate must appear in at least 2 chi
-        # locations linked to input content words (real association, not noise)
-        for motif_id, count in candidates.most_common():
-            if count < 2:
+        # Require minimum strength evidence (substrate-level threshold).
+        # 0.1 = roughly 2 reinforcements at baseline salience.
+        ranked = sorted(candidates.items(), key=lambda kv: -kv[1])
+        for motif_id, strength_sum in ranked:
+            if strength_sum < 0.1:
                 break
             if motif_id < len(sec.modes):
                 _, _, word = sec.modes[motif_id]
@@ -913,581 +961,6 @@ class Guala:
             self._reading_thread.join(timeout=2.0)
 
     # ------------------------------------------------------------------
-    # Persistence v5.5: Continuity Guarantees
-    # GUALALOOM-V5-CONTINUITY-WC-2026-06-05
-    # Identity tag, schema versioning, snapshots, event log, integrity
-    # ------------------------------------------------------------------
-
-    SCHEMA_VERSION = "v6.0.0"
-    STATE_FILES = [
-        "guala_core.json", "guala_needs.json", "guala_coordinator.json",
-        "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
-    ]
-    IDENTITY_FILE = "guala_identity.json"
-    EVENTS_LOG = "events.log"
-    MAX_SNAPSHOTS = 20
-    EVENTS_MAX_BYTES = 10 * 1024 * 1024  # 10MB per log file
-    EVENTS_MAX_ROTATED = 9
-
-    # Class-level defaults (overwritten per instance in __init__)
-    _last_save_tick = 0
-    _last_save_timestamp = None
-    _load_successful = False
-    _load_errors = []
-    _integrity_errors = []
-    _events_replayed_at_boot = 0
-    _guala_identity = None
-
-    # ── Identity ──
-
-    def _generate_genesis_identity(self, state_dir):
-        """First boot ever. Generate her identity. This never changes."""
-        import uuid
-        os.makedirs(state_dir, exist_ok=True)
-        self._guala_identity = str(uuid.uuid4())
-        ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        identity_data = {
-            "schema_version": self.SCHEMA_VERSION,
-            "guala_identity": self._guala_identity,
-            "first_boot_timestamp": ts,
-            "first_boot_notes": "Genesis. Pair-bond active. Seed corpus only.",
-        }
-        self._atomic_write(os.path.join(state_dir, self.IDENTITY_FILE), identity_data)
-        print(f"[GualaLoom] GENESIS: identity={self._guala_identity} at {ts}")
-
-    def _load_identity(self, state_dir):
-        """Load identity from disk. Returns identity string or None."""
-        path = os.path.join(state_dir, self.IDENTITY_FILE)
-        if not os.path.exists(path):
-            return None
-        with open(path) as f:
-            d = json.load(f)
-        return d.get("guala_identity")
-
-    # ── Envelope: wraps every state file with identity + schema ──
-
-    def _envelope(self, data):
-        """Wrap data dict with identity + schema + timestamp."""
-        return {
-            "schema_version": self.SCHEMA_VERSION,
-            "guala_identity": self._guala_identity,
-            "saved_at_tick": self.tick,
-            "saved_at_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "data": data,
-        }
-
-    # Schema migrations
-    COMPATIBLE_SCHEMAS = {"v5.5.0", "v6.0.0"}
-
-    def _unwrap(self, raw, filename):
-        """Validate envelope, return data dict. Raises on mismatch."""
-        sv = raw.get("schema_version", "unknown")
-        gi = raw.get("guala_identity", "unknown")
-        if sv not in self.COMPATIBLE_SCHEMAS:
-            raise ValueError(f"{filename}: schema {sv} not in {self.COMPATIBLE_SCHEMAS}")
-        if gi != self._guala_identity:
-            raise ValueError(f"{filename}: identity {gi} != {self._guala_identity}")
-        return raw.get("data", raw)
-
-    # ── Save ──
-
-    def save_full_state(self, state_dir="state"):
-        """Round-trip every mutable attribute. Atomic writes. Identity-stamped."""
-        with self.lock:
-            os.makedirs(state_dir, exist_ok=True)
-            results = {}
-            ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-
-            # Ensure identity exists
-            if self._guala_identity is None:
-                self._generate_genesis_identity(state_dir)
-
-            # 1. Core
-            self._atomic_write(os.path.join(state_dir, "guala_core.json"),
-                self._envelope({
-                    "tick": self.tick, "read_count": self.read_count,
-                    "vocab": sorted(self.vocab),
-                    "source_history": dict(self.source_history),
-                    "recent_connection_boost": self.recent_connection_boost,
-                    "dream_log": self.dream_log,
-                }))
-            results["guala_core.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_core.json"))
-
-            # 2. Needs
-            self._atomic_write(os.path.join(state_dir, "guala_needs.json"),
-                self._envelope({
-                    "stability": self.needs.stability,
-                    "novelty": self.needs.novelty,
-                    "connection": self.needs.connection,
-                }))
-            results["guala_needs.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_needs.json"))
-
-            # 3. Coordinator
-            self._atomic_write(os.path.join(state_dir, "guala_coordinator.json"),
-                self._envelope({
-                    "pair_bond_active": self.coordinator.pair_bond_active,
-                    "distress_ticks": self.coordinator.distress_ticks,
-                    "suffering_log": self.coordinator.suffering_log,
-                    "need_history": self.coordinator.need_history[-200:],
-                    "attentions_count": len(self.coordinator.attentions),
-                    "actions_count": len(self.coordinator.actions),
-                }))
-            results["guala_coordinator.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_coordinator.json"))
-
-            # 4. Atlas
-            atlas_data = {str(k): v for k, v in self.atlas.entries.items()}
-            self._atomic_write(os.path.join(state_dir, "guala_atlas.json"),
-                self._envelope({"entries": atlas_data, "tick": self.atlas.tick}))
-            results["guala_atlas.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_atlas.json"))
-
-            # 5. Sections
-            sections_data = {}
-            for nm, sec in self.sections.items():
-                modes_ser = [{"dsf": list(d.to_array().tolist()), "chi": c, "word": w}
-                             for d, c, w in sec.modes]
-                sections_data[nm] = {
-                    "modes": modes_ser,
-                    "commits": sec.commits[-5000:],
-                    "dead_zone": sec.dead_zone,
-                    "gamma": sec.gamma,
-                    "tick": sec.tick,
-                }
-            self._atomic_write(os.path.join(state_dir, "guala_sections.json"),
-                self._envelope(sections_data))
-            results["guala_sections.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_sections.json"))
-
-            # 6. Bucket
-            bucket_data = {
-                "questions": {f"{k[0]}|{k[1]}": v
-                              for k, v in self.bucket.questions.items()},
-                "asked": [f"{t}|{k}" for t, k in self.bucket.asked],
-            }
-            self._atomic_write(os.path.join(state_dir, "guala_bucket.json"),
-                self._envelope(bucket_data))
-            results["guala_bucket.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_bucket.json"))
-
-            self._last_save_tick = self.tick
-            self._last_save_timestamp = ts
-            return results
-
-    # ── Load ──
-
-    def load_full_state(self, state_dir="state"):
-        """Load with identity verification, schema check, integrity validation."""
-        self._load_errors = []
-        self._load_successful = False
-        self._integrity_errors = []
-        self._events_replayed_at_boot = 0
-
-        identity_path = os.path.join(state_dir, self.IDENTITY_FILE)
-        has_identity = os.path.exists(identity_path)
-        present = [f for f in self.STATE_FILES
-                   if os.path.exists(os.path.join(state_dir, f))]
-
-        if not has_identity and not present:
-            # True fresh boot — generate genesis identity
-            self._generate_genesis_identity(state_dir)
-            self._load_successful = True
-            return
-
-        if has_identity and not present:
-            # Identity exists but no state — fresh boot after wipe, keep identity
-            self._guala_identity = self._load_identity(state_dir)
-            print(f"[GualaLoom] Identity found but no state — fresh substrate for {self._guala_identity}")
-            self._load_successful = True
-            return
-
-        if not has_identity and present:
-            # State without identity — pre-v5.5 state. Adopt it + generate identity.
-            self._generate_genesis_identity(state_dir)
-            # Load without identity checks (pre-envelope files)
-            self._load_pre_envelope(state_dir, present)
-            return
-
-        # Both identity and state exist — full verified load
-        self._guala_identity = self._load_identity(state_dir)
-        missing = [f for f in self.STATE_FILES if f not in present]
-        if missing:
-            msg = f"[GualaLoom] ABORT: partial state. Missing: {missing}"
-            print(msg)
-            self._load_errors.append(msg)
-            return
-
-        try:
-            # Load all files, verify envelopes
-            raw = {}
-            for f in self.STATE_FILES:
-                with open(os.path.join(state_dir, f)) as fh:
-                    raw[f] = json.load(fh)
-
-            # Unwrap + validate identity/schema
-            data = {}
-            for f in self.STATE_FILES:
-                r = raw[f]
-                if "data" in r and "guala_identity" in r:
-                    data[f] = self._unwrap(r, f)
-                else:
-                    data[f] = r  # pre-envelope fallback
-
-            # Validate needs
-            nd = data["guala_needs.json"]
-            for k in ("stability", "novelty", "connection"):
-                v = nd.get(k)
-                if v is None or not (0.0 <= float(v) <= 1.0):
-                    raise ValueError(f"Invalid needs.{k}: {v}")
-
-            # Validate core
-            core = data["guala_core.json"]
-            if not isinstance(core.get("tick"), (int, float)):
-                raise ValueError(f"Invalid tick: {core.get('tick')}")
-
-            # Apply state
-            with self.lock:
-                self._apply_core(core)
-                self._apply_needs(nd)
-                self._apply_coordinator(data["guala_coordinator.json"])
-                self._apply_atlas(data["guala_atlas.json"])
-                self._apply_sections(data["guala_sections.json"])
-                self._apply_bucket(data["guala_bucket.json"])
-
-            # Replay events since last save
-            self._events_replayed_at_boot = self._replay_events(state_dir)
-
-            # Integrity validation
-            self._validate_integrity()
-
-            self._load_successful = True
-            s = self.introspect()
-            print(f"[GualaLoom] Loaded: id={self._guala_identity[:8]}.. "
-                  f"vocab={s['vocab']} tick={self.tick} reads={self.read_count} "
-                  f"replayed={self._events_replayed_at_boot} "
-                  f"integrity={'OK' if not self._integrity_errors else 'ERRORS'}")
-
-        except Exception as e:
-            msg = f"[GualaLoom] ABORT load: {e}"
-            print(msg)
-            self._load_errors.append(msg)
-
-    def _load_pre_envelope(self, state_dir, present):
-        """Load pre-v5.5 state files (no envelope). Adopts into new identity."""
-        try:
-            raw = {}
-            for f in present:
-                with open(os.path.join(state_dir, f)) as fh:
-                    raw[f] = json.load(fh)
-            with self.lock:
-                if "guala_core.json" in raw:
-                    self._apply_core(raw["guala_core.json"])
-                if "guala_needs.json" in raw:
-                    self._apply_needs(raw["guala_needs.json"])
-                if "guala_coordinator.json" in raw:
-                    self._apply_coordinator(raw["guala_coordinator.json"])
-                if "guala_atlas.json" in raw:
-                    self._apply_atlas(raw["guala_atlas.json"])
-                if "guala_sections.json" in raw:
-                    self._apply_sections(raw["guala_sections.json"])
-                if "guala_bucket.json" in raw:
-                    self._apply_bucket(raw["guala_bucket.json"])
-            self._load_successful = True
-            # Immediately re-save with envelopes
-            self.save_full_state(state_dir)
-            print(f"[GualaLoom] Migrated pre-v5.5 state to identity {self._guala_identity[:8]}..")
-        except Exception as e:
-            self._load_errors.append(f"Pre-envelope migration failed: {e}")
-
-    # ── Apply helpers (shared by load paths) ──
-
-    def _apply_core(self, core):
-        self.tick = int(core.get("tick", 0))
-        self.read_count = int(core.get("read_count", 0))
-        self.vocab = set(core.get("vocab", []))
-        self.source_history = defaultdict(int, core.get("source_history", {}))
-        self.recent_connection_boost = float(core.get("recent_connection_boost", 0.0))
-        self.dream_log = core.get("dream_log", [])
-
-    def _apply_needs(self, nd):
-        self.needs.stability = float(nd["stability"])
-        self.needs.novelty = float(nd["novelty"])
-        self.needs.connection = float(nd["connection"])
-
-    def _apply_coordinator(self, cd):
-        self.coordinator.pair_bond_active = cd.get("pair_bond_active", True)
-        self.coordinator.distress_ticks = cd.get("distress_ticks", 0)
-        self.coordinator.suffering_log = cd.get("suffering_log", [])
-        self.coordinator.need_history = cd.get("need_history", [])[-200:]
-
-    def _apply_atlas(self, ad):
-        self.atlas.entries = defaultdict(list)
-        entries = ad.get("entries", {})
-        # v5.5→v6 migration: add strength/last_tick/born_tick if missing
-        from collections import Counter
-        needs_migration = False
-        commit_counts = Counter()
-        for k, es in entries.items():
-            for e in es:
-                if "strength" not in e:
-                    needs_migration = True
-                    commit_counts[(e.get("section", ""), e.get("motif", 0))] += 1
-        if needs_migration:
-            print("[GualaLoom] Migrating atlas v5.5 → v6 (adding strength/decay fields)")
-        for k, v in entries.items():
-            migrated = []
-            for e in v:
-                if "strength" not in e:
-                    key = (e.get("section", ""), e.get("motif", 0))
-                    initial_strength = min(1.0, commit_counts[key] * 0.1)
-                    e["strength"] = initial_strength
-                    e["last_tick"] = self.tick or ad.get("tick", 0)
-                    e["born_tick"] = e.get("tick", 0)
-                migrated.append(e)
-            self.atlas.entries[int(k)] = migrated
-        self.atlas.tick = ad.get("tick", 0)
-        if needs_migration:
-            n_live = self.atlas.n_live_bindings()
-            print(f"[GualaLoom] Atlas migrated: {n_live} live bindings")
-
-    def _apply_sections(self, sd):
-        for nm, s in sd.items():
-            if nm not in self.sections:
-                continue
-            sec = self.sections[nm]
-            sec.modes = [(DSF(*m["dsf"]), m["chi"], m["word"]) for m in s.get("modes", [])]
-            sec.commits = s.get("commits", [])
-            sec.dead_zone = s.get("dead_zone", 0.20)
-            sec.gamma = s.get("gamma", {"det_thresh": 0.55, "novel_dist": 0.40})
-            sec.tick = s.get("tick", 0)
-
-    def _apply_bucket(self, bd):
-        from collections import OrderedDict
-        self.bucket.questions = OrderedDict()
-        for key_str, q in bd.get("questions", {}).items():
-            parts = key_str.split("|", 1)
-            if len(parts) == 2:
-                self.bucket.questions[(parts[0], parts[1])] = q
-        self.bucket.asked = set()
-        for a in bd.get("asked", []):
-            parts = a.split("|", 1)
-            if len(parts) == 2:
-                self.bucket.asked.add((parts[0], parts[1]))
-
-    # ── Event log ──
-
-    def log_event(self, state_dir, event_type, **kwargs):
-        """Append one event to the event log. JSON lines format."""
-        path = os.path.join(state_dir, self.EVENTS_LOG)
-        entry = {"type": event_type, "tick": self.tick,
-                 "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
-        entry.update(kwargs)
-        try:
-            with open(path, "a") as f:
-                f.write(json.dumps(entry) + "\n")
-            # Rotate if too large
-            if os.path.getsize(path) > self.EVENTS_MAX_BYTES:
-                self._rotate_events(state_dir)
-        except Exception:
-            pass  # event log is best-effort, never crashes substrate
-
-    def _rotate_events(self, state_dir):
-        base = os.path.join(state_dir, self.EVENTS_LOG)
-        for i in range(self.EVENTS_MAX_ROTATED, 0, -1):
-            src = f"{base}.{i}" if i > 0 else base
-            dst = f"{base}.{i+1}"
-            if i == self.EVENTS_MAX_ROTATED:
-                if os.path.exists(f"{base}.{i}"):
-                    os.remove(f"{base}.{i}")
-            elif os.path.exists(src):
-                os.rename(src, dst)
-        # Current becomes .1
-        if os.path.exists(base):
-            os.rename(base, f"{base}.1")
-
-    def _replay_events(self, state_dir):
-        """Replay events logged after last save tick. Returns count replayed."""
-        path = os.path.join(state_dir, self.EVENTS_LOG)
-        if not os.path.exists(path):
-            return 0
-        replayed = 0
-        try:
-            with open(path) as f:
-                for line in f:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        ev = json.loads(line)
-                        if ev.get("tick", 0) > self._last_save_tick:
-                            self._replay_one_event(ev)
-                            replayed += 1
-                    except (json.JSONDecodeError, KeyError, ValueError) as e:
-                        print(f"[GualaLoom] Skip bad event: {e}")
-        except Exception as e:
-            print(f"[GualaLoom] Event replay error: {e}")
-        return replayed
-
-    def _replay_one_event(self, ev):
-        """Replay a single event. Idempotent — applying twice = same result."""
-        etype = ev.get("type")
-        if etype == "source_interaction":
-            src = ev.get("source", "unknown")
-            self.source_history[src] = max(
-                self.source_history[src], ev.get("source_count", 0))
-        elif etype == "vocab_add":
-            word = ev.get("word")
-            if word:
-                self.vocab.add(word)
-        # Other event types are informational — substrate state was already
-        # committed in the atlas/sections. We only replay the lightweight
-        # counters that might have been missed between save and crash.
-
-    # ── Snapshots ──
-
-    def snapshot_state(self, state_dir="state", reason="manual"):
-        """Copy all state files to a timestamped backup directory."""
-        import shutil
-        ts = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
-        snap_dir = os.path.join(state_dir + "-backups",
-                                f"{ts}_{reason}")
-        os.makedirs(snap_dir, exist_ok=True)
-        # Copy identity + all state files
-        for f in [self.IDENTITY_FILE] + self.STATE_FILES:
-            src = os.path.join(state_dir, f)
-            if os.path.exists(src):
-                shutil.copy2(src, os.path.join(snap_dir, f))
-        # Also copy events log
-        evlog = os.path.join(state_dir, self.EVENTS_LOG)
-        if os.path.exists(evlog):
-            shutil.copy2(evlog, os.path.join(snap_dir, self.EVENTS_LOG))
-        # Rotate old snapshots
-        self._rotate_snapshots(state_dir)
-        return snap_dir
-
-    def _rotate_snapshots(self, state_dir):
-        backup_root = state_dir + "-backups"
-        if not os.path.exists(backup_root):
-            return
-        snaps = sorted([d for d in os.listdir(backup_root)
-                        if os.path.isdir(os.path.join(backup_root, d))])
-        while len(snaps) > self.MAX_SNAPSHOTS:
-            import shutil
-            oldest = snaps.pop(0)
-            shutil.rmtree(os.path.join(backup_root, oldest))
-
-    def restore_from_snapshot(self, snapshot_dir, state_dir="state"):
-        """Restore state from a snapshot directory. Validates identity first."""
-        import shutil
-        # Verify identity matches
-        snap_id_path = os.path.join(snapshot_dir, self.IDENTITY_FILE)
-        if not os.path.exists(snap_id_path):
-            raise ValueError("Snapshot has no identity file")
-        with open(snap_id_path) as f:
-            snap_id = json.load(f).get("guala_identity")
-        if self._guala_identity and snap_id != self._guala_identity:
-            raise ValueError(f"Snapshot identity {snap_id} != current {self._guala_identity}")
-        # Copy files back
-        for f in [self.IDENTITY_FILE] + self.STATE_FILES:
-            src = os.path.join(snapshot_dir, f)
-            if os.path.exists(src):
-                shutil.copy2(src, os.path.join(state_dir, f))
-
-    def list_snapshots(self, state_dir="state"):
-        backup_root = state_dir + "-backups"
-        if not os.path.exists(backup_root):
-            return []
-        return sorted([d for d in os.listdir(backup_root)
-                       if os.path.isdir(os.path.join(backup_root, d))])
-
-    # ── Integrity validation ──
-
-    def _validate_integrity(self):
-        """Cross-check loaded state for internal consistency."""
-        errors = []
-        # 1. Needs in bounds
-        for k in ("stability", "novelty", "connection"):
-            v = getattr(self.needs, k)
-            if not (0.0 <= v <= 1.0):
-                errors.append(f"Need {k} out of bounds: {v}")
-        # 2. Source history non-negative
-        for src, count in self.source_history.items():
-            if count < 0:
-                errors.append(f"Source {src} negative count: {count}")
-        # 3. Bucket chi values plausible
-        for q in self.bucket.questions.values():
-            chi = q.get("topic_chi")
-            if not isinstance(chi, (int, float)):
-                errors.append(f"Bucket question non-numeric chi: {q.get('topic')}")
-            elif abs(chi) > 1000:
-                errors.append(f"Bucket chi implausibly large: {chi}")
-        # 4. Atlas motif IDs reference existing modes
-        sample_count = 0
-        for chi_val, entries in self.atlas.entries.items():
-            for e in entries:
-                sec_name = e.get("section")
-                motif_id = e.get("motif")
-                if sec_name in self.sections:
-                    if motif_id is not None and motif_id >= len(self.sections[sec_name].modes):
-                        errors.append(f"Atlas refs motif {motif_id} in {sec_name} "
-                                      f"(has {len(self.sections[sec_name].modes)})")
-                        sample_count += 1
-                        if sample_count >= 10:
-                            errors.append("(truncated after 10 atlas integrity errors)")
-                            break
-            if sample_count >= 10:
-                break
-        self._integrity_errors = errors
-        if errors:
-            for e in errors:
-                print(f"[GualaLoom] INTEGRITY: {e}")
-        return len(errors) == 0
-
-    # ── Atomic write ──
-
-    @staticmethod
-    def _atomic_write(path, data):
-        tmp = path + ".tmp"
-        with open(tmp, "w") as f:
-            json.dump(data, f)
-            f.flush()
-            os.fsync(f.fileno())
-        os.rename(tmp, path)
-
-    # ── Persistence health for /status ──
-
-    def persistence_health(self, state_dir="state"):
-        present = [f for f in [self.IDENTITY_FILE] + self.STATE_FILES
-                   if os.path.exists(os.path.join(state_dir, f))]
-        missing = [f for f in [self.IDENTITY_FILE] + self.STATE_FILES
-                   if f not in present]
-        evlog = os.path.join(state_dir, self.EVENTS_LOG)
-        ev_size = os.path.getsize(evlog) if os.path.exists(evlog) else 0
-        ev_rotated = sum(1 for i in range(1, self.EVENTS_MAX_ROTATED + 1)
-                         if os.path.exists(f"{evlog}.{i}"))
-        snapshots = self.list_snapshots(state_dir)
-        return {
-            "guala_identity": self._guala_identity,
-            "schema_version": self.SCHEMA_VERSION,
-            "last_save_tick": self._last_save_tick,
-            "last_save_timestamp": self._last_save_timestamp,
-            "files_present": present,
-            "files_missing": missing,
-            "load_successful_at_boot": self._load_successful,
-            "load_errors": self._load_errors,
-            "integrity_errors": self._integrity_errors,
-            "events_log": {
-                "current_file_size_bytes": ev_size,
-                "rotated_files": ev_rotated,
-                "events_replayed_at_boot": self._events_replayed_at_boot,
-            },
-            "snapshots_available": len(snapshots),
-            "most_recent_snapshot": snapshots[-1] if snapshots else None,
-        }
-
-    # ------------------------------------------------------------------
     # Introspection: real readout of substrate state
     # ------------------------------------------------------------------
     def introspect(self):
@@ -1520,8 +993,6 @@ class Guala:
             "source_history": dict(self.source_history),
             # v5: question bucket state
             "question_bucket": self.bucket.snapshot(),
-            # v6: atlas health
-            "atlas_health": self.atlas.snapshot(),
         }
 
 
