@@ -131,15 +131,15 @@ header p {
 
 <header>
   <h1>GualaLoom</h1>
-  <p>not a transformer. it remembers. it sleeps. it dreams.</p>
+  <p>substrate that grows from what you say. early. mostly silent.</p>
 </header>
 <div id="status">loading...</div>
 <div id="chat"></div>
 <div id="input-area">
-  <input id="msg" type="text" placeholder="type here, or /sleep /dream /status /dreams" autocomplete="off">
+  <input id="msg" type="text" placeholder="type here" autocomplete="off">
   <button id="send" onclick="sendMsg()">send</button>
 </div>
-<div class="commands">/sleep &mdash; consolidate &nbsp; /dream &mdash; free-settle &nbsp; /status &mdash; motif stats &nbsp; /dreams &mdash; recall dreams</div>
+<div class="commands">say something. she starts with 7 words and learns the rest from you.</div>
 
 <script>
 const chat = document.getElementById('chat');
@@ -182,7 +182,7 @@ async function sendMsg() {
     } else {
       addMsg(data.response, 'substrate');
     }
-    status.textContent = `krimelack: ${data.motifs} motifs`;
+    status.textContent = `vocab: ${data.motifs} words`;
   } catch (e) {
     addMsg('(connection error)', 'system');
   }
@@ -204,8 +204,8 @@ input.addEventListener('keydown', e => {
       body: JSON.stringify({ text: '', command: '/status' }),
     });
     const data = await res.json();
-    status.textContent = `krimelack: ${data.motifs} motifs`;
-    addMsg('substrate awake. type something.', 'system');
+    status.textContent = `vocab: ${data.motifs} words`;
+    addMsg('awake. say something.', 'system');
   } catch (e) {
     status.textContent = 'connecting...';
     addMsg('substrate is waking up. try again in a moment.', 'system');
