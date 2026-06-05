@@ -10,7 +10,7 @@ the count>=3 threshold as confinement.
 """
 
 import numpy as np
-import os, yaml
+import os
 from collections import defaultdict
 
 from dsf_ai_service.gualaloom_dna.assemblage import (
