@@ -452,24 +452,25 @@ async def discover_verify(req: VerifyRequest):
 # GualaLoom — private substrate chat (not linked from nav)
 # ════════════════════════════════════════════════════════════════
 
-from dsf_ai_service.gualaloom_engine import (
-    Krimelack, Loom, Motif, load, save, seed_corpus, generate,
-    sleep_cycle, dream_cycle, STATE_DIR,
-)
+import numpy as np
+from dsf_ai_service.gualaloom_dialog.composer import VocabManager, build_guala
+from dsf_ai_service.gualaloom_dialog.memory import ConversationMemory
+from dsf_ai_service.gualaloom_dialog.driver import say_to_guala
 
-_gl_k = None
-_gl_loom = None
+_gl_guala = None
+_gl_vocab = None
+_gl_memory = None
+_gl_rng = None
 
 def _gl_init():
-    global _gl_k, _gl_loom
-    if _gl_k is not None:
+    global _gl_guala, _gl_vocab, _gl_memory, _gl_rng
+    if _gl_guala is not None:
         return
-    import os
-    fresh = not os.path.exists(os.path.join(STATE_DIR, "krimelack.json"))
-    _gl_k, _gl_loom = load()
-    if fresh:
-        seed_corpus(_gl_k, _gl_loom)
-        save(_gl_k, _gl_loom)
+    _gl_rng = np.random.default_rng(42)
+    _gl_vocab = VocabManager(seed=42)
+    _gl_vocab.seed_minimal()
+    _gl_guala = build_guala(_gl_rng, _gl_vocab)
+    _gl_memory = ConversationMemory()
 
 
 class GLMessage(BaseModel):
@@ -485,46 +486,35 @@ async def gualaloom_page():
 @app.post("/api/v1/gualaloom")
 async def gualaloom_chat(msg: GLMessage):
     _gl_init()
-    k, loom = _gl_k, _gl_loom
 
     cmd = (msg.command or "").strip().lower()
     if cmd == "/status":
-        from collections import defaultdict as dd
-        chis = dd(int)
-        for m in k.motifs.values():
-            chis[m.chi] += 1
-        top = sorted(chis.items(), key=lambda kv: -kv[1])[:5]
-        return {"response": f"motifs: {k.size()} | familiarity: {loom.fam} | top chi classes: {top}",
-                "motifs": k.size()}
+        return {
+            "response": (f"vocab: {len(_gl_vocab.vocab)} tokens | "
+                         f"classes: {len(_gl_vocab.vocab_classes)} | "
+                         f"templates: {len(_gl_vocab.response_templates)} | "
+                         f"turns: {len(_gl_memory.turns)}"),
+            "motifs": len(_gl_vocab.vocab),
+        }
 
-    if cmd == "/sleep":
-        _, culled = sleep_cycle(k, 200)
-        save(k, loom)
-        return {"response": f"slept 200 cycles, culled {culled}, {k.size()} remain",
-                "motifs": k.size()}
-
-    if cmd == "/dream":
-        d = dream_cycle(k, 50)
-        save(k, loom)
-        return {"response": f"dreamed: {len(d)} new motifs from free-settling",
-                "motifs": k.size()}
-
-    if cmd == "/dreams":
-        dreamt = [m for m in k.motifs.values() if m.weight == 1 and m.age == 0]
-        lines = [f"recent free-settled motifs: {len(dreamt)}"]
-        for m in dreamt[:8]:
-            lines.append(f"  [{m.fp}] chi={m.chi}")
-        return {"response": "\n".join(lines), "motifs": k.size()}
-
-    # Normal message: feed text, generate response
     text = msg.text.strip()
     if not text:
-        return {"response": "...", "motifs": k.size()}
+        return {"response": "...", "motifs": len(_gl_vocab.vocab)}
 
-    loom.feed(text + " ")
-    reply = generate(loom, k, max_chars=120)
-    save(k, loom)
-    return {"response": reply if reply else "...", "motifs": k.size()}
+    response, intro_log, response_classes, growth = say_to_guala(
+        _gl_guala, text, _gl_vocab, _gl_memory, _gl_rng)
+
+    parts = []
+    if growth:
+        for g in growth:
+            parts.append(f"+ {g}")
+    if response:
+        words = " ".join(r["token"] for r in response)
+        parts.append(words)
+    else:
+        parts.append("...")
+
+    return {"response": "\n".join(parts), "motifs": len(_gl_vocab.vocab)}
 
 
 # ════════════════════════════════════════════════════════════════
