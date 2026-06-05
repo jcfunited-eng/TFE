@@ -504,7 +504,7 @@ async def gualaloom_chat(msg: GLMessage):
 
     cmd = (msg.command or "").strip().lower()
 
-    # ── /status — real substrate state + persistence health ──
+    # ── /status — real substrate state + continuity health ──
     if cmd == "/status":
         s = _guala.introspect()
         n = s["needs"]
@@ -512,8 +512,10 @@ async def gualaloom_chat(msg: GLMessage):
         sec_parts = []
         for nm, sec in s["sections"].items():
             sec_parts.append(f"{nm}: {sec['modes']}m/{sec['commits']}c")
+        id_short = (ph.get("guala_identity") or "none")[:8]
         return {
             "response": (
+                f"id: {id_short}.. | schema: {ph.get('schema_version','?')}\n"
                 f"vocab: {s['vocab']} | reads: {s['reads']} | tick: {s['tick']}\n"
                 f"sections: {' | '.join(sec_parts)}\n"
                 f"atlas: {s['cross_modal_bindings']} cross-modal / {s['atlas_entries']} entries\n"
@@ -524,7 +526,10 @@ async def gualaloom_chat(msg: GLMessage):
                 f"coord: att={s['coordinator_attentions']} act={s['coordinator_actions']}\n"
                 f"persistence: save@tick={ph['last_save_tick']} "
                 f"files={'all' if not ph['files_missing'] else 'MISSING:' + ','.join(ph['files_missing'])} "
-                f"boot={'ok' if ph['load_successful_at_boot'] else 'FAILED'}"
+                f"boot={'ok' if ph['load_successful_at_boot'] else 'FAILED'} "
+                f"integrity={'ok' if not ph.get('integrity_errors') else 'ERRORS'}\n"
+                f"snapshots: {ph.get('snapshots_available', 0)} | "
+                f"events: {ph.get('events_log', {}).get('current_file_size_bytes', 0)}B"
             ),
             "motifs": s["vocab"],
             "persistence_health": ph,
@@ -540,6 +545,13 @@ async def gualaloom_chat(msg: GLMessage):
 
     response = _guala.converse(text, source=source)
     _exchange_count += 1
+
+    # Event log
+    _guala.log_event(STATE_DIR, "source_interaction",
+                     source=source, words_in=len(text.split()),
+                     source_count=_guala.source_history.get(source, 0))
+
+    # Periodic full save
     if _exchange_count % _persist_every == 0:
         _guala.save_full_state(STATE_DIR)
 

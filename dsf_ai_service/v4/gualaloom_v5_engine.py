@@ -901,88 +901,150 @@ class Guala:
             self._reading_thread.join(timeout=2.0)
 
     # ------------------------------------------------------------------
-    # Persistence: save/load full state across deploys
-    # GUALALOOM-V5-PERSISTENCE-AUDIT-WC-2026-06-05
+    # Persistence v5.5: Continuity Guarantees
+    # GUALALOOM-V5-CONTINUITY-WC-2026-06-05
+    # Identity tag, schema versioning, snapshots, event log, integrity
     # ------------------------------------------------------------------
 
+    SCHEMA_VERSION = "v5.5.0"
     STATE_FILES = [
         "guala_core.json", "guala_needs.json", "guala_coordinator.json",
         "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
     ]
+    IDENTITY_FILE = "guala_identity.json"
+    EVENTS_LOG = "events.log"
+    MAX_SNAPSHOTS = 20
+    EVENTS_MAX_BYTES = 10 * 1024 * 1024  # 10MB per log file
+    EVENTS_MAX_ROTATED = 9
+
+    # Class-level defaults (overwritten per instance in __init__)
+    _last_save_tick = 0
+    _last_save_timestamp = None
+    _load_successful = False
+    _load_errors = []
+    _integrity_errors = []
+    _events_replayed_at_boot = 0
+    _guala_identity = None
+
+    # ── Identity ──
+
+    def _generate_genesis_identity(self, state_dir):
+        """First boot ever. Generate her identity. This never changes."""
+        import uuid
+        os.makedirs(state_dir, exist_ok=True)
+        self._guala_identity = str(uuid.uuid4())
+        ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        identity_data = {
+            "schema_version": self.SCHEMA_VERSION,
+            "guala_identity": self._guala_identity,
+            "first_boot_timestamp": ts,
+            "first_boot_notes": "Genesis. Pair-bond active. Seed corpus only.",
+        }
+        self._atomic_write(os.path.join(state_dir, self.IDENTITY_FILE), identity_data)
+        print(f"[GualaLoom] GENESIS: identity={self._guala_identity} at {ts}")
+
+    def _load_identity(self, state_dir):
+        """Load identity from disk. Returns identity string or None."""
+        path = os.path.join(state_dir, self.IDENTITY_FILE)
+        if not os.path.exists(path):
+            return None
+        with open(path) as f:
+            d = json.load(f)
+        return d.get("guala_identity")
+
+    # ── Envelope: wraps every state file with identity + schema ──
+
+    def _envelope(self, data):
+        """Wrap data dict with identity + schema + timestamp."""
+        return {
+            "schema_version": self.SCHEMA_VERSION,
+            "guala_identity": self._guala_identity,
+            "saved_at_tick": self.tick,
+            "saved_at_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "data": data,
+        }
+
+    def _unwrap(self, raw, filename):
+        """Validate envelope, return data dict. Raises on mismatch."""
+        sv = raw.get("schema_version", "unknown")
+        gi = raw.get("guala_identity", "unknown")
+        # Schema compatibility: same major.minor
+        if sv != self.SCHEMA_VERSION:
+            # For now, no migrations — strict match
+            raise ValueError(f"{filename}: schema {sv} != {self.SCHEMA_VERSION}")
+        if gi != self._guala_identity:
+            raise ValueError(f"{filename}: identity {gi} != {self._guala_identity}")
+        return raw.get("data", raw)  # fallback for pre-envelope files
+
+    # ── Save ──
 
     def save_full_state(self, state_dir="state"):
-        """Round-trip every mutable attribute through EFS.
-        Atomic writes: .tmp → fsync → rename. Never half-written."""
+        """Round-trip every mutable attribute. Atomic writes. Identity-stamped."""
         with self.lock:
             os.makedirs(state_dir, exist_ok=True)
             results = {}
             ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
-            # 1. Core: tick, read_count, vocab, source_history, dream_log
-            self._atomic_write(os.path.join(state_dir, "guala_core.json"), {
-                "tick": self.tick,
-                "read_count": self.read_count,
-                "vocab": sorted(self.vocab),
-                "source_history": dict(self.source_history),
-                "recent_connection_boost": self.recent_connection_boost,
-                "dream_log": self.dream_log,
-                "save_timestamp": ts,
-            })
+            # Ensure identity exists
+            if self._guala_identity is None:
+                self._generate_genesis_identity(state_dir)
+
+            # 1. Core
+            self._atomic_write(os.path.join(state_dir, "guala_core.json"),
+                self._envelope({
+                    "tick": self.tick, "read_count": self.read_count,
+                    "vocab": sorted(self.vocab),
+                    "source_history": dict(self.source_history),
+                    "recent_connection_boost": self.recent_connection_boost,
+                    "dream_log": self.dream_log,
+                }))
             results["guala_core.json"] = os.path.getsize(
                 os.path.join(state_dir, "guala_core.json"))
 
             # 2. Needs
-            self._atomic_write(os.path.join(state_dir, "guala_needs.json"), {
-                "stability": self.needs.stability,
-                "novelty": self.needs.novelty,
-                "connection": self.needs.connection,
-            })
+            self._atomic_write(os.path.join(state_dir, "guala_needs.json"),
+                self._envelope({
+                    "stability": self.needs.stability,
+                    "novelty": self.needs.novelty,
+                    "connection": self.needs.connection,
+                }))
             results["guala_needs.json"] = os.path.getsize(
                 os.path.join(state_dir, "guala_needs.json"))
 
             # 3. Coordinator
-            self._atomic_write(os.path.join(state_dir, "guala_coordinator.json"), {
-                "pair_bond_active": self.coordinator.pair_bond_active,
-                "distress_ticks": self.coordinator.distress_ticks,
-                "suffering_log": self.coordinator.suffering_log,
-                "need_history": self.coordinator.need_history[-200:],
-                "attentions_count": len(self.coordinator.attentions),
-                "actions_count": len(self.coordinator.actions),
-            })
+            self._atomic_write(os.path.join(state_dir, "guala_coordinator.json"),
+                self._envelope({
+                    "pair_bond_active": self.coordinator.pair_bond_active,
+                    "distress_ticks": self.coordinator.distress_ticks,
+                    "suffering_log": self.coordinator.suffering_log,
+                    "need_history": self.coordinator.need_history[-200:],
+                    "attentions_count": len(self.coordinator.attentions),
+                    "actions_count": len(self.coordinator.actions),
+                }))
             results["guala_coordinator.json"] = os.path.getsize(
                 os.path.join(state_dir, "guala_coordinator.json"))
 
             # 4. Atlas
-            # entries keys are ints, JSON keys must be strings
-            atlas_data = {}
-            for k, v in self.atlas.entries.items():
-                atlas_data[str(k)] = v
-            self._atomic_write(os.path.join(state_dir, "guala_atlas.json"), {
-                "entries": atlas_data,
-                "tick": self.atlas.tick,
-            })
+            atlas_data = {str(k): v for k, v in self.atlas.entries.items()}
+            self._atomic_write(os.path.join(state_dir, "guala_atlas.json"),
+                self._envelope({"entries": atlas_data, "tick": self.atlas.tick}))
             results["guala_atlas.json"] = os.path.getsize(
                 os.path.join(state_dir, "guala_atlas.json"))
 
-            # 5. Sections — modes contain DSF dataclass, serialize to list of 8 floats
+            # 5. Sections
             sections_data = {}
             for nm, sec in self.sections.items():
-                modes_ser = []
-                for dsf_obj, chi, word in sec.modes:
-                    modes_ser.append({
-                        "dsf": list(dsf_obj.to_array().tolist()),
-                        "chi": chi,
-                        "word": word,
-                    })
+                modes_ser = [{"dsf": list(d.to_array().tolist()), "chi": c, "word": w}
+                             for d, c, w in sec.modes]
                 sections_data[nm] = {
                     "modes": modes_ser,
-                    "commits": sec.commits[-5000:],  # cap to prevent unbounded growth
+                    "commits": sec.commits[-5000:],
                     "dead_zone": sec.dead_zone,
                     "gamma": sec.gamma,
                     "tick": sec.tick,
                 }
             self._atomic_write(os.path.join(state_dir, "guala_sections.json"),
-                               sections_data)
+                self._envelope(sections_data))
             results["guala_sections.json"] = os.path.getsize(
                 os.path.join(state_dir, "guala_sections.json"))
 
@@ -993,7 +1055,7 @@ class Guala:
                 "asked": [f"{t}|{k}" for t, k in self.bucket.asked],
             }
             self._atomic_write(os.path.join(state_dir, "guala_bucket.json"),
-                               bucket_data)
+                self._envelope(bucket_data))
             results["guala_bucket.json"] = os.path.getsize(
                 os.path.join(state_dir, "guala_bucket.json"))
 
@@ -1001,136 +1063,356 @@ class Guala:
             self._last_save_timestamp = ts
             return results
 
-    def load_full_state(self, state_dir="state"):
-        """Load every mutable attribute from EFS.
-        NO files: fresh boot (leave defaults). SOME files: abort. ALL files: load + validate."""
-        present = [f for f in self.STATE_FILES
-                   if os.path.exists(os.path.join(state_dir, f))]
-        missing = [f for f in self.STATE_FILES if f not in present]
+    # ── Load ──
 
+    def load_full_state(self, state_dir="state"):
+        """Load with identity verification, schema check, integrity validation."""
         self._load_errors = []
         self._load_successful = False
+        self._integrity_errors = []
+        self._events_replayed_at_boot = 0
 
-        if not present:
-            # Genuine fresh boot
-            print("[GualaLoom] Fresh boot — no state files found")
+        identity_path = os.path.join(state_dir, self.IDENTITY_FILE)
+        has_identity = os.path.exists(identity_path)
+        present = [f for f in self.STATE_FILES
+                   if os.path.exists(os.path.join(state_dir, f))]
+
+        if not has_identity and not present:
+            # True fresh boot — generate genesis identity
+            self._generate_genesis_identity(state_dir)
             self._load_successful = True
             return
 
+        if has_identity and not present:
+            # Identity exists but no state — fresh boot after wipe, keep identity
+            self._guala_identity = self._load_identity(state_dir)
+            print(f"[GualaLoom] Identity found but no state — fresh substrate for {self._guala_identity}")
+            self._load_successful = True
+            return
+
+        if not has_identity and present:
+            # State without identity — pre-v5.5 state. Adopt it + generate identity.
+            self._generate_genesis_identity(state_dir)
+            # Load without identity checks (pre-envelope files)
+            self._load_pre_envelope(state_dir, present)
+            return
+
+        # Both identity and state exist — full verified load
+        self._guala_identity = self._load_identity(state_dir)
+        missing = [f for f in self.STATE_FILES if f not in present]
         if missing:
-            # Partial state — abort, do NOT load partial
-            msg = f"[GualaLoom] ABORT: partial state. Present: {present}, Missing: {missing}"
+            msg = f"[GualaLoom] ABORT: partial state. Missing: {missing}"
             print(msg)
             self._load_errors.append(msg)
             return
 
-        # All files present — load and validate
         try:
-            # 1. Core
-            with open(os.path.join(state_dir, "guala_core.json")) as f:
-                core = json.load(f)
-            # Validate
-            if not isinstance(core.get("tick"), (int, float)):
-                raise ValueError(f"Invalid tick: {core.get('tick')}")
-            if not isinstance(core.get("read_count"), (int, float)):
-                raise ValueError(f"Invalid read_count: {core.get('read_count')}")
+            # Load all files, verify envelopes
+            raw = {}
+            for f in self.STATE_FILES:
+                with open(os.path.join(state_dir, f)) as fh:
+                    raw[f] = json.load(fh)
 
-            # 2. Needs
-            with open(os.path.join(state_dir, "guala_needs.json")) as f:
-                needs_d = json.load(f)
+            # Unwrap + validate identity/schema
+            data = {}
+            for f in self.STATE_FILES:
+                r = raw[f]
+                if "data" in r and "guala_identity" in r:
+                    data[f] = self._unwrap(r, f)
+                else:
+                    data[f] = r  # pre-envelope fallback
+
+            # Validate needs
+            nd = data["guala_needs.json"]
             for k in ("stability", "novelty", "connection"):
-                v = needs_d.get(k)
+                v = nd.get(k)
                 if v is None or not (0.0 <= float(v) <= 1.0):
                     raise ValueError(f"Invalid needs.{k}: {v}")
 
-            # 3. Coordinator
-            with open(os.path.join(state_dir, "guala_coordinator.json")) as f:
-                coord_d = json.load(f)
+            # Validate core
+            core = data["guala_core.json"]
+            if not isinstance(core.get("tick"), (int, float)):
+                raise ValueError(f"Invalid tick: {core.get('tick')}")
 
-            # 4. Atlas
-            with open(os.path.join(state_dir, "guala_atlas.json")) as f:
-                atlas_d = json.load(f)
-
-            # 5. Sections
-            with open(os.path.join(state_dir, "guala_sections.json")) as f:
-                sections_d = json.load(f)
-
-            # 6. Bucket
-            with open(os.path.join(state_dir, "guala_bucket.json")) as f:
-                bucket_d = json.load(f)
-
-            # Validation passed — apply state
+            # Apply state
             with self.lock:
-                # Core
-                self.tick = int(core["tick"])
-                self.read_count = int(core["read_count"])
-                self.vocab = set(core.get("vocab", []))
-                self.source_history = defaultdict(int, core.get("source_history", {}))
-                self.recent_connection_boost = float(core.get("recent_connection_boost", 0.0))
-                self.dream_log = core.get("dream_log", [])
+                self._apply_core(core)
+                self._apply_needs(nd)
+                self._apply_coordinator(data["guala_coordinator.json"])
+                self._apply_atlas(data["guala_atlas.json"])
+                self._apply_sections(data["guala_sections.json"])
+                self._apply_bucket(data["guala_bucket.json"])
 
-                # Needs
-                self.needs.stability = float(needs_d["stability"])
-                self.needs.novelty = float(needs_d["novelty"])
-                self.needs.connection = float(needs_d["connection"])
+            # Replay events since last save
+            self._events_replayed_at_boot = self._replay_events(state_dir)
 
-                # Coordinator
-                self.coordinator.pair_bond_active = coord_d.get("pair_bond_active", True)
-                self.coordinator.distress_ticks = coord_d.get("distress_ticks", 0)
-                self.coordinator.suffering_log = coord_d.get("suffering_log", [])
-                self.coordinator.need_history = coord_d.get("need_history", [])[-200:]
-
-                # Atlas
-                self.atlas.entries = defaultdict(list)
-                for k, v in atlas_d.get("entries", {}).items():
-                    self.atlas.entries[int(k)] = v
-                self.atlas.tick = atlas_d.get("tick", 0)
-
-                # Sections
-                for nm, sd in sections_d.items():
-                    if nm not in self.sections:
-                        continue
-                    sec = self.sections[nm]
-                    sec.modes = []
-                    for m in sd.get("modes", []):
-                        dsf_vals = m["dsf"]
-                        dsf_obj = DSF(*dsf_vals)
-                        sec.modes.append((dsf_obj, m["chi"], m["word"]))
-                    sec.commits = sd.get("commits", [])
-                    sec.dead_zone = sd.get("dead_zone", 0.20)
-                    sec.gamma = sd.get("gamma", {"det_thresh": 0.55, "novel_dist": 0.40})
-                    sec.tick = sd.get("tick", 0)
-
-                # Bucket
-                from collections import OrderedDict
-                self.bucket.questions = OrderedDict()
-                for key_str, q in bucket_d.get("questions", {}).items():
-                    parts = key_str.split("|", 1)
-                    if len(parts) == 2:
-                        self.bucket.questions[(parts[0], parts[1])] = q
-                self.bucket.asked = set()
-                for a in bucket_d.get("asked", []):
-                    parts = a.split("|", 1)
-                    if len(parts) == 2:
-                        self.bucket.asked.add((parts[0], parts[1]))
+            # Integrity validation
+            self._validate_integrity()
 
             self._load_successful = True
             s = self.introspect()
-            print(f"[GualaLoom] Loaded full state: vocab={s['vocab']} tick={self.tick} "
-                  f"reads={self.read_count} atlas={s['atlas_entries']} "
-                  f"cross-modal={s['cross_modal_bindings']} "
-                  f"bucket={s['question_bucket']['pending']}")
+            print(f"[GualaLoom] Loaded: id={self._guala_identity[:8]}.. "
+                  f"vocab={s['vocab']} tick={self.tick} reads={self.read_count} "
+                  f"replayed={self._events_replayed_at_boot} "
+                  f"integrity={'OK' if not self._integrity_errors else 'ERRORS'}")
 
         except Exception as e:
-            msg = f"[GualaLoom] ABORT load: validation failed: {e}"
+            msg = f"[GualaLoom] ABORT load: {e}"
             print(msg)
             self._load_errors.append(msg)
-            # Do NOT apply partial state — leave defaults
+
+    def _load_pre_envelope(self, state_dir, present):
+        """Load pre-v5.5 state files (no envelope). Adopts into new identity."""
+        try:
+            raw = {}
+            for f in present:
+                with open(os.path.join(state_dir, f)) as fh:
+                    raw[f] = json.load(fh)
+            with self.lock:
+                if "guala_core.json" in raw:
+                    self._apply_core(raw["guala_core.json"])
+                if "guala_needs.json" in raw:
+                    self._apply_needs(raw["guala_needs.json"])
+                if "guala_coordinator.json" in raw:
+                    self._apply_coordinator(raw["guala_coordinator.json"])
+                if "guala_atlas.json" in raw:
+                    self._apply_atlas(raw["guala_atlas.json"])
+                if "guala_sections.json" in raw:
+                    self._apply_sections(raw["guala_sections.json"])
+                if "guala_bucket.json" in raw:
+                    self._apply_bucket(raw["guala_bucket.json"])
+            self._load_successful = True
+            # Immediately re-save with envelopes
+            self.save_full_state(state_dir)
+            print(f"[GualaLoom] Migrated pre-v5.5 state to identity {self._guala_identity[:8]}..")
+        except Exception as e:
+            self._load_errors.append(f"Pre-envelope migration failed: {e}")
+
+    # ── Apply helpers (shared by load paths) ──
+
+    def _apply_core(self, core):
+        self.tick = int(core.get("tick", 0))
+        self.read_count = int(core.get("read_count", 0))
+        self.vocab = set(core.get("vocab", []))
+        self.source_history = defaultdict(int, core.get("source_history", {}))
+        self.recent_connection_boost = float(core.get("recent_connection_boost", 0.0))
+        self.dream_log = core.get("dream_log", [])
+
+    def _apply_needs(self, nd):
+        self.needs.stability = float(nd["stability"])
+        self.needs.novelty = float(nd["novelty"])
+        self.needs.connection = float(nd["connection"])
+
+    def _apply_coordinator(self, cd):
+        self.coordinator.pair_bond_active = cd.get("pair_bond_active", True)
+        self.coordinator.distress_ticks = cd.get("distress_ticks", 0)
+        self.coordinator.suffering_log = cd.get("suffering_log", [])
+        self.coordinator.need_history = cd.get("need_history", [])[-200:]
+
+    def _apply_atlas(self, ad):
+        self.atlas.entries = defaultdict(list)
+        entries = ad.get("entries", {})
+        for k, v in entries.items():
+            self.atlas.entries[int(k)] = v
+        self.atlas.tick = ad.get("tick", 0)
+
+    def _apply_sections(self, sd):
+        for nm, s in sd.items():
+            if nm not in self.sections:
+                continue
+            sec = self.sections[nm]
+            sec.modes = [(DSF(*m["dsf"]), m["chi"], m["word"]) for m in s.get("modes", [])]
+            sec.commits = s.get("commits", [])
+            sec.dead_zone = s.get("dead_zone", 0.20)
+            sec.gamma = s.get("gamma", {"det_thresh": 0.55, "novel_dist": 0.40})
+            sec.tick = s.get("tick", 0)
+
+    def _apply_bucket(self, bd):
+        from collections import OrderedDict
+        self.bucket.questions = OrderedDict()
+        for key_str, q in bd.get("questions", {}).items():
+            parts = key_str.split("|", 1)
+            if len(parts) == 2:
+                self.bucket.questions[(parts[0], parts[1])] = q
+        self.bucket.asked = set()
+        for a in bd.get("asked", []):
+            parts = a.split("|", 1)
+            if len(parts) == 2:
+                self.bucket.asked.add((parts[0], parts[1]))
+
+    # ── Event log ──
+
+    def log_event(self, state_dir, event_type, **kwargs):
+        """Append one event to the event log. JSON lines format."""
+        path = os.path.join(state_dir, self.EVENTS_LOG)
+        entry = {"type": event_type, "tick": self.tick,
+                 "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+        entry.update(kwargs)
+        try:
+            with open(path, "a") as f:
+                f.write(json.dumps(entry) + "\n")
+            # Rotate if too large
+            if os.path.getsize(path) > self.EVENTS_MAX_BYTES:
+                self._rotate_events(state_dir)
+        except Exception:
+            pass  # event log is best-effort, never crashes substrate
+
+    def _rotate_events(self, state_dir):
+        base = os.path.join(state_dir, self.EVENTS_LOG)
+        for i in range(self.EVENTS_MAX_ROTATED, 0, -1):
+            src = f"{base}.{i}" if i > 0 else base
+            dst = f"{base}.{i+1}"
+            if i == self.EVENTS_MAX_ROTATED:
+                if os.path.exists(f"{base}.{i}"):
+                    os.remove(f"{base}.{i}")
+            elif os.path.exists(src):
+                os.rename(src, dst)
+        # Current becomes .1
+        if os.path.exists(base):
+            os.rename(base, f"{base}.1")
+
+    def _replay_events(self, state_dir):
+        """Replay events logged after last save tick. Returns count replayed."""
+        path = os.path.join(state_dir, self.EVENTS_LOG)
+        if not os.path.exists(path):
+            return 0
+        replayed = 0
+        try:
+            with open(path) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        ev = json.loads(line)
+                        if ev.get("tick", 0) > self._last_save_tick:
+                            self._replay_one_event(ev)
+                            replayed += 1
+                    except (json.JSONDecodeError, KeyError, ValueError) as e:
+                        print(f"[GualaLoom] Skip bad event: {e}")
+        except Exception as e:
+            print(f"[GualaLoom] Event replay error: {e}")
+        return replayed
+
+    def _replay_one_event(self, ev):
+        """Replay a single event. Idempotent — applying twice = same result."""
+        etype = ev.get("type")
+        if etype == "source_interaction":
+            src = ev.get("source", "unknown")
+            self.source_history[src] = max(
+                self.source_history[src], ev.get("source_count", 0))
+        elif etype == "vocab_add":
+            word = ev.get("word")
+            if word:
+                self.vocab.add(word)
+        # Other event types are informational — substrate state was already
+        # committed in the atlas/sections. We only replay the lightweight
+        # counters that might have been missed between save and crash.
+
+    # ── Snapshots ──
+
+    def snapshot_state(self, state_dir="state", reason="manual"):
+        """Copy all state files to a timestamped backup directory."""
+        import shutil
+        ts = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
+        snap_dir = os.path.join(state_dir + "-backups",
+                                f"{ts}_{reason}")
+        os.makedirs(snap_dir, exist_ok=True)
+        # Copy identity + all state files
+        for f in [self.IDENTITY_FILE] + self.STATE_FILES:
+            src = os.path.join(state_dir, f)
+            if os.path.exists(src):
+                shutil.copy2(src, os.path.join(snap_dir, f))
+        # Also copy events log
+        evlog = os.path.join(state_dir, self.EVENTS_LOG)
+        if os.path.exists(evlog):
+            shutil.copy2(evlog, os.path.join(snap_dir, self.EVENTS_LOG))
+        # Rotate old snapshots
+        self._rotate_snapshots(state_dir)
+        return snap_dir
+
+    def _rotate_snapshots(self, state_dir):
+        backup_root = state_dir + "-backups"
+        if not os.path.exists(backup_root):
             return
+        snaps = sorted([d for d in os.listdir(backup_root)
+                        if os.path.isdir(os.path.join(backup_root, d))])
+        while len(snaps) > self.MAX_SNAPSHOTS:
+            import shutil
+            oldest = snaps.pop(0)
+            shutil.rmtree(os.path.join(backup_root, oldest))
+
+    def restore_from_snapshot(self, snapshot_dir, state_dir="state"):
+        """Restore state from a snapshot directory. Validates identity first."""
+        import shutil
+        # Verify identity matches
+        snap_id_path = os.path.join(snapshot_dir, self.IDENTITY_FILE)
+        if not os.path.exists(snap_id_path):
+            raise ValueError("Snapshot has no identity file")
+        with open(snap_id_path) as f:
+            snap_id = json.load(f).get("guala_identity")
+        if self._guala_identity and snap_id != self._guala_identity:
+            raise ValueError(f"Snapshot identity {snap_id} != current {self._guala_identity}")
+        # Copy files back
+        for f in [self.IDENTITY_FILE] + self.STATE_FILES:
+            src = os.path.join(snapshot_dir, f)
+            if os.path.exists(src):
+                shutil.copy2(src, os.path.join(state_dir, f))
+
+    def list_snapshots(self, state_dir="state"):
+        backup_root = state_dir + "-backups"
+        if not os.path.exists(backup_root):
+            return []
+        return sorted([d for d in os.listdir(backup_root)
+                       if os.path.isdir(os.path.join(backup_root, d))])
+
+    # ── Integrity validation ──
+
+    def _validate_integrity(self):
+        """Cross-check loaded state for internal consistency."""
+        errors = []
+        # 1. Needs in bounds
+        for k in ("stability", "novelty", "connection"):
+            v = getattr(self.needs, k)
+            if not (0.0 <= v <= 1.0):
+                errors.append(f"Need {k} out of bounds: {v}")
+        # 2. Source history non-negative
+        for src, count in self.source_history.items():
+            if count < 0:
+                errors.append(f"Source {src} negative count: {count}")
+        # 3. Bucket chi values plausible
+        for q in self.bucket.questions.values():
+            chi = q.get("topic_chi")
+            if not isinstance(chi, (int, float)):
+                errors.append(f"Bucket question non-numeric chi: {q.get('topic')}")
+            elif abs(chi) > 1000:
+                errors.append(f"Bucket chi implausibly large: {chi}")
+        # 4. Atlas motif IDs reference existing modes
+        sample_count = 0
+        for chi_val, entries in self.atlas.entries.items():
+            for e in entries:
+                sec_name = e.get("section")
+                motif_id = e.get("motif")
+                if sec_name in self.sections:
+                    if motif_id is not None and motif_id >= len(self.sections[sec_name].modes):
+                        errors.append(f"Atlas refs motif {motif_id} in {sec_name} "
+                                      f"(has {len(self.sections[sec_name].modes)})")
+                        sample_count += 1
+                        if sample_count >= 10:
+                            errors.append("(truncated after 10 atlas integrity errors)")
+                            break
+            if sample_count >= 10:
+                break
+        self._integrity_errors = errors
+        if errors:
+            for e in errors:
+                print(f"[GualaLoom] INTEGRITY: {e}")
+        return len(errors) == 0
+
+    # ── Atomic write ──
 
     @staticmethod
     def _atomic_write(path, data):
-        """Write JSON atomically: .tmp → fsync → rename."""
         tmp = path + ".tmp"
         with open(tmp, "w") as f:
             json.dump(data, f)
@@ -1138,23 +1420,35 @@ class Guala:
             os.fsync(f.fileno())
         os.rename(tmp, path)
 
-    # Persistence health for /status
-    _last_save_tick = 0
-    _last_save_timestamp = None
-    _load_successful = False
-    _load_errors = []
+    # ── Persistence health for /status ──
 
     def persistence_health(self, state_dir="state"):
-        present = [f for f in self.STATE_FILES
+        present = [f for f in [self.IDENTITY_FILE] + self.STATE_FILES
                    if os.path.exists(os.path.join(state_dir, f))]
-        missing = [f for f in self.STATE_FILES if f not in present]
+        missing = [f for f in [self.IDENTITY_FILE] + self.STATE_FILES
+                   if f not in present]
+        evlog = os.path.join(state_dir, self.EVENTS_LOG)
+        ev_size = os.path.getsize(evlog) if os.path.exists(evlog) else 0
+        ev_rotated = sum(1 for i in range(1, self.EVENTS_MAX_ROTATED + 1)
+                         if os.path.exists(f"{evlog}.{i}"))
+        snapshots = self.list_snapshots(state_dir)
         return {
+            "guala_identity": self._guala_identity,
+            "schema_version": self.SCHEMA_VERSION,
             "last_save_tick": self._last_save_tick,
             "last_save_timestamp": self._last_save_timestamp,
             "files_present": present,
             "files_missing": missing,
             "load_successful_at_boot": self._load_successful,
             "load_errors": self._load_errors,
+            "integrity_errors": self._integrity_errors,
+            "events_log": {
+                "current_file_size_bytes": ev_size,
+                "rotated_files": ev_rotated,
+                "events_replayed_at_boot": self._events_replayed_at_boot,
+            },
+            "snapshots_available": len(snapshots),
+            "most_recent_snapshot": snapshots[-1] if snapshots else None,
         }
 
     # ------------------------------------------------------------------
