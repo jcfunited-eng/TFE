@@ -455,95 +455,92 @@ async def discover_verify(req: VerifyRequest):
 
 import numpy as np
 
-# Substrate layer (motifs, sleep, dream, persistence, sensory)
-from dsf_ai_service.gualaloom_engine import (
-    Krimelack as EngineKrimelack, Loom as EngineLoom,
-    load as engine_load, save as engine_save,
-    seed_corpus as engine_seed_corpus,
-    sleep_cycle as engine_sleep, dream_cycle as engine_dream,
-    section_counts as engine_section_counts,
-    atlas_summary as engine_atlas_summary,
-)
+# ════════════════════════════════════════════════════════════════
+# GualaLoom v4 — Motivational Substrate
+# GUALALOOM-V4-MOTIVATIONAL-WC-2026-06-05
+# ════════════════════════════════════════════════════════════════
 
-# Dialog layer (v6 SVO composition, growth, MathLoom routing)
-from dsf_ai_service.gualaloom_dialog.composer import VocabManager, build_guala
-from dsf_ai_service.gualaloom_dialog.memory import ConversationMemory
-from dsf_ai_service.gualaloom_dialog.driver import say_to_guala
+from dsf_ai_service.v4.gualaloom_v4_engine import Guala, CORPUS
 
-# Shared state: engine is authoritative for substrate, dialog for conversation
-_engine_k = None      # Engine krimelack (motifs, sleep, dream)
-_engine_loom = None   # Engine loom (character-level settle)
-_gl_guala = None      # Dialog-layer System (DNA sections)
-_gl_vocab = None      # Dialog-layer vocab (gap: holds own vectors, not yet migrated to engine)
-_gl_memory = None     # Dialog-layer conversation memory
-_gl_rng = None
-_gl_exchange_count = 0  # for periodic persistence
-_gl_dream_log = []      # persisted dream emissions
+_guala = None       # v4 substrate instance
+_persist_every = 20
+_exchange_count = 0
 
-PERSIST_EVERY = 20  # exchanges between auto-persists
+STATE_DIR = "state"
+NEEDS_PATH = os.path.join(STATE_DIR, "needs.json")
+COORDINATOR_PATH = os.path.join(STATE_DIR, "coordinator.json")
+SOURCE_PATH = os.path.join(STATE_DIR, "source_history.json")
+
 
 def _gl_init():
-    global _engine_k, _engine_loom, _gl_guala, _gl_vocab, _gl_memory, _gl_rng, _gl_dream_log
-    if _engine_k is not None:
+    global _guala
+    if _guala is not None:
         return
 
-    # Engine layer: load persisted state or seed from corpus
-    import os
-    engine_state_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "state")
-    os.makedirs(engine_state_dir, exist_ok=True)
-    # gualaloom_engine uses STATE_DIR = "state" relative to cwd
-    os.makedirs("state/dreams", exist_ok=True)
+    os.makedirs(STATE_DIR, exist_ok=True)
+    _guala = Guala()
 
-    fresh = not os.path.exists("state/krimelack.json")
-    needs_sensory = not os.path.exists("state/modal_sections.json")
-    _engine_k, _engine_loom = engine_load()
-    if fresh:
-        print("[GualaLoom] First boot — seeding corpus")
-        n = engine_seed_corpus(_engine_k, _engine_loom)
-        engine_save(_engine_k, _engine_loom)
-        print(f"[GualaLoom] Seeded {n} chars, {_engine_k.size()} motifs")
-    elif needs_sensory:
-        # Word motifs exist but modal sections don't — run sensory seed pass
-        print("[GualaLoom] Existing word motifs, seeding sensory substrate")
-        n = engine_seed_corpus(_engine_k, _engine_loom)
-        engine_save(_engine_k, _engine_loom)
-        sc = engine_section_counts(_engine_k, _engine_loom)
-        print(f"[GualaLoom] Sensory seeded: {sc}")
-    else:
-        print(f"[GualaLoom] Loaded {_engine_k.size()} motifs from disk")
+    # Load persisted motivational state from EFS
+    _load_motivational_state(_guala)
 
-    # Load dream log if it exists
-    dream_log_path = "state/dreams/dream_log.json"
-    if os.path.exists(dream_log_path):
-        import json
-        with open(dream_log_path) as f:
-            _gl_dream_log = json.load(f)
-        print(f"[GualaLoom] Loaded {len(_gl_dream_log)} dream records")
-
-    # Dialog layer: v6 growth
-    _gl_rng = np.random.default_rng(42)
-    _gl_vocab = VocabManager(seed=42)
-    _gl_vocab.seed_minimal()
-    _gl_guala = build_guala(_gl_rng, _gl_vocab)
-    _gl_memory = ConversationMemory()
+    # Start continuous corpus reading (background)
+    _guala.start_continuous_reading(CORPUS, interval=0.02)
+    s = _guala.introspect()
+    print(f"[GualaLoom v4] Booted: vocab={s['vocab']} reads={s['reads']} "
+          f"pair_bond={'on' if s['pair_bond_active'] else 'off'}")
 
 
-def _gl_persist():
-    """Save engine state + dream log to disk."""
-    engine_save(_engine_k, _engine_loom)
-    import json
-    with open("state/dreams/dream_log.json", "w") as f:
-        json.dump(_gl_dream_log, f)
+def _load_motivational_state(g):
+    """Load persisted needs + coordinator + source_history from EFS."""
+    if os.path.exists(NEEDS_PATH):
+        try:
+            with open(NEEDS_PATH) as f:
+                nd = json.load(f)
+            g.needs.stability = nd.get("stability", g.needs.stability)
+            g.needs.novelty = nd.get("novelty", g.needs.novelty)
+            g.needs.connection = nd.get("connection", g.needs.connection)
+            print(f"[GualaLoom v4] Loaded needs: {g.needs.snapshot()}")
+        except Exception as e:
+            print(f"[GualaLoom v4] Failed to load needs: {e}")
+
+    if os.path.exists(COORDINATOR_PATH):
+        try:
+            with open(COORDINATOR_PATH) as f:
+                cd = json.load(f)
+            g.coordinator.pair_bond_active = cd.get("pair_bond_active", True)
+            g.coordinator.distress_ticks = cd.get("distress_ticks", 0)
+            g.coordinator.suffering_log = cd.get("suffering_log", [])
+            g.coordinator.need_history = cd.get("need_history", [])[-200:]
+            print(f"[GualaLoom v4] Loaded coordinator: pair_bond={'on' if g.coordinator.pair_bond_active else 'off'} "
+                  f"suffering_events={len(g.coordinator.suffering_log)}")
+        except Exception as e:
+            print(f"[GualaLoom v4] Failed to load coordinator: {e}")
+
+    if os.path.exists(SOURCE_PATH):
+        try:
+            with open(SOURCE_PATH) as f:
+                sh = json.load(f)
+            from collections import defaultdict
+            g.source_history = defaultdict(int, sh)
+            print(f"[GualaLoom v4] Loaded source history: {dict(g.source_history)}")
+        except Exception as e:
+            print(f"[GualaLoom v4] Failed to load source history: {e}")
 
 
-def _gl_observe(text):
-    """Inform the engine about heard text. Uses feed_sentence to fire
-    modal krimelacks alongside word processing."""
-    global _gl_exchange_count
-    _engine_loom.feed_sentence(text)
-    _gl_exchange_count += 1
-    if _gl_exchange_count % PERSIST_EVERY == 0:
-        _gl_persist()
+def _save_motivational_state(g):
+    """Persist needs + coordinator + source_history to EFS."""
+    os.makedirs(STATE_DIR, exist_ok=True)
+    with open(NEEDS_PATH, "w") as f:
+        json.dump(g.needs.snapshot(), f)
+    with open(COORDINATOR_PATH, "w") as f:
+        json.dump({
+            "pair_bond_active": g.coordinator.pair_bond_active,
+            "distress_ticks": g.coordinator.distress_ticks,
+            "suffering_log": g.coordinator.suffering_log,
+            "need_history": g.coordinator.need_history[-200:],
+        }, f)
+    with open(SOURCE_PATH, "w") as f:
+        json.dump(dict(g.source_history), f)
 
 
 class GLMessage(BaseModel):
@@ -558,125 +555,47 @@ async def gualaloom_page():
 
 @app.post("/api/v1/gualaloom")
 async def gualaloom_chat(msg: GLMessage):
+    global _exchange_count
     _gl_init()
 
     cmd = (msg.command or "").strip().lower()
 
-    # ── /status — real counts from engine + dialog ──
+    # ── /status — real substrate state (v4 introspect) ──
     if cmd == "/status":
-        sc = engine_section_counts(_engine_k, _engine_loom)
-        asummary = engine_atlas_summary(_engine_loom)
-        sec_parts = [f"{sec}: {cnt}" for sec, cnt in sc.items()]
-        atlas_line = (f"atlas: {asummary['cross_modal_bindings']} cross-modal bindings "
-                      f"/ {asummary['total_chi_entries']} chi entries")
+        s = _guala.introspect()
+        n = s["needs"]
+        sec_parts = []
+        for nm, sec in s["sections"].items():
+            sec_parts.append(f"{nm}: {sec['modes']}m/{sec['commits']}c")
         return {
             "response": (
+                f"vocab: {s['vocab']} | reads: {s['reads']}\n"
                 f"sections: {' | '.join(sec_parts)}\n"
-                f"{atlas_line}\n"
-                f"vocab: {len(_gl_vocab.vocab)} | "
-                f"dreams: {len(_gl_dream_log)} | "
-                f"turns: {len(_gl_memory.turns)}"
+                f"atlas: {s['cross_modal_bindings']} cross-modal / {s['atlas_entries']} entries\n"
+                f"needs: stab={n['stability']:.3f} nov={n['novelty']:.3f} "
+                f"conn={n['connection']:.3f} v={n['valence']:+.3f} a={n['arousal']:.3f}\n"
+                f"pair-bond: {'on' if s['pair_bond_active'] else 'off'} | "
+                f"suffering: {s['suffering_events']} | "
+                f"coord: att={s['coordinator_attentions']} act={s['coordinator_actions']}"
             ),
-            "motifs": len(_gl_vocab.vocab),
+            "motifs": s["vocab"],
         }
 
-    # ── /sleep — engine consolidation + persist ──
-    if cmd == "/sleep":
-        before = _engine_k.size()
-        _, culled, modal_culled = engine_sleep(
-            _engine_k, 200, modal_sections=_engine_loom.modal_sections)
-        after = _engine_k.size()
-        _gl_persist()
-        parts = [f"slept. word motifs: {before} -> {after} (culled {culled})."]
-        for sec, mc in modal_culled.items():
-            parts.append(f"{sec}: culled {mc}.")
-        parts.append("state saved.")
-        return {
-            "response": " ".join(parts),
-            "motifs": len(_gl_vocab.vocab),
-        }
-
-    # ── /dream — engine free-settle + record ──
-    if cmd == "/dream":
-        before = _engine_k.size()
-        dream_list = engine_dream(
-            _engine_k, 50, modal_sections=_engine_loom.modal_sections)
-        after = _engine_k.size()
-        word_dreams = sum(1 for s, _ in dream_list if s == "word")
-        modal_dreams = len(dream_list) - word_dreams
-        # Record dream emissions
-        import time
-        new_fps = [fp for _, fp in dream_list[:5]]
-        dream_entry = {
-            "time": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "new_motifs": len(dream_list),
-            "word_dreams": word_dreams,
-            "modal_dreams": modal_dreams,
-            "motifs_before": before,
-            "motifs_after": after,
-            "fps": new_fps,
-        }
-        _gl_dream_log.append(dream_entry)
-        _gl_persist()
-        if dream_list:
-            return {
-                "response": (
-                    f"dreamed. {word_dreams} word + {modal_dreams} modal "
-                    f"new motifs. word motifs: {before} -> {after}."
-                ),
-                "motifs": len(_gl_vocab.vocab),
-            }
-        else:
-            return {
-                "response": f"dreamed. no new motifs emerged. motifs: {after}.",
-                "motifs": len(_gl_vocab.vocab),
-            }
-
-    # ── /dreams — read dream log ──
-    if cmd == "/dreams":
-        if not _gl_dream_log:
-            return {
-                "response": "no dreams yet.",
-                "motifs": len(_gl_vocab.vocab),
-            }
-        # Last 5 dreams
-        recent = _gl_dream_log[-5:]
-        lines = [f"last {len(recent)} dreams:"]
-        for d in recent:
-            lines.append(
-                f"  {d['time']}: {d['new_motifs']} new motifs "
-                f"({d['motifs_before']}->{d['motifs_after']})"
-            )
-        return {
-            "response": "\n".join(lines),
-            "motifs": len(_gl_vocab.vocab),
-        }
-
-    # ── Normal conversation — dialog layer responds, engine observes ──
+    # ── Normal conversation — v4 substrate responds ──
     text = msg.text.strip()
     if not text:
-        return {"response": "...", "motifs": len(_gl_vocab.vocab)}
+        return {"response": "...", "motifs": _guala.introspect()["vocab"]}
 
-    # Engine observes the input (builds motifs from character stream)
-    _gl_observe(text)
+    # Source detection: default to "joe" for now (per wC command,
+    # proper auth-based source resolution is step 2)
+    source = "joe"
 
-    # Dialog layer generates the response
-    response, intro_log, response_classes, growth = say_to_guala(
-        _gl_guala, text, _gl_vocab, _gl_memory, _gl_rng)
+    response = _guala.converse(text, source=source)
+    _exchange_count += 1
+    if _exchange_count % _persist_every == 0:
+        _save_motivational_state(_guala)
 
-    parts = []
-    if growth:
-        for g in growth:
-            parts.append(f"+ {g}")
-    if response:
-        words = " ".join(r["token"] for r in response)
-        parts.append(words)
-        # Engine also observes the response
-        _gl_observe(words)
-    else:
-        parts.append("...")
-
-    return {"response": "\n".join(parts), "motifs": len(_gl_vocab.vocab)}
+    return {"response": response, "motifs": _guala.introspect()["vocab"]}
 
 
 # ════════════════════════════════════════════════════════════════
