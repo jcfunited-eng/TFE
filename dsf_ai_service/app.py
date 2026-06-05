@@ -456,11 +456,11 @@ async def discover_verify(req: VerifyRequest):
 import numpy as np
 
 # ════════════════════════════════════════════════════════════════
-# GualaLoom v4 — Motivational Substrate
-# GUALALOOM-V4-MOTIVATIONAL-WC-2026-06-05
+# GualaLoom v5 — Recall + Question Bucket + Honest Fallback
+# GUALALOOM-V5-WC-2026-06-05
 # ════════════════════════════════════════════════════════════════
 
-from dsf_ai_service.v4.gualaloom_v4_engine import Guala, CORPUS
+from dsf_ai_service.v4.gualaloom_v5_engine import Guala, CORPUS
 
 _guala = None       # v4 substrate instance
 _persist_every = 20
