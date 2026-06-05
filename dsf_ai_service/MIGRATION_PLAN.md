@@ -1,7 +1,25 @@
 # Dialog-to-Engine Migration Plan
 
 **Tag**: `GUALALOOM-PERSIST-WC-2026-06-05`
-**Status**: Plan only. Awaiting wC review before execution.
+**Status**: M1 SUPERSEDED by sensory substrate (GUALALOOM-SENSES-WC-2026-06-05). M2-M5 paused.
+
+## Sensory substrate (supersedes M1)
+
+The sensory substrate adds five modal krimelack channels (sight, sound,
+smell, taste, touch) with chi-atlas cross-modal binding. This resolves
+the M1 question differently: instead of projecting dialog-layer complex
+vectors into the ternary substrate, we give the substrate its own
+grounding through sensory transduction. Words bind to experiences via
+chi co-occurrence in the atlas — the same mechanism the avatar's real
+sensors will use later.
+
+Files added:
+- `sensory_corpus.py` — 52 hand-built sensory signatures (scaffolding for real sensors)
+- `sensory_krimelacks.py` — five modal oscillator krimelacks + event-to-trit conversion
+- `gualaloom_engine.py` — modified: modal sections, ChiAtlas, feed_sentence, cross-modal sleep/dream
+- `app.py` — modified: /status shows per-section counts + atlas bindings
+
+M2-M5 remain valid but paused until sensory substrate validates.
 
 ## Current state (post-integration)
 

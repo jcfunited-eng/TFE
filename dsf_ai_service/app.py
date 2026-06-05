@@ -455,12 +455,14 @@ async def discover_verify(req: VerifyRequest):
 
 import numpy as np
 
-# Substrate layer (motifs, sleep, dream, persistence)
+# Substrate layer (motifs, sleep, dream, persistence, sensory)
 from dsf_ai_service.gualaloom_engine import (
     Krimelack as EngineKrimelack, Loom as EngineLoom,
     load as engine_load, save as engine_save,
     seed_corpus as engine_seed_corpus,
     sleep_cycle as engine_sleep, dream_cycle as engine_dream,
+    section_counts as engine_section_counts,
+    atlas_summary as engine_atlas_summary,
 )
 
 # Dialog layer (v6 SVO composition, growth, MathLoom routing)
@@ -527,9 +529,10 @@ def _gl_persist():
 
 
 def _gl_observe(text):
-    """Inform the engine about heard text. Engine decides how it becomes motifs."""
+    """Inform the engine about heard text. Uses feed_sentence to fire
+    modal krimelacks alongside word processing."""
     global _gl_exchange_count
-    _engine_loom.feed(text + " ")
+    _engine_loom.feed_sentence(text)
     _gl_exchange_count += 1
     if _gl_exchange_count % PERSIST_EVERY == 0:
         _gl_persist()
@@ -553,12 +556,16 @@ async def gualaloom_chat(msg: GLMessage):
 
     # ── /status — real counts from engine + dialog ──
     if cmd == "/status":
+        sc = engine_section_counts(_engine_k, _engine_loom)
+        asummary = engine_atlas_summary(_engine_loom)
+        sec_parts = [f"{sec}: {cnt}" for sec, cnt in sc.items()]
+        atlas_line = (f"atlas: {asummary['cross_modal_bindings']} cross-modal bindings "
+                      f"/ {asummary['total_chi_entries']} chi entries")
         return {
             "response": (
-                f"motifs: {_engine_k.size()} | "
+                f"sections: {' | '.join(sec_parts)}\n"
+                f"{atlas_line}\n"
                 f"vocab: {len(_gl_vocab.vocab)} | "
-                f"classes: {len(_gl_vocab.vocab_classes)} | "
-                f"templates: {len(_gl_vocab.response_templates)} | "
                 f"dreams: {len(_gl_dream_log)} | "
                 f"turns: {len(_gl_memory.turns)}"
             ),
@@ -568,38 +575,46 @@ async def gualaloom_chat(msg: GLMessage):
     # ── /sleep — engine consolidation + persist ──
     if cmd == "/sleep":
         before = _engine_k.size()
-        _, culled = engine_sleep(_engine_k, 200)
+        _, culled, modal_culled = engine_sleep(
+            _engine_k, 200, modal_sections=_engine_loom.modal_sections)
         after = _engine_k.size()
         _gl_persist()
+        parts = [f"slept. word motifs: {before} -> {after} (culled {culled})."]
+        for sec, mc in modal_culled.items():
+            parts.append(f"{sec}: culled {mc}.")
+        parts.append("state saved.")
         return {
-            "response": (
-                f"slept. motifs: {before} -> {after} "
-                f"(culled {culled}). state saved."
-            ),
+            "response": " ".join(parts),
             "motifs": len(_gl_vocab.vocab),
         }
 
     # ── /dream — engine free-settle + record ──
     if cmd == "/dream":
         before = _engine_k.size()
-        new_fps = engine_dream(_engine_k, 50)
+        dream_list = engine_dream(
+            _engine_k, 50, modal_sections=_engine_loom.modal_sections)
         after = _engine_k.size()
+        word_dreams = sum(1 for s, _ in dream_list if s == "word")
+        modal_dreams = len(dream_list) - word_dreams
         # Record dream emissions
         import time
+        new_fps = [fp for _, fp in dream_list[:5]]
         dream_entry = {
             "time": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "new_motifs": len(new_fps),
+            "new_motifs": len(dream_list),
+            "word_dreams": word_dreams,
+            "modal_dreams": modal_dreams,
             "motifs_before": before,
             "motifs_after": after,
-            "fps": new_fps[:5],  # first 5 fingerprints
+            "fps": new_fps,
         }
         _gl_dream_log.append(dream_entry)
         _gl_persist()
-        if new_fps:
+        if dream_list:
             return {
                 "response": (
-                    f"dreamed. {len(new_fps)} new motifs from free-settling. "
-                    f"motifs: {before} -> {after}."
+                    f"dreamed. {word_dreams} word + {modal_dreams} modal "
+                    f"new motifs. word motifs: {before} -> {after}."
                 ),
                 "motifs": len(_gl_vocab.vocab),
             }
