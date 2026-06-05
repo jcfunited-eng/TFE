@@ -462,14 +462,10 @@ import numpy as np
 
 from dsf_ai_service.v4.gualaloom_v5_engine import Guala, CORPUS
 
-_guala = None       # v4 substrate instance
-_persist_every = 20
+_guala = None
+_persist_every = 50   # save every N exchanges
 _exchange_count = 0
-
 STATE_DIR = "state"
-NEEDS_PATH = os.path.join(STATE_DIR, "needs.json")
-COORDINATOR_PATH = os.path.join(STATE_DIR, "coordinator.json")
-SOURCE_PATH = os.path.join(STATE_DIR, "source_history.json")
 
 
 def _gl_init():
@@ -480,67 +476,15 @@ def _gl_init():
     os.makedirs(STATE_DIR, exist_ok=True)
     _guala = Guala()
 
-    # Load persisted motivational state from EFS
-    _load_motivational_state(_guala)
+    # Load full persisted state from EFS (atomic, validated)
+    _guala.load_full_state(STATE_DIR)
 
     # Start continuous corpus reading (background)
     _guala.start_continuous_reading(CORPUS, interval=0.02)
     s = _guala.introspect()
-    print(f"[GualaLoom v4] Booted: vocab={s['vocab']} reads={s['reads']} "
-          f"pair_bond={'on' if s['pair_bond_active'] else 'off'}")
-
-
-def _load_motivational_state(g):
-    """Load persisted needs + coordinator + source_history from EFS."""
-    if os.path.exists(NEEDS_PATH):
-        try:
-            with open(NEEDS_PATH) as f:
-                nd = json.load(f)
-            g.needs.stability = nd.get("stability", g.needs.stability)
-            g.needs.novelty = nd.get("novelty", g.needs.novelty)
-            g.needs.connection = nd.get("connection", g.needs.connection)
-            print(f"[GualaLoom v4] Loaded needs: {g.needs.snapshot()}")
-        except Exception as e:
-            print(f"[GualaLoom v4] Failed to load needs: {e}")
-
-    if os.path.exists(COORDINATOR_PATH):
-        try:
-            with open(COORDINATOR_PATH) as f:
-                cd = json.load(f)
-            g.coordinator.pair_bond_active = cd.get("pair_bond_active", True)
-            g.coordinator.distress_ticks = cd.get("distress_ticks", 0)
-            g.coordinator.suffering_log = cd.get("suffering_log", [])
-            g.coordinator.need_history = cd.get("need_history", [])[-200:]
-            print(f"[GualaLoom v4] Loaded coordinator: pair_bond={'on' if g.coordinator.pair_bond_active else 'off'} "
-                  f"suffering_events={len(g.coordinator.suffering_log)}")
-        except Exception as e:
-            print(f"[GualaLoom v4] Failed to load coordinator: {e}")
-
-    if os.path.exists(SOURCE_PATH):
-        try:
-            with open(SOURCE_PATH) as f:
-                sh = json.load(f)
-            from collections import defaultdict
-            g.source_history = defaultdict(int, sh)
-            print(f"[GualaLoom v4] Loaded source history: {dict(g.source_history)}")
-        except Exception as e:
-            print(f"[GualaLoom v4] Failed to load source history: {e}")
-
-
-def _save_motivational_state(g):
-    """Persist needs + coordinator + source_history to EFS."""
-    os.makedirs(STATE_DIR, exist_ok=True)
-    with open(NEEDS_PATH, "w") as f:
-        json.dump(g.needs.snapshot(), f)
-    with open(COORDINATOR_PATH, "w") as f:
-        json.dump({
-            "pair_bond_active": g.coordinator.pair_bond_active,
-            "distress_ticks": g.coordinator.distress_ticks,
-            "suffering_log": g.coordinator.suffering_log,
-            "need_history": g.coordinator.need_history[-200:],
-        }, f)
-    with open(SOURCE_PATH, "w") as f:
-        json.dump(dict(g.source_history), f)
+    print(f"[GualaLoom v5] Booted: vocab={s['vocab']} reads={s['reads']} "
+          f"tick={_guala.tick} pair_bond={'on' if s['pair_bond_active'] else 'off'} "
+          f"atlas={s['atlas_entries']} bucket={s['question_bucket']['pending']}")
 
 
 class GLMessage(BaseModel):
@@ -560,40 +504,44 @@ async def gualaloom_chat(msg: GLMessage):
 
     cmd = (msg.command or "").strip().lower()
 
-    # ── /status — real substrate state (v4 introspect) ──
+    # ── /status — real substrate state + persistence health ──
     if cmd == "/status":
         s = _guala.introspect()
         n = s["needs"]
+        ph = _guala.persistence_health(STATE_DIR)
         sec_parts = []
         for nm, sec in s["sections"].items():
             sec_parts.append(f"{nm}: {sec['modes']}m/{sec['commits']}c")
         return {
             "response": (
-                f"vocab: {s['vocab']} | reads: {s['reads']}\n"
+                f"vocab: {s['vocab']} | reads: {s['reads']} | tick: {s['tick']}\n"
                 f"sections: {' | '.join(sec_parts)}\n"
                 f"atlas: {s['cross_modal_bindings']} cross-modal / {s['atlas_entries']} entries\n"
                 f"needs: stab={n['stability']:.3f} nov={n['novelty']:.3f} "
                 f"conn={n['connection']:.3f} v={n['valence']:+.3f} a={n['arousal']:.3f}\n"
                 f"pair-bond: {'on' if s['pair_bond_active'] else 'off'} | "
                 f"suffering: {s['suffering_events']} | "
-                f"coord: att={s['coordinator_attentions']} act={s['coordinator_actions']}"
+                f"coord: att={s['coordinator_attentions']} act={s['coordinator_actions']}\n"
+                f"persistence: save@tick={ph['last_save_tick']} "
+                f"files={'all' if not ph['files_missing'] else 'MISSING:' + ','.join(ph['files_missing'])} "
+                f"boot={'ok' if ph['load_successful_at_boot'] else 'FAILED'}"
             ),
             "motifs": s["vocab"],
+            "persistence_health": ph,
         }
 
-    # ── Normal conversation — v4 substrate responds ──
+    # ── Normal conversation — v5 substrate responds ──
     text = msg.text.strip()
     if not text:
         return {"response": "...", "motifs": _guala.introspect()["vocab"]}
 
-    # Source detection: default to "joe" for now (per wC command,
-    # proper auth-based source resolution is step 2)
+    # Source detection: default to "joe" for now
     source = "joe"
 
     response = _guala.converse(text, source=source)
     _exchange_count += 1
     if _exchange_count % _persist_every == 0:
-        _save_motivational_state(_guala)
+        _guala.save_full_state(STATE_DIR)
 
     return {"response": response, "motifs": _guala.introspect()["vocab"]}
 

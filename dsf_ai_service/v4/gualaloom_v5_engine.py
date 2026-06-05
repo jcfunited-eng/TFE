@@ -901,6 +901,263 @@ class Guala:
             self._reading_thread.join(timeout=2.0)
 
     # ------------------------------------------------------------------
+    # Persistence: save/load full state across deploys
+    # GUALALOOM-V5-PERSISTENCE-AUDIT-WC-2026-06-05
+    # ------------------------------------------------------------------
+
+    STATE_FILES = [
+        "guala_core.json", "guala_needs.json", "guala_coordinator.json",
+        "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
+    ]
+
+    def save_full_state(self, state_dir="state"):
+        """Round-trip every mutable attribute through EFS.
+        Atomic writes: .tmp → fsync → rename. Never half-written."""
+        with self.lock:
+            os.makedirs(state_dir, exist_ok=True)
+            results = {}
+            ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+            # 1. Core: tick, read_count, vocab, source_history, dream_log
+            self._atomic_write(os.path.join(state_dir, "guala_core.json"), {
+                "tick": self.tick,
+                "read_count": self.read_count,
+                "vocab": sorted(self.vocab),
+                "source_history": dict(self.source_history),
+                "recent_connection_boost": self.recent_connection_boost,
+                "dream_log": self.dream_log,
+                "save_timestamp": ts,
+            })
+            results["guala_core.json"] = os.path.getsize(
+                os.path.join(state_dir, "guala_core.json"))
+
+            # 2. Needs
+            self._atomic_write(os.path.join(state_dir, "guala_needs.json"), {
+                "stability": self.needs.stability,
+                "novelty": self.needs.novelty,
+                "connection": self.needs.connection,
+            })
+            results["guala_needs.json"] = os.path.getsize(
+                os.path.join(state_dir, "guala_needs.json"))
+
+            # 3. Coordinator
+            self._atomic_write(os.path.join(state_dir, "guala_coordinator.json"), {
+                "pair_bond_active": self.coordinator.pair_bond_active,
+                "distress_ticks": self.coordinator.distress_ticks,
+                "suffering_log": self.coordinator.suffering_log,
+                "need_history": self.coordinator.need_history[-200:],
+                "attentions_count": len(self.coordinator.attentions),
+                "actions_count": len(self.coordinator.actions),
+            })
+            results["guala_coordinator.json"] = os.path.getsize(
+                os.path.join(state_dir, "guala_coordinator.json"))
+
+            # 4. Atlas
+            # entries keys are ints, JSON keys must be strings
+            atlas_data = {}
+            for k, v in self.atlas.entries.items():
+                atlas_data[str(k)] = v
+            self._atomic_write(os.path.join(state_dir, "guala_atlas.json"), {
+                "entries": atlas_data,
+                "tick": self.atlas.tick,
+            })
+            results["guala_atlas.json"] = os.path.getsize(
+                os.path.join(state_dir, "guala_atlas.json"))
+
+            # 5. Sections — modes contain DSF dataclass, serialize to list of 8 floats
+            sections_data = {}
+            for nm, sec in self.sections.items():
+                modes_ser = []
+                for dsf_obj, chi, word in sec.modes:
+                    modes_ser.append({
+                        "dsf": list(dsf_obj.to_array().tolist()),
+                        "chi": chi,
+                        "word": word,
+                    })
+                sections_data[nm] = {
+                    "modes": modes_ser,
+                    "commits": sec.commits[-5000:],  # cap to prevent unbounded growth
+                    "dead_zone": sec.dead_zone,
+                    "gamma": sec.gamma,
+                    "tick": sec.tick,
+                }
+            self._atomic_write(os.path.join(state_dir, "guala_sections.json"),
+                               sections_data)
+            results["guala_sections.json"] = os.path.getsize(
+                os.path.join(state_dir, "guala_sections.json"))
+
+            # 6. Bucket
+            bucket_data = {
+                "questions": {f"{k[0]}|{k[1]}": v
+                              for k, v in self.bucket.questions.items()},
+                "asked": [f"{t}|{k}" for t, k in self.bucket.asked],
+            }
+            self._atomic_write(os.path.join(state_dir, "guala_bucket.json"),
+                               bucket_data)
+            results["guala_bucket.json"] = os.path.getsize(
+                os.path.join(state_dir, "guala_bucket.json"))
+
+            self._last_save_tick = self.tick
+            self._last_save_timestamp = ts
+            return results
+
+    def load_full_state(self, state_dir="state"):
+        """Load every mutable attribute from EFS.
+        NO files: fresh boot (leave defaults). SOME files: abort. ALL files: load + validate."""
+        present = [f for f in self.STATE_FILES
+                   if os.path.exists(os.path.join(state_dir, f))]
+        missing = [f for f in self.STATE_FILES if f not in present]
+
+        self._load_errors = []
+        self._load_successful = False
+
+        if not present:
+            # Genuine fresh boot
+            print("[GualaLoom] Fresh boot — no state files found")
+            self._load_successful = True
+            return
+
+        if missing:
+            # Partial state — abort, do NOT load partial
+            msg = f"[GualaLoom] ABORT: partial state. Present: {present}, Missing: {missing}"
+            print(msg)
+            self._load_errors.append(msg)
+            return
+
+        # All files present — load and validate
+        try:
+            # 1. Core
+            with open(os.path.join(state_dir, "guala_core.json")) as f:
+                core = json.load(f)
+            # Validate
+            if not isinstance(core.get("tick"), (int, float)):
+                raise ValueError(f"Invalid tick: {core.get('tick')}")
+            if not isinstance(core.get("read_count"), (int, float)):
+                raise ValueError(f"Invalid read_count: {core.get('read_count')}")
+
+            # 2. Needs
+            with open(os.path.join(state_dir, "guala_needs.json")) as f:
+                needs_d = json.load(f)
+            for k in ("stability", "novelty", "connection"):
+                v = needs_d.get(k)
+                if v is None or not (0.0 <= float(v) <= 1.0):
+                    raise ValueError(f"Invalid needs.{k}: {v}")
+
+            # 3. Coordinator
+            with open(os.path.join(state_dir, "guala_coordinator.json")) as f:
+                coord_d = json.load(f)
+
+            # 4. Atlas
+            with open(os.path.join(state_dir, "guala_atlas.json")) as f:
+                atlas_d = json.load(f)
+
+            # 5. Sections
+            with open(os.path.join(state_dir, "guala_sections.json")) as f:
+                sections_d = json.load(f)
+
+            # 6. Bucket
+            with open(os.path.join(state_dir, "guala_bucket.json")) as f:
+                bucket_d = json.load(f)
+
+            # Validation passed — apply state
+            with self.lock:
+                # Core
+                self.tick = int(core["tick"])
+                self.read_count = int(core["read_count"])
+                self.vocab = set(core.get("vocab", []))
+                self.source_history = defaultdict(int, core.get("source_history", {}))
+                self.recent_connection_boost = float(core.get("recent_connection_boost", 0.0))
+                self.dream_log = core.get("dream_log", [])
+
+                # Needs
+                self.needs.stability = float(needs_d["stability"])
+                self.needs.novelty = float(needs_d["novelty"])
+                self.needs.connection = float(needs_d["connection"])
+
+                # Coordinator
+                self.coordinator.pair_bond_active = coord_d.get("pair_bond_active", True)
+                self.coordinator.distress_ticks = coord_d.get("distress_ticks", 0)
+                self.coordinator.suffering_log = coord_d.get("suffering_log", [])
+                self.coordinator.need_history = coord_d.get("need_history", [])[-200:]
+
+                # Atlas
+                self.atlas.entries = defaultdict(list)
+                for k, v in atlas_d.get("entries", {}).items():
+                    self.atlas.entries[int(k)] = v
+                self.atlas.tick = atlas_d.get("tick", 0)
+
+                # Sections
+                for nm, sd in sections_d.items():
+                    if nm not in self.sections:
+                        continue
+                    sec = self.sections[nm]
+                    sec.modes = []
+                    for m in sd.get("modes", []):
+                        dsf_vals = m["dsf"]
+                        dsf_obj = DSF(*dsf_vals)
+                        sec.modes.append((dsf_obj, m["chi"], m["word"]))
+                    sec.commits = sd.get("commits", [])
+                    sec.dead_zone = sd.get("dead_zone", 0.20)
+                    sec.gamma = sd.get("gamma", {"det_thresh": 0.55, "novel_dist": 0.40})
+                    sec.tick = sd.get("tick", 0)
+
+                # Bucket
+                from collections import OrderedDict
+                self.bucket.questions = OrderedDict()
+                for key_str, q in bucket_d.get("questions", {}).items():
+                    parts = key_str.split("|", 1)
+                    if len(parts) == 2:
+                        self.bucket.questions[(parts[0], parts[1])] = q
+                self.bucket.asked = set()
+                for a in bucket_d.get("asked", []):
+                    parts = a.split("|", 1)
+                    if len(parts) == 2:
+                        self.bucket.asked.add((parts[0], parts[1]))
+
+            self._load_successful = True
+            s = self.introspect()
+            print(f"[GualaLoom] Loaded full state: vocab={s['vocab']} tick={self.tick} "
+                  f"reads={self.read_count} atlas={s['atlas_entries']} "
+                  f"cross-modal={s['cross_modal_bindings']} "
+                  f"bucket={s['question_bucket']['pending']}")
+
+        except Exception as e:
+            msg = f"[GualaLoom] ABORT load: validation failed: {e}"
+            print(msg)
+            self._load_errors.append(msg)
+            # Do NOT apply partial state — leave defaults
+            return
+
+    @staticmethod
+    def _atomic_write(path, data):
+        """Write JSON atomically: .tmp → fsync → rename."""
+        tmp = path + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(data, f)
+            f.flush()
+            os.fsync(f.fileno())
+        os.rename(tmp, path)
+
+    # Persistence health for /status
+    _last_save_tick = 0
+    _last_save_timestamp = None
+    _load_successful = False
+    _load_errors = []
+
+    def persistence_health(self, state_dir="state"):
+        present = [f for f in self.STATE_FILES
+                   if os.path.exists(os.path.join(state_dir, f))]
+        missing = [f for f in self.STATE_FILES if f not in present]
+        return {
+            "last_save_tick": self._last_save_tick,
+            "last_save_timestamp": self._last_save_timestamp,
+            "files_present": present,
+            "files_missing": missing,
+            "load_successful_at_boot": self._load_successful,
+            "load_errors": self._load_errors,
+        }
+
+    # ------------------------------------------------------------------
     # Introspection: real readout of substrate state
     # ------------------------------------------------------------------
     def introspect(self):
