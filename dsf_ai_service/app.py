@@ -495,12 +495,20 @@ def _gl_init():
     os.makedirs("state/dreams", exist_ok=True)
 
     fresh = not os.path.exists("state/krimelack.json")
+    needs_sensory = not os.path.exists("state/modal_sections.json")
     _engine_k, _engine_loom = engine_load()
     if fresh:
         print("[GualaLoom] First boot — seeding corpus")
         n = engine_seed_corpus(_engine_k, _engine_loom)
         engine_save(_engine_k, _engine_loom)
         print(f"[GualaLoom] Seeded {n} chars, {_engine_k.size()} motifs")
+    elif needs_sensory:
+        # Word motifs exist but modal sections don't — run sensory seed pass
+        print("[GualaLoom] Existing word motifs, seeding sensory substrate")
+        n = engine_seed_corpus(_engine_k, _engine_loom)
+        engine_save(_engine_k, _engine_loom)
+        sc = engine_section_counts(_engine_k, _engine_loom)
+        print(f"[GualaLoom] Sensory seeded: {sc}")
     else:
         print(f"[GualaLoom] Loaded {_engine_k.size()} motifs from disk")
 
