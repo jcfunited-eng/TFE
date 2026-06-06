@@ -454,6 +454,7 @@ async def discover_verify(req: VerifyRequest):
 # ════════════════════════════════════════════════════════════════
 
 import numpy as np
+import json
 
 # ════════════════════════════════════════════════════════════════
 # GualaLoom v5 — Recall + Question Bucket + Honest Fallback
