@@ -62,13 +62,29 @@ async function fetchRealTimeSnapshot(ticker) {
  * and do NOT have an open/submitted position.
  */
 async function getPrimedTickers() {
-  // Get tickers with open positions — exclude them
-  const openRes = await pool.query(`
-    SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
-    FROM personal_trade_ledger
-    WHERE status IN ('submitted', 'filled', 'pending')
-  `);
+  // Get tickers with open positions OR recently killed by sentinel — exclude them.
+  // The sentinel writes kill_cooldown_<TICKER> to pee1_execution_config when it
+  // exits a position. Without this, entry logic can re-enter a ticker in the same
+  // daemon cycle the sentinel just closed it — creating a churn loop.
+  const [openRes, cooldownRes] = await Promise.all([
+    pool.query(`
+      SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
+      FROM personal_trade_ledger
+      WHERE status IN ('submitted', 'filled', 'pending')
+    `),
+    pool.query(`
+      SELECT key, value FROM pee1_execution_config
+      WHERE key LIKE 'kill_cooldown_%'
+    `),
+  ]);
   const openTickers = new Set(openRes.rows.map(r => r.ticker));
+  const COOLDOWN_MS = 15 * 60 * 1000;
+  for (const row of cooldownRes.rows) {
+    const killedAt = new Date(row.value).getTime();
+    if (Date.now() - killedAt <= COOLDOWN_MS) {
+      openTickers.add(row.key.replace('kill_cooldown_', ''));
+    }
+  }
 
   // Get tickers that were already tried today and expired/canceled
   // These are re-entry candidates

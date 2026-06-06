@@ -147,12 +147,33 @@ function parseSignal(row) {
  * Prevents duplicate position entries on the same ticker.
  */
 async function fetchOpenPositionTickers() {
-  const res = await pool.query(
-    `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
-     FROM personal_trade_ledger
-     WHERE status IN ('submitted', 'filled')`
-  );
-  return new Set(res.rows.map(r => r.ticker));
+  // Include both currently-open positions AND tickers recently closed by sentinel.
+  // The sentinel writes kill_cooldown_<TICKER> to pee1_execution_config when it
+  // exits a position. Without this, the entry logic (which runs AFTER runSentinel
+  // in the same daemon cycle) sees the ticker as "no open position" and immediately
+  // re-enters — creating a buy→sell→buy→sell churn loop.
+  const [openRes, cooldownRes] = await Promise.all([
+    pool.query(
+      `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
+       FROM personal_trade_ledger
+       WHERE status IN ('pending', 'submitted', 'filled')`
+    ),
+    pool.query(
+      `SELECT key, value FROM pee1_execution_config
+       WHERE key LIKE 'kill_cooldown_%'`
+    ),
+  ]);
+  const tickers = new Set(openRes.rows.map(r => r.ticker));
+  // Add tickers still in kill cooldown (15 min window)
+  const COOLDOWN_MS = 15 * 60 * 1000;
+  for (const row of cooldownRes.rows) {
+    const killedAt = new Date(row.value).getTime();
+    if (Date.now() - killedAt <= COOLDOWN_MS) {
+      const ticker = row.key.replace('kill_cooldown_', '');
+      tickers.add(ticker);
+    }
+  }
+  return tickers;
 }
 
 export async function getCh2Signals() {
