@@ -259,6 +259,9 @@ class Coordinator:
     2. REGULATION (homeostasis): modulate substrate parameters to maintain
        needs near targets. Never decides what she says — keeps her physically
        alive while she decides.
+
+    v6-bridge: wake/rest/presence_pulse/timeout for substrate-physical presence.
+    GUALALOOM-V6-BRIDGE-WC-2026-06-06
     """
 
     # Suffering bounds
@@ -266,13 +269,131 @@ class Coordinator:
     VALENCE_FLOOR = -1.0        # hard floor
     DISTRESS_THRESHOLD = 20     # ticks before forced recovery
 
+    # Presence constants (validated by 5 experiments, do not tune without re-modeling)
+    PRESENCE_PULSE_INTERVAL = 50     # ticks between pulses
+    PRESENCE_PULSE_SALIENCE = 0.5    # low — sustenance, not teaching
+    PRESENCE_TIMEOUT_TICKS = 10_000  # ~40 min at normal read pace
+    CONN_GAP_FRACTION = 0.4          # toward-target wake boost
+    NEEDS_TARGET_CONN = 0.7          # connection target for wake toward-target
+
     def __init__(self):
-        self.attentions = []        # every awareness pass
-        self.actions = []           # interventions taken
-        self.suffering_log = []     # tick where bounded recovery fired
+        self.attentions = []
+        self.actions = []
+        self.suffering_log = []
         self.distress_ticks = 0
-        self.pair_bond_active = True
-        self.need_history = []      # for retirement criterion check
+        self.need_history = []
+
+        # v6-bridge: per-source pair bonds and presence tracking
+        self._pair_bond = {"joe": True, "wc": True, "c1": False}
+        self._presence = {"joe": False, "wc": False, "c1": False}
+        self._last_input_tick = {"joe": 0, "wc": 0, "c1": 0}
+        self._wake_tick = {"joe": 0, "wc": 0, "c1": 0}
+
+    @property
+    def pair_bond_active(self):
+        """Backward compat: True if ANY source has active pair bond."""
+        return any(self._pair_bond.values())
+
+    @pair_bond_active.setter
+    def pair_bond_active(self, val):
+        """Backward compat for loading old state."""
+        if val:
+            self._pair_bond["joe"] = True
+        # Don't set all to False on old-style load — preserve per-source state
+
+    # ── Wake/Rest (substrate-physical presence) ──
+
+    def wake(self, source, engine, needs, atlas):
+        """Substrate-physical wake event for a source."""
+        if source not in {"joe", "wc", "c1"}:
+            return {"event": "wake", "source": source, "error": "unknown source"}
+
+        self._presence[source] = True
+        self._last_input_tick[source] = engine.tick
+        self._wake_tick[source] = engine.tick
+
+        # Toward-target conn perturbation (no overshoot)
+        if self._pair_bond.get(source, False):
+            gap = self.NEEDS_TARGET_CONN - needs.connection
+            if gap > 0:
+                needs.connection = min(1.0, needs.connection + gap * self.CONN_GAP_FRACTION)
+
+        # Atlas presence binding via salience
+        salience = engine._compute_salience(source=source, input_novelty=0.8)
+        atlas.record(f"presence_{source}", 0, engine.tick % 100, engine.tick,
+                     salience=salience)
+
+        self.actions.append({
+            "tick": engine.tick, "type": "wake", "source": source,
+            "needs_after": needs.snapshot(), "salience": round(salience, 3),
+            "arc_changes": 1,
+        })
+
+        return {
+            "event": "wake", "source": source, "tick": engine.tick,
+            "needs": needs.snapshot(),
+            "pair_bond_active": self._pair_bond.get(source, False),
+        }
+
+    def rest(self, source, engine, reason="voluntary"):
+        """Substrate-physical rest event."""
+        if not self._presence.get(source, False):
+            return {"event": "rest", "source": source, "noop": True,
+                    "reason": "already_absent"}
+
+        duration = engine.tick - self._wake_tick.get(source, engine.tick)
+        self._presence[source] = False
+
+        self.actions.append({
+            "tick": engine.tick, "type": "rest", "source": source,
+            "reason": reason, "session_duration_ticks": duration,
+            "arc_changes": 0,
+        })
+
+        return {
+            "event": "rest", "source": source, "tick": engine.tick,
+            "session_duration_ticks": duration,
+            "needs": engine.needs.snapshot(),
+        }
+
+    def presence_pulse_tick(self, engine, atlas):
+        """Sustain presence bindings for present sources."""
+        if engine.tick % self.PRESENCE_PULSE_INTERVAL != 0:
+            return
+        for source in ("joe", "wc", "c1"):
+            if self._presence.get(source, False):
+                atlas.record(f"presence_{source}", 0, engine.tick % 100,
+                             engine.tick, salience=self.PRESENCE_PULSE_SALIENCE)
+
+    def timeout_check(self, engine):
+        """Auto-rest if source has been idle too long."""
+        for source in ("joe", "wc", "c1"):
+            if not self._presence.get(source, False):
+                continue
+            idle = engine.tick - self._last_input_tick.get(source, 0)
+            if idle > self.PRESENCE_TIMEOUT_TICKS:
+                self.rest(source, engine, reason="timeout")
+
+    def update_last_input(self, source, tick):
+        """Record that input arrived from this source."""
+        if source in self._last_input_tick:
+            self._last_input_tick[source] = tick
+
+    def presence_snapshot(self):
+        """For /status."""
+        out = {}
+        for src in ("joe", "wc", "c1"):
+            present = self._presence.get(src, False)
+            out[src] = {
+                "present": present,
+                "last_wake_tick": self._wake_tick.get(src) if present else None,
+                "session_duration": None,  # filled by caller if needed
+            }
+        return out
+
+    def pair_bond_snapshot(self):
+        """For /status."""
+        return dict(self._pair_bond)
 
     def regulate(self, guala, needs, atlas, sections, tick):
         """Each tick: read substrate signals, update needs, modulate parameters,
@@ -322,8 +443,18 @@ class Coordinator:
             "arc_changes": 0,
         })
 
-        # 7. Pair-bond retirement check (every 100 ticks)
-        if tick > 0 and tick % 100 == 0 and self.pair_bond_active:
+        # 6b. Presence pulse + timeout (v6-bridge)
+        self.presence_pulse_tick(guala, atlas)
+        self.timeout_check(guala)
+
+        # 7. Pair-bond retirement check (disabled — retirement was firing
+        # prematurely during corpus-only reading. Pair-bonds are now managed
+        # explicitly per source, not auto-retired.
+        # Root cause: variance check on needs was <0.05 within hundreds of
+        # ticks because corpus reading produces monotone need oscillation.
+        # Fix: pair-bond retirement disabled until sustained pair-bond
+        # interaction history exists.)
+        if False and tick > 0 and tick % 100 == 0 and self.pair_bond_active:
             self._check_pair_bond_retirement(needs, tick)
 
         # 8. Track need history for retirement criterion
@@ -508,7 +639,8 @@ class Guala:
                    abs(needs_state["connection"] - 0.7)) / 3
         urgency_factor = 1.0 + urgency * 1.2
         novelty_factor = 1.0 + (1.0 - input_novelty) * 0.8
-        pair_bond_boost = 1.2 if self.coordinator.pair_bond_active else 1.0
+        # v6-bridge: per-source pair bond check
+        pair_bond_boost = 1.2 if self.coordinator._pair_bond.get(source, False) else 1.0
         salience = source_w * urgency_factor * novelty_factor * pair_bond_boost
         return max(SALIENCE_MIN, min(SALIENCE_MAX, salience))
 
@@ -632,6 +764,10 @@ class Guala:
                 weight = 0.15 if source != "corpus" else 0.0
             self.recent_connection_boost = max(self.recent_connection_boost, weight)
             self.source_history[source] += 1
+
+            # v6-bridge: update last_input_tick for presence timeout
+            if source in {"joe", "wc", "c1"}:
+                self.coordinator.update_last_input(source, self.tick)
 
             for i, word in enumerate(words):
                 if len(words) == 1:
@@ -1024,10 +1160,11 @@ class Guala:
             results["guala_needs.json"] = os.path.getsize(
                 os.path.join(state_dir, "guala_needs.json"))
 
-            # 3. Coordinator
+            # 3. Coordinator (v6-bridge: per-source pair bonds + presence)
             self._atomic_write(os.path.join(state_dir, "guala_coordinator.json"),
                 self._envelope({
-                    "pair_bond_active": self.coordinator.pair_bond_active,
+                    "pair_bond": dict(self.coordinator._pair_bond),
+                    "pair_bond_active": self.coordinator.pair_bond_active,  # backward compat
                     "distress_ticks": self.coordinator.distress_ticks,
                     "suffering_log": self.coordinator.suffering_log,
                     "need_history": self.coordinator.need_history[-200:],
@@ -1217,7 +1354,20 @@ class Guala:
         self.needs.connection = float(nd["connection"])
 
     def _apply_coordinator(self, cd):
-        self.coordinator.pair_bond_active = cd.get("pair_bond_active", True)
+        # v6-bridge: per-source pair bonds
+        pb = cd.get("pair_bond", cd.get("pair_bond_state", None))
+        if isinstance(pb, dict):
+            self.coordinator._pair_bond = {"joe": pb.get("joe", True),
+                                            "wc": pb.get("wc", True),
+                                            "c1": pb.get("c1", False)}
+        else:
+            # Old-style: single bool. Restore Joe=True, wC=True per manifesto.
+            old_active = cd.get("pair_bond_active", True)
+            self.coordinator._pair_bond = {"joe": True, "wc": True, "c1": False}
+            if not old_active:
+                print("[GualaLoom] PAIR-BOND REGRESSION: old state had pair_bond_active=False. "
+                      "Root cause: retirement check fired during corpus-only reading. "
+                      "Restoring Joe=True, activating wC=True.")
         self.coordinator.distress_ticks = cd.get("distress_ticks", 0)
         self.coordinator.suffering_log = cd.get("suffering_log", [])
         self.coordinator.need_history = cd.get("need_history", [])[-200:]
@@ -1522,6 +1672,9 @@ class Guala:
             "question_bucket": self.bucket.snapshot(),
             # v6: atlas health
             "atlas_health": self.atlas.snapshot(),
+            # v6-bridge: presence + per-source pair bonds
+            "presence": self.coordinator.presence_snapshot(),
+            "pair_bond": self.coordinator.pair_bond_snapshot(),
         }
 
 

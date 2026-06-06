@@ -534,7 +534,26 @@ async def gualaloom_chat(msg: GLMessage):
             "motifs": s["vocab"],
             "persistence_health": ph,
             "atlas_health": s.get("atlas_health", {}),
+            "presence": s.get("presence", {}),
+            "pair_bond": s.get("pair_bond", {}),
         }
+
+    # ── /wake — substrate-physical wake event ──
+    if cmd == "/wake":
+        # Source from text field (e.g. "joe")
+        wake_source = msg.text.strip().lower() if msg.text else "joe"
+        if wake_source not in {"joe", "wc", "c1"}:
+            return {"response": f"wake: unknown source '{wake_source}'", "motifs": 0}
+        result = _guala.coordinator.wake(wake_source, _guala, _guala.needs, _guala.atlas)
+        _guala.log_event(STATE_DIR, "wake", source=wake_source)
+        return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
+
+    # ── /rest — substrate-physical rest event ──
+    if cmd == "/rest":
+        rest_source = msg.text.strip().lower() if msg.text else "joe"
+        result = _guala.coordinator.rest(rest_source, _guala, reason="voluntary")
+        _guala.log_event(STATE_DIR, "rest", source=rest_source)
+        return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
 
     # ── /diag — reach distribution + strength histogram for wC ──
     if cmd == "/diag":
