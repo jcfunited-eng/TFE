@@ -37,7 +37,9 @@ import time
 import threading
 import numpy as np
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from collections import deque
+import random
 
 try:
     from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack, SensoryBank, SENSORY_DNA, ROLE_DNA
@@ -62,6 +64,91 @@ except ImportError:
         SALIENCE_MIN, SALIENCE_MAX, FORGETTING_THRESHOLD, STRENGTH_CAP,
     )
     import gualaloom_mathloom_v1 as ml
+
+
+# ============================================================
+# v7: Autonomy Constants (modeling-validated, do not tune without re-modeling)
+# GUALALOOM-V7-AUTONOMY-WC-2026-06-06
+# ============================================================
+
+NEEDS_DRIFT_RATE = 0.0001   # per tick — needs fall from 1.0 to 0 in ~10K ticks
+NEEDS_TARGET_V7 = 0.7       # target for all three needs (autonomy model)
+
+ACTIVITY_TICK_BUDGETS = {
+    "READING": 2000, "PLAYING": 1500, "SLEEPING": 5000, "DREAMING": 3000,
+    "ATTENDING": 1000, "EMITTING": 100, "IDLE": 500,
+}
+
+ACTIVITY_NOVELTY_PAYOFF = {
+    "READING_NEW": 0.7, "READING_REREAD": 0.1, "PLAYING": 0.3,
+    "SLEEPING": -0.1, "DREAMING": 0.4, "ATTENDING_NEW": 0.8,
+    "ATTENDING_REPEAT": 0.05, "EMITTING": 0.0, "IDLE": -0.05,
+}
+
+ACTIVITY_STABILITY_PAYOFF = {
+    "READING": 0.05, "PLAYING": 0.0, "SLEEPING": 0.5, "DREAMING": 0.2,
+    "ATTENDING": 0.0, "EMITTING": -0.1, "IDLE": 0.1,
+}
+
+ACTIVITY_CONNECTION_PAYOFF = {
+    "READING": 0.0, "PLAYING": 0.0, "SLEEPING": 0.0, "DREAMING": 0.0,
+    "ATTENDING": 0.0, "EMITTING": 0.3, "IDLE": -0.05,
+}
+
+EMISSION_COHESION_THRESHOLD = 0.65
+EMISSION_COOLDOWN_TICKS = 200
+PAIR_BOND_SOURCES = {"joe", "wc", "c1"}
+
+
+# ============================================================
+# v7: Autonomy Dataclasses
+# ============================================================
+
+@dataclass
+class Activity:
+    kind: str
+    target: object  # corpus_id, sensory_item_id, or None
+    started_tick: int
+    expected_end_tick: int
+    metadata: dict = field(default_factory=dict)
+
+    def snapshot(self):
+        return {"kind": self.kind, "target": self.target,
+                "started_tick": self.started_tick,
+                "expected_end_tick": self.expected_end_tick}
+
+
+@dataclass
+class CorpusItem:
+    corpus_id: str
+    title: str
+    lines: list
+    position: int = 0
+    times_read_through: int = 0
+    last_read_tick: int = 0
+
+    def is_new(self, current_tick, recency_threshold=50_000):
+        return (self.times_read_through == 0
+                or (current_tick - self.last_read_tick) > recency_threshold)
+
+
+@dataclass
+class SensoryItem:
+    item_id: str
+    kind: str       # "picture" or "sound"
+    title: str
+    times_attended: int = 0
+    last_attended_tick: int = 0
+
+    def is_new(self):
+        return self.times_attended == 0
+
+
+@dataclass
+class SubstrateEvent:
+    tick: int
+    kind: str
+    detail: dict = field(default_factory=dict)
 
 
 # ============================================================
@@ -170,39 +257,46 @@ class Section:
 # ============================================================
 
 class Needs:
-    """Three substrate-level needs, each homeostatic with decay-to-target.
+    """Three substrate-level needs with drift-AWAY-from-target dynamics.
 
-    Per Joe: emerges from entropy/cohesion/greed at the substrate level.
-    Cells and sections have their own greed dynamics (already in trits +
-    section commit logic) — these are read out, not duplicated here.
+    v7 FIX: needs drift AWAY from target over time (you get hungrier
+    when you don't eat). Activities pull them back toward target.
+    This is the substrate-physical equivalent of biological drive.
+    Without it, autonomy is impossible — she has no reason to act.
 
     Stability = greed for current cohesion (hold what we have)
     Novelty   = greed for cohesion-gain (seek new bindings)
     Connection = greed for cohesion with OTHER coherent structures (us, corpus)
     """
 
-    # Decay rates per Aurelion v7.1
+    # v7: target for signed-distance calculation in activity salience
+    TARGETS = {"stability": NEEDS_TARGET_V7, "novelty": NEEDS_TARGET_V7,
+               "connection": NEEDS_TARGET_V7}
+    # Legacy decay rates (used only for coordinator signal nudges)
     DECAY = {"stability": 0.02, "novelty": 0.03, "connection": 0.025}
-    TARGETS = {"stability": 0.55, "novelty": 0.45, "connection": 0.50}
 
     def __init__(self):
-        # Start at targets
-        self.stability = self.TARGETS["stability"]
-        self.novelty = self.TARGETS["novelty"]
-        self.connection = self.TARGETS["connection"]
+        # Start near targets
+        self.stability = 0.65
+        self.novelty = 0.45
+        self.connection = 0.50
+
+    def tick_drift(self):
+        """v7: Needs drift AWAY from target toward unsatisfied (low).
+        This is what creates drive — without it, she has no reason to act.
+        Called once per autonomy loop iteration."""
+        self.stability = max(0.0, self.stability - NEEDS_DRIFT_RATE)
+        self.novelty = max(0.0, self.novelty - NEEDS_DRIFT_RATE)
+        self.connection = max(0.0, self.connection - NEEDS_DRIFT_RATE)
 
     def step(self, signals):
-        """Update each need toward (target + signal) at its decay rate.
-        signals come from substrate read-out (not from outside)."""
+        """Additive nudge from substrate signals (coordinator regulation).
+        v7: no longer decays toward target — tick_drift handles drive."""
         for k in self.TARGETS:
             current = getattr(self, k)
-            target = self.TARGETS[k]
             signal = signals.get(k, 0.0)
-            # Decay-to-target with signal nudging the apparent target
-            adjusted_target = max(0.0, min(1.0, target + signal))
-            decay = self.DECAY[k]
-            new = current * (1 - decay) + adjusted_target * decay
-            new = max(0.0, min(1.0, new))
+            nudge = signal * self.DECAY[k]
+            new = max(0.0, min(1.0, current + nudge))
             setattr(self, k, new)
 
     def valence(self):
@@ -222,6 +316,14 @@ class Needs:
             "connection": round(self.connection, 3),
             "valence":   round(self.valence(), 3),
             "arousal":   round(self.arousal(), 3),
+        }
+
+    def signed_distance(self):
+        """v7: Signed distance — positive means BELOW target (needs satisfaction)."""
+        return {
+            "stability": self.TARGETS["stability"] - self.stability,
+            "novelty":   self.TARGETS["novelty"] - self.novelty,
+            "connection": self.TARGETS["connection"] - self.connection,
         }
 
     def most_unmet(self):
@@ -624,6 +726,14 @@ class Guala:
         self.recent_connection_boost = 0.0
         # source memory for introspection — who's talked to her, how often
         self.source_history = defaultdict(int)
+
+        # v7: Autonomy state
+        self._current_activity = None
+        self._activity_history = []
+        self._substrate_events = deque(maxlen=1000)
+        self._last_emission_tick = -100_000
+        self._corpora = {}          # corpus_id -> CorpusItem
+        self._sensory_items = {}    # item_id -> SensoryItem
 
     # ------------------------------------------------------------------
     # v6: Salience computation
@@ -1049,12 +1159,338 @@ class Guala:
             self._reading_thread.join(timeout=2.0)
 
     # ------------------------------------------------------------------
+    # v7: Autonomy — activity scheduler, drive dynamics, emission
+    # GUALALOOM-V7-AUTONOMY-WC-2026-06-06
+    # ------------------------------------------------------------------
+
+    def _log_substrate_event(self, event_kind, **detail):
+        """Record a substrate event (in-memory ring buffer)."""
+        ev = SubstrateEvent(tick=self.tick, kind=event_kind, detail=detail)
+        self._substrate_events.append(ev)
+        return ev
+
+    def start_autonomy_loop(self, interval=0.05):
+        """Replace continuous reading with full autonomy loop.
+        Interval 50ms = 20 iterations/sec."""
+        def loop():
+            while not self._reading_stop.is_set():
+                try:
+                    self._autonomy_tick()
+                except Exception as e:
+                    print(f"[GualaLoom] Autonomy tick error: {e}")
+                time.sleep(interval)
+        self._reading_stop.clear()
+        self._reading_thread = threading.Thread(target=loop, daemon=True)
+        self._reading_thread.start()
+
+    def _autonomy_tick(self):
+        """One iteration of the autonomy loop."""
+        with self.lock:
+            # 1. Needs drift AWAY from target (once per iteration)
+            self.needs.tick_drift()
+
+            # 2. Select activity if needed
+            if self._current_activity is None:
+                a = self._select_next_activity()
+                self._start_activity(a)
+
+            a = self._current_activity
+            if a is None:
+                return
+
+            # 3. Execute activity
+            if a.kind == "READING":
+                # read_sentence handles tick++, atlas decay, coordinator
+                self._atick_reading(a)
+            else:
+                # Non-reading: manual tick + effects
+                self.tick += 1
+                if a.kind == "SLEEPING":
+                    self._atick_sleeping(a)
+                elif a.kind == "DREAMING":
+                    self._atick_dreaming(a)
+                elif a.kind == "PLAYING":
+                    self._atick_playing(a)
+                elif a.kind == "ATTENDING":
+                    self._atick_attending(a)
+                elif a.kind == "EMITTING":
+                    self._atick_emitting(a)
+                # Non-reading: manual atlas decay + coordinator
+                if self.tick % 10 == 0:
+                    self.atlas.decay(self.tick)
+                if self.tick % 200 == 0:
+                    self.atlas.forget_below_threshold()
+                if self.tick % 5 == 0:
+                    self.coordinator.regulate(self, self.needs, self.atlas,
+                                             self.sections, self.tick)
+
+            # 4. Check activity budget
+            if self.tick >= a.expected_end_tick:
+                self._end_activity()
+
+    # ── Activity selection ──
+
+    def _candidate_activities(self):
+        """All activities currently possible as (kind, target) tuples."""
+        candidates = [("IDLE", None), ("PLAYING", None), ("SLEEPING", None)]
+        for cid in self._corpora:
+            candidates.append(("READING", cid))
+        for sid in self._sensory_items:
+            candidates.append(("ATTENDING", sid))
+        # Emission: only if pair-bond source present + cooldown elapsed
+        if (any(self.coordinator._presence.get(s, False)
+                and self.coordinator._pair_bond.get(s, False)
+                for s in PAIR_BOND_SOURCES)
+                and self.tick - self._last_emission_tick > EMISSION_COOLDOWN_TICKS):
+            candidates.append(("EMITTING", None))
+        return candidates
+
+    def _action_salience(self, kind, target):
+        """How attractive is this activity given current needs?
+        Salience = dot product of (need-distance) × (payoff per need).
+        Mirrored from wC's autonomy substrate model."""
+        sd = self.needs.signed_distance()
+
+        # Novelty payoff with NEW vs REPEAT distinction
+        if kind == "READING" and target in self._corpora:
+            c = self._corpora[target]
+            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["READING_NEW"]
+                          if c.is_new(self.tick)
+                          else ACTIVITY_NOVELTY_PAYOFF["READING_REREAD"])
+        elif kind == "ATTENDING" and target in self._sensory_items:
+            s = self._sensory_items[target]
+            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_NEW"]
+                          if s.is_new()
+                          else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_REPEAT"])
+        else:
+            nov_payoff = ACTIVITY_NOVELTY_PAYOFF.get(kind, 0.0)
+
+        stab_payoff = ACTIVITY_STABILITY_PAYOFF.get(kind, 0.0)
+        conn_payoff = ACTIVITY_CONNECTION_PAYOFF.get(kind, 0.0)
+
+        # Signed-distance dot payoff
+        score = (sd["novelty"] * nov_payoff
+                 + sd["stability"] * stab_payoff
+                 + sd["connection"] * conn_payoff)
+
+        # Presence boost
+        any_present = any(
+            self.coordinator._presence.get(s, False)
+            and self.coordinator._pair_bond.get(s, False)
+            for s in PAIR_BOND_SOURCES)
+        if any_present:
+            if kind == "EMITTING":
+                score += 0.05
+            elif kind == "ATTENDING":
+                score += 0.015
+
+        score += 0.01  # baseline
+        return score
+
+    def _select_next_activity(self):
+        candidates = self._candidate_activities()
+        scored = [(self._action_salience(k, t), k, t) for k, t in candidates]
+        scored.sort(reverse=True)
+        score, kind, target = scored[0]
+        budget = ACTIVITY_TICK_BUDGETS.get(kind, 500)
+        return Activity(
+            kind=kind, target=target,
+            started_tick=self.tick,
+            expected_end_tick=self.tick + budget,
+            metadata={"salience": round(score, 4),
+                      "top_scores": [(round(s, 4), k, t)
+                                     for s, k, t in scored[:5]]},
+        )
+
+    def _start_activity(self, activity):
+        self._current_activity = activity
+        self._log_substrate_event("activity_started",
+                                 kind=activity.kind, target=activity.target,
+                                 salience=activity.metadata.get("salience"))
+
+    def _end_activity(self):
+        if self._current_activity:
+            self._log_substrate_event("activity_ended",
+                                     kind=self._current_activity.kind,
+                                     target=self._current_activity.target,
+                                     duration=self.tick - self._current_activity.started_tick)
+            self._activity_history.append(self._current_activity)
+            if len(self._activity_history) > 500:
+                self._activity_history = self._activity_history[-200:]
+            self._current_activity = None
+
+    # ── Activity tick effects ──
+
+    def _atick_reading(self, a):
+        """Read one sentence from corpus. read_sentence handles tick advancement."""
+        corpus = self._corpora.get(a.target)
+        if not corpus or not corpus.lines:
+            return
+        pos = corpus.position % len(corpus.lines)
+        line = corpus.lines[pos]
+        self.read_sentence(line, source="corpus")
+        corpus.position += 1
+        corpus.last_read_tick = self.tick
+        if corpus.position >= len(corpus.lines):
+            corpus.position = 0
+            corpus.times_read_through += 1
+            self._log_substrate_event("corpus_completed",
+                                     corpus_id=corpus.corpus_id,
+                                     title=corpus.title,
+                                     times_through=corpus.times_read_through)
+        # Novelty effect: reading new material satisfies novelty
+        if corpus.is_new(self.tick):
+            self.needs.novelty = min(1.0, self.needs.novelty + 0.001)
+        else:
+            self.needs.novelty = max(0.0, self.needs.novelty - 0.0003)
+
+    def _atick_sleeping(self, a):
+        """Sleep raises stability. Transitions to dream at midpoint."""
+        self.needs.stability = min(1.0, self.needs.stability + 0.001)
+        # Atlas consolidation: weak bindings decay faster during sleep
+        if self.tick % 50 == 0:
+            self.atlas.decay(self.tick)
+        # Midpoint → dream
+        midpoint = a.started_tick + (a.expected_end_tick - a.started_tick) // 2
+        if self.tick == midpoint:
+            a.kind = "DREAMING"
+            self._log_substrate_event("dream_began", from_sleep=True)
+
+    def _atick_dreaming(self, a):
+        """Dream: slight stability + novelty from recombinations."""
+        self.needs.stability = min(1.0, self.needs.stability + 0.0005)
+        self.needs.novelty = min(1.0, self.needs.novelty + 0.0003)
+        if self.tick % 200 == 0:
+            self._log_substrate_event("dream_artifact",
+                                     context="motif combination surfaced")
+
+    def _atick_playing(self, a):
+        """Free-settle: chi space walk, modest novelty."""
+        self.needs.novelty = min(1.0, self.needs.novelty + 0.0005)
+        # Occasionally check for emission trigger during play
+        if self.tick % 300 == 0:
+            self._check_emission_trigger("play_cohesion")
+
+    def _atick_attending(self, a):
+        """Attend to a sensory item (picture/sound). High novelty if new."""
+        si = self._sensory_items.get(a.target)
+        if not si:
+            return
+        gain = 0.002 if si.is_new() else 0.0004
+        self.needs.novelty = min(1.0, self.needs.novelty + gain)
+        # Mark attended at activity end
+        if self.tick >= a.expected_end_tick - 1:
+            si.times_attended += 1
+            si.last_attended_tick = self.tick
+
+    def _atick_emitting(self, a):
+        """Emission: fires once at start, satisfies connection-need."""
+        if self.tick == a.started_tick + 1:
+            self._do_emit()
+            # Emission satisfies connection-need substantially
+            any_pair_present = any(
+                self.coordinator._presence.get(s, False)
+                and self.coordinator._pair_bond.get(s, False)
+                for s in PAIR_BOND_SOURCES)
+            if any_pair_present:
+                self.needs.connection = min(1.0, self.needs.connection + 0.25)
+
+    def _check_emission_trigger(self, reason):
+        """During play/attending, check if emission should fire."""
+        if self.tick - self._last_emission_tick < EMISSION_COOLDOWN_TICKS:
+            return
+        any_present = any(
+            self.coordinator._presence.get(s, False)
+            and self.coordinator._pair_bond.get(s, False)
+            for s in PAIR_BOND_SOURCES)
+        if not any_present:
+            self._log_substrate_event("emission_suppressed_no_presence",
+                                     reason=reason)
+            return
+        # Interrupt current activity → emit
+        if self._current_activity and self._current_activity.kind != "EMITTING":
+            self._end_activity()
+            em = Activity(
+                kind="EMITTING", target=None,
+                started_tick=self.tick,
+                expected_end_tick=self.tick + ACTIVITY_TICK_BUDGETS["EMITTING"],
+                metadata={"trigger": reason})
+            self._start_activity(em)
+
+    def _do_emit(self):
+        """Generate an autonomous emission via cohesion cascade."""
+        self._last_emission_tick = self.tick
+        # Cohesion cascade: recall from atlas using recent substrate state
+        # Collect recent chi values from section commits
+        recent_chis = []
+        for sec in self.sections.values():
+            for c in sec.commits[-5:]:
+                recent_chis.append(c["chi"])
+        if not recent_chis:
+            self._log_substrate_event("emission",
+                                     content="...",
+                                     to_sources=[s for s in PAIR_BOND_SOURCES
+                                                 if self.coordinator._presence.get(s, False)])
+            return
+
+        # Use recall to generate words
+        input_word_chis = {}
+        for chi in recent_chis:
+            input_word_chis[f"_chi_{chi}"] = chi
+        recalled = {}
+        for sec_name in ("subject", "verb", "object"):
+            word = self._recall_from_atlas(sec_name, recent_chis,
+                                           exclude_words=set())
+            if word:
+                recalled[sec_name] = word
+
+        content = " ".join(recalled[k] for k in ("subject", "verb", "object")
+                           if k in recalled) or "..."
+
+        to_sources = [s for s in PAIR_BOND_SOURCES
+                      if self.coordinator._presence.get(s, False)
+                      and self.coordinator._pair_bond.get(s, False)]
+        self._log_substrate_event("emission", content=content,
+                                 to_sources=to_sources)
+
+    def manual_sleep(self):
+        """Manual sleep trigger from UI."""
+        with self.lock:
+            if self._current_activity:
+                self._end_activity()
+            sleep = Activity(
+                kind="SLEEPING", target=None,
+                started_tick=self.tick,
+                expected_end_tick=self.tick + ACTIVITY_TICK_BUDGETS["SLEEPING"],
+                metadata={"trigger": "manual"})
+            self._start_activity(sleep)
+            self._log_substrate_event("sleep_manual", trigger="ui")
+            return {"event": "sleep_started", "tick": self.tick,
+                    "expected_end_tick": sleep.expected_end_tick}
+
+    def _activity_summary(self):
+        """Summary of activity history for /status."""
+        kinds = defaultdict(int)
+        durations = defaultdict(int)
+        for a in self._activity_history:
+            kinds[a.kind] += 1
+            durations[a.kind] += (a.expected_end_tick - a.started_tick)
+        return {k: {"count": kinds[k], "total_ticks": durations[k]}
+                for k in kinds}
+
+    def get_recent_events(self, since_tick=-1, limit=50):
+        """Return recent substrate events for /events endpoint."""
+        events = [{"tick": e.tick, "kind": e.kind, "detail": e.detail}
+                  for e in self._substrate_events if e.tick > since_tick]
+        return events[-limit:]
+
+    # ------------------------------------------------------------------
     # Persistence v5.5: Continuity Guarantees
     # GUALALOOM-V5-CONTINUITY-WC-2026-06-05
     # Identity tag, schema versioning, snapshots, event log, integrity
     # ------------------------------------------------------------------
 
-    SCHEMA_VERSION = "v6.0.0"
+    SCHEMA_VERSION = "v7.0.0"
     STATE_FILES = [
         "guala_core.json", "guala_needs.json", "guala_coordinator.json",
         "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
@@ -1113,7 +1549,7 @@ class Guala:
         }
 
     # Schema migrations
-    COMPATIBLE_SCHEMAS = {"v5.5.0", "v6.0.0"}
+    COMPATIBLE_SCHEMAS = {"v5.5.0", "v6.0.0", "v7.0.0"}
 
     def _unwrap(self, raw, filename):
         """Validate envelope, return data dict. Raises on mismatch."""
@@ -1138,7 +1574,18 @@ class Guala:
             if self._guala_identity is None:
                 self._generate_genesis_identity(state_dir)
 
-            # 1. Core
+            # 1. Core (v7: includes autonomy state)
+            corpora_ser = {cid: {"corpus_id": c.corpus_id, "title": c.title,
+                                  "position": c.position,
+                                  "times_read_through": c.times_read_through,
+                                  "last_read_tick": c.last_read_tick,
+                                  "n_lines": len(c.lines)}
+                           for cid, c in self._corpora.items()}
+            sensory_ser = {sid: {"item_id": s.item_id, "kind": s.kind,
+                                  "title": s.title,
+                                  "times_attended": s.times_attended,
+                                  "last_attended_tick": s.last_attended_tick}
+                           for sid, s in self._sensory_items.items()}
             self._atomic_write(os.path.join(state_dir, "guala_core.json"),
                 self._envelope({
                     "tick": self.tick, "read_count": self.read_count,
@@ -1146,6 +1593,9 @@ class Guala:
                     "source_history": dict(self.source_history),
                     "recent_connection_boost": self.recent_connection_boost,
                     "dream_log": self.dream_log,
+                    "last_emission_tick": self._last_emission_tick,
+                    "corpora_state": corpora_ser,
+                    "sensory_state": sensory_ser,
                 }))
             results["guala_core.json"] = os.path.getsize(
                 os.path.join(state_dir, "guala_core.json"))
@@ -1347,6 +1797,19 @@ class Guala:
         self.source_history = defaultdict(int, core.get("source_history", {}))
         self.recent_connection_boost = float(core.get("recent_connection_boost", 0.0))
         self.dream_log = core.get("dream_log", [])
+        # v7: restore autonomy state
+        self._last_emission_tick = int(core.get("last_emission_tick", -100_000))
+        # Restore corpora positions (lines reloaded from seed at boot)
+        for cid, cstate in core.get("corpora_state", {}).items():
+            if cid in self._corpora:
+                self._corpora[cid].position = cstate.get("position", 0)
+                self._corpora[cid].times_read_through = cstate.get("times_read_through", 0)
+                self._corpora[cid].last_read_tick = cstate.get("last_read_tick", 0)
+        # Restore sensory item attendance
+        for sid, sstate in core.get("sensory_state", {}).items():
+            if sid in self._sensory_items:
+                self._sensory_items[sid].times_attended = sstate.get("times_attended", 0)
+                self._sensory_items[sid].last_attended_tick = sstate.get("last_attended_tick", 0)
 
     def _apply_needs(self, nd):
         self.needs.stability = float(nd["stability"])
@@ -1675,6 +2138,20 @@ class Guala:
             # v6-bridge: presence + per-source pair bonds
             "presence": self.coordinator.presence_snapshot(),
             "pair_bond": self.coordinator.pair_bond_snapshot(),
+            # v7: autonomy state
+            "current_activity": (self._current_activity.snapshot()
+                                 if self._current_activity else None),
+            "activity_history_summary": self._activity_summary(),
+            "n_motifs": sum(len(s.modes)
+                           for s in self.sections.values()),
+            "corpora": [{"corpus_id": c.corpus_id, "title": c.title,
+                         "position": c.position,
+                         "times_read_through": c.times_read_through}
+                        for c in self._corpora.values()],
+            "sensory_items": [{"item_id": s.item_id, "kind": s.kind,
+                               "title": s.title,
+                               "times_attended": s.times_attended}
+                              for s in self._sensory_items.values()],
         }
 
 

@@ -461,12 +461,77 @@ import json
 # GUALALOOM-V5-WC-2026-06-05
 # ════════════════════════════════════════════════════════════════
 
-from dsf_ai_service.v4.gualaloom_v5_engine import Guala, CORPUS
+from dsf_ai_service.v4.gualaloom_v5_engine import (
+    Guala, CORPUS, CorpusItem, SensoryItem,
+)
+from fastapi.responses import StreamingResponse
 
 _guala = None
 _persist_every = 50   # save every N exchanges
 _exchange_count = 0
 STATE_DIR = "state"
+
+# v7: Seed corpora — lines for autonomous reading
+SEED_CORPORA = {
+    "see_spot_run": {
+        "title": "See Spot Run",
+        "lines": [
+            "see spot", "see spot run", "run spot run",
+            "see jane", "see jane run", "run jane run",
+            "see spot and jane", "spot and jane run",
+            "see the dog run", "the dog is spot",
+            "spot is a good dog", "jane has a dog",
+            "spot can run fast", "run run run",
+        ],
+    },
+    "goodnight_moon": {
+        "title": "Goodnight Moon",
+        "lines": [
+            "in the great green room", "there was a telephone",
+            "and a red balloon", "and a picture of the cow jumping over the moon",
+            "goodnight room", "goodnight moon", "goodnight cow jumping over the moon",
+            "goodnight light", "goodnight red balloon",
+            "goodnight stars", "goodnight air", "goodnight noises everywhere",
+        ],
+    },
+    "green_eggs": {
+        "title": "Green Eggs and Ham",
+        "lines": [
+            "i am sam", "sam i am", "do you like green eggs and ham",
+            "i do not like them sam i am", "i do not like green eggs and ham",
+            "would you like them here or there",
+            "i would not like them here or there",
+            "i would not like them anywhere",
+            "not in a house", "not with a mouse",
+            "not in a box", "not with a fox",
+            "i do not like green eggs and ham", "i do not like them sam i am",
+            "you do not like them so you say", "try them and you may",
+            "i like green eggs and ham", "i do i like them sam i am",
+        ],
+    },
+    "mother_goose": {
+        "title": "Mother Goose Rhymes",
+        "lines": [
+            "twinkle twinkle little star", "how i wonder what you are",
+            "up above the world so high", "like a diamond in the sky",
+            "mary had a little lamb", "its fleece was white as snow",
+            "and everywhere that mary went", "the lamb was sure to go",
+            "humpty dumpty sat on a wall", "humpty dumpty had a great fall",
+            "jack and jill went up the hill", "to fetch a pail of water",
+            "baa baa black sheep", "have you any wool",
+            "yes sir yes sir", "three bags full",
+            "one two three four five", "once i caught a fish alive",
+            "six seven eight nine ten", "then i let it go again",
+            "hey diddle diddle", "the cat and the fiddle",
+            "the cow jumped over the moon",
+            "the little dog laughed to see such sport",
+            "and the dish ran away with the spoon",
+        ],
+    },
+}
+
+# v7: Legacy corpus as fallback reading material
+SEED_CORPORA["legacy_seed"] = {"title": "Seed Corpus", "lines": CORPUS}
 
 
 def _gl_init():
@@ -477,15 +542,21 @@ def _gl_init():
     os.makedirs(STATE_DIR, exist_ok=True)
     _guala = Guala()
 
+    # v7: Register seed corpora BEFORE loading state (so positions can restore)
+    for cid, cdata in SEED_CORPORA.items():
+        _guala._corpora[cid] = CorpusItem(
+            corpus_id=cid, title=cdata["title"], lines=cdata["lines"])
+
     # Load full persisted state from EFS (atomic, validated)
     _guala.load_full_state(STATE_DIR)
 
-    # Start continuous corpus reading (background)
-    _guala.start_continuous_reading(CORPUS, interval=0.02)
+    # v7: Start autonomy loop (replaces continuous reading)
+    _guala.start_autonomy_loop(interval=0.05)
     s = _guala.introspect()
-    print(f"[GualaLoom v5] Booted: vocab={s['vocab']} reads={s['reads']} "
+    print(f"[GualaLoom v7] Booted: vocab={s['vocab']} reads={s['reads']} "
           f"tick={_guala.tick} pair_bond={'on' if s['pair_bond_active'] else 'off'} "
-          f"atlas={s['atlas_entries']} bucket={s['question_bucket']['pending']}")
+          f"atlas={s['atlas_entries']} corpora={len(_guala._corpora)} "
+          f"activity={s['current_activity']}")
 
 
 class GLMessage(BaseModel):
@@ -537,6 +608,12 @@ async def gualaloom_chat(msg: GLMessage):
             "atlas_health": s.get("atlas_health", {}),
             "presence": s.get("presence", {}),
             "pair_bond": s.get("pair_bond", {}),
+            # v7: autonomy fields
+            "current_activity": s.get("current_activity"),
+            "activity_history_summary": s.get("activity_history_summary", {}),
+            "n_motifs": s.get("n_motifs", 0),
+            "corpora": s.get("corpora", []),
+            "sensory_items": s.get("sensory_items", []),
         }
 
     # ── /wake — substrate-physical wake event ──
@@ -610,6 +687,11 @@ async def gualaloom_chat(msg: GLMessage):
             "n_modes_with_reach": len(motif_reach),
         }
 
+    # ── /sleep — manual sleep trigger from UI ──
+    if cmd == "/sleep":
+        result = _guala.manual_sleep()
+        return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
+
     # ── Normal conversation — v5 substrate responds ──
     text = msg.text.strip()
     if not text:
@@ -631,6 +713,38 @@ async def gualaloom_chat(msg: GLMessage):
         _guala.save_full_state(STATE_DIR)
 
     return {"response": response, "motifs": _guala.introspect()["vocab"]}
+
+
+# ════════════════════════════════════════════════════════════════
+# v7: Substrate event stream (SSE) + sleep endpoint
+# GUALALOOM-V7-AUTONOMY-WC-2026-06-06
+# ════════════════════════════════════════════════════════════════
+
+@app.get("/api/v1/gualaloom/events")
+async def gualaloom_events(since: int = 0):
+    """Server-sent events of substrate activity."""
+    _gl_init()
+    import asyncio
+
+    async def event_generator():
+        last_tick = since
+        while True:
+            events = _guala.get_recent_events(since_tick=last_tick, limit=50)
+            for ev in events:
+                if ev["tick"] > last_tick:
+                    last_tick = ev["tick"]
+                yield f"data: {json.dumps(ev)}\n\n"
+            await asyncio.sleep(1.0)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@app.post("/api/v1/gualaloom/sleep")
+async def gualaloom_sleep():
+    """Manual sleep trigger."""
+    _gl_init()
+    result = _guala.manual_sleep()
+    return result
 
 
 # ════════════════════════════════════════════════════════════════
