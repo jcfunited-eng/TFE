@@ -45,7 +45,8 @@
       "Bash(apt-get update:*)",
       "Bash(apt-get install:*)",
       "Bash(psql -U postgres -d tfe_validation -c \"SELECT COUNT\\(*\\) as latest FROM runtime_decisions_latest; SELECT COUNT\\(*\\) as bars FROM daily_bars;\")",
-      "Bash(gh repo:*)"
+      "Bash(gh repo:*)",
+      "Bash(node -e ':*)"
     ],
     "defaultMode": "bypassPermissions"
   }
