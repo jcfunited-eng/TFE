@@ -16,6 +16,11 @@
   --input-bg: #0d1117;
   --msg-user: #1f2937;
   --msg-sub: #161b22;
+  --ev-activity: #58a6ff;
+  --ev-motif: #3fb950;
+  --ev-dream: #bc8cff;
+  --ev-emission: #f0883e;
+  --ev-muted: #484f58;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -26,42 +31,85 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* ── Header ── */
 header {
-  padding: 16px 24px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-alt);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 }
-header h1 {
+.header-left { flex: 1; }
+.header-left h1 {
   font-size: 16px;
   font-weight: 500;
   color: var(--accent);
   letter-spacing: 0.5px;
 }
-header p {
-  font-size: 12px;
+.header-left .subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+#stats-line {
+  font-size: 11px;
   color: var(--text-muted);
   margin-top: 4px;
 }
-#status {
+#activity-line {
+  font-size: 12px;
+  color: var(--text);
+  margin-top: 2px;
+}
+#needs-line {
   font-size: 11px;
   color: var(--text-muted);
-  padding: 6px 24px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-alt);
+  margin-top: 2px;
+}
+#sleep-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+#sleep-btn:hover { border-color: var(--accent); color: var(--text); }
+#sleep-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* ── Main area: chat + event sidebar ── */
+#main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── Chat ── */
+#chat-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 #chat {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 24px;
+  padding: 12px 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 .msg {
-  max-width: 80%;
-  padding: 10px 14px;
+  max-width: 85%;
+  padding: 8px 12px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -78,14 +126,24 @@ header p {
   border: 1px solid var(--border);
   color: var(--accent);
 }
+.msg.emission {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid #30363d44;
+  color: var(--ev-emission);
+  font-style: italic;
+  font-size: 12px;
+}
 .msg.system {
   align-self: center;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
   font-style: italic;
 }
+
+/* ── Input area ── */
 #input-area {
-  padding: 12px 24px;
+  padding: 10px 20px;
   border-top: 1px solid var(--border);
   background: var(--bg-alt);
   display: flex;
@@ -96,56 +154,139 @@ header p {
   background: var(--input-bg);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 6px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 13px;
   outline: none;
 }
-#input-area input:focus {
-  border-color: var(--accent);
-}
+#input-area input:focus { border-color: var(--accent); }
 #input-area button {
   background: var(--accent);
   color: #0d1117;
   border: none;
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 6px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }
 #input-area button:hover { opacity: 0.9; }
 #input-area button:disabled { opacity: 0.4; cursor: default; }
-.commands {
-  padding: 8px 24px;
-  font-size: 11px;
-  color: var(--text-muted);
+
+/* ── Upload bar ── */
+#upload-bar {
+  padding: 6px 20px;
   border-top: 1px solid var(--border);
   background: var(--bg);
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.upload-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.upload-btn:hover { border-color: var(--accent); color: var(--text); }
+.upload-btn input[type=file] { display: none; }
+
+/* ── Event sidebar ── */
+#events-col {
+  width: 300px;
+  border-left: 1px solid var(--border);
+  background: var(--bg-alt);
+  display: flex;
+  flex-direction: column;
+}
+#events-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+}
+#events {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.ev {
+  padding: 3px 12px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  border-bottom: 1px solid #21262d;
+}
+.ev .ev-time { color: var(--text-muted); }
+.ev .ev-kind { font-weight: 500; }
+.ev-activity .ev-kind { color: var(--ev-activity); }
+.ev-motif .ev-kind { color: var(--ev-motif); }
+.ev-dream .ev-kind { color: var(--ev-dream); }
+.ev-emission .ev-kind { color: var(--ev-emission); }
+.ev-muted .ev-kind { color: var(--ev-muted); }
+
+/* ── Mobile ── */
+@media (max-width: 700px) {
+  #events-col { display: none; }
+  .msg { max-width: 95%; }
+  header { flex-direction: column; gap: 6px; }
+  #sleep-btn { align-self: flex-start; }
 }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>GualaLoom</h1>
-  <p>substrate that grows from what you say. early. mostly silent.</p>
+  <div class="header-left">
+    <h1>GualaLoom</h1>
+    <div class="subtitle">substrate that grows from what you say.</div>
+    <div id="stats-line">loading...</div>
+    <div id="activity-line">&nbsp;</div>
+    <div id="needs-line">&nbsp;</div>
+  </div>
+  <button id="sleep-btn" onclick="toggleSleep()">&#x1F4A4; Sleep</button>
 </header>
-<div id="status">loading...</div>
-<div id="chat"></div>
-<div id="input-area">
-  <input id="msg" type="text" placeholder="type here" autocomplete="off">
-  <button id="send" onclick="sendMsg()">send</button>
+
+<div id="main">
+  <div id="chat-col">
+    <div id="chat"></div>
+    <div id="input-area">
+      <input id="msg" type="text" placeholder="say something" autocomplete="off">
+      <button id="send" onclick="sendMsg()">send</button>
+    </div>
+    <div id="upload-bar">
+      <label class="upload-btn" title="Show her a picture">&#x1F4F7; picture<input type="file" accept="image/*" onchange="upload('picture',this)"></label>
+      <label class="upload-btn" title="Play her a sound">&#x1F3B5; sound<input type="file" accept="audio/*" onchange="upload('sound',this)"></label>
+      <label class="upload-btn" title="Show her a video">&#x1F3AC; video<input type="file" accept="video/*" onchange="upload('video',this)"></label>
+      <label class="upload-btn" title="Add a book to her library">&#x1F4D6; book<input type="file" accept=".txt,text/plain" onchange="upload('book',this)"></label>
+    </div>
+  </div>
+  <div id="events-col">
+    <div id="events-header">substrate events</div>
+    <div id="events"></div>
+  </div>
 </div>
-<div class="commands">say something. she starts with 7 words and learns the rest from you.</div>
 
 <script>
+const API = 'https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
 const chat = document.getElementById('chat');
 const input = document.getElementById('msg');
 const btn = document.getElementById('send');
-const status = document.getElementById('status');
+const eventsDiv = document.getElementById('events');
+const statsLine = document.getElementById('stats-line');
+const activityLine = document.getElementById('activity-line');
+const needsLine = document.getElementById('needs-line');
+const sleepBtn = document.getElementById('sleep-btn');
+
+let isSleeping = false;
+let lastEventTick = 0;
 
 function addMsg(text, cls) {
   const d = document.createElement('div');
@@ -155,6 +296,146 @@ function addMsg(text, cls) {
   chat.scrollTop = chat.scrollHeight;
 }
 
+// ── Format activity for display ──
+function fmtActivity(s) {
+  const a = s.current_activity;
+  if (!a) return 'idle';
+  const kind = a.kind;
+  const target = a.target;
+  if (kind === 'READING' && target) {
+    const corpus = (s.corpora || []).find(c => c.corpus_id === target);
+    if (corpus) return `reading "${corpus.title}" (pass ${corpus.times_read_through + 1})`;
+    return `reading ${target}`;
+  }
+  if (kind === 'SLEEPING') return 'sleeping';
+  if (kind === 'DREAMING') return 'dreaming';
+  if (kind === 'PLAYING') return 'playing';
+  if (kind === 'IDLE') return 'idle';
+  if (kind === 'EMITTING') return 'thinking...';
+  if (kind === 'ATTENDING') return `attending ${target || ''}`;
+  return kind.toLowerCase();
+}
+
+// ── Poll /status ──
+async function pollStatus() {
+  try {
+    const res = await fetch(`${API}/api/v1/gualaloom`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: '', command: '/status' }),
+    });
+    const s = await res.json();
+    const n = s.persistence_health || {};
+    statsLine.textContent = `vocab: ${s.motifs}  \u00b7  motifs: ${s.n_motifs || 0}  \u00b7  atlas: ${(s.atlas_health || {}).total_strength || '?'}`;
+    activityLine.textContent = `now: ${fmtActivity(s)}`;
+    const needs = s.response.match(/needs: (.*)/);
+    if (needs) needsLine.textContent = needs[0];
+
+    // Sleep button state
+    const act = s.current_activity;
+    isSleeping = act && (act.kind === 'SLEEPING' || act.kind === 'DREAMING');
+    if (isSleeping) {
+      sleepBtn.textContent = '\uD83C\uDF05 Wake';
+    } else {
+      sleepBtn.textContent = '\uD83D\uDCA4 Sleep';
+    }
+  } catch (e) { /* silent */ }
+}
+
+// ── Event stream via JSON polling ──
+async function pollEvents() {
+  try {
+    const res = await fetch(`${API}/api/v1/gualaloom/events?since=${lastEventTick}`);
+    const data = await res.json();
+    const events = data.events || [];
+    for (const ev of events) {
+      if (ev.tick > lastEventTick) lastEventTick = ev.tick;
+      addEvent(ev);
+      // Autonomous emission -> show in chat
+      if (ev.kind === 'emission' && ev.detail && ev.detail.content) {
+        addMsg('\uD83D\uDCAD ' + ev.detail.content, 'emission');
+      }
+    }
+  } catch (e) { /* silent */ }
+}
+
+function evClass(kind) {
+  if (kind.startsWith('activity_')) return 'ev-activity';
+  if (kind === 'motif_locked' || kind === 'corpus_completed') return 'ev-motif';
+  if (kind.startsWith('dream') || kind === 'sleep_complete' || kind === 'sleep_manual') return 'ev-dream';
+  if (kind === 'emission') return 'ev-emission';
+  if (kind.includes('suppressed')) return 'ev-muted';
+  return '';
+}
+
+function addEvent(ev) {
+  const d = document.createElement('div');
+  const cls = evClass(ev.kind);
+  d.className = 'ev ' + cls;
+  const now = new Date();
+  const ts = now.toTimeString().slice(0, 8);
+  let detail = '';
+  if (ev.detail) {
+    if (ev.detail.kind) detail += ' ' + ev.detail.kind;
+    if (ev.detail.target) detail += ' ' + ev.detail.target;
+    if (ev.detail.content) detail += ' "' + ev.detail.content + '"';
+    if (ev.detail.corpus_id) detail += ' ' + ev.detail.corpus_id;
+    if (ev.detail.times_through) detail += ' pass ' + ev.detail.times_through;
+    if (ev.detail.reason) detail += ' (' + ev.detail.reason + ')';
+  }
+  d.innerHTML = `<span class="ev-time">${ts}</span> <span class="ev-kind">${ev.kind}</span>${detail}`;
+  eventsDiv.insertBefore(d, eventsDiv.firstChild);
+  // Keep max 100 events in DOM
+  while (eventsDiv.children.length > 100) {
+    eventsDiv.removeChild(eventsDiv.lastChild);
+  }
+}
+
+// ── Sleep/Wake toggle ──
+async function toggleSleep() {
+  sleepBtn.disabled = true;
+  try {
+    if (isSleeping) {
+      // Wake: send /wake command
+      await fetch(`${API}/api/v1/gualaloom`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: 'joe', command: '/wake' }),
+      });
+      addMsg('(waking up)', 'system');
+    } else {
+      await fetch(`${API}/api/v1/gualaloom/sleep`, { method: 'POST' });
+      addMsg('(going to sleep)', 'system');
+    }
+  } catch (e) {
+    addMsg('(error)', 'system');
+  }
+  sleepBtn.disabled = false;
+  setTimeout(pollStatus, 500);
+}
+
+// ── Upload ──
+async function upload(kind, input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  addMsg(`(uploading ${kind}: ${file.name})`, 'system');
+  try {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(`${API}/api/v1/gualaloom/upload/${kind}`, {
+      method: 'POST',
+      body: form,
+    });
+    const data = await res.json();
+    addMsg(data.message || data.response || JSON.stringify(data), 'system');
+    setTimeout(pollStatus, 500);
+  } catch (e) {
+    addMsg(`(upload error: ${e.message})`, 'system');
+  }
+}
+
+// ── Send message ──
 async function sendMsg() {
   const text = input.value.trim();
   if (!text) return;
@@ -162,27 +443,19 @@ async function sendMsg() {
   btn.disabled = true;
 
   const isCmd = text.startsWith('/');
-  if (!isCmd) addMsg(text, 'user');
-  else addMsg(text, 'system');
+  addMsg(text, isCmd ? 'system' : 'user');
 
   try {
     const body = isCmd
       ? { text: '', command: text }
       : { text: text };
-
-    const API = 'https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
     const res = await fetch(`${API}/api/v1/gualaloom`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     const data = await res.json();
-    if (isCmd) {
-      addMsg(data.response, 'system');
-    } else {
-      addMsg(data.response, 'substrate');
-    }
-    status.textContent = `vocab: ${data.motifs} words`;
+    addMsg(data.response, isCmd ? 'system' : 'substrate');
   } catch (e) {
     addMsg('(connection error)', 'system');
   }
@@ -194,23 +467,15 @@ input.addEventListener('keydown', e => {
   if (e.key === 'Enter') sendMsg();
 });
 
-// Initial status check
+// ── Boot ──
 (async () => {
-  try {
-    const API = 'https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
-    const res = await fetch(`${API}/api/v1/gualaloom`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: '', command: '/status' }),
-    });
-    const data = await res.json();
-    status.textContent = `vocab: ${data.motifs} words`;
-    addMsg('awake. say something.', 'system');
-  } catch (e) {
-    status.textContent = 'connecting...';
-    addMsg('substrate is waking up. try again in a moment.', 'system');
-  }
+  await pollStatus();
+  addMsg('substrate running. say something.', 'system');
   input.focus();
+
+  // Poll status every 2s, events every 1s
+  setInterval(pollStatus, 2000);
+  setInterval(pollEvents, 1000);
 })();
 </script>
 </body>

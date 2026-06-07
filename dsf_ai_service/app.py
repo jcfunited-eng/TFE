@@ -721,22 +721,26 @@ async def gualaloom_chat(msg: GLMessage):
 # ════════════════════════════════════════════════════════════════
 
 @app.get("/api/v1/gualaloom/events")
-async def gualaloom_events(since: int = 0):
-    """Server-sent events of substrate activity."""
+async def gualaloom_events(since: int = 0, stream: bool = False):
+    """Substrate events. ?stream=true for SSE, default returns JSON array."""
     _gl_init()
-    import asyncio
+    if stream:
+        import asyncio
 
-    async def event_generator():
-        last_tick = since
-        while True:
-            events = _guala.get_recent_events(since_tick=last_tick, limit=50)
-            for ev in events:
-                if ev["tick"] > last_tick:
-                    last_tick = ev["tick"]
-                yield f"data: {json.dumps(ev)}\n\n"
-            await asyncio.sleep(1.0)
+        async def event_generator():
+            last_tick = since
+            while True:
+                events = _guala.get_recent_events(since_tick=last_tick, limit=50)
+                for ev in events:
+                    if ev["tick"] > last_tick:
+                        last_tick = ev["tick"]
+                    yield f"data: {json.dumps(ev)}\n\n"
+                await asyncio.sleep(1.0)
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
+    else:
+        events = _guala.get_recent_events(since_tick=since, limit=50)
+        return {"events": events}
 
 
 @app.post("/api/v1/gualaloom/sleep")
@@ -745,6 +749,56 @@ async def gualaloom_sleep():
     _gl_init()
     result = _guala.manual_sleep()
     return result
+
+
+# ════════════════════════════════════════════════════════════════
+# v7 Phase 5: Upload endpoints
+# GUALALOOM-V7-AUTONOMY-WC-2026-06-06
+# ════════════════════════════════════════════════════════════════
+
+@app.post("/api/v1/gualaloom/upload/book")
+async def gualaloom_upload_book(file: UploadFile = File(...)):
+    """Upload a text file as a new corpus for autonomous reading."""
+    _gl_init()
+    if not file.filename.endswith('.txt'):
+        raise HTTPException(400, "Book must be a .txt file")
+    content = await file.read()
+    if len(content) > 1024 * 1024:
+        raise HTTPException(400, "File too large (max 1MB)")
+    try:
+        text = content.decode('utf-8')
+    except UnicodeDecodeError:
+        raise HTTPException(400, "File must be UTF-8")
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    if not lines:
+        raise HTTPException(400, "File is empty")
+    title = file.filename.replace('.txt', '').replace('_', ' ')
+    corpus_id = file.filename.replace('.txt', '').replace(' ', '_').lower()
+    _guala._corpora[corpus_id] = CorpusItem(
+        corpus_id=corpus_id, title=title, lines=lines)
+    _guala._log_substrate_event("corpus_added",
+                                corpus_id=corpus_id, title=title,
+                                n_lines=len(lines))
+    return {"message": f"added \"{title}\" ({len(lines)} lines) to her library",
+            "corpus_id": corpus_id}
+
+
+@app.post("/api/v1/gualaloom/upload/picture")
+async def gualaloom_upload_picture(file: UploadFile = File(...)):
+    """Stub: picture upload (Phase 2)."""
+    return {"message": "vision not yet enabled. picture saved for Phase 2."}
+
+
+@app.post("/api/v1/gualaloom/upload/sound")
+async def gualaloom_upload_sound(file: UploadFile = File(...)):
+    """Stub: sound upload (Phase 3)."""
+    return {"message": "hearing not yet enabled. sound saved for Phase 3."}
+
+
+@app.post("/api/v1/gualaloom/upload/video")
+async def gualaloom_upload_video(file: UploadFile = File(...)):
+    """Stub: video upload (Phase 2)."""
+    return {"message": "vision not yet enabled. video saved for Phase 2."}
 
 
 # ════════════════════════════════════════════════════════════════
