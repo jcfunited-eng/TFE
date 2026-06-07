@@ -105,10 +105,10 @@ async def guala_say(content: str) -> dict:
 if __name__ == "__main__":
     import sys
     transport = "sse"
-    port = 8080
+    port = int(os.environ.get("PORT", "8080"))
     for i, arg in enumerate(sys.argv[1:], 1):
         if arg == "--transport" and i < len(sys.argv) - 1:
             transport = sys.argv[i + 1]
         if arg == "--port" and i < len(sys.argv) - 1:
             port = int(sys.argv[i + 1])
-    mcp.run(transport=transport)
+    mcp.run(transport=transport, port=port)

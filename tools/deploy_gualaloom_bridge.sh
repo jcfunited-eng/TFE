@@ -80,7 +80,7 @@ if [ "${EXISTING}" = "NONE" ]; then
         --network-mode "awsvpc" \
         --requires-compatibilities "FARGATE" \
         --cpu "256" --memory "512" \
-        --execution-role-arn "arn:aws:iam::${AWS_ACCOUNT}:role/ecsTaskExecutionRole" \
+        --execution-role-arn "arn:aws:iam::${AWS_ACCOUNT}:role/tfe-ecs-task-execution-role" \
         --container-definitions "[{
             \"name\": \"bridge\",
             \"image\": \"${IMAGE_URI}\",
