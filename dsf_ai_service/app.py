@@ -692,6 +692,33 @@ async def gualaloom_chat(msg: GLMessage):
         result = _guala.manual_sleep()
         return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
 
+    # ── /events — substrate event stream for UI polling ──
+    if cmd == "/events":
+        since_tick = 0
+        try:
+            since_tick = int(msg.text.strip()) if msg.text.strip() else 0
+        except ValueError:
+            pass
+        events = _guala.get_recent_events(since_tick=since_tick, limit=50)
+        return {"response": f"{len(events)} events", "motifs": _guala.introspect()["vocab"],
+                "events": events}
+
+    # ── /addbook:<filename> — add text as new corpus ──
+    if cmd.startswith("/addbook:"):
+        filename = cmd[len("/addbook:"):]
+        title = filename.replace('.txt', '').replace('_', ' ')
+        corpus_id = filename.replace('.txt', '').replace(' ', '_').lower()
+        lines = [l.strip() for l in msg.text.splitlines() if l.strip()]
+        if not lines:
+            return {"response": "empty book", "motifs": _guala.introspect()["vocab"]}
+        _guala._corpora[corpus_id] = CorpusItem(
+            corpus_id=corpus_id, title=title, lines=lines)
+        _guala._log_substrate_event("corpus_added",
+                                    corpus_id=corpus_id, title=title,
+                                    n_lines=len(lines))
+        return {"response": f"added \"{title}\" ({len(lines)} lines) to her library",
+                "motifs": _guala.introspect()["vocab"]}
+
     # ── Normal conversation — v5 substrate responds ──
     text = msg.text.strip()
     if not text:

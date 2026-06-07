@@ -342,10 +342,14 @@ async function pollStatus() {
   } catch (e) { /* silent */ }
 }
 
-// ── Event stream via JSON polling ──
+// ── Event stream via /events command through chat endpoint ──
 async function pollEvents() {
   try {
-    const res = await fetch(`${API}/api/v1/gualaloom/events?since=${lastEventTick}`);
+    const res = await fetch(`${API}/api/v1/gualaloom`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: String(lastEventTick), command: '/events' }),
+    });
     const data = await res.json();
     const events = data.events || [];
     for (const ev of events) {
@@ -396,7 +400,6 @@ async function toggleSleep() {
   sleepBtn.disabled = true;
   try {
     if (isSleeping) {
-      // Wake: send /wake command
       await fetch(`${API}/api/v1/gualaloom`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -404,7 +407,11 @@ async function toggleSleep() {
       });
       addMsg('(waking up)', 'system');
     } else {
-      await fetch(`${API}/api/v1/gualaloom/sleep`, { method: 'POST' });
+      await fetch(`${API}/api/v1/gualaloom`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: '', command: '/sleep' }),
+      });
       addMsg('(going to sleep)', 'system');
     }
   } catch (e) {
@@ -415,23 +422,27 @@ async function toggleSleep() {
 }
 
 // ── Upload ──
-async function upload(kind, input) {
-  const file = input.files[0];
+async function upload(kind, inputEl) {
+  const file = inputEl.files[0];
   if (!file) return;
-  input.value = '';
+  inputEl.value = '';
   addMsg(`(uploading ${kind}: ${file.name})`, 'system');
-  try {
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch(`${API}/api/v1/gualaloom/upload/${kind}`, {
-      method: 'POST',
-      body: form,
-    });
-    const data = await res.json();
-    addMsg(data.message || data.response || JSON.stringify(data), 'system');
-    setTimeout(pollStatus, 500);
-  } catch (e) {
-    addMsg(`(upload error: ${e.message})`, 'system');
+  if (kind === 'book') {
+    try {
+      const text = await file.text();
+      const res = await fetch(`${API}/api/v1/gualaloom`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text, command: '/addbook:' + file.name }),
+      });
+      const data = await res.json();
+      addMsg(data.response || JSON.stringify(data), 'system');
+      setTimeout(pollStatus, 500);
+    } catch (e) {
+      addMsg(`(upload error: ${e.message})`, 'system');
+    }
+  } else {
+    addMsg(`${kind} not yet enabled. saved for later.`, 'system');
   }
 }
 
