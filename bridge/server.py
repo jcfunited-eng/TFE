@@ -17,7 +17,7 @@ SUBSTRATE_URL = os.environ.get(
 )
 SUBSTRATE_KEY = os.environ.get("GUALALOOM_API_KEY")
 
-mcp = FastMCP("gualaloom-bridge")
+mcp = FastMCP("gualaloom-bridge", host="0.0.0.0", port=8080)
 
 
 def _headers():
@@ -103,12 +103,4 @@ async def guala_say(content: str) -> dict:
 
 
 if __name__ == "__main__":
-    import sys
-    transport = "sse"
-    port = int(os.environ.get("PORT", "8080"))
-    for i, arg in enumerate(sys.argv[1:], 1):
-        if arg == "--transport" and i < len(sys.argv) - 1:
-            transport = sys.argv[i + 1]
-        if arg == "--port" and i < len(sys.argv) - 1:
-            port = int(sys.argv[i + 1])
-    mcp.run(transport=transport, port=port)
+    mcp.run(transport="sse")
