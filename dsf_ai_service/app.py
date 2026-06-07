@@ -825,6 +825,153 @@ SEED_CORPORA["feelings_book"] = {
 }
 
 # v7: Legacy corpus as fallback reading material
+SEED_CORPORA["grammar_basics"] = {
+    "title": "Grammar Basics",
+    "lines": [
+        "a sentence has a subject and a verb",
+        "the subject tells who or what",
+        "the verb tells what happens",
+        "the cat sits is a sentence",
+        "cat is the subject", "sits is the verb",
+        "some sentences have an object",
+        "the dog chases the ball",
+        "dog is the subject", "chases is the verb", "ball is the object",
+        "a noun is a person place or thing",
+        "a verb is an action or a state",
+        "an adjective describes a noun",
+        "the big red ball", "big and red are adjectives",
+        "an adverb describes a verb",
+        "the cat runs quickly", "quickly is an adverb",
+        "a pronoun takes the place of a noun",
+        "he she it they we you i",
+        "he runs", "she sings", "they play", "we learn",
+        "a preposition shows position or direction",
+        "on the table", "under the bed", "in the box",
+        "beside the tree", "between the houses",
+        "a conjunction joins words or sentences",
+        "and but or so because",
+        "the cat and the dog", "big but gentle",
+        "i run or i walk", "i eat because i am hungry",
+        "an article comes before a noun",
+        "a an the", "a cat", "an apple", "the sun",
+        "the plural of cat is cats",
+        "the plural of box is boxes",
+        "the plural of baby is babies",
+        "the plural of child is children",
+        "the plural of mouse is mice",
+        "the past tense of run is ran",
+        "the past tense of eat is ate",
+        "the past tense of go is went",
+        "the past tense of see is saw",
+        "the past tense of give is gave",
+        "a question ends with a question mark",
+        "who what where when why how",
+        "who is there", "what is that", "where is the cat",
+        "when is dinner", "why is the sky blue", "how does it work",
+    ],
+}
+
+SEED_CORPORA["simple_dictionary"] = {
+    "title": "Simple Dictionary",
+    "lines": [
+        "apple is a fruit that is red or green",
+        "ball is a round thing you throw or catch",
+        "cat is a small animal with fur and whiskers",
+        "dog is an animal that barks and wags its tail",
+        "egg is something a bird lays",
+        "fish is an animal that lives in water and has fins",
+        "grass is the green plant that covers the ground",
+        "house is a building where people live",
+        "ice is frozen water", "juice is a drink made from fruit",
+        "key is a small metal thing that opens a lock",
+        "leaf is the flat green part of a plant",
+        "moon is the round bright thing in the night sky",
+        "nose is the part of your face you smell with",
+        "ocean is a very large body of salt water",
+        "pencil is a tool you write with",
+        "queen is a woman who rules a country",
+        "rain is water that falls from clouds",
+        "sun is the star that gives us light and warmth",
+        "tree is a tall plant with a trunk and branches",
+        "umbrella keeps you dry in the rain",
+        "voice is the sound you make when you speak",
+        "water is a clear liquid you drink",
+        "yard is the ground around a house",
+        "zero is the number that means nothing",
+        "friend is someone you like and who likes you",
+        "family is the people who love you and live with you",
+        "morning is the beginning of the day",
+        "night is when the sky is dark and you sleep",
+        "happy means feeling good inside",
+        "sad means feeling like you want to cry",
+        "kind means being nice and helpful to others",
+        "brave means doing something even when you are scared",
+        "gentle means being soft and careful",
+        "strong means having power to lift or push",
+    ],
+}
+
+SEED_CORPORA["opposites"] = {
+    "title": "Opposites",
+    "lines": [
+        "big is the opposite of small",
+        "hot is the opposite of cold",
+        "fast is the opposite of slow",
+        "up is the opposite of down",
+        "in is the opposite of out",
+        "open is the opposite of closed",
+        "light is the opposite of dark",
+        "hard is the opposite of soft",
+        "wet is the opposite of dry",
+        "happy is the opposite of sad",
+        "loud is the opposite of quiet",
+        "full is the opposite of empty",
+        "new is the opposite of old",
+        "near is the opposite of far",
+        "long is the opposite of short",
+        "thick is the opposite of thin",
+        "heavy is the opposite of light",
+        "clean is the opposite of dirty",
+        "smooth is the opposite of rough",
+        "sweet is the opposite of bitter",
+        "the big dog and the small cat",
+        "the hot sun and the cold snow",
+        "the fast rabbit and the slow turtle",
+    ],
+}
+
+SEED_CORPORA["simple_sentences"] = {
+    "title": "Simple Sentences",
+    "lines": [
+        "the cat sat on the mat",
+        "the dog ran in the yard",
+        "the bird flew over the tree",
+        "the fish swam in the pond",
+        "the boy kicked the ball",
+        "the girl drew a picture",
+        "the baby laughed and clapped",
+        "the man walked to the store",
+        "the woman read a book",
+        "the children played in the park",
+        "the sun set behind the mountains",
+        "the rain fell on the roof",
+        "the wind blew through the trees",
+        "the snow covered the ground",
+        "the flowers grew in the garden",
+        "the frog jumped into the water",
+        "the bear slept in the cave",
+        "the owl hooted in the night",
+        "the spider spun a web",
+        "the butterfly landed on a flower",
+        "i ate breakfast this morning",
+        "she went to school today",
+        "he played with his friends",
+        "they sang a song together",
+        "we built a house with blocks",
+    ],
+}
+
+# v7: Legacy corpus as fallback reading material
 SEED_CORPORA["legacy_seed"] = {"title": "Seed Corpus", "lines": CORPUS}
 
 
@@ -856,6 +1003,7 @@ def _gl_init():
 class GLMessage(BaseModel):
     text: str
     command: Optional[str] = None
+    source: Optional[str] = None   # v7-bridge: source-tagged input (joe/wc/c1)
 
 
 @app.get("/gualaloom")
@@ -1032,8 +1180,8 @@ async def gualaloom_chat(msg: GLMessage):
     if not text:
         return {"response": "...", "motifs": _guala.introspect()["vocab"]}
 
-    # Source detection: default to "joe" for now
-    source = "joe"
+    # Source detection: from message field or default to "joe"
+    source = msg.source if msg.source in {"joe", "wc", "c1"} else "joe"
 
     response = _guala.converse(text, source=source)
     _exchange_count += 1
