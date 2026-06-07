@@ -374,7 +374,7 @@ class Coordinator:
     # Presence constants (validated by 5 experiments, do not tune without re-modeling)
     PRESENCE_PULSE_INTERVAL = 50     # ticks between pulses
     PRESENCE_PULSE_SALIENCE = 0.5    # low — sustenance, not teaching
-    PRESENCE_TIMEOUT_TICKS = 10_000  # ~40 min at normal read pace
+    PRESENCE_TIMEOUT_TICKS = 1_500   # ~75s at autonomy loop rate (20 ticks/s)
     CONN_GAP_FRACTION = 0.4          # toward-target wake boost
     NEEDS_TARGET_CONN = 0.7          # connection target for wake toward-target
 

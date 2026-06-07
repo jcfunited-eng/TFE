@@ -326,7 +326,8 @@ async function pollStatus() {
     });
     const s = await res.json();
     const n = s.persistence_health || {};
-    statsLine.textContent = `vocab: ${s.motifs}  \u00b7  motifs: ${s.n_motifs || 0}  \u00b7  atlas: ${(s.atlas_health || {}).total_strength || '?'}`;
+    const atlasStr = (s.atlas_health || {}).total_strength;
+    statsLine.textContent = `vocab: ${s.motifs}  \u00b7  motifs: ${s.n_motifs || 0}  \u00b7  atlas: ${atlasStr != null ? atlasStr.toFixed(1) : '?'}`;
     activityLine.textContent = `now: ${fmtActivity(s)}`;
     const needs = s.response.match(/needs: (.*)/);
     if (needs) needsLine.textContent = needs[0];
@@ -478,15 +479,36 @@ input.addEventListener('keydown', e => {
   if (e.key === 'Enter') sendMsg();
 });
 
+// ── Presence heartbeat ──
+let lastUserActivity = Date.now();
+['mousemove', 'keydown', 'scroll', 'touchstart'].forEach(evt => {
+  document.addEventListener(evt, () => { lastUserActivity = Date.now(); }, { passive: true });
+});
+
+async function presenceHeartbeat() {
+  // Only heartbeat if tab visible AND user active within 30s
+  if (document.visibilityState !== 'visible') return;
+  if (Date.now() - lastUserActivity > 30000) return;
+  try {
+    await fetch(`${API}/api/v1/gualaloom`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: 'joe', command: '/presence' }),
+    });
+  } catch (e) { /* silent */ }
+}
+
 // ── Boot ──
 (async () => {
   await pollStatus();
   addMsg('substrate running. say something.', 'system');
   input.focus();
 
-  // Poll status every 2s, events every 1s
+  // Poll status every 2s, events every 1s, presence every 20s
   setInterval(pollStatus, 2000);
   setInterval(pollEvents, 1000);
+  setInterval(presenceHeartbeat, 20000);
+  presenceHeartbeat(); // initial
 })();
 </script>
 </body>

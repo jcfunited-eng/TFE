@@ -530,6 +530,300 @@ SEED_CORPORA = {
     },
 }
 
+# v7 corpora expansion — GUALALOOM-V7-CORPORA-EXPANSION-WC-2026-06-07
+# Original sentences capturing vocabulary and structure patterns
+# from age-appropriate reading material.
+
+SEED_CORPORA["hungry_caterpillar"] = {
+    "title": "The Hungry Caterpillar",
+    "lines": [
+        "on monday the caterpillar ate one apple",
+        "on tuesday the caterpillar ate two pears",
+        "on wednesday the caterpillar ate three plums",
+        "on thursday the caterpillar ate four strawberries",
+        "on friday the caterpillar ate five oranges",
+        "the caterpillar was very hungry",
+        "the caterpillar ate and ate and ate",
+        "one piece of cake", "one ice cream cone",
+        "one pickle", "one slice of cheese",
+        "one slice of salami", "one lollipop",
+        "one piece of pie", "one sausage",
+        "one cupcake", "one slice of watermelon",
+        "the caterpillar had a stomachache",
+        "the caterpillar ate one nice green leaf",
+        "the caterpillar felt much better",
+        "the caterpillar was not hungry anymore",
+        "the caterpillar was a big fat caterpillar",
+        "the caterpillar built a small house around himself",
+        "the caterpillar stayed inside for more than two weeks",
+        "the caterpillar pushed his way out",
+        "the caterpillar was a beautiful butterfly",
+    ],
+}
+
+SEED_CORPORA["brown_bear"] = {
+    "title": "Brown Bear",
+    "lines": [
+        "brown bear brown bear what do you see",
+        "i see a red bird looking at me",
+        "red bird red bird what do you see",
+        "i see a yellow duck looking at me",
+        "yellow duck yellow duck what do you see",
+        "i see a blue horse looking at me",
+        "blue horse blue horse what do you see",
+        "i see a green frog looking at me",
+        "green frog green frog what do you see",
+        "i see a purple cat looking at me",
+        "purple cat purple cat what do you see",
+        "i see a white dog looking at me",
+        "white dog white dog what do you see",
+        "i see a black sheep looking at me",
+        "black sheep black sheep what do you see",
+        "i see a goldfish looking at me",
+        "goldfish goldfish what do you see",
+        "i see children looking at me",
+        "children children what do you see",
+        "we see a brown bear and a red bird",
+        "we see a yellow duck and a blue horse",
+        "we see a green frog and a purple cat",
+        "we see a white dog and a black sheep",
+        "we see a goldfish and children",
+        "that is what we see",
+    ],
+}
+
+SEED_CORPORA["chicka_boom"] = {
+    "title": "Letter Tree",
+    "lines": [
+        "a told b and b told c",
+        "i will meet you at the top of the tree",
+        "d e f g h i j k",
+        "l m n o p q r s t",
+        "u v w x y and z",
+        "the whole alphabet up the tree",
+        "but the tree could not hold them all",
+        "and they all came tumbling down",
+        "a skinned knee", "b a stubbed toe",
+        "c said ouch", "d said oh no",
+        "the sun came up and so did they",
+        "back up the tree to play all day",
+        "a b c d e f g",
+        "h i j k l m n o p",
+        "q r s t u v w",
+        "x y z the tree is free",
+    ],
+}
+
+SEED_CORPORA["wild_things"] = {
+    "title": "Wild Things",
+    "lines": [
+        "the night max wore his wolf suit",
+        "and made mischief of one kind and another",
+        "his mother called him wild thing",
+        "max said i will eat you up",
+        "so he was sent to bed without eating anything",
+        "that very night in his room a forest grew",
+        "and grew and grew until the ceiling hung with vines",
+        "and the walls became the world all around",
+        "and an ocean tumbled by with a private boat for max",
+        "and he sailed off through night and day",
+        "and in and out of weeks",
+        "and almost over a year",
+        "to where the wild things are",
+        "and when he came to the place where the wild things are",
+        "they roared their terrible roars",
+        "and gnashed their terrible teeth",
+        "and rolled their terrible eyes",
+        "and showed their terrible claws",
+        "max said be still",
+        "and tamed them with the magic trick",
+        "of staring into their yellow eyes without blinking",
+        "and they were frightened and called him the most wild thing of all",
+        "and made him king of all wild things",
+        "let the wild rumpus start",
+        "now stop max said",
+        "max the king of all wild things was lonely",
+        "and wanted to be where someone loved him best of all",
+        "max sailed back over a year",
+        "and in and out of weeks and through a day",
+        "and into the night of his very own room",
+        "where he found his supper waiting for him",
+        "and it was still hot",
+    ],
+}
+
+SEED_CORPORA["corduroy"] = {
+    "title": "Corduroy",
+    "lines": [
+        "corduroy is a bear who lives in a big store",
+        "he sits on a shelf with many other animals",
+        "a girl named lisa sees corduroy",
+        "she says look there is the bear i always wanted",
+        "her mother says not today dear",
+        "he does not look new",
+        "he has lost a button",
+        "that night corduroy climbs down from the shelf",
+        "i think i lost a button he says",
+        "he searches the store all night",
+        "he looks on the furniture",
+        "he looks on the escalator",
+        "he pulls a button on a mattress",
+        "the mattress wobbles and corduroy falls",
+        "a guard finds him and puts him back on the shelf",
+        "the next morning lisa comes back",
+        "she has saved her money",
+        "she buys corduroy and takes him home",
+        "she sews a button on his overalls",
+        "i like you the way you are says lisa",
+        "but you will be more comfortable with your button",
+        "you must be a friend says corduroy",
+        "i have always wanted a friend",
+        "me too says lisa and she gives him a big hug",
+    ],
+}
+
+SEED_CORPORA["frog_and_toad"] = {
+    "title": "Frog and Toad",
+    "lines": [
+        "frog ran up the path to toads house",
+        "he knocked on the front door",
+        "toad toad said frog wake up it is spring",
+        "i am not here said toad",
+        "but toad said frog the sun is shining",
+        "the snow is melting",
+        "toad said go away i am not here",
+        "frog walked into the house",
+        "it was dark and all the shutters were closed",
+        "toad where are you said frog",
+        "toad was in bed with the blanket over his head",
+        "toad i have a story to tell you said frog",
+        "tell it tomorrow said toad",
+        "frog sat close to toad",
+        "i am glad you woke up said frog",
+        "me too said toad",
+        "shall we go for a walk asked frog",
+        "yes let us go for a walk said toad",
+        "they walked along the river together",
+        "they found a fine place and sat down",
+        "this is a good day said toad",
+        "yes said frog it is the best day",
+        "frog and toad were happy",
+        "they sat there feeling the warm sun",
+    ],
+}
+
+SEED_CORPORA["amelia_bedelia"] = {
+    "title": "Amelia Bedelia",
+    "lines": [
+        "amelia bedelia went to work for the first time",
+        "she found a list of things to do",
+        "the list said change the towels",
+        "amelia bedelia got scissors and cut the towels",
+        "now they are changed she said",
+        "the list said dust the furniture",
+        "she put dusting powder on every piece",
+        "the list said draw the drapes",
+        "amelia bedelia sat down and drew a picture of the drapes",
+        "the list said put the lights out",
+        "she took every light outside and put them on the clothesline",
+        "the list said dress the chicken",
+        "amelia bedelia found some cloth and dressed the chicken in it",
+        "the list said measure two cups of rice",
+        "she took a ruler and measured each cup",
+        "amelia bedelia said i do exactly what they tell me to do",
+        "she tried very hard to do everything right",
+        "she made a beautiful pie",
+        "everyone loved the pie so much",
+        "they forgave all the mix ups",
+        "you are the best pie maker in the world they said",
+        "amelia bedelia smiled",
+    ],
+}
+
+SEED_CORPORA["counting_book"] = {
+    "title": "Counting Book",
+    "lines": [
+        "one sun in the sky",
+        "two eyes on my face",
+        "three kittens playing",
+        "four wheels on a car",
+        "five fingers on a hand",
+        "six legs on a bug and two more on another bug",
+        "seven days in a week",
+        "eight arms on an octopus",
+        "nine birds sitting on a fence",
+        "ten toes on my feet",
+        "one two three four five",
+        "six seven eight nine ten",
+        "i can count to ten",
+        "ten nine eight seven six",
+        "five four three two one",
+        "i can count back down",
+        "one is the loneliest number",
+        "two is company",
+        "three is a crowd",
+        "four is enough for a game",
+        "five makes a team",
+    ],
+}
+
+SEED_CORPORA["colors_book"] = {
+    "title": "Colors Book",
+    "lines": [
+        "red is the color of an apple",
+        "red is the color of a fire truck",
+        "orange is the color of an orange",
+        "orange is the color of a sunset",
+        "yellow is the color of the sun",
+        "yellow is the color of a banana",
+        "green is the color of the grass",
+        "green is the color of the leaves",
+        "blue is the color of the sky",
+        "blue is the color of the ocean",
+        "purple is the color of grapes",
+        "purple is the color of a plum",
+        "pink is the color of a flower",
+        "brown is the color of the earth",
+        "black is the color of the night",
+        "white is the color of the snow",
+        "the rainbow has many colors",
+        "red orange yellow green blue purple",
+        "i see colors everywhere",
+        "the world is full of colors",
+    ],
+}
+
+SEED_CORPORA["feelings_book"] = {
+    "title": "Feelings Book",
+    "lines": [
+        "sometimes i feel happy",
+        "when i feel happy i smile and laugh",
+        "sometimes i feel sad",
+        "when i feel sad i want to be held",
+        "sometimes i feel angry",
+        "when i feel angry my face gets hot",
+        "sometimes i feel scared",
+        "when i feel scared i want to hide",
+        "sometimes i feel brave",
+        "when i feel brave i try new things",
+        "sometimes i feel tired",
+        "when i feel tired i close my eyes",
+        "sometimes i feel excited",
+        "when i feel excited i jump up and down",
+        "sometimes i feel lonely",
+        "when i feel lonely i look for a friend",
+        "sometimes i feel proud",
+        "when i feel proud my heart feels big",
+        "sometimes i feel curious",
+        "when i feel curious i ask questions",
+        "sometimes i feel calm",
+        "when i feel calm i breathe slowly",
+        "all of my feelings are okay",
+        "feelings come and feelings go",
+        "i am still me no matter how i feel",
+    ],
+}
+
 # v7: Legacy corpus as fallback reading material
 SEED_CORPORA["legacy_seed"] = {"title": "Seed Corpus", "lines": CORPUS}
 
@@ -691,6 +985,20 @@ async def gualaloom_chat(msg: GLMessage):
     if cmd == "/sleep":
         result = _guala.manual_sleep()
         return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
+
+    # ── /presence — passive presence heartbeat from UI ──
+    if cmd == "/presence":
+        source = msg.text.strip().lower() if msg.text.strip() else "joe"
+        if source in {"joe", "wc", "c1"}:
+            if not _guala.coordinator._presence.get(source, False):
+                # First presence → wake
+                _guala.coordinator.wake(source, _guala, _guala.needs, _guala.atlas)
+                _guala._log_substrate_event("presence_heartbeat",
+                                           source=source, action="wake")
+            else:
+                # Extend timeout by updating last_input_tick
+                _guala.coordinator.update_last_input(source, _guala.tick)
+        return {"response": "ok", "motifs": _guala.introspect()["vocab"]}
 
     # ── /events — substrate event stream for UI polling ──
     if cmd == "/events":
