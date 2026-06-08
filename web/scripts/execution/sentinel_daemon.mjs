@@ -109,6 +109,25 @@ async function main() {
         console.error(`[SENTINEL-DAEMON] Error: ${err.message}`);
       }
 
+      // ── HARD KILL SWITCH: skip ALL entry logic when entries are halted ──
+      // Reads TFE_ENTRIES_HALTED env var OR pee1_execution_config.entries_halted.
+      // Independent of the cash gate — this is the guaranteed stop.
+      let entriesHalted = process.env.TFE_ENTRIES_HALTED === "1";
+      if (!entriesHalted) {
+        try {
+          const haltRes = await pool.query(
+            `SELECT value FROM pee1_execution_config WHERE key = 'entries_halted' LIMIT 1`
+          );
+          entriesHalted = haltRes.rows[0]?.value === "true";
+        } catch { /* non-fatal — env var is the primary kill */ }
+      }
+      if (entriesHalted) {
+        console.log(`[SENTINEL-DAEMON] ENTRIES HALTED — kill switch active, skipping all entry channels`);
+        // Still run sentinel (exits), just skip all entries below
+        await sleep(POLL_INTERVAL_MS);
+        continue;
+      }
+
       // ── Cash gate: shared across ALL entry channels ────────────────────
       // Fetch once per cycle, decrement locally after each successful order.
       // This prevents burst-ordering: placing N orders in one loop when

@@ -1671,6 +1671,7 @@ fi
 jq \
   --arg IMAGE "$IMAGE_URI" \
   --arg FILTER_SOURCE "$SCREENER_FILTER_SOURCE_BASE_URL" \
+  --arg ENTRIES_HALTED "${TFE_ENTRIES_HALTED:-1}" \
   --arg GIT_COMMIT_SHA "$GIT_COMMIT_SHA" \
   --arg RUNTIME_DB_SECRET_ARN "$CURRENT_RUNTIME_DB_SECRET_ARN" \
   --arg SOURCE_ARCHIVE "$S3_ARCHIVE" \
@@ -1693,6 +1694,7 @@ jq \
           and .name != "TFE_DEPLOY_IMAGE_URI"
           and .name != "TFE_DEPLOY_TIMESTAMP_UTC"
           and .name != "TFE_DECISION_ENGINE"
+          and .name != "TFE_ENTRIES_HALTED"
         ))
       | if ($FILTER_SOURCE | length) > 0 then
           map(select(.name != "TFE_SCREENER_FILTER_SOURCE_BASE_URL"))
@@ -1714,6 +1716,11 @@ jq \
         end)
       | . + (if ($FILTER_SOURCE | length) > 0 then
           [{name: "TFE_SCREENER_FILTER_SOURCE_BASE_URL", value: $FILTER_SOURCE}]
+        else
+          []
+        end)
+      | . + (if ($ENTRIES_HALTED | length) > 0 then
+          [{name: "TFE_ENTRIES_HALTED", value: $ENTRIES_HALTED}]
         else
           []
         end)
