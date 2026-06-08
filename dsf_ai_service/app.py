@@ -1181,6 +1181,35 @@ async def gualaloom_chat(msg: GLMessage):
         return {"response": f"added \"{title}\" ({len(lines)} lines) to her library",
                 "motifs": _guala.introspect()["vocab"]}
 
+    # ── /addpicture:<filename> — decode base64 image and register ──
+    if cmd.startswith("/addpicture:"):
+        import base64, hashlib
+        filename = cmd[len("/addpicture:"):]
+        title = filename.rsplit('.', 1)[0] if '.' in filename else filename
+        b64_data = msg.text.strip()
+        if not b64_data:
+            return {"response": "no image data", "motifs": _guala.introspect()["vocab"]}
+        try:
+            img_bytes = base64.b64decode(b64_data)
+            from PIL import Image
+            import io as _io
+            img = Image.open(_io.BytesIO(img_bytes)).convert('L')
+            img = img.resize((64, 64))
+            grid = np.array(img, dtype=np.float64) / 255.0
+        except Exception as e:
+            return {"response": f"image decode error: {e}",
+                    "motifs": _guala.introspect()["vocab"]}
+        item_id = hashlib.md5(img_bytes).hexdigest()[:12]
+        pic = PictureItem(item_id=item_id, title=title,
+                          intensity_grid=grid, source="upload",
+                          shown_at_tick=_guala.tick)
+        _guala._pictures[item_id] = pic
+        _guala._log_substrate_event("picture_uploaded",
+                                    item_id=item_id, title=title)
+        return {"response": f"showed her \"{title}\" ({grid.shape[0]}x{grid.shape[1]}). "
+                            f"she'll look at it when curiosity drives her.",
+                "motifs": _guala.introspect()["vocab"]}
+
     # ── Normal conversation — v5 substrate responds ──
     text = msg.text.strip()
     if not text:

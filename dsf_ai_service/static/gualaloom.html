@@ -450,8 +450,26 @@ async function upload(kind, inputEl) {
     } catch (e) {
       addMsg(`(upload error: ${e.message})`, 'system');
     }
+  } else if (kind === 'picture') {
+    try {
+      const reader = new FileReader();
+      reader.onload = async function() {
+        const b64 = reader.result.split(',')[1];
+        const res = await fetch(`${API}/api/v1/gualaloom`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: b64, command: '/addpicture:' + file.name }),
+        });
+        const data = await res.json();
+        addMsg(data.response || JSON.stringify(data), 'system');
+        setTimeout(pollStatus, 500);
+      };
+      reader.readAsDataURL(file);
+    } catch (e) {
+      addMsg(`(upload error: ${e.message})`, 'system');
+    }
   } else {
-    addMsg(`${kind} not yet enabled. saved for later.`, 'system');
+    addMsg(`${kind} not yet enabled. coming in Phase 3-4.`, 'system');
   }
 }
 
