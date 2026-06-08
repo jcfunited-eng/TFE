@@ -462,7 +462,7 @@ import json
 # ════════════════════════════════════════════════════════════════
 
 from dsf_ai_service.v4.gualaloom_v5_engine import (
-    Guala, CORPUS, CorpusItem, SensoryItem,
+    Guala, CORPUS, CorpusItem, SensoryItem, PictureItem, VideoItem,
 )
 from fastapi.responses import StreamingResponse
 
@@ -1268,8 +1268,30 @@ async def gualaloom_upload_book(file: UploadFile = File(...)):
 
 @app.post("/api/v1/gualaloom/upload/picture")
 async def gualaloom_upload_picture(file: UploadFile = File(...)):
-    """Stub: picture upload (Phase 2)."""
-    return {"message": "vision not yet enabled. picture saved for Phase 2."}
+    """Upload a picture for visual perception."""
+    _gl_init()
+    import hashlib
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(400, "File too large (max 10MB)")
+    try:
+        from PIL import Image
+        import io as _io
+        img = Image.open(_io.BytesIO(content)).convert('L')  # grayscale
+        img = img.resize((64, 64))  # normalize size for krimelack
+        grid = np.array(img, dtype=np.float64) / 255.0
+    except Exception as e:
+        raise HTTPException(400, f"Cannot decode image: {e}")
+    item_id = hashlib.md5(content).hexdigest()[:12]
+    title = file.filename or item_id
+    pic = PictureItem(item_id=item_id, title=title,
+                      intensity_grid=grid, source="upload",
+                      shown_at_tick=_guala.tick)
+    _guala._pictures[item_id] = pic
+    _guala._log_substrate_event("picture_uploaded",
+                                item_id=item_id, title=title)
+    return {"message": f"picture \"{title}\" uploaded ({grid.shape[0]}x{grid.shape[1]})",
+            "item_id": item_id}
 
 
 @app.post("/api/v1/gualaloom/upload/sound")
@@ -1280,8 +1302,61 @@ async def gualaloom_upload_sound(file: UploadFile = File(...)):
 
 @app.post("/api/v1/gualaloom/upload/video")
 async def gualaloom_upload_video(file: UploadFile = File(...)):
-    """Stub: video upload (Phase 2)."""
-    return {"message": "vision not yet enabled. video saved for Phase 2."}
+    """Upload a video for visual perception (ffmpeg decode to grayscale frames)."""
+    _gl_init()
+    import hashlib, tempfile, subprocess
+    content = await file.read()
+    if len(content) > 50 * 1024 * 1024:
+        raise HTTPException(400, "File too large (max 50MB)")
+    item_id = hashlib.md5(content).hexdigest()[:12]
+    title = file.filename or item_id
+    # Write to temp file for ffmpeg
+    tmp_dir = tempfile.mkdtemp(prefix="guala_vid_")
+    video_path = os.path.join(tmp_dir, "input.mp4")
+    with open(video_path, "wb") as f:
+        f.write(content)
+    frame_dir = os.path.join(tmp_dir, "frames")
+    os.makedirs(frame_dir, exist_ok=True)
+    audio_path = os.path.join(tmp_dir, "audio.wav")
+    try:
+        # Decode to 160x120 grayscale @ 15fps
+        subprocess.run([
+            "ffmpeg", "-i", video_path, "-vf",
+            "scale=160:120,format=gray", "-r", "15",
+            os.path.join(frame_dir, "frame_%05d.png"),
+            "-y", "-loglevel", "error"
+        ], check=True, timeout=60)
+        # Extract audio (for Phase 3)
+        subprocess.run([
+            "ffmpeg", "-i", video_path, "-vn", "-ar", "16000",
+            "-ac", "1", audio_path,
+            "-y", "-loglevel", "error"
+        ], timeout=60)
+    except FileNotFoundError:
+        return {"message": "ffmpeg not available — video decode requires ffmpeg"}
+    except Exception as e:
+        return {"message": f"video decode error: {e}"}
+    # Convert PNG frames to numpy arrays
+    frame_files = sorted(f for f in os.listdir(frame_dir) if f.endswith('.png'))
+    for fname in frame_files:
+        from PIL import Image
+        fpath = os.path.join(frame_dir, fname)
+        img = Image.open(fpath).convert('L')
+        arr = np.array(img, dtype=np.float64) / 255.0
+        np.save(fpath.replace('.png', '.npy'), arr)
+    n_frames = len(frame_files)
+    duration_ms = int(n_frames / 15.0 * 1000)
+    vid = VideoItem(item_id=item_id, title=title,
+                    frame_dir=frame_dir,
+                    audio_path=audio_path if os.path.exists(audio_path) else "",
+                    duration_ms=duration_ms, n_frames=n_frames,
+                    source="upload", shown_at_tick=_guala.tick)
+    _guala._videos[item_id] = vid
+    _guala._log_substrate_event("video_uploaded",
+                                item_id=item_id, title=title,
+                                n_frames=n_frames, duration_ms=duration_ms)
+    return {"message": f"video \"{title}\" decoded ({n_frames} frames, {duration_ms}ms)",
+            "item_id": item_id}
 
 
 # ════════════════════════════════════════════════════════════════

@@ -313,6 +313,14 @@ function fmtActivity(s) {
   if (kind === 'IDLE') return 'idle';
   if (kind === 'EMITTING') return 'thinking...';
   if (kind === 'ATTENDING') return `attending ${target || ''}`;
+  if (kind === 'ATTENDING_VISUAL') {
+    const pics = (s.pictures || []).find(p => p.item_id === target);
+    return `looking at "${pics ? pics.title : target}"`;
+  }
+  if (kind === 'ATTENDING_VIDEO') {
+    const vids = (s.videos || []).find(v => v.item_id === target);
+    return `watching "${vids ? vids.title : target}"`;
+  }
   return kind.toLowerCase();
 }
 

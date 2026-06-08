@@ -76,23 +76,28 @@ NEEDS_TARGET_V7 = 0.7       # target for all three needs (autonomy model)
 
 ACTIVITY_TICK_BUDGETS = {
     "READING": 2000, "PLAYING": 1500, "SLEEPING": 5000, "DREAMING": 3000,
-    "ATTENDING": 1000, "EMITTING": 100, "IDLE": 500,
+    "ATTENDING": 1000, "ATTENDING_VISUAL": 2000, "ATTENDING_VIDEO": 4000,
+    "EMITTING": 100, "IDLE": 500,
 }
 
 ACTIVITY_NOVELTY_PAYOFF = {
     "READING_NEW": 0.7, "READING_REREAD": 0.1, "PLAYING": 0.3,
     "SLEEPING": -0.1, "DREAMING": 0.4, "ATTENDING_NEW": 0.8,
-    "ATTENDING_REPEAT": 0.05, "EMITTING": 0.0, "IDLE": -0.05,
+    "ATTENDING_REPEAT": 0.05, "ATTENDING_VISUAL_NEW": 0.85,
+    "ATTENDING_VISUAL_REPEAT": 0.1, "ATTENDING_VIDEO_NEW": 0.9,
+    "ATTENDING_VIDEO_REPEAT": 0.15, "EMITTING": 0.0, "IDLE": -0.05,
 }
 
 ACTIVITY_STABILITY_PAYOFF = {
     "READING": 0.05, "PLAYING": 0.0, "SLEEPING": 0.5, "DREAMING": 0.2,
-    "ATTENDING": 0.0, "EMITTING": -0.1, "IDLE": 0.1,
+    "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_VIDEO": 0.0,
+    "EMITTING": -0.1, "IDLE": 0.1,
 }
 
 ACTIVITY_CONNECTION_PAYOFF = {
     "READING": 0.0, "PLAYING": 0.0, "SLEEPING": 0.0, "DREAMING": 0.0,
-    "ATTENDING": 0.0, "EMITTING": 0.3, "IDLE": -0.05,
+    "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_VIDEO": 0.0,
+    "EMITTING": 0.3, "IDLE": -0.05,
 }
 
 EMISSION_COHESION_THRESHOLD = 0.65
@@ -137,6 +142,38 @@ class SensoryItem:
     item_id: str
     kind: str       # "picture" or "sound"
     title: str
+    times_attended: int = 0
+    last_attended_tick: int = 0
+
+    def is_new(self):
+        return self.times_attended == 0
+
+
+@dataclass
+@dataclass
+class PictureItem:
+    item_id: str
+    title: str
+    intensity_grid: object  # 2D numpy array [0,1] grayscale
+    source: str = ""
+    shown_at_tick: int = 0
+    times_attended: int = 0
+    last_attended_tick: int = 0
+
+    def is_new(self):
+        return self.times_attended == 0
+
+
+@dataclass
+class VideoItem:
+    item_id: str
+    title: str
+    frame_dir: str        # path to decoded grayscale frames
+    audio_path: str = ""  # stored for Phase 3
+    duration_ms: int = 0
+    n_frames: int = 0
+    source: str = ""
+    shown_at_tick: int = 0
     times_attended: int = 0
     last_attended_tick: int = 0
 
@@ -727,6 +764,13 @@ class Guala:
         # source memory for introspection — who's talked to her, how often
         self.source_history = defaultdict(int)
 
+        # v7 Phase 2: Visual perception
+        from dsf_ai_service.visual_krimelack import SightSection
+        self.sight = SightSection()
+        self._pictures = {}    # item_id -> PictureItem
+        self._videos = {}      # item_id -> VideoItem
+        self._visual_fragments = []  # accumulated fragments
+
         # v7: Autonomy state
         self._current_activity = None
         self._activity_history = []
@@ -1213,6 +1257,10 @@ class Guala:
                     self._atick_playing(a)
                 elif a.kind == "ATTENDING":
                     self._atick_attending(a)
+                elif a.kind == "ATTENDING_VISUAL":
+                    self._atick_attending_visual(a)
+                elif a.kind == "ATTENDING_VIDEO":
+                    self._atick_attending_video(a)
                 elif a.kind == "EMITTING":
                     self._atick_emitting(a)
                 # Non-reading: manual atlas decay + coordinator
@@ -1237,6 +1285,11 @@ class Guala:
             candidates.append(("READING", cid))
         for sid in self._sensory_items:
             candidates.append(("ATTENDING", sid))
+        # Phase 2: visual items
+        for pid in self._pictures:
+            candidates.append(("ATTENDING_VISUAL", pid))
+        for vid in self._videos:
+            candidates.append(("ATTENDING_VIDEO", vid))
         # Emission: only if pair-bond source present + cooldown elapsed
         if (any(self.coordinator._presence.get(s, False)
                 and self.coordinator._pair_bond.get(s, False)
@@ -1262,6 +1315,16 @@ class Guala:
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_NEW"]
                           if s.is_new()
                           else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_REPEAT"])
+        elif kind == "ATTENDING_VISUAL" and target in self._pictures:
+            p = self._pictures[target]
+            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_NEW"]
+                          if p.is_new()
+                          else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"])
+        elif kind == "ATTENDING_VIDEO" and target in self._videos:
+            v = self._videos[target]
+            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_NEW"]
+                          if v.is_new()
+                          else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_REPEAT"])
         else:
             nov_payoff = ACTIVITY_NOVELTY_PAYOFF.get(kind, 0.0)
 
@@ -1382,6 +1445,84 @@ class Guala:
         if self.tick >= a.expected_end_tick - 1:
             si.times_attended += 1
             si.last_attended_tick = self.tick
+
+    def _atick_attending_visual(self, a):
+        """Phase 2: Attend to a picture — saccaded foveation through krimelack."""
+        from dsf_ai_service.visual_krimelack import view_picture
+        pic = self._pictures.get(a.target)
+        if not pic:
+            return
+        # Run full viewing at activity start (once per activity)
+        if not a.metadata.get("_viewed"):
+            fragments = view_picture(
+                pic.intensity_grid, source_id=pic.item_id,
+                born_tick=self.tick, seed=self.tick % 10000)
+            self._visual_fragments.extend(fragments)
+            # Process through sight section
+            motif, is_new, overlap = self.sight.process_viewing(
+                fragments, pic.item_id, self.tick)
+            if motif:
+                # Record in atlas for cross-modal binding
+                chi_val = motif.motif_id % 100  # simplified chi address
+                self.atlas.record("sight", motif.motif_id, chi_val,
+                                 self.tick, salience=1.2)
+                self._log_substrate_event(
+                    "visual_motif_committed" if is_new else "visual_motif_fired",
+                    motif_id=motif.motif_id, overlap=round(overlap, 3),
+                    source_id=pic.item_id, n_fragments=len(fragments))
+            a.metadata["_viewed"] = True
+            a.metadata["n_fragments"] = len(fragments)
+        # Novelty effect
+        gain = 0.003 if pic.is_new() else 0.0005
+        self.needs.novelty = min(1.0, self.needs.novelty + gain)
+        # Mark attended at end
+        if self.tick >= a.expected_end_tick - 1:
+            pic.times_attended += 1
+            pic.last_attended_tick = self.tick
+
+    def _atick_attending_video(self, a):
+        """Phase 2: Attend to video — saccade across decoded frames."""
+        vid = self._videos.get(a.target)
+        if not vid:
+            return
+        # Load frames on demand
+        if not a.metadata.get("_viewed"):
+            try:
+                import os
+                frame_files = sorted(
+                    f for f in os.listdir(vid.frame_dir)
+                    if f.endswith('.npy'))
+                # Saccade across a sample of frames (not all)
+                from dsf_ai_service.visual_krimelack import view_picture
+                sample_step = max(1, len(frame_files) // 10)
+                all_fragments = []
+                for i in range(0, len(frame_files), sample_step):
+                    frame = np.load(os.path.join(vid.frame_dir, frame_files[i]))
+                    frags = view_picture(
+                        frame, source_id=vid.item_id,
+                        born_tick=self.tick + i, seed=(self.tick + i) % 10000,
+                        n_fixations=4, ticks_per_fixation=100)
+                    all_fragments.extend(frags)
+                self._visual_fragments.extend(all_fragments)
+                motif, is_new, overlap = self.sight.process_viewing(
+                    all_fragments, vid.item_id, self.tick)
+                if motif:
+                    chi_val = motif.motif_id % 100
+                    self.atlas.record("sight", motif.motif_id, chi_val,
+                                     self.tick, salience=1.2)
+                    self._log_substrate_event(
+                        "video_motif_committed" if is_new else "video_motif_fired",
+                        motif_id=motif.motif_id, overlap=round(overlap, 3),
+                        source_id=vid.item_id, n_fragments=len(all_fragments))
+                a.metadata["_viewed"] = True
+            except Exception as e:
+                self._log_substrate_event("video_attend_error", error=str(e))
+                a.metadata["_viewed"] = True
+        gain = 0.004 if vid.is_new() else 0.0006
+        self.needs.novelty = min(1.0, self.needs.novelty + gain)
+        if self.tick >= a.expected_end_tick - 1:
+            vid.times_attended += 1
+            vid.last_attended_tick = self.tick
 
     def _atick_emitting(self, a):
         """Emission: fires once at start, satisfies connection-need."""
@@ -2152,6 +2293,16 @@ class Guala:
                                "title": s.title,
                                "times_attended": s.times_attended}
                               for s in self._sensory_items.values()],
+            # v7 Phase 2: visual perception
+            "n_visual_fragments": len(self._visual_fragments),
+            "n_visual_motifs": len(self.sight.motifs),
+            "sight_section": self.sight.snapshot(),
+            "pictures": [{"item_id": p.item_id, "title": p.title,
+                          "times_attended": p.times_attended}
+                         for p in self._pictures.values()],
+            "videos": [{"item_id": v.item_id, "title": v.title,
+                        "times_attended": v.times_attended}
+                       for v in self._videos.values()],
         }
 
 
