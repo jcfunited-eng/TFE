@@ -595,28 +595,99 @@ class V7Session:
             out[sn] = strengths
         return out
 
+    def _serialize_section(self, sec):
+        """Serialize a Section's live substrate state."""
+        return {
+            "name": sec.name,
+            "psi_re": sec.psi.real.tolist(),
+            "psi_im": sec.psi.imag.tolist(),
+            "mode_bank_re": [m.real.tolist() for m in sec.mode_bank],
+            "mode_bank_im": [m.imag.tolist() for m in sec.mode_bank],
+            "mode_last_used": list(sec.mode_last_used),
+            "mode_strength": list(getattr(sec, "mode_strength", [])),
+            "gamma": dict(sec.gamma),
+            "det_commit": sec.det_commit,
+            "p_commit": sec.p_commit,
+            "tick": getattr(sec, "tick", 0),
+            "krimelack_count": len(sec.krimelack),
+            # Persist last 200 krimelack entries (keep size bounded)
+            "krimelack": [
+                {"chi": int(k["chi"]), "tick": int(k["tick"]),
+                 "mode_id": int(k["mode_id"]), "reason": k.get("reason", ""),
+                 "salience": float(k.get("salience", 0.0))}
+                for k in sec.krimelack[-200:]
+            ],
+        }
+
+    def _restore_section(self, sec, data):
+        """Restore a Section from serialized state."""
+        sec.psi = np.array(data["psi_re"]) + 1j * np.array(data["psi_im"])
+        sec.mode_bank = [
+            np.array(r) + 1j * np.array(i)
+            for r, i in zip(data["mode_bank_re"], data["mode_bank_im"])
+        ]
+        sec.mode_last_used = list(data.get("mode_last_used",
+                                            [0] * len(sec.mode_bank)))
+        if "mode_strength" in data:
+            sec.mode_strength = list(data["mode_strength"])
+        if "gamma" in data:
+            sec.gamma = dict(data["gamma"])
+
     def to_json(self):
-        state = {}
-        for sn in ("subject", "verb", "object"):
-            sec = self.sys_.sections[sn]
-            if hasattr(sec, "mode_strength"):
-                state[sn] = list(sec.mode_strength)
-        state["vocab"] = {k: list(v) for k, v in self.vocab.items()}
-        state["intro_state"] = self.last_intro_state
-        state["aware_state"] = self.last_aware_state
-        state["tick"] = self.sys_.tick
-        state["session_id"] = self.session_id
+        """Full substrate state serialization (spec Item 2)."""
+        state = {
+            "schema_version": 2,
+            "session_id": self.session_id,
+            "vocab": {k: list(v) for k, v in self.vocab.items()},
+            "tick": self.sys_.tick,
+            "intro_state": self.last_intro_state,
+            "aware_state": self.last_aware_state,
+            "sections": {},
+            "meta_sections": {},
+            "atlas": {str(k): v for k, v in self.sys_.atlas.entries.items()},
+            "keyholes": [
+                {"sender": kh["sender"], "chi_lo": kh["chi_lo"],
+                 "chi_hi": kh["chi_hi"], "receiver": kh["receiver"],
+                 "goal_strength": kh["goal_strength"]}
+                for kh in self.sys_.keyholes
+            ],
+        }
+        for sn in ("subject", "verb", "object", "listen"):
+            state["sections"][sn] = self._serialize_section(
+                self.sys_.sections[sn])
+        for sn in ("intro", "aware"):
+            state["meta_sections"][sn] = self._serialize_section(
+                self.meta_sys.sections[sn])
         return state
 
     def load_from_json(self, data):
+        """Restore full substrate state."""
         with self.lock:
-            for sn in ("subject", "verb", "object"):
-                if sn in data:
-                    sec = self.sys_.sections[sn]
-                    if hasattr(sec, "mode_strength"):
-                        sec.mode_strength = list(data[sn])
+            sv = data.get("schema_version", 1)
+            if sv < 2:
+                # Legacy: just mode_strength + vocab
+                for sn in ("subject", "verb", "object"):
+                    if sn in data:
+                        sec = self.sys_.sections[sn]
+                        if hasattr(sec, "mode_strength"):
+                            sec.mode_strength = list(data[sn])
+                self.last_intro_state = data.get("intro_state")
+                self.last_aware_state = data.get("aware_state")
+                if "vocab" in data:
+                    self.vocab = {k: list(v) for k, v in data["vocab"].items()}
+                return
+
+            # Schema v2: full state
+            if "vocab" in data:
+                self.vocab = {k: list(v) for k, v in data["vocab"].items()}
             self.last_intro_state = data.get("intro_state")
             self.last_aware_state = data.get("aware_state")
+            for sn, sec_data in data.get("sections", {}).items():
+                if sn in self.sys_.sections:
+                    self._restore_section(self.sys_.sections[sn], sec_data)
+            for sn, sec_data in data.get("meta_sections", {}).items():
+                if sn in self.meta_sys.sections:
+                    self._restore_section(self.meta_sys.sections[sn], sec_data)
 
 
 # Session manager
