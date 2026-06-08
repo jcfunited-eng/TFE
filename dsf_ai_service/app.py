@@ -1418,6 +1418,112 @@ async def gualaloom_upload_video(file: UploadFile = File(...)):
 
 
 # ════════════════════════════════════════════════════════════════
+# Deep multimodal substrate — parallel test endpoint
+# GL-CMD-DEPLOY-DEEP-SUBSTRATE-WC-20260608-01
+# ════════════════════════════════════════════════════════════════
+
+_substrate = None
+
+def _get_substrate():
+    global _substrate
+    if _substrate is None:
+        _substrate = _init_substrate()
+    return _substrate
+
+def _init_substrate():
+    from dsf_ai_service.substrate.GL_MDL_MULTIMODAL_DEEP_WC_20260608_03 import DeepMultiModalCognition
+    cog = DeepMultiModalCognition()
+    SENSORY_WORDS = ["moon", "cow", "bears", "stars", "kittens", "room"]
+    OTHER_WORDS = ["the", "and", "a", "in", "was", "goodnight", "of",
+                   "picture", "over", "there", "were", "three", "little", "sitting", "on",
+                   "great", "green", "telephone", "red", "balloon",
+                   "chairs", "jumping", "air", "noises", "everywhere"]
+    for w in SENSORY_WORDS + OTHER_WORDS:
+        cog.install_word(w)
+    for _ in range(5):
+        for w in SENSORY_WORDS:
+            cog.hear_word_with_senses(w)
+            cog.run(8)
+    GOODNIGHT_MOON = """in the great green room there was a telephone and a red balloon.
+and a picture of the cow jumping over the moon.
+and there were three little bears sitting on chairs.
+goodnight room. goodnight moon.
+goodnight cow jumping over the moon.
+goodnight light and the red balloon.
+goodnight bears. goodnight chairs.
+goodnight kittens. goodnight mittens.
+goodnight stars. goodnight air. goodnight noises everywhere."""
+    sentences = [s.strip() for s in GOODNIGHT_MOON.replace("\n", " ").split(".") if s.strip()]
+    SENSORY_SET = set(SENSORY_WORDS)
+    for _ in range(3):
+        for sent in sentences:
+            words = sent.lower().replace(",", "").split()
+            for w in words:
+                w_clean = "".join(c for c in w if c.isalnum())
+                if w_clean in SENSORY_SET and w_clean in cog.sections["word"]:
+                    cog.hear_word_with_senses(w_clean)
+                elif w_clean in cog.sections["word"]:
+                    cog.fire("word", w_clean)
+                cog.run(3)
+            cog.run(4)
+    print(f"[Substrate] Initialized")
+    return cog
+
+
+class SubstrateHearRequest(BaseModel):
+    word: str
+
+class SubstrateFeedRequest(BaseModel):
+    word: str
+    modalities: List[str] = ["visual", "audio"]
+
+
+@app.post("/substrate/hear_word")
+async def substrate_hear_word(req: SubstrateHearRequest):
+    cog = _get_substrate()
+    word = req.word
+    cog.emissions.clear()
+    cog.run(15)
+    cog.emissions.clear()
+    cog.fire("word", word, salience=2.5)
+    em = cog.run(25)
+    first_per_section = {}
+    strongest_per_section = {}
+    for e in em:
+        sec = e["section"]
+        if sec not in first_per_section:
+            first_per_section[sec] = e["label"]
+        if sec not in strongest_per_section or e["activation"] > strongest_per_section[sec]["activation"]:
+            strongest_per_section[sec] = {"label": e["label"], "activation": e["activation"]}
+    return {"first": first_per_section, "strongest": strongest_per_section}
+
+
+@app.post("/substrate/feed_senses")
+async def substrate_feed_senses(req: SubstrateFeedRequest):
+    cog = _get_substrate()
+    word = req.word
+    modalities = req.modalities
+    cog.emissions.clear()
+    cog.run(15)
+    cog.emissions.clear()
+    for modality in modalities:
+        modal_label = f"{word}__{modality}"
+        if modal_label in cog.sections.get(modality, {}):
+            cog.fire(modality, modal_label, salience=2.5, set_focus=False)
+    em = cog.run(25)
+    word_em = [e for e in em if e["section"] == "word"]
+    if not word_em:
+        return {"strongest_word": None, "top_words": []}
+    strongest = max(word_em, key=lambda e: e["activation"])
+    unique = []
+    for e in word_em:
+        if e["label"] not in unique:
+            unique.append(e["label"])
+    return {"strongest_word": strongest["label"], "activation": strongest["activation"],
+            "top_words": unique[:5]}
+
+
+# ════════════════════════════════════════════════════════════════
 # Health check
 # ════════════════════════════════════════════════════════════════
 
