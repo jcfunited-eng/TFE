@@ -134,6 +134,10 @@ header { padding: 10px 16px; border-bottom: 1px solid var(--border); background:
       <div id="aware-display" class="panel-row"><span class="value">--</span></div>
     </div>
     <div class="panel-section">
+      <div class="panel-title">Routing (last turn)</div>
+      <div id="routing-display"></div>
+    </div>
+    <div class="panel-section">
       <div class="panel-title">Mode Strengths</div>
       <div id="strengths-display"></div>
     </div>
@@ -297,9 +301,32 @@ function renderState(state) {
   }
   nmdaDiv.innerHTML = nmdaHtml;
 
-  // Introspection + Awareness
-  document.getElementById('intro-display').innerHTML = `<span class="value">${state.introspection || '--'}</span>`;
-  document.getElementById('aware-display').innerHTML = `<span class="value">${state.awareness || '--'}</span>`;
+  // Introspection + recent commits
+  let introHtml = `<span class="value">${state.introspection || '--'}</span>`;
+  for (const c of (state.intro_recent || [])) {
+    introHtml += `<div style="color:var(--text-muted);font-size:9px">${c.state} (t${c.tick})</div>`;
+  }
+  document.getElementById('intro-display').innerHTML = introHtml;
+
+  // Awareness + recent commits
+  let awareHtml = `<span class="value">${state.awareness || '--'}</span>`;
+  for (const c of (state.aware_recent || [])) {
+    awareHtml += `<div style="color:var(--text-muted);font-size:9px">${c.state} (t${c.tick})</div>`;
+  }
+  document.getElementById('aware-display').innerHTML = awareHtml;
+
+  // Routing log
+  const routDiv = document.getElementById('routing-display');
+  let routHtml = '';
+  for (const r of (state.routing_log || [])) {
+    if (r.routed_to) {
+      const tag = r.newly_installed ? '(new)' : '(known)';
+      routHtml += `<div class="panel-row"><span class="label">${r.word}</span><span class="value">-> ${r.routed_to} ${tag}</span></div>`;
+    } else {
+      routHtml += `<div class="panel-row"><span class="label">${r.word}</span><span class="value" style="color:var(--ev-muted)">${r.reason || 'skipped'}</span></div>`;
+    }
+  }
+  routDiv.innerHTML = routHtml || '<div style="color:var(--text-muted)">no routing yet</div>';
 
   // Mode strengths
   const strDiv = document.getElementById('strengths-display');

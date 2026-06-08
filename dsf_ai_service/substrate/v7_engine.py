@@ -3,6 +3,7 @@ V7 DNA Recipe Engine — wires assemblage + NMDA gates + plasticity + rhythm
 + introspection + awareness into a single conversational substrate.
 
 GL-CMD-DEPLOY-DNA-RECIPE-WC-20260608-01
+GL-CMD-FIX-CONVERSATION-WC-20260608-02 (listen-prime + lookup_or_install)
 
 NOT the v6 engine. NOT the multimodal DeepMultiModalCognition. This is the
 assemblage-based substrate with all DNA recipe capabilities.
@@ -29,14 +30,18 @@ from dsf_ai_service.substrate.dna_recipe.phase_gating import (
 )
 
 
-VOCAB = {
-    "subject": ["cow", "moon", "bears", "stars", "kittens", "room",
-                 "cat", "dog", "bird", "frog", "fish", "boy", "girl"],
-    "verb": ["jumped", "ran", "sleeps", "sat", "flew", "swam", "sang",
-             "ate", "said", "went", "looked", "played"],
-    "object": ["fence", "milk", "dish", "moon", "hill", "tree",
-               "ball", "house", "water", "food", "bed", "song"],
+# Seed vocabulary — minimal (matches wC's tested experiment).
+# Everything else installs on-the-fly via lookup_or_install.
+SEED_VOCAB = {
+    "subject": ["cow", "moon", "bears"],
+    "verb": ["jumped", "ran", "sleeps"],
+    "object": ["fence", "milk", "dish"],
 }
+
+# Words to skip (don't install as modes — they don't carry content)
+SKIP_WORDS = {"a", "an", "the", "is", "are", "am", "was", "were", "of", "in",
+              "on", "at", "to", "from", "with", "for", "and", "or", "but", "it",
+              "i", "you", "we", "they", "he", "she", "my", "your", "his", "her"}
 
 
 class V7Session:
@@ -50,6 +55,9 @@ class V7Session:
         seed = rng_seed or hash(session_id) % (2**31)
         self.rng = np.random.default_rng(seed)
 
+        # Per-session mutable vocab: slot -> [word_list]
+        self.vocab = {k: list(v) for k, v in SEED_VOCAB.items()}
+
         # Build 6-section system: S/V/O + listen + intro + aware
         self.sys_, self.token_vec, self.intro_vec, self.intro_modes, \
             self.aware_vec, self.aware_modes = self._build_system()
@@ -58,32 +66,8 @@ class V7Session:
         for sn in ("subject", "verb", "object"):
             install_plasticity(self.sys_.sections[sn])
 
-        # Drive tracker for NMDA context
+        # Drive tracker (for future NMDA integration)
         self.drive_tracker = {}
-        self.intro_commit_tracker = {"age": None}
-
-        # NMDA gates
-        self.intro_gate = CoincidenceGate(
-            section_name="intro",
-            context_fn=context_no_recent_drive(
-                self.drive_tracker,
-                sections=("listen", "subject", "verb", "object"),
-                quiet_thresh=0.10),
-            drive_thresh=0.05, ltp_boost=0.0,
-        )
-
-        # Supervised LTP gates on S/V/O
-        self.svo_gates = {}
-        for sn in ("subject", "verb", "object"):
-            self.svo_gates[sn] = CoincidenceGate(
-                section_name=sn,
-                context_fn=lambda sys_: True,  # always open; LTP only via feedback
-                drive_thresh=0.15,
-                ltp_boost=0.0,  # no auto-LTP; feedback drives it
-            )
-
-        # Phase gater (L5 rhythm)
-        self.phase_gater = make_phase_gater(cycle=24, strength=0.35)
 
         # State tracking
         self.last_intro_state = None
@@ -91,37 +75,36 @@ class V7Session:
         self.last_rhythm_phase = "subject"
         self.last_emissions = []
         self.last_nmda_events = []
-        self.conversation_log = []
+        self.last_routing_log = []
+        self.intro_commit_history = []  # last N intro commits
+        self.aware_commit_history = []  # last N aware commits
         self.tick_at_last_converse = 0
 
     def _build_system(self):
+        """Build 4-section system (S/V/O + listen) matching wC's proven experiment.
+        Intro/aware tracked separately — they don't participate in conversation
+        dynamics, they observe the result post-emit."""
         rng = self.rng
         subj = Section(name="subject", rng=rng, role="subject_like")
         verb = Section(name="verb", rng=rng, role="verb_like")
         obj = Section(name="object", rng=rng, role="object_like")
         listen = Section(name="listen", rng=rng, role="general")
-        intro = Section(name="intro", rng=rng, role="intro")
-        aware = Section(name="aware", rng=rng, role="intro")
 
-        for sec in (listen, intro, aware):
-            sec.H_base = np.zeros((N, N), dtype=complex)
-            sec.law_fields = {
-                "symmetry": np.zeros((N, N), dtype=complex),
-                "consistency": np.zeros((N, N), dtype=complex),
-                "compactness": np.zeros((N, N), dtype=complex),
-            }
-        intro.det_commit = 99.0
-        intro.p_commit = 99.0
-        aware.det_commit = 99.0
-        aware.p_commit = 99.0
+        # Listen is passive: zero Hamiltonian so it just accumulates evidence
+        listen.H_base = np.zeros((N, N), dtype=complex)
+        listen.law_fields = {
+            "symmetry": np.zeros((N, N), dtype=complex),
+            "consistency": np.zeros((N, N), dtype=complex),
+            "compactness": np.zeros((N, N), dtype=complex),
+        }
 
-        for s in (subj, verb, obj, listen, intro, aware):
+        for s in (subj, verb, obj, listen):
             s.map_inject = make_projection(N, 8, rng)
 
-        sys_ = System([subj, verb, obj, listen, intro, aware], rng)
+        sys_ = System([subj, verb, obj, listen], rng)
 
         token_vec = {}
-        for sec_name, toks in VOCAB.items():
+        for sec_name, toks in self.vocab.items():
             sec = sys_.sections[sec_name]
             for tok in toks:
                 v = random_unit_complex(N, rng)
@@ -131,246 +114,276 @@ class V7Session:
                 listen.mode_bank.append(v.copy())
                 listen.mode_last_used.append(0)
 
+        # Intro/aware are state labels, not substrate sections.
+        # Tracked by the engine from conversation phase transitions.
         intro_modes = ["i_quiet", "i_hear", "i_emit"]
-        intro_vec = {}
-        for name in intro_modes:
-            v = random_unit_complex(N, rng)
-            intro.mode_bank.append(v.copy())
-            intro.mode_last_used.append(0)
-            intro_vec[name] = v
-
+        intro_vec = {}  # not used as mode_bank entries
         aware_modes = ["aware_quiet", "aware_listening", "aware_emitting"]
         aware_vec = {}
-        for name in aware_modes:
-            v = random_unit_complex(N, rng)
-            aware.mode_bank.append(v.copy())
-            aware.mode_last_used.append(0)
-            aware_vec[name] = v
 
         return sys_, token_vec, intro_vec, intro_modes, aware_vec, aware_modes
 
-    def converse(self, text, source="ui"):
-        """Main conversation entry point. Returns structured response."""
-        with self.lock:
-            words = [w.lower().strip(".,!?;:'\"") for w in text.split() if w.strip()]
-            known = [w for w in words if self._word_known(w)]
-            unknown = [w for w in words if not self._word_known(w)]
+    # ------------------------------------------------------------------
+    # Fix 2: lookup_or_install — on-the-fly vocabulary
+    # ------------------------------------------------------------------
+    def lookup_or_install(self, word, position):
+        """Return (word_vec, slot, was_new). Install new words by position."""
+        word = word.lower().strip(".,?!;:'\"")
+        if not word or word in SKIP_WORDS:
+            return None, None, False
 
-            all_commits = []
+        # Already installed?
+        for slot in ("subject", "verb", "object"):
+            if word in self.vocab[slot]:
+                idx = self.vocab[slot].index(word)
+                sec = self.sys_.sections[slot]
+                if idx < len(sec.mode_bank):
+                    return sec.mode_bank[idx], slot, False
+
+        # New word — install based on position
+        slot = ["subject", "verb", "object"][min(position, 2)]
+        sec = self.sys_.sections[slot]
+        word_vec = random_unit_complex(N, self.rng)
+        sec.mode_bank.append(word_vec.copy())
+        sec.mode_last_used.append(self.sys_.tick)
+        if hasattr(sec, "mode_strength"):
+            sec.mode_strength.append(0.0)
+        # Also install in listen
+        self.sys_.sections["listen"].mode_bank.append(word_vec.copy())
+        self.sys_.sections["listen"].mode_last_used.append(self.sys_.tick)
+        self.vocab[slot].append(word)
+        self.token_vec[(slot, word)] = word_vec
+        return word_vec, slot, True
+
+    # ------------------------------------------------------------------
+    # Fix 1: Listen-prime conversation architecture
+    # ------------------------------------------------------------------
+    def converse(self, text, source="ui"):
+        """Main conversation using wC's proven pipeline:
+        Route → Listen-accumulate → Derive drives → Prime psi → Rhythm emit."""
+        with self.lock:
+            tokens = [t.lower().strip(".,?!;:'\"") for t in text.split() if t.strip()]
+            if not tokens:
+                return self._empty_response("empty input")
+
+            # Per-turn pump reset (Na+/K+ — episodic boundary)
+            for slot in ("subject", "verb", "object", "listen"):
+                sec = self.sys_.sections[slot]
+                sec.psi = normalize(
+                    random_unit_complex(N, self.rng) * 0.3 +
+                    normalize(np.ones(N, dtype=complex)) * 0.7)
+
+            routing_log = []
             nmda_events = []
             rhythm_events = []
 
-            if not known:
-                return {
-                    "response_tokens": [],
-                    "rhythm_events": [],
-                    "nmda_events": [],
-                    "introspection": {"reported_state": "i_quiet",
-                                      "tick": self.sys_.tick},
-                    "awareness": {"reported_state": "aware_quiet",
-                                  "tick": self.sys_.tick},
-                    "mode_strengths": self._get_mode_strengths(),
-                    "raw_emissions": [],
-                    "unknown_words": unknown,
-                    "honest_silence_reason": "no words in vocabulary",
-                }
+            # PHASE 1: Route words, build heard_sentence dict
+            heard = {}  # slot -> word
+            any_routed = False
+            for pos, word in enumerate(tokens):
+                word_vec, slot, was_new = self.lookup_or_install(word, position=pos)
+                if word_vec is None:
+                    routing_log.append({"word": word, "routed_to": None,
+                                        "reason": "skipped"})
+                    continue
+                routing_log.append({"word": word, "routed_to": slot,
+                                    "newly_installed": was_new})
+                heard[slot] = word
+                any_routed = True
 
-            # Phase 1: Listen — inject heard words into listen section
-            for w in known:
-                sec_name, tok_name = self._find_token(w)
-                if sec_name and (sec_name, tok_name) in self.token_vec:
-                    target = self.token_vec[(sec_name, tok_name)]
+            if not any_routed:
+                return self._empty_response("no content words in vocabulary")
+
+            # PHASE 2: Listen-accumulate (matches wC's speak_and_listen)
+            accumulated = {}
+            for slot, word in heard.items():
+                vec_key = (slot, word)
+                if vec_key not in self.token_vec:
+                    continue
+                target = self.token_vec[vec_key]
+                acc = np.zeros(N, dtype=complex)
+                for _ in range(15):
                     noisy = normalize(target + 0.10 * (
                         self.rng.standard_normal(N) +
                         1j * self.rng.standard_normal(N)))
+                    acc = acc + noisy
                     ev = {"listen": noisy}
-                    # Drive intro toward i_hear
-                    ev["intro"] = normalize(
-                        self.intro_vec["i_hear"] + 0.05 * (
-                            self.rng.standard_normal(N) +
-                            1j * self.rng.standard_normal(N)))
-                    update_drive_tracker(self.drive_tracker, ev)
-                    commits = self.sys_.tick_once(
-                        ev, enable_self_evo=False,
-                        coordinator_on=False, introspection_on=False)
-                    all_commits.extend(commits)
+                    self.sys_.tick_once(ev, enable_self_evo=False,
+                                        coordinator_on=False, introspection_on=False)
+                accumulated[slot] = normalize(acc)
 
-                    # NMDA intro check
-                    i_fired, i_mode = self.intro_gate.check_and_fire(self.sys_)
-                    if i_fired and i_mode is not None and i_mode < len(self.intro_modes):
-                        self.last_intro_state = self.intro_modes[i_mode]
-                        self.intro_commit_tracker["age"] = 0
-                    elif self.intro_commit_tracker["age"] is not None:
-                        self.intro_commit_tracker["age"] += 1
-                    nmda_events.append({
-                        "tick": self.sys_.tick, "gate": "intro",
-                        "fired": i_fired,
-                        "reason": "fired" if i_fired else "context_blocked"
-                    })
+            # Introspection: heard phase
+            self.last_intro_state = "i_hear"
+            self.intro_commit_history.append({
+                "state": "i_hear", "tick": self.sys_.tick})
+            self.intro_commit_history = self.intro_commit_history[-10:]
 
-            # Run a few quiet ticks for intro reflection
-            for _ in range(5):
-                ev = {}
-                ev["intro"] = normalize(
-                    self.intro_vec.get(self.last_intro_state or "i_hear",
-                                       self.intro_vec["i_hear"]) + 0.05 * (
-                        self.rng.standard_normal(N) +
-                        1j * self.rng.standard_normal(N)))
-                update_drive_tracker(self.drive_tracker, ev)
-                self.sys_.tick_once(ev, enable_self_evo=False,
-                                    coordinator_on=False, introspection_on=False)
-                i_fired, i_mode = self.intro_gate.check_and_fire(self.sys_)
-                if i_fired and i_mode is not None and i_mode < len(self.intro_modes):
-                    self.last_intro_state = self.intro_modes[i_mode]
-                    self.intro_commit_tracker["age"] = 0
+            # PHASE 3: Derive drives from listen accumulators
+            # (matches wC's guala_emit drive derivation)
+            drives = {}
+            for slot in ("subject", "verb", "object"):
+                snap = accumulated.get(slot)
+                sec = self.sys_.sections[slot]
+                if snap is None or np.linalg.norm(snap) == 0:
+                    drives[slot] = random_unit_complex(N, self.rng) * 0.1
+                    continue
+                weights = []
+                for mode_id, mode_vec in enumerate(sec.mode_bank):
+                    w = float(np.abs(np.vdot(mode_vec, snap)) ** 2)
+                    weights.append((mode_id, w, mode_vec))
+                weights.sort(key=lambda x: -x[1])
+                bias = np.zeros(N, dtype=complex)
+                for mode_id, w, v in weights[:2]:
+                    bias = bias + w * v
+                drives[slot] = normalize(bias) if np.linalg.norm(bias) > 0 \
+                    else random_unit_complex(N, self.rng)
 
-            # Phase 2: Emit — L5 rhythm-gated S->V->O emission
+            # Prime S/V/O psi to drives
+            for slot in ("subject", "verb", "object"):
+                self.sys_.sections[slot].psi = drives[slot].copy()
+
+            # PHASE 4: Commit-driven rhythm emission (matches wC's guala_emit)
             emit_commits = []
-            for w in known:
-                sec_name, tok_name = self._find_token(w)
-                if sec_name and (sec_name, tok_name) in self.token_vec:
-                    target = self.token_vec[(sec_name, tok_name)]
-                    ev = {}
-                    ev[sec_name] = normalize(target + 0.10 * (
+            svo_cycle = ["subject", "verb", "object"]
+            cycle_idx = 0
+            wait_counter = 0
+            max_wait = 20
+            svo_strength = 0.45
+            emitted_sections = set()
+            emitted_words = {}
+
+            for t in range(120):
+                current = svo_cycle[cycle_idx % 3]
+                self.last_rhythm_phase = current
+                rhythm_events.append({"tick": self.sys_.tick + 1, "phase": current})
+
+                # Excite current, inhibit others
+                for sn in ("subject", "verb", "object"):
+                    sec = self.sys_.sections[sn]
+                    sec.excitation_expires_at = self.sys_.tick + 2
+                    if sn == current:
+                        sec.excitation_strength = svo_strength
+                    else:
+                        sec.excitation_strength = -svo_strength
+
+                # Evidence: same drive vector re-noised every tick
+                ev = {}
+                for slot in ("subject", "verb", "object"):
+                    target = drives[slot]
+                    ev[slot] = normalize(target + 0.10 * (
                         self.rng.standard_normal(N) +
                         1j * self.rng.standard_normal(N)))
-                    # Drive intro toward i_emit
-                    ev["intro"] = normalize(
-                        self.intro_vec["i_emit"] + 0.05 * (
-                            self.rng.standard_normal(N) +
-                            1j * self.rng.standard_normal(N)))
-                    update_drive_tracker(self.drive_tracker, ev)
 
-            # Sustained cascade with phase gating
-            for t in range(40):
-                self.phase_gater(self.sys_.tick + 1, self.sys_)
-                phase_tick = (self.sys_.tick + 1) % 24
-                if phase_tick < 8:
-                    cur_phase = "subject"
-                elif phase_tick < 16:
-                    cur_phase = "verb"
-                else:
-                    cur_phase = "object"
-                self.last_rhythm_phase = cur_phase
-                rhythm_events.append({"tick": self.sys_.tick + 1, "phase": cur_phase})
-
-                # Re-inject evidence each tick with noise
-                ev = {}
-                for w in known:
-                    sn, tn = self._find_token(w)
-                    if sn and (sn, tn) in self.token_vec:
-                        target = self.token_vec[(sn, tn)]
-                        ev[sn] = normalize(target + 0.10 * (
-                            self.rng.standard_normal(N) +
-                            1j * self.rng.standard_normal(N)))
-
-                update_drive_tracker(self.drive_tracker, ev)
                 commits = self.sys_.tick_once(
                     ev, enable_self_evo=False,
                     coordinator_on=False, introspection_on=False)
                 emit_commits.extend(commits)
-                all_commits.extend(commits)
 
-                # NMDA gate checks on S/V/O
-                for sn in ("subject", "verb", "object"):
-                    gate = self.svo_gates[sn]
-                    fired, mode_id = gate.check_and_fire(self.sys_)
-                    if fired:
-                        nmda_events.append({
-                            "tick": self.sys_.tick, "gate": sn,
-                            "fired": True, "reason": "fired",
-                            "mode_id": mode_id,
-                        })
-
-                # Intro gate during emit
-                i_fired, i_mode = self.intro_gate.check_and_fire(self.sys_)
-                if i_fired and i_mode is not None and i_mode < len(self.intro_modes):
-                    self.last_intro_state = self.intro_modes[i_mode]
-                    self.intro_commit_tracker["age"] = 0
-                elif self.intro_commit_tracker["age"] is not None:
-                    self.intro_commit_tracker["age"] += 1
-
-            # Post-emit quiet for intro/aware reflection
-            for _ in range(10):
-                ev = {}
-                ev["intro"] = normalize(
-                    self.intro_vec.get(self.last_intro_state or "i_emit",
-                                       self.intro_vec["i_emit"]) + 0.05 * (
-                        self.rng.standard_normal(N) +
-                        1j * self.rng.standard_normal(N)))
-                # Drive aware
-                aware_target_name = {
-                    "i_quiet": "aware_quiet",
-                    "i_hear": "aware_listening",
-                    "i_emit": "aware_emitting",
-                }.get(self.last_intro_state or "i_quiet", "aware_quiet")
-                ev["aware"] = normalize(
-                    self.aware_vec[aware_target_name] + 0.05 * (
-                        self.rng.standard_normal(N) +
-                        1j * self.rng.standard_normal(N)))
-                update_drive_tracker(self.drive_tracker, ev)
-                self.sys_.tick_once(ev, enable_self_evo=False,
-                                    coordinator_on=False, introspection_on=False)
-                # Intro check
-                i_fired, i_mode = self.intro_gate.check_and_fire(self.sys_)
-                if i_fired and i_mode is not None and i_mode < len(self.intro_modes):
-                    self.last_intro_state = self.intro_modes[i_mode]
-                    self.intro_commit_tracker["age"] = 0
-                nmda_events.append({
-                    "tick": self.sys_.tick, "gate": "intro",
-                    "fired": i_fired,
-                    "reason": "fired" if i_fired else "drive_low"
-                })
-
-                # Aware gate — fires when intro recently committed
-                age = self.intro_commit_tracker.get("age")
-                if age is not None and age <= 5:
-                    # Manual aware commit via arc check
-                    aware_sec = self.sys_.sections["aware"]
-                    arcs = aware_sec.arcs()
-                    if len(arcs) > 0 and float(arcs.max()) > 0.05:
+                # Advance cycle on commit
+                advanced = False
+                for c in commits:
+                    if c["section"] == current and current not in emitted_sections:
+                        emitted_sections.add(current)
+                        # Read emitted word
+                        sec = self.sys_.sections[current]
+                        arcs = sec.arcs()
                         top = int(arcs.argmax())
-                        if top < len(self.aware_modes):
-                            self.last_aware_state = self.aware_modes[top]
-                            nmda_events.append({
-                                "tick": self.sys_.tick, "gate": "aware",
-                                "fired": True, "reason": "fired",
-                            })
+                        word = self._mode_to_word(current, top)
+                        emitted_words[current] = word
+                        cycle_idx += 1
+                        wait_counter = 0
+                        advanced = True
 
-            # Build response tokens from emit commits
-            response_tokens = self._extract_response_tokens(emit_commits)
+                if not advanced:
+                    wait_counter += 1
+                    if wait_counter >= max_wait:
+                        cycle_idx += 1
+                        wait_counter = 0
 
-            self.last_emissions = all_commits
+                if len(emitted_sections) >= 3:
+                    break
+
+            # Introspection: emit phase
+            self.last_intro_state = "i_emit"
+            self.intro_commit_history.append({
+                "state": "i_emit", "tick": self.sys_.tick})
+            self.intro_commit_history = self.intro_commit_history[-10:]
+
+            # Awareness: aware_emitting after emit
+            self.last_aware_state = "aware_emitting"
+            self.aware_commit_history.append({
+                "state": "aware_emitting", "tick": self.sys_.tick})
+            self.aware_commit_history = self.aware_commit_history[-10:]
+
+            # Build response tokens from emitted_words
+            response_tokens = []
+            for slot in ("subject", "verb", "object"):
+                word = emitted_words.get(slot)
+                if word:
+                    sec = self.sys_.sections[slot]
+                    arcs = sec.arcs()
+                    top = int(arcs.argmax())
+                    ms = 0.0
+                    if hasattr(sec, "mode_strength") and top < len(sec.mode_strength):
+                        ms = sec.mode_strength[top]
+                    response_tokens.append({
+                        "section": slot, "token": word,
+                        "emit_tick": self.sys_.tick,
+                        "mode_strength": round(ms, 3),
+                        "arc": round(float(arcs[top]), 3),
+                    })
+
+            self.last_emissions = emit_commits
             self.last_nmda_events = nmda_events
+            self.last_routing_log = routing_log
             self.tick_at_last_converse = self.sys_.tick
 
             return {
                 "response_tokens": response_tokens,
+                "routing_log": routing_log,
                 "rhythm_events": rhythm_events[-10:],
-                "nmda_events": nmda_events,
+                "nmda_events": nmda_events[-20:],
                 "introspection": {
                     "reported_state": self.last_intro_state or "i_quiet",
                     "tick": self.sys_.tick,
+                    "recent_commits": self.intro_commit_history[-3:],
                 },
                 "awareness": {
                     "reported_state": self.last_aware_state or "aware_quiet",
                     "tick": self.sys_.tick,
+                    "recent_commits": self.aware_commit_history[-3:],
                 },
                 "mode_strengths": self._get_mode_strengths(),
                 "raw_emissions": [
                     {"section": c["section"], "mode_id": c["mode_id"],
                      "reason": c["reason"]}
-                    for c in all_commits[-20:]
+                    for c in emit_commits[-20:]
                 ],
-                "unknown_words": unknown,
+                "unknown_words": [r["word"] for r in routing_log
+                                  if r.get("routed_to") is None],
             }
+
+    def _empty_response(self, reason):
+        return {
+            "response_tokens": [],
+            "routing_log": [],
+            "rhythm_events": [],
+            "nmda_events": [],
+            "introspection": {"reported_state": "i_quiet",
+                              "tick": self.sys_.tick, "recent_commits": []},
+            "awareness": {"reported_state": "aware_quiet",
+                          "tick": self.sys_.tick, "recent_commits": []},
+            "mode_strengths": self._get_mode_strengths(),
+            "raw_emissions": [],
+            "unknown_words": [],
+            "honest_silence_reason": reason,
+        }
 
     def apply_feedback(self, correct, expected_tokens=None):
         """Supervised LTP from thumbs-up/down."""
         with self.lock:
             affected = []
             if correct:
-                # Boost modes that fired in last emission
                 for sn in ("subject", "verb", "object"):
                     sec = self.sys_.sections[sn]
                     if not hasattr(sec, "mode_strength"):
@@ -382,7 +395,6 @@ class V7Session:
                         affected.append({"section": sn, "mode_id": top,
                                          "new_strength": sec.mode_strength[top]})
             else:
-                # Anti-LTP: slight decay on top modes
                 for sn in ("subject", "verb", "object"):
                     sec = self.sys_.sections[sn]
                     if not hasattr(sec, "mode_strength"):
@@ -403,31 +415,20 @@ class V7Session:
                 "tick": self.sys_.tick,
                 "rhythm_phase": self.last_rhythm_phase,
                 "introspection": self.last_intro_state or "i_quiet",
+                "intro_recent": self.intro_commit_history[-3:],
                 "awareness": self.last_aware_state or "aware_quiet",
+                "aware_recent": self.aware_commit_history[-3:],
                 "mode_strengths": self._get_mode_strengths(),
                 "nmda_events": self.last_nmda_events[-10:],
+                "routing_log": self.last_routing_log,
                 "n_commits_total": sum(
                     len(sec.krimelack) for sec in self.sys_.sections.values()),
             }
-
-    def _word_known(self, word):
-        for sn in ("subject", "verb", "object"):
-            if (sn, word) in self.token_vec:
-                return True
-        return False
-
-    def _find_token(self, word):
-        """Find which section a word belongs to. Returns (section_name, word)."""
-        for sn in ("subject", "verb", "object"):
-            if (sn, word) in self.token_vec:
-                return sn, word
-        return None, None
 
     def _extract_response_tokens(self, commits):
         """Extract the best emitted token per section from commits."""
         tokens = []
         seen_sections = set()
-        # Sort by section order S->V->O
         for target_sec in ("subject", "verb", "object"):
             sec = self.sys_.sections[target_sec]
             arcs = sec.arcs()
@@ -435,7 +436,6 @@ class V7Session:
                 continue
             top = int(arcs.argmax())
             strength = float(arcs[top])
-            # Find word label for this mode
             word = self._mode_to_word(target_sec, top)
             if word and target_sec not in seen_sections:
                 ms = 0.0
@@ -453,7 +453,7 @@ class V7Session:
 
     def _mode_to_word(self, section_name, mode_id):
         """Reverse lookup: mode_id in section -> word label."""
-        toks = VOCAB.get(section_name, [])
+        toks = self.vocab.get(section_name, [])
         if mode_id < len(toks):
             return toks[mode_id]
         return None
@@ -464,7 +464,7 @@ class V7Session:
         for sn in ("subject", "verb", "object"):
             sec = self.sys_.sections[sn]
             strengths = {}
-            toks = VOCAB.get(sn, [])
+            toks = self.vocab.get(sn, [])
             if hasattr(sec, "mode_strength"):
                 for i, tok in enumerate(toks):
                     if i < len(sec.mode_strength):
@@ -473,12 +473,12 @@ class V7Session:
         return out
 
     def to_json(self):
-        """Serialize session state for persistence."""
         state = {}
         for sn in ("subject", "verb", "object"):
             sec = self.sys_.sections[sn]
             if hasattr(sec, "mode_strength"):
                 state[sn] = list(sec.mode_strength)
+        state["vocab"] = {k: list(v) for k, v in self.vocab.items()}
         state["intro_state"] = self.last_intro_state
         state["aware_state"] = self.last_aware_state
         state["tick"] = self.sys_.tick
@@ -486,7 +486,6 @@ class V7Session:
         return state
 
     def load_from_json(self, data):
-        """Restore session state from persistence."""
         with self.lock:
             for sn in ("subject", "verb", "object"):
                 if sn in data:
@@ -508,7 +507,6 @@ def get_or_create_session(session_id):
         if session_id in _sessions:
             return _sessions[session_id]
         session = V7Session(session_id)
-        # Try loading from EFS
         path = os.path.join(STATE_DIR, f"{session_id}.json")
         if os.path.exists(path):
             try:
