@@ -1056,6 +1056,12 @@ async def gualaloom_chat(msg: GLMessage):
             "n_motifs": s.get("n_motifs", 0),
             "corpora": s.get("corpora", []),
             "sensory_items": s.get("sensory_items", []),
+            # Phase 2: visual
+            "n_visual_fragments": s.get("n_visual_fragments", 0),
+            "n_visual_motifs": s.get("n_visual_motifs", 0),
+            "sight_section": s.get("sight_section", {}),
+            "pictures": s.get("pictures", []),
+            "videos": s.get("videos", []),
         }
 
     # ── /wake — substrate-physical wake event ──
