@@ -3,7 +3,7 @@ FROM public.ecr.aws/docker/library/python:3.11-slim
 WORKDIR /app
 
 # Install dependencies
-RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography
+RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow
 
 # Copy only what the service needs (no TFE trading code)
 COPY uf_core/ /app/uf_core/
