@@ -93,6 +93,8 @@ class Section:
     last_arc_top_id: int = -1
     arc_top_history: list = field(default_factory=list)
 
+    out_of_range_streak: dict = field(default_factory=lambda: {"entropy": 0, "coherence": 0, "greed": 0})
+
     def __post_init__(self):
         self.H_base = random_hermitian(N, self.rng, scale=0.6)
         self.psi = normalize(random_unit_complex(N, self.rng) * 0.3
@@ -286,13 +288,16 @@ class System:
         self.intro_krimelack = []
         self.intro_section = None
         # Awareness instrumentation
-        self.deliberation_ticks = []   # ticks at which coordinator engaged a conflict
-        self.routing_ticks = []        # ticks with commits but no coordinator fire
-        # Resolution-effect: track which sections changed arc-top after a coordinator action
+        self.deliberation_ticks = []
+        self.routing_ticks = []
         self.coordinator_actions_log = []
         # External speaker (for conversation)
         self.external_speaker_buffer = deque(maxlen=20)
         self.grounding_section = None
+        # Coherence-feedback (for conversation): track match rate between own utterances
+        # and partner's recent utterances. Used to adapt heard-speaker goal strength.
+        self.utterance_match_log = deque(maxlen=30)  # 1 = matched, 0 = didn't
+        self.heard_speaker_strength = 0.70  # adaptive, stronger baseline
 
     def add_keyhole(self, sender, chi_lo, chi_hi, receiver, goal_strength=0.4):
         self.keyholes.append({"sender": sender, "chi_lo": chi_lo, "chi_hi": chi_hi,
@@ -307,16 +312,41 @@ class System:
             J = J * min(1.0, 0.5 / nrm) * 0.5
         return J
 
-    def hear_speaker(self, utterance_template_vector, target_section_name):
-        """External speaker says something. Becomes a standing Goal in the target section."""
+    def hear_speaker(self, utterance_template_vector, target_section_name, speak_section_name=None):
+        """External speaker says something.
+        - Becomes a goal in target (listen) section
+        - Also becomes a goal in speak section (so response is biased to same template)
+        - Seeds a mode in listener's bank if no similar mode exists
+        """
         target = normalize(utterance_template_vector)
         op = goal_op_for_template(target)
         sec = self.sections[target_section_name]
-        # one-shot standing goal that lasts ~20 ticks
-        sec.standing_goals.append((f"heard_t{self.tick}", op, 0.35, "external"))
+        sec.standing_goals.append((f"heard_t{self.tick}", op, self.heard_speaker_strength, "external"))
         self.external_speaker_buffer.append({"tick": self.tick, "vec": target.copy()})
+        # Also bias the speak section toward responding on the same template - STRONG
+        if speak_section_name and speak_section_name in self.sections:
+            sp = self.sections[speak_section_name]
+            sp.standing_goals.append((f"heard_t{self.tick}", op, 1.0, "external"))
+        # Seed mode in listener if novel
+        if sec.mode_bank:
+            overlaps = [np.abs(np.vdot(m, target))**2 for m in sec.mode_bank]
+            if max(overlaps) < 0.40:
+                sec.mode_bank.append(target.copy())
+                sec.mode_last_used.append(self.tick)
+        else:
+            sec.mode_bank.append(target.copy())
+            sec.mode_last_used.append(self.tick)
 
-    def expire_standing_goals(self, heard_lifetime=20, handoff_lifetime=5, coord_lifetime=3):
+    def record_utterance_match(self, matched: bool):
+        """Track utterance match rate, adapt heard-speaker strength."""
+        self.utterance_match_log.append(1 if matched else 0)
+        if len(self.utterance_match_log) >= 8:
+            recent_rate = sum(self.utterance_match_log) / len(self.utterance_match_log)
+            # Wider range: 0.30 (high match, light touch) to 1.10 (low match, force alignment)
+            target = 0.30 + (1.10 - 0.30) * (1.0 - recent_rate)
+            self.heard_speaker_strength = 0.85 * self.heard_speaker_strength + 0.15 * target
+
+    def expire_standing_goals(self, heard_lifetime=35, handoff_lifetime=5, coord_lifetime=3):
         for sec in self.sections.values():
             kept = []
             for g in sec.standing_goals:
@@ -422,12 +452,10 @@ class System:
                     for sn in sec_names:
                         if sn in self.sections:
                             sec_obj = self.sections[sn]
-                            # Add a non-current-mode direction
-                            kick = random_unit_complex(N, self.rng) * 0.3
+                            kick = random_unit_complex(N, self.rng) * 0.45
                             sec_obj.psi = normalize(sec_obj.psi + kick)
-                            # Also raise their commit thresholds briefly (force re-deliberation)
                             sec_obj.excitation_expires_at = max(sec_obj.excitation_expires_at,
-                                                                  self.tick - 1)  # cancel excitation
+                                                                  self.tick - 1)
                     self.coordinator_actions_log.append({"tick": self.tick, "action": "merge",
                                                           "sections": list(sec_names)})
                 else:
@@ -472,19 +500,22 @@ class System:
             sec.decay_modes(self.tick)
 
         # Self-evolution with gamma drift-toward-default
+        # Conservative: require persistent out-of-range and use moderate learning rate
         if enable_self_evo and self.tick % SELF_EVO_PERIOD == 0:
             for sec in self.sections.values():
                 ax = sec.three_axis()
-                eta = 0.05
+                sec.out_of_range_streak["entropy"] = sec.out_of_range_streak["entropy"] + 1 if ax["entropy"] < 0.3 else 0
+                sec.out_of_range_streak["coherence"] = sec.out_of_range_streak["coherence"] + 1 if ax["coherence"] < 0.3 else 0
+                sec.out_of_range_streak["greed"] = sec.out_of_range_streak["greed"] + 1 if ax["greed"] > 0.7 else 0
+                eta = 0.04
                 dgamma = {"symmetry": 0.0, "consistency": 0.0, "compactness": 0.0}
-                if ax["entropy"] < 0.3:
+                if sec.out_of_range_streak["entropy"] >= 2:
                     dgamma["symmetry"] -= eta
                     dgamma["consistency"] -= eta
-                if ax["coherence"] < 0.3:
+                if sec.out_of_range_streak["coherence"] >= 2:
                     dgamma["consistency"] += eta
-                if ax["greed"] > 0.7:
+                if sec.out_of_range_streak["greed"] >= 2:
                     dgamma["compactness"] += eta
-                # Drift toward default (spring force - FIX from prior run)
                 for k in dgamma:
                     drift = (GAMMA_DEFAULTS[k] - sec.gamma[k]) * GAMMA_DRIFT
                     dgamma[k] += drift
@@ -534,10 +565,23 @@ class System:
         return commits_this_tick
 
     def _atlas_snapshot(self):
+        """Compress current atlas + section three-axis into a complex N-vector for introspection."""
         v = np.zeros(N, dtype=complex)
+        # Atlas component: chi values weighted by section diversity
+        section_to_idx = {nm: i % N for i, nm in enumerate(sorted(self.sections.keys()))}
         for chi, claims in self.atlas.entries.items():
-            idx = chi % N
-            v[idx] += len(claims) * np.exp(1j * (chi / N) * np.pi)
+            # Each claim contributes at index = (chi + section_idx) mod N
+            for c in claims[-5:]:  # last 5 claims weighted most
+                sec_idx = section_to_idx.get(c["section"], 0)
+                idx = (chi + sec_idx) % N
+                v[idx] += np.exp(1j * (chi / N) * 2 * np.pi)
+        # Three-axis component: encode each section's current state
+        for nm, sec in self.sections.items():
+            ax = sec.three_axis()
+            sec_idx = section_to_idx[nm]
+            v[sec_idx] += ax["entropy"] * np.exp(1j * 0.5 * np.pi)
+            v[(sec_idx + 1) % N] += ax["coherence"] * np.exp(1j * 1.0 * np.pi)
+            v[(sec_idx + 2) % N] += ax["greed"] * np.exp(1j * 1.5 * np.pi)
         if np.linalg.norm(v) > 0:
             v = normalize(v)
         return v
