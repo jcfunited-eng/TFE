@@ -34,16 +34,9 @@ const pool = new pg.Pool({
 });
 
 /**
- * Fetch available budget for new entries.
- * Returns { cash } — the deployable budget this cycle.
- *
- * The constraint: total invested (long_market_value from Alpaca) must not
- * exceed the funded amount (vault_funded_amount from DB config, default $100K).
- * Available = funded - invested. If invested >= funded, no new entries.
- *
- * This is NOT Alpaca "cash" — cash fluctuates as sells settle between cycles,
- * which caused the buy-sell-rebuy oscillation when cash was the only gate.
- * The funded ceiling is stable: it only changes when Joe changes it in the UI.
+ * Fetch available cash from Alpaca account.
+ * Returns { cash } — the ground truth for gating orders.
+ * Got cash on hand? Trade. Don't? Stop.
  */
 async function fetchAvailableCash() {
   let cash = 0;
@@ -55,14 +48,6 @@ async function fetchAvailableCash() {
     const base = mode === "live"
       ? "https://api.alpaca.markets"
       : "https://paper-api.alpaca.markets";
-
-    // Fetch funded amount from DB (default $100K)
-    const fundedRes = await pool.query(
-      `SELECT value FROM pee1_execution_config WHERE key = 'vault_funded_amount' LIMIT 1`
-    );
-    const funded = parseFloat(fundedRes.rows[0]?.value ?? "100000");
-
-    // Fetch actual invested amount from Alpaca (ground truth)
     const res = await fetch(`${base}/v2/account`, {
       headers: {
         "APCA-API-KEY-ID":     process.env.APCA_API_KEY_ID,
@@ -70,19 +55,10 @@ async function fetchAvailableCash() {
       },
     });
     const acct = await res.json();
-    const invested = parseFloat(acct?.long_market_value ?? 0);
-    const alpacaCash = parseFloat(acct?.cash ?? 0);
-
-    // Available = funded ceiling minus what's already deployed
-    cash = Math.max(0, funded - invested);
-
-    console.log(
-      `[SENTINEL-DAEMON] Budget: funded=$${funded.toFixed(0)} invested=$${invested.toFixed(0)} ` +
-      `available=$${cash.toFixed(0)} (Alpaca cash=$${alpacaCash.toFixed(0)})`
-    );
+    cash = parseFloat(acct?.cash ?? 0);
   } catch (err) {
     console.error(`[SENTINEL-DAEMON] fetchAvailableCash error: ${err.message}`);
-    cash = 0; // fail-safe: no budget = no orders
+    cash = 0; // fail-safe: no cash = no orders
   }
 
   return { cash };
