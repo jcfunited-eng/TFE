@@ -1235,7 +1235,25 @@ async def gualaloom_chat(msg: GLMessage):
     if _exchange_count % _persist_every == 0:
         _guala.save_full_state(STATE_DIR)
 
-    return {"response": response, "motifs": _guala.introspect()["vocab"]}
+    # v7 Phase 2: include recalled pictures as base64 for frontend display
+    import base64, io as _io
+    recalled_pics = getattr(_guala, '_last_recalled_pictures', [])
+    picture_data = []
+    for motif, item_id in recalled_pics:
+        pic = _guala._pictures.get(item_id)
+        if pic is not None and pic.intensity_grid is not None:
+            from PIL import Image
+            img = Image.fromarray((pic.intensity_grid * 255).astype(np.uint8), mode='L')
+            buf = _io.BytesIO()
+            img.save(buf, format='PNG')
+            b64 = base64.b64encode(buf.getvalue()).decode()
+            picture_data.append({"item_id": item_id, "title": pic.title,
+                                 "data": f"data:image/png;base64,{b64}"})
+
+    result = {"response": response or "...", "motifs": _guala.introspect()["vocab"]}
+    if picture_data:
+        result["pictures"] = picture_data
+    return result
 
 
 # ════════════════════════════════════════════════════════════════

@@ -770,6 +770,7 @@ class Guala:
         self._pictures = {}    # item_id -> PictureItem
         self._videos = {}      # item_id -> VideoItem
         self._visual_fragments = []  # accumulated fragments
+        self._last_recalled_pictures = []  # picture recall results from last converse/emit
 
         # v7: Autonomy state
         self._current_activity = None
@@ -991,11 +992,8 @@ class Guala:
             return "..."
 
     def _recall_response(self, input_chis, input_word_chis, input_words):
-        """Atlas-driven recall. For each role section, find the motif most
-        bound to the input chi values via cross-section atlas entries.
-        Returns a response string or None if nothing recallable."""
-        # Build set of input motif IDs to EXCLUDE from recall results
-        # (so she doesn't just echo a word that's also in input)
+        """Atlas-driven recall across ALL sections including sight.
+        Returns a response dict with text and optional picture references."""
         input_words_lower = set(w.lower() for w in input_words)
 
         recalled_words = {}
@@ -1006,16 +1004,82 @@ class Guala:
             if best_word:
                 recalled_words[sec_name] = best_word
 
-        if not recalled_words:
+        # v7 Phase 2: recall sight motifs via chi-neighborhood
+        recalled_pictures = self._recall_sight_from_atlas(input_chis, input_words)
+
+        if not recalled_words and not recalled_pictures:
             return None
 
-        # Compose response in cascade order
+        # Compose text response
         out = []
         for sec_name in ("subject", "verb", "object"):
             if sec_name in recalled_words and recalled_words[sec_name] not in out:
                 out.append(recalled_words[sec_name])
 
-        return " ".join(out) if out else None
+        text = " ".join(out) if out else None
+
+        # If we have pictures, return a structured response
+        if recalled_pictures:
+            self._last_recalled_pictures = recalled_pictures
+            if text:
+                return text
+            return text  # even None — caller will check _last_recalled_pictures
+        self._last_recalled_pictures = []
+        return text
+
+    def _recall_sight_from_atlas(self, input_chis, input_words):
+        """Find sight motifs bound at chi addresses near input word motifs.
+        Returns list of (sight_motif, source_item_id) tuples."""
+        if not hasattr(self, 'sight') or not self.sight.motifs:
+            return []
+
+        input_words_lower = [w.lower() for w in input_words] if input_words else []
+
+        # Step 1: find chi addresses where input content words committed
+        content_chis = set()
+        function_words = {"a", "an", "the", "is", "are", "am", "was", "were",
+                          "of", "in", "on", "at", "to", "from", "with", "for",
+                          "and", "or", "but", "me", "you", "i", "we", "they",
+                          "show", "see", "look", "what", "tell", "about"}
+        content = [w for w in input_words_lower if w not in function_words and len(w) > 1]
+        if not content:
+            return []
+
+        for chi_k, entries in self.atlas.entries.items():
+            for e in entries:
+                sec_name = e.get("section", "")
+                if sec_name in self.sections:
+                    sec = self.sections[sec_name]
+                    mid = e.get("motif", 0)
+                    if mid < len(sec.modes):
+                        _, _, w = sec.modes[mid]
+                        if w and w.lower() in content:
+                            content_chis.add(chi_k)
+
+        if not content_chis:
+            return []
+
+        # Step 2: find sight motifs bound at those chi addresses (with band +-2)
+        sight_motif_ids = set()
+        for chi_k, entries in self.atlas.entries.items():
+            for target_chi in content_chis:
+                if abs(chi_k - target_chi) <= 2:
+                    for e in entries:
+                        if e.get("section") == "sight":
+                            sight_motif_ids.add(e.get("motif"))
+
+        if not sight_motif_ids:
+            return []
+
+        # Step 3: resolve to motifs with source PictureItems
+        results = []
+        for sm in self.sight.motifs:
+            if sm.motif_id in sight_motif_ids and sm.source_history:
+                # Get the most recent source item_id
+                source_id = sm.source_history[-1]
+                if source_id in self._pictures:
+                    results.append((sm, source_id))
+        return results
 
     def _recall_from_atlas(self, target_section, input_chis, exclude_words=None,
                             input_words=None):
@@ -1424,8 +1488,34 @@ class Guala:
         self.needs.stability = min(1.0, self.needs.stability + 0.0005)
         self.needs.novelty = min(1.0, self.needs.novelty + 0.0003)
         if self.tick % 200 == 0:
+            # Dream recall: sample random chi addresses from atlas, surface what's there
+            dream_words = []
+            dream_pics = []
+            chi_keys = list(self.atlas.entries.keys())
+            if chi_keys:
+                sample_chis = [chi_keys[i % len(chi_keys)]
+                               for i in range(self.tick % max(1, len(chi_keys)),
+                                              min(self.tick % max(1, len(chi_keys)) + 3, len(chi_keys)))]
+                for chi_k in sample_chis:
+                    for e in self.atlas.entries.get(chi_k, []):
+                        sec_name = e.get("section", "")
+                        mid = e.get("motif", 0)
+                        if sec_name in self.sections:
+                            sec = self.sections[sec_name]
+                            if mid < len(sec.modes):
+                                _, _, w = sec.modes[mid]
+                                if w and w not in dream_words:
+                                    dream_words.append(w)
+                        if sec_name == "sight" and hasattr(self, 'sight'):
+                            for sm in self.sight.motifs:
+                                if sm.motif_id == mid and sm.source_history:
+                                    sid = sm.source_history[-1]
+                                    if sid in self._pictures and sid not in dream_pics:
+                                        dream_pics.append(sid)
+            content = " ".join(dream_words[:4]) if dream_words else ""
             self._log_substrate_event("dream_artifact",
-                                     context="motif combination surfaced")
+                                     content=content,
+                                     picture_ids=dream_pics)
 
     def _atick_playing(self, a):
         """Free-settle: chi space walk, modest novelty."""
@@ -1559,10 +1649,8 @@ class Guala:
             self._start_activity(em)
 
     def _do_emit(self):
-        """Generate an autonomous emission via cohesion cascade."""
+        """Generate an autonomous emission via recall across all sections."""
         self._last_emission_tick = self.tick
-        # Cohesion cascade: recall from atlas using recent substrate state
-        # Collect recent chi values from section commits
         recent_chis = []
         for sec in self.sections.values():
             for c in sec.commits[-5:]:
@@ -1574,10 +1662,7 @@ class Guala:
                                                  if self.coordinator._presence.get(s, False)])
             return
 
-        # Use recall to generate words
-        input_word_chis = {}
-        for chi in recent_chis:
-            input_word_chis[f"_chi_{chi}"] = chi
+        # Word recall
         recalled = {}
         for sec_name in ("subject", "verb", "object"):
             word = self._recall_from_atlas(sec_name, recent_chis,
@@ -1588,11 +1673,16 @@ class Guala:
         content = " ".join(recalled[k] for k in ("subject", "verb", "object")
                            if k in recalled) or "..."
 
+        # Sight recall — find pictures bound at recent chi addresses
+        recalled_pics = self._recall_sight_from_atlas(recent_chis, [])
+        pic_ids = [sid for _, sid in recalled_pics] if recalled_pics else []
+
         to_sources = [s for s in PAIR_BOND_SOURCES
                       if self.coordinator._presence.get(s, False)
                       and self.coordinator._pair_bond.get(s, False)]
         self._log_substrate_event("emission", content=content,
-                                 to_sources=to_sources)
+                                 to_sources=to_sources,
+                                 picture_ids=pic_ids)
 
     def manual_sleep(self):
         """Manual sleep trigger from UI."""

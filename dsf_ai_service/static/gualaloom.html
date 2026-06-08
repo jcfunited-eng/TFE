@@ -494,6 +494,16 @@ async function sendMsg() {
     });
     const data = await res.json();
     addMsg(data.response, isCmd ? 'system' : 'substrate');
+    // Show recalled pictures inline
+    if (data.pictures && data.pictures.length > 0) {
+      for (const pic of data.pictures) {
+        const d = document.createElement('div');
+        d.className = 'msg substrate';
+        d.innerHTML = `<img src="${pic.data}" alt="${pic.title}" style="max-width:200px;border-radius:6px;margin:4px 0"> <span style="font-size:11px;color:var(--text-muted)">${pic.title}</span>`;
+        chat.appendChild(d);
+      }
+      chat.scrollTop = chat.scrollHeight;
+    }
   } catch (e) {
     addMsg('(connection error)', 'system');
   }
