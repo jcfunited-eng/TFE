@@ -1524,6 +1524,54 @@ async def substrate_feed_senses(req: SubstrateFeedRequest):
 
 
 # ════════════════════════════════════════════════════════════════
+# v7 DNA Recipe Substrate
+# GL-CMD-DEPLOY-DNA-RECIPE-WC-20260608-01
+# ════════════════════════════════════════════════════════════════
+
+import uuid as _uuid
+
+class V7ConverseRequest(BaseModel):
+    text: str
+    session_id: Optional[str] = None
+
+class V7FeedbackRequest(BaseModel):
+    session_id: str
+    correct: bool
+    expected_tokens: Optional[Dict] = None
+
+@app.post("/v7/converse")
+async def v7_converse(req: V7ConverseRequest):
+    from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
+    sid = req.session_id or str(_uuid.uuid4())[:8]
+    session = get_or_create_session(sid)
+    result = session.converse(req.text)
+    try:
+        save_session(session)
+    except Exception:
+        pass
+    result["session_id"] = sid
+    return result
+
+@app.post("/v7/feedback")
+async def v7_feedback(req: V7FeedbackRequest):
+    from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
+    session = get_or_create_session(req.session_id)
+    result = session.apply_feedback(req.correct, req.expected_tokens)
+    try:
+        save_session(session)
+    except Exception:
+        pass
+    result["session_id"] = req.session_id
+    return result
+
+@app.get("/v7/state")
+async def v7_state(session_id: str = "default"):
+    from dsf_ai_service.substrate.v7_engine import get_or_create_session
+    session = get_or_create_session(session_id)
+    return session.get_state()
+
+
+# ════════════════════════════════════════════════════════════════
 # Health check
 # ════════════════════════════════════════════════════════════════
 
