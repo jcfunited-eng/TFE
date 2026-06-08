@@ -16,7 +16,7 @@
  */
 
 import pg from "pg";
-import { assessExit } from "../l5_unified_shadow.mjs";
+// assessExit import removed — EXIT-S removed (arbitrary thresholds, no backtest)
 
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -854,41 +854,11 @@ export async function runSentinel() {
       }
     } catch { /* non-fatal */ }
 
-    // ── EXIT-S: Structural Exit Assessment (L5 assessExit) ─────────────
-    // Fires in the -2% to -10% intermediate loss zone.
-    // Uses tuple-proximity neighbor WR to decide CUT vs HOLD.
-    // Respects EXIT-R9 minimum hold: young losing positions are held.
-    // EXIT-F (catastrophic -10%) has already fired above — this covers
-    // the structural assessment zone between -2% and -10%.
-    if (currentPnlPct !== null) {
-      const unrealizedReturn = currentPnlPct / 100;  // assessExit expects fraction
-      const neighborWR = isFinite(fields.neighbor_wr) ? fields.neighbor_wr : null;
-      const exitAssessment = assessExit(unrealizedReturn, neighborWR);
-
-      if (exitAssessment.action === "CUT_STRUCTURAL" || exitAssessment.action === "CUT_CATASTROPHIC") {
-        if (isYoung && currentPnlPct < 0) {
-          console.log(
-            `[SENTINEL] EXIT-S ${pos.ticker} | ${exitAssessment.action} — MIN HOLD GUARD: ` +
-            `holding (P&L=${currentPnlPct.toFixed(1)}%, WR=${neighborWR?.toFixed(3) ?? "null"}, ` +
-            `age=${posAge}d, need ${MIN_HOLD_DAYS}d, reason=${exitAssessment.reason})`
-          );
-        } else {
-          console.log(
-            `[SENTINEL] EXIT-S ${pos.ticker} | ${exitAssessment.action} — structural exit ` +
-            `(P&L=${currentPnlPct.toFixed(1)}%, WR=${neighborWR?.toFixed(3) ?? "null"}, ` +
-            `age=${posAge}d, reason=${exitAssessment.reason})`
-          );
-          await killPosition(pos, `structural_exit_${exitAssessment.action.toLowerCase()}`, ALPACA_BASE);
-          continue;
-        }
-      } else if (exitAssessment.action !== "HOLD_ABOVE_ZONE") {
-        // Log non-cut assessments for visibility (HOLD_STRUCTURAL, AMBIGUOUS, HOLD_NO_DATA)
-        console.log(
-          `[SENTINEL] EXIT-S ${pos.ticker} | ${exitAssessment.action} ` +
-          `(P&L=${currentPnlPct.toFixed(1)}%, WR=${neighborWR?.toFixed(3) ?? "null"}, reason=${exitAssessment.reason})`
-        );
-      }
-    }
+    // EXIT-S REMOVED. assessExit used arbitrary thresholds (EXIT_CUT_WR=0.50,
+    // EXIT_HOLD_WR=0.55) described in the commit as "coin-flip intuition, not
+    // backtested." It cut positions in the -2% to -10% zone based on neighbor WR,
+    // but the thresholds had no derivation. EXIT-F (-10% catastrophic) and EXIT-B
+    // (D_k collapse) remain as the structural exits.
 
     // ── Chapter 2 exit logic (independent path) ─────────────────────────
     if (signalClass === "CH2") {
@@ -917,7 +887,7 @@ export async function runSentinel() {
         }
       }
 
-      // ── Pre-fetch τ data from DB (used by EXIT-D, EXIT-H, EXIT-C) ────────
+      // ── Pre-fetch τ data from DB (used by EXIT-C τ exhaustion) ────────
       if (!global._tauCache) global._tauCache = {};
       if (!global._tauCache[pos.ticker]) {
         try {
@@ -955,124 +925,18 @@ export async function runSentinel() {
         } catch { /* non-fatal */ }
       }
 
-      // Exit D — Trailing profit ratchet
-      // Once gain exceeds 5%, set a rising floor that locks in profit.
-      // Floor = max(0, (max_gain - 5%) * 0.5). Ratchets up only, never down.
-      // Checked every sentinel cycle (~5 min during market hours).
-      // Must use Alpaca live price — DB has no current_price field.
-      try {
-        const alpacaCh2Pos = await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE).catch(() => null);
-        const costBasis = parseFloat(alpacaCh2Pos?.avg_entry_price ?? pos.entry_filled_price ?? "0");
-        const currentPrice = parseFloat(alpacaCh2Pos?.current_price ?? "0");
-        if (costBasis > 0 && currentPrice > 0) {
-          const gainPct = ((currentPrice / costBasis) - 1) * 100;
+      // EXIT-D REMOVED. Trailing profit ratchet capped winners at first pullback
+      // past +5%. April-May winners averaged +12.34% by riding full structural
+      // moves. EXIT-D mechanically reduced avg win to +2.21% by selling on the
+      // first dip after +5%. The ratchet constants (cushion, trailPct) had no
+      // derivation. Winners now ride until EXIT-B (D_k collapse), EXIT-C
+      // (τ exhaustion), or EXIT-F (-10% catastrophic).
 
-          // Track max gain per position — persisted to survive restarts
-          const MAX_GAIN_PATH = "/app/max_gain_cache.json";
-          if (!global._maxGainCache) {
-            try {
-              const { readFileSync, existsSync } = await import("fs");
-              if (existsSync(MAX_GAIN_PATH)) {
-                global._maxGainCache = JSON.parse(readFileSync(MAX_GAIN_PATH, "utf-8"));
-                console.log(`[SENTINEL] Max gain cache loaded: ${Object.keys(global._maxGainCache).length} entries`);
-              } else {
-                global._maxGainCache = {};
-              }
-            } catch { global._maxGainCache = {}; }
-          }
-          const prevMax = global._maxGainCache[pos.ticker] ?? 0;
-          const maxGain = Math.max(prevMax, gainPct);
-          if (maxGain > prevMax) {
-            global._maxGainCache[pos.ticker] = maxGain;
-            try {
-              const { writeFileSync } = await import("fs");
-              writeFileSync(MAX_GAIN_PATH, JSON.stringify(global._maxGainCache), "utf-8");
-            } catch {}
-          }
-
-          // Momentum-aware profit exit using τ_out energy ratio
-          // High gain + exhausted energy = take profit now
-          // High gain + plenty of energy = let it run with wide trail
-          const cached = (global._tauCache ?? {})[pos.ticker];
-          const tauOut = cached?.tau_out_days ?? 0;
-          const entryDate = pos.signal_detected_at ?? pos.created_at;
-          let posAge = 0;
-          if (entryDate) {
-            posAge = Math.floor((Date.now() - new Date(entryDate).getTime()) / (1000*60*60*24));
-          }
-          // energyRatio: 0 = fully spent, 1 = just entered
-          const energyRatio = tauOut > 0 ? Math.max(0, 1 - posAge / tauOut) : 0.5;
-
-          // Tighten trail as energy depletes:
-          //   Full energy (1.0): floor = (max - 5%) * 0.4  (wide, let it run)
-          //   Half energy (0.5): floor = (max - 4%) * 0.55
-          //   Low energy  (0.2): floor = (max - 3%) * 0.65 (tight, protect gains)
-          //   Exhausted   (0.0): floor = (max - 2%) * 0.75 (very tight)
-          const cushion = 2 + 3 * energyRatio;       // 2-5% cushion
-          const trailPct = 0.75 - 0.35 * energyRatio; // 40-75% trail factor
-          const floorPct = Math.max(0, (maxGain - cushion) * trailPct);
-
-          if (maxGain >= 5.0 && gainPct <= floorPct) {
-            console.log(
-              `[SENTINEL] CH2 EXIT-D ${pos.ticker} | trailing profit hit floor ` +
-              `(current=${gainPct.toFixed(1)}% max=${maxGain.toFixed(1)}% floor=${floorPct.toFixed(1)}% energy=${energyRatio.toFixed(2)})`
-            );
-            await killPosition(pos, "ch2_exit_trailing_profit", ALPACA_BASE);
-            continue;
-          }
-        }
-      } catch (trailErr) {
-        // Non-fatal — continue to other exit checks
-      }
-
-      // Exit H — Structural Harvest: extract energy while the getting is good.
-      // When τ is known: harvest past midpoint of τ_out with gain >= 5%.
-      // When τ is unknown: harvest after 7+ days with gain >= 5%.
-      // The gain IS the evidence that energy was extracted.
-      try {
-        const cached_h = (global._tauCache ?? {})[pos.ticker];
-        const tauOut_h = cached_h?.tau_out_days ?? 0;
-        const entryDate_h = pos.signal_detected_at ?? pos.created_at;
-        let posAge_h = 0;
-        if (entryDate_h) {
-          posAge_h = Math.floor((Date.now() - new Date(entryDate_h).getTime()) / (1000*60*60*24));
-        }
-
-        // Determine if harvest conditions are met
-        let shouldHarvest = false;
-        let harvestReason = "";
-        if (tauOut_h > 0) {
-          const energyUsed = posAge_h / tauOut_h;
-          if (energyUsed >= 0.5) {
-            shouldHarvest = true;
-            harvestReason = `energy=${((1-energyUsed)*100).toFixed(0)}% remaining age=${posAge_h}d τ_out=${tauOut_h}d`;
-          }
-        } else if (posAge_h >= 7) {
-          // No τ data — use age as fallback. 7+ days is enough time
-          // for the structural thesis to have played out.
-          shouldHarvest = true;
-          harvestReason = `age=${posAge_h}d (no τ — age fallback)`;
-        }
-
-        if (shouldHarvest) {
-          const alpacaHPos = await alpacaGet(`/v2/positions/${encodeURIComponent(pos.ticker)}`, ALPACA_BASE).catch(() => null);
-          const hEntry = parseFloat(alpacaHPos?.avg_entry_price ?? pos.entry_filled_price ?? "0");
-          const hCurrent = parseFloat(alpacaHPos?.current_price ?? "0");
-          if (hEntry > 0 && hCurrent > 0) {
-            const hGainPct = ((hCurrent / hEntry) - 1) * 100;
-            if (hGainPct >= 5.0) {
-              console.log(
-                `[SENTINEL] CH2 EXIT-H ${pos.ticker} | structural harvest ` +
-                `(gain=${hGainPct.toFixed(1)}% ${harvestReason})`
-              );
-              await killPosition(pos, "ch2_exit_structural_harvest", ALPACA_BASE);
-              continue;
-            }
-          }
-        }
-      } catch (harvestErr) {
-        // Non-fatal — continue to τ_out check
-      }
+      // EXIT-H REMOVED. Structural harvest sold at +5% gain when position
+      // reached τ_out midpoint. This was the primary cap on winner magnitude.
+      // A position that would have run to +25% over 30 days got sold at +5%
+      // on day 15. The +5% threshold was hardcoded with no derivation.
+      // EXIT-C (full τ exhaustion) remains as the structural-energy-based exit.
 
       // Exit C — Exhaustion Timer (τ_out)
       // τ already computed in pre-fetch above.
