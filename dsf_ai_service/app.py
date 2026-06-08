@@ -1570,6 +1570,21 @@ async def v7_state(session_id: str = "default"):
     session = get_or_create_session(session_id)
     return session.get_state()
 
+@app.post("/v7/quiet")
+async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
+    """Quiet ticks — substrate's Default Mode. Replay + consolidation."""
+    from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
+    session = get_or_create_session(session_id)
+    results = session.quiet_tick(min(n_ticks, 50))
+    try:
+        save_session(session)
+    except Exception:
+        pass
+    total_replayed = sum(len(r["replayed"]) for r in results)
+    total_commits = sum(len(r["commits"]) for r in results)
+    return {"session_id": session_id, "ticks": len(results),
+            "replayed": total_replayed, "commits": total_commits}
+
 
 # ════════════════════════════════════════════════════════════════
 # Health check

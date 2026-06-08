@@ -199,8 +199,14 @@ class Section:
             mode_id = int(p.argmax())
             self.mode_bank[mode_id] = normalize(0.92 * self.mode_bank[mode_id] + 0.08 * state)
             self.mode_last_used[mode_id] = tick
+        # Salience: arc magnitude + novelty bonus (spec Item 3.1)
+        arc_mag = float(a[mode_id]) if mode_id >= 0 and mode_id < len(a) else 0.0
+        recent_fires = [k for k in self.krimelack[-50:] if k.get("mode_id") == mode_id]
+        novelty_bonus = 0.3 if len(recent_fires) == 0 else 0.0
+        salience = min(1.0, arc_mag + novelty_bonus)
         self.krimelack.append({"state": state, "chi": c, "tick": tick,
-                               "mode_id": mode_id, "reason": reason})
+                               "mode_id": mode_id, "reason": reason,
+                               "salience": salience})
         # arc-top history for resolution-effect metric
         if len(a) > 0:
             top = int(a.argmax())
@@ -562,7 +568,51 @@ class System:
         for k in ("entropy", "coherence", "greed"):
             self.system_log[f"system_{k}"].append(float(np.mean([a[k] for a in all_ax])))
 
+        # Binding-intensity salience bonus (spec Item 3.1)
+        if len(commits_this_tick) >= 2:
+            bonus = min(0.4, 0.1 * (len(commits_this_tick) - 1))
+            for c in commits_this_tick:
+                sec_name = c["section"]
+                sec = self.sections[sec_name]
+                if sec.krimelack:
+                    last = sec.krimelack[-1]
+                    last["salience"] = min(1.0, last.get("salience", 0.0) + bonus)
+
         return commits_this_tick
+
+    def replay_tick(self, rng=None, max_replay=2):
+        """Quiet-time replay: sample from each section's krimelack
+        weighted by salience * recency, re-project as evidence.
+        This is substrate-native DMN / mental time travel (spec Item 3.2)."""
+        if rng is None:
+            rng = np.random.default_rng()
+        replayed = []
+        for sec_name, section in self.sections.items():
+            if len(section.krimelack) == 0:
+                continue
+            recency_lambda = 0.002
+            weights = np.array([
+                k.get("salience", 0.5) * np.exp(-recency_lambda * (self.tick - k["tick"]))
+                for k in section.krimelack
+            ])
+            if weights.sum() <= 0:
+                continue
+            weights = weights / weights.sum()
+            n_sample = min(max_replay, len(section.krimelack))
+            indices = rng.choice(len(section.krimelack), size=n_sample,
+                                 replace=False, p=weights)
+            for idx in indices:
+                entry = section.krimelack[idx]
+                J = self.project_into(section, entry["state"])
+                if J is not None:
+                    section.evolve(J=J)
+                replayed.append((sec_name, entry.get("chi", 0),
+                                 entry.get("mode_id", -1), entry.get("tick", 0)))
+        # Let evolution settle with the replayed evidence
+        commits = self.tick_once({}, enable_self_evo=True,
+                                  coordinator_on=True, introspection_on=True,
+                                  allow_rewiring=True)
+        return {"replayed": replayed, "commits": commits}
 
     def _atlas_snapshot(self):
         """Compress current atlas + section three-axis into a complex N-vector for introspection."""

@@ -500,6 +500,17 @@ class V7Session:
             "honest_silence_reason": reason,
         }
 
+    def quiet_tick(self, n_ticks=1):
+        """Quiet ticks — substrate's Default Mode (spec Item 3.3).
+        Replay drives commits, which strengthen mode_bank via existing
+        blending plasticity. This is consolidation. This is mental time travel."""
+        with self.lock:
+            results = []
+            for _ in range(n_ticks):
+                result = self.sys_.replay_tick(rng=self.rng)
+                results.append(result)
+            return results
+
     def apply_feedback(self, correct, expected_tokens=None):
         """Supervised LTP from thumbs-up/down."""
         with self.lock:
