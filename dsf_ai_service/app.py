@@ -1191,6 +1191,11 @@ async def gualaloom_chat(msg: GLMessage):
             return {"response": "no image data", "motifs": _guala.introspect()["vocab"]}
         try:
             img_bytes = base64.b64decode(b64_data)
+            try:
+                import pillow_heif
+                pillow_heif.register_heif_opener()
+            except ImportError:
+                pass
             from PIL import Image
             import io as _io
             img = Image.open(_io.BytesIO(img_bytes)).convert('L')
