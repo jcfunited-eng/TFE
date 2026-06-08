@@ -262,37 +262,14 @@ export async function getCh3Signals() {
     return [];
   }
 
-  // Gate 4: Epoch Resonance Shield — block entries in hostile macro environments
-  // Reads G32 mosaic + SPY structural state as a coupled assessment.
-  // In hostile epochs, even structurally attractive setups get crushed.
-  try {
-    let g32 = {};
-    try { g32 = JSON.parse(readFileSync("/app/g32_state.json", "utf-8")); } catch {}
-    const xi = g32.xi ?? {};
-
-    // Stress aggregate: sum of active adverse pressure channels
-    // Aggregate D_k shield — macro signal from structurally rich tickers
-    const dkRes = await pool.query(`
-      SELECT
-        COUNT(*) FILTER (WHERE CAST(NULLIF(snapshot_row_json->>'D_k','') AS DOUBLE PRECISION) > 0) AS expanding,
-        COUNT(*) FILTER (WHERE CAST(NULLIF(snapshot_row_json->>'D_k','') AS DOUBLE PRECISION) < 0) AS contracting
-      FROM runtime_decisions_latest
-      WHERE decision_label = 'Accumulate'
-        AND ticker != 'SPY'
-        AND CAST(NULLIF(snapshot_row_json->>'bar_count','') AS INTEGER) > 20
-    `);
-    const expanding = parseInt(dkRes.rows[0]?.expanding ?? "0", 10);
-    const contracting = parseInt(dkRes.rows[0]?.contracting ?? "0", 10);
-    const total = expanding + contracting;
-
-    if (total >= 5 && contracting > expanding) {
-      console.log(`[CH3-HUNTER] SHIELD BLOCK — majority contracting (expanding=${expanding} contracting=${contracting})`);
-      return [];
-    }
-    console.log(`[CH3-HUNTER] Shield: CLEAR (expanding=${expanding} contracting=${contracting})`);
-  } catch (shieldErr) {
-    console.log(`[CH3-HUNTER] Shield check failed: ${shieldErr.message} — proceeding`);
-  }
+  // Aggregate D_k shield REMOVED. Same destruction pattern as S_UF band and
+  // 0.5 regime cap: an aggregate scalar override vetoing qualified individual
+  // picks. CH3's per-stock Accumulate filter and epoch sector pressure filter
+  // are the entry decision. Aggregate breadth is observable but does not veto.
+  //
+  // Previously: contracting > expanding → return [] (blocked all CH3 entries)
+  // Removed because it blanket-blocked CH3 for the entire period SPY was D_k=-1
+  // despite individual stocks having strong per-ticker structural reads.
 
   // Fetch candidates from full snapshot (not Accumulate-only)
   const rows = await fetchCandidateRows();

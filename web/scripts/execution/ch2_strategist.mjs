@@ -24,7 +24,7 @@
 
 import pg from "pg";
 import { readFileSync } from "fs";
-import { computeRegimeExposure } from "../l5_unified_shadow.mjs";
+// computeRegimeExposure import removed — position count cap removed, cash is the only constraint
 
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -213,27 +213,14 @@ export async function getCh2Signals() {
     } catch {}
   }
 
-  // ── Regime exposure gate (L5 computeRegimeExposure) ──────────────────
-  {
-    const spyRes = await pool.query(
-      `SELECT snapshot_row_json FROM runtime_decisions_latest WHERE ticker = 'SPY' LIMIT 1`
-    );
-    const spySnap = spyRes.rows[0]?.snapshot_row_json ?? {};
-    const spyDk = toInt(spySnap.D_k ?? spySnap.d_k) ?? 0;
-
-    const openRes = await pool.query(
-      `SELECT COUNT(*) AS cnt FROM personal_trade_ledger WHERE status IN ('submitted', 'filled')`
-    );
-    const openCount = parseInt(openRes.rows[0]?.cnt ?? "0", 10);
-
-    const regime = computeRegimeExposure(spyDk, openCount, 30, 0);
-    console.log(`[CH2-STRATEGIST] Regime: ${regime.reason} | openPositions=${openCount}`);
-
-    if (!regime.newEntriesAllowed) {
-      console.log(`[CH2-STRATEGIST] REGIME BLOCK — ${regime.reason}`);
-      return [];
-    }
-  }
+  // Position count cap (maxPositions=30) REMOVED. The constraint on deployment
+  // is available cash (task 523/530/531 cash ceiling), not position count.
+  // Position count caps were never authorized — Joe specified "the constraint
+  // is cash, not position count." Same class of arbitrary aggregate gate as the
+  // 0.5 regime cap and S_UF band already removed.
+  //
+  // Previously: computeRegimeExposure(spyDk, openCount, 30, 0) → blocked at 30+ positions
+  // Cash ceiling in alpaca_bridge still gates every order against available cash.
 
   // Aggregate D_k shield REMOVED. Same principle as S_UF band and regime cap:
   // an aggregate scalar override was vetoing qualified individual picks.
