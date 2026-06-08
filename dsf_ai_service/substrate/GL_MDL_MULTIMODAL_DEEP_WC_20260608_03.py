@@ -43,7 +43,7 @@ COFIRE_WINDOW_TICKS = 6
 
 MGN_FOCUS_BOOST = 1.5     # was 2.0 — softer to reduce feedback runaway
 MGN_OFF_FOCUS_SUPPRESS = 0.5  # was 0.4 — less aggressive suppression
-TOP_DOWN_BOOST = 1.0      # disabled — was 1.5, but caused feedback loop with MGN
+TOP_DOWN_BOOST = 1.15     # gentle feedback — avoids 1.5 loop, breaks the 1.0 no-op
 
 CHI_NEIGHBORHOOD_L1 = 1
 

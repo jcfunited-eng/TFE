@@ -208,8 +208,9 @@ class V7Session:
                         1j * self.rng.standard_normal(N)))
                     acc = acc + noisy
                     ev = {"listen": noisy}
-                    self.sys_.tick_once(ev, enable_self_evo=False,
-                                        coordinator_on=False, introspection_on=False)
+                    self.sys_.tick_once(ev, enable_self_evo=True,
+                                        coordinator_on=False, introspection_on=False,
+                                        allow_rewiring=False)
                 accumulated[slot] = normalize(acc)
 
             # Introspection: heard phase
@@ -253,6 +254,10 @@ class V7Session:
             emitted_words = {}
 
             for t in range(120):
+                # Decay plasticity per tick (spec 1.3 — synaptic homeostasis)
+                for sn in ("subject", "verb", "object"):
+                    decay_plasticity(self.sys_.sections[sn], decay=0.998)
+
                 current = svo_cycle[cycle_idx % 3]
                 self.last_rhythm_phase = current
                 rhythm_events.append({"tick": self.sys_.tick + 1, "phase": current})
@@ -275,8 +280,9 @@ class V7Session:
                         1j * self.rng.standard_normal(N)))
 
                 commits = self.sys_.tick_once(
-                    ev, enable_self_evo=False,
-                    coordinator_on=False, introspection_on=False)
+                    ev, enable_self_evo=True,
+                    coordinator_on=True, introspection_on=True,
+                    allow_rewiring=True)
                 emit_commits.extend(commits)
 
                 # Advance cycle on commit
