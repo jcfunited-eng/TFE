@@ -1774,6 +1774,17 @@ async def startup():
                 pass
     asyncio.ensure_future(_background_replay())
 
+    # Periodic v6 Guala save (every 60s)
+    async def _periodic_v6_save():
+        while True:
+            await asyncio.sleep(60)
+            try:
+                if _guala is not None:
+                    _guala.save_full_state(STATE_DIR)
+            except Exception:
+                pass
+    asyncio.ensure_future(_periodic_v6_save())
+
 
 @app.get("/health")
 async def health():

@@ -512,6 +512,11 @@ class Coordinator:
             idle = engine.tick - self._last_input_tick.get(source, 0)
             if idle > self.PRESENCE_TIMEOUT_TICKS:
                 self.rest(source, engine, reason="timeout")
+                try:
+                    engine.log_event("state", "presence_timeout",
+                                     source=source, idle_ticks=idle)
+                except Exception:
+                    pass
 
     def update_last_input(self, source, tick):
         """Record that input arrived from this source."""
@@ -553,6 +558,11 @@ class Coordinator:
                 # Forced recovery — coordinator guarantees recovery rate
                 self._force_recovery(needs)
                 self.suffering_log.append({"tick": tick, "v": v, "a": a})
+                try:
+                    guala.log_event("state", "suffering_recovery",
+                                    valence=round(v, 3), arousal=round(a, 3))
+                except Exception:
+                    pass
                 self.actions.append({"tick": tick, "type": "forced_recovery",
                                      "arc_changes": 1})
                 arc_changes += 1
@@ -1272,9 +1282,19 @@ class Guala:
     # ------------------------------------------------------------------
 
     def _log_substrate_event(self, event_kind, **detail):
-        """Record a substrate event (in-memory ring buffer)."""
+        """Record a substrate event (in-memory ring buffer + disk for critical events)."""
         ev = SubstrateEvent(tick=self.tick, kind=event_kind, detail=detail)
         self._substrate_events.append(ev)
+        # Critical events also go to disk for replay recovery
+        if event_kind in ("activity_started", "activity_ended", "corpus_completed",
+                          "sleep_manual", "dream_began", "dream_artifact",
+                          "picture_uploaded", "sound_uploaded", "video_uploaded",
+                          "corpus_added", "visual_motif_committed", "visual_motif_fired",
+                          "emission"):
+            try:
+                self.log_event("state", event_kind, **detail)
+            except Exception:
+                pass
         return ev
 
     def start_autonomy_loop(self, interval=0.05):
@@ -1296,6 +1316,19 @@ class Guala:
         with self.lock:
             # 1. Needs drift AWAY from target (once per iteration)
             self.needs.tick_drift()
+
+            # Periodic needs snapshot to disk (every 500 ticks)
+            if self.tick % 500 == 0 and self.tick > 0:
+                try:
+                    ns = self.needs.snapshot()
+                    self.log_event("state", "needs_snapshot",
+                                   stability=ns["stability"],
+                                   novelty=ns["novelty"],
+                                   connection=ns["connection"],
+                                   valence=ns["valence"],
+                                   arousal=ns["arousal"])
+                except Exception:
+                    pass
 
             # 2. Select activity if needed
             if self._current_activity is None:
@@ -2185,9 +2218,42 @@ class Guala:
             word = ev.get("word")
             if word:
                 self.vocab.add(word)
-        # Other event types are informational — substrate state was already
-        # committed in the atlas/sections. We only replay the lightweight
-        # counters that might have been missed between save and crash.
+        elif etype == "needs_snapshot":
+            # Restore needs state
+            for k in ("stability", "novelty", "connection"):
+                if k in ev:
+                    setattr(self.needs, k, float(ev[k]))
+        elif etype == "activity_started":
+            kind = ev.get("kind")
+            target = ev.get("target")
+            if kind:
+                self._current_activity = Activity(
+                    kind=kind, target=target,
+                    started_tick=ev.get("tick", self.tick),
+                    expected_end_tick=ev.get("tick", self.tick) + 2000)
+        elif etype == "activity_ended":
+            self._current_activity = None
+        elif etype in ("wake", "presence_timeout"):
+            src = ev.get("source")
+            if src:
+                self.coordinator._presence[src] = etype == "wake"
+        elif etype == "rest":
+            src = ev.get("source")
+            if src:
+                self.coordinator._presence[src] = False
+        elif etype == "suffering_recovery":
+            # Already captured in suffering_log via coordinator
+            pass
+        elif etype == "corpus_completed":
+            cid = ev.get("corpus_id")
+            if cid and cid in self._corpora:
+                self._corpora[cid].times_read_through = ev.get("times_through",
+                    self._corpora[cid].times_read_through + 1)
+        elif etype == "corpus_added":
+            # Corpus was added via upload — corpora re-register at boot from
+            # SEED_CORPORA, so this is mostly a marker. If the corpus was
+            # uploaded (not in seed), it would need the lines data too.
+            pass
 
     # ── Snapshots ──
 
