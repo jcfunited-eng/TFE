@@ -1215,6 +1215,79 @@ async def gualaloom_chat(msg: GLMessage):
                             f"she'll look at it when curiosity drives her.",
                 "motifs": _guala.introspect()["vocab"]}
 
+    # ── /addsound:<filename> — decode base64 audio, run through cochlear pipeline ──
+    if cmd.startswith("/addsound:"):
+        import base64, hashlib, tempfile, subprocess
+        filename = cmd[len("/addsound:"):]
+        title = filename.rsplit('.', 1)[0] if '.' in filename else filename
+        b64_data = msg.text.strip()
+        if not b64_data:
+            return {"response": "no audio data", "motifs": _guala.introspect()["vocab"]}
+        try:
+            audio_bytes = base64.b64decode(b64_data)
+            # Decode to wav via ffmpeg (handles mp3, ogg, wav, etc.)
+            tmp_in = tempfile.NamedTemporaryFile(suffix='.audio', delete=False)
+            tmp_in.write(audio_bytes)
+            tmp_in.close()
+            tmp_wav = tmp_in.name + '.wav'
+            subprocess.run([
+                "ffmpeg", "-i", tmp_in.name, "-ar", "200", "-ac", "1",
+                "-f", "wav", tmp_wav, "-y", "-loglevel", "error"
+            ], check=True, timeout=30)
+            import scipy.io.wavfile as wavfile
+            sr, samples = wavfile.read(tmp_wav)
+            # Normalize to [-1, 1] float
+            if samples.dtype == np.int16:
+                samples = samples.astype(np.float64) / 32768.0
+            elif samples.dtype == np.int32:
+                samples = samples.astype(np.float64) / 2147483648.0
+            else:
+                samples = samples.astype(np.float64)
+            if len(samples.shape) > 1:
+                samples = samples.mean(axis=1)
+            # Run through cochlear pipeline
+            from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import (
+                cochlear_transduce, onset_stream, sustained_stream, a1_signature)
+            cochlear = cochlear_transduce(samples, sample_rate=sr)
+            onsets = onset_stream(cochlear)
+            sustained = sustained_stream(cochlear)
+            a1 = a1_signature(cochlear, onsets, sustained)
+            # Register as sensory item
+            item_id = hashlib.md5(audio_bytes).hexdigest()[:12]
+            n_events = sum(c["n_events"] for c in cochlear.values())
+            n_onsets = sum(onsets.values())
+            duration_s = len(samples) / max(sr, 1)
+            # Feed into v6 substrate's atlas at the audio chi address
+            from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import COCHLEAR_BANDS
+            for band_name, c in cochlear.items():
+                chi = c["winding"]
+                _guala.atlas.record(f"audio_{band_name}", hash(item_id) % 1000,
+                                    chi, _guala.tick, salience=1.2)
+            _guala._log_substrate_event("sound_uploaded",
+                                        item_id=item_id, title=title,
+                                        n_events=n_events, n_onsets=n_onsets,
+                                        duration_s=round(duration_s, 2))
+            # Clean up temp files
+            import os
+            os.unlink(tmp_in.name)
+            os.unlink(tmp_wav)
+            return {
+                "response": f"heard \"{title}\" ({duration_s:.1f}s, {n_events} cochlear events, "
+                            f"{n_onsets} onsets). she's processing it.",
+                "motifs": _guala.introspect()["vocab"],
+                "sound_info": {
+                    "item_id": item_id, "title": title,
+                    "duration_s": round(duration_s, 2),
+                    "n_cochlear_events": n_events,
+                    "n_onsets": n_onsets,
+                    "bands": {bn: {"winding": c["winding"], "n_events": c["n_events"]}
+                              for bn, c in cochlear.items()},
+                },
+            }
+        except Exception as e:
+            return {"response": f"sound decode error: {e}",
+                    "motifs": _guala.introspect()["vocab"]}
+
     # ── Normal conversation — v5 substrate responds ──
     text = msg.text.strip()
     if not text:

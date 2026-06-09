@@ -236,7 +236,7 @@ async function upload(kind,el){
   const file=el.files[0];if(!file)return;el.value='';addMsg(`(uploading ${kind}: ${file.name})`,'system');
   if(kind==='book'){try{const text=await file.text();const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,command:'/addbook:'+file.name})});const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')}catch(e){addMsg('upload error','system')}}
   else if(kind==='picture'){try{const reader=new FileReader();reader.onload=async function(){const b64=reader.result.split(',')[1];const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'/addpicture:'+file.name})});const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')};reader.readAsDataURL(file)}catch(e){addMsg('upload error','system')}}
-  else if(kind==='sound'){addMsg('sound upload processing...','system');addMsg('(audio pipeline stub — wiring to cochlear bands pending)','system')}
+  else if(kind==='sound'){try{const reader=new FileReader();reader.onload=async function(){const b64=reader.result.split(',')[1];const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'/addsound:'+file.name})});const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')};reader.readAsDataURL(file)}catch(e){addMsg('sound upload error','system')}}
   setTimeout(pollStatus,1000)}
 
 // Presence heartbeat
