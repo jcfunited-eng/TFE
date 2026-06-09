@@ -1614,8 +1614,10 @@ class Guala:
                     source_id=pic.item_id, n_fragments=len(fragments))
             a.metadata["_viewed"] = True
             a.metadata["n_fragments"] = len(fragments)
-        # Novelty effect
-        gain = 0.003 if pic.is_new() else 0.0005
+        # Novelty effect — discounted by familiarity
+        fam = self.target_familiarity.get(a.target, 0.0)
+        base_gain = 0.003 if pic.is_new() else 0.0005
+        gain = base_gain * (1.0 - fam)  # familiar pictures give less novelty
         self.needs.novelty = min(1.0, self.needs.novelty + gain)
         # Mark attended at end + update familiarity
         if self.tick >= a.expected_end_tick - 1:
