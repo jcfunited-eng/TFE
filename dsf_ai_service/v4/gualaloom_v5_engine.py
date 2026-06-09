@@ -778,6 +778,7 @@ class Guala:
         from dsf_ai_service.visual_krimelack import SightSection
         self.sight = SightSection()
         self._pictures = {}    # item_id -> PictureItem
+        self.target_familiarity = {}  # picture_id -> float [0,1]
         self._videos = {}      # item_id -> VideoItem
         self._visual_fragments = []  # accumulated fragments
         self._last_recalled_pictures = []  # picture recall results from last converse/emit
@@ -1330,6 +1331,22 @@ class Guala:
                 except Exception:
                     pass
 
+            # Familiarity decay for non-current pictures (every 200 ticks)
+            if self.tick % 200 == 0 and self.target_familiarity:
+                current_target = (self._current_activity.target
+                                  if self._current_activity else None)
+                for pid in list(self.target_familiarity.keys()):
+                    if pid != current_target:
+                        self.target_familiarity[pid] *= 0.9967
+                        if self.target_familiarity[pid] < 0.001:
+                            del self.target_familiarity[pid]
+                # Snapshot every ~10 min (200 ticks × 30 = 6000 ticks ≈ 5 min)
+                if self.tick % 6000 == 0:
+                    self._log_substrate_event("target_familiarity_snapshot",
+                                              familiarity=dict(
+                                                  (k, round(v, 4))
+                                                  for k, v in self.target_familiarity.items()))
+
             # 2. Select activity if needed
             if self._current_activity is None:
                 a = self._select_next_activity()
@@ -1414,9 +1431,11 @@ class Guala:
                           else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_REPEAT"])
         elif kind == "ATTENDING_VISUAL" and target in self._pictures:
             p = self._pictures[target]
-            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_NEW"]
-                          if p.is_new()
-                          else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"])
+            base_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_NEW"]
+                           if p.is_new()
+                           else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"])
+            familiarity = self.target_familiarity.get(target, 0.0)
+            nov_payoff = base_payoff * (1.0 - familiarity)
         elif kind == "ATTENDING_VIDEO" and target in self._videos:
             v = self._videos[target]
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_NEW"]
@@ -1598,10 +1617,17 @@ class Guala:
         # Novelty effect
         gain = 0.003 if pic.is_new() else 0.0005
         self.needs.novelty = min(1.0, self.needs.novelty + gain)
-        # Mark attended at end
+        # Mark attended at end + update familiarity
         if self.tick >= a.expected_end_tick - 1:
             pic.times_attended += 1
             pic.last_attended_tick = self.tick
+            old_fam = self.target_familiarity.get(a.target, 0.0)
+            new_fam = min(0.9, old_fam + 0.2)
+            self.target_familiarity[a.target] = new_fam
+            self._log_substrate_event("target_familiarity_update",
+                                      picture_id=a.target,
+                                      old=round(old_fam, 3),
+                                      new=round(new_fam, 3))
 
     def _atick_attending_video(self, a):
         """Phase 2: Attend to video — saccade across decoded frames."""
@@ -1858,6 +1884,7 @@ class Guala:
                     "recent_connection_boost": self.recent_connection_boost,
                     "dream_log": self.dream_log,
                     "last_emission_tick": self._last_emission_tick,
+                    "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
                     "corpora_state": corpora_ser,
                     "sensory_state": sensory_ser,
                 }))
@@ -2106,6 +2133,7 @@ class Guala:
         self.dream_log = core.get("dream_log", [])
         # v7: restore autonomy state
         self._last_emission_tick = int(core.get("last_emission_tick", -100_000))
+        self.target_familiarity = {k: float(v) for k, v in core.get("target_familiarity", {}).items()}
         # Restore corpora positions (lines reloaded from seed at boot)
         for cid, cstate in core.get("corpora_state", {}).items():
             if cid in self._corpora:
