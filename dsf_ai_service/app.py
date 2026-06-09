@@ -1200,7 +1200,7 @@ async def gualaloom_chat(msg: GLMessage):
             import io as _io
             # Open FULL COLOR original
             img_full = Image.open(_io.BytesIO(img_bytes))
-            if img_full.mode == 'RGBA':
+            if img_full.mode not in ('RGB', 'L'):
                 img_full = img_full.convert('RGB')
             orig_w, orig_h = img_full.size
             # Krimelack grid: grayscale 64x64 derived FROM original (not replacing it)
@@ -1446,7 +1446,7 @@ async def gualaloom_upload_picture(file: UploadFile = File(...)):
         from PIL import Image
         import io as _io
         img_full = Image.open(_io.BytesIO(content))
-        if img_full.mode == 'RGBA':
+        if img_full.mode not in ('RGB', 'L'):
             img_full = img_full.convert('RGB')
         orig_w, orig_h = img_full.size
         # Krimelack grid: grayscale 64×64 derived from original
