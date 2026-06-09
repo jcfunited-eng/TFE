@@ -1291,7 +1291,6 @@ async def gualaloom_chat(msg: GLMessage):
                                         n_events=n_events, n_onsets=n_onsets,
                                         duration_s=round(duration_s, 2))
             # Clean up temp files
-            import os
             os.unlink(tmp_in.name)
             os.unlink(tmp_wav)
             return {
