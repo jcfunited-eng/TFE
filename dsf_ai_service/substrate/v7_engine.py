@@ -52,6 +52,10 @@ class V7Session:
         self.lock = threading.Lock()
         self.created_at = time.time()
 
+        # Event log — write-ahead, canonical record
+        from dsf_ai_service.substrate.event_log import EventLog
+        self.event_log = EventLog(STATE_DIR, session_id)
+
         seed = rng_seed or hash(session_id) % (2**31)
         self.rng = np.random.default_rng(seed)
 
@@ -200,9 +204,10 @@ class V7Session:
         self.sys_.sections["listen"].mode_strength.append(1.0)
         self.vocab[slot].append(word)
         self.token_vec[(slot, word)] = word_vec
-        # Update homeostasis baseline with new mode
         sec.snapshot_initial_modes()
         self.sys_.sections["listen"].snapshot_initial_modes()
+        # Event log: vocab install (write-ahead)
+        self.event_log.write("vocab_install", slot=slot, word=word)
         return word_vec, slot, True
 
     # ------------------------------------------------------------------
@@ -478,6 +483,13 @@ class V7Session:
             self.tick_at_last_converse = self.sys_.tick
             self._last_converse_time = time.time()
 
+            # Event log: full conversation turn
+            emitted = [t.get("token", "") for t in response_tokens]
+            self.event_log.write("converse",
+                                 text=" ".join(tokens),
+                                 emitted=emitted,
+                                 tick=self.sys_.tick)
+
             return {
                 "response_tokens": response_tokens,
                 "routing_log": routing_log,
@@ -534,6 +546,9 @@ class V7Session:
             self._last_replay_result = {
                 "replayed": total_r, "commits": total_c, "ticks": len(results)
             }
+            if total_r > 0:
+                self.event_log.write("quiet", n_ticks=len(results),
+                                     replayed=total_r, commits=total_c)
             return results
 
     def apply_feedback(self, correct, expected_tokens=None):
@@ -563,6 +578,12 @@ class V7Session:
                             0.0, sec.mode_strength[top] - 0.02)
                         affected.append({"section": sn, "mode_id": top,
                                          "new_strength": sec.mode_strength[top]})
+            # Event log: feedback
+            self.event_log.write("feedback", correct=correct,
+                                 affected=[{"section": a["section"],
+                                            "mode_id": a["mode_id"],
+                                            "strength": a["new_strength"]}
+                                           for a in affected])
             return {"ltp_applied": correct, "affected_modes": affected}
 
     def get_state(self):
@@ -681,11 +702,21 @@ class V7Session:
         if "gamma" in data:
             sec.gamma = dict(data["gamma"])
 
+    def compact(self):
+        """Compaction: snapshot current state + truncate events log.
+        Snapshot becomes the checkpoint; events after this seq are kept."""
+        data = self.to_json()
+        save_session(self)
+        # Truncate events log to events after this snapshot
+        self.event_log.truncate_before(self.event_log.count)
+        return data
+
     def to_json(self):
         """Full substrate state serialization (spec Item 2)."""
         state = {
             "schema_version": 2,
             "session_id": self.session_id,
+            "event_seq": self.event_log.count,  # for replay-after-snapshot
             "vocab": {k: list(v) for k, v in self.vocab.items()},
             "tick": self.sys_.tick,
             "intro_state": self.last_intro_state,
@@ -746,14 +777,25 @@ def get_or_create_session(session_id):
         if session_id in _sessions:
             return _sessions[session_id]
         session = V7Session(session_id)
-        path = os.path.join(STATE_DIR, f"{session_id}.json")
-        if os.path.exists(path):
+        # Step 1: Load latest snapshot (compaction checkpoint)
+        snapshot_path = os.path.join(STATE_DIR, f"{session_id}.json")
+        snapshot_seq = -1
+        if os.path.exists(snapshot_path):
             try:
-                with open(path) as f:
+                with open(snapshot_path) as f:
                     data = json.load(f)
                 session.load_from_json(data)
-            except Exception:
-                pass
+                snapshot_seq = data.get("event_seq", -1)
+                print(f"[v7] Loaded snapshot for {session_id} (seq={snapshot_seq})")
+            except Exception as e:
+                print(f"[v7] Snapshot load failed for {session_id}: {e}")
+        # Step 2: Replay events since snapshot
+        if session.event_log.exists():
+            from dsf_ai_service.substrate.event_log import replay_events
+            events = session.event_log.read_since(snapshot_seq)
+            if events:
+                n = replay_events(session, events)
+                print(f"[v7] Replayed {n} events for {session_id}")
         _sessions[session_id] = session
         return session
 
