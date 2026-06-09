@@ -197,7 +197,11 @@ class Section:
         else:
             p = a / a.sum() if a.sum() > 0 else a
             mode_id = int(p.argmax())
-            self.mode_bank[mode_id] = normalize(0.92 * self.mode_bank[mode_id] + 0.08 * state)
+            # Mode blending disabled — mode_bank stays as installed.
+            # Learning happens via mode_strength (LTP) not vector warping.
+            # This prevents multi-turn lock-in where turn 1's commits
+            # permanently warp mode vectors so turn 2's input can't win.
+            pass
             self.mode_last_used[mode_id] = tick
         # Salience: arc magnitude + novelty bonus (spec Item 3.1)
         arc_mag = float(a[mode_id]) if mode_id >= 0 and mode_id < len(a) else 0.0
@@ -213,6 +217,20 @@ class Section:
             self.arc_top_history.append((tick, top))
             self.last_arc_top_id = top
         return c, mode_id, state
+
+    def snapshot_initial_modes(self):
+        """Snapshot current mode_bank as the homeostatic baseline."""
+        self._initial_mode_bank = [m.copy() for m in self.mode_bank]
+
+    def homeostasis_pull(self, rate=0.001):
+        """Synaptic scaling: drift mode_bank toward initial landscape.
+        Strong reinforcement wins; weak warping decays."""
+        if not hasattr(self, "_initial_mode_bank"):
+            return
+        for i in range(min(len(self.mode_bank), len(self._initial_mode_bank))):
+            self.mode_bank[i] = normalize(
+                (1.0 - rate) * self.mode_bank[i] +
+                rate * self._initial_mode_bank[i])
 
     def decay_modes(self, tick):
         new_bank, new_last = [], []
@@ -501,9 +519,11 @@ class System:
                                               "mode_id": mode_id, "reason": reason,
                                               "atlas_snapshot": snap.copy()})
 
-        # Mode decay
+        # Mode decay + homeostasis pull every 20 ticks
         for sec in self.sections.values():
             sec.decay_modes(self.tick)
+            if self.tick % 5 == 0:
+                sec.homeostasis_pull(rate=0.005)
 
         # Self-evolution with gamma drift-toward-default
         # Conservative: require persistent out-of-range and use moderate learning rate

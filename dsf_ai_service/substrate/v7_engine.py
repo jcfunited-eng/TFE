@@ -97,6 +97,7 @@ class V7Session:
         self.intro_commit_history = []  # last N intro commits
         self.aware_commit_history = []  # last N aware commits
         self.tick_at_last_converse = 0
+        self._last_converse_time = time.time()
 
     def _build_system(self):
         """Build integrated 6-section system: S/V/O + listen + intro + aware.
@@ -159,6 +160,10 @@ class V7Session:
             aware.mode_last_used.append(0)
             aware_vec[name] = v
 
+        # Snapshot initial mode_bank for homeostasis pull
+        for sec in sys_.sections.values():
+            sec.snapshot_initial_modes()
+
         return sys_, token_vec, intro_vec, intro_modes, aware_vec, aware_modes
 
     # ------------------------------------------------------------------
@@ -191,6 +196,9 @@ class V7Session:
         self.sys_.sections["listen"].mode_last_used.append(self.sys_.tick)
         self.vocab[slot].append(word)
         self.token_vec[(slot, word)] = word_vec
+        # Update homeostasis baseline with new mode
+        sec.snapshot_initial_modes()
+        self.sys_.sections["listen"].snapshot_initial_modes()
         return word_vec, slot, True
 
     # ------------------------------------------------------------------
@@ -204,12 +212,28 @@ class V7Session:
             if not tokens:
                 return self._empty_response("empty input")
 
-            # Per-turn pump reset (Na+/K+ — episodic boundary)
-            for slot in ("subject", "verb", "object", "listen"):
-                sec = self.sys_.sections[slot]
-                sec.psi = normalize(
-                    random_unit_complex(N, self.rng) * 0.3 +
-                    normalize(np.ones(N, dtype=complex)) * 0.7)
+            # FULL EPISODIC RESET: rebuild the System from scratch per turn.
+            # Preserve only: vocab (which words are installed) and
+            # mode_strength (LTP from feedback). Everything else fresh.
+            saved_strengths = {}
+            for sn in ("subject", "verb", "object", "intro", "aware"):
+                sec = self.sys_.sections[sn]
+                if hasattr(sec, "mode_strength"):
+                    saved_strengths[sn] = list(sec.mode_strength)
+
+            # Fresh rng per turn
+            turn_seed = hash((self.session_id, len(self.intro_commit_history))) % (2**31)
+            self.rng = np.random.default_rng(turn_seed)
+
+            # Rebuild entire system
+            self.sys_, self.token_vec, self.intro_vec, self.intro_modes, \
+                self.aware_vec, self.aware_modes = self._build_system()
+            for sn in ("subject", "verb", "object", "intro", "aware"):
+                install_plasticity(self.sys_.sections[sn])
+                if sn in saved_strengths:
+                    self.sys_.sections[sn].mode_strength = saved_strengths[sn]
+
+            self.drive_tracker.clear()
 
             routing_log = []
             nmda_events = []
@@ -440,6 +464,7 @@ class V7Session:
             self.last_nmda_events = nmda_events
             self.last_routing_log = routing_log
             self.tick_at_last_converse = self.sys_.tick
+            self._last_converse_time = time.time()
 
             return {
                 "response_tokens": response_tokens,

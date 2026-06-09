@@ -1501,11 +1501,10 @@ async def substrate_hear_word(req: SubstrateHearRequest):
         from dsf_ai_service.substrate.v7_engine import get_or_create_session
         v7_session = get_or_create_session("default")
         bridge = _get_bridge(v7_session)
-        focus = getattr(cog, "attention_focus", None)
-        if focus:
-            bridge_result = bridge.multimodal_winner_to_v7(focus)
-            if bridge_result:
-                result["bridge_mm_to_v7"] = bridge_result
+        # Use the heard word directly (attention_focus decays after 20 ticks)
+        bridge_result = bridge.multimodal_winner_to_v7(word)
+        if bridge_result:
+            result["bridge_mm_to_v7"] = bridge_result
     except Exception:
         pass
     return result
@@ -1625,6 +1624,35 @@ async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
 async def startup():
     result = initialize_integrity()
     print(f"[DSF-AI] Integrity initialized: {result['files_present']}/{result['files_checked']} files hashed")
+
+    # Server-side background replay for v7 sessions
+    import asyncio
+    async def _background_replay():
+        """Run quiet_tick on idle sessions every 15s."""
+        from dsf_ai_service.substrate.v7_engine import _sessions, _sessions_lock, save_session
+        while True:
+            await asyncio.sleep(15)
+            try:
+                with _sessions_lock:
+                    session_ids = list(_sessions.keys())
+                for sid in session_ids:
+                    with _sessions_lock:
+                        session = _sessions.get(sid)
+                    if session is None:
+                        continue
+                    idle = time.time() - getattr(session, '_last_converse_time', 0)
+                    if idle > 30:
+                        try:
+                            results = session.quiet_tick(3)
+                            total_c = sum(len(r.get("commits", [])) for r in results)
+                            if total_c > 0:
+                                print(f"[v7-replay] session={sid}: {total_c} commits from replay")
+                            save_session(session)
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+    asyncio.ensure_future(_background_replay())
 
 
 @app.get("/health")
