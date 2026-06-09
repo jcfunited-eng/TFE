@@ -1234,17 +1234,24 @@ async def gualaloom_chat(msg: GLMessage):
                 "ffmpeg", "-i", tmp_in.name, "-ar", "200", "-ac", "1",
                 "-f", "wav", tmp_wav, "-y", "-loglevel", "error"
             ], check=True, timeout=30)
-            import scipy.io.wavfile as wavfile
-            sr, samples = wavfile.read(tmp_wav)
-            # Normalize to [-1, 1] float
-            if samples.dtype == np.int16:
-                samples = samples.astype(np.float64) / 32768.0
-            elif samples.dtype == np.int32:
-                samples = samples.astype(np.float64) / 2147483648.0
+            import wave, struct
+            with wave.open(tmp_wav, 'rb') as wf:
+                sr = wf.getframerate()
+                n_frames = wf.getnframes()
+                n_channels = wf.getnchannels()
+                sampwidth = wf.getsampwidth()
+                raw = wf.readframes(n_frames)
+            if sampwidth == 2:
+                fmt = f'<{n_frames * n_channels}h'
+                vals = struct.unpack(fmt, raw)
+                samples = np.array(vals, dtype=np.float64) / 32768.0
+            elif sampwidth == 1:
+                vals = list(raw)
+                samples = (np.array(vals, dtype=np.float64) - 128.0) / 128.0
             else:
-                samples = samples.astype(np.float64)
-            if len(samples.shape) > 1:
-                samples = samples.mean(axis=1)
+                samples = np.frombuffer(raw, dtype=np.float64)
+            if n_channels > 1:
+                samples = samples.reshape(-1, n_channels).mean(axis=1)
             # Run through cochlear pipeline
             from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import (
                 cochlear_transduce, onset_stream, sustained_stream, a1_signature)
