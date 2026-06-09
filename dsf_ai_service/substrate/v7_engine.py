@@ -256,6 +256,9 @@ class V7Session:
                 return self._empty_response("no content words in vocabulary")
 
             # PHASE 2: Listen-accumulate (matches wC's speak_and_listen)
+            # Block S/V/O blending during listen — only listen section learns here
+            for sn in ("subject", "verb", "object", "intro", "aware"):
+                self.sys_.sections[sn]._emit_phase = True
             accumulated = {}
             for slot, word in heard.items():
                 vec_key = (slot, word)
@@ -279,6 +282,10 @@ class V7Session:
             self.intro_commit_history.append({
                 "state": "i_hear", "tick": self.sys_.tick})
             self.intro_commit_history = self.intro_commit_history[-10:]
+
+            # Clear listen-phase blend gating
+            for sn in ("subject", "verb", "object", "intro", "aware"):
+                self.sys_.sections[sn]._emit_phase = False
 
             # PHASE 3: Derive drives from listen accumulators
             # (matches wC's guala_emit drive derivation)
@@ -305,6 +312,9 @@ class V7Session:
                 self.sys_.sections[slot].psi = drives[slot].copy()
 
             # PHASE 4: Commit-driven rhythm emission (matches wC's guala_emit)
+            # Set emit_phase flag — blocks mode_bank blending during emit
+            for sec in self.sys_.sections.values():
+                sec._emit_phase = True
             emit_commits = []
             svo_cycle = ["subject", "verb", "object"]
             cycle_idx = 0
@@ -342,8 +352,8 @@ class V7Session:
 
                 commits = self.sys_.tick_once(
                     ev, enable_self_evo=True,
-                    coordinator_on=True, introspection_on=True,
-                    allow_rewiring=True)
+                    coordinator_on=False, introspection_on=False,
+                    allow_rewiring=False)
                 emit_commits.extend(commits)
 
                 # Advance cycle on commit
@@ -369,6 +379,10 @@ class V7Session:
 
                 if len(emitted_sections) >= 3:
                     break
+
+            # Clear emit_phase flag
+            for sec in self.sys_.sections.values():
+                sec._emit_phase = False
 
             # POST-EMIT EVIDENCE PASS: intro + aware in integrated System
             # (Respec Item 5 — single System, post-emit evidence injection)

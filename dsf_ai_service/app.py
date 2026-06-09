@@ -1616,6 +1616,46 @@ async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
             "replayed": total_replayed, "commits": total_commits}
 
 
+@app.post("/v7/save")
+async def v7_save(session_id: str = "default"):
+    """Manual save — Joe can hit this before risky operations."""
+    from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
+    session = get_or_create_session(session_id)
+    try:
+        save_session(session)
+        data = session.to_json()
+        return {"saved": True, "session_id": session_id,
+                "schema_version": data.get("schema_version"),
+                "tick": data.get("tick"),
+                "n_sections": len(data.get("sections", {})),
+                "vocab_size": sum(len(v) for v in session.vocab.values())}
+    except Exception as e:
+        return {"saved": False, "error": str(e)}
+
+@app.get("/v7/persistence")
+async def v7_persistence(session_id: str = "default"):
+    """Check persistence health — is session state on disk?"""
+    import os, json as _json
+    from dsf_ai_service.substrate.v7_engine import STATE_DIR
+    path = os.path.join(STATE_DIR, f"{session_id}.json")
+    if not os.path.exists(path):
+        return {"on_disk": False, "session_id": session_id, "path": path}
+    try:
+        stat = os.stat(path)
+        with open(path) as f:
+            data = _json.load(f)
+        return {
+            "on_disk": True, "session_id": session_id,
+            "file_size_bytes": stat.st_size,
+            "last_modified": stat.st_mtime,
+            "schema_version": data.get("schema_version"),
+            "tick": data.get("tick"),
+            "n_sections": len(data.get("sections", {})),
+        }
+    except Exception as e:
+        return {"on_disk": True, "error": str(e)}
+
+
 # ════════════════════════════════════════════════════════════════
 # Health check
 # ════════════════════════════════════════════════════════════════

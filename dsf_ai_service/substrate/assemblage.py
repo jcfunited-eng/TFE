@@ -197,7 +197,11 @@ class Section:
         else:
             p = a / a.sum() if a.sum() > 0 else a
             mode_id = int(p.argmax())
-            self.mode_bank[mode_id] = normalize(0.995 * self.mode_bank[mode_id] + 0.005 * state)
+            # Blend gating: only blend during listen phase, not emit.
+            # emit commits read mode_bank but don't warp it.
+            if not getattr(self, '_emit_phase', False):
+                self.mode_bank[mode_id] = normalize(
+                    0.995 * self.mode_bank[mode_id] + 0.005 * state)
             self.mode_last_used[mode_id] = tick
         # Salience: arc magnitude + novelty bonus (spec Item 3.1)
         arc_mag = float(a[mode_id]) if mode_id >= 0 and mode_id < len(a) else 0.0
@@ -518,8 +522,8 @@ class System:
         # Mode decay + homeostasis pull every 20 ticks
         for sec in self.sections.values():
             sec.decay_modes(self.tick)
-            if self.tick % 3 == 0:
-                sec.homeostasis_pull(rate=0.01)
+            if self.tick % 20 == 0 and not getattr(sec, '_emit_phase', False):
+                sec.homeostasis_pull(rate=0.001)
 
         # Self-evolution with gamma drift-toward-default
         # Conservative: require persistent out-of-range and use moderate learning rate
