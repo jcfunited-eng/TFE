@@ -1181,6 +1181,62 @@ async def gualaloom_chat(msg: GLMessage):
         return {"response": f"added \"{title}\" ({len(lines)} lines) to her library",
                 "motifs": _guala.introspect()["vocab"]}
 
+    # ── /addpdf:<filename> — extract text from PDF, register as corpus ──
+    if cmd.startswith("/addpdf:"):
+        import base64
+        filename = cmd[len("/addpdf:"):]
+        title = filename.replace('.pdf', '').replace('_', ' ')
+        corpus_id = filename.replace('.pdf', '').replace(' ', '_').lower()
+        b64_data = msg.text.strip()
+        if not b64_data:
+            return {"response": "no PDF data", "motifs": _guala.introspect()["vocab"]}
+        try:
+            pdf_bytes = base64.b64decode(b64_data)
+            import fitz  # PyMuPDF
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            all_text = []
+            for page in doc:
+                text = page.get_text()
+                if text.strip():
+                    all_text.append(text.strip())
+            doc.close()
+            if not all_text:
+                return {"response": "PDF has no extractable text",
+                        "motifs": _guala.introspect()["vocab"]}
+            # Split into lines (sentences)
+            full_text = "\n".join(all_text)
+            lines = [l.strip() for l in full_text.split('\n') if l.strip()]
+            # Also split long lines at sentence boundaries
+            split_lines = []
+            for line in lines:
+                if len(line) > 200:
+                    for sent in line.replace('. ', '.\n').split('\n'):
+                        if sent.strip():
+                            split_lines.append(sent.strip())
+                else:
+                    split_lines.append(line)
+            lines = split_lines
+            n_pages = len(all_text)
+            # Save original PDF to EFS
+            pdf_dir = os.path.join(STATE_DIR, "books")
+            os.makedirs(pdf_dir, exist_ok=True)
+            pdf_path = os.path.join(pdf_dir, f"{corpus_id}.pdf")
+            with open(pdf_path, 'wb') as f:
+                f.write(pdf_bytes)
+            # Register as corpus
+            _guala._corpora[corpus_id] = CorpusItem(
+                corpus_id=corpus_id, title=title, lines=lines)
+            _guala._log_substrate_event("corpus_added",
+                                        corpus_id=corpus_id, title=title,
+                                        n_lines=len(lines), source="pdf",
+                                        n_pages=n_pages)
+            return {"response": f"read \"{title}\" ({n_pages} pages, {len(lines)} lines). "
+                                f"added to her library. she'll read it when curiosity drives her.",
+                    "motifs": _guala.introspect()["vocab"]}
+        except Exception as e:
+            return {"response": f"PDF decode error: {e}",
+                    "motifs": _guala.introspect()["vocab"]}
+
     # ── /addpicture:<filename> — preserve original, derive krimelack grid ──
     if cmd.startswith("/addpicture:"):
         import base64, hashlib

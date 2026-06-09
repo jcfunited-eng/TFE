@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif
+RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF
 
 # Copy only what the service needs (no TFE trading code)
 COPY uf_core/ /app/uf_core/
