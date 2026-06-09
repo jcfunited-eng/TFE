@@ -58,22 +58,17 @@ class V7Session:
         # Per-session mutable vocab: slot -> [word_list]
         self.vocab = {k: list(v) for k, v in SEED_VOCAB.items()}
 
-        # Build 6-section system: S/V/O + listen + intro + aware
+        # Build integrated 6-section system: S/V/O + listen + intro + aware
+        # Respec Item 5: intro/aware live in the SAME System, commit via
+        # post-emit evidence injection + NMDA gates
         self.sys_, self.token_vec, self.intro_vec, self.intro_modes, \
             self.aware_vec, self.aware_modes = self._build_system()
 
-        # Install plasticity on S/V/O
-        for sn in ("subject", "verb", "object"):
+        # Install plasticity on S/V/O + intro + aware
+        for sn in ("subject", "verb", "object", "intro", "aware"):
             install_plasticity(self.sys_.sections[sn])
 
-        # Meta-observer system: intro + aware as real substrate sections
-        # Separate from cognition core to avoid 6-section interference
-        self.meta_sys, self.intro_vec, self.intro_modes, \
-            self.aware_vec, self.aware_modes = self._build_meta_system()
-        install_plasticity(self.meta_sys.sections["intro"])
-        install_plasticity(self.meta_sys.sections["aware"])
-
-        # NMDA gates (spec Item 5)
+        # NMDA gates (respec Item 5 — integrated, not meta-system)
         self.drive_tracker = {}
         self.intro_gate = CoincidenceGate(
             section_name="intro",
@@ -86,8 +81,8 @@ class V7Session:
         self.aware_gate = CoincidenceGate(
             section_name="aware",
             context_fn=lambda sys_: (
-                len(self.meta_sys.sections["intro"].krimelack) > 0 and
-                (self.meta_sys.tick - self.meta_sys.sections["intro"].krimelack[-1]["tick"]) <= 5
+                len(sys_.sections["intro"].krimelack) > 0 and
+                (sys_.tick - sys_.sections["intro"].krimelack[-1]["tick"]) <= 5
             ),
             drive_thresh=0.05, ltp_boost=0.05,
         )
@@ -104,28 +99,37 @@ class V7Session:
         self.tick_at_last_converse = 0
 
     def _build_system(self):
-        """Build 4-section system (S/V/O + listen) matching wC's proven experiment.
-        Intro/aware tracked separately — they don't participate in conversation
-        dynamics, they observe the result post-emit."""
+        """Build integrated 6-section system: S/V/O + listen + intro + aware.
+        Respec Item 5: all sections in one System. Intro/aware receive NO
+        evidence during S/V/O emit phase — they get evidence in the post-emit
+        pass only. This avoids the interference that broke conversation pre-
+        cognition-v1, while keeping everything in one System."""
         rng = self.rng
         subj = Section(name="subject", rng=rng, role="subject_like")
         verb = Section(name="verb", rng=rng, role="verb_like")
         obj = Section(name="object", rng=rng, role="object_like")
         listen = Section(name="listen", rng=rng, role="general")
+        intro = Section(name="intro", rng=rng, role="intro")
+        aware = Section(name="aware", rng=rng, role="intro")
 
-        # Listen is passive: zero Hamiltonian so it just accumulates evidence
+        # Listen: passive buffer (zero Hamiltonian)
         listen.H_base = np.zeros((N, N), dtype=complex)
-        listen.law_fields = {
-            "symmetry": np.zeros((N, N), dtype=complex),
-            "consistency": np.zeros((N, N), dtype=complex),
-            "compactness": np.zeros((N, N), dtype=complex),
-        }
+        listen.law_fields = {k: np.zeros((N, N), dtype=complex)
+                             for k in ("symmetry", "consistency", "compactness")}
 
-        for s in (subj, verb, obj, listen):
+        # Intro/aware: zeroed Hamiltonian, normal commit thresholds
+        # (commits happen through evidence injection in post-emit pass)
+        for sec in (intro, aware):
+            sec.H_base = np.zeros((N, N), dtype=complex)
+            sec.law_fields = {k: np.zeros((N, N), dtype=complex)
+                              for k in ("symmetry", "consistency", "compactness")}
+
+        for s in (subj, verb, obj, listen, intro, aware):
             s.map_inject = make_projection(N, 8, rng)
 
-        sys_ = System([subj, verb, obj, listen], rng)
+        sys_ = System([subj, verb, obj, listen, intro, aware], rng)
 
+        # Install S/V/O vocab
         token_vec = {}
         for sec_name, toks in self.vocab.items():
             sec = sys_.sections[sec_name]
@@ -137,35 +141,7 @@ class V7Session:
                 listen.mode_bank.append(v.copy())
                 listen.mode_last_used.append(0)
 
-        # Intro/aware are state labels, not substrate sections.
-        # Tracked by the engine from conversation phase transitions.
-        intro_modes = ["i_quiet", "i_hear", "i_emit"]
-        intro_vec = {}  # not used as mode_bank entries
-        aware_modes = ["aware_quiet", "aware_listening", "aware_emitting"]
-        aware_vec = {}
-
-        return sys_, token_vec, intro_vec, intro_modes, aware_vec, aware_modes
-
-    def _build_meta_system(self):
-        """Build 2-section meta-observer system (intro + aware) with NMDA gates.
-        Separate from cognition core — observes after core completes."""
-        rng = self.rng
-        intro = Section(name="intro", rng=rng, role="intro")
-        aware = Section(name="aware", rng=rng, role="intro")
-
-        for sec in (intro, aware):
-            sec.H_base = np.zeros((N, N), dtype=complex)
-            sec.law_fields = {
-                "symmetry": np.zeros((N, N), dtype=complex),
-                "consistency": np.zeros((N, N), dtype=complex),
-                "compactness": np.zeros((N, N), dtype=complex),
-            }
-            sec.det_commit = 99.0
-            sec.p_commit = 99.0
-            sec.map_inject = make_projection(N, 8, rng)
-
-        meta_sys = System([intro, aware], rng)
-
+        # Install intro modes
         intro_modes = ["i_quiet", "i_hear", "i_emit"]
         intro_vec = {}
         for name in intro_modes:
@@ -174,6 +150,7 @@ class V7Session:
             intro.mode_last_used.append(0)
             intro_vec[name] = v
 
+        # Install aware modes
         aware_modes = ["aware_quiet", "aware_listening", "aware_emitting"]
         aware_vec = {}
         for name in aware_modes:
@@ -182,7 +159,7 @@ class V7Session:
             aware.mode_last_used.append(0)
             aware_vec[name] = v
 
-        return meta_sys, intro_vec, intro_modes, aware_vec, aware_modes
+        return sys_, token_vec, intro_vec, intro_modes, aware_vec, aware_modes
 
     # ------------------------------------------------------------------
     # Fix 2: lookup_or_install — on-the-fly vocabulary
@@ -370,43 +347,47 @@ class V7Session:
                 if len(emitted_sections) >= 3:
                     break
 
-            # META-OBSERVER PASS: NMDA-gated intro + aware (spec Item 5)
-            # Run after core emission completes — FPN observes DMN pattern
-            # Update drive tracker from emit commits for NMDA context
+            # POST-EMIT EVIDENCE PASS: intro + aware in integrated System
+            # (Respec Item 5 — single System, post-emit evidence injection)
+            # SVO emit is done. Now inject evidence into intro/aware sections
+            # and let NMDA gates decide whether to commit.
+
+            # Update drive tracker from emit (marks SVO as recently active)
             for c in emit_commits:
                 update_drive_tracker(self.drive_tracker,
                                      {c["section"]: np.ones(N, dtype=complex) * 0.5})
 
-            # Drive intro toward i_emit (SVO just committed)
-            intro_target = self.intro_vec.get("i_emit",
-                                               self.intro_vec.get("i_quiet"))
+            # Intro pass: drive intro toward i_emit (SVO just committed)
+            intro_target = self.intro_vec.get("i_emit")
             if intro_target is not None:
-                for _ in range(15):
+                for _ in range(10):
                     noisy = normalize(intro_target + 0.05 * (
                         self.rng.standard_normal(N) +
                         1j * self.rng.standard_normal(N)))
+                    # Only inject into intro — S/V/O/listen get nothing
                     ev = {"intro": noisy}
                     update_drive_tracker(self.drive_tracker, ev)
-                    self.meta_sys.tick_once(ev, enable_self_evo=False,
-                                            coordinator_on=False,
-                                            introspection_on=False)
-                    # Cap intro mode bank
-                    intro_sec = self.meta_sys.sections["intro"]
+                    self.sys_.tick_once(ev, enable_self_evo=True,
+                                        coordinator_on=False,
+                                        introspection_on=False,
+                                        allow_rewiring=False)
+                    # Cap intro mode bank to prevent novel_mode spawning
+                    intro_sec = self.sys_.sections["intro"]
                     while len(intro_sec.mode_bank) > len(self.intro_modes):
                         intro_sec.mode_bank.pop()
                         intro_sec.mode_last_used.pop()
                     # NMDA gate check
-                    i_fired, i_mode = self.intro_gate.check_and_fire(self.meta_sys)
+                    i_fired, i_mode = self.intro_gate.check_and_fire(self.sys_)
                     if i_fired and i_mode is not None and i_mode < len(self.intro_modes):
                         self.last_intro_state = self.intro_modes[i_mode]
                         self.intro_commit_history.append({
                             "state": self.last_intro_state,
-                            "tick": self.meta_sys.tick})
+                            "tick": self.sys_.tick})
                         self.intro_commit_history = self.intro_commit_history[-10:]
-                        nmda_events.append({"tick": self.meta_sys.tick, "gate": "intro",
+                        nmda_events.append({"tick": self.sys_.tick, "gate": "intro",
                                             "fired": True, "reason": "fired"})
 
-            # Drive aware toward aware_emitting (since intro reported i_emit)
+            # Aware pass: drive toward matching aware mode
             aware_target_name = {
                 "i_quiet": "aware_quiet",
                 "i_hear": "aware_listening",
@@ -414,26 +395,27 @@ class V7Session:
             }.get(self.last_intro_state or "i_emit", "aware_emitting")
             aware_target = self.aware_vec.get(aware_target_name)
             if aware_target is not None:
-                for _ in range(15):
+                for _ in range(10):
                     noisy = normalize(aware_target + 0.05 * (
                         self.rng.standard_normal(N) +
                         1j * self.rng.standard_normal(N)))
                     ev = {"aware": noisy}
-                    self.meta_sys.tick_once(ev, enable_self_evo=False,
-                                            coordinator_on=False,
-                                            introspection_on=False)
-                    aware_sec = self.meta_sys.sections["aware"]
+                    self.sys_.tick_once(ev, enable_self_evo=True,
+                                        coordinator_on=False,
+                                        introspection_on=False,
+                                        allow_rewiring=False)
+                    aware_sec = self.sys_.sections["aware"]
                     while len(aware_sec.mode_bank) > len(self.aware_modes):
                         aware_sec.mode_bank.pop()
                         aware_sec.mode_last_used.pop()
-                    a_fired, a_mode = self.aware_gate.check_and_fire(self.meta_sys)
+                    a_fired, a_mode = self.aware_gate.check_and_fire(self.sys_)
                     if a_fired and a_mode is not None and a_mode < len(self.aware_modes):
                         self.last_aware_state = self.aware_modes[a_mode]
                         self.aware_commit_history.append({
                             "state": self.last_aware_state,
-                            "tick": self.meta_sys.tick})
+                            "tick": self.sys_.tick})
                         self.aware_commit_history = self.aware_commit_history[-10:]
-                        nmda_events.append({"tick": self.meta_sys.tick, "gate": "aware",
+                        nmda_events.append({"tick": self.sys_.tick, "gate": "aware",
                                             "fired": True, "reason": "fired"})
 
             # Build response tokens from emitted_words
@@ -555,8 +537,8 @@ class V7Session:
                 "routing_log": self.last_routing_log,
                 "n_commits_total": sum(
                     len(sec.krimelack) for sec in self.sys_.sections.values()),
-                "intro_krimelack_count": len(self.meta_sys.sections["intro"].krimelack),
-                "aware_krimelack_count": len(self.meta_sys.sections["aware"].krimelack),
+                "intro_krimelack_count": len(self.sys_.sections["intro"].krimelack),
+                "aware_krimelack_count": len(self.sys_.sections["aware"].krimelack),
             }
 
     def _extract_response_tokens(self, commits):
@@ -654,7 +636,6 @@ class V7Session:
             "intro_state": self.last_intro_state,
             "aware_state": self.last_aware_state,
             "sections": {},
-            "meta_sections": {},
             "atlas": {str(k): v for k, v in self.sys_.atlas.entries.items()},
             "keyholes": [
                 {"sender": kh["sender"], "chi_lo": kh["chi_lo"],
@@ -663,12 +644,9 @@ class V7Session:
                 for kh in self.sys_.keyholes
             ],
         }
-        for sn in ("subject", "verb", "object", "listen"):
+        for sn in ("subject", "verb", "object", "listen", "intro", "aware"):
             state["sections"][sn] = self._serialize_section(
                 self.sys_.sections[sn])
-        for sn in ("intro", "aware"):
-            state["meta_sections"][sn] = self._serialize_section(
-                self.meta_sys.sections[sn])
         return state
 
     def load_from_json(self, data):
@@ -696,9 +674,10 @@ class V7Session:
             for sn, sec_data in data.get("sections", {}).items():
                 if sn in self.sys_.sections:
                     self._restore_section(self.sys_.sections[sn], sec_data)
+            # Legacy: meta_sections → main system sections
             for sn, sec_data in data.get("meta_sections", {}).items():
-                if sn in self.meta_sys.sections:
-                    self._restore_section(self.meta_sys.sections[sn], sec_data)
+                if sn in self.sys_.sections:
+                    self._restore_section(self.sys_.sections[sn], sec_data)
 
 
 # Session manager
