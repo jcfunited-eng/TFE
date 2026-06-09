@@ -1923,6 +1923,35 @@ class Guala:
             results["guala_bucket.json"] = os.path.getsize(
                 os.path.join(state_dir, "guala_bucket.json"))
 
+            # 7. Visual data (pictures, sight section, visual fragments)
+            visual_data = {
+                "pictures": {
+                    pid: {"item_id": p.item_id, "title": p.title,
+                          "source": p.source, "shown_at_tick": p.shown_at_tick,
+                          "times_attended": p.times_attended,
+                          "last_attended_tick": p.last_attended_tick,
+                          "has_grid": p.intensity_grid is not None}
+                    for pid, p in self._pictures.items()
+                },
+                "sight_motifs": [
+                    {"motif_id": m.motif_id, "n_firings": m.n_firings,
+                     "source_history": m.source_history[:20],
+                     "founded_at_tick": m.founded_at_tick}
+                    for m in self.sight.motifs
+                ] if hasattr(self, 'sight') else [],
+                "n_visual_fragments": len(self._visual_fragments),
+            }
+            self._atomic_write(os.path.join(state_dir, "guala_visual.json"),
+                self._envelope(visual_data))
+            results["guala_visual.json"] = os.path.getsize(
+                os.path.join(state_dir, "guala_visual.json"))
+            # Save picture grids as numpy files
+            pic_dir = os.path.join(state_dir, "pictures")
+            os.makedirs(pic_dir, exist_ok=True)
+            for pid, p in self._pictures.items():
+                if p.intensity_grid is not None:
+                    np.save(os.path.join(pic_dir, f"{pid}.npy"), p.intensity_grid)
+
             self._last_save_tick = self.tick
             self._last_save_timestamp = ts
             return results
@@ -2006,6 +2035,17 @@ class Guala:
                 self._apply_atlas(data["guala_atlas.json"])
                 self._apply_sections(data["guala_sections.json"])
                 self._apply_bucket(data["guala_bucket.json"])
+
+            # Load visual data if present
+            visual_path = os.path.join(state_dir, "guala_visual.json")
+            if os.path.exists(visual_path):
+                try:
+                    with open(visual_path) as fh:
+                        vraw = json.load(fh)
+                    vdata = vraw.get("data", vraw)
+                    self._apply_visual(vdata, state_dir)
+                except Exception as e:
+                    print(f"[GualaLoom] Visual load: {e}")
 
             # Replay events since last save
             self._events_replayed_at_boot = self._replay_events(state_dir)
@@ -2152,6 +2192,37 @@ class Guala:
             parts = a.split("|", 1)
             if len(parts) == 2:
                 self.bucket.asked.add((parts[0], parts[1]))
+
+    def _apply_visual(self, vd, state_dir):
+        """Restore visual data from saved state."""
+        from dsf_ai_service.visual_krimelack import VisualMotif
+        pic_dir = os.path.join(state_dir, "pictures")
+        # Restore pictures
+        for pid, pdata in vd.get("pictures", {}).items():
+            grid = None
+            grid_path = os.path.join(pic_dir, f"{pid}.npy")
+            if os.path.exists(grid_path):
+                grid = np.load(grid_path)
+            pic = PictureItem(
+                item_id=pdata["item_id"], title=pdata.get("title", pid),
+                intensity_grid=grid, source=pdata.get("source", "restored"),
+                shown_at_tick=pdata.get("shown_at_tick", 0),
+                times_attended=pdata.get("times_attended", 0),
+                last_attended_tick=pdata.get("last_attended_tick", 0))
+            self._pictures[pid] = pic
+        # Restore sight motifs
+        for sm in vd.get("sight_motifs", []):
+            motif = VisualMotif(
+                motif_id=sm["motif_id"],
+                n_firings=sm.get("n_firings", 0),
+                source_history=sm.get("source_history", []),
+                founded_at_tick=sm.get("founded_at_tick", 0))
+            self.sight.motifs.append(motif)
+            self.sight._next_id = max(self.sight._next_id, sm["motif_id"] + 1)
+        n_pics = len(self._pictures)
+        n_motifs = len(self.sight.motifs)
+        if n_pics > 0 or n_motifs > 0:
+            print(f"[GualaLoom] Visual restored: {n_pics} pictures, {n_motifs} sight motifs")
 
     # ── Event log ──
 

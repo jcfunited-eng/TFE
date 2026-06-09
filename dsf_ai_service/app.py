@@ -1735,6 +1735,29 @@ async def v7_persistence(session_id: str = "default"):
     except Exception as e:
         return {"on_disk": True, "error": str(e)}
 
+@app.get("/v6/events_histogram")
+async def v6_events_histogram():
+    """Histogram of event types in Guala's events log."""
+    import os as _os
+    from collections import Counter as _Counter
+    log_path = _os.path.join(STATE_DIR, "events.log")
+    if not _os.path.exists(log_path):
+        return {"error": "no events log"}
+    hist = _Counter()
+    total = 0
+    with open(log_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ev = json.loads(line)
+                hist[ev.get("type", "unknown")] += 1
+                total += 1
+            except Exception:
+                hist["parse_error"] += 1
+    return {"total": total, "histogram": dict(hist.most_common())}
+
 
 # ════════════════════════════════════════════════════════════════
 # Health check
@@ -1776,11 +1799,17 @@ async def startup():
 
     # Periodic v6 Guala save (every 60s)
     async def _periodic_v6_save():
+        save_count = 0
         while True:
             await asyncio.sleep(60)
             try:
                 if _guala is not None:
                     _guala.save_full_state(STATE_DIR)
+                    save_count += 1
+                    # Snapshot every 10 saves (~10 min)
+                    if save_count % 10 == 0:
+                        snap_dir = _guala.snapshot_state(STATE_DIR, reason="periodic")
+                        print(f"[v6] Snapshot: {snap_dir}")
             except Exception:
                 pass
     asyncio.ensure_future(_periodic_v6_save())
