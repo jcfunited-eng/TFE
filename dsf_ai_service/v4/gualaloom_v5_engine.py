@@ -1930,7 +1930,10 @@ class Guala:
                           "source": p.source, "shown_at_tick": p.shown_at_tick,
                           "times_attended": p.times_attended,
                           "last_attended_tick": p.last_attended_tick,
-                          "has_grid": p.intensity_grid is not None}
+                          "has_grid": p.intensity_grid is not None,
+                          "original_path": getattr(p, 'original_path', None),
+                          "original_width": getattr(p, 'original_width', None),
+                          "original_height": getattr(p, 'original_height', None)}
                     for pid, p in self._pictures.items()
                 },
                 "sight_motifs": [
@@ -2209,6 +2212,12 @@ class Guala:
                 shown_at_tick=pdata.get("shown_at_tick", 0),
                 times_attended=pdata.get("times_attended", 0),
                 last_attended_tick=pdata.get("last_attended_tick", 0))
+            # Restore original image path if it exists
+            orig_path = pdata.get("original_path")
+            if orig_path and os.path.exists(orig_path):
+                pic.original_path = orig_path
+                pic.original_width = pdata.get("original_width")
+                pic.original_height = pdata.get("original_height")
             self._pictures[pid] = pic
         # Restore sight motifs
         for sm in vd.get("sight_motifs", []):

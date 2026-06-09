@@ -1181,7 +1181,7 @@ async def gualaloom_chat(msg: GLMessage):
         return {"response": f"added \"{title}\" ({len(lines)} lines) to her library",
                 "motifs": _guala.introspect()["vocab"]}
 
-    # ── /addpicture:<filename> — decode base64 image and register ──
+    # ── /addpicture:<filename> — preserve original, derive krimelack grid ──
     if cmd.startswith("/addpicture:"):
         import base64, hashlib
         filename = cmd[len("/addpicture:"):]
@@ -1198,21 +1198,37 @@ async def gualaloom_chat(msg: GLMessage):
                 pass
             from PIL import Image
             import io as _io
-            img = Image.open(_io.BytesIO(img_bytes)).convert('L')
-            img = img.resize((64, 64))
-            grid = np.array(img, dtype=np.float64) / 255.0
+            # Open FULL COLOR original
+            img_full = Image.open(_io.BytesIO(img_bytes))
+            if img_full.mode == 'RGBA':
+                img_full = img_full.convert('RGB')
+            orig_w, orig_h = img_full.size
+            # Krimelack grid: grayscale 64x64 derived FROM original (not replacing it)
+            img_gray = img_full.convert('L').resize((64, 64))
+            grid = np.array(img_gray, dtype=np.float64) / 255.0
         except Exception as e:
             return {"response": f"image decode error: {e}",
                     "motifs": _guala.introspect()["vocab"]}
         item_id = hashlib.md5(img_bytes).hexdigest()[:12]
+        # Save original to EFS (survives restart)
+        pic_dir = os.path.join(STATE_DIR, "pictures")
+        os.makedirs(pic_dir, exist_ok=True)
+        ext = filename.rsplit('.', 1)[1] if '.' in filename else 'jpg'
+        orig_path = os.path.join(pic_dir, f"{item_id}_original.{ext}")
+        with open(orig_path, 'wb') as f:
+            f.write(img_bytes)
         pic = PictureItem(item_id=item_id, title=title,
                           intensity_grid=grid, source="upload",
                           shown_at_tick=_guala.tick)
+        pic.original_path = orig_path
+        pic.original_width = orig_w
+        pic.original_height = orig_h
         _guala._pictures[item_id] = pic
         _guala._log_substrate_event("picture_uploaded",
-                                    item_id=item_id, title=title)
-        return {"response": f"showed her \"{title}\" ({grid.shape[0]}x{grid.shape[1]}). "
-                            f"she'll look at it when curiosity drives her.",
+                                    item_id=item_id, title=title,
+                                    original_size=f"{orig_w}x{orig_h}")
+        return {"response": f"showed her \"{title}\" ({orig_w}x{orig_h} color, "
+                            f"krimelack 64x64 grayscale). she'll look at it when curiosity drives her.",
                 "motifs": _guala.introspect()["vocab"]}
 
     # ── /addsound:<filename> — decode base64 audio, run through cochlear pipeline ──
@@ -1315,13 +1331,27 @@ async def gualaloom_chat(msg: GLMessage):
     if _exchange_count % _persist_every == 0:
         _guala.save_full_state(STATE_DIR)
 
-    # v7 Phase 2: include recalled pictures as base64 for frontend display
+    # Include recalled pictures as base64 for frontend display
+    # Use original image if available, fall back to krimelack grid
     import base64, io as _io
     recalled_pics = getattr(_guala, '_last_recalled_pictures', [])
     picture_data = []
     for motif, item_id in recalled_pics:
         pic = _guala._pictures.get(item_id)
-        if pic is not None and pic.intensity_grid is not None:
+        if pic is None:
+            continue
+        orig_path = getattr(pic, 'original_path', None)
+        if orig_path and os.path.exists(orig_path):
+            # Display original full-color image
+            with open(orig_path, 'rb') as f:
+                b64 = base64.b64encode(f.read()).decode()
+            ext = orig_path.rsplit('.', 1)[1] if '.' in orig_path else 'png'
+            mime = {'jpg': 'jpeg', 'jpeg': 'jpeg', 'png': 'png',
+                    'gif': 'gif', 'webp': 'webp'}.get(ext.lower(), 'png')
+            picture_data.append({"item_id": item_id, "title": pic.title,
+                                 "data": f"data:image/{mime};base64,{b64}"})
+        elif pic.intensity_grid is not None:
+            # Fallback: display krimelack grid (grayscale, old pictures)
             from PIL import Image
             img = Image.fromarray((pic.intensity_grid * 255).astype(np.uint8), mode='L')
             buf = _io.BytesIO()
@@ -1415,16 +1445,29 @@ async def gualaloom_upload_picture(file: UploadFile = File(...)):
     try:
         from PIL import Image
         import io as _io
-        img = Image.open(_io.BytesIO(content)).convert('L')  # grayscale
-        img = img.resize((64, 64))  # normalize size for krimelack
-        grid = np.array(img, dtype=np.float64) / 255.0
+        img_full = Image.open(_io.BytesIO(content))
+        if img_full.mode == 'RGBA':
+            img_full = img_full.convert('RGB')
+        orig_w, orig_h = img_full.size
+        # Krimelack grid: grayscale 64×64 derived from original
+        grid = np.array(img_full.convert('L').resize((64, 64)), dtype=np.float64) / 255.0
     except Exception as e:
         raise HTTPException(400, f"Cannot decode image: {e}")
     item_id = hashlib.md5(content).hexdigest()[:12]
     title = file.filename or item_id
+    # Save original to EFS
+    pic_dir = os.path.join(STATE_DIR, "pictures")
+    os.makedirs(pic_dir, exist_ok=True)
+    ext = (file.filename or "img").rsplit('.', 1)[1] if '.' in (file.filename or "") else 'jpg'
+    orig_path = os.path.join(pic_dir, f"{item_id}_original.{ext}")
+    with open(orig_path, 'wb') as f:
+        f.write(content)
     pic = PictureItem(item_id=item_id, title=title,
                       intensity_grid=grid, source="upload",
                       shown_at_tick=_guala.tick)
+    pic.original_path = orig_path
+    pic.original_width = orig_w
+    pic.original_height = orig_h
     _guala._pictures[item_id] = pic
     _guala._log_substrate_event("picture_uploaded",
                                 item_id=item_id, title=title)
