@@ -197,11 +197,7 @@ class Section:
         else:
             p = a / a.sum() if a.sum() > 0 else a
             mode_id = int(p.argmax())
-            # Mode blending disabled — mode_bank stays as installed.
-            # Learning happens via mode_strength (LTP) not vector warping.
-            # This prevents multi-turn lock-in where turn 1's commits
-            # permanently warp mode vectors so turn 2's input can't win.
-            pass
+            self.mode_bank[mode_id] = normalize(0.995 * self.mode_bank[mode_id] + 0.005 * state)
             self.mode_last_used[mode_id] = tick
         # Salience: arc magnitude + novelty bonus (spec Item 3.1)
         arc_mag = float(a[mode_id]) if mode_id >= 0 and mode_id < len(a) else 0.0
@@ -522,8 +518,8 @@ class System:
         # Mode decay + homeostasis pull every 20 ticks
         for sec in self.sections.values():
             sec.decay_modes(self.tick)
-            if self.tick % 5 == 0:
-                sec.homeostasis_pull(rate=0.005)
+            if self.tick % 3 == 0:
+                sec.homeostasis_pull(rate=0.01)
 
         # Self-evolution with gamma drift-toward-default
         # Conservative: require persistent out-of-range and use moderate learning rate

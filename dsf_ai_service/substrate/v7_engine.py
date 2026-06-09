@@ -212,28 +212,27 @@ class V7Session:
             if not tokens:
                 return self._empty_response("empty input")
 
-            # FULL EPISODIC RESET: rebuild the System from scratch per turn.
-            # Preserve only: vocab (which words are installed) and
-            # mode_strength (LTP from feedback). Everything else fresh.
-            saved_strengths = {}
-            for sn in ("subject", "verb", "object", "intro", "aware"):
-                sec = self.sys_.sections[sn]
-                if hasattr(sec, "mode_strength"):
-                    saved_strengths[sn] = list(sec.mode_strength)
-
-            # Fresh rng per turn
-            turn_seed = hash((self.session_id, len(self.intro_commit_history))) % (2**31)
+            # Per-turn psi reset: clear dynamic state, preserve learned state.
+            # psi resets (natural inter-turn settling). mode_bank, atlas,
+            # keyholes, krimelack all persist across turns.
+            # Fresh rng per turn to avoid noise-pattern lock-in.
+            turn_seed = hash((self.session_id, self.sys_.tick)) % (2**31)
             self.rng = np.random.default_rng(turn_seed)
-
-            # Rebuild entire system
-            self.sys_, self.token_vec, self.intro_vec, self.intro_modes, \
-                self.aware_vec, self.aware_modes = self._build_system()
-            for sn in ("subject", "verb", "object", "intro", "aware"):
-                install_plasticity(self.sys_.sections[sn])
-                if sn in saved_strengths:
-                    self.sys_.sections[sn].mode_strength = saved_strengths[sn]
-
+            for slot in ("subject", "verb", "object", "listen", "intro", "aware"):
+                sec = self.sys_.sections[slot]
+                sec.psi = normalize(
+                    random_unit_complex(N, self.rng) * 0.3 +
+                    normalize(np.ones(N, dtype=complex)) * 0.7)
+                sec.standing_goals = []
+                sec.goals = []
             self.drive_tracker.clear()
+            # Clear atlas and keyholes between turns — they accumulate
+            # cross-turn bindings that bias the cascade. mode_bank and
+            # krimelack persist (that's the real substrate memory).
+            self.sys_.atlas.entries.clear()
+            self.sys_.keyholes.clear()
+            self.sys_.deferred_conflicts.clear()
+            self.sys_.pending_goals.clear()
 
             routing_log = []
             nmda_events = []
