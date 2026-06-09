@@ -77,6 +77,7 @@ class Section:
     psi: np.ndarray = field(init=False)
     mode_bank: list = field(default_factory=list)
     mode_last_used: list = field(default_factory=list)
+    mode_strength: list = field(default_factory=list)  # salience per mode
     krimelack: list = field(default_factory=list)
     law_fields: dict = field(default_factory=dict)
     gamma: dict = field(default_factory=dict)
@@ -105,6 +106,13 @@ class Section:
             "compactness": np.diag(np.linspace(-1, 1, N)).astype(complex) * 0.5,
         }
         self.gamma = dict(GAMMA_DEFAULTS)
+        self._initial_gamma = dict(GAMMA_DEFAULTS)
+
+    def gamma_homeostasis(self, rate=0.001):
+        """Pull gamma toward initial values. Prevents self-evo drift lock-in."""
+        for k in self.gamma:
+            if k in self._initial_gamma:
+                self.gamma[k] = (1.0 - rate) * self.gamma[k] + rate * self._initial_gamma[k]
 
     def effective_det_commit(self, current_tick):
         """Excitation pulse lowers commit threshold."""
@@ -142,7 +150,7 @@ class Section:
 
     def evolve(self, J=None, steps=EVOLVE_STEPS):
         for i in range(steps):
-            self.step(J=J if i == 0 else None)
+            self.step(J=J if i == 0 else None)  # evidence on first substep only
 
     def arcs(self):
         if not self.mode_bank:
@@ -189,19 +197,21 @@ class Section:
         a = self.arcs()
         mode_id = -1
         if reason in ("bootstrap", "novel_mode"):
-            self.mode_bank.append(state.copy())
+            self.mode_bank.append(normalize(state.copy()))
             self.mode_last_used.append(tick)
+            self.mode_strength.append(1.5)  # fresh modes start above baseline
             mode_id = len(self.mode_bank) - 1
             if reason == "bootstrap":
                 self.bootstrap_used += 1
         else:
             p = a / a.sum() if a.sum() > 0 else a
             mode_id = int(p.argmax())
-            # Blend gating: only blend during listen phase, not emit.
-            # emit commits read mode_bank but don't warp it.
-            if not getattr(self, '_emit_phase', False):
-                self.mode_bank[mode_id] = normalize(
-                    0.995 * self.mode_bank[mode_id] + 0.005 * state)
+            # Option B: NO vector blending. mode_bank vectors stay immutable.
+            # Reinforce salience instead (direction and salience are separate).
+            while len(self.mode_strength) <= mode_id:
+                self.mode_strength.append(1.0)
+            self.mode_strength[mode_id] = min(2.5,
+                self.mode_strength[mode_id] + 0.02)
             self.mode_last_used[mode_id] = tick
         # Salience: arc magnitude + novelty bonus (spec Item 3.1)
         arc_mag = float(a[mode_id]) if mode_id >= 0 and mode_id < len(a) else 0.0
@@ -233,23 +243,15 @@ class Section:
                 rate * self._initial_mode_bank[i])
 
     def decay_modes(self, tick):
-        new_bank, new_last = [], []
-        pruned = 0
-        for m, t_last in zip(self.mode_bank, self.mode_last_used):
-            age = tick - t_last
-            if age <= MODE_DECAY_TICKS:
-                new_bank.append(m)
-                new_last.append(t_last)
-            else:
-                shrink = max(0.0, 1.0 - 0.05 * (age - MODE_DECAY_TICKS) / 10)
-                if shrink < 0.2:
-                    pruned += 1
-                    continue
-                new_bank.append(m * shrink)
-                new_last.append(t_last)
-        self.mode_bank = new_bank
-        self.mode_last_used = new_last
-        return pruned
+        """Option B: salience decay toward baseline (1.0).
+        Vectors are immutable. Salience drifts back unless reinforced."""
+        for i in range(len(self.mode_bank)):
+            if i >= len(self.mode_strength):
+                continue
+            # Pull toward 1.0 baseline — above-baseline decays down,
+            # below-baseline recovers up
+            self.mode_strength[i] = 0.999 * self.mode_strength[i] + 0.001 * 1.0
+        return 0
 
     def three_axis(self):
         a = self.arcs()
@@ -333,7 +335,7 @@ class System:
         J = section.map_inject @ evidence
         nrm = np.linalg.norm(J)
         if nrm > 0:
-            J = J * min(1.0, 0.5 / nrm) * 0.5
+            J = J * min(1.0, 0.5 / nrm) * 0.5  # original 0.25 cap
         return J
 
     def hear_speaker(self, utterance_template_vector, target_section_name, speak_section_name=None):
@@ -357,9 +359,11 @@ class System:
             if max(overlaps) < 0.40:
                 sec.mode_bank.append(target.copy())
                 sec.mode_last_used.append(self.tick)
+                sec.mode_strength.append(1.0)
         else:
             sec.mode_bank.append(target.copy())
             sec.mode_last_used.append(self.tick)
+            sec.mode_strength.append(1.0)
 
     def record_utterance_match(self, matched: bool):
         """Track utterance match rate, adapt heard-speaker strength."""
@@ -412,9 +416,18 @@ class System:
             for g in self.pending_goals.get(name, []):
                 sec.goals.append(g)
             _, det_before = sec.entropy_det()
-            sec.evolve(J=J)
+            # Check commit BEFORE evolution — if psi is already aligned
+            # with a mode (e.g. after priming), commit it before the
+            # Hamiltonian rotates it away.
             do_commit, reason = sec.commit_check(evidence_pressure=evidence_pressure,
                                                   current_tick=self.tick)
+            if not do_commit:
+                # Only evolve if we didn't commit — evolution happens
+                # between commits, not through them
+                sec.evolve(J=J)
+                # Re-check after evolution in case evidence pushed past threshold
+                do_commit, reason = sec.commit_check(evidence_pressure=evidence_pressure,
+                                                      current_tick=self.tick)
             committed_info = None
             if do_commit:
                 chi, mode_id, state = sec.commit(self.tick, reason)
@@ -519,11 +532,41 @@ class System:
                                               "mode_id": mode_id, "reason": reason,
                                               "atlas_snapshot": snap.copy()})
 
-        # Mode decay + homeostasis pull every 20 ticks
+        # Mode decay + homeostasis on ALL growing state vars every 20 ticks
         for sec in self.sections.values():
             sec.decay_modes(self.tick)
             if self.tick % 20 == 0 and not getattr(sec, '_emit_phase', False):
                 sec.homeostasis_pull(rate=0.001)
+                sec.gamma_homeostasis(rate=0.001)  # (1) gamma decay
+
+        if self.tick % 20 == 0:
+            # (2) Keyhole strength decay
+            for kh in self.keyholes:
+                kh["goal_strength"] = kh["goal_strength"] * 0.999
+
+            # (3) Atlas binding count decay — thin old entries
+            for chi_k in list(self.atlas.entries.keys()):
+                entries = self.atlas.entries[chi_k]
+                # Keep only entries from recent ticks
+                self.atlas.entries[chi_k] = [
+                    e for e in entries if self.tick - e.get("tick", 0) < 500
+                ]
+                if not self.atlas.entries[chi_k]:
+                    del self.atlas.entries[chi_k]
+
+            # (4) Coordinator logs — cap to prevent unbounded growth
+            if len(self.coordinator_fires) > 200:
+                self.coordinator_fires = self.coordinator_fires[-100:]
+            if len(self.coordinator_actions_log) > 200:
+                self.coordinator_actions_log = self.coordinator_actions_log[-100:]
+            if len(self.deliberation_ticks) > 200:
+                self.deliberation_ticks = self.deliberation_ticks[-100:]
+            if len(self.routing_ticks) > 200:
+                self.routing_ticks = self.routing_ticks[-100:]
+            # System log — cap each list
+            for k in list(self.system_log.keys()):
+                if len(self.system_log[k]) > 500:
+                    self.system_log[k] = self.system_log[k][-200:]
 
         # Self-evolution with gamma drift-toward-default
         # Conservative: require persistent out-of-range and use moderate learning rate

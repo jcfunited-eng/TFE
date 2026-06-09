@@ -66,7 +66,7 @@ class V7Session:
 
         # Install plasticity on S/V/O + intro + aware
         for sn in ("subject", "verb", "object", "intro", "aware"):
-            install_plasticity(self.sys_.sections[sn])
+            install_plasticity(self.sys_.sections[sn], initial_strength=1.0)
 
         # NMDA gates (respec Item 5 — integrated, not meta-system)
         self.drive_tracker = {}
@@ -138,9 +138,11 @@ class V7Session:
                 v = random_unit_complex(N, rng)
                 sec.mode_bank.append(v.copy())
                 sec.mode_last_used.append(0)
+                sec.mode_strength.append(1.0)
                 token_vec[(sec_name, tok)] = v
                 listen.mode_bank.append(v.copy())
                 listen.mode_last_used.append(0)
+                listen.mode_strength.append(1.0)
 
         # Install intro modes
         intro_modes = ["i_quiet", "i_hear", "i_emit"]
@@ -149,6 +151,7 @@ class V7Session:
             v = random_unit_complex(N, rng)
             intro.mode_bank.append(v.copy())
             intro.mode_last_used.append(0)
+            intro.mode_strength.append(1.0)
             intro_vec[name] = v
 
         # Install aware modes
@@ -158,6 +161,7 @@ class V7Session:
             v = random_unit_complex(N, rng)
             aware.mode_bank.append(v.copy())
             aware.mode_last_used.append(0)
+            aware.mode_strength.append(1.0)
             aware_vec[name] = v
 
         # Snapshot initial mode_bank for homeostasis pull
@@ -189,11 +193,11 @@ class V7Session:
         word_vec = random_unit_complex(N, self.rng)
         sec.mode_bank.append(word_vec.copy())
         sec.mode_last_used.append(self.sys_.tick)
-        if hasattr(sec, "mode_strength"):
-            sec.mode_strength.append(0.0)
+        sec.mode_strength.append(1.0)
         # Also install in listen
         self.sys_.sections["listen"].mode_bank.append(word_vec.copy())
         self.sys_.sections["listen"].mode_last_used.append(self.sys_.tick)
+        self.sys_.sections["listen"].mode_strength.append(1.0)
         self.vocab[slot].append(word)
         self.token_vec[(slot, word)] = word_vec
         # Update homeostasis baseline with new mode
@@ -212,12 +216,10 @@ class V7Session:
             if not tokens:
                 return self._empty_response("empty input")
 
-            # Per-turn psi reset: clear dynamic state, preserve learned state.
-            # psi resets (natural inter-turn settling). mode_bank, atlas,
-            # keyholes, krimelack all persist across turns.
-            # Fresh rng per turn to avoid noise-pattern lock-in.
-            turn_seed = hash((self.session_id, self.sys_.tick)) % (2**31)
-            self.rng = np.random.default_rng(turn_seed)
+            # Per-turn reset: psi + goals only. Everything else persists.
+            # Atlas, keyholes, krimelack, mode_bank all accumulate across turns.
+            # Per-turn reset: psi + goals only. Use ORIGINAL session rng
+            # (not re-seeded) to preserve H_base/mode_bank/map_inject correlation.
             for slot in ("subject", "verb", "object", "listen", "intro", "aware"):
                 sec = self.sys_.sections[slot]
                 sec.psi = normalize(
@@ -226,13 +228,6 @@ class V7Session:
                 sec.standing_goals = []
                 sec.goals = []
             self.drive_tracker.clear()
-            # Clear atlas and keyholes between turns — they accumulate
-            # cross-turn bindings that bias the cascade. mode_bank and
-            # krimelack persist (that's the real substrate memory).
-            self.sys_.atlas.entries.clear()
-            self.sys_.keyholes.clear()
-            self.sys_.deferred_conflicts.clear()
-            self.sys_.pending_goals.clear()
 
             routing_log = []
             nmda_events = []
@@ -256,8 +251,8 @@ class V7Session:
                 return self._empty_response("no content words in vocabulary")
 
             # PHASE 2: Listen-accumulate (matches wC's speak_and_listen)
-            # Block S/V/O blending during listen — only listen section learns here
-            for sn in ("subject", "verb", "object", "intro", "aware"):
+            # Block ALL blending during listen — no mode_bank warping
+            for sn in ("subject", "verb", "object", "listen", "intro", "aware"):
                 self.sys_.sections[sn]._emit_phase = True
             accumulated = {}
             for slot, word in heard.items():
@@ -298,7 +293,9 @@ class V7Session:
                     continue
                 weights = []
                 for mode_id, mode_vec in enumerate(sec.mode_bank):
-                    w = float(np.abs(np.vdot(mode_vec, snap)) ** 2)
+                    directional = float(np.abs(np.vdot(mode_vec, snap)) ** 2)
+                    sal = sec.mode_strength[mode_id] if mode_id < len(sec.mode_strength) else 1.0
+                    w = directional * sal
                     weights.append((mode_id, w, mode_vec))
                 weights.sort(key=lambda x: -x[1])
                 bias = np.zeros(N, dtype=complex)
@@ -311,10 +308,11 @@ class V7Session:
             for slot in ("subject", "verb", "object"):
                 self.sys_.sections[slot].psi = drives[slot].copy()
 
-            # PHASE 4: Commit-driven rhythm emission (matches wC's guala_emit)
+            # PHASE 4: Commit-driven rhythm emission
             # Set emit_phase flag — blocks mode_bank blending during emit
             for sec in self.sys_.sections.values():
                 sec._emit_phase = True
+
             emit_commits = []
             svo_cycle = ["subject", "verb", "object"]
             cycle_idx = 0
@@ -325,9 +323,10 @@ class V7Session:
             emitted_words = {}
 
             for t in range(120):
-                # Decay plasticity per tick (spec 1.3 — synaptic homeostasis)
+                # Decay plasticity per tick
                 for sn in ("subject", "verb", "object"):
                     decay_plasticity(self.sys_.sections[sn], decay=0.998)
+
 
                 current = svo_cycle[cycle_idx % 3]
                 self.last_rhythm_phase = current
