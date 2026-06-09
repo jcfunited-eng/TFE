@@ -38,7 +38,7 @@ from collections import defaultdict, Counter
 # Entropy: decay rate per tick (small — bindings fade slowly, allowing
 # accumulation to dominate over short timescales but enforcing forgetting
 # over long ones)
-DECAY_LAMBDA = 0.001  # per tick
+DECAY_LAMBDA = 0.0001  # per tick (was 0.001 — too aggressive, 10x slower now)
 
 # Cohesion: base reinforcement amount on re-encounter
 BASE_REINFORCEMENT = 0.05

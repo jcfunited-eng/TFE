@@ -2329,12 +2329,14 @@ class Guala:
     # ── Snapshots ──
 
     def snapshot_state(self, state_dir="state", reason="manual"):
-        """Copy all state files to a timestamped backup directory."""
+        """Copy all state files to a timestamped backup directory.
+        Snapshots go INSIDE state_dir (on EFS) not alongside it."""
         import shutil
         ts = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
-        snap_dir = os.path.join(state_dir + "-backups",
+        snap_dir = os.path.join(state_dir, "backups",
                                 f"{ts}_{reason}")
         os.makedirs(snap_dir, exist_ok=True)
+        print(f"[GualaLoom] Creating snapshot: {snap_dir}")
         # Copy identity + all state files
         for f in [self.IDENTITY_FILE] + self.STATE_FILES:
             src = os.path.join(state_dir, f)
@@ -2349,7 +2351,7 @@ class Guala:
         return snap_dir
 
     def _rotate_snapshots(self, state_dir):
-        backup_root = state_dir + "-backups"
+        backup_root = os.path.join(state_dir, "backups")
         if not os.path.exists(backup_root):
             return
         snaps = sorted([d for d in os.listdir(backup_root)
@@ -2377,7 +2379,7 @@ class Guala:
                 shutil.copy2(src, os.path.join(state_dir, f))
 
     def list_snapshots(self, state_dir="state"):
-        backup_root = state_dir + "-backups"
+        backup_root = os.path.join(state_dir, "backups")
         if not os.path.exists(backup_root):
             return []
         return sorted([d for d in os.listdir(backup_root)

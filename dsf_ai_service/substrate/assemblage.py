@@ -279,7 +279,14 @@ class ChiAtlas:
         self.requested_keyholes = []
 
     def add_claim(self, chi, section_name, mode_id, tick):
-        self.entries[chi].append({"section": section_name, "mode_id": mode_id, "tick": tick})
+        # Check for existing claim from same (section, mode_id) — reinforce instead of duplicate
+        for e in self.entries[chi]:
+            if e["section"] == section_name and e["mode_id"] == mode_id:
+                e["strength"] = min(2.0, e.get("strength", 1.0) + 0.1)
+                e["tick"] = tick
+                return
+        self.entries[chi].append({"section": section_name, "mode_id": mode_id,
+                                   "tick": tick, "strength": 1.0})
 
     def conflicts(self):
         out = []
@@ -544,12 +551,14 @@ class System:
             for kh in self.keyholes:
                 kh["goal_strength"] = kh["goal_strength"] * 0.999
 
-            # (3) Atlas binding count decay — thin old entries
+            # (3) Atlas binding strength decay — salience-based, not age-based
             for chi_k in list(self.atlas.entries.keys()):
-                entries = self.atlas.entries[chi_k]
-                # Keep only entries from recent ticks
+                for e in self.atlas.entries[chi_k]:
+                    e["strength"] = e.get("strength", 1.0) * 0.999
+                # Remove only claims with near-zero strength
                 self.atlas.entries[chi_k] = [
-                    e for e in entries if self.tick - e.get("tick", 0) < 500
+                    e for e in self.atlas.entries[chi_k]
+                    if e.get("strength", 0) > 0.01
                 ]
                 if not self.atlas.entries[chi_k]:
                     del self.atlas.entries[chi_k]
