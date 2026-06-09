@@ -6,522 +6,279 @@
 <meta name="robots" content="noindex, nofollow">
 <title>GualaLoom</title>
 <style>
-:root {
-  --bg: #0d1117; --bg-alt: #161b22; --text: #e6edf3; --text-muted: #7d8590;
-  --accent: #58a6ff; --border: #30363d; --input-bg: #0d1117;
-  --msg-user: #1f2937; --msg-sub: #161b22;
-  --ev-activity: #58a6ff; --ev-motif: #3fb950; --ev-dream: #bc8cff;
-  --ev-emission: #f0883e; --ev-muted: #484f58;
-  --nmda-fire: #3fb950; --nmda-block: #f85149; --ltp-bar: #58a6ff;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'SF Mono','Fira Code','Cascadia Code',monospace; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
-
-header { padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--bg-alt); display: flex; justify-content: space-between; align-items: center; }
-.header-left h1 { font-size: 15px; font-weight: 500; color: var(--accent); letter-spacing: 0.5px; }
-.header-left .subtitle { font-size: 10px; color: var(--text-muted); }
-#stats-line { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
-
-.toggle-group { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-.toggle-group button { background: var(--bg); color: var(--text-muted); border: none; padding: 5px 12px; font-family: inherit; font-size: 11px; cursor: pointer; border-right: 1px solid var(--border); }
-.toggle-group button:last-child { border-right: none; }
-.toggle-group button.active { background: var(--accent); color: #0d1117; font-weight: 600; }
-.toggle-group button:hover:not(.active) { color: var(--text); }
-
-#session-info { font-size: 10px; color: var(--text-muted); text-align: right; }
-
-#main { flex: 1; display: flex; overflow: hidden; }
-
-/* Chat column */
-#chat-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-#chat { flex: 1; overflow-y: auto; padding: 10px 16px; display: flex; flex-direction: column; gap: 6px; }
-.msg { max-width: 85%; padding: 6px 10px; border-radius: 6px; font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
-.msg.user { align-self: flex-end; background: var(--msg-user); border: 1px solid var(--border); }
-.msg.substrate { align-self: flex-start; background: var(--msg-sub); border: 1px solid var(--border); color: var(--accent); }
-.msg.emission { align-self: flex-start; background: transparent; border: 1px solid #30363d44; color: var(--ev-emission); font-style: italic; font-size: 11px; }
-.msg.system { align-self: center; color: var(--text-muted); font-size: 10px; font-style: italic; }
-
-/* Response block with tokens + emissions + feedback */
-.response-block { align-self: flex-start; max-width: 90%; }
-.response-text { padding: 6px 10px; border-radius: 6px 6px 0 0; background: var(--msg-sub); border: 1px solid var(--border); color: var(--accent); font-size: 12px; }
-.response-text .tok-anno { color: var(--text-muted); font-size: 10px; }
-.response-meta { display: flex; align-items: center; gap: 8px; padding: 3px 10px; background: var(--bg); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; font-size: 10px; color: var(--text-muted); }
-.response-meta .fb-btn { cursor: pointer; font-size: 14px; opacity: 0.5; }
-.response-meta .fb-btn:hover { opacity: 1; }
-.response-meta .fb-btn.active { opacity: 1; }
-.emissions-toggle { cursor: pointer; }
-.emissions-toggle:hover { color: var(--text); }
-.emissions-detail { display: none; padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-top: none; font-size: 10px; color: var(--text-muted); }
-.emissions-detail.open { display: block; }
-
-/* Input */
-#input-area { padding: 8px 16px; border-top: 1px solid var(--border); background: var(--bg-alt); display: flex; gap: 6px; }
-#input-area input { flex: 1; background: var(--input-bg); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; font-family: inherit; font-size: 12px; outline: none; }
-#input-area input:focus { border-color: var(--accent); }
-#input-area button { background: var(--accent); color: #0d1117; border: none; padding: 6px 14px; border-radius: 6px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
-
-/* State panel (right side) */
-#state-panel { width: 320px; border-left: 1px solid var(--border); background: var(--bg-alt); overflow-y: auto; padding: 8px; font-size: 10px; display: none; }
-#state-panel.visible { display: block; }
-.panel-section { margin-bottom: 10px; }
-.panel-title { font-size: 10px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px solid var(--border); }
-.panel-row { display: flex; justify-content: space-between; padding: 1px 0; }
-.panel-row .label { color: var(--text-muted); }
-.panel-row .value { color: var(--text); }
-.nmda-gate { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
-.nmda-dot { width: 8px; height: 8px; border-radius: 50%; }
-.nmda-dot.fired { background: var(--nmda-fire); }
-.nmda-dot.blocked { background: var(--nmda-block); }
-.nmda-dot.idle { background: var(--border); }
-.strength-bar-wrap { display: flex; align-items: center; gap: 4px; padding: 1px 0; }
-.strength-bar-label { width: 60px; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted); }
-.strength-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-.strength-bar-fill { height: 100%; background: var(--ltp-bar); border-radius: 3px; transition: width 0.3s; }
-.strength-bar-val { width: 30px; text-align: right; color: var(--text-muted); }
-
-/* Events sidebar for v6 mode */
-#events-col { width: 280px; border-left: 1px solid var(--border); background: var(--bg-alt); display: none; flex-direction: column; }
-#events-col.visible { display: flex; }
-#events-header { padding: 6px 10px; font-size: 10px; color: var(--text-muted); border-bottom: 1px solid var(--border); font-weight: 500; }
-#events { flex: 1; overflow-y: auto; padding: 2px 0; }
-.ev { padding: 2px 10px; font-size: 9px; line-height: 1.3; color: var(--text-muted); border-bottom: 1px solid #21262d; }
-.ev .ev-kind { font-weight: 500; }
-
-@media (max-width: 700px) { #state-panel, #events-col { display: none !important; } .msg { max-width: 95%; } }
+:root{--bg:#0d1117;--bg-alt:#161b22;--text:#e6edf3;--text-muted:#7d8590;--accent:#58a6ff;--border:#30363d;--input-bg:#0d1117;--msg-user:#1f2937;--msg-sub:#161b22;--ev-activity:#58a6ff;--ev-motif:#3fb950;--ev-dream:#bc8cff;--ev-emission:#f0883e;--nmda-fire:#3fb950;--nmda-block:#f85149;--ltp-bar:#58a6ff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'SF Mono','Fira Code',monospace;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column}
+header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg-alt);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.header-left h1{font-size:14px;font-weight:500;color:var(--accent)}
+.header-left .subtitle{font-size:9px;color:var(--text-muted)}
+#stats-line{font-size:9px;color:var(--text-muted);margin-top:2px}
+#activity-line{font-size:10px;color:var(--text);margin-top:1px}
+#needs-line{font-size:9px;color:var(--text-muted)}
+.header-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.toggle-group{display:flex;border:1px solid var(--border);border-radius:5px;overflow:hidden}
+.toggle-group button{background:var(--bg);color:var(--text-muted);border:none;padding:4px 10px;font-family:inherit;font-size:10px;cursor:pointer;border-right:1px solid var(--border)}
+.toggle-group button:last-child{border-right:none}
+.toggle-group button.active{background:var(--accent);color:#0d1117;font-weight:600}
+#session-info{font-size:9px;color:var(--text-muted)}
+.hdr-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:3px 8px;border-radius:4px;font-family:inherit;font-size:9px;cursor:pointer}
+.hdr-btn:hover{border-color:var(--accent);color:var(--text)}
+#presence-line{font-size:9px;color:var(--text-muted)}
+#main{flex:1;display:flex;overflow:hidden}
+#chat-col{flex:1;display:flex;flex-direction:column;min-width:0}
+#chat{flex:1;overflow-y:auto;padding:8px 14px;display:flex;flex-direction:column;gap:5px}
+.msg{max-width:85%;padding:5px 9px;border-radius:5px;font-size:11px;line-height:1.4;white-space:pre-wrap;word-break:break-word}
+.msg.user{align-self:flex-end;background:var(--msg-user);border:1px solid var(--border)}
+.msg.substrate{align-self:flex-start;background:var(--msg-sub);border:1px solid var(--border);color:var(--accent)}
+.msg.emission{align-self:flex-start;background:transparent;border:1px solid #30363d44;color:var(--ev-emission);font-style:italic;font-size:10px}
+.msg.wc{align-self:flex-start;background:#1a1a2e;border:1px solid #4a3f6b;color:#bc8cff;font-size:11px}
+.msg.system{align-self:center;color:var(--text-muted);font-size:9px;font-style:italic}
+.response-block{align-self:flex-start;max-width:90%}
+.response-text{padding:5px 9px;border-radius:5px 5px 0 0;background:var(--msg-sub);border:1px solid var(--border);color:var(--accent);font-size:11px}
+.response-text .tok-anno{color:var(--text-muted);font-size:9px}
+.response-meta{display:flex;align-items:center;gap:6px;padding:2px 9px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 5px 5px;font-size:9px;color:var(--text-muted)}
+.response-meta .fb-btn{cursor:pointer;font-size:13px;opacity:0.4}
+.response-meta .fb-btn:hover{opacity:1}
+.response-meta .fb-btn.active{opacity:1}
+.emissions-toggle{cursor:pointer}
+.emissions-toggle:hover{color:var(--text)}
+.emissions-detail{display:none;padding:3px 9px;background:var(--bg);border:1px solid var(--border);border-top:none;font-size:9px;color:var(--text-muted)}
+.emissions-detail.open{display:block}
+#input-area{padding:6px 14px;border-top:1px solid var(--border);background:var(--bg-alt);display:flex;gap:5px}
+#input-area input{flex:1;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:5px;font-family:inherit;font-size:11px;outline:none}
+#input-area input:focus{border-color:var(--accent)}
+#input-area button{background:var(--accent);color:#0d1117;border:none;padding:5px 12px;border-radius:5px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer}
+#upload-bar{padding:4px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;gap:4px;flex-wrap:wrap}
+.upload-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:3px 8px;border-radius:4px;font-family:inherit;font-size:9px;cursor:pointer}
+.upload-btn:hover{border-color:var(--accent);color:var(--text)}
+.upload-btn input[type=file]{display:none}
+/* Right panel */
+#right-panel{width:300px;border-left:1px solid var(--border);background:var(--bg-alt);overflow-y:auto;padding:6px;font-size:9px}
+.panel-section{margin-bottom:8px}
+.panel-title{font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;padding-bottom:2px;border-bottom:1px solid var(--border)}
+.panel-row{display:flex;justify-content:space-between;padding:1px 0}
+.panel-row .label{color:var(--text-muted)}.panel-row .value{color:var(--text)}
+.nmda-gate{display:flex;align-items:center;gap:4px;padding:1px 0}
+.nmda-dot{width:6px;height:6px;border-radius:50%}
+.nmda-dot.fired{background:var(--nmda-fire)}.nmda-dot.blocked{background:var(--nmda-block)}.nmda-dot.idle{background:var(--border)}
+.strength-bar-wrap{display:flex;align-items:center;gap:3px;padding:1px 0}
+.strength-bar-label{width:50px;overflow:hidden;text-overflow:ellipsis;color:var(--text-muted)}
+.strength-bar{flex:1;height:5px;background:var(--border);border-radius:2px;overflow:hidden}
+.strength-bar-fill{height:100%;background:var(--ltp-bar);border-radius:2px;transition:width .3s}
+.strength-bar-val{width:28px;text-align:right;color:var(--text-muted)}
+.ev{padding:2px 8px;font-size:8px;line-height:1.2;color:var(--text-muted);border-bottom:1px solid #21262d}
+@media(max-width:700px){#right-panel{display:none}.msg{max-width:95%}}
 </style>
 </head>
 <body>
-
 <header>
-  <div class="header-left">
-    <h1>GualaLoom</h1>
-    <div class="subtitle">substrate that grows from what you say.</div>
-    <div id="stats-line">loading...</div>
+<div class="header-left">
+  <h1>GualaLoom</h1>
+  <div class="subtitle">substrate that grows from what you say.</div>
+  <div id="stats-line">loading...</div>
+  <div id="activity-line">&nbsp;</div>
+  <div id="needs-line">&nbsp;</div>
+  <div id="presence-line">&nbsp;</div>
+</div>
+<div class="header-right">
+  <div class="toggle-group">
+    <button onclick="setMode('v6')">v6 engine</button>
+    <button onclick="setMode('substrate')">substrate</button>
+    <button class="active" onclick="setMode('v7')">v7 DNA</button>
   </div>
-  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-    <div class="toggle-group">
-      <button onclick="setMode('v6')">v6 engine</button>
-      <button onclick="setMode('substrate')">substrate</button>
-      <button class="active" onclick="setMode('v7')">v7 DNA</button>
-    </div>
-    <div id="session-info"></div>
-    <button onclick="newSession()" style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:3px 8px;border-radius:4px;font-family:inherit;font-size:9px;cursor:pointer">new session</button>
-  </div>
-</header>
-
-<div id="main">
-  <div id="chat-col">
-    <div id="chat"></div>
-    <div id="input-area">
-      <input id="msg" type="text" placeholder="say something" autocomplete="off">
-      <button id="send" onclick="sendMsg()">send</button>
-    </div>
-  </div>
-  <div id="state-panel" class="visible">
-    <div class="panel-section">
-      <div class="panel-title">Rhythm</div>
-      <div id="rhythm-display"><span class="label">phase:</span> <span class="value" id="rhythm-phase">--</span></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-title">NMDA Gates</div>
-      <div id="nmda-display"></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-title">Introspection</div>
-      <div id="intro-display" class="panel-row"><span class="value">--</span></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-title">Awareness</div>
-      <div id="aware-display" class="panel-row"><span class="value">--</span></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-title">Replay (DMN)</div>
-      <div id="replay-display"><div style="color:var(--text-muted)">no replay yet</div></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-title">Bridge</div>
-      <div id="bridge-display"><div style="color:var(--text-muted)">inactive</div></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-title">Routing (last turn)</div>
-      <div id="routing-display"></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-title">Mode Strengths</div>
-      <div id="strengths-display"></div>
-    </div>
-  </div>
-  <div id="events-col">
-    <div id="events-header">substrate events</div>
-    <div id="events"></div>
+  <div id="session-info"></div>
+  <div style="display:flex;gap:4px">
+    <button class="hdr-btn" id="sleep-btn" onclick="toggleSleep()">💤 Sleep</button>
+    <button class="hdr-btn" onclick="newSession()">new session</button>
   </div>
 </div>
-
+</header>
+<div id="main">
+<div id="chat-col">
+  <div id="chat"></div>
+  <div id="input-area">
+    <input id="msg" type="text" placeholder="say something" autocomplete="off">
+    <button id="send" onclick="sendMsg()">send</button>
+  </div>
+  <div id="upload-bar">
+    <label class="upload-btn">📖 book<input type="file" accept=".txt,.md,text/plain" onchange="upload('book',this)"></label>
+    <label class="upload-btn">🖼 picture<input type="file" accept="image/*" onchange="upload('picture',this)"></label>
+    <label class="upload-btn">🔊 sound<input type="file" accept="audio/*" onchange="upload('sound',this)"></label>
+  </div>
+</div>
+<div id="right-panel">
+  <div class="panel-section"><div class="panel-title">Rhythm</div><div id="rhythm-display">phase: --</div></div>
+  <div class="panel-section"><div class="panel-title">NMDA Gates</div><div id="nmda-display"></div></div>
+  <div class="panel-section"><div class="panel-title">Introspection</div><div id="intro-display">--</div></div>
+  <div class="panel-section"><div class="panel-title">Awareness</div><div id="aware-display">--</div></div>
+  <div class="panel-section"><div class="panel-title">Replay (DMN)</div><div id="replay-display">--</div></div>
+  <div class="panel-section"><div class="panel-title">Bridge</div><div id="bridge-display">--</div></div>
+  <div class="panel-section"><div class="panel-title">Routing</div><div id="routing-display">--</div></div>
+  <div class="panel-section"><div class="panel-title">Mode Strengths</div><div id="strengths-display"></div></div>
+  <div class="panel-section"><div class="panel-title">Events</div><div id="events" style="max-height:200px;overflow-y:auto"></div></div>
+</div>
+</div>
 <script>
-const API = 'https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
-const chat = document.getElementById('chat');
-const input = document.getElementById('msg');
-const btn = document.getElementById('send');
-const statsLine = document.getElementById('stats-line');
-const statePanel = document.getElementById('state-panel');
-const eventsCol = document.getElementById('events-col');
-const eventsDiv = document.getElementById('events');
-const sessionInfo = document.getElementById('session-info');
+const API='https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
+const chat=document.getElementById('chat'),input=document.getElementById('msg'),btn=document.getElementById('send');
+const statsLine=document.getElementById('stats-line'),activityLine=document.getElementById('activity-line');
+const needsLine=document.getElementById('needs-line'),presenceLine=document.getElementById('presence-line');
+const sleepBtn=document.getElementById('sleep-btn'),sessionInfo=document.getElementById('session-info');
+const eventsDiv=document.getElementById('events');
 
-let mode = 'v7'; // 'v6', 'substrate', 'v7'
-// FIX 1: Persist session_id across page reloads via localStorage
-let sessionId = localStorage.getItem('guala_session_id');
-if (!sessionId) {
-  sessionId = 'sid_' + Math.random().toString(36).slice(2, 10);
-  localStorage.setItem('guala_session_id', sessionId);
+let mode='v7';
+let sessionId=localStorage.getItem('guala_session_id');
+if(!sessionId){sessionId='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sessionId)}
+let lastEventTick=0,isSleeping=false,lastInputTime=Date.now();
+
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.toggle-group button').forEach((b,i)=>b.classList.toggle('active',['v6','substrate','v7'][i]===m));
+  document.getElementById('right-panel').style.display=m==='v7'?'block':'block';
+  sessionInfo.textContent=m==='v7'?`session: ${sessionId}`:'';
+  addMsg(`[${m==='v7'?'v7 DNA':m}]`,'system');
 }
-let lastEventTick = 0;
-let lastConverseResult = null;
-let lastReplayCheck = Date.now();
+function addMsg(text,cls){const d=document.createElement('div');d.className='msg '+cls;d.textContent=text;chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
 
-function setMode(m) {
-  mode = m;
-  document.querySelectorAll('.toggle-group button').forEach((b, i) => {
-    b.classList.toggle('active', ['v6','substrate','v7'][i] === m);
-  });
-  statePanel.classList.toggle('visible', m === 'v7');
-  eventsCol.classList.toggle('visible', m === 'v6');
-  sessionInfo.textContent = m === 'v7' ? `session: ${sessionId}` : '';
-  addMsg(`switched to [${m === 'v7' ? 'v7 DNA' : m === 'substrate' ? 'substrate' : 'v6 engine'}]`, 'system');
-}
-
-function addMsg(text, cls) {
-  const d = document.createElement('div');
-  d.className = 'msg ' + cls;
-  d.textContent = text;
-  chat.appendChild(d);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function addResponseBlock(result) {
-  const block = document.createElement('div');
-  block.className = 'response-block';
-
-  // Response text with token annotations
-  const textDiv = document.createElement('div');
-  textDiv.className = 'response-text';
-  const tokens = result.response_tokens || [];
-  if (tokens.length === 0) {
-    textDiv.textContent = '...';
-  } else {
-    textDiv.innerHTML = tokens.map(t =>
-      `${t.token}<span class="tok-anno">(s=${t.mode_strength.toFixed(1)})</span>`
-    ).join(' ');
-  }
+function addResponseBlock(result){
+  const block=document.createElement('div');block.className='response-block';
+  const textDiv=document.createElement('div');textDiv.className='response-text';
+  const tokens=result.response_tokens||[];
+  textDiv.innerHTML=tokens.length?tokens.map(t=>`${t.token}<span class="tok-anno">(s=${t.mode_strength.toFixed(1)})</span>`).join(' '):'...';
   block.appendChild(textDiv);
-
-  // Meta row: emissions toggle + feedback buttons
-  const meta = document.createElement('div');
-  meta.className = 'response-meta';
-
-  // Emissions count
-  const rawEm = result.raw_emissions || [];
-  const nmdaFired = (result.nmda_events || []).filter(e => e.fired).length;
-  const emToggle = document.createElement('span');
-  emToggle.className = 'emissions-toggle';
-  emToggle.textContent = `\u25B8 ${rawEm.length} commits, ${nmdaFired} gates fired`;
+  const meta=document.createElement('div');meta.className='response-meta';
+  const rawEm=result.raw_emissions||[];
+  const nmdaFired=(result.nmda_events||[]).filter(e=>e.fired).length;
+  const emToggle=document.createElement('span');emToggle.className='emissions-toggle';
+  emToggle.textContent=`▸ ${rawEm.length} commits, ${nmdaFired} gates`;
   meta.appendChild(emToggle);
-
-  // Unknown words
-  if (result.unknown_words && result.unknown_words.length > 0) {
-    const unk = document.createElement('span');
-    unk.style.color = 'var(--ev-muted)';
-    unk.textContent = `[unknown: ${result.unknown_words.join(', ')}]`;
-    meta.appendChild(unk);
-  }
-  if (result.honest_silence_reason) {
-    const reason = document.createElement('span');
-    reason.style.color = 'var(--ev-muted)';
-    reason.textContent = `[${result.honest_silence_reason}]`;
-    meta.appendChild(reason);
-  }
-
-  // Spacer
-  const spacer = document.createElement('span');
-  spacer.style.flex = '1';
-  meta.appendChild(spacer);
-
-  // Feedback buttons
-  const thumbUp = document.createElement('span');
-  thumbUp.className = 'fb-btn';
-  thumbUp.textContent = '\uD83D\uDC4D';
-  thumbUp.onclick = () => sendFeedback(true, thumbUp, thumbDown);
-  meta.appendChild(thumbUp);
-
-  const thumbDown = document.createElement('span');
-  thumbDown.className = 'fb-btn';
-  thumbDown.textContent = '\uD83D\uDC4E';
-  thumbDown.onclick = () => sendFeedback(false, thumbUp, thumbDown);
-  meta.appendChild(thumbDown);
-
-  block.appendChild(meta);
-
-  // Expandable emissions detail
-  const detail = document.createElement('div');
-  detail.className = 'emissions-detail';
-  let detailHtml = '';
-  for (const ev of (result.nmda_events || []).slice(-15)) {
-    const color = ev.fired ? 'var(--nmda-fire)' : 'var(--nmda-block)';
-    detailHtml += `<div style="color:${color}">t${ev.tick} ${ev.gate} ${ev.fired ? 'FIRED' : ev.reason}</div>`;
-  }
-  for (const em of rawEm) {
-    detailHtml += `<div>${em.section}:mode${em.mode_id} (${em.reason})</div>`;
-  }
-  detail.innerHTML = detailHtml || '<div>no events</div>';
-  block.appendChild(detail);
-
-  emToggle.onclick = () => detail.classList.toggle('open');
-
-  chat.appendChild(block);
-  chat.scrollTop = chat.scrollHeight;
+  if(result.unknown_words&&result.unknown_words.length>0){const u=document.createElement('span');u.style.color='var(--ev-muted)';u.textContent=`[?${result.unknown_words.join(',')}]`;meta.appendChild(u)}
+  if(result.honest_silence_reason){const r=document.createElement('span');r.style.color='var(--ev-muted)';r.textContent=`[${result.honest_silence_reason}]`;meta.appendChild(r)}
+  const spacer=document.createElement('span');spacer.style.flex='1';meta.appendChild(spacer);
+  const up=document.createElement('span');up.className='fb-btn';up.textContent='👍';
+  const dn=document.createElement('span');dn.className='fb-btn';dn.textContent='👎';
+  up.onclick=()=>sendFeedback(true,up,dn);dn.onclick=()=>sendFeedback(false,up,dn);
+  meta.appendChild(up);meta.appendChild(dn);block.appendChild(meta);
+  const detail=document.createElement('div');detail.className='emissions-detail';
+  let dh='';for(const ev of(result.nmda_events||[]).slice(-10)){dh+=`<div style="color:${ev.fired?'var(--nmda-fire)':'var(--nmda-block)'}">t${ev.tick} ${ev.gate} ${ev.fired?'FIRED':ev.reason}</div>`}
+  for(const em of rawEm){dh+=`<div>${em.section}:m${em.mode_id}(${em.reason})</div>`}
+  detail.innerHTML=dh||'none';block.appendChild(detail);emToggle.onclick=()=>detail.classList.toggle('open');
+  chat.appendChild(block);chat.scrollTop=chat.scrollHeight;
 }
 
-async function sendFeedback(correct, upBtn, downBtn) {
-  try {
-    const res = await fetch(`${API}/v7/feedback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: sessionId, correct }),
-    });
-    const data = await res.json();
-    if (correct) { upBtn.classList.add('active'); downBtn.classList.remove('active'); }
-    else { downBtn.classList.add('active'); upBtn.classList.remove('active'); }
-    // Refresh state panel
-    pollV7State();
-  } catch (e) { /* silent */ }
-}
-
-// State panel rendering
-function renderState(state) {
-  // Rhythm
-  document.getElementById('rhythm-phase').textContent = state.rhythm_phase || '--';
-
-  // NMDA gates
-  const nmdaDiv = document.getElementById('nmda-display');
-  const gates = {};
-  for (const ev of (state.nmda_events || [])) {
-    gates[ev.gate] = ev;
-  }
-  let nmdaHtml = '';
-  for (const gn of ['intro', 'aware', 'subject', 'verb', 'object']) {
-    const ev = gates[gn];
-    const cls = ev ? (ev.fired ? 'fired' : 'blocked') : 'idle';
-    const label = ev ? (ev.fired ? `fired t${ev.tick}` : ev.reason) : 'idle';
-    nmdaHtml += `<div class="nmda-gate"><span class="nmda-dot ${cls}"></span> <span class="label">${gn}:</span> <span class="value">${label}</span></div>`;
-  }
-  nmdaDiv.innerHTML = nmdaHtml;
-
-  // Introspection: real krimelack data
-  let introHtml = `<span class="value">${state.introspection || '--'}</span>`;
-  introHtml += `<div style="color:var(--text-muted);font-size:9px">krimelack: ${state.intro_krimelack_count || 0} commits</div>`;
-  for (const c of (state.intro_recent || [])) {
-    introHtml += `<div style="color:var(--ev-motif);font-size:9px">${c.state} (t${c.tick})</div>`;
-  }
-  document.getElementById('intro-display').innerHTML = introHtml;
-
-  // Awareness: real krimelack data
-  let awareHtml = `<span class="value">${state.awareness || '--'}</span>`;
-  awareHtml += `<div style="color:var(--text-muted);font-size:9px">krimelack: ${state.aware_krimelack_count || 0} commits</div>`;
-  for (const c of (state.aware_recent || [])) {
-    awareHtml += `<div style="color:var(--ev-motif);font-size:9px">${c.state} (t${c.tick})</div>`;
-  }
-  document.getElementById('aware-display').innerHTML = awareHtml;
-
-  // Replay events
-  const replayDiv = document.getElementById('replay-display');
-  if (replayDiv) {
-    if (state.last_replay) {
-      replayDiv.innerHTML = `<div>replayed: ${state.last_replay.replayed || 0}, commits: ${state.last_replay.commits || 0}</div>`;
-    } else {
-      replayDiv.innerHTML = '<div style="color:var(--text-muted)">no replay yet</div>';
-    }
-  }
-
-  // Bridge status
-  const bridgeDiv = document.getElementById('bridge-display');
-  if (bridgeDiv) {
-    bridgeDiv.innerHTML = `<div>${state.bridge_active ? 'active' : 'inactive'}</div>`;
-  }
-
-  // Routing log
-  const routDiv = document.getElementById('routing-display');
-  let routHtml = '';
-  for (const r of (state.routing_log || [])) {
-    if (r.routed_to) {
-      const tag = r.newly_installed ? '(new)' : '(known)';
-      routHtml += `<div class="panel-row"><span class="label">${r.word}</span><span class="value">-> ${r.routed_to} ${tag}</span></div>`;
-    } else {
-      routHtml += `<div class="panel-row"><span class="label">${r.word}</span><span class="value" style="color:var(--ev-muted)">${r.reason || 'skipped'}</span></div>`;
-    }
-  }
-  routDiv.innerHTML = routHtml || '<div style="color:var(--text-muted)">no routing yet</div>';
-
-  // Mode strengths
-  const strDiv = document.getElementById('strengths-display');
-  let strHtml = '';
-  const ms = state.mode_strengths || {};
-  for (const sec of ['subject', 'verb', 'object']) {
-    const tokens = ms[sec] || {};
-    const entries = Object.entries(tokens).sort((a, b) => b[1] - a[1]);
-    if (entries.length === 0) continue;
-    strHtml += `<div style="color:var(--text-muted);margin-top:4px;font-weight:500">${sec}:</div>`;
-    for (const [tok, val] of entries.slice(0, 6)) {
-      const pct = Math.min(100, (val / 2.5) * 100);
-      strHtml += `<div class="strength-bar-wrap">
-        <span class="strength-bar-label">${tok}</span>
-        <div class="strength-bar"><div class="strength-bar-fill" style="width:${pct}%"></div></div>
-        <span class="strength-bar-val">${val.toFixed(2)}</span>
-      </div>`;
-    }
-  }
-  strDiv.innerHTML = strHtml;
-}
-
-async function pollV7State() {
-  if (mode !== 'v7') return;
-  try {
-    const res = await fetch(`${API}/v7/state?session_id=${sessionId}`);
-    const state = await res.json();
-    renderState(state);
-  } catch (e) { /* silent */ }
+async function sendFeedback(correct,up,dn){
+  try{await fetch(`${API}/v7/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId,correct})});
+  if(correct){up.classList.add('active');dn.classList.remove('active')}else{dn.classList.add('active');up.classList.remove('active')}pollV7State()}catch(e){}
 }
 
 // v6 polling
-async function pollV6Status() {
-  if (mode !== 'v6') return;
-  try {
-    const res = await fetch(`${API}/api/v1/gualaloom`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: '', command: '/status' }),
-    });
-    const s = await res.json();
-    statsLine.textContent = `vocab: ${s.motifs} \u00b7 motifs: ${s.n_motifs || 0}`;
-  } catch (e) { }
+async function pollStatus(){
+  try{const res=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:'/status'})});
+  const s=await res.json();const ah=s.atlas_health||{};
+  statsLine.textContent=`vocab: ${s.motifs} · motifs: ${s.n_motifs||0} · atlas: ${ah.total_strength!=null?ah.total_strength.toFixed(1):'?'}`;
+  const a=s.current_activity;activityLine.textContent=a?`now: ${a.kind.toLowerCase()}${a.target?' '+a.target:''}`:'idle';
+  const n=s.response.match(/needs: (.*)/);if(n)needsLine.textContent=n[0];
+  const pr=s.presence||{};const prParts=[];for(const[k,v]of Object.entries(pr)){if(v.present)prParts.push(k)}
+  presenceLine.textContent=prParts.length?`present: ${prParts.join(', ')}`:'no presence';
+  isSleeping=a&&(a.kind==='SLEEPING'||a.kind==='DREAMING');sleepBtn.textContent=isSleeping?'🌅 Wake':'💤 Sleep';
+  }catch(e){}
 }
 
-async function pollV6Events() {
-  if (mode !== 'v6') return;
-  try {
-    const res = await fetch(`${API}/api/v1/gualaloom`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: String(lastEventTick), command: '/events' }),
-    });
-    const data = await res.json();
-    for (const ev of (data.events || [])) {
-      if (ev.tick > lastEventTick) lastEventTick = ev.tick;
-      const d = document.createElement('div');
-      d.className = 'ev';
-      d.innerHTML = `<span class="ev-kind">${ev.kind}</span> t${ev.tick}`;
-      eventsDiv.insertBefore(d, eventsDiv.firstChild);
-      while (eventsDiv.children.length > 80) eventsDiv.removeChild(eventsDiv.lastChild);
-    }
-  } catch (e) { }
+async function pollEvents(){
+  try{const res=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:String(lastEventTick),command:'/events'})});
+  const data=await res.json();for(const ev of(data.events||[])){
+    if(ev.tick>lastEventTick)lastEventTick=ev.tick;
+    const d=document.createElement('div');d.className='ev';
+    let det='';if(ev.detail){if(ev.detail.content)det=' "'+ev.detail.content+'"';if(ev.detail.source)det+=' ['+ev.detail.source+']'}
+    d.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
+    eventsDiv.insertBefore(d,eventsDiv.firstChild);while(eventsDiv.children.length>60)eventsDiv.removeChild(eventsDiv.lastChild);
+    // Autonomous emissions + wC messages show in chat
+    if(ev.kind==='emission'&&ev.detail&&ev.detail.content)addMsg('💭 '+ev.detail.content,'emission');
+    if(ev.kind==='source_interaction'&&ev.detail&&ev.detail.source==='wc')addMsg('[wC] '+ev.detail.content||'(interaction)','wc');
+  }}catch(e){}
 }
+
+// v7 state
+function renderState(state){
+  document.getElementById('rhythm-display').textContent='phase: '+(state.rhythm_phase||'--');
+  const nmdaDiv=document.getElementById('nmda-display');const gates={};
+  for(const ev of(state.nmda_events||[]))gates[ev.gate]=ev;
+  let nh='';for(const gn of['intro','aware','subject','verb','object']){const ev=gates[gn];const cls=ev?(ev.fired?'fired':'blocked'):'idle';
+  nh+=`<div class="nmda-gate"><span class="nmda-dot ${cls}"></span> ${gn}: ${ev?(ev.fired?'t'+ev.tick:ev.reason):'idle'}</div>`}
+  nmdaDiv.innerHTML=nh;
+  let ih=`${state.introspection||'--'} <span style="color:var(--text-muted)">(${state.intro_krimelack_count||0} commits)</span>`;
+  for(const c of(state.intro_krimelack_recent||[]).slice(-3))ih+=`<div style="color:var(--ev-motif);font-size:8px">m${c.mode_id} t${c.tick} s=${c.salience}</div>`;
+  document.getElementById('intro-display').innerHTML=ih;
+  let ah=`${state.awareness||'--'} <span style="color:var(--text-muted)">(${state.aware_krimelack_count||0} commits)</span>`;
+  for(const c of(state.aware_krimelack_recent||[]).slice(-3))ah+=`<div style="color:var(--ev-motif);font-size:8px">m${c.mode_id} t${c.tick} s=${c.salience}</div>`;
+  document.getElementById('aware-display').innerHTML=ah;
+  const rp=state.last_replay;document.getElementById('replay-display').textContent=rp?`replayed: ${rp.replayed}, commits: ${rp.commits}`:'idle';
+  document.getElementById('bridge-display').textContent=state.bridge_active?'active':'inactive';
+  const routDiv=document.getElementById('routing-display');let rh='';
+  for(const r of(state.routing_log||[])){rh+=r.routed_to?`<div>${r.word} → ${r.routed_to} ${r.newly_installed?'(new)':'(known)'}</div>`:`<div style="color:var(--ev-muted)">${r.word} skipped</div>`}
+  routDiv.innerHTML=rh||'--';
+  const strDiv=document.getElementById('strengths-display');let sh='';const ms=state.mode_strengths||{};
+  for(const sec of['subject','verb','object']){const toks=ms[sec]||{};const ent=Object.entries(toks).sort((a,b)=>b[1]-a[1]);
+  if(!ent.length)continue;sh+=`<div style="color:var(--text-muted);margin-top:3px;font-weight:500">${sec}:</div>`;
+  for(const[tok,val]of ent.slice(0,5)){const pct=Math.min(100,(val/2.5)*100);
+  sh+=`<div class="strength-bar-wrap"><span class="strength-bar-label">${tok}</span><div class="strength-bar"><div class="strength-bar-fill" style="width:${pct}%"></div></div><span class="strength-bar-val">${val.toFixed(2)}</span></div>`}}
+  strDiv.innerHTML=sh;
+}
+async function pollV7State(){if(mode!=='v7')return;try{const r=await fetch(`${API}/v7/state?session_id=${sessionId}`);renderState(await r.json())}catch(e){}}
+
+// Sleep/Wake
+async function toggleSleep(){sleepBtn.disabled=true;try{
+  const cmd=isSleeping?'/wake':'/sleep';await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:isSleeping?'joe':'',command:cmd})});
+  addMsg(isSleeping?'(waking)':'(sleeping)','system')}catch(e){addMsg('(error)','system')}sleepBtn.disabled=false;setTimeout(pollStatus,500)}
+
+// Upload
+async function upload(kind,el){
+  const file=el.files[0];if(!file)return;el.value='';addMsg(`(uploading ${kind}: ${file.name})`,'system');
+  if(kind==='book'){try{const text=await file.text();const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,command:'/addbook:'+file.name})});const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')}catch(e){addMsg('upload error','system')}}
+  else if(kind==='picture'){try{const reader=new FileReader();reader.onload=async function(){const b64=reader.result.split(',')[1];const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'/addpicture:'+file.name})});const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')};reader.readAsDataURL(file)}catch(e){addMsg('upload error','system')}}
+  else if(kind==='sound'){addMsg('sound upload processing...','system');addMsg('(audio pipeline stub — wiring to cochlear bands pending)','system')}
+  setTimeout(pollStatus,1000)}
+
+// Presence heartbeat
+let lastUserActivity=Date.now();['mousemove','keydown','scroll','touchstart'].forEach(e=>document.addEventListener(e,()=>{lastUserActivity=Date.now()},{passive:true}));
+async function presenceHeartbeat(){if(document.visibilityState!=='visible'||Date.now()-lastUserActivity>30000)return;
+  try{await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'joe',command:'/presence'})})}catch(e){}}
+
+// Background replay
+async function backgroundReplay(){if(mode!=='v7')return;if(Date.now()-lastInputTime<30000)return;
+  try{const r=await fetch(`${API}/v7/quiet?session_id=${sessionId}&n_ticks=5`,{method:'POST'});const d=await r.json();
+  if(d.commits>0)addMsg(`💭 (thinking... ${d.replayed} memories, ${d.commits} commits)`,'emission');pollV7State()}catch(e){}}
+
+function newSession(){sessionId='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sessionId);sessionInfo.textContent='session: '+sessionId;addMsg('new session: '+sessionId,'system')}
 
 // Send
-async function sendMsg() {
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  btn.disabled = true;
-  addMsg(text, 'user');
-
-  try {
-    if (mode === 'v7') {
-      const res = await fetch(`${API}/v7/converse`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, session_id: sessionId }),
-      });
-      const data = await res.json();
-      lastConverseResult = data;
-      sessionId = data.session_id || sessionId;
-      sessionInfo.textContent = `session: ${sessionId}`;
-      addResponseBlock(data);
-      pollV7State();
-    } else if (mode === 'substrate') {
-      const res = await fetch(`${API}/substrate/hear_word`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ word: text.split(' ')[0].toLowerCase() }),
-      });
-      const data = await res.json();
-      const first = data.first || {};
-      const keys = Object.keys(first);
-      const response = keys.length > 0 ? keys.map(k => `${k}: ${first[k]}`).join('\n') : '...';
-      addMsg(response, 'substrate');
-    } else {
-      // v6
-      const isCmd = text.startsWith('/');
-      const body = isCmd ? { text: '', command: text } : { text };
-      const res = await fetch(`${API}/api/v1/gualaloom`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      addMsg(data.response, isCmd ? 'system' : 'substrate');
+async function sendMsg(){
+  const text=input.value.trim();if(!text)return;input.value='';btn.disabled=true;lastInputTime=Date.now();
+  const isCmd=text.startsWith('/');addMsg(text,isCmd?'system':'user');
+  try{
+    if(mode==='v7'){
+      const r=await fetch(`${API}/v7/converse`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,session_id:sessionId})});
+      const d=await r.json();sessionId=d.session_id||sessionId;sessionInfo.textContent='session: '+sessionId;localStorage.setItem('guala_session_id',sessionId);addResponseBlock(d);pollV7State();
+    }else if(mode==='substrate'){
+      const r=await fetch(`${API}/substrate/hear_word`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({word:text.split(' ')[0].toLowerCase()})});
+      const d=await r.json();const f=d.first||{};addMsg(Object.keys(f).length?Object.keys(f).map(k=>`${k}: ${f[k]}`).join('\n'):'...','substrate');
+    }else{
+      const body=isCmd?{text:'',command:text}:{text};const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const d=await r.json();addMsg(d.response,isCmd?'system':'substrate');
+      if(d.pictures&&d.pictures.length>0)for(const p of d.pictures){const pd=document.createElement('div');pd.className='msg substrate';pd.innerHTML=`<img src="${p.data}" style="max-width:180px;border-radius:5px"> <span style="font-size:9px;color:var(--text-muted)">${p.title}</span>`;chat.appendChild(pd)}
+      chat.scrollTop=chat.scrollHeight;
     }
-  } catch (e) {
-    addMsg('(connection error)', 'system');
-  }
-  btn.disabled = false;
-  input.focus();
-}
+  }catch(e){addMsg('(error)','system')}btn.disabled=false;input.focus()}
 
-input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
-
-// FIX 1: Save session_id to localStorage on every converse
-function persistSessionId() {
-  localStorage.setItem('guala_session_id', sessionId);
-}
-
-// FIX 1: New session button
-function newSession() {
-  sessionId = 'sid_' + Math.random().toString(36).slice(2, 10);
-  localStorage.setItem('guala_session_id', sessionId);
-  sessionInfo.textContent = `session: ${sessionId}`;
-  addMsg(`new session: ${sessionId}`, 'system');
-}
-
-// FIX 2: Background replay — trigger quiet_tick when idle >30s
-let lastInputTime = Date.now();
-async function backgroundReplay() {
-  if (mode !== 'v7') return;
-  const idle = Date.now() - lastInputTime;
-  if (idle < 30000) return; // not idle long enough
-  try {
-    const res = await fetch(`${API}/v7/quiet?session_id=${sessionId}&n_ticks=5`, {method: 'POST'});
-    const data = await res.json();
-    if (data.commits > 0) {
-      // Autonomous emission from replay — show in chat
-      addMsg(`(thinking... ${data.replayed} memories replayed, ${data.commits} new commits)`, 'emission');
-    }
-    // Update state panel with replay info
-    pollV7State();
-  } catch (e) { /* silent */ }
-}
-
-// Track last input time
-const origSendMsg = sendMsg;
-sendMsg = async function() {
-  lastInputTime = Date.now();
-  return origSendMsg();
-};
+input.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
 
 // Boot
-(async () => {
-  sessionInfo.textContent = `session: ${sessionId}`;
-  addMsg(`session: ${sessionId} (persisted)`, 'system');
-  addMsg('v7 DNA substrate ready. say something.', 'system');
-  input.focus();
-  setInterval(pollV7State, 500);
-  setInterval(pollV6Status, 3000);
-  setInterval(pollV6Events, 2000);
-  setInterval(backgroundReplay, 10000); // FIX 2: replay every 10s when idle
-  pollV7State();
+(async()=>{
+  sessionInfo.textContent='session: '+sessionId;
+  addMsg('v7 DNA substrate ready.','system');input.focus();
+  pollStatus();pollV7State();
+  setInterval(pollStatus,3000);setInterval(pollEvents,2000);setInterval(pollV7State,500);
+  setInterval(presenceHeartbeat,20000);setInterval(backgroundReplay,10000);presenceHeartbeat();
 })();
 </script>
 </body>
