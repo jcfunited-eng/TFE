@@ -1495,7 +1495,20 @@ async def substrate_hear_word(req: SubstrateHearRequest):
             first_per_section[sec] = e["label"]
         if sec not in strongest_per_section or e["activation"] > strongest_per_section[sec]["activation"]:
             strongest_per_section[sec] = {"label": e["label"], "activation": e["activation"]}
-    return {"first": first_per_section, "strongest": strongest_per_section}
+    # Bridge: relay multimodal winner to v7 default session (spec 4.2)
+    result = {"first": first_per_section, "strongest": strongest_per_section}
+    try:
+        from dsf_ai_service.substrate.v7_engine import get_or_create_session
+        v7_session = get_or_create_session("default")
+        bridge = _get_bridge(v7_session)
+        focus = getattr(cog, "attention_focus", None)
+        if focus:
+            bridge_result = bridge.multimodal_winner_to_v7(focus)
+            if bridge_result:
+                result["bridge_mm_to_v7"] = bridge_result
+    except Exception:
+        pass
+    return result
 
 
 @app.post("/substrate/feed_senses")
@@ -1539,12 +1552,30 @@ class V7FeedbackRequest(BaseModel):
     correct: bool
     expected_tokens: Optional[Dict] = None
 
+def _get_bridge(session):
+    """Get or create a bridge between a v7 session and the multimodal substrate."""
+    from dsf_ai_service.substrate.gl_bridge import SubstrateBridge
+    if not hasattr(session, '_bridge') or session._bridge is None:
+        mm = _get_substrate()
+        session._bridge = SubstrateBridge(session, mm)
+    return session._bridge
+
 @app.post("/v7/converse")
 async def v7_converse(req: V7ConverseRequest):
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     sid = req.session_id or str(_uuid.uuid4())[:8]
     session = get_or_create_session(sid)
     result = session.converse(req.text)
+    # Bridge: relay v7 emissions to multimodal (spec 4.2)
+    try:
+        bridge = _get_bridge(session)
+        tokens = [t.get("token", "") for t in result.get("response_tokens", [])]
+        if tokens:
+            bridge_result = bridge.v7_emission_to_multimodal(tokens)
+            if bridge_result:
+                result["bridge_v7_to_mm"] = bridge_result
+    except Exception:
+        pass
     try:
         save_session(session)
     except Exception:
