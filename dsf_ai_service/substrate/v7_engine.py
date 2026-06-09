@@ -491,6 +491,12 @@ class V7Session:
             for _ in range(n_ticks):
                 result = self.sys_.replay_tick(rng=self.rng)
                 results.append(result)
+            # Store for state endpoint reporting
+            total_r = sum(len(r["replayed"]) for r in results)
+            total_c = sum(len(r["commits"]) for r in results)
+            self._last_replay_result = {
+                "replayed": total_r, "commits": total_c, "ticks": len(results)
+            }
             return results
 
     def apply_feedback(self, correct, expected_tokens=None):
@@ -539,6 +545,18 @@ class V7Session:
                     len(sec.krimelack) for sec in self.sys_.sections.values()),
                 "intro_krimelack_count": len(self.sys_.sections["intro"].krimelack),
                 "aware_krimelack_count": len(self.sys_.sections["aware"].krimelack),
+                "intro_krimelack_recent": [
+                    {"tick": k["tick"], "mode_id": k["mode_id"],
+                     "salience": round(k.get("salience", 0), 3)}
+                    for k in self.sys_.sections["intro"].krimelack[-5:]
+                ],
+                "aware_krimelack_recent": [
+                    {"tick": k["tick"], "mode_id": k["mode_id"],
+                     "salience": round(k.get("salience", 0), 3)}
+                    for k in self.sys_.sections["aware"].krimelack[-5:]
+                ],
+                "last_replay": getattr(self, "_last_replay_result", None),
+                "bridge_active": hasattr(self, "_bridge") and self._bridge is not None,
             }
 
     def _extract_response_tokens(self, commits):

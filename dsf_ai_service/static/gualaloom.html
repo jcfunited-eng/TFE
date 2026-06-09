@@ -105,6 +105,7 @@ header { padding: 10px 16px; border-bottom: 1px solid var(--border); background:
       <button class="active" onclick="setMode('v7')">v7 DNA</button>
     </div>
     <div id="session-info"></div>
+    <button onclick="newSession()" style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:3px 8px;border-radius:4px;font-family:inherit;font-size:9px;cursor:pointer">new session</button>
   </div>
 </header>
 
@@ -134,6 +135,14 @@ header { padding: 10px 16px; border-bottom: 1px solid var(--border); background:
       <div id="aware-display" class="panel-row"><span class="value">--</span></div>
     </div>
     <div class="panel-section">
+      <div class="panel-title">Replay (DMN)</div>
+      <div id="replay-display"><div style="color:var(--text-muted)">no replay yet</div></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-title">Bridge</div>
+      <div id="bridge-display"><div style="color:var(--text-muted)">inactive</div></div>
+    </div>
+    <div class="panel-section">
       <div class="panel-title">Routing (last turn)</div>
       <div id="routing-display"></div>
     </div>
@@ -160,9 +169,15 @@ const eventsDiv = document.getElementById('events');
 const sessionInfo = document.getElementById('session-info');
 
 let mode = 'v7'; // 'v6', 'substrate', 'v7'
-let sessionId = 'sid_' + Math.random().toString(36).slice(2, 10);
+// FIX 1: Persist session_id across page reloads via localStorage
+let sessionId = localStorage.getItem('guala_session_id');
+if (!sessionId) {
+  sessionId = 'sid_' + Math.random().toString(36).slice(2, 10);
+  localStorage.setItem('guala_session_id', sessionId);
+}
 let lastEventTick = 0;
 let lastConverseResult = null;
+let lastReplayCheck = Date.now();
 
 function setMode(m) {
   mode = m;
@@ -301,19 +316,37 @@ function renderState(state) {
   }
   nmdaDiv.innerHTML = nmdaHtml;
 
-  // Introspection + recent commits
+  // Introspection: real krimelack data
   let introHtml = `<span class="value">${state.introspection || '--'}</span>`;
+  introHtml += `<div style="color:var(--text-muted);font-size:9px">krimelack: ${state.intro_krimelack_count || 0} commits</div>`;
   for (const c of (state.intro_recent || [])) {
-    introHtml += `<div style="color:var(--text-muted);font-size:9px">${c.state} (t${c.tick})</div>`;
+    introHtml += `<div style="color:var(--ev-motif);font-size:9px">${c.state} (t${c.tick})</div>`;
   }
   document.getElementById('intro-display').innerHTML = introHtml;
 
-  // Awareness + recent commits
+  // Awareness: real krimelack data
   let awareHtml = `<span class="value">${state.awareness || '--'}</span>`;
+  awareHtml += `<div style="color:var(--text-muted);font-size:9px">krimelack: ${state.aware_krimelack_count || 0} commits</div>`;
   for (const c of (state.aware_recent || [])) {
-    awareHtml += `<div style="color:var(--text-muted);font-size:9px">${c.state} (t${c.tick})</div>`;
+    awareHtml += `<div style="color:var(--ev-motif);font-size:9px">${c.state} (t${c.tick})</div>`;
   }
   document.getElementById('aware-display').innerHTML = awareHtml;
+
+  // Replay events
+  const replayDiv = document.getElementById('replay-display');
+  if (replayDiv) {
+    if (state.last_replay) {
+      replayDiv.innerHTML = `<div>replayed: ${state.last_replay.replayed || 0}, commits: ${state.last_replay.commits || 0}</div>`;
+    } else {
+      replayDiv.innerHTML = '<div style="color:var(--text-muted)">no replay yet</div>';
+    }
+  }
+
+  // Bridge status
+  const bridgeDiv = document.getElementById('bridge-display');
+  if (bridgeDiv) {
+    bridgeDiv.innerHTML = `<div>${state.bridge_active ? 'active' : 'inactive'}</div>`;
+  }
 
   // Routing log
   const routDiv = document.getElementById('routing-display');
@@ -440,14 +473,54 @@ async function sendMsg() {
 
 input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
 
+// FIX 1: Save session_id to localStorage on every converse
+function persistSessionId() {
+  localStorage.setItem('guala_session_id', sessionId);
+}
+
+// FIX 1: New session button
+function newSession() {
+  sessionId = 'sid_' + Math.random().toString(36).slice(2, 10);
+  localStorage.setItem('guala_session_id', sessionId);
+  sessionInfo.textContent = `session: ${sessionId}`;
+  addMsg(`new session: ${sessionId}`, 'system');
+}
+
+// FIX 2: Background replay — trigger quiet_tick when idle >30s
+let lastInputTime = Date.now();
+async function backgroundReplay() {
+  if (mode !== 'v7') return;
+  const idle = Date.now() - lastInputTime;
+  if (idle < 30000) return; // not idle long enough
+  try {
+    const res = await fetch(`${API}/v7/quiet?session_id=${sessionId}&n_ticks=5`, {method: 'POST'});
+    const data = await res.json();
+    if (data.commits > 0) {
+      // Autonomous emission from replay — show in chat
+      addMsg(`(thinking... ${data.replayed} memories replayed, ${data.commits} new commits)`, 'emission');
+    }
+    // Update state panel with replay info
+    pollV7State();
+  } catch (e) { /* silent */ }
+}
+
+// Track last input time
+const origSendMsg = sendMsg;
+sendMsg = async function() {
+  lastInputTime = Date.now();
+  return origSendMsg();
+};
+
 // Boot
 (async () => {
   sessionInfo.textContent = `session: ${sessionId}`;
+  addMsg(`session: ${sessionId} (persisted)`, 'system');
   addMsg('v7 DNA substrate ready. say something.', 'system');
   input.focus();
   setInterval(pollV7State, 500);
   setInterval(pollV6Status, 3000);
   setInterval(pollV6Events, 2000);
+  setInterval(backgroundReplay, 10000); // FIX 2: replay every 10s when idle
   pollV7State();
 })();
 </script>
