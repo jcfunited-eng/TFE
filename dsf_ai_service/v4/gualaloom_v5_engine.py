@@ -1536,9 +1536,9 @@ class Guala:
             self._log_substrate_event("dream_began", from_sleep=True)
 
     def _atick_dreaming(self, a):
-        """Dream: slight stability + novelty from recombinations."""
+        """Dream: stability restoration. No novelty gain — dream recombines
+        existing material, it doesn't introduce new experience."""
         self.needs.stability = min(1.0, self.needs.stability + 0.0005)
-        self.needs.novelty = min(1.0, self.needs.novelty + 0.0003)
         if self.tick % 200 == 0:
             # Dream recall: sample random chi addresses from atlas, surface what's there
             dream_words = []
@@ -1570,8 +1570,8 @@ class Guala:
                                      picture_ids=dream_pics)
 
     def _atick_playing(self, a):
-        """Free-settle: chi space walk, modest novelty."""
-        self.needs.novelty = min(1.0, self.needs.novelty + 0.0005)
+        """Free-settle: chi space walk. No novelty gain — internal
+        exploration doesn't introduce new experience."""
         # Occasionally check for emission trigger during play
         if self.tick % 300 == 0:
             self._check_emission_trigger("play_cohesion")
@@ -1581,8 +1581,9 @@ class Guala:
         si = self._sensory_items.get(a.target)
         if not si:
             return
-        gain = 0.002 if si.is_new() else 0.0004
-        self.needs.novelty = min(1.0, self.needs.novelty + gain)
+        if si.is_new():
+            self.needs.novelty = min(1.0, self.needs.novelty + 0.002)
+        # No novelty gain for repeat attendance (familiar exposure)
         # Mark attended at activity end
         if self.tick >= a.expected_end_tick - 1:
             si.times_attended += 1
@@ -1669,8 +1670,9 @@ class Guala:
             except Exception as e:
                 self._log_substrate_event("video_attend_error", error=str(e))
                 a.metadata["_viewed"] = True
-        gain = 0.004 if vid.is_new() else 0.0006
-        self.needs.novelty = min(1.0, self.needs.novelty + gain)
+        if vid.is_new():
+            self.needs.novelty = min(1.0, self.needs.novelty + 0.004)
+        # No novelty gain for repeat video attendance
         if self.tick >= a.expected_end_tick - 1:
             vid.times_attended += 1
             vid.last_attended_tick = self.tick
