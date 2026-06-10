@@ -66,6 +66,33 @@ except ImportError:
     import gualaloom_mathloom_v1 as ml
 
 
+import re as _re
+import unicodedata as _ud
+
+def _normalize_text(text):
+    """GL-BRIEF-035: Shared text normalization for converse() and read_sentence().
+    Strips/separates all punctuation (incl. unicode), preserves in-word
+    apostrophes (don't → don't), drops empty tokens."""
+    t = text.lower()
+    # Replace unicode punctuation with ASCII equivalents
+    t = t.replace('\u2018', "'").replace('\u2019', "'")  # smart quotes
+    t = t.replace('\u201c', '"').replace('\u201d', '"')
+    t = t.replace('\u2013', '-').replace('\u2014', '-')  # en/em dash
+    t = t.replace('\u2026', '...')  # ellipsis
+    # Separate punctuation from words (but preserve in-word apostrophes)
+    # First: pad all non-alphanumeric, non-apostrophe chars with spaces
+    out = []
+    for ch in t:
+        if ch.isalnum() or ch == "'":
+            out.append(ch)
+        else:
+            out.append(' ')
+    t = ''.join(out)
+    # Split and filter: drop bare apostrophes and empty tokens
+    tokens = [w.strip("'") for w in t.split()]
+    return [w for w in tokens if w and len(w) > 0]
+
+
 # ============================================================
 # v7: Autonomy Constants (modeling-validated, do not tune without re-modeling)
 # GUALALOOM-V7-AUTONOMY-WC-2026-06-06
@@ -966,7 +993,7 @@ class Guala:
     # ------------------------------------------------------------------
     def read_sentence(self, text, source="corpus"):
         with self.lock:
-            words = [w for w in text.lower().replace(",", " ").replace(".", " ").split() if w]
+            words = _normalize_text(text)
             if not words:
                 return
             # Apply pair-bond connection boost from source
@@ -1014,8 +1041,8 @@ class Guala:
             return self._num_to_word(result)
 
         with self.lock:
-            # 1. Tokenize input (don't commit yet)
-            words = [w for w in text.lower().replace(",", " ").replace(".", " ").replace("?", " ").split() if w]
+            # 1. Tokenize input (GL-BRIEF-035: shared normalization)
+            words = _normalize_text(text)
             if not words:
                 return "..."
 
