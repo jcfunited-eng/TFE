@@ -1708,10 +1708,14 @@ class Guala:
             promoted = self.deep_atlas.dream_promotion_gate(
                 self.atlas, self.tick, self._deep_survival_history)
 
-            # Log promotions + gate rejects
+            # Log promotions + post-promotion release (GL-BRIEF-033 C)
             for path, chi_k, sec, mid in promoted:
                 self._log_substrate_event("deep_promotion",
                     path=path, section=sec, motif=mid, chi=chi_k)
+                # C: release working entry to fast channel
+                self.atlas.release_to_fast(chi_k, sec, mid)
+                self._log_substrate_event("deep_release",
+                    section=sec, motif=mid, chi=chi_k)
             # Log recent gate rejects (already accumulated in deep_atlas.gate_rejects)
             for rej in self.deep_atlas.gate_rejects[-5:]:
                 self._log_substrate_event("deep_gate_reject", **rej)

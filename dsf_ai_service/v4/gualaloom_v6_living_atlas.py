@@ -28,6 +28,7 @@ cross_modal_bindings, query_associations) so v5 engine works without changes.
 """
 
 import math
+import os
 from collections import defaultdict, Counter
 
 
@@ -55,6 +56,15 @@ CHI_BAND = 2
 
 # Strength cap to prevent runaway accumulation
 STRENGTH_CAP = 1.0
+
+# Metaplastic decay constants (GL-BRIEF-033)
+SLOW_DIV = 12          # slow channel = DECAY_LAMBDA / SLOW_DIV (~2.3h half-life)
+DWELL_GATE_META = 4    # dwell >= this → slow channel
+META_K = 2.0           # metaplastic slowdown factor
+
+
+def _meta_decay_enabled():
+    return os.environ.get("META_DECAY_ENABLED", "1") != "0"
 
 
 # ============================================================
@@ -113,12 +123,12 @@ class LivingAtlas:
                 existing["strength"] = min(STRENGTH_CAP, existing["strength"] + impulse)
                 existing["last_tick"] = tick
                 # encoded_strength = post-impulse strength on EVERY reinforcement
-                # (HOTFIX: was only updated when dwell increased, freezing at
-                # initial 0.10 and breaking Path B episodic promotion gate)
                 existing["encoded_strength"] = existing["strength"]
                 # dwell_ticks tracks max dwell seen (honest record)
                 if dwell_ticks > existing.get("dwell_ticks", 0):
                     existing["dwell_ticks"] = dwell_ticks
+                # Metaplastic: increment reinforcement count (GL-BRIEF-033)
+                existing["reinforcement_count"] = existing.get("reinforcement_count", 0) + 1
             else:
                 # New binding — tag encoded_strength and dwell at write time
                 new_strength = min(STRENGTH_CAP, impulse)
@@ -131,24 +141,68 @@ class LivingAtlas:
                     "born_tick": tick,
                     "encoded_strength": new_strength,
                     "dwell_ticks": dwell_ticks,
+                    "reinforcement_count": 0,
+                    "released": False,
                 })
 
     def decay(self, current_tick=None):
-        """Apply per-tick decay to all bindings. Should be called regularly
-        (every tick, or batched per N ticks for efficiency).
+        """Apply per-tick decay to all bindings. Called every 10 ticks.
 
-        Decay model: strength *= exp(-λ * Δt) where Δt is ticks since last
-        decay. Equivalent to s = s * (1 - λΔt) for small Δt.
+        GL-BRIEF-033: Two-speed metaplastic decay.
+        A. dwell >= 4 AND not released → slow channel (DECAY_LAMBDA / SLOW_DIV)
+        B. lam_eff = lam_base / (1 + K * reinforcement_count)
+        Legacy entries (no dwell_ticks field) get global DECAY_LAMBDA.
+        META_DECAY_ENABLED=0 → exact legacy behavior.
         """
         if current_tick is None:
             current_tick = self.tick
+        meta = _meta_decay_enabled()
         for chi_k, entries in self.entries.items():
             for e in entries:
                 dt = max(0, current_tick - e["last_tick"])
                 if dt > 0:
-                    # Exponential decay
-                    e["strength"] *= math.exp(-DECAY_LAMBDA * dt)
+                    if meta and "dwell_ticks" in e:
+                        # A: two-speed baseline
+                        dwell = e.get("dwell_ticks", 0)
+                        released = e.get("released", False)
+                        if dwell >= DWELL_GATE_META and not released:
+                            lam_base = DECAY_LAMBDA / SLOW_DIV
+                        else:
+                            lam_base = DECAY_LAMBDA
+                        # B: metaplastic slowdown
+                        rc = e.get("reinforcement_count", 0)
+                        lam_eff = lam_base / (1.0 + META_K * rc)
+                    else:
+                        # Legacy entry or kill switch off
+                        lam_eff = DECAY_LAMBDA
+                    e["strength"] *= math.exp(-lam_eff * dt)
                     e["last_tick"] = current_tick
+
+    def release_to_fast(self, chi_value, section_name, motif_id):
+        """C: Post-promotion release — entry reverts to fast decay channel.
+        reinforcement_count=0, released=True. dwell_ticks stays honest."""
+        for d in range(-self.band, self.band + 1):
+            for e in self.entries.get(chi_value + d, []):
+                if e["section"] == section_name and e["motif"] == motif_id:
+                    e["reinforcement_count"] = 0
+                    e["released"] = True
+
+    def decay_channel_counts(self):
+        """Instrumentation: count entries by decay channel."""
+        n_fast = 0
+        n_slow = 0
+        n_released = 0
+        for entries in self.entries.values():
+            for e in entries:
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    continue
+                if e.get("released", False):
+                    n_released += 1
+                elif e.get("dwell_ticks", 0) >= DWELL_GATE_META:
+                    n_slow += 1
+                else:
+                    n_fast += 1
+        return {"n_fast": n_fast, "n_slow": n_slow, "n_released": n_released}
 
     def forget_below_threshold(self):
         """Prune bindings whose strength has decayed below threshold.
@@ -257,4 +311,6 @@ class LivingAtlas:
             "n_total_entries": sum(len(es) for es in self.entries.values()),
             "n_chi_keys": len(self.entries),
             "strength_distribution": self.strength_distribution(),
+            "decay_channels": self.decay_channel_counts(),
+            "meta_decay_enabled": _meta_decay_enabled(),
         }
