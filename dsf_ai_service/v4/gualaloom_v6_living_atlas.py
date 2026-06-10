@@ -74,7 +74,8 @@ class LivingAtlas:
         # chi -> list of {section, motif, chi, strength, last_tick, born_tick}
         self.entries = defaultdict(list)
 
-    def record(self, section_name, motif_id, chi_value, tick=None, salience=1.0):
+    def record(self, section_name, motif_id, chi_value, tick=None, salience=1.0,
+               dwell_ticks=0):
         """Record a new binding OR reinforce existing one if (section, motif)
         already present near this chi. Salience modulates the strength impulse.
 
@@ -82,6 +83,10 @@ class LivingAtlas:
           1.0 = baseline (corpus read, no pair-bond, satisfied needs)
           > 1.0 = elevated (pair-bond active OR unmet need OR novel input)
           < 1.0 = dampened (familiar repetition, fully satisfied)
+
+        dwell_ticks: how many ticks this binding was attended before commit.
+          Stored at write time for deep atlas compound gate (GL-BRIEF-032).
+          Zero for non-attended writes (dream replay, presence pulses).
         """
         if tick is None:
             tick = self.tick
@@ -107,15 +112,22 @@ class LivingAtlas:
                 # Reinforce — bounded by cap
                 existing["strength"] = min(STRENGTH_CAP, existing["strength"] + impulse)
                 existing["last_tick"] = tick
+                # Update dwell/encoded_strength only if this is a higher-dwell encounter
+                if dwell_ticks > existing.get("dwell_ticks", 0):
+                    existing["dwell_ticks"] = dwell_ticks
+                    existing["encoded_strength"] = existing["strength"]
             else:
-                # New binding
+                # New binding — tag encoded_strength and dwell at write time
+                new_strength = min(STRENGTH_CAP, impulse)
                 entries.append({
                     "section": section_name,
                     "motif": motif_id,
                     "chi": chi_value,
-                    "strength": min(STRENGTH_CAP, impulse),
+                    "strength": new_strength,
                     "last_tick": tick,
                     "born_tick": tick,
+                    "encoded_strength": new_strength,
+                    "dwell_ticks": dwell_ticks,
                 })
 
     def decay(self, current_tick=None):

@@ -210,10 +210,29 @@ class Section:
         self.tcl = L6_TCL(n_start=8)
         self.tick = 0
 
-    def receive(self, dsf, chi, word_label, atlas, familiarity, salience=1.0):
-        """v6: word-anchored mode identity + salience-modulated binding."""
+    def receive(self, dsf, chi, word_label, atlas, familiarity, salience=1.0,
+                dwell_ticks=1, deep_atlas=None):
+        """v6: word-anchored mode identity + salience-modulated binding.
+        v8 (GL-BRIEF-032): dwell_ticks tagged at write time for deep gate.
+        deep_atlas: if provided, on-attention prior applied for matching entries."""
         self.tick += 1
         self.dead_zone = 0.20 + 0.5 * familiarity
+
+        # v8: On-attention deep prior (before commit, affects familiarity landscape)
+        if deep_atlas is not None:
+            from dsf_ai_service.substrate.deep_atlas import FORGETTING_THRESHOLD as DF_THRESH
+            prior = deep_atlas.get_prior(chi, self.name, None)
+            # Check all motifs at this chi for this section
+            for e in deep_atlas.entries.get(chi, []):
+                if e.get("section") == self.name and e["strength"] >= DF_THRESH:
+                    motif = e["motif"]
+                    p = deep_atlas.get_prior(chi, self.name, motif)
+                    if p > 0:
+                        # Reinstate: create or boost working atlas entry
+                        reinst_str = deep_atlas.reinstate(chi, self.name, motif, self.tick)
+                        if reinst_str > 0:
+                            atlas.record(self.name, motif, chi, self.tick,
+                                         salience=0.3, dwell_ticks=0)
 
         # Find nearest existing mode (by DSF vector similarity)
         nearest = None
@@ -262,7 +281,8 @@ class Section:
                 committed = True
 
         if committed:
-            atlas.record(self.name, mode_idx, chi, self.tick, salience=salience)
+            atlas.record(self.name, mode_idx, chi, self.tick, salience=salience,
+                         dwell_ticks=dwell_ticks)
             self.commits.append({
                 "tick": self.tick,
                 "mode": mode_idx,
@@ -783,6 +803,12 @@ class Guala:
         self._visual_fragments = []  # accumulated fragments
         self._last_recalled_pictures = []  # picture recall results from last converse/emit
 
+        # v8: Deep Atlas (GL-BRIEF-032)
+        from dsf_ai_service.substrate.deep_atlas import DeepAtlas
+        self.deep_atlas = DeepAtlas()
+        self._deep_survival_history = defaultdict(list)  # (chi, section, motif) -> [strength_per_dream]
+        self._deep_last_size = 0  # for growth-per-dream instrumentation
+
         # v7: Autonomy state
         self._current_activity = None
         self._activity_history = []
@@ -834,16 +860,25 @@ class Guala:
 
             primary_sections = self._choose_role_sections(role, position_hint)
 
+            # v8 (GL-BRIEF-032): dwell_ticks by source
+            # Interactive sources (joe, wc, c1) = attended, higher dwell
+            # Corpus reads = background, dwell=1
+            dwell = 8 if source in ("joe", "wc", "c1") else 1
+
             fam_listen = self.atlas.match_score(lang_chi, "listen")
             self.sections["listen"].receive(lang_dsf, lang_chi, word,
                                             self.atlas, fam_listen,
-                                            salience=salience)
+                                            salience=salience,
+                                            dwell_ticks=dwell,
+                                            deep_atlas=self.deep_atlas)
 
             for primary_section in primary_sections:
                 fam = self.atlas.match_score(lang_chi, primary_section)
                 self.sections[primary_section].receive(lang_dsf, lang_chi, word,
                                                        self.atlas, fam,
-                                                       salience=salience)
+                                                       salience=salience,
+                                                       dwell_ticks=dwell,
+                                                       deep_atlas=self.deep_atlas)
 
             if senses:
                 combined_events = list(self.language.events)
@@ -857,7 +892,9 @@ class Guala:
                 fam_ground = self.atlas.match_score(ground_chi, "ground")
                 self.sections["ground"].receive(ground_dsf, ground_chi, word,
                                                 self.atlas, fam_ground,
-                                                salience=salience)
+                                                salience=salience,
+                                                dwell_ticks=dwell,
+                                                deep_atlas=self.deep_atlas)
 
                 for m in self.senses.MODALITIES:
                     if sense_fps[m] is not None:
@@ -872,7 +909,9 @@ class Guala:
                                 C_k=fam_listen, P_k=0.5, B_k=fam_listen, S_UF=fam_listen)
                 self.sections["intro"].receive(intro_dsf, lang_chi, word,
                                                 self.atlas, 0.0,
-                                                salience=salience)
+                                                salience=salience,
+                                                dwell_ticks=dwell,
+                                                deep_atlas=self.deep_atlas)
 
             # v6: Decay heartbeat
             if self.tick % 10 == 0:
@@ -1554,10 +1593,11 @@ class Guala:
     def _atick_dreaming(self, a):
         """Dream: stability restoration + consolidation via replay reinforcement.
         No novelty gain — dream recombines existing material.
-        LTP-on-replay: sampled atlas entries get reinforced (bug #3 fix)."""
+        LTP-on-replay: sampled atlas entries get reinforced (bug #3 fix).
+        v8 (GL-BRIEF-032): deep atlas promotion gate runs after consolidation."""
         self.needs.stability = min(1.0, self.needs.stability + 0.0005)
         if self.tick % 200 == 0:
-            # Dream recall + consolidation
+            # Dream recall + consolidation (UNCHANGED — task 65)
             dream_words = []
             dream_pics = []
             reinforced_addresses = []
@@ -1599,6 +1639,42 @@ class Guala:
                                      reinforcement_count=reinforcement_count,
                                      pre_strength_sum=round(pre_strength, 2),
                                      post_strength_sum=round(post_strength, 2))
+
+            # ── Deep Atlas promotion gate (GL-BRIEF-032) ──
+            # Record survival snapshots for Path A
+            for chi_k, entries in self.atlas.entries.items():
+                for e in entries:
+                    key = (chi_k, e.get("section", ""), e.get("motif", 0))
+                    self._deep_survival_history[key].append(e["strength"])
+                    # Cap history length
+                    if len(self._deep_survival_history[key]) > 20:
+                        self._deep_survival_history[key] = \
+                            self._deep_survival_history[key][-10:]
+
+            # Run promotion gate
+            promoted = self.deep_atlas.dream_promotion_gate(
+                self.atlas, self.tick, self._deep_survival_history)
+
+            # Log promotions + gate rejects
+            for path, chi_k, sec, mid in promoted:
+                self._log_substrate_event("deep_promotion",
+                    path=path, section=sec, motif=mid, chi=chi_k)
+            # Log recent gate rejects (already accumulated in deep_atlas.gate_rejects)
+            for rej in self.deep_atlas.gate_rejects[-5:]:
+                self._log_substrate_event("deep_gate_reject", **rej)
+            self.deep_atlas.gate_rejects = []  # clear after logging
+
+            # Deep atlas decay + prune
+            self.deep_atlas.decay(self.tick)
+            self.deep_atlas.prune()
+
+            # Log deep_size
+            deep_size = self.deep_atlas.live_count()
+            self._log_substrate_event("deep_size",
+                n_entries=deep_size,
+                total_strength=round(self.deep_atlas.total_strength(), 2),
+                growth=deep_size - self._deep_last_size)
+            self._deep_last_size = deep_size
 
     def _atick_playing(self, a):
         """Free-settle: chi space walk. No novelty gain — internal
@@ -1957,7 +2033,13 @@ class Guala:
             results["guala_atlas.json"] = os.path.getsize(
                 os.path.join(state_dir, "guala_atlas.json"))
 
-            # 5. Sections
+            # 5. Deep Atlas (GL-BRIEF-032 — separate table for rollback)
+            self._atomic_write(os.path.join(state_dir, "guala_deep_atlas.json"),
+                self._envelope(self.deep_atlas.to_json()))
+            results["guala_deep_atlas.json"] = os.path.getsize(
+                os.path.join(state_dir, "guala_deep_atlas.json"))
+
+            # 6. Sections
             sections_data = {}
             for nm, sec in self.sections.items():
                 modes_ser = [{"dsf": list(d.to_array().tolist()), "chi": c, "word": w}
@@ -2101,6 +2183,19 @@ class Guala:
                 self._apply_sections(data["guala_sections.json"])
                 self._apply_bucket(data["guala_bucket.json"])
 
+            # Load deep atlas if present (GL-BRIEF-032 — separate table)
+            deep_path = os.path.join(state_dir, "guala_deep_atlas.json")
+            if os.path.exists(deep_path):
+                try:
+                    with open(deep_path) as fh:
+                        draw = json.load(fh)
+                    ddata = draw.get("data", draw)
+                    self.deep_atlas.load_from_json(ddata)
+                    print(f"[GualaLoom] Deep atlas loaded: "
+                          f"{self.deep_atlas.live_count()} entries")
+                except Exception as e:
+                    print(f"[GualaLoom] Deep atlas load: {e}")
+
             # Load visual data if present
             visual_path = os.path.join(state_dir, "guala_visual.json")
             if os.path.exists(visual_path):
@@ -2146,6 +2241,9 @@ class Guala:
                     self._apply_coordinator(raw["guala_coordinator.json"])
                 if "guala_atlas.json" in raw:
                     self._apply_atlas(raw["guala_atlas.json"])
+                if "guala_deep_atlas.json" in raw:
+                    self.deep_atlas.load_from_json(raw["guala_deep_atlas.json"])
+                    print(f"[GualaLoom] Deep atlas loaded: {self.deep_atlas.live_count()} entries")
                 if "guala_sections.json" in raw:
                     self._apply_sections(raw["guala_sections.json"])
                 if "guala_bucket.json" in raw:
@@ -2604,6 +2702,8 @@ class Guala:
             "videos": [{"item_id": v.item_id, "title": v.title,
                         "times_attended": v.times_attended}
                        for v in self._videos.values()],
+            # v8: Deep atlas (GL-BRIEF-032)
+            "deep_atlas": self.deep_atlas.snapshot(),
         }
 
 

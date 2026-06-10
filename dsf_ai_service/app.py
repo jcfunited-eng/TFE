@@ -1043,13 +1043,20 @@ async def gualaloom_chat(msg: GLMessage):
                 f"boot={'ok' if ph['load_successful_at_boot'] else 'FAILED'} "
                 f"integrity={'ok' if not ph.get('integrity_errors') else 'ERRORS'}\n"
                 f"snapshots: {ph.get('snapshots_available', 0)} | "
-                f"events: {ph.get('events_log', {}).get('current_file_size_bytes', 0)}B"
+                f"events: {ph.get('events_log', {}).get('current_file_size_bytes', 0)}B\n"
+                f"deep: {s.get('deep_atlas', {}).get('n_entries', 0)} entries "
+                f"str={s.get('deep_atlas', {}).get('total_strength', 0)} "
+                f"surv={s.get('deep_atlas', {}).get('promotions_survival', 0)} "
+                f"ep={s.get('deep_atlas', {}).get('promotions_episodic', 0)} "
+                f"reinst={s.get('deep_atlas', {}).get('reinstatements_since_boot', 0)}"
             ),
             "motifs": s["vocab"],
             "persistence_health": ph,
             "atlas_health": s.get("atlas_health", {}),
             "presence": s.get("presence", {}),
             "pair_bond": s.get("pair_bond", {}),
+            # v8: deep atlas (GL-BRIEF-032)
+            "deep_atlas": s.get("deep_atlas", {}),
             # v7: autonomy fields
             "current_activity": s.get("current_activity"),
             "activity_history_summary": s.get("activity_history_summary", {}),
