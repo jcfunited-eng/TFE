@@ -991,6 +991,16 @@ def _gl_init():
     # Load full persisted state from EFS (atomic, validated)
     _guala.load_full_state(STATE_DIR)
 
+    # Content blocklist: corpora that should never be selected for reading.
+    # Removed entries are purged from in-memory state; next save cleans EFS.
+    CORPUS_BLOCKLIST = {
+        "oxford-guide-to-english-grammar",  # 452pg meta-language, far above her level
+    }
+    for cid in CORPUS_BLOCKLIST:
+        if cid in _guala._corpora:
+            print(f"[GualaLoom] Removing blocked corpus: {cid}")
+            del _guala._corpora[cid]
+
     # v7: Start autonomy loop (replaces continuous reading)
     _guala.start_autonomy_loop(interval=0.05)
     s = _guala.introspect()
@@ -1187,6 +1197,23 @@ async def gualaloom_chat(msg: GLMessage):
                                     n_lines=len(lines))
         return {"response": f"added \"{title}\" ({len(lines)} lines) to her library",
                 "motifs": _guala.introspect()["vocab"]}
+
+    # ── /removebook:<corpus_id> — remove corpus from library ──
+    if cmd.startswith("/removebook:"):
+        corpus_id = cmd[len("/removebook:"):].strip()
+        if corpus_id in _guala._corpora:
+            c = _guala._corpora[corpus_id]
+            n_lines = len(c.lines)
+            del _guala._corpora[corpus_id]
+            _guala._log_substrate_event("corpus_removed",
+                                        corpus_id=corpus_id, title=c.title,
+                                        n_lines=n_lines)
+            return {"response": f"removed \"{c.title}\" ({n_lines} lines) from her library",
+                    "motifs": _guala.introspect()["vocab"]}
+        else:
+            available = [c.corpus_id for c in _guala._corpora.values()]
+            return {"response": f"corpus '{corpus_id}' not found. available: {available}",
+                    "motifs": _guala.introspect()["vocab"]}
 
     # ── /addpdf:<filename> — extract text from PDF, register as corpus ──
     if cmd.startswith("/addpdf:"):
