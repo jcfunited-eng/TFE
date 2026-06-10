@@ -66,8 +66,8 @@ class DeepAtlas:
                 de["last_tick"] = tick
                 return True
 
-        # New deep entry
-        self.entries[chi_k].append({
+        # New deep entry — carry response links on promotion (GL-BRIEF-028 Amendment A)
+        deep_entry = {
             "section": section,
             "motif": motif,
             "chi": chi_k,
@@ -78,7 +78,13 @@ class DeepAtlas:
             "dwell_at_write": entry.get("dwell_ticks", 0),
             "source_path": source_path,
             "promoted_at_tick": tick,
-        })
+        }
+        # Copy response link fields if present — Q&A pairs survive as pairs
+        if entry.get("response_context"):
+            deep_entry["response_context"] = list(entry["response_context"])
+        if entry.get("received_response"):
+            deep_entry["received_response"] = list(entry["received_response"])
+        self.entries[chi_k].append(deep_entry)
 
         if source_path == "survival":
             self.promotions_survival += 1

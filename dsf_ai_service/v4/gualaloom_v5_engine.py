@@ -809,6 +809,11 @@ class Guala:
         self._deep_survival_history = defaultdict(list)  # (chi, section, motif) -> [strength_per_dream]
         self._deep_last_size = 0  # for growth-per-dream instrumentation
 
+        # v8: Response Binding (GL-BRIEF-028)
+        self.open_response_windows = []
+        self.RESPONSE_WINDOW_TICKS = 600
+        self._response_bind_count = 0  # total response_bound events since boot
+
         # v7: Autonomy state
         self._current_activity = None
         self._activity_history = []
@@ -1022,11 +1027,27 @@ class Guala:
                 input_chis.append(ch)
                 input_word_chis[w] = ch
 
+            # v8 (GL-BRIEF-028): open response window from source utterance
+            if source in ("joe", "wc", "c1") and input_chis:
+                self._open_response_window(source, input_chis,
+                                           source_context={"text": text[:50]})
+
             # 3. RECALL from atlas BEFORE reading input — corpus-only bindings
             recalled = self._recall_response(input_chis, input_word_chis, words)
 
             # 4. Read input into substrate (so she learns from this interaction)
             self.read_sentence(text, source=source)
+
+            # v8 (GL-BRIEF-028): tag atlas entries created by this input
+            # with response_context if open windows from OTHER emitters exist
+            if source in ("joe", "wc", "c1"):
+                for ch in input_chis:
+                    for d in range(-self.atlas.band, self.atlas.band + 1):
+                        for e in self.atlas.entries.get(ch + d, []):
+                            if (e.get("last_tick", 0) >= self.tick - len(words) - 5
+                                    and not e.get("response_context")):
+                                self._tag_response_bindings(
+                                    ch + d, e["section"], e["motif"], source)
 
             # 5. Choose response
             if recalled:
@@ -1053,6 +1074,35 @@ class Guala:
                                                   input_words=input_words)
             if best_word:
                 recalled_words[sec_name] = best_word
+
+        # v8 (GL-BRIEF-028): include response-linked entries in recall pool
+        # Light touch: if any recalled chi has response_context or received_response
+        # links, add linked entries to the candidate pool
+        linked_chis = set()
+        for chi_k in input_chis:
+            for d in range(-self.atlas.band, self.atlas.band + 1):
+                for e in self.atlas.entries.get(chi_k + d, []):
+                    for lc in e.get("response_context", []):
+                        linked_chis.add(lc)
+                    for lr in e.get("received_response", []):
+                        linked_chis.add(lr)
+        # Also check deep atlas for reinstated entries with links (Amendment B)
+        for chi_k in input_chis:
+            for de in self.deep_atlas.entries.get(chi_k, []):
+                for lc in de.get("response_context", []):
+                    linked_chis.add(lc)
+                for lr in de.get("received_response", []):
+                    linked_chis.add(lr)
+
+        if linked_chis:
+            expanded_chis = list(input_chis) + list(linked_chis)
+            for sec_name in ("subject", "verb", "object"):
+                if sec_name not in recalled_words:
+                    word = self._recall_from_atlas(sec_name, expanded_chis,
+                                                  exclude_words=input_words_lower,
+                                                  input_words=input_words)
+                    if word:
+                        recalled_words[sec_name] = word
 
         # v7 Phase 2: recall sight motifs via chi-neighborhood
         recalled_pictures = self._recall_sight_from_atlas(input_chis, input_words)
@@ -1385,6 +1435,9 @@ class Guala:
                                               familiarity=dict(
                                                   (k, round(v, 4))
                                                   for k, v in self.target_familiarity.items()))
+
+            # v8 (GL-BRIEF-028): prune expired response windows
+            self._prune_response_windows()
 
             # 2. Select activity if needed
             if self._current_activity is None:
@@ -1854,6 +1907,94 @@ class Guala:
                                  to_sources=to_sources,
                                  picture_ids=pic_ids)
 
+        # v8 (GL-BRIEF-028): open response window from Guala's emission
+        if recent_chis:
+            self._open_response_window("guala", recent_chis,
+                                       source_context={"content": content})
+
+    # ------------------------------------------------------------------
+    # v8: Response Binding (GL-BRIEF-028)
+    # ------------------------------------------------------------------
+
+    def _open_response_window(self, emitter, context_anchor_chis, source_context=None):
+        """Open a response window. context_anchor_chis = list of chi-keys."""
+        window = {
+            "emitter": emitter,
+            "context_anchor_chis": list(context_anchor_chis),
+            "opened_at_tick": self.tick,
+            "expires_at_tick": self.tick + self.RESPONSE_WINDOW_TICKS,
+            "n_responses_bound": 0,
+            "source_context": source_context or {},
+        }
+        self.open_response_windows.append(window)
+        self._log_substrate_event("response_window_opened",
+                                  emitter=emitter,
+                                  context_anchor_chis=context_anchor_chis[:5],
+                                  expires_at=window["expires_at_tick"])
+
+    def _prune_response_windows(self):
+        """Prune expired windows. Called from _autonomy_tick."""
+        still_open = []
+        for w in self.open_response_windows:
+            if w["expires_at_tick"] >= self.tick:
+                still_open.append(w)
+            else:
+                self._log_substrate_event("response_window_expired",
+                                          emitter=w["emitter"],
+                                          n_responses_bound=w["n_responses_bound"],
+                                          opened_at=w["opened_at_tick"])
+        self.open_response_windows = still_open
+
+    def _get_response_contexts(self, current_source):
+        """Get context_anchor_chis from open windows by OTHER emitters."""
+        contexts = []
+        for w in self.open_response_windows:
+            if (w["emitter"] != current_source
+                    and w["expires_at_tick"] >= self.tick):
+                contexts.extend(w["context_anchor_chis"])
+        return contexts
+
+    def _tag_response_bindings(self, chi_value, section_name, motif_id, current_source):
+        """If input arrives during an open response window from another emitter,
+        cross-link the new atlas entry to the context anchors."""
+        response_contexts = self._get_response_contexts(current_source)
+        if not response_contexts:
+            return
+
+        # Tag the NEW entry with response_context
+        for e in self.atlas.entries.get(chi_value, []):
+            if e.get("section") == section_name and e.get("motif") == motif_id:
+                existing_ctx = e.get("response_context", [])
+                new_ctx = list(set(existing_ctx + response_contexts))
+                e["response_context"] = new_ctx
+                break
+
+        # Bidirectional: tag the CONTEXT ANCHOR entries with received_response
+        for anchor_chi in response_contexts:
+            for d in range(-self.atlas.band, self.atlas.band + 1):
+                for e in self.atlas.entries.get(anchor_chi + d, []):
+                    received = e.get("received_response", [])
+                    if chi_value not in received:
+                        received.append(chi_value)
+                        e["received_response"] = received
+
+        # Count and log
+        for w in self.open_response_windows:
+            if (w["emitter"] != current_source
+                    and w["expires_at_tick"] >= self.tick):
+                w["n_responses_bound"] += 1
+
+        delta_t = self.tick - min(
+            w["opened_at_tick"] for w in self.open_response_windows
+            if w["emitter"] != current_source and w["expires_at_tick"] >= self.tick)
+        self._response_bind_count += 1
+        self._log_substrate_event("response_bound",
+                                  context_anchor_chis=response_contexts[:3],
+                                  input_chi=chi_value,
+                                  section=section_name,
+                                  source=current_source,
+                                  delta_t_ticks=delta_t)
+
     def manual_sleep(self):
         """Manual sleep trigger from UI."""
         with self.lock:
@@ -1994,6 +2135,8 @@ class Guala:
                     "source_history": dict(self.source_history),
                     "recent_connection_boost": self.recent_connection_boost,
                     "dream_log": self.dream_log,
+                    "open_response_windows": self.open_response_windows,
+                    "response_bind_count": self._response_bind_count,
                     "last_emission_tick": self._last_emission_tick,
                     "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
                     "corpora_state": corpora_ser,
@@ -2264,6 +2407,8 @@ class Guala:
         self.source_history = defaultdict(int, core.get("source_history", {}))
         self.recent_connection_boost = float(core.get("recent_connection_boost", 0.0))
         self.dream_log = core.get("dream_log", [])
+        self.open_response_windows = core.get("open_response_windows", [])
+        self._response_bind_count = core.get("response_bind_count", 0)
         # v7: restore autonomy state
         self._last_emission_tick = int(core.get("last_emission_tick", -100_000))
         self.target_familiarity = {k: float(v) for k, v in core.get("target_familiarity", {}).items()}
@@ -2704,6 +2849,20 @@ class Guala:
                        for v in self._videos.values()],
             # v8: Deep atlas (GL-BRIEF-032)
             "deep_atlas": self.deep_atlas.snapshot(),
+            # v8: Response Binding (GL-BRIEF-028)
+            "response_binding": {
+                "open_windows": len(self.open_response_windows),
+                "total_binds": self._response_bind_count,
+                "atlas_with_response_context": sum(
+                    1 for es in self.atlas.entries.values()
+                    for e in es if e.get("response_context")),
+                "atlas_with_received_response": sum(
+                    1 for es in self.atlas.entries.values()
+                    for e in es if e.get("received_response")),
+                "deep_with_response_links": sum(
+                    1 for es in self.deep_atlas.entries.values()
+                    for e in es if e.get("response_context") or e.get("received_response")),
+            },
         }
 
 
