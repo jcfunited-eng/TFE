@@ -112,10 +112,13 @@ class LivingAtlas:
                 # Reinforce — bounded by cap
                 existing["strength"] = min(STRENGTH_CAP, existing["strength"] + impulse)
                 existing["last_tick"] = tick
-                # Update dwell/encoded_strength only if this is a higher-dwell encounter
+                # encoded_strength = post-impulse strength on EVERY reinforcement
+                # (HOTFIX: was only updated when dwell increased, freezing at
+                # initial 0.10 and breaking Path B episodic promotion gate)
+                existing["encoded_strength"] = existing["strength"]
+                # dwell_ticks tracks max dwell seen (honest record)
                 if dwell_ticks > existing.get("dwell_ticks", 0):
                     existing["dwell_ticks"] = dwell_ticks
-                    existing["encoded_strength"] = existing["strength"]
             else:
                 # New binding — tag encoded_strength and dwell at write time
                 new_strength = min(STRENGTH_CAP, impulse)
