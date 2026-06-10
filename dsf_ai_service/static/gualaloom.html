@@ -105,6 +105,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
     <label class="upload-btn">📕 PDF<input type="file" accept=".pdf,application/pdf" onchange="upload('pdf',this)"></label>
     <label class="upload-btn">🖼 picture<input type="file" accept="image/*" onchange="upload('picture',this)"></label>
     <label class="upload-btn">🔊 sound<input type="file" accept="audio/*" onchange="upload('sound',this)"></label>
+    <label class="upload-btn">🎥 video<input type="file" accept="video/*" onchange="upload('video',this)"></label>
   </div>
 </div>
 <div id="right-panel">
@@ -239,6 +240,7 @@ async function upload(kind,el){
   else if(kind==='picture'){try{const reader=new FileReader();reader.onload=async function(){const b64=reader.result.split(',')[1];const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'/addpicture:'+file.name})});const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')};reader.readAsDataURL(file)}catch(e){addMsg('upload error','system')}}
   else if(kind==='pdf'){try{const reader=new FileReader();reader.onload=async function(){const b64=reader.result.split(',')[1];const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'/addpdf:'+file.name})});const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')};reader.readAsDataURL(file)}catch(e){addMsg('pdf upload error','system')}}
   else if(kind==='sound'){try{const reader=new FileReader();reader.onload=async function(){const b64=reader.result.split(',')[1];const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'/addsound:'+file.name})});const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')};reader.readAsDataURL(file)}catch(e){addMsg('sound upload error','system')}}
+  else if(kind==='video'){addMsg('video upload: pipeline not yet wired (queued behind Response Binding + Self-Section + Vision Stage 2)','system')}
   setTimeout(pollStatus,1000)}
 
 // Presence heartbeat
