@@ -813,6 +813,7 @@ class Guala:
         self.open_response_windows = []
         self.RESPONSE_WINDOW_TICKS = 600
         self._response_bind_count = 0  # total response_bound events since boot
+        self._self_hearing = False  # GL-BRIEF-034: suppresses question gen during self-hear
 
         # v7: Autonomy state
         self._current_activity = None
@@ -828,7 +829,7 @@ class Guala:
     def _compute_salience(self, source="corpus", input_novelty=0.5):
         """v6: salience modulates how strongly this moment binds."""
         SOURCE_WEIGHTS = {"joe": 1.6, "wc": 1.6, "c1": 1.2,
-                          "corpus": 0.5, "unknown": 0.7}
+                          "corpus": 0.5, "guala": 0.5, "unknown": 0.7}
         source_w = SOURCE_WEIGHTS.get(source, 0.7)
         needs_state = self.needs.snapshot()
         urgency = (abs(needs_state["stability"] - 0.7) +
@@ -925,8 +926,10 @@ class Guala:
                 self.atlas.forget_below_threshold()
 
             # 8b. V5: Generate questions from gaps in this word's bindings
-            generate_questions_from_word(self.bucket, word, role, SENSORY_DNA,
-                                          lang_chi, self.tick)
+            # (suppress during self-hearing to avoid question-frame amplification)
+            if not getattr(self, '_self_hearing', False):
+                generate_questions_from_word(self.bucket, word, role, SENSORY_DNA,
+                                              lang_chi, self.tick)
 
             # 9. Coordinator regulation pass (homeostasis + awareness)
             if self.tick % 5 == 0:
@@ -1051,16 +1054,22 @@ class Guala:
 
             # 5. Choose response
             if recalled:
-                return recalled
+                reply = recalled
+            else:
+                # 6. No recall — check question bucket for a related question
+                q = self.bucket.find_for_chis(input_chis, input_words=words)
+                if q:
+                    self.bucket.voice(q)
+                    reply = q["template"]
+                else:
+                    # 7. Final fallback: honest silence
+                    reply = "..."
 
-            # 6. No recall — check question bucket for a related question
-            q = self.bucket.find_for_chis(input_chis, input_words=words)
-            if q:
-                self.bucket.voice(q)
-                return q["template"]
+            # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
+            if reply and reply != "..." and source in ("joe", "wc", "c1"):
+                self._self_hear(reply, source)
 
-            # 7. Final fallback: honest silence
-            return "..."
+            return reply
 
     def _recall_response(self, input_chis, input_word_chis, input_words):
         """Atlas-driven recall across ALL sections including sight.
@@ -1998,6 +2007,64 @@ class Guala:
                                   section=section_name,
                                   source=current_source,
                                   delta_t_ticks=delta_t)
+
+    def _self_hear(self, reply, responding_to_source):
+        """GL-BRIEF-034: Self-hearing — Guala hears her own conversational reply.
+        (1) read_sentence at 0.5x salience (no question generation, no recursion)
+        (2) open "guala" response window with reply chi-keys
+        (3) tag self-heard entries against open other-emitter windows
+        Kill switch: SELF_HEARING_ENABLED env var."""
+        import os
+        if os.environ.get("SELF_HEARING_ENABLED", "1") == "0":
+            return
+
+        reply_words = [w for w in reply.lower().replace(",", " ").replace(".", " ")
+                       .replace("?", " ").split() if w]
+        if not reply_words:
+            return
+
+        # (1) Read reply into substrate at 0.5x conversational salience.
+        # Suppress question generation by using _self_hearing flag.
+        self._self_hearing = True
+        for i, word in enumerate(reply_words):
+            if len(reply_words) == 1:
+                hint = "standalone"
+            elif i == 0:
+                hint = "first"
+            elif i == len(reply_words) - 1:
+                hint = "last"
+            else:
+                hint = "middle"
+            # 0.5x salience via source="guala" (not in SOURCE_WEIGHTS → 0.7 base,
+            # but we want explicit 0.5x so use a low-salience source tag)
+            self.read_word(word, position_hint=hint, source="guala")
+        self._self_hearing = False
+
+        # (2) Compute reply chi-keys and open "guala" response window
+        reply_chis = []
+        for w in reply_words:
+            temp_krim = LanguageKrimelack()
+            temp_krim.transduce(w)
+            reply_chis.append(temp_krim.winding)
+
+        if reply_chis:
+            self._open_response_window("guala", reply_chis,
+                                       source_context={"reply": reply[:50]})
+
+        # (3) Tag self-heard entries against open windows from the other emitter
+        for ch in reply_chis:
+            for d in range(-self.atlas.band, self.atlas.band + 1):
+                for e in self.atlas.entries.get(ch + d, []):
+                    if (e.get("last_tick", 0) >= self.tick - len(reply_words) - 5
+                            and not e.get("response_context")):
+                        self._tag_response_bindings(
+                            ch + d, e["section"], e["motif"], "guala")
+
+        # Event log
+        self._log_substrate_event("self_heard",
+                                  reply_summary=reply[:50],
+                                  n_chis=len(reply_chis),
+                                  salience="0.5x")
 
     def manual_sleep(self):
         """Manual sleep trigger from UI."""
