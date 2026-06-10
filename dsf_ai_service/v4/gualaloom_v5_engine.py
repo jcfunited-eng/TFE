@@ -1545,13 +1545,17 @@ class Guala:
             self._log_substrate_event("dream_began", from_sleep=True)
 
     def _atick_dreaming(self, a):
-        """Dream: stability restoration. No novelty gain — dream recombines
-        existing material, it doesn't introduce new experience."""
+        """Dream: stability restoration + consolidation via replay reinforcement.
+        No novelty gain — dream recombines existing material.
+        LTP-on-replay: sampled atlas entries get reinforced (bug #3 fix)."""
         self.needs.stability = min(1.0, self.needs.stability + 0.0005)
         if self.tick % 200 == 0:
-            # Dream recall: sample random chi addresses from atlas, surface what's there
+            # Dream recall + consolidation
             dream_words = []
             dream_pics = []
+            reinforced_addresses = []
+            reinforcement_count = 0
+            pre_strength = self.atlas.total_strength()
             chi_keys = list(self.atlas.entries.keys())
             if chi_keys:
                 sample_chis = [chi_keys[i % len(chi_keys)]
@@ -1561,6 +1565,12 @@ class Guala:
                     for e in self.atlas.entries.get(chi_k, []):
                         sec_name = e.get("section", "")
                         mid = e.get("motif", 0)
+                        # Consolidation: reinforce this binding (LTP-on-replay)
+                        # Same path as waking re-encounter, dream salience 0.3
+                        self.atlas.record(sec_name, mid, chi_k, self.tick,
+                                          salience=0.3)
+                        reinforced_addresses.append(chi_k)
+                        reinforcement_count += 1
                         if sec_name in self.sections:
                             sec = self.sections[sec_name]
                             if mid < len(sec.modes):
@@ -1573,10 +1583,15 @@ class Guala:
                                     sid = sm.source_history[-1]
                                     if sid in self._pictures and sid not in dream_pics:
                                         dream_pics.append(sid)
+            post_strength = self.atlas.total_strength()
             content = " ".join(dream_words[:4]) if dream_words else ""
             self._log_substrate_event("dream_artifact",
                                      content=content,
-                                     picture_ids=dream_pics)
+                                     picture_ids=dream_pics,
+                                     reinforced_atlas_addresses=reinforced_addresses[:10],
+                                     reinforcement_count=reinforcement_count,
+                                     pre_strength_sum=round(pre_strength, 2),
+                                     post_strength_sum=round(post_strength, 2))
 
     def _atick_playing(self, a):
         """Free-settle: chi space walk. No novelty gain — internal
