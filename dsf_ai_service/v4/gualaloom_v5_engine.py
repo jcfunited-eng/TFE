@@ -895,8 +895,14 @@ class Guala:
 
             # v8 (GL-BRIEF-032): dwell_ticks by source
             # Interactive sources (joe, wc, c1) = attended, higher dwell
+            # Self-heard speech (guala) = dwell=4 (can earn slow channel + Path B)
             # Corpus reads = background, dwell=1
-            dwell = 8 if source in ("joe", "wc", "c1") else 1
+            if source in ("joe", "wc", "c1"):
+                dwell = 8
+            elif source == "guala":
+                dwell = 4
+            else:
+                dwell = 1
 
             fam_listen = self.atlas.match_score(lang_chi, "listen")
             self.sections["listen"].receive(lang_dsf, lang_chi, word,
