@@ -1066,15 +1066,21 @@ class Guala:
             recalled = self._recall_response(input_chis, input_word_chis, words)
 
             # 4. Read input into substrate (so she learns from this interaction)
+            # Snapshot tick before read — only entries born in THIS read get tagged
+            tick_before_read = self.tick
             self.read_sentence(text, source=source)
+            tick_after_read = self.tick
 
-            # v8 (GL-BRIEF-028): tag atlas entries created by this input
-            # with response_context if open windows from OTHER emitters exist
+            # v8 (GL-BRIEF-028, FIX 1): tag ONLY entries touched by THIS input.
+            # Scoped to: last_tick in [tick_before_read+1, tick_after_read] AND
+            # chi matches input chi positions. Concurrent autonomous activity
+            # (sight commits, idle processing) has last_tick outside this range.
             if source in ("joe", "wc", "c1"):
                 for ch in input_chis:
                     for d in range(-self.atlas.band, self.atlas.band + 1):
                         for e in self.atlas.entries.get(ch + d, []):
-                            if (e.get("last_tick", 0) >= self.tick - len(words) - 5
+                            if (e.get("last_tick", 0) > tick_before_read
+                                    and e.get("last_tick", 0) <= tick_after_read
                                     and not e.get("response_context")):
                                 self._tag_response_bindings(
                                     ch + d, e["section"], e["motif"], source)
@@ -2045,14 +2051,14 @@ class Guala:
         if os.environ.get("SELF_HEARING_ENABLED", "1") == "0":
             return
 
-        reply_words = [w for w in reply.lower().replace(",", " ").replace(".", " ")
-                       .replace("?", " ").split() if w]
+        reply_words = _normalize_text(reply)
         if not reply_words:
             return
 
         # (1) Read reply into substrate at 0.5x conversational salience.
         # Suppress question generation by using _self_hearing flag.
         self._self_hearing = True
+        tick_before = self.tick
         for i, word in enumerate(reply_words):
             if len(reply_words) == 1:
                 hint = "standalone"
@@ -2062,9 +2068,8 @@ class Guala:
                 hint = "last"
             else:
                 hint = "middle"
-            # 0.5x salience via source="guala" (not in SOURCE_WEIGHTS → 0.7 base,
-            # but we want explicit 0.5x so use a low-salience source tag)
             self.read_word(word, position_hint=hint, source="guala")
+        tick_after = self.tick
         self._self_hearing = False
 
         # (2) Compute reply chi-keys and open "guala" response window
@@ -2078,11 +2083,13 @@ class Guala:
             self._open_response_window("guala", reply_chis,
                                        source_context={"reply": reply[:50]})
 
-        # (3) Tag self-heard entries against open windows from the other emitter
+        # (3) Tag self-heard entries against open windows from the other emitter.
+        # FIX 1: scope to entries touched by THIS read only (tick window).
         for ch in reply_chis:
             for d in range(-self.atlas.band, self.atlas.band + 1):
                 for e in self.atlas.entries.get(ch + d, []):
-                    if (e.get("last_tick", 0) >= self.tick - len(reply_words) - 5
+                    if (e.get("last_tick", 0) > tick_before
+                            and e.get("last_tick", 0) <= tick_after
                             and not e.get("response_context")):
                         self._tag_response_bindings(
                             ch + d, e["section"], e["motif"], "guala")
