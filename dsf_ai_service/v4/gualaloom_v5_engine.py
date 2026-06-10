@@ -1418,14 +1418,24 @@ class Guala:
         """How attractive is this activity given current needs?
         Salience = dot product of (need-distance) × (payoff per need).
         Mirrored from wC's autonomy substrate model."""
-        # Exogenous novelty override: never-seen pictures capture
-        # attention regardless of needs state (orienting response).
+        sd = self.needs.signed_distance()
+
+        # Graded exogenous salience for visual attention.
+        # Biology: orienting response decays with familiarity, not binary.
+        # Per GL-BRIEF-graded-exogenous-salience-wC-20260610-031.
         if kind == "ATTENDING_VISUAL" and target in self._pictures:
             pic = self._pictures[target]
             if pic.times_attended == 0:
                 return self.EXOGENOUS_NEW_SALIENCE
-
-        sd = self.needs.signed_distance()
+            fam = self.target_familiarity.get(target, 0.0)
+            base_payoff = ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"]
+            stab_payoff = ACTIVITY_STABILITY_PAYOFF.get(kind, 0.0)
+            conn_payoff = ACTIVITY_CONNECTION_PAYOFF.get(kind, 0.0)
+            visual_score = (1.0 - fam) * base_payoff
+            needs_score = (sd["novelty"] * (base_payoff * (1.0 - fam))
+                           + sd["stability"] * stab_payoff
+                           + sd["connection"] * conn_payoff + 0.01)
+            return max(visual_score, needs_score)
 
         # Novelty payoff with NEW vs REPEAT distinction
         if kind == "READING" and target in self._corpora:
@@ -1439,12 +1449,9 @@ class Guala:
                           if s.is_new()
                           else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_REPEAT"])
         elif kind == "ATTENDING_VISUAL" and target in self._pictures:
+            # Fallback — should not reach here (handled above)
             p = self._pictures[target]
-            base_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_NEW"]
-                           if p.is_new()
-                           else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"])
-            familiarity = self.target_familiarity.get(target, 0.0)
-            nov_payoff = base_payoff * (1.0 - familiarity)
+            nov_payoff = ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"]
         elif kind == "ATTENDING_VIDEO" and target in self._videos:
             v = self._videos[target]
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_NEW"]
