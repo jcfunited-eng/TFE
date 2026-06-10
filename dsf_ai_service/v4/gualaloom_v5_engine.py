@@ -1412,10 +1412,19 @@ class Guala:
             candidates.append(("EMITTING", None))
         return candidates
 
+    EXOGENOUS_NEW_SALIENCE = 1.0  # beats any needs-driven score
+
     def _action_salience(self, kind, target):
         """How attractive is this activity given current needs?
         Salience = dot product of (need-distance) × (payoff per need).
         Mirrored from wC's autonomy substrate model."""
+        # Exogenous novelty override: never-seen pictures capture
+        # attention regardless of needs state (orienting response).
+        if kind == "ATTENDING_VISUAL" and target in self._pictures:
+            pic = self._pictures[target]
+            if pic.times_attended == 0:
+                return self.EXOGENOUS_NEW_SALIENCE
+
         sd = self.needs.signed_distance()
 
         # Novelty payoff with NEW vs REPEAT distinction
