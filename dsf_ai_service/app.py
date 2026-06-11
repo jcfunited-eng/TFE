@@ -1924,18 +1924,22 @@ async def startup():
     result = initialize_integrity()
     print(f"[DSF-AI] Integrity initialized: {result['files_present']}/{result['files_checked']} files hashed")
 
-    # V2 EAGER INIT: initialize Guala at startup, not first request
-    t0 = time.time()
-    _gl_init()
-    dt = time.time() - t0
-    print(f"[DSF-AI] Guala initialized in {dt:.1f}s")
-    _init_complete = True
-
-    # D3: Run first S3 backup immediately at startup (proves task-role write)
-    try:
-        _backup_to_s3(STATE_DIR)
-    except Exception as e:
-        print(f"[DSF-AI] Startup S3 backup failed: {e}")
+    # V2 EAGER INIT: initialize in background so health check passes immediately
+    import asyncio
+    async def _eager_init():
+        global _init_complete
+        loop = asyncio.get_event_loop()
+        t0 = time.time()
+        await loop.run_in_executor(None, _gl_init)
+        dt = time.time() - t0
+        print(f"[DSF-AI] Guala initialized in {dt:.1f}s")
+        _init_complete = True
+        # D3: S3 backup after init
+        try:
+            await loop.run_in_executor(None, _backup_to_s3, STATE_DIR)
+        except Exception as e:
+            print(f"[DSF-AI] Startup S3 backup failed: {e}")
+    asyncio.ensure_future(_eager_init())
 
     # Server-side background replay for v7 sessions
     import asyncio
