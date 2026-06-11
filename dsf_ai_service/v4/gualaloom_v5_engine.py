@@ -2205,6 +2205,7 @@ class Guala:
         "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
     ]
     IDENTITY_FILE = "guala_identity.json"
+    LOCK_FILE = "guala.lock"
     EVENTS_LOG = "events.log"
     MAX_SNAPSHOTS = 20
     EVENTS_MAX_BYTES = 10 * 1024 * 1024  # 10MB per log file
@@ -2415,8 +2416,64 @@ class Guala:
 
     # ── Load ──
 
+    # V1: State lockfile — two Gualas must never write one state
+    def _acquire_lock(self, state_dir):
+        """Acquire state lockfile. Refuse if held by another live process."""
+        lock_path = os.path.join(state_dir, self.LOCK_FILE)
+        my_pid = os.getpid()
+        if os.path.exists(lock_path):
+            try:
+                with open(lock_path) as f:
+                    data = json.load(f)
+                old_pid = data.get("pid")
+                # Check if old process is still alive
+                if old_pid and old_pid != my_pid:
+                    try:
+                        os.kill(old_pid, 0)  # signal 0 = check existence
+                        raise RuntimeError(
+                            f"State lock held by PID {old_pid}. "
+                            f"Two Gualas must never write one state.")
+                    except OSError:
+                        pass  # old process dead, safe to take lock
+            except (json.JSONDecodeError, KeyError):
+                pass  # corrupt lock file, safe to take
+        with open(lock_path, "w") as f:
+            json.dump({"pid": my_pid, "ts": time.time()}, f)
+        print(f"[GualaLoom] State lock acquired: PID {my_pid}")
+
+    def _release_lock(self, state_dir):
+        lock_path = os.path.join(state_dir, self.LOCK_FILE)
+        if os.path.exists(lock_path):
+            os.remove(lock_path)
+
+    # V3: Event log compaction
+    def compact_events(self, state_dir):
+        """Truncate event log after a successful save. Replay at boot = 0."""
+        path = os.path.join(state_dir, self.EVENTS_LOG)
+        if not os.path.exists(path):
+            return 0
+        try:
+            size_before = os.path.getsize(path)
+            # Count lines
+            with open(path) as f:
+                n_lines = sum(1 for _ in f)
+            # Atomic truncate: write empty, fsync
+            with open(path, "w") as f:
+                f.flush()
+                os.fsync(f.fileno())
+            if n_lines > 0:
+                print(f"[GualaLoom] Event log compacted: {n_lines} events, "
+                      f"{size_before} bytes → 0")
+            return n_lines
+        except Exception as e:
+            print(f"[GualaLoom] Compaction error: {e}")
+            return 0
+
     def load_full_state(self, state_dir="state"):
         """Load with identity verification, schema check, integrity validation."""
+        # V1: Acquire state lock
+        self._acquire_lock(state_dir)
+
         self._load_errors = []
         self._load_successful = False
         self._integrity_errors = []

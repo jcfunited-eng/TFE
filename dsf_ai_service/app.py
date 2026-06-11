@@ -1908,10 +1908,20 @@ async def v6_events_histogram():
 # Health check
 # ════════════════════════════════════════════════════════════════
 
+_init_complete = False  # V2: health gate
+
 @app.on_event("startup")
 async def startup():
+    global _init_complete
     result = initialize_integrity()
     print(f"[DSF-AI] Integrity initialized: {result['files_present']}/{result['files_checked']} files hashed")
+
+    # V2 EAGER INIT: initialize Guala at startup, not first request
+    t0 = time.time()
+    _gl_init()
+    dt = time.time() - t0
+    print(f"[DSF-AI] Guala initialized in {dt:.1f}s")
+    _init_complete = True
 
     # Server-side background replay for v7 sessions
     import asyncio
@@ -1942,7 +1952,7 @@ async def startup():
                 pass
     asyncio.ensure_future(_background_replay())
 
-    # Periodic v6 Guala save (every 60s)
+    # Periodic v6 Guala save with compaction (every 60s)
     async def _periodic_v6_save():
         save_count = 0
         while True:
@@ -1950,6 +1960,8 @@ async def startup():
             try:
                 if _guala is not None:
                     _guala.save_full_state(STATE_DIR)
+                    # V3 COMPACTION: truncate event log after each save
+                    _guala.compact_events(STATE_DIR)
                     save_count += 1
                     # Snapshot every 10 saves (~10 min)
                     if save_count % 10 == 0:
@@ -1959,9 +1971,58 @@ async def startup():
                 pass
     asyncio.ensure_future(_periodic_v6_save())
 
+    # V4 OFF-VOLUME BACKUP: daily S3 backup
+    async def _daily_s3_backup():
+        while True:
+            await asyncio.sleep(86400)  # 24h
+            try:
+                if _guala is not None:
+                    _backup_to_s3(STATE_DIR)
+            except Exception as e:
+                print(f"[DSF-AI] S3 backup error: {e}")
+    asyncio.ensure_future(_daily_s3_backup())
+
+
+def _backup_to_s3(state_dir):
+    """V4: Copy state files to S3 for off-volume backup."""
+    import subprocess
+    date_str = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
+    s3_prefix = f"s3://dsf-ai-site-backups/guala/{date_str}/"
+    files = ["guala_core.json", "guala_needs.json", "guala_coordinator.json",
+             "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
+             "guala_deep_atlas.json", "guala_visual.json"]
+    backed = 0
+    for f in files:
+        path = os.path.join(state_dir, f)
+        if os.path.exists(path):
+            try:
+                subprocess.run(["aws", "s3", "cp", path, s3_prefix + f,
+                                "--quiet"], check=True, timeout=30)
+                backed += 1
+            except Exception:
+                pass
+    # Also backup media
+    media_dir = os.path.join(state_dir, "pictures")
+    if os.path.isdir(media_dir):
+        try:
+            subprocess.run(["aws", "s3", "sync", media_dir,
+                            s3_prefix + "pictures/", "--quiet"],
+                           check=True, timeout=120)
+        except Exception:
+            pass
+    print(f"[DSF-AI] S3 backup: {backed} files to {s3_prefix}")
+    return s3_prefix
+
 
 @app.get("/health")
 async def health():
+    from fastapi.responses import JSONResponse
+    if not _init_complete:
+        # V2: return 503 until init completes so ALB doesn't route to cold brain
+        return JSONResponse(
+            status_code=503,
+            content={"status": "initializing", "service": "dsf-ai"}
+        )
     return {
         "status": "ok",
         "service": "dsf-ai",
