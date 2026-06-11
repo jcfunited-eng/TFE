@@ -1040,6 +1040,7 @@ async def gualaloom_chat(msg: GLMessage):
         s = _guala.introspect()
         n = s["needs"]
         ph = _guala.persistence_health(STATE_DIR)
+        ph["last_s3_backup"] = _last_s3_backup
         sec_parts = []
         for nm, sec in s["sections"].items():
             sec_parts.append(f"{nm}: {sec['modes']}m/{sec['commits']}c")
@@ -1930,6 +1931,12 @@ async def startup():
     print(f"[DSF-AI] Guala initialized in {dt:.1f}s")
     _init_complete = True
 
+    # D3: Run first S3 backup immediately at startup (proves task-role write)
+    try:
+        _backup_to_s3(STATE_DIR)
+    except Exception as e:
+        print(f"[DSF-AI] Startup S3 backup failed: {e}")
+
     # Server-side background replay for v7 sessions
     import asyncio
     async def _background_replay():
@@ -1990,14 +1997,17 @@ async def startup():
     asyncio.ensure_future(_daily_s3_backup())
 
 
+_last_s3_backup = None  # D3: tracked for persistence_health
+
 def _backup_to_s3(state_dir):
-    """V4: Copy state files to S3 for off-volume backup."""
+    """V4/D3: Copy state files to S3 for off-volume backup."""
+    global _last_s3_backup
     import subprocess
     date_str = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
     s3_prefix = f"s3://dsf-ai-site-backups/guala/{date_str}/"
     files = ["guala_core.json", "guala_needs.json", "guala_coordinator.json",
              "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
-             "guala_deep_atlas.json", "guala_visual.json"]
+             "guala_deep_atlas.json", "guala_visual.json", "guala_identity.json"]
     backed = 0
     for f in files:
         path = os.path.join(state_dir, f)
@@ -2017,6 +2027,11 @@ def _backup_to_s3(state_dir):
                            check=True, timeout=120)
         except Exception:
             pass
+    _last_s3_backup = {
+        "timestamp": date_str,
+        "prefix": s3_prefix,
+        "file_count": backed,
+    }
     print(f"[DSF-AI] S3 backup: {backed} files to {s3_prefix}")
     return s3_prefix
 
