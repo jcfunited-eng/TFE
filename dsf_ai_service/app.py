@@ -1337,6 +1337,118 @@ async def gualaloom_chat(msg: GLMessage):
                             f"krimelack 64x64 grayscale). she'll look at it when curiosity drives her.",
                 "motifs": _guala.introspect()["vocab"]}
 
+    # ── /bundle:<name> — experience bundle: image + sound + caption in one window (A4) ──
+    # Format: text field = JSON {"caption":"...", "image_b64":"...", "sound_b64":"..."}
+    if cmd.startswith("/bundle:"):
+        import base64, hashlib
+        bundle_name = cmd[len("/bundle:"):]
+        try:
+            bundle_data = json.loads(msg.text) if msg.text else {}
+        except json.JSONDecodeError:
+            bundle_data = {"caption": msg.text}
+
+        results = []
+        caption = bundle_data.get("caption", "")
+
+        # Open a response window for the bundle (five-lane binding)
+        bundle_chis = []
+
+        # Process caption as text input
+        if caption:
+            _guala.read_sentence(caption, source="joe")
+            for w in _normalize_text(caption):
+                from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
+                tk = LanguageKrimelack()
+                tk.transduce(w)
+                bundle_chis.append(tk.winding)
+            results.append(f"caption: \"{caption}\"")
+
+        # Process image
+        img_b64 = bundle_data.get("image_b64")
+        if img_b64:
+            img_bytes = base64.b64decode(img_b64)
+            img_id = hashlib.md5(img_bytes).hexdigest()[:12]
+            from PIL import Image
+            import io as _io
+            img = Image.open(_io.BytesIO(img_bytes)).convert('L')
+            img = img.resize((64, 64))
+            grid = np.array(img, dtype=np.float32) / 255.0
+            pic = PictureItem(item_id=img_id, title=bundle_name,
+                              intensity_grid=grid, source="bundle",
+                              shown_at_tick=_guala.tick)
+            # Save original
+            pic_dir = os.path.join(STATE_DIR, "pictures")
+            os.makedirs(pic_dir, exist_ok=True)
+            orig_path = os.path.join(pic_dir, f"{img_id}_original.jpg")
+            with open(orig_path, 'wb') as f:
+                f.write(img_bytes)
+            pic.original_path = orig_path
+            _guala._pictures[img_id] = pic
+            # Bind into atlas at visual chi
+            for i in range(min(4, grid.shape[0])):
+                chi = int(grid[i].sum() * 10) % 100
+                _guala.atlas.record("sight", hash(img_id) % 1000,
+                                    chi, _guala.tick, salience=1.5, dwell_ticks=8)
+                bundle_chis.append(chi)
+            results.append(f"image: {img_id}")
+
+        # Process sound
+        snd_b64 = bundle_data.get("sound_b64")
+        if snd_b64:
+            snd_bytes = base64.b64decode(snd_b64)
+            snd_id = hashlib.md5(snd_bytes).hexdigest()[:12]
+            import tempfile, subprocess
+            tmp_in = tempfile.NamedTemporaryFile(suffix='.audio', delete=False)
+            tmp_in.write(snd_bytes)
+            tmp_in.close()
+            tmp_wav = tmp_in.name + '.wav'
+            try:
+                subprocess.run(["ffmpeg", "-i", tmp_in.name, "-ar", "200",
+                                "-ac", "1", "-f", "wav", tmp_wav, "-y",
+                                "-loglevel", "error"], check=True, timeout=30)
+                import wave, struct
+                with wave.open(tmp_wav, 'rb') as wf:
+                    sr = wf.getframerate()
+                    n_frames = wf.getnframes()
+                    raw = wf.readframes(n_frames)
+                samples = np.array(struct.unpack(f'<{n_frames}h', raw),
+                                   dtype=np.float64) / 32768.0
+                from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import (
+                    cochlear_transduce, onset_stream, sustained_stream, a1_signature)
+                cochlear = cochlear_transduce(samples, sample_rate=sr)
+                for bn, c in cochlear.items():
+                    chi = c["winding"]
+                    _guala.atlas.record(f"audio_{bn}", hash(snd_id) % 1000,
+                                        chi, _guala.tick, salience=1.5, dwell_ticks=8)
+                    bundle_chis.append(chi)
+                _guala._sounds[snd_id] = {
+                    "item_id": snd_id, "title": bundle_name,
+                    "cochlear": {bn: {"winding": c["winding"], "n_events": c["n_events"]}
+                                 for bn, c in cochlear.items()},
+                    "times_attended": 0, "last_attended_tick": 0,
+                }
+                results.append(f"sound: {snd_id}")
+            except Exception as e:
+                results.append(f"sound error: {e}")
+            finally:
+                for p in [tmp_in.name, tmp_wav]:
+                    if os.path.exists(p):
+                        os.unlink(p)
+
+        # Open five-lane binding window (A4: all lanes co-active)
+        if bundle_chis:
+            _guala._open_response_window("joe", bundle_chis,
+                                          source_context={"bundle": bundle_name})
+
+        _guala._log_substrate_event("experience_bundle",
+                                    name=bundle_name, lanes=results,
+                                    n_chis=len(bundle_chis))
+        return {
+            "response": f"experience \"{bundle_name}\": {', '.join(results)}. "
+                        f"{len(bundle_chis)} cross-modal bindings in one window.",
+            "motifs": _guala.introspect()["vocab"],
+        }
+
     # ── /addsound:<filename> — decode base64 audio, run through cochlear pipeline ──
     if cmd.startswith("/addsound:"):
         import base64, hashlib, tempfile, subprocess
@@ -1392,6 +1504,18 @@ async def gualaloom_chat(msg: GLMessage):
                 chi = c["winding"]
                 _guala.atlas.record(f"audio_{band_name}", hash(item_id) % 1000,
                                     chi, _guala.tick, salience=1.2)
+            # Register as attendable sound item (A1/A2: autonomous audio attention)
+            _guala._sounds[item_id] = {
+                "item_id": item_id, "title": title,
+                "cochlear": {bn: {"winding": c["winding"], "n_events": c["n_events"]}
+                             for bn, c in cochlear.items()},
+                "duration_s": round(duration_s, 2),
+                "times_attended": 0, "last_attended_tick": 0,
+            }
+            # Also register as sensory_item for backward compat
+            from dsf_ai_service.v4.gualaloom_v5_engine import SensoryItem
+            _guala._sensory_items[item_id] = SensoryItem(
+                item_id=item_id, kind="sound", title=title)
             _guala._log_substrate_event("sound_uploaded",
                                         item_id=item_id, title=title,
                                         n_events=n_events, n_onsets=n_onsets,
@@ -1595,8 +1719,32 @@ async def gualaloom_upload_picture(file: UploadFile = File(...)):
 
 @app.post("/api/v1/gualaloom/upload/sound")
 async def gualaloom_upload_sound(file: UploadFile = File(...)):
-    """Stub: sound upload (Phase 3)."""
-    return {"message": "hearing not yet enabled. sound saved for Phase 3."}
+    """A1 (042): Sound upload — decode, transduce, register for attention."""
+    _gl_init()
+    if _guala is None:
+        return {"message": "initializing..."}
+    import hashlib
+    content = await file.read()
+    item_id = hashlib.md5(content).hexdigest()[:12]
+    title = file.filename or item_id
+    # Save original to EFS
+    sound_dir = os.path.join(STATE_DIR, "sounds")
+    os.makedirs(sound_dir, exist_ok=True)
+    orig_path = os.path.join(sound_dir, f"{item_id}.audio")
+    with open(orig_path, 'wb') as f:
+        f.write(content)
+    # Process via /addsound: command path (reuse existing cochlear pipeline)
+    import base64
+    b64 = base64.b64encode(content).decode()
+    # Simulate the command
+    from pydantic import BaseModel
+    class FakeMsg(BaseModel):
+        text: str
+        command: str = ""
+        source: str = None
+    fake = FakeMsg(text=b64, command=f"/addsound:{title}")
+    result = await gualaloom_chat(fake)
+    return result
 
 
 @app.post("/api/v1/gualaloom/upload/video")

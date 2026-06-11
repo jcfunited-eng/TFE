@@ -103,28 +103,29 @@ NEEDS_TARGET_V7 = 0.7       # target for all three needs (autonomy model)
 
 ACTIVITY_TICK_BUDGETS = {
     "READING": 2000, "PLAYING": 1500, "SLEEPING": 5000, "DREAMING": 3000,
-    "ATTENDING": 1000, "ATTENDING_VISUAL": 2000, "ATTENDING_VIDEO": 4000,
-    "EMITTING": 100, "IDLE": 500,
+    "ATTENDING": 1000, "ATTENDING_VISUAL": 2000, "ATTENDING_AUDIO": 2000,
+    "ATTENDING_VIDEO": 4000, "EMITTING": 100, "IDLE": 500,
 }
 
 ACTIVITY_NOVELTY_PAYOFF = {
     "READING_NEW": 0.7, "READING_REREAD": 0.1, "PLAYING": 0.3,
     "SLEEPING": -0.1, "DREAMING": 0.4, "ATTENDING_NEW": 0.8,
     "ATTENDING_REPEAT": 0.05, "ATTENDING_VISUAL_NEW": 0.85,
-    "ATTENDING_VISUAL_REPEAT": 0.1, "ATTENDING_VIDEO_NEW": 0.9,
+    "ATTENDING_VISUAL_REPEAT": 0.1, "ATTENDING_AUDIO_NEW": 0.85,
+    "ATTENDING_AUDIO_REPEAT": 0.1, "ATTENDING_VIDEO_NEW": 0.9,
     "ATTENDING_VIDEO_REPEAT": 0.15, "EMITTING": 0.0, "IDLE": -0.05,
 }
 
 ACTIVITY_STABILITY_PAYOFF = {
     "READING": 0.05, "PLAYING": 0.0, "SLEEPING": 0.5, "DREAMING": 0.2,
-    "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_VIDEO": 0.0,
-    "EMITTING": -0.1, "IDLE": 0.1,
+    "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
+    "ATTENDING_VIDEO": 0.0, "EMITTING": -0.1, "IDLE": 0.1,
 }
 
 ACTIVITY_CONNECTION_PAYOFF = {
     "READING": 0.0, "PLAYING": 0.0, "SLEEPING": 0.0, "DREAMING": 0.0,
-    "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_VIDEO": 0.0,
-    "EMITTING": 0.3, "IDLE": -0.05,
+    "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
+    "ATTENDING_VIDEO": 0.0, "EMITTING": 0.3, "IDLE": -0.05,
 }
 
 EMISSION_COHESION_THRESHOLD = 0.65
@@ -862,6 +863,7 @@ class Guala:
         self._last_emission_tick = -100_000
         self._corpora = {}          # corpus_id -> CorpusItem
         self._sensory_items = {}    # item_id -> SensoryItem
+        self._sounds = {}           # item_id -> {cochlear, title, samples, sr, ...}
 
     # ------------------------------------------------------------------
     # v6: Salience computation
@@ -1531,6 +1533,8 @@ class Guala:
                     self._atick_attending(a)
                 elif a.kind == "ATTENDING_VISUAL":
                     self._atick_attending_visual(a)
+                elif a.kind == "ATTENDING_AUDIO":
+                    self._atick_attending_audio(a)
                 elif a.kind == "ATTENDING_VIDEO":
                     self._atick_attending_video(a)
                 elif a.kind == "EMITTING":
@@ -1561,6 +1565,9 @@ class Guala:
         # Phase 2: visual items
         for pid in self._pictures:
             candidates.append(("ATTENDING_VISUAL", pid))
+        # Audio items
+        for sid in self._sounds:
+            candidates.append(("ATTENDING_AUDIO", sid))
         for vid in self._videos:
             candidates.append(("ATTENDING_VIDEO", vid))
         # Emission: only if pair-bond source present + cooldown elapsed
@@ -1611,6 +1618,11 @@ class Guala:
             # Fallback — should not reach here (handled above)
             p = self._pictures[target]
             nov_payoff = ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"]
+        elif kind == "ATTENDING_AUDIO" and target in self._sounds:
+            snd = self._sounds[target]
+            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_AUDIO_NEW"]
+                          if snd.get("times_attended", 0) == 0
+                          else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_AUDIO_REPEAT"])
         elif kind == "ATTENDING_VIDEO" and target in self._videos:
             v = self._videos[target]
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_NEW"]
@@ -1863,6 +1875,28 @@ class Guala:
                                       picture_id=a.target,
                                       old=round(old_fam, 3),
                                       new=round(new_fam, 3))
+
+    def _atick_attending_audio(self, a):
+        """Phase 3 (042): Attend to audio — run cochlear bands through atlas."""
+        snd = self._sounds.get(a.target)
+        if not snd:
+            return
+        # Record attendance
+        snd["times_attended"] = snd.get("times_attended", 0) + 1
+        snd["last_attended_tick"] = self.tick
+        # Bind cochlear bands into atlas (same path as upload, reinforces on re-attend)
+        cochlear = snd.get("cochlear", {})
+        for band_name, c in cochlear.items():
+            chi = c.get("winding", 0)
+            self.atlas.record(f"audio_{band_name}", hash(a.target) % 1000,
+                              chi, self.tick, salience=1.2, dwell_ticks=8)
+        # Novelty satisfies
+        if snd.get("times_attended", 0) <= 3:
+            self.needs.novelty = min(1.0, self.needs.novelty + 0.01)
+        # Log first attendance
+        if snd.get("times_attended", 0) == 1:
+            self._log_substrate_event("sound_motif_founded",
+                                      item_id=a.target, title=snd.get("title", ""))
 
     def _atick_attending_video(self, a):
         """Phase 2: Attend to video — saccade across decoded frames."""
@@ -3094,6 +3128,10 @@ class Guala:
                          "position": c.position,
                          "times_read_through": c.times_read_through}
                         for c in self._corpora.values()],
+            "n_sounds": len(self._sounds),
+            "sounds": [{"item_id": sid, "title": s.get("title", ""),
+                        "times_attended": s.get("times_attended", 0)}
+                       for sid, s in self._sounds.items()],
             "sensory_items": [{"item_id": s.item_id, "kind": s.kind,
                                "title": s.title,
                                "times_attended": s.times_attended}
