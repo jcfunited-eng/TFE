@@ -1702,8 +1702,9 @@ class Guala:
         """Sleep raises stability. Transitions to dream at midpoint."""
         self.needs.stability = min(1.0, self.needs.stability + 0.001)
         # Atlas consolidation: weak bindings decay faster during sleep
+        # Sleep physiology is hers — NOT modulated by teaching window (Fix C)
         if self.tick % 50 == 0 and os.environ.get("DECAY_PAUSED", "0") != "1":
-            self.atlas.decay(self.tick, rate_scale=self.decay_modulation)
+            self.atlas.decay(self.tick)
         # Midpoint → dream
         midpoint = a.started_tick + (a.expected_end_tick - a.started_tick) // 2
         if self.tick == midpoint:
