@@ -246,7 +246,12 @@ class Section:
         GL-FIND-TICK-DOMAIN-C1: section.tick stays for internal counting only."""
         self.tick += 1
         # Atlas records use engine tick (one clock — GL-FIND-TICK-DOMAIN-C1)
-        atlas_tick = engine_tick if engine_tick is not None else self.tick
+        if engine_tick is None:
+            raise ValueError(
+                "Section.receive() requires engine_tick — atlas entries MUST use "
+                "the engine clock, not the section clock (GL-FIND-TICK-DOMAIN-C1). "
+                "A missing engine_tick silently reintroduces the instant-death bug.")
+        atlas_tick = engine_tick
         self.dead_zone = 0.20 + 0.5 * familiarity
 
         # v8: On-attention deep prior (before commit, affects familiarity landscape)
@@ -530,6 +535,9 @@ class Coordinator:
 
         duration = engine.tick - self._wake_tick.get(source, engine.tick)
         self._presence[source] = False
+        # Fix C: auto-reset decay modulation when wC presence ends
+        if source == "wc":
+            engine._auto_reset_decay_modulation()
 
         self.actions.append({
             "tick": engine.tick, "type": "rest", "source": source,
@@ -843,6 +851,10 @@ class Guala:
         self._response_bind_count = 0  # total response_bound events since boot
         self._self_hearing = False  # GL-BRIEF-034: suppresses question gen during self-hear
 
+        # Fix C (GL-FIX-THREE): decay modulation — per-process only, never persisted
+        self.decay_modulation = 1.0
+        self._decay_mod_owner = None
+
         # v7: Autonomy state
         self._current_activity = None
         self._activity_history = []
@@ -960,7 +972,7 @@ class Guala:
             # v6: Decay heartbeat (DECAY_PAUSED=1 skips entirely for Step 2 experiment)
             if os.environ.get("DECAY_PAUSED", "0") != "1":
                 if self.tick % 10 == 0:
-                    self.atlas.decay(self.tick)
+                    self.atlas.decay(self.tick, rate_scale=self.decay_modulation)
                 if self.tick % 200 == 0:
                     self.atlas.forget_below_threshold()
 
@@ -1526,7 +1538,7 @@ class Guala:
                 # Non-reading: manual atlas decay + coordinator
                 if os.environ.get("DECAY_PAUSED", "0") != "1":
                     if self.tick % 10 == 0:
-                        self.atlas.decay(self.tick)
+                        self.atlas.decay(self.tick, rate_scale=self.decay_modulation)
                     if self.tick % 200 == 0:
                         self.atlas.forget_below_threshold()
                 if self.tick % 5 == 0:
@@ -1691,7 +1703,7 @@ class Guala:
         self.needs.stability = min(1.0, self.needs.stability + 0.001)
         # Atlas consolidation: weak bindings decay faster during sleep
         if self.tick % 50 == 0 and os.environ.get("DECAY_PAUSED", "0") != "1":
-            self.atlas.decay(self.tick)
+            self.atlas.decay(self.tick, rate_scale=self.decay_modulation)
         # Midpoint → dream
         midpoint = a.started_tick + (a.expected_end_tick - a.started_tick) // 2
         if self.tick == midpoint:
@@ -2113,6 +2125,42 @@ class Guala:
                                   n_chis=len(reply_chis),
                                   salience="0.5x")
 
+    # ------------------------------------------------------------------
+    # Fix C (GL-FIX-THREE): Decay modulation — wC-only, presence-gated
+    # ------------------------------------------------------------------
+
+    def _wc_presence_active(self):
+        """True if wC has active presence (same state as status presence.wc.present)."""
+        return self.coordinator._presence.get("wc", False)
+
+    def request_decay_modulation(self, factor, source):
+        """Scale working-atlas decay. wC-only, requires ACTIVE presence."""
+        if source != "wc":
+            raise PermissionError("decay modulation is wC-only system control")
+        if not self._wc_presence_active():
+            raise PermissionError("decay modulation requires ACTIVE wC presence")
+        factor = max(0.0, min(1.0, float(factor)))
+        self.decay_modulation = factor
+        self._decay_mod_owner = "wc"
+        self._log_substrate_event("decay_modulation_set",
+                                  factor=factor, source="wc")
+        return factor
+
+    def reset_decay_modulation(self, source):
+        if source != "wc":
+            raise PermissionError("decay modulation is wC-only system control")
+        self.decay_modulation = 1.0
+        self._decay_mod_owner = None
+        self._log_substrate_event("decay_modulation_reset", source="wc")
+
+    def _auto_reset_decay_modulation(self):
+        """Called when wC presence ends — auto-reset modulation."""
+        if self._decay_mod_owner == "wc" and self.decay_modulation != 1.0:
+            self.decay_modulation = 1.0
+            self._decay_mod_owner = None
+            self._log_substrate_event("decay_modulation_reset",
+                                      source="wc", reason="presence_ended")
+
     def manual_sleep(self):
         """Manual sleep trigger from UI."""
         with self.lock:
@@ -2442,6 +2490,7 @@ class Guala:
                 self._apply_coordinator(data["guala_coordinator.json"])
                 self._apply_atlas(data["guala_atlas.json"])
                 self._apply_sections(data["guala_sections.json"])
+                self._migrate_tick_domain()
                 self._apply_bucket(data["guala_bucket.json"])
 
             # Load deep atlas if present (GL-BRIEF-032 — separate table)
@@ -2507,6 +2556,7 @@ class Guala:
                     print(f"[GualaLoom] Deep atlas loaded: {self.deep_atlas.live_count()} entries")
                 if "guala_sections.json" in raw:
                     self._apply_sections(raw["guala_sections.json"])
+                self._migrate_tick_domain()
                 if "guala_bucket.json" in raw:
                     self._apply_bucket(raw["guala_bucket.json"])
             self._load_successful = True
@@ -2596,24 +2646,7 @@ class Guala:
             n_live = self.atlas.n_live_bindings()
             print(f"[GualaLoom] Atlas migrated: {n_live} live bindings")
 
-        # GL-FIND-TICK-DOMAIN-C1: re-stamp section-domain entries to engine tick.
-        # Section.receive() used section.tick (~1-10k) instead of engine.tick (~3M).
-        # Without re-stamping, first decay heartbeat computes dt≈3M → instant death.
-        # Heuristic: entries with last_tick << atlas.tick are section-domain.
-        engine_tick = max(self.tick, self.atlas.tick)
-        if engine_tick > 100_000:
-            restamped = 0
-            threshold = engine_tick * 0.1  # entries below 10% of engine tick
-            for chi_k, es in self.atlas.entries.items():
-                for e in es:
-                    if e.get("last_tick", 0) < threshold:
-                        e["last_tick"] = engine_tick
-                        if e.get("born_tick", 0) < threshold:
-                            e["born_tick"] = engine_tick
-                        restamped += 1
-            if restamped > 0:
-                print(f"[GualaLoom] Tick-domain migration: re-stamped {restamped} "
-                      f"section-domain entries to engine tick {engine_tick}")
+        # Tick-domain migration moved to _migrate_tick_domain (runs after _apply_sections)
 
     def _apply_sections(self, sd):
         for nm, s in sd.items():
@@ -2625,6 +2658,34 @@ class Guala:
             sec.dead_zone = s.get("dead_zone", 0.20)
             sec.gamma = s.get("gamma", {"det_thresh": 0.55, "novel_dist": 0.40})
             sec.tick = s.get("tick", 0)
+
+    def _migrate_tick_domain(self):
+        """GL-FIND-TICK-DOMAIN-C1: re-stamp section-domain atlas entries to engine tick.
+        MUST run AFTER _apply_sections (needs section ticks for threshold).
+        Threshold = max section tick + 1000. Entries below this are section-domain
+        and get re-stamped to current engine tick to prevent instant death on
+        first decay heartbeat."""
+        engine_tick = max(self.tick, self.atlas.tick)
+        section_tick_ceiling = max(
+            (sec.tick for sec in self.sections.values()), default=0) + 1000
+        threshold = section_tick_ceiling
+
+        # Skip on fresh/young substrates where engine tick hasn't diverged
+        if engine_tick <= threshold:
+            print(f"[GualaLoom] Tick-domain migration: skipped "
+                  f"(engine_tick={engine_tick} <= ceiling={threshold})")
+            return
+
+        restamped = 0
+        for chi_k, es in self.atlas.entries.items():
+            for e in es:
+                if e.get("last_tick", 0) < threshold:
+                    e["last_tick"] = engine_tick
+                    if e.get("born_tick", 0) < threshold:
+                        e["born_tick"] = engine_tick
+                    restamped += 1
+        print(f"[GualaLoom] Tick-domain migration: ceiling={section_tick_ceiling}, "
+              f"engine_tick={engine_tick}, re-stamped={restamped}")
 
     def _apply_bucket(self, bd):
         from collections import OrderedDict

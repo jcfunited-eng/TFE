@@ -145,7 +145,7 @@ class LivingAtlas:
                     "released": False,
                 })
 
-    def decay(self, current_tick=None):
+    def decay(self, current_tick=None, rate_scale=1.0):
         """Apply per-tick decay to all bindings. Called every 10 ticks.
 
         GL-BRIEF-033: Two-speed metaplastic decay.
@@ -153,6 +153,8 @@ class LivingAtlas:
         B. lam_eff = lam_base / (1 + K * reinforcement_count)
         Legacy entries (no dwell_ticks field) get global DECAY_LAMBDA.
         META_DECAY_ENABLED=0 → exact legacy behavior.
+        rate_scale: Fix C (GL-FIX-THREE) — external multiplier on lam_eff.
+        1.0 = normal (bit-identical to pre-change). 0.0 = no decay.
         """
         if current_tick is None:
             current_tick = self.tick
@@ -162,19 +164,17 @@ class LivingAtlas:
                 dt = max(0, current_tick - e["last_tick"])
                 if dt > 0:
                     if meta and "dwell_ticks" in e:
-                        # A: two-speed baseline
                         dwell = e.get("dwell_ticks", 0)
                         released = e.get("released", False)
                         if dwell >= DWELL_GATE_META and not released:
                             lam_base = DECAY_LAMBDA / SLOW_DIV
                         else:
                             lam_base = DECAY_LAMBDA
-                        # B: metaplastic slowdown
                         rc = e.get("reinforcement_count", 0)
                         lam_eff = lam_base / (1.0 + META_K * rc)
                     else:
-                        # Legacy entry or kill switch off
                         lam_eff = DECAY_LAMBDA
+                    lam_eff *= rate_scale  # Fix C: external modulation
                     e["strength"] *= math.exp(-lam_eff * dt)
                     e["last_tick"] = current_tick
 
