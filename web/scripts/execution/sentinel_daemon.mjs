@@ -112,10 +112,17 @@ async function sleep(ms) {
 
 /**
  * submitEntry — single pipeline for all entry channels.
- * Checks: kill switch → invested cap → cash gate → execute.
+ * Checks: same-day exit → invested cap → cash gate → execute.
  * Returns { ok, reason } or the bridge result.
  */
-async function submitEntry(signal, executeFn, channelTag, budget) {
+async function submitEntry(signal, executeFn, channelTag, budget, sameDayExitTickers) {
+  // Same-day exit exclusion: no entry on a ticker the sentinel exited today
+  const ticker = String(signal?.ticker ?? "").trim().toUpperCase();
+  if (sameDayExitTickers && sameDayExitTickers.has(ticker)) {
+    console.log(`[DAILY-ENTRY] ${ticker} excluded: same-day exit`);
+    return { ok: false, reason: "same_day_exit" };
+  }
+
   // Invested cap: projected invested after this order must not exceed funded capital
   const dollarAllocation = signal.ch3_trade_amount ?? budget.perTrade;
   const projectedInvested = budget.invested + dollarAllocation;
@@ -198,6 +205,25 @@ async function runDailyEntryPass() {
     perTrade: acct.funded * (riskPct / 100),
   };
 
+  // ── Same-day exit exclusion (brief point 4) ────────────────────────
+  // Any ticker the sentinel exited today is ineligible for entry.
+  // Prevents buy+sell collision (May 27 BELFB/LPLA/NVT incident).
+  let sameDayExitTickers = new Set();
+  try {
+    const exitRes = await pool.query(
+      `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
+       FROM personal_trade_ledger
+       WHERE status = 'closed'
+         AND exit_filled_at >= CURRENT_DATE`
+    );
+    sameDayExitTickers = new Set(exitRes.rows.map(r => r.ticker));
+    if (sameDayExitTickers.size > 0) {
+      console.log(`[DAILY-ENTRY] Same-day exit exclusions: ${[...sameDayExitTickers].sort().join(', ')}`);
+    }
+  } catch (err) {
+    console.warn(`[DAILY-ENTRY] Same-day exit query failed: ${err.message} — proceeding without exclusion`);
+  }
+
   let totalEntries = 0;
 
   // ── Channel 1: 3WA ──────────────────────────────────────────────────
@@ -205,7 +231,7 @@ async function runDailyEntryPass() {
     const signals3wa = await get3WASignals();
     for (const signal of signals3wa) {
       if (budget.cashRemaining <= 0) break;
-      const result = await submitEntry(signal, executeBracketOrder, "3WA-ENTRY", budget);
+      const result = await submitEntry(signal, executeBracketOrder, "3WA-ENTRY", budget, sameDayExitTickers);
       if (result.ok) totalEntries++;
     }
   } catch (err) {
@@ -217,7 +243,7 @@ async function runDailyEntryPass() {
     const signalsCh2 = await getCh2Signals();
     for (const signal of signalsCh2) {
       if (budget.cashRemaining <= 0) break;
-      const result = await submitEntry(signal, executeCh2BracketOrder, "CH2-ENTRY", budget);
+      const result = await submitEntry(signal, executeCh2BracketOrder, "CH2-ENTRY", budget, sameDayExitTickers);
       if (result.ok) totalEntries++;
     }
   } catch (err) {
@@ -229,7 +255,7 @@ async function runDailyEntryPass() {
     const ch3Signals = await getCh3Signals();
     for (const signal of ch3Signals) {
       if (budget.cashRemaining <= 0) break;
-      const result = await submitEntry(signal, executeCh3MarketOrder, "CH3-ENTRY", budget);
+      const result = await submitEntry(signal, executeCh3MarketOrder, "CH3-ENTRY", budget, sameDayExitTickers);
       if (result.ok) totalEntries++;
     }
   } catch (err) {
