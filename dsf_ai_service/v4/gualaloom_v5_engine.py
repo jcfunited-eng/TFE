@@ -3013,11 +3013,15 @@ class Guala:
 
     # ── Persistence health for /status ──
 
+    # D6: report-only files (not boot-required, but tracked for health)
+    REPORT_FILES = ["guala_deep_atlas.json", "guala_visual.json"]
+
     def persistence_health(self, state_dir="state"):
-        present = [f for f in [self.IDENTITY_FILE] + self.STATE_FILES
+        all_files = [self.IDENTITY_FILE] + self.STATE_FILES + self.REPORT_FILES
+        present = [f for f in all_files
                    if os.path.exists(os.path.join(state_dir, f))]
         missing = [f for f in [self.IDENTITY_FILE] + self.STATE_FILES
-                   if f not in present]
+                   if f not in present]  # missing only flags boot-required files
         evlog = os.path.join(state_dir, self.EVENTS_LOG)
         ev_size = os.path.getsize(evlog) if os.path.exists(evlog) else 0
         ev_rotated = sum(1 for i in range(1, self.EVENTS_MAX_ROTATED + 1)
