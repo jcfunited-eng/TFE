@@ -991,6 +991,13 @@ def _gl_init():
     # Load full persisted state from EFS (atomic, validated)
     _guala.load_full_state(STATE_DIR)
 
+    # D5: Dream gate enforcement — decay must not resume before forced dream
+    gate_marker = os.path.join(STATE_DIR, "dream_gate_cleared.json")
+    if os.environ.get("DECAY_PAUSED", "0") != "1" and not os.path.exists(gate_marker):
+        raise RuntimeError(
+            "DREAM GATE: decay may not resume before the forced dream promotes "
+            "paused-era content to deep. Marker absent: state/dream_gate_cleared.json")
+
     # Content blocklist: corpora that should never be selected for reading.
     # Removed entries are purged from in-memory state; next save cleans EFS.
     CORPUS_BLOCKLIST = {
