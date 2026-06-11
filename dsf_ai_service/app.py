@@ -1031,7 +1031,15 @@ async def gualaloom_page():
 @app.post("/api/v1/gualaloom")
 async def gualaloom_chat(msg: GLMessage):
     global _exchange_count
-    _gl_init()
+
+    # Handle requests while Guala is still initializing
+    if _guala is None:
+        cmd = (msg.command or "").strip().lower()
+        if cmd == "/status":
+            return {"response": "initializing... please wait",
+                    "motifs": 0, "persistence_health": {},
+                    "atlas_health": {}, "n_motifs": 0}
+        return {"response": "...", "motifs": 0}
 
     cmd = (msg.command or "").strip().lower()
 
