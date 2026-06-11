@@ -1479,6 +1479,73 @@ async def gualaloom_chat(msg: GLMessage):
                     if os.path.exists(p):
                         os.unlink(p)
 
+        # Process touch/smell/taste from sensory library
+        SENSORY_PROFILES = {
+            "touch": {
+                "warm": {"temperature": 0.7, "pressure": 0.3},
+                "cool": {"temperature": 0.3, "pressure": 0.3},
+                "cold": {"temperature": 0.1, "pressure": 0.2},
+                "hot": {"temperature": 0.9, "pressure": 0.3},
+                "soft": {"pressure": 0.2, "texture_freq": 0.1},
+                "hard": {"pressure": 0.9, "texture_freq": 0.8},
+                "smooth": {"texture_freq": 0.05, "sharpness": 0.0},
+                "rough": {"texture_freq": 0.9, "sharpness": 0.3},
+                "wet": {"wetness": 0.9, "temperature": 0.4},
+                "dry": {"wetness": 0.0, "temperature": 0.5},
+                "sharp": {"sharpness": 0.9, "pressure": 0.7},
+                "fuzzy": {"texture_freq": 0.6, "sharpness": 0.0, "pressure": 0.1},
+                "heavy": {"pressure": 0.9, "vibration": 0.1},
+                "light": {"pressure": 0.1, "vibration": 0.0},
+                "squishy": {"pressure": 0.3, "texture_freq": 0.2},
+                "bumpy": {"texture_freq": 0.8, "vibration": 0.3},
+            },
+            "smell": {
+                "fresh": {"fresh": 0.9, "earthy": 0.1},
+                "floral": {"floral": 0.9, "sweet": 0.3},
+                "sweet": {"sweet": 0.8, "fruity": 0.3},
+                "earthy": {"earthy": 0.9, "smoky": 0.2},
+                "smoky": {"smoky": 0.9, "earthy": 0.3},
+                "salty": {"sour": 0.2, "fresh": 0.4},
+                "fruity": {"fruity": 0.9, "sweet": 0.4},
+                "woody": {"earthy": 0.6, "smoky": 0.3},
+                "clean": {"fresh": 0.8, "floral": 0.1},
+                "rain": {"fresh": 0.7, "earthy": 0.5},
+                "grass": {"earthy": 0.4, "fresh": 0.6, "floral": 0.1},
+                "ocean": {"sour": 0.2, "fresh": 0.6, "earthy": 0.3},
+            },
+            "taste": {
+                "sweet": {"sweet": 0.9, "sour": 0.0, "bitter": 0.0, "salty": 0.0, "umami": 0.0},
+                "sour": {"sweet": 0.0, "sour": 0.9, "bitter": 0.1, "salty": 0.0, "umami": 0.0},
+                "salty": {"sweet": 0.0, "sour": 0.0, "bitter": 0.0, "salty": 0.9, "umami": 0.1},
+                "bitter": {"sweet": 0.0, "sour": 0.1, "bitter": 0.9, "salty": 0.0, "umami": 0.0},
+                "savory": {"sweet": 0.0, "sour": 0.0, "bitter": 0.0, "salty": 0.3, "umami": 0.9},
+                "spicy": {"sweet": 0.0, "sour": 0.1, "bitter": 0.2, "salty": 0.0, "umami": 0.1},
+                "creamy": {"sweet": 0.3, "sour": 0.0, "bitter": 0.0, "salty": 0.1, "umami": 0.4},
+                "tangy": {"sweet": 0.1, "sour": 0.7, "bitter": 0.0, "salty": 0.1, "umami": 0.0},
+            },
+        }
+        for sense_name in ("touch", "smell", "taste"):
+            selections = bundle_data.get(sense_name, [])
+            if selections:
+                # Average the profiles of selected descriptors
+                profiles = SENSORY_PROFILES.get(sense_name, {})
+                combined = {}
+                n = 0
+                for sel in selections:
+                    p = profiles.get(sel, {})
+                    for k, v in p.items():
+                        combined[k] = combined.get(k, 0) + v
+                    n += 1
+                if n > 0:
+                    for k in combined:
+                        combined[k] /= n
+                # Bind into atlas at a chi derived from the profile
+                chi = int(sum(combined.values()) * 100) % 100
+                _guala.atlas.record(f"modal_{sense_name}", hash(bundle_name) % 1000,
+                                    chi, _guala.tick, salience=1.5, dwell_ticks=8)
+                bundle_chis.append(chi)
+                results.append(f"{sense_name}: {', '.join(selections)}")
+
         # Open five-lane binding window (A4: all lanes co-active)
         if bundle_chis:
             _guala._open_response_window("joe", bundle_chis,

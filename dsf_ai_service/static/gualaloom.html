@@ -108,14 +108,33 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
     <button class="upload-btn" onclick="openBundleModal()">🎁 experience</button>
   </div>
   <div id="bundle-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:999;justify-content:center;align-items:center">
-    <div style="background:var(--bg);border:1px solid var(--accent);padding:20px;border-radius:8px;width:360px;max-width:90%">
-      <div style="color:var(--accent);font-weight:bold;margin-bottom:12px">Experience Bundle</div>
+    <div style="background:var(--bg);border:1px solid var(--accent);padding:20px;border-radius:8px;width:400px;max-width:90%;max-height:90vh;overflow-y:auto">
+      <div style="color:var(--accent);font-weight:bold;margin-bottom:12px">🎁 Experience Bundle — all five senses</div>
       <div style="margin-bottom:8px"><label style="color:var(--text-muted);font-size:11px">Caption (what is this?)
         <input id="bundle-caption" type="text" placeholder="e.g. daddy, ocean, letter B" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:5px;border-radius:4px;margin-top:3px;font-family:inherit"></label></div>
-      <div style="margin-bottom:8px"><label style="color:var(--text-muted);font-size:11px">Picture (optional)
+      <div style="margin-bottom:8px"><label style="color:var(--text-muted);font-size:11px">🖼 Picture
         <input id="bundle-image" type="file" accept="image/*" style="font-size:10px;color:var(--text-muted);margin-top:3px"></label></div>
-      <div style="margin-bottom:12px"><label style="color:var(--text-muted);font-size:11px">Sound (optional)
+      <div style="margin-bottom:8px"><label style="color:var(--text-muted);font-size:11px">🔊 Sound
         <input id="bundle-sound" type="file" accept="audio/*" style="font-size:10px;color:var(--text-muted);margin-top:3px"></label></div>
+      <div style="margin-bottom:6px;color:var(--text-muted);font-size:11px;border-top:1px solid var(--border);padding-top:8px">Sensory qualities (pick any that apply):</div>
+      <div style="margin-bottom:6px"><label style="color:var(--text-muted);font-size:11px">🤚 Feels like
+        <select id="bundle-touch" multiple size="3" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-size:10px;margin-top:2px">
+          <option value="warm">warm</option><option value="cool">cool</option><option value="cold">cold</option><option value="hot">hot</option>
+          <option value="soft">soft</option><option value="hard">hard</option><option value="smooth">smooth</option><option value="rough">rough</option>
+          <option value="wet">wet</option><option value="dry">dry</option><option value="sharp">sharp</option><option value="fuzzy">fuzzy</option>
+          <option value="heavy">heavy</option><option value="light">light (weight)</option><option value="squishy">squishy</option><option value="bumpy">bumpy</option>
+        </select></label></div>
+      <div style="margin-bottom:6px"><label style="color:var(--text-muted);font-size:11px">👃 Smells like
+        <select id="bundle-smell" multiple size="3" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-size:10px;margin-top:2px">
+          <option value="fresh">fresh</option><option value="floral">floral</option><option value="sweet">sweet</option><option value="earthy">earthy</option>
+          <option value="smoky">smoky</option><option value="salty">salty</option><option value="fruity">fruity</option><option value="woody">woody</option>
+          <option value="clean">clean</option><option value="rain">rain</option><option value="grass">grass</option><option value="ocean">ocean</option>
+        </select></label></div>
+      <div style="margin-bottom:10px"><label style="color:var(--text-muted);font-size:11px">👅 Tastes like
+        <select id="bundle-taste" multiple size="3" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-size:10px;margin-top:2px">
+          <option value="sweet">sweet</option><option value="sour">sour</option><option value="salty">salty</option><option value="bitter">bitter</option>
+          <option value="savory">savory</option><option value="spicy">spicy</option><option value="creamy">creamy</option><option value="tangy">tangy</option>
+        </select></label></div>
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button onclick="closeBundleModal()" style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:5px 12px;border-radius:4px;cursor:pointer;font-family:inherit">cancel</button>
         <button onclick="submitBundle()" style="background:var(--accent);border:none;color:#000;padding:5px 12px;border-radius:4px;cursor:pointer;font-weight:bold;font-family:inherit">give her this</button>
@@ -270,16 +289,26 @@ async function backgroundReplay(){if(mode!=='v7')return;if(Date.now()-lastInputT
 
 // Experience bundle modal
 function openBundleModal(){document.getElementById('bundle-modal').style.display='flex'}
-function closeBundleModal(){document.getElementById('bundle-modal').style.display='none';document.getElementById('bundle-caption').value='';document.getElementById('bundle-image').value='';document.getElementById('bundle-sound').value=''}
+function closeBundleModal(){document.getElementById('bundle-modal').style.display='none';document.getElementById('bundle-caption').value='';document.getElementById('bundle-image').value='';document.getElementById('bundle-sound').value='';for(const s of document.querySelectorAll('#bundle-modal select'))for(const o of s.options)o.selected=false}
+function getSelected(id){return Array.from(document.getElementById(id).selectedOptions).map(o=>o.value)}
 async function submitBundle(){
   const caption=document.getElementById('bundle-caption').value.trim();
   const imgFile=document.getElementById('bundle-image').files[0];
   const sndFile=document.getElementById('bundle-sound').files[0];
-  if(!caption&&!imgFile&&!sndFile){addMsg('(need at least a caption, picture, or sound)','system');return}
+  const touch=getSelected('bundle-touch');
+  const smell=getSelected('bundle-smell');
+  const taste=getSelected('bundle-taste');
+  if(!caption&&!imgFile&&!sndFile&&!touch.length&&!smell.length&&!taste.length){addMsg('(need at least one sense filled in)','system');return}
   closeBundleModal();
   const name=caption||imgFile?.name||sndFile?.name||'experience';
-  addMsg(`(creating experience: "${name}")`, 'system');
+  const lanes=[];
+  if(caption)lanes.push('word');if(imgFile)lanes.push('sight');if(sndFile)lanes.push('sound');
+  if(touch.length)lanes.push('touch');if(smell.length)lanes.push('smell');if(taste.length)lanes.push('taste');
+  addMsg(`(creating experience "${name}": ${lanes.join(' + ')})`, 'system');
   const bundle={caption:caption||''};
+  if(touch.length)bundle.touch=touch;
+  if(smell.length)bundle.smell=smell;
+  if(taste.length)bundle.taste=taste;
   try{
     if(imgFile){const b64=await fileToB64(imgFile);bundle.image_b64=b64}
     if(sndFile){const b64=await fileToB64(sndFile);bundle.sound_b64=b64}
