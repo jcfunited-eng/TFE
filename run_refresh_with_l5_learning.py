@@ -1406,17 +1406,25 @@ def main() -> int:
     # PEE-1 checks auto_tfe_enabled internally — if OFF, it logs signals only.
     # CRITICAL: must run BEFORE quality audit and gap-fill — those steps can
     # hang on slow DB queries and block PEE-1 indefinitely (May 4 2026 bug).
-    try:
-        import subprocess as _sp, pathlib as _pl3
-        _pee1_script = _pl3.Path(__file__).resolve().parent / "web" / "scripts" / "execution" / "pee1_runner.mjs"
-        _node_bin = __import__("os").environ.get("TFE_NODE_BIN", "node")
-        _env = {**__import__("os").environ, "PGSSLMODE": "require"}
-        _pee1 = _sp.Popen([_node_bin, str(_pee1_script)], env=_env, stdin=_sp.DEVNULL, stdout=None, stderr=None, start_new_session=True)
-        print(f"[REFRESH+PEE1] Execution engine launched (pid={_pee1.pid}).", flush=True)
-    except Exception as _pee1_exc:
-        import traceback as _tb_pee1
-        print(f"[REFRESH+PEE1] Failed to launch execution engine (non-fatal): {_pee1_exc}", flush=True)
-        _tb_pee1.print_exc()
+    #
+    # GATE: TFE_ENTRIES_HALTED=1 blocks the spawn entirely. The runner is an
+    # ungated second entry path — it does not check TFE_ENTRIES_HALTED internally.
+    # Gating at the spawn point because the deploy environment is provably present
+    # here (os.environ inherits from the ECS task definition).
+    if __import__("os").environ.get("TFE_ENTRIES_HALTED") == "1":
+        print("[REFRESH+PEE1] pee1_runner skipped: entries halted.", flush=True)
+    else:
+        try:
+            import subprocess as _sp, pathlib as _pl3
+            _pee1_script = _pl3.Path(__file__).resolve().parent / "web" / "scripts" / "execution" / "pee1_runner.mjs"
+            _node_bin = __import__("os").environ.get("TFE_NODE_BIN", "node")
+            _env = {**__import__("os").environ, "PGSSLMODE": "require"}
+            _pee1 = _sp.Popen([_node_bin, str(_pee1_script)], env=_env, stdin=_sp.DEVNULL, stdout=None, stderr=None, start_new_session=True)
+            print(f"[REFRESH+PEE1] Execution engine launched (pid={_pee1.pid}).", flush=True)
+        except Exception as _pee1_exc:
+            import traceback as _tb_pee1
+            print(f"[REFRESH+PEE1] Failed to launch execution engine (non-fatal): {_pee1_exc}", flush=True)
+            _tb_pee1.print_exc()
 
     # CP-2: Regenerate quality audit JSON after every successful refresh.
     # Runs as a SUBPROCESS so the 300s kill actually works — SIGALRM can't
