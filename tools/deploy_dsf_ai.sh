@@ -53,6 +53,18 @@ GIT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
 echo "  Git SHA: ${GIT_SHA}"
 echo "  Image:   ${IMAGE_URI}"
 
+# D1: Assert single-writer deployment config (stop-then-start)
+CFG=$(aws ecs describe-services --cluster ${ECS_CLUSTER} \
+  --services ${ECS_SERVICE} \
+  --query 'services[0].deploymentConfiguration.[maximumPercent,minimumHealthyPercent]' \
+  --output text)
+if [ "$CFG" != "100	0" ]; then
+    echo "FATAL: single-writer deploy config drifted (got: $CFG, need: 100 0)"
+    echo "Fix: aws ecs update-service --cluster ${ECS_CLUSTER} --service ${ECS_SERVICE} --deployment-configuration minimumHealthyPercent=0,maximumPercent=100"
+    exit 1
+fi
+echo "  Deploy config: single-writer ✓ (max=100, min=0)"
+
 # ── Step 1: Package source ──
 echo ""
 echo "[1/6] Packaging source..."

@@ -2416,35 +2416,23 @@ class Guala:
 
     # ── Load ──
 
-    # V1: State lockfile — two Gualas must never write one state
-    def _acquire_lock(self, state_dir):
-        """Acquire state lockfile. Refuse if held by another live process."""
-        lock_path = os.path.join(state_dir, self.LOCK_FILE)
-        my_pid = os.getpid()
-        if os.path.exists(lock_path):
-            try:
-                with open(lock_path) as f:
-                    data = json.load(f)
-                old_pid = data.get("pid")
-                # Check if old process is still alive
-                if old_pid and old_pid != my_pid:
-                    try:
-                        os.kill(old_pid, 0)  # signal 0 = check existence
-                        raise RuntimeError(
-                            f"State lock held by PID {old_pid}. "
-                            f"Two Gualas must never write one state.")
-                    except OSError:
-                        pass  # old process dead, safe to take lock
-            except (json.JSONDecodeError, KeyError):
-                pass  # corrupt lock file, safe to take
-        with open(lock_path, "w") as f:
-            json.dump({"pid": my_pid, "ts": time.time()}, f)
-        print(f"[GualaLoom] State lock acquired: PID {my_pid}")
+    # D1: State lock via fcntl — kernel releases on process death
+    _lock_fd = None
 
-    def _release_lock(self, state_dir):
+    def _acquire_lock(self, state_dir):
+        """Acquire POSIX file lock (fcntl.lockf). Kernel releases on death."""
+        import fcntl
         lock_path = os.path.join(state_dir, self.LOCK_FILE)
-        if os.path.exists(lock_path):
-            os.remove(lock_path)
+        self._lock_fd = open(lock_path, "w")
+        try:
+            fcntl.lockf(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self._lock_fd.write(json.dumps({"pid": os.getpid(), "ts": time.time()}))
+            self._lock_fd.flush()
+            print(f"[GualaLoom] State lock acquired: PID {os.getpid()}")
+        except (IOError, OSError):
+            raise RuntimeError(
+                f"State lock held by another process. "
+                f"Two Gualas must never write one state.")
 
     # D2: Offset-based event log compaction
     def events_log_size(self, state_dir):
