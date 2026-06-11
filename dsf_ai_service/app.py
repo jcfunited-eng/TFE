@@ -1083,6 +1083,9 @@ async def gualaloom_chat(msg: GLMessage):
             "pair_bond": s.get("pair_bond", {}),
             # v8: deep atlas (GL-BRIEF-032)
             "deep_atlas": s.get("deep_atlas", {}),
+            # 042: audio
+            "n_sounds": s.get("n_sounds", 0),
+            "sounds": s.get("sounds", []),
             # v7: autonomy fields
             "current_activity": s.get("current_activity"),
             "activity_history_summary": s.get("activity_history_summary", {}),
