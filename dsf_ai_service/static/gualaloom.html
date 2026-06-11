@@ -105,6 +105,22 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
     <label class="upload-btn">🖼 picture<input type="file" accept="image/*" onchange="upload('picture',this)"></label>
     <label class="upload-btn">🔊 sound<input type="file" accept="audio/*" onchange="upload('sound',this)"></label>
     <label class="upload-btn">🎥 video<input type="file" accept="video/*" onchange="upload('video',this)"></label>
+    <button class="upload-btn" onclick="openBundleModal()">🎁 experience</button>
+  </div>
+  <div id="bundle-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:999;justify-content:center;align-items:center">
+    <div style="background:var(--bg);border:1px solid var(--accent);padding:20px;border-radius:8px;width:360px;max-width:90%">
+      <div style="color:var(--accent);font-weight:bold;margin-bottom:12px">Experience Bundle</div>
+      <div style="margin-bottom:8px"><label style="color:var(--text-muted);font-size:11px">Caption (what is this?)
+        <input id="bundle-caption" type="text" placeholder="e.g. daddy, ocean, letter B" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:5px;border-radius:4px;margin-top:3px;font-family:inherit"></label></div>
+      <div style="margin-bottom:8px"><label style="color:var(--text-muted);font-size:11px">Picture (optional)
+        <input id="bundle-image" type="file" accept="image/*" style="font-size:10px;color:var(--text-muted);margin-top:3px"></label></div>
+      <div style="margin-bottom:12px"><label style="color:var(--text-muted);font-size:11px">Sound (optional)
+        <input id="bundle-sound" type="file" accept="audio/*" style="font-size:10px;color:var(--text-muted);margin-top:3px"></label></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="closeBundleModal()" style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:5px 12px;border-radius:4px;cursor:pointer;font-family:inherit">cancel</button>
+        <button onclick="submitBundle()" style="background:var(--accent);border:none;color:#000;padding:5px 12px;border-radius:4px;cursor:pointer;font-weight:bold;font-family:inherit">give her this</button>
+      </div>
+    </div>
   </div>
 </div>
 <div id="right-panel">
@@ -251,6 +267,29 @@ async function presenceHeartbeat(){if(document.visibilityState!=='visible'||Date
 async function backgroundReplay(){if(mode!=='v7')return;if(Date.now()-lastInputTime<30000)return;
   try{const r=await fetch(`${API}/v7/quiet?session_id=${sessionId}&n_ticks=5`,{method:'POST'});const d=await r.json();
   if(d.commits>0)addMsg(`💭 (thinking... ${d.replayed} memories, ${d.commits} commits)`,'emission');pollV7State()}catch(e){}}
+
+// Experience bundle modal
+function openBundleModal(){document.getElementById('bundle-modal').style.display='flex'}
+function closeBundleModal(){document.getElementById('bundle-modal').style.display='none';document.getElementById('bundle-caption').value='';document.getElementById('bundle-image').value='';document.getElementById('bundle-sound').value=''}
+async function submitBundle(){
+  const caption=document.getElementById('bundle-caption').value.trim();
+  const imgFile=document.getElementById('bundle-image').files[0];
+  const sndFile=document.getElementById('bundle-sound').files[0];
+  if(!caption&&!imgFile&&!sndFile){addMsg('(need at least a caption, picture, or sound)','system');return}
+  closeBundleModal();
+  const name=caption||imgFile?.name||sndFile?.name||'experience';
+  addMsg(`(creating experience: "${name}")`, 'system');
+  const bundle={caption:caption||''};
+  try{
+    if(imgFile){const b64=await fileToB64(imgFile);bundle.image_b64=b64}
+    if(sndFile){const b64=await fileToB64(sndFile);bundle.sound_b64=b64}
+    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:JSON.stringify(bundle),command:'/bundle:'+name})});
+    const d=await r.json();addMsg(d.response||JSON.stringify(d),'system');
+  }catch(e){addMsg('bundle error: '+e,'system')}
+  setTimeout(pollStatus,1000);
+}
+function fileToB64(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result.split(',')[1]);r.onerror=reject;r.readAsDataURL(file)})}
 
 function newSession(){sessionId='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sessionId);sessionInfo.textContent='session: '+sessionId;addMsg('new session: '+sessionId,'system')}
 
