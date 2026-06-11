@@ -1449,6 +1449,16 @@ async def gualaloom_chat(msg: GLMessage):
             picture_data.append({"item_id": item_id, "title": pic.title,
                                  "data": f"data:image/png;base64,{b64}"})
 
+    # Deduplicate and cap pictures (prevent multi-MB responses that exceed
+    # API Gateway 10MB limit — root cause of 413 with DECAY_PAUSED)
+    seen_ids = set()
+    deduped = []
+    for p in picture_data:
+        if p["item_id"] not in seen_ids:
+            seen_ids.add(p["item_id"])
+            deduped.append(p)
+    picture_data = deduped[:3]  # cap at 3
+
     result = {"response": response or "...", "motifs": _guala.introspect()["vocab"]}
     if picture_data:
         result["pictures"] = picture_data
