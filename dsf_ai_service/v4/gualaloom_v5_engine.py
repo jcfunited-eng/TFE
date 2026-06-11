@@ -2446,25 +2446,38 @@ class Guala:
         if os.path.exists(lock_path):
             os.remove(lock_path)
 
-    # V3: Event log compaction
-    def compact_events(self, state_dir):
-        """Truncate event log after a successful save. Replay at boot = 0."""
+    # D2: Offset-based event log compaction
+    def events_log_size(self, state_dir):
+        """Return current event log file size in bytes."""
+        path = os.path.join(state_dir, self.EVENTS_LOG)
+        if not os.path.exists(path):
+            return 0
+        return os.path.getsize(path)
+
+    def compact_events(self, state_dir, keep_after_offset=0):
+        """Keep only events written after keep_after_offset bytes.
+        Events appended during the save window survive; only pre-save
+        events (already captured in the snapshot) are discarded."""
         path = os.path.join(state_dir, self.EVENTS_LOG)
         if not os.path.exists(path):
             return 0
         try:
+            with open(path, "rb") as f:
+                f.seek(keep_after_offset)
+                tail = f.read()
             size_before = os.path.getsize(path)
-            # Count lines
-            with open(path) as f:
-                n_lines = sum(1 for _ in f)
-            # Atomic truncate: write empty, fsync
-            with open(path, "w") as f:
+            tmp = path + ".tmp"
+            with open(tmp, "wb") as f:
+                f.write(tail)
                 f.flush()
                 os.fsync(f.fileno())
-            if n_lines > 0:
-                print(f"[GualaLoom] Event log compacted: {n_lines} events, "
-                      f"{size_before} bytes → 0")
-            return n_lines
+            os.replace(tmp, path)
+            kept = len(tail.strip().split(b"\n")) if tail.strip() else 0
+            discarded = size_before - len(tail)
+            if discarded > 0:
+                print(f"[GualaLoom] Event log compacted: {discarded} bytes discarded, "
+                      f"{kept} events kept")
+            return kept
         except Exception as e:
             print(f"[GualaLoom] Compaction error: {e}")
             return 0

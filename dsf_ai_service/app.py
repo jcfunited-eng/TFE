@@ -1973,9 +1973,10 @@ async def startup():
             await asyncio.sleep(60)
             try:
                 if _guala is not None:
+                    # D2: capture log size before save; compact only pre-save bytes
+                    pre_size = _guala.events_log_size(STATE_DIR)
                     _guala.save_full_state(STATE_DIR)
-                    # V3 COMPACTION: truncate event log after each save
-                    _guala.compact_events(STATE_DIR)
+                    _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
                     save_count += 1
                     # Snapshot every 10 saves (~10 min)
                     if save_count % 10 == 0:
