@@ -2001,11 +2001,13 @@ async def startup():
 _last_s3_backup = None  # D3: tracked for persistence_health
 
 def _backup_to_s3(state_dir):
-    """V4/D3: Copy state files to S3 for off-volume backup."""
+    """V4/D3: Copy state files to S3 via boto3 (no aws CLI in container)."""
     global _last_s3_backup
-    import subprocess
+    import boto3
+    s3 = boto3.client("s3", region_name="us-east-1")
+    bucket = "dsf-ai-site-backups"
     date_str = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
-    s3_prefix = f"s3://dsf-ai-site-backups/guala/{date_str}/"
+    prefix = f"guala/{date_str}/"
     files = ["guala_core.json", "guala_needs.json", "guala_coordinator.json",
              "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
              "guala_deep_atlas.json", "guala_visual.json", "guala_identity.json"]
@@ -2014,27 +2016,25 @@ def _backup_to_s3(state_dir):
         path = os.path.join(state_dir, f)
         if os.path.exists(path):
             try:
-                subprocess.run(["aws", "s3", "cp", path, s3_prefix + f,
-                                "--quiet"], check=True, timeout=30)
+                s3.upload_file(path, bucket, prefix + f)
                 backed += 1
+            except Exception as e:
+                print(f"[DSF-AI] S3 backup {f} failed: {e}")
+    # Also backup picture originals
+    pic_dir = os.path.join(state_dir, "pictures")
+    if os.path.isdir(pic_dir):
+        for pf in os.listdir(pic_dir):
+            try:
+                s3.upload_file(os.path.join(pic_dir, pf), bucket, prefix + "pictures/" + pf)
             except Exception:
                 pass
-    # Also backup media
-    media_dir = os.path.join(state_dir, "pictures")
-    if os.path.isdir(media_dir):
-        try:
-            subprocess.run(["aws", "s3", "sync", media_dir,
-                            s3_prefix + "pictures/", "--quiet"],
-                           check=True, timeout=120)
-        except Exception:
-            pass
     _last_s3_backup = {
         "timestamp": date_str,
-        "prefix": s3_prefix,
+        "prefix": f"s3://{bucket}/{prefix}",
         "file_count": backed,
     }
-    print(f"[DSF-AI] S3 backup: {backed} files to {s3_prefix}")
-    return s3_prefix
+    print(f"[DSF-AI] S3 backup: {backed} files to s3://{bucket}/{prefix}")
+    return f"s3://{bucket}/{prefix}"
 
 
 @app.get("/health")
