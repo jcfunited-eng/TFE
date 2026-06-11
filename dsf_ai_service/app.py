@@ -2039,16 +2039,11 @@ def _backup_to_s3(state_dir):
 
 @app.get("/health")
 async def health():
-    from fastapi.responses import JSONResponse
-    if not _init_complete:
-        # V2: return 503 until init completes so ALB doesn't route to cold brain
-        return JSONResponse(
-            status_code=503,
-            content={"status": "initializing", "service": "dsf-ai"}
-        )
+    # Always return 200 for ALB health checks (ALB kills task on 503).
+    # Init status reported in body for observability.
     return {
-        "status": "ok",
+        "status": "ok" if _init_complete else "initializing",
         "service": "dsf-ai",
         "version": "1.0.0",
-        "integrity": get_integrity_status(),
+        "ready": _init_complete,
     }
