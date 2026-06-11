@@ -1244,44 +1244,85 @@ async def gualaloom_chat(msg: GLMessage):
             pdf_bytes = base64.b64decode(b64_data)
             import fitz  # PyMuPDF
             doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            n_pages = len(doc)
+
+            # Extract text from all pages
             all_text = []
             for page in doc:
                 text = page.get_text()
                 if text.strip():
                     all_text.append(text.strip())
-            doc.close()
-            if not all_text:
-                return {"response": "PDF has no extractable text",
-                        "motifs": _guala.introspect()["vocab"]}
-            # Split into lines (sentences)
-            full_text = "\n".join(all_text)
-            lines = [l.strip() for l in full_text.split('\n') if l.strip()]
-            # Also split long lines at sentence boundaries
-            split_lines = []
-            for line in lines:
-                if len(line) > 200:
-                    for sent in line.replace('. ', '.\n').split('\n'):
-                        if sent.strip():
-                            split_lines.append(sent.strip())
-                else:
-                    split_lines.append(line)
-            lines = split_lines
-            n_pages = len(all_text)
+
             # Save original PDF to EFS
             pdf_dir = os.path.join(STATE_DIR, "books")
             os.makedirs(pdf_dir, exist_ok=True)
             pdf_path = os.path.join(pdf_dir, f"{corpus_id}.pdf")
             with open(pdf_path, 'wb') as f:
                 f.write(pdf_bytes)
-            # Register as corpus
-            _guala._corpora[corpus_id] = CorpusItem(
-                corpus_id=corpus_id, title=title, lines=lines)
-            _guala._log_substrate_event("corpus_added",
-                                        corpus_id=corpus_id, title=title,
-                                        n_lines=len(lines), source="pdf",
-                                        n_pages=n_pages)
-            return {"response": f"read \"{title}\" ({n_pages} pages, {len(lines)} lines). "
-                                f"added to her library. she'll read it when curiosity drives her.",
+
+            feedback = []
+
+            # B1: Text extraction + corpus registration
+            if all_text:
+                full_text = "\n".join(all_text)
+                lines = [l.strip() for l in full_text.split('\n') if l.strip()]
+                split_lines = []
+                for line in lines:
+                    if len(line) > 200:
+                        for sent in line.replace('. ', '.\n').split('\n'):
+                            if sent.strip():
+                                split_lines.append(sent.strip())
+                    else:
+                        split_lines.append(line)
+                lines = split_lines
+                _guala._corpora[corpus_id] = CorpusItem(
+                    corpus_id=corpus_id, title=title, lines=lines)
+                _guala._log_substrate_event("corpus_added",
+                                            corpus_id=corpus_id, title=title,
+                                            n_lines=len(lines), source="pdf",
+                                            n_pages=n_pages)
+                feedback.append(f"text: {n_pages} pages, {len(lines)} lines → "
+                                f"added to her library")
+
+            # B2: Rasterize pages as pictures (image PDFs or supplement to text)
+            n_rasterized = 0
+            if not all_text:
+                # No text → rasterize ALL pages as pictures
+                import hashlib
+                pic_dir = os.path.join(STATE_DIR, "pictures")
+                os.makedirs(pic_dir, exist_ok=True)
+                for i, page in enumerate(doc):
+                    pix = page.get_pixmap(dpi=150)
+                    img_bytes = pix.tobytes("jpeg")
+                    page_id = hashlib.md5(img_bytes).hexdigest()[:12]
+                    # Save original
+                    orig_path = os.path.join(pic_dir, f"{page_id}_original.jpg")
+                    with open(orig_path, 'wb') as f:
+                        f.write(img_bytes)
+                    # Create krimelack grid
+                    from PIL import Image
+                    import io as _io
+                    img = Image.open(_io.BytesIO(img_bytes)).convert('L')
+                    img = img.resize((64, 64))
+                    grid = np.array(img, dtype=np.float32) / 255.0
+                    pic = PictureItem(item_id=page_id,
+                                      title=f"{title}_p{i+1}",
+                                      intensity_grid=grid, source="pdf",
+                                      shown_at_tick=_guala.tick)
+                    pic.original_path = orig_path
+                    _guala._pictures[page_id] = pic
+                    n_rasterized += 1
+                feedback.append(f"images: {n_rasterized} pages registered as pictures — "
+                                f"no text layer; she'll see them, not read them")
+
+            doc.close()
+
+            # B3: Always give explicit feedback
+            if not feedback:
+                feedback.append("empty PDF — nothing to process")
+
+            return {"response": f"\"{title}\" ({n_pages} pages): "
+                                + "; ".join(feedback),
                     "motifs": _guala.introspect()["vocab"]}
         except Exception as e:
             return {"response": f"PDF decode error: {e}",
