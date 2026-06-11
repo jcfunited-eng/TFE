@@ -1062,7 +1062,7 @@ async def gualaloom_chat(msg: GLMessage):
                 f"needs: stab={n['stability']:.3f} nov={n['novelty']:.3f} "
                 f"conn={n['connection']:.3f} v={n['valence']:+.3f} a={n['arousal']:.3f}\n"
                 f"pair-bond: {'on' if s['pair_bond_active'] else 'off'} | "
-                f"suffering: {s['suffering_events']} | "
+                f"recoveries(lifetime): {s['suffering_events']} | "
                 f"coord: att={s['coordinator_attentions']} act={s['coordinator_actions']}\n"
                 f"persistence: save@tick={ph['last_save_tick']} "
                 f"files={'all' if not ph['files_missing'] else 'MISSING:' + ','.join(ph['files_missing'])} "
