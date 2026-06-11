@@ -1449,15 +1449,18 @@ async def gualaloom_chat(msg: GLMessage):
             picture_data.append({"item_id": item_id, "title": pic.title,
                                  "data": f"data:image/png;base64,{b64}"})
 
-    # Deduplicate, size-filter, and cap pictures (prevent multi-MB responses
-    # that exceed API Gateway 10MB limit — 413 with DECAY_PAUSED)
+    # Deduplicate and cap pictures. Skip large images to prevent multi-MB
+    # responses (API Gateway 10MB limit — 413 with DECAY_PAUSED).
+    # Only include small images (krimelack grids); full photos are too large
+    # for JSON embedding. Future: serve via /pictures/<id> endpoint.
     seen_ids = set()
     deduped = []
     for p in picture_data:
-        if p["item_id"] not in seen_ids and len(p.get("data", "")) < 500_000:
+        data_len = len(p.get("data", ""))
+        if p["item_id"] not in seen_ids and data_len < 50_000:
             seen_ids.add(p["item_id"])
             deduped.append(p)
-    picture_data = deduped[:2]  # cap at 2
+    picture_data = deduped[:2]
 
     result = {"response": response or "...", "motifs": _guala.introspect()["vocab"]}
     if picture_data:
