@@ -1006,15 +1006,39 @@ def _gl_init():
         return
 
     os.makedirs(STATE_DIR, exist_ok=True)
-    _guala = Guala()
+    # CRITICAL: build into local var — only set _guala AFTER successful load.
+    # If load_full_state fails (e.g. lock timeout), _guala stays None so the
+    # next call retries instead of running with a blank substrate.
+    g = Guala()
 
     # v7: Register seed corpora BEFORE loading state (so positions can restore)
     for cid, cdata in SEED_CORPORA.items():
-        _guala._corpora[cid] = CorpusItem(
+        g._corpora[cid] = CorpusItem(
             corpus_id=cid, title=cdata["title"], lines=cdata["lines"])
 
     # Load full persisted state from EFS (atomic, validated)
-    _guala.load_full_state(STATE_DIR)
+    g.load_full_state(STATE_DIR)
+
+    # P0: Identity guard — if EFS state was overwritten by a blank genesis
+    # (e.g. from the _gl_init bug fixed in 475de3e), detect and restore from S3.
+    EXPECTED_IDENTITY = "cdef9bcf"
+    if g._identity and not g._identity.startswith(EXPECTED_IDENTITY):
+        print(f"[GualaLoom] IDENTITY MISMATCH: got {g._identity[:8]}, "
+              f"expected {EXPECTED_IDENTITY}. Restoring from S3 backup...")
+        try:
+            _restore_from_s3(STATE_DIR)
+            g2 = Guala()
+            for cid, cdata in SEED_CORPORA.items():
+                g2._corpora[cid] = CorpusItem(
+                    corpus_id=cid, title=cdata["title"], lines=cdata["lines"])
+            g2.load_full_state(STATE_DIR)
+            if g2._identity and g2._identity.startswith(EXPECTED_IDENTITY):
+                print(f"[GualaLoom] Restore succeeded: identity={g2._identity[:8]}")
+                g = g2
+            else:
+                print(f"[GualaLoom] Restore FAILED: still wrong identity")
+        except Exception as e:
+            print(f"[GualaLoom] Restore error: {e}")
 
     # D5: Dream gate enforcement — decay must not resume before forced dream
     gate_marker = os.path.join(STATE_DIR, "dream_gate_cleared.json")
@@ -1029,17 +1053,20 @@ def _gl_init():
         "oxford-guide-to-english-grammar",  # 452pg meta-language, far above her level
     }
     for cid in CORPUS_BLOCKLIST:
-        if cid in _guala._corpora:
+        if cid in g._corpora:
             print(f"[GualaLoom] Removing blocked corpus: {cid}")
-            del _guala._corpora[cid]
+            del g._corpora[cid]
 
     # v7: Start autonomy loop (replaces continuous reading)
-    _guala.start_autonomy_loop(interval=0.05)
-    s = _guala.introspect()
+    g.start_autonomy_loop(interval=0.05)
+    s = g.introspect()
     print(f"[GualaLoom v7] Booted: vocab={s['vocab']} reads={s['reads']} "
-          f"tick={_guala.tick} pair_bond={'on' if s['pair_bond_active'] else 'off'} "
-          f"atlas={s['atlas_entries']} corpora={len(_guala._corpora)} "
+          f"tick={g.tick} pair_bond={'on' if s['pair_bond_active'] else 'off'} "
+          f"atlas={s['atlas_entries']} corpora={len(g._corpora)} "
           f"activity={s['current_activity']}")
+
+    # CRITICAL: only set global AFTER everything succeeded
+    _guala = g
 
 
 class GLMessage(BaseModel):
@@ -2328,6 +2355,32 @@ async def startup():
 
 
 _last_s3_backup = None  # D3: tracked for persistence_health
+
+def _restore_from_s3(state_dir):
+    """P0: Restore state files from most recent S3 backup."""
+    import boto3
+    s3 = boto3.client("s3", region_name="us-east-1")
+    bucket = "dsf-ai-site-backups"
+    # Find most recent backup prefix
+    resp = s3.list_objects_v2(Bucket=bucket, Prefix="guala/", Delimiter="/")
+    prefixes = sorted([p["Prefix"] for p in resp.get("CommonPrefixes", [])], reverse=True)
+    if not prefixes:
+        raise RuntimeError("No S3 backups found")
+    latest = prefixes[0]
+    print(f"[GualaLoom] Restoring from {latest}")
+    # Download all files
+    objs = s3.list_objects_v2(Bucket=bucket, Prefix=latest)
+    for obj in objs.get("Contents", []):
+        key = obj["Key"]
+        filename = key[len(latest):]
+        if "/" in filename:
+            # pictures/xxx.npy → state/pictures/xxx.npy
+            subdir = os.path.join(state_dir, os.path.dirname(filename))
+            os.makedirs(subdir, exist_ok=True)
+        local_path = os.path.join(state_dir, filename)
+        s3.download_file(bucket, key, local_path)
+    print(f"[GualaLoom] Restored {len(objs.get('Contents', []))} files from S3")
+
 
 def _backup_to_s3(state_dir):
     """V4/D3: Copy state files to S3 via boto3 (no aws CLI in container)."""

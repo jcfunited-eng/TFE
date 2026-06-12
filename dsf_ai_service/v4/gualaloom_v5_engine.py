@@ -2492,13 +2492,14 @@ class Guala:
     # D1: State lock via fcntl — kernel releases on process death
     _lock_fd = None
 
-    def _acquire_lock(self, state_dir, timeout=60):
+    def _acquire_lock(self, state_dir, timeout=120):
         """Acquire POSIX file lock (fcntl.lockf). Blocks up to timeout seconds
         for old task to release during zero-downtime deploy. Kernel releases on death."""
         import fcntl
         lock_path = os.path.join(state_dir, self.LOCK_FILE)
         self._lock_fd = open(lock_path, "w")
         deadline = time.time() + timeout
+        logged_wait = False
         while True:
             try:
                 fcntl.lockf(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -2507,12 +2508,17 @@ class Guala:
                 print(f"[GualaLoom] State lock acquired: PID {os.getpid()}")
                 return
             except (IOError, OSError):
-                if time.time() >= deadline:
+                remaining = int(deadline - time.time())
+                if remaining <= 0:
+                    self._lock_fd.close()
+                    self._lock_fd = None
                     raise RuntimeError(
                         f"State lock held by another process after {timeout}s. "
                         f"Two Gualas must never write one state.")
-                print(f"[GualaLoom] Lock held, waiting... ({int(deadline - time.time())}s left)")
-                time.sleep(0.5)
+                if not logged_wait or remaining % 10 == 0:
+                    print(f"[GualaLoom] Lock held by another task, waiting... ({remaining}s left)")
+                    logged_wait = True
+                time.sleep(1)
 
     def release_lock(self):
         """Release POSIX file lock so new task can acquire it."""
