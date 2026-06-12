@@ -2274,33 +2274,43 @@ async def startup():
                 pass
     asyncio.ensure_future(_background_replay())
 
-    # Periodic v6 Guala save with compaction (every 60s)
+    # N2: Periodic save + backup in executor (never blocks event loop)
+    def _do_save_and_compact():
+        """Runs in thread pool — never blocks health checks."""
+        t0 = time.time()
+        pre_size = _guala.events_log_size(STATE_DIR)
+        _guala.save_full_state(STATE_DIR)
+        _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
+        dt = time.time() - t0
+        print(f"[save] {dt:.2f}s")
+        return dt
+
     async def _periodic_v6_save():
         save_count = 0
+        loop = asyncio.get_event_loop()
         while True:
             await asyncio.sleep(60)
             try:
                 if _guala is not None:
-                    # D2: capture log size before save; compact only pre-save bytes
-                    pre_size = _guala.events_log_size(STATE_DIR)
-                    _guala.save_full_state(STATE_DIR)
-                    _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
+                    await loop.run_in_executor(None, _do_save_and_compact)
                     save_count += 1
-                    # Snapshot every 10 saves (~10 min)
                     if save_count % 10 == 0:
-                        snap_dir = _guala.snapshot_state(STATE_DIR, reason="periodic")
+                        def _snap():
+                            return _guala.snapshot_state(STATE_DIR, reason="periodic")
+                        snap_dir = await loop.run_in_executor(None, _snap)
                         print(f"[v6] Snapshot: {snap_dir}")
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[save] error: {e}")
     asyncio.ensure_future(_periodic_v6_save())
 
-    # V4 OFF-VOLUME BACKUP: daily S3 backup
+    # Daily S3 backup (also in executor)
     async def _daily_s3_backup():
+        loop = asyncio.get_event_loop()
         while True:
-            await asyncio.sleep(86400)  # 24h
+            await asyncio.sleep(86400)
             try:
                 if _guala is not None:
-                    _backup_to_s3(STATE_DIR)
+                    await loop.run_in_executor(None, _backup_to_s3, STATE_DIR)
             except Exception as e:
                 print(f"[DSF-AI] S3 backup error: {e}")
     asyncio.ensure_future(_daily_s3_backup())
