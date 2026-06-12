@@ -1098,6 +1098,33 @@ async def gualaloom_chat(msg: GLMessage):
 
     cmd = (msg.command or "").strip().lower()
 
+    # ── /picture <item_id> — serve picture as base64 for UI display ──
+    if cmd.startswith("/picture "):
+        item_id = cmd.split(" ", 1)[1].strip()
+        import base64 as _b64
+        pic = _guala._pictures.get(item_id)
+        if pic is None:
+            return {"response": f"picture not found: {item_id}", "motifs": 0}
+        orig_path = getattr(pic, 'original_path', None)
+        if orig_path and os.path.exists(orig_path):
+            with open(orig_path, 'rb') as f:
+                b64 = _b64.b64encode(f.read()).decode()
+            ext = orig_path.rsplit('.', 1)[1].lower() if '.' in orig_path else 'png'
+            mime = {'jpg': 'jpeg', 'jpeg': 'jpeg', 'png': 'png',
+                    'gif': 'gif', 'webp': 'webp', 'heic': 'heic'}.get(ext, 'png')
+            return {"response": "ok", "picture_data": f"data:image/{mime};base64,{b64}",
+                    "title": pic.title, "item_id": item_id}
+        elif pic.intensity_grid is not None:
+            from PIL import Image
+            import io as _io
+            img = Image.fromarray((pic.intensity_grid * 255).astype(np.uint8), mode='L')
+            buf = _io.BytesIO()
+            img.save(buf, format='PNG')
+            b64 = _b64.b64encode(buf.getvalue()).decode()
+            return {"response": "ok", "picture_data": f"data:image/png;base64,{b64}",
+                    "title": pic.title, "item_id": item_id}
+        return {"response": f"no image data for {item_id}", "motifs": 0}
+
     # ── /status — real substrate state + continuity health ──
     if cmd == "/status":
         s = _guala.introspect()
