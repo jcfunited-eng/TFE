@@ -49,30 +49,42 @@ class CoincidenceGate:
 
     def check_and_fire(self, sys_):
         """Each tick: decay strengths, check coincidence. If both drive AND
-           context hold, fire LTP on the section's top mode."""
+           context hold, fire LTP on the section's top mode.
+           C4: returns (fired, mode_id, eval_dict) for instrumentation."""
         from dsf_ai_service.substrate.gl_plasticity import decay_plasticity, reinforce_mode
 
         sec = sys_.sections[self.section_name]
         decay_plasticity(sec, decay=self.ltp_decay)
 
-        arcs = sec.arcs()  # this is now effective arcs (with mode_strength)
+        arcs = sec.arcs()
         if len(arcs) == 0:
-            return False, None
+            return False, None, {"gate": self.section_name, "reason": "no_arcs",
+                                 "top_val": 0.0, "threshold": self.drive_thresh,
+                                 "drive_ok": False, "context_ok": False}
 
         top_idx = int(arcs.argmax())
         top_val = float(arcs[top_idx])
         drive_ok = top_val > self.drive_thresh
 
         if not drive_ok:
-            return False, None
+            return False, None, {"gate": self.section_name, "reason": "drive_below_thresh",
+                                 "top_val": round(top_val, 6), "threshold": self.drive_thresh,
+                                 "drive_ok": False, "context_ok": False,
+                                 "top_mode": top_idx}
 
         context_ok = self.context_fn(sys_)
         if not context_ok:
-            return False, None
+            return False, None, {"gate": self.section_name, "reason": "context_blocked",
+                                 "top_val": round(top_val, 6), "threshold": self.drive_thresh,
+                                 "drive_ok": True, "context_ok": False,
+                                 "top_mode": top_idx}
 
         reinforce_mode(sec, top_idx, boost=self.ltp_boost,
                        ceiling=self.ltp_ceiling)
-        return True, top_idx
+        return True, top_idx, {"gate": self.section_name, "reason": "fired",
+                               "top_val": round(top_val, 6), "threshold": self.drive_thresh,
+                               "drive_ok": True, "context_ok": True,
+                               "top_mode": top_idx}
 
 
 def context_no_recent_drive(drive_tracker, sections=("listen", "subject", "verb", "object"),

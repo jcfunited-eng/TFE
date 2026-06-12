@@ -417,16 +417,18 @@ class V7Session:
                     while len(intro_sec.mode_bank) > len(self.intro_modes):
                         intro_sec.mode_bank.pop()
                         intro_sec.mode_last_used.pop()
-                    # NMDA gate check
-                    i_fired, i_mode = self.intro_gate.check_and_fire(self.sys_)
+                    # NMDA gate check — C4: log every evaluation
+                    i_fired, i_mode, i_eval = self.intro_gate.check_and_fire(self.sys_)
+                    i_eval["tick"] = self.sys_.tick
+                    i_eval["fired"] = i_fired
+                    i_eval["drive_tracker"] = {k: round(v, 4) for k, v in self.drive_tracker.items()}
+                    nmda_events.append(i_eval)
                     if i_fired and i_mode is not None and i_mode < len(self.intro_modes):
                         self.last_intro_state = self.intro_modes[i_mode]
                         self.intro_commit_history.append({
                             "state": self.last_intro_state,
                             "tick": self.sys_.tick})
                         self.intro_commit_history = self.intro_commit_history[-10:]
-                        nmda_events.append({"tick": self.sys_.tick, "gate": "intro",
-                                            "fired": True, "reason": "fired"})
 
             # Aware pass: drive toward matching aware mode
             aware_target_name = {
@@ -449,15 +451,16 @@ class V7Session:
                     while len(aware_sec.mode_bank) > len(self.aware_modes):
                         aware_sec.mode_bank.pop()
                         aware_sec.mode_last_used.pop()
-                    a_fired, a_mode = self.aware_gate.check_and_fire(self.sys_)
+                    a_fired, a_mode, a_eval = self.aware_gate.check_and_fire(self.sys_)
+                    a_eval["tick"] = self.sys_.tick
+                    a_eval["fired"] = a_fired
+                    nmda_events.append(a_eval)
                     if a_fired and a_mode is not None and a_mode < len(self.aware_modes):
                         self.last_aware_state = self.aware_modes[a_mode]
                         self.aware_commit_history.append({
                             "state": self.last_aware_state,
                             "tick": self.sys_.tick})
                         self.aware_commit_history = self.aware_commit_history[-10:]
-                        nmda_events.append({"tick": self.sys_.tick, "gate": "aware",
-                                            "fired": True, "reason": "fired"})
 
             # Build response tokens from emitted_words
             response_tokens = []
