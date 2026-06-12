@@ -206,10 +206,13 @@ async function runDailyEntryPass() {
   };
 
   // ── Same-day exit exclusion (brief point 4) ────────────────────────
-  // Any ticker the sentinel exited today is ineligible for entry.
-  // Prevents buy+sell collision (May 27 BELFB/LPLA/NVT incident).
-  let sameDayExitTickers = new Set();
+  // Any ticker the sentinel exited today OR with an open/unfilled sell
+  // order right now is ineligible for entry. Prevents buy+sell collision
+  // (May 27 BELFB/LPLA/NVT incident).
+  // FAIL CLOSED: if either query fails, abort the entire pass for today.
+  let sameDayExitTickers;
   try {
+    // 1. Tickers closed in the ledger today
     const exitRes = await pool.query(
       `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
        FROM personal_trade_ledger
@@ -217,11 +220,33 @@ async function runDailyEntryPass() {
          AND exit_filled_at >= CURRENT_DATE`
     );
     sameDayExitTickers = new Set(exitRes.rows.map(r => r.ticker));
+
+    // 2. Tickers with open/unfilled sell orders on Alpaca right now
+    const modeRes = await pool.query(
+      `SELECT value FROM pee1_execution_config WHERE key = 'execution_mode' LIMIT 1`
+    );
+    const mode = modeRes.rows[0]?.value ?? "paper";
+    const base = mode === "live" ? "https://api.alpaca.markets" : "https://paper-api.alpaca.markets";
+    const sellRes = await fetch(`${base}/v2/orders?status=open&side=sell&limit=200`, {
+      headers: {
+        "APCA-API-KEY-ID":     process.env.APCA_API_KEY_ID,
+        "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY,
+      },
+    });
+    const openSells = await sellRes.json();
+    if (Array.isArray(openSells)) {
+      for (const o of openSells) {
+        sameDayExitTickers.add(String(o.symbol).trim().toUpperCase());
+      }
+    }
+
     if (sameDayExitTickers.size > 0) {
       console.log(`[DAILY-ENTRY] Same-day exit exclusions: ${[...sameDayExitTickers].sort().join(', ')}`);
     }
   } catch (err) {
-    console.warn(`[DAILY-ENTRY] Same-day exit query failed: ${err.message} — proceeding without exclusion`);
+    console.error(`[DAILY-ENTRY] Exclusion data unavailable — pass aborted, no entries today (${err.message})`);
+    console.log(`[DAILY-ENTRY] ═══════════════════════════════════════════════`);
+    return;
   }
 
   let totalEntries = 0;
