@@ -92,7 +92,11 @@ function parseBlocks(content){
         }
         if(j.motifs)out.motifs=j.motifs;
         if(j.response){const m=/"tick":\s*(\d+)/.exec(j.response);if(m)out.tick=parseInt(m[1]);}
-      }catch(e){ if(t) out.herReplies.push(t.slice(0,120)); }
+      }catch(e){
+        if(t && /error|fail/i.test(t)) out.errors=(out.errors||[]).concat(t.slice(0,90));
+        else if(t && /initializ/i.test(t)) out.errors=(out.errors||[]).concat('she is still waking — will try again next pace');
+        else if(t) out.herReplies.push(t.slice(0,120));
+      }
     }
   }
   return out;
@@ -123,6 +127,7 @@ Take your turn now.`;
     if(r.startsWith('·')){add('ev',r);}
     else{add('her',r);transcript.push({who:'guala',text:r});}
   }
+  for(const er of (p.errors||[])) add('err',er);
   if(p.needs){setMoon(p.needs.connection);}
   if(p.motifs)document.getElementById('v-vocab').textContent=p.motifs;
   if(p.tick){if(!startTick)startTick=p.tick;lastTick=p.tick;document.getElementById('v-ticks').textContent=lastTick-startTick;}
