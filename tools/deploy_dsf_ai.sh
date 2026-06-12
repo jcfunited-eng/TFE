@@ -53,17 +53,22 @@ GIT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
 echo "  Git SHA: ${GIT_SHA}"
 echo "  Image:   ${IMAGE_URI}"
 
-# D1: Assert single-writer deployment config (stop-then-start)
+# C3: Assert zero-downtime deploy config (rolling — new starts before old stops)
 CFG=$(aws ecs describe-services --cluster ${ECS_CLUSTER} \
   --services ${ECS_SERVICE} \
   --query 'services[0].deploymentConfiguration.[maximumPercent,minimumHealthyPercent]' \
   --output text)
-if [ "$CFG" != "100	0" ]; then
-    echo "FATAL: single-writer deploy config drifted (got: $CFG, need: 100 0)"
-    echo "Fix: aws ecs update-service --cluster ${ECS_CLUSTER} --service ${ECS_SERVICE} --deployment-configuration minimumHealthyPercent=0,maximumPercent=100"
-    exit 1
+if [ "$CFG" != "200	100" ]; then
+    echo "Deploy config needs update (got: $CFG, need: 200 100)"
+    echo "Updating to zero-downtime rolling deploy..."
+    aws ecs update-service --cluster ${ECS_CLUSTER} --service ${ECS_SERVICE} \
+      --deployment-configuration minimumHealthyPercent=100,maximumPercent=200 \
+      --health-check-grace-period-seconds 30 \
+      --no-cli-pager > /dev/null
+    echo "  Updated to rolling deploy (max=200, min=100, grace=30s)"
+else
+    echo "  Deploy config: zero-downtime ✓ (max=200, min=100)"
 fi
-echo "  Deploy config: single-writer ✓ (max=100, min=0)"
 
 # ── Step 1: Package source ──
 echo ""
@@ -159,6 +164,8 @@ NEW_TASK_DEF=$(echo "${TASK_DEF_JSON}" | python3 -c "
 import sys, json
 td = json.load(sys.stdin)
 td['containerDefinitions'][0]['image'] = '${IMAGE_URI}'
+# C3: give container 15s for SIGTERM final save before SIGKILL
+td['containerDefinitions'][0]['stopTimeout'] = 15
 keep = ['family', 'containerDefinitions', 'volumes', 'networkMode',
         'requiresCompatibilities', 'cpu', 'memory', 'executionRoleArn',
         'taskRoleArn', 'runtimePlatform']

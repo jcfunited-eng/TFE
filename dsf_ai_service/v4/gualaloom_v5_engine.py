@@ -2492,20 +2492,39 @@ class Guala:
     # D1: State lock via fcntl — kernel releases on process death
     _lock_fd = None
 
-    def _acquire_lock(self, state_dir):
-        """Acquire POSIX file lock (fcntl.lockf). Kernel releases on death."""
+    def _acquire_lock(self, state_dir, timeout=60):
+        """Acquire POSIX file lock (fcntl.lockf). Blocks up to timeout seconds
+        for old task to release during zero-downtime deploy. Kernel releases on death."""
         import fcntl
         lock_path = os.path.join(state_dir, self.LOCK_FILE)
         self._lock_fd = open(lock_path, "w")
-        try:
-            fcntl.lockf(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            self._lock_fd.write(json.dumps({"pid": os.getpid(), "ts": time.time()}))
-            self._lock_fd.flush()
-            print(f"[GualaLoom] State lock acquired: PID {os.getpid()}")
-        except (IOError, OSError):
-            raise RuntimeError(
-                f"State lock held by another process. "
-                f"Two Gualas must never write one state.")
+        deadline = time.time() + timeout
+        while True:
+            try:
+                fcntl.lockf(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                self._lock_fd.write(json.dumps({"pid": os.getpid(), "ts": time.time()}))
+                self._lock_fd.flush()
+                print(f"[GualaLoom] State lock acquired: PID {os.getpid()}")
+                return
+            except (IOError, OSError):
+                if time.time() >= deadline:
+                    raise RuntimeError(
+                        f"State lock held by another process after {timeout}s. "
+                        f"Two Gualas must never write one state.")
+                print(f"[GualaLoom] Lock held, waiting... ({int(deadline - time.time())}s left)")
+                time.sleep(0.5)
+
+    def release_lock(self):
+        """Release POSIX file lock so new task can acquire it."""
+        import fcntl
+        if self._lock_fd is not None:
+            try:
+                fcntl.lockf(self._lock_fd, fcntl.LOCK_UN)
+                self._lock_fd.close()
+                print(f"[GualaLoom] State lock released: PID {os.getpid()}")
+            except Exception as e:
+                print(f"[GualaLoom] Lock release error: {e}")
+            self._lock_fd = None
 
     # D2: Offset-based event log compaction
     def events_log_size(self, state_dir):

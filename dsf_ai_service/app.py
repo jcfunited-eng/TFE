@@ -45,7 +45,7 @@ from typing import Optional, List, Dict
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel
 
 # Add project root to path so we can import uf_core and tools
@@ -1102,6 +1102,7 @@ async def gualaloom_chat(msg: GLMessage):
                 f"reinst={s.get('deep_atlas', {}).get('reinstatements_since_boot', 0)}"
             ),
             "motifs": s["vocab"],
+            "vocab": s["vocab"],
             "persistence_health": ph,
             "atlas_health": s.get("atlas_health", {}),
             "presence": s.get("presence", {}),
@@ -1705,56 +1706,64 @@ async def gualaloom_chat(msg: GLMessage):
                      source=source, words_in=len(text.split()),
                      source_count=_guala.source_history.get(source, 0))
 
-    # Periodic full save
+    # Periodic full save (in executor — never block the event loop)
     if _exchange_count % _persist_every == 0:
-        _guala.save_full_state(STATE_DIR)
+        import asyncio as _aio
+        _loop = _aio.get_event_loop()
+        def _save_1710():
+            t0 = time.time()
+            _guala.save_full_state(STATE_DIR)
+            dt = time.time() - t0
+            print(f"[save-1710] {dt:.2f}s")
+        _loop.run_in_executor(None, _save_1710)
 
-    # Include recalled pictures as base64 for frontend display
-    # Use original image if available, fall back to krimelack grid
-    import base64, io as _io
+    # C2: refs-not-base64 — return picture refs, not inline data
     recalled_pics = getattr(_guala, '_last_recalled_pictures', [])
-    picture_data = []
+    picture_refs = []
+    seen_ids = set()
     for motif, item_id in recalled_pics:
+        if item_id in seen_ids:
+            continue
         pic = _guala._pictures.get(item_id)
         if pic is None:
             continue
-        orig_path = getattr(pic, 'original_path', None)
-        if orig_path and os.path.exists(orig_path):
-            # Display original full-color image
-            with open(orig_path, 'rb') as f:
-                b64 = base64.b64encode(f.read()).decode()
-            ext = orig_path.rsplit('.', 1)[1] if '.' in orig_path else 'png'
-            mime = {'jpg': 'jpeg', 'jpeg': 'jpeg', 'png': 'png',
-                    'gif': 'gif', 'webp': 'webp'}.get(ext.lower(), 'png')
-            picture_data.append({"item_id": item_id, "title": pic.title,
-                                 "data": f"data:image/{mime};base64,{b64}"})
-        elif pic.intensity_grid is not None:
-            # Fallback: display krimelack grid (grayscale, old pictures)
-            from PIL import Image
-            img = Image.fromarray((pic.intensity_grid * 255).astype(np.uint8), mode='L')
-            buf = _io.BytesIO()
-            img.save(buf, format='PNG')
-            b64 = base64.b64encode(buf.getvalue()).decode()
-            picture_data.append({"item_id": item_id, "title": pic.title,
-                                 "data": f"data:image/png;base64,{b64}"})
-
-    # Deduplicate and cap pictures. Skip large images to prevent multi-MB
-    # responses (API Gateway 10MB limit — 413 with DECAY_PAUSED).
-    # Only include small images (krimelack grids); full photos are too large
-    # for JSON embedding. Future: serve via /pictures/<id> endpoint.
-    seen_ids = set()
-    deduped = []
-    for p in picture_data:
-        data_len = len(p.get("data", ""))
-        if p["item_id"] not in seen_ids and data_len < 50_000:
-            seen_ids.add(p["item_id"])
-            deduped.append(p)
-    picture_data = deduped[:2]
+        seen_ids.add(item_id)
+        picture_refs.append({"item_id": item_id, "title": pic.title})
+        if len(picture_refs) >= 4:
+            break
 
     result = {"response": response or "...", "motifs": _guala.introspect()["vocab"]}
-    if picture_data:
-        result["pictures"] = picture_data
+    if picture_refs:
+        result["pictures"] = picture_refs
     return result
+
+
+# C2: serve individual pictures by ID (refs-not-base64)
+@app.get("/api/v1/gualaloom/picture/{item_id}")
+async def gualaloom_picture(item_id: str):
+    """Return a single picture as binary image response."""
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    pic = _guala._pictures.get(item_id)
+    if pic is None:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    orig_path = getattr(pic, 'original_path', None)
+    if orig_path and os.path.exists(orig_path):
+        ext = orig_path.rsplit('.', 1)[1].lower() if '.' in orig_path else 'png'
+        mime = {'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
+                'gif': 'image/gif', 'webp': 'image/webp', 'heic': 'image/heic'}.get(ext, 'image/png')
+        with open(orig_path, 'rb') as f:
+            data = f.read()
+        return Response(content=data, media_type=mime)
+    elif pic.intensity_grid is not None:
+        from PIL import Image
+        import io as _io
+        img = Image.fromarray((pic.intensity_grid * 255).astype(np.uint8), mode='L')
+        buf = _io.BytesIO()
+        img.save(buf, format='PNG')
+        return Response(content=buf.getvalue(), media_type="image/png")
+    return JSONResponse({"error": "no image data"}, status_code=404)
 
 
 # ════════════════════════════════════════════════════════════════
@@ -2114,7 +2123,7 @@ async def v7_converse(req: V7ConverseRequest):
     except Exception:
         pass
     try:
-        save_session(session)
+        import asyncio as _a7; await _a7.get_event_loop().run_in_executor(None, save_session, session)
     except Exception:
         pass
     result["session_id"] = sid
@@ -2126,7 +2135,7 @@ async def v7_feedback(req: V7FeedbackRequest):
     session = get_or_create_session(req.session_id)
     result = session.apply_feedback(req.correct, req.expected_tokens)
     try:
-        save_session(session)
+        import asyncio as _a7; await _a7.get_event_loop().run_in_executor(None, save_session, session)
     except Exception:
         pass
     result["session_id"] = req.session_id
@@ -2145,7 +2154,7 @@ async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
     session = get_or_create_session(session_id)
     results = session.quiet_tick(min(n_ticks, 50))
     try:
-        save_session(session)
+        import asyncio as _a7; await _a7.get_event_loop().run_in_executor(None, save_session, session)
     except Exception:
         pass
     total_replayed = sum(len(r["replayed"]) for r in results)
@@ -2160,7 +2169,7 @@ async def v7_save(session_id: str = "default"):
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     session = get_or_create_session(session_id)
     try:
-        save_session(session)
+        import asyncio as _a7; await _a7.get_event_loop().run_in_executor(None, save_session, session)
         data = session.to_json()
         return {"saved": True, "session_id": session_id,
                 "schema_version": data.get("schema_version"),
@@ -2268,7 +2277,8 @@ async def startup():
                             total_c = sum(len(r.get("commits", [])) for r in results)
                             if total_c > 0:
                                 print(f"[v7-replay] session={sid}: {total_c} commits from replay")
-                            save_session(session)
+                            loop = asyncio.get_event_loop()
+                            await loop.run_in_executor(None, save_session, session)
                         except Exception:
                             pass
             except Exception:
@@ -2355,6 +2365,24 @@ def _backup_to_s3(state_dir):
     }
     print(f"[DSF-AI] S3 backup: {backed} files to s3://{bucket}/{prefix}")
     return f"s3://{bucket}/{prefix}"
+
+
+# C3: Graceful SIGTERM — final save + lock release for zero-downtime deploys
+@app.on_event("shutdown")
+async def shutdown():
+    if _guala is not None:
+        import asyncio
+        loop = asyncio.get_event_loop()
+        def _final_save():
+            t0 = time.time()
+            try:
+                _guala.save_full_state(STATE_DIR)
+                dt = time.time() - t0
+                print(f"[shutdown] final save {dt:.2f}s")
+            except Exception as e:
+                print(f"[shutdown] save error: {e}")
+            _guala.release_lock()
+        await loop.run_in_executor(None, _final_save)
 
 
 @app.get("/health")

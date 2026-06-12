@@ -211,12 +211,16 @@ async function sendFeedback(correct,up,dn){
 async function pollStatus(){
   try{const res=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:'/status'})});
   const s=await res.json();const ah=s.atlas_health||{};
-  statsLine.textContent=`vocab: ${s.motifs} · motifs: ${s.n_motifs||0} · atlas: ${ah.total_strength!=null?ah.total_strength.toFixed(1):'?'}`;
-  const a=s.current_activity;activityLine.textContent=a?`now: ${a.kind.toLowerCase()}${a.target?' '+a.target:''}`:'idle';
-  const n=s.response.match(/needs: (.*)/);if(n)needsLine.textContent=n[0];
-  const pr=s.presence||{};const prParts=[];for(const[k,v]of Object.entries(pr)){if(v.present)prParts.push(k)}
+  const vocab=s.vocab||s.motifs||0;
+  statsLine.textContent=`vocab: ${vocab} · motifs: ${s.n_motifs||0} · atlas: ${ah.total_strength!=null?ah.total_strength.toFixed(1):'?'} · sounds: ${s.n_sounds||0} · pics: ${s.n_pictures||0}`;
+  const a=s.current_activity;
+  if(a&&typeof a==='object'&&a.kind){activityLine.textContent=`now: ${a.kind.toLowerCase()}${a.target?' '+a.target:''}`}
+  else if(a&&typeof a==='string'){activityLine.textContent=`now: ${a}`}
+  else{activityLine.textContent='idle'}
+  const n=(s.response||'').match(/needs: (.*)/);if(n)needsLine.textContent=n[0];
+  const pr=s.presence||{};const prParts=[];for(const[k,v]of Object.entries(pr)){if(v&&v.present)prParts.push(k)}
   presenceLine.textContent=prParts.length?`present: ${prParts.join(', ')}`:'no presence';
-  isSleeping=a&&(a.kind==='SLEEPING'||a.kind==='DREAMING');sleepBtn.textContent=isSleeping?'🌅 Wake':'💤 Sleep';
+  isSleeping=a&&typeof a==='object'&&(a.kind==='SLEEPING'||a.kind==='DREAMING');sleepBtn.textContent=isSleeping?'🌅 Wake':'💤 Sleep';
   }catch(e){}
 }
 
@@ -341,7 +345,7 @@ async function sendMsg(){
     }else{
       const body=isCmd?{text:'',command:text}:{text};const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
       const d=await r.json();addMsg(d.response,isCmd?'system':'substrate');
-      if(d.pictures&&d.pictures.length>0)for(const p of d.pictures){const pd=document.createElement('div');pd.className='msg substrate';pd.innerHTML=`<img src="${p.data}" style="max-width:180px;border-radius:5px"> <span style="font-size:9px;color:var(--text-muted)">${p.title}</span>`;chat.appendChild(pd)}
+      if(d.pictures&&d.pictures.length>0)for(const p of d.pictures){const pd=document.createElement('div');pd.className='msg substrate';const img=document.createElement('img');img.style.cssText='max-width:180px;border-radius:5px';img.src=p.data||`${API}/api/v1/gualaloom/picture/${p.item_id}`;pd.appendChild(img);const sp=document.createElement('span');sp.style.cssText='font-size:9px;color:var(--text-muted)';sp.textContent=p.title||'';pd.appendChild(sp);chat.appendChild(pd)}
       chat.scrollTop=chat.scrollHeight;
     }
   }catch(e){addMsg('(error)','system')}btn.disabled=false;input.focus()}
