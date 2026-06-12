@@ -128,6 +128,7 @@ Take your turn now.`;
     else{add('her',r);transcript.push({who:'guala',text:r});}
   }
   for(const er of (p.errors||[])) add('err',er);
+  if(p.toolCalls.length===0&&p.herReplies.length===0&&p.text.length>0) add('err','wC (no tools): '+p.text.join(' ').slice(0,200));
   if(p.needs){setMoon(p.needs.connection);}
   if(p.motifs)document.getElementById('v-vocab').textContent=p.motifs;
   if(p.tick){if(!startTick)startTick=p.tick;lastTick=p.tick;document.getElementById('v-ticks').textContent=lastTick-startTick;}
