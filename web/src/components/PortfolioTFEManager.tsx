@@ -48,6 +48,7 @@ type PEE1Summary = {
   exit_reasons: Record<string, number>;
   execution_mode: string;
   auto_tfe_enabled: boolean;
+  entries_halted: boolean;
   risk_per_trade_pct: number;
   alpaca_equity: number | null;
   alpaca_cash: number | null;
@@ -473,6 +474,15 @@ export default function PortfolioTFEManager() {
 
       {/* ── Manual Order ────────────────────────────────────────────────────── */}
       <div className="tfe-panel" style={{ padding: "16px 20px" }}>
+        {summary?.entries_halted && (
+          <div style={{
+            background: "rgba(234,179,8,0.12)", border: "1px solid rgba(234,179,8,0.4)",
+            borderRadius: 6, padding: "8px 14px", marginBottom: 12,
+            fontSize: "0.82rem", color: "#b45309", fontWeight: 600,
+          }}>
+            Engine entries halted — manual orders still execute
+          </div>
+        )}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
           <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700 }}>Place Manual Order</h3>
           <span style={{ background: "#64748b", color: "#fff", borderRadius: 4, padding: "1px 7px", fontSize: "0.72rem", fontWeight: 700 }}>MANUAL</span>

@@ -158,6 +158,7 @@ export async function GET(request: NextRequest) {
       exit_reasons: exitReasons,
       execution_mode: executionMode,
       auto_tfe_enabled: configMap.auto_tfe_enabled === "true",
+      entries_halted: process.env.TFE_ENTRIES_HALTED === "1" || configMap.entries_halted === "true",
       risk_per_trade_pct: parseFloat(configMap.risk_per_trade_pct ?? "1.5") || 1.5,
       alpaca_equity: alpacaAccount?.equity ?? null,
       alpaca_cash: alpacaAccount?.cash ?? null,
