@@ -1420,6 +1420,7 @@ async def gualaloom_chat(msg: GLMessage):
         if caption:
             try:
                 _guala.read_sentence(caption, source="joe")
+                from dsf_ai_service.v4.gualaloom_v5_engine import _normalize_text
                 for w in _normalize_text(caption):
                     from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
                     tk = LanguageKrimelack()
