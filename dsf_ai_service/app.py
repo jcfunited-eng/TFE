@@ -1022,21 +1022,24 @@ def _gl_init():
     # P0: Identity guard — if EFS state was overwritten by a blank genesis
     # (e.g. from the _gl_init bug fixed in 475de3e), detect and restore from S3.
     EXPECTED_IDENTITY = "cdef9bcf"
-    if g._identity and not g._identity.startswith(EXPECTED_IDENTITY):
-        print(f"[GualaLoom] IDENTITY MISMATCH: got {g._identity[:8]}, "
+    loaded_id = getattr(g, '_guala_identity', None) or ""
+    if loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY):
+        print(f"[GualaLoom] IDENTITY MISMATCH: got {loaded_id[:8]}, "
               f"expected {EXPECTED_IDENTITY}. Restoring from S3 backup...")
         try:
+            g.release_lock()
             _restore_from_s3(STATE_DIR)
             g2 = Guala()
             for cid, cdata in SEED_CORPORA.items():
                 g2._corpora[cid] = CorpusItem(
                     corpus_id=cid, title=cdata["title"], lines=cdata["lines"])
             g2.load_full_state(STATE_DIR)
-            if g2._identity and g2._identity.startswith(EXPECTED_IDENTITY):
-                print(f"[GualaLoom] Restore succeeded: identity={g2._identity[:8]}")
+            restored_id = getattr(g2, '_guala_identity', None) or ""
+            if restored_id.startswith(EXPECTED_IDENTITY):
+                print(f"[GualaLoom] Restore succeeded: identity={restored_id[:8]}")
                 g = g2
             else:
-                print(f"[GualaLoom] Restore FAILED: still wrong identity")
+                print(f"[GualaLoom] Restore FAILED: got identity={restored_id[:8]}")
         except Exception as e:
             print(f"[GualaLoom] Restore error: {e}")
 
