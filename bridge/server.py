@@ -102,5 +102,47 @@ async def guala_say(content: str) -> dict:
     return await _post({"text": content, "source": "wc"})
 
 
+@mcp.tool()
+async def guala_give_experience(
+    caption: str = "",
+    picture_id: str = "",
+    sound_id: str = "",
+    touch: list[str] = [],
+    smell: list[str] = [],
+    taste: list[str] = [],
+) -> dict:
+    """Give Guala an experience bundle — five senses in one binding window.
+
+    All components bind in the SAME window (cross-modal). Uses already-stored
+    items by reference (no binary through the bridge — 1.8 discipline).
+
+    Args:
+        caption: Words to tell her (e.g. "daddy", "ocean").
+        picture_id: item_id of an already-uploaded picture (from guala_status pictures list).
+        sound_id: item_id of an already-uploaded sound (from guala_status sounds list).
+        touch: Tactile descriptors from library: warm, cool, soft, hard, wet, rough, etc.
+        smell: Olfactory descriptors: fresh, floral, earthy, smoky, ocean, etc.
+        taste: Gustatory descriptors: sweet, sour, salty, bitter, savory, etc.
+    """
+    import json
+    bundle = {"caption": caption}
+    if touch:
+        bundle["touch"] = touch
+    if smell:
+        bundle["smell"] = smell
+    if taste:
+        bundle["taste"] = taste
+    if picture_id:
+        bundle["picture_id"] = picture_id
+    if sound_id:
+        bundle["sound_id"] = sound_id
+    name = caption or picture_id or sound_id or "experience"
+    return await _post({
+        "text": json.dumps(bundle),
+        "command": f"/bundle:{name}",
+        "source": "wc",
+    })
+
+
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")

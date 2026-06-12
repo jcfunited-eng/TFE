@@ -21,6 +21,25 @@ import traceback
 def deterministic_motif_id(name):
     """1.5: Deterministic motif ID — replaces hash()%1000."""
     return int(_hashlib.md5(name.encode()).hexdigest()[:8], 16) % 10000
+
+
+def decode_image_bytes(img_bytes):
+    """H5a: Shared HEIC-capable image decode for every image route.
+    Returns (full_image, gray_grid_64x64, orig_w, orig_h) or raises."""
+    try:
+        import pillow_heif
+        pillow_heif.register_heif_opener()
+    except ImportError:
+        pass
+    from PIL import Image
+    import io as _io
+    img_full = Image.open(_io.BytesIO(img_bytes))
+    if img_full.mode not in ('RGB', 'L'):
+        img_full = img_full.convert('RGB')
+    orig_w, orig_h = img_full.size
+    img_gray = img_full.convert('L').resize((64, 64))
+    grid = np.array(img_gray, dtype=np.float64) / 255.0
+    return img_full, grid, orig_w, orig_h
 from typing import Optional, List, Dict
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
@@ -1357,21 +1376,7 @@ async def gualaloom_chat(msg: GLMessage):
             return {"response": "no image data", "motifs": _guala.introspect()["vocab"]}
         try:
             img_bytes = base64.b64decode(b64_data)
-            try:
-                import pillow_heif
-                pillow_heif.register_heif_opener()
-            except ImportError:
-                pass
-            from PIL import Image
-            import io as _io
-            # Open FULL COLOR original
-            img_full = Image.open(_io.BytesIO(img_bytes))
-            if img_full.mode not in ('RGB', 'L'):
-                img_full = img_full.convert('RGB')
-            orig_w, orig_h = img_full.size
-            # Krimelack grid: grayscale 64x64 derived FROM original (not replacing it)
-            img_gray = img_full.convert('L').resize((64, 64))
-            grid = np.array(img_gray, dtype=np.float64) / 255.0
+            img_full, grid, orig_w, orig_h = decode_image_bytes(img_bytes)
         except Exception as e:
             return {"response": f"image decode error: {e}",
                     "motifs": _guala.introspect()["vocab"]}
@@ -1397,10 +1402,10 @@ async def gualaloom_chat(msg: GLMessage):
                             f"krimelack 64x64 grayscale). she'll look at it when curiosity drives her.",
                 "motifs": _guala.introspect()["vocab"]}
 
-    # ── /bundle:<name> — experience bundle: image + sound + caption in one window (A4) ──
-    # Format: text field = JSON {"caption":"...", "image_b64":"...", "sound_b64":"..."}
+    # ── /bundle:<name> — experience bundle: all senses in one window (A4) ──
+    # H5b: entire handler wrapped — always returns structured JSON
     if cmd.startswith("/bundle:"):
-        import base64, hashlib
+        import base64
         bundle_name = cmd[len("/bundle:"):]
         try:
             bundle_data = json.loads(msg.text) if msg.text else {}
@@ -1408,137 +1413,188 @@ async def gualaloom_chat(msg: GLMessage):
             bundle_data = {"caption": msg.text}
 
         results = []
+        bundle_chis = []
         caption = bundle_data.get("caption", "")
 
-        # Open a response window for the bundle (five-lane binding)
-        bundle_chis = []
-
-        # Process caption as text input
+        # ── WORD lane ──
         if caption:
-            _guala.read_sentence(caption, source="joe")
-            for w in _normalize_text(caption):
-                from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
-                tk = LanguageKrimelack()
-                tk.transduce(w)
-                bundle_chis.append(tk.winding)
-            results.append(f"caption: \"{caption}\"")
-
-        # Process image
-        img_b64 = bundle_data.get("image_b64")
-        if img_b64:
-            img_bytes = base64.b64decode(img_b64)
-            img_id = hashlib.md5(img_bytes).hexdigest()[:12]
-            from PIL import Image
-            import io as _io
-            img = Image.open(_io.BytesIO(img_bytes)).convert('L')
-            img = img.resize((64, 64))
-            grid = np.array(img, dtype=np.float32) / 255.0
-            pic = PictureItem(item_id=img_id, title=bundle_name,
-                              intensity_grid=grid, source="bundle",
-                              shown_at_tick=_guala.tick)
-            # Save original
-            pic_dir = os.path.join(STATE_DIR, "pictures")
-            os.makedirs(pic_dir, exist_ok=True)
-            orig_path = os.path.join(pic_dir, f"{img_id}_original.jpg")
-            with open(orig_path, 'wb') as f:
-                f.write(img_bytes)
-            pic.original_path = orig_path
-            _guala._pictures[img_id] = pic
-            # 1.6: real visual path — saccade + fovea krimelack in-window
             try:
+                _guala.read_sentence(caption, source="joe")
+                for w in _normalize_text(caption):
+                    from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
+                    tk = LanguageKrimelack()
+                    tk.transduce(w)
+                    bundle_chis.append(tk.winding % 100)
+                results.append(f"told her \"{caption}\"")
+            except Exception as e:
+                results.append(f"word ERROR: {e}")
+
+        # ── SIGHT lane (H1: process_viewing, H5a: shared decode) ──
+        # Support both base64 upload and reference to existing picture (3.12)
+        img_b64 = bundle_data.get("image_b64")
+        picture_ref = bundle_data.get("picture_id")
+        if not img_b64 and picture_ref and picture_ref in _guala._pictures:
+            # 3.12: reference existing picture — re-view it in this window
+            pic = _guala._pictures[picture_ref]
+            if pic.intensity_grid is not None:
+                try:
+                    from dsf_ai_service.visual_krimelack import view_picture as vp
+                    frags = vp(pic.intensity_grid, source_id=picture_ref,
+                               born_tick=_guala.tick, seed=_guala.tick % 10000,
+                               n_fixations=6, ticks_per_fixation=100)
+                    _guala._visual_fragments.extend(frags)
+                    motif, is_new, overlap = _guala.sight.process_viewing(
+                        frags, picture_ref, _guala.tick)
+                    if motif:
+                        chi = motif.motif_id % 100
+                        _guala.atlas.record("sight", motif.motif_id,
+                                            chi, _guala.tick, salience=1.5, dwell_ticks=8)
+                        bundle_chis.append(chi)
+                    results.append(f"showed her \"{pic.title}\" (ref, {len(frags)} fragments)")
+                except Exception as e:
+                    results.append(f"image ref ERROR: {e}")
+            img_b64 = None  # don't process again below
+        if img_b64:
+            try:
+                img_bytes = base64.b64decode(img_b64)
+                _, grid, orig_w, orig_h = decode_image_bytes(img_bytes)
+                img_id = _hashlib.md5(img_bytes).hexdigest()[:12]
+                pic = PictureItem(item_id=img_id, title=bundle_name,
+                                  intensity_grid=grid, source="bundle",
+                                  shown_at_tick=_guala.tick)
+                pic_dir = os.path.join(STATE_DIR, "pictures")
+                os.makedirs(pic_dir, exist_ok=True)
+                orig_path = os.path.join(pic_dir, f"{img_id}_original.jpg")
+                with open(orig_path, 'wb') as f:
+                    f.write(img_bytes)
+                pic.original_path = orig_path
+                pic.original_width = orig_w
+                pic.original_height = orig_h
+                _guala._pictures[img_id] = pic
+                # H1: real visual path via process_viewing (not process_fragment)
                 from dsf_ai_service.visual_krimelack import view_picture as vp
                 frags = vp(grid, source_id=img_id,
                            born_tick=_guala.tick, seed=_guala.tick % 10000,
                            n_fixations=6, ticks_per_fixation=100)
                 _guala._visual_fragments.extend(frags)
-                for frag in frags:
-                    motif = _guala.sight.process_fragment(frag)
-                    if motif is not None:
-                        chi = motif.motif_id % 100  # 1.1
-                        _guala.atlas.record("sight", motif.motif_id,
-                                            chi, _guala.tick, salience=1.5,
-                                            dwell_ticks=8)
-                        bundle_chis.append(chi)
-                results.append(f"showed her \"{bundle_name}\" ({len(frags)} fragments)")
-            except Exception as e:
-                # 1.7: B3 — per-lane failure reporting, no silent drop
-                results.append(f"image ERROR: {e}")
-
-        # Process sound
-        snd_b64 = bundle_data.get("sound_b64")
-        if snd_b64:
-            snd_bytes = base64.b64decode(snd_b64)
-            snd_id = hashlib.md5(snd_bytes).hexdigest()[:12]
-            import tempfile, subprocess
-            tmp_in = tempfile.NamedTemporaryFile(suffix='.audio', delete=False)
-            tmp_in.write(snd_bytes)
-            tmp_in.close()
-            tmp_wav = tmp_in.name + '.wav'
-            try:
-                subprocess.run(["ffmpeg", "-i", tmp_in.name, "-ar", "200",
-                                "-ac", "1", "-f", "wav", tmp_wav, "-y",
-                                "-loglevel", "error"], check=True, timeout=30)
-                import wave, struct
-                with wave.open(tmp_wav, 'rb') as wf:
-                    sr = wf.getframerate()
-                    n_frames = wf.getnframes()
-                    raw = wf.readframes(n_frames)
-                samples = np.array(struct.unpack(f'<{n_frames}h', raw),
-                                   dtype=np.float64) / 32768.0
-                from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import (
-                    cochlear_transduce, onset_stream, sustained_stream, a1_signature)
-                cochlear = cochlear_transduce(samples, sample_rate=sr)
-                for bn, c in cochlear.items():
-                    chi = c["winding"] % 100  # 1.1
-                    _guala.atlas.record(f"audio_{bn}", deterministic_motif_id(snd_id),
+                motif, is_new, overlap = _guala.sight.process_viewing(
+                    frags, img_id, _guala.tick)
+                if motif:
+                    chi = motif.motif_id % 100
+                    _guala.atlas.record("sight", motif.motif_id,
                                         chi, _guala.tick, salience=1.5, dwell_ticks=8)
                     bundle_chis.append(chi)
-                _guala._sounds[snd_id] = {
-                    "item_id": snd_id, "title": bundle_name,
-                    "cochlear": {bn: {"winding": c["winding"], "n_events": c["n_events"]}
-                                 for bn, c in cochlear.items()},
-                    "times_attended": 0, "last_attended_tick": 0,
-                }
-                results.append(f"sound: {snd_id}")
+                results.append(f"showed her \"{bundle_name}\" "
+                               f"({len(frags)} fragments, {orig_w}x{orig_h})")
             except Exception as e:
-                results.append(f"sound error: {e}")
-            finally:
-                for p in [tmp_in.name, tmp_wav]:
-                    if os.path.exists(p):
-                        os.unlink(p)
+                results.append(f"image ERROR: {e}")
 
-        # Process touch/smell/taste through physics-based sensory generators
-        # GATING: these ONLY fire inside bundle path, never during reading/converse
+        # ── SOUND lane (H2: size guard on server side) ──
+        # Support reference to existing sound (3.12)
+        sound_ref = bundle_data.get("sound_id")
+        if sound_ref and sound_ref in _guala._sounds and not bundle_data.get("sound_b64"):
+            snd = _guala._sounds[sound_ref]
+            cochlear = snd.get("cochlear", {})
+            for bn, c in cochlear.items():
+                chi = c.get("winding", 0) % 100
+                _guala.atlas.record(f"audio_{bn}",
+                    deterministic_motif_id(sound_ref),
+                    chi, _guala.tick, salience=1.5, dwell_ticks=8)
+                bundle_chis.append(chi)
+            results.append(f"played her \"{snd.get('title', sound_ref)}\" (ref)")
+
+        snd_b64 = bundle_data.get("sound_b64")
+        if snd_b64:
+            try:
+                snd_bytes = base64.b64decode(snd_b64)
+                if len(snd_bytes) > 8_000_000:  # H2: 8MB server guard
+                    results.append("sound SKIPPED: too big (>8MB) — try mp3")
+                else:
+                    import tempfile, subprocess
+                    snd_id = _hashlib.md5(snd_bytes).hexdigest()[:12]
+                    tmp_in = tempfile.NamedTemporaryFile(suffix='.audio', delete=False)
+                    tmp_in.write(snd_bytes)
+                    tmp_in.close()
+                    tmp_wav = tmp_in.name + '.wav'
+                    try:
+                        subprocess.run(["ffmpeg", "-i", tmp_in.name, "-ar", "200",
+                                        "-ac", "1", "-f", "wav", tmp_wav, "-y",
+                                        "-loglevel", "error"], check=True, timeout=30)
+                        import wave, struct
+                        with wave.open(tmp_wav, 'rb') as wf:
+                            sr = wf.getframerate()
+                            n_frames = wf.getnframes()
+                            raw = wf.readframes(n_frames)
+                        samples = np.array(struct.unpack(f'<{n_frames}h', raw),
+                                           dtype=np.float64) / 32768.0
+                        from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import (
+                            cochlear_transduce, onset_stream, sustained_stream, a1_signature)
+                        cochlear = cochlear_transduce(samples, sample_rate=sr)
+                        n_events = sum(c["n_events"] for c in cochlear.values())
+                        dur = len(samples) / max(sr, 1)
+                        for bn, c in cochlear.items():
+                            chi = c["winding"] % 100
+                            _guala.atlas.record(f"audio_{bn}",
+                                deterministic_motif_id(snd_id),
+                                chi, _guala.tick, salience=1.5, dwell_ticks=8)
+                            bundle_chis.append(chi)
+                        _guala._sounds[snd_id] = {
+                            "item_id": snd_id, "title": bundle_name,
+                            "cochlear": {bn: {"winding": c["winding"],
+                                              "n_events": c["n_events"]}
+                                         for bn, c in cochlear.items()},
+                            "times_attended": 0, "last_attended_tick": 0,
+                        }
+                        results.append(f"played her \"{bundle_name}\" "
+                                       f"({dur:.1f}s, {n_events} events)")
+                    except Exception as e:
+                        results.append(f"sound ERROR: {e}")
+                    finally:
+                        for p in [tmp_in.name, tmp_wav]:
+                            if os.path.exists(p):
+                                os.unlink(p)
+            except Exception as e:
+                results.append(f"sound ERROR: {e}")
+
+        # ── TOUCH/SMELL/TASTE lanes (gated: bundle + dream only) ──
         from dsf_ai_service.substrate.sensory_generators import (
-            generate_sensory_signals, transduce_sensory_signals,
-            deterministic_motif_id as _dmid)
+            generate_sensory_signals, transduce_sensory_signals)
         for sense_name in ("touch", "smell", "taste"):
             selections = bundle_data.get(sense_name, [])
             if selections:
-                signals = generate_sensory_signals(sense_name, selections)
-                # 1.2: per-channel records (like cochlear bands)
-                channel_results = transduce_sensory_signals(signals)
-                for ch_name, ch_data in channel_results.items():
-                    chi = ch_data["chi"]  # 1.1: winding % 100
-                    motif = deterministic_motif_id(f"{bundle_name}_{sense_name}_{ch_name}")
-                    _guala.atlas.record(f"{sense_name}_{ch_name}", motif,
-                                        chi, _guala.tick, salience=1.5, dwell_ticks=8)
-                    bundle_chis.append(chi)
-                results.append(f"{sense_name}: {', '.join(selections)} "
-                               f"({len(channel_results)} channels)")
+                try:
+                    signals = generate_sensory_signals(sense_name, selections)
+                    channel_results = transduce_sensory_signals(signals)
+                    for ch_name, ch_data in channel_results.items():
+                        chi = ch_data["chi"]
+                        motif = deterministic_motif_id(
+                            f"{bundle_name}_{sense_name}_{ch_name}")
+                        _guala.atlas.record(f"{sense_name}_{ch_name}", motif,
+                                            chi, _guala.tick, salience=1.5,
+                                            dwell_ticks=8)
+                        bundle_chis.append(chi)
+                    label = {"touch": "feels", "smell": "smells",
+                             "taste": "tastes"}[sense_name]
+                    results.append(f"{label} {', '.join(selections)} "
+                                   f"({len(channel_results)} channels)")
+                except Exception as e:
+                    results.append(f"{sense_name} ERROR: {e}")
 
-        # Open five-lane binding window (A4: all lanes co-active)
+        # ── Bind all lanes in one window ──
         if bundle_chis:
             _guala._open_response_window("joe", bundle_chis,
                                           source_context={"bundle": bundle_name})
-
         _guala._log_substrate_event("experience_bundle",
                                     name=bundle_name, lanes=results,
                                     n_chis=len(bundle_chis))
+
+        # H5b: always structured JSON, never raw 500
         return {
-            "response": f"experience \"{bundle_name}\": {', '.join(results)}. "
-                        f"{len(bundle_chis)} cross-modal bindings in one window.",
+            "response": f"experience \"{bundle_name}\": {'; '.join(results)}. "
+                        f"{len(bundle_chis)} cross-modal bindings.",
             "motifs": _guala.introspect()["vocab"],
+            "bundle": {"name": bundle_name, "lanes": results,
+                       "n_chis": len(bundle_chis)},
         }
 
     # ── /addsound:<filename> — decode base64 audio, run through cochlear pipeline ──

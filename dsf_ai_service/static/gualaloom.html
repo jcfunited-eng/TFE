@@ -170,7 +170,7 @@ let lastEventTick=0,isSleeping=false,lastInputTime=Date.now();
 function setMode(m){
   mode=m;
   document.querySelectorAll('.toggle-group button').forEach((b,i)=>b.classList.toggle('active',['v6','substrate','v7'][i]===m));
-  document.getElementById('right-panel').style.display=m==='v7'?'block':'block';
+  document.getElementById('right-panel').style.display=m==='v7'?'block':'none';
   sessionInfo.textContent=m==='v7'?`session: ${sessionId}`:'';
   addMsg(`[${m==='v7'?'v7 DNA':m}]`,'system');
 }
@@ -299,6 +299,8 @@ async function submitBundle(){
   const smell=getSelected('bundle-smell');
   const taste=getSelected('bundle-taste');
   if(!caption&&!imgFile&&!sndFile&&!touch.length&&!smell.length&&!taste.length){addMsg('(need at least one sense filled in)','system');return}
+  // H2: client-side sound size guard
+  if(sndFile&&sndFile.size>6*1024*1024){addMsg('sound too big (>6MB) — try converting to mp3','system');return}
   closeBundleModal();
   const name=caption||imgFile?.name||sndFile?.name||'experience';
   const lanes=[];
@@ -314,7 +316,10 @@ async function submitBundle(){
     if(sndFile){const b64=await fileToB64(sndFile);bundle.sound_b64=b64}
     const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({text:JSON.stringify(bundle),command:'/bundle:'+name})});
-    const d=await r.json();addMsg(d.response||JSON.stringify(d),'system');
+    // H5c: handle non-JSON/non-200
+    if(!r.ok){const txt=await r.text();addMsg(`bundle failed (${r.status}): ${txt.slice(0,200)}`,'system');return}
+    try{const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')}
+    catch(e2){addMsg('bundle response not JSON: '+await r.text().catch(()=>'(unreadable)'),'system')}
   }catch(e){addMsg('bundle error: '+e,'system')}
   setTimeout(pollStatus,1000);
 }

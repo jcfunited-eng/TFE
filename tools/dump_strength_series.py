@@ -1,27 +1,23 @@
 #!/usr/bin/env python3
-"""C2 (042): Dump strength series from EFS snapshots for wC Step-3 derivation.
-Outputs (timestamp, total_strength, n_fast, n_slow, n_released, n_live) CSV.
-Run on-container or point STATE_DIR to local EFS copy. No deploy needed."""
+"""C2/1.10 (047): Dump strength series from ALL EFS snapshots.
+Outputs per row: timestamp, tick, total_strength, S_fast, S_slow, n_fast, n_slow, n_released.
+Run on-container or point STATE_DIR to local EFS copy."""
 
 import json, os, sys, glob
-from collections import defaultdict
 
 STATE_DIR = os.environ.get("GUALALOOM_STATE_DIR", "state")
 BACKUP_DIR = os.path.join(STATE_DIR, "backups")
 
-print("timestamp,total_strength,n_live,n_fast,n_slow,n_released")
+print("timestamp,tick,total_strength,S_fast,S_slow,n_fast,n_slow,n_released")
 
-# Scan snapshot directories
+dirs = []
 if os.path.isdir(BACKUP_DIR):
-    snap_dirs = sorted(glob.glob(os.path.join(BACKUP_DIR, "*")))
-else:
-    snap_dirs = []
+    dirs = sorted(glob.glob(os.path.join(BACKUP_DIR, "*")))
+dirs.append(STATE_DIR)  # current state last
 
-# Also include current state
-dirs_to_check = snap_dirs + [STATE_DIR]
-
-for d in dirs_to_check:
+for d in dirs:
     atlas_path = os.path.join(d, "guala_atlas.json")
+    core_path = os.path.join(d, "guala_core.json")
     if not os.path.exists(atlas_path):
         continue
     try:
@@ -30,8 +26,20 @@ for d in dirs_to_check:
         data = raw.get("data", raw)
         entries = data.get("entries", {})
 
+        tick = data.get("tick", 0)
+        # Also try core for tick
+        if os.path.exists(core_path):
+            try:
+                with open(core_path) as f:
+                    core = json.load(f)
+                core_data = core.get("data", core)
+                tick = max(tick, core_data.get("tick", 0))
+            except Exception:
+                pass
+
         total_str = 0.0
-        n_live = 0
+        s_fast = 0.0
+        s_slow = 0.0
         n_fast = 0
         n_slow = 0
         n_released = 0
@@ -39,17 +47,18 @@ for d in dirs_to_check:
         for chi_k, es in entries.items():
             for e in es:
                 s = e.get("strength", 0)
-                if s >= 0.02:
-                    total_str += s
-                    n_live += 1
-                    if e.get("released", False):
-                        n_released += 1
-                    elif e.get("dwell_ticks", 0) >= 4:
-                        n_slow += 1
-                    else:
-                        n_fast += 1
+                if s < 0.02:
+                    continue
+                total_str += s
+                if e.get("released", False):
+                    n_released += 1
+                elif e.get("dwell_ticks", 0) >= 4:
+                    n_slow += 1
+                    s_slow += s
+                else:
+                    n_fast += 1
+                    s_fast += s
 
-        # Timestamp from directory name or file mtime
         dirname = os.path.basename(d)
         if dirname.startswith("20"):
             ts = dirname
@@ -58,6 +67,6 @@ for d in dirs_to_check:
             from datetime import datetime
             ts = datetime.fromtimestamp(ts).strftime("%Y-%m-%d_%H-%M-%S")
 
-        print(f"{ts},{total_str:.2f},{n_live},{n_fast},{n_slow},{n_released}")
+        print(f"{ts},{tick},{total_str:.2f},{s_fast:.2f},{s_slow:.2f},{n_fast},{n_slow},{n_released}")
     except Exception as e:
         print(f"# ERROR {d}: {e}", file=sys.stderr)
