@@ -14,7 +14,13 @@ import sys
 import io
 import csv
 import time
+import hashlib as _hashlib
 import traceback
+
+
+def deterministic_motif_id(name):
+    """1.5: Deterministic motif ID — replaces hash()%1000."""
+    return int(_hashlib.md5(name.encode()).hexdigest()[:8], 16) % 10000
 from typing import Optional, List, Dict
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
@@ -1084,20 +1090,30 @@ async def gualaloom_chat(msg: GLMessage):
             # v8: deep atlas (GL-BRIEF-032)
             "deep_atlas": s.get("deep_atlas", {}),
             # 042: audio
+            # 1.9: ladder metrics
+            "ladder": s.get("ladder", {}),
             "n_sounds": s.get("n_sounds", 0),
-            "sounds": s.get("sounds", []),
+            "sounds": [{"item_id": snd["item_id"], "title": snd["title"],
+                        "times_attended": snd.get("times_attended", 0)}
+                       for snd in s.get("sounds", [])[-10:]],
             # v7: autonomy fields
             "current_activity": s.get("current_activity"),
             "activity_history_summary": s.get("activity_history_summary", {}),
             "n_motifs": s.get("n_motifs", 0),
-            "corpora": s.get("corpora", []),
-            "sensory_items": s.get("sensory_items", []),
+            "n_corpora": len(s.get("corpora", [])),
+            "corpora": [{"corpus_id": c["corpus_id"], "title": c["title"]}
+                        for c in s.get("corpora", [])[-10:]],
+            "sensory_items": len(s.get("sensory_items", [])),
             # Phase 2: visual
             "n_visual_fragments": s.get("n_visual_fragments", 0),
             "n_visual_motifs": s.get("n_visual_motifs", 0),
-            "sight_section": s.get("sight_section", {}),
-            "pictures": s.get("pictures", []),
-            "videos": s.get("videos", []),
+            # 1.8: refs not dumps — counts + last 10 only (was full motif list)
+            "sight_section": {"n_motifs": s.get("n_visual_motifs", 0)},
+            "n_pictures": len(s.get("pictures", [])),
+            "pictures": [{"item_id": p["item_id"], "title": p["title"],
+                          "times_attended": p["times_attended"]}
+                         for p in s.get("pictures", [])[-10:]],
+            "n_videos": len(s.get("videos", [])),
         }
 
     # ── /wake — substrate-physical wake event ──
@@ -1428,13 +1444,25 @@ async def gualaloom_chat(msg: GLMessage):
                 f.write(img_bytes)
             pic.original_path = orig_path
             _guala._pictures[img_id] = pic
-            # Bind into atlas at visual chi
-            for i in range(min(4, grid.shape[0])):
-                chi = int(grid[i].sum() * 10) % 100
-                _guala.atlas.record("sight", hash(img_id) % 1000,
-                                    chi, _guala.tick, salience=1.5, dwell_ticks=8)
-                bundle_chis.append(chi)
-            results.append(f"image: {img_id}")
+            # 1.6: real visual path — saccade + fovea krimelack in-window
+            try:
+                from dsf_ai_service.visual_krimelack import view_picture as vp
+                frags = vp(grid, source_id=img_id,
+                           born_tick=_guala.tick, seed=_guala.tick % 10000,
+                           n_fixations=6, ticks_per_fixation=100)
+                _guala._visual_fragments.extend(frags)
+                for frag in frags:
+                    motif = _guala.sight.process_fragment(frag)
+                    if motif is not None:
+                        chi = motif.motif_id % 100  # 1.1
+                        _guala.atlas.record("sight", motif.motif_id,
+                                            chi, _guala.tick, salience=1.5,
+                                            dwell_ticks=8)
+                        bundle_chis.append(chi)
+                results.append(f"showed her \"{bundle_name}\" ({len(frags)} fragments)")
+            except Exception as e:
+                # 1.7: B3 — per-lane failure reporting, no silent drop
+                results.append(f"image ERROR: {e}")
 
         # Process sound
         snd_b64 = bundle_data.get("sound_b64")
@@ -1461,8 +1489,8 @@ async def gualaloom_chat(msg: GLMessage):
                     cochlear_transduce, onset_stream, sustained_stream, a1_signature)
                 cochlear = cochlear_transduce(samples, sample_rate=sr)
                 for bn, c in cochlear.items():
-                    chi = c["winding"]
-                    _guala.atlas.record(f"audio_{bn}", hash(snd_id) % 1000,
+                    chi = c["winding"] % 100  # 1.1
+                    _guala.atlas.record(f"audio_{bn}", deterministic_motif_id(snd_id),
                                         chi, _guala.tick, salience=1.5, dwell_ticks=8)
                     bundle_chis.append(chi)
                 _guala._sounds[snd_id] = {
@@ -1482,18 +1510,22 @@ async def gualaloom_chat(msg: GLMessage):
         # Process touch/smell/taste through physics-based sensory generators
         # GATING: these ONLY fire inside bundle path, never during reading/converse
         from dsf_ai_service.substrate.sensory_generators import (
-            generate_sensory_signals, transduce_sensory_signals)
+            generate_sensory_signals, transduce_sensory_signals,
+            deterministic_motif_id as _dmid)
         for sense_name in ("touch", "smell", "taste"):
             selections = bundle_data.get(sense_name, [])
             if selections:
-                # Generate physics-based waveforms from selected descriptors
                 signals = generate_sensory_signals(sense_name, selections)
-                # Run through krimelack transduction → real chi from signal structure
-                chi = transduce_sensory_signals(signals)
-                _guala.atlas.record(f"modal_{sense_name}", hash(bundle_name) % 1000,
-                                    chi, _guala.tick, salience=1.5, dwell_ticks=8)
-                bundle_chis.append(chi)
-                results.append(f"{sense_name}: {', '.join(selections)} (chi={chi})")
+                # 1.2: per-channel records (like cochlear bands)
+                channel_results = transduce_sensory_signals(signals)
+                for ch_name, ch_data in channel_results.items():
+                    chi = ch_data["chi"]  # 1.1: winding % 100
+                    motif = deterministic_motif_id(f"{bundle_name}_{sense_name}_{ch_name}")
+                    _guala.atlas.record(f"{sense_name}_{ch_name}", motif,
+                                        chi, _guala.tick, salience=1.5, dwell_ticks=8)
+                    bundle_chis.append(chi)
+                results.append(f"{sense_name}: {', '.join(selections)} "
+                               f"({len(channel_results)} channels)")
 
         # Open five-lane binding window (A4: all lanes co-active)
         if bundle_chis:
@@ -1561,8 +1593,8 @@ async def gualaloom_chat(msg: GLMessage):
             # Feed into v6 substrate's atlas at the audio chi address
             from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import COCHLEAR_BANDS
             for band_name, c in cochlear.items():
-                chi = c["winding"]
-                _guala.atlas.record(f"audio_{band_name}", hash(item_id) % 1000,
+                chi = c["winding"] % 100  # 1.1
+                _guala.atlas.record(f"audio_{band_name}", deterministic_motif_id(item_id),
                                     chi, _guala.tick, salience=1.2)
             # Register as attendable sound item (A1/A2: autonomous audio attention)
             _guala._sounds[item_id] = {
@@ -2230,7 +2262,8 @@ def _backup_to_s3(state_dir):
     prefix = f"guala/{date_str}/"
     files = ["guala_core.json", "guala_needs.json", "guala_coordinator.json",
              "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
-             "guala_deep_atlas.json", "guala_visual.json", "guala_identity.json"]
+             "guala_deep_atlas.json", "guala_visual.json", "guala_identity.json",
+             "guala_sounds.json", "guala_videos.json"]
     backed = 0
     for f in files:
         path = os.path.join(state_dir, f)

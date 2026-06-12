@@ -34,6 +34,7 @@ import sys
 import math
 import json
 import time
+import hashlib as _hashlib
 import threading
 import numpy as np
 from collections import defaultdict
@@ -67,6 +68,10 @@ except ImportError:
 
 
 import re as _re
+
+def deterministic_motif_id(name):
+    """1.5: Deterministic motif ID — replaces hash()%1000."""
+    return int(_hashlib.md5(name.encode()).hexdigest()[:8], 16) % 10000
 import unicodedata as _ud
 
 def _normalize_text(text):
@@ -852,6 +857,13 @@ class Guala:
         self._response_bind_count = 0  # total response_bound events since boot
         self._self_hearing = False  # GL-BRIEF-034: suppresses question gen during self-hear
 
+        # 1.9: Ladder metrics
+        self._emission_lengths = []   # word counts of recent emissions
+        self._turn_emission_counts = []  # emissions per turn
+        self._question_count = 0
+        self._total_emissions = 0
+        self._novel_compositions = 0
+
         # Fix C (GL-FIX-THREE): decay modulation — per-process only, never persisted
         self.decay_modulation = 1.0
         self._decay_mod_owner = None
@@ -957,7 +969,7 @@ class Guala:
                     if sense_fps[m] is not None:
                         modal_chi = self.senses.krimelacks[m].winding
                         sec_name = f"modal_{m}"
-                        self.atlas.record(sec_name, hash(word) % 1000,
+                        self.atlas.record(sec_name, deterministic_motif_id(word),
                                           modal_chi, self.tick,
                                           salience=salience)
 
@@ -1887,8 +1899,8 @@ class Guala:
         # Bind cochlear bands into atlas (same path as upload, reinforces on re-attend)
         cochlear = snd.get("cochlear", {})
         for band_name, c in cochlear.items():
-            chi = c.get("winding", 0)
-            self.atlas.record(f"audio_{band_name}", hash(a.target) % 1000,
+            chi = c.get("winding", 0) % 100  # 1.1
+            self.atlas.record(f"audio_{band_name}", deterministic_motif_id(a.target),
                               chi, self.tick, salience=1.2, dwell_ticks=8)
         # Novelty satisfies
         if snd.get("times_attended", 0) <= 3:
@@ -2012,6 +2024,15 @@ class Guala:
         self._log_substrate_event("emission", content=content,
                                  to_sources=to_sources,
                                  picture_ids=pic_ids)
+
+        # 1.9: Ladder metrics
+        words = content.split() if content and content != "..." else []
+        self._total_emissions += 1
+        self._emission_lengths.append(len(words))
+        if len(self._emission_lengths) > 100:
+            self._emission_lengths = self._emission_lengths[-50:]
+        if any(w.endswith("?") or content.startswith("what") for w in words):
+            self._question_count += 1
 
         # v8 (GL-BRIEF-028): open response window from Guala's emission
         if recent_chis:
@@ -2444,6 +2465,24 @@ class Guala:
                 if p.intensity_grid is not None:
                     np.save(os.path.join(pic_dir, f"{pid}.npy"), p.intensity_grid)
 
+            # 8. Sounds (1.4)
+            sounds_data = {sid: s for sid, s in self._sounds.items()}
+            self._atomic_write(os.path.join(state_dir, "guala_sounds.json"),
+                self._envelope(sounds_data))
+            results["guala_sounds.json"] = os.path.getsize(
+                os.path.join(state_dir, "guala_sounds.json"))
+
+            # 9. Videos (1.4)
+            videos_data = {vid: {"item_id": v.item_id, "title": v.title,
+                                  "source": getattr(v, 'source', ''),
+                                  "times_attended": v.times_attended,
+                                  "last_attended_tick": v.last_attended_tick}
+                           for vid, v in self._videos.items()}
+            self._atomic_write(os.path.join(state_dir, "guala_videos.json"),
+                self._envelope(videos_data))
+            results["guala_videos.json"] = os.path.getsize(
+                os.path.join(state_dir, "guala_videos.json"))
+
             self._last_save_tick = self.tick
             self._last_save_timestamp = ts
             return results
@@ -2598,6 +2637,36 @@ class Guala:
                           f"{self.deep_atlas.live_count()} entries")
                 except Exception as e:
                     print(f"[GualaLoom] Deep atlas load: {e}")
+
+            # Load sounds if present (1.4)
+            sounds_path = os.path.join(state_dir, "guala_sounds.json")
+            if os.path.exists(sounds_path):
+                try:
+                    with open(sounds_path) as fh:
+                        sraw = json.load(fh)
+                    sdata = sraw.get("data", sraw)
+                    self._sounds = dict(sdata)
+                    print(f"[GualaLoom] Sounds loaded: {len(self._sounds)} items")
+                except Exception as e:
+                    print(f"[GualaLoom] Sounds load: {e}")
+
+            # Load videos if present (1.4)
+            videos_path = os.path.join(state_dir, "guala_videos.json")
+            if os.path.exists(videos_path):
+                try:
+                    with open(videos_path) as fh:
+                        vraw = json.load(fh)
+                    vdata = vraw.get("data", vraw)
+                    for vid, vinfo in vdata.items():
+                        self._videos[vid] = PictureItem(
+                            item_id=vinfo["item_id"], title=vinfo["title"],
+                            intensity_grid=None, source=vinfo.get("source", ""),
+                            shown_at_tick=0,
+                            times_attended=vinfo.get("times_attended", 0),
+                            last_attended_tick=vinfo.get("last_attended_tick", 0))
+                    print(f"[GualaLoom] Videos loaded: {len(vdata)} items")
+                except Exception as e:
+                    print(f"[GualaLoom] Videos load: {e}")
 
             # Load visual data if present
             visual_path = os.path.join(state_dir, "guala_visual.json")
@@ -3048,7 +3117,8 @@ class Guala:
     # ── Persistence health for /status ──
 
     # D6: report-only files (not boot-required, but tracked for health)
-    REPORT_FILES = ["guala_deep_atlas.json", "guala_visual.json"]
+    REPORT_FILES = ["guala_deep_atlas.json", "guala_visual.json",
+                     "guala_sounds.json", "guala_videos.json"]
 
     def persistence_health(self, state_dir="state"):
         all_files = [self.IDENTITY_FILE] + self.STATE_FILES + self.REPORT_FILES
@@ -3128,6 +3198,18 @@ class Guala:
                          "position": c.position,
                          "times_read_through": c.times_read_through}
                         for c in self._corpora.values()],
+            # 1.9: Ladder metrics
+            "ladder": {
+                "mean_utterance_len": round(
+                    sum(self._emission_lengths) / max(1, len(self._emission_lengths)), 2)
+                    if self._emission_lengths else 0.0,
+                "utterances_per_turn": 1.0,  # currently 1 emission per turn
+                "question_rate": round(
+                    self._question_count / max(1, self._total_emissions), 3)
+                    if self._total_emissions > 0 else 0.0,
+                "novel_composition_rate": 0.0,  # needs R3 phrase structure
+                "total_emissions": self._total_emissions,
+            },
             "n_sounds": len(self._sounds),
             "sounds": [{"item_id": sid, "title": s.get("title", ""),
                         "times_attended": s.get("times_attended", 0)}

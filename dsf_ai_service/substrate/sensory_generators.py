@@ -20,7 +20,14 @@ because the PHYSICS is similar, not because someone tagged them.
 """
 
 import math
+import hashlib
 import numpy as np
+
+
+def deterministic_motif_id(name):
+    """1.5: Deterministic motif ID from a name string.
+    Replaces hash()%1000 which changes every restart."""
+    return int(hashlib.md5(name.encode()).hexdigest()[:8], 16) % 10000
 
 
 # ============================================================
@@ -168,8 +175,9 @@ def generate_smell_waveform(params, n_samples=200, sample_rate=100):
         # Activation curve: rise then partial decay
         rise = 1.0 - np.exp(-t / tau_on)
         fade = np.exp(-np.maximum(t - 0.8, 0) / tau_off)
-        # Add receptor noise (biological jitter)
-        rng = np.random.default_rng(hash(channel) % 2**31)
+        # Add receptor noise (biological jitter) — deterministic seed (1.3)
+        channel_seed = sum(ord(c) for c in channel) * 7 + 13
+        rng = np.random.default_rng(channel_seed)
         noise = rng.standard_normal(n_samples) * 0.05
         signals[channel] = intensity * rise * fade + noise * intensity
 
@@ -284,31 +292,27 @@ def generate_sensory_signals(sense_name, selections):
 
 def transduce_sensory_signals(signals):
     """Run generated waveforms through krimelack transduction.
-    Returns a chi value derived from the signal's actual structure.
+    Returns dict of channel_name → {winding, chi} for per-channel binding (1.2).
 
-    This is NOT a flat number — it's a winding computed from the
-    temporal dynamics of the signal, the same way audio chi comes
-    from cochlear band windings."""
+    Each channel gets its own krimelack winding → chi_address = winding % 100 (1.1).
+    This preserves combinatorial identity: warm+rough ≠ warm+smooth because
+    each channel's chi differs."""
     from dsf_ai_service.substrate.krimelack import Krimelack
     import math
 
-    total_winding = 0
-    n_channels = 0
-
+    results = {}
     for channel_name, waveform in signals.items():
         if len(waveform) < 2:
             continue
-        # Normalize to [-1, 1]
         wmax = np.abs(waveform).max()
         if wmax < 1e-9:
             continue
         normalized = waveform / wmax
-
-        # Run through krimelack
         k = Krimelack(omega_0=2.0, kappa=60.0, dt=0.02,
                       integration_threshold=math.pi / 3)
         k.feed_signal(normalized)
-        total_winding += k.winding
-        n_channels += 1
-
-    return total_winding if n_channels > 0 else 0
+        results[channel_name] = {
+            "winding": k.winding,
+            "chi": k.winding % 100,  # 1.1: canonical chi_address
+        }
+    return results
