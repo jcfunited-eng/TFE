@@ -1207,6 +1207,16 @@ class Guala:
         self._last_recalled_pictures = []
         return text
 
+    def _chis_for_text(self, text):
+        """Transduce text to chi addresses (read-only, no atlas mutation)."""
+        words = _normalize_text(text)
+        result = []
+        for w in words:
+            tk = LanguageKrimelack()
+            tk.transduce(w)
+            result.append(tk.winding)
+        return result
+
     def _recall_sight_from_atlas(self, input_chis, input_words):
         """Find sight motifs bound at chi addresses near input word motifs.
         Returns list of (sight_motif, source_item_id) tuples."""

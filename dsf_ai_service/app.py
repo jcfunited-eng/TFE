@@ -1830,6 +1830,152 @@ async def gualaloom_picture(item_id: str):
     return JSONResponse({"error": "no image data"}, status_code=404)
 
 
+# GL-BRIEF-CHITRACE: read-only chi-geometry readout
+class ChiTraceRequest(BaseModel):
+    picture_ids: list = []
+    sound_ids: list = []
+    input_text: str = ""
+
+@app.post("/api/v1/gualaloom/chi_trace")
+async def chi_trace(req: ChiTraceRequest):
+    """Read-only chi-geometry readout. No state mutation."""
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "initializing"}, status_code=503)
+    if not req.picture_ids and not req.sound_ids and not req.input_text:
+        return JSONResponse({"error": "at least one of picture_ids, sound_ids, or input_text required"}, status_code=400)
+
+    result = {"tick": _guala.tick}
+
+    # Input chis
+    if req.input_text:
+        result["input_chis"] = _guala._chis_for_text(req.input_text)
+    else:
+        result["input_chis"] = []
+
+    # Refs
+    refs = {}
+    all_ids = [(pid, "picture") for pid in (req.picture_ids or [])] + \
+              [(sid, "sound") for sid in (req.sound_ids or [])]
+    for item_id, kind in all_ids:
+        ref = {"kind": kind, "title": None, "n_chis": 0, "chis": [], "_note": None}
+
+        if kind == "picture":
+            pic = _guala._pictures.get(item_id)
+            if pic is None:
+                ref["_note"] = "item not found"
+                refs[item_id] = ref
+                continue
+            ref["title"] = pic.title
+
+            # Reverse map: find sight motifs whose source_history contains this item_id
+            item_chis = []
+            for sm in _guala.sight.motifs:
+                if item_id in sm.source_history:
+                    # Find atlas entries for this motif in the sight section
+                    for chi_key, entries in _guala.atlas.entries.items():
+                        for e in entries:
+                            if e.get("section") == "sight" and e.get("motif") == sm.motif_id:
+                                deep_prior = _guala.deep_atlas.get_prior(chi_key, "sight", sm.motif_id)
+                                # Cross-modal neighbors
+                                assoc = _guala.atlas.query_associations("sight", chi_key)
+                                neighbors = {}
+                                for sec_name, motif_list in assoc.items():
+                                    top5 = sorted(motif_list, key=lambda x: x[1], reverse=True)[:5]
+                                    neighbors[sec_name] = [{"motif": m, "strength": round(s, 3)} for m, s in top5]
+                                item_chis.append({
+                                    "chi": chi_key,
+                                    "binding_strength": round(e["strength"], 3),
+                                    "encoded_strength": round(e.get("encoded_strength", 0), 3),
+                                    "dwell_ticks": e.get("dwell_ticks", 0),
+                                    "reinforcement_count": e.get("reinforcement_count", 0),
+                                    "deep_prior": round(deep_prior, 3),
+                                    "in_deep": deep_prior > 0,
+                                    "cross_modal_neighbors": neighbors,
+                                })
+            # Sort by strength, cap at 16
+            item_chis.sort(key=lambda x: x["binding_strength"], reverse=True)
+            ref["chis"] = item_chis[:16]
+            ref["n_chis"] = len(item_chis)
+
+        elif kind == "sound":
+            snd = _guala._sounds.get(item_id)
+            if snd is None:
+                ref["_note"] = "item not found"
+                refs[item_id] = ref
+                continue
+            ref["title"] = snd.get("title", item_id)
+            # Sound→chi: audio_* sections in atlas keyed by deterministic_motif_id(item_id)
+            target_motif = deterministic_motif_id(item_id)
+            item_chis = []
+            for chi_key, entries in _guala.atlas.entries.items():
+                for e in entries:
+                    if e.get("section", "").startswith("audio_") and e.get("motif") == target_motif:
+                        deep_prior = _guala.deep_atlas.get_prior(chi_key, e["section"], target_motif)
+                        assoc = _guala.atlas.query_associations(e["section"], chi_key)
+                        neighbors = {}
+                        for sec_name, motif_list in assoc.items():
+                            top5 = sorted(motif_list, key=lambda x: x[1], reverse=True)[:5]
+                            neighbors[sec_name] = [{"motif": m, "strength": round(s, 3)} for m, s in top5]
+                        item_chis.append({
+                            "chi": chi_key,
+                            "section": e["section"],
+                            "binding_strength": round(e["strength"], 3),
+                            "encoded_strength": round(e.get("encoded_strength", 0), 3),
+                            "dwell_ticks": e.get("dwell_ticks", 0),
+                            "reinforcement_count": e.get("reinforcement_count", 0),
+                            "deep_prior": round(deep_prior, 3),
+                            "in_deep": deep_prior > 0,
+                            "cross_modal_neighbors": neighbors,
+                        })
+            item_chis.sort(key=lambda x: x["binding_strength"], reverse=True)
+            ref["chis"] = item_chis[:16]
+            ref["n_chis"] = len(item_chis)
+            if not item_chis:
+                ref["_note"] = "no audio-section bindings found for this sound"
+
+        refs[item_id] = ref
+    result["refs"] = refs
+
+    # Input chi neighborhoods
+    if result["input_chis"]:
+        neighborhoods = {}
+        for chi_val in set(result["input_chis"]):
+            by_section = {}
+            for d in range(-_guala.atlas.band, _guala.atlas.band + 1):
+                for e in _guala.atlas.entries.get(chi_val + d, []):
+                    if e["strength"] < 0.01:
+                        continue
+                    sec = e["section"]
+                    if sec not in by_section:
+                        by_section[sec] = []
+                    deep_prior = _guala.deep_atlas.get_prior(chi_val + d, sec, e["motif"])
+                    by_section[sec].append({
+                        "motif_id": e["motif"],
+                        "strength": round(e["strength"], 3),
+                        "in_deep": deep_prior > 0,
+                    })
+            # Sort each section by strength, cap at 5
+            for sec in by_section:
+                by_section[sec] = sorted(by_section[sec], key=lambda x: x["strength"], reverse=True)[:5]
+            if by_section:
+                neighborhoods[str(chi_val)] = {"by_section": by_section}
+        result["input_chi_neighborhoods"] = neighborhoods
+    else:
+        result["input_chi_neighborhoods"] = {}
+
+    # Hard-cap response at 64KB
+    resp_str = json.dumps(result)
+    if len(resp_str) > 65536:
+        # Truncate cross_modal_neighbors first
+        for ref in result["refs"].values():
+            for c in ref.get("chis", []):
+                c["cross_modal_neighbors"] = {}
+        result["_truncated"] = True
+
+    return result
+
+
 # ════════════════════════════════════════════════════════════════
 # v7: Substrate event stream (SSE) + sleep endpoint
 # GUALALOOM-V7-AUTONOMY-WC-2026-06-06

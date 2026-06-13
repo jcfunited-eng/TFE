@@ -144,5 +144,24 @@ async def guala_give_experience(
     })
 
 
+@mcp.tool()
+async def guala_atlas_query(
+    picture_ids: list[str] = [],
+    sound_ids: list[str] = [],
+    input_text: str = "",
+) -> dict:
+    """Read-only chi-geometry readout. Returns chi addresses, binding strengths,
+    cross-modal neighbors, and deep atlas priors for given pictures/sounds/input text.
+    No state mutation."""
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.post(
+            f"{SUBSTRATE_URL}/api/v1/gualaloom/chi_trace",
+            json={"picture_ids": picture_ids, "sound_ids": sound_ids, "input_text": input_text},
+            headers=_headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
+
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")
