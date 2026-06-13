@@ -1963,7 +1963,9 @@ async def admin_backup():
             import json as _json
             with open(verify_path) as fh:
                 atlas_data = _json.load(fh)
-            backup_entries = sum(len(v) for v in atlas_data.get("data", atlas_data).values()
+            inner = atlas_data.get("data", atlas_data)
+            entries_dict = inner.get("entries", inner)
+            backup_entries = sum(len(v) for v in entries_dict.values()
                                 if isinstance(v, list))
             live_entries = sum(len(v) for v in _guala.atlas.entries.values())
             os.unlink(verify_path)
