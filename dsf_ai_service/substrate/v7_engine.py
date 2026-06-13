@@ -79,7 +79,7 @@ class V7Session:
             context_fn=context_no_recent_drive(
                 self.drive_tracker,
                 sections=("subject", "verb", "object"),
-                quiet_thresh=0.10),
+                quiet_thresh=0.45),
             drive_thresh=0.05, ltp_boost=0.05,
         )
         self.aware_gate = CoincidenceGate(
@@ -537,11 +537,32 @@ class V7Session:
     def quiet_tick(self, n_ticks=1):
         """Quiet ticks — substrate's Default Mode (spec Item 3.3).
         Replay drives commits, which strengthen mode_bank via existing
-        blending plasticity. This is consolidation. This is mental time travel."""
+        blending plasticity. This is consolidation. This is mental time travel.
+        C4: also evaluate intro gate — introspection should fire during quiet."""
         with self.lock:
             results = []
             for _ in range(n_ticks):
                 result = self.sys_.replay_tick(rng=self.rng)
+                # C4: evaluate intro gate during quiet ticks (Change 2)
+                # Drive tracker decays naturally between converse calls;
+                # the quiet window the gate needs lives HERE.
+                update_drive_tracker(self.drive_tracker, {})  # decay only
+                i_fired, i_mode, i_eval = self.intro_gate.check_and_fire(self.sys_)
+                i_eval["tick"] = self.sys_.tick
+                i_eval["fired"] = i_fired
+                i_eval["source"] = "quiet_tick"
+                if not hasattr(self, '_quiet_nmda_events'):
+                    self._quiet_nmda_events = []
+                self._quiet_nmda_events.append(i_eval)
+                self._quiet_nmda_events = self._quiet_nmda_events[-20:]
+                if i_fired and i_mode is not None and i_mode < len(self.intro_modes):
+                    self.last_intro_state = self.intro_modes[i_mode]
+                    self.intro_commit_history.append({
+                        "state": self.last_intro_state,
+                        "tick": self.sys_.tick})
+                    self.intro_commit_history = self.intro_commit_history[-10:]
+                    print(f"[v7-intro] FIRED during quiet: mode={i_mode} "
+                          f"state={self.last_intro_state} tick={self.sys_.tick}")
                 results.append(result)
             # Store for state endpoint reporting
             total_r = sum(len(r["replayed"]) for r in results)
