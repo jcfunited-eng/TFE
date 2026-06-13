@@ -1,18 +1,15 @@
 """
-V7 DNA Recipe Engine — wires assemblage + NMDA gates + plasticity + rhythm
-+ introspection + awareness into a single conversational substrate.
+V7 DNA Recipe Engine — unified lexical-category substrate.
+GL-BRIEF-V7-UNIFY-WC-20260613-01
 
-GL-CMD-DEPLOY-DNA-RECIPE-WC-20260608-01
-GL-CMD-FIX-CONVERSATION-WC-20260608-02 (listen-prime + lookup_or_install)
+Replaces S/V/O positional slots with proper lexical categories (N, V, Adj,
+Adv) plus closed-class sections (Det, P, Aux, etc.). Grammar table drives
+emission instead of fixed 3-slot cycle.
 
-NOT the v6 engine. NOT the multimodal DeepMultiModalCognition. This is the
-assemblage-based substrate with all DNA recipe capabilities.
+Keeps: NMDA gates, drive_tracker, intro/aware, quiet_tick, apply_feedback,
+save/load, event_log, all assemblage primitives.
 """
-
-import threading
-import json
-import os
-import time
+import threading, json, os, time
 import numpy as np
 from collections import defaultdict
 
@@ -29,550 +26,521 @@ from dsf_ai_service.substrate.dna_recipe.phase_gating import (
     make_projection, first_commit_per_section, make_phase_gater,
 )
 
+# ---- Closed-class lexicon ----
+CLOSED_CLASS_LEXICON = {}
+_CC = {
+    "Det": "the a an this that these those my your his her its our their".split(),
+    "Quant": "one two three four five many much some any all every few several".split(),
+    "P": ("in on at to from with for by about of up down over under through "
+          "into out between around near off along across behind before after "
+          "above below").split(),
+    "Pronoun": "i you he she it we they me him us them myself yourself".split(),
+    "Conj": "and or but so yet nor".split(),
+    "SubConj": "if when because although while since before after until unless though".split(),
+    "RelPronoun": "who whom which whose that".split(),
+    "CompConj": "that if whether".split(),
+    "Aux": ("is are am was were be been being have has had do does did "
+            "will would shall should can could may might must").split(),
+}
+for _cat, _words in _CC.items():
+    for _w in _words:
+        if _w not in CLOSED_CLASS_LEXICON:
+            CLOSED_CLASS_LEXICON[_w] = _cat
 
-# Seed vocabulary — minimal (matches wC's tested experiment).
-# Everything else installs on-the-fly via lookup_or_install.
+CLOSED_CLASS_CATS = list(_CC.keys())
+CONTENT_SECTIONS = ["N", "V", "Adj", "Adv"]
+ALL_SECTIONS = CONTENT_SECTIONS + CLOSED_CLASS_CATS + ["listen", "intro", "aware"]
+
+# ---- Grammar table ----
+GRAMMAR = {
+    "S":    [["NP", "VP"], ["NP", "VP", "PP"]],
+    "NP":   [["Det?", "Adj?", "N"], ["Pronoun"], ["N"]],
+    "VP":   [["Aux?", "V", "NP?", "AdvP?", "PP?"], ["Aux?", "V", "AdvP?"]],
+    "AdjP": [["Adv?", "Adj"]],
+    "AdvP": [["Adv"]],
+    "PP":   [["P", "NP"]],
+}
+_TERMINAL_TO_SECTION = {
+    "Det": "Det", "Adj": "Adj", "N": "N", "Pronoun": "Pronoun",
+    "Aux": "Aux", "V": "V", "Adv": "Adv", "P": "P",
+}
+_NON_TERMINALS = set(GRAMMAR.keys())
+
 SEED_VOCAB = {
-    "subject": ["cow", "moon", "bears"],
-    "verb": ["jumped", "ran", "sleeps"],
-    "object": ["fence", "milk", "dish"],
+    "N": ["cow", "moon", "bears", "fence", "milk", "dish"],
+    "V": ["jumped", "ran", "sleeps"],
 }
 
-# Words to skip (don't install as modes — they don't carry content)
-SKIP_WORDS = {"a", "an", "the", "is", "are", "am", "was", "were", "of", "in",
-              "on", "at", "to", "from", "with", "for", "and", "or", "but", "it",
-              "i", "you", "we", "they", "he", "she", "my", "your", "his", "her"}
+
+def seed_vocab_from_engine(engine):
+    """Read v6 engine word_modes and categorize into lexical sections."""
+    result = defaultdict(list)
+    word_modes = getattr(engine, "word_modes", {})
+    if not word_modes:
+        return dict(SEED_VOCAB)
+    for label in word_modes:
+        w = label.lower().strip()
+        if not w:
+            continue
+        if w in CLOSED_CLASS_LEXICON:
+            cat = CLOSED_CLASS_LEXICON[w]
+        else:
+            cat = "N"
+        if w not in result[cat]:
+            result[cat].append(w)
+    if not result["N"]:
+        result["N"] = list(SEED_VOCAB.get("N", ["thing"]))
+    if not result["V"]:
+        result["V"] = list(SEED_VOCAB.get("V", ["is"]))
+    return dict(result)
+
+
+def _make_zero_section(name, rng, role="general"):
+    """Helper: section with zeroed Hamiltonian."""
+    sec = Section(name=name, rng=rng, role=role)
+    sec.H_base = np.zeros((N, N), dtype=complex)
+    sec.law_fields = {k: np.zeros((N, N), dtype=complex)
+                      for k in ("symmetry", "consistency", "compactness")}
+    return sec
 
 
 class V7Session:
-    """Per-session v7 substrate state with full DNA recipe wiring."""
+    """Per-session v7 substrate with lexical-category sections."""
 
-    def __init__(self, session_id, rng_seed=None):
+    def __init__(self, session_id, rng_seed=None, engine=None):
         self.session_id = session_id
         self.lock = threading.Lock()
         self.created_at = time.time()
-
-        # Event log — write-ahead, canonical record
         from dsf_ai_service.substrate.event_log import EventLog
         self.event_log = EventLog(STATE_DIR, session_id)
-
         seed = rng_seed or hash(session_id) % (2**31)
         self.rng = np.random.default_rng(seed)
-
-        # Per-session mutable vocab: slot -> [word_list]
-        self.vocab = {k: list(v) for k, v in SEED_VOCAB.items()}
-
-        # Build integrated 6-section system: S/V/O + listen + intro + aware
-        # Respec Item 5: intro/aware live in the SAME System, commit via
-        # post-emit evidence injection + NMDA gates
+        self.vocab = seed_vocab_from_engine(engine) if engine else \
+            {k: list(v) for k, v in SEED_VOCAB.items()}
         self.sys_, self.token_vec, self.intro_vec, self.intro_modes, \
             self.aware_vec, self.aware_modes = self._build_system()
-
-        # Install plasticity on S/V/O + intro + aware
-        for sn in ("subject", "verb", "object", "intro", "aware"):
-            install_plasticity(self.sys_.sections[sn], initial_strength=1.0)
-
-        # NMDA gates (respec Item 5 — integrated, not meta-system)
+        for sn in CONTENT_SECTIONS + ["intro", "aware"]:
+            if sn in self.sys_.sections:
+                install_plasticity(self.sys_.sections[sn], initial_strength=1.0)
         self.drive_tracker = {}
         self.intro_gate = CoincidenceGate(
             section_name="intro",
             context_fn=context_no_recent_drive(
-                self.drive_tracker,
-                sections=("subject", "verb", "object"),
+                self.drive_tracker, sections=tuple(CONTENT_SECTIONS),
                 quiet_thresh=0.45),
-            drive_thresh=0.05, ltp_boost=0.05,
-        )
+            drive_thresh=0.05, ltp_boost=0.05)
         self.aware_gate = CoincidenceGate(
             section_name="aware",
             context_fn=lambda sys_: (
                 len(sys_.sections["intro"].krimelack) > 0 and
-                (sys_.tick - sys_.sections["intro"].krimelack[-1]["tick"]) <= 5
-            ),
-            drive_thresh=0.05, ltp_boost=0.05,
-        )
-
-        # State tracking
+                (sys_.tick - sys_.sections["intro"].krimelack[-1]["tick"]) <= 5),
+            drive_thresh=0.05, ltp_boost=0.05)
         self.last_intro_state = None
         self.last_aware_state = None
-        self.last_rhythm_phase = "subject"
+        self.last_rhythm_phase = "N"
         self.last_emissions = []
         self.last_nmda_events = []
         self.last_routing_log = []
-        self.intro_commit_history = []  # last N intro commits
-        self.aware_commit_history = []  # last N aware commits
+        self.intro_commit_history = []
+        self.aware_commit_history = []
         self.tick_at_last_converse = 0
         self._last_converse_time = time.time()
 
     def _build_system(self):
-        """Build integrated 6-section system: S/V/O + listen + intro + aware.
-        Respec Item 5: all sections in one System. Intro/aware receive NO
-        evidence during S/V/O emit phase — they get evidence in the post-emit
-        pass only. This avoids the interference that broke conversation pre-
-        cognition-v1, while keeping everything in one System."""
         rng = self.rng
-        subj = Section(name="subject", rng=rng, role="subject_like")
-        verb = Section(name="verb", rng=rng, role="verb_like")
-        obj = Section(name="object", rng=rng, role="object_like")
-        listen = Section(name="listen", rng=rng, role="general")
-        intro = Section(name="intro", rng=rng, role="intro")
-        aware = Section(name="aware", rng=rng, role="intro")
-
-        # Listen: passive buffer (zero Hamiltonian)
-        listen.H_base = np.zeros((N, N), dtype=complex)
-        listen.law_fields = {k: np.zeros((N, N), dtype=complex)
-                             for k in ("symmetry", "consistency", "compactness")}
-
-        # Intro/aware: zeroed Hamiltonian, normal commit thresholds
-        # (commits happen through evidence injection in post-emit pass)
-        for sec in (intro, aware):
-            sec.H_base = np.zeros((N, N), dtype=complex)
-            sec.law_fields = {k: np.zeros((N, N), dtype=complex)
-                              for k in ("symmetry", "consistency", "compactness")}
-
-        for s in (subj, verb, obj, listen, intro, aware):
+        secs = []
+        # Content sections (full Hamiltonian)
+        for cat in CONTENT_SECTIONS:
+            role = "verb_like" if cat == "V" else "subject_like"
+            secs.append(Section(name=cat, rng=rng, role=role))
+        # Closed-class + listen/intro/aware (zeroed Hamiltonian)
+        for cat in CLOSED_CLASS_CATS:
+            secs.append(_make_zero_section(cat, rng))
+        secs.append(_make_zero_section("listen", rng))
+        secs.append(_make_zero_section("intro", rng, role="intro"))
+        secs.append(_make_zero_section("aware", rng, role="intro"))
+        for s in secs:
             s.map_inject = make_projection(N, 8, rng)
+        sys_ = System(secs, rng)
 
-        sys_ = System([subj, verb, obj, listen, intro, aware], rng)
-
-        # Install S/V/O vocab
+        # Install vocab
         token_vec = {}
-        for sec_name, toks in self.vocab.items():
-            sec = sys_.sections[sec_name]
-            for tok in toks:
+        for cat, words in self.vocab.items():
+            if cat not in sys_.sections:
+                continue
+            sec = sys_.sections[cat]
+            for word in words:
                 v = random_unit_complex(N, rng)
                 sec.mode_bank.append(v.copy())
                 sec.mode_last_used.append(0)
                 sec.mode_strength.append(1.0)
-                token_vec[(sec_name, tok)] = v
-                listen.mode_bank.append(v.copy())
-                listen.mode_last_used.append(0)
-                listen.mode_strength.append(1.0)
+                token_vec[(cat, word)] = v
+                sys_.sections["listen"].mode_bank.append(v.copy())
+                sys_.sections["listen"].mode_last_used.append(0)
+                sys_.sections["listen"].mode_strength.append(1.0)
 
-        # Install intro modes
+        # Install closed-class words not already in vocab
+        for cat, words in _CC.items():
+            sec = sys_.sections[cat]
+            for word in words:
+                if (cat, word) in token_vec:
+                    continue
+                v = random_unit_complex(N, rng)
+                sec.mode_bank.append(v.copy())
+                sec.mode_last_used.append(0)
+                sec.mode_strength.append(1.0)
+                token_vec[(cat, word)] = v
+                self.vocab.setdefault(cat, [])
+                if word not in self.vocab[cat]:
+                    self.vocab[cat].append(word)
+
+        # Intro + aware modes
         intro_modes = ["i_quiet", "i_hear", "i_emit"]
         intro_vec = {}
         for name in intro_modes:
             v = random_unit_complex(N, rng)
-            intro.mode_bank.append(v.copy())
-            intro.mode_last_used.append(0)
-            intro.mode_strength.append(1.0)
+            sys_.sections["intro"].mode_bank.append(v.copy())
+            sys_.sections["intro"].mode_last_used.append(0)
+            sys_.sections["intro"].mode_strength.append(1.0)
             intro_vec[name] = v
-
-        # Install aware modes
         aware_modes = ["aware_quiet", "aware_listening", "aware_emitting"]
         aware_vec = {}
         for name in aware_modes:
             v = random_unit_complex(N, rng)
-            aware.mode_bank.append(v.copy())
-            aware.mode_last_used.append(0)
-            aware.mode_strength.append(1.0)
+            sys_.sections["aware"].mode_bank.append(v.copy())
+            sys_.sections["aware"].mode_last_used.append(0)
+            sys_.sections["aware"].mode_strength.append(1.0)
             aware_vec[name] = v
-
-        # Snapshot initial mode_bank for homeostasis pull
         for sec in sys_.sections.values():
             sec.snapshot_initial_modes()
-
         return sys_, token_vec, intro_vec, intro_modes, aware_vec, aware_modes
 
-    # ------------------------------------------------------------------
-    # Fix 2: lookup_or_install — on-the-fly vocabulary
-    # ------------------------------------------------------------------
-    def lookup_or_install(self, word, position):
-        """Return (word_vec, slot, was_new). Install new words by position."""
+    # ---- Lexical routing ----
+    def _classify_word(self, word, prev_cat):
+        """Classify content word by preceding category heuristic."""
+        if word in CLOSED_CLASS_LEXICON:
+            return CLOSED_CLASS_LEXICON[word]
+        if prev_cat in ("Det", "Adj", "Quant", "P"):
+            return "N"
+        if prev_cat in ("Aux", "Adv", "Pronoun", "N"):
+            return "V"
+        if prev_cat == "V":
+            return "N"
+        return "N"
+
+    def lookup_or_install(self, word, prev_cat=None):
+        """Return (word_vec, category, was_new). No position lottery."""
         word = word.lower().strip(".,?!;:'\"")
-        if not word or word in SKIP_WORDS:
+        if not word:
             return None, None, False
-
-        # Already installed?
-        for slot in ("subject", "verb", "object"):
-            if word in self.vocab[slot]:
-                idx = self.vocab[slot].index(word)
-                sec = self.sys_.sections[slot]
+        # Closed-class: already installed
+        if word in CLOSED_CLASS_LEXICON:
+            cat = CLOSED_CLASS_LEXICON[word]
+            key = (cat, word)
+            if key in self.token_vec:
+                words = self.vocab.get(cat, [])
+                idx = words.index(word) if word in words else -1
+                sec = self.sys_.sections.get(cat)
+                if sec and 0 <= idx < len(sec.mode_bank):
+                    return sec.mode_bank[idx], cat, False
+            return None, cat, False
+        # Already installed content word?
+        for cat in CONTENT_SECTIONS:
+            words = self.vocab.get(cat, [])
+            if word in words:
+                idx = words.index(word)
+                sec = self.sys_.sections[cat]
                 if idx < len(sec.mode_bank):
-                    return sec.mode_bank[idx], slot, False
-
-        # New word — install based on position
-        slot = ["subject", "verb", "object"][min(position, 2)]
-        sec = self.sys_.sections[slot]
+                    return sec.mode_bank[idx], cat, False
+        # New content word
+        cat = self._classify_word(word, prev_cat)
+        if cat not in self.sys_.sections or cat in CLOSED_CLASS_CATS:
+            cat = "N"
+        sec = self.sys_.sections[cat]
         word_vec = random_unit_complex(N, self.rng)
         sec.mode_bank.append(word_vec.copy())
         sec.mode_last_used.append(self.sys_.tick)
         sec.mode_strength.append(1.0)
-        # Also install in listen
         self.sys_.sections["listen"].mode_bank.append(word_vec.copy())
         self.sys_.sections["listen"].mode_last_used.append(self.sys_.tick)
         self.sys_.sections["listen"].mode_strength.append(1.0)
-        self.vocab[slot].append(word)
-        self.token_vec[(slot, word)] = word_vec
+        self.vocab.setdefault(cat, [])
+        self.vocab[cat].append(word)
+        self.token_vec[(cat, word)] = word_vec
         sec.snapshot_initial_modes()
         self.sys_.sections["listen"].snapshot_initial_modes()
-        # Event log: vocab install (write-ahead)
-        self.event_log.write("vocab_install", slot=slot, word=word)
-        return word_vec, slot, True
+        self.event_log.write("vocab_install", slot=cat, word=word)
+        return word_vec, cat, True
 
-    # ------------------------------------------------------------------
-    # Fix 1: Listen-prime conversation architecture
-    # ------------------------------------------------------------------
+    # ---- Grammar-driven emission ----
+    def _section_top_arc(self, cat):
+        sec = self.sys_.sections.get(cat)
+        if sec is None:
+            return None, 0.0
+        arcs = sec.arcs()
+        if len(arcs) == 0:
+            return None, 0.0
+        top = int(arcs.argmax())
+        return self._mode_to_word(cat, top), float(arcs[top])
+
+    def _expand_grammar(self, max_tokens=12):
+        """Recursively expand grammar from S, select top-arc words at terminals."""
+        tokens = []
+        def expand(symbol):
+            if len(tokens) >= max_tokens:
+                return
+            optional = symbol.endswith("?")
+            sym = symbol.rstrip("?")
+            if sym in _NON_TERMINALS:
+                for prod in GRAMMAR[sym]:
+                    for s in prod:
+                        expand(s)
+                    break
+                return
+            sec_name = _TERMINAL_TO_SECTION.get(sym, sym)
+            word, arc = self._section_top_arc(sec_name)
+            if optional and arc < 0.03:
+                return
+            if word is None:
+                return
+            sec = self.sys_.sections[sec_name]
+            top = int(sec.arcs().argmax())
+            ms = sec.mode_strength[top] if hasattr(sec, "mode_strength") and top < len(sec.mode_strength) else 0.0
+            tokens.append({"section": sec_name, "token": word,
+                           "emit_tick": self.sys_.tick,
+                           "mode_strength": round(ms, 3), "arc": round(arc, 3)})
+        expand("S")
+        return tokens
+
+    # ---- Main conversation ----
     def converse(self, text, source="ui"):
-        """Main conversation using wC's proven pipeline:
-        Route → Listen-accumulate → Derive drives → Prime psi → Rhythm emit."""
         with self.lock:
             tokens = [t.lower().strip(".,?!;:'\"") for t in text.split() if t.strip()]
             if not tokens:
                 return self._empty_response("empty input")
-
-            # Per-turn reset: psi + goals only. Everything else persists.
-            # Atlas, keyholes, krimelack, mode_bank all accumulate across turns.
-            # Per-turn reset: psi + goals only. Use ORIGINAL session rng
-            # (not re-seeded) to preserve H_base/mode_bank/map_inject correlation.
-            for slot in ("subject", "verb", "object", "listen", "intro", "aware"):
-                sec = self.sys_.sections[slot]
+            # Per-turn psi + goals reset
+            for sn in ALL_SECTIONS:
+                if sn not in self.sys_.sections:
+                    continue
+                sec = self.sys_.sections[sn]
                 sec.psi = normalize(
                     random_unit_complex(N, self.rng) * 0.3 +
                     normalize(np.ones(N, dtype=complex)) * 0.7)
                 sec.standing_goals = []
                 sec.goals = []
             self.drive_tracker.clear()
+            routing_log, nmda_events, rhythm_events = [], [], []
 
-            routing_log = []
-            nmda_events = []
-            rhythm_events = []
-
-            # PHASE 1: Route words, build heard_sentence dict
-            heard = {}  # slot -> word
+            # PHASE 1: Route words
+            heard = {}
             any_routed = False
-            for pos, word in enumerate(tokens):
-                word_vec, slot, was_new = self.lookup_or_install(word, position=pos)
-                if word_vec is None:
-                    routing_log.append({"word": word, "routed_to": None,
-                                        "reason": "skipped"})
-                    continue
-                routing_log.append({"word": word, "routed_to": slot,
-                                    "newly_installed": was_new})
-                heard[slot] = word
-                any_routed = True
-
+            prev_cat = None
+            for word in tokens:
+                word_vec, cat, was_new = self.lookup_or_install(word, prev_cat=prev_cat)
+                routing_log.append({"word": word, "routed_to": cat,
+                                    "newly_installed": was_new} if cat else
+                                   {"word": word, "routed_to": None, "reason": "skipped"})
+                if cat:
+                    heard[cat] = word
+                    prev_cat = cat
+                    if word_vec is not None:
+                        any_routed = True
             if not any_routed:
-                return self._empty_response("no content words in vocabulary")
+                return self._empty_response("no content words routed")
 
-            # PHASE 2: Listen-accumulate (matches wC's speak_and_listen)
-            # Block ALL blending during listen — no mode_bank warping
-            for sn in ("subject", "verb", "object", "listen", "intro", "aware"):
-                self.sys_.sections[sn]._emit_phase = True
+            # PHASE 2: Listen-accumulate
+            for sn in ALL_SECTIONS:
+                if sn in self.sys_.sections:
+                    self.sys_.sections[sn]._emit_phase = True
             accumulated = {}
-            for slot, word in heard.items():
-                vec_key = (slot, word)
-                if vec_key not in self.token_vec:
+            for cat, word in heard.items():
+                key = (cat, word)
+                if key not in self.token_vec:
                     continue
-                target = self.token_vec[vec_key]
+                target = self.token_vec[key]
                 acc = np.zeros(N, dtype=complex)
                 for _ in range(15):
                     noisy = normalize(target + 0.10 * (
-                        self.rng.standard_normal(N) +
-                        1j * self.rng.standard_normal(N)))
-                    acc = acc + noisy
-                    ev = {"listen": noisy}
-                    self.sys_.tick_once(ev, enable_self_evo=True,
+                        self.rng.standard_normal(N) + 1j * self.rng.standard_normal(N)))
+                    acc += noisy
+                    self.sys_.tick_once({"listen": noisy}, enable_self_evo=True,
                                         coordinator_on=False, introspection_on=False,
                                         allow_rewiring=False)
-                accumulated[slot] = normalize(acc)
-
-            # Introspection: heard phase
+                accumulated[cat] = normalize(acc)
             self.last_intro_state = "i_hear"
-            self.intro_commit_history.append({
-                "state": "i_hear", "tick": self.sys_.tick})
+            self.intro_commit_history.append({"state": "i_hear", "tick": self.sys_.tick})
             self.intro_commit_history = self.intro_commit_history[-10:]
+            for sn in ALL_SECTIONS:
+                if sn != "listen" and sn in self.sys_.sections:
+                    self.sys_.sections[sn]._emit_phase = False
 
-            # Clear listen-phase blend gating
-            for sn in ("subject", "verb", "object", "intro", "aware"):
-                self.sys_.sections[sn]._emit_phase = False
-
-            # PHASE 3: Derive drives from listen accumulators
-            # (matches wC's guala_emit drive derivation)
+            # PHASE 3: Derive drives
             drives = {}
-            for slot in ("subject", "verb", "object"):
-                snap = accumulated.get(slot)
-                sec = self.sys_.sections[slot]
+            for cat in CONTENT_SECTIONS:
+                snap = accumulated.get(cat)
+                sec = self.sys_.sections[cat]
                 if snap is None or np.linalg.norm(snap) == 0:
-                    drives[slot] = random_unit_complex(N, self.rng) * 0.1
+                    drives[cat] = random_unit_complex(N, self.rng) * 0.1
                     continue
                 weights = []
-                for mode_id, mode_vec in enumerate(sec.mode_bank):
-                    directional = float(np.abs(np.vdot(mode_vec, snap)) ** 2)
-                    sal = sec.mode_strength[mode_id] if mode_id < len(sec.mode_strength) else 1.0
-                    w = directional * sal
-                    weights.append((mode_id, w, mode_vec))
+                for mid, mvec in enumerate(sec.mode_bank):
+                    d = float(np.abs(np.vdot(mvec, snap)) ** 2)
+                    s = sec.mode_strength[mid] if mid < len(sec.mode_strength) else 1.0
+                    weights.append((mid, d * s, mvec))
                 weights.sort(key=lambda x: -x[1])
-                bias = np.zeros(N, dtype=complex)
-                for mode_id, w, v in weights[:2]:
-                    bias = bias + w * v
-                drives[slot] = normalize(bias) if np.linalg.norm(bias) > 0 \
+                bias = sum((w * v for _, w, v in weights[:2]), np.zeros(N, dtype=complex))
+                drives[cat] = normalize(bias) if np.linalg.norm(bias) > 0 \
                     else random_unit_complex(N, self.rng)
+            for cat in CLOSED_CLASS_CATS:
+                if cat in accumulated:
+                    drives[cat] = accumulated[cat]
+            for cat, drv in drives.items():
+                if cat in self.sys_.sections:
+                    self.sys_.sections[cat].psi = drv.copy()
 
-            # Prime S/V/O psi to drives
-            for slot in ("subject", "verb", "object"):
-                self.sys_.sections[slot].psi = drives[slot].copy()
-
-            # PHASE 4: Commit-driven rhythm emission
-            # Set emit_phase flag — blocks mode_bank blending during emit
+            # PHASE 4: Commit-driven emission
             for sec in self.sys_.sections.values():
                 sec._emit_phase = True
-
             emit_commits = []
-            svo_cycle = ["subject", "verb", "object"]
-            cycle_idx = 0
-            wait_counter = 0
-            max_wait = 20
-            svo_strength = 0.45
-            emitted_sections = set()
-            emitted_words = {}
-
+            strength = 0.45
             for t in range(120):
-                # Decay plasticity per tick
-                for sn in ("subject", "verb", "object"):
-                    decay_plasticity(self.sys_.sections[sn], decay=0.998)
-
-
-                current = svo_cycle[cycle_idx % 3]
-                self.last_rhythm_phase = current
-                rhythm_events.append({"tick": self.sys_.tick + 1, "phase": current})
-
-                # Excite current, inhibit others
-                for sn in ("subject", "verb", "object"):
-                    sec = self.sys_.sections[sn]
+                for cat in CONTENT_SECTIONS:
+                    decay_plasticity(self.sys_.sections[cat], decay=0.998)
+                cur = CONTENT_SECTIONS[t % len(CONTENT_SECTIONS)]
+                self.last_rhythm_phase = cur
+                rhythm_events.append({"tick": self.sys_.tick + 1, "phase": cur})
+                for cat in CONTENT_SECTIONS:
+                    sec = self.sys_.sections[cat]
                     sec.excitation_expires_at = self.sys_.tick + 2
-                    if sn == current:
-                        sec.excitation_strength = svo_strength
-                    else:
-                        sec.excitation_strength = -svo_strength
-
-                # Evidence: same drive vector re-noised every tick
+                    sec.excitation_strength = strength if cat == cur else -strength
                 ev = {}
-                for slot in ("subject", "verb", "object"):
-                    target = drives[slot]
-                    ev[slot] = normalize(target + 0.10 * (
-                        self.rng.standard_normal(N) +
-                        1j * self.rng.standard_normal(N)))
-
-                commits = self.sys_.tick_once(
-                    ev, enable_self_evo=True,
-                    coordinator_on=False, introspection_on=False,
-                    allow_rewiring=False)
+                for cat in CONTENT_SECTIONS:
+                    d = drives.get(cat)
+                    if d is not None:
+                        ev[cat] = normalize(d + 0.10 * (
+                            self.rng.standard_normal(N) + 1j * self.rng.standard_normal(N)))
+                commits = self.sys_.tick_once(ev, enable_self_evo=True,
+                                              coordinator_on=False, introspection_on=False,
+                                              allow_rewiring=False)
                 emit_commits.extend(commits)
-
-                # Advance cycle on commit
-                advanced = False
-                for c in commits:
-                    if c["section"] == current and current not in emitted_sections:
-                        emitted_sections.add(current)
-                        # Read emitted word
-                        sec = self.sys_.sections[current]
-                        arcs = sec.arcs()
-                        top = int(arcs.argmax())
-                        word = self._mode_to_word(current, top)
-                        emitted_words[current] = word
-                        cycle_idx += 1
-                        wait_counter = 0
-                        advanced = True
-
-                if not advanced:
-                    wait_counter += 1
-                    if wait_counter >= max_wait:
-                        cycle_idx += 1
-                        wait_counter = 0
-
-                if len(emitted_sections) >= 3:
+                if len({c["section"] for c in emit_commits if c["section"] in CONTENT_SECTIONS}) >= len(CONTENT_SECTIONS):
                     break
-
-            # Clear emit_phase flag
             for sec in self.sys_.sections.values():
                 sec._emit_phase = False
+            response_tokens = self._expand_grammar(max_tokens=12)
 
-            # POST-EMIT EVIDENCE PASS: intro + aware in integrated System
-            # (Respec Item 5 — single System, post-emit evidence injection)
-            # SVO emit is done. Now inject evidence into intro/aware sections
-            # and let NMDA gates decide whether to commit.
-
-            # Update drive tracker from emit (marks SVO as recently active)
+            # POST-EMIT: intro + aware
             for c in emit_commits:
                 update_drive_tracker(self.drive_tracker,
                                      {c["section"]: np.ones(N, dtype=complex) * 0.5})
-
-            # Intro pass: drive intro toward i_emit (SVO just committed)
-            intro_target = self.intro_vec.get("i_emit")
-            if intro_target is not None:
-                for _ in range(10):
-                    noisy = normalize(intro_target + 0.05 * (
-                        self.rng.standard_normal(N) +
-                        1j * self.rng.standard_normal(N)))
-                    # Only inject into intro — S/V/O/listen get nothing
-                    ev = {"intro": noisy}
-                    update_drive_tracker(self.drive_tracker, ev)
-                    self.sys_.tick_once(ev, enable_self_evo=True,
-                                        coordinator_on=False,
-                                        introspection_on=False,
-                                        allow_rewiring=False)
-                    # Cap intro mode bank to prevent novel_mode spawning
-                    intro_sec = self.sys_.sections["intro"]
-                    while len(intro_sec.mode_bank) > len(self.intro_modes):
-                        intro_sec.mode_bank.pop()
-                        intro_sec.mode_last_used.pop()
-                    # NMDA gate check — C4: log every evaluation
-                    i_fired, i_mode, i_eval = self.intro_gate.check_and_fire(self.sys_)
-                    i_eval["tick"] = self.sys_.tick
-                    i_eval["fired"] = i_fired
-                    i_eval["drive_tracker"] = {k: round(v, 4) for k, v in self.drive_tracker.items()}
-                    nmda_events.append(i_eval)
-                    if i_fired and i_mode is not None and i_mode < len(self.intro_modes):
-                        self.last_intro_state = self.intro_modes[i_mode]
-                        self.intro_commit_history.append({
-                            "state": self.last_intro_state,
-                            "tick": self.sys_.tick})
-                        self.intro_commit_history = self.intro_commit_history[-10:]
-
-            # Aware pass: drive toward matching aware mode
-            aware_target_name = {
-                "i_quiet": "aware_quiet",
-                "i_hear": "aware_listening",
-                "i_emit": "aware_emitting",
-            }.get(self.last_intro_state or "i_emit", "aware_emitting")
-            aware_target = self.aware_vec.get(aware_target_name)
-            if aware_target is not None:
-                for _ in range(10):
-                    noisy = normalize(aware_target + 0.05 * (
-                        self.rng.standard_normal(N) +
-                        1j * self.rng.standard_normal(N)))
-                    ev = {"aware": noisy}
-                    self.sys_.tick_once(ev, enable_self_evo=True,
-                                        coordinator_on=False,
-                                        introspection_on=False,
-                                        allow_rewiring=False)
-                    aware_sec = self.sys_.sections["aware"]
-                    while len(aware_sec.mode_bank) > len(self.aware_modes):
-                        aware_sec.mode_bank.pop()
-                        aware_sec.mode_last_used.pop()
-                    a_fired, a_mode, a_eval = self.aware_gate.check_and_fire(self.sys_)
-                    a_eval["tick"] = self.sys_.tick
-                    a_eval["fired"] = a_fired
-                    nmda_events.append(a_eval)
-                    if a_fired and a_mode is not None and a_mode < len(self.aware_modes):
-                        self.last_aware_state = self.aware_modes[a_mode]
-                        self.aware_commit_history.append({
-                            "state": self.last_aware_state,
-                            "tick": self.sys_.tick})
-                        self.aware_commit_history = self.aware_commit_history[-10:]
-
-            # Build response tokens from emitted_words
-            response_tokens = []
-            for slot in ("subject", "verb", "object"):
-                word = emitted_words.get(slot)
-                if word:
-                    sec = self.sys_.sections[slot]
-                    arcs = sec.arcs()
-                    top = int(arcs.argmax())
-                    ms = 0.0
-                    if hasattr(sec, "mode_strength") and top < len(sec.mode_strength):
-                        ms = sec.mode_strength[top]
-                    response_tokens.append({
-                        "section": slot, "token": word,
-                        "emit_tick": self.sys_.tick,
-                        "mode_strength": round(ms, 3),
-                        "arc": round(float(arcs[top]), 3),
-                    })
+            self._nmda_pass("intro", self.intro_vec.get("i_emit"),
+                            self.intro_gate, self.intro_modes,
+                            nmda_events, "intro_state", "intro_commit_history")
+            aware_name = {"i_quiet": "aware_quiet", "i_hear": "aware_listening",
+                          "i_emit": "aware_emitting"}.get(
+                self.last_intro_state or "i_emit", "aware_emitting")
+            self._nmda_pass("aware", self.aware_vec.get(aware_name),
+                            self.aware_gate, self.aware_modes,
+                            nmda_events, "aware_state", "aware_commit_history")
 
             self.last_emissions = emit_commits
             self.last_nmda_events = nmda_events
             self.last_routing_log = routing_log
             self.tick_at_last_converse = self.sys_.tick
             self._last_converse_time = time.time()
-
-            # Event log: full conversation turn
-            emitted = [t.get("token", "") for t in response_tokens]
             self.event_log.write("converse",
                                  text=" ".join(tokens),
-                                 emitted=emitted,
+                                 emitted=[t.get("token", "") for t in response_tokens],
                                  tick=self.sys_.tick)
-
             return {
                 "response_tokens": response_tokens,
                 "routing_log": routing_log,
                 "rhythm_events": rhythm_events[-10:],
                 "nmda_events": nmda_events[-20:],
-                "introspection": {
-                    "reported_state": self.last_intro_state or "i_quiet",
-                    "tick": self.sys_.tick,
-                    "recent_commits": self.intro_commit_history[-3:],
-                },
-                "awareness": {
-                    "reported_state": self.last_aware_state or "aware_quiet",
-                    "tick": self.sys_.tick,
-                    "recent_commits": self.aware_commit_history[-3:],
-                },
+                "introspection": {"reported_state": self.last_intro_state or "i_quiet",
+                                  "tick": self.sys_.tick,
+                                  "recent_commits": self.intro_commit_history[-3:]},
+                "awareness": {"reported_state": self.last_aware_state or "aware_quiet",
+                              "tick": self.sys_.tick,
+                              "recent_commits": self.aware_commit_history[-3:]},
                 "mode_strengths": self._get_mode_strengths(),
-                "raw_emissions": [
-                    {"section": c["section"], "mode_id": c["mode_id"],
-                     "reason": c["reason"]}
-                    for c in emit_commits[-20:]
-                ],
-                "unknown_words": [r["word"] for r in routing_log
-                                  if r.get("routed_to") is None],
+                "raw_emissions": [{"section": c["section"], "mode_id": c["mode_id"],
+                                   "reason": c["reason"]} for c in emit_commits[-20:]],
+                "unknown_words": [r["word"] for r in routing_log if r.get("routed_to") is None],
             }
+
+    def _nmda_pass(self, sec_name, target_vec, gate, mode_names, nmda_events,
+                   state_attr, history_attr):
+        """Unified post-emit NMDA pass for intro/aware sections."""
+        if target_vec is None:
+            return
+        for _ in range(10):
+            noisy = normalize(target_vec + 0.05 * (
+                self.rng.standard_normal(N) + 1j * self.rng.standard_normal(N)))
+            ev = {sec_name: noisy}
+            if sec_name == "intro":
+                update_drive_tracker(self.drive_tracker, ev)
+            self.sys_.tick_once(ev, enable_self_evo=True,
+                                coordinator_on=False, introspection_on=False,
+                                allow_rewiring=False)
+            sec = self.sys_.sections[sec_name]
+            while len(sec.mode_bank) > len(mode_names):
+                sec.mode_bank.pop()
+                sec.mode_last_used.pop()
+            fired, mode_id, eval_d = gate.check_and_fire(self.sys_)
+            eval_d["tick"] = self.sys_.tick
+            eval_d["fired"] = fired
+            if sec_name == "intro":
+                eval_d["drive_tracker"] = {k: round(v, 4) for k, v in self.drive_tracker.items()}
+            nmda_events.append(eval_d)
+            if fired and mode_id is not None and mode_id < len(mode_names):
+                new_state = mode_names[mode_id]
+                setattr(self, "last_" + state_attr, new_state)
+                hist = getattr(self, history_attr)
+                hist.append({"state": new_state, "tick": self.sys_.tick})
+                while len(hist) > 10:
+                    hist.pop(0)
 
     def _empty_response(self, reason):
         return {
-            "response_tokens": [],
-            "routing_log": [],
-            "rhythm_events": [],
+            "response_tokens": [], "routing_log": [], "rhythm_events": [],
             "nmda_events": [],
             "introspection": {"reported_state": "i_quiet",
                               "tick": self.sys_.tick, "recent_commits": []},
             "awareness": {"reported_state": "aware_quiet",
                           "tick": self.sys_.tick, "recent_commits": []},
             "mode_strengths": self._get_mode_strengths(),
-            "raw_emissions": [],
-            "unknown_words": [],
+            "raw_emissions": [], "unknown_words": [],
             "honest_silence_reason": reason,
         }
 
     def quiet_tick(self, n_ticks=1):
-        """Quiet ticks — substrate's Default Mode (spec Item 3.3).
-        Replay drives commits, which strengthen mode_bank via existing
-        blending plasticity. This is consolidation. This is mental time travel.
-        C4: also evaluate intro gate — introspection should fire during quiet."""
+        """Quiet ticks — substrate Default Mode. C4: evaluate intro gate."""
         with self.lock:
             results = []
             for _ in range(n_ticks):
                 result = self.sys_.replay_tick(rng=self.rng)
-                # C4: evaluate intro gate during quiet ticks (Change 2)
-                # Drive tracker decays naturally between converse calls;
-                # the quiet window the gate needs lives HERE.
-                update_drive_tracker(self.drive_tracker, {})  # decay only
+                update_drive_tracker(self.drive_tracker, {})
                 i_fired, i_mode, i_eval = self.intro_gate.check_and_fire(self.sys_)
-                i_eval["tick"] = self.sys_.tick
-                i_eval["fired"] = i_fired
-                i_eval["source"] = "quiet_tick"
+                i_eval.update(tick=self.sys_.tick, fired=i_fired, source="quiet_tick")
                 if not hasattr(self, '_quiet_nmda_events'):
                     self._quiet_nmda_events = []
                 self._quiet_nmda_events.append(i_eval)
                 self._quiet_nmda_events = self._quiet_nmda_events[-20:]
                 if i_fired and i_mode is not None and i_mode < len(self.intro_modes):
                     self.last_intro_state = self.intro_modes[i_mode]
-                    self.intro_commit_history.append({
-                        "state": self.last_intro_state,
-                        "tick": self.sys_.tick})
+                    self.intro_commit_history.append(
+                        {"state": self.last_intro_state, "tick": self.sys_.tick})
                     self.intro_commit_history = self.intro_commit_history[-10:]
-                    # Log sparingly — only on state transitions, not every tick
                     if len(self.intro_commit_history) <= 1 or \
-                       self.intro_commit_history[-1]["state"] != self.intro_commit_history[-2].get("state"):
+                       self.intro_commit_history[-1]["state"] != \
+                       self.intro_commit_history[-2].get("state"):
                         print(f"[v7-intro] FIRED during quiet: mode={i_mode} "
                               f"state={self.last_intro_state} tick={self.sys_.tick}")
                 results.append(result)
-            # Store for state endpoint reporting
             total_r = sum(len(r["replayed"]) for r in results)
             total_c = sum(len(r["commits"]) for r in results)
-            self._last_replay_result = {
-                "replayed": total_r, "commits": total_c, "ticks": len(results)
-            }
+            self._last_replay_result = {"replayed": total_r, "commits": total_c, "ticks": len(results)}
             if total_r > 0:
                 self.event_log.write("quiet", n_ticks=len(results),
                                      replayed=total_r, commits=total_c)
@@ -582,41 +550,29 @@ class V7Session:
         """Supervised LTP from thumbs-up/down."""
         with self.lock:
             affected = []
-            if correct:
-                for sn in ("subject", "verb", "object"):
-                    sec = self.sys_.sections[sn]
-                    if not hasattr(sec, "mode_strength"):
-                        continue
-                    arcs = sec.arcs()
-                    if len(arcs) > 0:
-                        top = int(arcs.argmax())
-                        reinforce_mode(sec, top, boost=0.05, ceiling=2.5)
-                        affected.append({"section": sn, "mode_id": top,
-                                         "new_strength": sec.mode_strength[top]})
-            else:
-                for sn in ("subject", "verb", "object"):
-                    sec = self.sys_.sections[sn]
-                    if not hasattr(sec, "mode_strength"):
-                        continue
-                    arcs = sec.arcs()
-                    if len(arcs) > 0:
-                        top = int(arcs.argmax())
-                        sec.mode_strength[top] = max(
-                            0.0, sec.mode_strength[top] - 0.02)
-                        affected.append({"section": sn, "mode_id": top,
-                                         "new_strength": sec.mode_strength[top]})
-            # Event log: feedback
+            for cat in CONTENT_SECTIONS:
+                sec = self.sys_.sections[cat]
+                if not hasattr(sec, "mode_strength"):
+                    continue
+                arcs = sec.arcs()
+                if len(arcs) == 0:
+                    continue
+                top = int(arcs.argmax())
+                if correct:
+                    reinforce_mode(sec, top, boost=0.05, ceiling=2.5)
+                else:
+                    sec.mode_strength[top] = max(0.0, sec.mode_strength[top] - 0.02)
+                affected.append({"section": cat, "mode_id": top,
+                                 "new_strength": sec.mode_strength[top]})
             self.event_log.write("feedback", correct=correct,
-                                 affected=[{"section": a["section"],
-                                            "mode_id": a["mode_id"],
-                                            "strength": a["new_strength"]}
-                                           for a in affected])
+                                 affected=[{"section": a["section"], "mode_id": a["mode_id"],
+                                            "strength": a["new_strength"]} for a in affected])
             return {"ltp_applied": correct, "affected_modes": affected}
 
-    def get_state(self):
+    def get_state(self, engine=None):
         """Snapshot for UI panel polling."""
         with self.lock:
-            return {
+            state = {
                 "tick": self.sys_.tick,
                 "rhythm_phase": self.last_rhythm_phase,
                 "introspection": self.last_intro_state or "i_quiet",
@@ -626,73 +582,47 @@ class V7Session:
                 "mode_strengths": self._get_mode_strengths(),
                 "nmda_events": self.last_nmda_events[-10:],
                 "routing_log": self.last_routing_log,
-                "n_commits_total": sum(
-                    len(sec.krimelack) for sec in self.sys_.sections.values()),
+                "n_commits_total": sum(len(s.krimelack) for s in self.sys_.sections.values()),
                 "intro_krimelack_count": len(self.sys_.sections["intro"].krimelack),
                 "aware_krimelack_count": len(self.sys_.sections["aware"].krimelack),
                 "intro_krimelack_recent": [
                     {"tick": k["tick"], "mode_id": k["mode_id"],
                      "salience": round(k.get("salience", 0), 3)}
-                    for k in self.sys_.sections["intro"].krimelack[-5:]
-                ],
+                    for k in self.sys_.sections["intro"].krimelack[-5:]],
                 "aware_krimelack_recent": [
                     {"tick": k["tick"], "mode_id": k["mode_id"],
                      "salience": round(k.get("salience", 0), 3)}
-                    for k in self.sys_.sections["aware"].krimelack[-5:]
-                ],
+                    for k in self.sys_.sections["aware"].krimelack[-5:]],
                 "last_replay": getattr(self, "_last_replay_result", None),
                 "bridge_active": hasattr(self, "_bridge") and self._bridge is not None,
+                "vocab_counts": {c: len(self.vocab.get(c, []))
+                                 for c in CONTENT_SECTIONS + CLOSED_CLASS_CATS},
             }
-
-    def _extract_response_tokens(self, commits):
-        """Extract the best emitted token per section from commits."""
-        tokens = []
-        seen_sections = set()
-        for target_sec in ("subject", "verb", "object"):
-            sec = self.sys_.sections[target_sec]
-            arcs = sec.arcs()
-            if len(arcs) == 0:
-                continue
-            top = int(arcs.argmax())
-            strength = float(arcs[top])
-            word = self._mode_to_word(target_sec, top)
-            if word and target_sec not in seen_sections:
-                ms = 0.0
-                if hasattr(sec, "mode_strength") and top < len(sec.mode_strength):
-                    ms = sec.mode_strength[top]
-                tokens.append({
-                    "section": target_sec,
-                    "token": word,
-                    "emit_tick": self.sys_.tick,
-                    "mode_strength": round(ms, 3),
-                    "arc": round(strength, 3),
-                })
-                seen_sections.add(target_sec)
-        return tokens
+            if engine is not None:
+                state["v6_vocab_count"] = len(getattr(engine, "word_modes", {}))
+                atlas = getattr(self.sys_, "atlas", None)
+                state["atlas_count"] = len(atlas.entries) if atlas else 0
+            return state
 
     def _mode_to_word(self, section_name, mode_id):
-        """Reverse lookup: mode_id in section -> word label."""
         toks = self.vocab.get(section_name, [])
-        if mode_id < len(toks):
-            return toks[mode_id]
-        return None
+        return toks[mode_id] if mode_id < len(toks) else None
 
     def _get_mode_strengths(self):
-        """Mode strengths per section for UI."""
         out = {}
-        for sn in ("subject", "verb", "object"):
-            sec = self.sys_.sections[sn]
+        for cat in CONTENT_SECTIONS:
+            sec = self.sys_.sections[cat]
             strengths = {}
-            toks = self.vocab.get(sn, [])
+            toks = self.vocab.get(cat, [])
             if hasattr(sec, "mode_strength"):
                 for i, tok in enumerate(toks):
                     if i < len(sec.mode_strength):
                         strengths[tok] = round(sec.mode_strength[i], 3)
-            out[sn] = strengths
+            out[cat] = strengths
         return out
 
+    # ---- Serialization ----
     def _serialize_section(self, sec):
-        """Serialize a Section's live substrate state."""
         return {
             "name": sec.name,
             "psi_re": sec.psi.real.tolist(),
@@ -702,48 +632,37 @@ class V7Session:
             "mode_last_used": list(sec.mode_last_used),
             "mode_strength": list(getattr(sec, "mode_strength", [])),
             "gamma": dict(sec.gamma),
-            "det_commit": sec.det_commit,
-            "p_commit": sec.p_commit,
+            "det_commit": sec.det_commit, "p_commit": sec.p_commit,
             "tick": getattr(sec, "tick", 0),
             "krimelack_count": len(sec.krimelack),
-            # Persist last 200 krimelack entries (keep size bounded)
             "krimelack": [
                 {"chi": int(k["chi"]), "tick": int(k["tick"]),
                  "mode_id": int(k["mode_id"]), "reason": k.get("reason", ""),
                  "salience": float(k.get("salience", 0.0))}
-                for k in sec.krimelack[-200:]
-            ],
+                for k in sec.krimelack[-200:]],
         }
 
     def _restore_section(self, sec, data):
-        """Restore a Section from serialized state."""
         sec.psi = np.array(data["psi_re"]) + 1j * np.array(data["psi_im"])
-        sec.mode_bank = [
-            np.array(r) + 1j * np.array(i)
-            for r, i in zip(data["mode_bank_re"], data["mode_bank_im"])
-        ]
-        sec.mode_last_used = list(data.get("mode_last_used",
-                                            [0] * len(sec.mode_bank)))
+        sec.mode_bank = [np.array(r) + 1j * np.array(i)
+                         for r, i in zip(data["mode_bank_re"], data["mode_bank_im"])]
+        sec.mode_last_used = list(data.get("mode_last_used", [0] * len(sec.mode_bank)))
         if "mode_strength" in data:
             sec.mode_strength = list(data["mode_strength"])
         if "gamma" in data:
             sec.gamma = dict(data["gamma"])
 
     def compact(self):
-        """Compaction: snapshot current state + truncate events log.
-        Snapshot becomes the checkpoint; events after this seq are kept."""
         data = self.to_json()
         save_session(self)
-        # Truncate events log to events after this snapshot
         self.event_log.truncate_before(self.event_log.count)
         return data
 
     def to_json(self):
-        """Full substrate state serialization (spec Item 2)."""
         state = {
-            "schema_version": 2,
+            "schema_version": 3,
             "session_id": self.session_id,
-            "event_seq": self.event_log.count,  # for replay-after-snapshot
+            "event_seq": self.event_log.count,
             "vocab": {k: list(v) for k, v in self.vocab.items()},
             "tick": self.sys_.tick,
             "intro_state": self.last_intro_state,
@@ -754,32 +673,43 @@ class V7Session:
                 {"sender": kh["sender"], "chi_lo": kh["chi_lo"],
                  "chi_hi": kh["chi_hi"], "receiver": kh["receiver"],
                  "goal_strength": kh["goal_strength"]}
-                for kh in self.sys_.keyholes
-            ],
+                for kh in self.sys_.keyholes],
         }
-        for sn in ("subject", "verb", "object", "listen", "intro", "aware"):
-            state["sections"][sn] = self._serialize_section(
-                self.sys_.sections[sn])
+        for sn in ALL_SECTIONS:
+            if sn in self.sys_.sections:
+                state["sections"][sn] = self._serialize_section(self.sys_.sections[sn])
         return state
 
     def load_from_json(self, data):
-        """Restore full substrate state."""
         with self.lock:
             sv = data.get("schema_version", 1)
             if sv < 2:
-                # Legacy: just mode_strength + vocab
-                for sn in ("subject", "verb", "object"):
-                    if sn in data:
-                        sec = self.sys_.sections[sn]
+                for old_sn, new_sn in [("subject", "N"), ("verb", "V"), ("object", "N")]:
+                    if old_sn in data and new_sn in self.sys_.sections:
+                        sec = self.sys_.sections[new_sn]
                         if hasattr(sec, "mode_strength"):
-                            sec.mode_strength = list(data[sn])
+                            sec.mode_strength = list(data[old_sn])
                 self.last_intro_state = data.get("intro_state")
                 self.last_aware_state = data.get("aware_state")
                 if "vocab" in data:
-                    self.vocab = {k: list(v) for k, v in data["vocab"].items()}
+                    self._migrate_vocab_v1(data["vocab"])
                 return
-
-            # Schema v2: full state
+            if sv == 2:
+                self.last_intro_state = data.get("intro_state")
+                self.last_aware_state = data.get("aware_state")
+                if "vocab" in data:
+                    self._migrate_vocab_v1(data["vocab"])
+                sections = data.get("sections", {})
+                _v2_map = {"subject": "N", "verb": "V", "object": "N"}
+                for old_sn, sec_data in sections.items():
+                    new_sn = _v2_map.get(old_sn, old_sn)
+                    if new_sn in self.sys_.sections:
+                        self._restore_section(self.sys_.sections[new_sn], sec_data)
+                for sn, sec_data in data.get("meta_sections", {}).items():
+                    if sn in self.sys_.sections:
+                        self._restore_section(self.sys_.sections[sn], sec_data)
+                return
+            # Schema v3
             if "vocab" in data:
                 self.vocab = {k: list(v) for k, v in data["vocab"].items()}
             self.last_intro_state = data.get("intro_state")
@@ -787,24 +717,29 @@ class V7Session:
             for sn, sec_data in data.get("sections", {}).items():
                 if sn in self.sys_.sections:
                     self._restore_section(self.sys_.sections[sn], sec_data)
-            # Legacy: meta_sections → main system sections
-            for sn, sec_data in data.get("meta_sections", {}).items():
-                if sn in self.sys_.sections:
-                    self._restore_section(self.sys_.sections[sn], sec_data)
+
+    def _migrate_vocab_v1(self, old_vocab):
+        """Migrate v1/v2 vocab (subject/verb/object) to new categories."""
+        for old_slot, words in old_vocab.items():
+            for w in words:
+                wl = w.lower()
+                cat = CLOSED_CLASS_LEXICON.get(wl, "V" if old_slot == "verb" else "N")
+                self.vocab.setdefault(cat, [])
+                if wl not in self.vocab[cat]:
+                    self.vocab[cat].append(wl)
 
 
-# Session manager
+# ---- Session manager ----
 _sessions = {}
 _sessions_lock = threading.Lock()
 STATE_DIR = "/app/state/v7_sessions"
 
 
-def get_or_create_session(session_id):
+def get_or_create_session(session_id, engine=None):
     with _sessions_lock:
         if session_id in _sessions:
             return _sessions[session_id]
-        session = V7Session(session_id)
-        # Step 1: Load latest snapshot (compaction checkpoint)
+        session = V7Session(session_id, engine=engine)
         snapshot_path = os.path.join(STATE_DIR, f"{session_id}.json")
         snapshot_seq = -1
         if os.path.exists(snapshot_path):
@@ -816,7 +751,6 @@ def get_or_create_session(session_id):
                 print(f"[v7] Loaded snapshot for {session_id} (seq={snapshot_seq})")
             except Exception as e:
                 print(f"[v7] Snapshot load failed for {session_id}: {e}")
-        # Step 2: Replay events since snapshot
         if session.event_log.exists():
             from dsf_ai_service.substrate.event_log import replay_events
             events = session.event_log.read_since(snapshot_seq)

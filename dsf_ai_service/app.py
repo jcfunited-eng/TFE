@@ -2494,7 +2494,7 @@ async def substrate_hear_word(req: SubstrateHearRequest):
     result = {"first": first_per_section, "strongest": strongest_per_section}
     try:
         from dsf_ai_service.substrate.v7_engine import get_or_create_session
-        v7_session = get_or_create_session("default")
+        v7_session = get_or_create_session("default", engine=_guala)
         bridge = _get_bridge(v7_session)
         # Use the heard word directly (attention_focus decays after 20 ticks)
         bridge_result = bridge.multimodal_winner_to_v7(word)
@@ -2558,7 +2558,7 @@ def _get_bridge(session):
 async def v7_converse(req: V7ConverseRequest):
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     sid = req.session_id or str(_uuid.uuid4())[:8]
-    session = get_or_create_session(sid)
+    session = get_or_create_session(sid, engine=_guala)
     result = session.converse(req.text)
     # Bridge: relay v7 emissions to multimodal (spec 4.2)
     try:
@@ -2580,7 +2580,7 @@ async def v7_converse(req: V7ConverseRequest):
 @app.post("/v7/feedback")
 async def v7_feedback(req: V7FeedbackRequest):
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
-    session = get_or_create_session(req.session_id)
+    session = get_or_create_session(req.session_id, engine=_guala)
     result = session.apply_feedback(req.correct, req.expected_tokens)
     try:
         import asyncio as _a7; await _a7.get_event_loop().run_in_executor(None, save_session, session)
@@ -2592,14 +2592,14 @@ async def v7_feedback(req: V7FeedbackRequest):
 @app.get("/v7/state")
 async def v7_state(session_id: str = "default"):
     from dsf_ai_service.substrate.v7_engine import get_or_create_session
-    session = get_or_create_session(session_id)
-    return session.get_state()
+    session = get_or_create_session(session_id, engine=_guala)
+    return session.get_state(engine=_guala)
 
 @app.post("/v7/quiet")
 async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
     """Quiet ticks — substrate's Default Mode. Replay + consolidation."""
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
-    session = get_or_create_session(session_id)
+    session = get_or_create_session(session_id, engine=_guala)
     results = session.quiet_tick(min(n_ticks, 50))
     try:
         import asyncio as _a7; await _a7.get_event_loop().run_in_executor(None, save_session, session)
@@ -2615,7 +2615,7 @@ async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
 async def v7_save(session_id: str = "default"):
     """Manual save — Joe can hit this before risky operations."""
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
-    session = get_or_create_session(session_id)
+    session = get_or_create_session(session_id, engine=_guala)
     try:
         import asyncio as _a7; await _a7.get_event_loop().run_in_executor(None, save_session, session)
         data = session.to_json()
