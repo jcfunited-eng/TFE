@@ -1922,6 +1922,140 @@ async def admin_atlas_snapshot():
     }
 
 
+# (A) Step-0 atlas backup with verification
+@app.post("/api/v1/gualaloom/admin/backup")
+async def admin_backup():
+    """Step 0: Full state backup to dedicated UNPAUSE-PRE S3 prefix. Verified."""
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    import asyncio as _aio, boto3 as _boto3
+    loop = _aio.get_event_loop()
+    def _do_backup():
+        t0 = time.time()
+        s3 = _boto3.client("s3", region_name="us-east-1")
+        bucket = "dsf-ai-site-backups"
+        ts = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
+        prefix = f"guala/UNPAUSE-PRE-{ts}/"
+        # Save state to EFS first (fresh)
+        _guala.save_full_state(STATE_DIR)
+        # Upload all 11 state files
+        state_files = ["guala_core.json", "guala_needs.json", "guala_coordinator.json",
+                       "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
+                       "guala_deep_atlas.json", "guala_visual.json", "guala_identity.json",
+                       "guala_sounds.json", "guala_videos.json"]
+        uploaded = 0
+        for f in state_files:
+            path = os.path.join(STATE_DIR, f)
+            if os.path.exists(path):
+                s3.upload_file(path, bucket, prefix + f)
+                uploaded += 1
+        # Also backup pictures
+        pic_dir = os.path.join(STATE_DIR, "pictures")
+        if os.path.isdir(pic_dir):
+            for pf in os.listdir(pic_dir):
+                s3.upload_file(os.path.join(pic_dir, pf), bucket, prefix + "pictures/" + pf)
+        # VERIFY: re-fetch atlas and check entry count
+        import tempfile
+        verify_path = tempfile.mktemp(suffix=".json")
+        try:
+            s3.download_file(bucket, prefix + "guala_atlas.json", verify_path)
+            import json as _json
+            with open(verify_path) as fh:
+                atlas_data = _json.load(fh)
+            backup_entries = sum(len(v) for v in atlas_data.get("data", atlas_data).values()
+                                if isinstance(v, list))
+            live_entries = sum(len(v) for v in _guala.atlas.entries.values())
+            os.unlink(verify_path)
+            if backup_entries != live_entries:
+                return {"error": f"verification failed: backup has {backup_entries} entries, "
+                                 f"live has {live_entries}", "s3_prefix": prefix}
+        except Exception as e:
+            return {"error": f"verification failed: {e}", "s3_prefix": prefix}
+        dt = time.time() - t0
+        print(f"[UNPAUSE] Backup verified: {uploaded} files to {prefix} in {dt:.1f}s, "
+              f"{live_entries} entries confirmed")
+        return {"backup": "verified", "s3_prefix": prefix, "files_uploaded": uploaded,
+                "n_entries_verified": live_entries, "duration_s": round(dt, 1)}
+    result = await loop.run_in_executor(None, _do_backup)
+    if "error" in result:
+        return JSONResponse(result, status_code=500)
+    return result
+
+
+# (B) Cascade auto-trigger monitor
+_cascade_monitor_task = None
+_cascade_monitor_running = False
+
+class CascadeMonitorRequest(BaseModel):
+    baseline_n_bindings: int
+    baseline_strength: float
+    baseline_saturated: int
+    interval_s: int = 10
+
+@app.post("/api/v1/gualaloom/admin/start_cascade_monitor")
+async def admin_start_cascade_monitor(req: CascadeMonitorRequest):
+    """Start cascade detection. Auto-repauses if thresholds breached."""
+    global _cascade_monitor_task, _cascade_monitor_running
+    import asyncio
+    if _cascade_monitor_running:
+        return {"error": "monitor already running"}
+
+    _cascade_monitor_running = True
+    baseline = {
+        "n_bindings": req.baseline_n_bindings,
+        "strength": req.baseline_strength,
+        "saturated": req.baseline_saturated,
+    }
+    interval = max(5, req.interval_s)
+
+    async def _monitor():
+        global _cascade_monitor_running
+        print(f"[CASCADE] Monitor started: bindings={baseline['n_bindings']} "
+              f"strength={baseline['strength']:.1f} saturated={baseline['saturated']} "
+              f"interval={interval}s")
+        while _cascade_monitor_running:
+            await asyncio.sleep(interval)
+            if _guala is None:
+                continue
+            n_bindings = _guala.atlas.n_live_bindings()
+            total_str = _guala.atlas.total_strength()
+            dist = _guala.atlas.strength_distribution()
+            saturated = dist.get("0.9-1.0", 0)
+            violations = []
+            if n_bindings < 0.80 * baseline["n_bindings"]:
+                violations.append(f"n_bindings {n_bindings} < 80% of {baseline['n_bindings']}")
+            if total_str < 0.70 * baseline["strength"]:
+                violations.append(f"total_strength {total_str:.1f} < 70% of {baseline['strength']:.1f}")
+            if saturated < 0.90 * baseline["saturated"]:
+                violations.append(f"saturated {saturated} < 90% of {baseline['saturated']}")
+            if violations:
+                # AUTO-REPAUSE
+                os.environ["DECAY_PAUSED"] = "1"
+                reason = "; ".join(violations)
+                _guala._log_substrate_event("cascade_auto_triggered",
+                                             tick=_guala.tick, violations=violations,
+                                             n_bindings=n_bindings,
+                                             total_strength=round(total_str, 2),
+                                             saturated=saturated)
+                print(f"[CASCADE] AUTO-REPAUSE TRIGGERED: {reason}")
+                _cascade_monitor_running = False
+                return
+            print(f"[CASCADE] OK: bindings={n_bindings} str={total_str:.1f} sat={saturated}")
+        print(f"[CASCADE] Monitor stopped")
+
+    _cascade_monitor_task = asyncio.ensure_future(_monitor())
+    return {"cascade_monitor": "started", "baseline": baseline, "interval_s": interval}
+
+
+@app.post("/api/v1/gualaloom/admin/stop_cascade_monitor")
+async def admin_stop_cascade_monitor():
+    """Stop cascade monitor."""
+    global _cascade_monitor_running
+    _cascade_monitor_running = False
+    return {"cascade_monitor": "stopped"}
+
+
 # GL-BRIEF-CHITRACE: read-only chi-geometry readout
 class ChiTraceRequest(BaseModel):
     picture_ids: list = []
