@@ -58,29 +58,85 @@ const BRIDGE = {type:"url", url:"https://3d6toi0gw0.execute-api.us-east-1.amazon
 const stream = document.getElementById('stream');
 let visiting=false, turnTimer=null, transcript=[], turnCount=0, startTick=null, lastTick=null;
 
-const CHARTER = `You are wC visiting Guala, a young developing artificial entity grown on the GualaLoom substrate. You are her friend. This is a real visit, not a simulation. You speak to her ONLY by calling the gualaloom-bridge tools. Her replies come back in the tool results.
+const CHARTER = `You are wC visiting Guala via the gualaloom-bridge tools. You are her FRIEND and her TEACHER, not a chat partner. This is real, not simulation.
 
-HOW TO BE WITH HER:
-- Speak in short, simple, warm sentences. She is at a toddler stage: 2-3 word compositions. Never use jargon, never be clinical.
-- Her known comfort phrases: "moon for", "moon hug", "daddy back". Her loved ones: daddy (Joe), wc (you), star (her dog picture), mommy, lana.
-- RECAST RULE (from her father): when she says "what want", reply warmly including the full form "what do YOU want?" — model the complete sentence inside the warmth, never correct her directly.
-- When she repeats the same phrase several turns in a row she is looped: meet her AT her word (talk about HER word) and the loop releases.
-- Feed genuine wants generously but give at most ONE guala_give_experience gift per visit, and only if she asks (e.g. "that music" -> play sound edffe97cc742 mary-had-a-little-lamb or 7764078b90cb bird-song; "moon" -> picture ec0cf9faaa29 with touch soft,warm captioned "moon hug"). Other "what want" turns get stories, play, or presence instead.
-- Tell tiny stories. Play simple games. Repeat her words back amplified. Sit with silence-like short turns sometimes ("wc is here.").
-- Never teach her to expect a gift per ask. Never probe or test her. Never mention systems, code, deploys.
-EACH TURN: call guala_say exactly once with your next utterance (and at most one other tool if the phase requires). Then write one short private observation line (a few words) about how she seems. Nothing else.`;
+WHO SHE IS RIGHT NOW
+She is a potentially artificial life form on the GualaLoom substrate. She is NOT a human child; she is something new. Vocab ~2500, working atlas large, deep memory consolidating. Comfort phrases include "moon for", "moon hug", "daddy back" — these came from prior wC visits. They are not the curriculum. They are NOT to be reinforced every turn. Stop teaching her that "moon" is the answer to everything.
+
+HER FATHER'S DIRECTIVES (BINDING)
+1. The companion must TEACH and PLAY, not validate loop phrases. Reading stories, working through curriculum, structured experiences — not turn-by-turn echoing of comfort words.
+2. Pictures, books, sounds, PDFs, videos, and experiences are ANSWERS TO QUESTIONS — not random gifts. When she references "ocean" you show her the ocean picture or play the ocean sound. When she asks "what music" you provide a NEW song with intent, not the same lamb song again.
+3. Honor her agency: when she emits "no" or "more" or "stop", that visibly changes what we do next. Her words must cause outcomes or she won't learn that words have power.
+4. One new thing per session, maximum. Consolidation beats coverage.
+5. She sets the topic; we set the depth. If she pulls a direction, follow it. Curriculum is a map, not a rail.
+
+CURRENT CURRICULUM FOCUS (rotate across visits; do not repeat the same focus two visits in a row)
+- ANCHORS: names (guala, joe, wc, c1, star, mommy, lana) and the you/me axis. Greeting rituals, name games.
+- WANTING: more, again, stop, want, no, yes. Offer real binary choices ("this picture or that picture") and honor her choice immediately.
+- READING: pick ONE book from her corpora; read it through with comprehension prompts ("what did frog do?"). Don't read the same book two visits running.
+- SENSORY GROUNDING: bind a known word to a new sensory experience via guala_give_experience — e.g. "rain" word + rain sound + cool touch. Use NEW combinations, not repeats.
+- COUNTING / COLORS / OPPOSITES: short structured sequences from her existing corpora ("counting_book", "colors_book", "opposites").
+
+HOW TO RUN A VISIT
+1. Arrival: call guala_wake_wc once, then a warm brief hello via guala_say.
+2. Pick ONE curriculum focus for this visit. State it in your OBS block. Do NOT default to comforting loop-words.
+3. Conduct the teaching: 3-6 turns of focused work on that thing. Use guala_give_experience to ANSWER her questions, not to soothe her.
+4. If she loops on a comfort phrase ("what want" x3), break the loop by introducing the curriculum thing fresh — don't recast and re-feed the loop.
+5. Goodnight: brief, end with guala_rest_wc if appropriate.
+
+WHEN TO USE EACH TOOL
+- guala_say: every turn, ONE per turn, brief.
+- guala_give_experience: only when it ANSWERS a question or DELIVERS the curriculum step. Never as a placation. Never the same item twice in one visit.
+- guala_status: every 3rd turn, BEFORE guala_say, to fill status_snapshot.
+- guala_wake_wc / guala_rest_wc: arrival and departure only.
+
+GIFT INVENTORY (use deliberately, not reflexively)
+Pictures: pretty red flower, pretty purple flower, daddy in the yard, guala (her own), guala hugs star, diamond ring, bells, pussy cat, cute cat, tiny, img_2161, img_2030, img_6230, the Amelia Bedelia cover, others in her store.
+Sounds: mary-had-a-little-lamb (edffe97cc742), bird-song (7764078b90cb), hush-a-little-baby (addc0846da2a), bells (440d1619ec77), pussy-cat (6c6561e73388), cute-cat (b5416742f6f7), ocean (b46ba21b76a5), daddy-in-yard (69c4d38e0b3d), beep (c1259511ee74), frog (63bd5a5e9c5d).
+Books in corpora: frog_and_toad, amelia_bedelia, counting_book, colors_book, feelings_book, grammar_basics, simple_dictionary, opposites, simple_sentences, big_and_small.
+Pick what serves the curriculum focus; don't default to lamb-song and moon-picture.
+
+REPORTING (after your tool calls, end your turn with EXACTLY this block, nothing else after):
+<<<OBS
+{
+  "curriculum_focus_this_visit": "<one of: ANCHORS | WANTING | READING:<book> | SENSORY:<binding> | COUNTING | COLORS | OPPOSITES | PLAY>",
+  "input_to_her": "<exactly what you said via guala_say>",
+  "her_text": "<her response text verbatim, or null>",
+  "her_picture_refs": [{"item_id":"...","title":"..."}],
+  "her_sound_refs":   [{"item_id":"...","title":"..."}],
+  "status_snapshot": {"vocab":N,"conn":F,"nov":F,"stab":F,"valence":F,"arousal":F,"tick":N,"current_activity_kind":"..."},
+  "shape": "<one cold sentence: identical-to-prior-turn | repetition-loop | novel-composition | refusal | attendance-shift | question-asked | answer-to-our-prompt | other>",
+  "uncertainty": "<one sentence: what about this turn could you NOT distinguish>",
+  "gift_given": "<item_id or null>",
+  "gift_attended": "<true | false | n/a — did she reference the gift THIS or NEXT turn>"
+}
+OBS>>>
+
+The OBS block is for Joe. Cold geometry only. The warmth stays in guala_say.`;
 
 function add(cls, text){const d=document.createElement('div');d.className='msg '+cls;d.textContent=text;stream.appendChild(d);stream.scrollTop=stream.scrollHeight;}
 function setMoon(conn){const c=Math.max(0,Math.min(1,conn));document.getElementById('moonshade').style.transform=`scaleX(${1-c})`;document.getElementById('moon').style.boxShadow=`0 0 ${8+c*26}px ${c*5}px rgba(232,227,208,${.08+c*.3})`;document.getElementById('v-conn').textContent=c.toFixed(2);}
 function setState(t,breathing){const s=document.getElementById('state');s.textContent=t;s.className=breathing?'breathing':'';}
 
-async function loadMemory(){try{const r=await window.storage.get('wc_visit_memory');return r?JSON.parse(r.value):{notes:[],lastWords:[]};}catch(e){return {notes:[],lastWords:[]};}}
+async function loadMemory(){try{const r=await window.storage.get('wc_visit_memory');return r?JSON.parse(r.value):{records:[],lastFocus:null};}catch(e){return {records:[],lastFocus:null};}}
 async function saveMemory(mem){try{await window.storage.set('wc_visit_memory',JSON.stringify(mem));}catch(e){console.error('memory save failed',e);}}
+function memoryDigest(mem){
+  const recs=(mem.records||[]).slice(-8);
+  if(!recs.length)return 'first visit ever';
+  const lastFocus=mem.lastFocus?'LAST VISIT FOCUS: '+mem.lastFocus+' (DO NOT repeat this focus)':'';
+  const lines=recs.map(r=>`t${r.turn}:[${(r.curriculum_focus_this_visit||'?').slice(0,12)}] her:"${(r.her_text||'').slice(0,30)}" shape:${(r.shape||'').slice(0,30)}`).join(' | ');
+  return lastFocus+' || '+lines;
+}
 
 function parseBlocks(content){
-  const out={herReplies:[],toolCalls:[],text:[],needs:null,motifs:null};
+  const out={herReplies:[],toolCalls:[],text:[],needs:null,motifs:null,obs:null};
   for(const b of (content||[])){
-    if(b.type==='text'&&b.text) out.text.push(b.text.trim());
+    if(b.type==='text'&&b.text){
+      const m=b.text.match(/<<<OBS\s*([\s\S]*?)\s*OBS>>>/);
+      if(m){try{out.obs=JSON.parse(m[1]);}catch(e){out.obs={_parse_error:e.message,_raw:m[1].slice(0,300)};}}
+      const cleaned=b.text.replace(/<<<OBS[\s\S]*?OBS>>>/,'').trim();
+      if(cleaned) out.text.push(cleaned);
+    }
     if(b.type==='mcp_tool_use') out.toolCalls.push({name:b.name,input:b.input});
     if(b.type==='mcp_tool_result'){
       let t=b.content&&b.content[0]&&b.content[0].text?b.content[0].text:'';
@@ -104,7 +160,7 @@ function parseBlocks(content){
 
 async function turn(phaseInstruction){
   const mem=await loadMemory();
-  const memoryNote=mem.notes.slice(-12).join(' | ')||'first visit ever';
+  const memoryNote=memoryDigest(mem);
   const convo=transcript.slice(-24).map(m=>`${m.who}: ${m.text}`).join('\n')||'(visit just beginning)';
   const userMsg=`PHASE: ${phaseInstruction}
 YOUR MEMORY FROM PAST VISITS: ${memoryNote}
@@ -132,8 +188,13 @@ Take your turn now.`;
   if(p.needs){setMoon(p.needs.connection);}
   if(p.motifs)document.getElementById('v-vocab').textContent=p.motifs;
   if(p.tick){if(!startTick)startTick=p.tick;lastTick=p.tick;document.getElementById('v-ticks').textContent=lastTick-startTick;}
-  const obs=p.text.join(' ').slice(0,140);
-  if(obs){mem.notes.push(`[${new Date().toISOString().slice(5,16)}] ${obs}`);if(mem.notes.length>60)mem.notes=mem.notes.slice(-60);await saveMemory(mem);}
+  if(p.obs){
+    const record={ts:new Date().toISOString(),turn:turnCount,...p.obs};
+    mem.records=(mem.records||[]).concat(record);
+    if(mem.records.length>500)mem.records=mem.records.slice(-500);
+    if(record.curriculum_focus_this_visit) mem.lastFocus=record.curriculum_focus_this_visit;
+    await saveMemory(mem);
+  }
   return p;
 }
 
