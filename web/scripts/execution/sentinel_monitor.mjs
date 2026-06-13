@@ -865,13 +865,10 @@ export async function runSentinel() {
       const currentSUf = isFinite(fields.s_uf) ? fields.s_uf : null;
       const currentDk  = isFinite(fields.d_k)  ? fields.d_k  : null;
 
-      // Exit A — Acceleration complete: S_UF crossed into high-conviction band
-      // ALWAYS allowed — this is a winning exit (harvesting energy)
-      if (currentSUf !== null && currentSUf >= 0.75) {
-        console.log(`[SENTINEL] CH2 EXIT-A ${pos.ticker} | S_UF=${currentSUf} >= 0.75 — acceleration complete, taking profit`);
-        await killPosition(pos, "ch2_exit_acceleration_complete", ALPACA_BASE);
-        continue;
-      }
+      // EXIT-A REMOVED. S_UF >= 0.75 trigger had no derivation. Capped winners
+      // at +3.25% avg / 4.4 days vs April's +12.34% / 23-30 days. Same class
+      // as EXIT-D/H/S: structural-costume story, no backtest, winner-capping.
+      // Destruction-pattern registry entry: GL-BRIEF-039.
 
       // Exit B — Directional collapse: D_k no longer 1
       // 7-day minimum hold: D_k collapse on day 0-6 is transient noise.
