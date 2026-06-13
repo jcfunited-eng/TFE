@@ -159,6 +159,10 @@ class LivingAtlas:
         if current_tick is None:
             current_tick = self.tick
         meta = _meta_decay_enabled()
+        # UNPAUSE: env-var overrides for Step-3 calibrated constants
+        import os as _os
+        _lam = float(_os.environ.get("DECAY_LAMBDA_OVERRIDE", 0) or 0) or DECAY_LAMBDA
+        _sdiv = float(_os.environ.get("SLOW_DIV_OVERRIDE", 0) or 0) or SLOW_DIV
         for chi_k, entries in self.entries.items():
             for e in entries:
                 dt = max(0, current_tick - e["last_tick"])
@@ -167,16 +171,42 @@ class LivingAtlas:
                         dwell = e.get("dwell_ticks", 0)
                         released = e.get("released", False)
                         if dwell >= DWELL_GATE_META and not released:
-                            lam_base = DECAY_LAMBDA / SLOW_DIV
+                            lam_base = _lam / _sdiv
                         else:
-                            lam_base = DECAY_LAMBDA
+                            lam_base = _lam
                         rc = e.get("reinforcement_count", 0)
                         lam_eff = lam_base / (1.0 + META_K * rc)
                     else:
-                        lam_eff = DECAY_LAMBDA
+                        lam_eff = _lam
                     lam_eff *= rate_scale  # Fix C: external modulation
                     e["strength"] *= math.exp(-lam_eff * dt)
                     e["last_tick"] = current_tick
+
+    def amnesty(self, current_tick):
+        """UNPAUSE: reset last_tick on every entry to current_tick.
+        Prevents mass extinction on first decay after long pause.
+        Zero strength changes — last_tick only."""
+        count = 0
+        for entries in self.entries.values():
+            for e in entries:
+                e["last_tick"] = current_tick
+                count += 1
+        return count
+
+    def strength_distribution(self):
+        """Histogram of binding strengths for monitoring."""
+        buckets = {"0.0-0.1": 0, "0.1-0.3": 0, "0.3-0.5": 0,
+                   "0.5-0.7": 0, "0.7-0.9": 0, "0.9-1.0": 0}
+        for entries in self.entries.values():
+            for e in entries:
+                s = e["strength"]
+                if s < 0.1: buckets["0.0-0.1"] += 1
+                elif s < 0.3: buckets["0.1-0.3"] += 1
+                elif s < 0.5: buckets["0.3-0.5"] += 1
+                elif s < 0.7: buckets["0.5-0.7"] += 1
+                elif s < 0.9: buckets["0.7-0.9"] += 1
+                else: buckets["0.9-1.0"] += 1
+        return buckets
 
     def release_to_fast(self, chi_value, section_name, motif_id):
         """C: Post-promotion release — entry reverts to fast decay channel.

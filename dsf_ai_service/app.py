@@ -1830,6 +1830,98 @@ async def gualaloom_picture(item_id: str):
     return JSONResponse({"error": "no image data"}, status_code=404)
 
 
+# ════════════════════════════════════════════════════════════════
+# UNPAUSE admin endpoints (GL-BRIEF-UNPAUSE-WC-20260613-01)
+# ════════════════════════════════════════════════════════════════
+
+# Runtime repause flag (survives within the process; env var alone isn't enough)
+_runtime_decay_paused = None  # None = defer to env var
+
+@app.post("/api/v1/gualaloom/admin/amnesty")
+async def admin_amnesty():
+    """Step 1: Reset last_tick on all atlas entries to current tick. Zero strength changes."""
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    tick = _guala.tick
+    total_strength_before = round(_guala.atlas.total_strength(), 4)
+    count = _guala.atlas.amnesty(tick)
+    total_strength_after = round(_guala.atlas.total_strength(), 4)
+    _guala._log_substrate_event("amnesty_complete", entries_restamped=count,
+                                 tick=tick, strength_before=total_strength_before,
+                                 strength_after=total_strength_after)
+    print(f"[UNPAUSE] Amnesty: {count} entries re-stamped to tick {tick}, "
+          f"strength {total_strength_before} → {total_strength_after}")
+    return {"amnesty": "complete", "entries_restamped": count, "tick": tick,
+            "total_strength_before": total_strength_before,
+            "total_strength_after": total_strength_after}
+
+
+@app.post("/api/v1/gualaloom/admin/force_dream")
+async def admin_force_dream():
+    """Step 2: Force a sleep→dream cycle. Returns dream artifact."""
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    # End current activity and force sleep
+    _guala._force_next_activity = ("SLEEPING", None)
+    if _guala._current_activity:
+        _guala._end_activity()
+    _guala._log_substrate_event("force_dream_initiated", tick=_guala.tick)
+    print(f"[UNPAUSE] Force dream initiated at tick {_guala.tick}")
+    # Wait for the dream to complete (poll events for up to 60s)
+    import asyncio
+    start_tick = _guala.tick
+    for _ in range(120):  # 120 × 0.5s = 60s
+        await asyncio.sleep(0.5)
+        activity = _guala._current_activity
+        if activity and activity.kind == "DREAMING":
+            continue  # still dreaming
+        if activity is None or activity.kind != "SLEEPING":
+            # Dream ended
+            events = _guala.get_recent_events(since_tick=start_tick, limit=50)
+            dream_events = [e for e in events if e.get("kind") in
+                           ("dream_began", "dream_artifact", "dream_promotion",
+                            "deep_atlas_promotion")]
+            return {"force_dream": "complete", "tick": _guala.tick,
+                    "dream_events": dream_events[-10:],
+                    "n_events": len(dream_events)}
+    return {"force_dream": "timeout", "tick": _guala.tick,
+            "current_activity": _guala._current_activity.kind if _guala._current_activity else None}
+
+
+@app.post("/api/v1/gualaloom/admin/repause")
+async def admin_repause():
+    """Kill switch: re-pause decay immediately."""
+    global _runtime_decay_paused
+    os.environ["DECAY_PAUSED"] = "1"
+    _runtime_decay_paused = True
+    if _guala:
+        _guala._log_substrate_event("decay_repaused", tick=_guala.tick,
+                                     reason="manual_kill_switch")
+    print(f"[UNPAUSE] KILL SWITCH: decay re-paused")
+    return {"repause": "active", "DECAY_PAUSED": "1"}
+
+
+@app.get("/api/v1/gualaloom/admin/atlas_snapshot")
+async def admin_atlas_snapshot():
+    """Monitor: live atlas stats for unpause monitoring."""
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    dist = _guala.atlas.strength_distribution()
+    return {
+        "tick": _guala.tick,
+        "total_strength": round(_guala.atlas.total_strength(), 2),
+        "n_live_bindings": _guala.atlas.n_live_bindings(),
+        "n_total_entries": sum(len(v) for v in _guala.atlas.entries.values()),
+        "strength_distribution": dist,
+        "decay_paused": os.environ.get("DECAY_PAUSED", "0"),
+        "decay_lambda_override": os.environ.get("DECAY_LAMBDA_OVERRIDE", ""),
+        "slow_div_override": os.environ.get("SLOW_DIV_OVERRIDE", ""),
+    }
+
+
 # GL-BRIEF-CHITRACE: read-only chi-geometry readout
 class ChiTraceRequest(BaseModel):
     picture_ids: list = []

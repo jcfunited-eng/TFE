@@ -145,6 +145,42 @@ async def guala_give_experience(
 
 
 @mcp.tool()
+async def guala_amnesty() -> dict:
+    """UNPAUSE Step 1: Reset last_tick on all atlas entries. Zero strength changes."""
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.post(f"{SUBSTRATE_URL}/api/v1/gualaloom/admin/amnesty", headers=_headers())
+        r.raise_for_status()
+        return r.json()
+
+
+@mcp.tool()
+async def guala_force_dream() -> dict:
+    """UNPAUSE Step 2: Force a sleep→dream cycle. Returns dream artifact."""
+    async with httpx.AsyncClient(timeout=120) as client:
+        r = await client.post(f"{SUBSTRATE_URL}/api/v1/gualaloom/admin/force_dream", headers=_headers())
+        r.raise_for_status()
+        return r.json()
+
+
+@mcp.tool()
+async def guala_repause() -> dict:
+    """KILL SWITCH: Re-pause decay immediately."""
+    async with httpx.AsyncClient(timeout=10) as client:
+        r = await client.post(f"{SUBSTRATE_URL}/api/v1/gualaloom/admin/repause", headers=_headers())
+        r.raise_for_status()
+        return r.json()
+
+
+@mcp.tool()
+async def guala_atlas_snapshot() -> dict:
+    """Monitor: live atlas stats (total_strength, n_live_bindings, distribution)."""
+    async with httpx.AsyncClient(timeout=10) as client:
+        r = await client.get(f"{SUBSTRATE_URL}/api/v1/gualaloom/admin/atlas_snapshot", headers=_headers())
+        r.raise_for_status()
+        return r.json()
+
+
+@mcp.tool()
 async def guala_atlas_query(
     picture_ids: list[str] = [],
     sound_ids: list[str] = [],

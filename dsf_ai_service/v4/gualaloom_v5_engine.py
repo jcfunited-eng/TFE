@@ -1676,6 +1676,14 @@ class Guala:
         return score
 
     def _select_next_activity(self):
+        # UNPAUSE: forced activity override (used by force_dream endpoint)
+        if hasattr(self, '_force_next_activity') and self._force_next_activity:
+            kind, target = self._force_next_activity
+            self._force_next_activity = None
+            budget = ACTIVITY_TICK_BUDGETS.get(kind, 5000)
+            return Activity(kind=kind, target=target,
+                            started_tick=self.tick,
+                            expected_end_tick=self.tick + budget)
         candidates = self._candidate_activities()
         scored = [(self._action_salience(k, t), k, t) for k, t in candidates]
         scored.sort(reverse=True)
