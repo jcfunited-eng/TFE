@@ -561,8 +561,11 @@ class V7Session:
                         "state": self.last_intro_state,
                         "tick": self.sys_.tick})
                     self.intro_commit_history = self.intro_commit_history[-10:]
-                    print(f"[v7-intro] FIRED during quiet: mode={i_mode} "
-                          f"state={self.last_intro_state} tick={self.sys_.tick}")
+                    # Log sparingly — only on state transitions, not every tick
+                    if len(self.intro_commit_history) <= 1 or \
+                       self.intro_commit_history[-1]["state"] != self.intro_commit_history[-2].get("state"):
+                        print(f"[v7-intro] FIRED during quiet: mode={i_mode} "
+                              f"state={self.last_intro_state} tick={self.sys_.tick}")
                 results.append(result)
             # Store for state endpoint reporting
             total_r = sum(len(r["replayed"]) for r in results)

@@ -63,7 +63,7 @@ if [ "$CFG" != "200	100" ]; then
     echo "Updating to zero-downtime rolling deploy..."
     aws ecs update-service --cluster ${ECS_CLUSTER} --service ${ECS_SERVICE} \
       --deployment-configuration minimumHealthyPercent=100,maximumPercent=200 \
-      --health-check-grace-period-seconds 30 \
+      --health-check-grace-period-seconds 120 \
       --no-cli-pager > /dev/null
     echo "  Updated to rolling deploy (max=200, min=100, grace=30s)"
 else
