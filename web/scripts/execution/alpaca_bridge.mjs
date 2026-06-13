@@ -452,10 +452,10 @@ export async function executeBracketOrder(signal, opts = {}) {
   const KINETIC_BUFFER = 1.001;
   const entryPrice      = parseFloat((currentPrice * KINETIC_BUFFER).toFixed(2));
   const takeProfitPrice = parseFloat((entryPrice + TAKE_PROFIT_MULT * atr).toFixed(2));
-  // -10% catastrophic stop for 3WA (was 1×ATR which killed 61 winners same-day).
-  // Backtest: ATR stops killed 13/14 winners. -10% is disaster insurance only.
-  // Structural exits (sentinel) handle normal profit-taking and loss-cutting.
-  const stopLossPrice   = parseFloat((entryPrice * 0.90).toFixed(2));
+  // 1×ATR bracket SL restored — April's validated exit width (-1.7% avg).
+  // May 19 commit 03352c2 changed to -10% based on a memory-file observation
+  // (not a repo artifact). Destruction registry: "survivorship reframing."
+  const stopLossPrice   = parseFloat((entryPrice - STOP_LOSS_MULT * atr).toFixed(2));
 
   if (stopLossPrice <= 0) {
     return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice} (ATR=${atr.toFixed(4)})`);
@@ -584,7 +584,7 @@ export async function executeBracketOrder(signal, opts = {}) {
 // $4,413 P&L vs $1,633 at 0.917%. Utilization ~60% vs ~23%.
 const CH2_RISK_PCT         = 2.5;
 const CH2_TAKE_PROFIT_MULT = 1.0;   // bracket TP kept as wide ceiling (sentinel trailing handles real exit)
-const CH2_STOP_LOSS_PCT    = 0.10;  // -10% catastrophic stop — not noise, only disaster. ATR stops killed 13/14 winners.
+const CH2_STOP_LOSS_MULT   = 1.0;   // 1×ATR bracket SL restored — April's validated width.
 const CH2_MIN_BRACKET_PCT  = 0.05;  // minimum 5% bracket width — tight brackets on cheap stocks get stopped out prematurely
 
 /**
@@ -682,13 +682,13 @@ export async function executeCh2BracketOrder(signal) {
   const minTpDistance   = entryPrice * CH2_MIN_BRACKET_PCT;
   const atrTpDistance   = CH2_TAKE_PROFIT_MULT * atr;
   const takeProfitPrice = parseFloat((entryPrice + Math.max(minTpDistance, atrTpDistance)).toFixed(2));
-  const stopLossPrice   = parseFloat((entryPrice * (1 - CH2_STOP_LOSS_PCT)).toFixed(2));
+  const stopLossPrice   = parseFloat((entryPrice - CH2_STOP_LOSS_MULT * atr).toFixed(2));
 
   if (stopLossPrice <= 0) {
-    return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice}`);
+    return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice} (ATR=${atr.toFixed(4)})`);
   }
 
-  console.log(`[CH2-BRIDGE] ${ticker} | shares=${shares} | entry=${entryPrice} | TP=${takeProfitPrice} | SL=${stopLossPrice} (-10%) | ATR=${atr.toFixed(4)}`);
+  console.log(`[CH2-BRIDGE] ${ticker} | shares=${shares} | entry=${entryPrice} | TP=${takeProfitPrice} | SL=${stopLossPrice} (1xATR) | ATR=${atr.toFixed(4)}`);
 
   let ledgerId;
   try {
