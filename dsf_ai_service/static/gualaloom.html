@@ -4,166 +4,168 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>GualaLoom</title>
+<title>Guala</title>
 <style>
-:root{--bg:#0d1117;--bg-alt:#161b22;--text:#e6edf3;--text-muted:#7d8590;--accent:#58a6ff;--border:#30363d;--input-bg:#0d1117;--msg-user:#1f2937;--msg-sub:#161b22;--ev-activity:#58a6ff;--ev-motif:#3fb950;--ev-dream:#bc8cff;--ev-emission:#f0883e;--nmda-fire:#3fb950;--nmda-block:#f85149;--ltp-bar:#58a6ff}
+:root{--bg:#0d1117;--bg-alt:#161b22;--text:#e6edf3;--text-muted:#7d8590;--accent:#58a6ff;--border:#30363d;--input-bg:#0d1117;--msg-user:#1f2937;--msg-sub:#161b22;--ev-activity:#58a6ff;--ev-motif:#3fb950;--ev-emission:#f0883e;--nmda-fire:#3fb950;--nmda-block:#f85149}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'SF Mono','Fira Code',monospace;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column}
-header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg-alt);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
-.header-left h1{font-size:14px;font-weight:500;color:var(--accent)}
+#perm-strip{display:flex;gap:6px;padding:6px 14px;background:#0b0e14;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.perm-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:4px;font-family:inherit;font-size:10px;cursor:pointer;white-space:nowrap}
+.perm-btn:hover{border-color:var(--accent);color:var(--text)}
+.perm-btn.granted{border-color:var(--ev-motif);color:var(--ev-motif)}
+.perm-btn.denied{border-color:var(--nmda-block);color:var(--nmda-block)}
+#speaker-badge{font-size:10px;color:var(--text-muted);cursor:pointer;margin-left:auto;display:flex;align-items:center;gap:6px}
+#mute-toggle{background:none;border:1px solid var(--border);color:var(--text-muted);padding:2px 8px;border-radius:4px;font-family:inherit;font-size:9px;cursor:pointer}
+header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg-alt);display:flex;justify-content:space-between;align-items:center}
+.header-left h1{font-size:15px;font-weight:600;color:var(--accent)}
 .header-left .subtitle{font-size:9px;color:var(--text-muted)}
-#stats-line{font-size:9px;color:var(--text-muted);margin-top:2px}
-#activity-line{font-size:10px;color:var(--text);margin-top:1px}
-#needs-line{font-size:9px;color:var(--text-muted)}
-.header-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
-.toggle-group{display:flex;border:1px solid var(--border);border-radius:5px;overflow:hidden}
-.toggle-group button{background:var(--bg);color:var(--text-muted);border:none;padding:4px 10px;font-family:inherit;font-size:10px;cursor:pointer;border-right:1px solid var(--border)}
-.toggle-group button:last-child{border-right:none}
-.toggle-group button.active{background:var(--accent);color:#0d1117;font-weight:600}
-#session-info{font-size:9px;color:var(--text-muted)}
+.header-right{display:flex;align-items:center;gap:6px}
 .hdr-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:3px 8px;border-radius:4px;font-family:inherit;font-size:9px;cursor:pointer}
 .hdr-btn:hover{border-color:var(--accent);color:var(--text)}
-#presence-line{font-size:9px;color:var(--text-muted)}
-#main{flex:1;display:flex;overflow:hidden}
-#chat-col{flex:1;display:flex;flex-direction:column;min-width:0}
-#chat{flex:1;overflow-y:auto;padding:8px 14px;display:flex;flex-direction:column;gap:5px}
-.msg{max-width:85%;padding:5px 9px;border-radius:5px;font-size:11px;line-height:1.4;white-space:pre-wrap;word-break:break-word}
+#main-area{flex:1;display:flex;overflow:hidden}
+#convo-col{flex:1;display:flex;flex-direction:column;min-width:0}
+#transcript{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:5px}
+.msg{max-width:85%;padding:6px 10px;border-radius:6px;font-size:11px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
 .msg.user{align-self:flex-end;background:var(--msg-user);border:1px solid var(--border)}
 .msg.substrate{align-self:flex-start;background:var(--msg-sub);border:1px solid var(--border);color:var(--accent)}
 .msg.emission{align-self:flex-start;background:transparent;border:1px solid #30363d44;color:var(--ev-emission);font-style:italic;font-size:10px}
-.msg.wc{align-self:flex-start;background:#1a1a2e;border:1px solid #4a3f6b;color:#bc8cff;font-size:11px}
 .msg.system{align-self:center;color:var(--text-muted);font-size:9px;font-style:italic}
 .response-block{align-self:flex-start;max-width:90%}
-.response-text{padding:5px 9px;border-radius:5px 5px 0 0;background:var(--msg-sub);border:1px solid var(--border);color:var(--accent);font-size:11px}
+.response-text{padding:6px 10px;border-radius:6px 6px 0 0;background:var(--msg-sub);border:1px solid var(--border);color:var(--accent);font-size:11px;line-height:1.45}
 .response-text .tok-anno{color:var(--text-muted);font-size:9px}
-.response-meta{display:flex;align-items:center;gap:6px;padding:2px 9px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 5px 5px;font-size:9px;color:var(--text-muted)}
-.response-meta .fb-btn{cursor:pointer;font-size:13px;opacity:0.4}
-.response-meta .fb-btn:hover{opacity:1}
-.response-meta .fb-btn.active{opacity:1}
-.emissions-toggle{cursor:pointer}
-.emissions-toggle:hover{color:var(--text)}
-.emissions-detail{display:none;padding:3px 9px;background:var(--bg);border:1px solid var(--border);border-top:none;font-size:9px;color:var(--text-muted)}
-.emissions-detail.open{display:block}
-#input-area{padding:6px 14px;border-top:1px solid var(--border);background:var(--bg-alt);display:flex;gap:5px}
-#input-area input{flex:1;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:5px;font-family:inherit;font-size:11px;outline:none}
-#input-area input:focus{border-color:var(--accent)}
-#input-area button{background:var(--accent);color:#0d1117;border:none;padding:5px 12px;border-radius:5px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer}
-#upload-bar{padding:4px 14px;border-top:1px solid var(--border);background:var(--bg);display:flex;gap:4px;flex-wrap:wrap}
-.upload-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:3px 8px;border-radius:4px;font-family:inherit;font-size:9px;cursor:pointer}
-.upload-btn:hover{border-color:var(--accent);color:var(--text)}
-.upload-btn input[type=file]{display:none}
-/* Right panel */
-#right-panel{width:300px;border-left:1px solid var(--border);background:var(--bg-alt);overflow-y:auto;padding:6px;font-size:9px}
-.panel-section{margin-bottom:8px}
-.panel-title{font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;padding-bottom:2px;border-bottom:1px solid var(--border)}
-.panel-row{display:flex;justify-content:space-between;padding:1px 0}
-.panel-row .label{color:var(--text-muted)}.panel-row .value{color:var(--text)}
-.nmda-gate{display:flex;align-items:center;gap:4px;padding:1px 0}
-.nmda-dot{width:6px;height:6px;border-radius:50%}
+.response-meta{display:flex;align-items:center;gap:6px;padding:3px 10px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;font-size:9px;color:var(--text-muted)}
+.fb-btn{cursor:pointer;font-size:13px;opacity:0.4}.fb-btn:hover{opacity:1}.fb-btn.active{opacity:1}
+#input-row{padding:8px 14px;border-top:1px solid var(--border);background:var(--bg-alt);display:flex;gap:6px;align-items:center}
+#input-row input{flex:1;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:11px;outline:none}
+#input-row input:focus{border-color:var(--accent)}
+#input-row button{background:var(--accent);color:#0d1117;border:none;padding:6px 14px;border-radius:6px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer}
+#mic-btn,#snap-btn{display:none;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:11px;cursor:pointer}
+#mic-btn:hover,#snap-btn:hover{border-color:var(--accent);color:var(--text)}
+#mic-btn.recording{border-color:var(--nmda-block);color:var(--nmda-block);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+#live-transcript{font-size:9px;color:var(--text-muted);padding:0 14px;min-height:14px;overflow:hidden}
+#cam-preview{display:none;width:120px;height:90px;border-radius:4px;border:1px solid var(--border);object-fit:cover;position:fixed;bottom:60px;right:320px;z-index:10}
+#state-panel{width:280px;border-left:1px solid var(--border);background:var(--bg-alt);overflow-y:auto;padding:8px;font-size:9px}
+.ps{margin-bottom:8px}
+.ps-title{font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;padding-bottom:2px;border-bottom:1px solid var(--border)}
+.ps-row{display:flex;justify-content:space-between;padding:1px 0}
+.ps-row .l{color:var(--text-muted)}.ps-row .v{color:var(--text)}
+.nmda-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px}
 .nmda-dot.fired{background:var(--nmda-fire)}.nmda-dot.blocked{background:var(--nmda-block)}.nmda-dot.idle{background:var(--border)}
-.strength-bar-wrap{display:flex;align-items:center;gap:3px;padding:1px 0}
-.strength-bar-label{width:50px;overflow:hidden;text-overflow:ellipsis;color:var(--text-muted)}
-.strength-bar{flex:1;height:5px;background:var(--border);border-radius:2px;overflow:hidden}
-.strength-bar-fill{height:100%;background:var(--ltp-bar);border-radius:2px;transition:width .3s}
-.strength-bar-val{width:28px;text-align:right;color:var(--text-muted)}
-.ev{padding:2px 8px;font-size:8px;line-height:1.2;color:var(--text-muted);border-bottom:1px solid #21262d}
-@media(max-width:700px){#right-panel{display:none}.msg{max-width:95%}}
+.ev{padding:2px 6px;font-size:8px;color:var(--text-muted);border-bottom:1px solid #21262d}
+@media(max-width:700px){#state-panel{display:none}#cam-preview{right:10px;bottom:60px}.msg{max-width:95%}}
 </style>
 </head>
 <body>
-<header>
-<div class="header-left">
-  <h1>GualaLoom</h1>
-  <div id="stats-line">loading...</div>
-  <div id="activity-line">&nbsp;</div>
-  <div id="needs-line">&nbsp;</div>
-  <div id="presence-line">&nbsp;</div>
+<!-- Permission Strip -->
+<div id="perm-strip">
+  <button class="perm-btn" id="mic-perm" onclick="requestMic()">Enable Microphone</button>
+  <button class="perm-btn" id="cam-perm" onclick="requestCam()">Enable Camera</button>
+  <span id="speaker-badge" onclick="unlockAudio()">&#x1f507; Click anywhere to enable audio</span>
+  <button id="mute-toggle" onclick="toggleMute()">unmuted</button>
 </div>
-<div class="header-right">
-  <div class="toggle-group">
+<header>
+  <div class="header-left">
+    <h1>Guala</h1>
+    <div class="subtitle" id="session-line">session: ---</div>
   </div>
-  <div id="session-info"></div>
-  <div style="display:flex;gap:4px">
-    <button class="hdr-btn" id="sleep-btn" onclick="toggleSleep()">💤 Sleep</button>
+  <div class="header-right">
     <button class="hdr-btn" onclick="newSession()">new session</button>
   </div>
-</div>
 </header>
-<div id="main">
-<div id="chat-col">
-  <div id="chat"></div>
-  <div id="input-area">
-    <input id="msg" type="text" placeholder="say something" autocomplete="off">
-    <button id="send" onclick="sendMsg()">send</button>
-  </div>
-  <div id="upload-bar">
-    <label class="upload-btn">📖 book<input type="file" accept=".txt,.md,text/plain" onchange="upload('book',this)"></label>
-    <label class="upload-btn">📕 PDF<input type="file" accept=".pdf,application/pdf" onchange="upload('pdf',this)"></label>
-    <label class="upload-btn">🖼 picture<input type="file" accept="image/*" onchange="upload('picture',this)"></label>
-    <label class="upload-btn">🔊 sound<input type="file" accept="audio/*" onchange="upload('sound',this)"></label>
-    <label class="upload-btn">🎥 video<input type="file" accept="video/*" onchange="upload('video',this)"></label>
-    <button class="upload-btn" onclick="openBundleModal()">🎁 experience</button>
-  </div>
-  <div id="bundle-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:999;justify-content:center;align-items:center">
-    <div style="background:var(--bg);border:1px solid var(--accent);padding:20px;border-radius:8px;width:400px;max-width:90%;max-height:90vh;overflow-y:auto">
-      <div style="color:var(--accent);font-weight:bold;margin-bottom:12px">🎁 Experience Bundle — all five senses</div>
-      <div style="margin-bottom:8px"><label style="color:var(--text-muted);font-size:11px">Caption (what is this?)
-        <input id="bundle-caption" type="text" placeholder="e.g. daddy, ocean, letter B" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:5px;border-radius:4px;margin-top:3px;font-family:inherit"></label></div>
-      <div style="margin-bottom:8px"><label style="color:var(--text-muted);font-size:11px">🖼 Picture
-        <input id="bundle-image" type="file" accept="image/*" style="font-size:10px;color:var(--text-muted);margin-top:3px"></label></div>
-      <div style="margin-bottom:8px"><label style="color:var(--text-muted);font-size:11px">🔊 Sound
-        <input id="bundle-sound" type="file" accept="audio/*" style="font-size:10px;color:var(--text-muted);margin-top:3px"></label></div>
-      <div style="margin-bottom:6px;color:var(--text-muted);font-size:11px;border-top:1px solid var(--border);padding-top:8px">Sensory qualities (pick any that apply):</div>
-      <div style="margin-bottom:6px"><label style="color:var(--text-muted);font-size:11px">🤚 Feels like
-        <select id="bundle-touch" multiple size="3" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-size:10px;margin-top:2px">
-          <option value="warm">warm</option><option value="cool">cool</option><option value="cold">cold</option><option value="hot">hot</option>
-          <option value="soft">soft</option><option value="hard">hard</option><option value="smooth">smooth</option><option value="rough">rough</option>
-          <option value="wet">wet</option><option value="dry">dry</option><option value="sharp">sharp</option><option value="fuzzy">fuzzy</option>
-          <option value="heavy">heavy</option><option value="light">light (weight)</option><option value="squishy">squishy</option><option value="bumpy">bumpy</option>
-        </select></label></div>
-      <div style="margin-bottom:6px"><label style="color:var(--text-muted);font-size:11px">👃 Smells like
-        <select id="bundle-smell" multiple size="3" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-size:10px;margin-top:2px">
-          <option value="fresh">fresh</option><option value="floral">floral</option><option value="sweet">sweet</option><option value="earthy">earthy</option>
-          <option value="smoky">smoky</option><option value="salty">salty</option><option value="fruity">fruity</option><option value="woody">woody</option>
-          <option value="clean">clean</option><option value="rain">rain</option><option value="grass">grass</option><option value="ocean">ocean</option>
-        </select></label></div>
-      <div style="margin-bottom:10px"><label style="color:var(--text-muted);font-size:11px">👅 Tastes like
-        <select id="bundle-taste" multiple size="3" style="width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);font-size:10px;margin-top:2px">
-          <option value="sweet">sweet</option><option value="sour">sour</option><option value="salty">salty</option><option value="bitter">bitter</option>
-          <option value="savory">savory</option><option value="spicy">spicy</option><option value="creamy">creamy</option><option value="tangy">tangy</option>
-        </select></label></div>
-      <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button onclick="closeBundleModal()" style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:5px 12px;border-radius:4px;cursor:pointer;font-family:inherit">cancel</button>
-        <button onclick="submitBundle()" style="background:var(--accent);border:none;color:#000;padding:5px 12px;border-radius:4px;cursor:pointer;font-weight:bold;font-family:inherit">give her this</button>
-      </div>
-    </div>
+<video id="cam-preview" autoplay playsinline muted></video>
+<audio id="voice" style="display:none"></audio>
+<div id="main-area">
+<div id="convo-col">
+  <div id="transcript"></div>
+  <div id="live-transcript">&nbsp;</div>
+  <div id="input-row">
+    <input id="msg" type="text" placeholder="say something..." autocomplete="off">
+    <button id="mic-btn" onclick="toggleSTT()">&#x1f3a4;</button>
+    <button id="snap-btn" onclick="takeSnapshot()">&#x1f4f8;</button>
+    <button onclick="sendMsg()">send</button>
   </div>
 </div>
-<div id="right-panel">
-  <div class="panel-section"><div class="panel-title">Rhythm</div><div id="rhythm-display">phase: --</div></div>
-  <div class="panel-section"><div class="panel-title">NMDA Gates</div><div id="nmda-display"></div></div>
-  <div class="panel-section"><div class="panel-title">Introspection</div><div id="intro-display">--</div></div>
-  <div class="panel-section"><div class="panel-title">Awareness</div><div id="aware-display">--</div></div>
-  <div class="panel-section"><div class="panel-title">Replay (DMN)</div><div id="replay-display">--</div></div>
-  <div class="panel-section"><div class="panel-title">Bridge</div><div id="bridge-display">--</div></div>
-  <div class="panel-section"><div class="panel-title">Routing</div><div id="routing-display">--</div></div>
-  <div class="panel-section"><div class="panel-title">Mode Strengths</div><div id="strengths-display"></div></div>
-  <div class="panel-section"><div class="panel-title">Events</div><div id="events" style="max-height:200px;overflow-y:auto"></div></div>
+<div id="state-panel">
+  <div class="ps"><div class="ps-title">Substrate</div><div id="sp-substrate">--</div></div>
+  <div class="ps"><div class="ps-title">Pools</div><div id="sp-pools">--</div></div>
+  <div class="ps"><div class="ps-title">Intro / Aware</div><div id="sp-intro-aware">--</div></div>
+  <div class="ps"><div class="ps-title">NMDA Gates</div><div id="sp-nmda">--</div></div>
+  <div class="ps"><div class="ps-title">Events</div><div id="sp-events" style="max-height:200px;overflow-y:auto"></div></div>
 </div>
 </div>
 <script>
 const API='https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
-const chat=document.getElementById('chat'),input=document.getElementById('msg'),btn=document.getElementById('send');
-const statsLine=document.getElementById('stats-line'),activityLine=document.getElementById('activity-line');
-const needsLine=document.getElementById('needs-line'),presenceLine=document.getElementById('presence-line');
-const sleepBtn=document.getElementById('sleep-btn'),sessionInfo=document.getElementById('session-info');
-const eventsDiv=document.getElementById('events');
+const transcript=document.getElementById('transcript');
+const msgInput=document.getElementById('msg');
+const voiceEl=document.getElementById('voice');
+const liveT=document.getElementById('live-transcript');
+const evDiv=document.getElementById('sp-events');
 
-let sessionId=localStorage.getItem('guala_session_id');
-if(!sessionId){sessionId='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sessionId)}
-let lastEventTick=0,isSleeping=false,lastInputTime=Date.now();
+let sid=localStorage.getItem('guala_session_id');
+if(!sid){sid='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sid)}
+document.getElementById('session-line').textContent='session: '+sid;
 
-function addMsg(text,cls){const d=document.createElement('div');d.className='msg '+cls;d.textContent=text;chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
+let lastTick=0,audioUnlocked=false,muted=false,micGranted=false,camStream=null,sttActive=false,recognition=null;
+
+// --- Permission Strip ---
+async function requestMic(){
+  const btn=document.getElementById('mic-perm');
+  try{const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(t=>t.stop());
+    btn.textContent='\u2705 Microphone ON';btn.className='perm-btn granted';micGranted=true;
+    document.getElementById('mic-btn').style.display='inline-block';
+  }catch(e){btn.textContent='\u274c Microphone denied \u2014 typing only';btn.className='perm-btn denied'}
+}
+async function requestCam(){
+  const btn=document.getElementById('cam-perm');
+  try{camStream=await navigator.mediaDevices.getUserMedia({video:true});
+    const vid=document.getElementById('cam-preview');vid.srcObject=camStream;vid.style.display='block';
+    btn.textContent='\u2705 Camera ON';btn.className='perm-btn granted';
+    document.getElementById('snap-btn').style.display='inline-block';
+  }catch(e){btn.textContent='\u274c Camera denied';btn.className='perm-btn denied'}
+}
+function unlockAudio(){
+  if(audioUnlocked)return;audioUnlocked=true;
+  voiceEl.play().catch(()=>{});
+  document.getElementById('speaker-badge').innerHTML='\ud83d\udd0a Audio ready';
+}
+document.addEventListener('click',unlockAudio,{once:true});
+function toggleMute(){muted=!muted;document.getElementById('mute-toggle').textContent=muted?'muted':'unmuted'}
+
+// --- Speech-to-Text ---
+function toggleSTT(){
+  if(!micGranted)return;
+  const btn=document.getElementById('mic-btn');
+  if(sttActive&&recognition){recognition.stop();return}
+  if(!('webkitSpeechRecognition' in window)){addMsg('Speech recognition not supported in this browser','system');return}
+  recognition=new webkitSpeechRecognition();recognition.continuous=false;recognition.interimResults=true;recognition.lang='en-US';
+  recognition.onstart=()=>{sttActive=true;btn.classList.add('recording')};
+  recognition.onresult=ev=>{
+    let interim='',final='';
+    for(let i=ev.resultIndex;i<ev.results.length;i++){if(ev.results[i].isFinal)final+=ev.results[i][0].transcript;else interim+=ev.results[i][0].transcript}
+    liveT.textContent=interim||final;
+    if(final){msgInput.value=final;liveT.textContent='';sendMsg()}
+  };
+  recognition.onerror=()=>{sttActive=false;btn.classList.remove('recording');liveT.textContent=''};
+  recognition.onend=()=>{sttActive=false;btn.classList.remove('recording')};
+  recognition.start();
+}
+
+// --- Snapshot ---
+async function takeSnapshot(){
+  if(!camStream)return;
+  const vid=document.getElementById('cam-preview');
+  const c=document.createElement('canvas');c.width=vid.videoWidth;c.height=vid.videoHeight;
+  c.getContext('2d').drawImage(vid,0,0);
+  const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+  const fd=new FormData();fd.append('file',blob,'snapshot.png');
+  addMsg('(sending snapshot...)','system');
+  try{const r=await fetch(`${API}/api/v1/gualaloom/upload/picture`,{method:'POST',body:fd});
+    const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')}catch(e){addMsg('snapshot error','system')}
+}
+
+// --- Messages ---
+function addMsg(text,cls){const d=document.createElement('div');d.className='msg '+cls;d.textContent=text;transcript.appendChild(d);transcript.scrollTop=transcript.scrollHeight}
 
 function addResponseBlock(result){
   const block=document.createElement('div');block.className='response-block';
@@ -172,181 +174,106 @@ function addResponseBlock(result){
   textDiv.innerHTML=tokens.length?tokens.map(t=>`${t.token}<span class="tok-anno">(s=${t.mode_strength.toFixed(1)})</span>`).join(' '):'...';
   block.appendChild(textDiv);
   const meta=document.createElement('div');meta.className='response-meta';
-  const rawEm=result.raw_emissions||[];
-  const nmdaFired=(result.nmda_events||[]).filter(e=>e.fired).length;
-  const emToggle=document.createElement('span');emToggle.className='emissions-toggle';
-  emToggle.textContent=`▸ ${rawEm.length} commits, ${nmdaFired} gates`;
-  meta.appendChild(emToggle);
-  if(result.unknown_words&&result.unknown_words.length>0){const u=document.createElement('span');u.style.color='var(--ev-muted)';u.textContent=`[?${result.unknown_words.join(',')}]`;meta.appendChild(u)}
-  if(result.honest_silence_reason){const r=document.createElement('span');r.style.color='var(--ev-muted)';r.textContent=`[${result.honest_silence_reason}]`;meta.appendChild(r)}
+  const nFired=(result.nmda_events||[]).filter(e=>e.fired).length;
+  const emCount=(result.raw_emissions||[]).length;
+  const info=document.createElement('span');info.textContent=`${emCount} commits, ${nFired} gates`;meta.appendChild(info);
+  if(result.honest_silence_reason){const s=document.createElement('span');s.style.color='var(--text-muted)';s.textContent=`[${result.honest_silence_reason}]`;meta.appendChild(s)}
   const spacer=document.createElement('span');spacer.style.flex='1';meta.appendChild(spacer);
-  const up=document.createElement('span');up.className='fb-btn';up.textContent='👍';
-  const dn=document.createElement('span');dn.className='fb-btn';dn.textContent='👎';
+  const up=document.createElement('span');up.className='fb-btn';up.textContent='\ud83d\udc4d';
+  const dn=document.createElement('span');dn.className='fb-btn';dn.textContent='\ud83d\udc4e';
   up.onclick=()=>sendFeedback(true,up,dn);dn.onclick=()=>sendFeedback(false,up,dn);
   meta.appendChild(up);meta.appendChild(dn);block.appendChild(meta);
-  const detail=document.createElement('div');detail.className='emissions-detail';
-  let dh='';for(const ev of(result.nmda_events||[]).slice(-10)){dh+=`<div style="color:${ev.fired?'var(--nmda-fire)':'var(--nmda-block)'}">t${ev.tick} ${ev.gate} ${ev.fired?'FIRED':ev.reason}</div>`}
-  for(const em of rawEm){dh+=`<div>${em.section}:m${em.mode_id}(${em.reason})</div>`}
-  detail.innerHTML=dh||'none';block.appendChild(detail);emToggle.onclick=()=>detail.classList.toggle('open');
-  chat.appendChild(block);chat.scrollTop=chat.scrollHeight;
+  transcript.appendChild(block);transcript.scrollTop=transcript.scrollHeight;
+  // Voice playback
+  if(result.self_voice_audio_b64&&audioUnlocked&&!muted){
+    voiceEl.src='data:audio/wav;base64,'+result.self_voice_audio_b64;voiceEl.play().catch(()=>{});
+  }
 }
 
 async function sendFeedback(correct,up,dn){
-  try{await fetch(`${API}/v7/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId,correct})});
-  if(correct){up.classList.add('active');dn.classList.remove('active')}else{dn.classList.add('active');up.classList.remove('active')}pollV7State()}catch(e){}
+  try{await fetch(`${API}/v7/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,correct})});
+  if(correct){up.classList.add('active');dn.classList.remove('active')}else{dn.classList.add('active');up.classList.remove('active')}}catch(e){}
 }
 
-// v6 polling
-async function pollStatus(){
-  try{const res=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:'/status'})});
-  const s=await res.json();const ah=s.atlas_health||{};
-  const vocab=s.vocab||s.motifs||0;
-  statsLine.textContent=`vocab: ${vocab} · motifs: ${s.n_motifs||0} · atlas: ${ah.total_strength!=null?ah.total_strength.toFixed(1):'?'} · sounds: ${s.n_sounds||0} · pics: ${s.n_pictures||0}`;
-  const a=s.current_activity;
-  if(a&&typeof a==='object'&&a.kind){activityLine.textContent=`now: ${a.kind.toLowerCase()}${a.target?' '+a.target:''}`}
-  else if(a&&typeof a==='string'){activityLine.textContent=`now: ${a}`}
-  else{activityLine.textContent='idle'}
-  const n=(s.response||'').match(/needs: (.*)/);if(n)needsLine.textContent=n[0];
-  const pr=s.presence||{};const prParts=[];for(const[k,v]of Object.entries(pr)){if(v&&v.present)prParts.push(k)}
-  presenceLine.textContent=prParts.length?`present: ${prParts.join(', ')}`:'no presence';
-  isSleeping=a&&typeof a==='object'&&(a.kind==='SLEEPING'||a.kind==='DREAMING');sleepBtn.textContent=isSleeping?'🌅 Wake':'💤 Sleep';
-  }catch(e){}
-}
-
-async function pollEvents(){
-  try{const res=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:String(lastEventTick),command:'/events'})});
-  const data=await res.json();for(const ev of(data.events||[])){
-    if(ev.tick>lastEventTick)lastEventTick=ev.tick;
-    const d=document.createElement('div');d.className='ev';
-    let det='';if(ev.detail){if(ev.detail.content)det=' "'+ev.detail.content+'"';if(ev.detail.source)det+=' ['+ev.detail.source+']'}
-    d.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
-    eventsDiv.insertBefore(d,eventsDiv.firstChild);while(eventsDiv.children.length>60)eventsDiv.removeChild(eventsDiv.lastChild);
-    // Autonomous emissions + wC messages show in chat
-    if(ev.kind==='emission'&&ev.detail&&ev.detail.content)addMsg('💭 '+ev.detail.content,'emission');
-    if(ev.kind==='source_interaction'&&ev.detail&&ev.detail.source==='wc')addMsg('[wC] '+ev.detail.content||'(interaction)','wc');
-  }}catch(e){}
-}
-
-// v7 state
-function renderState(state){
-  document.getElementById('rhythm-display').textContent='phase: '+(state.rhythm_phase||'--');
-  const nmdaDiv=document.getElementById('nmda-display');const gates={};
-  for(const ev of(state.nmda_events||[]))gates[ev.gate]=ev;
-  let nh='';for(const gn of['intro','aware','subject','verb','object']){const ev=gates[gn];const cls=ev?(ev.fired?'fired':'blocked'):'idle';
-  nh+=`<div class="nmda-gate"><span class="nmda-dot ${cls}"></span> ${gn}: ${ev?(ev.fired?'t'+ev.tick:ev.reason):'idle'}</div>`}
-  nmdaDiv.innerHTML=nh;
-  let ih=`${state.introspection||'--'} <span style="color:var(--text-muted)">(${state.intro_krimelack_count||0} commits)</span>`;
-  for(const c of(state.intro_krimelack_recent||[]).slice(-3))ih+=`<div style="color:var(--ev-motif);font-size:8px">m${c.mode_id} t${c.tick} s=${c.salience}</div>`;
-  document.getElementById('intro-display').innerHTML=ih;
-  let ah=`${state.awareness||'--'} <span style="color:var(--text-muted)">(${state.aware_krimelack_count||0} commits)</span>`;
-  for(const c of(state.aware_krimelack_recent||[]).slice(-3))ah+=`<div style="color:var(--ev-motif);font-size:8px">m${c.mode_id} t${c.tick} s=${c.salience}</div>`;
-  document.getElementById('aware-display').innerHTML=ah;
-  const rp=state.last_replay;document.getElementById('replay-display').textContent=rp?`replayed: ${rp.replayed}, commits: ${rp.commits}`:'idle';
-  document.getElementById('bridge-display').textContent=state.bridge_active?'active':'inactive';
-  const routDiv=document.getElementById('routing-display');let rh='';
-  for(const r of(state.routing_log||[])){rh+=r.routed_to?`<div>${r.word} → ${r.routed_to} ${r.newly_installed?'(new)':'(known)'}</div>`:`<div style="color:var(--ev-muted)">${r.word} skipped</div>`}
-  routDiv.innerHTML=rh||'--';
-  const strDiv=document.getElementById('strengths-display');let sh='';const ms=state.mode_strengths||{};
-  for(const sec of['subject','verb','object']){const toks=ms[sec]||{};const ent=Object.entries(toks).sort((a,b)=>b[1]-a[1]);
-  if(!ent.length)continue;sh+=`<div style="color:var(--text-muted);margin-top:3px;font-weight:500">${sec}:</div>`;
-  for(const[tok,val]of ent.slice(0,5)){const pct=Math.min(100,(val/2.5)*100);
-  sh+=`<div class="strength-bar-wrap"><span class="strength-bar-label">${tok}</span><div class="strength-bar"><div class="strength-bar-fill" style="width:${pct}%"></div></div><span class="strength-bar-val">${val.toFixed(2)}</span></div>`}}
-  strDiv.innerHTML=sh;
-}
-async function pollV7State(){try{const r=await fetch(`${API}/v7/state?session_id=${sessionId}`);renderState(await r.json())}catch(e){}}
-
-// Sleep/Wake
-async function toggleSleep(){sleepBtn.disabled=true;try{
-  const cmd=isSleeping?'/wake':'/sleep';await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:isSleeping?'joe':'',command:cmd})});
-  addMsg(isSleeping?'(waking)':'(sleeping)','system')}catch(e){addMsg('(error)','system')}sleepBtn.disabled=false;setTimeout(pollStatus,500)}
-
-// Upload
-async function upload(kind,el){
-  const file=el.files[0];if(!file)return;el.value='';addMsg(`(uploading ${kind}: ${file.name})`,'system');
-  if(kind==='book'){try{const text=await file.text();const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,command:'/addbook:'+file.name})});const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')}catch(e){addMsg('upload error','system')}}
-  else if(kind==='picture'){try{const reader=new FileReader();reader.onload=async function(){const b64=reader.result.split(',')[1];const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'/addpicture:'+file.name})});const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')};reader.readAsDataURL(file)}catch(e){addMsg('upload error','system')}}
-  else if(kind==='pdf'){try{const reader=new FileReader();reader.onload=async function(){const b64=reader.result.split(',')[1];const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'/addpdf:'+file.name})});const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')};reader.readAsDataURL(file)}catch(e){addMsg('pdf upload error','system')}}
-  else if(kind==='sound'){try{const reader=new FileReader();reader.onload=async function(){const b64=reader.result.split(',')[1];const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'/addsound:'+file.name})});const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')};reader.readAsDataURL(file)}catch(e){addMsg('sound upload error','system')}}
-  else if(kind==='video'){addMsg('video upload: pipeline not yet wired (queued behind Response Binding + Self-Section + Vision Stage 2)','system')}
-  setTimeout(pollStatus,1000)}
-
-// Presence heartbeat
-let lastUserActivity=Date.now();['mousemove','keydown','scroll','touchstart'].forEach(e=>document.addEventListener(e,()=>{lastUserActivity=Date.now()},{passive:true}));
-async function presenceHeartbeat(){if(document.visibilityState!=='visible'||Date.now()-lastUserActivity>30000)return;
-  try{await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'joe',command:'/presence'})})}catch(e){}}
-
-// Background replay
-async function backgroundReplay(){if(Date.now()-lastInputTime<30000)return;
-  try{const r=await fetch(`${API}/v7/quiet?session_id=${sessionId}&n_ticks=5`,{method:'POST'});const d=await r.json();
-  if(d.commits>0)addMsg(`💭 (thinking... ${d.replayed} memories, ${d.commits} commits)`,'emission');pollV7State()}catch(e){}}
-
-// Experience bundle modal
-function openBundleModal(){document.getElementById('bundle-modal').style.display='flex'}
-function closeBundleModal(){document.getElementById('bundle-modal').style.display='none';document.getElementById('bundle-caption').value='';document.getElementById('bundle-image').value='';document.getElementById('bundle-sound').value='';for(const s of document.querySelectorAll('#bundle-modal select'))for(const o of s.options)o.selected=false}
-function getSelected(id){return Array.from(document.getElementById(id).selectedOptions).map(o=>o.value)}
-async function submitBundle(){
-  const caption=document.getElementById('bundle-caption').value.trim();
-  const imgFile=document.getElementById('bundle-image').files[0];
-  const sndFile=document.getElementById('bundle-sound').files[0];
-  const touch=getSelected('bundle-touch');
-  const smell=getSelected('bundle-smell');
-  const taste=getSelected('bundle-taste');
-  if(!caption&&!imgFile&&!sndFile&&!touch.length&&!smell.length&&!taste.length){addMsg('(need at least one sense filled in)','system');return}
-  // H2: client-side sound size guard
-  if(sndFile&&sndFile.size>6*1024*1024){addMsg('sound too big (>6MB) — try converting to mp3','system');return}
-  closeBundleModal();
-  const name=caption||imgFile?.name||sndFile?.name||'experience';
-  const lanes=[];
-  if(caption)lanes.push('word');if(imgFile)lanes.push('sight');if(sndFile)lanes.push('sound');
-  if(touch.length)lanes.push('touch');if(smell.length)lanes.push('smell');if(taste.length)lanes.push('taste');
-  addMsg(`(creating experience "${name}": ${lanes.join(' + ')})`, 'system');
-  const bundle={caption:caption||''};
-  if(touch.length)bundle.touch=touch;
-  if(smell.length)bundle.smell=smell;
-  if(taste.length)bundle.taste=taste;
-  try{
-    if(imgFile){const b64=await fileToB64(imgFile);bundle.image_b64=b64}
-    if(sndFile){const b64=await fileToB64(sndFile);bundle.sound_b64=b64}
-    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:JSON.stringify(bundle),command:'/bundle:'+name})});
-    // H5c: handle non-JSON/non-200
-    if(!r.ok){const txt=await r.text();addMsg(`bundle failed (${r.status}): ${txt.slice(0,200)}`,'system');return}
-    try{const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')}
-    catch(e2){addMsg('bundle response not JSON: '+await r.text().catch(()=>'(unreadable)'),'system')}
-  }catch(e){addMsg('bundle error: '+e,'system')}
-  setTimeout(pollStatus,1000);
-}
-function fileToB64(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result.split(',')[1]);r.onerror=reject;r.readAsDataURL(file)})}
-
-function newSession(){sessionId='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sessionId);sessionInfo.textContent='session: '+sessionId;addMsg('new session: '+sessionId,'system')}
-
-// Send
 async function sendMsg(){
-  const text=input.value.trim();if(!text)return;input.value='';btn.disabled=true;lastInputTime=Date.now();
+  const text=msgInput.value.trim();if(!text)return;msgInput.value='';
   const isCmd=text.startsWith('/');addMsg(text,isCmd?'system':'user');
   try{
     if(isCmd){
-      // Commands still route to v6 engine
       const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:text})});
-      const d=await r.json();addMsg(d.response,'system');
+      const d=await r.json();addMsg(d.response||JSON.stringify(d),'system');
     }else{
-      // All conversation goes through v7 (which reads v6's vocab)
-      const r=await fetch(`${API}/v7/converse`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,session_id:sessionId})});
-      const d=await r.json();sessionId=d.session_id||sessionId;sessionInfo.textContent='session: '+sessionId;localStorage.setItem('guala_session_id',sessionId);addResponseBlock(d);pollV7State();
-      // Also feed v6 atlas in background (keeps her substrate learning)
+      const r=await fetch(`${API}/v7/converse`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,session_id:sid})});
+      const d=await r.json();if(d.session_id){sid=d.session_id;localStorage.setItem('guala_session_id',sid);document.getElementById('session-line').textContent='session: '+sid}
+      addResponseBlock(d);pollV7State();
       fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})}).catch(()=>{});
     }
-  }catch(e){addMsg('(error)','system')}btn.disabled=false;input.focus()}
+  }catch(e){addMsg('(error: '+e.message+')','system')}
+  msgInput.focus();
+}
+msgInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
 
-input.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
+// --- Polling: V7 State ---
+async function pollV7State(){
+  try{const r=await fetch(`${API}/v7/state?session_id=${sid}`);const s=await r.json();
+    // Substrate
+    const sub=document.getElementById('sp-substrate');
+    sub.innerHTML=`<div class="ps-row"><span class="l">vocab</span><span class="v">${s.v6_vocab_count??'?'}</span></div>`+
+      `<div class="ps-row"><span class="l">atlas</span><span class="v">${s.atlas_count??'?'}</span></div>`;
+    // Pools
+    const pools=document.getElementById('sp-pools');let ph='';
+    for(const p of['pool_a','pool_b','pool_c']){const cnt=s[p+'_modes']??s[p]??'?';ph+=`<div class="ps-row"><span class="l">${p}</span><span class="v">${cnt}</span></div>`}
+    pools.innerHTML=ph||'--';
+    // Intro/Aware
+    const ia=document.getElementById('sp-intro-aware');
+    ia.innerHTML=`<div class="ps-row"><span class="l">intro</span><span class="v">${s.introspection||s.intro_state||'--'}</span></div>`+
+      `<div class="ps-row"><span class="l">aware</span><span class="v">${s.awareness||s.aware_state||'--'}</span></div>`;
+    // NMDA
+    const nDiv=document.getElementById('sp-nmda');const gates={};
+    for(const ev of(s.nmda_events||[]))gates[ev.gate]=ev;
+    let nh='';for(const gn of['intro','aware','subject','verb','object']){const ev=gates[gn];const cls=ev?(ev.fired?'fired':'blocked'):'idle';
+      nh+=`<div><span class="nmda-dot ${cls}"></span>${gn}: ${ev?(ev.fired?'t'+ev.tick:ev.reason):'idle'}</div>`}
+    nDiv.innerHTML=nh;
+  }catch(e){}
+}
 
-// Boot
-(async()=>{
-  sessionInfo.textContent='session: '+sessionId;
-  addMsg('v7 DNA substrate ready.','system');input.focus();
-  pollStatus();pollV7State();
-  setInterval(pollStatus,3000);setInterval(pollEvents,2000);setInterval(pollV7State,500);
-  setInterval(presenceHeartbeat,20000);setInterval(backgroundReplay,10000);presenceHeartbeat();
+// --- Polling: Events ---
+async function pollEvents(){
+  try{const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:String(lastTick),command:'/events'})});
+    const d=await r.json();for(const ev of(d.events||[])){
+      if(ev.tick>lastTick)lastTick=ev.tick;
+      const el=document.createElement('div');el.className='ev';
+      let det='';if(ev.detail){if(ev.detail.content)det=' "'+ev.detail.content+'"';if(ev.detail.source)det+=' ['+ev.detail.source+']'}
+      el.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
+      evDiv.insertBefore(el,evDiv.firstChild);while(evDiv.children.length>60)evDiv.removeChild(evDiv.lastChild);
+      if(ev.kind==='emission'&&ev.detail&&ev.detail.content)addMsg('\ud83d\udcad '+ev.detail.content,'emission');
+    }}catch(e){}
+}
+
+// --- Background Replay ---
+async function backgroundReplay(){
+  try{const r=await fetch(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:5})});
+    const d=await r.json();if(d.commits>0)addMsg(`\ud83d\udcad (thinking... ${d.replayed} memories, ${d.commits} commits)`,'emission');pollV7State()}catch(e){}
+}
+
+// --- Presence Heartbeat ---
+let lastActivity=Date.now();
+['mousemove','keydown','scroll','touchstart'].forEach(e=>document.addEventListener(e,()=>{lastActivity=Date.now()},{passive:true}));
+async function presenceHeartbeat(){
+  if(document.visibilityState!=='visible'||Date.now()-lastActivity>30000)return;
+  try{await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'joe',command:'/presence'})})}catch(e){}
+}
+
+// --- Session ---
+function newSession(){sid='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sid);
+  document.getElementById('session-line').textContent='session: '+sid;addMsg('new session: '+sid,'system')}
+
+// --- Boot ---
+(()=>{
+  addMsg('v7 uncage ready.','system');msgInput.focus();
+  pollV7State();pollEvents();
+  setInterval(pollV7State,3000);setInterval(pollEvents,2000);
+  setInterval(backgroundReplay,10000);setInterval(presenceHeartbeat,20000);presenceHeartbeat();
 })();
 </script>
 </body>

@@ -1,15 +1,16 @@
 """
-V7 DNA Recipe Engine — unified lexical-category substrate.
-GL-BRIEF-V7-UNIFY-WC-20260613-01
+V7 DNA Recipe Engine — V7-UNCAGE: unnamed-pool substrate.
+GL-BRIEF-V7-UNCAGE-WC-20260612-01
 
-Replaces S/V/O positional slots with proper lexical categories (N, V, Adj,
-Adv) plus closed-class sections (Det, P, Aux, etc.). Grammar table drives
-emission instead of fixed 3-slot cycle.
+Replaces lexical-category sections (N/V/Adj/Adv + closed-class) with three
+unnamed pools (pool_a, pool_b, pool_c).  Words distribute round-robin with
+no grammatical classification.  Emission runs all three pools simultaneously
+(no rotation/rhythm).  Self-voice via espeak-ng.
 
 Keeps: NMDA gates, drive_tracker, intro/aware, quiet_tick, apply_feedback,
 save/load, event_log, all assemblage primitives.
 """
-import threading, json, os, time
+import threading, json, os, time, subprocess, base64
 import numpy as np
 from collections import defaultdict
 
@@ -26,73 +27,36 @@ from dsf_ai_service.substrate.dna_recipe.phase_gating import (
     make_projection, first_commit_per_section, make_phase_gater,
 )
 
-# ---- Closed-class lexicon ----
-CLOSED_CLASS_LEXICON = {}
-_CC = {
-    "Det": "the a an this that these those my your his her its our their".split(),
-    "Quant": "one two three four five many much some any all every few several".split(),
-    "P": ("in on at to from with for by about of up down over under through "
-          "into out between around near off along across behind before after "
-          "above below").split(),
-    "Pronoun": "i you he she it we they me him us them myself yourself".split(),
-    "Conj": "and or but so yet nor".split(),
-    "SubConj": "if when because although while since before after until unless though".split(),
-    "RelPronoun": "who whom which whose that".split(),
-    "CompConj": "that if whether".split(),
-    "Aux": ("is are am was were be been being have has had do does did "
-            "will would shall should can could may might must").split(),
-}
-for _cat, _words in _CC.items():
-    for _w in _words:
-        if _w not in CLOSED_CLASS_LEXICON:
-            CLOSED_CLASS_LEXICON[_w] = _cat
-
-CLOSED_CLASS_CATS = list(_CC.keys())
-CONTENT_SECTIONS = ["N", "V", "Adj", "Adv"]
-ALL_SECTIONS = CONTENT_SECTIONS + CLOSED_CLASS_CATS + ["listen", "intro", "aware"]
-
-# ---- Grammar table ----
-GRAMMAR = {
-    "S":    [["NP", "VP"], ["NP", "VP", "PP"]],
-    "NP":   [["Det?", "Adj?", "N"], ["Pronoun"], ["N"]],
-    "VP":   [["Aux?", "V", "NP?", "AdvP?", "PP?"], ["Aux?", "V", "AdvP?"]],
-    "AdjP": [["Adv?", "Adj"]],
-    "AdvP": [["Adv"]],
-    "PP":   [["P", "NP"]],
-}
-_TERMINAL_TO_SECTION = {
-    "Det": "Det", "Adj": "Adj", "N": "N", "Pronoun": "Pronoun",
-    "Aux": "Aux", "V": "V", "Adv": "Adv", "P": "P",
-}
-_NON_TERMINALS = set(GRAMMAR.keys())
-
+# ---- Pool architecture ----
+POOL_NAMES = ["pool_a", "pool_b", "pool_c"]
+ALL_SECTIONS = POOL_NAMES + ["listen", "intro", "aware"]
+VOICE_PROFILE = {"voice": "en+f3", "pitch": 90, "speed": 130}
 SEED_VOCAB = {
-    "N": ["cow", "moon", "bears", "fence", "milk", "dish"],
-    "V": ["jumped", "ran", "sleeps"],
+    "pool_a": ["cow", "moon"],
+    "pool_b": ["jumped", "ran"],
+    "pool_c": ["fence", "milk"],
 }
 
 
 def seed_vocab_from_engine(engine):
-    """Read v6 engine word_modes and categorize into lexical sections."""
-    result = defaultdict(list)
+    """Read v6 engine word_modes and distribute round-robin across pools."""
     word_modes = getattr(engine, "word_modes", {})
     if not word_modes:
-        return dict(SEED_VOCAB)
+        return {k: list(v) for k, v in SEED_VOCAB.items()}
+    result = {p: [] for p in POOL_NAMES}
+    all_words = []
     for label in word_modes:
         w = label.lower().strip()
-        if not w:
-            continue
-        if w in CLOSED_CLASS_LEXICON:
-            cat = CLOSED_CLASS_LEXICON[w]
-        else:
-            cat = "N"
-        if w not in result[cat]:
-            result[cat].append(w)
-    if not result["N"]:
-        result["N"] = list(SEED_VOCAB.get("N", ["thing"]))
-    if not result["V"]:
-        result["V"] = list(SEED_VOCAB.get("V", ["is"]))
-    return dict(result)
+        if w and w not in all_words:
+            all_words.append(w)
+    for i, w in enumerate(all_words):
+        pool = POOL_NAMES[i % len(POOL_NAMES)]
+        result[pool].append(w)
+    # Ensure non-empty pools
+    for p in POOL_NAMES:
+        if not result[p]:
+            result[p] = list(SEED_VOCAB.get(p, ["thing"]))
+    return result
 
 
 def _make_zero_section(name, rng, role="general"):
@@ -105,7 +69,7 @@ def _make_zero_section(name, rng, role="general"):
 
 
 class V7Session:
-    """Per-session v7 substrate with lexical-category sections."""
+    """Per-session v7 substrate with unnamed pool sections."""
 
     def __init__(self, session_id, rng_seed=None, engine=None):
         self.session_id = session_id
@@ -119,14 +83,14 @@ class V7Session:
             {k: list(v) for k, v in SEED_VOCAB.items()}
         self.sys_, self.token_vec, self.intro_vec, self.intro_modes, \
             self.aware_vec, self.aware_modes = self._build_system()
-        for sn in CONTENT_SECTIONS + ["intro", "aware"]:
+        for sn in POOL_NAMES + ["intro", "aware"]:
             if sn in self.sys_.sections:
                 install_plasticity(self.sys_.sections[sn], initial_strength=1.0)
         self.drive_tracker = {}
         self.intro_gate = CoincidenceGate(
             section_name="intro",
             context_fn=context_no_recent_drive(
-                self.drive_tracker, sections=tuple(CONTENT_SECTIONS),
+                self.drive_tracker, sections=tuple(POOL_NAMES),
                 quiet_thresh=0.45),
             drive_thresh=0.05, ltp_boost=0.05)
         self.aware_gate = CoincidenceGate(
@@ -137,7 +101,6 @@ class V7Session:
             drive_thresh=0.05, ltp_boost=0.05)
         self.last_intro_state = None
         self.last_aware_state = None
-        self.last_rhythm_phase = "N"
         self.last_emissions = []
         self.last_nmda_events = []
         self.last_routing_log = []
@@ -149,13 +112,10 @@ class V7Session:
     def _build_system(self):
         rng = self.rng
         secs = []
-        # Content sections (full Hamiltonian)
-        for cat in CONTENT_SECTIONS:
-            role = "verb_like" if cat == "V" else "subject_like"
-            secs.append(Section(name=cat, rng=rng, role=role))
-        # Closed-class + listen/intro/aware (zeroed Hamiltonian)
-        for cat in CLOSED_CLASS_CATS:
-            secs.append(_make_zero_section(cat, rng))
+        # Pool sections (full Hamiltonian)
+        for pool in POOL_NAMES:
+            secs.append(Section(name=pool, rng=rng, role="subject_like"))
+        # listen/intro/aware (zeroed Hamiltonian)
         secs.append(_make_zero_section("listen", rng))
         secs.append(_make_zero_section("intro", rng, role="intro"))
         secs.append(_make_zero_section("aware", rng, role="intro"))
@@ -165,34 +125,19 @@ class V7Session:
 
         # Install vocab
         token_vec = {}
-        for cat, words in self.vocab.items():
-            if cat not in sys_.sections:
+        for pool, words in self.vocab.items():
+            if pool not in sys_.sections:
                 continue
-            sec = sys_.sections[cat]
+            sec = sys_.sections[pool]
             for word in words:
                 v = random_unit_complex(N, rng)
                 sec.mode_bank.append(v.copy())
                 sec.mode_last_used.append(0)
                 sec.mode_strength.append(1.0)
-                token_vec[(cat, word)] = v
+                token_vec[(pool, word)] = v
                 sys_.sections["listen"].mode_bank.append(v.copy())
                 sys_.sections["listen"].mode_last_used.append(0)
                 sys_.sections["listen"].mode_strength.append(1.0)
-
-        # Install closed-class words not already in vocab
-        for cat, words in _CC.items():
-            sec = sys_.sections[cat]
-            for word in words:
-                if (cat, word) in token_vec:
-                    continue
-                v = random_unit_complex(N, rng)
-                sec.mode_bank.append(v.copy())
-                sec.mode_last_used.append(0)
-                sec.mode_strength.append(1.0)
-                token_vec[(cat, word)] = v
-                self.vocab.setdefault(cat, [])
-                if word not in self.vocab[cat]:
-                    self.vocab[cat].append(word)
 
         # Intro + aware modes
         intro_modes = ["i_quiet", "i_hear", "i_emit"]
@@ -215,48 +160,25 @@ class V7Session:
             sec.snapshot_initial_modes()
         return sys_, token_vec, intro_vec, intro_modes, aware_vec, aware_modes
 
-    # ---- Lexical routing ----
-    def _classify_word(self, word, prev_cat):
-        """Classify content word by preceding category heuristic."""
-        if word in CLOSED_CLASS_LEXICON:
-            return CLOSED_CLASS_LEXICON[word]
-        if prev_cat in ("Det", "Adj", "Quant", "P"):
-            return "N"
-        if prev_cat in ("Aux", "Adv", "Pronoun", "N"):
-            return "V"
-        if prev_cat == "V":
-            return "N"
-        return "N"
-
-    def lookup_or_install(self, word, prev_cat=None):
-        """Return (word_vec, category, was_new). No position lottery."""
+    # ---- Word routing ----
+    def lookup_or_install(self, word):
+        """Return (word_vec, pool_name, was_new). No classification."""
         word = word.lower().strip(".,?!;:'\"")
         if not word:
             return None, None, False
-        # Closed-class: already installed
-        if word in CLOSED_CLASS_LEXICON:
-            cat = CLOSED_CLASS_LEXICON[word]
-            key = (cat, word)
-            if key in self.token_vec:
-                words = self.vocab.get(cat, [])
-                idx = words.index(word) if word in words else -1
-                sec = self.sys_.sections.get(cat)
-                if sec and 0 <= idx < len(sec.mode_bank):
-                    return sec.mode_bank[idx], cat, False
-            return None, cat, False
-        # Already installed content word?
-        for cat in CONTENT_SECTIONS:
-            words = self.vocab.get(cat, [])
+        # Check existing pools
+        for pool in POOL_NAMES:
+            words = self.vocab.get(pool, [])
             if word in words:
                 idx = words.index(word)
-                sec = self.sys_.sections[cat]
+                sec = self.sys_.sections[pool]
                 if idx < len(sec.mode_bank):
-                    return sec.mode_bank[idx], cat, False
-        # New content word
-        cat = self._classify_word(word, prev_cat)
-        if cat not in self.sys_.sections or cat in CLOSED_CLASS_CATS:
-            cat = "N"
-        sec = self.sys_.sections[cat]
+                    return sec.mode_bank[idx], pool, False
+        # New word: install in pool with fewest modes
+        counts = [(len(self.sys_.sections[p].mode_bank), p) for p in POOL_NAMES]
+        counts.sort(key=lambda x: x[0])
+        pool = counts[0][1]
+        sec = self.sys_.sections[pool]
         word_vec = random_unit_complex(N, self.rng)
         sec.mode_bank.append(word_vec.copy())
         sec.mode_last_used.append(self.sys_.tick)
@@ -264,53 +186,13 @@ class V7Session:
         self.sys_.sections["listen"].mode_bank.append(word_vec.copy())
         self.sys_.sections["listen"].mode_last_used.append(self.sys_.tick)
         self.sys_.sections["listen"].mode_strength.append(1.0)
-        self.vocab.setdefault(cat, [])
-        self.vocab[cat].append(word)
-        self.token_vec[(cat, word)] = word_vec
+        self.vocab.setdefault(pool, [])
+        self.vocab[pool].append(word)
+        self.token_vec[(pool, word)] = word_vec
         sec.snapshot_initial_modes()
         self.sys_.sections["listen"].snapshot_initial_modes()
-        self.event_log.write("vocab_install", slot=cat, word=word)
-        return word_vec, cat, True
-
-    # ---- Grammar-driven emission ----
-    def _section_top_arc(self, cat):
-        sec = self.sys_.sections.get(cat)
-        if sec is None:
-            return None, 0.0
-        arcs = sec.arcs()
-        if len(arcs) == 0:
-            return None, 0.0
-        top = int(arcs.argmax())
-        return self._mode_to_word(cat, top), float(arcs[top])
-
-    def _expand_grammar(self, max_tokens=12):
-        """Recursively expand grammar from S, select top-arc words at terminals."""
-        tokens = []
-        def expand(symbol):
-            if len(tokens) >= max_tokens:
-                return
-            optional = symbol.endswith("?")
-            sym = symbol.rstrip("?")
-            if sym in _NON_TERMINALS:
-                for prod in GRAMMAR[sym]:
-                    for s in prod:
-                        expand(s)
-                    break
-                return
-            sec_name = _TERMINAL_TO_SECTION.get(sym, sym)
-            word, arc = self._section_top_arc(sec_name)
-            if optional and arc < 0.03:
-                return
-            if word is None:
-                return
-            sec = self.sys_.sections[sec_name]
-            top = int(sec.arcs().argmax())
-            ms = sec.mode_strength[top] if hasattr(sec, "mode_strength") and top < len(sec.mode_strength) else 0.0
-            tokens.append({"section": sec_name, "token": word,
-                           "emit_tick": self.sys_.tick,
-                           "mode_strength": round(ms, 3), "arc": round(arc, 3)})
-        expand("S")
-        return tokens
+        self.event_log.write("vocab_install", slot=pool, word=word)
+        return word_vec, pool, True
 
     # ---- Main conversation ----
     def converse(self, text, source="ui"):
@@ -329,44 +211,41 @@ class V7Session:
                 sec.standing_goals = []
                 sec.goals = []
             self.drive_tracker.clear()
-            routing_log, nmda_events, rhythm_events = [], [], []
+            routing_log, nmda_events = [], []
 
             # PHASE 1: Route words
-            heard = {}
+            heard = {}  # pool -> [(word, word_vec)]
             any_routed = False
-            prev_cat = None
             for word in tokens:
-                word_vec, cat, was_new = self.lookup_or_install(word, prev_cat=prev_cat)
-                routing_log.append({"word": word, "routed_to": cat,
-                                    "newly_installed": was_new} if cat else
+                word_vec, pool, was_new = self.lookup_or_install(word)
+                routing_log.append({"word": word, "routed_to": pool,
+                                    "newly_installed": was_new} if pool else
                                    {"word": word, "routed_to": None, "reason": "skipped"})
-                if cat:
-                    heard[cat] = word
-                    prev_cat = cat
-                    if word_vec is not None:
-                        any_routed = True
+                if pool and word_vec is not None:
+                    heard.setdefault(pool, []).append((word, word_vec))
+                    any_routed = True
             if not any_routed:
-                return self._empty_response("no content words routed")
+                return self._empty_response("no words routed")
 
-            # PHASE 2: Listen-accumulate
+            # PHASE 2: Listen-accumulate (15 noisy ticks per word into pool + listen)
             for sn in ALL_SECTIONS:
                 if sn in self.sys_.sections:
                     self.sys_.sections[sn]._emit_phase = True
-            accumulated = {}
-            for cat, word in heard.items():
-                key = (cat, word)
-                if key not in self.token_vec:
-                    continue
-                target = self.token_vec[key]
+            accumulated = {}  # pool -> accumulated vec
+            for pool, word_list in heard.items():
                 acc = np.zeros(N, dtype=complex)
-                for _ in range(15):
-                    noisy = normalize(target + 0.10 * (
-                        self.rng.standard_normal(N) + 1j * self.rng.standard_normal(N)))
-                    acc += noisy
-                    self.sys_.tick_once({"listen": noisy}, enable_self_evo=True,
-                                        coordinator_on=False, introspection_on=False,
-                                        allow_rewiring=False)
-                accumulated[cat] = normalize(acc)
+                for word, word_vec in word_list:
+                    key = (pool, word)
+                    target = self.token_vec.get(key, word_vec)
+                    for _ in range(15):
+                        noisy = normalize(target + 0.10 * (
+                            self.rng.standard_normal(N) + 1j * self.rng.standard_normal(N)))
+                        acc += noisy
+                        self.sys_.tick_once({pool: noisy, "listen": noisy},
+                                            enable_self_evo=True,
+                                            coordinator_on=False, introspection_on=False,
+                                            allow_rewiring=False)
+                accumulated[pool] = normalize(acc)
             self.last_intro_state = "i_hear"
             self.intro_commit_history.append({"state": "i_hear", "tick": self.sys_.tick})
             self.intro_commit_history = self.intro_commit_history[-10:]
@@ -374,13 +253,13 @@ class V7Session:
                 if sn != "listen" and sn in self.sys_.sections:
                     self.sys_.sections[sn]._emit_phase = False
 
-            # PHASE 3: Derive drives
+            # PHASE 3: Derive drives per pool
             drives = {}
-            for cat in CONTENT_SECTIONS:
-                snap = accumulated.get(cat)
-                sec = self.sys_.sections[cat]
+            for pool in POOL_NAMES:
+                snap = accumulated.get(pool)
+                sec = self.sys_.sections[pool]
                 if snap is None or np.linalg.norm(snap) == 0:
-                    drives[cat] = random_unit_complex(N, self.rng) * 0.1
+                    drives[pool] = random_unit_complex(N, self.rng) * 0.1
                     continue
                 weights = []
                 for mid, mvec in enumerate(sec.mode_bank):
@@ -389,47 +268,63 @@ class V7Session:
                     weights.append((mid, d * s, mvec))
                 weights.sort(key=lambda x: -x[1])
                 bias = sum((w * v for _, w, v in weights[:2]), np.zeros(N, dtype=complex))
-                drives[cat] = normalize(bias) if np.linalg.norm(bias) > 0 \
+                drives[pool] = normalize(bias) if np.linalg.norm(bias) > 0 \
                     else random_unit_complex(N, self.rng)
-            for cat in CLOSED_CLASS_CATS:
-                if cat in accumulated:
-                    drives[cat] = accumulated[cat]
-            for cat, drv in drives.items():
-                if cat in self.sys_.sections:
-                    self.sys_.sections[cat].psi = drv.copy()
+            for pool, drv in drives.items():
+                if pool in self.sys_.sections:
+                    self.sys_.sections[pool].psi = drv.copy()
 
-            # PHASE 4: Commit-driven emission
+            # PHASE 4: Emit — all three pools active simultaneously
             for sec in self.sys_.sections.values():
                 sec._emit_phase = True
             emit_commits = []
-            strength = 0.45
+            no_new_streak = 0
+            response_tokens = []
+            seen_commit_keys = set()
             for t in range(120):
-                for cat in CONTENT_SECTIONS:
-                    decay_plasticity(self.sys_.sections[cat], decay=0.998)
-                cur = CONTENT_SECTIONS[t % len(CONTENT_SECTIONS)]
-                self.last_rhythm_phase = cur
-                rhythm_events.append({"tick": self.sys_.tick + 1, "phase": cur})
-                for cat in CONTENT_SECTIONS:
-                    sec = self.sys_.sections[cat]
-                    sec.excitation_expires_at = self.sys_.tick + 2
-                    sec.excitation_strength = strength if cat == cur else -strength
+                for pool in POOL_NAMES:
+                    decay_plasticity(self.sys_.sections[pool], decay=0.998)
+                # Evidence: all driven pools, re-noised
                 ev = {}
-                for cat in CONTENT_SECTIONS:
-                    d = drives.get(cat)
+                for pool in POOL_NAMES:
+                    d = drives.get(pool)
                     if d is not None:
-                        ev[cat] = normalize(d + 0.10 * (
+                        ev[pool] = normalize(d + 0.10 * (
                             self.rng.standard_normal(N) + 1j * self.rng.standard_normal(N)))
                 commits = self.sys_.tick_once(ev, enable_self_evo=True,
                                               coordinator_on=False, introspection_on=False,
                                               allow_rewiring=False)
-                emit_commits.extend(commits)
-                if len({c["section"] for c in emit_commits if c["section"] in CONTENT_SECTIONS}) >= len(CONTENT_SECTIONS):
+                new_this_tick = False
+                for c in commits:
+                    if c["section"] in POOL_NAMES:
+                        ckey = (c["section"], c["mode_id"])
+                        if ckey not in seen_commit_keys:
+                            seen_commit_keys.add(ckey)
+                            emit_commits.append(c)
+                            w = self._mode_to_word(c["section"], c["mode_id"])
+                            if w:
+                                response_tokens.append({
+                                    "section": c["section"], "token": w,
+                                    "emit_tick": self.sys_.tick,
+                                    "mode_strength": round(
+                                        self.sys_.sections[c["section"]].mode_strength[c["mode_id"]]
+                                        if c["mode_id"] < len(self.sys_.sections[c["section"]].mode_strength)
+                                        else 0.0, 3),
+                                    "arc": round(float(self.sys_.sections[c["section"]].arcs()[c["mode_id"]]) if c["mode_id"] < len(self.sys_.sections[c["section"]].arcs()) else 0.0, 3),
+                                })
+                            new_this_tick = True
+                if new_this_tick:
+                    no_new_streak = 0
+                else:
+                    no_new_streak += 1
+                if no_new_streak >= 10:
+                    break
+                if len(response_tokens) >= 20:
                     break
             for sec in self.sys_.sections.values():
                 sec._emit_phase = False
-            response_tokens = self._expand_grammar(max_tokens=12)
 
-            # POST-EMIT: intro + aware
+            # POST-EMIT: intro + aware NMDA passes
             for c in emit_commits:
                 update_drive_tracker(self.drive_tracker,
                                      {c["section"]: np.ones(N, dtype=complex) * 0.5})
@@ -448,14 +343,20 @@ class V7Session:
             self.last_routing_log = routing_log
             self.tick_at_last_converse = self.sys_.tick
             self._last_converse_time = time.time()
+
+            # Self-voice synthesis
+            voice_b64 = None
+            if response_tokens:
+                voice_b64 = self._synthesize_self_voice(
+                    [t["token"] for t in response_tokens])
+
             self.event_log.write("converse",
                                  text=" ".join(tokens),
                                  emitted=[t.get("token", "") for t in response_tokens],
                                  tick=self.sys_.tick)
-            return {
+            resp = {
                 "response_tokens": response_tokens,
                 "routing_log": routing_log,
-                "rhythm_events": rhythm_events[-10:],
                 "nmda_events": nmda_events[-20:],
                 "introspection": {"reported_state": self.last_intro_state or "i_quiet",
                                   "tick": self.sys_.tick,
@@ -468,6 +369,32 @@ class V7Session:
                                    "reason": c["reason"]} for c in emit_commits[-20:]],
                 "unknown_words": [r["word"] for r in routing_log if r.get("routed_to") is None],
             }
+            if voice_b64:
+                resp["self_voice_audio_b64"] = voice_b64
+            return resp
+
+    def _synthesize_self_voice(self, tokens):
+        """Synthesize speech via espeak-ng. Returns base64 WAV or None."""
+        text = " ".join(tokens)
+        wav_path = "/tmp/utt.wav"
+        try:
+            subprocess.run([
+                "espeak-ng",
+                "-v", VOICE_PROFILE["voice"],
+                "-p", str(VOICE_PROFILE["pitch"]),
+                "-s", str(VOICE_PROFILE["speed"]),
+                "-w", wav_path,
+                text,
+            ], check=True, timeout=10, capture_output=True)
+            with open(wav_path, "rb") as f:
+                wav_bytes = f.read()
+            b64 = base64.b64encode(wav_bytes).decode("ascii")
+            self.event_log.write("self_voice", source="self_voice",
+                                 text=text, bytes_len=len(wav_bytes))
+            return b64
+        except Exception as e:
+            print(f"[v7-voice] synthesis failed: {e}")
+            return None
 
     def _nmda_pass(self, sec_name, target_vec, gate, mode_names, nmda_events,
                    state_attr, history_attr):
@@ -503,7 +430,7 @@ class V7Session:
 
     def _empty_response(self, reason):
         return {
-            "response_tokens": [], "routing_log": [], "rhythm_events": [],
+            "response_tokens": [], "routing_log": [],
             "nmda_events": [],
             "introspection": {"reported_state": "i_quiet",
                               "tick": self.sys_.tick, "recent_commits": []},
@@ -550,8 +477,8 @@ class V7Session:
         """Supervised LTP from thumbs-up/down."""
         with self.lock:
             affected = []
-            for cat in CONTENT_SECTIONS:
-                sec = self.sys_.sections[cat]
+            for pool in POOL_NAMES:
+                sec = self.sys_.sections[pool]
                 if not hasattr(sec, "mode_strength"):
                     continue
                 arcs = sec.arcs()
@@ -562,7 +489,7 @@ class V7Session:
                     reinforce_mode(sec, top, boost=0.05, ceiling=2.5)
                 else:
                     sec.mode_strength[top] = max(0.0, sec.mode_strength[top] - 0.02)
-                affected.append({"section": cat, "mode_id": top,
+                affected.append({"section": pool, "mode_id": top,
                                  "new_strength": sec.mode_strength[top]})
             self.event_log.write("feedback", correct=correct,
                                  affected=[{"section": a["section"], "mode_id": a["mode_id"],
@@ -574,7 +501,6 @@ class V7Session:
         with self.lock:
             state = {
                 "tick": self.sys_.tick,
-                "rhythm_phase": self.last_rhythm_phase,
                 "introspection": self.last_intro_state or "i_quiet",
                 "intro_recent": self.intro_commit_history[-3:],
                 "awareness": self.last_aware_state or "aware_quiet",
@@ -595,8 +521,9 @@ class V7Session:
                     for k in self.sys_.sections["aware"].krimelack[-5:]],
                 "last_replay": getattr(self, "_last_replay_result", None),
                 "bridge_active": hasattr(self, "_bridge") and self._bridge is not None,
-                "vocab_counts": {c: len(self.vocab.get(c, []))
-                                 for c in CONTENT_SECTIONS + CLOSED_CLASS_CATS},
+                "vocab_counts": {p: len(self.vocab.get(p, [])) for p in POOL_NAMES},
+                "last_response_tokens": [t.get("token", "") for t in
+                                         getattr(self, "last_emissions", [])[-10:]],
             }
             if engine is not None:
                 state["v6_vocab_count"] = len(getattr(engine, "word_modes", {}))
@@ -604,21 +531,21 @@ class V7Session:
                 state["atlas_count"] = len(atlas.entries) if atlas else 0
             return state
 
-    def _mode_to_word(self, section_name, mode_id):
-        toks = self.vocab.get(section_name, [])
+    def _mode_to_word(self, pool_name, mode_id):
+        toks = self.vocab.get(pool_name, [])
         return toks[mode_id] if mode_id < len(toks) else None
 
     def _get_mode_strengths(self):
         out = {}
-        for cat in CONTENT_SECTIONS:
-            sec = self.sys_.sections[cat]
+        for pool in POOL_NAMES:
+            sec = self.sys_.sections[pool]
             strengths = {}
-            toks = self.vocab.get(cat, [])
+            toks = self.vocab.get(pool, [])
             if hasattr(sec, "mode_strength"):
                 for i, tok in enumerate(toks):
                     if i < len(sec.mode_strength):
                         strengths[tok] = round(sec.mode_strength[i], 3)
-            out[cat] = strengths
+            out[pool] = strengths
         return out
 
     # ---- Serialization ----
@@ -660,7 +587,7 @@ class V7Session:
 
     def to_json(self):
         state = {
-            "schema_version": 3,
+            "schema_version": 4,
             "session_id": self.session_id,
             "event_seq": self.event_log.count,
             "vocab": {k: list(v) for k, v in self.vocab.items()},
@@ -683,33 +610,30 @@ class V7Session:
     def load_from_json(self, data):
         with self.lock:
             sv = data.get("schema_version", 1)
-            if sv < 2:
-                for old_sn, new_sn in [("subject", "N"), ("verb", "V"), ("object", "N")]:
-                    if old_sn in data and new_sn in self.sys_.sections:
-                        sec = self.sys_.sections[new_sn]
-                        if hasattr(sec, "mode_strength"):
-                            sec.mode_strength = list(data[old_sn])
+            if sv <= 3:
+                # v1/v2/v3: flatten all vocab into one list, redistribute round-robin
+                all_words = []
+                raw_vocab = data.get("vocab", {})
+                for slot, words in raw_vocab.items():
+                    for w in words:
+                        wl = w.lower().strip()
+                        if wl and wl not in all_words:
+                            all_words.append(wl)
+                new_vocab = {p: [] for p in POOL_NAMES}
+                for i, w in enumerate(all_words):
+                    pool = POOL_NAMES[i % len(POOL_NAMES)]
+                    new_vocab[pool].append(w)
+                self.vocab = new_vocab
                 self.last_intro_state = data.get("intro_state")
                 self.last_aware_state = data.get("aware_state")
-                if "vocab" in data:
-                    self._migrate_vocab_v1(data["vocab"])
-                return
-            if sv == 2:
-                self.last_intro_state = data.get("intro_state")
-                self.last_aware_state = data.get("aware_state")
-                if "vocab" in data:
-                    self._migrate_vocab_v1(data["vocab"])
-                sections = data.get("sections", {})
-                _v2_map = {"subject": "N", "verb": "V", "object": "N"}
-                for old_sn, sec_data in sections.items():
-                    new_sn = _v2_map.get(old_sn, old_sn)
-                    if new_sn in self.sys_.sections:
-                        self._restore_section(self.sys_.sections[new_sn], sec_data)
-                for sn, sec_data in data.get("meta_sections", {}).items():
+                # Rebuild system with migrated vocab
+                self.sys_, self.token_vec, self.intro_vec, self.intro_modes, \
+                    self.aware_vec, self.aware_modes = self._build_system()
+                for sn in POOL_NAMES + ["intro", "aware"]:
                     if sn in self.sys_.sections:
-                        self._restore_section(self.sys_.sections[sn], sec_data)
+                        install_plasticity(self.sys_.sections[sn], initial_strength=1.0)
                 return
-            # Schema v3
+            # Schema v4 native
             if "vocab" in data:
                 self.vocab = {k: list(v) for k, v in data["vocab"].items()}
             self.last_intro_state = data.get("intro_state")
@@ -717,16 +641,6 @@ class V7Session:
             for sn, sec_data in data.get("sections", {}).items():
                 if sn in self.sys_.sections:
                     self._restore_section(self.sys_.sections[sn], sec_data)
-
-    def _migrate_vocab_v1(self, old_vocab):
-        """Migrate v1/v2 vocab (subject/verb/object) to new categories."""
-        for old_slot, words in old_vocab.items():
-            for w in words:
-                wl = w.lower()
-                cat = CLOSED_CLASS_LEXICON.get(wl, "V" if old_slot == "verb" else "N")
-                self.vocab.setdefault(cat, [])
-                if wl not in self.vocab[cat]:
-                    self.vocab[cat].append(wl)
 
 
 # ---- Session manager ----

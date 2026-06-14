@@ -3,7 +3,7 @@ FROM public.ecr.aws/docker/library/python:3.11-slim
 WORKDIR /app
 
 # Install dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg espeak-ng && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3
 
 # Copy only what the service needs (no TFE trading code)
