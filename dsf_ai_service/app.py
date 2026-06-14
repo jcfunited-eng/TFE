@@ -1027,7 +1027,6 @@ def _gl_init():
         print(f"[GualaLoom] IDENTITY MISMATCH: got {loaded_id[:8]}, "
               f"expected {EXPECTED_IDENTITY}. Restoring from S3 backup...")
         try:
-            g.release_lock()
             _restore_from_s3(STATE_DIR)
             g2 = Guala()
             for cid, cdata in SEED_CORPORA.items():
@@ -2749,30 +2748,16 @@ async def startup():
     result = initialize_integrity()
     print(f"[DSF-AI] Integrity initialized: {result['files_present']}/{result['files_checked']} files hashed")
 
-    # WARMTH: install SIGTERM handler on main thread (before background init)
+    # SIGTERM handler — defensive save for crash scenarios
     import signal as _signal
     def _shutdown_handler(signum, frame):
         print(f"[GualaLoom] Signal {signum} — shutting down cleanly")
         if _guala is not None:
-            _guala._lock_alive = False
             try:
                 _guala.save_full_state(STATE_DIR)
                 print("[GualaLoom] Final save complete")
             except Exception as e:
                 print(f"[GualaLoom] Final save failed: {e}")
-            try:
-                import os as _os
-                lock_path = _os.path.join(STATE_DIR, _guala.LOCK_FILE)
-                _os.remove(lock_path)
-                print("[GualaLoom] Lock released cleanly")
-            except Exception as e:
-                print(f"[GualaLoom] Lock release failed: {e}")
-            if _guala._lock_fd is not None:
-                try:
-                    _guala._lock_fd.close()
-                except Exception:
-                    pass
-                _guala._lock_fd = None
         sys.exit(0)
     _signal.signal(_signal.SIGTERM, _shutdown_handler)
     _signal.signal(_signal.SIGINT, _shutdown_handler)
@@ -2947,7 +2932,6 @@ async def shutdown():
                 print(f"[shutdown] final save {dt:.2f}s")
             except Exception as e:
                 print(f"[shutdown] save error: {e}")
-            _guala.release_lock()
         await loop.run_in_executor(None, _final_save)
 
 
