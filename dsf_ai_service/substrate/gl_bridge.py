@@ -26,7 +26,7 @@ class SubstrateBridge:
             return None
         self._relay_depth += 1
         try:
-            vec, slot, was_new = self.v7.lookup_or_install(winner_word, position=0)
+            vec, slot, was_new = self.v7.lookup_or_install(winner_word)
             if vec is not None:
                 self.v7.sys_.hear_speaker(vec, "listen")
                 return {"fed_to_v7": winner_word, "slot": slot, "was_new": was_new}

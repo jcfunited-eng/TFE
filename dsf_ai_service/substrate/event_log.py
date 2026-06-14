@@ -99,9 +99,7 @@ def replay_events(session, events):
             slot = ev.get("slot")
             word = ev.get("word")
             if slot and word and word not in session.vocab.get(slot, []):
-                from dsf_ai_service.substrate.v7_engine import SKIP_WORDS
-                if word not in SKIP_WORDS:
-                    session.lookup_or_install(word, position={"subject": 0, "verb": 1, "object": 2}.get(slot, 0))
+                session.lookup_or_install(word)
             replayed += 1
 
         elif t == "feedback":
