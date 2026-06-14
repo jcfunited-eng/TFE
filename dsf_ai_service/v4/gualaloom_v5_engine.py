@@ -798,6 +798,22 @@ class Coordinator:
                              "arc_changes": 1})
 
 
+def check_sleep_marker(state_dir):
+    """Read .sleeping marker if present. Returns dict with
+    sleep_tick and age_seconds, or None if no marker."""
+    marker_path = os.path.join(state_dir, ".sleeping")
+    if not os.path.exists(marker_path):
+        return None
+    try:
+        with open(marker_path) as f:
+            data = json.load(f)
+        age = time.time() - data.get("sleep_ts", 0)
+        return {"sleep_tick": data.get("sleep_tick"),
+                "age_seconds": age}
+    except Exception:
+        return None
+
+
 # ============================================================
 # Guala
 # ============================================================
@@ -868,7 +884,7 @@ class Guala:
         self.decay_modulation = 1.0
         self._decay_mod_owner = None
 
-        # v7: Autonomy state
+        # v7: Autonomy state + sleep/wake (GL-BRIEF-SLEEP-DURING-DEPLOY)
         self._current_activity = None
         self._activity_history = []
         self._substrate_events = deque(maxlen=1000)
@@ -876,6 +892,14 @@ class Guala:
         self._corpora = {}          # corpus_id -> CorpusItem
         self._sensory_items = {}    # item_id -> SensoryItem
         self._sounds = {}           # item_id -> {cochlear, title, samples, sr, ...}
+
+    @property
+    def is_asleep(self):
+        """True if she is currently in SLEEPING activity state."""
+        ca = getattr(self, '_current_activity', None)
+        if ca is None:
+            return False
+        return getattr(ca, 'kind', None) == "SLEEPING"
 
     # ------------------------------------------------------------------
     # v6: Salience computation
@@ -2240,8 +2264,8 @@ class Guala:
             self._log_substrate_event("decay_modulation_reset",
                                       source="wc", reason="presence_ended")
 
-    def manual_sleep(self):
-        """Manual sleep trigger from UI."""
+    def manual_sleep(self, state_dir="state"):
+        """Manual sleep trigger from UI or deploy script."""
         with self.lock:
             if self._current_activity:
                 self._end_activity()
@@ -2252,8 +2276,34 @@ class Guala:
                 metadata={"trigger": "manual"})
             self._start_activity(sleep)
             self._log_substrate_event("sleep_manual", trigger="ui")
+            # Sleep-during-deploy plumbing (GL-BRIEF-SLEEP-DURING-DEPLOY)
+            try:
+                self.save_full_state(state_dir)
+            except Exception as e:
+                print(f"[sleep] save_full_state failed: {e}")
+                raise
+            try:
+                marker_path = os.path.join(state_dir, ".sleeping")
+                with open(marker_path, 'w') as f:
+                    json.dump({"sleep_tick": self.tick,
+                               "sleep_ts": time.time()}, f)
+            except Exception as e:
+                print(f"[sleep] marker write failed: {e}")
             return {"event": "sleep_started", "tick": self.tick,
                     "expected_end_tick": sleep.expected_end_tick}
+
+    def wake_from_sleep(self, state_dir="state"):
+        """Transition out of SLEEPING activity. Clears the .sleeping
+        marker. Called by the new task after load_full_state on deploy."""
+        if self.is_asleep:
+            self._end_activity()
+            self._log_substrate_event("wake_from_sleep", tick=self.tick)
+        try:
+            marker_path = os.path.join(state_dir, ".sleeping")
+            if os.path.exists(marker_path):
+                os.remove(marker_path)
+        except Exception as e:
+            print(f"[wake] marker cleanup failed: {e}")
 
     def _activity_summary(self):
         """Summary of activity history for /status."""
@@ -2284,6 +2334,7 @@ class Guala:
     ]
     IDENTITY_FILE = "guala_identity.json"
     LOCK_FILE = "guala.lock"
+    SLEEPING_MARKER = ".sleeping"
     EVENTS_LOG = "events.log"
     MAX_SNAPSHOTS = 20
     EVENTS_MAX_BYTES = 10 * 1024 * 1024  # 10MB per log file
