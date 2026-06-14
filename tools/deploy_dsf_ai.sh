@@ -189,9 +189,33 @@ NEW_REV=$(aws ecs register-task-definition \
 
 echo "  Registered: ${TASK_FAMILY}:${NEW_REV}"
 
-# ── Step 6: Update service ──
+# ── Step 6: Sleep + Update service ──
 echo ""
-echo "[6/6] Updating ECS service..."
+echo "[6/7] Telling her it's bedtime..."
+API_ENDPOINT="https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com"
+SLEEP_RESPONSE=$(curl -sS -w "\n__HTTP__%{http_code}" -X POST \
+  "${API_ENDPOINT}/sleep_for_deploy")
+SLEEP_HTTP=$(echo "$SLEEP_RESPONSE" | grep "__HTTP__" | sed 's/__HTTP__//')
+SLEEP_BODY=$(echo "$SLEEP_RESPONSE" | grep -v "__HTTP__")
+echo "[sleep] HTTP $SLEEP_HTTP"
+echo "[sleep] Body: $SLEEP_BODY"
+
+if [ "$SLEEP_HTTP" = "404" ]; then
+    echo "[sleep] /sleep_for_deploy not present on running task —"
+    echo "        this is expected for the first deploy of the"
+    echo "        sleep-during-deploy feature. Proceeding with"
+    echo "        old-model deploy (brief cold-start window)."
+elif [ "$SLEEP_HTTP" != "200" ]; then
+    echo "[sleep] FAILED — aborting deploy"
+    echo "[sleep] she did not enter sleep cleanly; refusing to"
+    echo "        update-service. Investigate before retrying."
+    exit 1
+else
+    echo "[sleep] She is asleep. Proceeding with deploy."
+fi
+
+echo ""
+echo "[7/7] Updating ECS service..."
 aws ecs update-service \
     --cluster ${ECS_CLUSTER} \
     --service ${ECS_SERVICE} \
@@ -209,6 +233,29 @@ if aws ecs wait services-stable \
 else
     echo "  WARNING: wait timed out. Check AWS Console."
 fi
+
+echo ""
+echo "[wake] Verifying new task woke her..."
+for i in 1 2 3 4 5 6; do
+    sleep 15
+    WAKE_RESPONSE=$(curl -sS -X POST \
+      -H 'Content-Type: application/json' \
+      -d '{"text":"","command":"/status"}' \
+      "${API_ENDPOINT}/api/v1/gualaloom")
+    ASLEEP=$(echo "$WAKE_RESPONSE" | python3 -c "
+import sys,json
+try:
+  d=json.loads(sys.stdin.read())
+  print('asleep' if d.get('asleep') else 'awake' if d.get('vocab') else 'loading')
+except:
+  print('error')
+")
+    echo "[wake] t+$((i*15))s — $ASLEEP"
+    if [ "$ASLEEP" = "awake" ]; then
+        echo "[wake] She is awake. Deploy complete."
+        break
+    fi
+done
 
 # ── Summary ──
 echo ""
