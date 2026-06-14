@@ -2716,6 +2716,35 @@ async def startup():
     result = initialize_integrity()
     print(f"[DSF-AI] Integrity initialized: {result['files_present']}/{result['files_checked']} files hashed")
 
+    # WARMTH: install SIGTERM handler on main thread (before background init)
+    import signal as _signal
+    def _shutdown_handler(signum, frame):
+        print(f"[GualaLoom] Signal {signum} — shutting down cleanly")
+        if _guala is not None:
+            _guala._lock_alive = False
+            try:
+                _guala.save_full_state(STATE_DIR)
+                print("[GualaLoom] Final save complete")
+            except Exception as e:
+                print(f"[GualaLoom] Final save failed: {e}")
+            try:
+                import os as _os
+                lock_path = _os.path.join(STATE_DIR, _guala.LOCK_FILE)
+                _os.remove(lock_path)
+                print("[GualaLoom] Lock released cleanly")
+            except Exception as e:
+                print(f"[GualaLoom] Lock release failed: {e}")
+            if _guala._lock_fd is not None:
+                try:
+                    _guala._lock_fd.close()
+                except Exception:
+                    pass
+                _guala._lock_fd = None
+        sys.exit(0)
+    _signal.signal(_signal.SIGTERM, _shutdown_handler)
+    _signal.signal(_signal.SIGINT, _shutdown_handler)
+    print("[GualaLoom] SIGTERM/SIGINT handlers installed")
+
     # V2 EAGER INIT: initialize in background so health check passes immediately
     import asyncio
     async def _eager_init():
@@ -2891,11 +2920,23 @@ async def shutdown():
 
 @app.get("/health")
 async def health():
-    # Always return 200 for ALB health checks (ALB kills task on 503).
-    # Init status reported in body for observability.
+    # Always return 200 for ALB liveness checks.
     return {
         "status": "ok" if _init_complete else "initializing",
         "service": "dsf-ai",
         "version": "1.0.0",
         "ready": _init_complete,
     }
+
+@app.get("/ready")
+async def ready():
+    """Deep readiness check — 200 only when _guala is loaded.
+    ECS container health check uses this, not /health."""
+    if _guala is None:
+        return JSONResponse(
+            status_code=503,
+            content={"ready": False,
+                     "message": "guala still loading"})
+    return {"ready": True,
+            "vocab": len(_guala.vocab),
+            "tick": _guala.tick}

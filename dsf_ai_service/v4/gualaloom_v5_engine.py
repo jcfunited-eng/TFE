@@ -2507,58 +2507,111 @@ class Guala:
 
     # ── Load ──
 
-    # D1: State lock via fcntl — kernel releases on process death
+    # D1: Heartbeat-based state lock — GL-BRIEF-WARMTH-WC-20260614-01
     _lock_fd = None
+    _lock_alive = False
+    _lock_thread = None
+    LOCK_HEARTBEAT_INTERVAL = 10   # seconds between ts updates
+    LOCK_STALE_THRESHOLD = 30      # seconds before lock considered stale
 
-    def _acquire_lock(self, state_dir, timeout=120):
-        """Acquire POSIX file lock (fcntl.lockf). Blocks up to timeout seconds
-        for old task to release during zero-downtime deploy. On EFS/NFS, stale
-        locks from dead processes may persist — break by removing and retrying."""
+    def _acquire_lock(self, state_dir):
+        """Acquire state lock with heartbeat-based stale detection.
+        If lock file ts < 30s old: real conflict, brief wait then refuse.
+        If lock file ts >= 30s old or corrupt: break immediately."""
         import fcntl
         lock_path = os.path.join(state_dir, self.LOCK_FILE)
-        self._lock_fd = open(lock_path, "w")
-        deadline = time.time() + timeout
-        logged_wait = False
-        while True:
+        self._lock_path = lock_path
+
+        if os.path.exists(lock_path):
             try:
-                fcntl.lockf(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                self._lock_fd.write(json.dumps({"pid": os.getpid(), "ts": time.time()}))
-                self._lock_fd.flush()
-                print(f"[GualaLoom] State lock acquired: PID {os.getpid()}")
-                return
-            except (IOError, OSError):
-                remaining = int(deadline - time.time())
-                if remaining <= 0:
-                    # Stale NFS lock — break it by removing the file and retrying
-                    self._lock_fd.close()
-                    self._lock_fd = None
-                    try:
-                        os.remove(lock_path)
-                        print(f"[GualaLoom] Stale lock removed after {timeout}s timeout, retrying...")
-                    except OSError:
-                        pass
-                    self._lock_fd = open(lock_path, "w")
-                    try:
-                        fcntl.lockf(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                        self._lock_fd.write(json.dumps({"pid": os.getpid(), "ts": time.time()}))
-                        self._lock_fd.flush()
-                        print(f"[GualaLoom] State lock acquired after stale-break: PID {os.getpid()}")
-                        return
-                    except (IOError, OSError):
-                        self._lock_fd.close()
-                        self._lock_fd = None
+                with open(lock_path) as f:
+                    data = json.load(f)
+                age = time.time() - data.get("ts", 0)
+                if age < self.LOCK_STALE_THRESHOLD:
+                    print(f"[GualaLoom] Lock held by live task "
+                          f"(age={age:.1f}s) — waiting 5s")
+                    time.sleep(5)
+                    with open(lock_path) as f:
+                        data = json.load(f)
+                    age = time.time() - data.get("ts", 0)
+                    if age < self.LOCK_STALE_THRESHOLD:
                         raise RuntimeError(
-                            f"State lock held by another process after {timeout}s "
-                            f"AND stale-break failed. Two Gualas must never write one state.")
-                if not logged_wait or remaining % 10 == 0:
-                    print(f"[GualaLoom] Lock held by another task, waiting... ({remaining}s left)")
-                    logged_wait = True
-                time.sleep(1)
+                            f"another task holds the lock (age={age:.1f}s)")
+                    print(f"[GualaLoom] Lock went stale during wait "
+                          f"(age={age:.1f}s) — breaking")
+                else:
+                    print(f"[GualaLoom] Breaking stale lock "
+                          f"(age={age:.1f}s)")
+            except (json.JSONDecodeError, IOError, ValueError):
+                print("[GualaLoom] Lock file corrupt — breaking")
+            try:
+                os.remove(lock_path)
+            except OSError:
+                pass
+
+        self._lock_fd = open(lock_path, "w")
+        fcntl.lockf(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        self._write_lock_state()
+        print(f"[GualaLoom] State lock acquired: PID {os.getpid()}")
+
+        self._lock_alive = True
+        self._lock_thread = threading.Thread(
+            target=self._lock_heartbeat, daemon=True)
+        self._lock_thread.start()
+        print(f"[GualaLoom] Heartbeat thread started")
+
+    def _write_lock_state(self):
+        """Update lock file with current pid and timestamp."""
+        self._lock_fd.seek(0)
+        self._lock_fd.truncate()
+        self._lock_fd.write(json.dumps({"pid": os.getpid(),
+                                         "ts": time.time()}))
+        self._lock_fd.flush()
+        os.fsync(self._lock_fd.fileno())
+
+    def _lock_heartbeat(self):
+        """Daemon thread: update lock ts every LOCK_HEARTBEAT_INTERVAL seconds."""
+        while self._lock_alive:
+            time.sleep(self.LOCK_HEARTBEAT_INTERVAL)
+            if not self._lock_alive:
+                break
+            try:
+                self._write_lock_state()
+            except Exception as e:
+                print(f"[GualaLoom] Heartbeat write failed: {e}")
+
+    def _install_shutdown_handler(self, state_dir):
+        """Register SIGTERM/SIGINT handlers for graceful lock release."""
+        import signal
+        def _shutdown(signum, frame):
+            print(f"[GualaLoom] Signal {signum} — shutting down cleanly")
+            self._lock_alive = False
+            try:
+                self.save_full_state(state_dir)
+                print("[GualaLoom] Final save complete")
+            except Exception as e:
+                print(f"[GualaLoom] Final save failed: {e}")
+            try:
+                lock_path = os.path.join(state_dir, self.LOCK_FILE)
+                os.remove(lock_path)
+                print("[GualaLoom] Lock released cleanly")
+            except Exception as e:
+                print(f"[GualaLoom] Lock release failed: {e}")
+            if self._lock_fd is not None:
+                try:
+                    self._lock_fd.close()
+                except Exception:
+                    pass
+                self._lock_fd = None
+            sys.exit(0)
+        signal.signal(signal.SIGTERM, _shutdown)
+        signal.signal(signal.SIGINT, _shutdown)
 
     def release_lock(self):
-        """Release POSIX file lock so new task can acquire it."""
-        import fcntl
+        """Release lock and stop heartbeat."""
+        self._lock_alive = False
         if self._lock_fd is not None:
+            import fcntl
             try:
                 fcntl.lockf(self._lock_fd, fcntl.LOCK_UN)
                 self._lock_fd.close()
@@ -2605,7 +2658,7 @@ class Guala:
 
     def load_full_state(self, state_dir="state"):
         """Load with identity verification, schema check, integrity validation."""
-        # V1: Acquire state lock
+        # V1: Acquire state lock (shutdown handler installed from main thread by app.py)
         self._acquire_lock(state_dir)
 
         self._load_errors = []

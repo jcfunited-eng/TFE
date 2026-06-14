@@ -166,6 +166,15 @@ td = json.load(sys.stdin)
 td['containerDefinitions'][0]['image'] = '${IMAGE_URI}'
 # C3: give container 15s for SIGTERM final save before SIGKILL
 td['containerDefinitions'][0]['stopTimeout'] = 15
+# WARMTH: container health check uses /ready (not /health)
+# Task not marked healthy until _guala is loaded
+td['containerDefinitions'][0]['healthCheck'] = {
+    'command': ['CMD-SHELL', 'python3 -c \"import urllib.request; urllib.request.urlopen(\\\"http://localhost:8080/ready\\\")\" || exit 1'],
+    'interval': 10,
+    'timeout': 5,
+    'retries': 3,
+    'startPeriod': 180
+}
 keep = ['family', 'containerDefinitions', 'volumes', 'networkMode',
         'requiresCompatibilities', 'cpu', 'memory', 'executionRoleArn',
         'taskRoleArn', 'runtimePlatform']
