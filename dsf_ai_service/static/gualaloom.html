@@ -503,12 +503,13 @@ async function pollStatus(){
     const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({text:'',command:'/status'})});
     const d=await r.json();
-    const m=d.motifs||{};
-    const vocab=m.total_words||'?';
-    const n_motifs=m.n_motifs||'?';
-    const atlas=typeof m.atlas_strength==='number'?m.atlas_strength.toFixed(1):'?';
-    const n_sounds=m.n_sounds||'?';
-    const n_pictures=m.n_pictures||'?';
+    if(d.response&&d.response.startsWith('initializing'))return; // v6 not ready yet
+    const vocab=d.vocab||d.motifs||'?';
+    const n_motifs=d.n_motifs||'?';
+    const ah=d.atlas_health||{};
+    const atlas=typeof ah.total_strength==='number'?ah.total_strength.toFixed(1):(typeof d.atlas_entries==='number'?d.atlas_entries:'?');
+    const n_sounds=d.n_sounds||'?';
+    const n_pictures=d.n_pictures||'?';
     statsLine.textContent='vocab: '+vocab+' \u00b7 motifs: '+n_motifs+' \u00b7 atlas: '+atlas+' \u00b7 sounds: '+n_sounds+' \u00b7 pics: '+n_pictures;
   }catch(e){}
 }
