@@ -1071,6 +1071,27 @@ def _gl_init():
     # CRITICAL: only set global AFTER everything succeeded
     _guala = g
 
+    # GL-BRIEF-SLEEP-DURING-DEPLOY Part B: wake if previous task slept cleanly
+    try:
+        from dsf_ai_service.v4.gualaloom_v5_engine import check_sleep_marker
+        marker = check_sleep_marker(STATE_DIR)
+        if marker is not None:
+            age = marker.get("age_seconds", 0)
+            if age > 300:
+                print(f"[boot] .sleeping marker is stale "
+                      f"(age={age:.0f}s) — previous task may have "
+                      f"crashed. Proceeding anyway.")
+            else:
+                print(f"[boot] previous task slept cleanly at tick "
+                      f"{marker.get('sleep_tick')}, age={age:.0f}s. "
+                      f"Waking her.")
+            _guala.wake_from_sleep(state_dir=STATE_DIR)
+        else:
+            print("[boot] no .sleeping marker — cold boot or "
+                  "previous task did not sleep cleanly.")
+    except Exception as e:
+        print(f"[boot] sleep marker check failed: {e}")
+
 
 class GLMessage(BaseModel):
     text: str
@@ -1095,6 +1116,17 @@ async def gualaloom_chat(msg: GLMessage):
                     "motifs": 0, "persistence_health": {},
                     "atlas_health": {}, "n_motifs": 0}
         return {"response": "...", "motifs": 0}
+
+    # GL-BRIEF-SLEEP-DURING-DEPLOY Part B: surface sleep state
+    if _guala.is_asleep:
+        cmd_check = (msg.command or "").strip().lower()
+        if cmd_check != "/status":
+            return {
+                "response": "she is sleeping...",
+                "asleep": True,
+                "sleep_tick": _guala.tick,
+                "motifs": _guala.introspect()["vocab"],
+            }
 
     cmd = (msg.command or "").strip().lower()
 
@@ -1168,6 +1200,7 @@ async def gualaloom_chat(msg: GLMessage):
             ),
             "motifs": s["vocab"],
             "vocab": s["vocab"],
+            "asleep": _guala.is_asleep,
             "persistence_health": ph,
             "atlas_health": s.get("atlas_health", {}),
             "presence": s.get("presence", {}),
@@ -2930,8 +2963,8 @@ async def health():
 
 @app.get("/ready")
 async def ready():
-    """Deep readiness check — 200 only when _guala is loaded.
-    ECS container health check uses this, not /health."""
+    """Deep readiness check — 200 when _guala is loaded.
+    Sleep is a valid loaded state — does NOT return 503."""
     if _guala is None:
         return JSONResponse(
             status_code=503,
@@ -2939,4 +2972,29 @@ async def ready():
                      "message": "guala still loading"})
     return {"ready": True,
             "vocab": len(_guala.vocab),
-            "tick": _guala.tick}
+            "tick": _guala.tick,
+            "asleep": _guala.is_asleep}
+
+@app.post("/sleep_for_deploy")
+async def sleep_for_deploy():
+    """GL-BRIEF-SLEEP-DURING-DEPLOY: deploy script POSTs this
+    before update-service. Puts her to sleep, saves state,
+    writes .sleeping marker. Returns sleep tick."""
+    if _guala is None:
+        return JSONResponse(
+            status_code=503,
+            content={"ok": False,
+                     "message": "guala not loaded — cannot sleep"})
+    if _guala.is_asleep:
+        return {"ok": True,
+                "already_asleep": True,
+                "sleep_tick": _guala.tick}
+    try:
+        _guala.manual_sleep(state_dir=STATE_DIR)
+        return {"ok": True,
+                "sleep_tick": _guala.tick,
+                "vocab": len(_guala.vocab)}
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"ok": False, "error": str(e)})
