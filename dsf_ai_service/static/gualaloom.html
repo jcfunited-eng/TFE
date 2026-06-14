@@ -425,7 +425,7 @@ function renderPictures(pics){
             body:JSON.stringify({text:'',command:'/picture '+pid})});
           const d=await r.json();
           if(d.picture_data){
-            el.innerHTML='<img src="data:image/jpeg;base64,'+d.picture_data+'" style="max-width:240px;border-radius:6px"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
+            el.innerHTML='<img src="'+d.picture_data+'" style="max-width:240px;border-radius:6px"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
           }
         }catch(e){}
       })(div,p.item_id);

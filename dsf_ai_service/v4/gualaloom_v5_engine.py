@@ -1114,6 +1114,7 @@ class Guala:
             # chi matches input chi positions. Concurrent autonomous activity
             # (sight commits, idle processing) has last_tick outside this range.
             if source in ("joe", "wc", "c1"):
+                _bind_count = 0
                 for ch in input_chis:
                     for d in range(-self.atlas.band, self.atlas.band + 1):
                         for e in self.atlas.entries.get(ch + d, []):
@@ -1121,7 +1122,9 @@ class Guala:
                                     and e.get("last_tick", 0) <= tick_after_read
                                     and not e.get("response_context")):
                                 self._tag_response_bindings(
-                                    ch + d, e["section"], e["motif"], source)
+                                    ch + d, e["section"], e["motif"], source,
+                                    log_event=(_bind_count == 0))
+                                _bind_count += 1
 
             # 5. Choose response
             if recalled:
@@ -2099,7 +2102,8 @@ class Guala:
                 contexts.extend(w["context_anchor_chis"])
         return contexts
 
-    def _tag_response_bindings(self, chi_value, section_name, motif_id, current_source):
+    def _tag_response_bindings(self, chi_value, section_name, motif_id, current_source,
+                               log_event=True):
         """If input arrives during an open response window from another emitter,
         cross-link the new atlas entry to the context anchors."""
         response_contexts = self._get_response_contexts(current_source)
@@ -2123,22 +2127,23 @@ class Guala:
                         received.append(chi_value)
                         e["received_response"] = received
 
-        # Count and log
+        # Count and log (only once per converse call, not per entry)
         for w in self.open_response_windows:
             if (w["emitter"] != current_source
                     and w["expires_at_tick"] >= self.tick):
                 w["n_responses_bound"] += 1
 
-        delta_t = self.tick - min(
-            w["opened_at_tick"] for w in self.open_response_windows
-            if w["emitter"] != current_source and w["expires_at_tick"] >= self.tick)
         self._response_bind_count += 1
-        self._log_substrate_event("response_bound",
-                                  context_anchor_chis=response_contexts[:3],
-                                  input_chi=chi_value,
-                                  section=section_name,
-                                  source=current_source,
-                                  delta_t_ticks=delta_t)
+        if log_event:
+            delta_t = self.tick - min(
+                w["opened_at_tick"] for w in self.open_response_windows
+                if w["emitter"] != current_source and w["expires_at_tick"] >= self.tick)
+            self._log_substrate_event("response_bound",
+                                      context_anchor_chis=response_contexts[:3],
+                                      input_chi=chi_value,
+                                      section=section_name,
+                                      source=current_source,
+                                      delta_t_ticks=delta_t)
 
     def _self_hear(self, reply, responding_to_source):
         """GL-BRIEF-034: Self-hearing — Guala hears her own conversational reply.
