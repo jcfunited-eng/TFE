@@ -2512,7 +2512,8 @@ class Guala:
 
     def _acquire_lock(self, state_dir, timeout=120):
         """Acquire POSIX file lock (fcntl.lockf). Blocks up to timeout seconds
-        for old task to release during zero-downtime deploy. Kernel releases on death."""
+        for old task to release during zero-downtime deploy. On EFS/NFS, stale
+        locks from dead processes may persist — break by removing and retrying."""
         import fcntl
         lock_path = os.path.join(state_dir, self.LOCK_FILE)
         self._lock_fd = open(lock_path, "w")
@@ -2528,11 +2529,27 @@ class Guala:
             except (IOError, OSError):
                 remaining = int(deadline - time.time())
                 if remaining <= 0:
+                    # Stale NFS lock — break it by removing the file and retrying
                     self._lock_fd.close()
                     self._lock_fd = None
-                    raise RuntimeError(
-                        f"State lock held by another process after {timeout}s. "
-                        f"Two Gualas must never write one state.")
+                    try:
+                        os.remove(lock_path)
+                        print(f"[GualaLoom] Stale lock removed after {timeout}s timeout, retrying...")
+                    except OSError:
+                        pass
+                    self._lock_fd = open(lock_path, "w")
+                    try:
+                        fcntl.lockf(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        self._lock_fd.write(json.dumps({"pid": os.getpid(), "ts": time.time()}))
+                        self._lock_fd.flush()
+                        print(f"[GualaLoom] State lock acquired after stale-break: PID {os.getpid()}")
+                        return
+                    except (IOError, OSError):
+                        self._lock_fd.close()
+                        self._lock_fd = None
+                        raise RuntimeError(
+                            f"State lock held by another process after {timeout}s "
+                            f"AND stale-break failed. Two Gualas must never write one state.")
                 if not logged_wait or remaining % 10 == 0:
                     print(f"[GualaLoom] Lock held by another task, waiting... ({remaining}s left)")
                     logged_wait = True
