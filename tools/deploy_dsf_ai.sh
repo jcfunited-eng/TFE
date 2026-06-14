@@ -53,22 +53,13 @@ GIT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
 echo "  Git SHA: ${GIT_SHA}"
 echo "  Image:   ${IMAGE_URI}"
 
-# C3: Assert zero-downtime deploy config (rolling — new starts before old stops)
+# GL-BRIEF-SLEEP-DURING-DEPLOY: sleep-based deploy (max=100, min=0)
+# Old task sleeps before new starts. No overlap needed.
 CFG=$(aws ecs describe-services --cluster ${ECS_CLUSTER} \
   --services ${ECS_SERVICE} \
   --query 'services[0].deploymentConfiguration.[maximumPercent,minimumHealthyPercent]' \
   --output text)
-if [ "$CFG" != "200	100" ]; then
-    echo "Deploy config needs update (got: $CFG, need: 200 100)"
-    echo "Updating to zero-downtime rolling deploy..."
-    aws ecs update-service --cluster ${ECS_CLUSTER} --service ${ECS_SERVICE} \
-      --deployment-configuration minimumHealthyPercent=100,maximumPercent=200 \
-      --health-check-grace-period-seconds 120 \
-      --no-cli-pager > /dev/null
-    echo "  Updated to rolling deploy (max=200, min=100, grace=30s)"
-else
-    echo "  Deploy config: zero-downtime ✓ (max=200, min=100)"
-fi
+echo "  Deploy config: max/min = $CFG"
 
 # ── Step 1: Package source ──
 echo ""
@@ -193,8 +184,9 @@ echo "  Registered: ${TASK_FAMILY}:${NEW_REV}"
 echo ""
 echo "[6/7] Telling her it's bedtime..."
 API_ENDPOINT="https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com"
+ALB_ENDPOINT="http://dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com"
 SLEEP_RESPONSE=$(curl -sS -w "\n__HTTP__%{http_code}" -X POST \
-  "${API_ENDPOINT}/sleep_for_deploy")
+  "${ALB_ENDPOINT}/sleep_for_deploy")
 SLEEP_HTTP=$(echo "$SLEEP_RESPONSE" | grep "__HTTP__" | sed 's/__HTTP__//')
 SLEEP_BODY=$(echo "$SLEEP_RESPONSE" | grep -v "__HTTP__")
 echo "[sleep] HTTP $SLEEP_HTTP"
