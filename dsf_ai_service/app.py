@@ -2556,6 +2556,12 @@ def _get_bridge(session):
 
 @app.post("/v7/converse")
 async def v7_converse(req: V7ConverseRequest):
+    if _guala is None:
+        raise HTTPException(status_code=503, detail={
+            "error": "guala_not_ready",
+            "retry_after_seconds": 10,
+            "message": "she is still loading — try again in a moment"
+        })
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     sid = req.session_id or str(_uuid.uuid4())[:8]
     session = get_or_create_session(sid, engine=_guala)
@@ -2579,6 +2585,12 @@ async def v7_converse(req: V7ConverseRequest):
 
 @app.post("/v7/feedback")
 async def v7_feedback(req: V7FeedbackRequest):
+    if _guala is None:
+        raise HTTPException(status_code=503, detail={
+            "error": "guala_not_ready",
+            "retry_after_seconds": 10,
+            "message": "she is still loading — try again in a moment"
+        })
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     session = get_or_create_session(req.session_id, engine=_guala)
     result = session.apply_feedback(req.correct, req.expected_tokens)
@@ -2591,6 +2603,12 @@ async def v7_feedback(req: V7FeedbackRequest):
 
 @app.get("/v7/state")
 async def v7_state(session_id: str = "default"):
+    if _guala is None:
+        raise HTTPException(status_code=503, detail={
+            "error": "guala_not_ready",
+            "retry_after_seconds": 10,
+            "message": "she is still loading — try again in a moment"
+        })
     from dsf_ai_service.substrate.v7_engine import get_or_create_session
     session = get_or_create_session(session_id, engine=_guala)
     return session.get_state(engine=_guala)
@@ -2598,6 +2616,12 @@ async def v7_state(session_id: str = "default"):
 @app.post("/v7/quiet")
 async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
     """Quiet ticks — substrate's Default Mode. Replay + consolidation."""
+    if _guala is None:
+        raise HTTPException(status_code=503, detail={
+            "error": "guala_not_ready",
+            "retry_after_seconds": 10,
+            "message": "she is still loading — try again in a moment"
+        })
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     session = get_or_create_session(session_id, engine=_guala)
     results = session.quiet_tick(min(n_ticks, 50))
@@ -2614,6 +2638,12 @@ async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
 @app.post("/v7/save")
 async def v7_save(session_id: str = "default"):
     """Manual save — Joe can hit this before risky operations."""
+    if _guala is None:
+        raise HTTPException(status_code=503, detail={
+            "error": "guala_not_ready",
+            "retry_after_seconds": 10,
+            "message": "she is still loading — try again in a moment"
+        })
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     session = get_or_create_session(session_id, engine=_guala)
     try:

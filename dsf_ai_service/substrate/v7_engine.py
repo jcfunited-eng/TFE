@@ -31,18 +31,15 @@ from dsf_ai_service.substrate.dna_recipe.phase_gating import (
 POOL_NAMES = ["pool_a", "pool_b", "pool_c"]
 ALL_SECTIONS = POOL_NAMES + ["listen", "intro", "aware"]
 VOICE_PROFILE = {"voice": "en+f3", "pitch": 90, "speed": 130}
-SEED_VOCAB = {
-    "pool_a": ["cow", "moon"],
-    "pool_b": ["jumped", "ran"],
-    "pool_c": ["fence", "milk"],
-}
 
 
 def seed_vocab_from_engine(engine):
     """Read v6 engine word_modes and distribute round-robin across pools."""
+    if engine is None:
+        raise ValueError("seed_vocab_from_engine requires a non-None engine")
     word_modes = getattr(engine, "word_modes", {})
     if not word_modes:
-        return {k: list(v) for k, v in SEED_VOCAB.items()}
+        raise ValueError("engine has no word_modes; cannot seed substrate")
     result = {p: [] for p in POOL_NAMES}
     all_words = []
     for label in word_modes:
@@ -52,10 +49,6 @@ def seed_vocab_from_engine(engine):
     for i, w in enumerate(all_words):
         pool = POOL_NAMES[i % len(POOL_NAMES)]
         result[pool].append(w)
-    # Ensure non-empty pools
-    for p in POOL_NAMES:
-        if not result[p]:
-            result[p] = list(SEED_VOCAB.get(p, ["thing"]))
     return result
 
 
@@ -72,6 +65,8 @@ class V7Session:
     """Per-session v7 substrate with unnamed pool sections."""
 
     def __init__(self, session_id, rng_seed=None, engine=None):
+        if engine is None:
+            raise ValueError("V7Session requires a non-None engine")
         self.session_id = session_id
         self.lock = threading.Lock()
         self.created_at = time.time()
@@ -79,8 +74,7 @@ class V7Session:
         self.event_log = EventLog(STATE_DIR, session_id)
         seed = rng_seed or hash(session_id) % (2**31)
         self.rng = np.random.default_rng(seed)
-        self.vocab = seed_vocab_from_engine(engine) if engine else \
-            {k: list(v) for k, v in SEED_VOCAB.items()}
+        self.vocab = seed_vocab_from_engine(engine)
         self.sys_, self.token_vec, self.intro_vec, self.intro_modes, \
             self.aware_vec, self.aware_modes = self._build_system()
         for sn in POOL_NAMES + ["intro", "aware"]:
@@ -607,6 +601,23 @@ class V7Session:
                 state["sections"][sn] = self._serialize_section(self.sys_.sections[sn])
         return state
 
+    _TOY_TOKENS = frozenset({
+        "cow", "moon", "jumped", "ran", "fence", "milk",
+        "thing", "bears", "dish", "sleeps",
+    })
+
+    def _validate_vocab(self, vocab):
+        """Raise ValueError if vocab is contaminated with toy tokens or too small."""
+        total_vocab = sum(len(v) for v in vocab.values())
+        if total_vocab < 50:
+            raise ValueError(
+                "snapshot vocab below threshold; discarding contaminated state")
+        for pool, words in vocab.items():
+            for w in words:
+                if w.lower().strip() in self._TOY_TOKENS:
+                    raise ValueError(
+                        "snapshot contains toy vocab; discarding contaminated state")
+
     def load_from_json(self, data):
         with self.lock:
             sv = data.get("schema_version", 1)
@@ -623,6 +634,7 @@ class V7Session:
                 for i, w in enumerate(all_words):
                     pool = POOL_NAMES[i % len(POOL_NAMES)]
                     new_vocab[pool].append(w)
+                self._validate_vocab(new_vocab)
                 self.vocab = new_vocab
                 self.last_intro_state = data.get("intro_state")
                 self.last_aware_state = data.get("aware_state")
@@ -635,7 +647,9 @@ class V7Session:
                 return
             # Schema v4 native
             if "vocab" in data:
-                self.vocab = {k: list(v) for k, v in data["vocab"].items()}
+                loaded_vocab = {k: list(v) for k, v in data["vocab"].items()}
+                self._validate_vocab(loaded_vocab)
+                self.vocab = loaded_vocab
             self.last_intro_state = data.get("intro_state")
             self.last_aware_state = data.get("aware_state")
             for sn, sec_data in data.get("sections", {}).items():
@@ -650,6 +664,8 @@ STATE_DIR = "/app/state/v7_sessions"
 
 
 def get_or_create_session(session_id, engine=None):
+    if engine is None:
+        raise RuntimeError("guala_not_ready")
     with _sessions_lock:
         if session_id in _sessions:
             return _sessions[session_id]
@@ -663,8 +679,14 @@ def get_or_create_session(session_id, engine=None):
                 session.load_from_json(data)
                 snapshot_seq = data.get("event_seq", -1)
                 print(f"[v7] Loaded snapshot for {session_id} (seq={snapshot_seq})")
-            except Exception as e:
-                print(f"[v7] Snapshot load failed for {session_id}: {e}")
+            except (ValueError, Exception) as e:
+                print(f"[v7] Snapshot discarded for {session_id}: {e} "
+                      f"(path={snapshot_path})")
+                try:
+                    os.remove(snapshot_path)
+                except OSError:
+                    pass
+                session = V7Session(session_id, engine=engine)
         if session.event_log.exists():
             from dsf_ai_service.substrate.event_log import replay_events
             events = session.event_log.read_since(snapshot_seq)

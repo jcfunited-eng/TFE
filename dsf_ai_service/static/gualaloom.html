@@ -22,6 +22,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 .header-right{display:flex;align-items:center;gap:6px}
 .hdr-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:3px 8px;border-radius:4px;font-family:inherit;font-size:9px;cursor:pointer}
 .hdr-btn:hover{border-color:var(--accent);color:var(--text)}
+#stats-line{padding:4px 14px;font-size:9px;color:var(--text-muted);background:var(--bg-alt);border-bottom:1px solid var(--border)}
 #main-area{flex:1;display:flex;overflow:hidden}
 #convo-col{flex:1;display:flex;flex-direction:column;min-width:0}
 #transcript{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:5px}
@@ -35,6 +36,10 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 .response-text .tok-anno{color:var(--text-muted);font-size:9px}
 .response-meta{display:flex;align-items:center;gap:6px;padding:3px 10px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;font-size:9px;color:var(--text-muted)}
 .fb-btn{cursor:pointer;font-size:13px;opacity:0.4}.fb-btn:hover{opacity:1}.fb-btn.active{opacity:1}
+#upload-bar{display:flex;gap:4px;padding:4px 14px;background:var(--bg-alt);border-top:1px solid var(--border);align-items:center;flex-wrap:wrap}
+.upload-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:3px 8px;border-radius:4px;font-family:inherit;font-size:10px;cursor:pointer}
+.upload-btn:hover{border-color:var(--accent);color:var(--text)}
+#cam-preview{display:none;width:80px;height:60px;border-radius:4px;border:1px solid var(--border);object-fit:cover}
 #input-row{padding:8px 14px;border-top:1px solid var(--border);background:var(--bg-alt);display:flex;gap:6px;align-items:center}
 #input-row input{flex:1;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:11px;outline:none}
 #input-row input:focus{border-color:var(--accent)}
@@ -44,7 +49,6 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 #mic-btn.recording{border-color:var(--nmda-block);color:var(--nmda-block);animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 #live-transcript{font-size:9px;color:var(--text-muted);padding:0 14px;min-height:14px;overflow:hidden}
-#cam-preview{display:none;width:120px;height:90px;border-radius:4px;border:1px solid var(--border);object-fit:cover;position:fixed;bottom:60px;right:320px;z-index:10}
 #state-panel{width:280px;border-left:1px solid var(--border);background:var(--bg-alt);overflow-y:auto;padding:8px;font-size:9px}
 .ps{margin-bottom:8px}
 .ps-title{font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;padding-bottom:2px;border-bottom:1px solid var(--border)}
@@ -53,7 +57,19 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 .nmda-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px}
 .nmda-dot.fired{background:var(--nmda-fire)}.nmda-dot.blocked{background:var(--nmda-block)}.nmda-dot.idle{background:var(--border)}
 .ev{padding:2px 6px;font-size:8px;color:var(--text-muted);border-bottom:1px solid #21262d}
-@media(max-width:700px){#state-panel{display:none}#cam-preview{right:10px;bottom:60px}.msg{max-width:95%}}
+/* Bundle modal */
+#bundle-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:100;justify-content:center;align-items:center}
+#bundle-modal.visible{display:flex}
+#bundle-form{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:16px;width:380px;max-height:80vh;overflow-y:auto}
+#bundle-form h3{font-size:12px;color:var(--accent);margin-bottom:10px}
+#bundle-form label{display:block;font-size:9px;color:var(--text-muted);margin:8px 0 3px}
+#bundle-form input[type="text"],#bundle-form input[type="file"]{width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-family:inherit;font-size:10px}
+#bundle-form select{width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;font-family:inherit;font-size:9px}
+.bundle-btns{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
+.bundle-btns button{padding:5px 14px;border-radius:4px;font-family:inherit;font-size:10px;cursor:pointer;border:1px solid var(--border)}
+.bundle-btns .cancel{background:none;color:var(--text-muted)}
+.bundle-btns .submit{background:var(--accent);color:#0d1117;border:none;font-weight:600}
+@media(max-width:700px){#state-panel{display:none}.msg{max-width:95%}}
 </style>
 </head>
 <body>
@@ -73,27 +89,72 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
     <button class="hdr-btn" onclick="newSession()">new session</button>
   </div>
 </header>
-<video id="cam-preview" autoplay playsinline muted></video>
+<div id="stats-line">she is still loading...</div>
 <audio id="voice" style="display:none"></audio>
 <div id="main-area">
 <div id="convo-col">
   <div id="transcript"></div>
   <div id="live-transcript">&nbsp;</div>
+  <div id="upload-bar">
+    <button class="upload-btn" onclick="uploadBook()">&#x1f4d6; book</button>
+    <button class="upload-btn" onclick="uploadPDF()">&#x1f4d5; PDF</button>
+    <button class="upload-btn" onclick="uploadPicture()">&#x1f5bc; picture</button>
+    <button class="upload-btn" onclick="uploadSound()">&#x1f50a; sound</button>
+    <button class="upload-btn" onclick="uploadVideo()">&#x1f3a5; video</button>
+    <button class="upload-btn" onclick="openBundleModal()">&#x1f381; experience</button>
+    <button class="upload-btn" id="snap-btn" style="display:none" onclick="takeSnapshot()">&#x1f4f8; snapshot</button>
+    <video id="cam-preview" autoplay playsinline muted></video>
+  </div>
   <div id="input-row">
     <input id="msg" type="text" placeholder="say something..." autocomplete="off">
-    <button id="mic-btn" onclick="toggleSTT()">&#x1f3a4;</button>
-    <button id="snap-btn" onclick="takeSnapshot()">&#x1f4f8;</button>
+    <button id="mic-btn" style="display:none" onclick="toggleSTT()">&#x1f3a4;</button>
     <button onclick="sendMsg()">send</button>
   </div>
 </div>
 <div id="state-panel">
   <div class="ps"><div class="ps-title">Substrate</div><div id="sp-substrate">--</div></div>
-  <div class="ps"><div class="ps-title">Pools</div><div id="sp-pools">--</div></div>
+  <div class="ps"><div class="ps-title">Pool Activity</div><div id="sp-pools">--</div></div>
   <div class="ps"><div class="ps-title">Intro / Aware</div><div id="sp-intro-aware">--</div></div>
   <div class="ps"><div class="ps-title">NMDA Gates</div><div id="sp-nmda">--</div></div>
   <div class="ps"><div class="ps-title">Events</div><div id="sp-events" style="max-height:200px;overflow-y:auto"></div></div>
 </div>
 </div>
+
+<!-- Experience Bundle Modal -->
+<div id="bundle-modal">
+<div id="bundle-form">
+  <h3>Give her an experience</h3>
+  <label>Caption</label>
+  <input type="text" id="bundle-caption" placeholder="what is this experience?">
+  <label>Picture</label>
+  <input type="file" id="bundle-image" accept="image/*">
+  <label>Sound</label>
+  <input type="file" id="bundle-sound" accept="audio/*">
+  <label>Touch (ctrl/cmd-click for multiple)</label>
+  <select id="bundle-touch" multiple size="3">
+    <option>warm</option><option>cool</option><option>cold</option><option>hot</option>
+    <option>soft</option><option>hard</option><option>smooth</option><option>rough</option>
+    <option>wet</option><option>dry</option><option>sharp</option><option>fuzzy</option>
+    <option>heavy</option><option>light</option><option>squishy</option><option>bumpy</option>
+  </select>
+  <label>Smell</label>
+  <select id="bundle-smell" multiple size="3">
+    <option>fresh</option><option>floral</option><option>sweet</option><option>earthy</option>
+    <option>smoky</option><option>salty</option><option>fruity</option><option>woody</option>
+    <option>clean</option><option>rain</option><option>grass</option><option>ocean</option>
+  </select>
+  <label>Taste</label>
+  <select id="bundle-taste" multiple size="3">
+    <option>sweet</option><option>sour</option><option>salty</option><option>bitter</option>
+    <option>savory</option><option>spicy</option><option>creamy</option><option>tangy</option>
+  </select>
+  <div class="bundle-btns">
+    <button class="cancel" onclick="closeBundleModal()">cancel</button>
+    <button class="submit" onclick="submitBundle()">give her this</button>
+  </div>
+</div>
+</div>
+
 <script>
 const API='https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
 const transcript=document.getElementById('transcript');
@@ -101,12 +162,22 @@ const msgInput=document.getElementById('msg');
 const voiceEl=document.getElementById('voice');
 const liveT=document.getElementById('live-transcript');
 const evDiv=document.getElementById('sp-events');
+const statsLine=document.getElementById('stats-line');
 
 let sid=localStorage.getItem('guala_session_id');
 if(!sid){sid='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sid)}
 document.getElementById('session-line').textContent='session: '+sid;
 
 let lastTick=0,audioUnlocked=false,muted=false,micGranted=false,camStream=null,sttActive=false,recognition=null;
+let last503msg=0; // debounce 503 messages
+
+// --- 503 handling ---
+function handle503(context){
+  const now=Date.now();
+  if(now-last503msg<60000)return; // at most once per minute
+  last503msg=now;
+  addMsg('she is still loading \u2014 give her a moment','system');
+}
 
 // --- Permission Strip ---
 async function requestMic(){
@@ -119,7 +190,7 @@ async function requestMic(){
 async function requestCam(){
   const btn=document.getElementById('cam-perm');
   try{camStream=await navigator.mediaDevices.getUserMedia({video:true});
-    const vid=document.getElementById('cam-preview');vid.srcObject=camStream;vid.style.display='block';
+    const vid=document.getElementById('cam-preview');vid.srcObject=camStream;vid.style.display='inline-block';
     btn.textContent='\u2705 Camera ON';btn.className='perm-btn granted';
     document.getElementById('snap-btn').style.display='inline-block';
   }catch(e){btn.textContent='\u274c Camera denied';btn.className='perm-btn denied'}
@@ -151,17 +222,188 @@ function toggleSTT(){
   recognition.start();
 }
 
-// --- Snapshot ---
+// --- Snapshot (B2) ---
 async function takeSnapshot(){
   if(!camStream)return;
   const vid=document.getElementById('cam-preview');
   const c=document.createElement('canvas');c.width=vid.videoWidth;c.height=vid.videoHeight;
   c.getContext('2d').drawImage(vid,0,0);
-  const blob=await new Promise(r=>c.toBlob(r,'image/png'));
-  const fd=new FormData();fd.append('file',blob,'snapshot.png');
-  addMsg('(sending snapshot...)','system');
-  try{const r=await fetch(`${API}/api/v1/gualaloom/upload/picture`,{method:'POST',body:fd});
-    const d=await r.json();addMsg(d.response||JSON.stringify(d),'system')}catch(e){addMsg('snapshot error','system')}
+  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.85));
+  const reader=new FileReader();
+  reader.onload=async function(){
+    let b64=reader.result;
+    b64=b64.replace(/^data:image\/jpeg;base64,/,'');
+    const ts=Date.now();
+    addMsg('(sending snapshot...)','system');
+    try{
+      const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({text:b64,command:'/addpicture:snapshot_'+ts+'.jpg'})});
+      const d=await r.json();
+      addMsg(d.response||JSON.stringify(d),'system');
+      if(d.pictures)renderPictures(d.pictures);
+      pollV7State();pollStatus();
+    }catch(e){addMsg('snapshot error: '+e.message,'system')}
+  };
+  reader.readAsDataURL(blob);
+}
+
+// --- Upload helpers ---
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=reject;
+    r.readAsDataURL(file);
+  });
+}
+function fileToText(file){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=reject;
+    r.readAsText(file);
+  });
+}
+function pickFile(accept){
+  return new Promise(resolve=>{
+    const inp=document.createElement('input');inp.type='file';inp.accept=accept;
+    inp.onchange=()=>resolve(inp.files[0]||null);
+    inp.click();
+  });
+}
+
+// --- Upload: Book (B3) ---
+async function uploadBook(){
+  const file=await pickFile('.txt,.md,text/plain');if(!file)return;
+  addMsg('(uploading book: '+file.name+')','system');
+  try{
+    const text=await fileToText(file);
+    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:text,command:'/addbook:'+file.name})});
+    const d=await r.json();
+    addMsg(d.response||JSON.stringify(d),'system');
+    if(d.pictures)renderPictures(d.pictures);
+    pollV7State();pollStatus();
+  }catch(e){addMsg('upload error: '+e.message,'system')}
+}
+
+// --- Upload: PDF (B3) ---
+async function uploadPDF(){
+  const file=await pickFile('.pdf,application/pdf');if(!file)return;
+  addMsg('(uploading PDF: '+file.name+')','system');
+  try{
+    const dataUrl=await fileToBase64(file);
+    const b64=dataUrl.replace(/^data:[^;]+;base64,/,'');
+    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:b64,command:'/addpdf:'+file.name})});
+    const d=await r.json();
+    addMsg(d.response||JSON.stringify(d),'system');
+    if(d.pictures)renderPictures(d.pictures);
+    pollV7State();pollStatus();
+  }catch(e){addMsg('upload error: '+e.message,'system')}
+}
+
+// --- Upload: Picture (B3) ---
+async function uploadPicture(){
+  const file=await pickFile('image/*');if(!file)return;
+  addMsg('(uploading picture: '+file.name+')','system');
+  try{
+    const dataUrl=await fileToBase64(file);
+    const b64=dataUrl.replace(/^data:[^;]+;base64,/,'');
+    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:b64,command:'/addpicture:'+file.name})});
+    const d=await r.json();
+    addMsg(d.response||JSON.stringify(d),'system');
+    if(d.pictures)renderPictures(d.pictures);
+    pollV7State();pollStatus();
+  }catch(e){addMsg('upload error: '+e.message,'system')}
+}
+
+// --- Upload: Sound (B3) ---
+async function uploadSound(){
+  const file=await pickFile('audio/*');if(!file)return;
+  if(file.size>6*1024*1024){addMsg('(sound too large \u2014 6MB max)','system');return}
+  addMsg('(uploading sound: '+file.name+')','system');
+  try{
+    const dataUrl=await fileToBase64(file);
+    const b64=dataUrl.replace(/^data:[^;]+;base64,/,'');
+    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:b64,command:'/addsound:'+file.name})});
+    const d=await r.json();
+    addMsg(d.response||JSON.stringify(d),'system');
+    if(d.pictures)renderPictures(d.pictures);
+    pollV7State();pollStatus();
+  }catch(e){addMsg('upload error: '+e.message,'system')}
+}
+
+// --- Upload: Video (B3) ---
+function uploadVideo(){
+  addMsg('video upload: pipeline not yet wired','system');
+}
+
+// --- Bundle modal (B4) ---
+function openBundleModal(){document.getElementById('bundle-modal').classList.add('visible')}
+function closeBundleModal(){
+  document.getElementById('bundle-modal').classList.remove('visible');
+  document.getElementById('bundle-caption').value='';
+  document.getElementById('bundle-image').value='';
+  document.getElementById('bundle-sound').value='';
+  document.getElementById('bundle-touch').selectedIndex=-1;
+  document.getElementById('bundle-smell').selectedIndex=-1;
+  document.getElementById('bundle-taste').selectedIndex=-1;
+}
+async function submitBundle(){
+  const caption=document.getElementById('bundle-caption').value.trim();
+  const imgFile=document.getElementById('bundle-image').files[0];
+  const sndFile=document.getElementById('bundle-sound').files[0];
+  const touch=Array.from(document.getElementById('bundle-touch').selectedOptions).map(o=>o.value);
+  const smell=Array.from(document.getElementById('bundle-smell').selectedOptions).map(o=>o.value);
+  const taste=Array.from(document.getElementById('bundle-taste').selectedOptions).map(o=>o.value);
+  if(!caption&&!imgFile&&!sndFile&&!touch.length&&!smell.length&&!taste.length){
+    addMsg('(need at least one sense filled in)','system');return;
+  }
+  if(sndFile&&sndFile.size>6*1024*1024){addMsg('(sound too large \u2014 6MB max)','system');return}
+  const bundle={caption:caption||null,image_b64:null,sound_b64:null,touch,smell,taste};
+  if(imgFile){const du=await fileToBase64(imgFile);bundle.image_b64=du.replace(/^data:[^;]+;base64,/,'')}
+  if(sndFile){const du=await fileToBase64(sndFile);bundle.sound_b64=du.replace(/^data:[^;]+;base64,/,'')}
+  const name=caption||((imgFile&&imgFile.name)||(sndFile&&sndFile.name)||'experience');
+  const lanes=[];
+  if(caption)lanes.push('word');if(imgFile)lanes.push('sight');if(sndFile)lanes.push('sound');
+  if(touch.length)lanes.push('touch');if(smell.length)lanes.push('smell');if(taste.length)lanes.push('taste');
+  addMsg('(creating experience "'+name+'": '+lanes.join(', ')+')','system');
+  try{
+    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:JSON.stringify(bundle),command:'/bundle:'+name})});
+    const d=await r.json();
+    addMsg(d.response||JSON.stringify(d),'system');
+    if(d.pictures)renderPictures(d.pictures);
+    closeBundleModal();pollV7State();pollStatus();
+  }catch(e){addMsg('bundle error: '+e.message,'system')}
+}
+
+// --- renderPictures (B5) ---
+function renderPictures(pics){
+  if(!pics||!pics.length)return;
+  for(const p of pics){
+    const div=document.createElement('div');div.className='msg substrate';
+    if(p.data){
+      div.innerHTML='<img src="data:image/jpeg;base64,'+p.data+'" style="max-width:240px;border-radius:6px"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
+    }else if(p.item_id){
+      div.textContent='loading '+(p.title||p.item_id)+'...';
+      (async(el,pid)=>{
+        try{
+          const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({text:'',command:'/picture '+pid})});
+          const d=await r.json();
+          if(d.picture_data){
+            el.innerHTML='<img src="data:image/jpeg;base64,'+d.picture_data+'" style="max-width:240px;border-radius:6px"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
+          }
+        }catch(e){}
+      })(div,p.item_id);
+    }
+    transcript.appendChild(div);
+  }
+  transcript.scrollTop=transcript.scrollHeight;
 }
 
 // --- Messages ---
@@ -191,8 +433,11 @@ function addResponseBlock(result){
 }
 
 async function sendFeedback(correct,up,dn){
-  try{await fetch(`${API}/v7/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,correct})});
-  if(correct){up.classList.add('active');dn.classList.remove('active')}else{dn.classList.add('active');up.classList.remove('active')}}catch(e){}
+  try{
+    const r=await fetch(`${API}/v7/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,correct})});
+    if(r.status===503){handle503('feedback');return}
+    if(correct){up.classList.add('active');dn.classList.remove('active')}else{dn.classList.add('active');up.classList.remove('active')}
+  }catch(e){}
 }
 
 async function sendMsg(){
@@ -202,36 +447,72 @@ async function sendMsg(){
     if(isCmd){
       const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:text})});
       const d=await r.json();addMsg(d.response||JSON.stringify(d),'system');
+      if(d.pictures)renderPictures(d.pictures);
     }else{
-      const r=await fetch(`${API}/v7/converse`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,session_id:sid})});
-      const d=await r.json();if(d.session_id){sid=d.session_id;localStorage.setItem('guala_session_id',sid);document.getElementById('session-line').textContent='session: '+sid}
-      addResponseBlock(d);pollV7State();
-      fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})}).catch(()=>{});
+      // v7 + v6 dual-dispatch in parallel (B7)
+      const v7p=fetch(`${API}/v7/converse`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,session_id:sid})});
+      const v6p=fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})}).catch(()=>null);
+      const [r,r6]= await Promise.all([v7p,v6p]);
+      // Render v7 first (primary)
+      if(r.status===503){handle503('converse')}
+      else{
+        const d=await r.json();
+        if(d.session_id){sid=d.session_id;localStorage.setItem('guala_session_id',sid);document.getElementById('session-line').textContent='session: '+sid}
+        addResponseBlock(d);pollV7State();
+      }
+      // Then v6 (secondary)
+      if(r6&&r6.ok){try{const d6=await r6.json();if(d6.response)addMsg(d6.response,'emission');if(d6.pictures)renderPictures(d6.pictures)}catch(e6){}}
     }
   }catch(e){addMsg('(error: '+e.message+')','system')}
   msgInput.focus();
 }
 msgInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
 
+// --- Polling: v6 status (B7) ---
+async function pollStatus(){
+  try{
+    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:'',command:'/status'})});
+    const d=await r.json();
+    const m=d.motifs||{};
+    const vocab=m.total_words||'?';
+    const n_motifs=m.n_motifs||'?';
+    const atlas=typeof m.atlas_strength==='number'?m.atlas_strength.toFixed(1):'?';
+    const n_sounds=m.n_sounds||'?';
+    const n_pictures=m.n_pictures||'?';
+    statsLine.textContent='vocab: '+vocab+' \u00b7 motifs: '+n_motifs+' \u00b7 atlas: '+atlas+' \u00b7 sounds: '+n_sounds+' \u00b7 pics: '+n_pictures;
+  }catch(e){}
+}
+
 // --- Polling: V7 State ---
 async function pollV7State(){
-  try{const r=await fetch(`${API}/v7/state?session_id=${sid}`);const s=await r.json();
+  try{
+    const r=await fetch(`${API}/v7/state?session_id=${sid}`);
+    if(r.status===503){
+      statsLine.textContent='she is still loading...';
+      handle503('state');return;
+    }
+    const s=await r.json();
     // Substrate
     const sub=document.getElementById('sp-substrate');
     sub.innerHTML=`<div class="ps-row"><span class="l">vocab</span><span class="v">${s.v6_vocab_count??'?'}</span></div>`+
       `<div class="ps-row"><span class="l">atlas</span><span class="v">${s.atlas_count??'?'}</span></div>`;
-    // Pools
+    // Pool activity (B1)
     const pools=document.getElementById('sp-pools');let ph='';
-    for(const p of['pool_a','pool_b','pool_c']){const cnt=s[p+'_modes']??s[p]??'?';ph+=`<div class="ps-row"><span class="l">${p}</span><span class="v">${cnt}</span></div>`}
+    const vc=s.vocab_counts||{};
+    for(const p of['pool_a','pool_b','pool_c']){
+      const cnt=vc[p];
+      ph+=`<div class="ps-row"><span class="l">${p}</span><span class="v">${cnt!=null&&cnt>0?cnt:'\u2014'}</span></div>`;
+    }
     pools.innerHTML=ph||'--';
     // Intro/Aware
     const ia=document.getElementById('sp-intro-aware');
     ia.innerHTML=`<div class="ps-row"><span class="l">intro</span><span class="v">${s.introspection||s.intro_state||'--'}</span></div>`+
       `<div class="ps-row"><span class="l">aware</span><span class="v">${s.awareness||s.aware_state||'--'}</span></div>`;
-    // NMDA
+    // NMDA gates — intro + aware only (B1)
     const nDiv=document.getElementById('sp-nmda');const gates={};
     for(const ev of(s.nmda_events||[]))gates[ev.gate]=ev;
-    let nh='';for(const gn of['intro','aware','subject','verb','object']){const ev=gates[gn];const cls=ev?(ev.fired?'fired':'blocked'):'idle';
+    let nh='';for(const gn of['intro','aware']){const ev=gates[gn];const cls=ev?(ev.fired?'fired':'blocked'):'idle';
       nh+=`<div><span class="nmda-dot ${cls}"></span>${gn}: ${ev?(ev.fired?'t'+ev.tick:ev.reason):'idle'}</div>`}
     nDiv.innerHTML=nh;
   }catch(e){}
@@ -252,8 +533,11 @@ async function pollEvents(){
 
 // --- Background Replay ---
 async function backgroundReplay(){
-  try{const r=await fetch(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:5})});
-    const d=await r.json();if(d.commits>0)addMsg(`\ud83d\udcad (thinking... ${d.replayed} memories, ${d.commits} commits)`,'emission');pollV7State()}catch(e){}
+  try{
+    const r=await fetch(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:5})});
+    if(r.status===503)return; // silently skip during init
+    const d=await r.json();if(d.commits>0)addMsg(`\ud83d\udcad (thinking... ${d.replayed} memories, ${d.commits} commits)`,'emission');pollV7State();
+  }catch(e){}
 }
 
 // --- Presence Heartbeat ---
@@ -271,8 +555,8 @@ function newSession(){sid='sid_'+Math.random().toString(36).slice(2,10);localSto
 // --- Boot ---
 (()=>{
   addMsg('v7 uncage ready.','system');msgInput.focus();
-  pollV7State();pollEvents();
-  setInterval(pollV7State,3000);setInterval(pollEvents,2000);
+  pollV7State();pollEvents();pollStatus();
+  setInterval(pollV7State,3000);setInterval(pollEvents,2000);setInterval(pollStatus,3000);
   setInterval(backgroundReplay,10000);setInterval(presenceHeartbeat,20000);presenceHeartbeat();
 })();
 </script>
