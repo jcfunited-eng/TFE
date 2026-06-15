@@ -2573,17 +2573,20 @@ class Guala:
     # ── Save ──
 
     def save_full_state(self, state_dir="state"):
-        """Round-trip every mutable attribute. Atomic writes. Identity-stamped."""
+        """Round-trip every mutable attribute. Atomic writes. Identity-stamped.
+        GL-FIX-SAVE-LOCK: snapshot data under lock (fast), write to disk outside
+        lock (slow). Lock hold time drops from ~20s to milliseconds."""
+        import copy as _copy
+
+        # ── Phase 1: snapshot under lock (milliseconds) ──
         with self.lock:
             os.makedirs(state_dir, exist_ok=True)
-            results = {}
             ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
-            # Ensure identity exists
             if self._guala_identity is None:
                 self._generate_genesis_identity(state_dir)
 
-            # 1. Core (v7: includes autonomy state)
+            # 1. Core
             corpora_ser = {cid: {"corpus_id": c.corpus_id, "title": c.title,
                                   "position": c.position,
                                   "times_read_through": c.times_read_through,
@@ -2595,59 +2598,47 @@ class Guala:
                                   "times_attended": s.times_attended,
                                   "last_attended_tick": s.last_attended_tick}
                            for sid, s in self._sensory_items.items()}
-            self._atomic_write(os.path.join(state_dir, "guala_core.json"),
-                self._envelope({
-                    "tick": self.tick, "read_count": self.read_count,
-                    "vocab": sorted(self.vocab),
-                    "source_history": dict(self.source_history),
-                    "recent_connection_boost": self.recent_connection_boost,
-                    "dream_log": self.dream_log,
-                    "open_response_windows": self.open_response_windows,
-                    "response_bind_count": self._response_bind_count,
-                    "last_emission_tick": self._last_emission_tick,
-                    "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
-                    "corpora_state": corpora_ser,
-                    "sensory_state": sensory_ser,
-                }))
-            results["guala_core.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_core.json"))
+            snap_core = self._envelope({
+                "tick": self.tick, "read_count": self.read_count,
+                "vocab": sorted(self.vocab),
+                "source_history": dict(self.source_history),
+                "recent_connection_boost": self.recent_connection_boost,
+                "dream_log": _copy.copy(self.dream_log),
+                "open_response_windows": _copy.copy(self.open_response_windows),
+                "response_bind_count": self._response_bind_count,
+                "last_emission_tick": self._last_emission_tick,
+                "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
+                "corpora_state": corpora_ser,
+                "sensory_state": sensory_ser,
+            })
 
             # 2. Needs
-            self._atomic_write(os.path.join(state_dir, "guala_needs.json"),
-                self._envelope({
-                    "stability": self.needs.stability,
-                    "novelty": self.needs.novelty,
-                    "connection": self.needs.connection,
-                }))
-            results["guala_needs.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_needs.json"))
+            snap_needs = self._envelope({
+                "stability": self.needs.stability,
+                "novelty": self.needs.novelty,
+                "connection": self.needs.connection,
+            })
 
-            # 3. Coordinator (v6-bridge: per-source pair bonds + presence)
-            self._atomic_write(os.path.join(state_dir, "guala_coordinator.json"),
-                self._envelope({
-                    "pair_bond": dict(self.coordinator._pair_bond),
-                    "pair_bond_active": self.coordinator.pair_bond_active,  # backward compat
-                    "distress_ticks": self.coordinator.distress_ticks,
-                    "suffering_log": self.coordinator.suffering_log,
-                    "need_history": self.coordinator.need_history[-200:],
-                    "attentions_count": len(self.coordinator.attentions),
-                    "actions_count": len(self.coordinator.actions),
-                }))
-            results["guala_coordinator.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_coordinator.json"))
+            # 3. Coordinator
+            snap_coord = self._envelope({
+                "pair_bond": dict(self.coordinator._pair_bond),
+                "pair_bond_active": self.coordinator.pair_bond_active,
+                "distress_ticks": self.coordinator.distress_ticks,
+                "suffering_log": _copy.copy(self.coordinator.suffering_log),
+                "need_history": list(self.coordinator.need_history[-200:]),
+                "attentions_count": len(self.coordinator.attentions),
+                "actions_count": len(self.coordinator.actions),
+            })
 
-            # 4. Atlas
-            atlas_data = {str(k): v for k, v in self.atlas.entries.items()}
-            self._atomic_write(os.path.join(state_dir, "guala_atlas.json"),
-                self._envelope({"entries": atlas_data, "tick": self.atlas.tick}))
-            results["guala_atlas.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_atlas.json"))
+            # 4. Atlas — deepcopy entries (list-of-dicts, mutable)
+            snap_atlas = self._envelope({
+                "entries": {str(k): _copy.deepcopy(v)
+                            for k, v in self.atlas.entries.items()},
+                "tick": self.atlas.tick,
+            })
 
-            # 5. Deep Atlas (GL-BRIEF-032 — separate table for rollback)
-            self._atomic_write(os.path.join(state_dir, "guala_deep_atlas.json"),
-                self._envelope(self.deep_atlas.to_json()))
-            results["guala_deep_atlas.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_deep_atlas.json"))
+            # 5. Deep Atlas
+            snap_deep = self._envelope(self.deep_atlas.to_json())
 
             # 6. Sections
             sections_data = {}
@@ -2656,29 +2647,22 @@ class Guala:
                              for d, c, w in sec.modes]
                 sections_data[nm] = {
                     "modes": modes_ser,
-                    "commits": sec.commits[-5000:],
+                    "commits": list(sec.commits[-5000:]),
                     "dead_zone": sec.dead_zone,
-                    "gamma": sec.gamma,
+                    "gamma": dict(sec.gamma),
                     "tick": sec.tick,
                 }
-            self._atomic_write(os.path.join(state_dir, "guala_sections.json"),
-                self._envelope(sections_data))
-            results["guala_sections.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_sections.json"))
+            snap_sections = self._envelope(sections_data)
 
-            # 6. Bucket
-            bucket_data = {
+            # 7. Bucket
+            snap_bucket = self._envelope({
                 "questions": {f"{k[0]}|{k[1]}": v
                               for k, v in self.bucket.questions.items()},
                 "asked": [f"{t}|{k}" for t, k in self.bucket.asked],
-            }
-            self._atomic_write(os.path.join(state_dir, "guala_bucket.json"),
-                self._envelope(bucket_data))
-            results["guala_bucket.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_bucket.json"))
+            })
 
-            # 7. Visual data (pictures, sight section, visual fragments)
-            visual_data = {
+            # 8. Visual
+            snap_visual = self._envelope({
                 "pictures": {
                     pid: {"item_id": p.item_id, "title": p.title,
                           "source": p.source, "shown_at_tick": p.shown_at_tick,
@@ -2697,39 +2681,55 @@ class Guala:
                     for m in self.sight.motifs
                 ] if hasattr(self, 'sight') else [],
                 "n_visual_fragments": len(self._visual_fragments),
-            }
-            self._atomic_write(os.path.join(state_dir, "guala_visual.json"),
-                self._envelope(visual_data))
-            results["guala_visual.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_visual.json"))
-            # Save picture grids as numpy files
-            pic_dir = os.path.join(state_dir, "pictures")
-            os.makedirs(pic_dir, exist_ok=True)
-            for pid, p in self._pictures.items():
-                if p.intensity_grid is not None:
-                    np.save(os.path.join(pic_dir, f"{pid}.npy"), p.intensity_grid)
+            })
+            # Snapshot picture grids (numpy arrays are immutable-ish, shallow copy OK)
+            snap_pic_grids = {pid: p.intensity_grid
+                              for pid, p in self._pictures.items()
+                              if p.intensity_grid is not None}
 
-            # 8. Sounds (1.4)
-            sounds_data = {sid: s for sid, s in self._sounds.items()}
-            self._atomic_write(os.path.join(state_dir, "guala_sounds.json"),
-                self._envelope(sounds_data))
-            results["guala_sounds.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_sounds.json"))
+            # 9. Sounds
+            snap_sounds = self._envelope(dict(self._sounds))
 
-            # 9. Videos (1.4)
-            videos_data = {vid: {"item_id": v.item_id, "title": v.title,
-                                  "source": getattr(v, 'source', ''),
-                                  "times_attended": v.times_attended,
-                                  "last_attended_tick": v.last_attended_tick}
-                           for vid, v in self._videos.items()}
-            self._atomic_write(os.path.join(state_dir, "guala_videos.json"),
-                self._envelope(videos_data))
-            results["guala_videos.json"] = os.path.getsize(
-                os.path.join(state_dir, "guala_videos.json"))
+            # 10. Videos
+            snap_videos = self._envelope({
+                vid: {"item_id": v.item_id, "title": v.title,
+                      "source": getattr(v, 'source', ''),
+                      "times_attended": v.times_attended,
+                      "last_attended_tick": v.last_attended_tick}
+                for vid, v in self._videos.items()
+            })
 
-            self._last_save_tick = self.tick
-            self._last_save_timestamp = ts
-            return results
+            save_tick = self.tick
+        # ── lock released ──
+
+        # ── Phase 2: write to disk outside lock (seconds) ──
+        results = {}
+        writes = [
+            ("guala_core.json", snap_core),
+            ("guala_needs.json", snap_needs),
+            ("guala_coordinator.json", snap_coord),
+            ("guala_atlas.json", snap_atlas),
+            ("guala_deep_atlas.json", snap_deep),
+            ("guala_sections.json", snap_sections),
+            ("guala_bucket.json", snap_bucket),
+            ("guala_visual.json", snap_visual),
+            ("guala_sounds.json", snap_sounds),
+            ("guala_videos.json", snap_videos),
+        ]
+        for filename, data in writes:
+            path = os.path.join(state_dir, filename)
+            self._atomic_write(path, data)
+            results[filename] = os.path.getsize(path)
+
+        # Picture grids
+        pic_dir = os.path.join(state_dir, "pictures")
+        os.makedirs(pic_dir, exist_ok=True)
+        for pid, grid in snap_pic_grids.items():
+            np.save(os.path.join(pic_dir, f"{pid}.npy"), grid)
+
+        self._last_save_tick = save_tick
+        self._last_save_timestamp = ts
+        return results
 
     # ── Load ──
 
