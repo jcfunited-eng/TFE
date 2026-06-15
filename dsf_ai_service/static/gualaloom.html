@@ -536,10 +536,10 @@ async function pollStatus(){
 async function pollV7State(){
   if(_inflight.state)return;_inflight.state=true;
   try{
-    const r=await fetchT(`${API}/v7/state?session_id=${sid}`,{},6000);
+    const r=await fetchT(`${API}/v7/state?session_id=${sid}`,{},20000);
     if(r.status===503||r.status===500){
-      // Item 5: don't overwrite side panel with zeros — keep last-known-good
-      handleNotReady('state');_backoff.state=Math.min((_backoff.state*2)||_BASE.state*2,30000);return;
+      // Item 5: don't overwrite side panel or stats line — keep last-known-good
+      _backoff.state=Math.min((_backoff.state*2)||_BASE.state*2,30000);return;
     }
     const s=await r.json();
     // Substrate — Item 5: only update if values are real (non-null, non-zero)
@@ -638,8 +638,10 @@ function newSession(){sid='sid_'+Math.random().toString(36).slice(2,10);localSto
 // --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
 (()=>{
   addMsg('v7 uncage ready.','system');msgInput.focus();
-  // Initial polls (each reschedules itself via _schedNext on completion)
-  pollV7State();pollStatus();
+  // pollStatus first — it's fast and populates the header immediately
+  pollStatus();
+  // v7/state can be slow on fresh sessions (snap_replay) — don't block on it
+  setTimeout(pollV7State,2000);
   // B1: try SSE for events, fall back to polling if SSE fails
   try{connectEventStream()}catch(e){pollEvents()}
   setTimeout(backgroundReplay,_BASE.replay);
