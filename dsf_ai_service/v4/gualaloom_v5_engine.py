@@ -1215,18 +1215,24 @@ class Guala:
                                     log_event=(_bind_count == 0))
                                 _bind_count += 1
 
-            # 5. Choose response — GL-CLARITY-INVARIANCE-UNCAGE
-            if recalled:
-                reply = recalled
-            else:
-                # 6. Emit from cortex invariants (variable-length, slot-free)
+            # 5. Choose response — GL-FIX-RETIRE-TEMPLATES
+            # Recall still provides picture refs but text comes from
+            # slot-free paths only. No SVO templates, no "what X" shapes.
+            # recalled text is ONLY used if it came from response-linked
+            # atlas entries (genuine learned reply), not SVO slot recall.
+            reply = None
+            if recalled and self._last_recalled_pictures:
+                # Recall found pictures — keep the association
+                pass  # pictures set on self._last_recalled_pictures
+            # 6. Emit from cortex invariants (variable-length, slot-free)
+            if not reply:
                 reply = self._emit_from_invariants(input_chis, input_words)
-                if not reply:
-                    # 7. Unslotted fallback: strongest bindings near input chi
-                    reply = self._emit_unslotted(input_chis, input_words)
-                if not reply:
-                    # 8. Honest silence
-                    reply = "..."
+            if not reply:
+                # 7. Unslotted fallback: strongest bindings near input chi
+                reply = self._emit_unslotted(input_chis, input_words)
+            if not reply:
+                # 8. Honest silence
+                reply = "..."
 
             # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
             if reply and reply != "..." and source in ("joe", "wc", "c1"):
