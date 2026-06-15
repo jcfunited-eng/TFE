@@ -2305,6 +2305,34 @@ async def chi_trace(req: ChiTraceRequest):
 @app.get("/api/v1/gualaloom/events")
 async def gualaloom_events(since: int = 0, stream: bool = False):
     """Substrate events. ?stream=true for SSE, default returns JSON array."""
+    if _is_remote():
+        # Remote mode: poll substrate via socket for events
+        client = _get_substrate_client()
+        if stream:
+            import asyncio
+            async def event_generator():
+                last_tick = since
+                while True:
+                    try:
+                        result = await client.call("gualaloom_post",
+                                                   command="/events",
+                                                   text=str(last_tick))
+                        for ev in result.get("events", []):
+                            if ev.get("tick", 0) > last_tick:
+                                last_tick = ev["tick"]
+                            yield f"data: {json.dumps(ev)}\n\n"
+                    except Exception:
+                        pass
+                    await asyncio.sleep(1.5)
+            return StreamingResponse(event_generator(), media_type="text/event-stream")
+        else:
+            try:
+                result = await client.call("gualaloom_post",
+                                           command="/events",
+                                           text=str(since))
+                return {"events": result.get("events", [])}
+            except ConnectionError:
+                return {"events": []}
     _gl_init()
     if stream:
         import asyncio
@@ -2341,6 +2369,13 @@ async def gualaloom_sleep():
 @app.post("/api/v1/gualaloom/upload/book")
 async def gualaloom_upload_book(file: UploadFile = File(...)):
     """Upload a text file as a new corpus for autonomous reading."""
+    if _is_remote():
+        content = await file.read()
+        text = content.decode('utf-8')
+        client = _get_substrate_client()
+        return await client.call("gualaloom_post",
+                                 command=f"/addbook:{file.filename}",
+                                 text=text)
     _gl_init()
     if not file.filename.endswith('.txt'):
         raise HTTPException(400, "Book must be a .txt file")
@@ -2368,6 +2403,14 @@ async def gualaloom_upload_book(file: UploadFile = File(...)):
 @app.post("/api/v1/gualaloom/upload/picture")
 async def gualaloom_upload_picture(file: UploadFile = File(...)):
     """Upload a picture for visual perception. C8: decode in executor."""
+    if _is_remote():
+        import base64
+        content = await file.read()
+        b64 = base64.b64encode(content).decode()
+        client = _get_substrate_client()
+        return await client.call("gualaloom_post",
+                                 command=f"/addpicture:{file.filename}",
+                                 text=b64, timeout=30.0)
     _gl_init()
     import asyncio as _aio, hashlib
     content = await file.read()
@@ -2416,6 +2459,14 @@ async def gualaloom_upload_picture(file: UploadFile = File(...)):
 @app.post("/api/v1/gualaloom/upload/sound")
 async def gualaloom_upload_sound(file: UploadFile = File(...)):
     """A1 (042): Sound upload — decode, transduce, register for attention."""
+    if _is_remote():
+        import base64
+        content = await file.read()
+        b64 = base64.b64encode(content).decode()
+        client = _get_substrate_client()
+        return await client.call("gualaloom_post",
+                                 command=f"/addsound:{file.filename}",
+                                 text=b64, timeout=30.0)
     _gl_init()
     if _guala is None:
         return {"message": "initializing..."}

@@ -90,6 +90,8 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
   </div>
 </header>
 <div id="stats-line">she is still loading...</div>
+<div id="activity-line" style="padding:2px 14px;font-size:9px;color:var(--ev-activity);background:var(--bg-alt);border-bottom:1px solid var(--border)"></div>
+<div id="needs-line" style="padding:2px 14px;font-size:8px;color:var(--text-muted);background:var(--bg-alt);border-bottom:1px solid var(--border)"></div>
 <audio id="voice" style="display:none"></audio>
 <div id="main-area">
 <div id="convo-col">
@@ -301,26 +303,23 @@ function pickFile(accept){
   });
 }
 
-// --- Upload: Book (B3) ---
+// --- B2: Upload via multipart FormData + dedicated /upload/* endpoints ---
 async function uploadBook(){
   const file=await pickFile('.txt,.md,text/plain');if(!file)return;
   addMsg('(uploading book: '+file.name+')','system');
   try{
-    const text=await fileToText(file);
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:text,command:'/addbook:'+file.name})},30000);
+    const fd=new FormData();fd.append('file',file);
+    const r=await fetchT(`${API}/api/v1/gualaloom/upload/book`,{method:'POST',body:fd},30000);
     const d=await r.json();
-    addMsg(d.response||JSON.stringify(d),'system');
-    if(d.pictures)renderPictures(d.pictures);
-    pollV7State();pollStatus();
+    addMsg(d.message||JSON.stringify(d),'system');
   }catch(e){addMsg('upload error: '+e.message,'system')}
 }
 
-// --- Upload: PDF (B3) ---
 async function uploadPDF(){
   const file=await pickFile('.pdf,application/pdf');if(!file)return;
   addMsg('(uploading PDF: '+file.name+')','system');
   try{
+    // PDF still uses base64 through chat — no dedicated /upload/pdf endpoint yet
     const dataUrl=await fileToBase64(file);
     const b64=dataUrl.replace(/^data:[^;]+;base64,/,'');
     const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
@@ -328,46 +327,34 @@ async function uploadPDF(){
     const d=await r.json();
     addMsg(d.response||JSON.stringify(d),'system');
     if(d.pictures)renderPictures(d.pictures);
-    pollV7State();pollStatus();
   }catch(e){addMsg('upload error: '+e.message,'system')}
 }
 
-// --- Upload: Picture (B3) ---
 async function uploadPicture(){
   const file=await pickFile('image/*');if(!file)return;
   addMsg('(uploading picture: '+file.name+')','system');
   try{
-    const dataUrl=await fileToBase64(file);
-    const b64=dataUrl.replace(/^data:[^;]+;base64,/,'');
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:b64,command:'/addpicture:'+file.name})},30000);
+    const fd=new FormData();fd.append('file',file);
+    const r=await fetchT(`${API}/api/v1/gualaloom/upload/picture`,{method:'POST',body:fd},30000);
     const d=await r.json();
-    addMsg(d.response||JSON.stringify(d),'system');
-    if(d.pictures)renderPictures(d.pictures);
-    pollV7State();pollStatus();
+    addMsg(d.message||JSON.stringify(d),'system');
   }catch(e){addMsg('upload error: '+e.message,'system')}
 }
 
-// --- Upload: Sound (B3) ---
 async function uploadSound(){
   const file=await pickFile('audio/*');if(!file)return;
   if(file.size>6*1024*1024){addMsg('(sound too large \u2014 6MB max)','system');return}
   addMsg('(uploading sound: '+file.name+')','system');
   try{
-    const dataUrl=await fileToBase64(file);
-    const b64=dataUrl.replace(/^data:[^;]+;base64,/,'');
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:b64,command:'/addsound:'+file.name})},30000);
+    const fd=new FormData();fd.append('file',file);
+    const r=await fetchT(`${API}/api/v1/gualaloom/upload/sound`,{method:'POST',body:fd},30000);
     const d=await r.json();
-    addMsg(d.response||JSON.stringify(d),'system');
-    if(d.pictures)renderPictures(d.pictures);
-    pollV7State();pollStatus();
+    addMsg(d.message||d.response||JSON.stringify(d),'system');
   }catch(e){addMsg('upload error: '+e.message,'system')}
 }
 
-// --- Upload: Video (B3) ---
 function uploadVideo(){
-  addMsg('video upload: pipeline not yet wired','system');
+  addMsg('video upload: use experience bundle with video file','system');
 }
 
 // --- Bundle modal (B4) ---
@@ -521,6 +508,25 @@ async function pollStatus(){
     parts.push('atlas: '+(atlas||'?'));parts.push('sounds: '+(n_sounds||'?'));
     parts.push('pics: '+(n_pictures||'?'));
     if(vocab||n_motifs||atlas)statsLine.textContent=parts.join(' \u00b7 ');
+    // B3: current activity rendering
+    const act=d.current_activity;const actLine=document.getElementById('activity-line');
+    if(act&&act.kind){
+      const labels={'READING':'reading','ATTENDING_VISUAL':'looking at picture','ATTENDING_AUDIO':'listening to','SLEEPING':'sleeping','DREAMING':'dreaming','EMITTING':'(emitting)','IDLE':'quiet for now','PLAYING':'free-settle (exploring chi space)'};
+      let actText=labels[act.kind]||act.kind.toLowerCase();
+      if(act.target&&act.kind!=='SLEEPING'&&act.kind!=='IDLE'&&act.kind!=='PLAYING'){
+        // Resolve target to title from pictures/sounds/corpora lists
+        let tgt=act.target;
+        for(const p of(d.pictures||[]))if(p.item_id===act.target){tgt=p.title;break}
+        for(const s of(d.sounds||[]))if(s.item_id===act.target){tgt=s.title;break}
+        for(const c of(d.corpora||[]))if(c.corpus_id===act.target){tgt=c.title;break}
+        actText+=': '+tgt;
+      }
+      actLine.textContent=actText;
+    }else{actLine.textContent=''}
+    // B3: needs line
+    const r2=d.response||'';const needsMatch=r2.match(/needs: (.+)/);
+    const needsLine=document.getElementById('needs-line');
+    if(needsMatch)needsLine.textContent=needsMatch[1];
     _backoff.status=0;
   }catch(e){_backoff.status=Math.min((_backoff.status*2)||_BASE.status*2,30000)}
   finally{_inflight.status=false;_schedNext('status',pollStatus)}
@@ -564,7 +570,32 @@ async function pollV7State(){
   finally{_inflight.state=false;_schedNext('state',pollV7State)}
 }
 
-// --- Polling: Events (GL-FIX-UI-FRONTEND: fetchT + dedup + backoff) ---
+// --- B1: SSE Event Stream (replaces pollEvents) ---
+let _evSource=null;let _evReconnectDelay=1000;
+function connectEventStream(){
+  if(_evSource){try{_evSource.close()}catch(e){}}
+  const url=`${API}/api/v1/gualaloom/events?stream=true&since=${lastTick}`;
+  _evSource=new EventSource(url);
+  _evSource.onmessage=function(msg){
+    try{
+      const ev=JSON.parse(msg.data);
+      if(ev.tick>lastTick)lastTick=ev.tick;
+      const el=document.createElement('div');el.className='ev';
+      let det='';if(ev.detail){if(ev.detail.content)det=' "'+ev.detail.content+'"';if(ev.detail.source)det+=' ['+ev.detail.source+']'}
+      el.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
+      evDiv.insertBefore(el,evDiv.firstChild);while(evDiv.children.length>60)evDiv.removeChild(evDiv.lastChild);
+      // B4: autonomous emissions appear in chat
+      if(ev.kind==='emission'&&ev.detail&&ev.detail.content)addMsg('\ud83d\udcad '+ev.detail.content,'emission');
+    }catch(e){}
+    _evReconnectDelay=1000;
+  };
+  _evSource.onerror=function(){
+    _evSource.close();_evSource=null;
+    _evReconnectDelay=Math.min(_evReconnectDelay*2,30000);
+    setTimeout(connectEventStream,_evReconnectDelay);
+  };
+}
+// Fallback poll for when SSE isn't available (API Gateway doesn't support SSE)
 async function pollEvents(){
   if(_inflight.events)return;_inflight.events=true;
   try{const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:String(lastTick),command:'/events'})},6000);
@@ -604,11 +635,13 @@ async function presenceHeartbeat(){
 function newSession(){sid='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sid);
   document.getElementById('session-line').textContent='session: '+sid;addMsg('new session: '+sid,'system')}
 
-// --- Boot (GL-FIX-UI-FRONTEND: self-rescheduling setTimeout, reduced cadence) ---
+// --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
 (()=>{
   addMsg('v7 uncage ready.','system');msgInput.focus();
   // Initial polls (each reschedules itself via _schedNext on completion)
-  pollV7State();pollEvents();pollStatus();
+  pollV7State();pollStatus();
+  // B1: try SSE for events, fall back to polling if SSE fails
+  try{connectEventStream()}catch(e){pollEvents()}
   setTimeout(backgroundReplay,_BASE.replay);
   presenceHeartbeat();
 })();
