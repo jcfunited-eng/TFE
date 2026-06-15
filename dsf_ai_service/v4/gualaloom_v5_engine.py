@@ -1007,12 +1007,13 @@ class Guala:
                                                 deep_atlas=self.deep_atlas,
                                                 engine_tick=self.tick)
 
-            # v6: Decay heartbeat (DECAY_PAUSED=1 skips entirely for Step 2 experiment)
-            if os.environ.get("DECAY_PAUSED", "0") != "1":
-                if self.tick % 10 == 0:
-                    self.atlas.decay(self.tick, rate_scale=self.decay_modulation)
-                if self.tick % 200 == 0:
-                    self.atlas.forget_below_threshold()
+            # v6: Decay heartbeat (GL-FIX-PAUSE-IDEMPOTENT: rate_scale=0 when paused
+            # keeps last_tick current so unpause doesn't see a massive dt)
+            _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
+            if self.tick % 10 == 0:
+                self.atlas.decay(self.tick, rate_scale=0.0 if _paused else self.decay_modulation)
+            if not _paused and self.tick % 200 == 0:
+                self.atlas.forget_below_threshold()
 
             # 8b. V5: Generate questions from gaps in this word's bindings
             # (suppress during self-hearing to avoid question-frame amplification)
@@ -1589,11 +1590,12 @@ class Guala:
                 elif a.kind == "EMITTING":
                     self._atick_emitting(a)
                 # Non-reading: manual atlas decay + coordinator
-                if os.environ.get("DECAY_PAUSED", "0") != "1":
-                    if self.tick % 10 == 0:
-                        self.atlas.decay(self.tick, rate_scale=self.decay_modulation)
-                    if self.tick % 200 == 0:
-                        self.atlas.forget_below_threshold()
+                # GL-FIX-PAUSE-IDEMPOTENT: rate_scale=0 when paused
+                _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
+                if self.tick % 10 == 0:
+                    self.atlas.decay(self.tick, rate_scale=0.0 if _paused else self.decay_modulation)
+                if not _paused and self.tick % 200 == 0:
+                    self.atlas.forget_below_threshold()
                 if self.tick % 5 == 0:
                     self.coordinator.regulate(self, self.needs, self.atlas,
                                              self.sections, self.tick)
@@ -1771,9 +1773,10 @@ class Guala:
         """Sleep raises stability. Transitions to dream at midpoint."""
         self.needs.stability = min(1.0, self.needs.stability + 0.001)
         # Atlas consolidation: weak bindings decay faster during sleep
-        # Sleep physiology is hers — NOT modulated by teaching window (Fix C)
-        if self.tick % 50 == 0 and os.environ.get("DECAY_PAUSED", "0") != "1":
-            self.atlas.decay(self.tick)
+        # GL-FIX-PAUSE-IDEMPOTENT: rate_scale=0 when paused
+        if self.tick % 50 == 0:
+            _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
+            self.atlas.decay(self.tick, rate_scale=0.0 if _paused else 1.0)
         # Midpoint → dream
         midpoint = a.started_tick + (a.expected_end_tick - a.started_tick) // 2
         if self.tick == midpoint:
