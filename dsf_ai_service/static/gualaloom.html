@@ -39,7 +39,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 #upload-bar{display:flex;gap:4px;padding:4px 14px;background:var(--bg-alt);border-top:1px solid var(--border);align-items:center;flex-wrap:wrap}
 .upload-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:3px 8px;border-radius:4px;font-family:inherit;font-size:10px;cursor:pointer}
 .upload-btn:hover{border-color:var(--accent);color:var(--text)}
-#cam-preview{display:none;width:200px;height:150px;border-radius:4px;border:1px solid var(--border);object-fit:cover}
+#cam-preview{display:none;width:80px;height:60px;border-radius:4px;border:1px solid var(--border);object-fit:cover;position:fixed;bottom:60px;right:10px;z-index:50;opacity:0.8}
 #input-row{padding:8px 14px;border-top:1px solid var(--border);background:var(--bg-alt);display:flex;gap:6px;align-items:center}
 #input-row input{flex:1;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:11px;outline:none}
 #input-row input:focus{border-color:var(--accent)}
@@ -304,7 +304,9 @@ function toggleMute(){muted=!muted;document.getElementById('mute-toggle').textCo
 let preferredVoice=null;
 function pickVoice(){
   const voices=window.speechSynthesis.getVoices();if(!voices.length)return;
-  preferredVoice=voices.find(v=>v.lang==='en-US'&&/female|samantha|karen|moira|tessa/i.test(v.name))
+  // Prefer child-like / young female voices
+  preferredVoice=voices.find(v=>v.lang==='en-US'&&/samantha|karen|tessa|zira/i.test(v.name))
+    ||voices.find(v=>v.lang==='en-US'&&/female|girl/i.test(v.name))
     ||voices.find(v=>v.lang.startsWith('en-US'))
     ||voices.find(v=>v.lang.startsWith('en'))
     ||voices[0];
@@ -318,7 +320,7 @@ function gualaSpeak(text){
   try{
     const u=new SpeechSynthesisUtterance(text);
     if(preferredVoice)u.voice=preferredVoice;
-    u.rate=0.92;u.pitch=1.15;u.volume=1.0;
+    u.rate=0.85;u.pitch=1.6;u.volume=1.0;
     u.onstart=()=>{badge.innerHTML='\ud83d\udd0a speaking...'};
     u.onend=()=>{badge.innerHTML='\ud83d\udd0a ready'};
     u.onerror=e=>{badge.innerHTML='\ud83d\udd07 speak error: '+(e.error||'unknown')};
