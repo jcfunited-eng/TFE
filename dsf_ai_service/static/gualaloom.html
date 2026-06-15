@@ -110,7 +110,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
   </div>
   <div id="input-row">
     <input id="msg" type="text" placeholder="say something..." autocomplete="off">
-    <button id="mic-btn" style="display:none" onclick="toggleSTT()">&#x1f3a4;</button>
+    <button id="mic-btn" style="display:none" onclick="toggleSTT()">&#x1f399; mic off</button>
     <button onclick="sendMsg()">send</button>
   </div>
 </div>
@@ -257,22 +257,57 @@ function gualaSpeak(text){
 // C4: cancel speech on page hide
 document.addEventListener('visibilitychange',()=>{if(document.hidden)window.speechSynthesis.cancel()});
 
-// --- Speech-to-Text ---
+// --- Speech-to-Text (always-on phone mode) ---
+let sttWanted=false; // user wants mic on (persists across recognition restarts)
 function toggleSTT(){
   if(!micGranted)return;
   const btn=document.getElementById('mic-btn');
-  if(sttActive&&recognition){recognition.stop();return}
-  if(!('webkitSpeechRecognition' in window)){addMsg('Speech recognition not supported in this browser','system');return}
-  recognition=new webkitSpeechRecognition();recognition.continuous=false;recognition.interimResults=true;recognition.lang='en-US';
+  if(sttWanted){
+    // Turn off
+    sttWanted=false;sttActive=false;
+    if(recognition){try{recognition.abort()}catch(e){}}
+    btn.classList.remove('recording');btn.textContent='\ud83c\udf99 mic off';
+    liveT.textContent='';
+    return;
+  }
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    addMsg('Speech recognition not supported in this browser','system');return;
+  }
+  sttWanted=true;
+  btn.textContent='\ud83c\udf99 listening...';
+  startContinuousSTT();
+}
+function startContinuousSTT(){
+  if(!sttWanted)return;
+  const btn=document.getElementById('mic-btn');
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.lang='en-US';
   recognition.onstart=()=>{sttActive=true;btn.classList.add('recording')};
   recognition.onresult=ev=>{
     let interim='',final='';
-    for(let i=ev.resultIndex;i<ev.results.length;i++){if(ev.results[i].isFinal)final+=ev.results[i][0].transcript;else interim+=ev.results[i][0].transcript}
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      if(ev.results[i].isFinal)final+=ev.results[i][0].transcript;
+      else interim+=ev.results[i][0].transcript;
+    }
     liveT.textContent=interim||final;
-    if(final){msgInput.value=final;liveT.textContent='';sendMsg()}
+    if(final&&final.trim()){
+      msgInput.value=final.trim();liveT.textContent='';sendMsg();
+    }
   };
-  recognition.onerror=()=>{sttActive=false;btn.classList.remove('recording');liveT.textContent=''};
-  recognition.onend=()=>{sttActive=false;btn.classList.remove('recording')};
+  recognition.onerror=ev=>{
+    if(ev.error==='no-speech'||ev.error==='aborted')return; // normal
+    btn.classList.remove('recording');sttActive=false;
+    // Auto-restart after error if still wanted
+    if(sttWanted)setTimeout(startContinuousSTT,1000);
+  };
+  recognition.onend=()=>{
+    sttActive=false;btn.classList.remove('recording');
+    // Auto-restart if user still wants mic on (phone mode)
+    if(sttWanted)setTimeout(startContinuousSTT,300);
+  };
   recognition.start();
 }
 
