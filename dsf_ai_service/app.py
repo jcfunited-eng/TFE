@@ -1973,6 +1973,23 @@ async def admin_repause():
     return {"repause": "active", "DECAY_PAUSED": "1"}
 
 
+@app.post("/api/v1/gualaloom/admin/unpause")
+async def admin_unpause():
+    """Unpause decay — durable transaction via substrate config file."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("unpause")
+    # Embedded mode fallback
+    global _runtime_decay_paused
+    os.environ["DECAY_PAUSED"] = "0"
+    _runtime_decay_paused = False
+    if _guala:
+        _guala._log_substrate_event("decay_unpaused", tick=_guala.tick,
+                                     reason="admin_unpause")
+    print(f"[UNPAUSE] Decay unpaused")
+    return {"unpaused": True, "tick": _guala.tick if _guala else 0}
+
+
 @app.get("/api/v1/gualaloom/admin/atlas_snapshot")
 async def admin_atlas_snapshot():
     """Monitor: live atlas stats for unpause monitoring."""

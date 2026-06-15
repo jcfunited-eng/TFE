@@ -23,6 +23,35 @@ STATE_DIR = os.environ.get("STATE_DIR", "/mnt/efs/guala")
 _guala = None
 _shutdown = False
 
+RUNTIME_CONFIG_FILE = "guala_runtime_config.json"
+
+
+def _runtime_config_path():
+    return os.path.join(STATE_DIR, RUNTIME_CONFIG_FILE)
+
+
+def _write_runtime_config(data):
+    """Write runtime config with fsync — survives SIGKILL."""
+    path = _runtime_config_path()
+    tmp = path + ".tmp"
+    with open(tmp, 'w') as f:
+        json.dump(data, f)
+        f.flush()
+        os.fsync(f.fileno())
+    os.rename(tmp, path)
+
+
+def _read_runtime_config():
+    """Read runtime config if it exists. Returns dict or None."""
+    path = _runtime_config_path()
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return None
+
 
 # ═══════════════════════════════════════════════════════════════
 # Boot
@@ -57,6 +86,14 @@ def boot_substrate():
     if loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY):
         print(f"[substrate] IDENTITY MISMATCH: got {loaded_id[:8]}, "
               f"expected {EXPECTED_IDENTITY}")
+
+    # Runtime config: persisted decay_paused flag (survives restarts)
+    rt_cfg = _read_runtime_config()
+    if rt_cfg is not None:
+        decay_paused = rt_cfg.get("decay_paused", True)
+        os.environ["DECAY_PAUSED"] = "1" if decay_paused else "0"
+        print(f"[substrate] Runtime config: decay_paused={decay_paused}")
+    # else: fall back to DECAY_PAUSED env var (set by ECS task def)
 
     # Dream gate
     gate_marker = os.path.join(STATE_DIR, "dream_gate_cleared.json")
@@ -669,11 +706,23 @@ def handle_force_dream(args):
 
 def handle_repause(args):
     os.environ["DECAY_PAUSED"] = "1"
+    _write_runtime_config({"decay_paused": True})
     if _guala:
         _guala._log_substrate_event("decay_repaused", tick=_guala.tick,
                                      reason="manual_kill_switch")
-    print(f"[UNPAUSE] KILL SWITCH: decay re-paused")
-    return {"repause": "active", "DECAY_PAUSED": "1"}
+    print(f"[UNPAUSE] KILL SWITCH: decay re-paused (persisted)")
+    return {"repause": "active", "DECAY_PAUSED": "1", "persisted": True}
+
+
+def handle_unpause(args):
+    os.environ["DECAY_PAUSED"] = "0"
+    _write_runtime_config({"decay_paused": False})
+    tick = _guala.tick if _guala else 0
+    if _guala:
+        _guala._log_substrate_event("decay_unpaused", tick=tick,
+                                     reason="admin_unpause")
+    print(f"[UNPAUSE] Decay unpaused at tick {tick} (persisted)")
+    return {"unpaused": True, "tick": tick, "persisted": True}
 
 
 def handle_atlas_snapshot(args):
@@ -727,6 +776,7 @@ OP_HANDLERS = {
     "amnesty": handle_amnesty,
     "force_dream": handle_force_dream,
     "repause": handle_repause,
+    "unpause": handle_unpause,
     "atlas_snapshot": handle_atlas_snapshot,
     "backup": handle_backup,
     "sleep_for_deploy": handle_sleep_for_deploy,
