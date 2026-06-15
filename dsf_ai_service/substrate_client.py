@@ -34,7 +34,7 @@ class SubstrateClient:
             except Exception:
                 pass
         self._reader, self._writer = await asyncio.open_unix_connection(
-            self.socket_path
+            self.socket_path, limit=64 * 1024 * 1024
         )
 
     async def call(self, op, timeout=30.0, **args):

@@ -878,8 +878,9 @@ async def run_server():
     hb_thread = threading.Thread(target=heartbeat_loop, daemon=True)
     hb_thread.start()
 
-    # Start socket server
-    server = await asyncio.start_unix_server(handle_client, path=SOCKET_PATH)
+    # Start socket server (64 MB buffer — base64 uploads can be ~13 MB)
+    server = await asyncio.start_unix_server(
+        handle_client, path=SOCKET_PATH, limit=64 * 1024 * 1024)
     print(f"[substrate] Listening on {SOCKET_PATH}")
 
     # Periodic save + compact (was in app.py startup, belongs in substrate)
