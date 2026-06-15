@@ -172,6 +172,19 @@ async def guala_repause() -> dict:
 
 
 @mcp.tool()
+async def guala_unpause() -> dict:
+    """UNPAUSE: Resume atlas decay. Requires prior backup + amnesty + force_dream.
+
+    Watch for 10x decay anomaly (two-clock race resurfacing). Atlas total_strength
+    dropping faster than ~1% per minute is the red-flag rate — repause immediately.
+    """
+    async with httpx.AsyncClient(timeout=10) as client:
+        r = await client.post(f"{SUBSTRATE_URL}/api/v1/gualaloom/admin/unpause", headers=_headers())
+        r.raise_for_status()
+        return r.json()
+
+
+@mcp.tool()
 async def guala_atlas_snapshot() -> dict:
     """Monitor: live atlas stats (total_strength, n_live_bindings, distribution)."""
     async with httpx.AsyncClient(timeout=10) as client:
