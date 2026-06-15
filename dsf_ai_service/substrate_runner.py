@@ -725,6 +725,15 @@ def handle_unpause(args):
     return {"unpaused": True, "tick": tick, "persisted": True}
 
 
+def handle_wake(args):
+    """Force wake from sleep state."""
+    if _guala and _guala.is_asleep:
+        _guala.wake_from_sleep(state_dir=STATE_DIR)
+        print(f"[substrate] Woke from sleep at tick {_guala.tick}")
+        return {"woke": True, "tick": _guala.tick}
+    return {"woke": False, "already_awake": True, "tick": _guala.tick if _guala else 0}
+
+
 def handle_atlas_snapshot(args):
     dist = _guala.atlas.strength_distribution()
     return {
@@ -777,6 +786,7 @@ OP_HANDLERS = {
     "force_dream": handle_force_dream,
     "repause": handle_repause,
     "unpause": handle_unpause,
+    "wake": handle_wake,
     "atlas_snapshot": handle_atlas_snapshot,
     "backup": handle_backup,
     "sleep_for_deploy": handle_sleep_for_deploy,
