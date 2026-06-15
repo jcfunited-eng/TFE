@@ -955,12 +955,19 @@ class Guala:
         return max(0.0, 1.0 - avg_str * 2.0)
 
     def _affect_kwargs(self, surprise=None):
-        """GL-CLARITY-INVARIANCE-UNCAGE: build affect kwargs dict for atlas.record."""
+        """GL-CLARITY-INVARIANCE-UNCAGE: build affect-only kwargs dict for atlas.record.
+        sensory_refs and episode_ref are passed explicitly by call sites that have them."""
         return {
             "arousal": self.needs.arousal(),
             "valence": self.needs.valence(),
             "surprise": surprise if surprise is not None else self._last_surprise,
             "need_pressure": self.needs.need_pressure(),
+        }
+
+    def _grounding_kwargs(self):
+        """GL-CLARITY-INVARIANCE-UNCAGE: grounding kwargs (separate from affect
+        to avoid double-providing when call sites pass sensory_refs explicitly)."""
+        return {
             "sensory_refs": list(self._current_binding_window),
             "episode_ref": self._current_episode[0] if self._current_episode else None,
         }
@@ -1006,8 +1013,8 @@ class Guala:
             else:
                 dwell = 1
 
-            # GL-CLARITY-INVARIANCE-UNCAGE: affect kwargs for all record() calls
-            _akw = self._affect_kwargs(surprise)
+            # GL-CLARITY-INVARIANCE-UNCAGE: affect + grounding kwargs for record() calls
+            _akw = {**self._affect_kwargs(surprise), **self._grounding_kwargs()}
 
             fam_listen = self.atlas.match_score(lang_chi, "listen")
             self.sections["listen"].receive(lang_dsf, lang_chi, word,
@@ -1052,7 +1059,8 @@ class Guala:
                         self.atlas.record(sec_name, deterministic_motif_id(word),
                                           modal_chi, self.tick,
                                           salience=salience,
-                                          **self._affect_kwargs(surprise))
+                                          **self._affect_kwargs(surprise),
+                                          **self._grounding_kwargs())
 
             if fam_listen > 0.3:
                 intro_dsf = DSF(D_k=fam_listen, M_k=0, R_rev=0, U_star=1-fam_listen,
