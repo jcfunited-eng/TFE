@@ -185,7 +185,7 @@ out = {
     ],
     'containerDefinitions': [
         {
-            'name': 'frontend',
+            'name': 'dsf-ai',
             'image': '${IMAGE_URI}',
             'essential': True,
             'command': ['uvicorn', 'dsf_ai_service.app:app',
@@ -220,7 +220,7 @@ out = {
                 'options': {
                     'awslogs-group': '/ecs/dsf-ai',
                     'awslogs-region': '${AWS_REGION}',
-                    'awslogs-stream-prefix': 'frontend'
+                    'awslogs-stream-prefix': 'dsf-ai'
                 }
             }
         },
