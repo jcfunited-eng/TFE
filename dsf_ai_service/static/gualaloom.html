@@ -184,7 +184,7 @@ function handleNotReady(context){
 async function triggerSleep(){
   addMsg('(asking her to dream...)','system');
   try{
-    const r=await fetch(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:50})});
+    const r=await fetchT(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:50})},15000);
     if(r.status===503||r.status===500){handleNotReady('sleep');return}
     const d=await r.json();
     addMsg('(she is dreaming \u2014 '+d.replayed+' replayed memories, '+d.commits+' commits)','system');
@@ -265,8 +265,8 @@ async function takeSnapshot(){
     const ts=Date.now();
     addMsg('(sending snapshot...)','system');
     try{
-      const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({text:b64,command:'/addpicture:snapshot_'+ts+'.jpg'})});
+      const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({text:b64,command:'/addpicture:snapshot_'+ts+'.jpg'})},30000);
       const d=await r.json();
       addMsg(d.response||JSON.stringify(d),'system');
       if(d.pictures)renderPictures(d.pictures);
@@ -307,8 +307,8 @@ async function uploadBook(){
   addMsg('(uploading book: '+file.name+')','system');
   try{
     const text=await fileToText(file);
-    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:text,command:'/addbook:'+file.name})});
+    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:text,command:'/addbook:'+file.name})},30000);
     const d=await r.json();
     addMsg(d.response||JSON.stringify(d),'system');
     if(d.pictures)renderPictures(d.pictures);
@@ -323,8 +323,8 @@ async function uploadPDF(){
   try{
     const dataUrl=await fileToBase64(file);
     const b64=dataUrl.replace(/^data:[^;]+;base64,/,'');
-    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:b64,command:'/addpdf:'+file.name})});
+    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:b64,command:'/addpdf:'+file.name})},30000);
     const d=await r.json();
     addMsg(d.response||JSON.stringify(d),'system');
     if(d.pictures)renderPictures(d.pictures);
@@ -339,8 +339,8 @@ async function uploadPicture(){
   try{
     const dataUrl=await fileToBase64(file);
     const b64=dataUrl.replace(/^data:[^;]+;base64,/,'');
-    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:b64,command:'/addpicture:'+file.name})});
+    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:b64,command:'/addpicture:'+file.name})},30000);
     const d=await r.json();
     addMsg(d.response||JSON.stringify(d),'system');
     if(d.pictures)renderPictures(d.pictures);
@@ -356,8 +356,8 @@ async function uploadSound(){
   try{
     const dataUrl=await fileToBase64(file);
     const b64=dataUrl.replace(/^data:[^;]+;base64,/,'');
-    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:b64,command:'/addsound:'+file.name})});
+    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:b64,command:'/addsound:'+file.name})},30000);
     const d=await r.json();
     addMsg(d.response||JSON.stringify(d),'system');
     if(d.pictures)renderPictures(d.pictures);
@@ -401,8 +401,8 @@ async function submitBundle(){
   if(touch.length)lanes.push('touch');if(smell.length)lanes.push('smell');if(taste.length)lanes.push('taste');
   addMsg('(creating experience "'+name+'": '+lanes.join(', ')+')','system');
   try{
-    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:JSON.stringify(bundle),command:'/bundle:'+name})});
+    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:JSON.stringify(bundle),command:'/bundle:'+name})},30000);
     const d=await r.json();
     addMsg(d.response||JSON.stringify(d),'system');
     if(d.pictures)renderPictures(d.pictures);
@@ -421,8 +421,8 @@ function renderPictures(pics){
       div.textContent='loading '+(p.title||p.item_id)+'...';
       (async(el,pid)=>{
         try{
-          const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({text:'',command:'/picture '+pid})});
+          const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({text:'',command:'/picture '+pid})},10000);
           const d=await r.json();
           if(d.picture_data){
             el.innerHTML='<img src="'+d.picture_data+'" style="max-width:240px;border-radius:6px"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
@@ -461,9 +461,16 @@ function addResponseBlock(result){
   }
 }
 
+// GL-FIX-UI-FRONTEND: fetch with timeout + dedup + backoff
+const fetchT=(url,opts={},timeoutMs=5000)=>fetch(url,{...opts,signal:AbortSignal.timeout(timeoutMs)});
+let _inflight={state:false,events:false,status:false,replay:false};
+let _backoff={state:0,events:0,status:0,replay:0};
+const _BASE={state:5000,events:4000,status:8000,replay:30000};
+function _schedNext(key,fn){const delay=_BASE[key]+_backoff[key];setTimeout(fn,delay)}
+
 async function sendFeedback(correct,up,dn){
   try{
-    const r=await fetch(`${API}/v7/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,correct})});
+    const r=await fetchT(`${API}/v7/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,correct})});
     if(r.status===503||r.status===500){handleNotReady('feedback');return}
     if(correct){up.classList.add('active');dn.classList.remove('active')}else{dn.classList.add('active');up.classList.remove('active')}
   }catch(e){}
@@ -474,59 +481,66 @@ async function sendMsg(){
   const isCmd=text.startsWith('/');addMsg(text,isCmd?'system':'user');
   try{
     if(isCmd){
-      const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:text})});
+      const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:text})},10000);
       const d=await r.json();addMsg(d.response||JSON.stringify(d),'system');
       if(d.pictures)renderPictures(d.pictures);
     }else{
-      // v7 + v6 dual-dispatch in parallel (B7)
-      const v7p=fetch(`${API}/v7/converse`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,session_id:sid})});
-      const v6p=fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})}).catch(()=>null);
-      const [r,r6]= await Promise.all([v7p,v6p]);
-      // Render v7 first (primary)
+      // GL-FIX-UI-FRONTEND: single write path (v7 only), no dual-dispatch
+      const r=await fetchT(`${API}/v7/converse`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,session_id:sid})},10000);
       if(r.status===503||r.status===500){handleNotReady('converse')}
       else{
         const d=await r.json();
-        if(d.session_id){sid=d.session_id;localStorage.setItem('guala_session_id',sid);document.getElementById('session-line').textContent='session: '+sid}
-        addResponseBlock(d);pollV7State();
+        // Item 6: don't overwrite session_id from substrate response
+        addResponseBlock(d);
+        // v6 chat for emission (fire-and-forget, no await)
+        fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})},10000).then(r6=>r6.ok?r6.json():null).then(d6=>{if(d6&&d6.response&&d6.response!=='...')addMsg(d6.response,'emission');if(d6&&d6.pictures)renderPictures(d6.pictures)}).catch(()=>{});
       }
-      // Then v6 (secondary)
-      if(r6&&r6.ok){try{const d6=await r6.json();if(d6.response)addMsg(d6.response,'emission');if(d6.pictures)renderPictures(d6.pictures)}catch(e6){}}
     }
   }catch(e){addMsg('(error: '+e.message+')','system')}
   msgInput.focus();
 }
 msgInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
 
-// --- Polling: v6 status (B7) ---
+// --- Polling: v6 status (GL-FIX-UI-FRONTEND: fetchT + dedup + backoff) ---
 async function pollStatus(){
+  if(_inflight.status)return;_inflight.status=true;
   try{
-    const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:'',command:'/status'})});
+    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:'',command:'/status'})},8000);
     const d=await r.json();
-    if(d.response&&d.response.startsWith('initializing'))return; // v6 not ready yet
-    const vocab=d.vocab||d.motifs||'?';
-    const n_motifs=d.n_motifs||'?';
+    if(d.response&&d.response.startsWith('initializing')){_backoff.status=0;return}
+    // Item 5: only update fields that came back non-null/non-zero
+    const vocab=d.vocab||d.motifs;
+    const n_motifs=d.n_motifs;
     const ah=d.atlas_health||{};
-    const atlas=typeof ah.total_strength==='number'?ah.total_strength.toFixed(1):(typeof d.atlas_entries==='number'?d.atlas_entries:'?');
-    const n_sounds=d.n_sounds||'?';
-    const n_pictures=d.n_pictures||'?';
-    statsLine.textContent='vocab: '+vocab+' \u00b7 motifs: '+n_motifs+' \u00b7 atlas: '+atlas+' \u00b7 sounds: '+n_sounds+' \u00b7 pics: '+n_pictures;
-  }catch(e){}
+    const atlas=typeof ah.total_strength==='number'?ah.total_strength.toFixed(1):null;
+    const n_sounds=d.n_sounds;
+    const n_pictures=d.n_pictures;
+    const parts=[];
+    parts.push('vocab: '+(vocab||'?'));parts.push('motifs: '+(n_motifs||'?'));
+    parts.push('atlas: '+(atlas||'?'));parts.push('sounds: '+(n_sounds||'?'));
+    parts.push('pics: '+(n_pictures||'?'));
+    if(vocab||n_motifs||atlas)statsLine.textContent=parts.join(' \u00b7 ');
+    _backoff.status=0;
+  }catch(e){_backoff.status=Math.min((_backoff.status*2)||_BASE.status*2,30000)}
+  finally{_inflight.status=false;_schedNext('status',pollStatus)}
 }
 
-// --- Polling: V7 State ---
+// --- Polling: V7 State (GL-FIX-UI-FRONTEND: fetchT + dedup + backoff + last-known-good) ---
 async function pollV7State(){
+  if(_inflight.state)return;_inflight.state=true;
   try{
-    const r=await fetch(`${API}/v7/state?session_id=${sid}`);
+    const r=await fetchT(`${API}/v7/state?session_id=${sid}`,{},6000);
     if(r.status===503||r.status===500){
-      statsLine.textContent='she is still loading...';
-      handleNotReady('state');return;
+      // Item 5: don't overwrite side panel with zeros — keep last-known-good
+      handleNotReady('state');_backoff.state=Math.min((_backoff.state*2)||_BASE.state*2,30000);return;
     }
     const s=await r.json();
-    // Substrate
+    // Substrate — Item 5: only update if values are real (non-null, non-zero)
     const sub=document.getElementById('sp-substrate');
-    sub.innerHTML=`<div class="ps-row"><span class="l">vocab</span><span class="v">${s.v6_vocab_count??'?'}</span></div>`+
-      `<div class="ps-row"><span class="l">atlas</span><span class="v">${s.atlas_count??'?'}</span></div>`;
+    const v6v=s.v6_vocab_count;const ac=s.atlas_count;
+    if(v6v||ac)sub.innerHTML=`<div class="ps-row"><span class="l">vocab</span><span class="v">${v6v??'?'}</span></div>`+
+      `<div class="ps-row"><span class="l">atlas</span><span class="v">${ac??'?'}</span></div>`;
     // Pool activity (B1)
     const pools=document.getElementById('sp-pools');let ph='';
     const vc=s.vocab_counts||{};
@@ -534,23 +548,26 @@ async function pollV7State(){
       const cnt=vc[p];
       ph+=`<div class="ps-row"><span class="l">${p}</span><span class="v">${cnt!=null&&cnt>0?cnt:'\u2014'}</span></div>`;
     }
-    pools.innerHTML=ph||'--';
+    if(Object.keys(vc).length>0)pools.innerHTML=ph||'--';
     // Intro/Aware
     const ia=document.getElementById('sp-intro-aware');
     ia.innerHTML=`<div class="ps-row"><span class="l">intro</span><span class="v">${s.introspection||s.intro_state||'--'}</span></div>`+
       `<div class="ps-row"><span class="l">aware</span><span class="v">${s.awareness||s.aware_state||'--'}</span></div>`;
-    // NMDA gates — intro + aware only (B1)
+    // NMDA gates
     const nDiv=document.getElementById('sp-nmda');const gates={};
     for(const ev of(s.nmda_events||[]))gates[ev.gate]=ev;
     let nh='';for(const gn of['intro','aware']){const ev=gates[gn];const cls=ev?(ev.fired?'fired':'blocked'):'idle';
       nh+=`<div><span class="nmda-dot ${cls}"></span>${gn}: ${ev?(ev.fired?'t'+ev.tick:ev.reason):'idle'}</div>`}
     nDiv.innerHTML=nh;
-  }catch(e){}
+    _backoff.state=0;
+  }catch(e){_backoff.state=Math.min((_backoff.state*2)||_BASE.state*2,30000)}
+  finally{_inflight.state=false;_schedNext('state',pollV7State)}
 }
 
-// --- Polling: Events ---
+// --- Polling: Events (GL-FIX-UI-FRONTEND: fetchT + dedup + backoff) ---
 async function pollEvents(){
-  try{const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:String(lastTick),command:'/events'})});
+  if(_inflight.events)return;_inflight.events=true;
+  try{const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:String(lastTick),command:'/events'})},6000);
     const d=await r.json();for(const ev of(d.events||[])){
       if(ev.tick>lastTick)lastTick=ev.tick;
       const el=document.createElement('div');el.className='ev';
@@ -558,16 +575,20 @@ async function pollEvents(){
       el.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
       evDiv.insertBefore(el,evDiv.firstChild);while(evDiv.children.length>60)evDiv.removeChild(evDiv.lastChild);
       if(ev.kind==='emission'&&ev.detail&&ev.detail.content)addMsg('\ud83d\udcad '+ev.detail.content,'emission');
-    }}catch(e){}
+    }_backoff.events=0}catch(e){_backoff.events=Math.min((_backoff.events*2)||_BASE.events*2,30000)}
+  finally{_inflight.events=false;_schedNext('events',pollEvents)}
 }
 
-// --- Background Replay ---
+// --- Background Replay (GL-FIX-UI-FRONTEND: fetchT + dedup + backoff) ---
 async function backgroundReplay(){
+  if(_inflight.replay)return;_inflight.replay=true;
   try{
-    const r=await fetch(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:5})});
-    if(r.status===503||r.status===500)return; // silently skip during init
-    const d=await r.json();if(d.commits>0)addMsg(`\ud83d\udcad (thinking... ${d.replayed} memories, ${d.commits} commits)`,'emission');pollV7State();
-  }catch(e){}
+    const r=await fetchT(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:5})},15000);
+    if(r.status===503||r.status===500){_backoff.replay=Math.min((_backoff.replay*2)||_BASE.replay*2,60000);return}
+    const d=await r.json();if(d.commits>0)addMsg(`\ud83d\udcad (thinking... ${d.replayed} memories, ${d.commits} commits)`,'emission');
+    _backoff.replay=0;
+  }catch(e){_backoff.replay=Math.min((_backoff.replay*2)||_BASE.replay*2,60000)}
+  finally{_inflight.replay=false;_schedNext('replay',backgroundReplay)}
 }
 
 // --- Presence Heartbeat ---
@@ -575,19 +596,21 @@ let lastActivity=Date.now();
 ['mousemove','keydown','scroll','touchstart'].forEach(e=>document.addEventListener(e,()=>{lastActivity=Date.now()},{passive:true}));
 async function presenceHeartbeat(){
   if(document.visibilityState!=='visible'||Date.now()-lastActivity>30000)return;
-  try{await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'joe',command:'/presence'})})}catch(e){}
+  try{await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'joe',command:'/presence'})},5000)}catch(e){}
+  setTimeout(presenceHeartbeat,30000);
 }
 
 // --- Session ---
 function newSession(){sid='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sid);
   document.getElementById('session-line').textContent='session: '+sid;addMsg('new session: '+sid,'system')}
 
-// --- Boot ---
+// --- Boot (GL-FIX-UI-FRONTEND: self-rescheduling setTimeout, reduced cadence) ---
 (()=>{
   addMsg('v7 uncage ready.','system');msgInput.focus();
+  // Initial polls (each reschedules itself via _schedNext on completion)
   pollV7State();pollEvents();pollStatus();
-  setInterval(pollV7State,3000);setInterval(pollEvents,2000);setInterval(pollStatus,3000);
-  setInterval(backgroundReplay,10000);setInterval(presenceHeartbeat,20000);presenceHeartbeat();
+  setTimeout(backgroundReplay,_BASE.replay);
+  presenceHeartbeat();
 })();
 </script>
 </body>
