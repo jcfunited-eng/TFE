@@ -756,6 +756,40 @@ def handle_backup(args):
             "atlas_entries": n_entries, "tick": _guala.tick}
 
 
+def handle_sight_frame(args):
+    """GL-BRIEF-SENSORY-IO Part C: transient camera frame → sight krimelack."""
+    import base64
+    b64_data = (args.get("text") or "").strip()
+    if not b64_data:
+        return {"ok": False, "error": "no frame data"}
+    t0 = time.time()
+    try:
+        img_bytes = base64.b64decode(b64_data)
+        from dsf_ai_service.app import decode_image_bytes
+        _, grid, _, _ = decode_image_bytes(img_bytes)
+        _guala.process_sight_frame(grid)
+        print(f"[sight-frame] {time.time()-t0:.3f}s")
+        return {"ok": True, "tick": _guala.tick}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+def handle_sound_frame(args):
+    """GL-BRIEF-SENSORY-IO Part D: transient mic audio → sound krimelack."""
+    import base64
+    b64_data = (args.get("text") or "").strip()
+    if not b64_data:
+        return {"ok": False, "error": "no audio data"}
+    t0 = time.time()
+    try:
+        audio_bytes = base64.b64decode(b64_data)
+        _guala.process_sound_frame(audio_bytes)
+        print(f"[sound-frame] {time.time()-t0:.3f}s")
+        return {"ok": True, "tick": _guala.tick}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
 def handle_sleep_for_deploy(args):
     if _guala.is_asleep:
         return {"ok": True, "already_asleep": True, "sleep_tick": _guala.tick}
@@ -789,6 +823,8 @@ OP_HANDLERS = {
     "wake": handle_wake,
     "atlas_snapshot": handle_atlas_snapshot,
     "backup": handle_backup,
+    "sight_frame": handle_sight_frame,
+    "sound_frame": handle_sound_frame,
     "sleep_for_deploy": handle_sleep_for_deploy,
     "status": handle_status_simple,
 }

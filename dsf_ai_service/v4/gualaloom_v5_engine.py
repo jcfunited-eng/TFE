@@ -2055,6 +2055,63 @@ class Guala:
             si.times_attended += 1
             si.last_attended_tick = self.tick
 
+    def process_sight_frame(self, grid):
+        """GL-BRIEF-SENSORY-IO Part C: feed a transient camera frame into
+        sight krimelack. No PictureItem, no storage. Just krimelack + atlas."""
+        from dsf_ai_service.visual_krimelack import view_picture
+        with self.lock:
+            fragments = view_picture(grid, source_id="camera_stream",
+                                     born_tick=self.tick, seed=self.tick % 10000,
+                                     n_fixations=3, ticks_per_fixation=50)
+            if not fragments:
+                return
+            motif, is_new, overlap = self.sight.process_viewing(
+                fragments, "camera_stream", self.tick)
+            if motif:
+                chi_val = motif.motif_id % 100
+                self.atlas.record("sight", motif.motif_id, chi_val,
+                                  self.tick, salience=0.8,
+                                  sensory_refs=["cam:live"],
+                                  **self._affect_kwargs())
+
+    def process_sound_frame(self, audio_bytes):
+        """GL-BRIEF-SENSORY-IO Part D: feed a transient mic audio chunk into
+        sound krimelack. No _sounds entry, no storage. Just cochlear + atlas."""
+        import struct, wave, io, numpy as np
+        with self.lock:
+            try:
+                # Try reading as WAV first
+                wf = wave.open(io.BytesIO(audio_bytes), 'rb')
+                sr = wf.getframerate()
+                n_frames = wf.getnframes()
+                raw = wf.readframes(n_frames)
+                if wf.getsampwidth() == 2:
+                    samples = np.array(struct.unpack(f'<{n_frames}h', raw),
+                                       dtype=np.float64) / 32768.0
+                else:
+                    samples = np.frombuffer(raw, dtype=np.uint8).astype(np.float64) / 128.0 - 1.0
+                wf.close()
+            except Exception:
+                # Raw bytes — treat as 8-bit unsigned mono at 16kHz
+                samples = np.frombuffer(audio_bytes, dtype=np.uint8).astype(np.float64) / 128.0 - 1.0
+                sr = 16000
+            if len(samples) < 10:
+                return
+            # Downsample to 200 Hz for cochlear (same as /addsound)
+            from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import cochlear_transduce
+            target_sr = 200
+            step = max(1, sr // target_sr)
+            downsampled = samples[::step]
+            cochlear = cochlear_transduce(downsampled, sample_rate=target_sr)
+            for bn, c in cochlear.items():
+                if c["n_events"] > 0:
+                    chi = c["winding"] % 100
+                    self.atlas.record(f"audio_{bn}",
+                        deterministic_motif_id("mic_stream"),
+                        chi, self.tick, salience=0.6, dwell_ticks=2,
+                        sensory_refs=["mic:live"],
+                        **self._affect_kwargs())
+
     def _atick_attending_visual(self, a):
         """Phase 2: Attend to a picture — saccaded foveation through krimelack."""
         from dsf_ai_service.visual_krimelack import view_picture

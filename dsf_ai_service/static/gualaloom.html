@@ -195,27 +195,78 @@ async function triggerSleep(){
 }
 
 // --- Permission Strip (5a: toggle off support) ---
+// GL-BRIEF-SENSORY-IO Part D: mic audio streaming to sound krimelack
+let micStream=null,micRecorder=null;
+function startMicSoundStream(stream){
+  if(micRecorder)return;
+  try{micRecorder=new MediaRecorder(stream,{mimeType:'audio/webm'})}
+  catch(e){try{micRecorder=new MediaRecorder(stream)}catch(e2){return}}
+  micRecorder.ondataavailable=async(e)=>{
+    if(e.data.size<100)return;
+    const reader=new FileReader();
+    reader.onload=async()=>{
+      const b64=reader.result.split(',')[1];
+      fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:''})},4000).catch(()=>{});
+    };
+    reader.readAsDataURL(e.data);
+  };
+  micRecorder.start(1500); // 1.5s chunks
+}
+function stopMicSoundStream(){
+  if(micRecorder){try{micRecorder.stop()}catch(e){}micRecorder=null}
+  if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}
+}
+
 async function requestMic(){
   const btn=document.getElementById('mic-perm');
   if(micGranted){
     // Turn OFF
-    if(sttActive&&recognition){recognition.stop();sttActive=false}
+    sttWanted=false;
+    if(sttActive&&recognition){try{recognition.abort()}catch(e){};sttActive=false}
+    stopMicSoundStream();
     micGranted=false;
     btn.textContent='Enable Microphone';btn.className='perm-btn';
     document.getElementById('mic-btn').style.display='none';
+    document.getElementById('mic-btn').textContent='\ud83c\udf99 mic off';
     return;
   }
-  try{const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(t=>t.stop());
+  try{
+    micStream=await navigator.mediaDevices.getUserMedia({audio:true});
     btn.textContent='\u2705 Microphone ON';btn.className='perm-btn granted';micGranted=true;
     document.getElementById('mic-btn').style.display='inline-block';
-    // Auto-start always-on listening immediately
+    // Start sound streaming to her krimelack
+    startMicSoundStream(micStream);
+    // Auto-start always-on STT
     toggleSTT();
   }catch(e){btn.textContent='\u274c Microphone denied \u2014 typing only';btn.className='perm-btn denied'}
 }
+// GL-BRIEF-SENSORY-IO Part C: camera sight streaming
+let sightStreamTimer=null;
+function startSightStream(){
+  const vid=document.getElementById('cam-preview');
+  if(sightStreamTimer)clearInterval(sightStreamTimer);
+  sightStreamTimer=setInterval(async()=>{
+    if(!camStream)return;
+    try{
+      const c=document.createElement('canvas');c.width=128;c.height=128;
+      c.getContext('2d').drawImage(vid,0,0,128,128);
+      const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.5));
+      const reader=new FileReader();
+      reader.onload=async()=>{
+        const b64=reader.result.replace(/^data:image\/jpeg;base64,/,'');
+        fetchT(`${API}/sight_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:''})},4000).catch(()=>{});
+      };
+      reader.readAsDataURL(blob);
+    }catch(e){}
+  },500); // 2 fps
+}
+function stopSightStream(){if(sightStreamTimer){clearInterval(sightStreamTimer);sightStreamTimer=null}}
+
 async function requestCam(){
   const btn=document.getElementById('cam-perm');
   if(camStream){
     // Turn OFF
+    stopSightStream();
     camStream.getTracks().forEach(t=>t.stop());camStream=null;
     const vid=document.getElementById('cam-preview');vid.srcObject=null;vid.style.display='none';
     document.getElementById('snap-btn').style.display='none';
@@ -226,6 +277,7 @@ async function requestCam(){
     const vid=document.getElementById('cam-preview');vid.srcObject=camStream;vid.style.display='inline-block';
     btn.textContent='\u2705 Camera ON';btn.className='perm-btn granted';
     document.getElementById('snap-btn').style.display='inline-block';
+    startSightStream(); // Start streaming frames to her sight krimelack
   }catch(e){btn.textContent='\u274c Camera denied';btn.className='perm-btn denied'}
 }
 function unlockAudio(){

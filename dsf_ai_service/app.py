@@ -1115,6 +1115,62 @@ class GLMessage(BaseModel):
     source: Optional[str] = None   # v7-bridge: source-tagged input (joe/wc/c1)
 
 
+# GL-BRIEF-SENSORY-IO Parts C+D: streaming sight and sound
+@app.post("/sight_frame")
+async def sight_frame(msg: GLMessage):
+    """Streaming sight: feed a camera frame into her sight krimelack."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("sight_frame", text=msg.text or "", timeout=5.0)
+        except ConnectionError:
+            return {"ok": False, "error": "substrate unreachable"}
+    if _guala is None:
+        raise HTTPException(503, "guala_not_ready")
+    import base64, asyncio as _aio
+    b64_data = (msg.text or "").strip()
+    if not b64_data:
+        return {"ok": False, "error": "no frame data"}
+    def _decode():
+        t0 = time.time()
+        try:
+            img_bytes = base64.b64decode(b64_data)
+            _, grid, _, _ = decode_image_bytes(img_bytes)
+            _guala.process_sight_frame(grid)
+            print(f"[sight-frame] {time.time()-t0:.3f}s")
+            return {"ok": True, "tick": _guala.tick}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+    return await _aio.get_event_loop().run_in_executor(None, _decode)
+
+
+@app.post("/sound_frame")
+async def sound_frame(msg: GLMessage):
+    """Streaming sound: feed a mic audio chunk into her sound krimelack."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("sound_frame", text=msg.text or "", timeout=5.0)
+        except ConnectionError:
+            return {"ok": False, "error": "substrate unreachable"}
+    if _guala is None:
+        raise HTTPException(503, "guala_not_ready")
+    import base64, asyncio as _aio
+    b64_data = (msg.text or "").strip()
+    if not b64_data:
+        return {"ok": False, "error": "no audio data"}
+    def _decode():
+        t0 = time.time()
+        try:
+            audio_bytes = base64.b64decode(b64_data)
+            _guala.process_sound_frame(audio_bytes)
+            print(f"[sound-frame] {time.time()-t0:.3f}s")
+            return {"ok": True, "tick": _guala.tick}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+    return await _aio.get_event_loop().run_in_executor(None, _decode)
+
+
 @app.get("/gualaloom")
 async def gualaloom_page():
     return FileResponse(os.path.join(STATIC_DIR, 'gualaloom.html'))
