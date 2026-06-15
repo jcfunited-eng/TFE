@@ -62,6 +62,23 @@ from dsf_ai_service.cluster_screener import (
 from dsf_ai_service.narrator import narrate_results
 from dsf_ai_service.cff_discovery import run_discovery, verify_candidate
 
+# ═══════════════════════════════════════════════════════════════
+# GL-ARCH-FRONTEND-SPLIT: substrate mode
+# ═══════════════════════════════════════════════════════════════
+SUBSTRATE_MODE = os.environ.get("SUBSTRATE_MODE", "embedded")  # "embedded" or "remote"
+_substrate_client = None
+
+def _get_substrate_client():
+    """Lazy-init the substrate client for remote mode."""
+    global _substrate_client
+    if _substrate_client is None:
+        from dsf_ai_service.substrate_client import SubstrateClient
+        _substrate_client = SubstrateClient()
+    return _substrate_client
+
+def _is_remote():
+    return SUBSTRATE_MODE == "remote"
+
 app = FastAPI(
     title="DSF-AI Structural Analysis Service",
     version="1.0.0",
@@ -1107,6 +1124,18 @@ async def gualaloom_page():
 async def gualaloom_chat(msg: GLMessage):
     global _exchange_count
 
+    # GL-ARCH-FRONTEND-SPLIT: remote mode forwards to substrate process
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("gualaloom_post",
+                                     command=msg.command or "",
+                                     text=msg.text or "",
+                                     source=msg.source or "joe")
+        except ConnectionError:
+            return {"response": "substrate unreachable — try again in a moment",
+                    "motifs": 0}
+
     # Handle requests while Guala is still initializing
     if _guala is None:
         cmd = (msg.command or "").strip().lower()
@@ -1872,6 +1901,9 @@ _runtime_decay_paused = None  # None = defer to env var
 @app.post("/api/v1/gualaloom/admin/amnesty")
 async def admin_amnesty():
     """Step 1: Reset last_tick on all atlas entries to current tick. Zero strength changes."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("amnesty")
     _gl_init()
     if _guala is None:
         return JSONResponse({"error": "not ready"}, status_code=503)
@@ -1892,6 +1924,9 @@ async def admin_amnesty():
 @app.post("/api/v1/gualaloom/admin/force_dream")
 async def admin_force_dream():
     """Step 2: Force a sleep→dream cycle. Returns dream artifact."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("force_dream", timeout=90.0)
     _gl_init()
     if _guala is None:
         return JSONResponse({"error": "not ready"}, status_code=503)
@@ -1925,6 +1960,9 @@ async def admin_force_dream():
 @app.post("/api/v1/gualaloom/admin/repause")
 async def admin_repause():
     """Kill switch: re-pause decay immediately."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("repause")
     global _runtime_decay_paused
     os.environ["DECAY_PAUSED"] = "1"
     _runtime_decay_paused = True
@@ -1938,6 +1976,9 @@ async def admin_repause():
 @app.get("/api/v1/gualaloom/admin/atlas_snapshot")
 async def admin_atlas_snapshot():
     """Monitor: live atlas stats for unpause monitoring."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("atlas_snapshot")
     _gl_init()
     if _guala is None:
         return JSONResponse({"error": "not ready"}, status_code=503)
@@ -1958,6 +1999,9 @@ async def admin_atlas_snapshot():
 @app.post("/api/v1/gualaloom/admin/backup")
 async def admin_backup():
     """Step 0: Full state backup to dedicated UNPAUSE-PRE S3 prefix. Verified."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("backup", timeout=60.0)
     _gl_init()
     if _guala is None:
         return JSONResponse({"error": "not ready"}, status_code=503)
@@ -2588,6 +2632,13 @@ def _get_bridge(session):
 
 @app.post("/v7/converse")
 async def v7_converse(req: V7ConverseRequest):
+    if _is_remote():
+        client = _get_substrate_client()
+        sid = req.session_id or str(_uuid.uuid4())[:8]
+        result = await client.call("v7_converse",
+                                   session_id=sid, text=req.text)
+        result["session_id"] = sid
+        return result
     if _guala is None:
         raise HTTPException(status_code=503, detail={
             "error": "guala_not_ready",
@@ -2622,6 +2673,13 @@ async def v7_converse(req: V7ConverseRequest):
 
 @app.post("/v7/feedback")
 async def v7_feedback(req: V7FeedbackRequest):
+    if _is_remote():
+        client = _get_substrate_client()
+        result = await client.call("v7_feedback",
+                                   session_id=req.session_id,
+                                   correct=req.correct,
+                                   expected_tokens=req.expected_tokens)
+        return result
     if _guala is None:
         raise HTTPException(status_code=503, detail={
             "error": "guala_not_ready",
@@ -2647,6 +2705,9 @@ async def v7_feedback(req: V7FeedbackRequest):
 
 @app.get("/v7/state")
 async def v7_state(session_id: str = "default"):
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("v7_state", session_id=session_id)
     if _guala is None:
         raise HTTPException(status_code=503, detail={
             "error": "guala_not_ready",
@@ -2669,6 +2730,10 @@ async def v7_state(session_id: str = "default"):
 @app.post("/v7/quiet")
 async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
     """Quiet ticks — substrate's Default Mode. Replay + consolidation."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("v7_quiet",
+                                 session_id=session_id, n_ticks=n_ticks)
     if _guala is None:
         raise HTTPException(status_code=503, detail={
             "error": "guala_not_ready",
@@ -2696,6 +2761,9 @@ async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
 @app.post("/v7/save")
 async def v7_save(session_id: str = "default"):
     """Manual save — Joe can hit this before risky operations."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("v7_save", session_id=session_id)
     if _guala is None:
         raise HTTPException(status_code=503, detail={
             "error": "guala_not_ready",
@@ -2776,6 +2844,12 @@ async def startup():
     global _init_complete
     result = initialize_integrity()
     print(f"[DSF-AI] Integrity initialized: {result['files_present']}/{result['files_checked']} files hashed")
+
+    # GL-ARCH-FRONTEND-SPLIT: in remote mode, skip substrate boot
+    if _is_remote():
+        _init_complete = True
+        print(f"[DSF-AI] SUBSTRATE_MODE=remote — substrate runs in separate process")
+        return
 
     # SIGTERM handler — defensive save for crash scenarios
     import signal as _signal
@@ -2977,7 +3051,11 @@ async def health():
 @app.get("/ready")
 async def ready():
     """Deep readiness check — 200 when _guala is loaded.
-    Sleep is a valid loaded state — does NOT return 503."""
+    Sleep is a valid loaded state — does NOT return 503.
+    In remote mode: 200 if frontend is alive (substrate-independent)."""
+    if _is_remote():
+        # Frontend is alive = ready. Substrate health is substrate's problem.
+        return {"ready": True, "mode": "remote"}
     if _guala is None:
         return JSONResponse(
             status_code=503,
@@ -2993,6 +3071,9 @@ async def sleep_for_deploy():
     """GL-BRIEF-SLEEP-DURING-DEPLOY: deploy script POSTs this
     before update-service. Puts her to sleep, saves state,
     writes .sleeping marker. Returns sleep tick."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("sleep_for_deploy")
     if _guala is None:
         return JSONResponse(
             status_code=503,
