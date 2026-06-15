@@ -1234,10 +1234,10 @@ class Guala:
                 pass  # pictures set on self._last_recalled_pictures
             # 6. Emit from cortex invariants (variable-length, slot-free)
             if not reply:
-                reply = self._emit_from_invariants(input_chis, input_words)
+                reply = self._emit_from_invariants(input_chis, words)
             if not reply:
                 # 7. Unslotted fallback: strongest bindings near input chi
-                reply = self._emit_unslotted(input_chis, input_words)
+                reply = self._emit_unslotted(input_chis, words)
             if not reply:
                 # 8. Honest silence
                 reply = "..."
