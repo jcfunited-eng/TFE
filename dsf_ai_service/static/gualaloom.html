@@ -208,6 +208,8 @@ async function requestMic(){
   try{const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(t=>t.stop());
     btn.textContent='\u2705 Microphone ON';btn.className='perm-btn granted';micGranted=true;
     document.getElementById('mic-btn').style.display='inline-block';
+    // Auto-start always-on listening immediately
+    toggleSTT();
   }catch(e){btn.textContent='\u274c Microphone denied \u2014 typing only';btn.className='perm-btn denied'}
 }
 async function requestCam(){
@@ -232,6 +234,8 @@ function unlockAudio(){
   document.getElementById('speaker-badge').innerHTML='\ud83d\udd0a Audio ready';
 }
 document.addEventListener('click',unlockAudio,{once:true});
+document.addEventListener('keydown',unlockAudio,{once:true});
+document.addEventListener('touchstart',unlockAudio,{once:true});
 function toggleMute(){muted=!muted;document.getElementById('mute-toggle').textContent=muted?'muted':'unmuted';if(muted)window.speechSynthesis.cancel()}
 
 // --- C1: Voice output via speechSynthesis ---
