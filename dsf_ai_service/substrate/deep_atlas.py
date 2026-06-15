@@ -133,19 +133,18 @@ class DeepAtlas:
                 return de.get("co_occurrence", {})
         return {}
 
-    def decay(self, current_tick, max_dt=500):
+    def decay(self, current_tick, rate_scale=1.0, max_dt=500):
         """Near-zero decay (1/25th of working).
-        GL-FIX-SLEEP-DECAY: cap dt to prevent accumulated-lifetime decay.
-        Deep atlas decay only fires during dream cycles, so entries that
-        haven't been re-promoted in thousands of ticks would otherwise see
-        their entire age as dt. max_dt=500 caps effective decay to ~0.2%
-        per dream cycle (500 * 0.000004 = 0.002 → exp(-0.002) = 0.998)."""
+        GL-BRIEF-SLEEP-DECAY-PERMANENT: pause-idempotent, same shape as
+        working atlas (efd39dd). rate_scale=0 when DECAY_PAUSED=1 keeps
+        last_tick current with bit-identical strength.
+        max_dt caps effective decay window per call."""
         self.tick = max(self.tick, current_tick)
         for entries in self.entries.values():
             for e in entries:
                 dt = min(max_dt, max(0, current_tick - e["last_tick"]))
                 if dt > 0:
-                    e["strength"] *= math.exp(-DECAY_LAMBDA * dt)
+                    e["strength"] *= math.exp(-DECAY_LAMBDA * rate_scale * dt)
                     e["last_tick"] = current_tick
 
     def prune(self):

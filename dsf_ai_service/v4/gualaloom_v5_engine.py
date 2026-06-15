@@ -2020,8 +2020,12 @@ class Guala:
             self.deep_atlas.gate_rejects = []  # clear after logging
 
             # Deep atlas decay + prune
-            self.deep_atlas.decay(self.tick)
-            self.deep_atlas.prune()
+            # GL-BRIEF-SLEEP-DECAY-PERMANENT: pause-idempotent
+            _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
+            self.deep_atlas.decay(self.tick,
+                                  rate_scale=0.0 if _paused else 1.0)
+            if not _paused:
+                self.deep_atlas.prune()
 
             # Log deep_size
             deep_size = self.deep_atlas.live_count()
