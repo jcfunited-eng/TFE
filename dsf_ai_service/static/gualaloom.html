@@ -232,7 +232,30 @@ function unlockAudio(){
   document.getElementById('speaker-badge').innerHTML='\ud83d\udd0a Audio ready';
 }
 document.addEventListener('click',unlockAudio,{once:true});
-function toggleMute(){muted=!muted;document.getElementById('mute-toggle').textContent=muted?'muted':'unmuted'}
+function toggleMute(){muted=!muted;document.getElementById('mute-toggle').textContent=muted?'muted':'unmuted';if(muted)window.speechSynthesis.cancel()}
+
+// --- C1: Voice output via speechSynthesis ---
+let preferredVoice=null;
+function pickVoice(){
+  const voices=window.speechSynthesis.getVoices();if(!voices.length)return;
+  preferredVoice=voices.find(v=>v.lang==='en-US'&&/female|samantha|karen|moira|tessa/i.test(v.name))
+    ||voices.find(v=>v.lang.startsWith('en-US'))
+    ||voices.find(v=>v.lang.startsWith('en'))
+    ||voices[0];
+}
+window.speechSynthesis.onvoiceschanged=pickVoice;pickVoice();
+function gualaSpeak(text){
+  if(!text||text==='...'||text.trim()==='')return;
+  if(muted||!audioUnlocked)return;
+  try{
+    const u=new SpeechSynthesisUtterance(text);
+    if(preferredVoice)u.voice=preferredVoice;
+    u.rate=0.92;u.pitch=1.15;u.volume=1.0;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+// C4: cancel speech on page hide
+document.addEventListener('visibilitychange',()=>{if(document.hidden)window.speechSynthesis.cancel()});
 
 // --- Speech-to-Text ---
 function toggleSTT(){
@@ -473,7 +496,7 @@ async function sendMsg(){
         // Item 6: don't overwrite session_id from substrate response
         addResponseBlock(d);
         // v6 chat for emission (fire-and-forget, no await)
-        fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})},10000).then(r6=>r6.ok?r6.json():null).then(d6=>{if(d6&&d6.response&&d6.response!=='...')addMsg(d6.response,'emission');if(d6&&d6.pictures)renderPictures(d6.pictures)}).catch(()=>{});
+        fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})},10000).then(r6=>r6.ok?r6.json():null).then(d6=>{if(d6&&d6.response&&d6.response!=='...'){addMsg(d6.response,'emission');gualaSpeak(d6.response)}if(d6&&d6.pictures)renderPictures(d6.pictures)}).catch(()=>{});
       }
     }
   }catch(e){addMsg('(error: '+e.message+')','system')}
@@ -578,7 +601,8 @@ function connectEventStream(){
       el.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
       evDiv.insertBefore(el,evDiv.firstChild);while(evDiv.children.length>60)evDiv.removeChild(evDiv.lastChild);
       // B4: autonomous emissions appear in chat
-      if(ev.kind==='emission'&&ev.detail&&ev.detail.content)addMsg('\ud83d\udcad '+ev.detail.content,'emission');
+      if(ev.kind==='emission'&&ev.detail&&ev.detail.content){addMsg('\ud83d\udcad '+ev.detail.content,'emission');gualaSpeak(ev.detail.content)}
+      if(ev.kind==='dream_artifact'&&ev.detail&&ev.detail.content){addMsg('\ud83d\udcad '+ev.detail.content,'emission');gualaSpeak(ev.detail.content)}
     }catch(e){}
     _evReconnectDelay=1000;
   };
@@ -598,7 +622,8 @@ async function pollEvents(){
       let det='';if(ev.detail){if(ev.detail.content)det=' "'+ev.detail.content+'"';if(ev.detail.source)det+=' ['+ev.detail.source+']'}
       el.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
       evDiv.insertBefore(el,evDiv.firstChild);while(evDiv.children.length>60)evDiv.removeChild(evDiv.lastChild);
-      if(ev.kind==='emission'&&ev.detail&&ev.detail.content)addMsg('\ud83d\udcad '+ev.detail.content,'emission');
+      if(ev.kind==='emission'&&ev.detail&&ev.detail.content){addMsg('\ud83d\udcad '+ev.detail.content,'emission');gualaSpeak(ev.detail.content)}
+      if(ev.kind==='dream_artifact'&&ev.detail&&ev.detail.content){addMsg('\ud83d\udcad '+ev.detail.content,'emission');gualaSpeak(ev.detail.content)}
     }_backoff.events=0}catch(e){_backoff.events=Math.min((_backoff.events*2)||_BASE.events*2,30000)}
   finally{_inflight.events=false;_schedNext('events',pollEvents)}
 }
@@ -625,7 +650,7 @@ async function presenceHeartbeat(){
 }
 
 // --- Session ---
-function newSession(){sid='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sid);
+function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sid);
   document.getElementById('session-line').textContent='session: '+sid;addMsg('new session: '+sid,'system')}
 
 // --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
