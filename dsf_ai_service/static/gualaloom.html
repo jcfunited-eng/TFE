@@ -76,6 +76,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 <!-- Permission Strip -->
 <div id="perm-strip">
   <button class="perm-btn" id="mic-perm" onclick="requestMic()">Enable Microphone</button>
+  <span id="mic-status" style="font-size:11px;color:var(--text-muted);margin-left:4px"></span>
   <button class="perm-btn" id="cam-perm" onclick="requestCam()">Enable Camera</button>
   <span id="speaker-badge" onclick="unlockAudio()">&#x1f507; Click anywhere to enable audio</span>
   <button id="mute-toggle" onclick="toggleMute()">unmuted</button>
@@ -282,14 +283,17 @@ async function requestCam(){
 }
 function unlockAudio(){
   if(audioUnlocked)return;audioUnlocked=true;
-  voiceEl.play().catch(()=>{});
-  // Warm up speechSynthesis with a silent utterance (required by Chrome)
+  const badge=document.getElementById('speaker-badge');
+  // Real silent WAV (100ms silence) — actually unlocks the audio element
+  voiceEl.src='data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQIAAAAAAA==';
+  voiceEl.play().then(()=>{badge.innerHTML='\ud83d\udd0a audio ready'}).catch(e=>{badge.innerHTML='\ud83d\udd07 audio unlock failed: '+e.message});
+  // Real speech warm-up — single letter at 1% volume, fast rate
   try{
-    const warmup=new SpeechSynthesisUtterance('');
-    warmup.volume=0;
+    const warmup=new SpeechSynthesisUtterance('a');
+    warmup.volume=0.01;warmup.rate=2.0;
+    warmup.onerror=e=>{badge.innerHTML='\ud83d\udd07 speech blocked: '+(e.error||'unknown')};
     window.speechSynthesis.speak(warmup);
-  }catch(e){}
-  document.getElementById('speaker-badge').innerHTML='\ud83d\udd0a Audio ready';
+  }catch(e){badge.innerHTML='\ud83d\udd07 speech unavailable: '+e.message}
 }
 document.addEventListener('click',unlockAudio,{once:true});
 document.addEventListener('keydown',unlockAudio,{once:true});
@@ -307,14 +311,23 @@ function pickVoice(){
 }
 window.speechSynthesis.onvoiceschanged=pickVoice;pickVoice();
 function gualaSpeak(text){
-  if(!text||text==='...'||text.trim()==='')return;
-  if(muted||!audioUnlocked)return;
+  const badge=document.getElementById('speaker-badge');
+  if(!text||text==='...'||text.trim()===''){badge.innerHTML='\ud83d\udd07 (nothing to say)';return}
+  if(muted){badge.innerHTML='\ud83d\udd07 muted';return}
+  if(!audioUnlocked){badge.innerHTML='\ud83d\udd07 click anywhere to enable audio';return}
   try{
     const u=new SpeechSynthesisUtterance(text);
     if(preferredVoice)u.voice=preferredVoice;
     u.rate=0.92;u.pitch=1.15;u.volume=1.0;
+    u.onstart=()=>{badge.innerHTML='\ud83d\udd0a speaking...'};
+    u.onend=()=>{badge.innerHTML='\ud83d\udd0a ready'};
+    u.onerror=e=>{badge.innerHTML='\ud83d\udd07 speak error: '+(e.error||'unknown')};
     window.speechSynthesis.speak(u);
-  }catch(e){}
+    setTimeout(()=>{
+      if(window.speechSynthesis.pending||window.speechSynthesis.speaking)return;
+      badge.innerHTML='\ud83d\udd07 utterance dropped silently';
+    },500);
+  }catch(e){badge.innerHTML='\ud83d\udd07 speak threw: '+e.message}
 }
 // C4: cancel speech on page hide
 document.addEventListener('visibilitychange',()=>{if(document.hidden)window.speechSynthesis.cancel()});
@@ -329,6 +342,7 @@ function toggleSTT(){
     sttWanted=false;sttActive=false;
     if(recognition){try{recognition.abort()}catch(e){}}
     btn.classList.remove('recording');btn.textContent='\ud83c\udf99 mic off';btn.style.background='none';btn.style.color='var(--text-muted)';
+    document.getElementById('mic-status').innerHTML='';
     liveT.textContent='';
     return;
   }
@@ -337,6 +351,9 @@ function toggleSTT(){
   }
   sttWanted=true;
   btn.textContent='\ud83c\udf99 LISTENING';btn.style.background='#3fb950';btn.style.color='#0d1117';
+  document.getElementById('mic-status').innerHTML='\u2705 LISTENING';
+  document.getElementById('mic-status').style.color='#3fb950';
+  document.getElementById('mic-status').style.fontWeight='bold';
   startContinuousSTT();
 }
 function startContinuousSTT(){
@@ -556,11 +573,17 @@ function addResponseBlock(result){
   meta.appendChild(up);meta.appendChild(dn);block.appendChild(meta);
   transcript.appendChild(block);transcript.scrollTop=transcript.scrollHeight;
   // Voice playback — try espeak WAV first, fall back to browser speechSynthesis
+  const badge=document.getElementById('speaker-badge');
   if(result.self_voice_audio_b64&&audioUnlocked&&!muted){
-    voiceEl.src='data:audio/wav;base64,'+result.self_voice_audio_b64;voiceEl.play().catch(()=>{});
+    voiceEl.src='data:audio/wav;base64,'+result.self_voice_audio_b64;
+    voiceEl.play().then(()=>{badge.innerHTML='\ud83d\udd0a speaking (espeak)'}).catch(e=>{
+      badge.innerHTML='\ud83d\udd07 espeak failed: '+e.message+' \u2014 trying TTS';
+      const tokText=(result.response_tokens||[]).map(t=>t.token).join(' ');
+      if(tokText)gualaSpeak(tokText);
+    });
   }else{
-    // Phase C: speak v7 token text via browser TTS
     const tokText=(result.response_tokens||[]).map(t=>t.token).join(' ');
+    if(!result.self_voice_audio_b64)badge.innerHTML='\ud83d\udd0a (no espeak \u2014 browser TTS)';
     if(tokText)gualaSpeak(tokText);
   }
 }
