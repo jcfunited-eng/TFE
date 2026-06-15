@@ -143,8 +143,11 @@ else
 fi
 
 # ── Step 5: Register new task definition ──
+# GL-ARCH-FRONTEND-SPLIT Phase 2: two containers in one task.
+# Frontend: serves HTTP, ALB health, proxies to substrate via Unix socket.
+# Substrate: holds _guala, listens on /shared/substrate.sock.
 echo ""
-echo "[5/6] Registering new task definition..."
+echo "[5/6] Registering new task definition (two-container split)..."
 
 TASK_DEF_JSON=$(aws ecs describe-task-definition \
     --task-definition ${TASK_FAMILY} \
@@ -154,22 +157,102 @@ TASK_DEF_JSON=$(aws ecs describe-task-definition \
 NEW_TASK_DEF=$(echo "${TASK_DEF_JSON}" | python3 -c "
 import sys, json
 td = json.load(sys.stdin)
-td['containerDefinitions'][0]['image'] = '${IMAGE_URI}'
-# C3: give container 15s for SIGTERM final save before SIGKILL
-td['containerDefinitions'][0]['stopTimeout'] = 15
-# WARMTH: container health check uses /ready (not /health)
-# Task not marked healthy until _guala is loaded
-td['containerDefinitions'][0]['healthCheck'] = {
-    'command': ['CMD-SHELL', 'python3 -c \"import urllib.request; urllib.request.urlopen(\\\"http://localhost:8080/ready\\\")\" || exit 1'],
-    'interval': 10,
-    'timeout': 5,
-    'retries': 3,
-    'startPeriod': 180
+
+# Preserve infra fields from existing task def
+keep = ['executionRoleArn', 'taskRoleArn', 'runtimePlatform']
+infra = {k: td[k] for k in keep if k in td and td[k]}
+
+out = {
+    'family': '${TASK_FAMILY}',
+    'networkMode': 'awsvpc',
+    'requiresCompatibilities': ['FARGATE'],
+    'cpu': '1024',
+    'memory': '2048',
+    **infra,
+    'volumes': [
+        {
+            'name': 'gualaloom-state',
+            'efsVolumeConfiguration': {
+                'fileSystemId': 'fs-0abb85854a3251b3c',
+                'rootDirectory': '/',
+                'transitEncryption': 'DISABLED'
+            }
+        },
+        {
+            'name': 'shared-socket',
+            'host': {}
+        }
+    ],
+    'containerDefinitions': [
+        {
+            'name': 'frontend',
+            'image': '${IMAGE_URI}',
+            'essential': True,
+            'command': ['uvicorn', 'dsf_ai_service.app:app',
+                        '--host', '0.0.0.0', '--port', '8080'],
+            'portMappings': [
+                {'containerPort': 8080, 'hostPort': 8080, 'protocol': 'tcp'}
+            ],
+            'environment': [
+                {'name': 'SUBSTRATE_MODE', 'value': 'remote'},
+                {'name': 'SUBSTRATE_SOCKET', 'value': '/shared/substrate.sock'},
+                {'name': 'DECAY_PAUSED', 'value': '1'}
+            ],
+            'mountPoints': [
+                {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
+                 'readOnly': False},
+                {'sourceVolume': 'shared-socket', 'containerPath': '/shared',
+                 'readOnly': False}
+            ],
+            'healthCheck': {
+                'command': ['CMD-SHELL',
+                    'python3 -c \"import urllib.request; '
+                    'urllib.request.urlopen(\\\\\"http://localhost:8080/ready\\\\\")\"'
+                    ' || exit 1'],
+                'interval': 10,
+                'timeout': 5,
+                'retries': 3,
+                'startPeriod': 30
+            },
+            'stopTimeout': 10,
+            'logConfiguration': {
+                'logDriver': 'awslogs',
+                'options': {
+                    'awslogs-group': '/ecs/dsf-ai',
+                    'awslogs-region': '${AWS_REGION}',
+                    'awslogs-stream-prefix': 'frontend'
+                }
+            }
+        },
+        {
+            'name': 'substrate',
+            'image': '${IMAGE_URI}',
+            'essential': True,
+            'command': ['python', '-m', 'dsf_ai_service.substrate_runner'],
+            'environment': [
+                {'name': 'SUBSTRATE_SOCKET', 'value': '/shared/substrate.sock'},
+                {'name': 'SUBSTRATE_HEARTBEAT', 'value': '/shared/substrate.alive'},
+                {'name': 'STATE_DIR', 'value': '/app/state'},
+                {'name': 'DECAY_PAUSED', 'value': '1'}
+            ],
+            'mountPoints': [
+                {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
+                 'readOnly': False},
+                {'sourceVolume': 'shared-socket', 'containerPath': '/shared',
+                 'readOnly': False}
+            ],
+            'stopTimeout': 30,
+            'logConfiguration': {
+                'logDriver': 'awslogs',
+                'options': {
+                    'awslogs-group': '/ecs/dsf-ai',
+                    'awslogs-region': '${AWS_REGION}',
+                    'awslogs-stream-prefix': 'substrate'
+                }
+            }
+        }
+    ]
 }
-keep = ['family', 'containerDefinitions', 'volumes', 'networkMode',
-        'requiresCompatibilities', 'cpu', 'memory', 'executionRoleArn',
-        'taskRoleArn', 'runtimePlatform']
-out = {k: td[k] for k in keep if k in td and td[k]}
 print(json.dumps(out))
 ")
 
