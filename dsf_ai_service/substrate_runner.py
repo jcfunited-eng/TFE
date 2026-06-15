@@ -882,6 +882,32 @@ async def run_server():
     server = await asyncio.start_unix_server(handle_client, path=SOCKET_PATH)
     print(f"[substrate] Listening on {SOCKET_PATH}")
 
+    # Periodic save + compact (was in app.py startup, belongs in substrate)
+    async def _periodic_save():
+        save_count = 0
+        while not _shutdown:
+            await asyncio.sleep(60)
+            if _guala is None or _shutdown:
+                continue
+            try:
+                def _do_save():
+                    t0 = time.time()
+                    pre_size = _guala.events_log_size(STATE_DIR)
+                    _guala.save_full_state(STATE_DIR)
+                    _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
+                    dt = time.time() - t0
+                    print(f"[save] {dt:.2f}s")
+                await loop.run_in_executor(None, _do_save)
+                save_count += 1
+                if save_count % 10 == 0:
+                    def _snap():
+                        return _guala.snapshot_state(STATE_DIR, reason="periodic")
+                    snap_dir = await loop.run_in_executor(None, _snap)
+                    print(f"[substrate] Snapshot: {snap_dir}")
+            except Exception as e:
+                print(f"[save] error: {e}")
+    asyncio.ensure_future(_periodic_save())
+
     # Handle SIGTERM/SIGINT
     def _signal_handler():
         global _shutdown
