@@ -1929,11 +1929,11 @@ class Guala:
     def _atick_sleeping(self, a):
         """Sleep raises stability. Transitions to dream at midpoint."""
         self.needs.stability = min(1.0, self.needs.stability + 0.001)
-        # Atlas consolidation: weak bindings decay faster during sleep
-        # GL-FIX-PAUSE-IDEMPOTENT: rate_scale=0 when paused
-        if self.tick % 50 == 0:
-            _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
-            self.atlas.decay(self.tick, rate_scale=0.0 if _paused else 1.0)
+        # GL-FIX-SLEEP-DECAY: removed duplicate decay call.
+        # The general non-reading path (line ~1753) already calls
+        # atlas.decay() every 10 ticks for ALL non-reading activities
+        # including SLEEPING. The extra decay here was double-counting,
+        # causing ~40% strength loss during every sleep/dream cycle.
         # Midpoint → dream
         midpoint = a.started_tick + (a.expected_end_tick - a.started_tick) // 2
         if self.tick == midpoint:
