@@ -669,8 +669,11 @@ def get_or_create_session(session_id, engine=None):
         raise RuntimeError("guala_not_ready")
     with _sessions_lock:
         if session_id in _sessions:
+            print(f"[v7-session] sid={session_id} cache_hit")
             return _sessions[session_id]
+        t0 = time.time()
         session = V7Session(session_id, engine=engine)
+        t1 = time.time()
         snapshot_path = os.path.join(STATE_DIR, f"{session_id}.json")
         snapshot_seq = -1
         if os.path.exists(snapshot_path):
@@ -688,13 +691,20 @@ def get_or_create_session(session_id, engine=None):
                 except OSError:
                     pass
                 session = V7Session(session_id, engine=engine)
+        t2 = time.time()
         if session.event_log.exists():
             from dsf_ai_service.substrate.event_log import replay_events
             events = session.event_log.read_since(snapshot_seq)
             if events:
                 n = replay_events(session, events)
                 print(f"[v7] Replayed {n} events for {session_id}")
+        t3 = time.time()
         _sessions[session_id] = session
+        print(f"[v7-session] sid={session_id} create_new "
+              f"v7_init={int((t1-t0)*1000)}ms "
+              f"snap_replay={int((t3-t2)*1000)}ms "
+              f"total={int((t3-t0)*1000)}ms "
+              f"vocab={sum(len(v) for v in session.vocab.values())}")
         return session
 
 

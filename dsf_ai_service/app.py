@@ -2641,9 +2641,16 @@ async def v7_state(session_id: str = "default"):
             "retry_after_seconds": 10,
             "message": "she is still loading — try again in a moment"
         })
+    import time as _t7
+    _t0 = _t7.time()
     from dsf_ai_service.substrate.v7_engine import get_or_create_session
     session = get_or_create_session(session_id, engine=_guala)
-    return session.get_state(engine=_guala)
+    _t1 = _t7.time()
+    result = session.get_state(engine=_guala)
+    _t2 = _t7.time()
+    print(f"[v7-state] sid={session_id} session={(_t1-_t0)*1000:.0f}ms "
+          f"get_state={(_t2-_t1)*1000:.0f}ms total={(_t2-_t0)*1000:.0f}ms")
+    return result
 
 @app.post("/v7/quiet")
 async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
