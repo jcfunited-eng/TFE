@@ -2594,22 +2594,27 @@ async def v7_converse(req: V7ConverseRequest):
             "retry_after_seconds": 10,
             "message": "she is still loading — try again in a moment"
         })
+    import asyncio as _aio
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     sid = req.session_id or str(_uuid.uuid4())[:8]
-    session = get_or_create_session(sid, engine=_guala)
-    result = session.converse(req.text)
-    # Bridge: relay v7 emissions to multimodal (spec 4.2)
+    text = req.text
+    def _do_converse():
+        session = get_or_create_session(sid, engine=_guala)
+        result = session.converse(text)
+        # Bridge: relay v7 emissions to multimodal (spec 4.2)
+        try:
+            bridge = _get_bridge(session)
+            tokens = [t.get("token", "") for t in result.get("response_tokens", [])]
+            if tokens:
+                bridge_result = bridge.v7_emission_to_multimodal(tokens)
+                if bridge_result:
+                    result["bridge_v7_to_mm"] = bridge_result
+        except Exception:
+            pass
+        return session, result
+    session, result = await _aio.get_event_loop().run_in_executor(None, _do_converse)
     try:
-        bridge = _get_bridge(session)
-        tokens = [t.get("token", "") for t in result.get("response_tokens", [])]
-        if tokens:
-            bridge_result = bridge.v7_emission_to_multimodal(tokens)
-            if bridge_result:
-                result["bridge_v7_to_mm"] = bridge_result
-    except Exception:
-        pass
-    try:
-        import asyncio as _a7; await _a7.get_event_loop().run_in_executor(None, save_session, session)
+        await _aio.get_event_loop().run_in_executor(None, save_session, session)
     except Exception:
         pass
     result["session_id"] = sid
@@ -2623,14 +2628,21 @@ async def v7_feedback(req: V7FeedbackRequest):
             "retry_after_seconds": 10,
             "message": "she is still loading — try again in a moment"
         })
+    import asyncio as _aio
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
-    session = get_or_create_session(req.session_id, engine=_guala)
-    result = session.apply_feedback(req.correct, req.expected_tokens)
+    feedback_sid = req.session_id
+    correct = req.correct
+    expected_tokens = req.expected_tokens
+    def _do_feedback():
+        session = get_or_create_session(feedback_sid, engine=_guala)
+        result = session.apply_feedback(correct, expected_tokens)
+        return session, result
+    session, result = await _aio.get_event_loop().run_in_executor(None, _do_feedback)
     try:
-        import asyncio as _a7; await _a7.get_event_loop().run_in_executor(None, save_session, session)
+        await _aio.get_event_loop().run_in_executor(None, save_session, session)
     except Exception:
         pass
-    result["session_id"] = req.session_id
+    result["session_id"] = feedback_sid
     return result
 
 @app.get("/v7/state")
@@ -2641,16 +2653,18 @@ async def v7_state(session_id: str = "default"):
             "retry_after_seconds": 10,
             "message": "she is still loading — try again in a moment"
         })
-    import time as _t7
-    _t0 = _t7.time()
+    import asyncio as _aio, time as _t7
     from dsf_ai_service.substrate.v7_engine import get_or_create_session
-    session = get_or_create_session(session_id, engine=_guala)
-    _t1 = _t7.time()
-    result = session.get_state(engine=_guala)
-    _t2 = _t7.time()
-    print(f"[v7-state] sid={session_id} session={(_t1-_t0)*1000:.0f}ms "
-          f"get_state={(_t2-_t1)*1000:.0f}ms total={(_t2-_t0)*1000:.0f}ms")
-    return result
+    def _do_state():
+        _t0 = _t7.time()
+        session = get_or_create_session(session_id, engine=_guala)
+        _t1 = _t7.time()
+        result = session.get_state(engine=_guala)
+        _t2 = _t7.time()
+        print(f"[v7-state] sid={session_id} session={(_t1-_t0)*1000:.0f}ms "
+              f"get_state={(_t2-_t1)*1000:.0f}ms total={(_t2-_t0)*1000:.0f}ms")
+        return result
+    return await _aio.get_event_loop().run_in_executor(None, _do_state)
 
 @app.post("/v7/quiet")
 async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
@@ -2661,17 +2675,22 @@ async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
             "retry_after_seconds": 10,
             "message": "she is still loading — try again in a moment"
         })
+    import asyncio as _aio
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
-    session = get_or_create_session(session_id, engine=_guala)
-    results = session.quiet_tick(min(n_ticks, 50))
+    capped_ticks = min(n_ticks, 50)
+    def _do_quiet():
+        session = get_or_create_session(session_id, engine=_guala)
+        results = session.quiet_tick(capped_ticks)
+        total_replayed = sum(len(r["replayed"]) for r in results)
+        total_commits = sum(len(r["commits"]) for r in results)
+        return session, {"session_id": session_id, "ticks": len(results),
+                         "replayed": total_replayed, "commits": total_commits}
+    session, result = await _aio.get_event_loop().run_in_executor(None, _do_quiet)
     try:
-        import asyncio as _a7; await _a7.get_event_loop().run_in_executor(None, save_session, session)
+        await _aio.get_event_loop().run_in_executor(None, save_session, session)
     except Exception:
         pass
-    total_replayed = sum(len(r["replayed"]) for r in results)
-    total_commits = sum(len(r["commits"]) for r in results)
-    return {"session_id": session_id, "ticks": len(results),
-            "replayed": total_replayed, "commits": total_commits}
+    return result
 
 
 @app.post("/v7/save")
@@ -2683,16 +2702,19 @@ async def v7_save(session_id: str = "default"):
             "retry_after_seconds": 10,
             "message": "she is still loading — try again in a moment"
         })
+    import asyncio as _aio
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
-    session = get_or_create_session(session_id, engine=_guala)
-    try:
-        import asyncio as _a7; await _a7.get_event_loop().run_in_executor(None, save_session, session)
+    def _do_save():
+        session = get_or_create_session(session_id, engine=_guala)
+        save_session(session)
         data = session.to_json()
         return {"saved": True, "session_id": session_id,
                 "schema_version": data.get("schema_version"),
                 "tick": data.get("tick"),
                 "n_sections": len(data.get("sections", {})),
                 "vocab_size": sum(len(v) for v in session.vocab.values())}
+    try:
+        return await _aio.get_event_loop().run_in_executor(None, _do_save)
     except Exception as e:
         return {"saved": False, "error": str(e)}
 
