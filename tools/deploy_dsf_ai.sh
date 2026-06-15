@@ -228,8 +228,9 @@ out = {
             'name': 'substrate',
             'image': '${IMAGE_URI}',
             'essential': True,
-            'command': ['python', '-m', 'dsf_ai_service.substrate_runner'],
+            'command': ['python', '-u', '-m', 'dsf_ai_service.substrate_runner'],
             'environment': [
+                {'name': 'PYTHONUNBUFFERED', 'value': '1'},
                 {'name': 'SUBSTRATE_SOCKET', 'value': '/shared/substrate.sock'},
                 {'name': 'SUBSTRATE_HEARTBEAT', 'value': '/shared/substrate.alive'},
                 {'name': 'STATE_DIR', 'value': '/app/state'},
