@@ -65,7 +65,7 @@ def run_awareness_v2(n_trials=20):
             section_name="intro",
             context_fn=context_no_recent_drive(drive_tracker,
                                                  sections=("listen", "subject", "verb", "object"),
-                                                 quiet_thresh=0.10),
+                                                 quiet_thresh=0.45),
             drive_thresh=0.05, ltp_boost=0.0,
         )
 

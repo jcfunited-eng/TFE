@@ -90,7 +90,7 @@ def run_test(n_trials=20):
         drive_tracker = {}
         gate = CoincidenceGate(
             section_name="intro",
-            context_fn=context_no_recent_drive(drive_tracker, quiet_thresh=0.10),
+            context_fn=context_no_recent_drive(drive_tracker, quiet_thresh=0.45),
             drive_thresh=0.05,
             ltp_boost=0.0,
         )
