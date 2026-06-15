@@ -48,9 +48,11 @@ class DeepAtlas:
         self.reinstatements = 0
         self.gate_rejects = []  # recent rejects for diagnostics (capped)
 
-    def promote(self, entry, source_path, tick):
+    def promote(self, entry, source_path, tick, working_atlas=None):
         """Promote a working atlas entry into deep storage.
-        Called ONLY during dream cycle. Two paths, same write."""
+        Called ONLY during dream cycle. Two paths, same write.
+        GL-CLARITY-INVARIANCE-UNCAGE: inherits clarity, sensory_refs,
+        episode_refs from working atlas. Initializes co_occurrence invariant."""
         if not _deep_atlas_enabled():
             return False
         self.tick = max(self.tick, tick)
@@ -58,12 +60,18 @@ class DeepAtlas:
         section = entry.get("section", "")
         motif = entry.get("motif", 0)
 
-        # Check if already in deep — reinforce
+        # Check if already in deep — reinforce + update invariant
         for de in self.entries[chi_k]:
             if de["section"] == section and de["motif"] == motif:
                 de["strength"] = min(STRENGTH_CAP,
                                      de["strength"] + entry["strength"] * TRANSFER_RATIO)
                 de["last_tick"] = tick
+                # GL-CLARITY: update clarity (max of existing and incoming)
+                de["clarity"] = max(de.get("clarity", 0.3),
+                                    entry.get("clarity", 0.3))
+                # GL-CLARITY: update co_occurrence invariant on re-promotion
+                if working_atlas:
+                    self._update_invariant(de, chi_k, working_atlas)
                 return True
 
         # New deep entry — carry response links on promotion (GL-BRIEF-028 Amendment A)
@@ -78,12 +86,21 @@ class DeepAtlas:
             "dwell_at_write": entry.get("dwell_ticks", 0),
             "source_path": source_path,
             "promoted_at_tick": tick,
+            # GL-CLARITY-INVARIANCE-UNCAGE: inherit from working atlas entry
+            "clarity": entry.get("clarity", 0.3),
+            "initial_clarity": entry.get("initial_clarity", 0.3),
+            "sensory_refs": list(entry.get("sensory_refs", [])),
+            "episode_refs": list(entry.get("episode_refs", [])),
+            "co_occurrence": {},  # section_name -> {motif_id: weight}
         }
         # Copy response link fields if present — Q&A pairs survive as pairs
         if entry.get("response_context"):
             deep_entry["response_context"] = list(entry["response_context"])
         if entry.get("received_response"):
             deep_entry["received_response"] = list(entry["received_response"])
+        # GL-CLARITY: initialize co_occurrence from current atlas neighborhood
+        if working_atlas:
+            self._update_invariant(deep_entry, chi_k, working_atlas)
         self.entries[chi_k].append(deep_entry)
 
         if source_path == "survival":
@@ -91,6 +108,30 @@ class DeepAtlas:
         elif source_path == "episodic":
             self.promotions_episodic += 1
         return True
+
+    def _update_invariant(self, deep_entry, chi_k, working_atlas):
+        """Update co_occurrence invariant dict using 0.92/0.08 averaging.
+        Scans working atlas neighborhood for co-active bindings."""
+        co = deep_entry.get("co_occurrence", {})
+        band = getattr(working_atlas, 'band', 2)
+        for d in range(-band, band + 1):
+            for e in working_atlas.entries.get(chi_k + d, []):
+                if e["strength"] < 0.05:
+                    continue
+                sec = e.get("section", "")
+                mid = str(e.get("motif", 0))
+                sec_dict = co.get(sec, {})
+                old_w = sec_dict.get(mid, 0.0)
+                sec_dict[mid] = old_w * 0.92 + e["strength"] * 0.08
+                co[sec] = sec_dict
+        deep_entry["co_occurrence"] = co
+
+    def get_invariant(self, chi_value, section_name, motif_id):
+        """Retrieve co_occurrence invariant for a cortex entry."""
+        for de in self.entries.get(chi_value, []):
+            if de["section"] == section_name and de["motif"] == motif_id:
+                return de.get("co_occurrence", {})
+        return {}
 
     def decay(self, current_tick):
         """Near-zero decay (1/25th of working)."""
@@ -162,7 +203,8 @@ class DeepAtlas:
                     recent = history[-SURVIVAL_CONSECUTIVE:]
                     if (len(recent) >= SURVIVAL_CONSECUTIVE
                             and all(s >= SURVIVAL_THETA for s in recent)):
-                        self.promote(e, "survival", tick)
+                        self.promote(e, "survival", tick,
+                                     working_atlas=working_atlas)
                         promoted.append(("survival", chi_k,
                                          e.get("section"), e.get("motif")))
                         continue  # don't double-promote
@@ -171,7 +213,8 @@ class DeepAtlas:
                 enc_str = e.get("encoded_strength")
                 dwell = e.get("dwell_ticks", 0)
                 if enc_str is not None and enc_str >= ENCODE_GATE and dwell >= DWELL_GATE:
-                    self.promote(e, "episodic", tick)
+                    self.promote(e, "episodic", tick,
+                                 working_atlas=working_atlas)
                     promoted.append(("episodic", chi_k,
                                      e.get("section"), e.get("motif")))
                 else:

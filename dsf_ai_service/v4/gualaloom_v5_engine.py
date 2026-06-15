@@ -244,12 +244,14 @@ class Section:
         self.tick = 0
 
     def receive(self, dsf, chi, word_label, atlas, familiarity, salience=1.0,
-                dwell_ticks=1, deep_atlas=None, engine_tick=None):
+                dwell_ticks=1, deep_atlas=None, engine_tick=None,
+                atlas_kwargs=None):
         """v6: word-anchored mode identity + salience-modulated binding.
         v8 (GL-BRIEF-032): dwell_ticks tagged at write time for deep gate.
         deep_atlas: if provided, on-attention prior applied for matching entries.
         engine_tick: MUST be passed — atlas entries use engine clock, not section clock.
-        GL-FIND-TICK-DOMAIN-C1: section.tick stays for internal counting only."""
+        GL-FIND-TICK-DOMAIN-C1: section.tick stays for internal counting only.
+        atlas_kwargs: GL-CLARITY-INVARIANCE-UNCAGE affect+grounding kwargs for record()."""
         self.tick += 1
         # Atlas records use engine tick (one clock — GL-FIND-TICK-DOMAIN-C1)
         if engine_tick is None:
@@ -271,7 +273,8 @@ class Section:
                         reinst_str = deep_atlas.reinstate(chi, self.name, motif, atlas_tick)
                         if reinst_str > 0:
                             atlas.record(self.name, motif, chi, atlas_tick,
-                                         salience=0.3, dwell_ticks=0)
+                                         salience=0.3, dwell_ticks=0,
+                                         **(atlas_kwargs or {}))
 
         # Find nearest existing mode (by DSF vector similarity)
         nearest = None
@@ -321,7 +324,7 @@ class Section:
 
         if committed:
             atlas.record(self.name, mode_idx, chi, atlas_tick, salience=salience,
-                         dwell_ticks=dwell_ticks)
+                         dwell_ticks=dwell_ticks, **(atlas_kwargs or {}))
             self.commits.append({
                 "tick": atlas_tick,
                 "mode": mode_idx,
@@ -376,6 +379,22 @@ class Needs:
         self.stability = 0.65
         self.novelty = 0.45
         self.connection = 0.50
+        # GL-CLARITY-INVARIANCE-UNCAGE
+        self.arousal_direction = 0.0  # +1 rising, -1 falling
+        self.frustration = 0.0       # accumulates when needs unmet
+
+    def register_activity_start(self):
+        """Snapshot arousal direction at activity start."""
+        self.arousal_direction = 1.0 if self.arousal() > 0.5 else -1.0
+
+    def register_activity_end(self):
+        self.arousal_direction = 0.0
+
+    def need_pressure(self):
+        """Scalar measure of how far needs are from satisfied. [0, 1]."""
+        return min(1.0, (abs(self.stability - self.TARGETS["stability"])
+                         + abs(self.novelty - self.TARGETS["novelty"])
+                         + abs(self.connection - self.TARGETS["connection"])) / 1.5)
 
     def tick_drift(self):
         """v7: Needs drift AWAY from target toward unsatisfied (low).
@@ -884,6 +903,11 @@ class Guala:
         self.decay_modulation = 1.0
         self._decay_mod_owner = None
 
+        # GL-CLARITY-INVARIANCE-UNCAGE
+        self._current_episode = None     # (episode_id, started_tick)
+        self._last_surprise = 0.0
+        self._current_binding_window = []  # sensory_refs accumulated this tick
+
         # v7: Autonomy state + sleep/wake (GL-BRIEF-SLEEP-DURING-DEPLOY)
         self._current_activity = None
         self._activity_history = []
@@ -920,6 +944,27 @@ class Guala:
         salience = source_w * urgency_factor * novelty_factor * pair_bond_boost
         return max(SALIENCE_MIN, min(SALIENCE_MAX, salience))
 
+    def _compute_surprise(self, chi_value):
+        """GL-CLARITY-INVARIANCE-UNCAGE: surprise = inverse of atlas familiarity
+        at this chi neighborhood. Novel chi addresses → high surprise."""
+        neighbors = self.atlas.bindings_at_chi_neighborhood(
+            chi_value, min_strength=0.05)
+        if not neighbors:
+            return 1.0
+        avg_str = sum(e["strength"] for e in neighbors) / len(neighbors)
+        return max(0.0, 1.0 - avg_str * 2.0)
+
+    def _affect_kwargs(self, surprise=None):
+        """GL-CLARITY-INVARIANCE-UNCAGE: build affect kwargs dict for atlas.record."""
+        return {
+            "arousal": self.needs.arousal(),
+            "valence": self.needs.valence(),
+            "surprise": surprise if surprise is not None else self._last_surprise,
+            "need_pressure": self.needs.need_pressure(),
+            "sensory_refs": list(self._current_binding_window),
+            "episode_ref": self._current_episode[0] if self._current_episode else None,
+        }
+
     # ------------------------------------------------------------------
     # Read one word: fire all krimelacks, compute DSF, route to sections
     # ------------------------------------------------------------------
@@ -928,6 +973,8 @@ class Guala:
         with self.lock:
             self.tick += 1
             self.vocab.add(word)
+            # GL-CLARITY-INVARIANCE-UNCAGE: track binding context per word
+            self._current_binding_window.append(f"w:{word}")
 
             lang_fp, role, senses = self.language.transduce(word)
             sense_fps = self.senses.fire_for_word(senses)
@@ -944,6 +991,10 @@ class Guala:
 
             primary_sections = self._choose_role_sections(role, position_hint)
 
+            # GL-CLARITY-INVARIANCE-UNCAGE: compute surprise for this word
+            surprise = self._compute_surprise(lang_chi)
+            self._last_surprise = surprise
+
             # v8 (GL-BRIEF-032): dwell_ticks by source
             # Interactive sources (joe, wc, c1) = attended, higher dwell
             # Self-heard speech (guala) = dwell=4 (can earn slow channel + Path B)
@@ -955,13 +1006,17 @@ class Guala:
             else:
                 dwell = 1
 
+            # GL-CLARITY-INVARIANCE-UNCAGE: affect kwargs for all record() calls
+            _akw = self._affect_kwargs(surprise)
+
             fam_listen = self.atlas.match_score(lang_chi, "listen")
             self.sections["listen"].receive(lang_dsf, lang_chi, word,
                                             self.atlas, fam_listen,
                                             salience=salience,
                                             dwell_ticks=dwell,
                                             deep_atlas=self.deep_atlas,
-                                            engine_tick=self.tick)
+                                            engine_tick=self.tick,
+                                            atlas_kwargs=_akw)
 
             for primary_section in primary_sections:
                 fam = self.atlas.match_score(lang_chi, primary_section)
@@ -970,7 +1025,8 @@ class Guala:
                                                        salience=salience,
                                                        dwell_ticks=dwell,
                                                        deep_atlas=self.deep_atlas,
-                                                       engine_tick=self.tick)
+                                                       engine_tick=self.tick,
+                                                       atlas_kwargs=_akw)
 
             if senses:
                 combined_events = list(self.language.events)
@@ -995,7 +1051,8 @@ class Guala:
                         sec_name = f"modal_{m}"
                         self.atlas.record(sec_name, deterministic_motif_id(word),
                                           modal_chi, self.tick,
-                                          salience=salience)
+                                          salience=salience,
+                                          **self._affect_kwargs(surprise))
 
             if fam_listen > 0.3:
                 intro_dsf = DSF(D_k=fam_listen, M_k=0, R_rev=0, U_star=1-fam_listen,
@@ -1072,6 +1129,12 @@ class Guala:
             if source in {"joe", "wc", "c1"}:
                 self.coordinator.update_last_input(source, self.tick)
 
+            # GL-CLARITY-INVARIANCE-UNCAGE: episode tracking per sentence
+            import hashlib as _hl
+            ep_id = _hl.md5(f"{source}:{text[:50]}:{self.tick}".encode()).hexdigest()[:8]
+            self._current_episode = (ep_id, self.tick)
+            self._current_binding_window = []
+
             for i, word in enumerate(words):
                 if len(words) == 1:
                     hint = "standalone"
@@ -1083,6 +1146,7 @@ class Guala:
                     hint = "middle"
                 self.read_word(word, position_hint=hint, source=source)
             self.read_count += 1
+            self._current_episode = None
 
     # ------------------------------------------------------------------
     # Conversation: input -> substrate -> output via cascade
@@ -1151,17 +1215,17 @@ class Guala:
                                     log_event=(_bind_count == 0))
                                 _bind_count += 1
 
-            # 5. Choose response
+            # 5. Choose response — GL-CLARITY-INVARIANCE-UNCAGE
             if recalled:
                 reply = recalled
             else:
-                # 6. No recall — check question bucket for a related question
-                q = self.bucket.find_for_chis(input_chis, input_words=words)
-                if q:
-                    self.bucket.voice(q)
-                    reply = q["template"]
-                else:
-                    # 7. Final fallback: honest silence
+                # 6. Emit from cortex invariants (variable-length, slot-free)
+                reply = self._emit_from_invariants(input_chis, input_words)
+                if not reply:
+                    # 7. Unslotted fallback: strongest bindings near input chi
+                    reply = self._emit_unslotted(input_chis, input_words)
+                if not reply:
+                    # 8. Honest silence
                     reply = "..."
 
             # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
@@ -1169,6 +1233,85 @@ class Guala:
                 self._self_hear(reply, source)
 
             return reply
+
+    def _emit_from_invariants(self, input_chis, input_words):
+        """GL-CLARITY-INVARIANCE-UNCAGE: compose emission from cortex
+        co_occurrence invariants. Variable-length, slot-free."""
+        input_words_set = set(w.lower() for w in input_words)
+        candidates = []
+        for chi in input_chis:
+            for d in range(-self.atlas.band, self.atlas.band + 1):
+                for de in self.deep_atlas.entries.get(chi + d, []):
+                    co = de.get("co_occurrence", {})
+                    if not co:
+                        continue
+                    clarity = de.get("clarity", 0.3)
+                    candidates.append((de, co, clarity))
+        if not candidates:
+            return None
+        # Sort by clarity (highest first)
+        candidates.sort(key=lambda x: x[2], reverse=True)
+        # Collect words from invariant co_occurrence maps
+        emitted = []
+        seen_words = set()
+        for de, co, clarity in candidates[:5]:
+            for sec_name in ("listen", "subject", "verb", "object",
+                             "ground", "intro"):
+                sec_co = co.get(sec_name, {})
+                if not sec_co:
+                    continue
+                # Pick strongest co-occurring motif
+                best_mid = max(sec_co, key=sec_co.get)
+                best_w = float(sec_co[best_mid])
+                if best_w < 0.01:
+                    continue
+                mid = int(best_mid)
+                sec = self.sections.get(sec_name)
+                if sec is None or mid >= len(sec.modes):
+                    continue
+                _, _, word_label = sec.modes[mid]
+                if (word_label and word_label.lower() not in input_words_set
+                        and word_label.lower() not in seen_words):
+                    emitted.append(word_label)
+                    seen_words.add(word_label.lower())
+            if len(emitted) >= 6:
+                break
+        if not emitted:
+            return None
+        return " ".join(emitted)
+
+    def _emit_unslotted(self, input_chis, input_words):
+        """GL-CLARITY-INVARIANCE-UNCAGE: fallback emission from strongest
+        working atlas bindings near input chi. Variable-length, no SVO slots."""
+        input_words_set = set(w.lower() for w in input_words)
+        all_bindings = []
+        for chi in input_chis:
+            bindings = self.atlas.bindings_at_chi_neighborhood(
+                chi, min_strength=0.1, min_clarity=0.1)
+            all_bindings.extend(bindings)
+        if not all_bindings:
+            return None
+        # Sort by strength * clarity
+        all_bindings.sort(
+            key=lambda e: e["strength"] * e.get("clarity", 0.3), reverse=True)
+        emitted = []
+        seen = set()
+        for e in all_bindings:
+            sec_name = e.get("section", "")
+            mid = e.get("motif", 0)
+            sec = self.sections.get(sec_name)
+            if sec is None or mid >= len(sec.modes):
+                continue
+            _, _, word_label = sec.modes[mid]
+            if (word_label and word_label.lower() not in input_words_set
+                    and word_label.lower() not in seen):
+                emitted.append(word_label)
+                seen.add(word_label.lower())
+            if len(emitted) >= 4:
+                break
+        if not emitted:
+            return None
+        return " ".join(emitted)
 
     def _recall_response(self, input_chis, input_word_chis, input_words):
         """Atlas-driven recall across ALL sections including sight.
@@ -1808,7 +1951,8 @@ class Guala:
                         # Consolidation: reinforce this binding (LTP-on-replay)
                         # Same path as waking re-encounter, dream salience 0.3
                         self.atlas.record(sec_name, mid, chi_k, self.tick,
-                                          salience=0.3)
+                                          salience=0.3, arousal=0.2,
+                                          valence=0.0, surprise=0.0)
                         reinforced_addresses.append(chi_k)
                         reinforcement_count += 1
                         if sec_name in self.sections:
@@ -1912,7 +2056,9 @@ class Guala:
                 # Record in atlas for cross-modal binding
                 chi_val = motif.motif_id % 100  # simplified chi address
                 self.atlas.record("sight", motif.motif_id, chi_val,
-                                 self.tick, salience=1.2)
+                                 self.tick, salience=1.2,
+                                 sensory_refs=[f"pic:{pic.item_id}"],
+                                 **self._affect_kwargs())
                 self._log_substrate_event(
                     "visual_motif_committed" if is_new else "visual_motif_fired",
                     motif_id=motif.motif_id, overlap=round(overlap, 3),
@@ -1949,7 +2095,9 @@ class Guala:
         for band_name, c in cochlear.items():
             chi = c.get("winding", 0) % 100  # 1.1
             self.atlas.record(f"audio_{band_name}", deterministic_motif_id(a.target),
-                              chi, self.tick, salience=1.2, dwell_ticks=8)
+                              chi, self.tick, salience=1.2, dwell_ticks=8,
+                              sensory_refs=[f"snd:{a.target}"],
+                              **self._affect_kwargs())
         # Novelty satisfies
         if snd.get("times_attended", 0) <= 3:
             self.needs.novelty = min(1.0, self.needs.novelty + 0.01)
@@ -1987,7 +2135,9 @@ class Guala:
                 if motif:
                     chi_val = motif.motif_id % 100
                     self.atlas.record("sight", motif.motif_id, chi_val,
-                                     self.tick, salience=1.2)
+                                     self.tick, salience=1.2,
+                                     sensory_refs=[f"vid:{vid.item_id}"],
+                                     **self._affect_kwargs())
                     self._log_substrate_event(
                         "video_motif_committed" if is_new else "video_motif_fired",
                         motif_id=motif.motif_id, overlap=round(overlap, 3),

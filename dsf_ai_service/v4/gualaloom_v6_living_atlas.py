@@ -85,9 +85,14 @@ class LivingAtlas:
         self.entries = defaultdict(list)
 
     def record(self, section_name, motif_id, chi_value, tick=None, salience=1.0,
-               dwell_ticks=0):
+               dwell_ticks=0, arousal=0.5, valence=0.0, surprise=0.0,
+               need_pressure=0.0, sensory_refs=None, episode_ref=None):
         """Record a new binding OR reinforce existing one if (section, motif)
         already present near this chi. Salience modulates the strength impulse.
+
+        GL-CLARITY-INVARIANCE-UNCAGE: affect kwargs (arousal, valence, surprise,
+        need_pressure) set initial clarity. Grounding kwargs (sensory_refs,
+        episode_ref) track what was happening when the binding formed.
 
         Salience interpretation:
           1.0 = baseline (corpus read, no pair-bond, satisfied needs)
@@ -105,6 +110,10 @@ class LivingAtlas:
         # Clamp salience to defined range
         salience = max(SALIENCE_MIN, min(SALIENCE_MAX, salience))
         impulse = BASE_REINFORCEMENT * salience
+
+        # GL-CLARITY-INVARIANCE-UNCAGE: clarity from affect state
+        clarity = min(1.0, 0.3 + 0.3 * arousal + 0.2 * abs(valence)
+                      + 0.2 * surprise + 0.1 * need_pressure)
 
         # For each chi within band, find or create the entry
         for d in range(-self.band, self.band + 1):
@@ -129,6 +138,18 @@ class LivingAtlas:
                     existing["dwell_ticks"] = dwell_ticks
                 # Metaplastic: increment reinforcement count (GL-BRIEF-033)
                 existing["reinforcement_count"] = existing.get("reinforcement_count", 0) + 1
+                # GL-CLARITY: renew clarity on reinforcement (max, not average)
+                existing["clarity"] = max(existing.get("clarity", 0.3), clarity)
+                # GL-CLARITY: accumulate sensory refs
+                if sensory_refs:
+                    refs = existing.get("sensory_refs", [])
+                    for r in sensory_refs:
+                        if r not in refs:
+                            refs.append(r)
+                    existing["sensory_refs"] = refs[-8:]  # cap at 8
+                if episode_ref and episode_ref != existing.get("episode_ref"):
+                    existing["episode_refs"] = (existing.get("episode_refs", [])
+                                                + [episode_ref])[-4:]
             else:
                 # New binding — tag encoded_strength and dwell at write time
                 new_strength = min(STRENGTH_CAP, impulse)
@@ -143,6 +164,10 @@ class LivingAtlas:
                     "dwell_ticks": dwell_ticks,
                     "reinforcement_count": 0,
                     "released": False,
+                    "clarity": clarity,
+                    "initial_clarity": clarity,
+                    "sensory_refs": list(sensory_refs) if sensory_refs else [],
+                    "episode_refs": [episode_ref] if episode_ref else [],
                 })
 
     def decay(self, current_tick=None, rate_scale=1.0):
@@ -181,6 +206,28 @@ class LivingAtlas:
                     lam_eff *= rate_scale  # Fix C: external modulation
                     e["strength"] *= math.exp(-lam_eff * dt)
                     e["last_tick"] = current_tick
+                    # GL-CLARITY: slow clarity entropy (separate clock, ~10x slower)
+                    if "clarity" in e and dt > 0 and rate_scale > 0:
+                        clarity_lam = lam_eff * 0.1  # 10x slower than strength
+                        e["clarity"] = max(0.05, e["clarity"] * math.exp(-clarity_lam * dt))
+
+    def renew_clarity(self, chi_value, section_name, motif_id, new_clarity):
+        """Renew clarity on a specific binding (e.g. on cortex reinstatement)."""
+        for d in range(-self.band, self.band + 1):
+            for e in self.entries.get(chi_value + d, []):
+                if e["section"] == section_name and e["motif"] == motif_id:
+                    e["clarity"] = max(e.get("clarity", 0.05), new_clarity)
+
+    def bindings_at_chi_neighborhood(self, chi_value, min_strength=0.0,
+                                      min_clarity=0.0):
+        """Return all bindings near a chi value, filtered by strength and clarity."""
+        result = []
+        for d in range(-self.band, self.band + 1):
+            for e in self.entries.get(chi_value + d, []):
+                if (e["strength"] >= min_strength
+                        and e.get("clarity", 0.3) >= min_clarity):
+                    result.append(e)
+        return result
 
     def amnesty(self, current_tick):
         """UNPAUSE: reset last_tick on every entry to current_tick.
