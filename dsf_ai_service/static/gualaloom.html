@@ -48,7 +48,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 #mic-btn:hover,#snap-btn:hover{border-color:var(--accent);color:var(--text)}
 #mic-btn.recording{border-color:var(--nmda-block);color:var(--nmda-block);animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
-#live-transcript{font-size:9px;color:var(--text-muted);padding:0 14px;min-height:14px;overflow:hidden}
+#live-transcript{font-size:11px;color:var(--ev-emission);padding:2px 14px;min-height:16px;overflow:hidden;font-style:italic}
 #state-panel{width:280px;border-left:1px solid var(--border);background:var(--bg-alt);overflow-y:auto;padding:8px;font-size:9px}
 .ps{margin-bottom:8px}
 .ps-title{font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;padding-bottom:2px;border-bottom:1px solid var(--border)}
@@ -110,7 +110,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
   </div>
   <div id="input-row">
     <input id="msg" type="text" placeholder="say something..." autocomplete="off">
-    <button id="mic-btn" style="display:none" onclick="toggleSTT()">&#x1f399; mic off</button>
+    <button id="mic-btn" style="display:none;padding:6px 14px;font-size:12px" onclick="toggleSTT()">&#x1f399; mic off</button>
     <button onclick="sendMsg()">send</button>
   </div>
 </div>
@@ -283,6 +283,12 @@ async function requestCam(){
 function unlockAudio(){
   if(audioUnlocked)return;audioUnlocked=true;
   voiceEl.play().catch(()=>{});
+  // Warm up speechSynthesis with a silent utterance (required by Chrome)
+  try{
+    const warmup=new SpeechSynthesisUtterance('');
+    warmup.volume=0;
+    window.speechSynthesis.speak(warmup);
+  }catch(e){}
   document.getElementById('speaker-badge').innerHTML='\ud83d\udd0a Audio ready';
 }
 document.addEventListener('click',unlockAudio,{once:true});
@@ -322,7 +328,7 @@ function toggleSTT(){
     // Turn off
     sttWanted=false;sttActive=false;
     if(recognition){try{recognition.abort()}catch(e){}}
-    btn.classList.remove('recording');btn.textContent='\ud83c\udf99 mic off';
+    btn.classList.remove('recording');btn.textContent='\ud83c\udf99 mic off';btn.style.background='none';btn.style.color='var(--text-muted)';
     liveT.textContent='';
     return;
   }
@@ -330,7 +336,7 @@ function toggleSTT(){
     addMsg('Speech recognition not supported in this browser','system');return;
   }
   sttWanted=true;
-  btn.textContent='\ud83c\udf99 listening...';
+  btn.textContent='\ud83c\udf99 LISTENING';btn.style.background='#3fb950';btn.style.color='#0d1117';
   startContinuousSTT();
 }
 function startContinuousSTT(){
