@@ -458,9 +458,13 @@ function addResponseBlock(result){
   up.onclick=()=>sendFeedback(true,up,dn);dn.onclick=()=>sendFeedback(false,up,dn);
   meta.appendChild(up);meta.appendChild(dn);block.appendChild(meta);
   transcript.appendChild(block);transcript.scrollTop=transcript.scrollHeight;
-  // Voice playback
+  // Voice playback — try espeak WAV first, fall back to browser speechSynthesis
   if(result.self_voice_audio_b64&&audioUnlocked&&!muted){
     voiceEl.src='data:audio/wav;base64,'+result.self_voice_audio_b64;voiceEl.play().catch(()=>{});
+  }else{
+    // Phase C: speak v7 token text via browser TTS
+    const tokText=(result.response_tokens||[]).map(t=>t.token).join(' ');
+    if(tokText)gualaSpeak(tokText);
   }
 }
 
