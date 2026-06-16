@@ -700,6 +700,13 @@ def handle_force_dream(args):
             dream_events = [e for e in events if e.get("kind") in
                            ("dream_began", "dream_artifact", "dream_promotion",
                             "deep_atlas_promotion")]
+            # Write dream gate marker so next boot allows decay
+            gate_path = os.path.join(STATE_DIR, "dream_gate_cleared.json")
+            with open(gate_path, "w") as f:
+                json.dump({"cleared_at_tick": _guala.tick,
+                           "dream_events": len(dream_events)}, f)
+                f.flush(); os.fsync(f.fileno())
+            print(f"[UNPAUSE] Dream gate marker written: {gate_path}")
             return {"force_dream": "complete", "tick": _guala.tick,
                     "dream_events": dream_events[-10:],
                     "n_events": len(dream_events)}
