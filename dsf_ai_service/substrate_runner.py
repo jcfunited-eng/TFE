@@ -263,7 +263,8 @@ def handle_gualaloom_post(args):
     elif command.startswith("/bundle:"):
         return _cmd_bundle(command, text)
     else:
-        return _cmd_converse(text, source)
+        emission_mode = args.get("emission_mode")
+        return _cmd_converse(text, source, emission_mode=emission_mode)
 
 
 def _cmd_status():
@@ -638,13 +639,13 @@ def _cmd_bundle(command, text):
     }
 
 
-def _cmd_converse(text, source):
+def _cmd_converse(text, source, emission_mode=None):
     text = text.strip()
     if not text:
         return {"response": "...", "motifs": _guala.introspect()["vocab"]}
     if source not in {"joe", "wc", "c1"}:
         source = "joe"
-    response = _guala.converse(text, source=source)
+    response = _guala.converse(text, source=source, emission_mode=emission_mode)
     _guala.log_event(STATE_DIR, "source_interaction",
                      source=source, words_in=len(text.split()),
                      source_count=_guala.source_history.get(source, 0))

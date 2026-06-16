@@ -2718,6 +2718,7 @@ import uuid as _uuid
 class V7ConverseRequest(BaseModel):
     text: str
     session_id: Optional[str] = None
+    emission_mode: Optional[str] = None  # "topk" | "grandurun"
 
 class V7FeedbackRequest(BaseModel):
     session_id: str
@@ -2738,7 +2739,8 @@ async def v7_converse(req: V7ConverseRequest):
         client = _get_substrate_client()
         sid = req.session_id or str(_uuid.uuid4())[:8]
         result = await client.call("v7_converse",
-                                   session_id=sid, text=req.text)
+                                   session_id=sid, text=req.text,
+                                   emission_mode=req.emission_mode)
         result["session_id"] = sid
         return result
     if _guala is None:

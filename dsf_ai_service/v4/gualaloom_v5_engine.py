@@ -48,6 +48,41 @@ def saturate(current, gain):
     GL-BRIEF-NEEDS-PHYSICS: prevents needs from pinning at ceiling."""
     return max(0.0, min(1.0, current + gain * (1.0 - current)))
 
+
+import cmath
+
+
+def _grandurun_amplitude(chi_address, strength, target_chi):
+    """Complex amplitude for a candidate binding.
+    Phase from chi-distance: φ = π · |chi_a - chi_b| / CHI_CORR_LENGTH.
+    Chi addresses are integers; distance is linear."""
+    d = abs(chi_address - target_chi)
+    phi = math.pi * d / CHI_CORR_LENGTH
+    return math.sqrt(max(strength, 0.0)) * cmath.exp(1j * phi)
+
+
+def _grandurun_select(candidates, target_chi):
+    """Greedy coherent-integration selection.
+    candidates: list of (chi_address, strength, word)
+    Returns: list of selected words in chosen order."""
+    chosen_amps = []
+    chosen_words = []
+    last_coh = 0.0
+    pool = sorted(candidates, key=lambda c: -c[1])
+    for chi_addr, strength, word in pool:
+        amp = _grandurun_amplitude(chi_addr, strength, target_chi)
+        new_sum = sum(chosen_amps, 0j) + amp
+        new_coh = abs(new_sum) ** 2
+        gain = new_coh - last_coh
+        if gain > MIN_GAIN_THRESHOLD:
+            chosen_words.append(word)
+            chosen_amps.append(amp)
+            last_coh = new_coh
+        if len(chosen_words) >= MAX_COMPOSITION_LEN:
+            break
+    return chosen_words, last_coh
+
+
 try:
     from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack, SensoryBank, SENSORY_DNA, ROLE_DNA
     from dsf_ai_service.v4.gualaloom_v4_uf_kernel import DSF, compute_dsf
@@ -109,6 +144,12 @@ def _normalize_text(text):
 
 NEEDS_DRIFT_RATE = 0.0001   # per tick — needs fall from 1.0 to 0 in ~10K ticks
 NEEDS_TARGET_V7 = 0.7       # target for all three needs (autonomy model)
+
+# Grandurun tuning constants (GL-BRIEF-GRANDURUN-IMPLEMENTATION-20260616-01)
+CHI_CORR_LENGTH = 50.0        # phase correlation length; tune empirically
+MIN_GAIN_THRESHOLD = 0.0      # minimum coherent-sum gain to add candidate; 0 = any positive gain
+MAX_COMPOSITION_LEN = 30      # safety cap; expect typical compositions in 5-15 range
+GRANDURUN_POOL_K = 50         # per-section candidate count for wider retrieval
 
 ACTIVITY_TICK_BUDGETS = {
     "READING": 2000, "PLAYING": 1500, "SLEEPING": 5000, "DREAMING": 3000,
@@ -1163,7 +1204,7 @@ class Guala:
     # ------------------------------------------------------------------
     # Conversation: input -> substrate -> output via cascade
     # ------------------------------------------------------------------
-    def converse(self, text, source="unknown"):
+    def converse(self, text, source="unknown", emission_mode=None):
         """v5: Recall from substrate atlas BEFORE reading input.
         - If atlas has cross-section bindings near the input chi values, emit
           those (real recall from corpus accumulation).
@@ -1238,7 +1279,8 @@ class Guala:
                 pass  # pictures set on self._last_recalled_pictures
             # 6. Emit from cortex invariants (variable-length, slot-free)
             if not reply:
-                reply = self._emit_from_invariants(input_chis, words)
+                reply = self._emit_from_invariants(input_chis, words,
+                                                    mode_override=emission_mode)
             if not reply:
                 # 7. Unslotted fallback: strongest bindings near input chi
                 reply = self._emit_unslotted(input_chis, words)
@@ -1252,11 +1294,14 @@ class Guala:
 
             return reply
 
-    def _emit_from_invariants(self, input_chis, input_words):
-        """GL-CLARITY-INVARIANCE-UNCAGE: compose emission from cortex
-        co_occurrence invariants. Variable-length, slot-free."""
+    def _emit_from_invariants(self, input_chis, input_words, mode_override=None):
+        """Compose emission from cortex co_occurrence invariants.
+        GL-BRIEF-GRANDURUN: branches on EMISSION_MODE (topk or grandurun)."""
+        mode = mode_override or os.environ.get("EMISSION_MODE", "topk")
         input_words_set = set(w.lower() for w in input_words)
-        candidates = []
+
+        # Gather deep-atlas candidates (shared by both paths)
+        deep_candidates = []
         for chi in input_chis:
             for d in range(-self.atlas.band, self.atlas.band + 1):
                 for de in self.deep_atlas.entries.get(chi + d, []):
@@ -1264,16 +1309,19 @@ class Guala:
                     if not co:
                         continue
                     clarity = de.get("clarity", 0.3)
-                    candidates.append((de, co, clarity))
-        if not candidates:
+                    deep_candidates.append((de, co, clarity))
+        if not deep_candidates:
             return None
-        # Sort by clarity (highest first)
-        candidates.sort(key=lambda x: x[2], reverse=True)
-        # Collect words from invariant co_occurrence maps
+
+        if mode == "grandurun":
+            return self._emit_grandurun(input_chis, input_words_set,
+                                        deep_candidates)
+
+        # topk path (existing behavior, unchanged)
+        deep_candidates.sort(key=lambda x: x[2], reverse=True)
         emitted = []
         seen_words = set()
-        for de, co, clarity in candidates[:5]:
-            # Phase D: strength-ordered iteration (no SVO bias)
+        for de, co, clarity in deep_candidates[:5]:
             ordered_sections = sorted(
                 [s for s in co.keys() if co.get(s)],
                 key=lambda s: max(co[s].values()) if co[s] else 0.0,
@@ -1283,7 +1331,6 @@ class Guala:
                 sec_co = co[sec_name]
                 if not sec_co:
                     continue
-                # Pick strongest co-occurring motif
                 best_mid = max(sec_co, key=sec_co.get)
                 best_w = float(sec_co[best_mid])
                 if best_w < 0.01:
@@ -1302,6 +1349,52 @@ class Guala:
         if not emitted:
             return None
         return " ".join(emitted)
+
+    def _emit_grandurun(self, input_chis, input_words_set, deep_candidates):
+        """Grandurun: coherent integration over expanded candidate pool.
+        GL-BRIEF-GRANDURUN-IMPLEMENTATION-20260616-01."""
+        # Build wider pool: top GRANDURUN_POOL_K per section across all
+        # deep-atlas co_occurrence maps
+        pool = []  # (chi_address, strength, word)
+        seen_words = set()
+        for de, co, clarity in deep_candidates:
+            de_chi = de.get("chi", 0)
+            for sec_name in co:
+                sec_co = co[sec_name]
+                if not sec_co:
+                    continue
+                top_in_sec = sorted(sec_co.items(),
+                                    key=lambda x: float(x[1]),
+                                    reverse=True)[:GRANDURUN_POOL_K]
+                for mid_str, strength in top_in_sec:
+                    mid = int(mid_str)
+                    sec = self.sections.get(sec_name)
+                    if sec is None or mid >= len(sec.modes):
+                        continue
+                    _, _, word_label = sec.modes[mid]
+                    if (not word_label
+                            or word_label.lower() in input_words_set
+                            or word_label.lower() in seen_words):
+                        continue
+                    pool.append((de_chi, float(strength), word_label))
+                    seen_words.add(word_label.lower())
+
+        if not pool:
+            return None
+
+        target_chi = input_chis[0] if input_chis else 0
+        selected, coherent_sum = _grandurun_select(pool, target_chi)
+
+        if not selected:
+            return None
+
+        self._log_substrate_event("grandurun_emission",
+                                  pool_size=len(pool),
+                                  composition_len=len(selected),
+                                  coherent_sum=round(coherent_sum, 4),
+                                  target_chi=target_chi,
+                                  input_chis=input_chis[:5])
+        return " ".join(selected)
 
     def _emit_unslotted(self, input_chis, input_words):
         """GL-CLARITY-INVARIANCE-UNCAGE: fallback emission from strongest
