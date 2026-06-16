@@ -410,12 +410,17 @@ class Needs:
 
     def step(self, signals):
         """Additive nudge from substrate signals (coordinator regulation).
-        v7: no longer decays toward target — tick_drift handles drive."""
+        v7: no longer decays toward target — tick_drift handles drive.
+        GL-INVESTIGATE-NEEDS-PINNED: positive nudges use saturate() so
+        coordinator can't re-pin needs at 1.000 ceiling."""
         for k in self.TARGETS:
             current = getattr(self, k)
             signal = signals.get(k, 0.0)
             nudge = signal * self.DECAY[k]
-            new = max(0.0, min(1.0, current + nudge))
+            if nudge > 0:
+                new = saturate(current, nudge)
+            else:
+                new = max(0.0, current + nudge)
             setattr(self, k, new)
 
     def valence(self):
