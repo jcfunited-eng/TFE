@@ -731,7 +731,12 @@ def handle_unpause(args):
     if _guala:
         _guala._log_substrate_event("decay_unpaused", tick=tick,
                                      reason="admin_unpause")
-    print(f"[UNPAUSE] Decay unpaused at tick {tick} (persisted)")
+    # Write dream gate marker so next restart allows decay
+    gate_path = os.path.join(STATE_DIR, "dream_gate_cleared.json")
+    with open(gate_path, "w") as f:
+        json.dump({"cleared_at_tick": tick, "via": "unpause"}, f)
+        f.flush(); os.fsync(f.fileno())
+    print(f"[UNPAUSE] Decay unpaused at tick {tick} (persisted, gate marker written)")
     return {"unpaused": True, "tick": tick, "persisted": True}
 
 
