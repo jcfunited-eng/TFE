@@ -634,9 +634,14 @@ msgInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
 async function pollStatus(){
   if(_inflight.status)return;_inflight.status=true;
   try{
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:'',command:'/status'})},8000);
-    const d=await r.json();
+    let d;
+    for(let attempt=0;attempt<2;attempt++){
+      const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({text:'',command:'/status'})},8000);
+      d=await r.json();
+      if(d.vocab||d.n_motifs)break; // got real status data
+      if(attempt===0)await new Promise(r=>setTimeout(r,500)); // brief pause before retry
+    }
     if(d.response&&d.response.startsWith('initializing')){_backoff.status=0;return}
     // Item 5: only update fields that came back non-null/non-zero
     const vocab=d.vocab||d.motifs;
