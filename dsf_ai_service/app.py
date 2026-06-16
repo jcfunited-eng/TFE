@@ -2557,6 +2557,21 @@ async def gualaloom_upload_sound(file: UploadFile = File(...)):
 @app.post("/api/v1/gualaloom/upload/video")
 async def gualaloom_upload_video(file: UploadFile = File(...)):
     """Upload a video for visual perception. C8: decode in executor."""
+    if _is_remote():
+        # Video too large for base64 socket — save to EFS, let substrate pick it up
+        content = await file.read()
+        if len(content) > 30 * 1024 * 1024:
+            raise HTTPException(400, "Video too large (max 30MB)")
+        # Save to shared EFS for substrate to process
+        vid_dir = os.path.join("state", "uploads")
+        os.makedirs(vid_dir, exist_ok=True)
+        import hashlib
+        vid_id = hashlib.md5(content).hexdigest()[:12]
+        vid_path = os.path.join(vid_dir, f"{vid_id}.video")
+        with open(vid_path, 'wb') as f:
+            f.write(content)
+        return {"message": f"video saved ({len(content)//1024}KB) — processing queued",
+                "item_id": vid_id}
     _gl_init()
     import asyncio as _aio, hashlib, tempfile, subprocess
     content = await file.read()
