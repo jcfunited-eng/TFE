@@ -259,7 +259,7 @@ function startSightStream(){
       };
       reader.readAsDataURL(blob);
     }catch(e){}
-  },500); // 2 fps
+  },1000); // 1 fps — reduced from 2fps to avoid substrate overload
 }
 function stopSightStream(){if(sightStreamTimer){clearInterval(sightStreamTimer);sightStreamTimer=null}}
 
@@ -615,7 +615,7 @@ async function sendMsg(){
       if(d.pictures)renderPictures(d.pictures);
     }else{
       // GL-FIX-UI-FRONTEND: single write path (v7 only), no dual-dispatch
-      const r=await fetchT(`${API}/v7/converse`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,session_id:sid})},10000);
+      const r=await fetchT(`${API}/v7/converse`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,session_id:sid})},25000);
       if(r.status===503||r.status===500){handleNotReady('converse')}
       else{
         const d=await r.json();

@@ -166,8 +166,8 @@ out = {
     'family': '${TASK_FAMILY}',
     'networkMode': 'awsvpc',
     'requiresCompatibilities': ['FARGATE'],
-    'cpu': '1024',
-    'memory': '2048',
+    'cpu': '2048',
+    'memory': '4096',
     **infra,
     'volumes': [
         {
