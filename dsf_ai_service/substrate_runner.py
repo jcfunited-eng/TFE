@@ -725,18 +725,19 @@ def handle_repause(args):
 
 
 def handle_unpause(args):
+    gate_path = os.path.join(STATE_DIR, "dream_gate_cleared.json")
+    if not os.path.exists(gate_path):
+        return {"error": "dream_gate_not_cleared",
+                "message": "Cannot unpause without prior dream completion. "
+                           "Call force_dream first; gate marker is written "
+                           "by substrate when DREAMING activity ends naturally."}
     os.environ["DECAY_PAUSED"] = "0"
     _write_runtime_config({"decay_paused": False})
     tick = _guala.tick if _guala else 0
     if _guala:
         _guala._log_substrate_event("decay_unpaused", tick=tick,
                                      reason="admin_unpause")
-    # Write dream gate marker so next restart allows decay
-    gate_path = os.path.join(STATE_DIR, "dream_gate_cleared.json")
-    with open(gate_path, "w") as f:
-        json.dump({"cleared_at_tick": tick, "via": "unpause"}, f)
-        f.flush(); os.fsync(f.fileno())
-    print(f"[UNPAUSE] Decay unpaused at tick {tick} (persisted, gate marker written)")
+    print(f"[UNPAUSE] Decay unpaused at tick {tick} (persisted)")
     return {"unpaused": True, "tick": tick, "persisted": True}
 
 

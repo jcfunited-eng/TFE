@@ -1911,6 +1911,18 @@ class Guala:
                                      kind=self._current_activity.kind,
                                      target=self._current_activity.target,
                                      duration=self.tick - self._current_activity.started_tick)
+            if self._current_activity.kind == "DREAMING":
+                try:
+                    state_dir = os.environ.get("STATE_DIR", "/mnt/efs/guala")
+                    gate_path = os.path.join(state_dir, "dream_gate_cleared.json")
+                    with open(gate_path, "w") as f:
+                        json.dump({"cleared_at_tick": self.tick,
+                                   "via": "substrate_dream_end"}, f)
+                        f.flush(); os.fsync(f.fileno())
+                    self._log_substrate_event("dream_gate_cleared", tick=self.tick)
+                except Exception as e:
+                    self._log_substrate_event("dream_gate_write_failed",
+                                              tick=self.tick, error=str(e))
             self._activity_history.append(self._current_activity)
             if len(self._activity_history) > 500:
                 self._activity_history = self._activity_history[-200:]
