@@ -2366,13 +2366,17 @@ async def gualaloom_events(since: int = 0, stream: bool = False):
         client = _get_substrate_client()
         if stream:
             import asyncio
+            # SSE stream gets its own dedicated client to avoid blocking
+            # the shared client with continuous /events polling
+            from dsf_ai_service.substrate_client import SubstrateClient
+            sse_client = SubstrateClient()
             async def event_generator():
                 last_tick = since
                 while True:
                     try:
-                        result = await client.call("gualaloom_post",
-                                                   command="/events",
-                                                   text=str(last_tick))
+                        result = await sse_client.call("gualaloom_post",
+                                                       command="/events",
+                                                       text=str(last_tick))
                         for ev in result.get("events", []):
                             if ev.get("tick", 0) > last_tick:
                                 last_tick = ev["tick"]
