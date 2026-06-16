@@ -2757,7 +2757,28 @@ class Guala:
             })
 
             save_tick = self.tick
+            snap_vocab_len = len(self.vocab)
+            snap_atlas_count = sum(len(v) for v in self.atlas.entries.values())
         # ── lock released ──
+
+        # ── T1.2: Regression sanity check — refuse to overwrite richer state ──
+        core_path = os.path.join(state_dir, "guala_core.json")
+        if os.path.exists(core_path):
+            try:
+                with open(core_path) as _f:
+                    _existing = json.load(_f)
+                _existing_data = _existing.get("data", _existing)
+                _existing_vocab = len(_existing_data.get("vocab", []))
+                if _existing_vocab > 100 and snap_vocab_len < _existing_vocab * 0.5:
+                    msg = (f"[GualaLoom] ABORT SAVE: vocab regression "
+                           f"{_existing_vocab}→{snap_vocab_len}. "
+                           f"Refusing to overwrite. "
+                           f"Set GUALA_FORCE_SAVE=1 to override.")
+                    print(msg)
+                    if os.environ.get("GUALA_FORCE_SAVE") != "1":
+                        raise RuntimeError(msg)
+            except (json.JSONDecodeError, OSError) as _e:
+                print(f"[save] prior state read failed (proceeding): {_e}")
 
         # ── Phase 2: write to disk outside lock (seconds) ──
         results = {}
@@ -2786,6 +2807,26 @@ class Guala:
 
         self._last_save_tick = save_tick
         self._last_save_timestamp = ts
+
+        # ── T1.3: S3 backup on every successful save ──
+        try:
+            import boto3 as _boto3
+            _s3 = _boto3.client("s3", region_name="us-east-1")
+            _bucket = os.environ.get("GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
+            _s3_prefix_base = os.environ.get("GUALA_S3_BACKUP_PREFIX", "guala/auto")
+            _ts_label = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
+            _s3_prefix = f"{_s3_prefix_base}/{_ts_label}_save"
+            _all_files = self.STATE_FILES + [
+                self.IDENTITY_FILE, "guala_deep_atlas.json",
+                "guala_visual.json", "guala_sounds.json", "guala_videos.json"]
+            for _fname in _all_files:
+                _fpath = os.path.join(state_dir, _fname)
+                if os.path.exists(_fpath):
+                    _s3.upload_file(_fpath, _bucket, f"{_s3_prefix}/{_fname}")
+            print(f"[save] S3 backup → s3://{_bucket}/{_s3_prefix}/")
+        except Exception as _e:
+            print(f"[save] S3 backup failed (EFS save OK): {_e}")
+
         return results
 
     # ── Load ──
@@ -2852,9 +2893,22 @@ class Guala:
             return
 
         if has_identity and not present:
-            # Identity exists but no state — fresh boot after wipe, keep identity
+            # T1.1: REFUSE TO BOOT when identity exists but state vanished.
+            # This is either a true wipe or an EFS race / mount-not-ready.
+            # Silently becoming fresh would overwrite real state on next save.
+            if os.environ.get("GUALA_FORCE_FRESH") != "1":
+                self._guala_identity = self._load_identity(state_dir)
+                msg = (f"[GualaLoom] ABORT BOOT: identity present but state files "
+                       f"vanished for {self._guala_identity}. "
+                       f"Set GUALA_FORCE_FRESH=1 to confirm intentional wipe, "
+                       f"or restore from backup.")
+                print(msg)
+                self._load_errors.append(msg)
+                self._load_successful = False
+                raise RuntimeError(msg)
+            # Operator-confirmed fresh start
             self._guala_identity = self._load_identity(state_dir)
-            print(f"[GualaLoom] Identity found but no state — fresh substrate for {self._guala_identity}")
+            print(f"[GualaLoom] OPERATOR-CONFIRMED fresh substrate for {self._guala_identity}")
             self._load_successful = True
             return
 
