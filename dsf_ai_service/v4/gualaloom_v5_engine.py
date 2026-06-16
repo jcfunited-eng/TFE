@@ -53,7 +53,6 @@ try:
     from dsf_ai_service.v4.gualaloom_v4_uf_kernel import DSF, compute_dsf
     from dsf_ai_service.v4.gualaloom_v4_chi_atlas_l6 import L6_TCL
     from dsf_ai_service.v4.gualaloom_v4_trit_register import TritRegister
-    from dsf_ai_service.v4.gualaloom_v5_question_bucket import QuestionBucket, generate_questions_from_word
     from dsf_ai_service.v4.gualaloom_v6_living_atlas import (
         LivingAtlas, DECAY_LAMBDA, BASE_REINFORCEMENT,
         SALIENCE_MIN, SALIENCE_MAX, FORGETTING_THRESHOLD, STRENGTH_CAP,
@@ -65,7 +64,6 @@ except ImportError:
     from gualaloom_v4_uf_kernel import DSF, compute_dsf
     from gualaloom_v4_chi_atlas_l6 import L6_TCL
     from gualaloom_v4_trit_register import TritRegister
-    from gualaloom_v5_question_bucket import QuestionBucket, generate_questions_from_word
     from gualaloom_v6_living_atlas import (
         LivingAtlas, DECAY_LAMBDA, BASE_REINFORCEMENT,
         SALIENCE_MIN, SALIENCE_MAX, FORGETTING_THRESHOLD, STRENGTH_CAP,
@@ -863,7 +861,7 @@ class Guala:
         self.senses = SensoryBank()
         self.coordinator = Coordinator()
         self.needs = Needs()
-        self.bucket = QuestionBucket()    # v5: open questions accumulated during reading
+        # QuestionBucket removed (GL-BRIEF-EMISSION-CONSTRAINT-REMOVAL Phase E)
         self.tick = 0
         self.read_count = 0
         self.dream_log = []
@@ -1087,11 +1085,6 @@ class Guala:
                 self.atlas.forget_below_threshold()
 
             # 8b. V5: Generate questions from gaps in this word's bindings
-            # (suppress during self-hearing to avoid question-frame amplification)
-            if not getattr(self, '_self_hearing', False):
-                generate_questions_from_word(self.bucket, word, role, SENSORY_DNA,
-                                              lang_chi, self.tick)
-
             # 9. Coordinator regulation pass (homeostasis + awareness)
             if self.tick % 5 == 0:
                 self.coordinator.regulate(self, self.needs, self.atlas,
@@ -1275,9 +1268,14 @@ class Guala:
         emitted = []
         seen_words = set()
         for de, co, clarity in candidates[:5]:
-            for sec_name in ("listen", "subject", "verb", "object",
-                             "ground", "intro"):
-                sec_co = co.get(sec_name, {})
+            # Phase D: strength-ordered iteration (no SVO bias)
+            ordered_sections = sorted(
+                [s for s in co.keys() if co.get(s)],
+                key=lambda s: max(co[s].values()) if co[s] else 0.0,
+                reverse=True
+            )
+            for sec_name in ordered_sections:
+                sec_co = co[sec_name]
                 if not sec_co:
                     continue
                 # Pick strongest co-occurring motif
@@ -2723,12 +2721,8 @@ class Guala:
                 }
             snap_sections = self._envelope(sections_data)
 
-            # 7. Bucket
-            snap_bucket = self._envelope({
-                "questions": {f"{k[0]}|{k[1]}": v
-                              for k, v in self.bucket.questions.items()},
-                "asked": [f"{t}|{k}" for t, k in self.bucket.asked],
-            })
+            # 7. Bucket (removed — Phase E)
+            snap_bucket = self._envelope({"removed": True})
 
             # 8. Visual
             snap_visual = self._envelope({
@@ -3203,17 +3197,8 @@ class Guala:
               f"engine_tick={engine_tick}, re-stamped={restamped}")
 
     def _apply_bucket(self, bd):
-        from collections import OrderedDict
-        self.bucket.questions = OrderedDict()
-        for key_str, q in bd.get("questions", {}).items():
-            parts = key_str.split("|", 1)
-            if len(parts) == 2:
-                self.bucket.questions[(parts[0], parts[1])] = q
-        self.bucket.asked = set()
-        for a in bd.get("asked", []):
-            parts = a.split("|", 1)
-            if len(parts) == 2:
-                self.bucket.asked.add((parts[0], parts[1]))
+        """Legacy — bucket removed. Gracefully ignore saved data."""
+        pass
 
     def _apply_visual(self, vd, state_dir):
         """Restore visual data from saved state."""
@@ -3427,13 +3412,7 @@ class Guala:
         for src, count in self.source_history.items():
             if count < 0:
                 errors.append(f"Source {src} negative count: {count}")
-        # 3. Bucket chi values plausible
-        for q in self.bucket.questions.values():
-            chi = q.get("topic_chi")
-            if not isinstance(chi, (int, float)):
-                errors.append(f"Bucket question non-numeric chi: {q.get('topic')}")
-            elif abs(chi) > 1000:
-                errors.append(f"Bucket chi implausibly large: {chi}")
+        # 3. (Bucket removed — Phase E)
         # 4. Atlas motif IDs reference existing modes
         sample_count = 0
         for chi_val, entries in self.atlas.entries.items():
@@ -3534,8 +3513,6 @@ class Guala:
             "distress_ticks": self.coordinator.distress_ticks,
             "suffering_events": len(self.coordinator.suffering_log),
             "source_history": dict(self.source_history),
-            # v5: question bucket state
-            "question_bucket": self.bucket.snapshot(),
             # v6: atlas health
             "atlas_health": self.atlas.snapshot(),
             # v6-bridge: presence + per-source pair bonds

@@ -24,7 +24,7 @@ def banner(title):
 def show_state(g, label):
     s = g.introspect()
     n = s["needs"]
-    qb = s["question_bucket"]
+    qb = s.get("question_bucket", {})
     print(f"\n  --- {label} ---")
     print(f"  vocab: {s['vocab']:>3}  reads: {s['reads']:>4}  "
           f"atlas: {s['atlas_entries']:>4}  cross-modal: {s['cross_modal_bindings']:>2}")

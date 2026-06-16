@@ -1,0 +1,28 @@
+--- a/dsf_ai_service/v4/gualaloom_v5_engine.py
++++ b/dsf_ai_service/v4/gualaloom_v5_engine.py
+@@ -1153,15 +1153,15 @@
+             # 5. Choose response
+             if recalled:
+                 reply = recalled
+             else:
+-                # 6. No recall — check question bucket for a related question
+-                q = self.bucket.find_for_chis(input_chis, input_words=words)
+-                if q:
+-                    self.bucket.voice(q)
+-                    reply = q["template"]
+-                else:
+-                    # 7. Final fallback: honest silence
+-                    reply = "..."
++                # 6. No recall — honest silence.
++                # (GL-FIX-RETIRE-TEMPLATES, 2026-06-15) The question-bucket
++                # template-fill voicing was the only named "selective cheat"
++                # in the kernel. The gap-detector continues to run and tracks
++                # what she'd ask about (chi-geometry-real signal preserved),
++                # but no format-string is voiced. When response-binding /
++                # cortex slow-graduation lands, substrate-emitted phrasing
++                # replaces "..." in this branch.
++                reply = "..."
+ 
+             # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
+             if reply and reply != "..." and source in ("joe", "wc", "c1"):
+                 self._self_hear(reply, source)

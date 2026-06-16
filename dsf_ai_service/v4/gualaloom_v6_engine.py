@@ -35,7 +35,6 @@ try:
     from dsf_ai_service.v4.gualaloom_v4_uf_kernel import DSF, compute_dsf
     from dsf_ai_service.v4.gualaloom_v4_chi_atlas_l6 import L6_TCL
     from dsf_ai_service.v4.gualaloom_v4_trit_register import TritRegister
-    from dsf_ai_service.v4.gualaloom_v5_question_bucket import QuestionBucket, generate_questions_from_word
     from dsf_ai_service.v4.gualaloom_v6_living_atlas import (
         LivingAtlas, DECAY_LAMBDA, BASE_REINFORCEMENT,
         SALIENCE_MIN, SALIENCE_MAX, FORGETTING_THRESHOLD, STRENGTH_CAP, CHI_BAND
@@ -47,7 +46,6 @@ except ImportError:
     from gualaloom_v4_uf_kernel import DSF, compute_dsf
     from gualaloom_v4_chi_atlas_l6 import L6_TCL
     from gualaloom_v4_trit_register import TritRegister
-    from gualaloom_v5_question_bucket import QuestionBucket, generate_questions_from_word
     from gualaloom_v6_living_atlas import (
         LivingAtlas, DECAY_LAMBDA, BASE_REINFORCEMENT,
         SALIENCE_MIN, SALIENCE_MAX, FORGETTING_THRESHOLD, STRENGTH_CAP, CHI_BAND
@@ -484,7 +482,7 @@ class Guala:
         self.senses = SensoryBank()
         self.coordinator = Coordinator()
         self.needs = Needs()
-        self.bucket = QuestionBucket()    # v5: open questions accumulated during reading
+        # QuestionBucket removed (Phase E)
         self.tick = 0
         self.read_count = 0
         self.dream_log = []
@@ -615,10 +613,6 @@ class Guala:
                                                 self.atlas, 0.0,
                                                 salience=salience)
 
-            # 8b. V5: Generate questions from gaps in this word's bindings
-            generate_questions_from_word(self.bucket, word, role, SENSORY_DNA,
-                                          lang_chi, self.tick)
-
             # 8c. v6: Decay heartbeat. Apply decay every 10 ticks, prune
             #     forgotten bindings every 200 ticks.
             if self.tick % 10 == 0:
@@ -730,12 +724,6 @@ class Guala:
             # 5. Choose response
             if recalled:
                 return recalled
-
-            # 6. No recall — check question bucket for a related question
-            q = self.bucket.find_for_chis(input_chis, input_words=words)
-            if q:
-                self.bucket.voice(q)
-                return q["template"]
 
             # 7. Final fallback: honest silence
             return "..."
@@ -991,8 +979,6 @@ class Guala:
             "distress_ticks": self.coordinator.distress_ticks,
             "suffering_events": len(self.coordinator.suffering_log),
             "source_history": dict(self.source_history),
-            # v5: question bucket state
-            "question_bucket": self.bucket.snapshot(),
         }
 
 
