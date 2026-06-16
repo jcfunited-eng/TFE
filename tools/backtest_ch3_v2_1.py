@@ -1,527 +1,402 @@
 #!/usr/bin/env python3
 """
-CH3 v2.1 Backtest: Selective M_k-driven energy grabber
-======================================================
+CH3 v2.1 Backtest — Corrected apparatus
+========================================
 
-Two selectivity variants on top of v2 base entry.
-
-Variant A — Universe-relative: M_k(t) in top decile of all admissible
-Accumulate tickers on the same bar.
-
-Variant B — Self-relative: M_k(t) >= 2.0 * stdev(M_k over trailing
-20 bars for that ticker).
-
-Acceptance criteria:
-  - max concurrent signals <= 20
-  - asymmetry ratio >= 1.5x
-  - ticker overlap with CH2 <= 30%
-  - overlap with original CH3 <= 10%
+Fixes from addendum:
+1. Computes per-bar kernel state by running L0-L4 on daily_bars (not sparse snapshots).
+2. Splits v2 baseline into resolved vs unresolved trades.
+3. Then runs Variant A (top decile) and Variant B (self-relative 2x stdev).
 
 Usage:
   python3 tools/backtest_ch3_v2_1.py
 """
 
 import sys
+import os
 import math
+import time
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, date
+from types import SimpleNamespace
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     import psycopg2
+    import pandas as pd
 except ImportError:
-    print("psycopg2 required. pip install psycopg2-binary")
+    print("psycopg2 and pandas required.")
     sys.exit(1)
 
-DB_CONFIG = {
-    "host": "/var/run/postgresql",
-    "dbname": "tfe_validation",
-    "user": "postgres",
-}
+from uf_core.uf_structural_engine import compute_structural_state
 
-WINDOW_START = "2026-04-07"
-WINDOW_END = "2026-05-05"
+DB_CONFIG = {"host": "/var/run/postgresql", "dbname": "tfe_validation", "user": "postgres"}
+WINDOW_START = date(2026, 4, 7)
+WINDOW_END = date(2026, 5, 5)
 POSITION_SIZE = 2500.0
 MIN_PRICE = 5.0
 MIN_BAR_COUNT = 21
 
-# CH2 tickers from Alpaca fill history (April 7 - May 4)
 CH2_TICKERS = {
     "ASR","BDX","BELFA","BELFB","BIRK","BOH","CARL","CHIQ","CMDB","COPP",
     "CRTO","DORM","KBA","KSPI","LPLA","MED","NBIX","PODD","PWR","REGN",
     "RRX","SMHX","SOHU","SONO","SXC","TSMZ","TXBC","UNHG","WCC","WOR",
 }
 
-# Original CH3 tickers (from v2 backtest control — S_UF >= 0.70, D_k=1)
-# Will be computed dynamically
 
-
-def fetch_all_history(conn):
-    """Fetch all ticker-day kernel states in the backtest window."""
+def load_daily_bars(conn):
+    """Load daily bars for all tickers, Mar 1 - May 5 (need history for kernel)."""
     cur = conn.cursor()
     cur.execute("""
-        SELECT
-            ticker,
-            generated_at_utc::date AS day,
-            CAST(NULLIF(snapshot_row_json->>'M_k', '') AS DOUBLE PRECISION) AS m_k,
-            CAST(NULLIF(snapshot_row_json->>'D_k', '') AS DOUBLE PRECISION) AS d_k,
-            CAST(NULLIF(snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) AS s_uf,
-            CAST(NULLIF(snapshot_row_json->>'bar_count', '') AS INTEGER) AS bar_count,
-            CAST(NULLIF(snapshot_row_json->>'price', '') AS DOUBLE PRECISION) AS price,
-            snapshot_row_json->>'decision_label' AS decision_label
-        FROM runtime_decisions_history
-        WHERE generated_at_utc >= %s AND generated_at_utc < %s
-          AND snapshot_row_json->>'M_k' IS NOT NULL
-        ORDER BY ticker, generated_at_utc
-    """, (WINDOW_START, WINDOW_END))
-
-    by_ticker = defaultdict(dict)
-    for row in cur.fetchall():
-        ticker, day, m_k, d_k, s_uf, bar_count, price, dl = row
-        by_ticker[ticker][day] = {
-            "m_k": m_k, "d_k": d_k, "s_uf": s_uf,
-            "bar_count": bar_count, "price": price,
-            "decision_label": dl,
-        }
+        SELECT symbol, bar_date, open, high, low, close, volume
+        FROM daily_bars
+        WHERE bar_date >= '2026-01-01' AND bar_date < '2026-05-06'
+          AND symbol NOT LIKE 'I:%%' AND symbol NOT LIKE 'X:%%'
+        ORDER BY symbol, bar_date
+    """)
+    by_ticker = defaultdict(list)
+    for symbol, bar_date, o, h, l, c, v in cur.fetchall():
+        by_ticker[symbol].append((bar_date, o, h, l, c, v))
     cur.close()
     return by_ticker
 
 
-def fetch_spy_dk(conn):
-    """Get SPY D_k per day from daily_bars proxy."""
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT bar_date, close FROM daily_bars
-        WHERE symbol = 'SPY' AND bar_date >= %s AND bar_date < %s
-        ORDER BY bar_date
-    """, (WINDOW_START, WINDOW_END))
-    bars = cur.fetchall()
-    spy = {}
-    if len(bars) >= 2:
-        for i in range(1, len(bars)):
-            day, close = bars[i]
-            prev_close = bars[i - 1][1]
-            spy[day] = 1 if close >= prev_close else -1
-    cur.close()
-    return spy
+def compute_kernel_series(bars_by_ticker, target_dates):
+    """Run kernel at each target date, return per-ticker per-day kernel state."""
+    kernel_states = {}  # {ticker: {date: {M_k, D_k, ...}}}
+    total = len(bars_by_ticker)
+    done = 0
+    t0 = time.time()
 
-
-def fetch_atr(conn):
-    """Compute ATR-14 per ticker from daily_bars."""
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT symbol, bar_date, high, low, close
-        FROM daily_bars
-        WHERE bar_date >= '2026-03-15' AND bar_date < %s
-        ORDER BY symbol, bar_date
-    """, (WINDOW_END,))
-
-    bars_by_ticker = defaultdict(list)
-    for symbol, bar_date, high, low, close in cur.fetchall():
-        bars_by_ticker[symbol].append((bar_date, high, low, close))
-    cur.close()
-
-    atr_map = {}
     for ticker, bars in bars_by_ticker.items():
-        if len(bars) < 15:
-            continue
-        trs = []
-        for i in range(1, len(bars)):
-            _, h, l, c = bars[i]
-            prev_c = bars[i - 1][3]
-            tr = max(h - l, abs(h - prev_c), abs(l - prev_c))
-            trs.append(tr)
-        if len(trs) >= 14:
-            atr_map[ticker] = sum(trs[-14:]) / 14
-    return atr_map
+        done += 1
+        if done % 500 == 0:
+            elapsed = time.time() - t0
+            rate = done / elapsed if elapsed > 0 else 0
+            eta = (total - done) / rate if rate > 0 else 0
+            print(f"  [{done}/{total}] {rate:.0f} tickers/s, ETA {eta:.0f}s", flush=True)
 
-
-def fetch_m_k_history(conn):
-    """Fetch extended M_k history for stdev computation (trailing 20 bars)."""
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT
-            ticker,
-            generated_at_utc::date AS day,
-            CAST(NULLIF(snapshot_row_json->>'M_k', '') AS DOUBLE PRECISION) AS m_k
-        FROM runtime_decisions_history
-        WHERE generated_at_utc >= '2026-03-01' AND generated_at_utc < %s
-          AND snapshot_row_json->>'M_k' IS NOT NULL
-        ORDER BY ticker, generated_at_utc
-    """, (WINDOW_END,))
-
-    m_k_hist = defaultdict(list)
-    for ticker, day, m_k in cur.fetchall():
-        if m_k is not None:
-            m_k_hist[ticker].append((day, m_k))
-    cur.close()
-    return m_k_hist
-
-
-def compute_m_k_stdev(m_k_hist, ticker, target_day, window=20):
-    """Compute stdev of M_k over trailing `window` bars for a ticker."""
-    hist = m_k_hist.get(ticker, [])
-    # Get values before target_day
-    vals = [m for d, m in hist if d < target_day]
-    if len(vals) < window:
-        vals = vals  # use whatever we have
-    else:
-        vals = vals[-window:]
-    if len(vals) < 3:
-        return None
-    mean = sum(vals) / len(vals)
-    var = sum((v - mean) ** 2 for v in vals) / len(vals)
-    return math.sqrt(var) if var > 0 else None
-
-
-def v2_base_check(state, prev1, prev2, spy_dk_day):
-    """V2 base entry conditions."""
-    m_k = state.get("m_k")
-    m_k_1 = prev1.get("m_k")
-    m_k_2 = prev2.get("m_k")
-    d_k = state.get("d_k")
-    bar_count = state.get("bar_count")
-    price = state.get("price")
-
-    if any(v is None for v in [m_k, m_k_1, m_k_2, d_k, bar_count, price]):
-        return False
-    if m_k <= 0:
-        return False
-    if not (m_k > m_k_1 > m_k_2):
-        return False
-    if d_k != 1:
-        return False
-    if spy_dk_day != 1:
-        return False
-    if bar_count < MIN_BAR_COUNT:
-        return False
-    if price < MIN_PRICE:
-        return False
-    return True
-
-
-def original_ch3_check(state, prev1, prev2, spy_dk_day):
-    """Original CH3 entry for overlap computation."""
-    s_uf = state.get("s_uf")
-    d_k = state.get("d_k")
-    bar_count = state.get("bar_count")
-    price = state.get("price")
-    if any(v is None for v in [s_uf, d_k, bar_count, price]):
-        return False
-    return s_uf >= 0.70 and d_k == 1 and bar_count > 20 and price >= MIN_PRICE and spy_dk_day == 1
-
-
-def simulate_trade(ticker, entry_day_idx, sorted_days, days_data, atr):
-    """Simulate a single trade from entry to exit."""
-    entry_price = days_data[sorted_days[entry_day_idx]]["price"]
-    tp_price = entry_price + 1.5 * atr
-    sl_price = entry_price - 1.0 * atr
-    catastrophic = entry_price * 0.90
-
-    prev_m_k = days_data[sorted_days[entry_day_idx]]["m_k"]
-    m_k_decline = 0
-
-    for j in range(entry_day_idx + 1, min(entry_day_idx + 6, len(sorted_days))):
-        future = days_data[sorted_days[j]]
-        fp = future["price"]
-        fm = future["m_k"]
-        bars = j - entry_day_idx
-
-        if fp is None:
+        if len(bars) < 60:  # need enough history for kernel
             continue
 
-        if fm is not None and prev_m_k is not None:
-            if fm < prev_m_k:
-                m_k_decline += 1
-            else:
-                m_k_decline = 0
-            if m_k_decline >= 2:
-                return fp, "m_k_rollover", bars, sorted_days[j]
-
-        if fp <= catastrophic:
-            return catastrophic, "catastrophic_floor", bars, sorted_days[j]
-        if fp >= tp_price:
-            return tp_price, "take_profit", bars, sorted_days[j]
-        if fp <= sl_price:
-            return sl_price, "stop_loss", bars, sorted_days[j]
-        if bars >= 5:
-            return fp, "max_hold", bars, sorted_days[j]
-
-        prev_m_k = fm
-
-    # Ran out of data
-    if entry_day_idx + 1 < len(sorted_days):
-        last = sorted_days[min(entry_day_idx + 1, len(sorted_days) - 1)]
-        return days_data[last]["price"], "data_end", 1, last
-    return None, None, 0, None
-
-
-def run_variant(by_ticker, spy_dk, atr_map, m_k_hist, variant_label, extra_filter_fn):
-    """Run a backtest variant."""
-    # First pass: collect all v2-admissible signals per day
-    admissible_by_day = defaultdict(list)
-
-    for ticker, days in by_ticker.items():
-        sorted_days = sorted(days.keys())
-        if len(sorted_days) < 3:
-            continue
-        atr = atr_map.get(ticker)
-        if atr is None or atr <= 0:
-            continue
-
-        for i in range(2, len(sorted_days)):
-            day = sorted_days[i]
-            state = days[day]
-            prev1 = days[sorted_days[i - 1]]
-            prev2 = days[sorted_days[i - 2]]
-            spy_d = spy_dk.get(day, 1)
-
-            if v2_base_check(state, prev1, prev2, spy_d):
-                admissible_by_day[day].append({
-                    "ticker": ticker, "day_idx": i,
-                    "m_k": state["m_k"], "price": state["price"],
-                    "sorted_days": sorted_days, "days_data": days,
-                    "atr": atr,
-                })
-
-    # Second pass: apply selectivity filter
-    trades = []
-    signals_by_day = defaultdict(list)
-    selected_tickers = set()
-
-    for day in sorted(admissible_by_day.keys()):
-        candidates = admissible_by_day[day]
-        selected = extra_filter_fn(candidates, day, m_k_hist)
-
-        for c in selected:
-            ticker = c["ticker"]
-            signals_by_day[day].append(ticker)
-            selected_tickers.add(ticker)
-
-            exit_price, exit_reason, bars, exit_day = simulate_trade(
-                ticker, c["day_idx"], c["sorted_days"], c["days_data"], c["atr"]
-            )
-            if exit_price is None:
+        ticker_states = {}
+        for target_date in target_dates:
+            # Truncate bars to this date
+            truncated = [(d, o, h, l, c, v) for d, o, h, l, c, v in bars if d <= target_date]
+            if len(truncated) < 30:
                 continue
 
+            bar_objs = [SimpleNamespace(
+                close=r[4], open=r[1], high=r[2], low=r[3], volume=r[5],
+                timestamp=pd.Timestamp(r[0])
+            ) for r in truncated]
+
+            try:
+                result = compute_structural_state(ticker, bar_objs)
+                ticker_states[target_date] = {
+                    "M_k": result.get("M_k"),
+                    "D_k": result.get("D_k"),
+                    "S_UF": result.get("S_UF"),
+                    "B_k": result.get("B_k"),
+                    "bar_count": result.get("bar_count") or len(truncated),
+                    "price": truncated[-1][4],  # close price
+                }
+            except Exception:
+                pass
+
+        if ticker_states:
+            kernel_states[ticker] = ticker_states
+
+    elapsed = time.time() - t0
+    print(f"  Kernel computation: {done} tickers in {elapsed:.0f}s ({done/elapsed:.0f}/s)")
+    return kernel_states
+
+
+def compute_atr(bars, target_date):
+    """ATR-14 from bars up to target_date."""
+    truncated = [(d, o, h, l, c, v) for d, o, h, l, c, v in bars if d <= target_date]
+    if len(truncated) < 15:
+        return None
+    trs = []
+    for i in range(1, len(truncated)):
+        h, l, c = truncated[i][2], truncated[i][3], truncated[i][4]
+        prev_c = truncated[i-1][4]
+        trs.append(max(h - l, abs(h - prev_c), abs(l - prev_c)))
+    if len(trs) < 14:
+        return None
+    return sum(trs[-14:]) / 14
+
+
+def v2_entry(state, prev1, prev2, spy_dk):
+    m = state.get("M_k"); m1 = prev1.get("M_k"); m2 = prev2.get("M_k")
+    d = state.get("D_k"); bc = state.get("bar_count"); p = state.get("price")
+    if any(v is None for v in [m, m1, m2, d, bc, p]):
+        return False
+    return m > 0 and m > m1 > m2 and d == 1 and spy_dk == 1 and bc >= MIN_BAR_COUNT and p >= MIN_PRICE
+
+
+def orig_ch3_entry(state, prev1, prev2, spy_dk):
+    s = state.get("S_UF"); d = state.get("D_k"); bc = state.get("bar_count"); p = state.get("price")
+    if any(v is None for v in [s, d, bc, p]):
+        return False
+    return s >= 0.70 and d == 1 and spy_dk == 1 and bc > 20 and p >= MIN_PRICE
+
+
+def simulate_trade(ticker, entry_idx, sorted_days, states, bars_by_ticker):
+    entry_state = states[sorted_days[entry_idx]]
+    entry_price = entry_state["price"]
+    atr = compute_atr(bars_by_ticker.get(ticker, []), sorted_days[entry_idx])
+    if atr is None or atr <= 0:
+        return None
+
+    tp = entry_price + 1.5 * atr
+    sl = entry_price - 1.0 * atr
+    cat = entry_price * 0.90
+    prev_m = entry_state["M_k"]
+    m_decline = 0
+
+    for j in range(entry_idx + 1, min(entry_idx + 6, len(sorted_days))):
+        fs = states[sorted_days[j]]
+        fp = fs["price"]; fm = fs["M_k"]
+        bars = j - entry_idx
+        if fp is None:
+            continue
+        if fm is not None and prev_m is not None:
+            if fm < prev_m: m_decline += 1
+            else: m_decline = 0
+            if m_decline >= 2:
+                return {"exit_price": fp, "reason": "m_k_rollover", "bars": bars, "day": sorted_days[j]}
+        if fp <= cat:
+            return {"exit_price": cat, "reason": "catastrophic_floor", "bars": bars, "day": sorted_days[j]}
+        if fp >= tp:
+            return {"exit_price": tp, "reason": "take_profit", "bars": bars, "day": sorted_days[j]}
+        if fp <= sl:
+            return {"exit_price": sl, "reason": "stop_loss", "bars": bars, "day": sorted_days[j]}
+        if bars >= 5:
+            return {"exit_price": fp, "reason": "max_hold", "bars": bars, "day": sorted_days[j]}
+        prev_m = fm
+    return None  # no exit found = unresolvable in data
+
+
+def run_backtest(kernel_states, spy_dk, bars_by_ticker, entry_fn, extra_filter=None, m_k_hist=None):
+    admissible_by_day = defaultdict(list)
+    for ticker, states in kernel_states.items():
+        days = sorted(states.keys())
+        if len(days) < 3:
+            continue
+        for i in range(2, len(days)):
+            d = days[i]
+            sd = spy_dk.get(d, None)
+            if sd is None:
+                continue
+            if entry_fn(states[d], states[days[i-1]], states[days[i-2]], sd):
+                admissible_by_day[d].append({
+                    "ticker": ticker, "idx": i, "days": days, "states": states,
+                    "m_k": states[d]["M_k"], "price": states[d]["price"],
+                })
+
+    if extra_filter:
+        for d in admissible_by_day:
+            admissible_by_day[d] = extra_filter(admissible_by_day[d], d, m_k_hist)
+
+    trades = []
+    signals_by_day = defaultdict(list)
+    tickers_set = set()
+    for d in sorted(admissible_by_day):
+        for c in admissible_by_day[d]:
+            ticker = c["ticker"]
+            signals_by_day[d].append(ticker)
+            tickers_set.add(ticker)
+            result = simulate_trade(ticker, c["idx"], c["days"], c["states"], bars_by_ticker)
             entry_price = c["price"]
-            pl_pct = (exit_price - entry_price) / entry_price * 100
-            shares = max(1, int(POSITION_SIZE / entry_price))
-            pl_dollar = (exit_price - entry_price) * shares
-
-            trades.append({
-                "ticker": ticker,
-                "entry_day": str(day),
-                "exit_day": str(exit_day),
-                "entry_price": round(entry_price, 2),
-                "exit_price": round(exit_price, 2),
-                "exit_reason": exit_reason,
-                "pl_pct": round(pl_pct, 2),
-                "pl_dollar": round(pl_dollar, 2),
-                "bars_held": bars,
-                "m_k": round(c["m_k"], 4),
-            })
-
-    return trades, signals_by_day, selected_tickers
+            if result is None:
+                # Unresolved — mark with last available price
+                last_idx = min(c["idx"] + 1, len(c["days"]) - 1)
+                last_price = c["states"][c["days"][last_idx]]["price"] if last_idx < len(c["days"]) else entry_price
+                pl_pct = (last_price - entry_price) / entry_price * 100 if entry_price > 0 else 0
+                shares = max(1, int(POSITION_SIZE / entry_price))
+                trades.append({
+                    "ticker": ticker, "entry_day": str(d), "exit_day": "unresolved",
+                    "entry_price": round(entry_price, 2), "exit_price": round(last_price, 2),
+                    "exit_reason": "data_end", "pl_pct": round(pl_pct, 2),
+                    "pl_dollar": round((last_price - entry_price) * shares, 2),
+                    "bars_held": 1, "m_k": round(c["m_k"], 4) if c["m_k"] else 0,
+                    "resolved": False,
+                })
+            else:
+                pl_pct = (result["exit_price"] - entry_price) / entry_price * 100
+                shares = max(1, int(POSITION_SIZE / entry_price))
+                trades.append({
+                    "ticker": ticker, "entry_day": str(d), "exit_day": str(result["day"]),
+                    "entry_price": round(entry_price, 2), "exit_price": round(result["exit_price"], 2),
+                    "exit_reason": result["reason"], "pl_pct": round(pl_pct, 2),
+                    "pl_dollar": round((result["exit_price"] - entry_price) * shares, 2),
+                    "bars_held": result["bars"], "m_k": round(c["m_k"], 4) if c["m_k"] else 0,
+                    "resolved": True,
+                })
+    return trades, signals_by_day, tickers_set
 
 
 def variant_a_filter(candidates, day, m_k_hist):
-    """Top decile of M_k across all admissible tickers on this day."""
-    if not candidates:
-        return []
-    m_k_values = sorted([c["m_k"] for c in candidates], reverse=True)
-    cutoff_idx = max(1, len(m_k_values) // 10)
-    cutoff = m_k_values[cutoff_idx - 1]
-    return [c for c in candidates if c["m_k"] >= cutoff]
+    if not candidates: return []
+    vals = sorted([c["m_k"] for c in candidates if c["m_k"] is not None], reverse=True)
+    if not vals: return []
+    cutoff = vals[max(0, len(vals) // 10 - 1)]
+    return [c for c in candidates if c["m_k"] is not None and c["m_k"] >= cutoff]
 
 
 def variant_b_filter(candidates, day, m_k_hist):
-    """M_k >= 2.0 * stdev(trailing 20 bars) for that ticker."""
     selected = []
     for c in candidates:
-        sd = compute_m_k_stdev(m_k_hist, c["ticker"], day)
-        if sd is not None and sd > 0 and c["m_k"] >= 2.0 * sd:
+        hist = m_k_hist.get(c["ticker"], [])
+        vals = [m for d, m in hist if d < day][-20:]
+        if len(vals) < 3: continue
+        mean = sum(vals) / len(vals)
+        var = sum((v - mean) ** 2 for v in vals) / len(vals)
+        sd = math.sqrt(var) if var > 0 else None
+        if sd and c["m_k"] is not None and c["m_k"] >= 2.0 * sd:
             selected.append(c)
     return selected
 
 
-def report(trades, label, signals_by_day, selected_tickers, ch2_tickers, orig_ch3_tickers):
-    """Generate report section."""
-    lines = []
-    lines.append(f"\n### {label}")
-    lines.append("")
-    lines.append(f"**Signals admitted:** {len(trades)}")
+def report_section(trades, label, signals_by_day, tickers_set, ch2_tickers, orig_tickers):
+    lines = [f"\n### {label}", ""]
+    resolved = [t for t in trades if t["resolved"]]
+    unresolved = [t for t in trades if not t["resolved"]]
 
-    if not trades:
-        lines.append("No signals in window.")
-        lines.append("")
-        lines.append("| Criterion | Value | Pass? |")
-        lines.append("|-----------|-------|-------|")
-        lines.append("| Max concurrent <= 20 | 0 | YES |")
-        lines.append("| Asymmetry >= 1.5x | n/a | NO (no trades) |")
-        lines.append("| CH2 overlap <= 30% | 0% | YES |")
-        lines.append("| Original CH3 overlap <= 10% | 0% | YES |")
-        return "\n".join(lines)
+    for subset_label, subset in [("ALL", trades), ("RESOLVED ONLY", resolved), ("UNRESOLVED (data_end)", unresolved)]:
+        lines.append(f"\n**{subset_label}:** {len(subset)} trades")
+        if not subset:
+            lines.append("  (none)")
+            continue
+        wins = [t for t in subset if t["pl_pct"] > 0]
+        losses = [t for t in subset if t["pl_pct"] <= 0]
+        aw = sum(t["pl_pct"] for t in wins) / len(wins) if wins else 0
+        al = sum(t["pl_pct"] for t in losses) / len(losses) if losses else 0
+        wr = len(wins) / len(subset) * 100
+        ratio = abs(aw / al) if al != 0 else float("inf")
+        tpl = sum(t["pl_dollar"] for t in subset)
+        lines.append(f"  WR: {len(wins)}/{len(subset)} = {wr:.1f}% | Avg win: +{aw:.2f}% | Avg loss: {al:.2f}% | **Ratio: {ratio:.2f}x** | P&L: ${tpl:,.0f}")
 
-    wins = [t for t in trades if t["pl_pct"] > 0]
-    losses = [t for t in trades if t["pl_pct"] <= 0]
-    avg_win = sum(t["pl_pct"] for t in wins) / len(wins) if wins else 0
-    avg_loss = sum(t["pl_pct"] for t in losses) / len(losses) if losses else 0
-    wr = len(wins) / len(trades) * 100
-    ratio = abs(avg_win / avg_loss) if avg_loss != 0 else float("inf")
-    total_pl = sum(t["pl_dollar"] for t in trades)
+    # Exit distribution (resolved only)
+    if resolved:
+        reasons = defaultdict(int)
+        for t in resolved: reasons[t["exit_reason"]] += 1
+        lines.append("\n**Exit reasons (resolved):**")
+        for r, c in sorted(reasons.items(), key=lambda x: -x[1]):
+            lines.append(f"  {r}: {c} ({c/len(resolved)*100:.0f}%)")
 
-    max_concurrent = max(len(v) for v in signals_by_day.values()) if signals_by_day else 0
+    mc = max(len(v) for v in signals_by_day.values()) if signals_by_day else 0
+    lines.append(f"\n**Max concurrent:** {mc} | **Unique tickers:** {len(tickers_set)}")
 
-    ch2_overlap = selected_tickers & ch2_tickers
-    ch2_pct = len(ch2_overlap) / max(len(selected_tickers), 1) * 100
-    orig_overlap = selected_tickers & orig_ch3_tickers
-    orig_pct = len(orig_overlap) / max(len(selected_tickers), 1) * 100
+    if tickers_set:
+        ch2_ol = tickers_set & ch2_tickers
+        orig_ol = tickers_set & orig_tickers
+        lines.append(f"**CH2 overlap:** {len(ch2_ol)}/{len(tickers_set)} = {len(ch2_ol)/len(tickers_set)*100:.0f}%")
+        lines.append(f"**Orig CH3 overlap:** {len(orig_ol)}/{len(tickers_set)} = {len(orig_ol)/len(tickers_set)*100:.0f}%")
 
-    lines.append(f"**Win rate:** {len(wins)}/{len(trades)} = {wr:.1f}%")
-    lines.append(f"**Avg win:** +{avg_win:.2f}%")
-    lines.append(f"**Avg loss:** {avg_loss:.2f}%")
-    lines.append(f"**Asymmetry ratio:** {ratio:.2f}x")
-    lines.append(f"**Total P&L:** ${total_pl:,.0f}")
-    lines.append(f"**Max concurrent signals:** {max_concurrent}")
-    lines.append(f"**Unique tickers:** {len(selected_tickers)}")
-    lines.append("")
+        # Acceptance criteria (on resolved trades only)
+        r_wins = [t for t in resolved if t["pl_pct"] > 0]
+        r_losses = [t for t in resolved if t["pl_pct"] <= 0]
+        r_aw = sum(t["pl_pct"] for t in r_wins) / len(r_wins) if r_wins else 0
+        r_al = sum(t["pl_pct"] for t in r_losses) / len(r_losses) if r_losses else 0
+        r_ratio = abs(r_aw / r_al) if r_al != 0 else float("inf")
 
-    # Exit reasons
-    reasons = defaultdict(int)
-    for t in trades:
-        reasons[t["exit_reason"]] += 1
-    lines.append("**Exit reason distribution:**")
-    lines.append("")
-    lines.append("| Reason | Count | % |")
-    lines.append("|--------|-------|---|")
-    for reason, count in sorted(reasons.items(), key=lambda x: -x[1]):
-        lines.append(f"| {reason} | {count} | {count / len(trades) * 100:.0f}% |")
-
-    # Overlap
-    lines.append("")
-    lines.append(f"**CH2 overlap:** {len(ch2_overlap)}/{len(selected_tickers)} = {ch2_pct:.0f}%")
-    if ch2_overlap:
-        lines.append(f"  Tickers: {', '.join(sorted(ch2_overlap))}")
-    lines.append(f"**Original CH3 overlap:** {len(orig_overlap)}/{len(selected_tickers)} = {orig_pct:.0f}%")
-    if orig_overlap:
-        lines.append(f"  Tickers: {', '.join(sorted(orig_overlap))}")
-
-    # Acceptance criteria
-    lines.append("")
-    lines.append("**Acceptance criteria:**")
-    lines.append("")
-    lines.append("| Criterion | Value | Pass? |")
-    lines.append("|-----------|-------|-------|")
-    c1 = max_concurrent <= 20
-    c2 = ratio >= 1.5
-    c3 = ch2_pct <= 30
-    c4 = orig_pct <= 10
-    lines.append(f"| Max concurrent <= 20 | {max_concurrent} | {'YES' if c1 else 'NO'} |")
-    lines.append(f"| Asymmetry >= 1.5x | {ratio:.2f}x | {'YES' if c2 else 'NO'} |")
-    lines.append(f"| CH2 overlap <= 30% | {ch2_pct:.0f}% | {'YES' if c3 else 'NO'} |")
-    lines.append(f"| Original CH3 overlap <= 10% | {orig_pct:.0f}% | {'YES' if c4 else 'NO'} |")
-    all_pass = c1 and c2 and c3 and c4
-    lines.append(f"")
-    lines.append(f"**Overall: {'ALL CRITERIA MET' if all_pass else 'CRITERIA NOT MET'}**")
-
-    # Top trades
-    lines.append("")
-    lines.append("**Top 10 trades:**")
-    lines.append("")
-    lines.append("| Ticker | Entry | Exit | P&L% | M_k | Exit Reason | Bars |")
-    lines.append("|--------|-------|------|------|-----|-------------|------|")
-    for t in sorted(trades, key=lambda x: -x["pl_pct"])[:10]:
-        lines.append(
-            f"| {t['ticker']} | ${t['entry_price']} | ${t['exit_price']} "
-            f"| {t['pl_pct']:+.2f}% | {t['m_k']} | {t['exit_reason']} | {t['bars_held']} |"
-        )
+        lines.append("\n**Acceptance (on resolved trades):**")
+        lines.append(f"| Criterion | Value | Pass? |")
+        lines.append(f"|-----------|-------|-------|")
+        lines.append(f"| Max concurrent <= 20 | {mc} | {'YES' if mc <= 20 else 'NO'} |")
+        lines.append(f"| Asymmetry >= 1.5x | {r_ratio:.2f}x | {'YES' if r_ratio >= 1.5 else 'NO'} |")
+        ch2_pct = len(ch2_ol) / max(len(tickers_set), 1) * 100
+        orig_pct = len(orig_ol) / max(len(tickers_set), 1) * 100
+        lines.append(f"| CH2 overlap <= 30% | {ch2_pct:.0f}% | {'YES' if ch2_pct <= 30 else 'NO'} |")
+        lines.append(f"| Orig CH3 overlap <= 10% | {orig_pct:.0f}% | {'YES' if orig_pct <= 10 else 'NO'} |")
+        all_pass = mc <= 20 and r_ratio >= 1.5 and ch2_pct <= 30 and orig_pct <= 10
+        lines.append(f"\n**{'ALL CRITERIA MET' if all_pass else 'CRITERIA NOT MET'}**")
 
     return "\n".join(lines)
 
 
 def main():
     conn = psycopg2.connect(**DB_CONFIG)
-    print("Connected to validation DB.")
+    print("Loading daily bars...")
+    bars_by_ticker = load_daily_bars(conn)
+    print(f"  {len(bars_by_ticker)} tickers loaded.")
 
-    print("Fetching kernel history...")
-    by_ticker = fetch_all_history(conn)
-    print(f"  {len(by_ticker)} tickers loaded.")
+    # Get SPY D_k from kernel
+    spy_bars = bars_by_ticker.get("SPY", [])
+    target_dates = sorted({d for d, _, _, _, _, _ in spy_bars if WINDOW_START <= d < WINDOW_END})
+    print(f"  {len(target_dates)} trading days in window.")
 
-    print("Fetching SPY D_k...")
-    spy_dk = fetch_spy_dk(conn)
-    print(f"  {len(spy_dk)} SPY days.")
-
-    print("Computing ATR-14...")
-    atr_map = fetch_atr(conn)
-    print(f"  {len(atr_map)} tickers with ATR.")
-
-    print("Fetching M_k history for stdev...")
-    m_k_hist = fetch_m_k_history(conn)
-    print(f"  {len(m_k_hist)} tickers with M_k history.")
-
+    print("Computing SPY D_k per day...")
+    spy_dk = {}
+    for td in target_dates:
+        trunc = [(d, o, h, l, c, v) for d, o, h, l, c, v in spy_bars if d <= td]
+        if len(trunc) < 30: continue
+        bar_objs = [SimpleNamespace(close=r[4], open=r[1], high=r[2], low=r[3], volume=r[5],
+                                   timestamp=pd.Timestamp(r[0])) for r in trunc]
+        try:
+            result = compute_structural_state("SPY", bar_objs)
+            spy_dk[td] = result.get("D_k")
+        except:
+            pass
+    print(f"  SPY D_k: {dict(list(spy_dk.items())[:3])}...")
     conn.close()
 
-    # Compute original CH3 tickers for overlap
+    print(f"\nComputing kernel states for {len(bars_by_ticker)} tickers x {len(target_dates)} days...")
+    kernel_states = compute_kernel_series(bars_by_ticker, target_dates)
+    print(f"  {len(kernel_states)} tickers with kernel states.")
+
+    # Build M_k history for variant B
+    m_k_hist = {}
+    for ticker, states in kernel_states.items():
+        m_k_hist[ticker] = [(d, s["M_k"]) for d, s in sorted(states.items()) if s["M_k"] is not None]
+
+    # Compute orig CH3 tickers
     orig_tickers = set()
-    for ticker, days in by_ticker.items():
-        sorted_days = sorted(days.keys())
-        if len(sorted_days) < 3:
-            continue
-        for i in range(2, len(sorted_days)):
-            day = sorted_days[i]
-            state = days[day]
-            prev1 = days[sorted_days[i - 1]]
-            prev2 = days[sorted_days[i - 2]]
-            spy_d = spy_dk.get(day, 1)
-            if original_ch3_check(state, prev1, prev2, spy_d):
+    for ticker, states in kernel_states.items():
+        days = sorted(states.keys())
+        if len(days) < 3: continue
+        for i in range(2, len(days)):
+            if orig_ch3_entry(states[days[i]], states[days[i-1]], states[days[i-2]], spy_dk.get(days[i], 0)):
                 orig_tickers.add(ticker)
+    print(f"  Original CH3 tickers: {len(orig_tickers)}")
 
-    print(f"\nOriginal CH3 tickers: {len(orig_tickers)}")
+    # V2 baseline
+    print("\nRunning v2 baseline...")
+    v2_trades, v2_sig, v2_tick = run_backtest(kernel_states, spy_dk, bars_by_ticker, v2_entry)
+    print(f"  {len(v2_trades)} trades ({sum(1 for t in v2_trades if t['resolved'])} resolved)")
 
-    # Run Variant A
-    print("Running Variant A (top decile M_k)...")
-    a_trades, a_signals, a_tickers = run_variant(
-        by_ticker, spy_dk, atr_map, m_k_hist, "Variant A", variant_a_filter
-    )
-    print(f"  {len(a_trades)} trades, {len(a_tickers)} unique tickers.")
+    # Variant A
+    print("Running Variant A (top decile)...")
+    a_trades, a_sig, a_tick = run_backtest(kernel_states, spy_dk, bars_by_ticker, v2_entry, variant_a_filter, m_k_hist)
+    print(f"  {len(a_trades)} trades ({sum(1 for t in a_trades if t['resolved'])} resolved)")
 
-    # Run Variant B
-    print("Running Variant B (self-relative 2x stdev)...")
-    b_trades, b_signals, b_tickers = run_variant(
-        by_ticker, spy_dk, atr_map, m_k_hist, "Variant B", variant_b_filter
-    )
-    print(f"  {len(b_trades)} trades, {len(b_tickers)} unique tickers.")
+    # Variant B
+    print("Running Variant B (2x stdev)...")
+    b_trades, b_sig, b_tick = run_backtest(kernel_states, spy_dk, bars_by_ticker, v2_entry, variant_b_filter, m_k_hist)
+    print(f"  {len(b_trades)} trades ({sum(1 for t in b_trades if t['resolved'])} resolved)")
 
-    # Generate report
-    md = []
-    md.append("# CH3 v2.1 Selectivity Backtest Report")
-    md.append(f"**Window:** {WINDOW_START} to {WINDOW_END}")
-    md.append(f"**Position size:** ${POSITION_SIZE:,.0f}")
-    md.append(f"**Data source:** runtime_decisions_history (validation DB)")
-    md.append(f"**Generated:** {datetime.utcnow().isoformat()[:19]}Z")
-    md.append("")
-    md.append("**NOTE:** SPY D_k computed from price proxy. 62% data_end exits due to sparse validation DB.")
-    md.append("")
-    md.append(f"**CH2 tickers in window:** {len(CH2_TICKERS)}")
-    md.append(f"**Original CH3 tickers in window:** {len(orig_tickers)}")
+    # Report
+    md = [
+        "# CH3 v2.1 Backtest — Corrected Apparatus",
+        f"**Window:** {WINDOW_START} to {WINDOW_END}",
+        f"**Data:** Per-bar kernel via L0-L4 on daily_bars ({len(target_dates)} trading days, {len(kernel_states)} tickers)",
+        f"**SPY D_k:** Computed by kernel (not price proxy)",
+        f"**Generated:** {datetime.utcnow().isoformat()[:19]}Z",
+        "",
+    ]
 
-    md.append(report(a_trades, "Variant A: Universe-relative (top decile M_k)", a_signals, a_tickers, CH2_TICKERS, orig_tickers))
-    md.append(report(b_trades, "Variant B: Self-relative (M_k >= 2x stdev)", b_signals, b_tickers, CH2_TICKERS, orig_tickers))
-
-    # Cross-variant overlap
-    ab_overlap = a_tickers & b_tickers
-    md.append("\n### Cross-Variant Overlap")
-    md.append(f"")
-    md.append(f"- Variant A tickers: {len(a_tickers)}")
-    md.append(f"- Variant B tickers: {len(b_tickers)}")
-    md.append(f"- A ∩ B overlap: {len(ab_overlap)} ({len(ab_overlap) / max(len(a_tickers | b_tickers), 1) * 100:.0f}%)")
+    md.append(report_section(v2_trades, "V2 Baseline (no selectivity)", v2_sig, v2_tick, CH2_TICKERS, orig_tickers))
+    md.append(report_section(a_trades, "Variant A: Top Decile M_k", a_sig, a_tick, CH2_TICKERS, orig_tickers))
+    md.append(report_section(b_trades, "Variant B: Self-relative 2x stdev", b_sig, b_tick, CH2_TICKERS, orig_tickers))
 
     report_text = "\n".join(md)
-
-    report_path = "docs/backtests/ch3_v2_1_april.md"
-    with open(report_path, "w") as f:
+    with open("docs/backtests/ch3_v2_1_april.md", "w") as f:
         f.write(report_text)
-    print(f"\nReport written to {report_path}")
+    print(f"\nReport written.")
     print(report_text)
 
 

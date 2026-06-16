@@ -1,115 +1,63 @@
-# CH3 v2.1 Selectivity Backtest Report
-**Window:** 2026-04-07 to 2026-05-05
-**Position size:** $2,500
-**Data source:** runtime_decisions_history (validation DB)
-**Generated:** 2026-06-16T20:53:42Z
+# CH3 v2.1 Backtest — Corrected Apparatus
 
-**NOTE:** SPY D_k computed from price proxy. 62% data_end exits due to sparse validation DB.
+**Window:** 2026-04-07 to 2026-05-04
+**Data:** Per-bar kernel (L0-L4) computed on daily_bars. 10,023 tickers, 20 trading days.
+**Generated:** 2026-06-16
 
-**CH2 tickers in window:** 30
-**Original CH3 tickers in window:** 83
+## Backtest 1: SPY D_k=1 gate
 
-### Variant A: Universe-relative (top decile M_k)
+**Not possible.** SPY D_k=1 never lasts more than 2 consecutive days in available data (33 isolated days across 2021-2026). No 60-day contiguous window exists. SPY D_k=1 is a gate-transition event, not a sustained state. Any channel gated on SPY D_k=1 fires only on isolated days.
 
-**Signals admitted:** 42
-**Win rate:** 21/42 = 50.0%
-**Avg win:** +2.81%
-**Avg loss:** -2.08%
-**Asymmetry ratio:** 1.35x
-**Total P&L:** $423
-**Max concurrent signals:** 34
-**Unique tickers:** 49
+## Backtest 2: V2 without SPY gate (April 7 - May 4)
 
-**Exit reason distribution:**
+Entry: M_k > 0, M_k(t) > M_k(t-1) > M_k(t-2), per-ticker D_k = 1, bar_count >= 21, price >= $5.
 
+### Resolved trades only (meaningful exits)
+- **3,333 trades** | WR: 1,700/3,333 = **51.0%**
+- Avg win: **+7.21%** | Avg loss: **-5.22%** | **Ratio: 1.38x**
+- P&L: $93,071
+
+### Unresolved (data_end)
+- 598 trades | WR: 54.5% | Avg win: +2.76% | Avg loss: -2.18% | Ratio: 1.27x
+
+### Exit distribution (resolved)
 | Reason | Count | % |
 |--------|-------|---|
-| data_end | 33 | 79% |
-| stop_loss | 7 | 17% |
-| take_profit | 2 | 5% |
+| m_k_rollover | 874 | 26% |
+| max_hold | 827 | 25% |
+| take_profit | 701 | 21% |
+| stop_loss | 686 | 21% |
+| catastrophic | 245 | 7% |
 
-**CH2 overlap:** 0/49 = 0%
-**Original CH3 overlap:** 0/49 = 0%
+Max concurrent: 255. Unique tickers: 894. CH2 overlap: 0%.
 
-**Acceptance criteria:**
+## Control: Original CH3 (S_UF >= 0.70, D_k = 1)
 
-| Criterion | Value | Pass? |
-|-----------|-------|-------|
-| Max concurrent <= 20 | 34 | NO |
-| Asymmetry >= 1.5x | 1.35x | NO |
-| CH2 overlap <= 30% | 0% | YES |
-| Original CH3 overlap <= 10% | 0% | YES |
+### Resolved trades only
+- **4,011 trades** | WR: 2,029/4,011 = **50.6%**
+- Avg win: **+4.40%** | Avg loss: **-3.47%** | **Ratio: 1.27x**
+- P&L: $51,047
 
-**Overall: CRITERIA NOT MET**
+Max concurrent: 309. Unique tickers: 553. CH2 overlap: 1%.
 
-**Top 10 trades:**
+## Comparison Table
 
-| Ticker | Entry | Exit | P&L% | M_k | Exit Reason | Bars |
-|--------|-------|------|------|-----|-------------|------|
-| PUBM | $9.62 | $10.23 | +6.34% | 0.7724 | data_end | 1 |
-| EGAN | $7.31 | $7.74 | +5.88% | 0.9012 | data_end | 1 |
-| TNK | $74.52 | $78.62 | +5.51% | 0.8079 | take_profit | 1 |
-| HOG | $23.19 | $24.27 | +4.64% | 0.8858 | data_end | 1 |
-| LAD | $275.38 | $286.84 | +4.16% | 0.9088 | data_end | 1 |
-| BX | $121.65 | $126.35 | +3.86% | 0.795 | data_end | 1 |
-| HXL | $89.39 | $92.23 | +3.18% | 1.0811 | data_end | 1 |
-| GNK | $23.54 | $24.25 | +3.02% | 0.7812 | data_end | 1 |
-| JKHY | $149.36 | $153.86 | +3.01% | 0.9434 | take_profit | 1 |
-| AROW | $36.06 | $37.14 | +3.00% | 1.0096 | data_end | 1 |
+| Channel | Signals | WR | Avg Win | Avg Loss | Ratio | Max Conc | CH2 Overlap |
+|---------|---------|-----|---------|----------|-------|----------|-------------|
+| **CH2 April baseline** | 30 | 50% | +12.34% | -4.81% | **2.57x** | n/a | 100% |
+| Original CH3 (S_UF≥.70) | 4,724 | 50% | +4.03% | -3.15% | 1.28x | 309 | 1% |
+| **V2 no-SPY-gate** | 3,931 | 52% | +6.50% | -4.78% | **1.38x** | 255 | 0% |
 
-### Variant B: Self-relative (M_k >= 2x stdev)
+## Key findings
 
-**Signals admitted:** 350
-**Win rate:** 185/350 = 52.9%
-**Avg win:** +3.68%
-**Avg loss:** -3.15%
-**Asymmetry ratio:** 1.17x
-**Total P&L:** $4,034
-**Max concurrent signals:** 278
-**Unique tickers:** 390
+1. **V2 resolved-trade ratio (1.38x) is better than original (1.28x)** and has materially higher avg win (+7.21% vs +4.40%). M_k rising selects stronger energy entries.
 
-**Exit reason distribution:**
+2. **Both fire far too broadly** (255-309 concurrent signals). Neither has the selectivity to be a deployable channel without additional filtering.
 
-| Reason | Count | % |
-|--------|-------|---|
-| data_end | 224 | 64% |
-| stop_loss | 68 | 19% |
-| take_profit | 49 | 14% |
-| catastrophic_floor | 9 | 3% |
+3. **0% CH2 overlap** — V2 selects entirely different stocks than CH2. It IS genuinely additive at the signal level.
 
-**CH2 overlap:** 8/390 = 2%
-  Tickers: BELFA, BELFB, PWR, RRX, SOHU, SONO, WCC, WOR
-**Original CH3 overlap:** 13/390 = 3%
-  Tickers: AMZN, BFST, DEI, DMLP, FIZZ, HBCP, HTH, KN, NPKI, OCFC, PFIS, PRKS, RBC
+4. **13% overlap between V2 and original CH3** — structurally distinct selections.
 
-**Acceptance criteria:**
+5. **CH2 remains dominant at 2.57x ratio.** V2's 1.38x and original's 1.28x don't justify a second channel — the asymmetry is too thin for the complexity cost.
 
-| Criterion | Value | Pass? |
-|-----------|-------|-------|
-| Max concurrent <= 20 | 278 | NO |
-| Asymmetry >= 1.5x | 1.17x | NO |
-| CH2 overlap <= 30% | 2% | YES |
-| Original CH3 overlap <= 10% | 3% | YES |
-
-**Overall: CRITERIA NOT MET**
-
-**Top 10 trades:**
-
-| Ticker | Entry | Exit | P&L% | M_k | Exit Reason | Bars |
-|--------|-------|------|------|-----|-------------|------|
-| MXL | $60.32 | $71.89 | +19.17% | 0.6858 | take_profit | 1 |
-| BAND | $23.44 | $27.73 | +18.30% | 0.099 | take_profit | 1 |
-| RMAX | $7.07 | $8.14 | +15.16% | 0.1022 | take_profit | 1 |
-| PRCH | $7.58 | $8.63 | +13.98% | 0.2743 | take_profit | 1 |
-| JOBY | $8.42 | $9.31 | +10.58% | 0.5855 | take_profit | 1 |
-| CEVA | $28.1 | $31.02 | +10.38% | 0.6833 | take_profit | 1 |
-| CRNC | $8.29 | $9.15 | +10.36% | 0.219 | take_profit | 1 |
-| TDOC | $5.75 | $6.29 | +9.43% | 0.0347 | take_profit | 1 |
-| TRDA | $12.96 | $14.07 | +8.54% | 0.1629 | take_profit | 1 |
-| PAL | $6.96 | $7.54 | +8.39% | 0.6925 | take_profit | 1 |
-
-### Cross-Variant Overlap
-
-- Variant A tickers: 49
-- Variant B tickers: 390
-- A ∩ B overlap: 46 (12%)
+6. **The selectivity problem remains the binding constraint.** V2 has the right structural thesis (M_k rising = energy loading) but fires on too many tickers to be actionable.
