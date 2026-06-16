@@ -823,6 +823,77 @@ def handle_status_simple(args):
     }
 
 
+# ── Cascade monitor ──────────────────────────────────────────────
+
+_cascade_monitor_running = False
+_cascade_baseline = None
+
+
+def _cascade_monitor_loop(baseline, interval):
+    """Background thread: polls atlas health, auto-repauses on violation.
+    Runs inside substrate process where _guala and DECAY_PAUSED are live."""
+    global _cascade_monitor_running
+    print(f"[CASCADE] Monitor started: bindings={baseline['n_bindings']} "
+          f"strength={baseline['strength']:.1f} saturated={baseline['saturated']} "
+          f"interval={interval}s")
+    while _cascade_monitor_running:
+        time.sleep(interval)
+        if _guala is None or not _cascade_monitor_running:
+            continue
+        try:
+            n_bindings = _guala.atlas.n_live_bindings()
+            total_str = _guala.atlas.total_strength()
+            dist = _guala.atlas.strength_distribution()
+            saturated = dist.get("0.9-1.0", 0)
+            violations = []
+            if n_bindings < 0.80 * baseline["n_bindings"]:
+                violations.append(f"n_bindings {n_bindings} < 80% of {baseline['n_bindings']}")
+            if total_str < 0.70 * baseline["strength"]:
+                violations.append(f"total_strength {total_str:.1f} < 70% of {baseline['strength']:.1f}")
+            if baseline["saturated"] > 0 and saturated < 0.90 * baseline["saturated"]:
+                violations.append(f"saturated {saturated} < 90% of {baseline['saturated']}")
+            if violations:
+                os.environ["DECAY_PAUSED"] = "1"
+                _write_runtime_config({"decay_paused": True})
+                reason = "; ".join(violations)
+                _guala._log_substrate_event("cascade_auto_triggered",
+                                             tick=_guala.tick, violations=violations,
+                                             n_bindings=n_bindings,
+                                             total_strength=round(total_str, 2),
+                                             saturated=saturated)
+                print(f"[CASCADE] AUTO-REPAUSE TRIGGERED: {reason}")
+                _cascade_monitor_running = False
+                return
+            print(f"[CASCADE] OK: bindings={n_bindings} str={total_str:.1f} sat={saturated}")
+        except Exception as e:
+            print(f"[CASCADE] Monitor error: {e}")
+    print(f"[CASCADE] Monitor stopped")
+
+
+def handle_start_cascade_monitor(args):
+    global _cascade_monitor_running, _cascade_baseline
+    if _cascade_monitor_running:
+        return {"error": "monitor already running"}
+    baseline = {
+        "n_bindings": args.get("baseline_n_bindings", 0),
+        "strength": float(args.get("baseline_strength", 0)),
+        "saturated": args.get("baseline_saturated", 0),
+    }
+    interval = max(5, args.get("interval_s", 10))
+    _cascade_baseline = baseline
+    _cascade_monitor_running = True
+    t = threading.Thread(target=_cascade_monitor_loop, args=(baseline, interval),
+                         daemon=True)
+    t.start()
+    return {"cascade_monitor": "started", "baseline": baseline, "interval_s": interval}
+
+
+def handle_stop_cascade_monitor(args):
+    global _cascade_monitor_running
+    _cascade_monitor_running = False
+    return {"cascade_monitor": "stopped"}
+
+
 # ── Op registry ──────────────────────────────────────────────────
 
 OP_HANDLERS = {
@@ -843,6 +914,8 @@ OP_HANDLERS = {
     "sound_frame": handle_sound_frame,
     "sleep_for_deploy": handle_sleep_for_deploy,
     "status": handle_status_simple,
+    "start_cascade_monitor": handle_start_cascade_monitor,
+    "stop_cascade_monitor": handle_stop_cascade_monitor,
 }
 
 

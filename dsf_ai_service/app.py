@@ -2135,76 +2135,35 @@ async def admin_backup():
 
 
 # (B) Cascade auto-trigger monitor
-_cascade_monitor_task = None
-_cascade_monitor_running = False
-
 class CascadeMonitorRequest(BaseModel):
     baseline_n_bindings: int
     baseline_strength: float
-    baseline_saturated: int
+    baseline_saturated: int = 0
     interval_s: int = 10
 
 @app.post("/api/v1/gualaloom/admin/start_cascade_monitor")
 async def admin_start_cascade_monitor(req: CascadeMonitorRequest):
-    """Start cascade detection. Auto-repauses if thresholds breached."""
-    global _cascade_monitor_task, _cascade_monitor_running
-    import asyncio
-    if _cascade_monitor_running:
-        return {"error": "monitor already running"}
-
-    _cascade_monitor_running = True
-    baseline = {
-        "n_bindings": req.baseline_n_bindings,
-        "strength": req.baseline_strength,
-        "saturated": req.baseline_saturated,
-    }
-    interval = max(5, req.interval_s)
-
-    async def _monitor():
-        global _cascade_monitor_running
-        print(f"[CASCADE] Monitor started: bindings={baseline['n_bindings']} "
-              f"strength={baseline['strength']:.1f} saturated={baseline['saturated']} "
-              f"interval={interval}s")
-        while _cascade_monitor_running:
-            await asyncio.sleep(interval)
-            if _guala is None:
-                continue
-            n_bindings = _guala.atlas.n_live_bindings()
-            total_str = _guala.atlas.total_strength()
-            dist = _guala.atlas.strength_distribution()
-            saturated = dist.get("0.9-1.0", 0)
-            violations = []
-            if n_bindings < 0.80 * baseline["n_bindings"]:
-                violations.append(f"n_bindings {n_bindings} < 80% of {baseline['n_bindings']}")
-            if total_str < 0.70 * baseline["strength"]:
-                violations.append(f"total_strength {total_str:.1f} < 70% of {baseline['strength']:.1f}")
-            if saturated < 0.90 * baseline["saturated"]:
-                violations.append(f"saturated {saturated} < 90% of {baseline['saturated']}")
-            if violations:
-                # AUTO-REPAUSE
-                os.environ["DECAY_PAUSED"] = "1"
-                reason = "; ".join(violations)
-                _guala._log_substrate_event("cascade_auto_triggered",
-                                             tick=_guala.tick, violations=violations,
-                                             n_bindings=n_bindings,
-                                             total_strength=round(total_str, 2),
-                                             saturated=saturated)
-                print(f"[CASCADE] AUTO-REPAUSE TRIGGERED: {reason}")
-                _cascade_monitor_running = False
-                return
-            print(f"[CASCADE] OK: bindings={n_bindings} str={total_str:.1f} sat={saturated}")
-        print(f"[CASCADE] Monitor stopped")
-
-    _cascade_monitor_task = asyncio.ensure_future(_monitor())
-    return {"cascade_monitor": "started", "baseline": baseline, "interval_s": interval}
+    """Start cascade detection — forwarded to substrate process."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("start_cascade_monitor",
+            baseline_n_bindings=req.baseline_n_bindings,
+            baseline_strength=req.baseline_strength,
+            baseline_saturated=req.baseline_saturated,
+            interval_s=req.interval_s,
+        )
+    return JSONResponse({"error": "cascade monitor requires remote substrate mode"},
+                        status_code=501)
 
 
 @app.post("/api/v1/gualaloom/admin/stop_cascade_monitor")
 async def admin_stop_cascade_monitor():
-    """Stop cascade monitor."""
-    global _cascade_monitor_running
-    _cascade_monitor_running = False
-    return {"cascade_monitor": "stopped"}
+    """Stop cascade monitor — forwarded to substrate process."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("stop_cascade_monitor")
+    return JSONResponse({"error": "cascade monitor requires remote substrate mode"},
+                        status_code=501)
 
 
 # GL-BRIEF-CHITRACE: read-only chi-geometry readout
