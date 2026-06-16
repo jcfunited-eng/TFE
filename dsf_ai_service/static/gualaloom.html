@@ -809,7 +809,7 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
 
 // --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
 (()=>{
-  addMsg('v7 uncage ready.','system');msgInput.focus();
+  addMsg('Guala ready.','system');msgInput.focus();
   // pollStatus first — it's fast and populates the header immediately
   pollStatus();
   // v7/state can be slow on fresh sessions (snap_replay) — don't block on it
