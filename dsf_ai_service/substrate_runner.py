@@ -107,7 +107,10 @@ def boot_substrate():
             del g._corpora[cid]
 
     # Start autonomy loop
-    g.start_autonomy_loop(interval=0.05)
+    # GL-BRIEF-NEEDS-PHYSICS: increase interval from 50ms to 200ms
+    # With 38K+ atlas entries, decay sweeps take >50ms and starve
+    # the socket server. 200ms gives 5 ticks/sec (was 20).
+    g.start_autonomy_loop(interval=0.2)
     s = g.introspect()
     print(f"[substrate] Booted: vocab={s['vocab']} reads={s['reads']} "
           f"tick={g.tick} atlas={s['atlas_entries']}")
