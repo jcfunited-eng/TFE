@@ -42,6 +42,12 @@ from dataclasses import dataclass, field
 from collections import deque
 import random
 
+
+def saturate(current, gain):
+    """Asymptotic receptor saturation. As current → 1.0, effective gain → 0.
+    GL-BRIEF-NEEDS-PHYSICS: prevents needs from pinning at ceiling."""
+    return max(0.0, min(1.0, current + gain * (1.0 - current)))
+
 try:
     from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack, SensoryBank, SENSORY_DNA, ROLE_DNA
     from dsf_ai_service.v4.gualaloom_v4_uf_kernel import DSF, compute_dsf
@@ -533,7 +539,7 @@ class Coordinator:
         if self._pair_bond.get(source, False):
             gap = self.NEEDS_TARGET_CONN - needs.connection
             if gap > 0:
-                needs.connection = min(1.0, needs.connection + gap * self.CONN_GAP_FRACTION)
+                needs.connection = saturate(needs.connection, gap * self.CONN_GAP_FRACTION)
 
         # Atlas presence binding via salience
         salience = engine._compute_salience(source=source, input_novelty=0.8)
@@ -1701,7 +1707,13 @@ class Guala:
                                   if self._current_activity else None)
                 for pid in list(self.target_familiarity.keys()):
                     if pid != current_target:
-                        self.target_familiarity[pid] *= 0.9967
+                        # GL-BRIEF-NEEDS-PHYSICS Fix 2: consolidation-resistant decay
+                        # Highly-attended targets decay slower (log-scaled)
+                        pic = self._pictures.get(pid)
+                        n_attends = pic.times_attended if pic else 0
+                        consolidation_factor = 1.0 / (1.0 + math.log(1.0 + n_attends))
+                        effective_decay = 1.0 - (1.0 - 0.9967) * consolidation_factor
+                        self.target_familiarity[pid] *= effective_decay
                         if self.target_familiarity[pid] < 0.001:
                             del self.target_familiarity[pid]
                 # Snapshot every ~10 min (200 ticks × 30 = 6000 ticks ≈ 5 min)
@@ -1922,13 +1934,13 @@ class Guala:
                                      times_through=corpus.times_read_through)
         # Novelty effect: reading new material satisfies novelty
         if corpus.is_new(self.tick):
-            self.needs.novelty = min(1.0, self.needs.novelty + 0.001)
+            self.needs.novelty = saturate(self.needs.novelty, 0.001)
         else:
             self.needs.novelty = max(0.0, self.needs.novelty - 0.0003)
 
     def _atick_sleeping(self, a):
         """Sleep raises stability. Transitions to dream at midpoint."""
-        self.needs.stability = min(1.0, self.needs.stability + 0.001)
+        self.needs.stability = saturate(self.needs.stability, 0.001)
         # GL-FIX-SLEEP-DECAY: removed duplicate decay call.
         # The general non-reading path (line ~1753) already calls
         # atlas.decay() every 10 ticks for ALL non-reading activities
@@ -1945,7 +1957,7 @@ class Guala:
         No novelty gain — dream recombines existing material.
         LTP-on-replay: sampled atlas entries get reinforced (bug #3 fix).
         v8 (GL-BRIEF-032): deep atlas promotion gate runs after consolidation."""
-        self.needs.stability = min(1.0, self.needs.stability + 0.0005)
+        self.needs.stability = saturate(self.needs.stability, 0.0005)
         if self.tick % 200 == 0:
             # Dream recall + consolidation (UNCHANGED — task 65)
             dream_words = []
@@ -2048,7 +2060,7 @@ class Guala:
         if not si:
             return
         if si.is_new():
-            self.needs.novelty = min(1.0, self.needs.novelty + 0.002)
+            self.needs.novelty = saturate(self.needs.novelty, 0.002)
         # No novelty gain for repeat attendance (familiar exposure)
         # Mark attended at activity end
         if self.tick >= a.expected_end_tick - 1:
@@ -2144,7 +2156,7 @@ class Guala:
         fam = self.target_familiarity.get(a.target, 0.0)
         base_gain = 0.003 if pic.is_new() else 0.0005
         gain = base_gain * (1.0 - fam)  # familiar pictures give less novelty
-        self.needs.novelty = min(1.0, self.needs.novelty + gain)
+        self.needs.novelty = saturate(self.needs.novelty, gain)
         # Mark attended at end + update familiarity
         if self.tick >= a.expected_end_tick - 1:
             pic.times_attended += 1
@@ -2175,7 +2187,7 @@ class Guala:
                               **self._affect_kwargs())
         # Novelty satisfies
         if snd.get("times_attended", 0) <= 3:
-            self.needs.novelty = min(1.0, self.needs.novelty + 0.01)
+            self.needs.novelty = saturate(self.needs.novelty, 0.01)
         # Log first attendance
         if snd.get("times_attended", 0) == 1:
             self._log_substrate_event("sound_motif_founded",
@@ -2222,7 +2234,7 @@ class Guala:
                 self._log_substrate_event("video_attend_error", error=str(e))
                 a.metadata["_viewed"] = True
         if vid.is_new():
-            self.needs.novelty = min(1.0, self.needs.novelty + 0.004)
+            self.needs.novelty = saturate(self.needs.novelty, 0.004)
         # No novelty gain for repeat video attendance
         if self.tick >= a.expected_end_tick - 1:
             vid.times_attended += 1
@@ -2238,7 +2250,7 @@ class Guala:
                 and self.coordinator._pair_bond.get(s, False)
                 for s in PAIR_BOND_SOURCES)
             if any_pair_present:
-                self.needs.connection = min(1.0, self.needs.connection + 0.25)
+                self.needs.connection = saturate(self.needs.connection, 0.25)
 
     def _check_emission_trigger(self, reason):
         """During play/attending, check if emission should fire."""
