@@ -490,7 +490,8 @@ async function uploadSound(){
 async function uploadVideo(){
   const file=await pickFile('video/*');if(!file)return;
   if(file.size>30*1024*1024){addMsg('(video too large — 30MB max)','system');return}
-  addMsg('(uploading video: '+file.name+')','system');
+  if(file.size>9*1024*1024){addMsg('(video too large for upload — 9MB max. Compress or trim first.)','system');return}
+  addMsg('(uploading video: '+file.name+' — '+Math.round(file.size/1024)+'KB)','system');
   try{
     const fd=new FormData();fd.append('file',file);
     const r=await fetchT(`${API}/api/v1/gualaloom/upload/video`,{method:'POST',body:fd},60000);
@@ -525,12 +526,13 @@ async function submitBundle(){
   if(vidFile&&vidFile.size>30*1024*1024){addMsg('(video too large \u2014 30MB max)','system');return}
   // Upload video separately if present (too large for base64 bundle)
   if(vidFile){
-    try{
+    if(vidFile.size>9*1024*1024){addMsg('(video too large — 9MB max. Compress first.)','system')}
+    else{try{
       const fd=new FormData();fd.append('file',vidFile);
       const vr=await fetchT(`${API}/api/v1/gualaloom/upload/video`,{method:'POST',body:fd},60000);
       const vd=await vr.json();
       addMsg('(video: '+(vd.message||'uploaded')+')','system');
-    }catch(e){addMsg('(video upload failed: '+e.message+')','system')}
+    }catch(e){addMsg('(video upload failed: '+e.message+')','system')}}
   }
   const bundle={caption:caption||null,image_b64:null,sound_b64:null,touch,smell,taste};
   if(imgFile){const du=await fileToBase64(imgFile);bundle.image_b64=du.replace(/^data:[^;]+;base64,/,'')}
