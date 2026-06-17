@@ -101,7 +101,8 @@ class LivingAtlas:
 
         dwell_ticks: how many ticks this binding was attended before commit.
           Stored at write time for deep atlas compound gate (GL-BRIEF-032).
-          Zero for non-attended writes (dream replay, presence pulses).
+          DWELL_GATE_META for dream replay (consolidation IS dwell-earning).
+          Zero for presence pulses (not consolidation events).
         """
         if tick is None:
             tick = self.tick

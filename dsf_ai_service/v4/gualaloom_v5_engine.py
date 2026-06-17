@@ -91,6 +91,7 @@ try:
     from dsf_ai_service.v4.gualaloom_v6_living_atlas import (
         LivingAtlas, DECAY_LAMBDA, BASE_REINFORCEMENT,
         SALIENCE_MIN, SALIENCE_MAX, FORGETTING_THRESHOLD, STRENGTH_CAP,
+        DWELL_GATE_META,
     )
     import dsf_ai_service.v4.gualaloom_mathloom_v1 as ml
 except ImportError:
@@ -2084,9 +2085,11 @@ class Guala:
                         mid = e.get("motif", 0)
                         # Consolidation: reinforce this binding (LTP-on-replay)
                         # Same path as waking re-encounter, dream salience 0.3
+                        # GL-BRIEF-DREAM-PROTECTION-FIX: dream consolidation
+                        # earns metaplastic protection (slow channel via dwell gate)
                         self.atlas.record(sec_name, mid, chi_k, self.tick,
-                                          salience=0.3, arousal=0.2,
-                                          valence=0.0, surprise=0.0)
+                                          salience=0.3, dwell_ticks=DWELL_GATE_META,
+                                          arousal=0.2, valence=0.0, surprise=0.0)
                         reinforced_addresses.append(chi_k)
                         reinforcement_count += 1
                         if sec_name in self.sections:
