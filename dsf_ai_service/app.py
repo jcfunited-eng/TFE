@@ -1144,7 +1144,7 @@ async def sight_frame(msg: GLMessage):
     if _is_remote():
         client = _get_substrate_client()
         try:
-            return await client.call("sight_frame", text=msg.text or "", timeout=5.0)
+            return await client.call("sight_frame", text=msg.text or "", timeout=15.0)
         except ConnectionError:
             return {"ok": False, "error": "substrate unreachable"}
     if _guala is None:
@@ -1172,7 +1172,7 @@ async def sound_frame(msg: GLMessage):
     if _is_remote():
         client = _get_substrate_client()
         try:
-            return await client.call("sound_frame", text=msg.text or "", timeout=5.0)
+            return await client.call("sound_frame", text=msg.text or "", timeout=15.0)
         except ConnectionError:
             return {"ok": False, "error": "substrate unreachable"}
     if _guala is None:

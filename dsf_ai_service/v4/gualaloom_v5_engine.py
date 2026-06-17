@@ -1468,14 +1468,85 @@ class Guala:
         if not selected:
             return None
 
+        # Composition pass: reorder by best cortex co-occurrence triple
+        composed = self._compose_from_cortex(selected, deep_candidates)
+
         self._log_substrate_event("grandurun_emission",
                                   pool_size=len(pool),
-                                  composition_len=len(selected),
+                                  composition_len=len(composed),
                                   coherent_sum=round(coherent_sum, 4),
                                   target_chi=target_chi,
                                   input_chis=input_chis[:5],
                                   n_priors=len(priors))
-        return " ".join(selected)
+        return " ".join(composed)
+
+    def _compose_from_cortex(self, selected_words, deep_candidates):
+        """Reorder selected words by best co-occurrence triple from deep atlas.
+        A triple = subject + verb + object words that co-occur at the same chi.
+        Falls back to selection order if no triple matches."""
+        if len(selected_words) < 3:
+            return selected_words
+
+        selected_set = set(w.lower() for w in selected_words)
+        # Build word→section lookup
+        word_to_section = {}
+        for sec_name, sec in self.sections.items():
+            for _, _, word_label in sec.modes:
+                if word_label and word_label.lower() in selected_set:
+                    word_to_section[word_label.lower()] = sec_name
+
+        # Scan deep candidates for co-occurrence triples
+        best_triple = None
+        best_weight = 0.0
+        SVO_ORDER = ["subject", "verb", "object"]
+
+        for de, co, clarity in deep_candidates:
+            if not co:
+                continue
+            # Extract top word per section from this co_occurrence entry
+            section_words = {}
+            for sec_name in SVO_ORDER:
+                sec_co = co.get(sec_name, {})
+                if not sec_co:
+                    continue
+                sec = self.sections.get(sec_name)
+                if sec is None:
+                    continue
+                for mid_str, weight in sorted(sec_co.items(),
+                                              key=lambda x: -float(x[1]))[:3]:
+                    mid = int(mid_str)
+                    if mid >= len(sec.modes):
+                        continue
+                    _, _, word_label = sec.modes[mid]
+                    if word_label and word_label.lower() in selected_set:
+                        section_words[sec_name] = (word_label, float(weight))
+                        break
+
+            # Triple found if we have words in 3 sections
+            if len(section_words) >= 3:
+                triple_words = [section_words[s][0] for s in SVO_ORDER
+                                if s in section_words]
+                triple_weight = sum(section_words[s][1] for s in SVO_ORDER
+                                    if s in section_words)
+                if triple_weight > best_weight:
+                    best_triple = triple_words[:3]
+                    best_weight = triple_weight
+            elif len(section_words) >= 2:
+                # Pair — still better than random order
+                pair_words = [section_words[s][0] for s in SVO_ORDER
+                              if s in section_words]
+                pair_weight = sum(section_words[s][1] for s in SVO_ORDER
+                                  if s in section_words)
+                if pair_weight > best_weight and best_triple is None:
+                    best_triple = pair_words
+                    best_weight = pair_weight
+
+        if best_triple:
+            used = set(w.lower() for w in best_triple)
+            remaining = [w for w in selected_words if w.lower() not in used]
+            return best_triple + remaining[:2]
+
+        return selected_words
 
     def _emit_unslotted(self, input_chis, input_words):
         """GL-CLARITY-INVARIANCE-UNCAGE: fallback emission from strongest
@@ -2277,6 +2348,9 @@ class Guala:
                                   self.tick, salience=0.8,
                                   sensory_refs=["cam:live"],
                                   **self._affect_kwargs())
+                self._log_substrate_event("sight_frame_bound",
+                                          motif_id=motif.motif_id,
+                                          chi=chi_val, is_new=is_new)
 
     def process_sound_frame(self, audio_bytes):
         """GL-BRIEF-SENSORY-IO Part D: feed a transient mic audio chunk into
