@@ -133,7 +133,10 @@ def boot_substrate():
     def _log_and_publish(kind, **detail):
         _orig_log_event(kind, **detail)
         if _substrate_ring is not None:
-            _substrate_ring.publish(kind, g.tick, **detail)
+            # Filter reserved keys to avoid double-passing to publish()
+            ring_data = {k: v for k, v in detail.items()
+                         if k not in ("kind", "tick")}
+            _substrate_ring.publish(kind, g.tick, **ring_data)
     g._log_substrate_event = _log_and_publish
 
     # Wake from sleep if marker exists
