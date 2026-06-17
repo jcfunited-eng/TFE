@@ -1198,7 +1198,7 @@ async def gualaloom_page():
     return FileResponse(os.path.join(STATIC_DIR, 'gualaloom.html'))
 
 
-@app.post("/api/v1/gualaloom", dependencies=[Depends(_api_key_dep)])
+@app.post("/api/v1/gualaloom")
 async def gualaloom_chat(msg: GLMessage):
     global _exchange_count
 
@@ -2195,7 +2195,7 @@ class ChiTraceRequest(BaseModel):
     sound_ids: list = []
     input_text: str = ""
 
-@app.post("/api/v1/gualaloom/chi_trace", dependencies=[Depends(_api_key_dep)])
+@app.post("/api/v1/gualaloom/chi_trace")
 async def chi_trace(req: ChiTraceRequest):
     """Read-only chi-geometry readout. No state mutation."""
     _gl_init()
