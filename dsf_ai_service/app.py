@@ -2395,6 +2395,49 @@ async def gualaloom_events(since: int = 0, stream: bool = False):
         return {"events": events}
 
 
+@app.websocket("/events_stream")
+async def events_stream_ws(websocket):
+    """WebSocket: live event stream from substrate ring buffer.
+    Companion HTML subscribes here instead of polling SSE."""
+    from fastapi import WebSocket
+    import asyncio
+    await websocket.accept()
+    try:
+        if _is_remote():
+            # In remote mode, get ring from substrate_runner via socket
+            # For now, fall back to polling
+            client = _get_substrate_client()
+            last_tick = 0
+            while True:
+                try:
+                    result = await client.call("gualaloom_post",
+                                               command="/events",
+                                               text=str(last_tick),
+                                               timeout=5.0)
+                    for ev in result.get("events", []):
+                        if ev.get("tick", 0) > last_tick:
+                            last_tick = ev["tick"]
+                        await websocket.send_json(ev)
+                except Exception:
+                    pass
+                await asyncio.sleep(0.5)
+        else:
+            # Direct mode: subscribe to ring buffer
+            from dsf_ai_service.substrate.ring_buffer import SubstrateRing
+            ring = getattr(_guala, '_substrate_ring', None)
+            if ring is None:
+                await websocket.send_json({"error": "ring not initialized"})
+                return
+            cursor = ring.subscribe()
+            while True:
+                events = cursor.read_available()
+                for ev in events:
+                    await websocket.send_json(ev)
+                await asyncio.sleep(0.1)
+    except Exception:
+        pass
+
+
 @app.post("/api/v1/gualaloom/sleep")
 async def gualaloom_sleep():
     """Manual sleep trigger."""

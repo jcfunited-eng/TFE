@@ -23,6 +23,10 @@ STATE_DIR = os.environ.get("STATE_DIR", "/mnt/efs/guala")
 _guala = None
 _shutdown = False
 
+# Ring buffers — initialized on boot
+_substrate_ring = None
+_input_ring = None
+
 RUNTIME_CONFIG_FILE = "guala_runtime_config.json"
 
 
@@ -116,6 +120,21 @@ def boot_substrate():
           f"tick={g.tick} atlas={s['atlas_entries']}")
 
     _guala = g
+
+    # Initialize ring buffers
+    global _substrate_ring, _input_ring
+    from dsf_ai_service.substrate.ring_buffer import SubstrateRing, InputRing
+    _substrate_ring = SubstrateRing(size=1 << 18)  # 256K entries
+    _input_ring = InputRing(size=1 << 14)  # 16K entries
+    print(f"[substrate] Rings: substrate={_substrate_ring._size} input={_input_ring._size}")
+
+    # Wire substrate event publishing to ring
+    _orig_log_event = g._log_substrate_event
+    def _log_and_publish(kind, **detail):
+        _orig_log_event(kind, **detail)
+        if _substrate_ring is not None:
+            _substrate_ring.publish(kind, g.tick, **detail)
+    g._log_substrate_event = _log_and_publish
 
     # Wake from sleep if marker exists
     try:
@@ -874,7 +893,7 @@ def handle_backup(args):
 
 
 def handle_sight_frame(args):
-    """GL-BRIEF-SENSORY-IO Part C: transient camera frame → sight krimelack."""
+    """Transient camera frame → sight krimelack + object recognition."""
     import base64
     b64_data = (args.get("text") or "").strip()
     if not b64_data:
@@ -885,23 +904,41 @@ def handle_sight_frame(args):
         from dsf_ai_service.app import decode_image_bytes
         _, grid, _, _ = decode_image_bytes(img_bytes)
         _guala.process_sight_frame(grid)
-        print(f"[sight-frame] {time.time()-t0:.3f}s")
-        return {"ok": True, "tick": _guala.tick}
+        # Grounded vocab: object recognition on the frame
+        from dsf_ai_service.substrate.grounded_vocab_integration import (
+            process_sight_with_recognition)
+        bindings = process_sight_with_recognition(_guala, grid)
+        # Publish to ring
+        if _substrate_ring is not None:
+            _substrate_ring.publish("sight_frame", _guala.tick,
+                                    n_bindings=len(bindings))
+        dt = time.time() - t0
+        if dt > 0.5:
+            print(f"[sight-frame] {dt:.3f}s (slow)")
+        return {"ok": True, "tick": _guala.tick,
+                "recognized": [b["word"] for b in bindings]}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
 
 def handle_sound_frame(args):
-    """GL-BRIEF-SENSORY-IO Part D: transient mic audio → sound krimelack."""
+    """Transient mic audio → sound krimelack + speech/ambient recognition."""
     import base64
     b64_data = (args.get("text") or "").strip()
+    source = args.get("source", "ambient")
     if not b64_data:
         return {"ok": False, "error": "no audio data"}
     t0 = time.time()
     try:
         audio_bytes = base64.b64decode(b64_data)
         _guala.process_sound_frame(audio_bytes)
-        print(f"[sound-frame] {time.time()-t0:.3f}s")
+        # Grounded vocab: speech transcription / ambient classification
+        from dsf_ai_service.substrate.grounded_vocab_integration import (
+            process_sound_with_recognition)
+        process_sound_with_recognition(_guala, audio_bytes, source=source)
+        # Publish to ring
+        if _substrate_ring is not None:
+            _substrate_ring.publish("sound_frame", _guala.tick, source=source)
         return {"ok": True, "tick": _guala.tick}
     except Exception as e:
         return {"ok": False, "error": str(e)}
@@ -995,6 +1032,18 @@ def handle_stop_cascade_monitor(args):
     return {"cascade_monitor": "stopped"}
 
 
+def handle_ring_status(args):
+    """Return ring buffer status for monitoring."""
+    if _substrate_ring is None:
+        return {"ring": "not_initialized"}
+    return {
+        "ring": "active",
+        "published_seq": _substrate_ring._published_seq,
+        "size": _substrate_ring._size,
+        "input_pending": _input_ring.pending if _input_ring else 0,
+    }
+
+
 # ── Op registry ──────────────────────────────────────────────────
 
 OP_HANDLERS = {
@@ -1015,6 +1064,7 @@ OP_HANDLERS = {
     "sound_frame": handle_sound_frame,
     "sleep_for_deploy": handle_sleep_for_deploy,
     "status": handle_status_simple,
+    "ring_status": handle_ring_status,
     "start_cascade_monitor": handle_start_cascade_monitor,
     "stop_cascade_monitor": handle_stop_cascade_monitor,
 }
@@ -1153,6 +1203,25 @@ async def run_server():
             except Exception as e:
                 print(f"[save] backstop error: {e}")
     asyncio.ensure_future(_save_backstop())
+
+    # Start persistence consumer on ring buffer (R2)
+    if _substrate_ring is not None:
+        from dsf_ai_service.substrate.persistence_consumer import (
+            PersistenceConsumer, S3Consumer)
+        events_dir = os.path.join(STATE_DIR, "ring_events")
+        os.makedirs(events_dir, exist_ok=True)
+        _pers_consumer = PersistenceConsumer(
+            ring=_substrate_ring,
+            state_dir=events_dir,
+            build_snapshot_fn=lambda: _guala.introspect(),
+            checkpoint_interval=50000)
+        _pers_consumer.start()
+        _s3_consumer = S3Consumer(
+            ring=_substrate_ring,
+            state_dir=events_dir,
+            s3_bucket=s3_bucket)
+        _s3_consumer.start()
+        print(f"[substrate] Ring consumers started: persistence + S3")
 
     # Handle SIGTERM/SIGINT
     def _signal_handler():
