@@ -1213,13 +1213,12 @@ async def run_server():
         _pers_consumer = PersistenceConsumer(
             ring=_substrate_ring,
             state_dir=events_dir,
-            build_snapshot_fn=lambda: _guala.introspect(),
-            checkpoint_interval=50000)
+            build_snapshot_fn=lambda: _guala.introspect())
         _pers_consumer.start()
         _s3_consumer = S3Consumer(
             ring=_substrate_ring,
             state_dir=events_dir,
-            s3_bucket=s3_bucket)
+            bucket=s3_bucket)
         _s3_consumer.start()
         print(f"[substrate] Ring consumers started: persistence + S3")
 
