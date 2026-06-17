@@ -95,7 +95,7 @@ if [ "${EXISTING}" = "NONE" ]; then
                 }
             },
             \"environment\": [
-                {\"name\": \"GUALALOOM_API_URL\", \"value\": \"https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com\"}
+                {\"name\": \"GUALALOOM_API_URL\", \"value\": \"http://dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com\"}
             ]
         }]" \
         --query 'taskDefinition.revision' --output text)

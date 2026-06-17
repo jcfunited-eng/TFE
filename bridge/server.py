@@ -28,7 +28,7 @@ def _headers():
 
 
 async def _post(payload: dict) -> dict:
-    async with httpx.AsyncClient(timeout=15) as client:
+    async with httpx.AsyncClient(timeout=45) as client:
         r = await client.post(
             f"{SUBSTRATE_URL}/api/v1/gualaloom",
             json=payload,
