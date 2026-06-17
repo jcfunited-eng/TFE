@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg espeak-ng && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3
+RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 onnxruntime websockets
 
 # Copy only what the service needs (no TFE trading code)
 COPY uf_core/ /app/uf_core/
@@ -12,6 +12,7 @@ COPY ses_core/ /app/ses_core/
 COPY tools/derive_sppu_weights.py /app/tools/
 COPY dsf_ai_service/ /app/dsf_ai_service/
 COPY dsf_ai_service/corpus/ /app/corpus/
+COPY dsf_ai_service/models/ /app/models/
 
 # GualaLoom state dir (persists via ECS volume or recreates on deploy)
 RUN mkdir -p /app/state/dreams

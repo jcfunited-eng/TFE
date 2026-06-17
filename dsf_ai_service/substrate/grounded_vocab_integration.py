@@ -7,12 +7,22 @@ recognized words into the atlas with cross-modal linking.
 V1: recognizers are stubs (return empty). CrossModalBinder is live.
 """
 
+import os
+
 from dsf_ai_service.substrate.grounded_vocab import (
     ObjectRecognizer,
     SpeechRecognizer,
     AmbientClassifier,
     CrossModalBinder,
 )
+
+# ---------------------------------------------------------------------------
+# Model paths (set via env or default container paths)
+# ---------------------------------------------------------------------------
+YOLO_MODEL_PATH = os.environ.get(
+    "YOLO_MODEL_PATH", "/app/models/yolov8n.onnx")
+WHISPER_MODEL_PATH = os.environ.get(
+    "WHISPER_MODEL_PATH", "/app/models/whisper-tiny")
 
 # ---------------------------------------------------------------------------
 # Singletons
@@ -27,7 +37,8 @@ def get_object_recognizer():
     """Return the singleton ObjectRecognizer."""
     global _object_recognizer
     if _object_recognizer is None:
-        _object_recognizer = ObjectRecognizer()
+        path = YOLO_MODEL_PATH if os.path.exists(YOLO_MODEL_PATH) else None
+        _object_recognizer = ObjectRecognizer(model_path=path)
     return _object_recognizer
 
 
@@ -35,7 +46,8 @@ def get_speech_recognizer():
     """Return the singleton SpeechRecognizer."""
     global _speech_recognizer
     if _speech_recognizer is None:
-        _speech_recognizer = SpeechRecognizer()
+        path = WHISPER_MODEL_PATH if os.path.exists(WHISPER_MODEL_PATH) else None
+        _speech_recognizer = SpeechRecognizer(model_path=path)
     return _speech_recognizer
 
 
