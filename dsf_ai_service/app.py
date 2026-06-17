@@ -1113,6 +1113,7 @@ class GLMessage(BaseModel):
     text: str
     command: Optional[str] = None
     source: Optional[str] = None   # v7-bridge: source-tagged input (joe/wc/c1)
+    emission_mode: Optional[str] = None  # "topk" | "grandurun" per-request override
 
 
 # GL-BRIEF-SENSORY-IO Parts C+D: streaming sight and sound
@@ -1187,7 +1188,8 @@ async def gualaloom_chat(msg: GLMessage):
             return await client.call("gualaloom_post",
                                      command=msg.command or "",
                                      text=msg.text or "",
-                                     source=msg.source or "joe")
+                                     source=msg.source or "joe",
+                                     emission_mode=msg.emission_mode)
         except ConnectionError:
             return {"response": "substrate unreachable — try again in a moment",
                     "motifs": 0}

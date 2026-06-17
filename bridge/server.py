@@ -86,7 +86,7 @@ async def guala_rest_wc() -> dict:
 
 
 @mcp.tool()
-async def guala_say(content: str) -> dict:
+async def guala_say(content: str, emission_mode: str | None = None) -> dict:
     """Speak to Guala, source-tagged as wC.
 
     The substrate treats this as source-tagged input from wC.
@@ -98,8 +98,12 @@ async def guala_say(content: str) -> dict:
 
     Args:
         content: What to say to her. Plain text.
+        emission_mode: Optional "topk" or "grandurun" override for A/B testing.
     """
-    return await _post({"text": content, "source": "wc"})
+    payload = {"text": content, "source": "wc"}
+    if emission_mode:
+        payload["emission_mode"] = emission_mode
+    return await _post(payload)
 
 
 @mcp.tool()
