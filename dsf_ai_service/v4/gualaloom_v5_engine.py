@@ -2386,7 +2386,8 @@ class Guala:
             self._start_activity(em)
 
     def _do_emit(self):
-        """Generate an autonomous emission via recall across all sections."""
+        """Generate an autonomous emission via invariants (respects EMISSION_MODE).
+        Falls back to SVO recall only if invariants return nothing."""
         self._last_emission_tick = self.tick
         recent_chis = []
         for sec in self.sections.values():
@@ -2399,16 +2400,20 @@ class Guala:
                                                  if self.coordinator._presence.get(s, False)])
             return
 
-        # Word recall
-        recalled = {}
-        for sec_name in ("subject", "verb", "object"):
-            word = self._recall_from_atlas(sec_name, recent_chis,
-                                           exclude_words=set())
-            if word:
-                recalled[sec_name] = word
+        # Use the invariants path (grandurun or topk per EMISSION_MODE)
+        input_words = []  # autonomous — no input words to exclude
+        content = self._emit_from_invariants(recent_chis, input_words)
 
-        content = " ".join(recalled[k] for k in ("subject", "verb", "object")
-                           if k in recalled) or "..."
+        # Fallback to SVO recall if invariants found nothing
+        if not content:
+            recalled = {}
+            for sec_name in ("subject", "verb", "object"):
+                word = self._recall_from_atlas(sec_name, recent_chis,
+                                               exclude_words=set())
+                if word:
+                    recalled[sec_name] = word
+            content = " ".join(recalled[k] for k in ("subject", "verb", "object")
+                               if k in recalled) or "..."
 
         # Sight recall — find pictures bound at recent chi addresses
         recalled_pics = self._recall_sight_from_atlas(recent_chis, [])

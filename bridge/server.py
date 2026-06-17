@@ -3,8 +3,12 @@ GualaLoom MCP Bridge Server
 GUALALOOM-V7-BRIDGE-WC-2026-06-07
 
 Translates MCP tool calls to GualaLoom HTTP endpoints.
-5 tools: status, get_events, wake_wc, rest_wc, say.
-No LLM. Pure HTTP proxy with MCP surface.
+Stateless HTTP transport — survives bridge redeploy without client reconnect.
+
+Direct ALB fallback (when MCP is down):
+  ALB_URL=https://dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com
+  curl -sk -X POST "$ALB_URL/api/v1/gualaloom/admin/<endpoint>" \
+    -H "X-API-Key: $GUALALOOM_API_KEY" -H "Content-Type: application/json"
 """
 
 import os
@@ -17,7 +21,8 @@ SUBSTRATE_URL = os.environ.get(
 )
 SUBSTRATE_KEY = os.environ.get("GUALALOOM_API_KEY")
 
-mcp = FastMCP("gualaloom-bridge", host="0.0.0.0", port=8080)
+mcp = FastMCP("gualaloom-bridge", host="0.0.0.0", port=8080,
+              stateless_http=True)
 
 
 def _headers():

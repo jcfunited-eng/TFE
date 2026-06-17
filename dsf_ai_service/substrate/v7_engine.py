@@ -437,12 +437,13 @@ class V7Session:
         }
 
     def quiet_tick(self, n_ticks=1):
-        """Quiet ticks — substrate Default Mode. C4: evaluate intro gate."""
+        """Quiet ticks — substrate Default Mode. Evaluate intro + aware gates."""
         with self.lock:
             results = []
             for _ in range(n_ticks):
                 result = self.sys_.replay_tick(rng=self.rng)
                 update_drive_tracker(self.drive_tracker, {})
+                # Intro gate
                 i_fired, i_mode, i_eval = self.intro_gate.check_and_fire(self.sys_)
                 i_eval.update(tick=self.sys_.tick, fired=i_fired, source="quiet_tick")
                 if not hasattr(self, '_quiet_nmda_events'):
@@ -459,6 +460,18 @@ class V7Session:
                        self.intro_commit_history[-2].get("state"):
                         print(f"[v7-intro] FIRED during quiet: mode={i_mode} "
                               f"state={self.last_intro_state} tick={self.sys_.tick}")
+                # Aware gate — needs intro to have fired recently
+                a_fired, a_mode, a_eval = self.aware_gate.check_and_fire(self.sys_)
+                a_eval.update(tick=self.sys_.tick, fired=a_fired, source="quiet_tick")
+                self._quiet_nmda_events.append(a_eval)
+                self._quiet_nmda_events = self._quiet_nmda_events[-20:]
+                if a_fired and a_mode is not None and a_mode < len(self.aware_modes):
+                    self.last_aware_state = self.aware_modes[a_mode]
+                    self.aware_commit_history.append(
+                        {"state": self.last_aware_state, "tick": self.sys_.tick})
+                    self.aware_commit_history = self.aware_commit_history[-10:]
+                    print(f"[v7-aware] FIRED during quiet: mode={a_mode} "
+                          f"state={self.last_aware_state} tick={self.sys_.tick}")
                 results.append(result)
             total_r = sum(len(r["replayed"]) for r in results)
             total_c = sum(len(r["commits"]) for r in results)
@@ -501,7 +514,8 @@ class V7Session:
                 "awareness": self.last_aware_state or "aware_quiet",
                 "aware_recent": self.aware_commit_history[-3:],
                 "mode_strengths": self._get_mode_strengths(),
-                "nmda_events": self.last_nmda_events[-10:],
+                "nmda_events": (self.last_nmda_events or
+                                getattr(self, '_quiet_nmda_events', []))[-10:],
                 "routing_log": self.last_routing_log,
                 "n_commits_total": sum(len(s.krimelack) for s in self.sys_.sections.values()),
                 "intro_krimelack_count": len(self.sys_.sections["intro"].krimelack),
@@ -582,13 +596,17 @@ class V7Session:
 
     def to_json(self):
         state = {
-            "schema_version": 4,
+            "schema_version": 5,
             "session_id": self.session_id,
             "event_seq": self.event_log.count,
             "vocab": {k: list(v) for k, v in self.vocab.items()},
             "tick": self.sys_.tick,
             "intro_state": self.last_intro_state,
             "aware_state": self.last_aware_state,
+            "drive_tracker": {k: round(v, 6) for k, v in self.drive_tracker.items()},
+            "intro_commit_history": list(self.intro_commit_history),
+            "aware_commit_history": list(self.aware_commit_history),
+            "last_nmda_events": list(self.last_nmda_events[-20:]),
             "sections": {},
             "atlas": {str(k): v for k, v in self.sys_.atlas.entries.items()},
             "keyholes": [
@@ -646,13 +664,22 @@ class V7Session:
                     if sn in self.sys_.sections:
                         install_plasticity(self.sys_.sections[sn], initial_strength=1.0)
                 return
-            # Schema v4 native
+            # Schema v4/v5 native
             if "vocab" in data:
                 loaded_vocab = {k: list(v) for k, v in data["vocab"].items()}
                 self._validate_vocab(loaded_vocab)
                 self.vocab = loaded_vocab
             self.last_intro_state = data.get("intro_state")
             self.last_aware_state = data.get("aware_state")
+            # v5: restore conversational state
+            if "drive_tracker" in data:
+                self.drive_tracker = dict(data["drive_tracker"])
+            if "intro_commit_history" in data:
+                self.intro_commit_history = list(data["intro_commit_history"])
+            if "aware_commit_history" in data:
+                self.aware_commit_history = list(data["aware_commit_history"])
+            if "last_nmda_events" in data:
+                self.last_nmda_events = list(data["last_nmda_events"])
             for sn, sec_data in data.get("sections", {}).items():
                 if sn in self.sys_.sections:
                     self._restore_section(self.sys_.sections[sn], sec_data)
