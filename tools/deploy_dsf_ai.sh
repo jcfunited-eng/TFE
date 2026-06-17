@@ -196,7 +196,8 @@ out = {
             'environment': [
                 {'name': 'SUBSTRATE_MODE', 'value': 'remote'},
                 {'name': 'SUBSTRATE_SOCKET', 'value': '/shared/substrate.sock'},
-                {'name': 'DECAY_PAUSED', 'value': '0'}
+                {'name': 'DECAY_PAUSED', 'value': '0'},
+                {'name': 'GUALALOOM_API_KEY', 'value': '7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'}
             ],
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',

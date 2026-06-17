@@ -42,7 +42,7 @@ def decode_image_bytes(img_bytes):
     return img_full, grid, orig_w, orig_h
 from typing import Optional, List, Dict
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -93,6 +93,27 @@ app.add_middleware(
 )
 
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+
+# GL-BRIEF-REMOVE-30S-CAP: API key enforcement for bridge auth.
+# When GUALALOOM_API_KEY is set, admin and converse endpoints require
+# X-API-Key header. If not set, all endpoints remain open (dev mode).
+_GUALALOOM_API_KEY = os.environ.get("GUALALOOM_API_KEY", "")
+
+
+def _require_api_key(request: Request):
+    """Check X-API-Key header against env-var secret. No-op if key not configured."""
+    if not _GUALALOOM_API_KEY:
+        return  # no key configured, skip auth
+    provided = request.headers.get("X-API-Key", "")
+    if provided != _GUALALOOM_API_KEY:
+        raise HTTPException(status_code=401, detail="unauthorized")
+
+
+from fastapi import Depends
+
+def _api_key_dep(request: Request):
+    """FastAPI dependency for API key enforcement."""
+    _require_api_key(request)
 
 
 @app.get("/")
@@ -1177,7 +1198,7 @@ async def gualaloom_page():
     return FileResponse(os.path.join(STATIC_DIR, 'gualaloom.html'))
 
 
-@app.post("/api/v1/gualaloom")
+@app.post("/api/v1/gualaloom", dependencies=[Depends(_api_key_dep)])
 async def gualaloom_chat(msg: GLMessage):
     global _exchange_count
 
@@ -1956,7 +1977,7 @@ async def gualaloom_picture(item_id: str):
 # Runtime repause flag (survives within the process; env var alone isn't enough)
 _runtime_decay_paused = None  # None = defer to env var
 
-@app.post("/api/v1/gualaloom/admin/amnesty")
+@app.post("/api/v1/gualaloom/admin/amnesty", dependencies=[Depends(_api_key_dep)])
 async def admin_amnesty():
     """Step 1: Reset last_tick on all atlas entries to current tick. Zero strength changes."""
     if _is_remote():
@@ -1979,7 +2000,7 @@ async def admin_amnesty():
             "total_strength_after": total_strength_after}
 
 
-@app.post("/api/v1/gualaloom/admin/force_dream")
+@app.post("/api/v1/gualaloom/admin/force_dream", dependencies=[Depends(_api_key_dep)])
 async def admin_force_dream():
     """Step 2: Force a sleep→dream cycle. Returns dream artifact."""
     if _is_remote():
@@ -2015,7 +2036,7 @@ async def admin_force_dream():
             "current_activity": _guala._current_activity.kind if _guala._current_activity else None}
 
 
-@app.post("/api/v1/gualaloom/admin/repause")
+@app.post("/api/v1/gualaloom/admin/repause", dependencies=[Depends(_api_key_dep)])
 async def admin_repause():
     """Kill switch: re-pause decay immediately."""
     if _is_remote():
@@ -2031,7 +2052,7 @@ async def admin_repause():
     return {"repause": "active", "DECAY_PAUSED": "1"}
 
 
-@app.post("/api/v1/gualaloom/admin/unpause")
+@app.post("/api/v1/gualaloom/admin/unpause", dependencies=[Depends(_api_key_dep)])
 async def admin_unpause():
     """Unpause decay — durable transaction via substrate config file."""
     if _is_remote():
@@ -2048,7 +2069,7 @@ async def admin_unpause():
     return {"unpaused": True, "tick": _guala.tick if _guala else 0}
 
 
-@app.get("/api/v1/gualaloom/admin/atlas_snapshot")
+@app.get("/api/v1/gualaloom/admin/atlas_snapshot", dependencies=[Depends(_api_key_dep)])
 async def admin_atlas_snapshot():
     """Monitor: live atlas stats for unpause monitoring."""
     if _is_remote():
@@ -2071,7 +2092,7 @@ async def admin_atlas_snapshot():
 
 
 # (A) Step-0 atlas backup with verification
-@app.post("/api/v1/gualaloom/admin/backup")
+@app.post("/api/v1/gualaloom/admin/backup", dependencies=[Depends(_api_key_dep)])
 async def admin_backup():
     """Step 0: Full state backup to dedicated UNPAUSE-PRE S3 prefix. Verified."""
     if _is_remote():
@@ -2143,7 +2164,7 @@ class CascadeMonitorRequest(BaseModel):
     baseline_saturated: int = 0
     interval_s: int = 10
 
-@app.post("/api/v1/gualaloom/admin/start_cascade_monitor")
+@app.post("/api/v1/gualaloom/admin/start_cascade_monitor", dependencies=[Depends(_api_key_dep)])
 async def admin_start_cascade_monitor(req: CascadeMonitorRequest):
     """Start cascade detection — forwarded to substrate process."""
     if _is_remote():
@@ -2158,7 +2179,7 @@ async def admin_start_cascade_monitor(req: CascadeMonitorRequest):
                         status_code=501)
 
 
-@app.post("/api/v1/gualaloom/admin/stop_cascade_monitor")
+@app.post("/api/v1/gualaloom/admin/stop_cascade_monitor", dependencies=[Depends(_api_key_dep)])
 async def admin_stop_cascade_monitor():
     """Stop cascade monitor — forwarded to substrate process."""
     if _is_remote():
@@ -2174,7 +2195,7 @@ class ChiTraceRequest(BaseModel):
     sound_ids: list = []
     input_text: str = ""
 
-@app.post("/api/v1/gualaloom/chi_trace")
+@app.post("/api/v1/gualaloom/chi_trace", dependencies=[Depends(_api_key_dep)])
 async def chi_trace(req: ChiTraceRequest):
     """Read-only chi-geometry readout. No state mutation."""
     _gl_init()
