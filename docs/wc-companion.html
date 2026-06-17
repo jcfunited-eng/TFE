@@ -195,6 +195,7 @@ function memoryDigest(mem){
 // FIX 3: parseBlocks unpacks Phase 2 bundle data
 function parseBlocks(content){
   const out={herReplies:[],toolCalls:[],text:[],needs:null,motifs:null,obs:null,bundles:[]};
+  let lastToolName='';
   for(const b of (content||[])){
     if(b.type==='text'&&b.text){
       const m=b.text.match(/<<<OBS\s*([\s\S]*?)\s*OBS>>>/);
@@ -202,11 +203,22 @@ function parseBlocks(content){
       const cleaned=b.text.replace(/<<<OBS[\s\S]*?OBS>>>/,'').trim();
       if(cleaned) out.text.push(cleaned);
     }
-    if(b.type==='mcp_tool_use') out.toolCalls.push({name:b.name,input:b.input});
+    if(b.type==='mcp_tool_use'){out.toolCalls.push({name:b.name,input:b.input});lastToolName=b.name||'';}
     if(b.type==='mcp_tool_result'){
       let t=b.content&&b.content[0]&&b.content[0].text?b.content[0].text:'';
       try{const j=JSON.parse(t);
-        if(typeof j.response==='string'){
+        const isStatus=lastToolName.includes('status')||(typeof j.response==='string'&&j.response.startsWith('id:'));
+        if(isStatus){
+          // Status response — extract structured fields for vitals only, never push to herReplies
+          if(j.needs)out.needs=j.needs;
+          if(j.motifs)out.motifs=j.motifs;
+          if(j.vocab)out.vocab=j.vocab;
+          if(j.current_activity)herState.kind=j.current_activity.kind||'unknown';
+          if(typeof j.asleep==='boolean')herState.asleep=j.asleep;
+          if(j.current_activity&&j.current_activity.kind==='DREAMING')herState.dreaming=true;
+          else herState.dreaming=false;
+          if(j.response){const m=/"tick":\s*(\d+)/.exec(j.response);if(m)out.tick=parseInt(m[1]);}
+        } else if(typeof j.response==='string'){
           if(j.response.startsWith('{')){const inner=JSON.parse(j.response);if(inner.needs)out.needs=inner.needs;if(inner.tick)out.lastTick=inner.tick;}
           else if(j.bundle){
             out.bundles.push({
@@ -219,18 +231,20 @@ function parseBlocks(content){
           else if(!j.response.startsWith('experience')) out.herReplies.push(j.response);
           else out.herReplies.push('· '+j.response.split(':')[0]+' given ·');
         }
-        if(j.motifs)out.motifs=j.motifs;
-        if(j.response){const m=/"tick":\s*(\d+)/.exec(j.response);if(m)out.tick=parseInt(m[1]);}
-        // Extract her state from status responses
-        if(j.current_activity)herState.kind=j.current_activity.kind||'unknown';
-        if(typeof j.asleep==='boolean')herState.asleep=j.asleep;
-        if(j.current_activity&&j.current_activity.kind==='DREAMING')herState.dreaming=true;
-        else herState.dreaming=false;
+        if(!isStatus){
+          if(j.motifs)out.motifs=j.motifs;
+          if(j.response){const m=/"tick":\s*(\d+)/.exec(j.response);if(m)out.tick=parseInt(m[1]);}
+          if(j.current_activity)herState.kind=j.current_activity.kind||'unknown';
+          if(typeof j.asleep==='boolean')herState.asleep=j.asleep;
+          if(j.current_activity&&j.current_activity.kind==='DREAMING')herState.dreaming=true;
+          else herState.dreaming=false;
+        }
       }catch(e){
         if(t && /error|fail/i.test(t)) out.errors=(out.errors||[]).concat(t.slice(0,90));
         else if(t && /initializ/i.test(t)) out.errors=(out.errors||[]).concat('she is still waking — will try again next pace');
         else if(t) out.herReplies.push(t.slice(0,120));
       }
+      lastToolName='';
     }
   }
   return out;
