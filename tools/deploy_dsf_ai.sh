@@ -236,7 +236,8 @@ out = {
                 {'name': 'SUBSTRATE_SOCKET', 'value': '/shared/substrate.sock'},
                 {'name': 'SUBSTRATE_HEARTBEAT', 'value': '/shared/substrate.alive'},
                 {'name': 'STATE_DIR', 'value': '/app/state'},
-                {'name': 'DECAY_PAUSED', 'value': '0'}
+                {'name': 'DECAY_PAUSED', 'value': '0'},
+                {'name': 'EMISSION_MODE', 'value': 'grandurun'}
             ],
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
