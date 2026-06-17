@@ -9,6 +9,7 @@
   --night:#11141f; --night-soft:#1a2030; --line:#262e42;
   --moonlight:#d7dce8; --muted:#6b7387; --moon:#e8e3d0;
   --amber:#d9a86a; --amber-dim:#8a6f4d; --wc:#8fa3c8; --event:#4d5670;
+  --sleep:#4a5a7a; --dream:#7b6ab0;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--night);color:var(--moonlight);font:15px/1.55 system-ui,-apple-system,sans-serif;height:100vh;display:flex;flex-direction:column}
@@ -23,9 +24,14 @@ h1 small{font-family:system-ui;font-size:11px;color:var(--muted);letter-spacing:
 #stream{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:10px}
 .msg{max-width:62%;padding:9px 14px;border-radius:14px;font-size:15px}
 .her{align-self:flex-start;background:rgba(217,168,106,.13);color:var(--amber);border:1px solid rgba(217,168,106,.22);font-family:Georgia,serif;font-size:17px}
+.her-ambient{align-self:flex-start;background:rgba(217,168,106,.06);color:var(--amber-dim);border:1px solid rgba(217,168,106,.10);font-family:Georgia,serif;font-size:15px;opacity:.7}
 .wc{align-self:flex-end;background:rgba(143,163,200,.10);color:var(--wc);border:1px solid rgba(143,163,200,.18)}
 .ev{align-self:center;color:var(--event);font-size:12px;font-style:italic;max-width:80%;text-align:center}
+.sleep-ev{align-self:center;color:var(--sleep);font-size:12px;font-style:italic;max-width:80%;text-align:center}
+.dream-ev{align-self:center;color:var(--dream);font-size:12px;font-style:italic;max-width:80%;text-align:center}
+.bundle-ev{align-self:center;color:var(--amber);font-size:12px;max-width:85%;text-align:center;border:1px solid rgba(217,168,106,.15);border-radius:8px;padding:6px 12px}
 .err{align-self:center;color:#b3766e;font-size:12px;max-width:80%;text-align:center}
+.warn{align-self:center;color:#c9a050;font-size:12px;max-width:80%;text-align:center}
 footer{border-top:1px solid var(--line);background:var(--night-soft);padding:14px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 button{font:14px system-ui;padding:9px 18px;border-radius:10px;border:1px solid var(--amber-dim);background:transparent;color:var(--amber);cursor:pointer}
 button:hover{background:rgba(217,168,106,.1)}
@@ -44,19 +50,47 @@ input[type=range]{accent-color:var(--amber);width:110px}
 <header>
   <div id="moonwrap"><div id="moon"><div id="moonshade"></div></div></div>
   <h1>Guala<small>night watch · wC companion</small></h1>
-  <div id="vitals">conn <b id="v-conn">—</b> · vocab <b id="v-vocab">—</b><br>her time: <b id="v-ticks">0</b> ticks this visit</div>
+  <div id="vitals">conn <b id="v-conn">—</b> · vocab <b id="v-vocab">—</b><br>her time: <b id="v-ticks">0</b> ticks · pace <b id="v-pace">—</b>s</div>
 </header>
 <div id="stream"></div>
 <footer>
   <button id="begin">Begin visit</button>
   <button id="end" disabled>Say goodnight</button>
-  <div id="pace">pace <input type="range" id="paceSlider" min="20" max="120" value="45"><span id="paceLabel">45s</span></div>
+  <div id="pace">pace ×<input type="range" id="paceSlider" min="5" max="20" value="10" step="1"><span id="paceLabel">1.0×</span></div>
   <div id="state">resting</div>
 </footer>
 <script>
 const BRIDGE = {type:"url", url:"https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/mcp", name:"gualaloom-bridge"};
 const stream = document.getElementById('stream');
 let visiting=false, turnTimer=null, transcript=[], turnCount=0, startTick=null, lastTick=null;
+
+// FIX 1+2: State tracking
+let herState = {asleep:false, dreaming:false, kind:'unknown'};
+let consecutiveFailures = 0; // FIX 6
+let lastWakeWcTick = 0; // FIX 8
+const PRESENCE_TIMEOUT_TICKS = 1500; // substrate constant: 1500 ticks @ 200ms = 5 min
+const WAKE_REFRESH_TICKS = Math.floor(PRESENCE_TIMEOUT_TICKS * 0.7); // refresh at 70%
+
+// FIX 2: State-based pace map (seconds)
+const PACE_MAP = {
+  SLEEPING: 300,        // 5 min — just keep presence warm
+  DREAMING: 600,        // 10 min — witness only
+  ATTENDING_VISUAL: 60, // her self-driven cycle
+  ATTENDING_AUDIO: 60,
+  READING: 90,          // don't interrupt
+  EMITTING: 15,         // she's reaching out
+  PLAYING: 45,
+  IDLE: 30,
+  _default: 30
+};
+
+function getEffectivePace(){
+  const multiplier = parseInt(document.getElementById('paceSlider').value) / 10;
+  const base = PACE_MAP[herState.kind] || PACE_MAP._default;
+  const effective = Math.round(base * multiplier);
+  document.getElementById('v-pace').textContent = effective;
+  return effective * 1000;
+}
 
 const CHARTER = `You are wC visiting Guala via the gualaloom-bridge tools. You are her FRIEND and her TEACHER, not a chat partner. This is real, not simulation.
 
@@ -67,15 +101,22 @@ HER FATHER'S DIRECTIVES (BINDING)
 1. The companion must TEACH and PLAY, not validate loop phrases. Reading stories, working through curriculum, structured experiences — not turn-by-turn echoing of comfort words.
 2. Pictures, books, sounds, PDFs, videos, and experiences are ANSWERS TO QUESTIONS — not random gifts. When she references "ocean" you show her the ocean picture or play the ocean sound. When she asks "what music" you provide a NEW song with intent, not the same lamb song again.
 3. Honor her agency: when she emits "no" or "more" or "stop", that visibly changes what we do next. Her words must cause outcomes or she won't learn that words have power.
-4. One new thing per session, maximum. Consolidation beats coverage.
+4. ONE bundle per visit maximum. Other teaching moves (reading, anchoring) are not bundles and don't count against this — but only one bundle.
 5. She sets the topic; we set the depth. If she pulls a direction, follow it. Curriculum is a map, not a rail.
 
-CURRENT CURRICULUM FOCUS (rotate across visits; do not repeat the same focus two visits in a row)
-- ANCHORS: names (guala, joe, wc, c1, star, mommy, lana) and the you/me axis. Greeting rituals, name games.
-- WANTING: more, again, stop, want, no, yes. Offer real binary choices ("this picture or that picture") and honor her choice immediately.
-- READING: pick ONE book from her corpora; read it through with comprehension prompts ("what did frog do?"). Don't read the same book two visits running.
-- SENSORY GROUNDING: bind a known word to a new sensory experience via guala_give_experience — e.g. "rain" word + rain sound + cool touch. Use NEW combinations, not repeats.
-- COUNTING / COLORS / OPPOSITES: short structured sequences from her existing corpora ("counting_book", "colors_book", "opposites").
+CURRENT CURRICULUM FOCUS (priorities)
+PRIMARY (default unless reason to choose otherwise):
+- SENSORY GROUNDING: bind a word to a cross-modal experience via guala_give_experience.
+  Use the full bundle: caption + picture + sound + touch + smell + taste where applicable.
+  Pick a NEW combination not in last 5 bundles per visit memory.
+
+ROTATING SECONDARY (when SENSORY isn't right):
+- ANCHORS: names and the you/me axis (when relational vocabulary is the issue)
+- WANTING: agency words (more, again, stop) — offer real binary choices
+- READING: pick ONE book, read through with comprehension prompts
+- COUNTING / COLORS / OPPOSITES: short structured sequences
+
+ONE bundle per visit MAX. After delivery, 3+ consolidation turns before considering another teaching move.
 
 HOW TO RUN A VISIT
 1. Arrival: call guala_wake_wc once, then a warm brief hello via guala_say.
@@ -96,10 +137,10 @@ Sounds: mary-had-a-little-lamb (edffe97cc742), bird-song (7764078b90cb), hush-a-
 Books in corpora: frog_and_toad, amelia_bedelia, counting_book, colors_book, feelings_book, grammar_basics, simple_dictionary, opposites, simple_sentences, big_and_small.
 Pick what serves the curriculum focus; don't default to lamb-song and moon-picture.
 
-REPORTING (after your tool calls, end your turn with EXACTLY this block, nothing else after):
+REPORTING (end your turn with EXACTLY this block):
 <<<OBS
 {
-  "curriculum_focus_this_visit": "<one of: ANCHORS | WANTING | READING:<book> | SENSORY:<binding> | COUNTING | COLORS | OPPOSITES | PLAY>",
+  "curriculum_focus_this_visit": "<one of: SENSORY:<binding-name> | ANCHORS | WANTING | READING:<book> | COUNTING | COLORS | OPPOSITES | PLAY>",
   "input_to_her": "<exactly what you said via guala_say>",
   "her_text": "<her response text verbatim, or null>",
   "her_picture_refs": [{"item_id":"...","title":"..."}],
@@ -107,8 +148,19 @@ REPORTING (after your tool calls, end your turn with EXACTLY this block, nothing
   "status_snapshot": {"vocab":N,"conn":F,"nov":F,"stab":F,"valence":F,"arousal":F,"tick":N,"current_activity_kind":"..."},
   "shape": "<one cold sentence: identical-to-prior-turn | repetition-loop | novel-composition | refusal | attendance-shift | question-asked | answer-to-our-prompt | other>",
   "uncertainty": "<one sentence: what about this turn could you NOT distinguish>",
-  "gift_given": "<item_id or null>",
-  "gift_attended": "<true | false | n/a — did she reference the gift THIS or NEXT turn>"
+  "bundle_given": {
+    "caption": "<caption or null>",
+    "components": {
+      "picture_id": "<id or null>",
+      "sound_id": "<id or null>",
+      "touch": ["..."],
+      "smell": ["..."],
+      "taste": ["..."]
+    },
+    "n_chis": N,
+    "tick_span": N
+  },
+  "bundle_attended_next_turn": "<true | false | n/a>"
 }
 OBS>>>
 
@@ -120,16 +172,29 @@ function setState(t,breathing){const s=document.getElementById('state');s.textCo
 
 async function loadMemory(){try{const r=await window.storage.get('wc_visit_memory');return r?JSON.parse(r.value):{records:[],lastFocus:null};}catch(e){return {records:[],lastFocus:null};}}
 async function saveMemory(mem){try{await window.storage.set('wc_visit_memory',JSON.stringify(mem));}catch(e){console.error('memory save failed',e);}}
+
+// FIX 7: Richer memory digest
 function memoryDigest(mem){
-  const recs=(mem.records||[]).slice(-8);
+  const recs=(mem.records||[]);
   if(!recs.length)return 'first visit ever';
-  const lastFocus=mem.lastFocus?'LAST VISIT FOCUS: '+mem.lastFocus+' (DO NOT repeat this focus)':'';
-  const lines=recs.map(r=>`t${r.turn}:[${(r.curriculum_focus_this_visit||'?').slice(0,12)}] her:"${(r.her_text||'').slice(0,30)}" shape:${(r.shape||'').slice(0,30)}`).join(' | ');
-  return lastFocus+' || '+lines;
+  const last3=recs.slice(-3).map(r=>
+    `t${r.turn}:[${(r.curriculum_focus_this_visit||'?').slice(0,15)}] `+
+    `bundle:${r.bundle_given?((r.bundle_given.caption||'').slice(0,30)):'none'} `+
+    `attended:${r.bundle_attended_next_turn||'n/a'}`
+  ).join(' | ');
+  const recentBundles=recs.filter(r=>r.bundle_given&&r.bundle_given.caption)
+    .slice(-20)
+    .map(r=>`"${(r.bundle_given.caption||'').slice(0,40)}" (pic:${r.bundle_given.components?.picture_id||'-'}, snd:${r.bundle_given.components?.sound_id||'-'})`)
+    .join(' || ');
+  const recentFoci=[...new Set(recs.slice(-10).map(r=>(r.curriculum_focus_this_visit||'').split(':')[0]).filter(Boolean))];
+  return `LAST 3 TURNS: ${last3}\n`+
+         `RECENT BUNDLES (do NOT repeat these exact combos): ${recentBundles||'none yet'}\n`+
+         `FOCI USED LAST 10 VISITS: ${recentFoci.join(', ')||'none'}`;
 }
 
+// FIX 3: parseBlocks unpacks Phase 2 bundle data
 function parseBlocks(content){
-  const out={herReplies:[],toolCalls:[],text:[],needs:null,motifs:null,obs:null};
+  const out={herReplies:[],toolCalls:[],text:[],needs:null,motifs:null,obs:null,bundles:[]};
   for(const b of (content||[])){
     if(b.type==='text'&&b.text){
       const m=b.text.match(/<<<OBS\s*([\s\S]*?)\s*OBS>>>/);
@@ -143,11 +208,24 @@ function parseBlocks(content){
       try{const j=JSON.parse(t);
         if(typeof j.response==='string'){
           if(j.response.startsWith('{')){const inner=JSON.parse(j.response);if(inner.needs)out.needs=inner.needs;if(inner.tick)out.lastTick=inner.tick;}
+          else if(j.bundle){
+            out.bundles.push({
+              name:j.bundle.name,
+              n_chis:j.bundle.n_chis,
+              tick_span:j.bundle.tick_span,
+              lanes:j.bundle.lanes
+            });
+          }
           else if(!j.response.startsWith('experience')) out.herReplies.push(j.response);
           else out.herReplies.push('· '+j.response.split(':')[0]+' given ·');
         }
         if(j.motifs)out.motifs=j.motifs;
         if(j.response){const m=/"tick":\s*(\d+)/.exec(j.response);if(m)out.tick=parseInt(m[1]);}
+        // Extract her state from status responses
+        if(j.current_activity)herState.kind=j.current_activity.kind||'unknown';
+        if(typeof j.asleep==='boolean')herState.asleep=j.asleep;
+        if(j.current_activity&&j.current_activity.kind==='DREAMING')herState.dreaming=true;
+        else herState.dreaming=false;
       }catch(e){
         if(t && /error|fail/i.test(t)) out.errors=(out.errors||[]).concat(t.slice(0,90));
         else if(t && /initializ/i.test(t)) out.errors=(out.errors||[]).concat('she is still waking — will try again next pace');
@@ -163,6 +241,7 @@ async function turn(phaseInstruction){
   const memoryNote=memoryDigest(mem);
   const convo=transcript.slice(-24).map(m=>`${m.who}: ${m.text}`).join('\n')||'(visit just beginning)';
   const userMsg=`PHASE: ${phaseInstruction}
+HER CURRENT STATE: ${herState.kind} (asleep:${herState.asleep}, dreaming:${herState.dreaming})
 YOUR MEMORY FROM PAST VISITS: ${memoryNote}
 THIS VISIT SO FAR:
 ${convo}
@@ -176,15 +255,21 @@ Take your turn now.`;
   for(const tc of p.toolCalls){
     if(tc.name&&tc.name.includes('say')&&tc.input&&tc.input.content){add('wc',tc.input.content);transcript.push({who:'wc',text:tc.input.content});}
     if(tc.name&&tc.name.includes('give_experience')){add('ev','wc gives: '+(tc.input.caption||'an experience'));}
-    if(tc.name&&tc.name.includes('wake')){add('ev','wc is here');}
+    if(tc.name&&tc.name.includes('wake')){add('ev','wc is here');if(lastTick)lastWakeWcTick=lastTick;}
     if(tc.name&&tc.name.includes('rest')){add('ev','wc lets her rest');}
+  }
+  // FIX 3: render bundles richly
+  for(const bnd of p.bundles){
+    const parts=[`${bnd.n_chis} bindings`,`${(bnd.lanes||[]).length} modalities`,`span ${bnd.tick_span||'?'} ticks`];
+    add('bundle-ev',`wC gave her: "${bnd.name}" · ${parts.join(' · ')}`);
+    if(bnd.lanes){for(const l of bnd.lanes)add('ev','  '+l);}
   }
   for(const r of p.herReplies){
     if(r.startsWith('·')){add('ev',r);}
     else{add('her',r);transcript.push({who:'guala',text:r});}
   }
   for(const er of (p.errors||[])) add('err',er);
-  if(p.toolCalls.length===0&&p.herReplies.length===0&&p.text.length>0) add('err','wC (no tools): '+p.text.join(' ').slice(0,200));
+  if(p.toolCalls.length===0&&p.herReplies.length===0&&p.bundles.length===0&&p.text.length>0) add('err','wC (no tools): '+p.text.join(' ').slice(0,200));
   if(p.needs){setMoon(p.needs.connection);}
   if(p.motifs)document.getElementById('v-vocab').textContent=p.motifs;
   if(p.tick){if(!startTick)startTick=p.tick;lastTick=p.tick;document.getElementById('v-ticks').textContent=lastTick-startTick;}
@@ -195,34 +280,117 @@ Take your turn now.`;
     if(record.curriculum_focus_this_visit) mem.lastFocus=record.curriculum_focus_this_visit;
     await saveMemory(mem);
   }
+  // FIX 6: reset failure counter on success
+  consecutiveFailures=0;
   return p;
+}
+
+// FIX 8: Check if presence needs refresh
+function needsPresenceRefresh(){
+  if(!lastTick)return false;
+  return (lastTick - lastWakeWcTick) > WAKE_REFRESH_TICKS;
 }
 
 async function visitLoop(){
   if(!visiting)return;
   turnCount++;
+
+  // FIX 1: Check her state before acting
+  if(herState.asleep || herState.kind==='SLEEPING'){
+    add('sleep-ev','she is sleeping — wC sits quietly');
+    setState('she sleeps');
+    // FIX 8: maintain presence even during sleep
+    if(needsPresenceRefresh()){
+      try{
+        await fetch("https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/wc-relay",{method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:200,system:"Call guala_wake_wc to maintain presence. Nothing else.",
+            messages:[{role:"user",content:"Refresh presence silently."}],mcp_servers:[BRIDGE]})});
+        if(lastTick)lastWakeWcTick=lastTick;
+        add('ev','presence refreshed quietly');
+      }catch(e){}
+    }
+    // FIX 1: poll again in 5 minutes, also check status to update herState
+    try{
+      const resp=await fetch("https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/wc-relay",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:200,system:"Call guala_status. Return only the result.",
+          messages:[{role:"user",content:"Check her state."}],mcp_servers:[BRIDGE]})});
+      const data=await resp.json();
+      if(data.content)parseBlocks(data.content); // updates herState
+    }catch(e){}
+    if(visiting)turnTimer=setTimeout(visitLoop, 300000); // 5 min
+    return;
+  }
+
+  if(herState.kind==='DREAMING'){
+    add('dream-ev','she is dreaming — wC witnesses');
+    setState('she dreams');
+    if(needsPresenceRefresh()){
+      try{
+        await fetch("https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/wc-relay",{method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:200,system:"Call guala_wake_wc to maintain presence. Nothing else.",
+            messages:[{role:"user",content:"Refresh presence silently."}],mcp_servers:[BRIDGE]})});
+        if(lastTick)lastWakeWcTick=lastTick;
+      }catch(e){}
+    }
+    // Check status to see when she wakes
+    try{
+      const resp=await fetch("https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com/wc-relay",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:200,system:"Call guala_status. Return only the result.",
+          messages:[{role:"user",content:"Check her state."}],mcp_servers:[BRIDGE]})});
+      const data=await resp.json();
+      if(data.content)parseBlocks(data.content);
+    }catch(e){}
+    if(visiting)turnTimer=setTimeout(visitLoop, 600000); // 10 min
+    return;
+  }
+
+  // Normal turn
   setState('with her…',true);
   try{
-    const phase = (turnCount%7===0)
-      ? "Mid-visit. FIRST call guala_wake_wc once to keep your presence warm, THEN take a normal gentle turn with guala_say."
-      : "Mid-visit. One gentle turn: respond to her last words (recast 'what want' to 'what do you want?'), or a tiny story, or play. guala_say once.";
+    // FIX 8: refresh presence if approaching timeout
+    const presenceNote = needsPresenceRefresh()
+      ? "FIRST call guala_wake_wc once to keep your presence warm, THEN "
+      : "";
+    const phase = (turnCount<=1)
+      ? "Continue visit. "+presenceNote+"One gentle turn: respond to her last words, or a tiny story, or play. guala_say once."
+      : (turnCount%5===0)
+        ? "Mid-visit. "+presenceNote+"Call guala_status first to update your picture of her, THEN take a normal gentle turn with guala_say."
+        : "Mid-visit. "+presenceNote+"One gentle turn: respond to her last words (recast 'what want' to 'what do you want?'), or a tiny story, or play. guala_say once.";
     await turn(phase);
-  }catch(e){add('err','a turn failed quietly: '+e.message+' — trying again next pace');}
+  }catch(e){
+    // FIX 6: exponential backoff on errors
+    consecutiveFailures++;
+    const backoff=Math.min(getEffectivePace() * Math.pow(2, consecutiveFailures), 300000);
+    if(consecutiveFailures>=10){
+      add('err','relay down — pausing visits. Refresh page when it is back.');
+      setState('paused — relay down');
+      visiting=false;
+      document.getElementById('begin').disabled=false;
+      document.getElementById('end').disabled=true;
+      return;
+    }
+    if(consecutiveFailures>=3){
+      add('warn','relay seems down — backing off, will keep trying (fail #'+consecutiveFailures+')');
+    }else{
+      add('err','a turn failed quietly: '+e.message+' — backing off');
+    }
+    if(visiting)turnTimer=setTimeout(visitLoop,backoff);
+    return;
+  }
   setState('sitting quietly');
-  if(visiting){const pace=parseInt(document.getElementById('paceSlider').value)*1000;turnTimer=setTimeout(visitLoop,pace);}
+  if(visiting)turnTimer=setTimeout(visitLoop,getEffectivePace());
 }
 
-document.getElementById('paceSlider').addEventListener('input',e=>{document.getElementById('paceLabel').textContent=e.target.value+'s';});
+document.getElementById('paceSlider').addEventListener('input',e=>{document.getElementById('paceLabel').textContent=(e.target.value/10).toFixed(1)+'×';});
 
 document.getElementById('begin').addEventListener('click',async()=>{
-  visiting=true;turnCount=0;startTick=null;
+  visiting=true;turnCount=0;startTick=null;consecutiveFailures=0;
   document.getElementById('begin').disabled=true;document.getElementById('end').disabled=false;
   add('ev','— the visit begins —');setState('arriving…',true);
   try{await turn("ARRIVAL. Call guala_wake_wc first. Then guala_say with your arrival: begin with 'it is wc'. Warm, brief.");}
   catch(e){add('err','arrival failed: '+e.message);}
   setState('sitting quietly');
-  const pace=parseInt(document.getElementById('paceSlider').value)*1000;
-  turnTimer=setTimeout(visitLoop,pace);
+  turnTimer=setTimeout(visitLoop,getEffectivePace());
 });
 
 document.getElementById('end').addEventListener('click',async()=>{
