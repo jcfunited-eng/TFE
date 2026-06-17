@@ -1113,7 +1113,12 @@ async def run_server():
         handle_client, path=SOCKET_PATH, limit=64 * 1024 * 1024)
     print(f"[substrate] Listening on {SOCKET_PATH}")
 
-    # Periodic save + compact (was in app.py startup, belongs in substrate)
+    # Periodic save on a DEDICATED thread — never competes with HTTP handlers
+    # for executor pool slots. Save runs independently of request processing.
+    import concurrent.futures
+    _save_executor = concurrent.futures.ThreadPoolExecutor(
+        max_workers=1, thread_name_prefix="save")
+
     def _save_all():
         """Save v5 state. V7 saves after each converse/quiet/feedback call."""
         t0 = time.time()
@@ -1130,12 +1135,12 @@ async def run_server():
             if _guala is None or _shutdown:
                 continue
             try:
-                await loop.run_in_executor(None, _save_all)
+                await loop.run_in_executor(_save_executor, _save_all)
                 save_count += 1
                 if save_count % 10 == 0:
                     def _snap():
                         return _guala.snapshot_state(STATE_DIR, reason="periodic")
-                    snap_dir = await loop.run_in_executor(None, _snap)
+                    snap_dir = await loop.run_in_executor(_save_executor, _snap)
                     print(f"[substrate] Snapshot: {snap_dir}")
             except Exception as e:
                 print(f"[save] error: {e}")

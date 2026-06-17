@@ -2895,9 +2895,9 @@ class Guala:
                 "actions_count": len(self.coordinator.actions),
             })
 
-            # 4. Atlas — deepcopy entries (list-of-dicts, mutable)
+            # 4. Atlas — serialize entries directly (faster than deepcopy)
             snap_atlas = self._envelope({
-                "entries": {str(k): _copy.deepcopy(v)
+                "entries": {str(k): list(v)
                             for k, v in self.atlas.entries.items()},
                 "tick": self.atlas.tick,
             })
@@ -3012,24 +3012,32 @@ class Guala:
         self._last_save_tick = save_tick
         self._last_save_timestamp = ts
 
-        # ── T1.3: S3 backup on every successful save ──
-        try:
-            import boto3 as _boto3
-            _s3 = _boto3.client("s3", region_name="us-east-1")
-            _bucket = os.environ.get("GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
-            _s3_prefix_base = os.environ.get("GUALA_S3_BACKUP_PREFIX", "guala/auto")
-            _ts_label = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
-            _s3_prefix = f"{_s3_prefix_base}/{_ts_label}_save"
-            _all_files = self.STATE_FILES + [
-                self.IDENTITY_FILE, "guala_deep_atlas.json",
-                "guala_visual.json", "guala_sounds.json", "guala_videos.json"]
-            for _fname in _all_files:
-                _fpath = os.path.join(state_dir, _fname)
-                if os.path.exists(_fpath):
-                    _s3.upload_file(_fpath, _bucket, f"{_s3_prefix}/{_fname}")
-            print(f"[save] S3 backup → s3://{_bucket}/{_s3_prefix}/")
-        except Exception as _e:
-            print(f"[save] S3 backup failed (EFS save OK): {_e}")
+        # ── T1.3: S3 backup in background thread (non-blocking) ──
+        # Only runs every 10th save to avoid saturating EFS→S3 bandwidth.
+        if not hasattr(self, '_save_count'):
+            self._save_count = 0
+        self._save_count += 1
+        if self._save_count % 10 == 0:
+            import threading as _thr
+            def _s3_upload():
+                try:
+                    import boto3 as _boto3
+                    _s3 = _boto3.client("s3", region_name="us-east-1")
+                    _bucket = os.environ.get("GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
+                    _s3_prefix_base = os.environ.get("GUALA_S3_BACKUP_PREFIX", "guala/auto")
+                    _ts_label = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
+                    _s3_prefix = f"{_s3_prefix_base}/{_ts_label}_save"
+                    _all_files = self.STATE_FILES + [
+                        self.IDENTITY_FILE, "guala_deep_atlas.json",
+                        "guala_visual.json", "guala_sounds.json", "guala_videos.json"]
+                    for _fname in _all_files:
+                        _fpath = os.path.join(state_dir, _fname)
+                        if os.path.exists(_fpath):
+                            _s3.upload_file(_fpath, _bucket, f"{_s3_prefix}/{_fname}")
+                    print(f"[save] S3 backup → s3://{_bucket}/{_s3_prefix}/")
+                except Exception as _e:
+                    print(f"[save] S3 backup failed (EFS save OK): {_e}")
+            _thr.Thread(target=_s3_upload, daemon=True).start()
 
         return results
 
@@ -3636,12 +3644,13 @@ class Guala:
     # ── Atomic write ──
 
     @staticmethod
-    def _atomic_write(path, data):
+    def _atomic_write(path, data, fsync=False):
         tmp = path + ".tmp"
         with open(tmp, "w") as f:
             json.dump(data, f)
-            f.flush()
-            os.fsync(f.fileno())
+            if fsync:
+                f.flush()
+                os.fsync(f.fileno())
         os.rename(tmp, path)
 
     # ── Persistence health for /status ──
