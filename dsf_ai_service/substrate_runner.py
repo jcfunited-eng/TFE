@@ -1115,35 +1115,13 @@ async def run_server():
 
     # Periodic save + compact (was in app.py startup, belongs in substrate)
     def _save_all():
-        """Atomic save: v5 state + v7 sessions + manifest.
-        Manifest written last; boot validates manifest before loading."""
-        from dsf_ai_service.substrate.v7_engine import _sessions, _sessions_lock, save_session
+        """Save v5 state. V7 saves after each converse/quiet/feedback call."""
         t0 = time.time()
         pre_size = _guala.events_log_size(STATE_DIR)
         _guala.save_full_state(STATE_DIR)
         _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
-        # Save all v7 sessions
-        v7_saved = []
-        with _sessions_lock:
-            for sid, session in _sessions.items():
-                try:
-                    save_session(session)
-                    v7_saved.append(sid)
-                except Exception as e:
-                    print(f"[save] v7 session {sid} failed: {e}")
-        # Write manifest last — presence validates the save is complete
-        manifest = {
-            "v5_tick": _guala.tick,
-            "v7_sessions": v7_saved,
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        }
-        manifest_path = os.path.join(STATE_DIR, "save_manifest.json")
-        tmp = manifest_path + ".tmp"
-        with open(tmp, "w") as f:
-            json.dump(manifest, f)
-        os.rename(tmp, manifest_path)
         dt = time.time() - t0
-        print(f"[save] {dt:.2f}s v5+v7({len(v7_saved)})")
+        print(f"[save] {dt:.2f}s")
 
     async def _periodic_save():
         save_count = 0
