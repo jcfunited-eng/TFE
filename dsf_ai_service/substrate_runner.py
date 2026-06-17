@@ -152,6 +152,7 @@ def handle_v7_state(args):
     t0 = time.time()
     from dsf_ai_service.substrate.v7_engine import get_or_create_session
     session = get_or_create_session(session_id, engine=_guala)
+    _ensure_v7_link(session)
     t1 = time.time()
     result = session.get_state(engine=_guala)
     t2 = time.time()
@@ -160,11 +161,17 @@ def handle_v7_state(args):
     return result
 
 
+def _ensure_v7_link(session):
+    """Wire v7 session reference to v5 engine for context priors."""
+    if _guala is not None:
+        _guala._v7_session = session
+
 def handle_v7_converse(args):
     session_id = args.get("session_id", "default")
     text = args.get("text", "")
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     session = get_or_create_session(session_id, engine=_guala)
+    _ensure_v7_link(session)
     result = session.converse(text)
     try:
         save_session(session)

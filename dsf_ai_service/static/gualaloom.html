@@ -261,7 +261,7 @@ function startSightStream(){
       };
       reader.readAsDataURL(blob);
     }catch(e){}
-  },1000); // 1 fps — reduced from 2fps to avoid substrate overload
+  },500); // 2 fps — continuous sight streaming
 }
 function stopSightStream(){if(sightStreamTimer){clearInterval(sightStreamTimer);sightStreamTimer=null}}
 

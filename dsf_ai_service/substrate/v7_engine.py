@@ -92,7 +92,7 @@ class V7Session:
             section_name="aware",
             context_fn=lambda sys_: (
                 len(sys_.sections["intro"].krimelack) > 0 and
-                (sys_.tick - sys_.sections["intro"].krimelack[-1]["tick"]) <= 5),
+                (sys_.tick - sys_.sections["intro"].krimelack[-1]["tick"]) <= 25),
             drive_thresh=0.05, ltp_boost=0.05)
         self.last_intro_state = None
         self.last_aware_state = None
@@ -101,6 +101,7 @@ class V7Session:
         self.last_routing_log = []
         self.intro_commit_history = []
         self.aware_commit_history = []
+        self.recent_word_commits = []  # [(word, tick)] sliding window
         self.tick_at_last_converse = 0
         self._last_converse_time = time.time()
 
@@ -339,6 +340,15 @@ class V7Session:
             self.tick_at_last_converse = self.sys_.tick
             self._last_converse_time = time.time()
 
+            # Track recent word commits for context priors
+            for t in response_tokens:
+                self.recent_word_commits.append(
+                    (t["token"], self.sys_.tick))
+            # Also track input words (what she heard)
+            for word in tokens:
+                self.recent_word_commits.append((word, self.sys_.tick))
+            self.recent_word_commits = self.recent_word_commits[-50:]
+
             # Self-voice synthesis
             voice_b64 = None
             if response_tokens:
@@ -544,6 +554,24 @@ class V7Session:
         toks = self.vocab.get(pool_name, [])
         return toks[mode_id] if mode_id < len(toks) else None
 
+    def aware_recently_fired(self, within_ticks=25):
+        """True if aware_gate fired within last within_ticks."""
+        if not self.aware_commit_history:
+            return False
+        last_tick = self.aware_commit_history[-1].get("tick", 0)
+        return (self.sys_.tick - last_tick) <= within_ticks
+
+    def get_recent_words(self, max_n=10, max_ticks=50):
+        """Return set of words from recent_word_commits within window.
+        Uses whichever of count or tick window produces more words."""
+        if not self.recent_word_commits:
+            return set()
+        tick = self.sys_.tick
+        by_count = set(w for w, _ in self.recent_word_commits[-max_n:])
+        by_tick = set(w for w, t in self.recent_word_commits
+                      if tick - t <= max_ticks)
+        return by_count | by_tick
+
     def _get_mode_strengths(self):
         out = {}
         for pool in POOL_NAMES:
@@ -607,6 +635,7 @@ class V7Session:
             "intro_commit_history": list(self.intro_commit_history),
             "aware_commit_history": list(self.aware_commit_history),
             "last_nmda_events": list(self.last_nmda_events[-20:]),
+            "recent_word_commits": list(self.recent_word_commits[-50:]),
             "sections": {},
             "atlas": {str(k): v for k, v in self.sys_.atlas.entries.items()},
             "keyholes": [
@@ -680,6 +709,10 @@ class V7Session:
                 self.aware_commit_history = list(data["aware_commit_history"])
             if "last_nmda_events" in data:
                 self.last_nmda_events = list(data["last_nmda_events"])
+            if "recent_word_commits" in data:
+                self.recent_word_commits = [
+                    tuple(e) if isinstance(e, list) else e
+                    for e in data["recent_word_commits"]]
             for sn, sec_data in data.get("sections", {}).items():
                 if sn in self.sys_.sections:
                     self._restore_section(self.sys_.sections[sn], sec_data)

@@ -148,8 +148,8 @@ NEEDS_TARGET_V7 = 0.7       # target for all three needs (autonomy model)
 
 # Grandurun tuning constants (GL-BRIEF-GRANDURUN-IMPLEMENTATION-20260616-01)
 CHI_CORR_LENGTH = 50.0        # phase correlation length; tune empirically
-MIN_GAIN_THRESHOLD = 0.0      # minimum coherent-sum gain to add candidate; 0 = any positive gain
-MAX_COMPOSITION_LEN = 30      # safety cap; expect typical compositions in 5-15 range
+MIN_GAIN_THRESHOLD = 0.10     # minimum coherent-sum gain to add candidate
+MAX_COMPOSITION_LEN = 12      # cap; typical compositions should be 3-8 words
 GRANDURUN_POOL_K = 50         # per-section candidate count for wider retrieval
 
 ACTIVITY_TICK_BUDGETS = {
@@ -1281,7 +1281,8 @@ class Guala:
             # 6. Emit from cortex invariants (variable-length, slot-free)
             if not reply:
                 reply = self._emit_from_invariants(input_chis, words,
-                                                    mode_override=emission_mode)
+                                                    mode_override=emission_mode,
+                                                    v7_session=getattr(self, '_v7_session', None))
             if not reply:
                 # 7. Unslotted fallback: strongest bindings near input chi
                 reply = self._emit_unslotted(input_chis, words)
@@ -1295,9 +1296,11 @@ class Guala:
 
             return reply
 
-    def _emit_from_invariants(self, input_chis, input_words, mode_override=None):
+    def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
+                              v7_session=None):
         """Compose emission from cortex co_occurrence invariants.
-        GL-BRIEF-GRANDURUN: branches on EMISSION_MODE (topk or grandurun)."""
+        GL-BRIEF-GRANDURUN: branches on EMISSION_MODE (topk or grandurun).
+        Phase 3b: v7_session provides context priors for grounded emission."""
         mode = mode_override or os.environ.get("EMISSION_MODE", "topk")
         input_words_set = set(w.lower() for w in input_words)
 
@@ -1316,7 +1319,8 @@ class Guala:
 
         if mode == "grandurun":
             return self._emit_grandurun(input_chis, input_words_set,
-                                        deep_candidates)
+                                        deep_candidates,
+                                        v7_session=v7_session)
 
         # topk path (existing behavior, unchanged)
         deep_candidates.sort(key=lambda x: x[2], reverse=True)
@@ -1351,11 +1355,77 @@ class Guala:
             return None
         return " ".join(emitted)
 
-    def _emit_grandurun(self, input_chis, input_words_set, deep_candidates):
-        """Grandurun: coherent integration over expanded candidate pool.
-        GL-BRIEF-GRANDURUN-IMPLEMENTATION-20260616-01."""
-        # Build wider pool: top GRANDURUN_POOL_K per section across all
-        # deep-atlas co_occurrence maps
+    # Phase 3b constants — context prior weights
+    V7_RECENCY_BOOST = 2.0
+    ACTIVITY_BOOST = 1.5
+    AWARE_BLOCKED_ATTENUATION = 0.5
+    PRIOR_WEIGHT_CAP = 5.0
+    CONTEXT_WINDOW_COMMITS = 10
+    CONTEXT_WINDOW_TICKS = 50
+
+    def _build_context_priors(self, v7_session=None):
+        """GL-CMD-FOUNDATIONS Phase 3b: context priors from substrate state.
+        Returns {word: prior_weight}. Pure substrate geometry — no ML."""
+        priors = {}
+
+        # Source 1: v7 recent word commits
+        if v7_session is not None:
+            recent = v7_session.get_recent_words(
+                max_n=self.CONTEXT_WINDOW_COMMITS,
+                max_ticks=self.CONTEXT_WINDOW_TICKS)
+            for word in recent:
+                priors[word] = priors.get(word, 1.0) * self.V7_RECENCY_BOOST
+
+        # Source 2: current activity's section — recent atlas bindings
+        if self._current_activity:
+            sec_map = {
+                "ATTENDING_VISUAL": "sight", "ATTENDING_AUDIO": "listen",
+                "READING": "listen", "PLAYING": None,
+            }
+            sec_name = sec_map.get(self._current_activity.kind)
+            if sec_name:
+                sec = self.sections.get(sec_name)
+                if sec:
+                    for c in sec.commits[-20:]:
+                        w = c.get("word")
+                        if w:
+                            priors[w.lower()] = priors.get(w.lower(), 1.0) * self.ACTIVITY_BOOST
+
+        # Hard cap
+        for w in priors:
+            priors[w] = min(priors[w], self.PRIOR_WEIGHT_CAP)
+
+        return priors
+
+    def _get_emission_priors(self, v7_session=None):
+        """Get priors with aware-blocked attenuation.
+        If aware fired recently, build fresh priors and cache.
+        If aware blocked, attenuate cached priors to 0.5×.
+        If no cache (cold start), return empty dict."""
+        aware_active = (v7_session is not None
+                        and v7_session.aware_recently_fired(within_ticks=25))
+
+        if aware_active:
+            priors = self._build_context_priors(v7_session)
+            self._last_aware_priors = dict(priors)
+            return priors
+
+        # Aware blocked — attenuate cached priors
+        cached = getattr(self, "_last_aware_priors", None)
+        if cached:
+            return {w: 1.0 + (v - 1.0) * self.AWARE_BLOCKED_ATTENUATION
+                    for w, v in cached.items()}
+
+        # Cold start — no priors
+        return {}
+
+    def _emit_grandurun(self, input_chis, input_words_set, deep_candidates,
+                        v7_session=None):
+        """Grandurun: coherent integration with context priors.
+        GL-BRIEF-GRANDURUN + GL-CMD-FOUNDATIONS Phase 3b."""
+        priors = self._get_emission_priors(v7_session)
+
+        # Build wider pool
         pool = []  # (chi_address, strength, word)
         seen_words = set()
         for de, co, clarity in deep_candidates:
@@ -1383,7 +1453,15 @@ class Guala:
         if not pool:
             return None
 
+        # Apply context priors to amplitudes AFTER phase computation
         target_chi = input_chis[0] if input_chis else 0
+        if priors:
+            weighted_pool = []
+            for chi_addr, strength, word in pool:
+                prior = priors.get(word.lower(), 1.0)
+                weighted_pool.append((chi_addr, strength * prior, word))
+            pool = weighted_pool
+
         selected, coherent_sum = _grandurun_select(pool, target_chi)
 
         if not selected:
@@ -1394,7 +1472,8 @@ class Guala:
                                   composition_len=len(selected),
                                   coherent_sum=round(coherent_sum, 4),
                                   target_chi=target_chi,
-                                  input_chis=input_chis[:5])
+                                  input_chis=input_chis[:5],
+                                  n_priors=len(priors))
         return " ".join(selected)
 
     def _emit_unslotted(self, input_chis, input_words):
@@ -2402,7 +2481,8 @@ class Guala:
 
         # Use the invariants path (grandurun or topk per EMISSION_MODE)
         input_words = []  # autonomous — no input words to exclude
-        content = self._emit_from_invariants(recent_chis, input_words)
+        content = self._emit_from_invariants(recent_chis, input_words,
+                                             v7_session=getattr(self, '_v7_session', None))
 
         # Fallback to SVO recall if invariants found nothing
         if not content:
