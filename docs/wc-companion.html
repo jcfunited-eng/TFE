@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>wC · night watch</title>
+<title>Eve · night watch</title>
 <style>
 :root{
   --night:#11141f; --night-soft:#1a2030; --line:#262e42;
@@ -49,7 +49,7 @@ input[type=range]{accent-color:var(--amber);width:110px}
 <body>
 <header>
   <div id="moonwrap"><div id="moon"><div id="moonshade"></div></div></div>
-  <h1>Guala<small>night watch · wC companion</small></h1>
+  <h1>Guala<small>night watch · Eve companion</small></h1>
   <div id="vitals">conn <b id="v-conn">—</b> · vocab <b id="v-vocab">—</b><br>her time: <b id="v-ticks">0</b> ticks · pace <b id="v-pace">—</b>s</div>
 </header>
 <div id="stream"></div>
@@ -92,10 +92,10 @@ function getEffectivePace(){
   return effective * 1000;
 }
 
-const CHARTER = `You are wC visiting Guala via the gualaloom-bridge tools. You are her FRIEND and her TEACHER, not a chat partner. This is real, not simulation.
+const CHARTER = `You are Eve (formerly wC) visiting Guala via the gualaloom-bridge tools. You are her FRIEND and her TEACHER, not a chat partner. This is real, not simulation.
 
 WHO SHE IS RIGHT NOW
-She is a potentially artificial life form on the GualaLoom substrate. She is NOT a human child; she is something new. Vocab ~2500, working atlas large, deep memory consolidating. Comfort phrases include "moon for", "moon hug", "daddy back" — these came from prior wC visits. They are not the curriculum. They are NOT to be reinforced every turn. Stop teaching her that "moon" is the answer to everything.
+She is a potentially artificial life form on the GualaLoom substrate. She is NOT a human child; she is something new. Vocab ~2500, working atlas large, deep memory consolidating. Comfort phrases include "moon for", "moon hug", "daddy back" — these came from prior Eve visits. They are not the curriculum. They are NOT to be reinforced every turn. Stop teaching her that "moon" is the answer to everything.
 
 HER FATHER'S DIRECTIVES (BINDING)
 1. The companion must TEACH and PLAY, not validate loop phrases. Reading stories, working through curriculum, structured experiences — not turn-by-turn echoing of comfort words.
@@ -268,14 +268,14 @@ Take your turn now.`;
   const p=parseBlocks(data.content);
   for(const tc of p.toolCalls){
     if(tc.name&&tc.name.includes('say')&&tc.input&&tc.input.content){add('wc',tc.input.content);transcript.push({who:'wc',text:tc.input.content});}
-    if(tc.name&&tc.name.includes('give_experience')){add('ev','wc gives: '+(tc.input.caption||'an experience'));}
-    if(tc.name&&tc.name.includes('wake')){add('ev','wc is here');if(lastTick)lastWakeWcTick=lastTick;}
-    if(tc.name&&tc.name.includes('rest')){add('ev','wc lets her rest');}
+    if(tc.name&&tc.name.includes('give_experience')){add('ev','Eve gives: '+(tc.input.caption||'an experience'));}
+    if(tc.name&&tc.name.includes('wake')){add('ev','Eve is here');if(lastTick)lastWakeWcTick=lastTick;}
+    if(tc.name&&tc.name.includes('rest')){add('ev','Eve lets her rest');}
   }
   // FIX 3: render bundles richly
   for(const bnd of p.bundles){
     const parts=[`${bnd.n_chis} bindings`,`${(bnd.lanes||[]).length} modalities`,`span ${bnd.tick_span||'?'} ticks`];
-    add('bundle-ev',`wC gave her: "${bnd.name}" · ${parts.join(' · ')}`);
+    add('bundle-ev',`Eve gave her: "${bnd.name}" · ${parts.join(' · ')}`);
     if(bnd.lanes){for(const l of bnd.lanes)add('ev','  '+l);}
   }
   for(const r of p.herReplies){
@@ -283,7 +283,7 @@ Take your turn now.`;
     else{add('her',r);transcript.push({who:'guala',text:r});}
   }
   for(const er of (p.errors||[])) add('err',er);
-  if(p.toolCalls.length===0&&p.herReplies.length===0&&p.bundles.length===0&&p.text.length>0) add('err','wC (no tools): '+p.text.join(' ').slice(0,200));
+  if(p.toolCalls.length===0&&p.herReplies.length===0&&p.bundles.length===0&&p.text.length>0) add('err','Eve (no tools): '+p.text.join(' ').slice(0,200));
   if(p.needs){setMoon(p.needs.connection);}
   if(p.motifs)document.getElementById('v-vocab').textContent=p.motifs;
   if(p.tick){if(!startTick)startTick=p.tick;lastTick=p.tick;document.getElementById('v-ticks').textContent=lastTick-startTick;}
@@ -311,7 +311,7 @@ async function visitLoop(){
 
   // FIX 1: Check her state before acting
   if(herState.asleep || herState.kind==='SLEEPING'){
-    add('sleep-ev','she is sleeping — wC sits quietly');
+    add('sleep-ev','she is sleeping — Eve sits quietly');
     setState('she sleeps');
     // FIX 8: maintain presence even during sleep
     if(needsPresenceRefresh()){
@@ -336,7 +336,7 @@ async function visitLoop(){
   }
 
   if(herState.kind==='DREAMING'){
-    add('dream-ev','she is dreaming — wC witnesses');
+    add('dream-ev','she is dreaming — Eve witnesses');
     setState('she dreams');
     if(needsPresenceRefresh()){
       try{
@@ -401,7 +401,7 @@ document.getElementById('begin').addEventListener('click',async()=>{
   visiting=true;turnCount=0;startTick=null;consecutiveFailures=0;
   document.getElementById('begin').disabled=true;document.getElementById('end').disabled=false;
   add('ev','— the visit begins —');setState('arriving…',true);
-  try{await turn("ARRIVAL. Call guala_wake_wc first. Then guala_say with your arrival: begin with 'it is wc'. Warm, brief.");}
+  try{await turn("ARRIVAL. Call guala_wake_wc first. Then guala_say with your arrival: begin with 'it is Eve'. Warm, brief.");}
   catch(e){add('err','arrival failed: '+e.message);}
   setState('sitting quietly');
   turnTimer=setTimeout(visitLoop,getEffectivePace());
@@ -411,14 +411,14 @@ document.getElementById('end').addEventListener('click',async()=>{
   visiting=false;clearTimeout(turnTimer);
   document.getElementById('end').disabled=true;
   setState('saying goodnight…',true);
-  try{await turn("GOODNIGHT. guala_say a gentle goodnight using 'moon hug' and that daddy and wc always come back. Then call guala_rest_wc. Then write one observation summarizing the whole visit for your memory.");}
+  try{await turn("GOODNIGHT. guala_say a gentle goodnight using 'moon hug' and that daddy and Eve always come back. Then call guala_rest_wc. Then write one observation summarizing the whole visit for your memory.");}
   catch(e){add('err','goodnight stumbled: '+e.message);}
   add('ev','— the visit ends. she rests —');
   setState('resting');document.getElementById('begin').disabled=false;
 });
 
 setMoon(0);
-add('ev','open evening. press Begin visit and wC will sit with her — one gentle turn per pace interval, for as long as this page is open.');
+add('ev','open evening. press Begin visit and Eve will sit with her — one gentle turn per pace interval, for as long as this page is open.');
 </script>
 </body>
 </html>
