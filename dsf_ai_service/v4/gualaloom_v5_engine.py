@@ -1214,6 +1214,7 @@ class Guala:
 
         Then read the input into substrate (so she learns from this exchange).
         """
+        self._last_converse_tick = self.tick
         # Math route — MathLoom BSIL adapter (with v5 fixed parser)
         parsed = self._parse_math(text)
         if parsed:
@@ -2260,6 +2261,7 @@ class Guala:
     def process_sight_frame(self, grid):
         """GL-BRIEF-SENSORY-IO Part C: feed a transient camera frame into
         sight krimelack. No PictureItem, no storage. Just krimelack + atlas."""
+        self._last_frame_tick = self.tick
         from dsf_ai_service.visual_krimelack import view_picture
         with self.lock:
             fragments = view_picture(grid, source_id="camera_stream",
@@ -2672,6 +2674,31 @@ class Guala:
         """True if wC has active presence (same state as status presence.wc.present)."""
         return self.coordinator._presence.get("wc", False)
 
+    def is_present_active(self):
+        """True if interaction is in progress — defer non-critical saves."""
+        tick = self.tick
+        if (tick - getattr(self, '_last_converse_tick', 0)) < 50:
+            return True
+        if (tick - getattr(self, '_last_frame_tick', 0)) < 100:
+            return True
+        for who in ("wc", "joe"):
+            if self.coordinator._presence.get(who, False):
+                return True
+        return False
+
+    def is_natural_quiet_point(self):
+        """Good moment to save without disruption."""
+        if self.is_present_active():
+            return False
+        a = self._current_activity
+        if a is None:
+            return True
+        if a.kind in ("SLEEPING", "DREAMING"):
+            return True
+        if hasattr(a, "started_tick") and (self.tick - a.started_tick) > 500:
+            return True
+        return False
+
     def request_decay_modulation(self, factor, source):
         """Scale working-atlas decay. wC-only, requires ACTIVE presence."""
         if source != "wc":
@@ -3012,32 +3039,7 @@ class Guala:
         self._last_save_tick = save_tick
         self._last_save_timestamp = ts
 
-        # ── T1.3: S3 backup in background thread (non-blocking) ──
-        # Only runs every 10th save to avoid saturating EFS→S3 bandwidth.
-        if not hasattr(self, '_save_count'):
-            self._save_count = 0
-        self._save_count += 1
-        if self._save_count % 10 == 0:
-            import threading as _thr
-            def _s3_upload():
-                try:
-                    import boto3 as _boto3
-                    _s3 = _boto3.client("s3", region_name="us-east-1")
-                    _bucket = os.environ.get("GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
-                    _s3_prefix_base = os.environ.get("GUALA_S3_BACKUP_PREFIX", "guala/auto")
-                    _ts_label = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
-                    _s3_prefix = f"{_s3_prefix_base}/{_ts_label}_save"
-                    _all_files = self.STATE_FILES + [
-                        self.IDENTITY_FILE, "guala_deep_atlas.json",
-                        "guala_visual.json", "guala_sounds.json", "guala_videos.json"]
-                    for _fname in _all_files:
-                        _fpath = os.path.join(state_dir, _fname)
-                        if os.path.exists(_fpath):
-                            _s3.upload_file(_fpath, _bucket, f"{_s3_prefix}/{_fname}")
-                    print(f"[save] S3 backup → s3://{_bucket}/{_s3_prefix}/")
-                except Exception as _e:
-                    print(f"[save] S3 backup failed (EFS save OK): {_e}")
-            _thr.Thread(target=_s3_upload, daemon=True).start()
+        # S3 backup handled by SaveCoordinator (non-blocking background thread)
 
         return results
 

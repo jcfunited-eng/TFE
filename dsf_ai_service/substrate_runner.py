@@ -860,16 +860,12 @@ def handle_atlas_snapshot(args):
 
 
 def handle_backup(args):
-    from dsf_ai_service.substrate.v7_engine import _sessions, _sessions_lock, save_session
+    from dsf_ai_service.save_coordinator import SAVE_COORDINATOR
     t0 = time.time()
-    _guala.save_full_state(STATE_DIR)
-    # Also save v7 sessions for atomic consistency
-    with _sessions_lock:
-        for sid, session in _sessions.items():
-            try:
-                save_session(session)
-            except Exception as e:
-                print(f"[backup] v7 session {sid} failed: {e}")
+    if SAVE_COORDINATOR:
+        SAVE_COORDINATOR.force_save(reason="backup")
+    else:
+        _guala.save_full_state(STATE_DIR)
     n_entries = sum(len(v) for v in _guala.atlas.entries.values())
     dt = time.time() - t0
     print(f"[backup] saved in {dt:.2f}s, {n_entries} atlas entries")
@@ -1113,38 +1109,50 @@ async def run_server():
         handle_client, path=SOCKET_PATH, limit=64 * 1024 * 1024)
     print(f"[substrate] Listening on {SOCKET_PATH}")
 
-    # Periodic save on a DEDICATED thread — never competes with HTTP handlers
-    # for executor pool slots. Save runs independently of request processing.
+    # SaveCoordinator: presence-detected saves with S3 background queue
+    from dsf_ai_service.save_coordinator import SaveCoordinator
+    import dsf_ai_service.save_coordinator as _sc
+    s3_bucket = os.environ.get("GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
+    save_coord = SaveCoordinator(_guala, STATE_DIR, s3_bucket=s3_bucket)
+    _sc.SAVE_COORDINATOR = save_coord
+
     import concurrent.futures
     _save_executor = concurrent.futures.ThreadPoolExecutor(
         max_workers=1, thread_name_prefix="save")
 
-    def _save_all():
-        """Save v5 state. V7 saves after each converse/quiet/feedback call."""
-        t0 = time.time()
-        pre_size = _guala.events_log_size(STATE_DIR)
-        _guala.save_full_state(STATE_DIR)
-        _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
-        dt = time.time() - t0
-        print(f"[save] {dt:.2f}s")
+    # Hook 1: dream end — always save (dream consolidation is critical state)
+    _orig_end_dream = getattr(_guala, '_end_dream_cycle', None)
+    if _orig_end_dream:
+        def _end_dream_with_save(*a, **kw):
+            result = _orig_end_dream(*a, **kw)
+            save_coord.maybe_save(reason="dream_end")
+            return result
+        _guala._end_dream_cycle = _end_dream_with_save
 
-    async def _periodic_save():
-        save_count = 0
+    # Hook 2: activity end — opportunistic save at natural quiet points
+    if hasattr(_guala, '_end_activity'):
+        _orig_end_activity = _guala._end_activity
+        def _end_activity_with_save(*a, **kw):
+            result = _orig_end_activity(*a, **kw)
+            if _guala.is_natural_quiet_point():
+                save_coord.maybe_save(reason="activity_ended")
+            return result
+        _guala._end_activity = _end_activity_with_save
+
+    # Backstop: 5-minute check (NOT the primary trigger, just safety net)
+    async def _save_backstop():
         while not _shutdown:
-            await asyncio.sleep(60)
+            await asyncio.sleep(300)
             if _guala is None or _shutdown:
                 continue
             try:
-                await loop.run_in_executor(_save_executor, _save_all)
-                save_count += 1
-                if save_count % 10 == 0:
-                    def _snap():
-                        return _guala.snapshot_state(STATE_DIR, reason="periodic")
-                    snap_dir = await loop.run_in_executor(_save_executor, _snap)
-                    print(f"[substrate] Snapshot: {snap_dir}")
+                if _guala.is_natural_quiet_point():
+                    await loop.run_in_executor(
+                        _save_executor,
+                        lambda: save_coord.maybe_save("backstop"))
             except Exception as e:
-                print(f"[save] error: {e}")
-    asyncio.ensure_future(_periodic_save())
+                print(f"[save] backstop error: {e}")
+    asyncio.ensure_future(_save_backstop())
 
     # Handle SIGTERM/SIGINT
     def _signal_handler():
@@ -1153,7 +1161,7 @@ async def run_server():
         print(f"[substrate] Shutting down...")
         if _guala:
             try:
-                _save_all()
+                save_coord.force_save(reason="shutdown")
                 print(f"[substrate] Final save complete")
             except Exception as e:
                 print(f"[substrate] Final save failed: {e}")
