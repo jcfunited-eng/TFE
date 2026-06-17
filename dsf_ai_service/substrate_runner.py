@@ -615,27 +615,116 @@ def _cmd_addsound(command, text):
 
 
 def _cmd_bundle(command, text):
-    """Simplified bundle handler — caption + converse only for Phase 1."""
+    """Phase 2: Full multimodal cross-modal binding in same tick window.
+    GL-BRIEF-BUNDLE-PHASE-2: all modalities bind at current tick ±5."""
+    from dsf_ai_service.v4.gualaloom_v5_engine import (
+        deterministic_motif_id, DWELL_GATE_META,
+    )
     bundle_name = command[len("/bundle:"):]
     try:
         bundle_data = json.loads(text) if text else {}
     except json.JSONDecodeError:
         bundle_data = {"caption": text}
+
     caption = bundle_data.get("caption", "")
+    picture_id = bundle_data.get("picture_id", "")
+    sound_id = bundle_data.get("sound_id", "")
+    touch = bundle_data.get("touch", [])
+    smell = bundle_data.get("smell", [])
+    taste = bundle_data.get("taste", [])
+
     results = []
+    n_chis = 0
+    base_tick = _guala.tick
+
+    # 1. Caption — read into substrate as wc-sourced input
     if caption:
         try:
-            _guala.read_sentence(caption, source="joe")
+            _guala.read_sentence(caption, source="wc")
             results.append(f"told her \"{caption}\"")
         except Exception as e:
             results.append(f"word ERROR: {e}")
+
+    # 2. Picture — run visual attend path (view_picture → sight section → atlas)
+    if picture_id:
+        pic = _guala._pictures.get(picture_id)
+        if pic:
+            try:
+                from dsf_ai_service.visual_krimelack import view_picture
+                fragments = view_picture(
+                    pic.intensity_grid, source_id=pic.item_id,
+                    born_tick=_guala.tick, seed=_guala.tick % 10000)
+                _guala._visual_fragments.extend(fragments)
+                motif, is_new, overlap = _guala.sight.process_viewing(
+                    fragments, pic.item_id, _guala.tick)
+                if motif:
+                    chi_val = motif.motif_id % 100
+                    _guala.atlas.record("sight", motif.motif_id, chi_val,
+                                        _guala.tick, salience=1.2,
+                                        dwell_ticks=DWELL_GATE_META,
+                                        sensory_refs=[f"pic:{pic.item_id}"],
+                                        **_guala._affect_kwargs())
+                    n_chis += 1
+                    _guala._log_substrate_event(
+                        "visual_motif_committed" if is_new else "visual_motif_fired",
+                        motif_id=motif.motif_id, overlap=round(overlap, 3),
+                        source_id=pic.item_id, n_fragments=len(fragments),
+                        via="bundle")
+                results.append(f"viewed {pic.title} ({len(fragments)} fragments)")
+            except Exception as e:
+                results.append(f"picture ERROR: {e}")
+        else:
+            results.append(f"picture {picture_id} not found")
+
+    # 3. Sound — bind cochlear bands into atlas
+    if sound_id:
+        snd = _guala._sounds.get(sound_id)
+        if snd:
+            try:
+                cochlear = snd.get("cochlear", {})
+                for band_name, c in cochlear.items():
+                    chi = c.get("winding", 0) % 100
+                    _guala.atlas.record(
+                        f"audio_{band_name}", deterministic_motif_id(sound_id),
+                        chi, _guala.tick, salience=1.2,
+                        dwell_ticks=DWELL_GATE_META,
+                        sensory_refs=[f"snd:{sound_id}"],
+                        **_guala._affect_kwargs())
+                    n_chis += 1
+                snd["times_attended"] = snd.get("times_attended", 0) + 1
+                snd["last_attended_tick"] = _guala.tick
+                results.append(f"heard {snd.get('title', sound_id)} ({len(cochlear)} bands)")
+            except Exception as e:
+                results.append(f"sound ERROR: {e}")
+        else:
+            results.append(f"sound {sound_id} not found")
+
+    # 4. Touch/smell/taste — atlas.record per descriptor
+    for modality, descriptors in [("touch", touch), ("smell", smell), ("taste", taste)]:
+        for desc in descriptors:
+            try:
+                mid = deterministic_motif_id(f"{modality}_{desc}")
+                chi = mid % 100
+                _guala.atlas.record(
+                    f"modal_{modality}", mid, chi,
+                    _guala.tick, salience=1.2,
+                    dwell_ticks=DWELL_GATE_META,
+                    sensory_refs=[f"{modality}:{desc}"],
+                    **_guala._affect_kwargs())
+                n_chis += 1
+            except Exception as e:
+                results.append(f"{modality} ERROR ({desc}): {e}")
+        if descriptors:
+            results.append(f"{modality}: {', '.join(descriptors)}")
+
+    tick_span = _guala.tick - base_tick
     _guala._log_substrate_event("experience_bundle",
                                 name=bundle_name, lanes=results,
-                                n_chis=0)
+                                n_chis=n_chis, tick_span=tick_span)
     return {
         "response": f"experience \"{bundle_name}\": {'; '.join(results)}",
         "motifs": _guala.introspect()["vocab"],
-        "bundle": {"name": bundle_name, "lanes": results, "n_chis": 0},
+        "bundle": {"name": bundle_name, "lanes": results, "n_chis": n_chis},
     }
 
 
