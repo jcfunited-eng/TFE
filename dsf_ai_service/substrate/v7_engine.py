@@ -524,8 +524,8 @@ class V7Session:
                 "awareness": self.last_aware_state or "aware_quiet",
                 "aware_recent": self.aware_commit_history[-3:],
                 "mode_strengths": self._get_mode_strengths(),
-                "nmda_events": (self.last_nmda_events or
-                                getattr(self, '_quiet_nmda_events', []))[-10:],
+                "nmda_events": (list(self.last_nmda_events) +
+                                list(getattr(self, '_quiet_nmda_events', [])))[-10:],
                 "routing_log": self.last_routing_log,
                 "n_commits_total": sum(len(s.krimelack) for s in self.sys_.sections.values()),
                 "intro_krimelack_count": len(self.sys_.sections["intro"].krimelack),
