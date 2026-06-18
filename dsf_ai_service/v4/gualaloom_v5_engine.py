@@ -83,6 +83,112 @@ def _grandurun_select(candidates, target_chi):
     return chosen_words, last_coh
 
 
+# ---------------------------------------------------------------------------
+# Grandurun spin-vector path (GRANDURUN_SPIN_VECTOR=1)
+# ---------------------------------------------------------------------------
+
+import numpy as _np
+
+_SPIN_VECTOR_DIM = 8  # number of complex dimensions in state vector
+# Per-dimension phases: d * π/8 for d in 0..7
+_SPIN_DIM_PHASES = _np.array([d * math.pi / 8 for d in range(_SPIN_VECTOR_DIM)],
+                              dtype=_np.float64)
+_SPIN_DIM_PHASE_FACTORS = _np.exp(1j * _SPIN_DIM_PHASES)  # shape (8,)
+
+
+def _grandurun_state(binding, target_chi, target_source, needs_vector, current_tick,
+                     co_occurrence_dict=None):
+    """Return 8-element complex128 state vector for one binding.
+
+    Dimensions:
+      [0] chi_resonance     – sqrt(strength) * exp(i * π*|chi_a-chi_b| / CHI_CORR_LENGTH)
+      [1] modal_alignment   – 1.0 same section, 0.3 different
+      [2] source_match      – 1.0 if source matches target_source, else 0.3
+      [3] affective_charge  – dot(needs_vector, [arousal, valence, surprise])
+      [4] sensory_grounding – min(len(sensory_refs)/5, 1.0)
+      [5] episodic_recency  – exp(-Δt/200) where Δt = current_tick - binding.last_tick
+      [6] semantic_neighborhood – mean co_occurrence strength for this binding's chi
+      [7] polarity          – binding.get("polarity", 1.0)
+
+    Each real magnitude is multiplied by exp(i * d * π/8) to maintain complex structure.
+    """
+    vec = _np.zeros(_SPIN_VECTOR_DIM, dtype=_np.complex128)
+
+    chi_a = binding.get("chi", 0)
+    strength = float(binding.get("strength", 0.0))
+    d_chi = abs(chi_a - target_chi)
+    phi0 = math.pi * d_chi / CHI_CORR_LENGTH
+    vec[0] = math.sqrt(max(strength, 0.0)) * cmath.exp(1j * phi0)
+
+    b_section = binding.get("section", "")
+    t_section = binding.get("target_section", "")
+    vec[1] = 1.0 if b_section == t_section else 0.3
+
+    b_source = binding.get("source", "corpus")
+    vec[2] = 1.0 if b_source == target_source else 0.3
+
+    arousal  = float(binding.get("arousal",  0.5))
+    valence  = float(binding.get("valence",  0.5))
+    surprise = float(binding.get("surprise", 0.5))
+    nv = _np.asarray(needs_vector, dtype=_np.float64)
+    affect = _np.array([arousal, valence, surprise], dtype=_np.float64)
+    vec[3] = float(_np.dot(nv, affect))
+
+    sensory_refs = binding.get("sensory_refs", [])
+    vec[4] = min(len(sensory_refs) / 5.0, 1.0)
+
+    last_tick = float(binding.get("last_tick", current_tick))
+    dt = max(current_tick - last_tick, 0.0)
+    vec[5] = math.exp(-dt / 200.0)
+
+    if co_occurrence_dict:
+        chi_key = str(chi_a)
+        co_entry = co_occurrence_dict.get(chi_key, {})
+        strengths = [float(v) for v in co_entry.values()]
+        vec[6] = sum(strengths) / max(1, len(strengths)) if strengths else 0.0
+    else:
+        vec[6] = 0.0
+
+    vec[7] = float(binding.get("polarity", 1.0))
+
+    # Apply dimension-specific phases to all dimensions
+    vec *= _SPIN_DIM_PHASE_FACTORS
+    return vec
+
+
+def _grandurun_select_vector(candidates, target_state):
+    """Greedy coherent-integration selection in 8D complex state space.
+
+    candidates:   list of (state_vector_8d, word)
+    target_state: 8-element reference complex128 vector (not used for inner-product
+                  ranking; composition sum evolves greedily from zero)
+
+    Returns: (selected_words, alignment_score)
+    """
+    chosen_vecs = []
+    chosen_words = []
+    composition_sum = _np.zeros(_SPIN_VECTOR_DIM, dtype=_np.complex128)
+    last_alignment = 0.0
+
+    # Sort by chi_resonance magnitude (dim 0) as proxy for strength
+    pool = sorted(candidates, key=lambda c: -abs(c[0][0]))
+
+    for state_vec, word in pool:
+        new_sum = composition_sum + state_vec
+        # Re(<composition_sum, candidate>) — inner product alignment
+        alignment = float(_np.real(_np.vdot(new_sum, state_vec)))
+        gain = alignment - last_alignment
+        if gain > MIN_GAIN_THRESHOLD:
+            chosen_words.append(word)
+            chosen_vecs.append(state_vec)
+            composition_sum = new_sum
+            last_alignment = alignment
+        if len(chosen_words) >= MAX_COMPOSITION_LEN:
+            break
+
+    return chosen_words, last_alignment
+
+
 try:
     from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack, SensoryBank, SENSORY_DNA, ROLE_DNA
     from dsf_ai_service.v4.gualaloom_v4_uf_kernel import DSF, compute_dsf
@@ -150,6 +256,7 @@ NEEDS_TARGET_V7 = 0.7       # target for all three needs (autonomy model)
 CHI_CORR_LENGTH = 50.0        # phase correlation length; tune empirically
 MIN_GAIN_THRESHOLD = 0.10     # minimum coherent-sum gain to add candidate
 MAX_COMPOSITION_LEN = 12      # cap; typical compositions should be 3-8 words
+SPIN_VECTOR_DIM = 8           # dimensions in grandurun spin-vector state
 GRANDURUN_POOL_K = 50         # per-section candidate count for wider retrieval
 
 ACTIVITY_TICK_BUDGETS = {
@@ -1423,9 +1530,22 @@ class Guala:
     def _emit_grandurun(self, input_chis, input_words_set, deep_candidates,
                         v7_session=None):
         """Grandurun: coherent integration with context priors.
-        GL-BRIEF-GRANDURUN + GL-CMD-FOUNDATIONS Phase 3b."""
-        priors = self._get_emission_priors(v7_session)
+        GL-BRIEF-GRANDURUN + GL-CMD-FOUNDATIONS Phase 3b.
+        Gate: GRANDURUN_SPIN_VECTOR=1 enables 8D vector path; 0 = scalar path."""
+        import os as _os
+        use_vector = _os.environ.get("GRANDURUN_SPIN_VECTOR", "0") == "1"
 
+        priors = self._get_emission_priors(v7_session)
+        target_chi = input_chis[0] if input_chis else 0
+
+        if use_vector:
+            return self._emit_grandurun_vector(
+                input_chis, input_words_set, deep_candidates,
+                priors, target_chi, v7_session)
+
+        # -----------------------------------------------------------------
+        # Scalar path (original behaviour)
+        # -----------------------------------------------------------------
         # Build wider pool
         pool = []  # (chi_address, strength, word)
         seen_words = set()
@@ -1455,7 +1575,6 @@ class Guala:
             return None
 
         # Apply context priors to amplitudes AFTER phase computation
-        target_chi = input_chis[0] if input_chis else 0
         if priors:
             weighted_pool = []
             for chi_addr, strength, word in pool:
@@ -1472,11 +1591,115 @@ class Guala:
         composed = self._compose_from_cortex(selected, deep_candidates)
 
         emission_text = " ".join(composed)
-        self._log_substrate_event("emission",
+        self._log_substrate_event("emission_scalar",
                                   content=emission_text,
                                   pool_size=len(pool),
                                   composition_len=len(composed),
                                   coherent_sum=round(coherent_sum, 4),
+                                  target_chi=target_chi,
+                                  n_priors=len(priors))
+        return emission_text
+
+    def _emit_grandurun_vector(self, input_chis, input_words_set, deep_candidates,
+                               priors, target_chi, v7_session=None):
+        """8D spin-vector grandurun path (GRANDURUN_SPIN_VECTOR=1).
+        Builds full binding dicts, computes state vectors, selects via inner product."""
+        # Determine target source and needs vector from substrate state
+        target_source = "corpus"
+        if self._current_activity:
+            target_source = self._current_activity.kind.lower()
+
+        needs_vector = [0.5, 0.5, 0.5]  # [stability, novelty, connection]
+        if hasattr(self, "needs") and self.needs is not None:
+            nv = self.needs
+            needs_vector = [
+                getattr(nv, "stability", 0.5),
+                getattr(nv, "novelty", 0.5),
+                getattr(nv, "connection", 0.5),
+            ]
+
+        current_tick = self.tick
+
+        # Build co_occurrence dict for semantic_neighborhood from deep_candidates
+        co_occurrence_dict = {}
+        for de, co, clarity in deep_candidates:
+            de_chi_key = str(de.get("chi", 0))
+            if de_chi_key not in co_occurrence_dict:
+                co_occurrence_dict[de_chi_key] = {}
+            for sec_name, sec_co in co.items():
+                if sec_co:
+                    co_occurrence_dict[de_chi_key].update(
+                        {k: float(v) for k, v in sec_co.items()})
+
+        # Build pool of (state_vector, word) — pass full binding dicts
+        vector_pool = []
+        seen_words = set()
+        for de, co, clarity in deep_candidates:
+            de_chi = de.get("chi", 0)
+            for sec_name in co:
+                sec_co = co[sec_name]
+                if not sec_co:
+                    continue
+                top_in_sec = sorted(sec_co.items(),
+                                    key=lambda x: float(x[1]),
+                                    reverse=True)[:GRANDURUN_POOL_K]
+                for mid_str, strength in top_in_sec:
+                    mid = int(mid_str)
+                    sec = self.sections.get(sec_name)
+                    if sec is None or mid >= len(sec.modes):
+                        continue
+                    _, _, word_label = sec.modes[mid]
+                    if (not word_label
+                            or word_label.lower() in input_words_set
+                            or word_label.lower() in seen_words):
+                        continue
+                    # Apply prior to strength before building state vector
+                    raw_strength = float(strength)
+                    if priors:
+                        raw_strength *= priors.get(word_label.lower(), 1.0)
+                    # Build full binding dict for _grandurun_state
+                    binding = dict(de)
+                    binding["chi"] = de_chi
+                    binding["strength"] = raw_strength
+                    binding["section"] = sec_name
+                    binding["target_section"] = sec_name  # target section = same
+                    # Populate clarity fields if present
+                    if isinstance(clarity, dict):
+                        binding.setdefault("arousal", clarity.get("arousal", 0.5))
+                        binding.setdefault("valence", clarity.get("valence", 0.5))
+                        binding.setdefault("surprise", clarity.get("surprise", 0.5))
+
+                    state_vec = _grandurun_state(
+                        binding, target_chi, target_source, needs_vector,
+                        current_tick, co_occurrence_dict=co_occurrence_dict)
+                    vector_pool.append((state_vec, word_label))
+                    seen_words.add(word_label.lower())
+
+        if not vector_pool:
+            return None
+
+        # Build target_state from target_chi properties (zero binding, identity)
+        target_binding = {"chi": target_chi, "strength": 1.0,
+                          "section": "", "target_section": "",
+                          "source": target_source}
+        target_state = _grandurun_state(
+            target_binding, target_chi, target_source, needs_vector,
+            current_tick, co_occurrence_dict=co_occurrence_dict)
+
+        selected, alignment_score = _grandurun_select_vector(vector_pool, target_state)
+
+        if not selected:
+            return None
+
+        # Composition pass: reorder by best cortex co-occurrence triple
+        composed = self._compose_from_cortex(selected, deep_candidates)
+
+        emission_text = " ".join(composed)
+        self._log_substrate_event("emission_vector",
+                                  content=emission_text,
+                                  pool_size=len(vector_pool),
+                                  composition_len=len(composed),
+                                  alignment_score=round(alignment_score, 4),
                                   target_chi=target_chi,
                                   n_priors=len(priors))
         return emission_text
