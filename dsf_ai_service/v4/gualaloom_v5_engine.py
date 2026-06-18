@@ -1471,14 +1471,15 @@ class Guala:
         # Composition pass: reorder by best cortex co-occurrence triple
         composed = self._compose_from_cortex(selected, deep_candidates)
 
-        self._log_substrate_event("grandurun_emission",
+        emission_text = " ".join(composed)
+        self._log_substrate_event("emission",
+                                  content=emission_text,
                                   pool_size=len(pool),
                                   composition_len=len(composed),
                                   coherent_sum=round(coherent_sum, 4),
                                   target_chi=target_chi,
-                                  input_chis=input_chis[:5],
                                   n_priors=len(priors))
-        return " ".join(composed)
+        return emission_text
 
     def _compose_from_cortex(self, selected_words, deep_candidates):
         """Reorder selected words by best co-occurrence triple from deep atlas.

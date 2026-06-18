@@ -343,6 +343,8 @@ def handle_gualaloom_post(args):
         return _cmd_addsound(command, text)
     elif command.startswith("/bundle:"):
         return _cmd_bundle(command, text)
+    elif command == "/listen":
+        return _cmd_listen(text, source)
     else:
         emission_mode = args.get("emission_mode")
         return _cmd_converse(text, source, emission_mode=emission_mode)
@@ -807,6 +809,25 @@ def _cmd_bundle(command, text):
         "motifs": _guala.introspect()["vocab"],
         "bundle": {"name": bundle_name, "lanes": results, "n_chis": n_chis},
     }
+
+
+def _cmd_listen(text, source):
+    """Passive listening — read words into substrate without generating a response.
+    Used for ambient audio (TV, room conversation, singing) that she should
+    absorb but not try to respond to."""
+    text = text.strip()
+    if not text:
+        return {"listened": True, "motifs": _guala.introspect()["vocab"]}
+    if source not in {"joe", "wc", "c1"}:
+        source = "joe"
+    _guala.read_sentence(text, source=source)
+    _guala.log_event(STATE_DIR, "passive_listen",
+                     source=source, words_in=len(text.split()))
+    _guala._log_substrate_event("passive_listen",
+                                 source=source, text=text[:80],
+                                 n_words=len(text.split()))
+    return {"listened": True, "words": len(text.split()),
+            "motifs": _guala.introspect()["vocab"]}
 
 
 def _synthesize_voice(text):

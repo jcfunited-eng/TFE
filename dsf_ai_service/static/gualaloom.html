@@ -390,7 +390,12 @@ function startContinuousSTT(){
     if(final&&final.trim()){
       const t=final.trim();
       if(_sttCooldown||t===_sttLastSent){liveT.textContent='(waiting...)';return}
-      _sttLastSent=t;msgInput.value=t;liveT.textContent='';sendMsg();
+      _sttLastSent=t;liveT.textContent='';
+      // Passive listening — she hears it, no forced response
+      // Only typed messages (keyboard) trigger converse
+      addMsg(t,'user');
+      fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({text:t,source:'joe',command:'/listen'})},8000).catch(()=>{});
       _sttCooldown=true;setTimeout(()=>{_sttCooldown=false;_sttLastSent=''},4000);
     }
   };
