@@ -856,8 +856,8 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
   setTimeout(pollV7State,10000);
   // Events: try WebSocket first, then SSE, then poll
   try{connectEventStream()}catch(e){try{pollEvents()}catch(e2){}}
-  // Replay deferred to avoid competing with status on boot
-  setTimeout(backgroundReplay,60000);
+  // Background replay DISABLED — v7 quiet ticks compete with status calls
+  // and cause socket starvation. v7 runs its own quiet ticks in the autonomy loop.
   presenceHeartbeat();
 })();
 </script>
