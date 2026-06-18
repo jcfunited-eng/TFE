@@ -2398,14 +2398,11 @@ async def gualaloom_events(since: int = 0, stream: bool = False):
 @app.websocket("/events_stream")
 async def events_stream_ws(websocket):
     """WebSocket: live event stream from substrate ring buffer.
-    Companion HTML subscribes here instead of polling SSE."""
-    from fastapi import WebSocket
+    Companion HTML and bridge subscribe here for real-time events."""
     import asyncio
     await websocket.accept()
     try:
         if _is_remote():
-            # In remote mode, get ring from substrate_runner via socket
-            # For now, fall back to polling
             client = _get_substrate_client()
             last_tick = 0
             while True:
@@ -2422,8 +2419,6 @@ async def events_stream_ws(websocket):
                     pass
                 await asyncio.sleep(0.5)
         else:
-            # Direct mode: subscribe to ring buffer
-            from dsf_ai_service.substrate.ring_buffer import SubstrateRing
             ring = getattr(_guala, '_substrate_ring', None)
             if ring is None:
                 await websocket.send_json({"error": "ring not initialized"})
@@ -2433,9 +2428,53 @@ async def events_stream_ws(websocket):
                 events = cursor.read_available()
                 for ev in events:
                     await websocket.send_json(ev)
-                await asyncio.sleep(0.1)
+                if not events:
+                    await asyncio.sleep(0.1)
     except Exception:
         pass
+
+
+@app.get("/api/v1/gualaloom/ring/read")
+async def ring_read(since_seq: int = 0, limit: int = 100):
+    """REST ring read — returns events from sequence since_seq.
+    Bridge and external consumers use this for stateless event polling."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("ring_read",
+                                      since_seq=since_seq, limit=limit)
+        except ConnectionError:
+            return {"events": [], "published_seq": 0}
+    ring = getattr(_guala, '_substrate_ring', None)
+    if ring is None:
+        return {"events": [], "published_seq": 0}
+    from dsf_ai_service.substrate.ring_buffer import Cursor
+    cursor = Cursor(ring)
+    cursor._read_seq = since_seq
+    events = cursor.read_available()[:limit]
+    return {"events": events, "published_seq": ring._published_seq}
+
+
+@app.post("/api/v1/gualaloom/ring/write")
+async def ring_write(request: Request):
+    """REST ring write — publishes an input event to the InputRing.
+    Bridge uses this for guaranteed-ack writes."""
+    if _is_remote():
+        client = _get_substrate_client()
+        body = await request.json()
+        try:
+            return await client.call("ring_write", **body)
+        except ConnectionError:
+            return {"ok": False, "error": "substrate unreachable"}
+    from dsf_ai_service.substrate_runner import _input_ring
+    if _input_ring is None:
+        return {"ok": False, "error": "ring not initialized"}
+    body = await request.json()
+    seq = _input_ring.publish(
+        kind=body.get("kind", "text_input"),
+        source=body.get("source", "bridge"),
+        **body.get("data", {}))
+    return {"ok": True, "seq": seq}
 
 
 @app.post("/api/v1/gualaloom/sleep")

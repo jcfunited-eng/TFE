@@ -740,24 +740,55 @@ async function pollV7State(){
   finally{_inflight.state=false;_schedNext('state',pollV7State)}
 }
 
-// --- B1: SSE Event Stream (replaces pollEvents) ---
-let _evSource=null;let _evReconnectDelay=1000;
+// --- B1: Event Stream — WebSocket primary, SSE fallback ---
+let _evWs=null;let _evSource=null;let _evReconnectDelay=1000;
+function _handleEvent(ev){
+  try{
+    if(ev.tick>lastTick)lastTick=ev.tick;
+    const el=document.createElement('div');el.className='ev';
+    let det='';
+    const d=ev.detail||ev.data||{};
+    if(d.content)det=' "'+d.content+'"';
+    if(d.source)det+=' ['+d.source+']';
+    // Show recognized objects from YOLO
+    if(ev.kind==='visual_recognition'&&d.objects)det=' ['+d.objects.join(', ')+']';
+    if(ev.kind==='cross_modal_link')det=' '+d.word+' → '+JSON.stringify(d.modalities);
+    if(ev.kind==='speech_heard')det=' "'+d.word+'"';
+    el.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
+    evDiv.insertBefore(el,evDiv.firstChild);
+    while(evDiv.children.length>60)evDiv.removeChild(evDiv.lastChild);
+    if(ev.kind==='emission'&&d.content){addMsg('\ud83d\udcad '+d.content,'emission');gualaSpeak(d.content)}
+    if(ev.kind==='dream_artifact'&&d.content){addMsg('\ud83d\udcad '+d.content,'emission');gualaSpeak(d.content)}
+  }catch(e){}
+}
 function connectEventStream(){
+  // Try WebSocket first (ring buffer, real-time)
+  const wsProto=location.protocol==='https:'?'wss:':'ws:';
+  const wsUrl=`${wsProto}//${location.host}/events_stream`;
+  try{
+    _evWs=new WebSocket(wsUrl);
+    _evWs.onmessage=function(msg){
+      try{_handleEvent(JSON.parse(msg.data))}catch(e){}
+      _evReconnectDelay=1000;
+    };
+    _evWs.onopen=function(){console.log('[events] WebSocket connected');_evReconnectDelay=1000};
+    _evWs.onerror=function(){_evWs.close()};
+    _evWs.onclose=function(){
+      _evWs=null;
+      _evReconnectDelay=Math.min(_evReconnectDelay*2,30000);
+      setTimeout(connectEventStream,_evReconnectDelay);
+    };
+  }catch(e){
+    // WebSocket not available — fall back to SSE
+    _connectSSE();
+  }
+}
+function _connectSSE(){
   if(_evSource){try{_evSource.close()}catch(e){}}
   const url=`${API}/api/v1/gualaloom/events?stream=true&since=${lastTick}`;
   _evSource=new EventSource(url);
   _evSource.onmessage=function(msg){
-    try{
-      const ev=JSON.parse(msg.data);
-      if(ev.tick>lastTick)lastTick=ev.tick;
-      const el=document.createElement('div');el.className='ev';
-      let det='';if(ev.detail){if(ev.detail.content)det=' "'+ev.detail.content+'"';if(ev.detail.source)det+=' ['+ev.detail.source+']'}
-      el.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
-      evDiv.insertBefore(el,evDiv.firstChild);while(evDiv.children.length>60)evDiv.removeChild(evDiv.lastChild);
-      // B4: autonomous emissions appear in chat
-      if(ev.kind==='emission'&&ev.detail&&ev.detail.content){addMsg('\ud83d\udcad '+ev.detail.content,'emission');gualaSpeak(ev.detail.content)}
-      if(ev.kind==='dream_artifact'&&ev.detail&&ev.detail.content){addMsg('\ud83d\udcad '+ev.detail.content,'emission');gualaSpeak(ev.detail.content)}
-    }catch(e){}
+    try{_handleEvent(JSON.parse(msg.data))}catch(e){}
     _evReconnectDelay=1000;
   };
   _evSource.onerror=function(){

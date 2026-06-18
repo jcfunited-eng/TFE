@@ -43,11 +43,11 @@ def get_object_recognizer():
 
 
 def get_speech_recognizer():
-    """Return the singleton SpeechRecognizer."""
+    """Return the singleton SpeechRecognizer.
+    faster-whisper downloads the tiny model on first use (~39MB)."""
     global _speech_recognizer
     if _speech_recognizer is None:
-        path = WHISPER_MODEL_PATH if os.path.exists(WHISPER_MODEL_PATH) else None
-        _speech_recognizer = SpeechRecognizer(model_path=path)
+        _speech_recognizer = SpeechRecognizer(model_path="tiny")
     return _speech_recognizer
 
 

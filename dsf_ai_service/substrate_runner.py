@@ -1066,6 +1066,18 @@ OP_HANDLERS = {
     "sleep_for_deploy": handle_sleep_for_deploy,
     "status": handle_status_simple,
     "ring_status": handle_ring_status,
+    "ring_read": lambda args: {
+        "events": (_substrate_ring.subscribe().read_available()[:args.get("limit", 100)]
+                   if _substrate_ring else []),
+        "published_seq": _substrate_ring._published_seq if _substrate_ring else 0,
+    },
+    "ring_write": lambda args: {
+        "ok": True,
+        "seq": _input_ring.publish(
+            args.get("kind", "text_input"),
+            args.get("source", "bridge"),
+            **args.get("data", {})) if _input_ring else -1,
+    },
     "start_cascade_monitor": handle_start_cascade_monitor,
     "stop_cascade_monitor": handle_stop_cascade_monitor,
 }

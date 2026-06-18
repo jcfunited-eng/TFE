@@ -139,20 +139,21 @@ class ObjectRecognizer:
 
 
 class SpeechRecognizer:
-    """Whisper-tiny ONNX speech-to-text.
+    """Whisper-tiny speech-to-text via faster-whisper (CTranslate2).
 
-    If the model or runtime is not installed, self.available is False and
-    transcribe() returns an empty string. No exceptions, no placeholder text.
+    Uses faster-whisper which is CPU-optimized and doesn't require torch.
+    If faster-whisper is not installed, self.available is False and
+    transcribe() returns an empty string.
     """
 
     def __init__(self, model_path=None):
         self.available = False
         self._model = None
-        if model_path is None:
-            return
         try:
-            import whisper
-            self._model = whisper.load_model("tiny")
+            from faster_whisper import WhisperModel
+            model_size = model_path or "tiny"
+            self._model = WhisperModel(model_size, device="cpu",
+                                        compute_type="int8")
             self.available = True
         except Exception:
             self.available = False
@@ -175,13 +176,10 @@ class SpeechRecognizer:
             return ""
 
     def _run_transcription(self, audio_bytes, sample_rate):
-        """Internal: decode audio and run whisper."""
+        """Internal: decode audio and run faster-whisper."""
         import numpy as np
-        import struct
         import io
         import wave
-        import tempfile
-        import os
 
         # Try WAV decode
         try:
@@ -189,39 +187,31 @@ class SpeechRecognizer:
             n_frames = wf.getnframes()
             raw = wf.readframes(n_frames)
             sr = wf.getframerate()
+            import struct
             if wf.getsampwidth() == 2:
                 samples = np.array(struct.unpack(f'<{n_frames}h', raw),
                                    dtype=np.float32) / 32768.0
             else:
-                samples = np.frombuffer(raw, dtype=np.uint8).astype(np.float32) / 128.0 - 1.0
+                samples = np.frombuffer(raw, dtype=np.uint8).astype(
+                    np.float32) / 128.0 - 1.0
             wf.close()
         except Exception:
-            # Raw PCM int16
-            samples = np.frombuffer(audio_bytes, dtype=np.int16).astype(np.float32) / 32768.0
+            samples = np.frombuffer(audio_bytes, dtype=np.int16).astype(
+                np.float32) / 32768.0
             sr = sample_rate
 
-        if len(samples) < 10:
+        if len(samples) < 100:
             return ""
 
-        # Whisper expects float32 numpy array at 16kHz
+        # Resample to 16kHz if needed
         if sr != 16000:
             step = max(1, sr // 16000)
             samples = samples[::step]
 
-        # Write to temp file for whisper
-        fd, tmp_path = tempfile.mkstemp(suffix=".wav")
-        try:
-            wf_out = wave.open(tmp_path, 'wb')
-            wf_out.setnchannels(1)
-            wf_out.setsampwidth(2)
-            wf_out.setframerate(16000)
-            pcm = (samples * 32767).astype(np.int16).tobytes()
-            wf_out.writeframes(pcm)
-            wf_out.close()
-            result = self._model.transcribe(tmp_path, language="en")
-            return result.get("text", "").strip()
-        finally:
-            os.unlink(tmp_path)
+        # faster-whisper takes float32 numpy array directly
+        segments, _ = self._model.transcribe(samples, language="en",
+                                              vad_filter=True)
+        return " ".join(s.text.strip() for s in segments).strip()
 
 
 class AmbientClassifier:

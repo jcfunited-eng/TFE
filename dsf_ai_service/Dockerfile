@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg espeak-ng && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 onnxruntime websockets
+RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 onnxruntime websockets faster-whisper
 
 # Copy only what the service needs (no TFE trading code)
 COPY uf_core/ /app/uf_core/
