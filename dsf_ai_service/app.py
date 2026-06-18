@@ -1142,11 +1142,14 @@ class GLMessage(BaseModel):
 async def sight_frame(msg: GLMessage):
     """Streaming sight: feed a camera frame into her sight krimelack."""
     if _is_remote():
+        # R3: write to InputRing (non-blocking) instead of socket call
         client = _get_substrate_client()
         try:
-            return await client.call("sight_frame", text=msg.text or "", timeout=15.0)
-        except ConnectionError:
-            return {"ok": False, "error": "substrate unreachable"}
+            return await client.call("ring_write",
+                kind="sight_frame", source="camera_stream",
+                data={"frame_b64": msg.text or ""}, timeout=3.0)
+        except (ConnectionError, Exception):
+            return {"ok": False, "error": "ring write failed"}
     if _guala is None:
         raise HTTPException(503, "guala_not_ready")
     import base64, asyncio as _aio
@@ -1170,12 +1173,15 @@ async def sight_frame(msg: GLMessage):
 async def sound_frame(msg: GLMessage):
     """Streaming sound: feed a mic audio chunk into her sound krimelack."""
     if _is_remote():
+        # R3: write to InputRing (non-blocking) instead of socket call
         client = _get_substrate_client()
         try:
-            return await client.call("sound_frame", text=msg.text or "",
-                                     source=msg.source or "ambient", timeout=15.0)
-        except ConnectionError:
-            return {"ok": False, "error": "substrate unreachable"}
+            return await client.call("ring_write",
+                kind="sound_window", source=msg.source or "ambient",
+                data={"audio_b64": msg.text or "",
+                      "source": msg.source or "ambient"}, timeout=3.0)
+        except (ConnectionError, Exception):
+            return {"ok": False, "error": "ring write failed"}
     if _guala is None:
         raise HTTPException(503, "guala_not_ready")
     import base64, asyncio as _aio

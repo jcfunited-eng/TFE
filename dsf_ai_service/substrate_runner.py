@@ -152,7 +152,56 @@ def boot_substrate():
     except Exception as e:
         print(f"[substrate] Sleep marker check failed: {e}")
 
+    # R3/R4: Start InputRing drain loop — processes sensory frames
+    # from the ring without blocking the substrate socket.
+    _start_input_ring_consumer()
+
     print(f"[substrate] Ready on {SOCKET_PATH}")
+
+
+def _start_input_ring_consumer():
+    """Drain InputRing on a background thread. Processes sight_frame and
+    sound_window events written by the companion/bridge HTTP endpoints."""
+    import base64 as _b64
+
+    def _drain_loop():
+        while not _shutdown:
+            if _input_ring is None or _guala is None:
+                time.sleep(1)
+                continue
+            try:
+                events = _input_ring.drain(max_n=10)
+                for ev in events:
+                    kind = ev.get("kind")
+                    data = ev.get("data", {})
+                    if kind == "sight_frame":
+                        try:
+                            img_bytes = _b64.b64decode(data.get("frame_b64", ""))
+                            from dsf_ai_service.substrate.grounded_vocab_integration import (
+                                process_sight_with_recognition)
+                            from dsf_ai_service.v4.image_decoder import decode_image_bytes
+                            _, grid, _, _ = decode_image_bytes(img_bytes)
+                            _guala.process_sight_frame(grid)
+                            process_sight_with_recognition(_guala, grid)
+                        except Exception:
+                            pass
+                    elif kind == "sound_window":
+                        try:
+                            audio_bytes = _b64.b64decode(data.get("audio_b64", ""))
+                            _guala.process_sound_frame(audio_bytes)
+                            from dsf_ai_service.substrate.grounded_vocab_integration import (
+                                process_sound_with_recognition)
+                            source = data.get("source", "ambient")
+                            process_sound_with_recognition(_guala, audio_bytes, source=source)
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+            time.sleep(0.5)
+
+    t = threading.Thread(target=_drain_loop, daemon=True, name="input-ring-consumer")
+    t.start()
+    print("[substrate] InputRing consumer started (R3/R4)")
 
 
 # ═══════════════════════════════════════════════════════════════
