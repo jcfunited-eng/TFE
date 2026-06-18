@@ -647,8 +647,11 @@ async function sendFeedback(correct,up,dn){
   }catch(e){}
 }
 
+let _sendingMsg=false;
 async function sendMsg(){
-  const text=msgInput.value.trim();if(!text)return;msgInput.value='';
+  const text=msgInput.value.trim();if(!text)return;
+  if(_sendingMsg){addMsg('(wait — still thinking...)','system');return}
+  msgInput.value='';_sendingMsg=true;
   const isCmd=text.startsWith('/');addMsg(text,isCmd?'system':'user');
   try{
     if(isCmd){
@@ -670,7 +673,7 @@ async function sendMsg(){
       }
     }
   }catch(e){addMsg('(error: '+e.message+')','system')}
-  msgInput.focus();
+  _sendingMsg=false;msgInput.focus();
 }
 msgInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
 

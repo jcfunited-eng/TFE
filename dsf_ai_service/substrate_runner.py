@@ -307,7 +307,7 @@ def handle_gualaloom_post(args):
     text = args.get("text", "")
     source = args.get("source", "joe")
 
-    if _guala.is_asleep and command != "/status":
+    if _guala.is_asleep and command not in ("/status", "/wake"):
         return {
             "response": "she is sleeping...",
             "asleep": True,
