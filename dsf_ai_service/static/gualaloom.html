@@ -314,11 +314,15 @@ function pickVoice(){
     ||voices[0];
 }
 window.speechSynthesis.onvoiceschanged=pickVoice;pickVoice();
+// iOS: voices load async, retry after delay
+setTimeout(pickVoice,500);setTimeout(pickVoice,2000);
 function gualaSpeak(text){
   const badge=document.getElementById('speaker-badge');
-  if(!text||text==='...'||text.trim()===''){badge.innerHTML='\ud83d\udd07 (nothing to say)';return}
-  if(muted){badge.innerHTML='\ud83d\udd07 muted';return}
-  if(!audioUnlocked){badge.innerHTML='\ud83d\udd07 click anywhere to enable audio';return}
+  if(!text||text==='...'||text.trim()===''){return}
+  if(muted){return}
+  if(!audioUnlocked){badge.innerHTML='\ud83d\udd07 tap anywhere to enable audio';return}
+  // iOS fix: cancel any pending utterances first
+  try{window.speechSynthesis.cancel()}catch(e){}
   try{
     const u=new SpeechSynthesisUtterance(text);
     if(preferredVoice)u.voice=preferredVoice;
@@ -841,13 +845,14 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
 // --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
 (()=>{
   addMsg('Guala ready.','system');msgInput.focus();
-  // pollStatus first — it's fast and populates the header immediately
+  // Non-blocking boot: try status, don't fail if slow
   pollStatus();
-  // v7/state can be slow on fresh sessions (snap_replay) — don't block on it
-  setTimeout(pollV7State,2000);
-  // B1: try SSE for events, fall back to polling if SSE fails
-  try{connectEventStream()}catch(e){pollEvents()}
-  setTimeout(backgroundReplay,_BASE.replay);
+  // v7/state deferred — don't call on boot, wait for user interaction
+  setTimeout(pollV7State,10000);
+  // Events: try WebSocket first, then SSE, then poll
+  try{connectEventStream()}catch(e){try{pollEvents()}catch(e2){}}
+  // Replay deferred to avoid competing with status on boot
+  setTimeout(backgroundReplay,60000);
   presenceHeartbeat();
 })();
 </script>

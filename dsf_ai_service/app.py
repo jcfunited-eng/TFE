@@ -1206,12 +1206,23 @@ async def gualaloom_chat(msg: GLMessage):
     if _is_remote():
         client = _get_substrate_client()
         try:
-            return await client.call("gualaloom_post",
-                                     command=msg.command or "",
-                                     text=msg.text or "",
-                                     source=msg.source or "joe",
-                                     emission_mode=msg.emission_mode)
-        except ConnectionError:
+            result = await client.call("gualaloom_post",
+                                       command=msg.command or "",
+                                       text=msg.text or "",
+                                       source=msg.source or "joe",
+                                       emission_mode=msg.emission_mode,
+                                       timeout=12.0)
+            # Cache status responses for fast fallback
+            if (msg.command or "").strip() == "/status" and result.get("vocab"):
+                app.state._last_status = result
+                app.state._last_status_time = time.time()
+            return result
+        except (ConnectionError, Exception):
+            # Return cached status if available (< 30s old)
+            if ((msg.command or "").strip() == "/status"
+                    and hasattr(app.state, '_last_status')
+                    and time.time() - getattr(app.state, '_last_status_time', 0) < 30):
+                return app.state._last_status
             return {"response": "substrate unreachable — try again in a moment",
                     "motifs": 0}
 
