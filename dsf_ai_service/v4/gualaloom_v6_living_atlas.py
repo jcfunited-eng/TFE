@@ -86,7 +86,8 @@ class LivingAtlas:
 
     def record(self, section_name, motif_id, chi_value, tick=None, salience=1.0,
                dwell_ticks=0, arousal=0.5, valence=0.0, surprise=0.0,
-               need_pressure=0.0, sensory_refs=None, episode_ref=None):
+               need_pressure=0.0, sensory_refs=None, episode_ref=None,
+               source="corpus"):
         """Record a new binding OR reinforce existing one if (section, motif)
         already present near this chi. Salience modulates the strength impulse.
 
@@ -141,6 +142,11 @@ class LivingAtlas:
                 existing["reinforcement_count"] = existing.get("reinforcement_count", 0) + 1
                 # GL-CLARITY: renew clarity on reinforcement (max, not average)
                 existing["clarity"] = max(existing.get("clarity", 0.3), clarity)
+                # GL-METADATA-PIPELINE: store raw affect (max) + source (last-write-wins)
+                existing["arousal"] = max(existing.get("arousal", 0.5), arousal)
+                existing["valence"] = max(existing.get("valence", 0.0), valence)
+                existing["surprise"] = max(existing.get("surprise", 0.0), surprise)
+                existing["source"] = source
                 # GL-CLARITY: accumulate sensory refs
                 if sensory_refs:
                     refs = existing.get("sensory_refs", [])
@@ -169,6 +175,11 @@ class LivingAtlas:
                     "initial_clarity": clarity,
                     "sensory_refs": list(sensory_refs) if sensory_refs else [],
                     "episode_refs": [episode_ref] if episode_ref else [],
+                    # GL-METADATA-PIPELINE: raw affect + source for 8D grandurun
+                    "arousal": arousal,
+                    "valence": valence,
+                    "surprise": surprise,
+                    "source": source,
                 })
 
     def decay(self, current_tick=None, rate_scale=1.0):

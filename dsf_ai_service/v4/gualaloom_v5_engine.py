@@ -89,28 +89,29 @@ def _grandurun_select(candidates, target_chi):
 
 import numpy as _np
 
-_SPIN_VECTOR_DIM = 8  # number of complex dimensions in state vector
-# Per-dimension phases: d * π/8 for d in 0..7
-_SPIN_DIM_PHASES = _np.array([d * math.pi / 8 for d in range(_SPIN_VECTOR_DIM)],
+_SPIN_VECTOR_DIM = 7  # GL-METADATA-PIPELINE: dropped modal_alignment (degenerate in uncage)
+# Per-dimension phases: d * π/7 for d in 0..6
+_SPIN_DIM_PHASES = _np.array([d * math.pi / 7 for d in range(_SPIN_VECTOR_DIM)],
                               dtype=_np.float64)
-_SPIN_DIM_PHASE_FACTORS = _np.exp(1j * _SPIN_DIM_PHASES)  # shape (8,)
+_SPIN_DIM_PHASE_FACTORS = _np.exp(1j * _SPIN_DIM_PHASES)  # shape (7,)
 
 
 def _grandurun_state(binding, target_chi, target_source, needs_vector, current_tick,
                      co_occurrence_dict=None):
-    """Return 8-element complex128 state vector for one binding.
+    """Return 7-element complex128 state vector for one binding.
+
+    GL-METADATA-PIPELINE: modal_alignment dropped (degenerate in v7-uncage pools).
 
     Dimensions:
-      [0] chi_resonance     – sqrt(strength) * exp(i * π*|chi_a-chi_b| / CHI_CORR_LENGTH)
-      [1] modal_alignment   – 1.0 same section, 0.3 different
-      [2] source_match      – 1.0 if source matches target_source, else 0.3
-      [3] affective_charge  – dot(needs_vector, [arousal, valence, surprise])
-      [4] sensory_grounding – min(len(sensory_refs)/5, 1.0)
-      [5] episodic_recency  – exp(-Δt/200) where Δt = current_tick - binding.last_tick
-      [6] semantic_neighborhood – mean co_occurrence strength for this binding's chi
-      [7] polarity          – binding.get("polarity", 1.0)
+      [0] chi_resonance         – sqrt(strength) * exp(i * π*|chi_a-chi_b| / CHI_CORR_LENGTH)
+      [1] source_match          – 1.0 if source matches target_source, else 0.3
+      [2] affective_charge      – dot(needs_vector, [arousal, valence, surprise])
+      [3] sensory_grounding     – min(len(sensory_refs)/5, 1.0)
+      [4] episodic_recency      – exp(-Δt/200) where Δt = current_tick - binding.last_tick
+      [5] semantic_neighborhood – mean co_occurrence strength for this binding's chi
+      [6] polarity              – binding.get("polarity", 1.0)
 
-    Each real magnitude is multiplied by exp(i * d * π/8) to maintain complex structure.
+    Each real magnitude is multiplied by exp(i * d * π/7) to maintain complex structure.
     """
     vec = _np.zeros(_SPIN_VECTOR_DIM, dtype=_np.complex128)
 
@@ -120,50 +121,53 @@ def _grandurun_state(binding, target_chi, target_source, needs_vector, current_t
     phi0 = math.pi * d_chi / CHI_CORR_LENGTH
     vec[0] = math.sqrt(max(strength, 0.0)) * cmath.exp(1j * phi0)
 
-    b_section = binding.get("section", "")
-    t_section = binding.get("target_section", "")
-    vec[1] = 1.0 if b_section == t_section else 0.3
-
     b_source = binding.get("source", "corpus")
-    vec[2] = 1.0 if b_source == target_source else 0.3
+    vec[1] = 1.0 if b_source == target_source else 0.3
 
     arousal  = float(binding.get("arousal",  0.5))
     valence  = float(binding.get("valence",  0.5))
     surprise = float(binding.get("surprise", 0.5))
     nv = _np.asarray(needs_vector, dtype=_np.float64)
     affect = _np.array([arousal, valence, surprise], dtype=_np.float64)
-    vec[3] = float(_np.dot(nv, affect))
+    vec[2] = float(_np.dot(nv, affect))
 
     sensory_refs = binding.get("sensory_refs", [])
-    vec[4] = min(len(sensory_refs) / 5.0, 1.0)
+    vec[3] = min(len(sensory_refs) / 5.0, 1.0)
 
     last_tick = float(binding.get("last_tick", current_tick))
     dt = max(current_tick - last_tick, 0.0)
-    vec[5] = math.exp(-dt / 200.0)
+    vec[4] = math.exp(-dt / 200.0)
 
     if co_occurrence_dict:
         chi_key = str(chi_a)
         co_entry = co_occurrence_dict.get(chi_key, {})
         strengths = [float(v) for v in co_entry.values()]
-        vec[6] = sum(strengths) / max(1, len(strengths)) if strengths else 0.0
+        vec[5] = sum(strengths) / max(1, len(strengths)) if strengths else 0.0
     else:
-        vec[6] = 0.0
+        vec[5] = 0.0
 
-    vec[7] = float(binding.get("polarity", 1.0))
+    vec[6] = float(binding.get("polarity", 1.0))
 
     # Apply dimension-specific phases to all dimensions
     vec *= _SPIN_DIM_PHASE_FACTORS
     return vec
 
 
-def _grandurun_select_vector(candidates, target_state):
-    """Greedy coherent-integration selection in 8D complex state space.
+_SPIN_DIM_NAMES = [
+    "chi_resonance", "source_match", "affective_charge",
+    "sensory_grounding", "episodic_recency", "semantic_neighborhood", "polarity",
+]
 
-    candidates:   list of (state_vector_8d, word)
-    target_state: 8-element reference complex128 vector (not used for inner-product
+
+def _grandurun_select_vector(candidates, target_state):
+    """Greedy coherent-integration selection in 7D complex state space.
+
+    candidates:   list of (state_vector_7d, word)
+    target_state: 7-element reference complex128 vector (not used for inner-product
                   ranking; composition sum evolves greedily from zero)
 
-    Returns: (selected_words, alignment_score)
+    Returns: (selected_words, alignment_score, dim_contributions)
+    dim_contributions: dict mapping dim_name -> total real-part contribution
     """
     chosen_vecs = []
     chosen_words = []
@@ -186,7 +190,17 @@ def _grandurun_select_vector(candidates, target_state):
         if len(chosen_words) >= MAX_COMPOSITION_LEN:
             break
 
-    return chosen_words, last_alignment
+    # GL-METADATA-PIPELINE: per-dimension contribution breakdown
+    dim_contributions = {}
+    if chosen_vecs:
+        final_sum = _np.zeros(_SPIN_VECTOR_DIM, dtype=_np.complex128)
+        for v in chosen_vecs:
+            final_sum += v
+        per_dim = _np.real(final_sum * _np.conj(final_sum))  # |component|^2 per dim
+        for i, name in enumerate(_SPIN_DIM_NAMES):
+            dim_contributions[name] = round(float(per_dim[i]), 4)
+
+    return chosen_words, last_alignment, dim_contributions
 
 
 try:
@@ -256,7 +270,7 @@ NEEDS_TARGET_V7 = 0.7       # target for all three needs (autonomy model)
 CHI_CORR_LENGTH = 50.0        # phase correlation length; tune empirically
 MIN_GAIN_THRESHOLD = 0.10     # minimum coherent-sum gain to add candidate
 MAX_COMPOSITION_LEN = 12      # cap; typical compositions should be 3-8 words
-SPIN_VECTOR_DIM = 8           # dimensions in grandurun spin-vector state
+SPIN_VECTOR_DIM = 7           # GL-METADATA-PIPELINE: 8→7 (modal_alignment dropped)
 GRANDURUN_POOL_K = 50         # per-section candidate count for wider retrieval
 
 ACTIVITY_TICK_BUDGETS = {
@@ -1531,7 +1545,7 @@ class Guala:
                         v7_session=None):
         """Grandurun: coherent integration with context priors.
         GL-BRIEF-GRANDURUN + GL-CMD-FOUNDATIONS Phase 3b.
-        Gate: GRANDURUN_SPIN_VECTOR=1 enables 8D vector path; 0 = scalar path."""
+        Gate: GRANDURUN_SPIN_VECTOR=1 enables 7D vector path; 0 = scalar path."""
         import os as _os
         use_vector = _os.environ.get("GRANDURUN_SPIN_VECTOR", "0") == "1"
 
@@ -1602,7 +1616,8 @@ class Guala:
 
     def _emit_grandurun_vector(self, input_chis, input_words_set, deep_candidates,
                                priors, target_chi, v7_session=None):
-        """8D spin-vector grandurun path (GRANDURUN_SPIN_VECTOR=1).
+        """7D spin-vector grandurun path (GRANDURUN_SPIN_VECTOR=1).
+        GL-METADATA-PIPELINE: 8D→7D (modal_alignment dropped).
         Builds full binding dicts, computes state vectors, selects via inner product."""
         # Determine target source and needs vector from substrate state
         target_source = "corpus"
@@ -1686,7 +1701,8 @@ class Guala:
             target_binding, target_chi, target_source, needs_vector,
             current_tick, co_occurrence_dict=co_occurrence_dict)
 
-        selected, alignment_score = _grandurun_select_vector(vector_pool, target_state)
+        selected, alignment_score, dim_contributions = _grandurun_select_vector(
+            vector_pool, target_state)
 
         if not selected:
             return None
@@ -1701,7 +1717,8 @@ class Guala:
                                   composition_len=len(composed),
                                   alignment_score=round(alignment_score, 4),
                                   target_chi=target_chi,
-                                  n_priors=len(priors))
+                                  n_priors=len(priors),
+                                  dim_contributions=dim_contributions)
         return emission_text
 
     def _compose_from_cortex(self, selected_words, deep_candidates):

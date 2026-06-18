@@ -69,6 +69,11 @@ class DeepAtlas:
                 # GL-CLARITY: update clarity (max of existing and incoming)
                 de["clarity"] = max(de.get("clarity", 0.3),
                                     entry.get("clarity", 0.3))
+                # GL-METADATA-PIPELINE: propagate affect (max) + source (last-write-wins) + polarity
+                de["arousal"] = max(de.get("arousal", 0.5), entry.get("arousal", 0.5))
+                de["valence"] = max(de.get("valence", 0.0), entry.get("valence", 0.0))
+                de["surprise"] = max(de.get("surprise", 0.0), entry.get("surprise", 0.0))
+                de["source"] = entry.get("source", "corpus")
                 # GL-CLARITY: update co_occurrence invariant on re-promotion
                 if working_atlas:
                     self._update_invariant(de, chi_k, working_atlas)
@@ -89,6 +94,12 @@ class DeepAtlas:
             # GL-CLARITY-INVARIANCE-UNCAGE: inherit from working atlas entry
             "clarity": entry.get("clarity", 0.3),
             "initial_clarity": entry.get("initial_clarity", 0.3),
+            # GL-METADATA-PIPELINE: raw affect + source + polarity for 8D grandurun
+            "arousal": entry.get("arousal", 0.5),
+            "valence": entry.get("valence", 0.0),
+            "surprise": entry.get("surprise", 0.0),
+            "source": entry.get("source", "corpus"),
+            "polarity": 1.0,  # TODO: derive polarity from sentiment when grounded text pipeline available
             "sensory_refs": list(entry.get("sensory_refs", [])),
             "episode_refs": list(entry.get("episode_refs", [])),
             "co_occurrence": {},  # section_name -> {motif_id: weight}

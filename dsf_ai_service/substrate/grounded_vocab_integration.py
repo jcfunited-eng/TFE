@@ -123,6 +123,7 @@ def process_sight_with_recognition(guala, grid, source="camera_stream"):
             "sight", motif_id, chi, guala.tick,
             salience=det["confidence"],
             sensory_refs=[f"visual_recognition:{label}"],
+            source="sight",
             **guala._affect_kwargs(),
         )
 
@@ -196,6 +197,7 @@ def process_sound_with_recognition(guala, audio_bytes, source="ambient"):
                 "listen", motif_id, chi, guala.tick,
                 salience=0.8,
                 sensory_refs=[f"speech_heard:{word}"],
+                source="joe_voice",
                 **guala._affect_kwargs(),
             )
 
