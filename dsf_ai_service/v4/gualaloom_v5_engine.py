@@ -2734,26 +2734,28 @@ class Guala:
                         self._tag_response_bindings(
                             ch + d, e["section"], e["motif"], "guala")
 
-        # (4) Self-voice: generate espeak WAV and feed into sound krimelack
-        #     so she experiences her own voice as auditory input
-        try:
-            import subprocess
-            wav_path = "/tmp/guala_self_voice.wav"
-            subprocess.run([
-                "espeak-ng", "-v", "en+f3", "-p", "96", "-s", "145",
-                "-w", wav_path, reply,
-            ], check=True, timeout=5, capture_output=True)
-            with open(wav_path, "rb") as f:
-                self.process_sound_frame(f.read())
-        except Exception:
-            pass  # espeak not available or failed — text self-hearing still works
-
         # Event log
         self._log_substrate_event("self_heard",
                                   reply_summary=reply[:50],
                                   n_chis=len(reply_chis),
-                                  salience="0.5x",
-                                  audio_injected=True)
+                                  salience="0.5x")
+
+        # (4) Self-voice: generate espeak WAV and feed into sound krimelack
+        #     Runs on background thread — must not block the converse response
+        def _inject_self_voice(text):
+            try:
+                import subprocess
+                wav_path = "/tmp/guala_self_voice.wav"
+                subprocess.run([
+                    "espeak-ng", "-v", "en+f3", "-p", "96", "-s", "145",
+                    "-w", wav_path, text,
+                ], check=True, timeout=5, capture_output=True)
+                with open(wav_path, "rb") as f:
+                    self.process_sound_frame(f.read())
+            except Exception:
+                pass
+        threading.Thread(target=_inject_self_voice, args=(reply,),
+                        daemon=True).start()
 
     # ------------------------------------------------------------------
     # Fix C (GL-FIX-THREE): Decay modulation — wC-only, presence-gated
