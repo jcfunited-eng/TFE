@@ -96,9 +96,12 @@ def boot_substrate():
     # Runtime config: persisted decay_paused flag (survives restarts)
     rt_cfg = _read_runtime_config()
     if rt_cfg is not None:
-        decay_paused = rt_cfg.get("decay_paused", True)
-        os.environ["DECAY_PAUSED"] = "1" if decay_paused else "0"
-        print(f"[substrate] Runtime config: decay_paused={decay_paused}")
+        decay_paused = rt_cfg.get("decay_paused")
+        if decay_paused is not None:
+            os.environ["DECAY_PAUSED"] = "1" if decay_paused else "0"
+            print(f"[substrate] Runtime config: decay_paused={decay_paused}")
+        else:
+            print(f"[substrate] Runtime config exists but no decay_paused key, using env var")
     # else: fall back to DECAY_PAUSED env var (set by ECS task def)
 
     # Dream gate

@@ -2964,6 +2964,12 @@ class Guala:
                                   "times_attended": s.times_attended,
                                   "last_attended_tick": s.last_attended_tick}
                            for sid, s in self._sensory_items.items()}
+            # Serialize survival history: tuple keys → "chi|section|motif" strings
+            surv_ser = {}
+            for (chi_k, sec, mid), strengths in self._deep_survival_history.items():
+                key_str = f"{chi_k}|{sec}|{mid}"
+                surv_ser[key_str] = strengths[-10:]  # cap at 10
+
             snap_core = self._envelope({
                 "tick": self.tick, "read_count": self.read_count,
                 "vocab": sorted(self.vocab),
@@ -2976,6 +2982,8 @@ class Guala:
                 "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
                 "corpora_state": corpora_ser,
                 "sensory_state": sensory_ser,
+                "deep_survival_history": surv_ser,
+                "total_emissions": self._total_emissions,
             })
 
             # 2. Needs
@@ -3382,6 +3390,16 @@ class Guala:
             if sid in self._sensory_items:
                 self._sensory_items[sid].times_attended = sstate.get("times_attended", 0)
                 self._sensory_items[sid].last_attended_tick = sstate.get("last_attended_tick", 0)
+        # Restore deep survival history (Path A promotion gate)
+        surv_raw = core.get("deep_survival_history", {})
+        self._deep_survival_history = defaultdict(list)
+        for key_str, strengths in surv_raw.items():
+            parts = key_str.split("|", 2)
+            if len(parts) == 3:
+                chi_k = int(parts[0]) if parts[0].lstrip('-').isdigit() else parts[0]
+                self._deep_survival_history[(chi_k, parts[1], int(parts[2]))] = strengths
+        # Restore emission counter
+        self._total_emissions = core.get("total_emissions", 0)
 
     def _apply_needs(self, nd):
         self.needs.stability = float(nd["stability"])
