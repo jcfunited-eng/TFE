@@ -1953,19 +1953,6 @@ async def gualaloom_chat(msg: GLMessage):
     result = {"response": response or "...", "motifs": _guala.introspect()["vocab"]}
     if picture_refs:
         result["pictures"] = picture_refs
-    # Synthesize espeak WAV for voice playback
-    if response and response != "...":
-        try:
-            import subprocess, base64 as _b64v
-            wav_path = "/tmp/guala_utt.wav"
-            subprocess.run([
-                "espeak-ng", "-v", "en+f3", "-p", "96", "-s", "145",
-                "-w", wav_path, response,
-            ], check=True, timeout=5, capture_output=True)
-            with open(wav_path, "rb") as f:
-                result["self_voice_audio_b64"] = _b64v.b64encode(f.read()).decode("ascii")
-        except Exception:
-            pass
     return result
 
 

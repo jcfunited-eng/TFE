@@ -803,10 +803,6 @@ def _cmd_converse(text, source, emission_mode=None):
     result = {"response": response or "...", "motifs": _guala.introspect()["vocab"]}
     if picture_refs:
         result["pictures"] = picture_refs
-    # Synthesize espeak WAV for the response
-    voice_b64 = _synthesize_voice(response)
-    if voice_b64:
-        result["self_voice_audio_b64"] = voice_b64
     return result
 
 
