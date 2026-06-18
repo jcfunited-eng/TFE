@@ -321,20 +321,25 @@ function gualaSpeak(text){
   if(!text||text==='...'||text.trim()===''){return}
   if(muted){return}
   if(!audioUnlocked){badge.innerHTML='\ud83d\udd07 tap anywhere to enable audio';return}
-  // iOS fix: cancel any pending utterances first
+  // iOS/Android fix: cancel then resume (iOS pauses synth after cancel)
   try{window.speechSynthesis.cancel()}catch(e){}
+  try{window.speechSynthesis.resume()}catch(e){}
   try{
     const u=new SpeechSynthesisUtterance(text);
+    // Re-pick voice in case voices loaded late
+    if(!preferredVoice)pickVoice();
     if(preferredVoice)u.voice=preferredVoice;
     u.rate=0.85;u.pitch=1.6;u.volume=1.0;
     u.onstart=()=>{badge.innerHTML='\ud83d\udd0a speaking...'};
     u.onend=()=>{badge.innerHTML='\ud83d\udd0a ready'};
     u.onerror=e=>{badge.innerHTML='\ud83d\udd07 speak error: '+(e.error||'unknown')};
     window.speechSynthesis.speak(u);
+    // iOS keeps-alive workaround: pause+resume nudges the queue
+    setTimeout(()=>{try{window.speechSynthesis.pause();window.speechSynthesis.resume()}catch(e){}},100);
     setTimeout(()=>{
       if(window.speechSynthesis.pending||window.speechSynthesis.speaking)return;
-      badge.innerHTML='\ud83d\udd07 utterance dropped silently';
-    },500);
+      badge.innerHTML='\ud83d\udd07 utterance dropped — tap to retry';
+    },2000);
   }catch(e){badge.innerHTML='\ud83d\udd07 speak threw: '+e.message}
 }
 // C4: cancel speech on page hide
