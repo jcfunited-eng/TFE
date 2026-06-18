@@ -646,15 +646,17 @@ async function sendMsg(){
       const d=await r.json();addMsg(d.response||JSON.stringify(d),'system');
       if(d.pictures)renderPictures(d.pictures);
     }else{
-      // GL-FIX-UI-FRONTEND: single write path (v7 only), no dual-dispatch
-      const r=await fetchT(`${API}/v7/converse`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,session_id:sid})},25000);
+      // Route through v5 (fast atlas recall + grandurun emission)
+      // v7 runs independently via autonomy loop — don't block on it
+      const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})},10000);
       if(r.status===503||r.status===500){handleNotReady('converse')}
       else{
         const d=await r.json();
-        // Item 6: don't overwrite session_id from substrate response
-        addResponseBlock(d);
-        // v6 chat for emission (fire-and-forget, no await)
-        fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})},10000).then(r6=>r6.ok?r6.json():null).then(d6=>{if(d6&&d6.response&&d6.response!=='...'){addMsg(d6.response,'emission');gualaSpeak(d6.response)}if(d6&&d6.pictures)renderPictures(d6.pictures)}).catch(()=>{});
+        const resp=d.response||'...';
+        if(resp&&resp!=='...'&&resp!=='substrate unreachable — try again in a moment'){
+          addMsg(resp,'emission');gualaSpeak(resp);
+        }else{addMsg('(she is quiet)','system')}
+        if(d.pictures)renderPictures(d.pictures);
       }
     }
   }catch(e){addMsg('(error: '+e.message+')','system')}
@@ -852,8 +854,8 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
   addMsg('Guala ready.','system');msgInput.focus();
   // Non-blocking boot: try status, don't fail if slow
   pollStatus();
-  // v7/state deferred — don't call on boot, wait for user interaction
-  setTimeout(pollV7State,10000);
+  // v7/state disabled on boot — competes with status for substrate socket
+  // Side panel updates from pollStatus instead
   // Events: try WebSocket first, then SSE, then poll
   try{connectEventStream()}catch(e){try{pollEvents()}catch(e2){}}
   // Background replay DISABLED — v7 quiet ticks compete with status calls
