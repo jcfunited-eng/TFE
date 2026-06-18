@@ -470,18 +470,21 @@ class V7Session:
                        self.intro_commit_history[-2].get("state"):
                         print(f"[v7-intro] FIRED during quiet: mode={i_mode} "
                               f"state={self.last_intro_state} tick={self.sys_.tick}")
-                # Aware gate — needs intro to have fired recently
-                a_fired, a_mode, a_eval = self.aware_gate.check_and_fire(self.sys_)
-                a_eval.update(tick=self.sys_.tick, fired=a_fired, source="quiet_tick")
-                self._quiet_nmda_events.append(a_eval)
-                self._quiet_nmda_events = self._quiet_nmda_events[-20:]
-                if a_fired and a_mode is not None and a_mode < len(self.aware_modes):
-                    self.last_aware_state = self.aware_modes[a_mode]
-                    self.aware_commit_history.append(
-                        {"state": self.last_aware_state, "tick": self.sys_.tick})
-                    self.aware_commit_history = self.aware_commit_history[-10:]
-                    print(f"[v7-aware] FIRED during quiet: mode={a_mode} "
-                          f"state={self.last_aware_state} tick={self.sys_.tick}")
+                # Aware gate — evaluate every 10th tick to avoid CPU saturation
+                if self.sys_.tick % 10 == 0:
+                    a_fired, a_mode, a_eval = self.aware_gate.check_and_fire(self.sys_)
+                    a_eval.update(tick=self.sys_.tick, fired=a_fired, source="quiet_tick")
+                    self._quiet_nmda_events.append(a_eval)
+                    self._quiet_nmda_events = self._quiet_nmda_events[-20:]
+                    if a_fired and a_mode is not None and a_mode < len(self.aware_modes):
+                        new_state = self.aware_modes[a_mode]
+                        if new_state != self.last_aware_state:
+                            print(f"[v7-aware] FIRED during quiet: mode={a_mode} "
+                                  f"state={new_state} tick={self.sys_.tick}")
+                        self.last_aware_state = new_state
+                        self.aware_commit_history.append(
+                            {"state": new_state, "tick": self.sys_.tick})
+                        self.aware_commit_history = self.aware_commit_history[-10:]
                 results.append(result)
             total_r = sum(len(r["replayed"]) for r in results)
             total_c = sum(len(r["commits"]) for r in results)

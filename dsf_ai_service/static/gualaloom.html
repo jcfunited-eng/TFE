@@ -614,7 +614,7 @@ function addResponseBlock(result){
 }
 
 // GL-FIX-UI-FRONTEND: fetch with timeout + dedup + backoff
-const fetchT=(url,opts={},timeoutMs=5000)=>fetch(url,{...opts,signal:AbortSignal.timeout(timeoutMs)});
+const fetchT=(url,opts={},timeoutMs=15000)=>fetch(url,{...opts,signal:AbortSignal.timeout(timeoutMs)});
 let _inflight={state:false,events:false,status:false,replay:false};
 let _backoff={state:0,events:0,status:0,replay:0};
 const _BASE={state:5000,events:4000,status:8000,replay:30000};
@@ -817,7 +817,7 @@ async function pollEvents(){
 async function backgroundReplay(){
   if(_inflight.replay)return;_inflight.replay=true;
   try{
-    const r=await fetchT(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:5})},15000);
+    const r=await fetchT(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:1})},15000);
     if(r.status===503||r.status===500){_backoff.replay=Math.min((_backoff.replay*2)||_BASE.replay*2,60000);return}
     const d=await r.json();if(d.commits>0)addMsg(`\ud83d\udcad (thinking... ${d.replayed} memories, ${d.commits} commits)`,'emission');
     _backoff.replay=0;
