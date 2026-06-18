@@ -1959,7 +1959,7 @@ async def gualaloom_chat(msg: GLMessage):
             import subprocess, base64 as _b64v
             wav_path = "/tmp/guala_utt.wav"
             subprocess.run([
-                "espeak-ng", "-v", "en+f4", "-p", "99", "-s", "135",
+                "espeak-ng", "-v", "en+f3", "-p", "96", "-s", "145",
                 "-w", wav_path, response,
             ], check=True, timeout=5, capture_output=True)
             with open(wav_path, "rb") as f:

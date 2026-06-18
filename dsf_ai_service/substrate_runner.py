@@ -764,7 +764,7 @@ def _synthesize_voice(text):
     wav_path = "/tmp/guala_utt.wav"
     try:
         subprocess.run([
-            "espeak-ng", "-v", "en+f4", "-p", "99", "-s", "135",
+            "espeak-ng", "-v", "en+f3", "-p", "96", "-s", "145",
             "-w", wav_path, text,
         ], check=True, timeout=5, capture_output=True)
         with open(wav_path, "rb") as f:

@@ -865,8 +865,9 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
   addMsg('Guala ready.','system');msgInput.focus();
   // Non-blocking boot: try status, don't fail if slow
   pollStatus();
-  // v7/state disabled on boot — competes with status for substrate socket
-  // Side panel updates from pollStatus instead
+  // v7/state — populates side panel (substrate, pools, intro/aware, NMDA, events)
+  // Delayed start so status poll completes first
+  setTimeout(pollV7State, 3000);
   // Events: try WebSocket first — if unavailable, skip (don't poll-flood the socket)
   try{connectEventStream()}catch(e){}
   // Background replay DISABLED — v7 quiet ticks compete with status calls
