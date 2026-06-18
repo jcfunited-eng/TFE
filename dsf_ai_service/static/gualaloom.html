@@ -209,7 +209,7 @@ function startMicSoundStream(stream){
     const reader=new FileReader();
     reader.onload=async()=>{
       const b64=reader.result.split(',')[1];
-      fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:''})},4000).catch(()=>{});
+      fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',source:'joe_voice'})},8000).catch(()=>{});
     };
     reader.readAsDataURL(e.data);
   };
@@ -862,8 +862,8 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
   // v7/state — populates side panel (substrate, pools, intro/aware, NMDA, events)
   // Delayed start so status poll completes first
   setTimeout(pollV7State, 3000);
-  // Events: try WebSocket first — if unavailable, skip (don't poll-flood the socket)
-  try{connectEventStream()}catch(e){}
+  // Events: poll only (WebSocket/SSE don't work through API Gateway)
+  setTimeout(pollEvents,5000);
   // Background replay DISABLED — v7 quiet ticks compete with status calls
   // and cause socket starvation. v7 runs its own quiet ticks in the autonomy loop.
   presenceHeartbeat();
