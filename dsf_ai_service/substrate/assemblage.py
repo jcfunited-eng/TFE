@@ -15,6 +15,7 @@ New primitives:
 - Multi-scale coherence monitor
 """
 
+import os
 import numpy as np
 from dataclasses import dataclass, field
 from collections import defaultdict, deque
@@ -65,6 +66,31 @@ def chi_of(psi):
 def goal_op_for_template(target):
     target = normalize(target)
     return -np.outer(target, target.conj())
+
+
+# ---------- Lateral inhibition (GL-CMD-LATERAL-INHIBITION-EVE-20260618-04) ----------
+def lateral_inhibition_operator(arcs, mode_bank, lambda_inhib=1.0):
+    """Hartline-style lateral inhibition as a Hamiltonian term.
+
+    H_lateral = Σ_{i ≠ leader} λ·(arc_leader − arc_i)·|m_i⟩⟨m_i|
+
+    Positive coefficient on |m_i⟩⟨m_i| → energy penalty for psi aligned
+    with non-leading modes → symmetry breaks via positive feedback.
+    """
+    if len(arcs) < 2:
+        return np.zeros((N, N), dtype=complex)
+    leader_idx = int(np.argmax(arcs))
+    leader_arc = float(arcs[leader_idx])
+    H_lat = np.zeros((N, N), dtype=complex)
+    for i, m_i in enumerate(mode_bank):
+        if i == leader_idx:
+            continue
+        gap = leader_arc - float(arcs[i])
+        if gap <= 0:
+            continue
+        P_i = np.outer(m_i, np.conj(m_i))
+        H_lat = H_lat + (lambda_inhib * gap) * P_i
+    return H_lat
 
 
 # ---------- Section ----------
@@ -133,6 +159,10 @@ class Section:
             H = H + eta * op
         for (gn, op, eta, source) in self.standing_goals:
             H = H + eta * op
+        # GL-CMD-LATERAL-INHIBITION: mode-mode competition via energy penalty
+        if os.environ.get("LATERAL_INHIBITION_ENABLED", "0") == "1":
+            if len(self.mode_bank) >= 2:
+                H = H + lateral_inhibition_operator(self.arcs(), self.mode_bank)
         return H
 
     def step(self, J=None):
@@ -183,8 +213,10 @@ class Section:
         H_k, Det_k = self.entropy_det()
         max_overlap = float(a.max())
         novel_thresh = 0.30 / (1.0 + 0.05 * max(0, len(self.mode_bank) - 5))
-        if max_overlap < novel_thresh and evidence_pressure > 0.25:
-            return True, "novel_mode"
+        # GL-CMD-LATERAL-INHIBITION: suppress novel_mode during emission settling
+        if not getattr(self, '_suppress_novel_mode', False):
+            if max_overlap < novel_thresh and evidence_pressure > 0.25:
+                return True, "novel_mode"
         det_th = self.effective_det_commit(current_tick)
         p_th = self.effective_p_commit(current_tick)
         if Det_k >= det_th and p_max >= p_th:

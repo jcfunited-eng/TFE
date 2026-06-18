@@ -1860,7 +1860,7 @@ class Guala:
         from dsf_ai_service.substrate.assemblage import BOOTSTRAP_MAX
         for sec in sys_.sections.values():
             sec.bootstrap_used = BOOTSTRAP_MAX
-            sec.gamma["novel_dist"] = 10.0  # effectively disable novel_mode
+            sec._suppress_novel_mode = True  # no new modes during emission settling
             sec.snapshot_initial_modes()
 
         self._emission_system = sys_
@@ -2079,34 +2079,50 @@ class Guala:
 
         stage2_ms = (_time.monotonic() - t1) * 1000
 
-        # Read emission: dominant INSTALLED mode per section in cascade order
+        # Read emission: committed modes per section in cascade order.
+        # GL-CMD-LATERAL-INHIBITION: with inhibition on, commit_check fires
+        # for real via entropic_flip. Collect the last committed mode per
+        # section. Fall back to arcs() argmax only if no commit fired.
         emission_words = []
         per_section_dominant = {}
+        committed_sections = set()
         for sec_name in self._EMISSION_SECTIONS:
             sec = sys_.sections[sec_name]
-            arcs = sec.arcs()
-            if len(arcs) == 0:
-                per_section_dominant[sec_name] = (None, None)
-                continue
-            # Find the top mode that has a word mapping (skip novel/bootstrap modes)
-            sorted_modes = sorted(range(len(arcs)), key=lambda i: -arcs[i])
-            top_mode = None
-            word = None
-            for mi in sorted_modes:
-                w = self._emission_word_map.get((sec_name, mi))
-                if w:
-                    top_mode = mi
-                    word = w
-                    break
-            per_section_dominant[sec_name] = (top_mode, word)
-            if word and word.lower() not in input_words_set and word not in emission_words:
-                emission_words.append(word)
+            # Check if this section had a committed mode during dynamics
+            committed_word = None
+            committed_mode = None
+            for c in reversed(emit_commits):
+                if c["section"] == sec_name:
+                    w = self._emission_word_map.get((sec_name, c["mode_id"]))
+                    if w:
+                        committed_mode = c["mode_id"]
+                        committed_word = w
+                        committed_sections.add(sec_name)
+                        break
 
-        # Also collect words from committed modes (may differ from arc-top)
-        for c in emit_commits:
-            word = self._emission_word_map.get((c["section"], c["mode_id"]))
-            if word and word.lower() not in input_words_set and word not in emission_words:
-                emission_words.append(word)
+            if committed_word:
+                per_section_dominant[sec_name] = (committed_mode, committed_word, "commit")
+                if (committed_word.lower() not in input_words_set
+                        and committed_word not in emission_words):
+                    emission_words.append(committed_word)
+            else:
+                # Fallback: arcs() argmax for installed modes
+                arcs = sec.arcs()
+                if len(arcs) == 0:
+                    per_section_dominant[sec_name] = (None, None, "none")
+                    continue
+                sorted_modes = sorted(range(len(arcs)), key=lambda i: -arcs[i])
+                top_mode = None
+                word = None
+                for mi in sorted_modes:
+                    w = self._emission_word_map.get((sec_name, mi))
+                    if w:
+                        top_mode = mi
+                        word = w
+                        break
+                per_section_dominant[sec_name] = (top_mode, word, "arcs_fallback")
+                if word and word.lower() not in input_words_set and word not in emission_words:
+                    emission_words.append(word)
 
         if not emission_words:
             return None
@@ -2131,7 +2147,8 @@ class Guala:
                                   stage2_ms=round(stage2_ms, 1),
                                   dynamics_ticks=n_ticks,
                                   sections_with_commits=list(set(
-                                      c["section"] for c in emit_commits)))
+                                      c["section"] for c in emit_commits)),
+                                  committed_sections=list(committed_sections))
         return emission_text
 
     def _compose_from_cortex(self, selected_words, deep_candidates):
