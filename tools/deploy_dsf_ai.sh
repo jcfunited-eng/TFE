@@ -237,7 +237,8 @@ out = {
                 {'name': 'SUBSTRATE_HEARTBEAT', 'value': '/shared/substrate.alive'},
                 {'name': 'STATE_DIR', 'value': '/app/state'},
                 {'name': 'DECAY_PAUSED', 'value': '0'},
-                {'name': 'EMISSION_MODE', 'value': 'grandurun'}
+                {'name': 'EMISSION_MODE', 'value': 'grandurun'},
+                {'name': 'GRANDURUN_SPIN_VECTOR', 'value': '1'}
             ],
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
