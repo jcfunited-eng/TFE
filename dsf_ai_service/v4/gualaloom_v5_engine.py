@@ -203,6 +203,72 @@ def _grandurun_select_vector(candidates, target_state):
     return chosen_words, last_alignment, dim_contributions
 
 
+# ---------------------------------------------------------------------------
+# Grandurun candidate selector (coherent-integration, returns records)
+# GL-CMD-DYNAMICS-EMISSION-RESTORATION-EVE-20260618-03 Phase 1
+# ---------------------------------------------------------------------------
+
+def _grandurun_select_candidates(input_chis, deep_candidates, sections,
+                                 input_words_set, top_k=200):
+    """Coherent phase-integration candidate selector (matched-filter SNR √N).
+
+    Returns a list of candidate dicts sorted by coherent magnitude, each
+    carrying metadata for downstream dynamics or direct emission.
+
+    This is Stage 1: fast retrieval. Stage 2 (dynamics) settles the actual
+    emission from these candidates.
+    """
+    target_chi = input_chis[0] if input_chis else 0
+    candidates = []
+    seen = set()  # (section, motif) dedup
+
+    for de, co, clarity in deep_candidates:
+        de_chi = de.get("chi", 0)
+        for sec_name in co:
+            sec_co = co[sec_name]
+            if not sec_co:
+                continue
+            top_in_sec = sorted(sec_co.items(),
+                                key=lambda x: float(x[1]),
+                                reverse=True)[:GRANDURUN_POOL_K]
+            for mid_str, strength in top_in_sec:
+                mid = int(mid_str)
+                sec = sections.get(sec_name)
+                if sec is None or mid >= len(sec.modes):
+                    continue
+                _, _, word_label = sec.modes[mid]
+                if (not word_label
+                        or word_label.lower() in input_words_set):
+                    continue
+                key = (sec_name, mid)
+                if key in seen:
+                    continue
+                seen.add(key)
+
+                # Coherent amplitude: sqrt(strength) * exp(i * phase)
+                amp = _grandurun_amplitude(de_chi, float(strength), target_chi)
+                coh_mag = abs(amp) ** 2
+
+                candidates.append({
+                    "chi": de_chi,
+                    "section": sec_name,
+                    "motif": mid,
+                    "word": word_label,
+                    "strength": float(strength),
+                    "coherent_magnitude": coh_mag,
+                    # Metadata from GL-CMD-GRANDURUN-METADATA-PIPELINE
+                    "source": de.get("source", "corpus"),
+                    "arousal": de.get("arousal", 0.5),
+                    "valence": de.get("valence", 0.0),
+                    "surprise": de.get("surprise", 0.0),
+                    "polarity": de.get("polarity", 1.0),
+                    "sensory_refs": de.get("sensory_refs", []),
+                })
+
+    candidates.sort(key=lambda c: -c["coherent_magnitude"])
+    return candidates[:top_k]
+
+
 try:
     from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack, SensoryBank, SENSORY_DNA, ROLE_DNA
     from dsf_ai_service.v4.gualaloom_v4_uf_kernel import DSF, compute_dsf
@@ -272,6 +338,8 @@ MIN_GAIN_THRESHOLD = 0.10     # minimum coherent-sum gain to add candidate
 MAX_COMPOSITION_LEN = 12      # cap; typical compositions should be 3-8 words
 SPIN_VECTOR_DIM = 7           # GL-METADATA-PIPELINE: 8→7 (modal_alignment dropped)
 GRANDURUN_POOL_K = 50         # per-section candidate count for wider retrieval
+GRANDURUN_TOPK = int(os.environ.get("GRANDURUN_TOPK", "200"))
+EMISSION_DYNAMICS_TICKS = int(os.environ.get("EMISSION_DYNAMICS_TICKS", "80"))
 
 ACTIVITY_TICK_BUDGETS = {
     "READING": 2000, "PLAYING": 1500, "SLEEPING": 5000, "DREAMING": 3000,
@@ -1043,6 +1111,12 @@ class Guala:
         # source memory for introspection — who's talked to her, how often
         self.source_history = defaultdict(int)
 
+        # GL-CMD-DYNAMICS-EMISSION-RESTORATION: assemblage System for emission settling
+        self._emission_system = None  # lazy-built on first dynamics emission
+        self._emission_token_vec = {}  # (section_name, motif_id) -> mode vector
+        self._emission_word_map = {}   # (section_name, mode_bank_idx) -> word
+        self._emission_drive_tracker = {}
+
         # v7 Phase 2: Visual perception
         from dsf_ai_service.visual_krimelack import SightSection
         self.sight = SightSection()
@@ -1401,6 +1475,7 @@ class Guala:
                 # Recall found pictures — keep the association
                 pass  # pictures set on self._last_recalled_pictures
             # 6. Emit from cortex invariants (variable-length, slot-free)
+            self._last_converse_source = source  # for dynamics NMDA context
             if not reply:
                 reply = self._emit_from_invariants(input_chis, words,
                                                     mode_override=emission_mode,
@@ -1422,11 +1497,13 @@ class Guala:
                               v7_session=None):
         """Compose emission from cortex co_occurrence invariants.
         GL-BRIEF-GRANDURUN: branches on EMISSION_MODE (topk or grandurun).
+        GL-CMD-DYNAMICS-EMISSION-RESTORATION: EMISSION_DYNAMICS=1 routes to
+        two-stage path (grandurun candidates → assemblage dynamics settling).
         Phase 3b: v7_session provides context priors for grounded emission."""
         mode = mode_override or os.environ.get("EMISSION_MODE", "topk")
         input_words_set = set(w.lower() for w in input_words)
 
-        # Gather deep-atlas candidates (shared by both paths)
+        # Gather deep-atlas candidates (shared by all paths)
         deep_candidates = []
         for chi in input_chis:
             for d in range(-self.atlas.band, self.atlas.band + 1):
@@ -1438,6 +1515,11 @@ class Guala:
                     deep_candidates.append((de, co, clarity))
         if not deep_candidates:
             return None
+
+        # GL-CMD-DYNAMICS-EMISSION-RESTORATION: two-stage dynamics path
+        if os.environ.get("EMISSION_DYNAMICS", "0") == "1" and mode == "grandurun":
+            return self._emit_dynamics(input_chis, input_words_set,
+                                       deep_candidates, v7_session=v7_session)
 
         if mode == "grandurun":
             return self._emit_grandurun(input_chis, input_words_set,
@@ -1545,14 +1627,16 @@ class Guala:
                         v7_session=None):
         """Grandurun: coherent integration with context priors.
         GL-BRIEF-GRANDURUN + GL-CMD-FOUNDATIONS Phase 3b.
-        Gate: GRANDURUN_SPIN_VECTOR=1 enables 7D vector path; 0 = scalar path."""
+        Gate: GRANDURUN_LEGACY_8D=1 enables 7D vector path (legacy); 0 = scalar path.
+        GL-CMD-DYNAMICS-EMISSION-RESTORATION: renamed from GRANDURUN_SPIN_VECTOR."""
         import os as _os
-        use_vector = _os.environ.get("GRANDURUN_SPIN_VECTOR", "0") == "1"
+        use_legacy_8d = _os.environ.get("GRANDURUN_LEGACY_8D",
+                         _os.environ.get("GRANDURUN_SPIN_VECTOR", "0")) == "1"
 
         priors = self._get_emission_priors(v7_session)
         target_chi = input_chis[0] if input_chis else 0
 
-        if use_vector:
+        if use_legacy_8d:
             return self._emit_grandurun_vector(
                 input_chis, input_words_set, deep_candidates,
                 priors, target_chi, v7_session)
@@ -1719,6 +1803,335 @@ class Guala:
                                   target_chi=target_chi,
                                   n_priors=len(priors),
                                   dim_contributions=dim_contributions)
+        return emission_text
+
+    # ------------------------------------------------------------------
+    # GL-CMD-DYNAMICS-EMISSION-RESTORATION-EVE-20260618-03
+    # Two-stage emission: grandurun candidates → assemblage dynamics
+    # ------------------------------------------------------------------
+
+    # Sections that participate in language emission cascade (v4 lineage order)
+    _EMISSION_SECTIONS = ("subject", "verb", "object")
+
+    def _build_emission_system(self):
+        """Build (or return cached) assemblage System for emission settling.
+
+        Uses the same pattern as v7_engine._build_system but only for language-
+        emitting sections + listen. Persisted across converse() calls so LTP
+        and mode_strength accumulate."""
+        if self._emission_system is not None:
+            return self._emission_system
+
+        import numpy as np
+        from dsf_ai_service.substrate.assemblage import (
+            Section as AsmSection, System as AsmSystem, N,
+            normalize, random_unit_complex,
+        )
+        from dsf_ai_service.substrate.dna_recipe.phase_gating import make_projection
+
+        rng = np.random.default_rng(42)
+
+        secs = []
+        for name in self._EMISSION_SECTIONS:
+            sec = AsmSection(name=name, rng=rng, role="subject_like")
+            sec.map_inject = make_projection(N, 8, rng)
+            secs.append(sec)
+
+        # Listen section: zeroed Hamiltonian (input drive only)
+        listen = AsmSection(name="listen", rng=rng, role="general")
+        listen.H_base = np.zeros((N, N), dtype=complex)
+        listen.law_fields = {k: np.zeros((N, N), dtype=complex)
+                             for k in ("symmetry", "consistency", "compactness")}
+        listen.map_inject = make_projection(N, 8, rng)
+        secs.append(listen)
+
+        sys_ = AsmSystem(secs, rng)
+
+        # Phase 3: Install keyholes for canonical cascade
+        # subject → verb → object, wide chi band
+        sys_.add_keyhole("subject", -50, 50, "verb", goal_strength=0.4)
+        sys_.add_keyhole("verb", -50, 50, "object", goal_strength=0.4)
+
+        # Prevent bootstrap/novel_mode commits during emission settling —
+        # we only want to read from modes we explicitly installed from candidates.
+        # Set bootstrap_used = max so no bootstrap commits; raise det/p thresholds
+        # so entropic_flip requires strong evidence; novel_mode is blocked by
+        # setting the novel threshold extremely high via gamma.
+        from dsf_ai_service.substrate.assemblage import BOOTSTRAP_MAX
+        for sec in sys_.sections.values():
+            sec.bootstrap_used = BOOTSTRAP_MAX
+            sec.gamma["novel_dist"] = 10.0  # effectively disable novel_mode
+            sec.snapshot_initial_modes()
+
+        self._emission_system = sys_
+        self._emission_rng = rng
+        self._emission_token_vec = {}
+        self._emission_word_map = {}
+        self._emission_drive_tracker = {}
+
+        return sys_
+
+    def _ensure_emission_mode(self, sys_, section_name, motif_id, word):
+        """Install a mode in the emission system for (section, motif) if absent.
+        Returns the mode_bank index."""
+        import numpy as np
+        from dsf_ai_service.substrate.assemblage import N, random_unit_complex
+
+        key = (section_name, motif_id)
+        if key in self._emission_token_vec:
+            # Already installed — find its index
+            vec = self._emission_token_vec[key]
+            sec = sys_.sections[section_name]
+            for i, m in enumerate(sec.mode_bank):
+                if np.array_equal(m, vec):
+                    return i
+            # Vector exists in map but not in mode_bank (shouldn't happen)
+            sec.mode_bank.append(vec.copy())
+            sec.mode_last_used.append(0)
+            sec.mode_strength.append(1.0)
+            idx = len(sec.mode_bank) - 1
+            self._emission_word_map[(section_name, idx)] = word
+            return idx
+
+        # Create new mode vector
+        vec = random_unit_complex(N, self._emission_rng)
+        self._emission_token_vec[key] = vec
+
+        sec = sys_.sections[section_name]
+        sec.mode_bank.append(vec.copy())
+        sec.mode_last_used.append(0)
+        sec.mode_strength.append(1.0)
+        idx = len(sec.mode_bank) - 1
+        self._emission_word_map[(section_name, idx)] = word
+
+        # Also install in listen section (so input drive can target it)
+        listen = sys_.sections["listen"]
+        listen.mode_bank.append(vec.copy())
+        listen.mode_last_used.append(0)
+        listen.mode_strength.append(1.0)
+
+        return idx
+
+    def _emit_dynamics(self, input_chis, input_words_set, deep_candidates,
+                       v7_session=None):
+        """Two-stage emission: grandurun candidate selection → assemblage dynamics settling.
+
+        Stage 1: _grandurun_select_candidates returns top-K by coherent magnitude.
+        Stage 2: Candidates seed the emission System, dynamics settle via cascade +
+                 keyhole + NMDA, emission reads dominant_mode per section.
+
+        Gated by EMISSION_DYNAMICS=1.
+        GL-CMD-DYNAMICS-EMISSION-RESTORATION-EVE-20260618-03 Phase 4."""
+        import numpy as np
+        import time as _time
+        from dsf_ai_service.substrate.assemblage import N, normalize, random_unit_complex
+        from dsf_ai_service.substrate.gl_nmda import (
+            CoincidenceGate, context_section_committed, update_drive_tracker,
+        )
+        from dsf_ai_service.substrate.gl_plasticity import decay_plasticity
+
+        # Stage 1: Coherent-integration candidate selection
+        t0 = _time.monotonic()
+        candidates = _grandurun_select_candidates(
+            input_chis, deep_candidates, self.sections,
+            input_words_set, top_k=GRANDURUN_TOPK)
+        stage1_ms = (_time.monotonic() - t0) * 1000
+
+        if not candidates:
+            return None
+
+        # Build/get emission system
+        sys_ = self._build_emission_system()
+
+        # Determine input source for NMDA context
+        input_source = getattr(self, "_last_converse_source", "corpus") or "corpus"
+
+        # Install candidate modes and compute per-section drive biases
+        section_drives = {s: np.zeros(N, dtype=complex) for s in self._EMISSION_SECTIONS}
+        listen_drive = np.zeros(N, dtype=complex)
+
+        for cand in candidates:
+            sec_name = cand["section"]
+            if sec_name not in sys_.sections or sec_name not in self._EMISSION_SECTIONS:
+                continue
+
+            mode_idx = self._ensure_emission_mode(
+                sys_, sec_name, cand["motif"], cand["word"])
+
+            # Bias section psi toward this candidate's mode
+            mode_vec = sys_.sections[sec_name].mode_bank[mode_idx]
+            weight = cand["coherent_magnitude"]
+            section_drives[sec_name] += mode_vec * weight
+
+            # Also drive listen
+            listen_drive += mode_vec * weight
+
+        # Normalize drives and seed psi
+        for sec_name in self._EMISSION_SECTIONS:
+            drv = section_drives[sec_name]
+            sec = sys_.sections[sec_name]
+            if np.linalg.norm(drv) > 0:
+                sec.psi = normalize(drv)
+            else:
+                sec.psi = normalize(random_unit_complex(N, self._emission_rng) * 0.3
+                                    + normalize(np.ones(N, dtype=complex)) * 0.7)
+
+        if np.linalg.norm(listen_drive) > 0:
+            sys_.sections["listen"].psi = normalize(listen_drive)
+
+        # Build NMDA context functions using candidate metadata
+        # source_match: fires when joe_voice candidates present and input is from joe
+        joe_candidates_present = any(c["source"] == "joe_voice" for c in candidates)
+
+        def source_match_fn(s):
+            return joe_candidates_present and input_source in ("joe", "joe_voice", "wc", "c1")
+
+        # affect_match: fires when candidate affect is close to needs
+        needs_arousal = getattr(self.needs, "novelty", 0.5)
+        needs_valence = getattr(self.needs, "connection", 0.5)
+        mean_arousal = sum(c["arousal"] for c in candidates) / len(candidates)
+        mean_valence = sum(c["valence"] for c in candidates) / len(candidates)
+        affect_close = abs(mean_arousal - needs_arousal) < 0.3 and abs(mean_valence - needs_valence) < 0.3
+
+        def affect_match_fn(s):
+            return affect_close
+
+        # Install NMDA gates per emission section (Phase 3)
+        nmda_gates = {}
+        for sec_name in self._EMISSION_SECTIONS:
+            gate = CoincidenceGate(
+                sec_name,
+                context_fn=lambda s, sn=sec_name: source_match_fn(s) or affect_match_fn(s),
+                drive_thresh=0.15,
+                ltp_boost=0.05,
+            )
+            nmda_gates[sec_name] = gate
+
+        # Track which mode indices we installed (only these have word mappings)
+        installed_modes = set(self._emission_word_map.keys())
+
+        # Stage 2: Dynamics settling
+        t1 = _time.monotonic()
+        n_ticks = EMISSION_DYNAMICS_TICKS
+        emit_commits = []
+        seen_commit_keys = set()
+        keyhole_fires = []
+        nmda_events = []
+        no_new_streak = 0
+
+        for t in range(n_ticks):
+            # Evidence: section drives with noise
+            ev = {}
+            for sec_name in self._EMISSION_SECTIONS:
+                drv = section_drives[sec_name]
+                if np.linalg.norm(drv) > 0:
+                    noisy = normalize(drv + 0.10 * (
+                        self._emission_rng.standard_normal(N)
+                        + 1j * self._emission_rng.standard_normal(N)))
+                    ev[sec_name] = noisy
+
+            commits = sys_.tick_once(ev, enable_self_evo=False,
+                                     coordinator_on=False)
+
+            new_this_tick = False
+            for c in commits:
+                if c["section"] in self._EMISSION_SECTIONS:
+                    ckey = (c["section"], c["mode_id"])
+                    # Only accept commits for modes we installed (have word mappings)
+                    if ckey not in installed_modes:
+                        continue
+                    if ckey not in seen_commit_keys:
+                        seen_commit_keys.add(ckey)
+                        emit_commits.append(c)
+                        new_this_tick = True
+
+            # Track keyhole propagation
+            for c in commits:
+                for kh in sys_.keyholes:
+                    if (kh["sender"] == c["section"]
+                            and kh["chi_lo"] <= c.get("chi", 0) <= kh["chi_hi"]):
+                        keyhole_fires.append({
+                            "tick": sys_.tick,
+                            "sender": c["section"],
+                            "receiver": kh["receiver"],
+                        })
+
+            # NMDA pass
+            update_drive_tracker(self._emission_drive_tracker, ev)
+            for sec_name, gate in nmda_gates.items():
+                fired, mode_id, eval_d = gate.check_and_fire(sys_)
+                eval_d["source_match"] = source_match_fn(sys_)
+                eval_d["affect_match"] = affect_match_fn(sys_)
+                nmda_events.append(eval_d)
+
+            # Plasticity decay
+            for sec_name in self._EMISSION_SECTIONS:
+                decay_plasticity(sys_.sections[sec_name], decay=0.998)
+
+            if new_this_tick:
+                no_new_streak = 0
+            else:
+                no_new_streak += 1
+            if no_new_streak >= 15:
+                break
+            if len(emit_commits) >= 20:
+                break
+
+        stage2_ms = (_time.monotonic() - t1) * 1000
+
+        # Read emission: dominant INSTALLED mode per section in cascade order
+        emission_words = []
+        per_section_dominant = {}
+        for sec_name in self._EMISSION_SECTIONS:
+            sec = sys_.sections[sec_name]
+            arcs = sec.arcs()
+            if len(arcs) == 0:
+                per_section_dominant[sec_name] = (None, None)
+                continue
+            # Find the top mode that has a word mapping (skip novel/bootstrap modes)
+            sorted_modes = sorted(range(len(arcs)), key=lambda i: -arcs[i])
+            top_mode = None
+            word = None
+            for mi in sorted_modes:
+                w = self._emission_word_map.get((sec_name, mi))
+                if w:
+                    top_mode = mi
+                    word = w
+                    break
+            per_section_dominant[sec_name] = (top_mode, word)
+            if word and word.lower() not in input_words_set and word not in emission_words:
+                emission_words.append(word)
+
+        # Also collect words from committed modes (may differ from arc-top)
+        for c in emit_commits:
+            word = self._emission_word_map.get((c["section"], c["mode_id"]))
+            if word and word.lower() not in input_words_set and word not in emission_words:
+                emission_words.append(word)
+
+        if not emission_words:
+            return None
+
+        emission_text = " ".join(emission_words)
+
+        # Log
+        source_match_count = sum(1 for e in nmda_events if e.get("source_match"))
+        affect_match_count = sum(1 for e in nmda_events if e.get("affect_match"))
+        nmda_fired_count = sum(1 for e in nmda_events if e.get("reason") == "fired")
+
+        self._log_substrate_event("emission_dynamics",
+                                  content=emission_text,
+                                  n_candidates=len(candidates),
+                                  n_commits=len(emit_commits),
+                                  per_section_dominant=per_section_dominant,
+                                  keyhole_fires=len(keyhole_fires),
+                                  nmda_fired=nmda_fired_count,
+                                  nmda_source_match=source_match_count,
+                                  nmda_affect_match=affect_match_count,
+                                  stage1_ms=round(stage1_ms, 1),
+                                  stage2_ms=round(stage2_ms, 1),
+                                  dynamics_ticks=n_ticks,
+                                  sections_with_commits=list(set(
+                                      c["section"] for c in emit_commits)))
         return emission_text
 
     def _compose_from_cortex(self, selected_words, deep_candidates):
