@@ -30,7 +30,7 @@ from dsf_ai_service.substrate.dna_recipe.phase_gating import (
 # ---- Pool architecture ----
 POOL_NAMES = ["pool_a", "pool_b", "pool_c"]
 ALL_SECTIONS = POOL_NAMES + ["listen", "intro", "aware"]
-VOICE_PROFILE = {"voice": "en+f3", "pitch": 90, "speed": 130}
+VOICE_PROFILE = {"voice": "en+f4", "pitch": 99, "speed": 135}
 
 
 def seed_vocab_from_engine(engine):

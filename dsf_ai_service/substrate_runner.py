@@ -8,9 +8,11 @@ Usage:
     python -m dsf_ai_service.substrate_runner
 """
 import asyncio
+import base64
 import json
 import os
 import signal
+import subprocess
 import sys
 import threading
 import time
@@ -755,6 +757,23 @@ def _cmd_bundle(command, text):
     }
 
 
+def _synthesize_voice(text):
+    """Synthesize speech via espeak-ng. Returns base64 WAV or None."""
+    if not text or text == "...":
+        return None
+    wav_path = "/tmp/guala_utt.wav"
+    try:
+        subprocess.run([
+            "espeak-ng", "-v", "en+f4", "-p", "99", "-s", "135",
+            "-w", wav_path, text,
+        ], check=True, timeout=5, capture_output=True)
+        with open(wav_path, "rb") as f:
+            wav_bytes = f.read()
+        return base64.b64encode(wav_bytes).decode("ascii")
+    except Exception:
+        return None
+
+
 def _cmd_converse(text, source, emission_mode=None):
     text = text.strip()
     if not text:
@@ -781,6 +800,10 @@ def _cmd_converse(text, source, emission_mode=None):
     result = {"response": response or "...", "motifs": _guala.introspect()["vocab"]}
     if picture_refs:
         result["pictures"] = picture_refs
+    # Synthesize espeak WAV for the response
+    voice_b64 = _synthesize_voice(response)
+    if voice_b64:
+        result["self_voice_audio_b64"] = voice_b64
     return result
 
 

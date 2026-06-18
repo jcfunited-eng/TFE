@@ -213,7 +213,7 @@ function startMicSoundStream(stream){
     };
     reader.readAsDataURL(e.data);
   };
-  micRecorder.start(1500); // 1.5s chunks
+  micRecorder.start(5000); // 5s chunks (fast rate starves substrate socket)
 }
 function stopMicSoundStream(){
   if(micRecorder){try{micRecorder.stop()}catch(e){}micRecorder=null}
@@ -261,7 +261,7 @@ function startSightStream(){
       };
       reader.readAsDataURL(blob);
     }catch(e){}
-  },500); // 2 fps — continuous sight streaming
+  },5000); // 0.2 fps — slow sight streaming (fast rate starves substrate socket)
 }
 function stopSightStream(){if(sightStreamTimer){clearInterval(sightStreamTimer);sightStreamTimer=null}}
 
@@ -329,7 +329,7 @@ function gualaSpeak(text){
     // Re-pick voice in case voices loaded late
     if(!preferredVoice)pickVoice();
     if(preferredVoice)u.voice=preferredVoice;
-    u.rate=0.85;u.pitch=1.6;u.volume=1.0;
+    u.rate=0.9;u.pitch=1.8;u.volume=1.0;
     u.onstart=()=>{badge.innerHTML='\ud83d\udd0a speaking...'};
     u.onend=()=>{badge.innerHTML='\ud83d\udd0a ready'};
     u.onerror=e=>{badge.innerHTML='\ud83d\udd07 speak error: '+(e.error||'unknown')};
@@ -347,6 +347,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)window.spee
 
 // --- Speech-to-Text (always-on phone mode) ---
 let sttWanted=false; // user wants mic on (persists across recognition restarts)
+let _sttCooldown=false; // prevent rapid-fire sends that starve the substrate socket
 function toggleSTT(){
   if(!micGranted)return;
   const btn=document.getElementById('mic-btn');
@@ -386,7 +387,9 @@ function startContinuousSTT(){
     }
     liveT.textContent=interim||final;
     if(final&&final.trim()){
+      if(_sttCooldown){liveT.textContent='(waiting...)';return}
       msgInput.value=final.trim();liveT.textContent='';sendMsg();
+      _sttCooldown=true;setTimeout(()=>{_sttCooldown=false},3000);
     }
   };
   recognition.onerror=ev=>{
@@ -626,7 +629,7 @@ function addResponseBlock(result){
 const fetchT=(url,opts={},timeoutMs=15000)=>fetch(url,{...opts,signal:AbortSignal.timeout(timeoutMs)});
 let _inflight={state:false,events:false,status:false,replay:false};
 let _backoff={state:0,events:0,status:0,replay:0};
-const _BASE={state:5000,events:4000,status:8000,replay:30000};
+const _BASE={state:5000,events:15000,status:15000,replay:30000};
 function _schedNext(key,fn){const delay=_BASE[key]+_backoff[key];setTimeout(fn,delay)}
 
 async function sendFeedback(correct,up,dn){
@@ -654,7 +657,15 @@ async function sendMsg(){
         const d=await r.json();
         const resp=d.response||'...';
         if(resp&&resp!=='...'&&resp!=='substrate unreachable — try again in a moment'){
-          addMsg(resp,'emission');gualaSpeak(resp);
+          addMsg(resp,'emission');
+          // Play espeak WAV if available, fall back to browser TTS
+          const badge=document.getElementById('speaker-badge');
+          if(d.self_voice_audio_b64&&audioUnlocked&&!muted){
+            voiceEl.src='data:audio/wav;base64,'+d.self_voice_audio_b64;
+            voiceEl.play().then(()=>{badge.innerHTML='\ud83d\udd0a speaking (espeak)'}).catch(e=>{
+              badge.innerHTML='\ud83d\udd07 espeak failed — trying TTS';gualaSpeak(resp);
+            });
+          }else{gualaSpeak(resp)}
         }else{addMsg('(she is quiet)','system')}
         if(d.pictures)renderPictures(d.pictures);
       }
@@ -856,8 +867,8 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
   pollStatus();
   // v7/state disabled on boot — competes with status for substrate socket
   // Side panel updates from pollStatus instead
-  // Events: try WebSocket first, then SSE, then poll
-  try{connectEventStream()}catch(e){try{pollEvents()}catch(e2){}}
+  // Events: try WebSocket first — if unavailable, skip (don't poll-flood the socket)
+  try{connectEventStream()}catch(e){}
   // Background replay DISABLED — v7 quiet ticks compete with status calls
   // and cause socket starvation. v7 runs its own quiet ticks in the autonomy loop.
   presenceHeartbeat();
