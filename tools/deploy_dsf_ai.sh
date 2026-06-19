@@ -1,17 +1,15 @@
 #!/usr/bin/env bash
-# GUALALOOM-BAND-AND-AUDIT-WC-2026-06-05
-# Deploy script for DSF-AI service (GualaLoom) to ECS via CodeBuild.
+# GualaLoom deploy path:
+# 1. Docker build + push via CodeBuild (container code)
+# 2. ECS task definition register + force-new-deployment (production substrate)
+# 3. aws s3 sync static/ → s3://dsf-ai-site (static files served via CloudFront)
+# 4. CloudFront invalidation for /*.html, /app.js, /style.css
+# 5. wait services-stable + invalidation-completed
+#
+# Any of these failing means the deploy is partial. Future static-only
+# changes must still run steps 3-5.
 #
 # Usage: ./tools/deploy_dsf_ai.sh
-#
-# This script:
-#   1. Packages the source tree into a zip
-#   2. Uploads to S3 (CodeBuild source bucket)
-#   3. Triggers CodeBuild (dsf-ai-image-build) to build + push to ECR
-#   4. Waits for CodeBuild to complete
-#   5. Registers a new ECS task definition revision
-#   6. Updates the ECS service to use the new task def
-#   7. Waits for service stability
 #
 # Prerequisites:
 #   - AWS CLI configured with credentials
@@ -337,6 +335,32 @@ except:
     fi
 done
 
+# ── Step 8: Sync static files to S3 + CloudFront invalidation ──
+echo ""
+echo "[deploy] Syncing static files to S3 and invalidating CloudFront..."
+
+CF_DIST_ID="E17JT9XGBFU493"
+S3_SITE_BUCKET="dsf-ai-site"
+
+aws s3 sync dsf_ai_service/static/ "s3://${S3_SITE_BUCKET}/" \
+    --exclude "*.csv" --exclude "*.xml" --exclude "robots.txt" \
+    --cache-control "no-cache, must-revalidate"
+
+INV_ID=$(aws cloudfront create-invalidation \
+    --distribution-id "${CF_DIST_ID}" \
+    --paths "/*.html" "/app.js" "/style.css" \
+    --query 'Invalidation.Id' \
+    --output text)
+echo "  CloudFront invalidation: ${INV_ID}"
+
+if aws cloudfront wait invalidation-completed \
+    --distribution-id "${CF_DIST_ID}" \
+    --id "${INV_ID}" 2>/dev/null; then
+    echo "[deploy] Static sync + CloudFront invalidation complete."
+else
+    echo "[deploy] WARNING: CloudFront invalidation timed out. May take a few more minutes."
+fi
+
 # ── Summary ──
 echo ""
 echo "═══════════════════════════════════════════"
@@ -344,6 +368,7 @@ echo "  Deploy complete"
 echo "  Image:    ${IMAGE_URI}"
 echo "  Task def: ${TASK_FAMILY}:${NEW_REV}"
 echo "  Git SHA:  ${GIT_SHA}"
+echo "  Static:   s3://${S3_SITE_BUCKET}/ synced"
 echo ""
-echo "  NEXT: Audit dsf-ai.com/gualaloom.html"
+echo "  dsf-ai.com should reflect changes within 1-2 minutes."
 echo "═══════════════════════════════════════════"
