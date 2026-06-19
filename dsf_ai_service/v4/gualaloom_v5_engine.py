@@ -1880,7 +1880,6 @@ class Guala:
         for sec in sys_.sections.values():
             sec.bootstrap_used = BOOTSTRAP_MAX
             sec._suppress_novel_mode = True  # no new modes during emission settling
-            sec.snapshot_initial_modes()
 
         self._emission_system = sys_
         self._emission_rng = rng

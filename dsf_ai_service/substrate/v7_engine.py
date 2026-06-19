@@ -152,8 +152,6 @@ class V7Session:
             sys_.sections["aware"].mode_last_used.append(0)
             sys_.sections["aware"].mode_strength.append(1.0)
             aware_vec[name] = v
-        for sec in sys_.sections.values():
-            sec.snapshot_initial_modes()
         return sys_, token_vec, intro_vec, intro_modes, aware_vec, aware_modes
 
     # ---- Word routing ----
@@ -185,8 +183,6 @@ class V7Session:
         self.vocab.setdefault(pool, [])
         self.vocab[pool].append(word)
         self.token_vec[(pool, word)] = word_vec
-        sec.snapshot_initial_modes()
-        self.sys_.sections["listen"].snapshot_initial_modes()
         self.event_log.write("vocab_install", slot=pool, word=word)
         return word_vec, pool, True
 

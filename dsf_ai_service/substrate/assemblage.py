@@ -343,30 +343,9 @@ class Section:
             self.last_arc_top_id = top
         return c, mode_id, state
 
-    def snapshot_initial_modes(self):
-        """Snapshot current mode_bank as the homeostatic baseline."""
-        self._initial_mode_bank = [m.copy() for m in self.mode_bank]
-
-    def homeostasis_pull(self, rate=0.001):
-        """Synaptic scaling: drift mode_bank toward initial landscape.
-        Strong reinforcement wins; weak warping decays."""
-        if not hasattr(self, "_initial_mode_bank"):
-            return
-        for i in range(min(len(self.mode_bank), len(self._initial_mode_bank))):
-            self.mode_bank[i] = normalize(
-                (1.0 - rate) * self.mode_bank[i] +
-                rate * self._initial_mode_bank[i])
-
-    def decay_modes(self, tick):
-        """Option B: salience decay toward baseline (1.0).
-        Vectors are immutable. Salience drifts back unless reinforced."""
-        for i in range(len(self.mode_bank)):
-            if i >= len(self.mode_strength):
-                continue
-            # Pull toward 1.0 baseline — above-baseline decays down,
-            # below-baseline recovers up
-            self.mode_strength[i] = 0.999 * self.mode_strength[i] + 0.001 * 1.0
-        return 0
+    # B3 homeostasis_pull REMOVED — GL-CMD-REMOVE-HOMEOSTATIC-DECAY-EVE-20260618-20
+    # B4 decay_modes REMOVED — GL-CMD-REMOVE-HOMEOSTATIC-DECAY-EVE-20260618-20
+    # B7 snapshot_initial_modes REMOVED (orphan) — same brief
 
     def three_axis(self):
         a = self.arcs()
@@ -655,11 +634,9 @@ class System:
                                               "mode_id": mode_id, "reason": reason,
                                               "atlas_snapshot": snap.copy()})
 
-        # Mode decay + homeostasis on ALL growing state vars every 20 ticks
+        # Gamma homeostasis every 20 ticks (B2 — separate from B3/B4 removal)
         for sec in self.sections.values():
-            sec.decay_modes(self.tick)
             if self.tick % 20 == 0 and not getattr(sec, '_emit_phase', False):
-                sec.homeostasis_pull(rate=0.001)
                 sec.gamma_homeostasis(rate=0.001)  # (1) gamma decay
 
         if self.tick % 20 == 0:
