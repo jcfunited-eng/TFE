@@ -1290,21 +1290,19 @@ async def run_server():
     _save_executor = concurrent.futures.ThreadPoolExecutor(
         max_workers=1, thread_name_prefix="save")
 
-    # Hook 1: dream end — always save (dream consolidation is critical state)
-    _orig_end_dream = getattr(_guala, '_end_dream_cycle', None)
-    if _orig_end_dream:
-        def _end_dream_with_save(*a, **kw):
-            result = _orig_end_dream(*a, **kw)
-            save_coord.maybe_save(reason="dream_end")
-            return result
-        _guala._end_dream_cycle = _end_dream_with_save
-
-    # Hook 2: activity end — opportunistic save at natural quiet points
+    # Save hooks consolidated into _end_activity wrap below.
+    # The engine ends all activities (including DREAMING) via
+    # _end_activity; there is no separate _end_dream_cycle method.
     if hasattr(_guala, '_end_activity'):
         _orig_end_activity = _guala._end_activity
         def _end_activity_with_save(*a, **kw):
+            # Capture the ending activity kind BEFORE _end_activity clears it
+            ending = getattr(_guala, '_current_activity', None)
+            ending_kind = ending.kind if ending else None
             result = _orig_end_activity(*a, **kw)
-            if _guala.is_natural_quiet_point():
+            if ending_kind == "DREAMING":
+                save_coord.maybe_save(reason="dream_end")
+            else:
                 save_coord.maybe_save(reason="activity_ended")
             return result
         _guala._end_activity = _end_activity_with_save

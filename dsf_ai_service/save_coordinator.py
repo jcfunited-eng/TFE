@@ -58,7 +58,8 @@ class SaveCoordinator:
             return False
 
     def _should_save(self, reason):
-        if reason in ("shutdown", "backup", "dream_end"):
+        if reason in ("shutdown", "backup", "dream_end",
+                      "activity_ended", "backstop"):
             return True
         # Defer if someone's actively interacting
         if self.guala.is_present_active():
