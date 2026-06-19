@@ -334,6 +334,51 @@ def test_5_combined_all_flags():
         return False
 
 
+def test_6_hemisphere_update_event_includes_atlas_sizes():
+    """hemisphere_update event detail includes hemisphere_atlas_sizes."""
+    print("  Test 6: hemisphere_atlas_sizes in event...", end=" ")
+    os.environ["HEMI_PR_ENABLED"] = "1"
+    os.environ["HEMI_EP_ENABLED"] = "1"
+    os.environ["HEMI_SC_ENABLED"] = "1"
+    os.environ["HEMI_GP_ENABLED"] = "1"
+
+    g = _build_engine()
+    _, events = _converse(g, "the moon is bright")
+
+    # Find the hemisphere_update event in g._substrate_events
+    hemi_event = None
+    for evt in g._substrate_events:
+        if hasattr(evt, 'kind') and evt.kind == 'hemisphere_update':
+            hemi_event = evt
+            break
+
+    try:
+        assert hemi_event is not None, "no hemisphere_update event found"
+        detail = hemi_event.detail
+        assert "hemisphere_atlas_sizes" in detail, \
+            f"hemisphere_atlas_sizes missing from detail keys: {list(detail.keys())}"
+        sizes = detail["hemisphere_atlas_sizes"]
+        assert isinstance(sizes, dict), f"expected dict, got {type(sizes)}"
+
+        # All hemispheres should be present
+        for hname in ("em", "pr", "ep", "sc", "gp"):
+            assert hname in sizes, f"'{hname}' missing from hemisphere_atlas_sizes"
+            assert isinstance(sizes[hname], int), \
+                f"sizes['{hname}'] is {type(sizes[hname])}, expected int"
+            assert sizes[hname] >= 0, f"sizes['{hname}'] = {sizes[hname]} < 0"
+
+        # em should have bindings (test engine has ~90)
+        assert sizes["em"] > 10, f"em atlas size {sizes['em']} too small"
+        # pr should have bindings (seeded + mirrored)
+        assert sizes["pr"] > 0, f"pr atlas size {sizes['pr']} == 0"
+
+        print(f"PASS (sizes: {sizes})")
+        return True
+    except (AssertionError, Exception) as e:
+        print(f"FAIL: {e}")
+        return False
+
+
 def main():
     print("GL-CMD-COGNITION-BUNDLE Verification Tests")
     print("=" * 60)
@@ -344,6 +389,7 @@ def main():
         test_3_sc_semantic_weighting,
         test_4_gp_goal_bias,
         test_5_combined_all_flags,
+        test_6_hemisphere_update_event_includes_atlas_sizes,
     ]
 
     results = []
