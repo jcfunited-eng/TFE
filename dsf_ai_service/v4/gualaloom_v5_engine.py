@@ -1102,6 +1102,8 @@ class Guala:
         self._hemisphere_em = HemisphereCoordinator("em", needs=self.needs)
         self.hemispheres = {"em": self._hemisphere_em}
         self._cross_hemi_links = []  # list of CrossHemiLink (populated by cognition bundle)
+        # perf/cache-word-section-index: emission-section routing lookup
+        self._word_to_emission_sections = {}  # word.lower() → [(section, motif_idx, word)]
         # QuestionBucket removed (GL-BRIEF-EMISSION-CONSTRAINT-REMOVAL Phase E)
         self.tick = 0
         self.read_count = 0
@@ -1278,6 +1280,7 @@ class Guala:
 
             for primary_section in primary_sections:
                 fam = self.atlas.match_score(lang_chi, primary_section)
+                n_modes_before = len(self.sections[primary_section].modes)
                 self.sections[primary_section].receive(lang_dsf, lang_chi, word,
                                                        self.atlas, fam,
                                                        salience=salience,
@@ -1285,6 +1288,15 @@ class Guala:
                                                        deep_atlas=self.deep_atlas,
                                                        engine_tick=self.tick,
                                                        atlas_kwargs=_akw)
+                # Incremental update of word→emission-section index
+                if (primary_section in self._EMISSION_SECTIONS
+                        and len(self.sections[primary_section].modes) > n_modes_before):
+                    wl = word.lower()
+                    mi = len(self.sections[primary_section].modes) - 1
+                    if wl not in self._word_to_emission_sections:
+                        self._word_to_emission_sections[wl] = []
+                    self._word_to_emission_sections[wl].append(
+                        (primary_section, mi, word))
 
             if senses:
                 combined_events = list(self.language.events)
@@ -1338,6 +1350,23 @@ class Guala:
                                           self.sections, self.tick)
 
             return lang_chi, role, list(senses.keys())
+
+    def _rebuild_word_to_emission_index(self):
+        """Build the word→emission-section lookup from section modes.
+        Called at boot after atlas+sections load, and incrementally
+        by read_word when new modes land in emission sections."""
+        idx = {}
+        for es in self._EMISSION_SECTIONS:
+            es_sec = self.sections.get(es)
+            if not es_sec:
+                continue
+            for mi, (_, _, w) in enumerate(es_sec.modes):
+                if w:
+                    wl = w.lower()
+                    if wl not in idx:
+                        idx[wl] = []
+                    idx[wl].append((es, mi, w))
+        self._word_to_emission_sections = idx
 
     def _choose_role_sections(self, role_dna, position_hint):
         """Route word commit. Position wins for sentence boundaries (object,
@@ -2169,30 +2198,19 @@ class Guala:
 
         # GL-CMD-ROUTE-CANDIDATES-TO-EMISSION-SECTIONS:
         # Re-route listen/intro candidates to emission-section counterparts.
-        # The atlas has the same word in both listen AND subject/verb/object
-        # (read_word records in listen unconditionally + position-driven section).
-        # Without re-routing, 95% of candidates land in listen/intro and the
-        # emission install loop skips them.
+        # Uses cached _word_to_emission_sections index (built at boot,
+        # updated incrementally by read_word).
         _non_emission = frozenset(s for s in self.sections
                                    if s not in self._EMISSION_SECTIONS)
-        # Build word→[(section, motif_idx)] index for emission sections
-        _word_to_emission = {}
-        for es in self._EMISSION_SECTIONS:
-            es_sec = self.sections.get(es)
-            if not es_sec:
-                continue
-            for mi, (_, _, w) in enumerate(es_sec.modes):
-                if w:
-                    wl = w.lower()
-                    if wl not in _word_to_emission:
-                        _word_to_emission[wl] = []
-                    _word_to_emission[wl].append((es, mi, w))
+        # Fallback: rebuild if empty (shouldn't happen after boot)
+        if not self._word_to_emission_sections:
+            self._rebuild_word_to_emission_index()
 
         routed = []
         for cand in all_candidates:
             if cand.get("section") in _non_emission:
                 word = (cand.get("word") or "").lower()
-                matches = _word_to_emission.get(word, [])
+                matches = self._word_to_emission_sections.get(word, [])
                 for (es, mi, w) in matches:
                     rkey = (es, mi)
                     if rkey not in seen:
@@ -4480,6 +4498,7 @@ class Guala:
                 self._apply_coordinator(data["guala_coordinator.json"])
                 self._apply_atlas(data["guala_atlas.json"])
                 self._apply_sections(data["guala_sections.json"])
+                self._rebuild_word_to_emission_index()
                 self._migrate_tick_domain()
                 self._apply_bucket(data["guala_bucket.json"])
 
@@ -4576,6 +4595,7 @@ class Guala:
                     print(f"[GualaLoom] Deep atlas loaded: {self.deep_atlas.live_count()} entries")
                 if "guala_sections.json" in raw:
                     self._apply_sections(raw["guala_sections.json"])
+                self._rebuild_word_to_emission_index()
                 self._migrate_tick_domain()
                 if "guala_bucket.json" in raw:
                     self._apply_bucket(raw["guala_bucket.json"])

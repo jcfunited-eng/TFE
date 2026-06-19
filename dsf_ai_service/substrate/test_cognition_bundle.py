@@ -549,6 +549,34 @@ def test_10_emission_install_populates_all_sections():
         return False
 
 
+def test_11_word_to_emission_index_built_at_boot():
+    """Index is non-empty after _rebuild_word_to_emission_index (called at load)."""
+    print("  Test 11: word→emission index at boot...", end=" ")
+    _flags_off()
+    g = _build_engine()
+    # Simulate the boot-time index build (load_full_state calls this
+    # after _apply_sections; test seeding bypasses load_full_state)
+    g._rebuild_word_to_emission_index()
+
+    try:
+        idx = g._word_to_emission_sections
+        assert isinstance(idx, dict), f"index is {type(idx)}, not dict"
+        assert len(idx) > 0, "index is empty after boot with seeded atlas"
+        # Check a known word from the corpus exists
+        sample_words = [w for w in idx.keys()][:5]
+        for w in sample_words:
+            entries = idx[w]
+            assert len(entries) > 0, f"'{w}' has empty entries"
+            for (sec, mi, word) in entries:
+                assert sec in ("subject", "verb", "object"), \
+                    f"'{w}' entry section={sec} not in emission sections"
+        print(f"PASS (index has {len(idx)} words, sample: {sample_words[:3]})")
+        return True
+    except (AssertionError, Exception) as e:
+        print(f"FAIL: {e}")
+        return False
+
+
 def main():
     print("GL-CMD-COGNITION-BUNDLE Verification Tests")
     print("=" * 60)
@@ -564,6 +592,7 @@ def main():
         test_8_commit_fires_at_capped_mode_bank,
         test_9_rich_sensory_routes_to_emission_sections,
         test_10_emission_install_populates_all_sections,
+        test_11_word_to_emission_index_built_at_boot,
     ]
 
     results = []
