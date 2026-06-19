@@ -1097,6 +1097,10 @@ class Guala:
         self.senses = SensoryBank()
         self.coordinator = Coordinator()
         self.needs = Needs()
+        # GL-SPC-HEMISPHERE-ARCH: Phase 0 — em hemisphere coordinator
+        from dsf_ai_service.substrate.assemblage import HemisphereCoordinator
+        self._hemisphere_em = HemisphereCoordinator("em", needs=self.needs)
+        self.hemispheres = {"em": self._hemisphere_em}
         # QuestionBucket removed (GL-BRIEF-EMISSION-CONSTRAINT-REMOVAL Phase E)
         self.tick = 0
         self.read_count = 0
@@ -3997,7 +4001,7 @@ class Guala:
     # Identity tag, schema versioning, snapshots, event log, integrity
     # ------------------------------------------------------------------
 
-    SCHEMA_VERSION = "v7.0.0"
+    SCHEMA_VERSION = "v7.1.0"
     STATE_FILES = [
         "guala_core.json", "guala_needs.json", "guala_coordinator.json",
         "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
@@ -4057,7 +4061,7 @@ class Guala:
         }
 
     # Schema migrations
-    COMPATIBLE_SCHEMAS = {"v5.5.0", "v6.0.0", "v7.0.0"}
+    COMPATIBLE_SCHEMAS = {"v5.5.0", "v6.0.0", "v7.0.0", "v7.1.0"}
 
     def _unwrap(self, raw, filename):
         """Validate envelope, return data dict. Raises on mismatch."""
@@ -4142,6 +4146,8 @@ class Guala:
                 "entries": {str(k): list(v)
                             for k, v in self.atlas.entries.items()},
                 "tick": self.atlas.tick,
+                # GL-SPC-HEMISPHERE-ARCH: cross-hemi links (empty at Phase 0)
+                "cross_hemi_links": [],
             })
 
             # 5. Deep Atlas
@@ -4587,6 +4593,16 @@ class Guala:
         if needs_migration:
             n_live = self.atlas.n_live_bindings()
             print(f"[GualaLoom] Atlas migrated: {n_live} live bindings")
+
+        # GL-SPC-HEMISPHERE-ARCH: v7.0.0→v7.1.0 migration — tag existing bindings as "em"
+        hemi_tagged = 0
+        for k, entries in self.atlas.entries.items():
+            for e in entries:
+                if "hemisphere_id" not in e:
+                    e["hemisphere_id"] = "em"
+                    hemi_tagged += 1
+        if hemi_tagged:
+            print(f"[GualaLoom] Hemisphere migration: {hemi_tagged} bindings tagged 'em'")
 
         # Tick-domain migration moved to _migrate_tick_domain (runs after _apply_sections)
 

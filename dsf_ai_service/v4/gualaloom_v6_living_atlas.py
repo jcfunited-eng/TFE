@@ -180,6 +180,8 @@ class LivingAtlas:
                     "valence": valence,
                     "surprise": surprise,
                     "source": source,
+                    # GL-SPC-HEMISPHERE-ARCH: hemisphere tag (Phase 0: always em)
+                    "hemisphere_id": "em",
                 })
 
     def decay(self, current_tick=None, rate_scale=1.0):

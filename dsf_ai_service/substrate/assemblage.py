@@ -136,6 +136,70 @@ def structured_emission_noise(section, tick, needs_novelty,
     return magnitude * basis
 
 
+# ---------- Hemisphere types (GL-SPC-HEMISPHERE-ARCH-EVE-20260618-21) ----------
+
+@dataclass
+class CrossHemiLink:
+    """Multi-dimensional binding between atlas entries in different hemispheres.
+    Carries the same metadata grandurun candidates carry (per the GRANDURUN-
+    METADATA-PIPELINE pattern), plus consensus_phase for tracking convergent/
+    divergent settling history.
+
+    Phase 0: type definition only. No code creates or updates instances.
+    GL-SPC-HEMISPHERE-ARCH-EVE-20260618-21.
+    """
+    src_chi: int
+    src_hemi: str
+    dst_chi: int
+    dst_hemi: str
+    strength: float
+    source: str = "corpus"
+    arousal: float = 0.5
+    valence: float = 0.0
+    surprise: float = 0.0
+    polarity: float = 1.0
+    consensus_phase: float = 0.0
+    last_tick: int = 0
+
+    def to_dict(self):
+        return {
+            "src_chi": self.src_chi, "src_hemi": self.src_hemi,
+            "dst_chi": self.dst_chi, "dst_hemi": self.dst_hemi,
+            "strength": self.strength, "source": self.source,
+            "arousal": self.arousal, "valence": self.valence,
+            "surprise": self.surprise, "polarity": self.polarity,
+            "consensus_phase": self.consensus_phase, "last_tick": self.last_tick,
+        }
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(**{k: d[k] for k in cls.__dataclass_fields__ if k in d})
+
+
+class HemisphereCoordinator:
+    """Sub-coordinator scoped to a single hemisphere_id.
+
+    Phase 0: instantiated only for hemisphere_id='em'. Wraps the existing
+    global coordinator's behavior — no new logic. Future phases instantiate
+    additional HemisphereCoordinators for each hemisphere added.
+
+    GL-SPC-HEMISPHERE-ARCH-EVE-20260618-21.
+    """
+
+    # Decay multipliers from spec — derived from cognitive timescale anchoring,
+    # not tuned to produce target behavior. Baseline DECAY_LAMBDA=0.001/tick
+    # gives half-life ≈700 ticks for em (one working-memory moment).
+    DECAY_MULTIPLIERS = {
+        "em": 1.0, "pr": 1.5, "ep": 0.1, "sc": 0.5,
+        "gp": 0.05, "sf": 0.1, "sv": 0.001, "aff": 1.0,
+    }
+
+    def __init__(self, hemisphere_id, needs=None):
+        self.hemisphere_id = hemisphere_id
+        self.needs = needs  # Phase 0: em.needs = global needs by identity
+        self.decay_multiplier = self.DECAY_MULTIPLIERS.get(hemisphere_id, 1.0)
+
+
 # ---------- Section ----------
 @dataclass
 class Section:
@@ -425,6 +489,9 @@ class System:
         # and partner's recent utterances. Used to adapt heard-speaker goal strength.
         self.utterance_match_log = deque(maxlen=30)  # 1 = matched, 0 = didn't
         self.heard_speaker_strength = 0.70  # adaptive, stronger baseline
+        # GL-SPC-HEMISPHERE-ARCH: hemisphere coordinators (Phase 0: em only)
+        self.hemispheres = {}
+        self.cross_hemi_links = []  # list of CrossHemiLink (empty at Phase 0)
 
     def add_keyhole(self, sender, chi_lo, chi_hi, receiver, goal_strength=0.4):
         self.keyholes.append({"sender": sender, "chi_lo": chi_lo, "chi_hi": chi_hi,
