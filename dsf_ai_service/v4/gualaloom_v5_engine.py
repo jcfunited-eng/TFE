@@ -1519,7 +1519,8 @@ class Guala:
         # GL-CMD-DYNAMICS-EMISSION-RESTORATION: two-stage dynamics path
         if os.environ.get("EMISSION_DYNAMICS", "0") == "1" and mode == "grandurun":
             return self._emit_dynamics(input_chis, input_words_set,
-                                       deep_candidates, v7_session=v7_session)
+                                       deep_candidates, v7_session=v7_session,
+                                       input_words=input_words)
 
         if mode == "grandurun":
             return self._emit_grandurun(input_chis, input_words_set,
@@ -1927,16 +1928,212 @@ class Guala:
 
         return idx
 
-    def _emit_dynamics(self, input_chis, input_words_set, deep_candidates,
-                       v7_session=None):
-        """Two-stage emission: grandurun candidate selection → assemblage dynamics settling.
+    # GL-CMD-RICH-SENSORY-WIRING: content-word filter (mirrors _recall_sight_from_atlas)
+    _FUNCTION_WORDS = frozenset({
+        "a", "an", "the", "is", "are", "am", "was", "were",
+        "of", "in", "on", "at", "to", "from", "with", "for",
+        "and", "or", "but", "me", "you", "i", "we", "they",
+        "show", "see", "look", "what", "tell", "about",
+    })
 
-        Stage 1: _grandurun_select_candidates returns top-K by coherent magnitude.
+    def _rich_sensory_candidates(self, input_chis, input_words, input_words_set,
+                                  deep_candidates=None):
+        """GL-CMD-RICH-SENSORY-WIRING-EVE-20260618-10
+
+        Cross-modal candidate selection:
+        1. Filter to content words
+        2. For each content-word chi, look up ALL atlas entries (cross-modal)
+           PLUS deep-atlas co-occurrence candidates from ALL input chis
+           (content-word filtered at output, not input — deep atlas carries
+           semantic relationships across chi distance)
+        3. One-level cofire spread with affect weighting
+        4. Attention focus boost
+        Returns candidate list in same format as _grandurun_select_candidates.
+        """
+        import math
+
+        # Phase 2: Filter to content words
+        content_words = [w for w in input_words
+                         if w.lower() not in self._FUNCTION_WORDS and len(w) > 1]
+        if not content_words:
+            content_words = list(input_words)[:3]  # fallback: use first 3 words
+
+        # Compute content-word chis
+        content_chis = []
+        for w in content_words:
+            temp_krim = LanguageKrimelack()
+            temp_krim.transduce(w)
+            content_chis.append(temp_krim.winding)
+
+        # Phase 3: Cross-modal candidate lookup at content-word chis
+        # Source A: working atlas entries near content-word chis
+        cross_modal = []  # list of candidate dicts
+        seen = set()
+        for chi in content_chis:
+            for d in range(-self.atlas.band, self.atlas.band + 1):
+                for e in self.atlas.entries.get(chi + d, []):
+                    if e["strength"] < FORGETTING_THRESHOLD:
+                        continue
+                    sec_name = e.get("section", "")
+                    mid = e.get("motif", 0)
+                    sec = self.sections.get(sec_name)
+                    if sec is None or mid >= len(sec.modes):
+                        continue
+                    _, _, word_label = sec.modes[mid]
+                    if not word_label or word_label.lower() in input_words_set:
+                        continue
+                    # GL-CMD-RICH-SENSORY-WIRING: skip function words in output
+                    # too — mirrors picture-emission's content-word selectivity
+                    if word_label.lower() in self._FUNCTION_WORDS:
+                        continue
+                    key = (sec_name, mid)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    cross_modal.append({
+                        "chi": chi + d,
+                        "section": sec_name,
+                        "motif": mid,
+                        "word": word_label,
+                        "strength": e["strength"],
+                        "coherent_magnitude": e["strength"],
+                        "source": e.get("source", "corpus"),
+                        "arousal": e.get("arousal", 0.5),
+                        "valence": e.get("valence", 0.0),
+                        "surprise": e.get("surprise", 0.0),
+                        "polarity": e.get("polarity", 1.0),
+                        "sensory_refs": e.get("sensory_refs", []),
+                        "origin": "cross_modal",
+                    })
+
+        # Source B: deep-atlas co-occurrence candidates from ALL input chis.
+        # Deep atlas carries semantic relationships across chi distance.
+        # Use the full deep_candidates already gathered by _emit_from_invariants
+        # from all input chis (including function words), but filter output
+        # to content words only.
+        if deep_candidates:
+            for de, co, clarity in deep_candidates:
+                de_chi = de.get("chi", 0)
+                for sec_name in co:
+                    sec_co = co[sec_name]
+                    if not sec_co:
+                        continue
+                    for mid_str, strength in sorted(
+                            sec_co.items(),
+                            key=lambda x: float(x[1]),
+                            reverse=True)[:5]:
+                        mid = int(mid_str)
+                        sec = self.sections.get(sec_name)
+                        if sec is None or mid >= len(sec.modes):
+                            continue
+                        _, _, word_label = sec.modes[mid]
+                        if (not word_label
+                                or word_label.lower() in input_words_set
+                                or word_label.lower() in self._FUNCTION_WORDS):
+                            continue
+                        key = (sec_name, mid)
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        cross_modal.append({
+                            "chi": de_chi,
+                            "section": sec_name,
+                            "motif": mid,
+                            "word": word_label,
+                            "strength": float(strength),
+                            "coherent_magnitude": float(strength),
+                            "source": de.get("source", "corpus"),
+                            "arousal": de.get("arousal", 0.5),
+                            "valence": de.get("valence", 0.0),
+                            "surprise": de.get("surprise", 0.0),
+                            "polarity": de.get("polarity", 1.0),
+                            "sensory_refs": de.get("sensory_refs", []),
+                            "origin": "cross_modal_deep",
+                        })
+
+        # Phase 4: One-level cofire spread with affect weighting
+        needs_val = getattr(self.needs, "connection", 0.5)
+        needs_aro = getattr(self.needs, "novelty", 0.5)
+        spread_candidates = []
+        for cand in cross_modal:
+            cand_chi = cand["chi"]
+            for d in range(-1, 2):  # ±1 chi band for cofire neighbors
+                for e in self.atlas.entries.get(cand_chi + d, []):
+                    if e["strength"] < FORGETTING_THRESHOLD:
+                        continue
+                    sec_name = e.get("section", "")
+                    mid = e.get("motif", 0)
+                    key = (sec_name, mid)
+                    if key in seen:
+                        continue
+                    sec = self.sections.get(sec_name)
+                    if sec is None or mid >= len(sec.modes):
+                        continue
+                    _, _, word_label = sec.modes[mid]
+                    if (not word_label or word_label.lower() in input_words_set
+                            or word_label.lower() in self._FUNCTION_WORDS):
+                        continue
+                    seen.add(key)
+                    chi_distance = abs(d)
+                    w_chi = math.exp(-chi_distance / 2.0)
+                    w_strength = e["strength"]
+                    e_val = e.get("valence", 0.0)
+                    e_aro = e.get("arousal", 0.5)
+                    w_affect = max(0.1, min(1.0,
+                        1.0 - 0.5 * abs(e_val - needs_val)
+                            - 0.5 * abs(e_aro - needs_aro)))
+                    transmission = w_chi * w_strength * w_affect * 0.30
+                    spread_candidates.append({
+                        "chi": cand_chi + d,
+                        "section": sec_name,
+                        "motif": mid,
+                        "word": word_label,
+                        "strength": e["strength"],
+                        "coherent_magnitude": transmission,
+                        "source": e.get("source", "corpus"),
+                        "arousal": e_aro,
+                        "valence": e_val,
+                        "surprise": e.get("surprise", 0.0),
+                        "polarity": e.get("polarity", 1.0),
+                        "sensory_refs": e.get("sensory_refs", []),
+                        "origin": "cofire_spread",
+                    })
+
+        all_candidates = cross_modal + spread_candidates
+
+        # Phase 5: Attention focus boost
+        ca = getattr(self, '_current_activity', None)
+        if ca is not None and hasattr(ca, 'target') and ca.target:
+            # Get attending item's chi
+            attend_chi = None
+            if hasattr(ca, 'target') and isinstance(ca.target, str):
+                temp_krim = LanguageKrimelack()
+                temp_krim.transduce(ca.target)
+                attend_chi = temp_krim.winding
+            if attend_chi is not None:
+                for cand in all_candidates:
+                    dist = abs(cand["chi"] - attend_chi)
+                    if dist <= 2:
+                        cand["coherent_magnitude"] *= 1.3
+                    elif dist > 5:
+                        cand["coherent_magnitude"] *= 0.7
+
+        # Sort by activation and return top candidates
+        all_candidates.sort(key=lambda c: -c["coherent_magnitude"])
+        return all_candidates[:GRANDURUN_TOPK]
+
+    def _emit_dynamics(self, input_chis, input_words_set, deep_candidates,
+                       v7_session=None, input_words=None):
+        """Two-stage emission: candidate selection → assemblage dynamics settling.
+
+        Stage 1: _grandurun_select_candidates (default) or _rich_sensory_candidates
+                 (RICH_SENSORY_INPUT=1) returns top-K candidates.
         Stage 2: Candidates seed the emission System, dynamics settle via cascade +
                  keyhole + NMDA, emission reads dominant_mode per section.
 
         Gated by EMISSION_DYNAMICS=1.
-        GL-CMD-DYNAMICS-EMISSION-RESTORATION-EVE-20260618-03 Phase 4."""
+        GL-CMD-DYNAMICS-EMISSION-RESTORATION-EVE-20260618-03 Phase 4.
+        GL-CMD-RICH-SENSORY-WIRING-EVE-20260618-10: cross-modal candidates."""
         import numpy as np
         import time as _time
         from dsf_ai_service.substrate.assemblage import N, normalize, random_unit_complex
@@ -1947,11 +2144,17 @@ class Guala:
             decay_plasticity, install_plasticity, reinforce_mode,
         )
 
-        # Stage 1: Coherent-integration candidate selection
+        # Stage 1: Candidate selection
         t0 = _time.monotonic()
-        candidates = _grandurun_select_candidates(
-            input_chis, deep_candidates, self.sections,
-            input_words_set, top_k=GRANDURUN_TOPK)
+        rich_sensory = os.environ.get("RICH_SENSORY_INPUT", "0") == "1"
+        if rich_sensory and input_words:
+            candidates = self._rich_sensory_candidates(
+                input_chis, input_words, input_words_set,
+                deep_candidates=deep_candidates)
+        else:
+            candidates = _grandurun_select_candidates(
+                input_chis, deep_candidates, self.sections,
+                input_words_set, top_k=GRANDURUN_TOPK)
         stage1_ms = (_time.monotonic() - t0) * 1000
 
         if not candidates:
@@ -2159,6 +2362,18 @@ class Guala:
         affect_match_count = sum(1 for e in nmda_events if e.get("affect_match"))
         nmda_fired_count = sum(1 for e in nmda_events if e.get("reason") == "fired")
 
+        # GL-CMD-RICH-SENSORY-WIRING: per-section candidate counts and origin
+        section_candidate_counts = {}
+        origin_counts = {}
+        source_counts = {}
+        for c in candidates:
+            sn = c.get("section", "unknown")
+            section_candidate_counts[sn] = section_candidate_counts.get(sn, 0) + 1
+            orig = c.get("origin", "grandurun")
+            origin_counts[orig] = origin_counts.get(orig, 0) + 1
+            src = c.get("source", "corpus")
+            source_counts[src] = source_counts.get(src, 0) + 1
+
         self._log_substrate_event("emission_dynamics",
                                   content=emission_text,
                                   n_candidates=len(candidates),
@@ -2173,7 +2388,11 @@ class Guala:
                                   dynamics_ticks=n_ticks,
                                   sections_with_commits=list(set(
                                       c["section"] for c in emit_commits)),
-                                  committed_sections=list(committed_sections))
+                                  committed_sections=list(committed_sections),
+                                  rich_sensory=rich_sensory,
+                                  section_candidate_counts=section_candidate_counts,
+                                  origin_counts=origin_counts,
+                                  source_counts=source_counts)
         return emission_text
 
     def _compose_from_cortex(self, selected_words, deep_candidates):
