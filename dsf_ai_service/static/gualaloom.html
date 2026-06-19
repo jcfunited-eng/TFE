@@ -117,10 +117,12 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 </div>
 <div id="state-panel">
   <div class="ps"><div class="ps-title">Substrate</div><div id="sp-substrate">--</div></div>
+  <div class="ps"><div class="ps-title">Hemispheres</div><div id="sp-hemispheres">--</div></div>
+  <div class="ps"><div class="ps-title">Persistence</div><div id="sp-persistence">--</div></div>
+  <div class="ps"><div class="ps-title">Recent Emissions</div><div id="sp-emissions" style="max-height:150px;overflow-y:auto">--</div></div>
   <div class="ps"><div class="ps-title">Pool Activity</div><div id="sp-pools">--</div></div>
-  <div class="ps"><div class="ps-title">Intro / Aware</div><div id="sp-intro-aware">--</div></div>
   <div class="ps"><div class="ps-title">NMDA Gates</div><div id="sp-nmda">--</div></div>
-  <div class="ps"><div class="ps-title">Events</div><div id="sp-events" style="max-height:200px;overflow-y:auto"></div></div>
+  <div class="ps"><div class="ps-title">Events</div><div id="sp-events" style="max-height:120px;overflow-y:auto"></div></div>
 </div>
 </div>
 
@@ -672,7 +674,11 @@ async function sendMsg(){
         if(d.pictures)renderPictures(d.pictures);
       }
     }
-  }catch(e){addMsg('(error: '+e.message+')','system')}
+  }catch(e){
+    if(e.name==='TimeoutError'||e.message.includes('timeout')||e.message.includes('abort')){
+      addMsg('(still working \u2014 check events panel for response)','system');
+    }else{addMsg('(error: '+e.message+')','system')}
+  }
   _sendingMsg=false;msgInput.focus();
 }
 msgInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
@@ -702,6 +708,24 @@ async function pollStatus(){
     parts.push('atlas: '+(atlas||'?'));parts.push('sounds: '+(n_sounds||'?'));
     parts.push('pics: '+(n_pictures||'?'));
     if(vocab||n_motifs||atlas)statsLine.textContent=parts.join(' \u00b7 ');
+    // CHANGE 1: Render SUBSTRATE panel from real cognition atlas
+    const sub=document.getElementById('sp-substrate');
+    const nBindings=ah.n_live_bindings;
+    if(nBindings!=null)sub.innerHTML=
+      `<div class="ps-row"><span class="l">vocab</span><span class="v">${vocab||'?'}</span></div>`+
+      `<div class="ps-row"><span class="l">atlas</span><span class="v">${nBindings.toLocaleString()} bindings</span></div>`+
+      `<div class="ps-row"><span class="l">strength</span><span class="v">${atlas||'?'}</span></div>`;
+    // CHANGE 4: Render PERSISTENCE panel
+    const ph2=d.persistence_health||{};
+    const persDiv=document.getElementById('sp-persistence');
+    const lastSaveTick=ph2.last_save_tick;
+    const lastSaveTs=ph2.last_save_timestamp;
+    const snapCount=ph2.snapshots_available;
+    const integ=(ph2.integrity_errors||[]).length===0?'ok':ph2.integrity_errors.length+' errors';
+    persDiv.innerHTML=
+      `<div class="ps-row"><span class="l">last save</span><span class="v">${lastSaveTs||'(none)'} (tick ${lastSaveTick||0})</span></div>`+
+      `<div class="ps-row"><span class="l">snapshots</span><span class="v">${snapCount!=null?snapCount:'?'}</span></div>`+
+      `<div class="ps-row"><span class="l">integrity</span><span class="v">${integ}</span></div>`;
     // B3: current activity rendering
     const act=d.current_activity;const actLine=document.getElementById('activity-line');
     if(act&&act.kind){
@@ -721,6 +745,33 @@ async function pollStatus(){
     const r2=d.response||'';const needsMatch=r2.match(/needs: (.+)/);
     const needsLine=document.getElementById('needs-line');
     if(needsMatch)needsLine.textContent=needsMatch[1];
+    // CHANGE 2+3: Fetch events for hemispheres + recent emissions
+    try{
+      const evR=await fetchT(`${API}/api/v1/gualaloom/events?n=200`,{headers:{'X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'}},8000);
+      const evD=await evR.json();
+      const evts=evD.events||evD||[];
+      // CHANGE 2: Hemispheres from most recent hemisphere_update
+      const hemiDiv=document.getElementById('sp-hemispheres');
+      const hemiEvt=evts.filter(e=>e.kind==='hemisphere_update').pop();
+      if(hemiEvt&&hemiEvt.detail&&hemiEvt.detail.hemisphere_atlas_sizes){
+        const sizes=hemiEvt.detail.hemisphere_atlas_sizes;
+        let hh='';for(const [k,v] of Object.entries(sizes)){
+          hh+=`<div class="ps-row"><span class="l">${k}</span><span class="v">${v.toLocaleString()} bindings</span></div>`;
+        }
+        hemiDiv.innerHTML=hh;
+      }else{hemiDiv.innerHTML='<div class="ps-row"><span class="l">(no hemisphere events yet)</span></div>'}
+      // CHANGE 3: Recent Emissions
+      const emDiv=document.getElementById('sp-emissions');
+      const emissions=evts.filter(e=>e.kind==='emission'||e.kind==='emission_dynamics');
+      if(emissions.length>0){
+        let eh='';for(const em of emissions.slice(-10).reverse()){
+          const det=em.detail||{};
+          const content=det.content||'...';
+          eh+=`<div class="ev" style="color:var(--ev-emission)">${content}</div>`;
+        }
+        emDiv.innerHTML=eh;
+      }else{emDiv.innerHTML='<div class="ev">(no recent emissions)</div>'}
+    }catch(e){}
     _backoff.status=0;
   }catch(e){_backoff.status=Math.min((_backoff.status*2)||_BASE.status*2,30000)}
   finally{_inflight.status=false;_schedNext('status',pollStatus)}
@@ -736,11 +787,7 @@ async function pollV7State(){
       _backoff.state=Math.min((_backoff.state*2)||_BASE.state*2,30000);return;
     }
     const s=await r.json();
-    // Substrate — Item 5: only update if values are real (non-null, non-zero)
-    const sub=document.getElementById('sp-substrate');
-    const v6v=s.v6_vocab_count;const ac=s.atlas_count;
-    if(v6v||ac)sub.innerHTML=`<div class="ps-row"><span class="l">vocab</span><span class="v">${v6v??'?'}</span></div>`+
-      `<div class="ps-row"><span class="l">atlas</span><span class="v">${ac??'?'}</span></div>`;
+    // Substrate atlas now rendered by pollStatus() from real cognition atlas
     // Pool activity (B1)
     const pools=document.getElementById('sp-pools');let ph='';
     const vc=s.vocab_counts||{};
