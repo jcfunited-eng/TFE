@@ -69,26 +69,33 @@ def goal_op_for_template(target):
 
 
 # ---------- Lateral inhibition (GL-CMD-LATERAL-INHIBITION-EVE-20260618-04) ----------
-def lateral_inhibition_operator(arcs, mode_bank, lambda_inhib=1.0):
+def lateral_inhibition_operator(arcs, mode_bank, lambda_inhib=1.0,
+                                projector_cache=None):
     """Hartline-style lateral inhibition as a Hamiltonian term.
 
     H_lateral = Σ_{i ≠ leader} λ·(arc_leader − arc_i)·|m_i⟩⟨m_i|
 
     Positive coefficient on |m_i⟩⟨m_i| → energy penalty for psi aligned
     with non-leading modes → symmetry breaks via positive feedback.
+
+    GL-CMD-PROJECTOR-CACHE: if projector_cache (list of N×N matrices) is
+    provided and correctly sized, uses pre-computed |m_i⟩⟨m_i| instead
+    of recomputing np.outer per call.
     """
     if len(arcs) < 2:
         return np.zeros((N, N), dtype=complex)
     leader_idx = int(np.argmax(arcs))
     leader_arc = float(arcs[leader_idx])
     H_lat = np.zeros((N, N), dtype=complex)
+    use_cache = (projector_cache is not None
+                 and len(projector_cache) == len(mode_bank))
     for i, m_i in enumerate(mode_bank):
         if i == leader_idx:
             continue
         gap = leader_arc - float(arcs[i])
         if gap <= 0:
             continue
-        P_i = np.outer(m_i, np.conj(m_i))
+        P_i = projector_cache[i] if use_cache else np.outer(m_i, np.conj(m_i))
         H_lat = H_lat + (lambda_inhib * gap) * P_i
     return H_lat
 
@@ -121,6 +128,8 @@ class Section:
     arc_top_history: list = field(default_factory=list)
 
     out_of_range_streak: dict = field(default_factory=lambda: {"entropy": 0, "coherence": 0, "greed": 0})
+    _projector_cache: list = field(default_factory=list)
+    _cached_H_lateral: object = field(default=None, repr=False)
 
     def __post_init__(self):
         self.H_base = random_hermitian(N, self.rng, scale=0.6)
@@ -162,7 +171,19 @@ class Section:
         # GL-CMD-LATERAL-INHIBITION: mode-mode competition via energy penalty
         if os.environ.get("LATERAL_INHIBITION_ENABLED", "0") == "1":
             if len(self.mode_bank) >= 2:
-                H = H + lateral_inhibition_operator(self.arcs(), self.mode_bank)
+                if self._cached_H_lateral is not None:
+                    # GL-CMD-PROJECTOR-CACHE: reuse per-tick cached result
+                    H = H + self._cached_H_lateral
+                else:
+                    # Rebuild projector list if out of sync
+                    if len(self._projector_cache) != len(self.mode_bank):
+                        self._projector_cache = [
+                            np.outer(m, np.conj(m)) for m in self.mode_bank
+                        ]
+                    H_lat = lateral_inhibition_operator(
+                        self.arcs(), self.mode_bank,
+                        projector_cache=self._projector_cache)
+                    H = H + H_lat
         return H
 
     def step(self, J=None):
@@ -179,8 +200,20 @@ class Section:
         self.psi = normalize(self.psi)
 
     def evolve(self, J=None, steps=EVOLVE_STEPS):
+        # GL-CMD-PROJECTOR-CACHE: compute H_lateral once per evolve call
+        # (once per tick), reuse across all EVOLVE_STEPS sub-steps.
+        if (os.environ.get("LATERAL_INHIBITION_ENABLED", "0") == "1"
+                and len(self.mode_bank) >= 2):
+            if len(self._projector_cache) != len(self.mode_bank):
+                self._projector_cache = [
+                    np.outer(m, np.conj(m)) for m in self.mode_bank
+                ]
+            self._cached_H_lateral = lateral_inhibition_operator(
+                self.arcs(), self.mode_bank,
+                projector_cache=self._projector_cache)
         for i in range(steps):
             self.step(J=J if i == 0 else None)  # evidence on first substep only
+        self._cached_H_lateral = None  # clear after evolve
 
     def arcs(self):
         if not self.mode_bank:
@@ -229,9 +262,12 @@ class Section:
         a = self.arcs()
         mode_id = -1
         if reason in ("bootstrap", "novel_mode"):
-            self.mode_bank.append(normalize(state.copy()))
+            new_mode = normalize(state.copy())
+            self.mode_bank.append(new_mode)
             self.mode_last_used.append(tick)
             self.mode_strength.append(1.5)  # fresh modes start above baseline
+            # GL-CMD-PROJECTOR-CACHE: invalidate (will rebuild on next H_total)
+            self._projector_cache = []
             mode_id = len(self.mode_bank) - 1
             if reason == "bootstrap":
                 self.bootstrap_used += 1
@@ -399,6 +435,7 @@ class System:
                 sec.mode_bank.append(target.copy())
                 sec.mode_last_used.append(self.tick)
                 sec.mode_strength.append(1.0)
+                sec._projector_cache = []  # invalidate
         else:
             sec.mode_bank.append(target.copy())
             sec.mode_last_used.append(self.tick)

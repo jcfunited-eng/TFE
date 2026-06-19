@@ -1901,6 +1901,7 @@ class Guala:
             sec.mode_bank.append(vec.copy())
             sec.mode_last_used.append(0)
             sec.mode_strength.append(1.0)
+            sec._projector_cache = []  # invalidate; H_total rebuilds as ndarray
             idx = len(sec.mode_bank) - 1
             self._emission_word_map[(section_name, idx)] = word
             return idx
@@ -1913,6 +1914,7 @@ class Guala:
         sec.mode_bank.append(vec.copy())
         sec.mode_last_used.append(0)
         sec.mode_strength.append(1.0)
+        sec._projector_cache.append(np.outer(vec, np.conj(vec)))
         idx = len(sec.mode_bank) - 1
         self._emission_word_map[(section_name, idx)] = word
 
@@ -1921,6 +1923,7 @@ class Guala:
         listen.mode_bank.append(vec.copy())
         listen.mode_last_used.append(0)
         listen.mode_strength.append(1.0)
+        listen._projector_cache = []  # invalidate; H_total rebuilds as ndarray
 
         return idx
 
