@@ -19,6 +19,13 @@ RUN mkdir -p /app/state/dreams
 
 ENV PYTHONPATH=/app
 
+# GL-CMD-PRODUCTION-FLAG-FLIP-EVE-20260618-19
+# Emission pipeline: dynamics + inhibition + cross-modal + biological noise
+ENV EMISSION_DYNAMICS=1
+ENV LATERAL_INHIBITION_ENABLED=1
+ENV RICH_SENSORY_INPUT=1
+ENV EMISSION_STRUCTURED_NOISE=1
+
 EXPOSE 8080
 
 CMD ["uvicorn", "dsf_ai_service.app:app", "--host", "0.0.0.0", "--port", "8080"]
