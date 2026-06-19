@@ -100,6 +100,42 @@ def lateral_inhibition_operator(arcs, mode_bank, lambda_inhib=1.0,
     return H_lat
 
 
+# ---------- Structured emission noise (GL-CMD-STRUCTURED-NOISE-EVE-20260618-13) ----------
+import math as _math
+
+def structured_emission_noise(section, tick, needs_novelty,
+                              candidate_mode_ids, epsilon=0.05,
+                              omega=2 * _math.pi / 100):
+    """Biological structured noise — small, slow, novelty-modulated,
+    candidate-subspace-aligned.
+
+    Replaces strict-zero H_base on emission sections with a tiny
+    oscillation in the candidate subspace. High novelty → more
+    exploration; low novelty → more consistent.
+    """
+    if not candidate_mode_ids or not section.mode_bank:
+        return np.zeros((N, N), dtype=complex)
+    f_novelty = 0.5 + 1.0 * needs_novelty
+    phase = _math.cos(omega * tick)
+    magnitude = epsilon * f_novelty * phase
+    if abs(magnitude) < 1e-6:
+        return np.zeros((N, N), dtype=complex)
+    # Structured basis: sum of candidate projectors (candidate subspace)
+    basis = np.zeros((N, N), dtype=complex)
+    for mid in candidate_mode_ids:
+        if mid < len(section.mode_bank):
+            m = section.mode_bank[mid]
+            if (len(section._projector_cache) == len(section.mode_bank)
+                    and isinstance(section._projector_cache, list)):
+                basis += section._projector_cache[mid]
+            else:
+                basis += np.outer(m, np.conj(m))
+    nrm = np.linalg.norm(basis)
+    if nrm > 1e-9:
+        basis = basis / nrm * N  # normalize for stable magnitude
+    return magnitude * basis
+
+
 # ---------- Section ----------
 @dataclass
 class Section:
@@ -130,6 +166,10 @@ class Section:
     out_of_range_streak: dict = field(default_factory=lambda: {"entropy": 0, "coherence": 0, "greed": 0})
     _projector_cache: list = field(default_factory=list)
     _cached_H_lateral: object = field(default=None, repr=False)
+    # GL-CMD-STRUCTURED-NOISE: emission noise context
+    _use_structured_noise: bool = False
+    _noise_needs_novelty: float = 0.5
+    _noise_candidate_ids: list = field(default_factory=list)
 
     def __post_init__(self):
         self.H_base = random_hermitian(N, self.rng, scale=0.6)
@@ -184,6 +224,13 @@ class Section:
                         self.arcs(), self.mode_bank,
                         projector_cache=self._projector_cache)
                     H = H + H_lat
+        # GL-CMD-STRUCTURED-NOISE: exploratory oscillation on emission sections
+        if (self._use_structured_noise
+                and os.environ.get("EMISSION_STRUCTURED_NOISE", "0") == "1"):
+            H_noise = structured_emission_noise(
+                self, getattr(self, '_noise_tick', 0),
+                self._noise_needs_novelty, self._noise_candidate_ids)
+            H = H + H_noise
         return H
 
     def step(self, J=None):

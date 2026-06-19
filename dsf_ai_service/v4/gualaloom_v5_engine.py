@@ -1841,6 +1841,8 @@ class Guala:
             sec.H_base = np.zeros((N, N), dtype=complex)
             sec.law_fields = {k: np.zeros((N, N), dtype=complex)
                               for k in ("symmetry", "consistency", "compactness")}
+            # GL-CMD-STRUCTURED-NOISE: mark for biological noise
+            sec._use_structured_noise = True
             sec.map_inject = make_projection(N, 8, rng)
             secs.append(sec)
 
@@ -2230,6 +2232,16 @@ class Guala:
         # Track which mode indices we installed (only these have word mappings)
         installed_modes = set(self._emission_word_map.keys())
 
+        # GL-CMD-STRUCTURED-NOISE: set noise context on emission sections
+        needs_novelty = getattr(self.needs, "novelty", 0.5)
+        for sec_name in self._EMISSION_SECTIONS:
+            sec = sys_.sections[sec_name]
+            sec._noise_needs_novelty = needs_novelty
+            # Candidate mode IDs for this section
+            sec._noise_candidate_ids = [
+                idx for (sn, idx) in installed_modes if sn == sec_name
+            ]
+
         # Stage 2: Dynamics settling
         t1 = _time.monotonic()
         n_ticks = EMISSION_DYNAMICS_TICKS
@@ -2240,6 +2252,10 @@ class Guala:
         no_new_streak = 0
 
         for t in range(n_ticks):
+            # GL-CMD-STRUCTURED-NOISE: update tick for phase oscillation
+            for sec_name in self._EMISSION_SECTIONS:
+                sys_.sections[sec_name]._noise_tick = t
+
             # Evidence: section drives with noise
             ev = {}
             for sec_name in self._EMISSION_SECTIONS:
