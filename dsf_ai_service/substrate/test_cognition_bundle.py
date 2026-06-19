@@ -89,6 +89,17 @@ def _flags_off():
         os.environ[f] = "0"
 
 
+def compute_input_chis(text):
+    from dsf_ai_service.v4.gualaloom_v5_engine import LanguageKrimelack, _normalize_text
+    words = _normalize_text(text)
+    chis = []
+    for w in words:
+        temp = LanguageKrimelack()
+        temp.transduce(w)
+        chis.append(temp.winding)
+    return chis, words
+
+
 def _converse(g, text, source="joe"):
     """Simplified converse that exercises the emission + hemisphere hooks."""
     from dsf_ai_service.v4.gualaloom_v5_engine import (
@@ -379,6 +390,80 @@ def test_6_hemisphere_update_event_includes_atlas_sizes():
         return False
 
 
+def test_7_emission_mode_cap_at_15():
+    """Mode bank capped at 15 per section."""
+    print("  Test 7: emission mode cap at 15...", end=" ")
+    _flags_off()
+    os.environ["EMISSION_DYNAMICS"] = "1"
+    os.environ["RICH_SENSORY_INPUT"] = "1"
+    os.environ["LATERAL_INHIBITION_ENABLED"] = "1"
+    os.environ["EMISSION_STRUCTURED_NOISE"] = "1"
+
+    g = _build_engine()
+    from dsf_ai_service.v4.gualaloom_v5_engine import LanguageKrimelack, _normalize_text
+
+    # Run an emission which installs modes via _ensure_emission_mode
+    input_chis, words = compute_input_chis("tell me about the ocean and the moon and the stars")
+    g._last_converse_source = "joe"
+    g._emit_from_invariants(
+        input_chis, words, mode_override="grandurun",
+        v7_session=getattr(g, '_v7_session', None))
+
+    try:
+        # Check that no emission section exceeds the cap
+        if g._emission_system is None:
+            print("FAIL: no emission system built")
+            return False
+        for sec_name in g._EMISSION_SECTIONS:
+            sec = g._emission_system.sections[sec_name]
+            n_modes = len(sec.mode_bank)
+            assert n_modes <= g._EMISSION_MODE_CAP, \
+                f"{sec_name} has {n_modes} modes, cap is {g._EMISSION_MODE_CAP}"
+        print(f"PASS (modes per section: " +
+              ", ".join(f"{sn}={len(g._emission_system.sections[sn].mode_bank)}"
+                        for sn in g._EMISSION_SECTIONS) + ")")
+        return True
+    except (AssertionError, Exception) as e:
+        print(f"FAIL: {e}")
+        return False
+
+
+def test_8_commit_fires_at_capped_mode_bank():
+    """With capped mode bank, at least one commit fires."""
+    print("  Test 8: commit fires at capped bank...", end=" ")
+    _flags_off()
+    os.environ["EMISSION_DYNAMICS"] = "1"
+    os.environ["RICH_SENSORY_INPUT"] = "1"
+    os.environ["LATERAL_INHIBITION_ENABLED"] = "1"
+    os.environ["EMISSION_STRUCTURED_NOISE"] = "1"
+
+    g = _build_engine()
+
+    # Run 3 emissions and check if any produces commits
+    inputs = ["the moon is bright", "ocean waves are deep", "i love you"]
+    total_commits = 0
+    for text in inputs:
+        g._substrate_events.clear()
+        input_chis, words = compute_input_chis(text)
+        g._last_converse_source = "joe"
+        g._emit_from_invariants(
+            input_chis, words, mode_override="grandurun",
+            v7_session=getattr(g, '_v7_session', None))
+        for evt in g._substrate_events:
+            if hasattr(evt, 'kind') and evt.kind == 'emission_dynamics':
+                n = evt.detail.get('n_commits', 0)
+                total_commits += n
+
+    try:
+        assert total_commits >= 1, \
+            f"total commits across 3 inputs = {total_commits}, expected ≥1"
+        print(f"PASS (total_commits={total_commits} across 3 inputs)")
+        return True
+    except (AssertionError, Exception) as e:
+        print(f"FAIL: {e}")
+        return False
+
+
 def main():
     print("GL-CMD-COGNITION-BUNDLE Verification Tests")
     print("=" * 60)
@@ -390,6 +475,8 @@ def main():
         test_4_gp_goal_bias,
         test_5_combined_all_flags,
         test_6_hemisphere_update_event_includes_atlas_sizes,
+        test_7_emission_mode_cap_at_15,
+        test_8_commit_fires_at_capped_mode_bank,
     ]
 
     results = []

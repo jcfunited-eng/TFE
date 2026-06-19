@@ -1912,9 +1912,13 @@ class Guala:
 
         return sys_
 
+    # Cap mode bank size per section — DET_COMMIT=0.40 is calibrated for ~12 modes.
+    # See GL-RPT-INVESTIGATE-COMMIT-PIPELINE-C1-20260619-01.
+    _EMISSION_MODE_CAP = 15
+
     def _ensure_emission_mode(self, sys_, section_name, motif_id, word):
         """Install a mode in the emission system for (section, motif) if absent.
-        Returns the mode_bank index."""
+        Returns the mode_bank index, or None if section is at mode cap."""
         import numpy as np
         from dsf_ai_service.substrate.assemblage import N, random_unit_complex
 
@@ -1935,11 +1939,15 @@ class Guala:
             self._emission_word_map[(section_name, idx)] = word
             return idx
 
+        # Cap: don't install new modes beyond _EMISSION_MODE_CAP per section
+        sec = sys_.sections[section_name]
+        if len(sec.mode_bank) >= self._EMISSION_MODE_CAP:
+            return None
+
         # Create new mode vector
         vec = random_unit_complex(N, self._emission_rng)
         self._emission_token_vec[key] = vec
 
-        sec = sys_.sections[section_name]
         sec.mode_bank.append(vec.copy())
         sec.mode_last_used.append(0)
         sec.mode_strength.append(1.0)
@@ -2218,6 +2226,9 @@ class Guala:
 
             mode_idx = self._ensure_emission_mode(
                 sys_, sec_name, cand["motif"], cand["word"])
+
+            if mode_idx is None:
+                continue  # section at mode cap; candidate still counted but not installed
 
             # Bias section psi toward this candidate's mode
             mode_vec = sys_.sections[sec_name].mode_bank[mode_idx]
