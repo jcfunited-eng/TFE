@@ -5,7 +5,6 @@ self-improvement, awareness.
 
 Fixes:
 - Novel-mode spawn (single-mode collapse fix)
-- Gamma drift-toward-default (boundary-pinning fix)
 - Resolution-effect metric for coordinator (rubber-stamping fix)
 
 New primitives:
@@ -31,7 +30,6 @@ BOOTSTRAP_MAX = 8
 MODE_DECAY_TICKS = 80
 SELF_EVO_PERIOD = 40
 GAMMA_DEFAULTS = {"symmetry": 0.5, "consistency": 0.5, "compactness": 0.3}
-GAMMA_DRIFT = 0.02   # spring force back to default per self-evo step
 GAMMA_BOUNDS = (0.05, 1.5)
 
 # ---------- helpers ----------
@@ -245,13 +243,9 @@ class Section:
             "compactness": np.diag(np.linspace(-1, 1, N)).astype(complex) * 0.5,
         }
         self.gamma = dict(GAMMA_DEFAULTS)
-        self._initial_gamma = dict(GAMMA_DEFAULTS)
 
-    def gamma_homeostasis(self, rate=0.001):
-        """Pull gamma toward initial values. Prevents self-evo drift lock-in."""
-        for k in self.gamma:
-            if k in self._initial_gamma:
-                self.gamma[k] = (1.0 - rate) * self.gamma[k] + rate * self._initial_gamma[k]
+    # B2 gamma_homeostasis REMOVED — GL-CMD-REMOVE-GAMMA-ANTI-ADAPTATION-EVE-20260619-25
+    # B1 _initial_gamma + GAMMA_DRIFT REMOVED — same brief
 
     def effective_det_commit(self, current_tick):
         """Excitation pulse lowers commit threshold."""
@@ -701,11 +695,6 @@ class System:
                                               "mode_id": mode_id, "reason": reason,
                                               "atlas_snapshot": snap.copy()})
 
-        # Gamma homeostasis every 20 ticks (B2 — separate from B3/B4 removal)
-        for sec in self.sections.values():
-            if self.tick % 20 == 0 and not getattr(sec, '_emit_phase', False):
-                sec.gamma_homeostasis(rate=0.001)  # (1) gamma decay
-
         if self.tick % 20 == 0:
             # (2) Keyhole strength decay
             for kh in self.keyholes:
@@ -754,9 +743,6 @@ class System:
                     dgamma["consistency"] += eta
                 if sec.out_of_range_streak["greed"] >= 2:
                     dgamma["compactness"] += eta
-                for k in dgamma:
-                    drift = (GAMMA_DEFAULTS[k] - sec.gamma[k]) * GAMMA_DRIFT
-                    dgamma[k] += drift
                 for k, dv in dgamma.items():
                     sec.gamma[k] = float(np.clip(sec.gamma[k] + dv, *GAMMA_BOUNDS))
                 self.section_self_evo_log[sec.name].append({

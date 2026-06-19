@@ -41,10 +41,28 @@ Each entry records Joe's adjudication and the implementing brief.
 
 ---
 
-## Remaining findings (NOT addressed in this brief)
+## B1 — `GAMMA_DRIFT` + drift-toward-default in self-evo (assemblage.py) — REMOVED
 
-- **B1** (gamma self-evolution block) — separate Joe call pending
-- **B2** (`gamma_homeostasis`) — separate Joe call pending
+**Finding:** Self-evolution block adds `drift = (GAMMA_DEFAULTS[k] - sec.gamma[k]) * GAMMA_DRIFT` to every gamma update. This pulls gamma values back toward hard-coded defaults, preventing genuine field-shape accumulation from experience.
+
+**Joe's adjudication:** REMOVE. Approved.
+
+**Implementing brief:** GL-CMD-REMOVE-GAMMA-ANTI-ADAPTATION-EVE-20260619-25
+
+---
+
+## B2 — `gamma_homeostasis` + `_initial_gamma` (assemblage.py) — REMOVED
+
+**Finding:** `gamma_homeostasis(rate=0.001)` drifts gamma toward `_initial_gamma` snapshot every 20 ticks. Same `(1-rate)*x + rate*initial_x` anti-learning pattern as B3.
+
+**Joe's adjudication:** REMOVE. Approved.
+
+**Implementing brief:** GL-CMD-REMOVE-GAMMA-ANTI-ADAPTATION-EVE-20260619-25
+
+---
+
+## Remaining findings (NOT addressed)
+
 - **A1-A4, C1-C5, D1-D6, E, F1-F4, G1-G3** — per-finding approval required
 
 ---
