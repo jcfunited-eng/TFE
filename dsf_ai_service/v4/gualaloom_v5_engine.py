@@ -1834,6 +1834,12 @@ class Guala:
         secs = []
         for name in self._EMISSION_SECTIONS:
             sec = AsmSection(name=name, rng=rng, role="subject_like")
+            # GL-CMD-EMISSION-HBASE-FREE: zero H_base and law_fields so psi
+            # settles via evidence + inhibition only, not Hamiltonian rotation.
+            # Matches the listen section pattern exactly.
+            sec.H_base = np.zeros((N, N), dtype=complex)
+            sec.law_fields = {k: np.zeros((N, N), dtype=complex)
+                              for k in ("symmetry", "consistency", "compactness")}
             sec.map_inject = make_projection(N, 8, rng)
             secs.append(sec)
 
@@ -2072,7 +2078,9 @@ class Guala:
                 no_new_streak = 0
             else:
                 no_new_streak += 1
-            if no_new_streak >= 15:
+            # Only allow early exit after at least one commit has fired
+            # (with H_base zeroed + inhibition, commits start around tick 60-70)
+            if emit_commits and no_new_streak >= 10:
                 break
             if len(emit_commits) >= 20:
                 break
