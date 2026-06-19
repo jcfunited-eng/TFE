@@ -2184,12 +2184,14 @@ class Guala:
                         cand["coherent_magnitude"] *= 0.7
 
         # GL-CMD-COGNITION-BUNDLE: sc/gp emission weighting
+        # perf/cache-sc-weights: build sc weight cache once per emission
         try:
             from dsf_ai_service.substrate.hemisphere_cognition import (
-                get_emission_hemisphere_weights,
+                get_emission_hemisphere_weights, build_sc_weight_cache,
             )
+            sc_cache = build_sc_weight_cache(self)
             for cand in all_candidates:
-                hw = get_emission_hemisphere_weights(cand, self)
+                hw = get_emission_hemisphere_weights(cand, self, sc_cache=sc_cache)
                 if hw > 0:
                     cand["coherent_magnitude"] += hw
                     cand["sc_gp_weight"] = hw

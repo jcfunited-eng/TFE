@@ -619,6 +619,36 @@ def test_12_ep_non_atlas_sizes_in_event():
         return False
 
 
+def test_13_sc_weight_cache_matches_uncached():
+    """Cached sc weights match uncached for all chi values."""
+    print("  Test 13: sc weight cache consistency...", end=" ")
+    _flags_off()
+    os.environ["HEMI_SC_ENABLED"] = "1"
+
+    g = _build_engine()
+    from dsf_ai_service.substrate.hemisphere_cognition import (
+        setup_sc, build_sc_weight_cache, sc_weight_for_candidate,
+    )
+    setup_sc(g)
+
+    cache = build_sc_weight_cache(g)
+
+    try:
+        # Test 10 chi values from the atlas
+        test_chis = list(g.atlas.entries.keys())[:10]
+        for chi in test_chis:
+            cand = {"chi": chi, "word": "test"}
+            cached_w = sc_weight_for_candidate(cand, g, _cache=cache)
+            uncached_w = sc_weight_for_candidate(cand, g, _cache=None)
+            assert abs(cached_w - uncached_w) < 1e-9, \
+                f"chi={chi}: cached={cached_w} != uncached={uncached_w}"
+        print(f"PASS (tested {len(test_chis)} chi values, cache size={len(cache)})")
+        return True
+    except (AssertionError, Exception) as e:
+        print(f"FAIL: {e}")
+        return False
+
+
 def main():
     print("GL-CMD-COGNITION-BUNDLE Verification Tests")
     print("=" * 60)
@@ -636,6 +666,7 @@ def main():
         test_10_emission_install_populates_all_sections,
         test_11_word_to_emission_index_built_at_boot,
         test_12_ep_non_atlas_sizes_in_event,
+        test_13_sc_weight_cache_matches_uncached,
     ]
 
     results = []

@@ -383,12 +383,34 @@ def sc_polarity_update(guala, input_chis, tick, events_log):
                             })
 
 
-def sc_weight_for_candidate(candidate, guala):
-    """Return additive weight for a candidate based on sc.atlas binding strength."""
+def build_sc_weight_cache(guala):
+    """Pre-compute chi→weight dict from sc.atlas for fast per-candidate lookup.
+    Built once per emission, used ~200 times. O(n_atlas_keys) instead of
+    O(n_candidates × n_entries_per_chi)."""
+    sc = guala.hemispheres.get("sc")
+    if sc is None:
+        return {}
+    cache = {}
+    for chi, entries in sc.atlas.entries.items():
+        best = 0.0
+        for e in entries:
+            s = e.get("strength", 0.0)
+            if s >= FORGETTING_THRESHOLD and s > best:
+                best = s
+        if best > 0:
+            cache[chi] = best * SC_EMISSION_WEIGHT
+    return cache
+
+
+def sc_weight_for_candidate(candidate, guala, _cache=None):
+    """Return additive weight for a candidate based on sc.atlas binding strength.
+    If _cache is provided (from build_sc_weight_cache), uses O(1) dict lookup."""
+    if _cache is not None:
+        return _cache.get(candidate.get("chi", 0), 0.0)
     sc = guala.hemispheres.get("sc")
     if sc is None:
         return 0.0
-    chi = candidate.get("chi", candidate.get("chi", 0))
+    chi = candidate.get("chi", 0)
     for e in sc.atlas.entries.get(chi, []):
         if e["strength"] >= FORGETTING_THRESHOLD:
             return e["strength"] * SC_EMISSION_WEIGHT
@@ -574,12 +596,13 @@ def run_hemisphere_updates(guala, text, source, input_chis, reply,
     return events_log
 
 
-def get_emission_hemisphere_weights(candidate, guala):
+def get_emission_hemisphere_weights(candidate, guala, sc_cache=None):
     """Combined sc + gp weighting for an emission candidate.
-    Called from _rich_sensory_candidates or _emit_dynamics."""
+    Called from _rich_sensory_candidates or _emit_dynamics.
+    Pass sc_cache from build_sc_weight_cache for O(1) SC lookup."""
     weight = 0.0
     if os.environ.get("HEMI_SC_ENABLED", "0") == "1":
-        w = sc_weight_for_candidate(candidate, guala)
+        w = sc_weight_for_candidate(candidate, guala, _cache=sc_cache)
         if w > 0:
             weight += w
     if os.environ.get("HEMI_GP_ENABLED", "0") == "1":
