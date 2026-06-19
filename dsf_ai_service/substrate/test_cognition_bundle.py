@@ -372,11 +372,17 @@ def test_6_hemisphere_update_event_includes_atlas_sizes():
         assert isinstance(sizes, dict), f"expected dict, got {type(sizes)}"
 
         # All hemispheres should be present
-        for hname in ("em", "pr", "ep", "sc", "gp"):
+        for hname in ("em", "pr", "sc", "gp"):
             assert hname in sizes, f"'{hname}' missing from hemisphere_atlas_sizes"
             assert isinstance(sizes[hname], int), \
                 f"sizes['{hname}'] is {type(sizes[hname])}, expected int"
             assert sizes[hname] >= 0, f"sizes['{hname}'] = {sizes[hname]} < 0"
+        # ep is a dict (non-atlas hemisphere)
+        assert "ep" in sizes, "'ep' missing from hemisphere_atlas_sizes"
+        assert isinstance(sizes["ep"], dict), \
+            f"sizes['ep'] is {type(sizes['ep'])}, expected dict"
+        assert "turn_log" in sizes["ep"], "turn_log missing from ep sizes"
+        assert "tracked_objects" in sizes["ep"], "tracked_objects missing from ep sizes"
 
         # em should have bindings (test engine has ~90)
         assert sizes["em"] > 10, f"em atlas size {sizes['em']} too small"
@@ -577,6 +583,42 @@ def test_11_word_to_emission_index_built_at_boot():
         return False
 
 
+def test_12_ep_non_atlas_sizes_in_event():
+    """ep hemisphere reports turn_log + tracked_objects counts, not atlas."""
+    print("  Test 12: ep non-atlas sizes...", end=" ")
+    os.environ["HEMI_PR_ENABLED"] = "1"
+    os.environ["HEMI_EP_ENABLED"] = "1"
+    os.environ["HEMI_SC_ENABLED"] = "1"
+    os.environ["HEMI_GP_ENABLED"] = "1"
+
+    g = _build_engine()
+    # Send 3 inputs to populate ep.turn_log
+    for text in ["hello", "the moon", "ocean waves"]:
+        _converse(g, text)
+
+    # Find most recent hemisphere_update
+    hemi_event = None
+    for evt in g._substrate_events:
+        if hasattr(evt, 'kind') and evt.kind == 'hemisphere_update':
+            hemi_event = evt
+
+    try:
+        assert hemi_event is not None, "no hemisphere_update event"
+        sizes = hemi_event.detail.get("hemisphere_atlas_sizes", {})
+        ep_val = sizes.get("ep")
+        assert isinstance(ep_val, dict), f"ep is {type(ep_val)}, expected dict"
+        assert ep_val["turn_log"] >= 3, f"turn_log={ep_val['turn_log']}, expected >=3"
+        assert ep_val["tracked_objects"] >= 1, f"tracked_objects={ep_val['tracked_objects']}"
+        # Atlas hemispheres should still be ints
+        for h in ("em", "pr", "sc", "gp"):
+            assert isinstance(sizes.get(h, 0), int), f"{h} is {type(sizes.get(h))}, expected int"
+        print(f"PASS (ep={ep_val})")
+        return True
+    except (AssertionError, Exception) as e:
+        print(f"FAIL: {e}")
+        return False
+
+
 def main():
     print("GL-CMD-COGNITION-BUNDLE Verification Tests")
     print("=" * 60)
@@ -593,6 +635,7 @@ def main():
         test_9_rich_sensory_routes_to_emission_sections,
         test_10_emission_install_populates_all_sections,
         test_11_word_to_emission_index_built_at_boot,
+        test_12_ep_non_atlas_sizes_in_event,
     ]
 
     results = []

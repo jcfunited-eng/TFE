@@ -550,13 +550,18 @@ def run_hemisphere_updates(guala, text, source, input_chis, reply,
 
     # Log hemisphere events
     if events_log:
-        # Per-hemisphere atlas binding counts for observability
+        # Per-hemisphere state counts for observability
         hemi_sizes = {}
         for hname, coord in guala.hemispheres.items():
-            atlas = getattr(coord, 'atlas', None)
-            if atlas is not None:
+            if hasattr(coord, 'turn_log'):
+                # Non-atlas hemisphere (ep). Report turn_log + tracked_objects.
+                hemi_sizes[hname] = {
+                    "turn_log": len(getattr(coord, 'turn_log', [])),
+                    "tracked_objects": len(getattr(coord, 'tracked_objects', {})),
+                }
+            elif getattr(coord, 'atlas', None) is not None:
                 hemi_sizes[hname] = sum(
-                    len(v) for v in atlas.entries.values())
+                    len(v) for v in coord.atlas.entries.values())
             else:
                 # em uses guala.atlas directly
                 hemi_sizes[hname] = sum(
