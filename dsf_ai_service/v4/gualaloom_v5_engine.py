@@ -2167,6 +2167,45 @@ class Guala:
         except Exception:
             pass
 
+        # GL-CMD-ROUTE-CANDIDATES-TO-EMISSION-SECTIONS:
+        # Re-route listen/intro candidates to emission-section counterparts.
+        # The atlas has the same word in both listen AND subject/verb/object
+        # (read_word records in listen unconditionally + position-driven section).
+        # Without re-routing, 95% of candidates land in listen/intro and the
+        # emission install loop skips them.
+        _non_emission = frozenset(s for s in self.sections
+                                   if s not in self._EMISSION_SECTIONS)
+        # Build word→[(section, motif_idx)] index for emission sections
+        _word_to_emission = {}
+        for es in self._EMISSION_SECTIONS:
+            es_sec = self.sections.get(es)
+            if not es_sec:
+                continue
+            for mi, (_, _, w) in enumerate(es_sec.modes):
+                if w:
+                    wl = w.lower()
+                    if wl not in _word_to_emission:
+                        _word_to_emission[wl] = []
+                    _word_to_emission[wl].append((es, mi, w))
+
+        routed = []
+        for cand in all_candidates:
+            if cand.get("section") in _non_emission:
+                word = (cand.get("word") or "").lower()
+                matches = _word_to_emission.get(word, [])
+                for (es, mi, w) in matches:
+                    rkey = (es, mi)
+                    if rkey not in seen:
+                        seen.add(rkey)
+                        routed.append({
+                            **cand,
+                            "section": es,
+                            "motif": mi,
+                            "word": w,
+                            "origin": "emission_reroute",
+                        })
+        all_candidates.extend(routed)
+
         # Sort by activation and return top candidates
         all_candidates.sort(key=lambda c: -c["coherent_magnitude"])
         return all_candidates[:GRANDURUN_TOPK]

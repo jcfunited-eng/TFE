@@ -464,6 +464,91 @@ def test_8_commit_fires_at_capped_mode_bank():
         return False
 
 
+def test_9_rich_sensory_routes_to_emission_sections():
+    """Candidates from listen/intro get re-routed to emission sections."""
+    print("  Test 9: emission-section routing...", end=" ")
+    _flags_off()
+    os.environ["EMISSION_DYNAMICS"] = "1"
+    os.environ["RICH_SENSORY_INPUT"] = "1"
+    os.environ["LATERAL_INHIBITION_ENABLED"] = "1"
+
+    g = _build_engine()
+    input_chis, words = compute_input_chis("tell me about the ocean")
+    input_words_set = set(w.lower() for w in words)
+
+    # Gather deep_candidates (same as _emit_from_invariants does)
+    deep_candidates = []
+    for chi in input_chis:
+        for d in range(-g.atlas.band, g.atlas.band + 1):
+            for de in g.deep_atlas.entries.get(chi + d, []):
+                co = de.get("co_occurrence", {})
+                if co:
+                    deep_candidates.append((de, co, de.get("clarity", 0.3)))
+
+    candidates = g._rich_sensory_candidates(
+        input_chis, words, input_words_set,
+        deep_candidates=deep_candidates)
+
+    try:
+        sec_counts = {}
+        for c in candidates:
+            sn = c.get("section", "?")
+            sec_counts[sn] = sec_counts.get(sn, 0) + 1
+
+        # At least one candidate in subject or object
+        subj = sec_counts.get("subject", 0)
+        obj = sec_counts.get("object", 0)
+        verb = sec_counts.get("verb", 0)
+        assert subj + obj > 0, \
+            f"subject={subj}, object={obj} — no emission-section candidates. counts={sec_counts}"
+
+        # Check for emission_reroute origin
+        rerouted = sum(1 for c in candidates if c.get("origin") == "emission_reroute")
+
+        print(f"PASS (subject={subj}, verb={verb}, object={obj}, rerouted={rerouted})")
+        return True
+    except (AssertionError, Exception) as e:
+        print(f"FAIL: {e}")
+        return False
+
+
+def test_10_emission_install_populates_all_sections():
+    """After routing fix, all three emission sections get modes installed."""
+    print("  Test 10: emission sections populated...", end=" ")
+    _flags_off()
+    os.environ["EMISSION_DYNAMICS"] = "1"
+    os.environ["RICH_SENSORY_INPUT"] = "1"
+    os.environ["LATERAL_INHIBITION_ENABLED"] = "1"
+
+    g = _build_engine()
+    g._emission_system = None
+    g._emission_token_vec = {}
+    g._emission_word_map = {}
+    g._emission_drive_tracker = {}
+    g._last_converse_source = "joe"
+    g._substrate_events.clear()
+
+    input_chis, words = compute_input_chis("the moon is bright")
+    g._emit_from_invariants(
+        input_chis, words, mode_override="grandurun",
+        v7_session=getattr(g, '_v7_session', None))
+
+    try:
+        assert g._emission_system is not None, "no emission system built"
+        populated = {}
+        for sn in g._EMISSION_SECTIONS:
+            n = len(g._emission_system.sections[sn].mode_bank)
+            populated[sn] = n
+        assert populated["subject"] >= 1, f"subject has {populated['subject']} modes"
+        assert populated["verb"] >= 1, f"verb has {populated['verb']} modes"
+        assert populated["object"] >= 1, f"object has {populated['object']} modes"
+        print(f"PASS (modes: {populated})")
+        return True
+    except (AssertionError, Exception) as e:
+        print(f"FAIL: {e}")
+        return False
+
+
 def main():
     print("GL-CMD-COGNITION-BUNDLE Verification Tests")
     print("=" * 60)
@@ -477,6 +562,8 @@ def main():
         test_6_hemisphere_update_event_includes_atlas_sizes,
         test_7_emission_mode_cap_at_15,
         test_8_commit_fires_at_capped_mode_bank,
+        test_9_rich_sensory_routes_to_emission_sections,
+        test_10_emission_install_populates_all_sections,
     ]
 
     results = []
