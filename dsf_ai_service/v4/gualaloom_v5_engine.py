@@ -1101,6 +1101,7 @@ class Guala:
         from dsf_ai_service.substrate.assemblage import HemisphereCoordinator
         self._hemisphere_em = HemisphereCoordinator("em", needs=self.needs)
         self.hemispheres = {"em": self._hemisphere_em}
+        self._cross_hemi_links = []  # list of CrossHemiLink (populated by cognition bundle)
         # QuestionBucket removed (GL-BRIEF-EMISSION-CONSTRAINT-REMOVAL Phase E)
         self.tick = 0
         self.read_count = 0
@@ -1498,6 +1499,24 @@ class Guala:
             # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
             if reply and reply != "..." and source in ("joe", "wc", "c1"):
                 self._self_hear(reply, source)
+
+            # GL-CMD-COGNITION-BUNDLE: run hemisphere updates after emission
+            try:
+                from dsf_ai_service.substrate.hemisphere_cognition import (
+                    run_hemisphere_updates,
+                )
+                # Compute emission chis for ep turn log
+                emission_chis = []
+                if reply and reply != "...":
+                    for ew in _normalize_text(reply):
+                        ek = LanguageKrimelack()
+                        ek.transduce(ew)
+                        emission_chis.append(ek.winding)
+                run_hemisphere_updates(
+                    self, text, source, input_chis, reply,
+                    emission_chis, self.tick)
+            except Exception as _hemi_err:
+                pass  # hemisphere failures must not break converse
 
             return reply
 
@@ -2126,6 +2145,19 @@ class Guala:
                         cand["coherent_magnitude"] *= 1.3
                     elif dist > 5:
                         cand["coherent_magnitude"] *= 0.7
+
+        # GL-CMD-COGNITION-BUNDLE: sc/gp emission weighting
+        try:
+            from dsf_ai_service.substrate.hemisphere_cognition import (
+                get_emission_hemisphere_weights,
+            )
+            for cand in all_candidates:
+                hw = get_emission_hemisphere_weights(cand, self)
+                if hw > 0:
+                    cand["coherent_magnitude"] += hw
+                    cand["sc_gp_weight"] = hw
+        except Exception:
+            pass
 
         # Sort by activation and return top candidates
         all_candidates.sort(key=lambda c: -c["coherent_magnitude"])

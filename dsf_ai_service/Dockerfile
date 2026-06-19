@@ -26,6 +26,13 @@ ENV LATERAL_INHIBITION_ENABLED=1
 ENV RICH_SENSORY_INPUT=1
 ENV EMISSION_STRUCTURED_NOISE=1
 
+# GL-CMD-COGNITION-BUNDLE-EVE-20260619-23
+# Hemisphere cognition gates — all OFF by default, Eve+Joe flip after report
+ENV HEMI_PR_ENABLED=0
+ENV HEMI_EP_ENABLED=0
+ENV HEMI_SC_ENABLED=0
+ENV HEMI_GP_ENABLED=0
+
 EXPOSE 8080
 
 CMD ["uvicorn", "dsf_ai_service.app:app", "--host", "0.0.0.0", "--port", "8080"]
