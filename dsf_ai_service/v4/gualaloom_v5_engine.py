@@ -1487,6 +1487,10 @@ class Guala:
                 # 8. Honest silence
                 reply = "..."
 
+            # GL-CMD-TEACHER-CORRECTION-BINDING: track last conversation pair
+            self._last_converse_input = text
+            self._last_converse_reply = reply
+
             # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
             if reply and reply != "..." and source in ("joe", "wc", "c1"):
                 self._self_hear(reply, source)
@@ -3611,6 +3615,188 @@ class Guala:
                                       section=section_name,
                                       source=current_source,
                                       delta_t_ticks=delta_t)
+
+    # ------------------------------------------------------------------
+    # GL-CMD-TEACHER-CORRECTION-BINDING-EVE-20260618-12
+    # ------------------------------------------------------------------
+
+    def apply_teacher_correction(self, original_input, her_emission,
+                                  correct, expected_response=None,
+                                  source="joe", correction_affect=None,
+                                  tick=None):
+        """Full teacher-correction event. Encodes the corrected experience
+        as a consolidated cofire-bound binding with source, affect, and
+        sensory context.
+
+        - Thumbs-up: reinforce emission bindings, cofire-bind input↔emission.
+        - Thumbs-down with expected: weaken emission bindings, ingest
+          expected as heard utterance, cofire-bind input↔expected with
+          high salience.
+        - Thumbs-down without expected: weaken only.
+        """
+        with self.lock:
+            correction_tick = tick or self.tick
+
+            # Snapshot context
+            needs_snapshot = {
+                "novelty": getattr(self.needs, "novelty", 0.5),
+                "connection": getattr(self.needs, "connection", 0.5),
+            }
+            activity_snapshot = None
+            if self._current_activity:
+                activity_snapshot = self._current_activity.snapshot() if hasattr(
+                    self._current_activity, 'snapshot') else str(self._current_activity)
+
+            # Compute content-word chis for original input
+            input_words = _normalize_text(original_input)
+            input_content = [w for w in input_words
+                             if w.lower() not in self._FUNCTION_WORDS and len(w) > 1]
+            if not input_content:
+                input_content = input_words[:3]
+            input_chis = []
+            for w in input_content:
+                k = LanguageKrimelack()
+                k.transduce(w)
+                input_chis.append(k.winding)
+
+            # Compute chis for her emission
+            emission_words = _normalize_text(her_emission)
+            emission_chis = []
+            for w in emission_words:
+                k = LanguageKrimelack()
+                k.transduce(w)
+                emission_chis.append(k.winding)
+
+            affected = []
+
+            if correct:
+                # Thumbs-up: reinforce emission bindings
+                for chi in emission_chis:
+                    for d in range(-self.atlas.band, self.atlas.band + 1):
+                        for e in self.atlas.entries.get(chi + d, []):
+                            if e["strength"] < FORGETTING_THRESHOLD:
+                                continue
+                            e["strength"] = min(STRENGTH_CAP,
+                                                e["strength"] + 0.05)
+                            affected.append({
+                                "chi": chi + d,
+                                "section": e["section"],
+                                "motif": e["motif"],
+                                "action": "reinforce",
+                                "new_strength": e["strength"],
+                            })
+                # Cofire-bind input↔emission
+                for in_chi in input_chis:
+                    for em_chi in emission_chis:
+                        if in_chi != em_chi:
+                            self.atlas.record(
+                                "verb", deterministic_motif_id("cofire_bind"),
+                                (in_chi + em_chi) // 2,
+                                tick=correction_tick,
+                                salience=1.5,
+                                dwell_ticks=3,
+                                source=source,
+                                sensory_refs=[f"correction:{source}:thumbs_up"],
+                            )
+            else:
+                # Thumbs-down: weaken emission bindings
+                for chi in emission_chis:
+                    for d in range(-self.atlas.band, self.atlas.band + 1):
+                        for e in self.atlas.entries.get(chi + d, []):
+                            if e["strength"] < FORGETTING_THRESHOLD:
+                                continue
+                            # Match emission words
+                            sec = self.sections.get(e.get("section", ""))
+                            if sec and e.get("motif", 0) < len(sec.modes):
+                                _, _, wl = sec.modes[e["motif"]]
+                                if wl and wl.lower() in set(
+                                        w.lower() for w in emission_words):
+                                    e["strength"] = max(0.0,
+                                                        e["strength"] - 0.05)
+                                    affected.append({
+                                        "chi": chi + d,
+                                        "section": e["section"],
+                                        "motif": e["motif"],
+                                        "action": "weaken",
+                                        "new_strength": e["strength"],
+                                    })
+
+                # Also weaken in emission system mode_strength if available
+                if self._emission_system:
+                    for sec_name in self._EMISSION_SECTIONS:
+                        sec = self._emission_system.sections.get(sec_name)
+                        if sec and hasattr(sec, 'mode_strength'):
+                            for i, ms in enumerate(sec.mode_strength):
+                                w = self._emission_word_map.get(
+                                    (sec_name, i))
+                                if w and w.lower() in set(
+                                        ew.lower() for ew in emission_words):
+                                    sec.mode_strength[i] = max(
+                                        0.0, ms - 0.05)
+
+                if expected_response:
+                    # Ingest expected as heard utterance from corrector
+                    try:
+                        self.read_sentence(expected_response, source=source)
+                    except Exception:
+                        # Fallback: record expected words directly in atlas
+                        for w in _normalize_text(expected_response):
+                            k = LanguageKrimelack()
+                            k.transduce(w)
+                            self.atlas.record(
+                                "object", deterministic_motif_id(w),
+                                k.winding, tick=correction_tick,
+                                salience=2.0, dwell_ticks=5,
+                                source=source,
+                            )
+
+                    # Compute expected chis
+                    expected_words = _normalize_text(expected_response)
+                    expected_chis = []
+                    for w in expected_words:
+                        k = LanguageKrimelack()
+                        k.transduce(w)
+                        expected_chis.append(k.winding)
+
+                    # Cofire-bind input↔expected with HIGH salience
+                    for in_chi in input_chis:
+                        for ex_chi in expected_chis:
+                            self.atlas.record(
+                                "verb",
+                                deterministic_motif_id("correction_bind"),
+                                (in_chi + ex_chi) // 2,
+                                tick=correction_tick,
+                                salience=2.0,  # higher than normal
+                                dwell_ticks=5,
+                                source=source,
+                                sensory_refs=[
+                                    f"correction:{source}:thumbs_down",
+                                    f"correction_context:True",
+                                ],
+                            )
+                    affected.append({
+                        "action": "ingest_expected",
+                        "expected": expected_response,
+                        "source": source,
+                    })
+
+            # Log the correction event
+            self._log_substrate_event("teacher_correction",
+                                      original_input=original_input,
+                                      her_emission=her_emission,
+                                      correct=correct,
+                                      expected_response=expected_response,
+                                      source=source,
+                                      needs=needs_snapshot,
+                                      activity=activity_snapshot,
+                                      n_affected=len(affected),
+                                      affected=affected[:10])
+
+            return {
+                "correct": correct,
+                "n_affected": len(affected),
+                "affected": affected,
+            }
 
     def _self_hear(self, reply, responding_to_source):
         """GL-BRIEF-034: Self-hearing — Guala hears her own conversational reply.

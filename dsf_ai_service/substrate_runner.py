@@ -267,6 +267,21 @@ def handle_v7_feedback(args):
     except Exception:
         pass
     result["session_id"] = session_id
+
+    # GL-CMD-TEACHER-CORRECTION-BINDING: also apply to v5 Guala
+    if _guala and hasattr(_guala, 'apply_teacher_correction'):
+        original_input = getattr(_guala, '_last_converse_input', None)
+        her_emission = getattr(_guala, '_last_converse_reply', None)
+        if original_input and her_emission:
+            expected = " ".join(expected_tokens) if expected_tokens else None
+            _guala.apply_teacher_correction(
+                original_input=original_input,
+                her_emission=her_emission,
+                correct=bool(correct),
+                expected_response=expected,
+                source="joe",
+            )
+
     return result
 
 
