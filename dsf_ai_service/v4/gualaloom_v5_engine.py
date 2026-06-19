@@ -1853,6 +1853,12 @@ class Guala:
 
         sys_ = AsmSystem(secs, rng)
 
+        # GL-CMD-PLASTICITY-ON-COMMIT: install plasticity on emission sections
+        # so arcs() uses mode_strength as a multiplier. Matches v7 pattern.
+        from dsf_ai_service.substrate.gl_plasticity import install_plasticity
+        for sec in secs:
+            install_plasticity(sec, initial_strength=1.0)
+
         # Phase 3: Install keyholes for canonical cascade
         # subject → verb → object, wide chi band
         sys_.add_keyhole("subject", -50, 50, "verb", goal_strength=0.4)
@@ -1934,7 +1940,9 @@ class Guala:
         from dsf_ai_service.substrate.gl_nmda import (
             CoincidenceGate, context_section_committed, update_drive_tracker,
         )
-        from dsf_ai_service.substrate.gl_plasticity import decay_plasticity
+        from dsf_ai_service.substrate.gl_plasticity import (
+            decay_plasticity, install_plasticity, reinforce_mode,
+        )
 
         # Stage 1: Coherent-integration candidate selection
         t0 = _time.monotonic()
@@ -2050,6 +2058,12 @@ class Guala:
                         seen_commit_keys.add(ckey)
                         emit_commits.append(c)
                         new_this_tick = True
+                        # GL-CMD-PLASTICITY-ON-COMMIT: LTP on commit.
+                        # Decision and learning are the same event.
+                        # Matches v7 pattern at v7_engine.py:510.
+                        reinforce_mode(sys_.sections[c["section"]],
+                                       c["mode_id"],
+                                       boost=0.05, ceiling=2.5)
 
             # Track keyhole propagation
             for c in commits:
