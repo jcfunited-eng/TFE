@@ -17,6 +17,8 @@ log = logging.getLogger(__name__)
 
 SAVE_COORDINATOR = None  # set by substrate_runner on init
 
+S3_MIN_INTERVAL_SECONDS = 600   # 10 minutes between rate-limited S3 enqueues
+
 
 class SaveCoordinator:
     def __init__(self, guala, state_dir, s3_bucket=None):
@@ -26,6 +28,7 @@ class SaveCoordinator:
         self.s3_queue = queue.Queue(maxsize=20)
         self.last_save_tick = 0
         self.last_save_wall = 0.0
+        self._last_s3_enqueue_wall = 0.0
         self._lock = threading.Lock()
 
         if s3_bucket:
@@ -49,13 +52,34 @@ class SaveCoordinator:
             self.last_save_wall = time.monotonic()
         try:
             self.guala.save_full_state(self.state_dir)
-            if self.s3_bucket and reason in ("backup", "shutdown",
-                                              "dream_end", "presence_quiet"):
-                self.queue_s3(self.state_dir, self.guala.tick, reason)
+            if self.s3_bucket:
+                self._maybe_queue_s3(reason)
             return True
         except Exception as e:
             log.error("[save] failed: %s", e)
             return False
+
+    def _maybe_queue_s3(self, reason):
+        """Enqueue an S3 backup if reason warrants it.
+
+        Three classes:
+          - always-queue: shutdown, backup, dream_end (no rate limit)
+          - rate-limited: activity_ended, backstop, presence_quiet
+          - never: anything else
+        """
+        always = ("shutdown", "backup", "dream_end")
+        ratelimited = ("activity_ended", "backstop", "presence_quiet")
+        if reason in always:
+            self.queue_s3(self.state_dir, self.guala.tick, reason)
+            self._last_s3_enqueue_wall = time.monotonic()
+            return
+        if reason in ratelimited:
+            now = time.monotonic()
+            if (now - self._last_s3_enqueue_wall) >= S3_MIN_INTERVAL_SECONDS:
+                self.queue_s3(self.state_dir, self.guala.tick, reason)
+                self._last_s3_enqueue_wall = now
+            return
+        # unknown reason — never queue
 
     def _should_save(self, reason):
         if reason in ("shutdown", "backup", "dream_end",

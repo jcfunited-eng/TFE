@@ -10,6 +10,7 @@ fix/save-hooks-dream-end-activity-ended: unit tests for save hook chain.
 
 import os
 import sys
+import time
 import types
 from unittest.mock import MagicMock, patch, call
 
@@ -153,6 +154,115 @@ def test_end_activity_no_external_is_natural_quiet_point_gate():
     return True
 
 
+def test_s3_enqueue_always_for_shutdown_backup_dream_end():
+    """shutdown, backup, dream_end always enqueue S3 with no rate limit."""
+    print("  Test 5: S3 always-queue reasons...", end=" ")
+    from dsf_ai_service.save_coordinator import SaveCoordinator
+
+    mock_guala = MagicMock()
+    mock_guala.tick = 100000
+    mock_guala.is_present_active.return_value = False
+    sc = SaveCoordinator(mock_guala, "/tmp/test_state", s3_bucket="test-bucket")
+    sc.queue_s3 = MagicMock()
+    mock_guala.save_full_state = MagicMock()
+
+    for reason in ("shutdown", "backup", "dream_end"):
+        sc.maybe_save(reason)
+
+    assert sc.queue_s3.call_count == 3, \
+        f"queue_s3 called {sc.queue_s3.call_count} times, expected 3"
+    print("PASS")
+    return True
+
+
+def test_s3_enqueue_rate_limited_for_activity_ended():
+    """activity_ended enqueues S3 once, rate-limits the second call."""
+    print("  Test 6: S3 rate-limited (no advance)...", end=" ")
+    from dsf_ai_service.save_coordinator import SaveCoordinator
+
+    mock_guala = MagicMock()
+    mock_guala.tick = 100000
+    mock_guala.is_present_active.return_value = False
+    sc = SaveCoordinator(mock_guala, "/tmp/test_state", s3_bucket="test-bucket")
+    sc.queue_s3 = MagicMock()
+    mock_guala.save_full_state = MagicMock()
+
+    sc.maybe_save("activity_ended")
+    sc.maybe_save("activity_ended")
+
+    assert sc.queue_s3.call_count == 1, \
+        f"queue_s3 called {sc.queue_s3.call_count} times, expected 1"
+    print("PASS")
+    return True
+
+
+def test_s3_enqueue_rate_limit_releases_after_interval():
+    """After 601 seconds, rate limit releases and S3 enqueues again."""
+    print("  Test 7: S3 rate-limit release after interval...", end=" ")
+    from dsf_ai_service.save_coordinator import SaveCoordinator
+
+    mock_guala = MagicMock()
+    mock_guala.tick = 100000
+    mock_guala.is_present_active.return_value = False
+    sc = SaveCoordinator(mock_guala, "/tmp/test_state", s3_bucket="test-bucket")
+    sc.queue_s3 = MagicMock()
+    mock_guala.save_full_state = MagicMock()
+
+    sc.maybe_save("activity_ended")
+    assert sc.queue_s3.call_count == 1
+
+    # Advance time by 601 seconds
+    sc._last_s3_enqueue_wall = time.monotonic() - 601
+    sc.maybe_save("activity_ended")
+
+    assert sc.queue_s3.call_count == 2, \
+        f"queue_s3 called {sc.queue_s3.call_count} times, expected 2"
+    print("PASS")
+    return True
+
+
+def test_s3_enqueue_never_for_unknown_reason():
+    """Unknown reason never enqueues S3."""
+    print("  Test 8: S3 never-queue for unknown reason...", end=" ")
+    from dsf_ai_service.save_coordinator import SaveCoordinator
+
+    mock_guala = MagicMock()
+    mock_guala.tick = 100000
+    mock_guala.is_present_active.return_value = False
+    sc = SaveCoordinator(mock_guala, "/tmp/test_state", s3_bucket="test-bucket")
+    sc.queue_s3 = MagicMock()
+    mock_guala.save_full_state = MagicMock()
+
+    # "garbage" is not in _should_save bypass, so save won't even fire.
+    # But let's test _maybe_queue_s3 directly:
+    sc._maybe_queue_s3("garbage")
+
+    assert sc.queue_s3.call_count == 0, \
+        f"queue_s3 called {sc.queue_s3.call_count} times, expected 0"
+    print("PASS")
+    return True
+
+
+def test_s3_enqueue_skipped_when_no_bucket():
+    """No s3_bucket → queue_s3 never called."""
+    print("  Test 9: S3 skipped when no bucket...", end=" ")
+    from dsf_ai_service.save_coordinator import SaveCoordinator
+
+    mock_guala = MagicMock()
+    mock_guala.tick = 100000
+    mock_guala.is_present_active.return_value = False
+    sc = SaveCoordinator(mock_guala, "/tmp/test_state", s3_bucket=None)
+    sc.queue_s3 = MagicMock()
+    mock_guala.save_full_state = MagicMock()
+
+    sc.maybe_save("backup")
+
+    assert sc.queue_s3.call_count == 0, \
+        f"queue_s3 called {sc.queue_s3.call_count} times, expected 0"
+    print("PASS")
+    return True
+
+
 def main():
     print("fix/save-hooks: Save Hook Chain Tests")
     print("=" * 60)
@@ -162,6 +272,11 @@ def main():
         test_end_activity_with_save_fires_on_dreaming,
         test_end_activity_with_save_fires_on_normal_activity,
         test_end_activity_no_external_is_natural_quiet_point_gate,
+        test_s3_enqueue_always_for_shutdown_backup_dream_end,
+        test_s3_enqueue_rate_limited_for_activity_ended,
+        test_s3_enqueue_rate_limit_releases_after_interval,
+        test_s3_enqueue_never_for_unknown_reason,
+        test_s3_enqueue_skipped_when_no_bucket,
     ]
 
     results = []
