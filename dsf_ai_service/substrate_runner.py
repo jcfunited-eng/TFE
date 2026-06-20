@@ -1080,15 +1080,26 @@ def handle_load_corpus(args):
         lines=lines,
     )
 
+    # Pause autonomy loop to eliminate RLock contention during bulk load.
+    # Without this, 107 sentences × autonomy-tick-every-200ms causes >180s
+    # of serialized waiting — exceeding the ALB 180s gateway timeout.
+    _guala._reading_stop.set()
+    time.sleep(0.3)  # let any in-progress tick finish
+
     # Feed every sentence through the existing read_sentence path
     errors = []
     n_fed = 0
-    for sent in lines:
-        try:
-            _guala.read_sentence(sent, source="corpus")
-            n_fed += 1
-        except Exception as e:
-            errors.append(f"{sent[:40]!r}: {e}")
+    try:
+        for sent in lines:
+            try:
+                _guala.read_sentence(sent, source="corpus")
+                n_fed += 1
+            except Exception as e:
+                errors.append(f"{sent[:40]!r}: {e}")
+    finally:
+        # Always restart autonomy loop, even on error
+        _guala._reading_stop.clear()
+        _guala.start_autonomy_loop(interval=0.2)
 
     vocab_after = len(_guala.vocab)
     reads_after = _guala.read_count
