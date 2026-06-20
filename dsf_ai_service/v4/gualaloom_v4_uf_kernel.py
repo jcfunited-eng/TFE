@@ -27,9 +27,16 @@ class DSF:
     B_k: float       # Conviction     ∈ [0, 1]
     S_UF: float      # Convergence    ∈ [0, 1]
 
+    def __post_init__(self):
+        # DSF instances are immutable after construction. Pre-compute the
+        # numpy array once so to_array() is a free attribute read. This is
+        # safe because no code path mutates DSF fields after init
+        # (confirmed GL-CMD-77 V1 audit).
+        self._arr = np.array([self.D_k, self.M_k, self.R_rev, self.U_star,
+                               self.C_k, self.P_k, self.B_k, self.S_UF])
+
     def to_array(self):
-        return np.array([self.D_k, self.M_k, self.R_rev, self.U_star,
-                         self.C_k, self.P_k, self.B_k, self.S_UF])
+        return self._arr
 
     def coupling_matrix_diag(self, J_base=1.0, J_max=2.0):
         """Per spec Ch.6 Table: derive J_ij from DSF outputs.

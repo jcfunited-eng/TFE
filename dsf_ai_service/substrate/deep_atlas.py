@@ -47,13 +47,16 @@ class DeepAtlas:
         self.promotions_episodic = 0
         self.reinstatements = 0
         self.gate_rejects = []  # recent rejects for diagnostics (capped)
+        # Cache env-var reads at init time — these flags don't change at runtime.
+        self._prior_enabled = _deep_prior_enabled()
+        self._atlas_enabled = _deep_atlas_enabled()
 
     def promote(self, entry, source_path, tick, working_atlas=None):
         """Promote a working atlas entry into deep storage.
         Called ONLY during dream cycle. Two paths, same write.
         GL-CLARITY-INVARIANCE-UNCAGE: inherits clarity, sensory_refs,
         episode_refs from working atlas. Initializes co_occurrence invariant."""
-        if not _deep_atlas_enabled():
+        if not self._atlas_enabled:
             return False
         self.tick = max(self.tick, tick)
         chi_k = entry.get("chi", 0)
@@ -171,7 +174,7 @@ class DeepAtlas:
     def get_prior(self, chi_value, section, motif):
         """On-attention additive prior. Entry-specific (section+motif match).
         Returns 0.0 if DEEP_PRIOR_ENABLED=0."""
-        if not _deep_prior_enabled():
+        if not self._prior_enabled:
             return 0.0
         for e in self.entries.get(chi_value, []):
             if (e["strength"] >= FORGETTING_THRESHOLD
@@ -182,7 +185,7 @@ class DeepAtlas:
     def reinstate(self, chi_value, section, motif, tick):
         """Reinstate a working atlas entry from deep.
         Returns the reinstatement strength, or 0.0 if not in deep."""
-        if not _deep_prior_enabled():
+        if not self._prior_enabled:
             return 0.0
         for e in self.entries.get(chi_value, []):
             if (e["strength"] >= FORGETTING_THRESHOLD
@@ -199,7 +202,7 @@ class DeepAtlas:
                           Gate reads values at TAG time (stored on entry).
 
         Returns list of (path, chi, section, motif) promoted."""
-        if not _deep_atlas_enabled():
+        if not self._atlas_enabled:
             return []
 
         promoted = []
