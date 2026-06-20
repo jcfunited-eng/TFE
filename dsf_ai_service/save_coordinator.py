@@ -120,7 +120,7 @@ class SaveCoordinator:
                     "guala_atlas.json", "guala_deep_atlas.json",
                     "guala_sections.json", "guala_bucket.json",
                     "guala_visual.json", "guala_sounds.json",
-                    "guala_videos.json",
+                    "guala_videos.json", "guala_teaching.json",
                 ]
                 uploaded = 0
                 for fname in all_files:

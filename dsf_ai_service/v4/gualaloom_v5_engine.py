@@ -372,6 +372,11 @@ EMISSION_COHESION_THRESHOLD = 0.65
 EMISSION_COOLDOWN_TICKS = 200
 PAIR_BOND_SOURCES = {"joe", "wc", "c1"}
 
+# GL-CMD-TEACHER-CORRECTION-UI: teacher feedback constants
+TEACHER_VALENCE_DELTA = 0.30
+TEACHER_INPUT_SALIENCE_MULTIPLIER = 1.5
+EMISSION_RECORDS_CAP = 1000
+
 
 # ============================================================
 # v7: Autonomy Dataclasses
@@ -1166,6 +1171,12 @@ class Guala:
         self._activity_history = []
         self._substrate_events = deque(maxlen=1000)
         self._last_emission_tick = -100_000
+        self._last_emission_record = None  # {emission_id, text, tick, ...}
+        self._last_emission_id = None
+        self._emission_records = {}  # emission_id -> record (capped at EMISSION_RECORDS_CAP)
+        self._teaching_feedback_log = []
+        self._teaching_correction_log = []
+        self._teacher_salience_multiplier = 1.0
         self._corpora = {}          # corpus_id -> CorpusItem
         self._sensory_items = {}    # item_id -> SensoryItem
         self._sounds = {}           # item_id -> {cochlear, title, samples, sr, ...}
@@ -1195,6 +1206,7 @@ class Guala:
         # v6-bridge: per-source pair bond check
         pair_bond_boost = 1.2 if self.coordinator._pair_bond.get(source, False) else 1.0
         salience = source_w * urgency_factor * novelty_factor * pair_bond_boost
+        salience *= getattr(self, '_teacher_salience_multiplier', 1.0)
         return max(SALIENCE_MIN, min(SALIENCE_MAX, salience))
 
     def _compute_surprise(self, chi_value):
@@ -1524,6 +1536,31 @@ class Guala:
             # GL-CMD-TEACHER-CORRECTION-BINDING: track last conversation pair
             self._last_converse_input = text
             self._last_converse_reply = reply
+
+            # GL-CMD-TEACHER-CORRECTION-UI: emission_id for correction targeting
+            self._last_converse_source = source
+            if reply and reply != "...":
+                eid = f"{self.tick}_{_hashlib.md5(reply.encode()).hexdigest()[:8]}"
+                self._last_emission_id = eid
+                committed_chis = []
+                if reply != "...":
+                    for ew in _normalize_text(reply):
+                        ek = LanguageKrimelack()
+                        ek.transduce(ew)
+                        committed_chis.append(ek.winding)
+                rec = {"emission_id": eid, "text": reply, "tick": self.tick,
+                       "input_text": text, "source": source,
+                       "committed_chis": committed_chis}
+                self._last_emission_record = rec
+                self._emission_records[eid] = rec
+                # Cap emission_records
+                if len(self._emission_records) > EMISSION_RECORDS_CAP:
+                    oldest = sorted(self._emission_records.keys(),
+                                    key=lambda k: self._emission_records[k].get("tick", 0))
+                    for old_k in oldest[:len(self._emission_records) - EMISSION_RECORDS_CAP]:
+                        del self._emission_records[old_k]
+            else:
+                self._last_emission_id = None
 
             # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
             if reply and reply != "..." and source in ("joe", "wc", "c1"):
@@ -2068,6 +2105,8 @@ class Guala:
                         "surprise": e.get("surprise", 0.0),
                         "polarity": e.get("polarity", 1.0),
                         "sensory_refs": e.get("sensory_refs", []),
+                        "teaching_correction": e.get("teaching_correction"),
+                        "teaching_correction_for": e.get("teaching_correction_for"),
                         "origin": "cross_modal",
                     })
 
@@ -2113,6 +2152,8 @@ class Guala:
                             "surprise": de.get("surprise", 0.0),
                             "polarity": de.get("polarity", 1.0),
                             "sensory_refs": de.get("sensory_refs", []),
+                            "teaching_correction": de.get("teaching_correction"),
+                            "teaching_correction_for": de.get("teaching_correction_for"),
                             "origin": "cross_modal_deep",
                         })
 
@@ -2161,6 +2202,8 @@ class Guala:
                         "surprise": e.get("surprise", 0.0),
                         "polarity": e.get("polarity", 1.0),
                         "sensory_refs": e.get("sensory_refs", []),
+                        "teaching_correction": e.get("teaching_correction"),
+                        "teaching_correction_for": e.get("teaching_correction_for"),
                         "origin": "cofire_spread",
                     })
 
@@ -2182,6 +2225,13 @@ class Guala:
                         cand["coherent_magnitude"] *= 1.3
                     elif dist > 5:
                         cand["coherent_magnitude"] *= 0.7
+
+        # GL-CMD-TEACHER-CORRECTION-UI: teaching influence on candidates
+        for cand in all_candidates:
+            if cand.get("teaching_correction"):
+                cand["coherent_magnitude"] *= 0.1
+            if cand.get("teaching_correction_for"):
+                cand["coherent_magnitude"] *= 2.0
 
         # GL-CMD-COGNITION-BUNDLE: sc/gp emission weighting
         # perf/cache-sc-weights: build sc weight cache once per emission
@@ -3728,7 +3778,10 @@ class Guala:
     def apply_teacher_correction(self, original_input, her_emission,
                                   correct, expected_response=None,
                                   source="joe", correction_affect=None,
-                                  tick=None):
+                                  tick=None, emission_id=None,
+                                  story=None, temporal=None,
+                                  sensory_freetext=None,
+                                  corrected_text=None):
         """Full teacher-correction event. Encodes the corrected experience
         as a consolidated cofire-bound binding with source, affect, and
         sensory context.
@@ -3783,6 +3836,8 @@ class Guala:
                                 continue
                             e["strength"] = min(STRENGTH_CAP,
                                                 e["strength"] + 0.05)
+                            e["valence"] = min(1.0, e.get("valence", 0.5) + TEACHER_VALENCE_DELTA)
+                            e["reinforcement_count"] = e.get("reinforcement_count", 0) + 1
                             affected.append({
                                 "chi": chi + d,
                                 "section": e["section"],
@@ -3818,6 +3873,8 @@ class Guala:
                                         w.lower() for w in emission_words):
                                     e["strength"] = max(0.0,
                                                         e["strength"] - 0.05)
+                                    e["valence"] = max(0.0, e.get("valence", 0.5) - TEACHER_VALENCE_DELTA)
+                                    e["teaching_correction"] = True
                                     affected.append({
                                         "chi": chi + d,
                                         "section": e["section"],
@@ -3839,13 +3896,15 @@ class Guala:
                                     sec.mode_strength[i] = max(
                                         0.0, ms - 0.05)
 
-                if expected_response:
-                    # Ingest expected as heard utterance from corrector
+                effective_correction = corrected_text or expected_response
+                if effective_correction:
+                    # V1.5: corrected_text alone enters substrate pipeline
+                    old_mult = self._teacher_salience_multiplier
+                    self._teacher_salience_multiplier = TEACHER_INPUT_SALIENCE_MULTIPLIER
                     try:
-                        self.read_sentence(expected_response, source=source)
+                        self.read_sentence(effective_correction, source=source)
                     except Exception:
-                        # Fallback: record expected words directly in atlas
-                        for w in _normalize_text(expected_response):
+                        for w in _normalize_text(effective_correction):
                             k = LanguageKrimelack()
                             k.transduce(w)
                             self.atlas.record(
@@ -3854,9 +3913,21 @@ class Guala:
                                 salience=2.0, dwell_ticks=5,
                                 source=source,
                             )
+                    finally:
+                        self._teacher_salience_multiplier = old_mult
 
-                    # Compute expected chis
-                    expected_words = _normalize_text(expected_response)
+                    # Tag new bindings with teaching_correction_for
+                    if emission_id:
+                        for w in _normalize_text(effective_correction):
+                            k = LanguageKrimelack()
+                            k.transduce(w)
+                            for d in range(-self.atlas.band, self.atlas.band + 1):
+                                for e in self.atlas.entries.get(k.winding + d, []):
+                                    if e.get("last_tick", 0) >= correction_tick:
+                                        e["teaching_correction_for"] = emission_id
+
+                    # Compute expected chis for cofire binding
+                    expected_words = _normalize_text(effective_correction)
                     expected_chis = []
                     for w in expected_words:
                         k = LanguageKrimelack()
@@ -3871,7 +3942,7 @@ class Guala:
                                 deterministic_motif_id("correction_bind"),
                                 (in_chi + ex_chi) // 2,
                                 tick=correction_tick,
-                                salience=2.0,  # higher than normal
+                                salience=2.0,
                                 dwell_ticks=5,
                                 source=source,
                                 sensory_refs=[
@@ -3881,7 +3952,7 @@ class Guala:
                             )
                     affected.append({
                         "action": "ingest_expected",
-                        "expected": expected_response,
+                        "expected": effective_correction,
                         "source": source,
                     })
 
@@ -3891,11 +3962,16 @@ class Guala:
                                       her_emission=her_emission,
                                       correct=correct,
                                       expected_response=expected_response,
+                                      corrected_text=corrected_text,
                                       source=source,
                                       needs=needs_snapshot,
                                       activity=activity_snapshot,
                                       n_affected=len(affected),
-                                      affected=affected[:10])
+                                      affected=affected[:10],
+                                      emission_id=emission_id,
+                                      story=story,
+                                      temporal=temporal,
+                                      sensory_freetext=sensory_freetext)
 
             return {
                 "correct": correct,
@@ -4103,7 +4179,7 @@ class Guala:
     # Identity tag, schema versioning, snapshots, event log, integrity
     # ------------------------------------------------------------------
 
-    SCHEMA_VERSION = "v7.1.0"
+    SCHEMA_VERSION = "v7.2.0"
     STATE_FILES = [
         "guala_core.json", "guala_needs.json", "guala_coordinator.json",
         "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
@@ -4353,6 +4429,14 @@ class Guala:
             self._atomic_write(path, data)
             results[filename] = os.path.getsize(path)
 
+        # GL-CMD-TEACHER-CORRECTION-UI: teaching data
+        snap_teaching = self._envelope({
+            "feedback_log": self._teaching_feedback_log[-500:],
+            "correction_log": self._teaching_correction_log[-500:],
+            "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
+        })
+        self._atomic_write(os.path.join(state_dir, "guala_teaching.json"), snap_teaching)
+
         # Picture grids
         pic_dir = os.path.join(state_dir, "pictures")
         os.makedirs(pic_dir, exist_ok=True)
@@ -4516,6 +4600,20 @@ class Guala:
                           f"{self.deep_atlas.live_count()} entries")
                 except Exception as e:
                     print(f"[GualaLoom] Deep atlas load: {e}")
+
+            # GL-CMD-TEACHER-CORRECTION-UI: teaching data (backward-compatible)
+            teaching_path = os.path.join(state_dir, "guala_teaching.json")
+            if os.path.exists(teaching_path):
+                try:
+                    with open(teaching_path) as f:
+                        td = json.load(f)
+                    tdata = td.get("data", td)
+                    self._teaching_feedback_log = tdata.get("feedback_log", [])
+                    self._teaching_correction_log = tdata.get("correction_log", [])
+                    for eid, rec in tdata.get("emission_records", {}).items():
+                        self._emission_records[eid] = rec
+                except Exception:
+                    pass
 
             # Load sounds if present (1.4)
             sounds_path = os.path.join(state_dir, "guala_sounds.json")

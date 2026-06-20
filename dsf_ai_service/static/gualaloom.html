@@ -601,8 +601,27 @@ function renderPictures(pics){
 // --- Messages ---
 function addMsg(text,cls){const d=document.createElement('div');d.className='msg '+cls;d.textContent=text;transcript.appendChild(d);transcript.scrollTop=transcript.scrollHeight}
 
+// GL-CMD-TEACHER-CORRECTION-UI: emission message with 👍/👎 buttons
+function addEmissionMsg(text,emissionId){
+  const block=document.createElement('div');block.className='msg emission';
+  block.style.position='relative';
+  if(emissionId)block.dataset.emissionId=emissionId;
+  block.dataset.emissionText=text;
+  const txt=document.createElement('span');txt.textContent=text;block.appendChild(txt);
+  const btns=document.createElement('span');btns.style.cssText='float:right;opacity:0.5;cursor:pointer;margin-left:8px';
+  const up=document.createElement('span');up.className='fb-btn';up.textContent='\ud83d\udc4d';up.style.marginRight='4px';
+  const dn=document.createElement('span');dn.className='fb-btn';dn.textContent='\ud83d\udc4e';
+  up.onclick=()=>sendFeedback(true,up,dn,block);dn.onclick=()=>sendFeedback(false,up,dn,block);
+  btns.appendChild(up);btns.appendChild(dn);block.appendChild(btns);
+  transcript.appendChild(block);transcript.scrollTop=transcript.scrollHeight;
+}
+
 function addResponseBlock(result){
   const block=document.createElement('div');block.className='response-block';
+  // GL-CMD-TEACHER-CORRECTION-UI: store emission context on block
+  if(result.emission_id) block.dataset.emissionId=result.emission_id;
+  const emissionText=(result.response_tokens||[]).map(t=>t.token).join(' ')||result.response||'...';
+  block.dataset.emissionText=emissionText;
   const textDiv=document.createElement('div');textDiv.className='response-text';
   const tokens=result.response_tokens||[];
   textDiv.innerHTML=tokens.length?tokens.map(t=>`${t.token}<span class="tok-anno">(s=${t.mode_strength.toFixed(1)})</span>`).join(' '):'...';
@@ -615,7 +634,7 @@ function addResponseBlock(result){
   const spacer=document.createElement('span');spacer.style.flex='1';meta.appendChild(spacer);
   const up=document.createElement('span');up.className='fb-btn';up.textContent='\ud83d\udc4d';
   const dn=document.createElement('span');dn.className='fb-btn';dn.textContent='\ud83d\udc4e';
-  up.onclick=()=>sendFeedback(true,up,dn);dn.onclick=()=>sendFeedback(false,up,dn);
+  up.onclick=()=>sendFeedback(true,up,dn,block);dn.onclick=()=>sendFeedback(false,up,dn,block);
   meta.appendChild(up);meta.appendChild(dn);block.appendChild(meta);
   transcript.appendChild(block);transcript.scrollTop=transcript.scrollHeight;
   // Voice playback — try espeak WAV first, fall back to browser speechSynthesis
@@ -641,12 +660,85 @@ let _backoff={state:0,events:0,status:0,replay:0};
 const _BASE={state:5000,events:15000,status:15000,replay:30000};
 function _schedNext(key,fn){const delay=_BASE[key]+_backoff[key];setTimeout(fn,delay)}
 
-async function sendFeedback(correct,up,dn){
+// GL-CMD-TEACHER-CORRECTION-UI: teacher feedback with correction modal
+let _correctionModal=null;
+async function sendFeedback(correct,up,dn,block){
+  if(up.dataset.locked)return;
+  const emissionId=block?block.dataset.emissionId:null;
+  if(correct){
+    try{
+      const r=await fetchT(`${API}/api/v1/teacher/feedback`,{method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({emission_id:emissionId,source:'joe'})},10000);
+      if(r.ok){up.classList.add('active');up.textContent='\u2714';up.dataset.locked='1';dn.style.opacity='0.3';dn.dataset.locked='1'}
+    }catch(e){}
+  }else{
+    openCorrectionModal(emissionId,block?block.dataset.emissionText:'',up,dn);
+  }
+}
+
+function openCorrectionModal(emissionId,emissionText,up,dn){
+  if(!_correctionModal){
+    const m=document.createElement('div');
+    m.id='correction-modal';
+    m.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:999;display:flex;align-items:center;justify-content:center';
+    m.innerHTML=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;width:380px;max-width:90vw;font-size:12px">
+      <div style="margin-bottom:8px;color:var(--text-muted)">Guala said: <span id="cm-emission" style="color:var(--accent)"></span></div>
+      <label style="display:block;margin:6px 0 2px;font-weight:600">What would you have said? *</label>
+      <input id="cm-corrected" style="width:100%;box-sizing:border-box;padding:4px;background:var(--msg-sub);color:var(--text);border:1px solid var(--border);border-radius:3px" />
+      <label style="display:block;margin:6px 0 2px">What was going on?</label>
+      <input id="cm-story" style="width:100%;box-sizing:border-box;padding:4px;background:var(--msg-sub);color:var(--text);border:1px solid var(--border);border-radius:3px" />
+      <label style="display:block;margin:6px 0 2px">When was this?</label>
+      <input id="cm-temporal" style="width:100%;box-sizing:border-box;padding:4px;background:var(--msg-sub);color:var(--text);border:1px solid var(--border);border-radius:3px" />
+      <label style="display:block;margin:6px 0 2px">What was in the room?</label>
+      <input id="cm-sensory" style="width:100%;box-sizing:border-box;padding:4px;background:var(--msg-sub);color:var(--text);border:1px solid var(--border);border-radius:3px" />
+      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+        <button id="cm-cancel" style="padding:4px 12px;cursor:pointer;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">Cancel</button>
+        <button id="cm-submit" style="padding:4px 12px;cursor:pointer;border:1px solid var(--accent);border-radius:3px;background:var(--accent);color:var(--bg)" disabled>Submit correction</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+    _correctionModal=m;
+    m.addEventListener('click',e=>{if(e.target===m)closeCorrectionModal()});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&_correctionModal.style.display!=='none')closeCorrectionModal()});
+    document.getElementById('cm-corrected').addEventListener('input',e=>{
+      document.getElementById('cm-submit').disabled=!e.target.value.trim();
+    });
+  }
+  _correctionModal._emissionId=emissionId;
+  _correctionModal._up=up;_correctionModal._dn=dn;
+  document.getElementById('cm-emission').textContent=emissionText;
+  document.getElementById('cm-corrected').value='';
+  document.getElementById('cm-story').value='';
+  document.getElementById('cm-temporal').value='';
+  document.getElementById('cm-sensory').value='';
+  document.getElementById('cm-submit').disabled=true;
+  document.getElementById('cm-cancel').onclick=closeCorrectionModal;
+  document.getElementById('cm-submit').onclick=submitCorrection;
+  _correctionModal.style.display='flex';
+  document.getElementById('cm-corrected').focus();
+}
+
+function closeCorrectionModal(){if(_correctionModal)_correctionModal.style.display='none'}
+
+async function submitCorrection(){
+  const emissionId=_correctionModal._emissionId;
+  const up=_correctionModal._up;const dn=_correctionModal._dn;
+  const corrected=document.getElementById('cm-corrected').value.trim();
+  if(!corrected)return;
+  const body={emission_id:emissionId,corrected_text:corrected,source:'joe',
+    story:document.getElementById('cm-story').value.trim()||undefined,
+    temporal:document.getElementById('cm-temporal').value.trim()||undefined,
+    sensory_freetext:document.getElementById('cm-sensory').value.trim()||undefined};
   try{
-    const r=await fetchT(`${API}/v7/feedback`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,correct})});
-    if(r.status===503||r.status===500){handleNotReady('feedback');return}
-    if(correct){up.classList.add('active');dn.classList.remove('active')}else{dn.classList.add('active');up.classList.remove('active')}
-  }catch(e){}
+    const r=await fetchT(`${API}/api/v1/teacher/correction`,{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)},10000);
+    if(r.ok){
+      dn.classList.add('active');dn.textContent='\u2714';dn.dataset.locked='1';up.style.opacity='0.3';up.dataset.locked='1';
+      addMsg(`corrected: "${corrected}"`,`system`);
+    }
+  }catch(e){addMsg('correction error: '+e.message,'system')}
+  closeCorrectionModal();
 }
 
 let _sendingMsg=false;
@@ -669,7 +761,7 @@ async function sendMsg(){
         const d=await r.json();
         const resp=d.response||'...';
         if(resp&&resp!=='...'&&resp!=='substrate unreachable — try again in a moment'){
-          addMsg(resp,'emission');gualaSpeak(resp);
+          addEmissionMsg(resp,d.emission_id);gualaSpeak(resp);
         }else{addMsg('(she is quiet)','system')}
         if(d.pictures)renderPictures(d.pictures);
       }

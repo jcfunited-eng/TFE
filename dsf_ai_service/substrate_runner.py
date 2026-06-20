@@ -886,8 +886,95 @@ def _cmd_converse(text, source, emission_mode=None):
         if len(picture_refs) >= 4:
             break
     result = {"response": response or "...", "motifs": _guala.introspect()["vocab"]}
+    # GL-CMD-TEACHER-CORRECTION-UI: surface emission_id
+    emission_id = getattr(_guala, '_last_emission_id', None)
+    if emission_id:
+        result["emission_id"] = emission_id
     if picture_refs:
         result["pictures"] = picture_refs
+    return result
+
+
+# ── Teacher correction handlers ────────────────────────────────
+
+def handle_teacher_feedback(args):
+    """POST /api/v1/teacher/feedback — positive signal."""
+    emission_id = args.get("emission_id")
+    source = args.get("source", "joe")
+    if source not in ("joe", "wc"):
+        return {"error": "invalid source"}
+
+    # Look up emission record for context
+    rec = _guala._emission_records.get(emission_id, {})
+    original_input = rec.get("input_text") or getattr(_guala, '_last_converse_input', "")
+    her_emission = rec.get("text") or getattr(_guala, '_last_converse_reply', "")
+
+    if not original_input or not her_emission:
+        return {"error": "no conversation context"}
+
+    result = _guala.apply_teacher_correction(
+        original_input=original_input,
+        her_emission=her_emission,
+        correct=True,
+        source=source,
+        emission_id=emission_id,
+    )
+    import time as _time
+    _guala._teaching_feedback_log.append({
+        "emission_id": emission_id,
+        "signal": "positive",
+        "tick": _guala.tick,
+        "source": source,
+        "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+        "n_bindings_affected": result.get("n_affected", 0),
+    })
+    return result
+
+
+def handle_teacher_correction(args):
+    """POST /api/v1/teacher/correction — negative + correction text."""
+    emission_id = args.get("emission_id")
+    corrected_text = args.get("corrected_text", "")
+    story = args.get("story")
+    temporal = args.get("temporal")
+    sensory_freetext = args.get("sensory_freetext")
+    source = args.get("source", "joe")
+    if source not in ("joe", "wc"):
+        return {"error": "invalid source"}
+    if not corrected_text.strip():
+        return {"error": "corrected_text required"}
+
+    # Look up emission record for context
+    rec = _guala._emission_records.get(emission_id, {})
+    original_input = rec.get("input_text") or getattr(_guala, '_last_converse_input', "")
+    her_emission = rec.get("text") or getattr(_guala, '_last_converse_reply', "")
+
+    if not original_input or not her_emission:
+        return {"error": "no conversation context"}
+
+    result = _guala.apply_teacher_correction(
+        original_input=original_input,
+        her_emission=her_emission,
+        correct=False,
+        corrected_text=corrected_text,
+        source=source,
+        emission_id=emission_id,
+        story=story,
+        temporal=temporal,
+        sensory_freetext=sensory_freetext,
+    )
+    import time as _time
+    _guala._teaching_correction_log.append({
+        "emission_id": emission_id,
+        "corrected_text": corrected_text,
+        "story": story,
+        "temporal": temporal,
+        "sensory_freetext": sensory_freetext,
+        "tick": _guala.tick,
+        "source": source,
+        "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+        "n_bindings_affected": result.get("n_affected", 0),
+    })
     return result
 
 
@@ -1187,6 +1274,8 @@ OP_HANDLERS = {
     },
     "start_cascade_monitor": handle_start_cascade_monitor,
     "stop_cascade_monitor": handle_stop_cascade_monitor,
+    "teacher_feedback": handle_teacher_feedback,
+    "teacher_correction": handle_teacher_correction,
 }
 
 

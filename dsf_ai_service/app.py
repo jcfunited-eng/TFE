@@ -2933,6 +2933,78 @@ async def v7_feedback(req: V7FeedbackRequest):
     result["session_id"] = feedback_sid
     return result
 
+# ── GL-CMD-TEACHER-CORRECTION-UI: teacher endpoints ──────────
+
+class TeacherFeedbackRequest(BaseModel):
+    emission_id: Optional[str] = None
+    source: Optional[str] = "joe"
+
+class TeacherCorrectionRequest(BaseModel):
+    emission_id: Optional[str] = None
+    corrected_text: Optional[str] = None
+    story: Optional[str] = None
+    temporal: Optional[str] = None
+    sensory_freetext: Optional[str] = None
+    source: Optional[str] = "joe"
+
+@app.post("/api/v1/teacher/feedback")
+async def teacher_feedback(req: TeacherFeedbackRequest):
+    if req.source not in ("joe", "wc"):
+        raise HTTPException(status_code=403, detail="invalid source")
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("teacher_feedback",
+                                  emission_id=req.emission_id,
+                                  source=req.source)
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+    return handle_teacher_feedback_local(req)
+
+
+@app.post("/api/v1/teacher/correction")
+async def teacher_correction(req: TeacherCorrectionRequest):
+    if req.source not in ("joe", "wc"):
+        raise HTTPException(status_code=403, detail="invalid source")
+    if not req.corrected_text or not req.corrected_text.strip():
+        raise HTTPException(status_code=400, detail="corrected_text required")
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("teacher_correction",
+                                  emission_id=req.emission_id,
+                                  corrected_text=req.corrected_text,
+                                  story=req.story,
+                                  temporal=req.temporal,
+                                  sensory_freetext=req.sensory_freetext,
+                                  source=req.source)
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+    return handle_teacher_correction_local(req)
+
+
+def handle_teacher_feedback_local(req):
+    rec = _guala._emission_records.get(req.emission_id, {})
+    original_input = rec.get("input_text") or getattr(_guala, '_last_converse_input', "")
+    her_emission = rec.get("text") or getattr(_guala, '_last_converse_reply', "")
+    if not original_input or not her_emission:
+        raise HTTPException(status_code=400, detail="no conversation context")
+    return _guala.apply_teacher_correction(
+        original_input=original_input, her_emission=her_emission,
+        correct=True, source=req.source, emission_id=req.emission_id)
+
+
+def handle_teacher_correction_local(req):
+    rec = _guala._emission_records.get(req.emission_id, {})
+    original_input = rec.get("input_text") or getattr(_guala, '_last_converse_input', "")
+    her_emission = rec.get("text") or getattr(_guala, '_last_converse_reply', "")
+    if not original_input or not her_emission:
+        raise HTTPException(status_code=400, detail="no conversation context")
+    return _guala.apply_teacher_correction(
+        original_input=original_input, her_emission=her_emission,
+        correct=False, corrected_text=req.corrected_text, source=req.source,
+        emission_id=req.emission_id, story=req.story,
+        temporal=req.temporal, sensory_freetext=req.sensory_freetext)
+
+
 @app.get("/v7/state")
 async def v7_state(session_id: str = "default"):
     if _is_remote():
