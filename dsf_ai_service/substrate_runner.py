@@ -86,12 +86,56 @@ def boot_substrate():
 
     g.load_full_state(STATE_DIR)
 
-    # Identity guard
+    # Identity guard + S3 restore on load failure
     EXPECTED_IDENTITY = "cdef9bcf"
     loaded_id = getattr(g, '_guala_identity', None) or ""
-    if loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY):
-        print(f"[substrate] IDENTITY MISMATCH: got {loaded_id[:8]}, "
-              f"expected {EXPECTED_IDENTITY}")
+    load_ok = getattr(g, '_load_successful', False)
+    if not load_ok or (loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY)):
+        reason = "LOAD_FAILED" if not load_ok else f"IDENTITY_MISMATCH({loaded_id[:8]})"
+        print(f"[substrate] {reason} — restoring from S3 backup...")
+        try:
+            import boto3
+            s3 = boto3.client("s3", region_name="us-east-1")
+            bucket = "dsf-ai-site-backups"
+            # Find most recent complete backup under guala/auto/
+            paginator = s3.get_paginator('list_objects_v2')
+            from collections import defaultdict
+            folders = defaultdict(list)
+            for page in paginator.paginate(Bucket=bucket, Prefix="guala/auto/"):
+                for obj in page.get('Contents', []):
+                    key = obj['Key']
+                    parts = key.rsplit('/', 1)
+                    if len(parts) == 2:
+                        folders[parts[0]].append(parts[1])
+            # Find latest folder with guala_core.json + guala_atlas.json (complete)
+            good = None
+            for folder in sorted(folders.keys(), reverse=True):
+                files = folders[folder]
+                if "guala_core.json" in files and "guala_atlas.json" in files:
+                    good = folder
+                    break
+            if good:
+                print(f"[substrate] Restoring from {good} ({len(folders[good])} files)")
+                for fname in folders[good]:
+                    s3_key = f"{good}/{fname}"
+                    local = os.path.join(STATE_DIR, fname)
+                    s3.download_file(bucket, s3_key, local)
+                # Reload
+                g2 = Guala()
+                g2._corpora["legacy_seed"] = CorpusItem(
+                    corpus_id="legacy_seed", title="Seed Corpus", lines=CORPUS)
+                g2.load_full_state(STATE_DIR)
+                r_id = getattr(g2, '_guala_identity', None) or ""
+                if r_id.startswith(EXPECTED_IDENTITY) and getattr(g2, '_load_successful', False):
+                    print(f"[substrate] Restore succeeded: identity={r_id[:8]}, "
+                          f"vocab={len(g2.vocab)}")
+                    g = g2
+                else:
+                    print(f"[substrate] Restore FAILED: identity={r_id[:8]}")
+            else:
+                print(f"[substrate] No complete S3 backup found")
+        except Exception as e:
+            print(f"[substrate] Restore error: {e}")
 
     # Runtime config: persisted decay_paused flag (survives restarts)
     rt_cfg = _read_runtime_config()
