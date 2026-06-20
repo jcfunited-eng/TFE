@@ -212,10 +212,12 @@ def apply_teacher_correction(self, original_input, her_emission,
 - Tag new bindings with `teaching_correction_for = emission_id`
 
 ### Story / temporal / sensory (Phase 1 free-text):
-- If story or temporal non-empty, append to corrected_text as tagged segments:
-  `f"{corrected_text} [story:{story}] [when:{temporal}]"`
-- All text runs through the same krimelack pipeline
-- Sensory free-text: same path (text content)
+- corrected_text ALONE goes through `read_sentence()` as the substrate input.
+- story, temporal, sensory_freetext are recorded ONLY in:
+  - The `teacher_correction` event detail
+  - The `correction_log` in `guala_teaching.json`
+- They are visible to humans reviewing the teaching session. They do NOT enter the substrate's input pipeline.
+- Phase 2 (structured sensory drag-in, post-W1) is where actual sensory grounding routes through the binding window.
 
 ### Constants:
 
@@ -320,7 +322,7 @@ This is a clean multiplicative modifier on the existing score, not a structural 
 ```
 
 - `feedback_log` and `correction_log` are append-only, capped at 500 entries (rolling)
-- `emission_records` stores the last 100 emissions with their committed chi addresses, for correction lookups after the transient `_last_emission_record` is gone
+- `emission_records` stores the last 1000 emissions with their committed chi addresses, for correction lookups after the transient `_last_emission_record` is gone (1000 ≈ one week at current cadence — Joe can correct emissions from yesterday)
 - Backward-load from v7.1.0: empty lists, empty records
 
 Add to STATE_FILES list and save_coordinator backup set.
@@ -411,4 +413,89 @@ Phase 2 stubs exist in code but are inert until W1 ships.
 
 ---
 
-**Awaiting Eve review before implementation begins.**
+---
+
+## 13. Multiplicative-scoring verification (V1.5 patch per -62)
+
+### Existing per-candidate scoring — verbatim from gualaloom_v5_engine.py
+
+The emission pipeline has NO single "score" variable. Instead, `coherent_magnitude` is the candidate weight used to seed assemblage dynamics. It receives BOTH multiplicative AND additive modifications in `_rich_sensory_candidates()`:
+
+**Initial assignment (lines 2064, 2109, 2157):**
+```python
+"coherent_magnitude": e["strength"],          # from atlas binding strength
+"coherent_magnitude": float(strength),        # from deep atlas
+"coherent_magnitude": transmission,           # from cofire spread
+```
+
+**Multiplicative modifiers (lines 2182-2184) — attention proximity:**
+```python
+if dist <= 2:
+    cand["coherent_magnitude"] *= 1.3
+elif dist > 5:
+    cand["coherent_magnitude"] *= 0.7
+```
+
+**Additive modifier (lines 2193-2197) — hemisphere cognition sc/gp weights:**
+```python
+hw = get_emission_hemisphere_weights(cand, self, sc_cache=sc_cache)
+if hw > 0:
+    cand["coherent_magnitude"] += hw
+    cand["sc_gp_weight"] = hw
+```
+
+**Sort + truncation (line 2230-2231):**
+```python
+all_candidates.sort(key=lambda c: -c["coherent_magnitude"])
+return all_candidates[:GRANDURUN_TOPK]
+```
+
+**Then in _emit_dynamics (line 2294-2295):**
+```python
+weight = cand["coherent_magnitude"]
+section_drives[sec_name] += mode_vec * weight
+```
+
+Each candidate's `coherent_magnitude` drives the section psi vector. Then assemblage dynamics settle via `tick_once()` and `commit_check()` determines which modes commit via entropic_flip.
+
+### Finding: coherent_magnitude is NOT purely multiplicative
+
+The sc/gp hemisphere weights are additive (`+= hw`). This means:
+- A multiplicative penalty of ×0.1 on a candidate with magnitude 0.3 + hw 0.05 = 0.35 would yield 0.035
+- But the intended semantic is "penalize the binding's contribution by 90%," not "penalize the binding + its hemisphere boost by 90%"
+
+### Revised proposal
+
+Apply the teaching modifier to the BASE coherent_magnitude BEFORE the hemisphere weight addition. Hook into the `_rich_sensory_candidates()` method, AFTER the initial magnitude assignment but BEFORE the sc/gp addition:
+
+```python
+# After attention-proximity modifiers (line ~2184), before sc/gp (line ~2193):
+# Teaching correction influence
+for cand in all_candidates:
+    binding = self._find_teaching_tagged_binding(
+        cand["chi"], cand.get("section"), cand.get("motif"))
+    if binding:
+        tag = binding.get("teaching_correction")
+        tcf = binding.get("teaching_correction_for")
+        if tag:
+            # Negative-tagged: penalize base magnitude
+            cand["coherent_magnitude"] *= 0.1
+            cand["teaching_penalized"] = True
+        elif tcf:
+            # Taught replacement: boost base magnitude
+            cand["coherent_magnitude"] *= 2.0
+            cand["teaching_boosted"] = True
+```
+
+This ensures:
+- The ×0.1 / ×2.0 operates on the same magnitude that the attention-proximity modifiers already use multiplicatively
+- The sc/gp additive hemisphere weights are applied AFTER, on the already-modified base — so a penalized candidate still gets its hemisphere weight, but starts from a much lower base
+- A candidate penalized to 0.03 + hw 0.05 = 0.08 is still effectively eliminated vs an untouched candidate at 0.3 + hw 0.05 = 0.35
+
+### Lookup efficiency
+
+`_find_teaching_tagged_binding()` checks the atlas entries at the candidate's chi for a binding matching the section + motif that carries a `teaching_correction` or `teaching_correction_for` tag. This is O(band_width × entries_per_chi) per candidate — same cost as the existing candidate selection itself. No additional data structure needed.
+
+---
+
+**V1 approved with tightenings applied. Ready for implementation upon Eve confirmation of V1.5.**
