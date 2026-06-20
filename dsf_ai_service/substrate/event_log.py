@@ -120,15 +120,15 @@ def replay_events(session, events):
             replayed += 1
 
         elif t == "converse":
-            # A conversation turn happened — replay it
-            text = ev.get("text", "")
-            if text:
-                session.converse(text)
+            # Skip converse replay — commit events already capture mode_strength
+            # evolution; re-running full converse is prohibitively expensive at
+            # session init time when thousands of turns have accumulated.
             replayed += 1
 
         elif t == "quiet":
-            n = ev.get("n_ticks", 1)
-            session.quiet_tick(min(n, 10))
+            # Cap quiet replay at 3 ticks to bound init time
+            n = min(ev.get("n_ticks", 1), 3)
+            session.quiet_tick(n)
             replayed += 1
 
     return replayed
