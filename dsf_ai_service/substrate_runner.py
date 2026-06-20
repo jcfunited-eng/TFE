@@ -86,12 +86,16 @@ def boot_substrate():
 
     g.load_full_state(STATE_DIR)
 
-    # Identity guard + S3 restore on load failure
+    # Identity guard + S3 restore on load failure or seed-state detection
     EXPECTED_IDENTITY = "cdef9bcf"
     loaded_id = getattr(g, '_guala_identity', None) or ""
     load_ok = getattr(g, '_load_successful', False)
-    if not load_ok or (loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY)):
-        reason = "LOAD_FAILED" if not load_ok else f"IDENTITY_MISMATCH({loaded_id[:8]})"
+    vocab_count = len(getattr(g, 'vocab', set()))
+    seed_state = vocab_count < 100  # real state has 2800+ words; seed has ~20-40
+    if not load_ok or seed_state or (loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY)):
+        reason = ("LOAD_FAILED" if not load_ok
+                  else f"SEED_STATE(vocab={vocab_count})" if seed_state
+                  else f"IDENTITY_MISMATCH({loaded_id[:8]})")
         print(f"[substrate] {reason} — restoring from S3 backup...")
         try:
             import boto3
