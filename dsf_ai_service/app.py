@@ -3521,9 +3521,10 @@ async def sleep_for_deploy():
         client = _get_substrate_client()
         try:
             return await client.call("sleep_for_deploy")
-        except RuntimeError as e:
-            # Substrate returned ok=False (sleep failed) — return 200 with error
-            # body so the deploy script can proceed (state recoverable from EFS)
+        except (RuntimeError, ConnectionError, OSError) as e:
+            # Substrate returned ok=False or socket closed during shutdown.
+            # Return 200 so the deploy script can proceed — state is recoverable
+            # from EFS snapshot taken before the substrate process exited.
             return JSONResponse(status_code=200,
                                 content={"ok": False, "error": str(e)})
     if _guala is None:
