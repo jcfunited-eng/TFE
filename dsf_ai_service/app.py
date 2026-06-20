@@ -3014,74 +3014,122 @@ class LoadCorpusRequest(BaseModel):
     lines: Optional[list] = None   # pre-fetched lines (skip URL fetch)
 
 
-@app.post("/api/v1/curriculum/load_corpus")
-async def load_corpus(req: LoadCorpusRequest):
-    """Fetch a Gutenberg (or any UTF-8 text) URL, parse it into
-    sentence-level lines, register as CorpusItem, and feed each
-    sentence through read_sentence(). Returns load metrics."""
+async def _run_load_job(job_id: str, corpus_id: str, title: str, lines: list):
+    """Asyncio background task (GL-CMD-74): delegates to substrate fire-and-forget,
+    polls progress, updates web-container job registry to completion."""
     import asyncio as _aio
+    from dsf_ai_service.curriculum import job_registry as _jr
+    client = _get_substrate_client()
+
+    # Tell substrate to start loading (returns immediately with "queued")
+    try:
+        substrate_resp = await client.call(
+            "load_corpus",
+            corpus_id=corpus_id,
+            title=title,
+            lines=lines,
+            timeout=30.0,
+        )
+    except Exception as e:
+        _jr.mark_failed(job_id, f"substrate call failed: {e}")
+        return
+
+    _jr.mark_running(job_id)
+
+    # Poll substrate until complete or failed
+    poll_interval = 5.0
+    deadline = _aio.get_event_loop().time() + 600.0  # 10 min hard stop
+    while _aio.get_event_loop().time() < deadline:
+        await _aio.sleep(poll_interval)
+        try:
+            status = await client.call("corpus_status", corpus_id=corpus_id, timeout=10.0)
+        except Exception as e:
+            # Substrate unreachable — keep trying
+            continue
+
+        n_fed = status.get("n_fed", 0)
+        _jr.update_progress(job_id, n_fed)
+
+        if status.get("status") == "complete":
+            _jr.mark_complete(job_id, result=status)
+            return
+        elif status.get("status") == "failed":
+            _jr.mark_failed(job_id, error=status.get("error", "unknown"), partial_n_fed=n_fed)
+            return
+        # status == "running" or "queued" — keep polling
+
+    # Timed out
+    _jr.mark_failed(job_id, error="load job timed out after 600s")
+
+
+@app.post("/api/v1/curriculum/load_corpus",
+          dependencies=[Depends(_api_key_dep)],
+          status_code=202)
+async def load_corpus(req: LoadCorpusRequest):
+    """GL-CMD-74: Async curriculum load — returns 202 immediately.
+    Poll GET /api/v1/curriculum/load_corpus/job/{job_id} for progress."""
+    import asyncio as _aio
+    from dsf_ai_service.curriculum import job_registry as _jr
+
+    # Conflict detection: single in-flight job per substrate
+    active = _jr.get_active_job()
+    if active:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "error": "conflict",
+                "message": "a corpus load job is already in flight",
+                "existing_job_id": active["job_id"],
+                "existing_corpus_id": active["corpus_id"],
+                "state": active["state"],
+            },
+        )
+
+    # Resolve lines (synchronously — fast path, 30s timeout)
     if req.lines:
-        # Pre-fetched lines provided directly — skip network fetch
         lines = [str(l) for l in req.lines if l]
-        meta = {"n_sentences": len(lines), "source": "direct"}
     elif req.url:
         from dsf_ai_service.curriculum.gutenberg_adapter import fetch_and_parse
         try:
             loop = _aio.get_event_loop()
-            lines, meta = await loop.run_in_executor(
-                None, fetch_and_parse, req.url)
+            lines, _ = await loop.run_in_executor(None, fetch_and_parse, req.url)
         except Exception as e:
-            raise HTTPException(status_code=400,
-                                detail=f"fetch failed: {e}")
+            raise HTTPException(status_code=502, detail=f"fetch failed: {e}")
     else:
-        raise HTTPException(status_code=400,
-                            detail="either url or lines required")
+        raise HTTPException(status_code=400, detail="either url or lines required")
+
     if not lines:
-        raise HTTPException(status_code=400,
-                            detail="no sentences extracted from URL")
-    if _is_remote():
-        client = _get_substrate_client()
-        return await client.call(
-            "load_corpus",
-            corpus_id=req.corpus_id,
-            title=req.title,
-            lines=lines,
-            timeout=300.0,    # 100 sentences × read_sentence needs headroom
-        )
-    if _guala is None:
-        raise HTTPException(status_code=503, detail="guala_not_ready")
-    # Local path (non-remote): feed directly
-    from dsf_ai_service.v4.gualaloom_v5_engine import CorpusItem
-    vocab_before = len(_guala.vocab)
-    reads_before = _guala.read_count
-    import dsf_ai_service.v4.gualaloom_v6_living_atlas as _la
-    strength_before = round(_guala.atlas.total_strength(), 4)
-    _guala._corpora[req.corpus_id] = CorpusItem(
-        corpus_id=req.corpus_id, title=req.title, lines=lines)
-    errors = []
-    for sent in lines:
-        try:
-            _guala.read_sentence(sent, source="corpus")
-        except Exception as e:
-            errors.append(str(e)[:80])
-    strength_after = round(_guala.atlas.total_strength(), 4)
-    result = {
+        raise HTTPException(status_code=400, detail="no sentences extracted")
+
+    # Create job in registry
+    job = _jr.create_job(corpus_id=req.corpus_id, n_sentences=len(lines))
+    job_id = job["job_id"]
+
+    # Kick off background asyncio task
+    _aio.create_task(_run_load_job(job_id, req.corpus_id, req.title, lines))
+
+    return {
+        "job_id": job_id,
         "corpus_id": req.corpus_id,
         "n_sentences": len(lines),
-        "n_new_vocab": len(_guala.vocab) - vocab_before,
-        "reads_delta": _guala.read_count - reads_before,
-        "atlas_strength_before": strength_before,
-        "atlas_strength_after": strength_after,
-        "atlas_strength_delta": round(strength_after - strength_before, 4),
+        "state": "queued",
     }
-    if errors:
-        result["errors"] = errors[:5]
-    return result
+
+
+@app.get("/api/v1/curriculum/load_corpus/job/{job_id}",
+         dependencies=[Depends(_api_key_dep)])
+async def get_load_corpus_job(job_id: str):
+    """GL-CMD-74: Poll status of a corpus load job."""
+    from dsf_ai_service.curriculum import job_registry as _jr
+    job = _jr.get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail=f"job {job_id!r} not found")
+    return {k: v for k, v in job.items() if not k.startswith("_")}
 
 
 @app.get("/api/v1/curriculum/corpus_status/{corpus_id}", dependencies=[Depends(_api_key_dep)])
 async def corpus_status(corpus_id: str):
-    """Poll status of an in-progress or completed corpus load (GL-CMD-73)."""
+    """Substrate-side corpus load status (GL-CMD-73 compatibility)."""
     if _is_remote():
         client = _get_substrate_client()
         return await client.call("corpus_status", corpus_id=corpus_id)
@@ -3338,6 +3386,19 @@ async def startup():
             except Exception as e:
                 print(f"[DSF-AI] S3 backup error: {e}")
     asyncio.ensure_future(_daily_s3_backup())
+
+    # GL-CMD-74: Job registry GC — expire old jobs every 60 seconds
+    async def _job_registry_gc():
+        from dsf_ai_service.curriculum import job_registry as _jr
+        while True:
+            await asyncio.sleep(60)
+            try:
+                n = _jr.gc_expired()
+                if n > 0:
+                    print(f"[job-gc] Evicted {n} expired job(s)")
+            except Exception:
+                pass
+    asyncio.ensure_future(_job_registry_gc())
 
 
 _last_s3_backup = None  # D3: tracked for persistence_health

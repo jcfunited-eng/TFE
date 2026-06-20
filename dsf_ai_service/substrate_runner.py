@@ -1047,27 +1047,60 @@ def handle_teacher_correction(args):
 # ── Curriculum ops ─────────────────────────────────────────────
 
 # Corpus load results — populated by background thread, polled via corpus_status.
-# Key: corpus_id, Value: result dict (with status="loading"|"done"|"error")
+# Key: corpus_id, Value: result dict (with status="queued"|"running"|"complete"|"failed")
 _corpus_load_results = {}
+
+# Refcounted autonomy pause (GL-CMD-74).
+# Multiple callers (load_corpus, sleep_for_deploy, manual) cooperate.
+# Autonomy resumes only when the count returns to 0.
+_autonomy_pause_refcount = 0
+_autonomy_refcount_lock = threading.Lock()
+
+
+def _pause_autonomy_for_bulk():
+    """Increment pause refcount. Pauses autonomy loop on first call."""
+    global _autonomy_pause_refcount
+    with _autonomy_refcount_lock:
+        _autonomy_pause_refcount += 1
+        if _autonomy_pause_refcount == 1:
+            _guala._reading_stop.set()
+            time.sleep(0.3)  # let any in-progress tick finish
+            print(f"[autonomy] Paused (refcount=1)")
+
+
+def _resume_autonomy_for_bulk():
+    """Decrement pause refcount. Restarts autonomy loop when count reaches 0."""
+    global _autonomy_pause_refcount
+    with _autonomy_refcount_lock:
+        _autonomy_pause_refcount = max(0, _autonomy_pause_refcount - 1)
+        if _autonomy_pause_refcount == 0:
+            _guala._reading_stop.clear()
+            _guala.start_autonomy_loop(interval=0.2)
+            print(f"[autonomy] Resumed (refcount=0)")
+        else:
+            print(f"[autonomy] Resume deferred (refcount={_autonomy_pause_refcount})")
 
 
 def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strength_before):
-    """Background thread: feed sentences, then update _corpus_load_results."""
+    """Background thread: feed sentences, update progress, resume autonomy."""
     from dsf_ai_service.v4.gualaloom_v5_engine import CorpusItem
-    _corpus_load_results[corpus_id]["status"] = "loading"
+    _corpus_load_results[corpus_id]["status"] = "running"
     errors = []
     n_fed = 0
+    n_total = len(lines)
     try:
         for sent in lines:
             try:
                 _guala.read_sentence(sent, source="corpus")
                 n_fed += 1
+                # Progress update every 10 sentences (or every sentence if small)
+                if n_total < 20 or n_fed % 10 == 0:
+                    _corpus_load_results[corpus_id]["n_fed"] = n_fed
             except Exception as e:
                 errors.append(f"{sent[:40]!r}: {e}")
     finally:
-        # Restart autonomy loop regardless of outcome
-        _guala._reading_stop.clear()
-        _guala.start_autonomy_loop(interval=0.2)
+        # Resume autonomy via refcount — always, even on error
+        _resume_autonomy_for_bulk()
 
     vocab_after = len(_guala.vocab)
     reads_after = _guala.read_count
@@ -1084,9 +1117,11 @@ def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strengt
     )
 
     result = {
-        "status": "done",
+        "status": "complete",
         "corpus_id": corpus_id,
         "n_sentences": n_fed,
+        "n_fed": n_fed,
+        "n_total": n_total,
         "n_new_vocab": vocab_after - vocab_before,
         "reads_delta": reads_after - reads_before,
         "atlas_strength_before": strength_before,
@@ -1153,13 +1188,13 @@ def handle_load_corpus(args):
         "status": "queued",
         "corpus_id": corpus_id,
         "n_sentences": len(lines),
+        "n_fed": 0,
         "vocab_before": vocab_before,
     }
 
-    # Pause autonomy loop BEFORE spawning thread so the background thread
-    # runs read_sentence without lock contention from the 200ms ticks.
-    _guala._reading_stop.set()
-    time.sleep(0.3)  # let any in-progress tick finish
+    # Pause autonomy via refcount BEFORE spawning thread.
+    # _do_corpus_load's finally block calls _resume_autonomy_for_bulk().
+    _pause_autonomy_for_bulk()
 
     t = threading.Thread(
         target=_do_corpus_load,
@@ -1352,11 +1387,14 @@ def handle_sound_frame(args):
 def handle_sleep_for_deploy(args):
     if _guala.is_asleep:
         return {"ok": True, "already_asleep": True, "sleep_tick": _guala.tick}
+    _pause_autonomy_for_bulk()
     try:
         _guala.manual_sleep(state_dir=STATE_DIR)
     except Exception as e:
         print(f"[sleep_for_deploy] manual_sleep failed: {e}")
+        _resume_autonomy_for_bulk()
         return {"ok": False, "error": str(e), "tick": _guala.tick}
+    # Don't resume autonomy — she's sleeping. The new task wakes her.
     return {"ok": True, "sleep_tick": _guala.tick, "vocab": len(_guala.vocab)}
 
 
