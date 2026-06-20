@@ -3019,8 +3019,11 @@ async def load_corpus(req: LoadCorpusRequest):
     sentence-level lines, register as CorpusItem, and feed each
     sentence through read_sentence(). Returns load metrics."""
     from dsf_ai_service.curriculum.gutenberg_adapter import fetch_and_parse
+    import asyncio as _aio
     try:
-        lines, meta = fetch_and_parse(req.url)
+        loop = _aio.get_event_loop()
+        lines, meta = await loop.run_in_executor(
+            None, fetch_and_parse, req.url)
     except Exception as e:
         raise HTTPException(status_code=400,
                             detail=f"fetch failed: {e}")
