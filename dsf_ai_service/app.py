@@ -3010,7 +3010,8 @@ def handle_teacher_correction_local(req):
 class LoadCorpusRequest(BaseModel):
     corpus_id: str
     title: str
-    url: str
+    url: Optional[str] = None      # fetch from URL if provided
+    lines: Optional[list] = None   # pre-fetched lines (skip URL fetch)
 
 
 @app.post("/api/v1/curriculum/load_corpus")
@@ -3018,15 +3019,23 @@ async def load_corpus(req: LoadCorpusRequest):
     """Fetch a Gutenberg (or any UTF-8 text) URL, parse it into
     sentence-level lines, register as CorpusItem, and feed each
     sentence through read_sentence(). Returns load metrics."""
-    from dsf_ai_service.curriculum.gutenberg_adapter import fetch_and_parse
     import asyncio as _aio
-    try:
-        loop = _aio.get_event_loop()
-        lines, meta = await loop.run_in_executor(
-            None, fetch_and_parse, req.url)
-    except Exception as e:
+    if req.lines:
+        # Pre-fetched lines provided directly — skip network fetch
+        lines = [str(l) for l in req.lines if l]
+        meta = {"n_sentences": len(lines), "source": "direct"}
+    elif req.url:
+        from dsf_ai_service.curriculum.gutenberg_adapter import fetch_and_parse
+        try:
+            loop = _aio.get_event_loop()
+            lines, meta = await loop.run_in_executor(
+                None, fetch_and_parse, req.url)
+        except Exception as e:
+            raise HTTPException(status_code=400,
+                                detail=f"fetch failed: {e}")
+    else:
         raise HTTPException(status_code=400,
-                            detail=f"fetch failed: {e}")
+                            detail="either url or lines required")
     if not lines:
         raise HTTPException(status_code=400,
                             detail="no sentences extracted from URL")
@@ -3037,7 +3046,7 @@ async def load_corpus(req: LoadCorpusRequest):
             corpus_id=req.corpus_id,
             title=req.title,
             lines=lines,
-            timeout=120.0,    # 100 sentences × read_sentence needs headroom
+            timeout=300.0,    # 100 sentences × read_sentence needs headroom
         )
     if _guala is None:
         raise HTTPException(status_code=503, detail="guala_not_ready")
