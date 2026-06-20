@@ -3079,6 +3079,15 @@ async def load_corpus(req: LoadCorpusRequest):
     return result
 
 
+@app.get("/api/v1/curriculum/corpus_status/{corpus_id}", dependencies=[Depends(_api_key_dep)])
+async def corpus_status(corpus_id: str):
+    """Poll status of an in-progress or completed corpus load (GL-CMD-73)."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("corpus_status", corpus_id=corpus_id)
+    raise HTTPException(status_code=501, detail="not implemented for local mode")
+
+
 @app.get("/v7/state")
 async def v7_state(session_id: str = "default"):
     if _is_remote():

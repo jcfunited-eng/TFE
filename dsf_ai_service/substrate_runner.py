@@ -1046,47 +1046,15 @@ def handle_teacher_correction(args):
 
 # ── Curriculum ops ─────────────────────────────────────────────
 
-def handle_load_corpus(args):
-    """GL-CMD-73: Load a pre-parsed corpus into the substrate.
+# Corpus load results — populated by background thread, polled via corpus_status.
+# Key: corpus_id, Value: result dict (with status="loading"|"done"|"error")
+_corpus_load_results = {}
 
-    Args (pre-processed by app.py — no network IO here):
-        corpus_id : str  — unique identifier
-        title     : str  — display title
-        lines     : list — sentence-level strings from the adapter
 
-    Returns:
-        corpus_id, n_sentences, n_new_vocab, reads_delta,
-        atlas_strength_before, atlas_strength_after, atlas_strength_delta
-    """
+def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strength_before):
+    """Background thread: feed sentences, then update _corpus_load_results."""
     from dsf_ai_service.v4.gualaloom_v5_engine import CorpusItem
-
-    corpus_id = args.get("corpus_id", "").strip()
-    title = args.get("title", "").strip()
-    lines = args.get("lines", [])
-
-    if not corpus_id:
-        return {"error": "corpus_id required"}
-    if not lines:
-        return {"error": "no lines provided"}
-
-    vocab_before = len(_guala.vocab)
-    reads_before = _guala.read_count
-    strength_before = round(_guala.atlas.total_strength(), 4)
-
-    # Register the corpus (overwrites if same corpus_id already exists)
-    _guala._corpora[corpus_id] = CorpusItem(
-        corpus_id=corpus_id,
-        title=title,
-        lines=lines,
-    )
-
-    # Pause autonomy loop to eliminate RLock contention during bulk load.
-    # Without this, 107 sentences × autonomy-tick-every-200ms causes >180s
-    # of serialized waiting — exceeding the ALB 180s gateway timeout.
-    _guala._reading_stop.set()
-    time.sleep(0.3)  # let any in-progress tick finish
-
-    # Feed every sentence through the existing read_sentence path
+    _corpus_load_results[corpus_id]["status"] = "loading"
     errors = []
     n_fed = 0
     try:
@@ -1097,7 +1065,7 @@ def handle_load_corpus(args):
             except Exception as e:
                 errors.append(f"{sent[:40]!r}: {e}")
     finally:
-        # Always restart autonomy loop, even on error
+        # Restart autonomy loop regardless of outcome
         _guala._reading_stop.clear()
         _guala.start_autonomy_loop(interval=0.2)
 
@@ -1116,6 +1084,7 @@ def handle_load_corpus(args):
     )
 
     result = {
+        "status": "done",
         "corpus_id": corpus_id,
         "n_sentences": n_fed,
         "n_new_vocab": vocab_after - vocab_before,
@@ -1123,9 +1092,99 @@ def handle_load_corpus(args):
         "atlas_strength_before": strength_before,
         "atlas_strength_after": strength_after,
         "atlas_strength_delta": round(strength_after - strength_before, 4),
+        "vocab_before": vocab_before,
+        "vocab_after": vocab_after,
     }
     if errors:
         result["errors"] = errors[:5]
+    _corpus_load_results[corpus_id] = result
+    print(f"[corpus] Load complete: corpus_id={corpus_id} n_fed={n_fed} "
+          f"n_new_vocab={vocab_after - vocab_before} "
+          f"reads_delta={reads_after - reads_before}")
+
+
+def handle_load_corpus(args):
+    """GL-CMD-73: Load a pre-parsed corpus into the substrate.
+
+    Fire-and-forget: returns immediately with status="queued".
+    The actual read_sentence loop runs in a background thread to avoid
+    exceeding the ALB 180s gateway timeout (O(n_modes) section scan
+    on 3K+ vocab takes 60-120s for 107 sentences).
+
+    Use handle_corpus_status to poll for completion.
+
+    Args (pre-processed by app.py — no network IO here):
+        corpus_id : str  — unique identifier
+        title     : str  — display title
+        lines     : list — sentence-level strings from the adapter
+
+    Returns immediately:
+        status="queued", corpus_id, n_sentences, vocab_before
+    """
+    from dsf_ai_service.v4.gualaloom_v5_engine import CorpusItem
+
+    corpus_id = args.get("corpus_id", "").strip()
+    title = args.get("title", "").strip()
+    lines = args.get("lines", [])
+
+    if not corpus_id:
+        return {"error": "corpus_id required"}
+    if not lines:
+        return {"error": "no lines provided"}
+
+    # If already loading, return current status
+    existing = _corpus_load_results.get(corpus_id, {})
+    if existing.get("status") in ("loading", "queued"):
+        return existing
+
+    vocab_before = len(_guala.vocab)
+    reads_before = _guala.read_count
+    strength_before = round(_guala.atlas.total_strength(), 4)
+
+    # Register the corpus (overwrites if same corpus_id already exists)
+    _guala._corpora[corpus_id] = CorpusItem(
+        corpus_id=corpus_id,
+        title=title,
+        lines=lines,
+    )
+
+    # Mark as queued before starting thread so status is visible immediately
+    _corpus_load_results[corpus_id] = {
+        "status": "queued",
+        "corpus_id": corpus_id,
+        "n_sentences": len(lines),
+        "vocab_before": vocab_before,
+    }
+
+    # Pause autonomy loop BEFORE spawning thread so the background thread
+    # runs read_sentence without lock contention from the 200ms ticks.
+    _guala._reading_stop.set()
+    time.sleep(0.3)  # let any in-progress tick finish
+
+    t = threading.Thread(
+        target=_do_corpus_load,
+        args=(corpus_id, title, lines, vocab_before, reads_before, strength_before),
+        daemon=True,
+    )
+    t.start()
+
+    return {
+        "status": "queued",
+        "corpus_id": corpus_id,
+        "n_sentences": len(lines),
+        "vocab_before": vocab_before,
+        "message": "Loading started in background. Poll corpus_status to check completion.",
+    }
+
+
+def handle_corpus_status(args):
+    """Poll the status of an in-progress or completed corpus load."""
+    corpus_id = args.get("corpus_id", "").strip()
+    if not corpus_id:
+        return {"error": "corpus_id required"}
+    result = _corpus_load_results.get(corpus_id)
+    if result is None:
+        return {"status": "not_found", "corpus_id": corpus_id}
     return result
 
 
@@ -1432,6 +1491,7 @@ OP_HANDLERS = {
     "teacher_feedback": handle_teacher_feedback,
     "teacher_correction": handle_teacher_correction,
     "load_corpus": handle_load_corpus,
+    "corpus_status": handle_corpus_status,
 }
 
 
