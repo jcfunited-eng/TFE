@@ -3845,12 +3845,16 @@ class Guala:
                         for e in list(self.atlas.entries.get(chi + d, [])):
                             if e["strength"] < FORGETTING_THRESHOLD:
                                 continue
-                            # Match emission words (same filter as thumbs-down)
+                            # Match emission words in language sections only.
+                            # Non-language sections (sight, sound, etc.) are
+                            # not addressed by a language correction — skip.
                             sec = self.sections.get(e.get("section", ""))
                             if sec and e.get("motif", 0) < len(sec.modes):
                                 _, _, wl = sec.modes[e["motif"]]
                                 if not wl or wl.lower() not in _emission_words_set:
                                     continue
+                            else:
+                                continue
                             new_val = min(1.0, e.get("valence", 0.0) + _val_delta_up)
                             self.atlas.record(
                                 e.get("section", "object"),
