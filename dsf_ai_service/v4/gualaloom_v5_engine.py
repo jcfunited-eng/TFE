@@ -4239,7 +4239,7 @@ class Guala:
         }
 
     # Schema migrations
-    COMPATIBLE_SCHEMAS = {"v5.5.0", "v6.0.0", "v7.0.0", "v7.1.0"}
+    COMPATIBLE_SCHEMAS = {"v5.5.0", "v6.0.0", "v7.0.0", "v7.1.0", "v7.2.0"}
 
     def _unwrap(self, raw, filename):
         """Validate envelope, return data dict. Raises on mismatch."""

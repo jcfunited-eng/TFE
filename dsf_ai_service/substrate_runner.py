@@ -107,13 +107,27 @@ def boot_substrate():
                     parts = key.rsplit('/', 1)
                     if len(parts) == 2:
                         folders[parts[0]].append(parts[1])
-            # Find latest folder with guala_core.json + guala_atlas.json (complete)
+            # Find backup with the richest state (most vocab)
+            # Seed-state backups have ~20-40 vocab; real state has 2800+
             good = None
+            best_vocab = 0
             for folder in sorted(folders.keys(), reverse=True):
                 files = folders[folder]
-                if "guala_core.json" in files and "guala_atlas.json" in files:
-                    good = folder
-                    break
+                if "guala_core.json" not in files or "guala_atlas.json" not in files:
+                    continue
+                try:
+                    core_obj = s3.get_object(Bucket=bucket,
+                        Key=f"{folder}/guala_core.json")
+                    core_data = json.loads(core_obj['Body'].read())
+                    cd = core_data.get('data', core_data)
+                    vc = len(cd.get('vocab', []))
+                    if vc > best_vocab:
+                        best_vocab = vc
+                        good = folder
+                    if vc > 100:  # found a real backup, stop searching
+                        break
+                except Exception:
+                    continue
             if good:
                 print(f"[substrate] Restoring from {good} ({len(folders[good])} files)")
                 for fname in folders[good]:
