@@ -130,6 +130,8 @@ class LivingAtlas:
                     break
 
             if existing is not None:
+                # GL-CMD-CHI-BAND-MASS-CONSERVATION: capture pre-impulse strength
+                old_strength = existing["strength"]
                 # Reinforce — bounded by cap
                 existing["strength"] = min(STRENGTH_CAP, existing["strength"] + impulse)
                 existing["last_tick"] = tick
@@ -157,6 +159,19 @@ class LivingAtlas:
                 if episode_ref and episode_ref != existing.get("episode_ref"):
                     existing["episode_refs"] = (existing.get("episode_refs", [])
                                                 + [episode_ref])[-4:]
+                # GL-CMD-CHI-BAND-MASS-CONSERVATION: heterosynaptic redistribution.
+                # actual_delta (not impulse) accounts for cap absorption.
+                # Redistributes exactly what existing gained from all other entries
+                # at this chi address, proportional to their current strength.
+                actual_delta = existing["strength"] - old_strength
+                if actual_delta > 0:
+                    others = [e for e in entries if e is not existing]
+                    total_other = sum(e["strength"] for e in others)
+                    if total_other > 0:
+                        for e in others:
+                            share = e["strength"] / total_other
+                            e["strength"] = max(0.0,
+                                                e["strength"] - actual_delta * share)
             else:
                 # New binding — tag encoded_strength and dwell at write time
                 new_strength = min(STRENGTH_CAP, impulse)
@@ -183,6 +198,47 @@ class LivingAtlas:
                     # GL-SPC-HEMISPHERE-ARCH: hemisphere tag (Phase 0: always em)
                     "hemisphere_id": "em",
                 })
+
+    def repair_pass(self):
+        """GL-CMD-CHI-BAND-MASS-CONSERVATION: one-time renormalization at deploy.
+
+        Rescales chi bands that have accumulated above n × BASELINE.
+        BASELINE = (STRENGTH_CAP + FORGETTING_THRESHOLD) / 2 — substrate-derived
+        midpoint of the meaningful strength range. No tuned constants.
+        Rank order within each band preserved (proportional scale).
+        Returns stats for deploy V2 verification.
+        """
+        BASELINE = (STRENGTH_CAP + FORGETTING_THRESHOLD) / 2
+        repaired_bands = 0
+        repaired_bindings = 0
+        total_strength_before = 0.0
+        total_strength_after = 0.0
+
+        for chi_k, entries in self.entries.items():
+            live = [e for e in entries if e["strength"] >= FORGETTING_THRESHOLD]
+            if not live:
+                continue
+            n = len(live)
+            current_total = sum(e["strength"] for e in live)
+            total_strength_before += current_total
+            target_total = n * BASELINE
+            if current_total > target_total:
+                scale = target_total / current_total
+                for e in live:
+                    e["strength"] *= scale
+                repaired_bands += 1
+                repaired_bindings += n
+                total_strength_after += target_total
+            else:
+                total_strength_after += current_total
+
+        return {
+            "repaired_bands": repaired_bands,
+            "repaired_bindings": repaired_bindings,
+            "total_strength_before": round(total_strength_before, 2),
+            "total_strength_after": round(total_strength_after, 2),
+            "baseline_used": round(BASELINE, 4),
+        }
 
     def decay(self, current_tick=None, rate_scale=1.0):
         """Apply per-tick decay to all bindings. Called every 10 ticks.

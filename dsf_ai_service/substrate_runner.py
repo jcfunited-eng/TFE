@@ -177,6 +177,10 @@ def boot_substrate():
         if cid in g._corpora:
             del g._corpora[cid]
 
+    # GL-CMD-CHI-BAND-MASS-CONSERVATION: one-time repair pass after load/restore
+    repair_stats = g.atlas.repair_pass()
+    print(f"[substrate] Atlas repair: {repair_stats}")
+
     # Start autonomy loop
     # GL-BRIEF-NEEDS-PHYSICS: increase interval from 50ms to 200ms
     # With 38K+ atlas entries, decay sweeps take >50ms and starve
