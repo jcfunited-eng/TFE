@@ -126,9 +126,10 @@ def replay_events(session, events):
             replayed += 1
 
         elif t == "quiet":
-            # Cap quiet replay at 3 ticks to bound init time
-            n = min(ev.get("n_ticks", 1), 3)
-            session.quiet_tick(n)
+            # Skip quiet replay — like converse, the mode_strength changes
+            # from quiet ticks are captured by subsequent commit events.
+            # Re-running replay_tick for each historical quiet batch is
+            # prohibitively expensive (175ms × 744 events = 130s at init).
             replayed += 1
 
     return replayed
