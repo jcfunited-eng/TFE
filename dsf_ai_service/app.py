@@ -3005,6 +3005,68 @@ def handle_teacher_correction_local(req):
         temporal=req.temporal, sensory_freetext=req.sensory_freetext)
 
 
+# ── GL-CMD-73: Curriculum endpoint ─────────────────────────────
+
+class LoadCorpusRequest(BaseModel):
+    corpus_id: str
+    title: str
+    url: str
+
+
+@app.post("/api/v1/curriculum/load_corpus")
+async def load_corpus(req: LoadCorpusRequest):
+    """Fetch a Gutenberg (or any UTF-8 text) URL, parse it into
+    sentence-level lines, register as CorpusItem, and feed each
+    sentence through read_sentence(). Returns load metrics."""
+    from dsf_ai_service.curriculum.gutenberg_adapter import fetch_and_parse
+    try:
+        lines, meta = fetch_and_parse(req.url)
+    except Exception as e:
+        raise HTTPException(status_code=400,
+                            detail=f"fetch failed: {e}")
+    if not lines:
+        raise HTTPException(status_code=400,
+                            detail="no sentences extracted from URL")
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call(
+            "load_corpus",
+            corpus_id=req.corpus_id,
+            title=req.title,
+            lines=lines,
+            timeout=120.0,    # 100 sentences × read_sentence needs headroom
+        )
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="guala_not_ready")
+    # Local path (non-remote): feed directly
+    from dsf_ai_service.v4.gualaloom_v5_engine import CorpusItem
+    vocab_before = len(_guala.vocab)
+    reads_before = _guala.read_count
+    import dsf_ai_service.v4.gualaloom_v6_living_atlas as _la
+    strength_before = round(_guala.atlas.total_strength(), 4)
+    _guala._corpora[req.corpus_id] = CorpusItem(
+        corpus_id=req.corpus_id, title=req.title, lines=lines)
+    errors = []
+    for sent in lines:
+        try:
+            _guala.read_sentence(sent, source="corpus")
+        except Exception as e:
+            errors.append(str(e)[:80])
+    strength_after = round(_guala.atlas.total_strength(), 4)
+    result = {
+        "corpus_id": req.corpus_id,
+        "n_sentences": len(lines),
+        "n_new_vocab": len(_guala.vocab) - vocab_before,
+        "reads_delta": _guala.read_count - reads_before,
+        "atlas_strength_before": strength_before,
+        "atlas_strength_after": strength_after,
+        "atlas_strength_delta": round(strength_after - strength_before, 4),
+    }
+    if errors:
+        result["errors"] = errors[:5]
+    return result
+
+
 @app.get("/v7/state")
 async def v7_state(session_id: str = "default"):
     if _is_remote():

@@ -1044,6 +1044,80 @@ def handle_teacher_correction(args):
     return result
 
 
+# ── Curriculum ops ─────────────────────────────────────────────
+
+def handle_load_corpus(args):
+    """GL-CMD-73: Load a pre-parsed corpus into the substrate.
+
+    Args (pre-processed by app.py — no network IO here):
+        corpus_id : str  — unique identifier
+        title     : str  — display title
+        lines     : list — sentence-level strings from the adapter
+
+    Returns:
+        corpus_id, n_sentences, n_new_vocab, reads_delta,
+        atlas_strength_before, atlas_strength_after, atlas_strength_delta
+    """
+    from dsf_ai_service.v4.gualaloom_v5_engine import CorpusItem
+
+    corpus_id = args.get("corpus_id", "").strip()
+    title = args.get("title", "").strip()
+    lines = args.get("lines", [])
+
+    if not corpus_id:
+        return {"error": "corpus_id required"}
+    if not lines:
+        return {"error": "no lines provided"}
+
+    vocab_before = len(_guala.vocab)
+    reads_before = _guala.read_count
+    strength_before = round(_guala.atlas.total_strength(), 4)
+
+    # Register the corpus (overwrites if same corpus_id already exists)
+    _guala._corpora[corpus_id] = CorpusItem(
+        corpus_id=corpus_id,
+        title=title,
+        lines=lines,
+    )
+
+    # Feed every sentence through the existing read_sentence path
+    errors = []
+    n_fed = 0
+    for sent in lines:
+        try:
+            _guala.read_sentence(sent, source="corpus")
+            n_fed += 1
+        except Exception as e:
+            errors.append(f"{sent[:40]!r}: {e}")
+
+    vocab_after = len(_guala.vocab)
+    reads_after = _guala.read_count
+    strength_after = round(_guala.atlas.total_strength(), 4)
+
+    _guala._log_substrate_event(
+        "curriculum_loaded",
+        corpus_id=corpus_id,
+        title=title,
+        n_sentences=n_fed,
+        n_new_vocab=vocab_after - vocab_before,
+        reads_delta=reads_after - reads_before,
+        atlas_strength_delta=round(strength_after - strength_before, 4),
+    )
+
+    result = {
+        "corpus_id": corpus_id,
+        "n_sentences": n_fed,
+        "n_new_vocab": vocab_after - vocab_before,
+        "reads_delta": reads_after - reads_before,
+        "atlas_strength_before": strength_before,
+        "atlas_strength_after": strength_after,
+        "atlas_strength_delta": round(strength_after - strength_before, 4),
+    }
+    if errors:
+        result["errors"] = errors[:5]
+    return result
+
+
 # ── Admin ops ──────────────────────────────────────────────────
 
 def handle_amnesty(args):
@@ -1342,6 +1416,7 @@ OP_HANDLERS = {
     "stop_cascade_monitor": handle_stop_cascade_monitor,
     "teacher_feedback": handle_teacher_feedback,
     "teacher_correction": handle_teacher_correction,
+    "load_corpus": handle_load_corpus,
 }
 
 
