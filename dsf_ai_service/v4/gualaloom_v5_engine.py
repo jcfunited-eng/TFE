@@ -3830,21 +3830,28 @@ class Guala:
             if correct:
                 # GL-CMD-TEACHER-SUBSTRATE-TRUE: thumbs-up via atlas.record()
                 # — goes through conservation, salience-modulated, source-tagged.
-                # Positive valence raised by source-derived delta (max-pooled by atlas).
+                # Filtered to emission words (prevents O(n²) blowup from
+                # running conservation pass on every binding in the neighborhood).
                 _sal_up = self._compute_salience(source=source)
                 # source_w * pair_bond (static component) drives valence rise
                 _sw = {"joe": 1.6, "wc": 1.6, "c1": 1.2,
                        "corpus": 0.5, "guala": 0.5, "unknown": 0.7}
                 _pb = 1.2 if self.coordinator._pair_bond.get(source, False) else 1.0
                 _val_delta_up = BASE_REINFORCEMENT * _sw.get(source, 0.7) * _pb
+                _emission_words_set = set(w.lower() for w in emission_words)
+                ep_ref = f"correction:{emission_id}" if emission_id else None
                 for chi in emission_chis:
                     for d in range(-self.atlas.band, self.atlas.band + 1):
                         for e in list(self.atlas.entries.get(chi + d, [])):
                             if e["strength"] < FORGETTING_THRESHOLD:
                                 continue
+                            # Match emission words (same filter as thumbs-down)
+                            sec = self.sections.get(e.get("section", ""))
+                            if sec and e.get("motif", 0) < len(sec.modes):
+                                _, _, wl = sec.modes[e["motif"]]
+                                if not wl or wl.lower() not in _emission_words_set:
+                                    continue
                             new_val = min(1.0, e.get("valence", 0.0) + _val_delta_up)
-                            ep_ref = (f"correction:{emission_id}"
-                                      if emission_id else None)
                             self.atlas.record(
                                 e.get("section", "object"),
                                 e.get("motif", 0),
