@@ -200,31 +200,35 @@ class CouplingsJij:
     J_base = 1.0, J_max = 1.5 (frozen rational constants).
     """
 
-    def __init__(self, n_modes: int = PSI_DIM):
+    def __init__(self, n_modes: int = PSI_DIM,
+                 neighbors: Optional[List[str]] = None):
         self.n_modes = n_modes
-        self.neighbors: List[str] = []      # neuron_ids of connected neighbors
-        self.J = np.zeros((0, n_modes), dtype=np.float64)  # shape (K, n_modes)
+        self.neighbors: List[str] = neighbors if neighbors is not None else []
+        K = len(self.neighbors)
+        # Stage 1 (K=0): shape (0, n_modes). Stage 2 (K=16): shape (16, n_modes).
+        # Initial values: J_BASE across all entries (refined on first step).
+        self.J = np.full((K, n_modes), J_BASE, dtype=np.float64)
 
     def update_from_dsf(self, dsf: DSF) -> None:
-        """Update J_ij from L0-L4 DSF outputs. Stage 1: no-op (K=0).
+        """Update J_ij from L0-L4 DSF outputs.
 
-        Stage 2 formula per Master Spec Ch.7:
-          direction:   J = D_k  * J_BASE
-          convergence: J = S_UF * J_BASE
-          momentum:    J = |M_k| * J_BASE
-          binding:     J = C_k/(1+C_k) * J_BASE
-          compression: J = P_k/(1+P_k) * J_BASE
-          conviction:  J = |B_k| * J_BASE
-          freedom:     J = -U_star * J_BASE
-          path_kill:   J = R_rev * J_MAX
+        Per Master Spec Ch.7 table — 8 coupling values from DSF, repeated
+        2× to fill PSI_DIM=16 modes. Each neighbor row gets the same
+        per-neuron coupling profile (differentiation comes from which
+        neurons are neighbors, not per-neighbor tuning at Stage 2).
         """
-        if len(self.neighbors) == 0:
-            return  # K=0, nothing to update
+        if len(self.neighbors) == 0 or dsf is None:
+            return
+        diag = dsf.coupling_matrix_diag(J_base=J_BASE, J_max=J_MAX)
+        values = np.array(list(diag.values()), dtype=np.float64)  # 8 vals
+        row = np.repeat(values, 2)  # 16 modes
+        for i in range(len(self.neighbors)):
+            self.J[i] = row
 
     def fire_spikes(self, intensity: float, tick: int) -> None:
-        """Fire J_ij weighted spikes to neighbors. Stage 1: no-op (K=0)."""
-        if len(self.neighbors) == 0:
-            return
+        """Fire J_ij weighted spikes to neighbors. Stage 1: no-op (K=0).
+        Stage 2: cluster handles propagation via LoomCluster.step Phase B."""
+        pass
 
 
 # ---------------------------------------------------------------------------
@@ -374,6 +378,10 @@ class LoomNeuron:
         self._tick: int = 0
         self._last_commit_intensity: float = 0.0
 
+        # Coupling spike accumulators (consumed by next step())
+        self._coupling_injection = np.zeros(PSI_DIM, dtype=np.float64)
+        self._coupling_modulation_delta: float = 0.0
+
     # ------------------------------------------------------------------
     # step — one substrate cycle
     # ------------------------------------------------------------------
@@ -415,6 +423,10 @@ class LoomNeuron:
         # MapInject: chi + DSF → 16-dim injection vector
         inj = _map_inject(dsf, chi)
 
+        # Add deferred coupling injection from previous step's Phase B
+        inj = inj + self._coupling_injection
+        self._coupling_injection = np.zeros(PSI_DIM, dtype=np.float64)
+
         # ψ-lattice settles under Hamiltonian
         law_params = [(law.weight, law.family) for law in self.laws]
         self.psi_lattice.settle(inj, law_params)
@@ -455,6 +467,37 @@ class LoomNeuron:
             "match_score": match_score,
             "delta_eff": self.familiarity.delta_eff,
         }
+
+    # ------------------------------------------------------------------
+    # receive_coupling_spike — modulation from a neighbor (Stage 2)
+    # ------------------------------------------------------------------
+
+    def receive_coupling_spike(self, neuron_id_from: str,
+                                J_weight: float,
+                                source_dsf: DSF,
+                                tick: int) -> None:
+        """Receive coupling spike from a neighbor neuron.
+
+        Immediate effect:  familiarity.delta_eff += J_weight × 0.05
+        Deferred effect:   injection vector += unit_inj × J_weight
+                           (consumed by next step()'s ψ-lattice settle)
+
+        Args:
+            neuron_id_from: the spiking neighbor's id
+            J_weight:       coupling weight from spiking neuron's J matrix
+            source_dsf:     the spiking neighbor's DSF state
+            tick:           current substrate tick
+        """
+        # Immediate: raise familiarity dead-zone
+        self.familiarity.delta_eff += J_weight * 0.05
+        self._coupling_modulation_delta += J_weight * 0.05
+
+        # Deferred: accumulate injection direction from source DSF
+        arr = source_dsf.to_array()         # 8D
+        inj_dir = np.repeat(arr, 2)         # 16D (matches ψ-lattice dim)
+        norm = float(np.linalg.norm(inj_dir))
+        if norm > 1e-9:
+            self._coupling_injection += (inj_dir / norm) * J_weight
 
     # ------------------------------------------------------------------
     # get_grandurun_state — 7D complex128 spin-vector
