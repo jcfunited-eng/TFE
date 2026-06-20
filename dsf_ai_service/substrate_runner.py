@@ -1293,7 +1293,11 @@ def handle_sound_frame(args):
 def handle_sleep_for_deploy(args):
     if _guala.is_asleep:
         return {"ok": True, "already_asleep": True, "sleep_tick": _guala.tick}
-    _guala.manual_sleep(state_dir=STATE_DIR)
+    try:
+        _guala.manual_sleep(state_dir=STATE_DIR)
+    except Exception as e:
+        print(f"[sleep_for_deploy] manual_sleep failed: {e}")
+        return {"ok": False, "error": str(e), "tick": _guala.tick}
     return {"ok": True, "sleep_tick": _guala.tick, "vocab": len(_guala.vocab)}
 
 

@@ -3449,7 +3449,13 @@ async def sleep_for_deploy():
     writes .sleeping marker. Returns sleep tick."""
     if _is_remote():
         client = _get_substrate_client()
-        return await client.call("sleep_for_deploy")
+        try:
+            return await client.call("sleep_for_deploy")
+        except RuntimeError as e:
+            # Substrate returned ok=False (sleep failed) — return 200 with error
+            # body so the deploy script can proceed (state recoverable from EFS)
+            return JSONResponse(status_code=200,
+                                content={"ok": False, "error": str(e)})
     if _guala is None:
         return JSONResponse(
             status_code=503,

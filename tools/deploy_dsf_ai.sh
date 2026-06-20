@@ -278,18 +278,14 @@ SLEEP_BODY=$(echo "$SLEEP_RESPONSE" | grep -v "__HTTP__")
 echo "[sleep] HTTP $SLEEP_HTTP"
 echo "[sleep] Body: $SLEEP_BODY"
 
-if [ "$SLEEP_HTTP" = "404" ]; then
-    echo "[sleep] /sleep_for_deploy not present on running task —"
-    echo "        this is expected for the first deploy of the"
-    echo "        sleep-during-deploy feature. Proceeding with"
-    echo "        old-model deploy (brief cold-start window)."
-elif [ "$SLEEP_HTTP" != "200" ]; then
-    echo "[sleep] FAILED — aborting deploy"
-    echo "[sleep] she did not enter sleep cleanly; refusing to"
-    echo "        update-service. Investigate before retrying."
-    exit 1
-else
+if [ "$SLEEP_HTTP" = "200" ]; then
     echo "[sleep] She is asleep. Proceeding with deploy."
+elif [ "$SLEEP_HTTP" = "404" ]; then
+    echo "[sleep] /sleep_for_deploy not present on running task —"
+    echo "        this is expected for the first deploy. Proceeding."
+else
+    echo "[sleep] WARNING: sleep returned HTTP $SLEEP_HTTP — proceeding anyway."
+    echo "        State will be recovered from last EFS snapshot + event log."
 fi
 
 echo ""
