@@ -372,9 +372,12 @@ EMISSION_COHESION_THRESHOLD = 0.65
 EMISSION_COOLDOWN_TICKS = 200
 PAIR_BOND_SOURCES = {"joe", "wc", "c1"}
 
-# GL-CMD-TEACHER-CORRECTION-UI: teacher feedback constants
-TEACHER_VALENCE_DELTA = 0.30
-TEACHER_INPUT_SALIENCE_MULTIPLIER = 1.5
+# GL-CMD-TEACHER-SUBSTRATE-TRUE: tick-window cap for emission records
+# = ln(1/FORGETTING_THRESHOLD) / (DECAY_LAMBDA / SLOW_DIV)
+# = ln(50) / 8.33e-6 ≈ 469_443 ticks (≈ 48h at current tick rate)
+# Substrate-derived: same physics as slow-decay forget window.
+EMISSION_RECORDS_TICK_WINDOW = 469_443
+# Safety cap: prevent pathological growth above 1000 records.
 EMISSION_RECORDS_CAP = 1000
 
 
@@ -1173,10 +1176,9 @@ class Guala:
         self._last_emission_tick = -100_000
         self._last_emission_record = None  # {emission_id, text, tick, ...}
         self._last_emission_id = None
-        self._emission_records = {}  # emission_id -> record (capped at EMISSION_RECORDS_CAP)
+        self._emission_records = {}  # emission_id -> record (tick-window expiry)
         self._teaching_feedback_log = []
         self._teaching_correction_log = []
-        self._teacher_salience_multiplier = 1.0
         self._corpora = {}          # corpus_id -> CorpusItem
         self._sensory_items = {}    # item_id -> SensoryItem
         self._sounds = {}           # item_id -> {cochlear, title, samples, sr, ...}
@@ -1206,7 +1208,6 @@ class Guala:
         # v6-bridge: per-source pair bond check
         pair_bond_boost = 1.2 if self.coordinator._pair_bond.get(source, False) else 1.0
         salience = source_w * urgency_factor * novelty_factor * pair_bond_boost
-        salience *= getattr(self, '_teacher_salience_multiplier', 1.0)
         return max(SALIENCE_MIN, min(SALIENCE_MAX, salience))
 
     def _compute_surprise(self, chi_value):
@@ -1537,23 +1538,30 @@ class Guala:
             self._last_converse_input = text
             self._last_converse_reply = reply
 
-            # GL-CMD-TEACHER-CORRECTION-UI: emission_id for correction targeting
+            # GL-CMD-TEACHER-SUBSTRATE-TRUE: emission_id is substrate-derived fingerprint
             self._last_converse_source = source
             if reply and reply != "...":
-                eid = f"{self.tick}_{_hashlib.md5(reply.encode()).hexdigest()[:8]}"
-                self._last_emission_id = eid
                 committed_chis = []
-                if reply != "...":
-                    for ew in _normalize_text(reply):
-                        ek = LanguageKrimelack()
-                        ek.transduce(ew)
-                        committed_chis.append(ek.winding)
+                for ew in _normalize_text(reply):
+                    ek = LanguageKrimelack()
+                    ek.transduce(ew)
+                    committed_chis.append(ek.winding)
+                first_chi = min(committed_chis) if committed_chis else 0
+                n_committed = len(committed_chis)
+                eid = f"{self.tick}_{first_chi}_{n_committed}"
+                self._last_emission_id = eid
                 rec = {"emission_id": eid, "text": reply, "tick": self.tick,
                        "input_text": text, "source": source,
                        "committed_chis": committed_chis}
                 self._last_emission_record = rec
                 self._emission_records[eid] = rec
-                # Cap emission_records
+                # Tick-window expiry: drop records older than slow-decay forget window
+                old_threshold = self.tick - EMISSION_RECORDS_TICK_WINDOW
+                stale = [k for k, r in self._emission_records.items()
+                         if r.get("tick", 0) < old_threshold]
+                for k in stale:
+                    del self._emission_records[k]
+                # Safety cap: prevent pathological growth
                 if len(self._emission_records) > EMISSION_RECORDS_CAP:
                     oldest = sorted(self._emission_records.keys(),
                                     key=lambda k: self._emission_records[k].get("tick", 0))
@@ -2092,21 +2100,23 @@ class Guala:
                     if key in seen:
                         continue
                     seen.add(key)
+                    # GL-CMD-TEACHER-SUBSTRATE-TRUE: valence modulates cm
+                    # for direct cross-modal hits (Path B).
+                    # val in [-1,1]: negative valence suppresses, positive boosts.
+                    _e_val = e.get("valence", 0.0)
                     cross_modal.append({
                         "chi": chi + d,
                         "section": sec_name,
                         "motif": mid,
                         "word": word_label,
                         "strength": e["strength"],
-                        "coherent_magnitude": e["strength"],
+                        "coherent_magnitude": e["strength"] * max(0.0, 1.0 + _e_val),
                         "source": e.get("source", "corpus"),
                         "arousal": e.get("arousal", 0.5),
-                        "valence": e.get("valence", 0.0),
+                        "valence": _e_val,
                         "surprise": e.get("surprise", 0.0),
                         "polarity": e.get("polarity", 1.0),
                         "sensory_refs": e.get("sensory_refs", []),
-                        "teaching_correction": e.get("teaching_correction"),
-                        "teaching_correction_for": e.get("teaching_correction_for"),
                         "origin": "cross_modal",
                     })
 
@@ -2139,21 +2149,20 @@ class Guala:
                         if key in seen:
                             continue
                         seen.add(key)
+                        _de_val = de.get("valence", 0.0)
                         cross_modal.append({
                             "chi": de_chi,
                             "section": sec_name,
                             "motif": mid,
                             "word": word_label,
                             "strength": float(strength),
-                            "coherent_magnitude": float(strength),
+                            "coherent_magnitude": float(strength) * max(0.0, 1.0 + _de_val),
                             "source": de.get("source", "corpus"),
                             "arousal": de.get("arousal", 0.5),
-                            "valence": de.get("valence", 0.0),
+                            "valence": _de_val,
                             "surprise": de.get("surprise", 0.0),
                             "polarity": de.get("polarity", 1.0),
                             "sensory_refs": de.get("sensory_refs", []),
-                            "teaching_correction": de.get("teaching_correction"),
-                            "teaching_correction_for": de.get("teaching_correction_for"),
                             "origin": "cross_modal_deep",
                         })
 
@@ -2202,8 +2211,6 @@ class Guala:
                         "surprise": e.get("surprise", 0.0),
                         "polarity": e.get("polarity", 1.0),
                         "sensory_refs": e.get("sensory_refs", []),
-                        "teaching_correction": e.get("teaching_correction"),
-                        "teaching_correction_for": e.get("teaching_correction_for"),
                         "origin": "cofire_spread",
                     })
 
@@ -2225,13 +2232,6 @@ class Guala:
                         cand["coherent_magnitude"] *= 1.3
                     elif dist > 5:
                         cand["coherent_magnitude"] *= 0.7
-
-        # GL-CMD-TEACHER-CORRECTION-UI: teaching influence on candidates
-        for cand in all_candidates:
-            if cand.get("teaching_correction"):
-                cand["coherent_magnitude"] *= 0.1
-            if cand.get("teaching_correction_for"):
-                cand["coherent_magnitude"] *= 2.0
 
         # GL-CMD-COGNITION-BUNDLE: sc/gp emission weighting
         # perf/cache-sc-weights: build sc weight cache once per emission
@@ -3828,20 +3828,37 @@ class Guala:
             affected = []
 
             if correct:
-                # Thumbs-up: reinforce emission bindings
+                # GL-CMD-TEACHER-SUBSTRATE-TRUE: thumbs-up via atlas.record()
+                # — goes through conservation, salience-modulated, source-tagged.
+                # Positive valence raised by source-derived delta (max-pooled by atlas).
+                _sal_up = self._compute_salience(source=source)
+                # source_w * pair_bond (static component) drives valence rise
+                _sw = {"joe": 1.6, "wc": 1.6, "c1": 1.2,
+                       "corpus": 0.5, "guala": 0.5, "unknown": 0.7}
+                _pb = 1.2 if self.coordinator._pair_bond.get(source, False) else 1.0
+                _val_delta_up = BASE_REINFORCEMENT * _sw.get(source, 0.7) * _pb
                 for chi in emission_chis:
                     for d in range(-self.atlas.band, self.atlas.band + 1):
-                        for e in self.atlas.entries.get(chi + d, []):
+                        for e in list(self.atlas.entries.get(chi + d, [])):
                             if e["strength"] < FORGETTING_THRESHOLD:
                                 continue
-                            e["strength"] = min(STRENGTH_CAP,
-                                                e["strength"] + 0.05)
-                            e["valence"] = min(1.0, e.get("valence", 0.5) + TEACHER_VALENCE_DELTA)
-                            e["reinforcement_count"] = e.get("reinforcement_count", 0) + 1
+                            new_val = min(1.0, e.get("valence", 0.0) + _val_delta_up)
+                            ep_ref = (f"correction:{emission_id}"
+                                      if emission_id else None)
+                            self.atlas.record(
+                                e.get("section", "object"),
+                                e.get("motif", 0),
+                                chi + d,
+                                tick=correction_tick,
+                                salience=_sal_up,
+                                valence=new_val,
+                                source=source,
+                                episode_ref=ep_ref,
+                            )
                             affected.append({
                                 "chi": chi + d,
-                                "section": e["section"],
-                                "motif": e["motif"],
+                                "section": e.get("section"),
+                                "motif": e.get("motif"),
                                 "action": "reinforce",
                                 "new_strength": e["strength"],
                             })
@@ -3859,7 +3876,17 @@ class Guala:
                                 sensory_refs=[f"correction:{source}:thumbs_up"],
                             )
             else:
-                # Thumbs-down: weaken emission bindings
+                # GL-CMD-TEACHER-SUBSTRATE-TRUE: thumbs-down — direct write
+                # with source-derived delta (no atlas.record() — no LivingAtlas
+                # mechanism for valence decrement; direct write stays but delta
+                # is substrate-derived, not hardcoded).
+                _sw_d = {"joe": 1.6, "wc": 1.6, "c1": 1.2,
+                         "corpus": 0.5, "guala": 0.5, "unknown": 0.7}
+                _pb_d = 1.2 if self.coordinator._pair_bond.get(source, False) else 1.0
+                _val_delta_down = BASE_REINFORCEMENT * _sw_d.get(source, 0.7) * _pb_d
+                # Strength delta matches BASE_REINFORCEMENT (same as thumbs-up).
+                _str_delta_down = BASE_REINFORCEMENT
+                # Weaken emission bindings
                 for chi in emission_chis:
                     for d in range(-self.atlas.band, self.atlas.band + 1):
                         for e in self.atlas.entries.get(chi + d, []):
@@ -3872,9 +3899,12 @@ class Guala:
                                 if wl and wl.lower() in set(
                                         w.lower() for w in emission_words):
                                     e["strength"] = max(0.0,
-                                                        e["strength"] - 0.05)
-                                    e["valence"] = max(0.0, e.get("valence", 0.5) - TEACHER_VALENCE_DELTA)
-                                    e["teaching_correction"] = True
+                                                        e["strength"] - _str_delta_down)
+                                    # Negative valence floor is -1.0 (not 0.0).
+                                    # Negative bindings suppressed in cross-modal cm
+                                    # via max(0.0, 1.0 + valence) formula.
+                                    e["valence"] = max(-1.0,
+                                                       e.get("valence", 0.0) - _val_delta_down)
                                     affected.append({
                                         "chi": chi + d,
                                         "section": e["section"],
@@ -3898,9 +3928,9 @@ class Guala:
 
                 effective_correction = corrected_text or expected_response
                 if effective_correction:
-                    # V1.5: corrected_text alone enters substrate pipeline
-                    old_mult = self._teacher_salience_multiplier
-                    self._teacher_salience_multiplier = TEACHER_INPUT_SALIENCE_MULTIPLIER
+                    # GL-CMD-TEACHER-SUBSTRATE-TRUE: corrected_text enters substrate
+                    # at natural source-weight salience (no TEACHER_INPUT_SALIENCE_MULTIPLIER
+                    # — pair_bond + source_weight already elevate joe/wc inputs).
                     try:
                         self.read_sentence(effective_correction, source=source)
                     except Exception:
@@ -3910,21 +3940,24 @@ class Guala:
                             self.atlas.record(
                                 "object", deterministic_motif_id(w),
                                 k.winding, tick=correction_tick,
-                                salience=2.0, dwell_ticks=5,
+                                salience=self._compute_salience(source=source),
+                                dwell_ticks=5,
                                 source=source,
                             )
-                    finally:
-                        self._teacher_salience_multiplier = old_mult
 
-                    # Tag new bindings with teaching_correction_for
+                    # GL-CMD-TEACHER-SUBSTRATE-TRUE: native episode_ref back-reference
+                    # (replaces teaching_correction_for tag — same pattern as atlas
+                    # episode_refs list on existing bindings).
                     if emission_id:
+                        ep_ref = f"correction:{emission_id}"
                         for w in _normalize_text(effective_correction):
                             k = LanguageKrimelack()
                             k.transduce(w)
                             for d in range(-self.atlas.band, self.atlas.band + 1):
                                 for e in self.atlas.entries.get(k.winding + d, []):
                                     if e.get("last_tick", 0) >= correction_tick:
-                                        e["teaching_correction_for"] = emission_id
+                                        ep_refs = e.get("episode_refs", [])
+                                        e["episode_refs"] = (ep_refs + [ep_ref])[-4:]
 
                     # Compute expected chis for cofire binding
                     expected_words = _normalize_text(effective_correction)
