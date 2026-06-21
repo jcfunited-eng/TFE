@@ -872,23 +872,35 @@ def _cmd_bundle(command, text):
         else:
             results.append(f"sound {sound_id} not found")
 
-    # 4. Touch/smell/taste — atlas.record per descriptor
+    # 4. Touch/smell/taste — substrate-true: SensoryTransducer → waveform → chi
+    # GL-CMD-108: unified pipeline replaces deterministic_motif_id label hashing.
+    # Chi is derived from krimelack winding on actual physical waveform.
+    from dsf_ai_service.substrate.sensory_transducer import SensoryTransducer
+    from dsf_ai_service.substrate.sensory_generators import (
+        generate_sensory_signals, transduce_sensory_signals)
+    _transducer = SensoryTransducer()
     for modality, descriptors in [("touch", touch), ("smell", smell), ("taste", taste)]:
-        for desc in descriptors:
-            try:
-                mid = deterministic_motif_id(f"{modality}_{desc}")
-                chi = mid % 100
+        if not descriptors:
+            continue
+        try:
+            signals = generate_sensory_signals(
+                modality, descriptors, transducer=_transducer, tick=_guala.tick)
+            channel_results = transduce_sensory_signals(signals)
+            for ch_name, ch_data in channel_results.items():
+                chi = ch_data["chi"]
+                motif_id = deterministic_motif_id(
+                    f"{bundle_name}_{modality}_{ch_name}")
                 _guala.atlas.record(
-                    f"modal_{modality}", mid, chi,
+                    f"{modality}_{ch_name}", motif_id, chi,
                     _guala.tick, salience=1.2,
                     dwell_ticks=DWELL_GATE_META,
-                    sensory_refs=[f"{modality}:{desc}"],
+                    sensory_refs=[f"{modality}:{','.join(descriptors)}"],
                     **_guala._affect_kwargs())
                 n_chis += 1
-            except Exception as e:
-                results.append(f"{modality} ERROR ({desc}): {e}")
-        if descriptors:
-            results.append(f"{modality}: {', '.join(descriptors)}")
+            results.append(f"{modality}: {', '.join(descriptors)} "
+                          f"({len(channel_results)} channels)")
+        except Exception as e:
+            results.append(f"{modality} ERROR: {e}")
 
     tick_span = _guala.tick - base_tick
     _guala._log_substrate_event("experience_bundle",

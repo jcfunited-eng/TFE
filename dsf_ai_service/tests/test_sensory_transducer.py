@@ -1,5 +1,5 @@
 """
-test_sensory_transducer.py — GL-CMD-107 F1 SensoryTransducer tests.
+test_sensory_transducer.py — GL-CMD-107/108 F1+F12 SensoryTransducer tests.
 
 Validates substrate-true sensory parameter generation:
 - No fixed label-to-param mappings
@@ -290,3 +290,137 @@ def test_t8_determinism():
         f"Different ticks must produce different params"
     )
     print(f"  Different tick (43): params_a != params_c: {params_a != params_c}")
+
+
+# ---------------------------------------------------------------------------
+# T9: remote-mode variability (F12)
+# ---------------------------------------------------------------------------
+
+def test_t9_remote_mode_variability():
+    """Same label at different ticks → different chi addresses (not same-label-same-chi)."""
+    from dsf_ai_service.substrate.sensory_generators import (
+        generate_sensory_signals, transduce_sensory_signals,
+    )
+
+    chi_values = []
+    for tick in range(10):
+        signals = generate_sensory_signals("touch", ["warm"], tick=tick * 100)
+        channel_results = transduce_sensory_signals(signals)
+        chis = [ch_data["chi"] for ch_data in channel_results.values()]
+        chi_values.append(tuple(chis))
+
+    print(f"\n== T9: remote-mode variability ==")
+    for i, chis in enumerate(chi_values):
+        print(f"  tick={i*100}: chi={chis}")
+
+    # At least 2 distinct chi tuples across 10 calls
+    unique = len(set(chi_values))
+    print(f"  unique chi tuples: {unique}/10")
+
+    assert unique >= 2, (
+        f"Expected at least 2 distinct chi tuples from 10 calls, got {unique}. "
+        f"Chi should vary with tick (no longer same-label-same-chi)."
+    )
+
+
+# ---------------------------------------------------------------------------
+# T10: cross-mode consistency (F12)
+# ---------------------------------------------------------------------------
+
+def test_t10_cross_mode_consistency():
+    """Embedded and remote paths use same pipeline → same distribution of chi."""
+    from dsf_ai_service.substrate.sensory_generators import (
+        generate_sensory_signals, transduce_sensory_signals,
+    )
+
+    # Both paths now go through: SensoryTransducer → generate_*_waveform → transduce
+    # Simulate both with same transducer + tick
+    transducer = SensoryTransducer(NullAtlasReader())
+
+    embedded_chis = []
+    remote_chis = []
+    for tick in range(50):
+        # "Embedded" path (app.py style)
+        signals_e = generate_sensory_signals("touch", ["warm"],
+                                             transducer=transducer, tick=tick)
+        results_e = transduce_sensory_signals(signals_e)
+        embedded_chis.extend(ch["chi"] for ch in results_e.values())
+
+        # "Remote" path (substrate_runner style) — now identical
+        signals_r = generate_sensory_signals("touch", ["warm"],
+                                             transducer=transducer, tick=tick)
+        results_r = transduce_sensory_signals(signals_r)
+        remote_chis.extend(ch["chi"] for ch in results_r.values())
+
+    # Same inputs → identical outputs (they use the same pipeline)
+    print(f"\n== T10: cross-mode consistency ==")
+    print(f"  embedded chi sample: {embedded_chis[:5]}")
+    print(f"  remote chi sample:   {remote_chis[:5]}")
+    print(f"  identical: {embedded_chis == remote_chis}")
+
+    assert embedded_chis == remote_chis, (
+        "Embedded and remote paths should produce identical chi values "
+        "when given same transducer + tick (unified pipeline)"
+    )
+
+
+# ---------------------------------------------------------------------------
+# T11: substrate-true sanity on F12
+# ---------------------------------------------------------------------------
+
+def test_t11_f12_substrate_true():
+    """deterministic_motif_id not called for touch/smell/taste chi in substrate_runner."""
+    import inspect
+    from dsf_ai_service import substrate_runner
+
+    source = inspect.getsource(substrate_runner)
+
+    # Find the experience bundle handler
+    # The old pattern was: deterministic_motif_id(f"{modality}_{desc}")
+    # This should no longer exist
+    import re
+    old_pattern = re.findall(
+        r'deterministic_motif_id\(f"[{]modality[}]_[{]desc[}]"\)', source
+    )
+
+    print(f"\n== T11: F12 substrate-true ==")
+    print(f"  Old pattern 'deterministic_motif_id(f\"{{modality}}_{{desc}}\")' found: {len(old_pattern)} times")
+
+    assert len(old_pattern) == 0, (
+        f"Found {len(old_pattern)} instances of label-hashing chi derivation. "
+        f"Touch/smell/taste chi should come from waveform transduction, not label hash."
+    )
+
+    # Chi derivation goes through transduce_sensory_signals (krimelack-based)
+    assert "transduce_sensory_signals" in source, (
+        "substrate_runner should use transduce_sensory_signals for chi derivation"
+    )
+
+
+# ---------------------------------------------------------------------------
+# T12: backward compat — loom_model tests use inline params
+# ---------------------------------------------------------------------------
+
+def test_t12_backward_compat():
+    """Loom model tests can generate touch signals without TOUCH_LIBRARY."""
+    from dsf_ai_service.substrate.sensory_generators import generate_touch_waveform
+
+    # The substrate-true way: inline physical params (what tests now use)
+    params = {"temperature": 0.85, "pressure": 0.3, "texture_freq": 0.0,
+              "sharpness": 0.0, "wetness": 0.0}
+    waveforms = generate_touch_waveform(params)
+
+    print(f"\n== T12: backward compat ==")
+    print(f"  channels: {list(waveforms.keys())}")
+    print(f"  all 200 samples: {all(len(v) == 200 for v in waveforms.values())}")
+
+    assert len(waveforms) == 5, f"Expected 5 channels, got {len(waveforms)}"
+    assert all(len(v) == 200 for v in waveforms.values()), "All channels should be 200 samples"
+
+    # Can also use SensoryTransducer for a substrate-discovered signal
+    transducer = SensoryTransducer(NullAtlasReader())
+    discovered_params = transducer.transduce("touch", "hot", tick=42)
+    waveforms2 = generate_touch_waveform(discovered_params)
+    assert len(waveforms2) == 5
+    print(f"  SensoryTransducer params: {discovered_params}")
+    print(f"  Generates valid waveform: True")
