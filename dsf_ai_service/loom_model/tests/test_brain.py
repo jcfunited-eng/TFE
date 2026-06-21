@@ -30,7 +30,8 @@ def test_t1_brain_construction():
     print(f"  total neurons: {brain.total_neurons()}")
 
     assert len(brain.hemispheres) == 8
-    assert brain.total_neurons() == 400
+    from dsf_ai_service.loom_model.topology import SEED_SIZE_PER_HEMISPHERE
+    assert brain.total_neurons() == 8 * SEED_SIZE_PER_HEMISPHERE
     assert set(h.hemi_id for h in brain.hemispheres) == {f"H{i}" for i in range(8)}
 
 
@@ -382,7 +383,7 @@ def test_t12_substrate_true():
 
     # K_INTERHEMI is a module constant
     assert topology.K_INTERHEMI == 2
-    assert topology.PROJECTION_NEURONS_PER_HEMI == 5
+    assert topology.PROJECTION_NEURONS_PER_HEMI == 3
     assert topology.CROSS_HEMI_INITIAL_STRENGTH == 0.5
 
     # No per-neuron tuning for cross-hemi

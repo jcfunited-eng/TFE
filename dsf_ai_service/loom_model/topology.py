@@ -31,8 +31,9 @@ N_HEMISPHERES = 8
 # ---------------------------------------------------------------------------
 
 K_INTERHEMI = 2                      # cross-hemi coupling budget per projection neuron
-PROJECTION_NEURONS_PER_HEMI = 5      # designated projection neurons at seed
+PROJECTION_NEURONS_PER_HEMI = 3      # designated projection neurons at seed (3×2=6 ≥ deg-5 hubs)
 CROSS_HEMI_INITIAL_STRENGTH = 0.5    # multiplier on J_BASE for initial cross-hemi weight
+SEED_SIZE_PER_HEMISPHERE = 8         # K_TOTAL // 2 — substrate-derived, not magic number
 
 
 # ---------------------------------------------------------------------------

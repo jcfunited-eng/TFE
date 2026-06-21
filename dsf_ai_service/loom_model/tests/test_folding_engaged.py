@@ -101,7 +101,7 @@ def _build_catalog(db_path):
     return catalog
 
 
-def _make_pipeline(brain_seed=42, seed_size=50):
+def _make_pipeline(brain_seed=42, seed_size=None):
     """Build a complete experience pipeline with catalog."""
     tmp = tempfile.mkdtemp()
     db_path = os.path.join(tmp, "test_catalog.sqlite3")
@@ -109,7 +109,10 @@ def _make_pipeline(brain_seed=42, seed_size=50):
 
     reader = CatalogAtlasReader(catalog)
     transducer = SensoryTransducer(reader)
-    brain = LoomBrain(brain_seed=brain_seed, seed_size=seed_size)
+    kwargs = {"brain_seed": brain_seed}
+    if seed_size is not None:
+        kwargs["seed_size"] = seed_size
+    brain = LoomBrain(**kwargs)
 
     pipeline = ExperiencePipeline(brain, transducer)
     return pipeline, catalog
@@ -195,29 +198,21 @@ def test_t3_corpus_growth():
               f"{vals[4]:4d} {vals[5]:4d} {vals[6]:4d} {vals[7]:4d} | {total:5d}")
 
     # PASS: at least 4 hemispheres grew
-    grew = sum(1 for i in range(8) if final_pop.get(f"H{i}", 50) > 50)
+    seed = brain.hemispheres[0].seed_size
+    grew = sum(1 for i in range(8) if final_pop.get(f"H{i}", seed) > seed)
     print(f"  hemispheres that grew: {grew}/8")
 
     # PASS: no hemisphere > 800
     max_pop = max(final_pop.get(f"H{i}", 50) for i in range(8))
     print(f"  max hemisphere population: {max_pop}")
 
-    # V4 STOP SURFACE: zero hemispheres grew.
-    # Root cause: all 50 neurons in each cluster have exactly K_TOTAL=16 neighbors.
-    # Contact inhibition factor = (1 - 16/16)² = 0.0 → ALL folds suppressed.
-    # fold_check() fires (n_eff < threshold), but process_folds inhibition gate
-    # blocks at line 313-314.
-    # Resolution requires architectural decision:
-    #   (a) Reduce seed_size to < 17 so neurons start with < K_TOTAL neighbors
-    #   (b) Change K_TOTAL or contact inhibition formula
-    #   (c) Use a different neighbor-count metric (e.g., actual reciprocal connections)
-    # This is a REAL architectural finding, not a bug. Surface for Eve.
     if grew == 0:
-        print(f"  V4 STOP: zero growth. Contact inhibition blocks all folds at seed_size=50.")
-        print(f"  fold_check fires but inhibition_factor = (1-16/16)^2 = 0.0")
-        print(f"  SURFACE: need architectural decision on seed_size vs K_TOTAL relationship")
+        pytest.fail(
+            f"T3 FAIL: zero hemispheres grew. Folding not operating during experience. "
+            f"Surface: fold_check or contact inhibition blocking all folds."
+        )
 
-    assert max_pop <= 800, f"Hemisphere exceeded 800 neurons ({max_pop}) — contact inhibition failed"
+    assert max_pop <= 200, f"Hemisphere exceeded 200 neurons ({max_pop}) — contact inhibition failed"
 
 
 # ---------------------------------------------------------------------------
@@ -237,7 +232,8 @@ def test_t4_growth_saturation():
             tick += 1
 
     pop_after_first = {h.hemi_id: len(h.cluster.neurons) for h in brain.hemispheres}
-    first_growth = {h: pop_after_first[h] - 50 for h in pop_after_first}
+    seed = brain.hemispheres[0].seed_size
+    first_growth = {h: pop_after_first[h] - seed for h in pop_after_first}
 
     # Second pass
     for sentence in _PETER_RABBIT_EXCERPT:
@@ -301,7 +297,8 @@ def test_t5_hub_vs_peripheral():
         print(f"  NOTE: hub avg ({hub_avg:.1f}) <= peripheral avg ({periph_avg:.1f})")
         print(f"  Information-richness-drives-Folding prediction not confirmed at this scale.")
         # Surface — don't paper over. But don't fail either if growth is zero everywhere.
-        if hub_avg == periph_avg == 50.0:
+        seed = brain.hemispheres[0].seed_size
+        if hub_avg == periph_avg == float(seed):
             print(f"  (No growth occurred — T5 is moot without T3 growth)")
 
 
@@ -464,7 +461,8 @@ def test_t10_no_regression():
     """Existing brain construction tests still pass (structural check)."""
     # Quick structural check — full suite run is separate
     brain = LoomBrain(brain_seed=42)
-    assert brain.total_neurons() == 400
+    from dsf_ai_service.loom_model.topology import SEED_SIZE_PER_HEMISPHERE, N_HEMISPHERES
+    assert brain.total_neurons() == N_HEMISPHERES * SEED_SIZE_PER_HEMISPHERE
     metrics = brain.topology_metrics()
     assert metrics["n_edges"] == 16
 

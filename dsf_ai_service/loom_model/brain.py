@@ -17,6 +17,7 @@ from .cross_hemi import CrossHemiCouplings
 from .topology import (
     HEMISPHERE_ADJACENCY, N_HEMISPHERES,
     K_INTERHEMI, PROJECTION_NEURONS_PER_HEMI,
+    SEED_SIZE_PER_HEMISPHERE,
     validate_adjacency,
 )
 
@@ -33,7 +34,8 @@ class LoomBrain:
     """
 
     def __init__(self, brain_seed: int = 42,
-                 seed_size: int = 50, k_neighbors: int = 16):
+                 seed_size: int = SEED_SIZE_PER_HEMISPHERE,
+                 k_neighbors: int = 16):
         self.brain_seed = brain_seed
         self.topology = HEMISPHERE_ADJACENCY.copy()
 
@@ -103,20 +105,27 @@ class LoomBrain:
         for hemi in self.hemispheres:
             all_results[hemi.hemi_id] = hemi.step(input_signal, tick)
 
-        # Phase 2: Folding Division — process folds on every hemisphere
+        # Phase 2: cross-hemi coupling refresh from DSF (per -98 mechanism)
+        for hemi in self.hemispheres:
+            for nid, couplings in hemi.cross_hemi_couplings.items():
+                neuron = hemi.cluster._neuron_map.get(nid)
+                if neuron is not None and neuron._last_dsf is not None:
+                    couplings.update_from_dsf(neuron._last_dsf)
+
+        # Phase 3: Folding Division
         self._last_fold_ids: Dict[str, List[str]] = {}
         for hemi in self.hemispheres:
             new_ids = hemi.cluster.process_folds(tick)
             if new_ids:
                 self._last_fold_ids[hemi.hemi_id] = new_ids
 
-        # Phase 3: collect cross-hemi spike packets from projection neurons
+        # Phase 4: collect cross-hemi spike packets from projection neurons
         all_packets = []
         for hemi in self.hemispheres:
             packets = hemi.get_spiking_projections(all_results[hemi.hemi_id])
             all_packets.extend(packets)
 
-        # Phase 4: deliver packets to target hemispheres
+        # Phase 5: deliver packets to target hemispheres
         for packet in all_packets:
             target_hemi = self._hemi_map.get(packet["target_hemi_id"])
             if target_hemi is not None:
