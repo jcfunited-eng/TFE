@@ -17,6 +17,7 @@ from .neuron import (
 )
 from .cluster import LoomCluster
 from .mosaic import LoomMosaic
+from .tapestry import LoomTapestry
 from .substrate_dna import (
     OverflowSignal,
     derive_daughter_parameters,
@@ -34,6 +35,7 @@ __all__ = [
     "LoomNeuron",
     "LoomCluster",
     "LoomMosaic",
+    "LoomTapestry",
     "PsiLattice",
     "SpikeBuffer",
     "CouplingsJij",

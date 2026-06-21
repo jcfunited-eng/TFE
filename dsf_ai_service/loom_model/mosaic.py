@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 from .cluster import LoomCluster
+from .neuron import LoomNeuron
 from .neuron import LoomNeuron, PSI_DIM
 from dsf_ai_service.v4.gualaloom_v5_engine import (
     _grandurun_select_vector,
@@ -162,3 +163,21 @@ class LoomMosaic:
             c.cluster_id: c.winding_signature()
             for c in self.clusters
         }
+
+    # ------------------------------------------------------------------
+    # neuron_diversity_signature — real substrate diversity diagnostic
+    # ------------------------------------------------------------------
+
+    def neuron_diversity_signature(self) -> Dict[str, Tuple[int, float]]:
+        """Per-neuron (spike_count, recent_psi_norm) for diversity analysis.
+
+        Reads from spike_buffer and psi_lattice — substrate's real
+        diversity layer, NOT krimelack winding.
+        """
+        sig = {}
+        for cluster in self.clusters:
+            for neuron in cluster.neurons:
+                spike_count = len(neuron.spike_buffer)
+                psi_norm = round(float(np.linalg.norm(neuron.psi_lattice.psi)), 6)
+                sig[neuron.neuron_id] = (spike_count, psi_norm)
+        return sig
