@@ -91,7 +91,10 @@ class LoomBrain:
                 hemi.cross_hemi_couplings[proj_nid] = couplings
 
     def step(self, input_signal, tick: int) -> Dict[str, Dict[str, Dict]]:
-        """Step all hemispheres and route cross-hemi spikes.
+        """Step all hemispheres, process folds, and route cross-hemi spikes.
+
+        Folding is ON by default during step — substrate-true: real cells
+        divide while they live. Contact inhibition (-105) bounds growth.
 
         Returns dict mapping hemi_id → {neuron_id → step_result}.
         """
@@ -100,13 +103,20 @@ class LoomBrain:
         for hemi in self.hemispheres:
             all_results[hemi.hemi_id] = hemi.step(input_signal, tick)
 
-        # Phase 2: collect cross-hemi spike packets from projection neurons
+        # Phase 2: Folding Division — process folds on every hemisphere
+        self._last_fold_ids: Dict[str, List[str]] = {}
+        for hemi in self.hemispheres:
+            new_ids = hemi.cluster.process_folds(tick)
+            if new_ids:
+                self._last_fold_ids[hemi.hemi_id] = new_ids
+
+        # Phase 3: collect cross-hemi spike packets from projection neurons
         all_packets = []
         for hemi in self.hemispheres:
             packets = hemi.get_spiking_projections(all_results[hemi.hemi_id])
             all_packets.extend(packets)
 
-        # Phase 3: deliver packets to target hemispheres
+        # Phase 4: deliver packets to target hemispheres
         for packet in all_packets:
             target_hemi = self._hemi_map.get(packet["target_hemi_id"])
             if target_hemi is not None:
