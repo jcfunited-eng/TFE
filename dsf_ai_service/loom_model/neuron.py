@@ -437,13 +437,17 @@ class LoomNeuron:
             omega_override = self.krimelack.omega_0 + omega_shift
             self._coupling_signal_accum = []
 
+        # GL-CMD-117: krimelack state persists across ticks (no reset).
+        # Track event count before processing to extract THIS tick's events only.
+        events_before = len(self.krimelack.events)
+
         if isinstance(input_signal, str):
             _fp, _role, _senses = self.krimelack.transduce(
                 input_signal, omega_override=omega_override,
-                phase_offset=self._positional_phase_offset)
+                phase_offset=self._positional_phase_offset,
+                no_reset=True)
             self._last_origin_transducer = "language"
         else:
-            self.krimelack.reset()
             if omega_override is not None:
                 saved = self.krimelack.omega_0
                 self.krimelack.omega_0 = omega_override
@@ -452,7 +456,8 @@ class LoomNeuron:
                 self.krimelack.omega_0 = saved
             _senses = {}
 
-        events = list(self.krimelack.events)
+        # DSF from THIS tick's events only (winding state persists, DSF reflects current signal)
+        events = list(self.krimelack.events[events_before:])
         self._last_events = events
 
         # Track ω history for recent_omega_mean
