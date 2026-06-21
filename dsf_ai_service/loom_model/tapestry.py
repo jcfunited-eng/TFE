@@ -108,8 +108,10 @@ class LoomTapestry:
         if not selected_names or alignment < MIN_GAIN_THRESHOLD:
             return None
 
-        # Decode emission_sequence: read the most-activated word from each
-        # selected mosaic's krimelack state, in grandurun-selection order.
+        # GL-CMD-99: decode emission_sequence from real words.
+        # For each selected mosaic, find the neuron with highest spike
+        # intensity over the recall window. That neuron's last_input_word
+        # IS the emitted word at that sequence position.
         emission = []
         for mosaic_name in selected_names:
             mosaic = self._mosaic_by_name(mosaic_name)
@@ -128,29 +130,25 @@ class LoomTapestry:
         return None
 
     def _dominant_word(self, mosaic: LoomMosaic) -> Optional[str]:
-        """Extract the dominant word from a mosaic's current krimelack state.
+        """GL-CMD-99: extract the dominant word from a mosaic's current state.
 
-        The word is the input that produced the highest total winding across
-        the mosaic's neurons. Since all neurons in a cluster receive the same
-        input (Sur's-ferrets), we read the last input from any neuron's
-        krimelack. The winding magnitude indicates signal strength.
+        Find the neuron with highest spike intensity in the spike_buffer.
+        That neuron's last_input_word is the emitted word.
         """
-        best_winding = 0
+        best_intensity = -1.0
         best_word = None
         for cluster in mosaic.clusters:
             for neuron in cluster.neurons:
-                w = abs(neuron.krimelack.winding)
-                if w > best_winding:
-                    best_winding = w
-                    # The krimelack doesn't store the input word, but the
-                    # neuron's last processed signal is tracked via chi state.
-                    # We use the neuron_id's cluster as a proxy for the
-                    # mosaic-level contribution identity.
-                    best_word = mosaic.name
-        # In the current architecture, the "word" IS the mosaic's contribution
-        # identity. The emission is the ordered list of mosaic contributions.
-        # To get actual words, we'd need the krimelack to store its input —
-        # that's a Stage 6 extension.
+                spikes = neuron.spike_buffer.read()
+                if not spikes:
+                    continue
+                # Most recent spike intensity
+                _, intensity, _ = spikes[-1]
+                if intensity > best_intensity:
+                    best_intensity = intensity
+                    word = neuron.last_input_word
+                    if word:
+                        best_word = word
         return best_word
 
     # ------------------------------------------------------------------

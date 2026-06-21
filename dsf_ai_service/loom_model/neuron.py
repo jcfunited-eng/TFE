@@ -602,6 +602,11 @@ class LoomNeuron:
             self._last_origin_transducer = bp["origin_transducer"]
 
     @property
+    def last_input_word(self) -> Optional[str]:
+        """GL-CMD-99: last word transduced by this neuron's krimelack."""
+        return getattr(self.krimelack, 'last_input_word', None)
+
+    @property
     def recent_omega_mean(self) -> float:
         """Rolling mean of krimelack ω_krim over last OMEGA_HISTORY_LEN ticks."""
         if not self._omega_history:

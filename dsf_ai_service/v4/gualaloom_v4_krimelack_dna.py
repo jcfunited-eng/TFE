@@ -186,6 +186,7 @@ class LanguageKrimelack(Krimelack):
     def __init__(self):
         super().__init__(omega_0=2.0, kappa=80.0, dt=0.04,
                          threshold=math.pi / 3, label="language")
+        self.last_input_word = None  # GL-CMD-99: persists across ticks
 
     def transduce(self, word, omega_override=None, phase_offset=0.0):
         """Transduce a word, returning (fingerprint, role, sensory_dict).
@@ -199,6 +200,7 @@ class LanguageKrimelack(Krimelack):
                             Applied after reset so each neuron's krimelack
                             starts from a position-dependent phase.
         """
+        self.last_input_word = word.lower()  # GL-CMD-99: store for decode
         self.reset()
         self.phase = float(phase_offset)
         saved_omega = self.omega_0
