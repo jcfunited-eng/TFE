@@ -1319,17 +1319,29 @@ def handle_atlas_snapshot(args):
 
 
 def handle_backup(args):
+    """Save to EFS + S3. GL-CMD-97: waits for S3 queue to drain so caller
+    gets confirmation that backup is fully complete (EFS + S3), not just queued."""
     from dsf_ai_service.save_coordinator import SAVE_COORDINATOR
     t0 = time.time()
     if SAVE_COORDINATOR:
         SAVE_COORDINATOR.force_save(reason="backup")
+        # Wait for S3 queue to drain (force_save enqueues S3; the background
+        # thread processes it). join() with timeout prevents indefinite block.
+        SAVE_COORDINATOR.s3_queue.join()
     else:
         _guala.save_full_state(STATE_DIR)
     n_entries = sum(len(v) for v in _guala.atlas.entries.values())
     dt = time.time() - t0
-    print(f"[backup] saved in {dt:.2f}s, {n_entries} atlas entries")
-    return {"backup": "complete", "save_time_s": round(dt, 2),
-            "atlas_entries": n_entries, "tick": _guala.tick}
+    # Report S3 status from SaveCoordinator's last upload
+    s3_info = {}
+    if SAVE_COORDINATOR and hasattr(SAVE_COORDINATOR, '_last_s3_result'):
+        s3_info = SAVE_COORDINATOR._last_s3_result or {}
+    print(f"[backup] complete in {dt:.2f}s, {n_entries} atlas entries, s3={bool(s3_info)}")
+    result = {"backup": "complete", "save_time_s": round(dt, 2),
+              "atlas_entries": n_entries, "tick": _guala.tick}
+    if s3_info:
+        result["s3"] = s3_info
+    return result
 
 
 def handle_sight_frame(args):

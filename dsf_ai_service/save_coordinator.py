@@ -30,6 +30,7 @@ class SaveCoordinator:
         self.last_save_wall = 0.0
         self._last_s3_enqueue_wall = 0.0
         self._lock = threading.Lock()
+        self._last_s3_result = None  # GL-CMD-97: set by _s3_loop after upload
 
         if s3_bucket:
             t = threading.Thread(target=self._s3_loop, daemon=True,
@@ -129,7 +130,16 @@ class SaveCoordinator:
                         s3.upload_file(fpath, self.s3_bucket,
                                        f"{s3_prefix}/{fname}")
                         uploaded += 1
+                # GL-CMD-97: track last S3 result for handle_backup to report
+                self._last_s3_result = {
+                    "s3_prefix": f"{s3_prefix}/",
+                    "files_uploaded": uploaded,
+                    "timestamp": ts_label,
+                }
                 log.info("[s3] uploaded %d files → s3://%s/%s/ tick=%d",
                          uploaded, self.s3_bucket, s3_prefix, tick)
             except Exception as e:
+                self._last_s3_result = {"s3_error": str(e)}
                 log.error("[s3] upload failed: %s", e)
+            finally:
+                self.s3_queue.task_done()
