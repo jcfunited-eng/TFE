@@ -65,6 +65,9 @@ DELTA_BASE = 0.10     # base dead-zone for FamiliarityFeedback
 SETTLE_STEPS = 30     # imaginary-time evolution steps
 SETTLE_EPS = 0.25     # imaginary-time step size
 INJECT_SIGMA = 1.0    # Gaussian width (modes) for MapInject localization
+FOLD_TRIGGER_RATIO = math.exp(-1)  # 1/e — from L6-TCL physics (Master Spec Ch.11)
+FOLD_SUSTAIN_TICKS = 3             # consecutive ticks at n_eff < threshold for fold
+OMEGA_HISTORY_LEN = 32             # rolling window for recent_omega_mean
 
 
 # ---------------------------------------------------------------------------
@@ -347,7 +350,8 @@ class LoomNeuron:
     existing _grandurun_state primitive (no reimplementation).
     """
 
-    def __init__(self, neuron_id: str, dna_blueprint: Optional[Any] = None):
+    def __init__(self, neuron_id: str, dna_blueprint: Optional[Any] = None,
+                 birth_params: Optional[Dict[str, Any]] = None):
         self.neuron_id = neuron_id
 
         # --- NEW pieces (1-6) ---
@@ -382,6 +386,17 @@ class LoomNeuron:
         self._coupling_injection = np.zeros(PSI_DIM, dtype=np.float64)
         self._coupling_modulation_delta: float = 0.0
 
+        # Stage 3: fold tracking
+        self._fold_sustain_count: int = 0          # consecutive ticks at fold threshold
+        self._fold_count: int = 0                  # total folds from this neuron
+        self._fold_ticks: List[int] = []           # ticks where folds occurred
+        self._last_origin_transducer: str = "language"  # origin tracking
+        self._omega_history: List[float] = []      # rolling ω mean window
+
+        # Apply birth_params if this is a daughter neuron
+        if birth_params is not None:
+            self._apply_birth_params(birth_params)
+
     # ------------------------------------------------------------------
     # step — one substrate cycle
     # ------------------------------------------------------------------
@@ -401,13 +416,26 @@ class LoomNeuron:
         # a. Krimelack transduces input_signal → events
         if isinstance(input_signal, str):
             _fp, _role, _senses = self.krimelack.transduce(input_signal)
+            self._last_origin_transducer = "language"
         else:
             self.krimelack.reset()
             self.krimelack.feed(list(input_signal))
             _senses = {}
+            # Origin stays as previously set (touch/audio/etc via birth_params)
 
         events = list(self.krimelack.events)
         self._last_events = events
+
+        # Track ω history for recent_omega_mean
+        if events:
+            omega_recent = self.krimelack.omega_0 + self.krimelack.kappa * abs(
+                sum(e["s"] for e in events) / len(events)
+            )
+        else:
+            omega_recent = self.krimelack.omega_0
+        self._omega_history.append(omega_recent)
+        if len(self._omega_history) > OMEGA_HISTORY_LEN:
+            self._omega_history.pop(0)
 
         # chi address = absolute winding number, mod PSI_DIM
         chi = abs(self.krimelack.winding)
@@ -498,6 +526,137 @@ class LoomNeuron:
         norm = float(np.linalg.norm(inj_dir))
         if norm > 1e-9:
             self._coupling_injection += (inj_dir / norm) * J_weight
+
+    # ------------------------------------------------------------------
+    # Stage 3: Folding Division support
+    # ------------------------------------------------------------------
+
+    def _apply_birth_params(self, bp: Dict[str, Any]) -> None:
+        """Apply birth parameters from derive_daughter_parameters.
+
+        Called once at construction for daughter neurons.
+        """
+        # ψ-lattice initial state from overflow
+        if "psi_init" in bp:
+            psi = np.asarray(bp["psi_init"], dtype=np.complex128)
+            norm = float(np.linalg.norm(psi))
+            if norm > 1e-12:
+                self.psi_lattice.psi = psi / norm
+
+        # Krimelack ω₀ inheritance
+        if "omega_0" in bp:
+            self.krimelack = LanguageKrimelack()
+            self.krimelack.omega_0 = float(bp["omega_0"])
+
+        # Law-field weights from overflow DSF
+        if "law_field_weights" in bp:
+            lfw = bp["law_field_weights"]
+            self.laws = [
+                LawField(law_id="continuity",  weight=lfw.get("continuity", 0.25),
+                         family="consistency.basic"),
+                LawField(law_id="compactness",  weight=lfw.get("compactness", 0.25),
+                         family="symmetry.basic"),
+                LawField(law_id="consistency",  weight=lfw.get("consistency", 0.25),
+                         family="consistency.basic"),
+                LawField(law_id="symmetry",     weight=lfw.get("symmetry", 0.25),
+                         family="symmetry.basic"),
+            ]
+
+        # Origin transducer tracking
+        if "origin_transducer" in bp:
+            self._last_origin_transducer = bp["origin_transducer"]
+
+    @property
+    def recent_omega_mean(self) -> float:
+        """Rolling mean of krimelack ω_krim over last OMEGA_HISTORY_LEN ticks."""
+        if not self._omega_history:
+            return self.krimelack.omega_0
+        return sum(self._omega_history) / len(self._omega_history)
+
+    def nearest_neighbors(self, k: int) -> List[str]:
+        """Return k nearest neighbors by ring position (from couplings list)."""
+        return list(self.couplings.neighbors[:k])
+
+    def fold_check(self, tick: int) -> bool:
+        """Check if this neuron should fold (Folding Division trigger).
+
+        Returns True when L6-TCL reports n_eff < n_start * FOLD_TRIGGER_RATIO
+        for FOLD_SUSTAIN_TICKS consecutive ticks.
+        """
+        if self._last_dsf is None:
+            return False
+
+        n_eff = self.l6_tcl.n_eff(self._last_dsf)
+        threshold = self.l6_tcl.n_start * FOLD_TRIGGER_RATIO
+
+        if n_eff < threshold:
+            self._fold_sustain_count += 1
+        else:
+            self._fold_sustain_count = 0
+
+        return self._fold_sustain_count >= FOLD_SUSTAIN_TICKS
+
+    def compute_overflow_signal(self):
+        """Compute the overflow signal for Folding Division.
+
+        The overflow is the residual ψ-component that does NOT project
+        onto any committed mode (modes above P_COMMIT probability).
+        This is standard linear algebra: projection onto the complement.
+
+        Returns an OverflowSignal (imported at call time to avoid circular).
+        """
+        from .substrate_dna import OverflowSignal
+
+        psi = self.psi_lattice.psi.copy()
+        probs = self.psi_lattice.probabilities()
+
+        # Identify committed modes (above P_COMMIT)
+        committed_mask = probs >= P_COMMIT
+
+        # Overflow = ψ projected onto the complement of committed modes
+        overflow = psi.copy()
+        overflow[committed_mask] = 0.0
+
+        # Compute DSF from overflow's event structure
+        if self._last_events:
+            dsf = compute_dsf(self._last_events,
+                              atlas_similarity=self.familiarity.match_score)
+        else:
+            dsf = compute_dsf([])
+
+        dsf_tuple = (dsf.D_k, dsf.M_k, dsf.R_rev, dsf.U_star,
+                     dsf.C_k, dsf.P_k, dsf.B_k, dsf.S_UF)
+
+        return OverflowSignal(
+            origin_transducer=self._last_origin_transducer,
+            psi_overflow_vector=overflow,
+            dsf_tuple=dsf_tuple,
+            events=list(self._last_events),
+        )
+
+    def clear_overflow_modes(self) -> None:
+        """Clear the overflow modes from ψ-lattice after a fold.
+
+        Zeroes uncommitted modes and renormalizes. This allows n_eff
+        to recover above the fold threshold.
+        """
+        probs = self.psi_lattice.probabilities()
+        committed_mask = probs >= P_COMMIT
+
+        psi = self.psi_lattice.psi.copy()
+        psi[~committed_mask] = 0.0
+        norm = float(np.linalg.norm(psi))
+        if norm > 1e-12:
+            self.psi_lattice.psi = psi / norm
+        else:
+            # All modes were uncommitted — reset to uniform
+            self.psi_lattice.psi = (
+                np.ones(PSI_DIM, dtype=np.complex128) / math.sqrt(PSI_DIM)
+            )
+
+        # Reset fold sustain counter
+        self._fold_sustain_count = 0
+        self._fold_count += 1
 
     # ------------------------------------------------------------------
     # get_grandurun_state — 7D complex128 spin-vector

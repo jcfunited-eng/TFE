@@ -1,14 +1,12 @@
 """
-cluster.py — LoomCluster: population of coupled LoomNeurons (Stage 2).
+cluster.py — LoomCluster: population of coupled LoomNeurons (Stage 2 + 3).
 
 GL-CMD-LOOM-CLUSTER-STAGE2-EVE-20260620-79
+GL-CMD-LOOM-STAGE3-FOLDING-CLAUDE-20260620-84
 Reference spec: GL-SPC-LOOM-NEURON-ARCH-EVE-20260620-74
 
-Stage 2 adds:
-  - K=16 ring-topology coupling per neuron
-  - Phase A/B/C step cycle (independent → coupling → refresh)
-  - Population grandurun composition via _grandurun_select_vector
-  - Sur's-ferrets differentiation (identical neurons, input differentiates)
+Stage 2: K=16 ring-topology coupling, Phase A/B/C step, population grandurun.
+Stage 3: Folding Division — process_folds, attach, fold_diagnostics.
 
 NO production imports beyond Stage 1's existing reuses.
 NO writes to production atlas. NO ECS/S3/deploy.
@@ -24,7 +22,9 @@ from .neuron import (
     PSI_DIM,
     J_BASE,
     J_MAX,
+    FOLD_TRIGGER_RATIO,
 )
+from .substrate_dna import derive_daughter_parameters
 from dsf_ai_service.v4.gualaloom_v5_engine import (
     _grandurun_select_vector,
     _SPIN_VECTOR_DIM,
@@ -217,4 +217,105 @@ class LoomCluster:
         return {
             n.neuron_id: n.krimelack.winding
             for n in self.neurons
+        }
+
+    # ------------------------------------------------------------------
+    # Stage 3: Folding Division
+    # ------------------------------------------------------------------
+
+    def next_id(self) -> str:
+        """Generate the next unique neuron ID for daughter neurons."""
+        idx = len(self.neurons)
+        return f"{self.cluster_id}_n{idx}"
+
+    def attach(self, daughter: LoomNeuron, inherit_from: LoomNeuron) -> None:
+        """Wire a daughter neuron into the cluster.
+
+        - Add daughter to neurons list + lookup map
+        - Wire inherited_neighbors into daughter's couplings
+        - Clear the parent's overflow modes so n_eff recovers
+        """
+        self.neurons.append(daughter)
+        self._neuron_map[daughter.neuron_id] = daughter
+
+        # Wire couplings: daughter gets K nearest neighbors from ring position
+        # Half inherited from parent, half from ring position
+        K = self.k_neighbors
+        parent_idx = self.neurons.index(inherit_from)
+        daughter_idx = len(self.neurons) - 1
+        N = len(self.neurons)
+
+        inherited = inherit_from.nearest_neighbors(K // 2)
+        ring_neighbors = []
+        half = (K - len(inherited)) // 2
+        for d in range(-half, 0):
+            nid = self.neurons[(daughter_idx + d) % N].neuron_id
+            if nid != daughter.neuron_id and nid not in inherited:
+                ring_neighbors.append(nid)
+        for d in range(1, half + 2):
+            if len(ring_neighbors) + len(inherited) >= K:
+                break
+            nid = self.neurons[(daughter_idx + d) % N].neuron_id
+            if nid != daughter.neuron_id and nid not in inherited:
+                ring_neighbors.append(nid)
+
+        all_neighbors = inherited + ring_neighbors
+        all_neighbors = all_neighbors[:K]
+
+        daughter.couplings = CouplingsJij(n_modes=PSI_DIM, neighbors=all_neighbors)
+
+        # Clear parent's overflow modes so n_eff recovers
+        inherit_from.clear_overflow_modes()
+
+    def process_folds(self, tick: int) -> List[str]:
+        """Check all neurons for fold triggers and spawn daughters.
+
+        Returns list of newly spawned daughter neuron_ids.
+        """
+        new_ids = []
+        # Iterate over a snapshot of current neurons (don't process daughters
+        # spawned this tick)
+        current_neurons = list(self.neurons)
+        for neuron in current_neurons:
+            if neuron.fold_check(tick):
+                overflow = neuron.compute_overflow_signal()
+                params = derive_daughter_parameters(overflow, neuron)
+                daughter_id = self.next_id()
+                daughter = LoomNeuron(
+                    neuron_id=daughter_id,
+                    birth_params=params,
+                )
+                self.attach(daughter, inherit_from=neuron)
+                neuron._fold_ticks.append(tick)
+                new_ids.append(daughter_id)
+        return new_ids
+
+    def fold_diagnostics(self, window_ticks: int) -> Dict[str, Any]:
+        """Instrumentation only. NOT regulation.
+
+        Returns:
+            n_folds_in_window:        total folds across cluster in window
+            per_neuron_fold_counts:   dict neuron_id → fold count
+            max_per_neuron_fold_rate: max folds/1000 ticks for any neuron
+        """
+        per_neuron = {}
+        for neuron in self.neurons:
+            per_neuron[neuron.neuron_id] = neuron._fold_count
+
+        # Fold rate: folds within the window, scaled to per-1000-ticks
+        max_rate = 0.0
+        for neuron in self.neurons:
+            recent = [t for t in neuron._fold_ticks
+                      if t >= (neuron._fold_ticks[-1] - window_ticks)
+                      ] if neuron._fold_ticks else []
+            if window_ticks > 0:
+                rate = len(recent) / window_ticks * 1000
+            else:
+                rate = 0.0
+            max_rate = max(max_rate, rate)
+
+        return {
+            "n_folds_in_window": sum(per_neuron.values()),
+            "per_neuron_fold_counts": per_neuron,
+            "max_per_neuron_fold_rate": max_rate,
         }
