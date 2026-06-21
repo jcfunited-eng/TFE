@@ -2117,18 +2117,11 @@ async def admin_atlas_snapshot():
 async def admin_backup():
     """Step 0: Full state backup to dedicated UNPAUSE-PRE S3 prefix. Verified."""
     if _is_remote():
-        global _last_s3_backup
         client = _get_substrate_client()
-        result = await client.call("backup", timeout=120.0)
-        # GL-CMD-97: substrate now does S3 upload; propagate result to web container
-        if isinstance(result, dict) and "s3" in result:
-            s3_info = result["s3"]
-            if "s3_prefix" in s3_info:
-                _last_s3_backup = {
-                    "timestamp": time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime()),
-                    "prefix": f"s3://dsf-ai-site-backups/{s3_info['s3_prefix']}",
-                    "file_count": s3_info.get("files_uploaded", 0),
-                }
+        result = await client.call("backup", timeout=25.0)
+        # GL-CMD-104: S3 upload runs in SaveCoordinator's background thread.
+        # _last_s3_backup will be populated by the next _daily_s3_backup cycle
+        # or by polling /status after the background thread completes (~5-10s).
         return result
     _gl_init()
     if _guala is None:

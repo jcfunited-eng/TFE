@@ -435,7 +435,16 @@ def _cmd_status():
     s = _guala.introspect()
     n = s["needs"]
     ph = _guala.persistence_health(STATE_DIR)
-    ph["last_s3_backup"] = None
+    # GL-CMD-104: read last_s3_result from SaveCoordinator
+    from dsf_ai_service.save_coordinator import SAVE_COORDINATOR
+    if SAVE_COORDINATOR and hasattr(SAVE_COORDINATOR, '_last_s3_result') and SAVE_COORDINATOR._last_s3_result:
+        s3r = SAVE_COORDINATOR._last_s3_result
+        if "s3_error" not in s3r:
+            ph["last_s3_backup"] = s3r
+        else:
+            ph["last_s3_backup"] = None
+    else:
+        ph["last_s3_backup"] = None
     sec_parts = []
     for nm, sec in s["sections"].items():
         sec_parts.append(f"{nm}: {sec['modes']}m/{sec['commits']}c")
@@ -1319,29 +1328,22 @@ def handle_atlas_snapshot(args):
 
 
 def handle_backup(args):
-    """Save to EFS + S3. GL-CMD-97: waits for S3 queue to drain so caller
-    gets confirmation that backup is fully complete (EFS + S3), not just queued."""
+    """Save to EFS, queue S3 upload. Returns immediately after EFS save.
+    GL-CMD-97/104: API Gateway has 30s timeout — cannot wait for S3 queue.
+    S3 upload runs in background thread via SaveCoordinator. Caller polls
+    /status for last_s3_backup to confirm completion."""
     from dsf_ai_service.save_coordinator import SAVE_COORDINATOR
     t0 = time.time()
     if SAVE_COORDINATOR:
         SAVE_COORDINATOR.force_save(reason="backup")
-        # Wait for S3 queue to drain (force_save enqueues S3; the background
-        # thread processes it). join() with timeout prevents indefinite block.
-        SAVE_COORDINATOR.s3_queue.join()
     else:
         _guala.save_full_state(STATE_DIR)
     n_entries = sum(len(v) for v in _guala.atlas.entries.values())
     dt = time.time() - t0
-    # Report S3 status from SaveCoordinator's last upload
-    s3_info = {}
-    if SAVE_COORDINATOR and hasattr(SAVE_COORDINATOR, '_last_s3_result'):
-        s3_info = SAVE_COORDINATOR._last_s3_result or {}
-    print(f"[backup] complete in {dt:.2f}s, {n_entries} atlas entries, s3={bool(s3_info)}")
-    result = {"backup": "complete", "save_time_s": round(dt, 2),
-              "atlas_entries": n_entries, "tick": _guala.tick}
-    if s3_info:
-        result["s3"] = s3_info
-    return result
+    print(f"[backup] EFS saved in {dt:.2f}s, {n_entries} entries, S3 queued")
+    return {"backup": "complete", "save_time_s": round(dt, 2),
+            "atlas_entries": n_entries, "tick": _guala.tick,
+            "s3": "queued"}
 
 
 def handle_sight_frame(args):
