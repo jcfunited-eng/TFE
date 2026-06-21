@@ -205,10 +205,17 @@ async def guala_atlas_snapshot() -> dict:
 @mcp.tool()
 async def guala_backup() -> dict:
     """UNPAUSE Step 0: Full state backup to S3 UNPAUSE-PRE prefix, verified."""
-    async with httpx.AsyncClient(timeout=120) as client:
-        r = await client.post(f"{SUBSTRATE_URL}/api/v1/gualaloom/admin/backup", headers=_headers())
-        r.raise_for_status()
-        return r.json()
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            r = await client.post(f"{SUBSTRATE_URL}/api/v1/gualaloom/admin/backup", headers=_headers())
+            r.raise_for_status()
+            return r.json()
+    except httpx.HTTPStatusError as e:
+        return {"error": f"HTTP {e.response.status_code}", "detail": e.response.text[:500]}
+    except httpx.TimeoutException:
+        return {"error": "timeout", "detail": "backup request timed out after 60s"}
+    except Exception as e:
+        return {"error": str(type(e).__name__), "detail": str(e)[:500]}
 
 
 @mcp.tool()

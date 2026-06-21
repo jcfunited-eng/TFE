@@ -2117,12 +2117,21 @@ async def admin_atlas_snapshot():
 async def admin_backup():
     """Step 0: Full state backup to dedicated UNPAUSE-PRE S3 prefix. Verified."""
     if _is_remote():
-        client = _get_substrate_client()
-        result = await client.call("backup", timeout=25.0)
-        # GL-CMD-104: S3 upload runs in SaveCoordinator's background thread.
-        # _last_s3_backup will be populated by the next _daily_s3_backup cycle
-        # or by polling /status after the background thread completes (~5-10s).
-        return result
+        # GL-CMD-104: API Gateway has 30s timeout. force_save takes 10-25s.
+        # Fire-and-forget: kick off backup in background, return 202 immediately.
+        # Caller polls /status for last_s3_backup to confirm completion.
+        import asyncio as _aio
+        async def _do_remote_backup():
+            try:
+                client = _get_substrate_client()
+                await client.call("backup", timeout=55.0)
+            except Exception as e:
+                print(f"[backup] remote backup error: {e}")
+        _aio.create_task(_do_remote_backup())
+        return JSONResponse(
+            status_code=202,
+            content={"backup": "accepted", "message": "EFS+S3 backup started. Poll /status for last_s3_backup."},
+        )
     _gl_init()
     if _guala is None:
         return JSONResponse({"error": "not ready"}, status_code=503)
