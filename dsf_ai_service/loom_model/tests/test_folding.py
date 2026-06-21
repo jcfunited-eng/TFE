@@ -77,7 +77,9 @@ def test_t3_fold_check():
 
 def test_t4_daughter_spawn():
     """Daughter from touch waveform: correct class, weights sum to 1, k's sum to K."""
-    c = LoomCluster("t4", n_neurons=20, k_neighbors=16, seed=42)
+    # 10 neurons gives each 9 neighbors — inhibition_factor > 0, folds proceed
+    # for daughter-parameter validation under post-inhibition physics (GL-CMD-105)
+    c = LoomCluster("t4", n_neurons=10, k_neighbors=16, seed=42)
     touch_sig = _touch_signal()
 
     # Set all neurons to track origin as tactile and feed touch signal

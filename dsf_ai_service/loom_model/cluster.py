@@ -24,7 +24,7 @@ from .neuron import (
     J_MAX,
     FOLD_TRIGGER_RATIO,
 )
-from .substrate_dna import derive_daughter_parameters
+from .substrate_dna import derive_daughter_parameters, K_TOTAL
 from dsf_ai_service.v4.gualaloom_v5_engine import (
     _grandurun_select_vector,
     _SPIN_VECTOR_DIM,
@@ -292,6 +292,12 @@ class LoomCluster:
     def process_folds(self, tick: int) -> List[str]:
         """Check all neurons for fold triggers and spawn daughters.
 
+        Contact inhibition (GL-CMD-105): after fold_check passes, the
+        overflow signal is scaled by inhibition_factor = (1 - n/K_TOTAL)².
+        Spawn only proceeds if the effective overflow exceeds the fold
+        threshold. At full neighbor saturation, inhibition_factor → 0
+        and fold rate → 0.
+
         Returns list of newly spawned daughter neuron_ids.
         """
         new_ids = []
@@ -300,6 +306,23 @@ class LoomCluster:
         current_neurons = list(self.neurons)
         for neuron in current_neurons:
             if neuron.fold_check(tick):
+                # Contact inhibition gate
+                n_neighbors = len(neuron.couplings.neighbors)
+                saturation_ratio = n_neighbors / K_TOTAL
+                inhibition_factor = (1.0 - saturation_ratio) ** 2
+                if inhibition_factor <= 0.0:
+                    continue  # fully saturated — fold suppressed
+
+                # Effective overflow magnitude check:
+                # n_eff is already below threshold (fold_check passed).
+                # Scale the overflow margin by inhibition_factor.
+                n_eff = neuron.l6_tcl.n_eff(neuron._last_dsf)
+                threshold = neuron.l6_tcl.n_start * FOLD_TRIGGER_RATIO
+                overflow_raw = threshold - n_eff  # positive when fold_check passed
+                overflow_eff = overflow_raw * inhibition_factor
+                if overflow_eff <= 0.0:
+                    continue  # inhibited below threshold
+
                 overflow = neuron.compute_overflow_signal()
                 params = derive_daughter_parameters(overflow, neuron)
                 daughter_id = self.next_id()
