@@ -84,18 +84,31 @@ class EventLog:
         return os.path.exists(self.log_path) and os.path.getsize(self.log_path) > 0
 
 
-def replay_events(session, events):
-    """Replay a list of events against a V7Session to reconstruct state.
-    Each event type maps to a mutation function."""
-    from dsf_ai_service.substrate.assemblage import normalize, N, random_unit_complex
-    import numpy as np
+class EventLogReplayError(Exception):
+    """Raised when replay encounters an unknown event type."""
+    pass
 
+
+def replay_persistent(session, events):
+    """Replay persistent events against a V7Session to reconstruct state.
+
+    Only processes event types whose effects persist across sessions:
+      - vocab_install: word installed into session vocab (persistent)
+      - feedback: apply_feedback adjusts session state (persistent)
+      - self_voice: telemetry — logged but not replayed (skip silently)
+
+    Session-local types (converse, quiet) are written to the event log for
+    observability but are NOT replayed here: their effects are captured by
+    snapshot persistence (save_session after each converse). See
+    GL-RPT-EVENT-LOG-REPLAY-SPLIT-C1-20260620-01 V1.2-V1.3.
+
+    Raises EventLogReplayError for any unrecognized event type.
+    """
     replayed = 0
     for ev in events:
         t = ev.get("t")
 
         if t == "vocab_install":
-            # New word installed
             slot = ev.get("slot")
             word = ev.get("word")
             if slot and word and word not in session.vocab.get(slot, []):
@@ -107,29 +120,30 @@ def replay_events(session, events):
             session.apply_feedback(correct)
             replayed += 1
 
-        elif t == "commit":
-            # Section committed — update mode_strength
-            sn = ev.get("section")
-            mode_id = ev.get("mode_id")
-            sal_after = ev.get("sal_after")
-            if sn and sn in session.sys_.sections and sal_after is not None:
-                sec = session.sys_.sections[sn]
-                while len(sec.mode_strength) <= mode_id:
-                    sec.mode_strength.append(1.0)
-                sec.mode_strength[mode_id] = sal_after
-            replayed += 1
+        elif t == "self_voice":
+            # Telemetry — logged for observability, not replayed.
+            pass
 
-        elif t == "converse":
-            # Skip converse replay — commit events already capture mode_strength
-            # evolution; re-running full converse is prohibitively expensive at
-            # session init time when thousands of turns have accumulated.
-            replayed += 1
+        elif t == "converse" or t == "quiet":
+            # Session-local — effects snapshot-persisted via save_session.
+            # Not replayed; skipped silently.
+            pass
 
-        elif t == "quiet":
-            # Skip quiet replay — like converse, the mode_strength changes
-            # from quiet ticks are captured by subsequent commit events.
-            # Re-running replay_tick for each historical quiet batch is
-            # prohibitively expensive (175ms × 744 events = 130s at init).
-            replayed += 1
+        else:
+            raise EventLogReplayError(
+                f"Unknown event type '{t}' at seq={ev.get('seq', '?')}. "
+                f"Event log may contain data from a newer schema version."
+            )
 
     return replayed
+
+
+def reconstruct_session(session):
+    """Reconstruct per-session transient state after replay_persistent.
+
+    Currently a no-op. Mode_strength changes from tick_once/replay_tick
+    are snapshot-persisted via save_session per converse (intentional,
+    per GL-RPT-EVENT-LOG-REPLAY-SPLIT-C1-20260620-01 V1.3). Reserved
+    for future per-session reconstruction work.
+    """
+    pass

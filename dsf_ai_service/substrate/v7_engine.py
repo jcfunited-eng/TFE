@@ -752,11 +752,12 @@ def get_or_create_session(session_id, engine=None):
                 session = V7Session(session_id, engine=engine)
         t2 = time.time()
         if session.event_log.exists():
-            from dsf_ai_service.substrate.event_log import replay_events
+            from dsf_ai_service.substrate.event_log import replay_persistent, reconstruct_session
             events = session.event_log.read_since(snapshot_seq)
             if events:
-                n = replay_events(session, events)
-                print(f"[v7] Replayed {n} events for {session_id}")
+                n = replay_persistent(session, events)
+                print(f"[v7] Replayed {n} persistent events for {session_id}")
+            reconstruct_session(session)
         t3 = time.time()
         _sessions[session_id] = session
         print(f"[v7-session] sid={session_id} create_new "
