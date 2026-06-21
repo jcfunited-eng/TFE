@@ -3012,6 +3012,8 @@ class LoadCorpusRequest(BaseModel):
     title: str
     url: Optional[str] = None      # fetch from URL if provided
     lines: Optional[list] = None   # pre-fetched lines (skip URL fetch)
+    source: Optional[str] = None   # adapter name, e.g. "gutenberg"
+    book_id: Optional[int] = None  # source-specific ID (gutenberg book ID)
 
 
 async def _run_load_job(job_id: str, corpus_id: str, title: str, lines: list):
@@ -3088,6 +3090,17 @@ async def load_corpus(req: LoadCorpusRequest):
     # Resolve lines (synchronously — fast path, 30s timeout)
     if req.lines:
         lines = [str(l) for l in req.lines if l]
+    elif req.source == "gutenberg" and req.book_id is not None:
+        from dsf_ai_service.curriculum.adapters.gutenberg import GutenbergAdapter
+        from dsf_ai_service.curriculum.allowlist import CorpusSourceNotAllowed
+        try:
+            adapter = GutenbergAdapter(book_id=req.book_id)
+            loop = _aio.get_event_loop()
+            lines = await loop.run_in_executor(None, adapter.fetch_normalized)
+        except CorpusSourceNotAllowed as e:
+            raise HTTPException(status_code=403, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"fetch failed: {e}")
     elif req.url:
         from dsf_ai_service.curriculum.gutenberg_adapter import fetch_and_parse
         try:
@@ -3096,7 +3109,7 @@ async def load_corpus(req: LoadCorpusRequest):
         except Exception as e:
             raise HTTPException(status_code=502, detail=f"fetch failed: {e}")
     else:
-        raise HTTPException(status_code=400, detail="either url or lines required")
+        raise HTTPException(status_code=400, detail="either url, lines, or source+book_id required")
 
     if not lines:
         raise HTTPException(status_code=400, detail="no sentences extracted")
