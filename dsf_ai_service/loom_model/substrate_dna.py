@@ -32,7 +32,7 @@ from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 impor
 )
 from dsf_ai_service.substrate.sensory_generators import (
     generate_touch_waveform, generate_smell_waveform, generate_taste_waveform,
-    transduce_sensory_signals, TOUCH_LIBRARY,
+    transduce_sensory_signals,
 )
 from dsf_ai_service.v4.gualaloom_v4_uf_kernel import compute_dsf
 

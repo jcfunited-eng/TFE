@@ -40,24 +40,6 @@ def deterministic_motif_id(name):
 #   sharpness: edge acuity (0=rounded, 1=knife)
 #   wetness: surface moisture (0=bone-dry, 1=submerged)
 
-TOUCH_LIBRARY = {
-    "warm":    {"temperature": 0.65, "pressure": 0.2, "texture_freq": 0.0, "sharpness": 0.0, "wetness": 0.0},
-    "cool":    {"temperature": 0.35, "pressure": 0.2, "texture_freq": 0.0, "sharpness": 0.0, "wetness": 0.0},
-    "cold":    {"temperature": 0.15, "pressure": 0.2, "texture_freq": 0.0, "sharpness": 0.0, "wetness": 0.0},
-    "hot":     {"temperature": 0.85, "pressure": 0.3, "texture_freq": 0.0, "sharpness": 0.0, "wetness": 0.0},
-    "soft":    {"temperature": 0.5, "pressure": 0.15, "texture_freq": 0.05, "sharpness": 0.0, "wetness": 0.0},
-    "hard":    {"temperature": 0.5, "pressure": 0.8, "texture_freq": 0.3, "sharpness": 0.1, "wetness": 0.0},
-    "smooth":  {"temperature": 0.5, "pressure": 0.3, "texture_freq": 0.02, "sharpness": 0.0, "wetness": 0.0},
-    "rough":   {"temperature": 0.5, "pressure": 0.4, "texture_freq": 0.85, "sharpness": 0.2, "wetness": 0.0},
-    "wet":     {"temperature": 0.4, "pressure": 0.2, "texture_freq": 0.1, "sharpness": 0.0, "wetness": 0.9},
-    "dry":     {"temperature": 0.5, "pressure": 0.3, "texture_freq": 0.3, "sharpness": 0.0, "wetness": 0.0},
-    "sharp":   {"temperature": 0.5, "pressure": 0.7, "texture_freq": 0.1, "sharpness": 0.95, "wetness": 0.0},
-    "fuzzy":   {"temperature": 0.5, "pressure": 0.1, "texture_freq": 0.6, "sharpness": 0.0, "wetness": 0.0},
-    "heavy":   {"temperature": 0.5, "pressure": 0.9, "texture_freq": 0.2, "sharpness": 0.0, "wetness": 0.0},
-    "light":   {"temperature": 0.5, "pressure": 0.05, "texture_freq": 0.1, "sharpness": 0.0, "wetness": 0.0},
-    "squishy": {"temperature": 0.5, "pressure": 0.25, "texture_freq": 0.15, "sharpness": 0.0, "wetness": 0.3},
-    "bumpy":   {"temperature": 0.5, "pressure": 0.4, "texture_freq": 0.75, "sharpness": 0.1, "wetness": 0.0},
-}
 
 
 def generate_touch_waveform(params, n_samples=200, sample_rate=100):
@@ -128,20 +110,6 @@ def generate_touch_waveform(params, n_samples=200, sample_rate=100):
 # Real olfaction: ~400 receptor types, but 8 captures the
 # major perceptual axes (Amoore's stereochemical theory adapted).
 
-SMELL_LIBRARY = {
-    "fresh":  {"sweet": 0.05, "putrid": 0.0, "floral": 0.1, "fruity": 0.05, "smoky": 0.0, "earthy": 0.05, "sour": 0.0, "fresh": 0.9},
-    "floral": {"sweet": 0.3, "putrid": 0.0, "floral": 0.9, "fruity": 0.2, "smoky": 0.0, "earthy": 0.0, "sour": 0.0, "fresh": 0.2},
-    "sweet":  {"sweet": 0.85, "putrid": 0.0, "floral": 0.2, "fruity": 0.4, "smoky": 0.0, "earthy": 0.0, "sour": 0.0, "fresh": 0.1},
-    "earthy": {"sweet": 0.0, "putrid": 0.1, "floral": 0.0, "fruity": 0.0, "smoky": 0.2, "earthy": 0.9, "sour": 0.05, "fresh": 0.0},
-    "smoky":  {"sweet": 0.0, "putrid": 0.05, "floral": 0.0, "fruity": 0.0, "smoky": 0.9, "earthy": 0.3, "sour": 0.0, "fresh": 0.0},
-    "salty":  {"sweet": 0.0, "putrid": 0.0, "floral": 0.0, "fruity": 0.0, "smoky": 0.0, "earthy": 0.1, "sour": 0.2, "fresh": 0.4},
-    "fruity": {"sweet": 0.4, "putrid": 0.0, "floral": 0.1, "fruity": 0.9, "smoky": 0.0, "earthy": 0.0, "sour": 0.1, "fresh": 0.2},
-    "woody":  {"sweet": 0.0, "putrid": 0.0, "floral": 0.05, "fruity": 0.0, "smoky": 0.3, "earthy": 0.7, "sour": 0.0, "fresh": 0.1},
-    "clean":  {"sweet": 0.1, "putrid": 0.0, "floral": 0.15, "fruity": 0.0, "smoky": 0.0, "earthy": 0.0, "sour": 0.0, "fresh": 0.85},
-    "rain":   {"sweet": 0.0, "putrid": 0.0, "floral": 0.05, "fruity": 0.0, "smoky": 0.0, "earthy": 0.5, "sour": 0.0, "fresh": 0.7},
-    "grass":  {"sweet": 0.05, "putrid": 0.0, "floral": 0.1, "fruity": 0.0, "smoky": 0.0, "earthy": 0.4, "sour": 0.05, "fresh": 0.6},
-    "ocean":  {"sweet": 0.0, "putrid": 0.05, "floral": 0.0, "fruity": 0.0, "smoky": 0.0, "earthy": 0.2, "sour": 0.15, "fresh": 0.6},
-}
 
 
 def generate_smell_waveform(params, n_samples=200, sample_rate=100):
@@ -194,16 +162,6 @@ def generate_smell_waveform(params, n_samples=200, sample_rate=100):
 #   bitter: fast onset, VERY slow decay (protective — bitter lingers)
 #   umami: slow onset, slow build (glutamate receptor saturation)
 
-TASTE_LIBRARY = {
-    "sweet":  {"sweet": 0.9, "sour": 0.0, "salty": 0.0, "bitter": 0.0, "umami": 0.05},
-    "sour":   {"sweet": 0.0, "sour": 0.9, "salty": 0.05, "bitter": 0.1, "umami": 0.0},
-    "salty":  {"sweet": 0.0, "sour": 0.0, "salty": 0.9, "bitter": 0.0, "umami": 0.1},
-    "bitter": {"sweet": 0.0, "sour": 0.1, "salty": 0.0, "bitter": 0.9, "umami": 0.0},
-    "savory": {"sweet": 0.0, "sour": 0.0, "salty": 0.3, "bitter": 0.0, "umami": 0.9},
-    "spicy":  {"sweet": 0.0, "sour": 0.1, "salty": 0.0, "bitter": 0.2, "umami": 0.1},
-    "creamy": {"sweet": 0.3, "sour": 0.0, "salty": 0.1, "bitter": 0.0, "umami": 0.4},
-    "tangy":  {"sweet": 0.1, "sour": 0.7, "salty": 0.1, "bitter": 0.0, "umami": 0.0},
-}
 
 
 def generate_taste_waveform(params, n_samples=200, sample_rate=100):
@@ -251,12 +209,14 @@ def generate_taste_waveform(params, n_samples=200, sample_rate=100):
 # Combined interface for experience bundles
 # ============================================================
 
-def generate_sensory_signals(sense_name, selections):
-    """Generate physics-based waveforms for a sense from library selections.
+def generate_sensory_signals(sense_name, selections, transducer=None, tick=0):
+    """Generate physics-based waveforms for a sense from substrate-discovered params.
 
     Args:
         sense_name: "touch", "smell", or "taste"
-        selections: list of library keys, e.g. ["warm", "rough"]
+        selections: list of descriptor labels, e.g. ["warm", "rough"]
+        transducer: SensoryTransducer instance (uses NullAtlasReader if None)
+        tick: substrate tick for deterministic seeding
 
     Returns:
         dict of channel_name → 1D numpy array (waveform)
@@ -265,24 +225,26 @@ def generate_sensory_signals(sense_name, selections):
         - Experience bundle processing (/bundle: command)
         - Dream replay of memories with sensory bindings
     """
-    libraries = {"touch": TOUCH_LIBRARY, "smell": SMELL_LIBRARY, "taste": TASTE_LIBRARY}
+    from dsf_ai_service.substrate.sensory_transducer import SensoryTransducer
+
     generators = {"touch": generate_touch_waveform, "smell": generate_smell_waveform,
                   "taste": generate_taste_waveform}
 
-    lib = libraries.get(sense_name, {})
     gen = generators.get(sense_name)
     if not gen:
         return {}
 
-    # Average the physical parameters of selected descriptors
+    if transducer is None:
+        transducer = SensoryTransducer()
+
+    # Each descriptor produces params via the transducer; average them
     combined = {}
     n = 0
     for sel in selections:
-        profile = lib.get(sel, {})
+        profile = transducer.transduce(sense_name, sel, tick + n)
         for k, v in profile.items():
             combined[k] = combined.get(k, 0.0) + v
-        if profile:
-            n += 1
+        n += 1
     if n > 0:
         for k in combined:
             combined[k] /= n

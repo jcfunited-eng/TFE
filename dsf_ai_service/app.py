@@ -1784,11 +1784,15 @@ async def gualaloom_chat(msg: GLMessage):
             # ── TOUCH/SMELL/TASTE lanes (gated: bundle + dream only) ──
             from dsf_ai_service.substrate.sensory_generators import (
                 generate_sensory_signals, transduce_sensory_signals)
+            from dsf_ai_service.substrate.sensory_transducer import SensoryTransducer
+            _transducer = SensoryTransducer()  # NullAtlasReader until catalog dispatch
             for sense_name in ("touch", "smell", "taste"):
                 selections = bundle_data.get(sense_name, [])
                 if selections:
                     try:
-                        signals = generate_sensory_signals(sense_name, selections)
+                        signals = generate_sensory_signals(
+                            sense_name, selections,
+                            transducer=_transducer, tick=_guala.tick)
                         channel_results = transduce_sensory_signals(signals)
                         for ch_name, ch_data in channel_results.items():
                             chi = ch_data["chi"]

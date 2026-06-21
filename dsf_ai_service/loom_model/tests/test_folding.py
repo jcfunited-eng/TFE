@@ -14,14 +14,15 @@ from dsf_ai_service.loom_model.neuron import (
 )
 from dsf_ai_service.loom_model.substrate_dna import (
     derive_daughter_parameters, OverflowSignal, K_TOTAL,
-    TactileKrimelack, CochlearBankKrimelack, TOUCH_LIBRARY,
+    TactileKrimelack, CochlearBankKrimelack,
 )
 from dsf_ai_service.substrate.sensory_generators import generate_touch_waveform
 
 
 def _touch_signal():
-    """Generate a flattened touch waveform for 'hot'."""
-    params = TOUCH_LIBRARY["hot"]
+    """Generate a flattened touch waveform for a hot stimulus."""
+    params = {"temperature": 0.85, "pressure": 0.3, "texture_freq": 0.0,
+              "sharpness": 0.0, "wetness": 0.0}
     waveforms = generate_touch_waveform(params)
     # Concatenate all channels into a single signal array
     channels = [waveforms[k] for k in sorted(waveforms.keys())]
