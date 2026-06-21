@@ -91,10 +91,10 @@ def test_t3_coupling_propagation():
     )
 
     # Verify the coupling contribution magnitude is consistent
-    # Each neuron has K=16 neighbors, each spiking with J_weight=1.0 initial
-    # Expected coupling contribution ≈ 16 × 1.0 × 0.05 = 0.80
+    # GL-CMD-98: J_ij now scaled by 1/(d+1) for ring distance d, and
+    # Phase B uses receiver-side J. Total contribution varies by position.
     max_delta = max(n.familiarity.delta_eff for n in c.neurons)
-    assert max_delta > DELTA_BASE + 0.1, (
+    assert max_delta > DELTA_BASE + 0.01, (
         f"Coupling contribution seems too small: max delta_eff={max_delta:.4f}"
     )
 

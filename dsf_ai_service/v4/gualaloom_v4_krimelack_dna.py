@@ -187,9 +187,23 @@ class LanguageKrimelack(Krimelack):
         super().__init__(omega_0=2.0, kappa=80.0, dt=0.04,
                          threshold=math.pi / 3, label="language")
 
-    def transduce(self, word):
-        """Transduce a word, returning (fingerprint, role, sensory_dict)."""
+    def transduce(self, word, omega_override=None, phase_offset=0.0):
+        """Transduce a word, returning (fingerprint, role, sensory_dict).
+
+        Args:
+            word:           input word string
+            omega_override: if set, temporarily override omega_0 for this
+                            transduction (GL-CMD-98: coupling-modulated ω).
+                            Restored after transduction completes.
+            phase_offset:   initial phase offset (GL-CMD-98: ring position).
+                            Applied after reset so each neuron's krimelack
+                            starts from a position-dependent phase.
+        """
         self.reset()
+        self.phase = float(phase_offset)
+        saved_omega = self.omega_0
+        if omega_override is not None:
+            self.omega_0 = float(omega_override)
         # Convert characters to signal using morphology DNA tuning:
         # vowels low signal, consonants high signal, with morphology-aware
         # phase offsets at syllable boundaries.
@@ -206,6 +220,7 @@ class LanguageKrimelack(Krimelack):
             for j in range(4):
                 signal.append(base + 0.05 * math.sin(i + j * math.pi / 4))
         self.feed(signal)
+        self.omega_0 = saved_omega  # restore
         fp = self.fingerprint()
         role = ROLE_DNA.get(word.lower(), "unknown")
         senses = SENSORY_DNA.get(word.lower(), {})

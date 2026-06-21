@@ -81,6 +81,16 @@ class LoomCluster:
         # --- Build ring-distance connectivity ---
         self._build_ring_topology()
 
+        # GL-CMD-98: positional phase offset on each neuron's krimelack.
+        # Neuron i gets offset = threshold × i. Each neuron starts exactly one
+        # winding-transition-width apart. threshold (π/3) is the krimelack's
+        # own physics — the distance between consecutive winding transitions.
+        # This means neuron i starts i transitions ahead of neuron 0, giving
+        # each neuron a distinct phase position in the oscillator's cycle.
+        for i, neuron in enumerate(self.neurons):
+            threshold = neuron.krimelack.threshold  # π/3
+            neuron._positional_phase_offset = threshold * i
+
     # ------------------------------------------------------------------
     # Topology
     # ------------------------------------------------------------------
@@ -102,13 +112,18 @@ class LoomCluster:
             half_back = K // 2
             half_fwd = K - half_back
             neighbor_ids = []
+            ring_dists = []
             for d in range(-half_back, 0):
                 neighbor_ids.append(self.neurons[(i + d) % N].neuron_id)
+                ring_dists.append(abs(d))
             for d in range(1, half_fwd + 1):
                 neighbor_ids.append(self.neurons[(i + d) % N].neuron_id)
+                ring_dists.append(abs(d))
             # Replace Stage 1 empty couplings with populated K-connected one
+            # GL-CMD-98: ring_distances enable topology-driven J_ij differentiation
             neuron.couplings = CouplingsJij(
                 n_modes=PSI_DIM, neighbors=neighbor_ids,
+                ring_distances=ring_dists,
             )
 
     # ------------------------------------------------------------------
@@ -131,16 +146,23 @@ class LoomCluster:
             results[neuron.neuron_id] = neuron.step(input_signal, tick)
 
         # Phase B: coupling propagation
+        # GL-CMD-98: J_weight comes from the RECEIVING neuron's coupling matrix,
+        # not the spiking neuron's. This means each neuron receives a different
+        # total coupling signal based on its own ring-distance-scaled J_ij,
+        # enabling topology-driven differentiation.
+        spiking_neurons = [
+            n for n in self.neurons if results[n.neuron_id]["committed"]
+        ]
         for neuron in self.neurons:
-            if not results[neuron.neuron_id]["committed"]:
-                continue
-            for neighbor_idx, neighbor_id in enumerate(neuron.couplings.neighbors):
-                neighbor = self._neuron_map[neighbor_id]
-                J_weight = float(np.mean(neuron.couplings.J[neighbor_idx]))
-                neighbor.receive_coupling_spike(
-                    neuron.neuron_id,
+            for src_idx, src_id in enumerate(neuron.couplings.neighbors):
+                src = self._neuron_map.get(src_id)
+                if src is None or not results.get(src_id, {}).get("committed"):
+                    continue
+                J_weight = float(np.mean(neuron.couplings.J[src_idx]))
+                neuron.receive_coupling_spike(
+                    src_id,
                     J_weight,
-                    neuron._last_dsf,
+                    src._last_dsf,
                     tick,
                 )
 

@@ -168,16 +168,18 @@ class LoomMosaic:
     # neuron_diversity_signature — real substrate diversity diagnostic
     # ------------------------------------------------------------------
 
-    def neuron_diversity_signature(self) -> Dict[str, Tuple[int, float]]:
-        """Per-neuron (spike_count, recent_psi_norm) for diversity analysis.
+    def neuron_diversity_signature(self) -> Dict[str, Tuple[int, int, float]]:
+        """Per-neuron (spike_count, winding, delta_eff) for diversity analysis.
 
-        Reads from spike_buffer and psi_lattice — substrate's real
-        diversity layer, NOT krimelack winding.
+        GL-CMD-98: psi_norm is always 1.0 (normalized) and spike_count caps
+        at SpikeBuffer.DEPTH. Winding and delta_eff are the substrate properties
+        that actually diverge under coupling-carried signal.
         """
         sig = {}
         for cluster in self.clusters:
             for neuron in cluster.neurons:
                 spike_count = len(neuron.spike_buffer)
-                psi_norm = round(float(np.linalg.norm(neuron.psi_lattice.psi)), 6)
-                sig[neuron.neuron_id] = (spike_count, psi_norm)
+                winding = neuron.krimelack.winding
+                delta_eff = round(neuron.familiarity.delta_eff, 4)
+                sig[neuron.neuron_id] = (spike_count, winding, delta_eff)
         return sig

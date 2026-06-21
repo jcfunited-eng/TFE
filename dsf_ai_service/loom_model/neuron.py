@@ -204,21 +204,28 @@ class CouplingsJij:
     """
 
     def __init__(self, n_modes: int = PSI_DIM,
-                 neighbors: Optional[List[str]] = None):
+                 neighbors: Optional[List[str]] = None,
+                 ring_distances: Optional[List[int]] = None):
         self.n_modes = n_modes
         self.neighbors: List[str] = neighbors if neighbors is not None else []
+        self.ring_distances: List[int] = ring_distances or [1] * len(self.neighbors)
         K = len(self.neighbors)
         # Stage 1 (K=0): shape (0, n_modes). Stage 2 (K=16): shape (16, n_modes).
-        # Initial values: J_BASE across all entries (refined on first step).
-        self.J = np.full((K, n_modes), J_BASE, dtype=np.float64)
+        # Initial values: J_BASE scaled by inverse ring distance (1/(d+1)).
+        # GL-CMD-98: ring distance breaks initial symmetry — each neuron has
+        # different J_ij values because its neighbors are at different positions.
+        self.J = np.zeros((K, n_modes), dtype=np.float64)
+        for i in range(K):
+            d = self.ring_distances[i]
+            self.J[i] = J_BASE / (d + 1)
 
     def update_from_dsf(self, dsf: DSF) -> None:
         """Update J_ij from L0-L4 DSF outputs.
 
         Per Master Spec Ch.7 table — 8 coupling values from DSF, repeated
-        2× to fill PSI_DIM=16 modes. Each neighbor row gets the same
-        per-neuron coupling profile (differentiation comes from which
-        neurons are neighbors, not per-neighbor tuning at Stage 2).
+        2× to fill PSI_DIM=16 modes. GL-CMD-98: each neighbor row is scaled
+        by inverse ring distance 1/(d+1) — topology-derived, not a tuned
+        constant.
         """
         if len(self.neighbors) == 0 or dsf is None:
             return
@@ -226,7 +233,8 @@ class CouplingsJij:
         values = np.array(list(diag.values()), dtype=np.float64)  # 8 vals
         row = np.repeat(values, 2)  # 16 modes
         for i in range(len(self.neighbors)):
-            self.J[i] = row
+            d = self.ring_distances[i]
+            self.J[i] = row / (d + 1)
 
     def fire_spikes(self, intensity: float, tick: int) -> None:
         """Fire J_ij weighted spikes to neighbors. Stage 1: no-op (K=0).
@@ -386,6 +394,11 @@ class LoomNeuron:
         self._coupling_injection = np.zeros(PSI_DIM, dtype=np.float64)
         self._coupling_modulation_delta: float = 0.0
 
+        # GL-CMD-98: coupling signal accumulator — affects krimelack transduction
+        self._coupling_signal_accum: List[float] = []  # spike intensities from neighbors
+        self._coupling_omega_shift: float = 0.0        # ω modulation for next tick
+        self._positional_phase_offset: float = 0.0     # ring position → krimelack phase
+
         # Stage 3: fold tracking
         self._fold_sustain_count: int = 0          # consecutive ticks at fold threshold
         self._fold_count: int = 0                  # total folds from this neuron
@@ -414,14 +427,30 @@ class LoomNeuron:
         self._tick = tick
 
         # a. Krimelack transduces input_signal → events
+        # GL-CMD-98: compute omega_override from coupling signal accumulator.
+        # ω_eff = ω_0 + Σ(spike_intensities) × J_BASE / J_MAX
+        # Bounded by J_MAX (no new constant). Each spike contributes
+        # proportionally to its J-weighted intensity. Clears after consumption.
+        omega_override = None
+        if self._coupling_signal_accum:
+            omega_shift = sum(self._coupling_signal_accum) * J_BASE / J_MAX
+            omega_override = self.krimelack.omega_0 + omega_shift
+            self._coupling_signal_accum = []
+
         if isinstance(input_signal, str):
-            _fp, _role, _senses = self.krimelack.transduce(input_signal)
+            _fp, _role, _senses = self.krimelack.transduce(
+                input_signal, omega_override=omega_override,
+                phase_offset=self._positional_phase_offset)
             self._last_origin_transducer = "language"
         else:
             self.krimelack.reset()
+            if omega_override is not None:
+                saved = self.krimelack.omega_0
+                self.krimelack.omega_0 = omega_override
             self.krimelack.feed(list(input_signal))
+            if omega_override is not None:
+                self.krimelack.omega_0 = saved
             _senses = {}
-            # Origin stays as previously set (touch/audio/etc via birth_params)
 
         events = list(self.krimelack.events)
         self._last_events = events
@@ -526,6 +555,12 @@ class LoomNeuron:
         norm = float(np.linalg.norm(inj_dir))
         if norm > 1e-9:
             self._coupling_injection += (inj_dir / norm) * J_weight
+
+        # GL-CMD-98: coupling signal accumulator — affects NEXT krimelack transduction.
+        # The spike intensity modulates what the receiving neuron transduces,
+        # not just how the ψ-lattice settles. Bounded by J_MAX (no new constant).
+        spike_contribution = min(J_weight * float(source_dsf.B_k), J_MAX)
+        self._coupling_signal_accum.append(spike_contribution)
 
     # ------------------------------------------------------------------
     # Stage 3: Folding Division support
