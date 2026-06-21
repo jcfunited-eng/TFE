@@ -100,6 +100,12 @@ class SensoryTransducer:
         if modality not in MODALITY_CHANNELS:
             raise ValueError(f"unknown modality: {modality}")
 
+        # Fast path: catalog provides distribution directly (GL-CMD-112 Phase C)
+        if hasattr(self.atlas_reader, 'get_distribution'):
+            dist = self.atlas_reader.get_distribution(label, modality)
+            if dist is not None:
+                return self._sample_from_dist(dist, label, modality, tick)
+
         if self.atlas_reader.has_bindings(label, modality):
             return self._sample_from_bindings(label, modality, tick)
         return self._generate_initial(label, modality, tick)
@@ -113,6 +119,20 @@ class SensoryTransducer:
         rng = np.random.default_rng(seed)
         channels = MODALITY_CHANNELS[modality]
         return {ch: float(rng.uniform(0.0, 1.0)) for ch in channels}
+
+    def _sample_from_dist(self, dist, label: str, modality: str, tick: int) -> Dict[str, float]:
+        """Sample from a directly-provided (mean, std) distribution."""
+        mean, std = dist
+        seed = hash((label, modality, tick)) & 0xFFFFFFFF
+        rng = np.random.default_rng(seed)
+        channels = MODALITY_CHANNELS[modality]
+        params = {}
+        for ch in channels:
+            m = mean.get(ch, 0.5)
+            s = std.get(ch, 0.1)
+            val = float(rng.normal(m, s))
+            params[ch] = max(0.0, min(1.0, val))
+        return params
 
     def _sample_from_bindings(self, label: str, modality: str, tick: int) -> Dict[str, float]:
         """Subsequent encounter: sample from distribution of prior bindings."""
