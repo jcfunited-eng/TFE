@@ -749,33 +749,32 @@ class LoomNeuron:
         self.binding_atlas.record(concept, state_vec, tick)
 
     def _unwrapped_deltas(self, multi_modal_signals: Dict[str, Any]) -> Dict[str, float]:
-        """Compute per-modality unwrapped phase deltas with per-neuron attenuation.
+        """Per-modality unwrapped phase RATE (Δ/n_samples) with attenuation.
 
-        GL-CMD-129: Δ_S = (w1-w0)*threshold + (p1-p0)
-        GL-CMD-131: signal scaled by per-(neuron, modality) attenuation before
-        feeding krimelack. Different neurons see different signal strengths →
-        different deltas → genuine population code.
+        GL-CMD-134: Δ scales with signal length; Δ/n_samples normalizes by
+        integration window. Result is in comparable range across modalities
+        regardless of waveform duration or word length.
+        GL-CMD-131: per-(neuron, modality) attenuation from ring position.
         """
         import math
         from .grandurun import MODALITIES
 
         rpos = getattr(self, 'ring_pos', 0)
         rN = getattr(self, 'ring_N', 1)
-        phases = {}
+        deltas = {}
         for i, m in enumerate(MODALITIES):
             signal = multi_modal_signals.get(m)
             krim = self.krimelack_bank.get(m)
             if signal is None or krim is None:
-                phases[m] = 0.0
+                deltas[m] = 0.0
                 continue
 
             att = signal_attenuation(rpos, rN, i)
+            n_samples = max(1, len(signal))
 
-            # Snapshot pre-feed state
             p0 = float(krim.phase) if hasattr(krim, 'phase') else 0.0
             w0 = int(krim.winding) if hasattr(krim, 'winding') else 0
 
-            # Feed attenuated signal
             if m == "language":
                 krim.transduce(signal, no_reset=True,
                                omega_override=2.0 * att)
@@ -784,57 +783,16 @@ class LoomNeuron:
                 sig_att = [s * att for s in sig]
                 krim.feed_signal(sig_att)
 
-            # Read post-feed state
-            p1 = float(krim.phase) if hasattr(krim, 'phase') else 0.0
-            w1 = int(krim.winding) if hasattr(krim, 'winding') else 0
-
-            # Unwrapped delta
-            threshold = getattr(krim, 'threshold',
-                        getattr(getattr(krim, '_inner', None), 'threshold',
-                                math.pi / 3))
-            delta = (w1 - w0) * threshold + (p1 - p0)
-            phases[m] = delta
-
-        return phases
-
-    def _unwrapped_deltas_raw(self, multi_modal_signals: Dict[str, Any]) -> Dict[str, float]:
-        """Compute per-modality unwrapped phase deltas WITHOUT attenuation.
-
-        GL-CMD-132: recall path. Raw signals produce a neuron-independent
-        query vector. Each neuron compares it against its own attenuated-
-        stored bindings → different neurons score differently → real vote.
-        """
-        import math
-        from .grandurun import MODALITIES
-
-        phases = {}
-        for i, m in enumerate(MODALITIES):
-            signal = multi_modal_signals.get(m)
-            krim = self.krimelack_bank.get(m)
-            if signal is None or krim is None:
-                phases[m] = 0.0
-                continue
-
-            p0 = float(krim.phase) if hasattr(krim, 'phase') else 0.0
-            w0 = int(krim.winding) if hasattr(krim, 'winding') else 0
-
-            # Feed RAW signal — no attenuation
-            if m == "language":
-                krim.transduce(signal, no_reset=True)
-            elif hasattr(krim, 'feed_signal'):
-                sig = list(signal) if not isinstance(signal, list) else signal
-                krim.feed_signal(sig)
-
             p1 = float(krim.phase) if hasattr(krim, 'phase') else 0.0
             w1 = int(krim.winding) if hasattr(krim, 'winding') else 0
 
             threshold = getattr(krim, 'threshold',
                         getattr(getattr(krim, '_inner', None), 'threshold',
                                 math.pi / 3))
-            delta = (w1 - w0) * threshold + (p1 - p0)
-            phases[m] = delta
+            delta_total = (w1 - w0) * threshold + (p1 - p0)
+            deltas[m] = delta_total / n_samples
 
-        return phases
+        return deltas
 
     # ------------------------------------------------------------------
     # get_grandurun_state — 7D complex128 spin-vector
