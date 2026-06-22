@@ -68,6 +68,18 @@ INJECT_SIGMA = 1.0    # Gaussian width (modes) for MapInject localization
 FOLD_TRIGGER_RATIO = math.exp(-1)  # 1/e — from L6-TCL physics (Master Spec Ch.11)
 FOLD_SUSTAIN_TICKS = 3             # consecutive ticks at n_eff < threshold for fold
 OMEGA_HISTORY_LEN = 32             # rolling window for recent_omega_mean
+N_MODALITIES = 6                   # GL-CMD-131: modality count for attenuation
+
+
+def signal_attenuation(ring_pos: int, ring_N: int, modality_index: int) -> float:
+    """Per-(neuron, modality) signal attenuation in [0, 1].
+
+    Deterministic from ring position. Each modality's pattern is rotated
+    by 60° of ring position so each neuron has a unique 6-tuple.
+    """
+    return 0.5 + 0.5 * math.cos(
+        2.0 * math.pi * (ring_pos / ring_N + modality_index / N_MODALITIES)
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -382,6 +394,17 @@ class LoomNeuron:
         self.sensory_bank = SensoryBank()                         # 13. SensoryBank
         # 14. _grandurun_state — used as module-level function
         # 15. _SPIN_VECTOR_DIM — constant
+
+        # GL-CMD-125: multi-krimelack bank for cognition path
+        from .substrate_dna import KRIMELACK_PRIMITIVES
+        from .binding_atlas import BindingAtlas
+        self.krimelack_bank: Dict[str, Any] = {}
+        for modality_name, krim_class in KRIMELACK_PRIMITIVES.items():
+            if modality_name == "language":
+                self.krimelack_bank["language"] = self.krimelack
+            else:
+                self.krimelack_bank[modality_name] = krim_class()
+        self.binding_atlas = BindingAtlas()
 
         # Internal state
         self._last_dsf: Optional[DSF] = None
@@ -702,6 +725,74 @@ class LoomNeuron:
         # Reset fold sustain counter
         self._fold_sustain_count = 0
         self._fold_count += 1
+
+    # ------------------------------------------------------------------
+    # Cognition path — multi-modal binding (GL-CMD-125)
+    # ------------------------------------------------------------------
+
+    def experience_moment(self, concept: str,
+                          multi_modal_signals: Dict[str, Any],
+                          tick: int) -> None:
+        """Cognition write — substrate-true multi-modal binding.
+
+        Feeds each modality's signal through its krimelack (no reset),
+        reads phase, builds 7-dim state vector, records to BindingAtlas.
+        """
+        from .grandurun import grandurun_state, MODALITIES
+
+        # Unwrapped phase delta — signal-only, state-independent fingerprint
+        phases = self._unwrapped_deltas(multi_modal_signals)
+        state_vec = grandurun_state(phases, polarity=1.0)
+        self.binding_atlas.record(concept, state_vec, tick)
+
+    def _unwrapped_deltas(self, multi_modal_signals: Dict[str, Any]) -> Dict[str, float]:
+        """Compute per-modality unwrapped phase deltas with per-neuron attenuation.
+
+        GL-CMD-129: Δ_S = (w1-w0)*threshold + (p1-p0)
+        GL-CMD-131: signal scaled by per-(neuron, modality) attenuation before
+        feeding krimelack. Different neurons see different signal strengths →
+        different deltas → genuine population code.
+        """
+        import math
+        from .grandurun import MODALITIES
+
+        rpos = getattr(self, 'ring_pos', 0)
+        rN = getattr(self, 'ring_N', 1)
+        phases = {}
+        for i, m in enumerate(MODALITIES):
+            signal = multi_modal_signals.get(m)
+            krim = self.krimelack_bank.get(m)
+            if signal is None or krim is None:
+                phases[m] = 0.0
+                continue
+
+            att = signal_attenuation(rpos, rN, i)
+
+            # Snapshot pre-feed state
+            p0 = float(krim.phase) if hasattr(krim, 'phase') else 0.0
+            w0 = int(krim.winding) if hasattr(krim, 'winding') else 0
+
+            # Feed attenuated signal
+            if m == "language":
+                krim.transduce(signal, no_reset=True,
+                               omega_override=2.0 * att)
+            elif hasattr(krim, 'feed_signal'):
+                sig = list(signal) if not isinstance(signal, list) else signal
+                sig_att = [s * att for s in sig]
+                krim.feed_signal(sig_att)
+
+            # Read post-feed state
+            p1 = float(krim.phase) if hasattr(krim, 'phase') else 0.0
+            w1 = int(krim.winding) if hasattr(krim, 'winding') else 0
+
+            # Unwrapped delta
+            threshold = getattr(krim, 'threshold',
+                        getattr(getattr(krim, '_inner', None), 'threshold',
+                                math.pi / 3))
+            delta = (w1 - w0) * threshold + (p1 - p0)
+            phases[m] = delta
+
+        return phases
 
     # ------------------------------------------------------------------
     # get_grandurun_state — 7D complex128 spin-vector

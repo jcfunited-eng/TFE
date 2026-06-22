@@ -28,6 +28,13 @@ _WAVEFORM_GENERATORS = {
     "taste": generate_taste_waveform,
 }
 
+# Map F1 modality names → krimelack_bank modality names
+_MODALITY_TO_KRIM = {
+    "touch": "tactile",
+    "smell": "olfactory",
+    "taste": "gustatory",
+}
+
 
 class ExperiencePipeline:
     """Delivers words to the LoomBrain with multi-modal sensory grounding.
@@ -101,6 +108,12 @@ class ExperiencePipeline:
                 per_hemi_committed[hemi_id] = committed
                 total_committed += committed
 
+        # GL-CMD-125: cognition write — per-neuron multi-modal binding
+        multi_modal = self._build_multi_modal_signals(word, tick)
+        for hemi in self.brain.hemispheres:
+            for neuron in hemi.cluster.neurons:
+                neuron.experience_moment(word, multi_modal, tick)
+
         return {
             "word": word,
             "tick": tick,
@@ -110,6 +123,38 @@ class ExperiencePipeline:
             "per_hemi_committed": per_hemi_committed,
             "folds": dict(self.brain._last_fold_ids) if self.brain._last_fold_ids else {},
         }
+
+    def _build_multi_modal_signals(self, word: str, tick: int = 0) -> Dict[str, Any]:
+        """Build per-modality signals for cognition binding.
+
+        Language: word string. Touch/smell/taste: waveform from F1 transducer.
+        Visual/auditory: procedural placeholder until catalog entries land.
+
+        Signals are deterministic from WORD only (tick=0 for transducer seed).
+        This ensures training and recall produce matching phase fingerprints.
+        """
+        signals: Dict[str, Any] = {"language": word}
+
+        # Touch/smell/taste — deterministic from word (tick=0)
+        word_seed = hash(word) & 0xFFFFFFFF
+        for modality, gen_fn in _WAVEFORM_GENERATORS.items():
+            params = self.transducer.transduce(modality, word, tick=word_seed % 1000)
+            waveform = gen_fn(params)
+            channels = [waveform[k] for k in sorted(waveform.keys())]
+            signals[_MODALITY_TO_KRIM[modality]] = np.concatenate(channels)
+
+        # Visual: procedural placeholder — deterministic from word
+        seed = hash((word, "visual")) & 0xFFFFFFFF
+        rng = np.random.default_rng(seed)
+        signals["visual"] = rng.uniform(0.0, 1.0, 50).tolist()
+
+        # Auditory: procedural placeholder — deterministic from word
+        seed = hash((word, "auditory")) & 0xFFFFFFFF
+        rng = np.random.default_rng(seed)
+        t = np.arange(200) / 200.0
+        signals["auditory"] = (np.sin(2 * np.pi * (30 + seed % 70) * t) * 0.5).tolist()
+
+        return signals
 
     def deliver_sentence(self, sentence: str, tick_start: int,
                          ticks_per_word: int = 4) -> List[Dict]:

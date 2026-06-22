@@ -148,3 +148,43 @@ class LoomBrain:
     def topology_metrics(self) -> Dict:
         """Return validated topology metrics computed at boot."""
         return self._topology_metrics
+
+    def recall(self, query_signals: Dict[str, Any]) -> "Counter":
+        """Population-vote recall across all neurons.
+
+        For each neuron: feed query signals through krimelack bank in a
+        non-binding pass, build target state vector, find best match in
+        BindingAtlas. Aggregate votes. Phase state restored after query.
+        """
+        from collections import Counter
+        from .grandurun import grandurun_state, MODALITIES
+
+        votes = Counter()
+        for hemi in self.hemispheres:
+            for neuron in hemi.cluster.neurons:
+                # Snapshot pre-query (phase + winding)
+                snap = {}
+                for m in MODALITIES:
+                    krim = neuron.krimelack_bank.get(m)
+                    if krim is not None:
+                        snap[m] = (
+                            float(krim.phase) if hasattr(krim, 'phase') else 0.0,
+                            int(krim.winding) if hasattr(krim, 'winding') else 0,
+                        )
+
+                # Unwrapped delta query — same path as experience_moment
+                query_phases = neuron._unwrapped_deltas(query_signals)
+                target_vec = grandurun_state(query_phases)
+                best_concept, _ = neuron.binding_atlas.recall_best(target_vec)
+                if best_concept is not None:
+                    votes[best_concept] += 1
+
+                # Restore phase + winding — recall must not pollute training
+                for m, (p, w) in snap.items():
+                    krim = neuron.krimelack_bank.get(m)
+                    if krim is not None:
+                        if hasattr(krim, 'phase'):
+                            krim.phase = p
+                        krim.winding = w
+
+        return votes

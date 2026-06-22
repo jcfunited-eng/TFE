@@ -90,6 +90,8 @@ class LoomCluster:
         for i, neuron in enumerate(self.neurons):
             threshold = neuron.krimelack.threshold  # π/3
             neuron._positional_phase_offset = threshold * i
+            neuron.ring_pos = i
+            neuron.ring_N = self.n_neurons
 
     # ------------------------------------------------------------------
     # Topology
