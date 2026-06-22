@@ -743,9 +743,9 @@ class LoomNeuron:
         """
         from .grandurun import grandurun_state, MODALITIES
 
-        # Unwrapped phase delta — signal-only, state-independent fingerprint
-        phases = self._unwrapped_deltas(multi_modal_signals)
-        state_vec = grandurun_state(phases, polarity=1.0)
+        # R⁶ Δ-vector from attenuated unwrapped deltas (GL-CMD-133)
+        deltas = self._unwrapped_deltas(multi_modal_signals)
+        state_vec = grandurun_state(deltas)
         self.binding_atlas.record(concept, state_vec, tick)
 
     def _unwrapped_deltas(self, multi_modal_signals: Dict[str, Any]) -> Dict[str, float]:

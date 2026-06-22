@@ -23,8 +23,8 @@ class BindingAtlas:
         self._concepts_cache: Optional[List[str]] = None
 
     def record(self, concept: str, state_vec: np.ndarray, tick: int) -> None:
-        """Append a binding. Invalidates the matrix cache."""
-        assert state_vec.shape == (STATE_DIM,), f"state_vec must be shape ({STATE_DIM},)"
+        """Append a binding. Invalidates the matrix cache. R⁶ float64 vectors."""
+        assert state_vec.shape == (STATE_DIM,), f"state_vec must be shape ({STATE_DIM},), got {state_vec.shape}"
         self._bindings.append({"concept": concept, "state_vec": state_vec, "tick": tick})
         self._matrix_cache = None
         self._concepts_cache = None
