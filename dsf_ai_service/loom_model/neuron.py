@@ -72,14 +72,17 @@ N_MODALITIES = 6                   # GL-CMD-131: modality count for attenuation
 
 
 def signal_attenuation(ring_pos: int, ring_N: int, modality_index: int) -> float:
-    """Per-(neuron, modality) signal attenuation in [0, 1].
+    """Per-(neuron, modality) signal attenuation in [0.3, 1.0].
 
     Deterministic from ring position. Each modality's pattern is rotated
     by 60° of ring position so each neuron has a unique 6-tuple.
+    Floor at 0.3 prevents degenerate neurons.
     """
-    return 0.5 + 0.5 * math.cos(
+    A_MIN = 0.3
+    A_RANGE = 1.0 - A_MIN
+    return A_MIN + A_RANGE * (0.5 + 0.5 * math.cos(
         2.0 * math.pi * (ring_pos / ring_N + modality_index / N_MODALITIES)
-    )
+    ))
 
 
 # ---------------------------------------------------------------------------
@@ -786,6 +789,45 @@ class LoomNeuron:
             w1 = int(krim.winding) if hasattr(krim, 'winding') else 0
 
             # Unwrapped delta
+            threshold = getattr(krim, 'threshold',
+                        getattr(getattr(krim, '_inner', None), 'threshold',
+                                math.pi / 3))
+            delta = (w1 - w0) * threshold + (p1 - p0)
+            phases[m] = delta
+
+        return phases
+
+    def _unwrapped_deltas_raw(self, multi_modal_signals: Dict[str, Any]) -> Dict[str, float]:
+        """Compute per-modality unwrapped phase deltas WITHOUT attenuation.
+
+        GL-CMD-132: recall path. Raw signals produce a neuron-independent
+        query vector. Each neuron compares it against its own attenuated-
+        stored bindings → different neurons score differently → real vote.
+        """
+        import math
+        from .grandurun import MODALITIES
+
+        phases = {}
+        for i, m in enumerate(MODALITIES):
+            signal = multi_modal_signals.get(m)
+            krim = self.krimelack_bank.get(m)
+            if signal is None or krim is None:
+                phases[m] = 0.0
+                continue
+
+            p0 = float(krim.phase) if hasattr(krim, 'phase') else 0.0
+            w0 = int(krim.winding) if hasattr(krim, 'winding') else 0
+
+            # Feed RAW signal — no attenuation
+            if m == "language":
+                krim.transduce(signal, no_reset=True)
+            elif hasattr(krim, 'feed_signal'):
+                sig = list(signal) if not isinstance(signal, list) else signal
+                krim.feed_signal(sig)
+
+            p1 = float(krim.phase) if hasattr(krim, 'phase') else 0.0
+            w1 = int(krim.winding) if hasattr(krim, 'winding') else 0
+
             threshold = getattr(krim, 'threshold',
                         getattr(getattr(krim, '_inner', None), 'threshold',
                                 math.pi / 3))
