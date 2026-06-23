@@ -122,59 +122,38 @@ def stage_helper(task_id):
         raise RuntimeError(f"helper staging failed; output tail:\n{out[-500:]}")
 
 
-def _launch_detached(task_id, args):
-    """Launch the staged helper detached (nohup &) so the long-running COPY/
-    upload survives the SSM session dropping. The session only needs to live
-    long enough to fork the process; '... & echo @@LAUNCHED@@' confirms it."""
-    inner = f"nohup python3 {HELPER_PATH} {' '.join(args)} >/tmp/venv_helper.log 2>&1 & echo @@LAUNCHED@@"
-    out = _exec(task_id, inner, timeout=60, expect="@@LAUNCHED@@")
-    if "@@LAUNCHED@@" not in out:
-        raise RuntimeError(f"helper launch failed; tail:\n{out[-400:]}")
-
-
-def _poll_s3(s3, key, pre_lastmod, timeout=300):
-    """Wait until `key` has a LastModified newer than pre_lastmod (or appears)."""
-    import time
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        try:
-            h = s3.head_object(Bucket=BUCKET, Key=key)
-            if pre_lastmod is None or h["LastModified"] > pre_lastmod:
-                return h
-        except s3.exceptions.ClientError:
-            pass
-        time.sleep(4)
-    return None
+def run_helper_fg(task_id, args, timeout=600):
+    """Run the staged helper in the FOREGROUND of the SSM session, with a
+    heartbeat. SSM kills detached procs on session end AND idle-drops a silent
+    session; so we keep the helper a session child and print a dot every 4s to
+    keep the session alive until the helper completes. Returns combined output."""
+    a = " ".join(args)
+    inner = (f"python3 {HELPER_PATH} {a} & HPID=$!; "
+             f"while kill -0 $HPID 2>/dev/null; do printf '.'; sleep 4; done; "
+             f"wait $HPID; printf '@@DONE@@RC=%s@@' \"$?\"")
+    out = _exec(task_id, inner, timeout=timeout, expect="@@DONE@@RC=0@@")
+    if "@@DONE@@RC=0@@" not in out:
+        raise RuntimeError(f"helper failed (no clean completion); tail:\n{out[-600:]}")
+    return out
 
 
 def export_to_s3(task_id, table, projection, s3_key):
-    """Detached helper writes the gzip to S3; we poll S3 for the fresh object.
-    Decouples export duration from the SSM session lifetime."""
-    s3 = boto3.client("s3", region_name=REGION)
-    try:
-        pre = s3.head_object(Bucket=BUCKET, Key=s3_key)["LastModified"]
-    except s3.exceptions.ClientError:
-        pre = None
+    """Foreground+heartbeat helper writes the gzip to S3; then HEAD for metadata."""
     pb64 = base64.b64encode(projection.encode()).decode()
-    _launch_detached(task_id, ["export", table, pb64, s3_key])
-    h = _poll_s3(s3, s3_key, pre, timeout=300)
-    if h is None:
-        raise RuntimeError(f"{table}: export object did not appear/refresh within timeout "
-                           f"(helper COPY may have failed; upload happens only on COPY success)")
+    run_helper_fg(task_id, ["export", table, pb64, s3_key])
+    s3 = boto3.client("s3", region_name=REGION)
+    h = s3.head_object(Bucket=BUCKET, Key=s3_key)
     return {"s3_etag": h["ETag"].strip('"'), "gz_bytes": h["ContentLength"]}
 
 
 def container_scalar(task_id, sql):
-    """Run a scalar COUNT in-container, written to a unique S3 sidecar by a
-    detached helper, then read back. Avoids SSM dropping on slow counts."""
+    """Scalar COUNT via a foreground helper that writes the result to an S3
+    sidecar; read it back, then delete the sidecar."""
     s3 = boto3.client("s3", region_name=REGION)
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     key = f"{PREFIX}/venv_export__scalar_{ts}.txt"
     sb64 = base64.b64encode(sql.encode()).decode()
-    _launch_detached(task_id, ["scalar", sb64, key])
-    h = _poll_s3(s3, key, None, timeout=180)
-    if h is None:
-        raise RuntimeError("scalar sidecar did not appear within timeout")
+    run_helper_fg(task_id, ["scalar", sb64, key], timeout=300)
     val = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read().decode().strip()
     try:
         s3.delete_object(Bucket=BUCKET, Key=key)
