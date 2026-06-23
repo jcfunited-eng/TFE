@@ -135,4 +135,18 @@ a second code path is mutating canonical position state outside
   rows. Depends on F-001 forward fix (mislabeling is what makes
   positions look orphaned). Do not implement until F-001 lands.
 
+### F-008 — Production `runtime_decisions_history` lacks uniqueness on (ticker, generated_at_utc)
+**Source:** validation-env Mode B import 2026-06-24.
+**Detail:** Prod's `runtime_decisions_history` is append-only with no
+unique constraint on `(ticker, generated_at_utc)`. The 90-day window
+contains 2,672,685 rows where only 2,511,891 represent distinct
+structural moments — ~160K duplicate (ticker, timestamp) pairs. Every
+query against this table that aggregates on structural moment without
+deduplication double-counts those rows.
+**Disposition:** TAGGED, NO IMMEDIATE FIX. The validation env enforces
+the constraint locally; production query call sites that aggregate on
+structural moment can add `DISTINCT ON (ticker, generated_at_utc)`
+where it matters. A schema-level constraint in prod requires a
+migration that handles the existing duplicates first — separate work.
+
 ## Add new findings below this line

@@ -49,7 +49,39 @@ TFE is a domain-agnostic structural perception engine (L0-L4) plus a domain tran
 
 **Production-equivalent** means the validation environment with production's actual bar cache imported via S3. The bar export pipeline was deployed May 28, 2026 (rebuild_uf_snapshot.py). After the first successful export and import, the validation env's `daily_bars` table is the production-equivalent substrate.
 
-Until the first import completes, **no forward validation can produce trustworthy results.** All work that depends on production-equivalent data is blocked on this import.
+**§3.4 update, 2026-06-24:** The first validation-env Mode B import has
+landed. Codespace-local `tfe_validation` Postgres now mirrors production:
+
+| Table | Local rows | Prod source rows | Note |
+|---|---|---|---|
+| `runtime_decisions_latest` | 11,050 | 11,050 | exact match |
+| `runtime_symbols` | 11,050 | 11,050 | exact match |
+| `personal_trade_ledger` | 9,333 | 9,333 | exact match |
+| `runtime_decisions_history` (90d) | 2,511,891 | 2,672,685 | deduped to one row per (ticker, generated_at_utc); see note below |
+| `daily_bars` | 9,760,067 | 9,760,067 | exact match, 2021-04-12 → 2026-06-22 |
+
+**On the history dedupe:** prod `runtime_decisions_history` is append-only
+with no uniqueness constraint on (ticker, generated_at_utc); ~160K rows in
+the 90d window share a structural-moment key. The validation env enforces
+one row per structural moment via unique index + `ON CONFLICT DO NOTHING`,
+preserving prod's `source` value where present. This is the spec's
+coexistence rule (§3.1) applied correctly, not data loss. Whether prod
+itself should enforce this constraint is a separate decision (see
+audit registry F-008, below).
+
+**Transport landed:** S3 via boto3 from the production container into
+`runtime-refresh-checkpoints/venv_export__*.csv.gz`, then Codespace
+boto3 download + local UPSERT. Implementation:
+`tools/validation_env_import.py`. Idempotent, re-runnable, ~3.5 min
+end-to-end on a re-run. ECS Exec is the trigger only; data flows
+through S3.
+
+**Forward validation is no longer blocked by substrate availability.**
+The remaining blocker for forward L5 changes is the equivalence gate
+(`tools/validation_env_check.py`, in flight) which proves Mode A
+(in-Codespace kernel re-run) produces output identical to Mode B
+(production-imported) within the tolerance bands of §5.1 of the
+validation-env spec.
 
 **Specifically forbidden:**
 - Citing quarantine signal counts (e.g. "3,587") as validation targets
