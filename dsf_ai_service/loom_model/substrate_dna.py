@@ -96,7 +96,11 @@ class TactileKrimelack:
         If array-like: feed directly as single channel.
         """
         self.reset()
-        self._inner = OscillatorKrimelack(**self._tuning)
+        # GL-CMD-138 V2.5: reset in place rather than recreating _inner.
+        # OscillatorKrimelack.reset() clears phase/winding/events but preserves
+        # the monotonic n_events counter (hasattr guard); recreating would zero
+        # it and break the count/storage decoupling this command establishes.
+        self._inner.reset()
         if isinstance(signal, dict):
             waveforms = generate_touch_waveform(signal)
             for _channel, wave in sorted(waveforms.items()):
@@ -143,7 +147,11 @@ class OlfactoryKrimelack:
 
     def transduce(self, signal):
         self.reset()
-        self._inner = OscillatorKrimelack(**self._tuning)
+        # GL-CMD-138 V2.5: reset in place rather than recreating _inner.
+        # OscillatorKrimelack.reset() clears phase/winding/events but preserves
+        # the monotonic n_events counter (hasattr guard); recreating would zero
+        # it and break the count/storage decoupling this command establishes.
+        self._inner.reset()
         if isinstance(signal, dict):
             waveforms = generate_smell_waveform(signal)
             for _channel, wave in sorted(waveforms.items()):
@@ -190,7 +198,11 @@ class GustatoryKrimelack:
 
     def transduce(self, signal):
         self.reset()
-        self._inner = OscillatorKrimelack(**self._tuning)
+        # GL-CMD-138 V2.5: reset in place rather than recreating _inner.
+        # OscillatorKrimelack.reset() clears phase/winding/events but preserves
+        # the monotonic n_events counter (hasattr guard); recreating would zero
+        # it and break the count/storage decoupling this command establishes.
+        self._inner.reset()
         if isinstance(signal, dict):
             waveforms = generate_taste_waveform(signal)
             for _channel, wave in sorted(waveforms.items()):

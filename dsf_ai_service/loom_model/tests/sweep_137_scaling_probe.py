@@ -81,14 +81,21 @@ def _run_cell(config):
                 deltas[m] = 0.0
                 continue
             att = signal_attenuation(rpos, rN, i)
-            ev0 = len(krim.events) if hasattr(krim, 'events') else 0
+            # GL-CMD-138: use monotonic n_events counter, not len(events).
+            # The events buffer is now a bounded deque (maxlen=1024); under the
+            # no-reset accumulation this harness drives, len(events) saturates at
+            # 1024 and the per-delivery delta would collapse to ~0. n_events is
+            # the unbounded count and gives the true per-delivery event delta.
+            ev0 = krim.n_events if hasattr(krim, 'n_events') else (
+                len(krim.events) if hasattr(krim, 'events') else 0)
             if m == "language":
                 krim.transduce(signal, no_reset=True, omega_override=2.0 * att)
             elif hasattr(krim, 'feed_signal'):
                 sig = list(signal) if not isinstance(signal, list) else signal
                 sig_att = [s * att for s in sig]
                 krim.feed_signal(sig_att)
-            ev1 = len(krim.events)
+            ev1 = krim.n_events if hasattr(krim, 'n_events') else (
+                len(krim.events) if hasattr(krim, 'events') else 0)
             deltas[m] = float(ev1 - ev0)
         return deltas
 
