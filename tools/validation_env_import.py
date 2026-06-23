@@ -89,19 +89,35 @@ finally:
 ''' % BUCKET
 
 
-def _exec(task_id, inner_bash, timeout=300):
+_SESSION_FLAKES = ("Cannot perform start session", "TargetNotConnected",
+                   "start session: EOF", "Connection to destination")
+
+
+def _exec(task_id, inner_bash, timeout=300, expect=None, attempts=4):
+    """Run a command in-container via ECS Exec. Retries on transient SSM
+    session-establishment flakes (e.g. 'Cannot perform start session: EOF'),
+    which are not result failures — the helper never runs, so retry is safe."""
+    import time
     b64 = base64.b64encode(inner_bash.encode()).decode()
     cmd = ["aws", "ecs", "execute-command", "--region", REGION, "--cluster", CLUSTER,
            "--task", task_id, "--container", CONTAINER, "--interactive",
            "--command", f"bash -lc 'echo {b64} | base64 -d | bash'"]
-    p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
-    return p.stdout + "\n" + p.stderr
+    out = ""
+    for a in range(attempts):
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        out = p.stdout + "\n" + p.stderr
+        if expect and expect in out:
+            return out
+        if not any(f in out for f in _SESSION_FLAKES):
+            return out  # genuine result (or a non-transient error)
+        time.sleep(3 + a * 2)  # transient session flake — back off and retry
+    return out
 
 
 def stage_helper(task_id):
     hb64 = base64.b64encode(HELPER_PY.encode()).decode()
     inner = f"echo {hb64} | base64 -d > {HELPER_PATH}; wc -l {HELPER_PATH} && echo @@STAGED@@"
-    out = _exec(task_id, inner, timeout=60)
+    out = _exec(task_id, inner, timeout=60, expect="@@STAGED@@")
     if "@@STAGED@@" not in out:
         raise RuntimeError(f"helper staging failed; output tail:\n{out[-500:]}")
 
@@ -109,7 +125,7 @@ def stage_helper(task_id):
 def container_scalar(task_id, sql):
     inner = (f"set -euo pipefail; printf '@@S@@'; "
              f'psql -v ON_ERROR_STOP=1 -At -c "{sql}"; printf \'@@SE@@\'')
-    out = _exec(task_id, inner, timeout=120)
+    out = _exec(task_id, inner, timeout=120, expect="@@SE@@")
     if "@@S@@" not in out or "@@SE@@" not in out:
         raise RuntimeError(f"scalar failed: {out[-300:]}")
     return out.split("@@S@@", 1)[1].split("@@SE@@", 1)[0].strip()
@@ -120,7 +136,7 @@ def export_to_s3(task_id, table, projection, s3_key):
     pb64 = base64.b64encode(projection.encode()).decode()
     inner = (f"printf '@@J@@'; python3 {HELPER_PATH} {table} {pb64} {s3_key}; "
              f"rc=$?; printf '@@JE@@'; echo \"RC=$rc\"")
-    out = _exec(task_id, inner, timeout=300)
+    out = _exec(task_id, inner, timeout=300, expect="@@JE@@")
     if "@@J@@" not in out or "@@JE@@" not in out:
         raise RuntimeError(f"{table}: helper produced no summary; tail:\n{out[-600:]}")
     payload = out.split("@@J@@", 1)[1].split("@@JE@@", 1)[0].strip()
