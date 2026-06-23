@@ -106,6 +106,32 @@ class Embryo:
         self.strength = {tag: 0.0 for tag, _ in OPERATIONS}  # per-organ binding strength
         self.arousal = 0.0                                  # aff global state
         self.tick = 0
+        self._seed_dna_diversity()
+
+    def _seed_dna_diversity(self):
+        """Multi-axis neuron DNA — the real source of difference (Joe: not just
+        resonant). RESONANT (omega_0) is INERT in the current krimelack: winding is
+        Delta-phi = (omega - omega_0)*dt = kappa*s*dt, so omega_0 cancels. True
+        resonant tuning needs the driven-resonator krimelack (open research thread).
+        The CHEMICAL axis differentiates here, and it's biology-real:
+          kappa     — receptor gain / sensitivity (scales the winding response)
+          threshold — excitability / ion-channel density (phase per winding event)
+          aff_gain  — neuromodulator receptor density (how much arousal moves the cell)
+          polarity  — transmitter type (excitatory +1 / inhibitory -1)
+        Structural diversity (ring position) already varies per neuron from the seed.
+        Ranges are population variation (~2-3x), not outcome-tuned."""
+        idx = 0
+        for h in self.brain.hemispheres:
+            for n in h.cluster.neurons:
+                rng = np.random.default_rng(1000 + idx)
+                k = n.krimelack
+                if hasattr(k, "kappa"):
+                    k.kappa = float(k.kappa) * float(rng.uniform(0.6, 1.6))
+                if hasattr(k, "threshold"):
+                    k.threshold = float(k.threshold) * float(rng.uniform(0.7, 1.4))
+                n._aff_gain = float(rng.uniform(0.3, 1.7))
+                n._polarity = 1.0 if rng.random() > 0.2 else -1.0   # ~20% inhibitory
+                idx += 1
 
     def _hemi(self, tag):
         return self.hemi_by_op[tag]
@@ -120,7 +146,7 @@ class Embryo:
 
     SAFETY_POP = 256   # backstop against runaway-loop bugs, NOT the brake (physics is the brake)
 
-    def _charge_and_fold(self, hemi, coherent, quantum, gain):
+    def _charge_and_fold(self, hemi, coherent, quantum):
         """Physics-based folding. Each neuron accumulates coherent-constraint charge
         q from coherent experience; effective dimensionality collapses as
         n_eff = n_start*exp(-q), so the spec's capture basin n_eff < n_start/e
@@ -132,7 +158,9 @@ class Embryo:
             if not hasattr(n, "_q"):
                 n._q = 0.0
             if coherent:
-                n._q += quantum * gain          # accumulate constraint (attention=gain)
+                # per-neuron neuromodulator sensitivity (chemical DNA) sets the gain
+                gain = 1.0 + self.arousal * getattr(n, "_aff_gain", 1.0)
+                n._q += quantum * gain
         new = []
         for neuron in list(hemi.cluster.neurons):
             if len(hemi.cluster.neurons) + len(new) >= self.SAFETY_POP:
@@ -150,6 +178,14 @@ class Embryo:
                            primary_modality=hemi.cluster.primary_modality,
                            observable=hemi.cluster.observable)
             d._q = 0.0
+            # daughter inherits parent DNA with small mutation (evolution across cells)
+            jr = np.random.default_rng(self.tick * 131 + len(new))
+            if hasattr(d.krimelack, "kappa") and hasattr(neuron.krimelack, "kappa"):
+                d.krimelack.kappa = float(neuron.krimelack.kappa) * float(jr.uniform(0.9, 1.1))
+            if hasattr(d.krimelack, "threshold") and hasattr(neuron.krimelack, "threshold"):
+                d.krimelack.threshold = float(neuron.krimelack.threshold) * float(jr.uniform(0.95, 1.05))
+            d._aff_gain = float(getattr(neuron, "_aff_gain", 1.0)) * float(jr.uniform(0.9, 1.1))
+            d._polarity = getattr(neuron, "_polarity", 1.0)
             hemi.cluster.attach(d, inherit_from=neuron)
             neuron._q = 0.0                       # parent discharged into daughter
             new.append(did)
@@ -166,7 +202,8 @@ class Embryo:
         experience (mean winding direction). Links compare signatures: aligned ->
         converge (strengthen), opposed -> diverge (weaken)."""
         ns = self._hemi(tag).cluster.neurons
-        vals = [n._last_dsf.D_k for n in ns if getattr(n, "_last_dsf", None) is not None]
+        vals = [n._last_dsf.D_k * getattr(n, "_polarity", 1.0)
+                for n in ns if getattr(n, "_last_dsf", None) is not None]
         return float(np.mean(vals)) if vals else 0.0
 
     def _feed_and_fold(self, hemi, signal, sig_res, theta, ticks=6, quantum_scale=1.0):
@@ -174,9 +211,7 @@ class Embryo:
             hemi.cluster.step(list(signal), self.tick)   # keep the substrate active
             self.tick += 1
         coherent = sig_res > theta
-        gain = 1.0 + self.arousal                         # attention amplifies learning
-        return len(self._charge_and_fold(hemi, coherent,
-                                         quantum=sig_res * quantum_scale, gain=gain))
+        return len(self._charge_and_fold(hemi, coherent, quantum=sig_res * quantum_scale))
 
     def experience(self, word, receptors, theta=0.05, noise=False):
         """One experience. em perceives the bipolar senses; its activity cascades
