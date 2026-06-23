@@ -87,14 +87,52 @@ entries 0.69s apart. Addressed by committed-but-undeployed migrations 007
 **Disposition:** DEPLOY-BEFORE-ARCHIVE. Land 007+008 so HTBK closes
 cleanly before sealing contaminated ledger.
 
-### F-006 — NULL entry_order_id on live drain rows (HTBK 7532, MYE 7834)
-**Source:** c1 live-position probe 2026-06-24.
-**Detail:** Two of 19 live positions have `entry_order_id = NULL`.
-HTBK 7532 is explained (phantom merger created by F-003's write path).
-MYE 7834 is unexplained — no twin, no current issue, but the NULL is a
-write-path signal that may indicate the same defect still firing on
-regular sentinel entries during the contamination → drain transition.
-**Disposition:** PROBE in flight (TFE-CMD-AUDIT-F006-NULL-ENTRY-OID-
-WRITEPATH-20260624).
+### F-006 — NULL entry_order_id on live drain rows (RESOLVED)
+**Source:** c1 live-position probe 2026-06-24; resolved by c1
+F-006-writepath probe 2026-06-24.
+**Detail:** Both NULL-oid live rows (HTBK 7532, MYE 7834) are
+`orphan_sync` adoptions — synthetic ledger rows written by the
+reconciliation sub-routine in `sentinel_monitor.mjs:590`, not by the
+normal entry pipeline. The normal entry path always records
+`entry_order_id`. Resolution surfaced F-007.
+**Disposition:** RESOLVED — root cause identified, see F-007.
+
+### F-007 — orphan_sync ungated reconciliation writer (LIVE PRODUCER OF F-003)
+**Source:** c1 F-006-writepath probe 2026-06-24, Queries 1–3.
+**Detail:** `runSentinel()` in `sentinel_daemon.mjs:312` is called every
+cycle regardless of `TFE_ENTRIES_HALTED`. Inside it, the orphan-adopt
+block at `sentinel_monitor.mjs:590` INSERTs synthetic
+`status='filled'` rows into `personal_trade_ledger` for any Alpaca
+position not found in the ledger's *open* rows. The kill switch halts
+entries; it does not halt this writer.
+
+**Verified active during drain:** orphan_sync has written 13 new rows
+since the kill switch went on. Latest creation: 2026-06-22 13:51 UTC
+(APH, NBIX, NOMD, PHM — all carrying old entry dates).
+
+**Causal loop with F-001 and F-003:** F-001 mislabels a position closed
+(`bracket_tp_sl_exit`, NULL price) while Alpaca still holds the
+position. orphan_sync's dedup guard (`:568-573`) only checks for *open*
+ledger rows, so the now-mislabeled-closed position appears to be an
+orphan. orphan_sync re-adopts it as a fresh `filled` row, copying
+entry price/date from the prior closed row (`:579-589`). Next cycle,
+F-001 mislabels again, and the loop continues. XOMAO×32, OGE×13,
+BCPC×6, AM×6 are this loop running N times per ticker. May 20
+`f52cdda` ("orphan loop" patch) did not stop it; still firing yesterday.
+
+**Clears destruction pattern #7** (no parallel broker orders — NULL
+oids are the tell). **Violates single-pipeline-invariant in spirit**:
+a second code path is mutating canonical position state outside
+`submitEntry()`, and doing so during a declared write-quiet drain.
+
+**Disposition (split):**
+- **(a) DEPLOY-BEFORE-ARCHIVE — do now.** Gate the orphan-adopt block
+  behind `TFE_ENTRIES_HALTED`. One-line guard. Stops new duplicate
+  rows from accumulating during remaining drain cycles. Brief in
+  flight (TFE-CMD-F007A-GATE-ORPHAN-SYNC-DRAIN-20260624).
+- **(b) BLOCKS-FRESH-RUN.** Fix the dedup guard at `:568-573` to
+  check Alpaca-held-but-ledger-closed positions, not just ledger-open
+  rows. Depends on F-001 forward fix (mislabeling is what makes
+  positions look orphaned). Do not implement until F-001 lands.
 
 ## Add new findings below this line
