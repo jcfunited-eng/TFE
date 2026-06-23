@@ -71,21 +71,19 @@ if mode == "scalar":
     sys.exit(0 if r.returncode == 0 else 1)
 # export mode: argv = export <table> <b64proj> <s3key>
 table = sys.argv[2]; proj = base64.b64decode(sys.argv[3]).decode(); s3key = sys.argv[4]
-csvp, gzp = "/tmp/%%s.csv" %% table, "/tmp/%%s.csv.gz" %% table
+gzp = "/tmp/%%s.csv.gz" %% table
 try:
-    r = subprocess.run(
-        ["psql", "-v", "ON_ERROR_STOP=1", "-c",
-         "\\copy (" + proj + ") to '" + csvp + "' with csv header"],
-        capture_output=True, text=True)
+    # Stream COPY TO STDOUT through gzip — no multi-GB intermediate CSV on disk.
+    cmd = ('set -o pipefail; psql -v ON_ERROR_STOP=1 -c "COPY (' + proj +
+           ') TO STDOUT WITH CSV HEADER" | gzip > ' + gzp)
+    r = subprocess.run(cmd, shell=True, executable="/bin/bash",
+                       capture_output=True, text=True)
     if r.returncode != 0:
         sys.stderr.write("PSQL_ERR:" + r.stderr[:600]); sys.exit(1)
-    with open(csvp, "rb") as fi, gzip.open(gzp, "wb") as fo:
-        shutil.copyfileobj(fi, fo)
     s3.upload_file(gzp, bucket, s3key)  # upload only on COPY success — no partials
 finally:
-    for p in (csvp, gzp):
-        try: os.remove(p)
-        except OSError: pass
+    try: os.remove(gzp)
+    except OSError: pass
 ''' % BUCKET
 
 
@@ -173,21 +171,17 @@ def download_and_upsert(conn, s3_key, temp_ddl, temp_cols, upsert_sql):
     local = f"/tmp/venv_import_{os.path.basename(s3_key)}_{ts}"
     s3.download_file(BUCKET, s3_key, local)
     try:
-        with gzip.open(local, "rt") as f:
-            reader = csv.reader(f)
-            next(reader, None)                       # drop CSV header
-            body = io.StringIO()
-            w = csv.writer(body)
-            n = 0
-            for row in reader:
-                w.writerow(row); n += 1
-        body.seek(0)
         with conn.cursor() as cur:
             cur.execute("DROP TABLE IF EXISTS _venv_tmp")
             cur.execute(temp_ddl)
-            if n:
+            # Stream gunzip → COPY directly (no in-memory buffer — history is
+            # 2.67M rows). Skip the CSV header line, then copy the rest.
+            with gzip.open(local, "rt") as f:
+                f.readline()
                 cur.copy_expert(
-                    f"COPY _venv_tmp ({','.join(temp_cols)}) FROM STDIN WITH (FORMAT csv)", body)
+                    f"COPY _venv_tmp ({','.join(temp_cols)}) FROM STDIN WITH (FORMAT csv)", f)
+            cur.execute("SELECT COUNT(*) FROM _venv_tmp")
+            n = cur.fetchone()[0]
             cur.execute(upsert_sql)
         conn.commit()
         return n
@@ -275,9 +269,11 @@ def history_spec():
         table="runtime_decisions_history",
         key=f"{PREFIX}/venv_export__runtime_decisions_history__90d.csv.gz",
         count=f"SELECT COUNT(*) FROM runtime_decisions_history WHERE {win}",
+        # No ORDER BY: a full-table export feeding an order-independent
+        # ON CONFLICT DO NOTHING upsert. Sorting 2.67M JSONB rows exhausts
+        # prod RDS temp space (pgsql_tmp: No space left on device).
         proj=("SELECT ticker, run_id, generated_at_utc, snapshot_row_json, source AS prod_source "
-              f"FROM runtime_decisions_history WHERE {win} "
-              "ORDER BY generated_at_utc ASC, ticker ASC"),
+              f"FROM runtime_decisions_history WHERE {win}"),
         temp_ddl="""CREATE TEMP TABLE _venv_tmp (ticker text, run_id text,
             generated_at_utc timestamptz, snapshot_row_json jsonb, prod_source text)""",
         temp_cols=cols,
