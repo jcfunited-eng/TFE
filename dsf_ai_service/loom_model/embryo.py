@@ -118,47 +118,56 @@ class Embryo:
                 min(neffs) if neffs else float('nan'),
                 len(ns))
 
-    def _fold_on_resonance(self, hemi, theta):
-        """Mirror cluster.process_folds, but gate on resonance (temporal coherence
-        of the event stream) instead of the direction-based n_eff. Fold a neuron
-        when its experience is coherent (resonance > theta); noise stays quiet.
-        Contact inhibition still bounds growth."""
+    SAFETY_POP = 256   # backstop against runaway-loop bugs, NOT the brake (physics is the brake)
+
+    def _charge_and_fold(self, hemi, coherent, quantum, gain):
+        """Physics-based folding. Each neuron accumulates coherent-constraint charge
+        q from coherent experience; effective dimensionality collapses as
+        n_eff = n_start*exp(-q), so the spec's capture basin n_eff < n_start/e
+        becomes q > 1 (threshold DERIVED from the same e, not tuned). Division
+        discharges q into the daughter (conservation), so a cell must recharge
+        before dividing again — a self-limiting cell cycle. Contact inhibition
+        (neighbour saturation) still gates. Maps to a charging/dumping capacitor."""
+        for n in hemi.cluster.neurons:
+            if not hasattr(n, "_q"):
+                n._q = 0.0
+            if coherent:
+                n._q += quantum * gain          # accumulate constraint (attention=gain)
         new = []
-        MAX_POP = 16   # per-organ exploration cap (8 organs now)
         for neuron in list(hemi.cluster.neurons):
-            if len(hemi.cluster.neurons) + len(new) >= MAX_POP:
+            if len(hemi.cluster.neurons) + len(new) >= self.SAFETY_POP:
                 break
-            r = resonance(getattr(neuron, "_last_events", []))
-            neuron._last_resonance = r
-            if r <= theta:
+            if getattr(neuron, "_q", 0.0) <= 1.0:   # n_eff = n_start*e^-q >= n_start/e
                 continue
-            # refractory: a neuron folds at most once per experience window
-            if getattr(neuron, "_folded_this_exp", False):
-                continue
-            neuron._folded_this_exp = True
             sat = len(neuron.couplings.neighbors) / K_TOTAL
             if (1.0 - sat) ** 2 <= 0.0:
-                continue  # contact inhibition: saturated
+                neuron._q = 1.0                  # held at basin edge by contact inhibition
+                continue
             overflow = neuron.compute_overflow_signal()
             params = derive_daughter_parameters(overflow, neuron)
             did = hemi.cluster.next_id()
             d = LoomNeuron(did, birth_params=params,
                            primary_modality=hemi.cluster.primary_modality,
                            observable=hemi.cluster.observable)
+            d._q = 0.0
             hemi.cluster.attach(d, inherit_from=neuron)
+            neuron._q = 0.0                       # parent discharged into daughter
             new.append(did)
         return new
 
     BASE_LAMBDA = 0.02   # per-experience decay base; per-hemi multiplier scales it
     CROSS_ATTEN = 0.4    # cross-hemi coupling is weak at seed (echo, not full signal)
 
+    K_PROD = 0.3    # aff synthesis rate (arousal builds on salient experience)
+    K_CLEAR = 0.1   # aff clearance rate (first-order; ~10-experience relaxation)
+
     def _feed_and_fold(self, hemi, signal, sig_res, theta, ticks=6):
-        for n in hemi.cluster.neurons:
-            n._folded_this_exp = False
         for _ in range(ticks):
-            hemi.cluster.step(list(signal), self.tick)
+            hemi.cluster.step(list(signal), self.tick)   # keep the substrate active
             self.tick += 1
-        return len(self._fold_on_resonance(hemi, theta)) if sig_res > theta else 0
+        coherent = sig_res > theta
+        gain = 1.0 + self.arousal                         # attention amplifies learning
+        return len(self._charge_and_fold(hemi, coherent, quantum=sig_res, gain=gain))
 
     def experience(self, word, receptors, theta=0.05, noise=False):
         """One experience. em perceives the bipolar senses; its activity cascades
@@ -173,8 +182,7 @@ class Embryo:
             composite = np.concatenate([bipolar_sense(receptors.get("taste", {}), "taste"),
                                         bipolar_sense(receptors.get("smell", {}), "smell")])
         sig_res = resonance_signal(composite)
-        # aff: arousal lowers the fold bar (salience makes coherent experience bind easier)
-        theta_eff = theta / (1.0 + 0.5 * self.arousal)
+        theta_eff = theta   # gate is the noise floor; brake is the charge cycle, not theta
 
         active, folds = {}, {}
         # 1. em perceives the raw senses
@@ -199,8 +207,12 @@ class Embryo:
             self.strength[tag] = self.strength[tag] * (1 - decay * self.BASE_LAMBDA) \
                 + (1.0 if active.get(tag) else 0.0)
 
-        # 4. aff arousal from total organ activity this experience
-        self.arousal = 0.9 * self.arousal + 0.1 * sum(1 for v in active.values() if v)
+        # 4. aff = bounded chemical pool: saturating synthesis from salience (the
+        # experience's coherence), first-order clearance. Bounded [0,1], relaxes by
+        # clearance — NOT drift-to-initial. A leaky saturating capacitor on silicon.
+        salience = sig_res if sig_res > theta_eff else 0.0
+        self.arousal += self.K_PROD * salience * (1.0 - self.arousal) - self.K_CLEAR * self.arousal
+        self.arousal = float(min(1.0, max(0.0, self.arousal)))
         return folds, sig_res
 
     def observe(self):
@@ -229,11 +241,14 @@ def main():
     print("operation tags:", {h.hemi_id: emb.op[h.hemi_id][0] for h in emb.brain.hemispheres})
     print(f"seed: 4 neurons/organ, 32 total   resonance gate theta={THETA}\n")
     items = list(CURRICULUM.items()) + [("~noise~", None)]
-    for epoch in range(4):
+    for epoch in range(10):
+        ep_folds = 0
         for word, rec in items:
             folds, sig_res = emb.experience(word, rec or {}, theta=THETA, noise=(rec is None))
-            fired = "".join(t[0] if folds.get(t, 0) > 0 else "." for t in tags)
-            print(f"  e{epoch} {word:>8} res={sig_res:.3f} arous={emb.arousal:.2f}  organs-folded[{fired}]", flush=True)
+            ep_folds += sum(folds.values())
+        em_pop = len(emb._hemi("em").cluster.neurons)
+        total = sum(len(h.cluster.neurons) for h in emb.brain.hemispheres)
+        print(f"  epoch {epoch}: folds={ep_folds:>3}  em_pop={em_pop:>3}  total={total:>3}  arousal={emb.arousal:.3f}", flush=True)
     print(f"\n--- per-organ state (pop = grew via folding; strength = binding accumulator) ---")
     print(f"{'organ':>5} {'decay×':>7} {'pop':>4} {'strength':>9}")
     for tag, decay in OPERATIONS:
