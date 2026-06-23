@@ -123,14 +123,19 @@ def stage_helper(task_id):
 
 
 def run_helper_fg(task_id, args, timeout=600):
-    """Run the staged helper in the FOREGROUND of the SSM session, with a
-    heartbeat. SSM kills detached procs on session end AND idle-drops a silent
-    session; so we keep the helper a session child and print a dot every 4s to
-    keep the session alive until the helper completes. Returns combined output."""
+    """Run the staged helper in the FOREGROUND (blocking) of the SSM session.
+    Two facts learned the hard way:
+      - Detached procs (nohup/setsid) are SIGKILLed by SSM on session end.
+      - A silent blocking command DOES complete (tested to 12s+); the
+        'Cannot perform start session: EOF' line is spurious plugin-teardown
+        noise, not a failure.
+      - The completion marker MUST be `echo` (newline-flushed); `printf`
+        without a newline is block-buffered and gets lost on teardown.
+    So: run the helper blocking, then echo a flushed completion marker. The
+    `expect` match in _exec returns success even alongside the EOF noise."""
     a = " ".join(args)
-    inner = (f"python3 {HELPER_PATH} {a} & HPID=$!; "
-             f"while kill -0 $HPID 2>/dev/null; do printf '.'; sleep 4; done; "
-             f"wait $HPID; printf '@@DONE@@RC=%s@@' \"$?\"")
+    inner = (f"python3 {HELPER_PATH} {a} >/tmp/venv_helper.log 2>&1; RC=$?; "
+             f"echo @@DONE@@RC=${{RC}}@@; [ $RC -ne 0 ] && cat /tmp/venv_helper.log; true")
     out = _exec(task_id, inner, timeout=timeout, expect="@@DONE@@RC=0@@")
     if "@@DONE@@RC=0@@" not in out:
         raise RuntimeError(f"helper failed (no clean completion); tail:\n{out[-600:]}")
