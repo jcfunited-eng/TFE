@@ -189,6 +189,8 @@ These are patterns observed across multiple sessions that destroy working state.
 
 5. **Silent canonical change.** An LLM modifies or replaces a user-approved component without explicit authorization, then treats the new version as canonical. Symptoms: code changes labeled "cleanup," "purge legacy," "improvement," or "refactor" that overwrite previously approved logic. Effect: the user-approved system is destroyed and the new system claims its legitimacy. Caught after March 30, 2026 V3 basin purge.
 
+6. **Shared-branch deployment SHA misdirection.** When projects share a build pipeline and branch, the deployed-SHA pointer must identify the meaningful code state, not the trigger commit. Symptoms: `TFE_GIT_COMMIT_SHA` on the live task pointing at a commit from a co-resident project; diagnosing production code state from the deployed SHA. Effect: forensics read the wrong code state — the deployed pointer lies. Instance: live `tfe-web-task:551` reports SHA `9bf86de` (a GualaLoom commit) while the actual TFE `web/` code state is `4ba8bff`/task-548 (`web/` diff across 548→551 = 0). Future: per-project content hashing on deploy. Named June 23, 2026; tagged, no immediate fix.
+
 ## 8. Anti-Destruction Rules
 
 - **Do not "improve" filters by relaxing or removing physics gates.** Saturation, selectivity, and low signal counts are often the mechanism by which a filter selects meaningful states. Removing them eliminates the value.
