@@ -82,3 +82,23 @@ docs/Aurelion/.venv.zip
 # Large Aurelion files (too big for GitHub)
 docs/Aurelion/language_memory*.json
 docs/Aurelion/.venv.zip
+
+# LaTeX build artifacts (regenerated on every compile; keep .tex and .pdf)
+*.aux
+*.out
+*.toc
+*.log
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.nav
+*.snm
+*.vrb
+
+# Auto-downloaded model weights at repo root (ultralytics fetches these on demand)
+/yolov8n.pt
+/yolov8n.onnx
