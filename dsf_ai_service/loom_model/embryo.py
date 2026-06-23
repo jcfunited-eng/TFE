@@ -161,13 +161,22 @@ class Embryo:
     K_PROD = 0.3    # aff synthesis rate (arousal builds on salient experience)
     K_CLEAR = 0.1   # aff clearance rate (first-order; ~10-experience relaxation)
 
-    def _feed_and_fold(self, hemi, signal, sig_res, theta, ticks=6):
+    def _organ_signature(self, tag):
+        """Scalar phase/direction signature of an organ's response to the current
+        experience (mean winding direction). Links compare signatures: aligned ->
+        converge (strengthen), opposed -> diverge (weaken)."""
+        ns = self._hemi(tag).cluster.neurons
+        vals = [n._last_dsf.D_k for n in ns if getattr(n, "_last_dsf", None) is not None]
+        return float(np.mean(vals)) if vals else 0.0
+
+    def _feed_and_fold(self, hemi, signal, sig_res, theta, ticks=6, quantum_scale=1.0):
         for _ in range(ticks):
             hemi.cluster.step(list(signal), self.tick)   # keep the substrate active
             self.tick += 1
         coherent = sig_res > theta
         gain = 1.0 + self.arousal                         # attention amplifies learning
-        return len(self._charge_and_fold(hemi, coherent, quantum=sig_res, gain=gain))
+        return len(self._charge_and_fold(hemi, coherent,
+                                         quantum=sig_res * quantum_scale, gain=gain))
 
     def experience(self, word, receptors, theta=0.05, noise=False):
         """One experience. em perceives the bipolar senses; its activity cascades
@@ -199,7 +208,21 @@ class Embryo:
                     folds[b] = self._feed_and_fold(self._hemi(b), echo, sig_res, theta_eff)
                     active[b] = sig_res > theta_eff
                 if active.get(a) and active.get(b):
-                    self.consensus[(a, b)] += sig_res          # convergent co-fire strengthens
+                    # divergence physics: link strengthens when the two organs respond
+                    # IN PHASE, weakens when they diverge (Kuramoto/phase coherence).
+                    coh = self._organ_signature(a) * self._organ_signature(b)  # [-1,1]
+                    self.consensus[(a, b)] += float(np.clip(coh, -1, 1)) * sig_res
+                    self.consensus[(a, b)] = max(0.0, self.consensus[(a, b)])
+
+        # 2b. gp bootstrap: goals are persistent attractors. gp is a SLOW integrator
+        # of em activity (its 0.05 decay = longest time-constant), so a goal only
+        # crystallizes from experience that recurs. em drives gp weakly each tick;
+        # gp folds via the same charge cycle once integrated drive crosses q>1.
+        if active.get("em"):
+            gp_folds = self._feed_and_fold(self._hemi("gp"), echo * 0.5, sig_res,
+                                           theta_eff, quantum_scale=0.2)   # slow integrator
+            folds["gp"] = gp_folds
+            active["gp"] = active.get("gp", False) or gp_folds > 0
 
         # 3. per-organ binding strength: active organs accumulate; ALL decay at their rate
         for h in self.brain.hemispheres:
@@ -241,7 +264,7 @@ def main():
     print("operation tags:", {h.hemi_id: emb.op[h.hemi_id][0] for h in emb.brain.hemispheres})
     print(f"seed: 4 neurons/organ, 32 total   resonance gate theta={THETA}\n")
     items = list(CURRICULUM.items()) + [("~noise~", None)]
-    for epoch in range(10):
+    for epoch in range(16):
         ep_folds = 0
         for word, rec in items:
             folds, sig_res = emb.experience(word, rec or {}, theta=THETA, noise=(rec is None))
