@@ -58,30 +58,30 @@ def log(m):
 
 # ── In-container helper: COPY → gzip → boto3 upload; prints JSON summary ─────
 HELPER_PY = r'''
-import sys, base64, subprocess, gzip, shutil, os, time, json, boto3
-table, b64proj, s3key = sys.argv[1], sys.argv[2], sys.argv[3]
-proj = base64.b64decode(b64proj).decode()
+import sys, base64, subprocess, gzip, shutil, os, boto3
 bucket = "%s"
-csvp, gzp = f"/tmp/{table}.csv", f"/tmp/{table}.csv.gz"
-t0 = time.time()
+mode = sys.argv[1]
+s3 = boto3.client("s3")
+if mode == "scalar":
+    sql = base64.b64decode(sys.argv[2]).decode(); key = sys.argv[3]
+    r = subprocess.run(["psql", "-v", "ON_ERROR_STOP=1", "-At", "-c", sql],
+                       capture_output=True, text=True)
+    body = (r.stdout.strip() if r.returncode == 0 else "ERR:" + r.stderr[:300]).encode()
+    s3.put_object(Bucket=bucket, Key=key, Body=body)
+    sys.exit(0 if r.returncode == 0 else 1)
+# export mode: argv = export <table> <b64proj> <s3key>
+table = sys.argv[2]; proj = base64.b64decode(sys.argv[3]).decode(); s3key = sys.argv[4]
+csvp, gzp = "/tmp/%%s.csv" %% table, "/tmp/%%s.csv.gz" %% table
 try:
     r = subprocess.run(
         ["psql", "-v", "ON_ERROR_STOP=1", "-c",
-         f"\\copy ({proj}) to '{csvp}' with csv header"],
+         "\\copy (" + proj + ") to '" + csvp + "' with csv header"],
         capture_output=True, text=True)
     if r.returncode != 0:
         sys.stderr.write("PSQL_ERR:" + r.stderr[:600]); sys.exit(1)
-    with open(csvp) as f:
-        rows = sum(1 for _ in f) - 1
     with open(csvp, "rb") as fi, gzip.open(gzp, "wb") as fo:
         shutil.copyfileobj(fi, fo)
-    csv_bytes, gz_bytes = os.path.getsize(csvp), os.path.getsize(gzp)
-    s3 = boto3.client("s3")
-    s3.upload_file(gzp, bucket, s3key)
-    etag = s3.head_object(Bucket=bucket, Key=s3key)["ETag"].strip('"')
-    print(json.dumps({"table": table, "rows_copied": rows, "csv_bytes": csv_bytes,
-                      "gz_bytes": gz_bytes, "s3_etag": etag,
-                      "wall_time_s": round(time.time() - t0, 1)}))
+    s3.upload_file(gzp, bucket, s3key)  # upload only on COPY success — no partials
 finally:
     for p in (csvp, gzp):
         try: os.remove(p)
@@ -122,31 +122,65 @@ def stage_helper(task_id):
         raise RuntimeError(f"helper staging failed; output tail:\n{out[-500:]}")
 
 
-def container_scalar(task_id, sql):
-    inner = (f"set -euo pipefail; printf '@@S@@'; "
-             f'psql -v ON_ERROR_STOP=1 -At -c "{sql}"; printf \'@@SE@@\'')
-    out = _exec(task_id, inner, timeout=120, expect="@@SE@@")
-    if "@@S@@" not in out or "@@SE@@" not in out:
-        raise RuntimeError(f"scalar failed: {out[-300:]}")
-    return out.split("@@S@@", 1)[1].split("@@SE@@", 1)[0].strip()
+def _launch_detached(task_id, args):
+    """Launch the staged helper detached (nohup &) so the long-running COPY/
+    upload survives the SSM session dropping. The session only needs to live
+    long enough to fork the process; '... & echo @@LAUNCHED@@' confirms it."""
+    inner = f"nohup python3 {HELPER_PATH} {' '.join(args)} >/tmp/venv_helper.log 2>&1 & echo @@LAUNCHED@@"
+    out = _exec(task_id, inner, timeout=60, expect="@@LAUNCHED@@")
+    if "@@LAUNCHED@@" not in out:
+        raise RuntimeError(f"helper launch failed; tail:\n{out[-400:]}")
+
+
+def _poll_s3(s3, key, pre_lastmod, timeout=300):
+    """Wait until `key` has a LastModified newer than pre_lastmod (or appears)."""
+    import time
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            h = s3.head_object(Bucket=BUCKET, Key=key)
+            if pre_lastmod is None or h["LastModified"] > pre_lastmod:
+                return h
+        except s3.exceptions.ClientError:
+            pass
+        time.sleep(4)
+    return None
 
 
 def export_to_s3(task_id, table, projection, s3_key):
-    """Run the helper in-container; return its JSON summary dict."""
-    pb64 = base64.b64encode(projection.encode()).decode()
-    inner = (f"printf '@@J@@'; python3 {HELPER_PATH} {table} {pb64} {s3_key}; "
-             f"rc=$?; printf '@@JE@@'; echo \"RC=$rc\"")
-    out = _exec(task_id, inner, timeout=300, expect="@@JE@@")
-    if "@@J@@" not in out or "@@JE@@" not in out:
-        raise RuntimeError(f"{table}: helper produced no summary; tail:\n{out[-600:]}")
-    payload = out.split("@@J@@", 1)[1].split("@@JE@@", 1)[0].strip()
-    rc_part = out.split("@@JE@@", 1)[1]
-    if "RC=0" not in rc_part:
-        raise RuntimeError(f"{table}: helper exit nonzero; output:\n{out[-600:]}")
+    """Detached helper writes the gzip to S3; we poll S3 for the fresh object.
+    Decouples export duration from the SSM session lifetime."""
+    s3 = boto3.client("s3", region_name=REGION)
     try:
-        return json.loads(payload.splitlines()[-1])
+        pre = s3.head_object(Bucket=BUCKET, Key=s3_key)["LastModified"]
+    except s3.exceptions.ClientError:
+        pre = None
+    pb64 = base64.b64encode(projection.encode()).decode()
+    _launch_detached(task_id, ["export", table, pb64, s3_key])
+    h = _poll_s3(s3, s3_key, pre, timeout=300)
+    if h is None:
+        raise RuntimeError(f"{table}: export object did not appear/refresh within timeout "
+                           f"(helper COPY may have failed; upload happens only on COPY success)")
+    return {"s3_etag": h["ETag"].strip('"'), "gz_bytes": h["ContentLength"]}
+
+
+def container_scalar(task_id, sql):
+    """Run a scalar COUNT in-container, written to a unique S3 sidecar by a
+    detached helper, then read back. Avoids SSM dropping on slow counts."""
+    s3 = boto3.client("s3", region_name=REGION)
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    key = f"{PREFIX}/venv_export__scalar_{ts}.txt"
+    sb64 = base64.b64encode(sql.encode()).decode()
+    _launch_detached(task_id, ["scalar", sb64, key])
+    h = _poll_s3(s3, key, None, timeout=180)
+    if h is None:
+        raise RuntimeError("scalar sidecar did not appear within timeout")
+    val = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read().decode().strip()
+    try:
+        s3.delete_object(Bucket=BUCKET, Key=key)
     except Exception:
-        raise RuntimeError(f"{table}: bad helper JSON: {payload[:300]}")
+        pass
+    return val
 
 
 def download_and_upsert(conn, s3_key, temp_ddl, temp_cols, upsert_sql):
