@@ -50,7 +50,8 @@ class LoomCluster:
                  k_neighbors: int = 16,
                  dna_blueprints: Optional[List[Any]] = None,
                  seed: Optional[int] = None,
-                 primary_modality: str = "language"):
+                 primary_modality: str = "language",
+                 observable: str = "event_count"):
         """
         Args:
             cluster_id:        unique identifier for this cluster
@@ -68,6 +69,7 @@ class LoomCluster:
         self.k_neighbors = min(k_neighbors, n_neurons - 1)
         self.seed = seed
         self.primary_modality = primary_modality
+        self.observable = observable  # GL-CMD-146: propagated to daughters too
 
         # --- Instantiate neurons ---
         self.neurons: List[LoomNeuron] = []
@@ -77,7 +79,8 @@ class LoomCluster:
             if dna_blueprints is not None and i < len(dna_blueprints):
                 bp = dna_blueprints[i]
             self.neurons.append(LoomNeuron(nid, dna_blueprint=bp,
-                                           primary_modality=primary_modality))
+                                           primary_modality=primary_modality,
+                                           observable=observable))
 
         # Fast lookup by neuron_id
         self._neuron_map: Dict[str, LoomNeuron] = {
@@ -340,6 +343,7 @@ class LoomCluster:
                     neuron_id=daughter_id,
                     birth_params=params,
                     primary_modality=self.primary_modality,
+                    observable=self.observable,
                 )
                 self.attach(daughter, inherit_from=neuron)
                 neuron._fold_ticks.append(tick)

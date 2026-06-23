@@ -26,7 +26,8 @@ class LoomHemisphere:
 
     def __init__(self, hemi_id: str, seed: int = 0,
                  seed_size: int = 50, k_neighbors: int = 16,
-                 primary_modality: str = "language"):
+                 primary_modality: str = "language",
+                 observable: str = "event_count"):
         self.hemi_id = hemi_id
         self.seed = seed
         self.seed_size = seed_size
@@ -38,6 +39,7 @@ class LoomHemisphere:
             k_neighbors=k_neighbors,
             seed=seed,
             primary_modality=primary_modality,
+            observable=observable,
         )
 
         # Designate projection neurons (deterministic from seed)

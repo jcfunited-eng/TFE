@@ -8,6 +8,7 @@ Cross-hemi wiring: projection neurons (5 per hemi) coupled to adjacent
 hemispheres via Watts-Strogatz topology (committed constant).
 """
 
+import os
 from typing import Any, Dict, List, Optional
 
 import numpy as np
@@ -37,9 +38,18 @@ class LoomBrain:
     def __init__(self, brain_seed: int = 42,
                  seed_size: int = SEED_SIZE_PER_HEMISPHERE,
                  k_neighbors: int = 16,
-                 hemisphere_primary_modality: Optional[Dict[str, str]] = None):
+                 hemisphere_primary_modality: Optional[Dict[str, str]] = None,
+                 observable: Optional[str] = None):
         self.brain_seed = brain_seed
         self.topology = HEMISPHERE_ADJACENCY.copy()
+        # GL-CMD-146: cognition observable (opt-in). Resolution order:
+        # explicit constructor arg > COGNITION_OBSERVABLE env var > "event_count".
+        # The env var lets the existing test suite run under rank_order without
+        # editing it; explicit arg still wins (single switch, both write+recall).
+        observable = (observable
+                      or os.environ.get("COGNITION_OBSERVABLE")
+                      or "event_count")
+        self.observable = observable
 
         # GL-CMD-140 (Decision 1): language-as-default. Heterogeneous krimelacks
         # (GL-CMD-139) did not unblock folding and broke cognition tests, so the
@@ -64,6 +74,7 @@ class LoomBrain:
                 seed_size=seed_size,
                 k_neighbors=k_neighbors,
                 primary_modality=primary_modality,
+                observable=observable,
             )
             self.hemispheres.append(hemi)
 

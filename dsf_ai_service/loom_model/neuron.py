@@ -375,9 +375,13 @@ class LoomNeuron:
 
     def __init__(self, neuron_id: str, dna_blueprint: Optional[Any] = None,
                  birth_params: Optional[Dict[str, Any]] = None,
-                 primary_modality: str = "language"):
+                 primary_modality: str = "language",
+                 observable: str = "event_count"):
         self.neuron_id = neuron_id
         self.primary_modality = primary_modality
+        # GL-CMD-146: cognition observable, opt-in. "event_count" (default,
+        # GL-CMD-140) or "rank_order" (first-wrap timing). Read in _unwrapped_deltas.
+        self.observable = observable
 
         # --- NEW pieces (1-6) ---
         self.psi_lattice = PsiLattice()           # 1. ψ-lattice
@@ -796,12 +800,21 @@ class LoomNeuron:
         and recall query (brain.recall). The observable is the count of new
         krimelack events per modality (from the GL-CMD-138 n_events counter),
         attenuated per (neuron, modality) by ring position (GL-CMD-131).
+
+        GL-CMD-146: observable is opt-in. Default "event_count" (count of new
+        krimelack events per modality). "rank_order" instead ranks modalities by
+        first-wrap timing (earliest wrap = highest strength), carrying the
+        time-to-first-spike information that event counts discard. The FEED side
+        is identical for both — only the returned observable differs. Selected by
+        self.observable, so training-write and recall-query switch together.
         """
         from .grandurun import MODALITIES
 
+        observable = getattr(self, 'observable', 'event_count')
         rpos = getattr(self, 'ring_pos', 0)
         rN = getattr(self, 'ring_N', 1)
         deltas = {}
+        first_wraps = {}  # modality -> relative first-wrap time (rank_order only)
         for i, m in enumerate(MODALITIES):
             signal = multi_modal_signals.get(m)
             krim = self.krimelack_bank.get(m)
@@ -810,6 +823,11 @@ class LoomNeuron:
                 continue
             att = signal_attenuation(rpos, rN, i)
             ev0 = krim.n_events if hasattr(krim, 'n_events') else len(krim.events)
+            # Pre-feed krimelack time, so this feed's first-wrap timing is
+            # measured RELATIVE to feed start (krim.t is cumulative across the
+            # no-reset feeds for oscillator krimelacks; 0 for reset-type adapters
+            # whose events restart per feed).
+            t_pre = self._krim_time(krim) if observable == "rank_order" else 0.0
             if m == "language":
                 krim.transduce(signal, no_reset=True, omega_override=2.0 * att)
             elif hasattr(krim, 'feed_signal'):
@@ -817,8 +835,35 @@ class LoomNeuron:
                 sig_att = [s * att for s in sig]
                 krim.feed_signal(sig_att)
             ev1 = krim.n_events if hasattr(krim, 'n_events') else len(krim.events)
-            deltas[m] = float(ev1 - ev0)
+            new_count = ev1 - ev0
+            if observable == "rank_order":
+                if new_count > 0:
+                    new_events = list(krim.events)[-new_count:]
+                    first_wraps[m] = float(new_events[0].get("t", 0.0)) - t_pre
+                # modalities that did not wrap are omitted -> strength 0 below
+            else:
+                deltas[m] = float(new_count)
+
+        if observable == "rank_order":
+            n_mod = len(MODALITIES)
+            deltas = {m: 0.0 for m in MODALITIES}
+            # earliest first-wrap gets the highest strength (n_mod - rank)
+            for rank, (m, _t) in enumerate(
+                    sorted(first_wraps.items(), key=lambda kv: kv[1])):
+                deltas[m] = float(n_mod - rank)
         return deltas
+
+    @staticmethod
+    def _krim_time(krim) -> float:
+        """Current cumulative krimelack time (feed-start reference for rank_order).
+        Oscillator krimelacks expose .t (directly or via ._inner); reset-type
+        adapters (visual/cochlear) restart events per feed, so 0.0 is correct."""
+        if hasattr(krim, "t"):
+            return float(krim.t)
+        inner = getattr(krim, "_inner", None)
+        if inner is not None and hasattr(inner, "t"):
+            return float(inner.t)
+        return 0.0
 
     # ------------------------------------------------------------------
     # get_grandurun_state — 7D complex128 spin-vector
