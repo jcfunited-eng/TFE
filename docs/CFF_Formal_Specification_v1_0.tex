@@ -1,0 +1,1017 @@
+% ============================================================
+%  Coherence Field Framework (CFF)
+%  Formal Specification
+%  Version 1.0 — May 2026
+%  Confidential — Trade Secret — Do Not Distribute
+%  Overleaf-compatible LaTeX
+% ============================================================
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{booktabs, array, longtable}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{listings}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  urlcolor=blue!60!black,
+}
+
+\definecolor{nm-dark}{RGB}{30, 30, 30}
+\definecolor{nm-gray}{RGB}{100, 100, 100}
+\definecolor{nm-green}{RGB}{20, 100, 40}
+\definecolor{nm-red}{RGB}{160, 30, 30}
+\definecolor{nm-orange}{RGB}{180, 100, 20}
+\definecolor{code-bg}{RGB}{245, 245, 245}
+\definecolor{code-kw}{RGB}{0, 0, 180}
+\definecolor{code-str}{RGB}{0, 120, 0}
+\definecolor{code-cmt}{RGB}{120, 120, 120}
+
+\pagestyle{fancy}\fancyhf{}
+\rhead{\textcolor{nm-gray}{\small CFF Formal Specification v1.0}}
+\lhead{\textcolor{nm-gray}{\small Trade Secret --- Do Not Distribute}}
+\cfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries\color{nm-dark}}{\thesection}{0.6em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{nm-dark}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\itshape\color{nm-dark}}{\thesubsubsection}{0.6em}{}
+
+\setlength{\parindent}{0pt}\setlength{\parskip}{6pt}\onehalfspacing
+
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{code-bg},
+  keywordstyle=\color{code-kw}\bfseries,
+  stringstyle=\color{code-str},
+  commentstyle=\color{code-cmt}\itshape,
+  breaklines=true, frame=single, framesep=4pt,
+  xleftmargin=6pt, xrightmargin=6pt,
+  numbers=none, showstringspaces=false, tabsize=4,
+}
+
+\newtheorem{definition}{Definition}[section]
+\newtheorem{axiom}{Axiom}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{remark}{Remark}[section]
+\newtheorem{prediction}{Prediction}[section]
+
+\newcommand{\pass}{\textcolor{nm-green}{\textbf{PASS}}}
+\newcommand{\parti}{\textcolor{nm-orange}{\textbf{PARTIAL}}}
+\newcommand{\fail}{\textcolor{nm-red}{\textbf{FAIL}}}
+\newcommand{\untested}{\textcolor{nm-orange}{\textbf{UNTESTED}}}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE \textbf{Coherence Field Framework}}\\[4pt]
+  {\LARGE \textbf{(CFF)}}\\[8pt]
+  {\large Formal Specification}\\[4pt]
+  {\large From Theoretical Foundation to Applied Discovery}\\[12pt]
+  {\color{nm-gray}\small Version 1.0 \quad|\quad May 2026}\\[4pt]
+  {\color{nm-gray}\small Joseph Forrester \quad|\quad DSF-AI Architecture}\\[4pt]
+  \textcolor{nm-red}{\textbf{TRADE SECRET --- CONFIDENTIAL --- DO NOT DISTRIBUTE}}
+\end{center}
+
+\vspace{1em}\hrule\vspace{1em}
+
+\begin{center}
+\fbox{\parbox{0.88\textwidth}{\centering
+\textbf{Classification:} This document is a trade secret of Joseph Forrester /
+DSF-AI. It contains the complete formal framework connecting the Universal Field
+of Coherent Processes (UFCP) theoretical foundation to the Coherence Field
+Framework (CFF) applied discovery methodology. The kernel implementation,
+axiom set, structural filters, and forcing chain methodology are proprietary.
+Nothing in this document may be reproduced, distributed, or disclosed without
+written authorization.}}
+\end{center}
+
+\newpage
+\tableofcontents
+\newpage
+
+% ============================================================
+% PART 0: EXECUTIVE SUMMARY
+% ============================================================
+\section*{Executive Summary}
+\addcontentsline{toc}{section}{Executive Summary}
+
+The Coherence Field Framework (CFF) is the applied successor to the
+Universal Field of Coherent Processes (UFCP). Where UFCP provides the
+theoretical physics --- a conservative field framework deriving classical,
+quantum, and relativistic dynamics from a single Hermitian action ---
+CFF extracts from that theory a set of \textbf{structural axioms} and
+converts them into \textbf{computable filters} for material and system
+discovery.
+
+\subsection*{What CFF Is}
+
+CFF is a deterministic discovery methodology. Given a target physical
+property and a materials database, CFF outputs a ranked list of
+candidates with a fully auditable forcing chain. Every rejected
+candidate has a traceable reason. Every surviving candidate has a
+documented path through the filters.
+
+\subsection*{What CFF Is Not}
+
+CFF is not a simulation tool, a machine learning model, or a
+curve-fitting engine. It does not predict numerical values from
+first principles (that is UFCP's role). CFF identifies
+\textit{architectural classes} --- the structural families within
+which solutions must exist --- by sequential constraint elimination.
+
+\subsection*{Relationship to UFCP}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+& \textbf{UFCP} & \textbf{CFF} \\
+\midrule
+\textbf{Role} & Theoretical foundation & Applied discovery tool \\
+\textbf{Inputs} & Physical constants, action functional &
+  Empirical databases, target property \\
+\textbf{Outputs} & Equations of motion, predictions &
+  Ranked candidates, forcing chains \\
+\textbf{Method} & Variational calculus, Noether currents &
+  Sequential constraint elimination \\
+\textbf{Free parameters} & One ($\rho_0$) & Zero (thresholds
+  from empirical data) \\
+\textbf{Validation} & 111 tests, zero falsifications &
+  2 target domains demonstrated \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Demonstrated Applications}
+
+\begin{enumerate}[nosep]
+  \item \textbf{Room-temperature superconductivity (RTSC):}
+    CFF independently derived Cu$_3$O$_2$ on LaAlO$_3$(111) as
+    the unique survivor of six structural filters applied to
+    the entire known materials space. Patent filed April 2026
+    (US Provisional 64/037,691).
+  \item \textbf{Nanoscale heat transfer metamaterials:}
+    CFF identified 12 all-phononic metamaterial geometries
+    predicted to outperform the plasmonic-phononic approach
+    published in \textit{Nature} (Wang et al., 2026).
+  \item \textbf{Nanoparticle property prediction:}
+    The UFCP geometric framework produced 63 quantitative
+    predictions across 7 elements and 4 property types with
+    6.5\% average error and zero free parameters.
+  \item \textbf{Phase transition detection:}
+    The UF-Core computational kernel (L0--L4) detected phase
+    transitions in 7 materials across 4 physical phenomena
+    with zero parameter changes.
+\end{enumerate}
+
+% ============================================================
+% PART I: THEORETICAL FOUNDATION
+% ============================================================
+\newpage
+\part{Theoretical Foundation (UFCP)}
+
+\section{Scope}
+
+This part summarizes the UFCP theoretical framework from which
+CFF axioms are derived. The complete mathematical treatment is
+in the UFCP Comprehensive Specification v1.0 and Not-Math
+Framework v2.0. This section extracts only what CFF requires.
+
+% ============================================================
+\section{The Coherence Field}
+
+\begin{definition}[Coherence Field]
+\label{def:coherence-field}
+Let $\psi = \sqrt{\rho}\, e^{i\phi}$ be the coherence field on
+a Lorentzian manifold $(M, g_{\mu\nu})$ with minimal gauge coupling
+$D_\mu = \partial_\mu + i\frac{q}{\hbar}A_\mu$.
+
+The field carries three physical attributes:
+\begin{itemize}[nosep]
+  \item $\rho(\mathbf{x}, t) \geq 0$: coherent-potential density
+  \item $\phi(\mathbf{x}, t) \in \mathbb{R}$: phase
+  \item $\omega = \partial_t \phi$: local tempo
+\end{itemize}
+\end{definition}
+
+\begin{axiom}[UFCP Action]
+\label{ax:action}
+\begin{equation}
+  \boxed{
+  S = \int d^4x\, \sqrt{-g} \left[
+    \frac{i\hbar}{2}\!\left(\psi^* D_t\psi - \psi D_t\psi^*\right)
+    - \psi^* \hat{\Omega}_g \psi
+    - U(\rho)
+    - \frac{1}{2}\int \rho\, W\, \rho'\, \sqrt{-g'}\, d^4x'
+  \right]
+  }
+\end{equation}
+where $\hat{\Omega}_g$ is a Hermitian kinetic operator, $U(\rho)$
+is the local self-interaction potential (bounded below), and
+$W(\mathbf{x}-\mathbf{x}')$ is the symmetric interaction kernel.
+\end{axiom}
+
+\begin{axiom}[Kernel Symmetry]
+\label{ax:kernel-sym}
+$W(\mathbf{x}-\mathbf{x}') = W(\mathbf{x}'-\mathbf{x})$.
+Grounded in CPT invariance.
+\end{axiom}
+
+\subsection{Equation of Motion}
+
+Variation of $S$ with respect to $\psi^*$:
+\begin{equation}
+  \boxed{
+  i\hbar D_t \psi = \hat{\Omega}_g \psi
+    + \frac{\partial U}{\partial \rho}\,\psi
+    + (W * \rho)\,\psi
+  }
+\end{equation}
+
+\subsection{Conserved Currents}
+
+Global $U(1)$ symmetry gives $\nabla_\mu J^\mu = 0$ with
+$J^0 = \rho$ and $\mathbf{J} = \rho\,\mathbf{v}$.
+
+\subsection{Correspondence Limits}
+
+The UFCP action reproduces exactly:
+\begin{itemize}[nosep]
+  \item Schr\"odinger equation ($U = 0$, $W = 0$, non-relativistic
+    $\hat{\Omega}_g$)
+  \item Newtonian mechanics (Ehrenfest limit, decoherence via $W$)
+  \item Relativistic wave dynamics (Klein--Gordon / Dirac
+    $\hat{\Omega}_g$)
+  \item Born's rule (from Gleason's theorem under four structural
+    measurement constraints)
+\end{itemize}
+
+% ============================================================
+\section{The Geometric Coupling Law}
+
+\begin{theorem}[Geometric Coupling Law]
+\label{thm:gcl}
+\begin{equation}
+  \boxed{Q = Q_0\left(1 + \alpha^2 \lambda^2 \Gamma\right)}
+\end{equation}
+where $Q_0$ is the uncoupled value, $\alpha = 1/137.036$ is
+the fine structure constant (derived from 3D soliton stability:
+$\alpha = 1/N_c^2$), $\lambda$ is the material-specific coupling
+parameter, and $\Gamma = \cos\theta$ is the geometry factor.
+
+Ring geometry ($\theta = 0$): $\Gamma = 1$ (maximum coupling).
+Sphere geometry ($\theta = \pi/2$): $\Gamma = 0$ (no coupling
+correction). Zero free parameters.
+\end{theorem}
+
+\textbf{Validation:} 5 independent physical systems, 24+
+materials, all consistent. See UFCP Comprehensive Spec v1.0
+Part~III.
+
+% ============================================================
+\section{The Soliton Ontology}
+
+Particles in UFCP are solitonic density concentrations of
+$\psi$, not fundamental point objects. The soliton width matches
+the Compton wavelength when $\lambda\rho_0 = mc^2/2$.
+
+\textbf{Key consequence for CFF:} Structural stability of a
+material phase is a soliton stability problem. Phase transitions
+correspond to soliton bifurcations. CFF's structural filters
+are constraints on soliton stability conditions.
+
+% ============================================================
+\section{Connected Constants}
+
+From the UFCP action, the following physical constants are
+determined (not free):
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Constant} & \textbf{Determined by} & \textbf{Status} \\
+\midrule
+$\alpha$ & 3D soliton stability ($1/N_c^2$) & Derived \\
+$c$ & $G$, $\rho_0$, $\alpha$, $\hbar$ & Derived \\
+$G$ & $\lambda/(4\pi\rho_0)$ & Derived \\
+$\rho_{DE}$ & $m\rho_0/2$ & Derived \\
+$\rho_0$ & Initial conditions & Free parameter \\
+$\hbar$ & Coherence field quantum & Unit convention \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+One free parameter. One unit convention. Everything else
+determined.
+
+% ============================================================
+% PART II: CFF AXIOM SET
+% ============================================================
+\newpage
+\part{CFF Axiom Set}
+
+\section{Scope}
+
+The CFF axioms are structural constraints extracted from the
+UFCP action and its consequences. Each axiom generates one or
+more computable filters for the discovery algorithm. The axioms
+are numbered A1--A8.
+
+\textbf{Design principle:} Each CFF axiom can be independently
+justified on conventional physics grounds without requiring
+acceptance of UFCP. CFF is designed to be auditable by domain
+experts who may reject the theoretical foundation entirely.
+
+% ============================================================
+\section{Axiom Definitions}
+
+\begin{axiom}[A1 --- Structural Existence]
+\label{ax:a1}
+A physical system must admit stable localized excitations
+(solitonic states) in its effective dimensionality. Systems
+whose dimensionality does not support topological closure of
+solitonic modes cannot sustain coherent structural phases.
+
+\textbf{Filter:} Reject systems with dimensionality that does
+not support stable solitons ($d < 2$ for topological solitons;
+$d = 1$ supported only with specific nonlinearities).
+
+\textbf{Conventional justification:} Mermin--Wagner theorem
+(no continuous symmetry breaking in $d \leq 2$ without
+topological protection); BKT theory (topological defects
+stabilize 2D systems).
+\end{axiom}
+
+\begin{axiom}[A2 --- Norm Conservation]
+\label{ax:a2}
+The total coherent-potential density $\int \rho\, d^dx$ is
+conserved under time evolution. Systems that violate norm
+conservation cannot maintain structural identity.
+
+\textbf{Filter:} Reject candidate materials or frameworks that
+require non-unitary evolution (e.g., open quantum systems treated
+as fundamental rather than effective).
+
+\textbf{Conventional justification:} Unitarity of quantum
+mechanics; charge conservation; continuity equation.
+\end{axiom}
+
+\begin{axiom}[A3 --- Boundary Condition Compatibility]
+\label{ax:a3}
+The boundary conditions of a structural system must not impose
+competing winding structures that destructively interfere with
+the target phase. Substrate--film interfaces must be
+thermodynamically inert with respect to the structural phase.
+
+\textbf{Filter:} Reject substrates that (i)~react with the
+film material, (ii)~impose a competing electronic or magnetic
+phase, or (iii)~have lattice mismatch exceeding the coherence
+length of the target phase.
+
+\textbf{Conventional justification:} Epitaxial growth requires
+lattice matching; competing phases destroy long-range order;
+interfacial reactions create dead layers.
+\end{axiom}
+
+\begin{axiom}[A4 --- Deterministic Evolution]
+\label{ax:a4}
+The structural state of a system evolves deterministically from
+initial conditions. The perception of structure must be
+reproducible: the same input field must produce the same
+structural description.
+
+\textbf{Filter:} Reject stochastic methods (Monte Carlo,
+random initialization) as structural analysis tools. Accept
+only deterministic, auditable algorithms.
+
+\textbf{Conventional justification:} Reproducibility is
+a foundational requirement of the scientific method.
+\end{axiom}
+
+\begin{axiom}[A5 --- Dispositional Preservation]
+\label{ax:a5}
+Carrier tuning (doping, gating, pressure) must not disorder
+the coherence lattice. The structural geometry that produces
+the target property must be preserved under the tuning method.
+
+\textbf{Filter:} Reject chemical doping that introduces
+substitutional disorder. Accept electrostatic gating, strain
+tuning, and interface doping that modify carrier density
+without disrupting the lattice.
+
+\textbf{Conventional justification:} Chemical doping in
+cuprates introduces pair-breaking scattering; ionic liquid
+gating preserves lattice order (measured by RHEED, XRD).
+\end{axiom}
+
+\begin{axiom}[A6 --- Non-Trivial Winding]
+\label{ax:a6}
+The structural geometry must support non-trivial phase winding
+--- topological defects that cannot be continuously deformed to
+trivial configurations. Geometrically frustrated lattices
+satisfy this axiom; non-frustrated lattices do not.
+
+\textbf{Filter:} Reject square, cubic, BCC, and other
+non-frustrated geometries. Accept kagome, triangular,
+honeycomb, pyrochlore, and hyperkagome geometries.
+
+\textbf{Conventional justification:} Geometric frustration
+suppresses N\'eel ordering and enables spin-liquid,
+superconducting, and topological phases. Kagome lattice
+superconductors (CsV$_3$Sb$_5$, Cu-BHT) have weak-coupling
+ratios; square-lattice cuprates have strong-coupling ratios.
+\end{axiom}
+
+\begin{axiom}[A7 --- Coherence Preservation]
+\label{ax:a7}
+The coupling regime must preserve topological winding as the
+conserved quantity, not pair binding energy. Strong coupling
+destroys topological coherence by localizing pairs.
+
+\textbf{Filter:} Reject systems with BCS coupling ratio
+$2\Delta/(k_B T_c) > r_{max}$ (where $r_{max}$ is
+target-dependent; $r_{max} = 5.0$ for RTSC, $6.0$ for HTSC).
+
+\textbf{Conventional justification:} Known weak-coupling
+superconductors (MgB$_2$: ratio 3.5; CsV$_3$Sb$_5$: ratio
+$\sim$4.0) achieve higher $T_c$-to-gap efficiency than
+strong-coupling systems (YBCO: ratio 5.6--6.0; Bi-2212:
+ratio 5.5--7.0).
+\end{axiom}
+
+\begin{axiom}[A8 --- Local Field Response]
+\label{ax:a8}
+The coupling amplitude between neighboring coherent sites
+must exceed a threshold set by the target property. Below
+this threshold, structural coherence cannot propagate across
+the lattice at the required energy scale.
+
+\textbf{Filter:} Reject systems with superexchange $J$ (or
+equivalent coupling constant) below the target-specific
+threshold ($J \geq 100$~meV for RTSC, $J \geq 50$~meV for
+HTSC, phonon Q $\times$ oscillator strength $\geq$ threshold
+for thermal metamaterials).
+
+\textbf{Conventional justification:} Superexchange $J$
+determines the pairing energy scale. Published values of $J$
+for all transition-metal oxide bridges are tabulated (YBCO
+Cu-O-Cu: 130~meV; NiO Ni-O-Ni: 85~meV; herbertsmithite
+Cu-OH-Cu: 170~meV). Only Cu-based bridges exceed 100~meV.
+\end{axiom}
+
+% ============================================================
+\section{Axiom Summary}
+
+\begin{center}
+\begin{longtable}{@{}clp{5cm}p{4cm}@{}}
+\toprule
+\textbf{Axiom} & \textbf{Name} & \textbf{CFF Filter} &
+  \textbf{UFCP Origin} \\
+\midrule
+\endhead
+A1 & Structural Existence & Dimensionality must support
+  stable solitons & Soliton stability in $d$ dimensions \\
+A2 & Norm Conservation & Unitary evolution required &
+  $U(1)$ Noether current \\
+A3 & Boundary Compatibility & Substrate must be inert and
+  lattice-matched & Boundary conditions on $\psi$ \\
+A4 & Deterministic Evolution & Reproducible structural
+  perception & Deterministic EoM from $\delta S = 0$ \\
+A5 & Dispositional Preservation & Doping must not disorder
+  lattice & $J$ preserved under $W$ perturbation \\
+A6 & Non-Trivial Winding & Frustrated geometry required &
+  Topological soliton stability \\
+A7 & Coherence Preservation & Weak coupling regime &
+  Winding number as conserved quantity \\
+A8 & Local Field Response & Coupling amplitude above
+  threshold & $W * \rho$ exceeds $U(\rho)$ barrier \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+% ============================================================
+% PART III: COMPUTATIONAL KERNEL (L0-L4)
+% ============================================================
+\newpage
+\part{Computational Kernel (L0--L4)}
+
+\section{Scope}
+
+The UF-Core Kernel is the computational implementation of CFF's
+structural perception. It takes any dimensionless ordered field
+and outputs a description of that field's structural geometry.
+The kernel is domain-agnostic: it does not know what the field
+represents.
+
+\section{Layer Architecture}
+
+\begin{center}
+\begin{tabular}{@{}clp{7cm}@{}}
+\toprule
+\textbf{Layer} & \textbf{Name} & \textbf{Function} \\
+\midrule
+L0 & Structural Field Normalization &
+  Converts raw input to Structural Event Vector (SEV):
+  $(F, \Delta F, \sigma, \kappa)$. Normalized field value,
+  first derivative, structural change rate, curvature. \\
+L1 & Gate Formation \& Segmentation &
+  Segments the field into \textit{gates} --- contiguous
+  intervals of internally consistent structural character.
+  Gate boundary operator:
+  $D(t) = \alpha_1\|\Delta F\| + \alpha_2\sigma + \alpha_3\kappa$.
+  New gate opens when $D(t) < \tau_D$. \\
+L2 & Interpretive Structural Field &
+  Maps gate sequences to interpretive vectors. Classifies
+  each gate as STABLE, VOLATILE, TRANSITIONAL, or DEGENERATE.
+  Performs mosaic projection. \\
+L3 & Resonance Functional &
+  Computes resonance vector:
+  $R^{\text{vec}}_k = (w_k, \|CV_k\|/\|CV\|_{\max}, S_k,
+  1/(1+C_k), 1-U_k)$.
+  Unified Resonance Field: $URF_k = g_k \cdot R(k)$.
+  Contextual gating with hysteresis. \\
+L4 & Decision Dynamics &
+  Outputs Decision Surface Field (DSF), a 7-tuple per gate:
+  $(D_k, M_k, U^*_k, B_k, P_k, C_k, R_{\text{rev},k})$. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{DSF 7-Tuple (L4 Output)}
+
+\begin{definition}[Decision Surface Field]
+\label{def:dsf}
+The DSF is the kernel's sole output. Each gate $k$ receives
+a 7-tuple:
+
+\begin{center}
+\begin{tabular}{@{}clp{6cm}@{}}
+\toprule
+\textbf{Symbol} & \textbf{Name} & \textbf{Meaning} \\
+\midrule
+$D_k$ & Direction & Structural field direction
+  ($+1$, $0$, $-1$). Reversal marks a structural
+  direction change. \\
+$M_k$ & Momentum & Rate of structural change. How fast
+  the field geometry is evolving. \\
+$U^*_k$ & Uncertainty & Confidence in structural
+  assessment. Peaks at $\sim$0.667 at phase transitions
+  (maximum structural ambiguity). \\
+$B_k$ & Breathing & Structural freedom / expansion.
+  How much room the field has to move. \\
+$P_k$ & Pressure & Transition sensitivity. Spikes when
+  structural state is under stress. \\
+$C_k$ & Complexity & Mosaic divergence. How many distinct
+  structural projections exist within a gate. \\
+$R_{\text{rev},k}$ & Reversal & How often the structural
+  direction flips within a gate. High = unstable. \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{definition}
+
+\section{Domain-Agnostic Property}
+
+The same L0--L4 kernel, with identical parameters, has been
+applied to:
+\begin{itemize}[nosep]
+  \item Financial time series (TFE: 11,884 symbols, 5 years)
+  \item Superconductor R(T) curves (7 materials, 4 phenomena)
+  \item Pharmaceutical DSC data (polymorph screening)
+  \item Neural network weight distributions (MACE audit)
+  \item Nanoparticle property data (cluster physics)
+  \item IR sensor calibration data (ArcLoom robotics)
+\end{itemize}
+
+No parameter changes between domains. The kernel perceives
+structure, not content.
+
+\section{Universal Uncertainty Ceiling}
+
+In every material tested, the kernel uncertainty $U^*_k$
+peaked at $\mathbf{0.667}$ at the phase transition point.
+This value was not programmed --- it emerges from the structural
+geometry of the kernel when the input field is maximally
+ambiguous. This universality across different physical phenomena
+is consistent with the kernel measuring a fundamental property
+of structural phase transitions.
+
+% ============================================================
+% PART IV: DISCOVERY ALGORITHM
+% ============================================================
+\newpage
+\part{Discovery Algorithm}
+
+\section{Scope}
+
+The CFF Discovery Algorithm converts the axiom set (Part~II)
+into a deterministic, auditable material discovery tool. Given
+a target physical property and empirical databases, the algorithm
+outputs ranked candidates with forcing chains.
+
+\section{Four-Stage Pipeline}
+
+\begin{enumerate}
+  \item \textbf{Stage 1: CFF Structural Filters.}
+    Apply axioms A1--A8 sequentially. Each axiom generates a
+    filter that rejects candidates violating that axiom. Coarser
+    filters first. Each rejected candidate is logged with the
+    specific axiom and threshold that eliminated it.
+
+  \item \textbf{Stage 2: Class Definition.}
+    The surviving filter constraints define an
+    \textit{architectural class} --- a structural family within
+    which solutions must exist. This is the algorithm's primary
+    output.
+
+  \item \textbf{Stage 3: Class Enumeration.}
+    Given the class definition, enumerate candidate materials
+    from chemistry databases. Cross-reference with synthesis
+    precedents from published literature. Rank by precedent
+    strength.
+
+  \item \textbf{Stage 4: Output.}
+    Produce ranked candidates with forcing chains, rejected
+    families with reasons, and the architectural class
+    definition. All outputs are deterministic and reproducible.
+\end{enumerate}
+
+\section{Required Databases}
+
+\begin{center}
+\begin{tabular}{@{}lp{7cm}l@{}}
+\toprule
+\textbf{Database} & \textbf{Contents} & \textbf{Source} \\
+\midrule
+Bridge & Metal-ligand-metal superexchange constants $J$ &
+  Published measurements \\
+Substrate & Lattice parameters, (111) surface mesh,
+  thermodynamic inertness & Crystallography databases \\
+Composition & Demonstrated or proposed target-geometry
+  compositions & Published synthesis papers \\
+Target & BCS ratio thresholds, $J$ thresholds, domain-specific
+  figures of merit & Empirical condensed matter \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{All database entries are from published empirical
+values.} No fitted, computed, or assumed values. The algorithm's
+validity rests on the quality of the databases, which are
+independently verifiable.
+
+% ============================================================
+% PART V: VALIDATED APPLICATIONS
+% ============================================================
+\newpage
+\part{Validated Applications}
+
+\section{Application 1: Room-Temperature Superconductivity}
+
+\subsection{Input}
+
+Target: $T_c \geq 300$~K, ambient pressure, gateable.
+
+\subsection{Forcing Chain}
+
+\begin{enumerate}
+  \item A7 (coherence preservation) $\to$ BCS ratio $\leq 5.0$
+    $\to$ eliminates all strong-coupling superconductors
+  \item A6 (non-trivial winding) $\to$ frustrated geometry
+    $\to$ eliminates square, cubic lattices
+  \item A8 (local field response) $\to$ $J \geq 100$~meV
+    $\to$ eliminates all metals except copper (Cu-O-Cu:
+    130~meV)
+  \item A6 + A8 $\to$ kagome topology $\to$ demonstrated by
+    M\"oller (PCCP 2018) for Cu-O on Au(111)
+  \item A5 (dispositional preservation) $\to$ gate doping
+    $\to$ eliminates chemical substitution
+  \item A3 (boundary compatibility) $\to$ polar oxide
+    substrate, lattice match $\to$ LaAlO$_3$(111) at
+    5.36~\AA
+\end{enumerate}
+
+\subsection{Output}
+
+\textbf{Unique survivor:} Cu$_3$O$_2$ kagome monolayer on
+LaAlO$_3$(111), electrostatically gated.
+
+\textbf{Rejected families:} Square cuprates (ratio $>5$),
+hydrides (pressure), iron-based ($J$ too low), kagome
+pnictides ($J$ too low), twisted bilayer (no high-$J$
+mechanism), nickelates (strong coupling AND low $J$).
+
+\textbf{Status:} Patent filed (US Provisional 64/037,691,
+April 13, 2026). Blind predictions sealed April 29, 2026:
+$T_c = 370 \pm 20$~K. Awaiting experimental synthesis.
+
+% ============================================================
+\section{Application 2: Nanoscale Heat Transfer Metamaterials}
+
+\subsection{Input}
+
+Target: Maximum near-field radiative heat transfer enhancement
+at 50--1000~nm gaps.
+
+\subsection{Forcing Chain}
+
+\begin{enumerate}
+  \item Thermal frequency $\to$ mid-IR operation $\to$
+    surface phonon polaritons (SPhP), not plasmons $\to$
+    metals eliminated as primary coupling medium
+  \item SPhP quality ranking $\to$ SiC forced (Q$\sim$900,
+    strongest oscillator strength)
+  \item Enhancement beyond planar $\to$ mode confinement
+    $\to$ structured metamaterial geometry
+  \item Loss minimization $\to$ polar dielectric resonator,
+    not metal $\to$ phonon--phonon coupling eliminates Ohmic
+    loss $\to$ gold suboptimal
+  \item Thermal stability $\to$ all-dielectric survives
+    $>$1000$^\circ$C $\to$ gold fails at $\sim$400$^\circ$C
+\end{enumerate}
+
+\subsection{Output}
+
+\textbf{Top 3 candidates} (all untested for near-field
+radiative heat transfer):
+\begin{enumerate}[nosep]
+  \item SiC pillar array on SiC substrate (self-matched
+    phonon resonance)
+  \item hBN nanostructures on SiC (dual-band hyperbolic
+    coupling)
+  \item SiC phononic crystal slab (slow-light flat bands)
+\end{enumerate}
+
+12 total candidates enumerated. All all-phononic.
+All fabricable with standard cleanroom processes.
+
+\textbf{Prediction:} All-phononic metamaterials outperform
+the plasmonic-phononic hybrid reported in \textit{Nature}
+(Wang et al., 2026, 4$\times$ enhancement).
+
+\textbf{Status:} \untested. Published literature supports
+each candidate individually. No experimental head-to-head
+comparison exists.
+
+% ============================================================
+\section{Application 3: Nanoparticle Property Prediction}
+
+\subsection{Method}
+
+The UFCP geometric framework (not CFF filters) applied to
+nanoparticle cluster physics. One geometric angle
+$\theta = \arctan(1/\varphi)$ (icosahedral frustration, where
+$\varphi$ is the golden ratio) generates five projection
+operators predicting five branches of physics.
+
+\subsection{Results}
+
+\begin{center}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+\textbf{Property} & \textbf{Predictions} & \textbf{Avg Error} \\
+\midrule
+Magnetic moments (Fe, Co, Ni, Mn) & 27 & 3.2\% \\
+Electron affinity (Au, Ag, Cu) & 23 & 7.1\% \\
+Seebeck coefficient (Au$_{13}$) & 1 & 5.8\% \\
+HOMO-LUMO gap (Au$_{13}$) & 1 & 0.3\% \\
+Seebeck sign (23 elements) & 23 & 0/23 wrong \\
+\midrule
+\textbf{Total} & \textbf{63+} & \textbf{6.5\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Zero free parameters. Zero exclusions. 7 elements. 5
+geometries. 4 property types. All from one angle.
+
+% ============================================================
+\section{Application 4: Phase Transition Detection}
+
+\subsection{Method}
+
+UF-Core kernel (L0--L4) applied to digitized R(T), dielectric,
+and DSC data.
+
+\subsection{Results}
+
+\begin{center}
+\begin{tabular}{@{}lllc@{}}
+\toprule
+\textbf{Material} & \textbf{Transition} & \textbf{Precursor} &
+  \textbf{Detected?} \\
+\midrule
+YBCO & $T_c = 93$~K & 13~K lead & \pass \\
+MgB$_2$ & $T_c = 39$~K & 18~K lead & \pass \\
+CsV$_3$Sb$_5$ & $T_c = 2.5$~K & --- & \pass \\
+VO$_2$ & $T_{\text{MIT}} = 340$~K & 20~K lead & \pass \\
+BaTiO$_3$ & $T_{\text{Curie}} = 393$~K & 22~K lead & \pass \\
+FeSe/STO & $T_c = 65$~K & 20~K lead & \pass \\
+Pharma DSC & 5 transitions & --- & 5/5 \pass \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Same kernel, same parameters, all domains.
+
+% ============================================================
+% PART VI: MATHEMATICAL NOTATION AND GLOSSARY
+% ============================================================
+\newpage
+\part{Mathematical Notation and Glossary}
+
+\section{Symbols Used}
+
+\begin{center}
+\begin{longtable}{@{}clp{7cm}@{}}
+\toprule
+\textbf{Symbol} & \textbf{Name} & \textbf{Definition} \\
+\midrule
+\endhead
+$\psi$ & Coherence field & $\psi = \sqrt{\rho}\,e^{i\phi}$;
+  complex scalar field on $(M, g_{\mu\nu})$ \\
+$\rho$ & Coherent-potential density & $\rho = |\psi|^2 \geq 0$ \\
+$\phi$ & Phase & $\phi \in \mathbb{R}$; local phase of
+  coherence field \\
+$\omega$ & Local tempo & $\omega = \partial_t\phi$; rate of
+  phase evolution \\
+$S$ & Action & UFCP action functional (Axiom~\ref{ax:action}) \\
+$\hat{\Omega}_g$ & Kinetic operator & Hermitian operator on
+  $(M, g_{\mu\nu})$; reduces to $-\hbar^2\nabla^2/(2m) + V$
+  in non-relativistic limit \\
+$U(\rho)$ & Self-interaction & Local potential, bounded below;
+  focusing: $U = -\lambda\rho^2/2$ \\
+$W$ & Interaction kernel & Symmetric two-point density coupling;
+  $W(\mathbf{x}-\mathbf{x}') = W(\mathbf{x}'-\mathbf{x})$ \\
+$D_\mu$ & Gauge-covariant derivative &
+  $D_\mu = \partial_\mu + i(q/\hbar)A_\mu$ \\
+$J^\mu$ & Noether current & Conserved current from $U(1)$
+  symmetry: $J^0 = \rho$, $\mathbf{J} = \rho\mathbf{v}$ \\
+$\alpha$ & Fine structure constant & $\alpha = 1/N_c^2 \approx
+  1/137.036$; from 3D soliton stability \\
+$N_c$ & Critical soliton number & $N_c \approx 11.7$; critical
+  $L^2$ norm of 3D focusing NLS ground state \\
+$\Gamma$ & Geometry factor & $\Gamma = \cos\theta$; ring
+  ($\Gamma = 1$), sphere ($\Gamma = 0$) \\
+$\lambda$ & Material coupling & Material-specific coupling
+  parameter (e.g., electron-phonon coupling) \\
+$Q_0$ & Uncoupled observable & Standard value without geometric
+  coupling correction \\
+$J$ & Superexchange constant & Energy scale of magnetic
+  coupling across metal-ligand-metal bridge (meV) \\
+$\Delta$ & Superconducting gap & Pairing gap energy \\
+$T_c$ & Critical temperature & Phase transition temperature \\
+$T_{\text{BKT}}$ & BKT temperature &
+  $\pi\hbar^2 n_s/(8m^*k_B)$; 2D superfluid transition \\
+$n_s$ & Carrier sheet density & 2D carrier concentration
+  (cm$^{-2}$) \\
+$m^*$ & Effective mass & Quasiparticle effective mass \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{Kernel Symbols}} \\
+\midrule
+SEV & Structural Event Vector & L0 output:
+  $(F, \Delta F, \sigma, \kappa)$ \\
+DSF & Decision Surface Field & L4 output:
+  $(D_k, M_k, U^*_k, B_k, P_k, C_k, R_{\text{rev},k})$ \\
+$D_k$ & Direction & Structural field direction
+  ($+1, 0, -1$) \\
+$M_k$ & Momentum & Rate of structural change \\
+$U^*_k$ & Adjusted uncertainty & Structural confidence;
+  peaks at 0.667 at transitions \\
+$B_k$ & Breathing & Structural expansion/contraction \\
+$P_k$ & Pressure & Transition sensitivity \\
+$C_k$ & Complexity & Mosaic divergence \\
+$R_{\text{rev},k}$ & Reversal rate & Structural direction
+  flip frequency \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{CFF Filter Symbols}} \\
+\midrule
+$r_{max}$ & BCS ratio threshold & Maximum
+  $2\Delta/(k_BT_c)$ for target (5.0 for RTSC) \\
+$J_{min}$ & Exchange threshold & Minimum superexchange
+  for target (100~meV for RTSC) \\
+$Q_{\text{SPhP}}$ & Phonon polariton quality &
+  $\omega_0/\gamma$ for surface phonon polariton \\
+$S_{\text{osc}}$ & Oscillator strength & Relative phonon
+  oscillator strength \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+% ============================================================
+\section{Acronyms}
+
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Acronym} & \textbf{Expansion} \\
+\midrule
+CFF & Coherence Field Framework \\
+UFCP & Universal Field of Coherent Processes \\
+UF-Core & Universal Field Core (L0--L4 kernel) \\
+SEV & Structural Event Vector (L0 output) \\
+DSF & Decision Surface Field (L4 output) \\
+SPhP & Surface Phonon Polariton \\
+SPP & Surface Plasmon Polariton \\
+HPhP & Hyperbolic Phonon Polariton \\
+SES & Secure Envelope System \\
+SCE & Structural Cryptographic Engine \\
+RTSC & Room-Temperature Superconductivity \\
+HTSC & High-Temperature Superconductivity \\
+BKT & Berezinskii--Kosterlitz--Thouless \\
+BCS & Bardeen--Cooper--Schrieffer \\
+NLS & Nonlinear Schr\"odinger (equation) \\
+CPT & Charge--Parity--Time (symmetry) \\
+NFRHT & Near-Field Radiative Heat Transfer \\
+MBE & Molecular Beam Epitaxy \\
+RHEED & Reflection High-Energy Electron Diffraction \\
+XPS & X-ray Photoelectron Spectroscopy \\
+RIE & Reactive Ion Etching \\
+FIB & Focused Ion Beam \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================
+% PART VII: VERSION HISTORY AND DOCUMENT CONTROL
+% ============================================================
+\newpage
+\part{Document Control}
+
+\section{Version History}
+
+\begin{center}
+\begin{tabular}{@{}lp{10cm}@{}}
+\toprule
+\textbf{Version} & \textbf{Description} \\
+\midrule
+1.0 (May 2026) & Initial formal specification. Consolidates
+  UFCP theoretical foundation (Not-Math v2.0, UFCP Comprehensive
+  Spec v1.0), CFF axiom set (A1--A8), UF-Core kernel architecture
+  (L0--L4), discovery algorithm (4-stage pipeline), and four
+  validated applications (RTSC, metamaterials, nanoparticles,
+  phase transitions). Mathematical glossary and acronym table
+  included. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Source Documents}
+
+This specification consolidates and supersedes:
+
+\begin{enumerate}[nosep]
+  \item Not-Math Framework v2.0 (April 2026) --- theoretical
+    foundation
+  \item UFCP Comprehensive Specification v1.0 (May 2026) ---
+    full theoretical treatment with 111 validations
+  \item CFF Discovery Algorithm Spec v1.0 (May 2026) ---
+    RTSC application and 4-stage pipeline
+  \item CFF Metamaterial Heat Transfer Analysis v1.0 (May 2026)
+    --- thermal metamaterial application
+  \item UF-Core Kernel Spec with SES (Feb 2026) --- L0--L4
+    layer definitions and security envelope
+  \item DSF-AI Phase Transition Service Spec v1.0 (May 2026) ---
+    commercial service architecture
+  \item KERNEL\_PHILOSOPHY.md (May 2026) --- operational
+    constraints on kernel modification
+\end{enumerate}
+
+\section{Intellectual Property}
+
+\begin{itemize}[nosep]
+  \item The CFF axiom set (A1--A8) is a \textbf{trade secret}.
+  \item The UF-Core kernel (L0--L4) implementation is a
+    \textbf{trade secret}.
+  \item The DSF 7-tuple field definitions and their structural
+    interpretation are \textbf{trade secrets}.
+  \item The CFF Discovery Algorithm forcing chain methodology
+    is a \textbf{trade secret}.
+  \item The UFCP geometric coupling law and its applications
+    are \textbf{trade secrets}.
+  \item US Provisional Patent 64/037,691 (filed April 13, 2026)
+    covers the Cu$_3$O$_2$ kagome superconductor design.
+  \item Published results (transition temperatures, precursor
+    onsets, regime maps, candidate rankings) are factual
+    observations and do not expose trade secrets.
+\end{itemize}
+
+\vspace{2em}\hrule\vspace{0.5em}
+{\color{nm-gray}\small This document is a trade secret of
+Joseph Forrester / DSF-AI. Unauthorized reproduction,
+distribution, or disclosure is prohibited. The theoretical
+foundation (UFCP) and applied methodology (CFF) are proprietary.
+All empirical databases use published values and are
+independently verifiable. The kernel implementation and axiom
+derivations are not disclosed in any public-facing material.}
+
+\end{document}

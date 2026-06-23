@@ -75,6 +75,10 @@ class TactileKrimelack:
         if hasattr(self._inner, 'phase'):
             self._inner.phase = value
 
+    @property
+    def n_events(self):
+        return self._inner.n_events if hasattr(self._inner, 'n_events') else 0
+
     def reset(self):
         self.events = []
         self.winding = 0
@@ -124,6 +128,10 @@ class OlfactoryKrimelack:
         if hasattr(self._inner, 'phase'):
             self._inner.phase = value
 
+    @property
+    def n_events(self):
+        return self._inner.n_events if hasattr(self._inner, 'n_events') else 0
+
     def reset(self):
         self.events = []
         self.winding = 0
@@ -167,6 +175,10 @@ class GustatoryKrimelack:
         if hasattr(self._inner, 'phase'):
             self._inner.phase = value
 
+    @property
+    def n_events(self):
+        return self._inner.n_events if hasattr(self._inner, 'n_events') else 0
+
     def reset(self):
         self.events = []
         self.winding = 0
@@ -199,6 +211,7 @@ class VisualKrimelack:
         self.events = []
         self.winding = 0
         self._phase = 0.0
+        self._n_events = 0
 
     @property
     def phase(self):
@@ -207,6 +220,10 @@ class VisualKrimelack:
     @phase.setter
     def phase(self, value):
         self._phase = value
+
+    @property
+    def n_events(self):
+        return self._n_events
 
     def reset(self):
         self._fovea = AdaptingFoveaKrimelack(omega_0=self.omega_0)
@@ -222,6 +239,7 @@ class VisualKrimelack:
             {"t": t_ev, "dw": +1, "s": 1.0}
             for t_ev in self._fovea.events
         ]
+        self._n_events += len(self.events)
         self.winding = self._fovea.winding_count
         self._phase = float(self.winding) * 0.1  # phase from winding accumulation
 
@@ -240,6 +258,7 @@ class CochlearBankKrimelack:
         self.events = []
         self.winding = 0
         self._phase = 0.0
+        self._n_events = 0
 
     @property
     def phase(self):
@@ -248,6 +267,10 @@ class CochlearBankKrimelack:
     @phase.setter
     def phase(self, value):
         self._phase = value
+
+    @property
+    def n_events(self):
+        return self._n_events
 
     def reset(self):
         self.events = []
@@ -263,6 +286,7 @@ class CochlearBankKrimelack:
             all_events.extend(band_data["events"])
         all_events.sort(key=lambda e: e["t"])
         self.events = all_events
+        self._n_events += len(all_events)
         self.winding += total_winding
         self._phase = float(self.winding) * 0.1
 

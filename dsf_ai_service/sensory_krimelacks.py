@@ -13,6 +13,7 @@ Signal path:
 """
 
 import math
+import collections
 import numpy as np
 from collections import defaultdict
 
@@ -20,6 +21,8 @@ from dsf_ai_service.sensory_corpus import MODALITY_COMPONENTS, MODALITIES
 
 
 # ── Oscillator Krimelack (from krimelack_v1.py, inlined to avoid docs/ import) ──
+
+EVENTS_BUFFER_SIZE = 1024
 
 class OscillatorKrimelack:
     """Winding-number oscillator. Same as krimelack_v1.Krimelack."""
@@ -35,7 +38,10 @@ class OscillatorKrimelack:
         self.phase = 0.0
         self.t = 0.0
         self.winding = 0
-        self.events = []
+        self.events = collections.deque(maxlen=EVENTS_BUFFER_SIZE)
+        # n_events is monotonic — never reset
+        if not hasattr(self, 'n_events'):
+            self.n_events = 0
 
     def step(self, s_t):
         omega = self.omega_0 + self.kappa * s_t
@@ -47,11 +53,13 @@ class OscillatorKrimelack:
             self.phase -= self.threshold
             self.winding += 1
             self.events.append({"t": self.t, "dw": +1, "s": s_t})
+            self.n_events += 1
             transitions += 1
         while self.phase <= -self.threshold:
             self.phase += self.threshold
             self.winding -= 1
             self.events.append({"t": self.t, "dw": -1, "s": s_t})
+            self.n_events += 1
             transitions += 1
         return transitions
 

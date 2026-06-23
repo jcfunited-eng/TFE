@@ -12,6 +12,7 @@ NO production imports beyond Stage 1's existing reuses.
 NO writes to production atlas. NO ECS/S3/deploy.
 """
 
+import math
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -48,21 +49,25 @@ class LoomCluster:
                  n_neurons: int = 50,
                  k_neighbors: int = 16,
                  dna_blueprints: Optional[List[Any]] = None,
-                 seed: Optional[int] = None):
+                 seed: Optional[int] = None,
+                 primary_modality: str = "language"):
         """
         Args:
-            cluster_id:     unique identifier for this cluster
-            n_neurons:      number of neurons in the population
-            k_neighbors:    coupling fan-out per neuron (Stage 2: 16)
-            dna_blueprints: optional list of N blueprints to distribute
-            seed:           deterministic RNG seed (topology is ring-based
-                            so seed is only used if future stages add
-                            stochastic elements)
+            cluster_id:        unique identifier for this cluster
+            n_neurons:         number of neurons in the population
+            k_neighbors:       coupling fan-out per neuron (Stage 2: 16)
+            dna_blueprints:    optional list of N blueprints to distribute
+            seed:              deterministic RNG seed (topology is ring-based
+                               so seed is only used if future stages add
+                               stochastic elements)
+            primary_modality:  krimelack modality for this cluster's neurons
+                               (GL-CMD-139)
         """
         self.cluster_id = cluster_id
         self.n_neurons = n_neurons
         self.k_neighbors = min(k_neighbors, n_neurons - 1)
         self.seed = seed
+        self.primary_modality = primary_modality
 
         # --- Instantiate neurons ---
         self.neurons: List[LoomNeuron] = []
@@ -71,7 +76,8 @@ class LoomCluster:
             bp = None
             if dna_blueprints is not None and i < len(dna_blueprints):
                 bp = dna_blueprints[i]
-            self.neurons.append(LoomNeuron(nid, dna_blueprint=bp))
+            self.neurons.append(LoomNeuron(nid, dna_blueprint=bp,
+                                           primary_modality=primary_modality))
 
         # Fast lookup by neuron_id
         self._neuron_map: Dict[str, LoomNeuron] = {
@@ -88,7 +94,9 @@ class LoomCluster:
         # This means neuron i starts i transitions ahead of neuron 0, giving
         # each neuron a distinct phase position in the oscillator's cycle.
         for i, neuron in enumerate(self.neurons):
-            threshold = neuron.krimelack.threshold  # π/3
+            threshold = getattr(neuron.krimelack, 'threshold',
+                        getattr(getattr(neuron.krimelack, '_inner', None),
+                                'threshold', math.pi / 3))
             neuron._positional_phase_offset = threshold * i
             neuron.ring_pos = i
             neuron.ring_N = self.n_neurons
@@ -331,6 +339,7 @@ class LoomCluster:
                 daughter = LoomNeuron(
                     neuron_id=daughter_id,
                     birth_params=params,
+                    primary_modality=self.primary_modality,
                 )
                 self.attach(daughter, inherit_from=neuron)
                 neuron._fold_ticks.append(tick)

@@ -35,6 +35,22 @@ PROJECTION_NEURONS_PER_HEMI = 3      # designated projection neurons at seed (3�
 CROSS_HEMI_INITIAL_STRENGTH = 0.5    # multiplier on J_BASE for initial cross-hemi weight
 SEED_SIZE_PER_HEMISPHERE = 8         # K_TOTAL // 2 — substrate-derived, not magic number
 
+# ---------------------------------------------------------------------------
+# Per-hemisphere primary modality — determines which krimelack class drives
+# the neuron's self.krimelack (the DSF/fold path). GL-CMD-139.
+# ---------------------------------------------------------------------------
+
+HEMISPHERE_PRIMARY_MODALITY = {
+    "H0": "visual",
+    "H1": "auditory",
+    "H2": "tactile",
+    "H3": "olfactory",
+    "H4": "gustatory",
+    "H5": "language",
+    "H6": "auditory",    # secondary auditory
+    "H7": "language",    # secondary language
+}
+
 
 # ---------------------------------------------------------------------------
 # Validation helper

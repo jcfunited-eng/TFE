@@ -24,8 +24,11 @@ Three criteria for selective cheat (per prior wC):
 """
 
 import math
+import collections
 import numpy as np
 from collections import defaultdict
+
+EVENTS_BUFFER_SIZE = 1024
 
 
 # ============================================================
@@ -48,7 +51,10 @@ class Krimelack:
         self.phase = 0.0
         self.t = 0.0
         self.winding = 0
-        self.events = []
+        self.events = collections.deque(maxlen=EVENTS_BUFFER_SIZE)
+        # n_events is monotonic — never reset
+        if not hasattr(self, 'n_events'):
+            self.n_events = 0
 
     def feed(self, signal_array):
         """Feed signal, accumulate events. Each event = (t, dw, s)."""
@@ -61,10 +67,12 @@ class Krimelack:
                 self.phase -= self.threshold
                 self.winding += 1
                 self.events.append({"t": self.t, "dw": +1, "s": float(s)})
+                self.n_events += 1
             while self.phase <= -self.threshold:
                 self.phase += self.threshold
                 self.winding -= 1
                 self.events.append({"t": self.t, "dw": -1, "s": float(s)})
+                self.n_events += 1
 
     def fingerprint(self):
         """Compact fingerprint of the event stream: (n_events, total_winding,
@@ -267,10 +275,12 @@ class ModalKrimelack(Krimelack):
                 self.phase -= self.threshold
                 self.winding += 1
                 self.events.append({"t": self.t, "dw": +1, "s": s})
+                self.n_events += 1
             while self.phase <= -self.threshold:
                 self.phase += self.threshold
                 self.winding -= 1
                 self.events.append({"t": self.t, "dw": -1, "s": s})
+                self.n_events += 1
         return self.fingerprint()
 
 

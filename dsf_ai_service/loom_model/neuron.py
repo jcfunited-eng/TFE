@@ -374,8 +374,10 @@ class LoomNeuron:
     """
 
     def __init__(self, neuron_id: str, dna_blueprint: Optional[Any] = None,
-                 birth_params: Optional[Dict[str, Any]] = None):
+                 birth_params: Optional[Dict[str, Any]] = None,
+                 primary_modality: str = "language"):
         self.neuron_id = neuron_id
+        self.primary_modality = primary_modality
 
         # --- NEW pieces (1-6) ---
         self.psi_lattice = PsiLattice()           # 1. ψ-lattice
@@ -393,20 +395,24 @@ class LoomNeuron:
         self.l6_tcl = L6_TCL()                                    # 10. L6-TCL
         self.chi_atlas = ChiAtlas()                               # 10b. ChiAtlas
         # 11. bt_div / bt_to_int / int_to_bt — module-level, no state
-        self.krimelack = LanguageKrimelack()                      # 12. Krimelack
+
+        # 12. Krimelack — GL-CMD-139: primary modality from hemisphere topology
+        from .substrate_dna import KRIMELACK_PRIMITIVES
+        krim_class = KRIMELACK_PRIMITIVES.get(primary_modality, LanguageKrimelack)
+        self.krimelack = krim_class()                             # 12. Krimelack
+
         self.sensory_bank = SensoryBank()                         # 13. SensoryBank
         # 14. _grandurun_state — used as module-level function
         # 15. _SPIN_VECTOR_DIM — constant
 
         # GL-CMD-125: multi-krimelack bank for cognition path
-        from .substrate_dna import KRIMELACK_PRIMITIVES
         from .binding_atlas import BindingAtlas
         self.krimelack_bank: Dict[str, Any] = {}
-        for modality_name, krim_class in KRIMELACK_PRIMITIVES.items():
-            if modality_name == "language":
-                self.krimelack_bank["language"] = self.krimelack
+        for modality_name, mk_class in KRIMELACK_PRIMITIVES.items():
+            if modality_name == primary_modality:
+                self.krimelack_bank[modality_name] = self.krimelack
             else:
-                self.krimelack_bank[modality_name] = krim_class()
+                self.krimelack_bank[modality_name] = mk_class()
         self.binding_atlas = BindingAtlas()
 
         # Internal state
@@ -464,35 +470,61 @@ class LoomNeuron:
             self._coupling_signal_accum = []
 
         # GL-CMD-117: krimelack state persists across ticks (no reset).
-        # Track event count before processing to extract THIS tick's events only.
-        events_before = len(self.krimelack.events)
+        # Track monotonic event count to extract THIS tick's events only.
+        # GL-CMD-138: use n_events counter (deque may evict old entries).
+        # GL-CMD-139: active_krim tracks whichever krimelack was actually fed.
+        active_krim = self.krimelack  # default: primary krimelack
+        n_events_before = active_krim.n_events if hasattr(active_krim, 'n_events') else len(active_krim.events)
 
-        if isinstance(input_signal, str):
+        _is_lang = isinstance(self.krimelack, LanguageKrimelack)
+        if isinstance(input_signal, str) and _is_lang:
             _fp, _role, _senses = self.krimelack.transduce(
                 input_signal, omega_override=omega_override,
                 phase_offset=self._positional_phase_offset,
                 no_reset=True)
             self._last_origin_transducer = "language"
+        elif isinstance(input_signal, str) and not _is_lang:
+            # Non-language primary krimelack cannot transduce words;
+            # route through language krimelack in bank for DSF events
+            lang_krim = self.krimelack_bank.get("language")
+            if lang_krim is not None:
+                active_krim = lang_krim
+                n_events_before = active_krim.n_events if hasattr(active_krim, 'n_events') else len(active_krim.events)
+                lang_krim.transduce(
+                    input_signal, omega_override=omega_override,
+                    phase_offset=self._positional_phase_offset,
+                    no_reset=True)
+            self._last_origin_transducer = "language"
+            _senses = {}
         else:
             if omega_override is not None:
                 saved = self.krimelack.omega_0
                 self.krimelack.omega_0 = omega_override
-            self.krimelack.feed(list(input_signal))
+            if hasattr(self.krimelack, 'feed_signal'):
+                self.krimelack.feed_signal(list(input_signal))
+            else:
+                self.krimelack.feed(list(input_signal))
             if omega_override is not None:
                 self.krimelack.omega_0 = saved
             _senses = {}
 
         # DSF from THIS tick's events only (winding state persists, DSF reflects current signal)
-        events = list(self.krimelack.events[events_before:])
+        # GL-CMD-138: slice by count of new events from bounded deque tail
+        n_events_after = active_krim.n_events if hasattr(active_krim, 'n_events') else len(active_krim.events)
+        new_event_count = n_events_after - n_events_before
+        events = list(active_krim.events)[-new_event_count:] if new_event_count > 0 else []
         self._last_events = events
 
         # Track ω history for recent_omega_mean
         if events:
-            omega_recent = self.krimelack.omega_0 + self.krimelack.kappa * abs(
+            _kappa = getattr(active_krim, 'kappa',
+                     getattr(getattr(active_krim, '_inner', None),
+                             'kappa', 0.0))
+            omega_recent = active_krim.omega_0 + _kappa * abs(
                 sum(e["s"] for e in events) / len(events)
             )
         else:
-            omega_recent = self.krimelack.omega_0
+            omega_recent = active_krim.omega_0
         self._omega_history.append(omega_recent)
         if len(self._omega_history) > OMEGA_HISTORY_LEN:
             self._omega_history.pop(0)
@@ -609,10 +641,16 @@ class LoomNeuron:
             if norm > 1e-12:
                 self.psi_lattice.psi = psi / norm
 
-        # Krimelack ω₀ inheritance
+        # Krimelack ω₀ inheritance — use origin transducer's class (GL-CMD-139)
         if "omega_0" in bp:
-            self.krimelack = LanguageKrimelack()
+            from .substrate_dna import KRIMELACK_PRIMITIVES
+            origin = bp.get("origin_transducer", self.primary_modality)
+            krim_cls = bp.get("krimelack_class",
+                              KRIMELACK_PRIMITIVES.get(origin, LanguageKrimelack))
+            self.krimelack = krim_cls()
             self.krimelack.omega_0 = float(bp["omega_0"])
+            # Re-alias in krimelack_bank so bank[origin] == self.krimelack
+            self.krimelack_bank[origin] = self.krimelack
 
         # Law-field weights from overflow DSF
         if "law_field_weights" in bp:

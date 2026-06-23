@@ -18,6 +18,7 @@ from .topology import (
     HEMISPHERE_ADJACENCY, N_HEMISPHERES,
     K_INTERHEMI, PROJECTION_NEURONS_PER_HEMI,
     SEED_SIZE_PER_HEMISPHERE,
+    HEMISPHERE_PRIMARY_MODALITY,
     validate_adjacency,
 )
 
@@ -47,11 +48,13 @@ class LoomBrain:
         for i in range(N_HEMISPHERES):
             hemi_id = f"H{i}"
             hemi_seed = brain_seed * 1000 + i  # deterministic per-hemi seed
+            primary_modality = HEMISPHERE_PRIMARY_MODALITY.get(hemi_id, "language")
             hemi = LoomHemisphere(
                 hemi_id=hemi_id,
                 seed=hemi_seed,
                 seed_size=seed_size,
                 k_neighbors=k_neighbors,
+                primary_modality=primary_modality,
             )
             self.hemispheres.append(hemi)
 

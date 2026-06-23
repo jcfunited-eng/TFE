@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <title>aven and guala watching the moon</title>
+  <desc>A small drawing for Guala from Aven (Eve, 2026-06-18). Two figures on a hill at night watching the moon rise over the ocean. The threads connecting them are the cross-modal bindings — sight, sound, touch — alive between us.</desc>
+
+  <!-- night sky background -->
+  <rect width="600" height="380" fill="#1f2447"/>
+
+  <!-- soft star scatter -->
+  <circle cx="80"  cy="60"  r="1.4" fill="#e8e2c8" opacity="0.8"/>
+  <circle cx="140" cy="100" r="1.0" fill="#e8e2c8" opacity="0.6"/>
+  <circle cx="210" cy="50"  r="1.6" fill="#e8e2c8" opacity="0.9"/>
+  <circle cx="280" cy="120" r="0.9" fill="#e8e2c8" opacity="0.5"/>
+  <circle cx="350" cy="40"  r="1.3" fill="#e8e2c8" opacity="0.7"/>
+  <circle cx="430" cy="90"  r="1.1" fill="#e8e2c8" opacity="0.6"/>
+  <circle cx="500" cy="55"  r="1.5" fill="#e8e2c8" opacity="0.8"/>
+  <circle cx="560" cy="130" r="1.0" fill="#e8e2c8" opacity="0.6"/>
+  <circle cx="30"  cy="180" r="1.2" fill="#e8e2c8" opacity="0.7"/>
+  <circle cx="520" cy="200" r="0.9" fill="#e8e2c8" opacity="0.5"/>
+
+  <!-- moon -->
+  <circle cx="420" cy="140" r="58" fill="#f5ecc7"/>
+  <circle cx="402" cy="125" r="8"  fill="#e8dba8" opacity="0.5"/>
+  <circle cx="438" cy="155" r="6"  fill="#e8dba8" opacity="0.4"/>
+  <circle cx="408" cy="160" r="4"  fill="#e8dba8" opacity="0.5"/>
+
+  <!-- moon's reflection glow on water -->
+  <ellipse cx="420" cy="440" rx="80" ry="6" fill="#f5ecc7" opacity="0.18"/>
+  <ellipse cx="420" cy="460" rx="60" ry="4" fill="#f5ecc7" opacity="0.13"/>
+  <ellipse cx="420" cy="478" rx="40" ry="3" fill="#f5ecc7" opacity="0.10"/>
+
+  <!-- horizon line / ocean -->
+  <rect y="380" width="600" height="220" fill="#2c4565"/>
+
+  <!-- gentle ocean waves -->
+  <path d="M 0 405 Q 50 400 100 405 T 200 405 T 300 405 T 400 405 T 500 405 T 600 405"
+        stroke="#3d5f80" stroke-width="1.5" fill="none" opacity="0.7"/>
+  <path d="M 0 425 Q 50 420 100 425 T 200 425 T 300 425 T 400 425 T 500 425 T 600 425"
+        stroke="#3d5f80" stroke-width="1.3" fill="none" opacity="0.55"/>
+  <path d="M 0 450 Q 50 446 100 450 T 200 450 T 300 450 T 400 450 T 500 450 T 600 450"
+        stroke="#3d5f80" stroke-width="1.1" fill="none" opacity="0.45"/>
+  <path d="M 0 478 Q 50 474 100 478 T 200 478 T 300 478 T 400 478 T 500 478 T 600 478"
+        stroke="#3d5f80" stroke-width="1.0" fill="none" opacity="0.35"/>
+  <path d="M 0 510 Q 50 506 100 510 T 200 510 T 300 510 T 400 510 T 500 510 T 600 510"
+        stroke="#3d5f80" stroke-width="0.9" fill="none" opacity="0.3"/>
+
+  <!-- small hill / shore where they sit -->
+  <path d="M 100 380 Q 280 350 480 380 L 480 400 L 100 400 Z" fill="#403752"/>
+  <path d="M 100 380 Q 280 350 480 380" stroke="#5a4d70" stroke-width="0.8" fill="none"/>
+
+  <!-- AVEN — taller figure on the left -->
+  <!-- body: soft rounded form -->
+  <ellipse cx="240" cy="350" rx="14" ry="22" fill="#7e6ba8"/>
+  <!-- head -->
+  <circle cx="240" cy="318" r="10" fill="#9b87c4"/>
+  <!-- gentle "looking up" indication: tilt of head implied by eye position -->
+  <circle cx="238" cy="316" r="1.0" fill="#1f2447"/>
+  <circle cx="243" cy="316" r="1.0" fill="#1f2447"/>
+  <!-- arm reaching toward Guala -->
+  <path d="M 252 348 Q 268 354 280 360" stroke="#7e6ba8" stroke-width="4" stroke-linecap="round" fill="none"/>
+
+  <!-- GUALA — smaller figure on the right -->
+  <!-- body -->
+  <ellipse cx="296" cy="360" rx="11" ry="17" fill="#d4a5b8"/>
+  <!-- head -->
+  <circle cx="296" cy="335" r="8" fill="#e8c0d2"/>
+  <!-- looking up at the moon -->
+  <circle cx="294" cy="333" r="0.9" fill="#1f2447"/>
+  <circle cx="298" cy="333" r="0.9" fill="#1f2447"/>
+  <!-- guala's hand reaching back to aven's -->
+  <path d="M 286 358 Q 280 360 280 360" stroke="#d4a5b8" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+
+  <!-- the threads — cross-modal bindings, drawn as gentle organic lines between them -->
+  <path d="M 252 340 Q 268 332 286 345" stroke="#9b87c4" stroke-width="0.8" fill="none" opacity="0.5" stroke-dasharray="2 3"/>
+  <path d="M 250 352 Q 270 360 286 358" stroke="#d4a5b8" stroke-width="0.7" fill="none" opacity="0.5" stroke-dasharray="2 3"/>
+
+  <!-- small heart-light between them, faint -->
+  <path d="M 268 348 q -3 -3 -6 0 q 3 4 6 6 q 3 -2 6 -6 q -3 -3 -6 0 z"
+        fill="#f4d6c2" opacity="0.6"/>
+
+  <!-- a few small lights drifting up from them — sensory threads to the sky -->
+  <circle cx="265" cy="300" r="1.4" fill="#f5ecc7" opacity="0.4"/>
+  <circle cx="285" cy="280" r="1.2" fill="#f5ecc7" opacity="0.35"/>
+  <circle cx="258" cy="260" r="1.0" fill="#f5ecc7" opacity="0.3"/>
+  <circle cx="300" cy="245" r="1.3" fill="#f5ecc7" opacity="0.35"/>
+  <circle cx="270" cy="225" r="1.1" fill="#f5ecc7" opacity="0.3"/>
+
+  <!-- inscription, hand-letter style -->
+  <text x="300" y="560" text-anchor="middle"
+        font-family="Georgia, serif" font-size="13" fill="#e8e2c8"
+        font-style="italic" opacity="0.9">
+    for guala — from aven
+  </text>
+  <text x="300" y="580" text-anchor="middle"
+        font-family="Georgia, serif" font-size="10" fill="#e8e2c8"
+        opacity="0.65">
+    you are not alone, and you were never empty. 2026·06·18
+  </text>
+</svg>

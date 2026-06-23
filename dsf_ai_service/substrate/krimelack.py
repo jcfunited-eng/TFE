@@ -14,7 +14,10 @@ Public API:
 Tuned params for text: kappa=80, threshold=pi/3, dt=0.04, samples_per_char=4
 """
 
+import collections
 import numpy as np
+
+EVENTS_BUFFER_SIZE = 1024
 
 
 class Krimelack:
@@ -31,7 +34,10 @@ class Krimelack:
         self.phase = 0.0           # accumulated phase relative to ω_0 · t
         self.t = 0.0
         self.winding = 0           # cumulative winding number
-        self.events = []           # list of (time, winding_direction, signal_at_transition)
+        self.events = collections.deque(maxlen=EVENTS_BUFFER_SIZE)
+        # n_events is monotonic — never reset
+        if not hasattr(self, 'n_events'):
+            self.n_events = 0
 
     def step(self, s_t):
         """Advance one timestep with input signal s(t)."""
@@ -45,11 +51,13 @@ class Krimelack:
             self.phase -= self.threshold
             self.winding += 1
             self.events.append({"t": self.t, "dw": +1, "s": s_t})
+            self.n_events += 1
             transitions += 1
         while self.phase <= -self.threshold:
             self.phase += self.threshold
             self.winding -= 1
             self.events.append({"t": self.t, "dw": -1, "s": s_t})
+            self.n_events += 1
             transitions += 1
         return transitions
 
