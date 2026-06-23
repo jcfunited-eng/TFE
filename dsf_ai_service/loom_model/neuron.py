@@ -787,14 +787,16 @@ class LoomNeuron:
         self.binding_atlas.record(concept, state_vec, tick)
 
     def _unwrapped_deltas(self, multi_modal_signals: Dict[str, Any]) -> Dict[str, float]:
-        """Per-modality unwrapped phase RATE (Δ/n_samples) with attenuation.
+        """Per-modality event_count observable with per-neuron attenuation.
 
-        GL-CMD-134: Δ scales with signal length; Δ/n_samples normalizes by
-        integration window. Result is in comparable range across modalities
-        regardless of waveform duration or word length.
-        GL-CMD-131: per-(neuron, modality) attenuation from ring position.
+        GL-CMD-140: wired in verbatim from the sweep_137 harness mechanism
+        that achieved 67% T5 at n=100 (vs the GL-CMD-133/134 phase/winding
+        delta-rate path, which scored ~5% in production and is now deleted).
+        Symmetric — the same path runs at training write (experience_moment)
+        and recall query (brain.recall). The observable is the count of new
+        krimelack events per modality (from the GL-CMD-138 n_events counter),
+        attenuated per (neuron, modality) by ring position (GL-CMD-131).
         """
-        import math
         from .grandurun import MODALITIES
 
         rpos = getattr(self, 'ring_pos', 0)
@@ -806,30 +808,16 @@ class LoomNeuron:
             if signal is None or krim is None:
                 deltas[m] = 0.0
                 continue
-
             att = signal_attenuation(rpos, rN, i)
-            n_samples = max(1, len(signal))
-
-            p0 = float(krim.phase) if hasattr(krim, 'phase') else 0.0
-            w0 = int(krim.winding) if hasattr(krim, 'winding') else 0
-
+            ev0 = krim.n_events if hasattr(krim, 'n_events') else len(krim.events)
             if m == "language":
-                krim.transduce(signal, no_reset=True,
-                               omega_override=2.0 * att)
+                krim.transduce(signal, no_reset=True, omega_override=2.0 * att)
             elif hasattr(krim, 'feed_signal'):
                 sig = list(signal) if not isinstance(signal, list) else signal
                 sig_att = [s * att for s in sig]
                 krim.feed_signal(sig_att)
-
-            p1 = float(krim.phase) if hasattr(krim, 'phase') else 0.0
-            w1 = int(krim.winding) if hasattr(krim, 'winding') else 0
-
-            threshold = getattr(krim, 'threshold',
-                        getattr(getattr(krim, '_inner', None), 'threshold',
-                                math.pi / 3))
-            delta_total = (w1 - w0) * threshold + (p1 - p0)
-            deltas[m] = delta_total / n_samples
-
+            ev1 = krim.n_events if hasattr(krim, 'n_events') else len(krim.events)
+            deltas[m] = float(ev1 - ev0)
         return deltas
 
     # ------------------------------------------------------------------

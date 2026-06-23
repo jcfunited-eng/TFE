@@ -8,7 +8,7 @@ Cross-hemi wiring: projection neurons (5 per hemi) coupled to adjacent
 hemispheres via Watts-Strogatz topology (committed constant).
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -36,9 +36,18 @@ class LoomBrain:
 
     def __init__(self, brain_seed: int = 42,
                  seed_size: int = SEED_SIZE_PER_HEMISPHERE,
-                 k_neighbors: int = 16):
+                 k_neighbors: int = 16,
+                 hemisphere_primary_modality: Optional[Dict[str, str]] = None):
         self.brain_seed = brain_seed
         self.topology = HEMISPHERE_ADJACENCY.copy()
+
+        # GL-CMD-140 (Decision 1): language-as-default. Heterogeneous krimelacks
+        # (GL-CMD-139) did not unblock folding and broke cognition tests, so the
+        # HEMISPHERE_PRIMARY_MODALITY map is no longer applied by default. It
+        # remains in topology.py and can be opted into by passing it explicitly
+        # once item 7 actually unblocks.
+        primary_map = (hemisphere_primary_modality
+                       if hemisphere_primary_modality is not None else {})
 
         # Validate topology at boot
         self._topology_metrics = validate_adjacency(self.topology)
@@ -48,7 +57,7 @@ class LoomBrain:
         for i in range(N_HEMISPHERES):
             hemi_id = f"H{i}"
             hemi_seed = brain_seed * 1000 + i  # deterministic per-hemi seed
-            primary_modality = HEMISPHERE_PRIMARY_MODALITY.get(hemi_id, "language")
+            primary_modality = primary_map.get(hemi_id, "language")
             hemi = LoomHemisphere(
                 hemi_id=hemi_id,
                 seed=hemi_seed,

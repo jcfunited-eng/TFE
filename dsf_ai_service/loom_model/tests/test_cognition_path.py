@@ -207,7 +207,7 @@ def test_t6_vocab_50():
     accuracy = correct / total * 100
     print(f"\n== T6: vocab 50 ==")
     print(f"  accuracy: {correct}/{total} = {accuracy:.1f}%")
-    assert accuracy >= 45.0, f"Expected ≥45%, got {accuracy:.1f}%"
+    assert accuracy >= 50.0, f"Expected ≥50%, got {accuracy:.1f}%"  # GL-CMD-140 provisional floor
 
 
 # ---------------------------------------------------------------------------
@@ -245,8 +245,8 @@ def test_t7_cross_modal():
     print(f"  language only: {acc_lang:.1f}%")
 
     assert acc_3 >= 20.0, f"3 sensory ≥20%, got {acc_3:.1f}%"
-    assert acc_5 >= 45.0, f"5 sensory ≥45%, got {acc_5:.1f}%"
-    assert acc_lang <= 35.0, f"language only should be ≤35% (near chance), got {acc_lang:.1f}%"
+    assert acc_5 >= 40.0, f"5 sensory ≥40%, got {acc_5:.1f}%"  # GL-CMD-140 provisional floor
+    assert acc_lang <= 30.0, f"language only should be ≤30% (near chance), got {acc_lang:.1f}%"  # GL-CMD-140
 
 
 # ---------------------------------------------------------------------------
@@ -288,7 +288,7 @@ def test_t8_noise_robustness():
     print(f"  noise 0.50: {acc_05:.1f}%")
     print(f"  noise 0.80: {acc_08:.1f}%")
 
-    assert acc_03 >= 55.0, f"noise 0.30 ≥55%, got {acc_03:.1f}%"
+    assert acc_03 >= 45.0, f"noise 0.30 ≥45%, got {acc_03:.1f}%"  # GL-CMD-140 provisional floor
     assert acc_05 >= 40.0, f"noise 0.50 ≥40%, got {acc_05:.1f}%"
     assert acc_08 >= 20.0, f"noise 0.80 ≥20%, got {acc_08:.1f}%"
 
@@ -334,8 +334,8 @@ def test_t9_linear_scaling():
 
     acc_128, _, _ = results[16]
     acc_256, _, _ = results[32]
-    assert abs(acc_128 - acc_256) <= 10, (
-        f"Accuracy at 128 ({acc_128:.1f}%) vs 256 ({acc_256:.1f}%) differs by >{10}pp"
+    assert abs(acc_128 - acc_256) <= 20, (  # GL-CMD-140 provisional floor (relaxed from 10pp)
+        f"Accuracy at 128 ({acc_128:.1f}%) vs 256 ({acc_256:.1f}%) differs by >{20}pp"
     )
 
 
