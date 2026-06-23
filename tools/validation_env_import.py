@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
 """
-tools/validation_env_import.py — Mode B production import (V3 transport).
+tools/validation_env_import.py — Mode B production import (V4B transport).
 
 Imports production tables (read-only) into local `tfe_validation` Postgres.
 See docs/VALIDATION_ENVIRONMENT_SPEC.md §3.1 (Mode B).
 
-TRANSPORT (wC decision, TFE-CMD-VENV-IMPORT-V3):
-  - Four metadata/ledger tables: chunked COPY over ECS Exec. SSM truncates
-    bulk single-COPY output above ~2000 rows (found empirically in V2), so
-    we keyset-paginate at 1500 rows/chunk inside that ceiling.
-  - daily_bars: the production refresh already writes daily_bars_export.csv.gz
-    to S3 daily. We download and import it — the dormant export finally gets
-    its consumer. ECS Exec can't move millions of bar rows.
+TRANSPORT (wC decision, TFE-CMD-VENV-IMPORT-V4B):
+  S3 for all bulk tables. ECS Exec only triggers an in-container helper that
+  COPYs a projection to a tempfile, gzips, and uploads via boto3 (the aws CLI
+  is absent in the container; boto3 is what rebuild_uf_snapshot.py uses).
+  Only the helper's small JSON summary returns over SSM — no bulk data on the
+  SSM channel (the V3 lesson: SSM truncates large payloads, even ~100KB).
 
-Read-only against production (COPY (SELECT ...) TO STDOUT only; S3 read of a
-prod-managed object). No SELECT *. Idempotent UPSERTs. Resumable via a
-checkpoint file. No credential values logged (spec §6.2 rule 5).
+  S3 prefix: runtime-refresh-checkpoints/ — the only prefix the container's
+  tfe-ecs-task-role can write (validation-env-exports/ is IAM-denied).
+  Filenames namespaced venv_export__<table>[__<window>].csv.gz so they never
+  collide with prod-owned objects (daily_bars_export.csv.gz, uf_snapshot.json).
+
+  daily_bars: imported in V3 from the prod-owned daily_bars_export.csv.gz
+  (9,760,067 rows, 5y). SKIPPED here unless --force-daily-bars.
+
+Read-only against production DB. New S3 writes only to venv_export__*.
+Idempotent UPSERTs (V3 column maps). No credential values logged (§6.2 rule 5).
 """
 
 import base64
@@ -36,26 +42,53 @@ REGION = "us-east-1"
 CLUSTER = "tfe-web-cluster"
 SERVICE = "tfe-web-service-lb"
 CONTAINER = "tfe-web"
+BUCKET = "tfe-codebuild-src-418384447921-us-east-1"
+PREFIX = "runtime-refresh-checkpoints"          # writable prefix
 LOCAL_DSN = "host=/var/run/postgresql dbname=tfe_validation user=postgres"
 SUMMARY_DIR = "backups"
-CKPT_PATH = "backups/validation_env_import_checkpoint.json"
+HELPER_PATH = "/tmp/venv_export_helper.py"      # ephemeral, in-container
+HISTORY_MAX = 5_000_000
 
-S3_BUCKET = "tfe-codebuild-src-418384447921-us-east-1"
-S3_KEY = "runtime-refresh-checkpoints/daily_bars_export.csv.gz"
-S3_MAX_AGE_HOURS = 48
-
-CHUNK = 1500
-HISTORY_MAX = 100_000
-MARK_B, MARK_E = "@@VENVB64START@@", "@@VENVB64END@@"
-
-csv.field_size_limit(1 << 24)  # snapshot_row_json blobs can be large
+csv.field_size_limit(1 << 24)
 
 
-def log(msg):
-    print(f"[venv-import] {msg}", flush=True)
+def log(m):
+    print(f"[venv-import] {m}", flush=True)
 
 
-# ── ECS Exec: read-only psql in the container, base64-wrapped ───────────────
+# ── In-container helper: COPY → gzip → boto3 upload; prints JSON summary ─────
+HELPER_PY = r'''
+import sys, base64, subprocess, gzip, shutil, os, time, json, boto3
+table, b64proj, s3key = sys.argv[1], sys.argv[2], sys.argv[3]
+proj = base64.b64decode(b64proj).decode()
+bucket = "%s"
+csvp, gzp = f"/tmp/{table}.csv", f"/tmp/{table}.csv.gz"
+t0 = time.time()
+try:
+    r = subprocess.run(
+        ["psql", "-v", "ON_ERROR_STOP=1", "-c",
+         f"\\copy ({proj}) to '{csvp}' with csv header"],
+        capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.stderr.write("PSQL_ERR:" + r.stderr[:600]); sys.exit(1)
+    with open(csvp) as f:
+        rows = sum(1 for _ in f) - 1
+    with open(csvp, "rb") as fi, gzip.open(gzp, "wb") as fo:
+        shutil.copyfileobj(fi, fo)
+    csv_bytes, gz_bytes = os.path.getsize(csvp), os.path.getsize(gzp)
+    s3 = boto3.client("s3")
+    s3.upload_file(gzp, bucket, s3key)
+    etag = s3.head_object(Bucket=bucket, Key=s3key)["ETag"].strip('"')
+    print(json.dumps({"table": table, "rows_copied": rows, "csv_bytes": csv_bytes,
+                      "gz_bytes": gz_bytes, "s3_etag": etag,
+                      "wall_time_s": round(time.time() - t0, 1)}))
+finally:
+    for p in (csvp, gzp):
+        try: os.remove(p)
+        except OSError: pass
+''' % BUCKET
+
+
 def _exec(task_id, inner_bash, timeout=300):
     b64 = base64.b64encode(inner_bash.encode()).decode()
     cmd = ["aws", "ecs", "execute-command", "--region", REGION, "--cluster", CLUSTER,
@@ -65,313 +98,160 @@ def _exec(task_id, inner_bash, timeout=300):
     return p.stdout + "\n" + p.stderr
 
 
-def _payload(raw):
-    """Decode the base64 blob between markers; None if markers absent (truncated)."""
-    if MARK_B not in raw or MARK_E not in raw:
-        return None
-    blob = "".join(raw.split(MARK_B, 1)[1].split(MARK_E, 1)[0].split())
+def stage_helper(task_id):
+    hb64 = base64.b64encode(HELPER_PY.encode()).decode()
+    inner = f"echo {hb64} | base64 -d > {HELPER_PATH}; wc -l {HELPER_PATH} && echo @@STAGED@@"
+    out = _exec(task_id, inner, timeout=60)
+    if "@@STAGED@@" not in out:
+        raise RuntimeError(f"helper staging failed; output tail:\n{out[-500:]}")
+
+
+def container_scalar(task_id, sql):
+    inner = (f"set -euo pipefail; printf '@@S@@'; "
+             f'psql -v ON_ERROR_STOP=1 -At -c "{sql}"; printf \'@@SE@@\'')
+    out = _exec(task_id, inner, timeout=120)
+    if "@@S@@" not in out or "@@SE@@" not in out:
+        raise RuntimeError(f"scalar failed: {out[-300:]}")
+    return out.split("@@S@@", 1)[1].split("@@SE@@", 1)[0].strip()
+
+
+def export_to_s3(task_id, table, projection, s3_key):
+    """Run the helper in-container; return its JSON summary dict."""
+    pb64 = base64.b64encode(projection.encode()).decode()
+    inner = (f"printf '@@J@@'; python3 {HELPER_PATH} {table} {pb64} {s3_key}; "
+             f"rc=$?; printf '@@JE@@'; echo \"RC=$rc\"")
+    out = _exec(task_id, inner, timeout=300)
+    if "@@J@@" not in out or "@@JE@@" not in out:
+        raise RuntimeError(f"{table}: helper produced no summary; tail:\n{out[-600:]}")
+    payload = out.split("@@J@@", 1)[1].split("@@JE@@", 1)[0].strip()
+    rc_part = out.split("@@JE@@", 1)[1]
+    if "RC=0" not in rc_part:
+        raise RuntimeError(f"{table}: helper exit nonzero; output:\n{out[-600:]}")
     try:
-        return base64.b64decode(blob).decode()
+        return json.loads(payload.splitlines()[-1])
     except Exception:
-        return None
+        raise RuntimeError(f"{table}: bad helper JSON: {payload[:300]}")
 
 
-def prod_scalar(task_id, sql):
-    inner = (f"set -euo pipefail; printf '{MARK_B}'; "
-             f'psql -v ON_ERROR_STOP=1 -At -c "{sql}" | base64 -w0; printf \'{MARK_E}\'')
-    out = _payload(_exec(task_id, inner, timeout=120))
-    if out is None:
-        raise RuntimeError("prod scalar truncated/failed")
-    return out.strip()
-
-
-def prod_copy(task_id, projection_sql):
-    """Run COPY (projection) TO STDOUT as CSV in prod. Return text, or None if
-    the SSM channel truncated the response (no end marker)."""
-    inner = (f"set -euo pipefail; printf '{MARK_B}'; "
-             f"psql -v ON_ERROR_STOP=1 -c \"COPY ({projection_sql}) TO STDOUT WITH (FORMAT csv)\" "
-             f"| base64 -w0; printf '{MARK_E}'")
-    return _payload(_exec(task_id, inner, timeout=300))
-
-
-# ── Checkpoint ──────────────────────────────────────────────────────────────
-def ckpt_load():
-    if os.path.exists(CKPT_PATH):
-        with open(CKPT_PATH) as f:
-            return json.load(f)
-    return {}
-
-
-def ckpt_save(ck, table, last_key):
-    ck[table] = {"last_key_value": last_key,
-                 "last_chunk_at": datetime.now(timezone.utc).isoformat()}
-    with open(CKPT_PATH, "w") as f:
-        json.dump(ck, f, indent=2)
-
-
-# ── Local helpers ───────────────────────────────────────────────────────────
-def local_count(conn, table):
-    with conn.cursor() as cur:
-        cur.execute(f"SELECT COUNT(*) FROM {table}")
-        return cur.fetchone()[0]
-
-
-def load_temp_and_upsert(conn, temp_ddl, temp_cols, csv_text, upsert_sql):
-    with conn.cursor() as cur:
-        cur.execute("DROP TABLE IF EXISTS _venv_tmp")
-        cur.execute(temp_ddl)
-        if csv_text.strip():
-            cur.copy_expert(
-                f"COPY _venv_tmp ({','.join(temp_cols)}) FROM STDIN WITH (FORMAT csv)",
-                io.StringIO(csv_text))
-        cur.execute(upsert_sql)
-    conn.commit()
-
-
-# ── Generic chunked-COPY importer (keyset pagination) ───────────────────────
-def chunked_import(task_id, conn, table, build_proj, key_of_row, temp_ddl,
-                   temp_cols, upsert_sql, ck, start_key):
-    chunks, total = 0, 0
-    last_key = start_key
-    while True:
-        size, csv_text = CHUNK, None
-        for _ in range(2):
-            csv_text = prod_copy(task_id, build_proj(last_key, size))
-            if csv_text is not None:
-                break
-            size //= 2
-            if size < 500:
-                raise RuntimeError(
-                    f"SSM truncation persists at {CHUNK} rows (retried at {size*2})")
-        if csv_text is None:
-            raise RuntimeError("chunk truncated twice")
-        rows = list(csv.reader(io.StringIO(csv_text)))
-        if not rows:
-            break
-        load_temp_and_upsert(conn, temp_ddl, temp_cols, csv_text, upsert_sql)
-        total += len(rows)
-        chunks += 1
-        last_key = key_of_row(rows[-1])
-        ckpt_save(ck, table, last_key)
-        log(f"{table}: chunk {chunks} (+{len(rows)} rows) last_key={last_key}")
-        if len(rows) < size:
-            break
-    return total, chunks
-
-
-# ── Table specs ─────────────────────────────────────────────────────────────
-def q(s):  # SQL string literal escape
-    return "'" + str(s).replace("'", "''") + "'"
-
-
-def spec_runtime_decisions_latest():
-    cols = ["ticker", "run_id", "generated_at_utc", "snapshot_row_json",
-            "decision_label", "reason_code", "reason_text"]
-    sel = ",".join(cols)
-    return dict(
-        table="runtime_decisions_latest", start_key="",
-        build=lambda k, n: (f"SELECT {sel} FROM runtime_decisions_latest "
-                            f"WHERE ticker > {q(k)} ORDER BY ticker ASC LIMIT {n}"),
-        key=lambda r: r[0],
-        temp_ddl="""CREATE TEMP TABLE _venv_tmp (ticker text, run_id text,
-            generated_at_utc timestamptz, snapshot_row_json jsonb,
-            decision_label text, reason_code text, reason_text text)""",
-        temp_cols=cols,
-        upsert="""INSERT INTO runtime_decisions_latest
-            (ticker, run_id, generated_at_utc, snapshot_row_json, decision_label,
-             reason_code, reason_text, kernel_sha, source)
-            SELECT ticker, run_id, generated_at_utc, snapshot_row_json, decision_label,
-                   reason_code, reason_text, NULL, 'production_import' FROM _venv_tmp
-            ON CONFLICT (ticker) DO UPDATE SET run_id=EXCLUDED.run_id,
-              generated_at_utc=EXCLUDED.generated_at_utc,
-              snapshot_row_json=EXCLUDED.snapshot_row_json,
-              decision_label=EXCLUDED.decision_label, reason_code=EXCLUDED.reason_code,
-              reason_text=EXCLUDED.reason_text, source=EXCLUDED.source""",
-        count_sql="SELECT COUNT(*) FROM runtime_decisions_latest")
-
-
-def spec_runtime_symbols():
-    cols = ["ticker", "run_id", "generated_at_utc", "asset_type", "quote_type",
-            "exchange", "company_name", "sector", "industry", "country", "market_cap",
-            "shares_outstanding", "float_shares", "profile_json", "updated_at"]
-    sel = ",".join(cols)
-    setc = ",".join(f"{c}=EXCLUDED.{c}" for c in cols if c != "ticker")
-    return dict(
-        table="runtime_symbols", start_key="",
-        build=lambda k, n: (f"SELECT {sel} FROM runtime_symbols "
-                            f"WHERE ticker > {q(k)} ORDER BY ticker ASC LIMIT {n}"),
-        key=lambda r: r[0],
-        temp_ddl="""CREATE TEMP TABLE _venv_tmp (ticker text, run_id text,
-            generated_at_utc timestamptz, asset_type text, quote_type text,
-            exchange text, company_name text, sector text, industry text,
-            country text, market_cap float8, shares_outstanding float8,
-            float_shares float8, profile_json jsonb, updated_at timestamptz)""",
-        temp_cols=cols,
-        upsert=f"""INSERT INTO runtime_symbols ({','.join(cols)})
-            SELECT {','.join(cols)} FROM _venv_tmp
-            ON CONFLICT (ticker) DO UPDATE SET {setc}""",
-        count_sql="SELECT COUNT(*) FROM runtime_symbols")
-
-
-def spec_personal_trade_ledger():
-    cols = ["id", "ticker", "run_id", "signal_class", "spy_dk", "s_uf", "bar_count",
-            "f_n", "d_k", "b_k", "vault_equity_at_signal", "risk_per_trade_pct",
-            "dollar_allocation", "shares", "atr_14", "alpaca_order_id",
-            "alpaca_take_profit_order_id", "alpaca_stop_loss_order_id",
-            "entry_limit_price", "take_profit_price", "stop_loss_price", "time_in_force",
-            "entry_filled_price", "entry_filled_at", "exit_filled_price", "exit_filled_at",
-            "p_l", "p_l_pct", "exit_reason", "status", "rationale_json",
-            "signal_detected_at", "created_at", "updated_at"]
-    sel = ",".join(cols)
-    setc = ",".join(f"{c}=EXCLUDED.{c}" for c in cols if c not in ("id", "rationale_json"))
-    ddl = """CREATE TEMP TABLE _venv_tmp (
-        id bigint, ticker text, run_id text, signal_class text, spy_dk int, s_uf float8,
-        bar_count int, f_n float8, d_k int, b_k float8, vault_equity_at_signal float8,
-        risk_per_trade_pct float8, dollar_allocation float8, shares int, atr_14 float8,
-        alpaca_order_id text, alpaca_take_profit_order_id text, alpaca_stop_loss_order_id text,
-        entry_limit_price float8, take_profit_price float8, stop_loss_price float8,
-        time_in_force text, entry_filled_price float8, entry_filled_at timestamptz,
-        exit_filled_price float8, exit_filled_at timestamptz, p_l float8, p_l_pct float8,
-        exit_reason text, status text, rationale_json jsonb, signal_detected_at timestamptz,
-        created_at timestamptz, updated_at timestamptz)"""
-    return dict(
-        table="personal_trade_ledger", start_key=0,
-        build=lambda k, n: (f"SELECT {sel} FROM personal_trade_ledger "
-                            f"WHERE id > {int(k)} ORDER BY id ASC LIMIT {n}"),
-        key=lambda r: int(r[0]),
-        temp_ddl=ddl, temp_cols=cols,
-        upsert=f"""INSERT INTO personal_trade_ledger ({sel})
-            SELECT {sel} FROM _venv_tmp
-            ON CONFLICT (id) DO UPDATE SET {setc},
-              rationale_json = personal_trade_ledger.rationale_json || EXCLUDED.rationale_json""",
-        count_sql="SELECT COUNT(*) FROM personal_trade_ledger")
-
-
-def import_history(task_id, conn, ck, summary):
-    """90-day window; STOP this table only if it exceeds the transport ceiling."""
-    t0 = datetime.now(timezone.utc)
-    win = "generated_at_utc >= NOW() - INTERVAL '90 days'"
-    src = int(prod_scalar(task_id, f"SELECT COUNT(*) FROM runtime_decisions_history WHERE {win}"))
-    if src > HISTORY_MAX:
-        log(f"runtime_decisions_history: 90d count={src} > {HISTORY_MAX} — STOP this table "
-            f"(transport overload threshold). Other tables proceed.")
-        summary["tables"].append(dict(table="runtime_decisions_history", transport="ecs_exec_chunked",
-            source_count_at_start=src, rows_imported=0, chunks_count=0, state="stopped_too_large",
-            wall_time_seconds=(datetime.now(timezone.utc) - t0).total_seconds()))
-        return "stopped"
-    cols = ["ticker", "run_id", "generated_at_utc", "snapshot_row_json", "source"]
-    sel = ",".join(cols)
-
-    def build(k, n):
-        if k is None:
-            return (f"SELECT {sel} FROM runtime_decisions_history WHERE {win} "
-                    f"ORDER BY generated_at_utc ASC, ticker ASC LIMIT {n}")
-        ts, tk = k
-        return (f"SELECT {sel} FROM runtime_decisions_history WHERE {win} "
-                f"AND (generated_at_utc, ticker) > ({q(ts)}::timestamptz, {q(tk)}) "
-                f"ORDER BY generated_at_utc ASC, ticker ASC LIMIT {n}")
-
-    ddl = """CREATE TEMP TABLE _venv_tmp (ticker text, run_id text,
-        generated_at_utc timestamptz, snapshot_row_json jsonb, prod_source text)"""
-    upsert = """INSERT INTO runtime_decisions_history
-        (ticker, run_id, generated_at_utc, snapshot_row_json, decision_label, kernel_sha, source)
-        SELECT ticker, run_id, generated_at_utc, snapshot_row_json, NULL, NULL,
-               COALESCE(prod_source, 'production_import') FROM _venv_tmp
-        ON CONFLICT (ticker, generated_at_utc) DO NOTHING"""
-    start = ck.get("runtime_decisions_history", {}).get("last_key_value")
-    if isinstance(start, list):
-        start = tuple(start)
-    total, chunks = chunked_import(task_id, conn, "runtime_decisions_history", build,
-        lambda r: [r[2], r[0]], ddl, cols, upsert, ck, start)
-    summary["tables"].append(dict(table="runtime_decisions_history", transport="ecs_exec_chunked",
-        source_count_at_start=src, rows_imported=total, chunks_count=chunks, state="complete",
-        wall_time_seconds=(datetime.now(timezone.utc) - t0).total_seconds()))
-    return "ok"
-
-
-def import_daily_bars(conn, summary):
-    """S3 transport: download the prod-emitted gzip export, import OHLCV."""
-    t0 = datetime.now(timezone.utc)
+def download_and_upsert(conn, s3_key, temp_ddl, temp_cols, upsert_sql):
     s3 = boto3.client("s3", region_name=REGION)
-    head = s3.head_object(Bucket=S3_BUCKET, Key=S3_KEY)
-    last_mod = head["LastModified"]
-    etag = head["ETag"].strip('"')
-    age_h = (datetime.now(timezone.utc) - last_mod).total_seconds() / 3600
-    summary["daily_bars_s3"] = {"etag": etag, "last_modified": last_mod.isoformat(),
-                                "age_hours": round(age_h, 1)}
-    if age_h > S3_MAX_AGE_HOURS:
-        log(f"daily_bars: S3 export age {age_h:.1f}h > {S3_MAX_AGE_HOURS}h — STOP this table. "
-            f"Prod export pipeline staleness is a separate concern.")
-        summary["tables"].append(dict(table="daily_bars", transport="s3_gzip",
-            rows_imported=0, chunks_count=0, state="stopped_stale_export",
-            wall_time_seconds=(datetime.now(timezone.utc) - t0).total_seconds()))
-        return "stopped"
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    local_gz = f"/tmp/daily_bars_export_{ts}.csv.gz"
-    s3.download_file(S3_BUCKET, S3_KEY, local_gz)
-    nbytes = os.path.getsize(local_gz)
-
-    # Validate header, then COPY into a temp table and bulk-upsert (column map
-    # ticker->symbol; drop source/updated_at). COPY is the bulk-insert form of
-    # the per-table map; idempotent ON CONFLICT, identical end state.
-    with gzip.open(local_gz, "rt") as f:
-        first = f.readline()
-    header_cells = next(csv.reader([first]))
-    has_header = "bar_date" in header_cells
-    if not has_header:
-        raise RuntimeError(f"daily_bars S3 header mismatch — first row: {header_cells[:10]}")
-    needed = {"ticker", "bar_date", "open", "high", "low", "close", "volume"}
-    if not needed.issubset(set(header_cells)):
-        raise RuntimeError(f"daily_bars S3 header missing columns. Got: {header_cells}")
-    idx = {name: i for i, name in enumerate(header_cells)}
-
-    rows_parsed = 0
-    with conn.cursor() as cur:
-        cur.execute("DROP TABLE IF EXISTS _venv_bars")
-        cur.execute("""CREATE TEMP TABLE _venv_bars (symbol text, bar_date date,
-            open float8, high float8, low float8, close float8, volume bigint)""")
-        buf = io.StringIO()
-        w = csv.writer(buf)
-        with gzip.open(local_gz, "rt") as f:
-            rd = csv.reader(f)
-            next(rd)  # skip header
-            for r in rd:
-                if not r:
-                    continue
-                w.writerow([r[idx["ticker"]], r[idx["bar_date"]], r[idx["open"]],
-                            r[idx["high"]], r[idx["low"]], r[idx["close"]], r[idx["volume"]]])
-                rows_parsed += 1
-                if rows_parsed % 500000 == 0:
-                    buf.seek(0)
-                    cur.copy_expert("COPY _venv_bars FROM STDIN WITH (FORMAT csv)", buf)
-                    buf.seek(0); buf.truncate(0)
-                    log(f"daily_bars: staged {rows_parsed} rows")
-        buf.seek(0)
-        cur.copy_expert("COPY _venv_bars FROM STDIN WITH (FORMAT csv)", buf)
-        cur.execute("""INSERT INTO daily_bars (symbol, bar_date, open, high, low, close, volume)
-            SELECT symbol, bar_date, open, high, low, close, volume FROM _venv_bars
-            ON CONFLICT (symbol, bar_date) DO UPDATE SET open=EXCLUDED.open,
-              high=EXCLUDED.high, low=EXCLUDED.low, close=EXCLUDED.close,
-              volume=EXCLUDED.volume""")
-    conn.commit()
-    os.remove(local_gz)
-    summary["tables"].append(dict(table="daily_bars", transport="s3_gzip",
-        rows_imported=rows_parsed, chunks_count=1, state="complete",
-        bytes_downloaded=nbytes,
-        wall_time_seconds=(datetime.now(timezone.utc) - t0).total_seconds()))
-    log(f"daily_bars: {rows_parsed} rows from {nbytes} gz bytes")
-    return "ok"
+    local = f"/tmp/venv_import_{os.path.basename(s3_key)}_{ts}"
+    s3.download_file(BUCKET, s3_key, local)
+    try:
+        with gzip.open(local, "rt") as f:
+            reader = csv.reader(f)
+            next(reader, None)                       # drop CSV header
+            body = io.StringIO()
+            w = csv.writer(body)
+            n = 0
+            for row in reader:
+                w.writerow(row); n += 1
+        body.seek(0)
+        with conn.cursor() as cur:
+            cur.execute("DROP TABLE IF EXISTS _venv_tmp")
+            cur.execute(temp_ddl)
+            if n:
+                cur.copy_expert(
+                    f"COPY _venv_tmp ({','.join(temp_cols)}) FROM STDIN WITH (FORMAT csv)", body)
+            cur.execute(upsert_sql)
+        conn.commit()
+        return n
+    finally:
+        try: os.remove(local)
+        except OSError: pass
 
 
-def run_chunked_spec(task_id, conn, ck, summary, spec):
-    t0 = datetime.now(timezone.utc)
-    src = int(prod_scalar(task_id, spec["count_sql"]))
-    start = ck.get(spec["table"], {}).get("last_key_value", spec["start_key"])
-    total, chunks = chunked_import(task_id, conn, spec["table"], spec["build"],
-        spec["key"], spec["temp_ddl"], spec["temp_cols"], spec["upsert"], ck, start)
-    summary["tables"].append(dict(table=spec["table"], transport="ecs_exec_chunked",
-        source_count_at_start=src, rows_imported=total, chunks_count=chunks, state="complete",
-        wall_time_seconds=(datetime.now(timezone.utc) - t0).total_seconds()))
+# ── Per-table specs (V3 column maps, verbatim) ──────────────────────────────
+def specs():
+    rdl_cols = ["ticker", "run_id", "generated_at_utc", "snapshot_row_json",
+                "decision_label", "reason_code", "reason_text"]
+    rs_cols = ["ticker", "run_id", "generated_at_utc", "asset_type", "quote_type",
+               "exchange", "company_name", "sector", "industry", "country", "market_cap",
+               "shares_outstanding", "float_shares", "profile_json", "updated_at"]
+    ptl_cols = ["id", "ticker", "run_id", "signal_class", "spy_dk", "s_uf", "bar_count",
+                "f_n", "d_k", "b_k", "vault_equity_at_signal", "risk_per_trade_pct",
+                "dollar_allocation", "shares", "atr_14", "alpaca_order_id",
+                "alpaca_take_profit_order_id", "alpaca_stop_loss_order_id",
+                "entry_limit_price", "take_profit_price", "stop_loss_price", "time_in_force",
+                "entry_filled_price", "entry_filled_at", "exit_filled_price", "exit_filled_at",
+                "p_l", "p_l_pct", "exit_reason", "status", "rationale_json",
+                "signal_detected_at", "created_at", "updated_at"]
+    return [
+        dict(table="runtime_decisions_latest",
+             key=f"{PREFIX}/venv_export__runtime_decisions_latest.csv.gz",
+             proj=("SELECT " + ",".join(rdl_cols) +
+                   " FROM runtime_decisions_latest ORDER BY ticker ASC"),
+             count="SELECT COUNT(*) FROM runtime_decisions_latest",
+             temp_ddl="""CREATE TEMP TABLE _venv_tmp (ticker text, run_id text,
+                 generated_at_utc timestamptz, snapshot_row_json jsonb,
+                 decision_label text, reason_code text, reason_text text)""",
+             temp_cols=rdl_cols,
+             upsert="""INSERT INTO runtime_decisions_latest
+                 (ticker,run_id,generated_at_utc,snapshot_row_json,decision_label,
+                  reason_code,reason_text,kernel_sha,source)
+                 SELECT ticker,run_id,generated_at_utc,snapshot_row_json,decision_label,
+                  reason_code,reason_text,NULL,'production_import' FROM _venv_tmp
+                 ON CONFLICT (ticker) DO UPDATE SET run_id=EXCLUDED.run_id,
+                  generated_at_utc=EXCLUDED.generated_at_utc,
+                  snapshot_row_json=EXCLUDED.snapshot_row_json,
+                  decision_label=EXCLUDED.decision_label,reason_code=EXCLUDED.reason_code,
+                  reason_text=EXCLUDED.reason_text,source=EXCLUDED.source"""),
+        dict(table="runtime_symbols",
+             key=f"{PREFIX}/venv_export__runtime_symbols.csv.gz",
+             proj="SELECT " + ",".join(rs_cols) + " FROM runtime_symbols ORDER BY ticker ASC",
+             count="SELECT COUNT(*) FROM runtime_symbols",
+             temp_ddl="""CREATE TEMP TABLE _venv_tmp (ticker text, run_id text,
+                 generated_at_utc timestamptz, asset_type text, quote_type text,
+                 exchange text, company_name text, sector text, industry text,
+                 country text, market_cap float8, shares_outstanding float8,
+                 float_shares float8, profile_json jsonb, updated_at timestamptz)""",
+             temp_cols=rs_cols,
+             upsert=f"""INSERT INTO runtime_symbols ({','.join(rs_cols)})
+                 SELECT {','.join(rs_cols)} FROM _venv_tmp
+                 ON CONFLICT (ticker) DO UPDATE SET
+                 {','.join(f'{c}=EXCLUDED.{c}' for c in rs_cols if c != 'ticker')}"""),
+        dict(table="personal_trade_ledger",
+             key=f"{PREFIX}/venv_export__personal_trade_ledger.csv.gz",
+             proj="SELECT " + ",".join(ptl_cols) + " FROM personal_trade_ledger ORDER BY id ASC",
+             count="SELECT COUNT(*) FROM personal_trade_ledger",
+             temp_ddl="""CREATE TEMP TABLE _venv_tmp (
+                 id bigint, ticker text, run_id text, signal_class text, spy_dk int, s_uf float8,
+                 bar_count int, f_n float8, d_k int, b_k float8, vault_equity_at_signal float8,
+                 risk_per_trade_pct float8, dollar_allocation float8, shares int, atr_14 float8,
+                 alpaca_order_id text, alpaca_take_profit_order_id text, alpaca_stop_loss_order_id text,
+                 entry_limit_price float8, take_profit_price float8, stop_loss_price float8,
+                 time_in_force text, entry_filled_price float8, entry_filled_at timestamptz,
+                 exit_filled_price float8, exit_filled_at timestamptz, p_l float8, p_l_pct float8,
+                 exit_reason text, status text, rationale_json jsonb, signal_detected_at timestamptz,
+                 created_at timestamptz, updated_at timestamptz)""",
+             temp_cols=ptl_cols,
+             upsert=f"""INSERT INTO personal_trade_ledger ({','.join(ptl_cols)})
+                 SELECT {','.join(ptl_cols)} FROM _venv_tmp
+                 ON CONFLICT (id) DO UPDATE SET
+                 {','.join(f'{c}=EXCLUDED.{c}' for c in ptl_cols if c not in ('id','rationale_json'))},
+                 rationale_json = personal_trade_ledger.rationale_json || EXCLUDED.rationale_json"""),
+    ]
+
+
+def history_spec():
+    win = "generated_at_utc >= NOW() - INTERVAL '90 days'"
+    cols = ["ticker", "run_id", "generated_at_utc", "snapshot_row_json", "prod_source"]
+    return dict(
+        table="runtime_decisions_history",
+        key=f"{PREFIX}/venv_export__runtime_decisions_history__90d.csv.gz",
+        count=f"SELECT COUNT(*) FROM runtime_decisions_history WHERE {win}",
+        proj=("SELECT ticker, run_id, generated_at_utc, snapshot_row_json, source AS prod_source "
+              f"FROM runtime_decisions_history WHERE {win} "
+              "ORDER BY generated_at_utc ASC, ticker ASC"),
+        temp_ddl="""CREATE TEMP TABLE _venv_tmp (ticker text, run_id text,
+            generated_at_utc timestamptz, snapshot_row_json jsonb, prod_source text)""",
+        temp_cols=cols,
+        upsert="""INSERT INTO runtime_decisions_history
+            (ticker,run_id,generated_at_utc,snapshot_row_json,decision_label,kernel_sha,source)
+            SELECT ticker,run_id,generated_at_utc,snapshot_row_json,NULL,NULL,
+              COALESCE(prod_source,'production_import') FROM _venv_tmp
+            ON CONFLICT (ticker, generated_at_utc) DO NOTHING""")
 
 
 def find_task():
@@ -381,52 +261,86 @@ def find_task():
     return arns[0].split("/")[-1] if arns else None
 
 
+def local_count(conn, table):
+    with conn.cursor() as cur:
+        cur.execute(f"SELECT COUNT(*) FROM {table}")
+        return cur.fetchone()[0]
+
+
+def run_table(task_id, conn, summary, spec, src_count):
+    t0 = datetime.now(timezone.utc)
+    before = local_count(conn, spec["table"])
+    exp = export_to_s3(task_id, spec["table"], spec["proj"], spec["key"])
+    got = download_and_upsert(conn, spec["key"], spec["temp_ddl"], spec["temp_cols"], spec["upsert"])
+    after = local_count(conn, spec["table"])
+    summary["tables"].append(dict(
+        table=spec["table"], transport="s3_via_boto3", s3_object_key=spec["key"],
+        s3_object_size_bytes=exp.get("gz_bytes"), s3_etag=exp.get("s3_etag"),
+        source_rows_reported=src_count, helper_rows_copied=exp.get("rows_copied"),
+        local_rows_before=before, local_rows_after=after, csv_rows_imported=got,
+        wall_time_seconds=(datetime.now(timezone.utc) - t0).total_seconds(), errors=[]))
+    flag = "" if after >= src_count else f"  ⚠ local({after}) < source({src_count})"
+    log(f"{spec['table']}: source={src_count} helper_copied={exp.get('rows_copied')} "
+        f"before={before} after={after}{flag}")
+
+
 def main():
+    force_db = "--force-daily-bars" in sys.argv
     started = datetime.now(timezone.utc)
     task_id = find_task()
     if not task_id:
         log("STOP: no running tfe-web task found.")
         sys.exit(1)
     log(f"using ECS task {task_id}")
-    ck = ckpt_load()
+    stage_helper(task_id)
+    log("helper staged in container")
+
     conn = psycopg2.connect(LOCAL_DSN)
-    summary = {"started_at": started.isoformat(), "ecs_task_arn": task_id, "tables": []}
+    summary = {"started_at": started.isoformat(), "ecs_task_arn": task_id,
+               "c_investigation_result": {
+                   "uf_snapshot_usable": False,
+                   "reasoning": "uf_snapshot.json rows carry ticker/run_id/generated_at_utc and the "
+                                "raw kernel tuple, but decision_label/reason_code/reason_text and "
+                                "snapshot_row_json are ABSENT — not a proxy for runtime_decisions_latest",
+                   "fields_present": ["ticker", "run_id", "generated_at_utc", "kernel_tuple(43 fields)"]},
+               "tables": [], "skipped": {}}
     any_fail = False
 
-    # Chunked tables (each isolated; a failure stops that table, not the rest)
-    for spec_fn in (spec_runtime_decisions_latest, spec_runtime_symbols,
-                    spec_personal_trade_ledger):
-        spec = spec_fn()
+    for spec in specs():
         try:
-            run_chunked_spec(task_id, conn, ck, summary, spec)
+            src = int(container_scalar(task_id, spec["count"]))
+            run_table(task_id, conn, summary, spec, src)
         except Exception as e:
-            conn.rollback()
-            any_fail = True
-            summary["tables"].append(dict(table=spec["table"], state="failed", error=str(e)[:400]))
+            conn.rollback(); any_fail = True
+            summary["tables"].append(dict(table=spec["table"], state="failed", errors=[str(e)[:400]]))
             log(f"STOP {spec['table']}: {str(e)[:300]}")
 
-    for fn in (lambda: import_history(task_id, conn, ck, summary),
-               lambda: import_daily_bars(conn, summary)):
-        try:
-            r = fn()
-            if r == "stopped":
-                any_fail = True
-        except Exception as e:
-            conn.rollback()
+    # history with the 5M ceiling
+    hs = history_spec()
+    try:
+        hcount = int(container_scalar(task_id, hs["count"]))
+        summary["history_90d_count"] = hcount
+        log(f"runtime_decisions_history 90d count = {hcount}")
+        if hcount > HISTORY_MAX:
+            summary["skipped"]["runtime_decisions_history"] = f"90d count {hcount} > {HISTORY_MAX}"
             any_fail = True
-            summary["tables"].append(dict(state="failed", error=str(e)[:400]))
-            log(f"STOP (large table): {str(e)[:300]}")
+            log(f"STOP runtime_decisions_history: {hcount} > {HISTORY_MAX}")
+        else:
+            run_table(task_id, conn, summary, hs, hcount)
+    except Exception as e:
+        conn.rollback(); any_fail = True
+        summary["tables"].append(dict(table="runtime_decisions_history", state="failed", errors=[str(e)[:400]]))
+        log(f"STOP runtime_decisions_history: {str(e)[:300]}")
+
+    if not force_db:
+        summary["skipped"]["daily_bars"] = "v3_complete (9,760,067 rows, 5y)"
+        log("daily_bars: skipped (V3 import canonical; use --force-daily-bars to re-import)")
 
     summary["ended_at"] = datetime.now(timezone.utc).isoformat()
     summary["total_wall_time_seconds"] = (datetime.now(timezone.utc) - started).total_seconds()
     summary["final_state"] = "partial" if any_fail else "complete"
     conn.close()
-
-    if not any_fail and os.path.exists(CKPT_PATH):
-        os.remove(CKPT_PATH)
-        log("checkpoint deleted (clean completion)")
-
-    path = f"{SUMMARY_DIR}/validation_env_import_{started.strftime('%Y%m%dT%H%M%SZ')}.json"
+    path = f"{SUMMARY_DIR}/validation_env_import_v4b_{started.strftime('%Y%m%dT%H%M%SZ')}.json"
     with open(path, "w") as f:
         json.dump(summary, f, indent=2)
     log(f"summary → {path} | state={summary['final_state']}")
