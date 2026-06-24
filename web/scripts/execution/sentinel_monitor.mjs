@@ -541,7 +541,11 @@ export async function runSentinel() {
   // and inserts them so EXIT-F/H/C/D can manage them. entry_timing_watcher
   // places orders throughout the day — if the ledger status update fails,
   // those positions become invisible to sentinel. This catches them.
-  {
+  orphanSync: {
+    if (process.env.TFE_ENTRIES_HALTED === '1') {
+      console.log('[SENTINEL] orphan_sync skipped — kill switch on (F-007a)');
+      break orphanSync;
+    }
     try {
       const alpacaPositions = await alpacaGet("/v2/positions", ALPACA_BASE).catch(() => []);
       if (Array.isArray(alpacaPositions) && alpacaPositions.length > 0) {
