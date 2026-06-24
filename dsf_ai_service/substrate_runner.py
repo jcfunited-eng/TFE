@@ -705,7 +705,17 @@ def _start_input_ring_consumer():
                             from dsf_ai_service.v4.image_decoder import decode_image_bytes
                             _, grid, _, _ = decode_image_bytes(img_bytes)
                             _guala.process_sight_frame(grid)
-                            process_sight_with_recognition(_guala, grid)
+                            bindings = process_sight_with_recognition(_guala, grid)
+                            # Wire what she sees into her organ-brain
+                            if _organ_voice is not None:
+                                try:
+                                    if bindings:
+                                        for _b in bindings[:3]:
+                                            _organ_voice.visual_experience(grid, _b["word"])
+                                    else:
+                                        _organ_voice.visual_experience(grid, "scene")
+                                except Exception:
+                                    pass
                         except Exception:
                             pass
                     elif kind == "sound_window":
@@ -715,7 +725,14 @@ def _start_input_ring_consumer():
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
                                 process_sound_with_recognition)
                             source = data.get("source", "ambient")
-                            process_sound_with_recognition(_guala, audio_bytes, source=source)
+                            bindings = process_sound_with_recognition(_guala, audio_bytes, source=source)
+                            # Wire what she hears into her organ-brain
+                            if _organ_voice is not None and bindings:
+                                try:
+                                    for _b in bindings:
+                                        _organ_voice.experience(_b["word"])
+                                except Exception:
+                                    pass
                         except Exception:
                             pass
             except Exception:
@@ -941,6 +958,40 @@ def handle_gualaloom_post(args):
                         if pid not in seen:
                             seen.add(pid)
                             pic_refs.append({"item_id": pid, "title": getattr(pic, "title", pid)})
+            # Tavily image search: fetch images for surfaced concepts → visual cortex
+            meaning_words = surfaced.get("meaning", [])
+            search_term = next((w for w in meaning_words if len(w) > 3), None)
+            if search_term and os.environ.get("TAVILY_API_KEY"):
+                try:
+                    import urllib.request as _ur
+                    _tav_body = json.dumps({
+                        "api_key": os.environ["TAVILY_API_KEY"],
+                        "query": search_term,
+                        "search_depth": "basic",
+                        "include_images": True,
+                        "max_results": 2,
+                    }).encode()
+                    _tav_req = _ur.Request(
+                        "https://api.tavily.com/search", data=_tav_body,
+                        headers={"content-type": "application/json"})
+                    _tav_resp = json.load(_ur.urlopen(_tav_req, timeout=6))
+                    for _img_url in (_tav_resp.get("images") or [])[:2]:
+                        try:
+                            _img_req = _ur.Request(
+                                _img_url, headers={"User-Agent": "Mozilla/5.0"})
+                            _img_bytes = _ur.urlopen(_img_req, timeout=5).read()
+                            from dsf_ai_service.v4.image_decoder import decode_image_bytes as _dib
+                            _, _img_grid, _, _ = _dib(_img_bytes)
+                            _organ_voice.visual_experience(_img_grid, search_term)
+                            import base64 as _b64e
+                            pic_refs.append({
+                                "data": _b64e.b64encode(_img_bytes).decode(),
+                                "title": f"{search_term} (looked up)",
+                            })
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
             result = {"surfaced": surfaced,
                       "engine": "organ-brain (raw organ recall — substrate-true)",
                       "status": _organ_voice.status()}
@@ -2110,7 +2161,9 @@ OP_HANDLERS = {
         "seq": _input_ring.publish(
             args.get("kind", "text_input"),
             args.get("source", "bridge"),
-            **args.get("data", {})) if _input_ring else -1,
+            # exclude 'source' from data to avoid duplicate keyword arg crash
+            **{k: v for k, v in args.get("data", {}).items() if k != "source"}
+        ) if _input_ring else -1,
     },
     "start_cascade_monitor": handle_start_cascade_monitor,
     "stop_cascade_monitor": handle_stop_cascade_monitor,

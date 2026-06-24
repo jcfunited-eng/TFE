@@ -394,11 +394,21 @@ function startContinuousSTT(){
       const t=final.trim();
       if(_sttCooldown||t===_sttLastSent){liveT.textContent='(waiting...)';return}
       _sttLastSent=t;liveT.textContent='';
-      // Passive listening — she hears it, no forced response
-      // Only typed messages (keyboard) trigger converse
       addMsg(t,'user');
-      fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({text:t,source:'joe',command:'/listen'})},8000).catch(()=>{});
+      if(_brainMode){
+        // In brain mode, voice reaches her organ-brain and she responds
+        fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({text:t,command:'/organ_voice'})},15000)
+          .then(r=>r.json()).then(d=>{
+            if(d.surfaced){addEmissionMsg(_formatOrganBrainResponse(d),null);}
+            else if(d.response){addMsg(d.response,'system')}
+            if(d.pictures)renderPictures(d.pictures);
+          }).catch(()=>{});
+      }else{
+        // Passive listening — she hears it, no forced response
+        fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({text:t,source:'joe',command:'/listen'})},8000).catch(()=>{});
+      }
       _sttCooldown=true;setTimeout(()=>{_sttCooldown=false;_sttLastSent=''},4000);
     }
   };
@@ -581,6 +591,8 @@ function renderPictures(pics){
     const div=document.createElement('div');div.className='msg substrate';
     if(p.data){
       div.innerHTML='<img src="data:image/jpeg;base64,'+p.data+'" style="max-width:240px;border-radius:6px"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
+    }else if(p.url){
+      div.innerHTML='<img src="'+p.url+'" style="max-width:240px;border-radius:6px" onerror="this.style.display=\'none\'"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
     }else if(p.item_id){
       div.textContent='loading '+(p.title||p.item_id)+'...';
       (async(el,pid)=>{
