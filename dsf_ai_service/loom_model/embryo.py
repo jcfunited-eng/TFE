@@ -295,17 +295,40 @@ class Embryo:
         """Population-vote recall (resonant ternary chi). Verified n=200 -> 100%."""
         return self.brain.recall(signals)
 
-    def recall_op(self, op_tag, signals):
-        """Population vote within ONE operation-hemisphere. Each operation reads the
-        same chi substrate but votes only over its own organ's bindings."""
+    def _sc_proj(self, neuron, dim):
+        """Per-sc-neuron projection over the PROFILE feature (meaning read), distinct
+        from the spectral projection em/pr/ep use for capacity."""
+        from dsf_ai_service.loom_model import resonant_chi as rc
+        if not hasattr(self, "_scP"):
+            self._scP = {}
+        key = neuron.neuron_id
+        if key not in self._scP:
+            self._scP[key] = rc.neuron_projection(("sc", key), dim)
+        return self._scP[key]
+
+    def _sc_encode(self, neuron, profile):
+        from dsf_ai_service.loom_model import resonant_chi as rc
+        return rc.ternary_chi(profile, self._sc_proj(neuron, len(profile)))
+
+    def recall_op(self, op_tag, signals, profile=None):
+        """Population vote within ONE operation-hemisphere. em/pr/ep read the spectral
+        chi (capacity); sc reads the stable profile chi (meaning)."""
         from collections import Counter
         votes = Counter()
         for n in self.hemi_by_op[op_tag].cluster.neurons:
-            tv = n.encode_state(signals)
-            best, _ = n.binding_atlas.recall_best(tv)
+            if op_tag == "sc" and profile is not None:
+                q = self._sc_encode(n, profile)
+            else:
+                q = n.encode_state(signals)
+            best, _ = n.binding_atlas.recall_best(q)
             if best is not None:
                 votes[best] += 1
         return votes
+
+    def sc_learn(self, concept, profile):
+        """sc binds the concept by its stable grounded profile -> semantic chi."""
+        for n in self.hemi_by_op["sc"].cluster.neurons:
+            n.binding_atlas.record(concept, self._sc_encode(n, profile), self.tick)
 
     def perceive_sequence(self, concepts, pipe):
         """Substrate-true seeds, differentiated only by BINDING POLICY on one chi

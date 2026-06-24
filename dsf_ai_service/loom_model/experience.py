@@ -124,6 +124,26 @@ class ExperiencePipeline:
             "folds": dict(self.brain._last_fold_ids) if self.brain._last_fold_ids else {},
         }
 
+    def mean_profile(self, word: str) -> np.ndarray:
+        """The senses' STABLE per-channel intensity profile (averaged percept), the
+        read meaning lives in. Uses the catalog distribution MEAN when available
+        (not a noisy per-instance sample); falls back to a deterministic transduce.
+        See GL-RPT-MEANING-IS-SENSES: meaning rises directly with this fidelity."""
+        from dsf_ai_service.substrate.sensory_transducer import MODALITY_CHANNELS
+        reader = self.transducer.atlas_reader
+        v: List[float] = []
+        for mod, chans in MODALITY_CHANNELS.items():
+            mean = None
+            if hasattr(reader, "get_distribution"):
+                dist = reader.get_distribution(word, mod)
+                if dist is not None:
+                    mean = dist[0]
+            # Absence of grounding in a modality reads as ZERO, not hallucinated
+            # noise — random fill swamps real channels and destroys meaning.
+            for ch in chans:
+                v.append(float(mean.get(ch, 0.0)) if mean is not None else 0.0)
+        return np.array(v)
+
     def _build_multi_modal_signals(self, word: str, tick: int = 0) -> Dict[str, Any]:
         """Build per-modality signals for cognition binding.
 
