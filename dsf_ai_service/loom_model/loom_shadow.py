@@ -38,6 +38,22 @@ def loom_shadow_status(state_dir: str, expected_identity_prefix: str = "") -> Di
 
         guard = (g.passes_identity_guard(expected_identity_prefix)
                  if expected_identity_prefix else len(g.vocab) >= 100)
+
+        # THE COMPLETE EMBRYO — bring up all 8 operation-hemispheres + cognitive
+        # seeds, alive in her container, beside her memory. Read-only shadow.
+        from dsf_ai_service.loom_model.embryo import Embryo, OPERATIONS
+        emb = Embryo(brain_seed=42, seed_size=8)
+        emb.sv_anchor(g.identity or "guala")        # anchor identity into sv organ
+        op_meaning = {"em": "perception", "pr": "prediction", "ep": "episodic",
+                      "sc": "semantic", "gp": "goals", "sf": "self-model",
+                      "sv": "survival/identity", "aff": "affect-regulator"}
+        hemispheres = []
+        for h in emb.brain.hemispheres:
+            tag = emb.op[h.hemi_id][0]
+            hemispheres.append({"hemi": h.hemi_id, "op": tag,
+                                "does": op_meaning.get(tag, tag),
+                                "neurons": len(h.cluster.neurons)})
+
         return {
             "loom_shadow": "alive",
             "loaded_from": state_dir,
@@ -51,6 +67,14 @@ def loom_shadow_status(state_dir: str, expected_identity_prefix: str = "") -> Di
             "passes_identity_guard": guard,
             "bonds_preserved": bonds,
             "strongest_memories": top,
+            # the deployed brain
+            "embryo": {
+                "hemispheres": hemispheres,
+                "total_neurons": emb.brain.total_neurons(),
+                "operations_live": [o for o, _ in OPERATIONS],
+                "identity_anchored": getattr(emb, "_identity", None),
+                "her_memory_preserved_alongside": g.atlas.n_bindings(),
+            },
             "primary_engine_touched": False,
             "state_written": False,
         }
