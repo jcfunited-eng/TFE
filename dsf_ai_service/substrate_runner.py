@@ -931,7 +931,7 @@ def handle_gualaloom_post(args):
             surfaced = _organ_voice.surface(cue_profile=cue_profile)
             # Find pictures associated with surfaced concepts (by title match)
             all_surfaced = surfaced.get("identity", []) + surfaced.get("meaning", [])
-            pics = getattr(g, "_pictures", {}) or {}
+            pics = getattr(_guala, "_pictures", {}) or {}
             pic_refs = []
             seen = set()
             for concept in all_surfaced:
