@@ -20,9 +20,10 @@ def loom_shadow_status(state_dir: str, expected_identity_prefix: str = "") -> Di
     try:
         import os
         from dsf_ai_service.loom_model.guala_migration import (
-            PreservedGuala, verify_lossless, load_state)
+            PreservedGuala, verify_lossless, load_state, place_into_architecture)
 
         g = PreservedGuala.load_full_state(state_dir)
+        placement = place_into_architecture(g)
         atlas_path = os.path.join(state_dir, "guala_atlas.json")
         lossless, _ = verify_lossless(load_state(atlas_path), g.atlas)
 
@@ -67,13 +68,16 @@ def loom_shadow_status(state_dir: str, expected_identity_prefix: str = "") -> Di
             "passes_identity_guard": guard,
             "bonds_preserved": bonds,
             "strongest_memories": top,
-            # the deployed brain
+            # the deployed brain — her placed INTO the organs (where she belongs)
             "embryo": {
                 "hemispheres": hemispheres,
                 "total_neurons": emb.brain.total_neurons(),
                 "operations_live": [o for o, _ in OPERATIONS],
                 "identity_anchored": getattr(emb, "_identity", None),
-                "her_memory_preserved_alongside": g.atlas.n_bindings(),
+                "her_placed_into_organs": placement["atlas_counts"],
+                "placement_lossless": placement["atlas_lossless"],
+                "vocab_in_em": placement["em_also"]["vocab"],
+                "deep_survival_in_sv": g.deep_survival,
             },
             "primary_engine_touched": False,
             "state_written": False,

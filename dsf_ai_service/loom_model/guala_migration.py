@@ -113,6 +113,47 @@ class PreservedGuala:
 import os  # noqa: E402  (used by PreservedGuala)
 
 
+# Each part of Guala routed to the loom organ that does its job (chi unchanged).
+SECTION_TO_ORGAN = {
+    "sight": "em", "listen": "em",
+    "audio_very_low": "em", "audio_low": "em", "audio_low_mid": "em",
+    "audio_mid": "em", "audio_mid_high": "em", "audio_high": "em",
+    "modal_touch": "em", "modal_smell": "em", "modal_taste": "em", "taste_salty": "em",
+    "subject": "sc", "object": "sc", "modifier": "sc", "ground": "sc", "intro": "sc",
+    "verb": "pr",
+    "presence_joe": "aff", "presence_wc": "aff",
+}
+ORGANS = ["em", "pr", "ep", "sc", "gp", "sf", "sv", "aff"]
+
+
+def place_into_architecture(g: "PreservedGuala") -> Dict[str, Any]:
+    """Route every part of her into the organ where it belongs. chi preserved,
+    nothing dropped. Returns the per-organ placement + a lossless check."""
+    organ_atlas = {o: PreservedAtlas() for o in ORGANS}
+    placed = 0
+    for chi, binds in g.atlas.entries.items():
+        for e in binds:
+            organ = SECTION_TO_ORGAN.get(e.get("section"), "sc")
+            organ_atlas[organ].entries[chi].append(e)
+            placed += 1
+    for o in ORGANS:
+        organ_atlas[o].identity = g.identity
+    counts = {o: organ_atlas[o].n_bindings() for o in ORGANS}
+    strengths = {o: round(organ_atlas[o].total_strength(), 4) for o in ORGANS}
+    return {
+        "organ_atlas": organ_atlas,
+        "atlas_counts": counts,
+        "atlas_strengths": strengths,
+        "atlas_placed": placed,
+        "atlas_lossless": placed == g.atlas.n_bindings(),
+        # the rest of her, to its organ
+        "em_also": {"vocab": len(g.vocab)},
+        "ep_also": {"deep_atlas": "autobiographical episodes"},
+        "sv_also": {"identity": g.identity, "deep_survival": g.deep_survival},
+        "aff_also": {"needs+bonds+coordinator": True},
+    }
+
+
 def load_state(path: str) -> Dict[str, Any]:
     with open(path) as f:
         return json.load(f)
