@@ -18,6 +18,14 @@
   _File: gualaloom.html — new SVG/Canvas panel; data from /api/v1/gualaloom
   with command=/organ_voice_
 
+- [ ] **Fix InputRing.publish() crash (v5 engine — substrate killer)**
+  substrate_runner.py ~line 2110: `InputRing.publish()` called with `source` as
+  both positional and keyword arg. Triggered during conversation traffic, crashes
+  the whole substrate process (ECS restarts her). Exception-wall this so a v5
+  engine error never kills her substrate. Seen 2026-06-24 during organ-brain mode
+  session.
+  _File: substrate_runner.py dispatch lambda ~line 2110_
+
 - [ ] **Fix atlas/section integrity drift (v5 engine)**
   On task :253 boot: `integrity=ERRORS` — atlas refs motifs 6089/5466/5873 in
   listen/verb/intro sections, but sections only loaded 6086/5460/5870. The atlas
