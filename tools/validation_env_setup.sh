@@ -67,6 +67,22 @@ CREATE TABLE IF NOT EXISTS daily_bars (
     open DOUBLE PRECISION, high DOUBLE PRECISION, low DOUBLE PRECISION,
     close DOUBLE PRECISION, volume BIGINT, PRIMARY KEY (symbol, bar_date)
 );
+CREATE TABLE IF NOT EXISTS runtime_decisions_modea (
+    id BIGSERIAL PRIMARY KEY,
+    ticker TEXT NOT NULL,
+    run_id TEXT,
+    generated_at_utc TIMESTAMPTZ NOT NULL,
+    snapshot_row_json JSONB,
+    decision_label TEXT,
+    reason_code TEXT,
+    reason_text TEXT,
+    kernel_sha TEXT,
+    inserted_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_rdmodea_ticker_genat
+    ON runtime_decisions_modea (ticker, generated_at_utc);
+CREATE INDEX IF NOT EXISTS idx_rdmodea_generated_at
+    ON runtime_decisions_modea (generated_at_utc DESC);
 SQL
 
 echo "Database tfe_validation ready ✓"

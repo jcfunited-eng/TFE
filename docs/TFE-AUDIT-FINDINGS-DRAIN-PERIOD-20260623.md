@@ -149,4 +149,33 @@ structural moment can add `DISTINCT ON (ticker, generated_at_utc)`
 where it matters. A schema-level constraint in prod requires a
 migration that handles the existing duplicates first — separate work.
 
+### F-009 — Recurrent shared-branch tangling between wC and Codex sessions
+**Source:** validation-env work session 2026-06-24, observed three times.
+**Detail:** The branch `codex/persistent-etl-update-20260326` is being
+worked concurrently by two agents — wC (web Claude, this session) and
+a separate Codex session. The Codex session has rebased shared history
+at least once during the session, orphaning a session-start base from
+origin's history. The result: wC's local commits diverge from origin
+(12 ahead / 62 behind at the time of this finding), risking either
+loss of wC's work on a hard reset or clobber of Codex's uncommitted
+working-tree changes on a force operation.
+**Workaround used (this finding's session):** Land via isolated
+`git worktree` at origin's current tip. Apply edits in the worktree,
+commit, push, discard worktree. Main checkout untouched. This
+succeeded for the refresh.py + setup.sh modea change but does not
+scale to longer-lived parallel work.
+**Disposition:** BLOCKS-FRESH-RUN as a procedural rule, not a code
+fix. The fresh-ledger cutover and the subsequent Mar 26 wire-in must
+happen with a single agent on the branch at a time. Joe coordinates
+via:
+  - A single named coordination doc (`docs/BRANCH_OWNERSHIP.md`) that
+    states which agent currently holds the branch and what the active
+    change is, OR
+  - A pre-action protocol where the inactive agent's session is
+    paused while the active agent ships, OR
+  - Separate working branches per agent, with explicit merge-to-main
+    events.
+Procedural decision pending Joe. Until decided, every wC-side push
+uses the worktree pattern from this finding.
+
 ## Add new findings below this line
