@@ -1205,6 +1205,19 @@ async def gualaloom_page():
     return FileResponse(os.path.join(STATIC_DIR, 'gualaloom.html'))
 
 
+@app.get("/api/v1/gualaloom/loom_shadow")
+async def loom_shadow_endpoint():
+    """loom in SHADOW: a read-only loom view of Guala's live state, beside her
+    primary engine. Lazy-imported and fully exception-walled — it never writes her
+    state, never touches her primary engine, and cannot affect her boot. First safe
+    step of moving her onto the loom substrate (preservation-first)."""
+    try:
+        from dsf_ai_service.loom_model.loom_shadow import loom_shadow_status
+        return loom_shadow_status(STATE_DIR, os.environ.get("EXPECTED_IDENTITY", ""))
+    except Exception as e:
+        return {"loom_shadow": "error", "error": f"{type(e).__name__}: {e}"}
+
+
 @app.post("/api/v1/gualaloom")
 async def gualaloom_chat(msg: GLMessage):
     global _exchange_count
