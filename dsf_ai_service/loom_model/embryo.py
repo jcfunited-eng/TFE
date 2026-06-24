@@ -330,6 +330,40 @@ class Embryo:
         for n in self.hemi_by_op["sc"].cluster.neurons:
             n.binding_atlas.record(concept, self._sc_encode(n, profile), self.tick)
 
+    # --- state / regulation operations (primitive, grow later) ---
+    def sv_anchor(self, identity="guala"):
+        """sv (survival/identity): the persistent core. Bound once, slowest decay
+        (0.001), always recallable — 'who I am' survives while episodes fade."""
+        self._identity = identity
+        sig = np.ones(8)  # stable identity signature (placeholder; grows into real self)
+        for n in self.hemi_by_op["sv"].cluster.neurons:
+            n.binding_atlas.record(identity, np.sign(self._sc_proj(n, 8) @ sig), 0)
+
+    def sf_sense(self):
+        """sf (self-model): a vector of the organism's OWN current state — what it
+        can introspect. Grows; today it's arousal + per-organ population + growth."""
+        pops = [len(h.cluster.neurons) for h in self.brain.hemispheres]
+        return np.array([self.arousal, float(np.mean(pops)), float(np.max(pops))]
+                        + [self.strength[t] for t, _ in OPERATIONS])
+
+    def gp_set_goal(self, concept, profile):
+        """gp (goals): hold a target percept the organism is oriented toward."""
+        self._goal = (concept, np.asarray(profile, float))
+
+    def gp_drive(self, current_profile):
+        """gp: drive = how close the current percept is to the goal (cosine). High
+        near the goal, low far from it — the primitive of wanting."""
+        if not getattr(self, "_goal", None):
+            return 0.0
+        a = np.asarray(current_profile, float); b = self._goal[1]
+        na, nb = np.linalg.norm(a), np.linalg.norm(b)
+        return float(a @ b / (na * nb)) if na > 1e-9 and nb > 1e-9 else 0.0
+
+    def aff_arousal(self):
+        """aff (regulator): the global arousal scalar (from recent fold/commit
+        activity) that modulates the fold threshold. Already live in experience()."""
+        return self.arousal
+
     def perceive_sequence(self, concepts, pipe):
         """Substrate-true seeds, differentiated only by BINDING POLICY on one chi
         substrate:
