@@ -1,0 +1,30 @@
+{
+  "deploy_timestamp": "2026-06-24T22:22:00Z",
+  "command_id": "TFE-CMD-DEPLOY-MIGRATIONS-007-008-HTBK-20260624",
+  "migrations_applied": ["007", "008"],
+  "pre_state_file": "backups/htbk_pre_migration_state_20260624T221800Z.txt",
+  "ecs_task_id": "7dc66cc32daa4437932ee0add33205cf",
+  "task_definition": "tfe-web-task:551",
+  "kill_switch_state_before": "1",
+  "kill_switch_state_after": "1",
+  "migration_007": {
+    "result": "UPDATE 1",
+    "assert": "NOTICE: HTBK merger ledger correction OK",
+    "row_7532_post": {"status": "closed", "exit_filled_price": 13.44, "p_l": -0.67, "exit_reason": "delisted_merger_HTBK_to_CVBF"}
+  },
+  "migration_008": {
+    "result": "UPDATE 1",
+    "assert": "NOTICE: HTBK orphan neutralized (id=364 p_l=0); canonical close intact (id=7532 p_l=-0.67)",
+    "row_364_post": {"status": "closed", "p_l": 0, "orphan_note": "orphan: superseded by migration 007 canonical merger close (HTBK->CVBF, row id 7532); retained for audit trail, excluded from P&L"},
+    "row_7532_post": {"status": "closed", "p_l": -0.67, "exit_reason": "delisted_merger_HTBK_to_CVBF"}
+  },
+  "drain_positions_before": 19,
+  "drain_positions_after": 18,
+  "ledger_cost_basis_before": 36532.70,
+  "ledger_cost_basis_after": 35631.55,
+  "ledger_cost_basis_delta": -901.15,
+  "htbk_cost_basis_removed": 901.15,
+  "alpaca_note": "HTBK phantom shares (67 shares, inactive) remain visible on Alpaca side as expected. Ledger now closed; Alpaca cannot close the merged-out position via API. Expected divergence between ledger (18 open) and Alpaca (19 positions incl. phantom HTBK).",
+  "operator": "c1 (Sonnet 4.6) via ECS Exec",
+  "origin_sha_at_deploy": "9f1b71b"
+}

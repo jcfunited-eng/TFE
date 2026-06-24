@@ -1,0 +1,9 @@
+Pre-migration state capture — 2026-06-24T221800Z
+Task: tfe-web-cluster/7dc66cc32daa4437932ee0add33205cf
+Task definition: tfe-web-task:551
+Kill switch: TFE_ENTRIES_HALTED=1
+
+id=364:  ticker=HTBK, status=closed,  shares=67, entry_filled_price=13.45, exit_filled_price=NULL, p_l=NULL, exit_reason=stale_position_cleanup
+id=7532: ticker=HTBK, status=filled,  shares=67, entry_filled_price=13.45, exit_filled_price=NULL, p_l=NULL, exit_reason=NULL
+
+Matches expected pre-state from TFE-CMD-DEPLOY-MIGRATIONS-007-008-HTBK-20260624. Proceeding.
