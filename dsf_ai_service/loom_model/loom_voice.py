@@ -160,6 +160,35 @@ class OrganVoice:
                 n = self.experience(c)
         return n
 
+    def visual_experience(self, grid_2d, concept):
+        """What she SEES becomes a felt experience: image → visual cortex → organ-brain growth.
+
+        grid_2d: 2D numpy array (grayscale, 0-1), e.g. the 64x64 intensity_grid from
+                 her picture objects. Runs through V1 → V2 → LOC, maps the cortex
+                 output to 5 visual receptor channels, and folds her organs exactly
+                 as a taste/smell experience does. Returns neuron count. Never raises.
+        """
+        try:
+            from dsf_ai_service.substrate.senses.GL_MDL_VISUAL_CORTEX_WC_20260608_01 import (
+                visual_percept_hierarchical)
+            loc = visual_percept_hierarchical(grid_2d)
+            amps = np.abs(loc["state"])
+            # Map LOC features → 5 visual receptor channels (0-1 each)
+            receptors = {
+                "luminance":       float(np.clip(loc["v1_total_winding"] / 300.0, 0, 1)),
+                "edge_density":    float(np.clip(amps.mean() * 4.0, 0, 1)),
+                "form_complexity": float(np.clip(abs(loc["chi"]) / 8.0, 0, 1)),
+                "contrast":        float(np.clip(float(amps.max() - amps.min()) * 3.0, 0, 1)),
+                "shape_coherence": float(np.clip(float(amps.std()) * 5.0, 0, 1)),
+            }
+            self.emb.experience(concept, {"visual": receptors}, theta=0.05)
+            self._world[concept] = [receptors[k] for k in
+                                    ("luminance", "edge_density", "form_complexity",
+                                     "contrast", "shape_coherence")]
+        except Exception:
+            pass
+        return sum(len(h.cluster.neurons) for h in self.emb.brain.hemispheres)
+
     # --- recall from an organ ---
     def _recall(self, op, profile=None):
         try:

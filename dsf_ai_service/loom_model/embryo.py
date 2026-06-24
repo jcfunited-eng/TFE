@@ -25,7 +25,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 from dsf_ai_service.loom_model.brain import LoomBrain
 from dsf_ai_service.loom_model.neuron import FOLD_TRIGGER_RATIO, LoomNeuron
 from dsf_ai_service.loom_model.substrate_dna import derive_daughter_parameters, K_TOTAL
-from dsf_ai_service.substrate.sensory_generators import generate_taste_waveform, generate_smell_waveform
+from dsf_ai_service.substrate.sensory_generators import (
+    generate_taste_waveform, generate_smell_waveform, generate_visual_waveform)
 
 
 def resonance(events):
@@ -85,7 +86,12 @@ def bipolar_sense(receptors, modality):
     """Receptor combination -> bipolar (change-detection) sensory waveform.
     Biological: receptors fire on the derivative (onset +, offset -), which crosses
     zero and can wind the krimelack both ways."""
-    gen = generate_taste_waveform if modality == "taste" else generate_smell_waveform
+    if modality == "taste":
+        gen = generate_taste_waveform
+    elif modality == "visual":
+        gen = generate_visual_waveform
+    else:
+        gen = generate_smell_waveform
     wf = gen(receptors)
     chans = [np.gradient(wf[k]) * 20.0 for k in sorted(wf.keys())]
     return np.concatenate(chans)

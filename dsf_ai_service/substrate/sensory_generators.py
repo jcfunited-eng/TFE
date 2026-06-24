@@ -290,6 +290,49 @@ def generate_sensory_signals(sense_name, selections):
     return gen(combined)
 
 
+def generate_visual_waveform(params, n_samples=200, sample_rate=100):
+    """Generate a 5-channel visual temporal signal from LOC-derived features.
+
+    Channels map to distinct visual cortex outputs with biologically-motivated
+    onset dynamics (Thorpe/VanRullen rapid-serial-visual-presentation timescales):
+      luminance:       fast onset (~20ms) — immediate brightness detection
+      edge_density:    medium onset (~50ms) — V1 edge integration
+      form_complexity: slow onset (~120ms) — object recognition in LOC
+      contrast:        fast onset, rapid adaptation (Weber's law)
+      shape_coherence: slow onset (~200ms) — figure/ground binding
+    """
+    t = np.linspace(0, 2.0, n_samples)
+    # onset tau (seconds): faster = more peripheral/low-level
+    onset = {
+        "luminance":       0.02,
+        "edge_density":    0.05,
+        "form_complexity": 0.12,
+        "contrast":        0.025,
+        "shape_coherence": 0.20,
+    }
+    # adaptation tau (how fast it normalizes away)
+    adapt = {
+        "luminance":       0.8,
+        "edge_density":    3.0,
+        "form_complexity": 5.0,
+        "contrast":        0.3,
+        "shape_coherence": 4.0,
+    }
+    signals = {}
+    for channel, intensity in params.items():
+        if intensity < 0.01:
+            signals[channel] = np.zeros(n_samples)
+            continue
+        tau_on  = onset.get(channel, 0.1)
+        tau_off = adapt.get(channel, 2.0)
+        rise   = 1.0 - np.exp(-t / tau_on)
+        fade   = np.exp(-np.maximum(t - 0.5, 0) / tau_off)
+        seed   = sum(ord(c) for c in channel) * 11 + 7
+        noise  = np.random.default_rng(seed).standard_normal(n_samples) * 0.04
+        signals[channel] = intensity * rise * fade + noise * intensity
+    return signals
+
+
 def transduce_sensory_signals(signals):
     """Run generated waveforms through krimelack transduction.
     Returns dict of channel_name → {winding, chi} for per-channel binding (1.2).

@@ -566,6 +566,30 @@ def boot_substrate():
                 # Full catalog fill — grind all remaining vocab through the LLM senses
                 # emulator in the background, 20 words per batch, saving after each so
                 # partial fills survive restarts. Already-cached words are skipped.
+                # Ground her pictures through the visual cortex into the organ-brain.
+                # She's seen the moon 17k+ times — now she feels it.
+                def _ground_pictures(ov=_ov):
+                    import time as _t
+                    try:
+                        pics = getattr(g, "_pictures", {}) or {}
+                        grounded = 0
+                        for item_id, pic in pics.items():
+                            try:
+                                grid = getattr(pic, "intensity_grid", None)
+                                title = getattr(pic, "title", item_id)
+                                if grid is None or not hasattr(grid, "shape"):
+                                    continue
+                                ov.visual_experience(grid, title)
+                                grounded += 1
+                                _t.sleep(0.3)
+                            except Exception:
+                                continue
+                        print(f"[organ-voice] pictures grounded: {grounded}/{len(pics)} "
+                              f"through visual cortex → organ-brain")
+                    except Exception as _pe:
+                        print(f"[organ-voice] picture grounding skipped (non-fatal): {_pe}")
+                _th.Thread(target=_ground_pictures, daemon=True).start()
+
                 if _ak:
                     def _full_catalog_fill(ov=_ov, vocab=_vw):
                         import time as _t
