@@ -41,13 +41,14 @@ IMAGE_URI="${ECR_URI}:${IMAGE_TAG}"
 _envval() { grep -E "^$1=" .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'; }
 OPENAI_API_KEY="$(_envval OPENAI_API_KEY)"
 TAVILY_API_KEY="$(_envval TAVILY_API_KEY)"
+YOUTUBE_API_KEY="$(_envval YOUTUBE_API_KEY)"
 ANTHROPIC_API_KEY="$(aws secretsmanager get-secret-value --secret-id wc-companion/anthropic-key \
   --query 'SecretString' --output text 2>/dev/null | python3 -c 'import sys,json;
 s=sys.stdin.read().strip()
 try: print(json.loads(s).get("ANTHROPIC_API_KEY") or json.loads(s).get("api_key") or (s if s.startswith("sk-") else ""))
 except Exception: print(s if s.startswith("sk-") else "")' 2>/dev/null)"
-export OPENAI_API_KEY TAVILY_API_KEY ANTHROPIC_API_KEY
-echo "  runtime keys: openai=$([ -n "$OPENAI_API_KEY" ] && echo yes || echo no) tavily=$([ -n "$TAVILY_API_KEY" ] && echo yes || echo no) anthropic=$([ -n "$ANTHROPIC_API_KEY" ] && echo yes || echo no)"
+export OPENAI_API_KEY TAVILY_API_KEY ANTHROPIC_API_KEY YOUTUBE_API_KEY
+echo "  runtime keys: openai=$([ -n "$OPENAI_API_KEY" ] && echo yes || echo no) tavily=$([ -n "$TAVILY_API_KEY" ] && echo yes || echo no) anthropic=$([ -n "$ANTHROPIC_API_KEY" ] && echo yes || echo no) youtube=$([ -n "$YOUTUBE_API_KEY" ] && echo yes || echo no)"
 
 echo "═══════════════════════════════════════════"
 echo "  DSF-AI (GualaLoom) Deploy via CodeBuild"
@@ -256,8 +257,11 @@ out = {
                 {'name': 'OPENAI_API_KEY', 'value': '${OPENAI_API_KEY}'},
                 {'name': 'TAVILY_API_KEY', 'value': '${TAVILY_API_KEY}'},
                 {'name': 'ANTHROPIC_API_KEY', 'value': '${ANTHROPIC_API_KEY}'},
+                {'name': 'YOUTUBE_API_KEY', 'value': '${YOUTUBE_API_KEY}'},
                 {'name': 'LOOKUP_AUTONOMOUS', 'value': '1'},
-                {'name': 'LOOKUP_INTERVAL_SEC', 'value': '900'}
+                {'name': 'LOOKUP_INTERVAL_SEC', 'value': '900'},
+                {'name': 'WORLD_FEEDS', 'value': '1'},
+                {'name': 'WORLD_FEED_INTERVAL_SEC', 'value': '600'}
             ],
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',

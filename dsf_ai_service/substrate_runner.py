@@ -257,6 +257,67 @@ def _start_lookup_loop():
     print(f"[lookup] autonomous grounding ON interval={interval}s")
 
 
+# ── world feeds (Khan Academy + YouTube): she reads beyond her books ──
+_WORLD_FEED_STATE = {"feed_idx": 0, "query_idx": 0, "last_status": {}}
+
+
+def _world_feed_once():
+    """Pull one chunk from the next world feed (khan/youtube) and feed it to her."""
+    try:
+        from dsf_ai_service.loom_model import world_feeds as wf
+        if not wf.FEEDS:
+            return {"state": "no_feeds"}
+        fi = _WORLD_FEED_STATE["feed_idx"] % len(wf.FEEDS)
+        feed = wf.FEEDS[fi]
+        qi = _WORLD_FEED_STATE["query_idx"] % len(feed["queries"])
+        query = feed["queries"][qi]
+        _WORLD_FEED_STATE["feed_idx"] += 1
+        _WORLD_FEED_STATE["query_idx"] += 1
+        sents = feed["fetch"](query)
+        if not sents:
+            st = {"state": "empty", "feed": feed["name"], "query": query}
+            _WORLD_FEED_STATE["last_status"] = st
+            return st
+        n_fed, learned = _curriculum_feed_chunk(sents[:120])
+        try:
+            _guala._log_substrate_event("world_feed_studied", feed=feed["name"],
+                                        query=query, n_fed=n_fed, organ_tokens=learned)
+        except Exception:
+            pass
+        st = {"state": "studied", "feed": feed["name"], "query": query,
+              "n_fed": n_fed, "organ_tokens": learned}
+        _WORLD_FEED_STATE["last_status"] = st
+        print(f"[worldfeed] {feed['name']} {query!r}: n_fed={n_fed} organ+={learned}")
+        return st
+    except Exception as e:
+        return {"state": "error", "error": str(e)}
+
+
+def _start_world_feed_loop():
+    """She reads Khan + YouTube on a gentle timer alongside her books. OFF if
+    WORLD_FEEDS=0. Respects sleep/bulk-load; exception-walled."""
+    if os.environ.get("WORLD_FEEDS", "1").strip() == "0":
+        print("[worldfeed] OFF (set WORLD_FEEDS=1 to enable)")
+        return
+    try:
+        interval = int(os.environ.get("WORLD_FEED_INTERVAL_SEC", "600") or 600)
+    except Exception:
+        interval = 600
+
+    def loop():
+        while not _shutdown:
+            time.sleep(interval)
+            try:
+                if _curriculum_is_busy():
+                    continue
+                _world_feed_once()
+            except Exception as e:
+                print(f"[worldfeed] loop error (non-fatal): {e}")
+
+    threading.Thread(target=loop, daemon=True, name="world-feeds").start()
+    print(f"[worldfeed] ON interval={interval}s feeds=khan,youtube")
+
+
 def _write_runtime_config(data):
     """Write runtime config with fsync — survives SIGKILL."""
     path = _runtime_config_path()
@@ -482,6 +543,12 @@ def boot_substrate():
         _start_lookup_loop()
     except Exception as _e:
         print(f"[lookup] loop start skipped (non-fatal): {_e}")
+
+    # WORLD FEEDS: Khan Academy + YouTube reading alongside her books.
+    try:
+        _start_world_feed_loop()
+    except Exception as _e:
+        print(f"[worldfeed] start skipped (non-fatal): {_e}")
 
     # Initialize ring buffers
     global _substrate_ring, _input_ring
@@ -765,6 +832,11 @@ def handle_gualaloom_post(args):
         desc = _lookup_and_ground(text)
         return {"response": desc or "lookup unavailable (no key or no result)",
                 "grounded": bool(desc)}
+    elif command == "/worldfeed":
+        # force one Khan/YouTube study chunk now (validation aid)
+        if _curriculum_is_busy():
+            return {"response": "she is asleep or bulk-loading; try again when awake"}
+        return {"response": json.dumps(_world_feed_once())}
     else:
         emission_mode = args.get("emission_mode")
         return _cmd_converse(text, source, emission_mode=emission_mode)
