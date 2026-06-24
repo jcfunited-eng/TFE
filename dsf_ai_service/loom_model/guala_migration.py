@@ -17,6 +17,23 @@ from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple
 
 
+def _tolerant_json_load(path: str) -> Any:
+    """Load JSON, tolerating trailing bytes from an interrupted/overlapping write.
+
+    Her main engine loader tolerates a state file that holds a valid JSON value
+    followed by leftover bytes (seen live: guala_core.json, 'Extra data' at ~16MB);
+    this stricter migration loader must too, or the read-only organ merge view
+    skips for a benign reason. Decodes the FIRST complete JSON value and ignores
+    any trailing data."""
+    with open(path) as f:
+        text = f.read()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        obj, _end = json.JSONDecoder().raw_decode(text)
+        return obj
+
+
 class PreservedAtlas:
     """Guala's LivingAtlas carried verbatim onto the loom side. chi -> [bindings],
     every field intact. Recall by chi-neighbourhood is hers, unchanged."""
@@ -92,14 +109,14 @@ class PreservedGuala:
         g = cls()
         idp = os.path.join(state_dir, "guala_identity.json")
         if os.path.exists(idp):
-            g.identity = json.load(open(idp)).get("guala_identity")
-        core = json.load(open(os.path.join(state_dir, "guala_core.json")))
+            g.identity = (_tolerant_json_load(idp) or {}).get("guala_identity")
+        core = _tolerant_json_load(os.path.join(state_dir, "guala_core.json"))
         cd = core.get("data", {})
         g.vocab = list(cd.get("vocab", []))
         g.tick = int(cd.get("tick", 0))
         g.deep_survival = len(cd.get("deep_survival_history", []))
         g.atlas = PreservedAtlas.from_state(
-            json.load(open(os.path.join(state_dir, "guala_atlas.json"))))
+            _tolerant_json_load(os.path.join(state_dir, "guala_atlas.json")))
         return g
 
     def passes_identity_guard(self, expected_prefix: str) -> bool:
@@ -155,8 +172,7 @@ def place_into_architecture(g: "PreservedGuala") -> Dict[str, Any]:
 
 
 def load_state(path: str) -> Dict[str, Any]:
-    with open(path) as f:
-        return json.load(f)
+    return _tolerant_json_load(path)
 
 
 def verify_lossless(source: Dict[str, Any], pa: PreservedAtlas) -> Tuple[bool, Dict[str, Any]]:

@@ -26,6 +26,7 @@ STATE_DIR = os.environ.get("STATE_DIR", "/mnt/efs/guala")
 _guala = None
 _guala_organ_brain = None  # her 8-organ brain, merged live in the substrate
 _guala_cognition = None  # her organ-brain speech (learns from exposure)
+_curriculum = None  # autonomous study scheduler (she reads on her own)
 _shutdown = False
 
 # Ring buffers — initialized on boot
@@ -88,6 +89,41 @@ def _cognition_learn(text):
         return len(s.split())
     except Exception:
         return 0
+
+
+# ── autonomous curriculum study: injected callbacks for the scheduler ──
+# The scheduler (loom_model.curriculum_scheduler) owns timing/curriculum/progress
+# and fetching books; the substrate owns how to FEED her. These closures are the
+# seam. read_sentence feeds her engine/atlas exactly like a corpus load; the same
+# clean tokens grow her organ-brain. Autonomy is paused around the chunk so the feed
+# doesn't race her activity loop. Exception-walled — study can never disturb her.
+
+def _curriculum_feed_chunk(sentences):
+    """Feed a study chunk into her engine + organ-brain. Returns (n_fed, learned)."""
+    n_fed = 0
+    learned = 0
+    _pause_autonomy_for_bulk()
+    try:
+        for sent in sentences:
+            try:
+                _guala.read_sentence(sent, source="curriculum")
+                learned += _cognition_learn(sent)
+                n_fed += 1
+            except Exception:
+                pass
+    finally:
+        _resume_autonomy_for_bulk()
+    return n_fed, learned
+
+
+def _curriculum_is_busy():
+    """Skip a study cycle while she sleeps or a bulk load holds the floor."""
+    try:
+        if _autonomy_pause_refcount > 0:
+            return True
+        return bool(getattr(_guala, "is_asleep", False))
+    except Exception:
+        return True
 
 
 def _write_runtime_config(data):
@@ -289,6 +325,25 @@ def boot_substrate():
               f"sample='{_guala_cognition.say('the moon')}'")
     except Exception as _e:
         print(f"[cognition] organ-brain speech skipped (non-fatal): {_e}")
+
+    # AUTONOMOUS CURRICULUM: she studies children's literature on her own, on a
+    # schedule, growing her engine + organ-brain from her real reading life.
+    # Additive, killable (CURRICULUM_AUTONOMOUS=0), resumable; never raises into boot.
+    try:
+        from dsf_ai_service.loom_model.curriculum_scheduler import CurriculumScheduler
+        global _curriculum
+        _curriculum = CurriculumScheduler(
+            state_dir=STATE_DIR,
+            feed_chunk=_curriculum_feed_chunk,
+            is_busy=_curriculum_is_busy,
+            log=g._log_substrate_event,
+        )
+        _curriculum.start()
+        print(f"[curriculum] autonomous study started: enabled={_curriculum.enabled} "
+              f"books={len(_curriculum.curriculum)} chunk={_curriculum.chunk_size} "
+              f"interval={_curriculum.interval_sec}s")
+    except Exception as _e:
+        print(f"[curriculum] scheduler start skipped (non-fatal): {_e}")
 
     # Initialize ring buffers
     global _substrate_ring, _input_ring
@@ -547,6 +602,22 @@ def handle_gualaloom_post(args):
             return {"response": said, "engine": "organ-brain (loom cognition)"}
         except Exception as _e:
             return {"response": f"organ-brain error: {_e}"}
+    elif command == "/curriculum":
+        if _curriculum is None:
+            return {"response": "curriculum scheduler not loaded"}
+        return {"response": json.dumps(_curriculum.status()), "curriculum": _curriculum.status()}
+    elif command == "/curriculum_now":
+        # force one study step now (validation aid); ignores the interval gate
+        if _curriculum is None:
+            return {"response": "curriculum scheduler not loaded"}
+        if _curriculum_is_busy():
+            return {"response": "busy (asleep or bulk-loading); try again"}
+        return {"response": json.dumps(_curriculum.study_once())}
+    elif command in ("/curriculum_on", "/curriculum_off"):
+        if _curriculum is None:
+            return {"response": "curriculum scheduler not loaded"}
+        _curriculum.enabled = (command == "/curriculum_on")
+        return {"response": f"curriculum enabled={_curriculum.enabled}"}
     else:
         emission_mode = args.get("emission_mode")
         return _cmd_converse(text, source, emission_mode=emission_mode)
