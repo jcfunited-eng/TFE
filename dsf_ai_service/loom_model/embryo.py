@@ -96,6 +96,8 @@ class Embryo:
         # resonant_spectral = the one mechanism that WORKS (recall, n=200 -> 100%)
         self.brain = LoomBrain(brain_seed=brain_seed, seed_size=seed_size,
                                observable="resonant_spectral")
+        self.brain_seed = brain_seed
+        self.seed_size = seed_size
         # tag hemispheres as operations
         self.op = {}            # hemi_id -> ("em", decay_mult)
         self.hemi_by_op = {}    # "em" -> hemisphere
@@ -363,6 +365,50 @@ class Embryo:
         """aff (regulator): the global arousal scalar (from recent fold/commit
         activity) that modulates the fold threshold. Already live in experience()."""
         return self.arousal
+
+    # --- movable / portable: serialize the learned organism, reload it elsewhere ---
+    def save(self):
+        """Serialize to a portable dict. Only the LEARNED state travels — the
+        structure and every projection regenerate deterministically from
+        (brain_seed, seed_size, neuron_id), so a reload is bit-identical. This is
+        what makes the substrate movable to another host / the ArcLoom ASIC."""
+        neurons = []
+        for h in self.brain.hemispheres:
+            op = self.op[h.hemi_id][0]
+            for n in h.cluster.neurons:
+                binds = [{"c": b["concept"], "v": np.asarray(b["state_vec"]).tolist(),
+                          "t": int(b["tick"])} for b in n.binding_atlas._bindings]
+                if binds:
+                    neurons.append({"id": n.neuron_id, "op": op, "b": binds})
+        return {
+            "schema": "loom-seed-v1",
+            "brain_seed": self.brain_seed,
+            "seed_size": self.seed_size,
+            "tick": int(self.tick),
+            "identity": getattr(self, "_identity", None),
+            "strength": dict(self.strength),
+            "arousal": float(self.arousal),
+            "neurons": neurons,
+        }
+
+    @staticmethod
+    def load(d):
+        """Rebuild the organism from save(). Structure + projections regenerate from
+        the seed; learned bindings are restored verbatim. Recall is identical."""
+        emb = Embryo(brain_seed=d["brain_seed"], seed_size=d["seed_size"])
+        nmap = {n.neuron_id: n for h in emb.brain.hemispheres
+                for n in h.cluster.neurons}
+        for rec in d["neurons"]:
+            n = nmap.get(rec["id"])
+            if n is None:
+                continue
+            for b in rec["b"]:
+                n.binding_atlas.record(b["c"], np.array(b["v"], dtype=float), b["t"])
+        emb.tick = d.get("tick", 0)
+        emb._identity = d.get("identity")
+        emb.strength.update(d.get("strength", {}))
+        emb.arousal = d.get("arousal", 0.0)
+        return emb
 
     def perceive_sequence(self, concepts, pipe):
         """Substrate-true seeds, differentiated only by BINDING POLICY on one chi
