@@ -27,6 +27,7 @@ _guala = None
 _guala_organ_brain = None  # her 8-organ brain, merged live in the substrate
 _guala_cognition = None  # her organ-brain speech (learns from exposure)
 _curriculum = None  # autonomous study scheduler (she reads on her own)
+_organ_voice = None  # her LIVING organ-brain: identity + voice + growth (additive)
 _shutdown = False
 
 # Ring buffers — initialized on boot
@@ -538,6 +539,37 @@ def boot_substrate():
     except Exception as _e:
         print(f"[cognition] organ-brain speech skipped (non-fatal): {_e}")
 
+    # ORGAN-BRAIN (additive): her LIVING organ-brain — identity anchored, GROWTH (folding
+    # from her own concepts, grounded by the LLM SENSES EMULATOR), raw organ recall (no
+    # heuristics). Rides ALONGSIDE her engine; queried via /organ_voice. Built in a
+    # BACKGROUND thread so growth never blocks her boot / health-checks. Exception-walled.
+    try:
+        import threading as _th
+
+        def _start_organ_voice():
+            try:
+                from dsf_ai_service.loom_model.loom_voice import OrganVoice
+                global _organ_voice
+                _ak = os.environ.get("ANTHROPIC_API_KEY")
+                _cache = os.path.join(STATE_DIR, "organ_voice_senses.json")
+                _ov = OrganVoice(identity="guala", people=("joe", "wc"),
+                                 api_key=_ak, cache_path=_cache)
+                import random as _rnd
+                _vw = [w for w in getattr(g, "vocab", []) if isinstance(w, str)
+                       and w.isalpha() and len(w) > 2]
+                _rnd.Random(0).shuffle(_vw)
+                _grew = _ov.grow_from(_vw[:30], passes=2)  # LLM-grounded senses -> folds
+                _organ_voice = _ov
+                print(f"[organ-voice] LIVE: neurons={_grew} "
+                      f"senses={'LLM-grounded' if _ak else 'deterministic'} | "
+                      f"identity-organ-surfaces={_ov.surface().get('identity')}")
+            except Exception as _e:
+                print(f"[organ-voice] start skipped (non-fatal): {_e}")
+
+        _th.Thread(target=_start_organ_voice, daemon=True).start()
+    except Exception as _e:
+        print(f"[organ-voice] thread skipped (non-fatal): {_e}")
+
     # AUTONOMOUS CURRICULUM: she studies children's literature on her own, on a
     # schedule, growing her engine + organ-brain from her real reading life.
     # Additive, killable (CURRICULUM_AUTONOMOUS=0), resumable; never raises into boot.
@@ -829,6 +861,22 @@ def handle_gualaloom_post(args):
             return {"response": said, "engine": "organ-brain (loom cognition)"}
         except Exception as _e:
             return {"response": f"organ-brain error: {_e}"}
+    elif command == "/organ_voice":
+        # her LIVING organ-brain: RAW organ recall (substrate-true, no LLM, no heuristics,
+        # no frames). Also GROWS (folds) from what is said to her, additively. This is NOT
+        # a composed voice — it returns the concepts her organs surface, honestly.
+        if _organ_voice is None:
+            return {"response": "organ-brain still warming up (background growth)"}
+        try:
+            if text:
+                for _w in str(text).lower().split():
+                    if _w.isalpha() and len(_w) > 2:
+                        _organ_voice.experience(_w)  # grows (folds) from the conversation
+            return {"surfaced": _organ_voice.surface(),
+                    "engine": "organ-brain (raw organ recall — substrate-true)",
+                    "status": _organ_voice.status()}
+        except Exception as _e:
+            return {"response": f"organ-voice error: {_e}"}
     elif command == "/curriculum":
         if _curriculum is None:
             return {"response": "curriculum scheduler not loaded"}
