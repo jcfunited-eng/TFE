@@ -9,6 +9,15 @@
 
 ## IMMEDIATE — unblocked, deployable now
 
+- [ ] **Fix atlas/section integrity drift (v5 engine)**
+  On task :253 boot: `integrity=ERRORS` — atlas refs motifs 6089/5466/5873 in
+  listen/verb/intro sections, but sections only loaded 6086/5460/5870. The atlas
+  wrote bindings for motifs that weren't yet persisted in the section files between
+  restarts. The `atlas repair` ran but fixed nothing (repaired_bands=0). She's
+  running fine (lossless=True, identity intact) but the drift accumulates. Fix:
+  the repair logic needs to drop or re-bind dangling atlas refs on load.
+  _File: `gualaloom_engine.py` or section loader / atlas repair_
+
 - [ ] **Full catalog fill (vocabulary → resonant senses)**
   She boots with 30 words LLM-grounded. She has 6138 words. The catalog builder
   exists and works. Need a one-pass batch job: all vocab words → `_llm_params` →
