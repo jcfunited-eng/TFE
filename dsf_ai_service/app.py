@@ -1160,6 +1160,20 @@ async def gualaloom_organs():
     return getattr(app.state, "guala_organ_brain", {"organ_brain": "not loaded"})
 
 
+@app.get("/api/v1/gualaloom/events")
+async def gualaloom_events(n: int = 200):
+    """Event log for the UI status panels (HEMISPHERES, RECENT EMISSIONS). GET version
+    so the API Gateway integration can proxy it without a body."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("gualaloom_post", command="/events",
+                                     text=str(n), source="ui", timeout=8.0)
+        except Exception:
+            return {"events": []}
+    return {"events": []}
+
+
 class GLMessage(BaseModel):
     text: str
     command: Optional[str] = None

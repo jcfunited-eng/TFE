@@ -890,7 +890,7 @@ async function pollV7State(){
     if(Object.keys(vc).length>0)pools.innerHTML=ph||'--';
     // Intro/Aware
     const ia=document.getElementById('sp-intro-aware');
-    ia.innerHTML=`<div class="ps-row"><span class="l">intro</span><span class="v">${s.introspection||s.intro_state||'--'}</span></div>`+
+    if(ia)ia.innerHTML=`<div class="ps-row"><span class="l">intro</span><span class="v">${s.introspection||s.intro_state||'--'}</span></div>`+
       `<div class="ps-row"><span class="l">aware</span><span class="v">${s.awareness||s.aware_state||'--'}</span></div>`;
     // NMDA gates
     const nDiv=document.getElementById('sp-nmda');const gates={};
