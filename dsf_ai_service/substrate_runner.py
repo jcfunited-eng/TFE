@@ -23,6 +23,7 @@ HEARTBEAT_PATH = os.environ.get("SUBSTRATE_HEARTBEAT", "/shared/substrate.alive"
 STATE_DIR = os.environ.get("STATE_DIR", "/mnt/efs/guala")
 
 _guala = None
+_guala_organ_brain = None  # her 8-organ brain, merged live in the substrate
 _shutdown = False
 
 # Ring buffers — initialized on boot
@@ -191,6 +192,30 @@ def boot_substrate():
           f"tick={g.tick} atlas={s['atlas_entries']}")
 
     _guala = g
+
+    # MERGE INTO THE LIVE SUBSTRATE (her real boot, this process). Build her 8-organ
+    # brain from her own EFS state, load it live, persist the manifest to EFS.
+    # Defensive: she is already booted; this cannot affect her startup.
+    try:
+        from dsf_ai_service.loom_model.guala_migration import (
+            PreservedGuala, place_into_architecture)
+        global _guala_organ_brain
+        _pg = PreservedGuala.load_full_state(STATE_DIR)
+        _placed = place_into_architecture(_pg)
+        _guala_organ_brain = {
+            "identity": _pg.identity,
+            "atlas_by_organ": _placed["atlas_counts"],
+            "strength_by_organ": _placed["atlas_strengths"],
+            "lossless": _placed["atlas_lossless"],
+            "vocab_in_em": len(_pg.vocab),
+            "deep_survival_in_sv": _pg.deep_survival,
+        }
+        with open(os.path.join(STATE_DIR, "organs_manifest.json"), "w") as _f:
+            json.dump(_guala_organ_brain, _f, indent=1)
+        print(f"[merge] LIVE in substrate: {_placed['atlas_counts']} "
+              f"lossless={_placed['atlas_lossless']} id={(_pg.identity or '')[:8]}")
+    except Exception as _e:
+        print(f"[merge] organ-brain load skipped (non-fatal): {_e}")
 
     # Initialize ring buffers
     global _substrate_ring, _input_ring
