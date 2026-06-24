@@ -222,6 +222,26 @@ def _lookup_and_ground(term):
         return None
 
 
+_LOOKUP_STATE = {"idx": 0}
+
+
+def _lookup_once():
+    """Ground the next of her pictures (one autonomous lookup). Returns status dict."""
+    try:
+        titles = [getattr(p, "title", None)
+                  for p in (getattr(_guala, "_pictures", {}) or {}).values()]
+        titles = [t for t in titles if t]
+        if not titles:
+            return {"state": "no_pictures"}
+        term = titles[_LOOKUP_STATE["idx"] % len(titles)]
+        _LOOKUP_STATE["idx"] += 1
+        d = _lookup_and_ground(term)
+        return {"state": "grounded" if d else "empty", "term": term,
+                "text": (d or "")[:80]}
+    except Exception as e:
+        return {"state": "error", "error": str(e)}
+
+
 def _start_lookup_loop():
     """Autonomous grounding of the things she looks at — OFF unless LOOKUP_AUTONOMOUS=1.
     When on, periodically grounds one of her pictures so her words mean real things."""
@@ -524,31 +544,33 @@ def boot_substrate():
     try:
         from dsf_ai_service.loom_model.curriculum_scheduler import CurriculumScheduler
         global _curriculum
+        # Interleave the world feeds + lookup INTO the one study scheduler so they
+        # share its reliable awake windows (separate loops get starved). Gated by env.
+        _interleave = []
+        if os.environ.get("WORLD_FEEDS", "1").strip() != "0":
+            _interleave.append(("worldfeed", _world_feed_once))
+        if os.environ.get("LOOKUP_AUTONOMOUS", "0").strip() != "0":
+            _interleave.append(("lookup", _lookup_once))
         _curriculum = CurriculumScheduler(
             state_dir=STATE_DIR,
             feed_chunk=_curriculum_feed_chunk,
             is_busy=_curriculum_is_busy,
             log=g._log_substrate_event,
+            interleave_fns=_interleave,
+            interleave_every=int(os.environ.get("STUDY_INTERLEAVE_EVERY", "3") or 3),
         )
         _curriculum.start()
         print(f"[curriculum] autonomous study started: enabled={_curriculum.enabled} "
               f"books={len(_curriculum.curriculum)} chunk={_curriculum.chunk_size} "
-              f"interval={_curriculum.interval_sec}s")
+              f"interval={_curriculum.interval_sec}s "
+              f"interleave={[n for n,_ in _interleave]} every={_curriculum.interleave_every}")
     except Exception as _e:
         print(f"[curriculum] scheduler start skipped (non-fatal): {_e}")
 
-    # LOOKUP GROUNDING (Increment 4): ground what she focuses on. Manual op /lookup
-    # always available; autonomous loop OFF unless LOOKUP_AUTONOMOUS=1.
-    try:
-        _start_lookup_loop()
-    except Exception as _e:
-        print(f"[lookup] loop start skipped (non-fatal): {_e}")
-
-    # WORLD FEEDS: Khan Academy + YouTube reading alongside her books.
-    try:
-        _start_world_feed_loop()
-    except Exception as _e:
-        print(f"[worldfeed] start skipped (non-fatal): {_e}")
+    # NOTE: lookup grounding (Increment 4) and world feeds (Khan/YouTube) now run
+    # INTERLEAVED inside the curriculum scheduler above (so they share its reliable
+    # study windows instead of starving as separate loops). Manual ops /lookup and
+    # /worldfeed remain available. The standalone loops are intentionally NOT started.
 
     # Initialize ring buffers
     global _substrate_ring, _input_ring

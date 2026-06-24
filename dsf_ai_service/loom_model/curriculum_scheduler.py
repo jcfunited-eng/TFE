@@ -59,7 +59,8 @@ class CurriculumScheduler:
     """Drives autonomous study. The substrate injects how to feed/observe her."""
 
     def __init__(self, state_dir, feed_chunk, is_busy, log=None,
-                 fetch_fn=None, now_fn=None):
+                 fetch_fn=None, now_fn=None, interleave_fns=None,
+                 interleave_every=3):
         # feed_chunk(sentences) -> (n_fed, organ_tokens_learned); owns pause/resume.
         # is_busy() -> True if she is asleep or in a bulk pause (skip this cycle).
         # log(event, **kw) -> optional event logger (her substrate event stream).
@@ -81,6 +82,12 @@ class CurriculumScheduler:
         self._stop = threading.Event()
         self._thread = None
         self._last_status = {"state": "init"}
+        # Interleaved alternative study actions (Khan/YouTube feeds, lookup grounding)
+        # share the SAME reliable study windows as books — every Nth action runs one,
+        # round-robin — instead of competing as starved background loops.
+        self.interleave_fns = list(interleave_fns or [])  # [(name, fn), ...]
+        self.interleave_every = max(2, interleave_every)
+        self._tick_count = 0
 
     # ── curriculum + progress persistence ──────────────────────────
     def _load_curriculum(self):
@@ -214,9 +221,27 @@ class CurriculumScheduler:
                 if self._is_busy():
                     self._last_status = {"state": "busy_skip"}
                     continue
-                self.study_once()
+                self._study_action()
             except Exception as e:
                 self._log("curriculum_error", where="loop", error=str(e))
+
+    def _study_action(self):
+        """One study action: usually a book chunk; every Nth, an interleaved feed
+        (Khan/YouTube/lookup) so those share the same windows instead of starving."""
+        self._tick_count += 1
+        if self.interleave_fns and self._tick_count % self.interleave_every == 0:
+            slot = (self._tick_count // self.interleave_every - 1) % len(self.interleave_fns)
+            name, fn = self.interleave_fns[slot]
+            try:
+                st = fn()
+                self.progress["last_ts"] = self._now()   # pace like a study action
+                self._persist_progress()
+                self._last_status = {"state": "interleaved", "feed": name, "result": st}
+                return
+            except Exception as e:
+                self._log("curriculum_error", where="interleave", feed=name, error=str(e))
+                # fall through to a book chunk on failure
+        self.study_once()
 
     def start(self):
         if self._thread is not None:
