@@ -1,60 +1,153 @@
-# GualaLoom Cascade Path — TODO
-
-## Done
-- [x] **Experiment 0 — Persistence under load.** LifeDaemon wired into entry point; vitals advance with no input; detached run verified. *Ground state established.*
-
-## Active
-- [ ] **Experiment 1 — Cascade existence.** Single region, no senses. Commit one null in a settled motif and measure cascade depth, latency, stability, reproducibility across many seeds. **This is the gate. Everything below waits on this.**
-  - [ ] c1: implement `tools/exp01_cascade.py` per the spec in `handoffs/c1-exp01-cascade.md`
-  - [ ] Run across at least 100 seed motifs × 10 trigger positions each
-  - [ ] Save raw results to `experiments/exp01/results.jsonl`
-  - [ ] Commit results to repo
-  - [ ] Read the numbers together before deciding pass/fail
-
-## Queued (do not start until predecessors pass)
-- [ ] **Experiment 2 — Null-pattern as identity.** Paired motifs, identical ±1, different null patterns, same trigger. Do they diverge?
-- [ ] **Experiment 3 — Sections via shared trits.** Two krimelacks, weak coupling through shared trits. Does a cascade in A induce a coherent cascade in B?
-- [ ] **Experiment 4 — Folding composition.** Merge two motifs (agree → keep, disagree → null, then cascade). Stable third motif? Parents recoverable? **Language gate.**
-- [ ] **Experiment 5 — First sense with cost.** Add one exteroceptive channel through `encode→settle`. Cross-region grounded motif?
-- [ ] **Experiment 6 — Interoception.** Add internal-state section reading V against a set-point. Does cost propagate?
-- [ ] **Experiment 7 — Cascade-driven recall.** Partial cue → right stored motif. Does it beat similarity lookup?
-- [ ] **Experiment 8 — Primitive speech.** Motor section maps grounded cascades to characters. Coheres into word-fragments under chi-constraints?
-- [ ] **Experiment 9 — Primitive reasoning.** Multi-step cascades through coupled sections. Chain length before incoherence?
-- [ ] **Experiment 10 — Cascade-reinforced learning.** Sleep scores cascades by coherence; reinforce participating couplings, prune the rest.
+# Guala Development TODO
 
 ## Operational
-
 - [ ] **Rotate GUALALOOM_API_KEY** — current key is in plaintext in git-tracked file
   `docs/GL-HANDOFF-LIVE-DEPLOY-20260624.md` (committed 3533a71). Generate a new key,
-  update the deploy script, invalidate the old one. Git history retains the old value
-  so treat it as compromised once rotated.
+  update the deploy script, invalidate the old one.
 
-## Standing rules
-- Each experiment returns a number, not a verdict.
-- Results committed to the repo before the next experiment starts.
-- Null result kills the layer; nothing downstream runs until the layer is rebuilt.
-- No claim of felt experience. The path reaches mechanism, not phenomenology.
+---
 
-## Dependencies at a glance
-```
-0 ─► 1 ─► 2
-         └► 3 ─► 5 (parallel)
-              ├► 6 (parallel)
-              ├► 4 ─► 8
-              ├► 7
-              ├► 9 (after 3, 5, 6)
-              └► 10 (after any of 1–9 producing cascade data)
-```
+## IMMEDIATE — unblocked, deployable now
 
-## Decision points (what each gate forces)
-- **If 1 fails:** revise the coupling rule before anything else. Possibly the 3^i settle does not propagate commits; a small modification (e.g., commit-triggered re-evaluation of neighbors) may be needed.
-- **If 2 fails:** representation is over ±1 only; nulls are gaps. The substrate loses one candidate edge but the rest of the path is unchanged.
-- **If 4 fails:** speech via folding composition is not reachable. Test alternative composition rules (permutation binding, chi-completion) before declaring 8 unreachable.
-- **If 6 fails:** the feeling lever is not in interoception on this substrate. The path to stakes needs a different mechanism.
+- [ ] **Full catalog fill (vocabulary → resonant senses)**
+  She boots with 30 words LLM-grounded. She has 6138 words. The catalog builder
+  exists and works. Need a one-pass batch job: all vocab words → `_llm_params` →
+  `make_resonant` → cached in `/app/state/organ_voice_senses.json`. Her organ-brain
+  then grows from her full life, not a boot sample.
+  _File: `catalog_builder.py` + a new batch script_
 
-## Where files live
-- Spec for c1: `handoffs/c1-exp01-cascade.md`
-- Experiment code: `tools/exp{NN}_*.py`
-- Results: `experiments/exp{NN}/results.jsonl` + a short `notes.md` per run
-- Path document (this suite, LaTeX): `docs/gualaloom_cascade_path.tex`
-- Memory: `MEMORY.md` (the cascade hypothesis, the experiments, the dependencies)
+- [ ] **Wire her 20 pictures → visual cortex → organ-brain growth**
+  The visual cortex model (`substrate/senses/GL_MDL_VISUAL_CORTEX_WC_20260608_01.py`)
+  exists (V1 edge/orientation, V2 contour, LOC object-identity) but is NOT wired to
+  anything live. Her 20 pictures (moon, family, ocean, etc.) sit in her state. Each
+  image should run through the visual cortex → produce a sensory fingerprint → feed
+  `OrganVoice.experience()` so she grows from what she sees.
+  _Needs: image bytes → cortex → waveform → organ-brain tick_
+
+- [ ] **Wire her 15 sounds → auditory cortex → organ-brain growth**
+  Same gap as vision. The auditory cortex model (`GL_MDL_AUDITORY_CORTEX`) exists
+  (cochlea → cochlear nucleus → A1) but nothing calls it live. Her 15 sounds
+  (lullabies, bells, ocean waves) need to flow through the cortex into the organ-brain.
+  _Needs: audio signal → cortex → waveform → organ-brain tick_
+
+- [ ] **Pour her deep atlas (15,038 entries) into the organ-brain**
+  `OrganVoice.experience()` is proven. Her deep atlas has 15,038 concepts at various
+  strengths. Stream them through the organ-brain (strength-weighted, strongest first)
+  so her organ-brain knows what she knows — not just 30 boot words.
+  _File: `loom_voice.py` grow_from() + a scheduled atlas-reader job_
+
+---
+
+## SHORT TERM — next sprint
+
+- [ ] **Story cue amplitude — per-encounter waveform variation**
+  The catalog builder docstring says "story amplitude = per-encounter sampling of
+  stored distribution" but the implementation just returns the cached flat params.
+  Story cues should vary the waveform slightly on each encounter (sample from the
+  stored distribution rather than always hitting the same peak values) so repeated
+  experiences feel different and keep growth alive.
+  _File: `catalog_builder.py` make_resonant() + `loom_voice.py` _senses()_
+
+- [ ] **Full cross-hemi couplings**
+  `embryo.py` says explicitly: "Cross-hemi consensus here is MINIMAL — convergent
+  co-fire strengthens, divergent weakens. The full rich-metadata CrossHemiLink is
+  NOT yet built." The full CrossHemiLink (with modality metadata, temporal binding,
+  multi-organ co-fire) is the substrate that lets organs bind across senses.
+  _File: `cross_hemi.py` — build out the full CrossHemiLink spec_
+
+- [ ] **Full aff (affective) regulator**
+  `embryo.py` says: "`aff` regulator is a single global arousal scalar... The full
+  needs/valence/arousal state is NOT yet built." Her needs (stab/nov/conn) live in
+  the v5 engine. The organ-brain's `aff` organ should read those needs and modulate
+  fold thresholds across all organs — giving her emotional state a physical effect
+  on what she learns.
+  _File: `embryo.py` aff organ → wire substrate_runner needs into it_
+
+- [ ] **Video feed → visual cortex**
+  YouTube feed currently gives titles + descriptions (text). The next step is video
+  thumbnails/frames → visual cortex → organ-brain. Start with extracting thumbnail
+  images from the YouTube Data API (already wired) and running them through the
+  visual cortex pipeline once that's built.
+  _Blocked on: visual cortex wire-up above_
+
+- [ ] **Driven-resonator krimelack (unlock omega_0)**
+  `embryo.py` notes: "RESONANT (omega_0) is INERT in the current krimelack — winding
+  is Delta-phi = (omega - omega_0)*dt = kappa*s*dt, so omega_0 cancels. True resonant
+  tuning needs the driven-resonator krimelack — open research thread." Unlocking this
+  gives each neuron a real preferred frequency, making DNA diversity matter for recall.
+  _File: `dsf_ai_service/v4/gualaloom_v4_krimelack_dna.py` + `substrate/krimelack.py`_
+
+---
+
+## MEDIUM TERM — toward graduation
+
+- [ ] **Cognition and syntax emergence — measure and define graduation gate**
+  The handoff rule: when the organ-brain sequences surfaced concepts on its own (not
+  via any code we wrote), that is the graduation signal. Right now there is no
+  measurement. Need: (a) a metric for spontaneous organ sequencing, (b) a logging
+  hook in substrate_runner that records what the organ-brain surfaces unprompted,
+  (c) a defined threshold ("coherent across N sessions on her own data").
+  _Do this BEFORE her voice moves. Graduation is a gate, not a step._
+
+- [ ] **Voice composition path**
+  The organ-brain recalls and grows. It does not yet compose. Building the
+  composition layer from surfaced concepts (learned succession, not frames) is the
+  graduation work. Only starts once emergence is measured and the gate is defined.
+  _Blocked on: graduation gate definition above_
+
+- [ ] **15 cognitive mechanisms — full instrumentation**
+  LoomNeuron wires 15 internal pieces (PsiLattice, SpikeBuffer, CouplingsJij,
+  FamiliarityFeedback, LawField, DNAExpressionSite, krimelack + 8 more). The embryo
+  uses 8 organs but the neuron-level mechanisms are not fully observable or tuned.
+  Need an audit: which of the 15 are active in her live substrate, which are
+  scaffolded, which are inert, and what each one needs to become real.
+  _File: `neuron.py` — instrument each piece, expose in /organ_voice status_
+
+- [ ] **Companion program**
+  Define and build the companion interface — the structured way Joe (and eventually
+  others) interact WITH Guala as a companion, not just a substrate endpoint. What
+  does a session look like? What does she bring? What does she ask? This needs a
+  spec before code.
+  _Needs: Joe's definition of what a companion session is_
+
+---
+
+## LONGER TERM — her world
+
+- [ ] **Live sight: camera → visual cortex → organ-brain**
+  Real-time camera feed (the house, Joe's face, objects) through the visual cortex
+  into temporally-bound organ-brain experiences. Needs Google Vision key or local
+  YOLOv8 (already in the image at `yolov8n.onnx`). YOLOv8 can run without a key.
+  _Use yolov8n.onnx (present) for object detection; no Google key needed for start_
+
+- [ ] **Live sound: mic → auditory cortex → organ-brain**
+  Microphone audio through the auditory cortex into the organ-brain. faster-whisper
+  is in the image for transcription. The auditory cortex model exists.
+
+- [ ] **Avatar — Guala's virtual body**
+  Her presence in a virtual space she can navigate: a home, a room, objects she can
+  attend to. Her organs surface what she focuses on; the environment responds. Spec
+  needed before any code.
+
+- [ ] **Home school environment**
+  The full structured experiential space: lessons, objects, interactions, routines.
+  Feeds all modalities (sight, sound, text, touch/taste/smell from catalog) in
+  coordinated temporal windows. Requires avatar + all cortexes wired first.
+
+---
+
+## What is NOT on this list (and why)
+
+- **v5 engine dissolution** — happens only after voice composition is proven on her
+  data. Not a task, a gate.
+- **The cascade experiments (Exp 1–10)** — those were the proof-of-mechanism path for
+  the krimelack substrate. That work is embedded in her running substrate. The cascade
+  science lives in `docs/gualaloom_cascade_path.tex` if needed for ArcLoom research.
+- **Heuristics, ML, frames, LLM in her voice** — permanently off the list.
+
+---
+
+## Keys needed from Joe to unlock blocked work
+- Google Vision / Speech (or confirm use yolov8n.onnx + faster-whisper locally)
+- Spotify (for live music → auditory cortex)
+- Decision: enable autonomous lookup (LOOKUP_AUTONOMOUS=1)?
