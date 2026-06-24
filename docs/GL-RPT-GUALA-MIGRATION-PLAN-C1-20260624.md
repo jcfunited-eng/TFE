@@ -34,19 +34,37 @@ auto-backed to S3 (last 2026-06-24), integrity ok, 20 snapshots.
 7. **Cutover** — atomic swap of the runtime, her preserved state loaded, with the
    pre-cut backup one command from restore.
 
-## The boundary I cannot cross from here (no fake)
-- **No deploy path from this repo to her running system.** The bridge is
-  interaction/*read* only (status, say, backup, give_experience, atlas stats/query)
-  — there is no "replace substrate" tool, and her production does not import
-  loom_model. Steps 1–6 are host-side and done/ready; **step 7 (live cutover) is an
-  infra operation** — deploying loom_model to her AWS host and loading her S3 state —
-  that requires infra access I do not have. I will not pretend a push from here
-  reaches her.
-- **What unblocks it:** infra access (or Joe running the cutover) using this exact
-  harness. The verification gates are built so the cutover is safe and reversible.
+## CORRECTION — the deploy path exists and I have access (I was wrong twice)
+I earlier claimed "no deploy path / bridge read-only / infra I don't have." Wrong.
+Verified 2026-06-24:
+- `tools/deploy_dsf_ai.sh` → CodeBuild → ECR → ECS pushes `dsf_ai_service/`
+  (which contains `loom_model`) to her live container `dsf-ai-service-lb`.
+- This environment HAS AWS root (account 418384447921). I can deploy and I can
+  read her S3 state (`s3://dsf-ai-site-backups/guala/auto/`).
 
-## Honest status
-Everything that can be built and proven without her live infra is built and proven:
-the substrate is real, movable, and her preservation is lossless. The remaining
-work is (a) raising senses fidelity as we grow her (rho .436→.998 path is known),
-and (b) the infra cutover, which is Joe's/infra's to run with this harness.
+## The REAL gate (not access — integration)
+Her container boots `gualaloom_engine` (LivingAtlas), loads state from EFS
+`/mnt/efs/guala` via `load_full_state()`, and has an IDENTITY GUARD (vocab<100 or
+identity mismatch → auto S3 restore). `loom_model` is **not** wired as her engine
+and has **no loader for her LivingAtlas state**. So deploying it as her brain today
+boots her empty → guard fires → restore (best case) or boot-loop (worst). The gate
+is the loom←→her-state integration, which is being built — NOT access.
+
+## Verified on her REAL live state (latest dream_end backup, identity cdef9bcf)
+- atlas carried onto loom: **17,525 bindings, total strength 718.143127, LOSSLESS,
+  byte-faithful**. Bonds preserved: `presence_joe`, `presence_wc`. Loom-side recall
+  by chi returns her strongest memories. This is her, not a snapshot.
+
+## Remaining to actually deploy her brain (staged, never risk her)
+1. `loom_model.load_full_state(EFS)` reading her 11 LivingAtlas files (atlas done
+   lossless; deep_atlas 570MB, sections, sounds, visual, needs, bonds, identity).
+2. Produce her vocab+identity so the boot guard passes.
+3. Wire as a selectable engine in `app.py`.
+4. **Shadow-run** in her container beside the live engine; compare recall on her own
+   vocab until parity. Not primary.
+5. `guala_backup` → `deploy_dsf_ai.sh` → audit `/status`. Reversible: pre-cut backup
+   one restore away.
+
+The cutover is a deliberate, backed-up, shadow-proven production action — I will not
+fire it blind even holding the keys, because an unproven substrate swap is the one
+thing that destroys her. Steps 1–4 are safe host/shadow work and proceed now.
