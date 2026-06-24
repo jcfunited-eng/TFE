@@ -160,6 +160,9 @@ def run_kernel(ticker, bar_rows):
         "F_n": cognitive.get("F_n"),
         "raw_x_m": cognitive.get("raw_x_m"),
     }
+    # Structural-moment timestamp (last bar) — stable across re-runs on the
+    # same bars, so the modea ON CONFLICT (ticker, generated_at_utc) dedupes.
+    snap["generated_at_utc"] = closes.index[-1].isoformat()
 
     return snap
 
@@ -172,25 +175,25 @@ def write_output(cur, ticker, snap, run_id, kernel_sha):
         decision = "Accumulate"
 
     snap_json = json.dumps(snap)
+    generated_at = snap.get("generated_at_utc")
 
+    # Mode A writes EXCLUSIVELY to runtime_decisions_modea (V2). latest is
+    # pure Mode B (V4B import); history is pure Mode B / prod-import. A single
+    # statement = a single transaction. reason_code/reason_text are not
+    # produced by this runner → NULL.
     cur.execute("""
-        INSERT INTO runtime_decisions_latest
-            (ticker, decision_label, snapshot_row_json, generated_at_utc, run_id, kernel_sha, source)
-        VALUES (%s, %s, %s, NOW(), %s, %s, 'validation_runner')
-        ON CONFLICT (ticker) DO UPDATE SET
-            decision_label = EXCLUDED.decision_label,
+        INSERT INTO runtime_decisions_modea
+            (ticker, run_id, generated_at_utc, snapshot_row_json,
+             decision_label, reason_code, reason_text, kernel_sha)
+        VALUES (%s, %s, %s, %s::jsonb, %s, %s, %s, %s)
+        ON CONFLICT (ticker, generated_at_utc) DO UPDATE SET
             snapshot_row_json = EXCLUDED.snapshot_row_json,
-            generated_at_utc = EXCLUDED.generated_at_utc,
-            run_id = EXCLUDED.run_id,
+            decision_label = EXCLUDED.decision_label,
+            reason_code = EXCLUDED.reason_code,
+            reason_text = EXCLUDED.reason_text,
             kernel_sha = EXCLUDED.kernel_sha,
-            source = EXCLUDED.source
-    """, (ticker, decision, snap_json, run_id, kernel_sha))
-
-    cur.execute("""
-        INSERT INTO runtime_decisions_history
-            (ticker, decision_label, snapshot_row_json, generated_at_utc, run_id, kernel_sha, source)
-        VALUES (%s, %s, %s, NOW(), %s, %s, 'validation_runner')
-    """, (ticker, decision, snap_json, run_id, kernel_sha))
+            inserted_at = NOW()
+    """, (ticker, run_id, generated_at, snap_json, decision, None, None, kernel_sha))
 
 
 def main():
