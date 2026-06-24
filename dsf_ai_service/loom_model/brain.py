@@ -46,9 +46,11 @@ class LoomBrain:
         # explicit constructor arg > COGNITION_OBSERVABLE env var > "event_count".
         # The env var lets the existing test suite run under rank_order without
         # editing it; explicit arg still wins (single switch, both write+recall).
+        # GL capacity solve: resonant_spectral is the production default (n=200 recall
+        # 18% -> 100%). event_count remains opt-in via arg/env for the legacy path.
         observable = (observable
                       or os.environ.get("COGNITION_OBSERVABLE")
-                      or "event_count")
+                      or "resonant_spectral")
         self.observable = observable
 
         # GL-CMD-140 (Decision 1): language-as-default. Heterogeneous krimelacks
