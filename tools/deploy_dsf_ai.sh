@@ -261,7 +261,10 @@ out = {
                 {'name': 'LOOKUP_AUTONOMOUS', 'value': '1'},
                 {'name': 'LOOKUP_INTERVAL_SEC', 'value': '900'},
                 {'name': 'WORLD_FEEDS', 'value': '1'},
-                {'name': 'WORLD_FEED_INTERVAL_SEC', 'value': '600'}
+                {'name': 'WORLD_FEED_INTERVAL_SEC', 'value': '600'},
+                {'name': 'CURRICULUM_CHUNK_SIZE', 'value': '30'},
+                {'name': 'CURRICULUM_INTERVAL_SEC', 'value': '120'},
+                {'name': 'STUDY_INTERLEAVE_EVERY', 'value': '2'}
             ],
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
