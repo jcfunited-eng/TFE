@@ -563,6 +563,27 @@ def boot_substrate():
                 print(f"[organ-voice] LIVE: neurons={_grew} "
                       f"senses={'LLM-grounded' if _ak else 'deterministic'} | "
                       f"identity-organ-surfaces={_ov.surface().get('identity')}")
+                # Full catalog fill — grind all remaining vocab through the LLM senses
+                # emulator in the background, 20 words per batch, saving after each so
+                # partial fills survive restarts. Already-cached words are skipped.
+                if _ak:
+                    def _full_catalog_fill(ov=_ov, vocab=_vw):
+                        import time as _t
+                        try:
+                            todo = [w for w in vocab if w not in ov._senses_cache]
+                            print(f"[organ-voice] catalog fill start: {len(todo)} words to ground")
+                            filled = 0
+                            for i in range(0, len(todo), 20):
+                                chunk = todo[i:i + 20]
+                                filled += ov.prefill(chunk)
+                                ov._save_cache()  # persist after every batch (resume-safe)
+                                if (i // 20) % 25 == 0 and i > 0:
+                                    print(f"[organ-voice] catalog fill: {filled}/{len(todo)} grounded")
+                                _t.sleep(1.5)   # polite to the Anthropic API
+                            print(f"[organ-voice] catalog fill DONE: {filled} words grounded")
+                        except Exception as _fe:
+                            print(f"[organ-voice] catalog fill error (non-fatal): {_fe}")
+                    _th.Thread(target=_full_catalog_fill, daemon=True).start()
             except Exception as _e:
                 print(f"[organ-voice] start skipped (non-fatal): {_e}")
 
