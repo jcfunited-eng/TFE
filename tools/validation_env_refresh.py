@@ -168,11 +168,14 @@ def run_kernel(ticker, bar_rows):
 
 
 def write_output(cur, ticker, snap, run_id, kernel_sha):
-    decision = "Hold"
-    d_k = snap.get("D_k")
-    s_uf = snap.get("S_UF")
-    if d_k == 1 and s_uf is not None and s_uf >= 0.5:
-        decision = "Accumulate"
+    # F-010: decision_label is NULL by design.
+    # Mode A reproduces the kernel tuple. L5 decisions are a separate
+    # layer (production: tfe_l5_baseline + tuple_proximity_engine;
+    # target: recovered_versions/tfe_l5_mar26_recovered.py). Writing
+    # a label here from a partial/wrong rule is the destruction
+    # pattern KERNEL_PHILOSOPHY §3 documents.
+    # See: docs/TFE-AUDIT-FINDINGS-DRAIN-PERIOD-20260623.md F-010
+    decision = None
 
     snap_json = json.dumps(snap)
     generated_at = snap.get("generated_at_utc")

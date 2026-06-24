@@ -178,4 +178,32 @@ via:
 Procedural decision pending Joe. Until decided, every wC-side push
 uses the worktree pattern from this finding.
 
+### F-010 — Fabricated L5 rule in validation_env_refresh.py write_output
+**Source:** Sonnet 4.6 audit 2026-06-24 (artifact 3), wC verification
+against production L5 paths.
+**Detail:** `tools/validation_env_refresh.py:174` contained
+`if d_k == 1 and s_uf is not None and s_uf >= 0.5: decision = "Accumulate"`.
+This rule matches NO production L5 source path:
+  - `tfe_l5_baseline.py` uses V3 basin formula + Stable Titan scaler
+  - `tuple_proximity_engine.mjs` uses neighbor_wr >= 0.65 threshold
+  - `recovered_versions/tfe_l5_mar26_recovered.py` uses 8 simultaneous
+    conditions including cognitive gates
+None of these reduces to a 2-field D_k + S_UF threshold. The rule was
+fabricated — destruction pattern #2 (tuple flattening to scalar threshold)
+per KERNEL_PHILOSOPHY §3.
+**Provenance:** Introduced 2026-06-12 in commit 475de3e by Codex (predates
+the Opus 4.8 validation-env build session). Inherited unchanged through
+V4B and the Mode A namespace work. Sat in the repo 12 days before audit.
+**Disposition:** RESOLVED (this finding's commit). decision_label is now
+NULL in Mode A output. The kernel-tuple fields in snapshot_row_json are
+unaffected and remain valid kernel-reproduction output.
+**Impact assessment:**
+  - V3 gate result (99.41% PASS) STANDS — gate compares kernel-tuple
+    fields, not decision_label
+  - `runtime_decisions_modea.decision_label` values from 5,732 prior
+    Mode A rows are contaminated; cleared by the backfill in this
+    finding's commit
+  - Mar 26 wire-in plan UNAFFECTED — Mar 26 filter reads kernel-tuple
+    fields directly from snapshot_row_json, not decision_label
+
 ## Add new findings below this line
