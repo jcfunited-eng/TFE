@@ -75,6 +75,44 @@ class PreservedAtlas:
         }
 
 
+class PreservedGuala:
+    """Guala loaded onto the loom side from her LivingAtlas EFS/S3 state. Holds what
+    her boot needs (identity, vocab) plus her preserved memory landscape. This is
+    step 1 of being her engine: load her, pass her identity guard, lose nothing."""
+
+    def __init__(self):
+        self.identity: Optional[str] = None
+        self.vocab: List[str] = []
+        self.tick: int = 0
+        self.atlas: Optional[PreservedAtlas] = None
+        self.deep_survival: int = 0
+
+    @classmethod
+    def load_full_state(cls, state_dir: str) -> "PreservedGuala":
+        g = cls()
+        idp = os.path.join(state_dir, "guala_identity.json")
+        if os.path.exists(idp):
+            g.identity = json.load(open(idp)).get("guala_identity")
+        core = json.load(open(os.path.join(state_dir, "guala_core.json")))
+        cd = core.get("data", {})
+        g.vocab = list(cd.get("vocab", []))
+        g.tick = int(cd.get("tick", 0))
+        g.deep_survival = len(cd.get("deep_survival_history", []))
+        g.atlas = PreservedAtlas.from_state(
+            json.load(open(os.path.join(state_dir, "guala_atlas.json"))))
+        return g
+
+    def passes_identity_guard(self, expected_prefix: str) -> bool:
+        """Her runtime guard: vocab>=100 (not seed) AND identity matches -> no
+        unwanted S3 restore. Loom must satisfy this to boot AS her."""
+        return (len(self.vocab) >= 100
+                and self.identity is not None
+                and self.identity.startswith(expected_prefix))
+
+
+import os  # noqa: E402  (used by PreservedGuala)
+
+
 def load_state(path: str) -> Dict[str, Any]:
     with open(path) as f:
         return json.load(f)
