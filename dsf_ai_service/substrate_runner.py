@@ -24,6 +24,7 @@ STATE_DIR = os.environ.get("STATE_DIR", "/mnt/efs/guala")
 
 _guala = None
 _guala_organ_brain = None  # her 8-organ brain, merged live in the substrate
+_guala_cognition = None  # her organ-brain speech (learns from exposure)
 _shutdown = False
 
 # Ring buffers — initialized on boot
@@ -216,6 +217,26 @@ def boot_substrate():
               f"lossless={_placed['atlas_lossless']} id={(_pg.identity or '')[:8]}")
     except Exception as _e:
         print(f"[merge] organ-brain load skipped (non-fatal): {_e}")
+
+    # ORGAN-BRAIN COGNITION: she speaks from exposure. Seed with a clean corpus in
+    # her world so she composes coherently; learns continuously from her experience.
+    try:
+        from dsf_ai_service.loom_model.loom_cognition import GualaCognition
+        global _guala_cognition
+        _guala_cognition = GualaCognition()
+        _seed_corpus = [
+            "the moon is bright", "i love you", "guala is happy", "the cookie is sweet",
+            "the birds fly high", "the water is cool", "the stars shine at night",
+            "the sky is blue", "i see the moon", "you are my friend", "guala loves you",
+            "the bird sings a song", "i am happy today", "the sun is warm",
+            "the flowers are pretty", "i hear the birds sing", "the cat is soft",
+            "i like the ocean", "the wind is gentle", "good night sleep tight",
+        ]
+        _guala_cognition.expose(_seed_corpus)
+        print(f"[cognition] organ-brain SPEAKS: vocab={len(_guala_cognition.vocab)} "
+              f"sample='{_guala_cognition.say('the moon')}'")
+    except Exception as _e:
+        print(f"[cognition] organ-brain speech skipped (non-fatal): {_e}")
 
     # Initialize ring buffers
     global _substrate_ring, _input_ring
@@ -451,6 +472,20 @@ def handle_gualaloom_post(args):
         return _cmd_bundle(command, text)
     elif command == "/listen":
         return _cmd_listen(text, source)
+    elif command == "/organs":
+        return {"response": json.dumps(_guala_organ_brain or {"organ_brain": "not loaded"}),
+                "organ_brain": _guala_organ_brain}
+    elif command == "/organs_say":
+        try:
+            if _guala_cognition is None:
+                return {"response": "organ-brain cognition not loaded"}
+            # learn from what was said to her, then answer
+            if text:
+                _guala_cognition.expose([text])
+            said = _guala_cognition.say(text or "")
+            return {"response": said, "engine": "organ-brain (loom cognition)"}
+        except Exception as _e:
+            return {"response": f"organ-brain error: {_e}"}
     else:
         emission_mode = args.get("emission_mode")
         return _cmd_converse(text, source, emission_mode=emission_mode)
