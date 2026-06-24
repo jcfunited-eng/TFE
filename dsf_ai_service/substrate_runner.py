@@ -194,6 +194,69 @@ def _curriculum_is_busy():
         return True
 
 
+# ── lookup grounding (GL-CMD-NEXT Increment 4): feed what she focuses on ──
+# Look an item up (OpenAI child-safe description — substitute for the absent Google
+# key) and feed the description through her senses + organ-brain. Exception-walled.
+
+def _lookup_and_ground(term):
+    """Look up `term`, feed the description into her engine + organ-brain + senses.
+    Returns the description text, or None. Never raises into her runtime."""
+    try:
+        from dsf_ai_service.loom_model.lookup_grounding import describe
+        desc = describe(term)
+        if not desc:
+            return None
+        _pause_autonomy_for_bulk()
+        try:
+            _guala.read_sentence(desc, source="lookup")
+            _cognition_learn(desc)
+            _bind_sensory_words(desc)
+        finally:
+            _resume_autonomy_for_bulk()
+        try:
+            _guala._log_substrate_event("lookup_grounded", term=term, text=desc[:120])
+        except Exception:
+            pass
+        return desc
+    except Exception:
+        return None
+
+
+def _start_lookup_loop():
+    """Autonomous grounding of the things she looks at — OFF unless LOOKUP_AUTONOMOUS=1.
+    When on, periodically grounds one of her pictures so her words mean real things."""
+    if os.environ.get("LOOKUP_AUTONOMOUS", "0").strip() == "0":
+        print("[lookup] autonomous grounding OFF (set LOOKUP_AUTONOMOUS=1 to enable)")
+        return
+    try:
+        interval = int(os.environ.get("LOOKUP_INTERVAL_SEC", "600") or 600)
+    except Exception:
+        interval = 600
+
+    def loop():
+        idx = 0
+        while not _shutdown:
+            time.sleep(interval)
+            try:
+                if _curriculum_is_busy():
+                    continue
+                titles = [getattr(p, "title", None)
+                          for p in (getattr(_guala, "_pictures", {}) or {}).values()]
+                titles = [t for t in titles if t]
+                if not titles:
+                    continue
+                term = titles[idx % len(titles)]
+                idx += 1
+                d = _lookup_and_ground(term)
+                if d:
+                    print(f"[lookup] grounded {term!r}: {d[:60]}")
+            except Exception as e:
+                print(f"[lookup] loop error (non-fatal): {e}")
+
+    threading.Thread(target=loop, daemon=True, name="lookup-grounding").start()
+    print(f"[lookup] autonomous grounding ON interval={interval}s")
+
+
 def _write_runtime_config(data):
     """Write runtime config with fsync — survives SIGKILL."""
     path = _runtime_config_path()
@@ -412,6 +475,13 @@ def boot_substrate():
               f"interval={_curriculum.interval_sec}s")
     except Exception as _e:
         print(f"[curriculum] scheduler start skipped (non-fatal): {_e}")
+
+    # LOOKUP GROUNDING (Increment 4): ground what she focuses on. Manual op /lookup
+    # always available; autonomous loop OFF unless LOOKUP_AUTONOMOUS=1.
+    try:
+        _start_lookup_loop()
+    except Exception as _e:
+        print(f"[lookup] loop start skipped (non-fatal): {_e}")
 
     # Initialize ring buffers
     global _substrate_ring, _input_ring
@@ -686,6 +756,15 @@ def handle_gualaloom_post(args):
             return {"response": "curriculum scheduler not loaded"}
         _curriculum.enabled = (command == "/curriculum_on")
         return {"response": f"curriculum enabled={_curriculum.enabled}"}
+    elif command == "/lookup":
+        # look a thing up and feed the description through her senses + organ-brain
+        if not (text or "").strip():
+            return {"response": "usage: /lookup <thing>"}
+        if _curriculum_is_busy():
+            return {"response": "she is asleep or bulk-loading; try again when awake"}
+        desc = _lookup_and_ground(text)
+        return {"response": desc or "lookup unavailable (no key or no result)",
+                "grounded": bool(desc)}
     else:
         emission_mode = args.get("emission_mode")
         return _cmd_converse(text, source, emission_mode=emission_mode)
