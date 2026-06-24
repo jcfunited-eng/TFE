@@ -112,6 +112,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
   <div id="input-row">
     <input id="msg" type="text" placeholder="say something..." autocomplete="off">
     <button id="mic-btn" style="display:none;padding:6px 14px;font-size:12px" onclick="toggleSTT()">&#x1f399; mic off</button>
+    <button id="brain-toggle" onclick="toggleBrainMode()" style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:10px;cursor:pointer" title="Toggle between v5 engine and organ-brain direct">🧠 engine</button>
     <button onclick="sendMsg()">send</button>
   </div>
 </div>
@@ -741,6 +742,34 @@ async function submitCorrection(){
   closeCorrectionModal();
 }
 
+let _brainMode=false;
+function toggleBrainMode(){
+  _brainMode=!_brainMode;
+  const btn=document.getElementById('brain-toggle');
+  if(_brainMode){
+    btn.textContent='🧠 organ-brain';
+    btn.style.borderColor='var(--ev-motif)';btn.style.color='var(--ev-motif)';
+    msgInput.placeholder='speak to her organ-brain...';
+    addMsg('[ organ-brain mode — she answers from her organs, not the engine ]','system');
+  }else{
+    btn.textContent='🧠 engine';
+    btn.style.borderColor='var(--border)';btn.style.color='var(--text-muted)';
+    msgInput.placeholder='say something...';
+    addMsg('[ engine mode ]','system');
+  }
+}
+
+function _formatOrganBrainResponse(d){
+  const s=d.surfaced||{};
+  const id=(s.identity||[]).join(' · ')||'—';
+  const meaning=(s.meaning||[]).join(' · ')||'';
+  const st=d.status||{};
+  let out='[ identity ] '+id;
+  if(meaning)out+='\n[ meaning ] '+meaning;
+  out+='\n[ neurons: '+st.neurons+' · concepts: '+st.world_concepts+' ]';
+  return out;
+}
+
 let _sendingMsg=false;
 async function sendMsg(){
   const text=msgInput.value.trim();if(!text)return;
@@ -752,9 +781,15 @@ async function sendMsg(){
       const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:text})},10000);
       const d=await r.json();addMsg(d.response||JSON.stringify(d),'system');
       if(d.pictures)renderPictures(d.pictures);
+    }else if(_brainMode){
+      const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({text,command:'/organ_voice'})},15000);
+      if(r.status===503||r.status===500){handleNotReady('organ_brain');return}
+      const d=await r.json();
+      if(d.surfaced){addEmissionMsg(_formatOrganBrainResponse(d),null);}
+      else{addMsg(d.response||'(organ-brain warming up)','system')}
+      if(d.pictures)renderPictures(d.pictures);
     }else{
-      // Route through v5 (fast atlas recall + grandurun emission)
-      // v7 runs independently via autonomy loop — don't block on it
       const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})},10000);
       if(r.status===503||r.status===500){handleNotReady('converse')}
       else{
@@ -768,7 +803,7 @@ async function sendMsg(){
     }
   }catch(e){
     if(e.name==='TimeoutError'||e.message.includes('timeout')||e.message.includes('abort')){
-      addMsg('(still working \u2014 check events panel for response)','system');
+      addMsg('(still working — check events panel for response)','system');
     }else{addMsg('(error: '+e.message+')','system')}
   }
   _sendingMsg=false;msgInput.focus();

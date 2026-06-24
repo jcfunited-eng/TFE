@@ -907,19 +907,46 @@ def handle_gualaloom_post(args):
         except Exception as _e:
             return {"response": f"organ-brain error: {_e}"}
     elif command == "/organ_voice":
-        # her LIVING organ-brain: RAW organ recall (substrate-true, no LLM, no heuristics,
-        # no frames). Also GROWS (folds) from what is said to her, additively. This is NOT
-        # a composed voice — it returns the concepts her organs surface, honestly.
+        # her LIVING organ-brain: RAW organ recall — identity (sv) + meaning (sc) cued
+        # by the sensory profile of Joe's words. Grows from the conversation. No frames,
+        # no heuristics, no LLM in her voice. Returns what her organs honestly surface.
         if _organ_voice is None:
             return {"response": "organ-brain still warming up (background growth)"}
         try:
-            if text:
-                for _w in str(text).lower().split():
-                    if _w.isalpha() and len(_w) > 2:
-                        _organ_voice.experience(_w)  # grows (folds) from the conversation
-            return {"surfaced": _organ_voice.surface(),
-                    "engine": "organ-brain (raw organ recall — substrate-true)",
-                    "status": _organ_voice.status()}
+            words = [_w for _w in str(text).lower().split()
+                     if _w.isalpha() and len(_w) > 2] if text else []
+            # Grow her from the conversation words
+            for _w in words:
+                _organ_voice.experience(_w)
+            # Build a sensory cue from the words so sc organ surfaces meaning
+            cue_profile = None
+            if words:
+                import numpy as _np
+                profiles = []
+                for _w in words:
+                    _, prof = _organ_voice._senses(_w)
+                    profiles.append(prof)
+                if profiles:
+                    cue_profile = list(_np.mean(profiles, axis=0))
+            surfaced = _organ_voice.surface(cue_profile=cue_profile)
+            # Find pictures associated with surfaced concepts (by title match)
+            all_surfaced = surfaced.get("identity", []) + surfaced.get("meaning", [])
+            pics = getattr(g, "_pictures", {}) or {}
+            pic_refs = []
+            seen = set()
+            for concept in all_surfaced:
+                for pid, pic in pics.items():
+                    title = (getattr(pic, "title", "") or "").lower()
+                    if concept.lower() in title or title in concept.lower():
+                        if pid not in seen:
+                            seen.add(pid)
+                            pic_refs.append({"item_id": pid, "title": getattr(pic, "title", pid)})
+            result = {"surfaced": surfaced,
+                      "engine": "organ-brain (raw organ recall — substrate-true)",
+                      "status": _organ_voice.status()}
+            if pic_refs:
+                result["pictures"] = pic_refs
+            return result
         except Exception as _e:
             return {"response": f"organ-voice error: {_e}"}
     elif command == "/curriculum":
