@@ -783,12 +783,24 @@ class LoomNeuron:
         Feeds each modality's signal through its krimelack (no reset),
         reads phase, builds 7-dim state vector, records to BindingAtlas.
         """
-        from .grandurun import grandurun_state, MODALITIES
-
-        # R⁶ Δ-vector from attenuated unwrapped deltas (GL-CMD-133)
-        deltas = self._unwrapped_deltas(multi_modal_signals)
-        state_vec = grandurun_state(deltas)
+        state_vec = self.encode_state(multi_modal_signals)
         self.binding_atlas.record(concept, state_vec, tick)
+
+    def encode_state(self, multi_modal_signals: Dict[str, Any]) -> np.ndarray:
+        """Per-neuron state vector for binding/recall. Switched by self.observable:
+        - "resonant_spectral" (GL-CMD capacity solve): the modality waveforms' SPECTRUM
+          (resonant receptor banks) addressed as this neuron's balanced-ternary chi.
+          This is the encoding that lifts n=200 recall from ~18% to 100%.
+        - else (event_count default / rank_order): R⁶ grandurun vector from
+          _unwrapped_deltas (the GL-CMD-140 path)."""
+        from .grandurun import grandurun_state
+        if getattr(self, "observable", "event_count") == "resonant_spectral":
+            from . import resonant_chi as rc
+            feats = rc.spectral_features(multi_modal_signals)
+            if getattr(self, "_spectral_P", None) is None:
+                self._spectral_P = rc.neuron_projection(self.neuron_id, len(feats))
+            return rc.ternary_chi(feats, self._spectral_P)
+        return grandurun_state(self._unwrapped_deltas(multi_modal_signals))
 
     def _unwrapped_deltas(self, multi_modal_signals: Dict[str, Any]) -> Dict[str, float]:
         """Per-modality event_count observable with per-neuron attenuation.

@@ -195,9 +195,8 @@ class LoomBrain:
                             int(krim.winding) if hasattr(krim, 'winding') else 0,
                         )
 
-                # Symmetric attenuated query (GL-CMD-133 Δ-cosine)
-                query_deltas = neuron._unwrapped_deltas(query_signals)
-                target_vec = grandurun_state(query_deltas)
+                # Same encoding as the write path (switched by neuron.observable)
+                target_vec = neuron.encode_state(query_signals)
                 best_concept, _ = neuron.binding_atlas.recall_best(target_vec)
                 if best_concept is not None:
                     votes[best_concept] += 1
