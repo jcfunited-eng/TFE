@@ -9,6 +9,15 @@
 
 ## IMMEDIATE — unblocked, deployable now
 
+- [ ] **Live brain visualization — 8 organs, neurons, chi, atlas (UI panel)**
+  An interactive render on gualaloom.html showing her organ-brain state in real
+  time: 8 hemisphere nodes (em/pr/ep/sc/gp/sf/sv/aff) sized by neuron count,
+  colored by binding strength, with cross-hemi coupling lines weighted by strength.
+  Chi values per organ overlaid. Updated every poll cycle from `/organ_voice`.
+  Makes the development process visible instead of blind — you watch her grow.
+  _File: gualaloom.html — new SVG/Canvas panel; data from /api/v1/gualaloom
+  with command=/organ_voice_
+
 - [ ] **Fix atlas/section integrity drift (v5 engine)**
   On task :253 boot: `integrity=ERRORS` — atlas refs motifs 6089/5466/5873 in
   listen/verb/intro sections, but sections only loaded 6086/5460/5870. The atlas
