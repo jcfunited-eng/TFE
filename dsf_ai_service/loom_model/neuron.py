@@ -68,6 +68,21 @@ INJECT_SIGMA = 1.0    # Gaussian width (modes) for MapInject localization
 FOLD_TRIGGER_RATIO = math.exp(-1)  # 1/e — from L6-TCL physics (Master Spec Ch.11)
 FOLD_SUSTAIN_TICKS = 3             # consecutive ticks at n_eff < threshold for fold
 OMEGA_HISTORY_LEN = 32             # rolling window for recent_omega_mean
+N_MODALITIES = 6                   # GL-CMD-131: modality count for attenuation
+
+
+def signal_attenuation(ring_pos: int, ring_N: int, modality_index: int) -> float:
+    """Per-(neuron, modality) signal attenuation in [0.3, 1.0].
+
+    Deterministic from ring position. Each modality's pattern is rotated
+    by 60° of ring position so each neuron has a unique 6-tuple.
+    Floor at 0.3 prevents degenerate neurons.
+    """
+    A_MIN = 0.3
+    A_RANGE = 1.0 - A_MIN
+    return A_MIN + A_RANGE * (0.5 + 0.5 * math.cos(
+        2.0 * math.pi * (ring_pos / ring_N + modality_index / N_MODALITIES)
+    ))
 
 
 # ---------------------------------------------------------------------------
@@ -359,8 +374,14 @@ class LoomNeuron:
     """
 
     def __init__(self, neuron_id: str, dna_blueprint: Optional[Any] = None,
-                 birth_params: Optional[Dict[str, Any]] = None):
+                 birth_params: Optional[Dict[str, Any]] = None,
+                 primary_modality: str = "language",
+                 observable: str = "event_count"):
         self.neuron_id = neuron_id
+        self.primary_modality = primary_modality
+        # GL-CMD-146: cognition observable, opt-in. "event_count" (default,
+        # GL-CMD-140) or "rank_order" (first-wrap timing). Read in _unwrapped_deltas.
+        self.observable = observable
 
         # --- NEW pieces (1-6) ---
         self.psi_lattice = PsiLattice()           # 1. ψ-lattice
@@ -378,10 +399,25 @@ class LoomNeuron:
         self.l6_tcl = L6_TCL()                                    # 10. L6-TCL
         self.chi_atlas = ChiAtlas()                               # 10b. ChiAtlas
         # 11. bt_div / bt_to_int / int_to_bt — module-level, no state
-        self.krimelack = LanguageKrimelack()                      # 12. Krimelack
+
+        # 12. Krimelack — GL-CMD-139: primary modality from hemisphere topology
+        from .substrate_dna import KRIMELACK_PRIMITIVES
+        krim_class = KRIMELACK_PRIMITIVES.get(primary_modality, LanguageKrimelack)
+        self.krimelack = krim_class()                             # 12. Krimelack
+
         self.sensory_bank = SensoryBank()                         # 13. SensoryBank
         # 14. _grandurun_state — used as module-level function
         # 15. _SPIN_VECTOR_DIM — constant
+
+        # GL-CMD-125: multi-krimelack bank for cognition path
+        from .binding_atlas import BindingAtlas
+        self.krimelack_bank: Dict[str, Any] = {}
+        for modality_name, mk_class in KRIMELACK_PRIMITIVES.items():
+            if modality_name == primary_modality:
+                self.krimelack_bank[modality_name] = self.krimelack
+            else:
+                self.krimelack_bank[modality_name] = mk_class()
+        self.binding_atlas = BindingAtlas()
 
         # Internal state
         self._last_dsf: Optional[DSF] = None
@@ -437,31 +473,62 @@ class LoomNeuron:
             omega_override = self.krimelack.omega_0 + omega_shift
             self._coupling_signal_accum = []
 
-        if isinstance(input_signal, str):
+        # GL-CMD-117: krimelack state persists across ticks (no reset).
+        # Track monotonic event count to extract THIS tick's events only.
+        # GL-CMD-138: use n_events counter (deque may evict old entries).
+        # GL-CMD-139: active_krim tracks whichever krimelack was actually fed.
+        active_krim = self.krimelack  # default: primary krimelack
+        n_events_before = active_krim.n_events if hasattr(active_krim, 'n_events') else len(active_krim.events)
+
+        _is_lang = isinstance(self.krimelack, LanguageKrimelack)
+        if isinstance(input_signal, str) and _is_lang:
             _fp, _role, _senses = self.krimelack.transduce(
                 input_signal, omega_override=omega_override,
-                phase_offset=self._positional_phase_offset)
+                phase_offset=self._positional_phase_offset,
+                no_reset=True)
             self._last_origin_transducer = "language"
+        elif isinstance(input_signal, str) and not _is_lang:
+            # Non-language primary krimelack cannot transduce words;
+            # route through language krimelack in bank for DSF events
+            lang_krim = self.krimelack_bank.get("language")
+            if lang_krim is not None:
+                active_krim = lang_krim
+                n_events_before = active_krim.n_events if hasattr(active_krim, 'n_events') else len(active_krim.events)
+                lang_krim.transduce(
+                    input_signal, omega_override=omega_override,
+                    phase_offset=self._positional_phase_offset,
+                    no_reset=True)
+            self._last_origin_transducer = "language"
+            _senses = {}
         else:
-            self.krimelack.reset()
             if omega_override is not None:
                 saved = self.krimelack.omega_0
                 self.krimelack.omega_0 = omega_override
-            self.krimelack.feed(list(input_signal))
+            if hasattr(self.krimelack, 'feed_signal'):
+                self.krimelack.feed_signal(list(input_signal))
+            else:
+                self.krimelack.feed(list(input_signal))
             if omega_override is not None:
                 self.krimelack.omega_0 = saved
             _senses = {}
 
-        events = list(self.krimelack.events)
+        # DSF from THIS tick's events only (winding state persists, DSF reflects current signal)
+        # GL-CMD-138: slice by count of new events from bounded deque tail
+        n_events_after = active_krim.n_events if hasattr(active_krim, 'n_events') else len(active_krim.events)
+        new_event_count = n_events_after - n_events_before
+        events = list(active_krim.events)[-new_event_count:] if new_event_count > 0 else []
         self._last_events = events
 
         # Track ω history for recent_omega_mean
         if events:
-            omega_recent = self.krimelack.omega_0 + self.krimelack.kappa * abs(
+            _kappa = getattr(active_krim, 'kappa',
+                     getattr(getattr(active_krim, '_inner', None),
+                             'kappa', 0.0))
+            omega_recent = active_krim.omega_0 + _kappa * abs(
                 sum(e["s"] for e in events) / len(events)
             )
         else:
-            omega_recent = self.krimelack.omega_0
+            omega_recent = active_krim.omega_0
         self._omega_history.append(omega_recent)
         if len(self._omega_history) > OMEGA_HISTORY_LEN:
             self._omega_history.pop(0)
@@ -578,10 +645,16 @@ class LoomNeuron:
             if norm > 1e-12:
                 self.psi_lattice.psi = psi / norm
 
-        # Krimelack ω₀ inheritance
+        # Krimelack ω₀ inheritance — use origin transducer's class (GL-CMD-139)
         if "omega_0" in bp:
-            self.krimelack = LanguageKrimelack()
+            from .substrate_dna import KRIMELACK_PRIMITIVES
+            origin = bp.get("origin_transducer", self.primary_modality)
+            krim_cls = bp.get("krimelack_class",
+                              KRIMELACK_PRIMITIVES.get(origin, LanguageKrimelack))
+            self.krimelack = krim_cls()
             self.krimelack.omega_0 = float(bp["omega_0"])
+            # Re-alias in krimelack_bank so bank[origin] == self.krimelack
+            self.krimelack_bank[origin] = self.krimelack
 
         # Law-field weights from overflow DSF
         if "law_field_weights" in bp:
@@ -697,6 +770,112 @@ class LoomNeuron:
         # Reset fold sustain counter
         self._fold_sustain_count = 0
         self._fold_count += 1
+
+    # ------------------------------------------------------------------
+    # Cognition path — multi-modal binding (GL-CMD-125)
+    # ------------------------------------------------------------------
+
+    def experience_moment(self, concept: str,
+                          multi_modal_signals: Dict[str, Any],
+                          tick: int) -> None:
+        """Cognition write — substrate-true multi-modal binding.
+
+        Feeds each modality's signal through its krimelack (no reset),
+        reads phase, builds 7-dim state vector, records to BindingAtlas.
+        """
+        state_vec = self.encode_state(multi_modal_signals)
+        self.binding_atlas.record(concept, state_vec, tick)
+
+    def encode_state(self, multi_modal_signals: Dict[str, Any]) -> np.ndarray:
+        """Per-neuron state vector for binding/recall. Switched by self.observable:
+        - "resonant_spectral" (GL-CMD capacity solve): the modality waveforms' SPECTRUM
+          (resonant receptor banks) addressed as this neuron's balanced-ternary chi.
+          This is the encoding that lifts n=200 recall from ~18% to 100%.
+        - else (event_count default / rank_order): R⁶ grandurun vector from
+          _unwrapped_deltas (the GL-CMD-140 path)."""
+        from .grandurun import grandurun_state
+        if getattr(self, "observable", "event_count") == "resonant_spectral":
+            from . import resonant_chi as rc
+            feats = rc.spectral_features(multi_modal_signals)
+            if getattr(self, "_spectral_P", None) is None:
+                self._spectral_P = rc.neuron_projection(self.neuron_id, len(feats))
+            return rc.ternary_chi(feats, self._spectral_P)
+        return grandurun_state(self._unwrapped_deltas(multi_modal_signals))
+
+    def _unwrapped_deltas(self, multi_modal_signals: Dict[str, Any]) -> Dict[str, float]:
+        """Per-modality event_count observable with per-neuron attenuation.
+
+        GL-CMD-140: wired in verbatim from the sweep_137 harness mechanism
+        that achieved 67% T5 at n=100 (vs the GL-CMD-133/134 phase/winding
+        delta-rate path, which scored ~5% in production and is now deleted).
+        Symmetric — the same path runs at training write (experience_moment)
+        and recall query (brain.recall). The observable is the count of new
+        krimelack events per modality (from the GL-CMD-138 n_events counter),
+        attenuated per (neuron, modality) by ring position (GL-CMD-131).
+
+        GL-CMD-146: observable is opt-in. Default "event_count" (count of new
+        krimelack events per modality). "rank_order" instead ranks modalities by
+        first-wrap timing (earliest wrap = highest strength), carrying the
+        time-to-first-spike information that event counts discard. The FEED side
+        is identical for both — only the returned observable differs. Selected by
+        self.observable, so training-write and recall-query switch together.
+        """
+        from .grandurun import MODALITIES
+
+        observable = getattr(self, 'observable', 'event_count')
+        rpos = getattr(self, 'ring_pos', 0)
+        rN = getattr(self, 'ring_N', 1)
+        deltas = {}
+        first_wraps = {}  # modality -> relative first-wrap time (rank_order only)
+        for i, m in enumerate(MODALITIES):
+            signal = multi_modal_signals.get(m)
+            krim = self.krimelack_bank.get(m)
+            if signal is None or krim is None:
+                deltas[m] = 0.0
+                continue
+            att = signal_attenuation(rpos, rN, i)
+            ev0 = krim.n_events if hasattr(krim, 'n_events') else len(krim.events)
+            # Pre-feed krimelack time, so this feed's first-wrap timing is
+            # measured RELATIVE to feed start (krim.t is cumulative across the
+            # no-reset feeds for oscillator krimelacks; 0 for reset-type adapters
+            # whose events restart per feed).
+            t_pre = self._krim_time(krim) if observable == "rank_order" else 0.0
+            if m == "language":
+                krim.transduce(signal, no_reset=True, omega_override=2.0 * att)
+            elif hasattr(krim, 'feed_signal'):
+                sig = list(signal) if not isinstance(signal, list) else signal
+                sig_att = [s * att for s in sig]
+                krim.feed_signal(sig_att)
+            ev1 = krim.n_events if hasattr(krim, 'n_events') else len(krim.events)
+            new_count = ev1 - ev0
+            if observable == "rank_order":
+                if new_count > 0:
+                    new_events = list(krim.events)[-new_count:]
+                    first_wraps[m] = float(new_events[0].get("t", 0.0)) - t_pre
+                # modalities that did not wrap are omitted -> strength 0 below
+            else:
+                deltas[m] = float(new_count)
+
+        if observable == "rank_order":
+            n_mod = len(MODALITIES)
+            deltas = {m: 0.0 for m in MODALITIES}
+            # earliest first-wrap gets the highest strength (n_mod - rank)
+            for rank, (m, _t) in enumerate(
+                    sorted(first_wraps.items(), key=lambda kv: kv[1])):
+                deltas[m] = float(n_mod - rank)
+        return deltas
+
+    @staticmethod
+    def _krim_time(krim) -> float:
+        """Current cumulative krimelack time (feed-start reference for rank_order).
+        Oscillator krimelacks expose .t (directly or via ._inner); reset-type
+        adapters (visual/cochlear) restart events per feed, so 0.0 is correct."""
+        if hasattr(krim, "t"):
+            return float(krim.t)
+        inner = getattr(krim, "_inner", None)
+        if inner is not None and hasattr(inner, "t"):
+            return float(inner.t)
+        return 0.0
 
     # ------------------------------------------------------------------
     # get_grandurun_state — 7D complex128 spin-vector

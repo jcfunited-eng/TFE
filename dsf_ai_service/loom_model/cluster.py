@@ -12,6 +12,7 @@ NO production imports beyond Stage 1's existing reuses.
 NO writes to production atlas. NO ECS/S3/deploy.
 """
 
+import math
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -24,7 +25,7 @@ from .neuron import (
     J_MAX,
     FOLD_TRIGGER_RATIO,
 )
-from .substrate_dna import derive_daughter_parameters
+from .substrate_dna import derive_daughter_parameters, K_TOTAL
 from dsf_ai_service.v4.gualaloom_v5_engine import (
     _grandurun_select_vector,
     _SPIN_VECTOR_DIM,
@@ -48,21 +49,27 @@ class LoomCluster:
                  n_neurons: int = 50,
                  k_neighbors: int = 16,
                  dna_blueprints: Optional[List[Any]] = None,
-                 seed: Optional[int] = None):
+                 seed: Optional[int] = None,
+                 primary_modality: str = "language",
+                 observable: str = "event_count"):
         """
         Args:
-            cluster_id:     unique identifier for this cluster
-            n_neurons:      number of neurons in the population
-            k_neighbors:    coupling fan-out per neuron (Stage 2: 16)
-            dna_blueprints: optional list of N blueprints to distribute
-            seed:           deterministic RNG seed (topology is ring-based
-                            so seed is only used if future stages add
-                            stochastic elements)
+            cluster_id:        unique identifier for this cluster
+            n_neurons:         number of neurons in the population
+            k_neighbors:       coupling fan-out per neuron (Stage 2: 16)
+            dna_blueprints:    optional list of N blueprints to distribute
+            seed:              deterministic RNG seed (topology is ring-based
+                               so seed is only used if future stages add
+                               stochastic elements)
+            primary_modality:  krimelack modality for this cluster's neurons
+                               (GL-CMD-139)
         """
         self.cluster_id = cluster_id
         self.n_neurons = n_neurons
         self.k_neighbors = min(k_neighbors, n_neurons - 1)
         self.seed = seed
+        self.primary_modality = primary_modality
+        self.observable = observable  # GL-CMD-146: propagated to daughters too
 
         # --- Instantiate neurons ---
         self.neurons: List[LoomNeuron] = []
@@ -71,7 +78,9 @@ class LoomCluster:
             bp = None
             if dna_blueprints is not None and i < len(dna_blueprints):
                 bp = dna_blueprints[i]
-            self.neurons.append(LoomNeuron(nid, dna_blueprint=bp))
+            self.neurons.append(LoomNeuron(nid, dna_blueprint=bp,
+                                           primary_modality=primary_modality,
+                                           observable=observable))
 
         # Fast lookup by neuron_id
         self._neuron_map: Dict[str, LoomNeuron] = {
@@ -88,8 +97,12 @@ class LoomCluster:
         # This means neuron i starts i transitions ahead of neuron 0, giving
         # each neuron a distinct phase position in the oscillator's cycle.
         for i, neuron in enumerate(self.neurons):
-            threshold = neuron.krimelack.threshold  # π/3
+            threshold = getattr(neuron.krimelack, 'threshold',
+                        getattr(getattr(neuron.krimelack, '_inner', None),
+                                'threshold', math.pi / 3))
             neuron._positional_phase_offset = threshold * i
+            neuron.ring_pos = i
+            neuron.ring_N = self.n_neurons
 
     # ------------------------------------------------------------------
     # Topology
@@ -292,6 +305,12 @@ class LoomCluster:
     def process_folds(self, tick: int) -> List[str]:
         """Check all neurons for fold triggers and spawn daughters.
 
+        Contact inhibition (GL-CMD-105): after fold_check passes, the
+        overflow signal is scaled by inhibition_factor = (1 - n/K_TOTAL)².
+        Spawn only proceeds if the effective overflow exceeds the fold
+        threshold. At full neighbor saturation, inhibition_factor → 0
+        and fold rate → 0.
+
         Returns list of newly spawned daughter neuron_ids.
         """
         new_ids = []
@@ -300,12 +319,31 @@ class LoomCluster:
         current_neurons = list(self.neurons)
         for neuron in current_neurons:
             if neuron.fold_check(tick):
+                # Contact inhibition gate
+                n_neighbors = len(neuron.couplings.neighbors)
+                saturation_ratio = n_neighbors / K_TOTAL
+                inhibition_factor = (1.0 - saturation_ratio) ** 2
+                if inhibition_factor <= 0.0:
+                    continue  # fully saturated — fold suppressed
+
+                # Effective overflow magnitude check:
+                # n_eff is already below threshold (fold_check passed).
+                # Scale the overflow margin by inhibition_factor.
+                n_eff = neuron.l6_tcl.n_eff(neuron._last_dsf)
+                threshold = neuron.l6_tcl.n_start * FOLD_TRIGGER_RATIO
+                overflow_raw = threshold - n_eff  # positive when fold_check passed
+                overflow_eff = overflow_raw * inhibition_factor
+                if overflow_eff <= 0.0:
+                    continue  # inhibited below threshold
+
                 overflow = neuron.compute_overflow_signal()
                 params = derive_daughter_parameters(overflow, neuron)
                 daughter_id = self.next_id()
                 daughter = LoomNeuron(
                     neuron_id=daughter_id,
                     birth_params=params,
+                    primary_modality=self.primary_modality,
+                    observable=self.observable,
                 )
                 self.attach(daughter, inherit_from=neuron)
                 neuron._fold_ticks.append(tick)

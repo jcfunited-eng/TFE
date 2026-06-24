@@ -32,7 +32,7 @@ from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 impor
 )
 from dsf_ai_service.substrate.sensory_generators import (
     generate_touch_waveform, generate_smell_waveform, generate_taste_waveform,
-    transduce_sensory_signals, TOUCH_LIBRARY,
+    transduce_sensory_signals,
 )
 from dsf_ai_service.v4.gualaloom_v4_uf_kernel import compute_dsf
 
@@ -64,10 +64,30 @@ class TactileKrimelack:
         self._tuning = {**tuning, "omega_0": self.omega_0}
         self.events = []
         self.winding = 0
+        self._inner = OscillatorKrimelack(**self._tuning)
+
+    @property
+    def phase(self):
+        return self._inner.phase if hasattr(self._inner, 'phase') else 0.0
+
+    @phase.setter
+    def phase(self, value):
+        if hasattr(self._inner, 'phase'):
+            self._inner.phase = value
+
+    @property
+    def n_events(self):
+        return self._inner.n_events if hasattr(self._inner, 'n_events') else 0
 
     def reset(self):
         self.events = []
         self.winding = 0
+
+    def feed_signal(self, signal):
+        """Feed raw signal without reset (cognition path, GL-CMD-125)."""
+        self._inner.feed_signal(list(signal))
+        self.events = list(self._inner.events)
+        self.winding = self._inner.winding
 
     def transduce(self, signal):
         """Transduce touch params dict or raw signal array.
@@ -76,15 +96,19 @@ class TactileKrimelack:
         If array-like: feed directly as single channel.
         """
         self.reset()
-        osc = OscillatorKrimelack(**self._tuning)
+        # GL-CMD-138 V2.5: reset in place rather than recreating _inner.
+        # OscillatorKrimelack.reset() clears phase/winding/events but preserves
+        # the monotonic n_events counter (hasattr guard); recreating would zero
+        # it and break the count/storage decoupling this command establishes.
+        self._inner.reset()
         if isinstance(signal, dict):
             waveforms = generate_touch_waveform(signal)
             for _channel, wave in sorted(waveforms.items()):
-                osc.feed_signal(wave)
+                self._inner.feed_signal(wave)
         else:
-            osc.feed_signal(list(signal))
-        self.events = list(osc.events)
-        self.winding = osc.winding
+            self._inner.feed_signal(list(signal))
+        self.events = list(self._inner.events)
+        self.winding = self._inner.winding
         return self.events
 
 
@@ -97,22 +121,45 @@ class OlfactoryKrimelack:
         self._tuning = {**tuning, "omega_0": self.omega_0}
         self.events = []
         self.winding = 0
+        self._inner = OscillatorKrimelack(**self._tuning)
+
+    @property
+    def phase(self):
+        return self._inner.phase if hasattr(self._inner, 'phase') else 0.0
+
+    @phase.setter
+    def phase(self, value):
+        if hasattr(self._inner, 'phase'):
+            self._inner.phase = value
+
+    @property
+    def n_events(self):
+        return self._inner.n_events if hasattr(self._inner, 'n_events') else 0
 
     def reset(self):
         self.events = []
         self.winding = 0
 
+    def feed_signal(self, signal):
+        self._inner.feed_signal(list(signal))
+        self.events = list(self._inner.events)
+        self.winding = self._inner.winding
+
     def transduce(self, signal):
         self.reset()
-        osc = OscillatorKrimelack(**self._tuning)
+        # GL-CMD-138 V2.5: reset in place rather than recreating _inner.
+        # OscillatorKrimelack.reset() clears phase/winding/events but preserves
+        # the monotonic n_events counter (hasattr guard); recreating would zero
+        # it and break the count/storage decoupling this command establishes.
+        self._inner.reset()
         if isinstance(signal, dict):
             waveforms = generate_smell_waveform(signal)
             for _channel, wave in sorted(waveforms.items()):
-                osc.feed_signal(wave)
+                self._inner.feed_signal(wave)
         else:
-            osc.feed_signal(list(signal))
-        self.events = list(osc.events)
-        self.winding = osc.winding
+            self._inner.feed_signal(list(signal))
+        self.events = list(self._inner.events)
+        self.winding = self._inner.winding
         return self.events
 
 
@@ -125,22 +172,45 @@ class GustatoryKrimelack:
         self._tuning = {**tuning, "omega_0": self.omega_0}
         self.events = []
         self.winding = 0
+        self._inner = OscillatorKrimelack(**self._tuning)
+
+    @property
+    def phase(self):
+        return self._inner.phase if hasattr(self._inner, 'phase') else 0.0
+
+    @phase.setter
+    def phase(self, value):
+        if hasattr(self._inner, 'phase'):
+            self._inner.phase = value
+
+    @property
+    def n_events(self):
+        return self._inner.n_events if hasattr(self._inner, 'n_events') else 0
 
     def reset(self):
         self.events = []
         self.winding = 0
 
+    def feed_signal(self, signal):
+        self._inner.feed_signal(list(signal))
+        self.events = list(self._inner.events)
+        self.winding = self._inner.winding
+
     def transduce(self, signal):
         self.reset()
-        osc = OscillatorKrimelack(**self._tuning)
+        # GL-CMD-138 V2.5: reset in place rather than recreating _inner.
+        # OscillatorKrimelack.reset() clears phase/winding/events but preserves
+        # the monotonic n_events counter (hasattr guard); recreating would zero
+        # it and break the count/storage decoupling this command establishes.
+        self._inner.reset()
         if isinstance(signal, dict):
             waveforms = generate_taste_waveform(signal)
             for _channel, wave in sorted(waveforms.items()):
-                osc.feed_signal(wave)
+                self._inner.feed_signal(wave)
         else:
-            osc.feed_signal(list(signal))
-        self.events = list(osc.events)
-        self.winding = osc.winding
+            self._inner.feed_signal(list(signal))
+        self.events = list(self._inner.events)
+        self.winding = self._inner.winding
         return self.events
 
 
@@ -152,25 +222,43 @@ class VisualKrimelack:
         self._fovea = AdaptingFoveaKrimelack(omega_0=self.omega_0)
         self.events = []
         self.winding = 0
+        self._phase = 0.0
+        self._n_events = 0
+
+    @property
+    def phase(self):
+        return self._phase
+
+    @phase.setter
+    def phase(self, value):
+        self._phase = value
+
+    @property
+    def n_events(self):
+        return self._n_events
 
     def reset(self):
         self._fovea = AdaptingFoveaKrimelack(omega_0=self.omega_0)
         self.events = []
         self.winding = 0
 
-    def transduce(self, signal):
-        """Signal: 1D array of intensity values or 2D image (flattened)."""
-        self.reset()
+    def feed_signal(self, signal):
         arr = np.asarray(signal, dtype=np.float64).ravel()
         for i, intensity in enumerate(arr):
             t = float(i) * VIS_DT
             self._fovea.tick(float(intensity), t)
-        # AdaptingFoveaKrimelack stores events as plain timestamps
         self.events = [
             {"t": t_ev, "dw": +1, "s": 1.0}
             for t_ev in self._fovea.events
         ]
+        self._n_events += len(self.events)
         self.winding = self._fovea.winding_count
+        self._phase = float(self.winding) * 0.1  # phase from winding accumulation
+
+    def transduce(self, signal):
+        """Signal: 1D array of intensity values or 2D image (flattened)."""
+        self.reset()
+        self.feed_signal(signal)
         return self.events
 
 
@@ -181,14 +269,26 @@ class CochlearBankKrimelack:
         self.omega_0 = omega_0 if omega_0 is not None else 2.0
         self.events = []
         self.winding = 0
+        self._phase = 0.0
+        self._n_events = 0
+
+    @property
+    def phase(self):
+        return self._phase
+
+    @phase.setter
+    def phase(self, value):
+        self._phase = value
+
+    @property
+    def n_events(self):
+        return self._n_events
 
     def reset(self):
         self.events = []
         self.winding = 0
 
-    def transduce(self, signal):
-        """Signal: 1D audio waveform array."""
-        self.reset()
+    def feed_signal(self, signal):
         arr = np.asarray(signal, dtype=np.float64)
         cochlear = cochlear_transduce(arr)
         total_winding = 0
@@ -198,7 +298,14 @@ class CochlearBankKrimelack:
             all_events.extend(band_data["events"])
         all_events.sort(key=lambda e: e["t"])
         self.events = all_events
-        self.winding = total_winding
+        self._n_events += len(all_events)
+        self.winding += total_winding
+        self._phase = float(self.winding) * 0.1
+
+    def transduce(self, signal):
+        """Signal: 1D audio waveform array."""
+        self.reset()
+        self.feed_signal(signal)
         return self.events
 
 

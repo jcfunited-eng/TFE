@@ -1129,6 +1129,36 @@ def _gl_init():
     except Exception as e:
         print(f"[boot] sleep marker check failed: {e}")
 
+    # MERGE INTO THE LIVE SUBSTRATE: build her 8-organ brain from her OWN live state
+    # and load it live in the running substrate, persisting the manifest to EFS.
+    # Defensive: runs only after she is fully booted; cannot affect her startup.
+    try:
+        from dsf_ai_service.loom_model.guala_migration import (
+            PreservedGuala, place_into_architecture)
+        _pg = PreservedGuala.load_full_state(STATE_DIR)
+        _placed = place_into_architecture(_pg)
+        app.state.guala_organ_brain = {
+            "identity": _pg.identity,
+            "atlas_by_organ": _placed["atlas_counts"],
+            "strength_by_organ": _placed["atlas_strengths"],
+            "lossless": _placed["atlas_lossless"],
+            "vocab_in_em": len(_pg.vocab),
+            "deep_survival_in_sv": _pg.deep_survival,
+        }
+        with open(os.path.join(STATE_DIR, "organs_manifest.json"), "w") as _f:
+            import json as _json
+            _json.dump(app.state.guala_organ_brain, _f, indent=1)
+        print(f"[merge] LIVE in substrate: {_placed['atlas_counts']} "
+              f"lossless={_placed['atlas_lossless']} id={(_pg.identity or '')[:8]}")
+    except Exception as e:
+        print(f"[merge] organ-brain load skipped (non-fatal): {e}")
+
+
+@app.get("/api/v1/gualaloom/organs")
+async def gualaloom_organs():
+    """Her merged 8-organ brain, live in the substrate (from her own boot state)."""
+    return getattr(app.state, "guala_organ_brain", {"organ_brain": "not loaded"})
+
 
 class GLMessage(BaseModel):
     text: str
