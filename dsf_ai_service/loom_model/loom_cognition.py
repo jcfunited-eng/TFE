@@ -9,6 +9,14 @@ It learns continuously: every exposure updates the walk. The substrate grows.
 from collections import Counter, defaultdict
 from typing import Dict, List, Optional
 
+# Generic openers/function words make poor seeds — every query collapses onto the
+# single dominant opener (e.g. always "the moon is bright"). When the query carries
+# a content word she knows, steer from THAT instead so her reply tracks the prompt.
+_STOPWORD_SEEDS = frozenset({
+    "the", "a", "an", "is", "are", "was", "were", "be", "i", "you", "we", "it",
+    "to", "of", "and", "or", "at", "in", "on", "my", "your", "this", "that",
+})
+
 
 class GualaCognition:
     """Her language from exposure: learned word-succession, walked into sentences."""
@@ -30,12 +38,25 @@ class GualaCognition:
                 self.trans[a][b] += 1
 
     def compose(self, query: str = "", max_len: int = 7) -> List[str]:
-        """Walk her learned succession into a sentence, seeded by the query."""
+        """Walk her learned succession into a sentence, seeded by the query.
+
+        Seed selection prefers a CONTENT word from the query (one she can continue),
+        so 'the cat ...' walks from 'cat', not from the generic 'the'. Falls back to
+        any known query word, then to her most common opener."""
+        toks = (query or "").lower().split()
+        # query tokens she can actually continue (have learned successors)
+        steerable = [t for t in toks if t in self.trans]
         seed = ""
-        for tok in (query or "").lower().split():
-            if tok in self.trans or tok in self.vocab:
-                seed = tok
-                break
+        if steerable:
+            content = [t for t in steerable if t not in _STOPWORD_SEEDS]
+            pool = content or steerable
+            # richest continuation among the preferred pool
+            seed = max(pool, key=lambda w: len(self.trans.get(w, ())))
+        if not seed:
+            for tok in toks:           # any word she at least knows
+                if tok in self.vocab:
+                    seed = tok
+                    break
         if not seed:
             seed = self.starts.most_common(1)[0][0] if self.starts else ""
         if not seed:

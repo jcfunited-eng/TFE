@@ -11,6 +11,7 @@ import asyncio
 import base64
 import json
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -36,6 +37,57 @@ RUNTIME_CONFIG_FILE = "guala_runtime_config.json"
 
 def _runtime_config_path():
     return os.path.join(STATE_DIR, RUNTIME_CONFIG_FILE)
+
+
+# ═══════════════════════════════════════════════════════════════
+# Organ-brain learning from real experience (GL-CMD-NEXT Increment 1)
+# Her section data carries junk (e.g. 'kbl', leaked quote fragments). Before any
+# real word becomes part of her organ-brain's learned succession, it passes this
+# gate: a clean word is alphabetic, has a vowel (drops code-junk like 'kbl'/'wc'),
+# and is a sane length. Exposure only happens on >=2 clean tokens (succession needs
+# a pair). All of this rides ALONGSIDE her engine and never raises into her runtime.
+# ═══════════════════════════════════════════════════════════════
+
+_VOWELS = frozenset("aeiouy")  # y counts: keeps real words like sky/my/why/dry/try
+# obvious non-words seen in her section data; extend conservatively
+_COGNITION_STOP_JUNK = frozenset({"kbl", "kb", "wc", "nhs", "xx", "xxx", "hmm"})
+
+
+def _clean_word(raw):
+    """Normalize one token to a real word, or '' if it is junk."""
+    w = re.sub(r"[^a-z']", "", (raw or "").lower()).strip("'")
+    if not w or len(w) > 20:
+        return ""
+    if w in _COGNITION_STOP_JUNK:
+        return ""
+    if len(w) == 1 and w not in ("a", "i"):   # stray single letters (g, b, c...)
+        return ""
+    if not (_VOWELS & set(w)):                 # no vowel (y counts) -> code/junk
+        return ""
+    return w
+
+
+def _clean_sentence_for_cognition(text):
+    """Real-word sentence for the organ-brain, or '' if too little signal."""
+    toks = [w for w in (_clean_word(t) for t in (text or "").split()) if w]
+    return " ".join(toks) if len(toks) >= 2 else ""
+
+
+def _cognition_learn(text):
+    """Feed CLEAN tokens from a real experience into her organ-brain.
+
+    Additive and exception-walled: a learning hiccup can never disturb her engine
+    or her runtime. Returns the number of clean tokens learned (0 if gated out)."""
+    try:
+        if _guala_cognition is None:
+            return 0
+        s = _clean_sentence_for_cognition(text)
+        if not s:
+            return 0
+        _guala_cognition.expose([s])
+        return len(s.split())
+    except Exception:
+        return 0
 
 
 def _write_runtime_config(data):
@@ -363,6 +415,15 @@ def handle_v7_converse(args):
         save_session(session)
     except Exception:
         pass
+    # organ-brain learns from the live conversation: what was said to her, and her
+    # own reply (whichever reply field the engine populated). Clean-gated, walled.
+    _cognition_learn(text)
+    if isinstance(result, dict):
+        for _k in ("reply", "text", "emission", "utterance", "response"):
+            _v = result.get(_k)
+            if isinstance(_v, str) and _v:
+                _cognition_learn(_v)
+                break
     result["session_id"] = session_id
     return result
 
@@ -1098,6 +1159,10 @@ def handle_teacher_correction(args):
         temporal=temporal,
         sensory_freetext=sensory_freetext,
     )
+    # organ-brain learns the CORRECT phrasing she was taught (supervised signal)
+    _cognition_learn(corrected_text)
+    if isinstance(story, str):
+        _cognition_learn(story)
     import time as _time
     _guala._teaching_correction_log.append({
         "emission_id": emission_id,
@@ -1157,10 +1222,12 @@ def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strengt
     errors = []
     n_fed = 0
     n_total = len(lines)
+    organ_vocab_before = len(_guala_cognition.vocab) if _guala_cognition is not None else 0
     try:
         for sent in lines:
             try:
                 _guala.read_sentence(sent, source="corpus")
+                _cognition_learn(sent)  # organ-brain learns from what she studies
                 n_fed += 1
                 # Progress update every 10 sentences (or every sentence if small)
                 if n_total < 20 or n_fed % 10 == 0:
@@ -1174,6 +1241,7 @@ def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strengt
     vocab_after = len(_guala.vocab)
     reads_after = _guala.read_count
     strength_after = round(_guala.atlas.total_strength(), 4)
+    organ_vocab_after = len(_guala_cognition.vocab) if _guala_cognition is not None else 0
 
     _guala._log_substrate_event(
         "curriculum_loaded",
@@ -1183,7 +1251,11 @@ def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strengt
         n_new_vocab=vocab_after - vocab_before,
         reads_delta=reads_after - reads_before,
         atlas_strength_delta=round(strength_after - strength_before, 4),
+        organ_vocab_delta=organ_vocab_after - organ_vocab_before,
     )
+    print(f"[cognition] corpus '{corpus_id}': organ-brain vocab "
+          f"{organ_vocab_before}->{organ_vocab_after} "
+          f"(+{organ_vocab_after - organ_vocab_before})")
 
     result = {
         "status": "complete",
@@ -1198,6 +1270,9 @@ def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strengt
         "atlas_strength_delta": round(strength_after - strength_before, 4),
         "vocab_before": vocab_before,
         "vocab_after": vocab_after,
+        "organ_vocab_before": organ_vocab_before,
+        "organ_vocab_after": organ_vocab_after,
+        "organ_vocab_delta": organ_vocab_after - organ_vocab_before,
     }
     if errors:
         result["errors"] = errors[:5]
@@ -1422,6 +1497,9 @@ def handle_sight_frame(args):
         from dsf_ai_service.substrate.grounded_vocab_integration import (
             process_sight_with_recognition)
         bindings = process_sight_with_recognition(_guala, grid)
+        # organ-brain learns the scene it saw (co-seen objects -> succession)
+        _scene = " ".join(b.get("word", "") for b in (bindings or []))
+        _cognition_learn(_scene)
         # Publish to ring
         if _substrate_ring is not None:
             _substrate_ring.publish("sight_frame", _guala.tick,
@@ -1449,7 +1527,10 @@ def handle_sound_frame(args):
         # Grounded vocab: speech transcription / ambient classification
         from dsf_ai_service.substrate.grounded_vocab_integration import (
             process_sound_with_recognition)
-        process_sound_with_recognition(_guala, audio_bytes, source=source)
+        _sbind = process_sound_with_recognition(_guala, audio_bytes, source=source)
+        # organ-brain learns the words it heard (transcribed speech -> succession)
+        if _sbind:
+            _cognition_learn(" ".join(b.get("word", "") for b in _sbind))
         # Publish to ring
         if _substrate_ring is not None:
             _substrate_ring.publish("sound_frame", _guala.tick, source=source)
