@@ -188,7 +188,8 @@ class LanguageKrimelack(Krimelack):
                          threshold=math.pi / 3, label="language")
         self.last_input_word = None  # GL-CMD-99: persists across ticks
 
-    def transduce(self, word, omega_override=None, phase_offset=0.0):
+    def transduce(self, word, omega_override=None, phase_offset=0.0,
+                  no_reset=False):
         """Transduce a word, returning (fingerprint, role, sensory_dict).
 
         Args:
@@ -199,9 +200,15 @@ class LanguageKrimelack(Krimelack):
             phase_offset:   initial phase offset (GL-CMD-98: ring position).
                             Applied after reset so each neuron's krimelack
                             starts from a position-dependent phase.
+            no_reset:       if True, do NOT clear winding state first, so winding
+                            history (M_k, R_rev, S_UF) accumulates across a
+                            multi-tick delivery window. The LoomNeuron pipeline
+                            requires this; default False preserves the original
+                            single-shot behavior (every existing caller unchanged).
         """
         self.last_input_word = word.lower()  # GL-CMD-99: store for decode
-        self.reset()
+        if not no_reset:
+            self.reset()
         self.phase = float(phase_offset)
         saved_omega = self.omega_0
         if omega_override is not None:

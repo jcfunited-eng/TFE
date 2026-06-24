@@ -22,6 +22,13 @@
 - [ ] **Experiment 9 — Primitive reasoning.** Multi-step cascades through coupled sections. Chain length before incoherence?
 - [ ] **Experiment 10 — Cascade-reinforced learning.** Sleep scores cascades by coherence; reinforce participating couplings, prune the rest.
 
+## Operational
+
+- [ ] **Rotate GUALALOOM_API_KEY** — current key is in plaintext in git-tracked file
+  `docs/GL-HANDOFF-LIVE-DEPLOY-20260624.md` (committed 3533a71). Generate a new key,
+  update the deploy script, invalidate the old one. Git history retains the old value
+  so treat it as compromised once rotated.
+
 ## Standing rules
 - Each experiment returns a number, not a verdict.
 - Results committed to the repo before the next experiment starts.

@@ -1,15 +1,15 @@
 """loom_voice.py — her organ-brain voice (substrate-true, no LLM).
 
-The living organ-brain (Embryo / LoomBrain, 8 organs) speaking from its own organs:
+The living organ-brain (Embryo / LoomBrain, 8 organs) growing and recalling from its
+own organs — NO keyword routing, NO grammar frames, NO heuristics:
   - sv (identity) holds WHO SHE IS — anchored "guala" + the people she loves.
-  - sc (semantic) holds her world by grounded profile.
-  - a thin composition routes a prompt to the organs and orders what they surface.
+  - sc (semantic) holds her world by grounded sensory profile.
+  - surface() returns raw population-vote recall from those organs.
+  - experience() grows her by folding (charge ∝ resonance, fold at q>1).
 
-This is PRIMITIVE on purpose: the CONTENT is hers (organ recall — proven on bench:
-"who are you?"->"i am guala"); the grammar is scaffolding frames, to be replaced by
-learned succession over organ-surfaced content. It rides ALONGSIDE her engine — it is
-a queryable capability (/organ_voice), it does NOT replace her voice. Exception-walled:
-it can never disturb her boot or runtime.
+Rides ALONGSIDE her v5 engine via /organ_voice — additive, exception-walled, cannot
+disturb her boot or runtime. Composition from surfaced concepts is NOT here and is NOT
+faked — that is the emergent piece and the graduation gate.
 """
 
 import numpy as np
