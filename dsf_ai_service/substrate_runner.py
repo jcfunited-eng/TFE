@@ -91,6 +91,73 @@ def _cognition_learn(text):
         return 0
 
 
+# ── sensory experience of words she reads (GL-CMD-NEXT Increment 3) ──
+# The "tumbler waveform generator in front of texts": when she reads a sensory
+# descriptor (warm/soft/cold/sweet/wet/...), generate its physics waveform, run it
+# through krimelack winding to a chi per channel, and bind that felt/smelled/tasted
+# experience into her atlas IN THE SAME TICK WINDOW as the word — so the word and
+# the sensation cross-modally bind (her existing 5-tick binder). Uses only the
+# built-in TOUCH/SMELL/TASTE libraries (no external keys). Exception-walled.
+
+_SENSORY_WORD_MAP = None
+
+
+def _sensory_word_map():
+    """word -> modality, from the built-in physics libraries (built once)."""
+    global _SENSORY_WORD_MAP
+    if _SENSORY_WORD_MAP is None:
+        m = {}
+        try:
+            from dsf_ai_service.substrate import sensory_generators as sg
+            for w in getattr(sg, "TOUCH_LIBRARY", {}):
+                m[w] = "touch"
+            for w in getattr(sg, "TASTE_LIBRARY", {}):
+                m.setdefault(w, "taste")   # taste before smell for sweet/salty
+            for w in getattr(sg, "SMELL_LIBRARY", {}):
+                m.setdefault(w, "smell")
+        except Exception:
+            pass
+        _SENSORY_WORD_MAP = m
+    return _SENSORY_WORD_MAP
+
+
+def _bind_sensory_words(text):
+    """Give her the felt/smelled/tasted experience of sensory words in `text`.
+    Returns the number of sensory channel-bindings made. Never raises."""
+    try:
+        if _guala is None:
+            return 0
+        mapping = _sensory_word_map()
+        if not mapping:
+            return 0
+        from dsf_ai_service.substrate.sensory_generators import (
+            generate_sensory_signals, transduce_sensory_signals)
+        from dsf_ai_service.v4.gualaloom_v5_engine import (
+            deterministic_motif_id, DWELL_GATE_META)
+        seen = set()
+        bound = 0
+        for raw in (text or "").lower().split():
+            w = _clean_word(raw)
+            if not w or w in seen:
+                continue
+            modality = mapping.get(w)
+            if not modality:
+                continue
+            seen.add(w)
+            signals = generate_sensory_signals(modality, [w])
+            for channel, info in transduce_sensory_signals(signals).items():
+                mid = deterministic_motif_id(f"{modality}_{w}_{channel}")
+                _guala.atlas.record(
+                    f"modal_{modality}", mid, info["chi"], _guala.tick,
+                    salience=1.0, dwell_ticks=DWELL_GATE_META,
+                    sensory_refs=[f"{modality}:{w}"],
+                    **_guala._affect_kwargs())
+                bound += 1
+        return bound
+    except Exception:
+        return 0
+
+
 # ── autonomous curriculum study: injected callbacks for the scheduler ──
 # The scheduler (loom_model.curriculum_scheduler) owns timing/curriculum/progress
 # and fetching books; the substrate owns how to FEED her. These closures are the
@@ -108,6 +175,7 @@ def _curriculum_feed_chunk(sentences):
             try:
                 _guala.read_sentence(sent, source="curriculum")
                 learned += _cognition_learn(sent)
+                _bind_sensory_words(sent)  # feel/smell/taste the sensory words she reads
                 n_fed += 1
             except Exception:
                 pass
@@ -1299,6 +1367,7 @@ def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strengt
             try:
                 _guala.read_sentence(sent, source="corpus")
                 _cognition_learn(sent)  # organ-brain learns from what she studies
+                _bind_sensory_words(sent)  # and feels/smells/tastes the sensory words
                 n_fed += 1
                 # Progress update every 10 sentences (or every sentence if small)
                 if n_total < 20 or n_fed % 10 == 0:
