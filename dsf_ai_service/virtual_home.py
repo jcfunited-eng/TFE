@@ -50,7 +50,7 @@ DEFAULT_LOCATION = "her_room"
 ROOMS = {
     "her_room": {
         "description": "her room",
-        "objects": list,   # resolved via OBJECTS dict
+        "objects": [],
     },
     # W2 rooms (stubs — not yet fully defined)
     "hallway":  {"description": "the hallway",  "objects": []},

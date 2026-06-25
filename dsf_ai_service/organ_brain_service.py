@@ -183,45 +183,46 @@ def _periodic_save():
 
 
 def _pour_atlas():
-    """Pour top v5 vocabulary into the organ-brain as real experiences.
-    Gives her her accumulated memories: the concepts the v5 engine has held
-    for years arrive as genuine sensory experiences that grow her organs.
-    Runs after catalog fill has had time to ground the words in senses.
+    """Pour top grounded vocabulary into the organ-brain as real experiences.
+    Source: ov._senses_cache — LLM-grounded sensory profiles on EFS.
+    Sections file modes are cleared at snapshot time and not usable here.
+    Words with richer sensory profiles (more active channels) pour first —
+    they resonate most strongly and fold the most organs.
     This is the memory migration step of the absorption path."""
-    time.sleep(180)   # let catalog fill run first so words are grounded
+    time.sleep(180)   # let catalog fill settle first
     if _ov is None:
         return
     try:
-        path = os.path.join(STATE_DIR, "guala_sections.json")
-        with open(path) as f:
-            data = json.load(f)
-        # Structure: {section_name: {"modes": [{"word": w, "dsf": [...], "chi": ...}], ...}}
-        # Words live in modes[i]["word"] — NOT as dict keys. A word appearing in
-        # multiple sections (listen, subject, verb...) is more central — count occurrences.
-        counts: dict = {}
-        for section in data.values():
-            if not isinstance(section, dict):
-                continue
-            for mode in (section.get("modes") or []):
-                w = mode.get("word", "")
-                if not (isinstance(w, str) and w.isalpha() and len(w) > 2):
-                    continue
-                wl = w.lower()
-                counts[wl] = counts.get(wl, 0) + 1
-        # Pour top 300 by cross-section frequency — most recurring concepts first
-        top = sorted(counts, key=lambda w: counts[w], reverse=True)[:300]
-        top = [w for w in top if w not in _STOP and w not in _VERBS]
-        print(f"[organ-brain] atlas pour: {len(top)} concepts from v5 memory")
+        cached = _ov._senses_cache or {}
+        candidates = [w for w in cached
+                      if isinstance(w, str) and w.isalpha() and len(w) > 2
+                      and w not in _STOP and w not in _VERBS]
+        if not candidates:
+            print("[organ-brain] atlas pour: senses cache empty — skipping")
+            return
+
+        def _richness(word):
+            """Count active sensory channels — richer words resonate more."""
+            profile = cached.get(word, {})
+            active = 0
+            for modality in ("taste", "smell"):
+                for val in (profile.get(modality) or {}).values():
+                    try:
+                        if float(val) >= 0.08:
+                            active += 1
+                    except (TypeError, ValueError):
+                        pass
+            return active
+
+        top = sorted(candidates, key=_richness, reverse=True)[:300]
+        print(f"[organ-brain] atlas pour: {len(top)} concepts from senses cache")
         with _lock:
             for w in top:
                 _ov.experience(w)
-            # Teach succession from her top concepts in frequency order
             if len(top) >= 4:
                 _tracker.record(top[:30], weight=1.5)
         _save_organ_state()
-        print(f"[organ-brain] atlas pour complete — her v5 memories live in her organs")
-    except FileNotFoundError:
-        print("[organ-brain] atlas pour: guala_sections.json not found (expected on first boot)")
+        print(f"[organ-brain] atlas pour complete — {len(top)} grounded concepts in her organs")
     except Exception as e:
         print(f"[organ-brain] atlas pour error: {e}")
 
@@ -556,24 +557,36 @@ def _start_catalog_fill(ov):
 
 
 def _load_vocab_from_state():
-    """Extract vocabulary from guala_sections.json.
-    Structure: {section_name: {"modes": [{"word": w, "dsf": [...], "chi": ...}, ...], ...}}
-    Words live inside modes[i]["word"], not as dict keys."""
+    """Vocabulary to fill the senses catalog for — read from organ_voice_senses.json
+    (words already partially cached) and supplement from guala_sections.json commits.
+    Sections modes are cleared at snapshot time so only commit-level words are reliable."""
+    words = set()
+    # Primary: words already in the senses cache (fill any gaps)
+    try:
+        cache_path = os.path.join(STATE_DIR, "organ_voice_senses.json")
+        with open(cache_path) as f:
+            cached = json.load(f)
+        for w in cached:
+            if isinstance(w, str) and w.isalpha() and len(w) > 2:
+                words.add(w.lower())
+    except Exception:
+        pass
+    # Supplement: commits list in sections (word strings embedded in commit tuples)
     try:
         path = os.path.join(STATE_DIR, "guala_sections.json")
         with open(path) as f:
             data = json.load(f)
-        words = set()
         for section in data.values():
             if not isinstance(section, dict):
                 continue
-            for mode in (section.get("modes") or []):
-                w = mode.get("word", "")
-                if isinstance(w, str) and w.isalpha() and len(w) > 2:
-                    words.add(w.lower())
-        return list(words)
+            for commit in (section.get("commits") or []):
+                if isinstance(commit, (list, tuple)) and len(commit) > 0:
+                    w = commit[-1] if isinstance(commit[-1], str) else None
+                    if w and w.isalpha() and len(w) > 2:
+                        words.add(w.lower())
     except Exception:
-        return []
+        pass
+    return list(words)
 
 
 # ── FastAPI ────────────────────────────────────────────────────────────────
