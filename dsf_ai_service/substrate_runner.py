@@ -971,40 +971,39 @@ def handle_gualaloom_post(args):
                         if pid not in seen:
                             seen.add(pid)
                             pic_refs.append({"item_id": pid, "title": getattr(pic, "title", pid)})
-            # Tavily image search: fetch images for surfaced concepts → visual cortex
+            # Tavily image lookup runs in a background thread so it NEVER blocks
+            # the response. When images arrive they feed her visual cortex silently.
             meaning_words = surfaced.get("meaning", [])
             search_term = next((w for w in meaning_words if len(w) > 3), None)
             if search_term and os.environ.get("TAVILY_API_KEY"):
-                try:
-                    import urllib.request as _ur
-                    _tav_body = json.dumps({
-                        "api_key": os.environ["TAVILY_API_KEY"],
-                        "query": search_term,
-                        "search_depth": "basic",
-                        "include_images": True,
-                        "max_results": 2,
-                    }).encode()
-                    _tav_req = _ur.Request(
-                        "https://api.tavily.com/search", data=_tav_body,
-                        headers={"content-type": "application/json"})
-                    _tav_resp = json.load(_ur.urlopen(_tav_req, timeout=6))
-                    for _img_url in (_tav_resp.get("images") or [])[:2]:
-                        try:
-                            _img_req = _ur.Request(
-                                _img_url, headers={"User-Agent": "Mozilla/5.0"})
-                            _img_bytes = _ur.urlopen(_img_req, timeout=5).read()
-                            from dsf_ai_service.v4.image_decoder import decode_image_bytes as _dib
-                            _, _img_grid, _, _ = _dib(_img_bytes)
-                            _organ_voice.visual_experience(_img_grid, search_term)
-                            import base64 as _b64e
-                            pic_refs.append({
-                                "data": _b64e.b64encode(_img_bytes).decode(),
-                                "title": f"{search_term} (looked up)",
-                            })
-                        except Exception:
-                            pass
-                except Exception:
-                    pass
+                def _bg_image_lookup(term=search_term, ov=_organ_voice):
+                    try:
+                        import urllib.request as _ur
+                        _tav_body = json.dumps({
+                            "api_key": os.environ["TAVILY_API_KEY"],
+                            "query": term,
+                            "search_depth": "basic",
+                            "include_images": True,
+                            "max_results": 2,
+                        }).encode()
+                        _tav_req = _ur.Request(
+                            "https://api.tavily.com/search", data=_tav_body,
+                            headers={"content-type": "application/json"})
+                        _tav_resp = json.load(_ur.urlopen(_tav_req, timeout=6))
+                        for _img_url in (_tav_resp.get("images") or [])[:2]:
+                            try:
+                                _img_req = _ur.Request(
+                                    _img_url, headers={"User-Agent": "Mozilla/5.0"})
+                                _img_bytes = _ur.urlopen(_img_req, timeout=5).read()
+                                from dsf_ai_service.v4.image_decoder import decode_image_bytes as _dib
+                                _, _img_grid, _, _ = _dib(_img_bytes)
+                                ov.visual_experience(_img_grid, term)
+                            except Exception:
+                                pass
+                    except Exception:
+                        pass
+                import threading as _bgt
+                _bgt.Thread(target=_bg_image_lookup, daemon=True).start()
             result = {"surfaced": surfaced,
                       "engine": "organ-brain (raw organ recall — substrate-true)",
                       "status": _organ_voice.status()}
