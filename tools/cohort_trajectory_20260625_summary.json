@@ -1,0 +1,19 @@
+{
+  "n_trades_total": 835,
+  "n_trades_by_exit_reason": {
+    "exit_a_not_accumulate": 620,
+    "exit_f_catastrophic": 187,
+    "replay_end_close": 28
+  },
+  "n_rows_total": 24699,
+  "n_rows_with_missing_snapshot": 20,
+  "basin_decision_agreement_with_apply_canonical_filter": {
+    "n_agree": 109455,
+    "n_disagree": 0,
+    "disagree_examples": [],
+    "note": "cross-check: V3-basin-Accumulate \u2286 L5-Accumulate (50-day sample). L5-only (Stable Titan path) is expected and not flagged as disagreement."
+  },
+  "integrity_checks_passed": true,
+  "integrity_failures": [],
+  "wall_time_seconds": 28.3
+}
