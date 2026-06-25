@@ -1,0 +1,9 @@
+cohort,N_signals,WR_20d,mean_fwd_20d_return,n_unique_tickers
+All Accumulate (Close >= $5),0,,,0
+New listings (bar_count <= 20),0,,,0
+Established (bar_count > 20),0,,,0
+Established + R_k<=p25 + F_n<=1.65,0,,,0
+Structure A (W1),0,,,0
+Structure A + Calm (W1+W2),0,,,0
+Structure A + Market expanding (W1+W3),0,,,0
+Structure A + Calm + Market expanding (W1+W2+W3),0,,,0
