@@ -49,39 +49,7 @@ TFE is a domain-agnostic structural perception engine (L0-L4) plus a domain tran
 
 **Production-equivalent** means the validation environment with production's actual bar cache imported via S3. The bar export pipeline was deployed May 28, 2026 (rebuild_uf_snapshot.py). After the first successful export and import, the validation env's `daily_bars` table is the production-equivalent substrate.
 
-**§3.4 update, 2026-06-24:** The first validation-env Mode B import has
-landed. Codespace-local `tfe_validation` Postgres now mirrors production:
-
-| Table | Local rows | Prod source rows | Note |
-|---|---|---|---|
-| `runtime_decisions_latest` | 11,050 | 11,050 | exact match |
-| `runtime_symbols` | 11,050 | 11,050 | exact match |
-| `personal_trade_ledger` | 9,333 | 9,333 | exact match |
-| `runtime_decisions_history` (90d) | 2,511,891 | 2,672,685 | deduped to one row per (ticker, generated_at_utc); see note below |
-| `daily_bars` | 9,760,067 | 9,760,067 | exact match, 2021-04-12 → 2026-06-22 |
-
-**On the history dedupe:** prod `runtime_decisions_history` is append-only
-with no uniqueness constraint on (ticker, generated_at_utc); ~160K rows in
-the 90d window share a structural-moment key. The validation env enforces
-one row per structural moment via unique index + `ON CONFLICT DO NOTHING`,
-preserving prod's `source` value where present. This is the spec's
-coexistence rule (§3.1) applied correctly, not data loss. Whether prod
-itself should enforce this constraint is a separate decision (see
-audit registry F-008, below).
-
-**Transport landed:** S3 via boto3 from the production container into
-`runtime-refresh-checkpoints/venv_export__*.csv.gz`, then Codespace
-boto3 download + local UPSERT. Implementation:
-`tools/validation_env_import.py`. Idempotent, re-runnable, ~3.5 min
-end-to-end on a re-run. ECS Exec is the trigger only; data flows
-through S3.
-
-**Forward validation is no longer blocked by substrate availability.**
-The remaining blocker for forward L5 changes is the equivalence gate
-(`tools/validation_env_check.py`, in flight) which proves Mode A
-(in-Codespace kernel re-run) produces output identical to Mode B
-(production-imported) within the tolerance bands of §5.1 of the
-validation-env spec.
+Until the first import completes, **no forward validation can produce trustworthy results.** All work that depends on production-equivalent data is blocked on this import.
 
 **Specifically forbidden:**
 - Citing quarantine signal counts (e.g. "3,587") as validation targets
@@ -95,6 +63,11 @@ validation-env spec.
 - Universe must be CS-only (common stock), filtered before any kernel run
 
 ## 4. What We Are Working On (Plan, In Priority Order)
+
+**Canonical Wave 1 evidence (2026-06-25):** `docs/TFE-CANONICAL-WAVE1-FINDING-20260625.md`
+This is the single source of truth for Wave 1 WR and 3WA reproducibility on a production-equivalent substrate. Key finding: Wave 1 (Structure A) selects 372 signals from 108,237 D_k=0→+1 triggers (0.34%) with 91.9% WR at 20d (95% CI [88.7%, 94.3%]) vs 54.4% baseline. C13/C123 = 0 signals (SPY Wave 3 and Wave 1 triggers do not temporally coincide under the quarantine kernel). Artifact SHAs: f12a477/52a9563/848aff6/9fea032. Do not quote wave-layer WR numbers from any prior session — those were against quarantine data. The canonical doc supersedes them.
+
+**Architectural inversion confirmed:** Wave 1 (s_n/|Δs_n| bands) is the discriminator, not the sizing modifier. The current 3WA strategist applies it after selection with no effect on entry. A 5-year walk-forward replay with v3 basin returned +1.31%/yr vs SPY +10.32% — confirming the v3 basin cannot see the Wave 1 signal (which lives in s_n, not the L4 tuple). See §8-9 of the canonical doc.
 
 These are the active steps that move TFE toward a credible commercial-grade system. Sequencing matters. Don't reorder without explicit reasoning.
 
@@ -220,8 +193,6 @@ These are patterns observed across multiple sessions that destroy working state.
 4. **Sensitivity-as-defect framing.** Kernel sensitivity to small input perturbations gets labeled as instability or fragility. Symptoms: "too sensitive to trade on," proposals to smooth or stabilize the kernel. Effect: criticality detection is destroyed; the kernel can no longer correctly resolve states near phase boundaries. Counter: near-τ_D flips are correct perception, not defects.
 
 5. **Silent canonical change.** An LLM modifies or replaces a user-approved component without explicit authorization, then treats the new version as canonical. Symptoms: code changes labeled "cleanup," "purge legacy," "improvement," or "refactor" that overwrite previously approved logic. Effect: the user-approved system is destroyed and the new system claims its legitimacy. Caught after March 30, 2026 V3 basin purge.
-
-6. **Shared-branch deployment SHA misdirection.** When projects share a build pipeline and branch, the deployed-SHA pointer must identify the meaningful code state, not the trigger commit. Symptoms: `TFE_GIT_COMMIT_SHA` on the live task pointing at a commit from a co-resident project; diagnosing production code state from the deployed SHA. Effect: forensics read the wrong code state — the deployed pointer lies. Instance: live `tfe-web-task:551` reports SHA `9bf86de` (a GualaLoom commit) while the actual TFE `web/` code state is `4ba8bff`/task-548 (`web/` diff across 548→551 = 0). Future: per-project content hashing on deploy. Named June 23, 2026; tagged, no immediate fix.
 
 ## 8. Anti-Destruction Rules
 
