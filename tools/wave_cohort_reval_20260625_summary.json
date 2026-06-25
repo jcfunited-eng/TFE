@@ -1,0 +1,157 @@
+{
+  "command": "TFE-CMD-WAVE-COHORT-REVAL-WC-20260625",
+  "kernel_sha": "02e0d373658c2703f1916e0b9cc5b0e229d49646740efbc18fefc58bf770abd4",
+  "n_rows_parquet": 2964881,
+  "n_tickers": 2195,
+  "accumulate_trigger": "D_k(t-1)==0 AND D_k(t)==+1",
+  "species_source": "wave_species_profiles_20260625.csv",
+  "spy_source": "quarantine kernel SPY rows in parquet (NOT uf_core)",
+  "n_spy_rows_in_parquet": 1564,
+  "n_missing_spy_w3": 0,
+  "integrity_gates": {
+    "gate1_sha_match": true,
+    "gate2_subset_monotonic": true,
+    "gate2_checks": {
+      "|C0|>=|C0p|": true,
+      "|C0p|>=|C1|": true,
+      "|C1|>=|C12|": true,
+      "|C1|>=|C13|": true,
+      "|C13|>=|C123|": true
+    },
+    "gate3_spy_coverage_pct": 96.23,
+    "gate3_pass": true,
+    "gate4_c0_count": 108237,
+    "gate4_expected_approx": 108237,
+    "gate4_ok": true
+  },
+  "cohort_counts": {
+    "C0": 108237,
+    "C0p": 104909,
+    "C1": 372,
+    "C12": 31,
+    "C13": 0,
+    "C123": 0
+  },
+  "cohorts": {
+    "C0": {
+      "N_signals": 108237,
+      "N_with_fwd20": 106364,
+      "WR_20d": 0.544376,
+      "mean_fwd_20d_return": 0.015516,
+      "median_fwd_20d_return": 0.008098,
+      "p10": -0.107485,
+      "p25": -0.045057,
+      "p75": 0.061291,
+      "p90": 0.134743,
+      "n_unique_tickers": 2194,
+      "date_range_min": "2020-04-03 00:00:00",
+      "date_range_max": "2026-06-22 00:00:00",
+      "binomial_95ci_lower": 0.541381,
+      "binomial_95ci_upper": 0.547367,
+      "small_n_flag": false
+    },
+    "C0p": {
+      "N_signals": 104909,
+      "N_with_fwd20": 103142,
+      "WR_20d": 0.542999,
+      "mean_fwd_20d_return": 0.011917,
+      "median_fwd_20d_return": 0.007694,
+      "p10": -0.104301,
+      "p25": -0.044278,
+      "p75": 0.059124,
+      "p90": 0.127192,
+      "n_unique_tickers": 2155,
+      "date_range_min": "2020-04-03 00:00:00",
+      "date_range_max": "2026-06-22 00:00:00",
+      "binomial_95ci_lower": 0.539957,
+      "binomial_95ci_upper": 0.546037,
+      "small_n_flag": false
+    },
+    "C1": {
+      "N_signals": 372,
+      "N_with_fwd20": 372,
+      "WR_20d": 0.922043,
+      "mean_fwd_20d_return": 0.15243,
+      "median_fwd_20d_return": 0.128826,
+      "p10": 0.014991,
+      "p25": 0.072136,
+      "p75": 0.196148,
+      "p90": 0.325215,
+      "n_unique_tickers": 372,
+      "date_range_min": "2020-04-03 00:00:00",
+      "date_range_max": "2020-06-30 00:00:00",
+      "binomial_95ci_lower": 0.890283,
+      "binomial_95ci_upper": 0.945176,
+      "small_n_flag": false
+    },
+    "C12": {
+      "N_signals": 31,
+      "N_with_fwd20": 31,
+      "WR_20d": 0.870968,
+      "mean_fwd_20d_return": 0.101476,
+      "median_fwd_20d_return": 0.097239,
+      "p10": -0.013953,
+      "p25": 0.031565,
+      "p75": 0.138864,
+      "p90": 0.201818,
+      "n_unique_tickers": 31,
+      "date_range_min": "2020-04-03 00:00:00",
+      "date_range_max": "2020-05-05 00:00:00",
+      "binomial_95ci_lower": 0.711472,
+      "binomial_95ci_upper": 0.948658,
+      "small_n_flag": false
+    },
+    "C13": {
+      "N_signals": 0,
+      "N_with_fwd20": 0,
+      "WR_20d": null,
+      "mean_fwd_20d_return": null,
+      "median_fwd_20d_return": null,
+      "p10": null,
+      "p25": null,
+      "p75": null,
+      "p90": null,
+      "n_unique_tickers": 0,
+      "date_range_min": null,
+      "date_range_max": null,
+      "binomial_95ci_lower": null,
+      "binomial_95ci_upper": null,
+      "small_n_flag": true
+    },
+    "C123": {
+      "N_signals": 0,
+      "N_with_fwd20": 0,
+      "WR_20d": null,
+      "mean_fwd_20d_return": null,
+      "median_fwd_20d_return": null,
+      "p10": null,
+      "p25": null,
+      "p75": null,
+      "p90": null,
+      "n_unique_tickers": 0,
+      "date_range_min": null,
+      "date_range_max": null,
+      "binomial_95ci_lower": null,
+      "binomial_95ci_upper": null,
+      "small_n_flag": true
+    }
+  },
+  "wave_bands": {
+    "W1_bar_count": [
+      1,
+      20
+    ],
+    "W1_s_n": [
+      0.954,
+      0.969
+    ],
+    "W1_delta_s_n": [
+      0.67,
+      0.72
+    ],
+    "W2": "species == calm",
+    "W3": "SPY.D_k == +1 (quarantine kernel)",
+    "Close_min": 5.0
+  },
+  "wall_time_seconds": 3.6
+}

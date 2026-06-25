@@ -1,0 +1,7 @@
+cohort_code,cohort_label,N_signals,N_with_fwd20,WR_20d,mean_fwd_20d_return,n_unique_tickers,binomial_95ci_lower,binomial_95ci_upper,small_n_flag
+C0,All Accumulate triggers (D_k: 0→+1),108237,106364,0.544376,0.015516,2194,0.541381,0.547367,False
+C0p,C0 ∩ Close >= $5.0,104909,103142,0.542999,0.011917,2155,0.539957,0.546037,False
+C1,"C0p ∩ W1 (bar 1-20, s_n band, |Δs_n| band)",372,372,0.922043,0.15243,372,0.890283,0.945176,False
+C12,C1 ∩ W2 (calm species),31,31,0.870968,0.101476,31,0.711472,0.948658,False
+C13,C1 ∩ W3 (SPY D_k=+1 from quarantine kernel),0,0,,,0,,,True
+C123,C1 ∩ W2 ∩ W3,0,0,,,0,,,True
