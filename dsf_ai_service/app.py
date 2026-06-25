@@ -1337,6 +1337,19 @@ async def gualaloom_chat(msg: GLMessage):
             return resp
         except Exception as e:
             return {"ok": False, "error": str(e)}
+    if _cmd == "/experience":
+        # Feed heard/seen words into the organ-brain — the sensory grounding path.
+        # Called by the browser STT when words are recognized, ensuring what
+        # she hears also reaches her organ-brain, not just the v5 engine.
+        try:
+            import urllib.request as _ur, json as _js
+            body = _js.dumps({"text": msg.text or ""}).encode()
+            req2 = _ur.Request(f"{_ob_url}/experience", data=body,
+                               headers={"content-type": "application/json"})
+            _ur.urlopen(req2, timeout=3)
+            return {"ok": True}
+        except Exception:
+            return {"ok": False}
     if _cmd.startswith("/tablet"):
         try:
             import urllib.request as _ur, json as _js

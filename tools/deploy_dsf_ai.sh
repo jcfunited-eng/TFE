@@ -300,7 +300,9 @@ out = {
                 {'name': 'WORLD_FEED_INTERVAL_SEC', 'value': '600'},
                 {'name': 'CURRICULUM_CHUNK_SIZE', 'value': '30'},
                 {'name': 'CURRICULUM_INTERVAL_SEC', 'value': '120'},
-                {'name': 'STUDY_INTERLEAVE_EVERY', 'value': '2'}
+                {'name': 'STUDY_INTERLEAVE_EVERY', 'value': '2'},
+                {'name': 'YOLO_MODEL_PATH', 'value': '/app/yolov8n.onnx'},
+                {'name': 'WHISPER_MODEL_PATH', 'value': 'tiny'}
             ],
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
