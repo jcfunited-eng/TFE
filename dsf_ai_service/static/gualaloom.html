@@ -949,6 +949,14 @@ async function pollStatus(){
         emDiv.innerHTML=eh;
       }else{emDiv.innerHTML='<div class="ev">(no recent emissions)</div>'}
     }catch(e){}
+    // Brain visualization — runs on every status cycle, same API path as everything else
+    try{
+      const br=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',
+        headers:{'Content-Type':'application/json','X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'},
+        body:JSON.stringify({text:'',command:'/brain_status'})},5000);
+      const bd=await br.json();
+      if(bd&&!bd.warming&&bd.per_organ)renderBrainSVG(bd);
+    }catch(e){}
     _backoff.status=0;
   }catch(e){_backoff.status=Math.min((_backoff.status*2)||_BASE.status*2,30000)}
   finally{_inflight.status=false;_schedNext('status',pollStatus)}
