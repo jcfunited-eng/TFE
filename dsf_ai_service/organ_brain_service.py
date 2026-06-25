@@ -214,18 +214,19 @@ def _pour_atlas():
                         pass
             return active
 
-        top = sorted(candidates, key=_richness, reverse=True)[:300]
+        # 30 concepts maximum — each experience() grows neurons (bindings accumulate).
+        # 300 words → ~450 neurons × 300 binding entries × 200-float vecs → OOM kill.
+        # 30 concepts primes the brain with the richest words; real growth comes from Joe.
+        top = sorted(candidates, key=_richness, reverse=True)[:30]
         print(f"[organ-brain] atlas pour: {len(top)} concepts from senses cache")
-        # Batch with lock releases — holding the lock for 300 consecutive experience()
-        # calls starves health checks (48 compute steps per word × 300 = 14K steps).
-        # ECS kills the container after 3 failed 5s health checks.
-        BATCH = 20
+        # Batch of 10 with lock releases between groups
+        BATCH = 10
         for i in range(0, len(top), BATCH):
             batch = top[i:i + BATCH]
             with _lock:
                 for w in batch:
                     _ov.experience(w)
-            time.sleep(0.15)  # release lock so health + autonomous loop can run
+            time.sleep(0.2)
         if len(top) >= 4:
             with _lock:
                 _tracker.record(top[:30], weight=1.5)

@@ -246,6 +246,7 @@ out = {
             'name': 'organ-brain',
             'image': '${IMAGE_URI}',
             'essential': False,
+            'memoryReservation': 512,
             'command': ['python', '-u', '-m', 'dsf_ai_service.organ_brain_service'],
             'environment': [
                 {'name': 'PYTHONUNBUFFERED', 'value': '1'},
