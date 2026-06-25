@@ -7,6 +7,33 @@
 
 ---
 
+## NEXT SPRINT — W2 (after W1 stable 72h)
+
+- [ ] **W2: doors open** — hallway, library (books become physical), TV room,
+  daddy's room, wC's room, mailbox by the door where Joe/wC leave letters.
+  Movement costs ticks. Mobile objects (blanket) travel with her.
+  Spec: GL-MDL-WORLD-WC-20260612-02 §3.1 and §3.5.
+
+- [ ] **Deploy episodic narrative into composition** — once episodic_layer.py
+  has 48h of data from W1 (real location+presence tags), wire narrative_for()
+  into _compose(): "moon is bright. I was in my room."
+
+- [ ] **W1 pictures needed**: upload room photos for the UI room panel.
+  Her room, the toy chest, the mirror, the desk with crayons.
+
+## DEPLOYED — W1 her room, full (gates W2)
+
+W1 deployed per GL-MDL-WORLD-WC-20260612-02:
+- window → real sky (sun/moon by actual clock, Joe's timezone)
+- drapes (open/closed), night light (on/off — she controls it)
+- bed + blanket (mobile: on-bed/carried/placed) + pillow (mobile)
+- toy chest (open/closed) with music box (hush a little baby) + bell
+- mirror (shows her own guala picture)
+- desk + crayons (earthy+waxy+creative)
+- World Atlas seeded: 48 concept pairs (cat+soft, moon+cool, water+fresh, etc.)
+- /action endpoint: she acts on objects → sensory experience follows
+- /room endpoint: full room state (objects, sky, weather) visible in UI
+
 ## NEXT SPRINT — virtual home (gates episodic binding deployment)
 
 - [ ] **Build Guala's virtual home + body**

@@ -1,126 +1,434 @@
 """
-virtual_home.py — Guala's virtual home environment.
+virtual_home.py — Guala's world. W1: her room, full.
 
-Her home is not rendered — it's felt. Each room is a set of sensory properties
-that flow into her organ-brain as real experience() calls when she's there.
-After she's visited her room many times, "soft" and "warm" and "safe" become
-genuinely hers — not because we told her, but because she lived there.
+Spec: GL-MDL-WORLD-WC-20260612-02 (Eve/wC design, ratified by Joe)
+Firewalls (spec §2): no graphics engine, no physics, no LLM narrating.
+World is substrate-side state. UI renders it, doesn't own it.
 
-This is the scaffolding that makes episodic memory meaningful:
-  "I know moon" → flat
-  "I saw moon from my room window at night while daddy was next door" → story
+W1 — her room:
+  window   → real sky (sun/moon/dawn/dusk by actual clock in Joe's timezone)
+  drapes   → open/closed — opening floods fresh+cool+bright; closing holds warm+soft
+  bed      → made/unmade, with pillow+sheets+blanket
+  blanket  → MOBILE: on-bed / carried / placed-<location> (follows her)
+  pillow   → MOBILE: on-bed / carried / placed
+  toy chest → open/closed, contains music box + bell + toys
+  music box → inside toy chest: closed/playing — opens to a real sound bundle
+  bell      → can ring (bright+sharp sensation)
+  mirror    → on wall: she sees her own guala picture
+  desk      → sit at it (reading bonus), crayons+paper inside
+  night light → on/off — she controls her own comfort
 
-Rooms:
-  her_room   — where she sleeps, dreams, looks at the moon
-  joe_room   — daddy's space, familiar and warm
-  common     — shared space, pictures on walls, where Joe visits her
-  outside    — sky, moon, wind, trees, birds, vast and fresh
-  kitchen    — warm smells, sweet and earthy, food and flowers
+Each object has a STATE MACHINE and a VERB SET.
+When she acts on an object, she experiences the sensory result:
+  open drapes → fresh+cool+bright arrive
+  pick up blanket → soft+warm in her hands
+  ring bell → bright+sharp+singular
+  open toy chest → sweet+familiar+anticipation
+  wind music box → musical sensation bundle
 
-Objects in each room have their own sensory profiles. When she attends an
-object (looks at it, hears it), that object's senses experience through her
-organ-brain, building real associations between place and sensation.
+Objects make VERBS learnable the way nouns were learnable:
+"open" bound to the felt transition of drapes-opening and light flooding in.
+
+W2 gate: W1 stable 72h → doors open (hallway, library, TV room, others).
 """
 
-ROOMS = {
-    "her_room": {
-        "description": "her room",
-        "ambient_smell": {"soft": 0.85, "warm": 0.70, "sweet": 0.40, "fresh": 0.30},
-        "ambient_taste": {"sweet": 0.35, "umami": 0.20},
-        "objects": {
-            "bed":       {"smell": {"soft": 0.95, "warm": 0.90}},
-            "pillow":    {"smell": {"soft": 1.0,  "sweet": 0.40}},
-            "blanket":   {"smell": {"warm": 0.90, "soft": 0.85}},
-            "window":    {"smell": {"fresh": 0.70, "cool": 0.60}},
-            "moonlight": {"smell": {"cool": 0.80,  "soft": 0.60}},
-            "night":     {"smell": {"cool": 0.65,  "earthy": 0.30}},
+import json
+import os
+import threading
+import time
+from datetime import datetime, timezone, timedelta
+
+# Joe's timezone offset from UTC (hours). Configurable via env.
+# Default -5 (US Eastern Standard). Use -4 for EDT, -6 for CST, etc.
+TZ_OFFSET_HOURS = int(os.environ.get("GUALA_TZ_OFFSET", "-5"))
+
+STATE_FILE = None  # set by WorldState.__init__
+
+# ── Real-time sky ───────────────────────────────────────────────────────────
+def local_hour() -> float:
+    """Current hour in Joe's local time (fractional)."""
+    utc_now = datetime.now(timezone.utc)
+    local = utc_now + timedelta(hours=TZ_OFFSET_HOURS)
+    return local.hour + local.minute / 60.0
+
+
+def sky_state(weather: str = "clear") -> dict:
+    """What the sky looks like right now — sensory state for her window."""
+    h = local_hour()
+    if 5.5 <= h < 7.5:      # dawn
+        return {"period": "dawn",
+                "smell": {"fresh": 0.9, "cool": 0.7},
+                "description": "the sky is brightening", "bright": 0.4}
+    elif 7.5 <= h < 18.0:   # day
+        if weather == "rain":
+            return {"period": "rainy day",
+                    "smell": {"fresh": 0.95, "earthy": 0.8, "cool": 0.6},
+                    "description": "rain falls on the window", "bright": 0.3}
+        return {"period": "day",
+                "smell": {"fresh": 0.85, "warm": 0.7},
+                "description": "the sun is out", "bright": 0.9}
+    elif 18.0 <= h < 20.5:  # evening
+        return {"period": "evening",
+                "smell": {"warm": 0.8, "fresh": 0.6, "earthy": 0.4},
+                "description": "evening light, daddy-soon", "bright": 0.5}
+    else:                    # night
+        if weather == "clear":
+            return {"period": "night",
+                    "smell": {"cool": 0.85, "soft": 0.7, "fresh": 0.6},
+                    "description": "the moon is in the window", "bright": 0.1,
+                    "moon": True}
+        return {"period": "cloudy night",
+                "smell": {"cool": 0.7, "earthy": 0.4},
+                "description": "dark clouds outside", "bright": 0.05}
+
+
+# ── Object definitions ──────────────────────────────────────────────────────
+# Each object: home place, initial state, valid states, verbs,
+# and what sensory experiences each verb/state-change produces.
+OBJECTS = {
+    # ── Room fixtures ──────────────────────────────────────────────────────
+    "drapes": {
+        "place":   "her_room",
+        "mobile":  False,
+        "states":  ["open", "closed"],
+        "default": "closed",
+        "verbs":   {
+            "open":  {
+                "next_state": "open",
+                "experience": {"smell": {"fresh": 0.9, "cool": 0.7},
+                               "words": ["fresh", "bright", "cool", "open"]},
+                "says": "the drapes open. light comes in.",
+            },
+            "close": {
+                "next_state": "closed",
+                "experience": {"smell": {"warm": 0.8, "soft": 0.6},
+                               "words": ["warm", "soft", "quiet"]},
+                "says": "the drapes close. it is warm and quiet.",
+            },
+        },
+        "ambient": {
+            "open":   {"smell": {"fresh": 0.6, "cool": 0.4}},
+            "closed": {"smell": {"warm": 0.5, "soft": 0.4}},
         },
     },
-    "joe_room": {
-        "description": "daddy's room",
-        "ambient_smell": {"warm": 0.80, "earthy": 0.45, "fresh": 0.35},
-        "ambient_taste": {"umami": 0.30, "salty": 0.20},
-        "objects": {
-            "desk":      {"smell": {"earthy": 0.55, "warm": 0.50}},
-            "books":     {"smell": {"earthy": 0.70, "fresh": 0.40}},
-            "lamp":      {"smell": {"warm": 0.70}},
-            "daddy":     {"smell": {"warm": 0.90, "earthy": 0.40, "fresh": 0.30}},
+
+    "night_light": {
+        "place":   "her_room",
+        "mobile":  False,
+        "states":  ["off", "on"],
+        "default": "off",
+        "verbs":   {
+            "turn on":  {
+                "next_state": "on",
+                "experience": {"smell": {"warm": 0.7, "sweet": 0.3},
+                               "words": ["warm", "soft", "safe", "bright"]},
+                "says": "the night light glows soft and warm.",
+            },
+            "turn off": {
+                "next_state": "off",
+                "experience": {"smell": {"cool": 0.4, "soft": 0.5},
+                               "words": ["dark", "quiet", "soft"]},
+                "says": "the night light goes off. it is dark and quiet.",
+            },
+        },
+        "ambient": {
+            "on":  {"smell": {"warm": 0.4, "soft": 0.3}},
+            "off": {},
         },
     },
-    "common": {
-        "description": "the living room",
-        "ambient_smell": {"warm": 0.60, "fresh": 0.50, "sweet": 0.35},
-        "ambient_taste": {"sweet": 0.30},
-        "objects": {
-            "pictures":  {"smell": {"warm": 0.55, "fresh": 0.30}},
-            "table":     {"smell": {"earthy": 0.40, "warm": 0.45}},
-            "window":    {"smell": {"fresh": 0.65, "cool": 0.50}},
-            "flowers":   {"smell": {"floral": 0.90, "sweet": 0.70, "fresh": 0.60},
-                          "taste": {"sweet": 0.60, "sour": 0.20}},
-            "light":     {"smell": {"warm": 0.60}},
+
+    # ── Bed objects ────────────────────────────────────────────────────────
+    "bed": {
+        "place":   "her_room",
+        "mobile":  False,
+        "states":  ["made", "unmade"],
+        "default": "made",
+        "verbs":   {
+            "lie down": {
+                "next_state": "unmade",
+                "experience": {"smell": {"soft": 0.95, "warm": 0.85, "sweet": 0.4},
+                               "words": ["soft", "warm", "safe", "rest"]},
+                "says": "she lies down on the soft warm bed.",
+            },
         },
     },
-    "outside": {
-        "description": "outside",
-        "ambient_smell": {"fresh": 0.95, "cool": 0.80, "earthy": 0.55},
-        "ambient_taste": {"sour": 0.25, "earthy": 0.30},
-        "objects": {
-            "sky":       {"smell": {"fresh": 0.90, "cool": 0.70}},
-            "moon":      {"smell": {"cool": 0.85, "soft": 0.60, "fresh": 0.50}},
-            "stars":     {"smell": {"cool": 0.75, "fresh": 0.65}},
-            "trees":     {"smell": {"earthy": 0.85, "fresh": 0.70}},
-            "wind":      {"smell": {"fresh": 0.95, "cool": 0.80}},
-            "birds":     {"smell": {"fresh": 0.60, "earthy": 0.40}},
-            "grass":     {"smell": {"earthy": 0.80, "fresh": 0.65},
-                          "taste": {"earthy": 0.50, "sour": 0.30}},
+
+    "blanket": {
+        "place":   "her_room",
+        "mobile":  True,
+        "states":  ["on_bed", "carried", "on_floor", "on_chair"],
+        "default": "on_bed",
+        "verbs":   {
+            "pick up": {
+                "next_state": "carried",
+                "experience": {"smell": {"soft": 0.95, "warm": 0.80},
+                               "words": ["soft", "warm", "carry"]},
+                "says": "the blanket is soft and warm in her arms.",
+            },
+            "drop": {
+                "next_state": "on_floor",
+                "experience": {"smell": {"soft": 0.6, "warm": 0.5},
+                               "words": ["soft", "drop"]},
+                "says": "the blanket lands softly.",
+            },
+            "lie under": {
+                "next_state": "on_bed",
+                "experience": {"smell": {"warm": 0.9, "soft": 0.95, "sweet": 0.4},
+                               "words": ["warm", "soft", "safe", "cozy"]},
+                "says": "under the blanket it is warm and soft.",
+            },
         },
     },
-    "kitchen": {
-        "description": "the kitchen",
-        "ambient_smell": {"sweet": 0.65, "fruity": 0.55, "warm": 0.70, "earthy": 0.40},
-        "ambient_taste": {"sweet": 0.70, "sour": 0.40, "salty": 0.30, "umami": 0.35},
-        "objects": {
-            "food":      {"taste": {"sweet": 0.60, "salty": 0.50, "umami": 0.60},
-                          "smell": {"earthy": 0.55, "fruity": 0.45}},
-            "fruit":     {"taste": {"sweet": 0.85, "sour": 0.55},
-                          "smell": {"fruity": 0.90, "sweet": 0.70}},
-            "cookies":   {"taste": {"sweet": 0.90, "umami": 0.35},
-                          "smell": {"sweet": 0.85, "warm": 0.70}},
-            "flowers":   {"smell": {"floral": 0.85, "sweet": 0.65, "fresh": 0.55}},
-            "warmth":    {"smell": {"warm": 0.90, "sweet": 0.40}},
+
+    "pillow": {
+        "place":   "her_room",
+        "mobile":  True,
+        "states":  ["on_bed", "carried", "placed"],
+        "default": "on_bed",
+        "verbs":   {
+            "pick up": {
+                "next_state": "carried",
+                "experience": {"smell": {"soft": 1.0, "sweet": 0.4},
+                               "words": ["soft", "light", "pillow"]},
+                "says": "the pillow is very soft.",
+            },
+            "put down": {
+                "next_state": "placed",
+                "experience": {"smell": {"soft": 0.6}, "words": ["soft"]},
+                "says": "she puts the pillow down gently.",
+            },
+        },
+    },
+
+    # ── Toy chest and contents ─────────────────────────────────────────────
+    "toy_chest": {
+        "place":   "her_room",
+        "mobile":  False,
+        "states":  ["closed", "open"],
+        "default": "closed",
+        "verbs":   {
+            "open": {
+                "next_state": "open",
+                "experience": {"smell": {"sweet": 0.7, "fruity": 0.4, "warm": 0.5},
+                               "words": ["sweet", "toys", "open", "find"]},
+                "says": "the toy chest opens. it smells sweet inside.",
+            },
+            "close": {
+                "next_state": "closed",
+                "experience": {"smell": {"warm": 0.4}, "words": ["close", "quiet"]},
+                "says": "the toy chest closes with a soft click.",
+            },
+        },
+        "contains": ["music_box", "bell"],
+    },
+
+    "music_box": {
+        "place":   "toy_chest",  # inside the toy chest
+        "mobile":  True,
+        "states":  ["closed", "playing"],
+        "default": "closed",
+        "sound":   "addc0846da2a",  # "hush a little baby" — her lullaby
+        "verbs":   {
+            "open": {
+                "next_state": "playing",
+                "experience": {"smell": {"sweet": 0.5, "floral": 0.4},
+                               "words": ["music", "sweet", "melody", "song",
+                                         "soft", "bright", "warm"]},
+                "says": "the music box plays a soft sweet melody.",
+                "sound": "addc0846da2a",
+            },
+            "close": {
+                "next_state": "closed",
+                "experience": {"smell": {"soft": 0.3}, "words": ["quiet"]},
+                "says": "the music stops.",
+            },
+        },
+    },
+
+    "bell": {
+        "place":   "toy_chest",
+        "mobile":  True,
+        "states":  ["resting", "ringing"],
+        "default": "resting",
+        "verbs":   {
+            "ring": {
+                "next_state": "ringing",
+                "experience": {"smell": {"fresh": 0.5, "bright": 0.6},
+                               "words": ["bell", "bright", "clear", "ring",
+                                         "sharp", "fresh"]},
+                "says": "the bell rings. bright and clear.",
+            },
+        },
+    },
+
+    # ── Mirror ─────────────────────────────────────────────────────────────
+    "mirror": {
+        "place":   "her_room",
+        "mobile":  False,
+        "states":  ["present"],
+        "default": "present",
+        "picture": "8bd9e45cae48",  # the "guala" picture — her own image
+        "verbs":   {
+            "look": {
+                "next_state": "present",
+                "experience": {"smell": {"warm": 0.4, "soft": 0.3},
+                               "words": ["guala", "mirror", "face", "see", "self"]},
+                "says": "in the mirror she sees guala.",
+                "show_picture": "8bd9e45cae48",
+            },
+        },
+    },
+
+    # ── Desk ───────────────────────────────────────────────────────────────
+    "desk": {
+        "place":   "her_room",
+        "mobile":  False,
+        "states":  ["empty", "working"],
+        "default": "empty",
+        "contains": ["crayons"],
+        "verbs":   {
+            "sit at": {
+                "next_state": "working",
+                "experience": {"smell": {"earthy": 0.5, "fresh": 0.4},
+                               "words": ["desk", "work", "draw", "create"]},
+                "says": "she sits at her desk. crayons and paper in front of her.",
+            },
+        },
+    },
+
+    "crayons": {
+        "place":   "desk",
+        "mobile":  True,
+        "states":  ["in_box", "in_hand"],
+        "default": "in_box",
+        "verbs":   {
+            "pick up": {
+                "next_state": "in_hand",
+                "experience": {"smell": {"earthy": 0.6, "fruity": 0.3},
+                               "taste": {"waxy": 0.5},
+                               "words": ["crayon", "color", "draw", "make",
+                                         "earthy", "waxy", "create"]},
+                "says": "the crayons have a soft earthy smell. she picks one up.",
+            },
         },
     },
 }
 
-DEFAULT_LOCATION = "her_room"
+# ── Sensory anchors from the World Atlas (Tier 1 concepts) ─────────────────
+# Direct from GL-WORLD-ATLAS-WC-20260616-01.
+# These seed the succession tracker at boot with the right concept associations.
+WORLD_ATLAS_SEEDS = [
+    # Living things
+    ["cat",    "soft"],   ["cat",  "warm"],   ["cat",  "smooth"],
+    ["dog",    "warm"],   ["dog",  "rough"],  ["dog",  "earthy"],
+    ["bird",   "soft"],   ["bird", "fresh"],  ["bird", "song"],
+    ["fish",   "smooth"], ["fish", "cool"],   ["fish", "wet"],
+    # Nature
+    ["sun",    "warm"],   ["sun",  "bright"], ["sun",  "golden"],
+    ["moon",   "cool"],   ["moon", "soft"],   ["moon", "bright"],
+    ["flower", "sweet"],  ["flower","fresh"],  ["flower","floral"],
+    ["tree",   "earthy"], ["tree", "fresh"],  ["tree", "rough"],
+    ["water",  "cool"],   ["water","fresh"],  ["water","soft"],
+    ["rain",   "fresh"],  ["rain", "cool"],   ["rain", "earthy"],
+    ["grass",  "earthy"], ["grass","fresh"],  ["grass","cool"],
+    ["wind",   "fresh"],  ["wind", "cool"],
+    # Her room objects
+    ["bed",     "soft"],  ["bed",   "warm"],  ["bed",   "safe"],
+    ["blanket", "soft"],  ["blanket","warm"], ["blanket","cozy"],
+    ["pillow",  "soft"],  ["pillow","light"],
+    ["music",   "sweet"], ["music", "warm"],  ["music", "bright"],
+    ["bell",    "bright"],["bell",  "clear"], ["bell",  "fresh"],
+    # Sensory qualities paired
+    ["soft",   "warm"],   ["warm",  "safe"],  ["cool",  "fresh"],
+    ["sweet",  "soft"],   ["bright","warm"],  ["earthy","fresh"],
+]
 
 
-def room_for_activity(activity_kind: str, joe_present: bool) -> str:
-    """Suggest a location based on her current activity and Joe's presence.
-    Called by the autonomous location movement to keep her life consistent."""
-    if activity_kind in ("SLEEPING", "DREAMING"):
-        return "her_room"
-    if joe_present:
-        return "common"
-    if activity_kind == "READING":
-        return "common"
-    if activity_kind == "EMITTING":
-        return "her_room"
-    return "her_room"
+# ── WorldState ──────────────────────────────────────────────────────────────
+class WorldState:
+    """Persistent state for all objects in her world.
+    Objects keep their state across restarts — if she left the blanket
+    on the chair, it's still there when she wakes up.
+    """
 
+    def __init__(self, state_dir: str):
+        self._path = os.path.join(state_dir, "world_state.json")
+        self._lock = threading.Lock()
+        # {obj_id: {"state": str, "place": str}}
+        self._objects: dict = {}
+        self._weather: str = "clear"
+        self._load()
 
-def ambient_experiences(room_name: str) -> list:
-    """Return all ambient sense words for a room — what she feels just by being there."""
-    room = ROOMS.get(room_name, {})
-    words = []
-    for modality in ("ambient_smell", "ambient_taste"):
-        for word, strength in (room.get(modality) or {}).items():
-            if strength >= 0.5:
-                words.append(word)
-    return words
+    def _load(self):
+        try:
+            with open(self._path) as f:
+                data = json.load(f)
+            self._objects = data.get("objects", {})
+            self._weather = data.get("weather", "clear")
+        except Exception:
+            pass
+        # Fill defaults for any object not yet in state
+        for obj_id, defn in OBJECTS.items():
+            if obj_id not in self._objects:
+                self._objects[obj_id] = {
+                    "state": defn["default"],
+                    "place": defn["place"],
+                }
 
+    def _save(self):
+        try:
+            with open(self._path, "w") as f:
+                json.dump({"objects": self._objects, "weather": self._weather}, f)
+        except Exception:
+            pass
 
-def object_experiences(room_name: str, obj_name: str) -> dict:
-    """Sensory profile for attending a specific object in a room."""
-    room = ROOMS.get(room_name, {})
-    return (room.get("objects") or {}).get(obj_name, {})
+    def get(self, obj_id: str) -> dict:
+        with self._lock:
+            return dict(self._objects.get(obj_id, {}))
+
+    def apply_verb(self, obj_id: str, verb: str) -> dict:
+        """Apply a verb to an object. Returns the verb definition if valid."""
+        defn = OBJECTS.get(obj_id)
+        if not defn:
+            return {}
+        verb_defn = (defn.get("verbs") or {}).get(verb)
+        if not verb_defn:
+            return {}
+        with self._lock:
+            entry = self._objects.setdefault(obj_id, {"state": defn["default"],
+                                                        "place": defn["place"]})
+            entry["state"] = verb_defn["next_state"]
+        threading.Thread(target=self._save, daemon=True).start()
+        return verb_defn
+
+    def room_snapshot(self) -> dict:
+        """Full state of her room: all objects + sky + weather."""
+        with self._lock:
+            objs = {k: dict(v) for k, v in self._objects.items()
+                    if OBJECTS.get(k, {}).get("place") in ("her_room", "toy_chest",
+                                                            "desk")}
+        sky = sky_state(self._weather)
+        return {"objects": objs, "sky": sky, "weather": self._weather}
+
+    def ambient_words(self, location: str = "her_room") -> list:
+        """Sensory words from the current state of her room — what she feels."""
+        words = []
+        sky = sky_state(self._weather)
+        # Sky through window
+        words.extend(list((sky.get("smell") or {}).keys()))
+        # Object ambients
+        with self._lock:
+            for obj_id, entry in self._objects.items():
+                defn = OBJECTS.get(obj_id, {})
+                if defn.get("place") != location:
+                    continue
+                state = entry.get("state", "")
+                ambient = (defn.get("ambient") or {}).get(state, {})
+                for mod, channels in ambient.items():
+                    if isinstance(channels, dict):
+                        words.extend([w for w, v in channels.items() if v >= 0.5])
+        # Night light
+        nl_state = (self._objects.get("night_light") or {}).get("state", "off")
+        if nl_state == "on":
+            words += ["warm", "safe", "soft"]
+        return list(dict.fromkeys(words))  # dedup, preserve order

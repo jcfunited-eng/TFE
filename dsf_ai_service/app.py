@@ -1309,6 +1309,27 @@ async def gualaloom_chat(msg: GLMessage):
             return resp
         except Exception:
             return {"location": "her_room", "description": "her room"}
+    if _cmd == "/room":
+        try:
+            import urllib.request as _ur, json as _js
+            resp = _js.load(_ur.urlopen(f"{_ob_url}/room", timeout=3))
+            return resp
+        except Exception:
+            return {"objects": {}}
+    if _cmd.startswith("/action "):
+        # format: /action object_id:verb
+        try:
+            import urllib.request as _ur, json as _js
+            parts = _cmd[len("/action "):].split(":", 1)
+            if len(parts) == 2:
+                body = _js.dumps({"object_id": parts[0].strip(),
+                                  "verb": parts[1].strip()}).encode()
+                req2 = _ur.Request(f"{_ob_url}/action", data=body,
+                                   headers={"content-type": "application/json"})
+                resp = _js.load(_ur.urlopen(req2, timeout=5))
+                return resp
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
     if (msg.command or "").strip().lower() == "/organ_voice":
         try:
             import urllib.request as _ur, json as _js

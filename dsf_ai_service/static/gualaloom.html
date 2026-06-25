@@ -117,6 +117,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
   </div>
 </div>
 <div id="state-panel">
+  <div class="ps"><div class="ps-title">Her Room</div><div id="sp-room" style="font-size:8px;line-height:1.6">--</div></div>
   <div class="ps"><div class="ps-title">Substrate</div><div id="sp-substrate">--</div></div>
   <div class="ps"><div class="ps-title">Hemispheres</div><div id="sp-hemispheres">--</div></div>
   <div class="ps"><div class="ps-title">Persistence</div><div id="sp-persistence">--</div></div>
@@ -1055,6 +1056,40 @@ async function backgroundReplay(){
   finally{_inflight.replay=false;_schedNext('replay',backgroundReplay)}
 }
 
+// --- Room state polling ---
+async function pollRoom(){
+  try{
+    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:'',command:'/room'})},5000);
+    const d=await r.json();
+    const roomEl=document.getElementById('sp-room');
+    if(!roomEl)return;
+    const sky=d.sky||{};
+    let html=`<div style="color:var(--ev-activity)">${sky.description||''}</div>`;
+    const objs=d.objects||{};
+    const show=['drapes','night_light','blanket','toy_chest','bed'];
+    for(const k of show){
+      const o=objs[k];if(!o)continue;
+      const state=(o.state||'').replace(/_/g,' ');
+      html+=`<div class="ps-row"><span class="l">${k.replace(/_/g,' ')}</span><span class="v">${state}</span></div>`;
+    }
+    roomEl.innerHTML=html||'--';
+  }catch(e){}
+  setTimeout(pollRoom,60000);
+}
+
+// Send an action to her world (/action object:verb)
+async function doAction(obj,verb){
+  try{
+    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:'',command:`/action ${obj}:${verb}`})},8000);
+    const d=await r.json();
+    if(d.says)addMsg(d.says,'system');
+    if(d.show_picture)renderPictures([{item_id:d.show_picture,title:'mirror'}]);
+    pollRoom();
+  }catch(e){}
+}
+
 // --- Location polling ---
 let _lastLocation='';
 async function pollLocation(){
@@ -1106,6 +1141,7 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
   addMsg('Guala ready.','system');msgInput.focus();
   setTimeout(pollAutonomousThought,35000); // let her boot, then start listening
   setTimeout(pollLocation,20000);           // show where she is
+  setTimeout(pollRoom,25000);              // show her room state
   // Non-blocking boot: try status, don't fail if slow
   pollStatus();
   // v7/state — populates side panel (substrate, pools, intro/aware, NMDA, events)

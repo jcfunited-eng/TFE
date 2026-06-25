@@ -42,12 +42,14 @@ ANTHR_KEY  = os.environ.get("ANTHROPIC_API_KEY")
 
 # ── virtual home + episodic layer ──────────────────────────────────────────
 from dsf_ai_service.virtual_home import (
-    ROOMS, DEFAULT_LOCATION, room_for_activity, ambient_experiences, object_experiences)
+    ROOMS, DEFAULT_LOCATION, room_for_activity, ambient_experiences,
+    object_experiences, WorldState, WORLD_ATLAS_SEEDS, sky_state)
 from dsf_ai_service.episodic_layer import EpisodicLayer
 
 _location     = DEFAULT_LOCATION   # where she is right now
 _presence     = []                 # who is present (joe, wc, c1)
 _episodic     = None               # initialized after STATE_DIR is confirmed
+_world        = None               # WorldState — her home's object states
 _loc_lock     = threading.Lock()   # protects _location and _presence
 
 # ── stop words ─────────────────────────────────────────────────────────────
@@ -299,13 +301,19 @@ def _autonomous_loop():
 
 # ── boot ───────────────────────────────────────────────────────────────────
 def _enter_room(room_name: str, ov, source: str = "move"):
-    """Experience a room's ambient sensory properties. Called when she enters."""
+    """Experience a room's ambient sensory properties. Called when she enters.
+    Uses WorldState for her room — the actual object states affect the ambient."""
     global _location
-    if room_name not in ROOMS:
+    if room_name not in ROOMS and room_name != "her_room":
         return
-    words = ambient_experiences(room_name)
-    room = ROOMS[room_name]
-    desc = room.get("description", room_name)
+    # Her room: use live WorldState ambient (drapes open/closed, night light, sky)
+    if room_name == "her_room" and _world is not None:
+        words = _world.ambient_words("her_room")
+    else:
+        words = ambient_experiences(room_name)
+    if not words:
+        words = ["warm"]
+    desc = (ROOMS.get(room_name) or {}).get("description", room_name)
     with _lock:
         for w in words:
             ov.experience(w)
@@ -313,7 +321,6 @@ def _enter_room(room_name: str, ov, source: str = "move"):
             _tracker.record(words, weight=1.0)
     with _loc_lock:
         _location = room_name
-    # Record in episodic layer
     if _episodic is not None:
         import time as _t
         for w in words:
@@ -360,10 +367,11 @@ def _location_loop():
 
 
 def _boot():
-    global _ov, _episodic
+    global _ov, _episodic, _world
     try:
-        # Initialize episodic layer
+        # Initialize episodic layer and world state
         _episodic = EpisodicLayer(STATE_DIR)
+        _world    = WorldState(STATE_DIR)
 
         from dsf_ai_service.loom_model.loom_voice import OrganVoice
         cache = os.path.join(STATE_DIR, "organ_voice_senses.json")
@@ -375,8 +383,11 @@ def _boot():
         )
         _ov = ov  # available immediately
 
-        # Seed succession patterns before growing
+        # Seed succession patterns + World Atlas concept associations
         _seed_succession()
+        for pair in WORLD_ATLAS_SEEDS:
+            _tracker.seed(pair, weight=4.0)
+        print(f"[organ-brain] world atlas seeded: {len(WORLD_ATLAS_SEEDS)} concept pairs")
 
         # Grow from sensory primitives (fast, uses cached senses)
         seed_words = (list(getattr(ov, "_TASTE", [])) +
@@ -538,6 +549,54 @@ def attend_object(req: TextReq):
                             _tracker.record([obj, word], weight=1.5)
     threading.Thread(target=_do, daemon=True).start()
     return {"ok": True, "object": obj, "location": loc}
+
+
+class ActionReq(BaseModel):
+    object_id: str
+    verb: str
+
+
+@app.post("/action")
+def action(req: ActionReq):
+    """She acts on an object in her world — state changes, sensory experience follows.
+    When she opens the drapes, fresh+cool+bright arrive. When she rings the bell,
+    bright+clear+sharp arrive. Verbs are learned by doing.
+    """
+    if _ov is None or _world is None:
+        return {"ok": False, "reason": "not ready"}
+    result = _world.apply_verb(req.object_id, req.verb)
+    if not result:
+        return {"ok": False, "reason": f"no verb '{req.verb}' on '{req.object_id}'"}
+    words = result.get("experience", {}).get("words", [])
+    says  = result.get("says", "")
+    # She experiences the sensory result of her action
+    def _feel():
+        with _lock:
+            for w in words:
+                _ov.experience(w)
+            if len(words) > 1:
+                _tracker.record(words, weight=2.0)  # actions build strong succession
+    threading.Thread(target=_feel, daemon=True).start()
+    return {"ok": True, "object": req.object_id, "verb": req.verb,
+            "says": says, "words": words,
+            "next_state": result.get("next_state"),
+            "show_picture": result.get("show_picture"),
+            "sound": result.get("sound")}
+
+
+@app.get("/room")
+def room():
+    """Full state of her room — objects, sky, weather, what she's feeling."""
+    if _world is None:
+        return {"objects": {}, "sky": {}, "weather": "clear"}
+    snap = _world.room_snapshot()
+    with _loc_lock:
+        loc = _location
+        pres = list(_presence)
+    snap["location"] = loc
+    snap["presence"] = pres
+    snap["sky_description"] = snap.get("sky", {}).get("description", "")
+    return snap
 
 
 @app.get("/thought")
