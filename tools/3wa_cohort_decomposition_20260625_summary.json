@@ -1,0 +1,161 @@
+{
+  "command": "TFE-CMD-3WA-COHORT-DECOMPOSITION-WC-20260625",
+  "source_replay": "060b9aa (walkforward_bet_20260624.csv)",
+  "n_trades_total": 835,
+  "data_notes": {
+    "species_profiles": {
+      "status": "NOT FOUND",
+      "checked": [
+        "production DB (species_profiles): relation does not exist",
+        "local tfe_validation DB: 0 rows",
+        "disk (species_profiles.csv from May 29 2026): not found"
+      ],
+      "consequence": "W2 = False for all 835 trades; n_with_missing_species = 835"
+    },
+    "spy_dk": {
+      "status": "COMPUTED",
+      "note": "SPY not in kernel_db (precompute only covered universe_kept). SPY D_k computed from SPY bars in local daily_bars using same kernel path as walkforward (WARM_UP=252)."
+    },
+    "W1_definition": {
+      "command_spec": "bar_count != null AND 1 <= bar_count <= 20",
+      "strategist_code": "bar_count >= 1 AND bar_count <= 20 AND s_uf != null AND s_uf > 0 (3wa_strategist.mjs line 136)",
+      "used": "command_spec \u2014 S_UF > 0 clause omitted per command definition"
+    }
+  },
+  "integrity_gates": {
+    "gate1_total_assigned": {
+      "pass": true,
+      "n_assigned": 835,
+      "n_expected": 835
+    },
+    "gate2_unique_trade_idx": {
+      "pass": true,
+      "missing": [],
+      "duplicates": []
+    },
+    "gate3_spy_dk_present": {
+      "pass": true,
+      "missing_dates": [],
+      "note": "SPY not in kernel cache; D_k computed from SPY bars in local DB"
+    },
+    "gate4_spot_check": {
+      "W123": {
+        "n": 0,
+        "examples": []
+      },
+      "W13": {
+        "n": 0,
+        "examples": []
+      },
+      "W3only": {
+        "n": 4,
+        "examples": [
+          {
+            "trade_idx": 805,
+            "ticker": "MRK",
+            "entry_date": "2025-04-28",
+            "bar_count_at_entry": 1275,
+            "spy_dk_at_entry": 1,
+            "species_classification": null,
+            "W1": false,
+            "W2": false,
+            "W3": true
+          },
+          {
+            "trade_idx": 831,
+            "ticker": "NETL",
+            "entry_date": "2025-04-10",
+            "bar_count_at_entry": 1264,
+            "spy_dk_at_entry": 1,
+            "species_classification": null,
+            "W1": false,
+            "W2": false,
+            "W3": true
+          }
+        ]
+      },
+      "noW3": {
+        "n": 831,
+        "examples": [
+          {
+            "trade_idx": 0,
+            "ticker": "AM",
+            "entry_date": "2021-06-14",
+            "bar_count_at_entry": 303,
+            "spy_dk_at_entry": 0,
+            "species_classification": null,
+            "W1": false,
+            "W2": false,
+            "W3": false
+          },
+          {
+            "trade_idx": 1,
+            "ticker": "PKBK",
+            "entry_date": "2021-06-14",
+            "bar_count_at_entry": 303,
+            "spy_dk_at_entry": 0,
+            "species_classification": null,
+            "W1": false,
+            "W2": false,
+            "W3": false
+          }
+        ]
+      }
+    }
+  },
+  "cohort_aggregates": {
+    "W123": {
+      "n_trades": 0,
+      "win_rate": null,
+      "mean_pnl_pct": null,
+      "median_pnl_pct": null,
+      "mean_days_held": null,
+      "aggregate_pnl_contribution": null,
+      "n_with_missing_bar_count": 0,
+      "n_with_missing_spy_dk": 0,
+      "n_with_missing_species": 0
+    },
+    "W13": {
+      "n_trades": 0,
+      "win_rate": null,
+      "mean_pnl_pct": null,
+      "median_pnl_pct": null,
+      "mean_days_held": null,
+      "aggregate_pnl_contribution": null,
+      "n_with_missing_bar_count": 0,
+      "n_with_missing_spy_dk": 0,
+      "n_with_missing_species": 0
+    },
+    "W3only": {
+      "n_trades": 4,
+      "win_rate": 0.25,
+      "mean_pnl_pct": -0.010618,
+      "median_pnl_pct": -0.011656,
+      "mean_days_held": 252.0,
+      "aggregate_pnl_contribution": -0.042474,
+      "n_with_missing_bar_count": 0,
+      "n_with_missing_spy_dk": 0,
+      "n_with_missing_species": 4
+    },
+    "noW3": {
+      "n_trades": 831,
+      "win_rate": 0.536703,
+      "mean_pnl_pct": 0.003237,
+      "median_pnl_pct": 0.003717,
+      "mean_days_held": 40.6,
+      "aggregate_pnl_contribution": 2.690342,
+      "n_with_missing_bar_count": 0,
+      "n_with_missing_spy_dk": 0,
+      "n_with_missing_species": 831
+    }
+  },
+  "totals_check": {
+    "sum_n_trades": 835,
+    "expected": 835,
+    "pass": true
+  },
+  "n_with_missing_bar_count": 0,
+  "n_with_missing_spy_dk": 0,
+  "n_with_missing_species": 835,
+  "wall_time_seconds": 20.6
+}
