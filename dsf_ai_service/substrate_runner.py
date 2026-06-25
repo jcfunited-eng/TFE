@@ -821,14 +821,15 @@ def handle_gualaloom_post(args):
     elif command == "/organs_say":
         try:
             if _guala_cognition is None:
-                return {"response": "organ-brain cognition not loaded"}
-            # learn from what was said to her, then answer
+                return {"response": "", "speech": ""}
+            # learn from what was said to her, then compose from her succession
             if text:
                 _guala_cognition.expose([text])
             said = _guala_cognition.say(text or "")
-            return {"response": said, "engine": "organ-brain (loom cognition)"}
+            # speech field makes the UI treat this as her voice (addEmissionMsg path)
+            return {"response": said, "speech": said, "engine": "guala-cognition"}
         except Exception as _e:
-            return {"response": f"organ-brain error: {_e}"}
+            return {"response": "", "speech": ""}
     elif command == "/curriculum":
         if _curriculum is None:
             return {"response": "curriculum scheduler not loaded"}

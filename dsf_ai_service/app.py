@@ -1388,17 +1388,28 @@ async def gualaloom_chat(msg: GLMessage):
         except Exception as e:
             return {"ok": False, "error": str(e)}
     if (msg.command or "").strip().lower() == "/organ_voice":
-        try:
-            import urllib.request as _ur, json as _js
-            _body = _js.dumps({"text": msg.text or ""}).encode()
-            _req = _ur.Request(f"{_ob_url}/surface", data=_body,
-                               headers={"content-type": "application/json"})
-            _resp = _js.load(_ur.urlopen(_req, timeout=8))
-            return _resp
-        except Exception as _e:
-            return {"surfaced": {"identity": ["guala"], "meaning": []},
-                    "status": {"neurons": 0, "world_concepts": 0},
-                    "error": str(_e)}
+        # Stage 2: GualaCognition IS the voice. One brain, one voice.
+        # Learn from what Joe says, compose from her succession, return as speech.
+        if _is_remote():
+            client = _get_substrate_client()
+            try:
+                result = await client.call("gualaloom_post",
+                                           command="/organs_say",
+                                           text=msg.text or "",
+                                           source=msg.source or "joe",
+                                           timeout=10.0)
+                return result
+            except Exception as _e:
+                return {"response": "", "speech": "", "error": str(_e)}
+        # Local mode: direct call
+        if _guala is not None:
+            from dsf_ai_service.substrate_runner import _guala_cognition
+            if _guala_cognition is not None:
+                if msg.text:
+                    _guala_cognition.expose([msg.text])
+                said = _guala_cognition.say(msg.text or "")
+                return {"response": said, "speech": said}
+        return {"response": "", "speech": ""}
 
     # /brain_status falls through to substrate — the organ_brain field is in the
     # /status response from the substrate (see substrate_runner._cmd_status).
