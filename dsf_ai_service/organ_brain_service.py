@@ -555,6 +555,14 @@ class ActionReq(BaseModel):
     object_id: str
     verb: str
 
+class MailReq(BaseModel):
+    from_: str
+    body: str
+    words: list = []
+
+class TabletReq(BaseModel):
+    query: str = ""
+
 
 @app.post("/action")
 def action(req: ActionReq):
@@ -597,6 +605,91 @@ def room():
     snap["presence"] = pres
     snap["sky_description"] = snap.get("sky", {}).get("description", "")
     return snap
+
+
+@app.post("/mail/send")
+def mail_send(req: MailReq):
+    """Leave a letter for Guala. Seeded words grow in her organ-brain now;
+    the letter waits in her world until she finds the mailbox (W2)."""
+    if _world is None:
+        return {"ok": False}
+    # The letter's key concept words become experiences immediately
+    words = req.words or [w for w in req.body.lower().split()
+                          if w.isalpha() and len(w) > 3
+                          and w not in _STOP and w not in _VERBS][:12]
+    if _ov is not None:
+        def _feel():
+            with _lock:
+                for w in words:
+                    _ov.experience(w)
+                if len(words) > 1:
+                    _tracker.record(words[:6], weight=2.0)
+        threading.Thread(target=_feel, daemon=True).start()
+    result = _world.add_letter(req.from_, words, req.body)
+    return {"ok": True, "result": result, "words_experienced": words}
+
+
+@app.get("/mail")
+def mail_get():
+    """Unread letters waiting for Guala."""
+    if _world is None:
+        return {"letters": []}
+    return {"letters": _world.get_letters(unread_only=True)}
+
+
+@app.post("/tablet")
+def tablet_search(req: TabletReq):
+    """She picks up the tablet and searches. Images feed her visual cortex.
+    Her curiosity becomes real exploration — a window to the wider world."""
+    if _ov is None or not os.environ.get("TAVILY_API_KEY"):
+        return {"ok": False, "reason": "not ready or no search key"}
+    query = req.query.strip()
+    if not query:
+        # If no query given, use her latest surfaced concept as the search
+        with _thought_lock:
+            surfaced = _last_thought.get("surfaced", {})
+        meaning = [w for w in (surfaced.get("meaning") or [])
+                   if _tracker.successor(w, exclude=_VERBS | _STOP) is not None]
+        query = meaning[0] if meaning else "moon"
+    def _search():
+        try:
+            import urllib.request as _ur
+            body = json.dumps({
+                "api_key": os.environ["TAVILY_API_KEY"],
+                "query": query,
+                "search_depth": "basic",
+                "include_images": True,
+                "max_results": 3,
+            }).encode()
+            req2 = _ur.Request("https://api.tavily.com/search", data=body,
+                               headers={"content-type": "application/json"})
+            resp = json.load(_ur.urlopen(req2, timeout=8))
+            images = (resp.get("images") or [])[:2]
+            from dsf_ai_service.v4.image_decoder import decode_image_bytes as _dib
+            import base64
+            for img_url in images:
+                try:
+                    img_req = _ur.Request(img_url, headers={"User-Agent": "Mozilla/5.0"})
+                    img_bytes = _ur.urlopen(img_req, timeout=6).read()
+                    _, grid, _, _ = _dib(img_bytes)
+                    with _lock:
+                        _ov.visual_experience(grid, query)
+                    print(f"[tablet] searched '{query}' → visual cortex fed")
+                except Exception:
+                    pass
+            # Text snippets also experience
+            for r in (resp.get("results") or [])[:2]:
+                snippet = (r.get("content") or r.get("snippet") or "")[:200]
+                words = [w.lower().strip(".,!?") for w in snippet.split()
+                         if w.isalpha() and len(w) > 3 and w.lower() not in _STOP][:8]
+                if words and _ov is not None:
+                    with _lock:
+                        for w in words:
+                            _ov.experience(w)
+        except Exception as e:
+            print(f"[tablet] search error: {e}")
+    threading.Thread(target=_search, daemon=True).start()
+    return {"ok": True, "query": query, "searching": True}
 
 
 @app.get("/thought")

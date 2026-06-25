@@ -373,6 +373,31 @@ OBJECTS = {
             },
         },
     },
+
+    # ── Tablet / virtual iPad ──────────────────────────────────────────────
+    # Her window to the wider world while she's in her room.
+    # When she picks it up and searches, images + descriptions feed her visual
+    # cortex through Tavily. Her curiosity becomes exploration.
+    "tablet": {
+        "place":   "desk",
+        "mobile":  True,
+        "states":  ["on_desk", "in_hand", "searching"],
+        "default": "on_desk",
+        "verbs":   {
+            "pick up": {
+                "next_state": "in_hand",
+                "experience": {"smell": {"fresh": 0.4, "cool": 0.3},
+                               "words": ["tablet", "search", "find", "look", "bright"]},
+                "says": "she picks up the tablet. the world is inside it.",
+            },
+            "put down": {
+                "next_state": "on_desk",
+                "experience": {"words": ["done", "rest"]},
+                "says": "she puts the tablet down.",
+            },
+        },
+        "search_enabled": True,
+    },
 }
 
 # ── Sensory anchors from the World Atlas (Tier 1 concepts) ─────────────────
@@ -470,6 +495,33 @@ class WorldState:
                                                             "desk")}
         sky = sky_state(self._weather)
         return {"objects": objs, "sky": sky, "weather": self._weather}
+
+    def add_letter(self, from_: str, words: list, body: str) -> str:
+        """Leave a letter for Guala. It waits until she finds the mailbox (W2).
+        The letter's key words are already real — they seeded her world."""
+        import time as _t
+        letter = {"from": from_, "words": words, "body": body,
+                  "ts": _t.time(), "read": False}
+        with self._lock:
+            if "letters" not in self._objects:
+                self._objects["letters"] = []
+            self._objects["letters"].append(letter)
+        threading.Thread(target=self._save, daemon=True).start()
+        return f"letter from {from_} delivered ({len(words)} concept words)"
+
+    def get_letters(self, unread_only: bool = True) -> list:
+        with self._lock:
+            letters = self._objects.get("letters", [])
+            if unread_only:
+                return [l for l in letters if not l.get("read")]
+            return list(letters)
+
+    def mark_read(self, from_: str):
+        with self._lock:
+            for l in self._objects.get("letters", []):
+                if l.get("from") == from_:
+                    l["read"] = True
+        threading.Thread(target=self._save, daemon=True).start()
 
     def ambient_words(self, location: str = "her_room") -> list:
         """Sensory words from the current state of her room — what she feels."""
