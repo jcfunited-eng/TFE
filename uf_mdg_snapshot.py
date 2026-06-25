@@ -378,7 +378,7 @@ def compute_cognitive_scalars(
     a discriminator. 252 bars (~1 year) is enough warm-up to settle state
     without saturation.
     """
-    _null: Dict[str, Optional[float]] = {"F_n": None, "raw_x_m": None}
+    _null: Dict[str, Optional[float]] = {"F_n": None, "raw_x_m": None, "s_n": None}
 
     try:
         F = close_prices.astype(float)
@@ -409,6 +409,7 @@ def compute_cognitive_scalars(
 
         F_n_last: Optional[float] = None
         raw_x_m_last: Optional[float] = None
+        s_n_last: Optional[float] = None
 
         for resonance, dsf in zip(resonances, dsfs):
             r_norm = float(np.clip(resonance.R / _KP_R_NORM_MAX, -1.0, 1.0))
@@ -460,11 +461,12 @@ def compute_cognitive_scalars(
 
             F_n_last = F_n_val
             raw_x_m_last = raw_x_m_val
+            s_n_last = surprise  # raw L2 norm — no clip, no norm, no smoothing
 
         if F_n_last is None:
             return _null
 
-        return {"F_n": F_n_last, "raw_x_m": raw_x_m_last}
+        return {"F_n": F_n_last, "raw_x_m": raw_x_m_last, "s_n": s_n_last}
 
     except Exception:
         return _null
@@ -794,6 +796,7 @@ def evaluate_symbol_snapshot(
     cognitive = compute_cognitive_scalars(close_prices)
     f_n: Optional[float] = cognitive["F_n"]
     raw_x_m: Optional[float] = cognitive["raw_x_m"]
+    s_n: Optional[float] = cognitive["s_n"]
 
     # If we truly have no usable data, still return a row so the UI doesn't break.
     if not bars:
@@ -837,6 +840,7 @@ def evaluate_symbol_snapshot(
             "R_UF_steps_since_sign_flip": -1,
             "F_n": None,
             "raw_x_m": None,
+            "s_n": None,
         }
 
     # Use the same structural adapter as Watchlist and other TFE pages.
@@ -909,6 +913,7 @@ def evaluate_symbol_snapshot(
         # CP-2: cognitive scalars — None when kernel cannot compute (insufficient bars)
         "F_n": f_n,
         "raw_x_m": raw_x_m,
+        "s_n": s_n,
         # Incremental refresh: store the latest bar's timestamp so the next
         # refresh can skip recomputation when no new bars exist.
         "last_bar_timestamp": bars[-1].timestamp.isoformat() if bars and hasattr(bars[-1], 'timestamp') and bars[-1].timestamp else None,

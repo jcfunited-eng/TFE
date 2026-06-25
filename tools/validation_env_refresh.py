@@ -159,6 +159,7 @@ def run_kernel(ticker, bar_rows):
         "decision_vector": uf_state.level5.get("decision_vector"),
         "F_n": cognitive.get("F_n"),
         "raw_x_m": cognitive.get("raw_x_m"),
+        "s_n": cognitive.get("s_n"),
     }
     # Structural-moment timestamp (last bar) — stable across re-runs on the
     # same bars, so the modea ON CONFLICT (ticker, generated_at_utc) dedupes.
