@@ -27,8 +27,6 @@ _guala = None
 _guala_organ_brain = None  # her 8-organ brain, merged live in the substrate
 _guala_cognition = None  # her organ-brain speech (learns from exposure)
 _curriculum = None  # autonomous study scheduler (she reads on her own)
-_organ_voice = None  # her LIVING organ-brain: identity + voice + growth (additive)
-_organ_voice_lock = None  # protects _organ_voice from concurrent writes
 _shutdown = False
 
 # Ring buffers — initialized on boot
@@ -540,86 +538,6 @@ def boot_substrate():
     except Exception as _e:
         print(f"[cognition] organ-brain speech skipped (non-fatal): {_e}")
 
-    # ORGAN-BRAIN (additive): her LIVING organ-brain — identity anchored, GROWTH (folding
-    # from her own concepts, grounded by the LLM SENSES EMULATOR), raw organ recall (no
-    # heuristics). Rides ALONGSIDE her engine; queried via /organ_voice. Built in a
-    # BACKGROUND thread so growth never blocks her boot / health-checks. Exception-walled.
-    try:
-        import threading as _th
-
-        def _start_organ_voice():
-            try:
-                from dsf_ai_service.loom_model.loom_voice import OrganVoice
-                global _organ_voice
-                _ak = os.environ.get("ANTHROPIC_API_KEY")
-                _cache = os.path.join(STATE_DIR, "organ_voice_senses.json")
-                _ov = OrganVoice(identity="guala", people=("joe", "wc"),
-                                 api_key=_ak, cache_path=_cache)
-                # Make organ-brain available immediately (identity anchored from init).
-                # grow_from adds grounded concepts but she can answer who she is right away.
-                global _organ_voice_lock
-                _organ_voice_lock = _th.Lock()
-                _organ_voice = _ov
-                import random as _rnd
-                _vw = [w for w in getattr(g, "vocab", []) if isinstance(w, str)
-                       and w.isalpha() and len(w) > 2]
-                _rnd.Random(0).shuffle(_vw)
-                _grew = _ov.grow_from(_vw[:30], passes=2)  # LLM-grounded senses -> folds
-                print(f"[organ-voice] LIVE: neurons={_grew} "
-                      f"senses={'LLM-grounded' if _ak else 'deterministic'} | "
-                      f"identity-organ-surfaces={_ov.surface().get('identity')}")
-                # Full catalog fill — grind all remaining vocab through the LLM senses
-                # emulator in the background, 20 words per batch, saving after each so
-                # partial fills survive restarts. Already-cached words are skipped.
-                # Ground her pictures through the visual cortex into the organ-brain.
-                # She's seen the moon 17k+ times — now she feels it.
-                def _ground_pictures(ov=_ov):
-                    import time as _t
-                    try:
-                        pics = getattr(g, "_pictures", {}) or {}
-                        grounded = 0
-                        for item_id, pic in pics.items():
-                            try:
-                                grid = getattr(pic, "intensity_grid", None)
-                                title = getattr(pic, "title", item_id)
-                                if grid is None or not hasattr(grid, "shape"):
-                                    continue
-                                ov.visual_experience(grid, title)
-                                grounded += 1
-                                _t.sleep(0.3)
-                            except Exception:
-                                continue
-                        print(f"[organ-voice] pictures grounded: {grounded}/{len(pics)} "
-                              f"through visual cortex → organ-brain")
-                    except Exception as _pe:
-                        print(f"[organ-voice] picture grounding skipped (non-fatal): {_pe}")
-                _th.Thread(target=_ground_pictures, daemon=True).start()
-
-                if _ak:
-                    def _full_catalog_fill(ov=_ov, vocab=_vw):
-                        import time as _t
-                        try:
-                            todo = [w for w in vocab if w not in ov._senses_cache]
-                            print(f"[organ-voice] catalog fill start: {len(todo)} words to ground")
-                            filled = 0
-                            for i in range(0, len(todo), 20):
-                                chunk = todo[i:i + 20]
-                                filled += ov.prefill(chunk)
-                                ov._save_cache()  # persist after every batch (resume-safe)
-                                if (i // 20) % 25 == 0 and i > 0:
-                                    print(f"[organ-voice] catalog fill: {filled}/{len(todo)} grounded")
-                                _t.sleep(1.5)   # polite to the Anthropic API
-                            print(f"[organ-voice] catalog fill DONE: {filled} words grounded")
-                        except Exception as _fe:
-                            print(f"[organ-voice] catalog fill error (non-fatal): {_fe}")
-                    _th.Thread(target=_full_catalog_fill, daemon=True).start()
-            except Exception as _e:
-                print(f"[organ-voice] start skipped (non-fatal): {_e}")
-
-        _th.Thread(target=_start_organ_voice, daemon=True).start()
-    except Exception as _e:
-        print(f"[organ-voice] thread skipped (non-fatal): {_e}")
-
     # AUTONOMOUS CURRICULUM: she studies children's literature on her own, on a
     # schedule, growing her engine + organ-brain from her real reading life.
     # Additive, killable (CURRICULUM_AUTONOMOUS=0), resumable; never raises into boot.
@@ -710,17 +628,7 @@ def _start_input_ring_consumer():
                             from dsf_ai_service.v4.image_decoder import decode_image_bytes
                             _, grid, _, _ = decode_image_bytes(img_bytes)
                             _guala.process_sight_frame(grid)
-                            bindings = process_sight_with_recognition(_guala, grid)
-                            # Wire what she sees into her organ-brain
-                            if _organ_voice is not None:
-                                try:
-                                    if bindings:
-                                        for _b in bindings[:3]:
-                                            _organ_voice.visual_experience(grid, _b["word"])
-                                    else:
-                                        _organ_voice.visual_experience(grid, "scene")
-                                except Exception:
-                                    pass
+                            process_sight_with_recognition(_guala, grid)
                         except Exception:
                             pass
                     elif kind == "sound_window":
@@ -730,14 +638,7 @@ def _start_input_ring_consumer():
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
                                 process_sound_with_recognition)
                             source = data.get("source", "ambient")
-                            bindings = process_sound_with_recognition(_guala, audio_bytes, source=source)
-                            # Wire what she hears into her organ-brain
-                            if _organ_voice is not None and bindings:
-                                try:
-                                    for _b in bindings:
-                                        _organ_voice.experience(_b["word"])
-                                except Exception:
-                                    pass
+                            process_sound_with_recognition(_guala, audio_bytes, source=source)
                         except Exception:
                             pass
             except Exception:
@@ -877,25 +778,12 @@ def handle_gualaloom_post(args):
     source = args.get("source", "joe")
 
     if _guala.is_asleep and command not in ("/status", "/wake", "/presence"):
-        # Pair-bonded source active while she's sleeping → wake her up naturally.
-        # A child wakes when the people she loves enter the room and speak to her.
-        _src = (source or "").strip().lower()
-        _bonded = getattr(_guala, "_pair_bond", None) or getattr(_guala, "pair_bond", {})
-        _is_bonded = bool(_bonded.get(_src, False)) if isinstance(_bonded, dict) else False
-        _voice_cmd = command in ("/listen", "/organ_voice") or (not command and text)
-        if _is_bonded and _voice_cmd:
-            try:
-                _guala.wake_from_sleep(state_dir=STATE_DIR)
-                _guala.log_event(STATE_DIR, "wake", source=_src, reason="voice_presence")
-            except Exception:
-                pass
-        else:
-            return {
-                "response": "she is sleeping...",
-                "asleep": True,
-                "sleep_tick": _guala.tick,
-                "motifs": _guala.introspect()["vocab"],
-            }
+        return {
+            "response": "she is sleeping...",
+            "asleep": True,
+            "sleep_tick": _guala.tick,
+            "motifs": _guala.introspect()["vocab"],
+        }
 
     if command == "/status":
         return _cmd_status()
@@ -941,89 +829,6 @@ def handle_gualaloom_post(args):
             return {"response": said, "engine": "organ-brain (loom cognition)"}
         except Exception as _e:
             return {"response": f"organ-brain error: {_e}"}
-    elif command == "/organ_voice":
-        # her LIVING organ-brain: RAW organ recall — identity (sv) + meaning (sc) cued
-        # by the sensory profile of Joe's words. Grows from the conversation. No frames,
-        # no heuristics, no LLM in her voice. Returns what her organs honestly surface.
-        if _organ_voice is None:
-            return {"response": "organ-brain still warming up (background growth)"}
-        try:
-            words = [_w for _w in str(text).lower().split()
-                     if _w.isalpha() and len(_w) > 2] if text else []
-            _lk = _organ_voice_lock
-            with (_lk if _lk else __import__('contextlib').nullcontext()):
-                # Grow her from the conversation words
-                for _w in words:
-                    _organ_voice.experience(_w)
-                # Build a sensory cue from the words so sc organ surfaces meaning
-                cue_profile = None
-                if words:
-                    import numpy as _np
-                    profiles = []
-                    for _w in words:
-                        _, prof = _organ_voice._senses(_w)
-                        profiles.append(prof)
-                    if profiles:
-                        cue_profile = list(_np.mean(profiles, axis=0))
-                surfaced = _organ_voice.surface(cue_profile=cue_profile)
-            # Find pictures associated with surfaced concepts (by title match)
-            all_surfaced = surfaced.get("identity", []) + surfaced.get("meaning", [])
-            pics = getattr(_guala, "_pictures", {}) or {}
-            pic_refs = []
-            seen = set()
-            for concept in all_surfaced:
-                for pid, pic in pics.items():
-                    title = (getattr(pic, "title", "") or "").lower()
-                    if concept.lower() in title or title in concept.lower():
-                        if pid not in seen:
-                            seen.add(pid)
-                            pic_refs.append({"item_id": pid, "title": getattr(pic, "title", pid)})
-            # Tavily image lookup runs in a background thread so it NEVER blocks
-            # the response. When images arrive they feed her visual cortex silently.
-            meaning_words = surfaced.get("meaning", [])
-            search_term = next((w for w in meaning_words if len(w) > 3), None)
-            if search_term and os.environ.get("TAVILY_API_KEY"):
-                def _bg_image_lookup(term=search_term, ov=_organ_voice, lk=_organ_voice_lock):
-                    try:
-                        import urllib.request as _ur
-                        _tav_body = json.dumps({
-                            "api_key": os.environ["TAVILY_API_KEY"],
-                            "query": term,
-                            "search_depth": "basic",
-                            "include_images": True,
-                            "max_results": 2,
-                        }).encode()
-                        _tav_req = _ur.Request(
-                            "https://api.tavily.com/search", data=_tav_body,
-                            headers={"content-type": "application/json"})
-                        _tav_resp = json.load(_ur.urlopen(_tav_req, timeout=6))
-                        for _img_url in (_tav_resp.get("images") or [])[:1]:
-                            try:
-                                _img_req = _ur.Request(
-                                    _img_url, headers={"User-Agent": "Mozilla/5.0"})
-                                _img_bytes = _ur.urlopen(_img_req, timeout=5).read()
-                                from dsf_ai_service.v4.image_decoder import decode_image_bytes as _dib
-                                _, _img_grid, _, _ = _dib(_img_bytes)
-                                # Lock before writing to organ-brain (thread safety)
-                                if lk:
-                                    with lk:
-                                        ov.visual_experience(_img_grid, term)
-                                else:
-                                    ov.visual_experience(_img_grid, term)
-                            except Exception:
-                                pass
-                    except Exception:
-                        pass
-                import threading as _bgt
-                _bgt.Thread(target=_bg_image_lookup, daemon=True).start()
-            result = {"surfaced": surfaced,
-                      "engine": "organ-brain (raw organ recall — substrate-true)",
-                      "status": _organ_voice.status()}
-            if pic_refs:
-                result["pictures"] = pic_refs
-            return result
-        except Exception as _e:
-            return {"response": f"organ-voice error: {_e}"}
     elif command == "/curriculum":
         if _curriculum is None:
             return {"response": "curriculum scheduler not loaded"}
@@ -1146,14 +951,6 @@ def _cmd_events(text):
 def _cmd_presence(text):
     source = text.strip().lower() if text.strip() else "joe"
     if source in {"joe", "wc", "c1"}:
-        # If she's asleep and this is a pair-bonded person, wake her up.
-        _bonded = getattr(_guala, "_pair_bond", None) or getattr(_guala, "pair_bond", {})
-        if _guala.is_asleep and isinstance(_bonded, dict) and _bonded.get(source, False):
-            try:
-                _guala.wake_from_sleep(state_dir=STATE_DIR)
-                _guala.log_event(STATE_DIR, "wake", source=source, reason="presence")
-            except Exception:
-                pass
         if not _guala.coordinator._presence.get(source, False):
             _guala.coordinator.wake(source, _guala, _guala.needs, _guala.atlas)
             _guala._log_substrate_event("presence_heartbeat",

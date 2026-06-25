@@ -1182,16 +1182,35 @@ class GLMessage(BaseModel):
 
 
 # GL-BRIEF-SENSORY-IO Parts C+D: streaming sight and sound
+def _ob_post_bg(path: str, body: dict):
+    """Fire-and-forget POST to organ-brain service in a daemon thread."""
+    import threading, urllib.request as _ur, json as _js
+    def _send():
+        try:
+            _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
+            _req = _ur.Request(f"{_ob_url}{path}",
+                               data=_js.dumps(body).encode(),
+                               headers={"content-type": "application/json"})
+            _ur.urlopen(_req, timeout=6)
+        except Exception:
+            pass
+    threading.Thread(target=_send, daemon=True).start()
+
+
 @app.post("/sight_frame")
 async def sight_frame(msg: GLMessage):
-    """Streaming sight: feed a camera frame into her sight krimelack."""
+    """Streaming sight: feed a camera frame into her sight krimelack + organ-brain."""
+    b64_data = (msg.text or "").strip()
+    # Fire organ-brain visual experience async (non-blocking)
+    if b64_data:
+        _ob_post_bg("/visual", {"image_b64": b64_data, "concept": "scene"})
     if _is_remote():
         # R3: write to InputRing (non-blocking) instead of socket call
         client = _get_substrate_client()
         try:
             return await client.call("ring_write",
                 kind="sight_frame", source="camera_stream",
-                data={"frame_b64": msg.text or ""}, timeout=3.0)
+                data={"frame_b64": b64_data}, timeout=3.0)
         except (ConnectionError, Exception):
             return {"ok": False, "error": "ring write failed"}
     if _guala is None:
@@ -1215,15 +1234,22 @@ async def sight_frame(msg: GLMessage):
 
 @app.post("/sound_frame")
 async def sound_frame(msg: GLMessage):
-    """Streaming sound: feed a mic audio chunk into her sound krimelack."""
+    """Streaming sound: feed a mic audio chunk into her sound krimelack + organ-brain."""
+    b64_data = (msg.text or "").strip()
+    src = msg.source or "ambient"
+    # Fire organ-brain transcription async (non-blocking)
+    # Transcription happens inside organ-brain service if it has whisper;
+    # for now send the raw audio — organ-brain service ignores if no whisper
+    if b64_data and src == "joe_voice":
+        _ob_post_bg("/experience", {"text": src})  # placeholder until whisper in ob
     if _is_remote():
         # R3: write to InputRing (non-blocking) instead of socket call
         client = _get_substrate_client()
         try:
             return await client.call("ring_write",
-                kind="sound_window", source=msg.source or "ambient",
-                data={"audio_b64": msg.text or "",
-                      "source": msg.source or "ambient"}, timeout=3.0)
+                kind="sound_window", source=src,
+                data={"audio_b64": b64_data,
+                      "source": src}, timeout=3.0)
         except (ConnectionError, Exception):
             return {"ok": False, "error": "ring write failed"}
     if _guala is None:
@@ -1252,6 +1278,22 @@ async def gualaloom_page():
 @app.post("/api/v1/gualaloom")
 async def gualaloom_chat(msg: GLMessage):
     global _exchange_count
+
+    # Organ-brain: route directly to the organ-brain service (localhost:8090)
+    # bypassing the substrate socket entirely — own process, own GIL, fast.
+    _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
+    if (msg.command or "").strip().lower() == "/organ_voice":
+        try:
+            import urllib.request as _ur, json as _js
+            _body = _js.dumps({"text": msg.text or ""}).encode()
+            _req = _ur.Request(f"{_ob_url}/surface", data=_body,
+                               headers={"content-type": "application/json"})
+            _resp = _js.load(_ur.urlopen(_req, timeout=8))
+            return _resp
+        except Exception as _e:
+            return {"surfaced": {"identity": ["guala"], "meaning": []},
+                    "status": {"neurons": 0, "world_concepts": 0},
+                    "error": str(_e)}
 
     # GL-ARCH-FRONTEND-SPLIT: remote mode forwards to substrate process
     if _is_remote():
