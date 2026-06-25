@@ -126,21 +126,27 @@ def _compose(surfaced: dict) -> str:
     if others:
         sentences.append(f"I know {others[0]}.")
 
-    # sc organ: meaning — succession provides the paired quality/concept
-    if meaning:
-        a = meaning[0]
-        # Find a content-word successor (not a verb, not itself)
+    # sc organ: meaning — only compose from words she has grounded experience with.
+    # If a word surfaced but has no succession data and no sensory grounding,
+    # she heard the sound but doesn't have something real to say about it yet.
+    grounded = meaning if _ov is None else [
+        w for w in meaning
+        if w in (_ov._world or {}) or w in (_ov._senses_cache or {})
+        or _tracker.successor(w) is not None
+    ]
+    if grounded:
+        a = grounded[0]
         b = _tracker.successor(a, exclude={a, "guala"} | _VERBS)
-        if not b and len(meaning) > 1:
-            b = meaning[1]  # fallback to second surfaced word
+        if not b and len(grounded) > 1:
+            b = grounded[1]
         if b and b not in _STOP and b not in _VERBS:
             sentences.append(f"{a} is {b}.")
         else:
-            sentences.append(f"I see {a}.")
+            sentences.append(f"I know {a}.")
 
-    # aff: express a preference when she has rich meaning
-    if len(meaning) > 2:
-        sentences.append(f"I like {meaning[-1]}.")
+    # aff: preference when she has enough grounded meaning
+    if len(grounded) > 2:
+        sentences.append(f"I like {grounded[-1]}.")
 
     return " ".join(sentences) if sentences else "I am guala."
 
