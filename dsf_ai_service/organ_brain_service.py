@@ -167,14 +167,16 @@ def _compose(surfaced: dict) -> str:
     # produce flat profiles — she has no real sensory truth to speak about them yet.
     # Words experienced through real-time camera/audio get priority (in _world);
     # catalog words pass if they have genuine multi-channel sensory density.
-    # Sensory density is the gate. _world presence alone isn't enough —
-    # a word can be experienced (in _world) from text input without having
-    # real sensory character. Only words with genuine multi-channel sensory
-    # profiles compose. Real-time sources (camera/audio) grow the catalog
-    # over time so their words pass when they genuinely should.
-    grounded = meaning if _ov is None else [
-        w for w in meaning if _sensory_density(w)
-    ]
+    # Succession graph membership is the real filter.
+    # The LLM gave ALL catalog words uniform profiles, so density alone can't
+    # distinguish moon from hello. But the succession tracker was seeded with
+    # real concept pairs (moon→bright, ocean→soft, daddy→warm). A word that
+    # is part of the succession graph — has real connections to other concepts —
+    # belongs in composition. An isolated word (hello, guava, ping) has no
+    # graph membership yet and nothing true to say about it.
+    # Over time real experience builds succession for new words naturally.
+    grounded = [w for w in meaning
+                if _tracker.successor(w, exclude=_VERBS | _STOP) is not None]
     if grounded:
         a = grounded[0]
         b = _tracker.successor(a, exclude={a, "guala"} | _VERBS)
