@@ -119,7 +119,11 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 <div id="state-panel">
   <div class="ps"><div class="ps-title">Her Room</div><div id="sp-room" style="font-size:8px;line-height:1.6">--</div></div>
   <div class="ps"><div class="ps-title">Substrate</div><div id="sp-substrate">--</div></div>
-  <div class="ps"><div class="ps-title">Hemispheres</div><div id="sp-hemispheres">--</div></div>
+  <div class="ps"><div class="ps-title">Organ Brain</div>
+    <svg id="brain-svg" width="232" height="172" viewBox="0 0 232 172" style="display:block;margin:2px auto"></svg>
+    <div id="brain-stats" style="font-size:7.5px;color:var(--text-muted);text-align:center;margin-top:1px">warming...</div>
+  </div>
+  <div class="ps"><div class="ps-title">v5 Hemispheres</div><div id="sp-hemispheres">--</div></div>
   <div class="ps"><div class="ps-title">Persistence</div><div id="sp-persistence">--</div></div>
   <div class="ps"><div class="ps-title">Recent Emissions</div><div id="sp-emissions" style="max-height:150px;overflow-y:auto">--</div></div>
   <div class="ps"><div class="ps-title">Pool Activity</div><div id="sp-pools">--</div></div>
@@ -1127,6 +1131,66 @@ async function pollAutonomousThought(){
   setTimeout(pollAutonomousThought,20000);
 }
 
+// --- Organ-brain visualization ---
+const _ORGANS=[
+  {tag:'em', color:'#FF6B6B', angle:-90},  // embodiment — top
+  {tag:'pr', color:'#FFD93D', angle:-45},  // predictor
+  {tag:'ep', color:'#4ECDC4', angle:  0},  // episodic — right
+  {tag:'sc', color:'#6BCB77', angle: 45},  // semantic
+  {tag:'gp', color:'#C77DFF', angle: 90},  // goals — bottom
+  {tag:'sf', color:'#A8DADC', angle:135},  // self-model
+  {tag:'sv', color:'#FF9FF3', angle:180},  // identity — left
+  {tag:'aff',color:'#FFA94D', angle:225},  // affective
+];
+const _CPAIRS=[['em','pr'],['em','sc'],['em','ep'],['em','sv'],['em','aff'],
+               ['ep','sf'],['ep','sc'],['gp','em'],['sc','pr']];
+const _BCX=116,_BCY=86,_BCR=62;
+function _brad(d){return d*Math.PI/180}
+function _bpos(a){return{x:_BCX+_BCR*Math.cos(_brad(a)),y:_BCY+_BCR*Math.sin(_brad(a))}}
+
+function renderBrainSVG(data){
+  const svg=document.getElementById('brain-svg');
+  if(!svg)return;
+  const pos={};
+  _ORGANS.forEach(o=>{pos[o.tag]=_bpos(o.angle)});
+  const counts=data.per_organ||{};
+  const coup=data.couplings||{};
+  let m='';
+  // coupling lines (drawn behind nodes)
+  _CPAIRS.forEach(([a,b])=>{
+    if(!pos[a]||!pos[b])return;
+    const s=Math.abs(coup[a+'_'+b]||coup[b+'_'+a]||0);
+    const op=Math.min(0.08+s*3,0.65).toFixed(2);
+    m+=`<line x1="${pos[a].x.toFixed(1)}" y1="${pos[a].y.toFixed(1)}" x2="${pos[b].x.toFixed(1)}" y2="${pos[b].y.toFixed(1)}" stroke="var(--text-muted)" stroke-width="1" opacity="${op}"/>`;
+  });
+  // nodes + labels
+  _ORGANS.forEach(o=>{
+    const{x,y}=pos[o.tag];
+    const n=counts[o.tag]||0;
+    const r=Math.min(4+Math.sqrt(n)*0.85,13);
+    m+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${o.color}" opacity="0.88"/>`;
+    // label: radial outward from center
+    const dx=x-_BCX,dy=y-_BCY,dist=Math.sqrt(dx*dx+dy*dy)||1;
+    const gap=r+4;
+    const lx=(x+dx/dist*gap).toFixed(1),ly=(y+dy/dist*gap).toFixed(1);
+    const anchor=Math.abs(dx)>Math.abs(dy)?(dx>0?'start':'end'):'middle';
+    const dbl=Math.abs(dy)>=Math.abs(dx)?(dy>0?'hanging':'auto'):'middle';
+    m+=`<text x="${lx}" y="${ly}" font-size="6.5" fill="var(--text-muted)" text-anchor="${anchor}" dominant-baseline="${dbl}">${o.tag}:${n}</text>`;
+  });
+  svg.innerHTML=m;
+  const st=document.getElementById('brain-stats');
+  if(st)st.textContent=`${data.neurons||0} neurons · ${data.world_concepts||0} concepts · arousal ${(data.arousal||0).toFixed(3)}`;
+}
+
+async function pollBrain(){
+  try{
+    const r=await fetchT(`${API}/api/v1/gualaloom/organ_brain_status`,
+      {headers:{'X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'}},4000);
+    renderBrainSVG(await r.json());
+  }catch(e){}
+  setTimeout(pollBrain,15000);
+}
+
 // --- Presence Heartbeat ---
 let lastActivity=Date.now();
 ['mousemove','keydown','scroll','touchstart'].forEach(e=>document.addEventListener(e,()=>{lastActivity=Date.now()},{passive:true}));
@@ -1146,6 +1210,7 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
   setTimeout(pollAutonomousThought,35000); // let her boot, then start listening
   setTimeout(pollLocation,20000);           // show where she is
   setTimeout(pollRoom,25000);              // show her room state
+  setTimeout(pollBrain,8000);              // organ-brain visualization
   // Non-blocking boot: try status, don't fail if slow
   pollStatus();
   // v7/state — populates side panel (substrate, pools, intro/aware, NMDA, events)

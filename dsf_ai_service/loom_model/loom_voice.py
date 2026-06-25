@@ -217,9 +217,20 @@ class OrganVoice:
             return {}
 
     def status(self):
+        per_organ = {
+            tag: len(h.cluster.neurons)
+            for tag, h in self.emb.hemi_by_op.items()
+        }
+        couplings = {
+            f"{a}_{b}": round(float(v), 4)
+            for (a, b), v in self.emb.consensus.items()
+        }
         return {
             "identity": self.identity,
             "people": self.people,
             "world_concepts": len(self._world),
-            "neurons": sum(len(h.cluster.neurons) for h in self.emb.brain.hemispheres),
+            "neurons": sum(per_organ.values()),
+            "per_organ": per_organ,
+            "couplings": couplings,
+            "arousal": round(float(self.emb.arousal), 4),
         }

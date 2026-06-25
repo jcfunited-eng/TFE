@@ -1172,6 +1172,18 @@ async def organ_thought():
         return {"speech": "", "tick": 0}
 
 
+@app.get("/api/v1/gualaloom/organ_brain_status")
+async def organ_brain_status():
+    """Per-organ neuron counts and coupling strengths — feeds the brain visualization."""
+    try:
+        import urllib.request as _ur, json as _js
+        _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
+        resp = _js.load(_ur.urlopen(f"{_ob_url}/status", timeout=3))
+        return resp
+    except Exception:
+        return {"warming": True, "neurons": 0, "per_organ": {}, "couplings": {}, "arousal": 0.0}
+
+
 @app.get("/api/v1/gualaloom/events")
 async def gualaloom_events(n: int = 200):
     """Event log for the UI status panels (HEMISPHERES, RECENT EMISSIONS). GET version
