@@ -1323,6 +1323,20 @@ async def gualaloom_chat(msg: GLMessage):
             return resp
         except Exception:
             return {"letters": []}
+    if _cmd == "/sendmail":
+        try:
+            import urllib.request as _ur, json as _js
+            body = _js.dumps({
+                "from_": msg.source or "joe",
+                "body": msg.text or "",
+                "words": [],
+            }).encode()
+            req2 = _ur.Request(f"{_ob_url}/mail/send", data=body,
+                               headers={"content-type": "application/json"})
+            resp = _js.load(_ur.urlopen(req2, timeout=5))
+            return resp
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
     if _cmd.startswith("/tablet"):
         try:
             import urllib.request as _ur, json as _js
