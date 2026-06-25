@@ -554,12 +554,14 @@ def boot_substrate():
                 _cache = os.path.join(STATE_DIR, "organ_voice_senses.json")
                 _ov = OrganVoice(identity="guala", people=("joe", "wc"),
                                  api_key=_ak, cache_path=_cache)
+                # Make organ-brain available immediately (identity anchored from init).
+                # grow_from adds grounded concepts but she can answer who she is right away.
+                _organ_voice = _ov
                 import random as _rnd
                 _vw = [w for w in getattr(g, "vocab", []) if isinstance(w, str)
                        and w.isalpha() and len(w) > 2]
                 _rnd.Random(0).shuffle(_vw)
                 _grew = _ov.grow_from(_vw[:30], passes=2)  # LLM-grounded senses -> folds
-                _organ_voice = _ov
                 print(f"[organ-voice] LIVE: neurons={_grew} "
                       f"senses={'LLM-grounded' if _ak else 'deterministic'} | "
                       f"identity-organ-surfaces={_ov.surface().get('identity')}")
@@ -1114,7 +1116,7 @@ def _cmd_status():
         "n_pictures": len(s.get("pictures", [])),
         "pictures": [{"item_id": p["item_id"], "title": p["title"],
                       "times_attended": p["times_attended"]}
-                     for p in s.get("pictures", [])[-10:]],
+                     for p in s.get("pictures", [])],  # all pictures for activity lookup
         "n_videos": len(s.get("videos", [])),
     }
 

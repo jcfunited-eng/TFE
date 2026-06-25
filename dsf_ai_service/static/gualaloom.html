@@ -91,7 +91,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
   </div>
 </header>
 <div id="stats-line">she is still loading...</div>
-<div id="activity-line" style="padding:2px 14px;font-size:9px;color:var(--ev-activity);background:var(--bg-alt);border-bottom:1px solid var(--border)"></div>
+<div id="activity-line" style="padding:2px 14px;font-size:9px;color:var(--ev-activity);background:var(--bg-alt);border-bottom:1px solid var(--border);display:flex;align-items:center"><span id="activity-text"></span><span id="activity-thumb" style="display:none"></span></div>
 <div id="needs-line" style="padding:2px 14px;font-size:8px;color:var(--text-muted);background:var(--bg-alt);border-bottom:1px solid var(--border)"></div>
 <audio id="voice" style="display:none"></audio>
 <div id="main-area">
@@ -865,20 +865,39 @@ async function pollStatus(){
       `<div class="ps-row"><span class="l">last save</span><span class="v">${lastSaveTs||'(none)'} (tick ${lastSaveTick||0})</span></div>`+
       `<div class="ps-row"><span class="l">snapshots</span><span class="v">${snapCount!=null?snapCount:'?'}</span></div>`+
       `<div class="ps-row"><span class="l">integrity</span><span class="v">${integ}</span></div>`;
-    // B3: current activity rendering
-    const act=d.current_activity;const actLine=document.getElementById('activity-line');
+    // B3: current activity rendering + picture thumbnail
+    const act=d.current_activity;
+    const actLine=document.getElementById('activity-text')||document.getElementById('activity-line');
     if(act&&act.kind){
-      const labels={'READING':'reading','ATTENDING_VISUAL':'looking at picture','ATTENDING_AUDIO':'listening to','SLEEPING':'sleeping','DREAMING':'dreaming','EMITTING':'(emitting)','IDLE':'quiet for now','PLAYING':'free-settle (exploring chi space)'};
+      const labels={'READING':'reading','ATTENDING_VISUAL':'looking at','ATTENDING_AUDIO':'listening to','SLEEPING':'sleeping','DREAMING':'dreaming','EMITTING':'(emitting)','IDLE':'quiet for now','PLAYING':'free-settle (exploring chi space)'};
       let actText=labels[act.kind]||act.kind.toLowerCase();
+      let picTitle=null,picId=null;
       if(act.target&&act.kind!=='SLEEPING'&&act.kind!=='IDLE'&&act.kind!=='PLAYING'){
-        // Resolve target to title from pictures/sounds/corpora lists
         let tgt=act.target;
-        for(const p of(d.pictures||[]))if(p.item_id===act.target){tgt=p.title;break}
+        for(const p of(d.pictures||[]))if(p.item_id===act.target){tgt=p.title;picTitle=p.title;picId=p.item_id;break}
         for(const s of(d.sounds||[]))if(s.item_id===act.target){tgt=s.title;break}
         for(const c of(d.corpora||[]))if(c.corpus_id===act.target){tgt=c.title;break}
         actText+=': '+tgt;
       }
       actLine.textContent=actText;
+      // Show thumbnail when attending a picture
+      const thumbEl=document.getElementById('activity-thumb');
+      if(thumbEl){
+        if(act.kind==='ATTENDING_VISUAL'&&picId){
+          thumbEl.style.display='inline-block';
+          const img=thumbEl.querySelector('img')||document.createElement('img');
+          if(!thumbEl.querySelector('img'))thumbEl.appendChild(img);
+          if(img.dataset.picId!==picId){
+            img.dataset.picId=picId;
+            fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({text:'',command:'/picture '+picId})},8000)
+              .then(r=>r.json()).then(d=>{
+                if(d.picture_data){img.src=d.picture_data;img.title=picTitle||picId;
+                  img.style='width:60px;height:45px;object-fit:cover;border-radius:4px;border:1px solid var(--border);vertical-align:middle;margin-left:6px'}
+              }).catch(()=>{});
+          }
+        }else{thumbEl.style.display='none'}
+      }
     }else{actLine.textContent=''}
     // B3: needs line
     const r2=d.response||'';const needsMatch=r2.match(/needs: (.+)/);
