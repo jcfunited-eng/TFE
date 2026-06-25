@@ -773,13 +773,8 @@ function toggleBrainMode(){
 
 function _formatOrganBrainResponse(d){
   const s=d.surfaced||{};
-  const id=(s.identity||[]).join(' · ')||'—';
-  const meaning=(s.meaning||[]).join(' · ')||'';
-  const st=d.status||{};
-  let out='[ identity ] '+id;
-  if(meaning)out+='\n[ meaning ] '+meaning;
-  out+='\n[ neurons: '+st.neurons+' · concepts: '+st.world_concepts+' ]';
-  return out;
+  const words=[...(s.identity||[]),...(s.meaning||[])].filter((w,i,a)=>a.indexOf(w)===i);
+  return words.join('  ');  // just the words, deduped, space-separated
 }
 
 let _sendingMsg=false;

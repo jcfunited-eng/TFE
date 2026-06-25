@@ -28,6 +28,7 @@ _guala_organ_brain = None  # her 8-organ brain, merged live in the substrate
 _guala_cognition = None  # her organ-brain speech (learns from exposure)
 _curriculum = None  # autonomous study scheduler (she reads on her own)
 _organ_voice = None  # her LIVING organ-brain: identity + voice + growth (additive)
+_organ_voice_lock = None  # protects _organ_voice from concurrent writes
 _shutdown = False
 
 # Ring buffers — initialized on boot
@@ -556,6 +557,8 @@ def boot_substrate():
                                  api_key=_ak, cache_path=_cache)
                 # Make organ-brain available immediately (identity anchored from init).
                 # grow_from adds grounded concepts but she can answer who she is right away.
+                global _organ_voice_lock
+                _organ_voice_lock = _th.Lock()
                 _organ_voice = _ov
                 import random as _rnd
                 _vw = [w for w in getattr(g, "vocab", []) if isinstance(w, str)
@@ -947,20 +950,22 @@ def handle_gualaloom_post(args):
         try:
             words = [_w for _w in str(text).lower().split()
                      if _w.isalpha() and len(_w) > 2] if text else []
-            # Grow her from the conversation words
-            for _w in words:
-                _organ_voice.experience(_w)
-            # Build a sensory cue from the words so sc organ surfaces meaning
-            cue_profile = None
-            if words:
-                import numpy as _np
-                profiles = []
+            _lk = _organ_voice_lock
+            with (_lk if _lk else __import__('contextlib').nullcontext()):
+                # Grow her from the conversation words
                 for _w in words:
-                    _, prof = _organ_voice._senses(_w)
-                    profiles.append(prof)
-                if profiles:
-                    cue_profile = list(_np.mean(profiles, axis=0))
-            surfaced = _organ_voice.surface(cue_profile=cue_profile)
+                    _organ_voice.experience(_w)
+                # Build a sensory cue from the words so sc organ surfaces meaning
+                cue_profile = None
+                if words:
+                    import numpy as _np
+                    profiles = []
+                    for _w in words:
+                        _, prof = _organ_voice._senses(_w)
+                        profiles.append(prof)
+                    if profiles:
+                        cue_profile = list(_np.mean(profiles, axis=0))
+                surfaced = _organ_voice.surface(cue_profile=cue_profile)
             # Find pictures associated with surfaced concepts (by title match)
             all_surfaced = surfaced.get("identity", []) + surfaced.get("meaning", [])
             pics = getattr(_guala, "_pictures", {}) or {}
@@ -978,7 +983,7 @@ def handle_gualaloom_post(args):
             meaning_words = surfaced.get("meaning", [])
             search_term = next((w for w in meaning_words if len(w) > 3), None)
             if search_term and os.environ.get("TAVILY_API_KEY"):
-                def _bg_image_lookup(term=search_term, ov=_organ_voice):
+                def _bg_image_lookup(term=search_term, ov=_organ_voice, lk=_organ_voice_lock):
                     try:
                         import urllib.request as _ur
                         _tav_body = json.dumps({
@@ -992,14 +997,19 @@ def handle_gualaloom_post(args):
                             "https://api.tavily.com/search", data=_tav_body,
                             headers={"content-type": "application/json"})
                         _tav_resp = json.load(_ur.urlopen(_tav_req, timeout=6))
-                        for _img_url in (_tav_resp.get("images") or [])[:2]:
+                        for _img_url in (_tav_resp.get("images") or [])[:1]:
                             try:
                                 _img_req = _ur.Request(
                                     _img_url, headers={"User-Agent": "Mozilla/5.0"})
                                 _img_bytes = _ur.urlopen(_img_req, timeout=5).read()
                                 from dsf_ai_service.v4.image_decoder import decode_image_bytes as _dib
                                 _, _img_grid, _, _ = _dib(_img_bytes)
-                                ov.visual_experience(_img_grid, term)
+                                # Lock before writing to organ-brain (thread safety)
+                                if lk:
+                                    with lk:
+                                        ov.visual_experience(_img_grid, term)
+                                else:
+                                    ov.visual_experience(_img_grid, term)
                             except Exception:
                                 pass
                     except Exception:
