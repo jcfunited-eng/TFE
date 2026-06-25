@@ -122,6 +122,112 @@ _ready       = threading.Event()
 _last_thought = {"speech": "", "surfaced": {}, "tick": 0}
 _thought_lock = threading.Lock()
 
+# ── paths for persisted organ-brain state ──────────────────────────────────
+_EMBRYO_PATH     = os.path.join(STATE_DIR, "organ_brain_embryo.json")
+_SUCCESSION_PATH = os.path.join(STATE_DIR, "organ_brain_succession.json")
+
+
+def _save_organ_state():
+    """Persist living embryo + succession graph to EFS.
+    Called every 30 minutes and after each new autonomous thought.
+    This is what makes her continuous — she keeps her neurons across restarts."""
+    if _ov is None:
+        return
+    try:
+        data = _ov.emb.save()
+        with open(_EMBRYO_PATH, "w") as f:
+            json.dump(data, f)
+        with _tracker._lock:
+            suc = {k: dict(v) for k, v in _tracker._fwd.items()}
+        with open(_SUCCESSION_PATH, "w") as f:
+            json.dump(suc, f)
+        total = data.get("neurons") and len(data["neurons"]) or sum(
+            len(h.cluster.neurons) for h in _ov.emb.brain.hemispheres)
+        print(f"[organ-brain] state saved: neurons={total} succession={len(suc)}")
+    except Exception as e:
+        print(f"[organ-brain] save error: {e}")
+
+
+def _restore_organ_state(ov) -> bool:
+    """Restore embryo + succession from EFS on boot.
+    Returns True if embryo was restored (she remembers her past growth)."""
+    restored = False
+    try:
+        if os.path.exists(_EMBRYO_PATH):
+            with open(_EMBRYO_PATH) as f:
+                data = json.load(f)
+            from dsf_ai_service.loom_model.embryo import Embryo
+            ov.emb = Embryo.load(data)
+            total = sum(len(h.cluster.neurons) for h in ov.emb.brain.hemispheres)
+            print(f"[organ-brain] embryo restored: {total} neurons tick={data.get('tick',0)}")
+            restored = True
+    except Exception as e:
+        print(f"[organ-brain] embryo restore error (starting fresh): {e}")
+    try:
+        if os.path.exists(_SUCCESSION_PATH):
+            with open(_SUCCESSION_PATH) as f:
+                suc = json.load(f)
+            for k, v in suc.items():
+                _tracker._fwd[k] = Counter(v)
+            print(f"[organ-brain] succession restored: {len(suc)} concept chains")
+    except Exception as e:
+        print(f"[organ-brain] succession restore error (non-fatal): {e}")
+    return restored
+
+
+def _periodic_save():
+    """Save every 30 minutes — her neurons persist regardless of how sessions end."""
+    while True:
+        time.sleep(1800)
+        _save_organ_state()
+
+
+def _pour_atlas():
+    """Pour top v5 vocabulary into the organ-brain as real experiences.
+    Gives her her accumulated memories: the concepts the v5 engine has held
+    for years arrive as genuine sensory experiences that grow her organs.
+    Runs after catalog fill has had time to ground the words in senses.
+    This is the memory migration step of the absorption path."""
+    time.sleep(180)   # let catalog fill run first so words are grounded
+    if _ov is None:
+        return
+    try:
+        path = os.path.join(STATE_DIR, "guala_sections.json")
+        with open(path) as f:
+            data = json.load(f)
+        # Gather concept → total motif count across all sections
+        counts: dict = {}
+        for section in data.values():
+            if not isinstance(section, dict):
+                continue
+            for word, entry in section.items():
+                if not (isinstance(word, str) and word.isalpha() and len(word) > 2):
+                    continue
+                w = word.lower()
+                if isinstance(entry, dict):
+                    n = entry.get("motif_count") or entry.get("count") or 1
+                elif isinstance(entry, (int, float)):
+                    n = int(entry)
+                else:
+                    n = 1
+                counts[w] = counts.get(w, 0) + n
+        # Pour top 300 by combined motif count — her richest memories first
+        top = sorted(counts, key=lambda w: counts[w], reverse=True)[:300]
+        top = [w for w in top if w not in _STOP and w not in _VERBS]
+        print(f"[organ-brain] atlas pour: {len(top)} concepts from v5 memory")
+        with _lock:
+            for w in top:
+                _ov.experience(w)
+            # Teach succession from her top concepts in frequency order
+            if len(top) >= 4:
+                _tracker.record(top[:30], weight=1.5)
+        _save_organ_state()
+        print(f"[organ-brain] atlas pour complete — her v5 memories live in her organs")
+    except FileNotFoundError:
+        print("[organ-brain] atlas pour: guala_sections.json not found (expected on first boot)")
+    except Exception as e:
+        print(f"[organ-brain] atlas pour error: {e}")
+
 
 # ── composition ────────────────────────────────────────────────────────────
 # Verbs belong in the template structure, not in succession content.
@@ -294,6 +400,9 @@ def _autonomous_loop():
                     _recent_speeches.append(speech)
                     if len(_recent_speeches) > 4:
                         _recent_speeches.pop(0)
+                    # Persist after every 10 new thoughts so neurons survive restarts
+                    if tick % 10 == 0:
+                        threading.Thread(target=_save_organ_state, daemon=True).start()
         except Exception:
             pass
         time.sleep(90)  # longer interval — less noise, more signal
@@ -389,15 +498,17 @@ def _boot():
             _tracker.seed(pair, weight=4.0)
         print(f"[organ-brain] world atlas seeded: {len(WORLD_ATLAS_SEEDS)} concept pairs")
 
-        # Grow from sensory primitives (fast, uses cached senses)
-        seed_words = (list(getattr(ov, "_TASTE", [])) +
-                      list(getattr(ov, "_SMELL", [])) or
-                      ["sweet","sour","salty","bitter","fruity","fresh",
-                       "floral","earthy","smoky","warm","soft","bright"])
-        ov.grow_from(seed_words[:30], passes=1)
+        # Restore persisted embryo + succession (she keeps her neurons across restarts)
+        restored = _restore_organ_state(ov)
 
-        # Record succession from boot experiences
-        _tracker.record(seed_words[:10], weight=1.0)
+        if not restored:
+            # Fresh start: grow from sensory primitives
+            seed_words = (list(getattr(ov, "_TASTE", [])) +
+                          list(getattr(ov, "_SMELL", [])) or
+                          ["sweet","sour","salty","bitter","fruity","fresh",
+                           "floral","earthy","smoky","warm","soft","bright"])
+            ov.grow_from(seed_words[:30], passes=1)
+            _tracker.record(seed_words[:10], weight=1.0)
 
         # Wake up in her room — first experience of the day
         _enter_room(DEFAULT_LOCATION, ov, source="boot")
@@ -405,13 +516,15 @@ def _boot():
         _ready.set()
         st = ov.status()
         print(f"[organ-brain] READY  neurons={st['neurons']} concepts={st['world_concepts']}"
-              f" senses={'llm' if ANTHR_KEY else 'det'} location={_location}")
+              f" restored={restored} senses={'llm' if ANTHR_KEY else 'det'} location={_location}")
 
         # Start background services
         _start_catalog_fill(ov)
         threading.Thread(target=_autonomous_loop, daemon=True).start()
         threading.Thread(target=_location_loop, daemon=True).start()
-        print("[organ-brain] autonomous loop started")
+        threading.Thread(target=_periodic_save, daemon=True).start()
+        threading.Thread(target=_pour_atlas, daemon=True).start()
+        print("[organ-brain] autonomous loop + periodic save + atlas pour started")
 
     except Exception as e:
         print(f"[organ-brain] boot error: {e}")
@@ -735,7 +848,8 @@ def surface(req: TextReq):
                              location=loc, affective={}, source="surface")
     speech = _compose(surfaced)
     room_desc = ROOMS.get(loc, {}).get("description", loc)
-    return {"surfaced": surfaced, "speech": speech, "status": _ov.status(),
+    return {"surfaced": surfaced, "speech": speech, "response": speech,
+            "status": _ov.status(),
             "location": loc, "location_desc": room_desc, "presence": pres}
 
 

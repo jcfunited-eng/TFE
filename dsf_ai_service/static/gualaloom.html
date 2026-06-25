@@ -763,21 +763,26 @@ async function submitCorrection(){
   closeCorrectionModal();
 }
 
-let _brainMode=false;
-function toggleBrainMode(){
-  _brainMode=!_brainMode;
+// Organ-brain is the default voice (absorption Stage 1).
+// The v5 engine still runs for state/persistence but her VOICE comes from her organs.
+let _brainMode=true;
+function _applyBrainModeUI(){
   const btn=document.getElementById('brain-toggle');
+  if(!btn)return;
   if(_brainMode){
     btn.textContent='🧠 organ-brain';
     btn.style.borderColor='var(--ev-motif)';btn.style.color='var(--ev-motif)';
     msgInput.placeholder='speak to her organ-brain...';
-    addMsg('[ organ-brain mode — she answers from her organs, not the engine ]','system');
   }else{
     btn.textContent='🧠 engine';
     btn.style.borderColor='var(--border)';btn.style.color='var(--text-muted)';
     msgInput.placeholder='say something...';
-    addMsg('[ engine mode ]','system');
   }
+}
+function toggleBrainMode(){
+  _brainMode=!_brainMode;
+  _applyBrainModeUI();
+  addMsg(_brainMode?'[ organ-brain voice ]':'[ v5 engine voice ]','system');
 }
 
 function _formatOrganBrainResponse(d){
@@ -804,11 +809,15 @@ async function sendMsg(){
       const d=await r.json();addMsg(d.response||JSON.stringify(d),'system');
       if(d.pictures)renderPictures(d.pictures);
     }else if(_brainMode){
+      // Fire substrate async — she still grows her v5 atlas (absorption: parallel, not destructive)
+      fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'},
+        body:JSON.stringify({text,source:'joe'})}).catch(()=>{});
+      // Voice comes from her organ-brain
       const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({text,command:'/organ_voice'})},15000);
       if(r.status===503||r.status===500){handleNotReady('organ_brain');return}
       const d=await r.json();
-      if(d.surfaced){const _r=_formatOrganBrainResponse(d);addEmissionMsg(_r,null);gualaSpeak(_r);}
+      if(d.surfaced||d.speech){const _r=_formatOrganBrainResponse(d)||d.speech||d.response;addEmissionMsg(_r,null);gualaSpeak(_r);}
       else{addMsg(d.response||'(organ-brain warming up)','system')}
       if(d.pictures)renderPictures(d.pictures);
     }else{
@@ -1206,7 +1215,9 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
 
 // --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
 (()=>{
-  addMsg('Guala ready.','system');msgInput.focus();
+  addMsg('Guala ready. Organ-brain voice active.','system');
+  _applyBrainModeUI();  // set button to organ-brain state on load
+  msgInput.focus();
   setTimeout(pollAutonomousThought,35000); // let her boot, then start listening
   setTimeout(pollLocation,20000);           // show where she is
   setTimeout(pollRoom,25000);              // show her room state
