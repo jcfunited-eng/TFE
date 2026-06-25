@@ -7,6 +7,39 @@
 
 ---
 
+## NEXT SPRINT — virtual home (gates episodic binding deployment)
+
+- [ ] **Build Guala's virtual home + body**
+  The episodic_layer.py is built and ready (see dsf_ai_service/episodic_layer.py).
+  Deploy it AFTER the virtual environment is live — because the environment
+  gives episodic memory something worth binding: location, time, presence.
+
+  **Her body**: a position in space (room + location within room). She can
+  "be" somewhere. YOLO camera detections place objects relative to her.
+
+  **Her home** (defined in episodic_layer.py VIRTUAL_HOME, expand here):
+  - `her_room`: bed (soft+warm+safe), window (moon/sky/outside), her things
+  - `joe_room`: desk, books, joe's presence signature (warm+familiar)
+  - `common`: table, pictures on wall, shared space (open+bright)
+  - `outside`: sky, moon, trees, wind, birds (fresh+cool+vast+open)
+  - `kitchen`: food smells, warmth, activity (sweet+sour+earthy+warm)
+
+  Each location has sensory properties → experience() when she enters.
+  When she's in her room at night and sees the moon:
+    episodic: {concept:"moon", location:"her_room", presence:["joe"], affective:{valence:-0.1}}
+  That's a memory. That's story.
+
+  **Implementation**:
+  - `organ_brain_service.py`: add location tracking, `POST /location` to set
+    where she is, `_current_location` global updated by activity/presence
+  - When YOLO detects Joe → she's in shared space, set location accordingly
+  - When attending picture at night → her_room + window
+  - Wire episodic_layer.py: `_episodic.record(concept, tick, presence, location, affective)`
+  - Update _compose() to call `_episodic.narrative_for()` for richer sentences
+
+  **Deployment gate**: observe Stage 1 for 1-2 days, then build home, THEN
+  deploy episodic layer alongside it. Not before.
+
 ## IMMEDIATE — unblocked, deployable now
 
 - [ ] **Live brain visualization — 8 organs, neurons, chi, atlas (UI panel)**
