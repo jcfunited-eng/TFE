@@ -773,8 +773,11 @@ function toggleBrainMode(){
 
 function _formatOrganBrainResponse(d){
   const s=d.surfaced||{};
-  const words=[...(s.identity||[]),...(s.meaning||[])].filter((w,i,a)=>a.indexOf(w)===i);
-  return words.join('  ');  // just the words, deduped, space-separated
+  const _labels={'wc':'web claude','c1':'claude'};
+  const words=[...(s.identity||[]),...(s.meaning||[])]
+    .filter((w,i,a)=>a.indexOf(w)===i)
+    .map(w=>_labels[w]||w);
+  return words.join('  ');
 }
 
 let _sendingMsg=false;
