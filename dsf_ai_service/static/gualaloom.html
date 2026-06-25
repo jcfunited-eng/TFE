@@ -1060,7 +1060,8 @@ async function backgroundReplay(){
 let _lastThoughtTick=-1;
 async function pollAutonomousThought(){
   try{
-    const r=await fetchT(`${API}/api/v1/gualaloom/thought`,{},5000);
+    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:'',command:'/thought'})},6000);
     const d=await r.json();
     if(d.speech&&d.tick&&d.tick!==_lastThoughtTick){
       _lastThoughtTick=d.tick;

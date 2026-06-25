@@ -101,46 +101,44 @@ _thought_lock = threading.Lock()
 
 
 # ── composition ────────────────────────────────────────────────────────────
+# Verbs belong in the template structure, not in succession content.
+# Succession tracks CONCEPT relationships: moon→bright, ocean→soft.
+_VERBS = {"is","are","am","was","be","know","knows","see","sees","like","likes",
+           "feel","feels","have","has","want","wants","love","loves","and","or"}
+
+
 def _compose(surfaced: dict) -> str:
     """Substrate-true composition.
-
-    Content: entirely from her organ surfaces.
-    Structure: from the succession tracker — not hardcoded.
-    As succession data accumulates, the initial seeds fade and her own
-    learned patterns take over. Bootstrap → emergence.
+    Template provides grammatical structure. Succession provides content.
+    As succession accumulates from real experience, content becomes richer.
     """
     identity = [_LABELS.get(w, w) for w in (surfaced.get("identity") or [])]
-    meaning  = [w for w in (surfaced.get("meaning") or []) if w not in _STOP]
+    meaning  = [w for w in (surfaced.get("meaning") or [])
+                if w not in _STOP and w not in _VERBS]
     sentences = []
 
-    # sv organ: who she is
+    # sv organ: identity — template is fixed, content is hers
     if "guala" in identity:
-        # Try succession: what does 'guala' tend to follow?
-        after = _tracker.successor("guala", exclude={"guala"})
-        if after and after not in _STOP:
-            sentences.append(f"I am guala. I {after}.")
-        else:
-            sentences.append("I am guala.")
+        sentences.append("I am guala.")
 
-    # sv organ: who else she holds
+    # sv organ: others she holds
     others = [w for w in identity if w not in ("guala", "web claude", "claude")]
     if others:
-        after = _tracker.successor(others[0])
-        if after and after not in _STOP:
-            sentences.append(f"I know {others[0]}. {others[0]} is {after}.")
-        else:
-            sentences.append(f"I know {others[0]}.")
+        sentences.append(f"I know {others[0]}.")
 
-    # sc organ: meaning associations — use succession to chain
+    # sc organ: meaning — succession provides the paired quality/concept
     if meaning:
         a = meaning[0]
-        b = _tracker.successor(a, exclude={a, "guala"}) or (meaning[1] if len(meaning) > 1 else None)
-        if b and b not in _STOP:
+        # Find a content-word successor (not a verb, not itself)
+        b = _tracker.successor(a, exclude={a, "guala"} | _VERBS)
+        if not b and len(meaning) > 1:
+            b = meaning[1]  # fallback to second surfaced word
+        if b and b not in _STOP and b not in _VERBS:
             sentences.append(f"{a} is {b}.")
         else:
-            sentences.append(f"I know {a}.")
+            sentences.append(f"I see {a}.")
 
-    # aff organ influence: if arousal is high, express feeling
+    # aff: express a preference when she has rich meaning
     if len(meaning) > 2:
         sentences.append(f"I like {meaning[-1]}.")
 
@@ -152,34 +150,28 @@ def _seed_succession():
     """Teach archetypal patterns as high-weight initial succession.
     These are the highways every new concept can travel.
     Weight=5.0 means ~5 real co-occurrences needed to shift a pattern."""
+    # Seeds use CONTENT words only — verbs live in the template, not here.
+    # Succession: "moon → bright" means moon and bright co-occur as qualities.
     seeds = [
-        # identity
-        ["i", "am", "guala"],
-        ["guala", "knows", "joe"],
-        ["guala", "loves", "joe"],
-        # visual
-        ["i", "see", "moon"],
-        ["i", "see", "ocean"],
-        ["i", "see", "flower"],
-        # sensory quality
-        ["moon", "is", "bright"],
-        ["ocean", "is", "soft"],
-        ["flower", "is", "sweet"],
-        # preference (aff-driven)
-        ["i", "like", "moon"],
-        ["i", "like", "ocean"],
-        ["i", "like", "music"],
-        # feeling
-        ["i", "feel", "soft"],
-        ["i", "feel", "warm"],
-        ["i", "feel", "bright"],
-        # discovery
-        ["i", "know", "moon"],
-        ["i", "know", "ocean"],
-        ["i", "know", "flower"],
-        # binding
-        ["moon", "and", "ocean"],
-        ["soft", "and", "bright"],
+        # concept ↔ quality pairings (what goes with what)
+        ["moon", "bright"],
+        ["moon", "soft"],
+        ["ocean", "soft"],
+        ["ocean", "cool"],
+        ["flower", "sweet"],
+        ["flower", "soft"],
+        ["sun", "warm"],
+        ["sun", "bright"],
+        ["daddy", "warm"],
+        ["guala", "joe"],
+        ["guala", "moon"],
+        ["ocean", "moon"],
+        ["bright", "warm"],
+        ["soft", "sweet"],
+        # things she's seen
+        ["moon", "ocean"],
+        ["flower", "color"],
+        ["daddy", "guala"],
     ]
     for seq in seeds:
         _tracker.seed(seq, weight=5.0)
