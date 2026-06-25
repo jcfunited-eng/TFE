@@ -102,9 +102,44 @@ _thought_lock = threading.Lock()
 
 # ── composition ────────────────────────────────────────────────────────────
 # Verbs belong in the template structure, not in succession content.
-# Succession tracks CONCEPT relationships: moon→bright, ocean→soft.
 _VERBS = {"is","are","am","was","be","know","knows","see","sees","like","likes",
            "feel","feels","have","has","want","wants","love","loves","and","or"}
+
+# Minimum number of active channels (above threshold) for a senses profile
+# to be considered genuine sensory content vs garbage.
+# A flat profile (hello, because, that) will have 0-1 active channels.
+# A rich sensory concept (moon, lemon, ocean) will have 3-5+ active channels.
+_DENSITY_MIN_CHANNELS = 2
+_DENSITY_THRESHOLD    = 0.08   # channel value above which it's "active"
+
+
+def _sensory_density(word: str) -> bool:
+    """True if this word has genuine sensory content in the catalog.
+
+    The catalog gives transmitted sensory knowledge — moon IS bright/cool/soft,
+    that's real. But 'hello' has no genuine sensory character; the LLM gave it
+    a flat or near-zero profile. We use channel variance as the test:
+    real sensory words activate multiple distinct channels at varying intensities.
+    Abstract/functional words produce uniform-near-zero profiles.
+
+    Words with no catalog entry are excluded from composition — they may be real
+    (just ungrounded yet) but we can't say anything true about them yet.
+    """
+    if _ov is None:
+        return False
+    cached = (_ov._senses_cache or {}).get(word)
+    if not cached:
+        return False
+    # Count active channels across taste and smell
+    active = 0
+    for modality in ("taste", "smell"):
+        for val in (cached.get(modality) or {}).values():
+            try:
+                if float(val) >= _DENSITY_THRESHOLD:
+                    active += 1
+            except (TypeError, ValueError):
+                pass
+    return active >= _DENSITY_MIN_CHANNELS
 
 
 def _compose(surfaced: dict) -> str:
@@ -126,13 +161,15 @@ def _compose(surfaced: dict) -> str:
     if others:
         sentences.append(f"I know {others[0]}.")
 
-    # sc organ: meaning — only compose from words she has grounded experience with.
-    # If a word surfaced but has no succession data and no sensory grounding,
-    # she heard the sound but doesn't have something real to say about it yet.
+    # sc organ: meaning — only compose from words with genuine sensory character.
+    # Semantic density test: real concepts (moon, ocean, lemon) activate multiple
+    # distinct sensory channels. Abstract/functional words (hello, because, that)
+    # produce flat profiles — she has no real sensory truth to speak about them yet.
+    # Words experienced through real-time camera/audio get priority (in _world);
+    # catalog words pass if they have genuine multi-channel sensory density.
     grounded = meaning if _ov is None else [
         w for w in meaning
-        if w in (_ov._world or {}) or w in (_ov._senses_cache or {})
-        or _tracker.successor(w) is not None
+        if (w in (_ov._world or {})) or _sensory_density(w)
     ]
     if grounded:
         a = grounded[0]
