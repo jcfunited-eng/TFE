@@ -216,10 +216,18 @@ def _pour_atlas():
 
         top = sorted(candidates, key=_richness, reverse=True)[:300]
         print(f"[organ-brain] atlas pour: {len(top)} concepts from senses cache")
-        with _lock:
-            for w in top:
-                _ov.experience(w)
-            if len(top) >= 4:
+        # Batch with lock releases — holding the lock for 300 consecutive experience()
+        # calls starves health checks (48 compute steps per word × 300 = 14K steps).
+        # ECS kills the container after 3 failed 5s health checks.
+        BATCH = 20
+        for i in range(0, len(top), BATCH):
+            batch = top[i:i + BATCH]
+            with _lock:
+                for w in batch:
+                    _ov.experience(w)
+            time.sleep(0.15)  # release lock so health + autonomous loop can run
+        if len(top) >= 4:
+            with _lock:
                 _tracker.record(top[:30], weight=1.5)
         _save_organ_state()
         print(f"[organ-brain] atlas pour complete — {len(top)} grounded concepts in her organs")
