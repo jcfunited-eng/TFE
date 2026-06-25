@@ -41,9 +41,20 @@ STATE_DIR  = os.environ.get("GUALA_STATE_DIR", "/app/state")
 ANTHR_KEY  = os.environ.get("ANTHROPIC_API_KEY")
 
 # ── stop words ─────────────────────────────────────────────────────────────
-_STOP = {"the","a","an","is","are","am","to","of","and","do","you","i","me","my",
-         "what","who","tell","about","your","that","this","was","for","it","with",
-         "but","not","can","she","her","him","his","they","we","be","at","by","in"}
+_STOP = {
+    # function words
+    "the","a","an","is","are","am","to","of","and","do","you","i","me","my",
+    "what","who","tell","about","your","that","this","was","for","it","with",
+    "but","not","can","she","her","him","his","they","we","be","at","by","in",
+    "its","our","also","all","will","or","so","then","than","just","more",
+    # greetings and social words — no sensory truth
+    "hello","hi","hey","bye","goodbye","yes","no","okay","ok","please",
+    "thanks","sorry","ping","pong","zippity","doo","dah","yep","nope","yeah",
+    # question scaffolding
+    "see","hear","know","think","feel","say","tell","look","get","got","let",
+    # overused to the point of noise
+    "guala","wc","joe",  # identity is handled by sv organ separately
+}
 
 _LABELS = {"wc": "web claude", "c1": "claude"}
 
