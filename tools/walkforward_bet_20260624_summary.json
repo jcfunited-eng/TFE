@@ -1,0 +1,40 @@
+{
+  "command": "TFE-CMD-WALKFORWARD-BET-WC-20260624 + AMEND-1",
+  "replay_start": "2021-04-01",
+  "replay_end": "2026-03-24",
+  "starting_equity": 100000.0,
+  "ending_equity": 106677.11,
+  "annualized_return_gross": 0.013071,
+  "max_drawdown": -0.143058,
+  "sharpe": 0.1744,
+  "win_rate": 0.5353,
+  "avg_days_held": 41.62,
+  "n_trades": 835,
+  "n_unique_tickers": 426,
+  "spy_annualized_return": 0.103202,
+  "spy_max_drawdown": -0.253606,
+  "eq_basket_annualized_return": "SPY used as proxy",
+  "universe_original": 5768,
+  "universe_kept": 2194,
+  "universe_dropped": 3574,
+  "dropped_reasons": {
+    "dropped_in_kernel_precompute": 3574
+  },
+  "bet_target": {
+    "ann_return": 0.12,
+    "max_dd": -0.15,
+    "sharpe": 0.8
+  },
+  "bet_outcome": {
+    "ann_return": "FAIL",
+    "max_dd": "PASS",
+    "sharpe": "FAIL"
+  },
+  "deviation_notes": [
+    "bars: adjusted (Polygon adjusted=true; raw not fetched separately)",
+    "EXIT-A: L5 Layer 1 no longer Accumulate on daily recompute",
+    "allocation: equity/30 at signal day",
+    "perf optimization: L5 filter vectorized per-day (identical math)"
+  ],
+  "wall_time_seconds": 436.9
+}
