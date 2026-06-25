@@ -1,0 +1,896 @@
+% ============================================================
+% Tao Financial Engine — Portfolio Manager Design Document
+% Deployment v1.0
+% Compile: pdflatex (Overleaf compatible)
+% ============================================================
+\documentclass[11pt,a4paper]{article}
+
+% ── Encoding & fonts ──────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ── Page geometry ─────────────────────────────────────────────
+\usepackage[margin=2.2cm, top=2.5cm, bottom=2.5cm]{geometry}
+
+% ── Colour palette ────────────────────────────────────────────
+\usepackage[dvipsnames,table]{xcolor}
+\definecolor{tfeblue}{RGB}{25,70,140}
+\definecolor{tfegray}{RGB}{90,90,90}
+\definecolor{statusbuilt}{RGB}{20,120,40}
+\definecolor{statuspartial}{RGB}{160,100,0}
+\definecolor{statusnotbuilt}{RGB}{160,30,30}
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{tablehead}{RGB}{220,230,245}
+
+% ── Math ──────────────────────────────────────────────────────
+\usepackage{amsmath,amssymb,mathtools}
+
+% ── Tables ────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+% ── Code listings ─────────────────────────────────────────────
+\usepackage{listings}
+\lstdefinestyle{tfe}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  breakatwhitespace=true,
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{gray!40},
+  numbers=none,
+  xleftmargin=1em,
+  xrightmargin=1em,
+  aboveskip=0.5em,
+  belowskip=0.5em,
+  keepspaces=true,
+}
+\lstdefinestyle{tfe-js}{
+  style=tfe,
+  language=Java,
+  morekeywords={const,let,export,async,await,import,from},
+  keywordstyle=\color{tfeblue}\bfseries,
+  stringstyle=\color{OliveGreen},
+  commentstyle=\color{tfegray}\itshape,
+}
+\lstdefinestyle{tfe-py}{
+  style=tfe,
+  language=Python,
+  keywordstyle=\color{tfeblue}\bfseries,
+  stringstyle=\color{OliveGreen},
+  commentstyle=\color{tfegray}\itshape,
+}
+\lstset{style=tfe}
+
+% ── TikZ for the pipeline diagram ────────────────────────────
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,fit,calc}
+
+\tikzset{
+  pipeblock/.style={
+    rectangle, draw=tfeblue!60, fill=tfeblue!8,
+    rounded corners=4pt, minimum width=7.2cm, minimum height=1.1cm,
+    text centered, font=\small\sffamily, inner sep=6pt,
+    text width=7cm,
+  },
+  pipearrow/.style={
+    -Stealth, thick, color=tfeblue!70,
+  },
+  notbuilt/.style={
+    rectangle, draw=statusnotbuilt!70, fill=statusnotbuilt!10,
+    rounded corners=4pt, minimum width=7.2cm, minimum height=1.1cm,
+    text centered, font=\small\sffamily, inner sep=6pt,
+    text width=7cm,
+  },
+}
+
+% ── Hyperref ──────────────────────────────────────────────────
+\usepackage[colorlinks=true, linkcolor=tfeblue, urlcolor=tfeblue, citecolor=tfegray]{hyperref}
+
+% ── Section formatting ────────────────────────────────────────
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries\color{tfeblue}}{§\thesection.}{0.5em}{}[\color{tfeblue!40}\hrule\vspace{2pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{tfegray}}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\small\bfseries\itshape\color{tfegray}}{\thesubsubsection}{0.5em}{}
+
+% ── Paragraph spacing ─────────────────────────────────────────
+\usepackage{parskip}
+\setlength{\parskip}{5pt}
+\setlength{\parindent}{0pt}
+
+% ── Enumitem ─────────────────────────────────────────────────
+\usepackage{enumitem}
+\setlist{noitemsep, topsep=2pt}
+
+% ── Status badges ────────────────────────────────────────────
+\newcommand{\statusbuilt}{\textcolor{statusbuilt}{\textbf{[BUILT]}}}
+\newcommand{\statuspartial}{\textcolor{statuspartial}{\textbf{[PARTIALLY BUILT]}}}
+\newcommand{\statusnotbuilt}{\textcolor{statusnotbuilt}{\textbf{[NOT BUILT]}}}
+\newcommand{\statusblocked}{\textcolor{statusnotbuilt}{\textbf{[BLOCKED]}}}
+\newcommand{\statusnotstarted}{\textcolor{tfegray}{\textbf{[NOT STARTED]}}}
+\newcommand{\statusremoved}{\textcolor{statusnotbuilt}{\textbf{[REMOVED]}}}
+
+% ── Inline code ──────────────────────────────────────────────
+\newcommand{\code}[1]{\texttt{\small#1}}
+\newcommand{\sha}[1]{\texttt{\footnotesize#1}}
+
+% ── Source of truth box ──────────────────────────────────────
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+\newtcolorbox{sourcebox}{
+  colback=tfeblue!4, colframe=tfeblue!30,
+  fonttitle=\small\bfseries\color{tfeblue},
+  title=Source of Truth,
+  left=4pt, right=4pt, top=3pt, bottom=3pt,
+  boxrule=0.5pt, arc=3pt,
+}
+\newtcolorbox{warningbox}{
+  colback=statusnotbuilt!5, colframe=statusnotbuilt!40,
+  fonttitle=\small\bfseries\color{statusnotbuilt},
+  title=Action Required,
+  left=4pt, right=4pt, top=3pt, bottom=3pt,
+  boxrule=0.5pt, arc=3pt,
+}
+
+% ── Header / footer ──────────────────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{tfegray}TFE Portfolio Manager — Deployment v1.0}
+\fancyhead[R]{\small\color{tfegray}CONFIDENTIAL — Joseph Forrester}
+\fancyfoot[C]{\small\color{tfegray}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ─────────────────────────────────────────────────────────────
+\begin{document}
+% ─────────────────────────────────────────────────────────────
+
+% ── Title page ───────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\Huge\bfseries\color{tfeblue} Tao Financial Engine}\\[0.4cm]
+  {\Large\bfseries Portfolio Manager Design Document}\\[0.2cm]
+  {\large Deployment v1.0}\\[2cm]
+
+  \begin{tabular}{ll}
+    \textbf{Doc ID:}       & \small TAO\_FINANCIAL\_ENGINE\_PM\_DESIGN\_DEPLOYMENT\_V1 \\[4pt]
+    \textbf{Status:}       & \textcolor{statusbuilt}{\bfseries DEPLOYMENT v1.0} \\[4pt]
+    \textbf{Effective:}    & 2026-06-25 \\[4pt]
+    \textbf{Author:}       & wC (web Claude) + c1 (Claude Sonnet 4.6) \\[4pt]
+    \textbf{Authority:}    & Joseph Forrester (canonical) \\[4pt]
+    \textbf{Supersedes:}   & All prior portfolio-manager fragments in \texttt{docs/}\\[4pt]
+    \textbf{Git branch:}   & \code{codex/persistent-etl-update-20260326} \\[4pt]
+    \textbf{Commit:}       & \sha{d1d9fd3}\\
+  \end{tabular}
+
+  \vspace{2cm}
+  \begin{tcolorbox}[colback=tfeblue!5, colframe=tfeblue!50, boxrule=1pt, arc=4pt]
+    \centering\small\bfseries
+    No live deployment until all sections marked \statusbuilt{} and\\
+    all deployment gates (D1–D7) explicitly cleared by Joseph Forrester.
+  \end{tcolorbox}
+
+  \vfill
+  {\small\color{tfegray}
+    Empirical foundation: SHA \sha{9fea032} (wave\_c1\_audit\_20260625)\\
+    Canonical W1 finding: SHA \sha{e2030e2} (TFE-CANONICAL-WAVE1-FINDING-20260625.md)
+  }
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ─────────────────────────────────────────────────────────────
+\setcounter{section}{-1}
+\section{Document Status and Authority}
+
+\textbf{Authority:} Joseph Forrester (canonical). All parameter changes require explicit approval per \code{KERNEL\_PHILOSOPHY.md} §8.7.
+
+\textbf{This document supersedes:}
+\begin{itemize}
+  \item Any prior session's portfolio design fragments in \texttt{docs/}
+  \item Any prior ``deployment plan'' or ``next steps'' notes in \texttt{PROJECT\_STATE.md} §4 predating 2026-06-25
+  \item The informal walk-forward replay in \texttt{tools/walkforward\_bet\_20260624.py} (experiment, not a deployment plan)
+\end{itemize}
+
+\textbf{Required reviews before merge to main:}
+\begin{itemize}
+  \item Joseph Forrester (canonical authority, all sections)
+  \item Engineering review of Gate D2 (Wave 1 filter implementation) against spec §4
+  \item Engineering review of Gate D4 (bookkeeping forward fixes) against audit findings
+\end{itemize}
+
+\begin{warningbox}
+\textbf{Hard-stop constraint:} No live deployment (Gate D7) until all sections marked \statusbuilt. Sections marked \statusnotbuilt{} require code before deployment.
+\end{warningbox}
+
+% ─────────────────────────────────────────────────────────────
+\section{Architecture Overview}
+
+The TFE Portfolio Manager is a \textbf{new-listing structural crystallization detector}. The kernel identifies the precise moment a newly-listed asset undergoes geometric phase transition from amorphous to ordered structural state. The portfolio manager enters at that event, holds 20 trading days, and exits on structural decoherence or catastrophic loss.
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.55cm, every node/.style={font=\small\sffamily}]
+
+  \node[pipeblock] (data) {
+    \textbf{DATA PIPELINE}\\
+    Polygon daily bars (raw, \textbf{NOT} log)\\
+    \texttt{compute\_l0\_sev()} · ln 121
+  };
+
+  \node[pipeblock, below=of data] (kernel) {
+    \textbf{KERNEL LAYERS L0–L4}\\
+    L1 gate segmentation ($\tau_D=0.20$) · L2 ISF\\
+    L3 resonance $R_k, g_k, \text{URF}_k$ · L4 tuple:\\
+    $D_k, M_k, B_k, U^*_k, C_k, P_k, R_{\text{rev},k}$
+  };
+
+  \node[pipeblock, below=of kernel] (cog) {
+    \textbf{COGNITIVE SCALARS}\\
+    $x_f, x_m, x_s$ integrators \quad $F_n = \gamma + \lambda_s \cdot s_n$\\
+    $s_n = \|\nu_\text{core} - z_n\|$ \quad $Q_5, Q_{20}, Q_{60}, \chi_n$
+  };
+  \node[right=0.15cm of cog, text width=3.2cm, align=left, font=\footnotesize\itshape, color=statusnotbuilt]
+    {$\leftarrow$ $s_n$ NOT IN PROD\\$\leftarrow$ $F_n$ in prod};
+
+  \node[notbuilt, below=of cog] (w1) {
+    \textbf{WAVE 1 SELECTION} \statusnotbuilt\\
+    $D_k(t{-}1)=0$ AND $D_k(t)=+1$\\
+    bar\_count $\leq 20$ \quad $s_n \in [0.954,\,0.969]$\\
+    $|\Delta s_n| \in [0.67,\,0.72]$
+  };
+
+  \node[pipeblock, below=of w1] (cap) {
+    \textbf{CAPITAL ALLOCATOR}\\
+    equal-weight, max 30 positions\\
+    target: equity $/ 30$ per trade
+  };
+
+  \node[pipeblock, below=of cap] (ord) {
+    \textbf{ORDER SUBMISSION} \statusbuilt\\
+    next-day market open (Alpaca)\\
+    bracket OCO: TP ceiling · SL $-10\%$
+  };
+
+  \node[pipeblock, below=of ord] (sentinel) {
+    \textbf{EXECUTION MONITOR} \statuspartial\\
+    \texttt{sentinel\_monitor.mjs}\\
+    EXIT-F ($-10\%$) · EXIT-R9 (7d) · EXIT-B ($D_k\!\downarrow$)\\
+    EXIT-C ($\tau$) · EXIT-TIME (20d) \statusnotbuilt
+  };
+
+  \node[pipeblock, below=of sentinel] (book) {
+    \textbf{BOOKKEEPING} \statusblocked\\
+    \texttt{personal\_trade\_ledger} (RDS)\\
+    P\&L at fill · equity curve EOD
+  };
+
+  \foreach \i/\j in {data/kernel, kernel/cog, cog/w1, w1/cap, cap/ord, ord/sentinel, sentinel/book}
+    \draw[pipearrow] (\i) -- (\j);
+
+\end{tikzpicture}
+\end{center}
+
+\begin{sourcebox}
+This document; \texttt{docs/TFE-CANONICAL-WAVE1-FINDING-20260625.md} (SHA \sha{e2030e2}).
+\end{sourcebox}
+
+% ─────────────────────────────────────────────────────────────
+\section{Empirical Foundation}
+
+The deployment design is grounded in \textbf{one measured result}. All constants and sizing in §§4--7 reference this measurement.
+
+\subsection*{Cohort C1 Result (the deployment justification)}
+\begin{itemize}
+  \item $N = 372$ signals over 5 years on 2,194-ticker production-equivalent universe
+  \item $\text{WR}_{20d} = \mathbf{91.9\%}$ (20 daily-bars forward return method, cleanest reference)
+  \item Wilson 95\% CI: $\mathbf{[88.7\%,\; 94.3\%]}$
+  \item Measurement period: 2021-04-01 to 2026-03-24
+  \item Method stability: 91.9\%--92.2\% across three independent methods\\
+        (20 gate-events / 20 SPY-calendar trading days / 20 daily-bars) on all 372 signals — SHA \sha{9fea032}
+\end{itemize}
+
+\subsection*{Baseline C0 (null)}
+\begin{itemize}
+  \item $N = 108{,}237$ $D_k{=}0\!\to\!+1$ triggers, $\text{WR}_{20d} = 54.4\%$, Wilson 95\% CI $[0.541,\,0.547]$
+  \item C1 selects $0.34\%$ of triggers; WR is $+37.5$\,pp above baseline
+\end{itemize}
+
+\subsection*{Universe Caveats}
+\begin{itemize}
+  \item Survivorship-biased: 3,574 of 5,768 quarantine tickers dropped (listed after 2020-04-01 or delisted before 2026-03-24)
+  \item Conservative post-correction WR envelope: 80--90\% (not measured; based on partial survivorship adjustment)
+  \item \textbf{Live trading will measure something else}; cite live WR only, not backtest figure, for investor-facing claims
+\end{itemize}
+
+\subsection*{Full Cohort Table}
+
+\begin{center}
+\begin{tabular}{llrll}
+\toprule
+\textbf{Cohort} & \textbf{Description} & \textbf{N} & \textbf{WR\textsubscript{20d}} & \textbf{Wilson 95\% CI}\\
+\midrule
+C0   & All $D_k\!: 0\!\to\!+1$ triggers & 108{,}237 & 54.4\% & [0.541, 0.547]\\
+C0p  & C0 $\cap$ Close $\geq \$5$         & 104{,}909 & 54.3\% & [0.540, 0.546]\\
+\rowcolor{tablehead}
+\textbf{C1}  & \textbf{C0p $\cap$ W1} & \textbf{372} & \textbf{91.9\%} & \textbf{[0.887, 0.943]}\\
+C12  & C1 $\cap$ W2 (calm species)         & 31        & 87.1\% & [0.711, 0.949]\\
+C13  & C1 $\cap$ W3 (SPY $D_k{=}+1$)      & 0         & N/A    & N/A\\
+C123 & C1 $\cap$ W2 $\cap$ W3             & 0         & N/A    & N/A\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+C13 $=$ C123 $= 0$ because the quarantine kernel's SPY $D_k{=}+1$ fires on only 41 dates, all in 2025-04-10~$\to$~2025-06-30; none coincide with Wave~1 trigger dates. W3 is not used as a v1.0 selection condition (§\ref{sec:stage2}).
+
+\begin{sourcebox}
+\texttt{tools/wave\_cohort\_reval\_20260625\_summary.json} (SHA \sha{848aff6});
+\texttt{tools/wave\_c1\_audit\_20260625\_summary.json} (SHA \sha{9fea032});
+\texttt{docs/TFE-CANONICAL-WAVE1-FINDING-20260625.md} (SHA \sha{e2030e2}).
+\end{sourcebox}
+
+% ─────────────────────────────────────────────────────────────
+\section{Kernel Specification}
+
+\statusbuilt{} \texttt{quarantine\_historical\_kernel.py} · \statusnotbuilt{} $s_n$ emission not in production snapshot
+
+\subsection{L0 — Raw SEV Stream}
+
+\code{compute\_l0\_sev()} — \texttt{quarantine\_historical\_kernel.py} line 121
+
+\begin{lstlisting}
+For each bar t:
+  dF_t    = F_t - F_{t-1}
+  sigma_t = mean( (F_window - F_bar)^2 )   [window W = 20]
+  kappa_t = |F_{t+1} - 2*F_t + F_{t-1}|
+  r_t     = psi_r( F[t-W_r : t] )          [W_r = 10]
+  N_t     = 1  iff  sigma < sigma_min  AND  |dF| < delta_min
+                AND  kappa < kappa_min,  else 0
+\end{lstlisting}
+
+\textbf{Raw prices, NOT log.} Production \texttt{uf\_mdg\_snapshot.py} uses $\log(F+\varepsilon)$ — this divergence is documented in \texttt{KERNEL\_PHILOSOPHY.md} §5. The Wave~1 measurement (SHA \sha{848aff6}) used raw prices. Any production $s_n$ computation \emph{must} also use raw prices.
+
+\subsection{L1 — Gate Segmentation}
+
+\code{segment\_l1\_gates()} — line 153
+\begin{align}
+  D(t) &= \alpha_1\,|dF_t| + \alpha_2\,\sigma_t + \alpha_3\,\kappa_t\\
+  \text{gate fires when: } D(t) &\geq \tau_D = 0.20 \quad [\text{strict }\geq\text{; not }>]
+\end{align}
+
+Per-gate: $\text{TVR} = (T, V, R)$,\; $C_k = |\{\text{quantized lattice points}\}|$,\; multi-lattice $(1,1,1), (2,2,2), (4,4,4)$.
+
+\subsection{L2 — ISF Interpretation}
+
+\code{compute\_l2\_isf()} — line 202
+\begin{align}
+  w_k   &= V_k / V_{\max}\\
+  S_k   &= 1 / (1 + C_k + \delta_g) \quad [\text{clipped } 0\text{--}1]\\
+  U_k   &= 0.1 C_k + 0.1 \delta_g + 0.2 N_{\text{gate}} \quad [\text{clipped } 0\text{--}1]\\
+  \text{IAS}_k &= 1 \text{ iff } U_k > 0.80 \text{ OR } \delta_g > 2.0
+\end{align}
+
+\subsection{L3 — Resonance}
+
+\code{compute\_l3\_resonance()} — line 228
+\begin{align}
+  Z     &= \lambda_1 + \lambda_2 + \lambda_3 + \lambda_4 + \lambda_5 = 5.0\\
+  R_k   &= \tfrac{1}{Z}\bigl(\lambda_1 w + \lambda_2 \tfrac{\|CV\|}{CV_{\max}} + \lambda_3 S + \lambda_4 \tfrac{1}{1+C} + \lambda_5 (1-U)\bigr)\\
+  \text{Hyst}_k &= 1 \text{ iff } |R_k - R_{k-1}| > h_{\max} = 0.20\\
+  g_k   &= 1 \text{ iff } U_k \leq U_{\max} = 0.75 \text{ AND IAS}=0 \text{ AND Hyst}=0\\
+  \text{URF}_k &= g_k \cdot R_k
+\end{align}
+
+\subsection{L4 — Dynamical Tuple}
+
+\code{compute\_l4\_dsf()} — line 262
+\begin{align}
+  \Delta R &= \text{URF}_k - \text{URF}_{k-1}\\
+  D_k &= \begin{cases}+1 & \Delta R > \varepsilon_D = 0.00073\\ -1 & \Delta R < -\varepsilon_D\\ 0 & \text{otherwise}\end{cases}\\
+  M_k &= \text{URF}_k - 2\,\text{URF}_{k-1} + \text{URF}_{k-2}\\
+  U^*_k &= \operatorname{clip}(U_k + \eta_H\,\text{Hyst}_k + \eta_{\text{IAS}}\,\text{IAS}_k,\;0,\;1)\\
+  B_k &= \operatorname{clip}\!\bigl(B_{k-1} + \xi(1-U^*_k)\Delta R - \chi U^*_k,\;-1,\;1\bigr)
+\end{align}
+
+\subsection{Cognitive Scalars}
+
+\code{build\_state\_rows()} — lines 337--421
+\begin{align}
+  \nu_{\text{core}} &= \operatorname{sat}\!\bigl([D_k,\;M_k,\;R_{k,\text{norm}}]\bigr) \quad [\text{clipped to }[-1,1]^3]\\
+  z_n &= [x_f,\;x_m,\;x_s] \quad [\text{integrator state}]\\
+  s_n &= \|\nu_{\text{core}} - z_n\| \quad [\text{surprise, ln 376}]\\
+  F_n &= \gamma + \lambda_s\,s_n,\quad \gamma = 0.5\,(U^*_k + (1 - \rho))\quad [\text{cognitive load, ln 378}]\\
+  Q_{20} &= \dot{q}_{20} \cdot z_n - \eta_h\,F_n = x_m - 2.0\,F_n\\
+  \chi_n &= 1 \text{ iff } \operatorname{sign}(Q_5)=\operatorname{sign}(Q_{20})=\operatorname{sign}(Q_{60})
+\end{align}
+
+\subsection{Full Constants Table}
+
+Verbatim from \texttt{quarantine\_historical\_kernel.py} lines 22--79, \texttt{KernelParameters} defaults.
+
+\begin{center}
+\small
+\begin{longtable}{L{3.0cm}R{2.8cm}C{1.2cm}L{5.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Layer} & \textbf{Purpose}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Layer} & \textbf{Purpose}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\endlastfoot
+$W$                & 20            & L0 & Variance window\\
+$W_r$              & 10            & L0 & $r(t)$ window\\
+$\sigma_{\min}$    & \texttt{1e-6} & L0 & Null-state threshold\\
+$\delta_{\min}$    & \texttt{1e-6} & L0 & Null-state threshold\\
+$\kappa_{\min}$    & \texttt{1e-6} & L0 & Null-state threshold\\
+$\alpha_{1,2,3}$   & 1.0           & L1 & Boundary function weights\\
+$\tau_D$           & 0.20          & L1 & Gate boundary threshold\\
+$\beta_{1,2,3}$    & 1.0           & L1 & TVR volume weights\\
+lattices           & (1,1,1),(2,2,2),(4,4,4) & L1 & Multi-lattice quantization\\
+$\lambda_{1\ldots5}$ & 1.0         & L3 & Resonance term weights\\
+$h_{\max}$         & 0.20          & L3 & Hysteresis threshold\\
+$U_{\max}$         & 0.75          & L3 & Uncertainty gate limit\\
+$\varepsilon_D$    & 0.00073       & L4 & Directional dead zone\\
+$\eta_H$           & 0.10          & L4 & $U^*$ hysteresis amplification\\
+$\eta_{\text{IAS}}$& 0.10          & L4 & $U^*$ IAS amplification\\
+$\xi$              & 0.10          & L4 & Breathing inflow rate\\
+$\chi$             & 0.10          & L4 & Breathing decay rate\\
+$B_{\min}/B_{\max}$& $-1.0\,/\,1.0$& L4 & Breathing state bounds\\
+$a_\rho$           & 0.4           & CV & $\rho$: $R$ contribution\\
+$b_\rho$           & 0.4           & CV & $\rho$: $S$ contribution\\
+$c_\rho$           & 0.1           & CV & $\rho$: $U$ penalty\\
+$d_\rho$           & 0.1           & CV & $\rho$: $C$ penalty\\
+$a_{\text{decay}}$ & 0.99          & CV & Integrator state decay\\
+$a_{\nu\text{-wt}}$& 0.05          & CV & Integrator: directional weight\\
+$a_{\pi\text{-wt}}$& 0.05          & CV & Integrator: $\rho$ weight\\
+$A_f / A_m / A_s$  & 0.90 / 0.98 / 0.995 & CV & Fast/medium/slow integrator decay\\
+$B_f / B_m / B_s$  & 0.1           & CV & Integrator input weights\\
+$H_{mf} / H_{sm}$  & 0.1           & CV & Cross-integrator coupling\\
+$G_{\text{all}}$   & 0.01          & CV & All integrators: $\rho$ coupling\\
+$L_f / L_m / L_s$  & 0.01          & CV & Accumulator state coupling\\
+$\lambda_s$        & 1.0           & CV & Surprise scaling\\
+\rowcolor{tablehead}
+$\boldsymbol{\eta_h}$ & \textbf{2.0} & \textbf{CV} & \textbf{Q-score $F_n$ penalty} ($\neq \eta_H=0.10$)\\
+$F_{\max}$         & 0.45          & CV & ACCUMULATE field $F_n$ ceiling\\
+$\chi_{\min}$      & 1.0           & CV & ACCUMULATE field $\chi_n$ floor\\
+$\theta_+$         & 0.65          & CV & ACCUMULATE field $Q_{20}$ threshold\\
+$s_{\text{uf,default}}$ & 1.0      & CV & Default $S_{\text{UF}}$\\
+\end{longtable}
+\end{center}
+
+\begin{warningbox}
+\textbf{ACCUMULATE field is unreachable.} $Q_{20} > \theta_+ = 0.65$ requires $x_m > 0.65 + \eta_h F_n = 0.65 + 2.0 F_n \geq 1.55$ since $F_n \geq 0$. But \texttt{sat\_scalar} clips $x_m \in [-1.0, 1.0]$. The Wave~1 trigger $D_k\!: 0\!\to\!+1$ is the correct entry gate. Do \emph{not} modify $\eta_h$, $\theta_+$, or $F_{\max}$ to make ACCUMULATE reachable.
+\end{warningbox}
+
+\begin{sourcebox}
+\texttt{quarantine\_historical\_kernel.py} (git blob SHA \sha{02e0d373658c2703f1916e0b9cc5b0e229d49646740efbc18fefc58bf770abd4}).
+\end{sourcebox}
+
+% ─────────────────────────────────────────────────────────────
+\section{Selection Layer (Wave 1 as Entry Gate)}
+
+\statusnotbuilt{} Requires \texttt{web/scripts/wave1\_entry\_filter.mjs} and \texttt{tools/wave1\_entry\_filter.py}.
+
+\subsection{Accumulate Transition Trigger}
+
+For every non-SPY ticker, on every emitted gate event $t$:
+\[
+  \text{is\_trigger}(i, t) = \bigl[D_{k,i}(t{-}1) = 0\bigr] \;\text{AND}\; \bigl[D_{k,i}(t) = +1\bigr]
+\]
+where $t{-}1$ is the immediately prior \emph{gate-event emission} for ticker $i$ (not the prior calendar day). No trigger for the first emitted row (no prior $D_k$ exists).
+
+\subsection{Wave 1 Condition — Structure A}
+
+From \texttt{docs/structural\_wave\_alignment\_spec.tex} Definition~1, lines 203--211:
+\begin{align}
+  \text{bar\_count}_i(t) &\in [1,\;20] \tag{eq:newlisting}\\
+  s_{n,i}(t) &\in [0.954,\;0.969] \tag{eq:ordered}\\
+  \Delta s_{n,i}(t) = |s_{n,i}(t) - s_{n,i}(t{-}1)| &\in [0.67,\;0.72] \tag{eq:jump}
+\end{align}
+
+\textbf{Entry signal fires iff:} \text{is\_trigger}$(i,t) = \text{True}$ AND all three Wave~1 conditions hold.
+
+\textbf{Minimum price gate:} $\text{Close}_i(t) \geq \$5.00$. Applied after W1, before capital allocation.
+
+\subsection{Mar 26 Supplementary Cognitive Gates (Stage 2, NOT in v1.0)}
+
+From \texttt{recovered\_versions/tfe\_l5\_mar26\_recovered.py}:
+
+\begin{lstlisting}
+gate_count_i(t) >= 10          (line 15: min_gate_count=10)
+F_n_i(t)        <= 1.65
+raw_x_m_i(t)    <= 0.50        (= x_m; uf_mdg_snapshot.py ln 371-373)
+R_rev_k_i(t)    == 0
+M_k_i(t)        >= 0
+B_k_i(t)         > B_k_i(t-1)
+\end{lstlisting}
+
+Not applied in v1.0. Reserved as a future tightening lever once the C1 baseline is established in production.
+
+\begin{sourcebox}
+\texttt{docs/structural\_wave\_alignment\_spec.tex} (Definition~1, lines 203--211);
+\texttt{recovered\_versions/tfe\_l5\_mar26\_recovered.py} (Stage~2);
+\texttt{KERNEL\_PHILOSOPHY.md} §5 (physics interpretation).
+\end{sourcebox}
+
+% ─────────────────────────────────────────────────────────────
+\section{Capital Allocation}
+
+\statuspartial{} \texttt{capital\_allocator.mjs} exists; equal-weight model requires update.
+
+\subsection{v1.0 Allocation Model}
+
+Current production code (\texttt{capital\_allocator.mjs} line~11):
+\begin{lstlisting}[style=tfe-js]
+const RISK_PCT_DEFAULT = 1.5;   // 1.5% of vault equity per trade
+const RISK_PCT_MAX     = 5.0;
+\end{lstlisting}
+
+This yields \$1{,}500 per position on a \$100K portfolio — \textbf{NOT equal-weight/30}.
+
+\textbf{v1.0 design target:} Equal-weight, equity~$/30$ per position at signal emission time:
+\[
+  \text{alloc}_i = \frac{\text{vault\_equity\_at\_signal}}{30}
+\]
+\code{capital\_allocator.mjs} requires update. Until then, 1.5\% default applies.
+
+\subsection{Position Capacity Gate}
+
+Maximum concurrent open positions: \textbf{30}.
+Source: \texttt{3wa\_strategist.mjs} line~233:
+\begin{lstlisting}[style=tfe-js]
+computeRegimeExposure(spyDk, openCount, 30, 0)
+\end{lstlisting}
+
+\subsection{Other Constraints}
+\begin{itemize}
+  \item Cash always permitted; no leverage; no shorts in v1.0.
+  \item No rebalancing of existing positions on new signal day.
+  \item If $\text{alloc}_i > \text{available\_cash}$, skip this signal cycle (do not borrow).
+\end{itemize}
+
+\textbf{Stage~2 sizing (deferred):} W1$+$W3 entries get $1.5\times$ standard; W1$+$W2$+$W3 get $2\times$. Requires W3 to be validated first (C13~$= 0$ currently).
+
+\begin{sourcebox}
+\texttt{web/scripts/execution/capital\_allocator.mjs} (current); §2 of this document (target design).
+\end{sourcebox}
+
+% ─────────────────────────────────────────────────────────────
+\section{Order Submission}
+
+\statusbuilt{} \texttt{entry\_timing\_watcher.mjs}, \texttt{alpaca\_bridge.mjs}
+
+\begin{itemize}
+  \item \textbf{Entry timing:} Next-day market open after signal emission. NYSE calendar from \texttt{market\_calendar.mjs}; holiday-aware through 2030.
+  \item \textbf{Order type:} Bracket (OCO) DAY order via Alpaca REST (\texttt{alpaca\_bridge.mjs} line~517: \code{order\_class: "bracket"}).
+  \item \textbf{Bracket SL:} $-10\%$ from entry price. Source: line~587: \code{CH2\_STOP\_LOSS\_MULT = 1.0}.
+  \item \textbf{Bracket TP ceiling:} Wide (sentinel handles real exits). Source: line~586: \code{CH2\_TAKE\_PROFIT\_MULT = 1.0}.
+  \item \textbf{Bracket minimum width:} 5\% (line~588: \code{CH2\_MIN\_BRACKET\_PCT = 0.05}).
+  \item \textbf{ATR source:} 14-day ATR from daily bars; minimum 2\% fallback (line~170).
+  \item \textbf{No after-hours entries.} Market-open only.
+\end{itemize}
+
+\begin{sourcebox}
+\texttt{entry\_timing\_watcher.mjs}; \texttt{alpaca\_bridge.mjs}; \texttt{market\_calendar.mjs}.
+\end{sourcebox}
+
+% ─────────────────────────────────────────────────────────────
+\section{Exit Logic}
+
+\statuspartial{} EXIT-F, EXIT-R9, EXIT-B active. EXIT-TIME (20d) \statusnotbuilt. EXIT-A and EXIT-H \statusremoved{} and must be reinstated.
+
+All exits evaluated in this exact order per sentinel cycle (market hours):
+
+\subsection{EXIT-F — Catastrophic Floor (\emph{always active})}
+
+\begin{lstlisting}
+if (current_price - entry_price) / entry_price <= -0.10:
+    market sell immediately
+\end{lstlisting}
+
+Source: \texttt{sentinel\_monitor.mjs} lines~762--818. Fires during market hours only (line~773). Cannot be disabled. Threshold $-10\%$ applies to signal class CH2 (line~777).
+
+\subsection{EXIT-R9 — Minimum Hold Guard (7 calendar days)}
+
+\begin{lstlisting}
+if age_days < 7:
+    suppress all LOSING exits (EXIT-A, EXIT-B, EXIT-C, EXIT-TIME)
+    allow WINNING exits regardless
+    EXIT-F still always fires
+\end{lstlisting}
+
+\code{MIN\_HOLD\_DAYS = 7} — line~112. Production data (May~26 audit): 85\% of $D_k$ collapse exits recovered at 10--20~days; optimal hold projects 67.1\% WR from 41.3\%. Source: \texttt{TFE\_AUDIT\_MAY26\_2026.md} lines~94--98.
+
+\subsection{EXIT-A — Structural Acceleration Complete}
+
+\statusremoved{} (\texttt{sentinel\_monitor.mjs} line~868). \textbf{Must be reinstated for v1.0.}
+
+Design for v1.0:
+\begin{lstlisting}
+if S_UF_i(t) >= 0.75  AND  P&L >= 0:   # winning position only
+    market sell at next open
+\end{lstlisting}
+
+Was removed because it ``capped winners at $+3.25\%$ avg / 4.4 days'' under CH2/CH3. Wave~1 has a structural basis for early exit when acceleration ($S_{\text{UF}}\geq 0.75$) is complete. Reinstate with the winning-position-only constraint.
+
+\subsection{EXIT-H — Structural Harvest}
+
+\statusremoved{} (line~936). Retain as REMOVED in v1.0. Replaced by EXIT-TIME.
+
+Was: exit at $+5\%$ gain when $\tau_{\text{out}}$ midpoint reached. Removed because it mechanically capped winners.
+
+\subsection{EXIT-B — Directional Collapse (\emph{active})}
+
+\begin{lstlisting}
+if D_k_i(t) != +1:
+    if age_days >= 7  OR  P&L >= 0:
+        market sell at next open
+    else:
+        hold  # EXIT-R9 guard active on young losing positions
+\end{lstlisting}
+
+Source: lines~877--882. Symmetric with entry trigger: entered on $D_k{:}\;0\!\to\!+1$, exits when $D_k$ leaves $+1$.
+
+\subsection{EXIT-C — $\tau$ Exhaustion (\emph{active})}
+
+\begin{lstlisting}
+tau_out = floor(tau_in / 3)
+if age_days > tau_out:
+    if age_days >= 7  OR  P&L >= 0:
+        market sell at next open
+    else:
+        hold  # EXIT-R9 guard
+\end{lstlisting}
+
+Source: lines~887--966. $\tau_{\text{in}}$ = consecutive $D_k\neq+1$ compression days; structural energy dissipated $\Rightarrow$ close.
+
+\subsection{EXIT-TIME — 20-Day Default}
+
+\statusnotbuilt{} Must be added to \texttt{sentinel\_monitor.mjs} for v1.0.
+
+\begin{lstlisting}
+if age_days >= 20:
+    market sell at next open
+\end{lstlisting}
+
+Primary exit for Wave~1 positions in v1.0. Matches the C1 WR measurement horizon (SHA \sha{9fea032}).
+
+\subsection{EXIT-STRUCTURAL — Full-Tuple Deterioration (Stage 2)}
+
+Spec exists at \texttt{docs/structural\_exit\_assessment\_spec.tex} (Horse/Herd/Distance). Code not built. Deferred. EXIT-TIME covers the horizon until then.
+
+\subsection{Deprecated Exits}
+
+\begin{itemize}
+  \item \textbf{EXIT-D} (trailing profit ratchet): \statusremoved. Capped winners at first pullback past $+5\%$. Line~925.
+  \item \textbf{EXIT-S} (structural similarity threshold): \statusremoved. Used \code{EXIT\_CUT\_WR=0.50} with no derivation. Line~857.
+  \item \textbf{SPY flip exit} (line~651): Not applied to Wave~1 positions. Wave~1 entry does not use SPY $D_k$ as gate; symmetrically, SPY $D_k$ flip should not exit a Wave~1 crystallization position.
+\end{itemize}
+
+\textbf{Audit basis:} \texttt{TFE\_AUDIT\_MAY26\_2026.md} lines~62--63: Day-0 exits WR~$=$~24.2\% vs held $>$0 days WR~$=$~57.4\%. Aggressive intraday exits caused the production drain.
+
+\begin{sourcebox}
+\texttt{sentinel\_monitor.mjs} (current exits); \texttt{TFE\_AUDIT\_MAY26\_2026.md} (deprecation basis); \texttt{docs/structural\_exit\_assessment\_spec.tex} (Stage~2 spec).
+\end{sourcebox}
+
+% ─────────────────────────────────────────────────────────────
+\section{Data Pipeline}
+
+\statuspartial{} $s_n$ emission is \textbf{NOT} in production snapshot.
+
+\begin{itemize}
+  \item \textbf{Bar source:} Polygon daily bars. Raw prices for kernel. Adjusted bars for equity valuation and forward return labeling.
+  \item \textbf{Nightly refresh:} \texttt{run\_refresh\_with\_l5\_learning.py} — pre-market kernel recompute, emits kernel tuple to \texttt{runtime\_decisions\_history}.
+  \item \textbf{Universe maintenance:} Weekly; IPOs added; delistings auto-closed at last available price.
+  \item \textbf{Bar window:} Minimum 20 bars (L0 $W=20$) for SEV; 252 bars for stable L4 convergence.
+\end{itemize}
+
+\subsection{Required Change: $s_n$ Emission to Production Snapshot}
+
+The quarantine kernel computes $s_n = \|\nu_{\text{core}} - z_n\|$ at line~376. The production \texttt{compute\_cognitive\_scalars()} in \texttt{uf\_mdg\_snapshot.py} computes \code{surprise} at line~455:
+
+\begin{lstlisting}[style=tfe-py]
+# uf_mdg_snapshot.py line 455 (existing):
+surprise = float(np.linalg.norm(nu_core - z_n))
+F_n_val  = float(gamma + (_KP_lambda_s * surprise))
+\end{lstlisting}
+
+The \code{surprise} value exists but is \textbf{NOT emitted} to \code{snapshot\_row\_json}. Currently only \code{F\_n} and \code{raw\_x\_m} are emitted (line~796).
+
+\begin{warningbox}
+Extend the snapshot at line~796+ to include:
+\begin{lstlisting}[style=tfe-py]
+"s_n": surprise_last,   # raw surprise value (rename from `surprise`)
+\end{lstlisting}
+Without $s_n$ in the production snapshot, Wave~1 selection cannot execute.
+\end{warningbox}
+
+\begin{sourcebox}
+\texttt{uf\_mdg\_snapshot.py} lines~360--462; \texttt{quarantine\_historical\_kernel.py} line~376.
+\end{sourcebox}
+
+% ─────────────────────────────────────────────────────────────
+\section{Bookkeeping and Ledger}
+
+\statusblocked{} Blocked on F-001, F-002, F-003 fixes. Deployed migrations 007+008 (HTBK).
+
+\begin{itemize}
+  \item \textbf{Single source of truth:} \texttt{personal\_trade\_ledger} table in production RDS.
+  \item \textbf{Provenance chain:} \code{signal\_emission\_id} $\to$ \code{entry\_order\_id} $\to$ \code{entry\_fill\_id} $\to$ \code{bracket\_oco\_id} $\to$ \code{exit\_order\_id} $\to$ \code{exit\_fill\_id}.
+  \item \textbf{P\&L:} $(p_{\text{exit}} - p_{\text{entry}}) / p_{\text{entry}}$ at exit-fill time. \textbf{NOT} at order submission.
+  \item \textbf{Daily MTM:} Post-close EOD price from Polygon $\to$ \texttt{equity\_curve} table.
+\end{itemize}
+
+\subsection{Required Fixes Before Fresh Ledger}
+
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[\textbf{F-001 (BLOCKS)}] 63\% of closes have NULL \code{p\_l}. Fix per \texttt{TFE-BRIEF-EXIT-PL-WRITE-PATH-FIX-20260623.md}. Three deploys: forward fix $\to$ backfill $\to$ spec update.
+  \item[\textbf{F-002 (BLOCKS)}] \code{sentinel\_exit\_order\_id} holds submit-intent, not fill-truth (47\% wrong). Must overwrite with fill-confirmed exit at \code{filled\_avg\_price} resolution.
+  \item[\textbf{F-003 (BLOCKS)}] Duplicate row write paths — 35 groups, 134 rows, $\sim$30\% of population since Apr 7. F-007a fix committed (SHA \sha{29bf93d}) but \textbf{not yet deployed} to ECS.
+  \item[\textbf{F-005 (RESOLVED)}] HTBK phantom twin — migrations 007+008 deployed 2026-06-24 (SHA \sha{efdc3cd}).
+\end{description}
+
+\textbf{Forbidden ledger practices:} No NULL \code{p\_l} on closed positions. No duplicate writes. No DAY TIF on exit orders (GTC or IOC only). No substitution of Alpaca portfolio value for ledger P\&L.
+
+\textbf{Required new fields for Wave~1 entries} (not yet in schema): \code{signal\_s\_n}, \code{signal\_bar\_count}, \code{signal\_delta\_s\_n}.
+
+\begin{sourcebox}
+\texttt{docs/TFE-BRIEF-EXIT-PL-WRITE-PATH-FIX-20260623.md}; \texttt{docs/TFE-AUDIT-FINDINGS-DRAIN-PERIOD-20260623.md} (F-001 through F-010).
+\end{sourcebox}
+
+% ─────────────────────────────────────────────────────────────
+\section{Execution Environment and Reliability}
+
+\statusbuilt{} (ECS, RDS, Alpaca paper). F-007a deploy pending.
+
+\begin{itemize}
+  \item \textbf{Target:} AWS ECS (\texttt{tfe-web-cluster}, \texttt{tfe-web-service-lb}); task definition \texttt{tfe-web-task:551}.
+  \item \textbf{DB:} AWS RDS PostgreSQL.
+  \item \textbf{Trading API:} Alpaca paper $\to$ live (after Gate D6).
+  \item \textbf{Kill switch:} \code{TFE\_ENTRIES\_HALTED='1'} in ECS task env. Currently ON. Must remain ON until Gate D5.
+\end{itemize}
+
+\subsection{Process Model}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+\textbf{Process} & \textbf{File} & \textbf{Cadence} & \textbf{Purpose}\\
+\midrule
+Sentinel daemon  & \texttt{sentinel\_daemon.mjs}  & Continuous (mkt hrs) & Exit monitoring\\
+Sentinel monitor & \texttt{sentinel\_monitor.mjs} & Every 60s (mkt hrs)  & Exit execution\\
+PEE-1 runner     & \texttt{pee1\_runner.mjs}       & Every 15 min (mkt hrs) & Entry submission\\
+Overnight refresh & \texttt{run\_refresh\ldots.py} & Nightly & Kernel recompute\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Reliability Requirements}
+
+\begin{itemize}
+  \item \textbf{F-007a orphan\_sync guard} (line~544, SHA \sha{29bf93d}): NOT YET DEPLOYED. First ECS deploy required before any other work.
+  \item \textbf{Cross-process kill cooldown:} DB-persisted 15-min window prevents duplicate kills. Source: \texttt{pee1\_runner.mjs}.
+  \item \textbf{NYSE calendar:} \texttt{market\_calendar.mjs} — computed, verified through 2030, 37 test cases.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────
+\section{Risk Limits and Governance}
+
+\begin{itemize}
+  \item \textbf{Per-position max loss:} $-10\%$ (EXIT-F, always active, cannot be disabled).
+  \item \textbf{Max concurrent positions:} 30 (\texttt{3wa\_strategist.mjs} line~233).
+  \item \textbf{Cash floor:} 5\% of equity. No new entries if cash $<$ 5\%.
+  \item \textbf{Daily max new entries:} 5. Prevents over-concentration in IPO windows.
+  \item \textbf{Universe drift:} Weekly review; delistings auto-closed.
+  \item \textbf{Per-asset cap:} $1/30$ of equity. No averaging down. No second position on same ticker.
+  \item \textbf{Parameter authority:} Joseph Forrester is canonical authority for any change to Wave~1 bands, capital model, exit thresholds, or kernel constants. LLM-proposed changes require explicit approval per \texttt{KERNEL\_PHILOSOPHY.md} §8.7.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────
+\section{Deployment Sequence}
+
+Each gate must be \textbf{BUILT-AND-TESTED} before the next begins. No skipping.
+
+\subsection*{Gate D1 — $s_n$ Emission in Production Snapshot \hfill \statusnotbuilt}
+File: \texttt{uf\_mdg\_snapshot.py}. Emit \code{s\_n = surprise} to \code{snapshot\_row\_json}.\newline
+\textit{Test:} 30-day sample; $s_n$ values match quarantine kernel within 0.001 absolute tolerance on 50-ticker sample.
+
+\subsection*{Gate D2 — Wave 1 Entry Filter \hfill \statusnotbuilt}
+Files: \texttt{web/scripts/wave1\_entry\_filter.mjs} + \texttt{tools/wave1\_entry\_filter.py} (both NEW).\newline
+\textit{Test:} Replay against 2,194-ticker universe (SHA \sha{f12a477}). Must reproduce C1 $= 372\pm 5$ signals and $\text{WR}_{20d} \geq 88.7\%$ (Wilson lower bound). If outside CI, STOP.
+
+\subsection*{Gate D3 — Exit Logic v1.0 \hfill \statuspartial}
+File: \texttt{sentinel\_monitor.mjs}. Required: reinstate EXIT-A ($S_{\text{UF}}\geq 0.75$, winning positions); add EXIT-TIME (20d).\newline
+\textit{Test:} Dry-run on historical positions; verify EXIT-A and EXIT-TIME fire; no EXIT-D or EXIT-S.
+
+\subsection*{Gate D4 — Bookkeeping Forward Fixes \hfill \statusnotbuilt}
+Must deploy in order: F-007a (SHA \sha{29bf93d}) $\to$ F-001 fix $\to$ F-002 fix. Verify 100\% non-NULL \code{p\_l} on 10-trade test.
+
+\subsection*{Gate D5 — Fresh Ledger Initialization \hfill \statusnotstarted}
+Pre-conditions: D1--D4 PASS; drain = 0 positions; migrations 007+008 confirmed (SHA \sha{efdc3cd}).\newline
+Ops: archive contaminated ledger; initialize at \$100K; zero open positions; kill switch ON until D2 deployed.
+
+\subsection*{Gate D6 — 30-Day Paper Trading \hfill \statusnotstarted}
+Pass criteria (all simultaneously): annualized return $\geq +12\%$; max DD $\leq -15\%$; P\&L integrity 100\%; Wave~1 entries 1--5/week; 30-day realized WR $\geq 75\%$.
+
+\subsection*{Gate D7 — Live Deployment \hfill \statusnotstarted}
+Trigger: Gate D6 PASS + Joseph Forrester explicit go-ahead. Starting capital: Joseph Forrester's decision.
+
+% ─────────────────────────────────────────────────────────────
+\section{Monitoring and Continuous Validation}
+
+\begin{itemize}
+  \item \textbf{Live W1 signal log:} Every emission writes to \texttt{wave1\_signals} table with full kernel snapshot ($s_n$, $|\Delta s_n|$, bar\_count, $D_k$, ticker, date, close, signal\_sha).
+  \item \textbf{Realized WR rolling:} 30-day, 90-day, 365-day windows on closed W1 positions.
+  \item \textbf{Drift alert:} If 30-day realized WR $< 70\%$, alert Joseph Forrester. Not auto-suspend.
+  \item \textbf{Architecture drift:} Nightly comparison of live selections against quarantine-kernel reference run on same bars. Divergence $> 1$ signal/day flagged.
+  \item \textbf{Quarterly re-validation:} Re-run \texttt{wave\_kernel\_run\_20260625.py} against updated production-equivalent \texttt{daily\_bars}. Expect WR drift $< 5$\,pp from 91.9\% baseline over 1 year.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────
+\section{Forbidden Modifications (The Lock)}
+
+The following are \textbf{forbidden without explicit Joseph Forrester approval AND a documented physics reason} (not a performance reason):
+
+\begin{enumerate}
+  \item \textbf{Modifying Wave~1 spec bands} — bar\_count $[1,20]$, $s_n$ $[0.954,0.969]$, $|\Delta s_n|$ $[0.67,0.72]$. Source: \texttt{structural\_wave\_alignment\_spec.tex} Definition~1.
+  \item \textbf{Replacing raw L0 with log L0} — Wave~1 measurement used raw prices. A different kernel requires full re-run before any WR claim. See \texttt{KERNEL\_PHILOSOPHY.md} §4.
+  \item \textbf{Adding ML, heuristics, smoothing, or stabilization} — destruction pattern \#2 per \texttt{KERNEL\_PHILOSOPHY.md} §3.
+  \item \textbf{Removing $s_n$ from production snapshots} once added — Wave~1 dies without $s_n$.
+  \item \textbf{Replacing Wave~1 with v3 basin or tuple-proximity} — 5-year walk-forward (SHA \sha{060b9aa}) returned $+1.31\%$/yr. The v3 basin cannot see $s_n$. See §2.
+  \item \textbf{Adjusting $\eta_h$, $\theta_+$, $F_{\max}$} to make ACCUMULATE reachable. ACCUMULATE is a dead branch.
+  \item \textbf{Disabling EXIT-F} — always active, cannot be removed.
+  \item \textbf{Increasing max concurrent positions above 30} without a measured basis.
+  \item \textbf{Using C13 or C123 as live entry gates} before resolving the zero-conjunction finding (§7 of canonical doc). See \texttt{KERNEL\_PHILOSOPHY.md} §8.5.
+\end{enumerate}
+
+Cross-references: \texttt{KERNEL\_PHILOSOPHY.md} §§4, 8, 8.5, 8.6, 8.7.
+
+% ─────────────────────────────────────────────────────────────
+\section{What v1.0 Does NOT Do (Stage 2 Roadmap)}
+\label{sec:stage2}
+
+\begin{description}[leftmargin=2.5cm, style=nextline]
+  \item[\textbf{Wave 2}] Species classification populates but does not filter or size in v1.0. C12 ($N=31$, WR $= 87.1\%$) has Wilson CI $[0.711, 0.949]$ — too wide for a sizing decision. More signal volume required.
+  \item[\textbf{Wave 3}] C13 $= 0$ signals. Not a selection condition in v1.0. SPY kernel choice (quarantine vs uf\_core) gives 41 vs 55 $D_k{=}+1$ dates; neither overlaps with 2021--2024 Wave~1 triggers. Requires separate investigation.
+  \item[\textbf{Structural exit}] Spec at \texttt{docs/structural\_exit\_assessment\_spec.tex}. Code not built. EXIT-TIME covers v1.0.
+  \item[\textbf{Multi-asset}] Futures, FX, crypto — same kernel structurally; deferred.
+  \item[\textbf{Multi-horizon}] 5d, 60d — v1.0 trades 20-day horizon only (matched to C1 measurement).
+  \item[\textbf{Conviction sizing}] W1$+$W3 at $1.5\times$; W1$+$W2$+$W3 at $2\times$ — deferred to Stage~2. Requires W3 validation.
+\end{description}
+
+% ─────────────────────────────────────────────────────────────
+\section{Document Change Log}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Date} & \textbf{Author} & \textbf{Change}\\
+\midrule
+2026-06-25 & wC + c1 & Inaugural version. Based on canonical W1 finding, SHA \sha{9fea032}.\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{2cm}
+\hrule
+\vspace{0.3cm}
+{\small\color{tfegray}
+This document was authored by wC (web Claude, Claude Opus~4.8) and c1 (Claude Sonnet~4.6) and confirmed by Joseph Forrester on 2026-06-25.
+All constants and line numbers cited verbatim from source files in branch \texttt{codex/persistent-etl-update-20260326} at SHA \sha{d1d9fd3}.
+}
+
+\end{document}
