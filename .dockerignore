@@ -28,6 +28,8 @@ web/tsconfig.tsbuildinfo
 !dsf_ai_service/
 !dsf_ai_service/**
 !tools/derive_sppu_weights.py
+!yolov8n.onnx
+!yolov8n.onnx
 
 # Root runtime files copied by the Dockerfile.
 !certs/
