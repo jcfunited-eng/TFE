@@ -1193,9 +1193,13 @@ function renderBrainSVG(data){
 
 async function pollBrain(){
   try{
-    const r=await fetchT(`${API}/api/v1/gualaloom/organ_brain_status`,
-      {headers:{'X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'}},4000);
-    renderBrainSVG(await r.json());
+    // Routes through the same API Gateway POST path all commands use
+    const r=await fetchT(`${API}/api/v1/gualaloom`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'},
+      body:JSON.stringify({text:'',command:'/brain_status'})},5000);
+    const d=await r.json();
+    if(!d.warming)renderBrainSVG(d);
   }catch(e){}
   setTimeout(pollBrain,15000);
 }
