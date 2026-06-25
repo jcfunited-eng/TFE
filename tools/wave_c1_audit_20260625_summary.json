@@ -1,0 +1,33 @@
+{
+  "command": "TFE-CMD-WAVE-COHORT-DIAGNOSTIC-WC-20260625-B",
+  "kernel_sha": "02e0d373658c2703f1916e0b9cc5b0e229d49646740efbc18fefc58bf770abd4",
+  "n_signals_total": 372,
+  "n_with_fwd20gates": 372,
+  "WR_20gates": 0.922043,
+  "mean_fwd_return_20gates": 0.15243,
+  "distribution_of_n_calendar_days_to_fwd20gates": {
+    "min": 28.0,
+    "p10": 31.0,
+    "p25": 31.0,
+    "p50": 31.0,
+    "p75": 31.0,
+    "p90": 32.0,
+    "max": 100.0
+  },
+  "n_with_fwd20cal": 372,
+  "WR_20cal": 0.922043,
+  "mean_fwd_return_20cal": 0.153065,
+  "n_with_fwd20bars": 372,
+  "WR_20bars": 0.919355,
+  "mean_fwd_return_20bars": 0.153316,
+  "n_signals_with_all_three": 372,
+  "WR_20gates_on_subset_all3": 0.922043,
+  "WR_20cal_on_subset_all3": 0.922043,
+  "WR_20bars_on_subset_all3": 0.919355,
+  "integrity": {
+    "sha_match": true,
+    "n_exact_372": true,
+    "wr_gates_reproduced": true
+  },
+  "wall_time_seconds": 9.9
+}
