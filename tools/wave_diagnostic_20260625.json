@@ -1,0 +1,80 @@
+{
+  "command": "TFE-CMD-WAVE-DIAGNOSTIC-WC-20260625",
+  "source_parquet": "wave_kernel_state_20260625.parquet",
+  "kernel_sha": "02e0d373658c2703f1916e0b9cc5b0e229d49646740efbc18fefc58bf770abd4",
+  "n_rows_total": 2964881,
+  "n_tickers": 2195,
+  "dk_transition_counts": {
+    "n_dk_0_to_plus1": 108274,
+    "n_dk_0_to_minus1": 48672,
+    "n_dk_plus1_to_0": 51911,
+    "n_dk_minus1_to_0": 103143,
+    "n_dk_plus1_to_minus1": 861211,
+    "n_dk_minus1_to_plus1": 805895,
+    "n_dk_unchanged": 983580
+  },
+  "s_n_distribution": {
+    "count": 2964881,
+    "min": 0.01867493,
+    "p1": 0.88298326,
+    "p5": 1.10494686,
+    "p25": 1.33333121,
+    "p50": 1.43857089,
+    "p75": 1.64735577,
+    "p95": 1.81998176,
+    "p99": 1.95418803,
+    "max": 2.41586636,
+    "count_in_wave1_band": 5661,
+    "wave1_band": [
+      0.954,
+      0.969
+    ]
+  },
+  "abs_delta_s_n_distribution": {
+    "count": 2962686,
+    "min": 1e-07,
+    "p1": 0.00242434,
+    "p5": 0.01314083,
+    "p25": 0.06477133,
+    "p50": 0.20218271,
+    "p75": 0.3709634,
+    "p95": 0.63704614,
+    "p99": 0.90103585,
+    "max": 1.7060043,
+    "count_in_wave1_band": 28432,
+    "wave1_band": [
+      0.67,
+      0.72
+    ]
+  },
+  "joint_wave1_count": 431,
+  "joint_wave1_at_dk_transition_count": 429,
+  "F_n_distribution": {
+    "count": 2964881,
+    "min": 0.44371939,
+    "p1": 1.38349341,
+    "p5": 1.61188862,
+    "p25": 1.7748678,
+    "p50": 1.90413791,
+    "p75": 2.09832491,
+    "p95": 2.32195953,
+    "p99": 2.5783145,
+    "max": 3.09494074,
+    "count_lte_1_65": 218299,
+    "count_lte_0_45": 1
+  },
+  "chi_n_distribution": {
+    "count_0": 0,
+    "count_1": 2964881
+  },
+  "spy_dk_transition_counts": {
+    "n_spy_dk_0_to_plus1": 37,
+    "n_spy_dk_at_plus1": 41,
+    "note": "quarantine kernel on SPY: D_k=+1 on 41 rows. Prior dispatch (uf_core kernel on SPY): 55 rows. Different kernels, different gate counts."
+  },
+  "integrity_checks": {
+    "kernel_sha_match": true,
+    "row_count_match": true
+  },
+  "wall_time_seconds": 3.2
+}
