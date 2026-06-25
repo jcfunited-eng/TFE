@@ -39,7 +39,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 #upload-bar{display:flex;gap:4px;padding:4px 14px;background:var(--bg-alt);border-top:1px solid var(--border);align-items:center;flex-wrap:wrap}
 .upload-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:3px 8px;border-radius:4px;font-family:inherit;font-size:10px;cursor:pointer}
 .upload-btn:hover{border-color:var(--accent);color:var(--text)}
-#cam-preview{display:none;width:80px;height:60px;border-radius:4px;border:1px solid var(--border);object-fit:cover;position:fixed;bottom:60px;right:10px;z-index:50;opacity:0.8}
+#cam-preview{display:none;width:160px;height:120px;border-radius:4px;border:2px solid var(--border);object-fit:cover;position:fixed;bottom:70px;right:14px;z-index:50;opacity:0.9;cursor:move;resize:both;overflow:hidden;min-width:80px;min-height:60px;max-width:480px;max-height:360px;box-shadow:0 2px 8px rgba(0,0,0,0.4)}
 #input-row{padding:8px 14px;border-top:1px solid var(--border);background:var(--bg-alt);display:flex;gap:6px;align-items:center}
 #input-row input{flex:1;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:11px;outline:none}
 #input-row input:focus{border-color:var(--accent)}
@@ -309,6 +309,28 @@ document.addEventListener('click',unlockAudio,{once:true});
 document.addEventListener('keydown',unlockAudio,{once:true});
 document.addEventListener('touchstart',unlockAudio,{once:true});
 function toggleMute(){muted=!muted;document.getElementById('mute-toggle').textContent=muted?'muted':'unmuted';if(muted)window.speechSynthesis.cancel()}
+
+// Camera drag-to-move
+(()=>{
+  const el=document.getElementById('cam-preview');
+  if(!el)return;
+  let ox=0,oy=0,dragging=false;
+  el.addEventListener('mousedown',e=>{
+    // Only drag from top half (bottom half is resize handle)
+    if(e.offsetY>el.clientHeight*0.7)return;
+    dragging=true;
+    ox=e.clientX-el.getBoundingClientRect().left;
+    oy=e.clientY-el.getBoundingClientRect().top;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!dragging)return;
+    el.style.right='auto';el.style.bottom='auto';
+    el.style.left=(e.clientX-ox)+'px';
+    el.style.top=(e.clientY-oy)+'px';
+  });
+  document.addEventListener('mouseup',()=>{dragging=false});
+})();
 
 // --- C1: Voice output via speechSynthesis ---
 let preferredVoice=null;
