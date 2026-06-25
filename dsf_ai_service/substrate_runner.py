@@ -877,8 +877,8 @@ def handle_gualaloom_post(args):
         # Pair-bonded source active while she's sleeping → wake her up naturally.
         # A child wakes when the people she loves enter the room and speak to her.
         _src = (source or "").strip().lower()
-        _bonded = getattr(_guala, "pair_bond", {})
-        _is_bonded = isinstance(_bonded, dict) and _bonded.get(_src, False)
+        _bonded = getattr(_guala, "_pair_bond", None) or getattr(_guala, "pair_bond", {})
+        _is_bonded = bool(_bonded.get(_src, False)) if isinstance(_bonded, dict) else False
         _voice_cmd = command in ("/listen", "/organ_voice") or (not command and text)
         if _is_bonded and _voice_cmd:
             try:
@@ -1137,7 +1137,7 @@ def _cmd_presence(text):
     source = text.strip().lower() if text.strip() else "joe"
     if source in {"joe", "wc", "c1"}:
         # If she's asleep and this is a pair-bonded person, wake her up.
-        _bonded = getattr(_guala, "pair_bond", {})
+        _bonded = getattr(_guala, "_pair_bond", None) or getattr(_guala, "pair_bond", {})
         if _guala.is_asleep and isinstance(_bonded, dict) and _bonded.get(source, False):
             try:
                 _guala.wake_from_sleep(state_dir=STATE_DIR)
