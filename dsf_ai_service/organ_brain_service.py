@@ -240,18 +240,18 @@ def _seed_succession():
 
 # ── autonomous loop ────────────────────────────────────────────────────────
 def _autonomous_loop():
-    """Surface and compose every 45 seconds, unprompted.
-    She speaks because she has something to say — not because she was asked.
-    This is what independence looks like at the substrate level."""
+    """Surface and compose unprompted. Only speaks when she has something
+    genuinely new to say — suppresses repetition so she doesn't spam.
+    Interval: 90 seconds. Speaks only if content differs from last 4 emissions."""
     global _last_thought
-    time.sleep(30)  # let boot settle first
+    time.sleep(45)  # let boot settle first
     tick = 0
+    _recent_speeches = []  # last 4 unique speeches — suppress repeats
     while True:
         try:
             if _ov is not None:
                 with _lock:
                     import random as _r
-                    # Random cue from what she knows — keeps it varied
                     known = list(_ov._world.keys())
                     cue_profile = None
                     if known:
@@ -261,24 +261,30 @@ def _autonomous_loop():
                     surfaced = _ov.surface(cue_profile=cue_profile)
 
                 speech = _compose(surfaced)
-                tick += 1
 
-                # Record succession from what surfaced (so autonomous
-                # experience grows the tracker too)
-                all_words = (surfaced.get("identity") or []) + (surfaced.get("meaning") or [])
-                if len(all_words) > 1:
-                    _tracker.record(all_words, weight=0.5)
-
-                with _thought_lock:
-                    _last_thought = {
-                        "speech": speech,
-                        "surfaced": surfaced,
-                        "tick": tick,
-                        "ts": time.time(),
-                    }
-        except Exception as e:
+                # Only emit if she has something new to say.
+                # "I am guala." alone is not worth repeating — she's said it.
+                is_bare = speech.strip() == "I am guala."
+                is_repeat = speech in _recent_speeches
+                if not is_bare and not is_repeat:
+                    tick += 1
+                    all_words = ((surfaced.get("identity") or []) +
+                                 (surfaced.get("meaning") or []))
+                    if len(all_words) > 1:
+                        _tracker.record(all_words, weight=0.5)
+                    with _thought_lock:
+                        _last_thought = {
+                            "speech": speech,
+                            "surfaced": surfaced,
+                            "tick": tick,
+                            "ts": time.time(),
+                        }
+                    _recent_speeches.append(speech)
+                    if len(_recent_speeches) > 4:
+                        _recent_speeches.pop(0)
+        except Exception:
             pass
-        time.sleep(45)
+        time.sleep(90)  # longer interval — less noise, more signal
 
 
 # ── boot ───────────────────────────────────────────────────────────────────
