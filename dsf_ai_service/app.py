@@ -1302,6 +1302,13 @@ async def gualaloom_chat(msg: GLMessage):
             return resp
         except Exception:
             return {"speech": "", "tick": 0}
+    if _cmd == "/where":
+        try:
+            import urllib.request as _ur, json as _js
+            resp = _js.load(_ur.urlopen(f"{_ob_url}/where", timeout=3))
+            return resp
+        except Exception:
+            return {"location": "her_room", "description": "her room"}
     if (msg.command or "").strip().lower() == "/organ_voice":
         try:
             import urllib.request as _ur, json as _js

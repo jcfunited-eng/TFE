@@ -91,7 +91,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
   </div>
 </header>
 <div id="stats-line">she is still loading...</div>
-<div id="activity-line" style="padding:2px 14px;font-size:9px;color:var(--ev-activity);background:var(--bg-alt);border-bottom:1px solid var(--border);display:flex;align-items:center"><span id="activity-text"></span><span id="activity-thumb" style="display:none"></span></div>
+<div id="activity-line" style="padding:2px 14px;font-size:9px;color:var(--ev-activity);background:var(--bg-alt);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px"><span id="activity-text"></span><span id="activity-thumb" style="display:none"></span><span id="location-text" style="color:var(--text-muted);font-size:8px;margin-left:auto"></span></div>
 <div id="needs-line" style="padding:2px 14px;font-size:8px;color:var(--text-muted);background:var(--bg-alt);border-bottom:1px solid var(--border)"></div>
 <audio id="voice" style="display:none"></audio>
 <div id="main-area">
@@ -1055,6 +1055,22 @@ async function backgroundReplay(){
   finally{_inflight.replay=false;_schedNext('replay',backgroundReplay)}
 }
 
+// --- Location polling ---
+let _lastLocation='';
+async function pollLocation(){
+  try{
+    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:'',command:'/where'})},4000);
+    const d=await r.json();
+    if(d.description&&d.description!==_lastLocation){
+      _lastLocation=d.description;
+      const el=document.getElementById('location-text');
+      if(el)el.textContent='in '+d.description;
+    }
+  }catch(e){}
+  setTimeout(pollLocation,30000);
+}
+
 // --- Autonomous thought polling (independence) ---
 // She speaks because she has something to say — not because she was asked.
 let _lastThoughtTick=-1;
@@ -1089,6 +1105,7 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
 (()=>{
   addMsg('Guala ready.','system');msgInput.focus();
   setTimeout(pollAutonomousThought,35000); // let her boot, then start listening
+  setTimeout(pollLocation,20000);           // show where she is
   // Non-blocking boot: try status, don't fail if slow
   pollStatus();
   // v7/state — populates side panel (substrate, pools, intro/aware, NMDA, events)

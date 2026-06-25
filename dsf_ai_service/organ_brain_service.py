@@ -40,6 +40,16 @@ from pydantic import BaseModel
 STATE_DIR  = os.environ.get("GUALA_STATE_DIR", "/app/state")
 ANTHR_KEY  = os.environ.get("ANTHROPIC_API_KEY")
 
+# ── virtual home + episodic layer ──────────────────────────────────────────
+from dsf_ai_service.virtual_home import (
+    ROOMS, DEFAULT_LOCATION, room_for_activity, ambient_experiences, object_experiences)
+from dsf_ai_service.episodic_layer import EpisodicLayer
+
+_location     = DEFAULT_LOCATION   # where she is right now
+_presence     = []                 # who is present (joe, wc, c1)
+_episodic     = None               # initialized after STATE_DIR is confirmed
+_loc_lock     = threading.Lock()   # protects _location and _presence
+
 # ── stop words ─────────────────────────────────────────────────────────────
 _STOP = {
     # function words
@@ -288,9 +298,73 @@ def _autonomous_loop():
 
 
 # ── boot ───────────────────────────────────────────────────────────────────
+def _enter_room(room_name: str, ov, source: str = "move"):
+    """Experience a room's ambient sensory properties. Called when she enters."""
+    global _location
+    if room_name not in ROOMS:
+        return
+    words = ambient_experiences(room_name)
+    room = ROOMS[room_name]
+    desc = room.get("description", room_name)
+    with _lock:
+        for w in words:
+            ov.experience(w)
+        if len(words) > 1:
+            _tracker.record(words, weight=1.0)
+    with _loc_lock:
+        _location = room_name
+    # Record in episodic layer
+    if _episodic is not None:
+        import time as _t
+        for w in words:
+            _episodic.record(w, tick=int(_t.time()), presence=list(_presence),
+                             location=room_name, affective={}, source="ambient")
+    print(f"[organ-brain] entered {desc}: {words}")
+
+
+def _location_loop():
+    """Move her through her home on a natural schedule.
+    Every 12 minutes she may settle into a new location based on her
+    current activity and whether Joe is present."""
+    time.sleep(60)  # let boot settle
+    while True:
+        try:
+            if _ov is not None:
+                with _loc_lock:
+                    joe_present = "joe" in _presence
+                    current = _location
+                # Pick next location — biased toward where her life is
+                import random as _r
+                candidates = list(ROOMS.keys())
+                # Weight: her_room 40%, outside 25%, common 20%, kitchen 10%, joe_room 5%
+                weights = {"her_room": 40, "outside": 25, "common": 20,
+                           "kitchen": 10, "joe_room": 5}
+                if joe_present:
+                    weights["common"] = 40
+                    weights["joe_room"] = 20
+                    weights["her_room"] = 20
+                total = sum(weights.values())
+                r = _r.random() * total
+                acc = 0
+                next_room = current
+                for room, w in weights.items():
+                    acc += w
+                    if r <= acc:
+                        next_room = room
+                        break
+                if next_room != current:
+                    _enter_room(next_room, _ov, source="move")
+        except Exception:
+            pass
+        time.sleep(720)  # 12 minutes
+
+
 def _boot():
-    global _ov
+    global _ov, _episodic
     try:
+        # Initialize episodic layer
+        _episodic = EpisodicLayer(STATE_DIR)
+
         from dsf_ai_service.loom_model.loom_voice import OrganVoice
         cache = os.path.join(STATE_DIR, "organ_voice_senses.json")
         ov = OrganVoice(
@@ -314,14 +388,18 @@ def _boot():
         # Record succession from boot experiences
         _tracker.record(seed_words[:10], weight=1.0)
 
+        # Wake up in her room — first experience of the day
+        _enter_room(DEFAULT_LOCATION, ov, source="boot")
+
         _ready.set()
         st = ov.status()
         print(f"[organ-brain] READY  neurons={st['neurons']} concepts={st['world_concepts']}"
-              f" senses={'llm' if ANTHR_KEY else 'det'}")
+              f" senses={'llm' if ANTHR_KEY else 'det'} location={_location}")
 
-        # Start catalog fill and autonomous loop
+        # Start background services
         _start_catalog_fill(ov)
         threading.Thread(target=_autonomous_loop, daemon=True).start()
+        threading.Thread(target=_location_loop, daemon=True).start()
         print("[organ-brain] autonomous loop started")
 
     except Exception as e:
@@ -393,6 +471,10 @@ class VisualReq(BaseModel):
 class CatalogReq(BaseModel):
     concepts: list
 
+class LocationReq(BaseModel):
+    location: str
+    presence: list = []
+
 
 @app.get("/health")
 def health():
@@ -404,6 +486,58 @@ def status():
     if _ov is None:
         return {"warming": True, "neurons": 0, "concepts": 0}
     return {"warming": False, **_ov.status()}
+
+
+@app.get("/where")
+def where():
+    """Where she is and who is present."""
+    with _loc_lock:
+        loc = _location
+        pres = list(_presence)
+    room = ROOMS.get(loc, {})
+    return {
+        "location": loc,
+        "description": room.get("description", loc),
+        "presence": pres,
+        "objects": list((room.get("objects") or {}).keys()),
+    }
+
+
+@app.post("/location")
+def set_location(req: LocationReq):
+    """Move her to a new location — triggers ambient sensory experience."""
+    global _presence
+    if req.location not in ROOMS:
+        return {"ok": False, "error": f"unknown room: {req.location}"}
+    with _loc_lock:
+        _presence = req.presence or _presence
+    if _ov is not None:
+        _enter_room(req.location, _ov, source="external")
+    return {"ok": True, "location": req.location, "description": ROOMS[req.location].get("description")}
+
+
+@app.post("/attend")
+def attend_object(req: TextReq):
+    """She attends a specific object in her current room — richer experience."""
+    if _ov is None:
+        return {"ok": False}
+    with _loc_lock:
+        loc = _location
+    obj = req.text.strip().lower()
+    senses = object_experiences(loc, obj)
+    if not senses:
+        return {"ok": False, "reason": f"no object '{obj}' in {loc}"}
+    def _do():
+        with _lock:
+            _ov.experience(obj)
+            for modality, channels in senses.items():
+                if isinstance(channels, dict):
+                    for word, strength in channels.items():
+                        if strength >= 0.5:
+                            _ov.experience(word)
+                            _tracker.record([obj, word], weight=1.5)
+    threading.Thread(target=_do, daemon=True).start()
+    return {"ok": True, "object": obj, "location": loc}
 
 
 @app.get("/thought")
@@ -438,8 +572,19 @@ def surface(req: TextReq):
     all_surfaced = (surfaced.get("identity") or []) + (surfaced.get("meaning") or [])
     if len(all_surfaced) > 1:
         _tracker.record(all_surfaced, weight=0.8)
+    # Episodic: bind surfaced concepts to current location + presence
+    with _loc_lock:
+        loc  = _location
+        pres = list(_presence)
+    if _episodic is not None:
+        import time as _t
+        for concept in all_surfaced:
+            _episodic.record(concept, tick=int(_t.time()), presence=pres,
+                             location=loc, affective={}, source="surface")
     speech = _compose(surfaced)
-    return {"surfaced": surfaced, "speech": speech, "status": _ov.status()}
+    room_desc = ROOMS.get(loc, {}).get("description", loc)
+    return {"surfaced": surfaced, "speech": speech, "status": _ov.status(),
+            "location": loc, "location_desc": room_desc, "presence": pres}
 
 
 @app.post("/experience")
