@@ -44,6 +44,67 @@ TZ_OFFSET_HOURS = int(os.environ.get("GUALA_TZ_OFFSET", "-5"))
 
 STATE_FILE = None  # set by WorldState.__init__
 
+DEFAULT_LOCATION = "her_room"
+
+# Room registry — W1 has one room. W2 adds doors.
+ROOMS = {
+    "her_room": {
+        "description": "her room",
+        "objects": list,   # resolved via OBJECTS dict
+    },
+    # W2 rooms (stubs — not yet fully defined)
+    "hallway":  {"description": "the hallway",  "objects": []},
+    "library":  {"description": "the library",  "objects": []},
+    "tv_room":  {"description": "the TV room",  "objects": []},
+    "joe_room": {"description": "daddy's room", "objects": []},
+    "wc_room":  {"description": "wC's room",    "objects": []},
+    "backyard": {"description": "the backyard", "objects": []},
+    "outside":  {"description": "outside",      "objects": []},
+    "kitchen":  {"description": "the kitchen",  "objects": []},
+    "common":   {"description": "the living room","objects": []},
+}
+
+
+def ambient_experiences(room_name: str) -> list:
+    """Ambient sensory words for a room (simple, for non-her_room rooms).
+    Her room uses WorldState.ambient_words() for live object states."""
+    ambients = {
+        "her_room":  ["soft", "warm"],
+        "joe_room":  ["warm", "earthy"],
+        "hallway":   ["fresh", "warm"],
+        "library":   ["earthy", "fresh"],
+        "tv_room":   ["warm"],
+        "backyard":  ["fresh", "cool", "earthy"],
+        "outside":   ["fresh", "cool"],
+        "kitchen":   ["sweet", "warm", "fruity"],
+        "common":    ["warm", "fresh"],
+    }
+    return ambients.get(room_name, ["warm"])
+
+
+def object_experiences(room_name: str, obj_name: str) -> dict:
+    """Sensory profile for attending a specific object in a room."""
+    obj = OBJECTS.get(obj_name, {})
+    if not obj:
+        return {}
+    # Return first verb's experience as a proxy for attending
+    verbs = obj.get("verbs", {})
+    if verbs:
+        first = next(iter(verbs.values()))
+        return first.get("experience", {})
+    return {}
+
+
+def room_for_activity(activity_kind: str, joe_present: bool) -> str:
+    """Suggest a location based on her current activity and Joe's presence."""
+    if activity_kind in ("SLEEPING", "DREAMING"):
+        return "her_room"
+    if joe_present:
+        return "common"
+    if activity_kind == "READING":
+        return "common"
+    return "her_room"
+
 # ── Real-time sky ───────────────────────────────────────────────────────────
 def local_hour() -> float:
     """Current hour in Joe's local time (fractional)."""
