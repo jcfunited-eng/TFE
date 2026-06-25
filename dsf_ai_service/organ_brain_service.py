@@ -195,23 +195,20 @@ def _pour_atlas():
         path = os.path.join(STATE_DIR, "guala_sections.json")
         with open(path) as f:
             data = json.load(f)
-        # Gather concept → total motif count across all sections
+        # Structure: {section_name: {"modes": [{"word": w, "dsf": [...], "chi": ...}], ...}}
+        # Words live in modes[i]["word"] — NOT as dict keys. A word appearing in
+        # multiple sections (listen, subject, verb...) is more central — count occurrences.
         counts: dict = {}
         for section in data.values():
             if not isinstance(section, dict):
                 continue
-            for word, entry in section.items():
-                if not (isinstance(word, str) and word.isalpha() and len(word) > 2):
+            for mode in (section.get("modes") or []):
+                w = mode.get("word", "")
+                if not (isinstance(w, str) and w.isalpha() and len(w) > 2):
                     continue
-                w = word.lower()
-                if isinstance(entry, dict):
-                    n = entry.get("motif_count") or entry.get("count") or 1
-                elif isinstance(entry, (int, float)):
-                    n = int(entry)
-                else:
-                    n = 1
-                counts[w] = counts.get(w, 0) + n
-        # Pour top 300 by combined motif count — her richest memories first
+                wl = w.lower()
+                counts[wl] = counts.get(wl, 0) + 1
+        # Pour top 300 by cross-section frequency — most recurring concepts first
         top = sorted(counts, key=lambda w: counts[w], reverse=True)[:300]
         top = [w for w in top if w not in _STOP and w not in _VERBS]
         print(f"[organ-brain] atlas pour: {len(top)} concepts from v5 memory")
@@ -559,16 +556,21 @@ def _start_catalog_fill(ov):
 
 
 def _load_vocab_from_state():
+    """Extract vocabulary from guala_sections.json.
+    Structure: {section_name: {"modes": [{"word": w, "dsf": [...], "chi": ...}, ...], ...}}
+    Words live inside modes[i]["word"], not as dict keys."""
     try:
         path = os.path.join(STATE_DIR, "guala_sections.json")
         with open(path) as f:
             data = json.load(f)
         words = set()
         for section in data.values():
-            if isinstance(section, dict):
-                for key in section:
-                    if isinstance(key, str) and key.isalpha() and len(key) > 2:
-                        words.add(key.lower())
+            if not isinstance(section, dict):
+                continue
+            for mode in (section.get("modes") or []):
+                w = mode.get("word", "")
+                if isinstance(w, str) and w.isalpha() and len(w) > 2:
+                    words.add(w.lower())
         return list(words)
     except Exception:
         return []
