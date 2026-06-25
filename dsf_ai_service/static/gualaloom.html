@@ -1055,6 +1055,22 @@ async function backgroundReplay(){
   finally{_inflight.replay=false;_schedNext('replay',backgroundReplay)}
 }
 
+// --- Autonomous thought polling (independence) ---
+// She speaks because she has something to say — not because she was asked.
+let _lastThoughtTick=-1;
+async function pollAutonomousThought(){
+  try{
+    const r=await fetchT(`${API}/api/v1/gualaloom/thought`,{},5000);
+    const d=await r.json();
+    if(d.speech&&d.tick&&d.tick!==_lastThoughtTick){
+      _lastThoughtTick=d.tick;
+      addEmissionMsg(d.speech,null);
+      gualaSpeak(d.speech);
+    }
+  }catch(e){}
+  setTimeout(pollAutonomousThought,20000);
+}
+
 // --- Presence Heartbeat ---
 let lastActivity=Date.now();
 ['mousemove','keydown','scroll','touchstart'].forEach(e=>document.addEventListener(e,()=>{lastActivity=Date.now()},{passive:true}));
@@ -1071,6 +1087,7 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
 // --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
 (()=>{
   addMsg('Guala ready.','system');msgInput.focus();
+  setTimeout(pollAutonomousThought,35000); // let her boot, then start listening
   // Non-blocking boot: try status, don't fail if slow
   pollStatus();
   // v7/state — populates side panel (substrate, pools, intro/aware, NMDA, events)

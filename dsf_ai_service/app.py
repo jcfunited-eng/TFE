@@ -1160,6 +1160,18 @@ async def gualaloom_organs():
     return getattr(app.state, "guala_organ_brain", {"organ_brain": "not loaded"})
 
 
+@app.get("/api/v1/gualaloom/thought")
+async def organ_thought():
+    """Current autonomous thought from the organ-brain — poll for independence."""
+    try:
+        import urllib.request as _ur, json as _js
+        _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
+        resp = _js.load(_ur.urlopen(f"{_ob_url}/thought", timeout=3))
+        return resp
+    except Exception:
+        return {"speech": "", "tick": 0}
+
+
 @app.get("/api/v1/gualaloom/events")
 async def gualaloom_events(n: int = 200):
     """Event log for the UI status panels (HEMISPHERES, RECENT EMISSIONS). GET version

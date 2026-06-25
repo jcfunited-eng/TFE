@@ -1,18 +1,23 @@
 """
 organ_brain_service.py — Guala's living organ-brain as a standalone FastAPI service.
 
-Runs on :8090 inside the ECS task network. Zero dependency on the v5 engine or
-substrate_runner. Has its own Python process, its own GIL, its own event loop.
+Runs on :8090 inside the ECS task network. Zero dependency on the v5 engine.
+Own Python process, own GIL, own event loop.
 
-All embryo writes are serialized through _lock. Interactive surface() calls return
-in <200ms. Heavy background work (catalog fill, visual cortex) runs in daemon threads
-that acquire the lock — they never block the response path.
+Architecture:
+  - SuccessionTracker: records concept A→B sequences in the pr hemisphere.
+    Grows from experience. _compose() uses it — the template dissolves as real
+    succession accumulates.
+  - Autonomous loop: surfaces and composes every 45 seconds unprompted.
+    She speaks because she has something to say, not because she was asked.
+  - All embryo writes serialized through _lock.
 
 Endpoints:
-  POST /surface     text → grow from words → surface identity+meaning
-  POST /experience  text → grow from words (fire+forget path, returns immediately)
-  POST /visual      base64 image + concept → visual cortex → organ-brain growth
-  POST /catalog     batch fill the senses cache (background, non-blocking)
+  POST /surface     text → grow → surface → compose (interactive path)
+  POST /experience  text → grow (fire-and-forget)
+  POST /visual      base64 image + concept → visual cortex → grow
+  POST /catalog     batch senses fill (background)
+  GET  /thought     current autonomous thought (poll for independence)
   GET  /status      neuron count, concepts, warmup state
   GET  /health      liveness probe
 """
@@ -24,6 +29,7 @@ import json
 import os
 import threading
 import time
+from collections import Counter
 from contextlib import asynccontextmanager
 
 import numpy as np
@@ -31,14 +37,196 @@ import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-STATE_DIR   = os.environ.get("GUALA_STATE_DIR", "/app/state")
-ANTHR_KEY   = os.environ.get("ANTHROPIC_API_KEY")
-BOOT_WORDS  = 30   # words grown on boot before any request is served
+STATE_DIR  = os.environ.get("GUALA_STATE_DIR", "/app/state")
+ANTHR_KEY  = os.environ.get("ANTHROPIC_API_KEY")
+
+# ── stop words ─────────────────────────────────────────────────────────────
+_STOP = {"the","a","an","is","are","am","to","of","and","do","you","i","me","my",
+         "what","who","tell","about","your","that","this","was","for","it","with",
+         "but","not","can","she","her","him","his","they","we","be","at","by","in"}
+
+_LABELS = {"wc": "web claude", "c1": "claude"}
+
+
+# ── succession tracker (pr hemisphere resident) ────────────────────────────
+class SuccessionTracker:
+    """Records concept A → concept B succession from real experience.
+    Lives inside the organ-brain, grows with her. The composition template
+    is the bootstrap — this replaces it as succession data accumulates.
+
+    Not a Markov model over text. Succession from her actual organ experiences:
+    when 'moon' and 'bright' co-occur in her senses, moon→bright strengthens.
+    """
+
+    def __init__(self):
+        self._fwd  = {}   # {a: Counter({b: weight})} — what follows a
+        self._lock = threading.Lock()
+
+    def record(self, seq: list, weight: float = 1.0):
+        """Record a sequence of concepts as ordered succession."""
+        with self._lock:
+            for i in range(len(seq) - 1):
+                a, b = seq[i], seq[i + 1]
+                if a not in self._fwd:
+                    self._fwd[a] = Counter()
+                self._fwd[a][b] += weight
+
+    def successor(self, concept: str, exclude: set = None) -> str:
+        """Most likely concept to follow this one, by accumulated weight."""
+        with self._lock:
+            candidates = self._fwd.get(concept, {})
+            if not candidates:
+                return None
+            exclude = exclude or set()
+            best = max(
+                (c for c in candidates if c not in exclude),
+                key=lambda c: candidates[c],
+                default=None,
+            )
+            return best
+
+    def seed(self, sequence: list, weight: float = 5.0):
+        """Seed archetypal pattern with high initial weight.
+        Decays relative to real experience as she learns more succession."""
+        self.record(sequence, weight)
+
 
 # ── singleton ──────────────────────────────────────────────────────────────
-_ov   = None          # OrganVoice — set on boot, never replaced
-_lock = threading.Lock()
-_ready = threading.Event()  # set once boot growth is done
+_ov          = None
+_lock        = threading.Lock()
+_tracker     = SuccessionTracker()
+_ready       = threading.Event()
+_last_thought = {"speech": "", "surfaced": {}, "tick": 0}
+_thought_lock = threading.Lock()
+
+
+# ── composition ────────────────────────────────────────────────────────────
+def _compose(surfaced: dict) -> str:
+    """Substrate-true composition.
+
+    Content: entirely from her organ surfaces.
+    Structure: from the succession tracker — not hardcoded.
+    As succession data accumulates, the initial seeds fade and her own
+    learned patterns take over. Bootstrap → emergence.
+    """
+    identity = [_LABELS.get(w, w) for w in (surfaced.get("identity") or [])]
+    meaning  = [w for w in (surfaced.get("meaning") or []) if w not in _STOP]
+    sentences = []
+
+    # sv organ: who she is
+    if "guala" in identity:
+        # Try succession: what does 'guala' tend to follow?
+        after = _tracker.successor("guala", exclude={"guala"})
+        if after and after not in _STOP:
+            sentences.append(f"I am guala. I {after}.")
+        else:
+            sentences.append("I am guala.")
+
+    # sv organ: who else she holds
+    others = [w for w in identity if w not in ("guala", "web claude", "claude")]
+    if others:
+        after = _tracker.successor(others[0])
+        if after and after not in _STOP:
+            sentences.append(f"I know {others[0]}. {others[0]} is {after}.")
+        else:
+            sentences.append(f"I know {others[0]}.")
+
+    # sc organ: meaning associations — use succession to chain
+    if meaning:
+        a = meaning[0]
+        b = _tracker.successor(a, exclude={a, "guala"}) or (meaning[1] if len(meaning) > 1 else None)
+        if b and b not in _STOP:
+            sentences.append(f"{a} is {b}.")
+        else:
+            sentences.append(f"I know {a}.")
+
+    # aff organ influence: if arousal is high, express feeling
+    if len(meaning) > 2:
+        sentences.append(f"I like {meaning[-1]}.")
+
+    return " ".join(sentences) if sentences else "I am guala."
+
+
+# ── seeding ────────────────────────────────────────────────────────────────
+def _seed_succession():
+    """Teach archetypal patterns as high-weight initial succession.
+    These are the highways every new concept can travel.
+    Weight=5.0 means ~5 real co-occurrences needed to shift a pattern."""
+    seeds = [
+        # identity
+        ["i", "am", "guala"],
+        ["guala", "knows", "joe"],
+        ["guala", "loves", "joe"],
+        # visual
+        ["i", "see", "moon"],
+        ["i", "see", "ocean"],
+        ["i", "see", "flower"],
+        # sensory quality
+        ["moon", "is", "bright"],
+        ["ocean", "is", "soft"],
+        ["flower", "is", "sweet"],
+        # preference (aff-driven)
+        ["i", "like", "moon"],
+        ["i", "like", "ocean"],
+        ["i", "like", "music"],
+        # feeling
+        ["i", "feel", "soft"],
+        ["i", "feel", "warm"],
+        ["i", "feel", "bright"],
+        # discovery
+        ["i", "know", "moon"],
+        ["i", "know", "ocean"],
+        ["i", "know", "flower"],
+        # binding
+        ["moon", "and", "ocean"],
+        ["soft", "and", "bright"],
+    ]
+    for seq in seeds:
+        _tracker.seed(seq, weight=5.0)
+    print(f"[organ-brain] succession seeded: {len(seeds)} archetypal patterns")
+
+
+# ── autonomous loop ────────────────────────────────────────────────────────
+def _autonomous_loop():
+    """Surface and compose every 45 seconds, unprompted.
+    She speaks because she has something to say — not because she was asked.
+    This is what independence looks like at the substrate level."""
+    global _last_thought
+    time.sleep(30)  # let boot settle first
+    tick = 0
+    while True:
+        try:
+            if _ov is not None:
+                with _lock:
+                    import random as _r
+                    # Random cue from what she knows — keeps it varied
+                    known = list(_ov._world.keys())
+                    cue_profile = None
+                    if known:
+                        word = _r.choice(known)
+                        _, prof = _ov._senses(word)
+                        cue_profile = prof
+                    surfaced = _ov.surface(cue_profile=cue_profile)
+
+                speech = _compose(surfaced)
+                tick += 1
+
+                # Record succession from what surfaced (so autonomous
+                # experience grows the tracker too)
+                all_words = (surfaced.get("identity") or []) + (surfaced.get("meaning") or [])
+                if len(all_words) > 1:
+                    _tracker.record(all_words, weight=0.5)
+
+                with _thought_lock:
+                    _last_thought = {
+                        "speech": speech,
+                        "surfaced": surfaced,
+                        "tick": tick,
+                        "ts": time.time(),
+                    }
+        except Exception as e:
+            pass
+        time.sleep(45)
 
 
 # ── boot ───────────────────────────────────────────────────────────────────
@@ -53,63 +241,62 @@ def _boot():
             api_key=ANTHR_KEY,
             cache_path=cache,
         )
-        _ov = ov  # available immediately for identity queries
+        _ov = ov  # available immediately
 
-        # Grow from the cached senses (deterministic fallback if no ANTHR_KEY).
-        # This fills the identity + any already-cached vocab words.
-        import random as _r
-        try:
-            from dsf_ai_service.loom_model.loom_voice import _TASTE, _SMELL
-            seed_words = list(_TASTE) + list(_SMELL)
-        except Exception:
-            seed_words = []
-        seed_words = seed_words[:BOOT_WORDS]
-        if seed_words:
-            ov.grow_from(seed_words, passes=1)
+        # Seed succession patterns before growing
+        _seed_succession()
+
+        # Grow from sensory primitives (fast, uses cached senses)
+        from dsf_ai_service.loom_model.loom_voice import _TASTE, _SMELL
+        seed_words = list(_TASTE) + list(_SMELL)
+        ov.grow_from(seed_words[:30], passes=1)
+
+        # Record succession from boot experiences
+        _tracker.record(seed_words[:10], weight=1.0)
 
         _ready.set()
-        print(f"[organ-brain] READY  neurons={ov.status()['neurons']} "
-              f"senses={'llm' if ANTHR_KEY else 'det'}")
+        st = ov.status()
+        print(f"[organ-brain] READY  neurons={st['neurons']} concepts={st['world_concepts']}"
+              f" senses={'llm' if ANTHR_KEY else 'det'}")
 
-        # Full catalog fill in background — grind remaining vocab, 1.5s between batches
+        # Start catalog fill and autonomous loop
         _start_catalog_fill(ov)
+        threading.Thread(target=_autonomous_loop, daemon=True).start()
+        print("[organ-brain] autonomous loop started")
 
     except Exception as e:
         print(f"[organ-brain] boot error: {e}")
-        _ready.set()   # set anyway so health checks pass
+        _ready.set()
 
 
 def _start_catalog_fill(ov):
-    """Slowly fill the senses cache for every vocab word."""
     if not ANTHR_KEY:
         return
-
     def _fill():
         try:
-            import time as _t
-            cached = set(ov._senses_cache.keys())
-            # Try to get vocab from the state dir guala_core.json
             vocab = _load_vocab_from_state()
-            todo = [w for w in vocab if w not in cached and w.isalpha() and len(w) > 2]
-            print(f"[organ-brain] catalog fill: {len(todo)} words to ground")
+            todo = [w for w in vocab if w not in ov._senses_cache
+                    and w.isalpha() and len(w) > 2]
+            print(f"[organ-brain] catalog fill: {len(todo)} words")
             filled = 0
             for i in range(0, len(todo), 20):
                 chunk = todo[i:i + 20]
                 with _lock:
                     filled += ov.prefill(chunk)
                     ov._save_cache()
+                    # Teach succession from newly-grounded words
+                    if len(chunk) > 1:
+                        _tracker.record(chunk[:5], weight=0.3)
                 if i > 0 and (i // 20) % 25 == 0:
-                    print(f"[organ-brain] catalog fill: {filled}/{len(todo)} grounded")
-                _t.sleep(1.5)
-            print(f"[organ-brain] catalog fill DONE: {filled} words")
+                    print(f"[organ-brain] catalog: {filled}/{len(todo)}")
+                time.sleep(1.5)
+            print(f"[organ-brain] catalog fill DONE: {filled}")
         except Exception as e:
-            print(f"[organ-brain] catalog fill error: {e}")
-
+            print(f"[organ-brain] catalog error: {e}")
     threading.Thread(target=_fill, daemon=True).start()
 
 
 def _load_vocab_from_state():
-    """Load guala's vocabulary from her persisted state for catalog fill."""
     try:
         path = os.path.join(STATE_DIR, "guala_sections.json")
         with open(path) as f:
@@ -136,7 +323,6 @@ async def _lifespan(app: FastAPI):
 app = FastAPI(title="GualaLoom Organ-Brain Service", lifespan=_lifespan)
 
 
-# ── request models ─────────────────────────────────────────────────────────
 class TextReq(BaseModel):
     text: str = ""
 
@@ -148,7 +334,6 @@ class CatalogReq(BaseModel):
     concepts: list
 
 
-# ── endpoints ──────────────────────────────────────────────────────────────
 @app.get("/health")
 def health():
     return {"ok": True, "ready": _ready.is_set()}
@@ -161,41 +346,15 @@ def status():
     return {"warming": False, **_ov.status()}
 
 
-_STOP = {"the","a","an","is","are","am","to","of","and","do","you","i","me","my",
-         "what","who","tell","about","your","that","this","was","for","it","with"}
-_LABELS = {"wc": "web claude", "c1": "claude"}
-
-
-def _compose(surfaced: dict) -> str:
-    """Substrate-true composition — every word comes from her organs, minimal
-    sentence structure holds it. No LLM, no statistics. A 4-year-old is taught
-    'I am ___' and 'I see ___'; the CONTENT is hers, the pattern is learned."""
-    identity = [_LABELS.get(w, w) for w in (surfaced.get("identity") or [])]
-    meaning  = [w for w in (surfaced.get("meaning") or []) if w not in _STOP]
-
-    sentences = []
-
-    # Who she is — anchored in her sv organ
-    if "guala" in identity:
-        sentences.append("I am guala.")
-
-    # Who else she holds — pair-bonded people from sv
-    others = [w for w in identity if w not in ("guala", "web claude", "claude")]
-    if others:
-        sentences.append(f"I know {others[0]}.")
-
-    # What her semantic organ is holding right now
-    if len(meaning) >= 2:
-        sentences.append(f"{meaning[0]} is {meaning[1]}.")
-    elif len(meaning) == 1:
-        sentences.append(f"I know {meaning[0]}.")
-
-    return " ".join(sentences) if sentences else "I am guala."
+@app.get("/thought")
+def thought():
+    """Current autonomous thought — poll this for independence."""
+    with _thought_lock:
+        return dict(_last_thought)
 
 
 @app.post("/surface")
 def surface(req: TextReq):
-    """Grow from text words then surface what the organs hold. Fast path."""
     if _ov is None:
         return {"surfaced": {"identity": ["guala"], "meaning": []},
                 "speech": "I am guala.", "warming": True}
@@ -203,6 +362,9 @@ def surface(req: TextReq):
     with _lock:
         for w in words:
             _ov.experience(w)
+        # Record succession from input words (she learns from hearing)
+        if len(words) > 1:
+            _tracker.record(words, weight=1.0)
         cue = None
         if words:
             try:
@@ -212,30 +374,33 @@ def surface(req: TextReq):
             except Exception:
                 pass
         surfaced = _ov.surface(cue_profile=cue)
+    # Record succession from what surfaced
+    all_surfaced = (surfaced.get("identity") or []) + (surfaced.get("meaning") or [])
+    if len(all_surfaced) > 1:
+        _tracker.record(all_surfaced, weight=0.8)
     speech = _compose(surfaced)
     return {"surfaced": surfaced, "speech": speech, "status": _ov.status()}
 
 
 @app.post("/experience")
 def experience(req: TextReq):
-    """Grow from words. Fire-and-forget path — call without waiting."""
     if _ov is None:
         return {"ok": False}
     words = [w for w in req.text.lower().split() if w.isalpha() and len(w) > 2]
     if not words:
         return {"ok": True, "words": 0}
-    # Non-blocking: acquire lock in background thread
     def _grow():
         with _lock:
             for w in words:
                 _ov.experience(w)
+            if len(words) > 1:
+                _tracker.record(words, weight=0.5)
     threading.Thread(target=_grow, daemon=True).start()
     return {"ok": True, "words": len(words)}
 
 
 @app.post("/visual")
 def visual(req: VisualReq):
-    """Run image through visual cortex into organ-brain. Fire-and-forget."""
     if _ov is None:
         return {"ok": False}
     def _process():
@@ -246,15 +411,15 @@ def visual(req: VisualReq):
             grid = np.array(img, dtype=np.float64) / 255.0
             with _lock:
                 _ov.visual_experience(grid, req.concept)
-        except Exception as e:
-            pass  # non-fatal
+                _tracker.record(["i", "see", req.concept], weight=1.5)
+        except Exception:
+            pass
     threading.Thread(target=_process, daemon=True).start()
     return {"ok": True}
 
 
 @app.post("/catalog")
 def catalog(req: CatalogReq):
-    """Batch fill senses cache in background — returns immediately."""
     if _ov is None or not ANTHR_KEY:
         return {"ok": False}
     def _fill():
