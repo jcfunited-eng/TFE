@@ -13,6 +13,8 @@ COPY tools/derive_sppu_weights.py /app/tools/
 COPY dsf_ai_service/ /app/dsf_ai_service/
 COPY dsf_ai_service/corpus/ /app/corpus/
 COPY dsf_ai_service/models/ /app/models/
+# YOLO model for visual scene recognition (tracked in git for build reproducibility)
+COPY yolov8n.onnx /app/yolov8n.onnx
 
 # GualaLoom state dir (persists via ECS volume or recreates on deploy)
 RUN mkdir -p /app/state/dreams
