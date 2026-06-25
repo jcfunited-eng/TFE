@@ -247,8 +247,10 @@ def _boot():
         _seed_succession()
 
         # Grow from sensory primitives (fast, uses cached senses)
-        from dsf_ai_service.loom_model.loom_voice import _TASTE, _SMELL
-        seed_words = list(_TASTE) + list(_SMELL)
+        seed_words = (list(getattr(ov, "_TASTE", [])) +
+                      list(getattr(ov, "_SMELL", [])) or
+                      ["sweet","sour","salty","bitter","fruity","fresh",
+                       "floral","earthy","smoky","warm","soft","bright"])
         ov.grow_from(seed_words[:30], passes=1)
 
         # Record succession from boot experiences
