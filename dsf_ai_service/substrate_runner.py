@@ -871,13 +871,26 @@ def handle_gualaloom_post(args):
     text = args.get("text", "")
     source = args.get("source", "joe")
 
-    if _guala.is_asleep and command not in ("/status", "/wake"):
-        return {
-            "response": "she is sleeping...",
-            "asleep": True,
-            "sleep_tick": _guala.tick,
-            "motifs": _guala.introspect()["vocab"],
-        }
+    if _guala.is_asleep and command not in ("/status", "/wake", "/presence"):
+        # Pair-bonded source active while she's sleeping → wake her up naturally.
+        # A child wakes when the people she loves enter the room and speak to her.
+        _src = (source or "").strip().lower()
+        _bonded = getattr(_guala, "pair_bond", {})
+        _is_bonded = isinstance(_bonded, dict) and _bonded.get(_src, False)
+        _voice_cmd = command in ("/listen", "/organ_voice") or (not command and text)
+        if _is_bonded and _voice_cmd:
+            try:
+                _guala.wake_from_sleep(state_dir=STATE_DIR)
+                _guala.log_event(STATE_DIR, "wake", source=_src, reason="voice_presence")
+            except Exception:
+                pass
+        else:
+            return {
+                "response": "she is sleeping...",
+                "asleep": True,
+                "sleep_tick": _guala.tick,
+                "motifs": _guala.introspect()["vocab"],
+            }
 
     if command == "/status":
         return _cmd_status()
@@ -1122,6 +1135,14 @@ def _cmd_events(text):
 def _cmd_presence(text):
     source = text.strip().lower() if text.strip() else "joe"
     if source in {"joe", "wc", "c1"}:
+        # If she's asleep and this is a pair-bonded person, wake her up.
+        _bonded = getattr(_guala, "pair_bond", {})
+        if _guala.is_asleep and isinstance(_bonded, dict) and _bonded.get(source, False):
+            try:
+                _guala.wake_from_sleep(state_dir=STATE_DIR)
+                _guala.log_event(STATE_DIR, "wake", source=source, reason="presence")
+            except Exception:
+                pass
         if not _guala.coordinator._presence.get(source, False):
             _guala.coordinator.wake(source, _guala, _guala.needs, _guala.atlas)
             _guala._log_substrate_event("presence_heartbeat",
