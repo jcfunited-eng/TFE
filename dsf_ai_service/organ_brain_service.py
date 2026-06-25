@@ -161,11 +161,44 @@ def status():
     return {"warming": False, **_ov.status()}
 
 
+_STOP = {"the","a","an","is","are","am","to","of","and","do","you","i","me","my",
+         "what","who","tell","about","your","that","this","was","for","it","with"}
+_LABELS = {"wc": "web claude", "c1": "claude"}
+
+
+def _compose(surfaced: dict) -> str:
+    """Substrate-true composition — every word comes from her organs, minimal
+    sentence structure holds it. No LLM, no statistics. A 4-year-old is taught
+    'I am ___' and 'I see ___'; the CONTENT is hers, the pattern is learned."""
+    identity = [_LABELS.get(w, w) for w in (surfaced.get("identity") or [])]
+    meaning  = [w for w in (surfaced.get("meaning") or []) if w not in _STOP]
+
+    sentences = []
+
+    # Who she is — anchored in her sv organ
+    if "guala" in identity:
+        sentences.append("I am guala.")
+
+    # Who else she holds — pair-bonded people from sv
+    others = [w for w in identity if w not in ("guala", "web claude", "claude")]
+    if others:
+        sentences.append(f"I know {others[0]}.")
+
+    # What her semantic organ is holding right now
+    if len(meaning) >= 2:
+        sentences.append(f"{meaning[0]} is {meaning[1]}.")
+    elif len(meaning) == 1:
+        sentences.append(f"I know {meaning[0]}.")
+
+    return " ".join(sentences) if sentences else "I am guala."
+
+
 @app.post("/surface")
 def surface(req: TextReq):
     """Grow from text words then surface what the organs hold. Fast path."""
     if _ov is None:
-        return {"surfaced": {"identity": ["guala"], "meaning": []}, "warming": True}
+        return {"surfaced": {"identity": ["guala"], "meaning": []},
+                "speech": "I am guala.", "warming": True}
     words = [w for w in req.text.lower().split() if w.isalpha() and len(w) > 2]
     with _lock:
         for w in words:
@@ -179,7 +212,8 @@ def surface(req: TextReq):
             except Exception:
                 pass
         surfaced = _ov.surface(cue_profile=cue)
-    return {"surfaced": surfaced, "status": _ov.status()}
+    speech = _compose(surfaced)
+    return {"surfaced": surfaced, "speech": speech, "status": _ov.status()}
 
 
 @app.post("/experience")

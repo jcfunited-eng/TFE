@@ -772,6 +772,9 @@ function toggleBrainMode(){
 }
 
 function _formatOrganBrainResponse(d){
+  // Use the composed speech from the organ-brain service (substrate-true).
+  // Falls back to raw words only if speech is missing (old API).
+  if(d.speech)return d.speech;
   const s=d.surfaced||{};
   const _labels={'wc':'web claude','c1':'claude'};
   const words=[...(s.identity||[]),...(s.meaning||[])]
