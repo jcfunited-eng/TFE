@@ -167,9 +167,13 @@ def _compose(surfaced: dict) -> str:
     # produce flat profiles — she has no real sensory truth to speak about them yet.
     # Words experienced through real-time camera/audio get priority (in _world);
     # catalog words pass if they have genuine multi-channel sensory density.
+    # Sensory density is the gate. _world presence alone isn't enough —
+    # a word can be experienced (in _world) from text input without having
+    # real sensory character. Only words with genuine multi-channel sensory
+    # profiles compose. Real-time sources (camera/audio) grow the catalog
+    # over time so their words pass when they genuinely should.
     grounded = meaning if _ov is None else [
-        w for w in meaning
-        if (w in (_ov._world or {})) or _sensory_density(w)
+        w for w in meaning if _sensory_density(w)
     ]
     if grounded:
         a = grounded[0]
