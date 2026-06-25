@@ -181,8 +181,8 @@ out = {
     'family': '${TASK_FAMILY}',
     'networkMode': 'awsvpc',
     'requiresCompatibilities': ['FARGATE'],
-    'cpu': '4096',
-    'memory': '8192',
+    'cpu': '2048',
+    'memory': '4096',
     **infra,
     'volumes': [
         {
@@ -239,42 +239,6 @@ out = {
                     'awslogs-group': '/ecs/dsf-ai',
                     'awslogs-region': '${AWS_REGION}',
                     'awslogs-stream-prefix': 'dsf-ai'
-                }
-            }
-        },
-        {
-            'name': 'organ-brain',
-            'image': '${IMAGE_URI}',
-            'essential': False,
-            'memoryReservation': 512,
-            'command': ['python', '-u', '-m', 'dsf_ai_service.organ_brain_service'],
-            'environment': [
-                {'name': 'PYTHONUNBUFFERED', 'value': '1'},
-                {'name': 'GUALA_STATE_DIR', 'value': '/app/state'},
-                {'name': 'ANTHROPIC_API_KEY', 'value': '${ANTHROPIC_API_KEY}'},
-                {'name': 'TAVILY_API_KEY', 'value': '${TAVILY_API_KEY}'},
-            ],
-            'mountPoints': [
-                {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
-                 'readOnly': False}
-            ],
-            'healthCheck': {
-                'command': ['CMD-SHELL',
-                    'python3 -c \"import urllib.request; '
-                    'urllib.request.urlopen(\\\\\"http://localhost:8090/health\\\\\")\"'
-                    ' || exit 1'],
-                'interval': 15,
-                'timeout': 5,
-                'retries': 3,
-                'startPeriod': 30
-            },
-            'stopTimeout': 10,
-            'logConfiguration': {
-                'logDriver': 'awslogs',
-                'options': {
-                    'awslogs-group': '/ecs/dsf-ai',
-                    'awslogs-region': '${AWS_REGION}',
-                    'awslogs-stream-prefix': 'organ-brain'
                 }
             }
         },

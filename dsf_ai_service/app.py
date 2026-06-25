@@ -1400,13 +1400,9 @@ async def gualaloom_chat(msg: GLMessage):
                     "status": {"neurons": 0, "world_concepts": 0},
                     "error": str(_e)}
 
-    if _cmd == "/brain_status":
-        try:
-            import urllib.request as _ur, json as _js
-            resp = _js.load(_ur.urlopen(f"{_ob_url}/status", timeout=3))
-            return resp
-        except Exception:
-            return {"warming": True, "neurons": 0, "per_organ": {}, "couplings": {}, "arousal": 0.0}
+    # /brain_status falls through to substrate — the organ_brain field is in the
+    # /status response from the substrate (see substrate_runner._cmd_status).
+    # There is ONE brain: the substrate's embedded 8-organ atlas.
 
     # GL-ARCH-FRONTEND-SPLIT: remote mode forwards to substrate process
     if _is_remote():

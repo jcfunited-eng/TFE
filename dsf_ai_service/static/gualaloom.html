@@ -971,14 +971,16 @@ async function pollStatus(){
         emDiv.innerHTML=eh;
       }else{emDiv.innerHTML='<div class="ev">(no recent emissions)</div>'}
     }catch(e){}
-    // Brain visualization — runs on every status cycle, same API path as everything else
-    try{
-      const br=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',
-        headers:{'Content-Type':'application/json','X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'},
-        body:JSON.stringify({text:'',command:'/brain_status'})},5000);
-      const bd=await br.json();
-      if(bd&&!bd.warming&&bd.per_organ)renderBrainSVG(bd);
-    }catch(e){}
+    // Brain visualization — from the substrate's organ_brain field in the status response.
+    // ONE brain: the substrate's embedded 8-organ atlas. No separate process needed.
+    const ob=d.organ_brain;
+    if(ob&&ob.atlas_by_organ){
+      const counts=ob.atlas_by_organ;
+      const maxVal=Math.max(1,...Object.values(counts));
+      renderBrainSVG({per_organ:counts,neurons:Object.values(counts).reduce((a,b)=>a+b,0),
+        world_concepts:ob.vocab_in_em||0,couplings:{},arousal:0,
+        label:'atlas entries'});
+    }
     _backoff.status=0;
   }catch(e){_backoff.status=Math.min((_backoff.status*2)||_BASE.status*2,30000)}
   finally{_inflight.status=false;_schedNext('status',pollStatus)}
@@ -1206,7 +1208,8 @@ function renderBrainSVG(data){
   _ORGANS.forEach(o=>{
     const{x,y}=pos[o.tag];
     const n=counts[o.tag]||0;
-    const r=Math.min(4+Math.sqrt(n)*0.85,13);
+    const maxN=Math.max(1,...Object.values(counts));
+    const r=Math.min(4+(n/maxN)*9,13);
     m+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${o.color}" opacity="0.88"/>`;
     // label: radial outward from center
     const dx=x-_BCX,dy=y-_BCY,dist=Math.sqrt(dx*dx+dy*dy)||1;
@@ -1218,7 +1221,8 @@ function renderBrainSVG(data){
   });
   svg.innerHTML=m;
   const st=document.getElementById('brain-stats');
-  if(st)st.textContent=`${data.neurons||0} neurons · ${data.world_concepts||0} concepts · arousal ${(data.arousal||0).toFixed(3)}`;
+  const label=data.label||'neurons';
+  if(st)st.textContent=`${data.neurons||0} total ${label} · ${data.world_concepts||0} vocab in em`;
 }
 
 async function pollBrain(){

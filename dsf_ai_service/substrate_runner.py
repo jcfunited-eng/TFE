@@ -933,6 +933,9 @@ def _cmd_status():
                       "times_attended": p["times_attended"]}
                      for p in s.get("pictures", [])],  # all pictures for activity lookup
         "n_videos": len(s.get("videos", [])),
+        # Her real organ-brain — the merged 8-hemisphere atlas from her EFS state.
+        # This is the ONE brain: em/pr/ep/sc/gp/sf/sv/aff with real atlas counts.
+        "organ_brain": _guala_organ_brain or {},
     }
 
 
