@@ -1,0 +1,15 @@
+{
+  "command": "TFE-CMD-D1-CLOSURE-PLUS-D2-PREP-WC-20260626 Part A",
+  "kernel_sha": "02e0d373658c2703f1916e0b9cc5b0e229d49646740efbc18fefc58bf770abd4",
+  "uf_mdg_source": "/tmp/tfe-wt-d1/uf_mdg_snapshot.py",
+  "sample_n": 50,
+  "sample_seed": 20260626,
+  "window_design": "[i-252, i] ending AT target_date (no +1 bar). Last gate unconditionally fires at target_date.",
+  "n_pairs_tested": 50,
+  "max_abs_diff": 0.0,
+  "mean_abs_diff": 0.0,
+  "pass": true,
+  "failures": [],
+  "normalization_note": "The amendment-2 report used window [i-252, i+1] and extracted the gate AT target_date (second-to-last in the extended window). The resonance normalization (V_max, CV_max) is computed across ALL gates in the window. A [i-252, i+1] window may have an additional gate at i+1, changing the normalization for gate at i. This is why s_n_direct (window [i-252,i]) differs from s_n_report (window [i-252,i+1]): normalization difference, not a helper-production drift.",
+  "wall_time_seconds": 1.6
+}
