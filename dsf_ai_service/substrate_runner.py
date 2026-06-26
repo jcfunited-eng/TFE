@@ -688,10 +688,11 @@ def _start_input_ring_consumer():
                             img_bytes = _b64.b64decode(data.get("frame_b64", ""))
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
                                 process_sight_with_recognition)
-                            from dsf_ai_service.v4.image_decoder import decode_image_bytes
+                            from dsf_ai_service.app import decode_image_bytes
                             _, grid, _, _ = decode_image_bytes(img_bytes)
                             _guala.process_sight_frame(grid)
-                            process_sight_with_recognition(_guala, grid)
+                            # Pass raw bytes to YOLO — needs full color, not 64x64 gray grid
+                            process_sight_with_recognition(_guala, img_bytes)
                         except Exception:
                             pass
                     elif kind == "sound_window":
@@ -1873,10 +1874,10 @@ def handle_sight_frame(args):
         from dsf_ai_service.app import decode_image_bytes
         _, grid, _, _ = decode_image_bytes(img_bytes)
         _guala.process_sight_frame(grid)
-        # Grounded vocab: object recognition on the frame
+        # Grounded vocab: YOLO needs raw bytes (full color), not the 64x64 gray grid
         from dsf_ai_service.substrate.grounded_vocab_integration import (
             process_sight_with_recognition)
-        bindings = process_sight_with_recognition(_guala, grid)
+        bindings = process_sight_with_recognition(_guala, img_bytes)
         # organ-brain learns the scene it saw (co-seen objects -> succession)
         _scene = " ".join(b.get("word", "") for b in (bindings or []))
         _cognition_learn(_scene)
