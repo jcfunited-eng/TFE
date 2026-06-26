@@ -532,18 +532,24 @@ class Section:
         self.dead_zone = 0.20 + 0.5 * familiarity
 
         # v8: On-attention deep prior (before commit, affects familiarity landscape)
-        if deep_atlas is not None:
-            from dsf_ai_service.substrate.deep_atlas import FORGETTING_THRESHOLD as DF_THRESH
+        # EVE-FIX: compute prior/reinstate directly from e (already found by outer
+        # loop) — avoids get_prior() and reinstate() each doing a redundant O(n)
+        # linear scan of the same chi bucket. Was O(n²) per section receive.
+        if deep_atlas is not None and deep_atlas._prior_enabled:
+            from dsf_ai_service.substrate.deep_atlas import FORGETTING_THRESHOLD as DF_THRESH, PRIOR_CAP
+            _reinst_count = 0
             for e in deep_atlas.entries.get(chi, []):
+                if _reinst_count >= 10:  # cap: 10 reinstatements per section receive
+                    break
                 if e.get("section") == self.name and e["strength"] >= DF_THRESH:
                     motif = e["motif"]
-                    p = deep_atlas.get_prior(chi, self.name, motif)
+                    p = min(PRIOR_CAP, e["strength"] * 0.3)  # same formula as get_prior
                     if p > 0:
-                        reinst_str = deep_atlas.reinstate(chi, self.name, motif, atlas_tick)
-                        if reinst_str > 0:
-                            atlas.record(self.name, motif, chi, atlas_tick,
-                                         salience=0.3, dwell_ticks=0,
-                                         **(atlas_kwargs or {}))
+                        deep_atlas.reinstatements += 1
+                        _reinst_count += 1
+                        atlas.record(self.name, motif, chi, atlas_tick,
+                                     salience=0.3, dwell_ticks=0,
+                                     **(atlas_kwargs or {}))
 
         # Fast path: O(1) word-identity lookup BEFORE similarity scan.
         # For known words (the majority in converse), this skips the scan entirely.
