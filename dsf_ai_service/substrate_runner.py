@@ -339,10 +339,11 @@ def _cognition_learn(text):
             return 0
         if _guala_cognition is not None:
             _guala_cognition.expose([s])
-        # Shadow embryo: experience each clean word (point A — grows from real input)
+        # Shadow embryo grows from curriculum — background priority, 50ms timeout
+        # Skips if already busy rather than blocking curriculum progress
         for w in s.split():
             if len(w) > 2 and w.isalpha():
-                _shadow_experience(w)
+                _shadow_experience(w, blocking=False)
         return len(s.split())
     except Exception:
         return 0
