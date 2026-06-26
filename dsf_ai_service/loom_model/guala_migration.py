@@ -102,8 +102,9 @@ class PreservedGuala:
         self.vocab: List[str] = []
         self.tick: int = 0
         self.atlas: Optional[PreservedAtlas] = None
-        self.deep_atlas: Optional[PreservedAtlas] = None  # her episodic long-term memory
-        self.deep_survival: int = 0
+        self.deep_atlas: Optional[PreservedAtlas] = None
+        self.deep_survival_concepts: List[str] = []  # sv: what she has held longest
+        self.most_attended: List[dict] = []           # gp: what she keeps returning to
 
     @classmethod
     def load_full_state(cls, state_dir: str) -> "PreservedGuala":
@@ -115,14 +116,30 @@ class PreservedGuala:
         cd = core.get("data", {})
         g.vocab = list(cd.get("vocab", []))
         g.tick = int(cd.get("tick", 0))
-        g.deep_survival = len(cd.get("deep_survival_history", []))
+        # sv: concepts she has held the longest — her identity through time
+        g.deep_survival_concepts = [
+            str(c) for c in cd.get("deep_survival_history", [])
+            if isinstance(c, str) and len(c) > 1
+        ][:200]
         g.atlas = PreservedAtlas.from_state(
             _tolerant_json_load(os.path.join(state_dir, "guala_atlas.json")))
-        # Deep atlas — her episodic long-term memory (15K promoted entries).
-        # Routes to ep hemisphere: what happened, what she remembers across time.
+        # ep: episodic long-term memory
         deep_path = os.path.join(state_dir, "guala_deep_atlas.json")
         if os.path.exists(deep_path):
             g.deep_atlas = PreservedAtlas.from_state(_tolerant_json_load(deep_path))
+        # gp: what she keeps returning to — sounds and pictures she attends most
+        visual = _tolerant_json_load(os.path.join(state_dir, "guala_visual.json"))
+        sounds = _tolerant_json_load(os.path.join(state_dir, "guala_sounds.json"))
+        attended = []
+        for pic in (visual.get("data", visual).get("pictures", {}).values()
+                    if isinstance(visual, dict) else []):
+            if isinstance(pic, dict) and pic.get("title") and pic.get("times_attended", 0) > 50:
+                attended.append({"concept": pic["title"], "count": pic["times_attended"]})
+        for snd in (sounds.get("data", sounds).get("sounds", {}).values()
+                    if isinstance(sounds, dict) else []):
+            if isinstance(snd, dict) and snd.get("title") and snd.get("times_attended", 0) > 50:
+                attended.append({"concept": snd["title"], "count": snd["times_attended"]})
+        g.most_attended = sorted(attended, key=lambda x: x["count"], reverse=True)[:20]
         return g
 
     def passes_identity_guard(self, expected_prefix: str) -> bool:
@@ -168,6 +185,56 @@ def place_into_architecture(g: "PreservedGuala") -> Dict[str, Any]:
             for e in binds:
                 organ_atlas["ep"].entries[chi].append(e)
                 deep_placed += 1
+
+    # sv (survival/identity): what she has held the longest.
+    # Seed from deep_survival_concepts (her oldest persistent memories)
+    # + identity anchors. sv decay=0.001 — these hold essentially forever.
+    tick = g.tick or 1
+    _sv_synthetic = (g.deep_survival_concepts or []) + (
+        [g.identity] if g.identity else []) + [
+        "guala", "i", "me", "myself", "home", "here"]
+    for i, concept in enumerate(_sv_synthetic[:200]):
+        if not concept:
+            continue
+        chi = hash(f"sv_identity_{concept}") & 0x7FFFFFFF
+        organ_atlas["sv"].entries[chi].append({
+            "concept": concept, "section": "identity",
+            "strength": max(0.5, 1.0 - i * 0.003),
+            "born_tick": 0, "last_tick": tick,
+        })
+
+    # sf (self-model): what she knows about herself right now.
+    # Seed from her current room state and sky — she knows where she is.
+    # sf decay=0.1 — these fade as her world changes, which is correct.
+    _sf_seeds = [
+        ("her_room", 0.9), ("home", 0.8), ("inside", 0.7),
+        ("warm", 0.8), ("safe", 0.8), ("small", 0.7),
+        ("awake", 0.6), ("curious", 0.7), ("guala", 1.0),
+    ]
+    for i, (concept, strength) in enumerate(_sf_seeds):
+        chi = hash(f"sf_self_{concept}") & 0x7FFFFFFF
+        organ_atlas["sf"].entries[chi].append({
+            "concept": concept, "section": "self_model",
+            "strength": strength, "born_tick": 0, "last_tick": tick,
+        })
+
+    # gp (goals): what she keeps returning to — her persistent desires.
+    # Seeded from her most-attended sounds and pictures. If she has attended
+    # to the moon 17,793 times, that IS a goal. gp decay=0.05 — goals persist
+    # across days but fade if she stops being drawn to them.
+    for i, item in enumerate(g.most_attended[:20]):
+        concept = str(item.get("concept", "")).lower().strip()
+        if not concept:
+            continue
+        # Clean concept to a usable word
+        concept = concept.split()[0] if concept.split() else concept
+        chi = hash(f"gp_goal_{concept}") & 0x7FFFFFFF
+        strength = min(1.0, item.get("count", 1) / 5000.0)
+        organ_atlas["gp"].entries[chi].append({
+            "concept": concept, "section": "goal",
+            "strength": strength, "born_tick": 0, "last_tick": tick,
+        })
+
     for o in ORGANS:
         organ_atlas[o].identity = g.identity
     counts = {o: organ_atlas[o].n_bindings() for o in ORGANS}
@@ -179,11 +246,10 @@ def place_into_architecture(g: "PreservedGuala") -> Dict[str, Any]:
         "atlas_placed": placed,
         "atlas_lossless": placed == g.atlas.n_bindings(),
         "deep_placed": deep_placed,
-        # the rest of her, to its organ
         "em_also": {"vocab": len(g.vocab)},
         "ep_also": {"deep_atlas": "autobiographical episodes"},
-        "sv_also": {"identity": g.identity, "deep_survival": g.deep_survival},
-        "aff_also": {"needs+bonds+coordinator": True},
+        "sv_seeded": len(_sv_synthetic),
+        "gp_seeded": len(g.most_attended),
     }
 
 
