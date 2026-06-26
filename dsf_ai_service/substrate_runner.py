@@ -1142,9 +1142,114 @@ def handle_gualaloom_post(args):
         if _curriculum_is_busy():
             return {"response": "she is asleep or bulk-loading; try again when awake"}
         return {"response": json.dumps(_world_feed_once())}
+    elif command == "/debug_chi":
+        return _cmd_debug_chi(text)
+    elif command == "/deep_full_coverage":
+        return _cmd_deep_full_coverage()
     else:
         emission_mode = args.get("emission_mode")
         return _cmd_converse(text, source, emission_mode=emission_mode)
+
+
+def _cmd_deep_full_coverage():
+    """Read-only diagnostic: scan entire deep_atlas for chi values that have
+    all 3 gate sections (subject, verb, object) covered in co_occurrence.
+    Returns list of such chi values with example words from vocabulary."""
+    GATE_SECTIONS = {"subject", "verb", "object"}
+    band = getattr(_guala.atlas, 'band', 2)
+    # Collect chi values where co_occurrence covers all 3 sections
+    # A chi may appear in entries from multiple chi keys due to band overlap —
+    # aggregate by the deep_entry's chi key.
+    chi_section_coverage = {}  # chi_key -> set of sections with co_occurrence
+    for chi_k, entries in _guala.deep_atlas.entries.items():
+        for de in entries:
+            co = de.get("co_occurrence", {})
+            if not co:
+                continue
+            covered = set(sec for sec, sv in co.items() if sv)
+            existing = chi_section_coverage.get(chi_k, set())
+            chi_section_coverage[chi_k] = existing | covered
+    # Find chi values with all 3 gate sections covered
+    full_coverage_chis = sorted(
+        chi_k for chi_k, covered in chi_section_coverage.items()
+        if GATE_SECTIONS.issubset(covered)
+    )
+    # For each such chi, find vocabulary words that produce it (chi ± band reverse lookup)
+    # Build word->chi map from all section modes
+    from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
+    word_chi_cache = {}
+    for sec_name, sec in _guala.sections.items():
+        if not hasattr(sec, 'modes'):
+            continue
+        for (_, _, word) in sec.modes:
+            if word and word not in word_chi_cache:
+                krim = LanguageKrimelack()
+                krim.transduce(word)
+                word_chi_cache[word] = krim.winding
+    # Map chi → words
+    chi_to_words = {}
+    for word, chi in word_chi_cache.items():
+        chi_to_words.setdefault(chi, []).append(word)
+    # Build result: for each full-coverage chi, show matching words
+    examples = []
+    for chi_k in full_coverage_chis[:20]:  # cap at 20 for response size
+        covered = chi_section_coverage[chi_k]
+        # Words at chi_k itself (not band-expanded)
+        words_at_chi = chi_to_words.get(chi_k, [])[:5]
+        examples.append({
+            "chi": chi_k,
+            "sections_covered": sorted(covered),
+            "example_words": words_at_chi,
+        })
+    return {
+        "n_full_coverage_chi": len(full_coverage_chis),
+        "full_coverage_chis": full_coverage_chis[:50],
+        "examples": examples,
+        "total_chi_keys_in_deep": len(chi_section_coverage),
+    }
+
+
+def _cmd_debug_chi(text):
+    """Read-only diagnostic: show chi values for each word in text,
+    with deep_atlas section coverage at each chi ± band.
+    Returns per-word chi values and which sections are covered."""
+    from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
+    from dsf_ai_service.v4.gualaloom_v5_engine import _normalize_text
+    words = _normalize_text(text)
+    if not words:
+        return {"error": "no words"}
+    band = getattr(_guala.atlas, 'band', 2)
+    GATE_SECTIONS = {"subject", "verb", "object"}
+    result = []
+    for w in words:
+        krim = LanguageKrimelack()
+        krim.transduce(w)
+        chi = krim.winding
+        # Check deep_atlas coverage in chi ± band window
+        covered = set()
+        n_entries = 0
+        for d in range(-band, band + 1):
+            for de in _guala.deep_atlas.entries.get(chi + d, []):
+                sec = de.get("section", "")
+                co = de.get("co_occurrence", {})
+                if co:
+                    covered.add(sec)
+                    n_entries += 1
+        result.append({
+            "word": w,
+            "chi": chi,
+            "sections_covered": sorted(covered),
+            "gate_sections_covered": sorted(covered & GATE_SECTIONS),
+            "all_gate_covered": GATE_SECTIONS.issubset(covered),
+            "n_deep_entries": n_entries,
+        })
+    # Summary: which words have all 3 gate sections covered
+    full_coverage = [r for r in result if r["all_gate_covered"]]
+    return {
+        "words": result,
+        "full_gate_coverage_words": [r["word"] for r in full_coverage],
+        "any_full_coverage": len(full_coverage) > 0,
+    }
 
 
 def _cmd_status():
