@@ -547,11 +547,8 @@ class Section:
                     if p > 0:
                         deep_atlas.reinstatements += 1
                         _reinst_count += 1
-                        # source="deep_prior" excludes these from response-context
-                        # tag loops (which look for recently-written joe/wc entries)
                         atlas.record(self.name, motif, chi, atlas_tick,
                                      salience=0.3, dwell_ticks=0,
-                                     source="deep_prior",
                                      **(atlas_kwargs or {}))
 
         # Fast path: O(1) word-identity lookup BEFORE similarity scan.
@@ -1545,13 +1542,19 @@ class Guala:
             # (sight commits, idle processing) has last_tick outside this range.
             if source in ("joe", "wc", "c1"):
                 _bind_count = 0
+                _bind_cap = 12  # bound: prevent cascading O(n²) when many new entries
                 for ch in input_chis:
+                    if _bind_count >= _bind_cap:
+                        break
                     for d in range(-self.atlas.band, self.atlas.band + 1):
+                        if _bind_count >= _bind_cap:
+                            break
                         for e in self.atlas.entries.get(ch + d, []):
+                            if _bind_count >= _bind_cap:
+                                break
                             if (e.get("last_tick", 0) > tick_before_read
                                     and e.get("last_tick", 0) <= tick_after_read
-                                    and not e.get("response_context")
-                                    and e.get("source") != "deep_prior"):
+                                    and not e.get("response_context")):
                                 self._tag_response_bindings(
                                     ch + d, e["section"], e["motif"], source,
                                     log_event=(_bind_count == 0))
@@ -4189,15 +4192,23 @@ class Guala:
 
         # (3) Tag self-heard entries against open windows from the other emitter.
         # FIX 1: scope to entries touched by THIS read only (tick window).
+        # Cap at 10 total calls to bound O(n²) from reinstatement entries.
+        _sh_tag_count = 0
         for ch in reply_chis:
+            if _sh_tag_count >= 10:
+                break
             for d in range(-self.atlas.band, self.atlas.band + 1):
+                if _sh_tag_count >= 10:
+                    break
                 for e in self.atlas.entries.get(ch + d, []):
+                    if _sh_tag_count >= 10:
+                        break
                     if (e.get("last_tick", 0) > tick_before
                             and e.get("last_tick", 0) <= tick_after
-                            and not e.get("response_context")
-                            and e.get("source") != "deep_prior"):
+                            and not e.get("response_context")):
                         self._tag_response_bindings(
                             ch + d, e["section"], e["motif"], "guala")
+                        _sh_tag_count += 1
 
         # Event log
         self._log_substrate_event("self_heard",
