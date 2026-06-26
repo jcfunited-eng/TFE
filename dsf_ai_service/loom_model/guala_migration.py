@@ -103,6 +103,7 @@ class PreservedGuala:
         self.tick: int = 0
         self.atlas: Optional[PreservedAtlas] = None
         self.deep_atlas: Optional[PreservedAtlas] = None
+        self.deep_survival: int = 0                    # count (substrate_runner compat)
         self.deep_survival_concepts: List[str] = []  # sv: what she has held longest
         self.most_attended: List[dict] = []           # gp: what she keeps returning to
 
@@ -117,8 +118,10 @@ class PreservedGuala:
         g.vocab = list(cd.get("vocab", []))
         g.tick = int(cd.get("tick", 0))
         # sv: concepts she has held the longest — her identity through time
+        _dsh = cd.get("deep_survival_history", [])
+        g.deep_survival = len(_dsh)
         g.deep_survival_concepts = [
-            str(c) for c in cd.get("deep_survival_history", [])
+            str(c) for c in _dsh
             if isinstance(c, str) and len(c) > 1
         ][:200]
         g.atlas = PreservedAtlas.from_state(
