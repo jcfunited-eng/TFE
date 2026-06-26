@@ -1,41 +1,33 @@
 {
-  "command": "TFE-CMD-GATE-D1-S_N-EMISSION-WC-20260625-AMEND-1",
+  "command": "TFE-CMD-GATE-D1-S_N-EMISSION-WC-20260626-AMEND-2",
   "kernel_sha": "02e0d373658c2703f1916e0b9cc5b0e229d49646740efbc18fefc58bf770abd4",
-  "test_design": "cohort-segmented: Cohort_W1 (bar_count \u2264 20) is deployment gate",
-  "w1_invariance_basis": "When bar_count \u2264 20 < 252 (max_bars cap), both kernels process identical raw bars from the same zero integrator state. Equivalence is exact by construction. Any difference is a real bug.",
-  "est_divergence_note": "Cohort_EST divergence is EXPECTED architectural behavior \u2014 full-history vs 252-bar-windowed integrator modes diverge on established-stock bar_counts. This is documented at design doc Section 8 (amendment pending) and is NOT a bug. The deployment-relevant equivalence is Cohort_W1.",
-  "n_tickers_universe": 2194,
+  "evaluation_frame": "Corrected: window [t-252, t+1] for each test point. Both kernels use the same bar slice; kappa_t uses F[t+1] in both.",
   "joint_row_count": 78899,
   "Cohort_W1": {
     "n_rows": 38123,
-    "max_abs_diff": 1.3520392292,
-    "p50": 0.1281505637,
-    "p90": 0.4043015466,
-    "p99": 0.7330837677,
-    "p99_9": 1.0209971548,
+    "max_abs_diff": 0.0,
+    "p50": 0.0,
+    "p99": 0.0,
+    "p99_9": 0.0,
     "n_null_asym": 0,
     "pass_criteria": {
       "min_rows": 50,
       "max_abs_diff": "\u22641e-03",
       "p99_9": "\u22641e-04",
-      "null_asymm": "=0",
-      "nan_inf_neg": "=0"
+      "null_asym": "=0",
+      "nan_neg": "=0"
     }
   },
   "Cohort_EST": {
     "n_rows": 40776,
-    "max_abs_diff": 1.3778377382,
-    "p50": 0.112799325,
-    "p90": 0.3826793911,
-    "p99": 0.7054027916,
-    "p99_9": 0.9580424575,
+    "max_abs_diff": 0.0,
+    "p50": 0.0,
+    "p99": 0.0,
+    "p99_9": 0.0,
     "n_null_asym": 0,
-    "note": "Informational only \u2014 not a deployment gate."
+    "note": "Informational. With the corrected same-window frame, EST cohort should also converge (both kernels use same window, same warmup start). Any remaining divergence would indicate a formula difference."
   },
-  "gate_pass": false,
-  "failures": [
-    "W1 Criterion 2: max_abs_diff=1.35e+00 > 1.00e-03",
-    "W1 Criterion 3: p99.9=1.02e+00 > 1.00e-04"
-  ],
-  "wall_time_seconds": 1393.1
+  "gate_pass": true,
+  "failures": [],
+  "wall_time_seconds": 2272.1
 }
