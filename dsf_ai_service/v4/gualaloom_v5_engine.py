@@ -2383,6 +2383,22 @@ class Guala:
             decay_plasticity, install_plasticity, reinforce_mode,
         )
 
+        # Clear mode banks before each dynamics call so stale modes from previous
+        # converses don't fill the cap and block current candidates from installing.
+        # _emission_token_vec (mode vectors) is preserved for consistent representations.
+        # _emission_word_map is cleared since mode_bank indices reset.
+        if self._emission_system is not None:
+            for sec in self._emission_system.sections.values():
+                sec.mode_bank.clear()
+                sec._projector_cache.clear()
+                if hasattr(sec, 'mode_last_used'):
+                    sec.mode_last_used.clear()
+                if hasattr(sec, 'mode_strength'):
+                    sec.mode_strength.clear()
+            self._emission_word_map.clear()
+            # Also clear the token vec so modes get freshly assigned each converse
+            self._emission_token_vec.clear()
+
         # Stage 1: Candidate selection
         t0 = _time.monotonic()
         rich_sensory = os.environ.get("RICH_SENSORY_INPUT", "0") == "1"
