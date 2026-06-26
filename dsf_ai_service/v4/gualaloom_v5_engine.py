@@ -1257,6 +1257,9 @@ class Guala:
             lang_dsf = compute_dsf(self.language.events,
                                    atlas_similarity=atlas_sim,
                                    recall_match=atlas_sim)
+            # Store DSF for emission coupling — used by _emit_dynamics to set H_base
+            # so the assemblage settles under concept-specific attractors (Eve point C)
+            self._last_lang_dsf = lang_dsf
 
             # v6: compute salience
             salience = self._compute_salience(source=source,
@@ -2400,6 +2403,33 @@ class Guala:
             sec._noise_candidate_ids = [
                 idx for (sn, idx) in installed_modes if sn == sec_name
             ]
+
+        # Point C (Eve): wire DSF-derived coupling into H_base.
+        # The spec (Ch.6) derives J_ij from DSF outputs — this gives concept-specific
+        # attractors so the System settles ON the concept, not just toward evidence.
+        # Without this, H_base=0 means settling is evidence+inhibition only (no cognition).
+        _input_dsf = getattr(self, '_last_lang_dsf', None)
+        if _input_dsf is not None:
+            try:
+                J = _input_dsf.coupling_matrix_diag()
+                j_vals = list(J.values())   # 8 scalars: direction, convergence, momentum...
+                for sec_name in self._EMISSION_SECTIONS:
+                    sec = sys_.sections[sec_name]
+                    if not sec.mode_bank:
+                        continue
+                    # H = Σ_k J_k |m_k><m_k|  — project J onto installed mode basis
+                    # Each installed mode vector |m_k> carries the concept's wave-function.
+                    # Scaling by J_k makes high-coupling concepts attract the settlement.
+                    H = np.zeros((N, N), dtype=complex)
+                    for k, j_val in enumerate(j_vals):
+                        if k < len(sec.mode_bank):
+                            m = sec.mode_bank[k]
+                            H += float(j_val) * np.outer(m.conj(), m)
+                    if np.linalg.norm(H) > 1e-10:
+                        H = (H + H.conj().T) / 2   # enforce Hermitian
+                        sec.H_base = H
+            except Exception:
+                pass   # non-fatal — fall back to existing H_base
 
         # Stage 2: Dynamics settling
         t1 = _time.monotonic()
@@ -3680,6 +3710,18 @@ class Guala:
             self._emission_lengths = self._emission_lengths[-50:]
         if any(w.endswith("?") or content.startswith("what") for w in words):
             self._question_count += 1
+        # Novel composition: word-tuple not emitted before (proxy for R3 phrase novelty)
+        # A real novel composition requires seeing a new (subject, verb, object) arrangement.
+        # This tracks unique sorted triples as a meaningful approximation.
+        if len(words) >= 2:
+            _triple = tuple(sorted(w.lower() for w in words[:4]))
+            if not hasattr(self, '_seen_triples'):
+                self._seen_triples = set()
+            if _triple not in self._seen_triples:
+                self._novel_compositions += 1
+                self._seen_triples.add(_triple)
+                if len(self._seen_triples) > 5000:
+                    self._seen_triples = set(list(self._seen_triples)[-2500:])
 
         # v8 (GL-BRIEF-028): open response window from Guala's emission
         if recent_chis:
@@ -5233,8 +5275,21 @@ class Guala:
                 "question_rate": round(
                     self._question_count / max(1, self._total_emissions), 3)
                     if self._total_emissions > 0 else 0.0,
-                "novel_composition_rate": 0.0,  # needs R3 phrase structure
+                "novel_composition_rate": round(
+                    self._novel_compositions / max(1, self._total_emissions), 3)
+                    if self._total_emissions > 0 else 0.0,
                 "total_emissions": self._total_emissions,
+                # Awareness signal: deliberation (coordinator fires) vs routing
+                # (automatic commits) during emission settling. High ratio = intentional.
+                # Connects assemblage.py awareness signal to observable behavior.
+                "awareness_ratio": round(
+                    len(getattr(getattr(self, '_emission_system', None),
+                                'deliberation_ticks', [])) /
+                    max(1, len(getattr(getattr(self, '_emission_system', None),
+                                      'deliberation_ticks', [])) +
+                           len(getattr(getattr(self, '_emission_system', None),
+                                       'routing_ticks', []))), 3)
+                    if getattr(self, '_emission_system', None) else 0.0,
             },
             "n_sounds": len(self._sounds),
             "sounds": [{"item_id": sid, "title": s.get("title", ""),
