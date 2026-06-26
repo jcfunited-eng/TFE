@@ -657,6 +657,37 @@ def boot_substrate():
             json.dump(_guala_organ_brain, _f, indent=1)
         print(f"[merge] LIVE in substrate: {_placed['atlas_counts']} "
               f"lossless={_placed['atlas_lossless']} id={(_pg.identity or '')[:8]}")
+        # Start live organ count updates — the atlas grows during the session
+        # and the hemisphere display should reflect that growth in real time
+        import threading as _threading
+        def _live_organ_update():
+            from dsf_ai_service.loom_model.guala_migration import SECTION_TO_ORGAN
+            while True:
+                time.sleep(30)
+                try:
+                    if _guala is None or _guala_organ_brain is None:
+                        continue
+                    counts = dict(_guala_organ_brain["atlas_by_organ"])
+                    for chi, binds in _guala.atlas.entries.items():
+                        for e in binds:
+                            organ = SECTION_TO_ORGAN.get(e.get("section"), "sc")
+                            counts[organ] = counts.get(organ, 0)
+                    # Count from live atlas
+                    live = {o: 0 for o in counts}
+                    for chi, binds in _guala.atlas.entries.items():
+                        for e in binds:
+                            o = SECTION_TO_ORGAN.get(e.get("section"), "sc")
+                            live[o] = live.get(o, 0) + 1
+                    # Add boot seeds to sv/sf/gp
+                    live["sv"] = max(live.get("sv", 0), _guala_organ_brain["atlas_by_organ"].get("sv", 0))
+                    live["sf"] = max(live.get("sf", 0), _guala_organ_brain["atlas_by_organ"].get("sf", 0))
+                    live["gp"] = max(live.get("gp", 0), _guala_organ_brain["atlas_by_organ"].get("gp", 0))
+                    live["ep"] = max(live.get("ep", 0), _guala_organ_brain["atlas_by_organ"].get("ep", 0))
+                    live["aff"] = max(live.get("aff", 0), _guala_organ_brain["atlas_by_organ"].get("aff", 0))
+                    _guala_organ_brain["atlas_by_organ"] = live
+                except Exception:
+                    pass
+        _threading.Thread(target=_live_organ_update, daemon=True, name="organ-live-update").start()
     except Exception as _e:
         print(f"[merge] organ-brain load skipped (non-fatal): {_e}")
 
