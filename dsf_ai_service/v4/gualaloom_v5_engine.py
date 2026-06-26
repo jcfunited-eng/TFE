@@ -35,6 +35,7 @@ import math
 import json
 import time
 import hashlib as _hashlib
+import heapq as _heapq
 import threading
 import numpy as np
 from collections import defaultdict
@@ -229,9 +230,8 @@ def _grandurun_select_candidates(input_chis, deep_candidates, sections,
             sec_co = co[sec_name]
             if not sec_co:
                 continue
-            top_in_sec = sorted(sec_co.items(),
-                                key=lambda x: float(x[1]),
-                                reverse=True)[:GRANDURUN_POOL_K]
+            top_in_sec = _heapq.nlargest(GRANDURUN_POOL_K, sec_co.items(),
+                                         key=lambda x: float(x[1]))
             for mid_str, strength in top_in_sec:
                 mid = int(mid_str)
                 sec = sections.get(sec_name)
@@ -1796,9 +1796,8 @@ class Guala:
                 sec_co = co[sec_name]
                 if not sec_co:
                     continue
-                top_in_sec = sorted(sec_co.items(),
-                                    key=lambda x: float(x[1]),
-                                    reverse=True)[:GRANDURUN_POOL_K]
+                top_in_sec = _heapq.nlargest(GRANDURUN_POOL_K, sec_co.items(),
+                                             key=lambda x: float(x[1]))
                 for mid_str, strength in top_in_sec:
                     mid = int(mid_str)
                     sec = self.sections.get(sec_name)
@@ -1890,9 +1889,8 @@ class Guala:
                 sec_co = co[sec_name]
                 if not sec_co:
                     continue
-                top_in_sec = sorted(sec_co.items(),
-                                    key=lambda x: float(x[1]),
-                                    reverse=True)[:GRANDURUN_POOL_K]
+                top_in_sec = _heapq.nlargest(GRANDURUN_POOL_K, sec_co.items(),
+                                             key=lambda x: float(x[1]))
                 for mid_str, strength in top_in_sec:
                     mid = int(mid_str)
                     sec = self.sections.get(sec_name)
@@ -2677,8 +2675,8 @@ class Guala:
                 sec = self.sections.get(sec_name)
                 if sec is None:
                     continue
-                for mid_str, weight in sorted(sec_co.items(),
-                                              key=lambda x: -float(x[1]))[:3]:
+                for mid_str, weight in _heapq.nlargest(3, sec_co.items(),
+                                                        key=lambda x: float(x[1])):
                     mid = int(mid_str)
                     if mid >= len(sec.modes):
                         continue
