@@ -2422,6 +2422,12 @@ class Guala:
 
         # Stage 2: Dynamics settling
         t1 = _time.monotonic()
+        # Fix 2 (Eve): hard wall-clock budget — the degenerate case where no commit
+        # ever fires runs all N ticks → socket timeout. Cap at 5s regardless.
+        # "no commit fires" → arcs_fallback is the correct bounded degradation.
+        # This lets EMISSION_DYNAMICS=1 run without ever timing out the socket.
+        _WALL_BUDGET_S = 5.0
+        _t_deadline = t1 + _WALL_BUDGET_S
         n_ticks = EMISSION_DYNAMICS_TICKS
         emit_commits = []
         seen_commit_keys = set()
@@ -2430,6 +2436,9 @@ class Guala:
         no_new_streak = 0
 
         for t in range(n_ticks):
+            # Hard wall-clock check every 20 ticks — bound worst-case on any hardware
+            if t > 0 and t % 20 == 0 and _time.monotonic() > _t_deadline:
+                break   # degenerate: fallback to arcs() argmax below
             # GL-CMD-STRUCTURED-NOISE: update tick for phase oscillation
             for sec_name in self._EMISSION_SECTIONS:
                 sys_.sections[sec_name]._noise_tick = t
