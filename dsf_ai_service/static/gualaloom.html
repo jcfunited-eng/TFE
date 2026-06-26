@@ -431,8 +431,10 @@ function startContinuousSTT(){
         fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({text:t,command:'/organ_voice'})},15000)
           .then(r=>r.json()).then(d=>{
-            if(d.surfaced){const _r=_formatOrganBrainResponse(d);addEmissionMsg(_r,null);gualaSpeak(_r);}
-            else if(d.response){addMsg(d.response,'system')}
+            if(d.surfaced||d.speech){
+              const _r=_formatOrganBrainResponse(d)||d.speech||d.response;
+              if(_r){addEmissionMsg(_r,null);gualaSpeak(_r);}
+            }else if(d.response){addMsg(d.response,'system')}
             if(d.pictures)renderPictures(d.pictures);
           }).catch(()=>{});
       }else{
