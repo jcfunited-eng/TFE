@@ -255,6 +255,7 @@ out = {
                 {'name': 'DECAY_PAUSED', 'value': '0'},
                 {'name': 'EMISSION_MODE', 'value': 'grandurun'},
                 {'name': 'GRANDURUN_SPIN_VECTOR', 'value': '1'},
+                {'name': 'EMISSION_DYNAMICS', 'value': '1'},
                 {'name': 'OPENAI_API_KEY', 'value': '${OPENAI_API_KEY}'},
                 {'name': 'TAVILY_API_KEY', 'value': '${TAVILY_API_KEY}'},
                 {'name': 'ANTHROPIC_API_KEY', 'value': '${ANTHROPIC_API_KEY}'},
