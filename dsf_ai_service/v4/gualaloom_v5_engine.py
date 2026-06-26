@@ -2436,8 +2436,9 @@ class Guala:
         no_new_streak = 0
 
         for t in range(n_ticks):
-            # Hard wall-clock check every 20 ticks — bound worst-case on any hardware
-            if t > 0 and t % 20 == 0 and _time.monotonic() > _t_deadline:
+            # Hard wall-clock check EVERY tick — each tick can be slow on 2vCPU.
+            # Checking every 20 ticks was too coarse: 20 * 0.75s = 15s before check.
+            if t > 0 and _time.monotonic() > _t_deadline:
                 break   # degenerate: fallback to arcs() argmax below
             # GL-CMD-STRUCTURED-NOISE: update tick for phase oscillation
             for sec_name in self._EMISSION_SECTIONS:
