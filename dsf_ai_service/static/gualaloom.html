@@ -1254,21 +1254,19 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
 // --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
 (()=>{
   addMsg('Guala ready. Organ-brain voice active.','system');
-  _applyBrainModeUI();  // set button to organ-brain state on load
+  _applyBrainModeUI();
   msgInput.focus();
-  setTimeout(pollAutonomousThought,35000); // let her boot, then start listening
-  setTimeout(pollLocation,20000);           // show where she is
-  setTimeout(pollRoom,25000);              // show her room state
-  setTimeout(pollBrain,8000);              // organ-brain visualization
-  // Non-blocking boot: try status, don't fail if slow
+  // Wake her immediately when Joe connects — she sleeps between sessions
+  fetchT(`${API}/api/v1/gualaloom`,{method:'POST',
+    headers:{'Content-Type':'application/json','X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'},
+    body:JSON.stringify({text:'joe',command:'/wake'})},5000).catch(()=>{});
+  setTimeout(pollAutonomousThought,35000);
+  setTimeout(pollLocation,20000);
+  setTimeout(pollRoom,25000);
+  setTimeout(pollBrain,8000);
   pollStatus();
-  // v7/state — populates side panel (substrate, pools, intro/aware, NMDA, events)
-  // Delayed start so status poll completes first
   setTimeout(pollV7State, 3000);
-  // Events: poll only (WebSocket/SSE don't work through API Gateway)
   setTimeout(pollEvents,5000);
-  // Background replay DISABLED — v7 quiet ticks compete with status calls
-  // and cause socket starvation. v7 runs its own quiet ticks in the autonomy loop.
   presenceHeartbeat();
 })();
 </script>
