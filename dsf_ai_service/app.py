@@ -1316,51 +1316,32 @@ async def gualaloom_chat(msg: GLMessage):
             return {"speech": "", "tick": 0}
     # /where and /room now handled by the substrate directly (organ-brain container removed)
     # They fall through to the substrate client below
+    # /mail, /sendmail, /experience, /tablet — all routed to dead :8090 container.
+    # Stubs until these are re-wired into the substrate (W2+ work).
     if _cmd == "/mail":
-        try:
-            import urllib.request as _ur, json as _js
-            resp = _js.load(_ur.urlopen(f"{_ob_url}/mail", timeout=3))
-            return resp
-        except Exception:
-            return {"letters": []}
+        return {"letters": []}
     if _cmd == "/sendmail":
-        try:
-            import urllib.request as _ur, json as _js
-            body = _js.dumps({
-                "from_": msg.source or "joe",
-                "body": msg.text or "",
-                "words": [],
-            }).encode()
-            req2 = _ur.Request(f"{_ob_url}/mail/send", data=body,
-                               headers={"content-type": "application/json"})
-            resp = _js.load(_ur.urlopen(req2, timeout=5))
-            return resp
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        # Feed the words to GualaCognition so she hears the letter's meaning
+        if msg.text and _is_remote():
+            client = _get_substrate_client()
+            try:
+                await client.call("gualaloom_post", command="/organs_say",
+                                  text=msg.text, source=msg.source or "joe", timeout=5.0)
+            except Exception:
+                pass
+        return {"ok": True, "note": "letter words fed to cognition"}
     if _cmd == "/experience":
-        # Feed heard/seen words into the organ-brain — the sensory grounding path.
-        # Called by the browser STT when words are recognized, ensuring what
-        # she hears also reaches her organ-brain, not just the v5 engine.
-        try:
-            import urllib.request as _ur, json as _js
-            body = _js.dumps({"text": msg.text or ""}).encode()
-            req2 = _ur.Request(f"{_ob_url}/experience", data=body,
-                               headers={"content-type": "application/json"})
-            _ur.urlopen(req2, timeout=3)
-            return {"ok": True}
-        except Exception:
-            return {"ok": False}
+        # STT words — feed to GualaCognition directly
+        if msg.text and _is_remote():
+            client = _get_substrate_client()
+            try:
+                await client.call("gualaloom_post", command="/organs_say",
+                                  text=msg.text, source=msg.source or "joe", timeout=3.0)
+            except Exception:
+                pass
+        return {"ok": True}
     if _cmd.startswith("/tablet"):
-        try:
-            import urllib.request as _ur, json as _js
-            query = _cmd[len("/tablet"):].strip() or msg.text or ""
-            body = _js.dumps({"query": query}).encode()
-            req2 = _ur.Request(f"{_ob_url}/tablet", data=body,
-                               headers={"content-type": "application/json"})
-            resp = _js.load(_ur.urlopen(req2, timeout=5))
-            return resp
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        return {"ok": False, "note": "tablet re-wiring pending W2"}
     if _cmd.startswith("/action "):
         # format: /action object_id:verb
         try:
