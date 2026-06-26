@@ -243,9 +243,9 @@ async function requestMic(){
   }
   try{
     micStream=await navigator.mediaDevices.getUserMedia({audio:{
-      echoCancellation:false,
-      noiseSuppression:false,
-      autoGainControl:false
+      echoCancellation:false,   // don't strip music as feedback
+      noiseSuppression:false,   // don't strip music as noise
+      autoGainControl:true      // DO boost gain to capture room audio
     }});
     btn.textContent='\u2705 Microphone ON';btn.className='perm-btn granted';micGranted=true;
     document.getElementById('mic-btn').style.display='inline-block';
