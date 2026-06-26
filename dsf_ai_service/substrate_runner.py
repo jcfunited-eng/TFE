@@ -145,10 +145,13 @@ def _init_shadow_embryo():
 
 _shadow_last_recall = {}   # {concept: votes} from most recent recall pass
 
-def _shadow_experience(word):
+def _shadow_experience(word, blocking=True):
     """Feed one clean word to the shadow embryo via deterministic senses.
     After experiencing, do a recall pass and store the top result.
-    This is B: resonant_chi recall through the chi-atlas, observable."""
+    This is B: resonant_chi recall through the chi-atlas, observable.
+
+    blocking=False: try-acquire with 100ms timeout, skip if busy.
+    Used from the converse path so converse never waits on curriculum."""
     global _shadow_last_recall
     if _shadow_embryo is None:
         return
@@ -156,17 +159,26 @@ def _shadow_experience(word):
         import numpy as _np3
         from dsf_ai_service.loom_model.embryo import bipolar_sense
         receptors = _shadow_senses(word)
-        # Compute bipolar composite — the signal representation
         taste_sig = bipolar_sense(receptors.get("taste", {}), "taste")
         smell_sig = bipolar_sense(receptors.get("smell", {}), "smell")
         composite = _np3.concatenate([taste_sig, smell_sig])
-        with _shadow_lock:
-            _shadow_embryo.experience(word, receptors)
-            # Recall: population vote through resonant_chi → chi-atlas
-            # This is the real composition path — not a bigram
-            recalls = _shadow_embryo.recall(composite)
-            if recalls:
-                _shadow_last_recall = dict(recalls.most_common(3))
+        # Non-blocking path for converse: skip if curriculum holds the lock
+        if not blocking:
+            if not _shadow_lock.acquire(timeout=0.1):
+                return   # curriculum busy — skip this word, move on
+            try:
+                _shadow_embryo.experience(word, receptors)
+                recalls = _shadow_embryo.recall(composite)
+                if recalls:
+                    _shadow_last_recall = dict(recalls.most_common(3))
+            finally:
+                _shadow_lock.release()
+        else:
+            with _shadow_lock:
+                _shadow_embryo.experience(word, receptors)
+                recalls = _shadow_embryo.recall(composite)
+                if recalls:
+                    _shadow_last_recall = dict(recalls.most_common(3))
     except Exception:
         pass
 
@@ -1782,11 +1794,11 @@ def _cmd_converse(text, source, emission_mode=None):
     if source not in {"joe", "wc", "c1"}:
         source = "joe"
     # Point A: feed input to shadow embryo alongside V7.
-    # The shadow grows from every real conversation — same input, two brains.
+    # Non-blocking: if curriculum holds shadow_lock, skip rather than stall converse.
     for _w in text.lower().split():
         _w = re.sub(r"[^a-z']", "", _w).strip("'")
         if len(_w) > 2 and _w.isalpha():
-            _shadow_experience(_w)
+            _shadow_experience(_w, blocking=False)
     response = _guala.converse(text, source=source, emission_mode=emission_mode)
     _guala.log_event(STATE_DIR, "source_interaction",
                      source=source, words_in=len(text.split()),
