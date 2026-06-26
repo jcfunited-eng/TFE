@@ -242,7 +242,11 @@ async function requestMic(){
     return;
   }
   try{
-    micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    micStream=await navigator.mediaDevices.getUserMedia({audio:{
+      echoCancellation:false,
+      noiseSuppression:false,
+      autoGainControl:false
+    }});
     btn.textContent='\u2705 Microphone ON';btn.className='perm-btn granted';micGranted=true;
     document.getElementById('mic-btn').style.display='inline-block';
     // Start sound streaming to her krimelack
