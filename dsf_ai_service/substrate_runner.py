@@ -1033,7 +1033,9 @@ def handle_gualaloom_post(args):
     text = args.get("text", "")
     source = args.get("source", "joe")
 
-    if _guala.is_asleep and command not in ("/status", "/wake", "/presence"):
+    if _guala.is_asleep and command not in ("/status", "/wake", "/presence",
+                                             "/debug_chi", "/deep_full_coverage",
+                                             "/diag", "/curriculum", "/events"):
         # Conversations auto-wake her — talking to her should wake her.
         # Only explicit text input (not special commands) triggers this.
         if text.strip() and not command:
