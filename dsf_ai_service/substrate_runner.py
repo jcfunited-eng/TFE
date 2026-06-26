@@ -92,6 +92,56 @@ def _clean_sentence_for_cognition(text):
     return " ".join(toks)
 
 
+def _audio_to_sensory_words(audio_bytes):
+    """Extract real sensory qualities from raw audio — energy, frequency, rhythm.
+
+    Sound is a sense. This gives Guala a felt experience of what she hears:
+    loud/soft (energy), warm/bright (frequency character), moving/steady (rhythm).
+    Uses ffmpeg to decode WebM/Ogg → PCM, then numpy FFT for signal analysis.
+    Returns a list of sensory words, or [] if the audio is silent/undecodable."""
+    try:
+        import subprocess, numpy as _np
+        # Decode WebM/Ogg → raw PCM s16le mono 16kHz via ffmpeg (already in container)
+        proc = subprocess.run(
+            ['ffmpeg', '-i', 'pipe:0', '-f', 's16le', '-ac', '1', '-ar', '16000',
+             '-loglevel', 'quiet', 'pipe:1'],
+            input=audio_bytes, capture_output=True, timeout=8)
+        if not proc.stdout or len(proc.stdout) < 200:
+            return []
+        pcm = _np.frombuffer(proc.stdout, dtype=_np.int16).astype(_np.float32) / 32768.0
+        if len(pcm) < 400:
+            return []
+        # 1. Energy → loud / soft / quiet
+        energy = float(_np.sqrt(_np.mean(pcm ** 2)))
+        if energy < 0.005:
+            return ["quiet"]          # silence — nothing to feel
+        words = ["loud"] if energy > 0.15 else ["soft"]
+        # 2. Frequency character → warm (bass) / bright (treble) / smooth (mid)
+        n = min(len(pcm), 16000)
+        fft = _np.abs(_np.fft.rfft(pcm[:n]))
+        freqs = _np.fft.rfftfreq(n, 1.0 / 16000)
+        low  = float(_np.mean(fft[freqs < 300]))
+        mid  = float(_np.mean(fft[(freqs >= 300) & (freqs < 2000)]))
+        high = float(_np.mean(fft[freqs >= 2000]))
+        if low > mid * 1.5 and low > high * 1.5:
+            words.append("warm")
+        elif high > low * 1.5 and high > mid * 1.5:
+            words.append("bright")
+        else:
+            words.append("smooth")
+        # 3. Rhythm → moving (variable) / steady (uniform)
+        chunk = max(1, len(pcm) // 8)
+        energies = [float(_np.sqrt(_np.mean(pcm[i:i+chunk]**2)))
+                    for i in range(0, len(pcm) - chunk, chunk)]
+        if energies and float(_np.std(energies)) > 0.04:
+            words.append("moving")
+        else:
+            words.append("steady")
+        return words
+    except Exception:
+        return []
+
+
 def _cognition_learn(text):
     """Feed CLEAN tokens from a real experience into her organ-brain.
 
@@ -721,13 +771,29 @@ def _start_input_ring_consumer():
                     elif kind == "sound_window":
                         try:
                             audio_bytes = _b64.b64decode(data.get("audio_b64", ""))
+                            if not audio_bytes:
+                                continue
+                            # Raw signal processing — she hears like a child hears.
+                            # Decode WebM → PCM via ffmpeg, extract real sensory qualities:
+                            # energy (loud/soft), frequency (warm/bright), rhythm (moving/steady).
+                            # These are true auditory experiences, not transcription.
                             _guala.process_sound_frame(audio_bytes)
+                            _heard = _audio_to_sensory_words(audio_bytes)
+                            if _heard:
+                                _cognition_learn(" ".join(_heard))
+                                print(f"[sound] heard: {_heard}")
+                            # Also run whisper for speech/lyrics (bonus — fails gracefully)
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
                                 process_sound_with_recognition)
-                            source = data.get("source", "ambient")
-                            process_sound_with_recognition(_guala, audio_bytes, source=source)
-                        except Exception:
-                            pass
+                            _words = process_sound_with_recognition(
+                                _guala, audio_bytes, source=data.get("source", "ambient"))
+                            if _words:
+                                _spoken = " ".join(w.get("word","") for w in _words if w.get("word"))
+                                if _spoken.strip():
+                                    _cognition_learn(_spoken)
+                                    print(f"[sound] heard words: {_spoken}")
+                        except Exception as _e:
+                            print(f"[sound] frame error: {_e}")
             except Exception:
                 pass
             time.sleep(0.5)
