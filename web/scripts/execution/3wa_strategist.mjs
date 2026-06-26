@@ -9,10 +9,12 @@
  *   signal_class = '1+3'      — Wave 1 + Wave 3 without calm
  *   signal_class = 'standard' — Wave 3 active but Wave 1 conditions not met
  *
- * Wave 1 conditions (validated at 84.6% on n=371):
- *   1. decision_label = 'Accumulate'
- *   2. bar_count <= 20  (structural ground state)
- *   3. s_uf > 0         (structural entropy order parameter present)
+ * Wave 1 conditions — canonical Structure A (D2 / SHA 9de8471):
+ *   1. bar_count ∈ [1, 20]           (structural ground state)
+ *   2. s_n       ∈ [0.954, 0.969]    (ordered structural regime)
+ *   3. |Δs_n|    ∈ [0.67,  0.72]     (crystallisation magnitude)
+ *   4. D_k(t-1) = 0  AND  D_k(t) = 1 (first accumulate trigger)
+ *   Validated: 372 signals, WR_20d=92.2%, Wilson 95% CI [89.0%, 94.5%]
  *
  * Wave 3: SPY D_k = 1 (market structural expansion)
  * Wave 2: species = 'calm' from species_profiles table
@@ -36,6 +38,10 @@ const pool = new pg.Pool({
 });
 
 const NEW_LISTING_BAR_THRESHOLD = 20;
+const W1_S_N_MIN       = 0.954;
+const W1_S_N_MAX       = 0.969;
+const W1_DELTA_S_N_MIN = 0.67;
+const W1_DELTA_S_N_MAX = 0.72;
 
 function toFloat(v) {
   const n = parseFloat(v);
@@ -77,21 +83,42 @@ async function fetchSpyRow(runId) {
 }
 
 /**
- * Fetch all Accumulate rows for the given run_id.
- * Wave 1 bar_count filtering happens in parseSignal (tagging, not exclusion).
+ * Fetch all Accumulate rows for the given run_id, plus the previous
+ * snapshot row per ticker for Wave 1 Δs_n and D_k(t-1) evaluation.
+ *
+ * Uses a LATERAL join against runtime_decisions_history to retrieve
+ * the most recent prior snapshot per ticker. s_n is a top-level column
+ * (indexed by idx_rdh_ticker_date) so no JSON parsing is needed for the
+ * previous s_n. D_k(t-1) comes from prev_snapshot_row_json.
+ *
+ * Option A chosen over Option B (JS-side pairing) for two reasons:
+ *   1. Single query round-trip vs two fetches.
+ *   2. Top-level s_n column in runtime_decisions_history avoids JSON
+ *      extraction overhead; the idx_rdh_ticker_date index makes the
+ *      LATERAL subquery O(log N) per ticker.
  */
 async function fetchCandidateRows(runId) {
   const res = await pool.query(
     `SELECT
-       ticker,
-       run_id,
-       decision_label,
-       snapshot_row_json
-     FROM runtime_decisions_latest
-     WHERE run_id = $1
-       AND decision_label = 'Accumulate'
-       AND ticker != 'SPY'
-     ORDER BY ticker ASC`,
+       rdl.ticker,
+       rdl.run_id,
+       rdl.decision_label,
+       rdl.snapshot_row_json,
+       rdh_prev.s_n                AS prev_s_n,
+       rdh_prev.snapshot_row_json  AS prev_snapshot_row_json
+     FROM runtime_decisions_latest rdl
+     LEFT JOIN LATERAL (
+       SELECT s_n, snapshot_row_json
+       FROM runtime_decisions_history
+       WHERE ticker = rdl.ticker
+         AND generated_at_utc < rdl.generated_at_utc
+       ORDER BY generated_at_utc DESC
+       LIMIT 1
+     ) rdh_prev ON true
+     WHERE rdl.run_id = $1
+       AND rdl.decision_label = 'Accumulate'
+       AND rdl.ticker != 'SPY'
+     ORDER BY rdl.ticker ASC`,
     [runId]
   );
   return res.rows;
@@ -116,25 +143,41 @@ async function fetchSpeciesProfiles() {
  * Parse a DB row into a validated signal object.
  * Returns null if decision_label is not Accumulate or required fields missing.
  * Tags signal_class based on Wave 1/2/3 alignment.
+ *
+ * Wave 1 uses canonical Structure A condition (D2):
+ *   bar_count ∈ [1,20], s_n ∈ [0.954,0.969], |Δs_n| ∈ [0.67,0.72],
+ *   D_k(t-1)=0, D_k(t)=1
+ * prev_s_n and prev_snapshot_row_json come from the LATERAL join in
+ * fetchCandidateRows (runtime_decisions_history, most recent prior row).
  */
 function parseSignal(row, spyDk, speciesMap) {
-  const snap     = row.snapshot_row_json ?? {};
+  const snap     = row.snapshot_row_json      ?? {};
+  const prevSnap = row.prev_snapshot_row_json ?? {};
   const ticker   = String(row.ticker ?? "").trim().toUpperCase();
-  const runId    = String(row.run_id ?? "").trim();
-  const barCount = toInt(snap.bar_count ?? row.bar_count);
-  const sUf      = toFloat(snap.S_UF ?? snap.s_uf);
-  const dk       = toInt(snap.D_k ?? snap.d_k);
-  const fn       = toFloat(snap.F_n ?? snap.f_n);
-  const bk       = toFloat(snap.B_k ?? snap.b_k);
+  const runId    = String(row.run_id  ?? "").trim();
+  const barCount = toInt(snap.bar_count   ?? row.bar_count);
+  const sUf      = toFloat(snap.S_UF     ?? snap.s_uf);
+  const dk       = toInt(snap.D_k        ?? snap.d_k);
+  const fn       = toFloat(snap.F_n      ?? snap.f_n);
+  const bk       = toFloat(snap.B_k      ?? snap.b_k);
   const neighborWR = toFloat(snap.neighbor_wr);
+  const sN       = toFloat(snap.s_n);
+  const snPrev   = toFloat(row.prev_s_n  ?? prevSnap.s_n);
+  const dKPrev   = toInt(prevSnap.D_k    ?? prevSnap.d_k);
+  const absDeltaSN = (sN !== null && snPrev !== null) ? Math.abs(sN - snPrev) : null;
 
   if (!ticker)  return null;
   if (!runId)   return null;
   if (spyDk !== 1) return null;  // Wave 3 not active — no signals at all
 
-  // Wave 1 conditions (validated set — do not modify)
-  const wave1 = barCount !== null && barCount >= 1 && barCount <= NEW_LISTING_BAR_THRESHOLD
-             && sUf !== null && sUf > 0;
+  // Wave 1: canonical Structure A (D2 / structural_wave_alignment_spec.tex Definition 1)
+  // Close >= $5 is guaranteed upstream by decision_label='Accumulate' (tfe_l5_baseline.py MIN_PRICE)
+  const wave1 =
+       barCount   !== null && barCount   >= 1               && barCount   <= NEW_LISTING_BAR_THRESHOLD
+    && sN         !== null && sN         >= W1_S_N_MIN       && sN         <= W1_S_N_MAX
+    && absDeltaSN !== null && absDeltaSN >= W1_DELTA_S_N_MIN && absDeltaSN <= W1_DELTA_S_N_MAX
+    && dk         === 1
+    && dKPrev     === 0;
 
   // Wave 2: species classification
   const species = speciesMap.get(ticker) ?? "unknown";
@@ -152,16 +195,19 @@ function parseSignal(row, spyDk, speciesMap) {
 
   return {
     ticker,
-    run_id:       runId,
-    signal_class: signalClass,
+    run_id:        runId,
+    signal_class:  signalClass,
     species,
-    spy_dk:       spyDk,
-    s_uf:         sUf,
-    bar_count:    barCount,
-    d_k:          dk,
-    f_n:          fn,
-    b_k:          bk,
-    neighbor_wr:  neighborWR,
+    spy_dk:        spyDk,
+    s_uf:          sUf,
+    s_n:           sN,
+    abs_delta_s_n: absDeltaSN,
+    bar_count:     barCount,
+    d_k:           dk,
+    d_k_prev:      dKPrev,
+    f_n:           fn,
+    b_k:           bk,
+    neighbor_wr:   neighborWR,
   };
 }
 
@@ -278,7 +324,7 @@ export async function get3WASignals() {
   console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} valid → ${deduped.length} after dedup`);
   console.log(`[STRATEGIST] signal_class distribution: 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]} | standard=${classCounts["standard"]}`);
   for (const s of deduped) {
-    console.log(`[STRATEGIST]   ${s.ticker} | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | s_uf=${s.s_uf}`);
+    console.log(`[STRATEGIST]   ${s.ticker} | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | s_n=${s.s_n} | |Δs_n|=${s.abs_delta_s_n}`);
   }
 
   return deduped;

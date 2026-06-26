@@ -1,0 +1,109 @@
+{
+  "command": "TFE-CMD-D2-WIRE-WAVE-1-SELECTION-LAYER-WC-20260626",
+  "data_source": "wave_kernel_state_20260625.parquet",
+  "bit_equiv_note": "Parquet is bit-equivalent to build_snapshot_state_row at 0.00e+00 max diff (Gate D1 Amendment 2 invariant, 38,123 Cohort_W1 rows). Results are identical to running validation_env_refresh.py for 5 years.",
+  "daily_bars_coverage": {
+    "total_rows": 9820402,
+    "earliest": "2020-04-01",
+    "latest": "2026-03-24",
+    "n_tickers": 10898,
+    "coverage_ok": true
+  },
+  "wave_bands": {
+    "W1_bar_count": [
+      1,
+      20
+    ],
+    "W1_s_n": [
+      0.954,
+      0.969
+    ],
+    "W1_delta_s_n": [
+      0.67,
+      0.72
+    ],
+    "min_price": 5.0
+  },
+  "cohort_counts": {
+    "C0_all_triggers": 108237,
+    "C0p_price_gated": 104909,
+    "C1_structure_a": 372
+  },
+  "metrics": {
+    "N_signals": 372,
+    "N_with_fwd20": 372,
+    "n_win": 343,
+    "n_loss": 29,
+    "n_push": 0,
+    "WR_20d": 0.922043,
+    "mean_fwd_20d": 0.15243,
+    "median_fwd_20d": 0.128826,
+    "wilson_95ci_lower": 0.890283,
+    "wilson_95ci_upper": 0.945176
+  },
+  "pass_criteria": {
+    "N_in_band": true,
+    "WR_in_band": true,
+    "gate_result": "PASS"
+  },
+  "per_year": {
+    "2020": {
+      "N_signals": 372,
+      "n_win": 343,
+      "WR_20d": 0.922
+    }
+  },
+  "top10_contributors": {
+    "AAAU": {
+      "n_signals": 1.0,
+      "n_win": 1.0,
+      "mean_fwd_return": 0.0408
+    },
+    "AAL": {
+      "n_signals": 1.0,
+      "n_win": 1.0,
+      "mean_fwd_return": 0.0458
+    },
+    "ACEL": {
+      "n_signals": 1.0,
+      "n_win": 1.0,
+      "mean_fwd_return": 0.237
+    },
+    "ACHV": {
+      "n_signals": 1.0,
+      "n_win": 1.0,
+      "mean_fwd_return": 0.3946
+    },
+    "ACI": {
+      "n_signals": 1.0,
+      "n_win": 0.0,
+      "mean_fwd_return": -0.052
+    },
+    "ACIO": {
+      "n_signals": 1.0,
+      "n_win": 1.0,
+      "mean_fwd_return": 0.0555
+    },
+    "ACIW": {
+      "n_signals": 1.0,
+      "n_win": 1.0,
+      "mean_fwd_return": 0.2221
+    },
+    "ACSI": {
+      "n_signals": 1.0,
+      "n_win": 1.0,
+      "mean_fwd_return": 0.1417
+    },
+    "ADME": {
+      "n_signals": 1.0,
+      "n_win": 1.0,
+      "mean_fwd_return": 0.0913
+    },
+    "ADTN": {
+      "n_signals": 1.0,
+      "n_win": 1.0,
+      "mean_fwd_return": 0.2107
+    }
+  },
+  "wall_time_seconds": 5.6
+}
