@@ -485,6 +485,31 @@ class Section:
         }
         self.tcl = L6_TCL(n_start=8)
         self.tick = 0
+        # Fast-path caches (not persisted — rebuilt on load via _rebuild_word_index)
+        self._word_to_mode_idx = {}   # word.lower() -> mode index, O(1) lookup
+        self._modes_matrix = None     # (n_modes, 8) array for vectorized cosine sim
+        self._modes_norms = None      # (n_modes,) precomputed norms
+        self._modes_dirty = True      # True = matrix must be rebuilt before use
+
+    def _rebuild_word_index(self):
+        """Rebuild word→mode-index dict from self.modes. Call after deserialization."""
+        self._word_to_mode_idx = {}
+        for i, (_, _, word) in enumerate(self.modes):
+            if word:
+                self._word_to_mode_idx[word.lower()] = i
+        self._modes_dirty = True
+
+    def _get_modes_matrix(self):
+        """Return cached (n_modes, 8) matrix + (n_modes,) norms for vectorized sim.
+        Rebuilds only when _modes_dirty is set (modes changed since last build)."""
+        if not self.modes:
+            return None, None
+        if self._modes_dirty or self._modes_matrix is None:
+            vecs = np.array([m[0].to_array() for m in self.modes])
+            self._modes_matrix = vecs
+            self._modes_norms = np.linalg.norm(vecs, axis=1) + 1e-12
+            self._modes_dirty = False
+        return self._modes_matrix, self._modes_norms
 
     def receive(self, dsf, chi, word_label, atlas, familiarity, salience=1.0,
                 dwell_ticks=1, deep_atlas=None, engine_tick=None,
@@ -519,26 +544,21 @@ class Section:
                                          salience=0.3, dwell_ticks=0,
                                          **(atlas_kwargs or {}))
 
-        # Find nearest existing mode (by DSF vector similarity)
+        # Fast path: O(1) word-identity lookup BEFORE similarity scan.
+        # For known words (the majority in converse), this skips the scan entirely.
+        word_match_idx = self._word_to_mode_idx.get(word_label.lower()) if word_label else None
+
+        # Similarity scan — only needed when word is not already known.
         nearest = None
         best_sim = -1.0
-        if self.modes:
+        if word_match_idx is None and self.modes:
             cur_v = dsf.to_array()
-            for i, (m_dsf, _, _) in enumerate(self.modes):
-                m_v = m_dsf.to_array()
-                denom = (np.linalg.norm(cur_v) * np.linalg.norm(m_v) + 1e-12)
-                sim = float(np.dot(cur_v, m_v) / denom)
-                if sim > best_sim:
-                    best_sim = sim
-                    nearest = i
-
-        # v6 FIX: check word-match FIRST. Word identity anchors mode identity.
-        word_match_idx = None
-        if word_label:
-            for i, (_, _, m_word) in enumerate(self.modes):
-                if m_word and m_word.lower() == word_label.lower():
-                    word_match_idx = i
-                    break
+            mat, norms = self._get_modes_matrix()
+            if mat is not None:
+                cur_norm = float(np.linalg.norm(cur_v)) + 1e-12
+                sims = (mat @ cur_v) / (norms * cur_norm)
+                nearest = int(np.argmax(sims))
+                best_sim = float(sims[nearest])
 
         committed = False
         mode_idx = None
@@ -549,12 +569,16 @@ class Section:
             avg = (old_dsf.to_array() * 0.9 + dsf.to_array() * 0.1)
             new_dsf = DSF(*avg)
             self.modes[word_match_idx] = (new_dsf, old_chi, old_word)
+            self._modes_dirty = True   # mode vector changed; matrix must rebuild
             mode_idx = word_match_idx
             committed = True
         elif len(self.modes) < 24:
             # Bootstrap — new word, accept liberally
             self.modes.append((dsf, chi, word_label))
             mode_idx = len(self.modes) - 1
+            if word_label:
+                self._word_to_mode_idx[word_label.lower()] = mode_idx
+            self._modes_dirty = True
             committed = True
         else:
             # Post-bootstrap: new word, decide by dead-zone gate
@@ -563,6 +587,9 @@ class Section:
                 # word labels always get a chance to take root
                 self.modes.append((dsf, chi, word_label))
                 mode_idx = len(self.modes) - 1
+                if word_label:
+                    self._word_to_mode_idx[word_label.lower()] = mode_idx
+                self._modes_dirty = True
                 committed = True
 
         if committed:
@@ -4914,6 +4941,7 @@ class Guala:
             sec.dead_zone = s.get("dead_zone", 0.20)
             sec.gamma = s.get("gamma", {"det_thresh": 0.55, "novel_dist": 0.40})
             sec.tick = s.get("tick", 0)
+            sec._rebuild_word_index()  # rebuild O(1) lookup caches after deserialization
 
     def _migrate_tick_domain(self):
         """GL-FIND-TICK-DOMAIN-C1: re-stamp section-domain atlas entries to engine tick.
