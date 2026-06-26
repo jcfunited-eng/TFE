@@ -1608,6 +1608,10 @@ class Guala:
         input_words_set = set(w.lower() for w in input_words)
 
         # Gather deep-atlas candidates (shared by all paths)
+        # Cap at 300 — with 15K deep atlas entries, unbounded collection
+        # makes Stage 1 take 10+ seconds on 2vCPU. 300 is enough for
+        # meaningful emission and fits in the socket budget.
+        _MAX_DEEP_CANDIDATES = int(os.environ.get("MAX_DEEP_CANDIDATES", "300"))
         deep_candidates = []
         for chi in input_chis:
             for d in range(-self.atlas.band, self.atlas.band + 1):
@@ -1617,6 +1621,12 @@ class Guala:
                         continue
                     clarity = de.get("clarity", 0.3)
                     deep_candidates.append((de, co, clarity))
+                    if len(deep_candidates) >= _MAX_DEEP_CANDIDATES:
+                        break
+                if len(deep_candidates) >= _MAX_DEEP_CANDIDATES:
+                    break
+            if len(deep_candidates) >= _MAX_DEEP_CANDIDATES:
+                break
         if not deep_candidates:
             return None
 
