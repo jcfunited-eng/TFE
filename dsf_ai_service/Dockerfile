@@ -16,6 +16,10 @@ COPY dsf_ai_service/models/ /app/models/
 # YOLO model for visual scene recognition (tracked in git for build reproducibility)
 COPY yolov8n.onnx /app/yolov8n.onnx
 
+# Pre-download whisper-tiny model at build time so it's available at runtime
+# without needing internet access. Baked into the image (~150MB).
+RUN python3 -c "from faster_whisper import WhisperModel; WhisperModel('tiny', device='cpu', compute_type='int8'); print('whisper-tiny baked')" 2>&1 || echo "whisper pre-download failed (non-fatal)"
+
 # GualaLoom state dir (persists via ECS volume or recreates on deploy)
 RUN mkdir -p /app/state/dreams
 
