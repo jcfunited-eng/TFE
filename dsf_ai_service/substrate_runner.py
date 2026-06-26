@@ -1816,12 +1816,16 @@ def _cmd_converse(text, source, emission_mode=None):
         return {"response": "...", "motifs": _guala.introspect()["vocab"]}
     if source not in {"joe", "wc", "c1"}:
         source = "joe"
-    # Point A: feed input to shadow embryo alongside V7.
-    # Non-blocking: if curriculum holds shadow_lock, skip rather than stall converse.
-    for _w in text.lower().split():
-        _w = re.sub(r"[^a-z']", "", _w).strip("'")
-        if len(_w) > 2 and _w.isalpha():
-            _shadow_experience(_w, blocking=False)
+    # Point A: shadow experience fed asynchronously to avoid blocking converse.
+    # Converse is the critical path — shadow runs in background thread.
+    def _bg_shadow(words):
+        for _w in words:
+            _shadow_experience(_w, blocking=True)
+    _shadow_words = [re.sub(r"[^a-z']","",_w).strip("'")
+                     for _w in text.lower().split()
+                     if len(re.sub(r"[^a-z']","",_w.strip("'"))) > 2]
+    if _shadow_words:
+        threading.Thread(target=_bg_shadow, args=(_shadow_words,), daemon=True).start()
     response = _guala.converse(text, source=source, emission_mode=emission_mode)
     _guala.log_event(STATE_DIR, "source_interaction",
                      source=source, words_in=len(text.split()),
