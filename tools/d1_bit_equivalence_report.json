@@ -1,8 +1,13 @@
 {
-  "command": "TFE-CMD-GATE-D1-S_N-EMISSION-WC-20260626-AMEND-2",
+  "command": "TFE-CMD-GATE-D1-S_N-EMISSION-WC-20260626-AMEND-3",
   "kernel_sha": "02e0d373658c2703f1916e0b9cc5b0e229d49646740efbc18fefc58bf770abd4",
-  "evaluation_frame": "Corrected: window [t-252, t+1] for each test point. Both kernels use the same bar slice; kappa_t uses F[t+1] in both.",
+  "evaluation_frame": "Corrected: window [t-252, t+1] for each test point. Both kernels use the same bar slice; kappa_t uses F[t+1] in both. C_bar computed properly in both (Amendment 3 fix applied to production).",
   "joint_row_count": 78899,
+  "gate_D_F_n_regression": {
+    "max_F_n_abs_diff": 0.0,
+    "tolerance": 1e-09,
+    "pass": true
+  },
   "Cohort_W1": {
     "n_rows": 38123,
     "max_abs_diff": 0.0,
@@ -25,9 +30,9 @@
     "p99": 0.0,
     "p99_9": 0.0,
     "n_null_asym": 0,
-    "note": "Informational. With the corrected same-window frame, EST cohort should also converge (both kernels use same window, same warmup start). Any remaining divergence would indicate a formula difference."
+    "note": "Informational. With corrected evaluation frame and C_bar fix, EST should also show bit-identity."
   },
   "gate_pass": true,
   "failures": [],
-  "wall_time_seconds": 2272.1
+  "wall_time_seconds": 2254.1
 }

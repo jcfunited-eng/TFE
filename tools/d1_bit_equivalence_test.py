@@ -134,14 +134,11 @@ def get_trading_days(bars_db, start, end):
 
 def _production_cv_loop(resonances, dsfs, stop_at_seq_idx):
     """Run CV integrator loop up to (and including) stop_at_seq_idx gate.
-    Returns s_n at that gate, or None if loop didn't reach it.
+    Returns (s_n, F_n) at that gate, or (None, None) if loop didn't reach it.
 
-    Uses proper C_bar from c_history (matching quarantine kernel).
-    Note: compute_cognitive_scalars in uf_mdg_snapshot.py hardcodes C_bar=0.0
-    with the comment 'c_norm not needed for F_n'. That simplification affects
-    rho, which affects z_n, which affects s_n. The test uses the quarantine-
-    faithful C_bar computation to validate the formula, independent of the
-    C_bar=0 simplification in the production snapshot function.
+    Uses proper C_bar from c_history (matching quarantine kernel and the
+    fixed compute_cognitive_scalars after Amendment 3). Both s_n and F_n
+    depend on rho which depends on C_bar.
     """
     a_state = np.zeros(3, dtype=float)
     x_f = x_m = x_s = 0.0
@@ -195,43 +192,44 @@ def _production_cv_loop(resonances, dsfs, stop_at_seq_idx):
 
         z_n = np.array([x_f, x_m, x_s], dtype=float)
         surprise = float(np.linalg.norm(nu_core - z_n))
+        gamma = float(0.5 * (u_value + (1.0 - rho)))
+        F_n_val = float(gamma + (_KP_lambda_s * surprise))
 
         if seq_idx == stop_at_seq_idx:
-            return surprise
+            return (surprise, F_n_val)
 
-    return None
+    return (None, None)
 
 
-def compute_production_s_n_at_gate(closes_window, target_t_b):
+def compute_production_at_gate(closes_window, target_t_b):
     """
     Run uf_mdg_snapshot's internal pipeline on closes_window.
-    Find the gate where gate.t_b == target_t_b and return its s_n.
-    Returns None if no gate at target_t_b.
+    Find the gate where gate.t_b == target_t_b.
+    Returns (s_n, F_n) or (None, None) if no gate at target_t_b.
     """
     try:
         F = closes_window.astype(float)
         if len(F) < 2:
-            return None
+            return (None, None)
         sevs       = _compute_l0_sev(F)
         gates      = _segment_l1_gates(sevs)
         isfs       = _compute_l2_isf(gates)
         resonances = _compute_l3_resonance(isfs)
         dsfs       = _compute_l4_dsf(resonances)
         if not resonances or not dsfs:
-            return None
-        # Find which sequential gate corresponds to target_t_b
+            return (None, None)
         for seq_idx, gate in enumerate(gates):
             if gate.t_b == target_t_b:
                 return _production_cv_loop(resonances, dsfs, seq_idx)
-        return None
+        return (None, None)
     except Exception:
-        return None
+        return (None, None)
 
 
-def compute_quarantine_s_n_at_gate(closes_window, dates_window, target_date, ticker):
+def compute_quarantine_at_gate(closes_window, dates_window, target_date, ticker):
     """
     Run quarantine build_state_rows on WINDOWED bar slice (not full history).
-    Find the gate row at target_date. Return s_n.
+    Find the gate row at target_date. Return (s_n, F_n).
     """
     try:
         df = pd.DataFrame({
@@ -241,14 +239,16 @@ def compute_quarantine_s_n_at_gate(closes_window, dates_window, target_date, tic
         })
         result = build_state_rows(ticker, df, KernelParameters())
         if result.empty or "s_n" not in result.columns:
-            return None
+            return (None, None)
         result["Date"] = pd.to_datetime(result["Date"])
         row = result[result["Date"] == pd.Timestamp(target_date)]
         if len(row) == 0:
-            return None
-        return float(row.iloc[0]["s_n"])
+            return (None, None)
+        s_n = float(row.iloc[0]["s_n"])
+        F_n = float(row.iloc[0]["F_n"]) if "F_n" in row.columns and row.iloc[0]["F_n"] is not None else None
+        return (s_n, F_n)
     except Exception:
-        return None
+        return (None, None)
 
 
 # ── Test per window ───────────────────────────────────────────────────────────
@@ -289,25 +289,29 @@ def run_test_for_window(universe, bars_db, win_start, win_end, label):
             target_t_b_in_window = i - w_start   # position of target_date in window
 
             # Quarantine: windowed build_state_rows, find gate at target_date
-            s_n_q = compute_quarantine_s_n_at_gate(c_window, d_window, date, ticker)
+            s_n_q, F_n_q = compute_quarantine_at_gate(c_window, d_window, date, ticker)
 
-            # Production: internal pipeline, find gate at target_t_b_in_window
-            s_n_p = compute_production_s_n_at_gate(c_window, target_t_b_in_window)
+            # Production: internal pipeline (with corrected C_bar), find gate
+            s_n_p, F_n_p = compute_production_at_gate(c_window, target_t_b_in_window)
 
             if s_n_q is None or s_n_p is None:
                 continue  # no gate at target_date in one or both sides
 
-            abs_diff = abs(s_n_q - s_n_p)
-            cohort   = "W1" if raw_bar_count <= W1_BAR_MAX else "EST"
+            abs_diff_sn = abs(s_n_q - s_n_p)
+            abs_diff_fn = abs(F_n_q - F_n_p) if (F_n_q is not None and F_n_p is not None) else None
+            cohort      = "W1" if raw_bar_count <= W1_BAR_MAX else "EST"
             rows.append({
                 "ticker":         ticker,
                 "date":           ds,
                 "bar_count":      raw_bar_count,
                 "s_n_quarantine": s_n_q,
                 "s_n_production": s_n_p,
-                "abs_diff":       abs_diff,
+                "abs_diff":       abs_diff_sn,
+                "F_n_quarantine": F_n_q,
+                "F_n_production": F_n_p,
+                "F_n_abs_diff":   abs_diff_fn,
                 "cohort":         cohort,
-                "pass_strict":    (cohort == "W1" and abs_diff <= W1_MAX_DIFF),
+                "pass_strict":    (cohort == "W1" and abs_diff_sn <= W1_MAX_DIFF),
             })
 
         n_proc += 1
@@ -396,7 +400,22 @@ def main():
     w1_s  = cohort_stats(w1_df)
     est_s = cohort_stats(est_df)
 
+    # ── Gate D: F_n regression (max diff ≤ 1e-9 across full sample) ─────────
+    F_n_diff = df["F_n_abs_diff"].dropna()
+    max_F_n_diff = float(F_n_diff.max()) if len(F_n_diff) > 0 else 0.0
+    F_N_REGRESSION_TOL = 1e-9
+    log(f"Gate D (F_n regression): max |F_n_q - F_n_p| = {max_F_n_diff:.2e}")
+
     failures = []
+    # Gate D first — if F_n changed, the C_bar fix affected F_n incorrectly
+    if max_F_n_diff > F_N_REGRESSION_TOL:
+        failures.append(
+            f"Gate D FAIL: F_n max_diff={max_F_n_diff:.2e} > {F_N_REGRESSION_TOL:.0e}. "
+            "C_bar fix has incorrectly affected F_n — stop and investigate."
+        )
+        bad_fn = df[df["F_n_abs_diff"] > F_N_REGRESSION_TOL].head(20)
+        log(f"First 20 F_n failures:\n{bad_fn.to_string()}")
+        # Report but continue to show full picture
     if w1_s["n_rows"] < W1_MIN_ROWS:
         failures.append(f"W1 Criterion 1: n_rows={w1_s['n_rows']} < {W1_MIN_ROWS}")
     if (w1_s.get("max_abs_diff") or 0) > W1_MAX_DIFF:
@@ -419,21 +438,26 @@ def main():
     df.to_csv(OUTPUT_DIR / "d1_bit_equivalence_report.csv", index=False)
 
     report = {
-        "command":        "TFE-CMD-GATE-D1-S_N-EMISSION-WC-20260626-AMEND-2",
+        "command":        "TFE-CMD-GATE-D1-S_N-EMISSION-WC-20260626-AMEND-3",
         "kernel_sha":     sha,
         "evaluation_frame": (
             "Corrected: window [t-252, t+1] for each test point. "
-            "Both kernels use the same bar slice; kappa_t uses F[t+1] in both."
+            "Both kernels use the same bar slice; kappa_t uses F[t+1] in both. "
+            "C_bar computed properly in both (Amendment 3 fix applied to production)."
         ),
         "joint_row_count": len(df),
+        "gate_D_F_n_regression": {
+            "max_F_n_abs_diff":    round(max_F_n_diff, 12),
+            "tolerance":           F_N_REGRESSION_TOL,
+            "pass":                max_F_n_diff <= F_N_REGRESSION_TOL,
+        },
         "Cohort_W1":  {**w1_s, "pass_criteria": {
             "min_rows": W1_MIN_ROWS, "max_abs_diff": f"≤{W1_MAX_DIFF:.0e}",
             "p99_9": f"≤{W1_P999_DIFF:.0e}", "null_asym": "=0", "nan_neg": "=0",
         }},
         "Cohort_EST": {**est_s, "note":
-            "Informational. With the corrected same-window frame, EST cohort "
-            "should also converge (both kernels use same window, same warmup start). "
-            "Any remaining divergence would indicate a formula difference."},
+            "Informational. With corrected evaluation frame and C_bar fix, "
+            "EST should also show bit-identity."},
         "gate_pass":  gate_pass,
         "failures":   failures,
         "wall_time_seconds": round(time.time() - t0, 1),
@@ -442,14 +466,16 @@ def main():
         json.dumps(report, indent=2))
 
     log("")
-    log("=== GATE D1 AMEND-2 RESULT ===")
+    log("=== GATE D1 AMEND-3 RESULT ===")
+    log(f"  Gate D (F_n regression): max diff = {max_F_n_diff:.2e}  "
+        f"({'PASS' if max_F_n_diff <= F_N_REGRESSION_TOL else 'FAIL'})")
     log(f"  Cohort_W1 rows:   {w1_s['n_rows']}")
     if w1_s["n_rows"] > 0:
-        log(f"  W1 max abs_diff:  {w1_s.get('max_abs_diff'):.2e}")
+        log(f"  W1 max s_n diff:  {w1_s.get('max_abs_diff'):.2e}")
         log(f"  W1 p99.9 diff:    {w1_s.get('p99_9'):.2e}")
     log(f"  Cohort_EST rows:  {est_s['n_rows']}")
     if est_s["n_rows"] > 0:
-        log(f"  EST max abs_diff: {est_s.get('max_abs_diff'):.2e}")
+        log(f"  EST max s_n diff: {est_s.get('max_abs_diff'):.2e}")
     log(f"  Gate result:      {'PASS' if gate_pass else 'FAIL'}")
     for f in failures:
         log(f"  ✗ {f}")

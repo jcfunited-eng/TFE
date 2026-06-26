@@ -406,6 +406,7 @@ def compute_cognitive_scalars(
         x_s = 0.0
         r_history: List[float] = []
         u_history: List[float] = []
+        c_history: List[float] = []  # gate complexity history — required for s_n via rho
 
         F_n_last: Optional[float] = None
         raw_x_m_last: Optional[float] = None
@@ -415,14 +416,21 @@ def compute_cognitive_scalars(
             r_norm = float(np.clip(resonance.R / _KP_R_NORM_MAX, -1.0, 1.0))
             s_value = 1.0  # s_uf_default
             u_value = float(np.clip(dsf.U_star, 0.0, 1.0))
+            # c_norm: gate complexity (C_k) normalised to [0, 1].
+            # Consumed by C_bar → rho → z_n → s_n.
+            # Reference: quarantine_historical_kernel.py line 353:
+            #   c_norm = float(np.clip(dsf.C / 4.0, 0.0, 1.0))
+            # where dsf.C == gate.C (complexity count from L1 lattice quantization).
+            c_norm = float(np.clip(resonance.isf.gate.C / 4.0, 0.0, 1.0))
 
             r_history.append(r_norm)
             u_history.append(u_value)
+            c_history.append(c_norm)
 
             R_bar = float(np.mean(r_history[-_KP_RHO_ROLLING_WINDOW:]))
             S_bar = s_value
             U_bar = float(np.mean(u_history[-_KP_RHO_ROLLING_WINDOW:]))
-            C_bar = 0.0  # c_norm not needed for F_n
+            C_bar = float(np.mean(c_history[-_KP_RHO_ROLLING_WINDOW:]))
             rho = float(np.clip(
                 (_KP_a_rho * R_bar) + (_KP_b_rho * S_bar) - (_KP_c_rho * U_bar) - (_KP_d_rho * C_bar),
                 0.0, 1.0,

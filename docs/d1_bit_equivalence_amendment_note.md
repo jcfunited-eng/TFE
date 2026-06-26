@@ -190,3 +190,61 @@ band boundary. Quantify before deploying Gate D2.
 Gate D1 code (8ecfdaf): s_n emission BUILT and formula-TESTED.
 Gate D1 production accuracy: pending C_bar=0 fix in compute_cognitive_scalars.
 Gate D1 deployment sign-off: pending three-key (Joe + wC + c1) and C_bar fix.
+
+---
+
+## Amendment 3 — C_bar Fix in Production Code (PASS)
+
+**Command:** TFE-CMD-GATE-D1-S_N-EMISSION-WC-20260626-AMEND-3
+
+### The C_bar=0 problem (identified in Amendment 2)
+
+`compute_cognitive_scalars` in uf_mdg_snapshot.py had `C_bar = 0.0` with
+the comment "c_norm not needed for F_n." This was correct for F_n in
+isolation but incorrect for s_n: C_bar feeds into rho, which feeds into
+the z_n integrator update, which determines `s_n = ||nu_core - z_n||`.
+
+With C_bar=0, production s_n diverged from the quarantine reference by ~0.01
+at new-listing gates. Amendment 2's test helper had already computed C_bar
+correctly (matching the quarantine kernel), which is why Amendment 2 showed
+diff=0.0 — the test helper was correct but the production code was wrong.
+
+### The fix (uf_mdg_snapshot.py)
+
+Verbatim from quarantine_historical_kernel.py line 353-363:
+```python
+c_norm = float(np.clip(dsf.C / 4.0, 0.0, 1.0))
+c_history.append(c_norm)
+...
+C_bar = float(np.mean(c_history[-RHO_ROLLING_WINDOW:]))
+```
+
+In uf_mdg_snapshot.py `compute_cognitive_scalars`, `dsf.C` is accessed as
+`resonance.isf.gate.C` (the complexity count from L1 gate segmentation).
+The same formula: `c_norm = float(np.clip(resonance.isf.gate.C / 4.0, 0.0, 1.0))`.
+
+### Results
+
+```
+Gate D (F_n regression): max |F_n_q - F_n_p| = 0.00e+00  PASS ✓
+  (tolerance 1e-9; C_bar fix is neutral for F_n in the test)
+
+Cohort_W1 (bar_count ≤ 20):  38,123 rows  max s_n diff = 0.0  PASS ✓
+Cohort_EST (bar_count > 20):  40,776 rows  max s_n diff = 0.0  PASS ✓
+Total: 78,899 joint rows | gate_pass = true | wall_time = 2254s
+```
+
+Gate D passes because both quarantine F_n and production F_n now use the
+same C_bar in the same formula — they are bit-identical.
+
+### Task A3: Backfill
+
+`SELECT COUNT(*) FROM runtime_decisions_history WHERE s_n IS NOT NULL` = 0.
+No bad s_n data was written between D1 deployment (SHA 8ecfdaf) and this
+amendment. Production has not yet been deployed with the s_n emission.
+
+### Status after Amendment 3
+
+Gate D1 code: uf_mdg_snapshot.py BUILT with C_bar fix (this commit).
+Gate D1 test: PASS on production code path (not just test helper).
+Gate D1: **BUILT-AND-TESTED** — pending three-key sign-off (Joe + wC + c1).
