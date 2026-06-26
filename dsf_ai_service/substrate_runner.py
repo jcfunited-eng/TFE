@@ -686,15 +686,24 @@ def _start_input_ring_consumer():
                     if kind == "sight_frame":
                         try:
                             img_bytes = _b64.b64decode(data.get("frame_b64", ""))
+                            if not img_bytes:
+                                continue
+                            # Inline decode — substrate must not import the FastAPI app
+                            from PIL import Image as _PIL_Image
+                            import io as _sio
+                            _img = _PIL_Image.open(_sio.BytesIO(img_bytes)).convert('L').resize((64, 64))
+                            grid = __import__('numpy').array(_img, dtype=__import__('numpy').float64) / 255.0
+                            _guala.process_sight_frame(grid)
+                            # YOLO gets raw bytes (full color at original resolution)
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
                                 process_sight_with_recognition)
-                            from dsf_ai_service.app import decode_image_bytes
-                            _, grid, _, _ = decode_image_bytes(img_bytes)
-                            _guala.process_sight_frame(grid)
-                            # Pass raw bytes to YOLO — needs full color, not 64x64 gray grid
-                            process_sight_with_recognition(_guala, img_bytes)
-                        except Exception:
-                            pass
+                            bindings = process_sight_with_recognition(_guala, img_bytes)
+                            if bindings:
+                                _scene = " ".join(b.get("word","") for b in bindings)
+                                _cognition_learn(_scene)
+                                print(f"[sight] detected: {_scene}")
+                        except Exception as _e:
+                            print(f"[sight] frame error: {_e}")
                     elif kind == "sound_window":
                         try:
                             audio_bytes = _b64.b64decode(data.get("audio_b64", ""))
