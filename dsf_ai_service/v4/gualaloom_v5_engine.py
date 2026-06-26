@@ -3862,12 +3862,17 @@ class Guala:
                 break
 
         # Bidirectional: tag the CONTEXT ANCHOR entries with received_response
+        # Use set for O(1) membership check — list grows unboundedly without cap,
+        # making `chi_value not in received` O(n) per entry after many converses.
         for anchor_chi in response_contexts:
             for d in range(-self.atlas.band, self.atlas.band + 1):
                 for e in self.atlas.entries.get(anchor_chi + d, []):
                     received = e.get("received_response", [])
-                    if chi_value not in received:
+                    received_set = set(received) if received else set()
+                    if chi_value not in received_set:
                         received.append(chi_value)
+                        if len(received) > 20:   # cap: keep only recent 20 associations
+                            del received[0]
                         e["received_response"] = received
 
         # Count and log (only once per converse call, not per entry)
