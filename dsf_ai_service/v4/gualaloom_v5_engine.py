@@ -2404,32 +2404,21 @@ class Guala:
                 idx for (sn, idx) in installed_modes if sn == sec_name
             ]
 
-        # Point C (Eve): wire DSF-derived coupling into H_base.
-        # The spec (Ch.6) derives J_ij from DSF outputs — this gives concept-specific
-        # attractors so the System settles ON the concept, not just toward evidence.
-        # Without this, H_base=0 means settling is evidence+inhibition only (no cognition).
-        _input_dsf = getattr(self, '_last_lang_dsf', None)
-        if _input_dsf is not None:
-            try:
-                J = _input_dsf.coupling_matrix_diag()
-                j_vals = list(J.values())   # 8 scalars: direction, convergence, momentum...
-                for sec_name in self._EMISSION_SECTIONS:
-                    sec = sys_.sections[sec_name]
-                    if not sec.mode_bank:
-                        continue
-                    # H = Σ_k J_k |m_k><m_k|  — project J onto installed mode basis
-                    # Each installed mode vector |m_k> carries the concept's wave-function.
-                    # Scaling by J_k makes high-coupling concepts attract the settlement.
-                    H = np.zeros((N, N), dtype=complex)
-                    for k, j_val in enumerate(j_vals):
-                        if k < len(sec.mode_bank):
-                            m = sec.mode_bank[k]
-                            H += float(j_val) * np.outer(m.conj(), m)
-                    if np.linalg.norm(H) > 1e-10:
-                        H = (H + H.conj().T) / 2   # enforce Hermitian
-                        sec.H_base = H
-            except Exception:
-                pass   # non-fatal — fall back to existing H_base
+        # Point C (Eve): DSF-derived H_base REVERTED.
+        # Past Eve zeroed H_base in GL-CMD-EMISSION-HBASE-FREE-EVE-20260618-06
+        # because non-zero H caused psi to oscillate rather than commit — the early
+        # exit (no_new_streak >= 10) never triggered, all 80 ticks ran, socket timeout.
+        # My structured H_base (DSF × mode projectors) caused the same regression:
+        # with LATERAL_INHIBITION_ENABLED + EMISSION_STRUCTURED_NOISE, 80 ticks of
+        # Crank-Nicolson with non-zero H_base exceeded the 25s socket timeout.
+        #
+        # The principle Eve protected is still correct: emission sections answer to
+        # evidence + inhibition + goals, not autonomous H rotation. DSF coupling should
+        # enter through a different path — possibly as a prior on candidate selection
+        # (Stage 1 grandurun weighting by J) rather than as a Hamiltonian term.
+        # That wiring is the proper fix and needs its own pass gate before deploying.
+        #
+        # For now: H_base stays zero, emission works, gate test can run.
 
         # Stage 2: Dynamics settling
         t1 = _time.monotonic()
