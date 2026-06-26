@@ -1,0 +1,36 @@
+{
+  "command": "TFE-CMD-D1-EVALUATION-FRAME-MEASUREMENT-WC-20260626",
+  "parquet_path": "wave_kernel_state_20260625.parquet",
+  "w1_candidate_pool_size": 3628,
+  "sample_n": 200,
+  "sample_seed": 20260626,
+  "n_skipped": 0,
+  "frame_a_note": "quarantine kernel s_n from parquet: full-history run, kappa[i] uses F[i+1] (next bar available)",
+  "frame_b_note": "compute_cognitive_scalars on history ending AT target_date: kappa[last_bar] = 0 (no F[i+1])",
+  "abs_diff_stats": {
+    "max": 0.72692464,
+    "mean": 0.25766749,
+    "median": 0.39389957,
+    "p90": 0.42834639,
+    "p95": 0.44018003,
+    "p99": 0.46812928
+  },
+  "threshold_counts": {
+    "gt_0_015_full_band_tolerance": 189,
+    "gt_0_0075_half_tolerance": 192,
+    "gt_0_001_negligible_threshold": 198
+  },
+  "w1_band_analysis": {
+    "w1_band": [
+      0.954,
+      0.969
+    ],
+    "n_frame_a_in_band": 47,
+    "n_frame_b_in_band": 3,
+    "n_both_in_band": 0,
+    "n_only_A_in_band": 47,
+    "n_only_B_in_band": 3,
+    "n_neither_in_band": 150
+  },
+  "wall_time_seconds": 4.7
+}
