@@ -127,9 +127,13 @@ def _grandurun_state(binding, target_chi, target_source, needs_vector, current_t
     arousal  = float(binding.get("arousal",  0.5))
     valence  = float(binding.get("valence",  0.5))
     surprise = float(binding.get("surprise", 0.5))
-    nv = _np.asarray(needs_vector, dtype=_np.float64)
-    affect = _np.array([arousal, valence, surprise], dtype=_np.float64)
-    vec[2] = float(_np.dot(nv, affect))
+    # needs_vector may be a pre-built ndarray (from _emit_grandurun_vector)
+    # or a plain list (direct callers). Avoid per-call array allocation.
+    if isinstance(needs_vector, _np.ndarray):
+        nv = needs_vector
+    else:
+        nv = _np.asarray(needs_vector, dtype=_np.float64)
+    vec[2] = nv[0] * arousal + nv[1] * valence + nv[2] * surprise
 
     sensory_refs = binding.get("sensory_refs", [])
     vec[3] = min(len(sensory_refs) / 5.0, 1.0)
@@ -139,12 +143,9 @@ def _grandurun_state(binding, target_chi, target_source, needs_vector, current_t
     vec[4] = math.exp(-dt / 200.0)
 
     if co_occurrence_dict:
-        chi_key = str(chi_a)
-        co_entry = co_occurrence_dict.get(chi_key, {})
-        strengths = [float(v) for v in co_entry.values()]
-        vec[5] = sum(strengths) / max(1, len(strengths)) if strengths else 0.0
-    else:
-        vec[5] = 0.0
+        # co_occurrence_dict stores pre-computed mean scalar per chi key
+        # (computed once in _emit_grandurun_vector, not per-call)
+        vec[5] = float(co_occurrence_dict.get(str(chi_a), 0.0))
 
     vec[6] = float(binding.get("polarity", 1.0))
 
@@ -1861,16 +1862,24 @@ class Guala:
 
         current_tick = self.tick
 
-        # Build co_occurrence dict for semantic_neighborhood from deep_candidates
+        # Build co_occurrence dict for semantic_neighborhood from deep_candidates.
+        # Store as {"_mean": float} per chi key — pre-computed mean avoids
+        # iterating potentially thousands of motif entries per _grandurun_state call.
         co_occurrence_dict = {}
         for de, co, clarity in deep_candidates:
             de_chi_key = str(de.get("chi", 0))
-            if de_chi_key not in co_occurrence_dict:
-                co_occurrence_dict[de_chi_key] = {}
+            entry = co_occurrence_dict.setdefault(de_chi_key, {"_sum": 0.0, "_count": 0})
             for sec_name, sec_co in co.items():
                 if sec_co:
-                    co_occurrence_dict[de_chi_key].update(
-                        {k: float(v) for k, v in sec_co.items()})
+                    entry["_sum"] += sum(float(v) for v in sec_co.values())
+                    entry["_count"] += len(sec_co)
+        # Finalize: replace running sum with mean scalar
+        for chi_key, entry in co_occurrence_dict.items():
+            co_occurrence_dict[chi_key] = (entry["_sum"] / entry["_count"]
+                                           if entry["_count"] > 0 else 0.0)
+
+        # Pre-compute needs array once — avoid per-call numpy allocation in _grandurun_state
+        needs_arr = _np.asarray(needs_vector, dtype=_np.float64)
 
         # Build pool of (state_vector, word) — pass full binding dicts
         vector_pool = []
@@ -1911,7 +1920,7 @@ class Guala:
                         binding.setdefault("surprise", clarity.get("surprise", 0.5))
 
                     state_vec = _grandurun_state(
-                        binding, target_chi, target_source, needs_vector,
+                        binding, target_chi, target_source, needs_arr,
                         current_tick, co_occurrence_dict=co_occurrence_dict)
                     vector_pool.append((state_vec, word_label))
                     seen_words.add(word_label.lower())

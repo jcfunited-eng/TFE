@@ -62,8 +62,19 @@ def guala_post(host, api_key, command, text="", source="gate_test",
 
 
 def get_tick(host, api_key):
+    """Get current engine tick. Parses from status response text string
+    since /status doesn't expose tick as a top-level JSON field."""
     resp = guala_post(host, api_key, "/status", timeout=10)
-    return resp.get("tick", 0)
+    # Try top-level "tick" first (future-proofed)
+    if "tick" in resp:
+        return int(resp["tick"])
+    # Parse from response text: "vocab: N | reads: N | tick: N"
+    import re
+    text = resp.get("response", "")
+    m = re.search(r"tick:\s*(\d+)", text)
+    if m:
+        return int(m.group(1))
+    return 0
 
 
 def get_emission_event(host, api_key, since_tick, max_retries=3):
