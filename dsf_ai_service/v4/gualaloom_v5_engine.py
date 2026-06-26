@@ -1496,6 +1496,7 @@ class Guala:
             return self._num_to_word(result)
 
         with self.lock:
+            _t_converse_start = time.monotonic()
             # 1. Tokenize input (GL-BRIEF-035: shared normalization)
             words = _normalize_text(text)
             if not words:
@@ -1511,6 +1512,7 @@ class Guala:
                 ch = temp_krim.winding
                 input_chis.append(ch)
                 input_word_chis[w] = ch
+            _t_chi = time.monotonic()
 
             # v8 (GL-BRIEF-028): open response window from source utterance
             if source in ("joe", "wc", "c1") and input_chis:
@@ -1519,12 +1521,14 @@ class Guala:
 
             # 3. RECALL from atlas BEFORE reading input — corpus-only bindings
             recalled = self._recall_response(input_chis, input_word_chis, words)
+            _t_recall = time.monotonic()
 
             # 4. Read input into substrate (so she learns from this interaction)
             # Snapshot tick before read — only entries born in THIS read get tagged
             tick_before_read = self.tick
             self.read_sentence(text, source=source)
             tick_after_read = self.tick
+            _t_read = time.monotonic()
 
             # v8 (GL-BRIEF-028, FIX 1): tag ONLY entries touched by THIS input.
             # Scoped to: last_tick in [tick_before_read+1, tick_after_read] AND
@@ -1542,6 +1546,7 @@ class Guala:
                                     ch + d, e["section"], e["motif"], source,
                                     log_event=(_bind_count == 0))
                                 _bind_count += 1
+            _t_tag = time.monotonic()
 
             # 5. Choose response — GL-FIX-RETIRE-TEMPLATES
             # Recall still provides picture refs but text comes from
@@ -1558,6 +1563,7 @@ class Guala:
                 reply = self._emit_from_invariants(input_chis, words,
                                                     mode_override=emission_mode,
                                                     v7_session=getattr(self, '_v7_session', None))
+            _t_emit = time.monotonic()
             if not reply:
                 # 7. Unslotted fallback: strongest bindings near input chi
                 reply = self._emit_unslotted(input_chis, words)
@@ -1604,6 +1610,7 @@ class Guala:
             # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
             if reply and reply != "..." and source in ("joe", "wc", "c1"):
                 self._self_hear(reply, source)
+            _t_selfhear = time.monotonic()
 
             # GL-CMD-COGNITION-BUNDLE: run hemisphere updates after emission
             try:
@@ -1622,6 +1629,20 @@ class Guala:
                     emission_chis, self.tick)
             except Exception as _hemi_err:
                 pass  # hemisphere failures must not break converse
+            _t_hemi = time.monotonic()
+
+            # Diagnostic timing event (EVE-PROFILE-20260626 — remove after gate passes)
+            if source in ("joe", "wc", "c1", "gate_test"):
+                self._log_substrate_event("converse_timing",
+                    chi_ms=round((_t_chi - _t_converse_start) * 1000, 1),
+                    recall_ms=round((_t_recall - _t_chi) * 1000, 1),
+                    read_ms=round((_t_read - _t_recall) * 1000, 1),
+                    tag_ms=round((_t_tag - _t_read) * 1000, 1),
+                    emit_ms=round((_t_emit - _t_tag) * 1000, 1),
+                    selfhear_ms=round((_t_selfhear - _t_emit) * 1000, 1),
+                    hemi_ms=round((_t_hemi - _t_selfhear) * 1000, 1),
+                    total_ms=round((_t_hemi - _t_converse_start) * 1000, 1),
+                    n_words=len(words))
 
             return reply
 
