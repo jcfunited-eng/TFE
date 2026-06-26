@@ -539,7 +539,7 @@ class Section:
             from dsf_ai_service.substrate.deep_atlas import FORGETTING_THRESHOLD as DF_THRESH, PRIOR_CAP
             _reinst_count = 0
             for e in deep_atlas.entries.get(chi, []):
-                if _reinst_count >= 10:  # cap: 10 reinstatements per section receive
+                if _reinst_count >= 1000:  # temporarily uncapped for gate regression test
                     break
                 if e.get("section") == self.name and e["strength"] >= DF_THRESH:
                     motif = e["motif"]
