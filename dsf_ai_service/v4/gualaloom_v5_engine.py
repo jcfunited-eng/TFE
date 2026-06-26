@@ -2465,8 +2465,11 @@ class Guala:
             return joe_candidates_present and input_source in ("joe", "joe_voice", "wc", "c1")
 
         # affect_match: fires when candidate affect is close to needs
-        needs_arousal = getattr(self.needs, "novelty", 0.5)
-        needs_valence = getattr(self.needs, "connection", 0.5)
+        # Use needs.arousal() and needs.valence() — the computed affect dimensions.
+        # Previously used needs.novelty/connection (functional needs), which produced
+        # large mismatches (novelty ~0.94 vs corpus arousal ~0.50 = 0.44 gap > 0.3).
+        needs_arousal = self.needs.arousal()
+        needs_valence = self.needs.valence()
         mean_arousal = sum(c["arousal"] for c in candidates) / len(candidates)
         mean_valence = sum(c["valence"] for c in candidates) / len(candidates)
         affect_close = abs(mean_arousal - needs_arousal) < 0.3 and abs(mean_valence - needs_valence) < 0.3
