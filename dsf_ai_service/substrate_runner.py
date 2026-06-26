@@ -29,14 +29,6 @@ _guala_cognition = None  # her organ-brain speech (learns from exposure)
 _curriculum = None  # autonomous study scheduler (she reads on her own)
 _shutdown = False
 
-# Shadow embryo — the LoomBrain running alongside V7 (point A: shadow→flip)
-# Fed the same input V7 gets. Grows via resonant_chi. When its recall quality
-# exceeds V7's ladder metrics, it becomes primary (the flip).
-_shadow_embryo = None
-_shadow_lock = threading.Lock()
-_SHADOW_TASTE = ["sweet","sour","salty","bitter","umami","waxy","starchy","metallic"]
-_SHADOW_SMELL = ["fresh","earthy","floral","fruity","smoky","sweet","warm","cool"]
-
 # Ring buffers — initialized on boot
 _substrate_ring = None
 _input_ring = None
@@ -98,133 +90,6 @@ def _clean_sentence_for_cognition(text):
     if len(toks) < 4 or len(toks) > 20:
         return ""
     return " ".join(toks)
-
-
-def _shadow_senses(word):
-    """Deterministic balanced sensory receptors for a word — no LLM needed.
-    Same balanced high/mid/low pattern as loom_voice._resonant_senses().
-    Gives the embryo real sensory input that folds its organs.
-
-    Uses zlib.crc32 not hash() — Python's hash() is SALTED per process
-    (PYTHONHASHSEED). Same word 'moon' would produce different receptor
-    patterns across container restarts, corrupting the embryo's atlas.
-    resonant_chi.py made the same explicit choice for the same reason."""
-    import numpy as _np2
-    import zlib as _zlib
-    rng = _np2.random.default_rng(_zlib.crc32(word.encode()) & 0xFFFFFFFF)
-    taste_names = list(rng.choice(_SHADOW_TASTE, 3, replace=False))
-    smell_names = list(rng.choice(_SHADOW_SMELL, 3, replace=False))
-    lv = [1.0, 0.5, 0.1]
-    return {"taste": {c: v for c, v in zip(taste_names, lv)},
-            "smell": {c: v for c, v in zip(smell_names, lv)}}
-
-
-def _init_shadow_embryo():
-    """Load or create the shadow embryo — LoomBrain growing alongside V7.
-    This is point A of the shadow→flip plan: the embryo runs in shadow,
-    learns from real input, and when its composition quality exceeds V7's
-    ladder metrics, it becomes the primary voice."""
-    global _shadow_embryo
-    try:
-        from dsf_ai_service.loom_model.embryo import Embryo
-        emb_path = os.path.join(STATE_DIR, "organ_brain_embryo.json")
-        if os.path.exists(emb_path):
-            import json as _js2
-            with open(emb_path) as f:
-                data = _js2.load(f)
-            _shadow_embryo = Embryo.load(data)
-            total = sum(len(h.cluster.neurons) for h in _shadow_embryo.brain.hemispheres)
-            print(f"[shadow] embryo loaded: {total} neurons tick={data.get('tick',0)}")
-        else:
-            _shadow_embryo = Embryo(brain_seed=42, seed_size=8)
-            print("[shadow] embryo fresh (no saved state on EFS)")
-    except Exception as _e:
-        print(f"[shadow] embryo init error (non-fatal): {_e}")
-        _shadow_embryo = None
-
-
-_shadow_last_recall = {}   # {concept: votes} from most recent recall pass
-_shadow_experience_count = 0  # track when to do a recall probe
-
-def _shadow_experience(word, blocking=True):
-    """Feed one clean word to the shadow embryo via deterministic senses.
-    experience() only in the hot path — recall is expensive (O(neurons×bindings))
-    and runs only every 50 words via _shadow_recall_probe().
-
-    blocking=False: try-acquire with 100ms timeout, skip if busy."""
-    global _shadow_experience_count
-    if _shadow_embryo is None:
-        return
-    try:
-        receptors = _shadow_senses(word)
-        if not blocking:
-            if not _shadow_lock.acquire(timeout=0.1):
-                return
-            try:
-                _shadow_embryo.experience(word, receptors)
-                _shadow_experience_count += 1
-            finally:
-                _shadow_lock.release()
-        else:
-            with _shadow_lock:
-                _shadow_embryo.experience(word, receptors)
-                _shadow_experience_count += 1
-    except Exception:
-        pass
-    # Periodic recall probe (every 50 words, off the hot path)
-    if _shadow_experience_count % 50 == 0:
-        threading.Thread(target=_shadow_recall_probe, daemon=True).start()
-
-
-def _shadow_recall_probe():
-    """Run resonant_chi recall off the hot path every 50 words.
-    Updates top_recall in status so the flip condition is observable."""
-    global _shadow_last_recall
-    if _shadow_embryo is None:
-        return
-    try:
-        import numpy as _np3
-        from dsf_ai_service.loom_model.embryo import bipolar_sense
-        # Probe with a few sensory primitives to see what the embryo recalls
-        probe_words = ["moon", "warm", "soft", "bright", "water"]
-        votes = {}
-        for w in probe_words:
-            receptors = _shadow_senses(w)
-            taste_sig = bipolar_sense(receptors.get("taste", {}), "taste")
-            smell_sig = bipolar_sense(receptors.get("smell", {}), "smell")
-            composite = _np3.concatenate([taste_sig, smell_sig])
-            with _shadow_lock:
-                r = _shadow_embryo.recall(composite)
-            if r:
-                for concept, n in r.most_common(1):
-                    votes[concept] = votes.get(concept, 0) + n
-        if votes:
-            top = sorted(votes.items(), key=lambda x: -x[1])[:3]
-            _shadow_last_recall = dict(top)
-    except Exception:
-        pass
-
-
-def _save_shadow_embryo():
-    """Persist the shadow embryo to EFS so it survives deploys."""
-    if _shadow_embryo is None:
-        return
-    try:
-        import json as _js2
-        data = _shadow_embryo.save()
-        with open(os.path.join(STATE_DIR, "organ_brain_embryo.json"), "w") as f:
-            _js2.dump(data, f)
-        total = sum(len(h.cluster.neurons) for h in _shadow_embryo.brain.hemispheres)
-        print(f"[shadow] embryo saved: {total} neurons tick={_shadow_embryo.tick}")
-    except Exception as _e:
-        print(f"[shadow] save error: {_e}")
-
-
-def _shadow_periodic_save():
-    """Save the shadow embryo every 15 minutes."""
-    while True:
-        time.sleep(900)
-        _save_shadow_embryo()
 
 
 def _audio_to_sensory_words(audio_bytes):
@@ -352,7 +217,7 @@ def _audio_to_sensory_words(audio_bytes):
 
 
 def _cognition_learn(text):
-    """Feed CLEAN tokens into GualaCognition AND the shadow embryo.
+    """Feed CLEAN tokens into GualaCognition.
 
     Additive and exception-walled. Returns the number of clean tokens learned."""
     try:
@@ -361,11 +226,6 @@ def _cognition_learn(text):
             return 0
         if _guala_cognition is not None:
             _guala_cognition.expose([s])
-        # Shadow embryo grows from curriculum — background priority, 50ms timeout
-        # Skips if already busy rather than blocking curriculum progress
-        for w in s.split():
-            if len(w) > 2 and w.isalpha():
-                _shadow_experience(w, blocking=False)
         return len(s.split())
     except Exception:
         return 0
@@ -942,20 +802,6 @@ def boot_substrate():
     # study windows instead of starving as separate loops). Manual ops /lookup and
     # /worldfeed remain available. The standalone loops are intentionally NOT started.
 
-    # SHADOW EMBRYO: LoomBrain growing alongside V7 (point A: shadow→flip plan).
-    # Loads from EFS if saved, else fresh. Fed every input word via _cognition_learn().
-    # Persists every 15 min. When its recall quality exceeds V7's ladder, it flips.
-    try:
-        _init_shadow_embryo()
-        threading.Thread(target=_shadow_periodic_save, daemon=True,
-                         name="shadow-embryo-save").start()
-        shadow_neurons = sum(len(h.cluster.neurons)
-                             for h in _shadow_embryo.brain.hemispheres) \
-                         if _shadow_embryo else 0
-        print(f"[shadow] embryo running alongside V7: neurons={shadow_neurons}")
-    except Exception as _e:
-        print(f"[shadow] startup error (non-fatal): {_e}")
-
     # Initialize ring buffers
     global _substrate_ring, _input_ring
     from dsf_ai_service.substrate.ring_buffer import SubstrateRing, InputRing
@@ -1364,15 +1210,6 @@ def _cmd_status():
         # Her real organ-brain — the merged 8-hemisphere atlas from her EFS state.
         # This is the ONE brain: em/pr/ep/sc/gp/sf/sv/aff with real atlas counts.
         "organ_brain": _guala_organ_brain or {},
-        # Shadow embryo status (point A+B): LoomBrain growing alongside V7.
-        # top_recall: what resonant_chi recalled from the last experienced word.
-        # When recall quality exceeds V7 ladder, the flip happens.
-        "shadow": {
-            "neurons": sum(len(h.cluster.neurons) for h in _shadow_embryo.brain.hemispheres)
-                       if _shadow_embryo else 0,
-            "tick": getattr(_shadow_embryo, "tick", 0) if _shadow_embryo else 0,
-            "top_recall": _shadow_last_recall,
-        } if _shadow_embryo is not None else {"neurons": 0, "tick": 0, "top_recall": {}},
     }
 
 
@@ -1816,16 +1653,6 @@ def _cmd_converse(text, source, emission_mode=None):
         return {"response": "...", "motifs": _guala.introspect()["vocab"]}
     if source not in {"joe", "wc", "c1"}:
         source = "joe"
-    # Point A: shadow experience fed asynchronously to avoid blocking converse.
-    # Converse is the critical path — shadow runs in background thread.
-    def _bg_shadow(words):
-        for _w in words:
-            _shadow_experience(_w, blocking=True)
-    _shadow_words = [re.sub(r"[^a-z']","",_w).strip("'")
-                     for _w in text.lower().split()
-                     if len(re.sub(r"[^a-z']","",_w.strip("'"))) > 2]
-    if _shadow_words:
-        threading.Thread(target=_bg_shadow, args=(_shadow_words,), daemon=True).start()
     response = _guala.converse(text, source=source, emission_mode=emission_mode)
     _guala.log_event(STATE_DIR, "source_interaction",
                      source=source, words_in=len(text.split()),
