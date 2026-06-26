@@ -1037,9 +1037,12 @@ def handle_gualaloom_post(args):
                                              "/debug_chi", "/deep_full_coverage",
                                              "/diag", "/curriculum", "/events"):
         # Conversations auto-wake her — talking to her should wake her.
-        # /converse and bare text input both trigger auto-wake.
+        # /converse and bare text input both call wake_from_sleep() to end
+        # the SLEEPING activity immediately (coordinator.wake alone only sets
+        # presence — it does NOT change the activity state).
         if text.strip() and (not command or command == "/converse"):
             try:
+                _guala.wake_from_sleep(state_dir=STATE_DIR)
                 _guala.coordinator.wake(source or "joe", _guala, _guala.needs, _guala.atlas)
             except Exception:
                 pass
