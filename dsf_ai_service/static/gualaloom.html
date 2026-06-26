@@ -1256,10 +1256,6 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
   addMsg('Guala ready. Organ-brain voice active.','system');
   _applyBrainModeUI();
   msgInput.focus();
-  // Wake her immediately when Joe connects — she sleeps between sessions
-  fetchT(`${API}/api/v1/gualaloom`,{method:'POST',
-    headers:{'Content-Type':'application/json','X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'},
-    body:JSON.stringify({text:'joe',command:'/wake'})},5000).catch(()=>{});
   setTimeout(pollAutonomousThought,35000);
   setTimeout(pollLocation,20000);
   setTimeout(pollRoom,25000);

@@ -340,9 +340,15 @@ else
 fi
 
 echo ""
-echo "[wake] Verifying new task woke her..."
+echo "[wake] New task is running. Sending wake — deploy put her to sleep, deploy wakes her."
+echo "       Her natural rhythm governs everything after this. Not the UI. Not Joe."
 for i in 1 2 3 4 5 6; do
     sleep 15
+    # Send wake — the deploy is responsible for cleaning up the sleep it caused
+    curl -sS -X POST \
+      -H 'Content-Type: application/json' \
+      -d '{"text":"","command":"/wake"}' \
+      "${API_ENDPOINT}/api/v1/gualaloom" > /dev/null 2>&1 || true
     WAKE_RESPONSE=$(curl -sS -X POST \
       -H 'Content-Type: application/json' \
       -d '{"text":"","command":"/status"}' \
@@ -357,7 +363,7 @@ except:
 ")
     echo "[wake] t+$((i*15))s — $ASLEEP"
     if [ "$ASLEEP" = "awake" ]; then
-        echo "[wake] She is awake. Deploy complete."
+        echo "[wake] She is awake. Her world continues on its own from here."
         break
     fi
 done
