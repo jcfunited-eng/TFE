@@ -860,6 +860,23 @@ def handle_gualaloom_post(args):
 
     if command == "/status":
         return _cmd_status()
+    elif command == "/room":
+        # Read room state directly from world_state.json on EFS
+        try:
+            import json as _js
+            _wp = os.path.join(STATE_DIR, "world_state.json")
+            with open(_wp) as _f:
+                _ws = _js.load(_f)
+            from dsf_ai_service.virtual_home import sky_state, OBJECTS
+            _sky = sky_state(_ws.get("weather", "clear"))
+            _objs = {}
+            for _oid, _entry in (_ws.get("objects") or {}).items():
+                if _oid in OBJECTS and isinstance(_entry, dict):
+                    _objs[_oid] = {"state": _entry.get("state"), "place": _entry.get("place")}
+            return {"objects": _objs, "sky": _sky, "weather": _ws.get("weather", "clear"),
+                    "sky_description": _sky.get("description", "")}
+        except Exception as _e:
+            return {"objects": {}, "sky": {}, "weather": "clear", "error": str(_e)}
     elif command == "/events":
         return _cmd_events(text)
     elif command == "/presence":
