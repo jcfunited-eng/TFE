@@ -547,8 +547,11 @@ class Section:
                     if p > 0:
                         deep_atlas.reinstatements += 1
                         _reinst_count += 1
+                        # source="deep_prior" excludes these from response-context
+                        # tag loops (which look for recently-written joe/wc entries)
                         atlas.record(self.name, motif, chi, atlas_tick,
                                      salience=0.3, dwell_ticks=0,
+                                     source="deep_prior",
                                      **(atlas_kwargs or {}))
 
         # Fast path: O(1) word-identity lookup BEFORE similarity scan.
@@ -1547,7 +1550,8 @@ class Guala:
                         for e in self.atlas.entries.get(ch + d, []):
                             if (e.get("last_tick", 0) > tick_before_read
                                     and e.get("last_tick", 0) <= tick_after_read
-                                    and not e.get("response_context")):
+                                    and not e.get("response_context")
+                                    and e.get("source") != "deep_prior"):
                                 self._tag_response_bindings(
                                     ch + d, e["section"], e["motif"], source,
                                     log_event=(_bind_count == 0))
@@ -4185,7 +4189,8 @@ class Guala:
                 for e in self.atlas.entries.get(ch + d, []):
                     if (e.get("last_tick", 0) > tick_before
                             and e.get("last_tick", 0) <= tick_after
-                            and not e.get("response_context")):
+                            and not e.get("response_context")
+                            and e.get("source") != "deep_prior"):
                         self._tag_response_bindings(
                             ch + d, e["section"], e["motif"], "guala")
 
