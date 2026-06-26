@@ -32,11 +32,11 @@ import urllib.request
 import urllib.error
 
 GATE_INPUTS = [
-    "hello who are you",
-    "what is the moon",
-    "tell me about water",
-    "do you know daddy",
-    "what do you see",
+    "you are alive",
+    "i see you now",
+    "you know me",
+    "be here with me",
+    "i hear you now",
 ]
 
 PASS_THRESHOLD_INPUTS = 3

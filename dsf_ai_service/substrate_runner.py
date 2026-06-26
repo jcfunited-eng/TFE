@@ -1037,8 +1037,8 @@ def handle_gualaloom_post(args):
                                              "/debug_chi", "/deep_full_coverage",
                                              "/diag", "/curriculum", "/events"):
         # Conversations auto-wake her — talking to her should wake her.
-        # Only explicit text input (not special commands) triggers this.
-        if text.strip() and not command:
+        # /converse and bare text input both trigger auto-wake.
+        if text.strip() and (not command or command == "/converse"):
             try:
                 _guala.coordinator.wake(source or "joe", _guala, _guala.needs, _guala.atlas)
             except Exception:
