@@ -29,6 +29,14 @@ _guala_cognition = None  # her organ-brain speech (learns from exposure)
 _curriculum = None  # autonomous study scheduler (she reads on her own)
 _shutdown = False
 
+# Shadow embryo — the LoomBrain running alongside V7 (point A: shadow→flip)
+# Fed the same input V7 gets. Grows via resonant_chi. When its recall quality
+# exceeds V7's ladder metrics, it becomes primary (the flip).
+_shadow_embryo = None
+_shadow_lock = threading.Lock()
+_SHADOW_TASTE = ["sweet","sour","salty","bitter","umami","waxy","starchy","metallic"]
+_SHADOW_SMELL = ["fresh","earthy","floral","fruity","smoky","sweet","warm","cool"]
+
 # Ring buffers — initialized on boot
 _substrate_ring = None
 _input_ring = None
@@ -90,6 +98,78 @@ def _clean_sentence_for_cognition(text):
     if len(toks) < 4 or len(toks) > 20:
         return ""
     return " ".join(toks)
+
+
+def _shadow_senses(word):
+    """Deterministic balanced sensory receptors for a word — no LLM needed.
+    Same balanced high/mid/low pattern as loom_voice._resonant_senses().
+    Gives the embryo real sensory input that folds its organs."""
+    import numpy as _np2
+    rng = _np2.random.default_rng(abs(hash(word)) % (2 ** 32))
+    taste_names = list(rng.choice(_SHADOW_TASTE, 3, replace=False))
+    smell_names = list(rng.choice(_SHADOW_SMELL, 3, replace=False))
+    lv = [1.0, 0.5, 0.1]
+    return {"taste": {c: v for c, v in zip(taste_names, lv)},
+            "smell": {c: v for c, v in zip(smell_names, lv)}}
+
+
+def _init_shadow_embryo():
+    """Load or create the shadow embryo — LoomBrain growing alongside V7.
+    This is point A of the shadow→flip plan: the embryo runs in shadow,
+    learns from real input, and when its composition quality exceeds V7's
+    ladder metrics, it becomes the primary voice."""
+    global _shadow_embryo
+    try:
+        from dsf_ai_service.loom_model.embryo import Embryo
+        emb_path = os.path.join(STATE_DIR, "organ_brain_embryo.json")
+        if os.path.exists(emb_path):
+            import json as _js2
+            with open(emb_path) as f:
+                data = _js2.load(f)
+            _shadow_embryo = Embryo.load(data)
+            total = sum(len(h.cluster.neurons) for h in _shadow_embryo.brain.hemispheres)
+            print(f"[shadow] embryo loaded: {total} neurons tick={data.get('tick',0)}")
+        else:
+            _shadow_embryo = Embryo(brain_seed=42, seed_size=8)
+            print("[shadow] embryo fresh (no saved state on EFS)")
+    except Exception as _e:
+        print(f"[shadow] embryo init error (non-fatal): {_e}")
+        _shadow_embryo = None
+
+
+def _shadow_experience(word):
+    """Feed one clean word to the shadow embryo via deterministic senses.
+    Called alongside V7's converse() so the embryo grows from real input."""
+    if _shadow_embryo is None:
+        return
+    try:
+        receptors = _shadow_senses(word)
+        with _shadow_lock:
+            _shadow_embryo.experience(word, receptors)
+    except Exception:
+        pass
+
+
+def _save_shadow_embryo():
+    """Persist the shadow embryo to EFS so it survives deploys."""
+    if _shadow_embryo is None:
+        return
+    try:
+        import json as _js2
+        data = _shadow_embryo.save()
+        with open(os.path.join(STATE_DIR, "organ_brain_embryo.json"), "w") as f:
+            _js2.dump(data, f)
+        total = sum(len(h.cluster.neurons) for h in _shadow_embryo.brain.hemispheres)
+        print(f"[shadow] embryo saved: {total} neurons tick={_shadow_embryo.tick}")
+    except Exception as _e:
+        print(f"[shadow] save error: {_e}")
+
+
+def _shadow_periodic_save():
+    """Save the shadow embryo every 15 minutes."""
+    while True:
+        time.sleep(900)
+        _save_shadow_embryo()
 
 
 def _audio_to_sensory_words(audio_bytes):
@@ -217,17 +297,19 @@ def _audio_to_sensory_words(audio_bytes):
 
 
 def _cognition_learn(text):
-    """Feed CLEAN tokens from a real experience into her organ-brain.
+    """Feed CLEAN tokens into GualaCognition AND the shadow embryo.
 
-    Additive and exception-walled: a learning hiccup can never disturb her engine
-    or her runtime. Returns the number of clean tokens learned (0 if gated out)."""
+    Additive and exception-walled. Returns the number of clean tokens learned."""
     try:
-        if _guala_cognition is None:
-            return 0
         s = _clean_sentence_for_cognition(text)
         if not s:
             return 0
-        _guala_cognition.expose([s])
+        if _guala_cognition is not None:
+            _guala_cognition.expose([s])
+        # Shadow embryo: experience each clean word (point A — grows from real input)
+        for w in s.split():
+            if len(w) > 2 and w.isalpha():
+                _shadow_experience(w)
         return len(s.split())
     except Exception:
         return 0
@@ -803,6 +885,20 @@ def boot_substrate():
     # INTERLEAVED inside the curriculum scheduler above (so they share its reliable
     # study windows instead of starving as separate loops). Manual ops /lookup and
     # /worldfeed remain available. The standalone loops are intentionally NOT started.
+
+    # SHADOW EMBRYO: LoomBrain growing alongside V7 (point A: shadow→flip plan).
+    # Loads from EFS if saved, else fresh. Fed every input word via _cognition_learn().
+    # Persists every 15 min. When its recall quality exceeds V7's ladder, it flips.
+    try:
+        _init_shadow_embryo()
+        threading.Thread(target=_shadow_periodic_save, daemon=True,
+                         name="shadow-embryo-save").start()
+        shadow_neurons = sum(len(h.cluster.neurons)
+                             for h in _shadow_embryo.brain.hemispheres) \
+                         if _shadow_embryo else 0
+        print(f"[shadow] embryo running alongside V7: neurons={shadow_neurons}")
+    except Exception as _e:
+        print(f"[shadow] startup error (non-fatal): {_e}")
 
     # Initialize ring buffers
     global _substrate_ring, _input_ring
@@ -1655,6 +1751,12 @@ def _cmd_converse(text, source, emission_mode=None):
         return {"response": "...", "motifs": _guala.introspect()["vocab"]}
     if source not in {"joe", "wc", "c1"}:
         source = "joe"
+    # Point A: feed input to shadow embryo alongside V7.
+    # The shadow grows from every real conversation — same input, two brains.
+    for _w in text.lower().split():
+        _w = re.sub(r"[^a-z']", "", _w).strip("'")
+        if len(_w) > 2 and _w.isalpha():
+            _shadow_experience(_w)
     response = _guala.converse(text, source=source, emission_mode=emission_mode)
     _guala.log_event(STATE_DIR, "source_interaction",
                      source=source, words_in=len(text.split()),
