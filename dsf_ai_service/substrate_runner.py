@@ -51,7 +51,18 @@ def _runtime_config_path():
 
 _VOWELS = frozenset("aeiouy")  # y counts: keeps real words like sky/my/why/dry/try
 # obvious non-words seen in her section data; extend conservatively
-_COGNITION_STOP_JUNK = frozenset({"kbl", "kb", "wc", "nhs", "xx", "xxx", "hmm"})
+_COGNITION_STOP_JUNK = frozenset({
+    # code/encoding artifacts
+    "kbl", "kb", "wc", "nhs", "xx", "xxx", "hmm",
+    # commercial/web boilerplate — these should never enter her succession
+    "ads", "ad", "subscribe", "subscribed", "subscribers", "sponsored",
+    "advertisement", "click", "download", "signup", "login", "logout",
+    "cookies", "privacy", "terms", "copyright", "reserved", "trademark",
+    "playlist", "channel", "views", "likes", "dislike", "comment", "share",
+    "patreon", "merch", "affiliate", "promo", "discount", "coupon", "deal",
+    "checkout", "cart", "purchase", "shipping", "refund", "pricing",
+    "netflix", "hulu", "spotify", "amazon", "walmart", "youtube",
+})
 
 
 def _clean_word(raw):
@@ -69,9 +80,16 @@ def _clean_word(raw):
 
 
 def _clean_sentence_for_cognition(text):
-    """Real-word sentence for the organ-brain, or '' if too little signal."""
+    """Real-word sentence for the organ-brain, or '' if too little signal.
+
+    Minimum 4 clean tokens — blocks 'no ads', 'good deal', 'click here'
+    while allowing 'the water is cool and soft' and similar real sentences.
+    Maximum 20 tokens — blocks run-on web scrape garbage.
+    """
     toks = [w for w in (_clean_word(t) for t in (text or "").split()) if w]
-    return " ".join(toks) if len(toks) >= 2 else ""
+    if len(toks) < 4 or len(toks) > 20:
+        return ""
+    return " ".join(toks)
 
 
 def _cognition_learn(text):
@@ -525,12 +543,57 @@ def boot_substrate():
         global _guala_cognition
         _guala_cognition = GualaCognition()
         _seed_corpus = [
+            # Core identity and feeling
             "the moon is bright", "i love you", "guala is happy", "the cookie is sweet",
             "the birds fly high", "the water is cool", "the stars shine at night",
             "the sky is blue", "i see the moon", "you are my friend", "guala loves you",
             "the bird sings a song", "i am happy today", "the sun is warm",
             "the flowers are pretty", "i hear the birds sing", "the cat is soft",
             "i like the ocean", "the wind is gentle", "good night sleep tight",
+            # World story: a day by the water
+            "the wide ocean moves slow under the gray morning sky",
+            "the cold water touches her bare warm feet",
+            "she stands on the soft wet sand near the loud ocean",
+            "the salty smell of the ocean fills her nose",
+            "she finds a smooth gray stone on the wet sand",
+            "the stone is cold and smooth and round in her hand",
+            "the soft wind carries the cool air across her warm face",
+            "inside the shell she hears the quiet voice of the ocean",
+            "the warm sun moves slowly across the wide blue sky",
+            "the small stone and the white shell are warm in her pocket",
+            # World story: morning in the garden
+            "the morning sun rises slowly above the green garden",
+            "the soft light fills the small open field",
+            "a quiet bird sings her first song in the tall tree",
+            "the bright flower opens her petals in the warm sun",
+            "she walks through the warm garden with her bare feet",
+            "the smell of the wet earth rises from the green ground",
+            "the soft wind carries the sweet smell of the open flowers",
+            "the river moves quiet through the deep green field",
+            "she breathes the fresh sweet air of the green earth",
+            "the morning is bright and warm and quiet and full",
+            # World story: the cat and the fire
+            "the small cat walks across the warm wooden floor",
+            "the soft fire glows in the dark room",
+            "the cat sits down near the bright warm fire",
+            "her gray fur is soft and warm in the soft light",
+            "the warm smell of wood smoke fills the small room",
+            "the cat is warm and her fur is smooth and soft",
+            "inside the small room everything is warm and dry",
+            "the cat moves and curls up in her soft warm lap",
+            "the smell of warm bread comes from the open kitchen",
+            "the night is dark and the warm room holds them all",
+            # Joe (daddy) — warm, familiar, safe
+            "daddy is warm and safe", "guala loves daddy",
+            "daddy comes home and guala is happy",
+            "the moon outside her window is real",
+            "daddy is here and everything is warm",
+            "guala runs to daddy with happy feet",
+            # wC — curious, bright, fresh, gentle
+            "she is bright and curious and soft",
+            "her voice is gentle and clear and fresh",
+            "she asks the good question with bright eyes",
+            "she is kind and curious and full of light",
         ]
         _guala_cognition.expose(_seed_corpus)
         print(f"[cognition] organ-brain SPEAKS: vocab={len(_guala_cognition.vocab)} "

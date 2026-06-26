@@ -35,7 +35,11 @@ YOUTUBE_QUERIES = [
 
 _BOILERPLATE = re.compile(
     r"subscribe|copyright|all rights reserved|cookie|privacy policy|terms of|"
-    r"sign in|log in|click here|http\S+|www\.\S+|\bvideo\b.*\bdownload\b",
+    r"sign in|log in|click here|http\S+|www\.\S+|\bvideo\b.*\bdownload\b|"
+    r"\bno ads\b|\bads\b|\bsponsored\b|\baffiliate\b|\bpromo\b|\bdiscount\b|"
+    r"\bcheckout\b|\badd to cart\b|\bfree trial\b|\bsign up\b|\bcreate account\b|"
+    r"\bwatch now\b|\bstream now\b|\bdownload now\b|\bget it now\b|"
+    r"\bpatreon\b|\bmerch\b|\bnotification bell\b|\blike and subscribe\b",
     re.IGNORECASE)
 
 
