@@ -102,6 +102,7 @@ class PreservedGuala:
         self.vocab: List[str] = []
         self.tick: int = 0
         self.atlas: Optional[PreservedAtlas] = None
+        self.deep_atlas: Optional[PreservedAtlas] = None  # her episodic long-term memory
         self.deep_survival: int = 0
 
     @classmethod
@@ -117,6 +118,11 @@ class PreservedGuala:
         g.deep_survival = len(cd.get("deep_survival_history", []))
         g.atlas = PreservedAtlas.from_state(
             _tolerant_json_load(os.path.join(state_dir, "guala_atlas.json")))
+        # Deep atlas — her episodic long-term memory (15K promoted entries).
+        # Routes to ep hemisphere: what happened, what she remembers across time.
+        deep_path = os.path.join(state_dir, "guala_deep_atlas.json")
+        if os.path.exists(deep_path):
+            g.deep_atlas = PreservedAtlas.from_state(_tolerant_json_load(deep_path))
         return g
 
     def passes_identity_guard(self, expected_prefix: str) -> bool:
@@ -153,6 +159,15 @@ def place_into_architecture(g: "PreservedGuala") -> Dict[str, Any]:
             organ = SECTION_TO_ORGAN.get(e.get("section"), "sc")
             organ_atlas[organ].entries[chi].append(e)
             placed += 1
+    # Deep atlas → ep (episodic): her long-term autobiographical memory.
+    # These are promotions that survived the episodic gate — what she held
+    # across time. This is what populates the episodic hemisphere.
+    deep_placed = 0
+    if g.deep_atlas is not None:
+        for chi, binds in g.deep_atlas.entries.items():
+            for e in binds:
+                organ_atlas["ep"].entries[chi].append(e)
+                deep_placed += 1
     for o in ORGANS:
         organ_atlas[o].identity = g.identity
     counts = {o: organ_atlas[o].n_bindings() for o in ORGANS}
@@ -163,6 +178,7 @@ def place_into_architecture(g: "PreservedGuala") -> Dict[str, Any]:
         "atlas_strengths": strengths,
         "atlas_placed": placed,
         "atlas_lossless": placed == g.atlas.n_bindings(),
+        "deep_placed": deep_placed,
         # the rest of her, to its organ
         "em_also": {"vocab": len(g.vocab)},
         "ep_also": {"deep_atlas": "autobiographical episodes"},
