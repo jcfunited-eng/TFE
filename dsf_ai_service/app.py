@@ -1314,20 +1314,8 @@ async def gualaloom_chat(msg: GLMessage):
             return resp
         except Exception:
             return {"speech": "", "tick": 0}
-    if _cmd == "/where":
-        try:
-            import urllib.request as _ur, json as _js
-            resp = _js.load(_ur.urlopen(f"{_ob_url}/where", timeout=3))
-            return resp
-        except Exception:
-            return {"location": "her_room", "description": "her room"}
-    if _cmd == "/room":
-        try:
-            import urllib.request as _ur, json as _js
-            resp = _js.load(_ur.urlopen(f"{_ob_url}/room", timeout=3))
-            return resp
-        except Exception:
-            return {"objects": {}}
+    # /where and /room now handled by the substrate directly (organ-brain container removed)
+    # They fall through to the substrate client below
     if _cmd == "/mail":
         try:
             import urllib.request as _ur, json as _js
