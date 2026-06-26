@@ -119,11 +119,16 @@ def _audio_to_sensory_words(audio_bytes):
         if len(pcm) < 800:
             return []
 
-        # 1. ENERGY → loud / soft / quiet
+        # 1. ENERGY → loud / soft / faint / quiet
         energy = float(_np.sqrt(_np.mean(pcm ** 2)))
-        if energy < 0.005:
-            return ["quiet"]
-        words = ["loud"] if energy > 0.15 else ["soft"]
+        if energy < 0.0003:
+            return ["quiet"]          # true silence
+        if energy > 0.15:
+            words = ["loud"]
+        elif energy > 0.02:
+            words = ["soft"]
+        else:
+            words = ["faint"]         # distant/ambient — still real, still heard
 
         # 2. TIMBRE — full-signal FFT → warm (bass-rich) / bright (treble) / smooth
         n = min(len(pcm), 16000)
