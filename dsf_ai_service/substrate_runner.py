@@ -137,15 +137,30 @@ def _init_shadow_embryo():
         _shadow_embryo = None
 
 
+_shadow_last_recall = {}   # {concept: votes} from most recent recall pass
+
 def _shadow_experience(word):
     """Feed one clean word to the shadow embryo via deterministic senses.
-    Called alongside V7's converse() so the embryo grows from real input."""
+    After experiencing, do a recall pass and store the top result.
+    This is B: resonant_chi recall through the chi-atlas, observable."""
+    global _shadow_last_recall
     if _shadow_embryo is None:
         return
     try:
+        import numpy as _np3
+        from dsf_ai_service.loom_model.embryo import bipolar_sense
         receptors = _shadow_senses(word)
+        # Compute bipolar composite — the signal representation
+        taste_sig = bipolar_sense(receptors.get("taste", {}), "taste")
+        smell_sig = bipolar_sense(receptors.get("smell", {}), "smell")
+        composite = _np3.concatenate([taste_sig, smell_sig])
         with _shadow_lock:
             _shadow_embryo.experience(word, receptors)
+            # Recall: population vote through resonant_chi → chi-atlas
+            # This is the real composition path — not a bigram
+            recalls = _shadow_embryo.recall(composite)
+            if recalls:
+                _shadow_last_recall = dict(recalls.most_common(3))
     except Exception:
         pass
 
@@ -1308,6 +1323,15 @@ def _cmd_status():
         # Her real organ-brain — the merged 8-hemisphere atlas from her EFS state.
         # This is the ONE brain: em/pr/ep/sc/gp/sf/sv/aff with real atlas counts.
         "organ_brain": _guala_organ_brain or {},
+        # Shadow embryo status (point A+B): LoomBrain growing alongside V7.
+        # top_recall: what resonant_chi recalled from the last experienced word.
+        # When recall quality exceeds V7 ladder, the flip happens.
+        "shadow": {
+            "neurons": sum(len(h.cluster.neurons) for h in _shadow_embryo.brain.hemispheres)
+                       if _shadow_embryo else 0,
+            "tick": getattr(_shadow_embryo, "tick", 0) if _shadow_embryo else 0,
+            "top_recall": _shadow_last_recall,
+        } if _shadow_embryo is not None else {"neurons": 0, "tick": 0, "top_recall": {}},
     }
 
 
