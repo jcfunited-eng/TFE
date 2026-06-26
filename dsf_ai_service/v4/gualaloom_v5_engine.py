@@ -3710,9 +3710,10 @@ class Guala:
             self._emission_lengths = self._emission_lengths[-50:]
         if any(w.endswith("?") or content.startswith("what") for w in words):
             self._question_count += 1
-        # Novel composition: word-tuple not emitted before (proxy for R3 phrase novelty)
-        # A real novel composition requires seeing a new (subject, verb, object) arrangement.
-        # This tracks unique sorted triples as a meaningful approximation.
+        # Novel word-bag rate (not phrase-structure novelty — sorted so order-invariant).
+        # Eve: "sat the cat" and "the cat sat" hash to the same triple — correct.
+        # This measures word-bag novelty, not subject-verb-object arrangement.
+        # Real phrase-structure novelty requires R3 and is not yet implemented.
         if len(words) >= 2:
             _triple = tuple(sorted(w.lower() for w in words[:4]))
             if not hasattr(self, '_seen_triples'):
@@ -5275,9 +5276,12 @@ class Guala:
                 "question_rate": round(
                     self._question_count / max(1, self._total_emissions), 3)
                     if self._total_emissions > 0 else 0.0,
-                "novel_composition_rate": round(
+                # Word-bag novelty rate (order-invariant sorted tuple).
+                # NOT phrase-structure novelty — R3 not yet implemented.
+                "novel_wordbag_rate": round(
                     self._novel_compositions / max(1, self._total_emissions), 3)
                     if self._total_emissions > 0 else 0.0,
+                "novel_composition_rate": 0.0,  # reserved for R3 phrase structure
                 "total_emissions": self._total_emissions,
                 # Awareness signal: deliberation (coordinator fires) vs routing
                 # (automatic commits) during emission settling. High ratio = intentional.

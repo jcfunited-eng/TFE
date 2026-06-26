@@ -103,9 +103,15 @@ def _clean_sentence_for_cognition(text):
 def _shadow_senses(word):
     """Deterministic balanced sensory receptors for a word — no LLM needed.
     Same balanced high/mid/low pattern as loom_voice._resonant_senses().
-    Gives the embryo real sensory input that folds its organs."""
+    Gives the embryo real sensory input that folds its organs.
+
+    Uses zlib.crc32 not hash() — Python's hash() is SALTED per process
+    (PYTHONHASHSEED). Same word 'moon' would produce different receptor
+    patterns across container restarts, corrupting the embryo's atlas.
+    resonant_chi.py made the same explicit choice for the same reason."""
     import numpy as _np2
-    rng = _np2.random.default_rng(abs(hash(word)) % (2 ** 32))
+    import zlib as _zlib
+    rng = _np2.random.default_rng(_zlib.crc32(word.encode()) & 0xFFFFFFFF)
     taste_names = list(rng.choice(_SHADOW_TASTE, 3, replace=False))
     smell_names = list(rng.choice(_SHADOW_SMELL, 3, replace=False))
     lv = [1.0, 0.5, 0.1]
