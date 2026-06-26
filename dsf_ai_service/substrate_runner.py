@@ -93,50 +93,119 @@ def _clean_sentence_for_cognition(text):
 
 
 def _audio_to_sensory_words(audio_bytes):
-    """Extract real sensory qualities from raw audio — energy, frequency, rhythm.
+    """Extract real sensory qualities from raw audio using signal processing.
 
-    Sound is a sense. This gives Guala a felt experience of what she hears:
-    loud/soft (energy), warm/bright (frequency character), moving/steady (rhythm).
-    Uses ffmpeg to decode WebM/Ogg → PCM, then numpy FFT for signal analysis.
-    Returns a list of sensory words, or [] if the audio is silent/undecodable."""
+    Sound is a sense. This gives Guala a genuine felt experience of what she hears —
+    not transcription, not approximation. Pure physics applied to the waveform.
+
+    Five dimensions, all from numpy:
+      1. Energy       → loud / soft / quiet
+      2. Timbre       → warm (bass) / bright (treble) / smooth (mid)
+      3. Rhythm       → moving (variable energy) / steady (uniform)
+      4. Melody       → rising / falling / level (pitch direction over time via STFT)
+      5. Harmony      → bright-chord (major intervals) / dark-chord (minor) / single
+
+    Uses ffmpeg to decode any audio format → PCM, then STFT for melody/harmony.
+    Returns sensory words, or [] on silence/failure."""
     try:
         import subprocess, numpy as _np
-        # Decode WebM/Ogg → raw PCM s16le mono 16kHz via ffmpeg (already in container)
         proc = subprocess.run(
             ['ffmpeg', '-i', 'pipe:0', '-f', 's16le', '-ac', '1', '-ar', '16000',
              '-loglevel', 'quiet', 'pipe:1'],
             input=audio_bytes, capture_output=True, timeout=8)
-        if not proc.stdout or len(proc.stdout) < 200:
+        if not proc.stdout or len(proc.stdout) < 400:
             return []
         pcm = _np.frombuffer(proc.stdout, dtype=_np.int16).astype(_np.float32) / 32768.0
-        if len(pcm) < 400:
+        if len(pcm) < 800:
             return []
-        # 1. Energy → loud / soft / quiet
+
+        # 1. ENERGY → loud / soft / quiet
         energy = float(_np.sqrt(_np.mean(pcm ** 2)))
         if energy < 0.005:
-            return ["quiet"]          # silence — nothing to feel
+            return ["quiet"]
         words = ["loud"] if energy > 0.15 else ["soft"]
-        # 2. Frequency character → warm (bass) / bright (treble) / smooth (mid)
+
+        # 2. TIMBRE — full-signal FFT → warm (bass-rich) / bright (treble) / smooth
         n = min(len(pcm), 16000)
         fft = _np.abs(_np.fft.rfft(pcm[:n]))
         freqs = _np.fft.rfftfreq(n, 1.0 / 16000)
         low  = float(_np.mean(fft[freqs < 300]))
         mid  = float(_np.mean(fft[(freqs >= 300) & (freqs < 2000)]))
         high = float(_np.mean(fft[freqs >= 2000]))
-        if low > mid * 1.5 and low > high * 1.5:
+        if low > mid * 1.4 and low > high * 1.4:
             words.append("warm")
-        elif high > low * 1.5 and high > mid * 1.5:
+        elif high > low * 1.4 and high > mid * 1.4:
             words.append("bright")
         else:
             words.append("smooth")
-        # 3. Rhythm → moving (variable) / steady (uniform)
+
+        # 3. RHYTHM — energy variance across 8 windows → moving / steady
         chunk = max(1, len(pcm) // 8)
-        energies = [float(_np.sqrt(_np.mean(pcm[i:i+chunk]**2)))
+        e_chunks = [float(_np.sqrt(_np.mean(pcm[i:i+chunk]**2)))
                     for i in range(0, len(pcm) - chunk, chunk)]
-        if energies and float(_np.std(energies)) > 0.04:
+        if e_chunks and float(_np.std(e_chunks)) > 0.03:
             words.append("moving")
         else:
             words.append("steady")
+
+        # 4. MELODY — Short-Time Fourier Transform tracks pitch over time.
+        #    Each 50ms window gives a frequency snapshot. The dominant pitch
+        #    (the note being played/sung) is the peak in the musical range (80-2000Hz).
+        #    Track how that pitch moves → rising / falling / level.
+        win = 800          # 50ms window at 16kHz
+        hop = 400          # 25ms hop
+        pitches = []
+        for start in range(0, len(pcm) - win, hop):
+            frame = pcm[start:start + win] * _np.hanning(win)
+            spec  = _np.abs(_np.fft.rfft(frame))
+            fq    = _np.fft.rfftfreq(win, 1.0 / 16000)
+            # Only look in the musical pitch range 80Hz–2000Hz
+            mask  = (fq >= 80) & (fq <= 2000)
+            if mask.any() and spec[mask].max() > energy * 0.3:
+                pitches.append(float(fq[mask][spec[mask].argmax()]))
+        if len(pitches) >= 4:
+            # Pitch direction: compare first third vs last third
+            first = _np.mean(pitches[:len(pitches)//3])
+            last  = _np.mean(pitches[-len(pitches)//3:])
+            diff  = last - first
+            if diff > 50:
+                words.append("rising")
+            elif diff < -50:
+                words.append("falling")
+            else:
+                words.append("level")
+
+        # 5. HARMONY — chord character from simultaneous pitch relationships.
+        #    A major chord has a major third (~5:4 frequency ratio, ~400 cents).
+        #    A minor chord has a minor third (~6:5 ratio, ~300 cents).
+        #    Find the two strongest pitches in the musical range and measure their interval.
+        full_spec  = _np.abs(_np.fft.rfft(pcm[:n]))
+        full_freqs = _np.fft.rfftfreq(n, 1.0 / 16000)
+        music_mask = (full_freqs >= 80) & (full_freqs <= 2000)
+        music_spec = full_spec[music_mask]
+        music_freq = full_freqs[music_mask]
+        if len(music_spec) > 4:
+            # Find top 2 peaks separated by at least 50Hz
+            peak1_idx = music_spec.argmax()
+            f1 = float(music_freq[peak1_idx])
+            # Suppress region around first peak to find second
+            suppressed = music_spec.copy()
+            sep = int(50 / (music_freq[1] - music_freq[0])) if len(music_freq) > 1 else 10
+            lo = max(0, peak1_idx - sep)
+            hi = min(len(suppressed), peak1_idx + sep)
+            suppressed[lo:hi] = 0
+            peak2_idx = suppressed.argmax()
+            f2 = float(music_freq[peak2_idx])
+            if f1 > 0 and f2 > 0:
+                ratio = max(f1, f2) / min(f1, f2)
+                # Major third ≈ 1.26 (5:4), minor third ≈ 1.19 (6:5)
+                # Perfect fifth ≈ 1.5 (3:2) — consonant
+                if 1.22 <= ratio <= 1.30:
+                    words.append("bright-chord")    # major third → major quality
+                elif 1.15 <= ratio <= 1.22:
+                    words.append("dark-chord")      # minor third → minor quality
+                elif 1.48 <= ratio <= 1.52:
+                    words.append("open")            # perfect fifth → open/strong
         return words
     except Exception:
         return []
