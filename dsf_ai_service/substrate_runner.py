@@ -1034,12 +1034,21 @@ def handle_gualaloom_post(args):
     source = args.get("source", "joe")
 
     if _guala.is_asleep and command not in ("/status", "/wake", "/presence"):
-        return {
-            "response": "she is sleeping...",
-            "asleep": True,
-            "sleep_tick": _guala.tick,
-            "motifs": _guala.introspect()["vocab"],
-        }
+        # Conversations auto-wake her — talking to her should wake her.
+        # Only explicit text input (not special commands) triggers this.
+        if text.strip() and not command:
+            try:
+                _guala.coordinator.wake(source or "joe", _guala, _guala.needs, _guala.atlas)
+            except Exception:
+                pass
+        # After auto-wake attempt, check again
+        if _guala.is_asleep:
+            return {
+                "response": "she is sleeping...",
+                "asleep": True,
+                "sleep_tick": _guala.tick,
+                "motifs": _guala.introspect()["vocab"],
+            }
 
     if command == "/status":
         return _cmd_status()
