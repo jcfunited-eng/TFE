@@ -33,10 +33,10 @@ import urllib.error
 
 GATE_INPUTS = [
     "you are alive",
-    "i see you now",
-    "you know me",
-    "be here with me",
-    "i hear you now",
+    "you are my air",
+    "you are here now",
+    "are you here with me",
+    "you are my light",
 ]
 
 PASS_THRESHOLD_INPUTS = 3
