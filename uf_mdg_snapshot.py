@@ -13,7 +13,8 @@ This module:
     - Uses UF-Core structural engine only (no TA).
     - Uses the same structural adapter as Watchlist / live views.
     - Materializes structural recency fields from published decision lineage.
-    - Computes CP-2 cognitive scalars (F_n, raw_x_m) from close bar history
+    - Computes snapshot state row at canonical evaluation frame (F_n, raw_x_m, s_n)
+#       via L0→L4 + CV-1.0 sequential filter (build_snapshot_state_row)
       using the deterministic quarantine kernel physics.
     - Returns a dict with keys:
         ticker, asset_type, price, regime,
@@ -354,31 +355,45 @@ def _compute_l4_dsf(res: List[_Resonance]) -> List[_DSFState]:
 
 
 # ---------------------------------------------------------------------------
-# CV-1.0 cognitive scalars — compute the latest F_n and raw_x_m from bars
+# build_snapshot_state_row — runs L0→L4 + CV-1.0 sequential filter
+# and returns the state row at the canonical evaluation frame (second-to-last
+# gate). Naming history: function was introduced as `compute_cognitive_scalars`
+# by a Codex LLM session (commit 1ced08c, 2026-03-31); the "cognitive" label
+# was Codex's project codename "CP-2" and was cross-project contamination
+# from GualaLoom. Renamed to physics-accurate canonical kernel state
+# terminology in D1 Amendment 4 (this commit) per wC engineering decision.
 # ---------------------------------------------------------------------------
 
-def compute_cognitive_scalars(
+def build_snapshot_state_row(
     close_prices: np.ndarray,
     max_bars: int = 252,
-) -> Dict[str, Optional[float]]:
+) -> Dict[str, object]:
     """
-    Run the full L0→L4 + CV-1.0 kernel on close_prices and return the final
-    gate's F_n and raw_x_m.
+    Run the full L0→L4 + CV-1.0 sequential filter on close_prices and
+    return kernel state at the canonical evaluation frame
+    (second-to-last gate, per Amendment 2 / SHA 1b7fcb4 — the frame
+    at which the W1 91.9% finding was measured).
 
-    Returns {"F_n": float, "raw_x_m": float} on success, or
-    {"F_n": None, "raw_x_m": None} when insufficient data or any error.
+    Returns dict with 14 keys (see implementation). When fewer than
+    two gates are produced, returns _null with all gate-specific
+    fields None and emission_frame="none".
 
-    raw_x_m = Q_20 + 2.0 * F_n  (verified from quarantine_sequential_filter.py)
-    Q_20 = x_m - eta_h * F_n  (q_20 = [0, 1, 0] so dot(q_20, z_n) = x_m)
-    => raw_x_m = x_m - 2.0 * F_n + 2.0 * F_n = x_m
+    bar_count in the return dict is the gate-emission sequence
+    index of the second-to-last gate, NOT len(close_prices).
 
-    max_bars: cap the input to the most recent N bars before running the
-    kernel. The CV-1.0 integrators (especially x_m with A_m=0.98) saturate
-    at the clip boundary when fed 5-year history, making raw_x_m useless as
-    a discriminator. 252 bars (~1 year) is enough warm-up to settle state
-    without saturation.
+    max_bars=252: CV-1.0 integrators saturate when fed 5-year history.
+    ~1 year is enough warm-up to settle state without clip saturation.
+
+    raw_x_m identity: Q_20 + 2.0 * F_n = x_m - eta_h*F_n + 2.0*F_n = x_m
+    (verified from quarantine_historical_kernel.py)
     """
-    _null: Dict[str, Optional[float]] = {"F_n": None, "raw_x_m": None, "s_n": None}
+    _null: Dict[str, object] = {
+        "F_n": None, "raw_x_m": None, "s_n": None,
+        "D_k": None, "M_k": None, "R_rev_k": None, "U_star_k": None,
+        "C_k": None, "P_k": None, "B_k": None,
+        "bar_count": None, "emission_frame": "none",
+        "gate_total": 0, "had_two_gates": False,
+    }
 
     try:
         F = close_prices.astype(float)
@@ -399,18 +414,38 @@ def compute_cognitive_scalars(
         if not resonances or not dsfs:
             return _null
 
-        # CV-1.0 stateful forward pass — accumulate to the last gate
+        # CV-1.0 stateful forward pass — canonical evaluation frame:
+        # track both previous (prev_*) and current (curr_*) gate values.
+        # After the loop, prev_* holds the second-to-last gate = the gate
+        # at which the canonical W1 measurement was taken.
         a_state = np.zeros(3, dtype=float)
         x_f = 0.0
         x_m = 0.0
         x_s = 0.0
         r_history: List[float] = []
         u_history: List[float] = []
-        c_history: List[float] = []  # gate complexity history — required for s_n via rho
+        c_history: List[float] = []  # gate complexity — required for C_bar → rho → z_n → s_n
 
-        F_n_last: Optional[float] = None
-        raw_x_m_last: Optional[float] = None
-        s_n_last: Optional[float] = None
+        # Previous gate (return values — second-to-last gate)
+        prev_F_n: Optional[float]   = None
+        prev_raw_x_m: Optional[float] = None
+        prev_s_n: Optional[float]   = None
+        prev_D_k: Optional[float]   = None
+        prev_M_k: Optional[float]   = None
+        prev_R_rev_k: Optional[float] = None
+        prev_U_star_k: Optional[float] = None
+        prev_C_k: Optional[int]     = None
+        prev_P_k: Optional[int]     = None
+        prev_B_k: Optional[float]   = None
+        prev_gate_index: Optional[int] = None
+
+        # Current gate (staging, becomes prev_* on next iteration)
+        curr_F_n = curr_raw_x_m = curr_s_n = None
+        curr_D_k = curr_M_k = curr_R_rev_k = curr_U_star_k = None
+        curr_C_k = curr_P_k = curr_B_k = None
+
+        _last_D_for_P: int = 0   # D_k from prior gate, used to compute P_k = |ΔD_k|
+        _gate_seq: int = 0        # 1-based gate emission sequence counter
 
         for resonance, dsf in zip(resonances, dsfs):
             r_norm = float(np.clip(resonance.R / _KP_R_NORM_MAX, -1.0, 1.0))
@@ -467,21 +502,58 @@ def compute_cognitive_scalars(
             Q_20_val = float(x_m - (_KP_eta_h * F_n_val))
             raw_x_m_val = float(Q_20_val + 2.0 * F_n_val)  # = x_m
 
-            F_n_last = F_n_val
-            raw_x_m_last = raw_x_m_val
-            s_n_last = surprise  # raw L2 norm — no clip, no norm, no smoothing
+            # Gate-level L4 fields not in _DSFState (C_k from gate, P_k computed)
+            _gate_seq += 1
+            D_k_val = int(dsf.D)
+            P_k_val = abs(D_k_val - _last_D_for_P)
+            _last_D_for_P = D_k_val
 
-        if F_n_last is None:
-            return _null
+            # Shift current → previous  (second-to-last ← last)
+            prev_F_n, prev_raw_x_m, prev_s_n = curr_F_n, curr_raw_x_m, curr_s_n
+            prev_D_k, prev_M_k, prev_R_rev_k = curr_D_k, curr_M_k, curr_R_rev_k
+            prev_U_star_k = curr_U_star_k
+            prev_C_k, prev_P_k, prev_B_k = curr_C_k, curr_P_k, curr_B_k
+            prev_gate_index = (_gate_seq - 1) if _gate_seq > 1 else None
 
-        return {"F_n": F_n_last, "raw_x_m": raw_x_m_last, "s_n": s_n_last}
+            # Update current gate values
+            curr_F_n      = F_n_val
+            curr_raw_x_m  = raw_x_m_val
+            curr_s_n      = surprise   # raw L2 norm — no clip, no norm, no smoothing
+            curr_D_k      = float(D_k_val)
+            curr_M_k      = float(dsf.M)
+            curr_R_rev_k  = float(dsf.Rev)
+            curr_U_star_k = float(np.clip(dsf.U_star, 0.0, 1.0))
+            curr_C_k      = resonance.isf.gate.C   # lattice complexity count
+            curr_P_k      = P_k_val                 # |ΔD_k|
+            curr_B_k      = float(dsf.B)
+
+        # Return second-to-last gate (prev_*). Return _null if fewer than 2 gates.
+        if prev_F_n is None:
+            return {**_null, "gate_total": len(dsfs)}
+
+        return {
+            "F_n":            prev_F_n,
+            "raw_x_m":        prev_raw_x_m,
+            "s_n":            prev_s_n,
+            "D_k":            prev_D_k,
+            "M_k":            prev_M_k,
+            "R_rev_k":        prev_R_rev_k,
+            "U_star_k":       prev_U_star_k,
+            "C_k":            prev_C_k,
+            "P_k":            prev_P_k,
+            "B_k":            prev_B_k,
+            "bar_count":      prev_gate_index,   # 1-based gate-emission seq of returned gate
+            "emission_frame": "canonical",
+            "gate_total":     len(dsfs),
+            "had_two_gates":  True,
+        }
 
     except Exception:
         return _null
 
 
 # ===========================================================================
-# End of CP-2 cognitive kernel
+# End of canonical state row builder (build_snapshot_state_row)
 # ===========================================================================
 
 
@@ -781,7 +853,7 @@ def evaluate_symbol_snapshot(
     Output
     ------
     A dict with the same row fields used in the snapshot envelope payload, plus bar_count.
-    CP-2 additions: F_n (cognitive load scalar), raw_x_m (medium-frequency state).
+    State row additions (CV-1.0 sequential filter): F_n (free structural energy), raw_x_m (medium-frequency integrator state), s_n (structural entropy order parameter).
 
     Notes
     -----
@@ -796,15 +868,15 @@ def evaluate_symbol_snapshot(
     bar_count = len(bars)
     history_meta = history_metadata_from_bars(bars)
 
-    # CP-2: compute cognitive scalars from the close bar array.
-    # Fails closed (None, None) if insufficient data or any error.
+    # Canonical kernel state: L0→L4 + CV-1.0 at second-to-last gate.
+    # Fails closed (all-None) if fewer than 2 gates produced.
     close_prices: np.ndarray = np.array(
         [float(b.close) for b in bars], dtype=float
     ) if bars else np.array([], dtype=float)
-    cognitive = compute_cognitive_scalars(close_prices)
-    f_n: Optional[float] = cognitive["F_n"]
-    raw_x_m: Optional[float] = cognitive["raw_x_m"]
-    s_n: Optional[float] = cognitive["s_n"]
+    canonical = build_snapshot_state_row(close_prices)
+    f_n: Optional[float] = canonical["F_n"]
+    raw_x_m: Optional[float] = canonical["raw_x_m"]
+    s_n: Optional[float] = canonical["s_n"]
 
     # If we truly have no usable data, still return a row so the UI doesn't break.
     if not bars:
@@ -849,6 +921,7 @@ def evaluate_symbol_snapshot(
             "F_n": None,
             "raw_x_m": None,
             "s_n": None,
+            "emission_frame": "none",
         }
 
     # Use the same structural adapter as Watchlist and other TFE pages.
@@ -889,6 +962,46 @@ def evaluate_symbol_snapshot(
     if b_k is None:
         b_k = _safe_vector_value(decision_vector, 5, 0.0)
 
+    # Amendment 4: override uf_core last-gate L4 fields with canonical
+    # second-to-last gate for cross-field consistency with s_n.
+    # uf_core/ is locked (design doc §14); this override is the only path.
+    if canonical["had_two_gates"]:
+        d_k       = canonical["D_k"]
+        m_k       = canonical["M_k"]
+        r_rev_k   = canonical["R_rev_k"]
+        u_star_k  = canonical["U_star_k"]
+        c_k       = canonical["C_k"]
+        p_k       = canonical["P_k"]
+        b_k       = canonical["B_k"]
+        decision_vector = [
+            float(canonical["D_k"]),
+            float(canonical["M_k"]),
+            float(canonical["R_rev_k"]),
+            float(canonical["U_star_k"]),
+            float(canonical["P_k"]),
+            float(canonical["B_k"]),
+        ]
+        bar_count = canonical["bar_count"]
+        emission_frame = "canonical"
+    else:
+        # 0 or 1 gate — force ALL gate-specific fields to None for
+        # cross-field consistency. emission_frame="none" signals to
+        # downstream consumers that no valid canonical state is available.
+        d_k = m_k = r_rev_k = u_star_k = None
+        c_k = p_k = b_k = None
+        decision_vector = []
+        bar_count = None
+        emission_frame = "none"
+
+    # Note on prev_C_k under Amendment 4: uf_core's prev_C_k is the
+    # C_k of the gate prior to uf_core's "last gate" — which is the
+    # canonical second-to-last gate. So prev_C_k == c_k in the emitted
+    # row when emission_frame == "canonical". This is structural, not
+    # a bug: no live consumer reads prev_C_k (see
+    # web/scripts/runtime_decision_provenance.mjs:100 "Removed: prev_c_k
+    # — not used in V3 basin math"). Field retained for schema
+    # backward-compatibility only.
+
     gate_count = _safe_int(state.get("gate_count"), 0)
     active_gate_count = _safe_int(state.get("active_gate_count"), 0)
 
@@ -918,10 +1031,11 @@ def evaluate_symbol_snapshot(
         "active_gate_count": active_gate_count,
         "decision_guard": decision_guard,
         "integrity_dropped": dropped,
-        # CP-2: cognitive scalars — None when kernel cannot compute (insufficient bars)
+        # Canonical kernel state — None when fewer than 2 gates produced
         "F_n": f_n,
         "raw_x_m": raw_x_m,
         "s_n": s_n,
+        "emission_frame": emission_frame,
         # Incremental refresh: store the latest bar's timestamp so the next
         # refresh can skip recomputation when no new bars exist.
         "last_bar_timestamp": bars[-1].timestamp.isoformat() if bars and hasattr(bars[-1], 'timestamp') and bars[-1].timestamp else None,

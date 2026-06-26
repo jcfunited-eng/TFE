@@ -202,7 +202,7 @@ P_k     = |D_k − D_{k−1}|
 B_k     = clip(B_{k−1} + ξ·(1−U*_k)·delta_R − χ·U*_k, −1, 1)
 ```
 
-### Cognitive Scalars
+### Snapshot State Row Variables
 
 `build_state_rows()` — quarantine_historical_kernel.py lines 337–421
 
@@ -210,7 +210,7 @@ B_k     = clip(B_{k−1} + ξ·(1−U*_k)·delta_R − χ·U*_k, −1, 1)
 nu_core = sat_vector([D_k, M_k, R_k_norm])   [clipped to −1..1]
 z_n     = [x_f, x_m, x_s]                    [integrator state]
 s_n     = ||nu_core − z_n||                   [surprise, ln 376]
-F_n     = γ + λ_s · s_n                       [cognitive load, ln 378]
+F_n     = γ + λ_s · s_n                       [baseline F_n term — quarantine_historical_kernel.py:377]
   where γ = 0.5 · (U*_k + (1 − rho))
 
 Q_20  = dot([0,1,0], z_n) − η_h · F_n = x_m − 2.0·F_n
@@ -479,7 +479,7 @@ Spec exists at docs/structural_exit_assessment_spec.tex (Horse/Herd/Distance). C
 
 ### REQUIRED CHANGE: s_n Emission to Production Snapshot
 
-The quarantine kernel computes `s_n = ||nu_core − z_n||` at line 376. The production `compute_cognitive_scalars()` in uf_mdg_snapshot.py computes `surprise` at line 455:
+The quarantine kernel computes `s_n = ||nu_core − z_n||` at line 376. The production `build_snapshot_state_row()` in uf_mdg_snapshot.py computes `surprise` at line 455:
 
 ```python
 # uf_mdg_snapshot.py line 455 (existing):

@@ -151,7 +151,7 @@ def main():
     log("Computing F_n distribution...")
     fn = df["F_n"]
     fn_dist = distrib(fn)
-    fn_dist["count_lte_1_65"] = int((fn <= 1.65).sum())   # Mar 26 cognitive gate
+    fn_dist["count_lte_1_65"] = int((fn <= 1.65).sum())   # Mar 26 F_n/raw_x_m gate
     fn_dist["count_lte_0_45"] = int((fn <= 0.45).sum())   # kernel F_max
 
     # ── chi_n distribution ────────────────────────────────────────────────────

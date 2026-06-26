@@ -9,7 +9,7 @@
 
 ## 1. The Problem
 
-The Mar 26 filter picks MOMENTS, not stocks. A stock enters the "B_k expanding, no reversal, D_k positive, cognitive gates clear" state briefly — like a wave cresting. The filter catches that crest as it happens.
+The Mar 26 filter picks MOMENTS, not stocks. A stock enters the "B_k expanding, no reversal, D_k positive, F_n/raw_x_m gates clear" state briefly — like a wave cresting. The filter catches that crest as it happens.
 
 Production takes a single snapshot per refresh — one frame per stock. At any single moment, almost no stock is mid-crest. Both log and raw L0 produced zero signals on current snapshot data with the unchanged Mar 26 filter.
 
@@ -87,8 +87,8 @@ A gate event is a Mar 26 signal if ALL of these are true at the COMPLETED gate:
 4. M_k >= 0 (non-negative momentum at this gate)
 5. Close >= $5 (price at the gate boundary)
 6. gate_count >= 10 (sufficient structural depth)
-7. raw_x_m <= 0.50 (cognitive gate — early-cycle moment)
-8. F_n <= 1.65 (cognitive load bounded)
+7. raw_x_m <= 0.50 (F_n/raw_x_m gate — early-cycle moment)
+8. F_n <= 1.65 (F_n within threshold)
 
 All conditions use the COMPLETED gate's values. prev_B_k is the B_k of the immediately preceding gate (which also completed in the past). No forward-looking data.
 

@@ -93,7 +93,7 @@ Production L0-L4 runs in Python (`uf_core/`) called by `uf_mdg_snapshot.py` duri
 
 Parameters: All frozen since Feb 2026. Zero changes. See KERNEL_PHILOSOPHY.md Section 5.
 
-CP-2 cognitive scalars (F_n, raw_x_m) computed by `uf_mdg_snapshot.py` on raw prices with max_bars=252. These are stored in snapshot_row_json but NOT used by any entry or exit logic (cognitive gate removed Apr 27).
+Snapshot state row variables (F_n, raw_x_m, s_n) computed by `uf_mdg_snapshot.py build_snapshot_state_row` on raw prices with max_bars=252. These are stored in snapshot_row_json but NOT used by any entry or exit logic (F_n/raw_x_m gate removed Apr 27).
 
 ### 1.5 L5 State
 
@@ -166,7 +166,7 @@ CP-2 cognitive scalars (F_n, raw_x_m) computed by `uf_mdg_snapshot.py` on raw pr
 | Apr 28 | 1868aeb | **CH2 regime gate REMOVED** | **[PURGE]** | **YES** |
 | Apr 28 | cc60169 | Titan scaler in runtime_decision_provenance | [SIGNAL] | YES |
 | Apr 27 | 47fd6a9 | L5 stable titan scaler | [SIGNAL] | YES |
-| Apr 27 | e002f20 | **Remove cognitive gate (was killing 99.99%)** | **[PURGE]** | **YES** |
+| Apr 27 | e002f20 | **Remove F_n/raw_x_m gate (was killing 99.99%)** | **[PURGE]** | **YES** |
 | Apr 23-27 | various | CH3 development (strike zone, fuel gauge, pool) | [SIGNAL] | YES |
 | Apr 14 | 6337f9b | Provenance PK fix + timezone-naive bar cache | [BUG FIX] | YES |
 
@@ -174,7 +174,7 @@ CP-2 cognitive scalars (F_n, raw_x_m) computed by `uf_mdg_snapshot.py` on raw pr
 
 1. **bb0590a (May 12)**: Removed D_k=1 gate from CH2 entry. Commit says "trust the kernel." This unblocked 49 stocks without directional alignment. The quarantine data shows all 7,658 primitive trades had D_k=1 — removing this gate admits signals the kernel never flagged as Accumulate in the validated dataset.
 
-2. **e002f20 (Apr 27)**: Removed cognitive gate (F_n <= 1.65, raw_x_m <= 0.50). Commit says "killing 99.99% of Accumulate decisions." The saturation was because production uses log-normalized L0, which changes F_n/raw_x_m distributions. The gate was not broken; it was miscalibrated for the production kernel.
+2. **e002f20 (Apr 27)**: Removed F_n/raw_x_m gate (F_n <= 1.65, raw_x_m <= 0.50). Commit says "killing 99.99% of Accumulate decisions." The saturation was because production uses log-normalized L0, which changes F_n/raw_x_m distributions. The gate was not broken; it was miscalibrated for the production kernel.
 
 3. **1868aeb (Apr 28)**: Removed TRANSITIONAL-only regime restriction from CH2. Commit cites "validation finding" that regime doesn't improve edge. This was based on V3 basin output which has no edge — the regime may matter with a different L5 formula.
 
@@ -196,7 +196,7 @@ CP-2 cognitive scalars (F_n, raw_x_m) computed by `uf_mdg_snapshot.py` on raw pr
 | `web/scripts/execution/sentinel_monitor.mjs` | `runSentinel()` | Add SPY D_k to the return value (already queried at line 191, just needs to be available downstream) | ADDITIVE — exposes existing data |
 | `web/scripts/execution/ch2_strategist.mjs` | Signal output | Add `signal_class: '3WA'` tag to qualifying signals (post-selection, does not change selection) | ADDITIVE — tags after selection, no filter change |
 | `web/scripts/execution/entry_timing_watcher.mjs` | Primed ticker processing | Optionally prioritize 3WA-tagged signals (sort order only) | ADDITIVE — sort priority, no filter change |
-| `uf_mdg_snapshot.py` | `compute_cognitive_scalars()` or snapshot builder | Export s_n to snapshot_row_json (currently not exported) | ADDITIVE — new field in existing JSON |
+| `uf_mdg_snapshot.py` | `build_snapshot_state_row()` | Export s_n to snapshot_row_json (currently not exported) | ADDITIVE — new field in existing JSON |
 | `web/src/app/api/recommendations/list/route.ts` | Signal classification | Already has 3WA classification based on bar_count + SPY D_k. Would need to add species check and crystallisation check. | ADDITIVE — enriches existing classification |
 
 ### 3.3 New Database Tables

@@ -1,9 +1,9 @@
-# CP-0 → CP-2 Gap Analysis: L5 Cognitive Pipeline
+# L5 Gap Analysis: Production (V3 Basin) vs Quarantine (CV-1.0)
 
 ## Status: SCOPING DOCUMENT — no code changes
 
 ## Purpose
-Enumerate what the quarantine cognitive pipeline (CP-2) provides that
+Enumerate what the quarantine CV-1.0 sequential filter pipeline provides that
 production's L5 decision layer (V3 basin) does not, per UF-Spec chapters
 6-7 and the quarantine_historical_kernel.py implementation.
 
@@ -47,7 +47,7 @@ F_n measures how "surprised" the system is by the current gate relative
 to its accumulated state. Low F_n = predictable, high = novel.
 
 **Gap:** Production computes F_n via CP-2 in uf_mdg_snapshot.py but does
-not use it in decisions (cognitive gate removed 2026-04-27).
+not use it in decisions (F_n/raw_x_m gate removed 2026-04-27).
 
 ### 4. Horizon Heads Q_5 / Q_20 / Q_60
 Q_5  = dot([1,0,0], z_n) - eta_h * F_n = x_f - 2*F_n
@@ -55,7 +55,7 @@ Q_20 = dot([0,1,0], z_n) - eta_h * F_n = x_m - 2*F_n
 Q_60 = dot([0,0,1], z_n) - eta_h * F_n = x_s - 2*F_n
 
 These project the latent state onto three timescale heads, penalized
-by cognitive load. Positive Q = momentum at that timescale.
+by free structural energy (F_n). Positive Q = momentum at that timescale.
 
 **Gap:** Production does not compute or use horizon heads.
 

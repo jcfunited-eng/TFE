@@ -47,7 +47,7 @@ run_refresh_with_l5_learning.py
   └─ imports rebuild_snapshot from rebuild_uf_snapshot.py (line 31-35)
        └─ rebuild_snapshot() calls evaluate_symbol_snapshot()
             from uf_mdg_snapshot.py (rebuild_uf_snapshot.py line 55, 1189)
-            └─ evaluate_symbol_snapshot() calls compute_cognitive_scalars()
+            └─ evaluate_symbol_snapshot() calls build_snapshot_state_row()
                  (uf_mdg_snapshot.py line 794)
                  └─ returns {"F_n": ..., "raw_x_m": ..., "s_n": ...}
                       (uf_mdg_snapshot.py line 469 — after Amendment 3 fix)
@@ -59,7 +59,7 @@ run_refresh_with_l5_learning.py
 
 **s_n column write:** The `s_n` value in `snapshot_row_json` would be backfilled into the top-level `s_n` column by the D1 migration's `UPDATE ... SET s_n = (snapshot_row_json->>'s_n')::DOUBLE PRECISION` statement, or by future refreshes that write both the JSON field and the column directly. The migration as written relies on the JSON key; a direct column write was not added to the refresh path.
 
-**Current state:** s_n field present in amended `compute_cognitive_scalars` return dict and in `evaluate_symbol_snapshot` row. The top-level `s_n` column in `runtime_decisions_history` will be populated once the refreshed snapshot rows flow through (post-ECS deploy of D1 code).
+**Current state:** s_n field present in amended `build_snapshot_state_row` return dict and in `evaluate_symbol_snapshot` row. The top-level `s_n` column in `runtime_decisions_history` will be populated once the refreshed snapshot rows flow through (post-ECS deploy of D1 code).
 
 ---
 

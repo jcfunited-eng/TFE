@@ -2,7 +2,8 @@
 """
 tools/validation_env_refresh.py — TFE Validation Environment Refresh
 
-Fetches daily bars from Polygon, runs L0-L4 kernel + CP-2 cognitive scalars,
+Fetches daily bars from Polygon, runs L0-L4 + CV-1.0 sequential filter,
+	emits snapshot state row at state_row evaluation frame,
 writes structural output to local PostgreSQL. Mirrors production pipeline.
 
 Usage:
@@ -36,7 +37,7 @@ import pandas as pd
 import urllib.request
 
 from uf_core.uf_structural_engine import compute_uf_structural_state
-from uf_mdg_snapshot import compute_cognitive_scalars
+from uf_mdg_snapshot import build_snapshot_state_row
 
 POLYGON_KEY = os.environ.get("MASSIVE_API_KEY", "")
 YEARS_HISTORY = 5  # Must match production exactly (uf_mdg_snapshot.py line 84)
@@ -132,34 +133,32 @@ def run_kernel(ticker, bar_rows):
     ).sort_index()
 
     uf_state = compute_uf_structural_state(closes)
-
     close_array = np.array([float(r[1]) for r in bar_rows], dtype=float)
-    cognitive = compute_cognitive_scalars(close_array)
+    state_row = build_snapshot_state_row(close_array)
 
     snap = {
-        "ticker": ticker,
-        "price": float(closes.iloc[-1]),
-        "bar_count": len(bar_rows),
-        "asset_type": "stock",
-        "regime": uf_state.level3.get("regime"),
-        "S_UF": uf_state.level4.get("S_UF"),
-        "R_UF": uf_state.level4.get("R_UF"),
+        "ticker":          ticker,
+        "price":           float(closes.iloc[-1]),
+        "asset_type":      "stock",
+        "regime":          uf_state.level3.get("regime"),
+        "S_UF":            uf_state.level4.get("S_UF"),
+        "R_UF":            uf_state.level4.get("R_UF"),
         "stability_score": uf_state.level4.get("stability_score"),
-        "max_dd": uf_state.level4.get("max_drawdown"),
-        "D_k": uf_state.level5.get("D_k"),
-        "M_k": uf_state.level5.get("M_k"),
-        "R_rev_k": uf_state.level5.get("R_rev_k"),
-        "U_star_k": uf_state.level5.get("U_star_k"),
-        "C_k": uf_state.level5.get("C_k"),
-        "P_k": uf_state.level5.get("P_k"),
-        "B_k": uf_state.level5.get("B_k"),
-        "prev_C_k": uf_state.level5.get("prev_C_k"),
-        "gate_count": uf_state.level5.get("gate_count"),
-        "active_gate_count": uf_state.level5.get("active_gate_count"),
-        "decision_vector": uf_state.level5.get("decision_vector"),
-        "F_n": cognitive.get("F_n"),
-        "raw_x_m": cognitive.get("raw_x_m"),
-        "s_n": cognitive.get("s_n"),
+        "max_dd":          uf_state.level4.get("max_drawdown"),
+        # Below: state_row evaluation frame (second-to-last gate) — S-1 fix
+        "bar_count":       state_row["bar_count"],
+        "D_k":             state_row["D_k"],
+        "M_k":             state_row["M_k"],
+        "R_rev_k":         state_row["R_rev_k"],
+        "U_star_k":        state_row["U_star_k"],
+        "C_k":             state_row["C_k"],
+        "P_k":             state_row["P_k"],
+        "B_k":             state_row["B_k"],
+        "F_n":             state_row["F_n"],
+        "raw_x_m":         state_row["raw_x_m"],
+        "s_n":             state_row["s_n"],
+        "emission_frame":  state_row["emission_frame"],
+        "gate_total":      state_row["gate_total"],
     }
     # Structural-moment timestamp (last bar) — stable across re-runs on the
     # same bars, so the modea ON CONFLICT (ticker, generated_at_utc) dedupes.

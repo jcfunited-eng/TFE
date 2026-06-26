@@ -129,7 +129,7 @@ def get_trading_days(bars_db, start, end):
 
 
 # ── Production per-gate s_n ───────────────────────────────────────────────────
-# Mirror of compute_cognitive_scalars loop, but returns s_n at a specific gate.
+# Mirror of build_snapshot_state_row loop, but returns s_n at a specific gate.
 # Does NOT modify uf_mdg_snapshot.py; calls private functions via import above.
 
 def _production_cv_loop(resonances, dsfs, stop_at_seq_idx):
@@ -137,7 +137,7 @@ def _production_cv_loop(resonances, dsfs, stop_at_seq_idx):
     Returns (s_n, F_n) at that gate, or (None, None) if loop didn't reach it.
 
     Uses proper C_bar from c_history (matching quarantine kernel and the
-    fixed compute_cognitive_scalars after Amendment 3). Both s_n and F_n
+    fixed build_snapshot_state_row after Amendment 3). Both s_n and F_n
     depend on rho which depends on C_bar.
     """
     a_state = np.zeros(3, dtype=float)

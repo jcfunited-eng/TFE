@@ -87,18 +87,18 @@ Modified only on Mar 30, 2026 (pre-trading):
 
 **No changes during GOOD, BROKEN, or POST_FIX windows.**
 
-### uf_mdg_snapshot.py (CP-2 cognitive scalars)
+### uf_mdg_snapshot.py (snapshot state row builder — CV-1.0 / L4)
 | SHA | Date | Change | Kernel Impact |
 |-----|------|--------|--------------|
-| `1ced08c` | Mar 31 | Inject CP-2 cognitive kernel (F_n, raw_x_m) | Added 394 lines — separate pipeline |
-| `30dc98d` | Apr 1 | Cap cognitive scalars input to 252 bars | Prevents A_m saturation |
+| `1ced08c` | Mar 31 | Inject CV-1.0 sequential filter (F_n, raw_x_m) [Codex, later renamed in D1 Amendment 4] | Added 394 lines — separate pipeline |
+| `30dc98d` | Apr 1 | Cap state row builder input to 252 bars | Prevents A_m saturation |
 | `ef6c880` | Apr 9 | Persistent bar cache | No kernel logic change |
 | `6337f9b` | Apr 14 | Timezone-naive bar cache fix | No kernel logic change |
 
-**CP-2 divergence note:** Production L0 uses log normalization (`log(F + eps)`). 
-CP-2 in uf_mdg_snapshot.py operates on raw close prices. This does NOT affect 
+**CV-1.0 divergence note:** Production L0 uses log normalization (`log(F + eps)`). 
+build_snapshot_state_row in uf_mdg_snapshot.py operates on raw close prices. This does NOT affect 
 trading decisions — D_k, M_k, B_k, Accumulate/Avoid come from the real L0-L4 
-pipeline. F_n and raw_x_m are supplementary fields from CP-2 only.
+pipeline. F_n and raw_x_m are supplementary fields from the CV-1.0 sequential filter only.
 
 F_n/raw_x_m were briefly wired as entry gates on May 19 (commit `97af818`) 
 but **reverted the same day** (commit `1a6f758`). Currently disabled.
@@ -134,7 +134,7 @@ but **reverted the same day** (commit `1a6f758`). Currently disabled.
 | breath_xi/chi | 0.10 | 0.10 | 0.10 | 0.10 | NO |
 | B_min/B_max | -1.0/1.0 | same | same | same | NO |
 
-### CP-2 Cognitive Scalar Constants (from uf_mdg_snapshot.py)
+### CV-1.0 Sequential Filter Constants (from uf_mdg_snapshot.py build_snapshot_state_row)
 
 | Constant | Value | GOOD | BROKEN | POST_FIX | Changed? |
 |----------|-------|------|--------|----------|----------|
@@ -290,7 +290,7 @@ The execution layer around the kernel:
 | `uf_core/layer4.py` | L4 DSF | Feb 22 (never modified) |
 | `uf_core/config.py` | All constants | Feb 22 (never modified) |
 | `uf_core/uf_structural_engine.py` | L5 adapter | Mar 30 (pre-trading) |
-| `uf_mdg_snapshot.py` | CP-2 scalars | Apr 14 (timezone fix only) |
+| `uf_mdg_snapshot.py` | state row builder | Apr 14 (timezone fix only) |
 | `web/scripts/execution/sentinel_monitor.mjs` | Exit logic | May 26 (active development) |
 | `web/scripts/execution/ch2_strategist.mjs` | Entry logic | May 26 (active development) |
 | `web/scripts/execution/market_calendar.mjs` | Holiday calendar | May 26 (new) |

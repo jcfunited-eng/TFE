@@ -9,9 +9,10 @@ Measures the numerical difference between two s_n evaluation frames:
            (F[i+1] available — full-history quarantine kernel output,
             stored in wave_kernel_state_20260625.parquet)
 
-  FRAME-B: s_n at bar i with kappa[i] = 0
-           (last bar edge case — compute_cognitive_scalars on history
-            ending AT bar i, no future bar available)
+  FRAME-B: s_n at bar i with kappa[i] = |F[i+1]-2F[i]+F[i-1]|
+           (Amendment 4 emission contract — build_snapshot_state_row on
+            history ending AT bar i+1; returns second-to-last gate = bar i
+            with correct kappa, matching the canonical measurement frame)
 
 No modification to any production file. Read-only measurement.
 """
@@ -32,7 +33,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path("/workspaces/Tao_Financial_Engine")))
 sys.path.insert(0, str(Path("/tmp/tfe-wt-d1")))  # D1 worktree first
 
-from uf_mdg_snapshot import compute_cognitive_scalars
+from uf_mdg_snapshot import build_snapshot_state_row
 
 PARQUET   = ROOT / "tools" / "wave_kernel_state_20260625.parquet"
 OUT_CSV   = ROOT / "tools" / "d1_evaluation_frame_measurement.csv"
@@ -100,7 +101,7 @@ def main():
     log(f"  Bars loaded for {len(bars_df)} tickers")
 
     # ── Compute Frame-A and Frame-B per row ───────────────────────────────────
-    log("Computing Frame-A (from parquet) and Frame-B (compute_cognitive_scalars)...")
+    log("Computing Frame-A (from parquet) and Frame-B (build_snapshot_state_row)...")
     results = []
     n_skipped = 0
 
@@ -115,14 +116,23 @@ def main():
             n_skipped += 1
             continue
 
-        # Frame-B: close history ending AT target_date (no future bar)
+        # Frame-B (Amendment 4 emission contract): window ending at target_date+1.
+        # build_snapshot_state_row returns second-to-last gate = target_date gate
+        # with correct kappa (interior bar, F[target_date+1] available).
         target_ts = pd.Timestamp(target_date)
-        closes = bdf.loc[bdf.index <= target_ts, "close"].to_numpy(dtype=float)
-        if len(closes) < 2:
+        all_dates = bdf.index.tolist()
+        target_idx = next((j for j, d in enumerate(all_dates) if d >= target_ts), None)
+        if target_idx is None or target_idx + 1 >= len(all_dates):
+            n_skipped += 1
+            continue
+        # Window through target_date+1 (one extra bar for correct kappa at target_date)
+        next_ts = all_dates[target_idx + 1]
+        closes = bdf.loc[bdf.index <= next_ts, "close"].to_numpy(dtype=float)
+        if len(closes) < 3:  # need at least 3 bars for second-to-last to exist
             n_skipped += 1
             continue
 
-        cog = compute_cognitive_scalars(closes)
+        cog = build_snapshot_state_row(closes)
         s_n_b = cog.get("s_n")
         if s_n_b is None:
             n_skipped += 1
@@ -179,7 +189,7 @@ def main():
         "n_skipped":       n_skipped,
         "frame_a_note":    ("quarantine kernel s_n from parquet: full-history run, "
                             "kappa[i] uses F[i+1] (next bar available)"),
-        "frame_b_note":    ("compute_cognitive_scalars on history ending AT target_date: "
+        "frame_b_note":    ("build_snapshot_state_row on history ending AT target_date: "
                             "kappa[last_bar] = 0 (no F[i+1])"),
         "abs_diff_stats": {
             "max":    round(float(diffs.max()),  8),

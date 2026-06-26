@@ -253,7 +253,7 @@ Bracket Exit & Alpaca TP/SL fills & Single position & Sync to ledger \\
 \endhead
 \texttt{run\_refresh\_with\_l5\_learning.py} & Master refresh: snapshot $\to$ L5 filter $\to$ sync $\to$ PEE-1 $\to$ audit \\
 \texttt{rebuild\_uf\_snapshot.py} & Compute UF structural state for all tickers \\
-\texttt{tfe\_l5\_baseline.py} & DSF V3 basin physics + cognitive gates \\
+\texttt{tfe\_l5\_baseline.py} & DSF V3 basin physics + F_n/raw_x_m gates \\
 \texttt{tfe\_fundamental\_fetcher.py} & Polygon primary $\to$ yfinance fallback for financials \\
 \texttt{tfe\_startup.sh} & Container boot: restore snapshot, start daemons, start Next.js \\
 \texttt{unified\_market\_data\_service.py} & Market data loader (Alpaca/Polygon/Yahoo) \\
@@ -355,7 +355,7 @@ Reversal balance power & 16 \\
 Carry balance power & 4 \\
 Burden scale & $1/128 = 0.0078125$ \\
 Tie epsilon & $10^{-12}$ \\
-$F_n$ cognitive gate & $\leq 1.65$ \\
+$F_n$ gate & $\leq 1.65$ \\
 $\text{raw\_x\_m}$ memory gate & $\leq 0.50$ \\
 Min bars for Accumulate & 180 \\
 Min share price & \$5.00 \\

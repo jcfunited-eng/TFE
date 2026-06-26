@@ -72,8 +72,8 @@ The filter applies all 8 of these conditions simultaneously to mark a bar as ACC
 4. `M_k >= 0` — non-negative momentum
 5. `Close >= $5` (now `price`) — price floor
 6. `Gate_Count >= 10` (now `gate_count`) — minimum structural depth
-7. `raw_x_m <= 0.50` — cognitive gate (early-cycle moment)
-8. `F_n <= 1.65` — cognitive gate (low cognitive load)
+7. `raw_x_m <= 0.50` — F_n/raw_x_m gate (early-cycle moment)
+8. `F_n <= 1.65` — F_n gate (low free-structural-energy)
 
 Backtest result on full 11,884-symbol universe, 5-year history, production L0-L4 kernel (raw prices, no log):
 
@@ -93,7 +93,7 @@ Base rate ~51.6%. Signals are spread across all 5 years (16-30 per year). Edge g
 - **Close >= $5:** Domain-specific gate (penny-stock filter). Not physics; a finance heuristic.
 - **gate_count >= 10:** Sufficient structural depth in the gate sequence to have meaningful perception. Below 10 gates, kernel hasn't observed enough structural transitions to characterize the field.
 - **raw_x_m <= 0.50:** The slow integrator state is not saturated. This selects EARLY-CYCLE MOMENTS where structural state is in transition rather than settled. **DO NOT REMOVE THIS BECAUSE "RAW_X_M SATURATES TOO OFTEN."** The saturation behavior IS the selectivity. ~50% of gates saturate; this filter selects the ~10% that haven't.
-- **F_n <= 1.65:** The free structural energy / cognitive load is bounded. High F_n means the structural state is incoherent or anomalous. Low F_n means the system is internally coherent.
+- **F_n <= 1.65:** The free structural energy (F_n) is bounded. High F_n means the structural state is incoherent or anomalous. Low F_n means the system is internally coherent.
 
 ### What was destroyed and replaced
 The current production decision logic in `tfe_l5_baseline.py` uses a "V3 basin-argmax" formula computed from S_UF, R_UF, D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k with frozen constants 37/64, 3/5, 5/4, raised-to-16, raised-to-4, 1/128. These constants have no derivation in any document in this repository. They were introduced 2026-03-30. They tested at coin-flip performance (~50%, no edge over base rate) on 2,700 matched-volume signals.
@@ -106,7 +106,7 @@ The current production decision logic in `tfe_l5_baseline.py` uses a "V3 basin-a
 | Filter stack | Signals | 20d WR | Source |
 |---|---|---|---|
 | Structural conditions only | 7,658 | 57.1% | quarantine_12k_l5_trades.csv |
-| + cognitive gates (Close≥$5, raw_x_m≤0.50, F_n≤1.65) | 3,587 | **64.7%** | quarantine_sequential_filter.py |
+| + F_n/raw_x_m gates (Close≥$5, raw_x_m≤0.50, F_n≤1.65) | 3,587 | **64.7%** | quarantine_sequential_filter.py |
 | Mar 26 filter on production kernel | 109 | **64.2%** | Full-universe backtest May 26 |
 
 ### The 81% — UNDER INVESTIGATION (as of 2026-05-26):
@@ -130,7 +130,7 @@ The "Rising (red-day)" filter produces the 75% → 81% jump. The commit message 
 |---|---|---|---|
 | Close >= $5 | 6,850 | 57.7% | YES |
 | + B_k > -0.80 | 3,469 | 65.3% | YES |
-| + cognitive gates (raw_x_m, F_n) | ~3,400 | ~65% | YES |
+| + F_n/raw_x_m gates (raw_x_m, F_n) | ~3,400 | ~65% | YES |
 
 ### The verified working ceiling:
 **~65% WR** on ~3,400 signals, verified independently by multiple methods. Edge over base rate: +14pp at 20d. This is the confirmed floor. The ceiling may be higher if the "Rising (red-day)" filter turns out to be backward-looking.
@@ -163,7 +163,7 @@ They are silent because the active rails (B_k, Rev_k, raw_x_m) currently catch t
 ## 8. The Conformance Profile Ladder (from UF-Spec v3.0 Section 7.2)
 
 - **CP-0:** Current production state. Static policy runtime on serialized structural features. This is what was running through May 2026.
-- **CP-1:** Transitional hybrid. Adds some thesis-faithful elements (temporal memory, cognitive scalars) without full spec compliance. The Mar 26 filter is closer to CP-1 than CP-0 because it uses raw_x_m and F_n cognitive gates.
+- **CP-1:** Transitional hybrid. Adds some thesis-faithful elements (temporal memory, state row variables (F_n, raw_x_m, s_n)) without full spec compliance. The Mar 26 filter is closer to CP-1 than CP-0 because it uses raw_x_m and F_n/raw_x_m gates.
 - **CP-2:** Thesis-faithful target. Event-tape-driven L5 with shared latent field, free structural energy F_n, horizon heads (Q_5, Q_20, Q_60), cross-horizon coherence χ_n, action mapping rules. Multi-scale reading at individual/group/system level.
 
 CP-2 is the actual target architecture per the spec. No version of TFE has been built to CP-2 yet. The Mar 26 filter is a CP-1 step in the right direction. Future L5 work should move toward CP-2, NOT back toward CP-0.

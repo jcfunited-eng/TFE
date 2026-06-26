@@ -157,7 +157,7 @@ Responsibilities:
 1. Load universe from `massive_universe_stocks.json` (same 10K+ symbols as production)
 2. For each symbol, fetch daily bars from Polygon (incremental — only new bars since last refresh)
 3. Run production L0-L4 kernel (`uf_core/uf_structural_engine.py`) on the bars
-4. Run CP-2 cognitive scalars (`uf_mdg_snapshot.py compute_cognitive_scalars`) on the bars
+4. Run snapshot state row builder (`uf_mdg_snapshot.py build_snapshot_state_row`) on the bars
 5. Compute V3 basin decision (or Mar 26 filter, or whatever L5 is active)
 6. Write snapshot_row_json to runtime_decisions_latest (upsert) and runtime_decisions_history (append)
 7. Compute species profiles weekly
@@ -202,7 +202,7 @@ Recommendation: **Option B** — matches production architecture, faster iterati
 
 ### 4.3 Compute
 
-- Kernel computation: ~1 second per symbol (L0-L4 + CP-2)
+- Kernel computation: ~1 second per symbol (L0-L4 + CV-1.0 sequential filter)
 - Full refresh: 6-8 hours (runs overnight in background, no active time)
 - Incremental refresh: 1-2 hours (runs in background after market close)
 - No external compute cost — runs in Codespace
@@ -225,7 +225,7 @@ The validation environment MUST use:
 - Same `uf_core/` Python files as production
 - Same kernel constants (frozen since Feb 2026)
 - Same L0 (log or raw — whichever production currently uses)
-- Same CP-2 cognitive scalar computation
+- Same snapshot state row computation
 - Same L5 decision formula (V3 basin or replacement)
 
 Verification: full-universe equivalence gate. On initial setup and after any kernel code change:
@@ -234,7 +234,7 @@ Verification: full-universe equivalence gate. On initial setup and after any ker
 3. Diff every field for every ticker with tolerance bands:
    - D_k, R_rev_k, P_k: must match exactly (discrete fields)
    - M_k, B_k, S_UF, R_UF, U_star_k, C_k: allowed ±1e-9 (floating point)
-   - F_n, raw_x_m: allowed ±1e-6 (CP-2 integrator accumulation)
+   - F_n, raw_x_m: allowed ±1e-6 (CV-1.0 integrator accumulation)
 4. Any field exceeding tolerance triggers investigation
 5. Results logged to `backups/validation_env_equivalence_report.json`
 
@@ -325,7 +325,7 @@ Before any code deploys to production:
 
 ### Phase 3: Kernel Runner (2 hours)
 - Build validation_env_refresh.py
-- Run L0-L4 + CP-2 on test tickers
+- Run L0-L4 + CV-1.0 sequential filter on test tickers
 - Write output to local PostgreSQL
 - Verify output structure matches production schema
 
@@ -378,7 +378,7 @@ Before any code deploys to production:
 
 ### NOT modified:
 - `uf_core/` — kernel code unchanged
-- `uf_mdg_snapshot.py` — CP-2 unchanged
+- `uf_mdg_snapshot.py` — state row builder unchanged
 - `web/scripts/execution/` — production execution unchanged
 - Any production infrastructure
 

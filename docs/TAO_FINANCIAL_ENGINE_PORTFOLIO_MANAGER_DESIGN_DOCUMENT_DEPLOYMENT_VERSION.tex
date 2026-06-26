@@ -401,14 +401,14 @@ Per-gate: $\text{TVR} = (T, V, R)$,\; $C_k = |\{\text{quantized lattice points}\
   B_k &= \operatorname{clip}\!\bigl(B_{k-1} + \xi(1-U^*_k)\Delta R - \chi U^*_k,\;-1,\;1\bigr)
 \end{align}
 
-\subsection{Cognitive Scalars}
+\subsection{Snapshot State Row Variables}
 
 \code{build\_state\_rows()} — lines 337--421
 \begin{align}
   \nu_{\text{core}} &= \operatorname{sat}\!\bigl([D_k,\;M_k,\;R_{k,\text{norm}}]\bigr) \quad [\text{clipped to }[-1,1]^3]\\
   z_n &= [x_f,\;x_m,\;x_s] \quad [\text{integrator state}]\\
   s_n &= \|\nu_{\text{core}} - z_n\| \quad [\text{surprise, ln 376}]\\
-  F_n &= \gamma + \lambda_s\,s_n,\quad \gamma = 0.5\,(U^*_k + (1 - \rho))\quad [\text{cognitive load, ln 378}]\\
+  F_n &= \gamma + \lambda_s\,s_n,\quad \gamma = 0.5\,(U^*_k + (1 - \rho))\quad [\text{baseline F\_n term — quarantine\_historical\_kernel.py:377}]\\
   Q_{20} &= \dot{q}_{20} \cdot z_n - \eta_h\,F_n = x_m - 2.0\,F_n\\
   \chi_n &= 1 \text{ iff } \operatorname{sign}(Q_5)=\operatorname{sign}(Q_{20})=\operatorname{sign}(Q_{60})
 \end{align}

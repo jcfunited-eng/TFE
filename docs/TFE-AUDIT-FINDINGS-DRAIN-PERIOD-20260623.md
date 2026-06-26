@@ -187,7 +187,7 @@ This rule matches NO production L5 source path:
   - `tfe_l5_baseline.py` uses V3 basin formula + Stable Titan scaler
   - `tuple_proximity_engine.mjs` uses neighbor_wr >= 0.65 threshold
   - `recovered_versions/tfe_l5_mar26_recovered.py` uses 8 simultaneous
-    conditions including cognitive gates
+    conditions including F_n/raw_x_m gates
 None of these reduces to a 2-field D_k + S_UF threshold. The rule was
 fabricated — destruction pattern #2 (tuple flattening to scalar threshold)
 per KERNEL_PHILOSOPHY §3.

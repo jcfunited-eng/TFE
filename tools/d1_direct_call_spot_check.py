@@ -6,7 +6,7 @@ Command: TFE-CMD-D1-CLOSURE-PLUS-D2-PREP-WC-20260626 Part A
 Closes the helper-vs-direct-call gap from the amendment-2 signoff.
 
 The bit-equivalence test used _production_cv_loop (a test helper that calls
-internal uf_mdg_snapshot functions) rather than compute_cognitive_scalars
+internal uf_mdg_snapshot functions) rather than build_snapshot_state_row
 directly. This spot check verifies both produce identical s_n for the same
 window and gate.
 
@@ -14,7 +14,7 @@ Design:
   For each sampled (ticker, target_date):
     Window = bars[max(0, i-252) : i+1] inclusive — ends AT target_date.
     The last bar always triggers a gate unconditionally, so the last gate
-    is AT target_date. compute_cognitive_scalars returns s_n for this gate.
+    is AT target_date. build_snapshot_state_row returns s_n for this gate.
     The helper (_production_cv_loop on the same window, stopping at the
     last gate) must give the same value.
 
@@ -44,7 +44,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path("/workspaces/Tao_Financial_Engine")))
 sys.path.insert(0, str(ROOT))
 
-from uf_mdg_snapshot import compute_cognitive_scalars
+from uf_mdg_snapshot import build_snapshot_state_row
 from tools.d1_bit_equivalence_test import (
     _production_cv_loop,
     _compute_l0_sev, _segment_l1_gates, _compute_l2_isf,
@@ -184,7 +184,7 @@ def main():
         assert last_bar_date == target_date, f"{ticker}: last bar {last_bar_date} ≠ {target_date}"
 
         # Direct call
-        cog = compute_cognitive_scalars(window)
+        cog = build_snapshot_state_row(window)
         s_n_direct = cog.get("s_n")
 
         # Helper on same window (last gate)
@@ -264,7 +264,7 @@ def main():
         for f in failures[:5]:
             log(f"    {f}")
     else:
-        log("  No failures — helper and compute_cognitive_scalars agree on same window")
+        log("  No failures — helper and build_snapshot_state_row agree on same window")
 
     sys.exit(0 if gate_pass else 1)
 

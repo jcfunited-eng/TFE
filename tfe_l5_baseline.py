@@ -14,13 +14,13 @@ Layer 1 (V3 Structural Primitive — always active):
 
 Layer 2 (CP-2 Cognitive Gate — SOFT: activates per-row only when F_n and
 raw_x_m are non-null):
-    - F_n     <= MAX_F_N    (1.65) — cognitive load not overextended
+    - F_n     <= MAX_F_N    (1.65) — F_n within threshold
     - raw_x_m <= MAX_RAW_X_M (0.50) — memory state not overextended
 
 Null-pass contract: if F_n or raw_x_m is NULL/NaN for a given row, that
-row passes the cognitive gate unconditionally.  This ensures the "Healthy
+row passes the F_n/raw_x_m gate unconditionally.  This ensures the "Healthy
 Titans" set (~144 Accumulates) is fully recovered during the transition
-period while the cognitive pipe (uf_mdg_snapshot.py) populates those fields
+period while the state row builder (uf_mdg_snapshot.py) populates those fields
 into the production snapshot.  Once the pipe completes a full refresh cycle,
 the gate narrows automatically to the calibrated Titan subset.
 
@@ -52,7 +52,7 @@ _V3_TIE_EPS: float = 1e-12
 
 MIN_PRICE: float = 5.0
 
-# Layer 2 cognitive gate thresholds
+# Layer 2 F_n/raw_x_m gate thresholds
 # These are calibrated to the 64% Cognitive Physics operating point.
 # Applied per-row only when F_n and raw_x_m are non-null.
 MAX_F_N: float = 1.65
@@ -146,20 +146,20 @@ class L5BaselineFilter:
         # ------------------------------------------------------------------
         # Layer 2: Cognitive Gate — REMOVED
         #
-        # The E5.4-injected cognitive gate (F_n, raw_x_m thresholds) was
+        # The E5.4-injected F_n/raw_x_m gate (F_n, raw_x_m thresholds) was
         # killing 99.99% of Accumulate decisions because raw_x_m saturates
         # at 1.0 with 5-year bar history.  The code itself documented this:
         # "at the clip boundary when fed 5-year history, making raw_x_m
         # useless" (uf_mdg_snapshot.py line 377).
         #
         # E5.4 history:
-        #   2026-03-31 Codex: injected CP-2 cognitive kernel
+        #   2026-03-31 Codex: injected CV-1.0 sequential filter (renamed in D1 Amendment 4)
         #   2026-04-01 Codex: "cap to 252 bars to prevent saturation" (didn't work)
         #   2026-04-01 Codex: "restore soft-gate null-pass contract"
         # Result: gate killed 50 of 51 Accumulate stocks silently.
         #
         # Removed 2026-04-27 by Claude. Basin physics (Layer 1) is the
-        # sole Accumulate filter until a working cognitive gate is designed.
+        # sole Accumulate filter until a working F_n/raw_x_m gate is designed.
         # ------------------------------------------------------------------
 
         # ------------------------------------------------------------------

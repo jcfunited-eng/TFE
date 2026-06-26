@@ -2,13 +2,13 @@
 
 ## PURPOSE
 Complete source code for the TFE kernel (L0-L4), L5 baseline filter,
-CP-2 cognitive pipeline, quarantine historical kernel, and quarantine
+snapshot state row pipeline (CV-1.0 sequential filter), quarantine historical kernel, and quarantine
 sequential filter. Provided for independent physics review.
 
 ## CRITICAL QUESTION
 Which pipeline produced the 81% quarantine win rate?
 - Production L0 (`uf_core/layer0.py`): uses `log(F + eps)` normalization
-- CP-2 (`uf_mdg_snapshot.py`): uses raw close prices (no log)
+- snapshot state row builder (`uf_mdg_snapshot.py`): uses raw close prices (no log)
 - Quarantine kernel (`quarantine_historical_kernel.py`): uses raw close prices (no log)
 
 The quarantine sequential filter (`quarantine_sequential_filter.py`) joins
@@ -26,7 +26,7 @@ The 81% backtest was computed on the quarantine pipeline (raw prices, no log).
 8. `tfe_l5_baseline.py` — L5 canonical baseline filter (V3 basin)
 9. `quarantine_historical_kernel.py` — Quarantine kernel (RAW prices, no log)
 10. `quarantine_sequential_filter.py` — The script that produced 81%
-11. `uf_mdg_snapshot.py` (CP-2 section) — CP-2 cognitive scalars (RAW prices)
+11. `uf_mdg_snapshot.py` (state row builder) — snapshot state row (RAW prices)
 
 ---
 
@@ -1668,7 +1668,7 @@ def compute_structural_state(symbol: str, bars: List[Bar]) -> Dict[str, Any]:
 
 ```python
 #!/usr/bin/env python3
-"""CP-2: L5 canonical baseline filter — pure DSF V3 basin primitive.
+"""L5 canonical baseline filter — pure DSF V3 basin primitive.
 
 Implements the same frozen basin math as runtime_decision_provenance.mjs.
 Uses only columns verified to exist in the production live schema.
@@ -1681,15 +1681,15 @@ Layer 1 (V3 Structural Primitive — always active):
     - bar_count >= ACCUMULATE_MIN_BARS (verified via snapshot row, not re-checked
       here since uf_snapshot.json rows already passed the bar gate)
 
-Layer 2 (CP-2 Cognitive Gate — SOFT: activates per-row only when F_n and
+Layer 2 (F_n/raw_x_m gate — SOFT: activates per-row only when F_n and
 raw_x_m are non-null):
-    - F_n     <= MAX_F_N    (1.65) — cognitive load not overextended
+    - F_n     <= MAX_F_N    (1.65) — F_n within threshold
     - raw_x_m <= MAX_RAW_X_M (0.50) — memory state not overextended
 
 Null-pass contract: if F_n or raw_x_m is NULL/NaN for a given row, that
-row passes the cognitive gate unconditionally.  This ensures the "Healthy
+row passes the F_n/raw_x_m gate unconditionally.  This ensures the "Healthy
 Titans" set (~144 Accumulates) is fully recovered during the transition
-period while the cognitive pipe (uf_mdg_snapshot.py) populates those fields
+period while the state row builder (uf_mdg_snapshot.py) populates those fields
 into the production snapshot.  Once the pipe completes a full refresh cycle,
 the gate narrows automatically to the calibrated Titan subset.
 
@@ -1721,7 +1721,7 @@ _V3_TIE_EPS: float = 1e-12
 
 MIN_PRICE: float = 5.0
 
-# Layer 2 cognitive gate thresholds
+# Layer 2 F_n/raw_x_m gate thresholds
 # These are calibrated to the 64% Cognitive Physics operating point.
 # Applied per-row only when F_n and raw_x_m are non-null.
 MAX_F_N: float = 1.65
@@ -1733,7 +1733,7 @@ REQUIRED_COLUMNS: tuple[str, ...] = (
     "U_star_k", "C_k", "P_k", "B_k", "price",
 )
 
-# Layer 2 optional cognitive columns
+# Layer 2 optional F_n/raw_x_m columns
 COGNITIVE_COLUMNS: tuple[str, ...] = ("F_n", "raw_x_m")
 
 
@@ -1815,20 +1815,20 @@ class L5BaselineFilter:
         # ------------------------------------------------------------------
         # Layer 2: Cognitive Gate — REMOVED
         #
-        # The E5.4-injected cognitive gate (F_n, raw_x_m thresholds) was
+        # The E5.4-injected F_n/raw_x_m gate (F_n, raw_x_m thresholds) was
         # killing 99.99% of Accumulate decisions because raw_x_m saturates
         # at 1.0 with 5-year bar history.  The code itself documented this:
         # "at the clip boundary when fed 5-year history, making raw_x_m
         # useless" (uf_mdg_snapshot.py line 377).
         #
         # E5.4 history:
-        #   2026-03-31 Codex: injected CP-2 cognitive kernel
+        #   2026-03-31 Codex: injected CV-1.0 sequential filter (renamed in D1 Amendment 4)
         #   2026-04-01 Codex: "cap to 252 bars to prevent saturation" (didn't work)
         #   2026-04-01 Codex: "restore soft-gate null-pass contract"
         # Result: gate killed 50 of 51 Accumulate stocks silently.
         #
         # Removed 2026-04-27 by Claude. Basin physics (Layer 1) is the
-        # sole Accumulate filter until a working cognitive gate is designed.
+        # sole Accumulate filter until a working F_n/raw_x_m gate is designed.
         # ------------------------------------------------------------------
 
         # ------------------------------------------------------------------
@@ -2490,7 +2490,7 @@ if __name__ == "__main__":
 
 ---
 
-## FILE: uf_mdg_snapshot.py (CP-2 kernel section, lines 90-471)
+## FILE: uf_mdg_snapshot.py (state row builder section, lines 90-471)
 
 ```python
 
@@ -2499,7 +2499,7 @@ MIN_PRICE_FLOOR: float = DEFAULT_MIN_PRICE_FLOOR
 
 
 # ===========================================================================
-# CP-2: Cognitive Kernel — Deterministic physics for F_n and raw_x_m
+# CV-1.0 Sequential Filter — Deterministic physics for F_n and raw_x_m
 #
 # Ported verbatim from quarantine_historical_kernel.py.
 # No pyarrow. No quarantine module imports. Pure numpy/dataclass.
@@ -2760,10 +2760,10 @@ def _compute_l4_dsf(res: List[_Resonance]) -> List[_DSFState]:
 
 
 # ---------------------------------------------------------------------------
-# CV-1.0 cognitive scalars — compute the latest F_n and raw_x_m from bars
+# build_snapshot_state_row — run L0→L4 + CV-1.0 sequential filter at canonical evaluation frame
 # ---------------------------------------------------------------------------
 
-def compute_cognitive_scalars(
+def build_snapshot_state_row(
     close_prices: np.ndarray,
     max_bars: int = 252,
 ) -> Dict[str, Optional[float]]:
@@ -4747,7 +4747,7 @@ import * as _marketCalendar from "./market_calendar.mjs";
  * WHY B_k/F_n ENTRY GATES DON'T WORK IN PRODUCTION:
  *   Tested on 428 production trades — every gate made things WORSE.
  *   Rejected pool had HIGHER win rate (48.1%) than passed pool.
- *   Root cause: production CP-2 uses 252-bar cap → F_n inverted,
+ *   Root cause: production state row builder uses 252-bar cap → F_n inverted,
  *   raw_x_m saturates to 1.0, thresholds from quarantine don't transfer.
  *   The quarantine 81% is real but requires 20-day hold (no exit logic).
  *   Production exits early → the entry filter doesn't matter if exits

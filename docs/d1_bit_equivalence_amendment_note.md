@@ -71,7 +71,7 @@ Gate D1 (s_n emission in production) cannot be validated by comparing to the
 quarantine kernel's s_n values as produced by `build_state_rows` on the full
 history.
 
-The production snapshot path (`compute_cognitive_scalars`) processes a
+The production snapshot path (`build_snapshot_state_row`) processes a
 252-bar rolling window — it does NOT have access to future bars. The quarantine
 kernel, when run on full history to extract historical s_n values, produces
 kappa values at intermediate bars that are contaminated by future data. These
@@ -86,13 +86,13 @@ disagreement is in the TEST DESIGN, not in the implementation.
 ## Options for Joe + wC
 
 **(a) Validate s_n using a different reference.**
-Run `compute_cognitive_scalars` with the SAME bars and SAME window as the
+Run `build_snapshot_state_row` with the SAME bars and SAME window as the
 quarantine kernel, by passing each date's bar slice explicitly. This would
-test that the s_n formula in `compute_cognitive_scalars` matches the quarantine
+test that the s_n formula in `build_snapshot_state_row` matches the quarantine
 kernel's formula for the SAME inputs.
 
 **(b) Accept the architectural difference as documented.**
-Define "production s_n" explicitly as the output of `compute_cognitive_scalars`
+Define "production s_n" explicitly as the output of `build_snapshot_state_row`
 with the 252-bar rolling window. Validate it against a numerical formula
 check (e.g., hand-verify the s_n formula on 5 randomly-selected bars), not
 against the quarantine kernel's full-history output.
@@ -144,7 +144,7 @@ Both kernels process the same bar slice from the same zero initial state,
 with F[t+1] present for kappa_t.
 
 The test uses the proper C_bar computation (matching quarantine kernel's
-`c_history` tracking). The `compute_cognitive_scalars` function in
+`c_history` tracking). The `build_snapshot_state_row` function in
 uf_mdg_snapshot.py has `C_bar = 0.0` (documented as "not needed for F_n"),
 but C_bar affects rho → z_n → s_n. The test helper computes C_bar properly
 to validate the formula. The C_bar=0 simplification in production is a
@@ -161,12 +161,12 @@ Gate D1: PASS — bit-equivalent under corrected evaluation frame
 ```
 
 Exact floating-point identity (diff = 0.0) across all 78,899 rows confirms
-the s_n formula in `compute_cognitive_scalars` is a faithful port of the
+the s_n formula in `build_snapshot_state_row` is a faithful port of the
 quarantine kernel's `surprise = ||nu_core - z_n||` computation.
 
 ### Residual issue: C_bar=0 in production snapshot
 
-`compute_cognitive_scalars` in uf_mdg_snapshot.py (line 424) has:
+`build_snapshot_state_row` in uf_mdg_snapshot.py (line 424) has:
 ```python
 C_bar = 0.0  # c_norm not needed for F_n
 ```
@@ -177,7 +177,7 @@ will differ from the quarantine reference by ~0.01 for typical new-listing
 gates. This needs to be fixed before production s_n is numerically identical
 to the canonical quarantine measurement.
 
-**Fix required:** In `compute_cognitive_scalars`, add c_history tracking and
+**Fix required:** In `build_snapshot_state_row`, add c_history tracking and
 compute C_bar = mean(c_history[-5:]). This requires modifying
 uf_mdg_snapshot.py. Not done in this command (amend-2 was scoped to the test).
 
@@ -188,7 +188,7 @@ band boundary. Quantify before deploying Gate D2.
 ### Status after Amendment 2
 
 Gate D1 code (8ecfdaf): s_n emission BUILT and formula-TESTED.
-Gate D1 production accuracy: pending C_bar=0 fix in compute_cognitive_scalars.
+Gate D1 production accuracy: pending C_bar=0 fix in build_snapshot_state_row.
 Gate D1 deployment sign-off: pending three-key (Joe + wC + c1) and C_bar fix.
 
 ---
@@ -199,7 +199,7 @@ Gate D1 deployment sign-off: pending three-key (Joe + wC + c1) and C_bar fix.
 
 ### The C_bar=0 problem (identified in Amendment 2)
 
-`compute_cognitive_scalars` in uf_mdg_snapshot.py had `C_bar = 0.0` with
+`build_snapshot_state_row` in uf_mdg_snapshot.py had `C_bar = 0.0` with
 the comment "c_norm not needed for F_n." This was correct for F_n in
 isolation but incorrect for s_n: C_bar feeds into rho, which feeds into
 the z_n integrator update, which determines `s_n = ||nu_core - z_n||`.
@@ -219,7 +219,7 @@ c_history.append(c_norm)
 C_bar = float(np.mean(c_history[-RHO_ROLLING_WINDOW:]))
 ```
 
-In uf_mdg_snapshot.py `compute_cognitive_scalars`, `dsf.C` is accessed as
+In uf_mdg_snapshot.py `build_snapshot_state_row`, `dsf.C` is accessed as
 `resonance.isf.gate.C` (the complexity count from L1 gate segmentation).
 The same formula: `c_norm = float(np.clip(resonance.isf.gate.C / 4.0, 0.0, 1.0))`.
 

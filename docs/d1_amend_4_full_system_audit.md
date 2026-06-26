@@ -71,7 +71,7 @@ The Stable Titan scaler (`bar_count >= 1000`) now uses gate-emission seq rather 
 
 ### 1.4 `tools/validation_env_refresh.py` — `run_kernel()` → `write_output()`
 
-**Role:** Validation env mirror. Calls `compute_cognitive_scalars` directly (line 137), assembles its own snap dict (lines 139–165), writes to `runtime_decisions_modea`.
+**Role:** Validation env mirror. Calls `build_snapshot_state_row` directly (line 137), assembles its own snap dict (lines 139–165), writes to `runtime_decisions_modea`.
 
 **Read sites:**
 - Lines 160–161: `cognitive.get("F_n")`, `cognitive.get("raw_x_m")` — now second-to-last gate.
@@ -82,7 +82,7 @@ The Stable Titan scaler (`bar_count >= 1000`) now uses gate-emission seq rather 
 
 The F-010 fix committed in 9f1b71b set `decision = None` for this path, so the decision_label contamination is already neutralized. But the snap dict inconsistency remains.
 
-**Sensitivity:** `breaks-under-new-frame` — the validation env refresh produces a mixed-frame snap (last-gate L4 tuple + second-to-last-gate F_n/raw_x_m/s_n). Not a live production break (this is the research/validation path), but the audit must flag it.
+**Sensitivity:** `breaks-under-new-frame` (RESOLVED in D1 Amendment 4 commit) — the validation env refresh was producing a mixed-frame snap (last-gate L4 tuple + second-to-last-gate F_n/raw_x_m/s_n). Not a live production break (this is the research/validation path), but the audit must flag it.
 
 ---
 
@@ -329,7 +329,9 @@ Items requiring wC individual decision before D1 commits.
 |---|---|---|---|---|
 | **S-1** | `tools/validation_env_refresh.py` | 137–161 | Split-frame snap dict: uf_core supplies last-gate L4 tuple; cognitive supplies second-to-last-gate F_n/raw_x_m/s_n. Snap row has cross-frame fields. | `breaks-under-new-frame` |
 
-**S-1 detail:** `tools/validation_env_refresh.py` is the validation environment's kernel runner. It calls `compute_cognitive_scalars()` (line 137) for F_n, raw_x_m, s_n and `compute_uf_structural_state()` (line 134) for D_k, M_k, etc. After Amendment 4, cognitive emits second-to-last-gate values; uf_core still emits last-gate values. The snap dict (lines 139–162) will have D_k from gate t and s_n from gate t-1. This is internally inconsistent.
+~~**S-1 RESOLVED**: `tools/validation_env_refresh.py` now uses `build_snapshot_state_row` for all L4 fields (S-1 fix in D1 Amendment 4 commit).~~
+
+**S-1 detail (historical):** `tools/validation_env_refresh.py` is the validation environment's kernel runner. It calls `build_snapshot_state_row()` (line 137) for F_n, raw_x_m, s_n and `compute_uf_structural_state()` (line 134) for D_k, M_k, etc. After Amendment 4, cognitive emits second-to-last-gate values; uf_core still emits last-gate values. The snap dict (lines 139–162) will have D_k from gate t and s_n from gate t-1. This is internally inconsistent.
 
 **Impact:** The validation environment's `runtime_decisions_modea` table will contain mixed-frame rows. The bit-equivalence tests and cohort analyses run against this table may produce incorrect comparisons.
 
@@ -349,4 +351,4 @@ Items requiring wC individual decision before D1 commits.
 
 **One stop-list item (S-1).** No `breaks-under-new-frame` in the live trading path. The single break is in the validation research tool (`tools/validation_env_refresh.py`), which is used for Gate D2 verification.
 
-**wC decision required:** Should `tools/validation_env_refresh.py` be updated to use the cognitive-path L4 tuple (from `cognitive.get("D_k")` etc.) instead of uf_core path, to produce a consistent-frame snap dict? Or should the validation env use a separate single-frame kernel path? Or is the mixed-frame acceptable for the current validation use case? This decision gates D2.
+**wC decision required:** Should `tools/validation_env_refresh.py` be updated to use the build_snapshot_state_row path L4 tuple (from `cognitive.get("D_k")` etc.) instead of uf_core path, to produce a consistent-frame snap dict? Or should the validation env use a separate single-frame kernel path? Or is the mixed-frame acceptable for the current validation use case? This decision gates D2.

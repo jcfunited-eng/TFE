@@ -180,7 +180,7 @@ Spec defines CP-2 as the thesis-faithful architecture (event tape, latent field,
 The destruction pattern (KERNEL_PHILOSOPHY.md Section 3) has happened three times in recent history. Each removed a working physics gate under the wrong rationale:
 
 1. **bb0590a (May 12 2026):** Removed D_k=1 gate from CH2 entry — "trust the kernel." Step 1 reverses this.
-2. **e002f20 (Apr 27 2026):** Removed cognitive gate (F_n ≤ 1.65, raw_x_m ≤ 0.50) — "killing 99.99% of decisions." The gate was miscalibrated for production's log-normalized kernel, not broken. Step 2 (per-stock relative thresholds) addresses the calibration problem properly.
+2. **e002f20 (Apr 27 2026):** Removed F_n/raw_x_m gate (F_n ≤ 1.65, raw_x_m ≤ 0.50) — "killing 99.99% of decisions." The gate was miscalibrated for production's log-normalized kernel, not broken. Step 2 (per-stock relative thresholds) addresses the calibration problem properly.
 3. **1868aeb (Apr 28 2026):** Removed TRANSITIONAL-only regime restriction from CH2 — "validation finding." Based on V3 basin output which has no edge. May matter under the Step 4 L5.
 
 ### 7.1 Additional Documented Destruction Patterns
