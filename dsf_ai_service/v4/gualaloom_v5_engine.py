@@ -3685,6 +3685,9 @@ class Guala:
             return
         # Run full viewing at activity start (once per activity)
         if not a.metadata.get("_viewed"):
+            # GL-CMD-EPISODE-BINDING C2.3: episode_ref fixed at activity start
+            a.metadata["_episode_ref"] = (
+                f"episode:attending_visual:{a.started_tick}:{a.target}")
             fragments = view_picture(
                 pic.intensity_grid, source_id=pic.item_id,
                 born_tick=self.tick, seed=self.tick % 10000)
@@ -3695,10 +3698,14 @@ class Guala:
             if motif:
                 # Record in atlas for cross-modal binding
                 chi_val = motif.motif_id % 100  # simplified chi address
+                presence, location, sky_state = self._current_situation()
                 self.atlas.record("sight", motif.motif_id, chi_val,
                                  self.tick, salience=1.2,
                                  sensory_refs=[f"pic:{pic.item_id}"],
                                  bundle_id=f"item:pic:{pic.item_id}",
+                                 episode_ref=a.metadata["_episode_ref"],
+                                 presence=presence, location=location,
+                                 sky_state=sky_state, source="attending_visual",
                                  **self._affect_kwargs())
                 self._log_substrate_event(
                     "visual_motif_committed" if is_new else "visual_motif_fired",
@@ -3728,6 +3735,12 @@ class Guala:
         snd = self._sounds.get(a.target)
         if not snd:
             return
+        # GL-CMD-EPISODE-BINDING C2.3: episode_ref fixed at activity start
+        if "_episode_ref" not in a.metadata:
+            a.metadata["_episode_ref"] = (
+                f"episode:attending_audio:{a.started_tick}:{a.target}")
+        ep_ref = a.metadata["_episode_ref"]
+        presence, location, sky_state = self._current_situation()
         # Record attendance
         snd["times_attended"] = snd.get("times_attended", 0) + 1
         snd["last_attended_tick"] = self.tick
@@ -3739,6 +3752,9 @@ class Guala:
                               chi, self.tick, salience=1.2, dwell_ticks=8,
                               sensory_refs=[f"snd:{a.target}"],
                               bundle_id=f"item:snd:{a.target}",
+                              episode_ref=ep_ref, presence=presence,
+                              location=location, sky_state=sky_state,
+                              source="attending_audio",
                               **self._affect_kwargs())
         # Novelty satisfies
         if snd.get("times_attended", 0) <= 3:

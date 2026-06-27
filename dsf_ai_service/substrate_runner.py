@@ -324,21 +324,29 @@ def _activity_bundle_id():
     return None
 
 
-def _curriculum_feed_chunk(sentences, bundle_id=None):
+def _curriculum_feed_chunk(sentences, bundle_id=None, event_type="curriculum",
+                           event_key=""):
     """Feed a study chunk into her engine + organ-brain. Returns (n_fed, learned).
 
-    GL-CMD-CROSS-MODAL-STRENGTHEN B1.b: if bundle_id not supplied, compute from
-    current activity so curriculum words read while she attends a sensory item
-    bind into that item's cross-modal group."""
+    GL-CMD-CROSS-MODAL-STRENGTHEN B1.b: bundle_id from current activity.
+    GL-CMD-EPISODE-BINDING C2.2: episode_ref + situation on every sentence."""
     if bundle_id is None:
         bundle_id = _activity_bundle_id()
+    # Situational context sampled once per chunk (cheap — 100-tick cached)
+    try:
+        presence, location, sky_state = _guala._current_situation()
+    except Exception:
+        presence, location, sky_state = [], "her_room", "day"
+    episode_ref = f"episode:{event_type}:{_guala.tick}:{event_key}"
     n_fed = 0
     learned = 0
     _pause_autonomy_for_bulk()
     try:
         for sent in sentences:
             try:
-                _guala.read_sentence(sent, source="curriculum", bundle_id=bundle_id)
+                _guala.read_sentence(sent, source=event_type, bundle_id=bundle_id,
+                                     episode_ref=episode_ref, presence=presence,
+                                     location=location, sky_state=sky_state)
                 learned += _cognition_learn(sent)
                 _bind_sensory_words(sent)  # feel/smell/taste the sensory words she reads
                 n_fed += 1
@@ -465,7 +473,9 @@ def _world_feed_once():
             st = {"state": "empty", "feed": feed["name"], "query": query}
             _WORLD_FEED_STATE["last_status"] = st
             return st
-        n_fed, learned = _curriculum_feed_chunk(sents[:120], bundle_id=feed_bundle_id)
+        n_fed, learned = _curriculum_feed_chunk(sents[:120], bundle_id=feed_bundle_id,
+                                                event_type="worldfeed",
+                                                event_key=feed.get("name", ""))
         try:
             _guala._log_substrate_event("world_feed_studied", feed=feed["name"],
                                         query=query, n_fed=n_fed, organ_tokens=learned)
@@ -1524,13 +1534,16 @@ def _cmd_addpicture(command, text):
         _guala._log_substrate_event("picture_uploaded",
                                     item_id=item_id, title=title,
                                     original_size=f"{orig_w}x{orig_h}")
-        # GL-CMD-PICTURE-TITLE-BIND Part 1: bind picture title into language substrate
-        # with the same bundle_id as its visual writes, so language+sight co-occur.
+        # GL-CMD-PICTURE-TITLE-BIND Part 1 + GL-CMD-EPISODE-BINDING C2.4
         pic_bundle_id = f"item:pic:{item_id}"
+        episode_ref = f"episode:addpicture:{_guala.tick}:{item_id}"
+        _pres, _loc, _sky = _guala._current_situation()
         if title and title.strip():
             try:
                 _guala.read_sentence(title.strip(), source="addpicture",
-                                     bundle_id=pic_bundle_id)
+                                     bundle_id=pic_bundle_id,
+                                     episode_ref=episode_ref,
+                                     presence=_pres, location=_loc, sky_state=_sky)
             except Exception:
                 pass
         result = {"response": f"showed her \"{title}\" ({orig_w}x{orig_h})",
@@ -1626,17 +1639,23 @@ def _cmd_addsound(command, text):
             dur = len(samples) / max(sr, 1)
             from dsf_ai_service.app import deterministic_motif_id
             snd_bundle_id = f"item:snd:{snd_id}"
+            snd_ep_ref = f"episode:addsound:{_guala.tick}:{snd_id}"
+            _pres, _loc, _sky = _guala._current_situation()
             for bn, c in cochlear.items():
                 chi = c["winding"] % 100
                 _guala.atlas.record(f"audio_{bn}",
                     deterministic_motif_id(snd_id),
                     chi, _guala.tick, salience=1.5, dwell_ticks=8,
-                    bundle_id=snd_bundle_id)
+                    bundle_id=snd_bundle_id, episode_ref=snd_ep_ref,
+                    presence=_pres, location=_loc, sky_state=_sky,
+                    source="addsound")
             # GL-CMD-CROSS-MODAL-STRENGTHEN B1.c: bind title into same bundle as cochlear
             if title:
                 try:
                     _guala.read_sentence(title, source="addsound",
-                                         bundle_id=snd_bundle_id)
+                                         bundle_id=snd_bundle_id,
+                                         episode_ref=snd_ep_ref,
+                                         presence=_pres, location=_loc, sky_state=_sky)
                 except Exception:
                     pass
             _guala._sounds[snd_id] = {
@@ -1686,11 +1705,16 @@ def _cmd_bundle(command, text):
     base_tick = _guala.tick
     # GL-CMD-CROSS-MODAL-BUNDLE: all writes in this bundle share the same bundle_id
     bundle_id = f"bundle:{bundle_name}:{base_tick}"
+    # GL-CMD-EPISODE-BINDING C2.4: one episode_ref + situation per /bundle command
+    _bnd_ep_ref = f"episode:bundle:{base_tick}:{bundle_name}"
+    _bnd_pres, _bnd_loc, _bnd_sky = _guala._current_situation()
 
     # 1. Caption — read into substrate as wc-sourced input
     if caption:
         try:
-            _guala.read_sentence(caption, source="wc", bundle_id=bundle_id)
+            _guala.read_sentence(caption, source="wc", bundle_id=bundle_id,
+                                 episode_ref=_bnd_ep_ref, presence=_bnd_pres,
+                                 location=_bnd_loc, sky_state=_bnd_sky)
             results.append(f"told her \"{caption}\"")
         except Exception as e:
             results.append(f"word ERROR: {e}")
@@ -1714,6 +1738,9 @@ def _cmd_bundle(command, text):
                                         dwell_ticks=DWELL_GATE_META,
                                         sensory_refs=[f"pic:{pic.item_id}"],
                                         bundle_id=bundle_id,
+                                        episode_ref=_bnd_ep_ref,
+                                        presence=_bnd_pres, location=_bnd_loc,
+                                        sky_state=_bnd_sky, source="bundle",
                                         **_guala._affect_kwargs())
                     n_chis += 1
                     _guala._log_substrate_event(
@@ -1740,7 +1767,9 @@ def _cmd_bundle(command, text):
                         chi, _guala.tick, salience=1.2,
                         dwell_ticks=DWELL_GATE_META,
                         sensory_refs=[f"snd:{sound_id}"],
-                        bundle_id=bundle_id,
+                        bundle_id=bundle_id, episode_ref=_bnd_ep_ref,
+                        presence=_bnd_pres, location=_bnd_loc, sky_state=_bnd_sky,
+                        source="bundle",
                         **_guala._affect_kwargs())
                     n_chis += 1
                 snd["times_attended"] = snd.get("times_attended", 0) + 1
@@ -1762,7 +1791,9 @@ def _cmd_bundle(command, text):
                     _guala.tick, salience=1.2,
                     dwell_ticks=DWELL_GATE_META,
                     sensory_refs=[f"{modality}:{desc}"],
-                    bundle_id=bundle_id,
+                    bundle_id=bundle_id, episode_ref=_bnd_ep_ref,
+                    presence=_bnd_pres, location=_bnd_loc, sky_state=_bnd_sky,
+                    source="bundle",
                     **_guala._affect_kwargs())
                 n_chis += 1
             except Exception as e:
@@ -1832,8 +1863,12 @@ def _cmd_converse(text, source, emission_mode=None):
             bundle_id = f"context:pic:{ca.target}:{_guala.tick // 100}"
         elif getattr(ca, 'kind', None) == "ATTENDING_AUDIO":
             bundle_id = f"context:snd:{ca.target}:{_guala.tick // 100}"
+    # GL-CMD-EPISODE-BINDING C2.1: situational context on every converse turn
+    presence, location, sky_state = _guala._current_situation()
+    episode_ref = f"episode:converse:{_guala.tick}:{source}"
     response = _guala.converse(text, source=source, emission_mode=emission_mode,
-                               bundle_id=bundle_id)
+                               bundle_id=bundle_id, episode_ref=episode_ref,
+                               presence=presence, location=location, sky_state=sky_state)
     _guala.log_event(STATE_DIR, "source_interaction",
                      source=source, words_in=len(text.split()),
                      source_count=_guala.source_history.get(source, 0))
@@ -2432,10 +2467,13 @@ def handle_backfill_picture_titles(args):
             skipped += 1
             continue
         try:
+            _, _loc, _sky = _guala._current_situation()
             _guala.read_sentence(title,
                                  source="addpicture_backfill",
                                  bundle_id=f"item:pic:{pic_id}",
-                                 salience=1.5)
+                                 salience=1.5,
+                                 episode_ref=f"episode:backfill_pic:{pic_id}",
+                                 presence=[], location=_loc, sky_state=_sky)
             # Track max atlas strength to confirm no STRENGTH_CAP saturation
             lang_words = title.lower().split()
             for w in lang_words:
@@ -2475,10 +2513,13 @@ def handle_backfill_sound_captions(args):
             skipped += 1
             continue
         try:
+            _, _loc, _sky = _guala._current_situation()
             _guala.read_sentence(caption,
                                  source="addsound_backfill",
                                  bundle_id=f"item:snd:{snd_id}",
-                                 salience=1.5)
+                                 salience=1.5,
+                                 episode_ref=f"episode:backfill_snd:{snd_id}",
+                                 presence=[], location=_loc, sky_state=_sky)
             for chi_entries in _guala.atlas.entries.values():
                 for e in chi_entries:
                     if e.get("source") == "addsound_backfill":
