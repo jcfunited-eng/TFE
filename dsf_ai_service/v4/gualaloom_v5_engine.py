@@ -1204,6 +1204,8 @@ class Guala:
         self._current_binding_window = []  # sensory_refs accumulated this tick
         # GL-CMD-V5-VOICE-STAGE1: dynamics quality from most recent _emit_dynamics call
         self._last_dynamics_result = None  # {content, committed_sections, n_commits, arcs_fallback, tick}
+        # GL-CMD-DEEP-ATLAS-PERSIST: boot loss alarm result
+        self._deep_atlas_loss_at_boot = None
 
         # v7: Autonomy state + sleep/wake (GL-BRIEF-SLEEP-DURING-DEPLOY)
         self._current_activity = None
@@ -4747,6 +4749,12 @@ class Guala:
         self._last_save_tick = save_tick
         self._last_save_timestamp = ts
 
+        # GL-CMD-DEEP-ATLAS-PERSIST: emit save confirmation event
+        _n_deep = self.deep_atlas.live_count()
+        self._log_substrate_event("deep_atlas_saved",
+                                  tick=save_tick, n_entries=_n_deep,
+                                  state_dir=state_dir)
+
         # S3 backup handled by SaveCoordinator (non-blocking background thread)
 
         return results
@@ -4890,17 +4898,37 @@ class Guala:
                 self._apply_bucket(data["guala_bucket.json"])
 
             # Load deep atlas if present (GL-BRIEF-032 — separate table)
+            # GL-CMD-DEEP-ATLAS-PERSIST: load first, then run loss alarm
             deep_path = os.path.join(state_dir, "guala_deep_atlas.json")
+            _deep_saved_count = 0
             if os.path.exists(deep_path):
                 try:
                     with open(deep_path) as fh:
                         draw = json.load(fh)
                     ddata = draw.get("data", draw)
-                    self.deep_atlas.load_from_json(ddata)
-                    print(f"[GualaLoom] Deep atlas loaded: "
-                          f"{self.deep_atlas.live_count()} entries")
+                    _deep_saved_count = self.deep_atlas.load_from_json(ddata)
+                    _deep_loaded = self.deep_atlas.live_count()
+                    print(f"[GualaLoom] Deep atlas loaded: {_deep_loaded} entries "
+                          f"(saved_count={_deep_saved_count})")
+                    # Loss alarm: if loaded count < 80% of persisted count, warn loudly
+                    if _deep_saved_count > 0 and _deep_loaded < _deep_saved_count * 0.8:
+                        _loss_delta = _deep_saved_count - _deep_loaded
+                        print(f"[GualaLoom] WARNING: deep_atlas_loss_detected: "
+                              f"loaded={_deep_loaded} persisted={_deep_saved_count} "
+                              f"delta={_loss_delta}")
+                        self._deep_atlas_loss_at_boot = {
+                            "loaded": _deep_loaded,
+                            "persisted": _deep_saved_count,
+                            "delta": _loss_delta,
+                        }
+                    else:
+                        self._deep_atlas_loss_at_boot = None
                 except Exception as e:
-                    print(f"[GualaLoom] Deep atlas load: {e}")
+                    print(f"[GualaLoom] Deep atlas load FAILED: {e}")
+                    self._deep_atlas_loss_at_boot = {"error": str(e)}
+            else:
+                print("[GualaLoom] Deep atlas file not found — starting fresh (events will rebuild)")
+                self._deep_atlas_loss_at_boot = None
 
             # GL-CMD-TEACHER-CORRECTION-UI: teaching data (backward-compatible)
             teaching_path = os.path.join(state_dir, "guala_teaching.json")
@@ -4964,9 +4992,18 @@ class Guala:
             self._validate_integrity()
 
             self._load_successful = True
+            # GL-CMD-DEEP-ATLAS-PERSIST: emit loss alarm event if detected at boot
+            if getattr(self, '_deep_atlas_loss_at_boot', None):
+                loss = self._deep_atlas_loss_at_boot
+                self._log_substrate_event("deep_atlas_loss_detected",
+                                          loaded=loss.get("loaded", 0),
+                                          persisted=loss.get("persisted", 0),
+                                          delta=loss.get("delta", 0),
+                                          error=loss.get("error"))
             s = self.introspect()
             print(f"[GualaLoom] Loaded: id={self._guala_identity[:8]}.. "
                   f"vocab={s['vocab']} tick={self.tick} reads={self.read_count} "
+                  f"n_deep={self.deep_atlas.live_count()} "
                   f"replayed={self._events_replayed_at_boot} "
                   f"integrity={'OK' if not self._integrity_errors else 'ERRORS'}")
 
@@ -5456,6 +5493,7 @@ class Guala:
             "atlas_entries": sum(len(v) for v in self.atlas.entries.values()),
             "cross_modal_bindings": len(self.atlas.cross_modal_bindings()),
             "cross_modal_bundle": len(self.atlas.bundle_grouped_bindings()),
+            "n_deep_atlas": self.deep_atlas.live_count(),  # GL-CMD-DEEP-ATLAS-PERSIST
             "coordinator_attentions": len(self.coordinator.attentions),
             "coordinator_actions": len(self.coordinator.actions),
             "coordinator_effective": sum(1 for a in self.coordinator.actions

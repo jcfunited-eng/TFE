@@ -1318,7 +1318,7 @@ def _cmd_status():
             f"id: {id_short}.. | schema: {ph.get('schema_version', '?')}\n"
             f"vocab: {s['vocab']} | reads: {s['reads']} | tick: {s['tick']}\n"
             f"sections: {' | '.join(sec_parts)}\n"
-            f"atlas: {s['cross_modal_bindings']} cross-modal / {s.get('cross_modal_bundle', 0)} bundled / {s['atlas_entries']} entries\n"
+            f"atlas: {s['cross_modal_bindings']} cross-modal / {s.get('cross_modal_bundle', 0)} bundled / {s['atlas_entries']} entries | deep: {s.get('n_deep_atlas', s.get('deep_atlas', {}).get('n_entries', 0))}\n"
             f"needs: stab={n['stability']:.3f} nov={n['novelty']:.3f} "
             f"conn={n['connection']:.3f} v={n['valence']:+.3f} a={n['arousal']:.3f}\n"
             f"pair-bond: {'on' if s['pair_bond_active'] else 'off'} | "

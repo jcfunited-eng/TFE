@@ -280,6 +280,7 @@ class DeepAtlas:
 
     def to_json(self):
         """Serialize for guala_deep_atlas.json."""
+        live = self.live_count()
         entries_ser = {}
         for chi_k, es in self.entries.items():
             entries_ser[str(chi_k)] = [
@@ -288,6 +289,7 @@ class DeepAtlas:
         return {
             "schema": "deep_atlas_v1",
             "tick": self.tick,
+            "saved_n_entries": live,           # GL-CMD-DEEP-ATLAS-PERSIST: count at save
             "entries": entries_ser,
             "promotions_survival": self.promotions_survival,
             "promotions_episodic": self.promotions_episodic,
@@ -295,9 +297,11 @@ class DeepAtlas:
         }
 
     def load_from_json(self, data):
-        """Restore from guala_deep_atlas.json."""
+        """Restore from guala_deep_atlas.json.
+        Returns saved_n_entries so caller can run loss alarm."""
         if data.get("schema") != "deep_atlas_v1":
-            return  # unknown schema, start fresh
+            print("[deep_atlas] Unknown schema — starting fresh")
+            return 0
         self.tick = data.get("tick", 0)
         self.promotions_survival = data.get("promotions_survival", 0)
         self.promotions_episodic = data.get("promotions_episodic", 0)
@@ -305,3 +309,4 @@ class DeepAtlas:
         self.entries = defaultdict(list)
         for k, es in data.get("entries", {}).items():
             self.entries[int(k)] = list(es)
+        return data.get("saved_n_entries", self.live_count())
