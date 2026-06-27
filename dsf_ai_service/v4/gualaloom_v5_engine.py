@@ -3711,6 +3711,7 @@ class Guala:
             step = max(1, sr // target_sr)
             downsampled = samples[::step]
             cochlear = cochlear_transduce(downsampled, sample_rate=target_sr)
+            n_bands_fired = 0
             for bn, c in cochlear.items():
                 if c["n_events"] > 0:
                     chi = c["winding"] % 100
@@ -3719,6 +3720,11 @@ class Guala:
                         chi, self.tick, salience=0.6, dwell_ticks=2,
                         sensory_refs=["mic:live"],
                         **self._affect_kwargs())
+                    n_bands_fired += 1
+            if n_bands_fired > 0:
+                self._log_substrate_event("sound_frame_bound",
+                    n_bands=n_bands_fired,
+                    duration_s=round(len(samples)/sr, 2))
 
     def _atick_attending_visual(self, a):
         """Phase 2: Attend to a picture — saccaded foveation through krimelack."""
