@@ -446,19 +446,22 @@ function startContinuousSTT(){
         fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({text:t,source:'joe',command:'/listen'})},8000).catch(()=>{});
       }
-      _sttCooldown=true;setTimeout(()=>{_sttCooldown=false;_sttLastSent=''},4000);
+      // Brain mode: 4s cooldown (substrate emission is expensive)
+      // Passive listen mode: 800ms cooldown (just feeding /listen, lightweight)
+      const _cd=_brainMode?4000:800;
+      _sttCooldown=true;setTimeout(()=>{_sttCooldown=false;_sttLastSent=''},_cd);
     }
   };
   recognition.onerror=ev=>{
-    if(ev.error==='no-speech'||ev.error==='aborted')return; // normal
-    btn.classList.remove('recording');sttActive=false;
-    // Auto-restart after error if still wanted
-    if(sttWanted)setTimeout(startContinuousSTT,1000);
+    sttActive=false;btn.classList.remove('recording');
+    if(ev.error==='aborted')return; // intentional stop
+    // no-speech, network, and other errors: restart promptly
+    if(sttWanted)setTimeout(startContinuousSTT,ev.error==='no-speech'?200:800);
   };
   recognition.onend=()=>{
     sttActive=false;btn.classList.remove('recording');
-    // Auto-restart if user still wants mic on (phone mode)
-    if(sttWanted)setTimeout(startContinuousSTT,300);
+    // Auto-restart if user still wants mic on
+    if(sttWanted)setTimeout(startContinuousSTT,200);
   };
   recognition.start();
 }
