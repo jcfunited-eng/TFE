@@ -47,6 +47,7 @@ BASE_REINFORCEMENT = 0.05
 # Salience modulation: multiplier range for reinforcement
 SALIENCE_MIN = 0.2   # cold reads — corpus during satisfied need state
 SALIENCE_MAX = 3.0   # hot moments — pair-bond + unmet need + novel input
+BUNDLE_SALIENCE_BOOST = 1.5   # GL-CMD-CROSS-MODAL-STRENGTHEN B2: bundled writes get extra impulse
 
 # Forgetting threshold: bindings below this strength are pruned periodically
 FORGETTING_THRESHOLD = 0.02
@@ -112,10 +113,16 @@ class LivingAtlas:
         # Clamp salience to defined range
         salience = max(SALIENCE_MIN, min(SALIENCE_MAX, salience))
         impulse = BASE_REINFORCEMENT * salience
+        # GL-CMD-CROSS-MODAL-STRENGTHEN B2: bundled writes earn extra impulse.
+        # Applied AFTER salience clamp so bundled entries can exceed affective ceiling.
+        if bundle_id is not None:
+            impulse *= BUNDLE_SALIENCE_BOOST
 
         # GL-CLARITY-INVARIANCE-UNCAGE: clarity from affect state
+        # GL-CMD-CROSS-MODAL-STRENGTHEN B3: bundled writes earn +0.2 clarity floor
+        bundle_boost = 0.2 if bundle_id is not None else 0.0
         clarity = min(1.0, 0.3 + 0.3 * arousal + 0.2 * abs(valence)
-                      + 0.2 * surprise + 0.1 * need_pressure)
+                      + 0.2 * surprise + 0.1 * need_pressure + bundle_boost)
 
         # For each chi within band, find or create the entry
         for d in range(-self.band, self.band + 1):

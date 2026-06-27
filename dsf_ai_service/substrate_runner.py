@@ -305,15 +305,40 @@ def _bind_sensory_words(text):
 # clean tokens grow her organ-brain. Autonomy is paused around the chunk so the feed
 # doesn't race her activity loop. Exception-walled — study can never disturb her.
 
-def _curriculum_feed_chunk(sentences):
-    """Feed a study chunk into her engine + organ-brain. Returns (n_fed, learned)."""
+def _activity_bundle_id():
+    """GL-CMD-CROSS-MODAL-STRENGTHEN B1: compute bundle_id from current activity.
+    Returns a context-keyed bundle_id when she is attending a sensory item,
+    None otherwise. Uses // 100 windowing so reads close in time share one group."""
+    try:
+        ca = getattr(_guala, '_current_activity', None)
+        if ca is not None and ca.target:
+            kind = getattr(ca, 'kind', None)
+            if kind == "ATTENDING_VISUAL":
+                return f"context:pic:{ca.target}:{_guala.tick // 100}"
+            elif kind == "ATTENDING_AUDIO":
+                return f"context:snd:{ca.target}:{_guala.tick // 100}"
+            elif kind == "ATTENDING_VIDEO":
+                return f"context:vid:{ca.target}:{_guala.tick // 100}"
+    except Exception:
+        pass
+    return None
+
+
+def _curriculum_feed_chunk(sentences, bundle_id=None):
+    """Feed a study chunk into her engine + organ-brain. Returns (n_fed, learned).
+
+    GL-CMD-CROSS-MODAL-STRENGTHEN B1.b: if bundle_id not supplied, compute from
+    current activity so curriculum words read while she attends a sensory item
+    bind into that item's cross-modal group."""
+    if bundle_id is None:
+        bundle_id = _activity_bundle_id()
     n_fed = 0
     learned = 0
     _pause_autonomy_for_bulk()
     try:
         for sent in sentences:
             try:
-                _guala.read_sentence(sent, source="curriculum")
+                _guala.read_sentence(sent, source="curriculum", bundle_id=bundle_id)
                 learned += _cognition_learn(sent)
                 _bind_sensory_words(sent)  # feel/smell/taste the sensory words she reads
                 n_fed += 1
@@ -433,12 +458,14 @@ def _world_feed_once():
         query = feed["queries"][qi]
         _WORLD_FEED_STATE["feed_idx"] += 1
         _WORLD_FEED_STATE["query_idx"] += 1
+        # GL-CMD-CROSS-MODAL-STRENGTHEN B1.a: bundle feed text to sensory item if attending
+        feed_bundle_id = _activity_bundle_id()
         sents = feed["fetch"](query)
         if not sents:
             st = {"state": "empty", "feed": feed["name"], "query": query}
             _WORLD_FEED_STATE["last_status"] = st
             return st
-        n_fed, learned = _curriculum_feed_chunk(sents[:120])
+        n_fed, learned = _curriculum_feed_chunk(sents[:120], bundle_id=feed_bundle_id)
         try:
             _guala._log_substrate_event("world_feed_studied", feed=feed["name"],
                                         query=query, n_fed=n_fed, organ_tokens=learned)
@@ -1596,6 +1623,13 @@ def _cmd_addsound(command, text):
                     deterministic_motif_id(snd_id),
                     chi, _guala.tick, salience=1.5, dwell_ticks=8,
                     bundle_id=snd_bundle_id)
+            # GL-CMD-CROSS-MODAL-STRENGTHEN B1.c: bind title into same bundle as cochlear
+            if title:
+                try:
+                    _guala.read_sentence(title, source="addsound",
+                                         bundle_id=snd_bundle_id)
+                except Exception:
+                    pass
             _guala._sounds[snd_id] = {
                 "item_id": snd_id, "title": title,
                 "cochlear": {bn: {"winding": c["winding"],
