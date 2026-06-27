@@ -356,7 +356,8 @@ ACTIVITY_NOVELTY_PAYOFF = {
     "ATTENDING_VISUAL_REPEAT": 0.1, "ATTENDING_AUDIO_NEW": 0.85,
     "ATTENDING_AUDIO_REPEAT": 0.1, "ATTENDING_VIDEO_NEW": 0.9,
     "ATTENDING_VIDEO_REPEAT": 0.15, "EMITTING": 0.0, "IDLE": -0.05,
-    "DAYDREAMING": 0.4,    # consolidation IS novelty for her
+    "DAYDREAMING": 0.0,    # neutral: scored via signed_distance; positive nov_payoff
+                           # PENALIZES when novelty > target (common during waking)
 }
 
 ACTIVITY_STABILITY_PAYOFF = {
