@@ -541,11 +541,7 @@ export async function runSentinel() {
   // and inserts them so EXIT-F/H/C/D can manage them. entry_timing_watcher
   // places orders throughout the day — if the ledger status update fails,
   // those positions become invisible to sentinel. This catches them.
-  orphanSync: {
-    if (process.env.TFE_ENTRIES_HALTED === '1') {
-      console.log('[SENTINEL] orphan_sync skipped — kill switch on (F-007a)');
-      break orphanSync;
-    }
+  {
     try {
       const alpacaPositions = await alpacaGet("/v2/positions", ALPACA_BASE).catch(() => []);
       if (Array.isArray(alpacaPositions) && alpacaPositions.length > 0) {
@@ -873,6 +869,20 @@ export async function runSentinel() {
       // at +3.25% avg / 4.4 days vs April's +12.34% / 23-30 days. Same class
       // as EXIT-D/H/S: structural-costume story, no backtest, winner-capping.
       // Destruction-pattern registry entry: GL-BRIEF-039.
+
+      // ── EXIT-TIME: 20-Day Default Close ──────────────────────────────────
+      // Fires for ALL positions regardless of P&L. No EXIT-R9 guard — this is
+      // a time-based close, not a loss exit. EXIT-F already captured any -10%
+      // catastrophe above. EXIT-TIME is the outer boundary for Wave 1 (the
+      // 92.2% WR finding was measured over a 20-bar forward window).
+      if (posAge >= 20) {
+        const pnlStr = currentPnlPct !== null ? `${currentPnlPct.toFixed(1)}%` : "n/a";
+        console.log(
+          `[SENTINEL] CH2 EXIT-TIME ${pos.ticker} | age=${posAge}d — 20-day default exit (P&L=${pnlStr})`
+        );
+        await killPosition(pos, "ch2_exit_time", ALPACA_BASE);
+        continue;
+      }
 
       // Exit B — Directional collapse: D_k no longer 1
       // 7-day minimum hold: D_k collapse on day 0-6 is transient noise.

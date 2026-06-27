@@ -202,7 +202,7 @@ P_k     = |D_k − D_{k−1}|
 B_k     = clip(B_{k−1} + ξ·(1−U*_k)·delta_R − χ·U*_k, −1, 1)
 ```
 
-### Snapshot State Row Variables
+### Cognitive Scalars
 
 `build_state_rows()` — quarantine_historical_kernel.py lines 337–421
 
@@ -210,7 +210,7 @@ B_k     = clip(B_{k−1} + ξ·(1−U*_k)·delta_R − χ·U*_k, −1, 1)
 nu_core = sat_vector([D_k, M_k, R_k_norm])   [clipped to −1..1]
 z_n     = [x_f, x_m, x_s]                    [integrator state]
 s_n     = ||nu_core − z_n||                   [surprise, ln 376]
-F_n     = γ + λ_s · s_n                       [baseline F_n term — quarantine_historical_kernel.py:377]
+F_n     = γ + λ_s · s_n                       [cognitive load, ln 378]
   where γ = 0.5 · (U*_k + (1 − rho))
 
 Q_20  = dot([0,1,0], z_n) − η_h · F_n = x_m − 2.0·F_n
@@ -479,7 +479,7 @@ Spec exists at docs/structural_exit_assessment_spec.tex (Horse/Herd/Distance). C
 
 ### REQUIRED CHANGE: s_n Emission to Production Snapshot
 
-The quarantine kernel computes `s_n = ||nu_core − z_n||` at line 376. The production `build_snapshot_state_row()` in uf_mdg_snapshot.py computes `surprise` at line 455:
+The quarantine kernel computes `s_n = ||nu_core − z_n||` at line 376. The production `compute_cognitive_scalars()` in uf_mdg_snapshot.py computes `surprise` at line 455:
 
 ```python
 # uf_mdg_snapshot.py line 455 (existing):
@@ -602,16 +602,26 @@ Logic: per §4. Input: current `snapshot_row_json` + prior row's `s_n`. Output: 
 Test: replay against the 2,194-ticker universe using validation env's parquet (SHA f12a477). Must reproduce C1 = 372 ± 5 signals and WR_20d ≥ 88.7% (lower bound of Wilson CI). If WR outside CI, STOP — do not deploy.
 
 ### Gate D3 — Exit Logic v1.0
-**STATUS: PARTIALLY BUILT**
+**STATUS: NOT BUILT (revised scope)**
 
 File: `web/scripts/execution/sentinel_monitor.mjs`
 
 Required changes:
-1. Reinstate EXIT-A: `S_UF >= 0.75` fires for winning positions, subject to EXIT-R9 guard for losing positions
-2. Add EXIT-TIME: `age_days >= 20` fires for all positions (no EXIT-R9 guard needed — this is a time-based close, not a loss exit)
-3. Confirm EXIT-B, EXIT-C, EXIT-F, EXIT-R9 behavior unchanged
+1. Add EXIT-TIME: `age_days >= 20` fires for all positions
+   (no EXIT-R9 guard — this is a time-based close, not a loss exit)
+2. Confirm EXIT-B, EXIT-C, EXIT-F, EXIT-R9 behavior unchanged
 
-Test: dry-run against historical positions (past 30 days). Verify EXIT-A fires on S_UF >= 0.75 examples, EXIT-F fires on −10% examples, EXIT-TIME fires on 20+ day examples. Confirm no EXIT-D or EXIT-S firings.
+EXIT-A reinstatement REMOVED from D3 scope per wC engineering
+decision 2026-06-26. The drain-period audit (F-001 through F-010)
+removed EXIT-A as winner-capping with no canonical derivation
+(sentinel_monitor.mjs:872). The audit finding stands. EXIT-A
+reinstatement is not in v1.0 and is not on the roadmap unless and
+until a canonical derivation for the S_UF threshold is produced.
+
+Test: dry-run against past 30 days of closed positions. Verify
+EXIT-TIME fires on age-20 examples, EXIT-F still fires on -10%
+examples, EXIT-B/EXIT-C fire on the same conditions they did
+before. Confirm no EXIT-A/EXIT-D/EXIT-H/EXIT-S firings.
 
 ### Gate D4 — Bookkeeping Forward Fixes
 **STATUS: NOT BUILT**

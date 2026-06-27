@@ -401,14 +401,14 @@ Per-gate: $\text{TVR} = (T, V, R)$,\; $C_k = |\{\text{quantized lattice points}\
   B_k &= \operatorname{clip}\!\bigl(B_{k-1} + \xi(1-U^*_k)\Delta R - \chi U^*_k,\;-1,\;1\bigr)
 \end{align}
 
-\subsection{Snapshot State Row Variables}
+\subsection{Cognitive Scalars}
 
 \code{build\_state\_rows()} — lines 337--421
 \begin{align}
   \nu_{\text{core}} &= \operatorname{sat}\!\bigl([D_k,\;M_k,\;R_{k,\text{norm}}]\bigr) \quad [\text{clipped to }[-1,1]^3]\\
   z_n &= [x_f,\;x_m,\;x_s] \quad [\text{integrator state}]\\
   s_n &= \|\nu_{\text{core}} - z_n\| \quad [\text{surprise, ln 376}]\\
-  F_n &= \gamma + \lambda_s\,s_n,\quad \gamma = 0.5\,(U^*_k + (1 - \rho))\quad [\text{baseline F\_n term — quarantine\_historical\_kernel.py:377}]\\
+  F_n &= \gamma + \lambda_s\,s_n,\quad \gamma = 0.5\,(U^*_k + (1 - \rho))\quad [\text{cognitive load, ln 378}]\\
   Q_{20} &= \dot{q}_{20} \cdot z_n - \eta_h\,F_n = x_m - 2.0\,F_n\\
   \chi_n &= 1 \text{ iff } \operatorname{sign}(Q_5)=\operatorname{sign}(Q_{20})=\operatorname{sign}(Q_{60})
 \end{align}
@@ -812,9 +812,10 @@ File: \texttt{uf\_mdg\_snapshot.py}. Emit \code{s\_n = surprise} to \code{snapsh
 Files: \texttt{web/scripts/wave1\_entry\_filter.mjs} + \texttt{tools/wave1\_entry\_filter.py} (both NEW).\newline
 \textit{Test:} Replay against 2,194-ticker universe (SHA \sha{f12a477}). Must reproduce C1 $= 372\pm 5$ signals and $\text{WR}_{20d} \geq 88.7\%$ (Wilson lower bound). If outside CI, STOP.
 
-\subsection*{Gate D3 — Exit Logic v1.0 \hfill \statuspartial}
-File: \texttt{sentinel\_monitor.mjs}. Required: reinstate EXIT-A ($S_{\text{UF}}\geq 0.75$, winning positions); add EXIT-TIME (20d).\newline
-\textit{Test:} Dry-run on historical positions; verify EXIT-A and EXIT-TIME fire; no EXIT-D or EXIT-S.
+\subsection*{Gate D3 — Exit Logic v1.0 \hfill \statusnotbuilt\ (revised scope)}
+File: \texttt{sentinel\_monitor.mjs}. Required: add EXIT-TIME (\texttt{age\_days} $\geq 20$, fires regardless of P\&L; no EXIT-R9 guard); confirm EXIT-B/EXIT-C/EXIT-F/EXIT-R9 unchanged.\newline
+EXIT-A reinstatement \textbf{removed} from D3 scope per wC engineering decision 2026-06-26. Drain-period audit removed EXIT-A as winner-capping with no canonical derivation (line~872). Finding stands; EXIT-A not in v1.0 roadmap absent a canonical $S_{\text{UF}}$ threshold derivation.\newline
+\textit{Test:} Dry-run on past 30 days of closed positions. Verify EXIT-TIME fires on age-20 examples; EXIT-F on $-10\%$; EXIT-B/EXIT-C unchanged. Zero EXIT-A/EXIT-D/EXIT-H/EXIT-S firings.
 
 \subsection*{Gate D4 — Bookkeeping Forward Fixes \hfill \statusnotbuilt}
 Must deploy in order: F-007a (SHA \sha{29bf93d}) $\to$ F-001 fix $\to$ F-002 fix. Verify 100\% non-NULL \code{p\_l} on 10-trade test.
