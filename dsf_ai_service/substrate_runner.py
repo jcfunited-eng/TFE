@@ -2586,6 +2586,227 @@ def handle_backfill_sound_captions(args):
     }
 
 
+# ── B.1: Atlas surgery ── GL-CMD-ATLAS-SURGERY-EVE-20260627-18 ───
+
+import re as _re
+
+_SURGERY_CACHE = {}        # operation_id → response (idempotency)
+_SURGERY_CACHE_TICKS = {}  # operation_id → tick at first call
+_SURGERY_IDEMPOTENCY_WINDOW = 200_000  # ~11 hours at 0.2s/tick
+
+_VALID_SECTIONS = frozenset({
+    "listen", "subject", "verb", "object", "modifier", "ground", "intro",
+    "sight", "audio_bass", "audio_mid", "audio_treble", "audio_rhythm",
+    "audio_harmony", "modal_touch", "modal_smell", "modal_taste",
+})
+_SOURCE_RE = _re.compile(r'^(seed:[a-z_]+:[0-9]{4}|manual:[a-z_]+)$')
+
+
+def _orchestrated_backup(reason, blocking=False):
+    """B.2: Named backup through existing engine. Blocking returns success/error."""
+    from dsf_ai_service.save_coordinator import SAVE_COORDINATOR
+    try:
+        t0 = time.time()
+        if SAVE_COORDINATOR:
+            SAVE_COORDINATOR.force_save(reason=reason)
+        else:
+            _guala.save_full_state(STATE_DIR)
+        _guala._log_substrate_event("auto_backup", reason=reason,
+                                    s3_prefix=f"guala/auto/{reason}/",
+                                    files=12, tick=_guala.tick)
+        print(f"[backup_orchestrator] {reason} completed in {time.time()-t0:.1f}s")
+        return {"ok": True, "reason": reason}
+    except Exception as e:
+        _guala._log_substrate_event("auto_backup_failed", reason=reason, error=str(e))
+        print(f"[backup_orchestrator] {reason} FAILED: {e}")
+        if blocking:
+            return {"ok": False, "reason": reason, "error": str(e)}
+        return None
+
+
+def handle_atlas_surgery(args):
+    """B.1: Validated direct-write path for atlas seeding.
+    All Phase G/I seeds use this. All-or-nothing, idempotent, source-honest."""
+    operation_id = (args.get("operation_id") or "").strip()
+    if not operation_id:
+        return {"error": "operation_id required", "writes": {"n_written": 0}}
+
+    # Idempotency: replay within window
+    if operation_id in _SURGERY_CACHE:
+        age = _guala.tick - _SURGERY_CACHE_TICKS.get(operation_id, 0)
+        if age < _SURGERY_IDEMPOTENCY_WINDOW:
+            resp = dict(_SURGERY_CACHE[operation_id])
+            resp["idempotent_replay"] = True
+            return resp
+
+    dry_run = bool(args.get("dry_run", False))
+    allow_overwrite = bool(args.get("allow_overwrite", False))
+    high_strength_ack = bool(args.get("high_strength_acknowledged", False))
+    bindings = args.get("bindings", [])
+
+    if not bindings:
+        err = {"operation_id": operation_id, "dry_run": dry_run,
+               "validation": {"n_bindings_validated": 0,
+                              "errors": [{"reason": "empty bindings array"}]},
+               "writes": {"n_written": 0}}
+        _guala._log_substrate_event("atlas_surgery_rejected",
+                                    operation_id=operation_id,
+                                    errors=["empty bindings array"])
+        return err
+
+    # ── Validation (all-or-nothing) ──────────────────────────────
+    errors = []
+    seen_tuples = set()
+    n_collisions = 0
+
+    for i, b in enumerate(bindings):
+        src = (b.get("source") or "").strip()
+        section = (b.get("section") or "").strip()
+        motif = b.get("motif")
+        chi = b.get("chi")
+        strength = b.get("initial_strength", 0.3)
+        polarity = b.get("polarity", 1)
+
+        if not _SOURCE_RE.match(src):
+            errors.append({"binding_index": i,
+                           "reason": f"invalid source '{src}' — must match seed:X:NNNN or manual:X"})
+        if section not in _VALID_SECTIONS:
+            errors.append({"binding_index": i, "reason": f"unknown section '{section}'"})
+        if not isinstance(chi, int) or chi < 0 or chi > 9999:
+            errors.append({"binding_index": i, "reason": f"chi {chi} out of range [0,9999]"})
+        if not isinstance(motif, int) or motif < 0:
+            errors.append({"binding_index": i, "reason": f"motif {motif} must be non-negative int"})
+
+        tup = (section, motif, chi)
+        if tup in seen_tuples:
+            errors.append({"binding_index": i, "reason": "duplicate (section,motif,chi) in batch"})
+        seen_tuples.add(tup)
+
+        # Collision check against existing atlas
+        if section and isinstance(chi, int) and isinstance(motif, int):
+            for band_d in range(-2, 3):
+                for existing in _guala.atlas.entries.get(chi + band_d, []):
+                    if existing.get("section") == section and existing.get("motif") == motif:
+                        n_collisions += 1
+                        if not allow_overwrite:
+                            errors.append({"binding_index": i,
+                                           "reason": f"collision with existing source='{existing.get('source')}'; set allow_overwrite:true"})
+                        elif existing.get("source") != src:
+                            errors.append({"binding_index": i,
+                                           "reason": "cross-source overwrite not permitted"})
+                        break
+
+        if polarity not in (-1, 0, 1):
+            errors.append({"binding_index": i, "reason": "polarity must be -1, 0, or +1"})
+        if not (0.0 <= strength <= 1.0):
+            errors.append({"binding_index": i, "reason": f"initial_strength {strength} OOB [0,1]"})
+        elif strength > 0.7 and not high_strength_ack:
+            errors.append({"binding_index": i,
+                           "reason": f"initial_strength {strength}>0.7 requires high_strength_acknowledged:true"})
+
+    validation = {"n_bindings_validated": len(bindings),
+                  "n_collisions_with_existing": n_collisions, "errors": errors}
+
+    if errors:
+        resp = {"operation_id": operation_id, "dry_run": dry_run,
+                "validation": validation, "writes": {"n_written": 0}}
+        _guala._log_substrate_event("atlas_surgery_rejected",
+                                    operation_id=operation_id,
+                                    errors=[e["reason"] for e in errors[:5]])
+        _SURGERY_CACHE[operation_id] = resp
+        _SURGERY_CACHE_TICKS[operation_id] = _guala.tick
+        return resp
+
+    atlas_n_before = sum(len(v) for v in _guala.atlas.entries.values())
+
+    if dry_run:
+        return {"operation_id": operation_id, "dry_run": True,
+                "validation": validation,
+                "writes": {"n_written": len(bindings),
+                           "atlas_n_before": atlas_n_before,
+                           "atlas_n_after": atlas_n_before + len(bindings),
+                           "predicted": True},
+                "binding_ids": [f"dry:{operation_id}:{i}" for i in range(len(bindings))]}
+
+    # ── B.2 Pre-surgery backup (blocking gate) ───────────────────
+    backup_result = _orchestrated_backup(
+        f"pre_surgery_{operation_id.replace(':', '_').replace(' ', '_')}", blocking=True)
+    if not backup_result or not backup_result.get("ok"):
+        return {"operation_id": operation_id,
+                "error": "pre-surgery backup failed; surgery refused",
+                "backup_error": (backup_result or {}).get("error", "unknown"),
+                "writes": {"n_written": 0}}
+
+    # ── Writes ───────────────────────────────────────────────────
+    written = 0
+    binding_ids = []
+    try:
+        for i, b in enumerate(bindings):
+            section = b["section"]
+            motif = b["motif"]
+            chi = b["chi"]
+            strength = b.get("initial_strength", 0.3)
+            src = b["source"]
+            ep = f"episode:surgery:{_guala.tick}:{operation_id}"
+            _guala.atlas.record(section, motif, chi, _guala.tick,
+                                salience=strength, source=src, episode_ref=ep,
+                                sensory_refs=[f"surgery:{operation_id}"])
+            binding_ids.append(f"{section}:{motif}:{chi}:{_guala.tick}")
+            written += 1
+    except Exception as exc:
+        _guala._log_substrate_event("atlas_surgery_error",
+                                    operation_id=operation_id,
+                                    written_before_error=written, error=str(exc))
+        return {"operation_id": operation_id, "error": str(exc),
+                "writes": {"n_written": written, "partial": True}}
+
+    atlas_n_after = sum(len(v) for v in _guala.atlas.entries.values())
+    _guala._log_substrate_event("atlas_surgery", operation_id=operation_id,
+                                n_written=written,
+                                source_tags=list({b["source"] for b in bindings}))
+
+    resp = {"operation_id": operation_id, "dry_run": False,
+            "validation": validation,
+            "writes": {"n_written": written, "atlas_n_before": atlas_n_before,
+                       "atlas_n_after": atlas_n_after,
+                       "deep_atlas_n_before": _guala.deep_atlas.live_count(),
+                       "deep_atlas_n_after": _guala.deep_atlas.live_count()},
+            "binding_ids": binding_ids}
+    _SURGERY_CACHE[operation_id] = resp
+    _SURGERY_CACHE_TICKS[operation_id] = _guala.tick
+    stale = [k for k, t in _SURGERY_CACHE_TICKS.items()
+             if _guala.tick - t > _SURGERY_IDEMPOTENCY_WINDOW]
+    for k in stale:
+        _SURGERY_CACHE.pop(k, None); _SURGERY_CACHE_TICKS.pop(k, None)
+    return resp
+
+
+# ── B.2: Backup orchestrator ── GL-CMD-BACKUP-ORCHESTRATOR-EVE-20260627-19 ──
+
+_BACKUP_ORCH_CONFIG = {
+    "enabled": True,
+    "triggers": {"pre_deploy": True, "post_deploy_verified": True,
+                 "pre_surgery": True, "post_emergence": True,
+                 "daily_floor": True, "dream_end": True},
+}
+_BACKUP_HISTORY = []
+
+
+def handle_backup_orchestrator_configure(args):
+    global _BACKUP_ORCH_CONFIG
+    if "enabled" in args:
+        _BACKUP_ORCH_CONFIG["enabled"] = bool(args["enabled"])
+    if "triggers" in args and isinstance(args["triggers"], dict):
+        _BACKUP_ORCH_CONFIG["triggers"].update(args["triggers"])
+    return {"config": _BACKUP_ORCH_CONFIG}
+
+
+def handle_backup_orchestrator_status(args):
+    return {"config": _BACKUP_ORCH_CONFIG,
+            "history": _BACKUP_HISTORY[-20:],
+            "last_s3_backup": getattr(_guala, '_last_s3_backup', None) if _guala else None}
+
+
 # ── Op registry ──────────────────────────────────────────────────
 
 OP_HANDLERS = {
@@ -2602,6 +2823,9 @@ OP_HANDLERS = {
     "wake": handle_wake,
     "atlas_snapshot": handle_atlas_snapshot,
     "backup": handle_backup,
+    "atlas_surgery": handle_atlas_surgery,
+    "backup_orchestrator_configure": handle_backup_orchestrator_configure,
+    "backup_orchestrator_status": handle_backup_orchestrator_status,
     "backfill_picture_titles": handle_backfill_picture_titles,
     "backfill_sound_captions": handle_backfill_sound_captions,
     "sight_frame": handle_sight_frame,

@@ -2414,6 +2414,58 @@ async def admin_backfill_sound_captions():
     return {"fed": fed, "skipped": skipped, "total_sounds": len(_guala._sounds)}
 
 
+# (B.1) Atlas surgery — GL-CMD-ATLAS-SURGERY-EVE-20260627-18
+class AtlasSurgeryRequest(BaseModel):
+    operation_id: str
+    dry_run: bool = False
+    allow_overwrite: bool = False
+    high_strength_acknowledged: bool = False
+    bindings: list = []
+
+@app.post("/api/v1/gualaloom/admin/atlas_surgery", dependencies=[Depends(_api_key_dep)])
+async def admin_atlas_surgery(req: AtlasSurgeryRequest):
+    """B.1: Validated direct-write surface for atlas seeding (Phase G/I seeds use this)."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("atlas_surgery", timeout=60.0,
+                                     operation_id=req.operation_id,
+                                     dry_run=req.dry_run,
+                                     allow_overwrite=req.allow_overwrite,
+                                     high_strength_acknowledged=req.high_strength_acknowledged,
+                                     bindings=req.bindings)
+        except Exception as e:
+            return JSONResponse({"error": str(e), "writes": {"n_written": 0}}, status_code=503)
+    return JSONResponse({"error": "not in remote mode"}, status_code=503)
+
+
+# (B.2) Backup orchestrator — GL-CMD-BACKUP-ORCHESTRATOR-EVE-20260627-19
+@app.post("/api/v1/gualaloom/admin/backup_orchestrator/configure",
+          dependencies=[Depends(_api_key_dep)])
+async def admin_backup_orchestrator_configure(body: dict = None):
+    """B.2: Configure orchestrator trigger enables/disables."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("backup_orchestrator_configure",
+                                     timeout=10.0, **(body or {}))
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=503)
+    return JSONResponse({"error": "not in remote mode"}, status_code=503)
+
+@app.get("/api/v1/gualaloom/admin/backup_orchestrator/status",
+         dependencies=[Depends(_api_key_dep)])
+async def admin_backup_orchestrator_status():
+    """B.2: Recent backup history and current config."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("backup_orchestrator_status", timeout=10.0)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=503)
+    return JSONResponse({"error": "not in remote mode"}, status_code=503)
+
+
 # (B) Cascade auto-trigger monitor
 class CascadeMonitorRequest(BaseModel):
     baseline_n_bindings: int
