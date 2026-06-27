@@ -3613,13 +3613,18 @@ class Guala:
 
     def _atick_daydreaming(self, a):
         """GL-CMD-DAYDREAMING: awake consolidation. Runs dream cycle while
-        is_asleep stays False. Interruptible by any active presence."""
-        # Interruption: if someone is actively present, end DAYDREAMING now
-        if self.is_present_active():
-            self._end_activity()
-            return
-        # Gentle stability gain (same rate as DREAMING tick effect)
+        is_asleep stays False. Interruptible by any active presence.
+
+        When presence is active: skip consolidation this tick, let the budget
+        expire naturally. DO NOT call _end_activity() here — that triggers
+        _end_activity_with_save() which holds self.lock for an EFS write,
+        blocking the asyncio socket handler on every tick. Budget expiry ends
+        the activity cleanly without per-tick lock contention."""
+        # Gentle stability gain every tick
         self.needs.stability = saturate(self.needs.stability, 0.0005)
+        # Interruption: skip consolidation when presence is active
+        if self.is_present_active():
+            return   # activity continues; coordinator picks next after budget expires
         # Run shared consolidation cycle (M-09-1)
         self._run_dream_cycle(caller_kind="DAYDREAMING")
         # M-09-2: assert is_asleep stays False throughout
