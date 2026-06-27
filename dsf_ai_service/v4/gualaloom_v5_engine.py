@@ -346,6 +346,7 @@ ACTIVITY_TICK_BUDGETS = {
     "READING": 2000, "PLAYING": 1500, "SLEEPING": 2000, "DREAMING": 3000,
     "ATTENDING": 1000, "ATTENDING_VISUAL": 2000, "ATTENDING_AUDIO": 2000,
     "ATTENDING_VIDEO": 4000, "EMITTING": 100, "IDLE": 500,
+    "DAYDREAMING": 1500,   # GL-CMD-DAYDREAMING: awake consolidation
 }
 
 ACTIVITY_NOVELTY_PAYOFF = {
@@ -355,18 +356,23 @@ ACTIVITY_NOVELTY_PAYOFF = {
     "ATTENDING_VISUAL_REPEAT": 0.1, "ATTENDING_AUDIO_NEW": 0.85,
     "ATTENDING_AUDIO_REPEAT": 0.1, "ATTENDING_VIDEO_NEW": 0.9,
     "ATTENDING_VIDEO_REPEAT": 0.15, "EMITTING": 0.0, "IDLE": -0.05,
+    "DAYDREAMING": 0.4,    # consolidation IS novelty for her
 }
 
 ACTIVITY_STABILITY_PAYOFF = {
-    "READING": 0.05, "PLAYING": 0.0, "SLEEPING": 0.2, "DREAMING": 0.2,
+    "READING": 0.05, "PLAYING": 0.0,
+    "SLEEPING": 0.05,      # GL-CMD-DAYDREAMING: was 0.2; DAYDREAMING now wins
+    "DREAMING": 0.2,
     "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
     "ATTENDING_VIDEO": 0.0, "EMITTING": -0.1, "IDLE": 0.1,
+    "DAYDREAMING": 0.2,    # same payoff as DREAMING; wins over SLEEPING
 }
 
 ACTIVITY_CONNECTION_PAYOFF = {
     "READING": 0.0, "PLAYING": 0.0, "SLEEPING": 0.0, "DREAMING": 0.0,
     "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
     "ATTENDING_VIDEO": 0.0, "EMITTING": 0.3, "IDLE": -0.05,
+    "DAYDREAMING": 0.0,
 }
 
 EMISSION_COHESION_THRESHOLD = 0.65
@@ -3299,6 +3305,8 @@ class Guala:
                     self._atick_sleeping(a)
                 elif a.kind == "DREAMING":
                     self._atick_dreaming(a)
+                elif a.kind == "DAYDREAMING":   # GL-CMD-DAYDREAMING
+                    self._atick_daydreaming(a)
                 elif a.kind == "PLAYING":
                     self._atick_playing(a)
                 elif a.kind == "ATTENDING":
@@ -3330,7 +3338,8 @@ class Guala:
 
     def _candidate_activities(self):
         """All activities currently possible as (kind, target) tuples."""
-        candidates = [("IDLE", None), ("PLAYING", None), ("SLEEPING", None)]
+        candidates = [("IDLE", None), ("PLAYING", None), ("SLEEPING", None),
+                      ("DAYDREAMING", None)]  # GL-CMD-DAYDREAMING: awake consolidation
         for cid in self._corpora:
             candidates.append(("READING", cid))
         for sid in self._sensory_items:
@@ -3520,99 +3529,101 @@ class Guala:
     def _atick_dreaming(self, a):
         """Dream: stability restoration + consolidation via replay reinforcement.
         No novelty gain — dream recombines existing material.
-        LTP-on-replay: sampled atlas entries get reinforced (bug #3 fix).
-        v8 (GL-BRIEF-032): deep atlas promotion gate runs after consolidation."""
+        GL-CMD-DAYDREAMING M-09-1: now delegates to _run_dream_cycle()."""
         self.needs.stability = saturate(self.needs.stability, 0.0005)
-        if self.tick % 200 == 0:
-            # Dream recall + consolidation (UNCHANGED — task 65)
-            dream_words = []
-            dream_pics = []
-            reinforced_addresses = []
-            reinforcement_count = 0
-            pre_strength = self.atlas.total_strength()
-            chi_keys = list(self.atlas.entries.keys())
-            if chi_keys:
-                sample_chis = [chi_keys[i % len(chi_keys)]
-                               for i in range(self.tick % max(1, len(chi_keys)),
-                                              min(self.tick % max(1, len(chi_keys)) + 3, len(chi_keys)))]
-                for chi_k in sample_chis:
-                    for e in self.atlas.entries.get(chi_k, []):
-                        sec_name = e.get("section", "")
-                        mid = e.get("motif", 0)
-                        # Consolidation: reinforce this binding (LTP-on-replay)
-                        # Same path as waking re-encounter, dream salience 0.3
-                        # GL-BRIEF-DREAM-PROTECTION-FIX: dream consolidation
-                        # earns metaplastic protection (slow channel via dwell gate)
-                        self.atlas.record(sec_name, mid, chi_k, self.tick,
-                                          salience=0.3, dwell_ticks=DWELL_GATE_META,
-                                          arousal=0.2, valence=0.0, surprise=0.0)
-                        reinforced_addresses.append(chi_k)
-                        reinforcement_count += 1
-                        if sec_name in self.sections:
-                            sec = self.sections[sec_name]
-                            if mid < len(sec.modes):
-                                _, _, w = sec.modes[mid]
-                                if w and w not in dream_words:
-                                    dream_words.append(w)
-                        if sec_name == "sight" and hasattr(self, 'sight'):
-                            for sm in self.sight.motifs:
-                                if sm.motif_id == mid and sm.source_history:
-                                    sid = sm.source_history[-1]
-                                    if sid in self._pictures and sid not in dream_pics:
-                                        dream_pics.append(sid)
-            post_strength = self.atlas.total_strength()
-            content = " ".join(dream_words[:4]) if dream_words else ""
-            self._log_substrate_event("dream_artifact",
-                                     content=content,
-                                     picture_ids=dream_pics,
-                                     reinforced_atlas_addresses=reinforced_addresses[:10],
-                                     reinforcement_count=reinforcement_count,
-                                     pre_strength_sum=round(pre_strength, 2),
-                                     post_strength_sum=round(post_strength, 2))
+        self._run_dream_cycle(caller_kind="DREAMING")
 
-            # ── Deep Atlas promotion gate (GL-BRIEF-032) ──
-            # Record survival snapshots for Path A
-            for chi_k, entries in self.atlas.entries.items():
-                for e in entries:
-                    key = (chi_k, e.get("section", ""), e.get("motif", 0))
-                    self._deep_survival_history[key].append(e["strength"])
-                    # Cap history length
-                    if len(self._deep_survival_history[key]) > 20:
-                        self._deep_survival_history[key] = \
-                            self._deep_survival_history[key][-10:]
+    def _run_dream_cycle(self, caller_kind="DREAMING"):
+        """GL-CMD-DAYDREAMING M-09-1: shared dream cycle callable.
+        Runs LTP replay consolidation + deep atlas promotion gate.
+        Called from both _atick_dreaming and _atick_daydreaming.
+        caller_kind logged in events for attribution."""
+        if self.tick % 200 != 0:
+            return
+        dream_words = []
+        dream_pics = []
+        reinforced_addresses = []
+        reinforcement_count = 0
+        pre_strength = self.atlas.total_strength()
+        chi_keys = list(self.atlas.entries.keys())
+        if chi_keys:
+            sample_chis = [chi_keys[i % len(chi_keys)]
+                           for i in range(self.tick % max(1, len(chi_keys)),
+                                          min(self.tick % max(1, len(chi_keys)) + 3, len(chi_keys)))]
+            for chi_k in sample_chis:
+                for e in self.atlas.entries.get(chi_k, []):
+                    sec_name = e.get("section", "")
+                    mid = e.get("motif", 0)
+                    self.atlas.record(sec_name, mid, chi_k, self.tick,
+                                      salience=0.3, dwell_ticks=DWELL_GATE_META,
+                                      arousal=0.2, valence=0.0, surprise=0.0)
+                    reinforced_addresses.append(chi_k)
+                    reinforcement_count += 1
+                    if sec_name in self.sections:
+                        sec = self.sections[sec_name]
+                        if mid < len(sec.modes):
+                            _, _, w = sec.modes[mid]
+                            if w and w not in dream_words:
+                                dream_words.append(w)
+                    if sec_name == "sight" and hasattr(self, 'sight'):
+                        for sm in self.sight.motifs:
+                            if sm.motif_id == mid and sm.source_history:
+                                sid = sm.source_history[-1]
+                                if sid in self._pictures and sid not in dream_pics:
+                                    dream_pics.append(sid)
+        post_strength = self.atlas.total_strength()
+        content = " ".join(dream_words[:4]) if dream_words else ""
+        self._log_substrate_event("dream_artifact",
+                                 content=content, caller_kind=caller_kind,
+                                 picture_ids=dream_pics,
+                                 reinforced_atlas_addresses=reinforced_addresses[:10],
+                                 reinforcement_count=reinforcement_count,
+                                 pre_strength_sum=round(pre_strength, 2),
+                                 post_strength_sum=round(post_strength, 2))
+        # Deep Atlas promotion gate
+        for chi_k, entries in self.atlas.entries.items():
+            for e in entries:
+                key = (chi_k, e.get("section", ""), e.get("motif", 0))
+                self._deep_survival_history[key].append(e["strength"])
+                if len(self._deep_survival_history[key]) > 20:
+                    self._deep_survival_history[key] = \
+                        self._deep_survival_history[key][-10:]
+        promoted = self.deep_atlas.dream_promotion_gate(
+            self.atlas, self.tick, self._deep_survival_history)
+        for path, chi_k, sec, mid in promoted:
+            self._log_substrate_event("deep_promotion",
+                path=path, section=sec, motif=mid, chi=chi_k,
+                caller_kind=caller_kind)
+            self.atlas.release_to_fast(chi_k, sec, mid)
+            self._log_substrate_event("deep_release",
+                section=sec, motif=mid, chi=chi_k)
+        for rej in self.deep_atlas.gate_rejects[-5:]:
+            self._log_substrate_event("deep_gate_reject", **rej)
+        self.deep_atlas.gate_rejects = []
+        _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
+        self.deep_atlas.decay(self.tick, rate_scale=0.0 if _paused else 1.0)
+        if not _paused:
+            self.deep_atlas.prune()
+        deep_size = self.deep_atlas.live_count()
+        self._log_substrate_event("deep_size",
+            n_entries=deep_size,
+            total_strength=round(self.deep_atlas.total_strength(), 2),
+            growth=deep_size - self._deep_last_size)
+        self._deep_last_size = deep_size
 
-            # Run promotion gate
-            promoted = self.deep_atlas.dream_promotion_gate(
-                self.atlas, self.tick, self._deep_survival_history)
-
-            # Log promotions + post-promotion release (GL-BRIEF-033 C)
-            for path, chi_k, sec, mid in promoted:
-                self._log_substrate_event("deep_promotion",
-                    path=path, section=sec, motif=mid, chi=chi_k)
-                # C: release working entry to fast channel
-                self.atlas.release_to_fast(chi_k, sec, mid)
-                self._log_substrate_event("deep_release",
-                    section=sec, motif=mid, chi=chi_k)
-            # Log recent gate rejects (already accumulated in deep_atlas.gate_rejects)
-            for rej in self.deep_atlas.gate_rejects[-5:]:
-                self._log_substrate_event("deep_gate_reject", **rej)
-            self.deep_atlas.gate_rejects = []  # clear after logging
-
-            # Deep atlas decay + prune
-            # GL-BRIEF-SLEEP-DECAY-PERMANENT: pause-idempotent
-            _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
-            self.deep_atlas.decay(self.tick,
-                                  rate_scale=0.0 if _paused else 1.0)
-            if not _paused:
-                self.deep_atlas.prune()
-
-            # Log deep_size
-            deep_size = self.deep_atlas.live_count()
-            self._log_substrate_event("deep_size",
-                n_entries=deep_size,
-                total_strength=round(self.deep_atlas.total_strength(), 2),
-                growth=deep_size - self._deep_last_size)
-            self._deep_last_size = deep_size
+    def _atick_daydreaming(self, a):
+        """GL-CMD-DAYDREAMING: awake consolidation. Runs dream cycle while
+        is_asleep stays False. Interruptible by any active presence."""
+        # Interruption: if someone is actively present, end DAYDREAMING now
+        if self.is_present_active():
+            self._end_activity()
+            return
+        # Gentle stability gain (same rate as DREAMING tick effect)
+        self.needs.stability = saturate(self.needs.stability, 0.0005)
+        # Run shared consolidation cycle (M-09-1)
+        self._run_dream_cycle(caller_kind="DAYDREAMING")
+        # M-09-2: assert is_asleep stays False throughout
+        assert not self.is_asleep, "DAYDREAMING must not set is_asleep"
 
     def _atick_playing(self, a):
         """Free-settle: chi space walk. No novelty gain — internal
