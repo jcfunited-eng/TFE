@@ -409,6 +409,12 @@ function startContinuousSTT(){
   if(!sttWanted)return;
   const btn=document.getElementById('mic-btn');
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  // Cleanly terminate old instance before creating a new one.
+  // Nulling onend first prevents the old instance's cleanup from
+  // triggering a second restart and causing InvalidStateError on start().
+  if(recognition){
+    try{recognition.onend=null;recognition.onerror=null;recognition.abort();}catch(e){}
+  }
   recognition=new SR();
   recognition.continuous=true;
   recognition.interimResults=true;
@@ -463,7 +469,10 @@ function startContinuousSTT(){
     // Auto-restart if user still wants mic on
     if(sttWanted)setTimeout(startContinuousSTT,200);
   };
-  recognition.start();
+  try{recognition.start();}catch(e){
+    // InvalidStateError or similar — back off and retry
+    sttActive=false;if(sttWanted)setTimeout(startContinuousSTT,500);
+  }
 }
 
 // --- Snapshot (P1: multipart FormData to /upload/picture) ---
