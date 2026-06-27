@@ -1876,15 +1876,16 @@ def _cmd_converse(text, source, emission_mode=None):
                      source=source, words_in=len(text.split()),
                      source_count=_guala.source_history.get(source, 0))
 
-    # GL-CMD-V5-VOICE-STAGE1: gate response text on dynamics emission quality.
-    # Four cases:
-    #   v5_commit              — dynamics committed ≥2 sections; surface v5 text
-    #   bigram_fallback_v5_failed — dynamics ran but only arcs_fallback, no real commits
-    #   bigram_fallback_v5_empty  — dynamics ran but produced no content
-    #   bigram_fallback_no_v5     — dynamics didn't run this turn (TOPK/unslotted)
+    # GL-CMD-BIGRAM-RETIRE: substrate truth gate. One brain, one voice, or silence.
+    # v5_commit:        dynamics committed ≥2 sections → surface v5 content
+    # silence_v5_failed:  dynamics ran, arcs_fallback only, no real commits → ""
+    # silence_v5_empty:   dynamics ran but produced no content → ""
+    # silence_no_v5:      dynamics didn't run this turn → ""
+    # Bigram is no longer a fallback voice. GualaCognition.say() stays in tree
+    # for diagnostics but is not called from /converse.
     tick_after = _guala.tick
     dyn = getattr(_guala, '_last_dynamics_result', None)
-    response_source = "bigram_fallback_no_v5"
+    response_source = "silence_no_v5"
     committed_sections_out = []
 
     if dyn is not None and (tick_after - dyn.get("tick", 0)) < 200:
@@ -1895,12 +1896,16 @@ def _cmd_converse(text, source, emission_mode=None):
         committed_sections_out = cs
 
         if len(cs) >= 2 and nc > 0 and dyn_content and dyn_content != "...":
-            response = dyn_content      # use committed v5 content
+            response = dyn_content      # v5 committed — her real voice
             response_source = "v5_commit"
         elif arcs:
-            response_source = "bigram_fallback_v5_failed"
+            response = ""               # arcs_fallback is not her voice
+            response_source = "silence_v5_failed"
         else:
-            response_source = "bigram_fallback_v5_empty"
+            response = ""               # dynamics ran, nothing committed
+            response_source = "silence_v5_empty"
+    else:
+        response = ""                   # no dynamics this turn
 
     recalled_pics = getattr(_guala, '_last_recalled_pictures', [])
     picture_refs = []
@@ -1915,8 +1920,13 @@ def _cmd_converse(text, source, emission_mode=None):
         picture_refs.append({"item_id": item_id, "title": pic.title})
         if len(picture_refs) >= 4:
             break
-    result = {"response": response or "...", "motifs": _guala.introspect()["vocab"],
+    result = {"response": response or "", "motifs": _guala.introspect()["vocab"],
               "response_source": response_source}
+    # GL-CMD-BIGRAM-RETIRE: TTS only on v5_commit; silence turns carry no speech field
+    if response_source == "v5_commit" and response:
+        wav = _synthesize_voice(response)
+        if wav:
+            result["speech"] = wav
     if committed_sections_out:
         result["committed_sections"] = committed_sections_out
     # GL-CMD-TEACHER-CORRECTION-UI: surface emission_id
