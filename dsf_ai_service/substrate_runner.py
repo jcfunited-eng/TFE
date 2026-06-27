@@ -1035,7 +1035,8 @@ def handle_gualaloom_post(args):
 
     if _guala.is_asleep and command not in ("/status", "/wake", "/presence",
                                              "/debug_chi", "/deep_full_coverage",
-                                             "/diag", "/curriculum", "/events"):
+                                             "/diag", "/curriculum", "/curriculum_on",
+                                             "/curriculum_off", "/worldfeed", "/events"):
         # Conversations auto-wake her — talking to her should wake her.
         # /converse and bare text input both call wake_from_sleep() to end
         # the SLEEPING activity immediately (coordinator.wake alone only sets
