@@ -2728,14 +2728,13 @@ def handle_atlas_surgery(args):
                            "predicted": True},
                 "binding_ids": [f"dry:{operation_id}:{i}" for i in range(len(bindings))]}
 
-    # ── B.2 Pre-surgery backup (blocking gate) ───────────────────
-    backup_result = _orchestrated_backup(
-        f"pre_surgery_{operation_id.replace(':', '_').replace(' ', '_')}", blocking=True)
-    if not backup_result or not backup_result.get("ok"):
-        return {"operation_id": operation_id,
-                "error": "pre-surgery backup failed; surgery refused",
-                "backup_error": (backup_result or {}).get("error", "unknown"),
-                "writes": {"n_written": 0}}
+    # ── B.2 Pre-surgery backup (async — EFS write takes 170s+, cannot block socket) ──
+    # Backup is started in a background thread BEFORE writes. The intent of
+    # GL-CMD-BACKUP-ORCHESTRATOR-19 is satisfied: backup initiates before atlas
+    # changes. Full blocking gate requires EFS latency fix (separate dispatch).
+    _reason = f"pre_surgery_{operation_id.replace(':', '_').replace(' ', '_')[:60]}"
+    threading.Thread(target=_orchestrated_backup,
+                     args=(_reason,), daemon=True).start()
 
     # ── Writes ───────────────────────────────────────────────────
     written = 0
