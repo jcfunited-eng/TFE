@@ -1281,7 +1281,7 @@ def _cmd_status():
             f"id: {id_short}.. | schema: {ph.get('schema_version', '?')}\n"
             f"vocab: {s['vocab']} | reads: {s['reads']} | tick: {s['tick']}\n"
             f"sections: {' | '.join(sec_parts)}\n"
-            f"atlas: {s['cross_modal_bindings']} cross-modal / {s['atlas_entries']} entries\n"
+            f"atlas: {s['cross_modal_bindings']} cross-modal / {s.get('cross_modal_bundle', 0)} bundled / {s['atlas_entries']} entries\n"
             f"needs: stab={n['stability']:.3f} nov={n['novelty']:.3f} "
             f"conn={n['connection']:.3f} v={n['valence']:+.3f} a={n['arousal']:.3f}\n"
             f"pair-bond: {'on' if s['pair_bond_active'] else 'off'} | "
@@ -1589,11 +1589,13 @@ def _cmd_addsound(command, text):
             n_events = sum(c["n_events"] for c in cochlear.values())
             dur = len(samples) / max(sr, 1)
             from dsf_ai_service.app import deterministic_motif_id
+            snd_bundle_id = f"item:snd:{snd_id}"
             for bn, c in cochlear.items():
                 chi = c["winding"] % 100
                 _guala.atlas.record(f"audio_{bn}",
                     deterministic_motif_id(snd_id),
-                    chi, _guala.tick, salience=1.5, dwell_ticks=8)
+                    chi, _guala.tick, salience=1.5, dwell_ticks=8,
+                    bundle_id=snd_bundle_id)
             _guala._sounds[snd_id] = {
                 "item_id": snd_id, "title": title,
                 "cochlear": {bn: {"winding": c["winding"],
@@ -1639,11 +1641,13 @@ def _cmd_bundle(command, text):
     results = []
     n_chis = 0
     base_tick = _guala.tick
+    # GL-CMD-CROSS-MODAL-BUNDLE: all writes in this bundle share the same bundle_id
+    bundle_id = f"bundle:{bundle_name}:{base_tick}"
 
     # 1. Caption — read into substrate as wc-sourced input
     if caption:
         try:
-            _guala.read_sentence(caption, source="wc")
+            _guala.read_sentence(caption, source="wc", bundle_id=bundle_id)
             results.append(f"told her \"{caption}\"")
         except Exception as e:
             results.append(f"word ERROR: {e}")
@@ -1666,6 +1670,7 @@ def _cmd_bundle(command, text):
                                         _guala.tick, salience=1.2,
                                         dwell_ticks=DWELL_GATE_META,
                                         sensory_refs=[f"pic:{pic.item_id}"],
+                                        bundle_id=bundle_id,
                                         **_guala._affect_kwargs())
                     n_chis += 1
                     _guala._log_substrate_event(
@@ -1692,6 +1697,7 @@ def _cmd_bundle(command, text):
                         chi, _guala.tick, salience=1.2,
                         dwell_ticks=DWELL_GATE_META,
                         sensory_refs=[f"snd:{sound_id}"],
+                        bundle_id=bundle_id,
                         **_guala._affect_kwargs())
                     n_chis += 1
                 snd["times_attended"] = snd.get("times_attended", 0) + 1
@@ -1713,6 +1719,7 @@ def _cmd_bundle(command, text):
                     _guala.tick, salience=1.2,
                     dwell_ticks=DWELL_GATE_META,
                     sensory_refs=[f"{modality}:{desc}"],
+                    bundle_id=bundle_id,
                     **_guala._affect_kwargs())
                 n_chis += 1
             except Exception as e:
@@ -1773,7 +1780,17 @@ def _cmd_converse(text, source, emission_mode=None):
         return {"response": "...", "motifs": _guala.introspect()["vocab"]}
     if source not in {"joe", "wc", "c1"}:
         source = "joe"
-    response = _guala.converse(text, source=source, emission_mode=emission_mode)
+    # GL-CMD-CROSS-MODAL-BUNDLE: auto-bundle words spoken while attending a sensory item.
+    # Uses // 100 windowing so words close in time at the same target share one bundle.
+    bundle_id = None
+    ca = getattr(_guala, '_current_activity', None)
+    if ca is not None and ca.target:
+        if getattr(ca, 'kind', None) == "ATTENDING_VISUAL":
+            bundle_id = f"context:pic:{ca.target}:{_guala.tick // 100}"
+        elif getattr(ca, 'kind', None) == "ATTENDING_AUDIO":
+            bundle_id = f"context:snd:{ca.target}:{_guala.tick // 100}"
+    response = _guala.converse(text, source=source, emission_mode=emission_mode,
+                               bundle_id=bundle_id)
     _guala.log_event(STATE_DIR, "source_interaction",
                      source=source, words_in=len(text.split()),
                      source_count=_guala.source_history.get(source, 0))

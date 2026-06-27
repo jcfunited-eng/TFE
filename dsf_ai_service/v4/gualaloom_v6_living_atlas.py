@@ -87,7 +87,7 @@ class LivingAtlas:
     def record(self, section_name, motif_id, chi_value, tick=None, salience=1.0,
                dwell_ticks=0, arousal=0.5, valence=0.0, surprise=0.0,
                need_pressure=0.0, sensory_refs=None, episode_ref=None,
-               source="corpus"):
+               source="corpus", bundle_id=None):
         """Record a new binding OR reinforce existing one if (section, motif)
         already present near this chi. Salience modulates the strength impulse.
 
@@ -149,6 +149,9 @@ class LivingAtlas:
                 existing["valence"] = max(existing.get("valence", 0.0), valence)
                 existing["surprise"] = max(existing.get("surprise", 0.0), surprise)
                 existing["source"] = source
+                # GL-CMD-CROSS-MODAL-BUNDLE: last-write-wins on bundle_id
+                if bundle_id is not None:
+                    existing["bundle_id"] = bundle_id
                 # GL-CLARITY: accumulate sensory refs
                 if sensory_refs:
                     refs = existing.get("sensory_refs", [])
@@ -197,6 +200,8 @@ class LivingAtlas:
                     "source": source,
                     # GL-SPC-HEMISPHERE-ARCH: hemisphere tag (Phase 0: always em)
                     "hemisphere_id": "em",
+                    # GL-CMD-CROSS-MODAL-BUNDLE: AE-native binding marker (None = untagged)
+                    "bundle_id": bundle_id,
                 })
 
     def repair_pass(self):
@@ -377,6 +382,43 @@ class LivingAtlas:
             if len(secs) >= 2:
                 out.append((k, secs, live))
         return out
+
+    def bundle_grouped_bindings(self):
+        """GL-CMD-CROSS-MODAL-BUNDLE: group live entries by item identifier extracted
+        from bundle_id. Returns list of (item_id, sections_set, entries_list).
+
+        bundle_id format:
+          item:pic:<id>          — picture item (from view/attend)
+          item:snd:<id>          — sound item (from addsound/attend)
+          bundle:<name>:<tick>   — explicit /bundle command
+          context:pic:<id>:<win> — auto-bundle during visual attention
+          context:snd:<id>:<win> — auto-bundle during audio attention
+
+        item:pic:X and context:pic:X:<win> group together under item key X.
+        O(n) single pass over all entries."""
+        import re
+        groups = {}   # item_key -> {"sections": set, "entries": list}
+        for entries in self.entries.values():
+            for e in entries:
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    continue
+                bid = e.get("bundle_id")
+                if not bid:
+                    continue
+                # Extract item key: pic/snd id, or bundle name+tick
+                m = re.match(r"(?:item|context):(pic|snd):([^:]+)", bid)
+                if m:
+                    item_key = f"{m.group(1)}:{m.group(2)}"
+                else:
+                    # bundle:<name>:<tick> — use full bid as key
+                    item_key = bid
+                if item_key not in groups:
+                    groups[item_key] = {"sections": set(), "entries": []}
+                groups[item_key]["sections"].add(e["section"])
+                groups[item_key]["entries"].append(e)
+        # Return only groups with 2+ distinct sections (cross-modal)
+        return [(k, g["sections"], g["entries"])
+                for k, g in groups.items() if len(g["sections"]) >= 2]
 
     def match_score(self, chi_value, section_name):
         """For familiarity feedback: how much existing structure is at this chi?

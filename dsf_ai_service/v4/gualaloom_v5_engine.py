@@ -1275,7 +1275,7 @@ class Guala:
     # ------------------------------------------------------------------
     # Read one word: fire all krimelacks, compute DSF, route to sections
     # ------------------------------------------------------------------
-    def read_word(self, word, position_hint=None, source="corpus"):
+    def read_word(self, word, position_hint=None, source="corpus", bundle_id=None):
         """v6: salience-modulated binding + decay heartbeat."""
         with self.lock:
             self.tick += 1
@@ -1318,6 +1318,9 @@ class Guala:
 
             # GL-CLARITY-INVARIANCE-UNCAGE: affect + grounding kwargs for record() calls
             _akw = {**self._affect_kwargs(surprise), **self._grounding_kwargs()}
+            # GL-CMD-CROSS-MODAL-BUNDLE: thread bundle_id into atlas writes
+            if bundle_id is not None:
+                _akw["bundle_id"] = bundle_id
 
             fam_listen = self.atlas.match_score(lang_chi, "listen")
             self.sections["listen"].receive(lang_dsf, lang_chi, word,
@@ -1444,7 +1447,7 @@ class Guala:
     # ------------------------------------------------------------------
     # Read a sentence (sequence of words with position context + source)
     # ------------------------------------------------------------------
-    def read_sentence(self, text, source="corpus"):
+    def read_sentence(self, text, source="corpus", bundle_id=None):
         with self.lock:
             words = _normalize_text(text)
             if not words:
@@ -1477,14 +1480,15 @@ class Guala:
                     hint = "last"
                 else:
                     hint = "middle"
-                self.read_word(word, position_hint=hint, source=source)
+                self.read_word(word, position_hint=hint, source=source,
+                              bundle_id=bundle_id)
             self.read_count += 1
             self._current_episode = None
 
     # ------------------------------------------------------------------
     # Conversation: input -> substrate -> output via cascade
     # ------------------------------------------------------------------
-    def converse(self, text, source="unknown", emission_mode=None):
+    def converse(self, text, source="unknown", emission_mode=None, bundle_id=None):
         """v5: Recall from substrate atlas BEFORE reading input.
         - If atlas has cross-section bindings near the input chi values, emit
           those (real recall from corpus accumulation).
@@ -1532,7 +1536,7 @@ class Guala:
             # 4. Read input into substrate (so she learns from this interaction)
             # Snapshot tick before read — only entries born in THIS read get tagged
             tick_before_read = self.tick
-            self.read_sentence(text, source=source)
+            self.read_sentence(text, source=source, bundle_id=bundle_id)
             tick_after_read = self.tick
             _t_read = time.monotonic()
 
@@ -3627,6 +3631,7 @@ class Guala:
                 self.atlas.record("sight", motif.motif_id, chi_val,
                                  self.tick, salience=1.2,
                                  sensory_refs=[f"pic:{pic.item_id}"],
+                                 bundle_id=f"item:pic:{pic.item_id}",
                                  **self._affect_kwargs())
                 self._log_substrate_event(
                     "visual_motif_committed" if is_new else "visual_motif_fired",
@@ -3666,6 +3671,7 @@ class Guala:
             self.atlas.record(f"audio_{band_name}", deterministic_motif_id(a.target),
                               chi, self.tick, salience=1.2, dwell_ticks=8,
                               sensory_refs=[f"snd:{a.target}"],
+                              bundle_id=f"item:snd:{a.target}",
                               **self._affect_kwargs())
         # Novelty satisfies
         if snd.get("times_attended", 0) <= 3:
@@ -5351,6 +5357,7 @@ class Guala:
             "vocab": len(self.vocab),
             "atlas_entries": sum(len(v) for v in self.atlas.entries.values()),
             "cross_modal_bindings": len(self.atlas.cross_modal_bindings()),
+            "cross_modal_bundle": len(self.atlas.bundle_grouped_bindings()),
             "coordinator_attentions": len(self.coordinator.attentions),
             "coordinator_actions": len(self.coordinator.actions),
             "coordinator_effective": sum(1 for a in self.coordinator.actions
