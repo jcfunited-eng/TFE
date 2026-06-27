@@ -1388,9 +1388,12 @@ async def gualaloom_chat(msg: GLMessage):
     if _is_remote():
         client = _get_substrate_client()
         try:
-            # Status gets a short timeout — use cached if slow
+            # GL-FIX-ALB-TIMEOUT: 5s was too short — autonomy lock windows can take
+            # several seconds with 15k+ atlas entries. Raise to 20s so status
+            # doesn't constantly reset the persistent socket connection.
+            # Cached fallback (60s) still handles the case where substrate is truly stuck.
             is_status = (msg.command or "").strip() == "/status"
-            timeout = 5.0 if is_status else 25.0
+            timeout = 20.0 if is_status else 25.0
             result = await client.call("gualaloom_post",
                                        command=msg.command or "",
                                        text=msg.text or "",

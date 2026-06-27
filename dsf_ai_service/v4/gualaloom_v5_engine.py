@@ -549,6 +549,14 @@ class Section:
                     break
                 if e.get("section") == self.name and e["strength"] >= DF_THRESH:
                     motif = e["motif"]
+                    # GL-FIX-ATLAS-INTEGRITY: skip OOB reinstatements.
+                    # Deep atlas entry was promoted when the section had more modes.
+                    # If the section has since been loaded from an older save with
+                    # fewer modes, reinstating the old motif_id creates an OOB atlas
+                    # entry that fails _validate_integrity(). Skip and let the deep
+                    # entry naturally expire via decay.
+                    if motif >= len(self.modes):
+                        continue
                     p = min(PRIOR_CAP, e["strength"] * 0.3)  # same formula as get_prior
                     if p > 0:
                         deep_atlas.reinstatements += 1
@@ -4739,13 +4747,17 @@ class Guala:
 
         # ── Phase 2: write to disk outside lock (seconds) ──
         results = {}
+        # GL-FIX-ATLAS-INTEGRITY: sections written BEFORE atlas so that if the process
+        # is interrupted mid-save, the loaded sections have >= modes as atlas motif IDs.
+        # (If atlas writes first and we crash before sections: loaded sections have
+        # fewer modes than atlas motif IDs → OOB integrity errors on every boot.)
         writes = [
             ("guala_core.json", snap_core),
             ("guala_needs.json", snap_needs),
             ("guala_coordinator.json", snap_coord),
+            ("guala_sections.json", snap_sections),   # sections BEFORE atlas
             ("guala_atlas.json", snap_atlas),
             ("guala_deep_atlas.json", snap_deep),
-            ("guala_sections.json", snap_sections),
             ("guala_bucket.json", snap_bucket),
             ("guala_visual.json", snap_visual),
             ("guala_sounds.json", snap_sounds),
@@ -5415,7 +5427,8 @@ class Guala:
     # ── Integrity validation ──
 
     def _validate_integrity(self):
-        """Cross-check loaded state for internal consistency."""
+        """Cross-check loaded state for internal consistency.
+        GL-FIX-ATLAS-INTEGRITY: OOB atlas entries are pruned (not just logged)."""
         errors = []
         # 1. Needs in bounds
         for k in ("stability", "novelty", "connection"):
@@ -5427,22 +5440,29 @@ class Guala:
             if count < 0:
                 errors.append(f"Source {src} negative count: {count}")
         # 3. (Bucket removed — Phase E)
-        # 4. Atlas motif IDs reference existing modes
+        # 4. Atlas motif IDs reference existing modes — prune OOB entries
+        pruned = 0
         sample_count = 0
-        for chi_val, entries in self.atlas.entries.items():
+        for chi_val in list(self.atlas.entries.keys()):
+            entries = self.atlas.entries[chi_val]
+            valid = []
             for e in entries:
                 sec_name = e.get("section")
                 motif_id = e.get("motif")
-                if sec_name in self.sections:
-                    if motif_id is not None and motif_id >= len(self.sections[sec_name].modes):
-                        errors.append(f"Atlas refs motif {motif_id} in {sec_name} "
-                                      f"(has {len(self.sections[sec_name].modes)})")
+                if sec_name in self.sections and motif_id is not None:
+                    if motif_id >= len(self.sections[sec_name].modes):
+                        if sample_count < 10:
+                            errors.append(f"Atlas refs motif {motif_id} in {sec_name} "
+                                          f"(has {len(self.sections[sec_name].modes)})")
                         sample_count += 1
-                        if sample_count >= 10:
-                            errors.append("(truncated after 10 atlas integrity errors)")
-                            break
-            if sample_count >= 10:
-                break
+                        pruned += 1
+                        continue  # drop this entry
+                valid.append(e)
+            self.atlas.entries[chi_val] = valid
+        if sample_count >= 10:
+            errors.append(f"(... and {sample_count - 10} more OOB entries, {pruned} total pruned)")
+        elif pruned > 0:
+            errors.append(f"({pruned} OOB atlas entries pruned)")
         self._integrity_errors = errors
         if errors:
             for e in errors:
