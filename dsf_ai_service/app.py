@@ -2366,6 +2366,51 @@ async def admin_backup():
     return result
 
 
+@app.post("/api/v1/gualaloom/admin/backfill_picture_titles", dependencies=[Depends(_api_key_dep)])
+async def admin_backfill_picture_titles():
+    """GL-CMD-PICTURE-TITLE-BIND Part 2: one-shot backfill of all existing picture
+    titles into language substrate, bundled to item:pic:<id>. Idempotent."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("backfill_picture_titles", timeout=60.0)
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    fed, skipped = 0, 0
+    max_strength_seen = 0.0
+    for pic_id, pic in list(_guala._pictures.items()):
+        title = (getattr(pic, "title", None) or "").strip()
+        if not title:
+            skipped += 1
+            continue
+        _guala.read_sentence(title, source="addpicture_backfill",
+                             bundle_id=f"item:pic:{pic_id}", salience=1.5)
+        fed += 1
+    return {"fed": fed, "skipped": skipped, "total_pictures": len(_guala._pictures)}
+
+
+@app.post("/api/v1/gualaloom/admin/backfill_sound_captions", dependencies=[Depends(_api_key_dep)])
+async def admin_backfill_sound_captions():
+    """GL-CMD-PICTURE-TITLE-BIND Part 3: one-shot backfill of all existing sound
+    titles into language substrate, bundled to item:snd:<id>. Idempotent."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("backfill_sound_captions", timeout=60.0)
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    fed, skipped = 0, 0
+    for snd_id, snd in list(_guala._sounds.items()):
+        caption = (snd.get("title") or "").strip()
+        if not caption:
+            skipped += 1
+            continue
+        _guala.read_sentence(caption, source="addsound_backfill",
+                             bundle_id=f"item:snd:{snd_id}", salience=1.5)
+        fed += 1
+    return {"fed": fed, "skipped": skipped, "total_sounds": len(_guala._sounds)}
+
+
 # (B) Cascade auto-trigger monitor
 class CascadeMonitorRequest(BaseModel):
     baseline_n_bindings: int

@@ -1275,8 +1275,13 @@ class Guala:
     # ------------------------------------------------------------------
     # Read one word: fire all krimelacks, compute DSF, route to sections
     # ------------------------------------------------------------------
-    def read_word(self, word, position_hint=None, source="corpus", bundle_id=None):
-        """v6: salience-modulated binding + decay heartbeat."""
+    def read_word(self, word, position_hint=None, source="corpus", bundle_id=None,
+                  salience=None):
+        """v6: salience-modulated binding + decay heartbeat.
+
+        salience: if provided, overrides _compute_salience() — used for backfill
+        writes that need elevated (compensatory) salience. Normal reads omit this.
+        """
         with self.lock:
             self.tick += 1
             self.vocab.add(word)
@@ -1295,9 +1300,10 @@ class Guala:
             # so the assemblage settles under concept-specific attractors (Eve point C)
             self._last_lang_dsf = lang_dsf
 
-            # v6: compute salience
-            salience = self._compute_salience(source=source,
-                                              input_novelty=atlas_sim)
+            # v6: compute salience (or use caller-supplied override for backfill writes)
+            if salience is None:
+                salience = self._compute_salience(source=source,
+                                                  input_novelty=atlas_sim)
 
             primary_sections = self._choose_role_sections(role, position_hint)
 
@@ -1447,7 +1453,13 @@ class Guala:
     # ------------------------------------------------------------------
     # Read a sentence (sequence of words with position context + source)
     # ------------------------------------------------------------------
-    def read_sentence(self, text, source="corpus", bundle_id=None):
+    def read_sentence(self, text, source="corpus", bundle_id=None, salience=None):
+        """Read a sentence into the substrate.
+
+        salience: optional override passed to each read_word call. Use for
+        backfill writes that need elevated (compensatory) salience. Normal
+        reads omit this and let _compute_salience() govern.
+        """
         with self.lock:
             words = _normalize_text(text)
             if not words:
@@ -1481,7 +1493,7 @@ class Guala:
                 else:
                     hint = "middle"
                 self.read_word(word, position_hint=hint, source=source,
-                              bundle_id=bundle_id)
+                              bundle_id=bundle_id, salience=salience)
             self.read_count += 1
             self._current_episode = None
 

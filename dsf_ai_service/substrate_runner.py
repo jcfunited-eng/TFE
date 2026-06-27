@@ -1524,6 +1524,15 @@ def _cmd_addpicture(command, text):
         _guala._log_substrate_event("picture_uploaded",
                                     item_id=item_id, title=title,
                                     original_size=f"{orig_w}x{orig_h}")
+        # GL-CMD-PICTURE-TITLE-BIND Part 1: bind picture title into language substrate
+        # with the same bundle_id as its visual writes, so language+sight co-occur.
+        pic_bundle_id = f"item:pic:{item_id}"
+        if title and title.strip():
+            try:
+                _guala.read_sentence(title.strip(), source="addpicture",
+                                     bundle_id=pic_bundle_id)
+            except Exception:
+                pass
         result = {"response": f"showed her \"{title}\" ({orig_w}x{orig_h})",
                   "motifs": _guala.introspect()["vocab"]}
     except Exception as e:
@@ -2407,6 +2416,91 @@ def handle_ring_status(args):
     }
 
 
+# ── Backfill ops (GL-CMD-PICTURE-TITLE-BIND-EVE-20260627-04) ─────
+
+def handle_backfill_picture_titles(args):
+    """One-shot: feed each picture's title into the language substrate bundled
+    to its item:pic:<id> so sight+language entries share a bundle_id group.
+    salience=1.5 compensates for pictures attended thousands of times without
+    their titles ever landing. Idempotent via last-write-wins reinforce path."""
+    fed, skipped = 0, 0
+    max_strength_seen = 0.0
+    STRENGTH_CAP = 1.0
+    for pic_id, pic in list(_guala._pictures.items()):
+        title = (getattr(pic, 'title', None) or "").strip()
+        if not title:
+            skipped += 1
+            continue
+        try:
+            _guala.read_sentence(title,
+                                 source="addpicture_backfill",
+                                 bundle_id=f"item:pic:{pic_id}",
+                                 salience=1.5)
+            # Track max atlas strength to confirm no STRENGTH_CAP saturation
+            lang_words = title.lower().split()
+            for w in lang_words:
+                for chi_entries in _guala.atlas.entries.values():
+                    for e in chi_entries:
+                        if e.get("source") == "addpicture_backfill":
+                            max_strength_seen = max(max_strength_seen, e["strength"])
+            fed += 1
+        except Exception as exc:
+            print(f"[backfill_picture_titles] ERROR pic_id={pic_id} title={title!r}: {exc}")
+    _guala._log_substrate_event("backfill_picture_titles_complete",
+                                fed=fed, skipped=skipped,
+                                total_pictures=len(_guala._pictures),
+                                max_strength_seen=round(max_strength_seen, 4))
+    print(f"[backfill_picture_titles] fed={fed} skipped={skipped} "
+          f"max_strength={max_strength_seen:.4f}")
+    return {
+        "fed": fed, "skipped": skipped,
+        "total_pictures": len(_guala._pictures),
+        "max_strength_seen": round(max_strength_seen, 4),
+        "strength_cap": STRENGTH_CAP,
+        "cap_breach": max_strength_seen >= STRENGTH_CAP,
+    }
+
+
+def handle_backfill_sound_captions(args):
+    """One-shot: feed each sound's title caption into the language substrate
+    bundled to its item:snd:<id>. Sounds added before B1.c had cochlear entries
+    tagged but no language caption bundle_id. Last-write-wins reinforce path
+    tags existing caption entries with the correct bundle_id."""
+    fed, skipped = 0, 0
+    max_strength_seen = 0.0
+    STRENGTH_CAP = 1.0
+    for snd_id, snd in list(_guala._sounds.items()):
+        caption = (snd.get("title") or "").strip()
+        if not caption:
+            skipped += 1
+            continue
+        try:
+            _guala.read_sentence(caption,
+                                 source="addsound_backfill",
+                                 bundle_id=f"item:snd:{snd_id}",
+                                 salience=1.5)
+            for chi_entries in _guala.atlas.entries.values():
+                for e in chi_entries:
+                    if e.get("source") == "addsound_backfill":
+                        max_strength_seen = max(max_strength_seen, e["strength"])
+            fed += 1
+        except Exception as exc:
+            print(f"[backfill_sound_captions] ERROR snd_id={snd_id} caption={caption!r}: {exc}")
+    _guala._log_substrate_event("backfill_sound_captions_complete",
+                                fed=fed, skipped=skipped,
+                                total_sounds=len(_guala._sounds),
+                                max_strength_seen=round(max_strength_seen, 4))
+    print(f"[backfill_sound_captions] fed={fed} skipped={skipped} "
+          f"max_strength={max_strength_seen:.4f}")
+    return {
+        "fed": fed, "skipped": skipped,
+        "total_sounds": len(_guala._sounds),
+        "max_strength_seen": round(max_strength_seen, 4),
+        "strength_cap": STRENGTH_CAP,
+        "cap_breach": max_strength_seen >= STRENGTH_CAP,
+    }
+
+
 # ── Op registry ──────────────────────────────────────────────────
 
 OP_HANDLERS = {
@@ -2423,6 +2517,8 @@ OP_HANDLERS = {
     "wake": handle_wake,
     "atlas_snapshot": handle_atlas_snapshot,
     "backup": handle_backup,
+    "backfill_picture_titles": handle_backfill_picture_titles,
+    "backfill_sound_captions": handle_backfill_sound_captions,
     "sight_frame": handle_sight_frame,
     "sound_frame": handle_sound_frame,
     "sleep_for_deploy": handle_sleep_for_deploy,
