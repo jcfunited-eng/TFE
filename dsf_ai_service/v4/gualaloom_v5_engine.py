@@ -1202,6 +1202,8 @@ class Guala:
         self._current_episode = None     # (episode_id, started_tick)
         self._last_surprise = 0.0
         self._current_binding_window = []  # sensory_refs accumulated this tick
+        # GL-CMD-V5-VOICE-STAGE1: dynamics quality from most recent _emit_dynamics call
+        self._last_dynamics_result = None  # {content, committed_sections, n_commits, arcs_fallback, tick}
 
         # v7: Autonomy state + sleep/wake (GL-BRIEF-SLEEP-DURING-DEPLOY)
         self._current_activity = None
@@ -1563,6 +1565,7 @@ class Guala:
         Then read the input into substrate (so she learns from this exchange).
         """
         self._last_converse_tick = self.tick
+        self._last_dynamics_result = None  # clear so stale prior-turn result never leaks
         # Math route — MathLoom BSIL adapter (with v5 fixed parser)
         parsed = self._parse_math(text)
         if parsed:
@@ -2765,6 +2768,18 @@ class Guala:
                                   section_candidate_counts=section_candidate_counts,
                                   origin_counts=origin_counts,
                                   source_counts=source_counts)
+        # GL-CMD-V5-VOICE-STAGE1: store quality metadata for _cmd_converse gate
+        arcs_fallback_used = any(
+            isinstance(v, tuple) and len(v) > 2 and v[2] == "arcs_fallback"
+            for v in per_section_dominant.values()
+        )
+        self._last_dynamics_result = {
+            "content": emission_text,
+            "committed_sections": list(committed_sections),
+            "n_commits": len(emit_commits),
+            "arcs_fallback": arcs_fallback_used,
+            "tick": self.tick,
+        }
         return emission_text
 
     def _compose_from_cortex(self, selected_words, deep_candidates):
