@@ -1086,8 +1086,11 @@ def handle_gualaloom_post(args):
                 pass
         # After auto-wake attempt, check again
         if _guala.is_asleep:
+            # Wake didn't complete (still in sleep/dream state after attempt)
+            ca = getattr(_guala, '_current_activity', None)
+            quiet_kind = getattr(ca, 'kind', 'sleeping').lower() if ca else 'sleeping'
             return {
-                "response": "she is sleeping...",
+                "response": f"she is {quiet_kind}...",
                 "asleep": True,
                 "sleep_tick": _guala.tick,
                 "motifs": _guala.introspect()["vocab"],

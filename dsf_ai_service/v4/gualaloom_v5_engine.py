@@ -1223,11 +1223,12 @@ class Guala:
 
     @property
     def is_asleep(self):
-        """True if she is currently in SLEEPING activity state."""
+        """True if in SLEEPING or DREAMING — she is in a quiet state and cannot converse.
+        Both states use the same auto-wake gate so incoming text ends either activity."""
         ca = getattr(self, '_current_activity', None)
         if ca is None:
             return False
-        return getattr(ca, 'kind', None) == "SLEEPING"
+        return getattr(ca, 'kind', None) in ("SLEEPING", "DREAMING")
 
     # ------------------------------------------------------------------
     # v6: Salience computation
@@ -4448,11 +4449,18 @@ class Guala:
                     "expected_end_tick": sleep.expected_end_tick}
 
     def wake_from_sleep(self, state_dir="state"):
-        """Transition out of SLEEPING activity. Clears the .sleeping
-        marker. Called by the new task after load_full_state on deploy."""
-        if self.is_asleep:
+        """Transition out of SLEEPING or DREAMING activity.
+        GL-CMD-RESUME-QUEUE Part 1: DREAMING is now also ended on auto-wake so
+        incoming text during a dream cycle produces an emission rather than
+        'she is sleeping...'. The in-progress dream tick completes first because
+        _autonomy_tick() holds self.lock for its full tick — _end_activity() runs
+        in the gap between ticks, so no mid-write consolidation is lost."""
+        ca = getattr(self, '_current_activity', None)
+        if ca is not None and ca.kind in ("SLEEPING", "DREAMING"):
+            waking_from = ca.kind
             self._end_activity()
-            self._log_substrate_event("wake_from_sleep", tick=self.tick)
+            self._log_substrate_event("wake_from_sleep", tick=self.tick,
+                                      from_kind=waking_from)
         try:
             marker_path = os.path.join(state_dir, ".sleeping")
             if os.path.exists(marker_path):
