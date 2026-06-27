@@ -1272,15 +1272,53 @@ class Guala:
             "episode_ref": self._current_episode[0] if self._current_episode else None,
         }
 
+    def _current_situation(self):
+        """GL-CMD-EPISODE-BINDING C1.2: live situational context tuple.
+        Returns (presence, location, sky_state). Cached every 100 ticks.
+        Never raises — fails to safe defaults so hot path is never disrupted."""
+        if (getattr(self, '_sit_cache', None) is not None
+                and self.tick - getattr(self, '_sit_cache_tick', -200) < 100):
+            return self._sit_cache
+        # presence: live from coordinator, no I/O
+        try:
+            presence = [s for s, v in self.coordinator._presence.items() if v]
+        except Exception:
+            presence = []
+        # location: world_state.json on EFS (same pattern as /room command)
+        location = "her_room"
+        try:
+            import json as _j, os as _os
+            _wp = _os.path.join(_os.environ.get("STATE_DIR", "/mnt/efs/guala"),
+                                "world_state.json")
+            with open(_wp) as _f:
+                _ws = _j.load(_f)
+            location = _ws.get("location", "her_room")
+        except Exception:
+            pass
+        # sky_state: deterministic from clock, no I/O
+        sky_period = "day"
+        try:
+            from dsf_ai_service.virtual_home import sky_state as _sky_fn
+            sky_period = _sky_fn().get("period", "day")
+        except Exception:
+            pass
+        result = (presence, location, sky_period)
+        self._sit_cache = result
+        self._sit_cache_tick = self.tick
+        return result
+
     # ------------------------------------------------------------------
     # Read one word: fire all krimelacks, compute DSF, route to sections
     # ------------------------------------------------------------------
     def read_word(self, word, position_hint=None, source="corpus", bundle_id=None,
-                  salience=None):
+                  salience=None, episode_ref=None, presence=None,
+                  location=None, sky_state=None):
         """v6: salience-modulated binding + decay heartbeat.
 
         salience: if provided, overrides _compute_salience() — used for backfill
         writes that need elevated (compensatory) salience. Normal reads omit this.
+        episode_ref/presence/location/sky_state: situational context forwarded to
+        atlas.record(). None = use _grounding_kwargs default.
         """
         with self.lock:
             self.tick += 1
@@ -1324,9 +1362,20 @@ class Guala:
 
             # GL-CLARITY-INVARIANCE-UNCAGE: affect + grounding kwargs for record() calls
             _akw = {**self._affect_kwargs(surprise), **self._grounding_kwargs()}
+            # C1.4: real source reaches atlas entry (fixes "corpus" default on all reads)
+            _akw["source"] = source
             # GL-CMD-CROSS-MODAL-BUNDLE: thread bundle_id into atlas writes
             if bundle_id is not None:
                 _akw["bundle_id"] = bundle_id
+            # GL-CMD-EPISODE-BINDING: situational context forwarded if supplied
+            if episode_ref is not None:
+                _akw["episode_ref"] = episode_ref
+            if presence is not None:
+                _akw["presence"] = presence
+            if location is not None:
+                _akw["location"] = location
+            if sky_state is not None:
+                _akw["sky_state"] = sky_state
 
             fam_listen = self.atlas.match_score(lang_chi, "listen")
             self.sections["listen"].receive(lang_dsf, lang_chi, word,
@@ -1453,12 +1502,13 @@ class Guala:
     # ------------------------------------------------------------------
     # Read a sentence (sequence of words with position context + source)
     # ------------------------------------------------------------------
-    def read_sentence(self, text, source="corpus", bundle_id=None, salience=None):
+    def read_sentence(self, text, source="corpus", bundle_id=None, salience=None,
+                      episode_ref=None, presence=None, location=None, sky_state=None):
         """Read a sentence into the substrate.
 
-        salience: optional override passed to each read_word call. Use for
-        backfill writes that need elevated (compensatory) salience. Normal
-        reads omit this and let _compute_salience() govern.
+        salience: optional override passed to each read_word call.
+        episode_ref/presence/location/sky_state: situational context forwarded
+        to all read_word calls in this sentence.
         """
         with self.lock:
             words = _normalize_text(text)
@@ -1493,14 +1543,17 @@ class Guala:
                 else:
                     hint = "middle"
                 self.read_word(word, position_hint=hint, source=source,
-                              bundle_id=bundle_id, salience=salience)
+                              bundle_id=bundle_id, salience=salience,
+                              episode_ref=episode_ref, presence=presence,
+                              location=location, sky_state=sky_state)
             self.read_count += 1
             self._current_episode = None
 
     # ------------------------------------------------------------------
     # Conversation: input -> substrate -> output via cascade
     # ------------------------------------------------------------------
-    def converse(self, text, source="unknown", emission_mode=None, bundle_id=None):
+    def converse(self, text, source="unknown", emission_mode=None, bundle_id=None,
+                 episode_ref=None, presence=None, location=None, sky_state=None):
         """v5: Recall from substrate atlas BEFORE reading input.
         - If atlas has cross-section bindings near the input chi values, emit
           those (real recall from corpus accumulation).
@@ -1548,7 +1601,9 @@ class Guala:
             # 4. Read input into substrate (so she learns from this interaction)
             # Snapshot tick before read — only entries born in THIS read get tagged
             tick_before_read = self.tick
-            self.read_sentence(text, source=source, bundle_id=bundle_id)
+            self.read_sentence(text, source=source, bundle_id=bundle_id,
+                               episode_ref=episode_ref, presence=presence,
+                               location=location, sky_state=sky_state)
             tick_after_read = self.tick
             _t_read = time.monotonic()
 

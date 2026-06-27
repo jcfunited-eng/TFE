@@ -88,7 +88,8 @@ class LivingAtlas:
     def record(self, section_name, motif_id, chi_value, tick=None, salience=1.0,
                dwell_ticks=0, arousal=0.5, valence=0.0, surprise=0.0,
                need_pressure=0.0, sensory_refs=None, episode_ref=None,
-               source="corpus", bundle_id=None):
+               source="corpus", bundle_id=None,
+               presence=None, location=None, sky_state=None):
         """Record a new binding OR reinforce existing one if (section, motif)
         already present near this chi. Salience modulates the strength impulse.
 
@@ -159,6 +160,16 @@ class LivingAtlas:
                 # GL-CMD-CROSS-MODAL-BUNDLE: last-write-wins on bundle_id
                 if bundle_id is not None:
                     existing["bundle_id"] = bundle_id
+                # GL-CMD-EPISODE-BINDING: situation — last-write-wins
+                if presence is not None:
+                    existing["presence"] = presence
+                if location is not None:
+                    existing["location"] = location
+                if sky_state is not None:
+                    existing["sky_state"] = sky_state
+                # episode_ref: first-encounter canonical — only set if empty
+                if episode_ref is not None and existing.get("episode_ref") is None:
+                    existing["episode_ref"] = episode_ref
                 # GL-CLARITY: accumulate sensory refs
                 if sensory_refs:
                     refs = existing.get("sensory_refs", [])
@@ -209,6 +220,11 @@ class LivingAtlas:
                     "hemisphere_id": "em",
                     # GL-CMD-CROSS-MODAL-BUNDLE: AE-native binding marker (None = untagged)
                     "bundle_id": bundle_id,
+                    # GL-CMD-EPISODE-BINDING: situational context at binding formation
+                    "episode_ref": episode_ref,
+                    "presence":   presence,
+                    "location":   location,
+                    "sky_state":  sky_state,
                 })
 
     def repair_pass(self):
