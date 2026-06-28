@@ -941,5 +941,87 @@ def catalog(req: CatalogReq):
     return {"ok": True, "queued": len(req.concepts)}
 
 
+# ── F.1: Embryo → v5 atlas chi translation utility ───────────────────────
+# GL-CMD-EMBRYO-CHI-TRANSLATION-EVE-20260627-27
+
+def embryo_concepts_to_chi(concepts: list, guala) -> list:
+    """Translate Embryo concepts (strings) to v5 atlas binding refs.
+
+    For each concept that exists in v5 atlas vocab, returns all deep_atlas
+    binding refs (section, motif, chi) that grandurun.compose() can ingest as
+    supplemental candidates in F.2. Concepts not in v5 vocab are skipped; a
+    structured event captures misses for D2 drift-rate measurement.
+
+    BindingRef type (chosen to minimize F.2 adapter work):
+        Tuple (entry_dict, co_occurrence_dict, clarity_float)
+    — identical to the deep_candidates tuple format that grandurun already
+    consumes. F.2 appends these refs directly to deep_candidates.
+
+    Args:
+        concepts: list of concept strings from OrganVoice.surface()
+        guala:    the v5 Guala engine instance (passed from substrate_runner)
+
+    Returns:
+        flat list of (entry_dict, co_occurrence_dict, clarity_float) tuples
+    """
+    if not concepts or guala is None:
+        return []
+
+    from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
+
+    result = []
+    n_translated = 0
+    missed = []
+
+    band = getattr(guala.atlas, 'band', 2)
+
+    for concept in concepts:
+        if not concept or concept not in guala.vocab:
+            missed.append(concept)
+            continue
+
+        # Compute chi via LanguageKrimelack (same path as read_word)
+        try:
+            krim = LanguageKrimelack()
+            krim.transduce(concept)
+            chi = krim.winding
+        except Exception:
+            missed.append(concept)
+            continue
+
+        # Collect deep atlas entries at chi ± band — these have co_occurrence
+        # populated and are the correct ref type for grandurun supplementation.
+        entries_found = 0
+        for d in range(-band, band + 1):
+            for de in guala.deep_atlas.entries.get(chi + d, []):
+                if de.get("strength", 0) < 0.02:  # skip below forgetting threshold
+                    continue
+                co = de.get("co_occurrence", {})
+                clarity = de.get("clarity", 0.3)
+                result.append((de, co, clarity))
+                entries_found += 1
+
+        if entries_found > 0:
+            n_translated += 1
+        else:
+            # In vocab but no deep atlas entries yet (not yet promoted by dream)
+            missed.append(concept)
+
+    n_in = len(concepts)
+    n_missed = len(missed)
+
+    if n_in > 0:
+        try:
+            guala._log_substrate_event("embryo_chi_translation",
+                                       n_concepts_in=n_in,
+                                       n_translated=n_translated,
+                                       n_missed=n_missed,
+                                       missed_concepts=missed[:20])
+        except Exception:
+            pass
+
+    return result
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8090, log_level="warning")

@@ -89,7 +89,8 @@ class LivingAtlas:
                dwell_ticks=0, arousal=0.5, valence=0.0, surprise=0.0,
                need_pressure=0.0, sensory_refs=None, episode_ref=None,
                source="corpus", bundle_id=None,
-               presence=None, location=None, sky_state=None):
+               presence=None, location=None, sky_state=None,
+               polarity=1):
         """Record a new binding OR reinforce existing one if (section, motif)
         already present near this chi. Salience modulates the strength impulse.
 
@@ -130,10 +131,12 @@ class LivingAtlas:
             chi_k = chi_value + d
             entries = self.entries[chi_k]
 
-            # Look for existing entry from same (section, motif)
+            # Look for existing entry from same (section, motif, polarity).
+            # GL-CMD-C1-POLARITY: +1 and -1 polarity are distinct binding instances.
             existing = None
             for e in entries:
-                if e["section"] == section_name and e["motif"] == motif_id:
+                if (e["section"] == section_name and e["motif"] == motif_id
+                        and e.get("polarity", 1) == polarity):
                     existing = e
                     break
 
@@ -170,6 +173,10 @@ class LivingAtlas:
                 # episode_ref: first-encounter canonical — only set if empty
                 if episode_ref is not None and existing.get("episode_ref") is None:
                     existing["episode_ref"] = episode_ref
+                # GL-CMD-C1-POLARITY: per-binding-instance, NOT per-coordinate.
+                # Both +1 and -1 bindings coexist for the same motif+chi.
+                # Reinforce preserves the polarity written at binding creation.
+                # (New polarity variants create new entries via the else path.)
                 # GL-CLARITY: accumulate sensory refs
                 if sensory_refs:
                     refs = existing.get("sensory_refs", [])
@@ -225,6 +232,8 @@ class LivingAtlas:
                     "presence":   presence,
                     "location":   location,
                     "sky_state":  sky_state,
+                    # GL-CMD-C1-POLARITY: structural polarity {-1, 0, +1}, default +1
+                    "polarity":   polarity,
                 })
 
     def repair_pass(self):

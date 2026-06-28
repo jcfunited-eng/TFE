@@ -339,6 +339,15 @@ MIN_GAIN_THRESHOLD = 0.10     # minimum coherent-sum gain to add candidate
 MAX_COMPOSITION_LEN = 12      # cap; typical compositions should be 3-8 words
 SPIN_VECTOR_DIM = 7           # GL-METADATA-PIPELINE: 8→7 (modal_alignment dropped)
 GRANDURUN_POOL_K = 50         # per-section candidate count for wider retrieval
+
+# GL-CMD-C1-POLARITY: negation operators that flip polarity of next bound entry
+NEGATION_OPS = frozenset({
+    "not", "no", "dont", "don't", "doesnt", "doesn't", "didnt", "didn't",
+    "isnt", "isn't", "arent", "aren't", "wasnt", "wasn't", "werent", "weren't",
+    "wont", "won't", "wouldnt", "wouldn't", "cant", "can't", "couldnt", "couldn't",
+    "shouldnt", "shouldn't", "never", "neither", "nor", "none", "nothing",
+    "nobody", "nowhere",
+})
 GRANDURUN_TOPK = int(os.environ.get("GRANDURUN_TOPK", "200"))
 EMISSION_DYNAMICS_TICKS = int(os.environ.get("EMISSION_DYNAMICS_TICKS", "80"))
 
@@ -347,6 +356,7 @@ ACTIVITY_TICK_BUDGETS = {
     "ATTENDING": 1000, "ATTENDING_VISUAL": 2000, "ATTENDING_AUDIO": 2000,
     "ATTENDING_VIDEO": 4000, "EMITTING": 100, "IDLE": 500,
     "DAYDREAMING": 1500,   # GL-CMD-DAYDREAMING: awake consolidation
+    "REST": 1000,          # GL-CMD-C4-SLEEP-CHOICE: awake-quiet, no consolidation
 }
 
 ACTIVITY_NOVELTY_PAYOFF = {
@@ -358,6 +368,7 @@ ACTIVITY_NOVELTY_PAYOFF = {
     "ATTENDING_VIDEO_REPEAT": 0.15, "EMITTING": 0.0, "IDLE": -0.05,
     "DAYDREAMING": 0.0,    # neutral: scored via signed_distance; positive nov_payoff
                            # PENALIZES when novelty > target (common during waking)
+    "REST": 0.0,           # neutral novelty (not a novel state)
 }
 
 ACTIVITY_STABILITY_PAYOFF = {
@@ -367,13 +378,18 @@ ACTIVITY_STABILITY_PAYOFF = {
     "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
     "ATTENDING_VIDEO": 0.0, "EMITTING": -0.1, "IDLE": 0.1,
     "DAYDREAMING": 0.2,    # same payoff as DREAMING; wins over SLEEPING
+    # REST: w1*stab - w2*dream_pressure - w3*(nov+conn) per C.4 spec
+    # Coefficients chosen: w1=0.15 (moderate stab gain), w2=0.2 (dream pressure
+    # suppression; high pressure → sleep), w3=0.05 (mild engagement suppression)
+    # These are added at score-time in _select_next_activity; table stores base=0
+    "REST": 0.05,          # small stability payoff; wins over IDLE when stab depleted
 }
 
 ACTIVITY_CONNECTION_PAYOFF = {
     "READING": 0.0, "PLAYING": 0.0, "SLEEPING": 0.0, "DREAMING": 0.0,
     "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
     "ATTENDING_VIDEO": 0.0, "EMITTING": 0.3, "IDLE": -0.05,
-    "DAYDREAMING": 0.0,
+    "DAYDREAMING": 0.0, "REST": 0.0,
 }
 
 EMISSION_COHESION_THRESHOLD = 0.65
@@ -674,6 +690,8 @@ class Needs:
         # GL-CLARITY-INVARIANCE-UNCAGE
         self.arousal_direction = 0.0  # +1 rising, -1 falling
         self.frustration = 0.0       # accumulates when needs unmet
+        # GL-CMD-C4-SLEEP-CHOICE: dream_pressure — accumulates during waking, resets on sleep
+        self.dream_pressure = 0.0
 
     def register_activity_start(self):
         """Snapshot arousal direction at activity start."""
@@ -728,6 +746,7 @@ class Needs:
             "connection": round(self.connection, 3),
             "valence":   round(self.valence(), 3),
             "arousal":   round(self.arousal(), 3),
+            "dream_pressure": round(self.dream_pressure, 3),  # GL-CMD-C4
         }
 
     def signed_distance(self):
@@ -1221,6 +1240,8 @@ class Guala:
         self._last_dynamics_result = None  # {content, committed_sections, n_commits, arcs_fallback, tick}
         # GL-CMD-DEEP-ATLAS-PERSIST: boot loss alarm result
         self._deep_atlas_loss_at_boot = None
+        # GL-CMD-C1-POLARITY: one-shot negation flip pending (resets per utterance)
+        self._negation_pending = 0  # count of pending flips (XOR: even=+1, odd=-1)
 
         # v7: Autonomy state + sleep/wake (GL-BRIEF-SLEEP-DURING-DEPLOY)
         self._current_activity = None
@@ -1346,6 +1367,15 @@ class Guala:
             # GL-CLARITY-INVARIANCE-UNCAGE: track binding context per word
             self._current_binding_window.append(f"w:{word}")
 
+            # GL-CMD-C1-POLARITY: detect negation operator → set one-shot flip
+            word_lower = word.lower().strip("'")
+            if word_lower in NEGATION_OPS:
+                self._negation_pending += 1
+                # Negation operator itself is not bound — skip to next word
+                # (still ticks, still decays)
+                self.tick -= 1  # undo tick increment: negation ops don't advance atlas time
+                return
+
             lang_fp, role, senses = self.language.transduce(word)
             sense_fps = self.senses.fire_for_word(senses)
 
@@ -1384,6 +1414,11 @@ class Guala:
             _akw = {**self._affect_kwargs(surprise), **self._grounding_kwargs()}
             # C1.4: real source reaches atlas entry (fixes "corpus" default on all reads)
             _akw["source"] = source
+            # GL-CMD-C1-POLARITY: consume pending negation flip (XOR: odd flips → -1)
+            _polarity = -1 if (self._negation_pending % 2 == 1) else 1
+            if self._negation_pending > 0:
+                self._negation_pending = 0  # consumed by this binding
+            _akw["polarity"] = _polarity
             # GL-CMD-CROSS-MODAL-BUNDLE: thread bundle_id into atlas writes
             if bundle_id is not None:
                 _akw["bundle_id"] = bundle_id
@@ -1568,6 +1603,7 @@ class Guala:
                               location=location, sky_state=sky_state)
             self.read_count += 1
             self._current_episode = None
+            self._negation_pending = 0  # GL-CMD-C1-POLARITY: reset at utterance boundary
 
     # ------------------------------------------------------------------
     # Conversation: input -> substrate -> output via cascade
@@ -2449,6 +2485,25 @@ class Guala:
                         })
         all_candidates.extend(routed)
 
+        # GL-CMD-C1-POLARITY: apply polarity alignment penalty before sort.
+        # Query polarity = current negation state (odd flips pending → -1).
+        # Mismatch reduces coherent_magnitude by POLARITY_PENALTY=0.3 (multiplicative).
+        # Candidates with polarity=0 (ambiguous) are neutral.
+        _POLARITY_PENALTY = 0.3
+        _query_polarity = -1 if (self._negation_pending % 2 == 1) else 1
+        _polarity_mixed = False
+        for cand in all_candidates:
+            cand_pol = cand.get("polarity", 1)
+            if cand_pol == 0:
+                continue  # ambiguous — neutral
+            if cand_pol != _query_polarity:
+                cand["coherent_magnitude"] *= (1.0 - _POLARITY_PENALTY)
+                _polarity_mixed = True
+        if _polarity_mixed:
+            self._log_substrate_event("polarity_alignment",
+                                      query_polarity=_query_polarity,
+                                      penalty=_POLARITY_PENALTY)
+
         # Sort by activation and return top candidates
         all_candidates.sort(key=lambda c: -c["coherent_magnitude"])
         return all_candidates[:GRANDURUN_TOPK]
@@ -2785,7 +2840,10 @@ class Guala:
                                   rich_sensory=rich_sensory,
                                   section_candidate_counts=section_candidate_counts,
                                   origin_counts=origin_counts,
-                                  source_counts=source_counts)
+                                  source_counts=source_counts,
+                                  polarity_mixed=any(
+                                      c.get("polarity", 1) != 1
+                                      for c in emit_commits))
         # GL-CMD-V5-VOICE-STAGE1: store quality metadata for _cmd_converse gate
         arcs_fallback_used = any(
             isinstance(v, tuple) and len(v) > 2 and v[2] == "arcs_fallback"
@@ -3294,6 +3352,13 @@ class Guala:
             # v8 (GL-BRIEF-028): prune expired response windows
             self._prune_response_windows()
 
+            # GL-CMD-C4-SLEEP-CHOICE: accumulate dream_pressure during waking activities.
+            # Larger increment on emission (active work). Resets on SLEEPING start.
+            _ca_kind = getattr(self._current_activity, 'kind', None)
+            if _ca_kind not in (None, "SLEEPING", "DREAMING"):
+                _dp_rate = 0.0004 if _ca_kind == "EMITTING" else 0.0001
+                self.needs.dream_pressure = min(1.0, self.needs.dream_pressure + _dp_rate)
+
             # 2. Select activity if needed
             if self._current_activity is None:
                 a = self._select_next_activity()
@@ -3316,6 +3381,8 @@ class Guala:
                     self._atick_dreaming(a)
                 elif a.kind == "DAYDREAMING":   # GL-CMD-DAYDREAMING
                     self._atick_daydreaming(a)
+                elif a.kind == "REST":           # GL-CMD-C4-SLEEP-CHOICE
+                    self._atick_rest(a)
                 elif a.kind == "PLAYING":
                     self._atick_playing(a)
                 elif a.kind == "ATTENDING":
@@ -3348,7 +3415,8 @@ class Guala:
     def _candidate_activities(self):
         """All activities currently possible as (kind, target) tuples."""
         candidates = [("IDLE", None), ("PLAYING", None), ("SLEEPING", None),
-                      ("DAYDREAMING", None)]  # GL-CMD-DAYDREAMING: awake consolidation
+                      ("DAYDREAMING", None),  # GL-CMD-DAYDREAMING: awake consolidation
+                      ("REST", None)]          # GL-CMD-C4: awake-quiet with dream_pressure
         for cid in self._corpora:
             candidates.append(("READING", cid))
         for sid in self._sensory_items:
@@ -3429,6 +3497,24 @@ class Guala:
         score = (sd["novelty"] * nov_payoff
                  + sd["stability"] * stab_payoff
                  + sd["connection"] * conn_payoff)
+
+        # GL-CMD-C4-SLEEP-CHOICE: dream_pressure modifiers
+        dp = getattr(self.needs, 'dream_pressure', 0.0)
+        _SLEEP_THRESHOLD = 0.7  # above this → SLEEPING wins strongly
+        if kind == "SLEEPING":
+            if dp > _SLEEP_THRESHOLD:
+                score += 0.15  # strong boost: she needs to sleep
+            else:
+                score += dp * 0.05  # proportional mild boost
+        elif kind == "REST":
+            # REST_score += w1*stab_need - w2*dream_pressure - w3*(nov+conn)
+            stab_need = sd.get("stability", 0.0)
+            nov_conn = abs(sd.get("novelty", 0.0)) + abs(sd.get("connection", 0.0))
+            score += 0.15 * stab_need - 0.2 * dp - 0.05 * nov_conn
+        elif kind in ("DAYDREAMING", "EMITTING", "ATTENDING_VISUAL", "ATTENDING_AUDIO"):
+            # Mild pressure buildup during active waking suppresses these slightly
+            if dp > 0.5:
+                score -= dp * 0.05
 
         # Presence boost
         any_present = any(
@@ -3522,7 +3608,11 @@ class Guala:
             self.needs.novelty = max(0.0, self.needs.novelty - 0.0003)
 
     def _atick_sleeping(self, a):
-        """Sleep raises stability. Transitions to dream at midpoint."""
+        """Sleep raises stability. Transitions to dream at midpoint.
+        GL-CMD-C4-SLEEP-CHOICE: dream_pressure resets on entry to SLEEPING."""
+        # Reset dream_pressure at the START of the sleep cycle (first tick)
+        if self.tick == a.started_tick + 1:
+            self.needs.dream_pressure = 0.0
         self.needs.stability = saturate(self.needs.stability, 0.001)
         # GL-FIX-SLEEP-DECAY: removed duplicate decay call.
         # The general non-reading path (line ~1753) already calls
@@ -3638,6 +3728,17 @@ class Guala:
         self._run_dream_cycle(caller_kind="DAYDREAMING")
         # M-09-2: assert is_asleep stays False throughout
         assert not self.is_asleep, "DAYDREAMING must not set is_asleep"
+
+    def _atick_rest(self, a):
+        """GL-CMD-C4-SLEEP-CHOICE: REST — awake-quiet. No consolidation, no
+        attendance, no emission. Just substrate ticking (decay, save schedule).
+        dream_pressure accumulates slowly. Emits rest_begin once at activity
+        start (via activity_started event from _start_activity)."""
+        # Gentle stability gain (half the rate of DAYDREAMING)
+        self.needs.stability = saturate(self.needs.stability, 0.0003)
+        # Accumulate dream_pressure slowly during REST
+        self.needs.dream_pressure = min(1.0, self.needs.dream_pressure + 0.0002)
+        assert not self.is_asleep, "REST must not set is_asleep"
 
     def _atick_playing(self, a):
         """Free-settle: chi space walk. No novelty gain — internal
