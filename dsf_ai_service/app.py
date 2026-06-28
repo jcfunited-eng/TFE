@@ -2428,7 +2428,7 @@ async def admin_atlas_surgery(req: AtlasSurgeryRequest):
     if _is_remote():
         client = _get_substrate_client()
         try:
-            return await client.call("atlas_surgery", timeout=60.0,
+            return await client.call("atlas_surgery", timeout=300.0,  # Path 3 sync backup ~170s
                                      operation_id=req.operation_id,
                                      dry_run=req.dry_run,
                                      allow_overwrite=req.allow_overwrite,

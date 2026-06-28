@@ -2587,6 +2587,7 @@ def handle_backfill_sound_captions(args):
 
 
 # ── B.1: Atlas surgery ── GL-CMD-ATLAS-SURGERY-EVE-20260627-18 ───
+# ── B.2 freshness gate ── GL-CMD-PRESURGERY-FRESHNESS-EVE-20260627-22 ──
 
 import re as _re
 
@@ -2601,11 +2602,22 @@ _VALID_SECTIONS = frozenset({
 })
 _SOURCE_RE = _re.compile(r'^(seed:[a-z_]+:[0-9]{4}|manual:[a-z_]+)$')
 
+# Backup state shared between orchestrator and freshness gate
+_last_successful_backup_wall = 0.0    # wall-clock time of last successful backup
+_backup_in_flight = False              # True while a backup is running
+_backup_lock = threading.Lock()        # protects the two vars above
+_backup_result_holder = [None]         # [result] set by in-flight backup
 
-def _orchestrated_backup(reason, blocking=False):
-    """B.2: Named backup through existing engine. Blocking returns success/error."""
-    from dsf_ai_service.save_coordinator import SAVE_COORDINATOR
+
+def _orchestrated_backup(reason, blocking=False, _result_holder=None):
+    """B.2: Named backup through existing engine.
+    Updates _last_successful_backup_wall on success.
+    If _result_holder is provided, sets result there for waiting callers."""
+    global _last_successful_backup_wall, _backup_in_flight
+    with _backup_lock:
+        _backup_in_flight = True
     try:
+        from dsf_ai_service.save_coordinator import SAVE_COORDINATOR
         t0 = time.time()
         if SAVE_COORDINATOR:
             SAVE_COORDINATOR.force_save(reason=reason)
@@ -2614,13 +2626,25 @@ def _orchestrated_backup(reason, blocking=False):
         _guala._log_substrate_event("auto_backup", reason=reason,
                                     s3_prefix=f"guala/auto/{reason}/",
                                     files=12, tick=_guala.tick)
-        print(f"[backup_orchestrator] {reason} completed in {time.time()-t0:.1f}s")
-        return {"ok": True, "reason": reason}
+        elapsed = time.time() - t0
+        print(f"[backup_orchestrator] {reason} completed in {elapsed:.1f}s")
+        with _backup_lock:
+            _last_successful_backup_wall = time.time()
+            _backup_in_flight = False
+        result = {"ok": True, "reason": reason, "elapsed_s": round(elapsed, 1)}
+        if _result_holder is not None:
+            _result_holder[0] = result
+        return result
     except Exception as e:
         _guala._log_substrate_event("auto_backup_failed", reason=reason, error=str(e))
         print(f"[backup_orchestrator] {reason} FAILED: {e}")
+        with _backup_lock:
+            _backup_in_flight = False
+        result = {"ok": False, "reason": reason, "error": str(e)}
+        if _result_holder is not None:
+            _result_holder[0] = result
         if blocking:
-            return {"ok": False, "reason": reason, "error": str(e)}
+            return result
         return None
 
 
@@ -2728,13 +2752,64 @@ def handle_atlas_surgery(args):
                            "predicted": True},
                 "binding_ids": [f"dry:{operation_id}:{i}" for i in range(len(bindings))]}
 
-    # ── B.2 Pre-surgery backup (async — EFS write takes 170s+, cannot block socket) ──
-    # Backup is started in a background thread BEFORE writes. The intent of
-    # GL-CMD-BACKUP-ORCHESTRATOR-19 is satisfied: backup initiates before atlas
-    # changes. Full blocking gate requires EFS latency fix (separate dispatch).
-    _reason = f"pre_surgery_{operation_id.replace(':', '_').replace(' ', '_')[:60]}"
-    threading.Thread(target=_orchestrated_backup,
-                     args=(_reason,), daemon=True).start()
+    # ── B.2 Freshness gate (GL-CMD-PRESURGERY-FRESHNESS-EVE-20260627-22) ──
+    freshness_window = _BACKUP_ORCH_CONFIG.get("surgery_freshness_seconds", 600)
+    _op_reason = f"pre_surgery_{operation_id.replace(':', '_')[:60]}"
+
+    with _backup_lock:
+        backup_age = time.time() - _last_successful_backup_wall
+        in_flight = _backup_in_flight
+
+    if backup_age < freshness_window:
+        # Path 1: recent backup exists — async tag and proceed immediately
+        threading.Thread(target=_orchestrated_backup, args=(_op_reason,),
+                         daemon=True).start()
+
+    elif in_flight:
+        # Path 2: backup running — wait up to 180s for it to finish
+        deadline = time.time() + 180
+        while True:
+            time.sleep(2)
+            with _backup_lock:
+                in_flight = _backup_in_flight
+                backup_age = time.time() - _last_successful_backup_wall
+            if not in_flight:
+                if backup_age < freshness_window + 300:  # generous window after wait
+                    threading.Thread(target=_orchestrated_backup,
+                                     args=(_op_reason,), daemon=True).start()
+                    break
+                else:
+                    _guala._log_substrate_event("surgery_refused",
+                                                operation_id=operation_id,
+                                                reason="in-flight backup failed")
+                    return {"operation_id": operation_id,
+                            "error": "backup unavailable (in-flight failed)",
+                            "writes": {"n_written": 0}}
+            if time.time() > deadline:
+                _guala._log_substrate_event("surgery_refused", operation_id=operation_id,
+                                            reason="in-flight backup timed out")
+                return {"operation_id": operation_id,
+                        "error": "backup unavailable (in-flight timed out after 180s)",
+                        "writes": {"n_written": 0}}
+
+    else:
+        # Path 3: stale — synchronous backup required before surgery.
+        # Runs in a thread so the substrate event loop can tick, but we
+        # block here until it finishes. EFS write ~170s.
+        holder = [None]
+        sync_reason = f"pre_surgery_synchronous_{operation_id.replace(':', '_')[:50]}"
+        t = threading.Thread(target=_orchestrated_backup,
+                             args=(sync_reason, True, holder), daemon=True)
+        t.start()
+        t.join(timeout=300)   # wait up to 5 min
+        result = holder[0]
+        if not result or not result.get("ok"):
+            err = (result or {}).get("error", "backup thread timed out or failed")
+            _guala._log_substrate_event("surgery_refused", operation_id=operation_id,
+                                        reason=f"synchronous backup failed: {err}")
+            return {"operation_id": operation_id,
+                    "error": f"backup unavailable (synchronous attempt failed): {err}",
+                    "writes": {"n_written": 0}}
 
     # ── Writes ───────────────────────────────────────────────────
     written = 0
@@ -2784,6 +2859,7 @@ def handle_atlas_surgery(args):
 
 _BACKUP_ORCH_CONFIG = {
     "enabled": True,
+    "surgery_freshness_seconds": 600,   # GL-CMD-PRESURGERY-FRESHNESS-22
     "triggers": {"pre_deploy": True, "post_deploy_verified": True,
                  "pre_surgery": True, "post_emergence": True,
                  "daily_floor": True, "dream_end": True},
@@ -2795,14 +2871,26 @@ def handle_backup_orchestrator_configure(args):
     global _BACKUP_ORCH_CONFIG
     if "enabled" in args:
         _BACKUP_ORCH_CONFIG["enabled"] = bool(args["enabled"])
+    if "surgery_freshness_seconds" in args:
+        v = int(args["surgery_freshness_seconds"])
+        if v < 0:
+            return {"error": "surgery_freshness_seconds must be >= 0"}
+        _BACKUP_ORCH_CONFIG["surgery_freshness_seconds"] = v
     if "triggers" in args and isinstance(args["triggers"], dict):
         _BACKUP_ORCH_CONFIG["triggers"].update(args["triggers"])
     return {"config": _BACKUP_ORCH_CONFIG}
 
 
 def handle_backup_orchestrator_status(args):
+    with _backup_lock:
+        age = time.time() - _last_successful_backup_wall
+        in_flight = _backup_in_flight
+    freshness = _BACKUP_ORCH_CONFIG.get("surgery_freshness_seconds", 600)
     return {"config": _BACKUP_ORCH_CONFIG,
             "history": _BACKUP_HISTORY[-20:],
+            "last_backup_age_s": round(age, 1),
+            "backup_in_flight": in_flight,
+            "surgery_gate": "fresh" if age < freshness else ("in_flight" if in_flight else "stale"),
             "last_s3_backup": getattr(_guala, '_last_s3_backup', None) if _guala else None}
 
 
