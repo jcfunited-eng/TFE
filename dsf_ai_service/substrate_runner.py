@@ -2324,6 +2324,10 @@ def handle_backup(args):
         _guala.save_full_state(STATE_DIR)
     n_entries = sum(len(v) for v in _guala.atlas.entries.values())
     dt = time.time() - t0
+    # GL-CMD-PRESURGERY-FRESHNESS-22: update freshness wall on any successful save
+    global _last_successful_backup_wall
+    with _backup_lock:
+        _last_successful_backup_wall = time.time()
     print(f"[backup] EFS saved in {dt:.2f}s, {n_entries} entries, S3 queued")
     return {"backup": "complete", "save_time_s": round(dt, 2),
             "atlas_entries": n_entries, "tick": _guala.tick,
@@ -3057,6 +3061,10 @@ async def run_server():
                 save_coord.maybe_save(reason="dream_end")
             else:
                 save_coord.maybe_save(reason="activity_ended")
+            # GL-CMD-PRESURGERY-FRESHNESS-22: update freshness wall after activity saves
+            global _last_successful_backup_wall
+            with _backup_lock:
+                _last_successful_backup_wall = time.time()
             return result
         _guala._end_activity = _end_activity_with_save
 
