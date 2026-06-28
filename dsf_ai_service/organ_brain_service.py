@@ -279,10 +279,23 @@ def _sensory_density(word: str) -> bool:
 
 
 def _compose(surfaced: dict) -> str:
-    """Substrate-true composition.
-    Template provides grammatical structure. Succession provides content.
-    As succession accumulates from real experience, content becomes richer.
+    """GL-CMD-ORGANBRAIN-SILENCE-EVE-20260627-23: SILENCED pending Phase D inspection.
+
+    Prior behavior (described for Phase D report §1):
+    Selected words from the `surfaced` dict (identity/meaning organs), filtered
+    through succession tracker (_tracker.successor()) and stop-word lists, then
+    assembled into fixed grammatical templates: "I am guala.", "I know X.", "X is Y.",
+    "I like Z." The succession tracker was seeded with concept pairs (moon→bright,
+    ocean→soft) and grew from real experience. The templates produced grammatically
+    valid but substrate-shallow output — when succession depth was thin, fragments
+    from the training corpus leaked through (_tracker trained on same Gutenberg text
+    as the main engine). This produced Joe's observed responses: corpus-fragment
+    retrievals chaining lexically from input rather than substrate-true composition.
+
+    Silenced: returns "" unconditionally. Autonomous loop and /surface continue
+    running all internal paths; only the returned speech string is emptied.
     """
+    return ""  # silenced — Phase D inspection pending
     identity = [_LABELS.get(w, w) for w in (surfaced.get("identity") or [])]
     meaning  = [w for w in (surfaced.get("meaning") or [])
                 if w not in _STOP and w not in _VERBS]

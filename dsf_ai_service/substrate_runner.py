@@ -1149,16 +1149,23 @@ def handle_gualaloom_post(args):
                 "organ_brain": _guala_organ_brain}
     elif command == "/organs_say":
         try:
-            if _guala_cognition is None:
-                return {"response": "", "speech": ""}
-            # learn from what was said to her, then compose from her succession
-            if text:
-                _guala_cognition.expose([text])
-            said = _guala_cognition.say(text or "")
-            # speech field makes the UI treat this as her voice (addEmissionMsg path)
-            return {"response": said, "speech": said, "engine": "guala-cognition"}
+            # GL-CMD-ORGANBRAIN-SILENCE-EVE-20260627-23: SILENCED pending Phase D inspection.
+            # GualaCognition.say() produces corpus-fragment retrievals by lexical overlap
+            # with input — same cheat class retired from v5 by GL-CMD-BIGRAM-RETIRE-13.
+            # Learning (expose) continues; only response emission is muted.
+            if _guala_cognition is not None and text:
+                _guala_cognition.expose([text])  # learning path unaffected
+            # Emit silence event for observability
+            if _guala is not None:
+                _guala._log_substrate_event("organ_brain_compose_silenced",
+                                            input_text=(text or "")[:120],
+                                            reason="pending_phase_d_inspection")
+            return {"response": "", "speech": "",
+                    "response_source": "organ_brain_silenced_pending_inspection",
+                    "engine": "guala-cognition-silenced"}
         except Exception as _e:
-            return {"response": "", "speech": ""}
+            return {"response": "", "speech": "",
+                    "response_source": "organ_brain_silenced_pending_inspection"}
     elif command == "/curriculum":
         if _curriculum is None:
             return {"response": "curriculum scheduler not loaded"}
@@ -1370,7 +1377,10 @@ def _cmd_status():
         "n_videos": len(s.get("videos", [])),
         # Her real organ-brain — the merged 8-hemisphere atlas from her EFS state.
         # This is the ONE brain: em/pr/ep/sc/gp/sf/sv/aff with real atlas counts.
-        "organ_brain": _guala_organ_brain or {},
+        "organ_brain": {
+            **(_guala_organ_brain or {}),
+            "compose_status": "silenced_pending_inspection",  # GL-CMD-ORGANBRAIN-SILENCE-23
+        },
     }
 
 
