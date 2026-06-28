@@ -840,6 +840,9 @@ def boot_substrate():
     # study windows instead of starving as separate loops). Manual ops /lookup and
     # /worldfeed remain available. The standalone loops are intentionally NOT started.
 
+    # GL-CMD-WIRE-ORGAN-CANDIDATES-F2: start organ surface poll
+    _start_organ_surface_poll()
+
     # Initialize ring buffers
     global _substrate_ring, _input_ring
     from dsf_ai_service.substrate.ring_buffer import SubstrateRing, InputRing
@@ -1880,9 +1883,20 @@ def _cmd_converse(text, source, emission_mode=None):
     # GL-CMD-EPISODE-BINDING C2.1: situational context on every converse turn
     presence, location, sky_state = _guala._current_situation()
     episode_ref = f"episode:converse:{_guala.tick}:{source}"
+
+    # GL-CMD-WIRE-ORGAN-CANDIDATES-F2: organ candidate stream from cached surface.
+    # Design choice: CACHED (not sync-per-turn). _ORGAN_SURFACE_CACHE is updated
+    # every 90s by _start_organ_surface_poll(). Zero added latency per turn.
+    # Staleness threshold: 180s (2× the autonomous loop interval).
+    _organ_refs = []
+    _cache_age = time.time() - _ORGAN_SURFACE_CACHE.get("ts", 0)
+    if _cache_age < _ORGAN_SURFACE_STALE_S and _ORGAN_SURFACE_CACHE.get("surfaced"):
+        _organ_refs = _translate_organ_surface(_ORGAN_SURFACE_CACHE["surfaced"])
+
     response = _guala.converse(text, source=source, emission_mode=emission_mode,
                                bundle_id=bundle_id, episode_ref=episode_ref,
-                               presence=presence, location=location, sky_state=sky_state)
+                               presence=presence, location=location, sky_state=sky_state,
+                               organ_candidates=_organ_refs if _organ_refs else None)
     _guala.log_event(STATE_DIR, "source_interaction",
                      source=source, words_in=len(text.split()),
                      source_count=_guala.source_history.get(source, 0))
@@ -1908,7 +1922,11 @@ def _cmd_converse(text, source, emission_mode=None):
 
         if len(cs) >= 2 and nc > 0 and dyn_content and dyn_content != "...":
             response = dyn_content      # v5 committed — her real voice
-            response_source = "v5_commit"
+            # GL-CMD-WIRE-ORGAN-CANDIDATES-F2: attribute organ participation
+            if dyn.get("organ_in_commits"):
+                response_source = "v5_commit_organ"
+            else:
+                response_source = "v5_commit"
         elif arcs:
             response = ""               # arcs_fallback is not her voice
             response_source = "silence_v5_failed"
@@ -2598,6 +2616,92 @@ def handle_backfill_sound_captions(args):
         "strength_cap": STRENGTH_CAP,
         "cap_breach": max_strength_seen >= STRENGTH_CAP,
     }
+
+
+# ── F.2: Organ surface cache + translation ── GL-CMD-WIRE-ORGAN-CANDIDATES-31 ──
+
+_ORGAN_BRAIN_URL = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
+_ORGAN_SURFACE_CACHE = {"surfaced": {}, "ts": 0.0, "n_surface": 0, "n_translated": 0}
+_ORGAN_SURFACE_STALE_S = 180.0   # treat cached surface as empty if >180s old
+
+
+def _translate_organ_surface(surfaced: dict) -> list:
+    """Inline F.1 translation: concept strings → deep_atlas BindingRefs.
+    Called from _cmd_converse with the cached organ surface.
+    Returns list of (entry_dict, co_occurrence, clarity) tuples."""
+    if not surfaced or _guala is None:
+        return []
+    from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
+    concepts = list(surfaced.get("identity") or []) + list(surfaced.get("meaning") or [])
+    if not concepts:
+        return []
+    result = []
+    n_translated = 0
+    n_missed = 0
+    band = getattr(_guala.atlas, 'band', 2)
+    for concept in concepts:
+        if not concept or concept not in _guala.vocab:
+            n_missed += 1
+            continue
+        try:
+            krim = LanguageKrimelack()
+            krim.transduce(concept)
+            chi = krim.winding
+        except Exception:
+            n_missed += 1
+            continue
+        found = 0
+        for d in range(-band, band + 1):
+            for de in _guala.deep_atlas.entries.get(chi + d, []):
+                if de.get("strength", 0) < 0.02:
+                    continue
+                co = de.get("co_occurrence", {})
+                if co:
+                    result.append((de, co, de.get("clarity", 0.3)))
+                    found += 1
+        if found > 0:
+            n_translated += 1
+        else:
+            n_missed += 1
+    # Update cache stats for step-5 measurement
+    _ORGAN_SURFACE_CACHE["n_surface"] = len(concepts)
+    _ORGAN_SURFACE_CACHE["n_translated"] = n_translated
+    if concepts:
+        try:
+            _guala._log_substrate_event("organ_f2_translation",
+                                        n_concepts_in=len(concepts),
+                                        n_translated=n_translated,
+                                        n_missed=n_missed,
+                                        drift_rate=round(n_missed/len(concepts), 3))
+        except Exception:
+            pass
+    return result
+
+
+def _start_organ_surface_poll():
+    """Background thread: polls organ_brain_service /thought every 90s.
+    F.2 design choice: CACHED from autonomous loop (not sync per-turn).
+    Rationale: zero added latency per converse; staleness ≤180s matches
+    the 90s autonomous loop interval × 2. OrganVoice updates _last_thought
+    every 90s; we read it here and cache for substrate use."""
+    def _poll():
+        import urllib.request as _ur
+        import json as _js
+        while not _shutdown:
+            try:
+                req = _ur.Request(f"{_ORGAN_BRAIN_URL}/thought",
+                                  headers={"accept": "application/json"})
+                resp = _ur.urlopen(req, timeout=5)
+                data = _js.loads(resp.read())
+                surfaced = data.get("surfaced", {})
+                if surfaced:
+                    _ORGAN_SURFACE_CACHE["surfaced"] = surfaced
+                    _ORGAN_SURFACE_CACHE["ts"] = time.time()
+            except Exception:
+                pass
+            time.sleep(90)
+    threading.Thread(target=_poll, daemon=True, name="organ-surface-poll").start()
+    print("[organ-f2] surface poll started (90s interval)")
 
 
 # ── B.1: Atlas surgery ── GL-CMD-ATLAS-SURGERY-EVE-20260627-18 ───

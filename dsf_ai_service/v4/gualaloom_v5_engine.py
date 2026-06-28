@@ -1609,7 +1609,8 @@ class Guala:
     # Conversation: input -> substrate -> output via cascade
     # ------------------------------------------------------------------
     def converse(self, text, source="unknown", emission_mode=None, bundle_id=None,
-                 episode_ref=None, presence=None, location=None, sky_state=None):
+                 episode_ref=None, presence=None, location=None, sky_state=None,
+                 organ_candidates=None):
         """v5: Recall from substrate atlas BEFORE reading input.
         - If atlas has cross-section bindings near the input chi values, emit
           those (real recall from corpus accumulation).
@@ -1703,7 +1704,8 @@ class Guala:
             if not reply:
                 reply = self._emit_from_invariants(input_chis, words,
                                                     mode_override=emission_mode,
-                                                    v7_session=getattr(self, '_v7_session', None))
+                                                    v7_session=getattr(self, '_v7_session', None),
+                                                    organ_candidates=organ_candidates)
             _t_emit = time.monotonic()
             if not reply:
                 # 7. Unslotted fallback: strongest bindings near input chi
@@ -1788,7 +1790,7 @@ class Guala:
             return reply
 
     def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
-                              v7_session=None):
+                              v7_session=None, organ_candidates=None):
         """Compose emission from cortex co_occurrence invariants.
         GL-BRIEF-GRANDURUN: branches on EMISSION_MODE (topk or grandurun).
         GL-CMD-DYNAMICS-EMISSION-RESTORATION: EMISSION_DYNAMICS=1 routes to
@@ -1817,6 +1819,16 @@ class Guala:
                     break
             if len(deep_candidates) >= _MAX_DEEP_CANDIDATES:
                 break
+        # GL-CMD-WIRE-ORGAN-CANDIDATES-F2: merge organ_candidates as third stream.
+        # Append after deep so dedup in _grandurun_select_candidates handles overlap.
+        # Tag each organ entry with origin="organ" for response_source attribution.
+        if organ_candidates:
+            for de, co, clarity in organ_candidates:
+                if co:  # only organ refs with populated co_occurrence contribute
+                    tagged = dict(de)
+                    tagged["origin"] = "organ"  # provenance tag
+                    deep_candidates.append((tagged, co, clarity))
+
         if not deep_candidates:
             return None
 
@@ -2843,6 +2855,9 @@ class Guala:
                                   source_counts=source_counts,
                                   polarity_mixed=any(
                                       c.get("polarity", 1) != 1
+                                      for c in emit_commits),
+                                  organ_in_commits=any(
+                                      c.get("origin") == "organ"
                                       for c in emit_commits))
         # GL-CMD-V5-VOICE-STAGE1: store quality metadata for _cmd_converse gate
         arcs_fallback_used = any(
@@ -2854,6 +2869,7 @@ class Guala:
             "committed_sections": list(committed_sections),
             "n_commits": len(emit_commits),
             "arcs_fallback": arcs_fallback_used,
+            "organ_in_commits": any(c.get("origin") == "organ" for c in emit_commits),
             "tick": self.tick,
         }
         return emission_text
