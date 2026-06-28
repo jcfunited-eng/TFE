@@ -3171,10 +3171,19 @@ async def run_server():
             ending = getattr(_guala, '_current_activity', None)
             ending_kind = ending.kind if ending else None
             result = _orig_end_activity(*a, **kw)
-            if ending_kind == "DREAMING":
-                save_coord.maybe_save(reason="dream_end")
+            # GL-FIX-UNREACHABLE: defer saves during curriculum bulk-loads.
+            # When _autonomy_pause_refcount > 0, curriculum is running and
+            # competing for self.lock. save_full_state() Phase 1 holds
+            # self.lock for 2-5s (serializing 17k+ atlas entries), which
+            # pushes socket responses over the 20s timeout → "unreachable".
+            # Skip the save here; the backstop (5 min) catches it instead.
+            if _autonomy_pause_refcount > 0:
+                print(f"[save] defer {ending_kind} save — curriculum running (refcount={_autonomy_pause_refcount})")
             else:
-                save_coord.maybe_save(reason="activity_ended")
+                if ending_kind == "DREAMING":
+                    save_coord.maybe_save(reason="dream_end")
+                else:
+                    save_coord.maybe_save(reason="activity_ended")
             # GL-CMD-PRESURGERY-FRESHNESS-22: update freshness wall after activity saves
             global _last_successful_backup_wall
             with _backup_lock:

@@ -1331,12 +1331,15 @@ async def gualaloom_chat(msg: GLMessage):
                 pass
         return {"ok": True, "note": "letter words fed to cognition"}
     if _cmd == "/experience":
-        # STT words — feed to GualaCognition directly
+        # GL-CMD-EXPERIENCE-ROUTING-FIX-EVE-20260628-32: re-route caption to v5
+        # atlas via /listen (read_sentence path). Prior routing was to /organs_say
+        # → _guala_cognition.expose() which trained the silenced bigram and never
+        # touched v5 atlas (GL-RPT-SECTION-ASSIGNMENT-C1-20260628 Finding 1).
         if msg.text and _is_remote():
             client = _get_substrate_client()
             try:
-                await client.call("gualaloom_post", command="/organs_say",
-                                  text=msg.text, source=msg.source or "joe", timeout=3.0)
+                await client.call("gualaloom_post", command="/listen",
+                                  text=msg.text, source=msg.source or "joe", timeout=8.0)
             except Exception:
                 pass
         return {"ok": True}
@@ -1388,12 +1391,13 @@ async def gualaloom_chat(msg: GLMessage):
     if _is_remote():
         client = _get_substrate_client()
         try:
-            # GL-FIX-ALB-TIMEOUT: 5s was too short — autonomy lock windows can take
-            # several seconds with 15k+ atlas entries. Raise to 20s so status
-            # doesn't constantly reset the persistent socket connection.
-            # Cached fallback (60s) still handles the case where substrate is truly stuck.
+            # GL-FIX-ALB-TIMEOUT: raised 5→20s previously. Raising further to 45s
+            # for status because curriculum pause windows can reach 30-50s even
+            # after the defer-during-curriculum fix (30 sentences × ~1-2s each).
+            # 25s for converse keeps interactive latency bounded.
+            # Cached fallback (60s) handles truly-stuck substrate.
             is_status = (msg.command or "").strip() == "/status"
-            timeout = 20.0 if is_status else 25.0
+            timeout = 45.0 if is_status else 25.0
             result = await client.call("gualaloom_post",
                                        command=msg.command or "",
                                        text=msg.text or "",
