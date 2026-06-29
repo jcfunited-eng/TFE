@@ -848,19 +848,9 @@ async function sendMsg(){
       const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:text})},10000);
       const d=await r.json();addMsg(d.response||JSON.stringify(d),'system');
       if(d.pictures)renderPictures(d.pictures);
-    }else if(_brainMode){
-      // Fire substrate async — she still grows her v5 atlas (absorption: parallel, not destructive)
-      fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'},
-        body:JSON.stringify({text,source:'joe'})}).catch(()=>{});
-      // Voice comes from her organ-brain
-      const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({text,command:'/organ_voice'})},15000);
-      if(r.status===503||r.status===500){handleNotReady('organ_brain');return}
-      const d=await r.json();
-      if(d.surfaced||d.speech){const _r=_formatOrganBrainResponse(d)||d.speech||d.response;addEmissionMsg(_r,null);gualaSpeak(_r);}
-      else{addMsg(d.response||'(organ-brain warming up)','system')}
-      if(d.pictures)renderPictures(d.pictures);
     }else{
+      // GL-CMD-VOICE-PATH-CONSOLIDATION-37: brain-mode branch removed.
+      // /organ_voice silenced since -23. Both modes now hit /converse (v5 voice).
       const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})},10000);
       if(r.status===503||r.status===500){handleNotReady('converse')}
       else{

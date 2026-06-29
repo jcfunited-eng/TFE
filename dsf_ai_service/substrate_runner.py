@@ -1139,11 +1139,11 @@ def handle_gualaloom_post(args):
                                             input_text=(text or "")[:120],
                                             reason="pending_phase_d_inspection")
             return {"response": "", "speech": "",
-                    "response_source": "organ_brain_silenced_pending_inspection",
-                    "engine": "guala-cognition-silenced"}
+                    "response_source": "organ_brain_retired",
+                    "engine": "guala-cognition-retired"}
         except Exception as _e:
             return {"response": "", "speech": "",
-                    "response_source": "organ_brain_silenced_pending_inspection"}
+                    "response_source": "organ_brain_retired"}
     elif command == "/curriculum":
         if _curriculum is None:
             return {"response": "curriculum scheduler not loaded"}
