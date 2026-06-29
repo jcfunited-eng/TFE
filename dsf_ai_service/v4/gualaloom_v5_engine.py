@@ -3397,7 +3397,7 @@ class Guala:
 
         # Light reinforce — "association passed through her mind"
         self.atlas.record(
-            section=top_sec, motif=top_mid, chi=top_chi,
+            section_name=top_sec, motif_id=top_mid, chi_value=top_chi,
             tick=self.tick, salience=top_w, dwell_ticks=1,
             arousal=self.needs.arousal() * 0.3,
             valence=self.needs.valence() * 0.3,
@@ -3437,7 +3437,7 @@ class Guala:
                                 far_mid_id = int(mid_str)
                     if far_sec is not None:
                         self.atlas.record(
-                            section=far_sec, motif=far_mid_id, chi=far_chi,
+                            section_name=far_sec, motif_id=far_mid_id, chi_value=far_chi,
                             tick=self.tick, salience=far_w, dwell_ticks=1,
                             arousal=self.needs.arousal() * 0.3,
                             valence=self.needs.valence() * 0.3,
