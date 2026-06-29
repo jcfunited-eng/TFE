@@ -1321,19 +1321,19 @@ async def gualaloom_chat(msg: GLMessage):
     if _cmd == "/mail":
         return {"letters": []}
     if _cmd == "/sendmail":
-        # Feed the words to GualaCognition so she hears the letter's meaning
+        # GL-CMD-BIGRAM-DELETE-34: GualaCognition removed; letter text now goes to v5
         if msg.text and _is_remote():
             client = _get_substrate_client()
             try:
-                await client.call("gualaloom_post", command="/organs_say",
+                await client.call("gualaloom_post", command="/listen",
                                   text=msg.text, source=msg.source or "joe", timeout=5.0)
             except Exception:
                 pass
-        return {"ok": True, "note": "letter words fed to cognition"}
+        return {"ok": True, "note": "letter words written to v5 atlas"}
     if _cmd == "/experience":
         # GL-CMD-EXPERIENCE-ROUTING-FIX-EVE-20260628-32: re-route caption to v5
         # atlas via /listen (read_sentence path). Prior routing was to /organs_say
-        # → _guala_cognition.expose() which trained the silenced bigram and never
+        # → /organs_say which trained the silenced bigram and never
         # touched v5 atlas (GL-RPT-SECTION-ASSIGNMENT-C1-20260628 Finding 1).
         if msg.text and _is_remote():
             client = _get_substrate_client()
@@ -1360,7 +1360,7 @@ async def gualaloom_chat(msg: GLMessage):
         except Exception as e:
             return {"ok": False, "error": str(e)}
     if (msg.command or "").strip().lower() == "/organ_voice":
-        # Stage 2: GualaCognition IS the voice. One brain, one voice.
+        # Stage 2 (bigram retired -23, deleted -34): silenced organ_voice path.
         # Learn from what Joe says, compose from her succession, return as speech.
         if _is_remote():
             client = _get_substrate_client()
@@ -1373,14 +1373,7 @@ async def gualaloom_chat(msg: GLMessage):
                 return result
             except Exception as _e:
                 return {"response": "", "speech": "", "error": str(_e)}
-        # Local mode: direct call
-        if _guala is not None:
-            from dsf_ai_service.substrate_runner import _guala_cognition
-            if _guala_cognition is not None:
-                if msg.text:
-                    _guala_cognition.expose([msg.text])
-                said = _guala_cognition.say(msg.text or "")
-                return {"response": said, "speech": said}
+        # GL-CMD-BIGRAM-DELETE-34: local mode GualaCognition path removed.
         return {"response": "", "speech": ""}
 
     # /brain_status falls through to substrate — the organ_brain field is in the

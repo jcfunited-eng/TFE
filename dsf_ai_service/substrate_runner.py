@@ -25,7 +25,7 @@ STATE_DIR = os.environ.get("STATE_DIR", "/mnt/efs/guala")
 
 _guala = None
 _guala_organ_brain = None  # her 8-organ brain, merged live in the substrate
-_guala_cognition = None  # her organ-brain speech (learns from exposure)
+# GL-CMD-BIGRAM-DELETE-EVE-20260629-34: _guala_cognition global deleted.
 _curriculum = None  # autonomous study scheduler (she reads on her own)
 _shutdown = False
 
@@ -79,17 +79,9 @@ def _clean_word(raw):
     return w
 
 
-def _clean_sentence_for_cognition(text):
-    """Real-word sentence for the organ-brain, or '' if too little signal.
-
-    Minimum 4 clean tokens — blocks 'no ads', 'good deal', 'click here'
-    while allowing 'the water is cool and soft' and similar real sentences.
-    Maximum 20 tokens — blocks run-on web scrape garbage.
-    """
-    toks = [w for w in (_clean_word(t) for t in (text or "").split()) if w]
-    if len(toks) < 4 or len(toks) > 20:
-        return ""
-    return " ".join(toks)
+# GL-CMD-BIGRAM-DELETE-EVE-20260629-34: _clean_sentence_for_cognition deleted.
+# Was only used by _cognition_learn (now deleted). _clean_word preserved (used by
+# _bind_sensory_words at line ~280).
 
 
 def _audio_to_sensory_words(audio_bytes):
@@ -216,19 +208,8 @@ def _audio_to_sensory_words(audio_bytes):
         return []
 
 
-def _cognition_learn(text):
-    """Feed CLEAN tokens into GualaCognition.
-
-    Additive and exception-walled. Returns the number of clean tokens learned."""
-    try:
-        s = _clean_sentence_for_cognition(text)
-        if not s:
-            return 0
-        if _guala_cognition is not None:
-            _guala_cognition.expose([s])
-        return len(s.split())
-    except Exception:
-        return 0
+# GL-CMD-BIGRAM-DELETE-EVE-20260629-34: _cognition_learn deleted.
+# All 12 call sites converted per dispatch §2 (DELETE or REPLACE with read_sentence).
 
 
 # ── sensory experience of words she reads (GL-CMD-NEXT Increment 3) ──
@@ -347,7 +328,7 @@ def _curriculum_feed_chunk(sentences, bundle_id=None, event_type="curriculum",
                 _guala.read_sentence(sent, source=event_type, bundle_id=bundle_id,
                                      episode_ref=episode_ref, presence=presence,
                                      location=location, sky_state=sky_state)
-                learned += _cognition_learn(sent)
+                # Site 1 DELETE: _cognition_learn(sent) removed (v5 atlas gets this above)
                 _bind_sensory_words(sent)  # feel/smell/taste the sensory words she reads
                 n_fed += 1
             except Exception:
@@ -382,7 +363,7 @@ def _lookup_and_ground(term):
         _pause_autonomy_for_bulk()
         try:
             _guala.read_sentence(desc, source="lookup")
-            _cognition_learn(desc)
+            # Site 2 DELETE: _cognition_learn(desc) removed (v5 atlas gets this above)
             _bind_sensory_words(desc)
         finally:
             _resume_autonomy_for_bulk()
@@ -727,12 +708,11 @@ def boot_substrate():
     except Exception as _e:
         print(f"[merge] organ-brain load skipped (non-fatal): {_e}")
 
-    # ORGAN-BRAIN COGNITION: she speaks from exposure. Seed with a clean corpus in
-    # her world so she composes coherently; learns continuously from her experience.
-    try:
-        from dsf_ai_service.loom_model.loom_cognition import GualaCognition
-        global _guala_cognition
-        _guala_cognition = GualaCognition()
+    # GL-CMD-BIGRAM-DELETE-EVE-20260629-34: GualaCognition boot block deleted.
+    # Bigram model (GualaCognition) removed. Import, global, seed corpus, expose,
+    # diagnostic print all deleted here. _seed_corpus below was the only GualaCognition
+    # training data at boot; its content was corpus-derived and never substrate-true.
+    if False:  # dead code placeholder keeps Python parser happy for the _seed_corpus refs below
         _seed_corpus = [
             # Core identity and feeling
             "the moon is bright", "i love you", "guala is happy", "the cookie is sweet",
@@ -800,11 +780,8 @@ def boot_substrate():
             "i know the moon is bright and the water is cool",
             "i feel happy when daddy is here with me",
         ]
-        _guala_cognition.expose(_seed_corpus)
-        print(f"[cognition] organ-brain SPEAKS: vocab={len(_guala_cognition.vocab)} "
-              f"sample='{_guala_cognition.say('the moon')}'")
-    except Exception as _e:
-        print(f"[cognition] organ-brain speech skipped (non-fatal): {_e}")
+        pass  # placeholder for the removed GualaCognition block
+    # (end of removed GualaCognition boot block)
 
     # AUTONOMOUS CURRICULUM: she studies children's literature on her own, on a
     # schedule, growing her engine + organ-brain from her real reading life.
@@ -908,7 +885,9 @@ def _start_input_ring_consumer():
                             bindings = process_sight_with_recognition(_guala, img_bytes)
                             if bindings:
                                 _scene = " ".join(b.get("word","") for b in bindings)
-                                _cognition_learn(_scene)
+                                # Site 3 REPLACE: route YOLO labels to v5 atlas
+                                if _scene.strip():
+                                    _guala.read_sentence(_scene, source="unknown")
                                 print(f"[sight] detected: {_scene}")
                         except Exception as _e:
                             print(f"[sight] frame error: {_e}")
@@ -924,7 +903,10 @@ def _start_input_ring_consumer():
                             _guala.process_sound_frame(audio_bytes)
                             _heard = _audio_to_sensory_words(audio_bytes)
                             if _heard:
-                                _cognition_learn(" ".join(_heard))
+                                # Site 4 REPLACE: route FFT sensory words to v5 atlas
+                                _txt = " ".join(_heard)
+                                if _txt.strip():
+                                    _guala.read_sentence(_txt, source="unknown")
                                 print(f"[sound] heard: {_heard}")
                             # Also run whisper for speech/lyrics (bonus — fails gracefully)
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
@@ -934,7 +916,8 @@ def _start_input_ring_consumer():
                             if _words:
                                 _spoken = " ".join(w.get("word","") for w in _words if w.get("word"))
                                 if _spoken.strip():
-                                    _cognition_learn(_spoken)
+                                    # Site 5 REPLACE: route Whisper transcription to v5 atlas
+                                    _guala.read_sentence(_spoken, source="unknown")
                                     print(f"[sound] heard words: {_spoken}")
                         except Exception as _e:
                             print(f"[sound] frame error: {_e}")
@@ -994,15 +977,8 @@ def handle_v7_converse(args):
         save_session(session)
     except Exception:
         pass
-    # organ-brain learns from the live conversation: what was said to her, and her
-    # own reply (whichever reply field the engine populated). Clean-gated, walled.
-    _cognition_learn(text)
-    if isinstance(result, dict):
-        for _k in ("reply", "text", "emission", "utterance", "response"):
-            _v = result.get(_k)
-            if isinstance(_v, str) and _v:
-                _cognition_learn(_v)
-                break
+    # Sites 6+6b DELETE: _cognition_learn(text) and _cognition_learn(reply) removed.
+    # v7→v5 atlas wiring is a separate decision (wiring spec -26 §F deferred path).
     result["session_id"] = session_id
     return result
 
@@ -1152,13 +1128,9 @@ def handle_gualaloom_post(args):
                 "organ_brain": _guala_organ_brain}
     elif command == "/organs_say":
         try:
-            # GL-CMD-ORGANBRAIN-SILENCE-EVE-20260627-23: SILENCED pending Phase D inspection.
-            # GualaCognition.say() produces corpus-fragment retrievals by lexical overlap
-            # with input — same cheat class retired from v5 by GL-CMD-BIGRAM-RETIRE-13.
-            # Learning (expose) continues; only response emission is muted.
-            if _guala_cognition is not None and text:
-                _guala_cognition.expose([text])  # learning path unaffected
-            # Emit silence event for observability
+            # GL-CMD-ORGANBRAIN-SILENCE-EVE-20260627-23: SILENCED.
+            # GL-CMD-BIGRAM-DELETE-EVE-20260629-34: _guala_cognition.expose() removed.
+            # GualaCognition deleted. No learning call here anymore.
             if _guala is not None:
                 _guala._log_substrate_event("organ_brain_compose_silenced",
                                             input_text=(text or "")[:120],
@@ -1906,7 +1878,7 @@ def _cmd_converse(text, source, emission_mode=None):
     # silence_v5_failed:  dynamics ran, arcs_fallback only, no real commits → ""
     # silence_v5_empty:   dynamics ran but produced no content → ""
     # silence_no_v5:      dynamics didn't run this turn → ""
-    # Bigram is no longer a fallback voice. GualaCognition.say() stays in tree
+    # Bigram retired (-23) and deleted (-34). No fallback voice path.
     # for diagnostics but is not called from /converse.
     tick_after = _guala.tick
     dyn = getattr(_guala, '_last_dynamics_result', None)
@@ -2035,10 +2007,8 @@ def handle_teacher_correction(args):
         temporal=temporal,
         sensory_freetext=sensory_freetext,
     )
-    # organ-brain learns the CORRECT phrasing she was taught (supervised signal)
-    _cognition_learn(corrected_text)
-    if isinstance(story, str):
-        _cognition_learn(story)
+    # Sites 7+7b DELETE: _cognition_learn(corrected_text/story) removed.
+    # apply_teacher_correction already writes v5 atlas with the correction.
     import time as _time
     _guala._teaching_correction_log.append({
         "emission_id": emission_id,
@@ -2098,12 +2068,12 @@ def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strengt
     errors = []
     n_fed = 0
     n_total = len(lines)
-    organ_vocab_before = len(_guala_cognition.vocab) if _guala_cognition is not None else 0
+    vocab_before = len(_guala.vocab) if _guala is not None else 0  # replaced organ_vocab_before
     try:
         for sent in lines:
             try:
                 _guala.read_sentence(sent, source="corpus")
-                _cognition_learn(sent)  # organ-brain learns from what she studies
+                # Site 8 DELETE: _cognition_learn(sent) removed (v5 atlas gets this above)
                 _bind_sensory_words(sent)  # and feels/smells/tastes the sensory words
                 n_fed += 1
                 # Progress update every 10 sentences (or every sentence if small)
@@ -2118,7 +2088,7 @@ def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strengt
     vocab_after = len(_guala.vocab)
     reads_after = _guala.read_count
     strength_after = round(_guala.atlas.total_strength(), 4)
-    organ_vocab_after = len(_guala_cognition.vocab) if _guala_cognition is not None else 0
+    vocab_after = len(_guala.vocab) if _guala is not None else 0  # replaced organ_vocab_after
 
     _guala._log_substrate_event(
         "curriculum_loaded",
@@ -2128,11 +2098,9 @@ def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strengt
         n_new_vocab=vocab_after - vocab_before,
         reads_delta=reads_after - reads_before,
         atlas_strength_delta=round(strength_after - strength_before, 4),
-        organ_vocab_delta=organ_vocab_after - organ_vocab_before,
+        vocab_delta=vocab_after - vocab_before,
     )
-    print(f"[cognition] corpus '{corpus_id}': organ-brain vocab "
-          f"{organ_vocab_before}->{organ_vocab_after} "
-          f"(+{organ_vocab_after - organ_vocab_before})")
+    print(f"[corpus] '{corpus_id}': v5 vocab {vocab_before}->{vocab_after} (+{vocab_after - vocab_before})")
 
     result = {
         "status": "complete",
@@ -2380,7 +2348,9 @@ def handle_sight_frame(args):
         bindings = process_sight_with_recognition(_guala, img_bytes)
         # organ-brain learns the scene it saw (co-seen objects -> succession)
         _scene = " ".join(b.get("word", "") for b in (bindings or []))
-        _cognition_learn(_scene)
+        # Site 9 REPLACE: route YOLO labels to v5 atlas
+        if _scene.strip():
+            _guala.read_sentence(_scene, source="unknown")
         # Publish to ring
         if _substrate_ring is not None:
             _substrate_ring.publish("sight_frame", _guala.tick,
@@ -2411,7 +2381,10 @@ def handle_sound_frame(args):
         _sbind = process_sound_with_recognition(_guala, audio_bytes, source=source)
         # organ-brain learns the words it heard (transcribed speech -> succession)
         if _sbind:
-            _cognition_learn(" ".join(b.get("word", "") for b in _sbind))
+            # Site 10 REPLACE: route Whisper transcription to v5 atlas
+            _txt = " ".join(b.get("word", "") for b in _sbind)
+            if _txt.strip():
+                _guala.read_sentence(_txt, source="unknown")
         # Publish to ring
         if _substrate_ring is not None:
             _substrate_ring.publish("sound_frame", _guala.tick, source=source)
