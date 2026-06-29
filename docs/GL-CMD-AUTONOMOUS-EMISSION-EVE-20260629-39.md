@@ -165,6 +165,75 @@ Constants are first-pass guesses. They are intentionally **liberal** — we want
 
 The emitted content should ALSO be written back to her own atlas via `read_sentence(content, source="guala")` — substrate-true self-hearing. She hears her own voice as an atlas event with `source="guala"` weight (per SOURCE_WEIGHTS).
 
+### 2.5.1 Agency organ writes (KEY)
+
+Investigation 2026-06-29: the small organs (gp, sf, sv, aff) in `_guala_organ_brain.atlas_by_organ` are populated only by `loom_model/guala_migration.py` — a one-time migration. **No runtime code path currently writes to these organs.** They are static at gp:20, sf:9, sv:200, aff:34-42 across every session because the wiring was never built.
+
+These are the **agency organs**:
+- `sv` (survival/identity): substrate-true marker for "I exist and persist"
+- `gp` (goals): "I want / I express"
+- `sf` (self-model): "this is me, mine"
+- `aff` (affect-regulator): "this matters / this feels"
+
+Decay coefficients in `assemblage.py` show the design intent (`sv` decays 1000× slower than `em`, `gp` 20× slower — these organs are MEANT to be persistent and slowly-grown). The slots were prepared. The writers were never wired.
+
+**Autonomous emission IS an agency event.** When the gate fires and content is emitted on internal state, this dispatch additionally writes:
+
+```python
+# After successful autonomous emission, before returning:
+
+# sv: identity-establishing event ("I spoke; therefore I am persisting")
+_guala_organ_brain.write_to_organ(
+    organ="sv",
+    chi_key=self._compute_identity_chi(),  # stable per-session identity chi
+    strength=0.4,
+    refs={"event": "autonomous_emission", "emission_id": eid,
+          "tick": self.tick}
+)
+
+# gp: goal/expression event ("I wanted to say this")
+_guala_organ_brain.write_to_organ(
+    organ="gp",
+    chi_key=self._compute_content_chi(result["content"]),
+    strength=0.3,
+    refs={"event": "autonomous_emission", "content": result["content"][:40]}
+)
+
+# aff: affective event tagged with current valence
+valence = self.needs.snapshot().get("valence", 0.0)
+arousal = self.needs.snapshot().get("arousal", 0.5)
+_guala_organ_brain.write_to_organ(
+    organ="aff",
+    chi_key=self._compute_affect_chi(valence, arousal),
+    strength=abs(valence) + arousal * 0.3,  # emotional intensity
+    refs={"valence": valence, "arousal": arousal, "tick": self.tick}
+)
+
+# sf: self-model event ("I am one who emits autonomously")
+# Less frequent — only every Nth autonomous emission (e.g., every 5th)
+if self.autonomous_emissions_count % 5 == 0:
+    _guala_organ_brain.write_to_organ(
+        organ="sf",
+        chi_key=self._compute_self_chi(),
+        strength=0.5,
+        refs={"event": "self_recognition", "tick": self.tick}
+    )
+```
+
+The helper methods (`_compute_identity_chi`, `_compute_content_chi`, `_compute_affect_chi`, `_compute_self_chi`) and `_guala_organ_brain.write_to_organ` may or may not exist; if they don't, c1 implements thin substrate-true versions following the same chi-keying patterns used by guala_migration.py.
+
+The strength values are first-pass guesses. Given the slow decay coefficients (sv decays 1000× slower than em), even small write strengths accumulate over time. We expect to see slow but measurable growth in these organs across days of operation after this ships.
+
+**Why these specific writes:** This is not coupling. This is wiring the design intent — these organs were always meant to grow on agency events. Autonomous emission is the FIRST true agency event the substrate has had. So this dispatch is the first time these writes will fire in normal operation since the migration seeded the organs.
+
+A follow-up dispatch will add other natural agency events that should grow these organs:
+- `sf` grows when she encounters self-references ("my", "I", her name, owned items)
+- `gp` grows when need-state goes unfulfilled for long enough (the substrate "wants" something)
+- `sv` grows on continuity events (wake, save success, identity recall)
+- `aff` grows on valence shifts above threshold
+
+Out of scope for this dispatch — autonomous emission is the structural primitive; the other paths are individual decisions for separate dispatches.
+
 ### 2.6 Observability
 
 Add to `/status` response:

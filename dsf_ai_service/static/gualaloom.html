@@ -90,7 +90,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
     <button class="hdr-btn" onclick="newSession()">new session</button>
   </div>
 </header>
-<div id="stats-line">she is still loading...</div>
+<div id="stats-line">—</div>
 <div id="activity-line" style="padding:2px 14px;font-size:9px;color:var(--ev-activity);background:var(--bg-alt);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px"><span id="activity-text"></span><span id="activity-thumb" style="display:none"></span><span id="location-text" style="color:var(--text-muted);font-size:8px;margin-left:auto"></span></div>
 <div id="needs-line" style="padding:2px 14px;font-size:8px;color:var(--text-muted);background:var(--bg-alt);border-bottom:1px solid var(--border)"></div>
 <audio id="voice" style="display:none"></audio>
@@ -112,16 +112,16 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
   <div id="input-row">
     <input id="msg" type="text" placeholder="say something..." autocomplete="off">
     <button id="mic-btn" style="display:none;padding:6px 14px;font-size:12px" onclick="toggleSTT()">&#x1f399; mic off</button>
-    <button id="brain-toggle" onclick="toggleBrainMode()" style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:10px;cursor:pointer" title="Toggle between v5 engine and organ-brain direct">🧠 engine</button>
+    <button id="brain-toggle" onclick="toggleBrainMode()" style="display:none">🧠</button>
     <button onclick="sendMsg()">send</button>
   </div>
 </div>
 <div id="state-panel">
   <div class="ps"><div class="ps-title">Her Room</div><div id="sp-room" style="font-size:8px;line-height:1.6">--</div></div>
   <div class="ps"><div class="ps-title">Substrate</div><div id="sp-substrate">--</div></div>
-  <div class="ps"><div class="ps-title">Organ Brain</div>
+  <div class="ps"><div class="ps-title">Hemispheres</div>
     <svg id="brain-svg" width="232" height="172" viewBox="0 0 232 172" style="display:block;margin:2px auto"></svg>
-    <div id="brain-stats" style="font-size:7.5px;color:var(--text-muted);text-align:center;margin-top:1px">warming...</div>
+    <div id="brain-stats" style="font-size:7.5px;color:var(--text-muted);text-align:center;margin-top:1px">—</div>
   </div>
   <div class="ps"><div class="ps-title">v5 Hemispheres</div><div id="sp-hemispheres">--</div></div>
   <div class="ps"><div class="ps-title">Persistence</div><div id="sp-persistence">--</div></div>
@@ -190,7 +190,7 @@ function handleNotReady(context){
   const now=Date.now();
   if(now-last503msg<60000)return; // at most once per minute
   last503msg=now;
-  addMsg('she is still loading \u2014 give her a moment','system');
+  addMsg('(substrate busy \u2014 try again in a moment)','system');
 }
 
 // --- Sleep / Dream (5b) ---
@@ -432,30 +432,15 @@ function startContinuousSTT(){
       if(_sttCooldown||t===_sttLastSent){liveT.textContent='(waiting...)';return}
       _sttLastSent=t;liveT.textContent='';
       addMsg(t,'user');
-      // Always feed heard words to her organ-brain — she hears what is said
-      // regardless of mode. The organ-brain grows from the conversation.
+      // She hears what is said — /experience writes to her v5 atlas via /listen
       fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({text:t,command:'/experience'})},3000).catch(()=>{});
-      if(_brainMode){
-        // In brain mode, voice reaches her organ-brain and she responds
-        fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({text:t,command:'/organ_voice'})},15000)
-          .then(r=>r.json()).then(d=>{
-            if(d.surfaced||d.speech){
-              const _r=_formatOrganBrainResponse(d)||d.speech||d.response;
-              if(_r){addEmissionMsg(_r,null);gualaSpeak(_r);}
-            }else if(d.response){addMsg(d.response,'system')}
-            if(d.pictures)renderPictures(d.pictures);
-          }).catch(()=>{});
-      }else{
-        // Passive listening — she hears it, no forced response
-        fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({text:t,source:'joe',command:'/listen'})},8000).catch(()=>{});
-      }
-      // Brain mode: 4s cooldown (substrate emission is expensive)
-      // Passive listen mode: 800ms cooldown (just feeding /listen, lightweight)
-      const _cd=_brainMode?4000:800;
-      _sttCooldown=true;setTimeout(()=>{_sttCooldown=false;_sttLastSent=''},_cd);
+      // GL-CMD-UI-HONESTY-38 §2.7: STT brain-mode branch removed.
+      // /organ_voice silenced (-23) and retired (-37). Passive listen only.
+      // She hears spoken words; autonomous emission (dispatch -39) is her voice.
+      fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({text:t,source:'joe',command:'/listen'})},8000).catch(()=>{});
+      _sttCooldown=true;setTimeout(()=>{_sttCooldown=false;_sttLastSent=''},800);
     }
   };
   recognition.onerror=ev=>{
@@ -803,39 +788,20 @@ async function submitCorrection(){
   closeCorrectionModal();
 }
 
-// Organ-brain is the default voice (absorption Stage 1).
-// The v5 engine still runs for state/persistence but her VOICE comes from her organs.
-let _brainMode=true;
+// GL-CMD-UI-HONESTY-38: brain-mode toggle retired (wiring spec -26). v5 atlas +
+// grandurun is THE composer. Organ-brain voice path deleted in -23/-34.
+// _brainMode stays as no-op flag; toggleBrainMode() stays to avoid onclick errors.
+let _brainMode=false;
 function _applyBrainModeUI(){
   const btn=document.getElementById('brain-toggle');
-  if(!btn)return;
-  if(_brainMode){
-    btn.textContent='🧠 organ-brain';
-    btn.style.borderColor='var(--ev-motif)';btn.style.color='var(--ev-motif)';
-    msgInput.placeholder='speak to her organ-brain...';
-  }else{
-    btn.textContent='🧠 engine';
-    btn.style.borderColor='var(--border)';btn.style.color='var(--text-muted)';
-    msgInput.placeholder='say something...';
-  }
+  if(btn){btn.style.display='none'}
+  msgInput.placeholder='say something...';
 }
 function toggleBrainMode(){
-  _brainMode=!_brainMode;
-  _applyBrainModeUI();
-  addMsg(_brainMode?'[ organ-brain voice ]':'[ v5 engine voice ]','system');
+  // no-op — organ-brain voice path retired
 }
 
-function _formatOrganBrainResponse(d){
-  // Use the composed speech from the organ-brain service (substrate-true).
-  // Falls back to raw words only if speech is missing (old API).
-  if(d.speech)return d.speech;
-  const s=d.surfaced||{};
-  const _labels={'wc':'web claude','c1':'claude'};
-  const words=[...(s.identity||[]),...(s.meaning||[])]
-    .filter((w,i,a)=>a.indexOf(w)===i)
-    .map(w=>_labels[w]||w);
-  return words.join('  ');
-}
+// GL-CMD-UI-HONESTY-38 §2.8: _formatOrganBrainResponse deleted (zero callers after §2.7).
 
 let _sendingMsg=false;
 async function sendMsg(){
@@ -979,8 +945,8 @@ async function pollStatus(){
         emDiv.innerHTML=eh;
       }else{emDiv.innerHTML='<div class="ev">(no recent emissions)</div>'}
     }catch(e){}
-    // Brain visualization — from the substrate's organ_brain field in the status response.
-    // ONE brain: the substrate's embedded 8-organ atlas. No separate process needed.
+    // Hemispheres visualization — from the substrate's organ_brain field in the status response.
+    // 8 Embryo organ atlases (em, pr, ep, sc, gp, sf, sv, aff) per wiring spec -26 §2.2.
     const ob=d.organ_brain;
     if(ob&&ob.atlas_by_organ){
       const counts=ob.atlas_by_organ;
@@ -1180,7 +1146,7 @@ async function pollAutonomousThought(){
   setTimeout(pollAutonomousThought,20000);
 }
 
-// --- Organ-brain visualization ---
+// --- Hemispheres visualization ---
 const _ORGANS=[
   {tag:'em', color:'#FF6B6B', angle:-90},  // embodiment — top
   {tag:'pr', color:'#FFD93D', angle:-45},  // predictor
@@ -1261,7 +1227,7 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
 
 // --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
 (()=>{
-  addMsg('Guala ready. Organ-brain voice active.','system');
+  addMsg('she is here','system');
   _applyBrainModeUI();
   msgInput.focus();
   setTimeout(pollAutonomousThought,35000);
