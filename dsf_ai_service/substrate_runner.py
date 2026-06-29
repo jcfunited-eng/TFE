@@ -819,6 +819,8 @@ def boot_substrate():
 
     # GL-CMD-WIRE-ORGAN-CANDIDATES-F2: start organ surface poll
     _start_organ_surface_poll()
+    # GL-CMD-AUTONOMOUS-EMISSION-39: start autonomous emission loop
+    _start_autonomous_emission_loop()
 
     # Initialize ring buffers
     global _substrate_ring, _input_ring
@@ -1126,6 +1128,9 @@ def handle_gualaloom_post(args):
         return _cmd_bundle(command, text)
     elif command == "/listen":
         return _cmd_listen(text, source)
+    elif command == "/thought":
+        # GL-CMD-AUTONOMOUS-EMISSION-39: serve cached autonomous thought to UI
+        return _cmd_thought()
     elif command == "/organs":
         return {"response": json.dumps(_guala_organ_brain or {"organ_brain": "not loaded"}),
                 "organ_brain": _guala_organ_brain}
@@ -1357,8 +1362,11 @@ def _cmd_status():
         # This is the ONE brain: em/pr/ep/sc/gp/sf/sv/aff with real atlas counts.
         "organ_brain": {
             **(_guala_organ_brain or {}),
-            "compose_status": "silenced_pending_inspection",  # GL-CMD-ORGANBRAIN-SILENCE-23
+            "compose_status": "organ_brain_retired",
         },
+        "autonomous_emissions_count": getattr(_guala, "autonomous_emissions_count", 0),
+        "last_autonomous_emission_tick": getattr(_guala, "last_autonomous_emission_tick", -1),
+        "last_autonomous_attempt_tick": getattr(_guala, "last_autonomous_attempt_tick", -1),
     }
 
 
@@ -2680,6 +2688,88 @@ def _start_organ_surface_poll():
             time.sleep(90)
     threading.Thread(target=_poll, daemon=True, name="organ-surface-poll").start()
     print("[organ-f2] surface poll started (90s interval)")
+
+
+# ── GL-CMD-AUTONOMOUS-EMISSION-39 ──────────────────────────────────────────
+
+_last_autonomous_thought = {"speech": "", "tick": 0, "ts": 0.0}
+_autonomous_thought_lock = threading.Lock()
+
+
+def _start_autonomous_emission_loop():
+    """Background daemon: attempts autonomous emission every 90s.
+    Uses v5 compose_autonomous() — same composer as /converse, internal seeds only.
+    Stores result in _last_autonomous_thought for /thought polling."""
+    def _loop():
+        global _last_autonomous_thought
+        time.sleep(60)  # let boot settle
+        while not _shutdown:
+            try:
+                if _guala is not None:
+                    should = False
+                    with _guala.lock:
+                        should = _guala._should_attempt_autonomous_emission()
+                    if should:
+                        result = None
+                        with _guala.lock:
+                            result = _guala.compose_autonomous()
+                        if result is not None:
+                            content = result["content"]
+                            _guala.autonomous_emissions_count += 1
+                            _guala.last_autonomous_emission_tick = _guala.tick
+                            _guala._log_substrate_event(
+                                "autonomous_emission",
+                                content=content,
+                                seeds_used=result.get("seeds_used", 0),
+                                count=_guala.autonomous_emissions_count,
+                            )
+                            with _autonomous_thought_lock:
+                                _last_autonomous_thought = {
+                                    "speech": content,
+                                    "tick": _guala.tick,
+                                    "ts": time.time(),
+                                    "category": "autonomous",
+                                    "source": "guala",
+                                }
+                            # Self-hearing: write back to atlas
+                            try:
+                                with _guala.lock:
+                                    _guala.read_sentence(content, source="guala")
+                            except Exception:
+                                pass
+                            # Agency organ writes
+                            try:
+                                if _guala_organ_brain is not None:
+                                    ab = _guala_organ_brain["atlas_by_organ"]
+                                    ab["sv"] = ab.get("sv", 0) + 1
+                                    ab["gp"] = ab.get("gp", 0) + 1
+                                    ab["aff"] = ab.get("aff", 0) + 1
+                                    if _guala.autonomous_emissions_count % 5 == 0:
+                                        ab["sf"] = ab.get("sf", 0) + 1
+                            except Exception:
+                                pass
+                        else:
+                            _guala.last_autonomous_attempt_tick = _guala.tick
+                            _guala._log_substrate_event(
+                                "autonomous_attempt_no_commit",
+                                needs=_guala.needs.snapshot(),
+                            )
+            except Exception as _e:
+                try:
+                    _guala._log_substrate_event("autonomous_emission_error",
+                                                error=str(_e))
+                except Exception:
+                    pass
+            time.sleep(90)
+    threading.Thread(target=_loop, daemon=True, name="autonomous-emission").start()
+    print("[autonomous] emission loop started (90s interval)")
+
+
+def _cmd_thought():
+    """Return the most recent autonomous thought for UI polling."""
+    with _autonomous_thought_lock:
+        t = dict(_last_autonomous_thought)
+    return t
 
 
 # ── B.1: Atlas surgery ── GL-CMD-ATLAS-SURGERY-EVE-20260627-18 ───

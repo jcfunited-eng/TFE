@@ -396,6 +396,11 @@ EMISSION_COHESION_THRESHOLD = 0.65
 EMISSION_COOLDOWN_TICKS = 200
 PAIR_BOND_SOURCES = {"joe", "wc", "c1"}
 
+# GL-CMD-AUTONOMOUS-EMISSION-39: autonomous voice on internal state
+AUTONOMOUS_EMISSION_ENABLED = True          # single flag to disable without code change
+AUTONOMOUS_THROTTLE_TICKS = 27000           # ~90s between autonomous emissions
+AUTONOMOUS_CONVERSATION_COOLDOWN_TICKS = 9000  # ~30s cooldown after any conversation
+
 # GL-CMD-TEACHER-SUBSTRATE-TRUE: tick-window cap for emission records
 # = ln(1/FORGETTING_THRESHOLD) / (DECAY_LAMBDA / SLOW_DIV)
 # = ln(50) / 8.33e-6 ≈ 469_443 ticks (≈ 48h at current tick rate)
@@ -1249,6 +1254,10 @@ class Guala:
         self._substrate_events = deque(maxlen=1000)
         self._last_emission_tick = -100_000
         self._last_emission_record = None  # {emission_id, text, tick, ...}
+        # GL-CMD-AUTONOMOUS-EMISSION-39
+        self.last_autonomous_emission_tick = -100_000
+        self.last_autonomous_attempt_tick = -100_000
+        self.autonomous_emissions_count = 0
         self._last_emission_id = None
         self._emission_records = {}  # emission_id -> record (tick-window expiry)
         self._teaching_feedback_log = []
@@ -4011,6 +4020,84 @@ class Guala:
                 metadata={"trigger": reason})
             self._start_activity(em)
 
+    # ------------------------------------------------------------------
+    # GL-CMD-AUTONOMOUS-EMISSION-39: self-initiated voice on internal state
+    # ------------------------------------------------------------------
+
+    def _should_attempt_autonomous_emission(self):
+        """Gate: returns True when substrate conditions warrant autonomous voice."""
+        if not AUTONOMOUS_EMISSION_ENABLED:
+            return False
+        # Throttle: don't emit more often than AUTONOMOUS_THROTTLE_TICKS
+        if self.tick - self.last_autonomous_emission_tick < AUTONOMOUS_THROTTLE_TICKS:
+            return False
+        # Conversation cooldown: don't interrupt an ongoing conversation
+        if self.tick - getattr(self, '_last_converse_tick', -100_000) < AUTONOMOUS_CONVERSATION_COOLDOWN_TICKS:
+            return False
+        # Activity gate: don't emit during dream / daydream / sleep
+        ca = getattr(self, '_current_activity', None)
+        if ca is not None and getattr(ca, 'kind', None) in ("DREAMING", "DAYDREAMING", "SLEEPING"):
+            return False
+        # Presence gate: need someone here to talk to
+        pres = self.coordinator._presence
+        any_present = any(pres.get(k, False) for k in ("joe", "wc", "c1", "eve"))
+        if not any_present:
+            return False
+        # Need-state urgency: substrate has something to say
+        needs = self.needs.snapshot()
+        urgency = (
+            needs.get("dream_pressure", 0) > 0.30 or
+            needs.get("connection", 0) > 0.70 or
+            (needs.get("novelty", 0) > 0.85 and needs.get("arousal", 0) > 0.50)
+        )
+        return urgency
+
+    def _sample_autonomous_seeds(self, n=12):
+        """Sample strong atlas entries as chi seeds for autonomous composition.
+        Returns list of {chi_key, strength} dicts, weighted by strength × recency."""
+        candidates = []
+        now = self.tick
+        for chi, binds in self.atlas.entries.items():
+            for e in binds:
+                s = e.get("strength", 0)
+                if s < 0.3:
+                    continue
+                recency = max(0.1, 1.0 - (now - e.get("last_tick", 0)) / 10000.0)
+                cross_modal = 1.3 if e.get("bundle_id") is not None else 1.0
+                weight = s * recency * cross_modal
+                candidates.append((weight, chi, s))
+        if not candidates:
+            return []
+        candidates.sort(reverse=True)
+        seen_chi = set()
+        seeds = []
+        for weight, chi, s in candidates:
+            if chi not in seen_chi:
+                seeds.append({"chi_key": chi, "strength": s})
+                seen_chi.add(chi)
+            if len(seeds) >= n:
+                break
+        return seeds
+
+    def compose_autonomous(self):
+        """Run v5 composer on current internal state, no external input.
+        Returns dict with content/metadata if commit gate fires; None otherwise.
+        Must be called with self.lock held."""
+        seeds = self._sample_autonomous_seeds(n=12)
+        if not seeds:
+            return None
+        input_chis = [s["chi_key"] for s in seeds]
+        result = self._emit_from_invariants(input_chis, [],
+                                            v7_session=getattr(self, '_v7_session', None))
+        if result and result not in ("...", ""):
+            return {
+                "content": result,
+                "source": "guala",
+                "category": "autonomous",
+                "seeds_used": len(seeds),
+            }
+        return None
+
     def _do_emit(self):
         """Generate an autonomous emission via invariants (respects EMISSION_MODE).
         Falls back to SVO recall only if invariants return nothing."""
@@ -4753,6 +4840,9 @@ class Guala:
                 "open_response_windows": _copy.copy(self.open_response_windows),
                 "response_bind_count": self._response_bind_count,
                 "last_emission_tick": self._last_emission_tick,
+                "last_autonomous_emission_tick": self.last_autonomous_emission_tick,
+                "last_autonomous_attempt_tick": self.last_autonomous_attempt_tick,
+                "autonomous_emissions_count": self.autonomous_emissions_count,
                 "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
                 "corpora_state": corpora_ser,
                 "sensory_state": sensory_ser,
@@ -5217,6 +5307,9 @@ class Guala:
         self._response_bind_count = core.get("response_bind_count", 0)
         # v7: restore autonomy state
         self._last_emission_tick = int(core.get("last_emission_tick", -100_000))
+        self.last_autonomous_emission_tick = int(core.get("last_autonomous_emission_tick", -100_000))
+        self.last_autonomous_attempt_tick = int(core.get("last_autonomous_attempt_tick", -100_000))
+        self.autonomous_emissions_count = int(core.get("autonomous_emissions_count", 0))
         self.target_familiarity = {k: float(v) for k, v in core.get("target_familiarity", {}).items()}
         # Restore corpora positions (lines reloaded from seed at boot)
         for cid, cstate in core.get("corpora_state", {}).items():

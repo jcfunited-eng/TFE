@@ -1303,17 +1303,19 @@ async def gualaloom_page():
 async def gualaloom_chat(msg: GLMessage):
     global _exchange_count
 
-    # Organ-brain: route directly to the organ-brain service (localhost:8090)
-    # bypassing the substrate socket entirely — own process, own GIL, fast.
-    _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
     _cmd = (msg.command or "").strip().lower()
     if _cmd == "/thought":
-        try:
-            import urllib.request as _ur, json as _js
-            resp = _js.load(_ur.urlopen(f"{_ob_url}/thought", timeout=3))
-            return resp
-        except Exception:
-            return {"speech": "", "tick": 0}
+        # GL-CMD-AUTONOMOUS-EMISSION-39: route to substrate (not dead :8090).
+        # Substrate serves _last_autonomous_thought from its own emission loop.
+        if _is_remote():
+            client = _get_substrate_client()
+            try:
+                result = await client.call("gualaloom_post", command="/thought",
+                                           text="", timeout=5.0)
+                return result
+            except Exception:
+                return {"speech": "", "tick": 0}
+        return {"speech": "", "tick": 0}
     # /where and /room now handled by the substrate directly (organ-brain container removed)
     # They fall through to the substrate client below
     # /mail, /sendmail, /experience, /tablet — all routed to dead :8090 container.
