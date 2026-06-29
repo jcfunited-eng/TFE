@@ -124,19 +124,29 @@ class DeepAtlas:
         return True
 
     def _update_invariant(self, deep_entry, chi_k, working_atlas):
-        """Update co_occurrence invariant dict using 0.92/0.08 averaging.
-        Scans working atlas neighborhood for co-active bindings."""
+        """Update co_occurrence invariant dict using strength-weighted integration.
+
+        GL-CMD-DAYDREAM-PARALLEL-42 §2.3: replaced 0.92/0.08 EMA constants with
+        weight = e["strength"]. Integration rate equals the evidence's own strength:
+        strong bindings integrate fast, weak ones integrate slowly.
+        new_w = old_w * (1 - strength) + strength * strength
+
+        §2.4: removed 0.05 strength floor. Newly-arrived motifs (e.g. DNA-expanded
+        modifier/ground from -36) now contribute proportionally at any strength."""
         co = deep_entry.get("co_occurrence", {})
         band = getattr(working_atlas, 'band', 2)
         for d in range(-band, band + 1):
             for e in working_atlas.entries.get(chi_k + d, []):
-                if e["strength"] < 0.05:
+                # §2.4: no strength floor — proportional contribution at any strength
+                strength = e.get("strength", 0.0)
+                if strength <= 0.0:
                     continue
                 sec = e.get("section", "")
                 mid = str(e.get("motif", 0))
                 sec_dict = co.get(sec, {})
                 old_w = sec_dict.get(mid, 0.0)
-                sec_dict[mid] = old_w * 0.92 + e["strength"] * 0.08
+                # §2.3: substrate-physical integration rate = evidence strength
+                sec_dict[mid] = old_w * (1.0 - strength) + strength * strength
                 co[sec] = sec_dict
         deep_entry["co_occurrence"] = co
 

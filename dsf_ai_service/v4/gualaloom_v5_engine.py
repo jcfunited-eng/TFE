@@ -355,7 +355,7 @@ ACTIVITY_TICK_BUDGETS = {
     "READING": 2000, "PLAYING": 1500, "SLEEPING": 2000, "DREAMING": 3000,
     "ATTENDING": 1000, "ATTENDING_VISUAL": 2000, "ATTENDING_AUDIO": 2000,
     "ATTENDING_VIDEO": 4000, "EMITTING": 100, "IDLE": 500,
-    "DAYDREAMING": 1500,   # GL-CMD-DAYDREAMING: awake consolidation
+    # DAYDREAMING removed GL-CMD-DAYDREAM-PARALLEL-42: now a background thread, not an activity
     "REST": 1000,          # GL-CMD-C4-SLEEP-CHOICE: awake-quiet, no consolidation
 }
 
@@ -366,7 +366,7 @@ ACTIVITY_NOVELTY_PAYOFF = {
     "ATTENDING_VISUAL_REPEAT": 0.1, "ATTENDING_AUDIO_NEW": 0.85,
     "ATTENDING_AUDIO_REPEAT": 0.1, "ATTENDING_VIDEO_NEW": 0.9,
     "ATTENDING_VIDEO_REPEAT": 0.15, "EMITTING": 0.0, "IDLE": -0.05,
-    "DAYDREAMING": 0.0,    # neutral: scored via signed_distance; positive nov_payoff
+    # DAYDREAMING removed (-42): now a background thread
                            # PENALIZES when novelty > target (common during waking)
     "REST": 0.0,           # neutral novelty (not a novel state)
 }
@@ -377,7 +377,7 @@ ACTIVITY_STABILITY_PAYOFF = {
     "DREAMING": 0.2,
     "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
     "ATTENDING_VIDEO": 0.0, "EMITTING": -0.1, "IDLE": 0.1,
-    "DAYDREAMING": 0.2,    # same payoff as DREAMING; wins over SLEEPING
+    # DAYDREAMING removed (-42): now a background thread
     # REST: w1*stab - w2*dream_pressure - w3*(nov+conn) per C.4 spec
     # Coefficients chosen: w1=0.15 (moderate stab gain), w2=0.2 (dream pressure
     # suppression; high pressure → sleep), w3=0.05 (mild engagement suppression)
@@ -389,7 +389,7 @@ ACTIVITY_CONNECTION_PAYOFF = {
     "READING": 0.0, "PLAYING": 0.0, "SLEEPING": 0.0, "DREAMING": 0.0,
     "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
     "ATTENDING_VIDEO": 0.0, "EMITTING": 0.3, "IDLE": -0.05,
-    "DAYDREAMING": 0.0, "REST": 0.0,
+    "REST": 0.0,
 }
 
 EMISSION_COHESION_THRESHOLD = 0.65
@@ -3319,6 +3319,147 @@ class Guala:
                 pass
         return ev
 
+    # ── GL-CMD-DAYDREAM-PARALLEL-42: background associative activation ──────
+
+    def start_daydream_loop(self):
+        """Parallel chi-neighborhood walk. Runs alongside all foreground activity.
+        Does NOT trigger commit gate or emission. 0.5s interval (2 Hz)."""
+        if getattr(self, '_daydream_thread', None) is not None:
+            return
+        self._daydream_running = True
+
+        def _loop():
+            while self._daydream_running:
+                try:
+                    with self.lock:
+                        self._daydream_tick()
+                except Exception:
+                    pass
+                time.sleep(0.5)
+
+        self._daydream_thread = threading.Thread(target=_loop, daemon=True,
+                                                  name="daydream-loop")
+        self._daydream_thread.start()
+
+    def _daydream_tick(self):
+        """One pass of parallel associative surfacing.
+        Walks chi neighborhoods from recent activation, lightly reinforces
+        associations, occasionally jumps to chi-distant addresses for novel
+        connections, opportunistically consolidates visited entries."""
+        import random as _random
+
+        # Seed: recently-active chis from section commits
+        recent_chis = []
+        for sec in self.sections.values():
+            for c in sec.commits[-10:]:
+                recent_chis.append(c["chi"])
+        if not recent_chis:
+            return
+
+        seed_chi = recent_chis[self.tick % len(recent_chis)]
+        band = self.atlas.band
+
+        # Walk: find deep_atlas entries in chi neighborhood
+        associated = []
+        for d in range(-band, band + 1):
+            for de in self.deep_atlas.entries.get(seed_chi + d, []):
+                co = de.get("co_occurrence", {})
+                if not co:
+                    continue
+                best_sec = best_mid = None
+                best_w = 0.0
+                for sec_name, motif_dict in co.items():
+                    if not motif_dict:
+                        continue
+                    top_mid = max(motif_dict, key=motif_dict.get)
+                    top_w = motif_dict[top_mid]
+                    if top_w > best_w:
+                        best_w = top_w
+                        best_sec = sec_name
+                        best_mid = int(top_mid)
+                if best_sec is not None:
+                    # Extension B: affect-weighted candidate selection.
+                    # Weight candidates toward (valence=0, arousal=0.5) balance.
+                    cur_v = self.needs.valence()
+                    cur_a = self.needs.arousal()
+                    entry_v = de.get("valence", 0.0)
+                    entry_a = de.get("arousal", 0.5)
+                    v_after = (cur_v + entry_v) * 0.5
+                    a_after = (cur_a + entry_a) * 0.5
+                    affect_bias = max(0.1, 1.0 - abs(v_after) * 0.5 - abs(a_after - 0.5) * 0.5)
+                    associated.append((best_w * affect_bias, best_sec, best_mid, best_w, de["chi"]))
+
+        if not associated:
+            return
+
+        associated.sort(reverse=True)
+        _, top_sec, top_mid, top_w, top_chi = associated[0]
+
+        # Light reinforce — "association passed through her mind"
+        self.atlas.record(
+            section=top_sec, motif=top_mid, chi=top_chi,
+            tick=self.tick, salience=top_w, dwell_ticks=1,
+            arousal=self.needs.arousal() * 0.3,
+            valence=self.needs.valence() * 0.3,
+            surprise=0.0, source="daydream",
+        )
+
+        # Log surfacing
+        word_label = ""
+        if top_sec in self.sections:
+            sec_obj = self.sections[top_sec]
+            if top_mid < len(sec_obj.modes):
+                _, _, word_label = sec_obj.modes[top_mid]
+                self._log_substrate_event("daydream_surface",
+                    seed_chi=seed_chi, surfaced_chi=top_chi,
+                    section=top_sec, word=word_label,
+                    strength=round(top_w, 3))
+
+        # Extension A: novel-connection jump (probability 1/band)
+        if _random.random() < 1.0 / max(2, band):
+            chi_keys = list(self.atlas.entries.keys())
+            min_dist = 5 * band
+            far_candidates = [c for c in chi_keys if abs(c - seed_chi) >= min_dist]
+            if far_candidates:
+                far_chi = far_candidates[self.tick % len(far_candidates)]
+                for de in self.deep_atlas.entries.get(far_chi, []):
+                    co = de.get("co_occurrence", {})
+                    if not co:
+                        continue
+                    far_best = far_w = 0.0
+                    far_sec = far_mid_id = None
+                    for sec_name, motif_dict in co.items():
+                        if motif_dict:
+                            mid_str = max(motif_dict, key=motif_dict.get)
+                            if motif_dict[mid_str] > far_w:
+                                far_w = motif_dict[mid_str]
+                                far_sec = sec_name
+                                far_mid_id = int(mid_str)
+                    if far_sec is not None:
+                        self.atlas.record(
+                            section=far_sec, motif=far_mid_id, chi=far_chi,
+                            tick=self.tick, salience=far_w, dwell_ticks=1,
+                            arousal=self.needs.arousal() * 0.3,
+                            valence=self.needs.valence() * 0.3,
+                            surprise=0.5, source="daydream",
+                        )
+                        if far_sec in self.sections and far_mid_id < len(self.sections[far_sec].modes):
+                            _, _, far_label = self.sections[far_sec].modes[far_mid_id]
+                            self._log_substrate_event("daydream_novel",
+                                seed_chi=seed_chi, far_chi=far_chi,
+                                near_word=word_label, far_word=far_label,
+                                far_strength=round(far_w, 3))
+                    break
+
+        # Extension C: designed consolidation side effect every atlas.band*10 daydream ticks
+        if self.tick % max(1, band * 10) == 0:
+            for de in self.deep_atlas.entries.get(top_chi, []):
+                if de.get("section") == top_sec and de.get("motif") == top_mid:
+                    self.deep_atlas._update_invariant(de, top_chi, self.atlas)
+                    self._log_substrate_event("daydream_consolidate",
+                        chi=top_chi, section=top_sec, motif=top_mid)
+                    break
+
     def start_autonomy_loop(self, interval=0.05):
         """Replace continuous reading with full autonomy loop.
         Interval 50ms = 20 iterations/sec."""
@@ -3404,8 +3545,7 @@ class Guala:
                     self._atick_sleeping(a)
                 elif a.kind == "DREAMING":
                     self._atick_dreaming(a)
-                elif a.kind == "DAYDREAMING":   # GL-CMD-DAYDREAMING
-                    self._atick_daydreaming(a)
+                # DAYDREAMING removed (-42): now a background thread, not an activity
                 elif a.kind == "REST":           # GL-CMD-C4-SLEEP-CHOICE
                     self._atick_rest(a)
                 elif a.kind == "PLAYING":
@@ -3439,8 +3579,8 @@ class Guala:
 
     def _candidate_activities(self):
         """All activities currently possible as (kind, target) tuples."""
+        # GL-CMD-DAYDREAM-PARALLEL-42: DAYDREAMING removed from scheduler (now background thread)
         candidates = [("IDLE", None), ("PLAYING", None), ("SLEEPING", None),
-                      ("DAYDREAMING", None),  # GL-CMD-DAYDREAMING: awake consolidation
                       ("REST", None)]          # GL-CMD-C4: awake-quiet with dream_pressure
         for cid in self._corpora:
             candidates.append(("READING", cid))
@@ -3536,7 +3676,7 @@ class Guala:
             stab_need = sd.get("stability", 0.0)
             nov_conn = abs(sd.get("novelty", 0.0)) + abs(sd.get("connection", 0.0))
             score += 0.15 * stab_need - 0.2 * dp - 0.05 * nov_conn
-        elif kind in ("DAYDREAMING", "EMITTING", "ATTENDING_VISUAL", "ATTENDING_AUDIO"):
+        elif kind in ("EMITTING", "ATTENDING_VISUAL", "ATTENDING_AUDIO"):
             # Mild pressure buildup during active waking suppresses these slightly
             if dp > 0.5:
                 score -= dp * 0.05
@@ -3735,24 +3875,8 @@ class Guala:
             growth=deep_size - self._deep_last_size)
         self._deep_last_size = deep_size
 
-    def _atick_daydreaming(self, a):
-        """GL-CMD-DAYDREAMING: awake consolidation. Runs dream cycle while
-        is_asleep stays False. Interruptible by any active presence.
-
-        When presence is active: skip consolidation this tick, let the budget
-        expire naturally. DO NOT call _end_activity() here — that triggers
-        _end_activity_with_save() which holds self.lock for an EFS write,
-        blocking the asyncio socket handler on every tick. Budget expiry ends
-        the activity cleanly without per-tick lock contention."""
-        # Gentle stability gain every tick
-        self.needs.stability = saturate(self.needs.stability, 0.0005)
-        # Interruption: skip consolidation when presence is active
-        if self.is_present_active():
-            return   # activity continues; coordinator picks next after budget expires
-        # Run shared consolidation cycle (M-09-1)
-        self._run_dream_cycle(caller_kind="DAYDREAMING")
-        # M-09-2: assert is_asleep stays False throughout
-        assert not self.is_asleep, "DAYDREAMING must not set is_asleep"
+    # _atick_daydreaming deleted GL-CMD-DAYDREAM-PARALLEL-42.
+    # Daydream is now a background thread (start_daydream_loop), not an activity.
 
     def _atick_rest(self, a):
         """GL-CMD-C4-SLEEP-CHOICE: REST — awake-quiet. No consolidation, no
@@ -4036,7 +4160,7 @@ class Guala:
             return False
         # Activity gate: don't emit during dream / daydream / sleep
         ca = getattr(self, '_current_activity', None)
-        if ca is not None and getattr(ca, 'kind', None) in ("DREAMING", "DAYDREAMING", "SLEEPING"):
+        if ca is not None and getattr(ca, 'kind', None) in ("DREAMING", "SLEEPING"):
             return False
         # Presence gate: need someone here to talk to
         pres = self.coordinator._presence

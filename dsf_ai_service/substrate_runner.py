@@ -647,6 +647,7 @@ def boot_substrate():
     # With 38K+ atlas entries, decay sweeps take >50ms and starve
     # the socket server. 200ms gives 5 ticks/sec (was 20).
     g.start_autonomy_loop(interval=0.2)
+    g.start_daydream_loop()  # GL-CMD-DAYDREAM-PARALLEL-42: parallel chi-walk thread
     s = g.introspect()
     print(f"[substrate] Booted: vocab={s['vocab']} reads={s['reads']} "
           f"tick={g.tick} atlas={s['atlas_entries']}")
