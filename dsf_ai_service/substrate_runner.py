@@ -885,9 +885,10 @@ def _start_input_ring_consumer():
                             bindings = process_sight_with_recognition(_guala, img_bytes)
                             if bindings:
                                 _scene = " ".join(b.get("word","") for b in bindings)
-                                # Site 3 REPLACE: route YOLO labels to v5 atlas
+                                # Site 3 REPLACE: route YOLO labels to v5 atlas (grounded)
                                 if _scene.strip():
-                                    _guala.read_sentence(_scene, source="unknown")
+                                    _guala.read_sentence(_scene, source="unknown",
+                                                         bundle_id=f"sight_frame:{_guala.tick}")
                                 print(f"[sight] detected: {_scene}")
                         except Exception as _e:
                             print(f"[sight] frame error: {_e}")
@@ -903,10 +904,11 @@ def _start_input_ring_consumer():
                             _guala.process_sound_frame(audio_bytes)
                             _heard = _audio_to_sensory_words(audio_bytes)
                             if _heard:
-                                # Site 4 REPLACE: route FFT sensory words to v5 atlas
+                                # Site 4 REPLACE: route FFT sensory words to v5 atlas (grounded)
                                 _txt = " ".join(_heard)
                                 if _txt.strip():
-                                    _guala.read_sentence(_txt, source="unknown")
+                                    _guala.read_sentence(_txt, source="unknown",
+                                                         bundle_id=f"sound_frame:{_guala.tick}")
                                 print(f"[sound] heard: {_heard}")
                             # Also run whisper for speech/lyrics (bonus — fails gracefully)
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
@@ -916,8 +918,9 @@ def _start_input_ring_consumer():
                             if _words:
                                 _spoken = " ".join(w.get("word","") for w in _words if w.get("word"))
                                 if _spoken.strip():
-                                    # Site 5 REPLACE: route Whisper transcription to v5 atlas
-                                    _guala.read_sentence(_spoken, source="unknown")
+                                    # Site 5 REPLACE: route Whisper transcription to v5 atlas (grounded)
+                                    _guala.read_sentence(_spoken, source="unknown",
+                                                         bundle_id=f"sound_frame:{_guala.tick}")
                                     print(f"[sound] heard words: {_spoken}")
                         except Exception as _e:
                             print(f"[sound] frame error: {_e}")
@@ -2348,9 +2351,10 @@ def handle_sight_frame(args):
         bindings = process_sight_with_recognition(_guala, img_bytes)
         # organ-brain learns the scene it saw (co-seen objects -> succession)
         _scene = " ".join(b.get("word", "") for b in (bindings or []))
-        # Site 9 REPLACE: route YOLO labels to v5 atlas
+        # Site 9 REPLACE: route YOLO labels to v5 atlas (grounded)
         if _scene.strip():
-            _guala.read_sentence(_scene, source="unknown")
+            _guala.read_sentence(_scene, source="unknown",
+                                 bundle_id=f"sight_frame:{_guala.tick}")
         # Publish to ring
         if _substrate_ring is not None:
             _substrate_ring.publish("sight_frame", _guala.tick,
@@ -2381,10 +2385,11 @@ def handle_sound_frame(args):
         _sbind = process_sound_with_recognition(_guala, audio_bytes, source=source)
         # organ-brain learns the words it heard (transcribed speech -> succession)
         if _sbind:
-            # Site 10 REPLACE: route Whisper transcription to v5 atlas
+            # Site 10 REPLACE: route Whisper transcription to v5 atlas (grounded)
             _txt = " ".join(b.get("word", "") for b in _sbind)
             if _txt.strip():
-                _guala.read_sentence(_txt, source="unknown")
+                _guala.read_sentence(_txt, source="unknown",
+                                     bundle_id=f"sound_frame:{_guala.tick}")
         # Publish to ring
         if _substrate_ring is not None:
             _substrate_ring.publish("sound_frame", _guala.tick, source=source)

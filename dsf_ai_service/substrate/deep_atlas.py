@@ -230,7 +230,13 @@ class DeepAtlas:
                 # --- Path B: Episodic (compound gate) ---
                 enc_str = e.get("encoded_strength")
                 dwell = e.get("dwell_ticks", 0)
-                if enc_str is not None and enc_str >= ENCODE_GATE and dwell >= DWELL_GATE:
+                # GL-CMD-GROUNDED-PROMOTION-35: cross-modal grounding (bundle_id set)
+                # is dwell-earning. Text writes linked to a sensory modality write
+                # in the same tick window share a bundle_id (sight_frame:<tick> or
+                # sound_frame:<tick>). Same principle as dream consolidation IS
+                # dwell-earning (gualaloom_v6_living_atlas.py line 108).
+                grounded = e.get("bundle_id") is not None
+                if enc_str is not None and enc_str >= ENCODE_GATE and (dwell >= DWELL_GATE or grounded):
                     self.promote(e, "episodic", tick,
                                  working_atlas=working_atlas)
                     promoted.append(("episodic", chi_k,
@@ -241,8 +247,8 @@ class DeepAtlas:
                         failed_gate = []
                         if enc_str < ENCODE_GATE:
                             failed_gate.append(f"enc={enc_str:.3f}<{ENCODE_GATE}")
-                        if dwell < DWELL_GATE:
-                            failed_gate.append(f"dwell={dwell}<{DWELL_GATE}")
+                        if dwell < DWELL_GATE and not grounded:
+                            failed_gate.append(f"dwell={dwell}<{DWELL_GATE} (not grounded)")
                         if failed_gate:
                             self.gate_rejects.append({
                                 "tick": tick, "chi": chi_k,
