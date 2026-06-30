@@ -1917,9 +1917,13 @@ def _cmd_converse(text, source, emission_mode=None):
                                bundle_id=bundle_id, episode_ref=episode_ref,
                                presence=presence, location=location, sky_state=sky_state,
                                organ_candidates=_organ_refs if _organ_refs else None)
-    _guala.log_event(STATE_DIR, "source_interaction",
-                     source=source, words_in=len(text.split()),
-                     source_count=_guala.source_history.get(source, 0))
+    # GL-FIX-LOG-EFS-LATENCY: log_event writes to EFS (events.jsonl). On EFS
+    # this can take 1-5s, blocking the /converse response. Defer to background thread.
+    _src, _words_in, _src_count = source, len(text.split()), _guala.source_history.get(source, 0)
+    import threading as _t
+    _t.Thread(target=lambda: _guala.log_event(STATE_DIR, "source_interaction",
+              source=_src, words_in=_words_in, source_count=_src_count),
+              daemon=True, name="source-log").start()
 
     # GL-CMD-BIGRAM-RETIRE: substrate truth gate. One brain, one voice, or silence.
     # v5_commit:        dynamics committed ≥2 sections → surface v5 content

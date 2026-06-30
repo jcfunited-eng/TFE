@@ -3617,14 +3617,18 @@ class Guala:
         """Record a substrate event (in-memory ring buffer + disk for critical events)."""
         ev = SubstrateEvent(tick=self.tick, kind=event_kind, detail=detail)
         self._substrate_events.append(ev)
-        # Critical events also go to disk for replay recovery
+        # Critical events also go to disk for replay recovery — background thread
+        # to avoid EFS write latency blocking the caller (inside self.lock).
         if event_kind in ("activity_started", "activity_ended", "corpus_completed",
                           "sleep_manual", "dream_began", "dream_artifact",
                           "picture_uploaded", "sound_uploaded", "video_uploaded",
                           "corpus_added", "visual_motif_committed", "visual_motif_fired",
                           "emission"):
             try:
-                self.log_event("state", event_kind, **detail)
+                _ek, _det = event_kind, dict(detail)
+                import threading as _t
+                _t.Thread(target=lambda: self.log_event("state", _ek, **_det),
+                          daemon=True, name=f"ev-log-{event_kind[:8]}").start()
             except Exception:
                 pass
         return ev
@@ -3814,16 +3818,19 @@ class Guala:
             # 1. Needs drift AWAY from target (once per iteration)
             self.needs.tick_drift()
 
-            # Periodic needs snapshot to disk (every 500 ticks)
+            # Periodic needs snapshot to disk (every 500 ticks) — background thread
+            # to avoid EFS write latency inside self.lock
             if self.tick % 500 == 0 and self.tick > 0:
                 try:
                     ns = self.needs.snapshot()
-                    self.log_event("state", "needs_snapshot",
-                                   stability=ns["stability"],
-                                   novelty=ns["novelty"],
-                                   connection=ns["connection"],
-                                   valence=ns["valence"],
-                                   arousal=ns["arousal"])
+                    _ns = dict(ns)
+                    import threading as _t
+                    _t.Thread(target=lambda: self.log_event(
+                        "state", "needs_snapshot",
+                        stability=_ns["stability"], novelty=_ns["novelty"],
+                        connection=_ns["connection"], valence=_ns["valence"],
+                        arousal=_ns["arousal"]),
+                        daemon=True, name="needs-log").start()
                 except Exception:
                     pass
 
@@ -4703,12 +4710,14 @@ class Guala:
             if self.tick % 500 == 0 and self.tick > 0:
                 try:
                     ns = self.needs.snapshot()
-                    self.log_event("state", "needs_snapshot",
-                                   stability=ns["stability"],
-                                   novelty=ns["novelty"],
-                                   connection=ns["connection"],
-                                   valence=ns["valence"],
-                                   arousal=ns["arousal"])
+                    _ns = dict(ns)
+                    import threading as _t
+                    _t.Thread(target=lambda: self.log_event(
+                        "state", "needs_snapshot",
+                        stability=_ns["stability"], novelty=_ns["novelty"],
+                        connection=_ns["connection"], valence=_ns["valence"],
+                        arousal=_ns["arousal"]),
+                        daemon=True, name="needs-log-p").start()
                 except Exception:
                     pass
 
