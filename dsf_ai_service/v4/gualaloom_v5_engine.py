@@ -1359,11 +1359,11 @@ class Guala:
         if word:
             self._word_to_chi_index[word.lower()].add(chi_value)
 
-    def _atlas_record(self, section_name, motif_id, chi_value, **kwargs):
+    def _atlas_record(self, section_name, motif_id, chi_value, tick=None, **kwargs):
         """GL-CMD-RECALL-WORD-INDEX-57 §1.2: single binding-creation entry point.
-        ALL self._atlas_record() callsites in engine code must go through here.
+        ALL self.atlas.record() callsites in engine code must go through here.
         Maintains the recall reverse index automatically."""
-        self.atlas.record(section_name, motif_id, chi_value, **kwargs)
+        self.atlas.record(section_name, motif_id, chi_value, tick=tick, **kwargs)
         self._index_word_at_chi(section_name, motif_id, chi_value)
 
     @property
