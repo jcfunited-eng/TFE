@@ -4125,6 +4125,9 @@ class Guala:
         caller_kind logged in events for attribution."""
         if self.tick % 200 != 0:
             return
+        if os.environ.get("DREAM_CYCLE_PHASED", "0") == "1":
+            self._run_dream_cycle_phased(caller_kind=caller_kind)
+            return
         dream_words = []
         dream_pics = []
         reinforced_addresses = []
@@ -4195,6 +4198,118 @@ class Guala:
             total_strength=round(self.deep_atlas.total_strength(), 2),
             growth=deep_size - self._deep_last_size)
         self._deep_last_size = deep_size
+
+    def _run_dream_cycle_phased(self, caller_kind="DREAMING"):
+        """GL-CMD-DREAM-CYCLE-PHASING-56 §1.2: phased dream cycle.
+        Releases self.lock between phases so /converse can land between
+        Phase 1 and 3a/3b once the caller stops holding the outer lock.
+        Substrate-true: snapshot reads tolerate momentary inconsistency;
+        writes apply against current state. Mirrors -45's daydream split."""
+        import copy as _copy
+
+        # ── Phase 1 (self.lock): snapshot + replay sampling ────────────────
+        with self.lock:
+            snap_tick = self.tick
+            pre_strength = self.atlas.total_strength()
+            chi_keys = list(self.atlas.entries.keys())
+
+            # Snapshot full atlas as (chi_k, [entry_copies...]) for Phase 2
+            atlas_snapshot = []
+            for chi_k in chi_keys:
+                entries = self.atlas.entries.get(chi_k, [])
+                atlas_snapshot.append((chi_k, [dict(e) for e in entries]))
+
+            # Sample 3 chis for replay reinforcement
+            sample_chis = []
+            if chi_keys:
+                sample_chis = [chi_keys[i % len(chi_keys)]
+                               for i in range(snap_tick % max(1, len(chi_keys)),
+                                              min(snap_tick % max(1, len(chi_keys)) + 3,
+                                                  len(chi_keys)))]
+
+            # Capture replay targets + dream_words/pics (while lock held)
+            replay_targets = []
+            dream_words = []
+            dream_pics = []
+            for chi_k in sample_chis:
+                for e in self.atlas.entries.get(chi_k, []):
+                    sec_name = e.get("section", "")
+                    mid = e.get("motif", 0)
+                    replay_targets.append((sec_name, mid, chi_k))
+                    if sec_name in self.sections:
+                        sec = self.sections[sec_name]
+                        if mid < len(sec.modes):
+                            _, _, w = sec.modes[mid]
+                            if w and w not in dream_words:
+                                dream_words.append(w)
+                    if sec_name == "sight" and hasattr(self, 'sight'):
+                        for sm in self.sight.motifs:
+                            if sm.motif_id == mid and sm.source_history:
+                                sid = sm.source_history[-1]
+                                if sid in self._pictures and sid not in dream_pics:
+                                    dream_pics.append(sid)
+
+        # ── Phase 2 (no lock): build survival_updates from snapshot ────────
+        # Pure compute on a copy — /converse can acquire self.lock here
+        survival_updates = []
+        for chi_k, entries in atlas_snapshot:
+            for e in entries:
+                key = (chi_k, e.get("section", ""), e.get("motif", 0))
+                survival_updates.append((key, e["strength"]))
+
+        # ── Phase 3a (self.lock brief): apply replay atlas.record writes ───
+        reinforced_addresses = []
+        reinforcement_count = 0
+        with self.lock:
+            for sec_name, mid, chi_k in replay_targets:
+                self.atlas.record(sec_name, mid, chi_k, self.tick,
+                                  salience=0.3, dwell_ticks=DWELL_GATE_META,
+                                  arousal=0.2, valence=0.0, surprise=0.0)
+                reinforced_addresses.append(chi_k)
+                reinforcement_count += 1
+            post_strength = self.atlas.total_strength()
+
+        # Log dream artifact outside lock (event log has its own sync)
+        content = " ".join(dream_words[:4]) if dream_words else ""
+        self._log_substrate_event("dream_artifact",
+                                 content=content, caller_kind=caller_kind,
+                                 picture_ids=dream_pics,
+                                 reinforced_atlas_addresses=reinforced_addresses[:10],
+                                 reinforcement_count=reinforcement_count,
+                                 pre_strength_sum=round(pre_strength, 2),
+                                 post_strength_sum=round(post_strength, 2))
+
+        # ── Phase 3b (self.lock brief): survival history + deep_atlas ops ──
+        with self.lock:
+            for key, strength in survival_updates:
+                self._deep_survival_history[key].append(strength)
+                if len(self._deep_survival_history[key]) > 20:
+                    self._deep_survival_history[key] = \
+                        self._deep_survival_history[key][-10:]
+
+            promoted = self.deep_atlas.dream_promotion_gate(
+                self.atlas, self.tick, self._deep_survival_history)
+            for path, chi_k, sec, mid in promoted:
+                self._log_substrate_event("deep_promotion",
+                    path=path, section=sec, motif=mid, chi=chi_k,
+                    caller_kind=caller_kind)
+                self.atlas.release_to_fast(chi_k, sec, mid)
+                self._log_substrate_event("deep_release",
+                    section=sec, motif=mid, chi=chi_k)
+            for rej in self.deep_atlas.gate_rejects[-5:]:
+                self._log_substrate_event("deep_gate_reject", **rej)
+            self.deep_atlas.gate_rejects = []
+
+            _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
+            self.deep_atlas.decay(self.tick, rate_scale=0.0 if _paused else 1.0)
+            if not _paused:
+                self.deep_atlas.prune()
+            deep_size = self.deep_atlas.live_count()
+            self._log_substrate_event("deep_size",
+                n_entries=deep_size,
+                total_strength=round(self.deep_atlas.total_strength(), 2),
+                growth=deep_size - self._deep_last_size)
+            self._deep_last_size = deep_size
 
     # _atick_daydreaming deleted GL-CMD-DAYDREAM-PARALLEL-42.
     # Daydream is now a background thread (start_daydream_loop), not an activity.
