@@ -62,6 +62,41 @@ def _grandurun_amplitude(chi_address, strength, target_chi):
     return math.sqrt(max(strength, 0.0)) * cmath.exp(1j * phi)
 
 
+def _grandurun_amplitude_multichi(chi_candidate, strength, input_chis):
+    """GL-CMD-COMPOSER-MULTIANCHOR-43 §2.1: multi-anchor amplitude.
+    Sums amplitude over each input chi, normalizes by count.
+    Same phase math as _grandurun_amplitude; chi-geometric meaning of all
+    input words contributes rather than only the first."""
+    if not input_chis:
+        return complex(0.0, 0.0)
+    total = sum(_grandurun_amplitude(chi_candidate, strength, tc) for tc in input_chis)
+    return total / len(input_chis)
+
+
+def _grandurun_select_multichi(candidates, input_chis):
+    """GL-CMD-COMPOSER-MULTIANCHOR-43 §2.2: greedy coherent-integration selection
+    using multi-anchor amplitude. Same gain-threshold loop as _grandurun_select
+    but each candidate is evaluated against all input chis.
+    candidates: list of (chi_address, strength, word)
+    Returns: list of selected words in chosen order."""
+    chosen_amps = []
+    chosen_words = []
+    last_coh = 0.0
+    pool = sorted(candidates, key=lambda c: -c[1])
+    for chi_addr, strength, word in pool:
+        amp = _grandurun_amplitude_multichi(chi_addr, strength, input_chis)
+        new_sum = sum(chosen_amps, 0j) + amp
+        new_coh = abs(new_sum) ** 2
+        gain = new_coh - last_coh
+        if gain > MIN_GAIN_THRESHOLD:
+            chosen_words.append(word)
+            chosen_amps.append(amp)
+            last_coh = new_coh
+        if len(chosen_words) >= MAX_COMPOSITION_LEN:
+            break
+    return chosen_words, last_coh
+
+
 def _grandurun_select(candidates, target_chi):
     """Greedy coherent-integration selection.
     candidates: list of (chi_address, strength, word)
@@ -220,7 +255,10 @@ def _grandurun_select_candidates(input_chis, deep_candidates, sections,
     This is Stage 1: fast retrieval. Stage 2 (dynamics) settles the actual
     emission from these candidates.
     """
-    target_chi = input_chis[0] if input_chis else 0
+    # GL-CMD-COMPOSER-MULTIANCHOR-43: multi-anchor coherent magnitude.
+    # Was: target_chi = input_chis[0] only — discarded chi-geometric meaning of all
+    # other input words. Now: sum amplitudes over all input_chis, normalize by count.
+    _multi_input_chis = input_chis if input_chis else [0]
     candidates = []
     seen = set()  # (section, motif) dedup
 
@@ -246,8 +284,8 @@ def _grandurun_select_candidates(input_chis, deep_candidates, sections,
                     continue
                 seen.add(key)
 
-                # Coherent amplitude: sqrt(strength) * exp(i * phase)
-                amp = _grandurun_amplitude(de_chi, float(strength), target_chi)
+                # Multi-anchor coherent amplitude: average over all input chis
+                amp = _grandurun_amplitude_multichi(de_chi, float(strength), _multi_input_chis)
                 coh_mag = abs(amp) ** 2
 
                 candidates.append({
@@ -1960,6 +1998,8 @@ class Guala:
                          _os.environ.get("GRANDURUN_SPIN_VECTOR", "0")) == "1"
 
         priors = self._get_emission_priors(v7_session)
+        # GL-CMD-COMPOSER-MULTIANCHOR-43 §2.3: keep target_chi for vector path;
+        # scalar path now uses multi-anchor (all input_chis).
         target_chi = input_chis[0] if input_chis else 0
 
         if use_legacy_8d:
@@ -2005,7 +2045,8 @@ class Guala:
                 weighted_pool.append((chi_addr, strength * prior, word))
             pool = weighted_pool
 
-        selected, coherent_sum = _grandurun_select(pool, target_chi)
+        # GL-CMD-COMPOSER-MULTIANCHOR-43 §2.3: multi-anchor selection
+        selected, coherent_sum = _grandurun_select_multichi(pool, input_chis)
 
         if not selected:
             return None
@@ -2019,7 +2060,7 @@ class Guala:
                                   pool_size=len(pool),
                                   composition_len=len(composed),
                                   coherent_sum=round(coherent_sum, 4),
-                                  target_chi=target_chi,
+                                  n_anchors=len(input_chis),
                                   n_priors=len(priors))
         return emission_text
 
@@ -2109,13 +2150,24 @@ class Guala:
         if not vector_pool:
             return None
 
-        # Build target_state from target_chi properties (zero binding, identity)
-        target_binding = {"chi": target_chi, "strength": 1.0,
-                          "section": "", "target_section": "",
-                          "source": target_source}
-        target_state = _grandurun_state(
-            target_binding, target_chi, target_source, needs_vector,
-            current_tick, co_occurrence_dict=co_occurrence_dict)
+        # GL-CMD-COMPOSER-MULTIANCHOR-43 §2.4: multi-anchor target_state.
+        # Average 7D state vectors over all input chis rather than using only input_chis[0].
+        # Each input chi contributes equally to the reference field the candidates align with.
+        if len(input_chis) <= 1:
+            target_binding = {"chi": target_chi, "strength": 1.0,
+                              "section": "", "target_section": "",
+                              "source": target_source}
+            target_state = _grandurun_state(
+                target_binding, target_chi, target_source, needs_arr,
+                current_tick, co_occurrence_dict=co_occurrence_dict)
+        else:
+            state_sum = _np.zeros(_SPIN_VECTOR_DIM, dtype=_np.complex128)
+            for tc in input_chis:
+                tb = {"chi": tc, "strength": 1.0,
+                      "section": "", "target_section": "", "source": target_source}
+                state_sum += _grandurun_state(tb, tc, target_source, needs_arr,
+                                              current_tick, co_occurrence_dict=co_occurrence_dict)
+            target_state = state_sum / len(input_chis)
 
         selected, alignment_score, dim_contributions = _grandurun_select_vector(
             vector_pool, target_state)
