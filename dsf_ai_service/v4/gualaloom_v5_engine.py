@@ -1262,6 +1262,11 @@ class Guala:
         self.read_count = 0
         self.dream_log = []
         self.lock = threading.RLock()
+        # GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.1: separate lock for emission
+        # compute. _emit_dynamics clears/rebuilds _emission_system.sections per call;
+        # concurrent access corrupts mode_bank/psi state causing hangs. RLock so
+        # any future nested emission call doesn't deadlock.
+        self._emission_lock = threading.RLock()
         self._reading_thread = None
         self._reading_stop = threading.Event()
         # known words = vocab she has seen at all
@@ -1714,6 +1719,14 @@ class Guala:
 
         Then read the input into substrate (so she learns from this exchange).
         """
+        # GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.2: feature-flagged phased path.
+        # CONVERSE_PHASED=1 → _converse_phased (split self.lock + self._emission_lock).
+        # CONVERSE_PHASED=0 (default) → original single-lock body below.
+        if os.environ.get("CONVERSE_PHASED", "0") == "1":
+            return self._converse_phased(
+                text, source, emission_mode, bundle_id,
+                episode_ref, presence, location, sky_state, organ_candidates)
+
         # GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2: §1.3 phasing deferred.
         # _emit_dynamics() writes to self._emission_system.sections (mode_bank,
         # psi, etc.) — concurrent access without a lock would corrupt these.
@@ -1881,6 +1894,192 @@ class Guala:
                     n_words=len(words))
 
             return reply
+
+    # ── GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.2 ──────────────────────────
+
+    def _converse_phased(self, text, source, emission_mode, bundle_id,
+                         episode_ref, presence, location, sky_state, organ_candidates):
+        """Phased converse: splits self.lock and self._emission_lock to allow
+        curriculum to interleave between phases.
+
+        Phase 1: tokenize + chi transduction — NO lock
+        Phase 2: open_response_window state write — brief self.lock
+        Phase 3: _recall_response atlas reads — NO lock (race-tolerant)
+        Phase 4: read_sentence input — per-word self.lock (via -46v2 §1.1)
+        Phase 5: tag_response_bindings — brief self.lock
+        Phase 6: _emit_from_invariants / _emit_dynamics — self._emission_lock
+        Phase 7: engine state writes — brief self.lock
+        Phase 8: _self_hear → read_sentence — per-word self.lock
+        Phase 9: hemisphere updates — NO lock
+        Phase 10: timing log — _log_substrate_event (internal sync)
+        """
+        _t0 = time.monotonic()
+        self._last_converse_tick = self.tick
+        self._last_dynamics_result = None
+
+        # Phase 1: tokenize + chi transduction (no lock — pure local computation)
+        parsed = self._parse_math(text)
+        if parsed:
+            op, a, b = parsed
+            result = self._mathloom_solve(op, a, b)
+            return self._num_to_word(result)
+
+        words = _normalize_text(text)
+        if not words:
+            return "..."
+
+        input_chis = []
+        input_word_chis = {}
+        for w in words:
+            temp_krim = LanguageKrimelack()
+            temp_krim.transduce(w)
+            ch = temp_krim.winding
+            input_chis.append(ch)
+            input_word_chis[w] = ch
+        _t_chi = time.monotonic()
+
+        # Phase 2: open_response_window (brief self.lock — mutates open_response_windows)
+        with self.lock:
+            if source in ("joe", "wc", "c1") and input_chis:
+                self._open_response_window(source, input_chis,
+                                           source_context={"text": text[:50]})
+
+        # Phase 3: recall (no lock — reads atlas, race-tolerant)
+        recalled = self._recall_response(input_chis, input_word_chis, words)
+        _t_recall = time.monotonic()
+
+        # Phase 4: read input (per-word self.lock internally via -46v2 §1.1)
+        tick_before_read = self.tick
+        self.read_sentence(text, source=source, bundle_id=bundle_id,
+                           episode_ref=episode_ref, presence=presence,
+                           location=location, sky_state=sky_state)
+        tick_after_read = self.tick
+        _t_read = time.monotonic()
+
+        # Phase 5: tag response bindings (brief self.lock — mutates atlas entries)
+        if source in ("joe", "wc", "c1"):
+            with self.lock:
+                _bind_count = 0
+                _bind_cap = 12
+                for ch in input_chis:
+                    if _bind_count >= _bind_cap:
+                        break
+                    for d in range(-self.atlas.band, self.atlas.band + 1):
+                        if _bind_count >= _bind_cap:
+                            break
+                        for e in self.atlas.entries.get(ch + d, []):
+                            if _bind_count >= _bind_cap:
+                                break
+                            if (e.get("last_tick", 0) > tick_before_read
+                                    and e.get("last_tick", 0) <= tick_after_read
+                                    and not e.get("response_context")):
+                                self._tag_response_bindings(
+                                    ch + d, e["section"], e["motif"], source,
+                                    log_event=(_bind_count == 0))
+                                _bind_count += 1
+        _t_tag = time.monotonic()
+
+        # Phase 6: emission (self._emission_lock — serializes _emit_dynamics mutation
+        # of _emission_system.sections; curriculum and /converse can interleave here
+        # via self.lock, but only one thread enters _emit_dynamics at a time)
+        _lock_wait_start = time.monotonic()
+        with self._emission_lock:
+            _lock_wait_ms = (time.monotonic() - _lock_wait_start) * 1000
+            _emit_start = time.monotonic()
+            self._last_converse_source = source  # for dynamics NMDA context
+            reply = None
+            if recalled and self._last_recalled_pictures:
+                pass  # pictures set on self._last_recalled_pictures
+            if not reply:
+                reply = self._emit_from_invariants(input_chis, words,
+                                                   mode_override=emission_mode,
+                                                   v7_session=getattr(self, '_v7_session', None),
+                                                   organ_candidates=organ_candidates)
+            if not reply:
+                reply = self._emit_unslotted(input_chis, words)
+            if not reply:
+                reply = "..."
+            _emit_compute_ms = (time.monotonic() - _emit_start) * 1000
+        _t_emit = time.monotonic()
+
+        # §1.4: log emission_lock contention when above thresholds
+        if _lock_wait_ms > 100 or _emit_compute_ms > 1500:
+            try:
+                self._log_substrate_event("converse_emission_lock",
+                    wait_ms=round(_lock_wait_ms, 1),
+                    compute_ms=round(_emit_compute_ms, 1),
+                    source=source)
+            except Exception:
+                pass
+
+        # Phase 7: engine state writes (brief self.lock — mutates _emission_records)
+        with self.lock:
+            self._last_converse_input = text
+            self._last_converse_reply = reply
+            self._last_converse_source = source
+            if reply and reply != "...":
+                committed_chis = []
+                for ew in _normalize_text(reply):
+                    ek = LanguageKrimelack()
+                    ek.transduce(ew)
+                    committed_chis.append(ek.winding)
+                first_chi = min(committed_chis) if committed_chis else 0
+                n_committed = len(committed_chis)
+                eid = f"{self.tick}_{first_chi}_{n_committed}"
+                self._last_emission_id = eid
+                rec = {"emission_id": eid, "text": reply, "tick": self.tick,
+                       "input_text": text, "source": source,
+                       "committed_chis": committed_chis}
+                self._last_emission_record = rec
+                self._emission_records[eid] = rec
+                old_threshold = self.tick - EMISSION_RECORDS_TICK_WINDOW
+                stale = [k for k, v in self._emission_records.items()
+                         if v.get("tick", 0) < old_threshold]
+                for k in stale:
+                    del self._emission_records[k]
+                if len(self._emission_records) > EMISSION_RECORDS_CAP:
+                    oldest = sorted(self._emission_records,
+                                    key=lambda k: self._emission_records[k].get("tick", 0))
+                    for k in oldest[:len(self._emission_records) - EMISSION_RECORDS_CAP]:
+                        del self._emission_records[k]
+            else:
+                self._last_emission_id = None
+
+        # Phase 8: self-hear (per-word self.lock internally)
+        if reply and reply != "..." and source in ("joe", "wc", "c1"):
+            self._self_hear(reply, source)
+        _t_selfhear = time.monotonic()
+
+        # Phase 9: hemisphere updates (no lock — separate state domain)
+        try:
+            from dsf_ai_service.substrate.hemisphere_cognition import run_hemisphere_updates
+            emission_chis = []
+            if reply and reply != "...":
+                for ew in _normalize_text(reply):
+                    ek = LanguageKrimelack()
+                    ek.transduce(ew)
+                    emission_chis.append(ek.winding)
+            run_hemisphere_updates(self, text, source, input_chis, reply,
+                                   emission_chis, self.tick)
+        except Exception:
+            pass
+        _t_hemi = time.monotonic()
+
+        # Phase 10: timing log (_log_substrate_event has internal deque sync)
+        if source in ("joe", "wc", "c1", "gate_test"):
+            self._log_substrate_event("converse_timing",
+                chi_ms=round((_t_chi - _t0) * 1000, 1),
+                recall_ms=round((_t_recall - _t_chi) * 1000, 1),
+                read_ms=round((_t_read - _t_recall) * 1000, 1),
+                tag_ms=round((_t_tag - _t_read) * 1000, 1),
+                emit_ms=round((_t_emit - _t_tag) * 1000, 1),
+                selfhear_ms=round((_t_selfhear - _t_emit) * 1000, 1),
+                hemi_ms=round((_t_hemi - _t_selfhear) * 1000, 1),
+                total_ms=round((_t_hemi - _t0) * 1000, 1),
+                n_words=len(words),
+                phased=True)
+
+        return reply
 
     def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
                               v7_session=None, organ_candidates=None):
@@ -4650,17 +4849,22 @@ class Guala:
                                     })
 
                 # Also weaken in emission system mode_strength if available
-                if self._emission_system:
-                    for sec_name in self._EMISSION_SECTIONS:
-                        sec = self._emission_system.sections.get(sec_name)
-                        if sec and hasattr(sec, 'mode_strength'):
-                            for i, ms in enumerate(sec.mode_strength):
-                                w = self._emission_word_map.get(
-                                    (sec_name, i))
-                                if w and w.lower() in set(
-                                        ew.lower() for ew in emission_words):
-                                    sec.mode_strength[i] = max(
-                                        0.0, ms - 0.05)
+                # §1.3: _emission_lock may have cleared mode_strength transiently —
+                # try/except prevents IndexError from concurrent emission mid-clear.
+                try:
+                    if self._emission_system:
+                        for sec_name in self._EMISSION_SECTIONS:
+                            sec = self._emission_system.sections.get(sec_name)
+                            if sec and hasattr(sec, 'mode_strength'):
+                                for i, ms in enumerate(list(sec.mode_strength)):
+                                    w = self._emission_word_map.get(
+                                        (sec_name, i))
+                                    if w and w.lower() in set(
+                                            ew.lower() for ew in emission_words):
+                                        sec.mode_strength[i] = max(
+                                            0.0, ms - 0.05)
+                except Exception:
+                    pass  # transient empty mode_strength during _emission_lock clear
 
                 effective_correction = corrected_text or expected_response
                 if effective_correction:
