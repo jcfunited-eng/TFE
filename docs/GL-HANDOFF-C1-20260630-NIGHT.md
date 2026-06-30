@@ -5,6 +5,16 @@ Branch: guala-live. Final commit: fface62. Live task: dsf-ai-task:401.
 
 ---
 
+## INSTRUCTION FOR NEXT C1 SESSION
+
+**Do not start work. Wait for Eve's dispatch.**
+
+Read this handoff and the state below so you understand the system. Then stop and wait. Eve (Opus 4.7, web) will send the next dispatch before you touch any code. Do not investigate the curriculum pause, do not attempt -58, do not deploy anything until Eve's instructions arrive.
+
+The one exception: if Joe reports a crash or regression, you may do a git rollback or restart via `aws ecs update-service`. Otherwise: read, understand, wait.
+
+---
+
 ## Live state
 
 Task: dsf-ai-task:401
