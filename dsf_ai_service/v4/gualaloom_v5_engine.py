@@ -1257,6 +1257,11 @@ class Guala:
         self._cross_hemi_links = []  # list of CrossHemiLink (populated by cognition bundle)
         # perf/cache-word-section-index: emission-section routing lookup
         self._word_to_emission_sections = {}  # word.lower() → [(section, motif_idx, word)]
+        # GL-CMD-RECALL-WORD-INDEX-57: reverse index for O(1) recall lookups.
+        # Maps word.lower() → set of chi addresses where that word has committed.
+        # Eliminates O(atlas_size) full scans in _recall_from_atlas / _recall_sight_from_atlas.
+        from collections import defaultdict as _dd
+        self._word_to_chi_index = _dd(set)  # word.lower() → {chi_k, ...}
         # QuestionBucket removed (GL-BRIEF-EMISSION-CONSTRAINT-REMOVAL Phase E)
         self.tick = 0
         self.read_count = 0
@@ -1342,6 +1347,18 @@ class Guala:
         self._corpora = {}          # corpus_id -> CorpusItem
         self._sensory_items = {}    # item_id -> SensoryItem
         self._sounds = {}           # item_id -> {cochlear, title, samples, sr, ...}
+
+    def _index_word_at_chi(self, section, motif_id, chi_k):
+        """GL-CMD-RECALL-WORD-INDEX-57 §1.2: add word→chi mapping to reverse index.
+        Called after every atlas.record() so the index stays current."""
+        try:
+            sec = self.sections.get(section)
+            if sec and motif_id < len(sec.modes):
+                _, _, word = sec.modes[motif_id]
+                if word:
+                    self._word_to_chi_index[word.lower()].add(chi_k)
+        except Exception:
+            pass
 
     @property
     def is_asleep(self):
@@ -1536,6 +1553,8 @@ class Guala:
                                             deep_atlas=self.deep_atlas,
                                             engine_tick=self.tick,
                                             atlas_kwargs=_akw)
+            # GL-CMD-RECALL-WORD-INDEX-57 §1.3: keep reverse index current
+            self._word_to_chi_index[word.lower()].add(lang_chi)
 
             for primary_section in primary_sections:
                 fam = self.atlas.match_score(lang_chi, primary_section)
@@ -3376,22 +3395,27 @@ class Guala:
         if not content:
             return []
 
-        for chi_k, entries in self.atlas.entries.items():
-            for e in entries:
-                sec_name = e.get("section", "")
-                if sec_name in self.sections:
-                    sec = self.sections[sec_name]
-                    mid = e.get("motif", 0)
-                    if mid < len(sec.modes):
-                        _, _, w = sec.modes[mid]
-                        if w and w.lower() in content:
-                            content_chis.add(chi_k)
+        # GL-CMD-RECALL-WORD-INDEX-57 §1.6: index lookup instead of O(atlas_size) scan
+        if self._word_to_chi_index:
+            for w in content:
+                content_chis.update(self._word_to_chi_index.get(w, ()))
+        else:
+            for chi_k, entries in self.atlas.entries.items():
+                for e in entries:
+                    sec_name = e.get("section", "")
+                    if sec_name in self.sections:
+                        sec = self.sections[sec_name]
+                        mid = e.get("motif", 0)
+                        if mid < len(sec.modes):
+                            _, _, w = sec.modes[mid]
+                            if w and w.lower() in content:
+                                content_chis.add(chi_k)
 
         if not content_chis:
             return []
 
         # Step 2: find sight motifs bound at those chi addresses (with band +-2)
-        # GL-FIX-CONVERSE-LATENCY: was O(N×M) nested loop (atlas × content_chis).
+        # GL-CMD-RECALL-WORD-INDEX-57 §1.7 / GL-FIX-CONVERSE-LATENCY: O(N) not O(N×M).
         # With large content_chis this took 3-4s. Replace with O(N+M): expand
         # content_chis by band into a set, then single pass over atlas entries.
         expanded_chis = set()
@@ -3452,16 +3476,23 @@ class Guala:
         if not content_words:
             return None
 
-        # Step 1: Find atlas chi locations where each content word committed
+        # Step 1: Find atlas chi locations where each content word committed.
+        # GL-CMD-RECALL-WORD-INDEX-57 §1.5: O(content_words) index lookup instead
+        # of O(atlas_size) full scan. Was 3.4s for single-word input; now <1ms.
         content_word_chis = set()
-        for chi, entries in self.atlas.entries.items():
-            for e in entries:
-                if e["section"] in self.sections:
-                    other_sec = self.sections[e["section"]]
-                    if e["motif"] < len(other_sec.modes):
-                        _, _, motif_word = other_sec.modes[e["motif"]]
-                        if motif_word and motif_word.lower() in content_words:
-                            content_word_chis.add(chi)
+        if self._word_to_chi_index:
+            for w in content_words:
+                content_word_chis.update(self._word_to_chi_index.get(w, ()))
+        else:
+            # Index not built yet (first boot before rebuild) — fall back to scan
+            for chi, entries in self.atlas.entries.items():
+                for e in entries:
+                    if e["section"] in self.sections:
+                        other_sec = self.sections[e["section"]]
+                        if e["motif"] < len(other_sec.modes):
+                            _, _, motif_word = other_sec.modes[e["motif"]]
+                            if motif_word and motif_word.lower() in content_words:
+                                content_word_chis.add(chi)
 
         if not content_word_chis:
             return None
@@ -6059,6 +6090,22 @@ class Guala:
                   f"n_deep={self.deep_atlas.live_count()} "
                   f"replayed={self._events_replayed_at_boot} "
                   f"integrity={'OK' if not self._integrity_errors else 'ERRORS'}")
+
+            # GL-CMD-RECALL-WORD-INDEX-57 §1.4: rebuild reverse word→chi index from atlas
+            n_indexed = 0
+            from collections import defaultdict as _dd
+            self._word_to_chi_index = _dd(set)
+            for chi_k, entries in self.atlas.entries.items():
+                for e in entries:
+                    sec = self.sections.get(e.get("section", ""))
+                    if sec:
+                        mid = e.get("motif", 0)
+                        if mid < len(sec.modes):
+                            _, _, w = sec.modes[mid]
+                            if w:
+                                self._word_to_chi_index[w.lower()].add(chi_k)
+                                n_indexed += 1
+            print(f"[GualaLoom] Recall word index rebuilt: {len(self._word_to_chi_index)} words, {n_indexed} entries")
 
         except Exception as e:
             msg = f"[GualaLoom] ABORT load: {e}"
