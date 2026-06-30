@@ -119,7 +119,7 @@ def process_sight_with_recognition(guala, grid, source="camera_stream"):
         chi = _chi_for_word(label)
         motif_id = _deterministic_motif_id(f"sight_{label}")
 
-        guala.atlas.record(
+        guala._atlas_record(
             "sight", motif_id, chi, guala.tick,
             salience=det["confidence"],
             sensory_refs=[f"visual_recognition:{label}"],
@@ -193,7 +193,7 @@ def process_sound_with_recognition(guala, audio_bytes, source="ambient"):
             chi = _chi_for_word(word)
             motif_id = _deterministic_motif_id(f"listen_{word}")
 
-            guala.atlas.record(
+            guala._atlas_record(
                 "listen", motif_id, chi, guala.tick,
                 salience=0.8,
                 sensory_refs=[f"speech_heard:{word}"],

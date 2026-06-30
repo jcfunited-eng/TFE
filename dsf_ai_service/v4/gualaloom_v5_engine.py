@@ -1348,17 +1348,23 @@ class Guala:
         self._sensory_items = {}    # item_id -> SensoryItem
         self._sounds = {}           # item_id -> {cochlear, title, samples, sr, ...}
 
-    def _index_word_at_chi(self, section, motif_id, chi_k):
-        """GL-CMD-RECALL-WORD-INDEX-57 §1.2: add word→chi mapping to reverse index.
-        Called after every atlas.record() so the index stays current."""
-        try:
-            sec = self.sections.get(section)
-            if sec and motif_id < len(sec.modes):
-                _, _, word = sec.modes[motif_id]
-                if word:
-                    self._word_to_chi_index[word.lower()].add(chi_k)
-        except Exception:
-            pass
+    def _index_word_at_chi(self, section_name, motif_id, chi_value):
+        """GL-CMD-RECALL-WORD-INDEX-57 §1.2: add word→chi mapping to reverse index."""
+        if section_name not in self.sections:
+            return
+        sec = self.sections[section_name]
+        if motif_id >= len(sec.modes):
+            return
+        _, _, word = sec.modes[motif_id]
+        if word:
+            self._word_to_chi_index[word.lower()].add(chi_value)
+
+    def _atlas_record(self, section_name, motif_id, chi_value, **kwargs):
+        """GL-CMD-RECALL-WORD-INDEX-57 §1.2: single binding-creation entry point.
+        ALL self._atlas_record() callsites in engine code must go through here.
+        Maintains the recall reverse index automatically."""
+        self.atlas.record(section_name, motif_id, chi_value, **kwargs)
+        self._index_word_at_chi(section_name, motif_id, chi_value)
 
     @property
     def is_asleep(self):
@@ -1553,8 +1559,7 @@ class Guala:
                                             deep_atlas=self.deep_atlas,
                                             engine_tick=self.tick,
                                             atlas_kwargs=_akw)
-            # GL-CMD-RECALL-WORD-INDEX-57 §1.3: keep reverse index current
-            self._word_to_chi_index[word.lower()].add(lang_chi)
+            # Index update now handled automatically by _atlas_record wrapper
 
             for primary_section in primary_sections:
                 fam = self.atlas.match_score(lang_chi, primary_section)
@@ -1597,7 +1602,7 @@ class Guala:
                     if sense_fps[m] is not None:
                         modal_chi = self.senses.krimelacks[m].winding
                         sec_name = f"modal_{m}"
-                        self.atlas.record(sec_name, deterministic_motif_id(word),
+                        self._atlas_record(sec_name, deterministic_motif_id(word),
                                           modal_chi, self.tick,
                                           salience=salience,
                                           **self._affect_kwargs(surprise),
@@ -3395,40 +3400,21 @@ class Guala:
         if not content:
             return []
 
-        # GL-CMD-RECALL-WORD-INDEX-57 §1.6: index lookup instead of O(atlas_size) scan
-        if self._word_to_chi_index:
-            for w in content:
-                content_chis.update(self._word_to_chi_index.get(w, ()))
-        else:
-            for chi_k, entries in self.atlas.entries.items():
-                for e in entries:
-                    sec_name = e.get("section", "")
-                    if sec_name in self.sections:
-                        sec = self.sections[sec_name]
-                        mid = e.get("motif", 0)
-                        if mid < len(sec.modes):
-                            _, _, w = sec.modes[mid]
-                            if w and w.lower() in content:
-                                content_chis.add(chi_k)
+        # GL-CMD-RECALL-WORD-INDEX-57 §1.6/§1.7: O(content_words) index lookup
+        for w in content:
+            content_chis.update(self._word_to_chi_index.get(w, ()))
 
         if not content_chis:
             return []
 
         # Step 2: find sight motifs bound at those chi addresses (with band +-2)
-        # GL-CMD-RECALL-WORD-INDEX-57 §1.7 / GL-FIX-CONVERSE-LATENCY: O(N) not O(N×M).
-        # With large content_chis this took 3-4s. Replace with O(N+M): expand
-        # content_chis by band into a set, then single pass over atlas entries.
-        expanded_chis = set()
-        for tc in content_chis:
-            for d in range(-2, 3):
-                expanded_chis.add(tc + d)
+        # §1.8: direct neighborhood lookup — O(content_chis × 5) instead of O(N×M)
         sight_motif_ids = set()
-        for chi_k, entries in self.atlas.entries.items():
-            if chi_k not in expanded_chis:
-                continue
-            for e in entries:
-                if e.get("section") == "sight":
-                    sight_motif_ids.add(e.get("motif"))
+        for target_chi in content_chis:
+            for d in range(-2, 3):
+                for e in self.atlas.entries.get(target_chi + d, []):
+                    if e.get("section") == "sight":
+                        sight_motif_ids.add(e.get("motif"))
 
         if not sight_motif_ids:
             return []
@@ -3476,23 +3462,10 @@ class Guala:
         if not content_words:
             return None
 
-        # Step 1: Find atlas chi locations where each content word committed.
-        # GL-CMD-RECALL-WORD-INDEX-57 §1.5: O(content_words) index lookup instead
-        # of O(atlas_size) full scan. Was 3.4s for single-word input; now <1ms.
+        # Step 1: GL-CMD-RECALL-WORD-INDEX-57 §1.5: O(content_words) index lookup
         content_word_chis = set()
-        if self._word_to_chi_index:
-            for w in content_words:
-                content_word_chis.update(self._word_to_chi_index.get(w, ()))
-        else:
-            # Index not built yet (first boot before rebuild) — fall back to scan
-            for chi, entries in self.atlas.entries.items():
-                for e in entries:
-                    if e["section"] in self.sections:
-                        other_sec = self.sections[e["section"]]
-                        if e["motif"] < len(other_sec.modes):
-                            _, _, motif_word = other_sec.modes[e["motif"]]
-                            if motif_word and motif_word.lower() in content_words:
-                                content_word_chis.add(chi)
+        for w in content_words:
+            content_word_chis.update(self._word_to_chi_index.get(w, ()))
 
         if not content_word_chis:
             return None
@@ -3779,7 +3752,7 @@ class Guala:
                 if top_mid < len(sec_obj.modes):
                     _, _, word_label = sec_obj.modes[top_mid]
 
-            self.atlas.record(
+            self._atlas_record(
                 section_name=top_sec, motif_id=top_mid, chi_value=top_chi,
                 tick=snap_tick, salience=top_w, dwell_ticks=1,
                 arousal=snap_arousal * 0.3, valence=snap_valence * 0.3,
@@ -3793,7 +3766,7 @@ class Guala:
 
             if far_write is not None:
                 far_sec, far_mid_id, far_chi, far_w = far_write
-                self.atlas.record(
+                self._atlas_record(
                     section_name=far_sec, motif_id=far_mid_id, chi_value=far_chi,
                     tick=snap_tick, salience=far_w, dwell_ticks=1,
                     arousal=snap_arousal * 0.3, valence=snap_valence * 0.3,
@@ -4200,7 +4173,7 @@ class Guala:
                 for e in self.atlas.entries.get(chi_k, []):
                     sec_name = e.get("section", "")
                     mid = e.get("motif", 0)
-                    self.atlas.record(sec_name, mid, chi_k, self.tick,
+                    self._atlas_record(sec_name, mid, chi_k, self.tick,
                                       salience=0.3, dwell_ticks=DWELL_GATE_META,
                                       arousal=0.2, valence=0.0, surprise=0.0)
                     reinforced_addresses.append(chi_k)
@@ -4320,7 +4293,7 @@ class Guala:
         reinforcement_count = 0
         with self.lock:
             for sec_name, mid, chi_k in replay_targets:
-                self.atlas.record(sec_name, mid, chi_k, self.tick,
+                self._atlas_record(sec_name, mid, chi_k, self.tick,
                                   salience=0.3, dwell_ticks=DWELL_GATE_META,
                                   arousal=0.2, valence=0.0, surprise=0.0)
                 reinforced_addresses.append(chi_k)
@@ -4418,7 +4391,7 @@ class Guala:
                 fragments, "camera_stream", self.tick)
             if motif:
                 chi_val = motif.motif_id % 100
-                self.atlas.record("sight", motif.motif_id, chi_val,
+                self._atlas_record("sight", motif.motif_id, chi_val,
                                   self.tick, salience=0.8,
                                   sensory_refs=["cam:live"],
                                   **self._affect_kwargs())
@@ -4459,7 +4432,7 @@ class Guala:
             for bn, c in cochlear.items():
                 if c["n_events"] > 0:
                     chi = c["winding"] % 100
-                    self.atlas.record(f"audio_{bn}",
+                    self._atlas_record(f"audio_{bn}",
                         deterministic_motif_id("mic_stream"),
                         chi, self.tick, salience=0.6, dwell_ticks=2,
                         sensory_refs=["mic:live"],
@@ -4492,7 +4465,7 @@ class Guala:
                 # Record in atlas for cross-modal binding
                 chi_val = motif.motif_id % 100  # simplified chi address
                 presence, location, sky_state = self._current_situation()
-                self.atlas.record("sight", motif.motif_id, chi_val,
+                self._atlas_record("sight", motif.motif_id, chi_val,
                                  self.tick, salience=1.2,
                                  sensory_refs=[f"pic:{pic.item_id}"],
                                  bundle_id=f"item:pic:{pic.item_id}",
@@ -4541,7 +4514,7 @@ class Guala:
         cochlear = snd.get("cochlear", {})
         for band_name, c in cochlear.items():
             chi = c.get("winding", 0) % 100  # 1.1
-            self.atlas.record(f"audio_{band_name}", deterministic_motif_id(a.target),
+            self._atlas_record(f"audio_{band_name}", deterministic_motif_id(a.target),
                               chi, self.tick, salience=1.2, dwell_ticks=8,
                               sensory_refs=[f"snd:{a.target}"],
                               bundle_id=f"item:snd:{a.target}",
@@ -4585,7 +4558,7 @@ class Guala:
                     all_fragments, vid.item_id, self.tick)
                 if motif:
                     chi_val = motif.motif_id % 100
-                    self.atlas.record("sight", motif.motif_id, chi_val,
+                    self._atlas_record("sight", motif.motif_id, chi_val,
                                      self.tick, salience=1.2,
                                      sensory_refs=[f"vid:{vid.item_id}"],
                                      **self._affect_kwargs())
@@ -5168,7 +5141,7 @@ class Guala:
                             else:
                                 continue
                             new_val = min(1.0, e.get("valence", 0.0) + _val_delta_up)
-                            self.atlas.record(
+                            self._atlas_record(
                                 e.get("section", "object"),
                                 e.get("motif", 0),
                                 chi + d,
@@ -5189,7 +5162,7 @@ class Guala:
                 for in_chi in input_chis:
                     for em_chi in emission_chis:
                         if in_chi != em_chi:
-                            self.atlas.record(
+                            self._atlas_record(
                                 "verb", deterministic_motif_id("cofire_bind"),
                                 (in_chi + em_chi) // 2,
                                 tick=correction_tick,
@@ -5265,7 +5238,7 @@ class Guala:
                         for w in _normalize_text(effective_correction):
                             k = LanguageKrimelack()
                             k.transduce(w)
-                            self.atlas.record(
+                            self._atlas_record(
                                 "object", deterministic_motif_id(w),
                                 k.winding, tick=correction_tick,
                                 salience=self._compute_salience(source=source),
@@ -5298,7 +5271,7 @@ class Guala:
                     # Cofire-bind input↔expected with HIGH salience
                     for in_chi in input_chis:
                         for ex_chi in expected_chis:
-                            self.atlas.record(
+                            self._atlas_record(
                                 "verb",
                                 deterministic_motif_id("correction_bind"),
                                 (in_chi + ex_chi) // 2,

@@ -1849,7 +1849,7 @@ async def gualaloom_chat(msg: GLMessage):
                             frags, picture_ref, _guala.tick)
                         if motif:
                             chi = motif.motif_id % 100
-                            _guala.atlas.record("sight", motif.motif_id,
+                            _guala._atlas_record("sight", motif.motif_id,
                                                 chi, _guala.tick, salience=1.5, dwell_ticks=8)
                             bundle_chis.append(chi)
                         results.append(f"showed her \"{pic.title}\" (ref, {len(frags)} fragments)")
@@ -1883,7 +1883,7 @@ async def gualaloom_chat(msg: GLMessage):
                         frags, img_id, _guala.tick)
                     if motif:
                         chi = motif.motif_id % 100
-                        _guala.atlas.record("sight", motif.motif_id,
+                        _guala._atlas_record("sight", motif.motif_id,
                                             chi, _guala.tick, salience=1.5, dwell_ticks=8)
                         bundle_chis.append(chi)
                     results.append(f"showed her \"{bundle_name}\" "
@@ -1899,7 +1899,7 @@ async def gualaloom_chat(msg: GLMessage):
                 cochlear = snd.get("cochlear", {})
                 for bn, c in cochlear.items():
                     chi = c.get("winding", 0) % 100
-                    _guala.atlas.record(f"audio_{bn}",
+                    _guala._atlas_record(f"audio_{bn}",
                         deterministic_motif_id(sound_ref),
                         chi, _guala.tick, salience=1.5, dwell_ticks=8)
                     bundle_chis.append(chi)
@@ -1936,7 +1936,7 @@ async def gualaloom_chat(msg: GLMessage):
                             dur = len(samples) / max(sr, 1)
                             for bn, c in cochlear.items():
                                 chi = c["winding"] % 100
-                                _guala.atlas.record(f"audio_{bn}",
+                                _guala._atlas_record(f"audio_{bn}",
                                     deterministic_motif_id(snd_id),
                                     chi, _guala.tick, salience=1.5, dwell_ticks=8)
                                 bundle_chis.append(chi)
@@ -1971,7 +1971,7 @@ async def gualaloom_chat(msg: GLMessage):
                             chi = ch_data["chi"]
                             motif = deterministic_motif_id(
                                 f"{bundle_name}_{sense_name}_{ch_name}")
-                            _guala.atlas.record(f"{sense_name}_{ch_name}", motif,
+                            _guala._atlas_record(f"{sense_name}_{ch_name}", motif,
                                                 chi, _guala.tick, salience=1.5,
                                                 dwell_ticks=8)
                             bundle_chis.append(chi)
@@ -2054,7 +2054,7 @@ async def gualaloom_chat(msg: GLMessage):
                 from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import COCHLEAR_BANDS
                 for band_name, c in cochlear.items():
                     chi = c["winding"] % 100
-                    _guala.atlas.record(f"audio_{band_name}", deterministic_motif_id(item_id),
+                    _guala._atlas_record(f"audio_{band_name}", deterministic_motif_id(item_id),
                                         chi, _guala.tick, salience=1.2)
                 _guala._sounds[item_id] = {
                     "item_id": item_id, "title": title,

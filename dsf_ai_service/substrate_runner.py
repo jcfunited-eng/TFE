@@ -268,7 +268,7 @@ def _bind_sensory_words(text):
             signals = generate_sensory_signals(modality, [w])
             for channel, info in transduce_sensory_signals(signals).items():
                 mid = deterministic_motif_id(f"{modality}_{w}_{channel}")
-                _guala.atlas.record(
+                _guala._atlas_record(
                     f"modal_{modality}", mid, info["chi"], _guala.tick,
                     salience=1.0, dwell_ticks=DWELL_GATE_META,
                     sensory_refs=[f"{modality}:{w}"],
@@ -321,20 +321,22 @@ def _curriculum_feed_chunk(sentences, bundle_id=None, event_type="curriculum",
     episode_ref = f"episode:{event_type}:{_guala.tick}:{event_key}"
     n_fed = 0
     learned = 0
-    _pause_autonomy_for_bulk()
-    try:
-        for sent in sentences:
-            try:
-                _guala.read_sentence(sent, source=event_type, bundle_id=bundle_id,
-                                     episode_ref=episode_ref, presence=presence,
-                                     location=location, sky_state=sky_state)
-                # Site 1 DELETE: _cognition_learn(sent) removed (v5 atlas gets this above)
-                _bind_sensory_words(sent)  # feel/smell/taste the sensory words she reads
-                n_fed += 1
-            except Exception:
-                pass
-    finally:
-        _resume_autonomy_for_bulk()
+    # GL-FIX-CURRICULUM-PAUSE: removed _pause_autonomy_for_bulk(). With
+    # DREAM_CYCLE_PHASED=1, autonomy holds self.lock only in brief windows
+    # (~35ms per tick, 200ms free). read_sentence per-word lock acquisitions
+    # land in the free windows — no pause needed. The old pause took 18s
+    # (300ms sleep + 17.7s for 360 words competing for wake/sleep slots)
+    # which blocked /converse for the entire curriculum chunk duration.
+    for sent in sentences:
+        try:
+            _guala.read_sentence(sent, source=event_type, bundle_id=bundle_id,
+                                 episode_ref=episode_ref, presence=presence,
+                                 location=location, sky_state=sky_state)
+            # Site 1 DELETE: _cognition_learn(sent) removed (v5 atlas gets this above)
+            _bind_sensory_words(sent)  # feel/smell/taste the sensory words she reads
+            n_fed += 1
+        except Exception:
+            pass
     return n_fed, learned
 
 
@@ -1674,7 +1676,7 @@ def _cmd_addsound(command, text):
             _pres, _loc, _sky = _guala._current_situation()
             for bn, c in cochlear.items():
                 chi = c["winding"] % 100
-                _guala.atlas.record(f"audio_{bn}",
+                _guala._atlas_record(f"audio_{bn}",
                     deterministic_motif_id(snd_id),
                     chi, _guala.tick, salience=1.5, dwell_ticks=8,
                     bundle_id=snd_bundle_id, episode_ref=snd_ep_ref,
@@ -1764,7 +1766,7 @@ def _cmd_bundle(command, text):
                     fragments, pic.item_id, _guala.tick)
                 if motif:
                     chi_val = motif.motif_id % 100
-                    _guala.atlas.record("sight", motif.motif_id, chi_val,
+                    _guala._atlas_record("sight", motif.motif_id, chi_val,
                                         _guala.tick, salience=1.2,
                                         dwell_ticks=DWELL_GATE_META,
                                         sensory_refs=[f"pic:{pic.item_id}"],
@@ -1793,7 +1795,7 @@ def _cmd_bundle(command, text):
                 cochlear = snd.get("cochlear", {})
                 for band_name, c in cochlear.items():
                     chi = c.get("winding", 0) % 100
-                    _guala.atlas.record(
+                    _guala._atlas_record(
                         f"audio_{band_name}", deterministic_motif_id(sound_id),
                         chi, _guala.tick, salience=1.2,
                         dwell_ticks=DWELL_GATE_META,
@@ -1817,7 +1819,7 @@ def _cmd_bundle(command, text):
             try:
                 mid = deterministic_motif_id(f"{modality}_{desc}")
                 chi = mid % 100
-                _guala.atlas.record(
+                _guala._atlas_record(
                     f"modal_{modality}", mid, chi,
                     _guala.tick, salience=1.2,
                     dwell_ticks=DWELL_GATE_META,
@@ -3045,7 +3047,7 @@ def handle_atlas_surgery(args):
             strength = b.get("initial_strength", 0.3)
             src = b["source"]
             ep = f"episode:surgery:{_guala.tick}:{operation_id}"
-            _guala.atlas.record(section, motif, chi, _guala.tick,
+            _guala._atlas_record(section, motif, chi, _guala.tick,
                                 salience=strength, source=src, episode_ref=ep,
                                 sensory_refs=[f"surgery:{operation_id}"])
             binding_ids.append(f"{section}:{motif}:{chi}:{_guala.tick}")
