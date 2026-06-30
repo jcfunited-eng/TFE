@@ -270,7 +270,7 @@ out = {
                 {'name': 'CONVERSE_PHASED', 'value': '1'},
                 {'name': 'AUTONOMY_PHASED', 'value': '0'},
                 {'name': 'DREAM_CYCLE_PHASED', 'value': '1'},
-                {'name': 'EMISSION_DYNAMICS_TICKS', 'value': '20'},
+                {'name': 'EMISSION_DYNAMICS_TICKS', 'value': '5'},
                 {'name': 'YOLO_MODEL_PATH', 'value': '/app/yolov8n.onnx'},
                 {'name': 'WHISPER_MODEL_PATH', 'value': 'tiny'}
             ],
