@@ -1652,59 +1652,53 @@ class Guala:
                       episode_ref=None, presence=None, location=None, sky_state=None):
         """Read a sentence into the substrate.
 
-        GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.1 + §1.3 Phase 4:
-        Outer lock removed. Each per-word read_word() acquires/releases the
-        RLock independently, slicing the previous 1-2s hold into <5ms windows.
-
-        Three mutable sentence-level variables lifted to local containers and
-        passed as kwargs — prevents cross-sentence corruption during concurrent calls:
-          current_episode   — (ep_id, tick) tuple, thread-safe local
-          negation_state    — [count] mutable list for NEGATION_OPS detection
-          binding_window    — [] list for sensory_refs (KEY FIX: was missing from
-                              -46, causing unbounded self._current_binding_window
-                              growth that made the substrate unresponsive)
-
-        salience: optional override passed to each read_word call.
-        episode_ref/presence/location/sky_state: caller-supplied situational context.
+        GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.1:
+        binding_window lifted to sentence-local [] — prevents unbounded growth
+        of self._current_binding_window that caused -46's crash.
+        Outer lock RETAINED (§1.3 phasing deferred: requires deeper investigation
+        of _emit_dynamics / _emission_system concurrent access before unlocking).
         """
-        words = _normalize_text(text)
-        if not words:
-            return
-
-        # Setup: runs unlocked (GIL-safe float/Counter writes)
-        if self.coordinator.pair_bond_active:
-            weight = SOURCE_CONNECTION_WEIGHT.get(source, 0.15)
-        else:
-            weight = 0.15 if source != "corpus" else 0.0
-        self.recent_connection_boost = max(self.recent_connection_boost, weight)
-        self.source_history[source] += 1
-
-        if source in {"joe", "wc", "c1"}:
-            self.coordinator.update_last_input(source, self.tick)
-
-        # All three sentence-local containers — thread-safe, no shared mutation
-        import hashlib as _hl
-        ep_id = _hl.md5(f"{source}:{text[:50]}:{self.tick}".encode()).hexdigest()[:8]
-        current_episode = (ep_id, self.tick)
-        negation_state = [0]   # [count] — consumed per NEGATION_OPS word
-        binding_window = []    # grows per-word, fresh each sentence (§1.1 fix)
-
-        for i, word in enumerate(words):
-            if len(words) == 1:
-                hint = "standalone"
-            elif i == 0:
-                hint = "first"
-            elif i == len(words) - 1:
-                hint = "last"
-            else:
-                hint = "middle"
-            self.read_word(word, position_hint=hint, source=source,
-                          bundle_id=bundle_id, salience=salience,
-                          episode_ref=episode_ref, presence=presence,
-                          location=location, sky_state=sky_state,
-                          binding_window=binding_window)
         with self.lock:
+            words = _normalize_text(text)
+            if not words:
+                return
+            # Apply pair-bond connection boost from source
+            if self.coordinator.pair_bond_active:
+                weight = SOURCE_CONNECTION_WEIGHT.get(source, 0.15)
+            else:
+                # Post-retirement: connection emerges from atlas density alone
+                weight = 0.15 if source != "corpus" else 0.0
+            self.recent_connection_boost = max(self.recent_connection_boost, weight)
+            self.source_history[source] += 1
+
+            # v6-bridge: update last_input_tick for presence timeout
+            if source in {"joe", "wc", "c1"}:
+                self.coordinator.update_last_input(source, self.tick)
+
+            # GL-CLARITY-INVARIANCE-UNCAGE: episode tracking per sentence
+            import hashlib as _hl
+            ep_id = _hl.md5(f"{source}:{text[:50]}:{self.tick}".encode()).hexdigest()[:8]
+            self._current_episode = (ep_id, self.tick)
+            # §1.1: binding_window is sentence-local — prevents unbounded growth
+            binding_window = []
+
+            for i, word in enumerate(words):
+                if len(words) == 1:
+                    hint = "standalone"
+                elif i == 0:
+                    hint = "first"
+                elif i == len(words) - 1:
+                    hint = "last"
+                else:
+                    hint = "middle"
+                self.read_word(word, position_hint=hint, source=source,
+                              bundle_id=bundle_id, salience=salience,
+                              episode_ref=episode_ref, presence=presence,
+                              location=location, sky_state=sky_state,
+                              binding_window=binding_window)
             self.read_count += 1
+            self._current_episode = None
+            self._negation_pending = 0  # GL-CMD-C1-POLARITY: reset at utterance boundary
 
     # ------------------------------------------------------------------
     # Conversation: input -> substrate -> output via cascade
@@ -1720,58 +1714,61 @@ class Guala:
 
         Then read the input into substrate (so she learns from this exchange).
         """
-        # GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.3: phased lock pattern.
-        # Phases 1/2/3/6/9/10: NO lock (pure computation or race-tolerant atlas reads).
-        # Phases 4/5/7/8: brief locks for state mutations and atlas binding writes.
-        # read_sentence (Phase 4) and _self_hear (Phase 8) handle per-word locking (§1.1).
-        _t_converse_start = time.monotonic()
+        # GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2: §1.3 phasing deferred.
+        # _emit_dynamics() writes to self._emission_system.sections (mode_bank,
+        # psi, etc.) — concurrent access without a lock would corrupt these.
+        # Retained original single-lock pattern. §1.1 (binding_window in
+        # read_sentence) and §1.2 (network timeouts) are the active fixes.
         self._last_converse_tick = self.tick
-        self._last_dynamics_result = None
-
-        # Phase 1: math + tokenize — no lock (pure functions)
+        self._last_dynamics_result = None  # clear so stale prior-turn result never leaks
+        # Math route — MathLoom BSIL adapter (with v5 fixed parser)
         parsed = self._parse_math(text)
         if parsed:
             op, a, b = parsed
             result = self._mathloom_solve(op, a, b)
             return self._num_to_word(result)
 
-        words = _normalize_text(text)
-        if not words:
-            return "..."
-
-        # Phase 2: chi transduction — no lock (LanguageKrimelack is all local state)
-        input_chis = []
-        input_word_chis = {}
-        for w in words:
-            temp_krim = LanguageKrimelack()
-            temp_krim.transduce(w)
-            ch = temp_krim.winding
-            input_chis.append(ch)
-            input_word_chis[w] = ch
-        _t_chi = time.monotonic()
-
-        # Phase 3: recall + open_response_window — brief lock (mutates open_response_windows;
-        # _recall_response reads are race-tolerant but _last_recalled_pictures write needs lock)
         with self.lock:
-            recalled = self._recall_response(input_chis, input_word_chis, words)
+            _t_converse_start = time.monotonic()
+            # 1. Tokenize input (GL-BRIEF-035: shared normalization)
+            words = _normalize_text(text)
+            if not words:
+                return "..."
+
+            # 2. Get chi-state for each input word via fresh krimelack transduction
+            #    (Don't commit — just measure where input lives in chi-space)
+            input_chis = []
+            input_word_chis = {}  # word -> chi
+            for w in words:
+                temp_krim = LanguageKrimelack()
+                temp_krim.transduce(w)
+                ch = temp_krim.winding
+                input_chis.append(ch)
+                input_word_chis[w] = ch
+            _t_chi = time.monotonic()
+
+            # v8 (GL-BRIEF-028): open response window from source utterance
             if source in ("joe", "wc", "c1") and input_chis:
                 self._open_response_window(source, input_chis,
                                            source_context={"text": text[:50]})
-        _t_recall = time.monotonic()
 
-        # Phase 4: read input — per-word locks internally (§1.1, no outer lock)
-        tick_before_read = self.tick
-        self.read_sentence(text, source=source, bundle_id=bundle_id,
-                           episode_ref=episode_ref, presence=presence,
-                           location=location, sky_state=sky_state)
-        tick_after_read = self.tick
-        _t_read = time.monotonic()
+            # 3. RECALL from atlas BEFORE reading input — corpus-only bindings
+            recalled = self._recall_response(input_chis, input_word_chis, words)
+            _t_recall = time.monotonic()
 
-        # Phase 5: tag response bindings — brief lock (mutates atlas entries)
-        if source in ("joe", "wc", "c1"):
-            with self.lock:
+            # 4. Read input into substrate (so she learns from this interaction)
+            # Snapshot tick before read — only entries born in THIS read get tagged
+            tick_before_read = self.tick
+            self.read_sentence(text, source=source, bundle_id=bundle_id,
+                               episode_ref=episode_ref, presence=presence,
+                               location=location, sky_state=sky_state)
+            tick_after_read = self.tick
+            _t_read = time.monotonic()
+
+            # v8 (GL-BRIEF-028, FIX 1): tag ONLY entries touched by THIS input.
+            if source in ("joe", "wc", "c1"):
                 _bind_count = 0
-                _bind_cap = 12
+                _bind_cap = 12  # bound: prevent cascading O(n²) when many new entries
                 for ch in input_chis:
                     if _bind_count >= _bind_cap:
                         break
@@ -1788,30 +1785,33 @@ class Guala:
                                     ch + d, e["section"], e["motif"], source,
                                     log_event=(_bind_count == 0))
                                 _bind_count += 1
-        _t_tag = time.monotonic()
+            _t_tag = time.monotonic()
 
-        # Phase 6: emit — no lock (reads deep_atlas only; same race-tolerance as
-        # daydream Phase 2 from -45. _emit_from_invariants / _emit_dynamics do not
-        # write to self.atlas or self.sections.commits)
-        self._last_converse_source = source  # atomic GIL-safe write
-        reply = None
-        if recalled and self._last_recalled_pictures:
-            pass
-        if not reply:
-            reply = self._emit_from_invariants(input_chis, words,
-                                               mode_override=emission_mode,
-                                               v7_session=getattr(self, '_v7_session', None),
-                                               organ_candidates=organ_candidates)
-        _t_emit = time.monotonic()
-        if not reply:
-            reply = self._emit_unslotted(input_chis, words)
-        if not reply:
-            reply = "..."
+            # 5. Choose response — GL-FIX-RETIRE-TEMPLATES
+            reply = None
+            if recalled and self._last_recalled_pictures:
+                # Recall found pictures — keep the association
+                pass  # pictures set on self._last_recalled_pictures
+            # 6. Emit from cortex invariants (variable-length, slot-free)
+            self._last_converse_source = source  # for dynamics NMDA context
+            if not reply:
+                reply = self._emit_from_invariants(input_chis, words,
+                                                    mode_override=emission_mode,
+                                                    v7_session=getattr(self, '_v7_session', None),
+                                                    organ_candidates=organ_candidates)
+            _t_emit = time.monotonic()
+            if not reply:
+                # 7. Unslotted fallback: strongest bindings near input chi
+                reply = self._emit_unslotted(input_chis, words)
+            if not reply:
+                # 8. Honest silence
+                reply = "..."
 
-        # Phase 7: emission record update — brief lock (mutates _emission_records dict)
-        with self.lock:
+            # GL-CMD-TEACHER-CORRECTION-BINDING: track last conversation pair
             self._last_converse_input = text
             self._last_converse_reply = reply
+
+            # GL-CMD-TEACHER-SUBSTRATE-TRUE: emission_id is substrate-derived fingerprint
             self._last_converse_source = source
             if reply and reply != "...":
                 committed_chis = []
@@ -1828,11 +1828,13 @@ class Guala:
                        "committed_chis": committed_chis}
                 self._last_emission_record = rec
                 self._emission_records[eid] = rec
+                # Tick-window expiry: drop records older than slow-decay forget window
                 old_threshold = self.tick - EMISSION_RECORDS_TICK_WINDOW
                 stale = [k for k, r in self._emission_records.items()
                          if r.get("tick", 0) < old_threshold]
                 for k in stale:
                     del self._emission_records[k]
+                # Safety cap: prevent pathological growth
                 if len(self._emission_records) > EMISSION_RECORDS_CAP:
                     oldest = sorted(self._emission_records.keys(),
                                     key=lambda k: self._emission_records[k].get("tick", 0))
@@ -1841,29 +1843,32 @@ class Guala:
             else:
                 self._last_emission_id = None
 
-        # Phase 8: self-hear — per-word locks internally (§1.1, no outer lock needed)
-        if reply and reply != "..." and source in ("joe", "wc", "c1"):
-            self._self_hear(reply, source)
-        _t_selfhear = time.monotonic()
+            # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
+            if reply and reply != "..." and source in ("joe", "wc", "c1"):
+                self._self_hear(reply, source)
+            _t_selfhear = time.monotonic()
 
-        # Phase 9: hemisphere updates — no lock (race-tolerant reads)
-        try:
-            from dsf_ai_service.substrate.hemisphere_cognition import run_hemisphere_updates
-            emission_chis = []
-            if reply and reply != "...":
-                for ew in _normalize_text(reply):
-                    ek = LanguageKrimelack()
-                    ek.transduce(ew)
-                    emission_chis.append(ek.winding)
-            run_hemisphere_updates(self, text, source, input_chis, reply,
-                                   emission_chis, self.tick)
-        except Exception:
-            pass
-        _t_hemi = time.monotonic()
+            # GL-CMD-COGNITION-BUNDLE: run hemisphere updates after emission
+            try:
+                from dsf_ai_service.substrate.hemisphere_cognition import (
+                    run_hemisphere_updates,
+                )
+                # Compute emission chis for ep turn log
+                emission_chis = []
+                if reply and reply != "...":
+                    for ew in _normalize_text(reply):
+                        ek = LanguageKrimelack()
+                        ek.transduce(ew)
+                        emission_chis.append(ek.winding)
+                run_hemisphere_updates(
+                    self, text, source, input_chis, reply,
+                    emission_chis, self.tick)
+            except Exception as _hemi_err:
+                pass  # hemisphere failures must not break converse
+            _t_hemi = time.monotonic()
 
-        # Phase 10: timing log — brief lock (_log_substrate_event writes to deque)
-        if source in ("joe", "wc", "c1", "gate_test"):
-            with self.lock:
+            # Diagnostic timing event (EVE-PROFILE-20260626 — remove after gate passes)
+            if source in ("joe", "wc", "c1", "gate_test"):
                 self._log_substrate_event("converse_timing",
                     chi_ms=round((_t_chi - _t_converse_start) * 1000, 1),
                     recall_ms=round((_t_recall - _t_chi) * 1000, 1),
@@ -1875,7 +1880,7 @@ class Guala:
                     total_ms=round((_t_hemi - _t_converse_start) * 1000, 1),
                     n_words=len(words))
 
-        return reply
+            return reply
 
     def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
                               v7_session=None, organ_candidates=None):
