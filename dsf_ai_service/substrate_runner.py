@@ -477,6 +477,13 @@ def _world_feed_once():
             st = {"state": "empty", "feed": feed["name"], "query": query}
             _WORLD_FEED_STATE["last_status"] = st
             return st
+        # Quality gate: drop sentences containing compound-word garbage (any word >20 chars)
+        sents = [s for s in sents if not any(len(w) > 20 for w in s.split())]
+        if not sents:
+            st = {"state": "filtered", "feed": feed["name"], "query": query}
+            _WORLD_FEED_STATE["last_status"] = st
+            print(f"[worldfeed] {feed['name']} {query!r}: all sentences filtered (compound words)")
+            return st
         _chunk_cap = int(os.environ.get("CURRICULUM_CHUNK_SIZE", "30"))
         n_fed, learned = _curriculum_feed_chunk(sents[:_chunk_cap], bundle_id=feed_bundle_id,
                                                 event_type="worldfeed",
