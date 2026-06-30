@@ -1434,8 +1434,17 @@ class Guala:
     # ------------------------------------------------------------------
     def read_word(self, word, position_hint=None, source="corpus", bundle_id=None,
                   salience=None, episode_ref=None, presence=None,
-                  location=None, sky_state=None):
+                  location=None, sky_state=None,
+                  current_episode=None, negation_state=None):
         """v6: salience-modulated binding + decay heartbeat.
+
+        GL-CMD-CURRICULUM-LOCK-RELEASE-46 §2.2-2.4:
+        current_episode: sentence-local (ep_id, tick) tuple from read_sentence().
+          When supplied, overrides self._current_episode for this word.
+          Falls back to self._current_episode for direct-caller compatibility.
+        negation_state: sentence-local mutable list [count] from read_sentence().
+          When supplied, read/written in-place instead of self._negation_pending.
+          Falls back to self._negation_pending for direct-caller compatibility.
 
         salience: if provided, overrides _compute_salience() — used for backfill
         writes that need elevated (compensatory) salience. Normal reads omit this.
@@ -1449,9 +1458,13 @@ class Guala:
             self._current_binding_window.append(f"w:{word}")
 
             # GL-CMD-C1-POLARITY: detect negation operator → set one-shot flip
+            # §2.3: use sentence-local negation_state when supplied
             word_lower = word.lower().strip("'")
             if word_lower in NEGATION_OPS:
-                self._negation_pending += 1
+                if negation_state is not None:
+                    negation_state[0] += 1
+                else:
+                    self._negation_pending += 1
                 # Negation operator itself is not bound — skip to next word
                 # (still ticks, still decays)
                 self.tick -= 1  # undo tick increment: negation ops don't advance atlas time
@@ -1493,12 +1506,22 @@ class Guala:
 
             # GL-CLARITY-INVARIANCE-UNCAGE: affect + grounding kwargs for record() calls
             _akw = {**self._affect_kwargs(surprise), **self._grounding_kwargs()}
+            # §2.2: override episode_ref with sentence-local current_episode if supplied
+            if current_episode is not None:
+                _akw["episode_ref"] = current_episode[0]
             # C1.4: real source reaches atlas entry (fixes "corpus" default on all reads)
             _akw["source"] = source
-            # GL-CMD-C1-POLARITY: consume pending negation flip (XOR: odd flips → -1)
-            _polarity = -1 if (self._negation_pending % 2 == 1) else 1
-            if self._negation_pending > 0:
-                self._negation_pending = 0  # consumed by this binding
+            # GL-CMD-C1-POLARITY §2.3: consume pending negation from sentence-local state
+            if negation_state is not None:
+                _pending = negation_state[0]
+                _polarity = -1 if (_pending % 2 == 1) else 1
+                if _pending > 0:
+                    negation_state[0] = 0  # consumed
+            else:
+                _pending = self._negation_pending
+                _polarity = -1 if (_pending % 2 == 1) else 1
+                if _pending > 0:
+                    self._negation_pending = 0  # consumed
             _akw["polarity"] = _polarity
             # GL-CMD-CROSS-MODAL-BUNDLE: thread bundle_id into atlas writes
             if bundle_id is not None:
@@ -1642,49 +1665,61 @@ class Guala:
                       episode_ref=None, presence=None, location=None, sky_state=None):
         """Read a sentence into the substrate.
 
+        GL-CMD-CURRICULUM-LOCK-RELEASE-46 §2.1: outer `with self.lock:` removed.
+        Each per-word read_word() acquires/releases the RLock independently,
+        slicing the previous 1-2s sentence-wide hold into <5ms windows. Other
+        callers (/converse, autonomy loop) can acquire the lock between words.
+
+        §2.2: _current_episode lifted to sentence-local (current_episode kwarg).
+        §2.3: _negation_pending lifted to sentence-local (negation_state mutable list).
+        Both prevent cross-sentence state corruption when concurrent sentences run.
+
         salience: optional override passed to each read_word call.
         episode_ref/presence/location/sky_state: situational context forwarded
         to all read_word calls in this sentence.
         """
-        with self.lock:
-            words = _normalize_text(text)
-            if not words:
-                return
-            # Apply pair-bond connection boost from source
-            if self.coordinator.pair_bond_active:
-                weight = SOURCE_CONNECTION_WEIGHT.get(source, 0.15)
+        words = _normalize_text(text)
+        if not words:
+            return
+
+        # Setup: runs unlocked (all reads are GIL-safe; writes are float/Counter)
+        if self.coordinator.pair_bond_active:
+            weight = SOURCE_CONNECTION_WEIGHT.get(source, 0.15)
+        else:
+            weight = 0.15 if source != "corpus" else 0.0
+        self.recent_connection_boost = max(self.recent_connection_boost, weight)
+        self.source_history[source] += 1
+
+        if source in {"joe", "wc", "c1"}:
+            self.coordinator.update_last_input(source, self.tick)
+
+        # §2.2: episode is sentence-local — avoids concurrent-sentence clobber
+        import hashlib as _hl
+        ep_id = _hl.md5(f"{source}:{text[:50]}:{self.tick}".encode()).hexdigest()[:8]
+        current_episode = (ep_id, self.tick)
+
+        # §2.3: negation_state is sentence-local mutable container
+        negation_state = [0]  # negation_state[0] = pending flip count
+
+        for i, word in enumerate(words):
+            if len(words) == 1:
+                hint = "standalone"
+            elif i == 0:
+                hint = "first"
+            elif i == len(words) - 1:
+                hint = "last"
             else:
-                # Post-retirement: connection emerges from atlas density alone
-                weight = 0.15 if source != "corpus" else 0.0
-            self.recent_connection_boost = max(self.recent_connection_boost, weight)
-            self.source_history[source] += 1
+                hint = "middle"
+            self.read_word(word, position_hint=hint, source=source,
+                          bundle_id=bundle_id, salience=salience,
+                          episode_ref=episode_ref, presence=presence,
+                          location=location, sky_state=sky_state,
+                          current_episode=current_episode,
+                          negation_state=negation_state)
 
-            # v6-bridge: update last_input_tick for presence timeout
-            if source in {"joe", "wc", "c1"}:
-                self.coordinator.update_last_input(source, self.tick)
-
-            # GL-CLARITY-INVARIANCE-UNCAGE: episode tracking per sentence
-            import hashlib as _hl
-            ep_id = _hl.md5(f"{source}:{text[:50]}:{self.tick}".encode()).hexdigest()[:8]
-            self._current_episode = (ep_id, self.tick)
-            self._current_binding_window = []
-
-            for i, word in enumerate(words):
-                if len(words) == 1:
-                    hint = "standalone"
-                elif i == 0:
-                    hint = "first"
-                elif i == len(words) - 1:
-                    hint = "last"
-                else:
-                    hint = "middle"
-                self.read_word(word, position_hint=hint, source=source,
-                              bundle_id=bundle_id, salience=salience,
-                              episode_ref=episode_ref, presence=presence,
-                              location=location, sky_state=sky_state)
+        # read_count update needs the lock to be consistent with tick
+        with self.lock:
             self.read_count += 1
-            self._current_episode = None
-            self._negation_pending = 0  # GL-CMD-C1-POLARITY: reset at utterance boundary
 
     # ------------------------------------------------------------------
     # Conversation: input -> substrate -> output via cascade
