@@ -975,7 +975,18 @@ def _run_runtime_postgres_sync(
     env["TFE_EPOCH_LIBRARY_STATUS"] = ""
 
     cmd = ["node", str(script_path)]
-    completed = _run_logged_subprocess(phase_label="runtime_postgres_sync", cmd=cmd, cwd=str(Path.cwd()), env=env)
+    # The 600s default in _run_logged_subprocess is too tight for the
+    # TUPLE-PROXIMITY sequential per-ticker query loop in
+    # sync_runtime_postgres_impl.mjs (~4,500 tickers × 2 DB round-trips
+    # ≈ 590s under normal RDS load). Raises the ceiling to 1800s.
+    # Pending future work: batch the TUPLE-PROXIMITY queries to eliminate
+    # the N+1 pattern and reduce sync time well under 600s.
+    _sync_max_runtime = int(os.environ.get("TFE_SYNC_MAX_RUNTIME_SECONDS", "1800"))
+    completed = _run_logged_subprocess(
+        phase_label="runtime_postgres_sync",
+        cmd=cmd, cwd=str(Path.cwd()), env=env,
+        max_runtime_seconds=_sync_max_runtime,
+    )
     stdout_tail = str(completed.get("stdout_tail") or "").strip()
     stderr_tail = str(completed.get("stderr_tail") or "").strip()
     if int(completed.get("returncode") or 0) != 0:
