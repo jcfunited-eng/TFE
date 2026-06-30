@@ -268,7 +268,7 @@ out = {
                 {'name': 'CURRICULUM_INTERVAL_SEC', 'value': '120'},
                 {'name': 'STUDY_INTERLEAVE_EVERY', 'value': '2'},
                 {'name': 'CONVERSE_PHASED', 'value': '1'},
-                {'name': 'AUTONOMY_PHASED', 'value': '1'},
+                {'name': 'AUTONOMY_PHASED', 'value': '0'},
                 {'name': 'DREAM_CYCLE_PHASED', 'value': '1'},
                 {'name': 'YOLO_MODEL_PATH', 'value': '/app/yolov8n.onnx'},
                 {'name': 'WHISPER_MODEL_PATH', 'value': 'tiny'}

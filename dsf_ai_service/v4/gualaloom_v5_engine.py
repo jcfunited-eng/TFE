@@ -4054,17 +4054,24 @@ class Guala:
                                      target=self._current_activity.target,
                                      duration=self.tick - self._current_activity.started_tick)
             if self._current_activity.kind == "DREAMING":
-                try:
-                    state_dir = os.environ.get("STATE_DIR", "/mnt/efs/guala")
-                    gate_path = os.path.join(state_dir, "dream_gate_cleared.json")
-                    with open(gate_path, "w") as f:
-                        json.dump({"cleared_at_tick": self.tick,
-                                   "via": "substrate_dream_end"}, f)
-                        f.flush(); os.fsync(f.fileno())
-                    self._log_substrate_event("dream_gate_cleared", tick=self.tick)
-                except Exception as e:
-                    self._log_substrate_event("dream_gate_write_failed",
-                                              tick=self.tick, error=str(e))
+                # Write dream gate marker in background — fsync on EFS takes 1-10s
+                # and was previously holding self.lock (Phase C) for that duration.
+                _tick_snap = self.tick
+                def _write_gate():
+                    try:
+                        state_dir = os.environ.get("STATE_DIR", "/mnt/efs/guala")
+                        gate_path = os.path.join(state_dir, "dream_gate_cleared.json")
+                        with open(gate_path, "w") as f:
+                            import json as _json
+                            _json.dump({"cleared_at_tick": _tick_snap,
+                                       "via": "substrate_dream_end"}, f)
+                            f.flush(); os.fsync(f.fileno())
+                    except Exception:
+                        pass
+                import threading as _t
+                _t.Thread(target=_write_gate, daemon=True,
+                          name="dream-gate-write").start()
+                self._log_substrate_event("dream_gate_cleared", tick=self.tick)
             self._activity_history.append(self._current_activity)
             if len(self._activity_history) > 500:
                 self._activity_history = self._activity_history[-200:]
@@ -4118,7 +4125,18 @@ class Guala:
         No novelty gain — dream recombines existing material.
         GL-CMD-DAYDREAMING M-09-1: now delegates to _run_dream_cycle()."""
         self.needs.stability = saturate(self.needs.stability, 0.0005)
-        self._run_dream_cycle(caller_kind="DREAMING")
+        if os.environ.get("DREAM_CYCLE_PHASED", "0") == "1":
+            # Release outer lock so _run_dream_cycle_phased phases can truly free
+            # self.lock between Phase 1/2/3a/3b. Works with RLock: caller holds
+            # refcount=1 → release drops to 0 (truly free) → /converse can land →
+            # re-acquire before returning so caller's with-block exits cleanly.
+            self.lock.release()
+            try:
+                self._run_dream_cycle(caller_kind="DREAMING")
+            finally:
+                self.lock.acquire()
+        else:
+            self._run_dream_cycle(caller_kind="DREAMING")
 
     def _run_dream_cycle(self, caller_kind="DREAMING"):
         """GL-CMD-DAYDREAMING M-09-1: shared dream cycle callable.
