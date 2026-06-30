@@ -2988,7 +2988,9 @@ class Guala:
         # ever fires runs all N ticks → socket timeout. Cap at 5s regardless.
         # "no commit fires" → arcs_fallback is the correct bounded degradation.
         # This lets EMISSION_DYNAMICS=1 run without ever timing out the socket.
-        _WALL_BUDGET_S = 5.0
+        # GL-FIX-CONVERSE-LATENCY: reduce from 5s → 1.5s so /converse Phase 6
+        # (_emission_lock) + autonomy emission (_emission_lock) combined stay under 3s.
+        _WALL_BUDGET_S = float(os.environ.get("EMISSION_WALL_BUDGET_S", "1.5"))
         _t_deadline = t1 + _WALL_BUDGET_S
         n_ticks = EMISSION_DYNAMICS_TICKS
         emit_commits = []
