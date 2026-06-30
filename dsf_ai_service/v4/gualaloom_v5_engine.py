@@ -4793,11 +4793,15 @@ class Guala:
                 return
 
         # Phase 2 (self._emission_lock): emit dynamics + SVO fallback
-        # §1.4: contention instrumentation
-        _lock_wait_start = time.monotonic()
-        with self._emission_lock:
-            _lock_wait_ms = (time.monotonic() - _lock_wait_start) * 1000
-            _emit_start = time.monotonic()
+        # Non-blocking acquire: if /converse holds _emission_lock, skip this tick.
+        # Autonomous emission fires every 0.2s so one missed tick is harmless;
+        # blocking here would add up to 5s latency to every /converse call.
+        if not self._emission_lock.acquire(blocking=False):
+            return
+        _lock_wait_ms = 0.0
+        _emit_compute_ms = 0.0
+        _emit_start = time.monotonic()
+        try:
             input_words = []
             content = self._emit_from_invariants(recent_chis, input_words,
                                                   v7_session=getattr(self, '_v7_session', None))
@@ -4811,6 +4815,8 @@ class Guala:
                 content = " ".join(recalled[k] for k in ("subject", "verb", "object")
                                    if k in recalled) or "..."
             _emit_compute_ms = (time.monotonic() - _emit_start) * 1000
+        finally:
+            self._emission_lock.release()
 
         # §1.4: log contention above threshold
         if _lock_wait_ms > 100 or _emit_compute_ms > 1500:
