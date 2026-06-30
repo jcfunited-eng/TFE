@@ -5580,7 +5580,7 @@ class Guala:
         lock (slow). Lock hold time drops from ~20s to milliseconds."""
         import copy as _copy
 
-        # ── Phase 1: snapshot under lock (milliseconds) ──
+        # ── Phase 1: snapshot under lock (brief — O(1) per entry, no serialization) ──
         with self.lock:
             os.makedirs(state_dir, exist_ok=True)
             ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -5600,11 +5600,9 @@ class Guala:
                                   "times_attended": s.times_attended,
                                   "last_attended_tick": s.last_attended_tick}
                            for sid, s in self._sensory_items.items()}
-            # Serialize survival history: tuple keys → "chi|section|motif" strings
-            surv_ser = {}
-            for (chi_k, sec, mid), strengths in self._deep_survival_history.items():
-                key_str = f"{chi_k}|{sec}|{mid}"
-                surv_ser[key_str] = strengths[-10:]  # cap at 10
+            # Shallow-copy survival history under lock (fast), serialize outside lock.
+            # Building surv_ser (57k string-format ops) takes ~400ms — too slow under lock.
+            _surv_snap = dict(self._deep_survival_history)
 
             snap_core = self._envelope({
                 "tick": self.tick, "read_count": self.read_count,
@@ -5621,7 +5619,7 @@ class Guala:
                 "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
                 "corpora_state": corpora_ser,
                 "sensory_state": sensory_ser,
-                "deep_survival_history": surv_ser,
+                "deep_survival_history": None,  # filled below outside lock
                 "total_emissions": self._total_emissions,
             })
 
@@ -5735,6 +5733,11 @@ class Guala:
                 print(f"[save] prior state read failed (proceeding): {_e}")
 
         # ── Phase 2: write to disk outside lock (seconds) ──
+        # Build surv_ser from shallow snapshot taken under lock (~400ms, safe outside lock)
+        surv_ser = {}
+        for (chi_k, sec, mid), strengths in _surv_snap.items():
+            surv_ser[f"{chi_k}|{sec}|{mid}"] = strengths[-10:]
+        snap_core["data"]["deep_survival_history"] = surv_ser
         results = {}
         # GL-FIX-ATLAS-INTEGRITY: sections written BEFORE atlas so that if the process
         # is interrupted mid-save, the loaded sections have >= modes as atlas motif IDs.

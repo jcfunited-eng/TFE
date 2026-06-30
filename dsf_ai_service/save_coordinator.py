@@ -83,15 +83,20 @@ class SaveCoordinator:
         # unknown reason — never queue
 
     def _should_save(self, reason):
-        if reason in ("shutdown", "backup", "dream_end",
-                      "activity_ended", "backstop"):
+        if reason in ("shutdown", "backup", "dream_end"):
             return True
+        # Rate-limit activity_ended and backstop saves — with AUTONOMY_PHASED=1
+        # activities end every 2-10s wall time. save_full_state holds self.lock
+        # for ~4-6s (Phase 1 snapshot + EFS disk write). Unrestricted saves
+        # hold the lock 45-100% of the time, blocking /converse. Cap at 60s.
+        wall_delta = time.monotonic() - self.last_save_wall
+        if reason in ("activity_ended", "backstop") and wall_delta < 60:
+            return False
         # Defer if someone's actively interacting
         if self.guala.is_present_active():
             return False
         # Don't save too often
         tick_delta = self.guala.tick - self.last_save_tick
-        wall_delta = time.monotonic() - self.last_save_wall
         if tick_delta < 200 or wall_delta < 30:
             return False
         return True
