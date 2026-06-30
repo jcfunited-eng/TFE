@@ -3391,13 +3391,20 @@ class Guala:
             return []
 
         # Step 2: find sight motifs bound at those chi addresses (with band +-2)
+        # GL-FIX-CONVERSE-LATENCY: was O(N×M) nested loop (atlas × content_chis).
+        # With large content_chis this took 3-4s. Replace with O(N+M): expand
+        # content_chis by band into a set, then single pass over atlas entries.
+        expanded_chis = set()
+        for tc in content_chis:
+            for d in range(-2, 3):
+                expanded_chis.add(tc + d)
         sight_motif_ids = set()
         for chi_k, entries in self.atlas.entries.items():
-            for target_chi in content_chis:
-                if abs(chi_k - target_chi) <= 2:
-                    for e in entries:
-                        if e.get("section") == "sight":
-                            sight_motif_ids.add(e.get("motif"))
+            if chi_k not in expanded_chis:
+                continue
+            for e in entries:
+                if e.get("section") == "sight":
+                    sight_motif_ids.add(e.get("motif"))
 
         if not sight_motif_ids:
             return []
