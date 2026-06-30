@@ -321,22 +321,26 @@ def _curriculum_feed_chunk(sentences, bundle_id=None, event_type="curriculum",
     episode_ref = f"episode:{event_type}:{_guala.tick}:{event_key}"
     n_fed = 0
     learned = 0
-    # GL-FIX-CURRICULUM-PAUSE: removed _pause_autonomy_for_bulk(). With
-    # DREAM_CYCLE_PHASED=1, autonomy holds self.lock only in brief windows
-    # (~35ms per tick, 200ms free). read_sentence per-word lock acquisitions
-    # land in the free windows — no pause needed. The old pause took 18s
-    # (300ms sleep + 17.7s for 360 words competing for wake/sleep slots)
-    # which blocked /converse for the entire curriculum chunk duration.
-    for sent in sentences:
-        try:
-            _guala.read_sentence(sent, source=event_type, bundle_id=bundle_id,
-                                 episode_ref=episode_ref, presence=presence,
-                                 location=location, sky_state=sky_state)
-            # Site 1 DELETE: _cognition_learn(sent) removed (v5 atlas gets this above)
-            _bind_sensory_words(sent)  # feel/smell/taste the sensory words she reads
-            n_fed += 1
-        except Exception:
-            pass
+    # GL-FIX-CURRICULUM-PAUSE-REVERT (Eve 20260630): pause is load-bearing.
+    # Removing it caused autonomy + curriculum to thrash on self.lock, which
+    # saturated the substrate executor thread pool and made /status and
+    # /converse time out at 5s+. The 18s the prior removal was trying to
+    # cut was the CHUNK duration, not the pause overhead (pause itself ~0.3s).
+    # Chunk-size reduction is the right fix for that and ships separately.
+    _pause_autonomy_for_bulk()
+    try:
+        for sent in sentences:
+            try:
+                _guala.read_sentence(sent, source=event_type, bundle_id=bundle_id,
+                                     episode_ref=episode_ref, presence=presence,
+                                     location=location, sky_state=sky_state)
+                # Site 1 DELETE: _cognition_learn(sent) removed (v5 atlas gets this above)
+                _bind_sensory_words(sent)  # feel/smell/taste the sensory words she reads
+                n_fed += 1
+            except Exception:
+                pass
+    finally:
+        _resume_autonomy_for_bulk()
     return n_fed, learned
 
 
