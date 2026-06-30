@@ -354,10 +354,17 @@ def _curriculum_is_busy():
 
 def _lookup_and_ground(term):
     """Look up `term`, feed the description into her engine + organ-brain + senses.
-    Returns the description text, or None. Never raises into her runtime."""
+    Returns the description text, or None. Never raises into her runtime.
+    GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.2: network call wrapped with 10s
+    timeout via ThreadPoolExecutor. Leaked worker thread dies when HTTP completes."""
     try:
         from dsf_ai_service.loom_model.lookup_grounding import describe
-        desc = describe(term)
+        import concurrent.futures as _cf
+        with _cf.ThreadPoolExecutor(max_workers=1) as _ex:
+            try:
+                desc = _ex.submit(describe, term).result(timeout=10)
+            except (_cf.TimeoutError, Exception):
+                return None
         if not desc:
             return None
         _pause_autonomy_for_bulk()
@@ -449,7 +456,15 @@ def _world_feed_once():
         _WORLD_FEED_STATE["query_idx"] += 1
         # GL-CMD-CROSS-MODAL-STRENGTHEN B1.a: bundle feed text to sensory item if attending
         feed_bundle_id = _activity_bundle_id()
-        sents = feed["fetch"](query)
+        # GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.2: 10s timeout on network fetch
+        import concurrent.futures as _cf
+        _fetch_fn = feed["fetch"]
+        with _cf.ThreadPoolExecutor(max_workers=1) as _ex:
+            try:
+                sents = _ex.submit(_fetch_fn, query).result(timeout=10)
+            except (_cf.TimeoutError, Exception) as _fe:
+                print(f"[worldfeed] fetch timeout/error for {query!r}: {_fe}")
+                return {"state": "timeout", "feed": feed.get("name", ""), "query": query}
         if not sents:
             st = {"state": "empty", "feed": feed["name"], "query": query}
             _WORLD_FEED_STATE["last_status"] = st
