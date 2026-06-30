@@ -2097,7 +2097,13 @@ def _resume_autonomy_for_bulk():
         _autonomy_pause_refcount = max(0, _autonomy_pause_refcount - 1)
         if _autonomy_pause_refcount == 0:
             _guala._reading_stop.clear()
-            _guala.start_autonomy_loop(interval=0.2)
+            # GL-CMD-AUTONOMY-EMITTING-PHASING-55: guard against double-loop.
+            # Only start a new thread if the existing one is dead or absent.
+            # Without this, curriculum resume spawns a second autonomy thread,
+            # causing two concurrent _autonomy_tick calls that starve /converse.
+            _rt = getattr(_guala, '_reading_thread', None)
+            if not (_rt and _rt.is_alive()):
+                _guala.start_autonomy_loop(interval=0.2)
             print(f"[autonomy] Resumed (refcount=0)")
         else:
             print(f"[autonomy] Resume deferred (refcount={_autonomy_pause_refcount})")

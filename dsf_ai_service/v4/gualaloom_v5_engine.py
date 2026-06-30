@@ -4728,6 +4728,15 @@ class Guala:
         elif activity_kind == "READING":
             # read_sentence has per-word self.lock via -46v2 §1.1
             self._atick_reading(activity_ref)
+        elif activity_kind == "DREAMING" and os.environ.get("DREAM_CYCLE_PHASED", "0") == "1":
+            # GL-CMD-DREAM-CYCLE-PHASING-56: release outer lock during dream cycle phases.
+            # Mirror of EMITTING dispatch — brief lock for needs update only,
+            # then _run_dream_cycle routes to _run_dream_cycle_phased which
+            # handles Phase 1/3a/3b locking independently. /converse can land
+            # in Phase 2 (no-lock window) between phases.
+            with self.lock:
+                self.needs.stability = saturate(self.needs.stability, 0.0005)
+            self._run_dream_cycle(caller_kind="DREAMING")
         else:
             with self.lock:
                 if activity_kind == "SLEEPING":
