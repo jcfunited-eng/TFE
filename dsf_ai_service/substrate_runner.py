@@ -3276,19 +3276,21 @@ async def run_server():
             ending = getattr(_guala, '_current_activity', None)
             ending_kind = ending.kind if ending else None
             result = _orig_end_activity(*a, **kw)
-            # GL-FIX-UNREACHABLE: defer saves during curriculum bulk-loads.
-            # When _autonomy_pause_refcount > 0, curriculum is running and
-            # competing for self.lock. save_full_state() Phase 1 holds
-            # self.lock for 2-5s (serializing 17k+ atlas entries), which
-            # pushes socket responses over the 20s timeout → "unreachable".
-            # Skip the save here; the backstop (5 min) catches it instead.
+            # GL-FIX-SAVE-BACKGROUND: save in a background thread so Phase C
+            # of _autonomy_tick_phased releases self.lock immediately.
+            # save_full_state disk write (3-5s on EFS) must NOT hold self.lock —
+            # it was blocking /converse for the entire save duration.
+            # save_coord.maybe_save() acquires self.lock briefly in Phase 1
+            # (snapshot, ~50ms) then writes to disk without holding self.lock.
             if _autonomy_pause_refcount > 0:
                 print(f"[save] defer {ending_kind} save — curriculum running (refcount={_autonomy_pause_refcount})")
             else:
-                if ending_kind == "DREAMING":
-                    save_coord.maybe_save(reason="dream_end")
-                else:
-                    save_coord.maybe_save(reason="activity_ended")
+                reason = "dream_end" if ending_kind == "DREAMING" else "activity_ended"
+                import threading as _threading
+                _threading.Thread(
+                    target=lambda: save_coord.maybe_save(reason=reason),
+                    daemon=True, name=f"activity-save-{ending_kind}"
+                ).start()
             # GL-CMD-PRESURGERY-FRESHNESS-22: update freshness wall after activity saves
             global _last_successful_backup_wall
             with _backup_lock:
