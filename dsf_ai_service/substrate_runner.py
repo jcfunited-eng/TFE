@@ -360,11 +360,15 @@ def _lookup_and_ground(term):
     try:
         from dsf_ai_service.loom_model.lookup_grounding import describe
         import concurrent.futures as _cf
-        with _cf.ThreadPoolExecutor(max_workers=1) as _ex:
-            try:
-                desc = _ex.submit(describe, term).result(timeout=10)
-            except (_cf.TimeoutError, Exception):
-                return None
+        # NOT using 'with' — same reason as worldfeed: return inside 'with' calls
+        # shutdown(wait=True) which blocks on hanging network I/O.
+        _ex = _cf.ThreadPoolExecutor(max_workers=1)
+        _future = _ex.submit(describe, term)
+        _ex.shutdown(wait=False)
+        try:
+            desc = _future.result(timeout=10)
+        except (_cf.TimeoutError, Exception):
+            return None
         if not desc:
             return None
         _pause_autonomy_for_bulk()
@@ -456,15 +460,19 @@ def _world_feed_once():
         _WORLD_FEED_STATE["query_idx"] += 1
         # GL-CMD-CROSS-MODAL-STRENGTHEN B1.a: bundle feed text to sensory item if attending
         feed_bundle_id = _activity_bundle_id()
-        # GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.2: 10s timeout on network fetch
+        # GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.2: 10s timeout on network fetch.
+        # NOT using 'with' context manager — return inside 'with' triggers shutdown(wait=True)
+        # which blocks indefinitely if the worker thread is stuck on network I/O.
         import concurrent.futures as _cf
         _fetch_fn = feed["fetch"]
-        with _cf.ThreadPoolExecutor(max_workers=1) as _ex:
-            try:
-                sents = _ex.submit(_fetch_fn, query).result(timeout=10)
-            except (_cf.TimeoutError, Exception) as _fe:
-                print(f"[worldfeed] fetch timeout/error for {query!r}: {_fe}")
-                return {"state": "timeout", "feed": feed.get("name", ""), "query": query}
+        _ex = _cf.ThreadPoolExecutor(max_workers=1)
+        _future = _ex.submit(_fetch_fn, query)
+        _ex.shutdown(wait=False)  # leaked worker thread dies when HTTP completes
+        try:
+            sents = _future.result(timeout=10)
+        except (_cf.TimeoutError, Exception) as _fe:
+            print(f"[worldfeed] fetch timeout/error for {query!r}: {_fe}")
+            return {"state": "timeout", "feed": feed.get("name", ""), "query": query}
         if not sents:
             st = {"state": "empty", "feed": feed["name"], "query": query}
             _WORLD_FEED_STATE["last_status"] = st
