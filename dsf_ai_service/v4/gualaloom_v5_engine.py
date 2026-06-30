@@ -3790,6 +3790,13 @@ class Guala:
 
     def _autonomy_tick(self):
         """One iteration of the autonomy loop."""
+        # GL-CMD-AUTONOMY-EMITTING-PHASING-53 §1.1: env-var gate.
+        # AUTONOMY_PHASED=1 → _autonomy_tick_phased() which releases self.lock
+        # during EMITTING activity compute (uses self._emission_lock instead).
+        # AUTONOMY_PHASED=0 (default) → original single-lock body unchanged.
+        if os.environ.get("AUTONOMY_PHASED", "0") == "1":
+            self._autonomy_tick_phased()
+            return
         with self.lock:
             # 1. Needs drift AWAY from target (once per iteration)
             self.needs.tick_drift()
@@ -4535,6 +4542,199 @@ class Guala:
                 "seeds_used": len(seeds),
             }
         return None
+
+    # ── GL-CMD-AUTONOMY-EMITTING-PHASING-53 §1.2 ────────────────────────────────
+
+    def _autonomy_tick_phased(self):
+        """Phased autonomy tick: self.lock held only for state reads/writes,
+        not for EMITTING compute. EMITTING uses self._emission_lock instead.
+        All other activities still run under self.lock (not the bottleneck)."""
+
+        # Phase A (self.lock brief): maintenance + tick + activity selection
+        with self.lock:
+            self.needs.tick_drift()
+
+            if self.tick % 500 == 0 and self.tick > 0:
+                try:
+                    ns = self.needs.snapshot()
+                    self.log_event("state", "needs_snapshot",
+                                   stability=ns["stability"],
+                                   novelty=ns["novelty"],
+                                   connection=ns["connection"],
+                                   valence=ns["valence"],
+                                   arousal=ns["arousal"])
+                except Exception:
+                    pass
+
+            if self.tick % 200 == 0 and self.target_familiarity:
+                current_target = (self._current_activity.target
+                                  if self._current_activity else None)
+                for pid in list(self.target_familiarity.keys()):
+                    if pid != current_target:
+                        pic = self._pictures.get(pid)
+                        n_attends = pic.times_attended if pic else 0
+                        consolidation_factor = 1.0 / (1.0 + math.log(1.0 + n_attends))
+                        effective_decay = 1.0 - (1.0 - 0.9967) * consolidation_factor
+                        self.target_familiarity[pid] *= effective_decay
+                        if self.target_familiarity[pid] < 0.001:
+                            del self.target_familiarity[pid]
+                if self.tick % 6000 == 0:
+                    self._log_substrate_event("target_familiarity_snapshot",
+                                              familiarity=dict(
+                                                  (k, round(v, 4))
+                                                  for k, v in self.target_familiarity.items()))
+
+            self._prune_response_windows()
+
+            _ca_kind = getattr(self._current_activity, 'kind', None)
+            if _ca_kind not in (None, "SLEEPING", "DREAMING"):
+                _dp_rate = 0.0004 if _ca_kind == "EMITTING" else 0.0001
+                self.needs.dream_pressure = min(1.0, self.needs.dream_pressure + _dp_rate)
+
+            if self._current_activity is None:
+                a = self._select_next_activity()
+                self._start_activity(a)
+
+            a = self._current_activity
+            if a is None:
+                return
+
+            # Tick increment for non-READING activities (READING ticks inside read_word)
+            if a.kind != "READING":
+                self.tick += 1
+
+            # Capture for dispatch outside lock
+            activity_kind = a.kind
+            activity_ref = a
+
+        # Phase B: activity dispatch — EMITTING uses _emission_lock, others use self.lock
+        if activity_kind == "EMITTING":
+            self._do_emit_phased(activity_ref)
+        elif activity_kind == "READING":
+            # read_sentence has per-word self.lock via -46v2 §1.1
+            self._atick_reading(activity_ref)
+        else:
+            with self.lock:
+                if activity_kind == "SLEEPING":
+                    self._atick_sleeping(activity_ref)
+                elif activity_kind == "DREAMING":
+                    self._atick_dreaming(activity_ref)
+                elif activity_kind == "REST":
+                    self._atick_rest(activity_ref)
+                elif activity_kind == "PLAYING":
+                    self._atick_playing(activity_ref)
+                elif activity_kind == "ATTENDING":
+                    self._atick_attending(activity_ref)
+                elif activity_kind == "ATTENDING_VISUAL":
+                    self._atick_attending_visual(activity_ref)
+                elif activity_kind == "ATTENDING_AUDIO":
+                    self._atick_attending_audio(activity_ref)
+                elif activity_kind == "ATTENDING_VIDEO":
+                    self._atick_attending_video(activity_ref)
+
+        # Phase C (self.lock brief): post-activity housekeeping
+        with self.lock:
+            _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
+            if activity_kind != "READING":
+                if self.tick % 10 == 0:
+                    self.atlas.decay(self.tick, rate_scale=0.0 if _paused else self.decay_modulation)
+                if not _paused and self.tick % 200 == 0:
+                    self.atlas.forget_below_threshold()
+                if self.tick % 5 == 0:
+                    self.coordinator.regulate(self, self.needs, self.atlas,
+                                             self.sections, self.tick)
+            if self.tick >= activity_ref.expected_end_tick:
+                self._end_activity()
+
+    # ── GL-CMD-AUTONOMY-EMITTING-PHASING-53 §1.3 ────────────────────────────────
+
+    def _do_emit_phased(self, activity):
+        """Phased autonomous emission — caller must NOT hold self.lock.
+        Phase 1 (self.lock): snapshot recent_chis.
+        Phase 2 (self._emission_lock): emit compute.
+        Phase 3 (self.lock): log, metrics, response window, connection need."""
+
+        # Phase 1 (self.lock brief): snapshot recent_chis
+        with self.lock:
+            self._last_emission_tick = self.tick
+            recent_chis = []
+            for sec in self.sections.values():
+                for c in sec.commits[-5:]:
+                    recent_chis.append(c["chi"])
+            if not recent_chis:
+                to_sources = [s for s in PAIR_BOND_SOURCES
+                              if self.coordinator._presence.get(s, False)]
+                self._log_substrate_event("emission", content="...",
+                                         to_sources=to_sources)
+                return
+
+        # Phase 2 (self._emission_lock): emit dynamics + SVO fallback
+        # §1.4: contention instrumentation
+        _lock_wait_start = time.monotonic()
+        with self._emission_lock:
+            _lock_wait_ms = (time.monotonic() - _lock_wait_start) * 1000
+            _emit_start = time.monotonic()
+            input_words = []
+            content = self._emit_from_invariants(recent_chis, input_words,
+                                                  v7_session=getattr(self, '_v7_session', None))
+            if not content:
+                recalled = {}
+                for sec_name in ("subject", "verb", "object"):
+                    word = self._recall_from_atlas(sec_name, recent_chis,
+                                                   exclude_words=set())
+                    if word:
+                        recalled[sec_name] = word
+                content = " ".join(recalled[k] for k in ("subject", "verb", "object")
+                                   if k in recalled) or "..."
+            _emit_compute_ms = (time.monotonic() - _emit_start) * 1000
+
+        # §1.4: log contention above threshold
+        if _lock_wait_ms > 100 or _emit_compute_ms > 1500:
+            try:
+                self._log_substrate_event("autonomy_emission_lock",
+                    wait_ms=round(_lock_wait_ms, 1),
+                    compute_ms=round(_emit_compute_ms, 1))
+            except Exception:
+                pass
+
+        # Phase 3 (self.lock brief): sight recall, log, metrics, response window
+        with self.lock:
+            recalled_pics = self._recall_sight_from_atlas(recent_chis, [])
+            pic_ids = [sid for _, sid in recalled_pics] if recalled_pics else []
+            to_sources = [s for s in PAIR_BOND_SOURCES
+                          if self.coordinator._presence.get(s, False)
+                          and self.coordinator._pair_bond.get(s, False)]
+            self._log_substrate_event("emission", content=content,
+                                     to_sources=to_sources,
+                                     picture_ids=pic_ids)
+
+            words = content.split() if content and content != "..." else []
+            self._total_emissions += 1
+            self._emission_lengths.append(len(words))
+            if len(self._emission_lengths) > 100:
+                self._emission_lengths = self._emission_lengths[-50:]
+            if any(w.endswith("?") or content.startswith("what") for w in words):
+                self._question_count += 1
+            if len(words) >= 2:
+                _triple = tuple(sorted(w.lower() for w in words[:4]))
+                if not hasattr(self, '_seen_triples'):
+                    self._seen_triples = set()
+                if _triple not in self._seen_triples:
+                    self._novel_compositions += 1
+                    self._seen_triples.add(_triple)
+                    if len(self._seen_triples) > 5000:
+                        self._seen_triples = set(list(self._seen_triples)[-2500:])
+            if recent_chis:
+                self._open_response_window("guala", recent_chis,
+                                           source_context={"content": content})
+
+            # Connection saturation (moved here from _atick_emitting)
+            any_pair_present = any(
+                self.coordinator._presence.get(s, False)
+                and self.coordinator._pair_bond.get(s, False)
+                for s in PAIR_BOND_SOURCES)
+            if any_pair_present:
+                self.needs.connection = saturate(self.needs.connection, 0.25)
 
     def _do_emit(self):
         """Generate an autonomous emission via invariants (respects EMISSION_MODE).
