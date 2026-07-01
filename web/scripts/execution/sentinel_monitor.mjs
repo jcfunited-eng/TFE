@@ -511,6 +511,18 @@ async function triggerCircuitBreaker({ equityOpen, equityNow, drawdownPct, thres
   console.log(`[SENTINEL] ⚡ CIRCUIT BREAKER TRIGGERED | drawdown=${drawdownPct.toFixed(2)}% > ${thresholdPct}% | halt until ${expiresAt}`);
 }
 
+// ── Numeric config validation ─────────────────────────────────────────────
+// parseFloat can return NaN silently; NaN comparisons return false so the
+// breaker never fires. Validate and fall back to spec default on invalid.
+function parseThresholdSafe(rawValue, defaultVal, key, logPrefix) {
+  const parsed = parseFloat(rawValue);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    console.warn(`[${logPrefix}] Invalid ${key}='${rawValue}' — falling back to spec default ${defaultVal}`);
+    return defaultVal;
+  }
+  return parsed;
+}
+
 async function checkMaxDrawdown(equityNow, lastEquity) {
   // Session open equity = Alpaca last_equity (previous close).
   // The old fallback (earliest signal today) yielded equityNow on quiet
@@ -523,8 +535,9 @@ async function checkMaxDrawdown(equityNow, lastEquity) {
   }
 
   const drawdownPct = ((equityOpen - equityNow) / equityOpen) * 100;
-  const thresholdPct = parseFloat(await fetchConfig("max_drawdown_pct") ?? "5.0");
-  const hours = parseInt(await fetchConfig("circuit_breaker_hours") ?? "24", 10);
+  const thresholdPct = parseThresholdSafe(await fetchConfig("max_drawdown_pct"), 5.0, "max_drawdown_pct", "SENTINEL");
+  const hoursRaw = parseInt((await fetchConfig("circuit_breaker_hours")) ?? "24", 10);
+  const hours = Number.isFinite(hoursRaw) && hoursRaw > 0 ? hoursRaw : 24;
 
   if (drawdownPct >= thresholdPct) {
     await triggerCircuitBreaker({ equityOpen, equityNow, drawdownPct, thresholdPct, hours });

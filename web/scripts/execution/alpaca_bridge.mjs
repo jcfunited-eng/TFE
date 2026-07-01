@@ -562,7 +562,7 @@ export async function executeBracketOrder(signal, opts = {}) {
   // ── Step 7: place bracket order via Alpaca REST ───────────────────────
   let order;
   try {
-    order = await alpacaPost("/v2/orders", {
+    const orderPayload = {
       symbol:         ticker,
       qty:            shares,
       side:           "buy",
@@ -577,17 +577,15 @@ export async function executeBracketOrder(signal, opts = {}) {
         stop_price:   stopLossPrice,
         // No limit_price → stop-market order on trigger (as specified)
       },
-    }, BASE);
+    };
+    if (ledgerId != null) orderPayload.client_order_id = `3WA:${ledgerId}`;
+    order = await alpacaPost("/v2/orders", orderPayload, BASE);
   } catch (orderErr) {
     const errMsg = `order_placement_failed: ${orderErr.message}`;
     console.error(`[BRIDGE] ${ticker}: ${errMsg}`);
 
     if (ledgerId != null) {
-      await pool.query(
-        `UPDATE personal_trade_ledger SET status='rejected', exit_reason=$1,
-         rationale_json = rationale_json || $2::jsonb WHERE id=$3`,
-        ["rejected_field", JSON.stringify({ order_error: orderErr.message }), ledgerId],
-      ).catch(e => console.error("[BRIDGE] Ledger error-update failed:", e.message));
+      await writeRejectToLedgerWithRetry(ledgerId, ticker, "rejected_field", { order_error: orderErr.message }, "BRIDGE");
     }
 
     return { ok: false, rejected: true, reason: errMsg, ledgerId };
@@ -657,6 +655,52 @@ function validateCh2Signal(signal) {
     return { valid: false, reason: failures.join("; ") };
   }
   return { valid: true };
+}
+
+// ── Reject-path ledger write helper (D4.5 pattern) ────────────────────────
+// When Alpaca rejects a submission, the ledger UPDATE to mark the row
+// 'rejected' must not silently fail. Retry primary UPDATE up to 3 times
+// with 500ms backoff. On all-fail, append recovery breadcrumbs to
+// rationale_json so downstream reconciliation identifies the row.
+// On both-fail, CRITICAL log with all IDs for manual recovery.
+async function writeRejectToLedgerWithRetry(ledgerId, ticker, rejectReason, extraJson, logPrefix) {
+  const primary = async () => pool.query(
+    `UPDATE personal_trade_ledger
+       SET status='rejected',
+           exit_reason=$1,
+           rationale_json = rationale_json || $2::jsonb
+     WHERE id=$3`,
+    [rejectReason, JSON.stringify(extraJson ?? {}), ledgerId],
+  );
+
+  let lastErr;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try { await primary(); return; }
+    catch (e) { lastErr = e; if (attempt < 3) await new Promise(r => setTimeout(r, 500)); }
+  }
+
+  console.error(`[${logPrefix}] PRIMARY reject write failed after 3 attempts for ${ticker} ledgerId=${ledgerId}: ${lastErr.message}. Writing fallback to rationale_json.`);
+  try {
+    await pool.query(
+      `UPDATE personal_trade_ledger
+         SET rationale_json = rationale_json || jsonb_build_object(
+               'reject_fallback_reason',      $1::text,
+               'reject_fallback_extra',       $2::jsonb,
+               'reject_fallback_write_at',    to_char(now() at time zone 'utc',
+                                                'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+               'reject_fallback_primary_err', $3::text
+             )
+       WHERE id=$4`,
+      [rejectReason, JSON.stringify(extraJson ?? {}), lastErr.message, ledgerId],
+    );
+    console.error(`[${logPrefix}] Fallback reject breadcrumbs written for ${ticker} ledgerId=${ledgerId}`);
+  } catch (fbErr) {
+    console.error(
+      `[${logPrefix}] CRITICAL: both primary and fallback reject writes failed for ` +
+      `${ticker} ledgerId=${ledgerId} reason=${rejectReason} ` +
+      `primary_err=${lastErr.message} fallback_err=${fbErr.message}`
+    );
+  }
 }
 
 /**
@@ -776,27 +820,21 @@ export async function executeCh2BracketOrder(signal) {
     return rejectSignal(signal, `ledger_insert_failed: ${err.message}`);
   }
 
-  // Unique order ID per attempt. The old sha256(CH2:ticker:run_id) was constant
-  // across the entire refresh cycle, so re-evaluations within the same run_id
-  // all got the same client_order_id → Alpaca rejected 186 orders as duplicates.
-  // Use timestamp + random to ensure uniqueness per attempt. Duplicate-entry
-  // prevention is handled by the open-position check in the strategist, not
-  // by Alpaca's client_order_id.
-  const dedupeKey = createHash("sha256")
-    .update(`CH2:${ticker}:${signal.run_id}:${Date.now()}:${Math.random()}`)
-    .digest("hex")
-    .slice(0, 16);
+  // Idempotency key: ledgerId is unique per signal and stable across retries.
+  // Alpaca dedups by client_order_id; a retry of the same signal reuses the
+  // key and does not double-submit. Distinct signals get distinct ledgerIds
+  // so cross-signal dedup collisions cannot occur.
+  const dedupeKey = ledgerId != null ? `CH2:${ledgerId}` : undefined;
 
   let order;
   try {
-    order = await alpacaPost("/v2/orders", {
+    const orderPayload = {
       symbol:         ticker,
       qty:            shares,
       side:           "buy",
       type:           "limit",
       limit_price:    entryPrice,
       time_in_force:  "day",
-      client_order_id: dedupeKey,
       order_class:    "bracket",
       take_profit: {
         limit_price: takeProfitPrice,
@@ -804,14 +842,13 @@ export async function executeCh2BracketOrder(signal) {
       stop_loss: {
         stop_price: stopLossPrice,
       },
-    }, BASE);
+    };
+    if (dedupeKey) orderPayload.client_order_id = dedupeKey;
+    order = await alpacaPost("/v2/orders", orderPayload, BASE);
   } catch (err) {
     const errMsg = err.message ?? "unknown";
     if (ledgerId != null) {
-      await pool.query(
-        `UPDATE personal_trade_ledger SET status='rejected', exit_reason=$1 WHERE id=$2`,
-        [errMsg, ledgerId],
-      ).catch(() => {});
+      await writeRejectToLedgerWithRetry(ledgerId, ticker, errMsg, {}, "CH2-BRIDGE");
     }
     return { ok: false, rejected: true, reason: errMsg, ledgerId };
   }
@@ -946,21 +983,17 @@ export async function executeCh3MarketOrder(signal) {
     return rejectSignal(signal, `ledger_insert_failed: ${err.message}`);
   }
 
-  const dedupeKey = createHash("sha256")
-    .update(`CH3:${ticker}:${signal.run_id}:${Date.now()}:${Math.random()}`)
-    .digest("hex")
-    .slice(0, 16);
+  const dedupeKey = ledgerId != null ? `CH3:${ledgerId}` : undefined;
 
   let order;
   try {
     // Bracket order: market buy + ATR-based TP/SL enforced by Alpaca in real-time
-    order = await alpacaPost("/v2/orders", {
+    const orderPayload = {
       symbol:          ticker,
       qty:             shares,
       side:            "buy",
       type:            "market",
       time_in_force:   "day",
-      client_order_id: dedupeKey,
       order_class:     "bracket",
       take_profit: {
         limit_price:   takeProfitPrice,
@@ -968,14 +1001,13 @@ export async function executeCh3MarketOrder(signal) {
       stop_loss: {
         stop_price:    stopLossPrice,
       },
-    }, BASE);
+    };
+    if (dedupeKey) orderPayload.client_order_id = dedupeKey;
+    order = await alpacaPost("/v2/orders", orderPayload, BASE);
   } catch (err) {
     const errMsg = err.message ?? "unknown";
     if (ledgerId != null) {
-      await pool.query(
-        `UPDATE personal_trade_ledger SET status='rejected', exit_reason=$1 WHERE id=$2`,
-        [errMsg, ledgerId],
-      ).catch(() => {});
+      await writeRejectToLedgerWithRetry(ledgerId, ticker, errMsg, {}, "CH3-BRIDGE");
     }
     return { ok: false, rejected: true, reason: errMsg, ledgerId };
   }

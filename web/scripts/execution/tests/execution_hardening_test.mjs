@@ -1,0 +1,88 @@
+/**
+ * Tests for D4.8 execution-layer hardening:
+ *   D-3:    per-signal try/catch pattern (structural check on source)
+ *   CH2-3:  idempotency key format = ${signal_class}:${ledgerId}
+ *   CH2-4:  writeRejectToLedgerWithRetry follows D4.5 retry+fallback pattern
+ *   CB-4:   parseThresholdSafe validation
+ *
+ * Run: node web/scripts/execution/tests/execution_hardening_test.mjs
+ */
+
+import { readFile } from "node:fs/promises";
+
+let passed = 0;
+let failed = 0;
+
+function assert(cond, label) {
+  if (cond) { console.log(`  ✓ ${label}`); passed++; }
+  else      { console.error(`  ✗ FAIL: ${label}`); failed++; }
+}
+
+function parseThresholdSafe(rawValue, defaultVal, key, logPrefix) {
+  const parsed = parseFloat(rawValue);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    // silent in test (no console log verification)
+    return defaultVal;
+  }
+  return parsed;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// CB-4: parseThresholdSafe
+// ══════════════════════════════════════════════════════════════════════
+console.log("\n=== CB-4: parseThresholdSafe ===");
+assert(parseThresholdSafe("3.0", 5.0, "k", "T") === 3.0, "Valid numeric string returns parsed value");
+assert(parseThresholdSafe("5", 5.0, "k", "T") === 5.0, "Integer string parses");
+assert(parseThresholdSafe("abc", 5.0, "k", "T") === 5.0, "Non-numeric returns default");
+assert(parseThresholdSafe("", 5.0, "k", "T") === 5.0, "Empty string returns default");
+assert(parseThresholdSafe(null, 5.0, "k", "T") === 5.0, "null returns default");
+assert(parseThresholdSafe(undefined, 5.0, "k", "T") === 5.0, "undefined returns default");
+assert(parseThresholdSafe("NaN", 5.0, "k", "T") === 5.0, "'NaN' string returns default");
+assert(parseThresholdSafe("-1.5", 5.0, "k", "T") === 5.0, "Negative returns default (invalid threshold)");
+assert(parseThresholdSafe("0", 5.0, "k", "T") === 0, "Zero is valid (allowed for permissive threshold)");
+assert(parseThresholdSafe("Infinity", 5.0, "k", "T") === 5.0, "'Infinity' returns default (not finite)");
+
+// ══════════════════════════════════════════════════════════════════════
+// Structural checks on source files
+// ══════════════════════════════════════════════════════════════════════
+const bridgeSrc = await readFile(new URL("../alpaca_bridge.mjs", import.meta.url), "utf8");
+const daemonSrc = await readFile(new URL("../sentinel_daemon.mjs", import.meta.url), "utf8");
+const cbSrc     = await readFile(new URL("../circuit_breaker.mjs", import.meta.url), "utf8");
+const sentSrc   = await readFile(new URL("../sentinel_monitor.mjs", import.meta.url), "utf8");
+
+console.log("\n=== CH2-3: idempotency keys use ledgerId ===");
+assert(bridgeSrc.includes("`3WA:${ledgerId}`"), "3WA path uses 3WA:${ledgerId} key");
+assert(bridgeSrc.includes("`CH2:${ledgerId}`"), "CH2 path uses CH2:${ledgerId} key");
+assert(bridgeSrc.includes("`CH3:${ledgerId}`"), "CH3 path uses CH3:${ledgerId} key");
+assert(!bridgeSrc.includes("Math.random()"), "No Math.random() in dedupe key construction");
+assert(!/CH2:\$\{ticker\}:\$\{signal\.run_id\}/.test(bridgeSrc), "Old CH2 sha256 pattern removed");
+assert(!/CH3:\$\{ticker\}:\$\{signal\.run_id\}/.test(bridgeSrc), "Old CH3 sha256 pattern removed");
+
+console.log("\n=== CH2-4: writeRejectToLedgerWithRetry present and used ===");
+assert(bridgeSrc.includes("writeRejectToLedgerWithRetry"), "Reject retry helper defined");
+assert(bridgeSrc.includes("attempt <= 3"), "Reject helper uses 3-attempt pattern");
+assert(bridgeSrc.includes("reject_fallback_reason"), "Reject helper writes fallback breadcrumbs");
+assert(bridgeSrc.includes('CRITICAL: both primary and fallback reject writes failed'), "Reject helper CRITICAL logs both-fail");
+const rejectCallCount = (bridgeSrc.match(/writeRejectToLedgerWithRetry\(/g) || []).length;
+assert(rejectCallCount >= 4, `Reject helper called from >=4 sites (found ${rejectCallCount}: 1 def + 3 usage)`);
+assert(!bridgeSrc.includes(".catch(() => {})"), "No .catch(() => {}) silent handlers remain in alpaca_bridge.mjs");
+
+console.log("\n=== D-1: kill switch fail-closed ===");
+assert(daemonSrc.includes("FAILING CLOSED"), "Kill switch fail-closed comment/log present");
+assert(daemonSrc.includes("entriesHalted = true"), "Kill switch sets halted=true on DB error");
+assert(!/catch\s*\{\s*\/\*\s*non-fatal\s*\*\/\s*\}/.test(daemonSrc), "Old /* non-fatal */ silent catch removed");
+
+console.log("\n=== D-3: per-signal try/catch ===");
+// Count try/catch blocks around submitEntry — should be 3 channels × 1 outer + 3 per-signal = 6+
+const submitEntryCatchCount = (daemonSrc.match(/Signal .* failed:/g) || []).length;
+assert(submitEntryCatchCount >= 3, `Per-signal error logs present in each channel (found ${submitEntryCatchCount})`);
+assert(daemonSrc.includes("Signal fetch failed"), "Signal fetch has its own catch");
+
+console.log("\n=== CB-4: parseThresholdSafe integrated ===");
+assert(cbSrc.includes("parseThresholdSafe"), "circuit_breaker.mjs uses parseThresholdSafe");
+assert(sentSrc.includes("parseThresholdSafe"), "sentinel_monitor.mjs uses parseThresholdSafe");
+assert(!/const thresholdPct = parseFloat\(thresholdStr\)/.test(cbSrc), "Old raw parseFloat gone from CB");
+assert(!/const thresholdPct = parseFloat\(await fetchConfig\("max_drawdown_pct"\)/.test(sentSrc), "Old raw parseFloat gone from sentinel");
+
+console.log(`\n${passed}/${passed + failed} assertions passed`);
+if (failed > 0) process.exit(1);

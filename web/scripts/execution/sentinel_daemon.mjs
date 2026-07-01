@@ -161,6 +161,9 @@ async function runDailyEntryPass() {
   console.log(`[DAILY-ENTRY] Starting daily entry pass at ${new Date().toISOString()}`);
 
   // ── Kill switch ──────────────────────────────────────────────────────
+  // Env var is primary path; DB is fallback if env is unset. On DB query
+  // failure, FAIL CLOSED — assume halted rather than risk firing entries
+  // when we can't confirm safety.
   let entriesHalted = process.env.TFE_ENTRIES_HALTED === "1";
   if (!entriesHalted) {
     try {
@@ -168,7 +171,10 @@ async function runDailyEntryPass() {
         `SELECT value FROM pee1_execution_config WHERE key = 'entries_halted' LIMIT 1`
       );
       entriesHalted = haltRes.rows[0]?.value === "true";
-    } catch { /* non-fatal */ }
+    } catch (e) {
+      console.error(`[DAILY-ENTRY] Kill switch DB fallback failed: ${e.message}. FAILING CLOSED — entries halted.`);
+      entriesHalted = true;
+    }
   }
   if (entriesHalted) {
     console.log(`[DAILY-ENTRY] KILL SWITCH ACTIVE — no entries today`);
@@ -252,39 +258,60 @@ async function runDailyEntryPass() {
   let totalEntries = 0;
 
   // ── Channel 1: 3WA ──────────────────────────────────────────────────
-  try {
-    const signals3wa = await get3WASignals();
+  {
+    let signals3wa = [];
+    try {
+      signals3wa = await get3WASignals();
+    } catch (err) {
+      console.error(`[3WA-ENTRY] Signal fetch failed: ${err.message}`);
+    }
     for (const signal of signals3wa) {
       if (budget.cashRemaining <= 0) break;
-      const result = await submitEntry(signal, executeBracketOrder, "3WA-ENTRY", budget, sameDayExitTickers);
-      if (result.ok) totalEntries++;
+      try {
+        const result = await submitEntry(signal, executeBracketOrder, "3WA-ENTRY", budget, sameDayExitTickers);
+        if (result.ok) totalEntries++;
+      } catch (err) {
+        console.error(`[3WA-ENTRY] Signal ${signal.ticker ?? "?"} failed: ${err.message}. Continuing.`);
+      }
     }
-  } catch (err) {
-    console.error(`[3WA-ENTRY] Error: ${err.message}`);
   }
 
   // ── Channel 2: CH2 ──────────────────────────────────────────────────
-  try {
-    const signalsCh2 = await getCh2Signals();
+  {
+    let signalsCh2 = [];
+    try {
+      signalsCh2 = await getCh2Signals();
+    } catch (err) {
+      console.error(`[CH2-ENTRY] Signal fetch failed: ${err.message}`);
+    }
     for (const signal of signalsCh2) {
       if (budget.cashRemaining <= 0) break;
-      const result = await submitEntry(signal, executeCh2BracketOrder, "CH2-ENTRY", budget, sameDayExitTickers);
-      if (result.ok) totalEntries++;
+      try {
+        const result = await submitEntry(signal, executeCh2BracketOrder, "CH2-ENTRY", budget, sameDayExitTickers);
+        if (result.ok) totalEntries++;
+      } catch (err) {
+        console.error(`[CH2-ENTRY] Signal ${signal.ticker ?? "?"} failed: ${err.message}. Continuing.`);
+      }
     }
-  } catch (err) {
-    console.error(`[CH2-ENTRY] Error: ${err.message}`);
   }
 
   // ── Channel 3: CH3 intraday ─────────────────────────────────────────
-  try {
-    const ch3Signals = await getCh3Signals();
+  {
+    let ch3Signals = [];
+    try {
+      ch3Signals = await getCh3Signals();
+    } catch (err) {
+      console.error(`[CH3-ENTRY] Signal fetch failed: ${err.message}`);
+    }
     for (const signal of ch3Signals) {
       if (budget.cashRemaining <= 0) break;
-      const result = await submitEntry(signal, executeCh3MarketOrder, "CH3-ENTRY", budget, sameDayExitTickers);
-      if (result.ok) totalEntries++;
+      try {
+        const result = await submitEntry(signal, executeCh3MarketOrder, "CH3-ENTRY", budget, sameDayExitTickers);
+        if (result.ok) totalEntries++;
+      } catch (err) {
+        console.error(`[CH3-ENTRY] Signal ${signal.ticker ?? "?"} failed: ${err.message}. Continuing.`);
+      }
     }
-  } catch (err) {
-    console.error(`[CH3-ENTRY] Error: ${err.message}`);
   }
 
   console.log(

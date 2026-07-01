@@ -34,6 +34,18 @@ const pool = new pg.Pool({
   ssl: { rejectUnauthorized: false },
 });
 
+// ── Numeric config validation ─────────────────────────────────────────────
+// parseFloat can return NaN silently; NaN comparisons return false so the
+// breaker never fires. Validate and fall back to spec default on invalid.
+function parseThresholdSafe(rawValue, defaultVal, key, logPrefix) {
+  const parsed = parseFloat(rawValue);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    console.warn(`[${logPrefix}] Invalid ${key}='${rawValue}' — falling back to spec default ${defaultVal}`);
+    return defaultVal;
+  }
+  return parsed;
+}
+
 // ── Config ────────────────────────────────────────────────────────────────
 async function readConfig(key, fallback) {
   try {
@@ -237,8 +249,9 @@ export async function runCircuitBreaker() {
   ]);
 
   const equityNow    = parseFloat(accountRaw?.equity ?? "0");
-  const thresholdPct = parseFloat(thresholdStr);
-  const hours        = parseInt(hoursStr, 10);
+  const thresholdPct = parseThresholdSafe(thresholdStr, 3.0, "circuit_breaker_threshold_pct", "CB");
+  const hoursRaw     = parseInt(hoursStr, 10);
+  const hours        = Number.isFinite(hoursRaw) && hoursRaw > 0 ? hoursRaw : 24;
 
   if (equityNow <= 0) {
     console.log("[CB] Equity unavailable — skipping check");
