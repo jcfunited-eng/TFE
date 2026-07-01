@@ -1155,13 +1155,30 @@ def _gl_init():
         else:
             break
 
-    # Guard: if state failed to load (e.g. EFS stale handle), refuse to boot blank.
-    # Raising here causes _eager_init to log the error; the next health-check poll
-    # will retry, and a fresh EFS mount will succeed on the next task restart.
+    # Guard: if state failed to load, attempt S3 restore before refusing to boot.
+    # ESTALE (errno 116) and JSON errors (empty/truncated files) are both recoverable
+    # via S3 restore. Only raise if S3 restore also fails.
     if not getattr(g, '_load_successful', True):
         errs = getattr(g, '_load_errors', [])
-        raise RuntimeError(f"[GualaLoom] State load failed — will not boot blank. "
-                           f"Errors: {errs}")
+        print(f"[GualaLoom] State load failed: {errs}. Attempting S3 restore...")
+        try:
+            _restore_from_s3(STATE_DIR)
+            g2 = Guala()
+            for cid, cdata in SEED_CORPORA.items():
+                g2.add_corpus(cid, cdata["title"], cdata["lines"])
+            g2.load_full_state(STATE_DIR)
+            if getattr(g2, '_load_successful', False):
+                print(f"[GualaLoom] S3 restore succeeded: "
+                      f"identity={(getattr(g2, '_guala_identity', '') or '')[:8]}")
+                g = g2
+            else:
+                raise RuntimeError(f"[GualaLoom] S3 restore loaded but _load_successful=False")
+        except Exception as _r_err:
+            raise RuntimeError(
+                f"[GualaLoom] State load failed and S3 restore failed — "
+                f"refusing to boot blank. Load errors: {errs}. "
+                f"Restore error: {_r_err}"
+            ) from _r_err
 
     # P0: Identity guard — if EFS state was overwritten by a blank genesis
     # (e.g. from the _gl_init bug fixed in 475de3e), detect and restore from S3.
