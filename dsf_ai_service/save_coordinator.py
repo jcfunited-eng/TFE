@@ -28,6 +28,7 @@ class SaveCoordinator:
         self.s3_queue = queue.Queue(maxsize=20)
         self.last_save_tick = 0
         self.last_save_wall = 0.0
+        self.last_save_timestamp = None  # ISO wall-clock string, set on each save
         self._last_s3_enqueue_wall = 0.0
         self._lock = threading.Lock()
         self._last_s3_result = None  # GL-CMD-97: set by _s3_loop after upload
@@ -51,6 +52,7 @@ class SaveCoordinator:
                 return False
             self.last_save_tick = self.guala.tick
             self.last_save_wall = time.monotonic()
+            self.last_save_timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         try:
             self.guala.save_full_state(self.state_dir)
             if self.s3_bucket:

@@ -1736,15 +1736,25 @@ async def gualaloom_chat(msg: GLMessage):
     if cmd == "/status":
         s = _guala.introspect()
         n = s["needs"]
-        ph = _guala.persistence_health(STATE_DIR)
-        ph["last_s3_backup"] = _last_s3_backup
+        # Lightweight persistence summary — in-memory only, no EFS stat.
+        # Full EFS-based data is at /admin/persistence_health (run_in_executor).
+        import dsf_ai_service.save_coordinator as _sc_mod
+        _sc = getattr(_sc_mod, 'SAVE_COORDINATOR', None)
+        _ph_light = {
+            "last_save_tick": getattr(_sc, 'last_save_tick', 0) if _sc else getattr(_guala, '_last_save_tick', 0),
+            "last_save_timestamp": getattr(_sc, 'last_save_timestamp', None) if _sc else getattr(_guala, '_last_save_timestamp', None),
+            "last_s3_backup": _last_s3_backup,
+            "load_successful_at_boot": getattr(_guala, '_load_successful', True),
+            "guala_identity": getattr(_guala, '_guala_identity', None),
+            "schema_version": getattr(_guala, 'SCHEMA_VERSION', 'v7'),
+        }
         sec_parts = []
         for nm, sec in s["sections"].items():
             sec_parts.append(f"{nm}: {sec['modes']}m/{sec['commits']}c")
-        id_short = (ph.get("guala_identity") or "none")[:8]
+        id_short = (_ph_light.get("guala_identity") or "none")[:8]
         return {
             "response": (
-                f"id: {id_short}.. | schema: {ph.get('schema_version','?')}\n"
+                f"id: {id_short}.. | schema: {_ph_light.get('schema_version','?')}\n"
                 f"vocab: {s['vocab']} | reads: {s['reads']} | tick: {s['tick']}\n"
                 f"sections: {' | '.join(sec_parts)}\n"
                 f"atlas: {s['cross_modal_bindings']} cross-modal / {s['atlas_entries']} entries\n"
@@ -1753,12 +1763,8 @@ async def gualaloom_chat(msg: GLMessage):
                 f"pair-bond: {'on' if s['pair_bond_active'] else 'off'} | "
                 f"recoveries(lifetime): {s['suffering_events']} | "
                 f"coord: att={s['coordinator_attentions']} act={s['coordinator_actions']}\n"
-                f"persistence: save@tick={ph['last_save_tick']} "
-                f"files={'all' if not ph['files_missing'] else 'MISSING:' + ','.join(ph['files_missing'])} "
-                f"boot={'ok' if ph['load_successful_at_boot'] else 'FAILED'} "
-                f"integrity={'ok' if not ph.get('integrity_errors') else 'ERRORS'}\n"
-                f"snapshots: {ph.get('snapshots_available', 0)} | "
-                f"events: {ph.get('events_log', {}).get('current_file_size_bytes', 0)}B\n"
+                f"persistence: save@tick={_ph_light['last_save_tick']} "
+                f"boot={'ok' if _ph_light['load_successful_at_boot'] else 'FAILED'}\n"
                 f"deep: {s.get('deep_atlas', {}).get('n_entries', 0)} entries "
                 f"str={s.get('deep_atlas', {}).get('total_strength', 0)} "
                 f"surv={s.get('deep_atlas', {}).get('promotions_survival', 0)} "
@@ -1768,7 +1774,7 @@ async def gualaloom_chat(msg: GLMessage):
             "motifs": s["vocab"],
             "vocab": s["vocab"],
             "asleep": _guala.is_asleep,
-            "persistence_health": ph,
+            "persistence_health": _ph_light,
             "atlas_health": s.get("atlas_health", {}),
             "presence": s.get("presence", {}),
             "pair_bond": s.get("pair_bond", {}),
@@ -2772,6 +2778,21 @@ async def admin_stop_cascade_monitor():
         return await client.call("stop_cascade_monitor")
     return JSONResponse({"error": "cascade monitor requires remote substrate mode"},
                         status_code=501)
+
+
+@app.get("/api/v1/gualaloom/admin/persistence_health", dependencies=[Depends(_api_key_dep)])
+async def admin_persistence_health():
+    """Full EFS-based persistence health. Uses executor so EFS stat() doesn't block
+    the event loop. May take 5-30s under NFS latency — poll infrequently.
+    For lightweight save-tick summary, read persistence_health from /status instead."""
+    if _guala is None:
+        raise HTTPException(status_code=503, detail="substrate loading")
+    import asyncio as _aio
+    loop = _aio.get_event_loop()
+    result = await loop.run_in_executor(
+        None, lambda: _guala.persistence_health(STATE_DIR))
+    result["last_s3_backup"] = _last_s3_backup
+    return result
 
 
 # GL-BRIEF-CHITRACE: read-only chi-geometry readout
