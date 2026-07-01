@@ -646,7 +646,7 @@ function renderPictures(pics){
 }
 
 // --- Messages ---
-function addMsg(text,cls){const d=document.createElement('div');d.className='msg '+cls;d.textContent=text;transcript.appendChild(d);transcript.scrollTop=transcript.scrollHeight}
+function addMsg(text,cls){const d=document.createElement('div');d.className='msg '+cls;d.textContent=text;transcript.appendChild(d);transcript.scrollTop=transcript.scrollHeight;return d;}
 
 // GL-CMD-TEACHER-CORRECTION-UI: emission message with 👍/👎 buttons
 function addEmissionMsg(text,emissionId){
@@ -803,32 +803,20 @@ function toggleBrainMode(){
 
 // GL-CMD-UI-HONESTY-38 §2.8: _formatOrganBrainResponse deleted (zero callers after §2.7).
 
-// 60-O: read SSE converse stream from POST /api/v1/gualaloom
-// Returns the 'complete' event payload (same shape as old r.json()).
-async function _readConverseSSE(response){
-  const reader=response.body.getReader();
-  const dec=new TextDecoder();
-  let buf='';
-  try{
-    while(true){
-      const{value,done}=await reader.read();
-      if(done)break;
-      buf+=dec.decode(value,{stream:true});
-      const parts=buf.split('\n\n');
-      buf=parts.pop()||'';
-      for(const part of parts){
-        for(const line of part.split('\n')){
-          if(line.startsWith('data: ')){
-            try{
-              const ev=JSON.parse(line.slice(6));
-              if(ev.status==='complete'||ev.status==='error')return ev;
-            }catch(e){}
-          }
-        }
-      }
-    }
-  }finally{reader.cancel().catch(()=>{})}
-  return{};
+// GL-CMD-CONVERSE-TASK-PATTERN-62: poll /api/v1/gualaloom/task/{task_id}
+// Returns the 'complete' or 'error' payload. Replaces deleted _readConverseSSE.
+async function _pollConverseTask(pollUrl, retryAfterMs){
+  retryAfterMs=retryAfterMs||500;
+  const maxWait=90000;const start=Date.now();
+  while(Date.now()-start<maxWait){
+    await new Promise(r=>setTimeout(r,retryAfterMs));
+    try{
+      const r=await fetchT(`${API}${pollUrl}`,{},5000);
+      const d=await r.json();
+      if(d.status==='complete'||d.status==='error')return d;
+    }catch(e){}
+  }
+  return{status:'error',response:'(converse timed out after 90s)'};
 }
 
 let _sendingMsg=false;
@@ -843,17 +831,23 @@ async function sendMsg(){
       const d=await r.json();addMsg(d.response||JSON.stringify(d),'system');
       if(d.pictures)renderPictures(d.pictures);
     }else{
-      // GL-CMD-VOICE-PATH-CONSOLIDATION-37: brain-mode branch removed.
-      // 60-O: converse is now SSE — substrate response arrives when settling commits.
-      const r=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})});
-      if(r.status===503||r.status===500){handleNotReady('converse')}
-      else{
-        const d=await _readConverseSSE(r);
+      // GL-CMD-CONVERSE-TASK-PATTERN-62: 202+poll replaces SSE
+      const startR=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})});
+      if(startR.status===503||startR.status===500){handleNotReady('converse');}
+      else if(startR.status===202){
+        const start=await startR.json();
+        const phEl=addMsg('(settling...)', 'system');
+        const d=await _pollConverseTask(start.poll_url, start.retry_after_ms||500);
+        if(phEl&&phEl.parentNode)phEl.parentNode.removeChild(phEl);
         const resp=d.response||'...';
-        if(resp&&resp!=='...'&&resp!=='substrate unreachable — try again in a moment'){
+        if(resp&&resp!=='...'&&resp!=='(converse timed out after 90s)'&&resp!=='substrate unreachable — try again in a moment'){
           addEmissionMsg(resp,d.emission_id);gualaSpeak(resp);
-        }else{addMsg('(she is quiet)','system')}
+        }else{addMsg(resp==='(converse timed out after 90s)'?'(still settling — check /events)':'(she is quiet)','system');}
         if(d.pictures)renderPictures(d.pictures);
+      }else{
+        const d=await startR.json().catch(()=>({}));
+        const resp=d.response||'...';
+        if(resp&&resp!=='...')addMsg(resp,'system');
       }
     }
   }catch(e){
