@@ -3137,8 +3137,14 @@ class Guala:
             sys_.sections["listen"].psi = normalize(listen_drive)
 
         # Build NMDA context functions using candidate metadata
-        # source_match: fires when joe_voice candidates present and input is from joe
-        joe_candidates_present = any(c["source"] == "joe_voice" for c in candidates)
+        # source_match: fires when pair-bond candidates present and input is from pair-bond source
+        # GL-CMD-NMDA-SOURCE-MATCH-75: text converse sets source="joe"/"wc"/"c1";
+        # speech transcription sets "joe_voice". All four are pair-bond sources.
+        # Prior code checked only "joe_voice" — always False for typed input.
+        joe_candidates_present = any(
+            c["source"] in ("joe", "joe_voice", "wc", "c1")
+            for c in candidates
+        )
 
         def source_match_fn(s):
             return joe_candidates_present and input_source in ("joe", "joe_voice", "wc", "c1")
