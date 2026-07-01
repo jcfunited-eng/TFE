@@ -250,32 +250,9 @@ async def guala_backup() -> dict:
         return {"error": str(type(e).__name__), "detail": str(e)[:500]}
 
 
-@mcp.tool()
-async def guala_start_cascade_monitor(
-    baseline_n_bindings: int = 0,
-    baseline_strength: float = 0.0,
-    baseline_saturated: int = 0,
-    interval_s: int = 10,
-) -> dict:
-    """Start cascade auto-trigger. Auto-repauses if atlas drops past thresholds."""
-    async with httpx.AsyncClient(timeout=10) as client:
-        r = await client.post(f"{SUBSTRATE_URL}/api/v1/gualaloom/admin/start_cascade_monitor",
-            json={"baseline_n_bindings": baseline_n_bindings,
-                  "baseline_strength": baseline_strength,
-                  "baseline_saturated": baseline_saturated,
-                  "interval_s": interval_s},
-            headers=_headers())
-        r.raise_for_status()
-        return r.json()
-
-
-@mcp.tool()
-async def guala_stop_cascade_monitor() -> dict:
-    """Stop cascade auto-trigger monitor."""
-    async with httpx.AsyncClient(timeout=10) as client:
-        r = await client.post(f"{SUBSTRATE_URL}/api/v1/gualaloom/admin/stop_cascade_monitor", headers=_headers())
-        r.raise_for_status()
-        return r.json()
+# Cascade monitor tools removed 2026-07-01: feature was disabled during
+# -61 process collapse. Re-add if cascade monitoring is re-implemented
+# in the embedded substrate architecture.
 
 
 @mcp.tool()

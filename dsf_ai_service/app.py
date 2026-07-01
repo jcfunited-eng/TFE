@@ -2490,31 +2490,32 @@ async def admin_force_dream():
     _gl_init()
     if _guala is None:
         return JSONResponse({"error": "not ready"}, status_code=503)
-    # End current activity and force sleep
+    # Fix B: dream cycle takes 60-120s; API GW has 30s timeout.
+    # Return 202 immediately, run dream in background. Poll /status for activity change.
+    import asyncio as _aio
+    start_tick = _guala.tick
     _guala._force_next_activity = ("SLEEPING", None)
     if _guala._current_activity:
         _guala._end_activity()
-    _guala._log_substrate_event("force_dream_initiated", tick=_guala.tick)
-    print(f"[UNPAUSE] Force dream initiated at tick {_guala.tick}")
-    # Wait for the dream to complete (poll events for up to 60s)
-    import asyncio
-    start_tick = _guala.tick
-    for _ in range(120):  # 120 × 0.5s = 60s
-        await asyncio.sleep(0.5)
-        activity = _guala._current_activity
-        if activity and activity.kind == "DREAMING":
-            continue  # still dreaming
-        if activity is None or activity.kind != "SLEEPING":
-            # Dream ended
-            events = _guala.get_recent_events(since_tick=start_tick, limit=50)
-            dream_events = [e for e in events if e.get("kind") in
-                           ("dream_began", "dream_artifact", "dream_promotion",
-                            "deep_atlas_promotion")]
-            return {"force_dream": "complete", "tick": _guala.tick,
-                    "dream_events": dream_events[-10:],
-                    "n_events": len(dream_events)}
-    return {"force_dream": "timeout", "tick": _guala.tick,
-            "current_activity": _guala._current_activity.kind if _guala._current_activity else None}
+    _guala._log_substrate_event("force_dream_initiated", tick=start_tick)
+    print(f"[UNPAUSE] Force dream initiated at tick {start_tick}")
+
+    async def _bg_dream():
+        for _ in range(240):  # 240 × 0.5s = 120s
+            await _aio.sleep(0.5)
+            activity = _guala._current_activity
+            if activity and activity.kind == "DREAMING":
+                continue
+            if activity is None or (activity.kind not in ("SLEEPING", "DREAMING")):
+                print(f"[UNPAUSE] Dream cycle complete at tick {_guala.tick}")
+                return
+        print(f"[UNPAUSE] Dream cycle timeout at tick {_guala.tick}")
+    _aio.create_task(_bg_dream())
+    return JSONResponse(
+        status_code=202,
+        content={"force_dream": "accepted", "start_tick": start_tick,
+                 "message": "Dream cycle initiated. Poll /status current_activity for completion."},
+    )
 
 
 @app.post("/api/v1/gualaloom/admin/repause", dependencies=[Depends(_api_key_dep)])
@@ -2595,6 +2596,9 @@ async def admin_backup():
     _gl_init()
     if _guala is None:
         return JSONResponse({"error": "not ready"}, status_code=503)
+    # Fix B: embedded mode uses same 202+background pattern as remote mode.
+    # save_full_state + S3 upload takes 30-120s; API GW has 30s timeout.
+    # Fire-and-forget: return 202 immediately, backup runs in background thread.
     import asyncio as _aio, boto3 as _boto3
     loop = _aio.get_event_loop()
     def _do_backup():
@@ -2645,10 +2649,18 @@ async def admin_backup():
               f"{live_entries} entries confirmed")
         return {"backup": "verified", "s3_prefix": prefix, "files_uploaded": uploaded,
                 "n_entries_verified": live_entries, "duration_s": round(dt, 1)}
-    result = await loop.run_in_executor(None, _do_backup)
-    if "error" in result:
-        return JSONResponse(result, status_code=500)
-    return result
+    # Launch backup in background thread, return 202 immediately.
+    # Caller polls /status for last_s3_backup to confirm completion.
+    async def _bg_backup():
+        try:
+            await loop.run_in_executor(None, _do_backup)
+        except Exception as e:
+            print(f"[backup] embedded backup error: {e}")
+    _aio.create_task(_bg_backup())
+    return JSONResponse(
+        status_code=202,
+        content={"backup": "accepted", "message": "EFS+S3 backup started. Poll /status for last_s3_backup."},
+    )
 
 
 @app.post("/api/v1/gualaloom/admin/backfill_picture_titles", dependencies=[Depends(_api_key_dep)])
