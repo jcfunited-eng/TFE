@@ -1814,14 +1814,23 @@ async def gualaloom_chat(msg: GLMessage):
         if wake_source not in {"joe", "wc", "c1"}:
             return {"response": f"wake: unknown source '{wake_source}'", "motifs": 0}
         result = _guala.coordinator.wake(wake_source, _guala, _guala.needs, _guala.atlas)
-        _guala.log_event(STATE_DIR, "wake", source=wake_source)
+        # GL-CMD-73: log_event does EFS write blocking async loop 5-31s under load.
+        # Coordinator.wake() has already flipped presence; log is diagnostic bookkeeping.
+        import asyncio as _aio
+        _aio.get_event_loop().run_in_executor(
+            None, lambda: _guala.log_event(STATE_DIR, "wake", source=wake_source)
+        )
         return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
 
     # ── /rest — substrate-physical rest event ──
     if cmd == "/rest":
         rest_source = msg.text.strip().lower() if msg.text else "joe"
         result = _guala.coordinator.rest(rest_source, _guala, reason="voluntary")
-        _guala.log_event(STATE_DIR, "rest", source=rest_source)
+        # GL-CMD-73: same executor-wrap as /wake
+        import asyncio as _aio
+        _aio.get_event_loop().run_in_executor(
+            None, lambda: _guala.log_event(STATE_DIR, "rest", source=rest_source)
+        )
         return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
 
     # ── /diag — reach distribution + strength histogram for wC ──

@@ -425,7 +425,7 @@ ACTIVITY_TICK_BUDGETS = {
     "ATTENDING": 1000, "ATTENDING_VISUAL": 2000, "ATTENDING_AUDIO": 2000,
     "ATTENDING_VIDEO": 4000, "EMITTING": 100, "IDLE": 500,
     # DAYDREAMING removed GL-CMD-DAYDREAM-PARALLEL-42: now a background thread, not an activity
-    "REST": 1000,          # GL-CMD-C4-SLEEP-CHOICE: awake-quiet, no consolidation
+    # GL-CMD-REST-RETIRE-73: REST removed. _atick_rest kept for persisted-state tail-out only.
 }
 
 ACTIVITY_NOVELTY_PAYOFF = {
@@ -436,8 +436,7 @@ ACTIVITY_NOVELTY_PAYOFF = {
     "ATTENDING_AUDIO_REPEAT": 0.1, "ATTENDING_VIDEO_NEW": 0.9,
     "ATTENDING_VIDEO_REPEAT": 0.15, "EMITTING": 0.0, "IDLE": -0.05,
     # DAYDREAMING removed (-42): now a background thread
-                           # PENALIZES when novelty > target (common during waking)
-    "REST": 0.0,           # neutral novelty (not a novel state)
+    # GL-CMD-REST-RETIRE-73: REST removed from payoff tables
 }
 
 ACTIVITY_STABILITY_PAYOFF = {
@@ -447,18 +446,14 @@ ACTIVITY_STABILITY_PAYOFF = {
     "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
     "ATTENDING_VIDEO": 0.0, "EMITTING": -0.1, "IDLE": 0.1,
     # DAYDREAMING removed (-42): now a background thread
-    # REST: w1*stab - w2*dream_pressure - w3*(nov+conn) per C.4 spec
-    # Coefficients chosen: w1=0.15 (moderate stab gain), w2=0.2 (dream pressure
-    # suppression; high pressure → sleep), w3=0.05 (mild engagement suppression)
-    # These are added at score-time in _select_next_activity; table stores base=0
-    "REST": 0.05,          # small stability payoff; wins over IDLE when stab depleted
+    # GL-CMD-REST-RETIRE-73: REST removed from payoff tables
 }
 
 ACTIVITY_CONNECTION_PAYOFF = {
     "READING": 0.0, "PLAYING": 0.0, "SLEEPING": 0.0, "DREAMING": 0.0,
     "ATTENDING": 0.0, "ATTENDING_VISUAL": 0.0, "ATTENDING_AUDIO": 0.0,
     "ATTENDING_VIDEO": 0.0, "EMITTING": 0.3, "IDLE": -0.05,
-    "REST": 0.0,
+    # GL-CMD-REST-RETIRE-73: REST removed from payoff tables
 }
 
 EMISSION_COHESION_THRESHOLD = 0.65
@@ -4146,8 +4141,8 @@ class Guala:
     def _candidate_activities(self):
         """All activities currently possible as (kind, target) tuples."""
         # GL-CMD-DAYDREAM-PARALLEL-42: DAYDREAMING removed from scheduler (now background thread)
-        candidates = [("IDLE", None), ("PLAYING", None), ("SLEEPING", None),
-                      ("REST", None)]          # GL-CMD-C4: awake-quiet with dream_pressure
+        # GL-CMD-REST-RETIRE-73: REST removed. IDLE remains as the low-engagement waking option.
+        candidates = [("IDLE", None), ("PLAYING", None), ("SLEEPING", None)]
         for cid in self._corpora:
             candidates.append(("READING", cid))
         for sid in self._sensory_items:
@@ -4237,11 +4232,6 @@ class Guala:
                 score += 0.15  # strong boost: she needs to sleep
             else:
                 score += dp * 0.05  # proportional mild boost
-        elif kind == "REST":
-            # REST_score += w1*stab_need - w2*dream_pressure - w3*(nov+conn)
-            stab_need = sd.get("stability", 0.0)
-            nov_conn = abs(sd.get("novelty", 0.0)) + abs(sd.get("connection", 0.0))
-            score += 0.15 * stab_need - 0.2 * dp - 0.05 * nov_conn
         elif kind in ("EMITTING", "ATTENDING_VISUAL", "ATTENDING_AUDIO"):
             # Mild pressure buildup during active waking suppresses these slightly
             if dp > 0.5:
@@ -4578,16 +4568,18 @@ class Guala:
     # Daydream is now a background thread (start_daydream_loop), not an activity.
 
     def _atick_rest(self, a):
-        """GL-CMD-C4-SLEEP-CHOICE: REST — awake-quiet. No consolidation, no
-        attendance, no emission. Just substrate ticking (decay, save schedule).
-        dream_pressure accumulates slowly. Emits rest_begin once at activity
-        start (via activity_started event from _start_activity)."""
-        # Gentle stability gain (half the rate of DAYDREAMING)
+        """GL-CMD-REST-RETIRE-73: REST retired as an activity kind. This handler
+        remains only to safely tick out any REST activity persisted from before
+        the retirement deploy. Logs once at first tick as migration notice.
+        After budget expires, re-selection picks from the REST-free candidate pool.
+        """
+        if not getattr(self, "_rest_migration_logged", False):
+            self._log_substrate_event("rest_retire_migration",
+                                      persisted_activity="REST",
+                                      ticks_remaining=a.expected_end_tick - self.tick)
+            self._rest_migration_logged = True
+        # Original behavior preserved (stab boost + dp decompress) for the tail-out
         self.needs.stability = saturate(self.needs.stability, 0.0003)
-        # GL-CMD-SLEEP-RATE-68: REST decompresses pressure (was accumulating).
-        # Substrate-physical: quiet rest is lightweight consolidation without
-        # full sleep. If she genuinely rests, she should recover, not
-        # accumulate more sleep debt.
         self.needs.dream_pressure = max(0.0, self.needs.dream_pressure - 0.00003)
         assert not self.is_asleep, "REST must not set is_asleep"
 
@@ -5208,7 +5200,13 @@ class Guala:
     # ------------------------------------------------------------------
 
     def _open_response_window(self, emitter, context_anchor_chis, source_context=None):
-        """Open a response window. context_anchor_chis = list of chi-keys."""
+        """Open a response window. context_anchor_chis = list of chi-keys.
+
+        GL-CMD-REST-RETIRE-ORIENT-73: contact from a pair-bond source (joe/wc/c1)
+        activates presence and triggers the orient reflex — biological analog to
+        an infant turning toward a caregiver's voice regardless of current state.
+        Contact IS presence. Contact IS the interrupt.
+        """
         window = {
             "emitter": emitter,
             "context_anchor_chis": list(context_anchor_chis),
@@ -5222,6 +5220,15 @@ class Guala:
                                   emitter=emitter,
                                   context_anchor_chis=context_anchor_chis[:5],
                                   expires_at=window["expires_at_tick"])
+        # Orient reflex + emergent presence for pair-bond sources
+        if emitter in PAIR_BOND_SOURCES:
+            # Emergent presence: contact activates presence without needing wake() API
+            if not self.coordinator._presence.get(emitter, False):
+                self.coordinator.wake(emitter, self, self.needs, self.atlas)
+            # Orient reflex: interrupt current activity to attempt emission response.
+            # EMISSION_COOLDOWN_TICKS throttles this so continuous conversation
+            # doesn't produce a stream of interrupts.
+            self._check_emission_trigger("presence_orient")
 
     def _prune_response_windows(self):
         """Prune expired windows. Called from _autonomy_tick."""
