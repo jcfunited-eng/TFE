@@ -2801,6 +2801,42 @@ async def admin_stop_cascade_monitor():
                         status_code=501)
 
 
+@app.post("/api/v1/gualaloom/admin/restore_from_s3_prefix", dependencies=[Depends(_api_key_dep)])
+async def admin_restore_from_s3_prefix(request: Request):
+    """Restore state files from a specific S3 backup prefix.
+    Body: {"prefix": "auto/2026-06-29_23-58-17_activity_ended/"}
+    Downloads all files (including pictures/) to STATE_DIR.
+    Requires substrate restart to load restored state.
+    """
+    body = await request.json()
+    prefix = body.get("prefix", "").strip("/") + "/"
+    if not prefix or prefix == "/":
+        raise HTTPException(400, "prefix required")
+    import boto3, asyncio as _aio
+    def _do_restore():
+        s3 = boto3.client("s3", region_name="us-east-1")
+        bucket = "dsf-ai-site-backups"
+        full_prefix = f"guala/{prefix}"
+        paginator = s3.get_paginator("list_objects_v2")
+        pages = paginator.paginate(Bucket=bucket, Prefix=full_prefix)
+        files_restored = []
+        for page in pages:
+            for obj in page.get("Contents", []):
+                key = obj["Key"]
+                rel = key[len(full_prefix):]
+                if not rel:
+                    continue
+                local_path = os.path.join(STATE_DIR, rel)
+                os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                s3.download_file(bucket, key, local_path)
+                files_restored.append(rel)
+        return files_restored
+    loop = _aio.get_event_loop()
+    restored = await loop.run_in_executor(None, _do_restore)
+    return {"restored": len(restored), "files": restored,
+            "note": "restart substrate to load restored state"}
+
+
 @app.get("/api/v1/gualaloom/admin/persistence_health", dependencies=[Depends(_api_key_dep)])
 async def admin_persistence_health():
     """Full EFS-based persistence health. Uses executor so EFS stat() doesn't block
