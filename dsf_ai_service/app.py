@@ -67,7 +67,81 @@ from dsf_ai_service.cff_discovery import run_discovery, verify_candidate
 # ═══════════════════════════════════════════════════════════════
 SUBSTRATE_MODE = os.environ.get("SUBSTRATE_MODE", "embedded")  # "embedded" or "remote"
 _substrate_client = None
-_converse_client = None  # dedicated client for SSE converse so status/other ops aren't blocked
+_converse_client = None  # kept for API compat; no longer used for SSE
+
+# ── GL-CMD-CONVERSE-TASK-PATTERN-62: 202 + poll task registry ─────────────────
+from typing import Dict, Any
+from uuid import uuid4
+_converse_tasks: Dict[str, Dict[str, Any]] = {}
+_TASK_TTL_SECONDS = 300  # 5 min after complete before GC
+
+
+def _prune_stale_tasks():
+    """Remove completed tasks older than TTL. Called opportunistically."""
+    now = time.time()
+    to_delete = [
+        tid for tid, task in _converse_tasks.items()
+        if task["status"] in ("complete", "error")
+        and (now - task.get("completed_at", now)) > _TASK_TTL_SECONDS
+    ]
+    for tid in to_delete:
+        del _converse_tasks[tid]
+
+
+async def _run_converse(task_id: str, text: str, source: str, emission_mode=None):
+    """Run substrate converse in executor, write result to task registry."""
+    task = _converse_tasks.get(task_id)
+    if task is None:
+        return
+    import asyncio as _aio
+    loop = _aio.get_event_loop()
+    task["status"] = "settling"
+    task["phase"] = "processing"
+    try:
+        if _is_remote():
+            client = _get_substrate_client()
+            result = await client.call(
+                "gualaloom_post",
+                command="",
+                text=text,
+                source=source,
+                emission_mode=emission_mode,
+                timeout=300.0,
+            )
+            response = result.get("response", "") if isinstance(result, dict) else str(result)
+            response_source = result.get("response_source", "converse") if isinstance(result, dict) else "converse"
+            motifs = result.get("motifs", 0) if isinstance(result, dict) else 0
+        else:
+            if _guala is None:
+                raise RuntimeError("guala_not_ready")
+            result = await loop.run_in_executor(
+                None, lambda: _guala.converse(text, source=source)
+            )
+            response = result if isinstance(result, str) else str(result)
+            response_source = getattr(_guala, "_last_response_source", "converse")
+            motifs = len(_guala.vocab)
+
+        # EFS log_event is fire-and-forget
+        if _guala is not None:
+            import threading as _th
+            _th.Thread(
+                target=lambda: _guala.log_event(
+                    STATE_DIR, "source_interaction",
+                    source=source, words_in=len(text.split()),
+                    source_count=_guala.source_history.get(source, 0)),
+                daemon=True, name="converse-log"
+            ).start()
+
+        task["status"] = "complete"
+        task["response"] = response
+        task["response_source"] = response_source
+        task["motifs"] = motifs
+        task["completed_tick"] = _guala.tick if _guala else 0
+        task["completed_at"] = time.time()
+    except Exception as _e:
+        task["status"] = "error"
+        task["error"] = str(_e)[:500]
+        task["completed_at"] = time.time()
 
 def _get_substrate_client():
     """Lazy-init the substrate client for remote mode."""
@@ -1526,48 +1600,44 @@ async def gualaloom_chat(msg: GLMessage):
     # /status response from the substrate (see substrate_runner._cmd_status).
     # There is ONE brain: the substrate's embedded 8-organ atlas.
 
-    # GL-ARCH-FRONTEND-SPLIT: remote mode forwards to substrate process
+    # GL-CMD-CONVERSE-TASK-PATTERN-62: 202 + poll for plain-text converse.
+    # SSE retired — it was theater (no incremental output from _guala.converse()).
+    is_converse = not (msg.command or "").strip() and bool((msg.text or "").strip())
+    if is_converse:
+        import asyncio as _aio
+        _prune_stale_tasks()
+        tick = _guala.tick if _guala else 0
+        task_id = f"cv_{tick}_{uuid4().hex[:8]}"
+        _converse_tasks[task_id] = {
+            "task_id": task_id,
+            "status": "queued",
+            "phase": None,
+            "response": None,
+            "response_source": None,
+            "motifs": 0,
+            "started_tick": tick,
+            "started_at": time.time(),
+            "source": msg.source or "joe",
+        }
+        _aio.create_task(_run_converse(
+            task_id, msg.text or "", msg.source or "joe", msg.emission_mode))
+        return JSONResponse(
+            status_code=202,
+            content={
+                "task_id": task_id,
+                "status": "accepted",
+                "poll_url": f"/api/v1/gualaloom/task/{task_id}",
+                "started_tick": tick,
+                "retry_after_ms": 500,
+            }
+        )
+
+    # Non-converse commands: stay synchronous
     if _is_remote():
-        import asyncio as _aio, json as _j
         is_status = (msg.command or "").strip() == "/status"
-        is_converse = not (msg.command or "").strip()
-
-        if is_converse:
-            # 60-O: SSE streaming — substrate response arrives when settling commits,
-            # not when a human-pacing clock fires. Dedicated client keeps status
-            # polling unblocked during long converse calls.
-            _converse_cli = _get_converse_client()
-
-            async def _event_stream():
-                yield f"data: {_j.dumps({'status': 'received'})}\n\n"
-                try:
-                    task = _aio.ensure_future(
-                        _converse_cli.call("gualaloom_post",
-                                           command="",
-                                           text=msg.text or "",
-                                           source=msg.source or "joe",
-                                           emission_mode=msg.emission_mode,
-                                           timeout=300.0))
-                    while not task.done():
-                        try:
-                            await _aio.wait_for(_aio.shield(task), timeout=3.0)
-                        except _aio.TimeoutError:
-                            yield f"data: {_j.dumps({'status': 'processing', 'phase': 'settling'})}\n\n"
-                    result = task.result()
-                    yield f"data: {_j.dumps({'status': 'complete', **result})}\n\n"
-                except Exception:
-                    _err = _j.dumps({'status': 'error', 'response': 'substrate unreachable — try again in a moment', 'motifs': 0})
-                    yield f"data: {_err}\n\n"
-
-            return StreamingResponse(
-                _event_stream(), media_type="text/event-stream",
-                headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
-
         client = _get_substrate_client()
         try:
             # GL-FIX-ALB-TIMEOUT: 45s for status (curriculum pause windows 30-50s).
-            # Other commands keep 25s — they have real deadline meaning.
-            # Cached fallback (60s) handles truly-stuck substrate.
             timeout = 45.0 if is_status else 25.0
             result = await client.call("gualaloom_post",
                                        command=msg.command or "",
@@ -1575,13 +1645,11 @@ async def gualaloom_chat(msg: GLMessage):
                                        source=msg.source or "joe",
                                        emission_mode=msg.emission_mode,
                                        timeout=timeout)
-            # Cache status responses for fast fallback
             if is_status and result.get("vocab"):
                 app.state._last_status = result
                 app.state._last_status_time = time.time()
             return result
         except (ConnectionError, Exception):
-            # Return cached status if available (< 60s old)
             if (is_status
                     and hasattr(app.state, '_last_status')
                     and time.time() - getattr(app.state, '_last_status_time', 0) < 60):
@@ -2266,64 +2334,69 @@ async def gualaloom_chat(msg: GLMessage):
             return result
         return await _loop.run_in_executor(None, _decode_sound)
 
-    # ── Normal conversation — v5 substrate responds ──
-    text = msg.text.strip()
-    if not text:
-        return {"response": "...", "motifs": _guala.introspect()["vocab"]}
+    # ── Normal conversation — now handled by 202 + task poll path above ──
+    # This branch is only reached for text messages if _is_converse was False
+    # (e.g., empty text with no command). Return "..." sentinel.
+    if not (msg.text or "").strip():
+        return {"response": "...", "motifs": _guala.introspect()["vocab"] if _guala else 0}
 
-    # Source detection: from message field or default to "joe"
-    source = msg.source if msg.source in {"joe", "wc", "c1"} else "joe"
-
-    # GL-CMD-PROCESS-COLLAPSE-61: run converse in executor — _guala.converse() acquires
-    # _guala.lock which can block 30-50s during curriculum pauses. Must NOT run on
-    # the asyncio event loop thread (would freeze all other HTTP handlers).
+    # Fallback: should not reach here for non-empty text (is_converse catches it above).
+    # Belt-and-suspenders: route through task pattern if somehow we arrive here.
     import asyncio as _aio
-    _loop = _aio.get_event_loop()
-    response = await _loop.run_in_executor(
-        None, lambda: _guala.converse(text, source=source)
-    )
-    _exchange_count += 1
+    _prune_stale_tasks()
+    tick = _guala.tick if _guala else 0
+    task_id = f"cv_{tick}_{uuid4().hex[:8]}_fb"
+    source = msg.source if msg.source in {"joe", "wc", "c1"} else "joe"
+    _converse_tasks[task_id] = {
+        "task_id": task_id, "status": "queued", "phase": None,
+        "response": None, "response_source": None, "motifs": 0,
+        "started_tick": tick, "started_at": time.time(), "source": source,
+    }
+    _aio.create_task(_run_converse(task_id, msg.text or "", source, msg.emission_mode))
+    return JSONResponse(status_code=202, content={
+        "task_id": task_id, "status": "accepted",
+        "poll_url": f"/api/v1/gualaloom/task/{task_id}",
+        "started_tick": tick, "retry_after_ms": 500,
+    })
 
-    # Event log — fire and forget in background thread (EFS write, don't block)
-    import threading as _th
-    _th.Thread(
-        target=lambda: _guala.log_event(
-            STATE_DIR, "source_interaction",
-            source=source, words_in=len(text.split()),
-            source_count=_guala.source_history.get(source, 0)),
-        daemon=True, name="converse-log"
-    ).start()
 
-    # Periodic full save (in executor — never block the event loop)
-    if _exchange_count % _persist_every == 0:
-        import asyncio as _aio
-        _loop = _aio.get_event_loop()
-        def _save_1710():
-            t0 = time.time()
-            _guala.save_full_state(STATE_DIR)
-            dt = time.time() - t0
-            print(f"[save-1710] {dt:.2f}s")
-        _loop.run_in_executor(None, _save_1710)
-
-    # C2: refs-not-base64 — return picture refs, not inline data
-    recalled_pics = getattr(_guala, '_last_recalled_pictures', [])
-    picture_refs = []
-    seen_ids = set()
-    for motif, item_id in recalled_pics:
-        if item_id in seen_ids:
-            continue
-        pic = _guala._pictures.get(item_id)
-        if pic is None:
-            continue
-        seen_ids.add(item_id)
-        picture_refs.append({"item_id": item_id, "title": pic.title})
-        if len(picture_refs) >= 4:
-            break
-
-    result = {"response": response or "...", "motifs": _guala.introspect()["vocab"]}
-    if picture_refs:
-        result["pictures"] = picture_refs
-    return result
+# GL-CMD-CONVERSE-TASK-PATTERN-62: poll endpoint for converse tasks
+@app.get("/api/v1/gualaloom/task/{task_id}")
+async def get_converse_task(task_id: str):
+    """Poll for converse task result. Returns progress (200) or complete (200) or not_found (404)."""
+    task = _converse_tasks.get(task_id)
+    if task is None:
+        return JSONResponse(status_code=404, content={
+            "task_id": task_id,
+            "status": "not_found",
+            "error": "task expired or not found (TTL: 5 min)",
+        })
+    if task["status"] == "complete":
+        return JSONResponse(status_code=200, content={
+            "task_id": task_id,
+            "status": "complete",
+            "response": task["response"],
+            "response_source": task["response_source"],
+            "motifs": task.get("motifs", 0),
+            "started_tick": task["started_tick"],
+            "completed_tick": task.get("completed_tick"),
+            "elapsed_ms": int((task.get("completed_at", time.time()) - task["started_at"]) * 1000),
+        })
+    if task["status"] == "error":
+        return JSONResponse(status_code=200, content={
+            "task_id": task_id,
+            "status": "error",
+            "error": task.get("error", "unknown error"),
+        })
+    return JSONResponse(status_code=200, content={
+        "task_id": task_id,
+        "status": task["status"],
+        "phase": task.get("phase"),
+        "started_tick": task["started_tick"],
+        "current_tick": _guala.tick if _guala else 0,
+        "elapsed_ms": int((time.time() - task["started_at"]) * 1000),
+        "retry_after_ms": 500,
+    })
 
 
 # C2: serve individual pictures by ID (refs-not-base64)

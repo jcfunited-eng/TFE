@@ -33,6 +33,11 @@ def _headers():
 
 
 async def _post(payload: dict) -> dict:
+    """POST to /api/v1/gualaloom. For plain-text converse (no command), uses
+    202 + poll pattern (GL-CMD-CONVERSE-TASK-PATTERN-62). Commands stay synchronous."""
+    is_converse = not (payload.get("command") or "").strip() and bool(
+        (payload.get("text") or "").strip()
+    )
     async with httpx.AsyncClient(timeout=45) as client:
         r = await client.post(
             f"{SUBSTRATE_URL}/api/v1/gualaloom",
@@ -40,7 +45,34 @@ async def _post(payload: dict) -> dict:
             headers=_headers(),
         )
         r.raise_for_status()
-        return r.json()
+        data = r.json()
+
+        # Non-converse commands return synchronously — done
+        if not is_converse:
+            return data
+
+        # Converse: poll until complete (up to 90s)
+        if data.get("status") != "accepted":
+            return data  # backward compat: non-202 response, return as-is
+
+        task_id = data.get("task_id")
+        poll_url = data.get("poll_url") or f"/api/v1/gualaloom/task/{task_id}"
+        import asyncio, time
+        deadline = time.time() + 90
+        while time.time() < deadline:
+            await asyncio.sleep(0.5)
+            try:
+                pr = await client.get(
+                    f"{SUBSTRATE_URL}{poll_url}", headers=_headers()
+                )
+                pr.raise_for_status()
+                pd = pr.json()
+                if pd.get("status") in ("complete", "error"):
+                    return pd
+            except Exception:
+                pass
+        return {"status": "timeout", "response": "converse timed out after 90s",
+                "motifs": 0}
 
 
 @mcp.tool()
