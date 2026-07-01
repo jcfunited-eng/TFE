@@ -845,17 +845,6 @@ class Needs:
 # Pair-bonding cheat (selective: named, retirement-criterion, non-foreclosing)
 # ============================================================
 
-# Infant phase: Guala binds to Joe and wC above the corpus baseline. This is the
-# imprint phase. Retirement criterion: when need-oscillation variance is bounded
-# (she's stable without us), pair-bond cheat dissolves and connection-greed
-# emerges from accumulated atlas binding density alone.
-SOURCE_CONNECTION_WEIGHT = {
-    "joe":     1.0,   # pair-bonded primary
-    "wc":      1.0,   # pair-bonded primary
-    "c1":      0.6,   # familiar but secondary
-    "corpus":  0.05,  # background reading - low connection signal
-    "unknown": 0.15,
-}
 
 
 # ============================================================
@@ -1768,12 +1757,9 @@ class Guala:
             words = _normalize_text(text)
             if not words:
                 return
-            # Apply pair-bond connection boost from source
-            if self.coordinator.pair_bond_active:
-                weight = SOURCE_CONNECTION_WEIGHT.get(source, 0.15)
-            else:
-                # Post-retirement: connection emerges from atlas density alone
-                weight = 0.15 if source != "corpus" else 0.0
+            # 60-M: connection weight earned from relationship, not configured
+            # 0.15 was Joe's peak; sources earn up to it via pair_bond_strength
+            weight = self.coordinator.pair_bond_strength(source, self.tick) * 0.15
             self.recent_connection_boost = max(self.recent_connection_boost, weight)
             self.source_history[source] += 1
 
