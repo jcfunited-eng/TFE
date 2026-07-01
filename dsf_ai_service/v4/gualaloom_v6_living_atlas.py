@@ -41,12 +41,12 @@ from collections import defaultdict, Counter
 # over long ones)
 DECAY_LAMBDA = 0.0001  # per tick (was 0.001 — too aggressive, 10x slower now)
 
-# Cohesion: base reinforcement amount on re-encounter
-BASE_REINFORCEMENT = 0.05
-
-# Salience modulation: multiplier range for reinforcement
-SALIENCE_MIN = 0.2   # cold reads — corpus during satisfied need state
-SALIENCE_MAX = 3.0   # hot moments — pair-bond + unmet need + novel input
+# 60-T: BASE_REINFORCEMENT, SALIENCE_MIN, SALIENCE_MAX dropped.
+# Salience returns raw derivation. Reinforcement scales with salience / (1 + local_density).
+# Kept as module-level names for backward import compatibility (evaluates to None-ish).
+BASE_REINFORCEMENT = None   # superseded by density-scaled impulse (60-T)
+SALIENCE_MIN = None         # clamp removed — high salience is a real signal (60-T)
+SALIENCE_MAX = None         # clamp removed — near-zero is also a real signal (60-T)
 BUNDLE_SALIENCE_BOOST = 1.5   # GL-CMD-CROSS-MODAL-STRENGTHEN B2: bundled writes get extra impulse
 
 # Forgetting threshold: bindings below this strength are pruned periodically
@@ -113,11 +113,16 @@ class LivingAtlas:
             tick = self.tick
         self.tick = max(self.tick, tick)
 
-        # Clamp salience to defined range
-        salience = max(SALIENCE_MIN, min(SALIENCE_MAX, salience))
-        impulse = BASE_REINFORCEMENT * salience
+        # 60-T: no salience clamp — raw derivation. High salience IS a real signal.
+        # Impulse = salience / (1 + local_density): empty regions amplify, saturated regions attenuate.
+        _local_strength = 0.0
+        _wa = getattr(self, '_wave_atlas', None)
+        if _wa is not None:
+            _cell = _wa.cells.get(chi_value % 262144)
+            if _cell is not None:
+                _local_strength = _cell.aggregate_strength
+        impulse = salience / (1.0 + _local_strength)
         # GL-CMD-CROSS-MODAL-STRENGTHEN B2: bundled writes earn extra impulse.
-        # Applied AFTER salience clamp so bundled entries can exceed affective ceiling.
         if bundle_id is not None:
             impulse *= BUNDLE_SALIENCE_BOOST
 

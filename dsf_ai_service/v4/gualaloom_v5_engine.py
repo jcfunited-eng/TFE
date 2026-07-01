@@ -1296,7 +1296,7 @@ class Guala:
         self._word_to_chi_index = _dd(set)  # word.lower() → {chi_k, ...}
         # QuestionBucket removed (GL-BRIEF-EMISSION-CONSTRAINT-REMOVAL Phase E)
         self.tick = 0
-        self.read_count = 0
+        self._read_count_compat = 0  # kept for load compatibility only; superseded by property
         self.dream_log = []
         self.lock = threading.RLock()
         # GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.1: separate lock for emission
@@ -1382,6 +1382,25 @@ class Guala:
         self._sensory_items = {}    # item_id -> SensoryItem
         self._sounds = {}           # item_id -> {cochlear, title, samples, sr, ...}
 
+    @property
+    def read_count(self):
+        """60-N: derived from atlas reinforcement history, not a counter.
+
+        Reads are the sum of atlas reinforcement events — the source of truth.
+        Introspection contract unchanged for consumers (status, UI, bridge).
+        O(atlas_size) — acceptable for /status cadence (~1s).
+        """
+        return sum(
+            e.get("reinforcement_count", 0)
+            for entries in self.atlas.entries.values()
+            for e in entries
+        )
+
+    @read_count.setter
+    def read_count(self, value):
+        """Load-compatibility setter — old state files write read_count; ignore it."""
+        self._read_count_compat = value  # stored but not used
+
     def _index_word_at_chi(self, section_name, motif_id, chi_value):
         """GL-CMD-RECALL-WORD-INDEX-57 §1.2: add word→chi mapping to reverse index."""
         if section_name not in self.sections:
@@ -1441,7 +1460,8 @@ class Guala:
         # 60-K: continuous pair-bond boost — scales with relationship strength
         pair_bond_boost = 1.0 + 0.2 * self.coordinator.pair_bond_strength(source, self.tick)
         salience = source_w * urgency_factor * novelty_factor * pair_bond_boost
-        return max(SALIENCE_MIN, min(SALIENCE_MAX, salience))
+        # 60-T: no clamp — salience returns raw derivation
+        return salience
 
     def _compute_surprise(self, chi_value):
         """GL-CLARITY-INVARIANCE-UNCAGE: surprise = inverse of atlas familiarity
@@ -1796,7 +1816,7 @@ class Guala:
                               episode_ref=episode_ref, presence=presence,
                               location=location, sky_state=sky_state,
                               binding_window=binding_window)
-            self.read_count += 1
+            # 60-N: read_count no longer incremented here; property derives from atlas
             self._current_episode = None
             self._prev_phase_vec = None   # 60-L: reset rotation tracking at sentence boundary
             self._negation_pending = 0    # kept for load compatibility
@@ -5303,7 +5323,7 @@ class Guala:
                 _sw = {"joe": 1.6, "wc": 1.6, "c1": 1.2,
                        "corpus": 0.5, "guala": 0.5, "unknown": 0.7}
                 _pb = 1.2 if self.coordinator._pair_bond.get(source, False) else 1.0
-                _val_delta_up = BASE_REINFORCEMENT * _sw.get(source, 0.7) * _pb
+                _val_delta_up = 0.05 * _sw.get(source, 0.7) * _pb  # 60-T: was BASE_REINFORCEMENT
                 _emission_words_set = set(w.lower() for w in emission_words)
                 ep_ref = f"correction:{emission_id}" if emission_id else None
                 for chi in emission_chis:
@@ -5360,9 +5380,9 @@ class Guala:
                 _sw_d = {"joe": 1.6, "wc": 1.6, "c1": 1.2,
                          "corpus": 0.5, "guala": 0.5, "unknown": 0.7}
                 _pb_d = 1.2 if self.coordinator._pair_bond.get(source, False) else 1.0
-                _val_delta_down = BASE_REINFORCEMENT * _sw_d.get(source, 0.7) * _pb_d
-                # Strength delta matches BASE_REINFORCEMENT (same as thumbs-up).
-                _str_delta_down = BASE_REINFORCEMENT
+                _val_delta_down = 0.05 * _sw_d.get(source, 0.7) * _pb_d  # 60-T: was BASE_REINFORCEMENT
+                # Strength delta (teaching feedback fixed at 0.05 independent of salience)
+                _str_delta_down = 0.05  # 60-T: was BASE_REINFORCEMENT
                 # Weaken emission bindings
                 for chi in emission_chis:
                     for d in range(-self.atlas.band, self.atlas.band + 1):
