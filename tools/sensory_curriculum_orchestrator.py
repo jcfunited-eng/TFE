@@ -116,11 +116,13 @@ class OrchestratorConfig:
 class SubstrateHttpClient:
     """Calls POST /api/v1/gualaloom — no bridge dependency."""
 
-    def __init__(self, alb_url: str, timeout_sec: float = 30.0):
+    def __init__(self, alb_url: str, timeout_sec: float = 30.0,
+                 status_timeout_sec: float = 8.0):
         self.endpoint = f"{alb_url}/api/v1/gualaloom"
         self.timeout_sec = timeout_sec
+        self.status_timeout_sec = status_timeout_sec  # short timeout for status polls
 
-    def _post(self, body: dict[str, Any]) -> dict[str, Any]:
+    def _post(self, body: dict[str, Any], timeout: float = None) -> dict[str, Any]:
         raw_body = json.dumps(body).encode("utf-8")
         req = urllib.request.Request(
             self.endpoint,
@@ -128,8 +130,9 @@ class SubstrateHttpClient:
             headers={"Content-Type": "application/json"},
             method="POST",
         )
+        _timeout = timeout if timeout is not None else self.timeout_sec
         try:
-            with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+            with urllib.request.urlopen(req, timeout=_timeout) as resp:
                 raw = resp.read().decode("utf-8")
         except urllib.error.URLError as e:
             raise RuntimeError(f"substrate unreachable: {e}") from e
@@ -141,7 +144,10 @@ class SubstrateHttpClient:
             raise RuntimeError(f"non-JSON response: {raw[:200]}") from e
 
     def status(self) -> dict[str, Any]:
-        return self._post({"command": "/status", "text": "", "source": "ui"})
+        # Short timeout — status is a fast read; if it blocks >8s the substrate
+        # is lock-contended. Caller treats timeout as gate-open (try delivery).
+        return self._post({"command": "/status", "text": "", "source": "ui"},
+                          timeout=self.status_timeout_sec)
 
     def give_experience(self, bundle: dict[str, Any]) -> dict[str, Any]:
         bundle_id = bundle.get("bundle_id", "curriculum")
@@ -339,28 +345,39 @@ def _run_live(cfg: OrchestratorConfig, bundles: list[dict[str, Any]],
     skipped = 0
 
     for i, bundle in enumerate(bundles):
-        # Pre-status for gating + baseline metrics
+        # Pre-status for gating + baseline metrics.
+        # Status timeout (8s) is treated as gate-open — substrate alive, just busy.
+        # Connection refused is fatal (substrate not running).
+        status_pre = None
         try:
             status_pre = client.status()
+            consecutive_unreachable = 0
         except RuntimeError as e:
-            consecutive_unreachable += 1
-            logger.write({
-                "event": "status_unreachable_pre",
-                "index": i, "bundle_id": bundle.get("bundle_id"),
-                "error": str(e), "consecutive": consecutive_unreachable,
-            })
-            print(f"[live] status unreachable (consecutive={consecutive_unreachable}): {e}",
-                  flush=True)
-            if consecutive_unreachable >= cfg.halt_on_unreachable:
-                print(f"[orchestrator] HALT — unreachable limit "
-                      f"{cfg.halt_on_unreachable}", flush=True)
-                logger.write({"event": "halt_unreachable"})
-                logger.close()
-                return 2
-            time.sleep(16.0 * (2 ** (consecutive_unreachable - 1)))
-            continue
-
-        consecutive_unreachable = 0
+            err_str = str(e)
+            if "timed out" in err_str or "TimeoutError" in err_str:
+                # Status blocked on substrate lock — treat as gate-open, try delivery
+                print(f"[live] status timeout — skipping gate, attempting delivery",
+                      flush=True)
+                logger.write({"event": "status_timeout_gate_open", "index": i,
+                              "bundle_id": bundle.get("bundle_id")})
+                status_pre = {}  # empty = no gate data, deliver anyway
+            else:
+                consecutive_unreachable += 1
+                logger.write({
+                    "event": "status_unreachable_pre",
+                    "index": i, "bundle_id": bundle.get("bundle_id"),
+                    "error": err_str, "consecutive": consecutive_unreachable,
+                })
+                print(f"[live] status unreachable (consecutive={consecutive_unreachable}): {e}",
+                      flush=True)
+                if consecutive_unreachable >= cfg.halt_on_unreachable:
+                    print(f"[orchestrator] HALT — unreachable limit "
+                          f"{cfg.halt_on_unreachable}", flush=True)
+                    logger.write({"event": "halt_unreachable"})
+                    logger.close()
+                    return 2
+                time.sleep(16.0 * (2 ** (consecutive_unreachable - 1)))
+                continue
 
         gate = evaluate_gate(status_pre, cfg.min_interval_sec)
         if not gate.deliver and not cfg.no_gate:
