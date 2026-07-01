@@ -76,8 +76,8 @@ class OrchestratorConfig:
         p.add_argument("--curriculum", default="tools/curriculum_seed.json",
                        help="Path to curriculum seed JSON")
         p.add_argument("--alb-url",
-                       default="https://dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com",
-                       help="ALB base URL (no trailing slash)")
+                       default="https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com",
+                       help="Substrate API base URL (API Gateway or ALB, no trailing slash)")
         p.add_argument("--mode", choices=("dry-run", "live"), default="dry-run",
                        help="dry-run validates only; live delivers")
         p.add_argument("--dry-run", action="store_true",
