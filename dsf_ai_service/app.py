@@ -2274,13 +2274,25 @@ async def gualaloom_chat(msg: GLMessage):
     # Source detection: from message field or default to "joe"
     source = msg.source if msg.source in {"joe", "wc", "c1"} else "joe"
 
-    response = _guala.converse(text, source=source)
+    # GL-CMD-PROCESS-COLLAPSE-61: run converse in executor — _guala.converse() acquires
+    # _guala.lock which can block 30-50s during curriculum pauses. Must NOT run on
+    # the asyncio event loop thread (would freeze all other HTTP handlers).
+    import asyncio as _aio
+    _loop = _aio.get_event_loop()
+    response = await _loop.run_in_executor(
+        None, lambda: _guala.converse(text, source=source)
+    )
     _exchange_count += 1
 
-    # Event log
-    _guala.log_event(STATE_DIR, "source_interaction",
-                     source=source, words_in=len(text.split()),
-                     source_count=_guala.source_history.get(source, 0))
+    # Event log — fire and forget in background thread (EFS write, don't block)
+    import threading as _th
+    _th.Thread(
+        target=lambda: _guala.log_event(
+            STATE_DIR, "source_interaction",
+            source=source, words_in=len(text.split()),
+            source_count=_guala.source_history.get(source, 0)),
+        daemon=True, name="converse-log"
+    ).start()
 
     # Periodic full save (in executor — never block the event loop)
     if _exchange_count % _persist_every == 0:
