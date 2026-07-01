@@ -405,9 +405,28 @@ async function killPosition(pos, exitReason, base) {
     console.log(`[SENTINEL] Market sell placed | ${ticker} | orderId=${exitOrderId}`);
   } catch (err) {
     const errMsg = String(err.message);
-    // Handle delisted/inactive assets — stop retrying, mark position blocked
+    // "not active" / 40010001: before permanently blocking, check whether Alpaca
+    // still holds the position. If it's gone (404), it closed silently (bracket
+    // TP/SL, merger, expiry) — reconcile the ledger rather than block. Only set
+    // exit_blocked when Alpaca confirms the asset is genuinely untradeable.
     if (errMsg.includes("not active") || errMsg.includes("40010001")) {
-      console.error(`[SENTINEL] ASSET INACTIVE: ${ticker} — cannot sell, marking exit_blocked`);
+      let alpacaHasPos = true;
+      try {
+        const alpacaPos = await alpacaGet(`/v2/positions/${encodeURIComponent(ticker)}`, base).catch(() => null);
+        alpacaHasPos = alpacaPos !== null && parseFloat(alpacaPos?.qty ?? "0") > 0;
+      } catch { /* non-fatal */ }
+
+      if (!alpacaHasPos) {
+        // Position already gone on Alpaca — closed silently without ledger update.
+        console.log(`[SENTINEL] ${ticker} — "not active" but Alpaca has no position. Reconciling as alpaca_silent_close.`);
+        await ledgerClose(id, `${exitReason}_alpaca_silent_close`, null).catch(e => {
+          console.error(`[SENTINEL] ${ticker} — ledgerClose after silent reconcile failed: ${e.message}`);
+        });
+        return;
+      }
+
+      // Asset is on Alpaca but genuinely untradeable — block future attempts.
+      console.error(`[SENTINEL] ASSET INACTIVE: ${ticker} — position exists but cannot sell, marking exit_blocked`);
       await pool.query(
         `UPDATE personal_trade_ledger
          SET rationale_json = rationale_json || $1::jsonb
