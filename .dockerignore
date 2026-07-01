@@ -28,6 +28,8 @@ web/tsconfig.tsbuildinfo
 !dsf_ai_service/
 !dsf_ai_service/**
 !tools/derive_sppu_weights.py
+!tools/wave_constants.py
+!tools/wave_spillover.py
 !yolov8n.onnx
 !yolov8n.onnx
 
