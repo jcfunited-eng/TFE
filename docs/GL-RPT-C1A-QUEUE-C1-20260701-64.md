@@ -5,7 +5,7 @@ Type: Queue report — three items
 Date: 2026-07-01
 Author: c1 (Claude Sonnet 4.6)
 Spec: GL-CMD-C1A-QUEUE-EVE-20260701-64
-Final SHA: 8e0b696 | Task: dsf-ai-task:419 (pending from current deploy)
+Final SHA: 8e0b696 | Tasks: dsf-ai-task:420 (64-B/64-C), dsf-ai-task:425 (current live)
 
 ---
 
