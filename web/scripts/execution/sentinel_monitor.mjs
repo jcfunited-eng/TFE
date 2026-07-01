@@ -734,21 +734,68 @@ export async function runSentinel() {
         continue;
       }
 
-      // Filled position no longer on Alpaca — bracket TP/SL closed it
+      // Filled position no longer on Alpaca — bracket TP/SL closed it.
+      // Recovery chain (Gap 2 fix):
+      //   1. Primary: use alpaca_order_id column to fetch parent order legs
+      //   2. Fallback: use rationale_json.fallback_alpaca_order_id if column is null
+      //   3. Last-resort: search Alpaca closed orders for ticker within 24h of entry
       let bracketExitPrice = null;
-      if (pos.alpaca_order_id) {
+      let recoveredOrderId = null;
+
+      const lookupOrderId = pos.alpaca_order_id
+        ?? (pos.rationale_json?.fallback_alpaca_order_id ?? null);
+
+      if (lookupOrderId) {
         try {
-          const parentOrder = await alpacaGet(`/v2/orders/${pos.alpaca_order_id}`, ALPACA_BASE);
+          const parentOrder = await alpacaGet(`/v2/orders/${lookupOrderId}`, ALPACA_BASE);
           for (const leg of (parentOrder?.legs ?? [])) {
             if (leg.filled_avg_price && leg.side === "sell") {
               bracketExitPrice = parseFloat(leg.filled_avg_price);
+              recoveredOrderId = lookupOrderId;
               break;
             }
           }
         } catch { /* non-fatal */ }
       }
-      console.log(`[SENTINEL] Bracket exit detected: ${pos.ticker} @ $${bracketExitPrice ?? "unknown"} — marking DB closed.`);
-      await ledgerClose(pos.id, "bracket_tp_sl_exit", null, bracketExitPrice).catch(ex => {
+
+      // Last-resort: search Alpaca closed orders for this ticker within 24h of entry
+      if (bracketExitPrice === null) {
+        try {
+          const entryTime = pos.entry_filled_at ?? pos.created_at;
+          if (entryTime) {
+            const after  = new Date(new Date(entryTime).getTime() - 86400_000).toISOString();
+            const until  = new Date(Date.now() + 60_000).toISOString();
+            const closed = await alpacaGet(
+              `/v2/orders?status=closed&symbols=${encodeURIComponent(pos.ticker)}&after=${after}&until=${until}&limit=50&direction=desc`,
+              ALPACA_BASE
+            );
+            if (Array.isArray(closed)) {
+              for (const o of closed) {
+                if (o.side === "sell" && o.filled_avg_price &&
+                    parseFloat(o.qty ?? "0") === pos.shares) {
+                  bracketExitPrice = parseFloat(o.filled_avg_price);
+                  recoveredOrderId = o.id;
+                  break;
+                }
+              }
+            }
+          }
+        } catch { /* non-fatal */ }
+      }
+
+      // If we recovered an order ID via fallback, promote it to the column
+      if (recoveredOrderId && !pos.alpaca_order_id) {
+        await pool.query(
+          `UPDATE personal_trade_ledger SET alpaca_order_id=$1 WHERE id=$2`,
+          [recoveredOrderId, pos.id]
+        ).catch(() => {});
+      }
+
+      const exitTag = bracketExitPrice !== null
+        ? "bracket_tp_sl_exit"
+        : "bracket_tp_sl_exit_unrecovered";
+      console.log(`[SENTINEL] Bracket exit detected: ${pos.ticker} @ $${bracketExitPrice ?? "unknown"} (${exitTag}) — marking DB closed.`);
+      await ledgerClose(pos.id, exitTag, null, bracketExitPrice).catch(ex => {
         console.error(`[SENTINEL] Ledger close failed for ${pos.ticker}:`, ex.message);
       });
       pos.status = "closed";

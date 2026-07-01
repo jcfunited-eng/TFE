@@ -59,16 +59,34 @@ async function fetchAlpacaOrder(orderId, base) {
 // ── Sync fills from Alpaca back into ledger ───────────────────────────────
 async function syncFills() {
   const base = await resolveAlpacaBase();
+  // Gap 3 fix: also process rows where alpaca_order_id is NULL but a fallback
+  // order ID was written to rationale_json by the writeOrderIdsToLedger helper.
   const res = await pool.query(
-    `SELECT id, ticker, alpaca_order_id, alpaca_stop_loss_order_id, shares, status
+    `SELECT id, ticker, alpaca_order_id, alpaca_stop_loss_order_id, shares, status,
+            rationale_json->>'fallback_alpaca_order_id' AS fallback_order_id
      FROM personal_trade_ledger
      WHERE status IN ('submitted', 'filled')
-       AND alpaca_order_id IS NOT NULL`
+       AND (
+         alpaca_order_id IS NOT NULL
+         OR (rationale_json->>'fallback_alpaca_order_id') IS NOT NULL
+       )`
   );
 
   for (const row of res.rows) {
-    const order = await fetchAlpacaOrder(row.alpaca_order_id, base);
+    // Use primary column first; fall back to rationale_json fallback
+    const effectiveOrderId = row.alpaca_order_id ?? row.fallback_order_id;
+    if (!effectiveOrderId) continue;
+
+    const order = await fetchAlpacaOrder(effectiveOrderId, base);
     if (!order) continue;
+
+    // Promote fallback to primary column so future queries hit the fast path
+    if (!row.alpaca_order_id && row.fallback_order_id) {
+      await pool.query(
+        `UPDATE personal_trade_ledger SET alpaca_order_id=$1 WHERE id=$2`,
+        [effectiveOrderId, row.id]
+      ).catch(() => {});
+    }
 
     const fields = {};
 
