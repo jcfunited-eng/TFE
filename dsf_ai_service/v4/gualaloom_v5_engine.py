@@ -6833,9 +6833,12 @@ class Guala:
         tmp = path + ".tmp"
         with open(tmp, "w") as f:
             json.dump(data, f)
-            if fsync:
-                f.flush()
-                os.fsync(f.fileno())
+            # GL-CMD-PERSIST-FIX-74: always flush before rename. On EFS (NFSv4)
+            # the kernel page cache is not flushed to the server at close() time,
+            # so os.rename finds no tmp file (ENOENT) despite it being written.
+            # f.flush() pushes Python buffer to OS; fsync() commits to NFS server.
+            f.flush()
+            os.fsync(f.fileno())
         os.rename(tmp, path)
 
     # ── Persistence health for /status ──
