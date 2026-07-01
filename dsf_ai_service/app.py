@@ -3989,9 +3989,14 @@ def _restore_from_s3(state_dir):
     import boto3
     s3 = boto3.client("s3", region_name="us-east-1")
     bucket = "dsf-ai-site-backups"
-    # Find most recent backup prefix
+    # Find most recent backup prefix — date-stamped folders only (exclude auto/, events/, etc.)
     resp = s3.list_objects_v2(Bucket=bucket, Prefix="guala/", Delimiter="/")
-    prefixes = sorted([p["Prefix"] for p in resp.get("CommonPrefixes", [])], reverse=True)
+    import re as _re
+    _date_pat = _re.compile(r"guala/\d{4}-\d{2}-\d{2}_")
+    prefixes = sorted(
+        [p["Prefix"] for p in resp.get("CommonPrefixes", [])
+         if _date_pat.match(p["Prefix"])],
+        reverse=True)
     if not prefixes:
         raise RuntimeError("No S3 backups found")
     latest = prefixes[0]
