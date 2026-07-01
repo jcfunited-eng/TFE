@@ -113,7 +113,7 @@ T3 PASS: 100x reads in 3.2ms (0.03ms/call — atlas traversal fast at dev scale)
 
 ## Deploy
 
-**Task def:** pending (deploy in progress at report time)
+**Task def:** dsf-ai-task:416
 **SHA:** `5bca1fd` (contains 65-A + 65-B + 65-C)
 
 ECS circuit breaker: `rollback:false`, `minimumHealthyPercent:0` — boot allowed
