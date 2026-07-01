@@ -90,7 +90,8 @@ class LivingAtlas:
                need_pressure=0.0, sensory_refs=None, episode_ref=None,
                source="corpus", bundle_id=None,
                presence=None, location=None, sky_state=None,
-               polarity=1):
+               polarity=1,
+               function_score=0.0, phase_vec=None, **_extra):
         """Record a new binding OR reinforce existing one if (section, motif)
         already present near this chi. Salience modulates the strength impulse.
 
@@ -234,7 +235,45 @@ class LivingAtlas:
                     "sky_state":  sky_state,
                     # GL-CMD-C1-POLARITY: structural polarity {-1, 0, +1}, default +1
                     "polarity":   polarity,
+                    # 60-C: substrate-derived function/content score (0=content, 1=function)
+                    "function_score": function_score,
                 })
+
+        # Wave atlas parallel write (WAVE_ATLAS_ENABLED=1)
+        self._parallel_wave_write(
+            section_name, motif_id, chi_value, tick,
+            salience, phase_vec, function_score,
+            dwell_ticks, arousal, valence, surprise,
+            need_pressure, sensory_refs, episode_ref,
+            source, bundle_id, presence, location,
+            sky_state, polarity,
+        )
+
+    def _parallel_wave_write(self, section_name, motif_id, chi_value, tick,
+                              salience, phase_vec, function_score,
+                              dwell_ticks, arousal, valence, surprise,
+                              need_pressure, sensory_refs, episode_ref,
+                              source, bundle_id, presence, location,
+                              sky_state, polarity):
+        """Forward write to WaveAtlas if wired (WAVE_ATLAS_ENABLED=1)."""
+        _wa = getattr(self, '_wave_atlas', None)
+        if _wa is None:
+            return
+        try:
+            _wa.record(
+                section_name, motif_id, chi_value, tick=tick,
+                salience=salience, phase_vec=phase_vec,
+                function_score=function_score,
+                dwell_ticks=dwell_ticks, arousal=arousal, valence=valence,
+                surprise=surprise, need_pressure=need_pressure,
+                sensory_refs=sensory_refs, episode_ref=episode_ref,
+                source=source, bundle_id=bundle_id, presence=presence,
+                location=location, sky_state=sky_state, polarity=polarity,
+            )
+        except Exception as _e:
+            import logging
+            logging.getLogger("gualaloom").warning(
+                "[WaveAtlas] parallel write error: %s", _e)
 
     def repair_pass(self):
         """GL-CMD-CHI-BAND-MASS-CONSERVATION: one-time renormalization at deploy.

@@ -10,6 +10,8 @@ RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cry
 COPY uf_core/ /app/uf_core/
 COPY ses_core/ /app/ses_core/
 COPY tools/derive_sppu_weights.py /app/tools/
+COPY tools/wave_constants.py /app/tools/
+COPY tools/wave_spillover.py /app/tools/
 COPY dsf_ai_service/ /app/dsf_ai_service/
 COPY dsf_ai_service/corpus/ /app/corpus/
 COPY dsf_ai_service/models/ /app/models/

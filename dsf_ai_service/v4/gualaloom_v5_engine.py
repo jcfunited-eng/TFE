@@ -1246,6 +1246,13 @@ class Guala:
             "intro":    Section("intro"),     # introspection
         }
         self.atlas = LivingAtlas()
+        # WAVE_ATLAS_ENABLED: Phase 1 flag. 0 = atlas built but inactive; 1 = parallel writes.
+        if os.environ.get("WAVE_ATLAS_ENABLED") == "1":
+            from dsf_ai_service.v4.wave_atlas import WaveAtlas as _WaveAtlas
+            self.wave_atlas = _WaveAtlas()
+            self.atlas._wave_atlas = self.wave_atlas
+        else:
+            self.wave_atlas = None
         self.language = LanguageKrimelack()
         self.senses = SensoryBank()
         self.coordinator = Coordinator()
@@ -1362,9 +1369,24 @@ class Guala:
     def _atlas_record(self, section_name, motif_id, chi_value, tick=None, **kwargs):
         """GL-CMD-RECALL-WORD-INDEX-57 §1.2: single binding-creation entry point.
         ALL self.atlas.record() callsites in engine code must go through here.
-        Maintains the recall reverse index automatically."""
+        Maintains the recall reverse index automatically.
+        phase_vec and function_score are forwarded via **kwargs to both atlases."""
         self.atlas.record(section_name, motif_id, chi_value, tick=tick, **kwargs)
         self._index_word_at_chi(section_name, motif_id, chi_value)
+
+    @staticmethod
+    def _compute_function_score(krim_events, winding):
+        """60-C: substrate-derived function/content score from krimelack signature.
+
+        Low event count + low winding diversity = high function score (function word).
+        Thresholds (20 events, 5 winding) are initial estimates — do NOT tune yet.
+        Returns float in [0, 1]: 0 = content word, 1 = pure function word.
+        """
+        if len(krim_events) == 0:
+            return 1.0
+        event_norm = min(1.0, len(krim_events) / 20.0)
+        winding_diversity = min(1.0, abs(winding) / 5.0)
+        return 1.0 - (event_norm * winding_diversity)
 
     @property
     def is_asleep(self):
@@ -1497,6 +1519,19 @@ class Guala:
             lang_fp, role, senses = self.language.transduce(word)
             sense_fps = self.senses.fire_for_word(senses)
 
+            # 60-C: capture phase_vec + function_score from krimelack transduction.
+            # phase_vec: 16-dim complex via event_stream_to_vector (dw_cum absent in
+            # v4 events — all weight lands in dim-0; richer vector comes with 60-B).
+            # function_score: substrate-derived content/function discriminator.
+            try:
+                from dsf_ai_service.substrate.krimelack import event_stream_to_vector
+                _phase_vec = event_stream_to_vector(self.language.events, dim=16)
+            except Exception:
+                _phase_vec = None
+            _function_score = self._compute_function_score(
+                self.language.events, self.language.winding
+            )
+
             lang_chi = self.language.winding
             atlas_sim = self.atlas.match_score(lang_chi, "listen")
             lang_dsf = compute_dsf(self.language.events,
@@ -1533,6 +1568,9 @@ class Guala:
             _akw = {**self._affect_kwargs(surprise), **self._grounding_kwargs(binding_window=_bw)}
             # C1.4: real source reaches atlas entry (fixes "corpus" default on all reads)
             _akw["source"] = source
+            # 60-C: phase_vec + function_score forwarded to both LivingAtlas and WaveAtlas
+            _akw["phase_vec"] = _phase_vec
+            _akw["function_score"] = _function_score
             # GL-CMD-C1-POLARITY: consume pending negation flip (XOR: odd flips → -1)
             _polarity = -1 if (self._negation_pending % 2 == 1) else 1
             if self._negation_pending > 0:
@@ -3390,13 +3428,10 @@ class Guala:
 
         input_words_lower = [w.lower() for w in input_words] if input_words else []
 
-        # Step 1: find chi addresses where input content words committed
+        # Step 1: find chi addresses where input words committed.
+        # 60-C: hardcoded function_words removed — all words contribute chi addresses.
         content_chis = set()
-        function_words = {"a", "an", "the", "is", "are", "am", "was", "were",
-                          "of", "in", "on", "at", "to", "from", "with", "for",
-                          "and", "or", "but", "me", "you", "i", "we", "they",
-                          "show", "see", "look", "what", "tell", "about"}
-        content = [w for w in input_words_lower if w not in function_words and len(w) > 1]
+        content = [w for w in input_words_lower if len(w) > 1]
         if not content:
             return []
 
@@ -3448,17 +3483,9 @@ class Guala:
         if not sec.modes:
             return None
 
-        # Use only content words (not articles/prepositions/etc.) for recall anchors
-        function_words = {"a", "an", "the", "is", "are", "am", "was", "were",
-                          "of", "in", "on", "at", "to", "from", "with", "for",
-                          "and", "or", "but", "me", "you", "i", "we", "they",
-                          "about", "tell", "what", "where", "when", "how", "why",
-                          "do", "does", "did", "has", "have", "had"}
-        content_words = [w.lower() for w in input_words
-                          if w.lower() not in function_words and len(w) > 1]
-        if not content_words:
-            # Fall back to all input words if no content words found
-            content_words = [w.lower() for w in input_words]
+        # 60-C: all words go in — function_score on bindings downweights function words.
+        # Hardcoded function_words list removed; substrate-derived score handles it.
+        content_words = [w.lower() for w in input_words if len(w) > 1]
         if not content_words:
             return None
 
@@ -3470,7 +3497,8 @@ class Guala:
         if not content_word_chis:
             return None
 
-        # Step 2: At those chi locations, find target_section motifs
+        # Step 2: At those chi locations, find target_section motifs.
+        # 60-C: weight by (1 - function_score) so content bindings rank higher.
         candidates = Counter()
         for chi_k in content_word_chis:
             for e in self.atlas.entries.get(chi_k, []):
@@ -3478,7 +3506,8 @@ class Guala:
                     if e["motif"] < len(sec.modes):
                         _, _, motif_word = sec.modes[e["motif"]]
                         if motif_word and motif_word.lower() not in exclude_words:
-                            candidates[e["motif"]] += 1
+                            weight = 1.0 - e.get("function_score", 0.0)
+                            candidates[e["motif"]] += weight
 
         if not candidates:
             return None
@@ -6093,6 +6122,10 @@ class Guala:
                                 self._word_to_chi_index[w.lower()].add(chi_k)
                                 n_indexed += 1
             print(f"[GualaLoom] Recall word index rebuilt: {len(self._word_to_chi_index)} words, {n_indexed} entries")
+
+            # WAVE_ATLAS_ENABLED: rebuild WaveAtlas from LivingAtlas after word index
+            if self.wave_atlas is not None:
+                self.wave_atlas.rebuild_from(self.atlas)
 
         except Exception as e:
             msg = f"[GualaLoom] ABORT load: {e}"
