@@ -7,7 +7,7 @@
  *
  * Behavior:
  *   1. Fetch current Alpaca equity
- *   2. Compare to session-open equity (earliest vault_equity_at_signal today)
+ *   2. Compare to session-open equity (Alpaca last_equity — previous close)
  *   3. If drawdown >= circuit_breaker_threshold_pct (default 3%):
  *      a. Cancel ALL pending stealth queue rows
  *      b. Market-sell ALL open positions via sentinel_monitor.killPosition logic
@@ -118,9 +118,60 @@ async function cancelStealthQueue(base) {
     if (row.alpaca_order_id) await alpacaDelete(`/v2/orders/${row.alpaca_order_id}`, base);
     await pool.query(
       `UPDATE pee1_stealth_queue SET status='cancelled' WHERE id=$1`, [row.id]
-    ).catch(() => {});
+    ).catch(e => console.error(`[CB] Stealth queue cancel UPDATE failed for id=${row.id}: ${e.message}`));
   }
   console.log(`[CB] Cancelled ${pending.rows.length} pending stealth queue row(s)`);
+}
+
+// ── Ledger write helper (D4.5 pattern) ───────────────────────────────────
+// Retry primary UPDATE up to 3 times with 500ms backoff. On all-fail,
+// append recovery breadcrumbs to rationale_json so trade_auditor and
+// zombie check can reconcile the position as closed. On both-fail,
+// CRITICAL log with all IDs for manual CloudWatch recovery.
+async function closePositionInLedgerWithRetry(ledgerId, ticker, sellOrderId) {
+  const primary = async () => pool.query(
+    `UPDATE personal_trade_ledger
+       SET status='closed',
+           exit_reason='circuit_breaker_3pct',
+           rationale_json = rationale_json || $1::jsonb,
+           exit_filled_at = NOW()
+     WHERE id=$2`,
+    [JSON.stringify({ cb_exit_order_id: sellOrderId, cb_reason: "standalone_3pct_fuse" }), ledgerId],
+  );
+
+  let lastErr;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await primary();
+      return;
+    } catch (e) {
+      lastErr = e;
+      if (attempt < 3) await new Promise(r => setTimeout(r, 500));
+    }
+  }
+
+  console.error(`[CB] PRIMARY liquidation write failed after 3 attempts for ${ticker} ledgerId=${ledgerId}: ${lastErr.message}. Writing fallback to rationale_json.`);
+  try {
+    await pool.query(
+      `UPDATE personal_trade_ledger
+         SET rationale_json = rationale_json || jsonb_build_object(
+               'cb_fallback_sell_order_id', $1::text,
+               'cb_fallback_reason',        'primary_close_update_failed',
+               'cb_fallback_write_at',      to_char(now() at time zone 'utc',
+                                              'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+               'cb_fallback_primary_err',   $2::text
+             )
+       WHERE id=$3`,
+      [sellOrderId, lastErr.message, ledgerId],
+    );
+    console.error(`[CB] Fallback recovery breadcrumbs written for ${ticker} ledgerId=${ledgerId} sellOrderId=${sellOrderId}`);
+  } catch (fbErr) {
+    console.error(
+      `[CB] CRITICAL: both primary and fallback liquidation writes failed for ` +
+      `${ticker} ledgerId=${ledgerId} sellOrderId=${sellOrderId} ` +
+      `primary_err=${lastErr.message} fallback_err=${fbErr.message}`
+    );
+  }
 }
 
 // ── Market-sell all open positions ────────────────────────────────────────
@@ -147,24 +198,21 @@ async function liquidateAllPositions(base) {
         time_in_force: "day",
       }, base);
 
-      await pool.query(
-        `UPDATE personal_trade_ledger
-         SET status='closed', exit_reason='circuit_breaker_3pct',
-             rationale_json = rationale_json || $1::jsonb,
-             exit_filled_at = NOW()
-         WHERE id=$2`,
-        [JSON.stringify({ cb_exit_order_id: sellOrder.id, cb_reason: "standalone_3pct_fuse" }), pos.id]
-      ).catch(e => console.error(`[CB] Ledger close failed for ${pos.ticker}:`, e.message));
+      await closePositionInLedgerWithRetry(pos.id, pos.ticker, sellOrder.id);
 
       console.log(`[CB] Liquidated ${pos.ticker} | shares=${pos.shares} | sellOrderId=${sellOrder.id}`);
     } catch (err) {
-      console.error(`[CB] CRITICAL: liquidation FAILED for ${pos.ticker}: ${err.message}`);
-      await pool.query(
-        `UPDATE personal_trade_ledger
-         SET rationale_json = rationale_json || $1::jsonb
-         WHERE id=$2`,
-        [JSON.stringify({ cb_liquidation_failed: err.message }), pos.id]
-      ).catch(() => {});
+      console.error(`[CB] CRITICAL: liquidation FAILED for ${pos.ticker} ledgerId=${pos.id}: ${err.message}`);
+      try {
+        await pool.query(
+          `UPDATE personal_trade_ledger
+           SET rationale_json = rationale_json || $1::jsonb
+           WHERE id=$2`,
+          [JSON.stringify({ cb_liquidation_failed: err.message, cb_liquidation_failed_at: new Date().toISOString() }), pos.id]
+        );
+      } catch (fbErr) {
+        console.error(`[CB] CRITICAL: liquidation-failure breadcrumb write also failed for ${pos.ticker} ledgerId=${pos.id}: ${fbErr.message}`);
+      }
     }
   }
   return positions.rows.length;
@@ -198,15 +246,18 @@ export async function runCircuitBreaker() {
   }
 
   // ── Session open equity ──────────────────────────────────────────────
-  const sessionRes = await pool.query(
-    `SELECT vault_equity_at_signal FROM personal_trade_ledger
-     WHERE DATE(signal_detected_at) = CURRENT_DATE
-     ORDER BY signal_detected_at ASC LIMIT 1`
-  );
-  const equityOpen = parseFloat(sessionRes.rows[0]?.vault_equity_at_signal ?? equityNow);
+  // Use Alpaca last_equity (previous close) as session-open reference.
+  // The old fallback (earliest signal today) yielded equityNow on quiet
+  // days (zero signals), collapsing drawdown to 0 and silently disabling
+  // the breaker. Wave 1 canonical selection produces quiet days by design.
+  const equityOpen = parseFloat(accountRaw?.last_equity ?? "0");
+  if (equityOpen <= 0) {
+    console.warn(`[CB] Alpaca last_equity unavailable or non-positive (${accountRaw?.last_equity}) — skipping drawdown check`);
+    return { skipped: true, reason: "no_last_equity" };
+  }
 
   const drawdownPct = ((equityOpen - equityNow) / equityOpen) * 100;
-  console.log(`[CB] Drawdown check: ${drawdownPct.toFixed(2)}% / ${thresholdPct}% threshold | equityOpen=$${equityOpen.toFixed(2)} equityNow=$${equityNow.toFixed(2)}`);
+  console.log(`[CB] Drawdown check: ${drawdownPct.toFixed(2)}% / ${thresholdPct}% threshold | equityOpen(last_equity)=$${equityOpen.toFixed(2)} equityNow=$${equityNow.toFixed(2)}`);
 
   if (drawdownPct < thresholdPct) {
     console.log("[CB] Drawdown within limits. No action.");
