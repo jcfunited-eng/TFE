@@ -3229,7 +3229,15 @@ async def gualaloom_upload_picture(file: UploadFile = File(...)):
 
         return {"message": f"picture \"{title}\" uploaded ({grid.shape[0]}x{grid.shape[1]})",
                 "item_id": item_id}
-    result = await _aio.get_event_loop().run_in_executor(None, _decode)
+    # GL-FIX-PIC-UPLOAD-EXECUTOR: dedicated 4-thread pool so picture decode
+    # never queues behind saves (fsync-heavy) or converse tasks in the default
+    # executor. Default pool saturates under load; uploads hung indefinitely.
+    import concurrent.futures as _cf
+    _pic_exec = getattr(gualaloom_upload_picture, "_executor", None)
+    if _pic_exec is None:
+        _pic_exec = _cf.ThreadPoolExecutor(max_workers=4, thread_name_prefix="pic-dec")
+        gualaloom_upload_picture._executor = _pic_exec
+    result = await _aio.get_event_loop().run_in_executor(_pic_exec, _decode)
     if "error" in result:
         raise HTTPException(400, result["error"])
     return result
