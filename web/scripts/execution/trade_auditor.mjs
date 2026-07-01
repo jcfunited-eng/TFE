@@ -85,7 +85,7 @@ async function syncFills() {
       await pool.query(
         `UPDATE personal_trade_ledger SET alpaca_order_id=$1 WHERE id=$2`,
         [effectiveOrderId, row.id]
-      ).catch(() => {});
+      ).catch(e => console.error(`[TRADE-AUDITOR] Failed to write recovered alpaca_order_id for ledgerId=${row.id}: ${e.message}`));
     }
 
     const fields = {};

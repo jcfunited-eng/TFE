@@ -84,5 +84,34 @@ assert(sentSrc.includes("parseThresholdSafe"), "sentinel_monitor.mjs uses parseT
 assert(!/const thresholdPct = parseFloat\(thresholdStr\)/.test(cbSrc), "Old raw parseFloat gone from CB");
 assert(!/const thresholdPct = parseFloat\(await fetchConfig\("max_drawdown_pct"\)/.test(sentSrc), "Old raw parseFloat gone from sentinel");
 
+// ══════════════════════════════════════════════════════════════════════
+// D4.9 assertions
+// ══════════════════════════════════════════════════════════════════════
+const stealthBridgeSrc  = await readFile(new URL("../stealth_bridge.mjs", import.meta.url), "utf8");
+const stealthExecSrc    = await readFile(new URL("../stealth_executor.mjs", import.meta.url), "utf8");
+const auditorSrc        = await readFile(new URL("../trade_auditor.mjs", import.meta.url), "utf8");
+const bridgeSrcNow      = await readFile(new URL("../alpaca_bridge.mjs", import.meta.url), "utf8");
+const sentSrcNow        = await readFile(new URL("../sentinel_monitor.mjs", import.meta.url), "utf8");
+const cbSrcNow          = await readFile(new URL("../circuit_breaker.mjs", import.meta.url), "utf8");
+
+console.log("\n=== CB-6: max_drawdown_pct canonical in circuit_breaker.mjs ===");
+assert(cbSrcNow.includes(`readConfig("max_drawdown_pct", "5.0")`), "CB reads max_drawdown_pct with 5.0 default");
+assert(!cbSrcNow.includes("circuit_breaker_threshold_pct"), "Old key circuit_breaker_threshold_pct removed from CB");
+
+console.log("\n=== Silent catch sweep ===");
+assert(!sentSrcNow.includes(".catch(() => {})"), "No .catch(() => {}) remaining in sentinel_monitor.mjs");
+assert(!stealthBridgeSrc.includes(".catch(() => {})"), "No .catch(() => {}) remaining in stealth_bridge.mjs");
+assert(!stealthExecSrc.includes(".catch(() => {})"), "No .catch(() => {}) remaining in stealth_executor.mjs");
+assert(!auditorSrc.includes(".catch(() => {})"), "No .catch(() => {}) remaining in trade_auditor.mjs");
+assert(sentSrcNow.includes("writeExitOrderIdWithRetry"), "sentinel_monitor.mjs defines writeExitOrderIdWithRetry");
+assert(sentSrcNow.includes("exit_fallback_order_id"), "writeExitOrderIdWithRetry writes fallback breadcrumbs");
+assert(sentSrcNow.includes("CRITICAL: both primary and fallback exit_order_id"), "writeExitOrderIdWithRetry has CRITICAL log");
+
+console.log("\n=== CH2-1 / CH3-1 cosmetic ===");
+assert(!bridgeSrcNow.includes(`exit_trigger_a:   "s_uf >= 0.75"`), "CH2-1: stale exit_trigger_a removed");
+assert(!bridgeSrcNow.includes("(tradeAmount / 100000)"), "CH3-1: hardcoded 100000 denominator removed");
+assert(bridgeSrcNow.includes("cash: ch3Cash, equity: ch3Equity"), "CH3-1: ch3Equity destructured from fetchAccountState");
+assert(bridgeSrcNow.includes("(tradeAmount / ch3Equity)"), "CH3-1: risk_per_trade_pct uses actual equity");
+
 console.log(`\n${passed}/${passed + failed} assertions passed`);
 if (failed > 0) process.exit(1);

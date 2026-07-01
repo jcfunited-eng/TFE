@@ -421,7 +421,7 @@ export async function executeStealthOrder(signal, opts = {}) {
         `UPDATE personal_trade_ledger SET status='rejected', exit_reason='order_failed',
          rationale_json = rationale_json || $1::jsonb WHERE id=$2`,
         [JSON.stringify({ agent0_error: err.message }), parentLedgerId]
-      ).catch(() => {});
+      ).catch(e => console.error(`[STEALTH-BRIDGE] Failed to mark rejected for parentLedgerId=${parentLedgerId}: ${e.message}`));
     }
     return { ok: false, reason: `agent0_order_failed: ${err.message}` };
   }

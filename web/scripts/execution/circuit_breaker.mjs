@@ -8,14 +8,14 @@
  * Behavior:
  *   1. Fetch current Alpaca equity
  *   2. Compare to session-open equity (Alpaca last_equity — previous close)
- *   3. If drawdown >= circuit_breaker_threshold_pct (default 3%):
+ *   3. If drawdown >= max_drawdown_pct (default 5%):
  *      a. Cancel ALL pending stealth queue rows
  *      b. Market-sell ALL open positions via sentinel_monitor.killPosition logic
  *      c. Insert row into pee1_circuit_breaker with reason='standalone_3pct_fuse'
  *   4. If circuit breaker already active: log and return — no double-trigger
  *
  * Config keys read from pee1_execution_config:
- *   circuit_breaker_threshold_pct  — default 3.0
+ *   max_drawdown_pct               — default 5.0 (unified with sentinel_monitor)
  *   circuit_breaker_hours          — default 24
  *   execution_mode                 — paper | live
  */
@@ -244,12 +244,12 @@ export async function runCircuitBreaker() {
   const BASE = await resolveAlpacaBase();
   const [accountRaw, thresholdStr, hoursStr] = await Promise.all([
     alpacaGet("/v2/account", BASE).catch(() => null),
-    readConfig("circuit_breaker_threshold_pct", "3.0"),
+    readConfig("max_drawdown_pct", "5.0"),
     readConfig("circuit_breaker_hours", "24"),
   ]);
 
   const equityNow    = parseFloat(accountRaw?.equity ?? "0");
-  const thresholdPct = parseThresholdSafe(thresholdStr, 3.0, "circuit_breaker_threshold_pct", "CB");
+  const thresholdPct = parseThresholdSafe(thresholdStr, 5.0, "max_drawdown_pct", "CB");
   const hoursRaw     = parseInt(hoursStr, 10);
   const hours        = Number.isFinite(hoursRaw) && hoursRaw > 0 ? hoursRaw : 24;
 

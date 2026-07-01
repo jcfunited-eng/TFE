@@ -810,7 +810,6 @@ export async function executeCh2BracketOrder(signal) {
         s_uf:             signal.s_uf,
         d_k:              signal.d_k,
         bar_count:        signal.bar_count,
-        exit_trigger_a:   "s_uf >= 0.75",
         exit_trigger_b:   "d_k != 1",
         run_id:           signal.run_id,
         vault_equity:     vaultEquity,
@@ -898,9 +897,9 @@ export async function executeCh3MarketOrder(signal) {
     return rejectSignal(signal, "invalid_ch3_signal");
   }
 
-  let currentPrice, atr, ch3Cash;
+  let currentPrice, atr, ch3Cash, ch3Equity;
   try {
-    [{ cash: ch3Cash }, currentPrice] = await Promise.all([
+    [{ cash: ch3Cash, equity: ch3Equity }, currentPrice] = await Promise.all([
       fetchAccountState(BASE),
       fetchLatestPrice(ticker),
     ]);
@@ -958,7 +957,7 @@ export async function executeCh3MarketOrder(signal) {
       d_k:               signal.d_k,
       b_k:               null,
       vault_equity:      tradeAmount,
-      risk_per_trade_pct: (tradeAmount / 100000) * 100,
+      risk_per_trade_pct: ch3Equity > 0 ? (tradeAmount / ch3Equity) * 100 : null,
       dollar_allocation: tradeAmount,
       shares,
       atr_14:            atr,

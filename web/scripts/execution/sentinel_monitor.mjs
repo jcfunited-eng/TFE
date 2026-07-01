@@ -32,6 +32,51 @@ const pool = new pg.Pool({
 
 const ZOMBIE_BAR_THRESHOLD = parseInt(process.env.SENTINEL_ZOMBIE_BARS ?? "10", 10);
 
+// ── Exit order-id ledger write with retry+fallback (D4.5 pattern) ────────
+// When sentinel submits a market sell, the exit_order_id must be written
+// to the ledger so downstream reconciliation (trade_auditor, zombie check)
+// can associate the fill with the position. Silent failure here creates
+// a phantom-close row: sell fires on Alpaca but ledger shows the position
+// as still open. Retry 3× with 500ms backoff, fallback to rationale_json
+// breadcrumbs, CRITICAL log on both-fail.
+async function writeExitOrderIdWithRetry(ledgerId, ticker, exitOrderId, logPrefix) {
+  const primary = async () => pool.query(
+    `UPDATE personal_trade_ledger
+       SET rationale_json = rationale_json || $1::jsonb
+     WHERE id=$2`,
+    [JSON.stringify({ sentinel_exit_order_id: exitOrderId }), ledgerId],
+  );
+
+  let lastErr;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try { await primary(); return; }
+    catch (e) { lastErr = e; if (attempt < 3) await new Promise(r => setTimeout(r, 500)); }
+  }
+
+  console.error(`[${logPrefix}] PRIMARY exit_order_id write failed after 3 attempts for ${ticker} ledgerId=${ledgerId}: ${lastErr.message}. Writing fallback to rationale_json.`);
+  try {
+    await pool.query(
+      `UPDATE personal_trade_ledger
+         SET rationale_json = rationale_json || jsonb_build_object(
+               'exit_fallback_order_id',   $1::text,
+               'exit_fallback_reason',     'primary_exit_id_update_failed',
+               'exit_fallback_write_at',   to_char(now() at time zone 'utc',
+                                              'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+               'exit_fallback_primary_err', $2::text
+             )
+       WHERE id=$3`,
+      [exitOrderId, lastErr.message, ledgerId],
+    );
+    console.error(`[${logPrefix}] Fallback exit_order_id breadcrumbs written for ${ticker} ledgerId=${ledgerId} orderId=${exitOrderId}`);
+  } catch (fbErr) {
+    console.error(
+      `[${logPrefix}] CRITICAL: both primary and fallback exit_order_id writes failed for ` +
+      `${ticker} ledgerId=${ledgerId} orderId=${exitOrderId} ` +
+      `primary_err=${lastErr.message} fallback_err=${fbErr.message}`
+    );
+  }
+}
+
 // ── Recently-killed tracking (prevents orphan re-adoption loop) ──────────
 // When sentinel kills a position, Alpaca may still show it for 1-2 cycles
 // while the sell settles. Without this, orphan sync re-adopts the position,
@@ -388,7 +433,7 @@ async function killPosition(pos, exitReason, base) {
           // Clear the pending order so next cycle can retry
           await pool.query(
             `UPDATE personal_trade_ledger SET rationale_json = rationale_json - 'sentinel_exit_order_id' WHERE id=$1`, [id]
-          ).catch(() => {});
+          ).catch(e => console.error(`[SENTINEL] Failed to clear sentinel_exit_order_id for ledgerId=${id}: ${e.message}`));
         } else {
           console.log(`[SENTINEL] Pending sell still open: ${ticker} status=${orderStatus?.status} — waiting`);
           return; // Don't re-submit while order is pending
@@ -432,7 +477,7 @@ async function killPosition(pos, exitReason, base) {
          SET rationale_json = rationale_json || $1::jsonb
          WHERE id=$2`,
         [JSON.stringify({ exit_blocked: true, exit_blocked_reason: "asset_not_active", kill_reason: exitReason }), id]
-      ).catch(() => {});
+      ).catch(e => console.error(`[SENTINEL] Failed to mark exit_blocked for ledgerId=${id}: ${e.message}`));
       return;
     }
     console.error(`[SENTINEL] CRITICAL: market sell FAILED for ${ticker}: ${errMsg}`);
@@ -441,18 +486,13 @@ async function killPosition(pos, exitReason, base) {
        SET rationale_json = rationale_json || $1::jsonb
        WHERE id=$2`,
       [JSON.stringify({ sentinel_kill_failed: errMsg, kill_reason: exitReason }), id]
-    ).catch(() => {});
+    ).catch(e => console.error(`[SENTINEL] Failed to write kill-failed breadcrumb for ledgerId=${id}: ${e.message}`));
     return;
   }
 
   // Store exit order ID immediately so idempotent check works on next cycle
   if (exitOrderId) {
-    await pool.query(
-      `UPDATE personal_trade_ledger
-       SET rationale_json = rationale_json || $1::jsonb
-       WHERE id=$2`,
-      [JSON.stringify({ sentinel_exit_order_id: exitOrderId }), id]
-    ).catch(() => {});
+    await writeExitOrderIdWithRetry(id, ticker, exitOrderId, "SENTINEL");
   }
 
   // Brief wait for market order to fill, then capture exit price for P&L
@@ -821,7 +861,7 @@ export async function runSentinel() {
         await pool.query(
           `UPDATE personal_trade_ledger SET alpaca_order_id=$1 WHERE id=$2`,
           [recoveredOrderId, pos.id]
-        ).catch(() => {});
+        ).catch(e => console.error(`[SENTINEL] Failed to write recovered alpaca_order_id for ledgerId=${pos.id}: ${e.message}`));
       }
 
       const exitTag = bracketExitPrice !== null

@@ -212,7 +212,7 @@ export async function runStealthExecutor() {
       await pool.query(
         `UPDATE pee1_stealth_queue SET status='failed', error=$1 WHERE id=$2`,
         [err.message, row.id]
-      ).catch(() => {});
+      ).catch(e => console.error(`[STEALTH-EXEC] Failed to mark stealth queue row failed for id=${row.id}: ${e.message}`));
       failed++;
     }
   }
