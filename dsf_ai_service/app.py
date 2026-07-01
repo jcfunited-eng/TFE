@@ -1130,6 +1130,17 @@ def _gl_init():
     # CRITICAL: build into local var — only set _guala AFTER successful load.
     # If load_full_state fails (e.g. lock timeout), _guala stays None so the
     # next call retries instead of running with a blank substrate.
+    # GL-RESTORE-CTRL: if FORCE_S3_RESTORE=1, download from S3 before loading EFS.
+    # Used for targeted state restores (e.g. recovering from save-bug data loss).
+    # After one successful restore boot, remove env var so subsequent restarts load normally.
+    if os.environ.get("FORCE_S3_RESTORE", "0") == "1":
+        print("[GualaLoom] FORCE_S3_RESTORE=1 — restoring from most-recent S3 backup...")
+        try:
+            _restore_from_s3(STATE_DIR)
+            print("[GualaLoom] S3 restore complete. Loading restored state...")
+        except Exception as _fsr_err:
+            print(f"[GualaLoom] FORCE_S3_RESTORE failed: {_fsr_err} — continuing with EFS state")
+
     g = Guala()
 
     # v7: Register seed corpora BEFORE loading state (so positions can restore)
