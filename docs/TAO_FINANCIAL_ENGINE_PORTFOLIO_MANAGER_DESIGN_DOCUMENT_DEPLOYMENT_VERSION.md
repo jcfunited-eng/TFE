@@ -358,7 +358,7 @@ computeRegimeExposure(spyDk, openCount, 30, 0)
 
 ## 6. Order Submission
 
-**STATUS: BUILT — entry_timing_watcher.mjs, alpaca_bridge.mjs**
+**STATUS: BUILT — alpaca_bridge.mjs**
 
 - **Entry timing:** Next-day market open after signal emission. NYSE calendar from market_calendar.mjs; holiday-aware through 2030.
 - **Order type:** Bracket (OCO) DAY order via Alpaca REST (alpaca_bridge.mjs line 517: `order_class: "bracket"`).
@@ -368,7 +368,7 @@ computeRegimeExposure(spyDk, openCount, 30, 0)
 - **ATR source:** 14-day ATR from daily bars; minimum 2% of price fallback (alpaca_bridge.mjs line 170).
 - **No after-hours entries.** Market-open only.
 
-**Source of Truth:** web/scripts/execution/entry_timing_watcher.mjs; web/scripts/execution/alpaca_bridge.mjs; web/scripts/execution/market_calendar.mjs.
+**Source of Truth:** web/scripts/execution/alpaca_bridge.mjs; web/scripts/execution/market_calendar.mjs.
 
 ---
 
@@ -568,6 +568,10 @@ Without s_n in the production snapshot, Wave 1 selection cannot execute in the p
 
 ## 11. Risk Limits and Governance
 
+- **Portfolio drawdown circuit breaker:** 5% intraday from previous close
+  (Alpaca `last_equity`). Configured via `max_drawdown_pct=5.0` in
+  `pee1_execution_config`. Breaker liquidates all open positions and halts
+  entries for `circuit_breaker_hours=24` when tripped.
 - **Per-position max loss:** −10% (EXIT-F floor, always active, cannot be disabled).
 - **Portfolio max concurrent positions:** 30 (computeRegimeExposure, 3wa_strategist.mjs line 233).
 - **Portfolio cash floor:** 5% of equity at all times. If available cash < 5%, no new entries even if signals fire.

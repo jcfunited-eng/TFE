@@ -11,7 +11,7 @@
  *   3. If drawdown >= max_drawdown_pct (default 5%):
  *      a. Cancel ALL pending stealth queue rows
  *      b. Market-sell ALL open positions via sentinel_monitor.killPosition logic
- *      c. Insert row into pee1_circuit_breaker with reason='standalone_3pct_fuse'
+ *      c. Insert row into pee1_circuit_breaker with reason='standalone_drawdown_fuse'
  *   4. If circuit breaker already active: log and return — no double-trigger
  *
  * Config keys read from pee1_execution_config:
@@ -112,13 +112,26 @@ async function isCircuitBreakerActive() {
 
 async function triggerCircuitBreaker({ equityOpen, equityNow, drawdownPct, thresholdPct, hours, reason }) {
   const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
-  await pool.query(
-    `INSERT INTO pee1_circuit_breaker
-       (trigger_reason, expires_at, vault_equity_open, vault_equity_low, drawdown_pct, threshold_pct)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
-    [reason, expiresAt, equityOpen, equityNow, drawdownPct, thresholdPct]
-  );
-  console.log(`[CB] ⚡ CIRCUIT BREAKER TRIGGERED | reason=${reason} | drawdown=${drawdownPct.toFixed(2)}% | halt until ${expiresAt}`);
+  try {
+    await pool.query(
+      `INSERT INTO pee1_circuit_breaker
+         (trigger_reason, expires_at, vault_equity_open, vault_equity_low, drawdown_pct, threshold_pct)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [reason, expiresAt, equityOpen, equityNow, drawdownPct, thresholdPct]
+    );
+    console.log(`[CB] ⚡ CIRCUIT BREAKER TRIGGERED | reason=${reason} | drawdown=${drawdownPct.toFixed(2)}% | halt until ${expiresAt}`);
+    return { fired: true };
+  } catch (e) {
+    // CB-3: partial unique index (migration 010) enforces at-most-one
+    // uncleared row. If a concurrent runCircuitBreaker invocation fired
+    // first, our INSERT hits unique_violation (SQLSTATE 23505). Treat as
+    // no-op — the other invocation already logged and initiated liquidation.
+    if (e.code === "23505") {
+      console.log(`[CB] Concurrent trigger detected — another invocation fired first (unique_violation). Skipping duplicate.`);
+      return { fired: false, raced: true };
+    }
+    throw e;
+  }
 }
 
 // ── Cancel all pending stealth queue rows ────────────────────────────────
@@ -148,7 +161,7 @@ async function closePositionInLedgerWithRetry(ledgerId, ticker, sellOrderId) {
            rationale_json = rationale_json || $1::jsonb,
            exit_filled_at = NOW()
      WHERE id=$2`,
-    [JSON.stringify({ cb_exit_order_id: sellOrderId, cb_reason: "standalone_3pct_fuse" }), ledgerId],
+    [JSON.stringify({ cb_exit_order_id: sellOrderId, cb_reason: "standalone_drawdown_fuse" }), ledgerId],
   );
 
   let lastErr;
@@ -278,10 +291,15 @@ export async function runCircuitBreaker() {
   }
 
   // ── Fuse triggered ───────────────────────────────────────────────────
-  await triggerCircuitBreaker({
+  const triggerResult = await triggerCircuitBreaker({
     equityOpen, equityNow, drawdownPct, thresholdPct, hours,
-    reason: "standalone_3pct_fuse",
+    reason: "standalone_drawdown_fuse",
   });
+
+  if (triggerResult.raced) {
+    console.log(`[CB] Skipping cancel/liquidate — another invocation is handling it.`);
+    return { triggered: false, raced: true, drawdownPct, thresholdPct };
+  }
 
   await cancelStealthQueue(BASE);
   const liquidated = await liquidateAllPositions(BASE);

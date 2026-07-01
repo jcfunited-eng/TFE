@@ -542,13 +542,25 @@ async function isCircuitBreakerActive() {
 
 async function triggerCircuitBreaker({ equityOpen, equityNow, drawdownPct, thresholdPct, hours }) {
   const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
-  await pool.query(
-    `INSERT INTO pee1_circuit_breaker
-       (trigger_reason, expires_at, vault_equity_open, vault_equity_low, drawdown_pct, threshold_pct)
-     VALUES ('max_drawdown', $1, $2, $3, $4, $5)`,
-    [expiresAt, equityOpen, equityNow, drawdownPct, thresholdPct]
-  );
-  console.log(`[SENTINEL] ⚡ CIRCUIT BREAKER TRIGGERED | drawdown=${drawdownPct.toFixed(2)}% > ${thresholdPct}% | halt until ${expiresAt}`);
+  try {
+    await pool.query(
+      `INSERT INTO pee1_circuit_breaker
+         (trigger_reason, expires_at, vault_equity_open, vault_equity_low, drawdown_pct, threshold_pct)
+       VALUES ('max_drawdown', $1, $2, $3, $4, $5)`,
+      [expiresAt, equityOpen, equityNow, drawdownPct, thresholdPct]
+    );
+    console.log(`[SENTINEL] ⚡ CIRCUIT BREAKER TRIGGERED | drawdown=${drawdownPct.toFixed(2)}% > ${thresholdPct}% | halt until ${expiresAt}`);
+    return { fired: true };
+  } catch (e) {
+    // CB-3: partial unique index (migration 010) enforces at-most-one
+    // uncleared row. If a concurrent invocation fired first, our INSERT
+    // hits unique_violation (SQLSTATE 23505). Treat as no-op.
+    if (e.code === "23505") {
+      console.log(`[SENTINEL] Concurrent trigger detected — another invocation fired first (unique_violation). Skipping duplicate.`);
+      return { fired: false, raced: true };
+    }
+    throw e;
+  }
 }
 
 // ── Numeric config validation ─────────────────────────────────────────────
@@ -580,7 +592,10 @@ async function checkMaxDrawdown(equityNow, lastEquity) {
   const hours = Number.isFinite(hoursRaw) && hoursRaw > 0 ? hoursRaw : 24;
 
   if (drawdownPct >= thresholdPct) {
-    await triggerCircuitBreaker({ equityOpen, equityNow, drawdownPct, thresholdPct, hours });
+    const r = await triggerCircuitBreaker({ equityOpen, equityNow, drawdownPct, thresholdPct, hours });
+    if (r.raced) {
+      return { triggered: false, raced: true, drawdownPct, thresholdPct };
+    }
     return { triggered: true, drawdownPct, thresholdPct };
   }
   return { triggered: false, drawdownPct, thresholdPct };

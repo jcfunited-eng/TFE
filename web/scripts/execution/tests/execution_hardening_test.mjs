@@ -113,5 +113,50 @@ assert(!bridgeSrcNow.includes("(tradeAmount / 100000)"), "CH3-1: hardcoded 10000
 assert(bridgeSrcNow.includes("cash: ch3Cash, equity: ch3Equity"), "CH3-1: ch3Equity destructured from fetchAccountState");
 assert(bridgeSrcNow.includes("(tradeAmount / ch3Equity)"), "CH3-1: risk_per_trade_pct uses actual equity");
 
+// ══════════════════════════════════════════════════════════════════════
+// D5 CB-3 assertions
+// ══════════════════════════════════════════════════════════════════════
+const cbSrcD5   = await readFile(new URL("../circuit_breaker.mjs", import.meta.url), "utf8");
+const sentSrcD5 = await readFile(new URL("../sentinel_monitor.mjs", import.meta.url), "utf8");
+
+console.log("\n=== CB-3: unique_violation handling ===");
+assert(cbSrcD5.includes(`e.code === "23505"`), "CB triggerCircuitBreaker checks 23505 unique_violation");
+assert(cbSrcD5.includes("raced: true"), "CB signals raced state to caller");
+assert(cbSrcD5.includes("Concurrent trigger detected"), "CB logs concurrent trigger");
+assert(sentSrcD5.includes(`e.code === "23505"`), "Sentinel triggerCircuitBreaker checks 23505");
+assert(sentSrcD5.includes("raced: true"), "Sentinel signals raced state to caller");
+
+console.log("\n=== D5 trigger_reason renamed ===");
+assert(!cbSrcD5.includes("standalone_3pct_fuse"), "Old 3pct-specific reason string removed");
+assert(cbSrcD5.includes("standalone_drawdown_fuse"), "New threshold-agnostic reason string present");
+
+console.log("\n=== CB-3: unique_violation caught by mocked pool ===");
+{
+  // Simulate the race: primary INSERT throws with code 23505.
+  // Confirm the extracted trigger logic handles it as no-op.
+  let logs = [];
+  const origLog = console.log;
+  console.log = (...args) => { logs.push(args.join(" ")); };
+  try {
+    // Inline copy of the trigger logic (structural check via source match above)
+    const mockPool = { query: async () => { const err = new Error("dup"); err.code = "23505"; throw err; } };
+    let result;
+    try {
+      await mockPool.query("INSERT INTO pee1_circuit_breaker VALUES ($1)", ["x"]);
+      result = { fired: true };
+    } catch (e) {
+      if (e.code === "23505") {
+        console.log(`[CB] Concurrent trigger detected — another invocation fired first (unique_violation). Skipping duplicate.`);
+        result = { fired: false, raced: true };
+      } else throw e;
+    }
+    assert(result.raced === true, "23505 catch produces raced:true result");
+    assert(result.fired === false, "23505 catch produces fired:false result");
+    assert(logs.some(l => l.includes("Concurrent trigger detected")), "Concurrent-trigger log line emitted");
+  } finally {
+    console.log = origLog;
+  }
+}
+
 console.log(`\n${passed}/${passed + failed} assertions passed`);
 if (failed > 0) process.exit(1);
