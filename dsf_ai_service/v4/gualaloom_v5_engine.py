@@ -5995,6 +5995,19 @@ class Guala:
             self._atomic_write(path, data)
             results[filename] = os.path.getsize(path)
 
+        # 64-C: WaveAtlas persistence — save alongside other state files
+        if self.wave_atlas is not None:
+            try:
+                wave_path = os.path.join(state_dir, "wave_atlas.json")
+                wave_tmp = wave_path + ".tmp"
+                import json as _json
+                with open(wave_tmp, "w") as _f:
+                    _json.dump(self.wave_atlas.to_dict(), _f)
+                os.replace(wave_tmp, wave_path)
+                results["wave_atlas.json"] = os.path.getsize(wave_path)
+            except Exception as _we:
+                print(f"[GualaLoom] WaveAtlas save failed (non-fatal): {_we}")
+
         # GL-CMD-TEACHER-CORRECTION-UI: teaching data
         snap_teaching = self._envelope({
             "feedback_log": self._teaching_feedback_log[-500:],
@@ -6286,9 +6299,25 @@ class Guala:
                                 n_indexed += 1
             print(f"[GualaLoom] Recall word index rebuilt: {len(self._word_to_chi_index)} words, {n_indexed} entries")
 
-            # WAVE_ATLAS_ENABLED: rebuild WaveAtlas from LivingAtlas after word index
+            # 64-C: WaveAtlas — load from disk if saved, else rebuild once from LivingAtlas
             if self.wave_atlas is not None:
-                self.wave_atlas.rebuild_from(self.atlas)
+                wave_path = os.path.join(state_dir, "wave_atlas.json")
+                if os.path.exists(wave_path):
+                    try:
+                        import json as _wjson
+                        with open(wave_path, "r") as _wf:
+                            n_cells = self.wave_atlas.load_from_dict(_wjson.load(_wf))
+                        print(f"[GualaLoom] WaveAtlas loaded from disk: {n_cells} cells, "
+                              f"{self.wave_atlas.binding_count()} bindings")
+                    except Exception as _wle:
+                        print(f"[GualaLoom] WaveAtlas disk load failed ({_wle}), rebuilding from LivingAtlas")
+                        self.wave_atlas.rebuild_from(self.atlas)
+                else:
+                    # First boot after WaveAtlas enabled — rebuild once, save on next save_full_state
+                    self.wave_atlas.rebuild_from(self.atlas)
+                    print(f"[GualaLoom] WaveAtlas rebuilt from LivingAtlas (one-time): "
+                          f"{self.wave_atlas.cell_count()} cells, "
+                          f"{self.wave_atlas.binding_count()} bindings")
 
         except Exception as e:
             msg = f"[GualaLoom] ABORT load: {e}"

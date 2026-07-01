@@ -158,6 +158,43 @@ class WaveAtlas:
         )
 
     # ──────────────────────────────────────────────────────────────────────────
+    # Persistence (64-C: save/load to skip rebuild on subsequent boots)
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def to_dict(self) -> dict:
+        """Serialize WaveAtlas for EFS persistence. Phase_vec stored as list."""
+        import numpy as np
+        cells_out = {}
+        for chi_idx, cell in self.cells.items():
+            pv = None
+            if cell.phase_vec is not None:
+                pv = cell.phase_vec.tolist()  # complex list: [[re, im], ...]
+            cells_out[str(chi_idx)] = {
+                "bindings": cell.bindings,
+                "aggregate_strength": cell.aggregate_strength,
+                "phase_vec": pv,
+                "last_tick": cell.last_tick,
+                "saturated": cell.saturated,
+            }
+        return {"version": 1, "cells": cells_out}
+
+    def load_from_dict(self, state: dict) -> int:
+        """Restore WaveAtlas from persisted dict. Returns number of cells loaded."""
+        import numpy as np
+        self.cells = {}
+        for chi_str, cell_data in state.get("cells", {}).items():
+            chi_idx = int(chi_str)
+            cell = Cell()
+            cell.bindings = cell_data["bindings"]
+            cell.aggregate_strength = cell_data["aggregate_strength"]
+            if cell_data.get("phase_vec") is not None:
+                cell.phase_vec = np.array(cell_data["phase_vec"], dtype=np.complex128)
+            cell.last_tick = cell_data.get("last_tick", 0)
+            cell.saturated = cell_data.get("saturated", False)
+            self.cells[chi_idx] = cell
+        return len(self.cells)
+
+    # ──────────────────────────────────────────────────────────────────────────
     # Subdivision (Phase 1: detect + log; Phase 1a: fire)
     # ──────────────────────────────────────────────────────────────────────────
 
