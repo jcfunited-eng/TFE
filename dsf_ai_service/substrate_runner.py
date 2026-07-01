@@ -3195,6 +3195,7 @@ def _start_curriculum_orchestrator():
                      "--alb-url", substrate_url,
                      "--min-interval-sec", interval,
                      "--mode", "live",
+                     "--no-gate",  # autonomous density engine: bypass presence gate
                      "--log", "/tmp/curriculum_orchestrator.jsonl"],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
