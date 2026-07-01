@@ -235,7 +235,6 @@ out = {
                 {'name': 'DREAM_CYCLE_PHASED', 'value': '1'},
                 {'name': 'EMISSION_DYNAMICS_TICKS', 'value': '40'},
                 {'name': 'WAVE_ATLAS_ENABLED', 'value': '1'},
-                {'name': 'FORCE_S3_RESTORE', 'value': '1'},
                 {'name': 'YOLO_MODEL_PATH', 'value': '/app/yolov8n.onnx'},
                 {'name': 'WHISPER_MODEL_PATH', 'value': 'tiny'}
             ],
