@@ -274,6 +274,61 @@ function validateSignal(signal) {
   return { valid: true };
 }
 
+// ── Robust order-ID ledger write (Gap 1 fix) ─────────────────────────────
+// The primary UPDATE writes alpaca_order_id to the column. If the DB write
+// fails (connection drop, lock timeout), retries up to 2× with 500ms backoff.
+// If all retries fail, the order IDs are persisted to rationale_json so the
+// zombie check and trade_auditor can recover them via the fallback path.
+// If BOTH the column update and the rationale fallback fail, logs at ERROR
+// level with full order IDs so the row is manually recoverable from logs.
+async function writeOrderIdsToLedger(ledgerId, ticker, orderId, tpId, slId, logPrefix) {
+  const primary = async () => pool.query(
+    `UPDATE personal_trade_ledger
+       SET alpaca_order_id=$1, alpaca_take_profit_order_id=$2,
+           alpaca_stop_loss_order_id=$3, status='submitted'
+     WHERE id=$4`,
+    [orderId, tpId ?? null, slId ?? null, ledgerId],
+  );
+
+  // Try primary — up to 3 attempts with 500ms backoff
+  let lastErr;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await primary();
+      return; // success
+    } catch (e) {
+      lastErr = e;
+      if (attempt < 3) await new Promise(r => setTimeout(r, 500));
+    }
+  }
+
+  // Primary failed — write fallback into rationale_json
+  console.error(`[${logPrefix}] PRIMARY order-ID write failed after 3 attempts for ${ticker} ledgerId=${ledgerId}: ${lastErr.message}. Writing fallback to rationale_json.`);
+  try {
+    await pool.query(
+      `UPDATE personal_trade_ledger
+         SET rationale_json = rationale_json || jsonb_build_object(
+               'fallback_alpaca_order_id',    $1::text,
+               'fallback_alpaca_tp_order_id', $2::text,
+               'fallback_alpaca_sl_order_id', $3::text,
+               'fallback_write_reason',       'primary_column_update_failed',
+               'fallback_write_at',           to_char(now() at time zone 'utc',
+                                                'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+             )
+       WHERE id=$4`,
+      [orderId, tpId ?? null, slId ?? null, ledgerId],
+    );
+    console.error(`[${logPrefix}] Fallback order IDs written to rationale_json for ${ticker} ledgerId=${ledgerId} orderId=${orderId}`);
+  } catch (fbErr) {
+    // Both paths failed — log everything so the row is manually recoverable
+    console.error(
+      `[${logPrefix}] CRITICAL: both primary and fallback order-ID writes failed for ` +
+      `${ticker} ledgerId=${ledgerId} orderId=${orderId} tpId=${tpId ?? "null"} slId=${slId ?? "null"} ` +
+      `primary_err=${lastErr.message} fallback_err=${fbErr.message}`
+    );
+  }
+}
+
 // ── Ledger writes ─────────────────────────────────────────────────────────
 async function ledgerInsert(row) {
   const sql = `
@@ -547,13 +602,7 @@ export async function executeBracketOrder(signal, opts = {}) {
   }, {});
 
   if (ledgerId != null) {
-    await pool.query(
-      `UPDATE personal_trade_ledger
-       SET alpaca_order_id=$1, alpaca_take_profit_order_id=$2,
-           alpaca_stop_loss_order_id=$3, status='submitted'
-       WHERE id=$4`,
-      [orderId, legIds.tp ?? null, legIds.sl ?? null, ledgerId],
-    ).catch(e => console.error("[BRIDGE] Ledger submitted-update failed:", e.message));
+    await writeOrderIdsToLedger(ledgerId, ticker, orderId, legIds.tp, legIds.sl, "BRIDGE");
   }
 
   console.log(`[BRIDGE] ORDER SUBMITTED | ${ticker} | orderId=${orderId} | ledgerId=${ledgerId}`);
@@ -775,13 +824,7 @@ export async function executeCh2BracketOrder(signal) {
   }, {});
 
   if (ledgerId != null) {
-    await pool.query(
-      `UPDATE personal_trade_ledger
-       SET alpaca_order_id=$1, alpaca_take_profit_order_id=$2,
-           alpaca_stop_loss_order_id=$3, status='submitted'
-       WHERE id=$4`,
-      [orderId, legIds.tp ?? null, legIds.sl ?? null, ledgerId],
-    ).catch(e => console.error("[CH2-BRIDGE] Ledger submitted-update failed:", e.message));
+    await writeOrderIdsToLedger(ledgerId, ticker, orderId, legIds.tp, legIds.sl, "CH2-BRIDGE");
   }
 
   console.log(`[CH2-BRIDGE] ORDER SUBMITTED | ${ticker} | orderId=${orderId} | ledgerId=${ledgerId}`);
@@ -945,14 +988,7 @@ export async function executeCh3MarketOrder(signal) {
   const slOrderId = legs.find(l => l.type === "stop")?.id ?? null;
 
   if (ledgerId != null) {
-    await pool.query(
-      `UPDATE personal_trade_ledger
-       SET alpaca_order_id=$1, status='submitted',
-           alpaca_take_profit_order_id=$3,
-           alpaca_stop_loss_order_id=$4
-       WHERE id=$2`,
-      [orderId, ledgerId, tpOrderId, slOrderId],
-    ).catch(e => console.error("[CH3-BRIDGE] Ledger submitted-update failed:", e.message));
+    await writeOrderIdsToLedger(ledgerId, ticker, orderId, tpOrderId, slOrderId, "CH3-BRIDGE");
   }
 
   console.log(`[CH3-BRIDGE] BRACKET ORDER SUBMITTED | ${ticker} | orderId=${orderId} | TP_id=${tpOrderId} | SL_id=${slOrderId} | shares=${shares} | ledgerId=${ledgerId}`);
