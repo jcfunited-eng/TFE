@@ -1412,6 +1412,21 @@ class Guala:
         if word:
             self._word_to_chi_index[word.lower()].add(chi_value)
 
+    def atlas_read(self, chi_target, radius=2):
+        """Canonical atlas read — Phase 2: returns bindings from WaveAtlas if populated,
+        LivingAtlas band lookup otherwise. All recall/compose/dream consumers call this.
+
+        radius=2 matches LivingAtlas.band. WaveAtlas.read_near uses the same radius
+        to cover spillover positions near chi_target.
+        """
+        if self.wave_atlas is not None and len(self.wave_atlas.cells) > 0:
+            return self.wave_atlas.read_near(chi_target, radius=radius)
+        # LivingAtlas fallback — bounded iteration, no lock
+        out = []
+        for d in range(-radius, radius + 1):
+            out.extend(self.atlas.entries.get(chi_target + d, []))
+        return out
+
     def _atlas_record(self, section_name, motif_id, chi_value, tick=None, **kwargs):
         """GL-CMD-RECALL-WORD-INDEX-57 §1.2: single binding-creation entry point.
         ALL self.atlas.record() callsites in engine code must go through here.
@@ -3600,14 +3615,13 @@ class Guala:
         if not content_chis:
             return []
 
-        # Step 2: find sight motifs bound at those chi addresses (with band +-2)
-        # §1.8: direct neighborhood lookup — O(content_chis × 5) instead of O(N×M)
+        # Step 2: find sight motifs bound at those chi addresses (with band +-2).
+        # -59 Phase 2: reads from WaveAtlas (via atlas_read) when populated.
         sight_motif_ids = set()
         for target_chi in content_chis:
-            for d in range(-2, 3):
-                for e in self.atlas.entries.get(target_chi + d, []):
-                    if e.get("section") == "sight":
-                        sight_motif_ids.add(e.get("motif"))
+            for e in self.atlas_read(target_chi, radius=2):
+                if e.get("section") == "sight":
+                    sight_motif_ids.add(e.get("motif"))
 
         if not sight_motif_ids:
             return []
@@ -3656,10 +3670,11 @@ class Guala:
             return None
 
         # Step 2: At those chi locations, find target_section motifs.
-        # 60-C: weight by (1 - function_score) so content bindings rank higher.
+        # -59 Phase 2: reads from WaveAtlas (via atlas_read) when populated.
+        # Scoring: strength × (1 - function_score) × (1 + phase_coherence).
         candidates = Counter()
         for chi_k in content_word_chis:
-            for e in self.atlas.entries.get(chi_k, []):
+            for e in self.atlas_read(chi_k, radius=0):
                 if e["section"] == target_section:
                     if e["motif"] < len(sec.modes):
                         _, _, motif_word = sec.modes[e["motif"]]
