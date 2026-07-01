@@ -106,7 +106,48 @@ Bridge `guala_status` tool calls `/status`. Post-fix:
 
 ## Deploy
 
-Task def: pending (deploy in progress)
+Task def: dsf-ai-task:427  
+API GW route added: `GET /api/v1/gualaloom/admin/persistence_health` → integration `784dv5h`
+(API GW uses explicit route table; `$default` goes to a Lambda proxy, not the ECS app)
+
+---
+
+## Live T-gate results (post-deploy)
+
+### T1: /status < 500ms ✓
+```
+Run 1: 294ms vocab=13895  PASS
+Run 2: 233ms vocab=13895  PASS
+Run 3: 208ms vocab=13895  PASS
+```
+Was 8-30s. Now 208-294ms.
+
+### T2: bridge guala_status returns real data ✓
+```
+elapsed=0.17s vocab=13895 initializing=False
+response=id: cdef9bcf.. | schema: v7.2.0 | vocab: 13895
+PASS
+```
+
+### T3: /admin/persistence_health runs in executor, returns full data ✓
+```
+elapsed=15.37s  (EFS stat — expected, non-blocking)
+guala_identity=cdef9bcf schema=v7.2.0 files_present=11
+load_successful_at_boot=True
+PASS
+```
+
+### T4: /status has lightweight persistence summary ✓
+```
+persistence_health keys: ['guala_identity', 'last_s3_backup', 'last_save_tick',
+  'last_save_timestamp', 'load_successful_at_boot', 'schema_version']
+last_save_tick=14213070
+last_save_timestamp=2026-07-01T11:38:16Z
+load_successful_at_boot=True
+guala_identity=cdef9bcf
+schema_version=v7.2.0
+PASS
+```
 
 ---
 
