@@ -3168,6 +3168,11 @@ async def gualaloom_upload_picture(file: UploadFile = File(...)):
         raise HTTPException(400, "File too large (max 10MB)")
     _fname = file.filename
     def _decode():
+        """GL-CMD-PICTURE-UPLOAD-FAST-76: fast path. Decode + register in memory,
+        then background the EFS bytes write. The intensity_grid is what the substrate
+        uses for perception — it lands in _pictures before we return. The original
+        bytes are for UI redisplay and can arrive on disk seconds later without
+        blocking the upload response."""
         t0 = time.time()
         try:
             from PIL import Image
@@ -3183,21 +3188,45 @@ async def gualaloom_upload_picture(file: UploadFile = File(...)):
         item_id = hashlib.md5(content).hexdigest()[:12]
         title = _fname or item_id
         pic_dir = os.path.join(STATE_DIR, "pictures")
-        os.makedirs(pic_dir, exist_ok=True)
+        try:
+            os.makedirs(pic_dir, exist_ok=True)
+        except OSError as _me:
+            print(f"[decode-upload-picture] pic_dir mkdir failed: {_me}")
         ext = (_fname or "img").rsplit('.', 1)[1] if '.' in (_fname or "") else 'jpg'
         orig_path = os.path.join(pic_dir, f"{item_id}_original.{ext}")
-        with open(orig_path, 'wb') as f:
-            f.write(content)
+
         pic = PictureItem(item_id=item_id, title=title,
                           intensity_grid=grid, source="upload",
                           shown_at_tick=_guala.tick)
         pic.original_path = orig_path
         pic.original_width = orig_w
         pic.original_height = orig_h
+        # In-memory registration BEFORE the slow EFS write — this is what makes the
+        # picture perceivable. Response can return once this lands.
         _guala._pictures[item_id] = pic
         _guala._log_substrate_event("picture_uploaded",
                                     item_id=item_id, title=title)
-        print(f"[decode-upload-picture] {time.time()-t0:.2f}s")
+        print(f"[decode-upload-picture] fast-path {time.time()-t0:.2f}s")
+
+        # Background the original-bytes write. Don't block the response on EFS.
+        import threading as _t
+        def _write_original_bg(_content=content, _path=orig_path, _iid=item_id):
+            _t0 = time.time()
+            try:
+                _tmp = _path + ".tmp"
+                with open(_tmp, 'wb') as _f:
+                    _f.write(_content)
+                os.rename(_tmp, _path)
+                print(f"[decode-upload-picture] bg-write {_iid} {time.time()-_t0:.2f}s")
+            except Exception as _we:
+                print(f"[decode-upload-picture] bg-write {_iid} FAILED "
+                      f"after {time.time()-_t0:.2f}s: {_we}")
+                # Best-effort: keep _pictures entry with original_path pointing
+                # to a file that won't exist. Perception still works from grid.
+                # UI redisplay of original will fail gracefully.
+        _t.Thread(target=_write_original_bg, daemon=True,
+                  name=f"pic-write-{item_id[:6]}").start()
+
         return {"message": f"picture \"{title}\" uploaded ({grid.shape[0]}x{grid.shape[1]})",
                 "item_id": item_id}
     result = await _aio.get_event_loop().run_in_executor(None, _decode)
