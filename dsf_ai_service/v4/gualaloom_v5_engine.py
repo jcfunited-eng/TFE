@@ -6033,10 +6033,24 @@ class Guala:
             ("guala_sounds.json", snap_sounds),
             ("guala_videos.json", snap_videos),
         ]
+        # GL-CMD-PERSIST-FIX-74: per-file error isolation. Prior to this fix, any
+        # single atomic_write failure aborted the entire save loop, dropping every
+        # subsequent file (visual, sounds, videos) and leaving _last_save_tick=0.
+        _save_failures = []
         for filename, data in writes:
             path = os.path.join(state_dir, filename)
-            self._atomic_write(path, data)
-            results[filename] = os.path.getsize(path)
+            try:
+                self._atomic_write(path, data)
+                results[filename] = os.path.getsize(path)
+            except Exception as _we:
+                _save_failures.append((filename, str(_we)))
+                print(f"[GualaLoom] save failed for {filename}: {_we}")
+                _tmp = path + ".tmp"
+                if os.path.exists(_tmp):
+                    try:
+                        os.remove(_tmp)
+                    except OSError:
+                        pass
 
         # 64-C: WaveAtlas persistence — save alongside other state files
         if self.wave_atlas is not None:
@@ -6065,8 +6079,23 @@ class Guala:
         for pid, grid in snap_pic_grids.items():
             np.save(os.path.join(pic_dir, f"{pid}.npy"), grid)
 
-        self._last_save_tick = save_tick
-        self._last_save_timestamp = ts
+        # GL-CMD-PERSIST-FIX-74: mark survival based on critical-file success only.
+        _critical = {"guala_core.json", "guala_needs.json", "guala_coordinator.json",
+                     "guala_sections.json", "guala_atlas.json"}
+        _critical_failures = [(f, e) for f, e in _save_failures if f in _critical]
+        if not _critical_failures:
+            self._last_save_tick = save_tick
+            self._last_save_timestamp = ts
+            if _save_failures:
+                self._log_substrate_event("save_partial",
+                                          tick=save_tick,
+                                          failed_files=[f for f, _ in _save_failures])
+        else:
+            self._log_substrate_event("save_critical_failure",
+                                      tick=save_tick,
+                                      failed_files=[f for f, _ in _critical_failures])
+            print(f"[GualaLoom] CRITICAL SAVE FAILURE at tick {save_tick}: "
+                  f"{[f for f, _ in _critical_failures]}")
 
         # GL-CMD-DEEP-ATLAS-PERSIST: emit save confirmation event
         _n_deep = self.deep_atlas.live_count()

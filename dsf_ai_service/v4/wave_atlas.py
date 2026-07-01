@@ -168,7 +168,9 @@ class WaveAtlas:
         for chi_idx, cell in self.cells.items():
             pv = None
             if cell.phase_vec is not None:
-                pv = cell.phase_vec.tolist()  # complex list: [[re, im], ...]
+                # GL-CMD-PERSIST-FIX-74: .tolist() on complex128 returns list[complex],
+                # which is not JSON-serializable. Explicit re/im pair encoding.
+                pv = [[float(c.real), float(c.imag)] for c in cell.phase_vec]
             cells_out[str(chi_idx)] = {
                 "bindings": cell.bindings,
                 "aggregate_strength": cell.aggregate_strength,
@@ -188,7 +190,12 @@ class WaveAtlas:
             cell.bindings = cell_data["bindings"]
             cell.aggregate_strength = cell_data["aggregate_strength"]
             if cell_data.get("phase_vec") is not None:
-                cell.phase_vec = np.array(cell_data["phase_vec"], dtype=np.complex128)
+                # GL-CMD-PERSIST-FIX-74: reconstruct complex128 array from [re, im] pairs
+                _pv = cell_data["phase_vec"]
+                cell.phase_vec = np.array(
+                    [complex(re, im) for re, im in _pv],
+                    dtype=np.complex128
+                )
             cell.last_tick = cell_data.get("last_tick", 0)
             cell.saturated = cell_data.get("saturated", False)
             self.cells[chi_idx] = cell
