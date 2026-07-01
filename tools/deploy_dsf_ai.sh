@@ -246,7 +246,7 @@ out = {
                 'interval': 10,
                 'timeout': 5,
                 'retries': 3,
-                'startPeriod': 60
+                'startPeriod': 270
             },
             'stopTimeout': 30,
             'logConfiguration': {
