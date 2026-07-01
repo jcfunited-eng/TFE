@@ -4066,12 +4066,45 @@ class Guala:
             # v8 (GL-BRIEF-028): prune expired response windows
             self._prune_response_windows()
 
-            # GL-CMD-C4-SLEEP-CHOICE: accumulate dream_pressure during waking activities.
-            # Larger increment on emission (active work). Resets on SLEEPING start.
+            # GL-CMD-SLEEP-RATE-68: dream_pressure accumulates during waking.
+            # Base rate calibrated for ~4-hour natural sleep cycle at threshold 0.7.
+            # Push-through: pair-bond interaction and active learning reduce the rate,
+            # so she stays awake longer when she's getting substrate value from it.
             _ca_kind = getattr(self._current_activity, 'kind', None)
             if _ca_kind not in (None, "SLEEPING", "DREAMING"):
-                _dp_rate = 0.0004 if _ca_kind == "EMITTING" else 0.0001
+                # Base rate: 0.00001/tick → at 5 ticks/sec, reaches 0.7 in ~4 hours
+                _dp_base = 0.00004 if _ca_kind == "EMITTING" else 0.00001
+
+                # Push-through modifiers
+                _pair_bond_active = any(
+                    self.coordinator._presence.get(s, False)
+                    and self.coordinator._pair_bond.get(s, False)
+                    for s in PAIR_BOND_SOURCES
+                )
+                _learning_active = _ca_kind in ("READING", "ATTENDING",
+                                                 "ATTENDING_VISUAL",
+                                                 "ATTENDING_AUDIO",
+                                                 "ATTENDING_VIDEO")
+
+                _dp_rate = _dp_base
+                if _pair_bond_active:
+                    _dp_rate *= 0.3  # actively interacting → ~3x wake time
+                elif _learning_active:
+                    _dp_rate *= 0.5  # actively learning → ~2x wake time
+                # Both conditions compound: pair-bond + learning = ~0.15x rate
+
                 self.needs.dream_pressure = min(1.0, self.needs.dream_pressure + _dp_rate)
+
+                # GL-CMD-SLEEP-RATE-68: periodic pressure telemetry (~every 10 min)
+                if self.tick % 3000 == 0:
+                    self._log_substrate_event(
+                        "dream_pressure_check",
+                        dp=round(self.needs.dream_pressure, 4),
+                        dp_rate=round(_dp_rate, 6),
+                        activity=_ca_kind,
+                        pair_bond=_pair_bond_active,
+                        learning=_learning_active,
+                    )
 
             # 2. Select activity if needed
             if self._current_activity is None:
@@ -4566,8 +4599,11 @@ class Guala:
         start (via activity_started event from _start_activity)."""
         # Gentle stability gain (half the rate of DAYDREAMING)
         self.needs.stability = saturate(self.needs.stability, 0.0003)
-        # Accumulate dream_pressure slowly during REST
-        self.needs.dream_pressure = min(1.0, self.needs.dream_pressure + 0.0002)
+        # GL-CMD-SLEEP-RATE-68: REST decompresses pressure (was accumulating).
+        # Substrate-physical: quiet rest is lightweight consolidation without
+        # full sleep. If she genuinely rests, she should recover, not
+        # accumulate more sleep debt.
+        self.needs.dream_pressure = max(0.0, self.needs.dream_pressure - 0.00003)
         assert not self.is_asleep, "REST must not set is_asleep"
 
     def _atick_playing(self, a):
@@ -4948,10 +4984,10 @@ class Guala:
 
             self._prune_response_windows()
 
-            _ca_kind = getattr(self._current_activity, 'kind', None)
-            if _ca_kind not in (None, "SLEEPING", "DREAMING"):
-                _dp_rate = 0.0004 if _ca_kind == "EMITTING" else 0.0001
-                self.needs.dream_pressure = min(1.0, self.needs.dream_pressure + _dp_rate)
+            # GL-CMD-SLEEP-RATE-68: dream_pressure accumulation moved solely to
+            # _autonomy_tick. _autonomy_tick_phased used to duplicate this
+            # accumulation, doubling effective rate when AUTONOMY_PHASED=1.
+            # Accumulation now lives only in _autonomy_tick (L4069-4096).
 
             if self._current_activity is None:
                 a = self._select_next_activity()
