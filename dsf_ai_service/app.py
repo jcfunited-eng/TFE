@@ -1062,8 +1062,32 @@ def _gl_init():
     for cid, cdata in SEED_CORPORA.items():
         g.add_corpus(cid, cdata["title"], cdata["lines"])
 
-    # Load full persisted state from EFS (atomic, validated)
-    g.load_full_state(STATE_DIR)
+    # Load full persisted state from EFS (atomic, validated).
+    # Retry up to 3× for transient EFS stale-handle errors (errno 116).
+    _load_attempts = 0
+    while _load_attempts < 3:
+        _load_attempts += 1
+        g.load_full_state(STATE_DIR)
+        if getattr(g, '_load_successful', True):
+            break
+        errs = getattr(g, '_load_errors', [])
+        is_stale = any("116" in str(e) or "Stale" in str(e) for e in errs)
+        if is_stale and _load_attempts < 3:
+            print(f"[GualaLoom] EFS stale handle on attempt {_load_attempts}, retrying...")
+            import time as _t; _t.sleep(2)
+            g = Guala()
+            for cid, cdata in SEED_CORPORA.items():
+                g.add_corpus(cid, cdata["title"], cdata["lines"])
+        else:
+            break
+
+    # Guard: if state failed to load (e.g. EFS stale handle), refuse to boot blank.
+    # Raising here causes _eager_init to log the error; the next health-check poll
+    # will retry, and a fresh EFS mount will succeed on the next task restart.
+    if not getattr(g, '_load_successful', True):
+        errs = getattr(g, '_load_errors', [])
+        raise RuntimeError(f"[GualaLoom] State load failed — will not boot blank. "
+                           f"Errors: {errs}")
 
     # P0: Identity guard — if EFS state was overwritten by a blank genesis
     # (e.g. from the _gl_init bug fixed in 475de3e), detect and restore from S3.
