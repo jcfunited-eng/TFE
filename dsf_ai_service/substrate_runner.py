@@ -3161,11 +3161,67 @@ OP_HANDLERS = {
 HANDLERS = OP_HANDLERS
 
 
+def _start_curriculum_orchestrator():
+    """Start curriculum orchestrator as a background thread.
+
+    Runs the sensory curriculum orchestrator in a loop, cycling through the
+    100-bundle seed at --min-interval-sec cadence. Gated by CURRICULUM_AUTOSTART
+    env var (default enabled). Calls localhost:8080 — same process, no API Gateway.
+
+    65-A from GL-CMD-C1B-QUEUE-EVE-20260701-65-PB3.
+    """
+    if os.environ.get("CURRICULUM_AUTOSTART", "1") != "1":
+        print("[curriculum] autostart disabled by env")
+        return
+
+    import sys as _sys
+    import subprocess
+    import threading
+
+    def _runner():
+        # Delay start so boot completes cleanly and /ready is serving
+        time.sleep(30)
+        interval = os.environ.get("CURRICULUM_ORCHESTRATOR_INTERVAL_SEC", "5")
+        seed_path = os.environ.get("CURRICULUM_SEED_PATH",
+                                   "/app/tools/curriculum_seed.json")
+        # Use localhost — orchestrator runs inside the same container
+        substrate_url = os.environ.get("CURRICULUM_SUBSTRATE_URL",
+                                       "http://localhost:8080")
+        while not _shutdown:
+            try:
+                proc = subprocess.Popen(
+                    [_sys.executable, "/app/tools/sensory_curriculum_orchestrator.py",
+                     "--curriculum", seed_path,
+                     "--alb-url", substrate_url,
+                     "--min-interval-sec", interval,
+                     "--mode", "live",
+                     "--log", "/tmp/curriculum_orchestrator.jsonl"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                )
+                for line in proc.stdout:
+                    print(f"[curriculum] {line.decode().rstrip()}", flush=True)
+                proc.wait()
+                # After one full pass through seed, pause then loop again
+                # (density growth = repeated multi-modal exposure)
+                if not _shutdown:
+                    time.sleep(60)
+            except Exception as e:
+                print(f"[curriculum] orchestrator error: {e}, restarting in 60s",
+                      flush=True)
+                time.sleep(60)
+
+    t = threading.Thread(target=_runner, daemon=True, name="curriculum")
+    t.start()
+    print("[curriculum] autostart thread started", flush=True)
+
+
 def start_background_loops():
     """Start all background threads. Called from app.py lifespan after boot_substrate."""
     _start_organ_surface_poll()
     _start_autonomous_emission_loop()
     _start_input_ring_consumer()
+    _start_curriculum_orchestrator()
     import threading
     hb_thread = threading.Thread(target=heartbeat_loop, daemon=True)
     hb_thread.start()
