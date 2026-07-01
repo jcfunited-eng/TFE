@@ -1305,11 +1305,12 @@ def _embedded_post_boot(g):
     except Exception as _e:
         print(f"[substrate] Ring init skipped (non-fatal): {_e}")
 
-    # Background loops: organ surface poll, autonomous emission, input ring consumer.
+    # Background loops: organ surface poll, autonomous emission, input ring consumer, curriculum.
     try:
         _sr._start_organ_surface_poll()
         _sr._start_autonomous_emission_loop()
         _sr._start_input_ring_consumer()
+        _sr._start_curriculum_orchestrator()  # 65-A: density engine
         print("[substrate] InputRing consumer started (R3/R4)")
     except Exception as _e:
         print(f"[substrate] Background loops start skipped (non-fatal): {_e}")
