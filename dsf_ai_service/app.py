@@ -1104,8 +1104,8 @@ def _gl_init():
             print(f"[GualaLoom] Removing blocked corpus: {cid}")
             del g._corpora[cid]
 
-    # v7: Start autonomy loop (replaces continuous reading)
-    g.start_autonomy_loop(interval=0.05)
+    # v7: Start autonomy loop. 0.2s per GL-BRIEF-NEEDS-PHYSICS (not 0.05).
+    g.start_autonomy_loop(interval=0.2)
     s = g.introspect()
     print(f"[GualaLoom v7] Booted: vocab={s['vocab']} reads={s['reads']} "
           f"tick={g.tick} pair_bond={'on' if s['pair_bond_active'] else 'off'} "
@@ -1159,6 +1159,119 @@ def _gl_init():
               f"lossless={_placed['atlas_lossless']} id={(_pg.identity or '')[:8]}")
     except Exception as e:
         print(f"[merge] organ-brain load skipped (non-fatal): {e}")
+
+    # ── GL-CMD-PROCESS-COLLAPSE-61: embedded-mode post-boot setup ─────────────
+    # Mirrors what substrate_runner.run_server() used to do after boot_substrate.
+    _embedded_post_boot(g)
+
+
+def _embedded_post_boot(g):
+    """Post-boot setup for embedded mode: rings, loops, SaveCoordinator, heartbeat.
+    Called from _gl_init after Guala is fully loaded and set as global."""
+    import threading as _threading
+    import dsf_ai_service.substrate_runner as _sr
+
+    # Wire _guala into substrate_runner so OP_HANDLERS can find it.
+    _sr._guala = g
+
+    # Ring buffers — needed for event streaming and ring consumers (T6).
+    try:
+        from dsf_ai_service.substrate.ring_buffer import SubstrateRing, InputRing
+        _sr._substrate_ring = SubstrateRing(size=1 << 18)
+        _sr._input_ring = InputRing(size=1 << 14)
+        print(f"[substrate] Rings: substrate={_sr._substrate_ring._size} input={_sr._input_ring._size}")
+        # Wire substrate event publishing to ring
+        _orig_log = g._log_substrate_event
+        def _log_and_publish(event_kind, **detail):
+            _orig_log(event_kind, **detail)
+            if _sr._substrate_ring is not None:
+                _sr._substrate_ring.publish(event_kind, g.tick, detail=detail)
+        g._log_substrate_event = _log_and_publish
+    except Exception as _e:
+        print(f"[substrate] Ring init skipped (non-fatal): {_e}")
+
+    # Background loops: organ surface poll, autonomous emission, input ring consumer.
+    try:
+        _sr._start_organ_surface_poll()
+        _sr._start_autonomous_emission_loop()
+        _sr._start_input_ring_consumer()
+        print("[substrate] InputRing consumer started (R3/R4)")
+    except Exception as _e:
+        print(f"[substrate] Background loops start skipped (non-fatal): {_e}")
+
+    # SaveCoordinator: presence-detected saves with S3 background queue.
+    try:
+        from dsf_ai_service.save_coordinator import SaveCoordinator
+        import dsf_ai_service.save_coordinator as _sc
+        _s3_bucket = os.environ.get("GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
+        save_coord = SaveCoordinator(g, STATE_DIR, s3_bucket=_s3_bucket)
+        _sc.SAVE_COORDINATOR = save_coord
+
+        # Wrap _end_activity to trigger saves on activity end (verbatim from run_server).
+        if hasattr(g, '_end_activity'):
+            _orig_end_activity = g._end_activity
+            def _end_activity_with_save(*a, **kw):
+                ending = getattr(g, '_current_activity', None)
+                ending_kind = ending.kind if ending else None
+                result = _orig_end_activity(*a, **kw)
+                if _sr._autonomy_pause_refcount > 0:
+                    print(f"[save] defer {ending_kind} save — curriculum running "
+                          f"(refcount={_sr._autonomy_pause_refcount})")
+                else:
+                    reason = "dream_end" if ending_kind == "DREAMING" else "activity_ended"
+                    _threading.Thread(
+                        target=lambda: save_coord.maybe_save(reason=reason),
+                        daemon=True, name=f"activity-save-{ending_kind}"
+                    ).start()
+                import time as _time
+                with _sr._backup_lock:
+                    _sr._last_successful_backup_wall = _time.time()
+                return result
+            g._end_activity = _end_activity_with_save
+
+        # Backstop: 5-minute save safety net (sync thread version for embedded mode).
+        def _save_backstop_thread():
+            import time as _time
+            while not _sr._shutdown:
+                _time.sleep(300)
+                if g is None or _sr._shutdown:
+                    continue
+                try:
+                    if g.is_natural_quiet_point():
+                        save_coord.maybe_save("backstop")
+                except Exception as _be:
+                    print(f"[save] backstop error: {_be}")
+        _threading.Thread(target=_save_backstop_thread, daemon=True,
+                          name="save-backstop").start()
+
+        # Ring persistence + S3 consumers.
+        if _sr._substrate_ring is not None:
+            from dsf_ai_service.substrate.persistence_consumer import (
+                PersistenceConsumer, S3Consumer)
+            _events_dir = os.path.join(STATE_DIR, "ring_events")
+            os.makedirs(_events_dir, exist_ok=True)
+            _pers = PersistenceConsumer(
+                ring=_sr._substrate_ring,
+                state_dir=_events_dir,
+                build_snapshot_fn=lambda: g.introspect())
+            _pers.start()
+            _s3c = S3Consumer(
+                ring=_sr._substrate_ring,
+                state_dir=_events_dir,
+                bucket=_s3_bucket)
+            _s3c.start()
+            print("[substrate] Ring consumers started: persistence + S3")
+
+        print("[app] Substrate booted, background loops running")
+    except Exception as _e:
+        print(f"[app] SaveCoordinator setup failed (non-fatal): {_e}")
+
+    # Heartbeat thread.
+    try:
+        _threading.Thread(target=_sr.heartbeat_loop, daemon=True,
+                          name="heartbeat").start()
+    except Exception as _e:
+        print(f"[substrate] Heartbeat start skipped: {_e}")
 
 
 @app.get("/api/v1/gualaloom/organs")
@@ -3614,11 +3727,14 @@ async def startup():
     result = initialize_integrity()
     print(f"[DSF-AI] Integrity initialized: {result['files_present']}/{result['files_checked']} files hashed")
 
-    # GL-ARCH-FRONTEND-SPLIT: in remote mode, skip substrate boot
+    # GL-ARCH-FRONTEND-SPLIT: in remote mode, skip in-process substrate boot
     if _is_remote():
         _init_complete = True
         print(f"[DSF-AI] SUBSTRATE_MODE=remote — substrate runs in separate process")
         return
+
+    # Embedded mode: print the T1 boot banner before _gl_init fires
+    print("[app] Booting substrate in-process...")
 
     # SIGTERM handler — defensive save for crash scenarios
     import signal as _signal

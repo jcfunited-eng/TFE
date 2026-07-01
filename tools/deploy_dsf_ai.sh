@@ -192,10 +192,6 @@ out = {
                 'rootDirectory': '/',
                 'transitEncryption': 'DISABLED'
             }
-        },
-        {
-            'name': 'shared-socket',
-            'host': {}
         }
     ],
     'containerDefinitions': [
@@ -209,51 +205,14 @@ out = {
                 {'containerPort': 8080, 'hostPort': 8080, 'protocol': 'tcp'}
             ],
             'environment': [
-                {'name': 'SUBSTRATE_MODE', 'value': 'remote'},
-                {'name': 'SUBSTRATE_SOCKET', 'value': '/shared/substrate.sock'},
+                {'name': 'SUBSTRATE_MODE', 'value': 'embedded'},
+                {'name': 'SUBSTRATE_HEARTBEAT', 'value': '/app/state/substrate.alive'},
+                {'name': 'STATE_DIR', 'value': '/app/state'},
                 {'name': 'DECAY_PAUSED', 'value': '0'},
                 {'name': 'GUALALOOM_API_KEY', 'value': '7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'},
                 {'name': 'EMISSION_MODE', 'value': 'grandurun'},
-                {'name': 'ORGAN_BRAIN_URL', 'value': 'http://localhost:8090'}
-            ],
-            'mountPoints': [
-                {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
-                 'readOnly': False},
-                {'sourceVolume': 'shared-socket', 'containerPath': '/shared',
-                 'readOnly': False}
-            ],
-            'healthCheck': {
-                'command': ['CMD-SHELL',
-                    'python3 -c \"import urllib.request; '
-                    'urllib.request.urlopen(\\\\\"http://localhost:8080/ready\\\\\")\"'
-                    ' || exit 1'],
-                'interval': 10,
-                'timeout': 5,
-                'retries': 3,
-                'startPeriod': 30
-            },
-            'stopTimeout': 10,
-            'logConfiguration': {
-                'logDriver': 'awslogs',
-                'options': {
-                    'awslogs-group': '/ecs/dsf-ai',
-                    'awslogs-region': '${AWS_REGION}',
-                    'awslogs-stream-prefix': 'dsf-ai'
-                }
-            }
-        },
-        {
-            'name': 'substrate',
-            'image': '${IMAGE_URI}',
-            'essential': True,
-            'command': ['python', '-u', '-m', 'dsf_ai_service.substrate_runner'],
-            'environment': [
+                {'name': 'ORGAN_BRAIN_URL', 'value': 'http://localhost:8090'},
                 {'name': 'PYTHONUNBUFFERED', 'value': '1'},
-                {'name': 'SUBSTRATE_SOCKET', 'value': '/shared/substrate.sock'},
-                {'name': 'SUBSTRATE_HEARTBEAT', 'value': '/shared/substrate.alive'},
-                {'name': 'STATE_DIR', 'value': '/app/state'},
-                {'name': 'DECAY_PAUSED', 'value': '0'},
-                {'name': 'EMISSION_MODE', 'value': 'grandurun'},
                 {'name': 'GRANDURUN_SPIN_VECTOR', 'value': '1'},
                 {'name': 'EMISSION_DYNAMICS', 'value': '1'},
                 {'name': 'OPENAI_API_KEY', 'value': '${OPENAI_API_KEY}'},
@@ -277,17 +236,25 @@ out = {
             ],
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
-                 'readOnly': False},
-                {'sourceVolume': 'shared-socket', 'containerPath': '/shared',
                  'readOnly': False}
             ],
+            'healthCheck': {
+                'command': ['CMD-SHELL',
+                    'python3 -c \"import urllib.request; '
+                    'urllib.request.urlopen(\\\\\"http://localhost:8080/ready\\\\\")\"'
+                    ' || exit 1'],
+                'interval': 10,
+                'timeout': 5,
+                'retries': 3,
+                'startPeriod': 60
+            },
             'stopTimeout': 30,
             'logConfiguration': {
                 'logDriver': 'awslogs',
                 'options': {
                     'awslogs-group': '/ecs/dsf-ai',
                     'awslogs-region': '${AWS_REGION}',
-                    'awslogs-stream-prefix': 'substrate'
+                    'awslogs-stream-prefix': 'dsf-ai'
                 }
             }
         }

@@ -887,8 +887,6 @@ def boot_substrate():
     # from the ring without blocking the substrate socket.
     _start_input_ring_consumer()
 
-    print(f"[substrate] Ready on {SOCKET_PATH}")
-
 
 def _start_input_ring_consumer():
     """Drain InputRing on a background thread. Processes sight_frame and
@@ -3159,51 +3157,23 @@ OP_HANDLERS = {
     "corpus_status": handle_corpus_status,
 }
 
+# ── Exported for in-process shim (GL-CMD-PROCESS-COLLAPSE-61) ────────────────
+HANDLERS = OP_HANDLERS
+
+
+def start_background_loops():
+    """Start all background threads. Called from app.py lifespan after boot_substrate."""
+    _start_organ_surface_poll()
+    _start_autonomous_emission_loop()
+    _start_input_ring_consumer()
+    import threading
+    hb_thread = threading.Thread(target=heartbeat_loop, daemon=True)
+    hb_thread.start()
+
 
 # ═══════════════════════════════════════════════════════════════
-# Socket server
+# Heartbeat + (socket server deleted — GL-CMD-PROCESS-COLLAPSE-61)
 # ═══════════════════════════════════════════════════════════════
-
-async def handle_client(reader, writer):
-    """Handle one client connection — read JSON lines, dispatch, respond."""
-    peer = "client"
-    try:
-        while not _shutdown:
-            line = await reader.readline()
-            if not line:
-                break
-            try:
-                req = json.loads(line)
-            except json.JSONDecodeError as e:
-                resp = {"id": "?", "ok": False, "error": f"bad json: {e}"}
-                writer.write(json.dumps(resp, default=str).encode() + b"\n")
-                await writer.drain()
-                continue
-
-            req_id = req.get("id", "?")
-            op = req.get("op", "")
-            args = req.get("args", {})
-
-            try:
-                # Run dispatch in executor to keep socket server responsive
-                loop = asyncio.get_event_loop()
-                result = await loop.run_in_executor(None, dispatch, op, args)
-                resp = {"id": req_id, "ok": True, "result": result}
-            except Exception as e:
-                resp = {"id": req_id, "ok": False,
-                        "error": f"{type(e).__name__}: {e}"}
-                traceback.print_exc()
-
-            writer.write(json.dumps(resp, default=str).encode() + b"\n")
-            await writer.drain()
-    except (ConnectionError, asyncio.CancelledError):
-        pass
-    finally:
-        try:
-            writer.close()
-            await writer.wait_closed()
-        except Exception:
-            pass
 
 
 def heartbeat_loop():
@@ -3225,129 +3195,3 @@ def heartbeat_loop():
         time.sleep(5)
 
 
-async def run_server():
-    global _shutdown
-
-    # Clean up stale socket
-    if os.path.exists(SOCKET_PATH):
-        os.unlink(SOCKET_PATH)
-    sock_dir = os.path.dirname(SOCKET_PATH)
-    if sock_dir:
-        os.makedirs(sock_dir, exist_ok=True)
-
-    # Boot substrate
-    print(f"[substrate] Booting...")
-    loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, boot_substrate)
-
-    # Start heartbeat
-    hb_thread = threading.Thread(target=heartbeat_loop, daemon=True)
-    hb_thread.start()
-
-    # Start socket server (64 MB buffer — base64 uploads can be ~13 MB)
-    server = await asyncio.start_unix_server(
-        handle_client, path=SOCKET_PATH, limit=64 * 1024 * 1024)
-    print(f"[substrate] Listening on {SOCKET_PATH}")
-
-    # SaveCoordinator: presence-detected saves with S3 background queue
-    from dsf_ai_service.save_coordinator import SaveCoordinator
-    import dsf_ai_service.save_coordinator as _sc
-    s3_bucket = os.environ.get("GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
-    save_coord = SaveCoordinator(_guala, STATE_DIR, s3_bucket=s3_bucket)
-    _sc.SAVE_COORDINATOR = save_coord
-
-    import concurrent.futures
-    _save_executor = concurrent.futures.ThreadPoolExecutor(
-        max_workers=1, thread_name_prefix="save")
-
-    # Save hooks consolidated into _end_activity wrap below.
-    # The engine ends all activities (including DREAMING) via
-    # _end_activity; there is no separate _end_dream_cycle method.
-    if hasattr(_guala, '_end_activity'):
-        _orig_end_activity = _guala._end_activity
-        def _end_activity_with_save(*a, **kw):
-            # Capture the ending activity kind BEFORE _end_activity clears it
-            ending = getattr(_guala, '_current_activity', None)
-            ending_kind = ending.kind if ending else None
-            result = _orig_end_activity(*a, **kw)
-            # GL-FIX-SAVE-BACKGROUND: save in a background thread so Phase C
-            # of _autonomy_tick_phased releases self.lock immediately.
-            # save_full_state disk write (3-5s on EFS) must NOT hold self.lock —
-            # it was blocking /converse for the entire save duration.
-            # save_coord.maybe_save() acquires self.lock briefly in Phase 1
-            # (snapshot, ~50ms) then writes to disk without holding self.lock.
-            if _autonomy_pause_refcount > 0:
-                print(f"[save] defer {ending_kind} save — curriculum running (refcount={_autonomy_pause_refcount})")
-            else:
-                reason = "dream_end" if ending_kind == "DREAMING" else "activity_ended"
-                import threading as _threading
-                _threading.Thread(
-                    target=lambda: save_coord.maybe_save(reason=reason),
-                    daemon=True, name=f"activity-save-{ending_kind}"
-                ).start()
-            # GL-CMD-PRESURGERY-FRESHNESS-22: update freshness wall after activity saves
-            global _last_successful_backup_wall
-            with _backup_lock:
-                _last_successful_backup_wall = time.time()
-            return result
-        _guala._end_activity = _end_activity_with_save
-
-    # Backstop: 5-minute check (NOT the primary trigger, just safety net)
-    async def _save_backstop():
-        while not _shutdown:
-            await asyncio.sleep(300)
-            if _guala is None or _shutdown:
-                continue
-            try:
-                if _guala.is_natural_quiet_point():
-                    await loop.run_in_executor(
-                        _save_executor,
-                        lambda: save_coord.maybe_save("backstop"))
-            except Exception as e:
-                print(f"[save] backstop error: {e}")
-    asyncio.ensure_future(_save_backstop())
-
-    # Start persistence consumer on ring buffer (R2)
-    if _substrate_ring is not None:
-        from dsf_ai_service.substrate.persistence_consumer import (
-            PersistenceConsumer, S3Consumer)
-        events_dir = os.path.join(STATE_DIR, "ring_events")
-        os.makedirs(events_dir, exist_ok=True)
-        _pers_consumer = PersistenceConsumer(
-            ring=_substrate_ring,
-            state_dir=events_dir,
-            build_snapshot_fn=lambda: _guala.introspect())
-        _pers_consumer.start()
-        _s3_consumer = S3Consumer(
-            ring=_substrate_ring,
-            state_dir=events_dir,
-            bucket=s3_bucket)
-        _s3_consumer.start()
-        print(f"[substrate] Ring consumers started: persistence + S3")
-
-    # Handle SIGTERM/SIGINT
-    def _signal_handler():
-        global _shutdown
-        _shutdown = True
-        print(f"[substrate] Shutting down...")
-        if _guala:
-            try:
-                save_coord.force_save(reason="shutdown")
-                print(f"[substrate] Final save complete")
-            except Exception as e:
-                print(f"[substrate] Final save failed: {e}")
-        server.close()
-
-    for sig in (signal.SIGTERM, signal.SIGINT):
-        loop.add_signal_handler(sig, _signal_handler)
-
-    async with server:
-        await server.serve_forever()
-
-
-def main():
-    asyncio.run(run_server())
-
-
-if __name__ == "__main__":
-    main()
