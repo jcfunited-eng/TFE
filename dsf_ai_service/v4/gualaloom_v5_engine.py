@@ -412,16 +412,13 @@ MAX_COMPOSITION_LEN = 12      # cap; typical compositions should be 3-8 words
 SPIN_VECTOR_DIM = 7           # GL-METADATA-PIPELINE: 8→7 (modal_alignment dropped)
 GRANDURUN_POOL_K = 50         # per-section candidate count for wider retrieval
 
-# GL-CMD-C1-POLARITY: negation operators that flip polarity of next bound entry
-NEGATION_OPS = frozenset({
-    "not", "no", "dont", "don't", "doesnt", "doesn't", "didnt", "didn't",
-    "isnt", "isn't", "arent", "aren't", "wasnt", "wasn't", "werent", "weren't",
-    "wont", "won't", "wouldnt", "wouldn't", "cant", "can't", "couldnt", "couldn't",
-    "shouldnt", "shouldn't", "never", "neither", "nor", "none", "nothing",
-    "nobody", "nowhere",
-})
+# 60-L: NEGATION_OPS dropped — negation is a phase rotation, not a lexical flag.
+# Polarity derives from consecutive phase-vector rotation in read_word.
 GRANDURUN_TOPK = int(os.environ.get("GRANDURUN_TOPK", "200"))
 EMISSION_DYNAMICS_TICKS = int(os.environ.get("EMISSION_DYNAMICS_TICKS", "80"))
+# -48 agency events
+SURPRISE_HIGH_THRESHOLD = 0.7   # Path D: clarification shape fires above this
+BACKTRACK_CHI_RADIUS_MULT = 3   # Path A: candidate chi > mult * CHI_BAND from centroid → backtrack
 
 ACTIVITY_TICK_BUDGETS = {
     "READING": 2000, "PLAYING": 1500, "SLEEPING": 2000, "DREAMING": 3000,
@@ -1363,7 +1360,9 @@ class Guala:
         # GL-CMD-DEEP-ATLAS-PERSIST: boot loss alarm result
         self._deep_atlas_loss_at_boot = None
         # GL-CMD-C1-POLARITY: one-shot negation flip pending (resets per utterance)
-        self._negation_pending = 0  # count of pending flips (XOR: even=+1, odd=-1)
+        self._negation_pending = 0  # kept for atlas load compatibility; superseded by 60-L
+        self._prev_phase_vec = None  # 60-L: previous word's phase vector for rotation
+        self._last_rotation = 0.0   # 60-L: most recent inter-word rotation [0, π]
 
         # v7: Autonomy state + sleep/wake (GL-BRIEF-SLEEP-DURING-DEPLOY)
         self._current_activity = None
@@ -1535,15 +1534,6 @@ class Guala:
             _bw = binding_window if binding_window is not None else self._current_binding_window
             _bw.append(f"w:{word}")
 
-            # GL-CMD-C1-POLARITY: detect negation operator → set one-shot flip
-            word_lower = word.lower().strip("'")
-            if word_lower in NEGATION_OPS:
-                self._negation_pending += 1
-                # Negation operator itself is not bound — skip to next word
-                # (still ticks, still decays)
-                self.tick -= 1  # undo tick increment: negation ops don't advance atlas time
-                return
-
             lang_fp, role, senses = self.language.transduce(word)
             sense_fps = self.senses.fire_for_word(senses)
 
@@ -1591,6 +1581,22 @@ class Guala:
             else:
                 dwell = 1
 
+            # 60-L: phase-rotation negation — compute rotation from consecutive phase vectors
+            _rotation = 0.0
+            if _phase_vec is not None and self._prev_phase_vec is not None:
+                try:
+                    import numpy as _np_rot
+                    _inner = _np_rot.vdot(self._prev_phase_vec, _phase_vec)
+                    _rotation = float(abs(_np_rot.angle(_inner)))
+                except Exception:
+                    _rotation = 0.0
+            self._last_rotation = _rotation
+            # Update prev for next word (reset at sentence start by read_sentence)
+            if _phase_vec is not None:
+                self._prev_phase_vec = _phase_vec
+            # Polarity from rotation: strong rotation (> π/2) → negation context
+            _polarity = -1 if _rotation > (math.pi / 2) else 1
+
             # GL-CLARITY-INVARIANCE-UNCAGE: affect + grounding kwargs for record() calls
             # §1.1: pass sentence-local binding_window to _grounding_kwargs
             _akw = {**self._affect_kwargs(surprise), **self._grounding_kwargs(binding_window=_bw)}
@@ -1599,10 +1605,8 @@ class Guala:
             # 60-C: phase_vec + function_score forwarded to both LivingAtlas and WaveAtlas
             _akw["phase_vec"] = _phase_vec
             _akw["function_score"] = _function_score
-            # GL-CMD-C1-POLARITY: consume pending negation flip (XOR: odd flips → -1)
-            _polarity = -1 if (self._negation_pending % 2 == 1) else 1
-            if self._negation_pending > 0:
-                self._negation_pending = 0  # consumed by this binding
+            # 60-L: store rotation + polarity on binding (rotation is the primary signal)
+            _akw["rotation"] = round(_rotation, 4)
             _akw["polarity"] = _polarity
             # GL-CMD-CROSS-MODAL-BUNDLE: thread bundle_id into atlas writes
             if bundle_id is not None:
@@ -1794,7 +1798,8 @@ class Guala:
                               binding_window=binding_window)
             self.read_count += 1
             self._current_episode = None
-            self._negation_pending = 0  # GL-CMD-C1-POLARITY: reset at utterance boundary
+            self._prev_phase_vec = None   # 60-L: reset rotation tracking at sentence boundary
+            self._negation_pending = 0    # kept for load compatibility
 
     # ------------------------------------------------------------------
     # Conversation: input -> substrate -> output via cascade
@@ -2089,7 +2094,17 @@ class Guala:
             if not reply:
                 reply = self._emit_unslotted(input_chis, words)
             if not reply:
-                reply = "..."
+                # -48 Path D: clarification shape on high-surprise, low-coherence input
+                _input_surprise = max(
+                    (self._compute_surprise(ch) for ch in input_chis),
+                    default=0.0) if input_chis else 0.0
+                if _input_surprise > SURPRISE_HIGH_THRESHOLD:
+                    self._log_substrate_event("agency_clarification_shape",
+                        surprise=round(_input_surprise, 3),
+                        input_words=words[:5], source=source)
+                    reply = "hm"  # minimal clarification signal
+                else:
+                    reply = "..."
             _emit_compute_ms = (time.monotonic() - _emit_start) * 1000
         _t_emit = time.monotonic()
 
@@ -2899,7 +2914,8 @@ class Guala:
         # Mismatch reduces coherent_magnitude by POLARITY_PENALTY=0.3 (multiplicative).
         # Candidates with polarity=0 (ambiguous) are neutral.
         _POLARITY_PENALTY = 0.3
-        _query_polarity = -1 if (self._negation_pending % 2 == 1) else 1
+        # 60-L: query polarity from phase rotation (replaces _negation_pending)
+        _query_polarity = -1 if getattr(self, '_last_rotation', 0.0) > (math.pi / 2) else 1
         _polarity_mixed = False
         for cand in all_candidates:
             cand_pol = cand.get("polarity", 1)
@@ -2967,6 +2983,98 @@ class Guala:
                 input_chis, deep_candidates, self.sections,
                 input_words_set, top_k=GRANDURUN_TOPK)
         stage1_ms = (_time.monotonic() - t0) * 1000
+
+        # -48 Path A: backtracking — remove candidates with chi too far from input centroid
+        if candidates and input_chis:
+            _centroid = sum(input_chis) / len(input_chis)
+            _chi_radius = getattr(self.atlas, 'band', 2) * BACKTRACK_CHI_RADIUS_MULT
+            for _bt in range(3):
+                if not candidates:
+                    break
+                _top = candidates[0]
+                if abs(_top["chi"] - _centroid) > _chi_radius:
+                    self._log_substrate_event("agency_backtrack",
+                        motif_id=_top.get("motif"), chi=_top.get("chi"),
+                        centroid=round(_centroid, 1), radius=_chi_radius,
+                        word=_top.get("word"), attempt=_bt + 1)
+                    candidates = candidates[1:]
+                else:
+                    break
+
+        # -48 Path B: conflict resolution — detect raw tie before gp-bias resolves it
+        _raw_tie = False
+        if len(candidates) >= 2:
+            _s0 = candidates[0]["coherent_magnitude"]
+            _s1 = candidates[1]["coherent_magnitude"]
+            if _s0 > 0 and abs(_s0 - _s1) / _s0 < 0.05:
+                _raw_tie = True
+
+        # -48 Path C: cross-modal fallback — promote from deep atlas when live gives nothing
+        if not candidates and deep_candidates:
+            self._log_substrate_event("agency_cross_modal_fallback",
+                input_chis=input_chis[:5], n_deep=len(deep_candidates))
+            _best_de, _best_co, _best_clarity = max(deep_candidates, key=lambda x: x[2])
+            for _sec_name, _co_sec in _best_co.items():
+                if _sec_name not in self._EMISSION_SECTIONS or not _co_sec:
+                    continue
+                _best_mid_str = max(_co_sec, key=_co_sec.get)
+                _mid = int(_best_mid_str)
+                _sec = self.sections.get(_sec_name)
+                if _sec and _mid < len(_sec.modes):
+                    _, _, _word = _sec.modes[_mid]
+                    if _word:
+                        candidates.append({
+                            "chi": _best_de.get("chi", 0),
+                            "section": _sec_name, "motif": _mid, "word": _word,
+                            "strength": float(_co_sec[_best_mid_str]),
+                            "coherent_magnitude": _best_clarity,
+                            "source": _best_de.get("source", "corpus"),
+                            "arousal": _best_de.get("arousal", 0.5),
+                            "valence": _best_de.get("valence", 0.0),
+                            "polarity": _best_de.get("polarity", 1.0),
+                            "sensory_refs": _best_de.get("sensory_refs", []),
+                            "origin": "cross_modal_fallback",
+                        })
+                        break
+
+        # gp-bias: multiply coherent_magnitude by chi-proximity to dominant-need goal seed
+        _gp_bias_applied = False
+        _gp_hemi = getattr(self, 'hemispheres', {}).get('gp') if candidates else None
+        if _gp_hemi is not None:
+            _ns = self.needs.snapshot()
+            # Dominant need = whichever is furthest from its target (0.7)
+            _dominant = max(('stability', 'novelty', 'connection'),
+                            key=lambda n: abs(_ns.get(n, 0.5) - 0.7))
+            _need_to_label = {'stability': 'be_present',
+                              'novelty': 'form_sensory_bindings',
+                              'connection': 'respond_to_joe'}
+            _goal_chi = None
+            for _chi_k, _ges in _gp_hemi.atlas.entries.items():
+                for _ge in _ges:
+                    if _ge.get('label') == _need_to_label.get(_dominant):
+                        _goal_chi = int(_chi_k)
+                        break
+                if _goal_chi is not None:
+                    break
+            if _goal_chi is not None:
+                _chi_band = getattr(self.atlas, 'band', 2)
+                for _c in candidates:
+                    _dist = abs(_c['chi'] - _goal_chi)
+                    _bias = 1.0 + 0.5 * max(0.0, 1.0 - _dist / (_chi_band * 3))
+                    _c['coherent_magnitude'] = _c['coherent_magnitude'] * _bias
+                    _c['gp_bias'] = round(_bias, 4)
+                candidates.sort(key=lambda c: -c['coherent_magnitude'])
+                _gp_bias_applied = True
+
+        # Path B resolution: log tie (now resolved by gp-bias if applied)
+        if _raw_tie and len(candidates) >= 2:
+            self._log_substrate_event("agency_conflict_tie",
+                cand_a=candidates[0].get("word"),
+                cand_b=candidates[1].get("word"),
+                score_a=round(candidates[0]["coherent_magnitude"], 4),
+                score_b=round(candidates[1]["coherent_magnitude"], 4),
+                resolution="gp_bias" if _gp_bias_applied else "first",
+                gp_bias_applied=_gp_bias_applied)
 
         if not candidates:
             return None
@@ -3257,7 +3365,8 @@ class Guala:
                                       for c in emit_commits),
                                   organ_in_commits=any(
                                       c.get("origin") == "organ"
-                                      for c in emit_commits))
+                                      for c in emit_commits),
+                                  gp_bias_applied=_gp_bias_applied)
         # GL-CMD-V5-VOICE-STAGE1: store quality metadata for _cmd_converse gate
         arcs_fallback_used = any(
             isinstance(v, tuple) and len(v) > 2 and v[2] == "arcs_fallback"
