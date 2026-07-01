@@ -558,9 +558,9 @@ export async function runSentinel() {
 
   // ── Orphan sync: adopt Alpaca positions missing from the ledger ────────
   // Runs every cycle. Finds real positions on Alpaca that have no ledger row
-  // and inserts them so EXIT-F/H/C/D can manage them. entry_timing_watcher
-  // places orders throughout the day — if the ledger status update fails,
-  // those positions become invisible to sentinel. This catches them.
+  // and inserts them so exit logic can manage them. Any post-submission
+  // ledger UPDATE failure (see D4.5 bracket order-ID write-path fix) can
+  // leave a filled Alpaca position invisible to sentinel; this catches it.
   {
     try {
       const alpacaPositions = await alpacaGet("/v2/positions", ALPACA_BASE).catch(() => []);
