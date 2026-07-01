@@ -3179,8 +3179,10 @@ def _start_curriculum_orchestrator():
     import threading
 
     def _runner():
-        # Delay start so boot completes cleanly and /ready is serving
-        time.sleep(30)
+        # Delay start: boot + dream cycle settle. She boots sleeping, dreams,
+        # then wakes. Dream cycle can hold the atlas lock for 30-60s.
+        # Wait 90s to avoid delivery timeouts during boot dream.
+        time.sleep(90)
         interval = os.environ.get("CURRICULUM_ORCHESTRATOR_INTERVAL_SEC", "5")
         seed_path = os.environ.get("CURRICULUM_SEED_PATH",
                                    "/app/tools/curriculum_seed.json")

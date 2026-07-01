@@ -116,7 +116,7 @@ class OrchestratorConfig:
 class SubstrateHttpClient:
     """Calls POST /api/v1/gualaloom — no bridge dependency."""
 
-    def __init__(self, alb_url: str, timeout_sec: float = 30.0,
+    def __init__(self, alb_url: str, timeout_sec: float = 120.0,
                  status_timeout_sec: float = 8.0):
         self.endpoint = f"{alb_url}/api/v1/gualaloom"
         self.timeout_sec = timeout_sec
