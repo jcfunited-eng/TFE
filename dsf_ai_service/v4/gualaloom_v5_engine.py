@@ -501,7 +501,7 @@ class Activity:
 
 
 @dataclass
-class CorpusItem:
+class _Corpus:
     corpus_id: str
     title: str
     lines: list
@@ -1344,7 +1344,7 @@ class Guala:
         self._emission_records = {}  # emission_id -> record (tick-window expiry)
         self._teaching_feedback_log = []
         self._teaching_correction_log = []
-        self._corpora = {}          # corpus_id -> CorpusItem
+        self._corpora = {}          # corpus_id -> _Corpus
         self._sensory_items = {}    # item_id -> SensoryItem
         self._sounds = {}           # item_id -> {cochlear, title, samples, sr, ...}
 
@@ -3790,6 +3790,11 @@ class Guala:
                         self._log_substrate_event("daydream_consolidate",
                             chi=top_chi, section=top_sec, motif=top_mid)
                         break
+
+    def add_corpus(self, corpus_id, title, lines):
+        """Register a corpus for autonomous reading."""
+        self._corpora[corpus_id] = _Corpus(
+            corpus_id=corpus_id, title=title, lines=lines)
 
     def start_autonomy_loop(self, interval=0.05):
         """Replace continuous reading with full autonomy loop.

@@ -11,7 +11,7 @@ Responsibilities:
   4. Filter out illustration notes and blank lines.
 
 Returns a list of clean sentence strings ready to be registered as a
-CorpusItem and fed through read_sentence().
+corpus and fed through read_sentence().
 
 Does NOT touch the substrate. Network IO stays here; substrate IO stays
 in the caller.

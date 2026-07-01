@@ -566,7 +566,7 @@ def boot_substrate():
 
     os.makedirs(STATE_DIR, exist_ok=True)
 
-    from dsf_ai_service.v4.gualaloom_v5_engine import Guala, CorpusItem
+    from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 
     g = Guala()
 
@@ -578,8 +578,7 @@ def boot_substrate():
         "the wind blows through the leaves",
         "stars shine in the night sky",
     ]
-    g._corpora["legacy_seed"] = CorpusItem(
-        corpus_id="legacy_seed", title="Seed Corpus", lines=CORPUS)
+    g.add_corpus("legacy_seed", "Seed Corpus", CORPUS)
 
     g.load_full_state(STATE_DIR)
 
@@ -637,8 +636,7 @@ def boot_substrate():
                     s3.download_file(bucket, s3_key, local)
                 # Reload
                 g2 = Guala()
-                g2._corpora["legacy_seed"] = CorpusItem(
-                    corpus_id="legacy_seed", title="Seed Corpus", lines=CORPUS)
+                g2.add_corpus("legacy_seed", "Seed Corpus", CORPUS)
                 g2.load_full_state(STATE_DIR)
                 r_id = getattr(g2, '_guala_identity', None) or ""
                 if r_id.startswith(EXPECTED_IDENTITY) and getattr(g2, '_load_successful', False):
@@ -1508,15 +1506,13 @@ def _cmd_diag():
 
 
 def _cmd_addbook(command, text):
-    from dsf_ai_service.v4.gualaloom_v5_engine import CorpusItem
     filename = command[len("/addbook:"):]
     title = filename.replace('.txt', '').replace('_', ' ')
     corpus_id = filename.replace('.txt', '').replace(' ', '_').lower()
     lines = [l.strip() for l in text.splitlines() if l.strip()]
     if not lines:
         return {"response": "empty book", "motifs": _guala.introspect()["vocab"]}
-    _guala._corpora[corpus_id] = CorpusItem(
-        corpus_id=corpus_id, title=title, lines=lines)
+    _guala.add_corpus(corpus_id, title, lines)
     _guala._log_substrate_event("corpus_added",
                                 corpus_id=corpus_id, title=title,
                                 n_lines=len(lines))
@@ -1603,7 +1599,7 @@ def _cmd_addpdf(command, text):
         return {"response": "no PDF data", "motifs": _guala.introspect()["vocab"]}
     t0 = time.time()
     try:
-        from dsf_ai_service.v4.gualaloom_v5_engine import CorpusItem, PictureItem
+        from dsf_ai_service.v4.gualaloom_v5_engine import PictureItem
         pdf_bytes = base64.b64decode(b64_data)
         import fitz
         doc = fitz.open(stream=pdf_bytes, filetype="pdf")
@@ -1625,8 +1621,7 @@ def _cmd_addpdf(command, text):
                             split_lines.append(sent.strip())
                 else:
                     split_lines.append(line)
-            _guala._corpora[corpus_id] = CorpusItem(
-                corpus_id=corpus_id, title=title, lines=split_lines)
+            _guala.add_corpus(corpus_id, title, split_lines)
             _guala._log_substrate_event("corpus_added",
                                         corpus_id=corpus_id, title=title,
                                         n_lines=len(split_lines), source="pdf")
@@ -2121,12 +2116,11 @@ def _resume_autonomy_for_bulk():
 
 def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strength_before):
     """Background thread: feed sentences, update progress, resume autonomy."""
-    from dsf_ai_service.v4.gualaloom_v5_engine import CorpusItem
     _corpus_load_results[corpus_id]["status"] = "running"
     errors = []
     n_fed = 0
     n_total = len(lines)
-    vocab_before = len(_guala.vocab) if _guala is not None else 0  # replaced organ_vocab_before
+    vocab_before = len(_guala.vocab) if _guala is not None else 0
     try:
         for sent in lines:
             try:
@@ -2143,10 +2137,9 @@ def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strengt
         # Resume autonomy via refcount — always, even on error
         _resume_autonomy_for_bulk()
 
-    vocab_after = len(_guala.vocab)
+    vocab_after = len(_guala.vocab) if _guala is not None else 0
     reads_after = _guala.read_count
     strength_after = round(_guala.atlas.total_strength(), 4)
-    vocab_after = len(_guala.vocab) if _guala is not None else 0  # replaced organ_vocab_after
 
     _guala._log_substrate_event(
         "curriculum_loaded",
@@ -2173,9 +2166,6 @@ def _do_corpus_load(corpus_id, title, lines, vocab_before, reads_before, strengt
         "atlas_strength_delta": round(strength_after - strength_before, 4),
         "vocab_before": vocab_before,
         "vocab_after": vocab_after,
-        "organ_vocab_before": organ_vocab_before,
-        "organ_vocab_after": organ_vocab_after,
-        "organ_vocab_delta": organ_vocab_after - organ_vocab_before,
     }
     if errors:
         result["errors"] = errors[:5]
@@ -2203,8 +2193,6 @@ def handle_load_corpus(args):
     Returns immediately:
         status="queued", corpus_id, n_sentences, vocab_before
     """
-    from dsf_ai_service.v4.gualaloom_v5_engine import CorpusItem
-
     corpus_id = args.get("corpus_id", "").strip()
     title = args.get("title", "").strip()
     lines = args.get("lines", [])
@@ -2223,12 +2211,8 @@ def handle_load_corpus(args):
     reads_before = _guala.read_count
     strength_before = round(_guala.atlas.total_strength(), 4)
 
-    # Register the corpus (overwrites if same corpus_id already exists)
-    _guala._corpora[corpus_id] = CorpusItem(
-        corpus_id=corpus_id,
-        title=title,
-        lines=lines,
-    )
+    # Register corpus for autonomous reading (overwrites if same corpus_id exists)
+    _guala.add_corpus(corpus_id, title, lines)
 
     # Mark as queued before starting thread so status is visible immediately
     _corpus_load_results[corpus_id] = {

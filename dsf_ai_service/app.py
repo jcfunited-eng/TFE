@@ -525,7 +525,7 @@ import json
 # ════════════════════════════════════════════════════════════════
 
 from dsf_ai_service.v4.gualaloom_v5_engine import (
-    Guala, CORPUS, CorpusItem, SensoryItem, PictureItem, VideoItem,
+    Guala, CORPUS, SensoryItem, PictureItem, VideoItem,
 )
 from fastapi.responses import StreamingResponse
 
@@ -1051,8 +1051,7 @@ def _gl_init():
 
     # v7: Register seed corpora BEFORE loading state (so positions can restore)
     for cid, cdata in SEED_CORPORA.items():
-        g._corpora[cid] = CorpusItem(
-            corpus_id=cid, title=cdata["title"], lines=cdata["lines"])
+        g.add_corpus(cid, cdata["title"], cdata["lines"])
 
     # Load full persisted state from EFS (atomic, validated)
     g.load_full_state(STATE_DIR)
@@ -1068,8 +1067,7 @@ def _gl_init():
             _restore_from_s3(STATE_DIR)
             g2 = Guala()
             for cid, cdata in SEED_CORPORA.items():
-                g2._corpora[cid] = CorpusItem(
-                    corpus_id=cid, title=cdata["title"], lines=cdata["lines"])
+                g2.add_corpus(cid, cdata["title"], cdata["lines"])
             g2.load_full_state(STATE_DIR)
             restored_id = getattr(g2, '_guala_identity', None) or ""
             if restored_id.startswith(EXPECTED_IDENTITY):
@@ -1648,8 +1646,7 @@ async def gualaloom_chat(msg: GLMessage):
         lines = [l.strip() for l in msg.text.splitlines() if l.strip()]
         if not lines:
             return {"response": "empty book", "motifs": _guala.introspect()["vocab"]}
-        _guala._corpora[corpus_id] = CorpusItem(
-            corpus_id=corpus_id, title=title, lines=lines)
+        _guala.add_corpus(corpus_id, title, lines)
         _guala._log_substrate_event("corpus_added",
                                     corpus_id=corpus_id, title=title,
                                     n_lines=len(lines))
@@ -1713,8 +1710,7 @@ async def gualaloom_chat(msg: GLMessage):
                         else:
                             split_lines.append(line)
                     lines = split_lines
-                    _guala._corpora[corpus_id] = CorpusItem(
-                        corpus_id=corpus_id, title=title, lines=lines)
+                    _guala.add_corpus(corpus_id, title, lines)
                     _guala._log_substrate_event("corpus_added",
                                                 corpus_id=corpus_id, title=title,
                                                 n_lines=len(lines), source="pdf",
@@ -2823,8 +2819,7 @@ async def gualaloom_upload_book(file: UploadFile = File(...)):
         raise HTTPException(400, "File is empty")
     title = file.filename.replace('.txt', '').replace('_', ' ')
     corpus_id = file.filename.replace('.txt', '').replace(' ', '_').lower()
-    _guala._corpora[corpus_id] = CorpusItem(
-        corpus_id=corpus_id, title=title, lines=lines)
+    _guala.add_corpus(corpus_id, title, lines)
     _guala._log_substrate_event("corpus_added",
                                 corpus_id=corpus_id, title=title,
                                 n_lines=len(lines))
