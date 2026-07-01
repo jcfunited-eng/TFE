@@ -492,15 +492,16 @@ async function triggerCircuitBreaker({ equityOpen, equityNow, drawdownPct, thres
   console.log(`[SENTINEL] ⚡ CIRCUIT BREAKER TRIGGERED | drawdown=${drawdownPct.toFixed(2)}% > ${thresholdPct}% | halt until ${expiresAt}`);
 }
 
-async function checkMaxDrawdown(equityNow) {
-  // Session open equity = equity at the earliest 'submitted' trade today, or current
-  const res = await pool.query(
-    `SELECT vault_equity_at_signal FROM personal_trade_ledger
-     WHERE DATE(signal_detected_at) = CURRENT_DATE
-     ORDER BY signal_detected_at ASC LIMIT 1`
-  );
-  const equityOpen = parseFloat(res.rows[0]?.vault_equity_at_signal ?? equityNow);
-  if (equityOpen <= 0) return null;
+async function checkMaxDrawdown(equityNow, lastEquity) {
+  // Session open equity = Alpaca last_equity (previous close).
+  // The old fallback (earliest signal today) yielded equityNow on quiet
+  // days (zero signals), collapsing drawdown to 0 and silently disabling
+  // the breaker. Wave 1 canonical selection produces quiet days by design.
+  const equityOpen = parseFloat(lastEquity ?? "0");
+  if (equityOpen <= 0) {
+    console.warn(`[SENTINEL] Alpaca last_equity unavailable or non-positive (${lastEquity}) — skipping drawdown check`);
+    return null;
+  }
 
   const drawdownPct = ((equityOpen - equityNow) / equityOpen) * 100;
   const thresholdPct = parseFloat(await fetchConfig("max_drawdown_pct") ?? "5.0");
@@ -613,7 +614,7 @@ export async function runSentinel() {
 
   // Max drawdown circuit breaker check (runs before any per-position logic)
   if (equityNow > 0) {
-    const ddCheck = await checkMaxDrawdown(equityNow).catch(e => {
+    const ddCheck = await checkMaxDrawdown(equityNow, accountRaw?.last_equity).catch(e => {
       console.error("[SENTINEL] Drawdown check failed:", e.message);
       return null;
     });
