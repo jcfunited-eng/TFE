@@ -899,6 +899,10 @@ class Coordinator:
         self._last_input_tick = {"joe": 0, "wc": 0, "c1": 0}
         self._wake_tick = {"joe": 0, "wc": 0, "c1": 0}
 
+        # 60-K: continuous pair-bond strength — relationships are gradients, not flags
+        # source -> list of (tick, salience) for last 2000 ticks (pruned on write)
+        self._source_interaction_log = {}
+
     @property
     def pair_bond_active(self):
         """Backward compat: True if ANY source has active pair bond."""
@@ -1009,9 +1013,44 @@ class Coordinator:
             }
         return out
 
-    def pair_bond_snapshot(self):
-        """For /status."""
-        return dict(self._pair_bond)
+    def _record_interaction(self, source, salience, tick):
+        """Record one sentence-level interaction for continuous strength tracking."""
+        log = self._source_interaction_log.setdefault(source, [])
+        log.append((tick, salience))
+        # Prune to last 2000 ticks (1000-tick window + safety margin)
+        cutoff = tick - 2000
+        if len(log) > 200 or (log and log[0][0] < cutoff):
+            self._source_interaction_log[source] = [
+                (t, s) for t, s in log if t >= cutoff]
+
+    def pair_bond_strength(self, source, current_tick=None):
+        """Continuous [0,1] relationship gradient for source.
+
+        strength = min(1.0, 0.3 + 0.4 * density + 0.3 * avg_salience)
+        density = interactions in last 1000 ticks / 100 (saturates at 1.0)
+        avg_salience = mean salience of those interactions (raw)
+
+        current_tick: if provided, measures recency from NOW (enables decay when
+        a source goes silent). When None, uses the last recorded tick (no decay).
+        """
+        log = self._source_interaction_log.get(source)
+        if not log:
+            return 0.3  # baseline for unknown/cold sources
+
+        ref_tick = current_tick if current_tick is not None else log[-1][0]
+        window = [(t, s) for t, s in log if ref_tick - t <= 1000]
+        if not window:
+            return 0.3  # baseline when no recent interactions
+
+        density = min(1.0, len(window) / 100.0)
+        avg_sal = sum(s for _, s in window) / len(window)
+        return min(1.0, 0.3 + 0.4 * density + 0.3 * avg_sal)
+
+    def pair_bond_snapshot(self, current_tick=None):
+        """For /status: returns continuous strength dict, not bool dict."""
+        sources = set(self._pair_bond.keys()) | set(self._source_interaction_log.keys())
+        return {src: round(self.pair_bond_strength(src, current_tick), 3)
+                for src in sources}
 
     def regulate(self, guala, needs, atlas, sections, tick):
         """Each tick: read substrate signals, update needs, modulate parameters,
@@ -1411,8 +1450,8 @@ class Guala:
                    abs(needs_state["connection"] - 0.7)) / 3
         urgency_factor = 1.0 + urgency * 1.2
         novelty_factor = 1.0 + (1.0 - input_novelty) * 0.8
-        # v6-bridge: per-source pair bond check
-        pair_bond_boost = 1.2 if self.coordinator._pair_bond.get(source, False) else 1.0
+        # 60-K: continuous pair-bond boost — scales with relationship strength
+        pair_bond_boost = 1.0 + 0.2 * self.coordinator.pair_bond_strength(source, self.tick)
         salience = source_w * urgency_factor * novelty_factor * pair_bond_boost
         return max(SALIENCE_MIN, min(SALIENCE_MAX, salience))
 
@@ -1741,6 +1780,10 @@ class Guala:
             # v6-bridge: update last_input_tick for presence timeout
             if source in {"joe", "wc", "c1"}:
                 self.coordinator.update_last_input(source, self.tick)
+
+            # 60-K: record interaction for continuous pair-bond strength
+            _sal_estimate = self._compute_salience(source=source, input_novelty=0.5)
+            self.coordinator._record_interaction(source, _sal_estimate, self.tick)
 
             # GL-CLARITY-INVARIANCE-UNCAGE: episode tracking per sentence
             import hashlib as _hl
@@ -5711,6 +5754,11 @@ class Guala:
                 "need_history": list(self.coordinator.need_history[-200:]),
                 "attentions_count": len(self.coordinator.attentions),
                 "actions_count": len(self.coordinator.actions),
+                # 60-K: interaction log (last 200 entries per source for state portability)
+                "source_interaction_log": {
+                    src: list(entries[-200:])
+                    for src, entries in self.coordinator._source_interaction_log.items()
+                },
             })
 
             # 4. Atlas — serialize entries directly (faster than deepcopy)
@@ -6226,6 +6274,12 @@ class Guala:
         self.coordinator.distress_ticks = cd.get("distress_ticks", 0)
         self.coordinator.suffering_log = cd.get("suffering_log", [])
         self.coordinator.need_history = cd.get("need_history", [])[-200:]
+        # 60-K: restore interaction log (list of [tick, salience] from JSON)
+        raw_log = cd.get("source_interaction_log", {})
+        self.coordinator._source_interaction_log = {
+            src: [(int(t), float(s)) for t, s in entries]
+            for src, entries in raw_log.items()
+        }
 
     def _apply_atlas(self, ad):
         self.atlas.entries = defaultdict(list)
@@ -6641,7 +6695,7 @@ class Guala:
             "atlas_health": self.atlas.snapshot(),
             # v6-bridge: presence + per-source pair bonds
             "presence": self.coordinator.presence_snapshot(),
-            "pair_bond": self.coordinator.pair_bond_snapshot(),
+            "pair_bond": self.coordinator.pair_bond_snapshot(current_tick=self.tick),
             # v7: autonomy state
             "current_activity": (self._current_activity.snapshot()
                                  if self._current_activity else None),
