@@ -67,6 +67,7 @@ from dsf_ai_service.cff_discovery import run_discovery, verify_candidate
 # ═══════════════════════════════════════════════════════════════
 SUBSTRATE_MODE = os.environ.get("SUBSTRATE_MODE", "embedded")  # "embedded" or "remote"
 _substrate_client = None
+_converse_client = None  # dedicated client for SSE converse so status/other ops aren't blocked
 
 def _get_substrate_client():
     """Lazy-init the substrate client for remote mode."""
@@ -75,6 +76,14 @@ def _get_substrate_client():
         from dsf_ai_service.substrate_client import SubstrateClient
         _substrate_client = SubstrateClient()
     return _substrate_client
+
+def _get_converse_client():
+    """Dedicated client for converse SSE path — separate connection avoids lock contention."""
+    global _converse_client
+    if _converse_client is None:
+        from dsf_ai_service.substrate_client import SubstrateClient
+        _converse_client = SubstrateClient()
+    return _converse_client
 
 def _is_remote():
     return SUBSTRATE_MODE == "remote"
@@ -1382,14 +1391,46 @@ async def gualaloom_chat(msg: GLMessage):
 
     # GL-ARCH-FRONTEND-SPLIT: remote mode forwards to substrate process
     if _is_remote():
+        import asyncio as _aio, json as _j
+        is_status = (msg.command or "").strip() == "/status"
+        is_converse = not (msg.command or "").strip()
+
+        if is_converse:
+            # 60-O: SSE streaming — substrate response arrives when settling commits,
+            # not when a human-pacing clock fires. Dedicated client keeps status
+            # polling unblocked during long converse calls.
+            _converse_cli = _get_converse_client()
+
+            async def _event_stream():
+                yield f"data: {_j.dumps({'status': 'received'})}\n\n"
+                try:
+                    task = _aio.ensure_future(
+                        _converse_cli.call("gualaloom_post",
+                                           command="",
+                                           text=msg.text or "",
+                                           source=msg.source or "joe",
+                                           emission_mode=msg.emission_mode,
+                                           timeout=300.0))
+                    while not task.done():
+                        try:
+                            await _aio.wait_for(_aio.shield(task), timeout=3.0)
+                        except _aio.TimeoutError:
+                            yield f"data: {_j.dumps({'status': 'processing', 'phase': 'settling'})}\n\n"
+                    result = task.result()
+                    yield f"data: {_j.dumps({'status': 'complete', **result})}\n\n"
+                except Exception:
+                    _err = _j.dumps({'status': 'error', 'response': 'substrate unreachable — try again in a moment', 'motifs': 0})
+                    yield f"data: {_err}\n\n"
+
+            return StreamingResponse(
+                _event_stream(), media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
         client = _get_substrate_client()
         try:
-            # GL-FIX-ALB-TIMEOUT: raised 5→20s previously. Raising further to 45s
-            # for status because curriculum pause windows can reach 30-50s even
-            # after the defer-during-curriculum fix (30 sentences × ~1-2s each).
-            # 25s for converse keeps interactive latency bounded.
+            # GL-FIX-ALB-TIMEOUT: 45s for status (curriculum pause windows 30-50s).
+            # Other commands keep 25s — they have real deadline meaning.
             # Cached fallback (60s) handles truly-stuck substrate.
-            is_status = (msg.command or "").strip() == "/status"
             timeout = 45.0 if is_status else 25.0
             result = await client.call("gualaloom_post",
                                        command=msg.command or "",
@@ -1404,7 +1445,7 @@ async def gualaloom_chat(msg: GLMessage):
             return result
         except (ConnectionError, Exception):
             # Return cached status if available (< 60s old)
-            if ((msg.command or "").strip() == "/status"
+            if (is_status
                     and hasattr(app.state, '_last_status')
                     and time.time() - getattr(app.state, '_last_status_time', 0) < 60):
                 return app.state._last_status
