@@ -3829,10 +3829,13 @@ async def v6_events_histogram():
 # ════════════════════════════════════════════════════════════════
 
 _init_complete = False  # V2: health gate
+_BOOT_START = time.time()   # module load time — for elapsed_ms in readiness responses
+_LIFESPAN_STARTED = False   # set True as soon as startup event fires
 
 @app.on_event("startup")
 async def startup():
-    global _init_complete
+    global _init_complete, _LIFESPAN_STARTED
+    _LIFESPAN_STARTED = True   # shallow-ready gate: uvicorn is up
     result = initialize_integrity()
     print(f"[DSF-AI] Integrity initialized: {result['files_present']}/{result['files_checked']} files hashed")
 
@@ -4057,21 +4060,41 @@ async def health():
 
 @app.get("/ready")
 async def ready():
-    """Deep readiness check — 200 when _guala is loaded.
-    Sleep is a valid loaded state — does NOT return 503.
-    In remote mode: 200 if frontend is alive (substrate-independent)."""
-    if _is_remote():
-        # Frontend is alive = ready. Substrate health is substrate's problem.
-        return {"ready": True, "mode": "remote"}
+    """Shallow readiness — 200 as soon as uvicorn is up.
+    ECS health check hits this path. Never returns 503 for boot delay.
+    guala_ready field shows whether Guala is loaded.
+
+    64-B: split from deep readiness so ECS doesn't cycle during 195s embedded boot.
+    """
+    elapsed_ms = int((time.time() - _BOOT_START) * 1000)
+    guala_ready = _guala is not None
+    return {
+        "ready": True,           # always 200 after lifespan starts
+        "guala_ready": guala_ready,
+        "state": "ready" if guala_ready else "warming",
+        "elapsed_ms": elapsed_ms,
+    }
+
+
+@app.get("/ready/guala")
+async def ready_guala():
+    """Deep readiness — 200 only when Guala is fully loaded.
+    Non-critical consumers (bridge, UI) can poll this to know when to expect responses.
+    Returns 503 with Retry-After during boot.
+    """
+    elapsed_ms = int((time.time() - _BOOT_START) * 1000)
     if _guala is None:
         return JSONResponse(
             status_code=503,
-            content={"ready": False,
-                     "message": "guala still loading"})
-    return {"ready": True,
-            "vocab": len(_guala.vocab),
-            "tick": _guala.tick,
-            "asleep": _guala.is_asleep}
+            content={"ready": False, "error": "guala loading", "elapsed_ms": elapsed_ms},
+            headers={"Retry-After": "10"},
+        )
+    return {
+        "ready": True,
+        "guala_id": (getattr(_guala, '_guala_identity', None) or "")[:8],
+        "vocab": len(_guala.vocab),
+        "tick": _guala.tick,
+    }
 
 @app.post("/sleep_for_deploy")
 async def sleep_for_deploy():

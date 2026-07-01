@@ -250,7 +250,7 @@ out = {
                 'interval': 10,
                 'timeout': 5,
                 'retries': 3,
-                'startPeriod': 270
+                'startPeriod': 300
             },
             'stopTimeout': 30,
             'logConfiguration': {
