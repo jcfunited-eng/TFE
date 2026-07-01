@@ -30,6 +30,8 @@ web/tsconfig.tsbuildinfo
 !tools/derive_sppu_weights.py
 !tools/wave_constants.py
 !tools/wave_spillover.py
+!tools/sensory_curriculum_orchestrator.py
+!tools/curriculum_seed.json
 !yolov8n.onnx
 !yolov8n.onnx
 
