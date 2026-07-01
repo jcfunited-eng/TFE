@@ -68,6 +68,7 @@ class OrchestratorConfig:
     min_interval_sec: float
     halt_on_unreachable: int
     log_path: pathlib.Path
+    no_gate: bool = False
 
     @classmethod
     def from_args(cls) -> "OrchestratorConfig":
@@ -86,6 +87,8 @@ class OrchestratorConfig:
                        help="Deliver at most N bundles (0 = all)")
         p.add_argument("--min-interval-sec", type=float, default=10.0,
                        help="Minimum seconds between bundle deliveries")
+        p.add_argument("--no-gate", action="store_true",
+                       help="Bypass substrate-state gating (for testing — skip presence/state checks)")
         p.add_argument("--halt-on-unreachable", type=int, default=3,
                        help="Halt after N consecutive unreachable errors")
         p.add_argument("--log", default="tools/orchestrator_log.jsonl",
@@ -102,6 +105,7 @@ class OrchestratorConfig:
             min_interval_sec=a.min_interval_sec,
             halt_on_unreachable=a.halt_on_unreachable,
             log_path=pathlib.Path(a.log),
+            no_gate=a.no_gate,
         )
 
 
@@ -359,7 +363,7 @@ def _run_live(cfg: OrchestratorConfig, bundles: list[dict[str, Any]],
         consecutive_unreachable = 0
 
         gate = evaluate_gate(status_pre, cfg.min_interval_sec)
-        if not gate.deliver:
+        if not gate.deliver and not cfg.no_gate:
             skipped += 1
             logger.write({
                 "event": "bundle_gated",
