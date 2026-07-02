@@ -355,12 +355,32 @@ class LivingAtlas:
                     else:
                         lam_eff = _lam
                     lam_eff *= rate_scale  # Fix C: external modulation
-                    e["strength"] *= math.exp(-lam_eff * dt)
+                    decay_factor = math.exp(-lam_eff * dt)
+                    e["strength"] *= decay_factor
                     e["last_tick"] = current_tick
                     # GL-CLARITY: slow clarity entropy (separate clock, ~10x slower)
                     if "clarity" in e and dt > 0 and rate_scale > 0:
                         clarity_lam = lam_eff * 0.1  # 10x slower than strength
                         e["clarity"] = max(0.05, e["clarity"] * math.exp(-clarity_lam * dt))
+                    # GL-CMD-WAVE-SEMANTICS-85 Part B.2: decay WaveAtlas counterpart
+                    # lockstep — same factor, same operation. Join key: (chi, section, motif).
+                    # Now 1:1 after Part B.1 reinforce semantics; no O(N²) risk.
+                    _wa = getattr(self, '_wave_atlas', None)
+                    if _wa is not None and decay_factor < 1.0:
+                        _e_chi = e.get("chi", chi_k)
+                        _e_sec = e.get("section", "")
+                        _e_mot = e.get("motif", 0)
+                        for _wd in range(-CHI_BAND, CHI_BAND + 1):
+                            _wcell = _wa.cells.get((_e_chi + _wd) % 262144)
+                            if _wcell is None:
+                                continue
+                            for _wb in _wcell.bindings:
+                                if (_wb.get("chi") == _e_chi
+                                        and _wb.get("section") == _e_sec
+                                        and _wb.get("motif") == _e_mot):
+                                    _old = _wb.get("strength", 0.0)
+                                    _wb["strength"] = _old * decay_factor
+                                    _wcell.aggregate_strength -= _old * (1.0 - decay_factor)
 
     def renew_clarity(self, chi_value, section_name, motif_id, new_clarity):
         """Renew clarity on a specific binding (e.g. on cortex reinstatement)."""

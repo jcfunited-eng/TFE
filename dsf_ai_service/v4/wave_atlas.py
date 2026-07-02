@@ -13,6 +13,8 @@ import os
 import sys
 import logging
 
+import numpy as np
+
 # ─── Shared constants + spillover (tools/ in both dev and container) ──────────
 _tools = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'tools')
 if os.path.isdir(_tools) and _tools not in sys.path:
@@ -95,6 +97,35 @@ class WaveAtlas:
         # Strength for spillover resistance = salience-scaled (mirrors LivingAtlas impulse)
         strength = max(0.05, 0.05 * salience)
         binding["strength"] = strength
+
+        # GL-CMD-WAVE-SEMANTICS-85 Part B.1: reinforce existing binding if
+        # (chi, section, motif) key already present within spillover range.
+        # Prevents unbounded append growth — same (chi,section,motif) → one binding.
+        for _d in range(-CHI_BAND, CHI_BAND + 1):
+            _cidx = (chi_value + _d) % N_CELLS
+            _cell = self.cells.get(_cidx)
+            if _cell is None:
+                continue
+            for _b in _cell.bindings:
+                if (_b.get("chi") == chi_value
+                        and _b.get("section") == section_name
+                        and _b.get("motif") == motif_id):
+                    # Reinforce: accumulate strength + update cell aggregate
+                    _b["strength"] = _b.get("strength", 0.0) + strength
+                    _cell.aggregate_strength += strength
+                    # Update cell phase_vec running mean if new phase data arrives
+                    if phase_vec is not None:
+                        n = len(_cell.bindings)
+                        if _cell.phase_vec is None:
+                            _cell.phase_vec = phase_vec.copy()
+                        else:
+                            _cell.phase_vec = (
+                                _cell.phase_vec * ((n - 1) / n) + phase_vec / n
+                            )
+                            _nrm = np.linalg.norm(_cell.phase_vec)
+                            if _nrm > 1e-12:
+                                _cell.phase_vec = _cell.phase_vec / _nrm
+                    return chi_value  # reinforced in place — no new binding
 
         final_chi, hops = spill_write(
             self.cells,
@@ -179,6 +210,94 @@ class WaveAtlas:
                 "saturated": cell.saturated,
             }
         return {"version": 1, "cells": cells_out}
+
+    def to_npz(self, path: str) -> None:
+        """GL-CMD-WAVE-SEMANTICS-85 Part C.1: persist as numpy .npz (compressed).
+        Phase vecs stored as float32 re/im arrays; bindings as gzip-compressed JSON.
+        Target: <5MB after Part B.3 migration collapses to ~8-25k bindings."""
+        import numpy as np, json, gzip
+        chi_idxs = sorted(self.cells.keys())
+        n = len(chi_idxs)
+        agg_str = np.zeros(n, dtype=np.float32)
+        last_ticks = np.zeros(n, dtype=np.int64)
+        saturated = np.zeros(n, dtype=np.bool_)
+        pv_re = np.zeros((n, PHASE_DIMS), dtype=np.float32)
+        pv_im = np.zeros((n, PHASE_DIMS), dtype=np.float32)
+        pv_valid = np.zeros(n, dtype=np.bool_)
+        bindings_all = []
+        for i, ci in enumerate(chi_idxs):
+            cell = self.cells[ci]
+            agg_str[i] = cell.aggregate_strength
+            last_ticks[i] = cell.last_tick
+            saturated[i] = cell.saturated
+            if cell.phase_vec is not None:
+                pv_re[i] = cell.phase_vec.real.astype(np.float32)
+                pv_im[i] = cell.phase_vec.imag.astype(np.float32)
+                pv_valid[i] = True
+            bindings_all.append(cell.bindings)
+        bindings_bytes = gzip.compress(json.dumps(bindings_all).encode("utf-8"), compresslevel=6)
+        bindings_arr = np.frombuffer(bindings_bytes, dtype=np.uint8)
+        np.savez_compressed(
+            path,
+            chi_indices=np.array(chi_idxs, dtype=np.int32),
+            aggregate_strengths=agg_str,
+            last_ticks=last_ticks,
+            saturated=saturated,
+            phase_vecs_re=pv_re,
+            phase_vecs_im=pv_im,
+            phase_vecs_valid=pv_valid,
+            bindings_gz=bindings_arr,
+        )
+
+    def load_from_npz(self, path: str) -> int:
+        """Restore WaveAtlas from .npz file. Returns number of cells loaded."""
+        import numpy as np, json, gzip
+        data = np.load(path, allow_pickle=False)
+        chi_idxs = data["chi_indices"].tolist()
+        agg_strs = data["aggregate_strengths"].tolist()
+        lticks = data["last_ticks"].tolist()
+        sats = data["saturated"].tolist()
+        pv_re = data["phase_vecs_re"]
+        pv_im = data["phase_vecs_im"]
+        pv_valid = data["phase_vecs_valid"].tolist()
+        bindings_gz = data["bindings_gz"].tobytes()
+        bindings_all = json.loads(gzip.decompress(bindings_gz).decode("utf-8"))
+        self.cells = {}
+        for i, ci in enumerate(chi_idxs):
+            cell = Cell()
+            cell.aggregate_strength = float(agg_strs[i])
+            cell.last_tick = int(lticks[i])
+            cell.saturated = bool(sats[i])
+            if pv_valid[i]:
+                cell.phase_vec = (pv_re[i] + 1j * pv_im[i]).astype(np.complex128)
+            cell.bindings = bindings_all[i] if i < len(bindings_all) else []
+            self.cells[ci] = cell
+        return len(self.cells)
+
+    def collapse_by_key(self) -> dict:
+        """GL-CMD-WAVE-SEMANTICS-85 Part B.3: collapse duplicate bindings within
+        each cell by (chi, section, motif). Strength = sum; phase_vec preserved.
+        Returns {"before": n, "after": m, "cells": k}."""
+        before = sum(len(c.bindings) for c in self.cells.values())
+        for cell in self.cells.values():
+            seen = {}  # (chi, section, motif) -> index in new_bindings
+            new_bindings = []
+            for b in cell.bindings:
+                key = (b.get("chi"), b.get("section"), b.get("motif"))
+                if None in key:
+                    new_bindings.append(b)
+                    continue
+                if key in seen:
+                    # Reinforce existing: sum strengths
+                    existing = new_bindings[seen[key]]
+                    existing["strength"] = existing.get("strength", 0.0) + b.get("strength", 0.0)
+                else:
+                    seen[key] = len(new_bindings)
+                    new_bindings.append(dict(b))
+            cell.bindings = new_bindings
+            cell.aggregate_strength = sum(float(b.get("strength", 0.0)) for b in new_bindings)
+        after = sum(len(c.bindings) for c in self.cells.values())
+        return {"before": before, "after": after, "cells": len(self.cells)}
 
     def load_from_dict(self, state: dict) -> int:
         """Restore WaveAtlas from persisted dict. Returns number of cells loaded."""

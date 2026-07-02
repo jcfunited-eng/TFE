@@ -2894,6 +2894,66 @@ async def admin_compact_wave_atlas():
     return result
 
 
+@app.post("/api/v1/gualaloom/admin/migrate_wave_atlas", dependencies=[Depends(_api_key_dep)])
+async def admin_migrate_wave_atlas():
+    """GL-CMD-WAVE-SEMANTICS-85 Part B.3: one-time WaveAtlas migration.
+
+    1. Snapshot raw state to S3 (compressed, pre-migration backup).
+    2. Collapse by (chi, section, motif) in-memory — sums duplicate strengths.
+    3. Save collapsed atlas to wave_atlas.npz on EFS.
+    Returns binding counts before/after and S3 snapshot key.
+    """
+    if _guala is None or _guala.wave_atlas is None:
+        raise HTTPException(503, "substrate not ready")
+    import asyncio as _aio, boto3 as _boto3, gzip as _gzip, json as _json, io as _io
+    loop = _aio.get_event_loop()
+
+    def _do_migrate():
+        wa = _guala.wave_atlas
+        before_b = wa.binding_count()
+        before_c = wa.cell_count()
+
+        # Step 1: S3 raw snapshot (pre-migration)
+        try:
+            s3 = _boto3.client("s3", region_name="us-east-1")
+            raw = _json.dumps(wa.to_dict()).encode("utf-8")
+            compressed = _gzip.compress(raw, compresslevel=6)
+            ts = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
+            snap_key = f"guala/wave_migrate_pre/{ts}_wave_atlas_raw.json.gz"
+            s3.put_object(
+                Bucket="dsf-ai-site-backups",
+                Key=snap_key,
+                Body=compressed,
+                ContentType="application/gzip",
+            )
+            snap_uri = f"s3://dsf-ai-site-backups/{snap_key}"
+            print(f"[85-B3] Pre-migration snapshot: {snap_uri} ({len(compressed)/1e6:.1f}MB)")
+        except Exception as _se:
+            snap_uri = f"FAILED: {_se}"
+            print(f"[85-B3] S3 snapshot failed (non-fatal): {_se}")
+
+        # Step 2: collapse by (chi, section, motif)
+        collapse_result = wa.collapse_by_key()
+        after_b = collapse_result["after"]
+        after_c = collapse_result["cells"]
+        print(f"[85-B3] Collapse: {before_b}→{after_b} bindings, {before_c}→{after_c} cells")
+
+        # Step 3: save collapsed atlas to npz
+        _guala._save_wave_atlas(STATE_DIR)
+
+        return {
+            "before_bindings": before_b,
+            "after_bindings": after_b,
+            "removed": before_b - after_b,
+            "before_cells": before_c,
+            "after_cells": after_c,
+            "s3_snapshot": snap_uri,
+        }
+
+    result = await loop.run_in_executor(None, _do_migrate)
+    return result
+
+
 @app.get("/api/v1/gualaloom/admin/persistence_health", dependencies=[Depends(_api_key_dep)])
 async def admin_persistence_health():
     """Full EFS-based persistence health. Uses executor so EFS stat() doesn't block
@@ -4107,18 +4167,30 @@ async def startup():
     asyncio.ensure_future(_background_replay())
 
     # N2: Periodic save + backup in executor (never blocks event loop)
-    def _do_save_and_compact():
-        """Runs in thread pool — never blocks health checks."""
+    def _do_save_and_compact(write_wave: bool = False):
+        """Runs in thread pool — never blocks health checks.
+        write_wave=True: also write wave_atlas.npz and emit 5-field timing line."""
         t0 = time.time()
         pre_size = _guala.events_log_size(STATE_DIR)
-        _guala.save_full_state(STATE_DIR)
+        results = _guala.save_full_state(STATE_DIR)
         t1 = time.time()
         _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
         t2 = time.time()
         core_dt = t1 - t0
         compact_dt = t2 - t1
-        total_dt = t2 - t0
-        print(f"[save] {total_dt:.2f}s core={core_dt:.2f}s compact={compact_dt:.2f}s")
+        # grids timing extracted from save_full_state result dict if available
+        grids_dt = results.get("_grids_dt", 0.0) if isinstance(results, dict) else 0.0
+        if write_wave:
+            t3 = time.time()
+            _guala._save_wave_atlas(STATE_DIR)
+            wave_dt = time.time() - t3
+            total_dt = t2 - t0 + wave_dt
+            print(f"[save] {total_dt:.2f}s core={core_dt:.2f}s grids={grids_dt:.2f}s "
+                  f"wave={wave_dt:.2f}s compact={compact_dt:.2f}s")
+        else:
+            total_dt = t2 - t0
+            print(f"[save] {total_dt:.2f}s core={core_dt:.2f}s grids={grids_dt:.2f}s "
+                  f"wave=skip compact={compact_dt:.2f}s")
         return total_dt
 
     async def _periodic_v6_save():
@@ -4128,13 +4200,13 @@ async def startup():
             await asyncio.sleep(60)
             try:
                 if _guala is not None:
-                    await loop.run_in_executor(None, _do_save_and_compact)
+                    # GL-CMD-WAVE-SEMANTICS-85 C.2: wave write at count>0 and count%10==0
+                    # (not on first save, which would write a 1M-binding atlas before diet)
+                    do_wave = save_count > 0 and save_count % 10 == 0
+                    await loop.run_in_executor(None, _do_save_and_compact, do_wave)
                     save_count += 1
-                    if save_count % 10 == 0:
-                        # GL-CMD-WAVE-DIET-82: WaveAtlas save every ~10 min
-                        # (decoupled from 60s critical cycle; snapshot includes it)
+                    if do_wave:
                         def _snap():
-                            _guala._save_wave_atlas(STATE_DIR)
                             return _guala.snapshot_state(STATE_DIR, reason="periodic")
                         snap_dir = await loop.run_in_executor(None, _snap)
                         print(f"[v6] Snapshot: {snap_dir}")
@@ -4179,6 +4251,43 @@ async def startup():
             except Exception:
                 pass
     asyncio.ensure_future(_job_registry_gc())
+
+    # GL-CMD-WAVE-SEMANTICS-85 Part D.2: S3 lifecycle policy at startup
+    # hourly backups expire 7d, auto/ dailies expire 60d, named restores permanent
+    def _apply_s3_lifecycle():
+        try:
+            import boto3 as _b3
+            _s3 = _b3.client("s3", region_name="us-east-1")
+            _s3.put_bucket_lifecycle_configuration(
+                Bucket="dsf-ai-site-backups",
+                LifecycleConfiguration={
+                    "Rules": [
+                        {
+                            "ID": "guala-hourly-expire-7d",
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": "guala/2"},  # date-stamped hourly: guala/2026-...
+                            "Expiration": {"Days": 7},
+                        },
+                        {
+                            "ID": "guala-auto-expire-60d",
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": "guala/auto/"},
+                            "Expiration": {"Days": 60},
+                        },
+                        {
+                            "ID": "guala-wave-migrate-expire-90d",
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": "guala/wave_migrate_pre/"},
+                            "Expiration": {"Days": 90},
+                        },
+                    ]
+                },
+            )
+            print("[85-D2] S3 lifecycle policy applied: hourly→7d, auto/→60d, wave_migrate→90d")
+        except Exception as _le:
+            print(f"[85-D2] S3 lifecycle policy failed (non-fatal): {_le}")
+    loop = asyncio.get_event_loop()
+    loop.run_in_executor(None, _apply_s3_lifecycle)
 
 
 _last_s3_backup = None  # D3: tracked for persistence_health

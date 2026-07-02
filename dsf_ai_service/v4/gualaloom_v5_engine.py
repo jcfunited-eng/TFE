@@ -6060,10 +6060,9 @@ class Guala:
                     except OSError:
                         pass
 
-        # GL-CMD-WAVE-DIET-82: WaveAtlas decoupled from 60s critical save cycle.
-        # 990k bindings → 198MB JSON blocks this loop for 10+ min. Now called
-        # via _save_wave_atlas() every ~10 min and on clean shutdown/deploy.
-        # wave_atlas.json is still written to EFS; load_full_state still reads it.
+        # GL-CMD-WAVE-DIET-82/85: WaveAtlas decoupled from 60s critical save cycle.
+        # Written via _save_wave_atlas() as wave_atlas.npz every ~10 min and on
+        # clean shutdown/deploy. load_full_state tries .npz first, falls back to .json.
 
         # GL-CMD-TEACHER-CORRECTION-UI: teaching data
         snap_teaching = self._envelope({
@@ -6091,6 +6090,7 @@ class Guala:
         pic_dir = os.path.join(state_dir, "pictures")
         os.makedirs(pic_dir, exist_ok=True)
         _GRID_BYTES = 32896  # 64×64 float64 array + numpy header ≈ 32896 B
+        _grids_t0 = time.time()
         for pid, grid in snap_pic_grids.items():
             if grid is None:
                 continue
@@ -6102,6 +6102,7 @@ class Guala:
             except Exception as _ge:
                 _save_failures.append((f"pictures/{pid}.npy", str(_ge)))
                 print(f"[GualaLoom] save failed for pictures/{pid}.npy: {_ge}")
+        results["_grids_dt"] = time.time() - _grids_t0
 
         # GL-CMD-PERSIST-FIX-74: mark survival based on critical-file success only.
         _critical = {"guala_core.json", "guala_needs.json", "guala_coordinator.json",
@@ -6132,18 +6133,23 @@ class Guala:
         return results
 
     def _save_wave_atlas(self, state_dir):
-        """GL-CMD-WAVE-DIET-82: WaveAtlas persistence — decoupled from 60s save.
-        Called every ~10 min and on clean shutdown. Uses _atomic_write (fsync)."""
+        """GL-CMD-WAVE-SEMANTICS-85 Part C.1: persist WaveAtlas as numpy .npz.
+        Much smaller than JSON after Part B.3 migration (~8-25k bindings → <5MB).
+        Falls back to JSON if npz write fails (non-fatal in both cases)."""
         if self.wave_atlas is None:
             return
         try:
             n_cells = len(self.wave_atlas.cells)
             n_bind = sum(len(c.bindings) for c in self.wave_atlas.cells.values())
-            self._atomic_write(os.path.join(state_dir, "wave_atlas.json"),
-                               self.wave_atlas.to_dict())
-            print(f"[GualaLoom] WaveAtlas saved: {n_cells} cells, {n_bind} bindings")
+            npz_path = os.path.join(state_dir, "wave_atlas.npz")
+            tmp_path = npz_path + ".tmp"
+            self.wave_atlas.to_npz(tmp_path)
+            os.rename(tmp_path, npz_path)
+            file_mb = os.path.getsize(npz_path) / 1e6
+            print(f"[GualaLoom] WaveAtlas saved (npz): {n_cells} cells, "
+                  f"{n_bind} bindings, {file_mb:.1f}MB")
         except Exception as _we:
-            print(f"[GualaLoom] WaveAtlas save failed (non-fatal): {_we}")
+            print(f"[GualaLoom] WaveAtlas npz save failed (non-fatal): {_we}")
 
     # ── Load ──
 
@@ -6409,13 +6415,33 @@ class Guala:
                                 n_indexed += 1
             print(f"[GualaLoom] Recall word index rebuilt: {len(self._word_to_chi_index)} words, {n_indexed} entries")
 
-            # 64-C: WaveAtlas — load from disk if saved, else rebuild once from LivingAtlas
+            # 64-C / 85-C1: WaveAtlas — try .npz first (Part C.1), then .json fallback
             if self.wave_atlas is not None:
-                wave_path = os.path.join(state_dir, "wave_atlas.json")
-                if os.path.exists(wave_path):
+                _wave_npz = os.path.join(state_dir, "wave_atlas.npz")
+                _wave_json = os.path.join(state_dir, "wave_atlas.json")
+                if os.path.exists(_wave_npz):
+                    try:
+                        n_cells = self.wave_atlas.load_from_npz(_wave_npz)
+                        print(f"[GualaLoom] WaveAtlas loaded from disk (npz): {n_cells} cells, "
+                              f"{self.wave_atlas.binding_count()} bindings")
+                    except Exception as _wle:
+                        print(f"[GualaLoom] WaveAtlas npz load failed ({_wle}), trying json")
+                        if os.path.exists(_wave_json):
+                            try:
+                                import json as _wjson
+                                with open(_wave_json, "r") as _wf:
+                                    n_cells = self.wave_atlas.load_from_dict(_wjson.load(_wf))
+                                print(f"[GualaLoom] WaveAtlas loaded from json fallback: {n_cells} cells, "
+                                      f"{self.wave_atlas.binding_count()} bindings")
+                            except Exception as _wle2:
+                                print(f"[GualaLoom] WaveAtlas all loads failed, rebuilding")
+                                self.wave_atlas.rebuild_from(self.atlas)
+                        else:
+                            self.wave_atlas.rebuild_from(self.atlas)
+                elif os.path.exists(_wave_json):
                     try:
                         import json as _wjson
-                        with open(wave_path, "r") as _wf:
+                        with open(_wave_json, "r") as _wf:
                             n_cells = self.wave_atlas.load_from_dict(_wjson.load(_wf))
                         print(f"[GualaLoom] WaveAtlas loaded from disk: {n_cells} cells, "
                               f"{self.wave_atlas.binding_count()} bindings")
