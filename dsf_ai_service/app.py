@@ -4093,6 +4093,13 @@ _LIFESPAN_STARTED = False   # set True as soon as startup event fires
 async def startup():
     global _init_complete, _LIFESPAN_STARTED
     _LIFESPAN_STARTED = True   # shallow-ready gate: uvicorn is up
+    # GL-CMD-HOTFIX-BUNDLE-95 item 4: build identity in the boot banner —
+    # the running code must name its own commit.
+    try:
+        with open("/BUILD_INFO") as _bf:
+            print(f"[build] {' '.join(_bf.read().split())}")
+    except OSError:
+        print("[build] BUILD_INFO absent (image predates -95 build stamp)")
     result = initialize_integrity()
     print(f"[DSF-AI] Integrity initialized: {result['files_present']}/{result['files_checked']} files hashed")
 

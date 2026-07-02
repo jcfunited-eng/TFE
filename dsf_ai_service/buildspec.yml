@@ -8,7 +8,7 @@ phases:
   build:
     commands:
       - echo Building DSF-AI image
-      - docker build -f dsf_ai_service/Dockerfile -t "$IMAGE_URI" .
+      - docker build -f dsf_ai_service/Dockerfile --build-arg GIT_SHA="${GIT_SHA:-unknown}" --build-arg BUILD_TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)" -t "$IMAGE_URI" .
   post_build:
     commands:
       - echo Pushing image $IMAGE_URI

@@ -118,6 +118,7 @@ BUILD_ID=$(aws codebuild start-build \
     --project-name "${CODEBUILD_PROJECT}" \
     --environment-variables-override \
         "name=IMAGE_URI,value=${IMAGE_URI},type=PLAINTEXT" \
+        "name=GIT_SHA,value=${GIT_SHA},type=PLAINTEXT" \
     --query 'build.id' \
     --output text)
 

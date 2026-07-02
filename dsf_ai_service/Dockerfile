@@ -1,5 +1,13 @@
 FROM public.ecr.aws/docker/library/python:3.11-slim
 
+# GL-CMD-HOTFIX-BUNDLE-95 item 4: build identity. Source arrives via
+# `git archive HEAD` (no .git dir), so the SHA must be passed in.
+ARG GIT_SHA=unknown
+ARG BUILD_TS=unknown
+LABEL org.opencontainers.image.revision="${GIT_SHA}" \
+      com.gualaloom.build_ts="${BUILD_TS}"
+RUN printf 'git_sha=%s built=%s\n' "${GIT_SHA}" "${BUILD_TS}" > /BUILD_INFO
+
 WORKDIR /app
 
 # Install dependencies
