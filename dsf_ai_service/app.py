@@ -3222,6 +3222,10 @@ async def gualaloom_upload_picture(file: UploadFile = File(...)):
         blocking the upload response."""
         t0 = time.time()
         try:
+            try:
+                import pillow_heif as _ph; _ph.register_heif_opener()
+            except ImportError:
+                pass
             from PIL import Image
             import io as _io
             img_full = Image.open(_io.BytesIO(content))
