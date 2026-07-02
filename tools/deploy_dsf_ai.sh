@@ -9,13 +9,26 @@
 # Any of these failing means the deploy is partial. Future static-only
 # changes must still run steps 3-5.
 #
-# Usage: ./tools/deploy_dsf_ai.sh
+# Usage: ./tools/deploy_dsf_ai.sh [--force-s3-restore]
+#   --force-s3-restore  Inject FORCE_S3_RESTORE=1 for THIS deploy only.
+#                       Boot will download from most-recent S3 backup before
+#                       loading EFS state. Remove the flag for all subsequent
+#                       deploys — one-time flags must never live in default config.
 #
 # Prerequisites:
 #   - AWS CLI configured with credentials
 #   - Run from repo root: ./tools/deploy_dsf_ai.sh
 
 set -euo pipefail
+
+# Parse optional flags
+FORCE_S3_RESTORE_FLAG=""
+for arg in "$@"; do
+  if [ "$arg" = "--force-s3-restore" ]; then
+    FORCE_S3_RESTORE_FLAG="yes"
+    echo "[deploy] --force-s3-restore: FORCE_S3_RESTORE=1 will be injected for this deploy only."
+  fi
+done
 
 # ── Constants ──
 AWS_REGION="us-east-1"
@@ -169,8 +182,13 @@ TASK_DEF_JSON=$(aws ecs describe-task-definition \
     --query 'taskDefinition' \
     --output json)
 
+# GL-CMD-81: inject FORCE_S3_RESTORE only when --force-s3-restore flag was passed
+if [ "${FORCE_S3_RESTORE_FLAG}" = "yes" ]; then
+  export _FORCE_S3_RESTORE_INJECT=1
+fi
+
 NEW_TASK_DEF=$(echo "${TASK_DEF_JSON}" | python3 -c "
-import sys, json
+import sys, json, os
 td = json.load(sys.stdin)
 
 # Preserve infra fields from existing task def
@@ -235,10 +253,9 @@ out = {
                 {'name': 'DREAM_CYCLE_PHASED', 'value': '1'},
                 {'name': 'EMISSION_DYNAMICS_TICKS', 'value': '40'},
                 {'name': 'WAVE_ATLAS_ENABLED', 'value': '1'},
-                {'name': 'FORCE_S3_RESTORE', 'value': '1'},
                 {'name': 'YOLO_MODEL_PATH', 'value': '/app/yolov8n.onnx'},
                 {'name': 'WHISPER_MODEL_PATH', 'value': 'tiny'}
-            ],
+            ] + ([{'name': 'FORCE_S3_RESTORE', 'value': '1'}] if os.environ.get('_FORCE_S3_RESTORE_INJECT') == '1' else []),
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
                  'readOnly': False}

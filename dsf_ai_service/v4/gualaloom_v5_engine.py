@@ -6077,13 +6077,37 @@ class Guala:
             "correction_log": self._teaching_correction_log[-500:],
             "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
         })
-        self._atomic_write(os.path.join(state_dir, "guala_teaching.json"), snap_teaching)
+        # GL-CMD-PERSIST-CLOBBER-FIX-81: teaching is non-critical — isolate so it
+        # cannot prevent _last_save_tick from advancing when core files succeed.
+        try:
+            self._atomic_write(os.path.join(state_dir, "guala_teaching.json"), snap_teaching)
+        except Exception as _te:
+            _save_failures.append(("guala_teaching.json", str(_te)))
+            print(f"[GualaLoom] save failed for guala_teaching.json: {_te}")
+            _tmp = os.path.join(state_dir, "guala_teaching.json.tmp")
+            if os.path.exists(_tmp):
+                try:
+                    os.remove(_tmp)
+                except OSError:
+                    pass
 
-        # Picture grids
+        # Picture grids — incremental + per-item isolation.
+        # Grids are immutable post-upload (same pid = same 64×64 content).
+        # Skip existing files with correct size to avoid hammering EFS.
         pic_dir = os.path.join(state_dir, "pictures")
         os.makedirs(pic_dir, exist_ok=True)
+        _GRID_BYTES = 32896  # 64×64 float64 array + numpy header ≈ 32896 B
         for pid, grid in snap_pic_grids.items():
-            np.save(os.path.join(pic_dir, f"{pid}.npy"), grid)
+            if grid is None:
+                continue
+            grid_path = os.path.join(pic_dir, f"{pid}.npy")
+            try:
+                if os.path.exists(grid_path) and os.path.getsize(grid_path) == _GRID_BYTES:
+                    continue  # already on EFS, skip
+                np.save(grid_path, grid)
+            except Exception as _ge:
+                _save_failures.append((f"pictures/{pid}.npy", str(_ge)))
+                print(f"[GualaLoom] save failed for pictures/{pid}.npy: {_ge}")
 
         # GL-CMD-PERSIST-FIX-74: mark survival based on critical-file success only.
         _critical = {"guala_core.json", "guala_needs.json", "guala_coordinator.json",
