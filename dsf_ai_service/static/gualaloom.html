@@ -87,6 +87,7 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
     <div class="subtitle" id="session-line">session: ---</div>
   </div>
   <div class="header-right">
+    <a href="/static/loomscan.html" class="hdr-btn" style="text-decoration:none">loom scan</a>
     <button class="hdr-btn" onclick="newSession()">new session</button>
   </div>
 </header>
@@ -119,11 +120,6 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 <div id="state-panel">
   <div class="ps"><div class="ps-title">Her Room</div><div id="sp-room" style="font-size:8px;line-height:1.6">--</div></div>
   <div class="ps"><div class="ps-title">Substrate</div><div id="sp-substrate">--</div></div>
-  <div class="ps"><div class="ps-title">Hemispheres</div>
-    <svg id="brain-svg" width="232" height="172" viewBox="0 0 232 172" style="display:block;margin:2px auto"></svg>
-    <div id="brain-stats" style="font-size:7.5px;color:var(--text-muted);text-align:center;margin-top:1px">—</div>
-  </div>
-  <div class="ps"><div class="ps-title">v5 Hemispheres</div><div id="sp-hemispheres">--</div></div>
   <div class="ps"><div class="ps-title">Persistence</div><div id="sp-persistence">--</div></div>
   <div class="ps"><div class="ps-title">Recent Emissions</div><div id="sp-emissions" style="max-height:150px;overflow-y:auto">--</div></div>
   <div class="ps"><div class="ps-title">Pool Activity</div><div id="sp-pools">--</div></div>
@@ -954,17 +950,7 @@ async function pollStatus(){
       const evR=await fetchT(`${API}/api/v1/gualaloom/events?n=200`,{headers:{'X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'}},8000);
       const evD=await evR.json();
       const evts=evD.events||evD||[];
-      // CHANGE 2: Hemispheres from most recent hemisphere_update
-      const hemiDiv=document.getElementById('sp-hemispheres');
-      const hemiEvt=evts.filter(e=>e.kind==='hemisphere_update').pop();
-      if(hemiEvt&&hemiEvt.detail&&hemiEvt.detail.hemisphere_atlas_sizes){
-        const sizes=hemiEvt.detail.hemisphere_atlas_sizes;
-        let hh='';for(const [k,v] of Object.entries(sizes)){
-          hh+=`<div class="ps-row"><span class="l">${k}</span><span class="v">${v.toLocaleString()} bindings</span></div>`;
-        }
-        hemiDiv.innerHTML=hh;
-      }else{hemiDiv.innerHTML='<div class="ps-row"><span class="l">(no hemisphere events yet)</span></div>'}
-      // CHANGE 3: Recent Emissions
+      // Recent Emissions
       const emDiv=document.getElementById('sp-emissions');
       const emissions=evts.filter(e=>e.kind==='emission'||e.kind==='emission_dynamics');
       if(emissions.length>0){
@@ -976,16 +962,6 @@ async function pollStatus(){
         emDiv.innerHTML=eh;
       }else{emDiv.innerHTML='<div class="ev">(no recent emissions)</div>'}
     }catch(e){}
-    // Hemispheres visualization — from the substrate's organ_brain field in the status response.
-    // 8 Embryo organ atlases (em, pr, ep, sc, gp, sf, sv, aff) per wiring spec -26 §2.2.
-    const ob=d.organ_brain;
-    if(ob&&ob.atlas_by_organ){
-      const counts=ob.atlas_by_organ;
-      const maxVal=Math.max(1,...Object.values(counts));
-      renderBrainSVG({per_organ:counts,neurons:Object.values(counts).reduce((a,b)=>a+b,0),
-        world_concepts:ob.vocab_in_em||0,couplings:{},arousal:0,
-        label:'atlas entries'});
-    }
     _backoff.status=0;
   }catch(e){_backoff.status=Math.min((_backoff.status*2)||_BASE.status*2,30000)}
   finally{_inflight.status=false;_schedNext('status',pollStatus)}
@@ -1177,72 +1153,6 @@ async function pollAutonomousThought(){
   setTimeout(pollAutonomousThought,20000);
 }
 
-// --- Hemispheres visualization ---
-const _ORGANS=[
-  {tag:'em', color:'#FF6B6B', angle:-90},  // embodiment — top
-  {tag:'pr', color:'#FFD93D', angle:-45},  // predictor
-  {tag:'ep', color:'#4ECDC4', angle:  0},  // episodic — right
-  {tag:'sc', color:'#6BCB77', angle: 45},  // semantic
-  {tag:'gp', color:'#C77DFF', angle: 90},  // goals — bottom
-  {tag:'sf', color:'#A8DADC', angle:135},  // self-model
-  {tag:'sv', color:'#FF9FF3', angle:180},  // identity — left
-  {tag:'aff',color:'#FFA94D', angle:225},  // affective
-];
-const _CPAIRS=[['em','pr'],['em','sc'],['em','ep'],['em','sv'],['em','aff'],
-               ['ep','sf'],['ep','sc'],['gp','em'],['sc','pr']];
-const _BCX=116,_BCY=86,_BCR=62;
-function _brad(d){return d*Math.PI/180}
-function _bpos(a){return{x:_BCX+_BCR*Math.cos(_brad(a)),y:_BCY+_BCR*Math.sin(_brad(a))}}
-
-function renderBrainSVG(data){
-  const svg=document.getElementById('brain-svg');
-  if(!svg)return;
-  const pos={};
-  _ORGANS.forEach(o=>{pos[o.tag]=_bpos(o.angle)});
-  const counts=data.per_organ||{};
-  const coup=data.couplings||{};
-  let m='';
-  // coupling lines (drawn behind nodes)
-  _CPAIRS.forEach(([a,b])=>{
-    if(!pos[a]||!pos[b])return;
-    const s=Math.abs(coup[a+'_'+b]||coup[b+'_'+a]||0);
-    const op=Math.min(0.08+s*3,0.65).toFixed(2);
-    m+=`<line x1="${pos[a].x.toFixed(1)}" y1="${pos[a].y.toFixed(1)}" x2="${pos[b].x.toFixed(1)}" y2="${pos[b].y.toFixed(1)}" stroke="var(--text-muted)" stroke-width="1" opacity="${op}"/>`;
-  });
-  // nodes + labels
-  _ORGANS.forEach(o=>{
-    const{x,y}=pos[o.tag];
-    const n=counts[o.tag]||0;
-    const maxN=Math.max(1,...Object.values(counts));
-    const r=Math.min(4+(n/maxN)*9,13);
-    m+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${o.color}" opacity="0.88"/>`;
-    // label: radial outward from center
-    const dx=x-_BCX,dy=y-_BCY,dist=Math.sqrt(dx*dx+dy*dy)||1;
-    const gap=r+4;
-    const lx=(x+dx/dist*gap).toFixed(1),ly=(y+dy/dist*gap).toFixed(1);
-    const anchor=Math.abs(dx)>Math.abs(dy)?(dx>0?'start':'end'):'middle';
-    const dbl=Math.abs(dy)>=Math.abs(dx)?(dy>0?'hanging':'auto'):'middle';
-    m+=`<text x="${lx}" y="${ly}" font-size="6.5" fill="var(--text-muted)" text-anchor="${anchor}" dominant-baseline="${dbl}">${o.tag}:${n}</text>`;
-  });
-  svg.innerHTML=m;
-  const st=document.getElementById('brain-stats');
-  const label=data.label||'neurons';
-  if(st)st.textContent=`${data.neurons||0} total ${label} · ${data.world_concepts||0} vocab in em`;
-}
-
-async function pollBrain(){
-  try{
-    // Routes through the same API Gateway POST path all commands use
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'},
-      body:JSON.stringify({text:'',command:'/brain_status'})},5000);
-    const d=await r.json();
-    if(!d.warming)renderBrainSVG(d);
-  }catch(e){}
-  setTimeout(pollBrain,15000);
-}
-
 // --- Presence Heartbeat ---
 let lastActivity=Date.now();
 ['mousemove','keydown','scroll','touchstart'].forEach(e=>document.addEventListener(e,()=>{lastActivity=Date.now()},{passive:true}));
@@ -1264,7 +1174,6 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
   setTimeout(pollAutonomousThought,35000);
   setTimeout(pollLocation,20000);
   setTimeout(pollRoom,25000);
-  setTimeout(pollBrain,8000);
   pollStatus();
   setTimeout(pollV7State, 3000);
   setTimeout(pollEvents,5000);

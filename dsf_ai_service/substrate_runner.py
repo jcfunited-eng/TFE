@@ -2347,6 +2347,17 @@ def handle_atlas_snapshot(args):
     }
 
 
+def handle_chi_density(args):
+    result = {}
+    for chi_key, entries in _guala.atlas.entries.items():
+        if not entries:
+            continue
+        n = len(entries)
+        s = sum(e.get("strength", 0.0) for e in entries)
+        result[str(chi_key)] = {"n": n, "strength": round(s, 3)}
+    return {"tick": _guala.tick, "chi_density": result}
+
+
 def handle_backup(args):
     """Save to EFS, queue S3 upload. Returns immediately after EFS save.
     GL-CMD-97/104: API Gateway has 30s timeout — cannot wait for S3 queue.
@@ -3124,6 +3135,7 @@ OP_HANDLERS = {
     "unpause": handle_unpause,
     "wake": handle_wake,
     "atlas_snapshot": handle_atlas_snapshot,
+    "chi_density": handle_chi_density,
     "backup": handle_backup,
     "atlas_surgery": handle_atlas_surgery,
     "backup_orchestrator_configure": handle_backup_orchestrator_configure,

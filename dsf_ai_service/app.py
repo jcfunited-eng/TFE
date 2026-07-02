@@ -1445,6 +1445,29 @@ async def gualaloom_events(n: int = 200):
     return {"events": []}
 
 
+@app.get("/api/v1/gualaloom/chi_density")
+async def chi_density():
+    """Read-only per-chi binding density for Loom Scan radial map.
+    Returns {chi_key: {n: count, strength: sum}} for all populated chi keys."""
+    if _is_remote():
+        client = _get_substrate_client()
+        try:
+            return await client.call("chi_density")
+        except Exception:
+            return {"tick": 0, "chi_density": {}}
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    result = {}
+    for chi_key, entries in _guala.atlas.entries.items():
+        if not entries:
+            continue
+        n = len(entries)
+        s = sum(e.get("strength", 0.0) for e in entries)
+        result[str(chi_key)] = {"n": n, "strength": round(s, 3)}
+    return {"tick": _guala.tick, "chi_density": result}
+
+
 class GLMessage(BaseModel):
     text: str
     command: Optional[str] = None

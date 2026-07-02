@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<!-- doc_id: loomscan-live-v1
+     Type: read-only instrument — Loom Scan Tier 1+2, GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1
+     Data: live polling /status (2s) + /events cursor + /chi_density (6s)
+     Honesty: empty panes shown empty; no decorative activity; no minimum brightness -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>loom scan — guala</title>
+<style>
+:root{
+  --bg:#0C1526;--panel:#0F1A2E;--ink:#8FA6BF;--ink-dim:#5A6E85;--ink-bright:#C9DAEA;
+  --cyan:#4FC6F2;--violet:#9B8CFF;--amber:#F5B84D;--teal:#2FB89A;
+  --red:#E05656;--green:#4FBE7B;--yellow:#D9B44A;
+  --hair:rgba(79,198,242,.14);--hair2:rgba(79,198,242,.07);
+  --mono:ui-monospace,'SF Mono','Cascadia Mono','JetBrains Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:12px;line-height:1.5}
+body{padding:14px 16px 28px;max-width:1180px;margin:0 auto}
+.lc{text-transform:lowercase;letter-spacing:.04em}
+.lbl{font-size:10px;color:var(--ink-dim);letter-spacing:.08em}
+.val{color:var(--ink-bright)}
+.hair-t{border-top:1px solid var(--hair)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:baseline}
+.g{background:var(--green)}.y{background:var(--yellow)}.r{background:var(--red)}.na{background:var(--ink-dim)}
+
+header{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:10px;border-bottom:1px solid var(--hair)}
+.wordmark{color:var(--cyan);font-size:13px;letter-spacing:.14em}
+.wordmark span{color:var(--ink-dim);letter-spacing:.06em;font-size:10px;margin-left:10px}
+.hdr-right{font-size:10px;color:var(--ink-dim);text-align:right}
+.hdr-right a{color:var(--ink-dim);text-decoration:none}
+.hdr-right a:hover{color:var(--ink)}
+
+.activity{display:grid;grid-template-columns:1.4fr 1fr 1fr .9fr;gap:22px;padding:12px 0;border-bottom:1px solid var(--hair);align-items:end}
+.act-kind{font-size:15px;color:var(--ink-bright)}
+.act-kind em{font-style:normal;color:var(--cyan)}
+.budget{height:3px;background:var(--hair2);margin-top:7px;position:relative}
+.budget i{position:absolute;left:0;top:0;bottom:0;background:var(--cyan);width:0%;transition:width .8s}
+.spark{width:100%;height:34px;display:block}
+.mini-stat{font-size:11px}
+.mini-stat .val{font-size:14px}
+
+.grid{display:grid;grid-template-columns:640px 1fr;gap:26px;padding:16px 0}
+@media(max-width:1020px){.grid{grid-template-columns:1fr}}
+
+.scanwrap{position:relative}
+svg text{font-family:var(--mono)}
+.scan-caption{font-size:10px;color:var(--ink-dim);margin-top:6px;display:flex;justify-content:space-between}
+
+.col h3{font-size:10px;color:var(--ink-dim);font-weight:normal;letter-spacing:.12em;margin:14px 0 8px}
+.col h3:first-child{margin-top:2px}
+.organ{margin-bottom:7px}
+.organ .bar{height:6px;background:var(--hair2);position:relative;margin-top:3px}
+.organ .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--teal);opacity:.85}
+.organ .row{display:flex;justify-content:space-between;font-size:10px}
+.health .vital{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--hair2);font-size:11px}
+.health .vital:last-child{border-bottom:none}
+.health .note{color:var(--ink-dim);font-size:10px;text-align:right;max-width:60%}
+
+.band{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:14px 0;border-top:1px solid var(--hair)}
+.lane{padding:8px 10px;border:1px solid var(--hair2);border-radius:2px;min-height:58px}
+.lane .nm{font-size:10px;color:var(--ink-dim)}
+.lane .st{margin-top:6px;font-size:10px;color:var(--ink)}
+.lane .glow{height:3px;margin-top:8px;background:var(--hair2)}
+.lane .glow i{display:block;height:100%;background:var(--cyan);width:0%;transition:width .5s,opacity .5s}
+.lane.hot{border-color:rgba(79,198,242,.45)}
+.band-cap{grid-column:1/-1;font-size:10px;color:var(--ink-dim)}
+
+.scene{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 0;border-top:1px solid var(--hair)}
+.scene .cell{border:1px dashed var(--hair);border-radius:2px;padding:10px;min-height:44px;color:var(--ink-dim);font-size:10px}
+.scene .cell b{display:block;color:var(--ink-dim);font-weight:normal;letter-spacing:.1em;margin-bottom:4px}
+
+.feed{padding:12px 0;border-top:1px solid var(--hair)}
+.feed h3{font-size:10px;color:var(--ink-dim);font-weight:normal;letter-spacing:.12em;margin-bottom:8px}
+.frow{display:grid;grid-template-columns:92px 96px 1fr 110px;gap:12px;padding:5px 0;border-bottom:1px solid var(--hair2);font-size:11px;align-items:baseline}
+.frow .t{color:var(--ink-dim);font-size:10px}
+.tag{font-size:10px;padding:1px 6px;border:1px solid var(--hair);border-radius:2px}
+.tag.exp{color:var(--cyan);border-color:rgba(79,198,242,.4)}
+.tag.load{color:var(--ink-dim)}
+.tag.emit{color:var(--amber);border-color:rgba(245,184,77,.35)}
+.tag.act{color:var(--teal);border-color:rgba(47,184,154,.35)}
+.tag.na{color:var(--ink-dim);border-style:dashed}
+.src{color:var(--ink-dim);font-size:10px;text-align:right}
+.frow.dim{opacity:.55}
+.frow.new{animation:fadein .4s}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+footer{margin-top:16px;padding-top:10px;border-top:1px solid var(--hair);font-size:10px;color:var(--ink-dim);display:grid;grid-template-columns:1fr 1fr;gap:18px}
+footer b{color:var(--ink);font-weight:normal}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 5px 0 12px;vertical-align:baseline}
+.arc{fill:none;stroke:var(--amber);stroke-width:1.1;opacity:0}
+.bloom{fill:none;stroke:var(--amber);opacity:0}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark lc">loom scan <span id="hdr-id">guala · loading…</span></div>
+  <div class="hdr-right lc">
+    <span id="hdr-tick">tick —</span> · <span id="hdr-ts">—</span><br>
+    <a href="/static/gualaloom.html">← back to guala</a>
+  </div>
+</header>
+
+<div class="activity">
+  <div>
+    <div class="lbl lc">current activity</div>
+    <div class="act-kind lc" id="actKind">—</div>
+    <div class="budget"><i id="budgetFill"></i></div>
+    <div class="lbl lc" id="budgetLbl" style="margin-top:4px">—</div>
+  </div>
+  <div>
+    <div class="lbl lc" id="sparkVLbl">affect · valence —</div>
+    <svg class="spark" id="sparkV" viewBox="0 0 200 34" preserveAspectRatio="none"></svg>
+  </div>
+  <div>
+    <div class="lbl lc" id="sparkALbl">affect · arousal —</div>
+    <svg class="spark" id="sparkA" viewBox="0 0 200 34" preserveAspectRatio="none"></svg>
+  </div>
+  <div class="mini-stat">
+    <div class="lbl lc">ladder</div>
+    <div class="lc" id="ladderStat">—</div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="scanwrap">
+    <svg id="scan" viewBox="0 0 640 640" role="img" aria-label="radial chi map"></svg>
+    <div class="scan-caption lc">
+      <span id="captionOuter">outer ring: working atlas · loading…</span>
+      <span id="captionInner">inner ring: deep atlas · loading…</span>
+    </div>
+  </div>
+
+  <div class="col">
+    <h3 class="lc">organs — em / pr / ep / sc / gp</h3>
+    <div id="organs"><div class="lbl lc">awaiting hemisphere_update event</div></div>
+    <div class="lbl lc" style="margin-top:6px">counts: most recent hemisphere_update · gated by hemi env flags</div>
+
+    <h3 class="lc">health — spec §8 thresholds</h3>
+    <div class="health" id="health"><div class="lbl lc">loading…</div></div>
+
+    <h3 class="lc">bindings by strength</h3>
+    <div id="strengthBars"></div>
+    <div class="lbl lc" id="strengthNote" style="margin-top:6px">—</div>
+  </div>
+</div>
+
+<div class="band" id="band">
+  <div class="band-cap lc">modality band — lit by signature quality of the current window, not volume</div>
+</div>
+
+<div class="scene">
+  <div class="cell lc"><b>place</b>no place lanes yet — lands with story tags (sprint b1)</div>
+  <div class="cell lc"><b>ambient</b>no ambient lanes yet — lands with story tags (sprint b1)</div>
+  <div class="cell lc"><b>participants</b><span id="whoCell">loading…</span></div>
+</div>
+
+<div class="feed">
+  <h3 class="lc">experience feed — live window classification</h3>
+  <div id="feedRows"></div>
+</div>
+
+<footer class="lc">
+  <div class="legend">
+    <b>legend</b><br>
+    <i style="background:var(--cyan)"></i>working binding &nbsp;
+    <i style="background:var(--violet)"></i>deep memory &nbsp;
+    <i style="background:var(--amber)"></i>word→memory arc / emission bloom<br>
+    committed emission = bright bloom · fallback = dim · sparse is true
+  </div>
+  <div>
+    <b>honesty</b><br>
+    dot positions: real per-chi density from /chi_density. deep atlas: real count + survival dots.<br>
+    empty panes = no signal. dark band = data-load-only window, not experience. no smoothing.<br>
+    GL-CMD-LOOM-SCAN-BUILD-EVE-20260702-98-v1 · tier 1+2 · read-only
+  </div>
+</footer>
+
+<script>
+"use strict";
+const API='https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
+const KEY='7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8';
+const NS='http://www.w3.org/2000/svg';
+
+/* ---- SVG helpers ---- */
+function el(n,attrs,parent){const e=document.createElementNS(NS,n);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+const CX=320,CY=320,R_OUT=268,R_DEEP=150;
+const chiAngle=c=>((c%186)/186)*2*Math.PI-Math.PI/2;
+const pt=(r,a)=>[CX+r*Math.cos(a),CY+r*Math.sin(a)];
+
+/* ---- Scan SVG scaffold ---- */
+const scan=document.getElementById('scan');
+el('circle',{cx:CX,cy:CY,r:R_OUT+14,fill:'none',stroke:'rgba(79,198,242,.16)','stroke-width':1},scan);
+el('circle',{cx:CX,cy:CY,r:R_DEEP,fill:'none',stroke:'rgba(155,140,255,.35)','stroke-width':1},scan);
+const hazeLayer=el('g',{id:'hazeLayer'},scan);
+const dotLayer=el('g',{id:'dotLayer'},scan);
+const deepLayer=el('g',{id:'deepLayer'},scan);
+const arcLayer=el('g',{id:'arcs'},scan);
+const bloomLayer=el('g',{id:'blooms'},scan);
+const labelLayer=el('g',{id:'labels'},scan);
+const centerGroup=el('g',{id:'center'},scan);
+
+const ANCHOR_CHIS=[7,9,12,13,14,22,24,26,32];
+
+function buildTickMarks(nKeys){
+  const g=el('g',{id:'ticks'},scan);
+  scan.insertBefore(g,hazeLayer);
+  for(let i=0;i<nKeys;i++){
+    const a=chiAngle(i*186/nKeys);
+    const[p1x,p1y]=pt(R_OUT+10,a),[p2x,p2y]=pt(R_OUT+14,a);
+    el('line',{x1:p1x,y1:p1y,x2:p2x,y2:p2y,stroke:'rgba(79,198,242,.28)','stroke-width':1},g);
+  }
+}
+
+function buildDeepRing(nEntries,nSurvival){
+  deepLayer.innerHTML='';
+  el('circle',{cx:CX,cy:CY,r:R_DEEP-16,fill:'none',stroke:'rgba(155,140,255,.13)','stroke-width':26},deepLayer);
+  // Survival dots at deterministic positions (mulberry32 seeded with nEntries)
+  const rnd=mulberry32(nEntries);
+  for(let i=0;i<Math.min(nSurvival,200);i++){
+    const a=rnd()*2*Math.PI;
+    const[x,y]=pt(R_DEEP-2,a);
+    el('circle',{cx:x,cy:y,r:2.4,fill:'var(--violet)',opacity:.95},deepLayer);
+  }
+}
+
+function buildAnchorLabels(){
+  labelLayer.innerHTML='';
+  for(const c of ANCHOR_CHIS){
+    const a=chiAngle(c);
+    const[x,y]=pt(R_OUT-4,a);
+    el('circle',{cx:x,cy:y,r:3.4,fill:'none',stroke:'var(--cyan)','stroke-width':1.2},labelLayer);
+    const[lx,ly]=pt(R_OUT+26,a);
+    el('text',{x:lx,y:ly,'text-anchor':'middle',fill:'var(--ink-dim)','font-size':'9'},labelLayer).textContent='chi '+c;
+  }
+}
+
+function renderCenterReadout(tick,strength){
+  centerGroup.innerHTML='';
+  el('text',{x:CX,y:CY-6,'text-anchor':'middle',fill:'var(--ink-bright)','font-size':'13'},centerGroup)
+    .textContent='tick '+tick.toLocaleString();
+  el('text',{x:CX,y:CY+12,'text-anchor':'middle',fill:'var(--ink-dim)','font-size':'9'},centerGroup)
+    .textContent='strength '+strength;
+}
+
+/* ---- Chi density → dots ---- */
+function renderChiDots(chiDensity){
+  dotLayer.innerHTML='';
+  hazeLayer.innerHTML='';
+  if(!chiDensity||!Object.keys(chiDensity).length)return;
+  const ns=Object.values(chiDensity).map(v=>v.n);
+  const maxN=Math.max(1,...ns);
+  const ss=Object.values(chiDensity).map(v=>v.strength);
+  const maxS=Math.max(1,...ss);
+  // Haze ring for dense zone (>50 entries)
+  const denseChis=Object.entries(chiDensity).filter(([,v])=>v.n>50);
+  if(denseChis.length>0){
+    el('circle',{cx:CX,cy:CY,r:(R_DEEP+R_OUT)/2,fill:'none',
+      stroke:'rgba(79,198,242,.06)','stroke-width':R_OUT-R_DEEP-20},hazeLayer);
+  }
+  for(const[chi_k,{n,strength}]of Object.entries(chiDensity)){
+    if(!n)continue;
+    const c=parseInt(chi_k,10);
+    const a=chiAngle(c);
+    // Radial position: stronger bindings further out
+    const r_frac=0.3+0.7*(strength/maxS);
+    const r=R_DEEP+20+(R_OUT-R_DEEP-30)*r_frac;
+    const[x,y]=pt(r,a);
+    const sz=0.6+2.2*(Math.log(n+1)/Math.log(maxN+1));
+    const op=0.25+0.7*(strength/maxS);
+    el('circle',{cx:x,cy:y,r:sz.toFixed(2),fill:'var(--cyan)',opacity:op.toFixed(2)},dotLayer);
+  }
+}
+
+/* ---- Strength haze bands (from atlas_health.strength_distribution) ---- */
+function renderHazeBands(dist){
+  hazeLayer.innerHTML='';
+  const HAZE=[['0.0-0.1',188,214,.10],['0.1-0.3',216,236,.16],['0.3-0.5',238,252,.22]];
+  for(const[k,r1,r2,baseOp]of HAZE){
+    const count=dist[k]||0;
+    if(!count)continue;
+    const op=Math.min(baseOp*1.5,0.35);
+    el('circle',{cx:CX,cy:CY,r:(r1+r2)/2,fill:'none',stroke:'rgba(79,198,242,'+op+')','stroke-width':r2-r1},hazeLayer);
+  }
+}
+
+/* mulberry32 deterministic rng */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ---- Arc + bloom ---- */
+function drawArc(c1,c2){
+  const a=chiAngle(c1),b=chiAngle(c2);
+  const[p1x,p1y]=pt(R_OUT-6,a),[p2x,p2y]=pt(R_OUT-6,b);
+  const mx=(p1x+p2x)/2,my=(p1y+p2y)/2;
+  const cx2=CX+(mx-CX)*0.35,cy2=CY+(my-CY)*0.35;
+  const p=el('path',{d:`M ${p1x} ${p1y} Q ${cx2} ${cy2} ${p2x} ${p2y}`,class:'arc'},arcLayer);
+  p.style.transition='opacity .4s';
+  requestAnimationFrame(()=>{p.style.opacity='.7';});
+  setTimeout(()=>{p.style.transition='opacity 2s';p.style.opacity='.08';
+    setTimeout(()=>{if(p.parentNode)p.parentNode.removeChild(p);},2100);},2800);
+}
+
+function drawBloom(chi,committed){
+  const a=chiAngle(chi);const[x,y]=pt(R_OUT-6,a);
+  for(let i=0;i<3;i++){
+    const c=el('circle',{cx:x,cy:y,r:4,class:'bloom','stroke-width':committed?2:1},bloomLayer);
+    setTimeout(()=>{
+      c.style.transition='all 1.6s ease-out';
+      c.style.opacity=committed?.95:.3;
+      c.setAttribute('r',30+i*14);
+      setTimeout(()=>{c.style.opacity=0;setTimeout(()=>{if(c.parentNode)c.parentNode.removeChild(c);},200);},1400);
+    },i*180);
+  }
+}
+
+/* ---- State ---- */
+let _tick=0,_prevV=null,_prevA=null,_vSeries=[],_aSeries=[];
+let _lastEvTick=-1,_seenEvKeys=new Set();
+let _chiDensityAge=0;
+let _firstPoll=true;
+
+/* ---- Sparklines ---- */
+function spark(id,vals,lo,hi,color){
+  const s=document.getElementById(id);s.innerHTML='';
+  if(!vals.length)return;
+  const N=vals.length,W=200,H=34;
+  const xs=vals.map((_,i)=>10+i*(W-20)/(Math.max(N-1,1)));
+  const ys=vals.map(v=>H-4-26*((v-lo)/(hi-lo||1)));
+  if(N>1){
+    const pts=xs.map((x,i)=>x+','+ys[i]).join(' ');
+    el('polyline',{points:pts,stroke:color,'stroke-width':1.4,fill:'none'},s);
+  }
+  vals.forEach((v,i)=>el('circle',{cx:xs[i],cy:ys[i],r:2.4,fill:color},s));
+}
+
+/* ---- Health vitals ---- */
+function renderHealth(status){
+  const needs=parseNeeds(status.response||'');
+  const ph=status.persistence_health||{};
+  const ah=status.atlas_health||{};
+  const da=status.deep_atlas||{};
+  const pb=status.pair_bond||{};
+  const stab=needs.stab!=null?needs.stab:null;
+  const arous=needs.a!=null?needs.a:null;
+  const stabC=stab===null?'na':(stab<0.3?'r':(stab<0.7?'y':'g'));
+  const arousC=arous===null?'na':(arous>0.95?'r':(arous>0.7?'y':'g'));
+  const lastSave=ph.last_save_tick;
+  const lastSaveTs=ph.last_save_timestamp||'—';
+  const saveC=lastSave&&lastSave>0?'g':'r';
+  const saveNote=lastSave&&lastSave>0?`tick ${lastSave.toLocaleString()} · ${lastSaveTs}`:'tick 0 — save not landed';
+  const totalStr=ah.total_strength;
+  const atlasC=totalStr==null?'na':(totalStr<200?'r':(totalStr<500?'y':'g'));
+  const atlasNote=totalStr!=null?`${(totalStr).toFixed(0)} total strength · ${ah.n_live_bindings||'?'} live`:'—';
+  const joeB=pb.joe||0;
+  const bondC=joeB>=0.9?'g':(joeB>=0.5?'y':'r');
+  const bondNote=`joe ${joeB.toFixed(1)} · wc ${(pb.wc||0).toFixed(1)} · c1 ${(pb.c1||0).toFixed(1)}`;
+  const H=[
+    [stabC,'stability',stab!=null?stab.toFixed(3):'—','stab=0 or pinned = red per spec §8'],
+    [arousC,'arousal',arous!=null?arous.toFixed(3):'—','>0.95 = red; quest for quiet coherence (-88)'],
+    ['na','sleep','—','not shown — judge vs 6h cycle rule externally'],
+    [atlasC,'atlas',atlasNote,'total strength < 200 = red; < 500 = yellow'],
+    [saveC,'persistence',saveNote,'engine _last_save_tick — red if tick=0 (save not yet landed)'],
+    [bondC,'bonds',bondNote,'joe ≥ 0.9 green · wc trending = goal']
+  ];
+  document.getElementById('health').innerHTML=H.map(([c,n,v,note])=>
+    `<div class="vital lc"><span><span class="dot ${c}"></span>${n} · <span class="val">${v}</span></span><span class="note">${note}</span></div>`
+  ).join('');
+}
+
+function parseNeeds(text){
+  const m=text.match(/needs:\s*(.+)/);
+  if(!m)return{};
+  const out={};
+  for(const part of m[1].split(/\s+/)){const[k,v]=part.split('=');if(k&&v!=null)out[k]=parseFloat(v);}
+  return out;
+}
+
+/* ---- Strength bars ---- */
+function renderStrengthBars(dist){
+  if(!dist)return;
+  const sb=document.getElementById('strengthBars');sb.innerHTML='';
+  const vals=Object.values(dist);
+  const dmax=Math.log10(Math.max(1,...vals)+1);
+  for(const[k,v]of Object.entries(dist)){
+    const w=Math.max(2,100*Math.log10(v+1)/dmax);
+    sb.insertAdjacentHTML('beforeend',
+      `<div class="organ"><div class="row lc"><span>${k}</span><span class="val">${v.toLocaleString()}</span></div>
+       <div class="bar"><i style="width:${w}%;background:var(--cyan);opacity:.7"></i></div></div>`);
+  }
+}
+
+/* ---- Organs (from hemisphere_update events) ---- */
+let _lastOrgans=null;
+function renderOrgans(organs){
+  if(!organs)return;
+  _lastOrgans=organs;
+  const og=document.getElementById('organs');og.innerHTML='';
+  const omax=Math.max(1,...Object.values(organs).map(v=>Math.log10(v+1)));
+  for(const[k,v]of Object.entries(organs)){
+    const w=Math.max(2,100*Math.log10(v+1)/omax);
+    og.insertAdjacentHTML('beforeend',
+      `<div class="organ"><div class="row lc"><span>${k}</span><span class="val">${v.toLocaleString()}</span></div>
+       <div class="bar"><i style="width:${w}%"></i></div></div>`);
+  }
+}
+
+/* ---- Modality band ---- */
+const LANE_NAMES=['sight','sound','touch','smell','taste','language'];
+let _laneGlow={sight:0,sound:0,touch:0,smell:0,taste:0,language:0};
+
+function initBand(){
+  const band=document.getElementById('band');
+  for(const nm of LANE_NAMES){
+    band.insertAdjacentHTML('beforeend',
+      `<div class="lane lc" id="lane-${nm}"><div class="nm">${nm}</div><div class="st" id="laneS-${nm}"></div>
+       <div class="glow"><i id="laneG-${nm}" style="width:0%"></i></div></div>`);
+  }
+}
+
+function setLaneGlow(nm,pct,text){
+  _laneGlow[nm]=Math.max(_laneGlow[nm],pct);
+  if(text){const st=document.getElementById('laneS-'+nm);if(st)st.textContent=text;}
+  const g=document.getElementById('laneG-'+nm);if(g)g.style.width=pct+'%';
+  const lane=document.getElementById('lane-'+nm);
+  if(lane){lane.className='lane lc'+(pct>60?' hot':'');}
+}
+
+function decayLanes(){
+  for(const nm of LANE_NAMES){
+    _laneGlow[nm]=Math.max(0,_laneGlow[nm]-6);
+    const g=document.getElementById('laneG-'+nm);if(g)g.style.width=_laneGlow[nm]+'%';
+    const lane=document.getElementById('lane-'+nm);
+    if(lane&&_laneGlow[nm]<=60)lane.className='lane lc';
+  }
+}
+
+/* ---- Experience feed ---- */
+const MAX_FEED=30;
+function addFeedRow(tick,tagCls,tagTxt,body,src,dim){
+  const feedBox=document.getElementById('feedRows');
+  const div=document.createElement('div');
+  div.className='frow new'+(dim?' dim':'');
+  div.innerHTML=`<span class="t">t ${tick.toLocaleString()}</span>`+
+    `<span><span class="tag ${tagCls} lc">${tagTxt}</span></span>`+
+    `<span class="lc">${body}</span><span class="src lc">${src}</span>`;
+  feedBox.insertBefore(div,feedBox.firstChild);
+  while(feedBox.children.length>MAX_FEED)feedBox.removeChild(feedBox.lastChild);
+}
+
+/* ---- Activity strip ---- */
+function renderActivity(status){
+  const act=status.current_activity||{};
+  const kindMap={
+    ATTENDING_VISUAL:'attending_visual',ATTENDING_AUDIO:'attending_audio',
+    SLEEPING:'sleeping',DREAMING:'dreaming',EMITTING:'emitting',
+    IDLE:'idle',PLAYING:'free-settle',READING:'reading'
+  };
+  let label=kindMap[act.kind]||act.kind||'—';
+  let target='';
+  if(act.target&&act.kind!=='SLEEPING'&&act.kind!=='IDLE'&&act.kind!=='PLAYING'){
+    target=act.target;
+    for(const p of(status.pictures||[]))if(p.item_id===act.target){target=p.title;break;}
+    for(const s of(status.sounds||[]))if(s.item_id===act.target){target=s.title;break;}
+    for(const c of(status.corpora||[]))if(c.corpus_id===act.target){target=c.title;break;}
+  }
+  const actKind=document.getElementById('actKind');
+  actKind.innerHTML=target?`${label} · <em>${target}</em>`:label;
+  // Budget bar
+  if(act.started_tick&&act.expected_end_tick){
+    const tick=status.tick||_tick;
+    const done=tick-act.started_tick,total=act.expected_end_tick-act.started_tick;
+    document.getElementById('budgetFill').style.width=Math.min(100,100*done/total)+'%';
+    document.getElementById('budgetLbl').textContent=`tick ${done.toLocaleString()} of ${total.toLocaleString()} budget`;
+  }else{
+    document.getElementById('budgetFill').style.width='0%';
+    document.getElementById('budgetLbl').textContent='';
+  }
+  // Lane from activity
+  if(act.kind==='ATTENDING_VISUAL')setLaneGlow('sight',90,target||'visual');
+  else if(act.kind==='ATTENDING_AUDIO')setLaneGlow('sound',90,target||'audio');
+}
+
+/* ---- Who cell ---- */
+function renderWho(status){
+  const pb=status.pair_bond||{};
+  const pr=status.presence||{};
+  const parts=[];
+  for(const[k,v]of Object.entries(pb)){
+    const here=(pr[k]&&pr[k].present)?'present':'absent';
+    parts.push(`${k} ${here} (bond ${v.toFixed(1)})`);
+  }
+  document.getElementById('whoCell').textContent=parts.join(' · ')||'—';
+}
+
+/* ---- Events processing ---- */
+function processEvent(ev){
+  const key=ev.kind+'|'+ev.tick+'|'+(ev.detail?JSON.stringify([ev.detail.input_chi,ev.detail.context_anchor_chis,ev.detail.name,ev.detail.kind]).replace(/null/g,''):'-');
+  if(_seenEvKeys.has(key))return;
+  _seenEvKeys.add(key);
+  if(_seenEvKeys.size>2000){const arr=[..._seenEvKeys];_seenEvKeys=new Set(arr.slice(-1000));}
+  const d=ev.detail||{};
+  const t=ev.tick;
+  if(ev.kind==='response_bound'&&d.input_chi!=null){
+    const anchors=d.context_anchor_chis||[];
+    for(const a of anchors)drawArc(d.input_chi,a);
+    setLaneGlow('language',70,'binding active');
+  }
+  if(ev.kind==='response_window_opened'&&d.context_anchor_chis&&d.emitter==='joe'){
+    const[a0,...rest]=d.context_anchor_chis;
+    rest.forEach(c=>drawArc(a0,c));
+  }
+  if(ev.kind==='emission_dynamics'){
+    const psd=d.per_section_dominant||{};
+    const verbChi=(psd.verb||[])[0];
+    const objChi=(psd.object||[])[0];
+    const emitChi=(verbChi!=null&&verbChi!==null)?verbChi:(objChi!=null&&objChi!==null)?objChi:null;
+    const committed=(d.n_commits||0)>0;
+    if(emitChi!==null&&emitChi!=null)drawBloom(emitChi,committed);
+    const src=Object.entries(d.source_counts||{}).sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+':'+v).join(' ');
+    const orig=d.n_commits>0?'committed':'fallback';
+    addFeedRow(t,'emit','emitting',`"${d.content||'…'}" — ${orig} · ${d.n_commits||0} commits · ${d.dynamics_ticks||'?'}t`,src);
+    if((d.source_counts||{}).bundle){setLaneGlow('language',88,'bundle emission');}
+    else{setLaneGlow('language',22,'curriculum/worldfeed',true);}
+  }
+  if(ev.kind==='experience_bundle'){
+    const lanes_raw=d.lanes||[];
+    let hasWord=false,hasSight=false,hasSound=false,hasTouch=false;
+    for(const ln of lanes_raw){
+      const l=ln.toLowerCase();
+      if(l.startsWith('told')||l.startsWith('said')){hasWord=true;}
+      else if(l.startsWith('showed')||l.startsWith('show')){hasSight=true;}
+      else if(l.startsWith('played')||l.startsWith('play')){hasSound=true;}
+      else if(l.startsWith('feels')||l.startsWith('feel')||l.startsWith('touch')){hasTouch=true;}
+    }
+    if(hasWord)setLaneGlow('language',82,'bundle — language lane');
+    if(hasSight)setLaneGlow('sight',88,'bundle — sight lane');
+    if(hasSound)setLaneGlow('sound',88,'bundle — sound lane');
+    if(hasTouch)setLaneGlow('touch',80,'bundle — touch lane');
+    const laneStr=[hasSight?'sight':'',hasSound?'sound':'',hasTouch?'touch':'',hasWord?'lang':''].filter(Boolean).join('+');
+    const bundleSrc=(d.name||'bundle')+(hasWord?' · '+laneStr:'');
+    const isMulti=([hasSight,hasSound,hasTouch,hasWord].filter(Boolean).length)>1;
+    addFeedRow(t,'exp','experience',`${d.name||'bundle'} — e1${isMulti?' (multi-modal)':''}`,bundleSrc||'joe');
+  }
+  if(ev.kind==='activity_started'){
+    const km={ATTENDING_VISUAL:'attending_visual',ATTENDING_AUDIO:'attending_audio',SLEEPING:'sleeping',DREAMING:'dreaming',EMITTING:'emitting',IDLE:'idle'};
+    const label=km[d.kind]||d.kind||'?';
+    addFeedRow(t,'act','activity',label+(d.target?' · '+d.target:''),'substrate',true);
+  }
+  if(ev.kind==='hemisphere_update'&&d.hemisphere_atlas_sizes){
+    renderOrgans(d.hemisphere_atlas_sizes);
+  }
+  _lastEvTick=Math.max(_lastEvTick,t);
+}
+
+/* ---- HTTP helpers ---- */
+async function fetchJ(url,opts={},timeout=6000){
+  const ctrl=new AbortController();
+  const id=setTimeout(()=>ctrl.abort(),timeout);
+  try{const r=await fetch(url,{...opts,signal:ctrl.signal});clearTimeout(id);return await r.json();}
+  catch(e){clearTimeout(id);throw e;}
+}
+
+/* ---- Main status poll ---- */
+let _pollBusy=false;
+async function pollStatus(){
+  if(_pollBusy)return;_pollBusy=true;
+  try{
+    const d=await fetchJ(`${API}/api/v1/gualaloom`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-API-Key':KEY},
+      body:JSON.stringify({text:'',command:'/status'})},9000);
+    if(!d.vocab&&!d.n_motifs){return;}
+    _tick=d.tick||_tick;
+    // Header
+    document.getElementById('hdr-id').textContent=`guala · ${(d.persistence_health||{}).guala_identity||'cdef9bcf'} · ${(d.persistence_health||{}).schema_version||'v7'}`;
+    document.getElementById('hdr-tick').textContent='tick '+_tick.toLocaleString();
+    const ts=(d.persistence_health||{}).last_save_timestamp||'';
+    document.getElementById('hdr-ts').textContent=ts.replace('T',' ').replace('Z','Z')||'—';
+    // Atlas scan
+    const ah=d.atlas_health||{};
+    if(ah.n_chi_keys&&_firstPoll){buildTickMarks(ah.n_chi_keys);_firstPoll=false;}
+    if(ah.strength_distribution)renderHazeBands(ah.strength_distribution);
+    renderStrengthBars(ah.strength_distribution);
+    const da=d.deep_atlas||{};
+    buildDeepRing(da.n_entries||0,da.promotions_survival||0);
+    buildAnchorLabels();
+    renderCenterReadout(_tick,(ah.total_strength||0).toFixed(1));
+    document.getElementById('captionOuter').textContent=`outer ring: working atlas · ${ah.n_chi_keys||'?'} chi keys · ${ah.n_total_entries||'?'} entries (${ah.n_live_bindings||'?'} live)`;
+    document.getElementById('captionInner').textContent=`inner ring: deep atlas · ${da.n_entries||'?'} · ${da.promotions_survival||0} survival`;
+    document.getElementById('strengthNote').textContent=`cross-modal ${ah.cross_modal_count||'?'} · ${(ah.n_total_entries||0)-(ah.n_live_bindings||0)} released channel`;
+    // Health + activity
+    renderHealth(d);
+    renderActivity(d);
+    renderWho(d);
+    // Affect sparklines
+    const needs=parseNeeds(d.response||'');
+    if(needs.v!=null){
+      if(_prevV!=null&&_prevV!==needs.v)_vSeries.push(needs.v);
+      else if(_prevV==null)_vSeries=[needs.v];
+      _prevV=needs.v;
+      if(_vSeries.length>20)_vSeries.shift();
+      const vlo=Math.min(-0.3,..._vSeries),vhi=Math.max(0.1,..._vSeries);
+      spark('sparkV',_vSeries,vlo-0.05,vhi+0.05,'var(--teal)');
+      document.getElementById('sparkVLbl').textContent=`affect · valence ${needs.v.toFixed(3)}`;
+    }
+    if(needs.a!=null){
+      if(_prevA==null)_aSeries=[needs.a];
+      else if(_prevA!==needs.a)_aSeries.push(needs.a);
+      _prevA=needs.a;
+      if(_aSeries.length>20)_aSeries.shift();
+      spark('sparkA',_aSeries,0,1,'var(--red)');
+      document.getElementById('sparkALbl').textContent=`affect · arousal ${needs.a.toFixed(3)}`;
+    }
+    // Ladder
+    const ld=d.ladder||{};
+    document.getElementById('ladderStat').innerHTML=`<span class="val">${(ld.mean_utterance_len||0).toFixed(1)}</span> mean utterance · <span class="val">${ld.total_emissions||0}</span> emissions this boot`;
+  }catch(e){}finally{_pollBusy=false;}
+}
+
+/* ---- Events poll ---- */
+let _evBusy=false;
+async function pollEvents(){
+  if(_evBusy)return;_evBusy=true;
+  try{
+    const d=await fetchJ(`${API}/api/v1/gualaloom/events?n=50`,
+      {headers:{'X-API-Key':KEY}},6000);
+    const evts=d.events||[];
+    // Only process events newer than last seen tick
+    const fresh=evts.filter(e=>e.tick>_lastEvTick);
+    fresh.sort((a,b)=>a.tick-b.tick);
+    for(const ev of fresh)processEvent(ev);
+    decayLanes();
+  }catch(e){}finally{_evBusy=false;}
+}
+
+/* ---- Chi density poll (every 6s) ---- */
+let _densityBusy=false;
+async function pollChiDensity(){
+  if(_densityBusy)return;_densityBusy=true;
+  try{
+    const d=await fetchJ(`${API}/api/v1/gualaloom/chi_density`,
+      {headers:{'X-API-Key':KEY}},8000);
+    if(d.chi_density)renderChiDots(d.chi_density);
+  }catch(e){}finally{_densityBusy=false;}
+}
+
+/* ---- Boot ---- */
+initBand();
+pollStatus();
+setTimeout(pollEvents,800);
+setTimeout(pollChiDensity,1500);
+setInterval(pollStatus,2000);
+setInterval(pollEvents,2000);
+setInterval(pollChiDensity,6000);
+</script>
+</body>
+</html>
