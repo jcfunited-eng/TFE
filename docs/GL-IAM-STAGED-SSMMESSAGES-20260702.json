@@ -1,0 +1,18 @@
+{
+  "_staged": "GL-CMD-HOTFIX-BUNDLE-EVE-20260702-95-v1 item 5 — ssmmessages perms for ECS exec. STAGED ONLY. Do NOT apply until Joe approves in chat.",
+  "_apply_command": "aws iam put-role-policy --role-name dsf-ai-task-role --policy-name dsf-ai-ecs-exec --policy-document file://docs/GL-IAM-STAGED-SSMMESSAGES-20260702.json (strip _-prefixed keys first)",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EcsExecSsmChannel",
+      "Effect": "Allow",
+      "Action": [
+        "ssmmessages:CreateControlChannel",
+        "ssmmessages:CreateDataChannel",
+        "ssmmessages:OpenControlChannel",
+        "ssmmessages:OpenDataChannel"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
