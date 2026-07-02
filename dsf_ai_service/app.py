@@ -2848,6 +2848,54 @@ async def admin_restore_from_s3_prefix(request: Request):
             "note": "restart substrate to load restored state"}
 
 
+@app.post("/api/v1/gualaloom/admin/compact_wave_atlas", dependencies=[Depends(_api_key_dep)])
+async def admin_compact_wave_atlas():
+    """GL-CMD-WAVE-DIET-82: one-time WaveAtlas compaction.
+
+    Drops every WaveAtlas binding with no live LivingAtlas counterpart.
+    Join key: (section, motif, chi_original). Cell phase_vecs preserved for
+    cells retaining >=1 live binding. No restart needed — runs in-place.
+    """
+    if _guala is None or _guala.wave_atlas is None:
+        raise HTTPException(503, "substrate not ready")
+    import asyncio as _aio
+    def _do_compact():
+        wa = _guala.wave_atlas
+        atlas = _guala.atlas
+        # Build live key set from LivingAtlas
+        live_keys = set()
+        for chi_k, entries in atlas.entries.items():
+            for e in entries:
+                live_keys.add((e["section"], e["motif"], e.get("chi", chi_k)))
+        before = sum(len(c.bindings) for c in wa.cells.values())
+        before_cells = len(wa.cells)
+        for cell in wa.cells.values():
+            orig = len(cell.bindings)
+            cell.bindings = [
+                b for b in cell.bindings
+                if (b.get("section"), b.get("motif"), b.get("chi")) in live_keys
+            ]
+            if len(cell.bindings) != orig:
+                cell.aggregate_strength = sum(
+                    float(b.get("strength", 0.05)) for b in cell.bindings)
+            cell.saturated = cell.aggregate_strength > 5.0
+        # Remove empty cells
+        empty = [k for k, c in wa.cells.items() if not c.bindings]
+        for k in empty:
+            del wa.cells[k]
+        after = sum(len(c.bindings) for c in wa.cells.values())
+        after_cells = len(wa.cells)
+        print(f"[GualaLoom] WaveAtlas compacted: {before}→{after} bindings, "
+              f"{before_cells}→{after_cells} cells")
+        return {"before_bindings": before, "after_bindings": after,
+                "removed": before - after,
+                "before_cells": before_cells, "after_cells": after_cells,
+                "live_keys_in_atlas": len(live_keys)}
+    loop = _aio.get_event_loop()
+    result = await loop.run_in_executor(None, _do_compact)
+    return result
+
+
 @app.get("/api/v1/gualaloom/admin/persistence_health", dependencies=[Depends(_api_key_dep)])
 async def admin_persistence_health():
     """Full EFS-based persistence health. Uses executor so EFS stat() doesn't block
@@ -4006,6 +4054,8 @@ async def startup():
                 print("[GualaLoom] Final save complete")
             except Exception as e:
                 print(f"[GualaLoom] Final save failed: {e}")
+            # GL-CMD-WAVE-DIET-82: WaveAtlas on clean shutdown
+            _guala._save_wave_atlas(STATE_DIR)
         sys.exit(0)
     _signal.signal(_signal.SIGTERM, _shutdown_handler)
     _signal.signal(_signal.SIGINT, _shutdown_handler)
@@ -4079,7 +4129,10 @@ async def startup():
                     await loop.run_in_executor(None, _do_save_and_compact)
                     save_count += 1
                     if save_count % 10 == 0:
+                        # GL-CMD-WAVE-DIET-82: WaveAtlas save every ~10 min
+                        # (decoupled from 60s critical cycle; snapshot includes it)
                         def _snap():
+                            _guala._save_wave_atlas(STATE_DIR)
                             return _guala.snapshot_state(STATE_DIR, reason="periodic")
                         snap_dir = await loop.run_in_executor(None, _snap)
                         print(f"[v6] Snapshot: {snap_dir}")

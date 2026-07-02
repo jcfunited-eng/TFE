@@ -5727,6 +5727,8 @@ class Guala:
             except Exception as e:
                 print(f"[sleep] save_full_state failed: {e}")
                 raise
+            # GL-CMD-WAVE-DIET-82: WaveAtlas on clean shutdown
+            self._save_wave_atlas(state_dir)
             try:
                 marker_path = os.path.join(state_dir, ".sleeping")
                 with open(marker_path, 'w') as f:
@@ -6058,18 +6060,10 @@ class Guala:
                     except OSError:
                         pass
 
-        # 64-C: WaveAtlas persistence — save alongside other state files
-        if self.wave_atlas is not None:
-            try:
-                wave_path = os.path.join(state_dir, "wave_atlas.json")
-                wave_tmp = wave_path + ".tmp"
-                import json as _json
-                with open(wave_tmp, "w") as _f:
-                    _json.dump(self.wave_atlas.to_dict(), _f)
-                os.replace(wave_tmp, wave_path)
-                results["wave_atlas.json"] = os.path.getsize(wave_path)
-            except Exception as _we:
-                print(f"[GualaLoom] WaveAtlas save failed (non-fatal): {_we}")
+        # GL-CMD-WAVE-DIET-82: WaveAtlas decoupled from 60s critical save cycle.
+        # 990k bindings → 198MB JSON blocks this loop for 10+ min. Now called
+        # via _save_wave_atlas() every ~10 min and on clean shutdown/deploy.
+        # wave_atlas.json is still written to EFS; load_full_state still reads it.
 
         # GL-CMD-TEACHER-CORRECTION-UI: teaching data
         snap_teaching = self._envelope({
@@ -6136,6 +6130,20 @@ class Guala:
         # S3 backup handled by SaveCoordinator (non-blocking background thread)
 
         return results
+
+    def _save_wave_atlas(self, state_dir):
+        """GL-CMD-WAVE-DIET-82: WaveAtlas persistence — decoupled from 60s save.
+        Called every ~10 min and on clean shutdown. Uses _atomic_write (fsync)."""
+        if self.wave_atlas is None:
+            return
+        try:
+            n_cells = len(self.wave_atlas.cells)
+            n_bind = sum(len(c.bindings) for c in self.wave_atlas.cells.values())
+            self._atomic_write(os.path.join(state_dir, "wave_atlas.json"),
+                               self.wave_atlas.to_dict())
+            print(f"[GualaLoom] WaveAtlas saved: {n_cells} cells, {n_bind} bindings")
+        except Exception as _we:
+            print(f"[GualaLoom] WaveAtlas save failed (non-fatal): {_we}")
 
     # ── Load ──
 
@@ -6727,10 +6735,14 @@ class Guala:
             kind = ev.get("kind")
             target = ev.get("target")
             if kind:
+                # GL-CMD-WAVE-DIET-82: clamp replayed budget to canonical value.
+                # Hardcoded 2000 gave EMITTING 2000 ticks instead of its 100-tick
+                # budget, causing 33-min lock-hold that starved the save cycle.
+                _budget = ACTIVITY_TICK_BUDGETS.get(kind, 2000)
                 self._current_activity = Activity(
                     kind=kind, target=target,
                     started_tick=ev.get("tick", self.tick),
-                    expected_end_tick=ev.get("tick", self.tick) + 2000)
+                    expected_end_tick=ev.get("tick", self.tick) + _budget)
         elif etype == "activity_ended":
             self._current_activity = None
         elif etype in ("wake", "presence_timeout"):
@@ -6766,6 +6778,8 @@ class Guala:
                                 f"{ts}_{reason}")
         os.makedirs(snap_dir, exist_ok=True)
         print(f"[GualaLoom] Creating snapshot: {snap_dir}")
+        # GL-CMD-WAVE-DIET-82: save WaveAtlas before snapshot
+        self._save_wave_atlas(state_dir)
         # Copy identity + all state files
         for f in [self.IDENTITY_FILE] + self.STATE_FILES:
             src = os.path.join(state_dir, f)

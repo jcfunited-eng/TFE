@@ -434,16 +434,37 @@ class LivingAtlas:
 
     def forget_below_threshold(self):
         """Prune bindings whose strength has decayed below threshold.
-        Returns count of forgotten bindings."""
+        Returns count of forgotten bindings.
+
+        GL-CMD-WAVE-DIET-82: decay parity — forgotten LivingAtlas bindings are
+        removed from WaveAtlas in the same call so WaveAtlas stays bounded by
+        the same physics, not by a cap. Join key: (section, motif, chi_original).
+        """
         forgotten = 0
+        forgotten_keys = set()
         for chi_k in list(self.entries.keys()):
             survivors = [e for e in self.entries[chi_k]
                          if e["strength"] >= FORGETTING_THRESHOLD]
+            for e in self.entries[chi_k]:
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    forgotten_keys.add((e["section"], e["motif"], e.get("chi", chi_k)))
             forgotten += len(self.entries[chi_k]) - len(survivors)
             if survivors:
                 self.entries[chi_k] = survivors
             else:
                 del self.entries[chi_k]
+        # Prune WaveAtlas counterparts
+        wa = getattr(self, '_wave_atlas', None)
+        if forgotten_keys and wa is not None:
+            for cell in wa.cells.values():
+                orig = len(cell.bindings)
+                cell.bindings = [
+                    b for b in cell.bindings
+                    if (b.get("section"), b.get("motif"), b.get("chi")) not in forgotten_keys
+                ]
+                if len(cell.bindings) != orig:
+                    cell.aggregate_strength = sum(
+                        float(b.get("strength", 0.05)) for b in cell.bindings)
         return forgotten
 
     # --- Backward-compatible interface (used by v5 engine) ---
