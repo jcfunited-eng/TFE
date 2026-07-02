@@ -5728,7 +5728,11 @@ class Guala:
                 print(f"[sleep] save_full_state failed: {e}")
                 raise
             # GL-CMD-WAVE-DIET-82: WaveAtlas on clean shutdown
-            self._save_wave_atlas(state_dir)
+            # GL-CMD-SAVE-CONTAINMENT-91: wrap — .sleeping marker must still write on exception
+            try:
+                self._save_wave_atlas(state_dir)
+            except Exception as _wse:
+                print(f"[wave] save failed (non-fatal): {_wse}")
             try:
                 marker_path = os.path.join(state_dir, ".sleeping")
                 with open(marker_path, 'w') as f:
@@ -6834,7 +6838,11 @@ class Guala:
         os.makedirs(snap_dir, exist_ok=True)
         print(f"[GualaLoom] Creating snapshot: {snap_dir}")
         # GL-CMD-WAVE-DIET-82: save WaveAtlas before snapshot
-        self._save_wave_atlas(state_dir)
+        # GL-CMD-SAVE-CONTAINMENT-91: wrap — file copy loop must continue regardless
+        try:
+            self._save_wave_atlas(state_dir)
+        except Exception as _wse:
+            print(f"[wave] save failed (non-fatal): {_wse}")
         # Copy identity + all state files
         for f in [self.IDENTITY_FILE] + self.STATE_FILES:
             src = os.path.join(state_dir, f)

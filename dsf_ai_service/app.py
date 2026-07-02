@@ -2939,7 +2939,10 @@ async def admin_migrate_wave_atlas():
         print(f"[85-B3] Collapse: {before_b}→{after_b} bindings, {before_c}→{after_c} cells")
 
         # Step 3: save collapsed atlas to npz
-        _guala._save_wave_atlas(STATE_DIR)
+        try:
+            _guala._save_wave_atlas(STATE_DIR)
+        except Exception as _e:
+            print(f"[wave] save failed (non-fatal): {_e}")
 
         return {
             "before_bindings": before_b,
@@ -4113,7 +4116,10 @@ async def startup():
             except Exception as e:
                 print(f"[GualaLoom] Final save failed: {e}")
             # GL-CMD-WAVE-DIET-82: WaveAtlas on clean shutdown
-            _guala._save_wave_atlas(STATE_DIR)
+            try:
+                _guala._save_wave_atlas(STATE_DIR)
+            except Exception as _e:
+                print(f"[wave] save failed (non-fatal): {_e}")
         sys.exit(0)
     _signal.signal(_signal.SIGTERM, _shutdown_handler)
     _signal.signal(_signal.SIGINT, _shutdown_handler)
@@ -4182,7 +4188,10 @@ async def startup():
         grids_dt = results.get("_grids_dt", 0.0) if isinstance(results, dict) else 0.0
         if write_wave:
             t3 = time.time()
-            _guala._save_wave_atlas(STATE_DIR)
+            try:
+                _guala._save_wave_atlas(STATE_DIR)
+            except Exception as _e:
+                print(f"[wave] save failed (non-fatal): {_e}")
             wave_dt = time.time() - t3
             total_dt = t2 - t0 + wave_dt
             print(f"[save] {total_dt:.2f}s core={core_dt:.2f}s grids={grids_dt:.2f}s "
@@ -4198,20 +4207,24 @@ async def startup():
         loop = asyncio.get_event_loop()
         while True:
             await asyncio.sleep(60)
+            if _guala is None:
+                continue
+            do_wave = save_count > 0 and save_count % 10 == 0
             try:
-                if _guala is not None:
-                    # GL-CMD-WAVE-SEMANTICS-85 C.2: wave write at count>0 and count%10==0
-                    # (not on first save, which would write a 1M-binding atlas before diet)
-                    do_wave = save_count > 0 and save_count % 10 == 0
-                    await loop.run_in_executor(None, _do_save_and_compact, do_wave)
-                    save_count += 1
-                    if do_wave:
-                        def _snap():
-                            return _guala.snapshot_state(STATE_DIR, reason="periodic")
-                        snap_dir = await loop.run_in_executor(None, _snap)
-                        print(f"[v6] Snapshot: {snap_dir}")
+                await loop.run_in_executor(None, _do_save_and_compact, do_wave)
             except Exception as e:
                 print(f"[save] error: {e}")
+            finally:
+                # GL-CMD-SAVE-CONTAINMENT-91: save_count in finally — wave/snapshot
+                # exceptions can never jam the counter at #10.
+                save_count += 1
+            if do_wave:
+                try:
+                    snap_dir = await loop.run_in_executor(
+                        None, lambda: _guala.snapshot_state(STATE_DIR, reason="periodic"))
+                    print(f"[v6] Snapshot: {snap_dir}")
+                except Exception as e:
+                    print(f"[wave] snapshot failed (non-fatal): {e}")
     asyncio.ensure_future(_periodic_v6_save())
 
     # Daily S3 backup (also in executor)
