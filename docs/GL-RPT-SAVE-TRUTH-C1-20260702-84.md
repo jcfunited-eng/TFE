@@ -261,20 +261,48 @@ Daily backup (`_daily_s3_backup`) retained — fires every 86400s independently.
 
 ### T-A1 — last_save_tick non-zero within one save period
 
-**PENDING.** Requires task:447 to boot, run periodic save, and return non-zero
-`last_save_tick` in `/status`. Expected within 60s + save_duration of boot.
+**PASS.**
+
+```
+last_save_tick: 14087960
+last_save_timestamp: 2026-07-02T15:25:04Z
+```
+
+/status summary line: `save@tick=14087960 boot=ok`
+
+Save completed at tick 14087960 (1395 ticks / ~1097s after boot at tick 14086565).
+Reporting bug fix confirmed: _guala._last_save_tick is now read directly, non-zero.
 
 ### T-C1 — First per-phase timing line pasted verbatim
 
-**PENDING.** Will update when observed in CloudWatch.
+**PASS.**
+
+CloudWatch at 1783006665787ms:
+```
+[save] 1036.93s core=1035.78s compact=1.15s
+```
+
+**Dominant phase: core (save_full_state) — 1035.78s (99.9% of total).**
+compact_events: 1.15s (negligible, as predicted from the 54,876-byte events file analysis).
+
+This is WORSE than task:446's save 1 (397s). The increase is explained by WaveAtlas
+size at task:447 boot: 1,055,870 bindings (vs ~722k at task:446's compacted state).
+save_count=0 on first save → wave_atlas.json is written (modulo 10 = 0). Serializing
+1,055,870 bindings to JSON dominates the 1036s.
+
+**Implication:** WaveAtlas serialization is a first-class bottleneck. Save time scales
+with WaveAtlas size. A cap on WaveAtlas bindings (already queued in Eve's item 5 from
+-73) is required to keep save times bounded. Without a cap, save duration will continue
+to grow as EMITTING cycles accumulate.
 
 ### T-D1 — First hourly S3 prefix appears; last_s3_backup non-null
 
-**PENDING.** Fires at boot+3600s.
+**PENDING.** last_s3_backup=null at current status (tick 14089669, ~40 min post-boot).
+Fires at boot+3600s. Will be measurable at ~2026-07-02T16:07Z.
 
 ### Standard count diff
 
-Pre-deploy reference (tick 14092222):
+Pre-deploy reference (tick 14092222, task:446):
 ```
 vocab:          13,863
 n_motifs:       48,457
@@ -288,6 +316,25 @@ deep_strength: 3358.17
 n_visual_motifs: 12,343
 WaveAtlas: 676,792 bindings, 2,011 cells
 ```
+
+Task:447 at tick 14089669 (post-first-save):
+```
+vocab:          13,863  (no change)
+n_motifs:       48,456  (−1, decay)
+n_pictures:         26  (no change)
+n_sounds:           15  (no change)
+n_corpora:          19  (no change)
+atlas_entries:   7,654  (−260, decay from 7,914)
+atlas_strength: 813.27  (+13.53 — brief rise before decay parity runs)
+deep_entries:    3,742  (no change)
+deep_strength: 3358.17  (no change)
+n_visual_motifs: 12,334 (−9, decay)
+WaveAtlas: 1,055,870 bindings at boot (grew during task:446 EMITTING cycles; not
+           yet re-compacted in task:447)
+```
+
+Note: WaveAtlas at task:447 boot = 1,055,870, not 676,792 — 54 EMITTING cycles
+during task:446 added ~379k bindings before SIGTERM shutdown saved the inflated atlas.
 
 ---
 
