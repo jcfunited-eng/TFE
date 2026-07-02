@@ -6,19 +6,18 @@ In response to: GL-CMD-DEPLOY1-GATES-EVE-20260702-97-v1
 
 ---
 
-## VERDICT: PARTIAL
+## VERDICT: GREEN ✓
 
 ```
 G1 GREEN   boot banner SHA matches expected
 G2 GREEN   wave_atlas.npz on EFS, 3 successive saves
-G3 PENDING elapsed ~1h40m at report; recheck 22:56Z; 32 saves, 0 ENOENT so far
+G3 GREEN   22:56Z recheck: 0 npz ENOENT full session; save cadence normal
 G4 GREEN   ATTENDING_VISUAL active; HEIC counters 0→1 confirmed
 G5 GREEN   identity/vocab/deep preserved across restart; atlas decay normal
-G6 PENDING gated on G3 GREEN; pre-fix ENOENT indicates no orphan exists
+G6 GREEN   state/wave_atlas.npz.tmp* ABSENT — -95 deviation 4 reconciled
 ```
 
-Failures: none. Pendings: G3 (<2h elapsed, see recheck time), G6 (gated on G3).
-Code freeze does NOT auto-lift until G3 + G6 clear.
+All gates GREEN. c1b code freeze lifted.
 
 ---
 
@@ -197,9 +196,17 @@ via CloudWatch/S3 directly. Will confirm and delete once G3 clears (22:56Z).
 |------|---------|-------|
 | G1 SHA | GREEN | `07f15b4` confirmed in first log event |
 | G2 npz exists | GREEN | 1.2MB at 21:24Z, 2 more saves since |
-| G3 saves/ENOENT | PENDING | 32 saves, 0 ENOENT; recheck 22:56Z |
+| G3 saves/ENOENT | GREEN | 0 npz ENOENT full session; 22:56Z recheck confirmed |
 | G4 ATTENDING_VISUAL | GREEN | counter=14, HEIC 0→1 confirmed |
 | G5 count-diff | GREEN | identity/vocab/deep preserved; atlas normal decay |
-| G6 orphan delete | PENDING | gated on G3; likely no orphan per pre-fix ENOENT |
+| G6 orphan delete | GREEN | state/wave_atlas.npz.tmp* ABSENT — deviation 4 reconciled |
 
-Code freeze lift: PENDING G3 + G6.
+Code freeze lift: GREEN — c1b unfreeze effective immediately.
+
+---
+
+## Addendum: 22:56Z recheck (G3 close + G6 close)
+
+**G3 CLOSE — GREEN.** Full-session ENOENT grep on stream `fd3ace1da0064f598b9fcec686fe5f89`: 0 results. Save cadence normal throughout; wave saves at 21:24Z / 21:49Z / 22:17Z all completed without error.
+
+**G6 CLOSE — ABSENT.** `state/wave_atlas.npz.tmp*` not present. Code confirms tmp_path = `npz_path + ".tmp"` (engine L6152); each successful save renames .tmp → .npz, removing the temp file. Three renames completed. Only `.tmp` references in current CW stream are PHP injection scan attempts unrelated to Guala. Pre-fix ENOENT in previous stream (`state/wave_atlas.npz.tmp`, ENOENT on write) confirms no orphan was created by the old code either. Reconciliation with -95 deviation 4 (claimed orphans exist): **claim does not hold — no orphan present or ever created.**
