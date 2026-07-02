@@ -1749,11 +1749,9 @@ async def gualaloom_chat(msg: GLMessage):
         n = s["needs"]
         # Lightweight persistence summary — in-memory only, no EFS stat.
         # Full EFS-based data is at /admin/persistence_health (run_in_executor).
-        import dsf_ai_service.save_coordinator as _sc_mod
-        _sc = getattr(_sc_mod, 'SAVE_COORDINATOR', None)
         _ph_light = {
-            "last_save_tick": getattr(_sc, 'last_save_tick', 0) if _sc else getattr(_guala, '_last_save_tick', 0),
-            "last_save_timestamp": getattr(_sc, 'last_save_timestamp', None) if _sc else getattr(_guala, '_last_save_timestamp', None),
+            "last_save_tick": getattr(_guala, '_last_save_tick', 0),
+            "last_save_timestamp": getattr(_guala, '_last_save_timestamp', None),
             "last_s3_backup": _last_s3_backup,
             "load_successful_at_boot": getattr(_guala, '_load_successful', True),
             "guala_identity": getattr(_guala, '_guala_identity', None),
@@ -4114,10 +4112,14 @@ async def startup():
         t0 = time.time()
         pre_size = _guala.events_log_size(STATE_DIR)
         _guala.save_full_state(STATE_DIR)
+        t1 = time.time()
         _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
-        dt = time.time() - t0
-        print(f"[save] {dt:.2f}s")
-        return dt
+        t2 = time.time()
+        core_dt = t1 - t0
+        compact_dt = t2 - t1
+        total_dt = t2 - t0
+        print(f"[save] {total_dt:.2f}s core={core_dt:.2f}s compact={compact_dt:.2f}s")
+        return total_dt
 
     async def _periodic_v6_save():
         save_count = 0
@@ -4151,6 +4153,19 @@ async def startup():
             except Exception as e:
                 print(f"[DSF-AI] S3 backup error: {e}")
     asyncio.ensure_future(_daily_s3_backup())
+
+    # GL-CMD-SAVE-TRUTH-84: Hourly S3 sync — uploads EFS state as-is regardless
+    # of save completion. Date-stamped prefix; complements the 24h daily backup.
+    async def _hourly_s3_sync():
+        loop = asyncio.get_event_loop()
+        while True:
+            await asyncio.sleep(3600)
+            try:
+                if _guala is not None:
+                    await loop.run_in_executor(None, _backup_to_s3, STATE_DIR)
+            except Exception as e:
+                print(f"[DSF-AI] Hourly S3 sync error: {e}")
+    asyncio.ensure_future(_hourly_s3_sync())
 
     # GL-CMD-74: Job registry GC — expire old jobs every 60 seconds
     async def _job_registry_gc():
