@@ -237,17 +237,21 @@ class WaveAtlas:
             bindings_all.append(cell.bindings)
         bindings_bytes = gzip.compress(json.dumps(bindings_all).encode("utf-8"), compresslevel=6)
         bindings_arr = np.frombuffer(bindings_bytes, dtype=np.uint8)
-        np.savez_compressed(
-            path,
-            chi_indices=np.array(chi_idxs, dtype=np.int32),
-            aggregate_strengths=agg_str,
-            last_ticks=last_ticks,
-            saturated=saturated,
-            phase_vecs_re=pv_re,
-            phase_vecs_im=pv_im,
-            phase_vecs_valid=pv_valid,
-            bindings_gz=bindings_arr,
-        )
+        # Write via file object — numpy.savez_compressed auto-appends .npz when given a
+        # path string, which breaks the .tmp atomic-rename pattern. File objects are
+        # written as-is with no extension modification.
+        with open(path, "wb") as _npz_f:
+            np.savez_compressed(
+                _npz_f,
+                chi_indices=np.array(chi_idxs, dtype=np.int32),
+                aggregate_strengths=agg_str,
+                last_ticks=last_ticks,
+                saturated=saturated,
+                phase_vecs_re=pv_re,
+                phase_vecs_im=pv_im,
+                phase_vecs_valid=pv_valid,
+                bindings_gz=bindings_arr,
+            )
 
     def load_from_npz(self, path: str) -> int:
         """Restore WaveAtlas from .npz file. Returns number of cells loaded."""
