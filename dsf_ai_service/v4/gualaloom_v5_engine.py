@@ -6144,6 +6144,14 @@ class Guala:
             npz_path = os.path.join(state_dir, "wave_atlas.npz")
             tmp_path = npz_path + ".tmp"
             self.wave_atlas.to_npz(tmp_path)
+            # GL-RPT-PERSIST-FIX-74 discipline: fsync data + directory before rename
+            with open(tmp_path, "rb") as _f:
+                os.fsync(_f.fileno())
+            _dir_fd = os.open(state_dir, os.O_RDONLY)
+            try:
+                os.fsync(_dir_fd)
+            finally:
+                os.close(_dir_fd)
             os.rename(tmp_path, npz_path)
             file_mb = os.path.getsize(npz_path) / 1e6
             print(f"[GualaLoom] WaveAtlas saved (npz): {n_cells} cells, "
@@ -6415,45 +6423,66 @@ class Guala:
                                 n_indexed += 1
             print(f"[GualaLoom] Recall word index rebuilt: {len(self._word_to_chi_index)} words, {n_indexed} entries")
 
-            # 64-C / 85-C1: WaveAtlas — try .npz first (Part C.1), then .json fallback
+            # 64-C / 85-C1/R2: WaveAtlas — try .npz first, then .json fallback.
+            # R2: collapse-on-load after every load (idempotent; correctness
+            # must not depend on the manual migrate_wave_atlas endpoint).
             if self.wave_atlas is not None:
                 _wave_npz = os.path.join(state_dir, "wave_atlas.npz")
                 _wave_json = os.path.join(state_dir, "wave_atlas.json")
+                _wave_loaded = False
+
                 if os.path.exists(_wave_npz):
                     try:
                         n_cells = self.wave_atlas.load_from_npz(_wave_npz)
                         print(f"[GualaLoom] WaveAtlas loaded from disk (npz): {n_cells} cells, "
                               f"{self.wave_atlas.binding_count()} bindings")
+                        _wave_loaded = True
                     except Exception as _wle:
                         print(f"[GualaLoom] WaveAtlas npz load failed ({_wle}), trying json")
-                        if os.path.exists(_wave_json):
-                            try:
-                                import json as _wjson
-                                with open(_wave_json, "r") as _wf:
-                                    n_cells = self.wave_atlas.load_from_dict(_wjson.load(_wf))
-                                print(f"[GualaLoom] WaveAtlas loaded from json fallback: {n_cells} cells, "
-                                      f"{self.wave_atlas.binding_count()} bindings")
-                            except Exception as _wle2:
-                                print(f"[GualaLoom] WaveAtlas all loads failed, rebuilding")
-                                self.wave_atlas.rebuild_from(self.atlas)
-                        else:
-                            self.wave_atlas.rebuild_from(self.atlas)
-                elif os.path.exists(_wave_json):
+
+                if not _wave_loaded and os.path.exists(_wave_json):
                     try:
                         import json as _wjson
                         with open(_wave_json, "r") as _wf:
-                            n_cells = self.wave_atlas.load_from_dict(_wjson.load(_wf))
-                        print(f"[GualaLoom] WaveAtlas loaded from disk: {n_cells} cells, "
+                            _raw_bytes = _wf.read()
+                        n_cells = self.wave_atlas.load_from_dict(_wjson.loads(_raw_bytes))
+                        print(f"[GualaLoom] WaveAtlas loaded from disk (json): {n_cells} cells, "
                               f"{self.wave_atlas.binding_count()} bindings")
+                        _wave_loaded = True
+                        # R2: async S3 archive of raw json before first npz save
+                        def _archive_json_to_s3(_rb=_raw_bytes.encode("utf-8")):
+                            try:
+                                import boto3 as _b3, gzip as _gz, time as _t
+                                _s3 = _b3.client("s3", region_name="us-east-1")
+                                _ts = _t.strftime("%Y-%m-%d_%H-%M-%S", _t.gmtime())
+                                _gz_bytes = _gz.compress(_rb, compresslevel=6)
+                                _s3.put_object(
+                                    Bucket="dsf-ai-site-backups",
+                                    Key=f"guala/wave_migrate_pre/{_ts}_wave_atlas_raw_boot.json.gz",
+                                    Body=_gz_bytes,
+                                    ContentType="application/gzip",
+                                )
+                                print(f"[wave] json fallback archived to S3 ({len(_gz_bytes)/1e6:.1f}MB)")
+                            except Exception as _ae:
+                                print(f"[wave] json S3 archive failed (non-fatal): {_ae}")
+                        import threading as _thr
+                        _thr.Thread(target=_archive_json_to_s3, daemon=True).start()
                     except Exception as _wle:
-                        print(f"[GualaLoom] WaveAtlas disk load failed ({_wle}), rebuilding from LivingAtlas")
-                        self.wave_atlas.rebuild_from(self.atlas)
-                else:
-                    # First boot after WaveAtlas enabled — rebuild once, save on next save_full_state
+                        print(f"[GualaLoom] WaveAtlas json load failed ({_wle}), rebuilding")
+
+                if not _wave_loaded:
+                    # First boot after WaveAtlas enabled — rebuild once
                     self.wave_atlas.rebuild_from(self.atlas)
                     print(f"[GualaLoom] WaveAtlas rebuilt from LivingAtlas (one-time): "
                           f"{self.wave_atlas.cell_count()} cells, "
                           f"{self.wave_atlas.binding_count()} bindings")
+
+                # R2: collapse-on-load (idempotent; near-free post-migration)
+                _pre_col = self.wave_atlas.binding_count()
+                _col_r = self.wave_atlas.collapse_by_key()
+                _post_col = _col_r["after"]
+                print(f"[wave] collapse-on-load: {_pre_col}→{_post_col} bindings "
+                      f"(wired={self.atlas._wave_atlas is self.wave_atlas})")
 
         except Exception as e:
             msg = f"[GualaLoom] ABORT load: {e}"
