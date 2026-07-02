@@ -4712,15 +4712,18 @@ class Guala:
                     source_id=pic.item_id, n_fragments=len(fragments))
             a.metadata["_viewed"] = True
             a.metadata["n_fragments"] = len(fragments)
+            # GL-CMD-ATTEND-TRAP-AND-VERIFY-90: attended = viewing occurred.
+            # Mark on the first tick (fragments processed, atlas bound) so an
+            # orient-reflex interrupt cannot leave times_attended=0 forever.
+            pic.times_attended += 1
+            pic.last_attended_tick = self.tick
         # Novelty effect — discounted by familiarity
         fam = self.target_familiarity.get(a.target, 0.0)
         base_gain = 0.003 if pic.is_new() else 0.0005
         gain = base_gain * (1.0 - fam)  # familiar pictures give less novelty
         self.needs.novelty = saturate(self.needs.novelty, gain)
-        # Mark attended at end + update familiarity
+        # Familiarity update stays at session end — full sessions only
         if self.tick >= a.expected_end_tick - 1:
-            pic.times_attended += 1
-            pic.last_attended_tick = self.tick
             old_fam = self.target_familiarity.get(a.target, 0.0)
             new_fam = min(0.9, old_fam + 0.2)
             self.target_familiarity[a.target] = new_fam
