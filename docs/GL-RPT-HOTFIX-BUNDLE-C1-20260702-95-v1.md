@@ -131,4 +131,20 @@ Bundle complete and committed on guala-live. c1a is **STOPPED**: no deploy, no f
 code. Next step is Eve's — full diff read, then GO; deploy runs sleep_for_deploy on her
 wake cycle only (one deploy for this dispatch, per protocol rule 1).
 
+---
+
+## ADDENDUM (post-report, same session — Joe approvals + push order)
+
+1. **ssmmessages APPLIED** (deviation 5 closed). Joe approved in chat. Inline policy
+   `dsf-ai-ecs-exec` put on `dsf-ai-task-role` (the four ssmmessages channel actions,
+   Resource `*`, exactly as staged). Verified: policy listed on role; simulation
+   `allowed` for CreateControlChannel + OpenDataChannel. Caveat: the RUNNING :449 task's
+   ExecuteCommandAgent registered at boot without these perms — exec against :449 may
+   stay TargetNotConnected until the Deploy-1 task swap; it will work on the new task.
+2. **Runbook addition (deviation 4):** after the first post-deploy npz save is verified
+   good (`[GualaLoom] WaveAtlas saved (npz)` line + `wave_atlas.npz` present on EFS),
+   delete the orphan `state/wave_atlas.npz.tmp.npz` file(s).
+3. **Standing rule (effective 2026-07-02):** a report may say FILED only when the commit
+   is on origin. Local-only commits are stated as LOCAL-ONLY.
+
 End report.
