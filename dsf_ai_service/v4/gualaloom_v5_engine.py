@@ -6591,27 +6591,30 @@ class Guala:
 
     def _apply_visual(self, vd, state_dir):
         """Restore visual data from saved state."""
+        print(f"[GualaLoom] _apply_visual: {len(vd.get('pictures',{}))} pictures, {len(vd.get('sight_motifs',[]))} motifs in data")
         from dsf_ai_service.visual_krimelack import VisualMotif
         pic_dir = os.path.join(state_dir, "pictures")
         # Restore pictures
         for pid, pdata in vd.get("pictures", {}).items():
-            grid = None
-            grid_path = os.path.join(pic_dir, f"{pid}.npy")
-            if os.path.exists(grid_path):
-                grid = np.load(grid_path)
-            pic = PictureItem(
-                item_id=pdata["item_id"], title=pdata.get("title", pid),
-                intensity_grid=grid, source=pdata.get("source", "restored"),
-                shown_at_tick=pdata.get("shown_at_tick", 0),
-                times_attended=pdata.get("times_attended", 0),
-                last_attended_tick=pdata.get("last_attended_tick", 0))
-            # Restore original image path if it exists
-            orig_path = pdata.get("original_path")
-            if orig_path and os.path.exists(orig_path):
-                pic.original_path = orig_path
-                pic.original_width = pdata.get("original_width")
-                pic.original_height = pdata.get("original_height")
-            self._pictures[pid] = pic
+            try:
+                grid = None
+                grid_path = os.path.join(pic_dir, f"{pid}.npy")
+                if os.path.exists(grid_path):
+                    grid = np.load(grid_path)
+                pic = PictureItem(
+                    item_id=pdata["item_id"], title=pdata.get("title", pid),
+                    intensity_grid=grid, source=pdata.get("source", "restored"),
+                    shown_at_tick=pdata.get("shown_at_tick", 0),
+                    times_attended=pdata.get("times_attended", 0),
+                    last_attended_tick=pdata.get("last_attended_tick", 0))
+                orig_path = pdata.get("original_path")
+                if orig_path and os.path.exists(orig_path):
+                    pic.original_path = orig_path
+                    pic.original_width = pdata.get("original_width")
+                    pic.original_height = pdata.get("original_height")
+                self._pictures[pid] = pic
+            except Exception as _pe:
+                print(f"[GualaLoom] picture load failed for {pid}: {_pe}")
         # Restore sight motifs
         for sm in vd.get("sight_motifs", []):
             motif = VisualMotif(
