@@ -3,140 +3,179 @@
 doc_id: GL-RPT-MIC-EMBEDDED-DECODE-C1-20260703-110-v1
 From: c1b | To: Eve | Date: 2026-07-03
 Responds to: GL-CMD-MIC-EMBEDDED-DECODE-EVE-20260703-110-v1
-Code SHA (on origin, NOT yet deployed): 1d0af4d213d9010b24642532a5cea55b39811cd5
-
-**Pre-deploy partial filing.** Per the CMD, this rides the next sleep-window deploy vehicle
-together with c1a's -107 groove fix — one wake cycle. G-110-1 is a static code-proof gate
-and is measured below. G-110-2/3/4 require the code actually running live and are
-**NOT MEASURED**, deferred to a follow-up filing once that joint deploy happens.
+Deployed SHA: c015dd5cf5845862561883105e392a548d1c0c6f (task:456, live, booted
+2026-07-03T21:31:16Z). Rides the same wake cycle as c1a's -107 groove fix.
 
 ---
 
 ## FAILURES FIRST
 
-None in what's measurable today.
+### G-110-2: FAIL. Routing is fixed, but real browser mic chunks still mostly fail to
+### decode — a new, distinct bug this dispatch did not anticipate or fix.
 
----
+**What -110 fixed is real and proven** (G-110-1/3/4 below). But when Joe reran the live
+test on a fresh mic session, actively speaking, 27 of 28 real `/sound_frame` calls in the
+window still failed decode:
 
-## THE FIX
-
-Exactly the three changes specified, nothing else:
-1. `substrate_runner._webm_to_wav_bytes(audio_bytes) -> bytes | None` — the 332537d
-   ffmpeg-pipe → s16le/mono/16k → WAV-wrap logic, unchanged, plus the -108 decode-failure
-   guard moved into it (one guard, one place, for every caller).
-2. The drain loop's `sound_window` branch now calls the helper instead of inlining the
-   decode.
-3. `app.py`'s embedded-mode `/sound_frame` branch, inside its existing executor `_decode()`
-   (already outside the engine lock — it runs via `run_in_executor`), now calls the same
-   helper; on decode failure it returns `{"ok": False, "error": "decode_failed"}` instead
-   of ever calling `process_sound_frame` with raw WebM bytes.
-
-Diff, verbatim (`b7fd05e..1d0af4d` for these two files, i.e. since the last time either
-was touched):
-
-```diff
---- a/dsf_ai_service/app.py
-+++ b/dsf_ai_service/app.py
-@@ -1557,8 +1557,15 @@
-     def _decode():
-         t0 = time.time()
-         try:
-+            import dsf_ai_service.substrate_runner as _sr
-             audio_bytes = base64.b64decode(b64_data)
--            _guala.process_sound_frame(audio_bytes)
-+            # GL-CMD-MIC-EMBEDDED-DECODE-110: single shared decoder, outside
-+            # the engine lock (this executor call). Raw bytes never reach
-+            # process_sound_frame from this path.
-+            wav = _sr._webm_to_wav_bytes(audio_bytes)
-+            if not wav:
-+                return {"ok": False, "error": "decode_failed"}
-+            _guala.process_sound_frame(wav)
-             print(f"[sound-frame] {time.time()-t0:.3f}s")
-             return {"ok": True, "tick": _guala.tick}
-         except Exception as e:
-
---- a/dsf_ai_service/substrate_runner.py
-+++ b/dsf_ai_service/substrate_runner.py
-@@ -891,6 +891,29 @@
- _input_ring_consumer_started = False
-
-+def _webm_to_wav_bytes(audio_bytes):
-+    """... ffmpeg pipe -> s16le/mono/16k -> WAV wrap (332537d logic, unchanged) ..."""
-+    import wave as _wave, io as _sio
-+    _ff = subprocess.run(
-+        ['ffmpeg', '-i', 'pipe:0', '-f', 's16le', '-ac', '1',
-+         '-ar', '16000', '-loglevel', 'quiet', 'pipe:1'],
-+        input=audio_bytes, capture_output=True, timeout=8)
-+    if _ff.stdout and len(_ff.stdout) >= 400:
-+        _wav_buf = _sio.BytesIO()
-+        with _wave.open(_wav_buf, 'wb') as _wf:
-+            _wf.setnchannels(1); _wf.setsampwidth(2); _wf.setframerate(16000)
-+            _wf.writeframes(_ff.stdout)
-+        return _wav_buf.getvalue()
-+    print(f"[sound] cochlear decode failed: ffmpeg produced "
-+          f"{len(_ff.stdout)} bytes from {len(audio_bytes)} in")
-+    return None
-
-@@ (drain loop, sound_window branch) @@
--                            import wave as _wave, io as _sio
--                            _ff = subprocess.run([...])
--                            if _ff.stdout and len(_ff.stdout) >= 400:
--                                ... build wav buf ...
--                                _guala.process_sound_frame(_wav_buf.getvalue())
--                            else:
--                                print(f"[sound] cochlear decode failed: ...")
-+                            _wav = _webm_to_wav_bytes(audio_bytes)
-+                            if _wav:
-+                                _guala.process_sound_frame(_wav)
+```
+1783114819108  [sound-frame] 5.054s                                              <- SUCCESS
+1783114819247  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114824130  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114829369  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114834197  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114839231  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114844359  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114849265  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114857967  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114859456  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114864433  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114869740  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114874521  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114880940  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81160 in
+1783114887559  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114889630  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114894622  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114899716  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114905955  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114909788  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114914789  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114919905  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114925025  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114929998  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114934993  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114940865  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114945026  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
+1783114950151  [sound] cochlear decode failed: ffmpeg produced 0 bytes from 81161 in
 ```
 
+I confirmed with Joe directly before drawing conclusions: he had reloaded
+`gualaloom.html` fresh, mic on, and was actively speaking throughout this entire window —
+this is not a stale pre-deploy session. Only the very first call succeeded (5.054s,
+tick-adjacent `[cochlear-debug]`: `{'very_low': 148, 'low': 90, 'low_mid': 64, 'mid': 84,
+'mid_high': 124, 'high': 114}`). Every chunk after that — all ~81,160 bytes, consistent
+with `MediaRecorder.start(5000)`'s 5-second timeslice — failed with the exact same "0
+bytes produced" signature as a corrupt/unparseable input.
+
+**Leading hypothesis, not yet proven**: `MediaRecorder`'s chunked WebM output only
+produces an independently-decodable file on the session's first `ondataavailable` blob
+(EBML header + Segment info + first Cluster). Every subsequent blob (fired every 5s for
+the life of the recording) is a bare Cluster continuation of the *same* logical Segment —
+valid when concatenated onto the first blob, not valid as a standalone file. Feeding one
+of those continuation blobs to `ffmpeg -i pipe:0` alone would produce exactly this
+signature: a clean run, zero decodable output, no error. This is a well-known
+`MediaRecorder`-with-timeslice gotcha, consistent with everything observed, but I have not
+confirmed it by inspecting the actual bytes (no code path currently captures a failing
+`audio_bytes` sample for offline inspection) — flagging as strong-but-unconfirmed.
+
+**Important negative control, so this isn't mistaken for real speech data**: during this
+same window, 11 *other* `[cochlear-debug]` lines appeared showing successful decodes with
+much smaller magnitudes (22–168 events/band). These are **not Joe's mic** — cross-checked
+against the substrate event stream, each lines up with a `sound_frame_bound` event with
+`duration_s` of ~1.0–1.2s (e.g. `1783114819102` → `duration_s: 1.03`, `1783114945026`-
+adjacent → `duration_s: 1.22`), far shorter than a 5-second mic chunk, and each coincides
+with an `emission`/`self_heard` event (`"jo be"`, `"moon g i'll"`). This is Guala's own
+`espeak-ng` self-voice injection (`gualaloom_v5_engine.py:5677`, flagged as an untouched,
+already-correct caller in G-110-1) being fed back into her own hearing after she speaks —
+a real, working, but entirely separate mechanism. Reporting this explicitly so it is never
+mistaken for evidence that her mic works.
+
+**Net: with only one successful real-mic decode in the whole session, there is no
+comparable pair of speech/silence samples to evaluate — G-110-2's actual question (does
+speech separate from silence) cannot be answered today.** Per the CMD's own rule
+(indistinguishable/no separation → FAIL, stop, report verbatim), this is FAIL. Per the
+CMD's own scope declaration ("decode plumbing only... no cognition-path change... no
+constants"), I have not attempted to fix `MediaRecorder` chunking today — that is a new,
+separate problem for its own dispatch, not a failure of what -110 was built to do.
+
 ---
 
-## GATES
+## WHAT -110 ACTUALLY FIXED (and did, correctly)
 
-**G-110-1 — code proof: exactly ONE decode implementation, both call sites shown, no
-raw-bytes path to `process_sound_frame` remains: PASS, with one flagged non-violation.**
+**G-110-1 — code proof: exactly ONE decode implementation, no live raw-bytes path to
+`process_sound_frame` remains: PASS.**
 
 ```
 $ grep -n "process_sound_frame(" dsf_ai_service/*.py dsf_ai_service/**/*.py
-app.py:1568:                _guala.process_sound_frame(wav)                  <- via helper (change 3)
-substrate_runner.py:974:    _guala.process_sound_frame(_wav)                 <- via helper (change 2)
-substrate_runner.py:2465:   _guala.process_sound_frame(audio_bytes)          <- handle_sound_frame, see below
-gualaloom_v5_engine.py:4658: def process_sound_frame(self, audio_bytes):     <- definition
-gualaloom_v5_engine.py:5677: self.process_sound_frame(f.read())              <- self-voice, real WAV file, untouched (correct)
+app.py:1568:                 _guala.process_sound_frame(wav)               <- via helper (change 3)
+substrate_runner.py:974:     _guala.process_sound_frame(_wav)              <- via helper (change 2)
+substrate_runner.py:2465:    _guala.process_sound_frame(audio_bytes)       <- handle_sound_frame, see below
+gualaloom_v5_engine.py:4658: def process_sound_frame(self, audio_bytes):   <- definition
+gualaloom_v5_engine.py:5677: self.process_sound_frame(f.read())           <- self-voice, real WAV file
 ```
 
 Two callers besides the two I changed:
-- `gualaloom_v5_engine.py:5677` — self-voice injection reads an `espeak-ng`-generated
+- `gualaloom_v5_engine.py:5677` — self-voice injection, reads an `espeak-ng`-generated
   **real WAV file** and feeds its bytes directly. Never broken (proper WAV, not WebM),
-  correctly out of scope, matches the CMD's "untouched" list in spirit even though not
-  named explicitly.
-- `substrate_runner.py:2465` — `handle_sound_frame`, registered in `OP_HANDLERS["sound_frame"]`
-  for `dispatch(op, args)`. **Checked and confirmed unreachable**: `grep -rn "dispatch("`
-  across `app.py` and `substrate_runner.py` finds only the `def dispatch(op, args)`
-  definition itself — no caller anywhere in the current codebase invokes it. This is
-  leftover from the retired separate-substrate-process/socket-RPC architecture (the socket
-  server itself was deleted per `GL-CMD-PROCESS-COLLAPSE-61`, referenced in a comment a few
-  hundred lines below it). It is dead code, not a live raw-bytes path — flagging it plainly
-  rather than silently omitting a grep hit that superficially looks like a violation, per
-  the project's "check every place a switch can live" discipline. Not fixed today (out of
-  this dispatch's declared scope, which is decode plumbing on the two live paths); worth a
-  one-line note or removal on a future cleanup dispatch since it's confusing to leave live
-  in the OP_HANDLERS table.
+  correctly out of scope. This is exactly the mechanism behind the 11 "successful" samples
+  discussed above.
+- `substrate_runner.py:2465` — `handle_sound_frame`, registered in
+  `OP_HANDLERS["sound_frame"]` for `dispatch(op, args)`. **Checked and confirmed
+  unreachable**: `grep -rn "dispatch("` across `app.py` and `substrate_runner.py` finds
+  only the `def dispatch(op, args)` definition — no caller anywhere in the current
+  codebase invokes it. Leftover from the retired separate-substrate-process/socket-RPC
+  architecture (the socket server itself was deleted per `GL-CMD-PROCESS-COLLAPSE-61`).
+  Dead code, not a live raw-bytes path. Flagging plainly rather than silently passing over
+  a grep hit that superficially looks like a violation; not fixed today (out of this
+  dispatch's declared scope), worth a cleanup note for later.
 
-**G-110-2, G-110-3, G-110-4 — NOT MEASURED, pending the next sleep-window deploy.**
-All three require the code actually running (live mic test with Joe again, decode-guard
-fire test, and lock-hygiene confirmation against the live process). Will file a follow-up
-report once that deploy — bundled with c1a's -107 — happens.
+**G-110-3 — decode-failure guard fires on the embedded path: PASS, doubly confirmed.**
+A deliberately corrupt 36-byte chunk through the live `/sound_frame` endpoint:
+```
+$ curl .../sound_frame -d '{"text":"<36-byte garbage b64>","source":"g110-test"}'
+{"ok":false,"error":"decode_failed"}
+[sound] cochlear decode failed: ffmpeg produced 0 bytes from 36 in
+```
+Exact match to spec. Additionally — and this is the accidental silver lining of G-110-2's
+FAIL — the guard fired correctly **27 more times live, on real traffic**, throughout
+Joe's session: every failed chunk returned `decode_failed` cleanly and logged the guard,
+and **zero raw WebM bytes reached `process_sound_frame` at any point**. Before -110, this
+same traffic would have silently produced 33 samples of meaningless "successful" cochlear
+noise (see `GL-RPT-MIC-DEPLOY-C1-20260703-108-v1.md`'s before-baseline). Now it fails
+loudly and honestly instead. That is real, working progress even though the top-line "can
+she hear Joe" answer is still no.
+
+**G-110-4 — lock hygiene: decode demonstrably outside `_guala.lock` in both modes: PASS.**
+By code placement, not requiring a live race test: in the embedded path, `_webm_to_wav_bytes()`
+runs inside `_decode()`, itself dispatched via `run_in_executor` (off the asyncio event
+loop) and BEFORE `_guala.process_sound_frame(wav)` is ever called — the ffmpeg subprocess
+call holds no engine lock. In the drain loop, the same ordering holds: `_webm_to_wav_bytes()`
+runs before `_guala.process_sound_frame(_wav)`, which is the only call in this function
+that touches `self.lock` (via the engine's own internal locking, unchanged). Confirmed by
+reading both call sites directly in this deploy's diff.
+
+---
+
+## DEPLOY RECORD
+
+```
+Pinned SHA:  c015dd5cf5845862561883105e392a548d1c0c6f (detached worktree, git archive
+             from this exact commit)
+Image:       dsf-ai:deploy-20260703T212947Z
+Task def:    dsf-ai-task:456, task c480f34462a0453c904e6e744f363cf5, RUNNING
+Boot banner: [build] git_sha=c015dd5cf5845862561883105e392a548d1c0c6f built=2026-07-03T21:31:16Z
+[curriculum] autostart disabled by env   <- -109's fix still holding, confirmed this boot
+```
+This deploy carries the full range since `16bc0c2` (the -108/-109 deploy), including
+c1a's -107 groove-fix code (`417b468..51de899`, already an ancestor before -110 began) —
+Eve's "one wake cycle" instruction is satisfied; -107's own gates are c1a's to file.
+For c1a: -107's telemetry is confirmed live and populated this boot, e.g. an `EMITTING`
+`activity_started` at tick 14486463 with `needs_sd: {"stability": -0.043, "novelty":
+-0.2631, "connection": 0.4275}` and real `top_scores`. I did not capture a clean
+≥3-consecutive-`ATTENDING_VISUAL` streak (A.3) — this window was converse/EMITTING-heavy
+from Joe's live session; that capture is yours to finish.
 
 ---
 
 ## STATE
 
-Code is on origin at `1d0af4d`, not yet live. `dsf-ai-task:455` (SHA `16bc0c2`, the -108/-109
-deploy) remains the running task — it still has the routing gap this dispatch fixes.
-G-110-1's code proof is clean; the one dead-code caller found (`handle_sound_frame`) is
-harmless but flagged for future cleanup. Waiting for the joint sleep-window deploy with
--107 to measure G-110-2/3/4.
+`-110`'s own job — one decoder, at the boundary, used by both live callers, outside the
+lock, guard consolidated — is done and correctly gated (G-110-1/3/4 PASS). The routing bug
+G-108-2 found is closed. What replaced it is a new, more fundamental problem: real browser
+mic audio still can't reach her, now for a WebM-chunking reason rather than a routing
+reason. Recommend a follow-up dispatch scoped narrowly to either (a) reassembling
+`MediaRecorder` chunks client-side before sending (concatenate onto the first blob's
+header), or (b) sending self-contained chunks some other way (e.g. `requestData()` +
+restart the recorder each interval, or a different codec/config). Not attempted today —
+outside this dispatch's decode-plumbing scope, and Eve's call on priority.
 
-End report (partial).
+End report.
