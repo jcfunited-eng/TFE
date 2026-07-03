@@ -5802,6 +5802,7 @@ class Guala:
 
     # Class-level defaults (overwritten per instance in __init__)
     _last_save_tick = 0
+    _last_cold_save_tick = 0   # GL-CMD-DEEP-STORE-PHYSICS-86 P2: updated only on full/cold save
     _last_save_timestamp = None
     _load_successful = False
     _load_errors = []
@@ -5861,6 +5862,174 @@ class Guala:
         return raw.get("data", raw)
 
     # ── Save ──
+
+    def save_hot_state(self, state_dir="state"):
+        """GL-CMD-DEEP-STORE-PHYSICS-86 P2: hot-lane save.
+        Writes small stores only (core/needs/coord/visual/sounds/videos/bucket/teaching).
+        Target <5s. Advances _last_save_tick. Cold stores (sections/atlas/deep_atlas)
+        are written by save_full_state() every 30 min or at sleep boundary."""
+        import copy as _copy
+
+        with self.lock:
+            os.makedirs(state_dir, exist_ok=True)
+            ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            if self._guala_identity is None:
+                self._generate_genesis_identity(state_dir)
+
+            _surv_snap = dict(self._deep_survival_history)
+            corpora_ser = {cid: {"corpus_id": c.corpus_id, "title": c.title,
+                                  "position": c.position,
+                                  "times_read_through": c.times_read_through,
+                                  "last_read_tick": c.last_read_tick,
+                                  "n_lines": len(c.lines)}
+                           for cid, c in self._corpora.items()}
+            sensory_ser = {sid: {"item_id": s.item_id, "kind": s.kind,
+                                  "title": s.title,
+                                  "times_attended": s.times_attended,
+                                  "last_attended_tick": s.last_attended_tick}
+                           for sid, s in self._sensory_items.items()}
+            snap_core = self._envelope({
+                "tick": self.tick, "read_count": self.read_count,
+                "vocab": sorted(self.vocab),
+                "source_history": dict(self.source_history),
+                "recent_connection_boost": self.recent_connection_boost,
+                "dream_log": _copy.copy(self.dream_log),
+                "open_response_windows": _copy.copy(self.open_response_windows),
+                "response_bind_count": self._response_bind_count,
+                "last_emission_tick": self._last_emission_tick,
+                "last_autonomous_emission_tick": self.last_autonomous_emission_tick,
+                "last_autonomous_attempt_tick": self.last_autonomous_attempt_tick,
+                "autonomous_emissions_count": self.autonomous_emissions_count,
+                "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
+                "corpora_state": corpora_ser,
+                "sensory_state": sensory_ser,
+                "deep_survival_history": None,
+                "total_emissions": self._total_emissions,
+            })
+            snap_needs = self._envelope({
+                "stability": self.needs.stability,
+                "novelty": self.needs.novelty,
+                "connection": self.needs.connection,
+            })
+            snap_coord = self._envelope({
+                "pair_bond": dict(self.coordinator._pair_bond),
+                "pair_bond_active": self.coordinator.pair_bond_active,
+                "distress_ticks": self.coordinator.distress_ticks,
+                "suffering_log": _copy.copy(self.coordinator.suffering_log),
+                "need_history": list(self.coordinator.need_history[-200:]),
+                "attentions_count": len(self.coordinator.attentions),
+                "actions_count": len(self.coordinator.actions),
+                "source_interaction_log": {
+                    src: list(entries[-200:])
+                    for src, entries in self.coordinator._source_interaction_log.items()
+                },
+            })
+            snap_visual = self._envelope({
+                "pictures": {
+                    pid: {"item_id": p.item_id, "title": p.title,
+                          "source": p.source, "shown_at_tick": p.shown_at_tick,
+                          "times_attended": p.times_attended,
+                          "last_attended_tick": p.last_attended_tick,
+                          "has_grid": p.intensity_grid is not None,
+                          "original_path": getattr(p, 'original_path', None),
+                          "original_width": getattr(p, 'original_width', None),
+                          "original_height": getattr(p, 'original_height', None)}
+                    for pid, p in self._pictures.items()
+                },
+                "sight_motifs": [
+                    {"motif_id": m.motif_id, "n_firings": m.n_firings,
+                     "source_history": m.source_history[:20],
+                     "founded_at_tick": m.founded_at_tick}
+                    for m in self.sight.motifs
+                ] if hasattr(self, 'sight') else [],
+                "n_visual_fragments": len(self._visual_fragments),
+            })
+            snap_sounds = self._envelope(dict(self._sounds))
+            snap_videos = self._envelope({
+                vid: {"item_id": v.item_id, "title": v.title,
+                      "source": getattr(v, 'source', ''),
+                      "times_attended": v.times_attended,
+                      "last_attended_tick": v.last_attended_tick}
+                for vid, v in self._videos.items()
+            })
+            snap_bucket = self._envelope({"removed": True})
+            save_tick = self.tick
+            snap_vocab_len = len(self.vocab)
+        # lock released
+
+        surv_ser = {}
+        for (chi_k, sec, mid), strengths in _surv_snap.items():
+            surv_ser[f"{chi_k}|{sec}|{mid}"] = strengths[-10:]
+        snap_core["data"]["deep_survival_history"] = surv_ser
+
+        # Vocab regression guard (same discipline as save_full_state)
+        core_path = os.path.join(state_dir, "guala_core.json")
+        if os.path.exists(core_path):
+            try:
+                with open(core_path) as _f:
+                    _existing = json.load(_f)
+                _existing_vocab = len(_existing.get("data", _existing).get("vocab", []))
+                if _existing_vocab > 100 and snap_vocab_len < _existing_vocab * 0.5:
+                    msg = (f"[GualaLoom] ABORT HOT SAVE: vocab regression "
+                           f"{_existing_vocab}→{snap_vocab_len}. "
+                           f"Set GUALA_FORCE_SAVE=1 to override.")
+                    print(msg)
+                    if os.environ.get("GUALA_FORCE_SAVE") != "1":
+                        return {}
+            except (json.JSONDecodeError, OSError) as _e:
+                print(f"[save-hot] prior state read failed (proceeding): {_e}")
+
+        writes = [
+            ("guala_core.json", snap_core),
+            ("guala_needs.json", snap_needs),
+            ("guala_coordinator.json", snap_coord),
+            ("guala_bucket.json", snap_bucket),
+            ("guala_visual.json", snap_visual),
+            ("guala_sounds.json", snap_sounds),
+            ("guala_videos.json", snap_videos),
+        ]
+        _failures = []
+        results = {}
+        for filename, data in writes:
+            path = os.path.join(state_dir, filename)
+            try:
+                self._atomic_write(path, data)
+                results[filename] = os.path.getsize(path)
+            except Exception as _we:
+                _failures.append((filename, str(_we)))
+                print(f"[GualaLoom] hot save failed for {filename}: {_we}")
+                _tmp = path + ".tmp"
+                if os.path.exists(_tmp):
+                    try:
+                        os.remove(_tmp)
+                    except OSError:
+                        pass
+
+        snap_teaching = self._envelope({
+            "feedback_log": self._teaching_feedback_log[-500:],
+            "correction_log": self._teaching_correction_log[-500:],
+            "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
+        })
+        try:
+            self._atomic_write(os.path.join(state_dir, "guala_teaching.json"), snap_teaching)
+        except Exception as _te:
+            print(f"[GualaLoom] hot save failed for guala_teaching.json: {_te}")
+            _tmp = os.path.join(state_dir, "guala_teaching.json.tmp")
+            if os.path.exists(_tmp):
+                try:
+                    os.remove(_tmp)
+                except OSError:
+                    pass
+
+        _critical_hot = {"guala_core.json", "guala_needs.json", "guala_coordinator.json"}
+        _critical_failures = [(f, e) for f, e in _failures if f in _critical_hot]
+        if not _critical_failures:
+            self._last_save_tick = save_tick
+            self._last_save_timestamp = ts
+        else:
+            print(f"[GualaLoom] HOT SAVE CRITICAL FAILURE at tick {save_tick}: "
+                  f"{[f for f, _ in _critical_failures]}")
+        return results
 
     def save_full_state(self, state_dir="state"):
         """Round-trip every mutable attribute. Atomic writes. Identity-stamped.
@@ -6117,6 +6286,7 @@ class Guala:
         _critical_failures = [(f, e) for f, e in _save_failures if f in _critical]
         if not _critical_failures:
             self._last_save_tick = save_tick
+            self._last_cold_save_tick = save_tick  # GL-CMD-DEEP-STORE-PHYSICS-86 P2
             self._last_save_timestamp = ts
             if _save_failures:
                 self._log_substrate_event("save_partial",
@@ -6975,6 +7145,7 @@ class Guala:
             "guala_identity": self._guala_identity,
             "schema_version": self.SCHEMA_VERSION,
             "last_save_tick": self._last_save_tick,
+            "last_cold_save_tick": self._last_cold_save_tick,
             "last_save_timestamp": self._last_save_timestamp,
             "files_present": present,
             "files_missing": missing,

@@ -4203,9 +4203,22 @@ async def startup():
     asyncio.ensure_future(_background_replay())
 
     # N2: Periodic save + backup in executor (never blocks event loop)
+    # GL-CMD-DEEP-STORE-PHYSICS-86 P2: hot/cold split.
+    # Hot: small stores every 60s (target <5s). Cold: full state every 30 min.
+    def _do_hot_save_and_compact():
+        """Hot-lane: small stores only + event compact. Target <5s."""
+        t0 = time.time()
+        pre_size = _guala.events_log_size(STATE_DIR)
+        _guala.save_hot_state(STATE_DIR)
+        t1 = time.time()
+        _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
+        t2 = time.time()
+        total_dt = t2 - t0
+        print(f"[save-hot] {total_dt:.2f}s core={t1-t0:.2f}s compact={t2-t1:.2f}s")
+        return total_dt
+
     def _do_save_and_compact(write_wave: bool = False):
-        """Runs in thread pool — never blocks health checks.
-        write_wave=True: also write wave_atlas.npz and emit 5-field timing line."""
+        """Cold-lane: full state + event compact + optional wave write."""
         t0 = time.time()
         pre_size = _guala.events_log_size(STATE_DIR)
         results = _guala.save_full_state(STATE_DIR)
@@ -4214,7 +4227,6 @@ async def startup():
         t2 = time.time()
         core_dt = t1 - t0
         compact_dt = t2 - t1
-        # grids timing extracted from save_full_state result dict if available
         grids_dt = results.get("_grids_dt", 0.0) if isinstance(results, dict) else 0.0
         if write_wave:
             t3 = time.time()
@@ -4234,21 +4246,28 @@ async def startup():
 
     async def _periodic_v6_save():
         save_count = 0
+        _last_cold_wall = 0.0   # wall-clock of last cold save
         loop = asyncio.get_event_loop()
         while True:
             await asyncio.sleep(60)
             if _guala is None:
                 continue
+            now = loop.time()
+            do_cold = (now - _last_cold_wall) >= 1800  # 30-min staleness bound
             do_wave = save_count > 0 and save_count % 10 == 0
             try:
-                await loop.run_in_executor(None, _do_save_and_compact, do_wave)
+                if do_cold:
+                    await loop.run_in_executor(None, _do_save_and_compact, do_wave)
+                    _last_cold_wall = loop.time()
+                else:
+                    await loop.run_in_executor(None, _do_hot_save_and_compact)
             except Exception as e:
                 print(f"[save] error: {e}")
             finally:
                 # GL-CMD-SAVE-CONTAINMENT-91: save_count in finally — wave/snapshot
                 # exceptions can never jam the counter at #10.
                 save_count += 1
-            if do_wave:
+            if do_wave and do_cold:
                 try:
                     snap_dir = await loop.run_in_executor(
                         None, lambda: _guala.snapshot_state(STATE_DIR, reason="periodic"))

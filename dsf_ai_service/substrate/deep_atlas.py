@@ -27,6 +27,10 @@ SURVIVAL_THETA = 0.4            # Path A: binding must stay above this
 SURVIVAL_CONSECUTIVE = 3        # Path A: for this many consecutive dream cycles
 TRANSFER_RATIO = 0.5            # deep starts at this fraction of working strength
 
+# GL-CMD-DEEP-STORE-PHYSICS-86 Part 1: bounded co_occurrence container
+_CO_SEC_CAP = 32      # max motifs retained per section in co_occurrence
+_CO_PRUNE_THRESH = 0.005  # weights below this are pruned after each update
+
 
 def _deep_atlas_enabled():
     return os.environ.get("DEEP_ATLAS_ENABLED", "1") != "0"
@@ -146,8 +150,22 @@ class DeepAtlas:
                 sec_dict = co.get(sec, {})
                 old_w = sec_dict.get(mid, 0.0)
                 # §2.3: substrate-physical integration rate = evidence strength
-                sec_dict[mid] = old_w * (1.0 - strength) + strength * strength
-                co[sec] = sec_dict
+                new_w = old_w * (1.0 - strength) + strength * strength
+                # GL-CMD-DEEP-STORE-PHYSICS-86 P1: prune below threshold immediately
+                if new_w < _CO_PRUNE_THRESH:
+                    sec_dict.pop(mid, None)
+                else:
+                    sec_dict[mid] = new_w
+                if sec_dict:
+                    co[sec] = sec_dict
+                elif sec in co:
+                    del co[sec]
+        # GL-CMD-DEEP-STORE-PHYSICS-86 P1: cap each section to top-_CO_SEC_CAP by weight
+        for sec in list(co.keys()):
+            if len(co[sec]) > _CO_SEC_CAP:
+                co[sec] = dict(
+                    sorted(co[sec].items(), key=lambda x: x[1], reverse=True)[:_CO_SEC_CAP]
+                )
         deep_entry["co_occurrence"] = co
 
     def get_invariant(self, chi_value, section_name, motif_id):

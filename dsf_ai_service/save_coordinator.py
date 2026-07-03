@@ -46,7 +46,10 @@ class SaveCoordinator:
             log.warning("[s3] queue full — dropping backup tick=%d", tick)
 
     def maybe_save(self, reason="presence_quiet"):
-        """Non-blocking save if conditions are right. Returns quickly."""
+        """Non-blocking save if conditions are right. Returns quickly.
+        GL-CMD-DEEP-STORE-PHYSICS-86 P2: activity transitions → hot save.
+        Cold stores (atlas/deep_atlas/sections) written by force_save or
+        _periodic_v6_save cold lane (30-min bound)."""
         with self._lock:
             if not self._should_save(reason):
                 return False
@@ -54,7 +57,7 @@ class SaveCoordinator:
             self.last_save_wall = time.monotonic()
             self.last_save_timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         try:
-            self.guala.save_full_state(self.state_dir)
+            self.guala.save_hot_state(self.state_dir)
             if self.s3_bucket:
                 self._maybe_queue_s3(reason)
             return True
