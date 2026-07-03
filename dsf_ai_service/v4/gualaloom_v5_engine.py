@@ -1110,29 +1110,22 @@ class Coordinator:
     def _read_substrate_signals(self, guala, atlas, sections):
         """Compute substrate → needs signals.
 
-        Stability signal: rate of mode reinforcement (vs novel creation).
-                         High signal = lots of reinforcement happening = stability sated.
+        Stability signal: signed coherence measure (GL-CMD-88-v2).
         Novelty signal:   rate of novel-mode creation across sections.
-                         High signal = lots of novelty happening = novelty sated.
         Connection signal: cross-modal binding rate + pair-bond boost from source.
         """
-        # Stability: how many sections committed via reinforcement recently
+        # GL-CMD-STAB-PHYSICS-FIX-88-v2: retire the lifetime-counter formula.
+        # The old active branch (1 - total_modes/recent_commits) was structurally
+        # negative (observed -0.377 → signal -0.175, -0.0007/tick drain). Both
+        # branches now use the same signed coherence measure shipped in R2.
         recent_commits = 0
         total_modes = 0
         for s in sections.values():
             recent_commits += len(s.commits)
             total_modes += len(s.modes)
-        if recent_commits > 0:
-            reinforcement_rate = 1.0 - (total_modes / max(recent_commits, 1))
-            stability_sig = (reinforcement_rate - 0.5) * 0.2  # nudge ±0.1
-        else:
-            # GL-CMD-STAB-PHYSICS-FIX-88 R2: replace hardcoded -0.05 with
-            # signed coherence measure. Same structure as the active branch;
-            # coherence above 0.5 gives positive signal — rest over a coherent
-            # atlas restores; rest over noise does not.
-            _n_total = sum(len(v) for v in atlas.entries.values())
-            _coherence = atlas.n_live_bindings() / max(_n_total, 1)
-            stability_sig = (_coherence - 0.5) * 0.2
+        _n_total = sum(len(v) for v in atlas.entries.values())
+        _coherence = atlas.n_live_bindings() / max(_n_total, 1)
+        stability_sig = (_coherence - 0.5) * 0.2
 
         # Novelty: mode-creation rate relative to commits
         if recent_commits > 0:
