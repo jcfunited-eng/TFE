@@ -4179,15 +4179,22 @@ class Guala:
         # Graded exogenous salience for visual attention.
         # Biology: orienting response decays with familiarity, not binary.
         # Per GL-BRIEF-graded-exogenous-salience-wC-20260610-031.
+        # GL-CMD-ATTEND-GROOVE-107 Part B2: exo replaces the flat REPEAT
+        # payoff (was a binary cliff at times_attended 0->1, and an exact
+        # tie across every repeat-attended picture whenever fam==0 — ties
+        # were breaking on target-id string order, not on anything
+        # substantive). Reuses the same log-consolidation form as the
+        # familiarity decay path (L4039). needs_score is unchanged.
         if kind == "ATTENDING_VISUAL" and target in self._pictures:
             pic = self._pictures[target]
             if pic.times_attended == 0:
                 return self.EXOGENOUS_NEW_SALIENCE
             fam = self.target_familiarity.get(target, 0.0)
+            exo = self.EXOGENOUS_NEW_SALIENCE / (1.0 + math.log(1.0 + pic.times_attended))
             base_payoff = ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"]
             stab_payoff = ACTIVITY_STABILITY_PAYOFF.get(kind, 0.0)
             conn_payoff = ACTIVITY_CONNECTION_PAYOFF.get(kind, 0.0)
-            visual_score = (1.0 - fam) * base_payoff
+            visual_score = exo * (1.0 - fam)
             needs_score = (sd["novelty"] * (base_payoff * (1.0 - fam))
                            + sd["stability"] * stab_payoff
                            + sd["connection"] * conn_payoff + 0.01)
@@ -4297,6 +4304,26 @@ class Guala:
                                      kind=self._current_activity.kind,
                                      target=self._current_activity.target,
                                      duration=self.tick - self._current_activity.started_tick)
+            # GL-CMD-ATTEND-GROOVE-107 Part B1: familiarity accrues with
+            # actual exposure, not only on a full, uninterrupted session.
+            # Moved here (the one path every activity end already runs
+            # through, completion or interruption) from the old completion-
+            # only check inside _atick_attending_visual. Same 0.2 step and
+            # 0.9 cap as before, scaled by ticks_attended/budget — a full
+            # session still adds exactly +0.2, matching today's behavior.
+            if (self._current_activity.kind == "ATTENDING_VISUAL"
+                    and self._current_activity.target in self._pictures):
+                _budget = ACTIVITY_TICK_BUDGETS.get("ATTENDING_VISUAL", 2000)
+                _ticks_attended = self.tick - self._current_activity.started_tick
+                _target = self._current_activity.target
+                old_fam = self.target_familiarity.get(_target, 0.0)
+                new_fam = min(0.9, old_fam + 0.2 * (_ticks_attended / _budget))
+                self.target_familiarity[_target] = new_fam
+                self._log_substrate_event("target_familiarity_update",
+                                          picture_id=_target,
+                                          old=round(old_fam, 3),
+                                          new=round(new_fam, 3),
+                                          ticks_attended=_ticks_attended)
             if self._current_activity.kind == "DREAMING":
                 # Write dream gate marker in background — fsync on EFS takes 1-10s
                 # and was previously holding self.lock (Phase C) for that duration.
@@ -4749,15 +4776,9 @@ class Guala:
         base_gain = 0.003 if pic.is_new() else 0.0005
         gain = base_gain * (1.0 - fam)  # familiar pictures give less novelty
         self.needs.novelty = saturate(self.needs.novelty, gain)
-        # Familiarity update stays at session end — full sessions only
-        if self.tick >= a.expected_end_tick - 1:
-            old_fam = self.target_familiarity.get(a.target, 0.0)
-            new_fam = min(0.9, old_fam + 0.2)
-            self.target_familiarity[a.target] = new_fam
-            self._log_substrate_event("target_familiarity_update",
-                                      picture_id=a.target,
-                                      old=round(old_fam, 3),
-                                      new=round(new_fam, 3))
+        # GL-CMD-ATTEND-GROOVE-107 Part B1: familiarity write moved to
+        # _end_activity (fires on completion AND interruption, scaled by
+        # actual exposure) — see there. Nothing left to do here.
 
     def _atick_attending_audio(self, a):
         """Phase 3 (042): Attend to audio — run cochlear bands through atlas."""
