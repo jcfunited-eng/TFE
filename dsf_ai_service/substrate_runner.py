@@ -1365,6 +1365,7 @@ def _cmd_status():
         ),
         "motifs": s["vocab"],
         "vocab": s["vocab"],
+        "tick": s["tick"],  # GL-ADDENDUM-106: wire center readout in loomscan.html
         "asleep": _guala.is_asleep,
         "persistence_health": ph,
         "atlas_health": s.get("atlas_health", {}),
