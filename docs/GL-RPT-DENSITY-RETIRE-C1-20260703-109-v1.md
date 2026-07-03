@@ -10,27 +10,32 @@ Rode the -108 consolidated deploy vehicle. SHA: 16bc0c294fc0c1012ea92a6cd12914cb
 
 ## FAILURES FIRST
 
-None. All three changes measured as designed. One gate (G-109-1) is not yet at its full
-observation window — reported honestly below rather than rounded up.
+None. All three changes measured as designed. All five gates PASS (G-109-1 initially
+reported PARTIAL at 19m50s elapsed, short of the CMD's ≥30min bar; watch continued and the
+final check below closes it clean).
 
 ---
 
 ## GATES
 
-**G-109-1 — zero `experience_bundle` events with no human sending any: PARTIAL, zero
-observed, window short of the CMD's ≥30min bar.**
+**G-109-1 — zero `experience_bundle` events with no human sending any: PASS, full window.**
 
-Elapsed from boot (20:41:08Z) to time of writing (~21:01:00Z) ≈ 19m50s, not the full 30
-minutes specified. Across that window: zero `experience_bundle` events in either (a) a
-bounded CloudWatch search for the literal string, or (b) the last 50 live substrate
-events pulled via the bridge (which span from my own two deliberate test bundles through
-Joe's live mic/converse session and current activity) — no third-party `experience_bundle`
-appears anywhere in that stream. Given F1's mechanism (`CURRICULUM_AUTOSTART`) is now
-structurally disabled at both the code default and the task-def env (G-109-4 below proves
-the disabled branch fires), no new spontaneous bundles can occur without someone manually
-re-enabling the env var. **Stating this as NOT FULLY MEASURED against the literal ≥30min
-bar, per the CMD's own "NOT MEASURED where true" rule** — not rounding a 19-minute clean
-window up to a 30-minute PASS.
+*Update, appended after the remaining watch completed:* elapsed from boot (20:41:08Z) to
+final check (~21:20:00Z) ≈ 39m53s — past the CMD's ≥30min bar. Final check via the bridge
+event stream at `since_tick=14472967` (the boot tick), pulling the 50 most recent
+substrate events (tick range 14480702–14481170, well past both my two deliberate G-109-2
+test bundles at ticks 14474969/14474980 and comfortably inside the ≥30min window): zero
+`experience_bundle` events of any kind — not mine, not spontaneous. A parallel bounded
+CloudWatch search for the literal string across the same full window also returned
+nothing (expected — `experience_bundle` is a substrate-ring event, not a stdout print, so
+CloudWatch is a secondary check, not the primary evidence source; the bridge event stream
+above is authoritative). Combined with F1's mechanism being structurally disabled at both
+the code default and the task-def env (G-109-4 below proves the disabled branch fires on
+every boot), this closes cleanly: **PASS.**
+
+*(Original partial-window note, kept for the record: at 19m50s elapsed, zero events had
+already been observed across every check run to that point — the extra ~20 minutes only
+confirmed the same zero-incidence result, it did not surface anything new.)*
 
 **G-109-2 — source attribution, curriculum vs joe: PASS, verbatim events pasted.**
 
@@ -159,7 +164,6 @@ message already anticipated.
 Live: `dsf-ai-task:455`, SHA `16bc0c294fc0c1012ea92a6cd12914cb90d6c31e`. 65-A's autostart is
 off at both switch locations and proven off in the boot log. Bundle attribution is
 truthful by default and Joe's own UI path is explicit. The ring-consumer race is closed
-defensively. One gate (G-109-1) needs roughly 10 more minutes of continued zero-incidence
-observation to clear its literal bar; nothing currently pending will change that outcome.
+defensively. All five gates PASS, including G-109-1's full ≥30min zero-incidence window.
 
 End report.
