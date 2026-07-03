@@ -185,6 +185,8 @@ _GUALALOOM_API_KEY = os.environ.get("GUALALOOM_API_KEY", "")
 
 def _require_api_key(request: Request):
     """Check X-API-Key header against env-var secret. No-op if key not configured."""
+    xff = request.headers.get("x-forwarded-for", request.client.host if request.client else "-")
+    print(f"[admin-access] path={request.url.path} xff={xff}")
     if not _GUALALOOM_API_KEY:
         return  # no key configured, skip auth
     provided = request.headers.get("X-API-Key", "")

@@ -948,6 +948,9 @@ def _start_input_ring_consumer():
                                     _wf.setframerate(16000)
                                     _wf.writeframes(_ff.stdout)
                                 _guala.process_sound_frame(_wav_buf.getvalue())
+                            else:
+                                print(f"[sound] cochlear decode failed: ffmpeg produced "
+                                      f"{len(_ff.stdout)} bytes from {len(audio_bytes)} in")
                             _heard = _audio_to_sensory_words(audio_bytes)
                             if _heard:
                                 # Site 4 REPLACE: route FFT sensory words to v5 atlas (grounded)
