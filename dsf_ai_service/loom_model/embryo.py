@@ -116,6 +116,17 @@ class Embryo:
         self.strength = {tag: 0.0 for tag, _ in OPERATIONS}  # per-organ binding strength
         self.arousal = 0.0                                  # aff global state
         self.tick = 0
+        # Conservation pool — population-level division-energy budget.
+        # Energy loop (closed): refill flux R = BASE_LAMBDA * N_initial per experience;
+        # maintenance flux M = BASE_LAMBDA * N_current per experience (per-neuron upkeep,
+        # derived from the existing charge-cycle constant — no new magic values).
+        # Net: d(pool)/dt = R - M - divisions = BASE_LAMBDA*(N_initial - N_current) - divs
+        # Steady state: pool = 0, d(N)/dt = 0. Mechanism: when N_current > N_initial,
+        # M > R → pool drains to 0 → divisions blocked → N stable. Asymptote EMERGES
+        # from flux balance; no population constant enforces it.
+        # Bounded: pool ≥ 0 always; max total divisions = N_initial (initial pool); N ≤ 2*N_initial.
+        self._N_initial = len(OPERATIONS) * seed_size
+        self._div_pool = float(self._N_initial)   # full at birth
         self._seed_dna_diversity()
 
     def _seed_dna_diversity(self):
@@ -154,7 +165,9 @@ class Embryo:
                 min(neffs) if neffs else float('nan'),
                 len(ns))
 
-    SAFETY_POP = 256   # backstop against runaway-loop bugs, NOT the brake (physics is the brake)
+    # Infrastructure ceiling — loud-stop only; must never trigger with correct conservation
+    # physics (N ≤ 2*N_initial << 256). If it fires: conservation pool has a bug.
+    _POP_HARDSTOP = 256
 
     def _charge_and_fold(self, hemi, coherent, quantum):
         """Physics-based folding. Each neuron accumulates coherent-constraint charge
@@ -173,7 +186,10 @@ class Embryo:
                 n._q += quantum * gain
         new = []
         for neuron in list(hemi.cluster.neurons):
-            if len(hemi.cluster.neurons) + len(new) >= self.SAFETY_POP:
+            if len(hemi.cluster.neurons) + len(new) >= self._POP_HARDSTOP:
+                print(f"[embryo] _POP_HARDSTOP: {hemi._op_tag} at "
+                      f"{len(hemi.cluster.neurons)} neurons — conservation physics may be broken",
+                      flush=True)
                 break
             if getattr(neuron, "_q", 0.0) <= 1.0:   # n_eff = n_start*e^-q >= n_start/e
                 continue
@@ -181,6 +197,10 @@ class Embryo:
             if (1.0 - sat) ** 2 <= 0.0:
                 neuron._q = 1.0                  # held at basin edge by contact inhibition
                 continue
+            if self._div_pool < 1.0:
+                neuron._q = 1.0   # held at basin edge — pool exhausted
+                continue
+            self._div_pool -= 1.0
             overflow = neuron.compute_overflow_signal()
             params = derive_daughter_parameters(overflow, neuron)
             did = hemi.cluster.next_id()
@@ -229,6 +249,13 @@ class Embryo:
         folds on the experience's coherence (resonance), accumulates a binding
         strength that decays at its own cognitive timescale, and cross-hemi links
         strengthen on convergent co-fire. aff arousal modulates the fold gate."""
+        # Closed energy loop: refill R = BASE_LAMBDA*N_initial; upkeep M = BASE_LAMBDA*N_current.
+        # When N > N_initial: M > R → pool drains to 0 → divisions blocked → asymptote.
+        N_current = sum(len(h.cluster.neurons) for h in self.brain.hemispheres)
+        self._div_pool = max(0.0,
+            self._div_pool
+            + self.BASE_LAMBDA * self._N_initial   # refill flux (constant)
+            - self.BASE_LAMBDA * N_current)        # maintenance flux (scales with population)
         if noise:
             rng = np.random.default_rng(abs(hash(word)) % (2**31))
             composite = rng.standard_normal(200 * 13) * 0.3

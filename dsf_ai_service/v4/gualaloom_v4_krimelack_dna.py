@@ -25,7 +25,11 @@ Three criteria for selective cheat (per prior wC):
 
 import math
 import numpy as np
-from collections import defaultdict
+from collections import defaultdict, deque
+
+# Cap per-krimelack event history — same value as Embryo.SAFETY_POP; derived, not tuned.
+# Without this cap: 110k-220k event dicts per experience() call (measured via tracemalloc).
+_EVENTS_MAXLEN = 256
 
 
 # ============================================================
@@ -48,7 +52,7 @@ class Krimelack:
         self.phase = 0.0
         self.t = 0.0
         self.winding = 0
-        self.events = []
+        self.events = deque(maxlen=_EVENTS_MAXLEN)
 
     def feed(self, signal_array):
         """Feed signal, accumulate events. Each event = (t, dw, s)."""

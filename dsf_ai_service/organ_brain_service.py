@@ -40,6 +40,15 @@ from pydantic import BaseModel
 STATE_DIR  = os.environ.get("GUALA_STATE_DIR", "/app/state")
 ANTHR_KEY  = os.environ.get("ANTHROPIC_API_KEY")
 
+# GL-CMD-ORGAN-READER-EVE-20260702-96: Option C — conservative boot by default.
+# ORGAN_BRAIN_FULL_BOOT=1: enables _autonomous_loop + _pour_atlas (sustained growth).
+# Default 0: service boots with 64 seed neurons; grows ONLY from real conversation.
+ORGAN_BRAIN_FULL_BOOT = os.environ.get("ORGAN_BRAIN_FULL_BOOT", "0") == "1"
+# Kill-guard threshold: if service RSS crosses this, log loudly and stop the service.
+# Substrate is unaffected (sibling process; death was already non-fatal per -86 design).
+# Override via env var when fresh substrate RSS is known after -86 Parts 1-3 deploy.
+ORGAN_BRAIN_RSS_LIMIT_MB = int(os.environ.get("ORGAN_BRAIN_RSS_LIMIT_MB", "900"))
+
 # ── virtual home + episodic layer ──────────────────────────────────────────
 from dsf_ai_service.virtual_home import (
     ROOMS, DEFAULT_LOCATION, room_for_activity, ambient_experiences,
@@ -180,6 +189,30 @@ def _periodic_save():
     while True:
         time.sleep(1800)
         _save_organ_state()
+
+
+def _kill_guard():
+    """RSS circuit breaker. Polls every 60s. If this service's RSS exceeds
+    ORGAN_BRAIN_RSS_LIMIT_MB, logs loudly and terminates this process.
+    Substrate (port 8080) is a sibling process and is unaffected — service death
+    is already non-fatal by design (-86 v2 §4.2)."""
+    import resource
+    import signal as _sig
+    while True:
+        time.sleep(60)
+        try:
+            # ru_maxrss is kilobytes on Linux
+            rss_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024
+            if rss_mb >= ORGAN_BRAIN_RSS_LIMIT_MB:
+                print(
+                    f"[organ-brain] KILL-GUARD: RSS {rss_mb} MB >= limit "
+                    f"{ORGAN_BRAIN_RSS_LIMIT_MB} MB — stopping organ-brain service "
+                    f"(substrate on :8080 unaffected)",
+                    flush=True,
+                )
+                os.kill(os.getpid(), _sig.SIGTERM)
+        except Exception:
+            pass
 
 
 def _pour_atlas():
@@ -540,11 +573,19 @@ def _boot():
 
         # Start background services
         _start_catalog_fill(ov)
-        threading.Thread(target=_autonomous_loop, daemon=True).start()
         threading.Thread(target=_location_loop, daemon=True).start()
         threading.Thread(target=_periodic_save, daemon=True).start()
-        threading.Thread(target=_pour_atlas, daemon=True).start()
-        print("[organ-brain] autonomous loop + periodic save + atlas pour started")
+        threading.Thread(target=_kill_guard, daemon=True).start()
+        if ORGAN_BRAIN_FULL_BOOT:
+            threading.Thread(target=_autonomous_loop, daemon=True).start()
+            threading.Thread(target=_pour_atlas, daemon=True).start()
+            print("[organ-brain] ORGAN_BRAIN_FULL_BOOT=1: autonomous loop + atlas pour started")
+        else:
+            print(
+                "[organ-brain] ORGAN_BRAIN_FULL_BOOT=0 (default): "
+                "_autonomous_loop + _pour_atlas suppressed; growth from real conversation only"
+            )
+        print(f"[organ-brain] periodic save + kill-guard ({ORGAN_BRAIN_RSS_LIMIT_MB} MB) + location loop started")
 
     except Exception as e:
         print(f"[organ-brain] boot error: {e}")
