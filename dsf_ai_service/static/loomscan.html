@@ -512,6 +512,13 @@ function processEvent(ev){
     for(const a of anchors)drawArc(d.input_chi,a);
     setLaneGlow('language',70,'binding active');
   }
+  if(ev.kind==='sound_frame_bound'){
+    // GL-CMD-SOUND-BAND-VISIBILITY-154: lit by signature quality (bands fired
+    // out of 6), not volume. Unattributed until -152's source tags land —
+    // label honestly rather than implying it's all Joe.
+    const nb=d.n_bands||0;
+    setLaneGlow('sound',Math.round(nb/6*90),`sound (unattributed) — ${nb}/6 bands`);
+  }
   if(ev.kind==='response_window_opened'&&d.context_anchor_chis&&d.emitter==='joe'){
     const[a0,...rest]=d.context_anchor_chis;
     rest.forEach(c=>drawArc(a0,c));
