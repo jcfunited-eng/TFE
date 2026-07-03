@@ -577,7 +577,7 @@ async function pollStatus(){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({text:'',command:'/status'})},9000);
     if(!d.vocab&&!d.n_motifs){return;}
-    _tick=d.tick||_tick;
+    _tick=(d.atlas_health&&d.atlas_health.tick)||d.tick||_tick;
     // Header
     document.getElementById('hdr-id').textContent=`guala · ${(d.persistence_health||{}).guala_identity||'cdef9bcf'} · ${(d.persistence_health||{}).schema_version||'v7'}`;
     document.getElementById('hdr-tick').textContent='tick '+_tick.toLocaleString();

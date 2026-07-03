@@ -932,11 +932,22 @@ def _start_input_ring_consumer():
                             audio_bytes = _b64.b64decode(data.get("audio_b64", ""))
                             if not audio_bytes:
                                 continue
-                            # Raw signal processing — she hears like a child hears.
-                            # Decode WebM → PCM via ffmpeg, extract real sensory qualities:
-                            # energy (loud/soft), frequency (warm/bright), rhythm (moving/steady).
-                            # These are true auditory experiences, not transcription.
-                            _guala.process_sound_frame(audio_bytes)
+                            # GL-CMD-MIC-SENSORY-106: decode WebM → WAV before engine call.
+                            # Mirrors the PIL-decode step in sight_frame branch.
+                            # ffmpeg already present (used by _audio_to_sensory_words above).
+                            import wave as _wave, io as _sio
+                            _ff = subprocess.run(
+                                ['ffmpeg', '-i', 'pipe:0', '-f', 's16le', '-ac', '1',
+                                 '-ar', '16000', '-loglevel', 'quiet', 'pipe:1'],
+                                input=audio_bytes, capture_output=True, timeout=8)
+                            if _ff.stdout and len(_ff.stdout) >= 400:
+                                _wav_buf = _sio.BytesIO()
+                                with _wave.open(_wav_buf, 'wb') as _wf:
+                                    _wf.setnchannels(1)
+                                    _wf.setsampwidth(2)
+                                    _wf.setframerate(16000)
+                                    _wf.writeframes(_ff.stdout)
+                                _guala.process_sound_frame(_wav_buf.getvalue())
                             _heard = _audio_to_sensory_words(audio_bytes)
                             if _heard:
                                 # Site 4 REPLACE: route FFT sensory words to v5 atlas (grounded)
