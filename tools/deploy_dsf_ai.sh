@@ -253,7 +253,7 @@ out = {
                 {'name': 'CURRICULUM_CHUNK_SIZE', 'value': '30'},
                 {'name': 'CURRICULUM_INTERVAL_SEC', 'value': '120'},
                 {'name': 'STUDY_INTERLEAVE_EVERY', 'value': '2'},
-                {'name': 'CURRICULUM_AUTOSTART', 'value': '1'},
+                {'name': 'CURRICULUM_AUTOSTART', 'value': '0'},  # GL-CMD-109: 65-A retired
                 {'name': 'CURRICULUM_SEED_PATH', 'value': '/app/tools/curriculum_seed.json'},
                 {'name': 'CURRICULUM_ORCHESTRATOR_INTERVAL_SEC', 'value': '5'},
                 {'name': 'CURRICULUM_SUBSTRATE_URL', 'value': 'http://localhost:8080'},

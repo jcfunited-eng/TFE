@@ -605,7 +605,7 @@ async function submitBundle(){
       addMsg('(video: '+(vd.message||'uploaded')+')','system');
     }catch(e){addMsg('(video upload failed: '+e.message+')','system')}}
   }
-  const bundle={caption:caption||null,image_b64:null,sound_b64:null,touch,smell,taste};
+  const bundle={caption:caption||null,image_b64:null,sound_b64:null,touch,smell,taste,source:'joe'};
   if(imgFile){const du=await fileToBase64(imgFile);bundle.image_b64=du.replace(/^data:[^;]+;base64,/,'')}
   if(sndFile){const du=await fileToBase64(sndFile);bundle.sound_b64=du.replace(/^data:[^;]+;base64,/,'')}
   const name=caption||((imgFile&&imgFile.name)||(sndFile&&sndFile.name)||(vidFile&&vidFile.name)||'experience');

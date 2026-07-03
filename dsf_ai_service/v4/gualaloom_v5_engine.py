@@ -4684,6 +4684,10 @@ class Guala:
             step = max(1, sr // target_sr)
             downsampled = samples[::step]
             cochlear = cochlear_transduce(downsampled, sample_rate=target_sr)
+            # GL-CMD-MIC-DEPLOY-108 G-108-2: temporary per-band evidence for the
+            # speech-vs-silence discrimination gate. Remove after gate is closed.
+            print(f"[cochlear-debug] n_events_by_band="
+                  f"{ {bn: c['n_events'] for bn, c in cochlear.items()} }")
             n_bands_fired = 0
             for bn, c in cochlear.items():
                 if c["n_events"] > 0:

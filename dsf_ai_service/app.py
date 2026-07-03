@@ -2119,6 +2119,9 @@ async def gualaloom_chat(msg: GLMessage):
             bundle_data = json.loads(msg.text) if msg.text else {}
         except json.JSONDecodeError:
             bundle_data = {"caption": msg.text}
+        # GL-CMD-DENSITY-RETIRE-109 F2: bundle attribution truth. Default to
+        # "curriculum" — never "joe" — unless the request genuinely names him.
+        bundle_source = bundle_data.get("source") or "curriculum"
 
         def _decode_bundle():
             t0 = time.time()
@@ -2293,11 +2296,11 @@ async def gualaloom_chat(msg: GLMessage):
 
             # ── Bind all lanes in one window ──
             if bundle_chis:
-                _guala._open_response_window("joe", bundle_chis,
+                _guala._open_response_window(bundle_source, bundle_chis,
                                               source_context={"bundle": bundle_name})
             _guala._log_substrate_event("experience_bundle",
                                         name=bundle_name, lanes=results,
-                                        n_chis=len(bundle_chis))
+                                        n_chis=len(bundle_chis), source=bundle_source)
 
             # H5b: always structured JSON, never raw 500
             print(f"[decode-bundle] {time.time()-t0:.2f}s")

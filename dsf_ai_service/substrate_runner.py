@@ -888,9 +888,22 @@ def boot_substrate():
     _start_input_ring_consumer()
 
 
+_input_ring_consumer_started = False
+
+
 def _start_input_ring_consumer():
     """Drain InputRing on a background thread. Processes sight_frame and
-    sound_window events written by the companion/bridge HTTP endpoints."""
+    sound_window events written by the companion/bridge HTTP endpoints.
+
+    GL-CMD-DENSITY-RETIRE-109 F3: called from both the boot path
+    (boot_substrate) and the embedded-mode app startup block
+    (_embedded_post_boot) — guard against starting two drain threads."""
+    global _input_ring_consumer_started
+    if _input_ring_consumer_started:
+        print("[substrate] ring consumer already running")
+        return
+    _input_ring_consumer_started = True
+
     import base64 as _b64
 
     def _drain_loop():
@@ -3193,11 +3206,14 @@ def _start_curriculum_orchestrator():
 
     Runs the sensory curriculum orchestrator in a loop, cycling through the
     100-bundle seed at --min-interval-sec cadence. Gated by CURRICULUM_AUTOSTART
-    env var (default enabled). Calls localhost:8080 — same process, no API Gateway.
+    env var (default disabled — GL-CMD-DENSITY-RETIRE-109 retires 65-A's
+    autostart pending the gated B2 Experience Engine design). Calls
+    localhost:8080 — same process, no API Gateway.
 
-    65-A from GL-CMD-C1B-QUEUE-EVE-20260701-65-PB3.
+    65-A from GL-CMD-C1B-QUEUE-EVE-20260701-65-PB3, retired by
+    GL-CMD-DENSITY-RETIRE-EVE-20260703-109-v1.
     """
-    if os.environ.get("CURRICULUM_AUTOSTART", "1") != "1":
+    if os.environ.get("CURRICULUM_AUTOSTART", "0") != "1":
         print("[curriculum] autostart disabled by env")
         return
 
