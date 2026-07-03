@@ -55,12 +55,20 @@ _envval() { grep -E "^$1=" .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'
 OPENAI_API_KEY="$(_envval OPENAI_API_KEY)"
 TAVILY_API_KEY="$(_envval TAVILY_API_KEY)"
 YOUTUBE_API_KEY="$(_envval YOUTUBE_API_KEY)"
+# GL-INCIDENT-APIKEY-101: admin key rotated 2026-07-03; must never be hardcoded
+# in this script again. Sourced from .env only (gitignored).
+GUALALOOM_API_KEY="$(_envval GUALALOOM_API_KEY_NEW)"
+if [ -z "$GUALALOOM_API_KEY" ]; then
+  echo "ERROR: GUALALOOM_API_KEY_NEW not found in .env — refusing to deploy with no admin key"
+  echo "       (prevents silently reverting to a hardcoded/leaked value)"
+  exit 1
+fi
 ANTHROPIC_API_KEY="$(aws secretsmanager get-secret-value --secret-id wc-companion/anthropic-key \
   --query 'SecretString' --output text 2>/dev/null | python3 -c 'import sys,json;
 s=sys.stdin.read().strip()
 try: print(json.loads(s).get("ANTHROPIC_API_KEY") or json.loads(s).get("api_key") or (s if s.startswith("sk-") else ""))
 except Exception: print(s if s.startswith("sk-") else "")' 2>/dev/null)"
-export OPENAI_API_KEY TAVILY_API_KEY ANTHROPIC_API_KEY YOUTUBE_API_KEY
+export OPENAI_API_KEY TAVILY_API_KEY ANTHROPIC_API_KEY YOUTUBE_API_KEY GUALALOOM_API_KEY
 echo "  runtime keys: openai=$([ -n "$OPENAI_API_KEY" ] && echo yes || echo no) tavily=$([ -n "$TAVILY_API_KEY" ] && echo yes || echo no) anthropic=$([ -n "$ANTHROPIC_API_KEY" ] && echo yes || echo no) youtube=$([ -n "$YOUTUBE_API_KEY" ] && echo yes || echo no)"
 
 echo "═══════════════════════════════════════════"
@@ -228,7 +236,7 @@ out = {
                 {'name': 'SUBSTRATE_HEARTBEAT', 'value': '/app/state/substrate.alive'},
                 {'name': 'STATE_DIR', 'value': '/app/state'},
                 {'name': 'DECAY_PAUSED', 'value': '0'},
-                {'name': 'GUALALOOM_API_KEY', 'value': '7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'},
+                {'name': 'GUALALOOM_API_KEY', 'value': '${GUALALOOM_API_KEY}'},
                 {'name': 'EMISSION_MODE', 'value': 'grandurun'},
                 {'name': 'ORGAN_BRAIN_URL', 'value': 'http://localhost:8090'},
                 {'name': 'PYTHONUNBUFFERED', 'value': '1'},
