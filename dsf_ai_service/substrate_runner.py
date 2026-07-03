@@ -305,12 +305,64 @@ def _activity_bundle_id():
     return None
 
 
+# ── GL-CMD-BLOCK-SCHEDULE-151: §8 duty-cycle blocks (config, not vibes) ──
+# Gates the MACHINE's scheduled pushes only (curriculum/worldfeed/lookup, all of
+# which funnel through _curriculum_feed_chunk below). Never touches her own
+# activity selection, converse()/-listen (Joe/Eve input), or attending/emitting.
+_BLOCK_SHARES = [  # (name, share of BLOCK_CYCLE_SEC) — GL-SPC-EXPERIENCE-FIRST v2.0 §8
+    ("scaffold", 0.25), ("experience", 0.25), ("play", 0.15),
+    ("converse", 0.15), ("quiet", 0.20),
+]
+_SUPPRESSED_BLOCKS = {"quiet", "experience"}
+_rate_window = []  # sliding 60s window of feed timestamps, for the scaffold-intake cap
+
+
+def _current_block():
+    """Which §8 block are we in right now? Duty-cycle rotation over
+    BLOCK_CYCLE_SEC (default 3600s), hot-readable via env. Not clock-rigid —
+    a repeating proportional cycle, per spec."""
+    cycle_sec = int(os.environ.get("BLOCK_CYCLE_SEC", "3600") or 3600)
+    frac = (time.time() % cycle_sec) / cycle_sec
+    cum = 0.0
+    for name, share in _BLOCK_SHARES:
+        cum += share
+        if frac < cum:
+            return name
+    return _BLOCK_SHARES[-1][0]
+
+
+def _scaffold_rate_cap_gate(n_requested):
+    """How many of n_requested sentences may feed right now under the
+    scaffold-intake rate cap (sentences/min, hot-readable via env)?
+    Sliding 60s window; never negative, never exceeds n_requested."""
+    cap = int(os.environ.get("SCAFFOLD_RATE_CAP_PER_MIN", "15") or 15)
+    now = time.time()
+    global _rate_window
+    _rate_window = [t for t in _rate_window if now - t < 60.0]
+    allowed = max(0, cap - len(_rate_window))
+    return min(allowed, n_requested)
+
+
 def _curriculum_feed_chunk(sentences, bundle_id=None, event_type="curriculum",
                            event_key=""):
     """Feed a study chunk into her engine + organ-brain. Returns (n_fed, learned).
 
     GL-CMD-CROSS-MODAL-STRENGTHEN B1.b: bundle_id from current activity.
-    GL-CMD-EPISODE-BINDING C2.2: episode_ref + situation on every sentence."""
+    GL-CMD-EPISODE-BINDING C2.2: episode_ref + situation on every sentence.
+    GL-CMD-BLOCK-SCHEDULE-151: §8 block gate — QUIET/EXPERIENCE suppress this
+    scheduled feed entirely; other blocks obey the scaffold-intake rate cap."""
+    planned = len(sentences)
+    block = _current_block()
+    if block in _SUPPRESSED_BLOCKS:
+        try:
+            _guala._log_substrate_event("block_intake_ledger", block=block,
+                                        planned=planned, actual=0, capped=True,
+                                        reason="suppressed")
+        except Exception:
+            pass
+        return 0, 0
+    n_allowed = _scaffold_rate_cap_gate(planned)
+    sentences = sentences[:n_allowed]
     if bundle_id is None:
         bundle_id = _activity_bundle_id()
     # Situational context sampled once per chunk (cheap — 100-tick cached)
@@ -337,10 +389,17 @@ def _curriculum_feed_chunk(sentences, bundle_id=None, event_type="curriculum",
                 # Site 1 DELETE: _cognition_learn(sent) removed (v5 atlas gets this above)
                 _bind_sensory_words(sent)  # feel/smell/taste the sensory words she reads
                 n_fed += 1
+                _rate_window.append(time.time())
             except Exception:
                 pass
     finally:
         _resume_autonomy_for_bulk()
+    try:
+        _guala._log_substrate_event("block_intake_ledger", block=block,
+                                    planned=planned, actual=n_fed,
+                                    capped=(n_fed < planned))
+    except Exception:
+        pass
     return n_fed, learned
 
 
@@ -362,7 +421,17 @@ def _lookup_and_ground(term):
     """Look up `term`, feed the description into her engine + organ-brain + senses.
     Returns the description text, or None. Never raises into her runtime.
     GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.2: network call wrapped with 10s
-    timeout via ThreadPoolExecutor. Leaked worker thread dies when HTTP completes."""
+    timeout via ThreadPoolExecutor. Leaked worker thread dies when HTTP completes.
+    GL-CMD-BLOCK-SCHEDULE-151: a scheduled machine push too — same §8 gate."""
+    block = _current_block()
+    if block in _SUPPRESSED_BLOCKS:
+        try:
+            _guala._log_substrate_event("block_intake_ledger", block=block,
+                                        planned=1, actual=0, capped=True,
+                                        reason="suppressed", feeder="lookup")
+        except Exception:
+            pass
+        return None
     try:
         from dsf_ai_service.loom_model.lookup_grounding import describe
         import concurrent.futures as _cf
