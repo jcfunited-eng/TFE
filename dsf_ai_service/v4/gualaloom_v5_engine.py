@@ -4682,9 +4682,12 @@ class Guala:
                                           motif_id=motif.motif_id,
                                           chi=chi_val, is_new=is_new)
 
-    def process_sound_frame(self, audio_bytes):
+    def process_sound_frame(self, audio_bytes, source="mic:live"):
         """GL-BRIEF-SENSORY-IO Part D: feed a transient mic audio chunk into
-        sound krimelack. No _sounds entry, no storage. Just cochlear + atlas."""
+        sound krimelack. No _sounds entry, no storage. Just cochlear + atlas.
+        GL-CMD-SELFVOICE-TAGGING-152: source tags the binding (default
+        "mic:live"; self-voice injection passes "voice:self") so self and
+        ambient/mic bindings are no longer indistinguishable."""
         import struct, wave, io, numpy as np
         with self.lock:
             try:
@@ -4722,13 +4725,14 @@ class Guala:
                     self._atlas_record(f"audio_{bn}",
                         deterministic_motif_id("mic_stream"),
                         chi, self.tick, salience=0.6, dwell_ticks=2,
-                        sensory_refs=["mic:live"],
+                        sensory_refs=[source],
                         **self._affect_kwargs())
                     n_bands_fired += 1
             if n_bands_fired > 0:
                 self._log_substrate_event("sound_frame_bound",
                     n_bands=n_bands_fired,
-                    duration_s=round(len(samples)/sr, 2))
+                    duration_s=round(len(samples)/sr, 2),
+                    source=source)
 
     def _atick_attending_visual(self, a):
         """Phase 2: Attend to a picture — saccaded foveation through krimelack."""
@@ -5686,6 +5690,11 @@ class Guala:
 
         # (4) Self-voice: generate espeak WAV and feed into sound krimelack
         #     Runs on background thread — must not block the converse response
+        #     GL-CMD-SELFVOICE-TAGGING-152: independent kill switch from text
+        #     self-hearing above, and tagged source="voice:self" so this never
+        #     reads as live mic input again.
+        if os.environ.get("SELF_VOICE_AUDIO_ENABLED", "1") == "0":
+            return
         def _inject_self_voice(text):
             try:
                 import subprocess
@@ -5695,7 +5704,7 @@ class Guala:
                     "-w", wav_path, text,
                 ], check=True, timeout=5, capture_output=True)
                 with open(wav_path, "rb") as f:
-                    self.process_sound_frame(f.read())
+                    self.process_sound_frame(f.read(), source="voice:self")
             except Exception:
                 pass
         threading.Thread(target=_inject_self_voice, args=(reply,),
