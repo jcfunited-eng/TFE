@@ -203,23 +203,46 @@ async function triggerSleep(){
 
 // --- Permission Strip (5a: toggle off support) ---
 // GL-BRIEF-SENSORY-IO Part D: mic audio streaming to sound krimelack
-let micStream=null,micRecorder=null;
-function startMicSoundStream(stream){
-  if(micRecorder)return;
+// GL-CMD-MIC-CHUNKING-111: restart-per-interval, not timeslice. A long-lived
+// MediaRecorder(stream,{...}).start(5000) only emits a self-contained WebM
+// on its FIRST ondataavailable blob; every later 5s blob is a headerless
+// cluster continuation ffmpeg can't parse alone (G-110-2's finding). Cycling
+// a fresh MediaRecorder every ~5s means every stop() delivers one complete,
+// independently-decodable WebM file. Server is untouched — stateless either way.
+let micStream=null,micRecorder=null,micCycleActive=false,_micCycleTimer=null,_micLastCycleEndTs=0;
+function _sendMicChunk(blob){
+  if(blob.size<100)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const b64=reader.result.split(',')[1];
+    fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',source:'joe_voice'})},8000).catch(()=>{});
+  };
+  reader.readAsDataURL(blob);
+}
+function _startOneMicCycle(stream){
+  if(!micCycleActive)return;
   try{micRecorder=new MediaRecorder(stream,{mimeType:'audio/webm'})}
   catch(e){try{micRecorder=new MediaRecorder(stream)}catch(e2){return}}
-  micRecorder.ondataavailable=async(e)=>{
-    if(e.data.size<100)return;
-    const reader=new FileReader();
-    reader.onload=async()=>{
-      const b64=reader.result.split(',')[1];
-      fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',source:'joe_voice'})},8000).catch(()=>{});
-    };
-    reader.readAsDataURL(e.data);
+  const _cycleStartTs=Date.now();
+  if(_micLastCycleEndTs){
+    console.log('[mic-cycle] inter-cycle gap ms:', _cycleStartTs-_micLastCycleEndTs);
+  }
+  micRecorder.ondataavailable=(e)=>_sendMicChunk(e.data);
+  micRecorder.onstop=()=>{
+    _micLastCycleEndTs=Date.now();
+    if(micCycleActive)_startOneMicCycle(stream);
   };
-  micRecorder.start(5000); // 5s chunks (fast rate starves substrate socket)
+  micRecorder.start(); // no timeslice -> one complete blob, delivered on stop()
+  _micCycleTimer=setTimeout(()=>{try{micRecorder.stop()}catch(e){}},5000);
+}
+function startMicSoundStream(stream){
+  if(micCycleActive)return;
+  micCycleActive=true;
+  _startOneMicCycle(stream);
 }
 function stopMicSoundStream(){
+  micCycleActive=false;
+  if(_micCycleTimer){clearTimeout(_micCycleTimer);_micCycleTimer=null}
   if(micRecorder){try{micRecorder.stop()}catch(e){}micRecorder=null}
   if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}
 }
