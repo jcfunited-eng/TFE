@@ -174,3 +174,6 @@ G-102-3  NOT MEASURED — `guala_core.json` size ≤ 200 KB in first hot save
 ### Changelog
 - v1 (2026-07-03, c1b): first filed version. All gates NOT MEASURED —
   require post-deploy measurement window. F8: VIOLATION classified.
+- v1.1 (2026-07-03, c1b): backward-compat field value changed None → {}
+  in both save paths. A pre-102 rollback calls core.get("deep_survival_history",
+  {}).items() — None.items() crashes; {} is safe (empty history on rollback boot).

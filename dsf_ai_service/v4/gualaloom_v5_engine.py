@@ -5928,7 +5928,7 @@ class Guala:
                 "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
                 "corpora_state": corpora_ser,
                 "sensory_state": sensory_ser,
-                "deep_survival_history": None,
+                "deep_survival_history": {},  # GL-102: empty sentinel; data in guala_survival.json
                 "total_emissions": self._total_emissions,
             })
             snap_needs = self._envelope({
@@ -6102,7 +6102,7 @@ class Guala:
                 "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
                 "corpora_state": corpora_ser,
                 "sensory_state": sensory_ser,
-                "deep_survival_history": None,  # filled below outside lock
+                "deep_survival_history": {},  # GL-102: empty sentinel; data in guala_survival.json
                 "total_emissions": self._total_emissions,
             })
 
