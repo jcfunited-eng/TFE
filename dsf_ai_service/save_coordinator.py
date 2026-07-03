@@ -129,6 +129,7 @@ class SaveCoordinator:
                     "guala_identity.json", "guala_core.json",
                     "guala_needs.json", "guala_coordinator.json",
                     "guala_atlas.json", "guala_deep_atlas.json",
+                    "guala_survival.json",  # GL-102: own cold file for survival history
                     "guala_sections.json", "guala_bucket.json",
                     "guala_visual.json", "guala_sounds.json",
                     "guala_videos.json", "guala_teaching.json",

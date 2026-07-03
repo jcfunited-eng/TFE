@@ -5902,7 +5902,6 @@ class Guala:
             if self._guala_identity is None:
                 self._generate_genesis_identity(state_dir)
 
-            _surv_snap = dict(self._deep_survival_history)
             corpora_ser = {cid: {"corpus_id": c.corpus_id, "title": c.title,
                                   "position": c.position,
                                   "times_read_through": c.times_read_through,
@@ -5978,30 +5977,31 @@ class Guala:
                       "last_attended_tick": v.last_attended_tick}
                 for vid, v in self._videos.items()
             })
-            snap_bucket = self._envelope({"removed": True})
             save_tick = self.tick
             snap_vocab_len = len(self.vocab)
+            snap_bucket = self._envelope({"removed": True, "vocab_count": snap_vocab_len})
         # lock released
 
-        surv_ser = {}
-        for (chi_k, sec, mid), strengths in _surv_snap.items():
-            surv_ser[f"{chi_k}|{sec}|{mid}"] = strengths[-10:]
-        snap_core["data"]["deep_survival_history"] = surv_ser
+        # GL-CMD-HOTLANE-DIET-102: survival history is cold-only; hot save skips it.
+        # snap_core["data"]["deep_survival_history"] remains None (backward-compat field).
 
-        # Vocab regression guard (same discipline as save_full_state)
-        core_path = os.path.join(state_dir, "guala_core.json")
-        if os.path.exists(core_path):
+        # Vocab regression guard — reads guala_bucket.json (vocab_count, ~1KB).
+        # Fallback: if vocab_count absent (first deploy cycle post-migration), guard skipped.
+        bucket_path = os.path.join(state_dir, "guala_bucket.json")
+        if os.path.exists(bucket_path):
             try:
-                with open(core_path) as _f:
-                    _existing = json.load(_f)
-                _existing_vocab = len(_existing.get("data", _existing).get("vocab", []))
-                if _existing_vocab > 100 and snap_vocab_len < _existing_vocab * 0.5:
-                    msg = (f"[GualaLoom] ABORT HOT SAVE: vocab regression "
-                           f"{_existing_vocab}→{snap_vocab_len}. "
-                           f"Set GUALA_FORCE_SAVE=1 to override.")
-                    print(msg)
-                    if os.environ.get("GUALA_FORCE_SAVE") != "1":
-                        return {}
+                with open(bucket_path) as _f:
+                    _bkt = json.load(_f)
+                _existing_vocab = _bkt.get("data", _bkt).get("vocab_count")
+                if _existing_vocab is not None:
+                    _existing_vocab = int(_existing_vocab)
+                    if _existing_vocab > 100 and snap_vocab_len < _existing_vocab * 0.5:
+                        msg = (f"[GualaLoom] ABORT HOT SAVE: vocab regression "
+                               f"{_existing_vocab}→{snap_vocab_len}. "
+                               f"Set GUALA_FORCE_SAVE=1 to override.")
+                        print(msg)
+                        if os.environ.get("GUALA_FORCE_SAVE") != "1":
+                            return {}
             except (json.JSONDecodeError, OSError) as _e:
                 print(f"[save-hot] prior state read failed (proceeding): {_e}")
 
@@ -6155,9 +6155,6 @@ class Guala:
                 }
             snap_sections = self._envelope(sections_data)
 
-            # 7. Bucket (removed — Phase E)
-            snap_bucket = self._envelope({"removed": True})
-
             # 8. Visual
             snap_visual = self._envelope({
                 "pictures": {
@@ -6199,24 +6196,30 @@ class Guala:
             save_tick = self.tick
             snap_vocab_len = len(self.vocab)
             snap_atlas_count = sum(len(v) for v in self.atlas.entries.values())
+            # 7. Bucket (removed — Phase E; GL-102: carries vocab_count for guard diet)
+            snap_bucket = self._envelope({"removed": True, "vocab_count": snap_vocab_len})
         # ── lock released ──
 
         # ── T1.2: Regression sanity check — refuse to overwrite richer state ──
-        core_path = os.path.join(state_dir, "guala_core.json")
-        if os.path.exists(core_path):
+        # GL-CMD-HOTLANE-DIET-102: read vocab_count from guala_bucket.json (~1KB)
+        # instead of parsing guala_core.json (previously 41MB).
+        # Fallback: if vocab_count absent (first deploy cycle), guard skipped.
+        bucket_path = os.path.join(state_dir, "guala_bucket.json")
+        if os.path.exists(bucket_path):
             try:
-                with open(core_path) as _f:
-                    _existing = json.load(_f)
-                _existing_data = _existing.get("data", _existing)
-                _existing_vocab = len(_existing_data.get("vocab", []))
-                if _existing_vocab > 100 and snap_vocab_len < _existing_vocab * 0.5:
-                    msg = (f"[GualaLoom] ABORT SAVE: vocab regression "
-                           f"{_existing_vocab}→{snap_vocab_len}. "
-                           f"Refusing to overwrite. "
-                           f"Set GUALA_FORCE_SAVE=1 to override.")
-                    print(msg)
-                    if os.environ.get("GUALA_FORCE_SAVE") != "1":
-                        raise RuntimeError(msg)
+                with open(bucket_path) as _f:
+                    _bkt = json.load(_f)
+                _existing_vocab = _bkt.get("data", _bkt).get("vocab_count")
+                if _existing_vocab is not None:
+                    _existing_vocab = int(_existing_vocab)
+                    if _existing_vocab > 100 and snap_vocab_len < _existing_vocab * 0.5:
+                        msg = (f"[GualaLoom] ABORT SAVE: vocab regression "
+                               f"{_existing_vocab}→{snap_vocab_len}. "
+                               f"Refusing to overwrite. "
+                               f"Set GUALA_FORCE_SAVE=1 to override.")
+                        print(msg)
+                        if os.environ.get("GUALA_FORCE_SAVE") != "1":
+                            raise RuntimeError(msg)
             except (json.JSONDecodeError, OSError) as _e:
                 print(f"[save] prior state read failed (proceeding): {_e}")
 
@@ -6225,7 +6228,9 @@ class Guala:
         surv_ser = {}
         for (chi_k, sec, mid), strengths in _surv_snap.items():
             surv_ser[f"{chi_k}|{sec}|{mid}"] = strengths[-10:]
-        snap_core["data"]["deep_survival_history"] = surv_ser
+        # GL-CMD-HOTLANE-DIET-102: survival history moves to own cold file.
+        # snap_core["data"]["deep_survival_history"] remains None (backward-compat field).
+        snap_survival = self._envelope({"deep_survival_history": surv_ser})
         results = {}
         # GL-FIX-ATLAS-INTEGRITY: sections written BEFORE atlas so that if the process
         # is interrupted mid-save, the loaded sections have >= modes as atlas motif IDs.
@@ -6238,6 +6243,7 @@ class Guala:
             ("guala_sections.json", snap_sections),   # sections BEFORE atlas
             ("guala_atlas.json", snap_atlas),
             ("guala_deep_atlas.json", snap_deep),
+            ("guala_survival.json", snap_survival),   # GL-102: cold file for survival history
             ("guala_bucket.json", snap_bucket),
             ("guala_visual.json", snap_visual),
             ("guala_sounds.json", snap_sounds),
@@ -6532,6 +6538,31 @@ class Guala:
             else:
                 print("[GualaLoom] Deep atlas file not found — starting fresh (events will rebuild)")
                 self._deep_atlas_loss_at_boot = None
+
+            # GL-CMD-HOTLANE-DIET-102: load survival history from own cold file.
+            # _apply_core() already set _deep_survival_history from core.json's field
+            # (backward compat). If guala_survival.json exists, it overrides that.
+            survival_path = os.path.join(state_dir, "guala_survival.json")
+            if os.path.exists(survival_path):
+                try:
+                    with open(survival_path) as fh:
+                        sraw = json.load(fh)
+                    sdata = sraw.get("data", sraw)
+                    surv_raw = sdata.get("deep_survival_history", {})
+                    self._deep_survival_history = defaultdict(list)
+                    for key_str, strengths in surv_raw.items():
+                        parts = key_str.split("|", 2)
+                        if len(parts) == 3:
+                            chi_k = int(parts[0]) if parts[0].lstrip('-').isdigit() else parts[0]
+                            self._deep_survival_history[(chi_k, parts[1], int(parts[2]))] = strengths
+                    print(f"[GualaLoom] Survival history loaded from guala_survival.json: "
+                          f"{len(self._deep_survival_history)} entries")
+                except Exception as e:
+                    print(f"[GualaLoom] Survival history load FAILED: {e} — using core.json fallback")
+            else:
+                _sc = len(self._deep_survival_history)
+                print(f"[GualaLoom] No guala_survival.json — survival history from core.json "
+                      f"fallback ({_sc} entries)")
 
             # GL-CMD-TEACHER-CORRECTION-UI: teaching data (backward-compatible)
             teaching_path = os.path.join(state_dir, "guala_teaching.json")
