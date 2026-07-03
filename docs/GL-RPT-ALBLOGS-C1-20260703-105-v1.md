@@ -8,10 +8,21 @@ Responds to: GL-CMD-ALB-LOGS-EVE-20260703-105-v1 items (1) ship-gate, (2) ALB lo
 
 ## FAILURES FIRST
 
-None. ALB log delivery not yet CONFIRMED end-to-end (ALB batches ~5 min; ship-time
-too soon to see the first object land). Config is applied and correct; verifiable
-by `aws s3 ls s3://dsf-ai-site-backups/alb-access-logs/AWSLogs/418384447921/` in
-~5-10 min — not blocking, config-only change per CMD.
+None. ALB log delivery CONFIRMED end-to-end (updated ~5 min after initial filing):
+test file + real batches landed at
+`s3://dsf-ai-site-backups/alb-access-logs/AWSLogs/418384447921/elasticloadbalancing/...`.
+Sample line, verbatim:
+
+```
+http 2026-07-03T18:40:45.746962Z app/dsf-ai-alb/8f9572d2773bba7c 3.235.32.161:23804
+172.31.64.46:8080 0.000 1.082 0.000 200 200 890 4577
+"POST http://dsf-ai-alb-...elb.amazonaws.com:80/api/v1/gualaloom HTTP/1.1" ...
+```
+
+**This proves the limitation flagged below, not just states it:** the logged client
+`3.235.32.161` is an AWS-network address — API Gateway's egress IP — not a browser IP.
+ALB logs alone identify "which AWS hop called the ALB," never the real end user. The
+XFF-capture spec for c1b (below) is the only path to actual attribution.
 
 ---
 
