@@ -4270,20 +4270,26 @@ class Guala:
         scored.sort(reverse=True)
         score, kind, target = scored[0]
         budget = ACTIVITY_TICK_BUDGETS.get(kind, 500)
+        # GL-CMD-ATTEND-GROOVE-107 Part A: read-only evidence capture only —
+        # no change to candidates, scoring, or selection.
+        needs_sd = {k: round(v, 4) for k, v in self.needs.signed_distance().items()}
         return Activity(
             kind=kind, target=target,
             started_tick=self.tick,
             expected_end_tick=self.tick + budget,
             metadata={"salience": round(score, 4),
                       "top_scores": [(round(s, 4), k, t)
-                                     for s, k, t in scored[:5]]},
+                                     for s, k, t in scored[:5]],
+                      "needs_sd": needs_sd},
         )
 
     def _start_activity(self, activity):
         self._current_activity = activity
         self._log_substrate_event("activity_started",
                                  kind=activity.kind, target=activity.target,
-                                 salience=activity.metadata.get("salience"))
+                                 salience=activity.metadata.get("salience"),
+                                 top_scores=activity.metadata.get("top_scores"),
+                                 needs_sd=activity.metadata.get("needs_sd"))
 
     def _end_activity(self):
         if self._current_activity:
