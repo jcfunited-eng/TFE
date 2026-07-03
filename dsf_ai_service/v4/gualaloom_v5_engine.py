@@ -3549,6 +3549,7 @@ class Guala:
         recalled_pictures = self._recall_sight_from_atlas(input_chis, input_words)
 
         if not recalled_words and not recalled_pictures:
+            self._last_recalled_pictures = []  # GL-CMD-155: don't leak a stale hit
             return None
 
         # Compose text response
