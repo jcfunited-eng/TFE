@@ -184,7 +184,9 @@ footer b{color:var(--ink);font-weight:normal}
 <script>
 "use strict";
 const API='https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
-const KEY='7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8';
+// GL-INCIDENT-APIKEY-101: no client-side key. /status, /events, /chi_density are
+// public read endpoints; sending a custom header also forced a CORS preflight the
+// gateway rejected (allow-headers: content-type only), which blanked the page.
 const NS='http://www.w3.org/2000/svg';
 
 /* ---- SVG helpers ---- */
@@ -572,7 +574,7 @@ async function pollStatus(){
   try{
     const d=await fetchJ(`${API}/api/v1/gualaloom`,{
       method:'POST',
-      headers:{'Content-Type':'application/json','X-API-Key':KEY},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({text:'',command:'/status'})},9000);
     if(!d.vocab&&!d.n_motifs){return;}
     _tick=d.tick||_tick;
@@ -628,7 +630,7 @@ async function pollEvents(){
   if(_evBusy)return;_evBusy=true;
   try{
     const d=await fetchJ(`${API}/api/v1/gualaloom/events?n=50`,
-      {headers:{'X-API-Key':KEY}},6000);
+      {},6000);
     const evts=d.events||[];
     // Only process events newer than last seen tick
     const fresh=evts.filter(e=>e.tick>_lastEvTick);
@@ -644,7 +646,7 @@ async function pollChiDensity(){
   if(_densityBusy)return;_densityBusy=true;
   try{
     const d=await fetchJ(`${API}/api/v1/gualaloom/chi_density`,
-      {headers:{'X-API-Key':KEY}},8000);
+      {},8000);
     if(d.chi_density)renderChiDots(d.chi_density);
   }catch(e){}finally{_densityBusy=false;}
 }

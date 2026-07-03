@@ -947,7 +947,7 @@ async function pollStatus(){
     if(needsMatch)needsLine.textContent=needsMatch[1];
     // CHANGE 2+3: Fetch events for hemispheres + recent emissions
     try{
-      const evR=await fetchT(`${API}/api/v1/gualaloom/events?n=200`,{headers:{'X-API-Key':'7GnGye9HhKuyhtcGu31C18Rc1NY62PLybTqsSg4WOW8'}},8000);
+      const evR=await fetchT(`${API}/api/v1/gualaloom/events?n=200`,{},8000);
       const evD=await evR.json();
       const evts=evD.events||evD||[];
       // Recent Emissions
