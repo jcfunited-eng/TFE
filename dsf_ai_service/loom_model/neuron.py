@@ -797,9 +797,18 @@ class LoomNeuron:
         if getattr(self, "observable", "event_count") == "resonant_spectral":
             from . import resonant_chi as rc
             feats = rc.spectral_features(multi_modal_signals)
-            if getattr(self, "_spectral_P", None) is None:
-                self._spectral_P = rc.neuron_projection(self.neuron_id, len(feats))
-            return rc.ternary_chi(feats, self._spectral_P)
+            # Keyed by feature dim, not a single cached matrix: a partial-cue
+            # query (fewer modalities present than at write time) has a shorter
+            # concatenated spectrum, and the write-time projection's shape no
+            # longer matches it. Same (neuron_id, feat_dim) still yields the
+            # same projection every time, so the full-cue path (T5/T6/T10) is
+            # unaffected -- this only adds coverage for dims not seen before.
+            if not hasattr(self, "_spectral_P_by_dim"):
+                self._spectral_P_by_dim = {}
+            fdim = len(feats)
+            if fdim not in self._spectral_P_by_dim:
+                self._spectral_P_by_dim[fdim] = rc.neuron_projection(self.neuron_id, fdim)
+            return rc.ternary_chi(feats, self._spectral_P_by_dim[fdim])
         return grandurun_state(self._unwrapped_deltas(multi_modal_signals))
 
     def _unwrapped_deltas(self, multi_modal_signals: Dict[str, Any]) -> Dict[str, float]:
