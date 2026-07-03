@@ -1126,7 +1126,13 @@ class Coordinator:
             reinforcement_rate = 1.0 - (total_modes / max(recent_commits, 1))
             stability_sig = (reinforcement_rate - 0.5) * 0.2  # nudge ±0.1
         else:
-            stability_sig = -0.05  # bored if nothing happening
+            # GL-CMD-STAB-PHYSICS-FIX-88 R2: replace hardcoded -0.05 with
+            # signed coherence measure. Same structure as the active branch;
+            # coherence above 0.5 gives positive signal — rest over a coherent
+            # atlas restores; rest over noise does not.
+            _n_total = sum(len(v) for v in atlas.entries.values())
+            _coherence = atlas.n_live_bindings() / max(_n_total, 1)
+            stability_sig = (_coherence - 0.5) * 0.2
 
         # Novelty: mode-creation rate relative to commits
         if recent_commits > 0:
@@ -4595,6 +4601,24 @@ class Guala:
         # Occasionally check for emission trigger during play
         if self.tick % 300 == 0:
             self._check_emission_trigger("play_cohesion")
+        # GL-CMD-STAB-PHYSICS-FIX-88: coherence-gated quiet-restore (same as IDLE)
+        _n_total = sum(len(v) for v in self.atlas.entries.values())
+        _coherence = self.atlas.n_live_bindings() / max(_n_total, 1)
+        _dstab = (_coherence * max(0.0, NEEDS_TARGET_V7 - self.needs.stability)
+                  * NEEDS_DRIFT_RATE / NEEDS_TARGET_V7)
+        self.needs.stability = saturate(self.needs.stability, _dstab)
+
+    def _atick_idle(self, a):
+        """GL-CMD-STAB-PHYSICS-FIX-88: coherence-gated quiet-restore gain.
+        During idle the quiet half of intake→quiet→dream restores stability
+        proportionally to atlas live-binding coherence. R1: coherence =
+        n_live_bindings / n_total_entries (not reinforcement_rate, which is
+        zero during quiet by definition)."""
+        _n_total = sum(len(v) for v in self.atlas.entries.values())
+        _coherence = self.atlas.n_live_bindings() / max(_n_total, 1)
+        _dstab = (_coherence * max(0.0, NEEDS_TARGET_V7 - self.needs.stability)
+                  * NEEDS_DRIFT_RATE / NEEDS_TARGET_V7)
+        self.needs.stability = saturate(self.needs.stability, _dstab)
 
     def _atick_attending(self, a):
         """Attend to a sensory item (picture/sound). High novelty if new."""
@@ -5016,6 +5040,8 @@ class Guala:
                     self._atick_rest(activity_ref)
                 elif activity_kind == "PLAYING":
                     self._atick_playing(activity_ref)
+                elif activity_kind == "IDLE":
+                    self._atick_idle(activity_ref)
                 elif activity_kind == "ATTENDING":
                     self._atick_attending(activity_ref)
                 elif activity_kind == "ATTENDING_VISUAL":

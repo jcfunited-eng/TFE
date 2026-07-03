@@ -28,8 +28,11 @@ SURVIVAL_CONSECUTIVE = 3        # Path A: for this many consecutive dream cycles
 TRANSFER_RATIO = 0.5            # deep starts at this fraction of working strength
 
 # GL-CMD-DEEP-STORE-PHYSICS-86 Part 1: bounded co_occurrence container
-_CO_SEC_CAP = 32      # max motifs retained per section in co_occurrence
-_CO_PRUNE_THRESH = 0.005  # weights below this are pruned after each update
+# P1b derived floor: minimum single-step contribution from a band entry at
+# the working-atlas forgetting threshold from zero weight:
+#   new_w = 0*(1-FORGETTING_THRESHOLD) + FORGETTING_THRESHOLD^2 = FORGETTING_THRESHOLD^2
+# Entries below this have never received meaningful reinforcement.
+_CO_PRUNE_THRESH = FORGETTING_THRESHOLD ** 2  # 0.0004
 
 
 def _deep_atlas_enabled():
@@ -139,6 +142,11 @@ class DeepAtlas:
         modifier/ground from -36) now contribute proportionally at any strength."""
         co = deep_entry.get("co_occurrence", {})
         band = getattr(working_atlas, 'band', 2)
+
+        # P1a: snapshot pre-call mass per section for mass conservation
+        touched = set()
+        pre_masses = {}
+
         for d in range(-band, band + 1):
             for e in working_atlas.entries.get(chi_k + d, []):
                 # §2.4: no strength floor — proportional contribution at any strength
@@ -148,10 +156,13 @@ class DeepAtlas:
                 sec = e.get("section", "")
                 mid = str(e.get("motif", 0))
                 sec_dict = co.get(sec, {})
+                if sec not in touched:
+                    pre_masses[sec] = sum(sec_dict.values())
+                    touched.add(sec)
                 old_w = sec_dict.get(mid, 0.0)
                 # §2.3: substrate-physical integration rate = evidence strength
                 new_w = old_w * (1.0 - strength) + strength * strength
-                # GL-CMD-DEEP-STORE-PHYSICS-86 P1: prune below threshold immediately
+                # P1b: prune below derived floor immediately
                 if new_w < _CO_PRUNE_THRESH:
                     sec_dict.pop(mid, None)
                 else:
@@ -160,12 +171,30 @@ class DeepAtlas:
                     co[sec] = sec_dict
                 elif sec in co:
                     del co[sec]
-        # GL-CMD-DEEP-STORE-PHYSICS-86 P1: cap each section to top-_CO_SEC_CAP by weight
-        for sec in list(co.keys()):
-            if len(co[sec]) > _CO_SEC_CAP:
-                co[sec] = dict(
-                    sorted(co[sec].items(), key=lambda x: x[1], reverse=True)[:_CO_SEC_CAP]
-                )
+
+        # P1a: per-section mass conservation — reinforcement draws proportionally
+        # from existing weights so section total cannot grow beyond its pre-call mass.
+        # Sections with no prior mass (newly established) are exempt; their mass
+        # is set by first reinforcement.
+        for sec in touched:
+            sec_dict = co.get(sec, {})
+            if not sec_dict:
+                continue
+            M_pre = pre_masses.get(sec, 0.0)
+            if M_pre <= 0.0:
+                continue  # newly established section — mass set by first reinforcement
+            M_post = sum(sec_dict.values())
+            if M_post > M_pre:
+                scale = M_pre / M_post
+                for k in list(sec_dict.keys()):
+                    sec_dict[k] *= scale
+                    if sec_dict[k] < _CO_PRUNE_THRESH:
+                        del sec_dict[k]
+            if sec_dict:
+                co[sec] = sec_dict
+            elif sec in co:
+                del co[sec]
+
         deep_entry["co_occurrence"] = co
 
     def get_invariant(self, chi_value, section_name, motif_id):

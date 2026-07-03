@@ -37,29 +37,50 @@ co_occurrence dicts in loaded state are not retroactively pruned.
 Reader outputs on loaded state are byte-identical pre/post. P1: PASS
 (trivial — no loaded-state mutation).
 
-### 1.2 Container fix
+### 1.2 Container fix (revised from v1 — P1a mass conservation + P1b derived floor)
 
 Files changed: `dsf_ai_service/substrate/deep_atlas.py`
 
-Added module-level constants:
+**P1b — derived prune floor (replaces naked 0.005):**
+```python
+# Minimum single-step co_occurrence contribution from a band entry at
+# the working-atlas forgetting threshold from zero weight:
+#   new_w = 0*(1 - FORGETTING_THRESHOLD) + FORGETTING_THRESHOLD^2
+_CO_PRUNE_THRESH = FORGETTING_THRESHOLD ** 2  # = 0.0004
 ```
-_CO_SEC_CAP = 32      # max motifs retained per section in co_occurrence
-_CO_PRUNE_THRESH = 0.005  # weights below this are pruned after each update
-```
+Derivation: the update law `new_w = old_w*(1-s) + s^2` from s=FORGETTING_THRESHOLD=0.02
+at old_w=0 gives new_w = 0.02^2 = 0.0004. This is the minimum
+meaningful single-step contribution. An entry below this has never
+received reinforcement above the working-atlas forgetting threshold.
+No tuned value; `_CO_SEC_CAP` is deleted.
 
-Modified `_update_invariant()`:
-- After computing `new_w`: if `new_w < _CO_PRUNE_THRESH` → pop the key
-  (prune below-threshold entries immediately, mass conservation: weak
-  bindings decay to zero on continued non-reinforcement).
-- After the full band loop: for each section dict, if `len > _CO_SEC_CAP`
-  → sort by weight descending, keep top-32. Removes lowest-weight
-  bindings that are pushed out by stronger evidence.
+**P1a — per-section mass conservation (replaces top-K sort/cap):**
 
-Physics discipline: same clock as existing deep-atlas decay (dream cycle
-only). No new timers. No fallbacks. Values reachable by readers
-(semantic_neighborhood at engine L199, compose invariant at engine
-L2207) are strictly a subset of prior values — only the weakest entries
-are dropped.
+The update law makes a section's total weight grow when new motifs
+arrive (each step: new_w increases from 0 toward equilibrium). Mass
+conservation bounds growth: when reinforcement raises a motif's weight,
+that mass is drawn proportionally from all other motifs already present
+in the section. Sections with no prior mass (newly populated) are
+exempt — their mass is set by first reinforcement.
+
+Implementation in `_update_invariant()`:
+1. Snapshot `pre_masses[sec]` = sum(sec_dict.values()) the first time
+   each section is touched in the band loop.
+2. Apply update law as before; prune entries below `_CO_PRUNE_THRESH`.
+3. Post-loop: for each touched section with M_pre > 0, if M_post >
+   M_pre, scale all entries by M_pre/M_post, then prune again.
+
+This replaces the top-K sort (which was count-bounded but not
+mass-bounded). Count is self-bounded: with fixed mass M and prune floor
+f, maximum entries = M/f. At typical first-reinforcement mass ≈ s^2
+(where s is mean band-entry strength ≈ 0.3–0.5), M ≈ 0.09–0.25,
+giving implicit count bound ≈ 225–625, which shrinks as entries
+compete for fixed mass.
+
+Physics discipline: same dream-cycle clock. No new timers. Reader
+values (semantic_neighborhood, compose invariant) are preserved
+proportionally — mass conservation scales weights down together, not
+selectively.
 
 ### 1.3 Gate P1 — probe-set reader output byte-identical pre/post on load
 
@@ -114,17 +135,44 @@ Cold lane (sleep boundaries + 30-min staleness max):
 - `maybe_save()` now calls `save_hot_state()` instead of `save_full_state()`
   (comment updated; `force_save()` unchanged → still calls `save_full_state()`)
 
-### Crash consistency (§2.4)
+### Crash consistency and boot-tolerance verification (§2.4)
 
-What is lost if the task dies between cold writes: at most 30 minutes of
-cold-store drift (atlas, deep_atlas, sections) — zero identity or gauge
-loss (core/needs/coordinator written every 60s via hot lane). Boot path
-tolerates hot-newer-than-cold: guala_core.json provides the authoritative
-tick; sections/atlas from the last cold save are loaded at their prior
-state. New vocabulary learned in the hot interval will re-trigger section
-mode creation on first use — atlas entries reference content-addressed
-chi values (hash-derived), not motif-position indexes, so stale sections
-are backward-compatible with a newer core tick.
+**What is lost if the task dies between cold writes:** at most 30 minutes
+of cold-store drift (atlas, deep_atlas, sections) — zero identity or
+gauge loss (core/needs/coordinator written every 60s via hot lane).
+
+**Boot-path tolerance verification (hot-newer-than-cold):**
+
+On reboot after a hot-save-only death, the load sequence is:
+1. `guala_core.json` (hot) — authoritative tick, vocab, needs gauges.
+   Tick may be up to 1800 ticks (30 min) newer than the cold files.
+2. `guala_sections.json` (cold) — motif modes indexed by motif_id.
+3. `guala_atlas.json` (cold) — working atlas entries by chi_key.
+4. `guala_deep_atlas.json` (cold) — deep entries with co_occurrence.
+
+Compatibility analysis: vocabulary is stored in `guala_core.json` as a
+sorted list. Section modes are indexed by position (motif_id = index in
+modes list). Atlas entries reference chi values (content-addressed,
+hash-derived) and motif_ids (sequential integers). Deep atlas references
+the same chi/motif space.
+
+If new vocabulary was learned in the hot interval (after the last cold
+save), core.json carries the new vocab but sections/atlas carry the
+older state. On boot with hot core + cold sections:
+- Section modes from cold save are fully valid (no OOB reference from
+  core — core.json doesn't index into sections by motif_id).
+- Working atlas entries from cold save reference motif_ids that exist in
+  the cold sections (guaranteed by GL-FIX-ATLAS-INTEGRITY write order).
+- New vocab words in core that weren't in cold sections will trigger new
+  mode creation on first use (normal operation — sections grow on demand).
+- The tick in core.json is authoritative; the boot sets `self.tick` from
+  core, ignoring section/atlas ticks.
+
+Verdict: boot tolerates hot-newer-than-cold. The 30-minute window of
+cold-store drift is equivalent to a light sleep — atlas entries have
+slow natural decay (DECAY_LAMBDA = 0.000004); a 30-min drift window
+produces at most ~0.007 relative decay per entry (4s × 0.000004 ×
+1800 = 0.0144, negligible). Identity, tick, and all gauges are current.
 
 ---
 
