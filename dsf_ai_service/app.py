@@ -1533,11 +1533,6 @@ async def sound_frame(msg: GLMessage):
     """Streaming sound: feed a mic audio chunk into her sound krimelack + organ-brain."""
     b64_data = (msg.text or "").strip()
     src = msg.source or "ambient"
-    # Fire organ-brain transcription async (non-blocking)
-    # Transcription happens inside organ-brain service if it has whisper;
-    # for now send the raw audio — organ-brain service ignores if no whisper
-    if b64_data and src == "joe_voice":
-        _ob_post_bg("/experience", {"text": src})  # placeholder until whisper in ob
     if _is_remote():
         # R3: write to InputRing (non-blocking) instead of socket call
         client = _get_substrate_client()
@@ -1566,6 +1561,40 @@ async def sound_frame(msg: GLMessage):
             if not wav:
                 return {"ok": False, "error": "decode_failed"}
             _guala.process_sound_frame(wav)
+            # GL-CMD-VOICE-TO-WORDS-153 Part A: sensory-words in the same
+            # window as the cochlear binding above (word + texture, E1).
+            # Outside the engine lock same as the decode step.
+            try:
+                _heard = _sr._audio_to_sensory_words(wav)
+                if _heard:
+                    _txt = " ".join(_heard)
+                    if _txt.strip():
+                        _guala.read_sentence(_txt, source="joe",
+                                             bundle_id=f"sound_frame:{_guala.tick}")
+            except Exception:
+                pass
+            # GL-CMD-VOICE-TO-WORDS-153 Part B: Whisper transcription, flagged
+            # off by default (VOICE_WHISPER=0), joe-tagged sources only, async
+            # off the request path — flips to 1 only on Eve GO after the cost
+            # line is filed.
+            if os.environ.get("VOICE_WHISPER", "0") == "1" and src == "joe_voice":
+                import threading as _th
+                def _whisper_bg():
+                    tw0 = time.time()
+                    try:
+                        from dsf_ai_service.substrate.grounded_vocab_integration import (
+                            process_sound_with_recognition)
+                        _words = process_sound_with_recognition(_guala, wav, source="joe_voice")
+                        if _words:
+                            _spoken = " ".join(w.get("word", "") for w in _words if w.get("word"))
+                            if _spoken.strip():
+                                _guala.read_sentence(_spoken, source="joe",
+                                                     bundle_id=f"sound_frame:{_guala.tick}")
+                    except Exception as _we:
+                        print(f"[voice-whisper] error: {_we}")
+                    finally:
+                        print(f"[voice-whisper] {time.time()-tw0:.3f}s")
+                _th.Thread(target=_whisper_bg, daemon=True).start()
             print(f"[sound-frame] {time.time()-t0:.3f}s")
             return {"ok": True, "tick": _guala.tick}
         except Exception as e:
@@ -1624,6 +1653,26 @@ async def gualaloom_chat(msg: GLMessage):
             except Exception:
                 pass
         return {"ok": True}
+    if _cmd == "/listen":
+        # GL-CMD-VOICE-TO-WORDS-153 Part C: intentional route (was previously
+        # only reached by accident via the "belt-and-suspenders" fallback
+        # below). Client (gualaloom.html STT) posts here with source="joe".
+        import asyncio as _aio
+        _prune_stale_tasks()
+        tick = _guala.tick if _guala else 0
+        task_id = f"cv_{tick}_{uuid4().hex[:8]}_listen"
+        source = msg.source if msg.source in {"joe", "wc", "c1"} else "joe"
+        _converse_tasks[task_id] = {
+            "task_id": task_id, "status": "queued", "phase": None,
+            "response": None, "response_source": None, "motifs": 0,
+            "started_tick": tick, "started_at": time.time(), "source": source,
+        }
+        _aio.create_task(_run_converse(task_id, msg.text or "", source, msg.emission_mode))
+        return JSONResponse(status_code=202, content={
+            "task_id": task_id, "status": "accepted",
+            "poll_url": f"/api/v1/gualaloom/task/{task_id}",
+            "started_tick": tick, "retry_after_ms": 500,
+        })
     if _cmd.startswith("/tablet"):
         return {"ok": False, "note": "tablet re-wiring pending W2"}
     if _cmd.startswith("/action "):
@@ -2417,8 +2466,10 @@ async def gualaloom_chat(msg: GLMessage):
     if not (msg.text or "").strip():
         return {"response": "...", "motifs": _guala.introspect()["vocab"] if _guala else 0}
 
-    # Fallback: should not reach here for non-empty text (is_converse catches it above).
-    # Belt-and-suspenders: route through task pattern if somehow we arrive here.
+    # Fallback for any command not explicitly handled above, with non-empty
+    # text. GL-CMD-VOICE-TO-WORDS-153 Part C: /listen no longer relies on
+    # this — it has its own intentional route above. This remains the
+    # genuine catch-all for unrecognized commands.
     import asyncio as _aio
     _prune_stale_tasks()
     tick = _guala.tick if _guala else 0
