@@ -891,6 +891,29 @@ def boot_substrate():
 _input_ring_consumer_started = False
 
 
+def _webm_to_wav_bytes(audio_bytes):
+    """GL-CMD-MIC-EMBEDDED-DECODE-110: the one shared WebM->WAV decoder.
+    ffmpeg pipe -> s16le/mono/16k -> WAV wrap (332537d logic, unchanged).
+    Returns WAV bytes on success, None on failure (and logs the -108
+    decode-failure guard — one guard, one place, for every caller)."""
+    import wave as _wave, io as _sio
+    _ff = subprocess.run(
+        ['ffmpeg', '-i', 'pipe:0', '-f', 's16le', '-ac', '1',
+         '-ar', '16000', '-loglevel', 'quiet', 'pipe:1'],
+        input=audio_bytes, capture_output=True, timeout=8)
+    if _ff.stdout and len(_ff.stdout) >= 400:
+        _wav_buf = _sio.BytesIO()
+        with _wave.open(_wav_buf, 'wb') as _wf:
+            _wf.setnchannels(1)
+            _wf.setsampwidth(2)
+            _wf.setframerate(16000)
+            _wf.writeframes(_ff.stdout)
+        return _wav_buf.getvalue()
+    print(f"[sound] cochlear decode failed: ffmpeg produced "
+          f"{len(_ff.stdout)} bytes from {len(audio_bytes)} in")
+    return None
+
+
 def _start_input_ring_consumer():
     """Drain InputRing on a background thread. Processes sight_frame and
     sound_window events written by the companion/bridge HTTP endpoints.
@@ -945,25 +968,10 @@ def _start_input_ring_consumer():
                             audio_bytes = _b64.b64decode(data.get("audio_b64", ""))
                             if not audio_bytes:
                                 continue
-                            # GL-CMD-MIC-SENSORY-106: decode WebM → WAV before engine call.
-                            # Mirrors the PIL-decode step in sight_frame branch.
-                            # ffmpeg already present (used by _audio_to_sensory_words above).
-                            import wave as _wave, io as _sio
-                            _ff = subprocess.run(
-                                ['ffmpeg', '-i', 'pipe:0', '-f', 's16le', '-ac', '1',
-                                 '-ar', '16000', '-loglevel', 'quiet', 'pipe:1'],
-                                input=audio_bytes, capture_output=True, timeout=8)
-                            if _ff.stdout and len(_ff.stdout) >= 400:
-                                _wav_buf = _sio.BytesIO()
-                                with _wave.open(_wav_buf, 'wb') as _wf:
-                                    _wf.setnchannels(1)
-                                    _wf.setsampwidth(2)
-                                    _wf.setframerate(16000)
-                                    _wf.writeframes(_ff.stdout)
-                                _guala.process_sound_frame(_wav_buf.getvalue())
-                            else:
-                                print(f"[sound] cochlear decode failed: ffmpeg produced "
-                                      f"{len(_ff.stdout)} bytes from {len(audio_bytes)} in")
+                            # GL-CMD-MIC-EMBEDDED-DECODE-110: single shared decoder.
+                            _wav = _webm_to_wav_bytes(audio_bytes)
+                            if _wav:
+                                _guala.process_sound_frame(_wav)
                             _heard = _audio_to_sensory_words(audio_bytes)
                             if _heard:
                                 # Site 4 REPLACE: route FFT sensory words to v5 atlas (grounded)

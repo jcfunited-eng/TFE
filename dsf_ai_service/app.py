@@ -1557,8 +1557,15 @@ async def sound_frame(msg: GLMessage):
     def _decode():
         t0 = time.time()
         try:
+            import dsf_ai_service.substrate_runner as _sr
             audio_bytes = base64.b64decode(b64_data)
-            _guala.process_sound_frame(audio_bytes)
+            # GL-CMD-MIC-EMBEDDED-DECODE-110: single shared decoder, outside
+            # the engine lock (this executor call). Raw bytes never reach
+            # process_sound_frame from this path.
+            wav = _sr._webm_to_wav_bytes(audio_bytes)
+            if not wav:
+                return {"ok": False, "error": "decode_failed"}
+            _guala.process_sound_frame(wav)
             print(f"[sound-frame] {time.time()-t0:.3f}s")
             return {"ok": True, "tick": _guala.tick}
         except Exception as e:
