@@ -39,6 +39,7 @@ const ZOMBIE_BAR_THRESHOLD = parseInt(process.env.SENTINEL_ZOMBIE_BARS ?? "10", 
 // Add tickers here with a comment referencing the underlying cause.
 const ORPHAN_ADOPT_BLOCKLIST = new Set([
   "HTBK",  // merged into CVBF pre-2026-06-25; Alpaca returns asset_not_active on sell attempts
+  "CWAN",  // Alpaca returns 422 asset_not_active on DELETE (2026-07-04); root cause unresolved — uncloseable via API
 ]);
 
 // ── Exit order-id ledger write with retry+fallback (D4.5 pattern) ────────

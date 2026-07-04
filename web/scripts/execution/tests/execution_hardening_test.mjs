@@ -171,6 +171,7 @@ assert(sentSrcD51.includes("FAILING CLOSED — orphan adoption halted"), "Orphan
 console.log("\n=== D5.1 orphan adoption blocklist ===");
 assert(sentSrcD51.includes("ORPHAN_ADOPT_BLOCKLIST"), "Blocklist constant defined");
 assert(sentSrcD51.includes(`"HTBK"`), "HTBK on blocklist");
+assert(sentSrcD51.includes(`"CWAN"`), "CWAN on blocklist");
 assert(sentSrcD51.includes("on ORPHAN_ADOPT_BLOCKLIST"), "Blocklist log message present");
 
 console.log(`\n${passed}/${passed + failed} assertions passed`);
