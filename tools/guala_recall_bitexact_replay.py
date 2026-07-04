@@ -33,6 +33,16 @@ Probe-set draw rule (when --words is not given): her full saved vocabulary,
 alphabetic words with len>2, sorted, every (len//30)th word taken — the same
 deterministic, non-cherry-picked rule declared in
 GL-CMD-S2A-RECALL-METHOD-C1-20260703-v1.
+
+Why this exists, in one paragraph (GL-CMD-157): the 6/22 population-collapse
+audit proved a "100%" number can be a single-neuron ceiling replicated across
+a degenerate population, not real discrimination — never trust a hit-rate
+without checking what's behind it. cbe8ed2 proved a validated-in-harness
+number (the "100% T5" of the -135/136/137 era) can silently diverge from
+production for weeks — never inherit a number, measure it fresh, here,
+against her real path. Joe's teaching-loop principle (cold ~95%, the loop
+closes the residue through exposure) is why this harness measures COLD and
+TAUGHT as a pair, never one alone.
 """
 import argparse
 import json
@@ -42,6 +52,31 @@ from collections import defaultdict
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
+
+# GL-CMD-157: minimal stopword filter for the coherence rule below. Kept
+# small and boring on purpose — this is a filter, not a linguistics project.
+_STOPWORDS = {
+    "a", "an", "the", "is", "are", "was", "were", "be", "been", "am",
+    "to", "of", "in", "on", "at", "for", "with", "and", "or", "but",
+    "this", "that", "it", "its", "he", "she", "they", "we", "you", "i",
+    "his", "her", "their", "our", "your", "my", "me", "him", "them",
+}
+
+
+def _tokens(text):
+    """Lowercase, whitespace-split, stopword-filtered tokens. Empty for None."""
+    if not text:
+        return []
+    return [t for t in text.lower().split() if t not in _STOPWORDS]
+
+
+def is_coherent(returned_tokens, probe_word, caption_words):
+    """GL-CMD-157 coherence rule, verbatim: a returned recall counts as
+    coherent iff at least one of the returned tokens matches the probe word
+    OR its bundle's caption words, non-stopword-filtered. Exact match only —
+    no stemming, no fuzzy match, so this can't be quietly loosened later."""
+    targets = {probe_word.lower()} | set(_tokens(caption_words))
+    return bool(set(returned_tokens) & targets)
 
 
 def _load(snapshot_dir, fname):
@@ -110,6 +145,7 @@ def probe(g, word):
         "word": word,
         "hit": bool(recalled_text) or bool(pics),
         "recalled_text": recalled_text,
+        "returned_tokens": _tokens(recalled_text),
         "n_pictures": len(pics),
     }
 
@@ -125,6 +161,15 @@ def main():
                           "declared deterministic rule.")
     ap.add_argument("--n", type=int, default=30,
                      help="Probe-set size when --words is not given (default 30)")
+    ap.add_argument("--captions", default=None,
+                     help="Comma-separated bundle-caption text per probe word, same "
+                          "order/length as --words (for --quality-report's coherence "
+                          "check). Default: each word's own caption is itself, i.e. "
+                          "assumes guala_give_experience(caption=<word>).")
+    ap.add_argument("--quality-report", action="store_true",
+                     help="GL-CMD-157: print returned tokens per probe and the "
+                          "coherence verdict (hit != coherent — a hit only means "
+                          "_recall_response returned something non-empty).")
     args = ap.parse_args()
 
     g = build_replay_guala(args.snapshot_dir)
@@ -137,12 +182,31 @@ def main():
              else draw_probe_words(args.snapshot_dir, args.n))
     print(f"\nPROBE SET ({len(words)}): {words}")
 
+    captions = args.captions.split(",") if args.captions else words
+    if len(captions) != len(words):
+        raise SystemExit("--captions must have the same length as --words")
+
     results = [probe(g, w) for w in words]
     n_hits = sum(1 for r in results if r["hit"])
     print(f"\n=== RECALL: {n_hits}/{len(results)} = {100 * n_hits / len(results):.1f}% ===")
-    for r in results:
-        print(f"  {r['word']!r}: hit={r['hit']}  "
-              f"recalled_text={r['recalled_text']!r}  n_pictures={r['n_pictures']}")
+    for r, caption in zip(results, captions):
+        line = (f"  {r['word']!r}: hit={r['hit']}  "
+                f"recalled_text={r['recalled_text']!r}  n_pictures={r['n_pictures']}")
+        if args.quality_report:
+            coherent = r["hit"] and is_coherent(r["returned_tokens"], r["word"], caption)
+            line += (f"  returned_tokens={r['returned_tokens']}  "
+                     f"coherent={coherent if r['hit'] else 'n/a (miss)'}")
+        print(line)
+
+    if args.quality_report:
+        hits = [r for r, c in zip(results, captions) if r["hit"]]
+        n_coherent = sum(1 for r, c in zip(results, captions)
+                          if r["hit"] and is_coherent(r["returned_tokens"], r["word"], c))
+        if hits:
+            print(f"\n=== QUALITY: {n_coherent}/{len(hits)} = "
+                  f"{100 * n_coherent / len(hits):.1f}% of hits are coherent ===")
+        else:
+            print("\n=== QUALITY: n/a (no hits) ===")
 
 
 if __name__ == "__main__":
