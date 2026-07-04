@@ -1587,13 +1587,38 @@ class Guala:
 
     def _compute_surprise(self, chi_value):
         """GL-CLARITY-INVARIANCE-UNCAGE: surprise = inverse of atlas familiarity
-        at this chi neighborhood. Novel chi addresses → high surprise."""
+        at this chi neighborhood. Novel chi addresses → high surprise.
+        GL-CMD-175 P2 seam 2/6: kept, unmodified, for callers that only have
+        a chi value and no word (none remain live -- see _recognition_from_
+        organism, which replaced this at both real call sites). Left defined
+        rather than deleted, matching this track's disconnect-don't-delete
+        pattern."""
         neighbors = self.atlas.bindings_at_chi_neighborhood(
             chi_value, min_strength=0.05)
         if not neighbors:
             return 1.0
         avg_str = sum(e["strength"] for e in neighbors) / len(neighbors)
         return max(0.0, 1.0 - avg_str * 2.0)
+
+    def _recognition_from_organism(self, word):
+        """GL-CMD-BRAIN-FULL-DEPLOY-175 P2 seam 2/6 (recognition): the
+        organism's population-vote CONSENSUS as a real familiarity/surprise
+        signal, replacing atlas-chi-neighborhood strength averaging
+        (_compute_surprise). High consensus (the top-voted concept's share
+        of all votes cast) = recognized, low surprise; no votes at all =
+        novel, surprise=1.0 -- matches _compute_surprise's own contract
+        (surprise in [0,1], empty evidence -> 1.0), same untuned linear
+        inversion (1.0 - consensus; consensus is already a clean [0,1]
+        fraction, so no rescaling factor is invented here)."""
+        if not word:
+            return 1.0
+        votes = self.organism.recall({"language": word})
+        total = sum(votes.values())
+        if total == 0:
+            return 1.0
+        top = votes.most_common(1)[0][1]
+        consensus = top / total
+        return max(0.0, 1.0 - consensus)
 
     def _affect_kwargs(self, surprise=None):
         """GL-CLARITY-INVARIANCE-UNCAGE: build affect-only kwargs dict for atlas.record.
@@ -1731,8 +1756,10 @@ class Guala:
 
             primary_sections = self._choose_role_sections(role, position_hint)
 
-            # GL-CLARITY-INVARIANCE-UNCAGE: compute surprise for this word
-            surprise = self._compute_surprise(lang_chi)
+            # GL-CMD-175 P2 seam 2/6: surprise/recognition now comes from
+            # the organism's population-vote consensus, not atlas-chi
+            # familiarity (GL-CLARITY-INVARIANCE-UNCAGE's original).
+            surprise = self._recognition_from_organism(word)
             self._last_surprise = surprise
 
             # v8 (GL-BRIEF-032): dwell_ticks by source
@@ -2281,9 +2308,10 @@ class Guala:
             # the SVO-recall fallback it names explicitly.
             if not reply:
                 # -48 Path D: clarification shape on high-surprise, low-coherence input
+                # GL-CMD-175 P2 seam 2/6: organism consensus, not atlas chi.
                 _input_surprise = max(
-                    (self._compute_surprise(ch) for ch in input_chis),
-                    default=0.0) if input_chis else 0.0
+                    (self._recognition_from_organism(w) for w in words),
+                    default=0.0) if words else 0.0
                 if _input_surprise > SURPRISE_HIGH_THRESHOLD:
                     self._log_substrate_event("agency_clarification_shape",
                         surprise=round(_input_surprise, 3),
