@@ -251,3 +251,140 @@ class LoomBrain:
                             krim_outer.winding = outer_winding
 
         return votes
+
+    def recall_fast(self, query_signals: Dict[str, Any]) -> "Counter":
+        """Vectorized, non-mutating population-vote recall.
+
+        GL-CMD-RECALL-SPEED-INVESTIGATION-EVE-20260704-177, directions I1
+        (peek-mode: read current krimelack state, never mutate -- no
+        snapshot/restore needed at all, by construction) + I2 (batch the
+        winding-oscillator physics across the whole neuron population in
+        numpy instead of one Python-level step() call per neuron per
+        modality). Numerically proven identical to recall() -- see
+        tests/probe_177_vectorized_parity.py (scalar-vs-vectorized parity,
+        including past the language-krimelack's 256-event deque saturation
+        point) and tests/probe_177_end_to_end_parity.py (real Counter
+        equality against this method's own un-vectorized twin, across
+        multiple teaching depths).
+
+        Scope: only proven correct for the exact modality set the live
+        organism taps (gualaloom_v5_engine.py._organism_signal: language,
+        tactile, olfactory, gustatory -- LanguageKrimelack and the
+        OscillatorKrimelack-backed sensory adapters). Raises NotImplementedError
+        rather than silently guessing if asked to handle any other krimelack
+        type with a live signal (visual/auditory) -- those are never
+        populated by the current caller, so this is not a live limitation,
+        but a real one if this is ever reused for a different signal shape.
+        """
+        import math
+        from collections import Counter
+        from .grandurun import MODALITIES
+        from .vectorized_oscillator import (
+            vectorized_wind_count, language_base_dphi_raw, saturating_new_count,
+            monotonic_new_count,
+        )
+        from .neuron import signal_attenuation
+        from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
+
+        votes = Counter()
+
+        all_neurons = [n for hemi in self.hemispheres for n in hemi.cluster.neurons]
+        n = len(all_neurons)
+        if n == 0:
+            return votes
+
+        ring_pos = [getattr(nr, 'ring_pos', 0) for nr in all_neurons]
+        ring_n = [getattr(nr, 'ring_N', 1) for nr in all_neurons]
+
+        deltas_matrix = np.zeros((n, len(MODALITIES)), dtype=np.float64)
+
+        for mi, m in enumerate(MODALITIES):
+            signal = query_signals.get(m)
+            if signal is None:
+                continue  # deltas stay 0.0 -- matches _unwrapped_deltas exactly
+
+            krims = [nr.krimelack_bank.get(m) for nr in all_neurons]
+            present_mask = np.array([k is not None for k in krims], dtype=bool)
+            if not present_mask.any():
+                continue
+            sample_krim = krims[int(np.argmax(present_mask))]
+
+            if m == "language":
+                if not isinstance(sample_krim, LanguageKrimelack):
+                    raise NotImplementedError(
+                        f"recall_fast: modality {m!r} krimelack is "
+                        f"{type(sample_krim).__name__}, not LanguageKrimelack "
+                        "-- outside the proven scope, refusing to guess.")
+                # Per-neuron kappa/threshold, NOT a shared constant:
+                # Embryo._seed_dna_diversity() mutates each neuron's OWN
+                # language krimelack's kappa/threshold by ring position at
+                # birth (the "chemical axis" of neuron DNA) -- confirmed by
+                # direct introspection, a single sample neuron is NOT
+                # representative here (unlike the sensory modalities below,
+                # confirmed uniform). Attenuation is proven inert for
+                # language (omega_override cancels in the dphi formula --
+                # see vectorized_oscillator.py docstring and
+                # tests/probe_177_vectorized_parity.py); kappa takes its
+                # place as the per-neuron multiplier instead.
+                base_dphi = language_base_dphi_raw(signal)
+                threshold = np.array(
+                    [k.threshold if k is not None else math.pi / 3 for k in krims],
+                    dtype=np.float64,
+                )
+                att = np.array(
+                    [k.kappa * k.dt if k is not None else 0.0 for k in krims],
+                    dtype=np.float64,
+                )
+                # transduce()'s self.phase = float(phase_offset) runs
+                # unconditionally (even under no_reset=True), and this call
+                # site never passes phase_offset -- so phase always starts
+                # at 0.0 here. Proven in probe_177_vectorized_parity.py (b).
+                phase0 = np.zeros(n, dtype=np.float64)
+                ev0 = np.array(
+                    [len(k.events) if k is not None else 0 for k in krims],
+                    dtype=np.int64,
+                )
+                raw, _ = vectorized_wind_count(base_dphi, threshold, phase0, att)
+                new_count = saturating_new_count(ev0, raw)
+            else:
+                if not hasattr(sample_krim, '_inner'):
+                    raise NotImplementedError(
+                        f"recall_fast: modality {m!r} krimelack is "
+                        f"{type(sample_krim).__name__} with no ._inner "
+                        "OscillatorKrimelack -- outside the proven scope, "
+                        "refusing to guess.")
+                inner0 = sample_krim._inner
+                sig = signal if isinstance(signal, list) else list(signal)
+                sig = np.asarray(sig, dtype=np.float64)
+                base_dphi = inner0.kappa * sig * inner0.dt
+                # Sensory kappa/threshold ARE uniform across neurons here
+                # (_seed_dna_diversity only touches the PRIMARY, i.e.
+                # language, krimelack -- confirmed by direct introspection),
+                # so a single sample_krim's tuning is representative and
+                # attenuation genuinely varies the signal per neuron (unlike
+                # language, where it's baked into omega_0 and cancels).
+                att = np.array(
+                    [signal_attenuation(int(ring_pos[i]), int(ring_n[i]), mi)
+                     for i in range(n)],
+                    dtype=np.float64,
+                )
+                phase0 = np.array(
+                    [k._inner.phase if k is not None else 0.0 for k in krims],
+                    dtype=np.float64,
+                )
+                ev0 = np.array(
+                    [k.n_events if k is not None else 0 for k in krims],
+                    dtype=np.int64,
+                )
+                raw, _ = vectorized_wind_count(base_dphi, inner0.threshold, phase0, att)
+                new_count = monotonic_new_count(raw)
+
+            new_count = np.where(present_mask, new_count.astype(np.float64), 0.0)
+            deltas_matrix[:, mi] = new_count
+
+        for i, neuron in enumerate(all_neurons):
+            best_concept, _ = neuron.binding_atlas.recall_best(deltas_matrix[i])
+            if best_concept is not None:
+                votes[best_concept] += 1
+
+        return votes

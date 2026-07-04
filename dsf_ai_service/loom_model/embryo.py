@@ -378,6 +378,16 @@ class Embryo:
         """Population-vote recall (resonant ternary chi). Verified n=200 -> 100%."""
         return self.brain.recall(signals)
 
+    def recall_fast(self, signals):
+        """GL-CMD-RECALL-SPEED-INVESTIGATION-EVE-20260704-177: vectorized,
+        non-mutating recall. Numerically proven identical to recall() for
+        the modality set the organism tap actually uses (language, tactile,
+        olfactory, gustatory) -- see brain.py's recall_fast() docstring and
+        tests/probe_177_*.py. Not wired into any live call site yet; that
+        cutover is a separate, ratified decision, not made by this method's
+        existence."""
+        return self.brain.recall_fast(signals)
+
     def _sc_proj(self, neuron, dim):
         """Per-sc-neuron projection over the PROFILE feature (meaning read), distinct
         from the spectral projection em/pr/ep use for capacity."""
