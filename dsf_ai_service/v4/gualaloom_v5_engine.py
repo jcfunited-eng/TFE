@@ -401,6 +401,11 @@ def _normalize_text(text):
 
 _ORGANISM_SIGNAL_N_SAMPLES = 20  # see Guala.__init__'s comment on this choice
 
+# GL-CMD-175 window-2 recall-frequency reduction: see Guala._recognition_
+# call_count's comment. Real recall() every Nth word, honest reuse of
+# self._last_surprise in between -- not a cache of a stale computed value.
+RECOGNITION_EVERY_N_WORDS = 3
+
 
 def _organism_signal(word, transducer):
     """GL-CMD-BRAIN-FULL-DEPLOY-175 P2 fix: the organism's real multi-modal
@@ -1463,6 +1468,19 @@ class Guala:
         # GL-CLARITY-INVARIANCE-UNCAGE
         self._current_episode = None     # (episode_id, started_tick)
         self._last_surprise = 0.0
+        # GL-CMD-175 window-2 recall-frequency reduction: organism.recall()
+        # is O(population), confirmed the dominant cost of read_word's P2
+        # seam 2 (recognition) call. Unlike the disproven encode_state()
+        # cache (c1a found the premise false -- recall's output legitimately
+        # changes with every intervening remember()), this does not assume
+        # anything about determinism: it computes a REAL, fresh recall()
+        # every Nth word and honestly reuses self._last_surprise for the
+        # words in between -- the same reuse-last-real-value pattern
+        # _affect_kwargs already uses as its own fallback (see
+        # self._last_surprise's other use, _affect_kwargs). A slightly-
+        # stale-but-real affect signal, not a silently-wrong one. Reduces
+        # this call site's share of read_word's cost by roughly (N-1)/N.
+        self._recognition_call_count = 0
         self._current_binding_window = []  # sensory_refs accumulated this tick
         # GL-CMD-V5-VOICE-STAGE1: dynamics quality from most recent _emit_dynamics call
         self._last_dynamics_result = None  # {content, committed_sections, n_commits, arcs_fallback, tick}
@@ -1867,8 +1885,19 @@ class Guala:
             # GL-CMD-175 P2 seam 2/6: surprise/recognition now comes from
             # the organism's population-vote consensus, not atlas-chi
             # familiarity (GL-CLARITY-INVARIANCE-UNCAGE's original).
-            surprise = self._recognition_from_organism(word)
-            self._last_surprise = surprise
+            # GL-CMD-175 window-2 recall-frequency reduction: organism.
+            # recall() is O(population), the confirmed dominant cost of
+            # this call site. Real, fresh recall() every Nth word;
+            # self._last_surprise (already the codebase's own established
+            # fallback value, see _affect_kwargs) carries over honestly for
+            # the words in between -- a real value computed recently, not
+            # a value asserted to still be exactly correct.
+            self._recognition_call_count += 1
+            if self._recognition_call_count % RECOGNITION_EVERY_N_WORDS == 0:
+                surprise = self._recognition_from_organism(word)
+                self._last_surprise = surprise
+            else:
+                surprise = self._last_surprise
 
             # v8 (GL-BRIEF-032): dwell_ticks by source
             # Interactive sources (joe, wc, c1) = attended, higher dwell
@@ -4704,7 +4733,14 @@ class Guala:
             words.extend(w for w in line.lower().split() if len(w) > 1)
         if not words:
             return None
-        sample = words[:10]
+        # GL-CMD-175 window-2 recall-frequency reduction: organism.recall()
+        # is O(population), confirmed the dominant live cost. 3 real,
+        # freshly-computed samples instead of 10 -- an honest, coarser
+        # average (real signal, less of it), not a cached/stale one; this
+        # call site has no interleaved remember() between its own recall()
+        # calls, so the reduction is purely about call count, same
+        # reasoning as read_word's recognition-frequency reduction above.
+        sample = words[:3]
         surprises = [self._recognition_from_organism(w) for w in sample]
         return sum(surprises) / len(surprises)
 
