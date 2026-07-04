@@ -4350,17 +4350,21 @@ class Guala:
         # between each kind's own NEW and REPEAT/REREAD payoff, keyed by
         # how fresh THIS SPECIFIC target still is. Symmetric across every
         # target-based kind — no exceptions.
+        _habituation_eligible = False
         if kind == "READING" and target in self._corpora:
+            _habituation_eligible = True
             c = self._corpora[target]
             fresh = self._habituation_freshness(c.times_read_through)
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["READING_NEW"] * fresh
                           + ACTIVITY_NOVELTY_PAYOFF["READING_REREAD"] * (1.0 - fresh))
         elif kind == "ATTENDING" and target in self._sensory_items:
+            _habituation_eligible = True
             s = self._sensory_items[target]
             fresh = self._habituation_freshness(s.times_attended)
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_NEW"] * fresh
                           + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_REPEAT"] * (1.0 - fresh))
         elif kind == "ATTENDING_VISUAL" and target in self._pictures:
+            _habituation_eligible = True
             pic = self._pictures[target]
             fresh = self._habituation_freshness(pic.times_attended)
             fam = self.target_familiarity.get(target, 0.0)
@@ -4368,11 +4372,13 @@ class Guala:
                           + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"] * (1.0 - fresh)) \
                          * (1.0 - fam)
         elif kind == "ATTENDING_AUDIO" and target in self._sounds:
+            _habituation_eligible = True
             snd = self._sounds[target]
             fresh = self._habituation_freshness(snd.get("times_attended", 0))
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_AUDIO_NEW"] * fresh
                           + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_AUDIO_REPEAT"] * (1.0 - fresh))
         elif kind == "ATTENDING_VIDEO" and target in self._videos:
+            _habituation_eligible = True
             v = self._videos[target]
             fresh = self._habituation_freshness(v.times_attended)
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_NEW"] * fresh
@@ -4383,8 +4389,32 @@ class Guala:
         stab_payoff = ACTIVITY_STABILITY_PAYOFF.get(kind, 0.0)
         conn_payoff = ACTIVITY_CONNECTION_PAYOFF.get(kind, 0.0)
 
+        # GL-CMD-SLEEP-CALIBRATION-JOE-20260704, dial 1: a seen picture (or
+        # corpus, sound, video, sensory item) is less interesting, never
+        # worthless. Verified live tonight: with novelty pinned at 0.996
+        # (sd_novelty=-0.296), even the LEAST-attended picture's novelty
+        # term (freshness~0.48) computed to -0.125 — WORSE than SLEEPING's
+        # structural term at dream_pressure=0 (+0.038), because SLEEPING's
+        # own novelty payoff is negative (-0.1) and so is HELPED by the
+        # same over-saturation that hurts every habituation-eligible kind.
+        # This asymmetry existed since the payoff table was written
+        # (06-07/06-08) but was always masked by -107's old exogenous
+        # floor; Change 1 (which removed that floor) exposed it for the
+        # first time. Reducing dream_pressure's accumulation rate (the
+        # OTHER candidate this CMD named) does not fix this: the deciding
+        # term is structural, independent of dp entirely (confirmed: dp=0
+        # already gave SLEEPING the win). Floor is LIVE-CALIBRATE, chosen
+        # with a small margin above today's live SLEEPING-structural-term
+        # reading (0.038) so the least-attended picture can compete again
+        # without swamping normal (non-saturated) competition -- the max()
+        # is a no-op whenever the natural term is already above the floor.
+        NOVELTY_TERM_FLOOR = 0.04
+        novelty_term = sd["novelty"] * nov_payoff
+        if _habituation_eligible:
+            novelty_term = max(NOVELTY_TERM_FLOOR, novelty_term)
+
         # Signed-distance dot payoff
-        score = (sd["novelty"] * nov_payoff
+        score = (novelty_term
                  + sd["stability"] * stab_payoff
                  + sd["connection"] * conn_payoff)
 
