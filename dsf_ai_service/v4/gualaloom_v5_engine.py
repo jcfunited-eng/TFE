@@ -3520,13 +3520,17 @@ class Guala:
         return " ".join(emitted)
 
     def _recall_response(self, input_chis, input_word_chis, input_words,
-                          target_sections=("subject", "verb", "object")):
+                          target_sections=("subject", "verb", "object", "listen")):
         """Atlas-driven recall across ALL sections including sight.
         Returns a response dict with text and optional picture references.
-        target_sections: GL-CMD-RECALL-REACH-159 Part A — recall's section
-        surface, overridable for offline A/B measurement only. Default is
-        production's unchanged ("subject", "verb", "object"); every existing
-        caller that doesn't pass this argument sees identical behavior."""
+        target_sections: GL-CMD-RECALL-REACH-159 Part B — recall's section
+        surface. VARIANT L (svo+listen) shipped as the new default per the
+        Part A offline A/B: tied with VARIANT LI (svo+listen+intro) on cold
+        (2/30 both), quality (0/8 both, bare-caption self-exclusion per F-2),
+        and reachability (8/10 both) against the identical Day-2 snapshots
+        -- L wins the declared tie-break (smaller surface; LI's only
+        difference was ~39% more mean candidate-set crowding for zero
+        measured benefit)."""
         input_words_lower = set(w.lower() for w in input_words)
 
         recalled_words = {}
