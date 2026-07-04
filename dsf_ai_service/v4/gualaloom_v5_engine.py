@@ -1527,6 +1527,27 @@ class Guala:
         self._tapestry_worker_start_lock = threading.Lock()
         self._tapestry_lock = threading.Lock()
 
+        # GL-CMD-175 window-2 perf fix: organism.remember() has the SAME
+        # class of cost as tapestry.expose() (see the P2 perf note below),
+        # but for a different, deeper reason -- Embryo.recall/remember is a
+        # population-vote architecture: EVERY neuron participates in EVERY
+        # call, by design, so cost is O(population), and population GROWS
+        # over her life (charge-and-fold). Measured live-equivalent (this
+        # session, cProfile at ~280 accumulated words): remember() alone
+        # climbing past 20ms/word and rising; organism.recall() alone
+        # 86-110ms and rising. remember() is a write with no synchronous
+        # reader dependency, so -- same convention as the tapestry queue,
+        # GL-CMD-172's diary writer -- it can be safely backgrounded.
+        # organism.recall() (read_count's salience calc, seams 1/3) CANNOT
+        # be backgrounded the same way -- callers need its return value
+        # immediately to decide what to say/recall. That is a real,
+        # architectural, not-yet-fixed cost, reported separately, not
+        # solved by this queue.
+        self._organism_queue = None
+        self._organism_worker_thread = None
+        self._organism_worker_start_lock = threading.Lock()
+        self._organism_lock = threading.Lock()
+
         # GL-CMD-175 P2 fix (root cause behind seams 1-2's near-zero
         # discrimination): the validated recall mechanism (embryo.py's own
         # seed_organism(), 100% at n=50/200) was never tested on a single
@@ -1692,8 +1713,11 @@ class Guala:
             return 1.0
         # GL-CMD-175 P2 fix: multi-modal query signal (see Guala.__init__'s
         # self._organism_transducer comment / _organism_signal), matching
-        # what was actually written at remember()-time.
-        votes = self.organism.recall(_organism_signal(word, self._organism_transducer))
+        # what was actually written at remember()-time. self._organism_lock:
+        # serializes against the background remember() worker (window-2
+        # perf fix) so this never reads the organism mid-update.
+        with self._organism_lock:
+            votes = self.organism.recall(_organism_signal(word, self._organism_transducer))
         total = sum(votes.values())
         if total == 0:
             return 1.0
@@ -1792,12 +1816,11 @@ class Guala:
             # never-crash-substrate contract; mirrored here rather than let
             # a brain issue take down her live reading path.
             try:
-                # GL-CMD-175 P2 fix: multi-modal signals (language +
-                # touch/smell/taste), not "language" alone -- see
-                # Guala.__init__'s comment on self._organism_transducer for
-                # why (root cause of seams 1-2's near-zero recall) and the
-                # measured n_samples reduction that keeps this affordable.
-                self.organism.remember(word, _organism_signal(word, self._organism_transducer))
+                # GL-CMD-175 window-2 perf fix: organism.remember() (with
+                # the P2 multi-modal signal -- see _organism_signal) is
+                # backgrounded, same reasoning/convention as the tapestry
+                # expose queue below -- see _enqueue_organism_remember.
+                self._enqueue_organism_remember(word)
                 if self._tapestry_prev_word is not None:
                     # Profiled directly: tapestry.expose (450 neurons x
                     # imaginary-time settle physics) is ~180ms/call -- the
@@ -2528,6 +2551,57 @@ class Guala:
         try:
             self._ensure_tapestry_worker()
             self._tapestry_queue.put_nowait((word_a, word_b))
+        except _queue.Full:
+            pass
+        except Exception:
+            pass
+
+    def _organism_worker_loop(self):
+        """GL-CMD-175 window-2 perf fix: single persistent background
+        writer for organism.remember() -- see _enqueue_organism_remember.
+        Computes _organism_signal() here too (not at the read_word call
+        site) -- that computation (waveform generation) is itself real
+        work, kept off the synchronous hot path along with remember()."""
+        while True:
+            item = self._organism_queue.get()
+            if item is None:
+                return
+            word = item
+            try:
+                signal = _organism_signal(word, self._organism_transducer)
+                with self._organism_lock:
+                    self.organism.remember(word, signal)
+            except Exception as _oe:
+                print(f"[GualaLoom] organism remember failed for {word!r} "
+                      f"(non-fatal): {_oe}")
+
+    def _ensure_organism_worker(self):
+        if self._organism_queue is not None:
+            return
+        with self._organism_worker_start_lock:
+            if self._organism_queue is not None:  # lost a race to another thread
+                return
+            self._organism_queue = _queue.Queue(maxsize=2000)
+            t = threading.Thread(target=self._organism_worker_loop,
+                                 daemon=True, name="organism-writer")
+            t.start()
+            self._organism_worker_thread = t
+
+    def _enqueue_organism_remember(self, word):
+        """GL-CMD-175 window-2 perf fix: organism.remember() measured live-
+        equivalent at 20ms/word and climbing at only ~280 accumulated
+        words (population-vote architecture -- cost is O(population),
+        population grows with her life). Backgrounded: single persistent
+        worker + bounded queue, same convention as the tapestry writer and
+        GL-CMD-172's diary writer. Drops under sustained back-pressure
+        (queue.Full) rather than blocking her live reading/converse path
+        -- an honest degradation (some experience lost under load), not a
+        silent stall. self._organism_lock (held by the worker and by
+        recall()/save_full_state() callers) keeps a concurrent read from
+        observing the organism mid-update."""
+        try:
+            self._ensure_organism_worker()
+            self._organism_queue.put_nowait(word)
         except _queue.Full:
             pass
         except Exception:
@@ -3889,7 +3963,9 @@ class Guala:
         query = content_words[-1]
         # GL-CMD-175 P2 fix: multi-modal query signal, matching what was
         # actually written at remember()-time (see _organism_signal).
-        votes = self.organism.recall(_organism_signal(query, self._organism_transducer))
+        # self._organism_lock: see read_count's salience calc comment.
+        with self._organism_lock:
+            votes = self.organism.recall(_organism_signal(query, self._organism_transducer))
         top = votes.most_common(1)
         return top[0][0] if top else None
 
@@ -3923,7 +3999,8 @@ class Guala:
         if not locations:
             return None
         section, mode_idx, word = locations[-1]
-        votes = self.organism.recall(_organism_signal(seed_word, self._organism_transducer))
+        with self._organism_lock:
+            votes = self.organism.recall(_organism_signal(seed_word, self._organism_transducer))
         total = sum(votes.values())
         weight = (votes.get(associated_word, 0) / total) if total else 0.0
         return (section, mode_idx, word, weight)
@@ -6908,7 +6985,8 @@ class Guala:
         # teaching data above: a large object graph that must never block
         # core save success.
         try:
-            self.organism.save_full_state(os.path.join(state_dir, "guala_organism.pkl.gz"))
+            with self._organism_lock:  # serialize against the background remember() worker
+                self.organism.save_full_state(os.path.join(state_dir, "guala_organism.pkl.gz"))
         except Exception as _oe:
             _save_failures.append(("guala_organism.pkl.gz", str(_oe)))
             print(f"[GualaLoom] save failed for guala_organism.pkl.gz: {_oe}")
