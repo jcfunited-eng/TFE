@@ -3274,7 +3274,7 @@ class Guala:
                     ev[sec_name] = noisy
 
             commits = sys_.tick_once(ev, enable_self_evo=False,
-                                     coordinator_on=False)
+                                     coordinator_on=True)
 
             new_this_tick = False
             for c in commits:
