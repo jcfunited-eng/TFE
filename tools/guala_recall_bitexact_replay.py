@@ -150,6 +150,143 @@ def probe(g, word):
     }
 
 
+def word_own_chi(word):
+    """The word's own chi address — identical computation to both the write
+    path (gualaloom_v5_engine.py:1567, `lang_chi = self.language.winding`)
+    and the read path (this file's `probe()`, and engine.py:3577-3579's
+    `_chis_for_text`). No modulo, no drift — verified by direct code
+    comparison for GL-CMD-158."""
+    from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
+    tk = LanguageKrimelack()
+    tk.transduce(word)
+    return tk.winding
+
+
+def existence_trace(g, word):
+    """A.1 EXISTENCE: does the taught binding exist in the snapshot?
+    Vocab membership, and every atlas entry (any section) whose motif
+    resolves to this exact word at this word's own chi."""
+    chi = word_own_chi(word)
+    wl = word.lower()
+    in_vocab = wl in {v.lower() for v in g.vocab}
+    own_entries = []
+    for e in g.atlas.entries.get(chi, []):
+        sec = g.sections.get(e.get("section", ""))
+        if sec and e.get("motif", -1) < len(sec.modes):
+            _, _, w = sec.modes[e["motif"]]
+            if w and w.lower() == wl:
+                in_deep = any(
+                    de.get("section") == e.get("section")
+                    and de.get("motif") == e.get("motif")
+                    for de in g.deep_atlas.entries.get(chi, [])
+                )
+                own_entries.append({
+                    "chi": chi, "section": e.get("section"),
+                    "motif": e.get("motif"),
+                    "strength": round(e.get("strength", -1), 4),
+                    "in_deep": in_deep,
+                })
+    return {"word": word, "chi": chi, "in_vocab": in_vocab, "own_atlas_entries": own_entries}
+
+
+def candidacy_trace(g, word, target_sections=("subject", "verb", "object")):
+    """A.2 CANDIDACY: the exact _recall_from_atlas algorithm
+    (gualaloom_v5_engine.py:3626-3683), reproduced verbatim but returning the
+    FULL scored candidate list instead of just the top pick, plus whether the
+    taught word's own motif appears in it and at what score. Also traces the
+    -57 index (does self._word_to_chi_index contain this word at all) and the
+    sight path (_recall_sight_from_atlas, :3582-3624) and the deep-atlas
+    linked_chis expansion (_recall_response, :3522-3536) for completeness."""
+    from collections import Counter
+    wl = word.lower()
+    chi = word_own_chi(word)
+    in_index = wl in g._word_to_chi_index
+    content_word_chis = set(g._word_to_chi_index.get(wl, ()))
+
+    per_section = {}
+    for target_section in target_sections:
+        sec = g.sections.get(target_section)
+        if not sec or not sec.modes:
+            per_section[target_section] = {"candidates": [], "taught_present": False}
+            continue
+        candidates = Counter()
+        for chi_k in content_word_chis:
+            for e in g.atlas.entries.get(chi_k, []):
+                if e["section"] == target_section and e["motif"] < len(sec.modes):
+                    _, _, motif_word = sec.modes[e["motif"]]
+                    if motif_word:
+                        weight = 1.0 - e.get("function_score", 0.0)
+                        candidates[e["motif"]] += weight
+        ranked = []
+        for motif_id, score in candidates.most_common():
+            _, _, w = sec.modes[motif_id]
+            ranked.append({"motif": motif_id, "word": w, "score": round(score, 4),
+                            "qualifies (score>=2)": score >= 2})
+        taught = next((r for r in ranked if r["word"] and r["word"].lower() == wl), None)
+        winner = next((r for r in ranked if r["qualifies (score>=2)"]), None)
+        per_section[target_section] = {
+            "content_word_chis": sorted(content_word_chis),
+            "candidates": ranked,
+            "taught_present": taught is not None,
+            "taught_entry": taught,
+            "winner": winner,
+        }
+
+    # Sight path (_recall_sight_from_atlas) — for context; none of these 10
+    # probes have a picture pairing, so this documents absence, not a defect.
+    content_chis_sight = set(g._word_to_chi_index.get(wl, ())) if len(word) > 1 else set()
+    sight_motif_ids = set()
+    for target_chi in content_chis_sight:
+        for d in range(-2, 3):
+            for e in g.atlas.entries.get(target_chi + d, []):
+                if e.get("section") == "sight":
+                    sight_motif_ids.add(e.get("motif"))
+
+    # Deep-atlas recall-time touchpoint: _recall_response's linked_chis
+    # expansion (response_context/received_response links at this chi).
+    deep_links = []
+    for de in g.deep_atlas.entries.get(chi, []):
+        if de.get("response_context") or de.get("received_response"):
+            deep_links.append({"section": de.get("section"), "motif": de.get("motif"),
+                                "response_context": de.get("response_context"),
+                                "received_response": de.get("received_response")})
+
+    return {
+        "word": word, "chi": chi,
+        "in_word_to_chi_index": in_index,
+        "content_word_chis": sorted(content_word_chis),
+        "sections": per_section,
+        "sight_motif_ids_in_band": sorted(sight_motif_ids),
+        "deep_atlas_linked_entries_at_own_chi": deep_links,
+        "semantic_neighborhood_note": (
+            "NOT PART OF THIS PATH — semantic_neighborhood is a channel in "
+            "_emit_grandurun_vector (engine.py:162,210,2453), the emission/"
+            "composition scorer. _recall_from_atlas and _recall_sight_from_atlas "
+            "(engine.py:3582-3683) never reference it. Confirmed by grep, not "
+            "assumed."
+        ),
+    }
+
+
+def strongest_resident(g, chi, exclude_word=None):
+    """A.4 helper: the highest-strength atlas entry at this exact chi, across
+    all sections, excluding the probe's own word (so a taught word's own weak
+    entry doesn't mask what it's actually competing with)."""
+    best = None
+    for e in g.atlas.entries.get(chi, []):
+        sec = g.sections.get(e.get("section", ""))
+        w = None
+        if sec and e.get("motif", -1) < len(sec.modes):
+            _, _, w = sec.modes[e["motif"]]
+        if exclude_word and w and w.lower() == exclude_word.lower():
+            continue
+        strength = e.get("strength", -1)
+        if best is None or strength > best["strength"]:
+            best = {"section": e.get("section"), "word": w,
+                     "strength": round(strength, 4), "motif": e.get("motif")}
+    return best
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                   formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -170,6 +307,10 @@ def main():
                      help="GL-CMD-157: print returned tokens per probe and the "
                           "coherence verdict (hit != coherent — a hit only means "
                           "_recall_response returned something non-empty).")
+    ap.add_argument("--provenance", action="store_true",
+                     help="GL-CMD-158: for each probe, trace existence (A.1) and "
+                          "full candidacy at every recall stage (A.2) — deterministic, "
+                          "read-only, same snapshot in -> same trace out every time.")
     args = ap.parse_args()
 
     g = build_replay_guala(args.snapshot_dir)
@@ -207,6 +348,26 @@ def main():
                   f"{100 * n_coherent / len(hits):.1f}% of hits are coherent ===")
         else:
             print("\n=== QUALITY: n/a (no hits) ===")
+
+    if args.provenance:
+        import json as _json
+        print("\n" + "=" * 70)
+        print("PROVENANCE TRACE (GL-CMD-158)")
+        print("=" * 70)
+        for r, caption in zip(results, captions):
+            w = r["word"]
+            print(f"\n--- {w!r} ---")
+            existence = existence_trace(g, w)
+            print("A.1 EXISTENCE:", _json.dumps(existence, indent=2, default=str))
+            candidacy = candidacy_trace(g, w)
+            print("A.2 CANDIDACY:", _json.dumps(candidacy, indent=2, default=str))
+            resident = strongest_resident(g, existence["chi"], exclude_word=w)
+            returned_chis = [word_own_chi(t) for t in r["returned_tokens"]]
+            print("A.4 CHI-COLLISION:", _json.dumps({
+                "probe_chi": existence["chi"],
+                "returned_tokens_and_chi": list(zip(r["returned_tokens"], returned_chis)),
+                "strongest_resident_at_probe_chi": resident,
+            }, indent=2, default=str))
 
 
 if __name__ == "__main__":
