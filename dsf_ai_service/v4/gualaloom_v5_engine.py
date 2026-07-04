@@ -481,6 +481,18 @@ DP_OVERRIDE_CEILING = 1.0               # NOT tunable without cause: reuses drea
                                          # own existing saturation cap (GL-RPT-SLEEP-BACKTEST
                                          # -C1-20260704-167-v1's ceiling derivation, Joe-ratified)
 
+# GL-CMD-AGITATION-FIX-JOE-20260704 Change B: stability's sleep/dream
+# restoration becomes target-seeking (decay toward 0.7 from either side)
+# instead of always-upward (saturate(+epsilon)), which backfired whenever
+# stability was already above target -- her observed condition all session
+# (0.77-0.92), actively widening |stability-0.7| and so arousal, not
+# shrinking it. Rates chosen to roughly preserve the old convergence speed
+# when stability starts below target (DREAMING's rate is half SLEEPING's,
+# matching the prior 0.0005-vs-0.001 ratio) -- LIVE-CALIBRATE, same
+# discipline as the sleep-physics rate constants above.
+STABILITY_SLEEP_RESTORE_RATE = 0.005     # LIVE-CALIBRATE: fraction of gap-to-0.7 closed per SLEEPING tick
+STABILITY_DREAM_RESTORE_RATE = 0.0025    # LIVE-CALIBRATE: fraction of gap-to-0.7 closed per DREAMING tick
+
 # GL-CMD-AUTONOMOUS-EMISSION-39: autonomous voice on internal state
 AUTONOMOUS_EMISSION_ENABLED = True          # single flag to disable without code change
 AUTONOMOUS_THROTTLE_TICKS = 27000           # ~90s between autonomous emissions
@@ -4120,8 +4132,24 @@ class Guala:
             self._autonomy_tick_phased()
             return
         with self.lock:
-            # 1. Needs drift AWAY from target (once per iteration)
-            self.needs.tick_drift()
+            # GL-CMD-AGITATION-FIX-JOE-20260704: compute activity kind once,
+            # early -- shared by the needs-drift gate below and dream_
+            # pressure's own gate (Change 2) further down.
+            _ca_kind = getattr(self._current_activity, 'kind', None)
+
+            # 1. Needs drift AWAY from target (once per iteration) -- paused
+            # during SLEEPING/DREAMING (Change A: reuses dream_pressure's own
+            # sleep-gate, GL-CMD-CREDO-LOOP-REPAIR-167 Change 2). She cannot
+            # act on the drive tick_drift exists to create while
+            # unconscious; letting it keep eroding needs anyway -- connection
+            # especially, since nothing else replenishes it asleep -- is what
+            # pinned arousal at 1.0 during tonight's sleep cycles (GL-RPT-
+            # AGITATION-FIX-C1-20260704-v1). coordinator.regulate()'s real-
+            # signal path (a few lines below, runs every 5 ticks regardless
+            # of activity) is untouched, so genuine contact/new bindings can
+            # still move her while asleep.
+            if _ca_kind not in (None, "SLEEPING", "DREAMING"):
+                self.needs.tick_drift()
 
             # Periodic needs snapshot to disk (every 500 ticks) — background thread
             # to avoid EFS write latency inside self.lock
@@ -4182,7 +4210,7 @@ class Guala:
                                   - getattr(self, '_dp_last_write_count', 0))
             self._dp_last_write_count = getattr(self, '_atlas_write_count', 0)
 
-            _ca_kind = getattr(self._current_activity, 'kind', None)
+            # _ca_kind already computed above (GL-CMD-AGITATION-FIX-JOE-20260704)
             if _ca_kind not in (None, "SLEEPING", "DREAMING"):
                 _attending = _ca_kind in ("READING", "ATTENDING",
                                           "ATTENDING_VISUAL",
@@ -4528,15 +4556,20 @@ class Guala:
             self.needs.novelty = max(0.0, self.needs.novelty - 0.0003)
 
     def _atick_sleeping(self, a):
-        """Sleep raises stability. Transitions to dream at midpoint.
+        """Sleep restores stability TOWARD target. Transitions to dream at
+        midpoint.
         GL-CMD-CREDO-LOOP-REPAIR-167 Change 2: dream_pressure no longer
         resets instantly here. Discharge now happens gradually, only in
         _run_dream_cycle, proportional to real executed dream ticks — a
         SLEEPING phase that never reaches DREAMING (a deploy pause killed
         before the midpoint, per -165 Q5) correctly discharges nothing,
         instead of the old instant reset silently crediting rest that
-        never happened."""
-        self.needs.stability = saturate(self.needs.stability, 0.001)
+        never happened.
+        GL-CMD-AGITATION-FIX-JOE-20260704 Change B: was saturate(+0.001),
+        always upward — backfired when stability was already above target
+        (her observed condition all session), widening |stability-0.7|
+        instead of shrinking it. Now decays toward 0.7 from either side."""
+        self.needs.stability += (NEEDS_TARGET_V7 - self.needs.stability) * STABILITY_SLEEP_RESTORE_RATE
         # GL-FIX-SLEEP-DECAY: removed duplicate decay call.
         # The general non-reading path (line ~1753) already calls
         # atlas.decay() every 10 ticks for ALL non-reading activities
@@ -4549,10 +4582,13 @@ class Guala:
             self._log_substrate_event("dream_began", from_sleep=True)
 
     def _atick_dreaming(self, a):
-        """Dream: stability restoration + consolidation via replay reinforcement.
-        No novelty gain — dream recombines existing material.
-        GL-CMD-DAYDREAMING M-09-1: now delegates to _run_dream_cycle()."""
-        self.needs.stability = saturate(self.needs.stability, 0.0005)
+        """Dream: stability restoration toward target + consolidation via
+        replay reinforcement. No novelty gain — dream recombines existing
+        material.
+        GL-CMD-DAYDREAMING M-09-1: now delegates to _run_dream_cycle().
+        GL-CMD-AGITATION-FIX-JOE-20260704 Change B: target-seeking, same
+        reasoning as _atick_sleeping."""
+        self.needs.stability += (NEEDS_TARGET_V7 - self.needs.stability) * STABILITY_DREAM_RESTORE_RATE
         if os.environ.get("DREAM_CYCLE_PHASED", "0") == "1":
             # Release outer lock so _run_dream_cycle_phased phases can truly free
             # self.lock between Phase 1/2/3a/3b. Works with RLock: caller holds
@@ -5153,7 +5189,13 @@ class Guala:
 
         # Phase A (self.lock brief): maintenance + tick + activity selection
         with self.lock:
-            self.needs.tick_drift()
+            # GL-CMD-AGITATION-FIX-JOE-20260704: same sleep-gate as the main
+            # (unphased) _autonomy_tick, kept consistent in case
+            # AUTONOMY_PHASED is ever turned on -- dead in production today
+            # (default "0"), not exercised by this deploy's observation.
+            _ca_kind_phased = getattr(self._current_activity, 'kind', None)
+            if _ca_kind_phased not in (None, "SLEEPING", "DREAMING"):
+                self.needs.tick_drift()
 
             if self.tick % 500 == 0 and self.tick > 0:
                 try:
