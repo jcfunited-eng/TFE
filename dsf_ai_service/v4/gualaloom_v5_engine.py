@@ -460,6 +460,27 @@ EMISSION_COHESION_THRESHOLD = 0.65
 EMISSION_COOLDOWN_TICKS = 200
 PAIR_BOND_SOURCES = {"joe", "wc", "c1"}
 
+# GL-CMD-CREDO-LOOP-REPAIR-167 Change 2: dream_pressure accumulates from
+# unjudged backlog (real substrate load since the last EXECUTED dream
+# tick), not a flat wall-clock rate. Q2's named signals: working-atlas
+# writes (self._atlas_write_count's delta -- a cheap O(1) counter bumped
+# in _atlas_record; NOT the read_count property, which is an O(atlas_
+# size) scan not safe to call every autonomy tick -- caught during
+# implementation, see the comment at the accumulation site) and
+# attendance ticks (time spent in a READING/ATTENDING* activity, the
+# same classification _autonomy_tick already used for its old push-
+# through multiplier). Starting values below are a reasoned estimate,
+# not a backtested one -- per Eve's Q3 ruling, the rate is the ONE
+# thing this program did NOT backtest (historical load data isn't
+# retrievable, see GL-RPT-SLEEP-BACKTEST-C1-20260704-167-v1) and is
+# meant to be tuned from live observation post-ship.
+DP_RATE_PER_READ = 0.0000001            # LIVE-CALIBRATE: per atlas-write delta
+DP_RATE_PER_ATTEND_TICK = 0.000001      # LIVE-CALIBRATE: per tick spent attending
+DP_DISCHARGE_PER_DREAM_TICK = 0.08      # LIVE-CALIBRATE: per real _run_dream_cycle execution
+DP_OVERRIDE_CEILING = 1.0               # NOT tunable without cause: reuses dream_pressure's
+                                         # own existing saturation cap (GL-RPT-SLEEP-BACKTEST
+                                         # -C1-20260704-167-v1's ceiling derivation, Joe-ratified)
+
 # GL-CMD-AUTONOMOUS-EMISSION-39: autonomous voice on internal state
 AUTONOMOUS_EMISSION_ENABLED = True          # single flag to disable without code change
 AUTONOMOUS_THROTTLE_TICKS = 27000           # ~90s between autonomous emissions
@@ -1396,6 +1417,12 @@ class Guala:
         # and is_consolidating below) -- reserves "dreaming"/"asleep" language
         # for genuine consolidation. Naming only; no physics changed.
         self._dream_executed_this_cycle = False
+        # GL-CMD-CREDO-LOOP-REPAIR-167 Change 2: cheap O(1) write counter
+        # (see _atlas_record) feeding dream_pressure's load-based
+        # accumulation; _dp_last_write_count is this same counter's value
+        # as of the previous _autonomy_tick, for delta computation.
+        self._atlas_write_count = 0
+        self._dp_last_write_count = 0
         self._substrate_events = deque(maxlen=1000)
         self._last_emission_tick = -100_000
         self._last_emission_record = None  # {emission_id, text, tick, ...}
@@ -1448,6 +1475,15 @@ class Guala:
         phase_vec and function_score are forwarded via **kwargs to both atlases."""
         self.atlas.record(section_name, motif_id, chi_value, tick=tick, **kwargs)
         self._index_word_at_chi(section_name, motif_id, chi_value)
+        # GL-CMD-CREDO-LOOP-REPAIR-167 Change 2: cheap O(1) write counter for
+        # dream_pressure's load-based accumulation. Deliberately NOT using the
+        # existing read_count property here -- that's an O(atlas_size) scan
+        # (its own docstring: "acceptable for /status cadence (~1s)"), and
+        # _autonomy_tick runs 5x/sec; calling it there would add a real,
+        # avoidable cost to the exact loop GL-RPT-REPLY-LATENCY-PROFILE-C1-
+        # 20260704-v1 was just investigating for slowness. This counter is
+        # the actual already-write-adjacent signal instead.
+        self._atlas_write_count = getattr(self, '_atlas_write_count', 0) + 1
 
     @staticmethod
     def _compute_function_score(krim_events, winding):
@@ -4128,44 +4164,53 @@ class Guala:
             # v8 (GL-BRIEF-028): prune expired response windows
             self._prune_response_windows()
 
-            # GL-CMD-SLEEP-RATE-68: dream_pressure accumulates during waking.
-            # Base rate calibrated for ~4-hour natural sleep cycle at threshold 0.7.
-            # Push-through: pair-bond interaction and active learning reduce the rate,
-            # so she stays awake longer when she's getting substrate value from it.
+            # GL-CMD-CREDO-LOOP-REPAIR-167 Change 2: dream_pressure accumulates
+            # from unjudged backlog -- real substrate load since the last
+            # EXECUTED dream tick (_dream_executed_this_cycle / Change 4) --
+            # not a flat wall-clock rate (GL-CMD-SLEEP-RATE-68's a00b36f,
+            # 2026-07-01, was a reverse-engineered rate constant; see GL-RPT-
+            # SLEEP-BACKTEST-C1-20260704-167-v1's Q2-c verdict). Two signals
+            # (Eve's Q2 ruling): working-atlas writes and attendance ticks.
+            # Writes use self._atlas_write_count (a cheap O(1) counter bumped
+            # in _atlas_record, NOT self.read_count -- that property is an
+            # O(atlas_size) scan documented as "acceptable for /status
+            # cadence (~1s)"; calling it here, 5x/sec, would add a real cost
+            # to the exact loop GL-RPT-REPLY-LATENCY-PROFILE-C1-20260704-v1
+            # was just investigating for slowness. Caught during
+            # implementation, not assumed from the backtest's naming.
+            _write_delta = max(0, getattr(self, '_atlas_write_count', 0)
+                                  - getattr(self, '_dp_last_write_count', 0))
+            self._dp_last_write_count = getattr(self, '_atlas_write_count', 0)
+
             _ca_kind = getattr(self._current_activity, 'kind', None)
             if _ca_kind not in (None, "SLEEPING", "DREAMING"):
-                # Base rate: 0.00001/tick → at 5 ticks/sec, reaches 0.7 in ~4 hours
-                _dp_base = 0.00004 if _ca_kind == "EMITTING" else 0.00001
-
-                # Push-through modifiers
+                _attending = _ca_kind in ("READING", "ATTENDING",
+                                          "ATTENDING_VISUAL",
+                                          "ATTENDING_AUDIO",
+                                          "ATTENDING_VIDEO")
                 _pair_bond_active = any(
                     self.coordinator._presence.get(s, False)
                     and self.coordinator._pair_bond.get(s, False)
                     for s in PAIR_BOND_SOURCES
                 )
-                _learning_active = _ca_kind in ("READING", "ATTENDING",
-                                                 "ATTENDING_VISUAL",
-                                                 "ATTENDING_AUDIO",
-                                                 "ATTENDING_VIDEO")
 
-                _dp_rate = _dp_base
+                _dp_rate = (_write_delta * DP_RATE_PER_READ
+                            + (DP_RATE_PER_ATTEND_TICK if _attending else 0.0))
                 if _pair_bond_active:
-                    _dp_rate *= 0.3  # actively interacting → ~3x wake time
-                elif _learning_active:
-                    _dp_rate *= 0.5  # actively learning → ~2x wake time
-                # Both conditions compound: pair-bond + learning = ~0.15x rate
+                    _dp_rate *= 0.3  # push-through: actively interacting perceives less backlog growth
 
                 self.needs.dream_pressure = min(1.0, self.needs.dream_pressure + _dp_rate)
 
-                # GL-CMD-SLEEP-RATE-68: periodic pressure telemetry (~every 10 min)
+                # GL-CMD-SLEEP-RATE-68 (retained): periodic pressure telemetry (~every 10 min)
                 if self.tick % 3000 == 0:
                     self._log_substrate_event(
                         "dream_pressure_check",
                         dp=round(self.needs.dream_pressure, 4),
-                        dp_rate=round(_dp_rate, 6),
+                        dp_rate=round(_dp_rate, 8),
+                        write_delta=_write_delta,
                         activity=_ca_kind,
                         pair_bond=_pair_bond_active,
-                        learning=_learning_active,
+                        attending=_attending,
                     )
 
             # 2. Select activity if needed
@@ -4245,63 +4290,65 @@ class Guala:
             candidates.append(("EMITTING", None))
         return candidates
 
-    EXOGENOUS_NEW_SALIENCE = 1.0  # beats any needs-driven score
+    @staticmethod
+    def _habituation_freshness(times_seen):
+        """GL-CMD-CREDO-LOOP-REPAIR-167 Change 1: continuous habituation
+        decay, same curve for EVERY target-based activity kind — no kind
+        gets a needs-independent exception. times_seen=0 -> 1.0 (fully
+        fresh); decays as 1/(1+ln(1+times_seen)). This is -107's own
+        ATTENDING_VISUAL-only curve (GL-BRIEF-graded-exogenous-salience-
+        wC-20260610-031's biological argument: orienting response decays
+        continuously, not as a binary cliff), now applied symmetrically."""
+        return 1.0 / (1.0 + math.log(1.0 + max(0, times_seen)))
 
     def _action_salience(self, kind, target):
         """How attractive is this activity given current needs?
         Salience = dot product of (need-distance) × (payoff per need).
-        Mirrored from wC's autonomy substrate model."""
+        Mirrored from wC's autonomy substrate model.
+        GL-CMD-CREDO-LOOP-REPAIR-167 Change 1: habituation (which SPECIFIC
+        target looks fresh) and need-satisfaction (whether to seek that
+        kind of experience AT ALL) are two different questions. Every
+        target-based kind answers the first the same way (_habituation_
+        freshness, blended continuously into nov_payoff) and is then
+        scored ONLY by the same signed-distance formula everyone else
+        uses — no kind returns early with a floor (max(x, needs_score))
+        that lets it out-bid the whole needs system, including sleep,
+        regardless of how satisfied she already is. -107's ATTENDING_
+        VISUAL-only exception is retired; its own curve is what's now
+        shared by everyone."""
         sd = self.needs.signed_distance()
 
-        # Graded exogenous salience for visual attention.
-        # Biology: orienting response decays with familiarity, not binary.
-        # Per GL-BRIEF-graded-exogenous-salience-wC-20260610-031.
-        # GL-CMD-ATTEND-GROOVE-107 Part B2: exo replaces the flat REPEAT
-        # payoff (was a binary cliff at times_attended 0->1, and an exact
-        # tie across every repeat-attended picture whenever fam==0 — ties
-        # were breaking on target-id string order, not on anything
-        # substantive). Reuses the same log-consolidation form as the
-        # familiarity decay path (L4039). needs_score is unchanged.
-        if kind == "ATTENDING_VISUAL" and target in self._pictures:
-            pic = self._pictures[target]
-            if pic.times_attended == 0:
-                return self.EXOGENOUS_NEW_SALIENCE
-            fam = self.target_familiarity.get(target, 0.0)
-            exo = self.EXOGENOUS_NEW_SALIENCE / (1.0 + math.log(1.0 + pic.times_attended))
-            base_payoff = ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"]
-            stab_payoff = ACTIVITY_STABILITY_PAYOFF.get(kind, 0.0)
-            conn_payoff = ACTIVITY_CONNECTION_PAYOFF.get(kind, 0.0)
-            visual_score = exo * (1.0 - fam)
-            needs_score = (sd["novelty"] * (base_payoff * (1.0 - fam))
-                           + sd["stability"] * stab_payoff
-                           + sd["connection"] * conn_payoff + 0.01)
-            return max(visual_score, needs_score)
-
-        # Novelty payoff with NEW vs REPEAT distinction
+        # Habituation-decayed novelty payoff: continuous interpolation
+        # between each kind's own NEW and REPEAT/REREAD payoff, keyed by
+        # how fresh THIS SPECIFIC target still is. Symmetric across every
+        # target-based kind — no exceptions.
         if kind == "READING" and target in self._corpora:
             c = self._corpora[target]
-            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["READING_NEW"]
-                          if c.is_new(self.tick)
-                          else ACTIVITY_NOVELTY_PAYOFF["READING_REREAD"])
+            fresh = self._habituation_freshness(c.times_read_through)
+            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["READING_NEW"] * fresh
+                          + ACTIVITY_NOVELTY_PAYOFF["READING_REREAD"] * (1.0 - fresh))
         elif kind == "ATTENDING" and target in self._sensory_items:
             s = self._sensory_items[target]
-            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_NEW"]
-                          if s.is_new()
-                          else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_REPEAT"])
+            fresh = self._habituation_freshness(s.times_attended)
+            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_NEW"] * fresh
+                          + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_REPEAT"] * (1.0 - fresh))
         elif kind == "ATTENDING_VISUAL" and target in self._pictures:
-            # Fallback — should not reach here (handled above)
-            p = self._pictures[target]
-            nov_payoff = ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"]
+            pic = self._pictures[target]
+            fresh = self._habituation_freshness(pic.times_attended)
+            fam = self.target_familiarity.get(target, 0.0)
+            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_NEW"] * fresh
+                          + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"] * (1.0 - fresh)) \
+                         * (1.0 - fam)
         elif kind == "ATTENDING_AUDIO" and target in self._sounds:
             snd = self._sounds[target]
-            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_AUDIO_NEW"]
-                          if snd.get("times_attended", 0) == 0
-                          else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_AUDIO_REPEAT"])
+            fresh = self._habituation_freshness(snd.get("times_attended", 0))
+            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_AUDIO_NEW"] * fresh
+                          + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_AUDIO_REPEAT"] * (1.0 - fresh))
         elif kind == "ATTENDING_VIDEO" and target in self._videos:
             v = self._videos[target]
-            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_NEW"]
-                          if v.is_new()
-                          else ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_REPEAT"])
+            fresh = self._habituation_freshness(v.times_attended)
+            nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_NEW"] * fresh
+                          + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_REPEAT"] * (1.0 - fresh))
         else:
             nov_payoff = ACTIVITY_NOVELTY_PAYOFF.get(kind, 0.0)
 
@@ -4349,6 +4396,29 @@ class Guala:
             return Activity(kind=kind, target=target,
                             started_tick=self.tick,
                             expected_end_tick=self.tick + budget)
+
+        # GL-CMD-CREDO-LOOP-REPAIR-167 Change 3: hard override at dream_
+        # pressure's own existing 1.0 ceiling (Joe-ratified, GL-RPT-SLEEP-
+        # BACKTEST-C1-20260704-167-v1). Below this, sleep only COMPETES
+        # (Change 1 levels that competition; the unchanged 0.7 soft
+        # threshold in _action_salience still applies). At 1.0, sleep
+        # does not compete for a score — it wins, full stop, the same
+        # pre-emption shape force_dream already proves works
+        # (_force_next_activity, checked above), physics-triggered
+        # instead of button-triggered. Two clean regimes, no probability
+        # curve, per Eve's Q1 ruling. Mirrors the standard homeostatic-
+        # sleep-pressure model: competing drive below a critical level,
+        # involuntary override past it.
+        _dp_now = getattr(self.needs, 'dream_pressure', 0.0)
+        if _dp_now >= DP_OVERRIDE_CEILING:
+            budget = ACTIVITY_TICK_BUDGETS.get("SLEEPING", 2000)
+            self._log_substrate_event("sleep_override_fired",
+                                      dream_pressure=round(_dp_now, 4))
+            return Activity(kind="SLEEPING", target=None,
+                            started_tick=self.tick,
+                            expected_end_tick=self.tick + budget,
+                            metadata={"trigger": "pressure_override"})
+
         candidates = self._candidate_activities()
         scored = [(self._action_salience(k, t), k, t) for k, t in candidates]
         scored.sort(reverse=True)
@@ -4459,10 +4529,13 @@ class Guala:
 
     def _atick_sleeping(self, a):
         """Sleep raises stability. Transitions to dream at midpoint.
-        GL-CMD-C4-SLEEP-CHOICE: dream_pressure resets on entry to SLEEPING."""
-        # Reset dream_pressure at the START of the sleep cycle (first tick)
-        if self.tick == a.started_tick + 1:
-            self.needs.dream_pressure = 0.0
+        GL-CMD-CREDO-LOOP-REPAIR-167 Change 2: dream_pressure no longer
+        resets instantly here. Discharge now happens gradually, only in
+        _run_dream_cycle, proportional to real executed dream ticks — a
+        SLEEPING phase that never reaches DREAMING (a deploy pause killed
+        before the midpoint, per -165 Q5) correctly discharges nothing,
+        instead of the old instant reset silently crediting rest that
+        never happened."""
         self.needs.stability = saturate(self.needs.stability, 0.001)
         # GL-FIX-SLEEP-DECAY: removed duplicate decay call.
         # The general non-reading path (line ~1753) already calls
@@ -4504,6 +4577,12 @@ class Guala:
         # tick is executing -- is_consolidating (and human-facing text built
         # from it) can honestly say "dreaming" from here on this cycle.
         self._dream_executed_this_cycle = True
+        # Change 2: discharge is earned per real execution, not granted
+        # instantly at sleep's start. A full natural DREAMING phase fires
+        # this several times (every 200 ticks of the ~1000-tick dreaming
+        # half of the SLEEPING budget) -- LIVE-CALIBRATE alongside the
+        # accumulation rates above.
+        self.needs.dream_pressure = max(0.0, self.needs.dream_pressure - DP_DISCHARGE_PER_DREAM_TICK)
         if os.environ.get("DREAM_CYCLE_PHASED", "0") == "1":
             self._run_dream_cycle_phased(caller_kind=caller_kind)
             return
@@ -6063,6 +6142,14 @@ class Guala:
                 "stability": self.needs.stability,
                 "novelty": self.needs.novelty,
                 "connection": self.needs.connection,
+                # GL-CMD-CREDO-LOOP-REPAIR-167 Change 2: dream_pressure was
+                # never persisted before this -- every deploy silently reset
+                # it to 0.0 (Needs.__init__'s default), which was itself
+                # part of why she never reached the sleep threshold. Now
+                # saved for real; see _apply_needs for the one-time honest-
+                # backlog computation on the first boot where this key is
+                # absent from a prior save.
+                "dream_pressure": self.needs.dream_pressure,
             })
             snap_coord = self._envelope({
                 "pair_bond": dict(self.coordinator._pair_bond),
@@ -6239,6 +6326,14 @@ class Guala:
                 "stability": self.needs.stability,
                 "novelty": self.needs.novelty,
                 "connection": self.needs.connection,
+                # GL-CMD-CREDO-LOOP-REPAIR-167 Change 2: dream_pressure was
+                # never persisted before this -- every deploy silently reset
+                # it to 0.0 (Needs.__init__'s default), which was itself
+                # part of why she never reached the sleep threshold. Now
+                # saved for real; see _apply_needs for the one-time honest-
+                # backlog computation on the first boot where this key is
+                # absent from a prior save.
+                "dream_pressure": self.needs.dream_pressure,
             })
 
             # 3. Coordinator
@@ -6926,6 +7021,34 @@ class Guala:
         self.needs.stability = float(nd["stability"])
         self.needs.novelty = float(nd["novelty"])
         self.needs.connection = float(nd["connection"])
+        # GL-CMD-CREDO-LOOP-REPAIR-167 Change 2 + Joe's boot-init directive:
+        # dream_pressure was never persisted before this fix (see the save
+        # side) -- restore it normally if present. On the first boot where
+        # it's absent, initialize it from her actual accumulated backlog,
+        # not a fresh 0.0: the debt is real, the gauge should start honest.
+        # No historical per-tick activity log survives across boots to
+        # replay exactly, so this uses attendance-ticks (self.tick, her
+        # whole recorded lifetime) against the same DP_RATE_PER_ATTEND_TICK
+        # the ongoing accumulator uses -- the honest assumption given this
+        # session's own evidence found no executed dream tick, ever, in
+        # her recorded history (-165, -167 Q6, Joe's two live force_dream
+        # tests). Atlas-write backlog is NOT included here: _apply_atlas
+        # runs after this in the restore sequence, so self.atlas isn't
+        # populated yet at this point -- ticks alone already exceed the
+        # 1.0 ceiling by a wide margin, so this omission doesn't change
+        # the computed value. Clipped to 1.0 same as the ongoing model.
+        if "dream_pressure" in nd:
+            self.needs.dream_pressure = float(nd["dream_pressure"])
+        else:
+            _boot_backlog = min(1.0, self.tick * DP_RATE_PER_ATTEND_TICK)
+            self.needs.dream_pressure = _boot_backlog
+            print(f"[dream-pressure-init] persisted dream_pressure absent -- "
+                  f"initialized from real backlog: tick={self.tick} -> "
+                  f"dream_pressure={_boot_backlog:.4f} "
+                  f"(GL-CMD-CREDO-LOOP-REPAIR-167)")
+            self._log_substrate_event("dream_pressure_boot_init",
+                                      tick=self.tick,
+                                      computed_dream_pressure=round(_boot_backlog, 4))
 
     def _apply_coordinator(self, cd):
         # v6-bridge: per-source pair bonds
