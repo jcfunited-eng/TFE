@@ -6932,12 +6932,14 @@ class Guala:
         pb = cd.get("pair_bond", cd.get("pair_bond_state", None))
         if isinstance(pb, dict):
             self.coordinator._pair_bond = {"joe": pb.get("joe", True),
+                                            "joe_voice": pb.get("joe_voice", True),
                                             "wc": pb.get("wc", True),
                                             "c1": pb.get("c1", False)}
         else:
             # Old-style: single bool. Restore Joe=True, wC=True per manifesto.
             old_active = cd.get("pair_bond_active", True)
-            self.coordinator._pair_bond = {"joe": True, "wc": True, "c1": False}
+            self.coordinator._pair_bond = {"joe": True, "joe_voice": True,
+                                            "wc": True, "c1": False}
             if not old_active:
                 print("[GualaLoom] PAIR-BOND REGRESSION: old state had pair_bond_active=False. "
                       "Root cause: retirement check fired during corpus-only reading. "
@@ -6947,10 +6949,25 @@ class Guala:
         self.coordinator.need_history = cd.get("need_history", [])[-200:]
         # 60-K: restore interaction log (list of [tick, salience] from JSON)
         raw_log = cd.get("source_interaction_log", {})
-        self.coordinator._source_interaction_log = {
+        merged_log = {
             src: [(int(t), float(s)) for t, s in entries]
             for src, entries in raw_log.items()
         }
+        # GL-CMD-VOICE-IDENTITY-FIX-JOE-20260704: one-time migration. Any
+        # "joe_voice" interaction history accumulated before this fix (the
+        # separate person the pair-bond table had grown) merges into "joe"'s
+        # log here, once, at load -- same identity, same relationship,
+        # channel-tagging elsewhere (atlas entries, provenance) is untouched.
+        # After this boot, _record_interaction/pair_bond_strength normalize
+        # "joe_voice" to "joe" at write/read time, so this key never
+        # reappears; this merge only ever fires once, on the first load of
+        # state saved before the fix.
+        voice_log = merged_log.pop("joe_voice", None)
+        if voice_log:
+            combined = merged_log.get("joe", []) + voice_log
+            combined.sort(key=lambda t_s: t_s[0])
+            merged_log["joe"] = combined
+        self.coordinator._source_interaction_log = merged_log
 
     def _apply_atlas(self, ad):
         self.atlas.entries = defaultdict(list)
