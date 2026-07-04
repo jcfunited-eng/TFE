@@ -34,6 +34,8 @@ import sys
 import math
 import json
 import time
+import calendar
+import queue as _queue
 import hashlib as _hashlib
 import heapq as _heapq
 import threading
@@ -3943,6 +3945,13 @@ class Guala:
                           daemon=True, name=f"ev-log-{event_kind[:8]}").start()
             except Exception:
                 pass
+        # GL-CMD-EVENT-RETENTION-FIX-172 R3: EVERY event kind also goes to
+        # the durable diary — not gated by the 12-kind whitelist above,
+        # which stays governing ONLY the crash-replay log + CloudWatch
+        # mirror. Non-blocking (single queue put, see enqueue_diary_event).
+        self.enqueue_diary_event(
+            "state", event_kind, detail, self.tick,
+            time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
         return ev
 
     # ── GL-CMD-DAYDREAM-PARALLEL-42: background associative activation ──────
@@ -6098,6 +6107,15 @@ class Guala:
     EVENTS_MAX_BYTES = 10 * 1024 * 1024  # 10MB per log file
     EVENTS_MAX_ROTATED = 9
 
+    # GL-CMD-EVENT-RETENTION-FIX-172 R1/R2: the durable diary is a SEPARATE
+    # file tree from EVENTS_LOG above. events.log + compact_events() are
+    # untouched (crash-replay only, offset-based, correct for that job).
+    # The diary is append-only, one file per UTC day, ALL event kinds
+    # (R3), never compacted — rotation (R2) only ever DELETES whole files
+    # older than DIARY_RETENTION_DAYS, never rewrites a live one.
+    DIARY_DIR = "diary"
+    DIARY_RETENTION_DAYS = 7
+
     # Class-level defaults (overwritten per instance in __init__)
     _last_save_tick = 0
     _last_cold_save_tick = 0   # GL-CMD-DEEP-STORE-PHYSICS-86 P2: updated only on full/cold save
@@ -6107,6 +6125,10 @@ class Guala:
     _integrity_errors = []
     _events_replayed_at_boot = 0
     _guala_identity = None
+    _diary_queue = None      # lazily created single worker queue (GL-CMD-172)
+    _diary_thread = None
+    _diary_last_date = None  # UTC date string of the last diary write, for rotation
+    _diary_worker_lock = threading.Lock()  # guards one-time worker creation only
 
     # ── Identity ──
 
@@ -7299,8 +7321,16 @@ class Guala:
                  "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
         entry.update(kwargs)
         try:
+            line = json.dumps(entry)
             with open(path, "a") as f:
-                f.write(json.dumps(entry) + "\n")
+                f.write(line + "\n")
+            # GL-CMD-EVENT-RETENTION-FIX-172 R4: mirror to stdout so the
+            # unlimited-retention CloudWatch log group becomes a backstop
+            # independent of events.log's own (crash-replay-sized) window.
+            # Whitelist-governed by construction: log_event is only ever
+            # called for the 12 whitelisted kinds (_log_substrate_event)
+            # plus this same explicit call path — no new per-tick spam.
+            print(f"[GualaLoom][diary-mirror] {line}", flush=True)
             # Rotate if too large
             if os.path.getsize(path) > self.EVENTS_MAX_BYTES:
                 self._rotate_events(state_dir)
@@ -7395,6 +7425,100 @@ class Guala:
             # SEED_CORPORA, so this is mostly a marker. If the corpus was
             # uploaded (not in seed), it would need the lines data too.
             pass
+
+    # ── Diary (GL-CMD-EVENT-RETENTION-FIX-172 R1-R3) ──
+    # A durable, full-width, append-only record — separate from EVENTS_LOG
+    # above. events.log/compact_events/_replay_events (crash replay) are
+    # completely untouched by everything below: different file tree
+    # (DIARY_DIR), different write path, never compacted.
+
+    def _diary_worker_loop(self, state_dir):
+        """Single persistent background writer — NOT one thread per event.
+        The existing whitelist path (_log_substrate_event -> log_event)
+        spawns a thread per whitelisted event; doing that for ALL ~40+
+        event kinds (R3's full width, some of which are high-frequency
+        per-tick kinds) would risk thread-creation overhead becoming its
+        own live-path regression, independent of disk I/O cost. One queue,
+        one worker, matches the existing SaveCoordinator S3-queue
+        convention (save_coordinator.py) rather than inventing a new
+        pattern."""
+        while True:
+            item = self._diary_queue.get()
+            if item is None:
+                return
+            event_kind, detail, tick, ts = item
+            self._write_diary_entry(state_dir, event_kind, detail, tick, ts)
+
+    def _ensure_diary_worker(self, state_dir):
+        if self._diary_queue is not None:
+            return
+        with self._diary_worker_lock:
+            if self._diary_queue is not None:   # re-check: lost a race to another thread
+                return
+            self._diary_queue = _queue.Queue(maxsize=4000)
+            t = threading.Thread(target=self._diary_worker_loop, args=(state_dir,),
+                                 daemon=True, name="diary-writer")
+            t.start()
+            self._diary_thread = t
+
+    def enqueue_diary_event(self, state_dir, event_kind, detail, tick, ts):
+        """R3: called for EVERY substrate event kind (not just the 12-kind
+        disk whitelist) — non-blocking, drops under back-pressure rather
+        than ever stalling the caller (same never-crash-substrate
+        contract as log_event)."""
+        try:
+            self._ensure_diary_worker(state_dir)
+            self._diary_queue.put_nowait((event_kind, dict(detail), tick, ts))
+        except _queue.Full:
+            pass
+        except Exception:
+            pass
+
+    def _diary_path_for_date(self, state_dir, date_str):
+        return os.path.join(state_dir, self.DIARY_DIR, f"{date_str}.log")
+
+    def _diary_prune(self, state_dir):
+        """R2: retention enforced by deleting whole files older than
+        DIARY_RETENTION_DAYS at rotation (day-boundary crossing) — never
+        by rewriting a live file, unlike compact_events' in-place model."""
+        diary_dir = os.path.join(state_dir, self.DIARY_DIR)
+        if not os.path.isdir(diary_dir):
+            return
+        cutoff_epoch = time.time() - self.DIARY_RETENTION_DAYS * 86400
+        for fname in os.listdir(diary_dir):
+            if not fname.endswith(".log"):
+                continue
+            try:
+                file_epoch = calendar.timegm(time.strptime(fname[:-4], "%Y-%m-%d"))
+            except ValueError:
+                continue
+            if file_epoch < cutoff_epoch:
+                try:
+                    os.remove(os.path.join(diary_dir, fname))
+                except OSError:
+                    pass
+
+    def _write_diary_entry(self, state_dir, event_kind, detail, tick, ts):
+        """R1/R3: append one JSON line to TODAY's dated diary file. Runs on
+        the single diary-writer thread only — never on the caller's stack.
+        Best-effort: a bad detail dict degrades to a stringified entry
+        (json.dumps(..., default=str)) rather than silently dropping the
+        event, since R3 explicitly widens the record to kinds that were
+        never JSON-serialized before and may hold non-serializable values."""
+        date_str = ts[:10]
+        diary_dir = os.path.join(state_dir, self.DIARY_DIR)
+        path = self._diary_path_for_date(state_dir, date_str)
+        entry = {"type": event_kind, "tick": tick, "ts": ts}
+        entry.update(detail)
+        try:
+            os.makedirs(diary_dir, exist_ok=True)
+            with open(path, "a") as f:
+                f.write(json.dumps(entry, default=str) + "\n")
+            if date_str != self._diary_last_date:
+                self._diary_last_date = date_str
+                self._diary_prune(state_dir)
+        except Exception:
+            pass  # diary is best-effort, same never-crash-substrate contract as log_event
 
     # ── Snapshots ──
 

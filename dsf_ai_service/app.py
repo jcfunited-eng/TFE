@@ -4176,17 +4176,22 @@ async def v7_persistence(session_id: str = "default"):
         return {"on_disk": True, "error": str(e)}
 
 @app.get("/v6/events_histogram")
-async def v6_events_histogram():
-    """Histogram of event types in Guala's events log."""
+async def v6_events_histogram(source: str = "diary"):
+    """Histogram of event types. GL-CMD-EVENT-RETENTION-FIX-172 R5:
+    source='diary' (default) reads the durable, full-width, 7-day diary
+    (dsf_ai_service/v4/gualaloom_v5_engine.py Guala.DIARY_DIR). source=
+    'replay' (or 'events'/'events_log') reads the original narrow-
+    whitelist crash-replay log (events.log) — byte-identical to this
+    endpoint's pre-172 behavior, preserved for any caller that explicitly
+    asks for it; no existing caller breaks since the response shape
+    (total/histogram) is unchanged either way."""
     import os as _os
     from collections import Counter as _Counter
-    log_path = _os.path.join(STATE_DIR, "events.log")
-    if not _os.path.exists(log_path):
-        return {"error": "no events log"}
-    hist = _Counter()
-    total = 0
-    with open(log_path) as f:
-        for line in f:
+
+    def _histogram_from_lines(lines_iter):
+        hist = _Counter()
+        total = 0
+        for line in lines_iter:
             line = line.strip()
             if not line:
                 continue
@@ -4196,7 +4201,31 @@ async def v6_events_histogram():
                 total += 1
             except Exception:
                 hist["parse_error"] += 1
-    return {"total": total, "histogram": dict(hist.most_common())}
+        return total, hist
+
+    if source in ("replay", "events", "events_log"):
+        log_path = _os.path.join(STATE_DIR, "events.log")
+        if not _os.path.exists(log_path):
+            return {"error": "no events log", "source": "replay"}
+        with open(log_path) as f:
+            total, hist = _histogram_from_lines(f)
+        return {"total": total, "histogram": dict(hist.most_common()), "source": "replay"}
+
+    # default: diary (R5) — aggregate every retained daily file (<=7 days, R2)
+    diary_dir = _os.path.join(STATE_DIR, "diary")
+    if not _os.path.isdir(diary_dir):
+        return {"error": "no diary", "source": "diary"}
+    combined_hist = _Counter()
+    combined_total = 0
+    for fname in sorted(_os.listdir(diary_dir)):
+        if not fname.endswith(".log"):
+            continue
+        with open(_os.path.join(diary_dir, fname)) as f:
+            day_total, day_hist = _histogram_from_lines(f)
+        combined_total += day_total
+        combined_hist.update(day_hist)
+    return {"total": combined_total, "histogram": dict(combined_hist.most_common()),
+            "source": "diary"}
 
 
 # ════════════════════════════════════════════════════════════════
