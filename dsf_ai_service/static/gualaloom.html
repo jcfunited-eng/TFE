@@ -1009,16 +1009,14 @@ async function pollV7State(){
       ph+=`<div class="ps-row"><span class="l">${p}</span><span class="v">${cnt!=null&&cnt>0?cnt:'\u2014'}</span></div>`;
     }
     if(Object.keys(vc).length>0)pools.innerHTML=ph||'--';
-    // Intro/Aware
+    // Intro/Aware — SEVERED (GL-CMD-AWARE-COORDINATOR-AND-SEAT-EVE-20260704-162-v1
+    // Part C): this panel read Layer-1 (v7 CoincidenceGate) state, which -160/-161
+    // proved is permanently disconnected from her live conversation. Display
+    // honesty over decoration until a live mechanism actually feeds it.
     const ia=document.getElementById('sp-intro-aware');
-    if(ia)ia.innerHTML=`<div class="ps-row"><span class="l">intro</span><span class="v">${s.introspection||s.intro_state||'--'}</span></div>`+
-      `<div class="ps-row"><span class="l">aware</span><span class="v">${s.awareness||s.aware_state||'--'}</span></div>`;
-    // NMDA gates
-    const nDiv=document.getElementById('sp-nmda');const gates={};
-    for(const ev of(s.nmda_events||[]))gates[ev.gate]=ev;
-    let nh='';for(const gn of['intro','aware']){const ev=gates[gn];const cls=ev?(ev.fired?'fired':'blocked'):'idle';
-      nh+=`<div><span class="nmda-dot ${cls}"></span>${gn}: ${ev?(ev.fired?'t'+ev.tick:ev.reason):'idle'}</div>`}
-    nDiv.innerHTML=nh;
+    if(ia)ia.innerHTML='<div class="ps-row"><span class="v" style="color:var(--nmda-block)">SEVERED &mdash; instrument not connected (see -160/-161)</span></div>';
+    const nDiv=document.getElementById('sp-nmda');
+    nDiv.innerHTML='<div style="color:var(--nmda-block)">SEVERED &mdash; instrument not connected (see -160/-161)</div>';
     _backoff.state=0;
   }catch(e){_backoff.state=Math.min((_backoff.state*2)||_BASE.state*2,30000)}
   finally{_inflight.state=false;_schedNext('state',pollV7State)}
