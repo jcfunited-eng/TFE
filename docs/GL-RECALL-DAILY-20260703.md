@@ -100,3 +100,16 @@ captions (≥3 non-stopword words) via `--captions`, not bare single-word
 captions — bare captions make the coherence target set exactly `{probe
 word}`, which `exclude_words` then structurally withholds (F-2),
 pinning quality at 0 regardless of whether recall is actually working.
+
+**Measurement design rule (-163 B.2, on the record):** future
+experience-bound probe sets must record each probe word's commit
+strength, decay channel (fast/slow), and dwell_ticks **at teach time**
+(read directly off the atlas entry `guala_give_experience` produces —
+`strength`, `encoded_strength`, `dwell_ticks`, `reinforcement_count`,
+`born_tick`), not reconstructed forensically later. `GL-RPT-INDEX-
+INVARIANT-C1-20260704-163-v1.md`'s B.1 needed to hand-extract these
+fields from a raw snapshot after the fact for `aap`/`beckoning`/
+`compelled` — for `beckoning`/`compelled` the entries were already
+gone by measurement time, so their exact strength/channel at teach time
+is unrecoverable (only the commit-log tick/chi/section survive). Recording
+these fields at teach time closes that gap for future one-shot probes.
