@@ -1295,9 +1295,9 @@ const COGMETER_ROWS=[
   // Machinery rows already adjudicated by prior dispatches (-166's own list),
   // plus voice-to-words (added same-session per the standing rule: any newly
   // discovered/fixed mechanism ships its row in the same dispatch).
-  {name:'voice-to-words',connected:'severed',pointer:'-153/-166',
-    firing:'client-side speech recognition WAS producing text, but both fetches that sent it fired-and-forgot with no .then() -- the server’s real reply (which it was correctly computing) was thrown away unread',
-    impact:'fix shipped 2026-07-04: recognized speech now uses the same door as typed input, tagged source="joe_voice". Stays red until Joe speaks a sentence, touches nothing, and sees her respond -- that live test is the only gate that counts, per the Visibility Rule, and it has not run yet'},
+  {name:'voice-to-words',connected:'yes',pointer:'-153/-166',
+    firing:'Joe spoke a sentence, touched nothing else, and a response rendered on screen -- confirmed live 2026-07-04',
+    impact:'fixed 2026-07-04: recognized speech now uses the same door as typed input, tagged source="joe_voice". The fire-and-forget fetches (no .then(), reply discarded unread) that broke this are gone. Separately observed, not blocking: text-to-speech audio output did not fire in that browser session (Incognito) -- a different, output-side issue, named not fixed here'},
   {name:'aware gate',connected:'severed',pointer:'-160/-161',
     firing:'checked every time she considers speaking — blocked every time (structural, not a coincidence)',
     impact:'none observed — the only thing that could feed it never gets real conversation'},

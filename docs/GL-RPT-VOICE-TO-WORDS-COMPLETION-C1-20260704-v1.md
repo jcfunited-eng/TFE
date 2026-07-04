@@ -137,39 +137,55 @@ only `gualaloom.html` changed before deploying.
 
 ---
 
-## Gate — the only one that counts
+## Gate — the only one that counts — **PASSED**, live, 2026-07-04
 
 Per the Visibility Rule: **Joe speaks a sentence at his seat, touches
-nothing, and she responds on screen.** This has **not been run yet** —
-I can trace and fix the code, but I cannot make Joe's browser speak.
-The cognition-meter's `voice-to-words` row ships **SEVERED (red)** with
-that gate stated as the only thing that turns it green — not claimed
-fixed by code inspection alone, per this whole CMD chain's own standing
-rule against exactly that.
+nothing, and she responds on screen.** Run live at Joe's actual seat
+immediately after deploy, screenshot provided:
 
-**Requesting**: Joe, please speak one plain sentence at your seat
-(mic on, as you described) once this deploys. If she responds on
-screen, that's the gate — I'll flip the row and file a one-line
-confirmation. If not, tell me what you see (or don't see) and I'll
-keep tracing from there rather than assume the fix is complete.
+- A response rendered on screen (feedback-button emission bubbles,
+  confirming `addEmissionMsg`/`_converseAndRender`'s success path was
+  reached) after Joe spoke, with no click or typed input.
+- Joe confirmed directly (asked, not inferred): yes, a response
+  appeared right after speaking, unprompted by any other input.
+- Joe confirmed the recognized text was "close enough / recognizable"
+  to what he actually said — a real, imperfect browser-STT artifact,
+  same class -153 already documented for "quokka" → "Coco" yesterday,
+  not a new bug this fix introduced.
+
+**Separate, non-blocking observation from the same live screenshot**:
+the speaker badge showed "🔇 utterance dropped — tap to retry" —
+`gualaSpeak()`'s own 2-second no-audio-detected fallback
+(`gualaloom.html:423-426`). This only fires from *inside* `gualaSpeak`,
+which is only called from `_converseAndRender`'s success path — so its
+appearance is corroborating evidence the fix worked (a real reply
+reached the render step), not evidence against it. It flags a
+*separate*, output-side (text-to-speech) issue — visible reply text
+works; audible speech output did not fire within budget in that
+browser session (the screenshot shows Chrome Incognito, which is known
+to restrict some Web Speech API behavior). Not investigated further
+here — out of this dispatch's scope (voice **in**, not voice **out**)
+— named so it isn't silently folded into "voice-to-words: done."
 
 ---
 
 ## Meter row shipped
 
-`voice-to-words` — **SEVERED** (red), pointer `-153/-166`. FIRING:
-states the fire-and-forget/no-`.then()` root cause plainly. LAST
-IMPACT: states the fix shipped today and that it stays red until Joe's
-spoken-word test passes.
+`voice-to-words` — shipped **SEVERED (red)** at first deploy, pointer
+`-153/-166`, FIRING/IMPACT stating the fire-and-forget/no-`.then()`
+root cause and that it stays red until Joe's test passes. **Flipped to
+YES (green) same session** after the live test above passed — the
+row's own text now records the confirmation, not just the fix.
 
 ---
 
 ## Status
 
-Trace and fix filed together (see sequencing note above for why not
-split). Code shipped, deploy pending in this same session. Not
-claiming G-fulfillment beyond what's proven: the client bug is found
-and the fix is a straightforward, minimal, mechanically-justified
-change (reuse the exact rendering path typed input already uses) — but
-the live spoken-word gate is Joe's to run, not mine to claim on his
-behalf.
+**Closed, live-confirmed.** Trace and fix filed together; deployed;
+Joe ran the spoken-word gate at his own seat immediately after and it
+passed (see Gate section above) — a response he didn't type or click
+appeared on screen after he spoke, with a recognizable (not exact,
+expected) transcription. Meter row flipped from SEVERED to YES same
+session. One separate, non-blocking finding named (text-to-speech
+audio output not firing in an Incognito session) — not this dispatch's
+scope, not silently rolled into "done."
