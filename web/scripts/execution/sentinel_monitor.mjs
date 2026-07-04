@@ -32,6 +32,15 @@ const pool = new pg.Pool({
 
 const ZOMBIE_BAR_THRESHOLD = parseInt(process.env.SENTINEL_ZOMBIE_BARS ?? "10", 10);
 
+// ── Orphan adoption exclusion list ────────────────────────────────────
+// Tickers we never adopt from Alpaca even if they appear as positions.
+// Reason: known-untradeable (delisted, merged, asset_not_active). Adopting
+// creates an unclosable ledger row that recurs on every sentinel cycle.
+// Add tickers here with a comment referencing the underlying cause.
+const ORPHAN_ADOPT_BLOCKLIST = new Set([
+  "HTBK",  // merged into CVBF pre-2026-06-25; Alpaca returns asset_not_active on sell attempts
+]);
+
 // ── Exit order-id ledger write with retry+fallback (D4.5 pattern) ────────
 // When sentinel submits a market sell, the exit_order_id must be written
 // to the ledger so downstream reconciliation (trade_auditor, zombie check)
@@ -624,12 +633,33 @@ export async function runSentinel() {
   const equityNow = parseFloat(accountRaw?.equity ?? "0");
   console.log(`[SENTINEL] Open positions: ${positions.length} | SPY D_k: ${spyDk ?? "unknown"} | Equity: $${equityNow.toFixed(2)}`);
 
+  // ── Kill switch guard on orphan adoption ──────────────────────────────
+  // Orphan sync writes new "adopted" rows into personal_trade_ledger when
+  // it sees Alpaca positions with no matching open ledger row. During a
+  // kill-switch window this is a ledger contamination loop: rows get
+  // adopted, sentinel can't cleanly close them (e.g. delisted asset like
+  // HTBK→CVBF), and next cycle re-adopts. Guard mirrors the daily-entry
+  // pass pattern from sentinel_daemon.mjs. Fail closed on DB error.
+  let orphanEntriesHalted = process.env.TFE_ENTRIES_HALTED === "1";
+  if (!orphanEntriesHalted) {
+    try {
+      const r = await pool.query(
+        `SELECT value FROM pee1_execution_config WHERE key = 'entries_halted' LIMIT 1`
+      );
+      orphanEntriesHalted = r.rows[0]?.value === "true";
+    } catch (e) {
+      console.error(`[SENTINEL] Orphan sync kill switch DB fallback failed: ${e.message}. FAILING CLOSED — orphan adoption halted.`);
+      orphanEntriesHalted = true;
+    }
+  }
+
   // ── Orphan sync: adopt Alpaca positions missing from the ledger ────────
   // Runs every cycle. Finds real positions on Alpaca that have no ledger row
   // and inserts them so exit logic can manage them. Any post-submission
   // ledger UPDATE failure (see D4.5 bracket order-ID write-path fix) can
   // leave a filled Alpaca position invisible to sentinel; this catches it.
   {
+    if (!orphanEntriesHalted) {
     try {
       const alpacaPositions = await alpacaGet("/v2/positions", ALPACA_BASE).catch(() => []);
       if (Array.isArray(alpacaPositions) && alpacaPositions.length > 0) {
@@ -639,6 +669,10 @@ export async function runSentinel() {
         for (const ap of alpacaPositions) {
           const sym = ap.symbol.trim().toUpperCase();
           if (ledgerTickers.has(sym)) continue;
+          if (ORPHAN_ADOPT_BLOCKLIST.has(sym)) {
+            console.warn(`[SENTINEL] Orphan sync SKIPPED for ${sym} — on ORPHAN_ADOPT_BLOCKLIST (untradeable). Position remains on Alpaca; ledger row not created.`);
+            continue;
+          }
           if (await isRecentlyKilled(sym)) {
             console.log(`[SENTINEL] Orphan skip: ${sym} — recently killed, Alpaca still settling`);
             continue;
@@ -696,6 +730,9 @@ export async function runSentinel() {
       }
     } catch (orphanErr) {
       console.warn(`[SENTINEL] Orphan sync error: ${orphanErr.message}`);
+    }
+    } else {
+      console.log(`[SENTINEL] Orphan sync SKIPPED — kill switch active. Alpaca positions with no ledger row remain unadopted this cycle.`);
     }
   }
 

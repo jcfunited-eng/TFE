@@ -158,5 +158,20 @@ console.log("\n=== CB-3: unique_violation caught by mocked pool ===");
   }
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// D5.1 assertions
+// ══════════════════════════════════════════════════════════════════════
+const sentSrcD51 = await readFile(new URL("../sentinel_monitor.mjs", import.meta.url), "utf8");
+
+console.log("\n=== D5.1 orphan sync kill switch guard ===");
+assert(sentSrcD51.includes("orphanEntriesHalted"), "Orphan sync kill-switch flag defined");
+assert(sentSrcD51.includes("Orphan sync SKIPPED — kill switch active"), "Orphan sync logs when skipped");
+assert(sentSrcD51.includes("FAILING CLOSED — orphan adoption halted"), "Orphan sync fails closed on DB error");
+
+console.log("\n=== D5.1 orphan adoption blocklist ===");
+assert(sentSrcD51.includes("ORPHAN_ADOPT_BLOCKLIST"), "Blocklist constant defined");
+assert(sentSrcD51.includes(`"HTBK"`), "HTBK on blocklist");
+assert(sentSrcD51.includes("on ORPHAN_ADOPT_BLOCKLIST"), "Blocklist log message present");
+
 console.log(`\n${passed}/${passed + failed} assertions passed`);
 if (failed > 0) process.exit(1);
