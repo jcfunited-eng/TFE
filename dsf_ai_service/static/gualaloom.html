@@ -70,6 +70,26 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 .bundle-btns .cancel{background:none;color:var(--text-muted)}
 .bundle-btns .submit{background:var(--accent);color:#0d1117;border:none;font-weight:600}
 @media(max-width:700px){#state-panel{display:none}.msg{max-width:95%}}
+/* GL-CMD-COGNITION-METER-EVE-20260704-166-v1 */
+#cogmeter-panel{border-bottom:1px solid var(--border);background:var(--bg-alt);font-size:9px}
+#cogmeter-head{display:flex;justify-content:space-between;align-items:center;padding:4px 14px;cursor:pointer;user-select:none}
+#cogmeter-head .t{font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.4px;font-size:9px}
+#cogmeter-head .n{color:var(--text-muted);font-size:8px}
+#cogmeter-body{max-height:280px;overflow-y:auto;padding:0 14px 6px}
+#cogmeter-body.collapsed{display:none}
+.cm-row{display:grid;grid-template-columns:170px 130px 1.3fr 1.3fr;gap:8px;padding:3px 0;border-bottom:1px solid #21262d;align-items:start}
+.cm-row.cm-hdr{color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-alt)}
+.cm-name{color:var(--text)}
+.cm-conn{font-weight:600;white-space:nowrap}
+.cm-conn.yes{color:var(--nmda-fire)}
+.cm-conn.severed{color:var(--nmda-block)}
+.cm-conn.unknown{color:var(--text-muted)}
+.cm-conn.queued{color:#d29922}
+.cm-conn.investigating{color:var(--accent)}
+.cm-conn.absent{color:var(--text-muted)}
+.cm-conn.watch{color:#d29922}
+.cm-firing,.cm-impact{color:var(--text-muted);font-size:8px;line-height:1.35}
+@media(max-width:700px){.cm-row{grid-template-columns:120px 90px 1fr 1fr;font-size:8px}}
 </style>
 </head>
 <body>
@@ -94,6 +114,17 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 <div id="stats-line">—</div>
 <div id="activity-line" style="padding:2px 14px;font-size:9px;color:var(--ev-activity);background:var(--bg-alt);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px"><span id="activity-text"></span><span id="activity-thumb" style="display:none"></span><span id="location-text" style="color:var(--text-muted);font-size:8px;margin-left:auto"></span></div>
 <div id="needs-line" style="padding:2px 14px;font-size:8px;color:var(--text-muted);background:var(--bg-alt);border-bottom:1px solid var(--border)"></div>
+<!-- GL-CMD-COGNITION-METER-EVE-20260704-166-v1: one row per mechanism, plain
+     words, reads only what already exists (status fields, ladder, event
+     counts, filed audit verdicts). No decoration, no smoothing, no minimum
+     brightness — severed is red, unaudited is gray, gray is honest. -->
+<div id="cogmeter-panel">
+  <div id="cogmeter-head" onclick="document.getElementById('cogmeter-body').classList.toggle('collapsed')">
+    <span class="t">Cognition Meter</span>
+    <span class="n" id="cogmeter-count">—</span>
+  </div>
+  <div id="cogmeter-body"></div>
+</div>
 <audio id="voice" style="display:none"></audio>
 <div id="main-area">
 <div id="convo-col">
@@ -1187,11 +1218,79 @@ async function presenceHeartbeat(){
 function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sid);
   document.getElementById('session-line').textContent='session: '+sid;addMsg('new session: '+sid,'system')}
 
+// --- Cognition Meter (GL-CMD-COGNITION-METER-EVE-20260704-166-v1) ---
+// v1: reads only what already exists -- filed audit verdicts (GL-RPT-WIRING-
+// AUDIT-C1-20260704-164-v1 and its predecessors) plus a couple of already-
+// live fields. No new substrate instrumentation. "unknown" rows are honest
+// gray, not hidden -- the meter's job is to show blind spots, not paper over
+// them. This array is the thing to edit as each -164 verdict lands; no row,
+// no ship (standing rule, -166).
+const CM_LABELS={yes:'YES',severed:'SEVERED',unknown:'UNKNOWN',queued:'OFF (queued)',investigating:'INVESTIGATING',absent:'ABSENT',watch:'WATCH-LIST'};
+const COGMETER_ROWS=[
+  // The fifteen mechanisms (plain names per -166), not yet audited at v1 --
+  // updated in place as -164's Part B verdicts land, same session.
+  {name:'recall',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'sentence-building',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'association',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'retention',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'cross-sense recall',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'getting-bored-of-repeats',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'recognizing-things-in-new-forms',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'attention spread',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'order/sequence',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'imagination',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'hearing-her-own-voice',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'organ influence on speech',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'who-tags',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'feelings-deepen-memory',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  {name:'state-shows-in-words',connected:'unknown',firing:'not yet audited',impact:'not yet audited'},
+  // Machinery rows already adjudicated by prior dispatches (-166's own list).
+  {name:'aware gate',connected:'severed',pointer:'-160/-161',
+    firing:'checked every time she considers speaking — blocked every time (structural, not a coincidence)',
+    impact:'none observed — the only thing that could feed it never gets real conversation'},
+  {name:'intro gate',connected:'severed',pointer:'-162',
+    firing:'fires inside a copy of her session Joe never actually talks to',
+    impact:'none observed in her real conversation'},
+  {name:'deliberation stage',connected:'queued',pointer:'-162',
+    firing:'off all boot (0 fires) in the live process; the fix is committed, waiting for a deploy window',
+    impact:'none yet — moves once the next deploy ships'},
+  {name:'day-cycle / sleep trigger',connected:'investigating',pointer:'-165',
+    firing:'she’s been awake doing only two things (looking, speaking) for hours — no sleep, no rest, no play seen',
+    impact:'investigation just opened — no verdict yet'},
+  {name:'curriculum feeders',connected:'severed',pointer:'-156',
+    firing:'0 — confirmed not running in her real deployed process',
+    impact:'none observed'},
+  {name:'play',connected:'absent',pointer:null,
+    firing:'no live counter exists — no code path for this yet',
+    impact:'none observed'},
+  {name:'teaching survives to sleep',connected:'watch',pointer:'-163',
+    firing:'3 of 10 words taught once were mostly or fully forgotten within about a day of activity, before any rest',
+    impact:'measured 2026-07-04 (-163)'},
+];
+function renderCogMeter(){
+  const body=document.getElementById('cogmeter-body');
+  if(!body)return;
+  let h='<div class="cm-row cm-hdr"><div>mechanism</div><div>connected</div><div>firing</div><div>last impact</div></div>';
+  for(const r of COGMETER_ROWS){
+    const lbl=CM_LABELS[r.connected]||r.connected;
+    const ptr=r.pointer?` <span style="opacity:.6">(${r.pointer})</span>`:'';
+    h+=`<div class="cm-row"><div class="cm-name">${r.name}</div>`+
+       `<div class="cm-conn ${r.connected}">${lbl}${ptr}</div>`+
+       `<div class="cm-firing">${r.firing}</div>`+
+       `<div class="cm-impact">${r.impact}</div></div>`;
+  }
+  body.innerHTML=h;
+  const known=COGMETER_ROWS.filter(r=>r.connected!=='unknown').length;
+  const cnt=document.getElementById('cogmeter-count');
+  if(cnt)cnt.textContent=`${known}/${COGMETER_ROWS.length} audited`;
+}
+
 // --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
 (()=>{
   addMsg('she is here','system');
   _applyBrainModeUI();
   msgInput.focus();
+  renderCogMeter();
   setTimeout(pollAutonomousThought,35000);
   setTimeout(pollLocation,20000);
   setTimeout(pollRoom,25000);
