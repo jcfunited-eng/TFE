@@ -178,3 +178,22 @@ class LoomTapestry:
         for mosaic in self.mosaics:
             result[mosaic.name] = mosaic.neuron_diversity_signature()
         return result
+
+    # ------------------------------------------------------------------
+    # persistence — GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 P1: same convention
+    # as Embryo.save_full_state/load_full_state (embryo.py, GL-CMD-169) --
+    # full pickle of the object graph, so every neuron's real spike/
+    # winding/familiarity history round-trips, not a hand-picked subset.
+    # ------------------------------------------------------------------
+
+    def save_full_state(self, path):
+        import pickle, gzip, os
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        with gzip.open(path, "wb") as f:
+            pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    @staticmethod
+    def load_full_state(path):
+        import pickle, gzip
+        with gzip.open(path, "rb") as f:
+            return pickle.load(f)

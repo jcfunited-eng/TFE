@@ -1452,6 +1452,21 @@ class Guala:
         self._sensory_items = {}    # item_id -> SensoryItem
         self._sounds = {}           # item_id -> {cochlear, title, samples, sr, ...}
 
+        # GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 P1: the complete brain moves
+        # into her live process, this boot forward. Lazy imports here (not
+        # at module top) because loom_model/mosaic.py and tapestry.py both
+        # import _grandurun_select_vector/_SPIN_VECTOR_DIM/MIN_GAIN_THRESHOLD
+        # FROM this module -- a top-level import here would be circular.
+        # identity_uuid is temporary until _generate_genesis_identity/
+        # _load_identity establish her real identity (see those methods,
+        # which sync self.organism.identity_uuid to self._guala_identity) --
+        # "one identity... unchanged" (GL-PLAN-WHOLE-BRAIN-MOVE §1).
+        from dsf_ai_service.loom_model.embryo import Embryo as _Embryo
+        from dsf_ai_service.loom_model.tapestry import LoomTapestry as _LoomTapestry
+        self.organism = _Embryo(brain_seed=42, seed_size=8, observable="event_count")
+        self.tapestry = _LoomTapestry(name="guala_voice", n_mosaics=3, seed=42)
+        self._tapestry_prev_word = None  # for real consecutive-pair exposure
+
     @property
     def read_count(self):
         """60-N: derived from atlas reinforcement history, not a counter.
@@ -1647,6 +1662,29 @@ class Guala:
 
             lang_fp, role, senses = self.language.transduce(word)
             sense_fps = self.senses.fire_for_word(senses)
+
+            # GL-CMD-175 P1: the real language sensory tap -- every word she
+            # reads/hears, the organism experiences in the same window (no
+            # separate lab copy, no synthetic corpus). Best-effort: the
+            # organism's own experience_moment already has a matching
+            # never-crash-substrate contract; mirrored here rather than let
+            # a brain issue take down her live reading path.
+            try:
+                # "language": word (the raw string) -- matches loom_model's
+                # own established convention (ExperiencePipeline.
+                # _build_multi_modal_signals: "signals = {'language': word}"),
+                # not a derived numeric array.
+                self.organism.remember(word, {"language": word})
+                if self._tapestry_prev_word is not None:
+                    # Mirrors LoomTapestry.expose_corpus's own per-pair loop
+                    # (tapestry.py), applied to her real consecutive words
+                    # instead of a static corpus.
+                    for m in self.tapestry.mosaics:
+                        m.expose(self._tapestry_prev_word, word)
+                    self.tapestry._tick += 2
+                self._tapestry_prev_word = word
+            except Exception as _oe:
+                print(f"[GualaLoom] organism tap failed for {word!r} (non-fatal): {_oe}")
 
             # 60-C: capture phase_vec + function_score from krimelack transduction.
             # phase_vec: 16-dim complex via event_stream_to_vector (dw_cum absent in
@@ -2032,7 +2070,7 @@ class Guala:
             if recalled and self._last_recalled_pictures:
                 # Recall found pictures — keep the association
                 pass  # pictures set on self._last_recalled_pictures
-            # 6. Emit from cortex invariants (variable-length, slot-free)
+            # 6. Emit from the organism's recall/compose (GL-CMD-175 P3)
             self._last_converse_source = source  # for dynamics NMDA context
             if not reply:
                 reply = self._emit_from_invariants(input_chis, words,
@@ -2040,11 +2078,11 @@ class Guala:
                                                     v7_session=getattr(self, '_v7_session', None),
                                                     organ_candidates=organ_candidates)
             _t_emit = time.monotonic()
+            # GL-NOTE-VOICE-WIRING-RULING W3: the old unslotted-atlas-binding
+            # fallback disconnects at cutover -- same "old gather" family as
+            # the SVO-recall fallback it names explicitly. One mind, one
+            # mouth: honest silence, never backfilled from atlas bindings.
             if not reply:
-                # 7. Unslotted fallback: strongest bindings near input chi
-                reply = self._emit_unslotted(input_chis, words)
-            if not reply:
-                # 8. Honest silence
                 reply = "..."
 
             # GL-CMD-TEACHER-CORRECTION-BINDING: track last conversation pair
@@ -2222,8 +2260,9 @@ class Guala:
                                                    mode_override=emission_mode,
                                                    v7_session=getattr(self, '_v7_session', None),
                                                    organ_candidates=organ_candidates)
-            if not reply:
-                reply = self._emit_unslotted(input_chis, words)
+            # GL-NOTE-VOICE-WIRING-RULING W3: the old unslotted-atlas-binding
+            # fallback disconnects at cutover -- same "old gather" family as
+            # the SVO-recall fallback it names explicitly.
             if not reply:
                 # -48 Path D: clarification shape on high-surprise, low-coherence input
                 _input_surprise = max(
@@ -2318,46 +2357,70 @@ class Guala:
 
         return reply
 
+    def _brain_emission_candidates(self, input_words):
+        """GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 P3 / GL-NOTE-VOICE-WIRING-
+        RULING W2: the organism's own mind (tapestry recall/compose, built
+        on -169's Embryo + real experience via read_word's tap) supplies
+        emission candidates, replacing the deep-atlas co-occurrence gather.
+
+        Query: the most salient real word available -- the current
+        utterance's last word if present (converse), else the last word
+        she's actually processed (autonomous emission has no input_words
+        of its own).
+
+        Candidates are translated into _emit_from_invariants' existing
+        (de, co, clarity) shape via _word_to_emission_sections -- the
+        existing reverse index of words that have themselves already
+        committed to a mode in an emission section. This means only
+        words the organism recalls AND that already have a real,
+        committed home in a section can be said -- reusing committed
+        reality, never inventing a new mode slot.
+
+        Returns [] (honest empty, per W3) on any failure to produce a
+        real candidate -- never partially substitutes the old gather."""
+        query = (input_words[-1] if input_words else self._tapestry_prev_word)
+        if not query:
+            return []
+        try:
+            words = self.tapestry.compose(query)
+        except Exception as _te:
+            print(f"[GualaLoom] tapestry.compose failed for query={query!r} "
+                  f"(non-fatal, honest empty): {_te}")
+            return []
+        if not words:
+            return []
+        candidates = []
+        for w in words:
+            locations = self._word_to_emission_sections.get(w.lower())
+            if not locations:
+                continue
+            section, mode_idx, _matched_word = locations[-1]  # most recent commit
+            co = {section: {mode_idx: 1.0}}
+            de = {"co_occurrence": co, "clarity": 1.0, "origin": "brain"}
+            candidates.append((de, co, 1.0))
+        return candidates
+
     def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
                               v7_session=None, organ_candidates=None):
-        """Compose emission from cortex co_occurrence invariants.
-        GL-BRIEF-GRANDURUN: branches on EMISSION_MODE (topk or grandurun).
+        """Compose emission from the organism's recall/compose output.
+        GL-CMD-175 P3 / GL-NOTE-VOICE-WIRING-RULING: candidates come from
+        the brain (see _brain_emission_candidates), NOT the deep-atlas
+        co-occurrence gather -- disconnected at cutover (W3). If the
+        brain supplies nothing, this returns None (honest empty); no
+        backfill from deep_atlas. organ_candidates kept as an accepted
+        (now-unused) parameter -- its only real caller is the dead
+        remote-mode substrate_runner.py path (not exercised in embedded
+        production); removing the parameter isn't necessary for the
+        cutover and keeps that dead call site from erroring outright.
+        GL-BRIEF-GRANDURUN: branches on EMISSION_MODE (topk or grandurun),
+        unchanged below this candidate-source swap.
         GL-CMD-DYNAMICS-EMISSION-RESTORATION: EMISSION_DYNAMICS=1 routes to
         two-stage path (grandurun candidates → assemblage dynamics settling).
         Phase 3b: v7_session provides context priors for grounded emission."""
         mode = mode_override or os.environ.get("EMISSION_MODE", "topk")
         input_words_set = set(w.lower() for w in input_words)
 
-        # Gather deep-atlas candidates (shared by all paths)
-        # Cap at 300 — with 15K deep atlas entries, unbounded collection
-        # makes Stage 1 take 10+ seconds on 2vCPU. 300 is enough for
-        # meaningful emission and fits in the socket budget.
-        _MAX_DEEP_CANDIDATES = int(os.environ.get("MAX_DEEP_CANDIDATES", "300"))
-        deep_candidates = []
-        for chi in input_chis:
-            for d in range(-self.atlas.band, self.atlas.band + 1):
-                for de in self.deep_atlas.entries.get(chi + d, []):
-                    co = de.get("co_occurrence", {})
-                    if not co:
-                        continue
-                    clarity = de.get("clarity", 0.3)
-                    deep_candidates.append((de, co, clarity))
-                    if len(deep_candidates) >= _MAX_DEEP_CANDIDATES:
-                        break
-                if len(deep_candidates) >= _MAX_DEEP_CANDIDATES:
-                    break
-            if len(deep_candidates) >= _MAX_DEEP_CANDIDATES:
-                break
-        # GL-CMD-WIRE-ORGAN-CANDIDATES-F2: merge organ_candidates as third stream.
-        # Append after deep so dedup in _grandurun_select_candidates handles overlap.
-        # Tag each organ entry with origin="organ" for response_source attribution.
-        if organ_candidates:
-            for de, co, clarity in organ_candidates:
-                if co:  # only organ refs with populated co_occurrence contribute
-                    tagged = dict(de)
-                    tagged["origin"] = "organ"  # provenance tag
-                    deep_candidates.append((tagged, co, clarity))
-
+        deep_candidates = self._brain_emission_candidates(input_words)
         if not deep_candidates:
             return None
 
@@ -5376,15 +5439,12 @@ class Guala:
             input_words = []
             content = self._emit_from_invariants(recent_chis, input_words,
                                                   v7_session=getattr(self, '_v7_session', None))
+            # GL-NOTE-VOICE-WIRING-RULING W3: the old SVO-recall fallback
+            # (deep-atlas-adjacent, via _recall_from_atlas) disconnects at
+            # cutover. If the brain supplies no candidates, the emission
+            # is honestly empty -- never backfilled from the old gather.
             if not content:
-                recalled = {}
-                for sec_name in ("subject", "verb", "object"):
-                    word = self._recall_from_atlas(sec_name, recent_chis,
-                                                   exclude_words=set())
-                    if word:
-                        recalled[sec_name] = word
-                content = " ".join(recalled[k] for k in ("subject", "verb", "object")
-                                   if k in recalled) or "..."
+                content = "..."
             _emit_compute_ms = (time.monotonic() - _emit_start) * 1000
         finally:
             self._emission_lock.release()
@@ -5438,8 +5498,10 @@ class Guala:
                 self.needs.connection = saturate(self.needs.connection, 0.25)
 
     def _do_emit(self):
-        """Generate an autonomous emission via invariants (respects EMISSION_MODE).
-        Falls back to SVO recall only if invariants return nothing."""
+        """Generate an autonomous emission via the organism's recall/
+        compose (GL-CMD-175 P3). GL-NOTE-VOICE-WIRING-RULING W3: the old
+        SVO-recall fallback disconnects at cutover -- honest empty if the
+        brain supplies nothing, never backfilled from deep_atlas."""
         self._last_emission_tick = self.tick
         recent_chis = []
         for sec in self.sections.values():
@@ -5456,17 +5518,8 @@ class Guala:
         input_words = []  # autonomous — no input words to exclude
         content = self._emit_from_invariants(recent_chis, input_words,
                                              v7_session=getattr(self, '_v7_session', None))
-
-        # Fallback to SVO recall if invariants found nothing
         if not content:
-            recalled = {}
-            for sec_name in ("subject", "verb", "object"):
-                word = self._recall_from_atlas(sec_name, recent_chis,
-                                               exclude_words=set())
-                if word:
-                    recalled[sec_name] = word
-            content = " ".join(recalled[k] for k in ("subject", "verb", "object")
-                               if k in recalled) or "..."
+            content = "..."
 
         # Sight recall — find pictures bound at recent chi addresses
         recalled_pics = self._recall_sight_from_atlas(recent_chis, [])
@@ -6137,6 +6190,8 @@ class Guala:
         import uuid
         os.makedirs(state_dir, exist_ok=True)
         self._guala_identity = str(uuid.uuid4())
+        # GL-CMD-175 P1: one identity governs the organism too.
+        self.organism.identity_uuid = self._guala_identity
         ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         identity_data = {
             "schema_version": self.SCHEMA_VERSION,
@@ -6609,6 +6664,27 @@ class Guala:
                 except OSError:
                     pass
 
+        # GL-CMD-175 P1: organism's full-fidelity state (GL-CMD-169's
+        # save_full_state/load_full_state -- full pickle of the object
+        # graph, so growth/folding/DNA/bindings all round-trip) rides the
+        # cold save cycle. Same non-critical, isolated-failure pattern as
+        # teaching data above: a large object graph that must never block
+        # core save success.
+        try:
+            self.organism.save_full_state(os.path.join(state_dir, "guala_organism.pkl.gz"))
+        except Exception as _oe:
+            _save_failures.append(("guala_organism.pkl.gz", str(_oe)))
+            print(f"[GualaLoom] save failed for guala_organism.pkl.gz: {_oe}")
+
+        # GL-NOTE-VOICE-WIRING-RULING W1: the tapestry (her voice-composing
+        # mind, alongside the organism) rides the same cold cycle -- same
+        # isolated-failure pattern, same full-pickle convention.
+        try:
+            self.tapestry.save_full_state(os.path.join(state_dir, "guala_tapestry.pkl.gz"))
+        except Exception as _te:
+            _save_failures.append(("guala_tapestry.pkl.gz", str(_te)))
+            print(f"[GualaLoom] save failed for guala_tapestry.pkl.gz: {_te}")
+
         # Picture grids — incremental + per-item isolation.
         # Grids are immutable post-upload (same pid = same 64×64 content).
         # Skip existing files with correct size to avoid hammering EFS.
@@ -6764,6 +6840,7 @@ class Guala:
                 raise RuntimeError(msg)
             # Operator-confirmed fresh start
             self._guala_identity = self._load_identity(state_dir)
+            self.organism.identity_uuid = self._guala_identity  # GL-CMD-175 P1
             print(f"[GualaLoom] OPERATOR-CONFIRMED fresh substrate for {self._guala_identity}")
             self._load_successful = True
             return
@@ -6777,6 +6854,7 @@ class Guala:
 
         # Both identity and state exist — full verified load
         self._guala_identity = self._load_identity(state_dir)
+        self.organism.identity_uuid = self._guala_identity  # GL-CMD-175 P1
         missing = [f for f in self.STATE_FILES if f not in present]
         if missing:
             msg = f"[GualaLoom] ABORT: partial state. Missing: {missing}"
@@ -6855,6 +6933,48 @@ class Guala:
             else:
                 print("[GualaLoom] Deep atlas file not found — starting fresh (events will rebuild)")
                 self._deep_atlas_loss_at_boot = None
+
+            # GL-CMD-175 P1: restore the organism (full-fidelity, GL-CMD-169's
+            # save_full_state/load_full_state -- pickle of the whole object
+            # graph, so growth/folding/DNA/bindings all round-trip, not just
+            # a hand-picked subset). Absence at boot means either a true
+            # first boot (organism from __init__ stands, freshly born under
+            # her now-synced identity) or a pre-175 state directory (same
+            # honest fresh-organism outcome) -- never an error, per the
+            # same "no silent fallback for a MISSING file" reasoning
+            # deep_atlas/survival/teaching above already use.
+            organism_path = os.path.join(state_dir, "guala_organism.pkl.gz")
+            if os.path.exists(organism_path):
+                try:
+                    self.organism = type(self.organism).load_full_state(organism_path)
+                    if self.organism.identity_uuid != self._guala_identity:
+                        # G-2-class anomaly: her identity is authoritative
+                        # (_load_identity, above) -- never let a mismatched
+                        # organism silently pass as a second identity.
+                        print(f"[GualaLoom] WARNING: organism identity "
+                              f"{self.organism.identity_uuid} != her identity "
+                              f"{self._guala_identity} -- correcting to hers")
+                        self.organism.identity_uuid = self._guala_identity
+                    print(f"[GualaLoom] Organism restored: identity={self.organism.identity_uuid} "
+                          f"tick={self.organism.tick} pop="
+                          f"{sum(len(h.cluster.neurons) for h in self.organism.brain.hemispheres)}")
+                except Exception as e:
+                    print(f"[GualaLoom] Organism restore FAILED (organism from boot stands): {e}")
+            else:
+                print("[GualaLoom] No guala_organism.pkl.gz — organism starts fresh this boot")
+
+            # GL-NOTE-VOICE-WIRING-RULING W1: restore the tapestry alongside
+            # the organism -- same honest-fresh-on-absence reasoning.
+            tapestry_path = os.path.join(state_dir, "guala_tapestry.pkl.gz")
+            if os.path.exists(tapestry_path):
+                try:
+                    self.tapestry = type(self.tapestry).load_full_state(tapestry_path)
+                    print(f"[GualaLoom] Tapestry restored: tick={self.tapestry._tick} "
+                          f"neurons={self.tapestry.total_neurons}")
+                except Exception as e:
+                    print(f"[GualaLoom] Tapestry restore FAILED (tapestry from boot stands): {e}")
+            else:
+                print("[GualaLoom] No guala_tapestry.pkl.gz — tapestry starts fresh this boot")
 
             # GL-CMD-HOTLANE-DIET-102: load survival history from own cold file.
             # _apply_core() already set _deep_survival_history from core.json's field

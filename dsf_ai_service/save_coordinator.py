@@ -133,6 +133,7 @@ class SaveCoordinator:
                     "guala_sections.json", "guala_bucket.json",
                     "guala_visual.json", "guala_sounds.json",
                     "guala_videos.json", "guala_teaching.json",
+                    "guala_organism.pkl.gz", "guala_tapestry.pkl.gz",  # GL-CMD-175 P1
                 ]
                 uploaded = 0
                 for fname in all_files:

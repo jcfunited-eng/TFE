@@ -4520,7 +4520,8 @@ def _backup_to_s3(state_dir):
     files = ["guala_core.json", "guala_needs.json", "guala_coordinator.json",
              "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
              "guala_deep_atlas.json", "guala_visual.json", "guala_identity.json",
-             "guala_sounds.json", "guala_videos.json"]
+             "guala_sounds.json", "guala_videos.json",
+             "guala_organism.pkl.gz", "guala_tapestry.pkl.gz"]  # GL-CMD-175 P1
     backed = 0
     for f in files:
         path = os.path.join(state_dir, f)
