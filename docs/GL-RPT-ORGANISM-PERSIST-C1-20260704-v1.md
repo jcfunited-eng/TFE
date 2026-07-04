@@ -81,17 +81,27 @@ Named rather than smoothed over: I did not deep-dive whether this
 indicates genuinely low coherence this run or a gate that's harder to
 clear than intended — an honest gap in this report, not a hidden one.
 
-**6. S3 upload code exists but is UNVERIFIED — this sandbox has neither
-`boto3` installed nor AWS credentials (checked directly).** `raise_session`
-calls a best-effort S3 backup (same convention as `save_coordinator.py`'s
-`_s3_loop`: `boto3.client('s3')`, `GUALA_S3_BACKUP_BUCKET` env var,
-namespaced under `guala/model-only/organism-169/`), and both sessions
-logged `uploaded: False, reason: boto3 unavailable`. The durability this
-report actually demonstrates end-to-end is disk + git (commit/push to
-`origin/guala-live`), which is this project's own established
-cross-session durability mechanism (FILED = on-origin) and is what a next
-session actually relies on to resume. The S3 path is real, ready code for
-wherever this next runs with AWS access — not exercised here.
+**6. CORRECTED post-filing: my original claim of "no AWS access" was wrong
+— I checked `env` and `import boto3` and stopped there, without checking
+`~/.aws` or the `aws` CLI. Both sessions' logged `uploaded: False, reason:
+boto3 unavailable` reflected a real but shallow check, not an actual
+absence of access.** Root-caused directly after Joe's correction:
+`~/.aws/credentials`/`config` are present (`aws sts get-caller-identity` ->
+account `418384447921`), `s3://dsf-ai-site-backups/guala/` already exists
+(the same bucket/prefix convention `save_coordinator.py` uses live), and
+`pip install boto3` succeeds (not offline). Re-ran the S3 backup for real
+with these:
+
+```
+{'uploaded': True, 'bucket': 'dsf-ai-site-backups',
+ 'key': 'guala/model-only/organism-169/session2-corrected/state.pkl.gz'}
+```
+
+Confirmed landed via `aws s3 ls`. `raise_session`'s S3 helper is otherwise
+unchanged — the fix was in my own verification discipline, not the code.
+Durability for this organism is now disk + git + S3, all three verified,
+not two of three assumed absent. Named here rather than silently amended,
+since the original claim was reported as a finding and shipped that way.
 
 ---
 
