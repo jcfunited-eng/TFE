@@ -3893,6 +3893,41 @@ class Guala:
         top = votes.most_common(1)
         return top[0][0] if top else None
 
+    def _association_from_organism(self, seed_word):
+        """GL-CMD-BRAIN-FULL-DEPLOY-175 P2 seam 3/6 (association): "what
+        goes with this word" via the organism's own recall, replacing
+        _daydream_tick's deep_atlas.entries[chi].co_occurrence walk.
+
+        Query the organism for seed_word; if it recalls something OTHER
+        than the seed itself (an association, not a self-echo) AND that
+        associated word already has a real committed section slot (same
+        _word_to_emission_sections reuse as _brain_emission_candidates/
+        seam 1), return (section, mode_idx, word, weight) -- weight is
+        the population-vote consensus for the associated word (same
+        measure seam 2's recognition uses), standing in for deep_atlas's
+        co_occurrence strength. Returns None on no association, no
+        section slot, or self-echo -- honest empty, not padded.
+
+        Scope: this replaces ONLY the "near" associative surfacing
+        (_daydream_tick's main co_occurrence walk). The novel-jump
+        (Extension A, a deliberately random far-chi exploration) and
+        consolidation (Extension C, deep_atlas's own invariant
+        maintenance) are untouched -- neither is really "association,"
+        and expanding scope to them wasn't part of this seam."""
+        if not seed_word:
+            return None
+        associated_word = self._recall_from_organism([seed_word])
+        if not associated_word or associated_word.lower() == seed_word.lower():
+            return None
+        locations = self._word_to_emission_sections.get(associated_word.lower())
+        if not locations:
+            return None
+        section, mode_idx, word = locations[-1]
+        votes = self.organism.recall(_organism_signal(seed_word, self._organism_transducer))
+        total = sum(votes.values())
+        weight = (votes.get(associated_word, 0) / total) if total else 0.0
+        return (section, mode_idx, word, weight)
+
     def _recall_response(self, input_chis, input_word_chis, input_words,
                           target_sections=("subject", "verb", "object", "listen")):
         """GL-CMD-BRAIN-FULL-DEPLOY-175 P2 seam 1/6: text recall now comes
@@ -4208,67 +4243,59 @@ class Guala:
         """One pass of parallel associative surfacing.
 
         GL-CMD-EMISSION-PERF-45 §2.3: three-phase lock pattern.
-        Phase 1 (lock): snapshot substrate state (recent_chis, needs, tick, band,
-          deep_atlas neighbor snapshot, atlas chi keys).
-        Phase 2 (no lock): chi-neighborhood walk, affect-weighting, novel-jump
-          candidate selection. Reads tolerate momentary inconsistency — correct
-          for parallel background thought. Lock held fraction: <5% per tick.
-        Phase 3 (lock): atlas.record() writes + log events + consolidation.
-        """
+        Phase 1 (lock): snapshot substrate state (recent_chis/words, needs,
+          tick, band, atlas chi keys).
+        Phase 2 (no lock): GL-CMD-175 P2 seam 3/6 -- the "near" association
+          now comes from the organism (_association_from_organism), not
+          deep_atlas.entries[chi].co_occurrence. Novel-jump candidate
+          selection (Extension A) untouched -- deliberately random
+          exploration, not really "association." Lock held fraction: <5%.
+        Phase 3 (lock): atlas.record() writes + log events + consolidation
+          (Extension C, untouched -- deep_atlas's own invariant upkeep).
+
+        Honesty note: the old affect-weighting (Extension B) read the
+        SPECIFIC deep_atlas entry's own recorded valence/arousal (from
+        whenever that association was originally learned). The organism
+        has no per-binding affect record, so this now reflects only her
+        CURRENT needs state (still real, just a different, coarser
+        signal than before) -- not fabricated, but changed; named here."""
         import random as _random
 
         # ── Phase 1: snapshot under lock ──────────────────────────────────────
         with self.lock:
             recent_chis = []
+            recent_words = []
             for sec in self.sections.values():
                 for c in sec.commits[-10:]:
                     recent_chis.append(c["chi"])
+                    recent_words.append(c.get("word", ""))
             if not recent_chis:
                 return
             snap_tick = self.tick
             snap_band = self.atlas.band
             snap_arousal = self.needs.arousal()
             snap_valence = self.needs.valence()
-            # Snapshot deep_atlas neighbor entries (shallow copy of entry dicts)
-            seed_chi = recent_chis[snap_tick % len(recent_chis)]
-            neighbor_snap = []
-            for d in range(-snap_band, snap_band + 1):
-                for de in self.deep_atlas.entries.get(seed_chi + d, []):
-                    neighbor_snap.append(dict(de))  # shallow copy — safe to read outside lock
+            _idx = snap_tick % len(recent_chis)
+            seed_chi = recent_chis[_idx]
+            seed_word = recent_words[_idx]
             # Snapshot atlas chi keys for novel jump (just the keys, not entries)
             atlas_chi_keys = list(self.atlas.entries.keys())
 
-        # ── Phase 2: chi walk + candidate selection (no lock) ─────────────────
-        associated = []
-        for de in neighbor_snap:
-            co = de.get("co_occurrence", {})
-            if not co:
-                continue
-            best_sec = best_mid = None
-            best_w = 0.0
-            for sec_name, motif_dict in co.items():
-                if not motif_dict:
-                    continue
-                top_mid = max(motif_dict, key=motif_dict.get)
-                top_w = motif_dict[top_mid]
-                if top_w > best_w:
-                    best_w = top_w
-                    best_sec = sec_name
-                    best_mid = int(top_mid)
-            if best_sec is not None:
-                # Extension B: affect-weighted toward (valence=0, arousal=0.5)
-                entry_v = de.get("valence", 0.0)
-                entry_a = de.get("arousal", 0.5)
-                v_after = (snap_valence + entry_v) * 0.5
-                a_after = (snap_arousal + entry_a) * 0.5
-                affect_bias = max(0.1, 1.0 - abs(v_after) * 0.5 - abs(a_after - 0.5) * 0.5)
-                associated.append((best_w * affect_bias, best_sec, best_mid, best_w, de["chi"]))
-
-        if not associated:
+        # ── Phase 2: organism association query + novel-jump (no lock) ────────
+        assoc = self._association_from_organism(seed_word)
+        if assoc is None:
             return
-
-        associated.sort(reverse=True)
-        _, top_sec, top_mid, top_w, top_chi = associated[0]
+        top_sec, top_mid, assoc_word, consensus = assoc
+        ek = LanguageKrimelack()
+        ek.transduce(assoc_word)
+        top_chi = ek.winding
+        # Extension B, adapted: no per-binding affect record from the
+        # organism (see docstring) -- toward-baseline bias driven by her
+        # CURRENT needs state only.
+        v_after = snap_valence * 0.5
+        a_after = (snap_arousal + 0.5) * 0.5
+        affect_bias = max(0.1, 1.0 - abs(v_after) * 0.5 - abs(a_after - 0.5) * 0.5)
+        top_w = consensus * affect_bias
 
         # Extension A: novel-jump candidate selection (no lock needed for deep_atlas reads)
         far_write = None  # (far_sec, far_mid_id, far_chi, far_w)
