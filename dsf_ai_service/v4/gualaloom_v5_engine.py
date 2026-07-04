@@ -482,6 +482,22 @@ DP_DISCHARGE_PER_DREAM_TICK = 0.08      # LIVE-CALIBRATE: per real _run_dream_cy
 DP_OVERRIDE_CEILING = 1.0               # NOT tunable without cause: reuses dream_pressure's
                                          # own existing saturation cap (GL-RPT-SLEEP-BACKTEST
                                          # -C1-20260704-167-v1's ceiling derivation, Joe-ratified)
+# GL-CMD-SLEEP-RATE-CALIBRATION-EVE-20260704-173-v1: the ONE dial this
+# program's live-calibration provision reserved (D2 -- floor/threshold/
+# ceiling above untouched). Measured live, this deploy, not felt: 6
+# dream_pressure_check reads, tick 14724000-14739000 (~63 real minutes,
+# tick rate 3.949/s from two precise save-timestamp anchors), 5 of them
+# under identical conditions (attending, non-pair-bonded, zero atlas
+# writes -- she re-attended one over-familiar picture the whole window)
+# gave 5 consecutive identical deltas of 0.003 dp / 3000 ticks exactly
+# -- i.e. the unscaled rate is 0.0142 dp/hour, ~49.3h to the 0.7
+# threshold. Target per the CMD: 0.7 within ~5-6h of normal awake
+# activity. 0.7/5.5h=0.1273/h needed; 0.1273/0.0142=8.96 -> 9.0.
+# Measurement window was a zero-novelty stretch (no atlas writes at
+# all), close to a floor rate -- a normal mixed day should run at or
+# above this, so 9x is mildly conservative against the over-sleep
+# failure mode, not aggressive toward it.
+DP_RATE_MULTIPLIER = 9.0
 
 # GL-CMD-AGITATION-FIX-JOE-20260704 Change B: stability's sleep/dream
 # restoration becomes target-seeking (decay toward 0.7 from either side)
@@ -4295,7 +4311,7 @@ class Guala:
                 )
 
                 _dp_rate = (_write_delta * DP_RATE_PER_READ
-                            + (DP_RATE_PER_ATTEND_TICK if _attending else 0.0))
+                            + (DP_RATE_PER_ATTEND_TICK if _attending else 0.0)) * DP_RATE_MULTIPLIER
                 if _pair_bond_active:
                     _dp_rate *= 0.3  # push-through: actively interacting perceives less backlog growth
 
