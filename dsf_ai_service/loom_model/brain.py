@@ -340,12 +340,38 @@ class LoomBrain:
                 # site never passes phase_offset -- so phase always starts
                 # at 0.0 here. Proven in probe_177_vectorized_parity.py (b).
                 phase0 = np.zeros(n, dtype=np.float64)
+                # GL-CMD-LANGUAGE-SATURATION-ROOTCAUSE-EVE-20260704-178:
+                # mirror _unwrapped_deltas's OWN hasattr(krim, 'n_events')
+                # dispatch exactly, PER-NEURON (neuron.py:846/858) -- this is
+                # NOT optional/cosmetic. recall_fast() is what's actually
+                # wired into the 3 live organism.recall() call sites
+                # (window-3 cutover); if this branch stayed hardcoded to
+                # len(events) after -178's n_events counter landed, -178's
+                # whole fix would go live completely inert (recall_fast()
+                # would keep computing the stale, saturated-to-zero delta
+                # forever, silently defeating the fix the moment both land
+                # together). Per-neuron, not a population-wide switch: a
+                # restored (pickled, GL-CMD-169) organism could mix
+                # pre-n_events neurons with post-n_events ones (e.g. folded
+                # after an upgrade), and each neuron's krim is independent --
+                # caught by -179's own restore-honesty-at-grown-size check,
+                # not assumed uniform.
+                has_n_events = np.array(
+                    [k is not None and hasattr(k, 'n_events') for k in krims],
+                    dtype=bool,
+                )
                 ev0 = np.array(
-                    [len(k.events) if k is not None else 0 for k in krims],
+                    [(k.n_events if has_n_events[idx] else len(k.events))
+                     if k is not None else 0
+                     for idx, k in enumerate(krims)],
                     dtype=np.int64,
                 )
                 raw, _ = vectorized_wind_count(base_dphi, threshold, phase0, att)
-                new_count = saturating_new_count(ev0, raw)
+                new_count = np.where(
+                    has_n_events,
+                    monotonic_new_count(raw),
+                    saturating_new_count(ev0, raw),
+                )
             else:
                 if not hasattr(sample_krim, '_inner'):
                     raise NotImplementedError(

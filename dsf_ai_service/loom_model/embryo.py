@@ -297,6 +297,55 @@ class Embryo:
         folds on the experience's coherence (resonance), accumulates a binding
         strength that decays at its own cognitive timescale, and cross-hemi links
         strengthen on convergent co-fire. aff arousal modulates the fold gate."""
+        if noise:
+            rng = np.random.default_rng(abs(hash(word)) % (2**31))
+            composite = rng.standard_normal(200 * 13) * 0.3
+        else:
+            composite = np.concatenate([bipolar_sense(receptors.get("taste", {}), "taste"),
+                                        bipolar_sense(receptors.get("smell", {}), "smell")])
+        return self._experience_core(composite, theta)
+
+    def experience_word(self, concept, multi_modal_signals, theta=0.05):
+        """GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179: the real charge-and-
+        fold growth physics (_charge_and_fold, -169's q-charge, the ONLY
+        growth mechanism per G-1 -- no invented growth), wired onto the SAME
+        multi-modal word signal the live cognition path already uses
+        (gualaloom_v5_engine.py's _organism_signal), alongside -- not instead
+        of -- the existing binding write.
+
+        W1: bindings today must still be bindings after -- this calls
+        remember() first, unchanged, then drives the SAME fold cascade
+        experience() already uses, sourced from the organism's own real
+        tactile/olfactory/gustatory waveforms (resonance_signal() applied
+        to real sensory signal, exactly as experience() already does with
+        its bipolar taste/smell composite -- same primitive, same math,
+        different real signal source, not a new invented one).
+
+        W2 (-178 coupling): language contributes to the BINDING (via
+        remember()'s experience_moment() -> encode_state(), where -178's
+        n_events fix makes language's contribution honest and non-zero
+        going forward) but not directly to the CHARGE/FOLD composite here
+        (language is a word string, not a waveform array -- resonance_
+        signal() needs a real numeric signal; tactile/olfactory/gustatory
+        already are ones). Folding accumulates from the real sensory
+        richness of every word/moment; language's role is the binding
+        content, matching how experience() itself never included language
+        either (it only ever took taste/smell receptors).
+        """
+        self.remember(concept, multi_modal_signals)
+
+        parts = []
+        for m in ("tactile", "olfactory", "gustatory"):
+            v = multi_modal_signals.get(m)
+            if v is not None:
+                parts.append(np.asarray(v, dtype=float))
+        composite = np.concatenate(parts) if parts else np.zeros(1)
+        return self._experience_core(composite, theta)
+
+    def _experience_core(self, composite, theta):
+        """Shared fold-cascade body for experience()/experience_word() --
+        extracted so the two callers can never drift apart on the actual
+        growth physics, only on how `composite` gets built."""
         # Closed energy loop: refill R = BASE_LAMBDA*N_initial; upkeep M = BASE_LAMBDA*N_current.
         # When N > N_initial: M > R → pool drains to 0 → divisions blocked → asymptote.
         N_current = sum(len(h.cluster.neurons) for h in self.brain.hemispheres)
@@ -304,12 +353,6 @@ class Embryo:
             self._div_pool
             + self.BASE_LAMBDA * self._N_initial   # refill flux (constant)
             - self.BASE_LAMBDA * N_current)        # maintenance flux (scales with population)
-        if noise:
-            rng = np.random.default_rng(abs(hash(word)) % (2**31))
-            composite = rng.standard_normal(200 * 13) * 0.3
-        else:
-            composite = np.concatenate([bipolar_sense(receptors.get("taste", {}), "taste"),
-                                        bipolar_sense(receptors.get("smell", {}), "smell")])
         sig_res = resonance_signal(composite)
         theta_eff = theta   # gate is the noise floor; brake is the charge cycle, not theta
 
