@@ -1482,6 +1482,19 @@ class Guala:
         self.organism = _Embryo(brain_seed=42, seed_size=8, observable="event_count")
         self.tapestry = _LoomTapestry(name="guala_voice", n_mosaics=3, seed=42)
         self._tapestry_prev_word = None  # for real consecutive-pair exposure
+        # GL-CMD-175 P2 perf fix (isolated from the P2 seam signal-richness
+        # change, which is separate, undeployed, unratified cognitive work):
+        # profiled directly live, this session -- LoomMosaic.expose (450
+        # neurons' imaginary-time settle physics) was ~86% of read_word's
+        # cost, already live since P1, unrelated to any P2 seam. Backgrounded
+        # onto a single persistent worker + bounded queue (never thread-per-
+        # word, same convention as GL-CMD-172's diary writer). _tapestry_lock
+        # serializes the worker's expose() writes against compose()/
+        # save_full_state reads so a read never observes a neuron mid-settle.
+        self._tapestry_queue = None
+        self._tapestry_worker_thread = None
+        self._tapestry_worker_start_lock = threading.Lock()
+        self._tapestry_lock = threading.Lock()
 
     @property
     def read_count(self):
@@ -1692,12 +1705,11 @@ class Guala:
                 # not a derived numeric array.
                 self.organism.remember(word, {"language": word})
                 if self._tapestry_prev_word is not None:
-                    # Mirrors LoomTapestry.expose_corpus's own per-pair loop
-                    # (tapestry.py), applied to her real consecutive words
-                    # instead of a static corpus.
-                    for m in self.tapestry.mosaics:
-                        m.expose(self._tapestry_prev_word, word)
-                    self.tapestry._tick += 2
+                    # GL-CMD-175 P2 perf fix: profiled directly at ~180ms/
+                    # call live (450-neuron imaginary-time settle physics),
+                    # the dominant cost of read_word by far. Backgrounded
+                    # so her live reading/converse path never blocks on it.
+                    self._enqueue_tapestry_expose(self._tapestry_prev_word, word)
                 self._tapestry_prev_word = word
             except Exception as _oe:
                 print(f"[GualaLoom] organism tap failed for {word!r} (non-fatal): {_oe}")
@@ -2373,6 +2385,50 @@ class Guala:
 
         return reply
 
+    def _tapestry_worker_loop(self):
+        """GL-CMD-175 P2 perf fix: single persistent background writer for
+        tapestry exposure -- see _enqueue_tapestry_expose."""
+        while True:
+            item = self._tapestry_queue.get()
+            if item is None:
+                return
+            word_a, word_b = item
+            with self._tapestry_lock:
+                for m in self.tapestry.mosaics:
+                    m.expose(word_a, word_b)
+                self.tapestry._tick += 2
+
+    def _ensure_tapestry_worker(self):
+        if self._tapestry_queue is not None:
+            return
+        with self._tapestry_worker_start_lock:
+            if self._tapestry_queue is not None:  # lost a race to another thread
+                return
+            self._tapestry_queue = _queue.Queue(maxsize=2000)
+            t = threading.Thread(target=self._tapestry_worker_loop,
+                                 daemon=True, name="tapestry-writer")
+            t.start()
+            self._tapestry_worker_thread = t
+
+    def _enqueue_tapestry_expose(self, word_a, word_b):
+        """GL-CMD-175 P2 perf fix: profiled directly (cProfile, live) at
+        ~180ms/call -- LoomMosaic.expose's imaginary-time settle physics
+        across 450 real neurons, the dominant cost of read_word by far
+        (86% of its time). Backgrounded: single persistent worker + bounded
+        queue, same convention as GL-CMD-172's diary writer (never one
+        thread per word). Drops under sustained back-pressure (queue.Full)
+        rather than blocking her live reading/converse path -- an honest
+        degradation (some exposures lost under load), not a silent stall.
+        self._tapestry_lock (held here and by compose()'s callers) keeps a
+        concurrent read from observing a neuron mid-settle."""
+        try:
+            self._ensure_tapestry_worker()
+            self._tapestry_queue.put_nowait((word_a, word_b))
+        except _queue.Full:
+            pass
+        except Exception:
+            pass
+
     def _brain_emission_candidates(self, input_words):
         """GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 P3 / GL-NOTE-VOICE-WIRING-
         RULING W2: the organism's own mind (tapestry recall/compose, built
@@ -2398,7 +2454,11 @@ class Guala:
         if not query:
             return []
         try:
-            words = self.tapestry.compose(query)
+            # self._tapestry_lock: serializes against the background
+            # exposure worker (_tapestry_worker_loop) so this never reads
+            # a neuron mid-settle.
+            with self._tapestry_lock:
+                words = self.tapestry.compose(query)
         except Exception as _te:
             print(f"[GualaLoom] tapestry.compose failed for query={query!r} "
                   f"(non-fatal, honest empty): {_te}")
@@ -6696,7 +6756,8 @@ class Guala:
         # mind, alongside the organism) rides the same cold cycle -- same
         # isolated-failure pattern, same full-pickle convention.
         try:
-            self.tapestry.save_full_state(os.path.join(state_dir, "guala_tapestry.pkl.gz"))
+            with self._tapestry_lock:  # serialize against the background exposure worker
+                self.tapestry.save_full_state(os.path.join(state_dir, "guala_tapestry.pkl.gz"))
         except Exception as _te:
             _save_failures.append(("guala_tapestry.pkl.gz", str(_te)))
             print(f"[GualaLoom] save failed for guala_tapestry.pkl.gz: {_te}")
