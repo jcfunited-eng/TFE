@@ -98,10 +98,14 @@ def bipolar_sense(receptors, modality):
 
 
 class Embryo:
-    def __init__(self, brain_seed=42, seed_size=4):
-        # resonant_spectral = the one mechanism that WORKS (recall, n=200 -> 100%)
+    def __init__(self, brain_seed=42, seed_size=4, observable="resonant_spectral"):
+        # resonant_spectral = the one mechanism that WORKS (recall, n=200 -> 100%).
+        # GL-CMD-C2-WHOLE-BRAIN-168-v3 A4: observable is now a constructor arg
+        # (was hardcoded) so the recall-representation question can be compared
+        # as a gauge on twin organisms — default unchanged, so every existing
+        # caller (main(), seed_organism(), tests) behaves identically to before.
         self.brain = LoomBrain(brain_seed=brain_seed, seed_size=seed_size,
-                               observable="resonant_spectral")
+                               observable=observable)
         self.brain_seed = brain_seed
         self.seed_size = seed_size
         # tag hemispheres as operations
