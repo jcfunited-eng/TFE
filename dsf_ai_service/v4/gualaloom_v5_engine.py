@@ -606,13 +606,22 @@ class Section:
 
     def receive(self, dsf, chi, word_label, atlas, familiarity, salience=1.0,
                 dwell_ticks=1, deep_atlas=None, engine_tick=None,
-                atlas_kwargs=None):
+                atlas_kwargs=None, index_callback=None):
         """v6: word-anchored mode identity + salience-modulated binding.
         v8 (GL-BRIEF-032): dwell_ticks tagged at write time for deep gate.
         deep_atlas: if provided, on-attention prior applied for matching entries.
         engine_tick: MUST be passed — atlas entries use engine clock, not section clock.
         GL-FIND-TICK-DOMAIN-C1: section.tick stays for internal counting only.
-        atlas_kwargs: GL-CLARITY-INVARIANCE-UNCAGE affect+grounding kwargs for record()."""
+        atlas_kwargs: GL-CLARITY-INVARIANCE-UNCAGE affect+grounding kwargs for record().
+        index_callback: GL-CMD-INDEX-INVARIANT-COMPLETE-163 Part A — optional
+        callable(section_name, motif_id, chi_value), called for every
+        atlas.record() this method issues directly (the deep-atlas
+        reinstatement block below), since Section has no engine reference
+        and can't call self._atlas_record() itself. The caller (Guala.
+        read_word) passes self._index_word_at_chi. The primary commit's
+        OWN indexing is still done by the caller from receive()'s return
+        value (GL-CMD-RECALL-REACH-159 Part C) — this callback covers ONLY
+        the reinstatement writes, which the return value doesn't surface."""
         self.tick += 1
         # Atlas records use engine tick (one clock — GL-FIND-TICK-DOMAIN-C1)
         if engine_tick is None:
@@ -650,6 +659,13 @@ class Section:
                         atlas.record(self.name, motif, chi, atlas_tick,
                                      salience=0.3, dwell_ticks=0,
                                      **(atlas_kwargs or {}))
+                        # GL-CMD-INDEX-INVARIANT-COMPLETE-163 Part A: this
+                        # reinstatement writes a binding for the COHABITANT
+                        # word at `motif`, not the word being taught — index
+                        # it too, or it's invisible to recall until restart
+                        # exactly like -159 F-3 was.
+                        if index_callback is not None:
+                            index_callback(self.name, motif, chi)
 
         # Fast path: O(1) word-identity lookup BEFORE similarity scan.
         # For known words (the majority in converse), this skips the scan entirely.
@@ -1643,7 +1659,8 @@ class Guala:
                 dwell_ticks=dwell,
                 deep_atlas=self.deep_atlas,
                 engine_tick=self.tick,
-                atlas_kwargs=_akw)
+                atlas_kwargs=_akw,
+                index_callback=self._index_word_at_chi)
             # GL-CMD-RECALL-REACH-159 Part C (F-3): Section.receive commits via
             # atlas.record() directly, not self._atlas_record() (Section has no
             # engine reference) — so the -57 reverse index has to be updated
@@ -1662,7 +1679,8 @@ class Guala:
                     dwell_ticks=dwell,
                     deep_atlas=self.deep_atlas,
                     engine_tick=self.tick,
-                    atlas_kwargs=_akw)
+                    atlas_kwargs=_akw,
+                    index_callback=self._index_word_at_chi)
                 if _committed:
                     self._index_word_at_chi(primary_section, _mode_idx, lang_chi)
                 # Incremental update of word→emission-section index
@@ -1691,7 +1709,8 @@ class Guala:
                     salience=salience,
                     dwell_ticks=dwell,
                     deep_atlas=self.deep_atlas,
-                    engine_tick=self.tick)
+                    engine_tick=self.tick,
+                    index_callback=self._index_word_at_chi)
                 if _ground_committed:
                     self._index_word_at_chi("ground", _ground_mode_idx, ground_chi)
 
@@ -1714,7 +1733,8 @@ class Guala:
                     salience=salience,
                     dwell_ticks=dwell,
                     deep_atlas=self.deep_atlas,
-                    engine_tick=self.tick)
+                    engine_tick=self.tick,
+                    index_callback=self._index_word_at_chi)
                 if _intro_committed:
                     self._index_word_at_chi("intro", _intro_mode_idx, lang_chi)
 
