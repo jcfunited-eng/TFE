@@ -87,7 +87,21 @@ def _load(snapshot_dir, fname):
 
 def build_replay_guala(snapshot_dir):
     """Construct a Guala() populated from a save snapshot via the engine's own
-    restore methods. Returns the instance, ready for _recall_response calls."""
+    restore methods. Returns the instance, ready for _recall_response calls.
+
+    GL-CMD-BRAIN-FULL-DEPLOY-175 P2 seam 1/6 (recall): _recall_response now
+    queries self.organism (GL-CMD-169's Embryo) instead of the atlas dict --
+    found DURING this handover's own testing that this function built a
+    fresh, EMPTY organism every time (identity/tick/bindings all reset),
+    since it restores state via the engine's individual _apply_* methods,
+    never load_full_state() (which is the only place guala_organism.pkl.gz/
+    guala_tapestry.pkl.gz get restored). Without this fix, this harness
+    would silently and permanently report near-0% recall for the brain
+    path regardless of how much she's actually learned -- a test-harness
+    gap masquerading as a substrate finding. Fixed here: restore the
+    organism/tapestry from the snapshot the exact same optional way
+    load_full_state() does (present -> restore; absent -> fresh organism
+    stands, e.g. for a pre-175 snapshot)."""
     from dsf_ai_service.v4.gualaloom_v5_engine import Guala
 
     g = Guala()
@@ -96,6 +110,13 @@ def build_replay_guala(snapshot_dir):
     g._apply_sections(_load(snapshot_dir, "guala_sections.json"))
     g._apply_visual(_load(snapshot_dir, "guala_visual.json"), state_dir=snapshot_dir)
     g.deep_atlas.load_from_json(_load(snapshot_dir, "guala_deep_atlas.json"))
+
+    organism_path = os.path.join(snapshot_dir, "guala_organism.pkl.gz")
+    if os.path.exists(organism_path):
+        g.organism = type(g.organism).load_full_state(organism_path)
+    tapestry_path = os.path.join(snapshot_dir, "guala_tapestry.pkl.gz")
+    if os.path.exists(tapestry_path):
+        g.tapestry = type(g.tapestry).load_full_state(tapestry_path)
 
     # GL-CMD-RECALL-WORD-INDEX-57 §1.4 rebuild, verbatim from the engine's own
     # boot sequence (gualaloom_v5_engine.py, right after "[GualaLoom] Loaded:").

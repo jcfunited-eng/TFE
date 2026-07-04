@@ -3699,80 +3699,64 @@ class Guala:
             return None
         return " ".join(emitted)
 
+    def _recall_from_organism(self, input_words):
+        """GL-CMD-BRAIN-FULL-DEPLOY-175 P2, seam 1/6 (recall): the organism's
+        own population-vote recall (Embryo.recall, GL-CMD-169), built on
+        real experience via read_word's P1 language tap -- replacing the
+        atlas-dict-substrate lookup (_recall_from_atlas).
+
+        The shell's per-section (subject/verb/object/listen) structure has
+        no organism analog: Embryo.recall is a single population vote
+        across the whole organism, not a grammatical-role lookup. Rather
+        than force a fake per-section split, this queries the organism
+        ONCE per call and returns its single top-voted concept -- an
+        honest architectural difference, not a simulated seam pretending
+        to have section structure it doesn't.
+
+        Query word: the last content word (len>1), matching
+        _brain_emission_candidates' established convention -- same
+        "most salient real word" choice, so the brain interface is
+        consistent across recall and emission. Returns None (no minimum-
+        evidence padding, no invented candidate) if there's no content
+        word or the organism's vote is empty."""
+        content_words = [w for w in (input_words or []) if len(w) > 1]
+        if not content_words:
+            return None
+        query = content_words[-1]
+        votes = self.organism.recall({"language": query})
+        top = votes.most_common(1)
+        return top[0][0] if top else None
+
     def _recall_response(self, input_chis, input_word_chis, input_words,
                           target_sections=("subject", "verb", "object", "listen")):
-        """Atlas-driven recall across ALL sections including sight.
-        Returns a response dict with text and optional picture references.
-        target_sections: GL-CMD-RECALL-REACH-159 Part B — recall's section
-        surface. VARIANT L (svo+listen) shipped as the new default per the
-        Part A offline A/B: tied with VARIANT LI (svo+listen+intro) on cold
-        (2/30 both), quality (0/8 both, bare-caption self-exclusion per F-2),
-        and reachability (8/10 both) against the identical Day-2 snapshots
-        -- L wins the declared tie-break (smaller surface; LI's only
-        difference was ~39% more mean candidate-set crowding for zero
-        measured benefit)."""
-        input_words_lower = set(w.lower() for w in input_words)
+        """GL-CMD-BRAIN-FULL-DEPLOY-175 P2 seam 1/6: text recall now comes
+        from the organism (_recall_from_organism), not the atlas-dict
+        per-section lookup -- old shell path (_recall_from_atlas's SVO/
+        listen loop, the response-linked-entries expansion) disconnected,
+        per "old shell paths disconnected from those decisions." Picture
+        recall (_recall_sight_from_atlas) is UNCHANGED -- no vision tap
+        exists yet (P1 only wired the language sense), so cross-modal
+        picture recall honestly stays on the old path until a real visual
+        tap is built; noted, not silently left ambiguous.
 
-        recalled_words = {}
-        for sec_name in target_sections:
-            best_word = self._recall_from_atlas(sec_name, input_chis,
-                                                  exclude_words=input_words_lower,
-                                                  input_words=input_words)
-            if best_word:
-                recalled_words[sec_name] = best_word
+        target_sections kept as a parameter for signature compatibility
+        (tools/guala_recall_bitexact_replay.py calls this with
+        target_sections=... explicitly) but no longer consulted --
+        the organism has no section structure to select from."""
+        recalled_text = self._recall_from_organism(input_words)
 
-        # v8 (GL-BRIEF-028): include response-linked entries in recall pool
-        # Light touch: if any recalled chi has response_context or received_response
-        # links, add linked entries to the candidate pool
-        linked_chis = set()
-        for chi_k in input_chis:
-            for d in range(-self.atlas.band, self.atlas.band + 1):
-                for e in self.atlas.entries.get(chi_k + d, []):
-                    for lc in e.get("response_context", []):
-                        linked_chis.add(lc)
-                    for lr in e.get("received_response", []):
-                        linked_chis.add(lr)
-        # Also check deep atlas for reinstated entries with links (Amendment B)
-        for chi_k in input_chis:
-            for de in self.deep_atlas.entries.get(chi_k, []):
-                for lc in de.get("response_context", []):
-                    linked_chis.add(lc)
-                for lr in de.get("received_response", []):
-                    linked_chis.add(lr)
-
-        if linked_chis:
-            expanded_chis = list(input_chis) + list(linked_chis)
-            for sec_name in target_sections:
-                if sec_name not in recalled_words:
-                    word = self._recall_from_atlas(sec_name, expanded_chis,
-                                                  exclude_words=input_words_lower,
-                                                  input_words=input_words)
-                    if word:
-                        recalled_words[sec_name] = word
-
-        # v7 Phase 2: recall sight motifs via chi-neighborhood
+        # v7 Phase 2: recall sight motifs via chi-neighborhood (unchanged)
         recalled_pictures = self._recall_sight_from_atlas(input_chis, input_words)
 
-        if not recalled_words and not recalled_pictures:
+        if not recalled_text and not recalled_pictures:
             self._last_recalled_pictures = []  # GL-CMD-155: don't leak a stale hit
             return None
 
-        # Compose text response
-        out = []
-        for sec_name in target_sections:
-            if sec_name in recalled_words and recalled_words[sec_name] not in out:
-                out.append(recalled_words[sec_name])
-
-        text = " ".join(out) if out else None
-
-        # If we have pictures, return a structured response
         if recalled_pictures:
             self._last_recalled_pictures = recalled_pictures
-            if text:
-                return text
-            return text  # even None — caller will check _last_recalled_pictures
+            return recalled_text  # even None — caller will check _last_recalled_pictures
         self._last_recalled_pictures = []
-        return text
+        return recalled_text
 
     def _chis_for_text(self, text):
         """Transduce text to chi addresses (read-only, no atlas mutation)."""
