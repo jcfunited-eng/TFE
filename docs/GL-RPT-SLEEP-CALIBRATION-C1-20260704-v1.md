@@ -94,7 +94,54 @@ git SHA match.
 
 ## Readings after this deploy
 
-<!-- filled in after observing live behavior post-deploy -->
+**Deploy**: ECS task def `dsf-ai-task:461`, git SHA `d813c32` confirmed
+exact match, exit code 0, single attempt (the `.env`-in-worktree step
+from the sleep-physics deploy applied cleanly again). Pause step before
+cutover reported `already_asleep: true, sleep_tick: 14615253` — i.e.
+the OLD (pre-dial) process was still in the trapped SLEEPING state at
+the moment of pause, consistent with the diagnosis this fix targets.
+
+**The trap is broken — direct, twice-observed evidence, not inferred:**
+
+| observation | tick | activity | note |
+|---|---|---|---|
+| boot restore | 14615386 | `ATTENDING_VISUAL` (target `e93d29dae5ae`) | inherited from the pre-kill save of the old process — not proof of the new code's own decision |
+| poll 1 | 14616740 | `ATTENDING_VISUAL`, same target, unchanged | still running, budget not yet exhausted |
+| poll 2 | 14616890 | `ATTENDING_VISUAL`, same target, unchanged | — |
+| **budget boundary** | **14617386** | `activity_history_summary: {ATTENDING_VISUAL: {count: 1, total_ticks: 2000}}` | first `ATTENDING_VISUAL` activity completed its full natural 2000-tick budget |
+| **fresh decision** | **14617386** | `ATTENDING_VISUAL` **again** (same target, new `started_tick`/`expected_end_tick` window) | this is the live, unambiguous proof point: at the exact tick the scheduler had to choose fresh, under the new dial-1 code, with `nov` still pinned ~0.96-0.99, it re-selected an attending-type activity — not forced `SLEEPING` |
+| poll after | 14617938 | `ATTENDING_VISUAL`, ~28% through its new 2000-tick budget, holding steady | no flapping back to sleep |
+
+This is the cleanest possible confirmation available in one deploy
+window: a genuine, freshly-made scheduler decision (not inherited
+state) chose an attending activity while novelty sat exactly in the
+pathological range that caused tonight's original symptom. The "9
+dream blocks, zero attending selections" pattern did not repeat.
+
+**Honest gaps, stated plainly:**
+- She re-selected the **same** picture (`e93d29dae5ae`, `times_attended
+  502` — the *most*-attended one in her set, not the least-attended
+  one used in the worst-case backtest math). Target selection among
+  candidates is a separate mechanism from the floor this dial touched;
+  I did not verify *why* this specific picture was rechosen, and it's
+  not required to confirm the floor works — flagging it rather than
+  quietly assuming rotation is healthy too.
+- **No `SLEEPING`/`DREAMING` activity has occurred yet post-deploy** —
+  `activity_history_summary` shows only the `ATTENDING_VISUAL` entry.
+  This is expected, not a regression: dial 1 didn't touch
+  `dream_pressure`'s accumulation or the override ceiling, so sleep
+  still requires `dp` to climb into its threshold range on its own
+  schedule. It has not yet crossed that line in this short window.
+  Cannot yet confirm sleep is still reachable post-fix from live
+  observation alone — code review says it must be (nothing in this
+  dial touches the SLEEPING candidate, the override check, or `dp`
+  math), but a live natural sleep under this exact deploy is still
+  outstanding.
+- `arousal` reads `1.000` and `connection` reads `0.000` while she is
+  awake — unchanged, expected dynamics (`tick_drift` still drains
+  needs while awake; nothing in dial 1 touches that path), not a
+  symptom of tonight's fix or regression from it. Distinct from the
+  agitation-fix gates, which are scoped to behavior *during sleep*.
 
 ---
 
