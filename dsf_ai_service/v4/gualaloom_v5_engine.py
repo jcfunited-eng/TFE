@@ -4825,15 +4825,38 @@ class Guala:
         # first time. Reducing dream_pressure's accumulation rate (the
         # OTHER candidate this CMD named) does not fix this: the deciding
         # term is structural, independent of dp entirely (confirmed: dp=0
-        # already gave SLEEPING the win). Floor is LIVE-CALIBRATE, chosen
-        # with a small margin above today's live SLEEPING-structural-term
-        # reading (0.038) so the least-attended picture can compete again
-        # without swamping normal (non-saturated) competition -- the max()
-        # is a no-op whenever the natural term is already above the floor.
-        NOVELTY_TERM_FLOOR = 0.04
+        # already gave SLEEPING the win).
+        #
+        # GL-CMD-TARGET-ROTATION-FIX-181: that flat floor was itself a
+        # second bug. With novelty pinned near 1.0 essentially always
+        # (confirmed live: nov=0.957 -> sd_novelty=-0.257, unbroken across
+        # this whole session), EVERY habituation-eligible candidate's raw
+        # novelty_term is negative, so the flat max(0.04, ...) clips ALL
+        # of them to the identical 0.04 -- erasing exactly the fam/fresh
+        # differentiation nov_payoff exists to encode. Confirmed with real
+        # live data: e93d29dae5ae (times_attended=625, fam=0.9) computed
+        # nov_payoff=0.0201 -> raw novelty_term=-0.0052 -> floored to 0.04;
+        # frog.jpg (times_attended=3, fam=0.07) computed nov_payoff=0.385
+        # -> raw novelty_term=-0.099 -> ALSO floored to 0.04. Identical
+        # scores, and since ATTENDING_VISUAL's stab/conn payoffs are both
+        # 0.0 for every target, the two became bit-for-bit tied -- with
+        # Python's stable sort then always returning whichever picture is
+        # first in dict-iteration order, forever (590+ consecutive cycles
+        # observed). Fix: scale the floor BY nov_payoff instead of using
+        # it as a flat constant, so the fam/fresh differentiation survives
+        # the floor instead of being erased by it. Recalibrated so the
+        # freshest realistic target (times_attended~2, fam~0.05, nov_
+        # payoff~0.43) still clears SLEEPING's ~0.038 structural term by
+        # the same margin the original flat floor gave it (0.1*0.43=
+        # 0.043) -- same competitive guarantee, but real targets are no
+        # longer flattened into ties. A target attended 500x (nov_payoff
+        # ~0.03) now floors to ~0.003; a target attended 5x (nov_payoff
+        # ~0.33) floors to ~0.033 -- an 11x margin, satisfying -181's
+        # exit criterion with real headroom, not a coin-flip.
+        NOVELTY_TERM_FLOOR_RATE = 0.1
         novelty_term = sd["novelty"] * nov_payoff
         if _habituation_eligible:
-            novelty_term = max(NOVELTY_TERM_FLOOR, novelty_term)
+            novelty_term = max(NOVELTY_TERM_FLOOR_RATE * nov_payoff, novelty_term)
 
         # Signed-distance dot payoff
         score = (novelty_term
