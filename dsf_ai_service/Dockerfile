@@ -38,7 +38,21 @@ ENV PYTHONPATH=/app
 # Emission pipeline: dynamics + inhibition + cross-modal + biological noise
 ENV EMISSION_DYNAMICS=1
 ENV LATERAL_INHIBITION_ENABLED=1
-ENV RICH_SENSORY_INPUT=1
+# GL-CMD-BRAIN-FULL-DEPLOY-175 / GL-NOTE-VOICE-WIRING-RULING W3: flipped
+# 1->0 this deploy. RICH_SENSORY_INPUT routes _emit_dynamics through
+# _rich_sensory_candidates, whose Source A (gualaloom_v5_engine.py
+# _rich_sensory_candidates, ~line 2950) queries self.atlas.entries
+# directly, keyed on the CALLER's input words -- a second, independent
+# non-brain candidate source the ruling's "one mind, one mouth" did not
+# intend to leave standing. Observed live, this deploy: a real converse
+# turn produced n_candidates=199 (vs an expected <=3 from the brain's
+# tapestry.compose()), with rich_sensory=true in the logged event --
+# confirmed the atlas-lookup path was dominating her actual reply, not
+# the brain. Turning this off restores the plain _grandurun_select_
+# candidates(deep_candidates=brain-sourced) path W2 specifies. Not
+# deleted -- re-enable only after Source A itself is redesigned to run
+# on brain output instead of bypassing it.
+ENV RICH_SENSORY_INPUT=0
 ENV EMISSION_STRUCTURED_NOISE=1
 # GL-CMD-EMISSION-COST-SAMPLE-87: dynamics window 40→80 (rider condition MET, cost CLEAN)
 ENV EMISSION_DYNAMICS_TICKS=80
