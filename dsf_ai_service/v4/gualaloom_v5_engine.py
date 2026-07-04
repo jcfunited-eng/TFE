@@ -1735,7 +1735,7 @@ class Guala:
         # serializes against the background remember() worker (window-2
         # perf fix) so this never reads the organism mid-update.
         with self._organism_lock:
-            votes = self.organism.recall(_organism_signal(word, self._organism_transducer))
+            votes = self.organism.recall_fast(_organism_signal(word, self._organism_transducer))
         total = sum(votes.values())
         if total == 0:
             return 1.0
@@ -3994,7 +3994,7 @@ class Guala:
         # actually written at remember()-time (see _organism_signal).
         # self._organism_lock: see read_count's salience calc comment.
         with self._organism_lock:
-            votes = self.organism.recall(_organism_signal(query, self._organism_transducer))
+            votes = self.organism.recall_fast(_organism_signal(query, self._organism_transducer))
         top = votes.most_common(1)
         return top[0][0] if top else None
 
@@ -4029,7 +4029,7 @@ class Guala:
             return None
         section, mode_idx, word = locations[-1]
         with self._organism_lock:
-            votes = self.organism.recall(_organism_signal(seed_word, self._organism_transducer))
+            votes = self.organism.recall_fast(_organism_signal(seed_word, self._organism_transducer))
         total = sum(votes.values())
         weight = (votes.get(associated_word, 0) / total) if total else 0.0
         return (section, mode_idx, word, weight)
