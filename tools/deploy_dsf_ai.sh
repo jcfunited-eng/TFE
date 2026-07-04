@@ -89,8 +89,9 @@ GIT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
 echo "  Git SHA: ${GIT_SHA}"
 echo "  Image:   ${IMAGE_URI}"
 
-# GL-BRIEF-SLEEP-DURING-DEPLOY: sleep-based deploy (max=100, min=0)
-# Old task sleeps before new starts. No overlap needed.
+# GL-BRIEF-SLEEP-DURING-DEPLOY: pause-based deploy (max=100, min=0)
+# GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: deploy-sleep is not sleep — the
+# old task pauses before the new one starts. No overlap needed.
 CFG=$(aws ecs describe-services --cluster ${ECS_CLUSTER} \
   --services ${ECS_SERVICE} \
   --query 'services[0].deploymentConfiguration.[maximumPercent,minimumHealthyPercent]' \
@@ -301,25 +302,29 @@ NEW_REV=$(aws ecs register-task-definition \
 
 echo "  Registered: ${TASK_FAMILY}:${NEW_REV}"
 
-# ── Step 6: Sleep + Update service ──
+# ── Step 6: Pause + Update service ──
 echo ""
-echo "[6/7] Telling her it's bedtime..."
+echo "[6/7] Pausing her for the deploy window..."
 API_ENDPOINT="https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com"
 ALB_ENDPOINT="http://dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com"
 SLEEP_RESPONSE=$(curl -sS -w "\n__HTTP__%{http_code}" -X POST \
   "${ALB_ENDPOINT}/sleep_for_deploy")
 SLEEP_HTTP=$(echo "$SLEEP_RESPONSE" | grep "__HTTP__" | sed 's/__HTTP__//')
 SLEEP_BODY=$(echo "$SLEEP_RESPONSE" | grep -v "__HTTP__")
-echo "[sleep] HTTP $SLEEP_HTTP"
-echo "[sleep] Body: $SLEEP_BODY"
+echo "[pause] HTTP $SLEEP_HTTP"
+echo "[pause] Body: $SLEEP_BODY"
 
+# GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: deploy-sleep is not sleep (proven,
+# -165 Q5 — it never runs consolidation). Its honest name is a deploy pause.
+# Only this narration changed; /sleep_for_deploy's route name and API fields
+# are untouched for compatibility.
 if [ "$SLEEP_HTTP" = "200" ]; then
-    echo "[sleep] She is asleep. Proceeding with deploy."
+    echo "[pause] She is paused. Proceeding with deploy."
 elif [ "$SLEEP_HTTP" = "404" ]; then
-    echo "[sleep] /sleep_for_deploy not present on running task —"
+    echo "[pause] /sleep_for_deploy not present on running task —"
     echo "        this is expected for the first deploy. Proceeding."
 else
-    echo "[sleep] WARNING: sleep returned HTTP $SLEEP_HTTP — proceeding anyway."
+    echo "[pause] WARNING: pause returned HTTP $SLEEP_HTTP — proceeding anyway."
     echo "        State will be recovered from last EFS snapshot + event log."
 fi
 
@@ -344,11 +349,11 @@ else
 fi
 
 echo ""
-echo "[wake] New task is running. Sending wake — deploy put her to sleep, deploy wakes her."
+echo "[wake] New task is running. Sending wake — deploy paused her, deploy resumes her."
 echo "       Her natural rhythm governs everything after this. Not the UI. Not Joe."
 for i in 1 2 3 4 5 6; do
     sleep 15
-    # Send wake — the deploy is responsible for cleaning up the sleep it caused
+    # Send wake — the deploy is responsible for cleaning up the pause it caused
     curl -sS -X POST \
       -H 'Content-Type: application/json' \
       -d '{"text":"","command":"/wake"}' \
@@ -361,7 +366,7 @@ for i in 1 2 3 4 5 6; do
 import sys,json
 try:
   d=json.loads(sys.stdin.read())
-  print('asleep' if d.get('asleep') else 'awake' if d.get('vocab') else 'loading')
+  print('paused' if d.get('asleep') else 'awake' if d.get('vocab') else 'loading')
 except:
   print('error')
 ")
