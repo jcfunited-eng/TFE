@@ -2677,6 +2677,29 @@ async def admin_atlas_snapshot():
     }
 
 
+@app.get("/api/v1/gualaloom/admin/familiarity_debug", dependencies=[Depends(_api_key_dep)])
+async def admin_familiarity_debug():
+    """GL-CMD-FLOOD-HUNT-156: owed diagnostic from -107's unresolved
+    target_familiarity persistence gap. Dumps self.target_familiarity
+    directly, no serialization round-trip, plus its object id() — so two
+    calls across a save boundary can show whether the dict is ever a
+    different object (silent rebind) vs. the same object losing entries."""
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("familiarity_debug")
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    return {
+        "tick": _guala.tick,
+        "target_familiarity": dict(_guala.target_familiarity),
+        "n_keys": len(_guala.target_familiarity),
+        "dict_id": id(_guala.target_familiarity),
+        "last_save_tick": getattr(_guala, "_last_save_tick", None),
+        "last_save_timestamp": getattr(_guala, "_last_save_timestamp", None),
+    }
+
+
 # (A) Step-0 atlas backup with verification
 @app.post("/api/v1/gualaloom/admin/backup", dependencies=[Depends(_api_key_dep)])
 async def admin_backup():

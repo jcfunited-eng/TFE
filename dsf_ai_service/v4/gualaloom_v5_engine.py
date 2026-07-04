@@ -4324,7 +4324,8 @@ class Guala:
                                           picture_id=_target,
                                           old=round(old_fam, 3),
                                           new=round(new_fam, 3),
-                                          ticks_attended=_ticks_attended)
+                                          ticks_attended=_ticks_attended,
+                                          dict_id=id(self.target_familiarity))
             if self._current_activity.kind == "DREAMING":
                 # Write dream gate marker in background — fsync on EFS takes 1-10s
                 # and was previously holding self.lock (Phase C) for that duration.
@@ -5965,6 +5966,13 @@ class Guala:
                 "deep_survival_history": {},  # GL-102: empty sentinel; data in guala_survival.json
                 "total_emissions": self._total_emissions,
             })
+            # GL-CMD-FLOOD-HUNT-156: owed -107 diagnostic. Same dict_id at
+            # write-time (target_familiarity_update) and here, with n_keys
+            # dropping to 0 between them, would mean something clears the
+            # dict in place; a different dict_id would mean a silent rebind.
+            self._log_substrate_event("familiarity_persist_check",
+                                      n_keys=len(self.target_familiarity),
+                                      dict_id=id(self.target_familiarity))
             snap_needs = self._envelope({
                 "stability": self.needs.stability,
                 "novelty": self.needs.novelty,
