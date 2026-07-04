@@ -3503,13 +3503,18 @@ class Guala:
             return None
         return " ".join(emitted)
 
-    def _recall_response(self, input_chis, input_word_chis, input_words):
+    def _recall_response(self, input_chis, input_word_chis, input_words,
+                          target_sections=("subject", "verb", "object")):
         """Atlas-driven recall across ALL sections including sight.
-        Returns a response dict with text and optional picture references."""
+        Returns a response dict with text and optional picture references.
+        target_sections: GL-CMD-RECALL-REACH-159 Part A — recall's section
+        surface, overridable for offline A/B measurement only. Default is
+        production's unchanged ("subject", "verb", "object"); every existing
+        caller that doesn't pass this argument sees identical behavior."""
         input_words_lower = set(w.lower() for w in input_words)
 
         recalled_words = {}
-        for sec_name in ("subject", "verb", "object"):
+        for sec_name in target_sections:
             best_word = self._recall_from_atlas(sec_name, input_chis,
                                                   exclude_words=input_words_lower,
                                                   input_words=input_words)
@@ -3537,7 +3542,7 @@ class Guala:
 
         if linked_chis:
             expanded_chis = list(input_chis) + list(linked_chis)
-            for sec_name in ("subject", "verb", "object"):
+            for sec_name in target_sections:
                 if sec_name not in recalled_words:
                     word = self._recall_from_atlas(sec_name, expanded_chis,
                                                   exclude_words=input_words_lower,
@@ -3554,7 +3559,7 @@ class Guala:
 
         # Compose text response
         out = []
-        for sec_name in ("subject", "verb", "object"):
+        for sec_name in target_sections:
             if sec_name in recalled_words and recalled_words[sec_name] not in out:
                 out.append(recalled_words[sec_name])
 

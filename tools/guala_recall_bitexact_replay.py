@@ -122,12 +122,28 @@ def draw_probe_words(snapshot_dir, n=30):
     return clean[::step][:n]
 
 
-def probe(g, word):
+
+# GL-CMD-RECALL-REACH-159 Part A: the two candidate section-surfaces, plus
+# plain SVO as the unchanged-production baseline for candidate-set-size
+# comparison. "svo" is not a proposed variant — it is what production does
+# today, kept here so the crowding cost of L/LI has something to measure
+# against.
+VARIANTS = {
+    "svo": ("subject", "verb", "object"),
+    "L": ("subject", "verb", "object", "listen"),
+    "LI": ("subject", "verb", "object", "listen", "intro"),
+}
+
+
+def probe(g, word, target_sections=("subject", "verb", "object")):
     """One recall probe: build input_chis/input_word_chis exactly as a live
     /converse turn does, call the real _recall_response, report hit/miss.
     Resets _last_recalled_pictures first — belt-and-suspenders now that
     GL-CMD-155 fixed the underlying leak in _recall_response itself, but kept
-    here so this harness stays correct even if that regresses."""
+    here so this harness stays correct even if that regresses.
+    target_sections: GL-CMD-159 Part A — forwarded verbatim to the engine's
+    own _recall_response(target_sections=...) parameter; default matches
+    unmodified production."""
     from dsf_ai_service.v4.gualaloom_v5_engine import _normalize_text
     from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
 
@@ -139,7 +155,8 @@ def probe(g, word):
         tk.transduce(w)
         input_chis.append(tk.winding)
         input_word_chis[w] = tk.winding
-    recalled_text = g._recall_response(input_chis, input_word_chis, words)
+    recalled_text = g._recall_response(input_chis, input_word_chis, words,
+                                        target_sections=target_sections)
     pics = getattr(g, "_last_recalled_pictures", [])
     return {
         "word": word,
@@ -268,6 +285,40 @@ def candidacy_trace(g, word, target_sections=("subject", "verb", "object")):
     }
 
 
+def candidate_set_size(g, word, target_sections):
+    """GL-CMD-159 A.2: total candidate-set size for one probe across
+    target_sections — the pre-exclusion, pre-threshold candidate count
+    _recall_from_atlas builds internally (reuses candidacy_trace's identical
+    Counter reproduction, gualaloom_v5_engine.py:3626-3683, unfiltered by
+    exclude_words so it doubles as the reachability signal below)."""
+    trace = candidacy_trace(g, word, target_sections=target_sections)
+    per_section_counts = {sec: len(info["candidates"])
+                           for sec, info in trace["sections"].items()}
+    return {
+        "word": word,
+        "per_section": per_section_counts,
+        "total": sum(per_section_counts.values()),
+        "reachable": any(info["taught_present"] for info in trace["sections"].values()),
+    }
+
+
+def variant_stats(g, words, target_sections):
+    """GL-CMD-159 A.2/tiebreak: candidate-set size mean/max across a probe
+    set for one variant, plus per-probe reachability (probe word present in
+    its own candidate set at ANY target section, before self-exclusion —
+    this is the F-1 reachability signal, distinct from whether _recall_
+    response ultimately returns it after exclude_words filtering)."""
+    sizes = [candidate_set_size(g, w, target_sections) for w in words]
+    totals = [s["total"] for s in sizes]
+    return {
+        "target_sections": target_sections,
+        "per_probe": sizes,
+        "mean_total": round(sum(totals) / len(totals), 4) if totals else 0.0,
+        "max_total": max(totals) if totals else 0,
+        "n_reachable": sum(1 for s in sizes if s["reachable"]),
+    }
+
+
 def strongest_resident(g, chi, exclude_word=None):
     """A.4 helper: the highest-strength atlas entry at this exact chi, across
     all sections, excluding the probe's own word (so a taught word's own weak
@@ -311,8 +362,19 @@ def main():
                      help="GL-CMD-158: for each probe, trace existence (A.1) and "
                           "full candidacy at every recall stage (A.2) — deterministic, "
                           "read-only, same snapshot in -> same trace out every time.")
+    ap.add_argument("--variant", choices=sorted(VARIANTS), default="svo",
+                     help="GL-CMD-RECALL-REACH-159 Part A: recall's section surface. "
+                          "'svo' = unmodified production (subject/verb/object) — the "
+                          "baseline. 'L' = svo+listen. 'LI' = svo+listen+intro. "
+                          "Forwarded to the engine's own _recall_response, not "
+                          "reimplemented here.")
+    ap.add_argument("--candidate-stats", action="store_true",
+                     help="GL-CMD-159 A.2: candidate-set size (mean/max) per probe "
+                          "across --variant's target_sections, vs the 'svo' baseline, "
+                          "plus per-probe reachability (F-1's tiebreak signal).")
     args = ap.parse_args()
 
+    target_sections = VARIANTS[args.variant]
     g = build_replay_guala(args.snapshot_dir)
     print(f"word_to_chi_index: {len(g._word_to_chi_index)} words indexed")
     print(f"n_pictures={len(g._pictures)}, n_sight_motifs={len(g.sight.motifs)}, "
@@ -322,12 +384,13 @@ def main():
     words = (args.words.split(",") if args.words
              else draw_probe_words(args.snapshot_dir, args.n))
     print(f"\nPROBE SET ({len(words)}): {words}")
+    print(f"VARIANT: {args.variant!r} target_sections={target_sections}")
 
     captions = args.captions.split(",") if args.captions else words
     if len(captions) != len(words):
         raise SystemExit("--captions must have the same length as --words")
 
-    results = [probe(g, w) for w in words]
+    results = [probe(g, w, target_sections=target_sections) for w in words]
     n_hits = sum(1 for r in results if r["hit"])
     print(f"\n=== RECALL: {n_hits}/{len(results)} = {100 * n_hits / len(results):.1f}% ===")
     for r, caption in zip(results, captions):
@@ -349,6 +412,14 @@ def main():
         else:
             print("\n=== QUALITY: n/a (no hits) ===")
 
+    if args.candidate_stats:
+        import json as _json
+        print("\n" + "=" * 70)
+        print(f"CANDIDATE-SET STATS (GL-CMD-159 A.2) — variant {args.variant!r}")
+        print("=" * 70)
+        stats = variant_stats(g, words, target_sections)
+        print(_json.dumps(stats, indent=2, default=str))
+
     if args.provenance:
         import json as _json
         print("\n" + "=" * 70)
@@ -359,7 +430,7 @@ def main():
             print(f"\n--- {w!r} ---")
             existence = existence_trace(g, w)
             print("A.1 EXISTENCE:", _json.dumps(existence, indent=2, default=str))
-            candidacy = candidacy_trace(g, w)
+            candidacy = candidacy_trace(g, w, target_sections=target_sections)
             print("A.2 CANDIDACY:", _json.dumps(candidacy, indent=2, default=str))
             resident = strongest_resident(g, existence["chi"], exclude_word=w)
             returned_chis = [word_own_chi(t) for t in r["returned_tokens"]]
