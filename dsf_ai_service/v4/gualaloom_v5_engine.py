@@ -4594,6 +4594,43 @@ class Guala:
         continuously, not as a binary cliff), now applied symmetrically."""
         return 1.0 / (1.0 + math.log(1.0 + max(0, times_seen)))
 
+    def _reading_freshness_from_organism(self, corpus):
+        """GL-CMD-BRAIN-FULL-DEPLOY-175 P2 seam 4/6 (habituation, READING
+        only): a real organism-derived freshness signal, replacing
+        _habituation_freshness(times_read_through) for corpus re-reading.
+        Samples real words from the corpus's own text (read_word actually
+        feeds this content through the organism, repeatedly, on each real
+        read) and averages the organism's own recognition/surprise (seam
+        2) across them -- same [0,1] convention as _habituation_freshness
+        (1.0 = fully fresh/novel). Returns None if the corpus has no
+        real text to sample (an edge case, not "no organism signal").
+
+        Scope, stated honestly: ATTENDING_VISUAL/AUDIO/VIDEO habituation
+        is NOT handed over by this seam. Pictures/sounds/videos have no
+        real organism sensory connection -- P1 only wired language.
+        Feeding the organism a picture's TITLE as a stand-in for having
+        seen it would be feeding it something she never actually
+        perceived -- exactly the simulated-seam this track's standing
+        order prohibits. Those three stay on the old times_attended
+        counters until a real visual/audio tap exists; not silently left
+        ambiguous, just out of what a language-only organism can honestly
+        answer for.
+
+        Inherited risk, named plainly: seam 3 found the organism's
+        recognition can be confidently WRONG about genuinely novel
+        content (no reject option in the underlying recall). The same
+        risk applies here -- a corpus she's never read could, in
+        principle, sample words that happen to read as familiar.
+        Not fixed here; same open question as seam 3's report."""
+        words = []
+        for line in corpus.lines[:5]:
+            words.extend(w for w in line.lower().split() if len(w) > 1)
+        if not words:
+            return None
+        sample = words[:10]
+        surprises = [self._recognition_from_organism(w) for w in sample]
+        return sum(surprises) / len(surprises)
+
     def _action_salience(self, kind, target):
         """How attractive is this activity given current needs?
         Salience = dot product of (need-distance) × (payoff per need).
@@ -4619,7 +4656,14 @@ class Guala:
         if kind == "READING" and target in self._corpora:
             _habituation_eligible = True
             c = self._corpora[target]
-            fresh = self._habituation_freshness(c.times_read_through)
+            # GL-CMD-175 P2 seam 4/6: organism-derived freshness, replacing
+            # the times_read_through counter for this kind only (see
+            # _reading_freshness_from_organism for ATTENDING_*'s scope
+            # limit). None only for a corpus with no real text to sample
+            # -- a data-availability edge case, not "old shell fallback".
+            fresh = self._reading_freshness_from_organism(c)
+            if fresh is None:
+                fresh = 0.5  # neutral: no organism signal available yet
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["READING_NEW"] * fresh
                           + ACTIVITY_NOVELTY_PAYOFF["READING_REREAD"] * (1.0 - fresh))
         elif kind == "ATTENDING" and target in self._sensory_items:
