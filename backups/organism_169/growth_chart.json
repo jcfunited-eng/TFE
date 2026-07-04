@@ -1,0 +1,307 @@
+{
+  "identity_uuid": "5896204f-80fc-4b26-9e59-a9f480046aa0",
+  "sessions": [
+    {
+      "session": 1,
+      "born_this_session": true,
+      "checkpoints": [
+        {
+          "session": 1,
+          "day_in_session": 0,
+          "tick": 2678,
+          "g1_recall": 0.3,
+          "g3_association": {
+            "co_occurring_words": [
+              "after",
+              "and",
+              "but",
+              "cotton",
+              "dreadfully",
+              "flopsy",
+              "frightened",
+              "he",
+              "jumped",
+              "mopsy",
+              "most",
+              "names",
+              "naughty",
+              "ran",
+              "tail",
+              "their",
+              "up",
+              "very",
+              "was",
+              "were",
+              "who"
+            ],
+            "control_words": [
+              "into",
+              "am",
+              "wood",
+              "mcgregor's",
+              "brown"
+            ],
+            "mean_cosine_co_occurring": 0.9311365209775228,
+            "mean_cosine_random_control": 0.9207152700239816
+          },
+          "g4_retention_day1_words": 0.1111111111111111,
+          "g5_cross_modal": 0.0,
+          "g6_habituation_trajectory": [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1
+          ],
+          "g7_recognition": 0.0,
+          "g8_attention_unanimity": 0.2,
+          "g9_sequence": {
+            "accuracy": 1.0,
+            "chance": 0.1111111111111111
+          },
+          "g12_hemisphere_consensus": {
+            "em|pr": 0.0,
+            "em|sc": 0.0,
+            "em|ep": 0.0,
+            "em|sv": 0.0,
+            "em|aff": 0.0,
+            "ep|sf": 0.0,
+            "ep|sc": 0.0,
+            "gp|em": 0.0,
+            "sc|pr": 0.0
+          },
+          "g14_affect_arousal": 0.10343054176355877,
+          "g15_meta_sf_sense": [
+            0.10343054176355877,
+            15.0,
+            16.0,
+            15.15768785919077,
+            10.715991151200058,
+            35.649916511585886,
+            23.427473692555576,
+            0.0,
+            35.649916511585886,
+            39.95317546740901,
+            15.15768785919077
+          ],
+          "g2_composition": "ABSENT \u2014 no code path (per -168-v3 A5)",
+          "g10_imagination": "ABSENT \u2014 no code path (per -168-v3 A5)",
+          "g11_reflection": "ABSENT \u2014 depends on absent composition (per -168-v3 A5)",
+          "g13_theory_of_mind": "ABSENT \u2014 out of scope (per -168-v3 A5)",
+          "folding": {
+            "per_organ": [
+              {
+                "tag": "em",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "pr",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "ep",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "sc",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "gp",
+                "pop": 8,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "sf",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "sv",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "aff",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              }
+            ],
+            "total_neurons": 120,
+            "seed_neurons": 64,
+            "fold_trigger_ratio": 0.36787944117144233,
+            "folded": true
+          },
+          "folding_event_this_day": {
+            "mechanism": "q-charge (Embryo._charge_and_fold) \u2014 NOT n_eff/L6_TCL folding, which stays correctly blocked per -168-v3 A5",
+            "delta_neurons": 0
+          }
+        }
+      ]
+    },
+    {
+      "session": 2,
+      "born_this_session": false,
+      "checkpoints": [
+        {
+          "session": 2,
+          "day_in_session": 0,
+          "tick": 5356,
+          "g1_recall": 0.3,
+          "g3_association": {
+            "co_occurring_words": [
+              "after",
+              "and",
+              "but",
+              "cotton",
+              "dreadfully",
+              "flopsy",
+              "frightened",
+              "he",
+              "jumped",
+              "mopsy",
+              "most",
+              "names",
+              "naughty",
+              "ran",
+              "tail",
+              "their",
+              "up",
+              "very",
+              "was",
+              "were",
+              "who"
+            ],
+            "control_words": [
+              "into",
+              "am",
+              "wood",
+              "mcgregor's",
+              "brown"
+            ],
+            "mean_cosine_co_occurring": 0.9270743037770169,
+            "mean_cosine_random_control": 0.9173606189633874
+          },
+          "g4_retention_day1_words": 0.1111111111111111,
+          "g5_cross_modal": 0.0,
+          "g6_habituation_trajectory": [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1
+          ],
+          "g7_recognition": 0.0,
+          "g8_attention_unanimity": 0.1,
+          "g9_sequence": {
+            "accuracy": 1.0,
+            "chance": 0.1111111111111111
+          },
+          "g12_hemisphere_consensus": {
+            "em|pr": 0.0,
+            "em|sc": 0.0,
+            "em|ep": 0.0,
+            "em|sv": 0.0,
+            "em|aff": 0.0,
+            "ep|sf": 0.0,
+            "ep|sc": 0.0,
+            "gp|em": 0.0,
+            "sc|pr": 0.0
+          },
+          "g14_affect_arousal": 0.10343060166744975,
+          "g15_meta_sf_sense": [
+            0.10343060166744975,
+            15.0,
+            16.0,
+            16.44657293192312,
+            10.976716902028276,
+            63.5743617643291,
+            30.301626781885627,
+            0.0,
+            63.5743617643291,
+            79.80898305012262,
+            16.44657293192312
+          ],
+          "g2_composition": "ABSENT \u2014 no code path (per -168-v3 A5)",
+          "g10_imagination": "ABSENT \u2014 no code path (per -168-v3 A5)",
+          "g11_reflection": "ABSENT \u2014 depends on absent composition (per -168-v3 A5)",
+          "g13_theory_of_mind": "ABSENT \u2014 out of scope (per -168-v3 A5)",
+          "folding": {
+            "per_organ": [
+              {
+                "tag": "em",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "pr",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "ep",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "sc",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "gp",
+                "pop": 8,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "sf",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "sv",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              },
+              {
+                "tag": "aff",
+                "pop": 16,
+                "mean_n_eff": 7.0,
+                "min_n_eff": 7
+              }
+            ],
+            "total_neurons": 120,
+            "seed_neurons": 64,
+            "fold_trigger_ratio": 0.36787944117144233,
+            "folded": true
+          },
+          "folding_event_this_day": {
+            "mechanism": "q-charge (Embryo._charge_and_fold) \u2014 NOT n_eff/L6_TCL folding, which stays correctly blocked per -168-v3 A5",
+            "delta_neurons": 0
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -37,7 +37,7 @@ from collections import Counter
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from dsf_ai_service.loom_model.embryo import Embryo
+from dsf_ai_service.loom_model.embryo import Embryo, OPERATIONS
 from dsf_ai_service.loom_model.experience import ExperiencePipeline
 from dsf_ai_service.substrate.sensory_transducer import (
     SensoryTransducer, SMELL_CHANNELS, TASTE_CHANNELS,
@@ -495,5 +495,327 @@ def run(n_days=3, n_sleep_replay=15, out=None):
     }
 
 
+
+# ---------------------------------------------------------------------------
+# GL-CMD-ORGANISM-PERSIST-EVE-20260704-169-v1 — B3/B4: this harness becomes a
+# resumable raising loop for ONE continuous organism. Extends -168-v3 above
+# (untouched — run()/main-with-no-args still reproduces that historical,
+# twin-comparison, single-shot report exactly as filed). Everything below is
+# additive: a NEW organism, born once under B1's structural DNA (retiring
+# the RNG-seeded diversity -168-v3 used), never restarted at Day 0 again.
+# ---------------------------------------------------------------------------
+
+import json
+import subprocess
+
+REPO_ROOT = os.path.join(os.path.dirname(__file__), '..', '..', '..')
+STATE_DIR = os.path.join(REPO_ROOT, 'backups', 'organism_169')
+STATE_PATH = os.path.join(STATE_DIR, 'state.pkl.gz')
+CHART_PATH = os.path.join(STATE_DIR, 'growth_chart.json')
+
+
+def _load_chart(chart_path=CHART_PATH):
+    if os.path.exists(chart_path):
+        with open(chart_path) as f:
+            return json.load(f)
+    return {"identity_uuid": None, "sessions": []}
+
+
+def _save_chart(chart, chart_path=CHART_PATH):
+    os.makedirs(os.path.dirname(chart_path), exist_ok=True)
+    with open(chart_path, 'w') as f:
+        json.dump(chart, f, indent=2, default=str)
+
+
+def birth_or_load(state_path=STATE_PATH):
+    """B1/B3: birth ONCE if no persisted state exists; otherwise load the
+    SAME organism. Never re-instantiate a fresh Embryo when a prior state
+    exists -- that would be a silent replacement (G-2)."""
+    if os.path.exists(state_path):
+        return Embryo.load_full_state(state_path), False   # loaded, not born
+    emb = Embryo(brain_seed=BRAIN_SEED, seed_size=SEED_SIZE, observable="event_count")
+    return emb, True                                        # freshly born
+
+
+def _best_effort_s3_backup(local_path, reason):
+    """B2's 'disk + S3'. This dev sandbox has neither boto3 installed nor
+    AWS credentials (checked directly: `import boto3` fails here) -- so this
+    degrades to disk-only and SAYS SO, per failures-first reporting. It
+    never fabricates a successful upload. Written to the same convention as
+    save_coordinator.py's _s3_loop (boto3.client('s3'), GUALA_S3_BACKUP_BUCKET
+    env var) so it is a real, ready primitive for wherever this harness next
+    runs with real AWS access -- just unverified from here."""
+    try:
+        import boto3
+    except ImportError as e:
+        return {"uploaded": False, "reason": f"boto3 unavailable in this sandbox: {e}"}
+    bucket = os.environ.get("GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
+    try:
+        s3 = boto3.client("s3", region_name="us-east-1")
+        key = f"guala/model-only/organism-169/{reason}/{os.path.basename(local_path)}"
+        s3.upload_file(local_path, bucket, key)
+        return {"uploaded": True, "bucket": bucket, "key": key}
+    except Exception as e:
+        return {"uploaded": False, "reason": str(e)}
+
+
+def fingerprint(emb, pipe, probe_words):
+    """G-1 proof artifact: a comprehensive, JSON-serializable snapshot of
+    every piece of state a restore must reproduce exactly -- not spot
+    checks. Every neuron actually present (population, not just the seed),
+    its DNA/charge/topology, plus organism-level scalars and recall
+    behavior on fixed probes."""
+    neurons = []
+    for h in emb.brain.hemispheres:
+        tag = emb.op[h.hemi_id][0]
+        for n in h.cluster.neurons:
+            neurons.append({
+                "hemi": tag, "id": n.neuron_id,
+                "ring_pos": getattr(n, "ring_pos", None),
+                "kappa": float(getattr(n.krimelack, "kappa", 0.0)),
+                "threshold": float(getattr(n.krimelack, "threshold", 0.0)),
+                "aff_gain": float(getattr(n, "_aff_gain", 0.0)),
+                "polarity": float(getattr(n, "_polarity", 0.0)),
+                "q": float(getattr(n, "_q", 0.0)),
+                "neighbors": list(n.couplings.neighbors),
+                "n_bindings": len(n.binding_atlas._bindings),
+            })
+    recall_votes = {w: emb.recall(pipe._build_multi_modal_signals(w)).most_common(3)
+                    for w in probe_words}
+    return {
+        "identity_uuid": emb.identity_uuid,
+        "tick": emb.tick,
+        "arousal": emb.arousal,
+        "div_pool": emb._div_pool,
+        "strength": dict(emb.strength),
+        "consensus": {f"{a}|{b}": v for (a, b), v in emb.consensus.items()},
+        "population": {tag: len(emb.hemi_by_op[tag].cluster.neurons) for tag, _ in OPERATIONS},
+        "neurons": neurons,
+        "recall_votes": recall_votes,
+    }
+
+
+def _fingerprint_pipeline(emb, catalog_db):
+    catalog = _build_catalog(catalog_db)
+    reader = CatalogAtlasReader(catalog)
+    transducer = SensoryTransducer(reader)
+    pipe = ExperiencePipeline(emb.brain, transducer)
+    return pipe, catalog
+
+
+def _cli_fingerprint_after_birth(state_path, catalog_db, out_json):
+    """Subprocess step 1 (G-1 proof): birth + light experience, fingerprint,
+    save full state, exit -- this process then dies for real."""
+    if os.path.exists(state_path):
+        os.remove(state_path)
+    emb = Embryo(brain_seed=BRAIN_SEED, seed_size=SEED_SIZE, observable="event_count")
+    pipe, catalog = _fingerprint_pipeline(emb, catalog_db)
+    words = ["peter", "rabbit", "garden", "mcgregor", "lettuces"]
+    for w in words:
+        emb.remember(w, pipe._build_multi_modal_signals(w))
+        recept = taste_smell_receptors(w, catalog)
+        if recept:
+            emb.experience(w, recept)
+    n0 = emb.brain.hemispheres[0].cluster.neurons[0]
+    n0._q = 999.0
+    emb._charge_and_fold(emb.brain.hemispheres[0], coherent=True, quantum=0.0)
+    fp = fingerprint(emb, pipe, words)
+    emb.save_full_state(state_path)
+    with open(out_json, 'w') as f:
+        json.dump(fp, f, indent=2, default=str)
+    print(f"[fingerprint-after-birth] wrote {out_json}", flush=True)
+
+
+def _cli_fingerprint_after_load(state_path, catalog_db, out_json):
+    """Subprocess step 2 (G-1 proof): fresh process, load the saved state
+    (no re-birth), fingerprint again with the SAME probe words."""
+    emb = Embryo.load_full_state(state_path)
+    pipe, _ = _fingerprint_pipeline(emb, catalog_db)
+    words = ["peter", "rabbit", "garden", "mcgregor", "lettuces"]
+    fp = fingerprint(emb, pipe, words)
+    with open(out_json, 'w') as f:
+        json.dump(fp, f, indent=2, default=str)
+    print(f"[fingerprint-after-load] wrote {out_json}", flush=True)
+
+
+def restore_honesty_check(work_dir):
+    """G-1: save -> kill -> load (genuinely separate OS process) -> compare
+    full fingerprints for EXACT equality. Must pin PYTHONHASHSEED=0 in both
+    subprocesses: word-signal generation seeds from hash(word)
+    (experience.py/sensory_transducer.py), and Python's string hash is
+    process-salted by default -- confirmed empirically (recall flipped
+    apple->pear across an unpinned before/after) before this fix. Returns
+    (passed: bool, fp_before, fp_after, diff_summary)."""
+    os.makedirs(work_dir, exist_ok=True)
+    state_path = os.path.join(work_dir, "honesty_check_state.pkl.gz")
+    catalog_db = os.path.join(work_dir, "honesty_check_catalog.sqlite3")
+    fp_before_path = os.path.join(work_dir, "fp_before.json")
+    fp_after_path = os.path.join(work_dir, "fp_after.json")
+    env = dict(os.environ)
+    env["PYTHONHASHSEED"] = "0"
+
+    subprocess.run(
+        [sys.executable, __file__, "--fingerprint-after-birth",
+         state_path, catalog_db, fp_before_path],
+        check=True, cwd=REPO_ROOT, env=env,
+    )
+    # process boundary: the birth process has fully exited by the time
+    # run() returns above -- no shared memory, module globals, or caches
+    # survive into the next call.
+    subprocess.run(
+        [sys.executable, __file__, "--fingerprint-after-load",
+         state_path, catalog_db, fp_after_path],
+        check=True, cwd=REPO_ROOT, env=env,
+    )
+
+    with open(fp_before_path) as f:
+        fp_before = json.load(f)
+    with open(fp_after_path) as f:
+        fp_after = json.load(f)
+
+    passed = (fp_before == fp_after)
+    diff = None
+    if not passed:
+        diff = {k: (fp_before.get(k), fp_after.get(k))
+                for k in fp_before if fp_before.get(k) != fp_after.get(k)}
+    return passed, fp_before, fp_after, diff
+
+
+def raise_session(n_days=1, n_sleep_replay=15, out=None):
+    """B3: one session of the resumable raising loop for the ONE persistent
+    organism. Loads it if it exists (else births it once, B1), feeds
+    n_days of curriculum + sleep/replay, appends to the CUMULATIVE growth
+    chart (B4 -- never restarts at Day 0), persists full state to disk +
+    best-effort S3 (B2) at the end."""
+    def log(msg):
+        print(msg, flush=True)
+        if out is not None:
+            out.append(msg)
+
+    if os.environ.get("PYTHONHASHSEED") != "0":
+        log("WARNING: PYTHONHASHSEED != '0' in this process -- word-signal "
+            "generation seeds from hash(word), which is process-salted "
+            "without this pin (see restore-honesty check). Gauge values "
+            "from this session are not directly comparable to a session "
+            "run without the pin.")
+
+    chart = _load_chart()
+    session_no = len(chart["sessions"]) + 1
+
+    emb, born = birth_or_load()
+    if not born:
+        assert chart["identity_uuid"] == emb.identity_uuid, (
+            "G-2 violation: loaded organism's identity_uuid does not match "
+            "the chart's recorded identity")
+
+    # Rebuilt fresh every session, never persisted: _build_catalog seeds from
+    # a fixed np.random.default_rng(42) over a fixed word set, so it is
+    # bit-identical every time (verified as part of the G-1 restore-honesty
+    # check, which rebuilds it in two separate processes) -- no reason to
+    # carry this recreatable artifact in the durable state directory.
+    import tempfile
+    catalog_db = os.path.join(tempfile.mkdtemp(prefix="organism_169_catalog_"),
+                               f"session{session_no}.sqlite3")
+    catalog = _build_catalog(catalog_db)
+    reader = CatalogAtlasReader(catalog)
+    transducer = SensoryTransducer(reader)
+    pipe = ExperiencePipeline(emb.brain, transducer)
+
+    if born:
+        chart["identity_uuid"] = emb.identity_uuid
+        log(f"BIRTH (session {session_no}): identity_uuid={emb.identity_uuid}")
+    else:
+        pop = sum(len(h.cluster.neurons) for h in emb.brain.hemispheres)
+        log(f"LOADED (session {session_no}): identity_uuid={emb.identity_uuid} "
+            f"tick={emb.tick} pop={pop}")
+
+    cue_rng = np.random.default_rng(7)
+    words = corpus_words()
+    unique_words = sorted(set(words))
+    day1_words = sorted(set(_PETER_RABBIT_EXCERPT[0].lower().split()) & set(unique_words))
+    probe = list(cue_rng.choice(unique_words, size=min(10, len(unique_words)), replace=False))
+
+    seen_words = []
+    day_entries = []
+    for day in range(n_days):
+        for sentence in _PETER_RABBIT_EXCERPT:
+            for w in sentence.strip().lower().split():
+                sigs = pipe._build_multi_modal_signals(w)
+                emb.remember(w, sigs)
+                recept = taste_smell_receptors(w, catalog)
+                if recept:
+                    emb.experience(w, recept)
+                if w not in seen_words:
+                    seen_words.append(w)
+
+        pre_fold = folding_status(emb)
+        replayed, _ = sleep_replay(emb, pipe, seen_words, emb.tick, cue_rng,
+                                    n_replay=n_sleep_replay)
+        post_fold = folding_status(emb)
+
+        seq_sentence = _PETER_RABBIT_EXCERPT[0].strip().lower().split()
+        g9_acc, g9_chance = gauge_sequence(emb, pipe, seq_sentence)
+        g6_traj = gauge_habituation(emb, "peter", pipe)
+        g3 = gauge_association(emb, _PETER_RABBIT_EXCERPT, "peter", cue_rng)
+
+        entry = {
+            "session": session_no, "day_in_session": day, "tick": emb.tick,
+            "g1_recall": gauge_recall(emb, pipe, probe, cue_rng),
+            "g3_association": g3,
+            "g4_retention_day1_words": gauge_retention(emb, pipe, day1_words),
+            "g5_cross_modal": gauge_cross_modal(emb, pipe, probe),
+            "g6_habituation_trajectory": g6_traj,
+            "g7_recognition": gauge_recognition(emb, pipe, probe, cue_rng),
+            "g8_attention_unanimity": gauge_attention(emb, pipe, probe),
+            "g9_sequence": {"accuracy": g9_acc, "chance": g9_chance},
+            "g12_hemisphere_consensus": {f"{a}|{b}": v for (a, b), v
+                                          in gauge_hemisphere_integration(emb).items()},
+            "g14_affect_arousal": gauge_affect(emb),
+            "g15_meta_sf_sense": gauge_meta_monitoring(emb),
+            "g2_composition": "ABSENT — no code path (per -168-v3 A5)",
+            "g10_imagination": "ABSENT — no code path (per -168-v3 A5)",
+            "g11_reflection": "ABSENT — depends on absent composition (per -168-v3 A5)",
+            "g13_theory_of_mind": "ABSENT — out of scope (per -168-v3 A5)",
+            "folding": post_fold,
+            "folding_event_this_day": {
+                "mechanism": "q-charge (Embryo._charge_and_fold) — NOT n_eff/"
+                             "L6_TCL folding, which stays correctly blocked "
+                             "per -168-v3 A5",
+                "delta_neurons": post_fold["total_neurons"] - pre_fold["total_neurons"],
+            },
+        }
+        day_entries.append(entry)
+        log(f"  session {session_no} day {day}: tick={entry['tick']} "
+            f"g1={entry['g1_recall']:.2f} pop={post_fold['total_neurons']} "
+            f"fold_delta={entry['folding_event_this_day']['delta_neurons']}")
+
+    chart["sessions"].append({
+        "session": session_no,
+        "born_this_session": born,
+        "checkpoints": day_entries,
+    })
+    _save_chart(chart)
+    emb.save_full_state(STATE_PATH)
+    s3_result = _best_effort_s3_backup(STATE_PATH, reason=f"session{session_no}")
+    log(f"  persisted: disk={STATE_PATH} ({os.path.getsize(STATE_PATH)} bytes) "
+        f"s3={s3_result}")
+    return chart, s3_result
+
+
 if __name__ == "__main__":
-    run()
+    if "--fingerprint-after-birth" in sys.argv:
+        i = sys.argv.index("--fingerprint-after-birth")
+        _cli_fingerprint_after_birth(*sys.argv[i + 1:i + 4])
+    elif "--fingerprint-after-load" in sys.argv:
+        i = sys.argv.index("--fingerprint-after-load")
+        _cli_fingerprint_after_load(*sys.argv[i + 1:i + 4])
+    elif "--raise-session" in sys.argv:
+        raise_session()
+    elif "--restore-honesty-check" in sys.argv:
+        work_dir = sys.argv[sys.argv.index("--restore-honesty-check") + 1]
+        passed, fp_before, fp_after, diff = restore_honesty_check(work_dir)
+        print("RESTORE-HONESTY CHECK:", "PASSED" if passed else "FAILED")
+        if not passed:
+            print(json.dumps(diff, indent=2, default=str))
+    else:
+        run()

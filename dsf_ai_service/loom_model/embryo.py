@@ -17,7 +17,7 @@ Honesty / selective cheats (named, per the spec's anti-contamination protocol):
     from cognitive timescales), NOT tuned.
   - Whether bipolar senses actually unblock folding is OPEN — this observes it.
 """
-import sys, os
+import sys, os, math, uuid
 import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
@@ -25,6 +25,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 from dsf_ai_service.loom_model.brain import LoomBrain
 from dsf_ai_service.loom_model.neuron import FOLD_TRIGGER_RATIO, LoomNeuron
 from dsf_ai_service.loom_model.substrate_dna import derive_daughter_parameters, K_TOTAL
+from dsf_ai_service.loom_model.topology import N_HEMISPHERES
 from dsf_ai_service.substrate.sensory_generators import (
     generate_taste_waveform, generate_smell_waveform, generate_visual_waveform)
 
@@ -82,6 +83,36 @@ DEFAULT_PAIRS = [("em","pr"),("em","sc"),("em","ep"),("em","sv"),("em","aff"),
 DSF_COMPONENTS = ["D_k","M_k","R_rev","U_star","C_k","P_k","B_k","S_UF"]
 
 
+def _structural_dna(hemi_index, ring_pos, ring_N, n_hemispheres=N_HEMISPHERES):
+    """Deterministic per-neuron chemical differentiation from STRUCTURE
+    (hemisphere index + ring position), replacing the retired
+    np.random.default_rng(1000+neuron_index) per
+    GL-CMD-ORGANISM-PERSIST-EVE-20260704-169-v1 B1.
+
+    hemi_index/ring_pos are the same two coordinates the retired RNG's
+    enumeration order implicitly walked (hemisphere, then neuron-within-
+    hemisphere) — only the mapping from position to value changes, from a
+    random draw to a deterministic reading, same ring-cosine convention as
+    signal_attenuation (neuron.py, GL-CMD-131): one structural angle read at
+    four quarter-turn-offset phases, one phase per chemical axis, so a
+    single (hemisphere, ring) position yields four distinct scalars with no
+    RNG anywhere. Ranges match the retired RNG's (population variation, not
+    outcome-tuned); the ~20% inhibitory split matches the pre-existing
+    biology note this replaces, not a new tuning.
+    """
+    frac = (hemi_index * ring_N + ring_pos) / float(n_hemispheres * ring_N)
+
+    def _wave(offset, lo, hi):
+        c = 0.5 + 0.5 * math.cos(2.0 * math.pi * (frac + offset))
+        return lo + (hi - lo) * c
+
+    kappa_mult = _wave(0.00, 0.6, 1.6)
+    threshold_mult = _wave(0.25, 0.7, 1.4)
+    aff_gain = _wave(0.50, 0.3, 1.7)
+    polarity = -1.0 if ((frac + 0.75) % 1.0) >= 0.8 else 1.0
+    return kappa_mult, threshold_mult, aff_gain, polarity
+
+
 def bipolar_sense(receptors, modality):
     """Receptor combination -> bipolar (change-detection) sensory waveform.
     Biological: receptors fire on the derivative (onset +, offset -), which crosses
@@ -98,7 +129,8 @@ def bipolar_sense(receptors, modality):
 
 
 class Embryo:
-    def __init__(self, brain_seed=42, seed_size=4, observable="resonant_spectral"):
+    def __init__(self, brain_seed=42, seed_size=4, observable="resonant_spectral",
+                 identity_uuid=None):
         # resonant_spectral = the one mechanism that WORKS (recall, n=200 -> 100%).
         # GL-CMD-C2-WHOLE-BRAIN-168-v3 A4: observable is now a constructor arg
         # (was hardcoded) so the recall-representation question can be compared
@@ -108,6 +140,13 @@ class Embryo:
                                observable=observable)
         self.brain_seed = brain_seed
         self.seed_size = seed_size
+        # GL-CMD-ORGANISM-PERSIST-169 B1: identity recorded once at birth.
+        # Existing callers that never pass identity_uuid (every caller before
+        # this dispatch) are unaffected — they just get a fresh uuid stamped
+        # on construction, an additive attribute nothing reads yet. The
+        # resumable raising loop is the only caller that passes the ORIGINAL
+        # uuid back in on load, so identity survives restore.
+        self.identity_uuid = identity_uuid or str(uuid.uuid4())
         # tag hemispheres as operations
         self.op = {}            # hemi_id -> ("em", decay_mult)
         self.hemi_by_op = {}    # "em" -> hemisphere
@@ -143,20 +182,25 @@ class Embryo:
           threshold — excitability / ion-channel density (phase per winding event)
           aff_gain  — neuromodulator receptor density (how much arousal moves the cell)
           polarity  — transmitter type (excitatory +1 / inhibitory -1)
-        Structural diversity (ring position) already varies per neuron from the seed.
+        GL-CMD-ORGANISM-PERSIST-169 B1: derived from STRUCTURE (hemisphere index
+        + ring position, see _structural_dna) — the retired RNG-seeded-by-index
+        diversity is gone; identical (brain_seed, seed_size) always yields
+        identical DNA with no seed dependency at all, which is what makes birth
+        reproducible without needing to separately persist DNA on save/restore.
         Ranges are population variation (~2-3x), not outcome-tuned."""
-        idx = 0
-        for h in self.brain.hemispheres:
+        for hemi_index, h in enumerate(self.brain.hemispheres):
             for n in h.cluster.neurons:
-                rng = np.random.default_rng(1000 + idx)
+                ring_pos = getattr(n, "ring_pos", 0)
+                ring_N = getattr(n, "ring_N", len(h.cluster.neurons))
+                kappa_mult, threshold_mult, aff_gain, polarity = _structural_dna(
+                    hemi_index, ring_pos, ring_N, len(self.brain.hemispheres))
                 k = n.krimelack
                 if hasattr(k, "kappa"):
-                    k.kappa = float(k.kappa) * float(rng.uniform(0.6, 1.6))
+                    k.kappa = float(k.kappa) * kappa_mult
                 if hasattr(k, "threshold"):
-                    k.threshold = float(k.threshold) * float(rng.uniform(0.7, 1.4))
-                n._aff_gain = float(rng.uniform(0.3, 1.7))
-                n._polarity = 1.0 if rng.random() > 0.2 else -1.0   # ~20% inhibitory
-                idx += 1
+                    k.threshold = float(k.threshold) * threshold_mult
+                n._aff_gain = aff_gain
+                n._polarity = polarity
 
     def _hemi(self, tag):
         return self.hemi_by_op[tag]
@@ -427,6 +471,34 @@ class Embryo:
             "arousal": float(self.arousal),
             "neurons": neurons,
         }
+
+    # --- GL-CMD-ORGANISM-PERSIST-169 B2: full-fidelity organism persistence ---
+    # Separate from save()/load() above (untouched, still used by
+    # organ_brain_service — out of scope here). save() above only carries
+    # binding_atlas entries and silently drops any neuron born via folding on
+    # reload (Embryo.load() re-instantiates a FRESH seed population and skips
+    # rec["id"] values with no match). That gap is exactly what a "raised,
+    # not benched" organism cannot afford: growth itself would be lost on
+    # every restore. save_full_state/load_full_state instead pickle the
+    # ENTIRE object graph — every neuron actually present (including
+    # divisions), each one's DNA/charge/couplings, cross-hemi consensus,
+    # arousal, division pool, tick, and identity_uuid — so restore is
+    # bit-honest by construction, not by a hand-maintained field list that
+    # can silently miss something (as the gap above demonstrates it already
+    # has). No unpicklable state lives on Embryo/LoomBrain/LoomNeuron (pure
+    # Python + numpy; no threads, sockets, or db handles), so this is a real,
+    # boring primitive — not a workaround.
+    def save_full_state(self, path):
+        import pickle, gzip
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        with gzip.open(path, "wb") as f:
+            pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    @staticmethod
+    def load_full_state(path):
+        import pickle, gzip
+        with gzip.open(path, "rb") as f:
+            return pickle.load(f)
 
     @staticmethod
     def load(d):
