@@ -221,13 +221,27 @@ function handleNotReady(context){
 }
 
 // --- Sleep / Dream (5b) ---
+// GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: this button calls /v7/quiet, the v7
+// SESSION layer's quiet_tick() -- proven in -160/-161 to be structurally
+// disconnected from her real conversation (its own replay/krimelack log is
+// permanently empty), which is a DIFFERENT mechanism from the v5 engine's
+// /api/v1/gualaloom/admin/force_dream that -165/-166/-167's sleep-physics
+// work is actually about. A 0/0 result from THIS button reflects that known
+// v7 dormancy, not the v5 dream-cycle timing question -165 Q6 raised.
+// Deliberately NOT rewiring which endpoint this button calls here -- that's
+// a mechanism change, not a naming one; filed as an open deferral in
+// GL-RPT-CREDO-CHANGE4-COMPLETION-C1-20260704-167-v1.
 async function triggerSleep(){
-  addMsg('(asking her to dream...)','system');
+  addMsg('(asking her to rest...)','system');
   try{
     const r=await fetchT(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:50})},15000);
     if(r.status===503||r.status===500){handleNotReady('sleep');return}
     const d=await r.json();
-    addMsg('(she is dreaming \u2014 '+d.replayed+' replayed memories, '+d.commits+' commits)','system');
+    if((d.replayed||0)>0||(d.commits||0)>0){
+      addMsg('(she dreamed \u2014 '+d.replayed+' replayed memories, '+d.commits+' commits)','system');
+    }else{
+      addMsg('(nothing replayed \u2014 0 memories, 0 commits; this button reaches the v7 layer, not her main dream cycle \u2014 see -167)','system');
+    }
     pollV7State();
   }catch(e){addMsg('sleep error: '+e.message,'system')}
 }

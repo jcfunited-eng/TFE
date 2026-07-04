@@ -1777,12 +1777,20 @@ async def gualaloom_chat(msg: GLMessage):
         return {"response": "...", "motifs": 0}
 
     # GL-BRIEF-SLEEP-DURING-DEPLOY Part B: surface sleep state
+    # GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: reserve "dreaming" for a cycle
+    # that has actually executed a dream tick (is_consolidating) -- a pause
+    # that hasn't reached that point yet (e.g. one about to be cut short by
+    # a deploy, -165 Q5) says so honestly instead of claiming sleep it can't
+    # back up. "asleep" field kept for compatibility; "consolidating" added.
     if _guala.is_asleep:
         cmd_check = (msg.command or "").strip().lower()
         if cmd_check != "/status":
+            consolidating = _guala.is_consolidating
             return {
-                "response": "she is sleeping...",
+                "response": "she is dreaming..." if consolidating
+                            else "she is paused, not yet consolidating...",
                 "asleep": True,
+                "consolidating": consolidating,
                 "sleep_tick": _guala.tick,
                 "motifs": _guala.introspect()["vocab"],
             }
@@ -1864,6 +1872,7 @@ async def gualaloom_chat(msg: GLMessage):
             "motifs": s["vocab"],
             "vocab": s["vocab"],
             "asleep": _guala.is_asleep,
+            "consolidating": _guala.is_consolidating,  # GL-CMD-167 Change 4
             "persistence_health": _ph_light,
             "atlas_health": s.get("atlas_health", {}),
             "presence": s.get("presence", {}),

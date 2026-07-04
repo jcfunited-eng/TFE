@@ -891,7 +891,7 @@ class Coordinator:
         self.need_history = []
 
         # v6-bridge: per-source pair bonds and presence tracking
-        self._pair_bond = {"joe": True, "wc": True, "c1": False}
+        self._pair_bond = {"joe": True, "joe_voice": True, "wc": True, "c1": False}
         self._presence = {"joe": False, "wc": False, "c1": False}
         self._last_input_tick = {"joe": 0, "wc": 0, "c1": 0}
         self._wake_tick = {"joe": 0, "wc": 0, "c1": 0}
@@ -1010,8 +1010,21 @@ class Coordinator:
             }
         return out
 
+    # GL-CMD-VOICE-IDENTITY-FIX-JOE-20260704: pair-bond identity is the
+    # PERSON, not the input channel. "joe_voice" (spoken) and "joe" (typed)
+    # are one father, two channels -- their interaction history merges into
+    # a single bond. The literal source string is untouched everywhere else
+    # (atlas entries, provenance, emission logs still say "joe_voice") --
+    # this normalization applies ONLY to pair-bond density/salience tracking.
+    _BOND_IDENTITY_ALIASES = {"joe_voice": "joe"}
+
+    @classmethod
+    def _bond_identity(cls, source):
+        return cls._BOND_IDENTITY_ALIASES.get(source, source)
+
     def _record_interaction(self, source, salience, tick):
         """Record one sentence-level interaction for continuous strength tracking."""
+        source = self._bond_identity(source)
         log = self._source_interaction_log.setdefault(source, [])
         log.append((tick, salience))
         # Prune to last 2000 ticks (1000-tick window + safety margin)
@@ -1030,6 +1043,7 @@ class Coordinator:
         current_tick: if provided, measures recency from NOW (enables decay when
         a source goes silent). When None, uses the last recorded tick (no decay).
         """
+        source = self._bond_identity(source)
         log = self._source_interaction_log.get(source)
         if not log:
             return 0.3  # baseline for unknown/cold sources
@@ -1377,6 +1391,11 @@ class Guala:
         # v7: Autonomy state + sleep/wake (GL-BRIEF-SLEEP-DURING-DEPLOY)
         self._current_activity = None
         self._activity_history = []
+        # GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: true only once a real dream
+        # tick has executed this SLEEPING/DREAMING cycle (see _run_dream_cycle
+        # and is_consolidating below) -- reserves "dreaming"/"asleep" language
+        # for genuine consolidation. Naming only; no physics changed.
+        self._dream_executed_this_cycle = False
         self._substrate_events = deque(maxlen=1000)
         self._last_emission_tick = -100_000
         self._last_emission_record = None  # {emission_id, text, tick, ...}
@@ -1453,12 +1472,24 @@ class Guala:
             return False
         return getattr(ca, 'kind', None) in ("SLEEPING", "DREAMING")
 
+    @property
+    def is_consolidating(self):
+        """GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: True only if is_asleep AND a
+        real dream tick has executed this cycle (_run_dream_cycle ran past its
+        tick%200 gate at least once, per -165 Q6). is_asleep fires the instant
+        a SLEEPING activity starts, before any consolidation may have run — a
+        deploy-triggered pause is killed before this ever becomes True (-165
+        Q5), which is exactly the distinction "asleep"/"dreaming" language
+        should honor. Naming only; does not change is_asleep's own behavioral
+        gate (converse-blocking) or any selection/pressure physics."""
+        return self.is_asleep and getattr(self, '_dream_executed_this_cycle', False)
+
     # ------------------------------------------------------------------
     # v6: Salience computation
     # ------------------------------------------------------------------
     def _compute_salience(self, source="corpus", input_novelty=0.5):
         """v6: salience modulates how strongly this moment binds."""
-        SOURCE_WEIGHTS = {"joe": 1.6, "wc": 1.6, "c1": 1.2,
+        SOURCE_WEIGHTS = {"joe": 1.6, "joe_voice": 1.6, "wc": 1.6, "c1": 1.2,
                           "corpus": 0.5, "guala": 0.5, "unknown": 0.7}
         source_w = SOURCE_WEIGHTS.get(source, 0.7)
         needs_state = self.needs.snapshot()
@@ -1604,7 +1635,7 @@ class Guala:
             # Interactive sources (joe, wc, c1) = attended, higher dwell
             # Self-heard speech (guala) = dwell=4 (can earn slow channel + Path B)
             # Corpus reads = background, dwell=1
-            if source in ("joe", "wc", "c1"):
+            if source in ("joe", "joe_voice", "wc", "c1"):
                 dwell = 8
             elif source == "guala":
                 dwell = 4
@@ -1907,7 +1938,7 @@ class Guala:
             _t_chi = time.monotonic()
 
             # v8 (GL-BRIEF-028): open response window from source utterance
-            if source in ("joe", "wc", "c1") and input_chis:
+            if source in ("joe", "joe_voice", "wc", "c1") and input_chis:
                 self._open_response_window(source, input_chis,
                                            source_context={"text": text[:50]})
 
@@ -1925,7 +1956,7 @@ class Guala:
             _t_read = time.monotonic()
 
             # v8 (GL-BRIEF-028, FIX 1): tag ONLY entries touched by THIS input.
-            if source in ("joe", "wc", "c1"):
+            if source in ("joe", "joe_voice", "wc", "c1"):
                 _bind_count = 0
                 _bind_cap = 12  # bound: prevent cascading O(n²) when many new entries
                 for ch in input_chis:
@@ -2003,7 +2034,7 @@ class Guala:
                 self._last_emission_id = None
 
             # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
-            if reply and reply != "..." and source in ("joe", "wc", "c1"):
+            if reply and reply != "..." and source in ("joe", "joe_voice", "wc", "c1"):
                 self._self_hear(reply, source)
             _t_selfhear = time.monotonic()
 
@@ -2027,7 +2058,7 @@ class Guala:
             _t_hemi = time.monotonic()
 
             # Diagnostic timing event (EVE-PROFILE-20260626 — remove after gate passes)
-            if source in ("joe", "wc", "c1", "gate_test"):
+            if source in ("joe", "joe_voice", "wc", "c1", "gate_test"):
                 self._log_substrate_event("converse_timing",
                     chi_ms=round((_t_chi - _t_converse_start) * 1000, 1),
                     recall_ms=round((_t_recall - _t_chi) * 1000, 1),
@@ -2086,7 +2117,7 @@ class Guala:
 
         # Phase 2: open_response_window (brief self.lock — mutates open_response_windows)
         with self.lock:
-            if source in ("joe", "wc", "c1") and input_chis:
+            if source in ("joe", "joe_voice", "wc", "c1") and input_chis:
                 self._open_response_window(source, input_chis,
                                            source_context={"text": text[:50]})
 
@@ -2103,7 +2134,7 @@ class Guala:
         _t_read = time.monotonic()
 
         # Phase 5: tag response bindings (brief self.lock — mutates atlas entries)
-        if source in ("joe", "wc", "c1"):
+        if source in ("joe", "joe_voice", "wc", "c1"):
             with self.lock:
                 _bind_count = 0
                 _bind_cap = 12
@@ -2202,7 +2233,7 @@ class Guala:
                 self._last_emission_id = None
 
         # Phase 8: self-hear (per-word self.lock internally)
-        if reply and reply != "..." and source in ("joe", "wc", "c1"):
+        if reply and reply != "..." and source in ("joe", "joe_voice", "wc", "c1"):
             self._self_hear(reply, source)
         _t_selfhear = time.monotonic()
 
@@ -2222,7 +2253,7 @@ class Guala:
         _t_hemi = time.monotonic()
 
         # Phase 10: timing log (_log_substrate_event has internal deque sync)
-        if source in ("joe", "wc", "c1", "gate_test"):
+        if source in ("joe", "joe_voice", "wc", "c1", "gate_test"):
             self._log_substrate_event("converse_timing",
                 chi_ms=round((_t_chi - _t0) * 1000, 1),
                 recall_ms=round((_t_recall - _t_chi) * 1000, 1),
@@ -4338,6 +4369,12 @@ class Guala:
 
     def _start_activity(self, activity):
         self._current_activity = activity
+        if activity.kind == "SLEEPING":
+            # GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: fresh cycle, no dream
+            # tick has executed yet regardless of who/what started this
+            # (manual_sleep, force_dream's _force_next_activity, or future
+            # natural selection all pass through here).
+            self._dream_executed_this_cycle = False
         self._log_substrate_event("activity_started",
                                  kind=activity.kind, target=activity.target,
                                  salience=activity.metadata.get("salience"),
@@ -4463,6 +4500,10 @@ class Guala:
         caller_kind logged in events for attribution."""
         if self.tick % 200 != 0:
             return
+        # GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: past this point a real dream
+        # tick is executing -- is_consolidating (and human-facing text built
+        # from it) can honestly say "dreaming" from here on this cycle.
+        self._dream_executed_this_cycle = True
         if os.environ.get("DREAM_CYCLE_PHASED", "0") == "1":
             self._run_dream_cycle_phased(caller_kind=caller_kind)
             return
