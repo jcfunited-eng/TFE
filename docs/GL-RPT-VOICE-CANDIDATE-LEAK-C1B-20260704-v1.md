@@ -99,6 +99,31 @@ default, one line, in the Dockerfile only. Does not affect P2 seam
 work c1a is doing concurrently. Does not touch dial-1, the sleep-rate
 dial, or retention.
 
+## Redeploy (v2)
+
+Shipped separately from c1a's concurrent P2-seam commits
+(`f2e8bb5`, `032edd4`), which are explicitly "Not deployed... Eve/Joe's
+call" per c1a's own reports and were not ready to ride this window
+(confirmed with Joe: c1a's P2 deploy is not imminent). Cherry-picked
+just this fix (`8475a75`) onto the last-deployed baseline (`4658b19`)
+in an isolated worktree, producing `aabb52f` — Dockerfile fix + this
+report, nothing else. Fresh verified backup taken first
+(`UNPAUSE-PRE-20260704-171626/` already covered the immediately-prior
+state; a new backup was triggered again before this specific cutover).
+Deployed clean, single attempt: task `dsf-ai-task:463`, boot clean
+(`[app] Substrate booted, background loops running`, no errors in the
+5 minutes surrounding boot). c1a's P2 seam commits remain on
+`guala-live`, undeployed, exactly as they left them — this deploy does
+not touch or ship that work.
+
+Awaiting the next real conversational exchange to directly confirm
+`rich_sensory: false` and a candidate count consistent with the
+brain's ≤3-word output (rather than 199) — will file the moment one
+occurs.
+
 ### Changelog
+- v2 (2026-07-04, c1b): deployed as task:463, SHA `aabb52f`
+  (hotfix-only, isolated from c1a's undeployed P2 work). Boot clean.
+  Live confirmation of the actual fix pending the next real exchange.
 - v1 (2026-07-04, c1b): found during G-5 post-deploy watch, root-
   caused, fixed same session. Redeploy to follow immediately.
