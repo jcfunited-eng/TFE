@@ -62,7 +62,13 @@ def _run_cell(config):
 
     corpus = generate_concepts(n_concepts, seed=42)
 
-    brain = LoomBrain(brain_seed=BRAIN_SEED, seed_size=seed_size)
+    # GL-CMD-SENSE-REPAIR: observable must be forced explicitly. A later
+    # "capacity solve" commit made resonant_spectral the LoomBrain default
+    # (brain.py), so without this arg encode_state() never calls
+    # _unwrapped_deltas at all and the _patched_event_count monkeypatch
+    # below is silently dead code — this is exactly why this probe stopped
+    # running (dimension-mismatch crash) sometime after GL-CMD-140/146.
+    brain = LoomBrain(brain_seed=BRAIN_SEED, seed_size=seed_size, observable="event_count")
     pipeline = ExperiencePipeline(brain, SensoryTransducer(NullAtlasReader()))
 
     original_method = LoomNeuron._unwrapped_deltas
@@ -82,10 +88,12 @@ def _run_cell(config):
                 continue
             att = signal_attenuation(rpos, rN, i)
             # GL-CMD-138: use monotonic n_events counter, not len(events).
-            # The events buffer is now a bounded deque (maxlen=1024); under the
-            # no-reset accumulation this harness drives, len(events) saturates at
-            # 1024 and the per-delivery delta would collapse to ~0. n_events is
-            # the unbounded count and gives the true per-delivery event delta.
+            # The events buffer is a bounded deque (maxlen=256, GL-CMD-SENSE-
+            # REPAIR — this comment previously said 1024, which was never the
+            # actual value); under the no-reset accumulation this harness
+            # drives, len(events) saturates at 256 and the per-delivery delta
+            # would collapse to ~0. n_events is the unbounded count and gives
+            # the true per-delivery event delta.
             ev0 = krim.n_events if hasattr(krim, 'n_events') else (
                 len(krim.events) if hasattr(krim, 'events') else 0)
             if m == "language":

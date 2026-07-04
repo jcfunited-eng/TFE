@@ -14,9 +14,16 @@ Signal path:
 
 import math
 import numpy as np
-from collections import defaultdict
+from collections import defaultdict, deque
 
 from dsf_ai_service.sensory_corpus import MODALITY_COMPONENTS, MODALITIES
+
+# GL-CMD-SENSE-REPAIR: cap per-krimelack event history, same bound and same
+# reason as gualaloom_v4_krimelack_dna.py's language path (GL-CMD-138):
+# unbounded accumulation under no-reset cognition-path teaching is a real
+# memory risk. n_events (below) is the separate, never-reset monotonic
+# counter that survives eviction from this bounded buffer.
+_EVENTS_MAXLEN = 256
 
 
 # ── Oscillator Krimelack (from krimelack_v1.py, inlined to avoid docs/ import) ──
@@ -29,13 +36,20 @@ class OscillatorKrimelack:
         self.kappa = kappa
         self.dt = dt
         self.threshold = threshold if threshold is not None else math.pi / 3
+        # GL-CMD-SENSE-REPAIR: monotonic event counter, set ONCE here (not in
+        # reset()) so it survives reset()/no-reset feeding the same way the
+        # language krimelack's n_events was always documented to (the
+        # adapters in substrate_dna.py already assumed this existed —
+        # `self._inner.n_events if hasattr(self._inner, 'n_events') else 0`
+        # always took the `else 0` branch because this line never existed).
+        self.n_events = 0
         self.reset()
 
     def reset(self):
         self.phase = 0.0
         self.t = 0.0
         self.winding = 0
-        self.events = []
+        self.events = deque(maxlen=_EVENTS_MAXLEN)
 
     def step(self, s_t):
         omega = self.omega_0 + self.kappa * s_t
@@ -47,11 +61,13 @@ class OscillatorKrimelack:
             self.phase -= self.threshold
             self.winding += 1
             self.events.append({"t": self.t, "dw": +1, "s": s_t})
+            self.n_events += 1
             transitions += 1
         while self.phase <= -self.threshold:
             self.phase += self.threshold
             self.winding -= 1
             self.events.append({"t": self.t, "dw": -1, "s": s_t})
+            self.n_events += 1
             transitions += 1
         return transitions
 

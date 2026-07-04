@@ -179,7 +179,13 @@ class LoomBrain:
 
         For each neuron: feed query signals through krimelack bank in a
         non-binding pass, build target state vector, find best match in
-        BindingAtlas. Aggregate votes. Phase state restored after query.
+        BindingAtlas. Aggregate votes. Full krimelack state restored after
+        query (GL-CMD-SENSE-REPAIR): phase, t, winding, n_events, and the
+        event buffer itself — not just phase/winding as before. Without
+        this, a query is not actually read-only: n_events/events mutate
+        during the query (feed_signal has no "peek" mode), so identical
+        back-to-back queries with zero teaching between them would return
+        different deltas, contaminating every later measurement.
         """
         from collections import Counter
         from .grandurun import grandurun_state, MODALITIES
@@ -187,15 +193,36 @@ class LoomBrain:
         votes = Counter()
         for hemi in self.hemispheres:
             for neuron in hemi.cluster.neurons:
-                # Snapshot pre-query (phase + winding)
+                # Snapshot pre-query state. Adapters (touch/smell/taste) hold
+                # their real oscillator state on ._inner; krimelacks with no
+                # ._inner (language, visual, auditory) hold it directly. The
+                # adapters ALSO keep a post-feed mirror of .events/.winding on
+                # themselves (see e.g. TactileKrimelack.feed_signal) — that
+                # mirror must be snapshotted/restored too, not just ._inner,
+                # or a caller reading krim.events directly (bypassing target)
+                # would still see query-time contamination.
                 snap = {}
                 for m in MODALITIES:
                     krim = neuron.krimelack_bank.get(m)
-                    if krim is not None:
-                        snap[m] = (
-                            float(krim.phase) if hasattr(krim, 'phase') else 0.0,
-                            int(krim.winding) if hasattr(krim, 'winding') else 0,
+                    if krim is None:
+                        continue
+                    target = getattr(krim, '_inner', krim)
+                    outer_mirror = None
+                    if target is not krim:
+                        outer_mirror = (
+                            krim,
+                            krim.events.copy() if hasattr(krim, 'events') else None,
+                            int(krim.winding) if hasattr(krim, 'winding') else None,
                         )
+                    snap[m] = (
+                        target,
+                        float(target.phase) if hasattr(target, 'phase') else None,
+                        float(target.t) if hasattr(target, 't') else None,
+                        int(target.winding) if hasattr(target, 'winding') else None,
+                        int(target.n_events) if hasattr(target, 'n_events') else None,
+                        target.events.copy() if hasattr(target, 'events') else None,
+                        outer_mirror,
+                    )
 
                 # Same encoding as the write path (switched by neuron.observable)
                 target_vec = neuron.encode_state(query_signals)
@@ -203,12 +230,24 @@ class LoomBrain:
                 if best_concept is not None:
                     votes[best_concept] += 1
 
-                # Restore phase + winding — recall must not pollute training
-                for m, (p, w) in snap.items():
-                    krim = neuron.krimelack_bank.get(m)
-                    if krim is not None:
-                        if hasattr(krim, 'phase'):
-                            krim.phase = p
-                        krim.winding = w
+                # Restore full state — recall must not pollute training OR
+                # future recalls.
+                for target, phase, t, winding, n_events, events, outer_mirror in snap.values():
+                    if phase is not None:
+                        target.phase = phase
+                    if t is not None:
+                        target.t = t
+                    if winding is not None:
+                        target.winding = winding
+                    if n_events is not None:
+                        target.n_events = n_events
+                    if events is not None:
+                        target.events = events
+                    if outer_mirror is not None:
+                        krim_outer, outer_events, outer_winding = outer_mirror
+                        if outer_events is not None:
+                            krim_outer.events = outer_events
+                        if outer_winding is not None:
+                            krim_outer.winding = outer_winding
 
         return votes

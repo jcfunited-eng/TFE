@@ -237,6 +237,10 @@ class VisualKrimelack:
     def n_events(self):
         return self._n_events
 
+    @n_events.setter
+    def n_events(self, value):
+        self._n_events = value
+
     def reset(self):
         self._fovea = AdaptingFoveaKrimelack(omega_0=self.omega_0)
         self.events = []
@@ -283,6 +287,10 @@ class CochlearBankKrimelack:
     @property
     def n_events(self):
         return self._n_events
+
+    @n_events.setter
+    def n_events(self, value):
+        self._n_events = value
 
     def reset(self):
         self.events = []
