@@ -1636,25 +1636,35 @@ class Guala:
                 _akw["sky_state"] = sky_state
 
             fam_listen = self.atlas.match_score(lang_chi, "listen")
-            self.sections["listen"].receive(lang_dsf, lang_chi, word,
-                                            self.atlas, fam_listen,
-                                            salience=salience,
-                                            dwell_ticks=dwell,
-                                            deep_atlas=self.deep_atlas,
-                                            engine_tick=self.tick,
-                                            atlas_kwargs=_akw)
-            # Index update now handled automatically by _atlas_record wrapper
+            _listen_committed, _listen_mode_idx, _ = self.sections["listen"].receive(
+                lang_dsf, lang_chi, word,
+                self.atlas, fam_listen,
+                salience=salience,
+                dwell_ticks=dwell,
+                deep_atlas=self.deep_atlas,
+                engine_tick=self.tick,
+                atlas_kwargs=_akw)
+            # GL-CMD-RECALL-REACH-159 Part C (F-3): Section.receive commits via
+            # atlas.record() directly, not self._atlas_record() (Section has no
+            # engine reference) — so the -57 reverse index has to be updated
+            # here explicitly, at every receive() callsite, restoring -57
+            # §1.2's "all atlas.record callsites index" invariant.
+            if _listen_committed:
+                self._index_word_at_chi("listen", _listen_mode_idx, lang_chi)
 
             for primary_section in primary_sections:
                 fam = self.atlas.match_score(lang_chi, primary_section)
                 n_modes_before = len(self.sections[primary_section].modes)
-                self.sections[primary_section].receive(lang_dsf, lang_chi, word,
-                                                       self.atlas, fam,
-                                                       salience=salience,
-                                                       dwell_ticks=dwell,
-                                                       deep_atlas=self.deep_atlas,
-                                                       engine_tick=self.tick,
-                                                       atlas_kwargs=_akw)
+                _committed, _mode_idx, _ = self.sections[primary_section].receive(
+                    lang_dsf, lang_chi, word,
+                    self.atlas, fam,
+                    salience=salience,
+                    dwell_ticks=dwell,
+                    deep_atlas=self.deep_atlas,
+                    engine_tick=self.tick,
+                    atlas_kwargs=_akw)
+                if _committed:
+                    self._index_word_at_chi(primary_section, _mode_idx, lang_chi)
                 # Incremental update of word→emission-section index
                 if (primary_section in self._EMISSION_SECTIONS
                         and len(self.sections[primary_section].modes) > n_modes_before):
@@ -1675,12 +1685,15 @@ class Guala:
                 ground_dsf = compute_dsf(combined_events,
                                          atlas_similarity=atlas_sim)
                 fam_ground = self.atlas.match_score(ground_chi, "ground")
-                self.sections["ground"].receive(ground_dsf, ground_chi, word,
-                                                self.atlas, fam_ground,
-                                                salience=salience,
-                                                dwell_ticks=dwell,
-                                                deep_atlas=self.deep_atlas,
-                                                engine_tick=self.tick)
+                _ground_committed, _ground_mode_idx, _ = self.sections["ground"].receive(
+                    ground_dsf, ground_chi, word,
+                    self.atlas, fam_ground,
+                    salience=salience,
+                    dwell_ticks=dwell,
+                    deep_atlas=self.deep_atlas,
+                    engine_tick=self.tick)
+                if _ground_committed:
+                    self._index_word_at_chi("ground", _ground_mode_idx, ground_chi)
 
                 for m in self.senses.MODALITIES:
                     if sense_fps[m] is not None:
@@ -1695,12 +1708,15 @@ class Guala:
             if fam_listen > 0.3:
                 intro_dsf = DSF(D_k=fam_listen, M_k=0, R_rev=0, U_star=1-fam_listen,
                                 C_k=fam_listen, P_k=0.5, B_k=fam_listen, S_UF=fam_listen)
-                self.sections["intro"].receive(intro_dsf, lang_chi, word,
-                                                self.atlas, 0.0,
-                                                salience=salience,
-                                                dwell_ticks=dwell,
-                                                deep_atlas=self.deep_atlas,
-                                                engine_tick=self.tick)
+                _intro_committed, _intro_mode_idx, _ = self.sections["intro"].receive(
+                    intro_dsf, lang_chi, word,
+                    self.atlas, 0.0,
+                    salience=salience,
+                    dwell_ticks=dwell,
+                    deep_atlas=self.deep_atlas,
+                    engine_tick=self.tick)
+                if _intro_committed:
+                    self._index_word_at_chi("intro", _intro_mode_idx, lang_chi)
 
             # v6: Decay heartbeat (GL-FIX-PAUSE-IDEMPOTENT: rate_scale=0 when paused
             # keeps last_tick current so unpause doesn't see a massive dt)
