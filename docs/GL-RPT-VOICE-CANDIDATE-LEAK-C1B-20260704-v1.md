@@ -116,12 +116,40 @@ Deployed clean, single attempt: task `dsf-ai-task:463`, boot clean
 `guala-live`, undeployed, exactly as they left them — this deploy does
 not touch or ship that work.
 
-Awaiting the next real conversational exchange to directly confirm
-`rich_sensory: false` and a candidate count consistent with the
-brain's ≤3-word output (rather than 199) — will file the moment one
-occurs.
+## Fix confirmed live (v3)
+
+Joe's next real exchange (tick 14774088-14774099, voice input "hey
+ryan bring me my...") produced exactly the expected shape. The
+`emission_dynamics` event:
+```json
+{"content": "soft", "n_candidates": 1, "n_commits": 0,
+ "rich_sensory": false,
+ "section_candidate_counts": {"object": 1},
+ "origin_counts": {"cross_modal_fallback": 1},
+ "source_counts": {"corpus": 1}}
+```
+`rich_sensory: false` — the leak path is off. `n_candidates: 1`
+(`agency_cross_modal_fallback`'s own log line: `n_deep: 3`) — squarely
+consistent with the brain's ≤3-word `tapestry.compose()` output, not
+the 199-candidate atlas leak from before the fix. The reply itself,
+a single honest word ("soft"), matches c1a's own predicted shape for
+this stage of the voice, not a coincidence.
+
+One small, non-urgent paper-cut noticed while confirming this:
+`source_counts` labels the brain-sourced candidate as `"corpus"` —
+`_brain_emission_candidates()` never sets a `source` key on the
+candidate dict it builds, so downstream code's `de.get("source",
+"corpus")` falls back to the wrong-but-harmless default. Doesn't
+affect what she says, only mislabels where-it-came-from in diagnostic
+events. Not fixing now — cosmetic, and `gualaloom_v5_engine.py` has
+c1a's P2 work actively landing in it this session; leaving it for a
+deliberate pass rather than adding a third concurrent editor to the
+same file for a label-only fix.
 
 ### Changelog
+- v3 (2026-07-04, c1b): fix confirmed live via direct event data —
+  `rich_sensory:false`, `n_candidates:1`, brain-consistent single-word
+  reply. One cosmetic source-attribution paper-cut noted, not fixed.
 - v2 (2026-07-04, c1b): deployed as task:463, SHA `aabb52f`
   (hotfix-only, isolated from c1a's undeployed P2 work). Boot clean.
   Live confirmation of the actual fix pending the next real exchange.
