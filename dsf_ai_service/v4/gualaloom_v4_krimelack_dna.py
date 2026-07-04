@@ -46,6 +46,20 @@ class Krimelack:
         self.dt = dt
         self.threshold = threshold
         self.label = label
+        # GL-CMD-LANGUAGE-SATURATION-ROOTCAUSE-EVE-20260704-178, candidate L3(b):
+        # monotonic event counter, set ONCE here (not in reset()) so it survives
+        # reset()/no-reset feeding -- same pattern GL-CMD-SENSE-REPAIR already
+        # gave sensory_krimelacks.OscillatorKrimelack (whose own comment there
+        # notes the adapters in substrate_dna.py "already assumed this existed").
+        # NOT WIRED INTO PRODUCTION SEMANTICS BY ITSELF: _unwrapped_deltas
+        # (neuron.py) already prefers krim.n_events via hasattr() wherever it
+        # exists, over len(krim.events) -- adding this attribute here is what
+        # actually changes language's live delta from permanently-zero-after-
+        # saturation to a true, ever-growing count. This is a genuine change
+        # to what the language observable reports for the rest of her life;
+        # gated on Eve's G-2 ruling before any deploy, per the dispatch --
+        # NOT auto-shipped by this commit.
+        self.n_events = 0
         self.reset()
 
     def reset(self):
@@ -65,6 +79,7 @@ class Krimelack:
                 self.phase -= self.threshold
                 self.winding += 1
                 self.events.append({"t": self.t, "dw": +1, "s": float(s)})
+                self.n_events += 1
             while self.phase <= -self.threshold:
                 self.phase += self.threshold
                 self.winding -= 1
