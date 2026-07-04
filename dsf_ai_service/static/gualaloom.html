@@ -482,14 +482,20 @@ function startContinuousSTT(){
       if(_sttCooldown||t===_sttLastSent){liveT.textContent='(waiting...)';return}
       _sttLastSent=t;liveT.textContent='';
       addMsg(t,'user');
-      // She hears what is said — /experience writes to her v5 atlas via /listen
-      fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({text:t,command:'/experience'})},3000).catch(()=>{});
-      // GL-CMD-UI-HONESTY-38 §2.7: STT brain-mode branch removed.
-      // /organ_voice silenced (-23) and retired (-37). Passive listen only.
-      // She hears spoken words; autonomous emission (dispatch -39) is her voice.
-      fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({text:t,source:'joe',command:'/listen'})},8000).catch(()=>{});
+      // GL-CMD-VOICE-TO-WORDS-COMPLETION-JOE-20260704: recognized speech now
+      // enters the SAME door as typed input (_converseAndRender), tagged
+      // source="joe_voice" (established elsewhere in the engine -- pair-bond
+      // matching, Whisper transcription -- not "joe" (typed text) and not
+      // "voice:self"/-152's self-voice tag). Previously this fired two
+      // fetches, both fire-and-forget with .catch(()=>{}) and no .then():
+      // the /experience call was a confirmed no-op (SUBSTRATE_MODE=embedded
+      // in production, so its _is_remote()-gated body never runs) and the
+      // /listen call DID reach converse() correctly but its 202 {poll_url}
+      // response was never read -- so no reply from spoken input could ever
+      // reach the screen no matter what the server did. This is the fix.
+      _converseAndRender(t,'joe_voice').catch(e=>{
+        addMsg('(voice reply error: '+e.message+')','system');
+      });
       _sttCooldown=true;setTimeout(()=>{_sttCooldown=false;_sttLastSent=''},800);
     }
   };
@@ -878,6 +884,33 @@ async function _pollConverseTask(pollUrl, retryAfterMs){
   return{status:'error',response:'(converse timed out after 90s)'};
 }
 
+// GL-CMD-VOICE-TO-WORDS-COMPLETION-JOE-20260704 (voice-to-words):
+// shared converse-and-render path, factored out of sendMsg()'s non-command
+// branch so spoken input (STT) can use the SAME door as typed input instead
+// of firing a fetch whose response was never read. Anything that reaches
+// her real conversation must consume the 202+poll_url task pattern to ever
+// show a reply on screen -- this was the missing half of the voice leg.
+async function _converseAndRender(text,source){
+  // GL-CMD-CONVERSE-TASK-PATTERN-62: 202+poll replaces SSE
+  const startR=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source})});
+  if(startR.status===503||startR.status===500){handleNotReady('converse');}
+  else if(startR.status===202){
+    const start=await startR.json();
+    const phEl=addMsg('(settling...)', 'system');
+    const d=await _pollConverseTask(start.poll_url, start.retry_after_ms||500);
+    if(phEl&&phEl.parentNode)phEl.parentNode.removeChild(phEl);
+    const resp=d.response||'...';
+    if(resp&&resp!=='...'&&resp!=='(converse timed out after 90s)'&&resp!=='substrate unreachable — try again in a moment'){
+      addEmissionMsg(resp,d.emission_id);gualaSpeak(resp);
+    }else{addMsg(resp==='(converse timed out after 90s)'?'(still settling — check /events)':'(she is quiet)','system');}
+    if(d.pictures)renderPictures(d.pictures);
+  }else{
+    const d=await startR.json().catch(()=>({}));
+    const resp=d.response||'...';
+    if(resp&&resp!=='...')addMsg(resp,'system');
+  }
+}
+
 let _sendingMsg=false;
 async function sendMsg(){
   const text=msgInput.value.trim();if(!text)return;
@@ -890,24 +923,7 @@ async function sendMsg(){
       const d=await r.json();addMsg(d.response||JSON.stringify(d),'system');
       if(d.pictures)renderPictures(d.pictures);
     }else{
-      // GL-CMD-CONVERSE-TASK-PATTERN-62: 202+poll replaces SSE
-      const startR=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source:'joe'})});
-      if(startR.status===503||startR.status===500){handleNotReady('converse');}
-      else if(startR.status===202){
-        const start=await startR.json();
-        const phEl=addMsg('(settling...)', 'system');
-        const d=await _pollConverseTask(start.poll_url, start.retry_after_ms||500);
-        if(phEl&&phEl.parentNode)phEl.parentNode.removeChild(phEl);
-        const resp=d.response||'...';
-        if(resp&&resp!=='...'&&resp!=='(converse timed out after 90s)'&&resp!=='substrate unreachable — try again in a moment'){
-          addEmissionMsg(resp,d.emission_id);gualaSpeak(resp);
-        }else{addMsg(resp==='(converse timed out after 90s)'?'(still settling — check /events)':'(she is quiet)','system');}
-        if(d.pictures)renderPictures(d.pictures);
-      }else{
-        const d=await startR.json().catch(()=>({}));
-        const resp=d.response||'...';
-        if(resp&&resp!=='...')addMsg(resp,'system');
-      }
+      await _converseAndRender(text,'joe');
     }
   }catch(e){
     if(e.name==='TimeoutError'||e.message.includes('timeout')||e.message.includes('abort')){
@@ -1276,7 +1292,12 @@ const COGMETER_ROWS=[
   {name:'state-shows-in-words',connected:'severed',pointer:'-160/-161/-162',
     firing:'the layer that reaches Joe’s seat is permanently disconnected; a separate internal number is pinned at zero until the next deploy',
     impact:'fix committed 2026-07-04, not yet deployed -- see “deliberation stage” below'},
-  // Machinery rows already adjudicated by prior dispatches (-166's own list).
+  // Machinery rows already adjudicated by prior dispatches (-166's own list),
+  // plus voice-to-words (added same-session per the standing rule: any newly
+  // discovered/fixed mechanism ships its row in the same dispatch).
+  {name:'voice-to-words',connected:'severed',pointer:'-153/-166',
+    firing:'client-side speech recognition WAS producing text, but both fetches that sent it fired-and-forgot with no .then() -- the server’s real reply (which it was correctly computing) was thrown away unread',
+    impact:'fix shipped 2026-07-04: recognized speech now uses the same door as typed input, tagged source="joe_voice". Stays red until Joe speaks a sentence, touches nothing, and sees her respond -- that live test is the only gate that counts, per the Visibility Rule, and it has not run yet'},
   {name:'aware gate',connected:'severed',pointer:'-160/-161',
     firing:'checked every time she considers speaking — blocked every time (structural, not a coincidence)',
     impact:'none observed — the only thing that could feed it never gets real conversation'},
