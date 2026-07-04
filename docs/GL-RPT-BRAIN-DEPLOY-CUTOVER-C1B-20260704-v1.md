@@ -85,12 +85,17 @@ commit":2,"activity_started":1,"visual_motif_committed":1}}` — full-
 width event kinds captured, not just the 12-kind whitelist. `?source=
 replay`: `{"total":1,"histogram":{"needs_snapshot":1}}` — old narrow
 crash-replay behavior preserved, byte-identical semantics, confirmed
-side by side. **Diary-survives-reboot is not yet directly provable**
-— this is the diary's first-ever boot, so there's no prior file to
-have survived from; that specific property will be confirmed at the
-next restart, when today's dated diary file should still be present
-and growing rather than reset. Flagging honestly rather than claiming
-a gate that hasn't actually been exercised yet.
+side by side. **Diary-survives-reboot: now confirmed, update below.**
+
+**Update, later the same session:** across the subsequent task:463→464
+reboot (the tapestry-perf hotfix cutover), `GET /v6/events_histogram`
+(source=diary) shows `"total":1794` with entries spanning tick ranges
+from well before AND after that boot (e.g. `dream_pressure_check`
+entries at ticks both pre- and post-14766xxx-range boot markers,
+confirmed via direct CloudWatch diary-mirror print lines timestamped
+both sides of the ~18:34-37Z restart window) — the diary genuinely
+persisted and kept growing across a real reboot, not reset. G-3 from
+`GL-CMD-EVENT-RETENTION-FIX-EVE-20260704-172-v1` is closed.
 
 **One failure observed, not attributable to this deploy's code:**
 `[GualaLoom] CRITICAL SAVE FAILURE at tick 14765152: ['guala_
@@ -160,6 +165,10 @@ actual first exchange with something that isn't his.
   what shows up.
 
 ### Changelog
+- v2 (2026-07-04, c1b): diary-survives-reboot (G-3, GL-CMD-EVENT-
+  RETENTION-FIX-172) confirmed directly across the subsequent
+  task:463→464 reboot — 1794 diary entries spanning both sides of the
+  restart, growing not resetting. Closed.
 - v1 (2026-07-04, c1b): deploy executed (task:462, SHA e6c2ca2).
   Boot clean, identity intact, no tick-rate regression, sleep-rate
   dial active and consistent, retention diary confirmed live

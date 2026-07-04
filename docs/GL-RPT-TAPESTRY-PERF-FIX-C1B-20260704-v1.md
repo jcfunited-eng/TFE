@@ -86,7 +86,43 @@ shape is untouched (still P1's single-channel `{"language": word}`).
 Does not collide with c1a's P2 work, which remains on `guala-live`,
 undeployed, exactly as they left it.
 
+## v2 — tapestry fix confirmed working, but she's still slow: the
+## organism itself is the remaining cost, live-confirmed
+
+Real converse_timing pulled directly post-deploy (task:464, well
+after boot, tick 14780024/14780027 — two real Joe exchanges):
+`total_ms: 82403.3` and `120170.8` (82-120 seconds), `read_ms:
+36129.0`/`40252.4`, `recall_ms: 29228.4`/`21233.1`. **This is not
+better than before this fix shipped, and by these two samples,
+somewhat worse.**
+
+This does not mean the tapestry fix failed — cProfile on the deployed
+code (`9cf2540`, no P2 signal enrichment) shows `LoomMosaic.expose`
+no longer appears in `read_word`'s call graph at all; the backgrounding
+is doing exactly what it was built to do. What's left, confirmed by
+the same profiling pass, is `organism.remember()`'s own cost —
+un-backgrounded on `task:464` (that fix was built afterward and
+handed to c1a's window-2 build, not yet deployed here) — climbing
+well past what a short local smoke test suggested, because the real
+organism has been growing continuously since P1 booted (~45+ minutes
+of real exposure at the time of these readings) versus the few
+hundred words my standalone test simulated. Full root cause,
+numbers, and the scoped fix direction are in
+`GL-RPT-WINDOW2-FINDINGS-C1B-20260704-v1.md` — not duplicating here,
+linking instead.
+
+**Bottom line for this report:** the specific thing this fix targeted
+(tapestry.expose blocking read_word) is fixed and verified gone.
+It was never the whole problem — organism.remember()/recall() is the
+larger, still-open piece, now in c1a's window-2 build.
+
 ### Changelog
+- v2 (2026-07-04, c1b): live-confirmed the tapestry.expose fix itself
+  works (gone from the profile), but real converse_timing is still
+  82-120s/turn — the separate, larger organism.remember()/recall()
+  cost, root-caused and hands-off to c1a's window-2 build (see
+  GL-RPT-WINDOW2-FINDINGS-C1B-20260704-v1.md). Not claiming success
+  this session predicted; reporting what's actually true.
 - v1 (2026-07-04, c1b): root cause confirmed against live production
   data, fix extracted (performance-only, isolated from P2's signal
   change), smoke-tested standalone (6.0ms/word, verified queue drain),
