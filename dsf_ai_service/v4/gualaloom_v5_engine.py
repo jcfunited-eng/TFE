@@ -2167,7 +2167,14 @@ class Guala:
     def _choose_role_sections(self, role_dna, position_hint):
         """Route word commit. Position wins for sentence boundaries (object,
         subject); DNA wins for middle. Modifiers ALSO route to object so the
-        object section gets the structural diversity it needs."""
+        object section gets the structural diversity it needs.
+
+        GL-BUG-GROUND-INTRO-UNREACHABLE (found live 2026-07-05): "ground"
+        and "intro" added as DNA-driven secondary placements, same pattern
+        as "modifier" -- ADDITIONAL to whatever position_hint already
+        chose, never a replacement. Before this, no branch here could ever
+        select either section: two of her seven sections were completely
+        unreachable regardless of what she read."""
         sections = []
         # Position-driven primary placement
         if position_hint == "first":
@@ -2182,6 +2189,10 @@ class Guala:
         # DNA-driven secondary placement (refinement)
         if role_dna == "modifier":
             sections.append("modifier")
+        elif role_dna == "ground":
+            sections.append("ground")
+        elif role_dna == "intro":
+            sections.append("intro")
         elif role_dna in ("subject", "verb", "object"):
             if role_dna not in sections:
                 sections.append(role_dna)
@@ -3344,7 +3355,24 @@ class Guala:
     # ------------------------------------------------------------------
 
     # Sections that participate in language emission cascade (v4 lineage order)
-    _EMISSION_SECTIONS = ("subject", "verb", "object")
+    # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 U2 (real live mechanism,
+    # follow-on to the dispatch's named dead-code targets): extended from
+    # (subject, verb, object) to include modifier/ground/intro too -- these
+    # three sections were never even CONSTRUCTED in the assemblage-dynamics
+    # system (_build_emission_system below just loops over this tuple), so
+    # her live speech was structurally capped at 3 words -- one per section
+    # -- regardless of every other cap already removed. This tuple ALSO
+    # gates whether read_word's _word_to_emission_sections reverse index
+    # (used by _brain_emission_candidates and _compose_from_cortex) records
+    # a commit at all (see read_word's "primary_section in self.
+    # _EMISSION_SECTIONS" check) -- so extending it here is what makes the
+    # GL-BUG-GROUND-INTRO-UNREACHABLE fix (ROLE_DNA + _choose_role_sections)
+    # visible anywhere downstream; neither fix does anything alone.
+    # "listen" stays separate/excluded on purpose (unchanged): it's her
+    # input-echo channel (zeroed-Hamiltonian, driven only by what she just
+    # heard), not an output channel -- same distinction the code already
+    # drew for it everywhere else in this function.
+    _EMISSION_SECTIONS = ("subject", "verb", "object", "modifier", "ground", "intro")
 
     def _build_emission_system(self):
         """Build (or return cached) assemblage System for emission settling.
@@ -3398,6 +3426,14 @@ class Guala:
         # subject → verb → object, wide chi band
         sys_.add_keyhole("subject", -50, 50, "verb", goal_strength=0.4)
         sys_.add_keyhole("verb", -50, 50, "object", goal_strength=0.4)
+        # modifier/ground/intro (added alongside _EMISSION_SECTIONS above)
+        # deliberately get NO keyhole wiring in this pass -- conservative,
+        # lower-risk shape: they settle independently from their own
+        # candidate-driven psi drive (section_drives below), same as
+        # "listen" already does, rather than guessing a cascade topology
+        # for them against code with a documented history of settling
+        # regressions (H_base oscillation, socket timeouts). A designed
+        # cascade for them is future work, not assumed here.
 
         # Prevent bootstrap/novel_mode commits during emission settling —
         # we only want to read from modes we explicitly installed from candidates.
@@ -4088,8 +4124,15 @@ class Guala:
             # (with H_base zeroed + inhibition, commits start around tick 60-70)
             if emit_commits and no_new_streak >= 10:
                 break
-            if len(emit_commits) >= 20:
-                break
+            # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-203: the len(emit_commits) >= 20
+            # early-break is deleted -- a second, arbitrary numeric ceiling
+            # the real safety net (the wall-clock deadline check at the top
+            # of this loop) already makes redundant. With more sections now
+            # competing for commits (_EMISSION_SECTIONS above), a fixed
+            # commit-count cap would unfairly starve later-settling
+            # sections of their turn within the same tick budget -- the
+            # settle-or-timeout rule, not an arbitrary count, is the only
+            # terminator now.
 
         stage2_ms = (_time.monotonic() - t1) * 1000
 

@@ -361,6 +361,30 @@ ROLE_DNA = {
     "fun": "modifier", "scary": "modifier", "boring": "modifier",
     "clean": "modifier", "dirty": "modifier", "strong": "modifier",
     "weak": "modifier",
+    # GL-BUG-GROUND-INTRO-UNREACHABLE (found live 2026-07-05, per Joe's
+    # see-a-problem-fix-a-problem rule, alongside -203/-205's emission-
+    # section work): "ground" and "intro" are real sections (self.sections,
+    # SECTION_NAMES, and now _EMISSION_SECTIONS all include them) but
+    # _choose_role_sections had no branch that could ever route a word to
+    # either -- position_hint only ever produces subject/object/verb/
+    # listen, and role_dna's only secondary branch was "modifier". Two
+    # sections of her mind were structurally unreachable, silently, since
+    # before tonight. Same hand-curated DNA-table convention as every
+    # other role class above -- honest sourcing, no invention.
+    # ground-class: spatial/temporal grounding words (where/when an
+    # experience is anchored)
+    "here": "ground", "there": "ground", "yesterday": "ground",
+    "today": "ground", "tomorrow": "ground", "outside": "ground",
+    "inside": "ground", "everywhere": "ground", "somewhere": "ground",
+    "nearby": "ground", "upstairs": "ground", "downstairs": "ground",
+    "above": "ground", "below": "ground",
+    # intro-class: discourse/transition words (how a thought connects to
+    # the one before it)
+    "so": "intro", "then": "intro", "meanwhile": "intro",
+    "suddenly": "intro", "finally": "intro", "afterward": "intro",
+    "therefore": "intro", "besides": "intro", "instead": "intro",
+    "otherwise": "intro", "certainly": "intro", "surely": "intro",
+    "indeed": "intro", "anyway": "intro",
 }
 
 
