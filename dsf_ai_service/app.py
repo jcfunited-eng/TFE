@@ -1526,20 +1526,6 @@ async def organ_brain_status():
         return {"warming": True, "neurons": 0, "per_organ": {}, "couplings": {}, "arousal": 0.0}
 
 
-@app.get("/api/v1/gualaloom/events")
-async def gualaloom_events(n: int = 200):
-    """Event log for the UI status panels (HEMISPHERES, RECENT EMISSIONS). GET version
-    so the API Gateway integration can proxy it without a body."""
-    if _is_remote():
-        client = _get_substrate_client()
-        try:
-            return await client.call("gualaloom_post", command="/events",
-                                     text=str(n), source="ui", timeout=8.0)
-        except Exception:
-            return {"events": []}
-    return {"events": []}
-
-
 @app.get("/api/v1/gualaloom/chi_density")
 async def chi_density():
     """Read-only per-chi binding density for Loom Scan radial map.
@@ -3429,8 +3415,17 @@ async def chi_trace(req: ChiTraceRequest):
 # ════════════════════════════════════════════════════════════════
 
 @app.get("/api/v1/gualaloom/events")
-async def gualaloom_events(since: int = 0, stream: bool = False):
-    """Substrate events. ?stream=true for SSE, default returns JSON array."""
+async def gualaloom_events(since: int = 0, stream: bool = False, n: int = 50):
+    """Substrate events. ?stream=true for SSE, default returns JSON array.
+
+    GL-BUG-DUPLICATE-EVENTS-ROUTE (found during -196 live verification):
+    this path had TWO @app.get definitions -- an earlier stub (always
+    `return {"events": []}` in embedded mode, the production config)
+    registered first, silently shadowing this real implementation for
+    every request. Deleted; `n` (loomscan.html's limit param, previously
+    silently ignored here) now actually controls `limit` below instead
+    of a hardcoded 50 that only coincidentally matched loomscan's own
+    default."""
     if _is_remote():
         # Remote mode: poll substrate via socket for events
         client = _get_substrate_client()
@@ -3470,7 +3465,7 @@ async def gualaloom_events(since: int = 0, stream: bool = False):
         async def event_generator():
             last_tick = since
             while True:
-                events = _guala.get_recent_events(since_tick=last_tick, limit=50)
+                events = _guala.get_recent_events(since_tick=last_tick, limit=n)
                 for ev in events:
                     if ev["tick"] > last_tick:
                         last_tick = ev["tick"]
@@ -3479,7 +3474,7 @@ async def gualaloom_events(since: int = 0, stream: bool = False):
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
     else:
-        events = _guala.get_recent_events(since_tick=since, limit=50)
+        events = _guala.get_recent_events(since_tick=since, limit=n)
         return {"events": events}
 
 

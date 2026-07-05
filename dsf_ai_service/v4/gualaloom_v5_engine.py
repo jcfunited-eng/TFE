@@ -1544,6 +1544,10 @@ class Guala:
         # and is_consolidating below) -- reserves "dreaming"/"asleep" language
         # for genuine consolidation. Naming only; no physics changed.
         self._dream_executed_this_cycle = False
+        # GL-CMD-TURN-LATENCY-EVE-20260705-197 P4: persisted tick of her last
+        # REAL dream execution (see _run_dream_cycle) -- None until it
+        # happens once, restored from save thereafter (_apply_needs).
+        self._last_real_dream_tick = None
         # GL-CMD-CREDO-LOOP-REPAIR-167 Change 2: cheap O(1) write counter
         # (see _atlas_record) feeding dream_pressure's load-based
         # accumulation; _dp_last_write_count is this same counter's value
@@ -2582,16 +2586,21 @@ class Guala:
                 pass
 
         # Phase 7: engine state writes (brief self.lock — mutates _emission_records)
+        # GL-CMD-TURN-LATENCY-EVE-20260705-197 P3: reply words transduced ONCE
+        # here and shared with self_hear (Phase 8) and the hemisphere-update
+        # block (Phase 9) below, instead of each re-running fresh
+        # LanguageKrimelacks over the identical, deterministic reply text.
         with self.lock:
             self._last_converse_input = text
             self._last_converse_reply = reply
             self._last_converse_source = source
+            reply_chis = []
             if reply and reply != "...":
-                committed_chis = []
                 for ew in _normalize_text(reply):
                     ek = LanguageKrimelack()
                     ek.transduce(ew)
-                    committed_chis.append(ek.winding)
+                    reply_chis.append(ek.winding)
+                committed_chis = reply_chis
                 first_chi = min(committed_chis) if committed_chis else 0
                 n_committed = len(committed_chis)
                 eid = f"{self.tick}_{first_chi}_{n_committed}"
@@ -2613,41 +2622,59 @@ class Guala:
                         del self._emission_records[k]
             else:
                 self._last_emission_id = None
+        _t_reply_ready = time.monotonic()
 
-        # Phase 8: self-hear (per-word self.lock internally)
-        if reply and reply != "..." and source in ("joe", "joe_voice", "wc", "c1"):
-            self._self_hear(reply, source)
-        _t_selfhear = time.monotonic()
-
-        # Phase 9: hemisphere updates (no lock — separate state domain)
-        try:
-            from dsf_ai_service.substrate.hemisphere_cognition import run_hemisphere_updates
-            emission_chis = []
-            if reply and reply != "...":
-                for ew in _normalize_text(reply):
-                    ek = LanguageKrimelack()
-                    ek.transduce(ew)
-                    emission_chis.append(ek.winding)
-            run_hemisphere_updates(self, text, source, input_chis, reply,
-                                   emission_chis, self.tick)
-        except Exception:
-            pass
-        _t_hemi = time.monotonic()
-
-        # Phase 10: timing log (_log_substrate_event has internal deque sync)
+        # GL-CMD-TURN-LATENCY-EVE-20260705-197 P2: RELEASE THE REPLY BEFORE
+        # SELF-HEAR. Phases 8 (self_hear) and 9 (hemisphere updates) used to
+        # run before this function returned, gating Joe seeing her answer on
+        # her hearing herself say it. They now run as a same-request
+        # background continuation -- same pattern _self_hear's own step 4
+        # (self-voice injection) already uses (a daemon thread, fire-and-
+        # forget). Binding semantics preserved: same process, same tick
+        # neighborhood -- the queue/lock machinery self_hear and
+        # run_hemisphere_updates use is already safe from other background
+        # writers (organism-writer, tapestry-writer, self-voice). The
+        # SELF_HEARING_ENABLED kill switch is untouched (still checked
+        # inside _self_hear itself).
         if source in ("joe", "joe_voice", "wc", "c1", "gate_test"):
-            self._log_substrate_event("converse_timing",
-                chi_ms=round((_t_chi - _t0) * 1000, 1),
-                recall_ms=round((_t_recall - _t_chi) * 1000, 1),
-                read_ms=round((_t_read - _t_recall) * 1000, 1),
-                tag_ms=round((_t_tag - _t_read) * 1000, 1),
-                emit_ms=round((_t_emit - _t_tag) * 1000, 1),
-                selfhear_ms=round((_t_selfhear - _t_emit) * 1000, 1),
-                hemi_ms=round((_t_hemi - _t_selfhear) * 1000, 1),
-                total_ms=round((_t_hemi - _t0) * 1000, 1),
-                n_words=len(words),
-                phased=True)
+            self._log_substrate_event("converse_reply_released",
+                reply_ready_ms=round((_t_reply_ready - _t0) * 1000, 1),
+                n_words=len(words))
 
+        def _post_reply_continuation():
+            _t_ph_start = time.monotonic()
+            # Phase 8: self-hear (per-word self.lock internally)
+            if reply and reply != "..." and source in ("joe", "joe_voice", "wc", "c1"):
+                self._self_hear(reply, source, reply_chis=reply_chis)
+            _t_ph_selfhear = time.monotonic()
+            # Phase 9: hemisphere updates (no lock — separate state domain)
+            try:
+                from dsf_ai_service.substrate.hemisphere_cognition import run_hemisphere_updates
+                run_hemisphere_updates(self, text, source, input_chis, reply,
+                                       reply_chis, self.tick)
+            except Exception:
+                pass
+            _t_ph_hemi = time.monotonic()
+            # Phase 10: timing log -- total_ms is the FOREGROUND (perceived)
+            # latency captured before backgrounding; selfhear_ms/hemi_ms/
+            # background_ms are the deferred cost, visible but no longer
+            # gating the reply.
+            if source in ("joe", "joe_voice", "wc", "c1", "gate_test"):
+                self._log_substrate_event("converse_timing",
+                    chi_ms=round((_t_chi - _t0) * 1000, 1),
+                    recall_ms=round((_t_recall - _t_chi) * 1000, 1),
+                    read_ms=round((_t_read - _t_recall) * 1000, 1),
+                    tag_ms=round((_t_tag - _t_read) * 1000, 1),
+                    emit_ms=round((_t_emit - _t_tag) * 1000, 1),
+                    selfhear_ms=round((_t_ph_selfhear - _t_ph_start) * 1000, 1),
+                    hemi_ms=round((_t_ph_hemi - _t_ph_selfhear) * 1000, 1),
+                    background_ms=round((_t_ph_hemi - _t_ph_start) * 1000, 1),
+                    total_ms=round((_t_reply_ready - _t0) * 1000, 1),
+                    n_words=len(words),
+                    phased=True, released_before_selfhear=True)
+
+        threading.Thread(target=_post_reply_continuation, daemon=True,
+                         name="converse-posthear").start()
         return reply
 
     def _tapestry_worker_loop(self):
@@ -5480,6 +5507,13 @@ class Guala:
         # tick is executing -- is_consolidating (and human-facing text built
         # from it) can honestly say "dreaming" from here on this cycle.
         self._dream_executed_this_cycle = True
+        # GL-CMD-TURN-LATENCY-EVE-20260705-197 P4: the last-dream marker
+        # (board S1/Q6, open since -173-era) -- persisted needs-state, same
+        # class as dream_pressure, so a deploy reboot can honestly answer
+        # "when did a real dream last execute" instead of losing the fact
+        # entirely (dream_pressure's own value already survives; this is
+        # the complementary timestamp nothing captured before now).
+        self._last_real_dream_tick = self.tick
         # Change 2: discharge is earned per real execution, not granted
         # instantly at sleep's start. A full natural DREAMING phase fires
         # this several times (every 200 ticks of the ~1000-tick dreaming
@@ -6732,12 +6766,18 @@ class Guala:
                 "affected": affected,
             }
 
-    def _self_hear(self, reply, responding_to_source):
+    def _self_hear(self, reply, responding_to_source, reply_chis=None):
         """GL-BRIEF-034: Self-hearing — Guala hears her own conversational reply.
         (1) read_sentence at 0.5x salience (no question generation, no recursion)
         (2) open "guala" response window with reply chi-keys
         (3) tag self-heard entries against open other-emitter windows
-        Kill switch: SELF_HEARING_ENABLED env var."""
+        Kill switch: SELF_HEARING_ENABLED env var.
+
+        GL-CMD-TURN-LATENCY-EVE-20260705-197 P3: reply_chis, when the caller
+        already transduced this exact reply text (converse's own
+        committed_chis, same deterministic values), is reused here instead
+        of a third redundant LanguageKrimelack pass. None (the default)
+        preserves old standalone-caller behavior exactly."""
         import os
         if os.environ.get("SELF_HEARING_ENABLED", "1") == "0":
             return
@@ -7123,6 +7163,10 @@ class Guala:
                 # backlog computation on the first boot where this key is
                 # absent from a prior save.
                 "dream_pressure": self.needs.dream_pressure,
+                # GL-CMD-TURN-LATENCY-EVE-20260705-197 P4: last-dream marker
+                # -- same persistence class as dream_pressure above, so a
+                # deploy reboot doesn't lose "when did she last really dream".
+                "last_real_dream_tick": self._last_real_dream_tick,
             })
             snap_coord = self._envelope({
                 "pair_bond": dict(self.coordinator._pair_bond),
@@ -7334,6 +7378,10 @@ class Guala:
                 # backlog computation on the first boot where this key is
                 # absent from a prior save.
                 "dream_pressure": self.needs.dream_pressure,
+                # GL-CMD-TURN-LATENCY-EVE-20260705-197 P4: last-dream marker
+                # -- same persistence class as dream_pressure above, so a
+                # deploy reboot doesn't lose "when did she last really dream".
+                "last_real_dream_tick": self._last_real_dream_tick,
             })
 
             # 3. Coordinator
@@ -8164,6 +8212,15 @@ class Guala:
             self._log_substrate_event("dream_pressure_boot_init",
                                       tick=self.tick,
                                       computed_dream_pressure=round(_boot_backlog, 4))
+        # GL-CMD-TURN-LATENCY-EVE-20260705-197 P4: last-dream marker restore.
+        # Absent on the first boot before this fix ever saved it (or if she
+        # has genuinely never dreamed yet) -- None is the honest value, not
+        # a guess. dream_pressure itself is restored above, UNCHANGED by
+        # this -- the marker is a complementary fact, not a substitute.
+        self._last_real_dream_tick = nd.get("last_real_dream_tick")
+        print(f"[dream-marker-restore] last_real_dream_tick="
+              f"{self._last_real_dream_tick!r} dream_pressure="
+              f"{self.needs.dream_pressure:.4f} (GL-CMD-TURN-LATENCY-197 P4)")
 
     def _apply_coordinator(self, cd):
         # v6-bridge: per-source pair bonds
