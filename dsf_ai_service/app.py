@@ -1972,6 +1972,11 @@ async def gualaloom_chat(msg: GLMessage):
             # "what's actually deployed" disputes; every window report
             # quotes this field, not a task-def number or a claim.
             "running_sha": os.environ.get("GIT_SHA", "unknown"),
+            # GL-CMD-COGNITION-AT-SPEED-EVE-20260705-205 C5: measured
+            # rolling tick rate, next to running_sha per the dispatch --
+            # her status now answers both "what code" and "how fast."
+            "tick_rate": s.get("tick_rate", 0.0),
+            "tick_rate_had_pending_work": s.get("tick_rate_had_pending_work", False),
             "persistence_health": _ph_light,
             # GL-CMD-LOCK-CONTENTION-FIX-182 L3: frame backpressure visibility
             "frame_backpressure": {

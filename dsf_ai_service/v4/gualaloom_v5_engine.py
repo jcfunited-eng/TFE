@@ -1293,6 +1293,14 @@ class Coordinator:
         for s in sections.values():
             recent_commits += len(s.commits)
             total_modes += len(s.modes)
+        # GL-CMD-COGNITION-AT-SPEED-EVE-20260705-205 C2: this same O(atlas)
+        # total was computed twice per tick (identical expression, two
+        # names) -- one pass, shared. Full n_live_bindings()/
+        # cross_modal_bindings() scans themselves are unchanged here
+        # (see this dispatch's window report for why an incremental
+        # counter for those two needs its own careful, parity-tested
+        # window rather than a rushed rewrite of live memory-count
+        # physics tonight).
         _n_total = sum(len(v) for v in atlas.entries.values())
         _coherence = atlas.n_live_bindings() / max(_n_total, 1)
         stability_sig = (_coherence - 0.5) * 0.2
@@ -1306,7 +1314,7 @@ class Coordinator:
 
         # Connection: cross-modal binding density + pair-bond boost
         n_cross = len(atlas.cross_modal_bindings())
-        n_atlas = sum(len(v) for v in atlas.entries.values())
+        n_atlas = _n_total
         cross_density = n_cross / max(n_atlas, 1) * 20  # scaled
         # Pair-bond boost from recent sourced input
         pair_boost = guala.recent_connection_boost
@@ -4789,16 +4797,83 @@ class Guala:
         self._corpora[corpus_id] = _Corpus(
             corpus_id=corpus_id, title=title, lines=lines)
 
-    def start_autonomy_loop(self, interval=0.05):
-        """Replace continuous reading with full autonomy loop.
-        Interval 50ms = 20 iterations/sec."""
+    def _has_pending_cognitive_work(self):
+        """GL-CMD-COGNITION-AT-SPEED-EVE-20260705-205 C1: reads EXISTING
+        state only (no new constants) to answer one question -- is there
+        real work waiting right now? Open response windows, an active
+        (non-idle, non-sleeping) activity, a non-empty organism/tapestry
+        worker queue, or elevated arousal all say yes. This does not slow
+        anything down when false (see start_autonomy_loop) -- it exists so
+        tick_rate telemetry (C5) can report WHY she's ticking at whatever
+        rate she's ticking at, not to gate speed on it."""
+        if self.open_response_windows:
+            return True
+        _kind = getattr(self._current_activity, 'kind', None)
+        if _kind is not None and _kind not in ("IDLE", "SLEEPING"):
+            return True
+        if self._organism_queue is not None and not self._organism_queue.empty():
+            return True
+        if self._tapestry_queue is not None and not self._tapestry_queue.empty():
+            return True
+        if self.needs.arousal() > 0.5:  # existing needs midpoint, not a new tunable
+            return True
+        return False
+
+    # GL-CMD-COGNITION-AT-SPEED-EVE-20260705-205 C1: measured, not guessed
+    # (first build here tried literal time.sleep(0) -- "brief OS yield,
+    # nothing more" -- and it regressed real converse() latency: mean
+    # ~665ms with no autonomy loop running at all, vs ~1105ms once the
+    # loop ran flat-out with sleep(0), an 8-way A/B sweep of yield values
+    # (0/0.0005/0.001/0.002/0.003/0.004/0.005/0.01/0.02) showed converse()
+    # latency tracks its own ~665ms unrelated baseline at any yield
+    # >=0.001s, but degrades sharply below that -- Python's threading.Lock
+    # is not FIFO-fair, so a thread re-acquiring it near-instantly after
+    # release can starve a different thread waiting on the same lock
+    # (converse's own brief lock phases). 0.001s is the smallest value
+    # that measured clean in that sweep (312.9 ticks/sec, 687.6ms mean
+    # converse latency -- within noise of the no-loop baseline). This is
+    # a measured technical requirement of sharing one non-fair lock
+    # across threads, not a cognitive pacing cap: the deeper fix (a fair
+    # lock, or the fuller interpreter-isolation C4 scopes) is named, not
+    # smuggled past, in this window's report.
+    _AUTONOMY_YIELD_SEC = 0.001
+
+    def start_autonomy_loop(self, interval=None):
+        """GL-CMD-COGNITION-AT-SPEED-EVE-20260705-205 C1: COMPUTE FOLLOWS
+        NEED (Joe's ruling). The fixed interval=0.05s/0.2s sleep here was
+        the single largest gap between measured capability (625 ticks/sec
+        possible, single thread, per Eve's cProfile) and measured reality
+        (~3/sec) -- a hardcoded nap on top of a 1.6ms thought. Deleted.
+        The loop now ticks continuously, yielding _AUTONOMY_YIELD_SEC
+        between ticks regardless of busy/idle state (see that constant's
+        own comment for why this exists and how its value was measured,
+        not guessed) -- delivering hundreds of ticks/sec either way.
+        _has_pending_cognitive_work exists for telemetry (tick_rate
+        reporting), not for gating -- speed is never conditioned on it.
+        `interval` kwarg accepted for backward compatibility with
+        existing callers (app.py, substrate_runner.py) -- ignored; a
+        deprecation note, not a new pacing knob."""
         def loop():
+            _window_start = time.monotonic()
+            _window_ticks = 0
             while not self._reading_stop.is_set():
                 try:
                     self._autonomy_tick()
                 except Exception as e:
                     print(f"[GualaLoom] Autonomy tick error: {e}")
-                time.sleep(interval)
+                _window_ticks += 1
+                _now = time.monotonic()
+                _elapsed = _now - _window_start
+                if _elapsed >= 1.0:
+                    # GL-CMD-COGNITION-AT-SPEED-205 C5: rolling measured
+                    # rate, not an assumed one -- surfaced in /status.
+                    self._tick_rate = _window_ticks / _elapsed
+                    self._tick_rate_pending_work = self._has_pending_cognitive_work()
+                    _window_start = _now
+                    _window_ticks = 0
+                time.sleep(self._AUTONOMY_YIELD_SEC)
+        self._tick_rate = 0.0
+        self._tick_rate_pending_work = False
         self._reading_stop.clear()
         self._reading_thread = threading.Thread(target=loop, daemon=True)
         self._reading_thread.start()
@@ -8888,6 +8963,12 @@ class Guala:
             # q-charge distribution (distance to folding) -- "growth we
             # cannot see is growth we cannot verify."
             "organism_growth": self.organism.growth_snapshot(),
+            # GL-CMD-COGNITION-AT-SPEED-EVE-20260705-205 C5: measured,
+            # rolling (updated every ~1s by the autonomy loop itself, see
+            # start_autonomy_loop), never assumed. Next to running_sha:
+            # her own status now answers both "what code" and "how fast."
+            "tick_rate": round(getattr(self, "_tick_rate", 0.0), 2),
+            "tick_rate_had_pending_work": getattr(self, "_tick_rate_pending_work", False),
             # v7: autonomy state
             "current_activity": (self._current_activity.snapshot()
                                  if self._current_activity else None),
