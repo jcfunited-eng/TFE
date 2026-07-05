@@ -7,6 +7,12 @@ ARG BUILD_TS=unknown
 LABEL org.opencontainers.image.revision="${GIT_SHA}" \
       com.gualaloom.build_ts="${BUILD_TS}"
 RUN printf 'git_sha=%s built=%s\n' "${GIT_SHA}" "${BUILD_TS}" > /BUILD_INFO
+# GL-CMD-GROWTH-LIVE-EVE-20260705-202 G1: the ARG above was only ever
+# baked into a LABEL and a file nothing at runtime reads -- exposed as
+# a real env var so /status can report what SHA is actually running,
+# ending "what's deployed" arguments permanently.
+ENV GIT_SHA=${GIT_SHA}
+ENV BUILD_TS=${BUILD_TS}
 
 WORKDIR /app
 

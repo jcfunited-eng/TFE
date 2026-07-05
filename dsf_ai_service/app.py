@@ -1966,6 +1966,12 @@ async def gualaloom_chat(msg: GLMessage):
             "vocab": s["vocab"],
             "asleep": _guala.is_asleep,
             "consolidating": _guala.is_consolidating,  # GL-CMD-167 Change 4
+            # GL-CMD-GROWTH-LIVE-EVE-20260705-202 G1: the git SHA actually
+            # baked into THIS running image (Dockerfile ENV GIT_SHA, from
+            # the build-arg the deploy script already passes) -- ends
+            # "what's actually deployed" disputes; every window report
+            # quotes this field, not a task-def number or a claim.
+            "running_sha": os.environ.get("GIT_SHA", "unknown"),
             "persistence_health": _ph_light,
             # GL-CMD-LOCK-CONTENTION-FIX-182 L3: frame backpressure visibility
             "frame_backpressure": {

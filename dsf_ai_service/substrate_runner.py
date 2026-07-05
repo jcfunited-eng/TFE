@@ -1434,6 +1434,10 @@ def _cmd_status():
         # field get added next to organism_worker").
         "organism_worker": s.get("organism_worker", {}),
         "organism_population": s.get("organism_population", 0),
+        # GL-CMD-GROWTH-LIVE-EVE-20260705-202 G1: same field as app.py's
+        # embedded-mode /status handler -- ends "what's deployed" disputes
+        # in remote mode too.
+        "running_sha": os.environ.get("GIT_SHA", "unknown"),
         # GL-CMD-METER-LIVENESS-EVE-20260705-187 M1: "curriculum feeders"
         # (cognition-meter row) needs a real live signal to check against,
         # not the -156-era "0 -- confirmed not running" text frozen forever.
