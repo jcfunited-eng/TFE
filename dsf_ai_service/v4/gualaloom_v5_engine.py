@@ -5339,15 +5339,26 @@ class Guala:
 
     def process_sight_frame(self, grid):
         """GL-BRIEF-SENSORY-IO Part C: feed a transient camera frame into
-        sight krimelack. No PictureItem, no storage. Just krimelack + atlas."""
-        self._last_frame_tick = self.tick
+        sight krimelack. No PictureItem, no storage. Just krimelack + atlas.
+
+        GL-CMD-LOCK-CONTENTION-FIX-182 L1: view_picture() (the saccade/
+        fixation simulation) touches no shared state -- fresh, local
+        SaccadeController + AdaptingFoveaKrimelack per call -- so it now
+        runs OUTSIDE self.lock. Measured live holding the lock for up to
+        ~93s per call while camera+mic streamed continuously, starving
+        converse() and everything else that needs self.lock. Only the
+        actual state write (process_viewing's motif update/commit,
+        _atlas_record, the event log) stays inside, and that lock is now
+        bounded to just that write."""
+        _tick_snapshot = self.tick
+        self._last_frame_tick = _tick_snapshot
         from dsf_ai_service.visual_krimelack import view_picture
+        fragments = view_picture(grid, source_id="camera_stream",
+                                 born_tick=_tick_snapshot, seed=_tick_snapshot % 10000,
+                                 n_fixations=3, ticks_per_fixation=50)
+        if not fragments:
+            return
         with self.lock:
-            fragments = view_picture(grid, source_id="camera_stream",
-                                     born_tick=self.tick, seed=self.tick % 10000,
-                                     n_fixations=3, ticks_per_fixation=50)
-            if not fragments:
-                return
             motif, is_new, overlap = self.sight.process_viewing(
                 fragments, "camera_stream", self.tick)
             if motif:
@@ -5365,37 +5376,44 @@ class Guala:
         sound krimelack. No _sounds entry, no storage. Just cochlear + atlas.
         GL-CMD-SELFVOICE-TAGGING-152: source tags the binding (default
         "mic:live"; self-voice injection passes "voice:self") so self and
-        ambient/mic bindings are no longer indistinguishable."""
+        ambient/mic bindings are no longer indistinguishable.
+
+        GL-CMD-LOCK-CONTENTION-FIX-182 L1: WAV decode + cochlear_transduce
+        (the DSP) build only local variables (samples/downsampled/cochlear)
+        -- no shared state touched -- so they now run OUTSIDE self.lock,
+        same reasoning as process_sight_frame. Measured live at up to
+        ~93s/call while streaming continuously. Only the atlas writes
+        + event log stay inside, bounded to just that write."""
         import struct, wave, io, numpy as np
+        try:
+            # Try reading as WAV first
+            wf = wave.open(io.BytesIO(audio_bytes), 'rb')
+            sr = wf.getframerate()
+            n_frames = wf.getnframes()
+            raw = wf.readframes(n_frames)
+            if wf.getsampwidth() == 2:
+                samples = np.array(struct.unpack(f'<{n_frames}h', raw),
+                                   dtype=np.float64) / 32768.0
+            else:
+                samples = np.frombuffer(raw, dtype=np.uint8).astype(np.float64) / 128.0 - 1.0
+            wf.close()
+        except Exception:
+            # Raw bytes — treat as 8-bit unsigned mono at 16kHz
+            samples = np.frombuffer(audio_bytes, dtype=np.uint8).astype(np.float64) / 128.0 - 1.0
+            sr = 16000
+        if len(samples) < 10:
+            return
+        # Downsample to 200 Hz for cochlear (same as /addsound)
+        from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import cochlear_transduce
+        target_sr = 200
+        step = max(1, sr // target_sr)
+        downsampled = samples[::step]
+        cochlear = cochlear_transduce(downsampled, sample_rate=target_sr)
+        # GL-CMD-MIC-DEPLOY-108 G-108-2: temporary per-band evidence for the
+        # speech-vs-silence discrimination gate. Remove after gate is closed.
+        print(f"[cochlear-debug] n_events_by_band="
+              f"{ {bn: c['n_events'] for bn, c in cochlear.items()} }")
         with self.lock:
-            try:
-                # Try reading as WAV first
-                wf = wave.open(io.BytesIO(audio_bytes), 'rb')
-                sr = wf.getframerate()
-                n_frames = wf.getnframes()
-                raw = wf.readframes(n_frames)
-                if wf.getsampwidth() == 2:
-                    samples = np.array(struct.unpack(f'<{n_frames}h', raw),
-                                       dtype=np.float64) / 32768.0
-                else:
-                    samples = np.frombuffer(raw, dtype=np.uint8).astype(np.float64) / 128.0 - 1.0
-                wf.close()
-            except Exception:
-                # Raw bytes — treat as 8-bit unsigned mono at 16kHz
-                samples = np.frombuffer(audio_bytes, dtype=np.uint8).astype(np.float64) / 128.0 - 1.0
-                sr = 16000
-            if len(samples) < 10:
-                return
-            # Downsample to 200 Hz for cochlear (same as /addsound)
-            from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import cochlear_transduce
-            target_sr = 200
-            step = max(1, sr // target_sr)
-            downsampled = samples[::step]
-            cochlear = cochlear_transduce(downsampled, sample_rate=target_sr)
-            # GL-CMD-MIC-DEPLOY-108 G-108-2: temporary per-band evidence for the
-            # speech-vs-silence discrimination gate. Remove after gate is closed.
-            print(f"[cochlear-debug] n_events_by_band="
-                  f"{ {bn: c['n_events'] for bn, c in cochlear.items()} }")
             n_bands_fired = 0
             for bn, c in cochlear.items():
                 if c["n_events"] > 0:

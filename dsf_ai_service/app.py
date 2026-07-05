@@ -75,6 +75,36 @@ from uuid import uuid4
 _converse_tasks: Dict[str, Dict[str, Any]] = {}
 _TASK_TTL_SECONDS = 300  # 5 min after complete before GC
 
+# ── GL-CMD-LOCK-CONTENTION-FIX-182 L3: frame backpressure ──────────────────
+# /sight_frame and /sound_frame used to queue unboundedly in the default
+# executor whenever frames arrived faster than they could be processed
+# (measured live: individual calls holding self.lock for up to ~93s while
+# camera+mic streamed continuously), which could starve converse() no
+# matter how bounded any single call's own work is. Cap concurrent
+# in-flight frame jobs per kind; anything over the cap is dropped
+# immediately (never queued) with an honest response and a counter,
+# rather than piling up silently.
+import threading
+_frame_inflight_lock = threading.Lock()
+_FRAME_INFLIGHT_MAX = 2
+_frame_inflight = {"sight": 0, "sound": 0}
+_frame_dropped = {"sight": 0, "sound": 0}
+
+
+def _frame_backpressure_acquire(kind):
+    """True if this frame may proceed; False if it was dropped (over capacity)."""
+    with _frame_inflight_lock:
+        if _frame_inflight[kind] >= _FRAME_INFLIGHT_MAX:
+            _frame_dropped[kind] += 1
+            return False
+        _frame_inflight[kind] += 1
+        return True
+
+
+def _frame_backpressure_release(kind):
+    with _frame_inflight_lock:
+        _frame_inflight[kind] = max(0, _frame_inflight[kind] - 1)
+
 
 def _prune_stale_tasks():
     """Remove completed tasks older than TTL. Called opportunistically."""
@@ -86,6 +116,29 @@ def _prune_stale_tasks():
     ]
     for tid in to_delete:
         del _converse_tasks[tid]
+
+
+def _fail_inflight_converse_tasks(reason):
+    """GL-CMD-LOCK-CONTENTION-FIX-182 L2: mark every not-yet-terminal
+    conversation task as a loud, explicit error instead of letting it
+    vanish silently. _converse_tasks is in-memory only (line 75) -- it
+    does not survive a process restart, so a deploy landing mid-turn used
+    to orphan it: the UI stayed on "(settling...)" forever with nothing
+    ever telling it the turn was lost. Called right before the deploy's
+    pause (so a client still polling THIS process gets the honest error)
+    and from the SIGTERM handler (defense in depth if the pause step is
+    ever skipped or the container is killed directly)."""
+    now = time.time()
+    n_failed = 0
+    for task in _converse_tasks.values():
+        if task["status"] not in ("complete", "error"):
+            task["status"] = "error"
+            task["error"] = reason
+            task["completed_at"] = now
+            n_failed += 1
+    if n_failed:
+        print(f"[converse-tasks] {n_failed} in-flight task(s) marked error: {reason}")
+    return n_failed
 
 
 async def _run_converse(task_id: str, text: str, source: str, emission_mode=None):
@@ -1515,6 +1568,10 @@ async def sight_frame(msg: GLMessage):
     b64_data = (msg.text or "").strip()
     if not b64_data:
         return {"ok": False, "error": "no frame data"}
+    if not _frame_backpressure_acquire("sight"):
+        return {"ok": False, "dropped": True,
+                "reason": "backpressure — sight-frame processing at capacity",
+                "n_dropped": _frame_dropped["sight"]}
     def _decode():
         t0 = time.time()
         try:
@@ -1525,7 +1582,10 @@ async def sight_frame(msg: GLMessage):
             return {"ok": True, "tick": _guala.tick}
         except Exception as e:
             return {"ok": False, "error": str(e)}
-    return await _aio.get_event_loop().run_in_executor(None, _decode)
+    try:
+        return await _aio.get_event_loop().run_in_executor(None, _decode)
+    finally:
+        _frame_backpressure_release("sight")
 
 
 @app.post("/sound_frame")
@@ -1549,6 +1609,10 @@ async def sound_frame(msg: GLMessage):
     b64_data = (msg.text or "").strip()
     if not b64_data:
         return {"ok": False, "error": "no audio data"}
+    if not _frame_backpressure_acquire("sound"):
+        return {"ok": False, "dropped": True,
+                "reason": "backpressure — sound-frame processing at capacity",
+                "n_dropped": _frame_dropped["sound"]}
     def _decode():
         t0 = time.time()
         try:
@@ -1599,7 +1663,10 @@ async def sound_frame(msg: GLMessage):
             return {"ok": True, "tick": _guala.tick}
         except Exception as e:
             return {"ok": False, "error": str(e)}
-    return await _aio.get_event_loop().run_in_executor(None, _decode)
+    try:
+        return await _aio.get_event_loop().run_in_executor(None, _decode)
+    finally:
+        _frame_backpressure_release("sound")
 
 
 @app.get("/gualaloom")
@@ -1874,6 +1941,12 @@ async def gualaloom_chat(msg: GLMessage):
             "asleep": _guala.is_asleep,
             "consolidating": _guala.is_consolidating,  # GL-CMD-167 Change 4
             "persistence_health": _ph_light,
+            # GL-CMD-LOCK-CONTENTION-FIX-182 L3: frame backpressure visibility
+            "frame_backpressure": {
+                "inflight": dict(_frame_inflight),
+                "dropped": dict(_frame_dropped),
+                "max_inflight": _FRAME_INFLIGHT_MAX,
+            },
             "atlas_health": s.get("atlas_health", {}),
             "presence": s.get("presence", {}),
             "pair_bond": s.get("pair_bond", {}),
@@ -2503,10 +2576,18 @@ async def get_converse_task(task_id: str):
     """Poll for converse task result. Returns progress (200) or complete (200) or not_found (404)."""
     task = _converse_tasks.get(task_id)
     if task is None:
+        # GL-CMD-LOCK-CONTENTION-FIX-182 L2: _converse_tasks is in-memory
+        # only, so a task id from before a deploy's process restart looks
+        # identical to one that just aged out past the TTL -- we can't
+        # tell them apart without persistence, so say so honestly instead
+        # of implying it definitely expired normally.
         return JSONResponse(status_code=404, content={
             "task_id": task_id,
             "status": "not_found",
-            "error": "task expired or not found (TTL: 5 min)",
+            "error": ("task not found on this server instance — either it "
+                      "expired (TTL: 5 min after completion) or it was in "
+                      "flight during a deploy and was lost in the restart. "
+                      "Please resend your message."),
         })
     if task["status"] == "complete":
         return JSONResponse(status_code=200, content={
@@ -4263,6 +4344,11 @@ async def startup():
     import signal as _signal
     def _shutdown_handler(signum, frame):
         print(f"[GualaLoom] Signal {signum} — shutting down cleanly")
+        # GL-CMD-LOCK-CONTENTION-FIX-182 L2: defense in depth -- normally
+        # /sleep_for_deploy already failed in-flight tasks loudly before
+        # this fires, but a directly-killed container (no deploy pause
+        # step) should not orphan a conversation silently either.
+        _fail_inflight_converse_tasks("turn lost — server shut down mid-conversation, please resend")
         if _guala is not None:
             try:
                 _guala.save_full_state(STATE_DIR)
@@ -4618,6 +4704,10 @@ async def sleep_for_deploy():
     """GL-BRIEF-SLEEP-DURING-DEPLOY: deploy script POSTs this
     before update-service. Puts her to sleep, saves state,
     writes .sleeping marker. Returns sleep tick."""
+    # GL-CMD-LOCK-CONTENTION-FIX-182 L2: fail any in-flight conversation
+    # loudly before the process that owns them goes away — see
+    # _fail_inflight_converse_tasks's own docstring for why.
+    _fail_inflight_converse_tasks("turn lost — server was redeployed mid-conversation, please resend")
     if _is_remote():
         client = _get_substrate_client()
         try:
