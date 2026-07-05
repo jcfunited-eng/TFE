@@ -2810,27 +2810,55 @@ class Guala:
         query = (input_words[-1] if input_words else self._tapestry_prev_word)
         if not query:
             return []
+        # GL-CMD-VOICE-ORGANISM-CANDIDATES-195: candidates come from the
+        # organism's population-vote recall (Embryo.recall_fast) — the same
+        # validated mechanism seams 1/3 (_recall_from_organism /
+        # _association_from_organism) already use live, and the one the
+        # memory spec grades as her working word memory (per-neuron
+        # BindingAtlas x ring-position diversity, population vote).
+        # The prior source, tapestry.compose's last_input_word decode, was
+        # audit-proven a query echo chamber (2026-07-05): recall() writes
+        # the query into every neuron's single word slot before decoding
+        # it back. No per-word memory existed on that path at all. Retired
+        # here as candidate source per W2's own principle: one mind, one
+        # mouth — and the mind's real recall is the organism vote.
         try:
-            # self._tapestry_lock: serializes against the background
-            # exposure worker (_tapestry_worker_loop) so this never reads
-            # a neuron mid-settle.
-            with self._tapestry_lock:
-                words = self.tapestry.compose(query)
-        except Exception as _te:
-            print(f"[GualaLoom] tapestry.compose failed for query={query!r} "
-                  f"(non-fatal, honest empty): {_te}")
+            with self._organism_lock:
+                votes = self.organism.recall_fast(
+                    _organism_signal(query, self._organism_transducer))
+        except Exception as _oe:
+            print(f"[GualaLoom] organism recall failed for query={query!r} "
+                  f"(non-fatal, honest empty): {_oe}")
             return []
-        if not words:
+        if not votes:
             return []
+        total = sum(votes.values())
         candidates = []
-        for w in words:
+        n_with_section_home = 0
+        for w, n_votes in votes.most_common(MAX_COMPOSITION_LEN):
+            if not w or w.lower() == query.lower():
+                continue  # association, not self-echo (seam-3 convention)
             locations = self._word_to_emission_sections.get(w.lower())
             if not locations:
-                continue
+                continue  # only words with a real committed section home
+            n_with_section_home += 1
             section, mode_idx, _matched_word = locations[-1]  # most recent commit
-            co = {section: {mode_idx: 1.0}}
-            de = {"co_occurrence": co, "clarity": 1.0, "origin": "brain"}
-            candidates.append((de, co, 1.0))
+            weight = (n_votes / total) if total else 0.0
+            co = {section: {mode_idx: weight}}
+            de = {"co_occurrence": co, "clarity": weight, "origin": "brain"}
+            candidates.append((de, co, weight))
+        # GL-CMD-VOICE-ORGANISM-CANDIDATES-195 P3 (c1 addition -- not in the
+        # attached patch, added here to satisfy D2/X1's reporting need):
+        # vote-spread visibility, the same blind spot -187 named for the
+        # cognition meter. n_voted_words: distinct words the population
+        # voted for at all. n_with_section_home: of the sampled top-K, how
+        # many already have a committed section slot. n_candidates: final
+        # count after also excluding self-echo.
+        self._log_substrate_event("emission_diag",
+                                  query=query,
+                                  n_voted_words=len(votes),
+                                  n_with_section_home=n_with_section_home,
+                                  n_candidates=len(candidates))
         return candidates
 
     def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
@@ -6854,6 +6882,18 @@ class Guala:
 
     # ── Save ──
 
+    def _serialize_sight_motifs(self):
+        """GL-194: one serialization for both lanes (cold always; hot only
+        as a one-time migration when guala_sight_motifs.json is absent)."""
+        return self._envelope({
+            "sight_motifs": [
+                {"motif_id": m.motif_id, "n_firings": m.n_firings,
+                 "source_history": m.source_history[:20],
+                 "founded_at_tick": m.founded_at_tick}
+                for m in self.sight.motifs
+            ] if hasattr(self, 'sight') else [],
+        })
+
     def save_hot_state(self, state_dir="state"):
         """GL-CMD-DEEP-STORE-PHYSICS-86 P2: hot-lane save.
         Writes small stores only (core/needs/coord/visual/sounds/videos/bucket/teaching).
@@ -6929,6 +6969,16 @@ class Guala:
                     for src, entries in self.coordinator._source_interaction_log.items()
                 },
             })
+            # GL-194: sight_motifs EVICTED from the hot lane. One entry per
+            # vocab motif (18.9k live and growing) x source_history[:20] made
+            # guala_visual.json a vocab-scaled store: built in-lock every 60s
+            # (stalling converse turns on self.lock) then json.dump+fsync'd
+            # to EFS — measured live at 15-49s/cycle vs the -86 design's <5s
+            # target. -86's own doctrine: hot lane = small stores;
+            # vocab-scaled = cold. Motifs now live in guala_sight_motifs.json:
+            # written by the cold lane, and once at the first hot save after
+            # boot if the file is absent (migration write — closes the crash
+            # window between deploy-boot and the first cold save).
             snap_visual = self._envelope({
                 "pictures": {
                     pid: {"item_id": p.item_id, "title": p.title,
@@ -6941,14 +6991,16 @@ class Guala:
                           "original_height": getattr(p, 'original_height', None)}
                     for pid, p in self._pictures.items()
                 },
-                "sight_motifs": [
-                    {"motif_id": m.motif_id, "n_firings": m.n_firings,
-                     "source_history": m.source_history[:20],
-                     "founded_at_tick": m.founded_at_tick}
-                    for m in self.sight.motifs
-                ] if hasattr(self, 'sight') else [],
+                "sight_motifs": [],
+                "sight_motifs_file": "guala_sight_motifs.json",
+                "n_sight_motifs": len(self.sight.motifs) if hasattr(self, 'sight') else 0,
                 "n_visual_fragments": len(self._visual_fragments),
             })
+            _need_motif_migration = (
+                hasattr(self, 'sight')
+                and not os.path.exists(os.path.join(state_dir, "guala_sight_motifs.json")))
+            snap_sight_motifs = (self._serialize_sight_motifs()
+                                 if _need_motif_migration else None)
             snap_sounds = self._envelope(dict(self._sounds))
             snap_videos = self._envelope({
                 vid: {"item_id": v.item_id, "title": v.title,
@@ -6994,6 +7046,9 @@ class Guala:
             ("guala_sounds.json", snap_sounds),
             ("guala_videos.json", snap_videos),
         ]
+        if snap_sight_motifs is not None:
+            # GL-194 one-time migration write (see snap_visual comment).
+            writes.append(("guala_sight_motifs.json", snap_sight_motifs))
         _failures = []
         results = {}
         for filename, data in writes:
@@ -7156,14 +7211,13 @@ class Guala:
                           "original_height": getattr(p, 'original_height', None)}
                     for pid, p in self._pictures.items()
                 },
-                "sight_motifs": [
-                    {"motif_id": m.motif_id, "n_firings": m.n_firings,
-                     "source_history": m.source_history[:20],
-                     "founded_at_tick": m.founded_at_tick}
-                    for m in self.sight.motifs
-                ] if hasattr(self, 'sight') else [],
+                "sight_motifs": [],
+                "sight_motifs_file": "guala_sight_motifs.json",
+                "n_sight_motifs": len(self.sight.motifs) if hasattr(self, 'sight') else 0,
                 "n_visual_fragments": len(self._visual_fragments),
             })
+            # GL-194: vocab-scaled motif store rides the COLD lane only.
+            snap_sight_motifs = self._serialize_sight_motifs()
             # Snapshot picture grids (numpy arrays are immutable-ish, shallow copy OK)
             snap_pic_grids = {pid: p.intensity_grid
                               for pid, p in self._pictures.items()
@@ -7234,6 +7288,7 @@ class Guala:
             ("guala_survival.json", snap_survival),   # GL-102: cold file for survival history
             ("guala_bucket.json", snap_bucket),
             ("guala_visual.json", snap_visual),
+            ("guala_sight_motifs.json", snap_sight_motifs),  # GL-194: cold, vocab-scaled
             ("guala_sounds.json", snap_sounds),
             ("guala_videos.json", snap_videos),
         ]
@@ -7322,6 +7377,12 @@ class Guala:
         # isolated-failure pattern, same full-pickle convention.
         try:
             with self._tapestry_lock:  # serialize against the background exposure worker
+                # GL-195: the emission query source rides the tapestry
+                # pickle. Before this, every deploy reset _tapestry_prev_word
+                # to None; until fresh intake ran, every unprompted attempt
+                # had a None query -> honest empty (audit-proven live cause
+                # of the 2026-07-05 all-night silence).
+                self.tapestry._engine_prev_word = self._tapestry_prev_word
                 self.tapestry.save_full_state(os.path.join(state_dir, "guala_tapestry.pkl.gz"))
         except Exception as _te:
             _save_failures.append(("guala_tapestry.pkl.gz", str(_te)))
@@ -7611,8 +7672,13 @@ class Guala:
             if os.path.exists(tapestry_path):
                 try:
                     self.tapestry = type(self.tapestry).load_full_state(tapestry_path)
+                    # GL-195: restore the emission query source (see save).
+                    _pw = getattr(self.tapestry, "_engine_prev_word", None)
+                    if _pw:
+                        self._tapestry_prev_word = _pw
                     print(f"[GualaLoom] Tapestry restored: tick={self.tapestry._tick} "
-                          f"neurons={self.tapestry.total_neurons}")
+                          f"neurons={self.tapestry.total_neurons} "
+                          f"prev_word={'set' if _pw else 'none'}")
                 except Exception as e:
                     print(f"[GualaLoom] Tapestry restore FAILED (tapestry from boot stands): {e}")
             else:
@@ -7694,6 +7760,19 @@ class Guala:
                     with open(visual_path) as fh:
                         vraw = json.load(fh)
                     vdata = vraw.get("data", vraw)
+                    # GL-194: motifs live in their own cold file now.
+                    # Prefer it; fall back to legacy inline sight_motifs
+                    # (pre-194 saves) so no on-disk state is stranded.
+                    sm_path = os.path.join(state_dir, "guala_sight_motifs.json")
+                    if os.path.exists(sm_path):
+                        try:
+                            with open(sm_path) as fh2:
+                                smraw = json.load(fh2)
+                            smdata = smraw.get("data", smraw)
+                            vdata["sight_motifs"] = smdata.get("sight_motifs", [])
+                        except Exception as _sme:
+                            print(f"[GualaLoom] sight_motifs load failed, "
+                                  f"using inline legacy if any: {_sme}")
                     self._apply_visual(vdata, state_dir)
                 except Exception as e:
                     print(f"[GualaLoom] Visual load: {e}")
@@ -8411,6 +8490,7 @@ class Guala:
 
     # D6: report-only files (not boot-required, but tracked for health)
     REPORT_FILES = ["guala_deep_atlas.json", "guala_visual.json",
+                     "guala_sight_motifs.json",  # GL-194
                      "guala_sounds.json", "guala_videos.json"]
 
     def persistence_health(self, state_dir="state"):
