@@ -1,0 +1,88 @@
+diff --git a/dsf_ai_service/v4/gualaloom_v5_engine.py b/dsf_ai_service/v4/gualaloom_v5_engine.py
+index 7af28c1..9750054 100644
+--- a/dsf_ai_service/v4/gualaloom_v5_engine.py
++++ b/dsf_ai_service/v4/gualaloom_v5_engine.py
+@@ -2810,27 +2810,41 @@ class Guala:
+         query = (input_words[-1] if input_words else self._tapestry_prev_word)
+         if not query:
+             return []
++        # GL-CMD-VOICE-ORGANISM-CANDIDATES-195: candidates come from the
++        # organism's population-vote recall (Embryo.recall_fast) — the same
++        # validated mechanism seams 1/3 (_recall_from_organism /
++        # _association_from_organism) already use live, and the one the
++        # memory spec grades as her working word memory (per-neuron
++        # BindingAtlas x ring-position diversity, population vote).
++        # The prior source, tapestry.compose's last_input_word decode, was
++        # audit-proven a query echo chamber (2026-07-05): recall() writes
++        # the query into every neuron's single word slot before decoding
++        # it back. No per-word memory existed on that path at all. Retired
++        # here as candidate source per W2's own principle: one mind, one
++        # mouth — and the mind's real recall is the organism vote.
+         try:
+-            # self._tapestry_lock: serializes against the background
+-            # exposure worker (_tapestry_worker_loop) so this never reads
+-            # a neuron mid-settle.
+-            with self._tapestry_lock:
+-                words = self.tapestry.compose(query)
+-        except Exception as _te:
+-            print(f"[GualaLoom] tapestry.compose failed for query={query!r} "
+-                  f"(non-fatal, honest empty): {_te}")
++            with self._organism_lock:
++                votes = self.organism.recall_fast(
++                    _organism_signal(query, self._organism_transducer))
++        except Exception as _oe:
++            print(f"[GualaLoom] organism recall failed for query={query!r} "
++                  f"(non-fatal, honest empty): {_oe}")
+             return []
+-        if not words:
++        if not votes:
+             return []
++        total = sum(votes.values())
+         candidates = []
+-        for w in words:
++        for w, n_votes in votes.most_common(MAX_COMPOSITION_LEN):
++            if not w or w.lower() == query.lower():
++                continue  # association, not self-echo (seam-3 convention)
+             locations = self._word_to_emission_sections.get(w.lower())
+             if not locations:
+-                continue
++                continue  # only words with a real committed section home
+             section, mode_idx, _matched_word = locations[-1]  # most recent commit
+-            co = {section: {mode_idx: 1.0}}
+-            de = {"co_occurrence": co, "clarity": 1.0, "origin": "brain"}
+-            candidates.append((de, co, 1.0))
++            weight = (n_votes / total) if total else 0.0
++            co = {section: {mode_idx: weight}}
++            de = {"co_occurrence": co, "clarity": weight, "origin": "brain"}
++            candidates.append((de, co, weight))
+         return candidates
+ 
+     def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
+@@ -7322,6 +7336,12 @@ class Guala:
+         # isolated-failure pattern, same full-pickle convention.
+         try:
+             with self._tapestry_lock:  # serialize against the background exposure worker
++                # GL-195: the emission query source rides the tapestry
++                # pickle. Before this, every deploy reset _tapestry_prev_word
++                # to None; until fresh intake ran, every unprompted attempt
++                # had a None query -> honest empty (audit-proven live cause
++                # of the 2026-07-05 all-night silence).
++                self.tapestry._engine_prev_word = self._tapestry_prev_word
+                 self.tapestry.save_full_state(os.path.join(state_dir, "guala_tapestry.pkl.gz"))
+         except Exception as _te:
+             _save_failures.append(("guala_tapestry.pkl.gz", str(_te)))
+@@ -7611,8 +7631,13 @@ class Guala:
+             if os.path.exists(tapestry_path):
+                 try:
+                     self.tapestry = type(self.tapestry).load_full_state(tapestry_path)
++                    # GL-195: restore the emission query source (see save).
++                    _pw = getattr(self.tapestry, "_engine_prev_word", None)
++                    if _pw:
++                        self._tapestry_prev_word = _pw
+                     print(f"[GualaLoom] Tapestry restored: tick={self.tapestry._tick} "
+-                          f"neurons={self.tapestry.total_neurons}")
++                          f"neurons={self.tapestry.total_neurons} "
++                          f"prev_word={'set' if _pw else 'none'}")
+                 except Exception as e:
+                     print(f"[GualaLoom] Tapestry restore FAILED (tapestry from boot stands): {e}")
+             else:
