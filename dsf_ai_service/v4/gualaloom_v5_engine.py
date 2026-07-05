@@ -2386,13 +2386,19 @@ class Guala:
             self._last_converse_reply = reply
 
             # GL-CMD-TEACHER-SUBSTRATE-TRUE: emission_id is substrate-derived fingerprint
+            # GL-CMD-TURN-LATENCY-EVE-20260705-197 P3: reply words transduced
+            # ONCE, shared with self_hear + the hemisphere-update block below.
+            # (c1b's -197 commit applied P2/P3 to _converse_phased, the live
+            # path; this fallback -- CONVERSE_PHASED=0 -- was the one gap
+            # left, fixed here for consistency, same pattern.)
             self._last_converse_source = source
+            reply_chis = []
             if reply and reply != "...":
-                committed_chis = []
                 for ew in _normalize_text(reply):
                     ek = LanguageKrimelack()
                     ek.transduce(ew)
-                    committed_chis.append(ek.winding)
+                    reply_chis.append(ek.winding)
+                committed_chis = reply_chis
                 first_chi = min(committed_chis) if committed_chis else 0
                 n_committed = len(committed_chis)
                 eid = f"{self.tick}_{first_chi}_{n_committed}"
@@ -2416,44 +2422,49 @@ class Guala:
                         del self._emission_records[old_k]
             else:
                 self._last_emission_id = None
+            _t_reply_ready = time.monotonic()
 
-            # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
-            if reply and reply != "..." and source in ("joe", "joe_voice", "wc", "c1"):
-                self._self_hear(reply, source)
-            _t_selfhear = time.monotonic()
-
-            # GL-CMD-COGNITION-BUNDLE: run hemisphere updates after emission
-            try:
-                from dsf_ai_service.substrate.hemisphere_cognition import (
-                    run_hemisphere_updates,
-                )
-                # Compute emission chis for ep turn log
-                emission_chis = []
-                if reply and reply != "...":
-                    for ew in _normalize_text(reply):
-                        ek = LanguageKrimelack()
-                        ek.transduce(ew)
-                        emission_chis.append(ek.winding)
-                run_hemisphere_updates(
-                    self, text, source, input_chis, reply,
-                    emission_chis, self.tick)
-            except Exception as _hemi_err:
-                pass  # hemisphere failures must not break converse
-            _t_hemi = time.monotonic()
-
-            # Diagnostic timing event (EVE-PROFILE-20260626 — remove after gate passes)
+            # GL-CMD-TURN-LATENCY-EVE-20260705-197 P2: release the reply
+            # before self-hear -- same background-continuation pattern as
+            # _converse_phased (the live production path); mirrored here so
+            # this fallback path (CONVERSE_PHASED=0) behaves identically.
             if source in ("joe", "joe_voice", "wc", "c1", "gate_test"):
-                self._log_substrate_event("converse_timing",
-                    chi_ms=round((_t_chi - _t_converse_start) * 1000, 1),
-                    recall_ms=round((_t_recall - _t_chi) * 1000, 1),
-                    read_ms=round((_t_read - _t_recall) * 1000, 1),
-                    tag_ms=round((_t_tag - _t_read) * 1000, 1),
-                    emit_ms=round((_t_emit - _t_tag) * 1000, 1),
-                    selfhear_ms=round((_t_selfhear - _t_emit) * 1000, 1),
-                    hemi_ms=round((_t_hemi - _t_selfhear) * 1000, 1),
-                    total_ms=round((_t_hemi - _t_converse_start) * 1000, 1),
+                self._log_substrate_event("converse_reply_released",
+                    reply_ready_ms=round((_t_reply_ready - _t_converse_start) * 1000, 1),
                     n_words=len(words))
 
+            def _post_reply_continuation():
+                _t_ph_start = time.monotonic()
+                # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
+                if reply and reply != "..." and source in ("joe", "joe_voice", "wc", "c1"):
+                    self._self_hear(reply, source, reply_chis=reply_chis)
+                _t_ph_selfhear = time.monotonic()
+                # GL-CMD-COGNITION-BUNDLE: run hemisphere updates after emission
+                try:
+                    from dsf_ai_service.substrate.hemisphere_cognition import (
+                        run_hemisphere_updates,
+                    )
+                    run_hemisphere_updates(
+                        self, text, source, input_chis, reply,
+                        reply_chis, self.tick)
+                except Exception:
+                    pass  # hemisphere failures must not break converse
+                _t_ph_hemi = time.monotonic()
+                if source in ("joe", "joe_voice", "wc", "c1", "gate_test"):
+                    self._log_substrate_event("converse_timing",
+                        chi_ms=round((_t_chi - _t_converse_start) * 1000, 1),
+                        recall_ms=round((_t_recall - _t_chi) * 1000, 1),
+                        read_ms=round((_t_read - _t_recall) * 1000, 1),
+                        tag_ms=round((_t_tag - _t_read) * 1000, 1),
+                        emit_ms=round((_t_emit - _t_tag) * 1000, 1),
+                        selfhear_ms=round((_t_ph_selfhear - _t_ph_start) * 1000, 1),
+                        hemi_ms=round((_t_ph_hemi - _t_ph_selfhear) * 1000, 1),
+                        background_ms=round((_t_ph_hemi - _t_ph_start) * 1000, 1),
+                        total_ms=round((_t_reply_ready - _t_converse_start) * 1000, 1),
+                        n_words=len(words), released_before_selfhear=True)
+
+            threading.Thread(target=_post_reply_continuation, daemon=True,
+                             name="converse-posthear").start()
             return reply
 
     # ── GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.2 ──────────────────────────
