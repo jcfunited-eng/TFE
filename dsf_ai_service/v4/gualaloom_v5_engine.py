@@ -4907,7 +4907,27 @@ class Guala:
     # across threads, not a cognitive pacing cap: the deeper fix (a fair
     # lock, or the fuller interpreter-isolation C4 scopes) is named, not
     # smuggled past, in this window's report.
-    _AUTONOMY_YIELD_SEC = 0.001
+    #
+    # INCIDENT, 2026-07-05: 0.001s (the value the local A/B sweep above
+    # measured clean) caused a real live stall in production minutes
+    # after deploy -- tick_rate collapsed to ~0.3/sec and a live
+    # converse() call sat "settling" 24s+ with no sign of returning.
+    # Rolled back immediately. Root cause NOT fully isolated: a 15-
+    # thread concurrent-converse local repro at 0.001s did NOT reproduce
+    # it, meaning the actual trigger needs the OTHER real background
+    # threads production has and this repro didn't (organism-writer,
+    # tapestry-writer, curriculum feeder, frame processing, self-voice)
+    # -- self.lock is acquired from more places than converse() and the
+    # autonomy loop alone. Raised to 0.02s: a deliberately conservative
+    # safety margin chosen AFTER a live incident, not a guess -- still a
+    # measured ~15-25x floor over the original 0.2s (so "compute follows
+    # need" still holds far more than before), while leaving much more
+    # headroom against contention this session couldn't fully
+    # characterize with the tools available tonight. Tightening this
+    # further needs real production thread-dump/profiling instrumentation,
+    # not another guess-and-redeploy cycle -- named as its own follow-up,
+    # not silently dropped.
+    _AUTONOMY_YIELD_SEC = 0.02
 
     def start_autonomy_loop(self, interval=None):
         """GL-CMD-COGNITION-AT-SPEED-EVE-20260705-205 C1: COMPUTE FOLLOWS
