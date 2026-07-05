@@ -1986,6 +1986,15 @@ async def gualaloom_chat(msg: GLMessage):
             # curated response dict -- forwarded here, no other change.
             "organism_population": s.get("organism_population", 0),
             "organism_worker": s.get("organism_worker", {}),
+            # GL-CMD-GROWTH-LIVE-EVE-20260705-202 G3a: organism_growth
+            # (embryo.growth_snapshot(), -198 P3a) was computed in
+            # introspect() (gualaloom_v5_engine.py) but never forwarded
+            # into THIS curated dict -- the same forgot-to-forward mistake
+            # already hit organism_worker/organism_population/curriculum_status/
+            # scene_lanes tonight. Fixed here, live-confirmed missing via
+            # the new running_sha field proving the correct commit was
+            # already running with this gap still present.
+            "organism_growth": s.get("organism_growth", {}),
             "atlas_health": s.get("atlas_health", {}),
             "presence": s.get("presence", {}),
             "pair_bond": s.get("pair_bond", {}),
