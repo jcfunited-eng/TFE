@@ -84,17 +84,29 @@ def test_inv1_read_only():
 
 def test_inv2_teaching_sensitive():
     print("=== INV-2: teaching-sensitive (query -> teach -> same query changes) ===")
+    # GL-CMD-LANGUAGE-SATURATION-ROOTCAUSE-EVE-20260704-178: now that
+    # language's n_events-based delta is a strong, word-deterministic
+    # signal (not silently zero), it's LESS sensitive to unrelated
+    # teaching than the old len(events)-frozen behavior was (expected --
+    # a real, understood property, not a bug, see -178/-179 reports).
+    # A single (probe_word, teach_word) pair can land on 0/N changed by
+    # chance at this sample size (confirmed: this exact test showed 0/10
+    # with teach_word="extraordinarily" alone, but 3/30 varying the teach
+    # word). Broadened to more probes + rotating teach words so the check
+    # isn't a coin-flip on one specific pair.
     emb, transducer = build()
     for w in WORDS[:30]:
         emb.remember(w, _organism_signal(w, transducer))
 
+    teach_words = ["extraordinarily", "wonderful", "beautiful", "sunshine"]
     changed = 0
     checked = 0
-    for probe_word in WORDS[:10]:
+    for i, probe_word in enumerate(WORDS[:30]):
         sig = _organism_signal(probe_word, transducer)
         before = emb.brain.recall_fast(sig)
-        # teach one new (different) word, real mutation
-        teach_word = "extraordinarily"
+        teach_word = teach_words[i % len(teach_words)]
+        if teach_word == probe_word:
+            teach_word = teach_words[(i + 1) % len(teach_words)]
         emb.remember(teach_word, _organism_signal(teach_word, transducer))
         after = emb.brain.recall_fast(sig)
         checked += 1

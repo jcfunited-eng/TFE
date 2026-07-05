@@ -84,6 +84,7 @@ class Krimelack:
                 self.phase += self.threshold
                 self.winding -= 1
                 self.events.append({"t": self.t, "dw": -1, "s": float(s)})
+                self.n_events += 1
 
     def fingerprint(self):
         """Compact fingerprint of the event stream: (n_events, total_winding,
