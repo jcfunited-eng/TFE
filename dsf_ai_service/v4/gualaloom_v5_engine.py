@@ -408,33 +408,62 @@ RECOGNITION_EVERY_N_WORDS = 3
 
 
 def _organism_signal(word, transducer):
-    """GL-CMD-BRAIN-FULL-DEPLOY-175 P2 fix: the organism's real multi-modal
-    tap. language + touch/smell/taste (real waveform generators, at a
-    measured/reduced sample count -- see _ORGANISM_SIGNAL_N_SAMPLES) --
-    reusing loom_model/experience.py's ExperiencePipeline._build_multi_modal_
-    signals' exact modality set and construction, just at fewer samples/
-    channel. Deterministic from word alone (same tick=0-equivalent seeding
-    convention: word_seed % 1000), so teach-time and query-time encodings
-    match for the same word. visual/auditory omitted here -- confirmed by
-    direct test that touch/smell/taste alone (with language) already
-    restores 100% recall; adding visual/auditory brought no measured
-    benefit and would only add cost."""
-    from dsf_ai_service.substrate.sensory_generators import (
-        generate_touch_waveform, generate_smell_waveform, generate_taste_waveform)
-    import numpy as _np
+    """GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N3: touch/smell/taste
+    REMOVED. They were never a real sense -- `transducer.transduce(modality,
+    word, tick=...)` (substrate/sensory_transducer.py) generates its
+    "physical parameters" from `hash((word, modality, tick))`, i.e. a
+    pseudo-random number seeded BY THE WORD ITSELF, not any touch/smell/
+    taste sensor (none exists). Feeding that through the real waveform
+    generators produced a real-shaped signal from a fake source --
+    orthography wearing a sensory costume, exactly what Joe's ruling
+    ("words with no senses are spelling") names. No live transduction
+    source exists for these three lanes; they ship ABSENT (this function
+    now returns language only) rather than synthesized, per N3's own
+    instruction, until a real adoption design (S6) gives them one.
 
-    n = _ORGANISM_SIGNAL_N_SAMPLES
-    sig = {"language": word}
-    word_seed = hash(word) & 0xFFFFFFFF
-    for modality, gen_fn, krim_key in (
-        ("touch", generate_touch_waveform, "tactile"),
-        ("smell", generate_smell_waveform, "olfactory"),
-        ("taste", generate_taste_waveform, "gustatory"),
-    ):
-        params = transducer.transduce(modality, word, tick=word_seed % 1000)
-        wf = gen_fn(params, n_samples=n)
-        channels = [wf[k] for k in sorted(wf.keys())]
-        sig[krim_key] = _np.concatenate(channels)
+    Kept the (word, transducer) signature unchanged so every existing
+    caller (read_word's teach path, seams 1/2/3's query paths) needs no
+    change -- `transducer` is now unused here (kept, not removed, to
+    avoid touching call sites this dispatch didn't ask about).
+
+    visual/auditory are NOT added here either -- see N1: they're real
+    (camera/mic frames, not word-derived), but only meaningful at
+    TEACH time, bound to whatever she was actually seeing/hearing in
+    that moment, not at QUERY time (recall/recognition/association ask
+    "what do you associate with this word in general," not "what are
+    you sensing right now"). Added in `_organism_signal_with_senses`
+    below, used only by the teach/experience path."""
+    return {"language": word}
+
+
+# GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191: how recent a real sight/sound
+# frame must be to count as "the same moment" as a co-occurring word.
+# No existing constant fits this exactly (EMISSION_COOLDOWN_TICKS=200 is
+# the closest order-of-magnitude reference, for a different purpose --
+# how long since her last reply before another can fire). Wall-clock,
+# not tick count: frames arrive on their own real-time cadence (~1-2s,
+# per GL-RPT-WINDOW3-DEPLOY-AND-LOCKUP-FINDING) independent of how fast
+# self.tick advances (which varies by activity), so "in the same moment"
+# is a real-time question, not a simulation-tick one. A judgment call,
+# not a measured constant -- stated plainly, not dressed as derived.
+SENSE_BINDING_WINDOW_SEC = 3.0
+
+
+def _organism_signal_with_senses(word, transducer, sight_signal=None, sound_signal=None):
+    """GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N1/N2: the teach-time signal,
+    augmenting _organism_signal's language-only base with whatever REAL
+    sight/sound she was actually experiencing in the same binding window
+    -- her real camera frame (process_sight_frame's `grid`) / real mic
+    audio (process_sound_frame's downsampled `samples`), never generated.
+    None when nothing recent exists (honest absence, not a placeholder
+    signal) -- `_unwrapped_deltas` already treats a None modality as a
+    real, no-cost skip (the same branch visual/auditory always took
+    before this dispatch, since _organism_signal never populated them)."""
+    sig = _organism_signal(word, transducer)
+    if sight_signal is not None:
+        sig["visual"] = sight_signal
+    if sound_signal is not None:
+        sig["auditory"] = sound_signal
     return sig
 
 
@@ -2614,11 +2643,34 @@ class Guala:
             if item is None:
                 self._organism_queue.task_done()
                 return
-            word = item
+            # GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N1/N2: item is now
+            # (word, sight_signal, sound_signal) -- the sight/sound
+            # snapshots taken at ENQUEUE time (inside _enqueue_organism_
+            # remember, synchronously, cheap), not at whatever moment the
+            # worker eventually processes this item (which could be
+            # seconds later under backlog -- using a signal fetched THEN
+            # would bind the word to the wrong moment).
+            word, sight_signal, sound_signal = item
             try:
-                signal = _organism_signal(word, self._organism_transducer)
+                signal = _organism_signal_with_senses(
+                    word, self._organism_transducer, sight_signal, sound_signal)
                 with self._organism_lock:
                     self.organism.experience_word(word, signal)
+                # GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 X1: "verifiable in
+                # the event/atlas record" -- experience_word() itself logs
+                # nothing (model-layer, no engine event stream access);
+                # without this, a multi-sense binding was invisible to
+                # anyone watching the live event log, same blind spot -187
+                # fixed for the cognition meter. Logged here, not inside
+                # the model layer, so this stays engine-side instrumentation
+                # (Vehicle-appropriate) rather than a cognition change.
+                self._log_substrate_event(
+                    "organism_experience_bound", word=word,
+                    has_sight=sight_signal is not None,
+                    has_sound=sound_signal is not None,
+                    senses=[m for m, present in
+                            (("sight", sight_signal is not None),
+                             ("sound", sound_signal is not None)) if present])
             except Exception as _oe:
                 print(f"[GualaLoom] organism experience_word failed for "
                       f"{word!r} (non-fatal): {_oe}")
@@ -2656,10 +2708,27 @@ class Guala:
         swallowed (self._organism_dropped_count, surfaced in /status).
         self._organism_lock (held by the worker and by recall()/
         save_full_state() callers) keeps a concurrent read from
-        observing the organism mid-update."""
+        observing the organism mid-update.
+
+        GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N1/N2: snapshots whatever
+        real sight/sound signal is still within SENSE_BINDING_WINDOW_SEC
+        of THIS MOMENT (wall-clock, not tick -- see that constant's own
+        comment) and carries it into the queue alongside the word, so the
+        binding reflects what she was actually seeing/hearing when the
+        word was read, not whatever's most recent by the time a
+        backlogged worker gets to it."""
+        now = time.time()
+        sight_signal = None
+        if (getattr(self, '_last_sight_wall_time', None) is not None
+                and now - self._last_sight_wall_time <= SENSE_BINDING_WINDOW_SEC):
+            sight_signal = self._last_sight_signal
+        sound_signal = None
+        if (getattr(self, '_last_sound_wall_time', None) is not None
+                and now - self._last_sound_wall_time <= SENSE_BINDING_WINDOW_SEC):
+            sound_signal = self._last_sound_signal
         try:
             self._ensure_organism_worker()
-            self._organism_queue.put_nowait(word)
+            self._organism_queue.put_nowait((word, sight_signal, sound_signal))
         except _queue.Full:
             self._organism_dropped_count += 1
         except Exception:
@@ -5413,6 +5482,24 @@ class Guala:
         bounded to just that write."""
         _tick_snapshot = self.tick
         self._last_frame_tick = _tick_snapshot
+        # GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N1: real signal, not
+        # synthesized -- a bounded subsample of her ACTUAL camera frame
+        # (real pixel intensities), cached with a wall-clock timestamp so
+        # _enqueue_organism_remember can bind it to a co-occurring word IF
+        # it's still recent (SENSE_BINDING_WINDOW_SEC). Subsampled (not the
+        # full grid) for the same reason -177/-178 reduced touch/smell/
+        # taste to 20 samples/channel: VisualKrimelack.feed_signal() costs
+        # O(len(signal)), and a full raw frame (e.g. 64x64=4096 px) would
+        # be far outside every other modality's ~20-160 sample range for
+        # no measured benefit -- not yet re-measured at this exact size,
+        # named honestly in the N5 cost report rather than assumed free.
+        try:
+            _flat = grid.ravel()
+            _step = max(1, len(_flat) // 100)
+            self._last_sight_signal = _flat[::_step][:100].copy()
+            self._last_sight_wall_time = time.time()
+        except Exception:
+            pass
         from dsf_ai_service.visual_krimelack import view_picture
         fragments = view_picture(grid, source_id="camera_stream",
                                  born_tick=_tick_snapshot, seed=_tick_snapshot % 10000,
@@ -5469,6 +5556,16 @@ class Guala:
         target_sr = 200
         step = max(1, sr // target_sr)
         downsampled = samples[::step]
+        # GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N1: real signal cache,
+        # same convention as process_sight_frame above -- already-
+        # downsampled REAL audio (200Hz, no further reduction needed --
+        # already comparable in size to touch/smell/taste's own ~100-160
+        # sample precedent), wall-clock stamped for in-window binding.
+        try:
+            self._last_sound_signal = downsampled.copy()
+            self._last_sound_wall_time = time.time()
+        except Exception:
+            pass
         cochlear = cochlear_transduce(downsampled, sample_rate=target_sr)
         # GL-CMD-MIC-DEPLOY-108 G-108-2: temporary per-band evidence for the
         # speech-vs-silence discrimination gate. Remove after gate is closed.

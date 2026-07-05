@@ -326,16 +326,31 @@ class Embryo:
         n_events fix makes language's contribution honest and non-zero
         going forward) but not directly to the CHARGE/FOLD composite here
         (language is a word string, not a waveform array -- resonance_
-        signal() needs a real numeric signal; tactile/olfactory/gustatory
-        already are ones). Folding accumulates from the real sensory
-        richness of every word/moment; language's role is the binding
-        content, matching how experience() itself never included language
-        either (it only ever took taste/smell receptors).
+        signal() needs a real numeric signal). Folding accumulates from
+        the real sensory richness of every word/moment; language's role
+        is the binding content, matching how experience() itself never
+        included language either (it only ever took taste/smell receptors).
+
+        GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N3/N4: tactile/olfactory/
+        gustatory removed from _organism_signal (they were never real --
+        word-seeded pseudo-random noise dressed as a sense, banned as a
+        source). Composite now built from WHATEVER real, non-language
+        signal is actually present (visual/auditory when a recent camera/
+        mic frame exists, per N1 -- or nothing, honestly, if the moment
+        was language-only). This is the answer to N4's "state which it
+        is": the EXISTING resonance_signal()/charge-and-fold physics
+        already weights richer composites more (a real, coherent multi-
+        channel signal concentrates more spectral power than a shorter
+        or absent one -- resonance_signal() measures exactly that), so a
+        multi-sense moment naturally produces a stronger charge
+        contribution than a language-only one WITHOUT any new hand-tuned
+        multiplier -- the only change needed was feeding it the right
+        (real) channels instead of the wrong (fake) ones.
         """
         self.remember(concept, multi_modal_signals)
 
         parts = []
-        for m in ("tactile", "olfactory", "gustatory"):
+        for m in ("visual", "auditory", "tactile", "olfactory", "gustatory"):
             v = multi_modal_signals.get(m)
             if v is not None:
                 parts.append(np.asarray(v, dtype=float))
