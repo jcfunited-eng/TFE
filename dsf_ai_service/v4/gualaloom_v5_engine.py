@@ -2704,6 +2704,34 @@ class Guala:
                          name="converse-posthear").start()
         return reply
 
+    def shutdown(self):
+        """GL-BUG-GUALA-WORKER-THREAD-LEAK (found live during -203/-205
+        emission-section testing): every Guala() instance starts its own
+        organism-writer/tapestry-writer/diary-writer daemon threads
+        (_ensure_organism_worker/_ensure_tapestry_worker/_ensure_diary_worker)
+        and NOTHING ever stopped them -- each worker loop's own `while True:
+        item = queue.get(); if item is None: return` sentinel exists but was
+        never invoked anywhere. In production this cost nothing (one Guala
+        per process, process exit kills daemon threads for free), but any
+        code path that constructs more than one Guala in a single process
+        (every test file that builds several engines, admin re-init, etc.)
+        leaks three live threads per instance forever -- each one still
+        holding its old organism/tapestry alive (blocking GC) and competing
+        for the GIL with every later instance. Measured live: read_sentence
+        cost grew 2.0s -> 7.2s -> 10.6s -> 13.3s across 4 successive
+        unshut-down Guala() instances in one process (thread count 4 -> 7
+        -> 10 -> 13), a genuine multi-minute hang at just a handful of
+        instances. Call this when an instance is truly done (test teardown,
+        any future re-init path) to signal all three workers to exit."""
+        for q in (getattr(self, "_organism_queue", None),
+                  getattr(self, "_tapestry_queue", None),
+                  getattr(self, "_diary_queue", None)):
+            if q is not None:
+                try:
+                    q.put_nowait(None)
+                except Exception:
+                    pass
+
     def _tapestry_worker_loop(self):
         """GL-CMD-175 P2 perf fix: single persistent background writer for
         tapestry exposure -- see _enqueue_tapestry_expose."""
