@@ -1667,6 +1667,10 @@ class Guala:
         # silently swallowed like the tapestry queue's drop today) -- see
         # _enqueue_organism_remember.
         self._organism_dropped_count = 0
+        # GL-CMD-ORGANISM-WAVE-MEMORY-207 W5: rolling per-item cost (last
+        # 50 items), surfaced in /status -- should stay roughly flat now
+        # regardless of lifetime history (see _organism_worker_loop).
+        self._organism_item_ms_recent = []
 
         # GL-CMD-175 P2 fix (root cause behind seams 1-2's near-zero
         # discrimination): the validated recall mechanism (embryo.py's own
@@ -1833,11 +1837,13 @@ class Guala:
             return 1.0
         # GL-CMD-175 P2 fix: multi-modal query signal (see Guala.__init__'s
         # self._organism_transducer comment / _organism_signal), matching
-        # what was actually written at remember()-time. self._organism_lock:
-        # serializes against the background remember() worker (window-2
-        # perf fix) so this never reads the organism mid-update.
-        with self._organism_lock:
-            votes = self.organism.recall_fast(_organism_signal(word, self._organism_transducer))
+        # what was actually written at remember()-time.
+        # GL-CMD-ORGANISM-WAVE-MEMORY-207 W3 (Joe's no-locks ruling): no
+        # lock here -- per-neuron wave-cell reads are race-tolerant local
+        # dict lookups, same tolerance the v5 engine's own atlas Phase 3
+        # already declares. The organism-writer queue's single worker
+        # still processes in order; it just no longer excludes readers.
+        votes = self.organism.recall_fast(_organism_signal(word, self._organism_transducer))
         total = sum(votes.values())
         if total == 0:
             return 1.0
@@ -2857,12 +2863,18 @@ class Guala:
             # EVE-20260705-196 M2 (tactile/olfactory/gustatory, real
             # descriptor physics, same in-window snapshot discipline).
             word, sight_signal, sound_signal, modal_signal = item
+            _item_t0 = time.monotonic()
             try:
                 signal = _organism_signal_with_senses(
                     word, self._organism_transducer, sight_signal,
                     sound_signal, modal_signal)
-                with self._organism_lock:
-                    self.organism.experience_word(word, signal)
+                # GL-CMD-ORGANISM-WAVE-MEMORY-207 W3 (Joe's no-locks
+                # ruling): writes are lock-free spill_write into per-neuron
+                # wave cells now. The single worker thread's queue.get()
+                # loop is what keeps writes in FIFO order (Eve's -179
+                # condition); the lock was never needed for that, only for
+                # excluding readers, and readers no longer need excluding.
+                self.organism.experience_word(word, signal)
                 # GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 X1: "verifiable in
                 # the event/atlas record" -- experience_word() itself logs
                 # nothing (model-layer, no engine event stream access);
@@ -2896,6 +2908,15 @@ class Guala:
                 print(f"[GualaLoom] organism experience_word failed for "
                       f"{word!r} (non-fatal): {_oe}")
             finally:
+                # GL-CMD-ORGANISM-WAVE-MEMORY-207 W5: rolling per-item cost,
+                # surfaced in /status next to queued/dropped -- the honest
+                # number that used to climb unbounded with lifetime history
+                # (20ms/word "and climbing" per -179) and should now stay
+                # roughly flat regardless of how long she's been alive.
+                _item_ms = (time.monotonic() - _item_t0) * 1000.0
+                self._organism_item_ms_recent.append(_item_ms)
+                if len(self._organism_item_ms_recent) > 50:
+                    self._organism_item_ms_recent.pop(0)
                 self._organism_queue.task_done()
 
     def _ensure_organism_worker(self):
@@ -3005,9 +3026,10 @@ class Guala:
         # here as candidate source per W2's own principle: one mind, one
         # mouth — and the mind's real recall is the organism vote.
         try:
-            with self._organism_lock:
-                votes = self.organism.recall_fast(
-                    _organism_signal(query, self._organism_transducer))
+            # GL-CMD-ORGANISM-WAVE-MEMORY-207 W3: no lock -- see
+            # _recognition_from_organism's matching comment.
+            votes = self.organism.recall_fast(
+                _organism_signal(query, self._organism_transducer))
         except Exception as _oe:
             print(f"[GualaLoom] organism recall failed for query={query!r} "
                   f"(non-fatal, honest empty): {_oe}")
@@ -4413,9 +4435,9 @@ class Guala:
         query = content_words[-1]
         # GL-CMD-175 P2 fix: multi-modal query signal, matching what was
         # actually written at remember()-time (see _organism_signal).
-        # self._organism_lock: see read_count's salience calc comment.
-        with self._organism_lock:
-            votes = self.organism.recall_fast(_organism_signal(query, self._organism_transducer))
+        # GL-CMD-ORGANISM-WAVE-MEMORY-207 W3: no lock -- see
+        # _recognition_from_organism's matching comment.
+        votes = self.organism.recall_fast(_organism_signal(query, self._organism_transducer))
         top = votes.most_common(1)
         return top[0][0] if top else None
 
@@ -4449,8 +4471,9 @@ class Guala:
         if not locations:
             return None
         section, mode_idx, word = locations[-1]
-        with self._organism_lock:
-            votes = self.organism.recall_fast(_organism_signal(seed_word, self._organism_transducer))
+        # GL-CMD-ORGANISM-WAVE-MEMORY-207 W3: no lock -- see
+        # _recognition_from_organism's matching comment.
+        votes = self.organism.recall_fast(_organism_signal(seed_word, self._organism_transducer))
         total = sum(votes.values())
         weight = (votes.get(associated_word, 0) / total) if total else 0.0
         return (section, mode_idx, word, weight)
@@ -6062,12 +6085,20 @@ class Guala:
         # no measured benefit -- not yet re-measured at this exact size,
         # named honestly in the N5 cost report rather than assumed free.
         try:
-            _flat = grid.ravel()
+            # GL-CMD-ORGANISM-WAVE-MEMORY-207 RIDER: np.asarray first --
+            # grid.ravel() silently swallowed any input that wasn't already
+            # a numpy array (§9.2, a silent fallback), which meant
+            # _last_sight_signal never got set and every READING word's
+            # organism_experience_bound event showed senses=[] even while
+            # sight_frame_bound kept firing (07-05 live log). Any remaining
+            # exception is now logged, not swallowed.
+            _flat = np.asarray(grid).ravel()
             _step = max(1, len(_flat) // 100)
             self._last_sight_signal = _flat[::_step][:100].copy()
             self._last_sight_wall_time = time.time()
-        except Exception:
-            pass
+        except Exception as _sfe:
+            print(f"[GualaLoom] process_sight_frame: sight signal cache failed "
+                  f"(non-fatal, senses stay honestly absent): {_sfe}")
         from dsf_ai_service.visual_krimelack import view_picture
         fragments = view_picture(grid, source_id="camera_stream",
                                  born_tick=_tick_snapshot, seed=_tick_snapshot % 10000,
@@ -7880,7 +7911,13 @@ class Guala:
                       f"pending) -- saving anyway, those folds land in the "
                       f"NEXT cold save")
         try:
-            with self._organism_lock:  # serialize against the background experience_word() worker
+            # GL-CMD-ORGANISM-WAVE-MEMORY-207 W3: the one legitimate
+            # synchronization point Joe's no-locks ruling allows --
+            # snapshot-for-save, brief, never holding her cognition. This
+            # is the only remaining _organism_lock acquisition anywhere;
+            # every read path and the writer's own per-item work above are
+            # lock-free now.
+            with self._organism_lock:
                 self.organism.save_full_state(os.path.join(state_dir, "guala_organism.pkl.gz"))
         except Exception as _oe:
             _save_failures.append(("guala_organism.pkl.gz", str(_oe)))
@@ -8172,9 +8209,16 @@ class Guala:
                               f"{self.organism.identity_uuid} != her identity "
                               f"{self._guala_identity} -- correcting to hers")
                         self.organism.identity_uuid = self._guala_identity
+                    # GL-CMD-ORGANISM-WAVE-MEMORY-207 W4: division count
+                    # alongside population -- "the 07-05 population
+                    # staircase must be impossible to miss again." Pop
+                    # alone doesn't show whether a restore lost divisions
+                    # (a fallback to an older save); total_divisions does.
+                    _gs = self.organism.growth_snapshot()
                     print(f"[GualaLoom] Organism restored: identity={self.organism.identity_uuid} "
-                          f"tick={self.organism.tick} pop="
-                          f"{sum(len(h.cluster.neurons) for h in self.organism.brain.hemispheres)}")
+                          f"tick={self.organism.tick} pop={_gs['total_neurons']} "
+                          f"total_divisions={_gs['total_divisions']} "
+                          f"file={organism_path}")
                 except Exception as e:
                     print(f"[GualaLoom] Organism restore FAILED (organism from boot stands): {e}")
             else:
@@ -9104,6 +9148,14 @@ class Guala:
                 "queued": (self._organism_queue.qsize()
                           if self._organism_queue is not None else 0),
                 "dropped": self._organism_dropped_count,
+                # GL-CMD-ORGANISM-WAVE-MEMORY-207 W5: rolling mean/max over
+                # the last 50 processed items -- the honest per-item cost
+                # that used to climb unbounded with lifetime history.
+                "item_ms_mean": (round(sum(self._organism_item_ms_recent)
+                                       / len(self._organism_item_ms_recent), 2)
+                                if self._organism_item_ms_recent else 0.0),
+                "item_ms_max": (round(max(self._organism_item_ms_recent), 2)
+                               if self._organism_item_ms_recent else 0.0),
             },
             # GL-RPT-WINDOW6-DEPLOY-C1B-20260705-v1 item 3: "no direct live
             # population counter exists... recommending a field get added

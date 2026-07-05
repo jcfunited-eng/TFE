@@ -187,10 +187,20 @@ class LoomTapestry:
     # ------------------------------------------------------------------
 
     def save_full_state(self, path):
+        """GL-CMD-ORGANISM-WAVE-MEMORY-207 W4: atomic write (tmp + flush +
+        fsync + os.replace), same fix as Embryo.save_full_state -- this
+        exact file truncated once already on 07-05 ("Compressed file ended
+        before the end-of-stream marker was reached"), correlated with a
+        deploy's pause/save-window racing a shutdown."""
         import pickle, gzip, os
-        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-        with gzip.open(path, "wb") as f:
+        d = os.path.dirname(path) or "."
+        os.makedirs(d, exist_ok=True)
+        tmp_path = path + ".tmp"
+        with gzip.open(tmp_path, "wb") as f:
             pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, path)
 
     @staticmethod
     def load_full_state(path):
