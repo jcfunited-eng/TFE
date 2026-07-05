@@ -147,6 +147,10 @@ footer b{color:var(--ink);font-weight:normal}
     <h3 class="lc">bindings by strength</h3>
     <div id="strengthBars"></div>
     <div class="lbl lc" id="strengthNote" style="margin-top:6px">—</div>
+
+    <h3 class="lc">organism growth — em / pr / ep / sc / gp / sf / sv / aff</h3>
+    <div id="organGrowth"><div class="lbl lc">loading…</div></div>
+    <div class="lbl lc" id="organGrowthNote" style="margin-top:6px">—</div>
   </div>
 </div>
 
@@ -411,6 +415,31 @@ function renderOrgans(organs){
   }
 }
 
+/* ---- Organism growth (GL-CMD-GROWTH-TRUTH-198 P3c) ----
+   Distinct from renderOrgans above: that panel is hemisphere_atlas_sizes
+   (cognition/binding weight, from hemisphere_update events). This one is
+   organism_growth.per_hemisphere (real neuron counts, from /status) --
+   same em/pr/ep/sc/gp/sf/sv/aff tags, a different subsystem entirely
+   (Embryo's growth hemispheres vs the hemisphere-cognition meter). */
+function renderOrganGrowth(growth){
+  if(!growth)return;
+  const og=document.getElementById('organGrowth');og.innerHTML='';
+  const ph=growth.per_hemisphere||{};
+  const omax=Math.max(1,...Object.values(ph));
+  for(const[k,v]of Object.entries(ph)){
+    const w=Math.max(2,100*v/omax);
+    og.insertAdjacentHTML('beforeend',
+      `<div class="organ"><div class="row lc"><span>${k}</span><span class="val">${v.toLocaleString()}</span></div>
+       <div class="bar"><i style="width:${w}%;background:var(--cyan)"></i></div></div>`);
+  }
+  const grew=growth.total_neurons>growth.n_initial;
+  document.getElementById('organGrowthNote').textContent=
+    `${growth.total_neurons} neurons (seed ${growth.n_initial})`+
+    (grew?` · GREW +${growth.total_neurons-growth.n_initial}`:' · at seed')+
+    ` · ${growth.total_divisions} divisions lifetime · pool ${growth.division_pool.toFixed(2)}`+
+    ` · q>0.9: ${growth.n_q_over_0_9} · q>0.5: ${growth.n_q_over_0_5}`;
+}
+
 /* ---- Modality band ---- */
 const LANE_NAMES=['sight','sound','touch','smell','taste','language'];
 let _laneGlow={sight:0,sound:0,touch:0,smell:0,taste:0,language:0};
@@ -601,6 +630,13 @@ function processEvent(ev){
       addFeedRow(t,'exp','organism',`"${d.word}" bound with ${senses.join('+')}`,'brain');
     }
   }
+  if(ev.kind==='organism_fold'){
+    // GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P3b/X3: a real division. Her
+    // first one, whenever it lands, is a milestone with a timestamp, not
+    // an inference from a counter -- Visibility Rule applies here too.
+    addFeedRow(t,'act',`fold · ${d.hemi}`,
+      `${d.parent} -> ${d.daughter} (q=${d.q_at_fold})`,'growth');
+  }
   _lastEvTick=Math.max(_lastEvTick,t);
 }
 
@@ -645,6 +681,7 @@ async function pollStatus(){
     renderActivity(d);
     renderWho(d);
     renderScene(d);
+    renderOrganGrowth(d.organism_growth);
     // Affect sparklines
     const needs=parseNeeds(d.response||'');
     if(needs.v!=null){

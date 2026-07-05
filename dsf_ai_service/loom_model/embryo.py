@@ -170,6 +170,14 @@ class Embryo:
         # Bounded: pool ≥ 0 always; max total divisions = N_initial (initial pool); N ≤ 2*N_initial.
         self._N_initial = len(OPERATIONS) * seed_size
         self._div_pool = float(self._N_initial)   # full at birth
+        # GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P3: growth telemetry state.
+        # _total_divisions: lifetime count, survives restore (see
+        # save_full_state/load_full_state). _fold_events_buffer: per-
+        # division detail (hemi/parent/daughter/q), drained by the engine
+        # via pop_fold_events() right after each experience_word() call --
+        # "growth we cannot see is growth we cannot verify."
+        self._total_divisions = 0
+        self._fold_events_buffer = []
         self._seed_dna_diversity()
 
     def _seed_dna_diversity(self):
@@ -249,6 +257,7 @@ class Embryo:
                 neuron._q = 1.0   # held at basin edge — pool exhausted
                 continue
             self._div_pool -= 1.0
+            q_at_fold = float(neuron._q)   # GL-CMD-GROWTH-TRUTH-198 P3b: capture before reset
             overflow = neuron.compute_overflow_signal()
             params = derive_daughter_parameters(overflow, neuron)
             did = hemi.cluster.next_id()
@@ -267,7 +276,52 @@ class Embryo:
             hemi.cluster.attach(d, inherit_from=neuron)
             neuron._q = 0.0                       # parent discharged into daughter
             new.append(did)
+            # GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P3b: "growth we cannot
+            # see is growth we cannot verify" -- every fold recorded, not
+            # just counted. Drained by the engine (pop_fold_events) right
+            # after each experience_word() call, one substrate event per
+            # fold, in the live record.
+            self._total_divisions += 1
+            self._fold_events_buffer.append({
+                "hemi": hemi._op_tag, "parent": neuron.neuron_id,
+                "daughter": did, "q_at_fold": round(q_at_fold, 4),
+                "tick": self.tick,
+            })
         return new
+
+    def pop_fold_events(self):
+        """Drain and return fold events accumulated since the last call.
+        GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P3b."""
+        events = self._fold_events_buffer
+        self._fold_events_buffer = []
+        return events
+
+    def growth_snapshot(self):
+        """GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P3a: per-hemisphere neuron
+        counts, total divisions since birth, division-pool level, q-charge
+        distribution (distance to folding: q>1.0 is the fold threshold
+        itself, so 0.5/0.9 name how close the population sits to it)."""
+        per_hemisphere = {}
+        q_over_0_5 = 0
+        q_over_0_9 = 0
+        for h in self.brain.hemispheres:
+            tag = h._op_tag
+            per_hemisphere[tag] = len(h.cluster.neurons)
+            for n in h.cluster.neurons:
+                q = getattr(n, "_q", 0.0)
+                if q > 0.9:
+                    q_over_0_9 += 1
+                if q > 0.5:
+                    q_over_0_5 += 1
+        return {
+            "per_hemisphere": per_hemisphere,
+            "total_neurons": sum(per_hemisphere.values()),
+            "n_initial": self._N_initial,
+            "total_divisions": self._total_divisions,
+            "division_pool": round(self._div_pool, 4),
+            "n_q_over_0_5": q_over_0_5,
+            "n_q_over_0_9": q_over_0_9,
+        }
 
     BASE_LAMBDA = 0.02   # per-experience decay base; per-hemi multiplier scales it
     CROSS_ATTEN = 0.4    # cross-hemi coupling is weak at seed (echo, not full signal)
@@ -361,15 +415,39 @@ class Embryo:
         """Shared fold-cascade body for experience()/experience_word() --
         extracted so the two callers can never drift apart on the actual
         growth physics, only on how `composite` gets built."""
-        # Closed energy loop: refill R = BASE_LAMBDA*N_initial; upkeep M = BASE_LAMBDA*N_current.
-        # When N > N_initial: M > R → pool drains to 0 → divisions blocked → asymptote.
+        sig_res = resonance_signal(composite)
+        theta_eff = theta   # gate is the noise floor; brake is the charge cycle, not theta
+
+        # GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P2 (Joe's growth law, ruled
+        # 2026-07-05): GROWTH IS FUNDED BY EXPERIENCE. Refill R used to be
+        # BASE_LAMBDA*N_initial -- a constant tied to the SEED, not to
+        # what this experience actually was. At N_current==N_initial,
+        # refill==maintenance exactly, so the pool can never accumulate
+        # past seed-equilibrium: a homeostat that forbids growth by
+        # construction (Eve's audit, live-verified: organism_population
+        # has never moved off 64 in her whole life). Re-pointed to
+        # sig_res -- the SAME resonance measure (composed just above,
+        # [0,1], 0.0 for an all-zero/no-real-signal composite) the fold
+        # gate already uses to judge "coherent." No new constant: the
+        # same BASE_LAMBDA*N_initial term, now scaled by how much real,
+        # coherent signal this experience actually carried. A language-
+        # only moment (composite all-zero, per -191 N3/N4) -> sig_res=0.0
+        # -> funds nothing. A rich multi-sense moment funds growth in
+        # proportion to its own coherence -- the credo IS the law.
+        # Engineering fallback ONLY (per dispatch: "not a choice"):
+        # GUALA_GROWTH_LAW_LEGACY=1 restores the old seed-pegged refill
+        # for emergency rollback.
+        if os.environ.get("GUALA_GROWTH_LAW_LEGACY") == "1":
+            refill = self.BASE_LAMBDA * self._N_initial
+        else:
+            refill = self.BASE_LAMBDA * self._N_initial * sig_res
+        # Closed energy loop: refill R (see above); upkeep M = BASE_LAMBDA*N_current.
+        # When M > R: pool drains to 0 → divisions blocked → asymptote.
         N_current = sum(len(h.cluster.neurons) for h in self.brain.hemispheres)
         self._div_pool = max(0.0,
             self._div_pool
-            + self.BASE_LAMBDA * self._N_initial   # refill flux (constant)
+            + refill                               # refill flux (experience-funded)
             - self.BASE_LAMBDA * N_current)        # maintenance flux (scales with population)
-        sig_res = resonance_signal(composite)
-        theta_eff = theta   # gate is the noise floor; brake is the charge cycle, not theta
 
         active, folds = {}, {}
         # 1. em perceives the raw senses

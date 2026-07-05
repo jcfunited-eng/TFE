@@ -2797,6 +2797,14 @@ class Guala:
                              ("olfactory", _modal_present.get("olfactory") is not None),
                              ("gustatory", _modal_present.get("gustatory") is not None))
                             if present])
+                # GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P3b: "growth we
+                # cannot see is growth we cannot verify" -- one
+                # organism_fold event per real division, drained right
+                # after the experience_word() call that may have caused
+                # it (folding is synchronous within that call).
+                for _fold in self.organism.pop_fold_events():
+                    self._log_substrate_event("organism_fold", word=word,
+                                              **_fold)
             except Exception as _oe:
                 print(f"[GualaLoom] organism experience_word failed for "
                       f"{word!r} (non-fatal): {_oe}")
@@ -7295,9 +7303,11 @@ class Guala:
         def _write_one(item):
             filename, data = item
             path = os.path.join(state_dir, filename)
+            _wt0 = time.monotonic()
             try:
                 self._atomic_write(path, data)
-                return (filename, os.path.getsize(path), None)
+                return (filename, os.path.getsize(path), None,
+                        round((time.monotonic() - _wt0) * 1000, 1))
             except Exception as _we:
                 tmp = path + ".tmp"
                 if os.path.exists(tmp):
@@ -7305,12 +7315,15 @@ class Guala:
                         os.remove(tmp)
                     except OSError:
                         pass
-                return (filename, None, str(_we))
+                return (filename, None, str(_we),
+                        round((time.monotonic() - _wt0) * 1000, 1))
 
         _failures = []
         results = {}
+        _per_file_ms = {}
         with _cf.ThreadPoolExecutor(max_workers=len(writes)) as _ex:
-            for filename, size, err in _ex.map(_write_one, writes):
+            for filename, size, err, dt_ms in _ex.map(_write_one, writes):
+                _per_file_ms[filename] = dt_ms
                 if err is not None:
                     _failures.append((filename, err))
                     print(f"[GualaLoom] hot save failed for {filename}: {err}")
@@ -7325,6 +7338,15 @@ class Guala:
         else:
             print(f"[GualaLoom] HOT SAVE CRITICAL FAILURE at tick {save_tick}: "
                   f"{[f for f, _ in _critical_failures]}")
+        # GL-CMD-TURN-LATENCY-EVE-20260705-197 P1 (c1 addition): per-file
+        # write timing -- "if any stage still spikes, its number and lock
+        # owner go in the report, no hand-waving." -194's fix (evict
+        # sight_motifs) + -196's fix (parallelize the writes) together
+        # improved but did not fully close the <5s target live; this
+        # names which specific file's fsync is the slowest each cycle,
+        # rather than guessing further from the aggregate number alone.
+        _slowest = max(_per_file_ms.items(), key=lambda kv: kv[1]) if _per_file_ms else (None, 0)
+        print(f"[save-hot-detail] {_per_file_ms} slowest={_slowest[0]}({_slowest[1]}ms)")
         return results
 
     def save_full_state(self, state_dir="state"):
@@ -8839,6 +8861,11 @@ class Guala:
             # directly confirmable instead of inferred.
             "organism_population": sum(len(h.cluster.neurons)
                                        for h in self.organism.brain.hemispheres),
+            # GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P3a: per-hemisphere
+            # counts, total divisions since birth, division-pool level,
+            # q-charge distribution (distance to folding) -- "growth we
+            # cannot see is growth we cannot verify."
+            "organism_growth": self.organism.growth_snapshot(),
             # v7: autonomy state
             "current_activity": (self._current_activity.snapshot()
                                  if self._current_activity else None),
