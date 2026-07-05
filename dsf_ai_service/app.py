@@ -2328,6 +2328,16 @@ async def gualaloom_chat(msg: GLMessage):
             results = []
             bundle_chis = []
             caption = bundle_data.get("caption", "")
+            # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test wiring:
+            # the real numeric waveform for whichever sound this bundle
+            # names (ref or freshly-uploaded), if one is available -- set
+            # by the SOUND lane below, consumed by the organism-teach step
+            # after it, so the caption word gets bound to the ORGANISM
+            # (not just the atlas) with a real auditory signal riding
+            # along, the same in-window multi-sense binding N1/N2 (-191)
+            # established for live camera/mic frames, now available for
+            # explicit bundle teaching too.
+            bundle_sound_signal = None
 
             # ── WORD lane ──
             if caption:
@@ -2416,6 +2426,11 @@ async def gualaloom_chat(msg: GLMessage):
                         chi, _guala.tick, salience=1.5, dwell_ticks=8)
                     bundle_chis.append(chi)
                 results.append(f"played her \"{snd.get('title', sound_ref)}\" (ref)")
+                # GL-CMD-CROSS-SENSE-RECALL-208: only present for items
+                # uploaded after the raw_signal change above -- honestly
+                # None (no organism-teach signal) for older items, not a
+                # zero-filled placeholder.
+                bundle_sound_signal = snd.get("raw_signal")
 
             snd_b64 = bundle_data.get("sound_b64")
             if snd_b64:
@@ -2458,7 +2473,9 @@ async def gualaloom_chat(msg: GLMessage):
                                                   "n_events": c["n_events"]}
                                              for bn, c in cochlear.items()},
                                 "times_attended": 0, "last_attended_tick": 0,
+                                "raw_signal": samples.tolist(),
                             }
+                            bundle_sound_signal = samples.tolist()
                             results.append(f"played her \"{bundle_name}\" "
                                            f"({dur:.1f}s, {n_events} events)")
                         except Exception as e:
@@ -2493,6 +2510,31 @@ async def gualaloom_chat(msg: GLMessage):
                                        f"({len(channel_results)} channels)")
                     except Exception as e:
                         results.append(f"{sense_name} ERROR: {e}")
+
+            # ── ORGANISM teach: real auditory signal + word, one binding ──
+            # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test wiring.
+            # Everything above (WORD/SIGHT/SOUND lanes) writes to the ATLAS
+            # (chi-keyed, word-driven, symbolic) -- read_sentence() in the
+            # WORD lane already reaches the ORGANISM too, but language-only
+            # (_enqueue_organism_remember only picks up a real sight/sound
+            # signal from the last 3s of LIVE camera/mic frames -- a
+            # referenced/uploaded item never touches those buffers). This
+            # is the organism's own multi-sense binding, explicit-signal
+            # (not the shared live-frame cache, to avoid a real concurrent
+            # mic frame overwriting a caller-supplied signal in the window
+            # before enqueue) -- same queue/worker/experience_word()
+            # underneath, see _enqueue_organism_experience_explicit.
+            if caption and bundle_sound_signal is not None:
+                try:
+                    from dsf_ai_service.v4.gualaloom_v5_engine import _normalize_text
+                    _words = _normalize_text(caption)
+                    if _words:
+                        _guala._enqueue_organism_experience_explicit(
+                            _words[0], sound_signal=bundle_sound_signal)
+                        results.append(
+                            f"organism bound \"{_words[0]}\" with a real auditory signal")
+                except Exception as e:
+                    results.append(f"organism-teach ERROR: {e}")
 
             # ── Bind all lanes in one window ──
             if bundle_chis:
@@ -2574,6 +2616,18 @@ async def gualaloom_chat(msg: GLMessage):
                                  for bn, c in cochlear.items()},
                     "duration_s": round(duration_s, 2),
                     "times_attended": 0, "last_attended_tick": 0,
+                    # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test
+                    # wiring: the 200Hz-downsampled waveform (already
+                    # computed above for cochlear_transduce) is the exact
+                    # shape organism.encode_state()'s auditory lane needs
+                    # (resonant_chi.resonant_response takes any real
+                    # numeric array). Previously discarded once cochlear
+                    # stats were extracted -- with it gone, a stored sound
+                    # item could never be replayed as an organism query or
+                    # teaching signal, only as atlas chi/winding stats.
+                    # Kept for NEW uploads only; items uploaded before this
+                    # change have no raw_signal and fall back to None.
+                    "raw_signal": samples.tolist(),
                 }
                 from dsf_ai_service.v4.gualaloom_v5_engine import SensoryItem
                 _guala._sensory_items[item_id] = SensoryItem(
@@ -2603,6 +2657,57 @@ async def gualaloom_chat(msg: GLMessage):
             print(f"[decode-sound] {time.time()-t0:.2f}s")
             return result
         return await _loop.run_in_executor(None, _decode_sound)
+
+    # ── /organism_recall_auditory:<sound_item_id> — cross-sense recall
+    # verification. GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live test:
+    # given a stored sound item (with a raw_signal, i.e. uploaded after
+    # the raw_signal change above), queries the ORGANISM with that
+    # waveform ALONE (no word) and, if a concept comes back, looks up its
+    # bound picture via the existing word-driven atlas mechanism
+    # (_recall_sight_from_atlas) -- proving the -207/-208 per-lane fix
+    # end to end on real live data, not just the loom_model unit tests.
+    # A new, self-contained command rather than reusing /converse: the
+    # 4 existing organism-recall call sites all start from a WORD
+    # (converse turn / tapestry query / daydream seed) and there is no
+    # natural word to start from for a pure sensory cue (see the -208
+    # report's research on this exact point).
+    if cmd.startswith("/organism_recall_auditory:"):
+        import asyncio as _aio
+        _loop = _aio.get_event_loop()
+        sound_item_id = cmd[len("/organism_recall_auditory:"):]
+
+        def _recall_auditory():
+            snd = _guala._sounds.get(sound_item_id)
+            if snd is None:
+                return {"response": f"no such sound item: {sound_item_id}",
+                        "organism_recall_auditory": None}
+            raw = snd.get("raw_signal")
+            if raw is None:
+                return {"response": f"\"{snd.get('title', sound_item_id)}\" has no "
+                                     f"raw_signal (uploaded before GL-CMD-208's "
+                                     f"persistence change) -- cannot query the "
+                                     f"organism with it.",
+                         "organism_recall_auditory": None}
+            recalled_word = _guala._recall_from_organism_auditory(raw)
+            pictures = []
+            if recalled_word:
+                for motif, item_id in _guala._recall_sight_from_atlas(None, [recalled_word]):
+                    pic = _guala._pictures.get(item_id)
+                    pictures.append({"item_id": item_id,
+                                      "title": pic.title if pic else item_id})
+            return {
+                "response": (f"auditory cue \"{snd.get('title', sound_item_id)}\" -> "
+                             f"recalled \"{recalled_word}\"" if recalled_word else
+                             f"auditory cue \"{snd.get('title', sound_item_id)}\" -> "
+                             f"no recall (empty vote)"),
+                "organism_recall_auditory": {
+                    "sound_item_id": sound_item_id,
+                    "sound_title": snd.get("title"),
+                    "recalled_word": recalled_word,
+                    "pictures": pictures,
+                },
+            }
+        return await _loop.run_in_executor(None, _recall_auditory)
 
     # ── Normal conversation — now handled by 202 + task poll path above ──
     # This branch is only reached for text messages if _is_converse was False
