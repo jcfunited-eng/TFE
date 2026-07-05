@@ -1,7 +1,7 @@
 """
 test_cognition_path.py — GL-CMD-125: Cognition path validation.
 
-Tests T1-T12: BindingAtlas, multi-modal phase fingerprints, population recall.
+Tests T1-T13: BindingAtlas, multi-modal phase fingerprints, population recall.
 """
 
 import sys, os, time, tempfile
@@ -215,6 +215,19 @@ def test_t6_vocab_50():
 # ---------------------------------------------------------------------------
 
 def test_t7_cross_modal():
+    """GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-207: partial-cue (cross-sense)
+    recall. Before the fix, bind-time encoding concatenated every present
+    modality's spectrum into ONE vector before projecting, so a partial
+    cue's projection matrix depended on how many modalities happened to be
+    present -- geometrically unrelated to the write-time one. Measured:
+    0.0% at 3 lanes (a genuine subset), 100.0% at "5 sensory" (which
+    happened to equal the FULL array-valued cue, since language never
+    contributed a lane either way -- not evidence partial cues worked).
+    Fix: per-lane sub-vectors at bind time, masked lane-normalized match
+    at recall time (binding_atlas.py/resonant_chi.py/neuron.py). These
+    floors are the honest post-fix numbers (deterministic and stable
+    across repeated runs, not a tuned target) -- they GATE the capability
+    now; a regression back toward the old near-chance numbers fails loud."""
     pipeline, brain = _make_pipeline()
     concepts = [f"item_{i:02d}" for i in range(50)]
 
@@ -235,17 +248,32 @@ def test_t7_cross_modal():
                 correct += 1
         return correct / len(concepts) * 100
 
+    acc_1 = _partial_recall(["auditory"], "1 sensory (single lane)")
     acc_3 = _partial_recall(["visual", "tactile", "auditory"], "3 sensory")
     acc_5 = _partial_recall(["visual", "auditory", "tactile", "olfactory", "gustatory"], "5 sensory")
     acc_lang = _partial_recall(["language"], "language only")
 
     print(f"\n== T7: cross-modal partial recall ==")
+    print(f"  1 sensory (auditory only): {acc_1:.1f}%")
     print(f"  3 sensory: {acc_3:.1f}%")
     print(f"  5 sensory: {acc_5:.1f}%")
     print(f"  language only: {acc_lang:.1f}%")
 
-    assert acc_3 >= 20.0, f"3 sensory ≥20%, got {acc_3:.1f}%"
-    assert acc_5 >= 40.0, f"5 sensory ≥40%, got {acc_5:.1f}%"  # GL-CMD-140 provisional floor
+    # Partial-cue floors RISE -- this is the capability gate, not a failure
+    # floor. 3- and 5-lane cues land in the SAME address space they were
+    # taught in and measure a stable 100% across repeated runs. A single
+    # lane carries less disambiguating evidence among 50 concepts and
+    # measured 60-70% across repeated runs (varies with the salted
+    # hash()-seeded signal generation in _build_multi_modal_signals -- see
+    # GL-CMD-CAPACITY-PROBE-REPRODUCIBILITY -- not with the matching
+    # mechanism itself, which is deterministic); floor set with margin
+    # below the observed range, not at it, chance for 50 concepts is 2%.
+    assert acc_1 >= 45.0, f"1 sensory (single lane) ≥45%, got {acc_1:.1f}%"
+    assert acc_3 >= 90.0, f"3 sensory ≥90%, got {acc_3:.1f}%"
+    assert acc_5 >= 90.0, f"5 sensory ≥90%, got {acc_5:.1f}%"
+    # Language alone still carries no spectral lane (a word string has no
+    # waveform for resonant_response to analyze) -- near chance is the
+    # honest, expected number, not a bug this dispatch touches.
     assert acc_lang <= 30.0, f"language only should be ≤30% (near chance), got {acc_lang:.1f}%"  # GL-CMD-140
 
 
@@ -368,7 +396,19 @@ def test_t10_determinism():
             for b_idx in range(n0.binding_atlas.bindings):
                 v0 = n0.binding_atlas._bindings[b_idx]["state_vec"]
                 v1 = n1.binding_atlas._bindings[b_idx]["state_vec"]
-                if not np.array_equal(v0, v1):
+                # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-207: state_vec is a
+                # dict of per-lane arrays under resonant_spectral (the
+                # default observable _make_pipeline() now exercises), not a
+                # flat array -- np.array_equal can't compare dicts directly
+                # (it tries to coerce to a plain ndarray and produces an
+                # ambiguous elementwise comparison). Compare lane-by-lane.
+                if isinstance(v0, dict) or isinstance(v1, dict):
+                    same = (isinstance(v0, dict) and isinstance(v1, dict)
+                            and v0.keys() == v1.keys()
+                            and all(np.array_equal(v0[m], v1[m]) for m in v0))
+                else:
+                    same = np.array_equal(v0, v1)
+                if not same:
                     identical = False
                     break
 
@@ -429,3 +469,48 @@ def test_t12_no_regression():
     print(f"\n== T12: no regression ==")
     print(f"  krimelack_bank: {list(n.krimelack_bank.keys())}")
     print(f"  language alias: {n.krimelack_bank['language'] is n.krimelack}")
+
+
+# ---------------------------------------------------------------------------
+# T13: recall_fast() / resonant_spectral parity (found live, not dispatched)
+# ---------------------------------------------------------------------------
+
+def test_t13_recall_fast_resonant_spectral_parity():
+    """GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-207: found while building the
+    partial-cue fix, not named in the dispatch. recall_fast() unconditionally
+    built a grandurun R^6 query vector and handed it to
+    binding_atlas.recall_best() regardless of the neuron's observable.
+    Production's Embryo defaults to observable="resonant_spectral"
+    (embryo.py), whose bindings are per-lane dicts / ternary chi -- not R^6
+    -- so every live organism.recall_fast() call (gualaloom_v5_engine.py, 4
+    call sites, one with NO try/except) was hitting a numpy shape-mismatch
+    ValueError, not a squashed-but-present recall. Confirmed by directly
+    reproducing the crash against pre-fix code before touching anything.
+
+    This test proves recall_fast() (a) does not crash and (b) returns the
+    IDENTICAL Counter as recall() for resonant_spectral neurons, for both a
+    language-only query (the live organism's actual query shape) and a
+    sensory-only partial cue (the shape a fixed live query path would need
+    for genuine cross-sense recall)."""
+    pipeline, brain = _make_pipeline()
+    concepts = ["bell", "fox", "river", "stone", "flower"]
+
+    tick = 0
+    for rep in range(3):
+        for c in concepts:
+            pipeline.deliver_word(c, tick, ticks_per_word=1)
+            tick += 1
+
+    lang_query = {"language": "bell"}
+    full = pipeline._build_multi_modal_signals("bell", tick=60000)
+    sensory_query = {"auditory": full["auditory"]}
+
+    print(f"\n== T13: recall_fast()/recall() parity under resonant_spectral ==")
+    for label, query in [("language-only", lang_query), ("auditory-only", sensory_query)]:
+        fast_votes = brain.recall_fast(query)     # must not raise
+        slow_votes = brain.recall(query)
+        print(f"  {label}: recall_fast={dict(fast_votes)} recall={dict(slow_votes)}")
+        assert fast_votes == slow_votes, (
+            f"{label}: recall_fast() and recall() diverged: "
+            f"{dict(fast_votes)} vs {dict(slow_votes)}"
+        )

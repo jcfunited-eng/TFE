@@ -37,7 +37,14 @@ def resonant_response(signal):
 
 
 def spectral_features(signals):
-    """Concatenated resonant spectrum across the array-valued modalities."""
+    """Concatenated resonant spectrum across the array-valued modalities.
+
+    GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-207: kept only for callers that
+    still want one flat vector. Do not feed this into a per-neuron_id
+    projection for binding/recall — the concatenation's width depends on
+    HOW MANY modalities happen to be present, so a partial cue (fewer
+    modalities than at write time) gets a differently-shaped vector,
+    projected through an unrelated matrix (see lane_features/encode_state)."""
     parts = []
     for m in sorted(signals.keys()):
         x = signals[m]
@@ -45,6 +52,26 @@ def spectral_features(signals):
             continue
         parts.append(resonant_response(x))
     return np.concatenate(parts) if parts else np.zeros(N_RECEPTORS)
+
+
+def lane_features(signals):
+    """Per-modality resonant spectrum, kept SEPARATE (not concatenated).
+
+    GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-207: this is the fix for
+    partial-cue recall. Each lane's shape (N_RECEPTORS) never depends on
+    which OTHER modalities are present in `signals`, so a lane computed
+    from a 1-modality cue is directly comparable (same shape, same
+    per-(neuron, modality) projection) to the SAME lane computed from a
+    6-modality teach-time signal. Absent/non-array modalities (None, or a
+    language word-string) are simply omitted — the same honest-absence
+    convention as spectral_features, applied per-lane instead of once
+    over the whole concatenation."""
+    lanes = {}
+    for m, x in signals.items():
+        if x is None or isinstance(x, str):
+            continue
+        lanes[m] = resonant_response(x)
+    return lanes
 
 
 def neuron_projection(neuron_id, feat_dim, chi_dim=CHI_DIM):

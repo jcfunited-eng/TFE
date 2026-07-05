@@ -786,29 +786,39 @@ class LoomNeuron:
         state_vec = self.encode_state(multi_modal_signals)
         self.binding_atlas.record(concept, state_vec, tick)
 
-    def encode_state(self, multi_modal_signals: Dict[str, Any]) -> np.ndarray:
-        """Per-neuron state vector for binding/recall. Switched by self.observable:
-        - "resonant_spectral" (GL-CMD capacity solve): the modality waveforms' SPECTRUM
-          (resonant receptor banks) addressed as this neuron's balanced-ternary chi.
-          This is the encoding that lifts n=200 recall from ~18% to 100%.
+    def encode_state(self, multi_modal_signals: Dict[str, Any]):
+        """Per-neuron state for binding/recall. Switched by self.observable:
+        - "resonant_spectral" (GL-CMD capacity solve): returns a Dict[str, np.ndarray]
+          of PER-LANE balanced-ternary chi sub-vectors, one per present array-valued
+          modality. GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-207: previously this
+          concatenated every present modality's spectrum into ONE vector before
+          projecting -- correct for a full cue (lifts n=200 recall from ~18% to
+          100%) but broken BY CONSTRUCTION for a partial cue, because the
+          concatenation's width (and therefore the projection matrix) depends on
+          HOW MANY modalities happen to be present. A 3-lane query landed in a
+          projection space unrelated to the 6-lane one it was taught in (T7:
+          measured 0% at 3 lanes vs 100% at 5, the "5" case only working by
+          accident since language never contributed a lane either way). Fix:
+          project each lane SEPARATELY through its own per-(neuron, modality)
+          fixed matrix -- a lane's shape depends only on N_RECEPTORS, never on
+          which other lanes are present -- so any subset of lanes is directly,
+          honestly comparable to the matching lanes of a richer teach-time
+          binding (BindingAtlas does the masked, lane-normalized match).
         - else (event_count default / rank_order): R⁶ grandurun vector from
-          _unwrapped_deltas (the GL-CMD-140 path)."""
+          _unwrapped_deltas (the GL-CMD-140 path), unchanged."""
         from .grandurun import grandurun_state
         if getattr(self, "observable", "event_count") == "resonant_spectral":
             from . import resonant_chi as rc
-            feats = rc.spectral_features(multi_modal_signals)
-            # Keyed by feature dim, not a single cached matrix: a partial-cue
-            # query (fewer modalities present than at write time) has a shorter
-            # concatenated spectrum, and the write-time projection's shape no
-            # longer matches it. Same (neuron_id, feat_dim) still yields the
-            # same projection every time, so the full-cue path (T5/T6/T10) is
-            # unaffected -- this only adds coverage for dims not seen before.
-            if not hasattr(self, "_spectral_P_by_dim"):
-                self._spectral_P_by_dim = {}
-            fdim = len(feats)
-            if fdim not in self._spectral_P_by_dim:
-                self._spectral_P_by_dim[fdim] = rc.neuron_projection(self.neuron_id, fdim)
-            return rc.ternary_chi(feats, self._spectral_P_by_dim[fdim])
+            lanes = rc.lane_features(multi_modal_signals)
+            if not hasattr(self, "_lane_P"):
+                self._lane_P = {}
+            chi_lanes = {}
+            for m, feat in lanes.items():
+                key = (self.neuron_id, m)
+                if key not in self._lane_P:
+                    self._lane_P[key] = rc.neuron_projection(key, len(feat))
+                chi_lanes[m] = rc.ternary_chi(feat, self._lane_P[key])
+            return chi_lanes
         return grandurun_state(self._unwrapped_deltas(multi_modal_signals))
 
     def _unwrapped_deltas(self, multi_modal_signals: Dict[str, Any]) -> Dict[str, float]:
