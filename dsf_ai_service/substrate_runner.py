@@ -1522,6 +1522,10 @@ def _cmd_status():
         # -185/B3's reconnect landed) -- distinct from "started but idle".
         "curriculum_status": (_curriculum.status()
                               if _curriculum is not None else None),
+        # GL-CMD-SCENE-LANES-B1-188 V5: real place/ambient of the most
+        # recently read sentence, for loomscan's scene panels (today
+        # hardcoded "no lanes yet").
+        "scene_lanes": s.get("scene_lanes", {"place": [], "ambient": []}),
     }
 
 

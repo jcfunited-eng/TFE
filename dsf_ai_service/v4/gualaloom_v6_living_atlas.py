@@ -90,6 +90,7 @@ class LivingAtlas:
                need_pressure=0.0, sensory_refs=None, episode_ref=None,
                source="corpus", bundle_id=None,
                presence=None, location=None, sky_state=None,
+               place=None, ambient=None,
                polarity=1,
                function_score=0.0, phase_vec=None, **_extra):
         """Record a new binding OR reinforce existing one if (section, motif)
@@ -176,6 +177,12 @@ class LivingAtlas:
                     existing["location"] = location
                 if sky_state is not None:
                     existing["sky_state"] = sky_state
+                # GL-CMD-SCENE-LANES-B1-188 V1: WHERE/AMBIENT lanes -- same
+                # last-write-wins convention as location/sky_state above.
+                if place is not None:
+                    existing["place"] = place
+                if ambient is not None:
+                    existing["ambient"] = ambient
                 # episode_ref: first-encounter canonical — only set if empty
                 if episode_ref is not None and existing.get("episode_ref") is None:
                     existing["episode_ref"] = episode_ref
@@ -238,6 +245,10 @@ class LivingAtlas:
                     "presence":   presence,
                     "location":   location,
                     "sky_state":  sky_state,
+                    # GL-CMD-SCENE-LANES-B1-188 V1: WHERE/AMBIENT, bound at
+                    # write time same as presence/location/sky_state above.
+                    "place":      place,
+                    "ambient":    ambient,
                     # GL-CMD-C1-POLARITY: structural polarity {-1, 0, +1}, default +1
                     "polarity":   polarity,
                     # 60-C: substrate-derived function/content score (0=content, 1=function)
@@ -562,6 +573,32 @@ class LivingAtlas:
                 if e["section"] != section_name:
                     associated[e["section"]].append((e["motif"], e["strength"]))
         return dict(associated)
+
+    def recall_scene(self, chi_value):
+        """GL-CMD-SCENE-LANES-B1-188 V4: the reader. presence/place/ambient
+        were write-only (bound at record() time, never read back -- -164's
+        audit finding). Returns the scene lanes of the strongest live entry
+        at this chi, or None if nothing live is bound here. Read-only, no
+        side effects -- safe to call from recall/introspection paths."""
+        best = None
+        for d in range(-self.band, self.band + 1):
+            for e in self.entries.get(chi_value + d, []):
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    continue
+                if best is None or e["strength"] > best["strength"]:
+                    best = e
+        if best is None:
+            return None
+        return {
+            "section": best["section"],
+            "presence": best.get("presence"),
+            "location": best.get("location"),
+            "sky_state": best.get("sky_state"),
+            "place": best.get("place"),
+            "ambient": best.get("ambient"),
+            "episode_ref": best.get("episode_ref"),
+            "strength": best["strength"],
+        }
 
     # --- New living-atlas interfaces ---
 

@@ -1997,6 +1997,15 @@ async def gualaloom_chat(msg: GLMessage):
             "atlas_health": s.get("atlas_health", {}),
             "presence": s.get("presence", {}),
             "pair_bond": s.get("pair_bond", {}),
+            # GL-CMD-SCENE-LANES-B1-188 V5: THIS is the live /status handler
+            # in embedded mode (SUBSTRATE_MODE=embedded, the production
+            # config) -- substrate_runner.py's _cmd_status() is a dead,
+            # remote-mode-only twin (per GL-HANDOFF-C1B-20260705-v1's
+            # lesson: organism_worker/organism_population/curriculum_status
+            # all hit this exact mistake tonight). Forwarded HERE, not just
+            # in substrate_runner.py, so loomscan's place/ambient panels
+            # actually receive real data live.
+            "scene_lanes": s.get("scene_lanes", {"place": [], "ambient": []}),
             # v8: deep atlas (GL-BRIEF-032)
             "deep_atlas": s.get("deep_atlas", {}),
             # 042: audio

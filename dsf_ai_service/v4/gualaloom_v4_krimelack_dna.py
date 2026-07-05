@@ -352,6 +352,75 @@ ROLE_DNA = {
 }
 
 
+# GL-CMD-SCENE-LANES-B1-EVE-20260705-188: WHERE/AMBIENT word lexicon.
+# Same convention as ROLE_DNA above -- a fixed, hand-curated table, not a
+# learned model and not a runtime heuristic. A word present in text maps to
+# a scene-lane tag; a word absent from this table contributes nothing (the
+# lane stays empty -- V2's "no scene invention, ever" is enforced by having
+# no fallback/default path here at all, only exact lookups).
+PLACE_WORDS = {
+    "garden": "garden", "gardens": "garden", "orchard": "orchard",
+    "greenhouse": "greenhouse", "moor": "moor", "moors": "moor",
+    "wood": "wood", "woods": "wood", "forest": "forest",
+    "meadow": "meadow", "field": "field", "fields": "field",
+    "yard": "yard", "courtyard": "yard", "path": "path", "pathway": "path",
+    "gate": "gate", "wall": "walled_garden", "walls": "walled_garden",
+    "house": "house", "cottage": "cottage", "manor": "manor",
+    "castle": "castle", "farm": "farm", "farmhouse": "farm",
+    "village": "village", "town": "town", "city": "city",
+    "room": "room", "bedroom": "bedroom", "kitchen": "kitchen",
+    "attic": "attic", "cellar": "cellar", "hall": "hall",
+    "hallway": "corridor", "corridor": "corridor", "staircase": "staircase",
+    "stairs": "staircase", "nursery": "nursery", "library": "library",
+    "school": "school", "church": "church", "chapel": "chapel",
+    "shore": "shore", "beach": "beach", "ocean": "ocean", "sea": "sea",
+    "river": "river", "stream": "stream", "brook": "stream",
+    "lake": "lake", "pond": "pond", "mountain": "mountain",
+    "hill": "hill", "hills": "hill", "valley": "valley",
+    "cliff": "cliff", "cave": "cave", "island": "island",
+    "market": "market", "bridge": "bridge", "station": "station",
+    "shop": "shop", "inn": "inn", "barn": "barn", "stable": "stable",
+    "meadowland": "field", "orchards": "orchard",
+}
+AMBIENT_WORDS = {
+    "rain": "rain", "raining": "rain", "rainy": "rain",
+    "sunshine": "sunlight", "sunlight": "sunlight", "sunny": "sunlight",
+    "sun": "sunlight", "wind": "wind", "windy": "wind", "breeze": "breeze",
+    "storm": "storm", "stormy": "storm", "thunder": "thunder",
+    "lightning": "lightning", "fog": "fog", "foggy": "fog",
+    "mist": "mist", "misty": "mist", "snow": "snow", "snowy": "snow",
+    "frost": "frost", "quiet": "quiet", "silence": "silence",
+    "silent": "silence", "still": "stillness", "birdsong": "birdsong",
+    "chirping": "birdsong", "chirp": "birdsong", "buzzing": "buzzing",
+    "rustling": "rustling", "rustle": "rustling", "cold": "cold",
+    "chilly": "cold", "warm": "warm", "warmth": "warm", "hot": "heat",
+    "dark": "dark", "darkness": "dark", "dusk": "dusk", "dawn": "dawn",
+    "twilight": "twilight", "night": "night", "nighttime": "night",
+    "moonlight": "moonlight", "starlight": "starlight", "cloudy": "cloudy",
+    "clouds": "cloudy", "clear": "clear_sky", "bright": "bright",
+    "gloomy": "gloomy", "damp": "damp", "dew": "dew", "dewy": "dew",
+    "humid": "humid", "fragrant": "fragrant", "fragrance": "fragrant",
+    "scent": "fragrant", "perfume": "fragrant",
+}
+
+
+def scene_tags_from_words(words):
+    """Real place/ambient words present in `words` (already-tokenized) --
+    fixed-lexicon lookup only, same DNA-table convention as ROLE_DNA.
+    Returns (places, ambients), each a de-duplicated list in first-seen
+    order. No match anywhere -> ([], []), the honest empty lane (V2)."""
+    places, ambients = [], []
+    for w in words:
+        wl = (w or "").lower()
+        p = PLACE_WORDS.get(wl)
+        if p is not None and p not in places:
+            places.append(p)
+        a = AMBIENT_WORDS.get(wl)
+        if a is not None and a not in ambients:
+            ambients.append(a)
+    return places, ambients
+
+
 # ============================================================
 # DNA-equipped language krimelack
 # ============================================================

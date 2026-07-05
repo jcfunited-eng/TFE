@@ -155,8 +155,8 @@ footer b{color:var(--ink);font-weight:normal}
 </div>
 
 <div class="scene">
-  <div class="cell lc"><b>place</b>no place lanes yet — lands with story tags (sprint b1)</div>
-  <div class="cell lc"><b>ambient</b>no ambient lanes yet — lands with story tags (sprint b1)</div>
+  <div class="cell lc"><b>place</b><span id="placeCell">loading…</span></div>
+  <div class="cell lc"><b>ambient</b><span id="ambientCell">loading…</span></div>
   <div class="cell lc"><b>participants</b><span id="whoCell">loading…</span></div>
 </div>
 
@@ -499,6 +499,19 @@ function renderWho(status){
   document.getElementById('whoCell').textContent=parts.join(' · ')||'—';
 }
 
+/* ---- Scene cells (GL-CMD-SCENE-LANES-B1-188 V5) ----
+   place/ambient of the most recently read sentence (any source — book,
+   converse, corpus). Empty = honest: that sentence had no recognized
+   scene word, not an error. */
+function renderScene(status){
+  const sl=status.scene_lanes||{};
+  const place=sl.place||[],ambient=sl.ambient||[];
+  document.getElementById('placeCell').textContent=
+    place.length?place.join(' · '):'no place words in the last sentence read';
+  document.getElementById('ambientCell').textContent=
+    ambient.length?ambient.join(' · '):'no ambient words in the last sentence read';
+}
+
 /* ---- Events processing ---- */
 function processEvent(ev){
   const key=ev.kind+'|'+ev.tick+'|'+(ev.detail?JSON.stringify([ev.detail.input_chi,ev.detail.context_anchor_chis,ev.detail.name,ev.detail.kind]).replace(/null/g,''):'-');
@@ -606,6 +619,7 @@ async function pollStatus(){
     renderHealth(d);
     renderActivity(d);
     renderWho(d);
+    renderScene(d);
     // Affect sparklines
     const needs=parseNeeds(d.response||'');
     if(needs.v!=null){

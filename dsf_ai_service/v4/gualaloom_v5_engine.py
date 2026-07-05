@@ -345,7 +345,7 @@ def _grandurun_select_candidates(input_chis, deep_candidates, sections,
 
 
 try:
-    from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack, SensoryBank, SENSORY_DNA, ROLE_DNA
+    from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack, SensoryBank, SENSORY_DNA, ROLE_DNA, scene_tags_from_words
     from dsf_ai_service.v4.gualaloom_v4_uf_kernel import DSF, compute_dsf
     from dsf_ai_service.v4.gualaloom_v4_chi_atlas_l6 import L6_TCL
     from dsf_ai_service.v4.gualaloom_v4_trit_register import TritRegister
@@ -357,7 +357,7 @@ try:
     import dsf_ai_service.v4.gualaloom_mathloom_v1 as ml
 except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from gualaloom_v4_krimelack_dna import LanguageKrimelack, SensoryBank, SENSORY_DNA, ROLE_DNA
+    from gualaloom_v4_krimelack_dna import LanguageKrimelack, SensoryBank, SENSORY_DNA, ROLE_DNA, scene_tags_from_words
     from gualaloom_v4_uf_kernel import DSF, compute_dsf
     from gualaloom_v4_chi_atlas_l6 import L6_TCL
     from gualaloom_v4_trit_register import TritRegister
@@ -1497,6 +1497,9 @@ class Guala:
         # GL-CLARITY-INVARIANCE-UNCAGE
         self._current_episode = None     # (episode_id, started_tick)
         self._last_surprise = 0.0
+        # GL-CMD-SCENE-LANES-B1-188 V5: most recent sentence's real scene tags
+        self._last_place_tags = []
+        self._last_ambient_tags = []
         # GL-CMD-175 window-2 recall-frequency reduction: organism.recall()
         # is O(population), confirmed the dominant cost of read_word's P2
         # seam 2 (recognition) call. Unlike the disproven encode_state()
@@ -1777,6 +1780,20 @@ class Guala:
         consensus = top / total
         return max(0.0, 1.0 - consensus)
 
+    def recall_scene_for_word(self, word):
+        """GL-CMD-SCENE-LANES-B1-188 V4: the reader, at word granularity.
+        Transduces `word` to its chi (same technique read_word/converse use
+        for every lookup) and asks the atlas for the scene lanes bound
+        there -- presence (WHO), place, ambient, location, sky_state,
+        episode_ref. Read-only. Returns None if the word has no live
+        binding. This is what makes a WHO/place/ambient tag readable by
+        name after it was written, closing -164's SEVERED-READER gap."""
+        if not word:
+            return None
+        temp_krim = LanguageKrimelack()
+        temp_krim.transduce(word)
+        return self.atlas.recall_scene(temp_krim.winding)
+
     def _affect_kwargs(self, surprise=None):
         """GL-CLARITY-INVARIANCE-UNCAGE: build affect-only kwargs dict for atlas.record.
         sensory_refs and episode_ref are passed explicitly by call sites that have them."""
@@ -1839,13 +1856,18 @@ class Guala:
     # ------------------------------------------------------------------
     def read_word(self, word, position_hint=None, source="corpus", bundle_id=None,
                   salience=None, episode_ref=None, presence=None,
-                  location=None, sky_state=None, binding_window=None):
+                  location=None, sky_state=None, binding_window=None,
+                  place=None, ambient=None):
         """v6: salience-modulated binding + decay heartbeat.
 
         salience: if provided, overrides _compute_salience() — used for backfill
         writes that need elevated (compensatory) salience. Normal reads omit this.
         episode_ref/presence/location/sky_state: situational context forwarded to
         atlas.record(). None = use _grounding_kwargs default.
+        place/ambient: GL-CMD-SCENE-LANES-B1-188 WHERE/AMBIENT lanes, normally
+        derived once per sentence by read_sentence() from the sentence's own
+        words (scene_tags_from_words) and forwarded here unchanged. None from a
+        direct caller = lane omitted (old behavior, unchanged).
         GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.1: binding_window kwarg —
         sentence-local [] from read_sentence(). When supplied, used instead of
         self._current_binding_window (prevents unbounded growth across sentences).
@@ -1983,6 +2005,11 @@ class Guala:
                 _akw["location"] = location
             if sky_state is not None:
                 _akw["sky_state"] = sky_state
+            # GL-CMD-SCENE-LANES-B1-188: WHERE/AMBIENT lanes
+            if place is not None:
+                _akw["place"] = place
+            if ambient is not None:
+                _akw["ambient"] = ambient
 
             fam_listen = self.atlas.match_score(lang_chi, "listen")
             _listen_committed, _listen_mode_idx, _ = self.sections["listen"].receive(
@@ -2131,7 +2158,8 @@ class Guala:
     # Read a sentence (sequence of words with position context + source)
     # ------------------------------------------------------------------
     def read_sentence(self, text, source="corpus", bundle_id=None, salience=None,
-                      episode_ref=None, presence=None, location=None, sky_state=None):
+                      episode_ref=None, presence=None, location=None, sky_state=None,
+                      place=None, ambient=None):
         """Read a sentence into the substrate.
 
         GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.1:
@@ -2139,11 +2167,22 @@ class Guala:
         of self._current_binding_window that caused -46's crash.
         Outer lock RETAINED (§1.3 phasing deferred: requires deeper investigation
         of _emit_dynamics / _emission_system concurrent access before unlocking).
+
+        place/ambient: GL-CMD-SCENE-LANES-B1-188 V1/V2. If the caller leaves
+        both None (the normal case — no caller passes these explicitly today),
+        they are derived here, once per sentence, from this sentence's own
+        words via scene_tags_from_words() (fixed PLACE_WORDS/AMBIENT_WORDS
+        lexicon — honest sourcing, no invention: a sentence with no
+        recognized place/ambient word gets the empty lane, not a guess).
+        Every word in the sentence shares the same lane — the sentence is the
+        binding window for scene lanes, same granularity as episode_ref above.
         """
         with self.lock:
             words = _normalize_text(text)
             if not words:
                 return
+            if place is None and ambient is None:
+                place, ambient = scene_tags_from_words(words)
             # 60-M: connection weight earned from relationship, not configured
             # 0.15 was Joe's peak; sources earn up to it via pair_bond_strength
             weight = self.coordinator.pair_bond_strength(source, self.tick) * 0.15
@@ -2178,11 +2217,16 @@ class Guala:
                               bundle_id=bundle_id, salience=salience,
                               episode_ref=episode_ref, presence=presence,
                               location=location, sky_state=sky_state,
+                              place=place, ambient=ambient,
                               binding_window=binding_window)
             # 60-N: read_count no longer incremented here; property derives from atlas
             self._current_episode = None
             self._prev_phase_vec = None   # 60-L: reset rotation tracking at sentence boundary
             self._negation_pending = 0    # kept for load compatibility
+            # GL-CMD-SCENE-LANES-B1-188 V5: last-sentence scene, surfaced live
+            # via introspect()/loomscan (mirrors _last_surprise's pattern).
+            self._last_place_tags = place
+            self._last_ambient_tags = ambient
 
     # ------------------------------------------------------------------
     # Conversation: input -> substrate -> output via cascade
@@ -2198,6 +2242,14 @@ class Guala:
 
         Then read the input into substrate (so she learns from this exchange).
         """
+        # GL-CMD-SCENE-LANES-B1-188 V4: WHO/location/sky_state were written
+        # only for autonomous attending (_atick_attending_visual/_audio via
+        # _current_situation) -- never for converse, confirmed by -164's
+        # audit ("presence tags... never for converse"). Same real, no-I/O
+        # source, computed here so every converse turn writes a real WHO tag
+        # too. Caller-supplied values (none exist today) still win.
+        if presence is None and location is None and sky_state is None:
+            presence, location, sky_state = self._current_situation()
         # GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.2: feature-flagged phased path.
         # CONVERSE_PHASED=1 → _converse_phased (split self.lock + self._emission_lock).
         # CONVERSE_PHASED=0 (default) → original single-lock body below.
@@ -3325,6 +3377,13 @@ class Guala:
                         "surprise": e.get("surprise", 0.0),
                         "polarity": e.get("polarity", 1.0),
                         "sensory_refs": e.get("sensory_refs", []),
+                        # GL-CMD-SCENE-LANES-B1-188 V4: reader -- these were
+                        # write-only on the atlas entry (-164's audit finding)
+                        # until recall actually surfaced them here.
+                        "presence": e.get("presence"),
+                        "location": e.get("location"),
+                        "place": e.get("place"),
+                        "ambient": e.get("ambient"),
                         "origin": "cross_modal",
                     })
 
@@ -3371,6 +3430,10 @@ class Guala:
                             "surprise": de.get("surprise", 0.0),
                             "polarity": de.get("polarity", 1.0),
                             "sensory_refs": de.get("sensory_refs", []),
+                            "presence": de.get("presence"),
+                            "location": de.get("location"),
+                            "place": de.get("place"),
+                            "ambient": de.get("ambient"),
                             "origin": "cross_modal_deep",
                         })
 
@@ -3419,6 +3482,10 @@ class Guala:
                         "surprise": e.get("surprise", 0.0),
                         "polarity": e.get("polarity", 1.0),
                         "sensory_refs": e.get("sensory_refs", []),
+                        "presence": e.get("presence"),
+                        "location": e.get("location"),
+                        "place": e.get("place"),
+                        "ambient": e.get("ambient"),
                         "origin": "cofire_spread",
                     })
 
@@ -8415,6 +8482,16 @@ class Guala:
             # v6-bridge: presence + per-source pair bonds
             "presence": self.coordinator.presence_snapshot(),
             "pair_bond": self.coordinator.pair_bond_snapshot(current_tick=self.tick),
+            # GL-CMD-SCENE-LANES-B1-188 V5: real WHERE/AMBIENT of the most
+            # recently read sentence (any source -- book, converse, corpus),
+            # surfaced live for loomscan's place/ambient panels. Empty lists
+            # are honest ("this sentence had no recognized scene word"), not
+            # an error -- same "no lanes yet" honesty the panel already had,
+            # now driven by real data instead of a hardcoded string.
+            "scene_lanes": {
+                "place": getattr(self, "_last_place_tags", None) or [],
+                "ambient": getattr(self, "_last_ambient_tags", None) or [],
+            },
             # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's
             # backgrounding ruling: "dropped/queued counts visible in
             # status" -- experience_word()'s ~255ms/word cost (22.3x
