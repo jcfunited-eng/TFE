@@ -15,7 +15,7 @@ from dsf_ai_service.loom_model.neuron import (
     LoomNeuron, PSI_DIM, DELTA_BASE, _map_inject,
 )
 from dsf_ai_service.v4.gualaloom_v5_engine import (
-    _SPIN_VECTOR_DIM, MIN_GAIN_THRESHOLD, MAX_COMPOSITION_LEN,
+    _SPIN_VECTOR_DIM, MIN_GAIN_THRESHOLD,
 )
 
 
@@ -210,8 +210,9 @@ def test_t6_coherent_power_growth():
             last_alignment = alignment
             power = float(np.sum(np.abs(composition_sum) ** 2))
             powers.append(power)
-        if len(powers) >= MAX_COMPOSITION_LEN:
-            break
+        # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203: no length
+        # ceiling in production anymore -- pool itself (bounded by
+        # cluster size) is the natural stopping bound here too.
 
     assert len(powers) >= 2, (
         f"Expected at least 2 selections for power growth test, got {len(powers)}"

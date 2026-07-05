@@ -102,8 +102,10 @@ def _grandurun_select_multichi(candidates, input_chis):
             chosen_words.append(word)
             chosen_amps.append(amp)
             last_coh = new_coh
-        if len(chosen_words) >= MAX_COMPOSITION_LEN:
-            break
+        # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 U0a: no length
+        # ceiling. Coherence gain (the MIN_GAIN_THRESHOLD check above) is
+        # the only terminator -- a word joins while it raises the whole's
+        # coherence; when the next word adds nothing, the thought is done.
     return chosen_words, last_coh
 
 
@@ -131,8 +133,10 @@ def _grandurun_select(candidates, target_chi):
             chosen_words.append(word)
             chosen_amps.append(amp)
             last_coh = new_coh
-        if len(chosen_words) >= MAX_COMPOSITION_LEN:
-            break
+        # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 U0a: no length
+        # ceiling. Coherence gain (the MIN_GAIN_THRESHOLD check above) is
+        # the only terminator -- a word joins while it raises the whole's
+        # coherence; when the next word adds nothing, the thought is done.
     return chosen_words, last_coh
 
 
@@ -241,8 +245,8 @@ def _grandurun_select_vector(candidates, target_state):
             chosen_vecs.append(state_vec)
             composition_sum = new_sum
             last_alignment = alignment
-        if len(chosen_words) >= MAX_COMPOSITION_LEN:
-            break
+        # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 U0a: no length
+        # ceiling here either -- same coherence-gain-only stopping rule.
 
     # GL-METADATA-PIPELINE: per-dimension contribution breakdown
     dim_contributions = {}
@@ -491,7 +495,11 @@ NEEDS_TARGET_V7 = 0.7       # target for all three needs (autonomy model)
 # Grandurun tuning constants (GL-BRIEF-GRANDURUN-IMPLEMENTATION-20260616-01)
 CHI_CORR_LENGTH = 50.0        # phase correlation length; tune empirically
 MIN_GAIN_THRESHOLD = 0.10     # minimum coherent-sum gain to add candidate
-MAX_COMPOSITION_LEN = 12      # cap; typical compositions should be 3-8 words
+# GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 U0c: the length-cap
+# constant (was 12) is deleted entirely -- Joe's ruling: no caps, no hard
+# ceilings on her speech. MIN_GAIN_THRESHOLD above is now the only
+# stopping rule anywhere in the speech chain; deleting the constant (not
+# just its uses) so no future path can quietly re-import a length fence.
 SPIN_VECTOR_DIM = 7           # GL-METADATA-PIPELINE: 8→7 (modal_alignment dropped)
 GRANDURUN_POOL_K = 50         # per-section candidate count for wider retrieval
 
@@ -2930,7 +2938,11 @@ class Guala:
         total = sum(votes.values())
         candidates = []
         n_with_section_home = 0
-        for w, n_votes in votes.most_common(MAX_COMPOSITION_LEN):
+        # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 U0b: the pre-trim
+        # to a fixed vote count is deleted -- the physics downstream (the
+        # greedy coherence selectors) sees her FULL vote distribution;
+        # selection is the physics' job, not a slice's.
+        for w, n_votes in votes.most_common():
             if not w or w.lower() == query.lower():
                 continue  # association, not self-echo (seam-3 convention)
             locations = self._word_to_emission_sections.get(w.lower())
@@ -4171,7 +4183,13 @@ class Guala:
         # Scan deep candidates for co-occurrence triples
         best_triple = None
         best_weight = 0.0
-        SVO_ORDER = ["subject", "verb", "object"]
+        # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 U2: extended from
+        # ["subject", "verb", "object"] to her full section set -- modifier/
+        # ground/intro/listen words can take structural positions too.
+        # Order comes from her own co-occurrence record (the scan below),
+        # length from her own coherence physics (U0/U1) -- no new grammar,
+        # no templates, no constants (reuses the existing SECTION_NAMES).
+        SVO_ORDER = list(self.SECTION_NAMES)
 
         for de, co, clarity in deep_candidates:
             if not co:
@@ -4217,7 +4235,11 @@ class Guala:
         if best_triple:
             used = set(w.lower() for w in best_triple)
             remaining = [w for w in selected_words if w.lower() not in used]
-            return best_triple + remaining[:2]
+            # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 U1: the
+            # orderer orders, never truncates -- ALL remaining selected
+            # words follow the anchor, in their own coherence-selection
+            # order, not just the first two.
+            return best_triple + remaining
 
         return selected_words
 
