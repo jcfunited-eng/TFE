@@ -85,6 +85,54 @@ def signal_attenuation(ring_pos: int, ring_N: int, modality_index: int) -> float
     ))
 
 
+def _snapshot_single_krim(krim):
+    """GL-CMD-EVENT-COUNT-KRIMELACK-STATE-209: snapshot one krimelack's
+    mutable oscillator state, same fields/adapter handling as brain.py's
+    LoomBrain.recall() already uses for its own (read-side) snapshot --
+    this is the write-side twin, used by _unwrapped_deltas to make a
+    non-language modality's event_count delta a stable function of the
+    fed signal alone, not of whatever an earlier, different concept's
+    teaching left the krimelack sitting at."""
+    target = getattr(krim, '_inner', krim)
+    outer_mirror = None
+    if target is not krim:
+        outer_mirror = (
+            krim,
+            krim.events.copy() if hasattr(krim, 'events') else None,
+            int(krim.winding) if hasattr(krim, 'winding') else None,
+        )
+    return (
+        target,
+        float(target.phase) if hasattr(target, 'phase') else None,
+        float(target.t) if hasattr(target, 't') else None,
+        int(target.winding) if hasattr(target, 'winding') else None,
+        int(target.n_events) if hasattr(target, 'n_events') else None,
+        target.events.copy() if hasattr(target, 'events') else None,
+        outer_mirror,
+    )
+
+
+def _restore_single_krim(snap):
+    """Inverse of _snapshot_single_krim."""
+    target, phase, t, winding, n_events, events, outer_mirror = snap
+    if phase is not None:
+        target.phase = phase
+    if t is not None:
+        target.t = t
+    if winding is not None:
+        target.winding = winding
+    if n_events is not None:
+        target.n_events = n_events
+    if events is not None:
+        target.events = events
+    if outer_mirror is not None:
+        krim_outer, outer_events, outer_winding = outer_mirror
+        if outer_events is not None:
+            krim_outer.events = outer_events
+        if outer_winding is not None:
+            krim_outer.winding = outer_winding
+
+
 # ---------------------------------------------------------------------------
 # Piece 1: ψ-lattice — 16-dim complex with imaginary-time settle
 # ---------------------------------------------------------------------------
@@ -838,6 +886,26 @@ class LoomNeuron:
         time-to-first-spike information that event counts discard. The FEED side
         is identical for both — only the returned observable differs. Selected by
         self.observable, so training-write and recall-query switch together.
+
+        GL-CMD-EVENT-COUNT-KRIMELACK-STATE-209: non-language modalities are
+        snapshotted before feed_signal() and restored immediately after --
+        found live, testing cross-sense recall against the real production
+        observable (event_count): teaching concept B right after concept A
+        feeds B's signal into the SAME no-reset krimelack A already
+        advanced, so B's stored delta is "new events given wherever A left
+        the phase," not a stable function of B's own waveform. Two
+        concepts' deltas were therefore incomparable, and whichever
+        happened to produce the largest magnitude dominated cosine
+        matching for every query regardless of content (verified: bell
+        taught fresh -> delta 576; cat taught right after -> delta 1381;
+        cat's larger delta won every subsequent query including bell's
+        own). Language is deliberately excluded -- its no-reset
+        cumulative "how many words has she heard" design is intentional
+        and separately proven (-177/-178), and it commits its own event
+        count read (`ev1`) before this reset would apply anyway. Same
+        snapshot/restore idiom brain.py's recall() already uses for its
+        own (read-side) protection; this is the equivalent write-side fix
+        -- recall() had it, experience_moment() (via this method) didn't.
         """
         from .grandurun import MODALITIES
 
@@ -859,6 +927,7 @@ class LoomNeuron:
             # no-reset feeds for oscillator krimelacks; 0 for reset-type adapters
             # whose events restart per feed).
             t_pre = self._krim_time(krim) if observable == "rank_order" else 0.0
+            _pre_state = None if m == "language" else _snapshot_single_krim(krim)
             if m == "language":
                 krim.transduce(signal, no_reset=True, omega_override=2.0 * att)
             elif hasattr(krim, 'feed_signal'):
@@ -869,11 +938,16 @@ class LoomNeuron:
             new_count = ev1 - ev0
             if observable == "rank_order":
                 if new_count > 0:
+                    # Must read krim.events for the new-event slice BEFORE
+                    # restoring below -- the restore reverts krim.events to
+                    # its pre-feed contents.
                     new_events = list(krim.events)[-new_count:]
                     first_wraps[m] = float(new_events[0].get("t", 0.0)) - t_pre
                 # modalities that did not wrap are omitted -> strength 0 below
             else:
                 deltas[m] = float(new_count)
+            if _pre_state is not None:
+                _restore_single_krim(_pre_state)
 
         if observable == "rank_order":
             n_mod = len(MODALITIES)
