@@ -2440,6 +2440,39 @@ def handle_force_dream(args):
             "current_activity": _guala._current_activity.kind if _guala._current_activity else None}
 
 
+def handle_force_reading(args):
+    """GL-CMD-SCENE-LANES-B1-188 follow-up (c1b's handoff, standing build
+    item): a specific corpus can be tested on demand, mirroring
+    handle_force_dream's _force_next_activity pre-emption exactly -- no
+    new mechanism, same existing override _select_next_activity already
+    checks first. corpus_id (exact) or title_contains (substring, case-
+    insensitive) selects the target; corpus_id wins if both given."""
+    corpus_id = (args.get("corpus_id") or "").strip()
+    title_contains = (args.get("title_contains") or "").strip().lower()
+    target = None
+    if corpus_id and corpus_id in _guala._corpora:
+        target = corpus_id
+    elif title_contains:
+        for cid, c in _guala._corpora.items():
+            if title_contains in c.title.lower():
+                target = cid
+                break
+    if target is None:
+        return {"force_reading": "no_match", "corpus_id": corpus_id,
+                "title_contains": title_contains,
+                "available": [{"corpus_id": cid, "title": c.title}
+                              for cid, c in _guala._corpora.items()]}
+    start_tick = _guala.tick
+    _guala._force_next_activity = ("READING", target)
+    if _guala._current_activity:
+        _guala._end_activity()
+    _guala._log_substrate_event("force_reading_initiated", tick=start_tick,
+                                corpus_id=target)
+    print(f"[UNPAUSE] Force reading initiated: corpus_id={target} at tick {start_tick}")
+    return {"force_reading": "accepted", "corpus_id": target,
+            "title": _guala._corpora[target].title, "start_tick": start_tick}
+
+
 def handle_repause(args):
     os.environ["DECAY_PAUSED"] = "1"
     _write_runtime_config({"decay_paused": True})
@@ -3272,6 +3305,7 @@ OP_HANDLERS = {
     "gualaloom_post": handle_gualaloom_post,
     "amnesty": handle_amnesty,
     "force_dream": handle_force_dream,
+    "force_reading": handle_force_reading,
     "repause": handle_repause,
     "unpause": handle_unpause,
     "wake": handle_wake,

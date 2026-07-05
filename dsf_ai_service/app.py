@@ -2768,6 +2768,56 @@ async def admin_force_dream():
     )
 
 
+@app.post("/api/v1/gualaloom/admin/force_reading", dependencies=[Depends(_api_key_dep)])
+async def admin_force_reading(request: Request):
+    """GL-CMD-SCENE-LANES-B1-188 follow-up: force a specific corpus into
+    READING right now instead of waiting on natural rotation (c1b's
+    handoff -- Secret Garden was uploaded but has never actually been
+    read). Mirrors admin_force_dream's _force_next_activity pre-emption
+    exactly -- same existing override, no new mechanism. Body:
+    {"corpus_id": "..."} (exact) or {"title_contains": "secret garden"}
+    (substring, case-insensitive); corpus_id wins if both given."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    corpus_id = (body.get("corpus_id") or "").strip()
+    title_contains = (body.get("title_contains") or "").strip()
+    if _is_remote():
+        client = _get_substrate_client()
+        return await client.call("force_reading", corpus_id=corpus_id,
+                                 title_contains=title_contains, timeout=15.0)
+    _gl_init()
+    if _guala is None:
+        return JSONResponse({"error": "not ready"}, status_code=503)
+    target = None
+    if corpus_id and corpus_id in _guala._corpora:
+        target = corpus_id
+    elif title_contains:
+        tl = title_contains.lower()
+        for cid, c in _guala._corpora.items():
+            if tl in c.title.lower():
+                target = cid
+                break
+    if target is None:
+        return JSONResponse(
+            {"error": "no matching corpus", "corpus_id": corpus_id,
+             "title_contains": title_contains,
+             "available": [{"corpus_id": cid, "title": c.title}
+                          for cid, c in _guala._corpora.items()]},
+            status_code=404)
+    start_tick = _guala.tick
+    _guala._force_next_activity = ("READING", target)
+    if _guala._current_activity:
+        _guala._end_activity()
+    _guala._log_substrate_event("force_reading_initiated", tick=start_tick,
+                                corpus_id=target)
+    print(f"[UNPAUSE] Force reading initiated: corpus_id={target} at tick {start_tick}")
+    return {"force_reading": "accepted", "corpus_id": target,
+            "title": _guala._corpora[target].title, "start_tick": start_tick,
+            "message": "Reading initiated. Poll /status current_activity for progress."}
+
+
 @app.post("/api/v1/gualaloom/admin/repause", dependencies=[Depends(_api_key_dep)])
 async def admin_repause():
     """Kill switch: re-pause decay immediately."""
