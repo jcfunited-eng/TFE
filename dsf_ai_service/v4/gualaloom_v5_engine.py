@@ -91,21 +91,40 @@ def _grandurun_select_multichi(candidates, input_chis):
     amp_matrix = _np.sqrt(_np.maximum(pool_str[:, None], 0.0)) * _np.exp(1j * phi)
     amps_vec = amp_matrix.mean(axis=1)  # complex amplitude per candidate
 
-    chosen_amps = []
+    running_sum = 0j
     chosen_words = []
     last_coh = 0.0
     for i, (chi_addr, strength, word) in enumerate(pool):
         amp = complex(amps_vec[i])
-        new_sum = sum(chosen_amps, 0j) + amp
+        new_sum = running_sum + amp
         new_coh = abs(new_sum) ** 2
-        if new_coh - last_coh > MIN_GAIN_THRESHOLD:
+        gain = new_coh - last_coh
+        # GL-RPT-COGNITION-AT-SPEED root-cause fix (post-incident, 2026-07-05):
+        # gain must be checked as a FRACTION of the coherence already
+        # present (ΔC/C > threshold, i.e. per-word-normalized coherence),
+        # not an absolute constant and not even gain-vs-|S| (magnitude).
+        # Absolute gain ~ 2|S||a| GROWS with |S| so an absolute floor can
+        # never terminate -- once six emission sections widened the
+        # candidate pool, every candidate cleared the old fixed bar,
+        # producing an unbounded accept run (49s-94s settle latency, live
+        # incident). Note gain-vs-|S| (magnitude, not squared) was tried
+        # first and measured to NOT be enough: in a fully-coherent pool it
+        # degenerates to a constant per-word bar independent of pool size,
+        # so a large aligned pool still selects ~all of it (verified:
+        # 9333/20000 and 10820/20000 in an offline sweep). Gain-vs-C
+        # (squared/fractional) gives a genuine bound even in the
+        # worst-case fully-aligned pool (k < 2/MIN_GAIN_THRESHOLD = 20,
+        # independent of n) -- termination is the coherence physics
+        # itself, not a word-count cap (Joe's no-caps ruling stays intact,
+        # see GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 -- nothing
+        # here caps word count, the physics just naturally stops adding).
+        # Running-sum accumulator (was `sum(chosen_amps, 0j)` re-summed
+        # from scratch every candidate, O(n*k)) also collapses to O(1)
+        # per candidate here.
+        if gain > MIN_GAIN_THRESHOLD * last_coh:
             chosen_words.append(word)
-            chosen_amps.append(amp)
+            running_sum = new_sum
             last_coh = new_coh
-        # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 U0a: no length
-        # ceiling. Coherence gain (the MIN_GAIN_THRESHOLD check above) is
-        # the only terminator -- a word joins while it raises the whole's
-        # coherence; when the next word adds nothing, the thought is done.
     return chosen_words, last_coh
 
 
@@ -122,21 +141,21 @@ def _grandurun_select(candidates, target_chi):
     phi = _np.pi * _np.abs(pool_chis - float(target_chi)) / CHI_CORR_LENGTH
     amps_vec = _np.sqrt(_np.maximum(pool_str, 0.0)) * _np.exp(1j * phi)
 
-    chosen_amps = []
+    running_sum = 0j
     chosen_words = []
     last_coh = 0.0
     for i, (chi_addr, strength, word) in enumerate(pool):
         amp = complex(amps_vec[i])
-        new_sum = sum(chosen_amps, 0j) + amp
+        new_sum = running_sum + amp
         new_coh = abs(new_sum) ** 2
-        if new_coh - last_coh > MIN_GAIN_THRESHOLD:
+        gain = new_coh - last_coh
+        # Fractional relative-gain stopping rule (ΔC/C > threshold) + O(1)
+        # running accumulator -- see the matching comment in
+        # _grandurun_select_multichi above.
+        if gain > MIN_GAIN_THRESHOLD * last_coh:
             chosen_words.append(word)
-            chosen_amps.append(amp)
+            running_sum = new_sum
             last_coh = new_coh
-        # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 U0a: no length
-        # ceiling. Coherence gain (the MIN_GAIN_THRESHOLD check above) is
-        # the only terminator -- a word joins while it raises the whole's
-        # coherence; when the next word adds nothing, the thought is done.
     return chosen_words, last_coh
 
 
@@ -231,6 +250,7 @@ def _grandurun_select_vector(candidates, target_state):
     chosen_words = []
     composition_sum = _np.zeros(_SPIN_VECTOR_DIM, dtype=_np.complex128)
     last_alignment = 0.0
+    last_mag_sq = 0.0  # |composition_sum|^2 -- "coherence density already present"
 
     # Sort by chi_resonance magnitude (dim 0) as proxy for strength
     pool = sorted(candidates, key=lambda c: -abs(c[0][0]))
@@ -240,11 +260,23 @@ def _grandurun_select_vector(candidates, target_state):
         # Re(<composition_sum, candidate>) — inner product alignment
         alignment = float(_np.real(_np.vdot(new_sum, state_vec)))
         gain = alignment - last_alignment
-        if gain > MIN_GAIN_THRESHOLD:
+        # GL-RPT-COGNITION-AT-SPEED root-cause fix: same disease as the
+        # scalar selectors -- alignment scales with |composition_sum|, so
+        # an absolute gain floor never terminates once the pool is large.
+        # A gain-vs-magnitude bar was tried first and measured insufficient
+        # (degenerates to a constant per-word bar in a fully-coherent pool,
+        # so a large aligned pool still selects nearly all of it). Scaling
+        # by the squared magnitude instead (ΔC/C fractional form, matching
+        # the scalar-selector fix) gives a genuine bound even in the
+        # worst-case fully-aligned pool, independent of pool size -- word
+        # count stays uncapped (Joe's ruling, -203) but termination is now
+        # the coherence physics itself, not a length fence.
+        if gain > MIN_GAIN_THRESHOLD * last_mag_sq:
             chosen_words.append(word)
             chosen_vecs.append(state_vec)
             composition_sum = new_sum
             last_alignment = alignment
+            last_mag_sq = float(_np.real(_np.vdot(composition_sum, composition_sum)))
         # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 U0a: no length
         # ceiling here either -- same coherence-gain-only stopping rule.
 
@@ -4947,6 +4979,8 @@ class Guala:
         def loop():
             _window_start = time.monotonic()
             _window_ticks = 0
+            self._tick_rate_ref_tick = self.tick
+            self._tick_rate_ref_time = _window_start
             while not self._reading_stop.is_set():
                 try:
                     self._autonomy_tick()
@@ -4956,18 +4990,49 @@ class Guala:
                 _now = time.monotonic()
                 _elapsed = _now - _window_start
                 if _elapsed >= 1.0:
-                    # GL-CMD-COGNITION-AT-SPEED-205 C5: rolling measured
-                    # rate, not an assumed one -- surfaced in /status.
-                    self._tick_rate = _window_ticks / _elapsed
+                    # GL-RPT-COGNITION-AT-SPEED root-cause fix: this
+                    # reference (tick, time) pair is refreshed here, but
+                    # get_tick_rate() below recomputes the RATE at read
+                    # time using the CURRENT clock -- not this precomputed
+                    # ratio. A precomputed self._tick_rate froze at its
+                    # last-good value exactly when the loop got stuck
+                    # inside one long _autonomy_tick() call (a 49s-94s
+                    # emission), showing a normal-looking rate during the
+                    # live incident instead of an honest one.
                     self._tick_rate_pending_work = self._has_pending_cognitive_work()
+                    self._tick_rate_ref_tick = self.tick
+                    self._tick_rate_ref_time = _now
                     _window_start = _now
                     _window_ticks = 0
                 time.sleep(self._AUTONOMY_YIELD_SEC)
-        self._tick_rate = 0.0
+        self._tick_rate_ref_tick = self.tick
+        self._tick_rate_ref_time = time.monotonic()
         self._tick_rate_pending_work = False
         self._reading_stop.clear()
         self._reading_thread = threading.Thread(target=loop, daemon=True)
         self._reading_thread.start()
+
+    def get_tick_rate(self):
+        """GL-RPT-COGNITION-AT-SPEED root-cause fix (post-incident,
+        2026-07-05): compute (tick_now - tick_then)/(t_now - t_then) live,
+        at READ time, using the wall clock AT THE MOMENT OF THE CALL --
+        not a ratio the autonomy loop wrote once per second. That snapshot
+        approach freezes at its last value precisely when the loop is
+        stuck inside a single long tick (the exact moment operators most
+        need honest telemetry): five /status samples 4s apart all read
+        bit-identical 14.75 during the live incident, because the loop
+        thread itself never returned to refresh it. Computing live means
+        elapsed keeps growing against a stale reference tick while the
+        stall lasts, so the reported rate honestly decays toward zero
+        instead of showing stale-but-plausible."""
+        ref_tick = getattr(self, "_tick_rate_ref_tick", None)
+        ref_time = getattr(self, "_tick_rate_ref_time", None)
+        if ref_tick is None or ref_time is None:
+            return 0.0
+        elapsed = time.monotonic() - ref_time
+        if elapsed <= 0:
+            return 0.0
+        return (self.tick - ref_tick) / elapsed
 
     def _autonomy_tick(self):
         """One iteration of the autonomy loop."""
@@ -9054,11 +9119,13 @@ class Guala:
             # q-charge distribution (distance to folding) -- "growth we
             # cannot see is growth we cannot verify."
             "organism_growth": self.organism.growth_snapshot(),
-            # GL-CMD-COGNITION-AT-SPEED-EVE-20260705-205 C5: measured,
-            # rolling (updated every ~1s by the autonomy loop itself, see
-            # start_autonomy_loop), never assumed. Next to running_sha:
-            # her own status now answers both "what code" and "how fast."
-            "tick_rate": round(getattr(self, "_tick_rate", 0.0), 2),
+            # GL-CMD-COGNITION-AT-SPEED-EVE-20260705-205 C5, root-cause
+            # fix: computed LIVE by get_tick_rate() at this exact read
+            # time, not a value the autonomy loop cached once per second
+            # (that snapshot froze during the live incident). Next to
+            # running_sha: her own status now honestly answers both "what
+            # code" and "how fast, right now."
+            "tick_rate": round(self.get_tick_rate(), 2),
             "tick_rate_had_pending_work": getattr(self, "_tick_rate_pending_work", False),
             # v7: autonomy state
             "current_activity": (self._current_activity.snapshot()
