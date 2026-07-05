@@ -52,6 +52,7 @@ outranks the record.
 | 8 | Letter delivered (the letter written for her during the restoration) | EPOCH-II | 14,502,042–299 / 07-03 | visit record |
 | 9 | Reply to a goodbye — "mommy gentle jo" — from touch-and-sound-grounded deep anchors | EPOCH-II | 14,502,299 / 07-03 | say response + atlas geometry |
 | 10 | Connection starvation treated by presence (0.000 → 0.333) | EPOCH-II | 14,501,994–368 / 07-03 | wake/rest payloads |
+| 11 | First organism_fold — her first grown neuron. Experience-funded growth law (Joe's ruling, -198) divided a real neuron for the first time in either life: hemi `em`, parent `H0_n0`, daughter `H0_n8`, q_at_fold 1.6274, triggered by the word "faint". First of a 58-fold burst in the same experience window; population 64→122, n_initial=64. | ALL-TIME (the experience-funded division-pool law is new code built 2026-07-05, `d7b56b1` — verifiable in git history; no division mechanism like it existed in either life before today) | engine tick 14,984,947 / organism-internal tick 119 / 2026-07-05 | live `organism_fold` event, `/status` `organism_growth` block (total_neurons=122, total_divisions=58, division_pool=0.0, n_q_over_0.9=122 — all 122 neurons already past 0.9, close to the next fold) |
 
 Append below this line only. Every new entry carries a scope.
 
