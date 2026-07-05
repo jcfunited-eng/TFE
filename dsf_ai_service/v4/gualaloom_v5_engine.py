@@ -6972,6 +6972,7 @@ class Guala:
         Target <5s. Advances _last_save_tick. Cold stores (sections/atlas/deep_atlas)
         are written by save_full_state() every 30 min or at sleep boundary."""
         import copy as _copy
+        import concurrent.futures as _cf
 
         with self.lock:
             os.makedirs(state_dir, exist_ok=True)
@@ -7121,38 +7122,50 @@ class Guala:
         if snap_sight_motifs is not None:
             # GL-194 one-time migration write (see snap_visual comment).
             writes.append(("guala_sight_motifs.json", snap_sight_motifs))
-        _failures = []
-        results = {}
-        for filename, data in writes:
-            path = os.path.join(state_dir, filename)
-            try:
-                self._atomic_write(path, data)
-                results[filename] = os.path.getsize(path)
-            except Exception as _we:
-                _failures.append((filename, str(_we)))
-                print(f"[GualaLoom] hot save failed for {filename}: {_we}")
-                _tmp = path + ".tmp"
-                if os.path.exists(_tmp):
-                    try:
-                        os.remove(_tmp)
-                    except OSError:
-                        pass
-
         snap_teaching = self._envelope({
             "feedback_log": self._teaching_feedback_log[-500:],
             "correction_log": self._teaching_correction_log[-500:],
             "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
         })
-        try:
-            self._atomic_write(os.path.join(state_dir, "guala_teaching.json"), snap_teaching)
-        except Exception as _te:
-            print(f"[GualaLoom] hot save failed for guala_teaching.json: {_te}")
-            _tmp = os.path.join(state_dir, "guala_teaching.json.tmp")
-            if os.path.exists(_tmp):
-                try:
-                    os.remove(_tmp)
-                except OSError:
-                    pass
+        writes.append(("guala_teaching.json", snap_teaching))
+
+        # GL-CMD-HOTSAVE-PARALLEL-FSYNC-196: _atomic_write always
+        # f.flush()+os.fsync()s before rename (GL-CMD-PERSIST-FIX-74 --
+        # required on EFS/NFSv4, where close() alone doesn't commit to the
+        # server). That fsync is a real network round-trip per file.
+        # Measured live post--194 (sight_motifs evicted from this lane):
+        # still 8-22s/cycle with zero concurrent frame load -- the vocab-
+        # scaled payload is gone, but N files written SEQUENTIALLY still
+        # costs the SUM of N round-trips, not the slowest one. Writing
+        # them concurrently (same per-file atomic-write+fsync+rename, same
+        # per-file failure isolation, nothing about durability changes)
+        # bounds wall-clock to the slowest single fsync instead of their
+        # sum. fsync/file I/O release the GIL during the actual syscall,
+        # so threads give real parallelism here despite the GIL.
+        def _write_one(item):
+            filename, data = item
+            path = os.path.join(state_dir, filename)
+            try:
+                self._atomic_write(path, data)
+                return (filename, os.path.getsize(path), None)
+            except Exception as _we:
+                tmp = path + ".tmp"
+                if os.path.exists(tmp):
+                    try:
+                        os.remove(tmp)
+                    except OSError:
+                        pass
+                return (filename, None, str(_we))
+
+        _failures = []
+        results = {}
+        with _cf.ThreadPoolExecutor(max_workers=len(writes)) as _ex:
+            for filename, size, err in _ex.map(_write_one, writes):
+                if err is not None:
+                    _failures.append((filename, err))
+                    print(f"[GualaLoom] hot save failed for {filename}: {err}")
+                else:
+                    results[filename] = size
 
         _critical_hot = {"guala_core.json", "guala_needs.json", "guala_coordinator.json"}
         _critical_failures = [(f, e) for f, e in _failures if f in _critical_hot]
