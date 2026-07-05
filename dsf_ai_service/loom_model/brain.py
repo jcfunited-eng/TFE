@@ -275,7 +275,26 @@ class LoomBrain:
         type with a live signal (visual/auditory) -- those are never
         populated by the current caller, so this is not a live limitation,
         but a real one if this is ever reused for a different signal shape.
+
+        GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-207: found live, not in the
+        dispatch -- this vectorized path unconditionally builds a grandurun
+        R^6 vector and hands it to binding_atlas.recall_best(), regardless
+        of self.observable. Production's Embryo defaults to
+        observable="resonant_spectral" (embryo.py), whose bindings are
+        per-lane dicts / 128-dim ternary chi, not R^6. Every live call
+        (gualaloom_v5_engine.py's organism.recall_fast, 4 call sites) was
+        therefore hitting either a numpy shape-mismatch ValueError
+        (uncaught at the _recognition_from_organism call site) or an
+        empty-vote "honest empty" swallow (the 3 call sites wrapped in
+        try/except) -- cross-sense recall wasn't just squashed, it never
+        ran at all under the actual live observable. Dispatched by
+        observable, checked once (uniform across a brain's neurons; see
+        LoomHemisphere construction), so the proven event_count-vectorized
+        path below (still the one probe_177 verifies) is untouched.
         """
+        if self.observable == "resonant_spectral":
+            return self._recall_fast_resonant_spectral(query_signals)
+
         import math
         from collections import Counter
         from .grandurun import MODALITIES
@@ -413,4 +432,27 @@ class LoomBrain:
             if best_concept is not None:
                 votes[best_concept] += 1
 
+        return votes
+
+    def _recall_fast_resonant_spectral(self, query_signals: Dict[str, Any]) -> "Counter":
+        """recall_fast()'s resonant_spectral branch.
+
+        Non-mutating by construction, same as the grandurun branch above,
+        but for a different reason: resonant_spectral's encode_state never
+        feeds a krimelack at all (no transduce()/feed_signal() call reads
+        or advances oscillator state) -- it's a pure function of
+        multi_modal_signals and the neuron's own cached projection
+        matrices. There is no krimelack state to snapshot/restore here,
+        so this can call the EXACT SAME encode_state() the write path
+        (experience_moment) uses, with no risk of query contamination and
+        no parity-drift risk between write and read (one function, not two
+        descriptions of the same thing)."""
+        from collections import Counter
+        votes = Counter()
+        for hemi in self.hemispheres:
+            for neuron in hemi.cluster.neurons:
+                target = neuron.encode_state(query_signals)
+                best_concept, _ = neuron.binding_atlas.recall_best(target)
+                if best_concept is not None:
+                    votes[best_concept] += 1
         return votes

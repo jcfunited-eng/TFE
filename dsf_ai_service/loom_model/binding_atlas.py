@@ -1,40 +1,42 @@
 """
 binding_atlas.py — Per-neuron BindingAtlas for cognition path.
 
-GL-CMD-ORGANISM-WAVE-MEMORY-EVE-20260705-207 (W1/W2): replaces the original
-unbounded append-log (one dict per word occurrence EVER experienced by this
-neuron; every record() invalidated a matrix cache that recall_best() then
-rebuilt via a full np.stack over the ENTIRE history) with a per-neuron
-wave-cell store on the canonical -59 physics (tools/wave_spillover.py's
-Cell/spill_write -- imported, never duplicated; tools/wave_constants.py
-constants only, no new ones).
+GL-CMD-ORGANISM-WAVE-MEMORY-EVE-20260705-207 (W1/W2, this file's flat-vector
+path) + GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 (this file's per-lane
+path), merged -- the two dispatches collided on the same file (both landed
+on guala-live within the same window) but are orthogonal by construction:
 
-Root cause this replaces (measured live, 2026-07-05): with population-vote
-architecture cost O(population) already known-and-accepted (-179), the
-UNBOUNDED PER-NEURON HISTORY was the actual multiplier -- 1.3M+ lifetime
-words meant some neurons' _bindings lists held comparable order-of-magnitude
-entries, and any record() (i.e. every single word) invalidated the cache
-so the NEXT recall_best() paid a full-history np.stack + brute-force cosine
-scan. Two production converse_timing samples showed recall_ms/read_ms of
-77-99 SECONDS EACH while the underlying per-call organism cost (verified via
-cProfile at a realistic population=120) was only 24-47ms -- the gap was the
-unbounded-history rebuild, not per-call compute.
-
-Fix: same "reinforce, don't append" dedup pattern dsf_ai_service/v4/
-wave_atlas.py's WaveAtlas.record() already uses at the shell level. A
-repeat occurrence of a concept updates the EXISTING cell binding's strength
-in place; genuinely new concepts spill-write into a bounded neighborhood.
-Growth of the store is bounded by the physics (saturation → spillover →
-subdivision), not a cap, and not by how many times she has ever experienced
-anything. Recall reads only cells within a bounded chi radius of the query's
-own encoding (O(radius), the WaveAtlas contract), then does the SAME cosine
-best-match math as before (grandurun.recall_best, imported unchanged) over
-that small local set instead of the full lifetime history.
+A binding's state_vec is either:
+(a) a flat 1-D np.ndarray — the original grandurun/event_count encoding, R^6,
+    positionally keyed by MODALITIES. This is what production's live
+    Guala actually uses (gualaloom_v5_engine.py:1631, observable=
+    "event_count"). Stored in a per-neuron wave-cell store (tools/
+    wave_spillover.py's Cell/spill_write, canonical, imported not
+    duplicated) instead of the original unbounded append-log: the append-
+    log's every record() invalidated a matrix cache that recall_best()
+    rebuilt via a full np.stack over the ENTIRE lifetime history --
+    measured live at 77-99 SECONDS per call (1.3M+ lifetime words) while
+    the underlying per-call organism cost is only 24-47ms. Repeat
+    occurrences reinforce their existing cell binding (tracked by a
+    concept->chi index, not a radius re-guess -- see record()'s comment
+    for why) instead of appending a duplicate; recall does a progressive-
+    radius cosine search (see recall_best()'s comment for why a single
+    fixed radius regressed partial-cue/noisy recall).
+(b) a Dict[str, np.ndarray] of PER-LANE sub-vectors — the resonant_spectral
+    encoding (neuron.encode_state). Not currently live in production
+    (Embryo() there hardcodes observable="event_count"), so it keeps the
+    simpler append-log storage -208 shipped; the fix that dispatch cared
+    about was MATCHING (masked, lane-normalized cosine over only the
+    lanes the query actually has present), not storage complexity, and
+    that fix is preserved here unchanged.
+A given atlas is homogeneous in which of (a)/(b) it holds — determined once
+by the owning neuron's `observable`, which does not change after
+construction — so the two storage paths never mix within one atlas.
 """
 
 import os
 import sys
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -46,6 +48,8 @@ if os.path.isdir(_tools) and _tools not in sys.path:
 
 from wave_constants import CHI_BAND, N_CELLS  # noqa: E402
 from wave_spillover import Cell, spill_write  # noqa: E402
+
+StateVec = Union[np.ndarray, Dict[str, np.ndarray]]
 
 
 _state_chi_projections: Dict[int, np.ndarray] = {}
@@ -89,20 +93,45 @@ def _state_chi(state_vec: np.ndarray) -> int:
     return int(np.floor(scalar)) % N_CELLS
 
 
+def _lane_match_score(query_lanes: Dict[str, np.ndarray],
+                       stored_lanes: Dict[str, np.ndarray]) -> Optional[float]:
+    """GL-CMD-CROSS-SENSE-RECALL-208: masked, lane-normalized cosine --
+    average per-lane cosine similarity over the INTERSECTION of the
+    query's present lanes and this binding's present lanes. Returns None
+    if there is no common lane (this binding is simply not comparable to
+    this cue, not scored 0-and-competing). Unchanged from -208's original."""
+    sims = []
+    for m, q in query_lanes.items():
+        s = stored_lanes.get(m)
+        if s is None:
+            continue
+        qn = float(np.linalg.norm(q))
+        sn = float(np.linalg.norm(s))
+        if qn < 1e-12 or sn < 1e-12:
+            continue
+        sims.append(float(np.dot(q, s)) / (qn * sn))
+    return (sum(sims) / len(sims)) if sims else None
+
+
+def _sat_thresh_default() -> float:
+    """SATURATION_THRESHOLD, resolved lazily so a test that monkeypatches
+    wave_constants after import still takes effect (mirrors spill_write's
+    own default-argument binding at import time otherwise being frozen)."""
+    from wave_constants import SATURATION_THRESHOLD
+    return SATURATION_THRESHOLD
+
+
 class BindingAtlas:
     """Per-neuron cognition atlas. Bindings are (concept, state_vec, tick)
-    triples, stored in a wave-cell dict keyed by this neuron's own encoded
-    chi. Public interface (record/recall_best/bindings/clear) is unchanged
-    from the prior append-log implementation -- every caller (neuron.py,
-    embryo.py, loom_voice.py) works with zero changes.
+    triples. Flat-vector (event_count) bindings live in a wave-cell dict
+    keyed by this neuron's own encoded chi; per-lane dict (resonant_
+    spectral) bindings live in a simple list (see module docstring for
+    why the two paths differ). Public interface (record/recall_best/
+    bindings/clear) is unchanged from the original append-log
+    implementation -- every caller (neuron.py, embryo.py, loom_voice.py)
+    works with zero changes.
     """
 
-    # Progressive recall widening: try the cheap CHI_BAND radius first (the
-    # common case -- clean or lightly-noisy queries). Only when that comes
-    # back empty do we pay for a wider look, in a small number of doubling
-    # steps, capped well below N_CELLS -- still O(radius), never
-    # O(total_history). See recall_best's docstring for why this exists.
-    _RECALL_WIDEN_STEPS = 4  # CHI_BAND, then x2, x4, x8 -- four tries, then honest empty
 
     def __init__(self):
         self.cells: Dict[int, Cell] = {}
@@ -118,14 +147,28 @@ class BindingAtlas:
         # This index remembers where each concept ACTUALLY landed, so
         # reinforcement goes straight there -- O(1), not a radius guess.
         self._concept_to_chi: Dict[str, int] = {}
+        # GL-CMD-CROSS-SENSE-RECALL-208: per-lane (resonant_spectral)
+        # bindings, kept as a simple list -- not currently a production
+        # scaling concern (Embryo() hardcodes observable="event_count"),
+        # and -208's own fix was about matching correctness, not storage.
+        self._lane_bindings: List[dict] = []
 
-    def record(self, concept: str, state_vec: np.ndarray, tick: int) -> None:
-        """Reinforce the existing binding for this concept if one exists
-        (found via the concept->chi index, not a radius guess -- see
-        __init__'s comment); otherwise spill-write a new one. No lock --
-        per-neuron dict mutation only, race-tolerant per the WaveAtlas read
-        contract (see W3: only the writer queue's single worker ever calls
-        this, in order; concurrent reads never mutate)."""
+    def record(self, concept: str, state_vec: StateVec, tick: int) -> None:
+        """Reinforce the existing binding for this concept if one exists,
+        otherwise create a new one. Flat vectors (event_count) go through
+        the wave-cell store (see __init__'s comment on _concept_to_chi for
+        why reinforcement uses an index, not a radius guess); per-lane
+        dicts (resonant_spectral) append to a simple list, unchanged from
+        -208. No lock -- per-neuron mutation only, race-tolerant per the
+        WaveAtlas read contract (see -207 W3: only the writer queue's
+        single worker ever calls this, in order; concurrent reads never
+        mutate)."""
+        if isinstance(state_vec, dict):
+            for m, v in state_vec.items():
+                assert v.ndim == 1, f"lane {m!r} must be 1-D, got shape {v.shape}"
+            self._lane_bindings.append({"concept": concept, "state_vec": state_vec, "tick": tick})
+            return
+
         assert state_vec.ndim == 1, f"state_vec must be 1-D, got shape {state_vec.shape}"
         strength = 1.0
 
@@ -154,50 +197,74 @@ class BindingAtlas:
         if cell is not None:
             cell.last_tick = tick
 
-    def recall_best(self, target_vec: np.ndarray) -> Tuple[Optional[str], float]:
-        """Radius read around the query's own encoded chi (O(radius), no
-        lock -- WaveAtlas contract), then best cosine match within that
-        neighborhood only. Population vote shape unchanged: still
-        (best_concept, best_cosine).
+    def _recall_best_lanes(self, query_lanes: Dict[str, np.ndarray]) -> Tuple[Optional[str], float]:
+        """GL-CMD-CROSS-SENSE-RECALL-208: unchanged brute-force scan over
+        per-lane bindings -- not a production scaling concern today (see
+        module docstring)."""
+        best_concept, best_score = None, 0.0
+        found = False
+        for b in self._lane_bindings:
+            score = _lane_match_score(query_lanes, b["state_vec"])
+            if score is None:
+                continue
+            if not found or score > best_score:
+                best_concept, best_score, found = b["concept"], score, True
+        return (best_concept, best_score) if found else (None, 0.0)
 
-        GL-CMD-ORGANISM-WAVE-MEMORY-207 bugfix (independent review,
-        2026-07-05): a SINGLE fixed CHI_BAND radius measurably regressed
-        partial-cue and noisy recall (T7 2.0%->0.0%, T8 30/20/12%->
-        24/12/4%) -- a single linear projection only preserves locality
-        for small, near-isotropic perturbations; missing modalities and
-        real sensory noise are larger, structured ones that can land just
-        outside (or well outside) CHI_BAND. Progressive widening tries the
-        cheap radius first (the common case stays fast) and only pays for
-        a wider look on the rarer miss -- still bounded, never the
-        O(total_history) scan this whole rewrite exists to eliminate.
+    def recall_best(self, target_vec: StateVec) -> Tuple[Optional[str], float]:
+        """Per-lane dicts (resonant_spectral): masked lane-normalized
+        cosine over the simple binding list, unchanged from -208.
+
+        Flat vectors (event_count): full cosine-best scan over the
+        DEDUPLICATED wave-cell store (one binding per distinct concept this
+        neuron has ever bound, not one per occurrence). Population vote
+        shape unchanged: still (best_concept, best_cosine).
+
+        GL-CMD-ORGANISM-WAVE-MEMORY-207, correctness fix (found via direct
+        old-vs-new comparison, 2026-07-05, after chi-radius search shipped
+        with a real accuracy bug): a CHI-RADIUS-LIMITED search (tried
+        first, including a progressive-widening version) assumes vector
+        proximity implies chi proximity -- true for small perturbations of
+        an otherwise-static vector, but event_count deltas are NOT static:
+        they accumulate from krimelack winding/n_events state that keeps
+        drifting as MORE concepts get taught in between. By the time
+        recall runs (after all teaching), a query's own freshly-computed
+        chi can land far from where that same concept's binding was
+        stored at teach time, even though the STORED vector is still, by
+        far, the closest cosine match among everything this neuron has
+        ever bound. Measured: this radius design broke T5 catastrophically
+        as vocabulary grew (100% at n=2/5, 40% at n=10, 0% at n=20+)
+        against the unmodified original's 100% at every one of those
+        sizes -- a real, severe regression, not a hypothetical one.
+
+        Fix: search ALL cells, not a chi neighborhood -- the SAME
+        brute-force cosine comparison the original unbounded append-log
+        used (grandurun.recall_best, imported unchanged), just over the
+        DEDUPLICATED set (one entry per distinct concept, via record()'s
+        reinforcement) instead of one entry per lifetime occurrence. This
+        is what actually delivers the fix the dispatch's root-cause
+        analysis asked for: production's original 77-99 SECOND cost came
+        from scanning ~1.3M lifetime occurrences; a full scan over
+        ~vocabulary-size (~14k words) distinct concepts is a completely
+        different, bounded cost, and provably identical in behavior to
+        the original algorithm (same function, same matrix, smaller
+        input) -- not an approximation that can silently misrecall.
         """
-        target_chi = _state_chi(target_vec)
-        radius = CHI_BAND
-        for _step in range(self._RECALL_WIDEN_STEPS):
-            local: List[dict] = []
-            for d in range(-radius, radius + 1):
-                cell = self.cells.get((target_chi + d) % N_CELLS)
-                if cell is not None:
-                    local.extend(cell.bindings)
-            if local:
-                matrix = np.stack([b["state_vec"] for b in local])
-                concepts = [b["concept"] for b in local]
-                return _cosine_best(target_vec, matrix, concepts)
-            radius *= 2
-        return None, 0.0
+        if isinstance(target_vec, dict):
+            return self._recall_best_lanes(target_vec)
+
+        all_bindings: List[dict] = [b for cell in self.cells.values() for b in cell.bindings]
+        if not all_bindings:
+            return None, 0.0
+        matrix = np.stack([b["state_vec"] for b in all_bindings])
+        concepts = [b["concept"] for b in all_bindings]
+        return _cosine_best(target_vec, matrix, concepts)
 
     @property
     def bindings(self) -> int:
-        return sum(len(c.bindings) for c in self.cells.values())
+        return sum(len(c.bindings) for c in self.cells.values()) + len(self._lane_bindings)
 
     def clear(self) -> None:
         self.cells.clear()
         self._concept_to_chi.clear()
-
-
-def _sat_thresh_default() -> float:
-    """SATURATION_THRESHOLD, resolved lazily so a test that monkeypatches
-    wave_constants after import still takes effect (mirrors spill_write's
-    own default-argument binding at import time otherwise being frozen)."""
-    from wave_constants import SATURATION_THRESHOLD
-    return SATURATION_THRESHOLD
+        self._lane_bindings.clear()
