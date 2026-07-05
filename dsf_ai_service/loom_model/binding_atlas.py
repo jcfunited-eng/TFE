@@ -153,6 +153,31 @@ class BindingAtlas:
         # and -208's own fix was about matching correctness, not storage.
         self._lane_bindings: List[dict] = []
 
+    def __setstate__(self, state: dict) -> None:
+        """Pickle compatibility (found live in production, 2026-07-05,
+        within minutes of this rewrite's first deploy): __init__ never
+        re-runs on unpickle, so an organism saved before this rewrite
+        landed restores each neuron's BindingAtlas with the OLD shape
+        (_bindings: list, _matrix_cache, _concepts_cache) -- every
+        record()/recall_best() call then crashed with AttributeError
+        (self.cells doesn't exist on the restored instance) rather than
+        silently losing data, which is at least how it was caught fast,
+        but still took real production down. Migrate old bindings
+        forward through record() (the same reinforcement/dedup path live
+        writes already use) rather than silently discarding them; a save
+        taken after this rewrite already has `cells` and restores as-is."""
+        if "cells" in state:
+            self.__dict__.update(state)
+            return
+        self.cells = {}
+        self._concept_to_chi = {}
+        self._lane_bindings = []
+        for b in state.get("_bindings", []):
+            try:
+                self.record(b["concept"], b["state_vec"], b.get("tick", 0))
+            except Exception:
+                continue  # best-effort migration; never let one bad entry crash the whole restore
+
     def record(self, concept: str, state_vec: StateVec, tick: int) -> None:
         """Reinforce the existing binding for this concept if one exists,
         otherwise create a new one. Flat vectors (event_count) go through
