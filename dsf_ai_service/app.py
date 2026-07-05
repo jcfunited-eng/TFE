@@ -1987,6 +1987,13 @@ async def gualaloom_chat(msg: GLMessage):
                 "dropped": dict(_frame_dropped),
                 "max_inflight": _FRAME_INFLIGHT_MAX,
             },
+            # GL-RPT-WINDOW6-DEPLOY-C1B-20260705-v1 item 3 / GL-CMD-FIRE-
+            # WINDOW8-EVE-20260705-189: both already computed by
+            # introspect() (-179's organism_worker, -185's
+            # organism_population) but never forwarded into this
+            # curated response dict -- forwarded here, no other change.
+            "organism_population": s.get("organism_population", 0),
+            "organism_worker": s.get("organism_worker", {}),
             "atlas_health": s.get("atlas_health", {}),
             "presence": s.get("presence", {}),
             "pair_bond": s.get("pair_bond", {}),
