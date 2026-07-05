@@ -70,6 +70,18 @@ class Krimelack:
 
     def feed(self, signal_array):
         """Feed signal, accumulate events. Each event = (t, dw, s)."""
+        # GL-BUG-KRIMELACK-N-EVENTS-PICKLE-COMPAT (c1, found live 2026-07-05):
+        # n_events is set once in __init__ (GL-CMD-LANGUAGE-SATURATION-
+        # ROOTCAUSE-178), which never re-runs on a restored (unpickled)
+        # object -- any LoomNeuron/krimelack alive since before -178 shipped
+        # hits this unconditional increment with the attribute missing,
+        # crashing every organism experience_word() and every tapestry
+        # expose() call it touches (both observed live, "non-fatal" per
+        # experience_word's own swallow, but silently breaking learning for
+        # every such neuron this whole time). Same self-heal pattern as
+        # -191/-195/-198's own pickle-compat fixes.
+        if not hasattr(self, "n_events"):
+            self.n_events = 0
         for s in signal_array:
             omega = self.omega_0 + self.kappa * float(s)
             dphi = (omega - self.omega_0) * self.dt
