@@ -11,7 +11,6 @@ import asyncio
 import base64
 import json
 import os
-import re
 import signal
 import subprocess
 import sys
@@ -40,48 +39,11 @@ def _runtime_config_path():
     return os.path.join(STATE_DIR, RUNTIME_CONFIG_FILE)
 
 
-# ═══════════════════════════════════════════════════════════════
-# Organ-brain learning from real experience (GL-CMD-NEXT Increment 1)
-# Her section data carries junk (e.g. 'kbl', leaked quote fragments). Before any
-# real word becomes part of her organ-brain's learned succession, it passes this
-# gate: a clean word is alphabetic, has a vowel (drops code-junk like 'kbl'/'wc'),
-# and is a sane length. Exposure only happens on >=2 clean tokens (succession needs
-# a pair). All of this rides ALONGSIDE her engine and never raises into her runtime.
-# ═══════════════════════════════════════════════════════════════
-
-_VOWELS = frozenset("aeiouy")  # y counts: keeps real words like sky/my/why/dry/try
-# obvious non-words seen in her section data; extend conservatively
-_COGNITION_STOP_JUNK = frozenset({
-    # code/encoding artifacts
-    "kbl", "kb", "wc", "nhs", "xx", "xxx", "hmm",
-    # commercial/web boilerplate — these should never enter her succession
-    "ads", "ad", "subscribe", "subscribed", "subscribers", "sponsored",
-    "advertisement", "click", "download", "signup", "login", "logout",
-    "cookies", "privacy", "terms", "copyright", "reserved", "trademark",
-    "playlist", "channel", "views", "likes", "dislike", "comment", "share",
-    "patreon", "merch", "affiliate", "promo", "discount", "coupon", "deal",
-    "checkout", "cart", "purchase", "shipping", "refund", "pricing",
-    "netflix", "hulu", "spotify", "amazon", "walmart", "youtube",
-})
-
-
-def _clean_word(raw):
-    """Normalize one token to a real word, or '' if it is junk."""
-    w = re.sub(r"[^a-z']", "", (raw or "").lower()).strip("'")
-    if not w or len(w) > 20:
-        return ""
-    if w in _COGNITION_STOP_JUNK:
-        return ""
-    if len(w) == 1 and w not in ("a", "i"):   # stray single letters (g, b, c...)
-        return ""
-    if not (_VOWELS & set(w)):                 # no vowel (y counts) -> code/junk
-        return ""
-    return w
-
-
-# GL-CMD-BIGRAM-DELETE-EVE-20260629-34: _clean_sentence_for_cognition deleted.
-# Was only used by _cognition_learn (now deleted). _clean_word preserved (used by
-# _bind_sensory_words at line ~280).
+# GL-CMD-BIGRAM-DELETE-EVE-20260629-34: _cognition_learn and its
+# _clean_sentence_for_cognition/_clean_word junk-filtering deleted along with
+# it (organ-brain succession learning no longer runs here). GL-CMD-SCENE-
+# LANES-B1-188 follow-up: _bind_sensory_words (last remaining caller of
+# _clean_word) moved onto Guala itself -- nothing left to clean for here.
 
 
 def _audio_to_sensory_words(audio_bytes):
@@ -220,63 +182,22 @@ def _audio_to_sensory_words(audio_bytes):
 # the sensation cross-modally bind (her existing 5-tick binder). Uses only the
 # built-in TOUCH/SMELL/TASTE libraries (no external keys). Exception-walled.
 
-_SENSORY_WORD_MAP = None
-
-
-def _sensory_word_map():
-    """word -> modality, from the built-in physics libraries (built once)."""
-    global _SENSORY_WORD_MAP
-    if _SENSORY_WORD_MAP is None:
-        m = {}
-        try:
-            from dsf_ai_service.substrate import sensory_generators as sg
-            for w in getattr(sg, "TOUCH_LIBRARY", {}):
-                m[w] = "touch"
-            for w in getattr(sg, "TASTE_LIBRARY", {}):
-                m.setdefault(w, "taste")   # taste before smell for sweet/salty
-            for w in getattr(sg, "SMELL_LIBRARY", {}):
-                m.setdefault(w, "smell")
-        except Exception:
-            pass
-        _SENSORY_WORD_MAP = m
-    return _SENSORY_WORD_MAP
-
-
 def _bind_sensory_words(text):
     """Give her the felt/smelled/tasted experience of sensory words in `text`.
-    Returns the number of sensory channel-bindings made. Never raises."""
-    try:
-        if _guala is None:
-            return 0
-        mapping = _sensory_word_map()
-        if not mapping:
-            return 0
-        from dsf_ai_service.substrate.sensory_generators import (
-            generate_sensory_signals, transduce_sensory_signals)
-        from dsf_ai_service.v4.gualaloom_v5_engine import (
-            deterministic_motif_id, DWELL_GATE_META)
-        seen = set()
-        bound = 0
-        for raw in (text or "").lower().split():
-            w = _clean_word(raw)
-            if not w or w in seen:
-                continue
-            modality = mapping.get(w)
-            if not modality:
-                continue
-            seen.add(w)
-            signals = generate_sensory_signals(modality, [w])
-            for channel, info in transduce_sensory_signals(signals).items():
-                mid = deterministic_motif_id(f"{modality}_{w}_{channel}")
-                _guala._atlas_record(
-                    f"modal_{modality}", mid, info["chi"], _guala.tick,
-                    salience=1.0, dwell_ticks=DWELL_GATE_META,
-                    sensory_refs=[f"{modality}:{w}"],
-                    **_guala._affect_kwargs())
-                bound += 1
-        return bound
-    except Exception:
+    Returns the number of sensory channel-bindings made. Never raises.
+
+    GL-CMD-SCENE-LANES-B1-188 follow-up: the actual word-map + physics-
+    generation + atlas-binding logic moved onto Guala itself
+    (gualaloom_v5_engine.py, Guala._bind_sensory_words) so the engine's own
+    _atick_reading tick (every corpus READING -- natural rotation or the
+    force_reading hook) can call it directly, closing the gap where only
+    the curriculum/lookup/bulk-load paths ever bound sensory words. This
+    module-level function is now a thin delegator -- unchanged signature,
+    same 3 call sites (curriculum feed, lookup grounding, bulk corpus load)
+    keep working without modification."""
+    if _guala is None:
         return 0
+    return _guala._bind_sensory_words(text)
 
 
 # ── autonomous curriculum study: injected callbacks for the scheduler ──

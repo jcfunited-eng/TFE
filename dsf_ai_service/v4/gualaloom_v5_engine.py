@@ -5232,6 +5232,77 @@ class Guala:
 
     # ── Activity tick effects ──
 
+    _SENSORY_WORD_MAP = None  # class-level cache, built once (word -> modality)
+
+    def _sensory_word_map(self):
+        """word -> modality, from the built-in physics libraries (built once).
+        Mirrors substrate_runner._sensory_word_map -- moved here so the
+        engine's own reading tick (_atick_reading) can call it directly,
+        no cross-module dependency needed."""
+        if Guala._SENSORY_WORD_MAP is None:
+            m = {}
+            try:
+                from dsf_ai_service.substrate import sensory_generators as sg
+                for w in getattr(sg, "TOUCH_LIBRARY", {}):
+                    m[w] = "touch"
+                for w in getattr(sg, "TASTE_LIBRARY", {}):
+                    m.setdefault(w, "taste")   # taste before smell for sweet/salty
+                for w in getattr(sg, "SMELL_LIBRARY", {}):
+                    m.setdefault(w, "smell")
+            except Exception:
+                pass
+            Guala._SENSORY_WORD_MAP = m
+        return Guala._SENSORY_WORD_MAP
+
+    def _bind_sensory_words(self, text):
+        """GL-CMD-SCENE-LANES-B1-188 follow-up (Joe's live-seat finding: no
+        multi-modal firing during a forced/natural corpus READING -- the
+        real, non-LLM touch/smell/taste word-binder (TOUCH/SMELL/TASTE_
+        LIBRARY physics generators, substrate_runner._bind_sensory_words'
+        own mechanism) was wired into the curriculum/lookup/bulk-load paths
+        but never into _atick_reading, the tick-by-tick handler EVERY
+        corpus READING (natural rotation or the force_reading hook) uses.
+        Ported here (not just called cross-module) so the engine's own
+        reading tick can invoke it directly. Logs sensory_words_bound so
+        loomscan can show it firing -- _atlas_record itself never did.
+        Never raises."""
+        try:
+            mapping = self._sensory_word_map()
+            if not mapping:
+                return 0
+            from dsf_ai_service.substrate.sensory_generators import (
+                generate_sensory_signals, transduce_sensory_signals)
+            seen = set()
+            bound = 0
+            modalities_fired = set()
+            words_fired = []
+            for w in _normalize_text(text):
+                if w in seen:
+                    continue
+                modality = mapping.get(w)
+                if not modality:
+                    continue
+                seen.add(w)
+                signals = generate_sensory_signals(modality, [w])
+                for channel, info in transduce_sensory_signals(signals).items():
+                    mid = deterministic_motif_id(f"{modality}_{w}_{channel}")
+                    self._atlas_record(
+                        f"modal_{modality}", mid, info["chi"], self.tick,
+                        salience=1.0, dwell_ticks=DWELL_GATE_META,
+                        sensory_refs=[f"{modality}:{w}"],
+                        **self._affect_kwargs())
+                    bound += 1
+                modalities_fired.add(modality)
+                words_fired.append(w)
+            if bound > 0:
+                self._log_substrate_event(
+                    "sensory_words_bound",
+                    modalities=sorted(modalities_fired),
+                    words=words_fired[:10], n_bindings=bound)
+            return bound
+        except Exception:
+            return 0
+
     def _atick_reading(self, a):
         """Read one sentence from corpus. read_sentence handles tick advancement."""
         corpus = self._corpora.get(a.target)
@@ -5240,6 +5311,7 @@ class Guala:
         pos = corpus.position % len(corpus.lines)
         line = corpus.lines[pos]
         self.read_sentence(line, source="corpus")
+        self._bind_sensory_words(line)  # feel/smell/taste the sensory words she reads
         corpus.position += 1
         corpus.last_read_tick = self.tick
         if corpus.position >= len(corpus.lines):

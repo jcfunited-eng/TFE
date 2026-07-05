@@ -576,6 +576,20 @@ function processEvent(ev){
   if(ev.kind==='hemisphere_update'&&d.hemisphere_atlas_sizes){
     renderOrgans(d.hemisphere_atlas_sizes);
   }
+  if(ev.kind==='sensory_words_bound'){
+    // GL-CMD-SCENE-LANES-B1-188 follow-up: real (non-LLM, fixed-lexicon)
+    // touch/smell/taste word binding now fires during READING too, and
+    // now logs an event -- smell/taste had ZERO wiring here before this;
+    // touch previously only lit from experience_bundle lanes.
+    const mods=d.modalities||[];
+    const words=(d.words||[]).slice(0,3).join(',');
+    for(const m of mods){
+      if(m==='touch'||m==='smell'||m==='taste'){
+        setLaneGlow(m,75,`reading — ${words||m}`);
+      }
+    }
+    addFeedRow(t,'exp','sensory',`felt/smelled/tasted: ${mods.join('+')} (${words})`,'reading');
+  }
   _lastEvTick=Math.max(_lastEvTick,t);
 }
 
