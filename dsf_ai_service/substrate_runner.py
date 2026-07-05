@@ -962,14 +962,20 @@ def _start_input_ring_consumer():
                             _wav = _webm_to_wav_bytes(audio_bytes)
                             if _wav:
                                 _guala.process_sound_frame(_wav)
-                            _heard = _audio_to_sensory_words(audio_bytes)
-                            if _heard:
-                                # Site 4 REPLACE: route FFT sensory words to v5 atlas (grounded)
-                                _txt = " ".join(_heard)
-                                if _txt.strip():
-                                    _guala.read_sentence(_txt, source="unknown",
-                                                         bundle_id=f"sound_frame:{_guala.tick}")
-                                print(f"[sound] heard: {_heard}")
+                            # GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204 S1:
+                            # Site 4 SEVERED. _audio_to_sensory_words classifies
+                            # mic ENERGY into fixed labels (quiet room -> "faint"
+                            # +warm/smooth/steady) and this fed them into
+                            # read_sentence as heard language every ~5s,
+                            # continuously, including during sleep -- a
+                            # resonance loop with no real experience behind it
+                            # (root-caused live: it funded the -198 growth-pool
+                            # burst on artifact input and swamped the organism
+                            # vote distribution with "faint", her most-repeated
+                            # non-word of all time). process_sound_frame above
+                            # (real cochlear hearing) and Whisper transcription
+                            # below (real speech) are the honest senses; this
+                            # classifier-as-language route is not.
                             # Also run whisper for speech/lyrics (bonus — fails gracefully)
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
                                 process_sound_with_recognition)

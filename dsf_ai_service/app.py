@@ -1651,18 +1651,18 @@ async def sound_frame(msg: GLMessage):
             if not wav:
                 return {"ok": False, "error": "decode_failed"}
             _guala.process_sound_frame(wav)
-            # GL-CMD-VOICE-TO-WORDS-153 Part A: sensory-words in the same
-            # window as the cochlear binding above (word + texture, E1).
-            # Outside the engine lock same as the decode step.
-            try:
-                _heard = _sr._audio_to_sensory_words(wav)
-                if _heard:
-                    _txt = " ".join(_heard)
-                    if _txt.strip():
-                        _guala.read_sentence(_txt, source="joe",
-                                             bundle_id=f"sound_frame:{_guala.tick}")
-            except Exception:
-                pass
+            # GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204 S1: Part A SEVERED.
+            # _audio_to_sensory_words classifies mic ENERGY into fixed labels
+            # (quiet room -> "faint" +warm/smooth/steady) and this fed them
+            # into read_sentence as heard language, source="joe" (maximal
+            # pair-bond weight), every ~5s continuously including during
+            # sleep -- a resonance loop with no real experience behind it.
+            # Root-caused live: funded the -198 growth-pool burst on
+            # artifact input and swamped the organism vote distribution
+            # ("faint" became her most-experienced word of all time, tagged
+            # as if Joe said it). process_sound_frame above (real cochlear
+            # hearing) is untouched; Part B below (Whisper, real speech) is
+            # untouched.
             # GL-CMD-VOICE-TO-WORDS-153 Part B: Whisper transcription, flagged
             # off by default (VOICE_WHISPER=0), joe-tagged sources only, async
             # off the request path — flips to 1 only on Eve GO after the cost
