@@ -516,6 +516,19 @@ def _organism_signal_with_senses(word, transducer, sight_signal=None,
     return sig
 
 
+def _organism_query_signal_auditory(sound_signal):
+    """GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208: the auditory-only
+    mirror of _organism_signal's language-only base -- a genuine SENSORY
+    cue with no word at all ("what does this sound go with"), the shape
+    the -207/-208 partial-cue fix (per-lane binding + masked match in
+    loom_model/binding_atlas.py) makes meaningful for the first time.
+    Callers must use Embryo.recall(), not recall_fast() -- recall_fast's
+    own proven scope excludes visual/auditory signals (brain.py
+    docstring), and production's real query shape (_organism_signal) has
+    never sent one, so recall_fast has no path exercised for this cue."""
+    return {"auditory": sound_signal}
+
+
 # ============================================================
 # v7: Autonomy Constants (modeling-validated, do not tune without re-modeling)
 # GUALALOOM-V7-AUTONOMY-WC-2026-06-06
@@ -2968,6 +2981,30 @@ class Guala:
         except Exception:
             pass
 
+    def _enqueue_organism_experience_explicit(self, word, sound_signal=None,
+                                               sight_signal=None):
+        """GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208: explicit-signal
+        sibling of _enqueue_organism_remember, for callers that already
+        HAVE a real sight/sound signal in hand (e.g. /bundle:'s referenced
+        or freshly-uploaded picture/sound teaching) rather than reading
+        the shared _last_sight_signal/_last_sound_signal caches. Those
+        caches are for the ambient, continuous LIVE camera/mic case and
+        are wall-clock windowed (SENSE_BINDING_WINDOW_SEC) against real
+        frames arriving on their own cadence -- a caller-supplied signal
+        would race a concurrent real mic/camera frame in the moment
+        between being set there and read here. This bypasses that cache
+        entirely: the signal travels straight into the same queue the
+        worker already drains, so it is the SAME experience_word() call,
+        same single-writer FIFO discipline, same worker thread -- no new
+        organism-write mechanism, only a second way to reach the queue."""
+        try:
+            self._ensure_organism_worker()
+            self._organism_queue.put_nowait((word, sight_signal, sound_signal, None))
+        except _queue.Full:
+            self._organism_dropped_count += 1
+        except Exception:
+            pass
+
     def _brain_emission_candidates(self, input_words):
         """GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 P3 / GL-NOTE-VOICE-WIRING-
         RULING W2: the organism's own mind (tapestry recall/compose, built
@@ -4416,6 +4453,25 @@ class Guala:
         # self._organism_lock: see read_count's salience calc comment.
         with self._organism_lock:
             votes = self.organism.recall_fast(_organism_signal(query, self._organism_transducer))
+        top = votes.most_common(1)
+        return top[0][0] if top else None
+
+    def _recall_from_organism_auditory(self, sound_signal):
+        """GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208: cross-sense
+        recall -- the organism's best-voted concept from a real sound
+        waveform ALONE, no word. Mirrors _recall_from_organism's
+        contract (top vote or None) but deliberately uses
+        Embryo.recall(), not recall_fast(): recall_fast's proven scope
+        is language/tactile/olfactory/gustatory only (brain.py
+        docstring) and raises NotImplementedError for a live
+        visual/auditory signal -- recall() is the general, always-
+        correct (if slower) path, and correctness matters far more than
+        speed for a once-per-cue verification query, not a hot
+        converse-turn path."""
+        if sound_signal is None:
+            return None
+        with self._organism_lock:
+            votes = self.organism.recall(_organism_query_signal_auditory(sound_signal))
         top = votes.most_common(1)
         return top[0][0] if top else None
 
