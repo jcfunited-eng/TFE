@@ -281,7 +281,15 @@ class Embryo:
             # just counted. Drained by the engine (pop_fold_events) right
             # after each experience_word() call, one substrate event per
             # fold, in the live record.
-            self._total_divisions += 1
+            # GL-BUG-198-PICKLE-COMPAT (c1, found live post-deploy): a
+            # restored Embryo (unpickled -- __dict__ set directly,
+            # __init__ never runs) predating this dispatch has neither
+            # attribute. getattr/self-heal here, same pattern -191's
+            # _last_sight_wall_time and -195's _engine_prev_word already
+            # use for exactly this class of schema evolution.
+            self._total_divisions = getattr(self, "_total_divisions", 0) + 1
+            if not hasattr(self, "_fold_events_buffer"):
+                self._fold_events_buffer = []
             self._fold_events_buffer.append({
                 "hemi": hemi._op_tag, "parent": neuron.neuron_id,
                 "daughter": did, "q_at_fold": round(q_at_fold, 4),
@@ -292,7 +300,7 @@ class Embryo:
     def pop_fold_events(self):
         """Drain and return fold events accumulated since the last call.
         GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P3b."""
-        events = self._fold_events_buffer
+        events = getattr(self, "_fold_events_buffer", [])
         self._fold_events_buffer = []
         return events
 
@@ -317,7 +325,7 @@ class Embryo:
             "per_hemisphere": per_hemisphere,
             "total_neurons": sum(per_hemisphere.values()),
             "n_initial": self._N_initial,
-            "total_divisions": self._total_divisions,
+            "total_divisions": getattr(self, "_total_divisions", 0),
             "division_pool": round(self._div_pool, 4),
             "n_q_over_0_5": q_over_0_5,
             "n_q_over_0_9": q_over_0_9,
