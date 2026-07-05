@@ -4718,16 +4718,43 @@ class Guala:
             candidates.append(("EMITTING", None))
         return candidates
 
+    # GL-CMD-BEHAVIOR-REPERTOIRE-EVE-20260705-185 B2: same reference scale
+    # _Corpus.is_new() already uses for "not recently read" -- reused, not
+    # a new invented constant. The one dial: how fast disuse recovers
+    # freshness.
+    RECENCY_RECOVERY_TICKS = 50_000
+
     @staticmethod
-    def _habituation_freshness(times_seen):
+    def _habituation_freshness(times_seen, ticks_since_last=None):
         """GL-CMD-CREDO-LOOP-REPAIR-167 Change 1: continuous habituation
         decay, same curve for EVERY target-based activity kind — no kind
         gets a needs-independent exception. times_seen=0 -> 1.0 (fully
         fresh); decays as 1/(1+ln(1+times_seen)). This is -107's own
         ATTENDING_VISUAL-only curve (GL-BRIEF-graded-exogenous-salience-
         wC-20260610-031's biological argument: orienting response decays
-        continuously, not as a binary cliff), now applied symmetrically."""
-        return 1.0 / (1.0 + math.log(1.0 + max(0, times_seen)))
+        continuously, not as a binary cliff), now applied symmetrically.
+
+        GL-CMD-BEHAVIOR-REPERTOIRE-EVE-20260705-185 B2: root-caused why
+        audio/rest/other kinds structurally can never win once any target
+        accumulates heavy historical exposure (e.g. smoke-test sounds
+        attended 300-2000+ times each early on) -- times_seen only ever
+        grows, so this curve alone can never recover; a kind over-exposed
+        once is locked out of competing forever, regardless of how much
+        real time has since passed with zero further exposure. That is
+        exactly the "orienting response decays continuously" biological
+        argument this function's OWN docstring already cites -- disuse is
+        supposed to let habituation fade, and nothing here modeled disuse
+        at all. ticks_since_last (optional, backward compatible -- None
+        preserves the exact old behavior for any caller not yet passing
+        it) blends the static exposure-decay floor toward fully-fresh
+        (1.0) as elapsed time since last exposure grows, saturating
+        smoothly (never a cliff, same continuous-decay principle as the
+        base curve) rather than a hard reset."""
+        base = 1.0 / (1.0 + math.log(1.0 + max(0, times_seen)))
+        if not ticks_since_last or ticks_since_last <= 0:
+            return base
+        recovery = 1.0 - math.exp(-ticks_since_last / Guala.RECENCY_RECOVERY_TICKS)
+        return base + (1.0 - base) * recovery
 
     def _reading_freshness_from_organism(self, corpus):
         """GL-CMD-BRAIN-FULL-DEPLOY-175 P2 seam 4/6 (habituation, READING
@@ -4811,13 +4838,15 @@ class Guala:
         elif kind == "ATTENDING" and target in self._sensory_items:
             _habituation_eligible = True
             s = self._sensory_items[target]
-            fresh = self._habituation_freshness(s.times_attended)
+            fresh = self._habituation_freshness(
+                s.times_attended, self.tick - s.last_attended_tick)
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_NEW"] * fresh
                           + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_REPEAT"] * (1.0 - fresh))
         elif kind == "ATTENDING_VISUAL" and target in self._pictures:
             _habituation_eligible = True
             pic = self._pictures[target]
-            fresh = self._habituation_freshness(pic.times_attended)
+            fresh = self._habituation_freshness(
+                pic.times_attended, self.tick - pic.last_attended_tick)
             fam = self.target_familiarity.get(target, 0.0)
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_NEW"] * fresh
                           + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VISUAL_REPEAT"] * (1.0 - fresh)) \
@@ -4825,13 +4854,16 @@ class Guala:
         elif kind == "ATTENDING_AUDIO" and target in self._sounds:
             _habituation_eligible = True
             snd = self._sounds[target]
-            fresh = self._habituation_freshness(snd.get("times_attended", 0))
+            fresh = self._habituation_freshness(
+                snd.get("times_attended", 0),
+                self.tick - snd.get("last_attended_tick", 0))
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_AUDIO_NEW"] * fresh
                           + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_AUDIO_REPEAT"] * (1.0 - fresh))
         elif kind == "ATTENDING_VIDEO" and target in self._videos:
             _habituation_eligible = True
             v = self._videos[target]
-            fresh = self._habituation_freshness(v.times_attended)
+            fresh = self._habituation_freshness(
+                v.times_attended, self.tick - v.last_attended_tick)
             nov_payoff = (ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_NEW"] * fresh
                           + ACTIVITY_NOVELTY_PAYOFF["ATTENDING_VIDEO_REPEAT"] * (1.0 - fresh))
         else:
@@ -8296,6 +8328,15 @@ class Guala:
                           if self._organism_queue is not None else 0),
                 "dropped": self._organism_dropped_count,
             },
+            # GL-RPT-WINDOW6-DEPLOY-C1B-20260705-v1 item 3: "no direct live
+            # population counter exists... recommending a field get added
+            # next to organism_worker" -- built here. Real neuron count,
+            # not a proxy: the -179 exit condition promised population
+            # visibility, this is what makes recall_ms's rise (12-21ms ->
+            # 152.8ms, live-observed as growth's first indirect evidence)
+            # directly confirmable instead of inferred.
+            "organism_population": sum(len(h.cluster.neurons)
+                                       for h in self.organism.brain.hemispheres),
             # v7: autonomy state
             "current_activity": (self._current_activity.snapshot()
                                  if self._current_activity else None),

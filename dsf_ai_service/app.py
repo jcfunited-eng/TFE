@@ -1376,10 +1376,50 @@ def _embedded_post_boot(g):
         _sr._start_organ_surface_poll()
         _sr._start_autonomous_emission_loop()
         _sr._start_input_ring_consumer()
-        _sr._start_curriculum_orchestrator()  # 65-A: density engine
+        _sr._start_curriculum_orchestrator()  # 65-A: density engine (retired, no-op unless CURRICULUM_AUTOSTART=1)
         print("[substrate] InputRing consumer started (R3/R4)")
     except Exception as _e:
         print(f"[substrate] Background loops start skipped (non-fatal): {_e}")
+
+    # GL-CMD-BEHAVIOR-REPERTOIRE-EVE-20260705-185 B3: reconnect the
+    # CurriculumScheduler (Gutenberg children's-lit study loop) -- root
+    # cause per GL-RPT-FLOOD-HUNT-C1-20260703-156-v1: it was ONLY ever
+    # instantiated inside substrate_runner.boot_substrate(), which has
+    # zero callers anywhere in the live process (app.py's _gl_init(),
+    # right here, is the actual live boot path -- boot_substrate() is a
+    # dead, parallel duplicate that mirrors it in comment only). NOT the
+    # 65-A orchestrator above (a different, deliberately-retired,
+    # subprocess/HTTP mechanism, default-off via CURRICULUM_AUTOSTART) --
+    # this is the book-curriculum class, decoupled by its own design
+    # (feed_chunk/is_busy/log injected, no import of substrate_runner in
+    # curriculum_scheduler.py itself). Reused verbatim rather than
+    # reimplemented: _sr._guala was just aliased to this same live `g`
+    # two blocks up, so _sr's own _curriculum_feed_chunk/_curriculum_is_
+    # busy/_world_feed_once/_lookup_once (already proven live-safe --
+    # the same pattern the three loops just above already use through
+    # this exact alias) operate on the real, live organism, not a copy.
+    try:
+        from dsf_ai_service.loom_model.curriculum_scheduler import CurriculumScheduler
+        _interleave = []
+        if os.environ.get("WORLD_FEEDS", "1").strip() != "0":
+            _interleave.append(("worldfeed", _sr._world_feed_once))
+        if os.environ.get("LOOKUP_AUTONOMOUS", "0").strip() != "0":
+            _interleave.append(("lookup", _sr._lookup_once))
+        _sr._curriculum = CurriculumScheduler(
+            state_dir=STATE_DIR,
+            feed_chunk=_sr._curriculum_feed_chunk,
+            is_busy=_sr._curriculum_is_busy,
+            log=g._log_substrate_event,
+            interleave_fns=_interleave,
+            interleave_every=int(os.environ.get("STUDY_INTERLEAVE_EVERY", "3") or 3),
+        )
+        _sr._curriculum.start()
+        print(f"[curriculum] autonomous study started: enabled={_sr._curriculum.enabled} "
+              f"books={len(_sr._curriculum.curriculum)} chunk={_sr._curriculum.chunk_size} "
+              f"interval={_sr._curriculum.interval_sec}s "
+              f"interleave={[n for n, _ in _interleave]}")
+    except Exception as _e:
+        print(f"[curriculum] scheduler start skipped (non-fatal): {_e}")
 
     # SaveCoordinator: presence-detected saves with S3 background queue.
     try:

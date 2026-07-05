@@ -1505,6 +1505,14 @@ def _cmd_status():
         "autonomous_emissions_count": getattr(_guala, "autonomous_emissions_count", 0),
         "last_autonomous_emission_tick": getattr(_guala, "last_autonomous_emission_tick", -1),
         "last_autonomous_attempt_tick": getattr(_guala, "last_autonomous_attempt_tick", -1),
+        # GL-RPT-WINDOW6-DEPLOY-C1B-20260705-v1: organism_worker was added to
+        # introspect() by -179 but never copied into THIS hand-curated dict
+        # (introspect()'s full return is not surfaced verbatim) -- flagged
+        # live, fixed here. organism_population answers item 3's own gap
+        # ("no direct live population counter exists... recommending a
+        # field get added next to organism_worker").
+        "organism_worker": s.get("organism_worker", {}),
+        "organism_population": s.get("organism_population", 0),
     }
 
 
