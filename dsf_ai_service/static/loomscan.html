@@ -577,18 +577,29 @@ function processEvent(ev){
     renderOrgans(d.hemisphere_atlas_sizes);
   }
   if(ev.kind==='sensory_words_bound'){
-    // GL-CMD-SCENE-LANES-B1-188 follow-up: real (non-LLM, fixed-lexicon)
-    // touch/smell/taste word binding now fires during READING too, and
-    // now logs an event -- smell/taste had ZERO wiring here before this;
-    // touch previously only lit from experience_bundle lanes.
-    const mods=d.modalities||[];
+    // GL-CMD-SCENE-LANES-B1-188 follow-up: shell-atlas binder fired.
+    // Feed-row only, per -196's C7 Visibility Rule -- lane GLOW comes
+    // from organism_experience_bound below (what her brain received),
+    // never from this shell-atlas-only signal.
+    const mods=(d.modalities||[]).join('+');
     const words=(d.words||[]).slice(0,3).join(',');
-    for(const m of mods){
-      if(m==='touch'||m==='smell'||m==='taste'){
-        setLaneGlow(m,75,`reading — ${words||m}`);
-      }
+    addFeedRow(t,'exp','sensory (atlas)',`felt/smelled/tasted: ${mods} (${words})`,'reading');
+  }
+  if(ev.kind==='organism_experience_bound'){
+    // GL-CMD-EMULATOR-EVERYWHERE-EVE-20260705-196 C7/S2: THE live signal
+    // for touch/smell/taste (and sight/sound) -- Visibility Rule: what
+    // lights at Joe's seat is what her brain actually received, not a
+    // shell-atlas count. senses[] now carries tactile/olfactory/
+    // gustatory alongside sight/sound.
+    const senses=d.senses||[];
+    const laneMap={sight:'sight',sound:'sound',tactile:'touch',olfactory:'smell',gustatory:'taste'};
+    for(const s of senses){
+      const lane=laneMap[s];
+      if(lane)setLaneGlow(lane,80,`organism — ${d.word||'?'}`);
     }
-    addFeedRow(t,'exp','sensory',`felt/smelled/tasted: ${mods.join('+')} (${words})`,'reading');
+    if(senses.some(s=>['tactile','olfactory','gustatory'].includes(s))){
+      addFeedRow(t,'exp','organism',`"${d.word}" bound with ${senses.join('+')}`,'brain');
+    }
   }
   _lastEvTick=Math.max(_lastEvTick,t);
 }

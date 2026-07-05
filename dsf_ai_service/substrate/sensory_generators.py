@@ -264,6 +264,13 @@ def generate_sensory_signals(sense_name, selections):
     GATING: This function should ONLY be called from:
         - Experience bundle processing (/bundle: command)
         - Dream replay of memories with sensory bindings
+        - Intake paths, per GL-CMD-EMULATOR-EVERYWHERE-EVE-20260705-196:
+          Guala._bind_sensory_words (shell atlas) and
+          Guala._sentence_modal_signals (organism, via read_sentence --
+          curriculum/READING/worldfeed/lookup/converse all funnel through
+          it), each generating real descriptor physics ONCE per sentence
+          from words actually present in the text. Still never per-word
+          hash-seeded fakery -- the thing this gate has always banned.
     """
     libraries = {"touch": TOUCH_LIBRARY, "smell": SMELL_LIBRARY, "taste": TASTE_LIBRARY}
     generators = {"touch": generate_touch_waveform, "smell": generate_smell_waveform,

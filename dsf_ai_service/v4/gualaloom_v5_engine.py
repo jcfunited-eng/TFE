@@ -449,7 +449,8 @@ def _organism_signal(word, transducer):
 SENSE_BINDING_WINDOW_SEC = 3.0
 
 
-def _organism_signal_with_senses(word, transducer, sight_signal=None, sound_signal=None):
+def _organism_signal_with_senses(word, transducer, sight_signal=None,
+                                  sound_signal=None, modal_signal=None):
     """GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N1/N2: the teach-time signal,
     augmenting _organism_signal's language-only base with whatever REAL
     sight/sound she was actually experiencing in the same binding window
@@ -458,12 +459,24 @@ def _organism_signal_with_senses(word, transducer, sight_signal=None, sound_sign
     None when nothing recent exists (honest absence, not a placeholder
     signal) -- `_unwrapped_deltas` already treats a None modality as a
     real, no-cost skip (the same branch visual/auditory always took
-    before this dispatch, since _organism_signal never populated them)."""
+    before this dispatch, since _organism_signal never populated them).
+
+    GL-CMD-EMULATOR-EVERYWHERE-EVE-20260705-196 M2: modal_signal carries
+    whichever of tactile/olfactory/gustatory the sentence's own
+    descriptor words actually produced (read_sentence's per-sentence
+    generate_sensory_signals call, see _last_read_modal_signals) --
+    real descriptor physics, not the banned hash-per-word fake -191
+    removed. Embryo.experience_word()'s composite already reads these
+    three keys when present (N4) -- zero organism-side change needed."""
     sig = _organism_signal(word, transducer)
     if sight_signal is not None:
         sig["visual"] = sight_signal
     if sound_signal is not None:
         sig["auditory"] = sound_signal
+    if modal_signal:
+        for m in ("tactile", "olfactory", "gustatory"):
+            if modal_signal.get(m) is not None:
+                sig[m] = modal_signal[m]
     return sig
 
 
@@ -2176,6 +2189,15 @@ class Guala:
         recognized place/ambient word gets the empty lane, not a guess).
         Every word in the sentence shares the same lane — the sentence is the
         binding window for scene lanes, same granularity as episode_ref above.
+
+        GL-CMD-EMULATOR-EVERYWHERE-EVE-20260705-196 M1/M2: every intake
+        path funnels through this one function (curriculum, corpus
+        READING, worldfeed, lookup, converse) -- so the sentence's real
+        touch/smell/taste descriptor signal is generated ONCE here and
+        cached (_last_read_modal_signals/_wall_time) for
+        _enqueue_organism_remember to snapshot in-window, same convention
+        as sight/sound (-191). Only set when the sentence actually
+        contains a descriptor word -- honest absence otherwise (M5).
         """
         with self.lock:
             words = _normalize_text(text)
@@ -2183,6 +2205,10 @@ class Guala:
                 return
             if place is None and ambient is None:
                 place, ambient = scene_tags_from_words(words)
+            _modal = self._sentence_modal_signals(words)
+            if _modal:
+                self._last_read_modal_signals = _modal
+                self._last_read_modal_wall_time = time.time()
             # 60-M: connection weight earned from relationship, not configured
             # 0.15 was Joe's peak; sources earn up to it via pair_bond_strength
             weight = self.coordinator.pair_bond_strength(source, self.tick) * 0.15
@@ -2696,16 +2722,20 @@ class Guala:
                 self._organism_queue.task_done()
                 return
             # GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N1/N2: item is now
-            # (word, sight_signal, sound_signal) -- the sight/sound
-            # snapshots taken at ENQUEUE time (inside _enqueue_organism_
-            # remember, synchronously, cheap), not at whatever moment the
-            # worker eventually processes this item (which could be
-            # seconds later under backlog -- using a signal fetched THEN
-            # would bind the word to the wrong moment).
-            word, sight_signal, sound_signal = item
+            # (word, sight_signal, sound_signal, modal_signal) -- the
+            # sight/sound/modal snapshots taken at ENQUEUE time (inside
+            # _enqueue_organism_remember, synchronously, cheap), not at
+            # whatever moment the worker eventually processes this item
+            # (which could be seconds later under backlog -- using a
+            # signal fetched THEN would bind the word to the wrong
+            # moment). modal_signal added by GL-CMD-EMULATOR-EVERYWHERE-
+            # EVE-20260705-196 M2 (tactile/olfactory/gustatory, real
+            # descriptor physics, same in-window snapshot discipline).
+            word, sight_signal, sound_signal, modal_signal = item
             try:
                 signal = _organism_signal_with_senses(
-                    word, self._organism_transducer, sight_signal, sound_signal)
+                    word, self._organism_transducer, sight_signal,
+                    sound_signal, modal_signal)
                 with self._organism_lock:
                     self.organism.experience_word(word, signal)
                 # GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 X1: "verifiable in
@@ -2716,13 +2746,19 @@ class Guala:
                 # fixed for the cognition meter. Logged here, not inside
                 # the model layer, so this stays engine-side instrumentation
                 # (Vehicle-appropriate) rather than a cognition change.
+                # GL-CMD-EMULATOR-EVERYWHERE-196 S2: modal lane names added.
+                _modal_present = (modal_signal or {})
                 self._log_substrate_event(
                     "organism_experience_bound", word=word,
                     has_sight=sight_signal is not None,
                     has_sound=sound_signal is not None,
                     senses=[m for m, present in
                             (("sight", sight_signal is not None),
-                             ("sound", sound_signal is not None)) if present])
+                             ("sound", sound_signal is not None),
+                             ("tactile", _modal_present.get("tactile") is not None),
+                             ("olfactory", _modal_present.get("olfactory") is not None),
+                             ("gustatory", _modal_present.get("gustatory") is not None))
+                            if present])
             except Exception as _oe:
                 print(f"[GualaLoom] organism experience_word failed for "
                       f"{word!r} (non-fatal): {_oe}")
@@ -2768,7 +2804,15 @@ class Guala:
         comment) and carries it into the queue alongside the word, so the
         binding reflects what she was actually seeing/hearing when the
         word was read, not whatever's most recent by the time a
-        backlogged worker gets to it."""
+        backlogged worker gets to it.
+
+        GL-CMD-EMULATOR-EVERYWHERE-EVE-20260705-196 M2: same snapshot
+        discipline for _last_read_modal_signals (tactile/olfactory/
+        gustatory, generated once per sentence in read_sentence from the
+        sentence's own descriptor words -- see _sentence_modal_signals).
+        Every intake path that calls read_sentence (curriculum, corpus
+        READING, worldfeed, lookup, converse) shares this one snapshot
+        point -- no per-path duplication needed."""
         now = time.time()
         sight_signal = None
         if (getattr(self, '_last_sight_wall_time', None) is not None
@@ -2778,9 +2822,14 @@ class Guala:
         if (getattr(self, '_last_sound_wall_time', None) is not None
                 and now - self._last_sound_wall_time <= SENSE_BINDING_WINDOW_SEC):
             sound_signal = self._last_sound_signal
+        modal_signal = None
+        if (getattr(self, '_last_read_modal_wall_time', None) is not None
+                and now - self._last_read_modal_wall_time <= SENSE_BINDING_WINDOW_SEC):
+            modal_signal = self._last_read_modal_signals
         try:
             self._ensure_organism_worker()
-            self._organism_queue.put_nowait((word, sight_signal, sound_signal))
+            self._organism_queue.put_nowait(
+                (word, sight_signal, sound_signal, modal_signal))
         except _queue.Full:
             self._organism_dropped_count += 1
         except Exception:
@@ -5302,6 +5351,52 @@ class Guala:
             return bound
         except Exception:
             return 0
+
+    # touch/smell/taste (TOUCH/SMELL/TASTE_LIBRARY, shell-atlas naming) ->
+    # tactile/olfactory/gustatory (Embryo.experience_word's composite keys)
+    _MODALITY_TO_ORGANISM_LANE = {"touch": "tactile", "smell": "olfactory",
+                                   "taste": "gustatory"}
+
+    def _sentence_modal_signals(self, words):
+        """GL-CMD-EMULATOR-EVERYWHERE-EVE-20260705-196 M1: real descriptor
+        physics for the ORGANISM, generated ONCE per sentence (not per
+        word) from whichever real descriptor words the sentence actually
+        contains -- the same TOUCH/SMELL/TASTE_LIBRARY map _bind_sensory_
+        words uses for the shell atlas, reused here for the brain. Each
+        matched modality's channel waveforms (generate_sensory_signals --
+        real physics, never the banned hash-per-word fake) are
+        concatenated into one flat array per lane, the same shape
+        Embryo.experience_word's composite already expects (a single 1D
+        array per modality key, exactly like visual/auditory).
+        Returns {} if the sentence has no descriptor words -- honest
+        absence (M5), not a placeholder signal. Never raises."""
+        try:
+            mapping = self._sensory_word_map()
+            if not mapping:
+                return {}
+            by_modality = {}
+            for w in words:
+                modality = mapping.get(w)
+                if modality:
+                    by_modality.setdefault(modality, [])
+                    if w not in by_modality[modality]:
+                        by_modality[modality].append(w)
+            if not by_modality:
+                return {}
+            from dsf_ai_service.substrate.sensory_generators import (
+                generate_sensory_signals)
+            out = {}
+            for modality, matched_words in by_modality.items():
+                channels = generate_sensory_signals(modality, matched_words)
+                if not channels:
+                    continue
+                lane = self._MODALITY_TO_ORGANISM_LANE.get(modality)
+                if lane:
+                    out[lane] = np.concatenate(
+                        [np.asarray(v, dtype=float) for v in channels.values()])
+            return out
+        except Exception:
+            return {}
 
     def _atick_reading(self, a):
         """Read one sentence from corpus. read_sentence handles tick advancement."""
