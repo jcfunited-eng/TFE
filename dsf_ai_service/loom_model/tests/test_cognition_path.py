@@ -104,7 +104,9 @@ def test_t3_neuron_binding():
 
     print(f"\n== T3: neuron binding ==")
     print(f"  bindings: {n.binding_atlas.bindings}")
-    vec = n.binding_atlas._bindings[0]["state_vec"]
+    # GL-CMD-ORGANISM-WAVE-MEMORY-207: bindings live in per-neuron wave
+    # cells now, not a flat _bindings list.
+    vec = next(b["state_vec"] for c in n.binding_atlas.cells.values() for b in c.bindings)
     print(f"  shape: {vec.shape}, dtype: {vec.dtype}")
     assert n.binding_atlas.bindings == 1
     assert vec.shape == (STATE_DIM,)
@@ -393,15 +395,27 @@ def test_t10_determinism():
             if n0.binding_atlas.bindings != n1.binding_atlas.bindings:
                 identical = False
                 break
-            for b_idx in range(n0.binding_atlas.bindings):
-                v0 = n0.binding_atlas._bindings[b_idx]["state_vec"]
-                v1 = n1.binding_atlas._bindings[b_idx]["state_vec"]
-                # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-207: state_vec is a
-                # dict of per-lane arrays under resonant_spectral (the
-                # default observable _make_pipeline() now exercises), not a
-                # flat array -- np.array_equal can't compare dicts directly
-                # (it tries to coerce to a plain ndarray and produces an
-                # ambiguous elementwise comparison). Compare lane-by-lane.
+            # GL-CMD-ORGANISM-WAVE-MEMORY-207 + GL-CMD-CROSS-SENSE-RECALL-208
+            # merged: bindings live in either per-neuron wave cells (flat
+            # event_count vectors) or a simple list (per-lane resonant_
+            # spectral dicts) -- a given atlas only ever populates one, per
+            # its neuron's fixed observable. Flatten from whichever is
+            # populated; chi placement is a deterministic function of
+            # state_vec (same inputs -> same chi -> same dict insertion
+            # order across both brains), so flattening in that order stays
+            # a valid determinism comparison for the wave-cell case.
+            if n0.binding_atlas.cells:
+                b0 = [b["state_vec"] for c in n0.binding_atlas.cells.values() for b in c.bindings]
+                b1 = [b["state_vec"] for c in n1.binding_atlas.cells.values() for b in c.bindings]
+            else:
+                b0 = [b["state_vec"] for b in n0.binding_atlas._lane_bindings]
+                b1 = [b["state_vec"] for b in n1.binding_atlas._lane_bindings]
+            for v0, v1 in zip(b0, b1):
+                # state_vec is a dict of per-lane arrays under resonant_
+                # spectral, not a flat array -- np.array_equal can't compare
+                # dicts directly (it tries to coerce to a plain ndarray and
+                # produces an ambiguous elementwise comparison). Compare
+                # lane-by-lane.
                 if isinstance(v0, dict) or isinstance(v1, dict):
                     same = (isinstance(v0, dict) and isinstance(v1, dict)
                             and v0.keys() == v1.keys()

@@ -611,8 +611,13 @@ class Embryo:
         for h in self.brain.hemispheres:
             op = self.op[h.hemi_id][0]
             for n in h.cluster.neurons:
+                # GL-CMD-ORGANISM-WAVE-MEMORY-207: BindingAtlas stores bindings
+                # in per-neuron wave cells now, not a flat _bindings list --
+                # flatten across cells for this portable-dict serialization.
                 binds = [{"c": b["concept"], "v": np.asarray(b["state_vec"]).tolist(),
-                          "t": int(b["tick"])} for b in n.binding_atlas._bindings]
+                          "t": int(b["tick"])}
+                         for cell in n.binding_atlas.cells.values()
+                         for b in cell.bindings]
                 if binds:
                     neurons.append({"id": n.neuron_id, "op": op, "b": binds})
         return {
@@ -643,10 +648,22 @@ class Embryo:
     # Python + numpy; no threads, sockets, or db handles), so this is a real,
     # boring primitive — not a workaround.
     def save_full_state(self, path):
+        """GL-CMD-ORGANISM-WAVE-MEMORY-207 W4: atomic write (tmp + flush +
+        fsync + os.replace) -- a process killed mid-write (deploy cycling,
+        OOM, container restart) used to leave a truncated .pkl.gz that
+        failed to load ("Compressed file ended before the end-of-stream
+        marker was reached", observed live 2026-07-05). os.replace is
+        atomic on the same filesystem: readers only ever see the old
+        complete file or the new complete file, never a partial one."""
         import pickle, gzip
-        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-        with gzip.open(path, "wb") as f:
+        d = os.path.dirname(path) or "."
+        os.makedirs(d, exist_ok=True)
+        tmp_path = path + ".tmp"
+        with gzip.open(tmp_path, "wb") as f:
             pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, path)
 
     @staticmethod
     def load_full_state(path):
