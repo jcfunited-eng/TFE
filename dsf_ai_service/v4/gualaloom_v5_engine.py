@@ -1565,6 +1565,11 @@ class Guala:
         self._organism_worker_thread = None
         self._organism_worker_start_lock = threading.Lock()
         self._organism_lock = threading.Lock()
+        # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's backgrounding
+        # ruling: honest-degradation count, visible in status (not just
+        # silently swallowed like the tapestry queue's drop today) -- see
+        # _enqueue_organism_remember.
+        self._organism_dropped_count = 0
 
         # GL-CMD-175 P2 fix (root cause behind seams 1-2's near-zero
         # discrimination): the validated recall mechanism (embryo.py's own
@@ -2586,23 +2591,39 @@ class Guala:
             pass
 
     def _organism_worker_loop(self):
-        """GL-CMD-175 window-2 perf fix: single persistent background
-        writer for organism.remember() -- see _enqueue_organism_remember.
-        Computes _organism_signal() here too (not at the read_word call
-        site) -- that computation (waveform generation) is itself real
-        work, kept off the synchronous hot path along with remember()."""
+        """GL-CMD-175 window-2 perf fix, upgraded per
+        GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179's backgrounding
+        ruling: single persistent background writer, now calling
+        organism.experience_word() (binding write + the real q-charge
+        fold cascade) instead of bare organism.remember() -- see
+        _enqueue_organism_remember. Computes _organism_signal() here too
+        (not at the read_word call site) -- that computation (waveform
+        generation) is itself real work, kept off the synchronous hot
+        path along with the organism call.
+
+        In-order processing (Eve's condition): a single worker thread
+        pulling from one queue.Queue is FIFO by construction -- no
+        extra logic needed, just never spin a second worker.
+
+        task_done() (Eve's condition -- queue drained before
+        save_full_state): required for queue.join() to mean anything;
+        called in both the success and failure path so a raised
+        exception can't wedge a future join() forever."""
         while True:
             item = self._organism_queue.get()
             if item is None:
+                self._organism_queue.task_done()
                 return
             word = item
             try:
                 signal = _organism_signal(word, self._organism_transducer)
                 with self._organism_lock:
-                    self.organism.remember(word, signal)
+                    self.organism.experience_word(word, signal)
             except Exception as _oe:
-                print(f"[GualaLoom] organism remember failed for {word!r} "
-                      f"(non-fatal): {_oe}")
+                print(f"[GualaLoom] organism experience_word failed for "
+                      f"{word!r} (non-fatal): {_oe}")
+            finally:
+                self._organism_queue.task_done()
 
     def _ensure_organism_worker(self):
         if self._organism_queue is not None:
@@ -2622,17 +2643,25 @@ class Guala:
         words (population-vote architecture -- cost is O(population),
         population grows with her life). Backgrounded: single persistent
         worker + bounded queue, same convention as the tapestry writer and
-        GL-CMD-172's diary writer. Drops under sustained back-pressure
-        (queue.Full) rather than blocking her live reading/converse path
-        -- an honest degradation (some experience lost under load), not a
-        silent stall. self._organism_lock (held by the worker and by
-        recall()/save_full_state() callers) keeps a concurrent read from
+        GL-CMD-172's diary writer.
+
+        GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179: the worker now
+        calls organism.experience_word() (measured 22.3x organism.
+        remember()'s own cost, see the -179 report) -- backgrounding it
+        the same way is exactly what makes that cost safe to pay at all.
+        Drops under sustained back-pressure (queue.Full) rather than
+        blocking her live reading/converse path -- an honest degradation
+        (some experience lost under load), not a silent stall -- and per
+        Eve's ruling, that degradation is now COUNTED, not just
+        swallowed (self._organism_dropped_count, surfaced in /status).
+        self._organism_lock (held by the worker and by recall()/
+        save_full_state() callers) keeps a concurrent read from
         observing the organism mid-update."""
         try:
             self._ensure_organism_worker()
             self._organism_queue.put_nowait(word)
         except _queue.Full:
-            pass
+            self._organism_dropped_count += 1
         except Exception:
             pass
 
@@ -7061,8 +7090,32 @@ class Guala:
         # cold save cycle. Same non-critical, isolated-failure pattern as
         # teaching data above: a large object graph that must never block
         # core save success.
+        #
+        # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's condition:
+        # "queue drained before save_full_state so persisted state
+        # includes all folds." self._organism_lock alone (below) only
+        # guarantees we don't save mid-item; it says nothing about the
+        # N other items still queued (not yet started) at save time --
+        # those folds would be silently missing from this save. Bounded
+        # wait, not an unconditional queue.join(): a sustained word-feed
+        # rate faster than the worker's ~255ms/word (experience_word()'s
+        # own measured cost, see the -179 report) would otherwise keep
+        # unfinished_tasks > 0 forever and hang the cold save cycle
+        # indefinitely -- an honest, logged partial-drain beats a silent
+        # unbounded stall, same principle as the queue's own drop-under-
+        # backpressure behavior.
+        if self._organism_queue is not None:
+            _drain_deadline = time.monotonic() + 5.0
+            while (self._organism_queue.unfinished_tasks > 0
+                   and time.monotonic() < _drain_deadline):
+                time.sleep(0.05)
+            if self._organism_queue.unfinished_tasks > 0:
+                print(f"[GualaLoom] organism queue did not drain within 5s "
+                      f"({self._organism_queue.unfinished_tasks} folds still "
+                      f"pending) -- saving anyway, those folds land in the "
+                      f"NEXT cold save")
         try:
-            with self._organism_lock:  # serialize against the background remember() worker
+            with self._organism_lock:  # serialize against the background experience_word() worker
                 self.organism.save_full_state(os.path.join(state_dir, "guala_organism.pkl.gz"))
         except Exception as _oe:
             _save_failures.append(("guala_organism.pkl.gz", str(_oe)))
@@ -8233,6 +8286,16 @@ class Guala:
             # v6-bridge: presence + per-source pair bonds
             "presence": self.coordinator.presence_snapshot(),
             "pair_bond": self.coordinator.pair_bond_snapshot(current_tick=self.tick),
+            # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's
+            # backgrounding ruling: "dropped/queued counts visible in
+            # status" -- experience_word()'s ~255ms/word cost (22.3x
+            # organism.remember()'s own, see the -179 report) means this
+            # queue is the one to actually watch for backlog/drops.
+            "organism_worker": {
+                "queued": (self._organism_queue.qsize()
+                          if self._organism_queue is not None else 0),
+                "dropped": self._organism_dropped_count,
+            },
             # v7: autonomy state
             "current_activity": (self._current_activity.snapshot()
                                  if self._current_activity else None),
