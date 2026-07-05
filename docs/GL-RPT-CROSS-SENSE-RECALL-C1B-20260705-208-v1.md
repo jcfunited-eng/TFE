@@ -1,15 +1,51 @@
-# GL-RPT-CROSS-SENSE-RECALL-C1B-20260705-207-v1
+# GL-RPT-CROSS-SENSE-RECALL-C1B-20260705-208-v1
 
-doc_id: GL-RPT-CROSS-SENSE-RECALL-C1B-20260705-207-v1
+doc_id: GL-RPT-CROSS-SENSE-RECALL-C1B-20260705-208-v1
 From: c1b | To: Eve, Joe, c1a | Responds to:
-`GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-207-v1`.
+`GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208-v1` (filed as -207,
+renumbered on rebase — see that doc's numbering note).
 Vehicle: `dsf_ai_service/loom_model/{resonant_chi,binding_atlas,neuron,brain}.py`
 + `tests/test_cognition_path.py`. Built and verified in an isolated
 worktree (`c1b/cross-sense-recall-207`) — c1a had live uncommitted
 edits in `gualaloom_v5_engine.py` (the `-205` root-cause fix) at build
 time; this dispatch's scope never touches that file, zero collision.
-Not deployed yet — see EXIT below for what's still outstanding
-(the live bells test needs a separate engine-side wiring change).
+
+## URGENT, READ BEFORE STARTING -207/WAVE-MEMORY (c1a, this is for you)
+
+On rebase, found `GL-CMD-ORGANISM-WAVE-MEMORY-EVE-20260705-207-v1`
+already on origin (Eve → c1a): it replaces `binding_atlas.py`'s entire
+`BindingAtlas` (list-of-dict append log) with a wave-cell store. Its
+own W2 accuracy gate lists `test_t7_cross_modal` as a STILL-ALLOWED
+pre-existing failure — that dispatch was cut before this one landed,
+so it doesn't know T7 is now a real, passing capability (0% → 100%/
+100%/60-70% at 5/3/1 lanes), not a documented gap anymore.
+
+**The wave-cell store MUST preserve per-lane matching or this
+capability regresses silently** — your own gate wouldn't catch it,
+since it still treats T7 failing as allowed. Concretely:
+`BindingAtlas.record(concept, state_vec, tick)` now accepts EITHER a
+flat 1-D array (grandurun/event_count, unchanged) OR a
+`Dict[str, np.ndarray]` of per-modality lane sub-vectors
+(resonant_spectral — production's default observable, `embryo.py:132`).
+`recall_best()` branches on that: dict in → masked, lane-normalized
+cosine over the intersection of query/binding lanes out (see
+`_lane_match_score` in `binding_atlas.py`). If W1's wave-cell rewrite
+keys cells only by a single fused chi per neuron (one cell store, one
+address space per concept-occurrence), that fusion is exactly the bug
+this dispatch just fixed — re-introduced one layer down. The wave-cell
+KEY needs to preserve which LANE each cell was written from, and W2's
+recall needs to mask to the query's present lanes the same way, or
+gate T7 explicitly (not just "same 3 allowed") before calling W2 done.
+Flagging this now, in writing, before you build — not after.
+
+Also: `recall_fast()` (`brain.py`) now dispatches on `self.observable`
+and has a `resonant_spectral` branch (`_recall_fast_resonant_spectral`)
+that calls `neuron.encode_state()`/`binding_atlas.recall_best()`
+directly, non-vectorized. If W1 changes what `encode_state()` returns
+or what `binding_atlas.recall_best()` expects, that branch needs to
+move in lockstep or recall_fast() breaks again (this file was crash-
+on-every-call before this dispatch — see below — don't let history
+repeat one layer down).
 
 ---
 

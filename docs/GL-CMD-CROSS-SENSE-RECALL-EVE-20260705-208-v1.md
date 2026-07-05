@@ -1,12 +1,17 @@
-# GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-207-v1
+# GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208-v1
 
-doc_id: GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-207-v1
+doc_id: GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208-v1
 From: Eve | To: c1b. Commit verbatim to origin first.
 Numbering note: Eve's text below says "(-206 when numbered)" — 206 was
 already claimed same-day by `GL-CMD-VERIFY-AND-STABILIZE-C1B-20260705-206`
 (c1b's own session-end handoff, filed before this dispatch reached c1b).
-Filing this as 207, the next free number, rather than renumbering the
-handoff already on origin.
+Filed at 207 first (2026-07-05 19:08:39Z, on c1b's own branch, not yet
+merged); by the time of rebase onto origin/guala-live, 207 had ALSO
+landed there as `GL-CMD-ORGANISM-WAVE-MEMORY-EVE-20260705-207-v1`
+(19:30:49Z, Eve → c1a) — a second, unrelated dispatch racing the same
+number. Renumbered this one to 208, the next free number on
+guala-live's actual history, since that's the branch the number space
+needs to stay unique on.
 
 ---
 
@@ -28,4 +33,5 @@ Joe's seat, SHA in status, per Joe's law.
 
 ### Changelog
 - v1 (2026-07-05, Eve, filed by c1b): verbatim dispatch text, numbered
-  207 (206 already taken), committed to origin before any build work.
+  208 after a numbering race with -207/WAVE-MEMORY (206 was also
+  already taken), committed to origin before any build work.
