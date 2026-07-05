@@ -1513,6 +1513,15 @@ def _cmd_status():
         # field get added next to organism_worker").
         "organism_worker": s.get("organism_worker", {}),
         "organism_population": s.get("organism_population", 0),
+        # GL-CMD-METER-LIVENESS-EVE-20260705-187 M1: "curriculum feeders"
+        # (cognition-meter row) needs a real live signal to check against,
+        # not the -156-era "0 -- confirmed not running" text frozen forever.
+        # _curriculum.status() already existed (curriculum_scheduler.py);
+        # just never surfaced. None (not {}) when the scheduler was never
+        # started (e.g. CURRICULUM_AUTOSTART-style disable or a boot before
+        # -185/B3's reconnect landed) -- distinct from "started but idle".
+        "curriculum_status": (_curriculum.status()
+                              if _curriculum is not None else None),
     }
 
 

@@ -1003,6 +1003,11 @@ async function pollStatus(){
       if(attempt===0)await new Promise(r=>setTimeout(r,500)); // brief pause before retry
     }
     if(d.response&&d.response.startsWith('initializing')){_backoff.status=0;return}
+    // GL-CMD-METER-LIVENESS-EVE-20260705-187 M1: cache the freshest /status
+    // payload so renderCogMeter() can compute LIVE connected/firing state
+    // from it on every poll, not just once at boot from a hardcoded string.
+    window._lastStatus=d;
+    if(typeof renderCogMeter==='function')renderCogMeter();
     // Item 5: only update fields that came back non-null/non-zero
     const vocab=d.vocab||d.motifs;
     const n_motifs=d.n_motifs;
@@ -1133,14 +1138,35 @@ async function pollV7State(){
       ph+=`<div class="ps-row"><span class="l">${p}</span><span class="v">${cnt!=null&&cnt>0?cnt:'\u2014'}</span></div>`;
     }
     if(Object.keys(vc).length>0)pools.innerHTML=ph||'--';
-    // Intro/Aware — SEVERED (GL-CMD-AWARE-COORDINATOR-AND-SEAT-EVE-20260704-162-v1
-    // Part C): this panel read Layer-1 (v7 CoincidenceGate) state, which -160/-161
-    // proved is permanently disconnected from her live conversation. Display
-    // honesty over decoration until a live mechanism actually feeds it.
+    // GL-CMD-METER-LIVENESS-EVE-20260705-187 M1: this panel used to write a
+    // HARDCODED "SEVERED" string every single poll cycle regardless of what
+    // `s` (the real /v7/state payload, fetched moments ago on the line
+    // above) actually contained -- the exact defect this dispatch is about,
+    // just in a second location besides the cognition-meter table. -160/-161
+    // found the mechanism severed AT THE TIME OF THAT AUDIT (2026-07-04);
+    // -162 committed a fix; whether it's actually connected NOW is answered
+    // by reading `s` directly, live, every poll -- not by re-asserting the
+    // audit finding as if it were still-current fact.
+    window._lastV7State=s;
+    const introFired=(s.intro_krimelack_count||0)>0;
+    const awareFired=(s.aware_krimelack_count||0)>0;
     const ia=document.getElementById('sp-intro-aware');
-    if(ia)ia.innerHTML='<div class="ps-row"><span class="v" style="color:var(--nmda-block)">SEVERED &mdash; instrument not connected (see -160/-161)</span></div>';
+    if(ia){
+      const introTxt=introFired
+        ? `LIVE &mdash; intro fired ${s.intro_krimelack_count}x (state: ${s.introspection||'?'})`
+        : `still 0 fires as of this poll (state: ${s.introspection||'?'}) &mdash; see -160/-161/-162`;
+      const awareTxt=awareFired
+        ? `LIVE &mdash; aware fired ${s.aware_krimelack_count}x (state: ${s.awareness||'?'})`
+        : `still 0 fires as of this poll (state: ${s.awareness||'?'}) &mdash; see -160/-161/-162`;
+      ia.innerHTML=`<div class="ps-row"><span class="l">intro</span><span class="v" style="color:${introFired?'var(--ev-emission)':'var(--nmda-block)'}">${introTxt}</span></div>`+
+                   `<div class="ps-row"><span class="l">aware</span><span class="v" style="color:${awareFired?'var(--ev-emission)':'var(--nmda-block)'}">${awareTxt}</span></div>`;
+    }
     const nDiv=document.getElementById('sp-nmda');
-    nDiv.innerHTML='<div style="color:var(--nmda-block)">SEVERED &mdash; instrument not connected (see -160/-161)</div>';
+    const nmda=(s.nmda_events||[]);
+    nDiv.innerHTML=nmda.length>0
+      ? nmda.slice(-5).map(e=>`<div>${JSON.stringify(e)}</div>`).join('')
+      : '<div style="color:var(--nmda-block)">0 nmda_events as of this poll</div>';
+    if(typeof renderCogMeter==='function')renderCogMeter();
     _backoff.state=0;
   }catch(e){_backoff.state=Math.min((_backoff.state*2)||_BASE.state*2,30000)}
   finally{_inflight.state=false;_schedNext('state',pollV7State)}
@@ -1319,6 +1345,29 @@ function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().t
 // them. This array is the thing to edit as each -164 verdict lands; no row,
 // no ship (standing rule, -166).
 const CM_LABELS={yes:'YES',severed:'SEVERED',unknown:'UNKNOWN',queued:'OFF (queued)',investigating:'INVESTIGATING',absent:'ABSENT',watch:'WATCH-LIST'};
+// GL-CMD-METER-LIVENESS-EVE-20260705-187: the defect this fixes -- every
+// row below is TEXT written at whatever moment a dispatch audited it, with
+// no mechanism to ever refresh. Joe saw "aware gate SEVERED" rendered
+// AFTER the fix deployed, because nothing here ever re-checked. Two-tier
+// fix: rows with a `live(status,v7)` function get their connected/firing
+// computed FRESH on every /status or /v7/state poll (see pollStatus()/
+// pollV7State(), which now cache window._lastStatus/_lastV7State and call
+// renderCogMeter() on every cycle, not just once at boot); rows without
+// one show a visible "(as of audit <date>)" stamp derived from POINTER_
+// DATES below, so undated audit text can never be mistaken for current
+// state again. Not every one of the ~28 rows got a live check this pass
+// (some are qualitative research findings with no single boolean to
+// compute -- "attention spread mechanism understood", etc.) -- those are
+// exactly the ones M1 says MUST carry the audit stamp instead.
+const POINTER_DATES={'-107':'2026-07-03','-153':'2026-07-04','-156':'2026-07-03',
+  '-159':'2026-07-04','-160':'2026-07-04','-161':'2026-07-04','-162':'2026-07-04',
+  '-163':'2026-07-04','-164':'2026-07-04','-165':'2026-07-04','-166':'2026-07-04',
+  '-175':'2026-07-04','-185':'2026-07-05'};
+function _cmAuditDate(pointer){
+  if(!pointer)return null;
+  for(const p of pointer.split('/'))if(POINTER_DATES[p])return POINTER_DATES[p];
+  return null;
+}
 const COGMETER_ROWS=[
   // The fifteen mechanisms (plain names per -166) -- v1.1, populated from
   // GL-RPT-WIRING-AUDIT-C1-20260704-164-v1's Part B (multi-session research,
@@ -1339,15 +1388,15 @@ const COGMETER_ROWS=[
   {name:'cross-sense recall',connected:'absent',pointer:'-164',
     firing:'only a same-instant binding COUNT exists (108 cross-modal bindings) -- no sound-cue-retrieves-picture test has ever been built',
     impact:'none observed; the "1.4%" figure on record has no live mechanism behind it'},
-  {name:'getting-bored-of-repeats',connected:'yes',pointer:'-107',
-    firing:'a real bug was found and fixed (convicted, evidence-backed); fix is committed',
-    impact:'not yet deployed -- queued for the next deploy window'},
+  {name:'getting-bored-of-repeats',connected:'yes',pointer:'-181',
+    firing:'GL-CMD-METER-LIVENESS-187 M2 correction: the -107 fix (this row\'s old pointer) was superseded -- -181 found and fixed the flat-floor collapse (deployed task:468, confirmed live: differentiated top-5 scores observed, e.g. 0.0607/0.0542/0.054/0.0536/0.0533). -185/B2 found and fixed a second, deeper gap the same night (no recency-recovery from historical over-exposure, e.g. audio locked out since early smoke-testing) -- built, pending its own deploy window as of this correction',
+    impact:'STALE TEXT CORRECTED 2026-07-05: the old "not yet deployed" claim was wrong by the time Joe read it -- -181 had already shipped hours earlier'},
   {name:'recognizing-things-in-new-forms',connected:'absent',pointer:'-164',
     firing:'no live counter exists -- no code path for this yet',
     impact:'none observed'},
-  {name:'attention spread',connected:'yes',pointer:'-107',
-    firing:'real mechanism identified (empty-familiarity ties + a lexical cascade); spread observed after her last restart',
-    impact:'mechanism understood 2026-07-03 -- not yet turned into a standing pass/fail number'},
+  {name:'attention spread',connected:'yes',pointer:'-181',
+    firing:'the empty-familiarity-tie mechanism this row named is the SAME one -181 fixed (deployed task:468) -- ties are no longer flattened to an identical floor; real per-target differentiation confirmed live',
+    impact:'STALE TEXT CORRECTED 2026-07-05: still not a standing pass/fail number, but the underlying mechanism this row describes changed under it -- see "getting-bored-of-repeats" above'},
   {name:'order/sequence',connected:'absent',pointer:'-164',
     firing:'no live counter exists -- no code path for this yet',
     impact:'none observed'},
@@ -1368,7 +1417,14 @@ const COGMETER_ROWS=[
     impact:'live correction found 2026-07-04 -- this is NOT the "never fires" the written plan currently says; the plan is what was stale, not her'},
   {name:'state-shows-in-words',connected:'severed',pointer:'-160/-161/-162',
     firing:'the layer that reaches Joe’s seat is permanently disconnected; a separate internal number is pinned at zero until the next deploy',
-    impact:'fix committed 2026-07-04, not yet deployed -- see “deliberation stage” below'},
+    impact:'fix committed 2026-07-04, not yet deployed -- see “deliberation stage” below',
+    live:(status,v7)=>{
+      if(!v7)return null;
+      const fired=(v7.aware_krimelack_count||0)>0;
+      return{connected:fired?'yes':'severed',
+        firing:fired?`aware fired ${v7.aware_krimelack_count}x -- reaching a real emission path this poll`
+                     :'aware_krimelack_count is 0 this poll -- still not reaching Joe\'s seat as of now'};
+    }},
   // Machinery rows already adjudicated by prior dispatches (-166's own list),
   // plus voice-to-words (added same-session per the standing rule: any newly
   // discovered/fixed mechanism ships its row in the same dispatch).
@@ -1377,22 +1433,60 @@ const COGMETER_ROWS=[
     impact:'fixed 2026-07-04: recognized speech now uses the same door as typed input, tagged source="joe_voice". The fire-and-forget fetches (no .then(), reply discarded unread) that broke this are gone. Separately observed, not blocking: text-to-speech audio output did not fire in that browser session (Incognito) -- a different, output-side issue, named not fixed here'},
   {name:'aware gate',connected:'severed',pointer:'-160/-161',
     firing:'checked every time she considers speaking — blocked every time (structural, not a coincidence)',
-    impact:'none observed — the only thing that could feed it never gets real conversation'},
+    impact:'none observed — the only thing that could feed it never gets real conversation',
+    live:(status,v7)=>{
+      if(!v7)return null;
+      const fired=(v7.aware_krimelack_count||0)>0;
+      return{connected:fired?'yes':'severed',
+        firing:fired?`LIVE -- fired ${v7.aware_krimelack_count}x, state=${v7.awareness||'?'}`
+                     :`still 0 fires this poll, state=${v7.awareness||'?'}`};
+    }},
   {name:'intro gate',connected:'severed',pointer:'-162',
     firing:'fires inside a copy of her session Joe never actually talks to',
-    impact:'none observed in her real conversation'},
+    impact:'none observed in her real conversation',
+    live:(status,v7)=>{
+      if(!v7)return null;
+      const fired=(v7.intro_krimelack_count||0)>0;
+      return{connected:fired?'yes':'severed',
+        firing:fired?`LIVE -- fired ${v7.intro_krimelack_count}x, state=${v7.introspection||'?'}`
+                     :`still 0 fires this poll, state=${v7.introspection||'?'}`};
+    }},
   {name:'deliberation stage',connected:'queued',pointer:'-162',
     firing:'off all boot (0 fires) in the live process; the fix is committed, waiting for a deploy window',
-    impact:'none yet — moves once the next deploy ships'},
+    impact:'none yet — moves once the next deploy ships',
+    live:(status,v7)=>{
+      if(!status||!status.ladder)return null;
+      const ratio=status.ladder.awareness_ratio;
+      const fired=typeof ratio==='number'&&ratio>0;
+      return{connected:fired?'yes':'queued',
+        firing:fired?`LIVE -- awareness_ratio=${ratio} (deliberation_ticks nonzero)`
+                     :'awareness_ratio=0 this poll -- deliberation has not fired yet on this boot'};
+    }},
   {name:'day-cycle / sleep trigger',connected:'investigating',pointer:'-165',
     firing:'she’s been awake doing only two things (looking, speaking) for hours — no sleep, no rest, no play seen',
-    impact:'investigation just opened — no verdict yet'},
+    impact:'investigation just opened — no verdict yet',
+    live:(status)=>{
+      if(!status||!status.activity_history_summary)return null;
+      const kinds=Object.keys(status.activity_history_summary);
+      const sawSleep=kinds.includes('SLEEPING')||kinds.includes('DREAMING');
+      return{connected:sawSleep?'yes':'investigating',
+        firing:`kinds seen this window: ${kinds.join(', ')||'(none)'}`+
+               (sawSleep?'':' -- still no SLEEPING/DREAMING in the visible activity history')};
+    }},
   {name:'curriculum feeders',connected:'severed',pointer:'-156',
     firing:'0 — confirmed not running in her real deployed process',
-    impact:'none observed'},
-  {name:'play',connected:'absent',pointer:null,
-    firing:'no live counter exists — no code path for this yet',
-    impact:'none observed'},
+    impact:'none observed',
+    live:(status)=>{
+      const cs=status&&status.curriculum_status;
+      if(cs===undefined)return null;  // field not present -- older deploy, fall back to audit text
+      if(cs===null)return{connected:'severed',firing:'scheduler not started this boot (still true as of this poll)'};
+      return{connected:cs.enabled?'yes':'queued',
+        firing:`LIVE -- book "${cs.current_book||'?'}" offset=${cs.offset||0}, `+
+               `${cs.total_sentences||0} sentences fed lifetime, last_status=${JSON.stringify(cs.last_status||{})}`};
+    }},
+  {name:'play',connected:'absent',pointer:'-185',
+    firing:'no live counter exists — no code path for this yet (re-confirmed: _atick_playing exists but is functionally identical to _atick_idle, no world interaction)',
+    impact:'none observed -- standing design item (Engine·Play·World packet), not a shim, per Joe\'s own ruling'},
   {name:'teaching survives to sleep',connected:'watch',pointer:'-163',
     firing:'3 of 10 words taught once were mostly or fully forgotten within about a day of activity, before any rest',
     impact:'measured 2026-07-04 (-163)'},
@@ -1403,13 +1497,20 @@ const COGMETER_ROWS=[
   // next update, not this one.
   {name:'brain: organism live (P1)',connected:'yes',pointer:'-175',
     firing:'8-hemisphere organism (structure-derived DNA, -169) instantiated inside Guala, her real identity synced; every word she reads/hears feeds it (read_word tap); persists on her hot/cold+S3 path',
-    impact:'built + restore-honesty proven (save→kill→load→identical, real process boundary) in sandbox 2026-07-04; NOT yet run against her real live state -- c1b\'s deploy proves that'},
+    impact:'STALE TEXT CORRECTED 2026-07-05: "NOT yet run against live state" was true 2026-07-04, false since task:462. Population was frozen at 64 (remember()/recall() never triggered fold physics) until -179\'s experience_word() wiring + backgrounding (this same night) -- now grows for real; recall_ms rising (12-21ms->152.8ms) is the first live behavioral evidence',
+    live:(status)=>{
+      if(!status||status.organism_population===undefined)return null;
+      const pop=status.organism_population;
+      const w=status.organism_worker||{};
+      return{connected:pop>0?'yes':'severed',
+        firing:`LIVE -- ${pop} neurons (queued=${w.queued||0}, dropped=${w.dropped||0})`};
+    }},
   {name:'brain: voice / emission (P3)',connected:'yes',pointer:'-175',
-    firing:'the organism\'s own tapestry recall/compose supplies emission candidates; the deep-atlas co-occurrence gather + its SVO-recall + unslotted-binding fallbacks are disconnected -- honest silence if the brain has nothing, never backfilled',
-    impact:'verified in sandbox: trained words compose real content through the unchanged keyhole-cascade/topk path; untrained words correctly return None. Expected quality at cutover: 1-3 word echoes (tapestry\'s own documented maturity) -- immature and true, per Joe\'s standard'},
-  {name:'brain: recall/recognition/attention/affect handover (P2)',connected:'absent',pointer:'-175',
-    firing:'NOT built this dispatch -- confirmed by direct code read that all six (recall, recognition, association, habituation, attention, affect) are fused into the existing shell with zero seam for substitution; a real refactor, not a flag-flip',
-    impact:'none observed; old shell mechanisms (rows above) remain load-bearing for these six until a follow-up dispatch builds the seams'},
+    firing:'STALE TEXT CORRECTED 2026-07-05: this said "verified in sandbox... NOT yet run against real live state" -- it has been, since task:462 (hours ago). The organism\'s own tapestry recall/compose supplies emission candidates live; honest silence if the brain has nothing, never backfilled',
+    impact:'live-confirmed (GL-RPT-WINDOW6-DEPLOY-C1B-20260705-v1): real turns so far returned honest empty ("...", response_source="converse"), not an error, not a hang -- no real-word content observed YET, watching for the first one'},
+  {name:'brain: recall/recognition/attention/affect handover (P2)',connected:'yes',pointer:'-175',
+    firing:'STALE TEXT CORRECTED 2026-07-05: this said "NOT built this dispatch" -- all 6 seams (recall, recognition, association, habituation-for-READING, attention, affect) were subsequently addressed the same night: recall/recognition/association/habituation(reading) BUILT and DEPLOYED (task:465+); attention/affect explicitly DECLINED with reasons (no organism analog / safety-system collision risk), not silently skipped',
+    impact:'live since task:465 (GL-RPT-WINDOW2-DEPLOY-C1B-20260705-v1); language channel\'s own contribution was found structurally zeroed (-178) and fixed (n_events counter, -178/-179) -- riding the next deploy window'},
   {name:'brain: imagination',connected:'absent',pointer:'-175',
     firing:'no code path in loom_model (Embryo/LoomBrain/tapestry) -- confirmed by code read, not a deploy gap',
     impact:'none observed; distinct from the OLD shell\'s "imagination" row above (the severed daydream thread) -- this row is the brain\'s own, separately absent'},
@@ -1423,19 +1524,39 @@ const COGMETER_ROWS=[
 function renderCogMeter(){
   const body=document.getElementById('cogmeter-body');
   if(!body)return;
+  // GL-CMD-METER-LIVENESS-EVE-20260705-187 M1: every row is now either
+  // (a) LIVE -- r.live(status,v7) returns a fresh {connected,firing},
+  // recomputed on every call (pollStatus()/pollV7State() call this on
+  // every poll, not just once at boot), or (b) audit-stamped -- the
+  // static text stays, but a visible "(as of audit <date>)" is appended
+  // so it can never again be mistaken for current state, per M1's own
+  // fallback rule ("no undated audit text ever renders as current again").
+  const status=window._lastStatus,v7=window._lastV7State;
+  let nLive=0;
   let h='<div class="cm-row cm-hdr"><div>mechanism</div><div>connected</div><div>firing</div><div>last impact</div></div>';
   for(const r of COGMETER_ROWS){
-    const lbl=CM_LABELS[r.connected]||r.connected;
+    let connected=r.connected,firing=r.firing,isLive=false;
+    if(typeof r.live==='function'){
+      try{
+        const live=r.live(status,v7);
+        if(live){connected=live.connected;firing=live.firing;isLive=true;nLive++;}
+      }catch(e){/* fall through to static text on any live-check error */}
+    }
+    const lbl=CM_LABELS[connected]||connected;
     const ptr=r.pointer?` <span style="opacity:.6">(${r.pointer})</span>`:'';
+    const stamp=isLive
+      ? ' <span style="color:var(--ev-emission);opacity:.85">[LIVE]</span>'
+      : (()=>{const d=_cmAuditDate(r.pointer);
+              return d?` <span style="opacity:.5">(as of audit ${d})</span>`:'';})();
     h+=`<div class="cm-row"><div class="cm-name">${r.name}</div>`+
-       `<div class="cm-conn ${r.connected}">${lbl}${ptr}</div>`+
-       `<div class="cm-firing">${r.firing}</div>`+
+       `<div class="cm-conn ${connected}">${lbl}${ptr}</div>`+
+       `<div class="cm-firing">${firing}${stamp}</div>`+
        `<div class="cm-impact">${r.impact}</div></div>`;
   }
   body.innerHTML=h;
   const known=COGMETER_ROWS.filter(r=>r.connected!=='unknown').length;
   const cnt=document.getElementById('cogmeter-count');
-  if(cnt)cnt.textContent=`${known}/${COGMETER_ROWS.length} audited`;
+  if(cnt)cnt.textContent=`${known}/${COGMETER_ROWS.length} audited, ${nLive} live-checked this poll`;
 }
 
 // --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
