@@ -882,20 +882,55 @@ function toggleBrainMode(){
 
 // GL-CMD-UI-HONESTY-38 §2.8: _formatOrganBrainResponse deleted (zero callers after §2.7).
 
-// GL-CMD-CONVERSE-TASK-PATTERN-62: poll /api/v1/gualaloom/task/{task_id}
-// Returns the 'complete' or 'error' payload. Replaces deleted _readConverseSSE.
-async function _pollConverseTask(pollUrl, retryAfterMs){
+// GL-CMD-SEAT-TRUTH-UI-EVE-20260704-180: poll /api/v1/gualaloom/task/{task_id}
+// to REAL completion, not a fixed give-up window shorter than the engine's
+// own. GL-RPT-WINDOW3-DEPLOY-AND-LOCKUP-FINDING-C1B-20260704-v1/v2 measured
+// real turns at 27s clean and self.lock contention (sight/sound-frame DSP,
+// hot-saves) pushing single phases past 90s -- the OLD 90s cap gave up
+// before turns that were still genuinely in flight, then left the page
+// showing a static, never-updating "(settling...)" with no way to tell
+// "2 seconds in" from "2 minutes in, might be stuck." Fixed here:
+//   - no hard cutoff before a very long, clearly-labeled ceiling (10 min) --
+//     the engine itself has no fixed timeout, so neither should the seat
+//   - onTick(elapsedSec) callback so the caller can show LIVE elapsed time
+//   - status:'not_found' (task expired or orphaned by a deploy-restart --
+//     see the v1 lockup report's exact repro) is a DISTINCT, immediately
+//     terminal case, not silently retried until the ceiling -- retrying an
+//     orphaned task can never succeed, so stop and say so right away
+async function _pollConverseTask(pollUrl, retryAfterMs, onTick){
   retryAfterMs=retryAfterMs||500;
-  const maxWait=90000;const start=Date.now();
+  const maxWait=600000; // 10 min ceiling -- a labeled backstop, not a guess
+                        // at the engine's real worst case, which has none
+  const start=Date.now();
   while(Date.now()-start<maxWait){
     await new Promise(r=>setTimeout(r,retryAfterMs));
+    const elapsedSec=Math.round((Date.now()-start)/1000);
+    if(onTick)onTick(elapsedSec);
     try{
       const r=await fetchT(`${API}${pollUrl}`,{},5000);
       const d=await r.json();
-      if(d.status==='complete'||d.status==='error')return d;
-    }catch(e){}
+      // GL-CMD-SEAT-TRUTH-UI-180 S2: the backend's 'error' status carries
+      // `error`, not `response` (app.py get_converse_task) -- without this,
+      // a real backend error fell through to `d.response||'...'` downstream
+      // and silently rendered as an empty emission, hiding the failure.
+      if(d.status==='complete')return d;
+      if(d.status==='error')return{...d,response:d.response||d.error||'(unknown error)',_terminal_reason:'error'};
+      if(d.status==='not_found'){
+        return{status:'error',
+          response:`(her process restarted before this reply finished, ${elapsedSec}s in -- please resend)`,
+          _terminal_reason:'not_found'};
+      }
+      // any other status (e.g. 'settling'/'pending'): keep polling, this is
+      // the normal in-flight case -- not an error, not silence, just time
+    }catch(e){
+      // network/fetch error on ONE poll attempt: log-worthy but not fatal --
+      // keep trying until the ceiling, per S2 the eventual outcome (success
+      // or the ceiling message below) still gets said plainly
+    }
   }
-  return{status:'error',response:'(converse timed out after 90s)'};
+  return{status:'error',
+    response:`(still no reply after ${Math.round(maxWait/1000)}s -- check /events for what she's actually doing)`,
+    _terminal_reason:'ceiling'};
 }
 
 // GL-CMD-VOICE-TO-WORDS-COMPLETION-JOE-20260704 (voice-to-words):
@@ -910,13 +945,20 @@ async function _converseAndRender(text,source){
   if(startR.status===503||startR.status===500){handleNotReady('converse');}
   else if(startR.status===202){
     const start=await startR.json();
-    const phEl=addMsg('(settling...)', 'system');
-    const d=await _pollConverseTask(start.poll_url, start.retry_after_ms||500);
+    // GL-CMD-SEAT-TRUTH-UI-180 S1: live elapsed time, never a static string
+    // that can't distinguish "just started" from "stuck for two minutes"
+    const phEl=addMsg('thinking — 0s...', 'system');
+    const d=await _pollConverseTask(start.poll_url, start.retry_after_ms||500,
+      (elapsedSec)=>{if(phEl&&phEl.parentNode)phEl.textContent=`thinking — ${elapsedSec}s...`;});
     if(phEl&&phEl.parentNode)phEl.parentNode.removeChild(phEl);
     const resp=d.response||'...';
-    if(resp&&resp!=='...'&&resp!=='(converse timed out after 90s)'&&resp!=='substrate unreachable — try again in a moment'){
+    // GL-CMD-SEAT-TRUTH-UI-180 S1/S2: an error/terminal-timeout result is
+    // ALWAYS said in plain words (never re-collapsed to a generic "quiet"),
+    // a genuine empty emission gets its own honest label distinct from that
+    if(d._terminal_reason){addMsg(resp,'system');}
+    else if(resp&&resp!=='...'){
       addEmissionMsg(resp,d.emission_id);gualaSpeak(resp);
-    }else{addMsg(resp==='(converse timed out after 90s)'?'(still settling — check /events)':'(she is quiet)','system');}
+    }else{addMsg('(she had nothing — emission was empty)','system');}
     if(d.pictures)renderPictures(d.pictures);
   }else{
     const d=await startR.json().catch(()=>({}));
@@ -1034,17 +1076,38 @@ async function pollStatus(){
       const evR=await fetchT(`${API}/api/v1/gualaloom/events?n=200`,{},8000);
       const evD=await evR.json();
       const evts=evD.events||evD||[];
-      // Recent Emissions
+      // GL-CMD-SEAT-TRUTH-UI-EVE-20260704-180 S3: an empty ("...") emission
+      // IS her attempting to speak and coming up empty -- that's real
+      // information (how often, how recently), not the same as "no
+      // attempts at all." The old code only ever rendered real content
+      // lines; if the last 10 filtered emissions were ALL empty, it still
+      // showed content lines reading "...", indistinguishable from a
+      // rendering glitch, and if NONE were empty-or-real in the fetched
+      // window it said the flatly reassuring-sounding "(no recent
+      // emissions)" -- which reads as "she's fine" when it may mean "she
+      // hasn't tried in a while" (e.g. stuck attending one visual target
+      // for hours, see GL-CMD-TARGET-ROTATION-FIX-181 -- if that's active,
+      // this panel being empty is a symptom of THAT, not a display bug).
       const emDiv=document.getElementById('sp-emissions');
       const emissions=evts.filter(e=>e.kind==='emission'||e.kind==='emission_dynamics');
       if(emissions.length>0){
-        let eh='';for(const em of emissions.slice(-10).reverse()){
+        const real=[],empty=[];
+        for(const em of emissions){
           const det=em.detail||{};
-          const content=det.content||'...';
-          eh+=`<div class="ev" style="color:var(--ev-emission)">${content}</div>`;
+          const content=det.content;
+          if(content&&content!=='...')real.push({tick:em.tick,content});
+          else empty.push(em.tick);
         }
-        emDiv.innerHTML=eh;
-      }else{emDiv.innerHTML='<div class="ev">(no recent emissions)</div>'}
+        let eh='';
+        for(const em of real.slice(-10).reverse()){
+          eh+=`<div class="ev" style="color:var(--ev-emission)">${em.content}</div>`;
+        }
+        if(empty.length>0){
+          const lastTick=empty[empty.length-1];
+          eh+=`<div class="ev" style="opacity:.7">(empty emission &times;${empty.length} in this window, last at tick ${lastTick})</div>`;
+        }
+        emDiv.innerHTML=eh||'<div class="ev">(no recent emissions)</div>';
+      }else{emDiv.innerHTML='<div class="ev">(no emission attempts in the last '+evts.length+' events)</div>'}
     }catch(e){}
     _backoff.status=0;
   }catch(e){_backoff.status=Math.min((_backoff.status*2)||_BASE.status*2,30000)}

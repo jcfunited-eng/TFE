@@ -1509,12 +1509,27 @@ def _cmd_status():
 
 
 def _cmd_events(text):
-    since_tick = 0
+    # GL-CMD-SEAT-TRUTH-UI-EVE-20260704-180 S4: this is the ONLY call site
+    # reached from app.py's GET /api/v1/gualaloom/events?n=200 (the RECENT
+    # EMISSIONS/HEMISPHERES panel's own data source, per that route's
+    # docstring) -- it forwards `n` as `text` intending "how many recent
+    # events", but this parsed it as `since_tick` (a tick cutoff, always
+    # far smaller than the real tick counter, so it filtered ~nothing) AND
+    # hardcoded limit=50 regardless -- so the panel silently only ever saw
+    # the last 50 raw events, never the 200 it asked for, making sparse
+    # event kinds (like real-content emissions, if attempts happen far
+    # less often than sight/sound-frame events) invisible more often than
+    # they should be. Fixed to honor `text` as the actual limit, matching
+    # every real caller's intent. get_recent_events's own since_tick-based
+    # callers (SSE-style incremental polling, app.py:3286/3295) are
+    # untouched -- this is the one place that was never using it that way.
+    limit = 200
     try:
-        since_tick = int(text.strip()) if text.strip() else 0
+        limit = int(text.strip()) if text.strip() else 200
     except ValueError:
         pass
-    events = _guala.get_recent_events(since_tick=since_tick, limit=50)
+    limit = max(1, min(limit, 1000))  # ring buffer itself caps at 1000
+    events = _guala.get_recent_events(since_tick=0, limit=limit)
     return {"response": f"{len(events)} events",
             "motifs": _guala.introspect()["vocab"],
             "events": events}
