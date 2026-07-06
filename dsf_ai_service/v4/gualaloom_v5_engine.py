@@ -1967,6 +1967,19 @@ class Guala:
         Falls back to self._current_binding_window for direct callers.
         """
         with self.lock:
+            # GL-DIAG-READ-WORD-TIMING (Joe, 2026-07-06): instrumentation
+            # only, no behavior change -- read_ms has measured 5-24s live
+            # tonight with no proven internal breakdown; every prior fix
+            # was guesswork until real diagnostic data settled it, so this
+            # gets the same treatment instead of another guess. Overwritten
+            # (not accumulated) each call; read_sentence sums these across
+            # its whole word loop and logs one aggregate event per turn.
+            _prof_t0 = time.monotonic()
+            _prof = {}
+            def _prof_mark(_key, _t_prev):
+                _t_now = time.monotonic()
+                _prof[_key] = _prof.get(_key, 0.0) + (_t_now - _t_prev) * 1000.0
+                return _t_now
             self.tick += 1
             self.vocab.add(word)
             # §1.1: use sentence-local binding_window when supplied
@@ -1975,6 +1988,7 @@ class Guala:
 
             lang_fp, role, senses = self.language.transduce(word)
             sense_fps = self.senses.fire_for_word(senses)
+            _prof_t0 = _prof_mark("transduce", _prof_t0)
 
             # GL-CMD-175 P1: the real language sensory tap -- every word she
             # reads/hears, the organism experiences in the same window (no
@@ -2001,6 +2015,7 @@ class Guala:
                 self._tapestry_prev_word = word
             except Exception as _oe:
                 print(f"[GualaLoom] organism tap failed for {word!r} (non-fatal): {_oe}")
+            _prof_t0 = _prof_mark("organism_enqueue", _prof_t0)
 
             # 60-C: capture phase_vec + function_score from krimelack transduction.
             # phase_vec: 16-dim complex via event_stream_to_vector (dw_cum absent in
@@ -2023,6 +2038,7 @@ class Guala:
             # Store DSF for emission coupling — used by _emit_dynamics to set H_base
             # so the assemblage settles under concept-specific attractors (Eve point C)
             self._last_lang_dsf = lang_dsf
+            _prof_t0 = _prof_mark("phase_dsf", _prof_t0)
 
             # v6: compute salience (or use caller-supplied override for backfill writes)
             if salience is None:
@@ -2030,6 +2046,7 @@ class Guala:
                                                   input_novelty=atlas_sim)
 
             primary_sections = self._choose_role_sections(role, position_hint)
+            _prof_t0 = _prof_mark("salience_role", _prof_t0)
 
             # GL-CMD-175 P2 seam 2/6: surprise/recognition now comes from
             # the organism's population-vote consensus, not atlas-chi
@@ -2047,6 +2064,7 @@ class Guala:
                 self._last_surprise = surprise
             else:
                 surprise = self._last_surprise
+            _prof_t0 = _prof_mark("recognition", _prof_t0)
 
             # v8 (GL-BRIEF-032): dwell_ticks by source
             # Interactive sources (joe, wc, c1) = attended, higher dwell
@@ -2121,6 +2139,7 @@ class Guala:
             # §1.2's "all atlas.record callsites index" invariant.
             if _listen_committed:
                 self._index_word_at_chi("listen", _listen_mode_idx, lang_chi)
+            _prof_t0 = _prof_mark("listen_receive", _prof_t0)
 
             for primary_section in primary_sections:
                 fam = self.atlas.match_score(lang_chi, primary_section)
@@ -2145,6 +2164,7 @@ class Guala:
                         self._word_to_emission_sections[wl] = []
                     self._word_to_emission_sections[wl].append(
                         (primary_section, mi, word))
+            _prof_t0 = _prof_mark("primary_sections_receive", _prof_t0)
 
             if senses:
                 combined_events = list(self.language.events)
@@ -2176,6 +2196,7 @@ class Guala:
                                           salience=salience,
                                           **self._affect_kwargs(surprise),
                                           **self._grounding_kwargs())
+            _prof_t0 = _prof_mark("ground_modal", _prof_t0)
 
             # GL-BUG-SELFHEAR-INTRO-RATCHET (found live 2026-07-06): this commit
             # used to fire unconditionally on familiarity alone, with no check
@@ -2214,6 +2235,7 @@ class Guala:
                     index_callback=self._index_word_at_chi)
                 if _intro_committed:
                     self._index_word_at_chi("intro", _intro_mode_idx, lang_chi)
+            _prof_t0 = _prof_mark("intro_receive", _prof_t0)
 
             # v6: Decay heartbeat (GL-FIX-PAUSE-IDEMPOTENT: rate_scale=0 when paused
             # keeps last_tick current so unpause doesn't see a massive dt)
@@ -2234,6 +2256,8 @@ class Guala:
             if self.tick % 5 == 0:
                 self.coordinator.regulate(self, self.needs, self.atlas,
                                           self.sections, self.tick)
+            _prof_mark("decay_coordinator", _prof_t0)
+            self._read_word_last_profile = _prof
 
             return lang_chi, role, list(senses.keys())
 
@@ -2369,6 +2393,12 @@ class Guala:
             self._current_episode = (ep_id, self.tick)
             # §1.1: binding_window is sentence-local — prevents unbounded growth
             binding_window = []
+            # GL-DIAG-READ-WORD-TIMING: aggregate read_word's per-call profile
+            # across this sentence's whole word loop -- see read_word's own
+            # comment for why. Only logged for real conversational sources
+            # (same gate converse_timing already uses) to avoid per-word
+            # spam from autonomous curriculum/corpus reading.
+            _read_profile_agg = {}
 
             for i, word in enumerate(words):
                 if len(words) == 1:
@@ -2385,6 +2415,14 @@ class Guala:
                               location=location, sky_state=sky_state,
                               place=place, ambient=ambient,
                               binding_window=binding_window)
+                _wp = getattr(self, "_read_word_last_profile", None)
+                if _wp:
+                    for _k, _v in _wp.items():
+                        _read_profile_agg[_k] = _read_profile_agg.get(_k, 0.0) + _v
+            if source in ("joe", "joe_voice", "wc", "c1", "gate_test") and _read_profile_agg:
+                self._log_substrate_event("read_sentence_timing",
+                                          n_words=len(words),
+                                          **{k: round(v, 1) for k, v in _read_profile_agg.items()})
             # 60-N: read_count no longer incremented here; property derives from atlas
             self._current_episode = None
             self._prev_phase_vec = None   # 60-L: reset rotation tracking at sentence boundary
