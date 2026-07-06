@@ -151,6 +151,31 @@ async def _run_converse(task_id: str, text: str, source: str, emission_mode=None
     task["status"] = "settling"
     task["phase"] = "processing"
     try:
+        # Conversations should auto-wake her -- talking to her should wake her.
+        # substrate_runner.py's handle_gualaloom_post() already does this
+        # (coordinator.wake() alone only sets presence, it does NOT end a
+        # SLEEPING/DREAMING activity), but that check was never carried over
+        # to this, the actually-live embedded-mode path -- so a real turn
+        # arriving during an autonomous sleep cycle ran with no wake at all,
+        # at whatever crawling tick rate she rests at, instead of being woken
+        # first like every other entry point already does.
+        if _guala is not None and _guala.is_asleep and text.strip():
+            try:
+                _guala.wake_from_sleep(state_dir=STATE_DIR)
+                _guala.coordinator.wake(source or "joe", _guala, _guala.needs, _guala.atlas)
+            except Exception:
+                pass
+            if _guala.is_asleep:
+                ca = getattr(_guala, "_current_activity", None)
+                quiet_kind = getattr(ca, "kind", "sleeping").lower() if ca else "sleeping"
+                task["status"] = "complete"
+                task["response"] = f"she is {quiet_kind}..."
+                task["response_source"] = "sleep_quiet"
+                task["motifs"] = len(_guala.vocab) if _guala else 0
+                task["emission_id"] = None
+                task["completed_tick"] = _guala.tick if _guala else 0
+                task["completed_at"] = time.time()
+                return
         if _is_remote():
             client = _get_substrate_client()
             result = await client.call(
