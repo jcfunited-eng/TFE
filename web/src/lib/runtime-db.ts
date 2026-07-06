@@ -1,4 +1,6 @@
 import { Pool } from "pg";
+import { spawnSync } from "node:child_process";
+import path from "node:path";
 
 export type AttemptFailure = {
   path: string;
@@ -14,6 +16,53 @@ export const RUNTIME_SYMBOLS_HISTORY_TABLE = "runtime_symbols_history";
 export const RUNTIME_DECISION_PROVENANCE_TABLE = "runtime_decision_provenance_latest";
 
 let runtimePool: Pool | null = null;
+
+function isDbAuthError(err: unknown): boolean {
+  const e = err as { code?: string; message?: string };
+  return e.code === "28P01" || String(e.message ?? "").includes("password authentication failed");
+}
+
+// Calls resolve_runtime_db_secret.py to get the current secret value from Secrets Manager.
+// Returns fresh credentials or null if TFE_RUNTIME_DB_SECRET_ARN is unset or the call fails.
+// Runs synchronously at pool-creation time so every pool rebuild gets current creds.
+function fetchFreshDbCredentials(): { user: string; password: string } | null {
+  const secretArn = String(process.env.TFE_RUNTIME_DB_SECRET_ARN ?? "").trim();
+  if (!secretArn) return null;
+
+  const pythonBin = String(process.env.TFE_PYTHON_BIN ?? "python3").trim() || "python3";
+  const helperPath = path.join(process.cwd(), "scripts", "resolve_runtime_db_secret.py");
+
+  const completed = spawnSync(pythonBin, [helperPath, secretArn], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 20_000,
+    env: process.env as NodeJS.ProcessEnv,
+  });
+
+  if (completed.status !== 0 || completed.error) {
+    console.error(
+      `[runtime-db] Secret credential refresh failed (exit=${completed.status ?? "null"}): ` +
+      `${(completed.stderr || completed.stdout || String(completed.error?.message ?? "unknown")).trim()}`,
+    );
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(String(completed.stdout ?? "").trim()) as unknown;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const { username, password } = parsed as Record<string, unknown>;
+      if (
+        typeof username === "string" && username.length > 0 &&
+        typeof password === "string" && password.length > 0
+      ) {
+        return { user: username, password };
+      }
+    }
+  } catch {
+    console.error("[runtime-db] Failed to parse secret refresh response");
+  }
+  return null;
+}
 
 export function resolveRuntimeSource(): string {
   return String(process.env.TFE_RUNTIME_DATA_SOURCE ?? process.env.TFE_RUNTIME_SOURCE ?? "postgres")
@@ -76,10 +125,20 @@ export function postgresSourcePath(tableName: string): string {
 function createRuntimePool(): Pool {
   const host = readRequiredEnv("PGHOST", "TFE_DB_HOST");
   const database = readRequiredEnv("PGDATABASE", "TFE_DB_NAME");
-  const user = readRequiredEnv("PGUSER", "TFE_DB_USER");
-  const password = readRequiredEnv("PGPASSWORD", "TFE_DB_PASSWORD");
   const port = readPgPort();
   const rejectUnauthorized = resolvePgSslRejectUnauthorized();
+
+  // Always fetch fresh credentials from Secrets Manager when TFE_RUNTIME_DB_SECRET_ARN
+  // is set. This means every pool rebuild (including after a 28P01) gets the current
+  // password rather than the one injected at container start time, which may be stale
+  // after an RDS secret rotation.
+  const freshCreds = fetchFreshDbCredentials();
+  const user     = freshCreds?.user     ?? readRequiredEnv("PGUSER",     "TFE_DB_USER");
+  const password = freshCreds?.password ?? readRequiredEnv("PGPASSWORD", "TFE_DB_PASSWORD");
+
+  if (freshCreds) {
+    console.log("[runtime-db] Pool created with fresh credentials from Secrets Manager.");
+  }
 
   const pool = new Pool({
     host,
@@ -94,16 +153,27 @@ function createRuntimePool(): Pool {
     application_name: "tfe-runtime-shared",
   });
 
-  // If auth fails (e.g. secret rotation), destroy pool so next call recreates it
-  // with fresh credentials from the updated environment.
-  pool.on("error", (err) => {
-    const code = (err as NodeJS.ErrnoException & { code?: string }).code;
-    if (code === "28P01" || String(err.message).includes("password authentication failed")) {
-      console.error("[runtime-db] Auth failure detected — invalidating pool for recreation.");
+  const invalidateOnAuthError = (err: unknown): void => {
+    if (isDbAuthError(err)) {
+      console.error("[runtime-db] Auth failure detected — invalidating pool for recreation with fresh credentials.");
       runtimePool = null;
       pool.end().catch(() => undefined);
     }
-  });
+  };
+
+  // Idle-client errors: fires when a pooled connection fails while not executing a query.
+  pool.on("error", invalidateOnAuthError);
+
+  // Query-level errors: pool.on("error") does NOT fire for rejected pool.query() calls.
+  // Override query to catch 28P01 from active queries (the common post-rotation failure
+  // path) and trigger the same pool invalidation so the next call rebuilds with fresh creds.
+  const originalQuery = pool.query.bind(pool);
+  // @ts-expect-error — query is heavily overloaded; wrapping at runtime for rotation detection
+  pool.query = (...args: unknown[]) =>
+    (originalQuery as (...a: unknown[]) => Promise<unknown>)(...args).catch((err: unknown) => {
+      invalidateOnAuthError(err);
+      throw err;
+    });
 
   return pool;
 }
