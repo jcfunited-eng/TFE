@@ -55,6 +55,15 @@ FORGETTING_THRESHOLD = 0.02
 # Atlas band (carried from v5)
 CHI_BAND = 2
 
+# GL-BUG-HARD-NEIGHBORHOOD-CUTOFF (Joe, 2026-07-06): decay rate for
+# match_score's distance weighting (see that method for the full rationale).
+# 0.5 gives a smooth, meaningful gradient across the existing band width
+# (d=0 -> 1.0, d=1 -> ~0.61, d=2 -> ~0.37 before mean-normalization) rather
+# than either a hard wall or a decay so steep the band's outer edge stops
+# mattering at all. match_score normalizes these by the band's own mean so
+# a hit smeared evenly across the band still scores where it always did.
+CHI_DISTANCE_DECAY = 0.5
+
 # Strength cap to prevent runaway accumulation
 STRENGTH_CAP = 1.0
 
@@ -550,16 +559,51 @@ class LivingAtlas:
 
     def match_score(self, chi_value, section_name):
         """For familiarity feedback: how much existing structure is at this chi?
-        v6: weighted by binding strength (forgotten bindings don't count)."""
+        v6: weighted by binding strength (forgotten bindings don't count).
+
+        GL-BUG-HARD-NEIGHBORHOOD-CUTOFF (Joe, 2026-07-06): this used to treat
+        every chi within the search band as equally relevant and everything
+        outside it as irrelevant -- a hard wall, and one that didn't even use
+        distance WITHIN the band: an entry sitting exactly on chi_value and
+        one sitting `band` steps away counted identically. Real similarity
+        judgments (Shepard 1987, "Toward a Universal Law of Generalization")
+        decay as a negative exponential of distance in the underlying
+        psychological/conceptual space, not a step function -- this replaces
+        the uniform in-band/zero-outside weighting with exactly that: a
+        smooth exp(-CHI_DISTANCE_DECAY * |d|) falloff, so a closer entry
+        genuinely counts for more than a farther one instead of them being
+        indistinguishable. Search radius (self.band) is unchanged -- this
+        only fixes how much a hit at a given distance is worth, not how far
+        out the search reaches."""
+        # GL-BUG-DECAY-MAGNITUDE-SHIFT (Joe, 2026-07-06): raw exp(-k*|d|)
+        # weights are each <= 1.0, so real bindings for a word -- which land
+        # spread across the band rather than stacked at d=0, since a word's
+        # chi drifts slightly on every re-encounter -- would score lower in
+        # total than they did under the old uniform weighting, even though
+        # nothing about that word actually became less familiar. That silent
+        # across-the-board drop was large enough to flip fixed downstream
+        # thresholds (e.g. the >0.3 introspection gate) for already-learned
+        # words the instant this deployed. Normalizing by the band's own mean
+        # weight keeps a hit smeared evenly across the band scoring exactly
+        # where it did before (mean weight_scale == 1.0 by construction),
+        # while a hit concentrated at d=0 now scores higher than before and
+        # one sitting only at the band's edge scores lower -- the intended
+        # Shepard's-law differentiation, without moving the goalposts for
+        # everything she already knows.
         score = 0.0
-        for d in range(-self.band, self.band + 1):
+        offsets = range(-self.band, self.band + 1)
+        decays = [math.exp(-CHI_DISTANCE_DECAY * abs(d)) for d in offsets]
+        mean_decay = sum(decays) / len(decays)
+        for d, decay in zip(offsets, decays):
+            weight_scale = decay / mean_decay
             for e in self.entries.get(chi_value + d, []):
                 if e["strength"] < FORGETTING_THRESHOLD:
                     continue
+                weight = e["strength"] * weight_scale
                 if e["section"] != section_name:
-                    score += 0.3 * e["strength"]
+                    score += 0.3 * weight
                 else:
-                    score += 0.1 * e["strength"]
+                    score += 0.1 * weight
         return min(score, 1.0)
 
     def query_associations(self, section_name, chi_value):
