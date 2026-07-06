@@ -215,8 +215,20 @@ console.log("\n=== D5.4.3 M_k ASC ===");
 assert(stratSrcD543.includes("(a.m_k ?? Infinity) - (b.m_k ?? Infinity)"), "M_k ASC (lower first)");
 assert(!stratSrcD543.includes("(b.m_k ?? -Infinity) - (a.m_k ?? -Infinity)"), "Old DESC removed");
 assert(stratSrcD543.includes("D5.5 outcome"), "Reference to outcome analysis in comment");
-assert(stratSrcD543.includes("M_k_ASC (D5.5 outcome-corrected)"), "Log reflects ASC direction");
+assert(stratSrcD543.includes("M_k_ASC"), "Log reflects ASC direction");
 assert(stratSrcD543.includes("Math.abs(nwrDiff) > 1e-9"), "Epsilon tie detection still present");
+
+// ══════════════════════════════════════════════════════════════════════
+// D5.7 assertions — M_k ceiling
+// ══════════════════════════════════════════════════════════════════════
+const stratSrcD57 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
+
+console.log("\n=== D5.7 M_k ceiling ===");
+assert(stratSrcD57.includes("M_K_CEILING"), "Ceiling constant defined");
+assert(stratSrcD57.includes(`"0.12"`), "Default 0.12");
+assert(stratSrcD57.includes("TFE_M_K_CEILING"), "Env override");
+assert(stratSrcD57.includes("(mK < M_K_CEILING)"), "Ceiling check in gate");
+assert(stratSrcD57.includes("D5.5 outcome data"), "Comment cites source");
 
 console.log(`\n${passed}/${passed + failed} assertions passed`);
 if (failed > 0) process.exit(1);

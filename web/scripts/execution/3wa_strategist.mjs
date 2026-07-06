@@ -42,6 +42,10 @@ const W1_S_N_MIN       = 0.954;
 const W1_S_N_MAX       = 0.969;
 const W1_DELTA_S_N_MIN = 0.67;
 const W1_DELTA_S_N_MAX = 0.72;
+// Physics gate M_k ceiling — D5.5 backfill: winner M_k median 0.016,
+// loser median 0.125, catastrophic median 0.219. Cap removes ~75% of
+// catastrophic-prone signals. Env override for future recalibration.
+const M_K_CEILING = parseFloat(process.env.TFE_M_K_CEILING ?? "0.12");
 
 function toFloat(v) {
   const n = parseFloat(v);
@@ -197,14 +201,17 @@ function parseSignal(row, spyDk, speciesMap) {
 
   // ── L5 governance gate: physics AND finance memory ─────────────────
   // Physics gate (lifetime state from L0-L4 integrators):
-  //   R_rev_k == 0: no reversion signal in the coupled tuple
-  //   M_k >= 0:     mode indicator non-negative
+  //   R_rev_k == 0:       no reversion signal in the coupled tuple
+  //   0 <= M_k < 0.12:   mode building but not at peak coherence
   // Finance memory: neighbor_wr already gates Accumulate label upstream
   //   at tuple_proximity_engine.mjs threshold 0.65. All Accumulate signals
   //   reaching this filter already have neighbor_wr >= 0.65.
   // Wave 1 (§4 crystallization) bypasses the physics gate — it's a specific
   //   validated pattern with independent 72.1% edge.
-  const physicsPass = (rRevK === 0) && (mK !== null && mK >= 0);
+  // Physics gate: R_rev_k=0 AND 0 <= M_k < 0.12.
+  // Ceiling per D5.5 outcome data — mode above 0.12 = peak coherence
+  // pre-release, correlates with catastrophic exit.
+  const physicsPass = (rRevK === 0) && (mK !== null && mK >= 0) && (mK < M_K_CEILING);
   if (!wave1 && !physicsPass) return null;
 
   return {
@@ -346,7 +353,7 @@ export async function get3WASignals() {
   for (const s of deduped) {
     classCounts[s.signal_class] = (classCounts[s.signal_class] || 0) + 1;
   }
-  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed L5 physics gate (R_rev_k=0 ∧ M_k≥0) or Wave 1 → ${deduped.length} after dedup, sorted by tier→nwr→M_k_ASC (D5.5 outcome-corrected)`);
+  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed L5 physics gate (R_rev_k=0 ∧ 0≤M_k<${M_K_CEILING}) or Wave 1 → ${deduped.length} after dedup, sorted by tier→nwr→M_k_ASC`);
   console.log(`[STRATEGIST] signal_class distribution (post-gate, sorted): 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]} | standard=${classCounts["standard"]}`);
   for (const s of deduped) {
     console.log(`[STRATEGIST]   ${s.ticker} | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | s_n=${s.s_n} | |Δs_n|=${s.abs_delta_s_n}`);
