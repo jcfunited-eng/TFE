@@ -135,6 +135,26 @@ def setup_pr(guala):
     return pr
 
 
+# GL-CMD-ENABLE-COGNITION-EVE-20260705-211 RCA / Joe decision 2026-07-06:
+# pr's own side of these two functions is naturally bounded to 20 entries
+# per chi bucket (the mirror cap below). em's side (the main atlas) was
+# NOT bounded -- it scales with however large her actual memory has grown,
+# unboundedly, forever. One converse turn measured 893,995 events out of
+# pr_consensus_divergence's nested loop as a direct result. Fix: compare
+# against her strongest, most-reinforced bindings at each chi, not every
+# weak trace that happens to share it -- this is a correctness improvement,
+# not just a truncation: the strongest bindings are the ones that actually
+# carry experiential signal; weak ones barely above the forgetting
+# threshold were contributing noise, not meaning.
+EM_COMPARE_CAP = 20
+
+
+def _top_by_strength(entries, cap=EM_COMPARE_CAP):
+    if len(entries) <= cap:
+        return entries
+    return sorted(entries, key=lambda e: e["strength"], reverse=True)[:cap]
+
+
 def pr_parallel_settle(guala, input_chis, source, tick):
     """Drive pr with same input chis as em. No emission — comparison only."""
     pr = guala.hemispheres.get("pr")
@@ -143,9 +163,9 @@ def pr_parallel_settle(guala, input_chis, source, tick):
     # Record input bindings in pr atlas (parallel to em's read_sentence)
     for chi in input_chis:
         for d in range(-guala.atlas.band, guala.atlas.band + 1):
-            for e in guala.atlas.entries.get(chi + d, []):
-                if e["strength"] < FORGETTING_THRESHOLD:
-                    continue
+            em_entries = [e for e in guala.atlas.entries.get(chi + d, [])
+                          if e["strength"] >= FORGETTING_THRESHOLD]
+            for e in _top_by_strength(em_entries):
                 # Mirror binding into pr atlas if not already there
                 key = (e["section"], e["motif"], chi + d)
                 existing = False
@@ -175,8 +195,9 @@ def pr_consensus_divergence(guala, input_chis, tick, events_log):
             # All active bindings at this chi band — recency is implicit in
             # the fact that we're running this on the INPUT chis of the
             # current converse event. No separate time-window filter.
-            em_entries = [e for e in guala.atlas.entries.get(chi + d, [])
-                          if e["strength"] >= FORGETTING_THRESHOLD]
+            em_entries = _top_by_strength(
+                [e for e in guala.atlas.entries.get(chi + d, [])
+                 if e["strength"] >= FORGETTING_THRESHOLD])
             pr_entries = [e for e in pr.atlas.entries.get(chi + d, [])
                           if e["strength"] >= FORGETTING_THRESHOLD]
             for em_b in em_entries:
