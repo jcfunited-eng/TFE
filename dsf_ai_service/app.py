@@ -4648,13 +4648,66 @@ async def startup():
     asyncio.ensure_future(_eager_init())
 
     # Server-side background replay for v7 sessions
+    # GL-BUG-V7-SESSION-LEAK (Joe, 2026-07-06): _sessions never evicted
+    # anything -- every page load/reload creates a new session_id, and this
+    # loop kept quiet_tick+save-ing every one of them, forever, every 15s,
+    # for the life of the container. Confirmed live: 128 accumulated
+    # session files going back to 2026-06-08, 1.4GB total, with tonight's
+    # active sessions alone ~20MB EACH -- re-serialized to disk every 15s
+    # regardless of whether anyone was still using them. That's real CPU
+    # (serializing tens of MB isn't free) and real EFS write bandwidth,
+    # competing with the same narrow storage throughput her actual memory
+    # saves already contend for (see the hot-save latency investigation
+    # earlier tonight). EVICT_AFTER_SECONDS stops the recurring per-15s tax
+    # for genuinely abandoned sessions (one final save, then drop from
+    # memory -- reloads from disk fine if that session_id ever reconnects).
+    # RETENTION_DAYS bounds the disk itself, same policy this file already
+    # uses for the diary (DIARY_RETENTION_DAYS=7) -- old test/dev session
+    # files here go back a MONTH with nothing removing them ever.
     import asyncio
+    V7_SESSION_EVICT_AFTER_SECONDS = 3600  # 1 hour idle -> stop background-ticking it
+    V7_SESSION_RETENTION_DAYS = 7  # matches DIARY_RETENTION_DAYS elsewhere in this codebase
+    _v7_last_prune_day = [None]
+
+    def _prune_old_v7_session_files():
+        from dsf_ai_service.substrate.v7_engine import STATE_DIR as V7_STATE_DIR
+        cutoff = time.time() - V7_SESSION_RETENTION_DAYS * 86400
+        removed, freed_bytes = 0, 0
+        try:
+            for fname in os.listdir(V7_STATE_DIR):
+                if not (fname.endswith(".json") or fname.endswith(".json.tmp")
+                        or fname.endswith(".events.jsonl")):
+                    continue
+                fpath = os.path.join(V7_STATE_DIR, fname)
+                try:
+                    st = os.stat(fpath)
+                    if st.st_mtime < cutoff:
+                        freed_bytes += st.st_size
+                        os.remove(fpath)
+                        removed += 1
+                except OSError:
+                    pass
+        except OSError as e:
+            print(f"[v7-prune] scan failed: {e}")
+            return
+        if removed:
+            print(f"[v7-prune] removed {removed} session files older than "
+                  f"{V7_SESSION_RETENTION_DAYS}d, freed {freed_bytes/1e6:.1f}MB")
+
     async def _background_replay():
-        """Run quiet_tick on idle sessions every 15s."""
-        from dsf_ai_service.substrate.v7_engine import _sessions, _sessions_lock, save_session
+        """Run quiet_tick on idle sessions every 15s; evict long-abandoned
+        sessions from memory; prune disk files past retention once/day."""
+        from dsf_ai_service.substrate.v7_engine import (
+            _sessions, _sessions_lock, save_session,
+        )
         while True:
             await asyncio.sleep(15)
             try:
+                today = time.strftime("%Y-%m-%d", time.gmtime())
+                if _v7_last_prune_day[0] != today:
+                    _v7_last_prune_day[0] = today
+                    loop = asyncio.get_event_loop()
+                    await loop.run_in_executor(None, _prune_old_v7_session_files)
                 with _sessions_lock:
                     session_ids = list(_sessions.keys())
                 for sid in session_ids:
@@ -4663,6 +4716,17 @@ async def startup():
                     if session is None:
                         continue
                     idle = time.time() - getattr(session, '_last_converse_time', 0)
+                    if idle > V7_SESSION_EVICT_AFTER_SECONDS:
+                        try:
+                            loop = asyncio.get_event_loop()
+                            await loop.run_in_executor(None, save_session, session)
+                            with _sessions_lock:
+                                _sessions.pop(sid, None)
+                            print(f"[v7-evict] session={sid} idle={idle:.0f}s "
+                                  f"-- final save, dropped from memory")
+                        except Exception:
+                            pass
+                        continue
                     if idle > 30:
                         try:
                             results = session.quiet_tick(3)

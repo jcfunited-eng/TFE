@@ -3265,10 +3265,27 @@ class Guala:
         reality, never inventing a new mode slot.
 
         Returns [] (honest empty, per W3) on any failure to produce a
-        real candidate -- never partially substitutes the old gather."""
-        query = (input_words[-1] if input_words else self._tapestry_prev_word)
-        if not query:
+        real candidate -- never partially substitutes the old gather.
+
+        GL-BUG-LAST-WORD-CONCEPTUALIZATION (Joe, 2026-07-06): this used to
+        query the organism with ONLY input_words[-1] -- one anchor word,
+        not the utterance she was actually replying to. That's not
+        conceptualization, it's a one-word echo association. A real
+        utterance's meaning comes from ALL its words together, so this now
+        queries the organism once per input word (bounded, see cap below)
+        and merges the vote distributions, giving candidates a chance to
+        resonate with the whole thought instead of whichever word
+        happened to land last."""
+        queries = list(input_words) if input_words else (
+            [self._tapestry_prev_word] if self._tapestry_prev_word else [])
+        if not queries:
             return []
+        # Bound worst-case cost (she should be faster than a human at this,
+        # not slower) -- ordinary conversational turns are well under this;
+        # only a pasted wall of text would ever hit it.
+        _QUERY_WORD_CAP = 12
+        queries = queries[-_QUERY_WORD_CAP:]
+        input_words_lower = set(w.lower() for w in input_words) if input_words else set()
         # GL-CMD-VOICE-ORGANISM-CANDIDATES-195: candidates come from the
         # organism's population-vote recall (Embryo.recall_fast) — the same
         # validated mechanism seams 1/3 (_recall_from_organism /
@@ -3281,26 +3298,33 @@ class Guala:
         # it back. No per-word memory existed on that path at all. Retired
         # here as candidate source per W2's own principle: one mind, one
         # mouth — and the mind's real recall is the organism vote.
-        try:
-            # GL-CMD-ORGANISM-WAVE-MEMORY-207 W3: no lock -- see
-            # _recognition_from_organism's matching comment.
-            votes = self.organism.recall_fast(
-                _organism_signal(query, self._organism_transducer))
-        except Exception as _oe:
-            print(f"[GualaLoom] organism recall failed for query={query!r} "
-                  f"(non-fatal, honest empty): {_oe}")
+        from collections import Counter as _Counter
+        merged_votes = _Counter()
+        n_queries_ok = 0
+        for q in queries:
+            try:
+                # GL-CMD-ORGANISM-WAVE-MEMORY-207 W3: no lock -- see
+                # _recognition_from_organism's matching comment.
+                votes = self.organism.recall_fast(
+                    _organism_signal(q, self._organism_transducer))
+            except Exception as _oe:
+                print(f"[GualaLoom] organism recall failed for query={q!r} "
+                      f"(non-fatal, skipped): {_oe}")
+                continue
+            if votes:
+                n_queries_ok += 1
+                merged_votes.update(votes)
+        if not merged_votes:
             return []
-        if not votes:
-            return []
-        total = sum(votes.values())
+        total = sum(merged_votes.values())
         candidates = []
         n_with_section_home = 0
         # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-EVE-20260705-203 U0b: the pre-trim
         # to a fixed vote count is deleted -- the physics downstream (the
         # greedy coherence selectors) sees her FULL vote distribution;
         # selection is the physics' job, not a slice's.
-        for w, n_votes in votes.most_common():
-            if not w or w.lower() == query.lower():
+        for w, n_votes in merged_votes.most_common():
+            if not w or w.lower() in input_words_lower:
                 continue  # association, not self-echo (seam-3 convention)
             locations = self._word_to_emission_sections.get(w.lower())
             if not locations:
@@ -3319,8 +3343,9 @@ class Guala:
         # many already have a committed section slot. n_candidates: final
         # count after also excluding self-echo.
         self._log_substrate_event("emission_diag",
-                                  query=query,
-                                  n_voted_words=len(votes),
+                                  queries=queries[:12],
+                                  n_queries_ok=n_queries_ok,
+                                  n_voted_words=len(merged_votes),
                                   n_with_section_home=n_with_section_home,
                                   n_candidates=len(candidates))
         return candidates
@@ -4473,23 +4498,46 @@ class Guala:
                         and committed_word not in emission_words):
                     emission_words.append(committed_word)
             else:
-                # Fallback: arcs() argmax for installed modes
+                per_section_dominant[sec_name] = (None, None, "none")
+
+        # GL-BUG-SLOTS-NOT-PATTERNS (Joe 2026-07-06): arcs_fallback used to
+        # run unconditionally for EVERY section that never got a real
+        # commit, manufacturing a word from mere installed-candidate
+        # strength (arcs() argmax) regardless of whether the dynamics ever
+        # actually converged there. That was the literal mechanism forcing
+        # fake content into empty "slots" -- a role that never resonated
+        # isn't part of this thought, and shouldn't speak just because the
+        # fixed six-section template tries to fill all six every turn.
+        # There is no real "how many roles does this thought need" step
+        # upstream of this loop, so the number of words she says should
+        # come from how many sections genuinely settled, not from how many
+        # sections happen to have any installed candidate at all.
+        # Now used only as a whole-turn safety net: if NOTHING anywhere
+        # genuinely committed, fall back once (single best candidate across
+        # all sections) so a turn where the dynamics didn't converge in
+        # time isn't flatly mute -- never as a per-section default when
+        # other sections DID commit for real.
+        if not emission_words:
+            best_fallback = None
+            best_fallback_score = -1.0
+            for sec_name in self._EMISSION_SECTIONS:
+                sec = sys_.sections[sec_name]
                 arcs = sec.arcs()
                 if len(arcs) == 0:
-                    per_section_dominant[sec_name] = (None, None, "none")
                     continue
                 sorted_modes = sorted(range(len(arcs)), key=lambda i: -arcs[i])
-                top_mode = None
-                word = None
                 for mi in sorted_modes:
                     w = self._emission_word_map.get((sec_name, mi))
                     if w:
-                        top_mode = mi
-                        word = w
+                        if arcs[mi] > best_fallback_score:
+                            best_fallback_score = arcs[mi]
+                            best_fallback = (sec_name, mi, w)
                         break
-                per_section_dominant[sec_name] = (top_mode, word, "arcs_fallback")
-                if word and word.lower() not in input_words_set and word not in emission_words:
-                    emission_words.append(word)
+            if best_fallback is not None:
+                fb_sec, fb_mi, fb_word = best_fallback
+                per_section_dominant[fb_sec] = (fb_mi, fb_word, "arcs_fallback")
+                if fb_word.lower() not in input_words_set:
+                    emission_words.append(fb_word)
 
         if not emission_words:
             return None
