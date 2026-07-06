@@ -621,6 +621,19 @@ class V7Session:
         self.event_log.truncate_before(self.event_log.count)
         return data
 
+    # GL-BUG-V7-ATLAS-UNBOUNDED (Joe, 2026-07-06): ChiAtlas.add_claim() has
+    # no decay/forgetting/cap at all -- every distinct (chi, section,
+    # mode_id) a session ever sees gets permanently appended and never
+    # removed. Every OTHER field in to_json() below already caps itself to
+    # the most recent/relevant N (intro_commit_history, aware_commit_history,
+    # last_nmda_events[-20:], recent_word_commits[-50:]) -- the atlas dump
+    # was the one field that never got that same treatment, and it's the
+    # dominant reason a single session file reaches ~20MB. Capping per-chi
+    # entries to the strongest few mirrors what real forgetting would do
+    # (keep what's reinforced, drop the weak/stale) rather than an
+    # arbitrary truncation.
+    _ATLAS_ENTRIES_PER_CHI_CAP = 20
+
     def to_json(self):
         state = {
             "schema_version": 5,
@@ -636,7 +649,11 @@ class V7Session:
             "last_nmda_events": list(self.last_nmda_events[-20:]),
             "recent_word_commits": list(self.recent_word_commits[-50:]),
             "sections": {},
-            "atlas": {str(k): v for k, v in self.sys_.atlas.entries.items()},
+            "atlas": {
+                str(k): sorted(v, key=lambda e: -e.get("strength", 0.0))[
+                    :self._ATLAS_ENTRIES_PER_CHI_CAP]
+                for k, v in self.sys_.atlas.entries.items()
+            },
             "keyholes": [
                 {"sender": kh["sender"], "chi_lo": kh["chi_lo"],
                  "chi_hi": kh["chi_hi"], "receiver": kh["receiver"],

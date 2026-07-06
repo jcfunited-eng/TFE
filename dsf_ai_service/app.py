@@ -4666,7 +4666,14 @@ async def startup():
     # files here go back a MONTH with nothing removing them ever.
     import asyncio
     V7_SESSION_EVICT_AFTER_SECONDS = 3600  # 1 hour idle -> stop background-ticking it
-    V7_SESSION_RETENTION_DAYS = 7  # matches DIARY_RETENTION_DAYS elsewhere in this codebase
+    # GL-BUG-V7-SESSION-LEAK follow-up (Joe, 2026-07-06): 7 days (matching
+    # DIARY_RETENTION_DAYS) was still too generous given each session file
+    # runs ~20MB even after the atlas-cap fix above -- confirmed live, 71
+    # files/1.2GB survived a 7-day cutoff. Cut hard per Joe's explicit
+    # "much more aggressively" call: 1 day is enough to resume a same-day
+    # browser tab, not enough to let a month of abandoned tabs pile up
+    # gigabytes again.
+    V7_SESSION_RETENTION_DAYS = 1
     _v7_last_prune_day = [None]
 
     def _prune_old_v7_session_files():
