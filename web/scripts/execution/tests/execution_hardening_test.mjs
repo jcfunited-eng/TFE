@@ -206,5 +206,15 @@ assert(stratSrcD541.includes("CLASS_RANK"), "Sort tier map defined");
 assert(stratSrcD541.includes("deduped.sort"), "Deduped sorted");
 assert(stratSrcD541.includes(`"3WA": 0`), "3WA highest priority tier");
 
+// ══════════════════════════════════════════════════════════════════════
+// D5.4.2 assertions — M_k tiebreak
+// ══════════════════════════════════════════════════════════════════════
+const stratSrcD542 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
+
+console.log("\n=== D5.4.2 M_k tiebreak ===");
+assert(stratSrcD542.includes("Math.abs(nwrDiff) > 1e-9"), "Tie detection uses epsilon");
+assert(stratSrcD542.includes("(b.m_k ?? -Infinity) - (a.m_k ?? -Infinity)"), "M_k DESC tiebreak present");
+assert(stratSrcD542.includes("tier→nwr→M_k"), "Log reflects three-level sort");
+
 console.log(`\n${passed}/${passed + failed} assertions passed`);
 if (failed > 0) process.exit(1);
