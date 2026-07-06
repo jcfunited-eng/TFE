@@ -825,16 +825,21 @@ class LoomNeuron:
 
     def experience_moment(self, concept: str,
                           multi_modal_signals: Dict[str, Any],
-                          tick: int) -> None:
+                          tick: int,
+                          precomputed_lanes: Dict[str, Any] = None) -> None:
         """Cognition write — substrate-true multi-modal binding.
 
         Feeds each modality's signal through its krimelack (no reset),
         reads phase, builds 7-dim state vector, records to BindingAtlas.
+
+        precomputed_lanes: see encode_state -- optional population-loop
+        optimization, passed through unchanged.
         """
-        state_vec = self.encode_state(multi_modal_signals)
+        state_vec = self.encode_state(multi_modal_signals, precomputed_lanes)
         self.binding_atlas.record(concept, state_vec, tick)
 
-    def encode_state(self, multi_modal_signals: Dict[str, Any]):
+    def encode_state(self, multi_modal_signals: Dict[str, Any],
+                      precomputed_lanes: Dict[str, Any] = None):
         """Per-neuron state for binding/recall. Switched by self.observable:
         - "resonant_spectral" (GL-CMD capacity solve): returns a Dict[str, np.ndarray]
           of PER-LANE balanced-ternary chi sub-vectors, one per present array-valued
@@ -853,11 +858,22 @@ class LoomNeuron:
           honestly comparable to the matching lanes of a richer teach-time
           binding (BindingAtlas does the masked, lane-normalized match).
         - else (event_count default / rank_order): R⁶ grandurun vector from
-          _unwrapped_deltas (the GL-CMD-140 path), unchanged."""
+          _unwrapped_deltas (the GL-CMD-140 path), unchanged.
+
+        GL-FIX-POPULATION-LANE-RECOMPUTE (2026-07-06): lane_features(multi_modal_
+        signals) does not depend on this neuron at all (it's the raw per-modality
+        resonant spectrum of the SIGNAL, shared by every neuron in the population
+        vote). Every population-loop caller (remember()/recall_fast/recall_op)
+        computes it once and passes it in as precomputed_lanes -- a caller that
+        still calls encode_state() directly with no lanes (e.g. a single-neuron
+        caller, or a test) is unaffected, since this recomputes lane_features
+        exactly as before when precomputed_lanes is None. Only the SHARED,
+        neuron-independent input is hoisted; the per-(neuron, modality) projection
+        and ternary_chi below are still computed per-neuron, unchanged."""
         from .grandurun import grandurun_state
         if getattr(self, "observable", "event_count") == "resonant_spectral":
             from . import resonant_chi as rc
-            lanes = rc.lane_features(multi_modal_signals)
+            lanes = precomputed_lanes if precomputed_lanes is not None else rc.lane_features(multi_modal_signals)
             if not hasattr(self, "_lane_P"):
                 self._lane_P = {}
             chi_lanes = {}

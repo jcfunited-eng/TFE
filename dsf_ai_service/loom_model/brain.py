@@ -446,12 +446,22 @@ class LoomBrain:
         so this can call the EXACT SAME encode_state() the write path
         (experience_moment) uses, with no risk of query contamination and
         no parity-drift risk between write and read (one function, not two
-        descriptions of the same thing)."""
+        descriptions of the same thing).
+
+        GL-FIX-POPULATION-LANE-RECOMPUTE (2026-07-06): lane_features(query_
+        signals) does not depend on the neuron (see neuron.encode_state's
+        docstring) -- hoisted here so it's computed once per call instead of
+        once per neuron. This is the live "recognition" hot path
+        (organism.recall_fast, called synchronously per word), so the
+        redundant recompute scaled directly with her neuron population and
+        was paid on every word."""
         from collections import Counter
+        from . import resonant_chi as rc
         votes = Counter()
+        precomputed_lanes = rc.lane_features(query_signals)
         for hemi in self.hemispheres:
             for neuron in hemi.cluster.neurons:
-                target = neuron.encode_state(query_signals)
+                target = neuron.encode_state(query_signals, precomputed_lanes)
                 best_concept, _ = neuron.binding_atlas.recall_best(target)
                 if best_concept is not None:
                     votes[best_concept] += 1

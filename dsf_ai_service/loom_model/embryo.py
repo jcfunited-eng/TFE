@@ -512,10 +512,20 @@ class Embryo:
     # --- the WORKING mechanism wired into the seed: perceive -> remember -> recall ---
     def remember(self, concept, signals):
         """Write the concept across all hemispheres via the resonant-spectral chi
-        (the verified recall mechanism). This is the one piece that actually works."""
+        (the verified recall mechanism). This is the one piece that actually works.
+
+        GL-FIX-POPULATION-LANE-RECOMPUTE (2026-07-06): lane_features(signals) is
+        the same, neuron-independent value for every neuron in this loop (see
+        neuron.encode_state's docstring) -- computed once here instead of once
+        per neuron (currently ~100+ redundant recomputes per word and growing
+        with her population)."""
+        precomputed_lanes = None
+        if self.brain.observable == "resonant_spectral":
+            from . import resonant_chi as rc
+            precomputed_lanes = rc.lane_features(signals)
         for h in self.brain.hemispheres:
             for n in h.cluster.neurons:
-                n.experience_moment(concept, signals, self.tick)
+                n.experience_moment(concept, signals, self.tick, precomputed_lanes)
         self.tick += 1
 
     def recall(self, signals):
@@ -549,14 +559,21 @@ class Embryo:
 
     def recall_op(self, op_tag, signals, profile=None):
         """Population vote within ONE operation-hemisphere. em/pr/ep read the spectral
-        chi (capacity); sc reads the stable profile chi (meaning)."""
+        chi (capacity); sc reads the stable profile chi (meaning).
+
+        GL-FIX-POPULATION-LANE-RECOMPUTE (2026-07-06): see remember()'s docstring --
+        same hoist, same reasoning, for the em/pr/ep (non-sc) branch."""
         from collections import Counter
         votes = Counter()
+        precomputed_lanes = None
+        if op_tag != "sc" and self.brain.observable == "resonant_spectral":
+            from . import resonant_chi as rc
+            precomputed_lanes = rc.lane_features(signals)
         for n in self.hemi_by_op[op_tag].cluster.neurons:
             if op_tag == "sc" and profile is not None:
                 q = self._sc_encode(n, profile)
             else:
-                q = n.encode_state(signals)
+                q = n.encode_state(signals, precomputed_lanes)
             best, _ = n.binding_atlas.recall_best(q)
             if best is not None:
                 votes[best] += 1
