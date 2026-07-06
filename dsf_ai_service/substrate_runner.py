@@ -303,6 +303,16 @@ def _curriculum_feed_chunk(sentences, bundle_id=None, event_type="curriculum",
     _pause_autonomy_for_bulk()
     try:
         for sent in sentences:
+            # GL-BUG-CURRICULUM-LOCK-PRIORITY (Joe, 2026-07-06): "let talking
+            # be its own thing" -- a live conversation started (see app.py's
+            # _run_converse) is a stronger claim on her than the next
+            # sentence of a background reading chunk. Checking a plain
+            # attribute needs no lock and costs nothing; yielding here
+            # degrades exactly like the rate-cap gate above already does
+            # (n_fed < planned, capped=True) -- nothing lost, this sentence
+            # and the rest of the chunk are just picked up next cycle.
+            if getattr(_guala, "_live_converse_pending", False):
+                break
             try:
                 _guala.read_sentence(sent, source=event_type, bundle_id=bundle_id,
                                      episode_ref=episode_ref, presence=presence,

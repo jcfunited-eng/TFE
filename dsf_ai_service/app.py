@@ -150,6 +150,22 @@ async def _run_converse(task_id: str, text: str, source: str, emission_mode=None
     loop = _aio.get_event_loop()
     task["status"] = "settling"
     task["phase"] = "processing"
+    # GL-BUG-CURRICULUM-LOCK-PRIORITY (Joe, 2026-07-06): "let talking be its
+    # own thing" -- live conversation and her own autonomous background
+    # reading (curriculum/worldfeed/lookup) both serialize through the same
+    # self.lock via read_sentence(), with no priority between them. A
+    # previous session (Eve, 2026-06-30, see substrate_runner.py's
+    # _curriculum_feed_chunk) already found curriculum thrashing on this
+    # lock could make /converse time out at 5s+, and partially mitigated it
+    # by pausing OTHER autonomy during a feed -- but never gave live
+    # conversation actual priority over an in-progress feed. A plain
+    # attribute set/read (no lock needed, GIL-atomic) lets the curriculum
+    # loop check "is someone waiting to talk to her right now" between
+    # sentences and yield early -- reusing the SAME graceful partial-chunk
+    # pattern that function already uses for its own rate-cap gate, so an
+    # interrupted chunk just resumes next cycle, nothing is lost.
+    if _guala is not None:
+        _guala._live_converse_pending = True
     try:
         # Conversations should auto-wake her -- talking to her should wake her.
         # substrate_runner.py's handle_gualaloom_post() already does this
@@ -230,6 +246,9 @@ async def _run_converse(task_id: str, text: str, source: str, emission_mode=None
         task["status"] = "error"
         task["error"] = str(_e)[:500]
         task["completed_at"] = time.time()
+    finally:
+        if _guala is not None:
+            _guala._live_converse_pending = False
 
 def _get_substrate_client():
     """Lazy-init the substrate client for remote mode."""
