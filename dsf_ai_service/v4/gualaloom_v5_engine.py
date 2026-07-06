@@ -3194,6 +3194,57 @@ class Guala:
         except Exception:
             pass
 
+    def _best_fit_location(self, locations):
+        """GL-BUG-SLOTS-NOT-PATTERNS (Joe, 2026-07-06): a candidate word's
+        grammatical role was being chosen by _word_to_emission_sections'
+        write-time recency (itself already fixed once tonight, from a worse
+        bug where raw section-iteration order beat real timestamps) -- but
+        recency-of-write is still not a real pattern match, it's a clock
+        reading. A word that has ever occupied more than one role section
+        carries a DIFFERENT DSF fingerprint in each one (Section.receive
+        reinforces its OWN copy of that word's pattern toward whatever
+        context it was written in each time). The substrate-native question
+        -- which of this word's role-homes actually fits what's happening
+        RIGHT NOW, not which was written most recently -- is answered by
+        comparing each home's stored DSF against self._last_lang_dsf (the
+        live DSF of what she just read, set in read_word/read_sentence,
+        already used elsewhere for this same emission-coupling purpose) via
+        cosine similarity -- the same comparison Section.receive's own
+        similarity scan already does, just applied across a word's
+        different role-homes instead of across different words. This also
+        makes the self-hearing ratchet fixed earlier tonight structurally
+        moot for any word with more than one real role-home: a stale echo
+        commit no longer wins just by being newest, it has to actually
+        resemble the current moment.
+        Falls back to the most recent location when only one exists, or
+        when no current DSF is available yet (e.g. the very first turn),
+        rather than guessing further."""
+        if len(locations) == 1:
+            return locations[0]
+        cur_dsf = getattr(self, "_last_lang_dsf", None)
+        if cur_dsf is None:
+            return locations[-1]
+        cur = cur_dsf.to_array()
+        cur_norm = np.linalg.norm(cur)
+        if cur_norm < 1e-12:
+            return locations[-1]
+        best_loc = None
+        best_score = -2.0  # cosine similarity range is [-1, 1]
+        for loc in locations:
+            sec_name, mode_idx, _ = loc
+            sec = self.sections.get(sec_name)
+            if sec is None or mode_idx >= len(sec.modes):
+                continue
+            mode_dsf = sec.modes[mode_idx][0].to_array()
+            mode_norm = np.linalg.norm(mode_dsf)
+            if mode_norm < 1e-12:
+                continue
+            score = float(np.dot(mode_dsf, cur) / (mode_norm * cur_norm))
+            if score > best_score:
+                best_score = score
+                best_loc = loc
+        return best_loc if best_loc is not None else locations[-1]
+
     def _brain_emission_candidates(self, input_words):
         """GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 P3 / GL-NOTE-VOICE-WIRING-
         RULING W2: the organism's own mind (tapestry recall/compose, built
@@ -3255,7 +3306,7 @@ class Guala:
             if not locations:
                 continue  # only words with a real committed section home
             n_with_section_home += 1
-            section, mode_idx, _matched_word = locations[-1]  # most recent commit
+            section, mode_idx, _matched_word = self._best_fit_location(locations)
             weight = (n_votes / total) if total else 0.0
             co = {section: {mode_idx: weight}}
             de = {"co_occurrence": co, "clarity": weight, "origin": "brain"}
