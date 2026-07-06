@@ -608,14 +608,27 @@ class LivingAtlas:
 
     def query_associations(self, section_name, chi_value):
         """Cross-section associations at this chi.
-        v6: returns strength-weighted associations."""
+        v6: returns strength-weighted associations.
+
+        GL-BUG-HARD-NEIGHBORHOOD-CUTOFF follow-on (deferred by 983dfb3,
+        applied here): same hard-cutoff bug match_score had -- an
+        association at the query chi and one at the band's edge counted
+        identically. Weighted by the same mean-normalized
+        exp(-CHI_DISTANCE_DECAY*|d|) falloff (see match_score for the full
+        derivation); clamped to STRENGTH_CAP since a reported strength is
+        elsewhere always <= 1.0."""
         associated = defaultdict(list)
-        for d in range(-self.band, self.band + 1):
+        offsets = range(-self.band, self.band + 1)
+        decays = [math.exp(-CHI_DISTANCE_DECAY * abs(d)) for d in offsets]
+        mean_decay = sum(decays) / len(decays)
+        for d, decay in zip(offsets, decays):
+            weight_scale = decay / mean_decay
             for e in self.entries.get(chi_value + d, []):
                 if e["strength"] < FORGETTING_THRESHOLD:
                     continue
                 if e["section"] != section_name:
-                    associated[e["section"]].append((e["motif"], e["strength"]))
+                    weighted = min(STRENGTH_CAP, e["strength"] * weight_scale)
+                    associated[e["section"]].append((e["motif"], weighted))
         return dict(associated)
 
     def recall_scene(self, chi_value):
@@ -623,14 +636,28 @@ class LivingAtlas:
         were write-only (bound at record() time, never read back -- -164's
         audit finding). Returns the scene lanes of the strongest live entry
         at this chi, or None if nothing live is bound here. Read-only, no
-        side effects -- safe to call from recall/introspection paths."""
+        side effects -- safe to call from recall/introspection paths.
+
+        GL-BUG-HARD-NEIGHBORHOOD-CUTOFF follow-on (deferred by 983dfb3,
+        applied here): "strongest" used to mean raw strength alone, so an
+        entry at the band's edge could beat a closer, equally-strong one.
+        Selection now weights by the same distance falloff match_score
+        uses -- the returned strength is still the winning entry's own raw
+        binding strength, not the distance score; distance only decides
+        which entry wins."""
         best = None
-        for d in range(-self.band, self.band + 1):
+        best_score = -1.0
+        offsets = range(-self.band, self.band + 1)
+        decays = [math.exp(-CHI_DISTANCE_DECAY * abs(d)) for d in offsets]
+        mean_decay = sum(decays) / len(decays)
+        for d, decay in zip(offsets, decays):
+            weight_scale = decay / mean_decay
             for e in self.entries.get(chi_value + d, []):
                 if e["strength"] < FORGETTING_THRESHOLD:
                     continue
-                if best is None or e["strength"] > best["strength"]:
-                    best = e
+                score = e["strength"] * weight_scale
+                if score > best_score:
+                    best, best_score = e, score
         if best is None:
             return None
         return {

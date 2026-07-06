@@ -34,6 +34,12 @@ TRANSFER_RATIO = 0.5            # deep starts at this fraction of working streng
 # Entries below this have never received meaningful reinforcement.
 _CO_PRUNE_THRESH = FORGETTING_THRESHOLD ** 2  # 0.0004
 
+# GL-BUG-HARD-NEIGHBORHOOD-CUTOFF follow-on (deferred by 983dfb3, applied
+# here in _update_invariant): same decay constant and mean-normalization
+# gualaloom_v6_living_atlas.py's match_score uses, for the same working
+# atlas band (working_atlas is that same LivingAtlas class).
+CHI_DISTANCE_DECAY = 0.5
+
 
 def _deep_atlas_enabled():
     return os.environ.get("DEEP_ATLAS_ENABLED", "1") != "0"
@@ -139,20 +145,41 @@ class DeepAtlas:
         new_w = old_w * (1 - strength) + strength * strength
 
         §2.4: removed 0.05 strength floor. Newly-arrived motifs (e.g. DNA-expanded
-        modifier/ground from -36) now contribute proportionally at any strength."""
+        modifier/ground from -36) now contribute proportionally at any strength.
+
+        GL-BUG-HARD-NEIGHBORHOOD-CUTOFF follow-on (deferred by 983dfb3,
+        applied here): the band loop below used to treat every entry within
+        the working atlas's search band as equally relevant regardless of
+        its distance from chi_k -- the same hard-cutoff bug match_score had
+        before that fix. This feeds live daydream/novel-jump writes (see
+        gualaloom_v5_engine.py's _daydream_tick), so it was worth doing for
+        real. Each entry's strength is scaled by the same mean-normalized
+        exp(-CHI_DISTANCE_DECAY*|d|) falloff match_score uses (an entry
+        spread evenly across the band integrates the same as before), then
+        clamped to 1.0 before it's used as the EMA integration rate /
+        evidence weight below -- required because an on-target weight_scale
+        exceeds 1.0 with this decay constant, and the new_w formula assumes
+        strength in [0, 1] (an unclamped value would flip the sign of the
+        (1 - strength) term)."""
         co = deep_entry.get("co_occurrence", {})
         band = getattr(working_atlas, 'band', 2)
+
+        offsets = range(-band, band + 1)
+        decays = [math.exp(-CHI_DISTANCE_DECAY * abs(d)) for d in offsets]
+        mean_decay = sum(decays) / len(decays)
 
         # P1a: snapshot pre-call mass per section for mass conservation
         touched = set()
         pre_masses = {}
 
-        for d in range(-band, band + 1):
+        for d, decay in zip(offsets, decays):
+            weight_scale = decay / mean_decay
             for e in working_atlas.entries.get(chi_k + d, []):
                 # §2.4: no strength floor — proportional contribution at any strength
-                strength = e.get("strength", 0.0)
-                if strength <= 0.0:
+                raw_strength = e.get("strength", 0.0)
+                if raw_strength <= 0.0:
                     continue
+                strength = min(1.0, raw_strength * weight_scale)
                 sec = e.get("section", "")
                 mid = str(e.get("motif", 0))
                 sec_dict = co.get(sec, {})
