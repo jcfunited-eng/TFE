@@ -42,6 +42,7 @@ const W1_S_N_MIN       = 0.954;
 const W1_S_N_MAX       = 0.969;
 const W1_DELTA_S_N_MIN = 0.67;
 const W1_DELTA_S_N_MAX = 0.72;
+const TP_ENTRY_THRESHOLD = parseFloat(process.env.TFE_TP_ENTRY_THRESHOLD ?? "0.65");
 
 function toFloat(v) {
   const n = parseFloat(v);
@@ -192,12 +193,14 @@ function parseSignal(row, spyDk, speciesMap) {
     signalClass = "standard";
   }
 
-  // ── Wave 1 entry filter (spec §4 line 293) ─────────────────────────
-  // "Entry signal fires iff: is_trigger(i,t) == True AND all three Wave
-  // 1 conditions hold." Filter drops signals that don't meet Wave 1.
-  // 'standard' class is structural noise, not a Wave 1 crystallization,
-  // and MUST NOT enter production positions per §4.
-  if (!wave1) return null;
+  // ── Entry filter: Wave 1 OR tuple-proximity ────────────────────────
+  // v1.0 entry gate is the UNION of two independently-validated signals:
+  //   - Wave 1 (spec §4): structural crystallization pattern, WR 72.1%
+  //   - Tuple-proximity: 30-NN neighbor WR >= 0.65 (walkforward_bet_20260624)
+  // 'standard' class with no tuple-proximity hit is unfiltered noise
+  // (see 2026-07-06 morning: 30 positions of 'standard' → -$1,625).
+  const tpHit = neighborWR !== null && neighborWR >= TP_ENTRY_THRESHOLD;
+  if (!wave1 && !tpHit) return null;
 
   return {
     ticker,
@@ -321,8 +324,8 @@ export async function get3WASignals() {
   for (const s of deduped) {
     classCounts[s.signal_class] = (classCounts[s.signal_class] || 0) + 1;
   }
-  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed Wave 1 gate (spec §4) → ${deduped.length} after dedup`);
-  console.log(`[STRATEGIST] signal_class distribution (post-W1-gate): 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]}`);
+  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed W1-or-TP gate → ${deduped.length} after dedup`);
+  console.log(`[STRATEGIST] signal_class distribution (post-gate): 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]} | standard=${classCounts["standard"]}`);
   for (const s of deduped) {
     console.log(`[STRATEGIST]   ${s.ticker} | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | s_n=${s.s_n} | |Δs_n|=${s.abs_delta_s_n}`);
   }
