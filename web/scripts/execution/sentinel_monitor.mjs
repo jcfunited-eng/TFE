@@ -4,12 +4,11 @@
  *
  * Runs after each market day against all open positions in personal_trade_ledger.
  *
- * Four kill conditions:
+ * Three kill conditions:
  *   1. CIRCUIT BREAKER: portfolio dropped > max_drawdown_pct in session
  *      → liquidate ALL positions, halt new trades for circuit_breaker_hours
- *   2. SPY FLIP: SPY D_k flipped to 0/-1 → liquidate ALL positions
- *   3. CALAMITY: R_rev_k > 0 on individual position → market sell that position
- *   4. ZOMBIE:   position age > tau_in_max bars → market sell that position
+ *   2. CALAMITY: R_rev_k > 0 on individual position → market sell that position
+ *   3. ZOMBIE:   position age > tau_in_max bars → market sell that position
  *
  * Circuit breaker state is written to pee1_circuit_breaker table.
  * pee1_runner checks this table before executing any new orders.
@@ -163,7 +162,7 @@ const PHANTOM_GRACE_MS = 30 * 60 * 1000; // 30 minutes
 //   73% of early losers (0-3d) were winners at 20 days
 //   Optimal: 7 days → projected 67.1% WR (from 41.3%)
 // Winning exits (EXIT-A, EXIT-H) always fire. -10% catastrophic always fires.
-// Only LOSING exits (EXIT-B D_k collapse, EXIT-C tau, SPY flip) are held.
+// Only LOSING exits (EXIT-B D_k collapse, EXIT-C tau) are held.
 export const MIN_HOLD_DAYS = 7;
 
 export function shouldPhantomCleanup(pos) {
@@ -755,31 +754,6 @@ export async function runSentinel() {
   }
 
   console.log(`[SENTINEL] Open positions: ${positions.length} | SPY D_k: ${spyDk ?? "unknown"}`);
-
-  // Wave 3 flip — liquidate Ch1 (3WA) positions only if SPY D_k is no longer 1
-  // Ch2 positions use their own per-ticker D_k exit (Exit B) — SPY flip does not apply
-  const spyFlip = spyDk !== null && spyDk !== 1;
-  if (spyFlip) {
-    const exemptClasses = new Set(["CH2", "CH3"]);
-    const ch1Positions = positions.filter(p => !exemptClasses.has(String(p.signal_class ?? "").trim().toUpperCase()));
-    if (ch1Positions.length > 0) {
-      console.log(`[SENTINEL] SPY D_k=${spyDk} — Wave 3 GONE — checking ${ch1Positions.length} Ch1 position(s)`);
-      for (const pos of ch1Positions) {
-        // EXIT-R9: 7-day minimum hold — don't liquidate young positions at a loss
-        const spyEntryTime = pos.entry_filled_at ?? pos.signal_detected_at ?? pos.created_at;
-        const spyPosAge = spyEntryTime
-          ? Math.floor((Date.now() - new Date(spyEntryTime).getTime()) / (1000 * 60 * 60 * 24))
-          : 999;
-        if (spyPosAge < 7) {
-          console.log(`[SENTINEL] SPY flip: ${pos.ticker} — MIN HOLD GUARD: skipping (age=${spyPosAge}d, need 7d)`);
-          continue;
-        }
-        await killPosition(pos, "sentinel_spy_flip", ALPACA_BASE);
-      }
-    } else {
-      console.log(`[SENTINEL] SPY D_k=${spyDk} — Wave 3 GONE — no Ch1 positions to liquidate (Ch2 positions use ticker-level D_k exit)`);
-    }
-  }
 
   // ── Sync fill/cancel status from Alpaca → ledger ─────────────────────────
   const submittedPositions = positions.filter(p => p.status === "submitted" || !p.entry_filled_at);

@@ -168,7 +168,6 @@ function parseSignal(row, spyDk, speciesMap) {
 
   if (!ticker)  return null;
   if (!runId)   return null;
-  if (spyDk !== 1) return null;  // Wave 3 not active — no signals at all
 
   // Wave 1: canonical Structure A (D2 / structural_wave_alignment_spec.tex Definition 1)
   // Close >= $5 is guaranteed upstream by decision_label='Accumulate' (tfe_l5_baseline.py MIN_PRICE)
@@ -254,20 +253,14 @@ export async function get3WASignals() {
   const runId = await resolveLatestRunId();
   console.log(`[STRATEGIST] run_id=${runId}`);
 
-  // Wave 3 gate — check SPY first
+  // SPY D_k is informational, NOT a Wave 1 selection gate.
+  // Design doc §4 defines Wave 1 gate on individual ticker transition
+  // (D_k(t-1)=0 → D_k(t)=+1), s_n bands, |Δs_n| bands, bar_count.
+  // Design doc §15/line 128: "W3 is not used as a v1.0 selection condition."
+  // Backtest C13 = 0: 92% WR population never overlapped with SPY D_k=+1.
   const spy = await fetchSpyRow(runId);
-  if (!spy) {
-    console.log("[STRATEGIST] SPY not found in runtime_decisions_latest — Wave 3 INACTIVE");
-    return [];
-  }
-
-  const spyDk = spy.d_k;
-  if (spyDk !== 1) {
-    console.log(`[STRATEGIST] SPY D_k=${spyDk} — Wave 3 INACTIVE — no signals emitted`);
-    return [];
-  }
-
-  console.log(`[STRATEGIST] SPY D_k=1 — Wave 3 ACTIVE`);
+  const spyDk = spy?.d_k ?? null;
+  console.log(`[STRATEGIST] SPY D_k=${spyDk ?? "unknown"} (informational — not a Wave 1 gate)`);
 
   // ── Regime exposure gate (position capacity check) ──────────────────
   {

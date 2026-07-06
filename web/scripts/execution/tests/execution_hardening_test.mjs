@@ -174,5 +174,22 @@ assert(sentSrcD51.includes(`"HTBK"`), "HTBK on blocklist");
 assert(sentSrcD51.includes(`"CWAN"`), "CWAN on blocklist");
 assert(sentSrcD51.includes("on ORPHAN_ADOPT_BLOCKLIST"), "Blocklist log message present");
 
+// ══════════════════════════════════════════════════════════════════════
+// D5.2 assertions — SPY D_k gate removal
+// ══════════════════════════════════════════════════════════════════════
+const stratSrcD52 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
+const sentSrcD52  = await readFile(new URL("../sentinel_monitor.mjs", import.meta.url), "utf8");
+
+console.log("\n=== D5.2 strategist SPY D_k gate removed ===");
+assert(!stratSrcD52.includes(`if (spyDk !== 1) return null`), "Per-signal SPY veto removed from parseSignal");
+assert(!/if\s*\(\s*spyDk\s*!==\s*1\s*\)\s*\{\s*[^}]*return\s+\[\]/s.test(stratSrcD52), "Top-level SPY veto removed from get3WASignals");
+assert(stratSrcD52.includes("informational — not a Wave 1 gate"), "New informational-only comment present");
+assert(!stratSrcD52.includes("Wave 3 INACTIVE"), "Old Wave 3 INACTIVE log strings removed");
+
+console.log("\n=== D5.2 sentinel SPY flip exit removed ===");
+assert(!sentSrcD52.includes("sentinel_spy_flip"), "SPY flip exit reason string removed");
+assert(!sentSrcD52.includes("Wave 3 GONE"), "SPY flip Wave 3 GONE log removed");
+assert(!sentSrcD52.includes("SPY flip:"), "SPY flip prefix log removed");
+
 console.log(`\n${passed}/${passed + failed} assertions passed`);
 if (failed > 0) process.exit(1);
