@@ -886,7 +886,30 @@ class Section:
             avg = (old_dsf.to_array() * 0.9 + dsf.to_array() * 0.1)
             new_dsf = DSF(*avg)
             self.modes[word_match_idx] = (new_dsf, old_chi, old_word)
-            self._modes_dirty = True   # mode vector changed; matrix must rebuild
+            # GL-BUG-MODES-MATRIX-THRASH (Joe, 2026-07-06): this used to
+            # mark the whole cached similarity matrix dirty on every
+            # reinforcement, even though reinforcement only changes ONE
+            # existing row's values, not the matrix's shape. Measured
+            # live tonight: a 14-word sentence mixing known and unknown
+            # words cost ~26s combined across "listen" (14000+ modes) and
+            # the position/DNA-routed sections, because every known-word
+            # reinforcement invalidated the cache a genuinely-new word's
+            # similarity scan needed moments later -- forcing a full
+            # O(n_modes) rebuild from scratch instead of one rebuild
+            # amortized across the whole sentence. Update the existing
+            # row in place instead (a reinforcement doesn't change the
+            # matrix's shape) so the cache stays valid for whichever word
+            # needs the similarity scan next; only a genuine append
+            # (below) still needs a real invalidation. Falls back to the
+            # old mark-dirty behavior if the cache doesn't exist yet or
+            # the index is somehow stale -- no correctness regression
+            # possible, just a lazy rebuild next use as before.
+            if self._modes_matrix is not None and word_match_idx < len(self._modes_matrix):
+                _new_vec = new_dsf.to_array()
+                self._modes_matrix[word_match_idx] = _new_vec
+                self._modes_norms[word_match_idx] = np.linalg.norm(_new_vec) + 1e-12
+            else:
+                self._modes_dirty = True
             mode_idx = word_match_idx
             committed = True
         elif len(self.modes) < 24:
