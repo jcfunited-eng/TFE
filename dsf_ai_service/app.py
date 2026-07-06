@@ -164,6 +164,7 @@ async def _run_converse(task_id: str, text: str, source: str, emission_mode=None
             response = result.get("response", "") if isinstance(result, dict) else str(result)
             response_source = result.get("response_source", "converse") if isinstance(result, dict) else "converse"
             motifs = result.get("motifs", 0) if isinstance(result, dict) else 0
+            emission_id = result.get("emission_id") if isinstance(result, dict) else None
         else:
             if _guala is None:
                 raise RuntimeError("guala_not_ready")
@@ -173,6 +174,14 @@ async def _run_converse(task_id: str, text: str, source: str, emission_mode=None
             response = result if isinstance(result, str) else str(result)
             response_source = getattr(_guala, "_last_response_source", "converse")
             motifs = len(_guala.vocab)
+            # GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: this
+            # was never read here, so no rendered reply ever carried a real
+            # emission_id -- every thumbs-up/down click fell back to
+            # "whatever she last said in direct conversation" instead of
+            # the specific line clicked (teacher/feedback + /correction
+            # routes fall back to _last_converse_input/reply when the
+            # emission_id they're given doesn't resolve).
+            emission_id = getattr(_guala, "_last_emission_id", None)
 
         # EFS log_event is fire-and-forget
         if _guala is not None:
@@ -189,6 +198,7 @@ async def _run_converse(task_id: str, text: str, source: str, emission_mode=None
         task["response"] = response
         task["response_source"] = response_source
         task["motifs"] = motifs
+        task["emission_id"] = emission_id
         task["completed_tick"] = _guala.tick if _guala else 0
         task["completed_at"] = time.time()
     except Exception as _e:
@@ -2763,6 +2773,10 @@ async def get_converse_task(task_id: str):
             "response": task["response"],
             "response_source": task["response_source"],
             "motifs": task.get("motifs", 0),
+            # GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: was
+            # missing entirely, so no polled reply ever carried a real
+            # emission_id to the frontend -- see _run_converse's own note.
+            "emission_id": task.get("emission_id"),
             "started_tick": task["started_tick"],
             "completed_tick": task.get("completed_tick"),
             "elapsed_ms": int((task.get("completed_at", time.time()) - task["started_at"]) * 1000),

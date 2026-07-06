@@ -89,6 +89,36 @@ class TurnLogEntry:
     current_activity: str = ""
 
 
+# ---------- Hemisphere atlas decay (GL-CMD-ENABLE-COGNITION-EVE-20260705-211
+# fix, Joe 2026-07-06) ----------
+# em's atlas gets decayed (self.atlas.decay(...)) and pruned
+# (self.atlas.forget_below_threshold()) on a standing heartbeat, every 10
+# and every 200 ticks respectively. pr/ep/sc/gp's atlases never received the
+# same treatment -- entries mirrored in (pr_parallel_settle) or written
+# directly (ep/sc/gp) sat at whatever strength they were bound at, forever,
+# only ever growing. Give them the identical fade-then-forget cycle em
+# already has, at the same cadence, so old/weak bindings fade naturally
+# instead of the atlas becoming a pure accumulator.
+
+def decay_hemisphere_atlases(guala, tick, rate_scale=1.0):
+    """Call every tick%10==0, same as guala.atlas.decay()."""
+    for hname in ("pr", "ep", "sc", "gp"):
+        coord = guala.hemispheres.get(hname)
+        atlas = getattr(coord, "atlas", None) if coord is not None else None
+        if atlas is not None:
+            atlas.decay(tick, rate_scale=rate_scale)
+
+
+def forget_hemisphere_atlases(guala):
+    """Call every tick%200==0 (and not paused), same as
+    guala.atlas.forget_below_threshold()."""
+    for hname in ("pr", "ep", "sc", "gp"):
+        coord = guala.hemispheres.get(hname)
+        atlas = getattr(coord, "atlas", None) if coord is not None else None
+        if atlas is not None:
+            atlas.forget_below_threshold()
+
+
 # ---------- Cross-hemi link management ----------
 
 def get_or_create_link(links, src_hemi, src_chi, dst_hemi, dst_chi):

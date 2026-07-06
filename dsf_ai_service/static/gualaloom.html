@@ -796,8 +796,14 @@ async function sendFeedback(correct,up,dn,block){
       const r=await fetchT(`${API}/api/v1/teacher/feedback`,{method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({emission_id:emissionId,source:'joe'})},10000);
-      if(r.ok){up.classList.add('active');up.textContent='\u2714';up.dataset.locked='1';dn.style.opacity='0.3';dn.dataset.locked='1'}
-    }catch(e){}
+      // GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: r.ok only
+      // checks HTTP status -- the backend can return 200 with {"error":...}
+      // (e.g. "no conversation context") when emission_id doesn't resolve,
+      // which this used to render as a silent, indistinguishable success.
+      const d=await r.json().catch(()=>({}));
+      if(r.ok&&!d.error){up.classList.add('active');up.textContent='\u2714';up.dataset.locked='1';dn.style.opacity='0.3';dn.dataset.locked='1'}
+      else{addMsg('feedback not applied: '+(d.error||'unknown error'),'system')}
+    }catch(e){addMsg('feedback error: '+e.message,'system')}
   }else{
     openCorrectionModal(emissionId,block?block.dataset.emissionText:'',up,dn);
   }
@@ -859,9 +865,16 @@ async function submitCorrection(){
   try{
     const r=await fetchT(`${API}/api/v1/teacher/correction`,{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify(body)},10000);
-    if(r.ok){
+    // GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: same fix as
+    // sendFeedback -- inspect the body, not just HTTP status, so a soft
+    // {"error":...} response (emission_id didn't resolve) shows up honestly
+    // instead of a checkmark that didn't mean anything happened.
+    const d=await r.json().catch(()=>({}));
+    if(r.ok&&!d.error){
       dn.classList.add('active');dn.textContent='\u2714';dn.dataset.locked='1';up.style.opacity='0.3';up.dataset.locked='1';
       addMsg(`corrected: "${corrected}"`,`system`);
+    }else{
+      addMsg('correction not applied: '+(d.error||'unknown error'),'system');
     }
   }catch(e){addMsg('correction error: '+e.message,'system')}
   closeCorrectionModal();

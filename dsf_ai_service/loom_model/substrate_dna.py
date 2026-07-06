@@ -251,10 +251,11 @@ class VisualKrimelack:
         for i, intensity in enumerate(arr):
             t = float(i) * VIS_DT
             self._fovea.tick(float(intensity), t)
-        self.events = [
-            {"t": t_ev, "dw": +1, "s": 1.0}
-            for t_ev in self._fovea.events
-        ]
+        # GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: use the
+        # real per-event (t, dw, s) AdaptingFoveaKrimelack now produces,
+        # instead of discarding it for a hardcoded {"dw": +1, "s": 1.0}
+        # placeholder that could never vary.
+        self.events = list(self._fovea.events)
         self._n_events += len(self.events)
         self.winding = self._fovea.winding_count
         self._phase = float(self.winding) * 0.1  # phase from winding accumulation

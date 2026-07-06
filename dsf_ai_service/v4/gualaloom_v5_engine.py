@@ -2196,8 +2196,14 @@ class Guala:
             _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
             if self.tick % 10 == 0:
                 self.atlas.decay(self.tick, rate_scale=0.0 if _paused else self.decay_modulation)
+                if self.hemispheres:
+                    from dsf_ai_service.substrate.hemisphere_cognition import decay_hemisphere_atlases
+                    decay_hemisphere_atlases(self, self.tick, rate_scale=0.0 if _paused else self.decay_modulation)
             if not _paused and self.tick % 200 == 0:
                 self.atlas.forget_below_threshold()
+                if self.hemispheres:
+                    from dsf_ai_service.substrate.hemisphere_cognition import forget_hemisphere_atlases
+                    forget_hemisphere_atlases(self)
 
             # 8b. V5: Generate questions from gaps in this word's bindings
             # 9. Coordinator regulation pass (homeostasis + awareness)
@@ -2953,6 +2959,69 @@ class Guala:
             t.start()
             self._organism_worker_thread = t
 
+    def _replay_sensory_echo(self, word):
+        """GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: replay
+        a word's own REAL past sensory grounding when no live camera/mic
+        frame exists right now.
+
+        "Real" is narrow and deliberate here: an atlas entry only counts if
+        its own sensory_refs contains a reference to an actual stored
+        picture/sound/camera/video ("pic:", "snd:", "cam:", "vid:" prefixes
+        -- the same real-source tags this file already writes at teach
+        time, e.g. line ~6291's `sensory_refs=[f"pic:{pic.item_id}"]").
+        Anything else (empty, or a non-sensory tag like a teacher
+        correction's own bookkeeping refs) means this word was never
+        really grounded, and this returns (None, None) -- no growth
+        funded, same as if this function didn't exist. No invented
+        signal: every number driving the returned waveform (strength,
+        valence, arousal) is a real value this exact binding already had
+        recorded from when it was really grounded, not a fabricated one.
+
+        Physically-motivated shape, same idiom as
+        sensory_generators.generate_touch_waveform's channels: the memory's
+        own recorded strength sets how strong the echo is, its arousal sets
+        how long it stays vivid before fading (a more arousing memory
+        lingers longer -- the exact asymmetry AdaptingFoveaKrimelack's own
+        adapt/recover already uses), its valence sets a phase drift (the
+        same role valence already plays on live bindings elsewhere in this
+        file, e.g. line ~3671's `coherent_magnitude = strength * (1+valence)`).
+
+        Returns (sight_echo, sound_echo); either may be None depending on
+        which real modality the strongest matching binding actually had."""
+        k = LanguageKrimelack()
+        k.transduce(word)
+        chi = k.winding
+        best = None
+        best_refs = []
+        for d in range(-self.atlas.band, self.atlas.band + 1):
+            for e in self.atlas.entries.get(chi + d, []):
+                refs = e.get("sensory_refs") or []
+                real_refs = [r for r in refs if isinstance(r, str)
+                             and r.split(":", 1)[0] in ("pic", "snd", "cam", "vid")]
+                if not real_refs:
+                    continue
+                sec = self.sections.get(e.get("section", ""))
+                if not sec or e.get("motif", 0) >= len(sec.modes):
+                    continue
+                _, _, wl = sec.modes[e["motif"]]
+                if not wl or wl.lower() != word.lower():
+                    continue
+                if best is None or e.get("strength", 0) > best.get("strength", 0):
+                    best, best_refs = e, real_refs
+        if best is None:
+            return None, None
+
+        strength = float(best.get("strength", 0.5))
+        valence = float(best.get("valence", 0.0))
+        arousal = float(best.get("arousal", 0.5))
+        t = np.linspace(0, 2.0, 200)
+        tau = 0.4 + 1.0 * arousal
+        echo = strength * np.exp(-t / tau) * np.cos(2 * np.pi * (1.0 + valence) * t)
+
+        had_visual = any(r.startswith(("pic:", "cam:", "vid:")) for r in best_refs)
+        had_auditory = any(r.startswith("snd:") for r in best_refs)
+        return (echo if had_visual else None), (echo if had_auditory else None)
+
     def _enqueue_organism_remember(self, word):
         """GL-CMD-175 window-2 perf fix: organism.remember() measured live-
         equivalent at 20ms/word and climbing at only ~280 accumulated
@@ -3002,6 +3071,24 @@ class Guala:
         if (getattr(self, '_last_read_modal_wall_time', None) is not None
                 and now - self._last_read_modal_wall_time <= SENSE_BINDING_WINDOW_SEC):
             modal_signal = self._last_read_modal_signals
+        # GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: no live
+        # camera/mic frame is the overwhelming common case (reading,
+        # conversation). Before this, that meant this word contributes
+        # zero growth-funding, full stop -- even for a word she has
+        # genuinely, really seen or heard before. A person doesn't need
+        # their eyes pointed at the Alps to have "Alps" mean something --
+        # the word reopens their own real memory of it. Same principle
+        # here: if no live frame exists, check whether this word has ever
+        # been REALLY sensory-grounded (see _replay_sensory_echo's own
+        # docstring for exactly what counts as real), and replay a signal
+        # built from that real binding's own recorded numbers. An
+        # ungrounded word still gets nothing, honestly, same as before.
+        if sight_signal is None and sound_signal is None:
+            _replay_sight, _replay_sound = self._replay_sensory_echo(word)
+            if _replay_sight is not None:
+                sight_signal = _replay_sight
+            if _replay_sound is not None:
+                sound_signal = _replay_sound
         try:
             self._ensure_organism_worker()
             self._organism_queue.put_nowait(
@@ -5281,8 +5368,14 @@ class Guala:
                 _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
                 if self.tick % 10 == 0:
                     self.atlas.decay(self.tick, rate_scale=0.0 if _paused else self.decay_modulation)
+                    if self.hemispheres:
+                        from dsf_ai_service.substrate.hemisphere_cognition import decay_hemisphere_atlases
+                        decay_hemisphere_atlases(self, self.tick, rate_scale=0.0 if _paused else self.decay_modulation)
                 if not _paused and self.tick % 200 == 0:
                     self.atlas.forget_below_threshold()
+                    if self.hemispheres:
+                        from dsf_ai_service.substrate.hemisphere_cognition import forget_hemisphere_atlases
+                        forget_hemisphere_atlases(self)
                 if self.tick % 5 == 0:
                     self.coordinator.regulate(self, self.needs, self.atlas,
                                              self.sections, self.tick)
@@ -6609,8 +6702,14 @@ class Guala:
             if activity_kind != "READING":
                 if self.tick % 10 == 0:
                     self.atlas.decay(self.tick, rate_scale=0.0 if _paused else self.decay_modulation)
+                    if self.hemispheres:
+                        from dsf_ai_service.substrate.hemisphere_cognition import decay_hemisphere_atlases
+                        decay_hemisphere_atlases(self, self.tick, rate_scale=0.0 if _paused else self.decay_modulation)
                 if not _paused and self.tick % 200 == 0:
                     self.atlas.forget_below_threshold()
+                    if self.hemispheres:
+                        from dsf_ai_service.substrate.hemisphere_cognition import forget_hemisphere_atlases
+                        forget_hemisphere_atlases(self)
                 if self.tick % 5 == 0:
                     self.coordinator.regulate(self, self.needs, self.atlas,
                                              self.sections, self.tick)
