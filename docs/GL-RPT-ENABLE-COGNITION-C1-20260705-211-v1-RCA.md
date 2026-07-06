@@ -6,6 +6,86 @@ Root-cause analysis on v1's "hemisphere_update did not fire" finding, per Eve's
 STOP dispatch and 5-step investigation order. v2 remains halted; this report
 covers v1 (`:495`) only.
 
+## URGENT ADDENDUM (filed after the rest of this report, supersedes nothing
+## below but changes what it means)
+
+While deploying the unrelated `binding_atlas.py` recall fix as task-def
+`:497` (zero cognition flags in its ECS environment array — confirmed by
+direct dump), `hemisphere_update` fired anyway, with real content, on the
+first converse turn. That should have been impossible under this report's
+own Step 3/4 code trace if env-var absence were the whole story. It isn't.
+
+**`dsf_ai_service/Dockerfile` bakes these in as image-level `ENV` defaults,
+independent of the ECS task-definition:**
+
+```
+ENV EMISSION_DYNAMICS=1
+ENV LATERAL_INHIBITION_ENABLED=1
+ENV RICH_SENSORY_INPUT=0   # deliberately OFF -- see below
+ENV EMISSION_STRUCTURED_NOISE=1
+ENV HEMI_PR_ENABLED=1
+ENV HEMI_EP_ENABLED=1
+ENV HEMI_SC_ENABLED=1
+ENV HEMI_GP_ENABLED=1
+```
+
+The comment directly above the four `HEMI_*` lines reads "Hemisphere
+cognition gates — all OFF by default, Eve+Joe flip after report." The code
+on the next four lines sets them to `1`. The comment and the code disagree;
+the code is what runs.
+
+**Confirmed via `git show 168ef1bde3717e52efb85b894103de047e942617:dsf_ai_service/Dockerfile`
+— the exact commit CodeBuild used for `:494`'s image (traced via that
+build's own `GIT_SHA` environment variable) — that this Dockerfile is
+byte-identical to current HEAD.** `:494`, the baseline this whole session
+has treated as "cognition flags off," has had `EMISSION_DYNAMICS`,
+`LATERAL_INHIBITION_ENABLED`, `EMISSION_STRUCTURED_NOISE`, and all four
+`HEMI_*_ENABLED` flags active via the Docker image since at least
+2026-06-19 (per the Dockerfile's own dispatch citations), regardless of
+what any ECS task-definition's environment array says. Docker/ECS
+precedence: an image's baked `ENV` applies to any variable the task-def
+doesn't explicitly override; the `-211` dispatches (and, it appears, the
+`-210` audit's §4 "27 env flags... production values unknown" framing)
+checked the task-definition's environment array, which is the wrong place
+to look for these six specific names.
+
+**Practical consequences:**
+- The `-211-v1`/`-211-v2` premise — "these mechanisms are dark in
+  production, flipping the flags turns them on" — was wrong for five of
+  the six/eight names. Setting `HEMI_PR_ENABLED=1` etc. via ECS task-def
+  on `:495`/`:496` was a no-op layered on top of an already-`1` image
+  default. `-211-v1`'s explicit "DO NOT ADD EMISSION_STRUCTURED_NOISE" was
+  already moot — it's been `1` via the image the entire time, on `:494`
+  included.
+- **`RICH_SENSORY_INPUT` is the one name that was genuinely, deliberately
+  off**, per an extensive Dockerfile comment: a prior dispatch
+  (`GL-CMD-BRAIN-FULL-DEPLOY-175` / `GL-NOTE-VOICE-WIRING-RULING W3`) found
+  that enabling it produced `n_candidates=199` (vs an expected ≤3 from the
+  brain's `tapestry.compose()`), "confirmed the atlas-lookup path was
+  dominating her actual reply, not the brain," and disabled it for exactly
+  that reason. Both `-211-v1` and `-211-v2` explicitly set
+  `RICH_SENSORY_INPUT=1` via ECS task-def (which *does* override the image
+  default, unlike the other five names). **This is very likely the
+  dominant cause of `:496`'s 133-second latency catastrophe**: the
+  `emission_dynamics` event I measured on `:496` showed `n_candidates=197`
+  — almost exactly the `199` this comment documents as the known failure
+  signature, from the exact mechanism a prior dispatch already diagnosed
+  and turned off.
+- Joe asked, separately, whether his own conversation with her could
+  explain the `hemisphere_update` firing on `:497`. Possibly a real,
+  independent contributing event in the stream — plausible and fine on its
+  own terms — but not the structural reason the mechanism *can* fire at
+  all. That's the Docker default, present regardless of who talks to her.
+
+This does not change Step 1-5's evidence below, but it changes what that
+evidence *means*: the six-flag `:495` test wasn't turning dark mechanisms
+on, it was (mostly) re-stating defaults that were already live, plus
+one real, consequential, previously-diagnosed-and-disabled flag flip
+(`RICH_SENSORY_INPUT`). The "hemisphere_update inconclusive due to short
+wait window" finding below still stands on its own evidence, but is now
+compounded by "and it would have fired on `:494` too, given a long enough
+wait, with or without any dispatch."
+
 ## Verdict, up front
 
 **Retracting "hemisphere_update did not fire" as a proven negative.** The
