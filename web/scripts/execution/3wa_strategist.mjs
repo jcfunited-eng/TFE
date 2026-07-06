@@ -42,7 +42,6 @@ const W1_S_N_MIN       = 0.954;
 const W1_S_N_MAX       = 0.969;
 const W1_DELTA_S_N_MIN = 0.67;
 const W1_DELTA_S_N_MAX = 0.72;
-const TP_ENTRY_THRESHOLD = parseFloat(process.env.TFE_TP_ENTRY_THRESHOLD ?? "0.65");
 
 function toFloat(v) {
   const n = parseFloat(v);
@@ -162,6 +161,9 @@ function parseSignal(row, spyDk, speciesMap) {
   const fn       = toFloat(snap.F_n      ?? snap.f_n);
   const bk       = toFloat(snap.B_k      ?? snap.b_k);
   const neighborWR = toFloat(snap.neighbor_wr);
+  // Physics tuple fields (L0-L4 lifetime state)
+  const rRevK    = toFloat(snap.R_rev_k ?? snap.r_rev_k);
+  const mK       = toFloat(snap.M_k     ?? snap.m_k);
   const sN       = toFloat(snap.s_n);
   const snPrev   = toFloat(row.prev_s_n  ?? prevSnap.s_n);
   const dKPrev   = toInt(prevSnap.D_k    ?? prevSnap.d_k);
@@ -193,14 +195,17 @@ function parseSignal(row, spyDk, speciesMap) {
     signalClass = "standard";
   }
 
-  // ── Entry filter: Wave 1 OR tuple-proximity ────────────────────────
-  // v1.0 entry gate is the UNION of two independently-validated signals:
-  //   - Wave 1 (spec §4): structural crystallization pattern, WR 72.1%
-  //   - Tuple-proximity: 30-NN neighbor WR >= 0.65 (walkforward_bet_20260624)
-  // 'standard' class with no tuple-proximity hit is unfiltered noise
-  // (see 2026-07-06 morning: 30 positions of 'standard' → -$1,625).
-  const tpHit = neighborWR !== null && neighborWR >= TP_ENTRY_THRESHOLD;
-  if (!wave1 && !tpHit) return null;
+  // ── L5 governance gate: physics AND finance memory ─────────────────
+  // Physics gate (lifetime state from L0-L4 integrators):
+  //   R_rev_k == 0: no reversion signal in the coupled tuple
+  //   M_k >= 0:     mode indicator non-negative
+  // Finance memory: neighbor_wr already gates Accumulate label upstream
+  //   at tuple_proximity_engine.mjs threshold 0.65. All Accumulate signals
+  //   reaching this filter already have neighbor_wr >= 0.65.
+  // Wave 1 (§4 crystallization) bypasses the physics gate — it's a specific
+  //   validated pattern with independent 72.1% edge.
+  const physicsPass = (rRevK === 0) && (mK !== null && mK >= 0);
+  if (!wave1 && !physicsPass) return null;
 
   return {
     ticker,
@@ -319,13 +324,26 @@ export async function get3WASignals() {
     return true;
   });
 
+  // ── L5 rank: Wave 1 tier first, then neighbor_wr DESC ──────────────
+  // signal_class ranking: '3WA' (Wave 1 + calm) > '1+3' (Wave 1) > 'standard'.
+  // Within tier, higher neighbor_wr = stronger historical match for this
+  // symbol's tuple state. Daemon fills 30-position cap top-down, so best
+  // signals fill first.
+  const CLASS_RANK = { "3WA": 0, "1+3": 1, "standard": 2 };
+  deduped.sort((a, b) => {
+    const rankA = CLASS_RANK[a.signal_class] ?? 3;
+    const rankB = CLASS_RANK[b.signal_class] ?? 3;
+    if (rankA !== rankB) return rankA - rankB;
+    return (b.neighbor_wr ?? 0) - (a.neighbor_wr ?? 0);
+  });
+
   // Report signal_class distribution
   const classCounts = { "3WA": 0, "1+3": 0, "standard": 0 };
   for (const s of deduped) {
     classCounts[s.signal_class] = (classCounts[s.signal_class] || 0) + 1;
   }
-  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed W1-or-TP gate → ${deduped.length} after dedup`);
-  console.log(`[STRATEGIST] signal_class distribution (post-gate): 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]} | standard=${classCounts["standard"]}`);
+  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed L5 physics gate (R_rev_k=0 ∧ M_k≥0) or Wave 1 → ${deduped.length} after dedup, sorted by tier+neighbor_wr`);
+  console.log(`[STRATEGIST] signal_class distribution (post-gate, sorted): 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]} | standard=${classCounts["standard"]}`);
   for (const s of deduped) {
     console.log(`[STRATEGIST]   ${s.ticker} | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | s_n=${s.s_n} | |Δs_n|=${s.abs_delta_s_n}`);
   }

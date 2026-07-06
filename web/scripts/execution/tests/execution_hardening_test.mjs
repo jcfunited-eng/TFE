@@ -192,15 +192,19 @@ assert(!sentSrcD52.includes("Wave 3 GONE"), "SPY flip Wave 3 GONE log removed");
 assert(!sentSrcD52.includes("SPY flip:"), "SPY flip prefix log removed");
 
 // ══════════════════════════════════════════════════════════════════════
-// D5.4 assertions — Wave 1 OR tuple-proximity entry gate
+// D5.4.1 assertions — L5 governance
 // ══════════════════════════════════════════════════════════════════════
-const stratSrcD54 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
+const stratSrcD541 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
 
-console.log("\n=== D5.4 entry filter ===");
-assert(stratSrcD54.includes("TP_ENTRY_THRESHOLD"), "TP threshold constant defined");
-assert(stratSrcD54.includes("if (!wave1 && !tpHit) return null"), "OR gate present");
-assert(stratSrcD54.includes("Wave 1 OR tuple-proximity"), "Gate comment references both signals");
-assert(stratSrcD54.includes("passed W1-or-TP gate"), "Log reflects gate applied");
+console.log("\n=== D5.4.1 L5 governance ===");
+assert(stratSrcD541.includes("const rRevK"), "R_rev_k extracted");
+assert(stratSrcD541.includes("const mK"), "M_k extracted");
+assert(stratSrcD541.includes("(rRevK === 0) && (mK !== null && mK >= 0)"), "Physics gate present");
+assert(stratSrcD541.includes("if (!wave1 && !physicsPass) return null"), "Gate returns null on fail");
+assert(!stratSrcD541.includes("TP_ENTRY_THRESHOLD"), "Old D5.4 threshold constant removed");
+assert(stratSrcD541.includes("CLASS_RANK"), "Sort tier map defined");
+assert(stratSrcD541.includes("deduped.sort"), "Deduped sorted");
+assert(stratSrcD541.includes(`"3WA": 0`), "3WA highest priority tier");
 
 console.log(`\n${passed}/${passed + failed} assertions passed`);
 if (failed > 0) process.exit(1);
