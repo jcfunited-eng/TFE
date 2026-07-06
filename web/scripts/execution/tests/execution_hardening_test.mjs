@@ -191,5 +191,16 @@ assert(!sentSrcD52.includes("sentinel_spy_flip"), "SPY flip exit reason string r
 assert(!sentSrcD52.includes("Wave 3 GONE"), "SPY flip Wave 3 GONE log removed");
 assert(!sentSrcD52.includes("SPY flip:"), "SPY flip prefix log removed");
 
+// ══════════════════════════════════════════════════════════════════════
+// D5.4 assertions — Wave 1 entry filter (spec §4)
+// ══════════════════════════════════════════════════════════════════════
+const stratSrcD54 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
+
+console.log("\n=== D5.4 Wave 1 entry filter ===");
+assert(stratSrcD54.includes("if (!wave1) return null"), "Wave 1 filter gate present");
+assert(stratSrcD54.includes("Wave 1 entry filter (spec §4"), "Filter comment references spec §4");
+assert(stratSrcD54.includes("passed Wave 1 gate"), "Log reflects gate applied");
+assert(!stratSrcD54.includes('| standard=${classCounts["standard"]}'), "Standard removed from post-gate log");
+
 console.log(`\n${passed}/${passed + failed} assertions passed`);
 if (failed > 0) process.exit(1);

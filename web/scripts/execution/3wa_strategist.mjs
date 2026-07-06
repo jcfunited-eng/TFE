@@ -192,6 +192,13 @@ function parseSignal(row, spyDk, speciesMap) {
     signalClass = "standard";
   }
 
+  // ── Wave 1 entry filter (spec §4 line 293) ─────────────────────────
+  // "Entry signal fires iff: is_trigger(i,t) == True AND all three Wave
+  // 1 conditions hold." Filter drops signals that don't meet Wave 1.
+  // 'standard' class is structural noise, not a Wave 1 crystallization,
+  // and MUST NOT enter production positions per §4.
+  if (!wave1) return null;
+
   return {
     ticker,
     run_id:        runId,
@@ -314,8 +321,8 @@ export async function get3WASignals() {
   for (const s of deduped) {
     classCounts[s.signal_class] = (classCounts[s.signal_class] || 0) + 1;
   }
-  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} valid → ${deduped.length} after dedup`);
-  console.log(`[STRATEGIST] signal_class distribution: 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]} | standard=${classCounts["standard"]}`);
+  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed Wave 1 gate (spec §4) → ${deduped.length} after dedup`);
+  console.log(`[STRATEGIST] signal_class distribution (post-W1-gate): 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]}`);
   for (const s of deduped) {
     console.log(`[STRATEGIST]   ${s.ticker} | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | s_n=${s.s_n} | |Δs_n|=${s.abs_delta_s_n}`);
   }
