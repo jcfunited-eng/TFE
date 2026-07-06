@@ -140,7 +140,7 @@ class RunLimits:
 
 @dataclass
 class Cleanup:
-    restore_state: str = "pre_probe_snapshot"
+    restore_state: str = "leave_in_place"
     clear_captured_events: bool = False
     delete_probe_artifacts_from_atlas: bool = True
 
@@ -375,7 +375,7 @@ def _parse_cleanup(raw: dict) -> Cleanup:
     restore = raw.get("restore_state", "pre_probe_snapshot")
     _one_of(
         restore,
-        {"pre_probe_snapshot", "none", "custom"},
+        {"leave_in_place", "pre_probe_snapshot", "none", "custom"},
         "cleanup.restore_state",
     )
     return Cleanup(

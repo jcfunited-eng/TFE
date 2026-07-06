@@ -26,7 +26,7 @@ from .observability import CollectorSnapshot, instantiate_collectors
 from .observability.event_stream import EventStreamCollector
 from .report import RunReport
 from .scenario import Scenario
-from .substrate_client import SubstrateClient, SubstrateStatus
+from .substrate_client import CleanupNotSupported, SubstrateClient, SubstrateStatus
 from .types import Finding, TraceId, Verdict
 
 
@@ -297,11 +297,25 @@ class Runner:
         return Verdict.PASS  # Provisional; expectation checker may override
 
     async def _cleanup(self) -> None:
-        """Restore pre-run state per scenario cleanup section."""
+        """Post-scenario cleanup.
+
+        Under Joe's production operating model, the default is
+        leave_in_place: the harness makes no attempt to reset
+        substrate state. Data accumulates across scenarios in one
+        session; wipe between sessions is Joe's explicit action.
+        """
         cleanup = self.config.scenario.cleanup
+
+        if cleanup.restore_state == "leave_in_place":
+            self._add_finding(
+                "INFO", "runner",
+                "state left in place per production-mode operating model"
+            )
+            return
 
         if cleanup.restore_state == "none":
             return
+
         if cleanup.restore_state == "pre_probe_snapshot":
             if self._snapshot_id is None:
                 self._add_finding(
@@ -311,19 +325,20 @@ class Runner:
                 return
             try:
                 await self.config.substrate.restore_state(self._snapshot_id)
-            except NotImplementedError as e:
+            except CleanupNotSupported as e:
                 self._add_finding(
                     "WATCH", "runner",
-                    f"restore skipped: {e}"
+                    f"restore skipped — scenario requested restore but "
+                    f"operating model does not support it: {e}"
                 )
+            except NotImplementedError as e:
+                self._add_finding("WATCH", "runner", f"restore skipped: {e}")
             except Exception as e:
                 self._add_finding(
-                    "CRITICAL", "runner",
-                    f"restore failed: {type(e).__name__}: {e} —"
-                    f" substrate now DIRTY. Do not run further scenarios."
+                    "WARN", "runner",
+                    f"restore failed: {type(e).__name__}: {e}"
                 )
-                # In production this would set a marker file that the CLI
-                # checks before allowing subsequent runs.
+            return
 
     def _assemble_report(
         self,

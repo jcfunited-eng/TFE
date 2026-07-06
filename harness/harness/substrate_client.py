@@ -28,6 +28,11 @@ from typing import Any, AsyncIterator
 import httpx
 
 
+class CleanupNotSupported(Exception):
+    """Raised when a scenario requests a cleanup action inconsistent
+    with the production operating model."""
+
+
 @dataclass
 class SubstrateEvent:
     """One event from the substrate event stream. Shape matches
@@ -394,27 +399,20 @@ class LegacySubstrateClient(SubstrateClient):
         return snapshot_id
 
     async def restore_state(self, snapshot_id: str) -> None:
-        # Confirmed (not assumed): the only restore-shaped endpoint on the
-        # legacy substrate is POST /api/v1/gualaloom/admin/restore_from_s3_
-        # prefix (app.py:3287), which explicitly requires a substrate
-        # RESTART afterward to take effect. A harness scenario run cannot
-        # restart the ECS service as part of its own cleanup step (that is
-        # substrate-side infrastructure control, out of this dispatch's
-        # scope per the guardrails, and would make a "verification harness"
-        # capable of taking the substrate down — a much larger blast radius
-        # than a test tool should have). There is no synchronous,
-        # same-process restore path. Per dispatch: mark DIRTY, add a
-        # finding, exit RESTORE_FAILED — raising a plain exception (not
-        # NotImplementedError) so runner.py's cleanup() routes this into its
-        # CRITICAL/DIRTY branch rather than the softer NotImplementedError/
-        # WATCH branch.
-        raise RuntimeError(
-            "LegacySubstrateClient.restore_state: no usable restore path on"
-            " the legacy substrate — the only candidate endpoint"
-            " (admin/restore_from_s3_prefix) requires a substrate restart to"
-            " take effect, which is out of a harness run's scope. Substrate"
-            " is DIRTY after this scenario; route to Eve for a scope"
-            " decision before running further scenarios against this target."
+        """Not part of the production operating model.
+
+        Under Joe's ratified model, production is the workbench. Data
+        accumulates only from deliberately routed scenarios and gets
+        wiped between sessions by Joe's explicit action. The harness
+        does not restore state — wipe is the reset mechanism.
+        """
+        raise CleanupNotSupported(
+            "restore_state is not part of the production operating "
+            "model. Under Joe's ratified model, production is the "
+            "workbench, data accumulates only from deliberately routed "
+            "scenarios, and wipe between sessions is the reset. "
+            "Scenarios requesting restore should be rewritten to "
+            "leave_in_place cleanup."
         )
 
 
