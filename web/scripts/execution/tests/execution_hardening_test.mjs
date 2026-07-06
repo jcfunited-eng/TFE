@@ -207,14 +207,16 @@ assert(stratSrcD541.includes("deduped.sort"), "Deduped sorted");
 assert(stratSrcD541.includes(`"3WA": 0`), "3WA highest priority tier");
 
 // ══════════════════════════════════════════════════════════════════════
-// D5.4.2 assertions — M_k tiebreak
+// D5.4.3 assertions — M_k ASC tiebreak (outcome-corrected)
 // ══════════════════════════════════════════════════════════════════════
-const stratSrcD542 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
+const stratSrcD543 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
 
-console.log("\n=== D5.4.2 M_k tiebreak ===");
-assert(stratSrcD542.includes("Math.abs(nwrDiff) > 1e-9"), "Tie detection uses epsilon");
-assert(stratSrcD542.includes("(b.m_k ?? -Infinity) - (a.m_k ?? -Infinity)"), "M_k DESC tiebreak present");
-assert(stratSrcD542.includes("tier→nwr→M_k"), "Log reflects three-level sort");
+console.log("\n=== D5.4.3 M_k ASC ===");
+assert(stratSrcD543.includes("(a.m_k ?? Infinity) - (b.m_k ?? Infinity)"), "M_k ASC (lower first)");
+assert(!stratSrcD543.includes("(b.m_k ?? -Infinity) - (a.m_k ?? -Infinity)"), "Old DESC removed");
+assert(stratSrcD543.includes("D5.5 outcome"), "Reference to outcome analysis in comment");
+assert(stratSrcD543.includes("M_k_ASC (D5.5 outcome-corrected)"), "Log reflects ASC direction");
+assert(stratSrcD543.includes("Math.abs(nwrDiff) > 1e-9"), "Epsilon tie detection still present");
 
 console.log(`\n${passed}/${passed + failed} assertions passed`);
 if (failed > 0) process.exit(1);

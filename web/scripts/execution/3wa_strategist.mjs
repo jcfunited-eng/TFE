@@ -325,10 +325,12 @@ export async function get3WASignals() {
     return true;
   });
 
-  // ── L5 rank: tier → neighbor_wr → M_k ────────────────────────────
+  // ── L5 rank: tier → neighbor_wr → M_k ASC ───────────────────────
   // Tier: 3WA > 1+3 > standard.
   // Within tier: neighbor_wr DESC (finance memory of tuple analogs).
-  // Within tie: M_k DESC (physics quality — higher = more coherent mode).
+  // Within tie: M_k ASC — D5.5 outcome data (n=590 backfill) shows
+  // winners avg M_k=+0.087 vs losers +0.113 vs catastrophic +0.157.
+  // Enter earlier in mode buildup, not at peak coherence.
   const CLASS_RANK = { "3WA": 0, "1+3": 1, "standard": 2 };
   deduped.sort((a, b) => {
     const rankA = CLASS_RANK[a.signal_class] ?? 3;
@@ -336,7 +338,7 @@ export async function get3WASignals() {
     if (rankA !== rankB) return rankA - rankB;
     const nwrDiff = (b.neighbor_wr ?? 0) - (a.neighbor_wr ?? 0);
     if (Math.abs(nwrDiff) > 1e-9) return nwrDiff;
-    return (b.m_k ?? -Infinity) - (a.m_k ?? -Infinity);
+    return (a.m_k ?? Infinity) - (b.m_k ?? Infinity);
   });
 
   // Report signal_class distribution
@@ -344,7 +346,7 @@ export async function get3WASignals() {
   for (const s of deduped) {
     classCounts[s.signal_class] = (classCounts[s.signal_class] || 0) + 1;
   }
-  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed L5 physics gate (R_rev_k=0 ∧ M_k≥0) or Wave 1 → ${deduped.length} after dedup, sorted by tier→nwr→M_k`);
+  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed L5 physics gate (R_rev_k=0 ∧ M_k≥0) or Wave 1 → ${deduped.length} after dedup, sorted by tier→nwr→M_k_ASC (D5.5 outcome-corrected)`);
   console.log(`[STRATEGIST] signal_class distribution (post-gate, sorted): 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]} | standard=${classCounts["standard"]}`);
   for (const s of deduped) {
     console.log(`[STRATEGIST]   ${s.ticker} | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | s_n=${s.s_n} | |Δs_n|=${s.abs_delta_s_n}`);
