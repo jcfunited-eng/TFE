@@ -2214,20 +2214,39 @@ class Guala:
             return lang_chi, role, list(senses.keys())
 
     def _rebuild_word_to_emission_index(self):
-        """Build the word→emission-section lookup from section modes.
+        """Build the word→emission-section lookup from section commits.
         Called at boot after atlas+sections load, and incrementally
-        by read_word when new modes land in emission sections."""
-        idx = {}
+        by read_word when new modes land in emission sections.
+
+        GL-BUG-INTRO-DOMINANCE (found live 2026-07-06): this used to walk
+        self._EMISSION_SECTIONS in its FIXED tuple order ("subject", "verb",
+        "object", "modifier", "ground", "intro") and append each section's
+        modes in that order -- since "intro" is last in the tuple and
+        commits there on almost any familiar word (fam_listen > 0.3), its
+        entry landed last in every word's list regardless of when it
+        actually happened. _brain_emission_candidates' locations[-1]
+        ("most recent commit") then silently meant "intro, if it ever
+        committed" instead of true recency -- collapsing every reply to a
+        single intro-section word, every time, on every deploy (this
+        rebuild runs at every boot/state-load). Fixed by ordering on each
+        commit's real engine tick (Section.commits already records one)
+        instead of iteration/append order."""
+        entries = []
         for es in self._EMISSION_SECTIONS:
             es_sec = self.sections.get(es)
             if not es_sec:
                 continue
-            for mi, (_, _, w) in enumerate(es_sec.modes):
+            for c in es_sec.commits:
+                w = c.get("word")
                 if w:
-                    wl = w.lower()
-                    if wl not in idx:
-                        idx[wl] = []
-                    idx[wl].append((es, mi, w))
+                    entries.append((c.get("tick", 0), es, c.get("mode"), w))
+        entries.sort(key=lambda e: e[0])
+        idx = {}
+        for _tick, es, mi, w in entries:
+            wl = w.lower()
+            if wl not in idx:
+                idx[wl] = []
+            idx[wl].append((es, mi, w))
         self._word_to_emission_sections = idx
 
     def _choose_role_sections(self, role_dna, position_hint):
@@ -3102,7 +3121,17 @@ class Guala:
         # docstring for exactly what counts as real), and replay a signal
         # built from that real binding's own recorded numbers. An
         # ungrounded word still gets nothing, honestly, same as before.
-        if sight_signal is None and sound_signal is None:
+        # GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: disabled
+        # again, same night, after live converse_timing showed read_ms at
+        # 24.4s of a 27.2s total turn -- read_ms was ~6s on the immediately
+        # prior deploy, before this call existed. The 200-entry cap alone
+        # didn't bring it back down, and a raw profile of the cheap parts
+        # (LanguageKrimelack.transduce: 0.05ms/word) doesn't explain the
+        # gap, so something about this call's real cost isn't understood
+        # yet. Cutting it out cleanly rather than guessing again live --
+        # same "disabled, not deleted, re-enable after it's actually
+        # understood" pattern this file already uses for RICH_SENSORY_INPUT.
+        if False and sight_signal is None and sound_signal is None:
             _replay_sight, _replay_sound = self._replay_sensory_echo(word)
             if _replay_sight is not None:
                 sight_signal = _replay_sight
