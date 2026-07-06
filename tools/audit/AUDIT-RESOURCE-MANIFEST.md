@@ -6,7 +6,23 @@ audit, with the exact teardown command for each. Nothing here is torn down until
 tests are complete — this file is the guarantee that it gets torn down, not evidence it already
 has been. Region for all resources: us-east-1. Account: 418384447921.
 
-## STATUS: shadow instance is LIVE (2nd generation, IAM-isolated), nothing torn down yet.
+## STATUS: FULLY TORN DOWN, verified clean. Every item below confirmed removed:
+- `aws ecs list-tasks --cluster tfe-web-cluster --desired-status RUNNING` → only the 3
+  pre-existing prod/bridge/tfe-web tasks, no shadow.
+- `aws efs describe-access-points --file-system-id fs-0abb85854a3251b3c` → `[]`.
+- `aws logs describe-log-groups --query 'logGroups[?contains(logGroupName,`audit`)]'` → `[]`.
+- `aws iam get-role --role-name dsf-ai-shadow-task-role` → `NoSuchEntity` (confirmed deleted).
+- `aws ec2 describe-security-groups --group-ids sg-0a865ce16059cf8f5` →
+  `InvalidGroup.NotFound` (confirmed deleted).
+- `sg-06fb572e0c97e8062` (EFS mount-target SG) → back to exactly its original single rule
+  (2049 from `sg-057566437ba8d4b48`), the additive rule this audit added is gone, nothing else
+  touched.
+- `aws s3 ls s3://dsf-ai-site-backups/guala/` → only pre-existing prefixes, no contamination.
+- All 3 production services (`dsf-ai-service-lb`, `gualaloom-bridge-svc`, `tfe-web-service-lb`)
+  confirmed running 1/1, healthy, untouched throughout.
+- Task-defs `dsf-ai-task-audit-shadow:1`, `:2`, `audit-shadow-seed:1`,
+  `audit-shadow-marker-write:1` all deregistered (INACTIVE) — inactive revisions cost nothing and
+  are left in place as historical record rather than needing deletion.
 
 ## Incident record: S3 contamination, found and fixed mid-audit
 The first successfully-booted shadow (task `0ff413b547924a548db6c3b70a71ba4a`, task-def
