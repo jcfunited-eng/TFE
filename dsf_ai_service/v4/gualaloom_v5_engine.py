@@ -551,6 +551,15 @@ GRANDURUN_POOL_K = 50         # per-section candidate count for wider retrieval
 # 60-L: NEGATION_OPS dropped — negation is a phase rotation, not a lexical flag.
 # Polarity derives from consecutive phase-vector rotation in read_word.
 GRANDURUN_TOPK = int(os.environ.get("GRANDURUN_TOPK", "200"))
+# GL-CMD-ENABLE-COGNITION-EVE-20260705-211 RCA / Joe decision 2026-07-06:
+# _rich_sensory_candidates was truncating to GRANDURUN_TOPK (200), which is
+# effectively no cap at all for its multi-source fan-out (cross-modal +
+# deep-atlas + cofire-spread + re-routing) -- the plain default path never
+# generates anywhere near 200 raw candidates so the same shared constant
+# never binds there. 200 competing candidates makes the settle-on-one-
+# winner commit step nearly impossible. Own, separate, much smaller cap:
+# richer than the default path's natural ~10-13, without drowning it.
+RICH_SENSORY_TOPK = int(os.environ.get("RICH_SENSORY_TOPK", "10"))
 EMISSION_DYNAMICS_TICKS = int(os.environ.get("EMISSION_DYNAMICS_TICKS", "80"))
 # -48 agency events
 SURPRISE_HIGH_THRESHOLD = 0.7   # Path D: clarification shape fires above this
@@ -3871,7 +3880,7 @@ class Guala:
 
         # Sort by activation and return top candidates
         all_candidates.sort(key=lambda c: -c["coherent_magnitude"])
-        return all_candidates[:GRANDURUN_TOPK]
+        return all_candidates[:RICH_SENSORY_TOPK]
 
     def _emit_dynamics(self, input_chis, input_words_set, deep_candidates,
                        v7_session=None, input_words=None):

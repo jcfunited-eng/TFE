@@ -58,8 +58,21 @@ ENV LATERAL_INHIBITION_ENABLED=1
 # candidates(deep_candidates=brain-sourced) path W2 specifies. Not
 # deleted -- re-enable only after Source A itself is redesigned to run
 # on brain output instead of bypassing it.
+# GL-CMD-ENABLE-COGNITION-EVE-20260705-211 RCA / Joe decision 2026-07-06:
+# introducing commit 140cfd8 self-tagged [C2 FAIL] -- measured, reproducibly,
+# a small perturbation to the emission Hamiltonian that suppresses 1 of 15
+# section commits from reaching entropic_flip (i.e. makes settling on one
+# winning word ~7% less likely). The commit's own message said "STOP: do
+# not tune, bring back to Eve for decision" -- that decision was never
+# closed out and this stayed baked ON regardless. The oscillation design
+# itself (slow, candidate-subspace-aligned, novelty-modulated) is sound and
+# not being rejected on merit -- but sentence-completion is ALREADY failing
+# most turns (arcs_fallback dominating over real commits) even without this
+# extra headwind, so adding "more variety" before "can finish a sentence at
+# all" is the wrong order of operations. Off until the underlying commit
+# rate is healthy; revisit then, not deleted.
 ENV RICH_SENSORY_INPUT=0
-ENV EMISSION_STRUCTURED_NOISE=1
+ENV EMISSION_STRUCTURED_NOISE=0
 # GL-CMD-EMISSION-COST-SAMPLE-87: dynamics window 40→80 (rider condition MET, cost CLEAN)
 ENV EMISSION_DYNAMICS_TICKS=80
 
