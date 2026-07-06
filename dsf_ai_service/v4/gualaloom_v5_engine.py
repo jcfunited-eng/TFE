@@ -2177,7 +2177,31 @@ class Guala:
                                           **self._affect_kwargs(surprise),
                                           **self._grounding_kwargs())
 
-            if fam_listen > 0.3:
+            # GL-BUG-SELFHEAR-INTRO-RATCHET (found live 2026-07-06): this commit
+            # used to fire unconditionally on familiarity alone, with no check
+            # of position_hint or source. A single-word reply is always heard
+            # back via _self_hear as position_hint="standalone", which never
+            # routes to subject/verb/object (_choose_role_sections only sends
+            # "standalone" to listen) -- but this intro commit fired anyway,
+            # stamping a brand-new tick on "intro" for that exact word every
+            # single time she heard herself say it. Since _word_to_emission_
+            # sections' recency ordering (see _rebuild_word_to_emission_index)
+            # picks candidates' section by whichever commit is most recent,
+            # a word that ever became a one-word reply would have its "intro"
+            # entry perpetually refreshed by self-hearing while its real
+            # subject/verb/object history (if any) stayed frozen at whatever
+            # tick it last occurred in real multi-word input -- a self-
+            # reinforcing ratchet that locks a word into "intro, forever"
+            # the moment it's said once. Confirmed live: "chimney" carries a
+            # real verb commit from tick 15049925, but intro shows that SAME
+            # tick plus a second entry at 15255380 -- the exact tick she said
+            # "chimney" as a lone reply. Gated on self._self_hearing so
+            # hearing her own genuine multi-word speech still refreshes
+            # intro normally (no bug there -- position_hint routes real
+            # first/middle/last words to subject/verb/object too in that
+            # case); only the standalone-echo case that could never balance
+            # itself out is suppressed.
+            if fam_listen > 0.3 and not self._self_hearing:
                 intro_dsf = DSF(D_k=fam_listen, M_k=0, R_rev=0, U_star=1-fam_listen,
                                 C_k=fam_listen, P_k=0.5, B_k=fam_listen, S_UF=fam_listen)
                 _intro_committed, _intro_mode_idx, _ = self.sections["intro"].receive(
