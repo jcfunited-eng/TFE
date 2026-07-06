@@ -2988,14 +2988,31 @@ class Guala:
 
         Returns (sight_echo, sound_echo); either may be None depending on
         which real modality the strongest matching binding actually had."""
+        # GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06, caught
+        # live the same night this shipped: this runs synchronously, once
+        # per word, in the read_word() hot path (the organism write itself
+        # is backgrounded, but this snapshot step is not). Scanning every
+        # entry in the chi neighborhood unbounded is the exact same mistake
+        # already fixed once tonight in pr_consensus_divergence -- same
+        # fix, same reasoning: a hard cap on entries actually examined, not
+        # on atlas size. A grounded word usually isn't hiding as the 501st
+        # entry checked; capping trades a small chance of missing a real
+        # grounding for a bounded, constant-time cost on every single word.
+        _REPLAY_SCAN_CAP = 200
         k = LanguageKrimelack()
         k.transduce(word)
         chi = k.winding
         best = None
         best_refs = []
+        _scanned = 0
         for d in range(-self.atlas.band, self.atlas.band + 1):
             for e in self.atlas.entries.get(chi + d, []):
+                _scanned += 1
+                if _scanned > _REPLAY_SCAN_CAP:
+                    break
                 refs = e.get("sensory_refs") or []
+                if not refs:
+                    continue
                 real_refs = [r for r in refs if isinstance(r, str)
                              and r.split(":", 1)[0] in ("pic", "snd", "cam", "vid")]
                 if not real_refs:
@@ -3008,6 +3025,8 @@ class Guala:
                     continue
                 if best is None or e.get("strength", 0) > best.get("strength", 0):
                     best, best_refs = e, real_refs
+            if _scanned > _REPLAY_SCAN_CAP:
+                break
         if best is None:
             return None, None
 
