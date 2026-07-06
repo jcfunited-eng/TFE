@@ -5561,9 +5561,24 @@ class Guala:
                     )
 
             # 2. Select activity if needed
+            # GL-BUG-QUIESCENT-BOOT (Joe, 2026-07-06): a genuinely fresh
+            # substrate (post-wipe) was found self-selecting READING/PLAYING
+            # activities within seconds of boot, with no external input at
+            # all -- CURRICULUM_AUTONOMOUS/WORLD_FEEDS/LOOKUP_AUTONOMOUS only
+            # gate specific background feeders, not this activity-selection
+            # step itself, so a "stay quiet until deliberately given an
+            # experience" boot had no lever to actually achieve that. This
+            # gate stops a NEW activity from ever being picked while
+            # AUTONOMY_QUIESCENT=1 -- self._current_activity simply stays
+            # None, so the early-return below skips reading/playing/etc
+            # entirely. Live conversation (read_sentence via /converse) and
+            # deliberate input (guala_give_experience) are untouched -- they
+            # don't go through activity selection. Default "0" preserves
+            # today's behavior exactly for every existing deployment.
             if self._current_activity is None:
-                a = self._select_next_activity()
-                self._start_activity(a)
+                if os.environ.get("AUTONOMY_QUIESCENT", "0") != "1":
+                    a = self._select_next_activity()
+                    self._start_activity(a)
 
             a = self._current_activity
             if a is None:
@@ -6876,9 +6891,15 @@ class Guala:
             # accumulation, doubling effective rate when AUTONOMY_PHASED=1.
             # Accumulation now lives only in _autonomy_tick (L4069-4096).
 
+            # GL-BUG-QUIESCENT-BOOT: same gate as _autonomy_tick (this
+            # function's non-phased sibling) -- see that comment for why.
+            # Currently dead in production (AUTONOMY_PHASED=0 by default)
+            # but kept in sync so flipping that flag on later doesn't
+            # resurrect this exact bug.
             if self._current_activity is None:
-                a = self._select_next_activity()
-                self._start_activity(a)
+                if os.environ.get("AUTONOMY_QUIESCENT", "0") != "1":
+                    a = self._select_next_activity()
+                    self._start_activity(a)
 
             a = self._current_activity
             if a is None:
