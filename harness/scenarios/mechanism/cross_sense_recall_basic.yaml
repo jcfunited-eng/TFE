@@ -1,0 +1,125 @@
+scenario:
+  id: GL-SCN-CROSS-SENSE-RECALL-BASIC-EVE-20260706-v1
+  purpose: |
+    Verify that a single (picture, sound, word) experience binds into
+    one binding window, and that querying with the sound cue retrieves
+    the window with the picture and word intact.
+  category: mechanism
+  target_mechanism: cross-sense-recall
+
+preconditions:
+  substrate_state: clean_slate
+  specific_snapshot_id: null
+  components_ready:
+    - ingest
+    - sight
+    - sound
+    - word
+    - window_manager
+    - atlas
+  presence_state:
+    joe: false
+    wc: true
+    c1: false
+  suppression:
+    curriculum_feeds: "off"
+    world_feed: "off"
+    autonomy_reading: "off"
+  wait_for_ready_timeout_sec: 30
+
+probe:
+  method: sequence
+  auth_as: wc
+  sequence:
+    - t_offset_ms: 0
+      method: give_experience
+      payload:
+        picture_ref: "test-images/ball.png"
+        sound_ref: "test-sounds/bounce.wav"
+        word: "ball"
+        touch_descriptors: ["round", "smooth"]
+        source_tag: wc
+    - t_offset_ms: 2000
+      method: give_experience
+      payload:
+        sound_ref: "test-sounds/bounce.wav"
+        source_tag: wc
+        expect: probe_recall
+
+expectations:
+  events_must_fire:
+    - kind: window_opened
+      count_min: 2
+      within_ms: 1000
+    - kind: window_entry_added
+      count_min: 3
+      within_ms: 1500
+      filters:
+        modality: [sight, sound, word, touch]
+    - kind: window_closed
+      count_min: 2
+      within_ms: 3000
+    - kind: recall_query
+      count_min: 1
+      within_ms: 4000
+    - kind: recall_response
+      count_min: 1
+      within_ms: 5000
+      assertions:
+        windows_returned_min: 1
+        windows_returned_max: 5
+
+  components_must_activate:
+    - sight
+    - sound
+    - word
+    - touch
+    - window_manager
+    - atlas
+
+  atlas_deltas:
+    windows_added_min: 2
+    entries_added_min: 4
+    survival_promotions: 0
+
+  emission_provenance:
+    required: false
+    if_present:
+      must_cite_probe_windows: true
+
+  observability_thresholds:
+    peak_cpu_percent_max: 40
+    peak_memory_delta_mb_max: 100
+    peak_event_loop_lag_ms_max: 50
+    subscription_lag_max_events: 10
+    efs_write_ops_max: 20
+    network_errors: 0
+
+  negative_expectations:
+    - kind: emission_suppressed_no_presence
+      count_max: 0
+    - kind: shadow_divergence
+      count_max: 0
+    - kind: unauth_request
+      count_max: 0
+    - kind: security_alert
+      count_max: 0
+
+run:
+  timeout_sec: 30
+  resource_caps:
+    max_memory_delta_mb: 500
+    max_cpu_seconds: 60
+    max_disk_write_mb: 100
+    max_egress_mb: 10
+
+cleanup:
+  restore_state: pre_probe_snapshot
+  clear_captured_events: false
+  delete_probe_artifacts_from_atlas: true
+
+metadata:
+  author: EVE
+  created_date: "2026-07-06"
+  changelog:
+    - v1: initial
