@@ -199,7 +199,7 @@ const stratSrcD541 = await readFile(new URL("../3wa_strategist.mjs", import.meta
 console.log("\n=== D5.4.1 L5 governance ===");
 assert(stratSrcD541.includes("const rRevK"), "R_rev_k extracted");
 assert(stratSrcD541.includes("const mK"), "M_k extracted");
-assert(stratSrcD541.includes("(rRevK === 0) && (mK !== null && mK >= 0)"), "Physics gate present");
+assert(stratSrcD541.includes("(rRevK === 0) && (mK !== null && mK > 0)"), "Physics gate present");
 assert(stratSrcD541.includes("if (!wave1 && !physicsPass) return null"), "Gate returns null on fail");
 assert(!stratSrcD541.includes("TP_ENTRY_THRESHOLD"), "Old D5.4 threshold constant removed");
 assert(stratSrcD541.includes("CLASS_RANK"), "Sort tier map defined");
@@ -227,7 +227,8 @@ console.log("\n=== D5.7 M_k ceiling ===");
 assert(stratSrcD57.includes("M_K_CEILING"), "Ceiling constant defined");
 assert(stratSrcD57.includes(`"0.12"`), "Default 0.12");
 assert(stratSrcD57.includes("TFE_M_K_CEILING"), "Env override");
-assert(stratSrcD57.includes("(mK < M_K_CEILING)"), "Ceiling check in gate");
+assert(stratSrcD57.includes("mK > 0") && stratSrcD57.includes("mK < M_K_CEILING"), "Strict lower bound and ceiling in gate");
+assert(!stratSrcD57.includes("mK >= 0"), "Old inclusive-zero lower bound removed");
 assert(stratSrcD57.includes("D5.5 outcome data"), "Comment cites source");
 
 console.log(`\n${passed}/${passed + failed} assertions passed`);

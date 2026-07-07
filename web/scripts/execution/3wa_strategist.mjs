@@ -202,16 +202,20 @@ function parseSignal(row, spyDk, speciesMap) {
   // ── L5 governance gate: physics AND finance memory ─────────────────
   // Physics gate (lifetime state from L0-L4 integrators):
   //   R_rev_k == 0:       no reversion signal in the coupled tuple
-  //   0 <= M_k < 0.12:   mode building but not at peak coherence
+  //   0 < M_k < 0.12:    mode building (strictly positive, not initialized-zero)
   // Finance memory: neighbor_wr already gates Accumulate label upstream
   //   at tuple_proximity_engine.mjs threshold 0.65. All Accumulate signals
   //   reaching this filter already have neighbor_wr >= 0.65.
   // Wave 1 (§4 crystallization) bypasses the physics gate — it's a specific
   //   validated pattern with independent 72.1% edge.
-  // Physics gate: R_rev_k=0 AND 0 <= M_k < 0.12.
+  // Physics gate: R_rev_k=0 AND 0 < M_k < 0.12.
+  // Strict lower bound (> 0 not >= 0): M_k=0.0 exactly means the mode
+  // integrator was never computed for this ticker — initialization artifact,
+  // not genuine neutral mode. Confirmed: sampled M_k=0 tickers show M_k=0
+  // across all history (no variance = uncomputed, not neutral).
   // Ceiling per D5.5 outcome data — mode above 0.12 = peak coherence
   // pre-release, correlates with catastrophic exit.
-  const physicsPass = (rRevK === 0) && (mK !== null && mK >= 0) && (mK < M_K_CEILING);
+  const physicsPass = (rRevK === 0) && (mK !== null && mK > 0) && (mK < M_K_CEILING);
   if (!wave1 && !physicsPass) return null;
 
   return {
@@ -353,7 +357,7 @@ export async function get3WASignals() {
   for (const s of deduped) {
     classCounts[s.signal_class] = (classCounts[s.signal_class] || 0) + 1;
   }
-  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed L5 physics gate (R_rev_k=0 ∧ 0≤M_k<${M_K_CEILING}) or Wave 1 → ${deduped.length} after dedup, sorted by tier→nwr→M_k_ASC`);
+  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed L5 physics gate (R_rev_k=0 ∧ 0<M_k<${M_K_CEILING}) or Wave 1 → ${deduped.length} after dedup, sorted by tier→nwr→M_k_ASC`);
   console.log(`[STRATEGIST] signal_class distribution (post-gate, sorted): 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]} | standard=${classCounts["standard"]}`);
   for (const s of deduped) {
     console.log(`[STRATEGIST]   ${s.ticker} | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | s_n=${s.s_n} | |Δs_n|=${s.abs_delta_s_n}`);
