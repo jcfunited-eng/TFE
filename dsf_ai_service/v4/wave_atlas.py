@@ -348,3 +348,24 @@ class WaveAtlas:
 
     def subdivision_count(self) -> int:
         return self._subdivision_count
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Decay (GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v1)
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def tick_decay(self, decay_rate: float = 0.02, prune_threshold: float = 0.05):
+        cells_pruned = 0
+        for chi_idx in list(self.cells.keys()):
+            cell = self.cells[chi_idx]
+            new_bindings = []
+            cell.aggregate_strength = 0.0
+            for b in cell.bindings:
+                b["strength"] = b.get("strength", 0.0) * (1.0 - decay_rate)
+                if b["strength"] >= prune_threshold:
+                    new_bindings.append(b)
+                    cell.aggregate_strength += b["strength"]
+            cell.bindings = new_bindings
+            if cell.aggregate_strength < prune_threshold:
+                del self.cells[chi_idx]
+                cells_pruned += 1
+        return cells_pruned

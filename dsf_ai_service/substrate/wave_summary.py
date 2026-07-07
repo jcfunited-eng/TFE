@@ -28,6 +28,7 @@ Read-only w.r.t. the wave field: never writes wave_atlas.
 """
 from __future__ import annotations
 
+import heapq
 from collections import defaultdict
 from typing import Any, Dict, Optional, Tuple
 
@@ -101,7 +102,7 @@ def sample_wave_summary(wave_atlas, top_n: int = 3) -> Dict[str, Tuple[float, li
     for band in BANDS:
         chi_strengths = band_chi_strength.get(band, {})
         aggregate = sum(chi_strengths.values())
-        top = sorted(chi_strengths.items(), key=lambda kv: -kv[1])[:top_n]
+        top = heapq.nlargest(top_n, chi_strengths.items(), key=lambda kv: kv[1])
         top_with_phase = [(chi, strength, band_chi_phase.get(band, {}).get(chi))
                           for chi, strength in top]
         summary[band] = (aggregate, top_with_phase)
@@ -125,8 +126,18 @@ def push_wave_summary_to_organism(guala, summary: Dict[str, Tuple[float, list]],
     """Push each hemisphere's assigned band as input_signal to its neurons,
     via each neuron's own, unmodified step(). Returns the payload for the
     wave_summary_pushed event (observability only -- no other side effect
-    here beyond what neuron.step() itself already does)."""
+    here beyond what neuron.step() itself already does).
+
+    GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v1: skip the neuron.step() calls
+    entirely on a quiescent tick (every band's aggregate is 0) -- decay
+    now prunes the wave field down to nothing between real experiences,
+    so most ticks have nothing to push. The event still fires (with an
+    honest all-zero payload) from the caller in _autonomy_tick; only the
+    per-neuron work is skipped here."""
     from dsf_ai_service.loom_model.topology import HEMISPHERE_PRIMARY_MODALITY
+
+    if not any(agg > 0.0 for agg, _ in summary.values()):
+        return {"tick": tick, "bands": {b: {"aggregate_amplitude": 0.0, "top_chis": []} for b in BANDS}}
 
     payload_bands = {}
     for band in BANDS:

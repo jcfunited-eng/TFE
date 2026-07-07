@@ -5507,6 +5507,28 @@ class Guala:
             # pressure's own gate (Change 2) further down.
             _ca_kind = getattr(self._current_activity, 'kind', None)
 
+            # GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v1: immediately before
+            # the wave summary sampling below, decay + prune the wave
+            # field so its size (and therefore the summary scan's own
+            # cost) stays bounded instead of growing for the life of the
+            # process. Mid-flight disable: WAVE_ATLAS_DECAY_ENABLED=0 on
+            # a new task-def revision, no code change needed.
+            if (self.wave_atlas is not None
+                    and os.environ.get("WAVE_ATLAS_DECAY_ENABLED", "1") == "1"):
+                _wa_strength_before = sum(
+                    c.aggregate_strength for c in self.wave_atlas.cells.values())
+                _wa_cells_pruned = self.wave_atlas.tick_decay()
+                _wa_strength_after = sum(
+                    c.aggregate_strength for c in self.wave_atlas.cells.values())
+                self._log_substrate_event(
+                    "wave_atlas_decay_tick",
+                    tick=self.tick,
+                    cells_pruned=_wa_cells_pruned,
+                    cells_remaining=self.wave_atlas.cell_count(),
+                    total_strength_before=round(_wa_strength_before, 4),
+                    total_strength_after=round(_wa_strength_after, 4),
+                )
+
             # GL-CMD-HEMISPHERIC-INTEGRATION-BUILD-EVE-20260707-v3 Wiring 2:
             # every autonomy-tick, sample the shared wave field and push
             # each hemisphere's assigned band into its neurons via their
