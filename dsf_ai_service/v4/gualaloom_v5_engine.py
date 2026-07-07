@@ -1555,6 +1555,14 @@ class Guala:
             get_affect_fn=self._affect_kwargs,
             atlas_windows=self.atlas.windows,
         )
+        # GL-CMD-CROSS-SENSE-RECALL-BUILD-EVE-20260706-v1: reads
+        # atlas.windows live (no caching, no copy) -- never writes it.
+        from dsf_ai_service.substrate.recall_query import RecallEngine
+        self.recall_engine = RecallEngine(
+            atlas_windows_fn=lambda: self.atlas.windows,
+            get_tick_fn=lambda: self.tick,
+            log_event_fn=self._log_substrate_event,
+        )
         # WAVE_ATLAS_ENABLED: Phase 1 flag. 0 = atlas built but inactive; 1 = parallel writes.
         if os.environ.get("WAVE_ATLAS_ENABLED") == "1":
             from dsf_ai_service.v4.wave_atlas import WaveAtlas as _WaveAtlas

@@ -2626,6 +2626,36 @@ async def gualaloom_chat(msg: GLMessage):
             _guala._log_substrate_event("experience_bundle",
                                         name=bundle_name, lanes=results,
                                         n_chis=len(bundle_chis), source=bundle_source)
+
+            # ── Recall query (GL-CMD-CROSS-SENSE-RECALL-BUILD-EVE-20260706-v1) ──
+            # "The sound cue came in -- here are the windows that had this
+            # sound." Runs BEFORE close() below so it searches only PRIOR,
+            # already-closed windows, not the one this call is still
+            # forming. Single-lane bundles (e.g. a bare sound_ref cue) get
+            # a section_hint from that lane; multi-lane bundles (a full
+            # picture+sound+word experience) get none -- there's no one
+            # cue to hint toward. Not wired into the live conversational
+            # emission/composition path -- see this dispatch's build
+            # report for why (_brain_emission_candidates/
+            # _emit_from_invariants source candidates from the organism,
+            # not the atlas, per the standing "one mind, one mouth"
+            # ruling; adding a second, atlas/window-sourced candidate feed
+            # there would be exactly the parallel-source regression that
+            # ruling shut down).
+            recall_result = None
+            if bundle_chis:
+                _lanes_present = [bool(caption), bool(bundle_data.get("image_b64") or bundle_data.get("picture_id")),
+                                  bool(bundle_data.get("sound_id") or bundle_data.get("sound_b64"))]
+                _lanes_present += [bool(bundle_data.get(s)) for s in ("touch", "smell", "taste")]
+                _section_hint = None
+                if sum(_lanes_present) == 1:
+                    _hint_names = ["word", "sight", "sound", "touch", "smell", "taste"]
+                    _section_hint = _hint_names[_lanes_present.index(True)]
+                from dsf_ai_service.substrate.recall_query import RecallQuery
+                recall_result = _guala.recall_engine.query(RecallQuery(
+                    chis=bundle_chis, section_hint=_section_hint,
+                    source_context={"bundle": bundle_name, "source": bundle_source}))
+
             # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: close the
             # binding window opened at the top of this function -- give_
             # experience's explicit open/add_entry-per-lane/close, complete.
@@ -2633,13 +2663,20 @@ async def gualaloom_chat(msg: GLMessage):
 
             # H5b: always structured JSON, never raw 500
             print(f"[decode-bundle] {time.time()-t0:.2f}s")
-            return {
+            response_payload = {
                 "response": f"experience \"{bundle_name}\": {'; '.join(results)}. "
                             f"{len(bundle_chis)} cross-modal bindings.",
                 "motifs": _guala.introspect()["vocab"],
                 "bundle": {"name": bundle_name, "lanes": results,
                            "n_chis": len(bundle_chis)},
             }
+            if recall_result is not None:
+                response_payload["recall"] = {
+                    "query_id": recall_result.query_id,
+                    "windows_returned": recall_result.window_ids(),
+                    "top_affect_strength": round(recall_result.top_affect_strength(), 4),
+                }
+            return response_payload
         return await _loop.run_in_executor(None, _decode_bundle)
 
     # ── /addsound:<filename> — decode base64 audio, run through cochlear pipeline ──
