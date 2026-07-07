@@ -5507,7 +5507,7 @@ class Guala:
             # pressure's own gate (Change 2) further down.
             _ca_kind = getattr(self._current_activity, 'kind', None)
 
-            # GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v1: immediately before
+            # GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v2: immediately before
             # the wave summary sampling below, decay + prune the wave
             # field so its size (and therefore the summary scan's own
             # cost) stays bounded instead of growing for the life of the
@@ -5517,14 +5517,14 @@ class Guala:
                     and os.environ.get("WAVE_ATLAS_DECAY_ENABLED", "1") == "1"):
                 _wa_strength_before = sum(
                     c.aggregate_strength for c in self.wave_atlas.cells.values())
-                _wa_cells_pruned = self.wave_atlas.tick_decay()
+                _wa_bindings_pruned = self.wave_atlas.tick_decay()
                 _wa_strength_after = sum(
                     c.aggregate_strength for c in self.wave_atlas.cells.values())
                 self._log_substrate_event(
                     "wave_atlas_decay_tick",
                     tick=self.tick,
-                    cells_pruned=_wa_cells_pruned,
-                    cells_remaining=self.wave_atlas.cell_count(),
+                    bindings_pruned=_wa_bindings_pruned,
+                    cells_total=self.wave_atlas.cell_count(),
                     total_strength_before=round(_wa_strength_before, 4),
                     total_strength_after=round(_wa_strength_after, 4),
                 )
