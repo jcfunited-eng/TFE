@@ -80,6 +80,33 @@ MAX_CHI_DISTANCE = 262144   # matches tools/wave_constants.py N_CELLS -- the
                             # normalization denominator for the delay
                             # heuristic below; LoomNeuron itself has no chi
                             # coordinate today (see chi_position note).
+
+# --- GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v1 additions (STDP) ---
+# All HEURISTIC per blueprint v2 SS3.4, values as specified in the dispatch
+# (none tuned by c1). Class: from-biology-reference (standard STDP timing
+# ranges). Measurement plan (shared across all seven, per dispatch): observe
+# learning curves under repeated exposure (this dispatch's own protocol
+# step 6); adjust if learning is too fast (overshoot, response saturates
+# before 20 reps) or too slow (never converges, no latency drop by rep 20).
+STDP_WINDOW_MS = 40.0             # presynaptic-fire history retention window
+STDP_POTENTIATION_WINDOW_MS = 20.0  # pre-before-post window that strengthens
+STDP_POTENTIATION_AMPLITUDE = 0.02
+STDP_TAU_MS = 20.0                 # shared exponential falloff, both directions
+STDP_DEPRESSION_WINDOW_MS = 20.0   # post-before-pre window that weakens
+STDP_DEPRESSION_AMPLITUDE = 0.015
+MAX_SYNAPSE_WEIGHT = 5.0
+MIN_SYNAPSE_WEIGHT = 0.0
+STDP_DEFAULT_SYNAPSE_WEIGHT = 0.05  # weight for a not-yet-potentiated synapse
+
+# Reserved source_id prefix for non-synaptic (external) spike sources --
+# direct word/cue injection from LoomBrain.step or recall's cue injection,
+# as opposed to a real neuron-to-neuron spike. STDP only applies to real
+# synapses: there's no connection to learn on for an external stimulus.
+# Real neuron ids are always f"{cluster_id}_n{i}" (e.g. "H3_n17", see
+# cluster.py/brain.py) -- none start with "_", so this is a safe,
+# non-colliding convention, not a new ID scheme.
+EXTERNAL_SOURCE_PREFIX = "_"
+
 SETTLE_EPS = 0.25     # imaginary-time step size
 INJECT_SIGMA = 1.0    # Gaussian width (modes) for MapInject localization
 FOLD_TRIGGER_RATIO = math.exp(-1)  # 1/e — from L6-TCL physics (Master Spec Ch.11)
@@ -546,27 +573,51 @@ class LoomNeuron:
         # a bus argument) are unaffected.
         self._spike_bus = None
 
+        # --- GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v1: STDP state ---
+        # source_neuron_id -> [(fire_time_s, spike_weight), ...], pruned to
+        # STDP_WINDOW_MS on every receive_spike(). External (non-synaptic)
+        # sources -- id starts with EXTERNAL_SOURCE_PREFIX -- are never
+        # recorded here; STDP only applies to learnable neuron-to-neuron
+        # synapses.
+        self._recent_presynaptic_fires: Dict[str, List[Tuple[float, float]]] = {}
+        # source_neuron_id -> learned incoming synapse weight. Absent key
+        # means STDP_DEFAULT_SYNAPSE_WEIGHT (not yet potentiated/depressed).
+        # This is what receive_spike() actually scales a real (non-external)
+        # spike's contribution by -- couplings.J (read by
+        # _get_outgoing_synapses) stays the static Phase-1 OUTGOING weight
+        # a sender emits with; this dict is the dynamic, per-neuron,
+        # LEARNED weight the receiver applies. Standard split for a
+        # per-neuron (not shared-matrix) STDP implementation.
+        self._incoming_synapse_weights: Dict[str, float] = {}
+        self._last_fire_time_s: float = 0.0
+        # Called as fn(word, neuron_id) from _on_fire_bookkeeping when this
+        # neuron fires as a direct entry point for a word injection (see
+        # set_word_firing_callback). None by default -- existing/other
+        # neurons are unaffected.
+        self._word_firing_callback = None
+
         # Apply birth_params if this is a daughter neuron
         if birth_params is not None:
             self._apply_birth_params(birth_params)
 
     # ------------------------------------------------------------------
-    # GL-CMD-BLUEPRINT-PHASE-1-NEURON-AUTONOMY-EVE-20260707-v1:
-    # event-driven spike handling (blueprint SS3.1, SS3.3).
+    # Commit c1's parked neuron-side Phase 1 work per GL-CMD-BLUEPRINT-
+    # PHASE-1-MERGED-EVE-20260707-v2 preamble ("What's preserved from c1's
+    # parked work"). Event-driven spike handling + STDP synapse plasticity
+    # (blueprint v2 SS3.1, SS3.3, SS3.4).
     #
-    # NOT called from step() or any existing call path. Built and unit-
-    # tested in isolation (dsf_ai_service/loom_model/tests/
-    # test_neuron_spike_handling.py). See GL-RPT-BLUEPRINT-PHASE-1-
-    # NEURON-AUTONOMY-C1-20260707-v1.md: wiring these into LoomBrain.step/
-    # LoomCluster.step (dispatch items 3-5) is HALTED -- receive_spike()/
-    # _fire() as specified have no path into krimelack.transduce/
-    # compute_dsf/psi_lattice.settle, the mechanisms that currently
-    # produce everything chi_atlas, binding_atlas, recall_fast, and
-    # emission read. Wiring them as literally specified would silently
-    # sever the production hot path (Guala._organism_worker_loop ->
-    # hemi.step -> LoomCluster.step -> LoomNeuron.step) from all real
-    # sensory/word content processing. Routed to Eve for the
-    # architectural question before proceeding.
+    # History: the original NEURON-AUTONOMY dispatch (event-driven firing
+    # alone, no STDP) was halted -- receive_spike/_fire had no path to
+    # anything that produces recognition/memory. The MERGED-v1 dispatch
+    # added STDP but assumed emission/recall/chi_atlas worked differently
+    # than they actually do (7 design errors found by dependency audit,
+    # see MERGED-v2's "Why v2 exists"). This neuron-side half (this
+    # section) was correct in both v1 and v2 and is unchanged between
+    # them -- what changes in v2 is how the engine (gualaloom_v5_engine.py)
+    # wires it in: dual-write/dual-read via RECALL_BACKEND, not a
+    # wholesale replacement of the legacy binding_atlas path. See
+    # GL-RPT-BLUEPRINT-PHASE-1-MERGED-C1-20260707-v2.md for the full
+    # verification protocol.
     # ------------------------------------------------------------------
 
     def set_spike_bus(self, spike_bus) -> None:
@@ -576,15 +627,39 @@ class LoomNeuron:
         nothing calls it on."""
         self._spike_bus = spike_bus
 
+    def set_word_firing_callback(self, callback) -> None:
+        """callback(word: str, neuron_id: str) -> None, invoked when this
+        neuron fires as a direct entry point for a word injection (spike
+        source is external -- id starts with EXTERNAL_SOURCE_PREFIX -- and
+        carries metadata["word"]). Used by Guala to build
+        _word_neuron_map/_neuron_word_map (dispatch item 4). Optional --
+        None by default, so untouched neurons are unaffected."""
+        self._word_firing_callback = callback
+
+    def _prune_presynaptic_history(self, source_id: str, now: float) -> None:
+        history = self._recent_presynaptic_fires.get(source_id)
+        if not history:
+            return
+        cutoff = now - STDP_WINDOW_MS / 1000.0
+        pruned = [(t, w) for t, w in history if t >= cutoff]
+        if pruned:
+            self._recent_presynaptic_fires[source_id] = pruned
+        else:
+            del self._recent_presynaptic_fires[source_id]
+
     def receive_spike(self, spike) -> None:
         """Called by a SpikeBus when a spike arrives at this neuron.
 
         Updates membrane potential based on time since last update, adds
-        the spike's weighted contribution, checks threshold, fires if
-        crossed and not refractory. Thread-safe -- spike arrivals are
-        concurrent from the bus's delivery thread and (potentially) other
-        callers.
+        the spike's weighted contribution (scaled by the learned STDP
+        incoming-synapse weight for real neuron-to-neuron spikes; used
+        raw for external/injection spikes -- see EXTERNAL_SOURCE_PREFIX),
+        checks threshold, fires if crossed and not refractory.
+        Thread-safe -- spike arrivals are concurrent from the bus's
+        delivery thread and (potentially) other callers.
         """
+        is_external = spike.source_neuron_id.startswith(EXTERNAL_SOURCE_PREFIX)
+
         with self._neuron_lock:
             now = time.monotonic()
             dt_ms = (now - self.last_update_time_s) * 1000.0
@@ -594,21 +669,99 @@ class LoomNeuron:
                     self.membrane_rest
                     + (self.membrane_potential - self.membrane_rest) * decay
                 )
-            self.membrane_potential += spike.weight
+
+            if is_external:
+                contribution = spike.weight
+            else:
+                # STDP-only path: record presynaptic fire history (pruned
+                # to STDP_WINDOW_MS) for potentiation on our own next
+                # fire, and scale the contribution by our learned
+                # incoming weight for this specific source.
+                self._recent_presynaptic_fires.setdefault(spike.source_neuron_id, []).append(
+                    (now, spike.weight))
+                self._prune_presynaptic_history(spike.source_neuron_id, now)
+                synapse_weight = self._incoming_synapse_weights.get(
+                    spike.source_neuron_id, STDP_DEFAULT_SYNAPSE_WEIGHT)
+                contribution = spike.weight * synapse_weight
+
+            self.membrane_potential += contribution
             self.last_update_time_s = now
 
             if now < self.refractory_until_s:
                 return  # absorbed but no firing
 
             if self.membrane_potential >= self.membrane_threshold:
-                self._fire(now)
+                self._fire(now, triggering_spike=spike)
 
-    def _fire(self, now: float) -> None:
-        """Neuron fires: reset membrane, set refractory, emit spikes to
-        all coupled neighbors via the spike bus (if one is set) with
-        computed delays. Caller holds self._neuron_lock."""
+    def _apply_stdp_potentiation(self, now: float) -> None:
+        """Pre-before-post: for every source that sent us a spike within
+        STDP_POTENTIATION_WINDOW_MS of firing now, strengthen that
+        source's incoming synapse weight. Caller holds self._neuron_lock."""
+        for source_id, history in self._recent_presynaptic_fires.items():
+            if not history:
+                continue
+            last_fire_time = history[-1][0]
+            dt_ms = (now - last_fire_time) * 1000.0
+            if 0 <= dt_ms <= STDP_POTENTIATION_WINDOW_MS:
+                delta = STDP_POTENTIATION_AMPLITUDE * math.exp(-dt_ms / STDP_TAU_MS)
+                current = self._incoming_synapse_weights.get(
+                    source_id, STDP_DEFAULT_SYNAPSE_WEIGHT)
+                self._incoming_synapse_weights[source_id] = min(
+                    current + delta, MAX_SYNAPSE_WEIGHT)
+
+    def _receive_upstream_fire_notification(self, source_id: str, source_fire_time: float) -> None:
+        """Post-before-pre depression: source_id just fired at
+        source_fire_time. If WE fired shortly before that (within
+        STDP_DEPRESSION_WINDOW_MS), our firing wasn't caused by that
+        source -- weaken source_id's incoming synapse weight onto us.
+        Called directly (synchronous bookkeeping call, not a delayed
+        spike-bus injection) by the source neuron's _notify_downstream_
+        of_fire, so it needs its own lock scope."""
+        with self._neuron_lock:
+            if self._last_fire_time_s <= 0:
+                return
+            dt_ms = (source_fire_time - self._last_fire_time_s) * 1000.0
+            if 0 <= dt_ms <= STDP_DEPRESSION_WINDOW_MS:
+                delta = STDP_DEPRESSION_AMPLITUDE * math.exp(-dt_ms / STDP_TAU_MS)
+                current = self._incoming_synapse_weights.get(
+                    source_id, STDP_DEFAULT_SYNAPSE_WEIGHT)
+                self._incoming_synapse_weights[source_id] = max(
+                    current - delta, MIN_SYNAPSE_WEIGHT)
+
+    def _notify_downstream_of_fire(self, now: float) -> None:
+        """Synchronously inform each coupled downstream neuron that we
+        just fired, so it can apply STDP depression if it fired first.
+        Separate from the delayed spike-bus emission in _fire() -- this
+        is bookkeeping, not signal propagation, so it isn't subject to
+        propagation delay."""
+        registry = getattr(self._spike_bus, "_neuron_registry", None) if self._spike_bus else None
+        if registry is None:
+            return
+        for target_id, _weight in self._get_outgoing_synapses():
+            if target_id == self.neuron_id:
+                # Defensive: a self-loop would re-acquire our own
+                # non-reentrant _neuron_lock via _receive_upstream_fire_
+                # notification and hang the spike bus's single delivery
+                # thread forever. Ring topology shouldn't produce
+                # self-loops, but this is cheap insurance against a
+                # deadlock class the dispatch explicitly calls out
+                # (halt condition 3, prior dispatch).
+                continue
+            target = registry.get(target_id)
+            if target is not None:
+                target._receive_upstream_fire_notification(self.neuron_id, now)
+
+    def _fire(self, now: float, triggering_spike=None) -> None:
+        """Neuron fires: apply STDP potentiation from recent presynaptic
+        history, reset membrane, set refractory, emit spikes to all
+        coupled neighbors via the spike bus (if one is set) with computed
+        delays, notify downstream neurons synchronously for depression
+        bookkeeping. Caller holds self._neuron_lock."""
+        self._apply_stdp_potentiation(now)
+
         self.membrane_potential = self.membrane_rest
         self.refractory_until_s = now + self.refractory_period_ms / 1000.0
+        self._last_fire_time_s = now
 
         if self._spike_bus is not None:
             for target_id, weight in self._get_outgoing_synapses():
@@ -619,8 +772,14 @@ class LoomNeuron:
                     weight=weight,
                     arrival_delay_ms=delay_ms,
                 )
+            self._notify_downstream_of_fire(now)
 
-        self._on_fire_bookkeeping(now)
+        word = None
+        if triggering_spike is not None and triggering_spike.source_neuron_id.startswith(
+                EXTERNAL_SOURCE_PREFIX):
+            word = triggering_spike.metadata.get("word")
+
+        self._on_fire_bookkeeping(now, word=word)
 
     def _compute_propagation_delay_ms(self, target_id: str) -> float:
         """Delay is a function of chi-distance between source and target.
@@ -672,28 +831,36 @@ class LoomNeuron:
                 synapses.append((target_id, weight))
         return synapses
 
-    def _on_fire_bookkeeping(self, now: float) -> None:
+    def _on_fire_bookkeeping(self, now: float, word: Optional[str] = None) -> None:
         """Records the fire event.
 
-        INTENTIONALLY MINIMAL -- see class-level note above. The
-        dispatch's own text claims this "preserves current substrate
-        observability without changing what those consumers see," but
-        the data existing consumers (chi_atlas, binding_atlas, recall_fast)
-        currently read (a dominant_mode index from psi_lattice's settled
-        16-dim quantum state) has no analogue derivable from a bare
-        membrane-potential scalar. Rather than fabricate a fake
-        dominant_mode, this records only what's honestly available: the
-        fire event itself, at whatever chi the caller can supply via
-        spike metadata (input_chi), into the existing chi_atlas using its
-        existing record() API -- no new storage mechanism. If no chi is
-        available, the fire event is not recorded (silence over
-        fabrication). Real content-bearing bookkeeping is exactly the
-        open architectural question in the Phase 1 halt report.
+        GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v1 item 5: chi_atlas
+        continues to be WRITTEN for observability only -- nothing reads it
+        anymore once emission/recall are migrated to membrane state (see
+        gualaloom_v5_engine.py changes; confirmed via grep in the Phase 1
+        report). Its exact content is therefore not load-bearing, but it's
+        still real (not fabricated) data: motif_id is the word if this
+        fire was a direct entry-point injection for one, else the
+        neuron's own id (still identifies which neuron fired, when).
+        chi_value uses self.chi_position if ever populated, else 0 -- a
+        placeholder, honestly labeled as such rather than a fabricated
+        dominant_mode (the prior dispatch's concern about NOT inventing
+        fake data still applies; the difference here is the value is
+        explicitly documented as not read by anything, not passed off as
+        meaningful).
+
+        word is also forwarded to the word-neuron population map (dispatch
+        item 4) via _word_firing_callback, if this fire was a direct
+        entry-point injection for a word (see EXTERNAL_SOURCE_PREFIX
+        handling in _fire). This IS load-bearing -- it's what
+        _select_entry_neurons and recall's cue lookup read.
         """
-        pass  # deliberately not wired to chi_atlas.record here -- see
-              # docstring. A caller integrating this needs to supply real
-              # chi content, which requires resolving the krimelack/DSF
-              # question first.
+        motif_id = word if word is not None else self.neuron_id
+        chi_value = self.chi_position if self.chi_position is not None else 0
+        self.chi_atlas.record("neuron", motif_id, chi_value, tick=None)
+
+        if word is not None and self._word_firing_callback is not None:
+            self._word_firing_callback(word, self.neuron_id)
 
     # ------------------------------------------------------------------
     # step — one substrate cycle
