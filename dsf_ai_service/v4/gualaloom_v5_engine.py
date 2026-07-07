@@ -1750,6 +1750,12 @@ class Guala:
         self._organism_worker_thread = None
         self._organism_worker_start_lock = threading.Lock()
         self._organism_lock = threading.Lock()
+        # GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1: per-hemisphere wave-
+        # summary pushes (see wave_summary.py), drained by the same worker
+        # thread as the word queue below. Eagerly created (unlike the word
+        # queue's lazy self._organism_queue = None) so a sensory push can
+        # never race the worker's own first-word startup.
+        self._organism_sensory_queue = _queue.Queue()
         # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's backgrounding
         # ruling: honest-degradation count, visible in status (not just
         # silently swallowed like the tapestry queue's drop today) -- see
@@ -3029,9 +3035,62 @@ class Guala:
         task_done() (Eve's condition -- queue drained before
         save_full_state): required for queue.join() to mean anything;
         called in both the success and failure path so a raised
-        exception can't wedge a future join() forever."""
+        exception can't wedge a future join() forever.
+
+        GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1: also drains
+        self._organism_sensory_queue (per-hemisphere wave-summary
+        pushes, see wave_summary.py) on this SAME single thread -- moves
+        the 64x neuron.step() cost off _autonomy_tick's synchronous path
+        entirely (measured there at 246-290ms/call, confirmed via a
+        controlled isolated timing comparison, see GL-RPT-WAVE-ATLAS-
+        DECAY-BUILD-C1-20260707-v3 -- wave-atlas decay never touched
+        this cost since it scales with organism-internal state, not
+        wave-atlas size). Word queue keeps priority: checked first,
+        non-blocking; sensory queue checked next, non-blocking; a short
+        (0.1s) blocking wait on the word queue is the idle path so this
+        thread never busy-spins when both are empty -- not a tuned
+        priority weight, just how two queues share one consumer without
+        polling in a hot loop."""
         while True:
-            item = self._organism_queue.get()
+            try:
+                item = self._organism_queue.get_nowait()
+                source = "word"
+            except _queue.Empty:
+                item = None
+                source = None
+            if source is None:
+                try:
+                    item = self._organism_sensory_queue.get_nowait()
+                    source = "sensory"
+                except _queue.Empty:
+                    source = None
+            if source is None:
+                try:
+                    item = self._organism_queue.get(timeout=0.1)
+                    source = "word"
+                except _queue.Empty:
+                    continue  # nothing arrived within the wait window -- re-check both
+
+            if source == "sensory":
+                hemi_id, input_signal, sensory_tick = item
+                _sensory_t0 = time.monotonic()
+                try:
+                    hemi = self.organism.brain._hemi_map.get(hemi_id)
+                    if hemi is not None:
+                        with self._organism_lock:
+                            hemi.step(input_signal, sensory_tick)
+                        self._log_substrate_event(
+                            "sensory_organism_processed", tick=sensory_tick,
+                            hemi_id=hemi_id,
+                            wall_clock_delay=round(time.monotonic() - _sensory_t0, 4))
+                except Exception as _se:
+                    print(f"[GualaLoom] organism sensory step failed for "
+                          f"hemi={hemi_id!r} (non-fatal): {_se}")
+                finally:
+                    self._organism_sensory_queue.task_done()
+                continue
+
+            # source == "word"
             if item is None:
                 self._organism_queue.task_done()
                 return
@@ -3113,6 +3172,23 @@ class Guala:
                                  daemon=True, name="organism-writer")
             t.start()
             self._organism_worker_thread = t
+
+    def _enqueue_organism_sensory(self, hemi_id, input_signal, tick):
+        """GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1: per-hemisphere
+        wave-summary push (see wave_summary.py), drained asynchronously
+        by the same worker thread as the word queue. self._organism_
+        sensory_queue is unbounded (no maxsize, unlike the word queue) --
+        put() here never blocks the caller (the main autonomy tick), by
+        construction, not by a size check.
+
+        _ensure_organism_worker() is called here too (not just from the
+        word-enqueue paths): the worker thread only starts on its first
+        real item, and a sensory push can legitimately be the FIRST
+        organism-bound work of a fresh boot (e.g. give_experience before
+        any word has been read) -- without this call, sensory items would
+        sit in the queue forever with no thread ever draining them."""
+        self._ensure_organism_worker()
+        self._organism_sensory_queue.put((hemi_id, input_signal, tick))
 
     def _replay_sensory_echo(self, word):
         """GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: replay
@@ -5511,10 +5587,15 @@ class Guala:
             # the wave summary sampling below, decay + prune the wave
             # field so its size (and therefore the summary scan's own
             # cost) stays bounded instead of growing for the life of the
-            # process. Mid-flight disable: WAVE_ATLAS_DECAY_ENABLED=0 on
-            # a new task-def revision, no code change needed.
+            # process. GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1:
+            # this series is abandoned -- it was solving the wrong
+            # problem (sample_wave_summary's own cost was never the
+            # issue; see that report). Default flipped to OFF here so
+            # this deploy doesn't run it, while the code stays committed
+            # for a possible future revisit (flip back to "1", no code
+            # change needed).
             if (self.wave_atlas is not None
-                    and os.environ.get("WAVE_ATLAS_DECAY_ENABLED", "1") == "1"):
+                    and os.environ.get("WAVE_ATLAS_DECAY_ENABLED", "0") == "1"):
                 _wa_strength_before = sum(
                     c.aggregate_strength for c in self.wave_atlas.cells.values())
                 _wa_bindings_pruned = self.wave_atlas.tick_decay()
@@ -5529,13 +5610,19 @@ class Guala:
                     total_strength_after=round(_wa_strength_after, 4),
                 )
 
-            # GL-CMD-HEMISPHERIC-INTEGRATION-BUILD-EVE-20260707-v3 Wiring 2:
-            # every autonomy-tick, sample the shared wave field and push
-            # each hemisphere's assigned band into its neurons via their
-            # own existing input_signal path. Guarded on wave_atlas being
-            # wired (WAVE_ATLAS_ENABLED=1) -- honest no-op otherwise, same
-            # convention as every other _wa is not None check in this file.
-            if self.wave_atlas is not None:
+            # GL-CMD-HEMISPHERIC-INTEGRATION-BUILD-EVE-20260707-v3 Wiring 2,
+            # rewired by GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1:
+            # every autonomy-tick, sample the shared wave field and
+            # ENQUEUE each hemisphere's assigned band for the organism
+            # worker thread to apply asynchronously (see wave_summary.py
+            # and _organism_worker_loop) -- the synchronous 64x
+            # neuron.step() call this used to make here cost 246-290ms/
+            # call (measured, see GL-RPT-WAVE-ATLAS-DECAY-BUILD-C1-
+            # 20260707-v3), off the critical path entirely now. Mid-flight
+            # disable: WAVE_SUMMARY_ENQUEUE_ENABLED=0 on a new task-def
+            # revision, no code change needed.
+            if (self.wave_atlas is not None
+                    and os.environ.get("WAVE_SUMMARY_ENQUEUE_ENABLED", "1") == "1"):
                 from dsf_ai_service.substrate.wave_summary import (
                     sample_wave_summary, push_wave_summary_to_organism)
                 _wave_summary = sample_wave_summary(self.wave_atlas)

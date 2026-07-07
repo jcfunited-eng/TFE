@@ -1,28 +1,26 @@
-"""Wave field summary -> organism neurons, via LoomNeuron.step's existing
-input_signal parameter.
+"""Wave field summary -> organism neurons, via the organism worker's async
+sensory queue (GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1).
 
 Per GL-CMD-HEMISPHERIC-INTEGRATION-BUILD-EVE-20260707-v3 (adopts Option 2
 from the v2 halt report: read the wave field externally, summarize, push
 into neurons through the input path that already exists -- no shared
 lattice inside the organism, no new per-neuron chi-coverage concept).
 
-Every autonomy-tick: sample the shared WaveAtlas into a per-band summary,
-then push each hemisphere's assigned band into that hemisphere's neurons
-via their own, unmodified step(input_signal=..., tick=...). Band
-assignment uses topology.HEMISPHERE_PRIMARY_MODALITY -- an existing,
-already-defined mapping. It is not applied inside LoomBrain/LoomNeuron
-construction today (GL-CMD-140 retired that per a real regression); used
-here only as an external lookup for which band this driver feeds to which
-hemisphere -- organism construction, krimelack class selection, and
-LoomNeuron.step's own internals are untouched.
-
-Calls LoomNeuron.step() directly, once per neuron, bypassing LoomBrain.
-step()/LoomHemisphere.step()/LoomCluster.step() (which broadcast ONE
-signal to every hemisphere -- this needs a DIFFERENT signal per
-hemisphere). Does not replicate LoomCluster.step's Phase B/C (coupling
-propagation, J_ij refresh) -- those continue to run on their own existing
-cadence via the organism worker's reactive word-processing path,
-unmodified.
+GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1: v3's original design called
+LoomNeuron.step() directly, 64 times, SYNCHRONOUSLY inside _autonomy_tick
+-- measured live at 233-290ms/call (confirmed via a controlled, isolated
+_autonomy_tick timing comparison against the same organism state with and
+without this code active), because cost scales with the organism's own
+accumulated per-neuron state, not wave-atlas size -- wave-atlas decay
+(the prior dispatch series) does not touch this cost at all. This
+version enqueues one work item per non-word hemisphere onto
+Guala._organism_sensory_queue instead, draining asynchronously on the
+SAME background thread the word-processing queue already uses (see
+_organism_worker_loop in gualaloom_v5_engine.py) -- off the main tick
+loop's critical path entirely. Word hemispheres (language band) are
+skipped here; they're already fed through the existing word queue
+(_enqueue_organism_remember/_enqueue_organism_experience_explicit),
+unchanged.
 
 Read-only w.r.t. the wave field: never writes wave_atlas.
 """
@@ -123,17 +121,18 @@ def _band_signal(aggregate: float, top_chis: list) -> list:
 
 def push_wave_summary_to_organism(guala, summary: Dict[str, Tuple[float, list]],
                                    tick: int) -> dict:
-    """Push each hemisphere's assigned band as input_signal to its neurons,
-    via each neuron's own, unmodified step(). Returns the payload for the
-    wave_summary_pushed event (observability only -- no other side effect
-    here beyond what neuron.step() itself already does).
+    """Enqueue each non-word hemisphere's assigned band as a sensory work
+    item, drained asynchronously by the organism worker thread (see
+    Guala._organism_worker_loop). Returns the payload for the
+    wave_summary_pushed event (observability only). Fires
+    sensory_organism_enqueued per hemisphere queued -- sensory_organism_
+    processed fires later, from the worker thread, when that item is
+    actually drained.
 
-    GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v1: skip the neuron.step() calls
-    entirely on a quiescent tick (every band's aggregate is 0) -- decay
-    now prunes the wave field down to nothing between real experiences,
-    so most ticks have nothing to push. The event still fires (with an
-    honest all-zero payload) from the caller in _autonomy_tick; only the
-    per-neuron work is skipped here."""
+    Skip-when-empty (unchanged from the wave-atlas-decay series): on a
+    quiescent tick (every band's aggregate is 0) nothing is enqueued at
+    all -- the event still fires (with an honest all-zero payload) from
+    the caller in _autonomy_tick."""
     from dsf_ai_service.loom_model.topology import HEMISPHERE_PRIMARY_MODALITY
 
     if not any(agg > 0.0 for agg, _ in summary.values()):
@@ -150,9 +149,16 @@ def push_wave_summary_to_organism(guala, summary: Dict[str, Tuple[float, list]],
     for hemi in guala.organism.brain.hemispheres:
         modality = HEMISPHERE_PRIMARY_MODALITY.get(hemi.hemi_id, "language")
         band = _MODALITY_TO_BAND.get(modality, "word")
+        if band == "word":
+            # Word hemispheres already receive real content through the
+            # existing word queue (_enqueue_organism_remember et al.) --
+            # not this new sensory path.
+            continue
         aggregate, top_chis = summary.get(band, (0.0, []))
         input_signal = _band_signal(aggregate, top_chis)
-        for neuron in hemi.cluster.neurons:
-            neuron.step(input_signal=input_signal, tick=tick)
+        guala._enqueue_organism_sensory(hemi.hemi_id, input_signal, tick)
+        guala._log_substrate_event(
+            "sensory_organism_enqueued", tick=tick, hemi_id=hemi.hemi_id,
+            band=band, aggregate_amplitude=round(aggregate, 4))
 
     return {"tick": tick, "bands": payload_bands}
