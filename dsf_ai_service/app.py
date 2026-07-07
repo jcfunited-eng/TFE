@@ -1355,7 +1355,7 @@ def _gl_init():
     _seed_path = os.environ.get("GUALA_SEED_PATH")
     if _seed_path:
         try:
-            from dsf_ai_service.substrate.seed_loader import load_seed
+            from dsf_ai_service.substrate.seed_loader import load_seed, verify_seed_integrity
             _seed_report = load_seed(_seed_path, g)
             print(f"[GualaLoom] Seed loaded from {_seed_path}: "
                   f"ok={_seed_report.ok} vocab={_seed_report.vocabulary_loaded} "
@@ -1365,6 +1365,11 @@ def _gl_init():
                   f"warnings={len(_seed_report.warnings)}")
             if _seed_report.errors:
                 print(f"[GualaLoom] Seed load errors: {_seed_report.errors[:5]}")
+            _integrity_report = verify_seed_integrity(g, seed_path=_seed_path)
+            print(f"[GualaLoom] Seed integrity check: ok={_integrity_report.ok} "
+                  f"checked={_integrity_report.words_checked} "
+                  f"verified={_integrity_report.words_verified} "
+                  f"missing={_integrity_report.words_missing}")
         except Exception as _seed_err:
             print(f"[GualaLoom] Seed load failed (non-fatal, substrate boots "
                   f"without seed): {_seed_err}")
