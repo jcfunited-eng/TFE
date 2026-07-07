@@ -498,7 +498,7 @@ class LoomNeuron:
     # step — one substrate cycle
     # ------------------------------------------------------------------
 
-    def step(self, input_signal, tick: int) -> Dict:
+    def step(self, input_signal, tick: int, input_chi: Optional[int] = None) -> Dict:
         """Execute one substrate cycle.
 
         Args:
@@ -610,13 +610,26 @@ class LoomNeuron:
         committed = self.psi_lattice.committed(dsf)
 
         if committed:
-            # Dominant mode chi = argmax of ψ probabilities
+            # Dominant mode chi = argmax of ψ probabilities. Preserved
+            # unchanged for psi_lattice internal bookkeeping (base_intensity
+            # below still indexes probs by dominant_mode) -- GL-CMD-CHI-
+            # UNIFICATION-EVE-20260707-v3 does not touch this computation.
             probs = self.psi_lattice.probabilities()
             dominant_mode = int(np.argmax(probs))
-            self._last_commit_chi = dominant_mode
+
+            # chi_atlas now stores the UPSTREAM chi (the same krimelack-
+            # derived chi callers compute for the wave atlas), not
+            # dominant_mode -- so match_score(input_chi, ...) at line 588
+            # (next tick, querying self._last_commit_chi) can actually land
+            # in the same numeric range real callers pass as input_chi.
+            # input_chi=None (legacy callsite, backward compat): fall back
+            # to dominant_mode, exactly the v2/prior behavior, so non-
+            # migrated callers are unaffected.
+            _chi_for_atlas = input_chi if input_chi is not None else dominant_mode
+            self._last_commit_chi = _chi_for_atlas
 
             # Record in chi atlas for familiarity tracking
-            self.chi_atlas.record("neuron", dominant_mode, dominant_mode, tick)
+            self.chi_atlas.record("neuron", _chi_for_atlas, dominant_mode, tick)
 
             # f. Spike: base intensity = dominant mode probability
             base_intensity = float(probs[dominant_mode])

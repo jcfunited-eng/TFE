@@ -156,10 +156,16 @@ class LoomCluster:
                                  runs across all neurons)
         Phase C — J_ij refresh: stepping neurons recompute couplings from DSF
 
-        input_chi: GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2. When given,
-        restricts Phase A to neurons familiar with this chi (or a novelty pool
-        if none are familiar yet) instead of stepping the whole population.
-        None preserves prior behavior exactly (all neurons step).
+        input_chi: GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2 /
+        GL-CMD-CHI-UNIFICATION-EVE-20260707-v3. When given: restricts Phase A
+        to neurons familiar with this chi (or a novelty pool if none are
+        familiar yet) instead of stepping the whole population, AND is
+        passed through to each stepping neuron's own step() so chi_atlas
+        records the same upstream chi used for the familiarity filter
+        (v3 unification -- previously neurons recorded their own internal
+        dominant_mode instead, a different, incompatible numeric range).
+        None preserves prior behavior exactly (all neurons step, each
+        neuron falls back to computing its own approximate chi).
 
         Returns dict mapping neuron_id → step result dict (only for neurons
         that stepped this tick).
@@ -169,7 +175,7 @@ class LoomCluster:
         # Phase A: independent processing (chi-familiarity filtered)
         stepping_neurons = self._select_by_chi_familiarity(input_chi)
         for neuron in stepping_neurons:
-            results[neuron.neuron_id] = neuron.step(input_signal, tick)
+            results[neuron.neuron_id] = neuron.step(input_signal, tick, input_chi)
 
         # Phase B: coupling propagation — unchanged, runs across all neurons.
         # GL-CMD-98: J_weight comes from the RECEIVING neuron's coupling matrix,
