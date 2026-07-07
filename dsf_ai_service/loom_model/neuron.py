@@ -30,6 +30,8 @@ NO writes to production atlas. NO engine side effects. NO ECS/S3/deploy.
 import math
 import sys
 import os
+import threading
+import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -63,6 +65,21 @@ J_BASE = 1.0          # base coupling scale
 J_MAX = 1.5           # max coupling scale
 DELTA_BASE = 0.10     # base dead-zone for FamiliarityFeedback
 SETTLE_STEPS = 30     # imaginary-time evolution steps
+
+# --- GL-CMD-BLUEPRINT-PHASE-1-NEURON-AUTONOMY-EVE-20260707-v1 additions ---
+# HEURISTIC: EMISSION_THRESHOLD not defined here (that's dispatch item 5,
+# not built this dispatch -- see halt report). DEFAULT_DELAY_MS/
+# MAX_CHI_DISTANCE below support _compute_propagation_delay_ms(), which is
+# built but not wired to anything live.
+DEFAULT_DELAY_MS = 1.0     # HEURISTIC: fallback when chi_position is unknown
+                            # (always, in Phase 1 -- see chi_position note in
+                            # __init__). Class: from-design (arbitrary
+                            # placeholder, not measured).
+MAX_CHI_DISTANCE = 262144   # matches tools/wave_constants.py N_CELLS -- the
+                            # wave-atlas chi space, used ONLY as a
+                            # normalization denominator for the delay
+                            # heuristic below; LoomNeuron itself has no chi
+                            # coordinate today (see chi_position note).
 SETTLE_EPS = 0.25     # imaginary-time step size
 INJECT_SIGMA = 1.0    # Gaussian width (modes) for MapInject localization
 FOLD_TRIGGER_RATIO = math.exp(-1)  # 1/e — from L6-TCL physics (Master Spec Ch.11)
@@ -490,9 +507,193 @@ class LoomNeuron:
         self._last_origin_transducer: str = "language"  # origin tracking
         self._omega_history: List[float] = []      # rolling ω mean window
 
+        # --- GL-CMD-BLUEPRINT-PHASE-1-NEURON-AUTONOMY-EVE-20260707-v1 ---
+        # Additive membrane-potential / spike-bus fields (blueprint SS3.1,
+        # SS3.3). NOT wired into step() or any existing call path -- see
+        # GL-RPT-BLUEPRINT-PHASE-1-NEURON-AUTONOMY-C1-20260707-v1.md for
+        # why (halted before the LoomBrain.step/LoomCluster.step rewiring
+        # that would connect these to production). receive_spike()/_fire()
+        # are usable in isolation today; they do not run unless something
+        # calls them.
+        self.membrane_potential: float = 0.0
+        self.membrane_rest: float = 0.0
+        self.membrane_threshold: float = 1.0
+        # HEURISTIC: tau_m_ms=20.0 -- biological range for cortical
+        # pyramidal neurons (blueprint SS3.1). Class: from-biology-reference.
+        # Measurement plan: adjust if firing rates diverge from the 1-4%
+        # population-activity target once Phase 3 (lateral inhibition)
+        # makes that target enforceable.
+        self.tau_m_ms: float = 20.0
+        # HEURISTIC: refractory_period_ms=2.0 -- biological absolute
+        # refractory period (blueprint SS3.1). Class: from-biology-reference.
+        # Measurement plan: verify no neuron fires faster than 500Hz
+        # sustained; adjust if observed.
+        self.refractory_period_ms: float = 2.0
+        self.last_update_time_s: float = 0.0
+        self.refractory_until_s: float = 0.0
+        self._neuron_lock: threading.Lock = threading.Lock()
+        # Chi position for propagation-delay computation (blueprint SS3.3).
+        # NOT populated anywhere in Phase 1 -- no per-neuron static chi
+        # coordinate exists in the current architecture (chi is associated
+        # with committed EVENTS via chi_atlas, not with neuron identity).
+        # _compute_propagation_delay_ms() falls back to DEFAULT_DELAY_MS
+        # while this is None. Flagged in the Phase 1 report as an open
+        # question -- where would a real value come from?
+        self.chi_position: Optional[int] = None
+        # Set via set_spike_bus() if/when this neuron is wired to a
+        # SpikeBus. None by default so _fire() and existing constructors
+        # (cluster.py, brain.py, embryo.py all construct LoomNeuron without
+        # a bus argument) are unaffected.
+        self._spike_bus = None
+
         # Apply birth_params if this is a daughter neuron
         if birth_params is not None:
             self._apply_birth_params(birth_params)
+
+    # ------------------------------------------------------------------
+    # GL-CMD-BLUEPRINT-PHASE-1-NEURON-AUTONOMY-EVE-20260707-v1:
+    # event-driven spike handling (blueprint SS3.1, SS3.3).
+    #
+    # NOT called from step() or any existing call path. Built and unit-
+    # tested in isolation (dsf_ai_service/loom_model/tests/
+    # test_neuron_spike_handling.py). See GL-RPT-BLUEPRINT-PHASE-1-
+    # NEURON-AUTONOMY-C1-20260707-v1.md: wiring these into LoomBrain.step/
+    # LoomCluster.step (dispatch items 3-5) is HALTED -- receive_spike()/
+    # _fire() as specified have no path into krimelack.transduce/
+    # compute_dsf/psi_lattice.settle, the mechanisms that currently
+    # produce everything chi_atlas, binding_atlas, recall_fast, and
+    # emission read. Wiring them as literally specified would silently
+    # sever the production hot path (Guala._organism_worker_loop ->
+    # hemi.step -> LoomCluster.step -> LoomNeuron.step) from all real
+    # sensory/word content processing. Routed to Eve for the
+    # architectural question before proceeding.
+    # ------------------------------------------------------------------
+
+    def set_spike_bus(self, spike_bus) -> None:
+        """Wire this neuron to a SpikeBus for outgoing spike emission on
+        fire. Optional -- _fire() works (skips emission) with no bus set,
+        so this method existing doesn't change behavior for any neuron
+        nothing calls it on."""
+        self._spike_bus = spike_bus
+
+    def receive_spike(self, spike) -> None:
+        """Called by a SpikeBus when a spike arrives at this neuron.
+
+        Updates membrane potential based on time since last update, adds
+        the spike's weighted contribution, checks threshold, fires if
+        crossed and not refractory. Thread-safe -- spike arrivals are
+        concurrent from the bus's delivery thread and (potentially) other
+        callers.
+        """
+        with self._neuron_lock:
+            now = time.monotonic()
+            dt_ms = (now - self.last_update_time_s) * 1000.0
+            if dt_ms > 0:
+                decay = math.exp(-dt_ms / self.tau_m_ms)
+                self.membrane_potential = (
+                    self.membrane_rest
+                    + (self.membrane_potential - self.membrane_rest) * decay
+                )
+            self.membrane_potential += spike.weight
+            self.last_update_time_s = now
+
+            if now < self.refractory_until_s:
+                return  # absorbed but no firing
+
+            if self.membrane_potential >= self.membrane_threshold:
+                self._fire(now)
+
+    def _fire(self, now: float) -> None:
+        """Neuron fires: reset membrane, set refractory, emit spikes to
+        all coupled neighbors via the spike bus (if one is set) with
+        computed delays. Caller holds self._neuron_lock."""
+        self.membrane_potential = self.membrane_rest
+        self.refractory_until_s = now + self.refractory_period_ms / 1000.0
+
+        if self._spike_bus is not None:
+            for target_id, weight in self._get_outgoing_synapses():
+                delay_ms = self._compute_propagation_delay_ms(target_id)
+                self._spike_bus.inject(
+                    target_id=target_id,
+                    source_id=self.neuron_id,
+                    weight=weight,
+                    arrival_delay_ms=delay_ms,
+                )
+
+        self._on_fire_bookkeeping(now)
+
+    def _compute_propagation_delay_ms(self, target_id: str) -> float:
+        """Delay is a function of chi-distance between source and target.
+
+        HEURISTIC: linear scaling with chi-distance, 1-20ms range
+        (blueprint SS3.3). Class: from-design (chi-distance stands in for
+        physical distance since the substrate has no literal physical
+        positions). Measurement plan: verify propagation patterns produce
+        realistic spike-timing distributions once wired; adjust if
+        temporal binding fails.
+
+        Currently always returns DEFAULT_DELAY_MS: self.chi_position is
+        None for every neuron in Phase 1 (see __init__ note) since no
+        per-neuron static chi coordinate exists in the current
+        architecture. Real chi-distance scaling activates once that gap
+        is resolved.
+        """
+        if self.chi_position is None:
+            return DEFAULT_DELAY_MS
+        registry = getattr(self._spike_bus, "_neuron_registry", None) if self._spike_bus else None
+        target = registry.get(target_id) if registry is not None else None
+        if target is None or getattr(target, "chi_position", None) is None:
+            return DEFAULT_DELAY_MS
+        chi_distance = abs(self.chi_position - target.chi_position)
+        delay = 1.0 + (chi_distance / MAX_CHI_DISTANCE) * 19.0
+        return delay
+
+    def _get_outgoing_synapses(self):
+        """Read current outgoing coupling weights from CouplingsJij.
+
+        Phase 1: static weights from the existing coupling structure.
+        Phase 2 (NOT this dispatch) will make weights dynamic via STDP.
+
+        Adapted from the dispatch's reference implementation to match
+        CouplingsJij's real shape: .neighbors is List[str] of neuron_id
+        strings (not neuron objects -- no per-neuron object references to
+        neighbors exist), and .J[j_index] is a PSI_DIM=16-element vector
+        (one weight per ψ-mode), not a scalar. Reduced to a scalar via
+        the SAME convention LoomCluster.step's Phase B already uses
+        (float(np.mean(...))) -- mechanical adaptation to real shapes,
+        not a new design decision.
+        """
+        synapses = []
+        for j_index, target_id in enumerate(self.couplings.neighbors):
+            if j_index >= self.couplings.J.shape[0]:
+                continue
+            weight = float(np.mean(self.couplings.J[j_index]))
+            if weight != 0.0:
+                synapses.append((target_id, weight))
+        return synapses
+
+    def _on_fire_bookkeeping(self, now: float) -> None:
+        """Records the fire event.
+
+        INTENTIONALLY MINIMAL -- see class-level note above. The
+        dispatch's own text claims this "preserves current substrate
+        observability without changing what those consumers see," but
+        the data existing consumers (chi_atlas, binding_atlas, recall_fast)
+        currently read (a dominant_mode index from psi_lattice's settled
+        16-dim quantum state) has no analogue derivable from a bare
+        membrane-potential scalar. Rather than fabricate a fake
+        dominant_mode, this records only what's honestly available: the
+        fire event itself, at whatever chi the caller can supply via
+        spike metadata (input_chi), into the existing chi_atlas using its
+        existing record() API -- no new storage mechanism. If no chi is
+        available, the fire event is not recorded (silence over
+        fabrication). Real content-bearing bookkeeping is exactly the
+        open architectural question in the Phase 1 halt report.
+        """
+        pass  # deliberately not wired to chi_atlas.record here -- see
+              # docstring. A caller integrating this needs to supply real
+              # chi content, which requires resolving the krimelack/DSF
+              # question first.
 
     # ------------------------------------------------------------------
     # step — one substrate cycle
