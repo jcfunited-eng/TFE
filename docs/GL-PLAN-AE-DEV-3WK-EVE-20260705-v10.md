@@ -6,6 +6,12 @@ Status: FULL CONSOLIDATED PLAN per the GDP rule (§0). Folds v9 + the
 2026-07-04 brain-move day + Joe's 2026-07-05 ruling. v1–v9 retained
 as history; none needs reading to use this.
 
+> **Note:** Any mechanism-status or metric table in this document
+> was captured pre-wipe (2026-07-06) and does not reflect current
+> substrate state. The plan's intent, ruling, and forward direction
+> stand; specific state data is superseded. Current mechanism
+> status: run the harness.
+
 ## §0 — How this plan is maintained (GDP rule, from Joe's correction)
 Every future version is a FULL document, never a delta. One file =
 the whole plan, always. Delta-amendments remain a banned pattern.
