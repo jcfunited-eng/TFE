@@ -12,13 +12,24 @@
  * dispatch's own BUILD list, absent from the reference) and bounds
  * checking on it -- a missing-entry read here would be a real
  * out-of-bounds memory read, not a Python exception.
+ *
+ * GL-CMD-SLOT-LIMITS-REMOVAL-EVE-20260707-v1: the fixed-size
+ * entries[MAX_ENTRIES_PER_WINDOW] array (a slot limit, not a real
+ * physical constraint -- confirmed empirically earlier tonight:
+ * 384 words of ordinary reading produced 1235 entries in one window,
+ * exceeding the old 1024 cap) replaced with a dynamic, realloc-grown
+ * array. Starts at 64 entries, doubles on overflow. No new arbitrary
+ * ceiling introduced -- growth is bounded only by what the window's
+ * own real lifecycle (open/close, driven by real substrate activity
+ * elsewhere) actually needs, matching this dispatch's "state drives
+ * stop, not counter" instruction.
  */
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 
-#define MAX_ENTRIES_PER_WINDOW 1024
+#define INITIAL_ENTRY_CAPACITY 64
 #define SOURCE_TAG_MAX 32
 
 typedef struct {
@@ -38,14 +49,17 @@ typedef struct {
     double          closed_wall_clock;
     int32_t         is_closed;
     int32_t         entry_count;
-    WindowEntry     entries[MAX_ENTRIES_PER_WINDOW];
+    int32_t         entry_capacity;   /* GL-CMD-SLOT-LIMITS-REMOVAL: dynamic, not fixed */
+    WindowEntry     *entries;         /* realloc-grown, starts at INITIAL_ENTRY_CAPACITY */
     pthread_mutex_t lock;
 } BindingWindow;
 
-/* Add an entry to a window. Returns entry index, or -1 on overflow.
- * pthread_mutex protects the entry_count and entries array — but
- * only for concurrent adds to the SAME window. Different windows
- * proceed fully in parallel.
+/* Add an entry to a window. Returns entry index, or -1 on closed window
+ * or allocation failure (out of memory -- the only remaining failure
+ * mode now that the fixed-size ceiling is gone).
+ * pthread_mutex protects entry_count/entry_capacity/entries -- but only
+ * for concurrent adds to the SAME window. Different windows proceed
+ * fully in parallel.
  */
 int32_t bw_add_entry(
     BindingWindow *w,
@@ -57,9 +71,23 @@ int32_t bw_add_entry(
     const char *source_tag
 ) {
     pthread_mutex_lock(&w->lock);
-    if (w->entry_count >= MAX_ENTRIES_PER_WINDOW || w->is_closed) {
+    if (w->is_closed) {
         pthread_mutex_unlock(&w->lock);
         return -1;
+    }
+    if (w->entry_count >= w->entry_capacity) {
+        int32_t new_capacity = w->entry_capacity * 2;
+        WindowEntry *new_entries = realloc(w->entries, (size_t)new_capacity * sizeof(WindowEntry));
+        if (new_entries == NULL) {
+            /* Out of memory -- the array keeps its old (still valid,
+             * still full) contents; caller sees this as a normal-shaped
+             * failure (-1), same as the old "window full" case, not a
+             * crash. */
+            pthread_mutex_unlock(&w->lock);
+            return -1;
+        }
+        w->entries = new_entries;
+        w->entry_capacity = new_capacity;
     }
     int32_t idx = w->entry_count;
     WindowEntry *e = &w->entries[idx];
@@ -82,6 +110,12 @@ BindingWindow *bw_open(const char *window_id, int64_t opened_tick, double opened
     strncpy(w->window_id, window_id, sizeof(w->window_id) - 1);
     w->opened_tick = opened_tick;
     w->opened_wall_clock = opened_wall_clock;
+    w->entries = malloc((size_t)INITIAL_ENTRY_CAPACITY * sizeof(WindowEntry));
+    if (!w->entries) {
+        free(w);
+        return NULL;
+    }
+    w->entry_capacity = INITIAL_ENTRY_CAPACITY;
     pthread_mutex_init(&w->lock, NULL);
     return w;
 }
@@ -117,6 +151,7 @@ int32_t bw_get_entry(BindingWindow *w, int32_t idx, WindowEntry *out) {
 void bw_free(BindingWindow *w) {
     if (w) {
         pthread_mutex_destroy(&w->lock);
+        free(w->entries);
         free(w);
     }
 }

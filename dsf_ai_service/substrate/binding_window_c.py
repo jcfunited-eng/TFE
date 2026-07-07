@@ -49,7 +49,11 @@ _MODALITY_TO_ID = {"sight": 0, "sound": 1, "word": 2, "touch": 3, "smell": 4, "t
 _ID_TO_MODALITY = {v: k for k, v in _MODALITY_TO_ID.items()}
 
 SOURCE_TAG_MAX = 32
-MAX_ENTRIES_PER_WINDOW = 1024
+# GL-CMD-SLOT-LIMITS-REMOVAL-EVE-20260707-v1: no fixed entry ceiling any
+# more -- binding_window.c's entries array grows dynamically (starts at
+# 64, doubles on overflow). This is the array's *starting* size only,
+# kept here for documentation, not a cap.
+INITIAL_ENTRY_CAPACITY = 64
 
 
 class _WindowEntryStruct(ctypes.Structure):
@@ -121,10 +125,14 @@ def _section_id_for(section_name: str) -> int:
     return sid
 
 
-class CBindingWindowOverflow(Exception):
-    """Raised by add_entry when the C-side fixed array is full
-    (MAX_ENTRIES_PER_WINDOW) -- callers must decide how to handle this,
-    it is never silently swallowed here."""
+class CBindingWindowClosed(Exception):
+    """Raised by add_entry when the window is already closed, or (rare)
+    the C side failed to grow its dynamic entries array (real allocation
+    failure, out of memory -- not a capacity ceiling, since
+    GL-CMD-SLOT-LIMITS-REMOVAL-EVE-20260707-v1 removed the fixed
+    MAX_ENTRIES_PER_WINDOW cap in favor of realloc-doubling growth).
+    Callers must decide how to handle this, it is never silently
+    swallowed here."""
 
 
 class CBindingWindow:
@@ -162,9 +170,9 @@ class CBindingWindow:
             self._handle, modality_id, section_id, int(motif_id), int(chi),
             int(tick), tag_bytes)
         if idx < 0:
-            raise CBindingWindowOverflow(
-                f"window {self.window_id!r} is full "
-                f"({MAX_ENTRIES_PER_WINDOW} entries) or already closed")
+            raise CBindingWindowClosed(
+                f"window {self.window_id!r} is closed, or the C side "
+                f"failed to grow its entries array (out of memory)")
         return idx
 
     def close(self, closed_tick: int, closed_wall_clock: float, close_reason: str) -> None:
@@ -203,10 +211,11 @@ class CBindingWindow:
     def __del__(self):
         # Safety net only -- WindowManager.close() must call free()
         # explicitly once entries are read back. Without this, a
-        # dropped reference that skipped free() would leak the
-        # ~65KB native allocation (MAX_ENTRIES_PER_WINDOW entries are
-        # allocated inline in the struct, not lazily) for good --
-        # unlike Python memory, the C heap has no garbage collector.
+        # dropped reference that skipped free() would leak the native
+        # allocation for good -- unlike Python memory, the C heap has
+        # no garbage collector. (Post-slot-limits-removal: the entries
+        # array itself is now a separate, dynamically-grown allocation,
+        # not inline in the struct -- bw_free() frees both.)
         try:
             self.free()
         except Exception:

@@ -25,6 +25,16 @@ class SaveCoordinator:
         self.guala = guala
         self.state_dir = state_dir
         self.s3_bucket = s3_bucket
+        # GL-CMD-SLOT-LIMITS-REMOVAL-EVE-20260707-v1: maxsize=20 KEPT,
+        # not removed -- initially reasoned this was low-risk since
+        # callers are expected to rate-limit themselves to one enqueue
+        # per S3_MIN_INTERVAL_SECONDS (10 min), but a direct stress test
+        # disproved that: the rate limit is enforced by caller
+        # convention, not by the queue itself, and an unbounded producer
+        # grows this queue exactly as unboundedly as the other three
+        # (~3M items, ~1.2GB RSS in 8 seconds with the cap removed and
+        # no consumer draining). Same confirmed runaway pattern; see the
+        # accompanying report.
         self.s3_queue = queue.Queue(maxsize=20)
         self.last_save_tick = 0
         self.last_save_wall = 0.0

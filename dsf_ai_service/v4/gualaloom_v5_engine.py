@@ -377,6 +377,18 @@ def _grandurun_select_candidates(input_chis, deep_candidates, sections,
         })
 
     candidates.sort(key=lambda c: -c["coherent_magnitude"])
+    # GL-CMD-SLOT-LIMITS-REMOVAL-EVE-20260707-v1: audited, NOT removed.
+    # Initially looked like exactly the "[:N] truncation hiding candidates
+    # from an otherwise-uncapped downstream selector" pattern this
+    # dispatch targets -- but the comment on GRANDURUN_TOPK's own
+    # definition (a few lines above this function, dated 2026-07-05,
+    # GL-CMD-ENABLE-COGNITION-EVE-20260705-211) documents a real, prior,
+    # carefully-reasoned finding: too many competing candidates measurably
+    # breaks the emission commit step itself ("200 competing candidates
+    # makes the settle-on-one-winner commit step nearly impossible"), not
+    # just a performance cost. This is a real constraint on the emission
+    # mechanism's own correctness, not an arbitrary slot limit -- kept
+    # as-is. See the accompanying report.
     return candidates[:top_k]
 
 
@@ -2989,6 +3001,11 @@ class Guala:
         with self._tapestry_worker_start_lock:
             if self._tapestry_queue is not None:  # lost a race to another thread
                 return
+            # GL-CMD-SLOT-LIMITS-REMOVAL-EVE-20260707-v1: maxsize=2000
+            # KEPT, not removed -- same confirmed runaway pattern as
+            # _organism_queue (direct stress test: unbounded feeder grew
+            # this queue by ~2.3M items and ~200MB RSS every 3 seconds
+            # with the cap removed). See the accompanying report.
             self._tapestry_queue = _queue.Queue(maxsize=2000)
             t = threading.Thread(target=self._tapestry_worker_loop,
                                  daemon=True, name="tapestry-writer")
@@ -3167,6 +3184,17 @@ class Guala:
         with self._organism_worker_start_lock:
             if self._organism_queue is not None:  # lost a race to another thread
                 return
+            # GL-CMD-SLOT-LIMITS-REMOVAL-EVE-20260707-v1: maxsize=2000
+            # KEPT, not removed -- confirmed via direct stress test that
+            # this specific queue has no other bounding mechanism: an
+            # unbounded feeder outpacing the single-threaded organism
+            # worker (already documented as slow under real contention
+            # earlier this session) grew the queue by ~2.4M items and
+            # ~200MB of RSS every 3 seconds, unbounded, with the cap
+            # removed. This is the dispatch's own named halt condition
+            # ("Runaway after cap removal -- cap was catching real bug"),
+            # confirmed empirically, not assumed. See the accompanying
+            # report for the full test.
             self._organism_queue = _queue.Queue(maxsize=2000)
             t = threading.Thread(target=self._organism_worker_loop,
                                  daemon=True, name="organism-writer")
@@ -9476,6 +9504,13 @@ class Guala:
         with self._diary_worker_lock:
             if self._diary_queue is not None:   # re-check: lost a race to another thread
                 return
+            # GL-CMD-SLOT-LIMITS-REMOVAL-EVE-20260707-v1: maxsize=4000
+            # KEPT, not removed -- same confirmed runaway pattern as
+            # _organism_queue/_tapestry_queue (direct stress test: with
+            # the cap removed, an unbounded feeder grew this queue by
+            # ~2.4M items and up to ~800MB RSS every 3 seconds -- worse
+            # per-item growth than the other two, since each diary event
+            # carries a detail dict). See the accompanying report.
             self._diary_queue = _queue.Queue(maxsize=4000)
             t = threading.Thread(target=self._diary_worker_loop, args=(state_dir,),
                                  daemon=True, name="diary-writer")
