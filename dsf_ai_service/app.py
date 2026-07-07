@@ -1931,7 +1931,7 @@ async def gualaloom_chat(msg: GLMessage):
     # back up. "asleep" field kept for compatibility; "consolidating" added.
     if _guala.is_asleep:
         cmd_check = (msg.command or "").strip().lower()
-        if cmd_check != "/status":
+        if cmd_check not in ("/status", "/wake"):
             consolidating = _guala.is_consolidating
             return {
                 "response": "she is dreaming..." if consolidating
