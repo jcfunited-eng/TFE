@@ -1,0 +1,148 @@
+scenario:
+  id: GL-SCN-HEMISPHERIC-INTEGRATION-ACCEPTANCE-EVE-20260707-v2
+  purpose: |
+    Acceptance test for hemispheric integration via existing substrate
+    primitives (persistent wave field, neuron chi-coverage, Hebbian
+    co-firing). Verifies that a ball experience deposits waves into
+    the field, that neurons across hemispheres fire on their chi-
+    coverages, that Hebbian connections form between co-firing neurons,
+    and that a partial sound cue after wave decay retrieves the picture
+    and word via Hebbian recall.
+
+    Fails if hemispheric_wave_sample events do not fire, or if no
+    firing neurons appear during the input window, or if the partial
+    cue does not surface Hebbian-recalled candidates.
+  category: mechanism
+  target_mechanism: hemispheric-integration
+
+preconditions:
+  substrate_state: clean_slate
+  components_ready:
+    - ingest
+    - sight
+    - sound
+    - word
+    - window_manager
+    - atlas
+    - hemispheres
+    - krimelack
+  presence_state:
+    joe: false
+    wc: true
+    c1: false
+  suppression:
+    curriculum_feeds: "off"
+    world_feed: "off"
+    autonomy_reading: "off"
+  wait_for_ready_timeout_sec: 30
+
+probe:
+  method: sequence
+  auth_as: wc
+  sequence:
+
+    - t_offset_ms: 0
+      method: wake
+      payload:
+        source: wc
+
+    - t_offset_ms: 500
+      method: give_experience
+      payload:
+        picture_ref: "test-images/ball.png"
+        sound_ref: "test-sounds/bounce.wav"
+        word: "ball"
+        source_tag: wc
+
+    - t_offset_ms: 8000
+      method: give_experience
+      payload:
+        sound_ref: "test-sounds/bounce.wav"
+        source_tag: wc
+        expect: probe_recall
+
+expectations:
+
+  events_must_fire:
+
+    - kind: window_opened
+      count_min: 2
+      count_max: 2
+      within_ms: 9000
+
+    - kind: window_closed
+      count_min: 2
+      count_max: 2
+      within_ms: 10000
+
+    - kind: hemispheric_wave_sample
+      count_min: 20
+      within_ms: 10000
+
+    - kind: emission
+      count_min: 1
+      within_ms: 12000
+      assertions:
+        provenance_hebbian_min: 1
+
+  components_must_activate:
+    - window_manager
+    - atlas
+    - hemispheres
+    - krimelack
+    - emission
+
+  atlas_deltas:
+    windows_added_min: 2
+
+  emission_provenance:
+    required: true
+    if_present:
+      must_cite_hebbian_recall: true
+
+  observability_thresholds:
+    peak_cpu_percent_max: 70
+    peak_memory_delta_mb_max: 200
+    peak_event_loop_lag_ms_max: 100
+    subscription_lag_max_events: 30
+    network_errors: 0
+
+  negative_expectations:
+
+    - kind: emission_suppressed_no_presence
+      count_max: 0
+
+    - kind: shadow_divergence
+      count_max: 0
+
+    - kind: unauth_request
+      count_max: 0
+
+    - kind: security_alert
+      count_max: 0
+
+    - kind: wave_field_overflow
+      count_max: 0
+
+    - kind: hemispheric_integration_failed
+      count_max: 0
+
+run:
+  timeout_sec: 20
+  resource_caps:
+    max_memory_delta_mb: 500
+    max_cpu_seconds: 90
+    max_disk_write_mb: 100
+    max_egress_mb: 10
+
+cleanup:
+  restore_state: none
+  clear_captured_events: false
+  delete_probe_artifacts_from_atlas: false
+
+metadata:
+  author: EVE
+  created_date: "2026-07-07"
+  changelog:
+    - v2: rewritten to test wave field + Hebbian recall per v2 dispatch
+    - v1: original scalar integration test, superseded
