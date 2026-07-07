@@ -24,6 +24,7 @@
 
 import pg from "pg";
 import { computeRegimeExposure } from "../l5_unified_shadow.mjs";
+import { VALIDATED_UNIVERSE } from "./validated_universe.mjs";
 
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -218,6 +219,12 @@ function parseSignal(row, spyDk, speciesMap) {
   const physicsPass = (rRevK === 0) && (mK !== null && mK > 0) && (mK < M_K_CEILING);
   if (!wave1 && !physicsPass) return null;
 
+  // ── Universe allowlist ────────────────────────────────────────
+  // Non-Wave-1 entries must be in the validated universe (5,768 tickers
+  // from Wave 1 validation & walkforward). Wave 1 hits bypass — spec §4
+  // targets new listings, which by definition aren't in historical data.
+  if (!wave1 && !VALIDATED_UNIVERSE.has(ticker)) return null;
+
   return {
     ticker,
     run_id:        runId,
@@ -357,6 +364,7 @@ export async function get3WASignals() {
   for (const s of deduped) {
     classCounts[s.signal_class] = (classCounts[s.signal_class] || 0) + 1;
   }
+  console.log(`[STRATEGIST] Universe filter: ${VALIDATED_UNIVERSE.size} tickers allowed for non-Wave-1 entries`);
   console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed L5 physics gate (R_rev_k=0 ∧ 0<M_k<${M_K_CEILING}) or Wave 1 → ${deduped.length} after dedup, sorted by tier→nwr→M_k_ASC`);
   console.log(`[STRATEGIST] signal_class distribution (post-gate, sorted): 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]} | standard=${classCounts["standard"]}`);
   for (const s of deduped) {

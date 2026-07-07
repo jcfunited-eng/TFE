@@ -231,5 +231,19 @@ assert(stratSrcD57.includes("mK > 0") && stratSrcD57.includes("mK < M_K_CEILING"
 assert(!stratSrcD57.includes("mK >= 0"), "Old inclusive-zero lower bound removed");
 assert(stratSrcD57.includes("D5.5 outcome data"), "Comment cites source");
 
+// ══════════════════════════════════════════════════════════════════════
+// D5.8 assertions — universe allowlist
+// ══════════════════════════════════════════════════════════════════════
+const stratSrcD58 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
+const univSrc     = await readFile(new URL("../validated_universe.mjs", import.meta.url), "utf8");
+
+console.log("\n=== D5.8 universe allowlist ===");
+assert(stratSrcD58.includes("VALIDATED_UNIVERSE"), "Universe imported in strategist");
+assert(stratSrcD58.includes("!wave1 && !VALIDATED_UNIVERSE.has(ticker)"), "Universe filter present, Wave 1 bypass");
+assert(univSrc.includes("VALIDATED_UNIVERSE"), "Universe module exports the set");
+assert(univSrc.includes('"AAAU"'), "Known walkforward ticker in universe");
+assert(!univSrc.includes('"IYLD"'), "IYLD ETF not in validated universe");
+assert(!univSrc.includes('"VIXY"'), "VIXY ETF not in validated universe");
+
 console.log(`\n${passed}/${passed + failed} assertions passed`);
 if (failed > 0) process.exit(1);
