@@ -1347,6 +1347,28 @@ def _gl_init():
           f"atlas={s['atlas_entries']} corpora={len(g._corpora)} "
           f"activity={s['current_activity']}")
 
+    # GL-CMD-LANGUAGE-SEED-EVE-20260707-v1 Phase 1: optional seed load,
+    # after substrate init (g is fully constructed above), before the
+    # global goes live (before live input is accepted below). Unset by
+    # default -- current (no-seed) behavior is unchanged unless
+    # GUALA_SEED_PATH is explicitly set.
+    _seed_path = os.environ.get("GUALA_SEED_PATH")
+    if _seed_path:
+        try:
+            from dsf_ai_service.substrate.seed_loader import load_seed
+            _seed_report = load_seed(_seed_path, g)
+            print(f"[GualaLoom] Seed loaded from {_seed_path}: "
+                  f"ok={_seed_report.ok} vocab={_seed_report.vocabulary_loaded} "
+                  f"patterns={_seed_report.patterns_loaded} "
+                  f"networks={_seed_report.networks_loaded} "
+                  f"errors={len(_seed_report.errors)} "
+                  f"warnings={len(_seed_report.warnings)}")
+            if _seed_report.errors:
+                print(f"[GualaLoom] Seed load errors: {_seed_report.errors[:5]}")
+        except Exception as _seed_err:
+            print(f"[GualaLoom] Seed load failed (non-fatal, substrate boots "
+                  f"without seed): {_seed_err}")
+
     # CRITICAL: only set global AFTER everything succeeded
     _guala = g
 
