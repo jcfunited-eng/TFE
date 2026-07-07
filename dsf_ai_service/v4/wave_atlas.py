@@ -350,14 +350,25 @@ class WaveAtlas:
         return self._subdivision_count
 
     # ──────────────────────────────────────────────────────────────────────────
-    # Decay (GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v2 -- race-fixed: no list
-    # reassignment, no self.cells deletion; see the v1 halt report for the
-    # confirmed race this replaces.)
+    # Decay (GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v3 -- race-fixed: no list
+    # reassignment, no self.cells deletion; see the v1/v2 halt reports for
+    # the two concurrency bugs this closes.)
+    #
+    # Iteration discipline for self.cells under concurrent spill_write:
+    # Any sweep over self.cells must snapshot via list() at iteration
+    # start, not iterate the live view. spill_write inserts new cells at
+    # brand-new chi positions, which triggers RuntimeError on live-view
+    # iteration. Applies to tick_decay and any future sweeper.
     # ──────────────────────────────────────────────────────────────────────────
 
     def tick_decay(self, decay_rate: float = 0.02, prune_threshold: float = 0.05):
         total_bindings_pruned = 0
-        for cell in self.cells.values():
+        # Snapshot values at iteration start. Concurrent spill_write can
+        # insert new cells into self.cells during our iteration; snapshotting
+        # avoids "dictionary changed size during iteration" and correctly
+        # skips those newly-inserted cells (they get decayed next tick, at
+        # full strength, no loss). See GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v3.
+        for cell in list(self.cells.values()):
             # Decay in place -- no new list, no reference swap
             for b in cell.bindings:
                 b["strength"] = b.get("strength", 0.0) * (1.0 - decay_rate)

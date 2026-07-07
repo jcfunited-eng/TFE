@@ -5507,7 +5507,7 @@ class Guala:
             # pressure's own gate (Change 2) further down.
             _ca_kind = getattr(self._current_activity, 'kind', None)
 
-            # GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v2: immediately before
+            # GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v3: immediately before
             # the wave summary sampling below, decay + prune the wave
             # field so its size (and therefore the summary scan's own
             # cost) stays bounded instead of growing for the life of the
