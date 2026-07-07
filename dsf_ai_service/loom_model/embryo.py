@@ -346,9 +346,34 @@ class Embryo:
                 for n in ns if getattr(n, "_last_dsf", None) is not None]
         return float(np.mean(vals)) if vals else 0.0
 
+    def _compute_input_chi(self, signal):
+        """GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2: chi for the
+        current input signal, via the same shared krimelack module that
+        already produces phase_vec for the wave atlas
+        (dsf_ai_service/substrate/krimelack.py -- event_stream_to_vector's
+        companion class, same module). Matches the canonical chi_address
+        convention already used elsewhere for signal-derived chi
+        (sensory_generators.transduce_sensory_signals: winding % 100).
+        Returns None (not zero) on an empty/all-zero signal so
+        _select_by_chi_familiarity falls back to backward-compat (all
+        neurons step), matching how those callers already treat a silent
+        moment -- not a fabricated chi for no real input."""
+        sig = np.asarray(signal, dtype=float)
+        if sig.size == 0 or not np.any(sig):
+            return None
+        try:
+            from dsf_ai_service.substrate.krimelack import Krimelack
+            k = Krimelack(omega_0=2.0, kappa=60.0, dt=0.02,
+                          integration_threshold=math.pi / 3)
+            k.feed_signal(sig)
+            return k.winding % 100
+        except Exception:
+            return None
+
     def _feed_and_fold(self, hemi, signal, sig_res, theta, ticks=6, quantum_scale=1.0):
+        input_chi = self._compute_input_chi(signal)   # computed once, not per tick
         for _ in range(ticks):
-            hemi.cluster.step(list(signal), self.tick)   # keep the substrate active
+            hemi.cluster.step(list(signal), self.tick, input_chi)   # keep the substrate active
             self.tick += 1
         coherent = sig_res > theta
         return len(self._charge_and_fold(hemi, coherent, quantum=sig_res * quantum_scale))

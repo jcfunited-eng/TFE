@@ -55,9 +55,16 @@ class LoomHemisphere:
         # Incoming spike queue: filled by brain during cross-hemi routing
         self._incoming_spikes: List[Dict[str, Any]] = []
 
-    def step(self, input_signal, tick: int) -> Dict[str, Dict]:
-        """Step the local cluster, then process incoming cross-hemi spikes."""
-        results = self.cluster.step(input_signal, tick)
+    def step(self, input_signal, tick: int, input_chi: Optional[int] = None) -> Dict[str, Dict]:
+        """Step the local cluster, then process incoming cross-hemi spikes.
+
+        input_chi: GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2. Pure
+        pass-through to the cluster -- this hemisphere layer sits directly
+        between LoomBrain.step and LoomCluster.step with no filtering logic
+        of its own, so threading input_chi to the cluster is the only
+        change needed here. None preserves prior behavior exactly.
+        """
+        results = self.cluster.step(input_signal, tick, input_chi)
 
         # Process incoming cross-hemi spikes from other hemispheres
         for spike in self._incoming_spikes:

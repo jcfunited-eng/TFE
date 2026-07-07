@@ -117,18 +117,22 @@ class LoomBrain:
                 couplings = CrossHemiCouplings(targets=target_assignments)
                 hemi.cross_hemi_couplings[proj_nid] = couplings
 
-    def step(self, input_signal, tick: int) -> Dict[str, Dict[str, Dict]]:
+    def step(self, input_signal, tick: int, input_chi: Optional[int] = None) -> Dict[str, Dict[str, Dict]]:
         """Step all hemispheres, process folds, and route cross-hemi spikes.
 
         Folding is ON by default during step — substrate-true: real cells
         divide while they live. Contact inhibition (-105) bounds growth.
+
+        input_chi: GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2. Passed
+        through unchanged to each hemisphere/cluster — no filtering at
+        brain level. None preserves prior behavior exactly.
 
         Returns dict mapping hemi_id → {neuron_id → step_result}.
         """
         # Phase 1: step each hemisphere locally
         all_results: Dict[str, Dict[str, Dict]] = {}
         for hemi in self.hemispheres:
-            all_results[hemi.hemi_id] = hemi.step(input_signal, tick)
+            all_results[hemi.hemi_id] = hemi.step(input_signal, tick, input_chi)
 
         # Phase 2: cross-hemi coupling refresh from DSF (per -98 mechanism)
         for hemi in self.hemispheres:

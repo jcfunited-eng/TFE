@@ -3072,13 +3072,13 @@ class Guala:
                     continue  # nothing arrived within the wait window -- re-check both
 
             if source == "sensory":
-                hemi_id, input_signal, sensory_tick = item
+                hemi_id, input_signal, sensory_tick, input_chi = item
                 _sensory_t0 = time.monotonic()
                 try:
                     hemi = self.organism.brain._hemi_map.get(hemi_id)
                     if hemi is not None:
                         with self._organism_lock:
-                            hemi.step(input_signal, sensory_tick)
+                            hemi.step(input_signal, sensory_tick, input_chi)
                         self._log_substrate_event(
                             "sensory_organism_processed", tick=sensory_tick,
                             hemi_id=hemi_id,
@@ -3173,7 +3173,7 @@ class Guala:
             t.start()
             self._organism_worker_thread = t
 
-    def _enqueue_organism_sensory(self, hemi_id, input_signal, tick):
+    def _enqueue_organism_sensory(self, hemi_id, input_signal, tick, input_chi=None):
         """GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1: per-hemisphere
         wave-summary push (see wave_summary.py), drained asynchronously
         by the same worker thread as the word queue. self._organism_
@@ -3186,9 +3186,13 @@ class Guala:
         real item, and a sensory push can legitimately be the FIRST
         organism-bound work of a fresh boot (e.g. give_experience before
         any word has been read) -- without this call, sensory items would
-        sit in the queue forever with no thread ever draining them."""
+        sit in the queue forever with no thread ever draining them.
+
+        input_chi: GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2, passed
+        through to hemi.step at drain time. None (default) preserves prior
+        behavior exactly (all neurons step)."""
         self._ensure_organism_worker()
-        self._organism_sensory_queue.put((hemi_id, input_signal, tick))
+        self._organism_sensory_queue.put((hemi_id, input_signal, tick, input_chi))
 
     def _replay_sensory_echo(self, word):
         """GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: replay

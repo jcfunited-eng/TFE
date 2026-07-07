@@ -31,6 +31,11 @@ from dsf_ai_service.v4.gualaloom_v5_engine import (
     _SPIN_VECTOR_DIM,
 )
 
+# GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2: minimum chi_atlas
+# match_score for a neuron to be considered "familiar" with input_chi.
+# Starting value per dispatch -- not to be tuned as part of this change.
+FAMILIARITY_THRESHOLD = 0.1
+
 
 class LoomCluster:
     """Population of N coupled LoomNeurons with ring-topology J_ij.
@@ -143,28 +148,39 @@ class LoomCluster:
     # step — three-phase substrate cycle
     # ------------------------------------------------------------------
 
-    def step(self, input_signal, tick: int) -> Dict[str, Dict]:
+    def step(self, input_signal, tick: int, input_chi: Optional[int] = None) -> Dict[str, Dict]:
         """Execute one cluster tick.
 
-        Phase A — independent:  every neuron runs step(input_signal, tick)
-        Phase B — coupling:     spiking neurons propagate through J_ij
-        Phase C — J_ij refresh: each neuron recomputes couplings from DSF
+        Phase A — independent:  chi-familiar neurons run step(input_signal, tick)
+        Phase B — coupling:     spiking neurons propagate through J_ij (unchanged,
+                                 runs across all neurons)
+        Phase C — J_ij refresh: stepping neurons recompute couplings from DSF
 
-        Returns dict mapping neuron_id → step result dict.
+        input_chi: GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2. When given,
+        restricts Phase A to neurons familiar with this chi (or a novelty pool
+        if none are familiar yet) instead of stepping the whole population.
+        None preserves prior behavior exactly (all neurons step).
+
+        Returns dict mapping neuron_id → step result dict (only for neurons
+        that stepped this tick).
         """
         results: Dict[str, Dict] = {}
 
-        # Phase A: independent processing
-        for neuron in self.neurons:
+        # Phase A: independent processing (chi-familiarity filtered)
+        stepping_neurons = self._select_by_chi_familiarity(input_chi)
+        for neuron in stepping_neurons:
             results[neuron.neuron_id] = neuron.step(input_signal, tick)
 
-        # Phase B: coupling propagation
+        # Phase B: coupling propagation — unchanged, runs across all neurons.
         # GL-CMD-98: J_weight comes from the RECEIVING neuron's coupling matrix,
         # not the spiking neuron's. This means each neuron receives a different
         # total coupling signal based on its own ring-distance-scaled J_ij,
         # enabling topology-driven differentiation.
+        # (.get() here, not direct indexing, since `results` now only has
+        # entries for neurons that stepped this tick — a non-stepping neuron
+        # correctly reads as "did not spike" rather than a KeyError.)
         spiking_neurons = [
-            n for n in self.neurons if results[n.neuron_id]["committed"]
+            n for n in self.neurons if results.get(n.neuron_id, {}).get("committed")
         ]
         for neuron in self.neurons:
             for src_idx, src_id in enumerate(neuron.couplings.neighbors):
@@ -179,12 +195,37 @@ class LoomCluster:
                     tick,
                 )
 
-        # Phase C: coupling matrix refresh from updated DSF
-        for neuron in self.neurons:
+        # Phase C: coupling matrix refresh from updated DSF — stepping neurons only
+        for neuron in stepping_neurons:
             if neuron._last_dsf is not None:
                 neuron.couplings.update_from_dsf(neuron._last_dsf)
 
         return results
+
+    def _select_by_chi_familiarity(self, input_chi: Optional[int]) -> List[LoomNeuron]:
+        """GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2.
+
+        input_chi=None -> every neuron (backward compat, unchanged behavior).
+        Otherwise -> neurons whose own chi_atlas already has match_score >
+        FAMILIARITY_THRESHOLD for this chi. If none are familiar yet, the
+        2 lowest-entry-count neurons (novelty pool) so learning can start.
+        """
+        if input_chi is None:
+            return self.neurons
+
+        familiar = [
+            n for n in self.neurons
+            if n.chi_atlas.match_score(input_chi, "neuron") > FAMILIARITY_THRESHOLD
+        ]
+        if familiar:
+            return familiar
+
+        novelty_pool_size = 2
+        ranked = sorted(
+            self.neurons,
+            key=lambda n: sum(len(v) for v in n.chi_atlas.entries.values()),
+        )
+        return ranked[:novelty_pool_size]
 
     # ------------------------------------------------------------------
     # population_grandurun_state

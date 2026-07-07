@@ -156,7 +156,12 @@ def push_wave_summary_to_organism(guala, summary: Dict[str, Tuple[float, list]],
             continue
         aggregate, top_chis = summary.get(band, (0.0, []))
         input_signal = _band_signal(aggregate, top_chis)
-        guala._enqueue_organism_sensory(hemi.hemi_id, input_signal, tick)
+        # GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2: reuse the
+        # highest-strength chi already computed for this band (top_chis is
+        # sorted by strength) as input_chi -- computed once here, not
+        # re-derived, since a real chi is already sitting in top_chis.
+        input_chi = top_chis[0][0] if top_chis else None
+        guala._enqueue_organism_sensory(hemi.hemi_id, input_signal, tick, input_chi)
         guala._log_substrate_event(
             "sensory_organism_enqueued", tick=tick, hemi_id=hemi.hemi_id,
             band=band, aggregate_amplitude=round(aggregate, 4))
