@@ -496,6 +496,26 @@ def _organism_signal(word, transducer):
 # not a measured constant -- stated plainly, not dressed as derived.
 SENSE_BINDING_WINDOW_SEC = 3.0
 
+# --- GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 (dual-write/dual-read) ---
+# HEURISTIC: ENTRY_CHI_BAND=8 -- how far chi injection reaches when
+# selecting entry neurons for a chi-anchored input. Class: from-design.
+# Measurement plan: verify entry neurons cover a plausible neighborhood;
+# adjust if injection is too narrow (recognition fails) or too broad
+# (specificity lost).
+ENTRY_CHI_BAND = 8
+# HEURISTIC: ENTRY_SAMPLE_SIZE=16 -- fallback random injection size when
+# no chi anchor is available. Class: from-design. Measurement plan:
+# measure recognition quality under the fallback path; adjust if too
+# silent or too broad.
+ENTRY_SAMPLE_SIZE = 16
+# HEURISTIC: EMISSION_THRESHOLD=0.5, TOP_K_EMISSION=20 -- membrane-state
+# emission candidate selection (RECALL_BACKEND=stdp only; not used in
+# production during Phase 1). Class: from-design. Measurement plan:
+# verify emission candidates match legacy top candidates in shadow mode;
+# adjust if quality degrades.
+EMISSION_THRESHOLD = 0.5
+TOP_K_EMISSION = 20
+
 
 def _organism_signal_with_senses(word, transducer, sight_signal=None,
                                   sound_signal=None, modal_signal=None):
@@ -1598,6 +1618,17 @@ class Guala:
         # Eliminates O(atlas_size) full scans in _recall_from_atlas / _recall_sight_from_atlas.
         from collections import defaultdict as _dd
         self._word_to_chi_index = _dd(set)  # word.lower() → {chi_k, ...}
+        # GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2: word <-> neuron
+        # association maintained by _on_word_firing callback. Populated by
+        # live experience once the spike bus is wired (below, after
+        # self.organism is constructed). Dual-write/dual-read design: the
+        # legacy binding_atlas/experience_moment/recall_fast path (below)
+        # is UNCHANGED and stays the production default throughout Phase 1
+        # (RECALL_BACKEND=legacy) -- these maps back the NEW, parallel
+        # STDP/spike/membrane mechanism, read only when RECALL_BACKEND is
+        # "stdp" or "shadow".
+        self._word_neuron_map: dict = {}  # word.lower() -> set of neuron_ids
+        self._neuron_word_map: dict = {}  # neuron_id -> word.lower() (primary)
         # QuestionBucket removed (GL-BRIEF-EMISSION-CONSTRAINT-REMOVAL Phase E)
         self.tick = 0
         self._read_count_compat = 0  # kept for load compatibility only; superseded by property
@@ -1729,6 +1760,46 @@ class Guala:
         from dsf_ai_service.loom_model.embryo import Embryo as _Embryo
         from dsf_ai_service.loom_model.tapestry import LoomTapestry as _LoomTapestry
         self.organism = _Embryo(brain_seed=42, seed_size=8, observable="event_count")
+
+        # GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2: spike bus
+        # construction + wiring. Gated on EVENT_DRIVEN_SUBSTRATE (default
+        # "1") -- setting it to "0" skips this block entirely, leaving
+        # self._spike_bus None and every neuron's/LoomBrain's own
+        # _spike_bus unset, which every new code path (neuron.py's
+        # receive_spike/_fire, brain.py's step()/recall_fast()) already
+        # treats as "mechanism not present, behave exactly as before."
+        # Full rollback, not just a read-path fallback.
+        self._spike_bus = None
+        if os.environ.get("EVENT_DRIVEN_SUBSTRATE", "1") != "0":
+            # Flat neuron registry mirroring brain.py:314's list-comprehension
+            # idiom -- no existing helper built this (SpikeBus is the first
+            # caller that needs a global neuron_id -> neuron dict, per the
+            # dependency audit that produced this v2 dispatch).
+            _neuron_registry = {
+                n.neuron_id: n
+                for hemi in self.organism.brain.hemispheres
+                for n in hemi.cluster.neurons
+            }
+            from dsf_ai_service.substrate.spike_bus import SpikeBus as _SpikeBus
+            self._spike_bus = _SpikeBus(neuron_registry=_neuron_registry)
+
+            for _neuron in _neuron_registry.values():
+                _neuron.set_spike_bus(self._spike_bus)
+                _neuron.set_word_firing_callback(self._on_word_firing)
+
+            # Wire LoomBrain's own dual-path step()/recall_fast() -- the
+            # dispatch's own Guala.__init__ snippet wires individual
+            # neurons but not the brain itself; brain.py's
+            # _inject_input_as_spikes/_recall_fast_stdp both need
+            # self._spike_bus and self._guala_ref set to do anything,
+            # otherwise they're permanently no-ops. Completing the
+            # wiring pattern the dispatch's own LoomBrain-side code
+            # assumes exists.
+            self.organism.brain.set_spike_bus(self._spike_bus)
+            self.organism.brain._guala_ref = self
+
+            self._spike_bus.start()
+
         self.tapestry = _LoomTapestry(name="guala_voice", n_mosaics=3, seed=42)
         self._tapestry_prev_word = None  # for real consecutive-pair exposure
         # Backgrounded exposure (see _enqueue_tapestry_expose): a single
@@ -2981,6 +3052,11 @@ class Guala:
                     q.put_nowait(None)
                 except Exception:
                     pass
+        # GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2: stop the spike
+        # bus's delivery thread cleanly. None if EVENT_DRIVEN_SUBSTRATE=0
+        # was set at construction (mechanism never wired) -- no-op then.
+        if getattr(self, "_spike_bus", None) is not None:
+            self._spike_bus.stop()
 
     def _tapestry_worker_loop(self):
         """GL-CMD-175 P2 perf fix: single persistent background writer for
@@ -3465,7 +3541,118 @@ class Guala:
                 best_loc = loc
         return best_loc if best_loc is not None else locations[-1]
 
+    # ------------------------------------------------------------------
+    # GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2: word<->neuron
+    # population mapping + entry-neuron selection for the new (parallel,
+    # not-yet-production-serving) STDP/spike/membrane mechanism.
+    # ------------------------------------------------------------------
+
+    def _on_word_firing(self, word, neuron_id: str) -> None:
+        """Called by LoomNeuron._on_fire_bookkeeping (via
+        set_word_firing_callback, wired in __init__) when a word context
+        is available at fire time -- i.e. this neuron just fired as a
+        direct entry point for a word injection (see neuron.py's
+        EXTERNAL_SOURCE_PREFIX handling in _fire). Maintains bidirectional
+        word<->neuron association for the new event-driven path. word is
+        None for fires with no word context (propagated spikes, non-
+        language injection) -- those don't touch either map."""
+        if not word:
+            return
+        wl = word.lower()
+        self._word_neuron_map.setdefault(wl, set()).add(neuron_id)
+        if neuron_id not in self._neuron_word_map:
+            self._neuron_word_map[neuron_id] = wl
+
+    def _all_neurons(self):
+        """Flat iterator over every neuron in the substrate. Mirrors
+        brain.py's own list-comprehension idiom (used inside
+        recall_fast's legacy event_count branch)."""
+        return [
+            n
+            for hemi in self.organism.brain.hemispheres
+            for n in hemi.cluster.neurons
+        ]
+
+    def _neuron_to_word(self, neuron):
+        """Primary word associated with this neuron, if any (from the
+        new word_neuron_map, not the legacy binding_atlas)."""
+        return self._neuron_word_map.get(neuron.neuron_id)
+
+    def _chi_to_neurons(self, chi: int, band=None):
+        """Neurons whose chi_position is within `band` of `chi`. Returns
+        [] for every neuron in Phase 1 as built -- chi_position is never
+        populated on LoomNeuron (no per-neuron static chi coordinate
+        exists in the current architecture; chi is associated with
+        committed events via chi_atlas, not neuron identity -- see
+        neuron.py's chi_position docstring note). Implemented for
+        forward-compatibility and to match the dispatch's own reference
+        exactly, not dead code by choice -- a real gap flagged in the
+        report, not hidden."""
+        if band is None:
+            band = ENTRY_CHI_BAND
+        return [
+            n for n in self._all_neurons()
+            if n.chi_position is not None and abs(n.chi_position - chi) <= band
+        ]
+
+    def _select_entry_neurons(self, input_chi, modality=None):
+        """Select neurons to receive initial spike injection for a given
+        input. Phase 1: chi-proximity if input_chi provided; otherwise
+        (or if chi-proximity finds nothing -- always true in Phase 1 per
+        _chi_to_neurons's note above) falls back to a small random
+        sample. Called from LoomBrain._inject_input_as_spikes via
+        self._guala_ref."""
+        if input_chi is not None:
+            candidates = self._chi_to_neurons(input_chi)
+            if candidates:
+                return candidates
+        all_neurons = self._all_neurons()
+        return random.sample(all_neurons, min(ENTRY_SAMPLE_SIZE, len(all_neurons)))
+
     def _brain_emission_candidates(self, input_words):
+        """GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 item 8: dual
+        path. RECALL_BACKEND=stdp reads membrane state directly (not
+        used in production during Phase 1 -- shadow/legacy both fall
+        through to the legacy implementation, unchanged). Note this is a
+        narrower dual-path than recall_fast's three-way dispatch: there's
+        no separate "shadow" comparison for emission specifically since
+        emission's candidate SHAPE ((de, co, weight) tuples referencing
+        _word_to_emission_sections) has no direct membrane-state
+        equivalent worth shadow-logging on its own -- recall_fast's own
+        shadow comparison (which emission's LEGACY path already reads
+        through, unchanged) is where that signal actually lives."""
+        if os.environ.get("RECALL_BACKEND", "legacy") == "stdp":
+            return self._brain_emission_candidates_membrane(input_words)
+        return self._brain_emission_candidates_legacy(input_words)
+
+    def _brain_emission_candidates_membrane(self, input_words):
+        """New (not production-serving during Phase 1) emission backend:
+        current neuron membrane state, decayed to now without disturbing
+        it, top-K by activation among neurons with a known word
+        association. HEURISTIC EMISSION_THRESHOLD/TOP_K_EMISSION (module
+        level)."""
+        now = time.monotonic()
+        candidates = []
+        for neuron in self._all_neurons():
+            with neuron._neuron_lock:
+                dt_ms = (now - neuron.last_update_time_s) * 1000.0
+                if dt_ms > 0:
+                    decay = math.exp(-dt_ms / neuron.tau_m_ms)
+                    potential = (
+                        neuron.membrane_rest
+                        + (neuron.membrane_potential - neuron.membrane_rest) * decay
+                    )
+                else:
+                    potential = neuron.membrane_potential
+
+            if potential > EMISSION_THRESHOLD:
+                associated_word = self._neuron_to_word(neuron)
+                if associated_word:
+                    candidates.append((neuron.chi_position, potential, associated_word))
+
+        return sorted(candidates, key=lambda x: x[1], reverse=True)[:TOP_K_EMISSION]
+
+    def _brain_emission_candidates_legacy(self, input_words):
         """GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 P3 / GL-NOTE-VOICE-WIRING-
         RULING W2: the organism's own mind (tapestry recall/compose, built
         on -169's Embryo + real experience via read_word's tap) supplies

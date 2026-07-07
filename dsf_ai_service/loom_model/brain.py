@@ -8,6 +8,7 @@ Cross-hemi wiring: projection neurons (5 per hemi) coupled to adjacent
 hemispheres via Watts-Strogatz topology (committed constant).
 """
 
+import logging
 import os
 from typing import Any, Dict, List, Optional
 
@@ -22,6 +23,28 @@ from .topology import (
     HEMISPHERE_PRIMARY_MODALITY,
     validate_adjacency,
 )
+
+logger = logging.getLogger("guala.brain")
+
+# --- GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 (dual-write/dual-read) ---
+# HEURISTIC: RECALL_INJECTION_WEIGHT=2.0 -- enough to prime propagation
+# without saturating. Class: from-design. Measurement plan: verify cue
+# injection produces propagation; adjust if recall is too silent/broad.
+RECALL_INJECTION_WEIGHT = 2.0
+# HEURISTIC: RECALL_PROPAGATION_WINDOW_MS=30.0 -- allows several spike
+# hops. Class: from-design. Measurement plan: measure recall latency vs
+# completeness; adjust if window too short (partial) or too long (blocking).
+RECALL_PROPAGATION_WINDOW_MS = 30.0
+# HEURISTIC: RECALL_ACTIVATION_THRESHOLD=0.3 -- captures meaningfully
+# activated neurons. Class: from-design. Measurement plan: verify recall
+# returns semantically-related concepts; adjust if too broad/narrow.
+RECALL_ACTIVATION_THRESHOLD = 0.3
+# HEURISTIC: VOTE_SCALE=5 -- converts membrane potential (float) to vote
+# weight (int) for Counter compatibility with the legacy signature. Class:
+# from-design. Measurement plan: verify vote distribution matches legacy
+# shape enough for the four existing callers to work; adjust if top-
+# concept selection differs qualitatively.
+VOTE_SCALE = 5
 
 
 class LoomBrain:
@@ -88,6 +111,20 @@ class LoomBrain:
         # Wire cross-hemi couplings
         self._wire_cross_hemi()
 
+        # --- GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 ---
+        # Set via set_spike_bus() / direct assignment by Guala once this
+        # brain is wrapped by a live substrate. None by default -- step()'s
+        # dual-write injection and recall_fast's "stdp"/"shadow" backends
+        # both no-op gracefully when unset, so a bare LoomBrain()/Embryo()
+        # (every existing test, probe, and the seed_organism() demo script)
+        # is completely unaffected -- confirmed unreachable from current
+        # production, which calls hemi.step()/cluster.step() directly.
+        self._spike_bus = None
+        self._guala_ref = None  # back-reference for _word_neuron_map, _all_neurons(), etc.
+
+    def set_spike_bus(self, spike_bus) -> None:
+        self._spike_bus = spike_bus
+
     def _wire_cross_hemi(self):
         """Wire projection neurons to targets in adjacent hemispheres.
 
@@ -117,17 +154,44 @@ class LoomBrain:
                 couplings = CrossHemiCouplings(targets=target_assignments)
                 hemi.cross_hemi_couplings[proj_nid] = couplings
 
-    def step(self, input_signal, tick: int, input_chi: Optional[int] = None) -> Dict[str, Dict[str, Dict]]:
-        """Step all hemispheres, process folds, and route cross-hemi spikes.
-
-        Folding is ON by default during step — substrate-true: real cells
-        divide while they live. Contact inhibition (-105) bounds growth.
+    def step(self, input_signal, tick: int, input_chi: Optional[int] = None,
+             modality: Optional[str] = None) -> Dict[str, Dict[str, Dict]]:
+        """GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 item 4: dual-write.
+        If a spike bus is wired AND input_chi is provided, ALSO inject the
+        input as spikes (builds STDP synapse weights + word_neuron_map in
+        parallel) -- THEN unconditionally run the existing iteration path
+        UNCHANGED (still the only thing anything actually reads from
+        during Phase 1; RECALL_BACKEND defaults to "legacy"). Confirmed
+        via grep that LoomBrain.step() itself is not on the current
+        production call path at all (production calls hemi.step()/
+        cluster.step() directly) -- this dual-write only matters for
+        callers that DO reach step() (ExperiencePipeline, tests, probes)
+        plus any future production call site that starts calling it.
 
         input_chi: GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2. Passed
         through unchanged to each hemisphere/cluster — no filtering at
         brain level. None preserves prior behavior exactly.
 
-        Returns dict mapping hemi_id → {neuron_id → step_result}.
+        Returns dict mapping hemi_id → {neuron_id → step_result} -- exact
+        same shape as before, since the legacy iteration path is untouched.
+        """
+        if self._spike_bus is not None and input_chi is not None:
+            try:
+                self._inject_input_as_spikes(input_signal, input_chi, modality)
+            except Exception:
+                logger.exception("spike injection failed (non-fatal, legacy path continues)")
+
+        return self._legacy_step_iteration(input_signal, tick, input_chi)
+
+    def _legacy_step_iteration(self, input_signal, tick: int,
+                                input_chi: Optional[int] = None) -> Dict[str, Dict[str, Dict]]:
+        """Step all hemispheres, process folds, and route cross-hemi spikes.
+        UNCHANGED body from pre-Phase-1 step() (renamed only) -- this is
+        what every existing reader (binding_atlas via experience_moment,
+        the folding/growth mechanism) still depends on throughout Phase 1.
+
+        Folding is ON by default during step — substrate-true: real cells
+        divide while they live. Contact inhibition (-105) bounds growth.
         """
         # Phase 1: step each hemisphere locally
         all_results: Dict[str, Dict[str, Dict]] = {}
@@ -161,6 +225,32 @@ class LoomBrain:
                 target_hemi._incoming_spikes.append(packet)
 
         return all_results
+
+    def _inject_input_as_spikes(self, input_signal, input_chi: int,
+                                 modality: Optional[str] = None) -> None:
+        """New (dual-write) path: convert input_signal into spike
+        injections at entry neurons selected via Guala's chi-proximity
+        helper. Runs ALONGSIDE _legacy_step_iteration, never instead of
+        it, during Phase 1 transition."""
+        from .injection_weight import signal_to_injection_weight
+        if self._guala_ref is None:
+            return  # no Guala wrapper -- nothing to select entry neurons from
+        entry_neurons = self._guala_ref._select_entry_neurons(input_chi, modality)
+        if not entry_neurons:
+            return
+        weight = signal_to_injection_weight(input_signal)
+        word = input_signal if isinstance(input_signal, str) else None
+        metadata = {"input_chi": input_chi, "modality": modality}
+        if word is not None:
+            metadata["word"] = word
+        for neuron in entry_neurons:
+            self._spike_bus.inject(
+                target_id=neuron.neuron_id,
+                source_id="_input_injection_",
+                weight=weight,
+                arrival_delay_ms=0.0,
+                metadata=metadata,
+            )
 
     def total_neurons(self) -> int:
         """Total neuron count across all hemispheres."""
@@ -257,7 +347,152 @@ class LoomBrain:
         return votes
 
     def recall_fast(self, query_signals: Dict[str, Any]) -> "Counter":
-        """Vectorized, non-mutating population-vote recall.
+        """GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 item 5: dispatches
+        to one of three backends via the RECALL_BACKEND env var. Default
+        "legacy" (production stays here for the whole of Phase 1 per the
+        dispatch's own protocol -- cutover is a future dispatch after
+        shadow-mode verification): identical behavior to before this
+        dispatch, byte-for-byte the same code path as
+        _recall_fast_legacy. "shadow": runs both backends, logs a
+        comparison, returns the LEGACY result (so shadow mode is
+        observation-only, zero behavior change for callers). "stdp": runs
+        ONLY the new STDP-graph-walk backend -- not used in production
+        during this dispatch, exists for the follow-up shadow-mode test
+        service.
+
+        All four existing production callers (gualaloom_v5_engine.py:
+        recognition/surprise at line ~1952, emission candidates at
+        ~3528, single-word recall at ~4964, daydream association at
+        ~5019) call this exact method unchanged and get the exact same
+        Counter[concept -> vote_count] contract regardless of backend.
+        """
+        backend = os.environ.get("RECALL_BACKEND", "legacy")
+        if backend == "stdp":
+            return self._recall_fast_stdp(query_signals)
+        elif backend == "shadow":
+            legacy_votes = self._recall_fast_legacy(query_signals)
+            try:
+                stdp_votes = self._recall_fast_stdp(query_signals)
+                self._log_recall_shadow_comparison(legacy_votes, stdp_votes, query_signals)
+            except Exception:
+                logger.exception("stdp shadow recall failed (non-fatal, legacy result still returned)")
+            return legacy_votes
+        else:
+            return self._recall_fast_legacy(query_signals)
+
+    def _recall_fast_stdp(self, query_signals: Dict[str, Any]) -> "Counter":
+        """New (dual-write) recall backend: resolve the query into cue
+        neurons via Guala's word_neuron_map (language) or chi (other
+        modalities), inject cue spikes, let them propagate through the
+        STDP-weighted coupling graph, read which neurons ended up
+        activated, and aggregate their word associations into a vote
+        Counter with the same shape legacy callers already expect.
+        Returns an empty Counter (honest empty, matches legacy's own
+        empty-evidence contract) if the spike bus or Guala wrapper isn't
+        available -- e.g. every existing bare LoomBrain()/Embryo() test.
+        """
+        import math
+        import time
+        from collections import Counter
+
+        votes = Counter()
+        if self._spike_bus is None or self._guala_ref is None:
+            return votes
+
+        guala = self._guala_ref
+        cue_neuron_ids = set()
+        language_q = query_signals.get("language")
+        if isinstance(language_q, str):
+            cue_neuron_ids.update(guala._word_neuron_map.get(language_q.lower(), set()))
+
+        for mod, sig in query_signals.items():
+            if mod == "language" or sig is None:
+                continue
+            try:
+                chi = self._compute_query_chi(sig)
+            except Exception:
+                continue
+            if chi is None:
+                continue
+            cue_neuron_ids.update(n.neuron_id for n in guala._chi_to_neurons(chi))
+
+        if not cue_neuron_ids:
+            return votes
+
+        for nid in cue_neuron_ids:
+            self._spike_bus.inject(
+                target_id=nid,
+                source_id="_recall_cue_",
+                weight=RECALL_INJECTION_WEIGHT,
+                arrival_delay_ms=0.0,
+                metadata={"purpose": "recall"},
+            )
+
+        time.sleep(RECALL_PROPAGATION_WINDOW_MS / 1000.0)
+
+        now = time.monotonic()
+        for neuron in guala._all_neurons():
+            with neuron._neuron_lock:
+                dt_ms = (now - neuron.last_update_time_s) * 1000.0
+                if dt_ms > 0:
+                    decay = math.exp(-dt_ms / neuron.tau_m_ms)
+                    potential = (
+                        neuron.membrane_rest
+                        + (neuron.membrane_potential - neuron.membrane_rest) * decay
+                    )
+                else:
+                    potential = neuron.membrane_potential
+
+            if potential > RECALL_ACTIVATION_THRESHOLD:
+                associated_word = guala._neuron_to_word(neuron)
+                if associated_word is not None:
+                    votes[associated_word] += max(1, int(potential * VOTE_SCALE))
+
+        return votes
+
+    def _compute_query_chi(self, sig) -> Optional[int]:
+        """Chi for a non-language query signal, via the EXACT SAME
+        mechanism Embryo._compute_input_chi uses for the write path
+        (embryo.py:349-371, dsf_ai_service.substrate.krimelack.Krimelack)
+        -- matches the upstream chi computation used elsewhere rather
+        than inventing a second one. Returns None (not 0) for empty/
+        all-zero signal, same "no real input" convention; also None on
+        any Krimelack construction/feed failure, matching embryo.py's own
+        defensive try/except around this exact computation."""
+        import math
+        import numpy as _np
+
+        arr = _np.asarray(sig, dtype=float)
+        if arr.size == 0 or not _np.any(arr):
+            return None
+        try:
+            from dsf_ai_service.substrate.krimelack import Krimelack
+            k = Krimelack(omega_0=2.0, kappa=60.0, dt=0.02, integration_threshold=math.pi / 3)
+            k.feed_signal(arr)
+            return k.winding % 100
+        except Exception:
+            return None
+
+    def _log_recall_shadow_comparison(self, legacy_votes: "Counter", stdp_votes: "Counter",
+                                       query: Dict[str, Any]) -> None:
+        """Log discrepancies between legacy and STDP recall for later
+        analysis during RECALL_BACKEND=shadow. Observation only -- never
+        affects what recall_fast() returns."""
+        legacy_top = legacy_votes.most_common(3)
+        stdp_top = stdp_votes.most_common(3)
+        logger.info("recall_shadow query=%r legacy_top3=%r stdp_top3=%r "
+                    "legacy_total=%d stdp_total=%d top_match=%r",
+                    {k: str(v)[:32] for k, v in query.items()},
+                    [(str(w), c) for w, c in legacy_top],
+                    [(str(w), c) for w, c in stdp_top],
+                    sum(legacy_votes.values()), sum(stdp_votes.values()),
+                    bool(legacy_top and stdp_top and legacy_top[0][0] == stdp_top[0][0]))
+
+    def _recall_fast_legacy(self, query_signals: Dict[str, Any]) -> "Counter":
+        """Vectorized, non-mutating population-vote recall. UNCHANGED
+        body from pre-Phase-1 recall_fast() (renamed only) -- this is
+        what production actually calls throughout Phase 1
+        (RECALL_BACKEND defaults to "legacy").
 
         GL-CMD-RECALL-SPEED-INVESTIGATION-EVE-20260704-177, directions I1
         (peek-mode: read current krimelack state, never mutate -- no
