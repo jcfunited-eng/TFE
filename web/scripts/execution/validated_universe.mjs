@@ -1,3 +1,10 @@
+/**
+ * DEPRECATED as of TFE-CMD-V3-BASIN-DETERMINISTIC-WC-20260707-v1.
+ * The universe allowlist was a compromise layer that overrode the
+ * deterministic V3 basin coupled math with a hardcoded ticker set.
+ * Selection now uses accumulate_basin magnitude only. Do not
+ * re-import this file into 3wa_strategist.mjs or sentinel_monitor.mjs.
+ */
 // Validated universe from quarantine_12k_l5_trades.csv
 // 5,768 tickers used in Wave 1 validation and walkforward.
 // Non-Wave-1 entries must be in this set (D5.8).

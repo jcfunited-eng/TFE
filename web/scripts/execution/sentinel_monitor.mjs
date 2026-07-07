@@ -15,6 +15,7 @@
  */
 
 import pg from "pg";
+import { computeV3Basin } from "./v3_basin.mjs";
 // assessExit import removed — EXIT-S removed (arbitrary thresholds, no backtest)
 
 const pool = new pg.Pool({
@@ -30,6 +31,11 @@ const pool = new pg.Pool({
 });
 
 const ZOMBIE_BAR_THRESHOLD = parseInt(process.env.SENTINEL_ZOMBIE_BARS ?? "10", 10);
+
+// break_agreement crossing threshold — the deterministic peak marker.
+// See TFE-CMD-V3-BASIN-DETERMINISTIC-WC-20260707-v1 §0.
+const BREAK_AGREEMENT_EXIT = 0.20;
+const MAX_HOLD_CALENDAR_CAP = 25;   // safety cap for trades that never activate
 
 // ── Orphan adoption exclusion list ────────────────────────────────────
 // Tickers we never adopt from Alpaca even if they appear as positions.
@@ -249,6 +255,33 @@ async function fetchSpyDk() {
     const snap = res.rows[0].snapshot_row_json ?? {};
     const dk = parseInt(snap.D_k ?? snap.d_k ?? "", 10);
     return isFinite(dk) ? dk : null;
+  } catch {
+    return null;
+  }
+}
+
+// ── Full 9-field tuple snapshot for a ticker (for V3 basin exit check) ──
+async function fetchLatestSnapshotTuple(ticker) {
+  try {
+    const res = await pool.query(
+      `SELECT snapshot_row_json FROM runtime_decisions_latest
+       WHERE ticker = $1 ORDER BY generated_at_utc DESC LIMIT 1`,
+      [ticker]
+    );
+    if (!res.rows.length) return null;
+    const snap = res.rows[0].snapshot_row_json ?? {};
+    const toF = v => { const n = parseFloat(v); return isFinite(n) ? n : null; };
+    return {
+      S_UF:     toF(snap.S_UF     ?? snap.s_uf),
+      R_UF:     toF(snap.R_UF     ?? snap.r_uf),
+      D_k:      toF(snap.D_k      ?? snap.d_k),
+      M_k:      toF(snap.M_k      ?? snap.m_k),
+      R_rev_k:  toF(snap.R_rev_k  ?? snap.r_rev_k),
+      U_star_k: toF(snap.U_star_k ?? snap.u_star_k),
+      C_k:      toF(snap.C_k      ?? snap.c_k),
+      P_k:      toF(snap.P_k      ?? snap.p_k),
+      B_k:      toF(snap.B_k      ?? snap.b_k),
+    };
   } catch {
     return null;
   }
@@ -1007,137 +1040,40 @@ export async function runSentinel() {
     // but the thresholds had no derivation. EXIT-F (-10% catastrophic) and EXIT-B
     // (D_k collapse) remain as the structural exits.
 
-    // ── Chapter 2 exit logic (independent path) ─────────────────────────
+    // ── Chapter 2 exit logic (V3 basin coupled read) ─────────────────────
     if (signalClass === "CH2") {
-      const currentSUf = isFinite(fields.s_uf) ? fields.s_uf : null;
-      const currentDk  = isFinite(fields.d_k)  ? fields.d_k  : null;
-
-      // EXIT-A REMOVED. S_UF >= 0.75 trigger had no derivation. Capped winners
-      // at +3.25% avg / 4.4 days vs April's +12.34% / 23-30 days. Same class
-      // as EXIT-D/H/S: structural-costume story, no backtest, winner-capping.
-      // Destruction-pattern registry entry: GL-BRIEF-039.
-
-      // ── EXIT-TIME: 20-Day Default Close ──────────────────────────────────
-      // Fires for ALL positions regardless of P&L. No EXIT-R9 guard — this is
-      // a time-based close, not a loss exit. EXIT-F already captured any -10%
-      // catastrophe above. EXIT-TIME is the outer boundary for Wave 1 (the
-      // 92.2% WR finding was measured over a 20-bar forward window).
-      if (posAge >= 20) {
-        const pnlStr = currentPnlPct !== null ? `${currentPnlPct.toFixed(1)}%` : "n/a";
-        console.log(
-          `[SENTINEL] CH2 EXIT-TIME ${pos.ticker} | age=${posAge}d — 20-day default exit (P&L=${pnlStr})`
-        );
-        await killPosition(pos, "ch2_exit_time", ALPACA_BASE);
-        continue;
-      }
-
-      // Exit B — Directional collapse: D_k no longer 1
-      // 7-day minimum hold: D_k collapse on day 0-6 is transient noise.
-      // Production data: 85% of D_k collapse exits recovered at 10-20 days.
-      // Only allow losing D_k exits after 7 days. Winning exits always allowed.
-      if (currentDk !== null && currentDk !== 1) {
-        if (isYoung && currentPnlPct !== null && currentPnlPct < 0) {
-          console.log(`[SENTINEL] CH2 EXIT-B ${pos.ticker} | D_k=${currentDk} — MIN HOLD GUARD: holding (P&L=${currentPnlPct.toFixed(1)}%, age=${posAge}d, need ${MIN_HOLD_DAYS}d)`);
-        } else {
-          console.log(`[SENTINEL] CH2 EXIT-B ${pos.ticker} | D_k=${currentDk} — directional collapse, exiting (age=${posAge}d)`);
-          await killPosition(pos, "ch2_exit_dk_collapse", ALPACA_BASE);
+      // ── EXIT-BASIN-BREAK: deterministic coupled peak marker ────────────
+      // Compute the V3 basin from the current daily tuple snapshot.
+      // If break_agreement has crossed the threshold, the coupled math
+      // says the structure has broken — the release has happened, take it.
+      const bsnSnap = await fetchLatestSnapshotTuple(pos.ticker);
+      if (bsnSnap) {
+        const basin = computeV3Basin(bsnSnap);
+        if (basin && basin.break_agreement >= BREAK_AGREEMENT_EXIT) {
+          console.log(
+            `[SENTINEL] CH2 EXIT-BASIN-BREAK ${pos.ticker} age=${posAge}d ` +
+            `break_agreement=${basin.break_agreement.toFixed(4)} ` +
+            `(P&L=${currentPnlPct?.toFixed(1) ?? "n/a"}%)`
+          );
+          await killPosition(pos, "ch2_exit_basin_break", ALPACA_BASE);
           continue;
         }
       }
 
-      // ── Pre-fetch τ data from DB (used by EXIT-C τ exhaustion) ────────
-      if (!global._tauCache) global._tauCache = {};
-      if (!global._tauCache[pos.ticker]) {
-        try {
-          const histRes = await pool.query(
-            `SELECT generated_at_utc::date AS day,
-                    CAST(NULLIF(snapshot_row_json->>'D_k','') AS DOUBLE PRECISION) AS d_k
-             FROM runtime_decisions_history
-             WHERE ticker = $1
-             ORDER BY generated_at_utc DESC
-             LIMIT 400`,
-            [pos.ticker]
-          );
-          const rows = histRes.rows;
-          if (rows.length > 1) {
-            const byDay = [];
-            const seen = new Set();
-            for (const r of rows) {
-              const d = String(r.day);
-              if (!seen.has(d)) { seen.add(d); byDay.push(r); }
-            }
-            let compressionDays = 0;
-            let phase = "expansion";
-            for (const r of byDay) {
-              if (phase === "expansion") {
-                if (r.d_k !== 1) { phase = "compression"; compressionDays++; }
-              } else {
-                if (r.d_k !== 1) { compressionDays++; }
-                else { break; }
-              }
-            }
-            const tauIn = compressionDays;
-            const tauOut = Math.floor(tauIn / 3);
-            global._tauCache[pos.ticker] = { tau_in_days: tauIn, tau_out_days: tauOut };
-          }
-        } catch { /* non-fatal */ }
+      // ── EXIT-CALENDAR-CAP: safety for trades that never activate ──────
+      if (posAge >= MAX_HOLD_CALENDAR_CAP) {
+        const pnlStr = currentPnlPct !== null ? `${currentPnlPct.toFixed(1)}%` : "n/a";
+        console.log(
+          `[SENTINEL] CH2 EXIT-CALENDAR-CAP ${pos.ticker} age=${posAge}d ` +
+          `— trade did not show coupled break, capping hold (P&L=${pnlStr})`
+        );
+        await killPosition(pos, "ch2_exit_calendar_cap", ALPACA_BASE);
+        continue;
       }
 
-      // EXIT-D REMOVED. Trailing profit ratchet capped winners at first pullback
-      // past +5%. April-May winners averaged +12.34% by riding full structural
-      // moves. EXIT-D mechanically reduced avg win to +2.21% by selling on the
-      // first dip after +5%. The ratchet constants (cushion, trailPct) had no
-      // derivation. Winners now ride until EXIT-B (D_k collapse), EXIT-C
-      // (τ exhaustion), or EXIT-F (-10% catastrophic).
-
-      // EXIT-H REMOVED. Structural harvest sold at +5% gain when position
-      // reached τ_out midpoint. This was the primary cap on winner magnitude.
-      // A position that would have run to +25% over 30 days got sold at +5%
-      // on day 15. The +5% threshold was hardcoded with no derivation.
-      // EXIT-C (full τ exhaustion) remains as the structural-energy-based exit.
-
-      // Exit C — Exhaustion Timer (τ_out)
-      // τ already computed in pre-fetch above.
-      try {
-        const cached = (global._tauCache ?? {})[pos.ticker];
-        if (cached && cached.tau_out_days > 0) {
-          const tauIn = cached.tau_in_days;
-          const tauOut = cached.tau_out_days;
-
-          const entryDate = pos.signal_detected_at ?? pos.created_at;
-          let positionAge = 0;
-          if (entryDate) {
-            positionAge = Math.floor((Date.now() - new Date(entryDate).getTime()) / (1000*60*60*24));
-          }
-
-          if (positionAge > tauOut) {
-            // 7-day minimum hold: if tau says exit but position is young and losing, wait
-            if (isYoung && currentPnlPct !== null && currentPnlPct < 0) {
-              console.log(
-                `[SENTINEL] CH2 EXIT-C ${pos.ticker} | τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d — ` +
-                `MIN HOLD GUARD: τ spent but P&L=${currentPnlPct.toFixed(1)}%, holding until ${MIN_HOLD_DAYS}d`
-              );
-            } else {
-              console.log(
-                `[SENTINEL] CH2 EXIT-C ${pos.ticker} | τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d — ` +
-                `structural energy spent, exiting`
-              );
-              await killPosition(pos, "ch2_exit_tau_exhaustion", ALPACA_BASE);
-              continue;
-            }
-          }
-
-          const remaining = tauOut - positionAge;
-          console.log(
-            `[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | ` +
-            `τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d (${remaining}d remaining)`
-          );
-        } else {
-          console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | no τ data`);
-        }
-      } catch (tauErr) {
-        console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | τ error: ${tauErr.message}`);
-      }
+      const bsnBasin = bsnSnap ? computeV3Basin(bsnSnap) : null;
+      const baStr = bsnBasin ? `break_agreement=${bsnBasin.break_agreement.toFixed(4)}` : "basin=n/a";
+      console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | age=${posAge}d | P&L=${currentPnlPct?.toFixed(1) ?? "n/a"}% | ${baStr}`);
       continue;
     }
 

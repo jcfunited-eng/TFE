@@ -192,55 +192,59 @@ assert(!sentSrcD52.includes("Wave 3 GONE"), "SPY flip Wave 3 GONE log removed");
 assert(!sentSrcD52.includes("SPY flip:"), "SPY flip prefix log removed");
 
 // ══════════════════════════════════════════════════════════════════════
-// D5.4.1 assertions — L5 governance
+// V3 basin gate assertions (replaces D5.4.1 L5 governance)
 // ══════════════════════════════════════════════════════════════════════
 const stratSrcD541 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
 
-console.log("\n=== D5.4.1 L5 governance ===");
+console.log("\n=== V3 basin gate (replaces D5.4.1 L5 governance) ===");
 assert(stratSrcD541.includes("const rRevK"), "R_rev_k extracted");
 assert(stratSrcD541.includes("const mK"), "M_k extracted");
-assert(stratSrcD541.includes("(rRevK === 0) && (mK !== null && mK > 0)"), "Physics gate present");
-assert(stratSrcD541.includes("if (!wave1 && !physicsPass) return null"), "Gate returns null on fail");
+assert(stratSrcD541.includes("const rUf"), "R_UF extracted");
+assert(stratSrcD541.includes("const uStarK"), "U_star_k extracted");
+assert(stratSrcD541.includes("const cK"), "C_k extracted");
+assert(stratSrcD541.includes("const pK"), "P_k extracted");
+assert(stratSrcD541.includes("computeV3Basin"), "V3 basin function imported and called");
+assert(stratSrcD541.includes("ACCUMULATE_BASIN_MIN"), "V3 basin minimum constant defined");
 assert(!stratSrcD541.includes("TP_ENTRY_THRESHOLD"), "Old D5.4 threshold constant removed");
-assert(stratSrcD541.includes("CLASS_RANK"), "Sort tier map defined");
+assert(!stratSrcD541.includes("CLASS_RANK"), "Old tier sort map removed");
 assert(stratSrcD541.includes("deduped.sort"), "Deduped sorted");
-assert(stratSrcD541.includes(`"3WA": 0`), "3WA highest priority tier");
+assert(stratSrcD541.includes("accumulate_basin"), "accumulate_basin used in sort");
 
 // ══════════════════════════════════════════════════════════════════════
-// D5.4.3 assertions — M_k ASC tiebreak (outcome-corrected)
+// V3 sort assertions (replaces D5.4.3 M_k ASC)
 // ══════════════════════════════════════════════════════════════════════
 const stratSrcD543 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
 
-console.log("\n=== D5.4.3 M_k ASC ===");
-assert(stratSrcD543.includes("(a.m_k ?? Infinity) - (b.m_k ?? Infinity)"), "M_k ASC (lower first)");
-assert(!stratSrcD543.includes("(b.m_k ?? -Infinity) - (a.m_k ?? -Infinity)"), "Old DESC removed");
-assert(stratSrcD543.includes("D5.5 outcome"), "Reference to outcome analysis in comment");
-assert(stratSrcD543.includes("M_k_ASC"), "Log reflects ASC direction");
-assert(stratSrcD543.includes("Math.abs(nwrDiff) > 1e-9"), "Epsilon tie detection still present");
+console.log("\n=== V3 sort: accumulate_basin DESC (replaces D5.4.3 M_k ASC) ===");
+assert(!stratSrcD543.includes("(a.m_k ?? Infinity) - (b.m_k ?? Infinity)"), "Old M_k ASC removed");
+assert(!stratSrcD543.includes("(b.m_k ?? -Infinity) - (a.m_k ?? -Infinity)"), "Old M_k DESC removed");
+assert(stratSrcD543.includes("accumulate_basin_DESC"), "Log reflects accumulate_basin sort direction");
+assert(stratSrcD543.includes("v3_basin?.accumulate_basin"), "Sort uses v3_basin accumulate_basin");
 
 // ══════════════════════════════════════════════════════════════════════
-// D5.7 assertions — M_k ceiling
+// V3 entry constant assertions (replaces D5.7 M_k ceiling)
 // ══════════════════════════════════════════════════════════════════════
 const stratSrcD57 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
 
-console.log("\n=== D5.7 M_k ceiling ===");
-assert(stratSrcD57.includes("M_K_CEILING"), "Ceiling constant defined");
-assert(stratSrcD57.includes(`"0.12"`), "Default 0.12");
-assert(stratSrcD57.includes("TFE_M_K_CEILING"), "Env override");
-assert(stratSrcD57.includes("mK > 0") && stratSrcD57.includes("mK < M_K_CEILING"), "Strict lower bound and ceiling in gate");
+console.log("\n=== V3 entry constant (replaces D5.7 M_k ceiling) ===");
+assert(!stratSrcD57.includes("M_K_CEILING"), "Old M_K_CEILING removed");
+assert(!stratSrcD57.includes("TFE_M_K_CEILING"), "Old env override removed");
+assert(stratSrcD57.includes("ACCUMULATE_BASIN_MIN"), "V3 entry basin minimum defined");
+assert(stratSrcD57.includes("0.15"), "V3 basin minimum is 0.15");
 assert(!stratSrcD57.includes("mK >= 0"), "Old inclusive-zero lower bound removed");
-assert(stratSrcD57.includes("D5.5 outcome data"), "Comment cites source");
+assert(!stratSrcD57.includes("D5.5 outcome data"), "Old D5.5 comment removed");
 
 // ══════════════════════════════════════════════════════════════════════
-// D5.8 assertions — universe allowlist
+// V3 replaces D5.8 universe allowlist
 // ══════════════════════════════════════════════════════════════════════
 const stratSrcD58 = await readFile(new URL("../3wa_strategist.mjs", import.meta.url), "utf8");
 const univSrc     = await readFile(new URL("../validated_universe.mjs", import.meta.url), "utf8");
 
-console.log("\n=== D5.8 universe allowlist ===");
-assert(stratSrcD58.includes("VALIDATED_UNIVERSE"), "Universe imported in strategist");
-assert(stratSrcD58.includes("!wave1 && !VALIDATED_UNIVERSE.has(ticker)"), "Universe filter present, Wave 1 bypass");
-assert(univSrc.includes("VALIDATED_UNIVERSE"), "Universe module exports the set");
+console.log("\n=== V3 replaces D5.8 universe allowlist ===");
+assert(!stratSrcD58.includes("VALIDATED_UNIVERSE"), "Universe NOT imported in V3 strategist");
+assert(!stratSrcD58.includes("!wave1 && !VALIDATED_UNIVERSE.has(ticker)"), "Old universe filter removed");
+assert(univSrc.includes("VALIDATED_UNIVERSE"), "Universe module still exports the set");
+assert(univSrc.includes("DEPRECATED"), "Deprecation header added to universe module");
 assert(univSrc.includes('"AAAU"'), "Known walkforward ticker in universe");
 assert(!univSrc.includes('"IYLD"'), "IYLD ETF not in validated universe");
 assert(!univSrc.includes('"VIXY"'), "VIXY ETF not in validated universe");

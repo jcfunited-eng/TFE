@@ -24,7 +24,7 @@
 
 import pg from "pg";
 import { computeRegimeExposure } from "../l5_unified_shadow.mjs";
-import { VALIDATED_UNIVERSE } from "./validated_universe.mjs";
+import { computeV3Basin } from "./v3_basin.mjs";
 
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -43,10 +43,11 @@ const W1_S_N_MIN       = 0.954;
 const W1_S_N_MAX       = 0.969;
 const W1_DELTA_S_N_MIN = 0.67;
 const W1_DELTA_S_N_MAX = 0.72;
-// Physics gate M_k ceiling — D5.5 backfill: winner M_k median 0.016,
-// loser median 0.125, catastrophic median 0.219. Cap removes ~75% of
-// catastrophic-prone signals. Env override for future recalibration.
-const M_K_CEILING = parseFloat(process.env.TFE_M_K_CEILING ?? "0.12");
+// V3 basin deterministic entry constant.
+// TFE-CMD-V3-BASIN-DETERMINISTIC-WC-20260707-v1.
+// Do not turn this into a tunable env var. If it moves, it moves in
+// one place under review, not per-deploy.
+const ACCUMULATE_BASIN_MIN = 0.15;
 
 function toFloat(v) {
   const n = parseFloat(v);
@@ -167,8 +168,12 @@ function parseSignal(row, spyDk, speciesMap) {
   const bk       = toFloat(snap.B_k      ?? snap.b_k);
   const neighborWR = toFloat(snap.neighbor_wr);
   // Physics tuple fields (L0-L4 lifetime state)
-  const rRevK    = toFloat(snap.R_rev_k ?? snap.r_rev_k);
-  const mK       = toFloat(snap.M_k     ?? snap.m_k);
+  const rRevK    = toFloat(snap.R_rev_k  ?? snap.r_rev_k);
+  const mK       = toFloat(snap.M_k      ?? snap.m_k);
+  const rUf      = toFloat(snap.R_UF     ?? snap.r_uf);
+  const uStarK   = toFloat(snap.U_star_k ?? snap.u_star_k);
+  const cK       = toFloat(snap.C_k      ?? snap.c_k);
+  const pK       = toFloat(snap.P_k      ?? snap.p_k);
   const sN       = toFloat(snap.s_n);
   const snPrev   = toFloat(row.prev_s_n  ?? prevSnap.s_n);
   const dKPrev   = toInt(prevSnap.D_k    ?? prevSnap.d_k);
@@ -200,30 +205,36 @@ function parseSignal(row, spyDk, speciesMap) {
     signalClass = "standard";
   }
 
-  // ── L5 governance gate: physics AND finance memory ─────────────────
-  // Physics gate (lifetime state from L0-L4 integrators):
-  //   R_rev_k == 0:       no reversion signal in the coupled tuple
-  //   0 < M_k < 0.12:    mode building (strictly positive, not initialized-zero)
-  // Finance memory: neighbor_wr already gates Accumulate label upstream
-  //   at tuple_proximity_engine.mjs threshold 0.65. All Accumulate signals
-  //   reaching this filter already have neighbor_wr >= 0.65.
-  // Wave 1 (§4 crystallization) bypasses the physics gate — it's a specific
-  //   validated pattern with independent 72.1% edge.
-  // Physics gate: R_rev_k=0 AND 0 < M_k < 0.12.
-  // Strict lower bound (> 0 not >= 0): M_k=0.0 exactly means the mode
-  // integrator was never computed for this ticker — initialization artifact,
-  // not genuine neutral mode. Confirmed: sampled M_k=0 tickers show M_k=0
-  // across all history (no variance = uncomputed, not neutral).
-  // Ceiling per D5.5 outcome data — mode above 0.12 = peak coherence
-  // pre-release, correlates with catastrophic exit.
-  const physicsPass = (rRevK === 0) && (mK !== null && mK > 0) && (mK < M_K_CEILING);
-  if (!wave1 && !physicsPass) return null;
-
-  // ── Universe allowlist ────────────────────────────────────────
-  // Non-Wave-1 entries must be in the validated universe (5,768 tickers
-  // from Wave 1 validation & walkforward). Wave 1 hits bypass — spec §4
-  // targets new listings, which by definition aren't in historical data.
-  if (!wave1 && !VALIDATED_UNIVERSE.has(ticker)) return null;
+  // ── V3 basin deterministic coupled read ────────────────────────────
+  // Wave 1 crystallisation events bypass — those are qualified by
+  // the spec's structural crystallisation math (§3), separate rule set.
+  let basinData = null;
+  if (!wave1) {
+    const basin = computeV3Basin({
+      S_UF: sUf, R_UF: rUf, D_k: dk, M_k: mK, R_rev_k: rRevK,
+      U_star_k: uStarK, C_k: cK, P_k: pK, B_k: bk,
+    });
+    if (basin === null) {
+      console.log(`[STRATEGIST]   ${ticker} — REJECT tuple incomplete (V3 basin null)`);
+      return null;
+    }
+    if (basin.decision_argmax !== "Accumulate") {
+      console.log(`[STRATEGIST]   ${ticker} — REJECT V3 argmax=${basin.decision_argmax} accumulate_basin=${basin.accumulate_basin.toFixed(4)} break_agreement=${basin.break_agreement.toFixed(4)}`);
+      return null;
+    }
+    if (basin.accumulate_basin < ACCUMULATE_BASIN_MIN) {
+      console.log(`[STRATEGIST]   ${ticker} — REJECT accumulate_basin=${basin.accumulate_basin.toFixed(4)} < ${ACCUMULATE_BASIN_MIN}`);
+      return null;
+    }
+    basinData = {
+      accumulate_basin: basin.accumulate_basin,
+      hold_basin:       basin.hold_basin,
+      avoid_basin:      basin.avoid_basin,
+      break_agreement:  basin.break_agreement,
+      motion:           basin.motion,
+      balance:          basin.balance,
+    };
+  }
 
   return {
     ticker,
@@ -241,6 +252,7 @@ function parseSignal(row, spyDk, speciesMap) {
     b_k:           bk,
     neighbor_wr:   neighborWR,
     m_k:           mK,
+    v3_basin:      basinData,
   };
 }
 
@@ -343,20 +355,17 @@ export async function get3WASignals() {
     return true;
   });
 
-  // ── L5 rank: tier → neighbor_wr → M_k ASC ───────────────────────
-  // Tier: 3WA > 1+3 > standard.
-  // Within tier: neighbor_wr DESC (finance memory of tuple analogs).
-  // Within tie: M_k ASC — D5.5 outcome data (n=590 backfill) shows
-  // winners avg M_k=+0.087 vs losers +0.113 vs catastrophic +0.157.
-  // Enter earlier in mode buildup, not at peak coherence.
-  const CLASS_RANK = { "3WA": 0, "1+3": 1, "standard": 2 };
+  // ── V3 sort: wave1 first, then accumulate_basin DESC ───────────────
+  // Wave 1 crystallisation events always rank first (structural edge).
+  // Non-Wave-1: sorted by coupled-read strength, not scalar fields.
   deduped.sort((a, b) => {
-    const rankA = CLASS_RANK[a.signal_class] ?? 3;
-    const rankB = CLASS_RANK[b.signal_class] ?? 3;
-    if (rankA !== rankB) return rankA - rankB;
-    const nwrDiff = (b.neighbor_wr ?? 0) - (a.neighbor_wr ?? 0);
-    if (Math.abs(nwrDiff) > 1e-9) return nwrDiff;
-    return (a.m_k ?? Infinity) - (b.m_k ?? Infinity);
+    const aWave1 = a.signal_class === "3WA" || a.signal_class === "1+3";
+    const bWave1 = b.signal_class === "3WA" || b.signal_class === "1+3";
+    if (aWave1 && !bWave1) return -1;
+    if (!aWave1 && bWave1) return 1;
+    const baA = a.v3_basin?.accumulate_basin ?? 0;
+    const baB = b.v3_basin?.accumulate_basin ?? 0;
+    return baB - baA;
   });
 
   // Report signal_class distribution
@@ -364,11 +373,15 @@ export async function get3WASignals() {
   for (const s of deduped) {
     classCounts[s.signal_class] = (classCounts[s.signal_class] || 0) + 1;
   }
-  console.log(`[STRATEGIST] Universe filter: ${VALIDATED_UNIVERSE.size} tickers allowed for non-Wave-1 entries`);
-  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed L5 physics gate (R_rev_k=0 ∧ 0<M_k<${M_K_CEILING}) or Wave 1 → ${deduped.length} after dedup, sorted by tier→nwr→M_k_ASC`);
+  console.log(`[STRATEGIST] ${rows.length} candidates → ${signals.length} passed V3 basin gate (accumulate_basin>=${ACCUMULATE_BASIN_MIN}) or Wave 1 → ${deduped.length} after dedup, sorted by wave1_first→accumulate_basin_DESC`);
   console.log(`[STRATEGIST] signal_class distribution (post-gate, sorted): 3WA=${classCounts["3WA"]} | 1+3=${classCounts["1+3"]} | standard=${classCounts["standard"]}`);
   for (const s of deduped) {
-    console.log(`[STRATEGIST]   ${s.ticker} | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | s_n=${s.s_n} | |Δs_n|=${s.abs_delta_s_n}`);
+    const basin = s.v3_basin;
+    if (basin) {
+      console.log(`[STRATEGIST]   ${s.ticker} ACCEPT | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | accumulate_basin=${basin.accumulate_basin.toFixed(4)} | break_agreement=${basin.break_agreement.toFixed(4)} | motion=${basin.motion.toFixed(4)} | balance=${basin.balance.toFixed(4)}`);
+    } else {
+      console.log(`[STRATEGIST]   ${s.ticker} ACCEPT | signal_class=${s.signal_class} | species=${s.species} | bar_count=${s.bar_count} | s_n=${s.s_n} | |Δs_n|=${s.abs_delta_s_n} (Wave 1 bypass)`);
+    }
   }
 
   return deduped;
