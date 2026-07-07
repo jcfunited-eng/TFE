@@ -725,6 +725,9 @@ _guala = None
 _persist_every = 50   # save every N exchanges
 _exchange_count = 0
 STATE_DIR = "state"
+# GL-CMD-LANGUAGE-SEED-PHASE2-GENERATOR-EVE-20260707-v1: rich/programmatic
+# seed load progress, polled by /health. None until a seed load is attempted.
+_seed_load_progress = None
 
 # v7: Seed corpora — lines for autonomous reading
 SEED_CORPORA = {
@@ -1231,7 +1234,7 @@ SEED_CORPORA["legacy_seed"] = {"title": "Seed Corpus", "lines": CORPUS}
 
 
 def _gl_init():
-    global _guala
+    global _guala, _seed_load_progress
     if _guala is not None:
         return
 
@@ -1347,29 +1350,39 @@ def _gl_init():
           f"atlas={s['atlas_entries']} corpora={len(g._corpora)} "
           f"activity={s['current_activity']}")
 
-    # GL-CMD-LANGUAGE-SEED-EVE-20260707-v1 Phase 1: optional seed load,
-    # after substrate init (g is fully constructed above), before the
-    # global goes live (before live input is accepted below). Unset by
-    # default -- current (no-seed) behavior is unchanged unless
-    # GUALA_SEED_PATH is explicitly set.
-    _seed_path = os.environ.get("GUALA_SEED_PATH")
-    if _seed_path:
+    # GL-CMD-LANGUAGE-SEED-EVE-20260707-v1 Phase 1 + PHASE2-GENERATOR-v1
+    # loader enhancement: optional seed load, after substrate init (g is
+    # fully constructed above), before the global goes live (before live
+    # input is accepted below). Unset by default -- current (no-seed)
+    # behavior is unchanged unless GUALA_SEED_RICH_PATH is explicitly set.
+    # GUALA_SEED_PATH (single-file, Phase 1) is superseded by the
+    # GUALA_SEED_RICH_PATH / GUALA_SEED_PROG_PATH split -- rich loads
+    # blocking here, programmatic (if given) loads on a background thread
+    # in chunks so boot never waits on the much larger programmatic layer.
+    _seed_rich_path = os.environ.get("GUALA_SEED_RICH_PATH")
+    _seed_prog_path = os.environ.get("GUALA_SEED_PROG_PATH")
+    if _seed_rich_path:
         try:
-            from dsf_ai_service.substrate.seed_loader import load_seed, verify_seed_integrity
-            _seed_report = load_seed(_seed_path, g)
-            print(f"[GualaLoom] Seed loaded from {_seed_path}: "
-                  f"ok={_seed_report.ok} vocab={_seed_report.vocabulary_loaded} "
-                  f"patterns={_seed_report.patterns_loaded} "
-                  f"networks={_seed_report.networks_loaded} "
-                  f"errors={len(_seed_report.errors)} "
-                  f"warnings={len(_seed_report.warnings)}")
-            if _seed_report.errors:
-                print(f"[GualaLoom] Seed load errors: {_seed_report.errors[:5]}")
-            _integrity_report = verify_seed_integrity(g, seed_path=_seed_path)
-            print(f"[GualaLoom] Seed integrity check: ok={_integrity_report.ok} "
+            from dsf_ai_service.substrate.seed_loader import load_seed_layered, verify_seed_integrity
+            _seed_load_progress = load_seed_layered(
+                _seed_rich_path, g, programmatic_path=_seed_prog_path)
+            _rich_report = _seed_load_progress.rich_report
+            print(f"[GualaLoom] Rich seed loaded from {_seed_rich_path}: "
+                  f"ok={_rich_report.ok} vocab={_rich_report.vocabulary_loaded} "
+                  f"patterns={_rich_report.patterns_loaded} "
+                  f"networks={_rich_report.networks_loaded} "
+                  f"errors={len(_rich_report.errors)} "
+                  f"warnings={len(_rich_report.warnings)}")
+            if _rich_report.errors:
+                print(f"[GualaLoom] Rich seed load errors: {_rich_report.errors[:5]}")
+            _integrity_report = verify_seed_integrity(g, seed_path=_seed_rich_path)
+            print(f"[GualaLoom] Rich seed integrity check: ok={_integrity_report.ok} "
                   f"checked={_integrity_report.words_checked} "
                   f"verified={_integrity_report.words_verified} "
                   f"missing={_integrity_report.words_missing}")
+            if _seed_prog_path:
+                print(f"[GualaLoom] Programmatic seed loading in background "
+                      f"from {_seed_prog_path}")
         except Exception as _seed_err:
             print(f"[GualaLoom] Seed load failed (non-fatal, substrate boots "
                   f"without seed): {_seed_err}")
@@ -5115,12 +5128,18 @@ async def shutdown():
 @app.get("/health")
 async def health():
     # Always return 200 for ALB liveness checks.
-    return {
+    result = {
         "status": "ok" if _init_complete else "initializing",
         "service": "dsf-ai",
         "version": "1.0.0",
         "ready": _init_complete,
     }
+    # GL-CMD-LANGUAGE-SEED-PHASE2-GENERATOR-EVE-20260707-v1: report seed
+    # load progress when a seed load was attempted (None otherwise --
+    # matches current no-seed production behavior exactly).
+    if _seed_load_progress is not None:
+        result["seed_load"] = _seed_load_progress.as_dict()
+    return result
 
 @app.get("/ready")
 async def ready():

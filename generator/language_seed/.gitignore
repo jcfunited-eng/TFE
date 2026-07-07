@@ -1,0 +1,4 @@
+# Raw downloaded corpora and derived caches -- large, re-fetchable from
+# sources.py's own download logic. Never commit.
+.cache/
+output/

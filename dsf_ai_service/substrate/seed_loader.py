@@ -79,6 +79,8 @@ what it writes.
 from __future__ import annotations
 
 import json
+import threading
+import time
 from dataclasses import dataclass, field
 from typing import Any, List, Optional
 
@@ -95,6 +97,39 @@ class LoadReport:
     networks_loaded: int = 0
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
+
+
+@dataclass
+class SeedLoadProgress:
+    """Health-endpoint-facing progress for the rich/programmatic split
+    (GL-CMD-LANGUAGE-SEED-PHASE2-GENERATOR-EVE-20260707-v1). Plain-attribute
+    updates only (no lock) -- each field is written by exactly one thread
+    (the background loader) and read-only elsewhere; CPython attribute
+    assignment is atomic, and progress reporting doesn't need stronger
+    consistency than "eventually reflects the latest chunk."
+    """
+    rich_started: bool = False
+    rich_done: bool = False
+    rich_report: Optional[LoadReport] = None
+    rich_error: Optional[str] = None
+    programmatic_total: int = 0
+    programmatic_loaded: int = 0
+    programmatic_done: bool = False
+    programmatic_report: Optional[LoadReport] = None
+    programmatic_error: Optional[str] = None
+
+    def as_dict(self) -> dict:
+        pct = 0.0
+        if self.programmatic_total:
+            pct = round(100.0 * self.programmatic_loaded / self.programmatic_total, 1)
+        return {
+            "rich_complete": self.rich_done,
+            "rich_ok": (self.rich_report.ok if self.rich_report else None),
+            "programmatic_total": self.programmatic_total,
+            "programmatic_loaded": self.programmatic_loaded,
+            "programmatic_percent": pct,
+            "programmatic_complete": self.programmatic_done,
+        }
 
 
 @dataclass
@@ -267,6 +302,86 @@ def load_seed(path: str, substrate) -> LoadReport:
     if report.errors:
         report.ok = False
     return report
+
+
+def _load_programmatic_background(path: str, substrate, progress: SeedLoadProgress,
+                                    chunk_size: int) -> None:
+    """Runs on a background thread. Loads vocabulary_entries in chunks of
+    `chunk_size` with a brief yield between chunks (so a long programmatic
+    load doesn't starve the request-handling thread), then semantic_networks
+    (comparatively few -- not chunked) in one pass. Same per-entry write
+    paths as load_seed/_load_vocabulary_entries -- no new storage mechanism."""
+    report = LoadReport(ok=True)
+    try:
+        with open(path) as f:
+            data = json.load(f)
+    except Exception as e:
+        report.ok = False
+        report.errors.append(f"failed to read/parse programmatic seed file: {e}")
+        progress.programmatic_error = str(e)
+        progress.programmatic_report = report
+        progress.programmatic_done = True
+        return
+
+    report.version = data.get("version")
+    if report.version != SEED_FORMAT_VERSION:
+        report.warnings.append(
+            f"programmatic seed file version {report.version!r} != loader version "
+            f"{SEED_FORMAT_VERSION!r}")
+
+    entries = data.get("vocabulary_entries") or []
+    progress.programmatic_total = len(entries)
+
+    for start in range(0, len(entries), chunk_size):
+        chunk = entries[start:start + chunk_size]
+        try:
+            _load_vocabulary_entries(substrate, chunk, report)
+        except Exception as e:
+            report.errors.append(f"programmatic chunk at {start}: {e}")
+        progress.programmatic_loaded = min(start + chunk_size, len(entries))
+        time.sleep(0)  # yield -- brief pause between chunks, per dispatch
+
+    _load_grammatical_patterns(substrate, data.get("grammatical_patterns") or [], report)
+    _load_semantic_networks(substrate, data.get("semantic_networks") or [], report)
+
+    if report.errors:
+        report.ok = False
+    progress.programmatic_report = report
+    progress.programmatic_done = True
+
+
+def load_seed_layered(rich_path: str, substrate, programmatic_path: Optional[str] = None,
+                       chunk_size: int = 1000) -> SeedLoadProgress:
+    """GL-CMD-LANGUAGE-SEED-PHASE2-GENERATOR-EVE-20260707-v1 loader
+    enhancement. Rich loads blocking (same load_seed() as always -- this
+    function doesn't change single-file loading behavior at all).
+    Programmatic, if given, loads on a background thread in chunks of
+    `chunk_size` entries with a yield between chunks, so it never blocks
+    substrate boot or request handling. Returns a SeedLoadProgress the
+    caller can poll (e.g. from a health endpoint) -- rich_done is True by
+    the time this function returns; programmatic_done flips asynchronously.
+    """
+    progress = SeedLoadProgress()
+    progress.rich_started = True
+    try:
+        progress.rich_report = load_seed(rich_path, substrate)
+    except Exception as e:
+        progress.rich_error = str(e)
+        progress.rich_report = LoadReport(ok=False, errors=[str(e)])
+    progress.rich_done = True
+
+    if programmatic_path:
+        thread = threading.Thread(
+            target=_load_programmatic_background,
+            args=(programmatic_path, substrate, progress, chunk_size),
+            name="seed-loader-programmatic",
+            daemon=True,
+        )
+        thread.start()
+    else:
+        progress.programmatic_done = True
+
+    return progress
 
 
 def verify_seed_integrity(substrate, seed_path: Optional[str] = None) -> IntegrityReport:
