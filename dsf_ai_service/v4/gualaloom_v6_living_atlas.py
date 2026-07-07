@@ -93,6 +93,14 @@ class LivingAtlas:
         self.tick = 0
         # chi -> list of {section, motif, chi, strength, last_tick, born_tick}
         self.entries = defaultdict(list)
+        # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: window_id -> plain-
+        # dict snapshot of a closed BindingWindow (WindowManager writes this
+        # on close()). Entries in self.entries carry a window_id field
+        # pointing back here once tagged via record(). NOT wired into
+        # existing save/load persistence in this build (that's a separate,
+        # unverified subsystem this dispatch does not touch) -- honest
+        # limitation, not silently assumed handled; see the filed report.
+        self.windows = {}
 
     def record(self, section_name, motif_id, chi_value, tick=None, salience=1.0,
                dwell_ticks=0, arousal=0.5, valence=0.0, surprise=0.0,
@@ -101,9 +109,23 @@ class LivingAtlas:
                presence=None, location=None, sky_state=None,
                place=None, ambient=None,
                polarity=1,
-               function_score=0.0, phase_vec=None, **_extra):
+               function_score=0.0, phase_vec=None,
+               window_id=None, window_entry_index=None, **_extra):
         """Record a new binding OR reinforce existing one if (section, motif)
         already present near this chi. Salience modulates the strength impulse.
+
+        GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: window_id/
+        window_entry_index are additive, optional cross-reference fields
+        -- when a caller routes through WindowManager.add_entry(), these
+        name which binding window this specific commit belongs to, so a
+        future recall mechanism can retrieve window siblings. None when a
+        caller writes directly (dream/correction paths, untouched by this
+        dispatch) -- an entry with no window is simply not yet linked to
+        one, same honest-absence convention as sensory_refs/episode_ref
+        being empty. Last-write-wins on reinforcement, same convention as
+        presence/location/sky_state above: window_id reflects the most
+        recent experience-moment that touched this binding, not the
+        original one (episode_ref already covers first-encounter).
 
         GL-CLARITY-INVARIANCE-UNCAGE: affect kwargs (arousal, valence, surprise,
         need_pressure) set initial clarity. Grounding kwargs (sensory_refs,
@@ -192,6 +214,11 @@ class LivingAtlas:
                     existing["place"] = place
                 if ambient is not None:
                     existing["ambient"] = ambient
+                # GL-CMD-BINDING-WINDOWS-BUILD: last-write-wins, see record()'s
+                # own docstring for why (current experience-moment, not origin).
+                if window_id is not None:
+                    existing["window_id"] = window_id
+                    existing["window_entry_index"] = window_entry_index
                 # episode_ref: first-encounter canonical — only set if empty
                 if episode_ref is not None and existing.get("episode_ref") is None:
                     existing["episode_ref"] = episode_ref
@@ -262,6 +289,11 @@ class LivingAtlas:
                     "polarity":   polarity,
                     # 60-C: substrate-derived function/content score (0=content, 1=function)
                     "function_score": function_score,
+                    # GL-CMD-BINDING-WINDOWS-BUILD: None when not routed through
+                    # WindowManager (dream/correction paths, untouched by this
+                    # dispatch) -- honest absence, not a placeholder.
+                    "window_id": window_id,
+                    "window_entry_index": window_entry_index,
                 })
 
         # Wave atlas parallel write (WAVE_ATLAS_ENABLED=1)

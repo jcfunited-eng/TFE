@@ -2381,6 +2381,12 @@ async def gualaloom_chat(msg: GLMessage):
             t0 = time.time()
             results = []
             bundle_chis = []
+            # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: give_experience's
+            # own explicit open/add_entry-per-lane/close, per design. Opened
+            # here (not left to the first lane's implicit auto-open) so an
+            # empty-caption bundle (sight/sound/touch only) still gets one
+            # shared window across every lane below.
+            _guala.window_manager.open("give_experience")
             caption = bundle_data.get("caption", "")
             # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test wiring:
             # the real numeric waveform for whichever sound this bundle
@@ -2425,8 +2431,12 @@ async def gualaloom_chat(msg: GLMessage):
                             frags, picture_ref, _guala.tick)
                         if motif:
                             chi = motif.motif_id % 100
-                            _guala._atlas_record("sight", motif.motif_id,
-                                                chi, _guala.tick, salience=1.5, dwell_ticks=8)
+                            _guala.window_manager.add_entry(
+                                modality="sight", section="sight",
+                                motif_id=motif.motif_id, chi=chi,
+                                tick=_guala.tick, source_tag=bundle_source,
+                                trigger_reason="give_experience",
+                                salience=1.5, dwell_ticks=8)
                             bundle_chis.append(chi)
                         results.append(f"showed her \"{pic.title}\" (ref, {len(frags)} fragments)")
                     except Exception as e:
@@ -2459,8 +2469,12 @@ async def gualaloom_chat(msg: GLMessage):
                         frags, img_id, _guala.tick)
                     if motif:
                         chi = motif.motif_id % 100
-                        _guala._atlas_record("sight", motif.motif_id,
-                                            chi, _guala.tick, salience=1.5, dwell_ticks=8)
+                        _guala.window_manager.add_entry(
+                            modality="sight", section="sight",
+                            motif_id=motif.motif_id, chi=chi,
+                            tick=_guala.tick, source_tag=bundle_source,
+                            trigger_reason="give_experience",
+                            salience=1.5, dwell_ticks=8)
                         bundle_chis.append(chi)
                     results.append(f"showed her \"{bundle_name}\" "
                                    f"({len(frags)} fragments, {orig_w}x{orig_h})")
@@ -2475,9 +2489,12 @@ async def gualaloom_chat(msg: GLMessage):
                 cochlear = snd.get("cochlear", {})
                 for bn, c in cochlear.items():
                     chi = c.get("winding", 0) % 100
-                    _guala._atlas_record(f"audio_{bn}",
-                        deterministic_motif_id(sound_ref),
-                        chi, _guala.tick, salience=1.5, dwell_ticks=8)
+                    _guala.window_manager.add_entry(
+                        modality="sound", section=f"audio_{bn}",
+                        motif_id=deterministic_motif_id(sound_ref), chi=chi,
+                        tick=_guala.tick, source_tag=bundle_source,
+                        trigger_reason="give_experience",
+                        salience=1.5, dwell_ticks=8)
                     bundle_chis.append(chi)
                 results.append(f"played her \"{snd.get('title', sound_ref)}\" (ref)")
                 # GL-CMD-CROSS-SENSE-RECALL-208: only present for items
@@ -2517,9 +2534,13 @@ async def gualaloom_chat(msg: GLMessage):
                             dur = len(samples) / max(sr, 1)
                             for bn, c in cochlear.items():
                                 chi = c["winding"] % 100
-                                _guala._atlas_record(f"audio_{bn}",
-                                    deterministic_motif_id(snd_id),
-                                    chi, _guala.tick, salience=1.5, dwell_ticks=8)
+                                _guala.window_manager.add_entry(
+                                    modality="sound", section=f"audio_{bn}",
+                                    motif_id=deterministic_motif_id(snd_id),
+                                    chi=chi, tick=_guala.tick,
+                                    source_tag=bundle_source,
+                                    trigger_reason="give_experience",
+                                    salience=1.5, dwell_ticks=8)
                                 bundle_chis.append(chi)
                             _guala._sounds[snd_id] = {
                                 "item_id": snd_id, "title": bundle_name,
@@ -2554,9 +2575,13 @@ async def gualaloom_chat(msg: GLMessage):
                             chi = ch_data["chi"]
                             motif = deterministic_motif_id(
                                 f"{bundle_name}_{sense_name}_{ch_name}")
-                            _guala._atlas_record(f"{sense_name}_{ch_name}", motif,
-                                                chi, _guala.tick, salience=1.5,
-                                                dwell_ticks=8)
+                            _guala.window_manager.add_entry(
+                                modality=sense_name,
+                                section=f"{sense_name}_{ch_name}",
+                                motif_id=motif, chi=chi, tick=_guala.tick,
+                                source_tag=bundle_source,
+                                trigger_reason="give_experience",
+                                salience=1.5, dwell_ticks=8)
                             bundle_chis.append(chi)
                         label = {"touch": "feels", "smell": "smells",
                                  "taste": "tastes"}[sense_name]
@@ -2591,12 +2616,20 @@ async def gualaloom_chat(msg: GLMessage):
                     results.append(f"organism-teach ERROR: {e}")
 
             # ── Bind all lanes in one window ──
+            # _open_response_window (below) is the PRE-EXISTING, unrelated
+            # response-triggering mechanism (context anchors for emission,
+            # see Guala._open_response_window) -- not the binding window
+            # this dispatch builds. Left untouched, still fires as before.
             if bundle_chis:
                 _guala._open_response_window(bundle_source, bundle_chis,
                                               source_context={"bundle": bundle_name})
             _guala._log_substrate_event("experience_bundle",
                                         name=bundle_name, lanes=results,
                                         n_chis=len(bundle_chis), source=bundle_source)
+            # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: close the
+            # binding window opened at the top of this function -- give_
+            # experience's explicit open/add_entry-per-lane/close, complete.
+            _guala.window_manager.close("give_experience_complete")
 
             # H5b: always structured JSON, never raw 500
             print(f"[decode-bundle] {time.time()-t0:.2f}s")
@@ -2660,10 +2693,19 @@ async def gualaloom_chat(msg: GLMessage):
                 n_onsets = sum(onsets.values())
                 duration_s = len(samples) / max(sr, 1)
                 from dsf_ai_service.substrate.senses.GL_MDL_AUDITORY_CORTEX_WC_20260608_01 import COCHLEAR_BANDS
+                # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: standalone
+                # sound upload is its own complete experience -- explicit
+                # open/add_entry-per-band/close, same pattern as give_experience.
+                _guala.window_manager.open("addsound")
                 for band_name, c in cochlear.items():
                     chi = c["winding"] % 100
-                    _guala._atlas_record(f"audio_{band_name}", deterministic_motif_id(item_id),
-                                        chi, _guala.tick, salience=1.2)
+                    _guala.window_manager.add_entry(
+                        modality="sound", section=f"audio_{band_name}",
+                        motif_id=deterministic_motif_id(item_id), chi=chi,
+                        tick=_guala.tick, source_tag=f"addsound:{item_id}",
+                        trigger_reason="addsound",
+                        salience=1.2)
+                _guala.window_manager.close("addsound_complete")
                 _guala._sounds[item_id] = {
                     "item_id": item_id, "title": title,
                     "cochlear": {bn: {"winding": c["winding"], "n_events": c["n_events"]}

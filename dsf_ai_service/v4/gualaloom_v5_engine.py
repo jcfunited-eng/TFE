@@ -800,7 +800,7 @@ class Section:
 
     def receive(self, dsf, chi, word_label, atlas, familiarity, salience=1.0,
                 dwell_ticks=1, deep_atlas=None, engine_tick=None,
-                atlas_kwargs=None, index_callback=None):
+                atlas_kwargs=None, index_callback=None, window_manager=None):
         """v6: word-anchored mode identity + salience-modulated binding.
         v8 (GL-BRIEF-032): dwell_ticks tagged at write time for deep gate.
         deep_atlas: if provided, on-attention prior applied for matching entries.
@@ -815,7 +815,18 @@ class Section:
         read_word) passes self._index_word_at_chi. The primary commit's
         OWN indexing is still done by the caller from receive()'s return
         value (GL-CMD-RECALL-REACH-159 Part C) — this callback covers ONLY
-        the reinstatement writes, which the return value doesn't surface."""
+        the reinstatement writes, which the return value doesn't surface.
+
+        window_manager: GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1,
+        optional (default None preserves exact prior behavior for any
+        caller that doesn't pass it). When supplied, the PRIMARY commit
+        below routes through window_manager.add_entry() instead of
+        atlas.record() directly -- same call, same arguments, same
+        resulting atlas write, plus window bookkeeping and events. The
+        deep-atlas reinstatement block does NOT route through it (that's
+        reinstating an existing memory on attention, not a new experience
+        moment -- out of this dispatch's scope, same as dream/correction
+        writes elsewhere in the engine)."""
         self.tick += 1
         # Atlas records use engine tick (one clock — GL-FIND-TICK-DOMAIN-C1)
         if engine_tick is None:
@@ -933,8 +944,16 @@ class Section:
                 committed = True
 
         if committed:
-            atlas.record(self.name, mode_idx, chi, atlas_tick, salience=salience,
-                         dwell_ticks=dwell_ticks, **(atlas_kwargs or {}))
+            if window_manager is not None:
+                window_manager.add_entry(
+                    modality="word", section=self.name, motif_id=mode_idx,
+                    chi=chi, tick=atlas_tick, source_tag=word_label or "",
+                    trigger_reason="word",
+                    salience=salience, dwell_ticks=dwell_ticks,
+                    **(atlas_kwargs or {}))
+            else:
+                atlas.record(self.name, mode_idx, chi, atlas_tick, salience=salience,
+                             dwell_ticks=dwell_ticks, **(atlas_kwargs or {}))
             self.commits.append({
                 "tick": atlas_tick,
                 "mode": mode_idx,
@@ -1520,6 +1539,22 @@ class Guala:
             "intro":    Section("intro"),     # introspection
         }
         self.atlas = LivingAtlas()
+        # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: owns the currently-
+        # open binding window (one at a time). NOT the same thing as
+        # self._current_binding_window below (a per-sentence list of
+        # sensory_refs tag STRINGS, an existing narrower mechanism) or
+        # self.open_response_windows (emission-triggering context anchors,
+        # see _open_response_window) -- three distinct "window" concepts
+        # in this codebase now; this one is cross-modal experience binding.
+        from dsf_ai_service.substrate.window_manager import WindowManager
+        self.window_manager = WindowManager(
+            atlas_record_fn=self._atlas_record,
+            log_event_fn=self._log_substrate_event,
+            get_tick_fn=lambda: self.tick,
+            get_presence_fn=lambda: dict(getattr(self.coordinator, "_presence", {})),
+            get_affect_fn=self._affect_kwargs,
+            atlas_windows=self.atlas.windows,
+        )
         # WAVE_ATLAS_ENABLED: Phase 1 flag. 0 = atlas built but inactive; 1 = parallel writes.
         if os.environ.get("WAVE_ATLAS_ENABLED") == "1":
             from dsf_ai_service.v4.wave_atlas import WaveAtlas as _WaveAtlas
@@ -2154,7 +2189,8 @@ class Guala:
                 deep_atlas=self.deep_atlas,
                 engine_tick=self.tick,
                 atlas_kwargs=_akw,
-                index_callback=self._index_word_at_chi)
+                index_callback=self._index_word_at_chi,
+                window_manager=self.window_manager)
             # GL-CMD-RECALL-REACH-159 Part C (F-3): Section.receive commits via
             # atlas.record() directly, not self._atlas_record() (Section has no
             # engine reference) — so the -57 reverse index has to be updated
@@ -2175,7 +2211,8 @@ class Guala:
                     deep_atlas=self.deep_atlas,
                     engine_tick=self.tick,
                     atlas_kwargs=_akw,
-                    index_callback=self._index_word_at_chi)
+                    index_callback=self._index_word_at_chi,
+                    window_manager=self.window_manager)
                 if _committed:
                     self._index_word_at_chi(primary_section, _mode_idx, lang_chi)
                 # Incremental update of word→emission-section index
@@ -2206,7 +2243,8 @@ class Guala:
                     dwell_ticks=dwell,
                     deep_atlas=self.deep_atlas,
                     engine_tick=self.tick,
-                    index_callback=self._index_word_at_chi)
+                    index_callback=self._index_word_at_chi,
+                    window_manager=self.window_manager)
                 if _ground_committed:
                     self._index_word_at_chi("ground", _ground_mode_idx, ground_chi)
 
@@ -2214,11 +2252,15 @@ class Guala:
                     if sense_fps[m] is not None:
                         modal_chi = self.senses.krimelacks[m].winding
                         sec_name = f"modal_{m}"
-                        self._atlas_record(sec_name, deterministic_motif_id(word),
-                                          modal_chi, self.tick,
-                                          salience=salience,
-                                          **self._affect_kwargs(surprise),
-                                          **self._grounding_kwargs())
+                        self.window_manager.add_entry(
+                            modality=m, section=sec_name,
+                            motif_id=deterministic_motif_id(word),
+                            chi=modal_chi, tick=self.tick,
+                            source_tag=source,
+                            trigger_reason="word",
+                            salience=salience,
+                            **self._affect_kwargs(surprise),
+                            **self._grounding_kwargs())
             _prof_t0 = _prof_mark("ground_modal", _prof_t0)
 
             # GL-BUG-SELFHEAR-INTRO-RATCHET (found live 2026-07-06): this commit
@@ -2255,7 +2297,8 @@ class Guala:
                     dwell_ticks=dwell,
                     deep_atlas=self.deep_atlas,
                     engine_tick=self.tick,
-                    index_callback=self._index_word_at_chi)
+                    index_callback=self._index_word_at_chi,
+                    window_manager=self.window_manager)
                 if _intro_committed:
                     self._index_word_at_chi("intro", _intro_mode_idx, lang_chi)
             _prof_t0 = _prof_mark("intro_receive", _prof_t0)
@@ -6062,8 +6105,10 @@ class Guala:
                 signals = generate_sensory_signals(modality, [w])
                 for channel, info in transduce_sensory_signals(signals).items():
                     mid = deterministic_motif_id(f"{modality}_{w}_{channel}")
-                    self._atlas_record(
-                        f"modal_{modality}", mid, info["chi"], self.tick,
+                    self.window_manager.add_entry(
+                        modality=modality, section=f"modal_{modality}",
+                        motif_id=mid, chi=info["chi"], tick=self.tick,
+                        trigger_reason=modality,
                         salience=1.0, dwell_ticks=DWELL_GATE_META,
                         sensory_refs=[f"{modality}:{w}"],
                         **self._affect_kwargs())
@@ -6515,10 +6560,13 @@ class Guala:
                 fragments, "camera_stream", self.tick)
             if motif:
                 chi_val = motif.motif_id % 100
-                self._atlas_record("sight", motif.motif_id, chi_val,
-                                  self.tick, salience=0.8,
-                                  sensory_refs=["cam:live"],
-                                  **self._affect_kwargs())
+                self.window_manager.add_entry(
+                    modality="sight", section="sight",
+                    motif_id=motif.motif_id, chi=chi_val, tick=self.tick,
+                    source_tag="cam:live", trigger_reason="sight",
+                    salience=0.8,
+                    sensory_refs=["cam:live"],
+                    **self._affect_kwargs())
                 self._log_substrate_event("sight_frame_bound",
                                           motif_id=motif.motif_id,
                                           chi=chi_val, is_new=is_new)
@@ -6580,9 +6628,12 @@ class Guala:
             for bn, c in cochlear.items():
                 if c["n_events"] > 0:
                     chi = c["winding"] % 100
-                    self._atlas_record(f"audio_{bn}",
-                        deterministic_motif_id("mic_stream"),
-                        chi, self.tick, salience=0.6, dwell_ticks=2,
+                    self.window_manager.add_entry(
+                        modality="sound", section=f"audio_{bn}",
+                        motif_id=deterministic_motif_id("mic_stream"),
+                        chi=chi, tick=self.tick,
+                        source_tag=source, trigger_reason="sound",
+                        salience=0.6, dwell_ticks=2,
                         sensory_refs=[source],
                         **self._affect_kwargs())
                     n_bands_fired += 1
@@ -6614,14 +6665,17 @@ class Guala:
                 # Record in atlas for cross-modal binding
                 chi_val = motif.motif_id % 100  # simplified chi address
                 presence, location, sky_state = self._current_situation()
-                self._atlas_record("sight", motif.motif_id, chi_val,
-                                 self.tick, salience=1.2,
-                                 sensory_refs=[f"pic:{pic.item_id}"],
-                                 bundle_id=f"item:pic:{pic.item_id}",
-                                 episode_ref=a.metadata["_episode_ref"],
-                                 presence=presence, location=location,
-                                 sky_state=sky_state, source="attending_visual",
-                                 **self._affect_kwargs())
+                self.window_manager.add_entry(
+                    modality="sight", section="sight",
+                    motif_id=motif.motif_id, chi=chi_val, tick=self.tick,
+                    source_tag="attending_visual", trigger_reason="sight",
+                    salience=1.2,
+                    sensory_refs=[f"pic:{pic.item_id}"],
+                    bundle_id=f"item:pic:{pic.item_id}",
+                    episode_ref=a.metadata["_episode_ref"],
+                    presence=presence, location=location,
+                    sky_state=sky_state, source="attending_visual",
+                    **self._affect_kwargs())
                 self._log_substrate_event(
                     "visual_motif_committed" if is_new else "visual_motif_fired",
                     motif_id=motif.motif_id, overlap=round(overlap, 3),
@@ -6660,14 +6714,18 @@ class Guala:
         cochlear = snd.get("cochlear", {})
         for band_name, c in cochlear.items():
             chi = c.get("winding", 0) % 100  # 1.1
-            self._atlas_record(f"audio_{band_name}", deterministic_motif_id(a.target),
-                              chi, self.tick, salience=1.2, dwell_ticks=8,
-                              sensory_refs=[f"snd:{a.target}"],
-                              bundle_id=f"item:snd:{a.target}",
-                              episode_ref=ep_ref, presence=presence,
-                              location=location, sky_state=sky_state,
-                              source="attending_audio",
-                              **self._affect_kwargs())
+            self.window_manager.add_entry(
+                modality="sound", section=f"audio_{band_name}",
+                motif_id=deterministic_motif_id(a.target), chi=chi,
+                tick=self.tick,
+                source_tag="attending_audio", trigger_reason="sound",
+                salience=1.2, dwell_ticks=8,
+                sensory_refs=[f"snd:{a.target}"],
+                bundle_id=f"item:snd:{a.target}",
+                episode_ref=ep_ref, presence=presence,
+                location=location, sky_state=sky_state,
+                source="attending_audio",
+                **self._affect_kwargs())
         # Novelty satisfies
         if snd.get("times_attended", 0) <= 3:
             self.needs.novelty = saturate(self.needs.novelty, 0.01)
@@ -6704,10 +6762,13 @@ class Guala:
                     all_fragments, vid.item_id, self.tick)
                 if motif:
                     chi_val = motif.motif_id % 100
-                    self._atlas_record("sight", motif.motif_id, chi_val,
-                                     self.tick, salience=1.2,
-                                     sensory_refs=[f"vid:{vid.item_id}"],
-                                     **self._affect_kwargs())
+                    self.window_manager.add_entry(
+                        modality="sight", section="sight",
+                        motif_id=motif.motif_id, chi=chi_val, tick=self.tick,
+                        source_tag=f"vid:{vid.item_id}", trigger_reason="sight",
+                        salience=1.2,
+                        sensory_refs=[f"vid:{vid.item_id}"],
+                        **self._affect_kwargs())
                     self._log_substrate_event(
                         "video_motif_committed" if is_new else "video_motif_fired",
                         motif_id=motif.motif_id, overlap=round(overlap, 3),
