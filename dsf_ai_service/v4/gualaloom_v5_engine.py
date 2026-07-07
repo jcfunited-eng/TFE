@@ -5507,6 +5507,20 @@ class Guala:
             # pressure's own gate (Change 2) further down.
             _ca_kind = getattr(self._current_activity, 'kind', None)
 
+            # GL-CMD-HEMISPHERIC-INTEGRATION-BUILD-EVE-20260707-v3 Wiring 2:
+            # every autonomy-tick, sample the shared wave field and push
+            # each hemisphere's assigned band into its neurons via their
+            # own existing input_signal path. Guarded on wave_atlas being
+            # wired (WAVE_ATLAS_ENABLED=1) -- honest no-op otherwise, same
+            # convention as every other _wa is not None check in this file.
+            if self.wave_atlas is not None:
+                from dsf_ai_service.substrate.wave_summary import (
+                    sample_wave_summary, push_wave_summary_to_organism)
+                _wave_summary = sample_wave_summary(self.wave_atlas)
+                _push_payload = push_wave_summary_to_organism(
+                    self, _wave_summary, self.tick)
+                self._log_substrate_event("wave_summary_pushed", **_push_payload)
+
             # 1. Needs drift AWAY from target (once per iteration) -- paused
             # during SLEEPING/DREAMING (Change A: reuses dream_pressure's own
             # sleep-gate, GL-CMD-CREDO-LOOP-REPAIR-167 Change 2). She cannot
