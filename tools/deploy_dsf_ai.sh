@@ -264,7 +264,16 @@ out = {
                 {'name': 'EMISSION_DYNAMICS_TICKS', 'value': '80'},  # GL-CMD-87: 40→80
                 {'name': 'WAVE_ATLAS_ENABLED', 'value': '1'},
                 {'name': 'YOLO_MODEL_PATH', 'value': '/app/yolov8n.onnx'},
-                {'name': 'WHISPER_MODEL_PATH', 'value': 'tiny'}
+                {'name': 'WHISPER_MODEL_PATH', 'value': 'tiny'},
+                # GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2: dual-
+                # write/dual-read Phase 1. RECALL_BACKEND=legacy is the
+                # code's own default when unset, but set explicitly here
+                # so the deployed backend is visible in infra config, not
+                # just implicit in source. EVENT_DRIVEN_SUBSTRATE
+                # deliberately left UNSET (defaults to "1" in code) --
+                # only meant to be overridden for rollback, not configured
+                # as an explicit "on" from the start.
+                {'name': 'RECALL_BACKEND', 'value': 'legacy'}
             ] + ([{'name': 'FORCE_S3_RESTORE', 'value': '1'}] if os.environ.get('_FORCE_S3_RESTORE_INJECT') == '1' else []),
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
