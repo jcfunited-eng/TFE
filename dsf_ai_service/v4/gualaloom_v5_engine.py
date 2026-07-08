@@ -820,29 +820,112 @@ class Section:
         self.tick = 0
         # Fast-path caches (not persisted — rebuilt on load via _rebuild_word_index)
         self._word_to_mode_idx = {}   # word.lower() -> mode index, O(1) lookup
-        self._modes_matrix = None     # (n_modes, 8) array for vectorized cosine sim
-        self._modes_norms = None      # (n_modes,) precomputed norms
+        self._modes_matrix = None     # (n_alive_modes, 8) array for vectorized cosine sim
+        self._modes_norms = None      # (n_alive_modes,) precomputed norms
         self._modes_dirty = True      # True = matrix must be rebuilt before use
+        self._alive_row_of_mode = {}  # real mode_idx -> row in the compacted matrix
+        # 2026-07-08 GL-BUG-MODES-MATRIX-THRASH follow-up: self.modes has
+        # never had any forgetting -- every genuinely new word becomes a
+        # permanent entry, and _get_modes_matrix's O(n_modes) cosine scan
+        # is exactly what cost ~26s live on 2026-07-06 once "listen"
+        # reached 14,000+ modes. Mode INDEX is load-bearing elsewhere
+        # (LivingAtlas/DeepAtlas bindings and WindowManager entries are
+        # keyed by motif=mode_idx; see the GL-FIX-ATLAS-INTEGRITY guard
+        # in receive() below for a documented past incident from an
+        # index/mode-count mismatch) -- self.modes must NEVER shrink or
+        # reorder, or every existing binding that references an index
+        # past the removed one silently points at the wrong word. So
+        # forgetting here means tombstoning a mode IN PLACE (excluded
+        # from matching, index and content otherwise untouched forever),
+        # never deleting or reusing its slot. These two arrays are the
+        # same "not persisted, rebuilt on load" class as the caches
+        # above -- not restored from a save, reinitialized fresh (all
+        # alive, last-active=now) by _rebuild_word_index so a deploy
+        # never mass-forgets everything on its first tick.
+        self._mode_last_active_tick = []  # index-aligned with self.modes
+        self._mode_alive = []             # index-aligned with self.modes
 
-    def _rebuild_word_index(self):
-        """Rebuild word→mode-index dict from self.modes. Call after deserialization."""
+    # HEURISTIC: reuses LivingAtlas's own real, already-tuned decay
+    # constants (DECAY_LAMBDA=1e-4/tick, FORGETTING_THRESHOLD=0.02) to
+    # derive the same effective "how long without reinforcement before
+    # something is considered forgotten" window, rather than inventing a
+    # new, unrelated number for a structurally analogous kind of memory.
+    # ln(0.02)/-0.0001 ≈ 39,120 ticks.
+    MODE_FORGET_TICKS = int(math.log(0.02) / -0.0001)
+
+    def _rebuild_word_index(self, current_tick=0):
+        """Rebuild word→mode-index dict from self.modes. Call after
+        deserialization. current_tick: the ENGINE's current tick (not
+        this section's own persisted tick, which may be stale relative
+        to it, GL-FIND-TICK-DOMAIN-C1) -- used only to seed
+        _mode_last_active_tick for modes restored from a save that
+        predates this field, so a deploy doesn't treat every existing
+        mode as instantly 39,120 ticks stale."""
         self._word_to_mode_idx = {}
         for i, (_, _, word) in enumerate(self.modes):
             if word:
                 self._word_to_mode_idx[word.lower()] = i
+        n = len(self.modes)
+        if len(self._mode_last_active_tick) != n:
+            self._mode_last_active_tick = [current_tick] * n
+        if len(self._mode_alive) != n:
+            self._mode_alive = [True] * n
         self._modes_dirty = True
 
     def _get_modes_matrix(self):
-        """Return cached (n_modes, 8) matrix + (n_modes,) norms for vectorized sim.
-        Rebuilds only when _modes_dirty is set (modes changed since last build)."""
+        """Return cached (n_alive, 8) matrix + (n_alive,) norms for
+        vectorized sim, restricted to modes not yet forgotten. The
+        argmax over the result (in receive(), below) is only ever used
+        to read back through `sims`/`mat` itself, never to index back
+        into self.modes -- see the comment there -- so a compacted,
+        real-index-agnostic matrix is safe for that purpose.
+
+        Also (re)builds self._alive_row_of_mode, a real-mode_idx ->
+        compacted-row-idx map, needed by the SEPARATE in-place
+        reinforcement optimization below (GL-BUG-MODES-MATRIX-THRASH):
+        that code updates one existing row without a full rebuild, and
+        now that the matrix excludes tombstoned rows, "row index" and
+        "real mode_idx" are no longer the same number.
+
+        Rebuilds only when _modes_dirty is set (modes changed or a
+        forget pass ran since last build)."""
         if not self.modes:
             return None, None
         if self._modes_dirty or self._modes_matrix is None:
-            vecs = np.array([m[0].to_array() for m in self.modes])
-            self._modes_matrix = vecs
-            self._modes_norms = np.linalg.norm(vecs, axis=1) + 1e-12
+            alive_indices = [i for i in range(len(self.modes))
+                              if i < len(self._mode_alive) and self._mode_alive[i]]
+            self._alive_row_of_mode = {mode_i: row_i for row_i, mode_i in enumerate(alive_indices)}
+            if not alive_indices:
+                self._modes_matrix = None
+                self._modes_norms = None
+            else:
+                vecs = np.array([self.modes[i][0].to_array() for i in alive_indices])
+                self._modes_matrix = vecs
+                self._modes_norms = np.linalg.norm(vecs, axis=1) + 1e-12
             self._modes_dirty = False
         return self._modes_matrix, self._modes_norms
+
+    def forget_stale_modes(self, current_tick):
+        """Tombstone modes unused for longer than MODE_FORGET_TICKS --
+        excluded from future matching (both the O(1) word-index and the
+        similarity matrix), index and stored content otherwise untouched
+        forever, so every existing atlas/deep_atlas/window reference by
+        mode_idx stays valid. A later encounter with the same word text
+        is relearned as if genuinely new (a fresh append), matching how
+        real forgetting/relearning works. Same 200-tick cadence as
+        LivingAtlas.forget_below_threshold(), called alongside it."""
+        changed = False
+        for i in range(len(self.modes)):
+            if not self._mode_alive[i]:
+                continue
+            if current_tick - self._mode_last_active_tick[i] > self.MODE_FORGET_TICKS:
+                self._mode_alive[i] = False
+                word = self.modes[i][2]
+                if word and self._word_to_mode_idx.get(word.lower()) == i:
+                    del self._word_to_mode_idx[word.lower()]
+                changed = True
+        if changed:
+            self._modes_dirty = True
 
     def receive(self, dsf, chi, word_label, atlas, familiarity, salience=1.0,
                 dwell_ticks=1, deep_atlas=None, engine_tick=None,
@@ -961,18 +1044,29 @@ class Section:
             # old mark-dirty behavior if the cache doesn't exist yet or
             # the index is somehow stale -- no correctness regression
             # possible, just a lazy rebuild next use as before.
-            if self._modes_matrix is not None and word_match_idx < len(self._modes_matrix):
+            # 2026-07-08 mode-forgetting follow-up: _modes_matrix is now
+            # compacted to alive rows only, so "row index" != "real
+            # mode_idx" in general -- use the row map built alongside it
+            # instead of assuming they're the same number. Falls back to
+            # the same mark-dirty behavior as before if the map doesn't
+            # have this mode yet (cache not built, or somehow stale).
+            _row = self._alive_row_of_mode.get(word_match_idx)
+            if self._modes_matrix is not None and _row is not None and _row < len(self._modes_matrix):
                 _new_vec = new_dsf.to_array()
-                self._modes_matrix[word_match_idx] = _new_vec
-                self._modes_norms[word_match_idx] = np.linalg.norm(_new_vec) + 1e-12
+                self._modes_matrix[_row] = _new_vec
+                self._modes_norms[_row] = np.linalg.norm(_new_vec) + 1e-12
             else:
                 self._modes_dirty = True
             mode_idx = word_match_idx
+            if word_match_idx < len(self._mode_last_active_tick):
+                self._mode_last_active_tick[word_match_idx] = atlas_tick
             committed = True
         elif len(self.modes) < 24:
             # Bootstrap — new word, accept liberally
             self.modes.append((dsf, chi, word_label))
             mode_idx = len(self.modes) - 1
+            self._mode_last_active_tick.append(atlas_tick)
+            self._mode_alive.append(True)
             if word_label:
                 self._word_to_mode_idx[word_label.lower()] = mode_idx
             self._modes_dirty = True
@@ -984,6 +1078,8 @@ class Section:
                 # word labels always get a chance to take root
                 self.modes.append((dsf, chi, word_label))
                 mode_idx = len(self.modes) - 1
+                self._mode_last_active_tick.append(atlas_tick)
+                self._mode_alive.append(True)
                 if word_label:
                     self._word_to_mode_idx[word_label.lower()] = mode_idx
                 self._modes_dirty = True
@@ -2432,6 +2528,8 @@ class Guala:
                 if self.hemispheres:
                     from dsf_ai_service.substrate.hemisphere_cognition import forget_hemisphere_atlases
                     forget_hemisphere_atlases(self)
+                for _sec in self.sections.values():
+                    _sec.forget_stale_modes(self.tick)
 
             # 8b. V5: Generate questions from gaps in this word's bindings
             # 9. Coordinator regulation pass (homeostasis + awareness)
@@ -6161,6 +6259,8 @@ class Guala:
                     if self.hemispheres:
                         from dsf_ai_service.substrate.hemisphere_cognition import forget_hemisphere_atlases
                         forget_hemisphere_atlases(self)
+                    for _sec in self.sections.values():
+                        _sec.forget_stale_modes(self.tick)
                 if self.tick % 5 == 0:
                     self.coordinator.regulate(self, self.needs, self.atlas,
                                              self.sections, self.tick)
@@ -7545,6 +7645,8 @@ class Guala:
                     if self.hemispheres:
                         from dsf_ai_service.substrate.hemisphere_cognition import forget_hemisphere_atlases
                         forget_hemisphere_atlases(self)
+                    for _sec in self.sections.values():
+                        _sec.forget_stale_modes(self.tick)
                 if self.tick % 5 == 0:
                     self.coordinator.regulate(self, self.needs, self.atlas,
                                              self.sections, self.tick)
@@ -9712,7 +9814,11 @@ class Guala:
             sec.dead_zone = s.get("dead_zone", 0.20)
             sec.gamma = s.get("gamma", {"det_thresh": 0.55, "novel_dist": 0.40})
             sec.tick = s.get("tick", 0)
-            sec._rebuild_word_index()  # rebuild O(1) lookup caches after deserialization
+            # current_tick=self.tick (the ENGINE's tick, not sec.tick which
+            # may be stale relative to it, GL-FIND-TICK-DOMAIN-C1) so every
+            # restored mode starts as "just active," not instantly eligible
+            # for forgetting the moment this deploys.
+            sec._rebuild_word_index(current_tick=self.tick)
 
     def _migrate_tick_domain(self):
         """GL-FIND-TICK-DOMAIN-C1: re-stamp section-domain atlas entries to engine tick.
@@ -10172,6 +10278,7 @@ class Guala:
         for nm, s in self.sections.items():
             states[nm] = {
                 "modes": len(s.modes),
+                "modes_alive": sum(1 for a in s._mode_alive if a),
                 "commits": len(s.commits),
                 "tick": s.tick,
                 "dead_zone": round(s.dead_zone, 3),
