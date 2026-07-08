@@ -9204,6 +9204,21 @@ class Guala:
                     except Exception as _chem_e:
                         print(f"[GualaLoom] membrane chemistry backfill after "
                               f"organism restore failed (non-fatal): {_chem_e}")
+                    # 2026-07-08 pruning fix: reclaim chi_atlas bloat
+                    # accumulated before the per-key cap existed --
+                    # confirmed live, one real neuron had 80,355
+                    # never-pruned records. Append-time capping alone
+                    # (chi_atlas_l6.py's record()) only stops FUTURE
+                    # growth; an already-restored organism's existing
+                    # entries need this one-time trim to actually free
+                    # the memory. Idempotent, own try/except, same
+                    # non-fatal-failure reasoning as above.
+                    try:
+                        for _n in self._all_neurons():
+                            _n.chi_atlas.trim_all()
+                    except Exception as _trim_e:
+                        print(f"[GualaLoom] chi_atlas trim after organism "
+                              f"restore failed (non-fatal): {_trim_e}")
                 except Exception as e:
                     print(f"[GualaLoom] Organism restore FAILED (organism from boot stands): {e}")
             else:
@@ -9222,6 +9237,20 @@ class Guala:
                     print(f"[GualaLoom] Tapestry restored: tick={self.tapestry._tick} "
                           f"neurons={self.tapestry.total_neurons} "
                           f"prev_word={'set' if _pw else 'none'}")
+                    # 2026-07-08 pruning fix: same chi_atlas bloat as the
+                    # organism above, same one-time reclaim -- the
+                    # tapestry's 450 neurons are the SAME LoomNeuron
+                    # class and were the larger contributor measured
+                    # live (chi_atlas alone was ~99% of one tapestry
+                    # neuron's ~2MB pickled size).
+                    try:
+                        for _mosaic in self.tapestry.mosaics:
+                            for _cluster in _mosaic.clusters:
+                                for _n in _cluster.neurons:
+                                    _n.chi_atlas.trim_all()
+                    except Exception as _trim_e:
+                        print(f"[GualaLoom] tapestry chi_atlas trim failed "
+                              f"(non-fatal): {_trim_e}")
                 except Exception as e:
                     print(f"[GualaLoom] Tapestry restore FAILED (tapestry from boot stands): {e}")
             else:
