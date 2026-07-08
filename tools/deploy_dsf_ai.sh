@@ -208,8 +208,8 @@ infra = {k: td[k] for k in keep if k in td and td[k]}
 # GL-INCIDENT-DEPLOY-SCRIPT-MEMORY-UNDERSIZE-EVE-20260708-v1: cpu/memory
 # used to be hardcoded here (2048/4096 -- stale from an early version of
 # this script, long since outgrown), requiring a manual post-register
-# patch-task-def step every deploy (see prior session precedent:
-# "dsf-ai-task:547 -> patched to :548 for correct cpu/memory, 4096/16384").
+# patch-task-def step every deploy (see prior session precedent: task
+# def revision 547 patched to 548 for correct cpu/memory, 4096/16384).
 # That manual step was missed on 2026-07-08's Phase 1 deploy attempt --
 # the resulting under-provisioned task (2048/4096, a quarter of the real
 # 4096/16384 requirement) OOM-killed ~48-53s after boot on EVERY attempt,
@@ -280,9 +280,9 @@ out = {
                 # code's own default when unset, but set explicitly here
                 # so the deployed backend is visible in infra config, not
                 # just implicit in source. EVENT_DRIVEN_SUBSTRATE
-                # deliberately left UNSET (defaults to "1" in code) --
+                # deliberately left UNSET (defaults to 1 in code) --
                 # only meant to be overridden for rollback, not configured
-                # as an explicit "on" from the start.
+                # as an explicit on-state from the start.
                 {'name': 'RECALL_BACKEND', 'value': 'legacy'}
             ] + ([{'name': 'FORCE_S3_RESTORE', 'value': '1'}] if os.environ.get('_FORCE_S3_RESTORE_INJECT') == '1' else []),
             'mountPoints': [
