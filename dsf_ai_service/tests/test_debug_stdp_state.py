@@ -44,7 +44,36 @@ def test_snapshot_on_fresh_boot_no_fires():
         assert snap["substrate_identity"]["RECALL_BACKEND"] == "legacy"
         # no ECS_CONTAINER_METADATA_URI_V4 locally -- must degrade gracefully, not raise
         assert "unknown" in snap["substrate_identity"]["task_def"]
+        assert snap["diagnostics"]["neurons_total"] == len(g._all_neurons())
+        assert snap["diagnostics"]["neurons_snapshot_ok"] == len(g._all_neurons())
+        assert snap["diagnostics"]["neurons_snapshot_failed"] == 0
+        assert snap["diagnostics"]["neuron_snapshot_sample_error"] is None
         print("test_snapshot_on_fresh_boot_no_fires: PASS")
+    finally:
+        g.shutdown()
+
+
+def test_snapshot_isolates_per_neuron_failure():
+    """Reproduces the real production finding: a neuron missing a field
+    the snapshot expects (e.g. _neuron_lock, as happens when
+    guala_organism.pkl.gz predates that field -- pickle.load() never
+    re-runs __init__) must not blank out every OTHER neuron's real data.
+    One broken neuron out of N must yield N-1 good snapshots, not 0."""
+    import dsf_ai_service.app as appmod
+    g = _fresh_guala()
+    try:
+        all_neurons = g._all_neurons()
+        assert len(all_neurons) >= 2
+        victim = all_neurons[0]
+        del victim._neuron_lock  # simulates a pre-Phase-1-v2 unpickled neuron
+
+        snap = appmod._build_stdp_snapshot(g)
+        diag = snap["diagnostics"]
+        assert diag["neurons_total"] == len(all_neurons)
+        assert diag["neurons_snapshot_failed"] == 1
+        assert diag["neurons_snapshot_ok"] == len(all_neurons) - 1
+        assert "_neuron_lock" in diag["neuron_snapshot_sample_error"]
+        print("test_snapshot_isolates_per_neuron_failure: PASS")
     finally:
         g.shutdown()
 
@@ -181,6 +210,7 @@ def test_route_returns_503_when_guala_not_loaded():
 
 if __name__ == "__main__":
     test_snapshot_on_fresh_boot_no_fires()
+    test_snapshot_isolates_per_neuron_failure()
     test_snapshot_reflects_real_word_injection_and_stdp()
     test_snapshot_degrades_gracefully_without_spike_bus()
     test_snapshot_never_mutates_membrane_state()

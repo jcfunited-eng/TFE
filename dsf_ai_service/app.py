@@ -5357,12 +5357,36 @@ def _build_stdp_snapshot(guala) -> dict:
         log.exception("stdp_state: word_neuron_map metrics failed")
         result["word_neuron_map"] = {"error": "unavailable"}
 
+    # Per-neuron isolation (not one try/except around the whole loop): a
+    # neuron missing a field the loop expects -- e.g. an organism
+    # restored from a guala_organism.pkl.gz saved before this field
+    # existed, since pickle.load() reconstructs __dict__ directly and
+    # never re-runs LoomNeuron.__init__() -- must not hide every OTHER
+    # neuron's real data. First production run of this endpoint found
+    # exactly this: see GL-RPT-STDP-INTROSPECTION-C1-20260707-v1 finding 1.
     neuron_snapshots = []
+    neuron_snapshot_failures = 0
+    neuron_snapshot_sample_error = None
+    all_neurons = []
     try:
-        for n in guala._all_neurons():
-            neuron_snapshots.append(_stdp_snapshot_neuron(n, now_s))
+        all_neurons = guala._all_neurons()
     except Exception:
-        log.exception("stdp_state: per-neuron snapshot pass failed")
+        log.exception("stdp_state: _all_neurons() failed")
+    for n in all_neurons:
+        try:
+            neuron_snapshots.append(_stdp_snapshot_neuron(n, now_s))
+        except Exception as e:
+            neuron_snapshot_failures += 1
+            if neuron_snapshot_sample_error is None:
+                neuron_snapshot_sample_error = f"{type(e).__name__}: {e}"
+            log.exception("stdp_state: snapshot failed for neuron %s",
+                          getattr(n, "neuron_id", "?"))
+    result["diagnostics"] = {
+        "neurons_total": len(all_neurons),
+        "neurons_snapshot_ok": len(neuron_snapshots),
+        "neurons_snapshot_failed": neuron_snapshot_failures,
+        "neuron_snapshot_sample_error": neuron_snapshot_sample_error,
+    }
 
     from dsf_ai_service.loom_model.neuron import STDP_DEFAULT_SYNAPSE_WEIGHT
     try:
