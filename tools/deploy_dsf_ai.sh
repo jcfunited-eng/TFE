@@ -202,15 +202,25 @@ import sys, json, os
 td = json.load(sys.stdin)
 
 # Preserve infra fields from existing task def
-keep = ['executionRoleArn', 'taskRoleArn', 'runtimePlatform']
+keep = ['executionRoleArn', 'taskRoleArn', 'runtimePlatform', 'cpu', 'memory']
 infra = {k: td[k] for k in keep if k in td and td[k]}
 
+# GL-INCIDENT-DEPLOY-SCRIPT-MEMORY-UNDERSIZE-EVE-20260708-v1: cpu/memory
+# used to be hardcoded here (2048/4096 -- stale from an early version of
+# this script, long since outgrown), requiring a manual post-register
+# patch-task-def step every deploy (see prior session precedent:
+# "dsf-ai-task:547 -> patched to :548 for correct cpu/memory, 4096/16384").
+# That manual step was missed on 2026-07-08's Phase 1 deploy attempt --
+# the resulting under-provisioned task (2048/4096, a quarter of the real
+# 4096/16384 requirement) OOM-killed ~48-53s after boot on EVERY attempt,
+# masquerading as a code-level regression until traced back here. Fixed
+# by inheriting cpu/memory from whatever's actually currently deployed
+# (via `keep`, above) instead of a hardcoded default that can go stale --
+# self-correcting from here on, no more manual patch step needed.
 out = {
     'family': '${TASK_FAMILY}',
     'networkMode': 'awsvpc',
     'requiresCompatibilities': ['FARGATE'],
-    'cpu': '2048',
-    'memory': '4096',
     **infra,
     'volumes': [
         {
