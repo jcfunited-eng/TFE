@@ -215,8 +215,8 @@ infra = {k: td[k] for k in keep if k in td and td[k]}
 # 4096/16384 requirement) OOM-killed ~48-53s after boot on EVERY attempt,
 # masquerading as a code-level regression until traced back here. Fixed
 # by inheriting cpu/memory from whatever's actually currently deployed
-# (via `keep`, above) instead of a hardcoded default that can go stale --
-# self-correcting from here on, no more manual patch step needed.
+# (via the keep list, above) instead of a hardcoded default that can go
+# stale -- self-correcting from here on, no more manual patch step needed.
 out = {
     'family': '${TASK_FAMILY}',
     'networkMode': 'awsvpc',
