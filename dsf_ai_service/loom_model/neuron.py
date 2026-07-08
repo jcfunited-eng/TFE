@@ -600,6 +600,80 @@ class LoomNeuron:
         if birth_params is not None:
             self._apply_birth_params(birth_params)
 
+    # --- GL-CMD-PHASE-1-V2-REVIVE-EVE-20260708-v3: pickle round-trip ---
+    # save_full_state()/load_full_state() (embryo.py) pickle this object
+    # graph wholesale. Without these hooks, two problems: (1) threading.Lock
+    # is not picklable in CPython, so __getstate__ must exclude it or
+    # save_full_state() raises TypeError the moment a neuron actually has
+    # one; (2) pickle.load() reconstructs __dict__ directly and NEVER calls
+    # __init__, so a pickle written before a Phase 1 v2 field existed on
+    # this class restores an object permanently missing it -- confirmed
+    # live in production, see GL-RPT-STDP-INTROSPECTION-C1-20260707-v1 and
+    # GL-RPT-PHASE-1-V2-REVIVE-C1-20260708-v1 findings.
+
+    def __getstate__(self):
+        """Exclude unpicklable / runtime-only fields from the pickle.
+
+        _neuron_lock: threading.Lock, not picklable.
+        _spike_bus: runtime reference, re-wired at boot by Guala.wire_spike_bus().
+        _word_firing_callback: bound method into Guala -- pickling it would
+            drag the entire Guala object graph into this one neuron's state.
+        """
+        state = self.__dict__.copy()
+        state.pop('_neuron_lock', None)
+        state.pop('_spike_bus', None)
+        state.pop('_word_firing_callback', None)
+        return state
+
+    def __setstate__(self, state):
+        """Restore __dict__, recreate the lock, backfill any Phase 1 v2
+        field missing from an older pickle at its real __init__ default.
+
+        Field defaults below are mirrored from __init__ above them in
+        this same file -- verified against the live source, not guessed
+        (two defaults were caught wrong in an earlier draft of this fix:
+        _last_fire_time_s must be 0.0 not None, _recent_presynaptic_fires
+        must be {} not [] -- both would crash on first use if wrong).
+        """
+        self.__dict__.update(state)
+        self._neuron_lock = threading.Lock()
+
+        # PHASE_1_V2_BACKFILL -- keep in sync with __init__ above.
+        if not hasattr(self, 'membrane_potential'):
+            self.membrane_potential = 0.0
+        if not hasattr(self, 'membrane_rest'):
+            self.membrane_rest = 0.0
+        if not hasattr(self, 'membrane_threshold'):
+            self.membrane_threshold = 1.0
+        if not hasattr(self, 'tau_m_ms'):
+            self.tau_m_ms = 20.0
+        if not hasattr(self, 'refractory_period_ms'):
+            self.refractory_period_ms = 2.0
+        if not hasattr(self, 'last_update_time_s'):
+            self.last_update_time_s = 0.0
+        if not hasattr(self, 'refractory_until_s'):
+            self.refractory_until_s = 0.0
+        if not hasattr(self, 'chi_position'):
+            self.chi_position = None
+        if not hasattr(self, '_recent_presynaptic_fires'):
+            self._recent_presynaptic_fires = {}
+        if not hasattr(self, '_incoming_synapse_weights'):
+            self._incoming_synapse_weights = {}
+        if not hasattr(self, '_last_fire_time_s'):
+            self._last_fire_time_s = 0.0
+        # Unlike LoomBrain.step() (which reads _spike_bus via a defensive
+        # getattr), _fire() and _on_fire_bookkeeping() access
+        # self._spike_bus / self._word_firing_callback directly -- an
+        # absent (not None) attribute would raise AttributeError the
+        # first time this neuron fires, before Guala.wire_spike_bus() has
+        # a chance to run. Backfill to None (the real __init__ default)
+        # explicitly, not left absent. wire_spike_bus() overwrites both
+        # with the real bus/callback shortly after restore in production.
+        if not hasattr(self, '_spike_bus'):
+            self._spike_bus = None
+        if not hasattr(self, '_word_firing_callback'):
+            self._word_firing_callback = None
+
     # ------------------------------------------------------------------
     # Commit c1's parked neuron-side Phase 1 work per GL-CMD-BLUEPRINT-
     # PHASE-1-MERGED-EVE-20260707-v2 preamble ("What's preserved from c1's

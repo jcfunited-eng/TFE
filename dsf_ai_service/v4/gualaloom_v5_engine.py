@@ -1762,19 +1762,25 @@ class Guala:
         self.organism = _Embryo(brain_seed=42, seed_size=8, observable="event_count")
 
         # GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2: spike bus
-        # construction + wiring. Gated on EVENT_DRIVEN_SUBSTRATE (default
-        # "1") -- setting it to "0" skips this block entirely, leaving
+        # construction. Gated on EVENT_DRIVEN_SUBSTRATE (default "1") --
+        # setting it to "0" skips this block entirely, leaving
         # self._spike_bus None and every neuron's/LoomBrain's own
         # _spike_bus unset, which every new code path (neuron.py's
         # receive_spike/_fire, brain.py's step()/recall_fast()) already
         # treats as "mechanism not present, behave exactly as before."
         # Full rollback, not just a read-path fallback.
+        #
+        # GL-CMD-PHASE-1-V2-REVIVE-EVE-20260708-v3: wiring (neuron-level
+        # set_spike_bus/set_word_firing_callback + brain-level
+        # set_spike_bus/_guala_ref) extracted into wire_spike_bus() below
+        # so it can also run after load_full_state() replaces
+        # self.organism wholesale -- a fresh Guala() never hit that gap,
+        # but every restored boot did (confirmed live, see
+        # GL-RPT-PHASE-1-V2-REVIVE-C1-20260708-v1 finding 1). Construction
+        # (needs SOME registry to satisfy SpikeBus's constructor) stays
+        # here; wire_spike_bus() immediately rebuilds and re-applies it.
         self._spike_bus = None
         if os.environ.get("EVENT_DRIVEN_SUBSTRATE", "1") != "0":
-            # Flat neuron registry mirroring brain.py:314's list-comprehension
-            # idiom -- no existing helper built this (SpikeBus is the first
-            # caller that needs a global neuron_id -> neuron dict, per the
-            # dependency audit that produced this v2 dispatch).
             _neuron_registry = {
                 n.neuron_id: n
                 for hemi in self.organism.brain.hemispheres
@@ -1783,20 +1789,7 @@ class Guala:
             from dsf_ai_service.substrate.spike_bus import SpikeBus as _SpikeBus
             self._spike_bus = _SpikeBus(neuron_registry=_neuron_registry)
 
-            for _neuron in _neuron_registry.values():
-                _neuron.set_spike_bus(self._spike_bus)
-                _neuron.set_word_firing_callback(self._on_word_firing)
-
-            # Wire LoomBrain's own dual-path step()/recall_fast() -- the
-            # dispatch's own Guala.__init__ snippet wires individual
-            # neurons but not the brain itself; brain.py's
-            # _inject_input_as_spikes/_recall_fast_stdp both need
-            # self._spike_bus and self._guala_ref set to do anything,
-            # otherwise they're permanently no-ops. Completing the
-            # wiring pattern the dispatch's own LoomBrain-side code
-            # assumes exists.
-            self.organism.brain.set_spike_bus(self._spike_bus)
-            self.organism.brain._guala_ref = self
+            self.wire_spike_bus()
 
             self._spike_bus.start()
 
@@ -3170,6 +3163,27 @@ class Guala:
                 try:
                     hemi = self.organism.brain._hemi_map.get(hemi_id)
                     if hemi is not None:
+                        # --- GL-CMD-PHASE-1-V2-REVIVE-EVE-20260708-v3 ---
+                        # Dual-write spike injection at the actual production
+                        # convergence point (LoomBrain.step, where this
+                        # mechanism originally lived, has zero production
+                        # callers -- confirmed in GL-RPT-PHASE-1-V2-REVIVE-
+                        # C1-20260708-v2). Runs alongside the legacy hemi.step
+                        # below, never instead of it. No-op if the spike bus
+                        # isn't wired (EVENT_DRIVEN_SUBSTRATE=0, or restore
+                        # hasn't completed wire_spike_bus() yet).
+                        try:
+                            _brain = self.organism.brain
+                            if getattr(_brain, '_spike_bus', None) is not None:
+                                _brain._inject_input_as_spikes(
+                                    input_signal=input_signal,
+                                    input_chi=input_chi,
+                                    modality=hemi_id,
+                                )
+                        except Exception as _inj_e:
+                            print(f"[GualaLoom] spike injection (sensory) "
+                                  f"non-fatal fail hemi={hemi_id!r}: {_inj_e}")
+                        # --- End injection ---
                         with self._organism_lock:
                             hemi.step(input_signal, sensory_tick, input_chi)
                         self._log_substrate_event(
@@ -3203,6 +3217,32 @@ class Guala:
                 signal = _organism_signal_with_senses(
                     word, self._organism_transducer, sight_signal,
                     sound_signal, modal_signal)
+
+                # --- GL-CMD-PHASE-1-V2-REVIVE-EVE-20260708-v3 ---
+                # Dual-write spike injection at the actual production
+                # convergence point for text (see sensory branch above for
+                # the same reasoning). input_chi recomputed from the word
+                # via a throwaway LanguageKrimelack -- same primitive used
+                # elsewhere in this file for the identical purpose (e.g.
+                # recall_scene_for_word above), deterministic: same word
+                # always produces the same chi. Runs alongside the legacy
+                # experience_word() call below, never instead of it.
+                try:
+                    _brain = self.organism.brain
+                    if getattr(_brain, '_spike_bus', None) is not None:
+                        _inject_krim = LanguageKrimelack()
+                        _inject_krim.transduce(word)
+                        _word_chi = _inject_krim.winding
+                        _brain._inject_input_as_spikes(
+                            input_signal=word,
+                            input_chi=_word_chi,
+                            modality="language",
+                        )
+                except Exception as _inj_e:
+                    print(f"[GualaLoom] spike injection (word) non-fatal "
+                          f"fail word={word!r}: {_inj_e}")
+                # --- End injection ---
+
                 # GL-CMD-ORGANISM-WAVE-MEMORY-207 W3 (Joe's no-locks
                 # ruling): writes are lock-free spill_write into per-neuron
                 # wave cells now. The single worker thread's queue.get()
@@ -3540,6 +3580,45 @@ class Guala:
                 best_score = score
                 best_loc = loc
         return best_loc if best_loc is not None else locations[-1]
+
+    # ------------------------------------------------------------------
+    # GL-CMD-PHASE-1-V2-REVIVE-EVE-20260708-v3: idempotent spike-bus
+    # wiring, extracted from __init__ so it can also run after
+    # load_full_state() replaces self.organism wholesale (see that
+    # method for the call site). __init__ still constructs self._spike_bus
+    # itself -- this method only wires an ALREADY-CONSTRUCTED bus onto
+    # whatever the current self.organism happens to be.
+    # ------------------------------------------------------------------
+
+    def wire_spike_bus(self):
+        """Wire self._spike_bus onto every neuron and onto LoomBrain.
+
+        Idempotent -- safe to call multiple times (each call rebuilds the
+        registry and re-applies the same references) and safe to call
+        when self._spike_bus is None (EVENT_DRIVEN_SUBSTRATE=0 or not
+        constructed yet), in which case it's a no-op.
+        """
+        if getattr(self, '_spike_bus', None) is None:
+            return
+
+        # Rebuilt against CURRENT self.organism every call -- after
+        # load_full_state() replaces self.organism, any registry built
+        # at __init__ time points at now-discarded neuron objects.
+        neuron_registry = {
+            n.neuron_id: n
+            for hemi in self.organism.brain.hemispheres
+            for n in hemi.cluster.neurons
+        }
+
+        if hasattr(self._spike_bus, '_neuron_registry'):
+            self._spike_bus._neuron_registry = neuron_registry
+
+        for neuron in neuron_registry.values():
+            neuron.set_spike_bus(self._spike_bus)
+            neuron.set_word_firing_callback(self._on_word_firing)
+
+        self.organism.brain.set_spike_bus(self._spike_bus)
+        self.organism.brain._guala_ref = self
 
     # ------------------------------------------------------------------
     # GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2: word<->neuron
@@ -9047,6 +9126,22 @@ class Guala:
                           f"tick={self.organism.tick} pop={_gs['total_neurons']} "
                           f"total_divisions={_gs['total_divisions']} "
                           f"file={organism_path}")
+                    # GL-CMD-PHASE-1-V2-REVIVE-EVE-20260708-v3: re-wire the
+                    # spike bus onto the just-restored organism. self.organism
+                    # was JUST replaced wholesale above -- __init__'s wiring
+                    # (which ran before load_full_state was ever called) points
+                    # at the now-discarded pre-restore neurons/brain. Without
+                    # this call, every restored boot leaves the spike bus
+                    # wired to orphaned objects -- confirmed live, see
+                    # GL-RPT-PHASE-1-V2-REVIVE-C1-20260708-v1 finding 1.
+                    # Separate try/except from the restore above so a wiring
+                    # failure is never misreported as "organism restore
+                    # FAILED" -- the organism itself is fine either way.
+                    try:
+                        self.wire_spike_bus()
+                    except Exception as _wire_e:
+                        print(f"[GualaLoom] wire_spike_bus after organism "
+                              f"restore failed (non-fatal): {_wire_e}")
                 except Exception as e:
                     print(f"[GualaLoom] Organism restore FAILED (organism from boot stands): {e}")
             else:

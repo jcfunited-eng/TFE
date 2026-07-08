@@ -122,6 +122,29 @@ class LoomBrain:
         self._spike_bus = None
         self._guala_ref = None  # back-reference for _word_neuron_map, _all_neurons(), etc.
 
+    # --- GL-CMD-PHASE-1-V2-REVIVE-EVE-20260708-v3: pickle round-trip ---
+    # Same reasoning as LoomNeuron's pair in neuron.py: load_full_state()
+    # (gualaloom_v5_engine.py) replaces self.organism wholesale via
+    # pickle.load(), which never calls __init__. A pre-Phase-1-v2 pickle
+    # restores a LoomBrain missing _spike_bus/_guala_ref entirely --
+    # confirmed live, see GL-RPT-PHASE-1-V2-REVIVE-C1-20260708-v1 finding 1.
+
+    def __getstate__(self):
+        """Exclude runtime-only references. _guala_ref especially --
+        pickling a back-reference to the whole Guala object would drag
+        the entire live substrate graph into this one field."""
+        state = self.__dict__.copy()
+        state.pop('_spike_bus', None)
+        state.pop('_guala_ref', None)
+        return state
+
+    def __setstate__(self, state):
+        """Restore __dict__. _spike_bus/_guala_ref intentionally left
+        absent -- Guala.wire_spike_bus() sets both after restore, since
+        only Guala holds the live SpikeBus instance and self-reference
+        needed to wire them meaningfully."""
+        self.__dict__.update(state)
+
     def set_spike_bus(self, spike_bus) -> None:
         self._spike_bus = spike_bus
 
@@ -175,7 +198,15 @@ class LoomBrain:
         Returns dict mapping hemi_id → {neuron_id → step_result} -- exact
         same shape as before, since the legacy iteration path is untouched.
         """
-        if self._spike_bus is not None and input_chi is not None:
+        # GL-CMD-PHASE-1-V2-REVIVE-EVE-20260708-v3: input_chi is not None
+        # gate removed -- it contradicted _select_entry_neurons' own
+        # random.sample fallback for input_chi=None (that fallback exists
+        # specifically to handle this case). Not on the production path
+        # today (see gualaloom_v5_engine.py's _organism_worker_loop for
+        # where production injection actually lives now), but this method
+        # is still reachable from ExperiencePipeline/tests/probes, and
+        # leaving the gate would trip up any future revival of that path.
+        if self._spike_bus is not None:
             try:
                 self._inject_input_as_spikes(input_signal, input_chi, modality)
             except Exception:
