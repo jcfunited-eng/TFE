@@ -14,6 +14,10 @@ import sys
 import io
 import csv
 import time
+import math
+import heapq
+import logging
+import statistics
 import hashlib as _hashlib
 import traceback
 
@@ -5139,6 +5143,282 @@ async def shutdown():
             except Exception as e:
                 print(f"[shutdown] save error: {e}")
         await loop.run_in_executor(None, _final_save)
+
+
+# ── GL-CMD-STDP-INTROSPECTION-EVE-20260707-v1: read-only STDP state ──
+# Prerequisite for interpreting Phase 1 v2's parallel STDP/spike/membrane
+# mechanism (GL-RPT-BLUEPRINT-PHASE-1-MERGED-C1-20260707-v2) before the
+# shadow-mode test -- there is currently no way to see whether that
+# mechanism is accumulating usable memory, since RECALL_BACKEND stays
+# "legacy" throughout Phase 1 and nothing reads the new state yet.
+# Never mutates substrate state. Auth reuses the existing _api_key_dep
+# (GUALALOOM_API_KEY) admin gate rather than inventing a new
+# DEBUG_ENDPOINTS_ENABLED flag -- functionally identical existing
+# introspection endpoints (familiarity_debug, persistence_health,
+# atlas_snapshot) already sit behind exactly this gate, so this joins
+# that same protected surface instead of adding a second mechanism.
+
+_STDP_EMISSION_THRESHOLD = 0.5  # per dispatch spec; distinct from brain.py's RECALL_ACTIVATION_THRESHOLD=0.3
+
+
+def _stdp_snapshot_neuron(neuron, now_s: float) -> dict:
+    """Briefly holds neuron._neuron_lock to copy out primitive state + a
+    shallow dict copy of _incoming_synapse_weights -- released
+    immediately after, never held across other neurons or any aggregate
+    computation (dispatch requirement: brief per-neuron lock
+    acquisition, not held across full iteration)."""
+    with neuron._neuron_lock:
+        weights = dict(neuron._incoming_synapse_weights)
+        last_fire = neuron._last_fire_time_s
+        membrane_potential = neuron.membrane_potential
+        last_update = neuron.last_update_time_s
+        refractory_until = neuron.refractory_until_s
+        membrane_rest = neuron.membrane_rest
+        tau_m_ms = neuron.tau_m_ms
+        fire_count = neuron.chi_atlas.tick  # one record() call per fire -- see neuron.py _on_fire_bookkeeping
+    dt_ms = (now_s - last_update) * 1000.0
+    if dt_ms > 0 and tau_m_ms > 0:
+        decay = math.exp(-dt_ms / tau_m_ms)
+        decayed_potential = membrane_rest + (membrane_potential - membrane_rest) * decay
+    else:
+        decayed_potential = membrane_potential
+    return {
+        "neuron_id": neuron.neuron_id,
+        "weights": weights,
+        "last_fire_time_s": last_fire,
+        "decayed_potential": decayed_potential,
+        "refractory_until_s": refractory_until,
+        "fire_count": fire_count,
+    }
+
+
+def _word_neuron_map_metrics(guala) -> dict:
+    # dict(...) on a live dict is a single atomic C call (PyDict_Copy) --
+    # safe against the spike-bus delivery thread's concurrent
+    # _on_word_firing writes without needing a dedicated lock.
+    word_map = dict(guala._word_neuron_map)
+    neuron_map = dict(guala._neuron_word_map)
+    sizes = [len(s) for s in word_map.values()]
+    top_words = sorted(
+        ((w, len(s)) for w, s in word_map.items()), key=lambda t: -t[1]
+    )[:20]
+    return {
+        "word_neuron_map_size": len(word_map),
+        "neuron_word_map_size": len(neuron_map),
+        "avg_neurons_per_word": (sum(sizes) / len(sizes)) if sizes else 0.0,
+        "median_neurons_per_word": statistics.median(sizes) if sizes else 0.0,
+        "top_words_by_neuron_count": [
+            {"word": w, "neuron_count": c} for w, c in top_words
+        ],
+        "words_with_only_one_neuron": sum(1 for s in sizes if s == 1),
+    }
+
+
+def _synapse_distribution_metrics(neuron_snapshots: list, default_weight: float) -> dict:
+    all_entries = [
+        (source_id, snap["neuron_id"], w)
+        for snap in neuron_snapshots
+        for source_id, w in snap["weights"].items()
+    ]
+    total = len(all_entries)
+    sample = all_entries
+    sampled = False
+    if total > 100_000:
+        import random
+        sample = random.sample(all_entries, total // 10)
+        sampled = True
+
+    edges = [0.0, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 5.0]
+    hist = {f"[{edges[i]},{edges[i + 1]})": 0 for i in range(len(edges) - 1)}
+    hist[f">={edges[-1]}"] = 0
+    for _, _, w in sample:
+        for i in range(len(edges) - 1):
+            if edges[i] <= w < edges[i + 1]:
+                hist[f"[{edges[i]},{edges[i + 1]})"] += 1
+                break
+        else:
+            hist[f">={edges[-1]}"] += 1
+
+    eps = 1e-9
+    top10 = heapq.nlargest(10, all_entries, key=lambda t: t[2])
+    return {
+        "total_synapses_updated": total,
+        "synapses_at_default_weight": sum(1 for _, _, w in all_entries if abs(w - default_weight) < eps),
+        "synapses_strengthened": sum(1 for _, _, w in all_entries if w > default_weight + eps),
+        "synapses_depressed": sum(1 for _, _, w in all_entries if w < default_weight - eps),
+        "weight_histogram": hist,
+        "weight_histogram_sampled_10pct": sampled,
+        "top_10_strongest_synapses": [
+            {"source_id": s, "target_id": t, "weight": w} for s, t, w in top10
+        ],
+    }
+
+
+def _fire_event_metrics(neuron_snapshots: list, now_s: float, uptime_s: float) -> dict:
+    total_fires = sum(s["fire_count"] for s in neuron_snapshots)
+    ever_fired = sum(1 for s in neuron_snapshots if s["last_fire_time_s"] > 0)
+    fired_last_minute = sum(
+        1 for s in neuron_snapshots
+        if s["last_fire_time_s"] > 0 and (now_s - s["last_fire_time_s"]) <= 60.0
+    )
+    return {
+        "total_fire_events_since_boot": total_fires,
+        "fires_per_second_since_boot": (total_fires / uptime_s) if uptime_s > 0 else 0.0,
+        "fires_per_second_last_minute": fired_last_minute / 60.0,
+        "neurons_that_have_ever_fired": ever_fired,
+        "neurons_never_fired": len(neuron_snapshots) - ever_fired,
+        "notes": [
+            "fires_per_second_last_minute is an approximation: distinct "
+            "neurons that fired at least once in the last 60s, divided by "
+            "60 -- not a true event-rate (a neuron firing multiple times "
+            "in the window is only counted once). No time-series counter "
+            "exists, per this dispatch's own 'no historical time-series "
+            "storage' constraint -- this is the best reading available "
+            "from existing per-neuron state alone.",
+        ],
+    }
+
+
+def _spike_bus_metrics(guala, now_s: float) -> dict:
+    bus = guala._spike_bus
+    if bus is None:
+        return {
+            "enabled": False,
+            "notes": ["EVENT_DRIVEN_SUBSTRATE=0 -- no spike bus constructed."],
+        }
+    with bus._queue.mutex:
+        pending = list(bus._queue.queue)
+    return {
+        "enabled": True,
+        "spike_queue_depth": len(pending),
+        "spikes_in_flight_delayed": sum(1 for p in pending if p.arrival_time > now_s),
+        "total_spikes_injected_since_boot": bus.injected_count,
+        "total_spikes_delivered_since_boot": bus.delivered_count,
+        "spikes_dropped": bus.dropped_count,
+    }
+
+
+def _membrane_state_metrics(neuron_snapshots: list, neuron_word_map: dict, now_s: float) -> dict:
+    potentials = [s["decayed_potential"] for s in neuron_snapshots]
+    top20 = heapq.nlargest(20, neuron_snapshots, key=lambda s: s["decayed_potential"])
+    return {
+        "neurons_currently_above_emission_threshold": sum(1 for p in potentials if p > _STDP_EMISSION_THRESHOLD),
+        "neurons_currently_in_refractory": sum(1 for s in neuron_snapshots if s["refractory_until_s"] > now_s),
+        "mean_membrane_potential": (sum(potentials) / len(potentials)) if potentials else 0.0,
+        "top_20_active_neurons": [
+            {
+                "neuron_id": s["neuron_id"],
+                "potential": s["decayed_potential"],
+                "word": neuron_word_map.get(s["neuron_id"]),
+            }
+            for s in top20
+        ],
+    }
+
+
+def _ecs_task_def_best_effort() -> str:
+    """Reads the ECS Fargate task metadata v4 endpoint (always present in
+    a real deployed task, absent locally) instead of a deploy-script-
+    injected env var -- avoids the chicken-and-egg problem of the task
+    definition revision not being known until AFTER register-task-
+    definition returns, and avoids adding another hardcoded value that
+    can silently go stale (see GL-RPT-BLUEPRINT-PHASE-1-MERGED-C1-
+    20260707-v2 finding 5 -- EXPECTED_IDENTITY already burned us on
+    exactly this pattern once)."""
+    uri = os.environ.get("ECS_CONTAINER_METADATA_URI_V4")
+    if not uri:
+        return "unknown (not running under ECS Fargate)"
+    try:
+        import urllib.request
+        with urllib.request.urlopen(f"{uri}/task", timeout=0.3) as resp:
+            data = json.loads(resp.read())
+        return f"{data.get('Family', 'unknown')}:{data.get('Revision', 'unknown')}"
+    except Exception:
+        return "unknown (metadata fetch failed)"
+
+
+def _build_stdp_snapshot(guala) -> dict:
+    """All synchronous work for /debug/stdp_state, run off the event
+    loop via run_in_executor (matches the shutdown() precedent above) so
+    a slow query never blocks other requests being served concurrently
+    -- the actual halt condition this dispatch calls out ('endpoint lock
+    acquisition measurably slows substrate'). The only I/O in here is
+    the ECS metadata call, bounded to a 0.3s socket timeout; everything
+    else is in-memory and, at current substrate scale (dozens of
+    neurons), sub-millisecond."""
+    now_s = time.monotonic()
+    uptime_s = time.time() - _BOOT_START
+    result = {}
+    log = logging.getLogger("guala.debug_endpoints")
+
+    try:
+        result["word_neuron_map"] = _word_neuron_map_metrics(guala)
+    except Exception:
+        log.exception("stdp_state: word_neuron_map metrics failed")
+        result["word_neuron_map"] = {"error": "unavailable"}
+
+    neuron_snapshots = []
+    try:
+        for n in guala._all_neurons():
+            neuron_snapshots.append(_stdp_snapshot_neuron(n, now_s))
+    except Exception:
+        log.exception("stdp_state: per-neuron snapshot pass failed")
+
+    from dsf_ai_service.loom_model.neuron import STDP_DEFAULT_SYNAPSE_WEIGHT
+    try:
+        result["synapse_weight_distribution"] = _synapse_distribution_metrics(
+            neuron_snapshots, STDP_DEFAULT_SYNAPSE_WEIGHT)
+    except Exception:
+        log.exception("stdp_state: synapse distribution metrics failed")
+        result["synapse_weight_distribution"] = {"error": "unavailable"}
+
+    try:
+        result["fire_event_metrics"] = _fire_event_metrics(neuron_snapshots, now_s, uptime_s)
+    except Exception:
+        log.exception("stdp_state: fire event metrics failed")
+        result["fire_event_metrics"] = {"error": "unavailable"}
+
+    try:
+        result["spike_bus_metrics"] = _spike_bus_metrics(guala, now_s)
+    except Exception:
+        log.exception("stdp_state: spike bus metrics failed")
+        result["spike_bus_metrics"] = {"error": "unavailable"}
+
+    try:
+        neuron_word_map_snapshot = dict(guala._neuron_word_map)
+        result["membrane_state"] = _membrane_state_metrics(neuron_snapshots, neuron_word_map_snapshot, now_s)
+    except Exception:
+        log.exception("stdp_state: membrane state metrics failed")
+        result["membrane_state"] = {"error": "unavailable"}
+
+    try:
+        result["substrate_identity"] = {
+            "running_sha": os.environ.get("GIT_SHA", "unknown"),
+            "task_def": _ecs_task_def_best_effort(),
+            "identity_id": getattr(guala, "_guala_identity", None),
+            "uptime_seconds": uptime_s,
+            "EVENT_DRIVEN_SUBSTRATE": os.environ.get("EVENT_DRIVEN_SUBSTRATE", "1"),
+            "RECALL_BACKEND": os.environ.get("RECALL_BACKEND", "legacy"),
+        }
+    except Exception:
+        log.exception("stdp_state: substrate identity metrics failed")
+        result["substrate_identity"] = {"error": "unavailable"}
+
+    return result
+
+
+@app.get("/debug/stdp_state", dependencies=[Depends(_api_key_dep)])
+async def debug_stdp_state():
+    """Read-only snapshot of Phase 1 v2's parallel STDP/spike/membrane
+    state. See GL-CMD-STDP-INTROSPECTION-EVE-20260707-v1."""
+    import asyncio
+
+    if _guala is None:
+        return JSONResponse(status_code=503, content={"error": "guala not loaded"})
+
+    loop = asyncio.get_event_loop()
+    snapshot = await loop.run_in_executor(None, _build_stdp_snapshot, _guala)
+    return snapshot
 
 
 @app.get("/health")
