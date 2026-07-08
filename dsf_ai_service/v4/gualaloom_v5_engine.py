@@ -3657,22 +3657,62 @@ class Guala:
         new word_neuron_map, not the legacy binding_atlas)."""
         return self._neuron_word_map.get(neuron.neuron_id)
 
+    # chi wraps modularly everywhere else this codebase treats it as an
+    # address (wave_atlas's chi % N_CELLS, _map_inject's wrap-around
+    # distance) -- 262144, matches tools/wave_constants.py N_CELLS and
+    # neuron.py's MAX_CHI_DISTANCE (duplicated locally rather than
+    # cross-imported: neuron.py already imports FROM this module for
+    # _grandurun_state/_SPIN_VECTOR_DIM, so importing back would be
+    # circular; this file already has no such import, so it stays a
+    # plain local constant like neuron.py's own copy).
+    _CHI_ADDRESS_SPACE = 262144
+
     def _chi_to_neurons(self, chi: int, band=None):
-        """Neurons whose chi_position is within `band` of `chi`. Returns
-        [] for every neuron in Phase 1 as built -- chi_position is never
-        populated on LoomNeuron (no per-neuron static chi coordinate
-        exists in the current architecture; chi is associated with
-        committed events via chi_atlas, not neuron identity -- see
-        neuron.py's chi_position docstring note). Implemented for
-        forward-compatibility and to match the dispatch's own reference
-        exactly, not dead code by choice -- a real gap flagged in the
-        report, not hidden."""
+        """Neurons whose chi_position is within `band` of `chi`, wrapping
+        both through the chi address space before comparing.
+
+        Two real gaps closed here now that chi_position is finally
+        populated on every neuron (previously always None -- this always
+        returned [] and every entry fell through to the
+        ENTRY_SAMPLE_SIZE random fallback, unconditionally, for every
+        single word):
+
+        1. Real chi (krimelack winding) never resets and grows
+           unboundedly over a krimelack's lifetime (measured directly:
+           30000+ after 2000 words, and production has processed far
+           more than that) while chi_position is fixed at seed --
+           without wrapping, a raw difference against a large or
+           negative chi would essentially never land near any neuron.
+           Reducing both sides through the same modulus this codebase
+           already uses for chi elsewhere (wave_atlas, _map_inject) is
+           completing an existing convention, not inventing a new one.
+        2. ENTRY_CHI_BAND=8 assumed a population dense enough that band=8
+           would cover a real neighborhood; at the organism's real size
+           this seed produces (64 neurons spread across the full chi
+           address space), 8 is far smaller than the ~4096 average
+           spacing between neurons, so band=8 would still almost never
+           match anyone even with wrapping fixed. The band this function
+           actually needs is derived from real population geometry (half
+           the average spacing, the minimum for every wrapped chi value
+           to have some neuron within reach) rather than the flat
+           constant, and recomputes as the organism grows via folding
+           division rather than going stale.
+        """
+        neurons = [n for n in self._all_neurons() if n.chi_position is not None]
+        if not neurons:
+            return []
         if band is None:
-            band = ENTRY_CHI_BAND
-        return [
-            n for n in self._all_neurons()
-            if n.chi_position is not None and abs(n.chi_position - chi) <= band
-        ]
+            avg_spacing = self._CHI_ADDRESS_SPACE / len(neurons)
+            band = max(ENTRY_CHI_BAND, avg_spacing / 2.0)
+        space = self._CHI_ADDRESS_SPACE
+        chi_wrapped = chi % space
+        matches = []
+        for n in neurons:
+            raw_dist = abs(n.chi_position - chi_wrapped)
+            wrap_dist = min(raw_dist, space - raw_dist)
+            if wrap_dist <= band:
+                matches.append(n)
+        return matches
 
     def _select_entry_neurons(self, input_chi, modality=None):
         """Select neurons to receive initial spike injection for a given
@@ -9142,6 +9182,28 @@ class Guala:
                     except Exception as _wire_e:
                         print(f"[GualaLoom] wire_spike_bus after organism "
                               f"restore failed (non-fatal): {_wire_e}")
+                    # membrane_threshold/chi_position backfill (2026-07-08
+                    # lateral-inhibition-and-entry-selection fix): same
+                    # class of gap as wire_spike_bus above, verified
+                    # directly against a real downloaded production
+                    # pickle (tick 223937) -- self.organism was JUST
+                    # replaced wholesale, and those two fields are still
+                    # at __init__'s raw defaults on every neuron in it
+                    # (unlike kappa/threshold/polarity, which _polarity's
+                    # presence proves were already correctly seeded at
+                    # this organism's original construction and survive
+                    # pickling verbatim). _seed_dna_diversity is
+                    # idempotent per neuron per stage -- calling it again
+                    # here only backfills what's actually still missing,
+                    # never re-multiplies the already-evolved real
+                    # kappa/threshold. Own try/except, same reasoning as
+                    # wire_spike_bus's: a failure here must never be
+                    # misreported as organism restore FAILED.
+                    try:
+                        self.organism._seed_dna_diversity()
+                    except Exception as _chem_e:
+                        print(f"[GualaLoom] membrane chemistry backfill after "
+                              f"organism restore failed (non-fatal): {_chem_e}")
                 except Exception as e:
                     print(f"[GualaLoom] Organism restore FAILED (organism from boot stands): {e}")
             else:

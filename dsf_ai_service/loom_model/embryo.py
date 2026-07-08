@@ -23,7 +23,7 @@ import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 from dsf_ai_service.loom_model.brain import LoomBrain
-from dsf_ai_service.loom_model.neuron import FOLD_TRIGGER_RATIO, LoomNeuron
+from dsf_ai_service.loom_model.neuron import FOLD_TRIGGER_RATIO, LoomNeuron, MAX_CHI_DISTANCE
 from dsf_ai_service.loom_model.substrate_dna import derive_daughter_parameters, K_TOTAL
 from dsf_ai_service.loom_model.topology import N_HEMISPHERES
 from dsf_ai_service.substrate.sensory_generators import (
@@ -195,20 +195,80 @@ class Embryo:
         diversity is gone; identical (brain_seed, seed_size) always yields
         identical DNA with no seed dependency at all, which is what makes birth
         reproducible without needing to separately persist DNA on save/restore.
-        Ranges are population variation (~2-3x), not outcome-tuned."""
+        Ranges are population variation (~2-3x), not outcome-tuned.
+
+        Idempotent per neuron, per stage -- callable again on an organism
+        restored from a pickle that predates the membrane_threshold/
+        chi_position stage below (verified directly against the real
+        production pickle, tick 223937: _polarity was already correctly
+        set at original construction and survives pickling verbatim, but
+        membrane_threshold/chi_position were still at raw __init__
+        defaults). Uses the fields themselves as the seeded/not-seeded
+        marker rather than a new sentinel flag, since an old real pickle
+        has no way to carry a flag that didn't exist when it was saved.
+        _polarity present -> kappa/krimelack.threshold/aff_gain/polarity
+        already done, must NOT re-multiply an already-evolved real
+        organism's kappa/threshold a second time. chi_position is None ->
+        the newer stage hasn't run yet, backfill only that."""
         for hemi_index, h in enumerate(self.brain.hemispheres):
             for n in h.cluster.neurons:
+                already_seeded = getattr(n, "_polarity", None) is not None
+                needs_phase1_backfill = getattr(n, "chi_position", None) is None
+                if already_seeded and not needs_phase1_backfill:
+                    continue
                 ring_pos = getattr(n, "ring_pos", 0)
                 ring_N = getattr(n, "ring_N", len(h.cluster.neurons))
                 kappa_mult, threshold_mult, aff_gain, polarity = _structural_dna(
                     hemi_index, ring_pos, ring_N, len(self.brain.hemispheres))
-                k = n.krimelack
-                if hasattr(k, "kappa"):
-                    k.kappa = float(k.kappa) * kappa_mult
-                if hasattr(k, "threshold"):
-                    k.threshold = float(k.threshold) * threshold_mult
-                n._aff_gain = aff_gain
-                n._polarity = polarity
+                if not already_seeded:
+                    k = n.krimelack
+                    if hasattr(k, "kappa"):
+                        k.kappa = float(k.kappa) * kappa_mult
+                    if hasattr(k, "threshold"):
+                        k.threshold = float(k.threshold) * threshold_mult
+                    n._aff_gain = aff_gain
+                    n._polarity = polarity
+                if not needs_phase1_backfill:
+                    continue
+                # threshold_mult was previously applied only to the
+                # krimelack's own oscillator threshold (winding-event
+                # phase wrap, a different mechanism entirely) -- the
+                # Phase-1 firing threshold (membrane_threshold, read by
+                # receive_spike's fire check) stayed uniformly 1.0 for
+                # every neuron regardless of its real per-neuron
+                # excitability chemistry, same class of gap as polarity
+                # above. Applying it here too means neurons are no longer
+                # identically excitable: a population with a real,
+                # deterministic 0.7-1.4x spread in how easily each one
+                # fires desynchronizes collective activity on its own,
+                # rather than 64 neurons crossing threshold in near
+                # lock-step (observed directly: all 64 firing 125-144
+                # times each over the same 500-word drive before this
+                # change -- a suspiciously narrow, synchronized range for
+                # a population that's supposed to have real diversity).
+                if hasattr(n, "membrane_threshold"):
+                    n.membrane_threshold = float(n.membrane_threshold) * threshold_mult
+                # chi_position (Phase-1 propagation-delay coordinate) has
+                # never been populated anywhere in this codebase --
+                # _compute_propagation_delay_ms has always fallen back to
+                # a single flat DEFAULT_DELAY_MS for every spike, meaning
+                # every hop in the network takes the exact same 1ms with
+                # zero variation. That uniform timing lets many small,
+                # simultaneously-arriving contributions sum in lockstep
+                # across the whole population instead of arriving
+                # scattered in time. Real per-neuron structural position
+                # already exists (the same hemi_index/ring_pos/ring_N
+                # used for the chemical-DNA formula above) -- spreading it
+                # across the full chi address space this delay formula
+                # was designed to use activates the already-built,
+                # already-tested delay mechanism instead of adding a new
+                # one.
+                if hasattr(n, "chi_position"):
+                    n_hemispheres = len(self.brain.hemispheres)
+                    structural_index = hemi_index * ring_N + ring_pos
+                    total_positions = n_hemispheres * ring_N
+                    n.chi_position = int(
+                        structural_index * MAX_CHI_DISTANCE / total_positions)
 
     def _hemi(self, tag):
         return self.hemi_by_op[tag]

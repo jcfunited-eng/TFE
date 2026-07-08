@@ -838,12 +838,30 @@ class LoomNeuron:
         self._last_fire_time_s = now
 
         if self._spike_bus is not None:
+            # Sign the outgoing weight by this neuron's own transmitter
+            # polarity (embryo.py _seed_dna_diversity: ~20%/80% inhibitory/
+            # excitatory split, deterministic from hemisphere+ring
+            # position -- already computed for every neuron at seed and
+            # inherited by daughters; previously read only by
+            # _organ_signature's population vote). Nothing downstream
+            # needs to change: receive_spike's membrane integration, STDP
+            # potentiation/depression, and threshold comparison are all
+            # sign-correct arithmetic already -- an inhibitory neuron's
+            # negative contribution pulls a target's membrane potential
+            # away from threshold instead of toward it, which is the
+            # missing brake on recurrent excitation that let a fixed loop
+            # of synapses reverberate indefinitely
+            # (GL-RPT-PHASE-1-V2-REVIVE-C1-20260708-v3 cascade finding).
+            # Outgoing coupling magnitude (couplings.J) stays
+            # topology-derived and non-negative, as before; only the sign
+            # of what's actually injected changes.
+            polarity = getattr(self, '_polarity', 1.0)
             for target_id, weight in self._get_outgoing_synapses():
                 delay_ms = self._compute_propagation_delay_ms(target_id)
                 self._spike_bus.inject(
                     target_id=target_id,
                     source_id=self.neuron_id,
-                    weight=weight,
+                    weight=weight * polarity,
                     arrival_delay_ms=delay_ms,
                 )
             self._notify_downstream_of_fire(now)
