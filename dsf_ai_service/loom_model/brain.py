@@ -697,8 +697,26 @@ class LoomBrain:
             new_count = np.where(present_mask, new_count.astype(np.float64), 0.0)
             deltas_matrix[:, mi] = new_count
 
+        # 2026-07-08 word-recognition fix: with only "language" ever
+        # populated in a live query, deltas_matrix's rows are always a
+        # scaled unit vector along one fixed axis (confirmed live:
+        # cosine similarity between ANY two different words' query
+        # vectors is 1.0), so a pure cosine-best scan can never
+        # discriminate between words -- it always returns whichever
+        # concept happens to sit closest to that one direction,
+        # regardless of what was actually asked (confirmed: every real
+        # emission for 24+ hours was the same single word). Checking the
+        # query word itself against each neuron's own real, already-
+        # recorded vocabulary first (recall_exact_or_best) resolves any
+        # word she has real experience with directly and unambiguously,
+        # the same "known word skips the fuzzy route" pattern
+        # Section.receive() already uses. Falls through to the existing
+        # fuzzy scan unchanged for words she's never bound.
+        query_word = query_signals.get("language")
+        query_concept = query_word.lower() if isinstance(query_word, str) else None
         for i, neuron in enumerate(all_neurons):
-            best_concept, _ = neuron.binding_atlas.recall_best(deltas_matrix[i])
+            best_concept, _ = neuron.binding_atlas.recall_exact_or_best(
+                query_concept, deltas_matrix[i])
             if best_concept is not None:
                 votes[best_concept] += 1
 

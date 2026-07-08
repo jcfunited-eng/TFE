@@ -3985,6 +3985,45 @@ class Guala:
             co = {section: {mode_idx: weight}}
             de = {"co_occurrence": co, "clarity": weight, "origin": "brain"}
             candidates.append((de, co, weight))
+            input_words_lower.add(w.lower())  # don't also deep-atlas-surface this word below
+
+        # 2026-07-08 finding: recall_exact_or_best (binding_atlas.py) fixed
+        # recall_fast's degenerate all-words-cosine-1.0 bug, but that makes
+        # recall_fast an IDENTITY function for anything she's been taught by
+        # name -- queried with "dog" it now unanimously votes "dog", which
+        # the "association, not self-echo" filter above always excludes.
+        # Verified directly: every merged_votes entry for a sentence of
+        # known words is 100% self-match, so the loop above now produces
+        # zero candidates for exactly the inputs it most needs to handle.
+        # The organism's population vote was never really supplying
+        # association -- before the recognition fix it degenerately
+        # matched every query to one fixed arbitrary word ("ball"), which
+        # happened to slip past the self-echo check by coincidence, not by
+        # being a real association.
+        #
+        # deep_atlas.entries[chi].co_occurrence (deep_atlas.py) is a
+        # different kind of measure -- what else was recorded, across real
+        # dream-cycle consolidation, near this word's own chi neighborhood
+        # (cross-modal: modal_sound/modal_touch/smell_*/touch_temperature
+        # sections alongside language ones, GL-CMD-DEEP-STORE-PHYSICS-86).
+        # It measures co-occurrence, not identity, so it cannot degenerate
+        # into self-echo the way recall_fast does. This is real sensory-
+        # grounded association data that GL-CMD-VOICE-ORGANISM-CANDIDATES-195
+        # stopped using for emission candidates in favor of the (now-proven
+        # broken-for-this-purpose) organism vote; restoring it here as an
+        # addition, not a replacement, so a query word that hasn't yet
+        # survived to deep memory still falls back to whatever the
+        # organism-vote path above can offer.
+        n_deep_candidates = 0
+        for q in queries:
+            for word_label, weight, section, mode_idx in \
+                    self._deep_atlas_neighbor_candidates(q, exclude_words=input_words_lower):
+                co = {section: {str(mode_idx): weight}}
+                de = {"co_occurrence": co, "clarity": weight, "origin": "deep_atlas"}
+                candidates.append((de, co, weight))
+                input_words_lower.add(word_label.lower())
+                n_deep_candidates += 1
+
         # GL-CMD-VOICE-ORGANISM-CANDIDATES-195 P3 (c1 addition -- not in the
         # attached patch, added here to satisfy D2/X1's reporting need):
         # vote-spread visibility, the same blind spot -187 named for the
@@ -3997,8 +4036,67 @@ class Guala:
                                   n_queries_ok=n_queries_ok,
                                   n_voted_words=len(merged_votes),
                                   n_with_section_home=n_with_section_home,
+                                  n_deep_candidates=n_deep_candidates,
                                   n_candidates=len(candidates))
         return candidates
+
+    def _deep_atlas_neighbor_candidates(self, seed_word, exclude_words=None):
+        """Real cross-modal association: walk deep_atlas.entries at
+        seed_word's own chi, reading the co_occurrence invariant each
+        deep entry there accumulated during real dream-cycle consolidation
+        (deep_atlas.py's _update_invariant, weighted from the actual
+        working-atlas chi neighborhood at promotion/reinforcement time --
+        includes cross-modal sections like modal_sound/modal_touch/
+        smell_*/touch_temperature wherever real sensory grounding landed
+        near that word, not just language).
+
+        Returns a list of (word_label, weight, section, mode_idx) -- self-
+        echo and words already claimed by the caller excluded via
+        exclude_words (lowercased). Honest empty if seed_word never
+        survived to deep memory (deep_atlas write path is dream-cycle-only,
+        gated by real reinforcement -- see DeepAtlas.dream_promotion_gate),
+        or if everything found there is excluded.
+
+        2026-07-08: gated on seed_word actually being known (a real
+        committed section home, same index _brain_emission_candidates_
+        legacy already trusts for this purpose) -- chi is a bounded,
+        wrapping address (_CHI_ADDRESS_SPACE-class collision space, see
+        _chi_to_neurons), so an ungated lookup returns a confident,
+        real-looking association for words never taught at all
+        ('zzznever' -> 'starts', 'xqrqz' -> 'starring', both measured
+        directly). That's the exact >95%-false-confidence class b593603
+        already found in the organism-recall version of this problem;
+        checking real committed-word status first closes it here too."""
+        if not seed_word or seed_word.lower() not in self._word_to_emission_sections:
+            return []
+        exclude = set(exclude_words or ())
+        exclude.add(seed_word.lower())
+        ek = LanguageKrimelack()
+        ek.transduce(seed_word)
+        chi = ek.winding
+        out = []
+        seen = set()
+        for de in self.deep_atlas.entries.get(chi, []):
+            entry_strength = de.get("strength", 0.0)
+            if entry_strength <= 0.0:
+                continue
+            for section, motif_dict in de.get("co_occurrence", {}).items():
+                sec_obj = self.sections.get(section)
+                if sec_obj is None:
+                    continue
+                for mid_str, w in motif_dict.items():
+                    mid = int(mid_str)
+                    if mid >= len(sec_obj.modes):
+                        continue
+                    _, _, word_label = sec_obj.modes[mid]
+                    if not word_label:
+                        continue
+                    wl = word_label.lower()
+                    if wl in exclude or wl in seen:
+                        continue
+                    seen.add(wl)
+                    out.append((word_label, w * entry_strength, section, mid))
+        return out
 
     def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
                               v7_session=None, organ_candidates=None):
@@ -5451,6 +5549,32 @@ class Guala:
         weight = (votes.get(associated_word, 0) / total) if total else 0.0
         return (section, mode_idx, word, weight)
 
+    def _association_from_deep_atlas(self, seed_word):
+        """2026-07-08: real near-association via deep_atlas's own
+        co_occurrence invariant (_deep_atlas_neighbor_candidates), restoring
+        the mechanism _association_from_organism replaced (per that
+        method's own docstring: "replacing _daydream_tick's
+        deep_atlas.entries[chi].co_occurrence walk"). That replacement's
+        own commit message reported it surfaced a false-confidence finding
+        in organism recall; this session found the sharper version of the
+        same problem -- recall_exact_or_best now makes recall_fast a pure
+        identity function for taught words, so _association_from_organism's
+        self-echo guard fires on every call, permanently. deep_atlas's
+        co_occurrence measures what else co-occurred near this word during
+        real dream-cycle consolidation (cross-modal: modal_sound/
+        modal_touch/smell_*/touch_temperature sections included wherever
+        real sensory grounding landed there), which is a different
+        question than identity and can't collapse the same way.
+
+        Returns (section, mode_idx, word, weight), or None if seed_word
+        hasn't yet survived to deep memory or nothing there clears the
+        self-echo/known-section-home filters."""
+        neighbors = self._deep_atlas_neighbor_candidates(seed_word)
+        if not neighbors:
+            return None
+        word_label, weight, section, mode_idx = max(neighbors, key=lambda n: n[1])
+        return (section, mode_idx, word_label, weight)
+
     def _recall_response(self, input_chis, input_word_chis, input_words,
                           target_sections=("subject", "verb", "object", "listen")):
         """GL-CMD-BRAIN-FULL-DEPLOY-175 P2 seam 1/6: text recall now comes
@@ -5804,8 +5928,14 @@ class Guala:
             # Snapshot atlas chi keys for novel jump (just the keys, not entries)
             atlas_chi_keys = list(self.atlas.entries.keys())
 
-        # ── Phase 2: organism association query + novel-jump (no lock) ────────
-        assoc = self._association_from_organism(seed_word)
+        # ── Phase 2: association query + novel-jump (no lock) ────────────────
+        # 2026-07-08: deep_atlas's real co_occurrence walk preferred over
+        # the organism-vote proxy -- see _association_from_deep_atlas's
+        # docstring. Organism-vote kept as fallback for a seed_word that
+        # hasn't yet survived to deep memory (new/rarely-reinforced words).
+        assoc = self._association_from_deep_atlas(seed_word)
+        if assoc is None:
+            assoc = self._association_from_organism(seed_word)
         if assoc is None:
             return
         top_sec, top_mid, assoc_word, consensus = assoc

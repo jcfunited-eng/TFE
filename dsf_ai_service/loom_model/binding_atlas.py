@@ -296,6 +296,55 @@ class BindingAtlas:
             for b in cell.bindings:
                 self._mirror_put(b["concept"], b["state_vec"])
 
+    def recall_exact_or_best(self, concept: Optional[str],
+                              target_vec: StateVec) -> Tuple[Optional[str], float]:
+        """2026-07-08 word-recognition fix. If `concept` (the query's own
+        word text, lowercased) is ALREADY a concept this neuron has real,
+        directly-recorded experience with (a hit in _concept_to_chi),
+        return it directly -- an exact, unambiguous match, no comparison
+        needed. Falls through to the existing fuzzy recall_best() scan
+        only when there's no concept to check (a pure sensory cue with no
+        word attached) or the word has genuinely never been bound here.
+
+        Root cause this closes: with only the "language" modality ever
+        populated in a live recall query (touch/smell/taste were
+        correctly removed as fake per GL-CMD-SENSES-TO-BRAIN-191; visual/
+        auditory are real but only available at teach time, not
+        mid-conversation), every query vector reduces to a scaled unit
+        vector along one fixed axis -- confirmed directly against real
+        production data: cosine(query('ball'), query('dog')) == 1.0,
+        cosine(query('ball'), query('hello')) == 1.0, every pair of
+        different words, always. recall_best()'s cosine-best search can
+        therefore never discriminate between ANY two words -- it always
+        returns whichever stored concept happens to sit closest to that
+        one fixed direction, regardless of what was actually asked.
+        Confirmed live: every real emission for at least 24+ hours (many
+        deploys, many different conversations, different people) was the
+        single word "ball" -- not a maturity artifact, a mechanical
+        dead end.
+
+        This mirrors the real biological "orthographic direct route"
+        (Word Recognition reference doc): a familiar word is matched
+        directly against the mental lexicon, skipping the harder
+        decode-and-compare route entirely; only a genuinely new or
+        irregular word needs that. It also mirrors this codebase's own
+        established pattern for exactly this shape of problem --
+        Section.receive()'s O(1) word_match_idx lookup before ever
+        falling back to its own cosine similarity scan.
+
+        Uses only real, already-recorded data -- the returned concept IS
+        the query word itself, confirmed present because she has a real,
+        previously-recorded binding for it (potentially built from real
+        multi-sense experience at teach time, see
+        _organism_signal_with_senses); nothing is fabricated or
+        approximated. Score 1.0 signals an exact identity match, not a
+        similarity estimate."""
+        if concept:
+            known_chi = self._concept_to_chi.get(concept)
+            if known_chi is not None and known_chi in self.cells:
+                return concept, 1.0
+        return self.recall_best(target_vec)
+
     def recall_best(self, target_vec: StateVec) -> Tuple[Optional[str], float]:
         """Per-lane dicts (resonant_spectral): masked lane-normalized
         cosine over the simple binding list, unchanged from -208.
