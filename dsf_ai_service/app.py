@@ -1305,7 +1305,23 @@ def _gl_init():
 
     # P0: Identity guard — if EFS state was overwritten by a blank genesis
     # (e.g. from the _gl_init bug fixed in 475de3e), detect and restore from S3.
-    EXPECTED_IDENTITY = "cdef9bcf"
+    # GL-INCIDENT-STALE-IDENTITY-GUARD-EVE-20260708-v1: EXPECTED_IDENTITY was
+    # hardcoded to "cdef9bcf" after the 2026-07-06 wipe incident (that was
+    # the OLD, retired identity at the time -- see S3 prefix
+    # pre-wipe-OLD-cdef9bcf-20260706T200111Z). "0b4c244a" has been the real,
+    # legitimate, continuously-running identity since (confirmed live,
+    # organism tick in the millions) -- this constant was never updated
+    # after that legitimate transition, so EVERY restart was silently
+    # hitting the mismatch branch, doing a full redundant second Guala()
+    # load (S3 restore + full state parse into a second in-memory instance
+    # alongside the first, discarded only after both are fully resident)
+    # before giving up. Found live 2026-07-08: this doubled peak boot-time
+    # memory footprint pushed the container past its 16GB limit, OOM-
+    # killing EVERY restart regardless of what else changed in that
+    # deploy -- confirmed by reproducing it on an otherwise-unmodified
+    # prior task definition. Root cause is this stale constant, not
+    # deploy-specific code. Updated to the real current identity.
+    EXPECTED_IDENTITY = "0b4c244a"
     loaded_id = getattr(g, '_guala_identity', None) or ""
     if loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY):
         print(f"[GualaLoom] IDENTITY MISMATCH: got {loaded_id[:8]}, "

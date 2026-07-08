@@ -583,7 +583,10 @@ def boot_substrate():
     g.load_full_state(STATE_DIR)
 
     # Identity guard + S3 restore on load failure or seed-state detection
-    EXPECTED_IDENTITY = "cdef9bcf"
+    # GL-INCIDENT-STALE-IDENTITY-GUARD-EVE-20260708-v1: same stale constant
+    # as app.py's identical guard -- see that file's comment for the full
+    # incident writeup. Updated to the real current identity.
+    EXPECTED_IDENTITY = "0b4c244a"
     loaded_id = getattr(g, '_guala_identity', None) or ""
     load_ok = getattr(g, '_load_successful', False)
     vocab_count = len(getattr(g, 'vocab', set()))
