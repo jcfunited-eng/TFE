@@ -1,30 +1,29 @@
 /**
  * web/scripts/execution/ch2_strategist.mjs
- * PEE-1 Chapter 2 Strategist — Mid S_UF Acceleration Layer
- *
- * Independent execution path. Does NOT touch or depend on 3WA (Chapter 1) logic.
+ * PEE-1 Chapter 2 Strategist — V3 Basin Gate
  *
  * Entry conditions (ALL must be true):
- *   1. decision_label = 'Accumulate'  — tuple-proximity WR >= 0.65
- *   2. D_k = 1                        — per-ticker directional expansion
- *   3. bar_count > 20                 — established stock
- *   4. market_cap >= $500M            — liquidity floor
+ *   1. computeV3Basin → decision_argmax = 'Accumulate'
+ *   2. accumulate_basin >= 0.15
+ *   3. bar_count > 20  — established stock
+ *   4. market_cap >= $500M  — liquidity floor
  *
- * S_UF band [0.50, 0.75) REMOVED June 2026 — validated as primary alpha drag.
- * Tuple-proximity reads S_UF as part of the coupled state; the scalar gate
- * was redundant and blocked high-WR picks (NVDA WR=0.933 rejected at S_UF=0.34).
+ * Replaces TFE-CMD-V3-BASIN-DETERMINISTIC-WC-20260707-v1: tuple-proximity
+ * decision_label gate and D_k=1 scalar gate removed. V3 basin coupled math
+ * is the sole entry criterion. D_k directionality is already embedded in the
+ * basin via D_nonadverse/D_adverse terms.
  *
  * Exit conditions (evaluated by sentinel_monitor per signal_class='CH2'):
- *   EXIT A — Acceleration complete:  S_UF crosses above 0.75
- *   EXIT B — Directional collapse:   D_k flips to 0 or -1
+ *   EXIT-BASIN-BREAK — break_agreement >= 0.20
+ *   EXIT-CALENDAR-CAP — age >= 25 days
  *
- * Data source: runtime_decisions_latest (same as 3WA strategist)
- * Position sizing: 1.0% risk per trade (vs 1.5% for 3WA — lower conviction)
+ * Data source: runtime_decisions_latest
+ * Position sizing: 1.0% risk per trade
  */
 
 import pg from "pg";
 import { readFileSync } from "fs";
-// computeRegimeExposure import removed — position count cap removed, cash is the only constraint
+import { computeV3Basin } from "./v3_basin.mjs";
 
 const pool = new pg.Pool({
   host:     process.env.PGHOST,
@@ -39,12 +38,9 @@ const pool = new pg.Pool({
 });
 
 // ── Chapter 2 entry thresholds ────────────────────────────────────────────
-const CH2_S_UF_MIN        = 0.50;   // inclusive
-const CH2_S_UF_MAX        = 0.75;   // exclusive — above this is 3WA territory
-const CH2_BAR_COUNT_MIN   = 21;     // must be established (> 3WA threshold of 20)
-const CH2_REQUIRED_DK     = 1;      // directional expansion required
-const CH2_REQUIRED_REGIME = "TRANSITIONAL";
-const CH2_MIN_MARKET_CAP  = 500_000_000;  // $500M — liquidity floor
+const CH2_BAR_COUNT_MIN  = 21;
+const CH2_MIN_MARKET_CAP = 500_000_000;
+const ACCUMULATE_BASIN_MIN = 0.15;
 
 function toFloat(v) {
   const n = parseFloat(v);
@@ -73,14 +69,12 @@ async function fetchCandidateRows(runId) {
     `SELECT
        r.ticker,
        r.run_id,
-       r.decision_label,
        r.snapshot_row_json,
        COALESCE(f.sector, 'Unknown') AS sector
      FROM runtime_decisions_latest r
      LEFT JOIN runtime_symbols s ON s.ticker = r.ticker
      LEFT JOIN l5_fundamentals_normalized f ON f.ticker = r.ticker
      WHERE r.run_id = $1
-       AND r.decision_label = 'Accumulate'
        AND r.ticker != 'SPY'
        AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $2
        AND COALESCE(NULLIF(s.market_cap, 0), f.market_cap, 0) >= $3
@@ -95,46 +89,43 @@ async function fetchCandidateRows(runId) {
  * Returns null if any required field is missing or out of range.
  */
 function parseSignal(row) {
-  const snap      = row.snapshot_row_json ?? {};
-  const ticker    = String(row.ticker ?? "").trim().toUpperCase();
-  const runId     = String(row.run_id ?? "").trim();
-  const barCount  = toInt(snap.bar_count ?? row.bar_count);
-  const sUf       = toFloat(snap.S_UF ?? snap.s_uf);
-  const dk        = toInt(snap.D_k ?? snap.d_k);
-  const regime    = String(snap.regime ?? "").trim().toUpperCase();
-  const bk        = toFloat(snap.B_k ?? snap.b_k);
-  const fn        = toFloat(snap.F_n ?? snap.f_n);
-  const neighborWR = toFloat(snap.neighbor_wr);
+  const snap     = row.snapshot_row_json ?? {};
+  const ticker   = String(row.ticker ?? "").trim().toUpperCase();
+  const runId    = String(row.run_id ?? "").trim();
+  const barCount = toInt(snap.bar_count ?? row.bar_count);
 
-  // Hard entry gates — all must pass
-  if (!ticker)                                          return null;
-  if (!runId)                                           return null;
+  if (!ticker)                                           return null;
+  if (!runId)                                            return null;
   if (barCount === null || barCount < CH2_BAR_COUNT_MIN) return null;
-  // S_UF band gate REMOVED. Validated as primary drag on alpha:
-  // with S_UF band [0.50, 0.75): -8.65pp vs SPY (rejected NVDA WR=0.933, AMD, etc.)
-  // without S_UF band (tuple-only): +2.73pp vs SPY on same leak-free deep-pool window.
-  // The band blocked high-WR picks whose structural field strength sat outside
-  // an arbitrary acceleration range. Tuple-proximity WR already reads the full
-  // coupled structural state including S_UF — the scalar gate was redundant
-  // and destructive.
-  // D_k=1 gate stays — it's part of the 7-dim tuple the TP engine reads,
-  // and validates as a legitimate per-ticker directional alignment check.
-  if (dk !== 1) return null;
+
+  const basin = computeV3Basin({
+    S_UF:    toFloat(snap.S_UF    ?? snap.s_uf),
+    R_UF:    toFloat(snap.R_UF    ?? snap.r_uf),
+    D_k:     toFloat(snap.D_k     ?? snap.d_k),
+    M_k:     toFloat(snap.M_k     ?? snap.m_k),
+    R_rev_k: toFloat(snap.R_rev_k ?? snap.r_rev_k),
+    U_star_k:toFloat(snap.U_star_k?? snap.u_star_k),
+    C_k:     toFloat(snap.C_k     ?? snap.c_k),
+    P_k:     toFloat(snap.P_k     ?? snap.p_k),
+    B_k:     toFloat(snap.B_k     ?? snap.b_k),
+  });
+
+  if (basin === null)                                          { console.log(`[CH2-STRATEGIST]   ${ticker} — REJECT tuple incomplete`); return null; }
+  if (basin.decision_argmax !== "Accumulate")                  { console.log(`[CH2-STRATEGIST]   ${ticker} — REJECT argmax=${basin.decision_argmax}`); return null; }
+  if (basin.accumulate_basin < ACCUMULATE_BASIN_MIN)           { console.log(`[CH2-STRATEGIST]   ${ticker} — REJECT acc=${basin.accumulate_basin.toFixed(4)} < ${ACCUMULATE_BASIN_MIN}`); return null; }
 
   return {
     ticker,
     run_id:       runId,
     signal_class: "CH2",
-    s_uf:         sUf,
-    d_k:          dk,
+    s_uf:         toFloat(snap.S_UF ?? snap.s_uf),
+    d_k:          toFloat(snap.D_k  ?? snap.d_k),
     bar_count:    barCount,
-    regime,
-    f_n:          fn,
-    b_k:          bk,
+    b_k:          toFloat(snap.B_k  ?? snap.b_k),
+    f_n:          toFloat(snap.F_n  ?? snap.f_n),
     sector:       String(row.sector ?? "Unknown").trim(),
-    neighbor_wr:  neighborWR,
-    // No spy_dk gate for Ch2 — D_k=1 on the ticker itself is sufficient
     spy_dk:       null,
+    v3_basin:     basin,
   };
 }
 
@@ -180,16 +171,18 @@ export async function getCh2Signals() {
   const runId = await resolveLatestRunId();
   console.log(`[CH2-STRATEGIST] run_id=${runId}`);
 
-  // Diagnostic: count candidates at each filter step (scoped to current run_id)
+  // Diagnostic: candidate pool before V3 basin filter
   try {
-    const diag1 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest WHERE run_id = $1 AND decision_label = 'Accumulate'`, [runId]);
-    const diag2 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest WHERE run_id = $1 AND decision_label = 'Accumulate' AND CAST(NULLIF(snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) >= 0.50 AND CAST(NULLIF(snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) < 0.75`, [runId]);
-    const diag3 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest WHERE run_id = $1 AND decision_label = 'Accumulate' AND CAST(NULLIF(snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) >= 0.50 AND CAST(NULLIF(snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) < 0.75 AND CAST(NULLIF(snapshot_row_json->>'bar_count','') AS INTEGER) > 20`, [runId]);
-    const diag4 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest r LEFT JOIN runtime_symbols s ON s.ticker = r.ticker WHERE r.run_id = $1 AND r.decision_label = 'Accumulate' AND CAST(NULLIF(r.snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) >= 0.50 AND CAST(NULLIF(r.snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) < 0.75 AND CAST(NULLIF(r.snapshot_row_json->>'bar_count','') AS INTEGER) > 20 AND COALESCE(s.market_cap, 0) >= 500000000`, [runId]);
-    const diag5 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_symbols WHERE market_cap IS NOT NULL AND market_cap > 0`);
-    // Check how many in-band candidates have market_cap in l5_fundamentals_normalized (the OTHER table)
-    const diag6 = await pool.query(`SELECT COUNT(*) as cnt FROM runtime_decisions_latest r LEFT JOIN l5_fundamentals_normalized f ON f.ticker = r.ticker WHERE r.run_id = $1 AND r.decision_label = 'Accumulate' AND CAST(NULLIF(r.snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) >= 0.50 AND CAST(NULLIF(r.snapshot_row_json->>'S_UF','') AS DOUBLE PRECISION) < 0.75 AND CAST(NULLIF(r.snapshot_row_json->>'bar_count','') AS INTEGER) > 20 AND COALESCE(f.market_cap, 0) >= 500000000`, [runId]);
-    console.log(`[CH2-DIAG] run_id=${runId} | Accumulate: ${diag1.rows[0].cnt} | S_UF band: ${diag2.rows[0].cnt} | +bar_count: ${diag3.rows[0].cnt} | +mktcap(runtime_symbols): ${diag4.rows[0].cnt} | +mktcap(l5_fundamentals): ${diag6.rows[0].cnt} | runtime_symbols w/mktcap: ${diag5.rows[0].cnt}`);
+    const diag = await pool.query(
+      `SELECT COUNT(*) AS cnt FROM runtime_decisions_latest r
+       LEFT JOIN runtime_symbols s ON s.ticker = r.ticker
+       LEFT JOIN l5_fundamentals_normalized f ON f.ticker = r.ticker
+       WHERE r.run_id = $1 AND r.ticker != 'SPY'
+         AND CAST(NULLIF(r.snapshot_row_json->>'bar_count','') AS INTEGER) > $2
+         AND COALESCE(NULLIF(s.market_cap,0), f.market_cap, 0) >= $3`,
+      [runId, CH2_BAR_COUNT_MIN - 1, CH2_MIN_MARKET_CAP]
+    );
+    console.log(`[CH2-DIAG] run_id=${runId} | pre-basin candidates: ${diag.rows[0].cnt}`);
   } catch (diagErr) {
     console.log(`[CH2-DIAG] Error: ${diagErr.message}`);
   }
@@ -264,12 +257,12 @@ export async function getCh2Signals() {
     return true;
   });
 
-  // Sort: epoch-favored sectors first, then by S_UF
-  governed.sort((a, b) => (b.epoch_pressure - a.epoch_pressure) || (b.s_uf - a.s_uf));
+  // Sort: epoch-favored sectors first, then by accumulate_basin DESC
+  governed.sort((a, b) => (b.epoch_pressure - a.epoch_pressure) || (b.v3_basin.accumulate_basin - a.v3_basin.accumulate_basin));
 
-  console.log(`[CH2-STRATEGIST] ${rows.length} candidates → ${signals.length} valid → ${deduped.length} dedup → ${governed.length} after epoch governance`);
+  console.log(`[CH2-STRATEGIST] ${rows.length} candidates → ${signals.length} passed V3 basin → ${deduped.length} dedup → ${governed.length} after epoch governance`);
   for (const s of governed) {
-    console.log(`[CH2-STRATEGIST]   ${s.ticker} | s_uf=${s.s_uf} | D_k=${s.d_k} | sector=${s.sector} | epoch=${s.epoch_pressure?.toFixed(2) ?? "?"}`);
+    console.log(`[CH2-STRATEGIST]   ${s.ticker} | acc=${s.v3_basin.accumulate_basin.toFixed(4)} | break=${s.v3_basin.break_agreement.toFixed(4)} | sector=${s.sector} | epoch=${s.epoch_pressure?.toFixed(2) ?? "?"}`);
   }
 
   return governed;
