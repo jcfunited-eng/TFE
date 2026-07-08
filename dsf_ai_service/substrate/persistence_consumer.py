@@ -231,20 +231,52 @@ class S3Consumer:
             self._stop.wait(timeout=5.0)
 
     def _check_and_upload(self):
-        """Look for new checkpoint files and upload them."""
+        """Look for new checkpoint files and upload them.
+
+        2026-07-08 bloat fix: recover() only ever reads the single
+        highest-seq checkpoint plus whatever's in the current events.log
+        (its own filter is `seq > checkpoint_seq` against the LATEST
+        checkpoint only) -- every older checkpoint/events-log object this
+        method ever uploaded to S3 has been permanently dead weight since
+        the moment a newer one was written, not a real recovery point.
+        Confirmed live: guala/events/ alone reached ~50GB, uploading the
+        entire ever-growing local events.log under a brand-new key every
+        checkpoint, never deleting the previous one. Deleting the
+        previous seq's two objects right after a successful upload of
+        the new ones keeps S3 storage for these two prefixes bounded to
+        "the one current recovery point," matching what recover() will
+        ever actually read, instead of every recovery point that has
+        ever existed. Deliberately NOT touching the local events.log
+        write/truncate path (PersistenceConsumer, a different thread) --
+        that would risk a real race against its still-open append-mode
+        file handle; deleting old S3 objects from this single thread,
+        after their own upload already succeeded, has no such race."""
         pattern = os.path.join(self._state_dir, "checkpoint-*.json")
         checkpoint_files = glob_mod.glob(pattern)
         if not checkpoint_files:
             return
 
-        for cp_path in sorted(checkpoint_files):
-            base = os.path.basename(cp_path)
+        def _extract_seq(path):
+            base = os.path.basename(path)
             try:
-                seq = int(base.replace("checkpoint-", "").replace(".json", ""))
+                return int(base.replace("checkpoint-", "").replace(".json", ""))
             except ValueError:
+                return -1
+
+        # Sort numerically by seq, not lexicographically by filename --
+        # "checkpoint-100000.json" < "checkpoint-50000.json" as strings,
+        # which would process a newer checkpoint before an older one and
+        # skip the older one entirely (seq <= _last_uploaded_seq below).
+        # Same _extract_seq convention PersistenceConsumer.recover()
+        # already uses for the same reason (line ~147).
+        for cp_path in sorted(checkpoint_files, key=_extract_seq):
+            base = os.path.basename(cp_path)
+            seq = _extract_seq(cp_path)
+            if seq < 0:
                 continue
             if seq <= self._last_uploaded_seq:
                 continue
+            prev_seq = self._last_uploaded_seq
             # Upload checkpoint
             self._upload_file(cp_path, f"guala/checkpoints/{base}")
             # Upload events.log snapshot
@@ -255,6 +287,19 @@ class S3Consumer:
                 )
             self._last_uploaded_seq = seq
             logger.info("S3 upload complete for checkpoint seq=%d", seq)
+            if prev_seq >= 0:
+                self._delete_object(f"guala/checkpoints/checkpoint-{prev_seq}.json")
+                self._delete_object(f"guala/events/events-upto-{prev_seq}.log")
+
+    def _delete_object(self, s3_key):
+        """Best-effort delete of a superseded recovery-point object.
+        Swallows errors -- never crashes the substrate, and a leftover
+        old object is no worse than today's status quo."""
+        try:
+            self._s3.delete_object(Bucket=self._bucket, Key=s3_key)
+        except Exception:
+            logger.exception("S3 delete failed (non-fatal): s3://%s/%s",
+                             self._bucket, s3_key)
 
     def _upload_file(self, local_path, s3_key):
         """Upload a single file to S3. Swallows errors — never crashes substrate."""

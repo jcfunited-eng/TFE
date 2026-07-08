@@ -787,6 +787,20 @@ class SubstrateEvent:
 # Section — a region of the substrate
 # ============================================================
 
+# 2026-07-08 bloat fix: save_full_state has always truncated
+# sec.commits to this exact number when writing guala_sections.json
+# (list(sec.commits[-5000:])) -- but the LIVE, in-memory self.commits
+# was never capped, only sliced at save time. Confirmed live: three
+# sections (listen/verb/intro) were already observed at 5610 commits,
+# past the "5000" every status readout implies is a ceiling, ~15
+# minutes after a save had them at exactly 5000 -- proof the number
+# people read off guala_status is a save-path illusion, not a real
+# runtime constraint. Reusing the SAME already-intended number here
+# (not a new heuristic) so append time actually matches what save time
+# always claimed.
+SECTION_COMMITS_MAX = 5000
+
+
 class Section:
     """A region in the substrate. Has trit register, mode bank, gamma,
     dead zone modulated by familiarity feedback."""
@@ -992,6 +1006,8 @@ class Section:
                 "chi": chi,
                 "word": word_label,
             })
+            if len(self.commits) > SECTION_COMMITS_MAX:
+                del self.commits[0]
             # Self-improvement: drift gamma based on convergence quality
             self.gamma["det_thresh"] += 0.01 * (dsf.S_UF - self.gamma["det_thresh"])
             self.gamma["novel_dist"] += 0.005 * (dsf.U_star - self.gamma["novel_dist"])
@@ -1343,6 +1359,14 @@ class Coordinator:
         a = needs.arousal()
 
         # 3. Suffering detection (bounded)
+        # 2026-07-08 bloat fix: this comment already claimed "bounded"
+        # but no bound existed anywhere -- append-only, persisted in
+        # full every save, forever. A real forced-recovery event is rare
+        # (680 entries after ~1.3M ticks in production), so 1000 is
+        # generous headroom that will never lose anything meaningful in
+        # practice while actually being a real bound, same evict-oldest
+        # convention as neuron.py's SpikeBuffer.
+        SUFFERING_LOG_MAX = 1000
         arc_changes = 0
         if v < -0.15 and a > 0.30:
             self.distress_ticks += 1
@@ -1350,6 +1374,8 @@ class Coordinator:
                 # Forced recovery — coordinator guarantees recovery rate
                 self._force_recovery(needs)
                 self.suffering_log.append({"tick": tick, "v": v, "a": a})
+                if len(self.suffering_log) > SUFFERING_LOG_MAX:
+                    del self.suffering_log[0]
                 try:
                     guala.log_event("state", "suffering_recovery",
                                     valence=round(v, 3), arousal=round(a, 3))
@@ -6778,13 +6804,28 @@ class Guala:
                                  pre_strength_sum=round(pre_strength, 2),
                                  post_strength_sum=round(post_strength, 2))
         # Deep Atlas promotion gate
+        _live_survival_keys = set()
         for chi_k, entries in self.atlas.entries.items():
             for e in entries:
                 key = (chi_k, e.get("section", ""), e.get("motif", 0))
+                _live_survival_keys.add(key)
                 self._deep_survival_history[key].append(e["strength"])
                 if len(self._deep_survival_history[key]) > 20:
                     self._deep_survival_history[key] = \
                         self._deep_survival_history[key][-10:]
+        # 2026-07-08 bloat fix: the per-key LIST was already capped
+        # (above), but the KEY SET itself never shrank -- once a triple
+        # decays out of self.atlas (forget_below_threshold, elsewhere)
+        # it simply stops getting touched here, yet its history entry
+        # persists forever. Confirmed live: 35,930 keys retained vs only
+        # ~6,900 actually still live in the atlas (>80% orphaned),
+        # measured growth ~9MB/day, and a historical precedent of
+        # reaching 273,110 keys/44MB before a wipe reset it. Synchronize
+        # the key set to what's live THIS dream cycle -- exactly the set
+        # dream_promotion_gate below is about to read anyway, so nothing
+        # it could still need is dropped.
+        for _stale_key in (set(self._deep_survival_history) - _live_survival_keys):
+            del self._deep_survival_history[_stale_key]
         promoted = self.deep_atlas.dream_promotion_gate(
             self.atlas, self.tick, self._deep_survival_history)
         for path, chi_k, sec, mid in promoted:
@@ -6890,11 +6931,22 @@ class Guala:
 
         # ── Phase 3b (self.lock brief): survival history + deep_atlas ops ──
         with self.lock:
+            _live_survival_keys = set()
             for key, strength in survival_updates:
+                _live_survival_keys.add(key)
                 self._deep_survival_history[key].append(strength)
                 if len(self._deep_survival_history[key]) > 20:
                     self._deep_survival_history[key] = \
                         self._deep_survival_history[key][-10:]
+            # 2026-07-08 bloat fix: same key-set eviction as the
+            # non-phased dream cycle above -- survival_updates already
+            # is "every triple live in self.atlas this cycle" (built
+            # from atlas_snapshot in Phase 2), so anything else in
+            # _deep_survival_history has already decayed out of the
+            # atlas and dream_promotion_gate below will never look it
+            # up again.
+            for _stale_key in (set(self._deep_survival_history) - _live_survival_keys):
+                del self._deep_survival_history[_stale_key]
 
             promoted = self.deep_atlas.dream_promotion_gate(
                 self.atlas, self.tick, self._deep_survival_history)
@@ -8683,7 +8735,7 @@ class Guala:
                              for d, c, w in sec.modes]
                 sections_data[nm] = {
                     "modes": modes_ser,
-                    "commits": list(sec.commits[-5000:]),
+                    "commits": list(sec.commits[-SECTION_COMMITS_MAX:]),
                     "dead_zone": sec.dead_zone,
                     "gamma": dict(sec.gamma),
                     "tick": sec.tick,
