@@ -284,33 +284,57 @@ class S3Consumer:
             except ValueError:
                 return -1
 
-        # Sort numerically by seq, not lexicographically by filename --
-        # "checkpoint-100000.json" < "checkpoint-50000.json" as strings,
-        # which would process a newer checkpoint before an older one and
-        # skip the older one entirely (seq <= _last_uploaded_seq below).
-        # Same _extract_seq convention PersistenceConsumer.recover()
-        # already uses for the same reason (line ~147).
-        for cp_path in sorted(checkpoint_files, key=_extract_seq):
-            base = os.path.basename(cp_path)
-            seq = _extract_seq(cp_path)
-            if seq < 0:
-                continue
-            if seq <= self._last_uploaded_seq:
-                continue
-            prev_seq = self._last_uploaded_seq
-            # Upload checkpoint
-            self._upload_file(cp_path, f"guala/checkpoints/{base}")
-            # Upload events.log snapshot
-            events_path = os.path.join(self._state_dir, "events.log")
-            if os.path.exists(events_path):
-                self._upload_file(
-                    events_path, f"guala/events/events-upto-{seq}.log"
-                )
-            self._last_uploaded_seq = seq
-            logger.info("S3 upload complete for checkpoint seq=%d", seq)
-            if prev_seq >= 0:
-                self._delete_object(f"guala/checkpoints/checkpoint-{prev_seq}.json")
-                self._delete_object(f"guala/events/events-upto-{prev_seq}.log")
+        # 2026-07-09 fix: process only the SINGLE latest (highest-seq)
+        # local checkpoint file, not every one with seq > _last_uploaded_
+        # seq. _last_uploaded_seq is in-memory-only state on this
+        # consumer instance -- it resets to -1 on every process restart,
+        # but local checkpoint-*.json files are never cleaned up and
+        # live forever on EFS (persistent storage, survives restarts).
+        # Found live: on every deploy/restart tonight, this loop was
+        # re-uploading EVERY checkpoint file that has EVER existed on
+        # EFS, from -1, in full, over and over -- confirmed via a real
+        # /debug/thread_dump of the running process showing continuous
+        # s3transfer upload_part activity that never let up, even
+        # moments after a fresh boot with an empty events.log. recover()
+        # (this same file) only ever reads the single highest-seq
+        # checkpoint anyway -- every older one has been pure dead weight,
+        # locally AND in S3, since the moment a newer one was written,
+        # not something a restart needs to catch up on.
+        checkpoint_files_by_seq = sorted(
+            ((_extract_seq(p), p) for p in checkpoint_files), key=lambda t: t[0]
+        )
+        checkpoint_files_by_seq = [(s, p) for s, p in checkpoint_files_by_seq if s >= 0]
+        if not checkpoint_files_by_seq:
+            return
+        seq, cp_path = checkpoint_files_by_seq[-1]
+        base = os.path.basename(cp_path)
+
+        # Local cleanup: every OTHER local checkpoint file is dead weight
+        # (recover() will never read it) -- remove it now rather than
+        # let it accumulate forever, same reasoning as the S3-side delete
+        # below, just applied locally too.
+        for stale_seq, stale_path in checkpoint_files_by_seq[:-1]:
+            try:
+                os.remove(stale_path)
+            except Exception:
+                logger.exception("stale local checkpoint cleanup failed: %s", stale_path)
+
+        if seq <= self._last_uploaded_seq:
+            return
+        prev_seq = self._last_uploaded_seq
+        # Upload checkpoint
+        self._upload_file(cp_path, f"guala/checkpoints/{base}")
+        # Upload events.log snapshot
+        events_path = os.path.join(self._state_dir, "events.log")
+        if os.path.exists(events_path):
+            self._upload_file(
+                events_path, f"guala/events/events-upto-{seq}.log"
+            )
+        self._last_uploaded_seq = seq
+        logger.info("S3 upload complete for checkpoint seq=%d", seq)
+        if prev_seq >= 0:
+            self._delete_object(f"guala/checkpoints/checkpoint-{prev_seq}.json")
+            self._delete_object(f"guala/events/events-upto-{prev_seq}.log")
 
     def _delete_object(self, s3_key):
         """Best-effort delete of a superseded recovery-point object.
