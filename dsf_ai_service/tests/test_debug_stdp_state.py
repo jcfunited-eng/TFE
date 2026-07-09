@@ -157,6 +157,70 @@ def test_snapshot_completes_well_under_budget():
         g.shutdown()
 
 
+def test_snapshot_includes_fire_rate_window_metrics_on_fresh_boot():
+    """Fresh Guala(), nothing fired yet -- the new metric group must be
+    present with sane zero defaults, no crash."""
+    import dsf_ai_service.app as appmod
+    g = _fresh_guala()
+    try:
+        snap = appmod._build_stdp_snapshot(g)
+        frw = snap["fire_rate_window_metrics"]
+        assert frw["neurons_with_runaway_fire_pattern"] == 0
+        assert frw["runaway_neurons"] == []
+        assert frw["window_n"] > 0
+        assert frw["ceiling_hz"] > 0
+        assert frw["total_fire_breaker_trips_since_boot_or_restore"] == 0
+        print("test_snapshot_includes_fire_rate_window_metrics_on_fresh_boot: PASS")
+    finally:
+        g.shutdown()
+
+
+def test_fire_rate_window_metrics_flags_incident_reproduction():
+    """Phase 1 delivery plan Step 2's own verification requirement:
+    replicate the real 2026-07-08/09 incident's observed numbers
+    (~3800 fires/sec, sustained) directly against the metric function
+    (a pure function of neuron snapshots -- no live Guala boot needed)
+    and confirm it is flagged, while a neuron firing at a realistic
+    STDP-driven rate is not, and a neuron with no fire history at all
+    doesn't crash the computation."""
+    import dsf_ai_service.app as appmod
+    from dsf_ai_service.loom_model.neuron import (
+        FIRE_BREAKER_WINDOW_N, FIRE_BREAKER_CEILING_HZ,
+    )
+
+    now = time.monotonic()
+
+    def _window(interval_s):
+        return [now - (FIRE_BREAKER_WINDOW_N - 1 - i) * interval_s
+                for i in range(FIRE_BREAKER_WINDOW_N)]
+
+    runaway_timestamps = _window(1.0 / 3800.0)   # the real incident's own rate
+    normal_timestamps = _window(1.0 / 20.0)      # realistic STDP-driven rate
+
+    neuron_snapshots = [
+        {"neuron_id": "runaway_n", "recent_fire_timestamps": runaway_timestamps,
+         "fire_breaker_trip_count": 5},
+        {"neuron_id": "normal_n", "recent_fire_timestamps": normal_timestamps,
+         "fire_breaker_trip_count": 0},
+        {"neuron_id": "quiet_n", "recent_fire_timestamps": [], "fire_breaker_trip_count": 0},
+        {"neuron_id": "sparse_n", "recent_fire_timestamps": [now - 10.0, now],
+         "fire_breaker_trip_count": 0},
+    ]
+
+    metrics = appmod._fire_rate_window_metrics(neuron_snapshots, {"runaway_n": "ball"})
+
+    assert metrics["window_n"] == FIRE_BREAKER_WINDOW_N
+    assert metrics["ceiling_hz"] == FIRE_BREAKER_CEILING_HZ
+    assert metrics["neurons_with_runaway_fire_pattern"] == 1
+    assert len(metrics["runaway_neurons"]) == 1
+    flagged = metrics["runaway_neurons"][0]
+    assert flagged["neuron_id"] == "runaway_n"
+    assert flagged["recent_fire_rate_hz"] > FIRE_BREAKER_CEILING_HZ
+    assert flagged["word"] == "ball"
+    assert metrics["total_fire_breaker_trips_since_boot_or_restore"] == 5
+    print("test_fire_rate_window_metrics_flags_incident_reproduction: PASS")
+
+
 def test_route_requires_api_key_when_configured():
     """With GUALALOOM_API_KEY set, the route must 401 without the
     header and 200 with the correct one -- confirms it actually joined
@@ -215,6 +279,8 @@ if __name__ == "__main__":
     test_snapshot_degrades_gracefully_without_spike_bus()
     test_snapshot_never_mutates_membrane_state()
     test_snapshot_completes_well_under_budget()
+    test_snapshot_includes_fire_rate_window_metrics_on_fresh_boot()
+    test_fire_rate_window_metrics_flags_incident_reproduction()
     test_route_requires_api_key_when_configured()
     test_route_returns_503_when_guala_not_loaded()
     print("ALL PASS: test_debug_stdp_state")

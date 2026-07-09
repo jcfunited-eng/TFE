@@ -1850,7 +1850,7 @@ def _cmd_bundle(command, text):
                 fragments = view_picture(
                     pic.intensity_grid, source_id=pic.item_id,
                     born_tick=_guala.tick, seed=_guala.tick % 10000)
-                _guala._visual_fragments.extend(fragments)
+                _guala._visual_fragments_count += len(fragments)
                 motif, is_new, overlap = _guala.sight.process_viewing(
                     fragments, pic.item_id, _guala.tick)
                 if motif:
@@ -2109,6 +2109,8 @@ def handle_teacher_feedback(args):
         "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
         "n_bindings_affected": result.get("n_affected", 0),
     })
+    if len(_guala._teaching_feedback_log) > _guala.TEACHING_LOG_MAX:
+        del _guala._teaching_feedback_log[0]
     return result
 
 
@@ -2158,6 +2160,8 @@ def handle_teacher_correction(args):
         "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
         "n_bindings_affected": result.get("n_affected", 0),
     })
+    if len(_guala._teaching_correction_log) > _guala.TEACHING_LOG_MAX:
+        del _guala._teaching_correction_log[0]
     return result
 
 

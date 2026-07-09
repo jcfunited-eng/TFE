@@ -1301,6 +1301,19 @@ class Coordinator:
     CONN_GAP_FRACTION = 0.4          # toward-target wake boost
     NEEDS_TARGET_CONN = 0.7          # connection target for wake toward-target
 
+    # 2026-07-09 overnight bloat sweep: confirmed live at att=68730/act=27534
+    # and climbing every ~5 ticks forever (regulate()'s own "regulation_pass"
+    # append at minimum, unconditional, no gate at all) -- sitting three
+    # lines below SUFFERING_LOG_MAX's own fix in this same class, whose
+    # comment already (wrongly) claimed "bounded" before that fix. Neither
+    # list is ever persisted in full (save path only ever writes
+    # attentions_count/actions_count, both ints) -- this is pure in-process
+    # RAM growth, invisible in any saved file. Same evict-oldest convention,
+    # same order-of-magnitude reasoning as SUFFERING_LOG_MAX: generous
+    # headroom for real recent history, not a tight window.
+    ATTENTIONS_MAX = 1000
+    ACTIONS_MAX = 1000
+
     def __init__(self):
         self.attentions = []
         self.actions = []
@@ -1352,7 +1365,7 @@ class Coordinator:
         atlas.record(f"presence_{source}", 0, engine.tick % 100, engine.tick,
                      salience=salience)
 
-        self.actions.append({
+        self._append_action({
             "tick": engine.tick, "type": "wake", "source": source,
             "needs_after": needs.snapshot(), "salience": round(salience, 3),
             "arc_changes": 1,
@@ -1376,7 +1389,7 @@ class Coordinator:
         if source == "wc":
             engine._auto_reset_decay_modulation()
 
-        self.actions.append({
+        self._append_action({
             "tick": engine.tick, "type": "rest", "source": source,
             "reason": reason, "session_duration_ticks": duration,
             "arc_changes": 0,
@@ -1481,6 +1494,22 @@ class Coordinator:
         return {src: round(self.pair_bond_strength(src, current_tick), 3)
                 for src in sources}
 
+    def _append_attention(self, item):
+        """Bounded append for self.attentions -- see ATTENTIONS_MAX comment
+        on __init__. One shared helper instead of repeating the cap check
+        at every call site, so a future new append site can't reintroduce
+        the same unbounded-growth class of bug by omission."""
+        self.attentions.append(item)
+        if len(self.attentions) > self.ATTENTIONS_MAX:
+            del self.attentions[0]
+
+    def _append_action(self, item):
+        """Bounded append for self.actions -- see ACTIONS_MAX comment on
+        __init__. Same reasoning as _append_attention."""
+        self.actions.append(item)
+        if len(self.actions) > self.ACTIONS_MAX:
+            del self.actions[0]
+
     def regulate(self, guala, needs, atlas, sections, tick):
         """Each tick: read substrate signals, update needs, modulate parameters,
         detect suffering, log attention. Returns (action_taken, arc_changes)."""
@@ -1515,7 +1544,7 @@ class Coordinator:
                                     valence=round(v, 3), arousal=round(a, 3))
                 except Exception:
                     pass
-                self.actions.append({"tick": tick, "type": "forced_recovery",
+                self._append_action({"tick": tick, "type": "forced_recovery",
                                      "arc_changes": 1})
                 arc_changes += 1
                 self.distress_ticks = 0
@@ -1525,20 +1554,20 @@ class Coordinator:
         # 4. Parameter modulation (regulator role)
         modulation_count = self._modulate_parameters(needs, sections)
         if modulation_count > 0:
-            self.actions.append({"tick": tick, "type": "parameter_modulation",
+            self._append_action({"tick": tick, "type": "parameter_modulation",
                                  "count": modulation_count, "arc_changes": 1})
             arc_changes += 1
 
         # 5. Detection: balance check + cross-modal density + dead-zone trajectory
         det = self._awareness_pass(sections, atlas, tick)
         for d in det:
-            self.attentions.append(d)
+            self._append_attention(d)
             if d["arc_changes"] > 0:
-                self.actions.append(d)
+                self._append_action(d)
                 arc_changes += d["arc_changes"]
 
         # 6. Log overall attention with needs snapshot
-        self.attentions.append({
+        self._append_attention({
             "tick": tick, "type": "regulation_pass",
             "needs": needs.snapshot(),
             "arc_changes": 0,
@@ -1691,7 +1720,7 @@ class Coordinator:
                 return
         # All needs oscillate within bounds → she's homeostatic without us
         self.pair_bond_active = False
-        self.actions.append({"tick": tick, "type": "pair_bond_retired",
+        self._append_action({"tick": tick, "type": "pair_bond_retired",
                              "arc_changes": 1})
 
 
@@ -1719,6 +1748,12 @@ class Guala:
     """Integrated substrate using only puzzle pieces with DNA cheats."""
 
     SECTION_NAMES = ("listen", "subject", "verb", "object", "modifier", "ground", "intro")
+    # 2026-07-08 bloat fix: teaching logs were append-only in memory, only
+    # ever truncated to [-500:] in the save-snapshot dict -- the live list
+    # itself grew forever. Cap matches the existing persisted slice size,
+    # so saved data is unchanged, same evict-oldest convention as
+    # suffering_log/ATTENTIONS_MAX/ACTIONS_MAX.
+    TEACHING_LOG_MAX = 500
 
     def __init__(self):
         self.sections = {
@@ -1820,7 +1855,7 @@ class Guala:
         self._pictures = {}    # item_id -> PictureItem
         self.target_familiarity = {}  # picture_id -> float [0,1]
         self._videos = {}      # item_id -> VideoItem
-        self._visual_fragments = []  # accumulated fragments
+        self._visual_fragments_count = 0  # total fragments ever viewed (content is never read back, only the count is reported)
         self._last_recalled_pictures = []  # picture recall results from last converse/emit
 
         # v8: Deep Atlas (GL-BRIEF-032)
@@ -3509,9 +3544,23 @@ class Guala:
                         # below, never instead of it. No-op if the spike bus
                         # isn't wired (EVENT_DRIVEN_SUBSTRATE=0, or restore
                         # hasn't completed wire_spike_bus() yet).
+                        #
+                        # GL-CMD-SENSORY-SPIKE-GATE-EVE-20260709-v1: gated
+                        # SEPARATELY from the word branch below via
+                        # SENSORY_SPIKE_INJECTION_ENABLED (default "0", i.e.
+                        # off), independent of EVENT_DRIVEN_SUBSTRATE. Real
+                        # incident tonight: wave-atlas cells never decay to
+                        # exactly zero, so this branch never goes quiet --
+                        # one entry neuron per hemisphere gets kicked
+                        # continuously (confirmed live: 14M+ fire events,
+                        # 3792/sec, zero synapses ever updated). The word
+                        # branch is not implicated and stays on the existing
+                        # EVENT_DRIVEN_SUBSTRATE gate, unchanged.
                         try:
                             _brain = self.organism.brain
-                            if getattr(_brain, '_spike_bus', None) is not None:
+                            if (getattr(_brain, '_spike_bus', None) is not None
+                                    and os.environ.get(
+                                        "SENSORY_SPIKE_INJECTION_ENABLED", "0") == "1"):
                                 _brain._inject_input_as_spikes(
                                     input_signal=input_signal,
                                     input_chi=input_chi,
@@ -4066,19 +4115,51 @@ class Guala:
         return random.sample(all_neurons, min(ENTRY_SAMPLE_SIZE, len(all_neurons)))
 
     def _brain_emission_candidates(self, input_words):
-        """GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 item 8: dual
-        path. RECALL_BACKEND=stdp reads membrane state directly (not
-        used in production during Phase 1 -- shadow/legacy both fall
-        through to the legacy implementation, unchanged). Note this is a
-        narrower dual-path than recall_fast's three-way dispatch: there's
-        no separate "shadow" comparison for emission specifically since
-        emission's candidate SHAPE ((de, co, weight) tuples referencing
-        _word_to_emission_sections) has no direct membrane-state
-        equivalent worth shadow-logging on its own -- recall_fast's own
-        shadow comparison (which emission's LEGACY path already reads
-        through, unchanged) is where that signal actually lives."""
-        if os.environ.get("RECALL_BACKEND", "legacy") == "stdp":
+        """GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 item 8, extended
+        by GL-CMD-EMISSION-SHADOW-EVE-20260709 (design only -- NOT
+        enabled by default, NOT deployed; see that dispatch's report for
+        the halt-condition data this needs before any real cutover):
+        three-way dispatch on RECALL_BACKEND, mirroring recall_fast's
+        own dispatcher (brain.py) exactly, same env var, same shape of
+        contract. "legacy" (default, unchanged): calls
+        _brain_emission_candidates_legacy only -- byte-for-byte the
+        production path throughout Phase 1. "stdp": calls
+        _brain_emission_candidates_membrane only -- not used in
+        production during Phase 1. "shadow": runs BOTH, logs a
+        comparison via _log_emission_shadow_comparison, and returns the
+        LEGACY result UNCHANGED -- observation-only, zero behavior
+        change for callers, same non-fatal-on-failure contract as
+        recall_fast's shadow branch (a membrane exception during shadow
+        never prevents the legacy result from being returned).
+
+        2026-07-08 note (superseded by the above): this docstring used
+        to say "there's no separate shadow comparison for emission
+        specifically" because emission's candidate SHAPE ((de, co,
+        weight) tuples referencing _word_to_emission_sections) has no
+        direct membrane-state equivalent, and recall_fast's own shadow
+        log (which legacy's candidate gather already calls through,
+        unchanged, once per query word) was the only signal that
+        existed. That's still true of the raw shapes -- they are NOT
+        comparable value-for-value, see _log_emission_shadow_comparison
+        for how they're actually reconciled -- but recall_fast's shadow
+        only ever compares individual per-query-word vote Counters, never
+        the assembled, filtered CANDIDATE LIST this function returns
+        (post section-home gating, self-echo exclusion, deep_atlas
+        merge). That's a coarser, functionally different signal
+        recall_fast's own shadow log can't see, which is what this
+        extension adds."""
+        backend = os.environ.get("RECALL_BACKEND", "legacy")
+        if backend == "stdp":
             return self._brain_emission_candidates_membrane(input_words)
+        elif backend == "shadow":
+            legacy_candidates = self._brain_emission_candidates_legacy(input_words)
+            try:
+                membrane_candidates = self._brain_emission_candidates_membrane(input_words)
+                self._log_emission_shadow_comparison(legacy_candidates, membrane_candidates, input_words)
+            except Exception as _se:
+                print(f"[GualaLoom] membrane shadow emission comparison failed "
+                      f"(non-fatal, legacy candidates still returned): {_se}")
+            return legacy_candidates
         return self._brain_emission_candidates_legacy(input_words)
 
     def _brain_emission_candidates_membrane(self, input_words):
@@ -4107,6 +4188,152 @@ class Guala:
                     candidates.append((neuron.chi_position, potential, associated_word))
 
         return sorted(candidates, key=lambda x: x[1], reverse=True)[:TOP_K_EMISSION]
+
+    # --- GL-CMD-EMISSION-SHADOW-EVE-20260709 (design only -- not enabled,
+    # not deployed): shadow-comparison support for _brain_emission_candidates.
+    # ---
+    # The two candidate SHAPES are not comparable value-for-value:
+    #   legacy:   (de, co, weight) -- co={section: {mode_idx: weight}},
+    #             weight is a vote-FRACTION in [0,1] (n_votes/total),
+    #             already gated on self._word_to_emission_sections (a real
+    #             committed section/mode home) and on self-echo exclusion.
+    #   membrane: (chi_position, potential, word) -- potential is a raw
+    #             membrane-potential float (no fixed range), word comes
+    #             straight from _neuron_to_word with NO section-home gate
+    #             and NO self-echo exclusion at all.
+    # A raw comparison of these tuples means nothing (different units,
+    # different filtering). What's actually comparable is WHICH WORDS
+    # each path would nominate to speak -- so both are resolved down to
+    # an ordered (word, weight) list first, and it's those WORD lists
+    # that get compared. See _log_emission_shadow_comparison for the
+    # agreement metric built on top of that.
+
+    def _emission_legacy_top_words(self, candidates, k=5):
+        """Resolve legacy's (de, co, weight) candidates into an ordered,
+        deduplicated (word, weight) list -- using the EXACT SAME
+        section/mode resolution _emit_from_invariants' topk path
+        already uses (ordered_sections by max mode value, best_mid by
+        max weight in that section) -- so this reflects what would
+        actually be said, not an internal weight number invented just
+        for this comparison."""
+        ranked = sorted(candidates, key=lambda c: c[2], reverse=True)
+        out = []
+        seen = set()
+        for de, co, weight in ranked:
+            ordered_sections = sorted(
+                [s for s in co.keys() if co.get(s)],
+                key=lambda s: max(co[s].values()) if co[s] else 0.0,
+                reverse=True)
+            word = None
+            for sec_name in ordered_sections:
+                sec_co = co[sec_name]
+                if not sec_co:
+                    continue
+                best_mid = max(sec_co, key=sec_co.get)
+                sec = self.sections.get(sec_name)
+                if sec is None or int(best_mid) >= len(sec.modes):
+                    continue
+                _, _, word_label = sec.modes[int(best_mid)]
+                if word_label:
+                    word = word_label.lower()
+                break
+            if word and word not in seen:
+                seen.add(word)
+                out.append((word, weight))
+            if len(out) >= k:
+                break
+        return out
+
+    def _emission_membrane_top_words(self, candidates, k=5, grounded_only=False):
+        """Resolve membrane's (chi_position, potential, word) candidates
+        (already sorted desc by potential) into an ordered, deduplicated
+        (word, potential) list. grounded_only=True additionally filters
+        to words with a real committed section home
+        (self._word_to_emission_sections) -- the same real constraint
+        legacy's own candidates already satisfy by construction. Without
+        this filter, membrane can surface words legacy could never
+        speak at all, which would inflate "disagreement" for a reason
+        that has nothing to do with whether the STDP mechanism
+        remembers the same things -- see _log_emission_shadow_comparison."""
+        out = []
+        seen = set()
+        for _chi_pos, potential, word in candidates:
+            if not word:
+                continue
+            wl = word.lower()
+            if grounded_only and wl not in self._word_to_emission_sections:
+                continue
+            if wl in seen:
+                continue
+            seen.add(wl)
+            out.append((wl, potential))
+            if len(out) >= k:
+                break
+        return out
+
+    def _log_emission_shadow_comparison(self, legacy_candidates, membrane_candidates,
+                                         input_words) -> None:
+        """Log a disagreement-relevant comparison between legacy and
+        membrane emission candidates during RECALL_BACKEND=shadow.
+        Observation only -- never affects what _brain_emission_candidates
+        returns (mirrors brain.py's _log_recall_shadow_comparison
+        contract exactly).
+
+        top1_agree is the metric the >50%-disagreement halt condition
+        (GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2's halt #3,
+        extended to this seam) should actually be computed from, over a
+        real observation window -- mirrors recall_fast's own
+        `top_match` bool:
+          - both legacy and grounded-membrane produce nothing -> agree
+            (True). Silence agreeing with silence is real agreement,
+            not a vacuous case to discard.
+          - one produces a top word and the other produces nothing ->
+            disagree (False). One backend would speak, the other would
+            stay silent -- that's exactly the kind of divergence this
+            halt condition exists to catch, not a case to skip.
+          - both produce a top word -> agree iff it's the same word.
+
+        top5_jaccard is a softer secondary signal (word-set overlap
+        across the top 5 of each, post-grounding) -- useful diagnostic
+        beyond the single pass/fail bit, not itself a halt criterion.
+
+        membrane_top5_raw (unfiltered) is logged alongside
+        membrane_top5_grounded (filtered to a real section home) so the
+        "different candidate pool, not different memory" gap stays
+        visible in the data rather than being silently averaged away --
+        n_membrane_candidates_raw vs n_membrane_candidates_grounded on
+        their own already say a lot about whether membrane's signal
+        even reaches emission-eligible words at all."""
+        legacy_top = self._emission_legacy_top_words(legacy_candidates, k=5)
+        membrane_raw = self._emission_membrane_top_words(membrane_candidates, k=5, grounded_only=False)
+        membrane_grounded = self._emission_membrane_top_words(membrane_candidates, k=5, grounded_only=True)
+
+        legacy_top1 = legacy_top[0][0] if legacy_top else None
+        membrane_top1 = membrane_grounded[0][0] if membrane_grounded else None
+        if legacy_top1 is None and membrane_top1 is None:
+            top1_agree = True
+        elif legacy_top1 is None or membrane_top1 is None:
+            top1_agree = False
+        else:
+            top1_agree = (legacy_top1 == membrane_top1)
+
+        legacy_words = {w for w, _ in legacy_top}
+        membrane_words = {w for w, _ in membrane_grounded}
+        union = legacy_words | membrane_words
+        top5_jaccard = (len(legacy_words & membrane_words) / len(union)) if union else 1.0
+
+        self._log_substrate_event(
+            "emission_shadow",
+            queries=list(input_words)[:12] if input_words else [],
+            legacy_top5=legacy_top,
+            membrane_top5_raw=membrane_raw,
+            membrane_top5_grounded=membrane_grounded,
+            n_legacy_candidates=len(legacy_candidates),
+            n_membrane_candidates_raw=len(membrane_candidates),
+            n_membrane_candidates_grounded=len(membrane_words),
+            top1_agree=top1_agree,
+            top5_jaccard=top5_jaccard,
+        )
 
     def _brain_emission_candidates_legacy(self, input_words):
         """GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 P3 / GL-NOTE-VOICE-WIRING-
@@ -7660,7 +7887,7 @@ class Guala:
             fragments = view_picture(
                 pic.intensity_grid, source_id=pic.item_id,
                 born_tick=self.tick, seed=self.tick % 10000)
-            self._visual_fragments.extend(fragments)
+            self._visual_fragments_count += len(fragments)
             # Process through sight section
             motif, is_new, overlap = self.sight.process_viewing(
                 fragments, pic.item_id, self.tick)
@@ -7760,7 +7987,7 @@ class Guala:
                         born_tick=self.tick + i, seed=(self.tick + i) % 10000,
                         n_fixations=4, ticks_per_fixation=100)
                     all_fragments.extend(frags)
-                self._visual_fragments.extend(all_fragments)
+                self._visual_fragments_count += len(all_fragments)
                 motif, is_new, overlap = self.sight.process_viewing(
                     all_fragments, vid.item_id, self.tick)
                 if motif:
@@ -8993,7 +9220,7 @@ class Guala:
                 "sight_motifs": [],
                 "sight_motifs_file": "guala_sight_motifs.json",
                 "n_sight_motifs": len(self.sight.motifs) if hasattr(self, 'sight') else 0,
-                "n_visual_fragments": len(self._visual_fragments),
+                "n_visual_fragments": self._visual_fragments_count,
             })
             _need_motif_migration = (
                 hasattr(self, 'sight')
@@ -9243,7 +9470,7 @@ class Guala:
                 "sight_motifs": [],
                 "sight_motifs_file": "guala_sight_motifs.json",
                 "n_sight_motifs": len(self.sight.motifs) if hasattr(self, 'sight') else 0,
-                "n_visual_fragments": len(self._visual_fragments),
+                "n_visual_fragments": self._visual_fragments_count,
             })
             # GL-194: vocab-scaled motif store rides the COLD lane only.
             snap_sight_motifs = self._serialize_sight_motifs()
@@ -10789,7 +11016,7 @@ class Guala:
                                "times_attended": s.times_attended}
                               for s in self._sensory_items.values()],
             # v7 Phase 2: visual perception
-            "n_visual_fragments": len(self._visual_fragments),
+            "n_visual_fragments": self._visual_fragments_count,
             "n_visual_motifs": len(self.sight.motifs),
             "sight_section": self.sight.snapshot(),
             "pictures": [{"item_id": p.item_id, "title": p.title,

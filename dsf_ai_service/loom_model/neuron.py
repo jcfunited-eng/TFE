@@ -27,15 +27,19 @@ Pieces assembled here:
 NO writes to production atlas. NO engine side effects. NO ECS/S3/deploy.
 """
 
+import logging
 import math
 import sys
 import os
 import threading
 import time
+from collections import deque
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Deque, Dict, List, Optional, Tuple
 
 import numpy as np
+
+logger = logging.getLogger("guala.neuron")
 
 # ---------------------------------------------------------------------------
 # Reused primitives — import paths only, no reimplementation
@@ -97,6 +101,80 @@ STDP_DEPRESSION_AMPLITUDE = 0.015
 MAX_SYNAPSE_WEIGHT = 5.0
 MIN_SYNAPSE_WEIGHT = 0.0
 STDP_DEFAULT_SYNAPSE_WEIGHT = 0.05  # weight for a not-yet-potentiated synapse
+
+# --- Phase 1 delivery plan Step 2: per-neuron fire-rate circuit breaker ---
+# Real 2026-07-08/09 incident: one neuron fired continuously at ~3800/sec
+# for an unknown duration (likely hours) before being caught by chance
+# during an unrelated investigation. The only existing fire-rate signal
+# (app.py's fires_per_second_last_minute) counts DISTINCT neurons that
+# fired at least once in the last 60s, divided by 60 -- it cannot see a
+# single neuron firing continuously at all (it saturates at 1/60 per
+# neuron regardless of how many times that neuron actually fired). This
+# breaker is a second, independent line of defense: it does not explain
+# or fix whatever let a neuron exceed its own refractory period (that is
+# a separate bug, elsewhere) -- it bounds the DAMAGE a runaway neuron can
+# do by refusing to keep re-injecting its output once its own recent
+# firing pattern is unambiguously pathological.
+#
+# This is a HEURISTIC circuit breaker, NOT a physical mechanism -- labeled
+# as such per this file's own convention (see tau_m_ms/refractory_period_ms
+# below). It never blocks membrane integration or STDP bookkeeping, only
+# the outgoing spike-bus re-injection that would otherwise sustain a
+# reverberating loop.
+#
+# FIRE_BREAKER_CEILING_HZ reasoning, from this neuron's own two real
+# physical bounds -- not an invented number:
+#   - refractory_period_ms=2.0 (see below) already imposes a hard
+#     physical ceiling of 1000.0 / 2.0 = 500 Hz on any neuron obeying its
+#     own refractory check in receive_spike(). A neuron sustaining a
+#     rate anywhere near that ceiling is, by construction, not doing
+#     normal work -- 500 Hz is the absolute physical floor-to-floor
+#     limit, not a target any real learning signal would approach.
+#   - tau_m_ms=20.0 (see below) sets the membrane's own integration/decay
+#     timescale: successive inputs arriving faster than 1000.0 / 20.0 =
+#     50 Hz blur together within a single decay constant and can't be
+#     distinguished by the neuron's own dynamics -- so no legitimate
+#     STDP-driven learning signal (paired spikes within the 20-40ms STDP
+#     windows above included) ever needs a SUSTAINED rate faster than
+#     this to do useful work.
+#   - FIRE_BREAKER_CEILING_HZ is set at half the hard physical ceiling
+#     (500 / 2 = 250 Hz): ~5x above the ~50 Hz realistic-need bound
+#     (generous headroom against false-tripping on real bursty activity)
+#     and 2x below the 500 Hz refractory-implied floor (so it trips well
+#     before a neuron could be sustaining fires at the bare refractory
+#     minimum -- the actual runaway signature). It sits >15x below the
+#     ~3800 Hz observed in the real incident, so it would have caught it
+#     with wide margin (see test_neuron_spike_handling.py's
+#     test_fire_rate_breaker_trips_on_runaway_pattern, which replicates
+#     the incident's real numbers).
+#   Class: from-design (derived arithmetically from this neuron's own
+#   tau_m_ms / refractory_period_ms, not independently measured or
+#   tuned). Measurement plan: if a legitimate high-activity neuron is
+#   ever observed tripping this in production, that is a real
+#   over-tightness signal -- raise the ceiling; do not shrink
+#   FIRE_BREAKER_WINDOW_N as a workaround (that narrows the detection
+#   window instead of fixing a real false trip).
+FIRE_BREAKER_WINDOW_N = 30       # HEURISTIC: small, memory-bounded
+                                  # per-neuron deque length (task's own
+                                  # 20-50 guidance). Class: from-design --
+                                  # large enough to distinguish a
+                                  # sustained runaway from a brief
+                                  # legitimate burst, small enough to be
+                                  # a negligible fixed cost per neuron
+                                  # (30 floats) across the whole substrate.
+FIRE_BREAKER_CEILING_HZ = 250.0  # HEURISTIC: see reasoning above.
+
+# 2026-07-09 overnight verification finding: a neuron stuck at the
+# original incident's own ~3800Hz would log one warning.warning() per
+# trip with no rate limit -- thousands of lines/second, indefinitely,
+# for exactly as long as the upstream cause (the thing the breaker
+# contains, not fixes) keeps driving it. No logging.basicConfig exists
+# in this app, so these fall through to the default stderr handler,
+# which ECS ships to CloudWatch Logs -- a real repeat of the incident
+# could turn into a log-flooding/cost incident layered on the CPU one.
+# Once per this many real seconds per neuron is enough to see the
+# problem exists and how long it's lasted without flooding.
+FIRE_BREAKER_LOG_INTERVAL_S = 1.0  # HEURISTIC: once/sec/neuron is plenty for visibility.
 
 # Reserved source_id prefix for non-synaptic (external) spike sources --
 # direct word/cue injection from LoomBrain.step or recall's cue injection,
@@ -596,6 +674,27 @@ class LoomNeuron:
         # neurons are unaffected.
         self._word_firing_callback = None
 
+        # --- Phase 1 delivery plan Step 2: fire-rate circuit breaker state ---
+        # Bounded (maxlen=FIRE_BREAKER_WINDOW_N) deque of this neuron's own
+        # most recent fire timestamps (time.monotonic() seconds), oldest
+        # first. Memory cost is fixed and tiny (FIRE_BREAKER_WINDOW_N
+        # floats) regardless of how many times the neuron has ever fired --
+        # appending past maxlen silently evicts the oldest entry, no
+        # unbounded growth. Read by _check_fire_rate_breaker() in _fire()
+        # and by app.py's /debug/stdp_state for the real windowed
+        # fire-rate metric (see neuron.py FIRE_BREAKER_CEILING_HZ comment
+        # and app.py's _fire_rate_window_metrics).
+        self._recent_fire_timestamps: Deque[float] = deque(maxlen=FIRE_BREAKER_WINDOW_N)
+        # Observability only -- total number of fires this neuron has ever
+        # had its outgoing propagation skipped for by the breaker, since
+        # construction or last restore. Never read by the breaker's own
+        # trip decision (that's purely a function of _recent_fire_timestamps).
+        self._fire_breaker_trip_count: int = 0
+        # Rate-limits the trip warning log itself (FIRE_BREAKER_LOG_INTERVAL_S
+        # comment) -- separate from _recent_fire_timestamps, which the trip
+        # decision itself depends on and must never be throttled.
+        self._last_breaker_log_time_s: float = 0.0
+
         # Apply birth_params if this is a daughter neuron
         if birth_params is not None:
             self._apply_birth_params(birth_params)
@@ -661,6 +760,18 @@ class LoomNeuron:
             self._incoming_synapse_weights = {}
         if not hasattr(self, '_last_fire_time_s'):
             self._last_fire_time_s = 0.0
+        # Phase 1 delivery plan Step 2 (fire-rate circuit breaker) backfill.
+        # A deque backfilled empty (rather than absent) starts the breaker
+        # cold for a restored neuron -- correct: we have no real timestamp
+        # history for fires that happened before this field existed, and
+        # fabricating one would violate this codebase's substrate-true
+        # rule against invented data.
+        if not hasattr(self, '_recent_fire_timestamps'):
+            self._recent_fire_timestamps = deque(maxlen=FIRE_BREAKER_WINDOW_N)
+        if not hasattr(self, '_fire_breaker_trip_count'):
+            self._fire_breaker_trip_count = 0
+        if not hasattr(self, '_last_breaker_log_time_s'):
+            self._last_breaker_log_time_s = 0.0
         # Unlike LoomBrain.step() (which reads _spike_bus via a defensive
         # getattr), _fire() and _on_fire_bookkeeping() access
         # self._spike_bus / self._word_firing_callback directly -- an
@@ -825,17 +936,82 @@ class LoomNeuron:
             if target is not None:
                 target._receive_upstream_fire_notification(self.neuron_id, now)
 
+    def _check_fire_rate_breaker(self, now: float) -> Tuple[bool, Optional[float]]:
+        """Phase 1 delivery plan Step 2: HEURISTIC circuit breaker, NOT a
+        physical mechanism (see FIRE_BREAKER_CEILING_HZ comment above for
+        the reasoning behind the threshold).
+
+        Appends `now` to the bounded recent-fire-timestamp deque
+        (maxlen=FIRE_BREAKER_WINDOW_N, memory-bounded regardless of how
+        many times this neuron has ever fired) and, once the deque holds
+        a full window, computes the fire rate spanning its oldest to
+        newest entry.
+
+        Returns (tripped, recent_rate_hz). recent_rate_hz is None until
+        the deque has filled for the first time (not enough history yet
+        to judge a rate -- a neuron can't be flagged runaway on its first
+        FIRE_BREAKER_WINDOW_N-1 fires ever). Caller holds
+        self._neuron_lock (this is only ever called from _fire(), which
+        is only ever called from receive_spike() while the lock is held,
+        or directly by a test)."""
+        self._recent_fire_timestamps.append(now)
+        if len(self._recent_fire_timestamps) < self._recent_fire_timestamps.maxlen:
+            return False, None
+        span_s = now - self._recent_fire_timestamps[0]
+        if span_s <= 0:
+            # FIRE_BREAKER_WINDOW_N-1 fires within an unmeasurably small
+            # (or zero, e.g. clock-resolution-limited) span -- unambiguously
+            # a runaway at any real timescale, not legitimate activity.
+            return True, float("inf")
+        recent_rate_hz = (len(self._recent_fire_timestamps) - 1) / span_s
+        return recent_rate_hz > FIRE_BREAKER_CEILING_HZ, recent_rate_hz
+
     def _fire(self, now: float, triggering_spike=None) -> None:
         """Neuron fires: apply STDP potentiation from recent presynaptic
         history, reset membrane, set refractory, emit spikes to all
         coupled neighbors via the spike bus (if one is set) with computed
         delays, notify downstream neurons synchronously for depression
-        bookkeeping. Caller holds self._neuron_lock."""
+        bookkeeping. Caller holds self._neuron_lock.
+
+        Phase 1 delivery plan Step 2: before emitting, checks the
+        HEURISTIC fire-rate circuit breaker (_check_fire_rate_breaker).
+        If tripped, this fire's outgoing spike-bus re-injection is
+        skipped -- membrane reset, refractory, STDP potentiation, the
+        synchronous downstream depression notification, and chi_atlas
+        bookkeeping below all still happen unconditionally; only the
+        propagation that would sustain a runaway reverberating loop is
+        stopped."""
         self._apply_stdp_potentiation(now)
 
         self.membrane_potential = self.membrane_rest
         self.refractory_until_s = now + self.refractory_period_ms / 1000.0
         self._last_fire_time_s = now
+
+        breaker_tripped, recent_rate_hz = self._check_fire_rate_breaker(now)
+        if breaker_tripped:
+            self._fire_breaker_trip_count += 1
+            # 2026-07-09 overnight verification finding: this used to log
+            # unconditionally, every trip -- a neuron stuck at the original
+            # incident's own ~3800Hz would emit thousands of lines/second,
+            # indefinitely, turning the thing meant to contain the incident
+            # into a second, log-flooding incident on top of it. Rate-limit
+            # to once per FIRE_BREAKER_LOG_INTERVAL_S per neuron -- the trip
+            # decision itself (_recent_fire_timestamps) is untouched by this,
+            # only the logging is throttled.
+            if now - self._last_breaker_log_time_s >= FIRE_BREAKER_LOG_INTERVAL_S:
+                self._last_breaker_log_time_s = now
+                logger.warning(
+                    "fire_rate_breaker_tripped neuron_id=%r recent_rate_hz=%s "
+                    "ceiling_hz=%.1f window_n=%d trip_count=%d -- outgoing "
+                    "spike propagation skipped for this fire (membrane reset, "
+                    "refractory, and STDP bookkeeping still applied; this log "
+                    "line is rate-limited to 1/%.0fs, trip_count reflects the "
+                    "real total)",
+                    self.neuron_id,
+                    ("inf" if recent_rate_hz == float("inf") else f"{recent_rate_hz:.1f}"),
+                    FIRE_BREAKER_CEILING_HZ, FIRE_BREAKER_WINDOW_N,
+                    self._fire_breaker_trip_count, FIRE_BREAKER_LOG_INTERVAL_S,
+                )
 
         if self._spike_bus is not None:
             # Sign the outgoing weight by this neuron's own transmitter
@@ -855,15 +1031,21 @@ class LoomNeuron:
             # Outgoing coupling magnitude (couplings.J) stays
             # topology-derived and non-negative, as before; only the sign
             # of what's actually injected changes.
-            polarity = getattr(self, '_polarity', 1.0)
-            for target_id, weight in self._get_outgoing_synapses():
-                delay_ms = self._compute_propagation_delay_ms(target_id)
-                self._spike_bus.inject(
-                    target_id=target_id,
-                    source_id=self.neuron_id,
-                    weight=weight * polarity,
-                    arrival_delay_ms=delay_ms,
-                )
+            if not breaker_tripped:
+                polarity = getattr(self, '_polarity', 1.0)
+                for target_id, weight in self._get_outgoing_synapses():
+                    delay_ms = self._compute_propagation_delay_ms(target_id)
+                    self._spike_bus.inject(
+                        target_id=target_id,
+                        source_id=self.neuron_id,
+                        weight=weight * polarity,
+                        arrival_delay_ms=delay_ms,
+                    )
+            # Downstream depression notification is bookkeeping (adjusts
+            # synapse weights), not signal propagation -- it does not feed
+            # a runaway loop, so it still runs even when the breaker trips.
+            # (If anything, it only ever weakens a synapse, which works
+            # against a runaway, never for one.)
             self._notify_downstream_of_fire(now)
 
         word = None

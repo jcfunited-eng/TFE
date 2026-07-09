@@ -164,19 +164,30 @@ def test_worker_loop_injects_on_word_item():
 
 
 def test_worker_loop_injects_on_sensory_item():
-    g = _fresh_guala()
+    """GL-CMD-SENSORY-SPIKE-GATE-EVE-20260709-v1: the sensory branch is now
+    gated SEPARATELY (SENSORY_SPIKE_INJECTION_ENABLED, default "0") from
+    EVENT_DRIVEN_SUBSTRATE -- see test_sensory_spike_gate.py for the
+    default-off/on behavior this test used to cover implicitly. This test
+    now explicitly opts in, to keep proving the injection call itself
+    still works end-to-end through the worker loop when both gates are
+    open."""
+    os.environ["SENSORY_SPIKE_INJECTION_ENABLED"] = "1"
     try:
-        before = g._spike_bus.injected_count
-        hemi_id = g.organism.brain.hemispheres[0].hemi_id
-        g._enqueue_organism_sensory(hemi_id, [0.1, 0.2, 0.3, 0.4], tick=1, input_chi=5)
-        deadline = time.monotonic() + 3.0
-        while time.monotonic() < deadline and g._spike_bus.injected_count == before:
-            time.sleep(0.05)
-        assert g._spike_bus.injected_count > before, (
-            "worker loop did not inject any spikes for a sensory item within 3s")
-        print("test_worker_loop_injects_on_sensory_item: PASS")
+        g = _fresh_guala()
+        try:
+            before = g._spike_bus.injected_count
+            hemi_id = g.organism.brain.hemispheres[0].hemi_id
+            g._enqueue_organism_sensory(hemi_id, [0.1, 0.2, 0.3, 0.4], tick=1, input_chi=5)
+            deadline = time.monotonic() + 3.0
+            while time.monotonic() < deadline and g._spike_bus.injected_count == before:
+                time.sleep(0.05)
+            assert g._spike_bus.injected_count > before, (
+                "worker loop did not inject any spikes for a sensory item within 3s")
+            print("test_worker_loop_injects_on_sensory_item: PASS")
+        finally:
+            g.shutdown()
     finally:
-        g.shutdown()
+        os.environ.pop("SENSORY_SPIKE_INJECTION_ENABLED", None)
 
 
 if __name__ == "__main__":

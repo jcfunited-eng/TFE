@@ -2472,7 +2472,7 @@ async def gualaloom_chat(msg: GLMessage):
                         frags = vp(pic.intensity_grid, source_id=picture_ref,
                                    born_tick=_guala.tick, seed=_guala.tick % 10000,
                                    n_fixations=6, ticks_per_fixation=100)
-                        _guala._visual_fragments.extend(frags)
+                        _guala._visual_fragments_count += len(frags)
                         motif, is_new, overlap = _guala.sight.process_viewing(
                             frags, picture_ref, _guala.tick)
                         if motif:
@@ -2510,7 +2510,7 @@ async def gualaloom_chat(msg: GLMessage):
                     frags = vp(grid, source_id=img_id,
                                born_tick=_guala.tick, seed=_guala.tick % 10000,
                                n_fixations=6, ticks_per_fixation=100)
-                    _guala._visual_fragments.extend(frags)
+                    _guala._visual_fragments_count += len(frags)
                     motif, is_new, overlap = _guala.sight.process_viewing(
                         frags, img_id, _guala.tick)
                     if motif:
@@ -5186,6 +5186,13 @@ def _stdp_snapshot_neuron(neuron, now_s: float) -> dict:
         membrane_rest = neuron.membrane_rest
         tau_m_ms = neuron.tau_m_ms
         fire_count = neuron.chi_atlas.tick  # one record() call per fire -- see neuron.py _on_fire_bookkeeping
+        # Phase 1 delivery plan Step 2: copy out the bounded recent-fire-
+        # timestamp deque (list() of a deque under the lock is a cheap,
+        # correct atomic-enough snapshot -- same convention as the dict()
+        # copies above) and the breaker trip counter, for the real
+        # windowed fire-rate metric (_fire_rate_window_metrics below).
+        recent_fire_timestamps = list(neuron._recent_fire_timestamps)
+        fire_breaker_trip_count = neuron._fire_breaker_trip_count
     dt_ms = (now_s - last_update) * 1000.0
     if dt_ms > 0 and tau_m_ms > 0:
         decay = math.exp(-dt_ms / tau_m_ms)
@@ -5199,6 +5206,8 @@ def _stdp_snapshot_neuron(neuron, now_s: float) -> dict:
         "decayed_potential": decayed_potential,
         "refractory_until_s": refractory_until,
         "fire_count": fire_count,
+        "recent_fire_timestamps": recent_fire_timestamps,
+        "fire_breaker_trip_count": fire_breaker_trip_count,
     }
 
 
@@ -5284,7 +5293,115 @@ def _fire_event_metrics(neuron_snapshots: list, now_s: float, uptime_s: float) -
             "in the window is only counted once). No time-series counter "
             "exists, per this dispatch's own 'no historical time-series "
             "storage' constraint -- this is the best reading available "
-            "from existing per-neuron state alone.",
+            "from existing per-neuron state alone. IMPORTANT: this metric "
+            "CANNOT detect a single neuron firing continuously (it "
+            "saturates at 1/60 per neuron no matter how many times that "
+            "neuron actually fired) -- this is exactly how the real "
+            "2026-07-08/09 runaway-neuron incident (~3800 fires/sec, "
+            "caught by chance) went unseen. See "
+            "fire_rate_window_metrics below for a metric that can "
+            "actually detect that failure class.",
+        ],
+    }
+
+
+def _fire_rate_window_metrics(neuron_snapshots: list, neuron_word_map: dict) -> dict:
+    """Phase 1 delivery plan Step 2: a REAL windowed fire-rate metric,
+    designed specifically to detect the class of incident
+    fires_per_second_last_minute above cannot see: a single neuron firing
+    continuously at a high rate.
+
+    Reads each neuron's own bounded recent-fire-timestamp deque
+    (LoomNeuron._recent_fire_timestamps, maxlen=FIRE_BREAKER_WINDOW_N --
+    see neuron.py) and computes the actual fire rate spanning that
+    neuron's own last N fires, wherever/whenever they happened -- this is
+    a true per-neuron event-rate over a real recent window, not an
+    approximation. A neuron is flagged in runaway_neurons if that rate
+    exceeds FIRE_BREAKER_CEILING_HZ -- the SAME threshold the live
+    circuit breaker in neuron.py's _fire() uses to trip (see that file's
+    reasoning comment) -- so this metric is a direct read of the
+    breaker's own trip condition, not a separately-invented display
+    threshold.
+
+    Verification that this would have caught the real 2026-07-08/09
+    incident: test_debug_stdp_state.py's
+    test_fire_rate_window_metrics_flags_incident_reproduction builds a
+    neuron snapshot with FIRE_BREAKER_WINDOW_N timestamps spaced at the
+    incident's observed ~3800/sec and asserts this function flags it
+    (while a neuron firing at a realistic STDP-driven rate is not
+    flagged) -- run and passing locally (see test run output in the
+    accompanying report)."""
+    from dsf_ai_service.loom_model.neuron import (
+        FIRE_BREAKER_CEILING_HZ, FIRE_BREAKER_WINDOW_N,
+    )
+
+    per_neuron = []
+    for snap in neuron_snapshots:
+        timestamps = snap.get("recent_fire_timestamps") or []
+        rate_hz = None
+        window_span_s = None
+        if len(timestamps) >= 2:
+            window_span_s = timestamps[-1] - timestamps[0]
+            rate_hz = (
+                (len(timestamps) - 1) / window_span_s
+                if window_span_s > 0 else float("inf")
+            )
+        per_neuron.append({
+            "neuron_id": snap["neuron_id"],
+            "recent_fire_count_in_window": len(timestamps),
+            "recent_window_span_s": window_span_s,
+            "recent_fire_rate_hz": rate_hz,
+            "fire_breaker_trip_count": snap.get("fire_breaker_trip_count", 0),
+        })
+
+    # "Saturated within a short window" (task's own phrasing) is exactly
+    # rate_hz > ceiling restated in time terms: the window (of
+    # FIRE_BREAKER_WINDOW_N fires) filled in less time than the ceiling
+    # would allow. Only neurons whose deque is fully saturated (a full
+    # window's worth of real history to judge, matching the breaker's
+    # own "not enough history yet" guard) are eligible to be flagged.
+    runaway = [
+        p for p in per_neuron
+        if p["recent_fire_count_in_window"] == FIRE_BREAKER_WINDOW_N
+        and p["recent_fire_rate_hz"] is not None
+        and p["recent_fire_rate_hz"] > FIRE_BREAKER_CEILING_HZ
+    ]
+    runaway_sorted = sorted(
+        runaway,
+        key=lambda p: (p["recent_fire_rate_hz"] if p["recent_fire_rate_hz"] != float("inf")
+                       else float("inf")),
+        reverse=True,
+    )
+    total_trips = sum(p["fire_breaker_trip_count"] for p in per_neuron)
+
+    return {
+        "window_n": FIRE_BREAKER_WINDOW_N,
+        "ceiling_hz": FIRE_BREAKER_CEILING_HZ,
+        "neurons_with_runaway_fire_pattern": len(runaway_sorted),
+        "runaway_neurons": [
+            {
+                "neuron_id": p["neuron_id"],
+                "recent_fire_rate_hz": p["recent_fire_rate_hz"],
+                "recent_window_span_s": p["recent_window_span_s"],
+                "word": neuron_word_map.get(p["neuron_id"]),
+            }
+            for p in runaway_sorted[:20]
+        ],
+        "total_fire_breaker_trips_since_boot_or_restore": total_trips,
+        "notes": [
+            "recent_fire_rate_hz is computed per-neuron from its own "
+            f"bounded recent-fire-timestamp deque (last {FIRE_BREAKER_WINDOW_N} "
+            "fires, wherever/whenever they happened) -- unlike "
+            "fire_event_metrics.fires_per_second_last_minute (distinct "
+            "neurons firing at least once per 60s), this detects a SINGLE "
+            "neuron firing continuously at high rate -- the exact failure "
+            "class of the 2026-07-08/09 incident. A neuron only appears "
+            "in runaway_neurons once its window has fully saturated "
+            f"({FIRE_BREAKER_WINDOW_N} real fires recorded) AND that "
+            f"window's rate exceeds {FIRE_BREAKER_CEILING_HZ} Hz -- the "
+            "same ceiling the live circuit breaker in neuron.py uses to "
+            "skip outgoing propagation, so this list and the breaker's "
+            "own trips agree by construction.",
         ],
     }
 
@@ -5411,6 +5528,14 @@ def _build_stdp_snapshot(guala) -> dict:
     except Exception:
         log.exception("stdp_state: fire event metrics failed")
         result["fire_event_metrics"] = {"error": "unavailable"}
+
+    try:
+        fire_rate_neuron_word_map = dict(guala._neuron_word_map)
+        result["fire_rate_window_metrics"] = _fire_rate_window_metrics(
+            neuron_snapshots, fire_rate_neuron_word_map)
+    except Exception:
+        log.exception("stdp_state: fire rate window metrics failed")
+        result["fire_rate_window_metrics"] = {"error": "unavailable"}
 
     try:
         result["spike_bus_metrics"] = _spike_bus_metrics(guala, now_s)

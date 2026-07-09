@@ -23,6 +23,7 @@ from dsf_ai_service.loom_model.neuron import (
     LoomNeuron, DEFAULT_DELAY_MS, STDP_DEFAULT_SYNAPSE_WEIGHT,
     STDP_POTENTIATION_AMPLITUDE, STDP_DEPRESSION_AMPLITUDE,
     MAX_SYNAPSE_WEIGHT, MIN_SYNAPSE_WEIGHT, STDP_WINDOW_MS,
+    FIRE_BREAKER_WINDOW_N, FIRE_BREAKER_CEILING_HZ,
 )
 from dsf_ai_service.substrate.spike_bus import PendingSpike
 
@@ -331,6 +332,180 @@ def test_chi_atlas_written_on_fire():
     print("test_chi_atlas_written_on_fire: PASS")
 
 
+# ---------------------------------------------------------------------------
+# Phase 1 delivery plan Step 2: fire-rate circuit breaker
+#
+# Real incident (2026-07-08/09): one neuron fired continuously at
+# ~3800/sec for an unknown duration before being caught by chance. These
+# tests drive _fire() directly with controlled `now` values (real-time
+# sleeps would be flaky/slow for a ~3800Hz reproduction) to exercise the
+# breaker's own decision function precisely, plus one end-to-end test
+# through the real receive_spike() -> _fire() call path.
+# ---------------------------------------------------------------------------
+
+class _RecordingBus:
+    """Fake SpikeBus: records every inject() call, does not deliver
+    anything -- isolates the breaker's propagation-skip decision from
+    real spike delivery/threading."""
+    _neuron_registry = {}
+
+    def __init__(self):
+        self.injected = []
+
+    def inject(self, target_id, source_id, weight, arrival_delay_ms=0.0, metadata=None):
+        self.injected.append((target_id, source_id, weight, arrival_delay_ms))
+
+
+def _wire_single_target_neuron(n, target_id="n2", weight=0.7):
+    import numpy as np
+    n.couplings.neighbors = [target_id]
+    n.couplings.J = np.array([[weight] * 16])
+    bus = _RecordingBus()
+    n.set_spike_bus(bus)
+    return bus
+
+
+def test_fire_rate_breaker_trips_on_runaway_pattern():
+    """Reproduces the real incident's own numbers: drives _fire() at a
+    ~3800/sec interval for exactly FIRE_BREAKER_WINDOW_N fires. The fire
+    that fills the window must trip the breaker -- outgoing spike
+    propagation skipped -- while membrane reset, refractory, and
+    _last_fire_time_s bookkeeping still happen on that same fire."""
+    n = LoomNeuron("n1")
+    bus = _wire_single_target_neuron(n)
+    n.membrane_rest = 0.0
+
+    interval_s = 1.0 / 3800.0
+    now = time.monotonic()
+    # Fill the window to one short of full -- these all propagate normally
+    # (not enough history yet for the breaker to judge a rate).
+    for _ in range(FIRE_BREAKER_WINDOW_N - 1):
+        now += interval_s
+        n.membrane_potential = 5.0
+        n._fire(now)
+    injected_before_trip = len(bus.injected)
+    assert n._fire_breaker_trip_count == 0
+    assert injected_before_trip == FIRE_BREAKER_WINDOW_N - 1
+
+    # This fire fills the window at ~3800Hz -- must trip.
+    now += interval_s
+    n.membrane_potential = 5.0  # nonzero, to prove _fire() still resets it
+    n._fire(now)
+
+    assert n._fire_breaker_trip_count == 1, n._fire_breaker_trip_count
+    assert len(bus.injected) == injected_before_trip, (
+        "tripped fire must not add a new outgoing spike-bus injection")
+    assert n.membrane_potential == 0.0, "membrane must still reset on a tripped fire"
+    assert n.refractory_until_s > now, "refractory must still be set on a tripped fire"
+    assert n._last_fire_time_s == now
+    print("test_fire_rate_breaker_trips_on_runaway_pattern: PASS")
+
+
+def test_fire_rate_breaker_keeps_tripping_while_runaway_persists():
+    """Not a one-shot latch: every fire past the window filling keeps
+    tripping (and keeps skipping propagation) as long as the pathological
+    rate continues."""
+    n = LoomNeuron("n1")
+    bus = _wire_single_target_neuron(n)
+    n.membrane_rest = 0.0
+
+    interval_s = 1.0 / 3800.0
+    now = time.monotonic()
+    extra = 10
+    for _ in range(FIRE_BREAKER_WINDOW_N + extra):
+        now += interval_s
+        n.membrane_potential = 5.0
+        n._fire(now)
+
+    assert n._fire_breaker_trip_count == extra + 1, n._fire_breaker_trip_count
+    # Only the fires before the window first filled ever propagated;
+    # every fire from the window filling onward tripped and skipped.
+    assert len(bus.injected) == FIRE_BREAKER_WINDOW_N - 1, len(bus.injected)
+    print("test_fire_rate_breaker_keeps_tripping_while_runaway_persists: PASS")
+
+
+def test_fire_rate_breaker_not_tripped_before_window_fills():
+    """Fewer than FIRE_BREAKER_WINDOW_N fires ever -- even at a
+    pathological rate -- must not trip: not enough history yet to judge
+    a rate (matches _check_fire_rate_breaker's documented guard)."""
+    n = LoomNeuron("n1")
+    bus = _wire_single_target_neuron(n)
+    n.membrane_rest = 0.0
+
+    interval_s = 1.0 / 3800.0
+    now = time.monotonic()
+    for _ in range(FIRE_BREAKER_WINDOW_N - 1):
+        now += interval_s
+        n.membrane_potential = 5.0
+        n._fire(now)
+
+    assert n._fire_breaker_trip_count == 0
+    assert len(bus.injected) == FIRE_BREAKER_WINDOW_N - 1
+    print("test_fire_rate_breaker_not_tripped_before_window_fills: PASS")
+
+
+def test_fire_rate_breaker_never_trips_at_realistic_stdp_rate():
+    """A neuron firing at a realistic, generously-below-ceiling sustained
+    rate (20 Hz -- well under the ~50Hz realistic-need bound reasoned
+    from tau_m_ms=20.0, and >10x under FIRE_BREAKER_CEILING_HZ) must
+    never trip, even run for several multiples of the window size."""
+    n = LoomNeuron("n1")
+    bus = _wire_single_target_neuron(n)
+    n.membrane_rest = 0.0
+
+    interval_s = 1.0 / 20.0
+    now = time.monotonic()
+    total_fires = FIRE_BREAKER_WINDOW_N * 3
+    for _ in range(total_fires):
+        now += interval_s
+        n.membrane_potential = 5.0
+        n._fire(now)
+
+    assert n._fire_breaker_trip_count == 0, n._fire_breaker_trip_count
+    assert len(bus.injected) == total_fires
+    print("test_fire_rate_breaker_never_trips_at_realistic_stdp_rate: PASS")
+
+
+def test_fire_rate_breaker_end_to_end_via_receive_spike():
+    """Exercises the real production call path (receive_spike -> _fire),
+    not just direct _fire() calls -- confirms the wiring. A tight
+    in-process Python loop calling receive_spike back-to-back easily
+    exceeds FIRE_BREAKER_CEILING_HZ (250 Hz = one fire per 4ms) in real
+    wall-clock time on any real machine, so this reliably trips."""
+    n = LoomNeuron("n1")
+    bus = _wire_single_target_neuron(n)
+    n.membrane_threshold = 1.0
+    n.membrane_rest = 0.0
+    n.refractory_period_ms = 0.0  # let receive_spike's refractory check pass every call
+
+    for _ in range(FIRE_BREAKER_WINDOW_N + 5):
+        n.receive_spike(_spike(1.5, source="_input_injection_"))
+
+    assert n._fire_breaker_trip_count > 0, (
+        "a tight in-process loop firing back-to-back should easily "
+        "exceed FIRE_BREAKER_CEILING_HZ and trip the breaker"
+    )
+    print("test_fire_rate_breaker_end_to_end_via_receive_spike: PASS")
+
+
+def test_fire_rate_breaker_bounded_memory():
+    """_recent_fire_timestamps never grows past FIRE_BREAKER_WINDOW_N no
+    matter how many times the neuron fires -- the memory-bounded
+    requirement."""
+    n = LoomNeuron("n1")
+    _wire_single_target_neuron(n)
+    n.membrane_rest = 0.0
+
+    now = time.monotonic()
+    for i in range(FIRE_BREAKER_WINDOW_N * 5):
+        now += 0.05  # 20Hz, realistic, non-tripping
+        n.membrane_potential = 5.0
+        n._fire(now)
+        assert len(n._recent_fire_timestamps) <= FIRE_BREAKER_WINDOW_N
+    assert len(n._recent_fire_timestamps) == FIRE_BREAKER_WINDOW_N
+    print("test_fire_rate_breaker_bounded_memory: PASS")
+
+
 if __name__ == "__main__":
     test_receive_spike_adds_weight_to_membrane()
     test_receive_spike_fires_at_threshold()
@@ -355,4 +530,10 @@ if __name__ == "__main__":
     test_word_firing_callback_not_invoked_without_word_metadata()
     test_word_firing_callback_not_invoked_for_propagated_synaptic_fire()
     test_chi_atlas_written_on_fire()
+    test_fire_rate_breaker_trips_on_runaway_pattern()
+    test_fire_rate_breaker_keeps_tripping_while_runaway_persists()
+    test_fire_rate_breaker_not_tripped_before_window_fills()
+    test_fire_rate_breaker_never_trips_at_realistic_stdp_rate()
+    test_fire_rate_breaker_end_to_end_via_receive_spike()
+    test_fire_rate_breaker_bounded_memory()
     print("ALL PASS: test_neuron_spike_handling")
