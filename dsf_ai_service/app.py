@@ -5002,18 +5002,15 @@ async def startup():
                 print(f"[DSF-AI] S3 backup error: {e}")
     asyncio.ensure_future(_daily_s3_backup())
 
-    # GL-CMD-SAVE-TRUTH-84: Hourly S3 sync — uploads EFS state as-is regardless
-    # of save completion. Date-stamped prefix; complements the 24h daily backup.
-    async def _hourly_s3_sync():
-        loop = asyncio.get_event_loop()
-        while True:
-            await asyncio.sleep(3600)
-            try:
-                if _guala is not None:
-                    await loop.run_in_executor(None, _backup_to_s3, STATE_DIR)
-            except Exception as e:
-                print(f"[DSF-AI] Hourly S3 sync error: {e}")
-    asyncio.ensure_future(_hourly_s3_sync())
+    # GL-CMD-SAVE-TRUTH-84 (retired 2026-07-09): this ran _backup_to_s3 --
+    # the SAME upload as _daily_s3_backup just above -- every hour,
+    # unconditionally, uncompressed. Real, live contributor to the S3
+    # bloat found and cleaned up tonight (~95 near-duplicate guala/
+    # <timestamp>/ snapshot folders, ~5.6 GiB, matching roughly 4 days x
+    # 24/day). Joe's explicit call tonight: one backup a day, not one an
+    # hour "complementing" a daily one that already covers the same
+    # state. _daily_s3_backup (above) plus the boot-time backup in
+    # _eager_init already give a real daily cadence without this.
 
     # GL-CMD-74: Job registry GC — expire old jobs every 60 seconds
     async def _job_registry_gc():
@@ -5094,8 +5091,23 @@ def _restore_from_s3(state_dir):
             # pictures/xxx.npy → state/pictures/xxx.npy
             subdir = os.path.join(state_dir, os.path.dirname(filename))
             os.makedirs(subdir, exist_ok=True)
-        local_path = os.path.join(state_dir, filename)
-        s3.download_file(bucket, key, local_path)
+        # 2026-07-09: _backup_to_s3 now gzips the plain .json files before
+        # upload (guala_core.json -> guala_core.json.gz on S3) -- undo
+        # that here so load_full_state finds the plain filenames it
+        # expects locally, same fix as substrate_runner.py's equivalent
+        # restore path for the guala/auto/ backups. Older backups
+        # written before this change are still plain and fall through
+        # to the else branch unchanged.
+        if filename.endswith(".json.gz"):
+            real_filename = filename[:-3]
+            local_path = os.path.join(state_dir, real_filename)
+            import gzip as _gzip
+            obj_body = s3.get_object(Bucket=bucket, Key=key)["Body"].read()
+            with open(local_path, "wb") as f:
+                f.write(_gzip.decompress(obj_body))
+        else:
+            local_path = os.path.join(state_dir, filename)
+            s3.download_file(bucket, key, local_path)
     print(f"[GualaLoom] Restored {len(objs.get('Contents', []))} files from S3")
 
 
@@ -5117,7 +5129,21 @@ def _backup_to_s3(state_dir):
         path = os.path.join(state_dir, f)
         if os.path.exists(path):
             try:
-                s3.upload_file(path, bucket, prefix + f)
+                if f.endswith(".json"):
+                    # 2026-07-09: same fix as save_coordinator.py's S3
+                    # mirror -- these plain JSON files (several MB each)
+                    # were uploaded byte-for-byte; the .pkl.gz files
+                    # below were already compressed. Compress in memory
+                    # for the S3 copy only; the local EFS file this
+                    # reads from stays plain, untouched.
+                    import gzip as _gzip
+                    import io as _io
+                    with open(path, "rb") as _fh:
+                        _raw = _fh.read()
+                    _buf = _io.BytesIO(_gzip.compress(_raw))
+                    s3.upload_fileobj(_buf, bucket, prefix + f + ".gz")
+                else:
+                    s3.upload_file(path, bucket, prefix + f)
                 backed += 1
             except Exception as e:
                 print(f"[DSF-AI] S3 backup {f} failed: {e}")
