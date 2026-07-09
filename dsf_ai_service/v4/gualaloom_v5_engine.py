@@ -6851,10 +6851,38 @@ class Guala:
         if _habituation_eligible:
             novelty_term = max(NOVELTY_TERM_FLOOR_RATE * nov_payoff, novelty_term)
 
+        # 2026-07-09 sleep-trap fix: the comment above (2026-07-0x, prior
+        # session) already diagnosed this exact asymmetry but the shipped
+        # fix (the habituation floor, just above) only covers habituation-
+        # eligible kinds (READING/ATTENDING*) -- SLEEPING and IDLE never
+        # go through that branch at all, so their own negative payoffs
+        # (SLEEPING nov=-0.1; IDLE nov=-0.05, conn=-0.05; EMITTING
+        # stab=-0.1) were left exposed to the same sign-flip: a negative
+        # payoff times a negative signed-distance (an OVER-saturated need)
+        # is POSITIVE -- rewarding these kinds for exactly the over-
+        # saturation that correctly suppresses every positive-payoff kind
+        # at the same ceiling. Confirmed live: with novelty/connection
+        # pinned near 1.0, this is what turns "she's had enough novelty"
+        # into a standing, unbreakable preference for SLEEPING -- first
+        # flagged (not root-caused) in GL-RPT-BINDING-WINDOWS-BUILD-
+        # C1-20260706-v1, reconfirmed unresolved as of yesterday's harness
+        # report. The correct, intended half of a negative payoff --
+        # penalizing a kind when the need it doesn't help with is UNMET
+        # (signed_distance > 0, term already negative) -- is untouched;
+        # only the erroneous reward at the opposite extreme is capped to
+        # zero, symmetric with how NOVELTY_TERM_FLOOR_RATE already
+        # protects positive-payoff kinds from an unbounded penalty there.
+        if nov_payoff < 0:
+            novelty_term = min(0.0, novelty_term)
+        stab_term = sd["stability"] * stab_payoff
+        if stab_payoff < 0:
+            stab_term = min(0.0, stab_term)
+        conn_term = sd["connection"] * conn_payoff
+        if conn_payoff < 0:
+            conn_term = min(0.0, conn_term)
+
         # Signed-distance dot payoff
-        score = (novelty_term
-                 + sd["stability"] * stab_payoff
-                 + sd["connection"] * conn_payoff)
+        score = novelty_term + stab_term + conn_term
 
         # GL-CMD-C4-SLEEP-CHOICE: dream_pressure modifiers
         dp = getattr(self.needs, 'dream_pressure', 0.0)
