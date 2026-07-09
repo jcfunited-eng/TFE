@@ -631,6 +631,28 @@ export async function runSentinel() {
 
   console.log(`[SENTINEL] Open positions: ${positions.length} | SPY D_k: ${spyDk ?? "unknown"}`);
 
+  // ── CH3 EOD forced close: no overnight holds for the scalp channel ────────
+  // CH3 is intraday-only. Any open CH3 position at 15:30 ET (19:30 UTC) gets
+  // force-closed via market sell before the 16:00 close. The bracket TP/SL
+  // handles normal exits; this is the backstop that prevents the "crash and
+  // burn" pattern of holding overnight when the bracket doesn't fire.
+  {
+    const nowUtcMins = new Date().getUTCHours() * 60 + new Date().getUTCMinutes();
+    const CH3_EOD_CLOSE_UTC = 19 * 60 + 30;  // 3:30 PM ET = 19:30 UTC
+    if (nowUtcMins >= CH3_EOD_CLOSE_UTC) {
+      const ch3Open = positions.filter(p =>
+        String(p.signal_class ?? "").trim().toUpperCase() === "CH3" &&
+        (p.status === "filled" || p.status === "submitted" || p.status === "pending")
+      );
+      if (ch3Open.length > 0) {
+        console.log(`[SENTINEL] CH3 EOD CLOSE — ${ch3Open.length} position(s) past 15:30 ET cutoff`);
+        for (const pos of ch3Open) {
+          await killPosition(pos, "EXIT-CH3-EOD", ALPACA_BASE);
+        }
+      }
+    }
+  }
+
   // Wave 3 flip — liquidate Ch1 (3WA) positions only if SPY D_k is no longer 1
   // Ch2 positions use their own per-ticker D_k exit (Exit B) — SPY flip does not apply
   const spyFlip = spyDk !== null && spyDk !== 1;

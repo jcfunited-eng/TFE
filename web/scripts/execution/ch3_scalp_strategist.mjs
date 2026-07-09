@@ -1,24 +1,24 @@
 /**
  * web/scripts/execution/ch3_scalp_strategist.mjs
- * PEE-1 Chapter 3 — Accumulate Quick Grab
+ * PEE-1 Chapter 3 — True Intraday Scalp
  *
- * Rapid in-and-out cash grabs on Accumulate stocks.
- * The kernel's coupled decision IS the filter — no individual field gates.
- * Grab 3%, stop 1.5%. Rapid fire, all day, every day.
+ * Smash-and-grab: enter on live morning momentum, exit same day.
  *
- * Selection (ALL must be true):
- *   1. decision_label = 'Accumulate'  — kernel says good stock
- *   2. bar_count > 20                 — established stock
- *   3. No existing position on this ticker (any channel)
- *   4. Not already traded today by CH3
- *   5. No loss on this ticker in last 7 days
- *   6. Pool has funds remaining
- *   7. Daily loss limit not hit
- *   8. Epoch sector not ADVERSE
+ * Candidate pool: V3 Accumulate stocks (structural quality gate).
+ * Selection gate: live intraday momentum at entry time, scored via
+ *   Alpaca snapshot API:
+ *     - up on the day vs prev close
+ *     - up from today's open (momentum continuing, not fading)
+ *     - RVOL >= 1.5 (relative volume vs yesterday, annualized)
+ *     - not gapping down > 1% (no falling knives)
+ *   Sort: momentum_pct × rvol (highest live energy first)
  *
- * Exit:
- *   TAKE PROFIT: entry × 1.03  (+3% grab)
- *   STOP LOSS:   entry × 0.985 (-1.5% cut fast, EXIT-F backs this up)
+ * EOD close: sentinel_monitor EXIT-CH3-EOD forces all CH3 positions
+ * closed by 3:30 PM ET. No overnight holds.
+ *
+ * Exit brackets (Alpaca-managed):
+ *   TAKE PROFIT: entry × 1.015 (+1.5%)
+ *   STOP LOSS:   entry × 0.990 (-1.0%)
  *
  * Pool: $5K total, $2.5K per trade, $1K daily loss limit
  */
@@ -38,26 +38,34 @@ const pool = new pg.Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-// ── CH3 Selection & Exit Constants ──────────────────────────────────────
-const CH3_BAR_COUNT_MIN    = 21;     // established stocks only
+const ALPACA_DATA = "https://data.alpaca.markets";
 
-// Pool & risk
+// ── CH3 constants ─────────────────────────────────────────────────────────
+const CH3_BAR_COUNT_MIN    = 21;
 const CH3_POOL_TOTAL       = 5000;
 const CH3_MAX_PER_TRADE    = 2500;
 const CH3_DAILY_LOSS_LIMIT = 1000;
+const CH3_STOP_LOSS_PCT    = 0.01;   // -1% cut fast
+const CH3_TAKE_PROFIT_PCT  = 0.015;  // +1.5% grab
 
-// Exit: +3% grab, -1.5% cut. Asymmetric — wins are 2x losses.
-// Backtested PF=2.31 on Accumulate D_k=-1 entries.
-const CH3_STOP_LOSS_PCT    = 0.01;   // 1% below entry — cut fast
-const CH3_TAKE_PROFIT_PCT  = 0.015;  // 1.5% above entry — matches actual daily range
+// Momentum gates — evaluated against live Alpaca snapshot at entry time
+const RVOL_MIN      = 1.5;    // relative volume vs yesterday, annualized to full day
+const GAP_DOWN_MAX  = -0.01;  // reject gap-downs worse than -1%
+// must_be_green and must_be_up_from_open are implicit in the filter below
 
 function toFloat(v) {
   const n = parseFloat(v);
   return isFinite(n) ? n : null;
 }
 
+function alpacaHeaders() {
+  return {
+    "APCA-API-KEY-ID":     process.env.APCA_API_KEY_ID,
+    "APCA-API-SECRET-KEY": process.env.APCA_API_SECRET_KEY,
+  };
+}
 
-// ── Pool & risk management ──────────────────────────────────────────────
+// ── Pool & risk management ────────────────────────────────────────────────
 
 async function getTodayCh3PL() {
   const res = await pool.query(
@@ -82,11 +90,6 @@ async function getCh3PoolRemaining() {
 }
 
 async function fetchOpenPositionTickers() {
-  // Include both currently-open positions AND tickers recently closed by sentinel.
-  // The sentinel writes kill_cooldown_<TICKER> to pee1_execution_config when it
-  // exits a position. Without this, the entry logic (which runs AFTER runSentinel
-  // in the same daemon cycle) sees the ticker as "no open position" and immediately
-  // re-enters — creating a buy→sell→buy→sell churn loop.
   const [openRes, cooldownRes] = await Promise.all([
     pool.query(
       `SELECT DISTINCT UPPER(TRIM(ticker)) AS ticker
@@ -99,13 +102,11 @@ async function fetchOpenPositionTickers() {
     ),
   ]);
   const tickers = new Set(openRes.rows.map(r => r.ticker));
-  // Add tickers still in kill cooldown (15 min window)
   const COOLDOWN_MS = 15 * 60 * 1000;
   for (const row of cooldownRes.rows) {
     const killedAt = new Date(row.value).getTime();
     if (Date.now() - killedAt <= COOLDOWN_MS) {
-      const ticker = row.key.replace('kill_cooldown_', '');
-      tickers.add(ticker);
+      tickers.add(row.key.replace("kill_cooldown_", ""));
     }
   }
   return tickers;
@@ -133,13 +134,8 @@ async function fetchRecentCh3Losers() {
   return new Set(res.rows.map(r => r.ticker));
 }
 
-// ── Candidate selection ─────────────────────────────────────────────────
+// ── Structural candidate pool ─────────────────────────────────────────────
 
-/**
- * Fetch all Accumulate stocks with structural history.
- * The kernel's coupled decision is the filter. No D_k gate.
- * Sorted by S_UF so highest structural stability picks first.
- */
 async function fetchCandidateRows() {
   const res = await pool.query(
     `SELECT
@@ -155,17 +151,13 @@ async function fetchCandidateRows() {
        AND r.ticker NOT LIKE 'X:%'
        AND r.decision_label = 'Accumulate'
        AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $1
-     ORDER BY CAST(NULLIF(r.snapshot_row_json->>'S_UF', '') AS DOUBLE PRECISION) DESC
-     LIMIT 50`,
+     LIMIT 100`,
     [CH3_BAR_COUNT_MIN - 1]
   );
   return res.rows;
 }
 
-/**
- * Parse and score a candidate row.
- */
-function parseSignal(row) {
+function parseCandidate(row) {
   const snap     = row.snapshot_row_json ?? {};
   const ticker   = String(row.ticker ?? "").trim().toUpperCase();
   const runId    = String(row.run_id ?? "").trim();
@@ -177,55 +169,124 @@ function parseSignal(row) {
   if (!isFinite(barCount) || barCount < CH3_BAR_COUNT_MIN) return null;
   if (price === null || price < 1) return null;
 
-  // L5 epoch governance — use pre-computed sector pressures from G32
+  // Epoch governance
   let epochPressure = 0;
-  let epochStatus = "NEUTRAL";
+  let epochStatus   = "NEUTRAL";
   try {
-    const g32Raw = readFileSync("/app/g32_state.json", "utf-8");
-    const g32 = JSON.parse(g32Raw);
-    const sectorPressures = g32.sector_pressures ?? {};
-    epochPressure = sectorPressures[sector] ?? 0;
-    epochStatus = epochPressure <= -0.5 ? "ADVERSE" : epochPressure > 0.3 ? "TAILWIND" : "NEUTRAL";
+    const g32 = JSON.parse(readFileSync("/app/g32_state.json", "utf-8"));
+    epochPressure = (g32.sector_pressures ?? {})[sector] ?? 0;
+    epochStatus   = epochPressure <= -0.5 ? "ADVERSE" : epochPressure > 0.3 ? "TAILWIND" : "NEUTRAL";
   } catch {}
 
   if (epochStatus === "ADVERSE") {
-    console.log(`[CH3-HUNTER]   ${ticker} — skipped (sector ${sector} ADVERSE pressure=${epochPressure.toFixed(2)})`);
+    console.log(`[CH3-HUNTER]   ${ticker} — skip (sector ${sector} ADVERSE pressure=${epochPressure.toFixed(2)})`);
     return null;
   }
 
   return {
     ticker,
-    run_id:       runId,
-    signal_class: "CH3",
-    s_uf:         toFloat(snap.S_UF),
-    d_k:          toFloat(snap.D_k),
-    b_k:          toFloat(snap.B_k),
-    bar_count:    barCount,
-    price:        price,
-    sector:       sector,
-    epoch_status: epochStatus,
-    epoch_pressure: epochPressure,
-    ch3_stop_loss_pct:    CH3_STOP_LOSS_PCT,
-    ch3_take_profit_pct:  CH3_TAKE_PROFIT_PCT,
+    run_id:          runId,
+    signal_class:    "CH3",
+    s_uf:            toFloat(snap.S_UF),
+    d_k:             toFloat(snap.D_k),
+    b_k:             toFloat(snap.B_k),
+    bar_count:       barCount,
+    price,
+    sector,
+    epoch_status:    epochStatus,
+    epoch_pressure:  epochPressure,
+    ch3_stop_loss_pct:   CH3_STOP_LOSS_PCT,
+    ch3_take_profit_pct: CH3_TAKE_PROFIT_PCT,
   };
 }
 
-// ── Main entry point ────────────────────────────────────────────────────
+// ── Intraday momentum scoring via Alpaca snapshot ─────────────────────────
+
+/**
+ * Batch-fetch Alpaca snapshots for all candidate tickers.
+ * Score each on live morning momentum:
+ *   gap_pct      = (today_open - prev_close) / prev_close
+ *   momentum_pct = (current_price - today_open) / today_open   [up-from-open]
+ *   day_pct      = (current_price - prev_close) / prev_close   [up on day]
+ *   rvol         = (today_vol / prev_day_vol) × (390 / mins_elapsed)
+ *   score        = momentum_pct × max(rvol, 1)
+ *
+ * passes = day_pct>0 AND momentum_pct>0 AND rvol>=RVOL_MIN AND gap_pct>=GAP_DOWN_MAX
+ */
+async function fetchIntradayMomentum(tickers) {
+  if (!tickers.length) return new Map();
+
+  // Minutes elapsed since 9:30 AM ET open
+  const now        = new Date();
+  const utcMins    = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const openMins   = 13 * 60 + 30;  // 13:30 UTC = 9:30 AM ET
+  const elapsed    = Math.max(1, utcMins - openMins);
+
+  // Batch snapshot — one call for all candidates
+  const url = `${ALPACA_DATA}/v2/stocks/snapshots?symbols=${encodeURIComponent(tickers.join(","))}&feed=iex`;
+  let snapshots;
+  try {
+    const res = await fetch(url, { headers: alpacaHeaders() });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(`HTTP ${res.status}: ${body.slice(0, 200)}`);
+    }
+    snapshots = await res.json();
+  } catch (err) {
+    console.error(`[CH3-HUNTER] Snapshot fetch failed: ${err.message}`);
+    return new Map();
+  }
+
+  const results = new Map();
+  for (const ticker of tickers) {
+    const snap = snapshots[ticker];
+    if (!snap) continue;
+
+    const prevClose = snap.prevDailyBar?.c;
+    const todayOpen = snap.dailyBar?.o;
+    const todayVol  = snap.dailyBar?.v  ?? 0;
+    const prevVol   = snap.prevDailyBar?.v ?? 0;
+    const current   = snap.latestTrade?.p ?? snap.minuteBar?.c;
+
+    if (!prevClose || !todayOpen || !current || prevClose <= 0 || prevVol <= 0) continue;
+
+    const gap_pct      = (todayOpen - prevClose) / prevClose;
+    const momentum_pct = (current   - todayOpen)  / todayOpen;
+    const day_pct      = (current   - prevClose)  / prevClose;
+
+    // Annualize today's volume run-rate vs yesterday's total volume
+    const rvol = (todayVol / prevVol) * (390 / elapsed);
+
+    // Score: momentum × volume intensity
+    const score = momentum_pct * Math.max(rvol, 1);
+
+    const passes = (
+      day_pct      >  0          &&   // green on the day
+      momentum_pct >  0          &&   // continuing up from open (not fading)
+      rvol         >= RVOL_MIN   &&   // elevated activity
+      gap_pct      >= GAP_DOWN_MAX    // not a falling knife gap-down
+    );
+
+    results.set(ticker, { gap_pct, momentum_pct, day_pct, rvol, current_price: current, score, passes });
+  }
+
+  return results;
+}
+
+// ── Main entry point ──────────────────────────────────────────────────────
 
 export async function getCh3Signals() {
-  console.log(`[CH3-HUNTER] Structural spike hunter scanning...`);
+  console.log("[CH3-HUNTER] Scalp hunter scanning (live momentum mode)...");
 
-  // Gate 0: market hours + holiday check — don't submit orders when market is closed
-  const now = new Date();
-  const utcHour = now.getUTCHours();
-  const utcMinute = now.getUTCMinutes();
-  const utcTime = utcHour * 60 + utcMinute;
-  // Market hours: 13:30-20:00 UTC (9:30 AM - 4:00 PM ET)
+  // Gate 0: market hours
+  const now      = new Date();
+  const utcHour  = now.getUTCHours();
+  const utcMin   = now.getUTCMinutes();
+  const utcTime  = utcHour * 60 + utcMin;
   if (utcTime < 13 * 60 + 30 || utcTime >= 20 * 60) {
-    console.log(`[CH3-HUNTER] SKIP — market closed (${utcHour}:${String(utcMinute).padStart(2,'0')} UTC)`);
+    console.log(`[CH3-HUNTER] SKIP — market closed (${utcHour}:${String(utcMin).padStart(2,"0")} UTC)`);
     return [];
   }
-  // Holiday check — computed, works for any year
   try {
     const { isMarketHoliday, getHolidayName } = await import("./market_calendar.mjs");
     if (isMarketHoliday(now)) {
@@ -244,80 +305,85 @@ export async function getCh3Signals() {
   // Gate 2: pool remaining
   const poolRemaining = await getCh3PoolRemaining();
   if (poolRemaining <= 0) {
-    console.log(`[CH3-HUNTER] HALTED — scalp pool depleted`);
+    console.log("[CH3-HUNTER] HALTED — scalp pool depleted");
     return [];
   }
 
-  // Gate 3: check invested amount in open CH3 positions
+  // Gate 3: available pool vs currently invested CH3
   const ch3InvestedRes = await pool.query(`
     SELECT COALESCE(SUM(CAST(dollar_allocation AS NUMERIC)), 0) AS invested
     FROM personal_trade_ledger
     WHERE signal_class = 'CH3' AND status IN ('submitted', 'filled')
   `);
-  const ch3Invested = parseFloat(ch3InvestedRes.rows[0]?.invested ?? "0");
-  const availablePool = Math.max(0, poolRemaining - ch3Invested);
-
+  const ch3Invested    = parseFloat(ch3InvestedRes.rows[0]?.invested ?? "0");
+  const availablePool  = Math.max(0, poolRemaining - ch3Invested);
   if (availablePool < 500) {
     console.log(`[CH3-HUNTER] SKIP — pool fully allocated ($${availablePool.toFixed(0)} available)`);
     return [];
   }
 
-  // Aggregate D_k shield REMOVED. Same destruction pattern as S_UF band and
-  // 0.5 regime cap: an aggregate scalar override vetoing qualified individual
-  // picks. CH3's per-stock Accumulate filter and epoch sector pressure filter
-  // are the entry decision. Aggregate breadth is observable but does not veto.
-  //
-  // Previously: contracting > expanding → return [] (blocked all CH3 entries)
-  // Removed because it blanket-blocked CH3 for the entire period SPY was D_k=-1
-  // despite individual stocks having strong per-ticker structural reads.
+  // Step 1: structural candidate pool (V3 Accumulate universe)
+  const rows      = await fetchCandidateRows();
+  const candidates = rows.map(parseCandidate).filter(Boolean);
+  console.log(`[CH3-HUNTER] ${rows.length} Accumulate rows → ${candidates.length} passed structural/epoch filter`);
 
-  // Fetch candidates from full snapshot (not Accumulate-only)
-  const rows = await fetchCandidateRows();
-  const signals = rows.map(parseSignal).filter(Boolean);
-
-  console.log(`[CH3-HUNTER] ${rows.length} Accumulate candidates → ${signals.length} passed filters`);
-
-  // Exclude tickers with existing positions, already traded today, or recent losers
-  const openTickers = await fetchOpenPositionTickers();
-  const todayCh3Tickers = await fetchTodayCh3Tickers();
-  const recentLosers = await fetchRecentCh3Losers();
+  // Step 2: exclusions (open positions, already traded, recent losers)
+  const [openTickers, todayCh3Tickers, recentLosers] = await Promise.all([
+    fetchOpenPositionTickers(),
+    fetchTodayCh3Tickers(),
+    fetchRecentCh3Losers(),
+  ]);
   const available = [];
-  for (const s of signals) {
-    if (openTickers.has(s.ticker)) {
-      console.log(`[CH3-HUNTER]   ${s.ticker} — skipped (open position exists)`);
-      continue;
-    }
-    if (todayCh3Tickers.has(s.ticker)) {
-      console.log(`[CH3-HUNTER]   ${s.ticker} — skipped (already traded today)`);
-      continue;
-    }
-    if (recentLosers.has(s.ticker)) {
-      console.log(`[CH3-HUNTER]   ${s.ticker} — skipped (lost money in last 7 days)`);
-      continue;
-    }
+  for (const s of candidates) {
+    if (openTickers.has(s.ticker))    { console.log(`[CH3-HUNTER]   ${s.ticker} — skip (open position)`);     continue; }
+    if (todayCh3Tickers.has(s.ticker)){ console.log(`[CH3-HUNTER]   ${s.ticker} — skip (already traded today)`); continue; }
+    if (recentLosers.has(s.ticker))   { console.log(`[CH3-HUNTER]   ${s.ticker} — skip (lost money in last 7d)`); continue; }
     available.push(s);
   }
 
-  if (available.length === 0) {
-    console.log(`[CH3-HUNTER] No candidates passed all filters`);
+  if (!available.length) {
+    console.log("[CH3-HUNTER] No candidates after exclusions");
     return [];
   }
 
-  // Sort by epoch pressure first (favored sectors), then S_UF
-  available.sort((a, b) => (b.epoch_pressure ?? 0) - (a.epoch_pressure ?? 0) || (b.s_uf ?? 0) - (a.s_uf ?? 0));
+  // Step 3: live intraday momentum scoring via Alpaca snapshot
+  const momentumMap = await fetchIntradayMomentum(available.map(s => s.ticker));
 
-  // Pool-limited: up to 3 signals per run, constrained by available capital
-  const maxSignals = 3;
-  const results = [];
-  let remainingPool = availablePool;
+  const hot = [];
+  for (const s of available) {
+    const m = momentumMap.get(s.ticker);
+    if (!m) {
+      console.log(`[CH3-HUNTER]   ${s.ticker} — skip (no snapshot data)`);
+      continue;
+    }
+    const tag = `day=${(m.day_pct*100).toFixed(2)}% open_mom=${(m.momentum_pct*100).toFixed(2)}% rvol=${m.rvol.toFixed(2)}x gap=${(m.gap_pct*100).toFixed(2)}%`;
+    if (!m.passes) {
+      console.log(`[CH3-HUNTER]   ${s.ticker} — COLD: ${tag}`);
+      continue;
+    }
+    console.log(`[CH3-HUNTER]   ${s.ticker} — HOT:  ${tag} score=${m.score.toFixed(4)}`);
+    s.momentum = m;
+    s.price    = m.current_price;  // use live price, not stale snapshot
+    hot.push(s);
+  }
 
-  for (const candidate of available.slice(0, maxSignals)) {
+  if (!hot.length) {
+    console.log("[CH3-HUNTER] No stocks passing momentum gates today");
+    return [];
+  }
+
+  // Sort by live momentum score — highest energy first
+  hot.sort((a, b) => (b.momentum.score ?? 0) - (a.momentum.score ?? 0));
+
+  // Pool-limited: up to 2 signals
+  const results       = [];
+  let remainingPool   = availablePool;
+  for (const candidate of hot.slice(0, 2)) {
     if (remainingPool < 500) break;
     const perTradeAmount = Math.min(CH3_MAX_PER_TRADE, remainingPool);
     candidate.ch3_trade_amount = perTradeAmount;
     remainingPool -= perTradeAmount;
-
-    console.log(`[CH3-HUNTER] SIGNAL: ${candidate.ticker} | D_k=${candidate.d_k} B_k=${candidate.b_k?.toFixed(3)} S_UF=${candidate.s_uf?.toFixed(2)} | sector=${candidate.sector} epoch=${candidate.epoch_pressure?.toFixed(2)} | $${perTradeAmount}`);
+    console.log(`[CH3-HUNTER] SIGNAL: ${candidate.ticker} | score=${candidate.momentum.score.toFixed(4)} | rvol=${candidate.momentum.rvol.toFixed(2)}x | mom=${(candidate.momentum.momentum_pct*100).toFixed(2)}% | $${perTradeAmount}`);
     results.push(candidate);
   }
 
@@ -325,10 +391,10 @@ export async function getCh3Signals() {
 }
 
 export const CH3_CONFIG = {
-  TIME_LIMIT_HOURS: null,
   DAILY_LOSS_LIMIT: CH3_DAILY_LOSS_LIMIT,
-  STOP_LOSS_PCT: CH3_STOP_LOSS_PCT,
-  TAKE_PROFIT_PCT: CH3_TAKE_PROFIT_PCT,
+  STOP_LOSS_PCT:    CH3_STOP_LOSS_PCT,
+  TAKE_PROFIT_PCT:  CH3_TAKE_PROFIT_PCT,
+  RVOL_MIN,
 };
 
 export async function closeCh3StrategistPool() {
