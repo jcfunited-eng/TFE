@@ -279,11 +279,31 @@ out = {
                 # write/dual-read Phase 1. RECALL_BACKEND=legacy is the
                 # code's own default when unset, but set explicitly here
                 # so the deployed backend is visible in infra config, not
-                # just implicit in source. EVENT_DRIVEN_SUBSTRATE
-                # deliberately left UNSET (defaults to 1 in code) --
-                # only meant to be overridden for rollback, not configured
-                # as an explicit on-state from the start.
-                {'name': 'RECALL_BACKEND', 'value': 'legacy'}
+                # just implicit in source.
+                {'name': 'RECALL_BACKEND', 'value': 'legacy'},
+                # 2026-07-09 incident: this template used to leave
+                # EVENT_DRIVEN_SUBSTRATE UNSET on the theory it was only
+                # meant to be overridden for rollback. That meant a real
+                # emergency kill switch (applied out-of-band as task-def
+                # revision 569, after a ~3800Hz runaway-neuron spike-bus-
+                # bleed incident) got silently discarded on the very next
+                # normal deploy through this script, which regenerates the
+                # whole container definition from scratch -- re-enabling
+                # the exact mechanism that caused the incident with no
+                # explicit decision by anyone. Caught within ~20 minutes
+                # via /debug/stdp_state (spike_bus_metrics.enabled=true,
+                # no runaway detected in that window) and reverted. Kept
+                # OFF explicitly and durably here until BOTH: (1) the
+                # underlying cause of a neuron exceeding its own
+                # refractory period is root-caused and fixed (the fire-
+                # rate circuit breaker in neuron.py only bounds the
+                # damage, it does not explain or fix that), and (2) the
+                # new circuit breaker has been soak-tested under real
+                # production load, not just synthetic reproduction. Do
+                # not remove this line without an explicit decision --
+                # see docs for the STDP-learning-gap and runaway-neuron
+                # findings this depends on.
+                {'name': 'EVENT_DRIVEN_SUBSTRATE', 'value': '0'}
             ] + ([{'name': 'FORCE_S3_RESTORE', 'value': '1'}] if os.environ.get('_FORCE_S3_RESTORE_INJECT') == '1' else []),
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
