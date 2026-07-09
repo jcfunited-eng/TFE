@@ -5455,6 +5455,33 @@ async def debug_stdp_state():
     return snapshot
 
 
+@app.get("/debug/thread_dump", dependencies=[Depends(_api_key_dep)])
+async def debug_thread_dump():
+    """2026-07-09: real-time Python-level stack trace for every live
+    thread, using only sys._current_frames() + traceback (stdlib, no
+    profiler dependency, no container rebuild risk). Built to answer a
+    real, live incident: CloudWatch + a direct ECS Exec /proc sample
+    both confirmed ~1 full CPU core continuously busy in 1-2 specific OS
+    threads inside this process, but py-spy isn't installed in the
+    container and Python doesn't rename OS threads, so neither CloudWatch
+    nor /proc could say WHICH function is actually running. This can.
+    Read-only: sys._current_frames() only inspects existing frame
+    objects, does not pause/signal/modify any thread."""
+    import sys
+    import threading
+    import traceback
+
+    id_to_name = {t.ident: t.name for t in threading.enumerate()}
+    frames = sys._current_frames()
+    out = {}
+    for thread_id, frame in frames.items():
+        out[str(thread_id)] = {
+            "name": id_to_name.get(thread_id, "unknown"),
+            "stack": traceback.format_stack(frame),
+        }
+    return out
+
+
 @app.get("/health")
 async def health():
     # Always return 200 for ALB liveness checks.
