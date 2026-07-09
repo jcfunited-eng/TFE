@@ -38,9 +38,10 @@ const pool = new pg.Pool({
 });
 
 // ── Chapter 2 entry thresholds ────────────────────────────────────────────
-const CH2_BAR_COUNT_MIN  = 21;
-const CH2_MIN_MARKET_CAP = 500_000_000;
+const CH2_BAR_COUNT_MIN    = 21;
+const CH2_MIN_MARKET_CAP   = 500_000_000;
 const ACCUMULATE_BASIN_MIN = 0.15;
+const BREAK_AGREEMENT_MAX  = 0.20;  // V3 spec exit threshold — reject entry if already in exit territory
 
 function toFloat(v) {
   const n = parseFloat(v);
@@ -113,6 +114,7 @@ function parseSignal(row) {
   if (basin === null)                                          { console.log(`[CH2-STRATEGIST]   ${ticker} — REJECT tuple incomplete`); return null; }
   if (basin.decision_argmax !== "Accumulate")                  { console.log(`[CH2-STRATEGIST]   ${ticker} — REJECT argmax=${basin.decision_argmax}`); return null; }
   if (basin.accumulate_basin < ACCUMULATE_BASIN_MIN)           { console.log(`[CH2-STRATEGIST]   ${ticker} — REJECT acc=${basin.accumulate_basin.toFixed(4)} < ${ACCUMULATE_BASIN_MIN}`); return null; }
+  if (basin.break_agreement >= BREAK_AGREEMENT_MAX)            { console.log(`[CH2-STRATEGIST]   ${ticker} — REJECT break=${basin.break_agreement.toFixed(4)} >= ${BREAK_AGREEMENT_MAX} (already in exit territory)`); return null; }
 
   return {
     ticker,
