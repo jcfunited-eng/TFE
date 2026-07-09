@@ -2725,6 +2725,19 @@ async def gualaloom_chat(msg: GLMessage):
                     chis=bundle_chis, section_hint=_section_hint,
                     source_context={"bundle": bundle_name, "source": bundle_source}))
 
+            # GL-CMD-EPISODIC-MEMORY: bind this real, curated experience to
+            # its situation -- when, where, who was present, how she felt,
+            # what else was active -- so it becomes a specific remembered
+            # moment, not a flat word. Only fires when there's a real
+            # concept (caption) to bind to; a bare sensory lane with no
+            # word has nothing to remember-as. Deliberately kept separate
+            # from the conversational emission/composition path (see this
+            # function's own note above on the standing "one mind, one
+            # mouth" ruling) -- this records real memory; whether/how it
+            # feeds what she says is a separate decision, not made here.
+            if caption:
+                _guala._record_episodic_experience(caption, source=bundle_source)
+
             # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: close the
             # binding window opened at the top of this function -- give_
             # experience's explicit open/add_entry-per-lane/close, complete.

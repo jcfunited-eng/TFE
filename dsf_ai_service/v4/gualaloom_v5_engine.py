@@ -1755,6 +1755,28 @@ class Guala:
     # suffering_log/ATTENTIONS_MAX/ACTIONS_MAX.
     TEACHING_LOG_MAX = 500
 
+    # 2026-07-09 GL-CMD-EPISODIC-MEMORY (Joe's credo ruling): a word's
+    # SENSORY_DNA entry ("dog": sight=0.90, touch=0.85, ...) is a static,
+    # always-identical lookup table -- it fires the same way every single
+    # time regardless of what actually happened, which is exactly why
+    # _current_window_has_real_grounding() already excludes it from real
+    # grounding (see FAKE_MODAL_SECTIONS). That's the right call, not the
+    # gap. The actual gap: nothing replaces it with a genuine, situational,
+    # SPECIFIC remembered moment -- when, where, who was there, how she
+    # felt, what else was happening -- the way a real memory is a story,
+    # not a definition. This is that replacement.
+    #
+    # Bounded per concept, deliberately: Joe's own words, "my recall is not
+    # perfect either... it's vague impressions I rebuild" -- this is not
+    # meant to be an exhaustive, lossless archive of every experience ever
+    # given. A handful of recent, distinct impressions per concept (the
+    # ice-cream-truck memory AND the spaghetti-ice memory AND the
+    # shortcake-pop memory, kept as separate entries, never averaged into
+    # one canonical "ice cream" profile) is the honest shape of real
+    # memory -- not a growing pile, not a single flattened definition.
+    EPISODIC_MEMORY_MAX_PER_CONCEPT = 20
+    EPISODIC_RECENT_CONTEXT_WINDOW = 50
+
     def __init__(self):
         self.sections = {
             "listen":   Section("listen"),
@@ -1939,6 +1961,19 @@ class Guala:
         self._emission_records = {}  # emission_id -> record (tick-window expiry)
         self._teaching_feedback_log = []
         self._teaching_correction_log = []
+        # GL-CMD-EPISODIC-MEMORY: concept.lower() -> deque of distinct real
+        # remembered moments (bounded, see EPISODIC_MEMORY_MAX_PER_CONCEPT).
+        # Only ever written by _record_episodic_experience, called from a
+        # genuinely curated experience (give_experience), never from plain
+        # corpus reading -- so membership here already means "really
+        # experienced," same real/fake distinction
+        # _current_window_has_real_grounding draws elsewhere.
+        self._episodic_memory = {}
+        # Sliding window of recent concepts, for binding "what else was
+        # happening" context onto a new episodic record -- mirrors
+        # episodic_layer.py's same design (a real prior draft of this
+        # exact idea that was built but never wired into the live engine).
+        self._episodic_recent_concepts = deque(maxlen=self.EPISODIC_RECENT_CONTEXT_WINDOW)
         self._corpora = {}          # corpus_id -> _Corpus
         self._sensory_items = {}    # item_id -> SensoryItem
         self._sounds = {}           # item_id -> {cochlear, title, samples, sr, ...}
@@ -2286,6 +2321,63 @@ class Guala:
         self._sit_cache = result
         self._sit_cache_tick = self.tick
         return result
+
+    def _record_episodic_experience(self, concept, source="give_experience"):
+        """GL-CMD-EPISODIC-MEMORY: bind a real, curated experience to the
+        situation it happened in -- when, where, who was present, how she
+        felt, and what else was active around it -- so it becomes a
+        specific remembered moment instead of a flat word. Only called
+        from genuinely curated experience paths (give_experience), never
+        from plain corpus reading -- reading alone stays honestly
+        ungrounded, same distinction _current_window_has_real_grounding
+        already draws for section commits.
+
+        Deliberately does NOT flatten/average into one profile per
+        concept: appends a new, distinct record every call, so the SAME
+        concept can hold multiple genuinely different remembered moments
+        (an ice-cream-truck memory and a beach-day memory both real,
+        both kept, never merged into one canonical "ice cream" entry).
+        Bounded at EPISODIC_MEMORY_MAX_PER_CONCEPT -- oldest evicted first,
+        matching this codebase's own established evict-oldest convention
+        (suffering_log, ATTENTIONS_MAX, TEACHING_LOG_MAX) and Joe's own
+        stated principle that real recall is bounded, reconstructed
+        impressions, not an exhaustive archive."""
+        presence, location, sky_state = self._current_situation()
+        cl = concept.lower()
+        context = [c for c in self._episodic_recent_concepts if c != cl][-5:]
+        entry = {
+            "concept": concept,
+            "tick": self.tick,
+            "presence": list(presence),
+            "location": location,
+            "sky_state": sky_state,
+            "affective": {
+                "valence": round(self.needs.valence(), 3),
+                "arousal": round(self.needs.arousal(), 3),
+            },
+            "context": context,
+            "source": source,
+        }
+        if cl not in self._episodic_memory:
+            self._episodic_memory[cl] = deque(maxlen=self.EPISODIC_MEMORY_MAX_PER_CONCEPT)
+        self._episodic_memory[cl].append(entry)
+        self._episodic_recent_concepts.append(cl)
+
+    def _episodic_context_for(self, concept, mode="richest"):
+        """Real, situational memory for a concept, or None if she has never
+        genuinely experienced it (honest empty -- no fabrication). mode=
+        "richest" returns the record with the most co-occurring context
+        (the most vividly remembered moment); mode="recent" returns the
+        most recently formed one. Multiple distinct records may exist for
+        the same concept -- this returns exactly one of them, not a
+        merged/averaged composite, so the specific story stays a specific
+        story."""
+        records = list(self._episodic_memory.get(concept.lower(), []))
+        if not records:
+            return None
+        if mode == "recent":
+            return records[-1]
+        return max(records, key=lambda r: len(r.get("context", [])))
 
     def _current_window_has_real_grounding(self):
         """2026-07-09 credo fix: is the CURRENTLY OPEN binding window (see
@@ -9282,6 +9374,15 @@ class Guala:
         })
         writes.append(("guala_teaching.json", snap_teaching))
 
+        # GL-CMD-EPISODIC-MEMORY: real, situational memories, already
+        # bounded per-concept at EPISODIC_MEMORY_MAX_PER_CONCEPT -- no
+        # further slicing needed here, unlike the logs above.
+        snap_episodic = self._envelope({
+            "episodic_memory": {c: list(recs) for c, recs in self._episodic_memory.items()},
+            "episodic_recent_concepts": list(self._episodic_recent_concepts),
+        })
+        writes.append(("guala_episodic.json", snap_episodic))
+
         # GL-CMD-HOTSAVE-PARALLEL-FSYNC-196: _atomic_write always
         # f.flush()+os.fsync()s before rename (GL-CMD-PERSIST-FIX-74 --
         # required on EFS/NFSv4, where close() alone doesn't commit to the
@@ -9585,6 +9686,25 @@ class Guala:
             _save_failures.append(("guala_teaching.json", str(_te)))
             print(f"[GualaLoom] save failed for guala_teaching.json: {_te}")
             _tmp = os.path.join(state_dir, "guala_teaching.json.tmp")
+            if os.path.exists(_tmp):
+                try:
+                    os.remove(_tmp)
+                except OSError:
+                    pass
+
+        # GL-CMD-EPISODIC-MEMORY: same non-critical, isolated-failure
+        # pattern as teaching data above -- real memory, but must never
+        # block core save advancement.
+        snap_episodic = self._envelope({
+            "episodic_memory": {c: list(recs) for c, recs in self._episodic_memory.items()},
+            "episodic_recent_concepts": list(self._episodic_recent_concepts),
+        })
+        try:
+            self._atomic_write(os.path.join(state_dir, "guala_episodic.json"), snap_episodic)
+        except Exception as _ee:
+            _save_failures.append(("guala_episodic.json", str(_ee)))
+            print(f"[GualaLoom] save failed for guala_episodic.json: {_ee}")
+            _tmp = os.path.join(state_dir, "guala_episodic.json.tmp")
             if os.path.exists(_tmp):
                 try:
                     os.remove(_tmp)
@@ -10056,6 +10176,25 @@ class Guala:
                     self._teaching_correction_log = tdata.get("correction_log", [])
                     for eid, rec in tdata.get("emission_records", {}).items():
                         self._emission_records[eid] = rec
+                except Exception:
+                    pass
+
+            # GL-CMD-EPISODIC-MEMORY: real, situational memories (backward-
+            # compatible -- absent entirely on any organism saved before
+            # this field existed, honest empty then, not fabricated).
+            episodic_path = os.path.join(state_dir, "guala_episodic.json")
+            if os.path.exists(episodic_path):
+                try:
+                    with open(episodic_path) as f:
+                        ed = json.load(f)
+                    edata = ed.get("data", ed)
+                    for concept, recs in edata.get("episodic_memory", {}).items():
+                        dq = deque(maxlen=self.EPISODIC_MEMORY_MAX_PER_CONCEPT)
+                        for r in recs[-self.EPISODIC_MEMORY_MAX_PER_CONCEPT:]:
+                            dq.append(r)
+                        self._episodic_memory[concept] = dq
+                    for c in edata.get("episodic_recent_concepts", []):
+                        self._episodic_recent_concepts.append(c)
                 except Exception:
                     pass
 
@@ -11019,6 +11158,19 @@ class Guala:
             "n_visual_fragments": self._visual_fragments_count,
             "n_visual_motifs": len(self.sight.motifs),
             "sight_section": self.sight.snapshot(),
+            # GL-CMD-EPISODIC-MEMORY: real, situational memories -- distinct
+            # remembered moments per concept, not flattened definitions.
+            # concepts_with_multiple_memories flags exactly the case Joe's
+            # credo cares about (the same word holding more than one real,
+            # separately-kept memory, e.g. an ice-cream-truck moment AND a
+            # beach-day moment, neither overwriting the other).
+            "episodic_memory": {
+                "n_concepts": len(self._episodic_memory),
+                "n_total_memories": sum(len(v) for v in self._episodic_memory.values()),
+                "concepts_with_multiple_memories": sorted(
+                    c for c, v in self._episodic_memory.items() if len(v) > 1
+                )[:20],
+            },
             "pictures": [{"item_id": p.item_id, "title": p.title,
                           "times_attended": p.times_attended}
                          for p in self._pictures.values()],
