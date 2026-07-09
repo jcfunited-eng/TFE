@@ -102,6 +102,41 @@ MAX_SYNAPSE_WEIGHT = 5.0
 MIN_SYNAPSE_WEIGHT = 0.0
 STDP_DEFAULT_SYNAPSE_WEIGHT = 0.05  # weight for a not-yet-potentiated synapse
 
+# 2026-07-09 real, measured finding (test_stdp_repeated_exposure_learning.py):
+# the existing pre-before-post rule above (STDP_POTENTIATION_AMPLITUDE) can
+# only ever run inside _fire() -- it requires the POSTsynaptic neuron to
+# actually cross membrane_threshold. With this topology's real numbers
+# (couplings.J for a ring-distance-1 neighbor averages ~0.5; membrane_
+# threshold=1.0), a synapse starting at STDP_DEFAULT_SYNAPSE_WEIGHT=0.05
+# contributes ~0.025 per spike -- even all K<=16 neighbors of a target
+# firing in perfect unison contribute at most ~0.4, short of the 1.0
+# threshold. The postsynaptic neuron can never fire even once from
+# not-yet-potentiated synapses, so _apply_stdp_potentiation() (which only
+# runs on fire) never runs either -- a real bootstrap deadlock, not a slow
+# learning curve. Measured identically on both a fresh organism and a real
+# downloaded production pickle.
+#
+# STDP_SUBTHRESHOLD_POTENTIATION_AMPLITUDE breaks the deadlock without
+# touching membrane_threshold or any propagation/firing dynamic (the
+# parameters that govern cascade risk -- see FIRE_BREAKER_CEILING_HZ
+# above and the 2026-07-08 reverberating-cascade incident this codebase
+# already rolled back once). Applied in receive_spike() on every real
+# (non-external) spike, scaled by how close THIS spike's contribution
+# brought the neuron to firing (proximity = min(1, membrane_potential /
+# membrane_threshold) after the contribution is applied) -- a spike that
+# does almost nothing gets almost no credit; a spike that nearly crosses
+# threshold gets close to full credit. This is graded Hebbian correlation
+# credit, not causal pre-post STDP (there is no "post" event to anchor to
+# when the postsynaptic neuron never fires) -- a real, different, and
+# weaker learning signal than a confirmed causal pairing, so it is set to
+# 1/10th of STDP_POTENTIATION_AMPLITUDE: a synapse earns this credit on
+# every real correlated arrival, never on a single full-strength jump, and
+# still strengthens far more slowly than one that achieves real causal
+# pairing once the deadlock is broken. Same MAX_SYNAPSE_WEIGHT clamp as
+# every other STDP write -- no new field, no new pickle state (reuses
+# _incoming_synapse_weights, which already round-trips correctly).
+STDP_SUBTHRESHOLD_POTENTIATION_AMPLITUDE = STDP_POTENTIATION_AMPLITUDE * 0.1
+
 # --- Phase 1 delivery plan Step 2: per-neuron fire-rate circuit breaker ---
 # Real 2026-07-08/09 incident: one neuron fired continuously at ~3800/sec
 # for an unknown duration (likely hours) before being caught by chance
@@ -872,11 +907,27 @@ class LoomNeuron:
             self.membrane_potential += contribution
             self.last_update_time_s = now
 
+            if not is_external:
+                self._apply_subthreshold_potentiation(spike.source_neuron_id)
+
             if now < self.refractory_until_s:
                 return  # absorbed but no firing
 
             if self.membrane_potential >= self.membrane_threshold:
                 self._fire(now, triggering_spike=spike)
+
+    def _apply_subthreshold_potentiation(self, source_id: str) -> None:
+        """Graded Hebbian correlation credit -- see STDP_SUBTHRESHOLD_
+        POTENTIATION_AMPLITUDE's module-level comment for why this exists
+        and how it differs from _apply_stdp_potentiation's causal pre-
+        post rule. Caller holds self._neuron_lock, and has already added
+        this spike's contribution to self.membrane_potential."""
+        proximity = max(0.0, min(1.0, self.membrane_potential / self.membrane_threshold))
+        if proximity <= 0.0:
+            return
+        delta = STDP_SUBTHRESHOLD_POTENTIATION_AMPLITUDE * proximity
+        current = self._incoming_synapse_weights.get(source_id, STDP_DEFAULT_SYNAPSE_WEIGHT)
+        self._incoming_synapse_weights[source_id] = min(current + delta, MAX_SYNAPSE_WEIGHT)
 
     def _apply_stdp_potentiation(self, now: float) -> None:
         """Pre-before-post: for every source that sent us a spike within
