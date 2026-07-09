@@ -2153,6 +2153,13 @@ async def gualaloom_chat(msg: GLMessage):
                           "times_attended": p["times_attended"]}
                          for p in s.get("pictures", [])[-10:]],
             "n_videos": len(s.get("videos", [])),
+            # GL-CMD-EPISODIC-MEMORY: computed in introspect() but this
+            # handler is a curated forward-list, not a passthrough -- same
+            # forgot-to-forward mistake this file's own comments already
+            # flag as having hit organism_worker/organism_population/
+            # scene_lanes/organism_growth earlier tonight. Forwarded here
+            # so it doesn't silently repeat a fourth time.
+            "episodic_memory": s.get("episodic_memory", {}),
         }
 
     # ── /wake — substrate-physical wake event ──
