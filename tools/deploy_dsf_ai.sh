@@ -281,29 +281,55 @@ out = {
                 # so the deployed backend is visible in infra config, not
                 # just implicit in source.
                 {'name': 'RECALL_BACKEND', 'value': 'legacy'},
-                # 2026-07-09 incident: this template used to leave
-                # EVENT_DRIVEN_SUBSTRATE UNSET on the theory it was only
-                # meant to be overridden for rollback. That meant a real
-                # emergency kill switch (applied out-of-band as task-def
-                # revision 569, after a ~3800Hz runaway-neuron spike-bus-
-                # bleed incident) got silently discarded on the very next
-                # normal deploy through this script, which regenerates the
-                # whole container definition from scratch -- re-enabling
-                # the exact mechanism that caused the incident with no
-                # explicit decision by anyone. Caught within ~20 minutes
-                # via /debug/stdp_state (spike_bus_metrics.enabled=true,
-                # no runaway detected in that window) and reverted. Kept
-                # OFF explicitly and durably here until BOTH: (1) the
-                # underlying cause of a neuron exceeding its own
-                # refractory period is root-caused and fixed (the fire-
-                # rate circuit breaker in neuron.py only bounds the
-                # damage, it does not explain or fix that), and (2) the
-                # new circuit breaker has been soak-tested under real
-                # production load, not just synthetic reproduction. Do
-                # not remove this line without an explicit decision --
-                # see docs for the STDP-learning-gap and runaway-neuron
-                # findings this depends on.
-                {'name': 'EVENT_DRIVEN_SUBSTRATE', 'value': '0'}
+                # 2026-07-09: this template previously left
+                # EVENT_DRIVEN_SUBSTRATE UNSET (defaults to 1 in code) on
+                # the theory it was only meant to be overridden for
+                # rollback. That silently discarded a real emergency kill
+                # switch on the very next normal deploy (this script
+                # regenerates the whole container definition from
+                # scratch), re-arming a ~3800Hz runaway-neuron spike-bus-
+                # bleed incident's root mechanism with no explicit
+                # decision by anyone. Caught within ~20 minutes via
+                # /debug/stdp_state, reverted, and kept off (task-def
+                # revisions 571-572) while the real root cause was
+                # investigated.
+                #
+                # That investigation found the original diagnosis
+                # (unbounded neuron-to-neuron cascade, no lateral
+                # inhibition) was itself wrong: commit 712578f (2026-07-08,
+                # predates tonight) traced 99.4% of firing to direct
+                # external injection, not propagation -- entry-neuron
+                # selection was falling back to a 16-neuron random sample
+                # on every word instead of the intended 1-neuron chi
+                # match. That commit fixed the real cause (16->1 entry
+                # neurons per word, verified against a real downloaded
+                # production pickle) and wired real chemistry-based
+                # lateral inhibition (~20% inhibitory population split,
+                # signed outgoing spikes) as a second, independent layer
+                # -- test_lateral_inhibition_cascade.py's
+                # test_real_polarity_fix_stops_the_cascade proves zero
+                # post-input fires on the real seeded population. Commit
+                # 56453a3 (2026-07-09) then fixed a separate STDP
+                # learning-bootstrap deadlock, and this session added a
+                # third layer, a fire-rate circuit breaker, purely as
+                # backstop insurance.
+                #
+                # None of this had been tried live since 712578f landed --
+                # it sat verified-offline only. This session ran a
+                # deliberate, watched ~20-minute live trial on task-def
+                # revision 573 (not an accident this time): spike bus
+                # enabled, fire_rate_window_metrics stayed at 0 runaway
+                # neurons / 0 breaker trips throughout, CPU held flat
+                # 21-34%, spike count grew linearly (46->177->545), no
+                # sign of the original incident's pattern. Passed. Set
+                # back to the code's real default (1) here, durably, so a
+                # normal deploy no longer contradicts a manually-verified
+                # live state. If this ever needs reverting again, do it
+                # exactly like the 2026-07-08/09 incidents: task-def env
+                # override to 0, pause/update-service/wake, verify via
+                # /debug/stdp_state, then fix this file so the revert
+                # survives the next deploy too.
+                {'name': 'EVENT_DRIVEN_SUBSTRATE', 'value': '1'}
             ] + ([{'name': 'FORCE_S3_RESTORE', 'value': '1'}] if os.environ.get('_FORCE_S3_RESTORE_INJECT') == '1' else []),
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
