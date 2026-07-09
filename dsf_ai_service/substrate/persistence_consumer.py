@@ -127,6 +127,27 @@ class PersistenceConsumer:
         os.rename(tmp, path)
         logger.info("Checkpoint written: %s", path)
 
+        # 2026-07-09 fix: truncate events.log now that this checkpoint's
+        # snapshot fully captures everything written to it so far --
+        # recover() (below) only ever reads events with seq > the LATEST
+        # checkpoint's own seq, so every event already folded into this
+        # checkpoint is now pure dead weight, growing the local file
+        # forever within a single process's lifetime. Found live: this
+        # ever-growing file was being re-uploaded IN FULL by S3Consumer
+        # on every subsequent checkpoint (confirmed via a real /debug/
+        # thread_dump of the running process -- continuous, ever-larger
+        # multipart uploads, not a stall, real sustained CPU spend on
+        # SSL + checksums). Safe here specifically: _write_checkpoint
+        # only ever runs from _write_events, on this consumer's own
+        # single writer thread -- no other thread ever touches
+        # self._log_fd, so there's no concurrent-write race to guard
+        # against (unlike S3Consumer's separate delete step, which
+        # deliberately never touches this file for exactly that reason).
+        try:
+            os.ftruncate(self._log_fd.fileno(), 0)
+        except Exception:
+            logger.exception("events.log truncate failed at seq %d (non-fatal)", seq)
+
     @staticmethod
     def recover(state_dir):
         """Find latest checkpoint and replay events after it.
