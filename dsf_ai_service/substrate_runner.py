@@ -612,16 +612,37 @@ def boot_substrate():
                         folders[parts[0]].append(parts[1])
             # Find backup with the richest state (most vocab)
             # Seed-state backups have ~20-40 vocab; real state has 2800+
+            # 2026-07-09: save_coordinator's S3 mirror now gzips the plain
+            # .json state files in-flight (guala_core.json -> guala_core.
+            # json.gz on S3) to cut backup size -- the LOCAL EFS copies
+            # load_full_state actually reads stay plain, untouched. This
+            # restore path downloads straight from S3 into STATE_DIR, so
+            # it has to undo that compression on the way back down, and
+            # has to recognize a folder as complete under EITHER naming
+            # (older backups already in S3 before this change are still
+            # plain .json and will age out naturally, not be rewritten).
+            import gzip as _gzip
+
+            def _has_file(files, base_name):
+                return base_name in files or f"{base_name}.gz" in files
+
+            def _real_name(files, base_name):
+                return base_name if base_name in files else f"{base_name}.gz"
+
             good = None
             best_vocab = 0
             for folder in sorted(folders.keys(), reverse=True):
                 files = folders[folder]
-                if "guala_core.json" not in files or "guala_atlas.json" not in files:
+                if not (_has_file(files, "guala_core.json")
+                        and _has_file(files, "guala_atlas.json")):
                     continue
                 try:
-                    core_obj = s3.get_object(Bucket=bucket,
-                        Key=f"{folder}/guala_core.json")
-                    core_data = json.loads(core_obj['Body'].read())
+                    core_key = f"{folder}/{_real_name(files, 'guala_core.json')}"
+                    core_obj = s3.get_object(Bucket=bucket, Key=core_key)
+                    core_body = core_obj['Body'].read()
+                    if core_key.endswith(".gz"):
+                        core_body = _gzip.decompress(core_body)
+                    core_data = json.loads(core_body)
                     cd = core_data.get('data', core_data)
                     vc = len(cd.get('vocab', []))
                     if vc > best_vocab:
@@ -635,8 +656,14 @@ def boot_substrate():
                 print(f"[substrate] Restoring from {good} ({len(folders[good])} files)")
                 for fname in folders[good]:
                     s3_key = f"{good}/{fname}"
-                    local = os.path.join(STATE_DIR, fname)
-                    s3.download_file(bucket, s3_key, local)
+                    real_fname = fname[:-3] if fname.endswith(".gz") else fname
+                    local = os.path.join(STATE_DIR, real_fname)
+                    if fname.endswith(".gz"):
+                        obj = s3.get_object(Bucket=bucket, Key=s3_key)
+                        with open(local, "wb") as f:
+                            f.write(_gzip.decompress(obj['Body'].read()))
+                    else:
+                        s3.download_file(bucket, s3_key, local)
                 # Reload
                 g2 = Guala()
                 g2.add_corpus("legacy_seed", "Seed Corpus", CORPUS)

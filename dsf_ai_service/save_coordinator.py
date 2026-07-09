@@ -17,7 +17,19 @@ log = logging.getLogger(__name__)
 
 SAVE_COORDINATOR = None  # set by substrate_runner on init
 
-S3_MIN_INTERVAL_SECONDS = 600   # 10 minutes between rate-limited S3 enqueues
+S3_MIN_INTERVAL_SECONDS = 86400   # 2026-07-09: Joe's explicit call -- one
+# automatic S3 backup per day, not one every 10 minutes. The 10-minute
+# value already fixed a real live incident (dream_end queuing unlimited
+# uploads with no rate limit at all -- see this file's other 2026-07-09
+# comment), but at ~150-190MB per backup and dozens of automatic quiet
+# points per day (activity_ended, backstop, presence_quiet, dream_end),
+# 10 minutes still produced ~30GB/day of near-duplicate snapshots this
+# same session found and deleted. Local EFS state (guala.save_hot_state,
+# unaffected by this constant) is the substrate's real, continuously-
+# current save -- this constant only governs how often that state ALSO
+# gets mirrored to S3 as an off-box safety copy, so widening it to a day
+# does not reduce how current her real save actually is, only how often
+# a redundant duplicate of it leaves the box.
 
 
 class SaveCoordinator:
@@ -164,10 +176,30 @@ class SaveCoordinator:
                 uploaded = 0
                 for fname in all_files:
                     fpath = os.path.join(state_dir, fname)
-                    if os.path.exists(fpath):
+                    if not os.path.exists(fpath):
+                        continue
+                    if fname.endswith(".json"):
+                        # 2026-07-09: the .pkl.gz files below were already
+                        # gzip-compressed before this loop ever sees them;
+                        # the plain .json state files (atlas/deep_atlas/
+                        # sections/survival/etc, several MB each) were not
+                        # -- uploaded byte-for-byte. Compress in-flight,
+                        # in memory, for the S3 mirror only -- the local
+                        # EFS copy this loop reads from stays plain JSON,
+                        # untouched, so the fast local save/restore path
+                        # this constant doesn't govern is not affected at
+                        # all by this change.
+                        import gzip as _gzip
+                        import io as _io
+                        with open(fpath, "rb") as f:
+                            raw = f.read()
+                        buf = _io.BytesIO(_gzip.compress(raw))
+                        s3.upload_fileobj(buf, self.s3_bucket,
+                                          f"{s3_prefix}/{fname}.gz")
+                    else:
                         s3.upload_file(fpath, self.s3_bucket,
                                        f"{s3_prefix}/{fname}")
-                        uploaded += 1
+                    uploaded += 1
                 # GL-CMD-97: track last S3 result for handle_backup to report
                 self._last_s3_result = {
                     "s3_prefix": f"{s3_prefix}/",

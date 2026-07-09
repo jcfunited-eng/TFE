@@ -18,12 +18,21 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 def test_should_save_bypass_includes_activity_ended_and_backstop():
-    """activity_ended and backstop are in the _should_save bypass list."""
+    """activity_ended and backstop bypass the wall-clock rate floor other
+    reasons hit (same as shutdown/backup/dream_end, which bypass every
+    gate) -- but still real to _should_save's OTHER gate, is_present_
+    active(): a save reason bypassing the timing floor should still
+    defer while someone's actively interacting, same as any other
+    reason. mock_guala.is_present_active.return_value = False makes
+    that concrete instead of an unconfigured MagicMock (truthy by
+    default), which silently failed this exact assertion before this
+    fix -- not a _should_save bug, a missing mock configuration bug."""
     print("  Test 1: _should_save bypass list...", end=" ")
     from dsf_ai_service.save_coordinator import SaveCoordinator
 
     mock_guala = MagicMock()
     mock_guala.tick = 100000
+    mock_guala.is_present_active.return_value = False
     sc = SaveCoordinator(mock_guala, "/tmp/test_state", s3_bucket=None)
 
     # All bypass reasons should return True regardless of other state
@@ -154,8 +163,17 @@ def test_end_activity_no_external_is_natural_quiet_point_gate():
     return True
 
 
-def test_s3_enqueue_always_for_shutdown_backup_dream_end():
-    """shutdown, backup, dream_end always enqueue S3 with no rate limit."""
+def test_s3_enqueue_always_for_shutdown_and_backup_dream_end_rate_limited():
+    """shutdown and backup always enqueue S3 with no rate limit. dream_end
+    does NOT -- moved out of "always" on 2026-07-09 (see save_coordinator.
+    py's own comment) after a real live incident: every dream cycle ending
+    queued a full S3 upload unconditionally, and dream cycles complete
+    every few minutes under ordinary operation, producing sustained
+    continuous CPU spend confirmed via a live thread-dump. dream_end is
+    real and still queues -- just subject to the same rate limit as
+    activity_ended/backstop/presence_quiet, so calling it immediately
+    after backup in this test (well within any real interval) should be
+    skipped, same as it would be live."""
     print("  Test 5: S3 always-queue reasons...", end=" ")
     from dsf_ai_service.save_coordinator import SaveCoordinator
 
@@ -169,8 +187,10 @@ def test_s3_enqueue_always_for_shutdown_backup_dream_end():
     for reason in ("shutdown", "backup", "dream_end"):
         sc.maybe_save(reason)
 
-    assert sc.queue_s3.call_count == 3, \
-        f"queue_s3 called {sc.queue_s3.call_count} times, expected 3"
+    assert sc.queue_s3.call_count == 2, \
+        (f"queue_s3 called {sc.queue_s3.call_count} times, expected 2 "
+         f"(shutdown + backup always-queue; dream_end is rate-limited "
+         f"and should be skipped this soon after backup's enqueue)")
     print("PASS")
     return True
 
@@ -197,9 +217,14 @@ def test_s3_enqueue_rate_limited_for_activity_ended():
 
 
 def test_s3_enqueue_rate_limit_releases_after_interval():
-    """After 601 seconds, rate limit releases and S3 enqueues again."""
+    """After S3_MIN_INTERVAL_SECONDS, rate limit releases and S3 enqueues
+    again. Reads the real constant instead of hardcoding a number that
+    can silently drift from it -- this test hardcoded 601 (one second
+    past the OLD 600s/10-minute value) and kept failing after 2026-07-09
+    changed the real interval to 86400s/1 day per Joe's explicit call
+    (one automatic S3 backup a day, not one every 10 minutes)."""
     print("  Test 7: S3 rate-limit release after interval...", end=" ")
-    from dsf_ai_service.save_coordinator import SaveCoordinator
+    from dsf_ai_service.save_coordinator import SaveCoordinator, S3_MIN_INTERVAL_SECONDS
 
     mock_guala = MagicMock()
     mock_guala.tick = 100000
@@ -211,8 +236,18 @@ def test_s3_enqueue_rate_limit_releases_after_interval():
     sc.maybe_save("activity_ended")
     assert sc.queue_s3.call_count == 1
 
-    # Advance time by 601 seconds
-    sc._last_s3_enqueue_wall = time.monotonic() - 601
+    # Advance time by one second past the real interval. maybe_save's own
+    # _should_save gate (checked BEFORE _maybe_queue_s3's separate S3-
+    # specific limiter) has its own wall/tick floor -- advancing only
+    # _last_s3_enqueue_wall left that gate still closed (mock_guala.tick
+    # never moves on its own, so tick_delta stayed 0 < 200) and this test
+    # kept failing on a DIFFERENT gate than the one it's named for, not
+    # the one it means to test. Advance all three so this test isolates
+    # the S3 rate limit specifically, same as a real save this much
+    # later genuinely would.
+    sc._last_s3_enqueue_wall = time.monotonic() - (S3_MIN_INTERVAL_SECONDS + 1)
+    sc.last_save_wall = time.monotonic() - (S3_MIN_INTERVAL_SECONDS + 1)
+    mock_guala.tick = 100000 + 1000
     sc.maybe_save("activity_ended")
 
     assert sc.queue_s3.call_count == 2, \
@@ -272,7 +307,7 @@ def main():
         test_end_activity_with_save_fires_on_dreaming,
         test_end_activity_with_save_fires_on_normal_activity,
         test_end_activity_no_external_is_natural_quiet_point_gate,
-        test_s3_enqueue_always_for_shutdown_backup_dream_end,
+        test_s3_enqueue_always_for_shutdown_and_backup_dream_end_rate_limited,
         test_s3_enqueue_rate_limited_for_activity_ended,
         test_s3_enqueue_rate_limit_releases_after_interval,
         test_s3_enqueue_never_for_unknown_reason,
