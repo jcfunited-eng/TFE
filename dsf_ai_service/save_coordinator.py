@@ -79,12 +79,28 @@ class SaveCoordinator:
         """Enqueue an S3 backup if reason warrants it.
 
         Three classes:
-          - always-queue: shutdown, backup, dream_end (no rate limit)
-          - rate-limited: activity_ended, backstop, presence_quiet
+          - always-queue: shutdown, backup (no rate limit)
+          - rate-limited: activity_ended, backstop, presence_quiet, dream_end
           - never: anything else
-        """
-        always = ("shutdown", "backup", "dream_end")
-        ratelimited = ("activity_ended", "backstop", "presence_quiet")
+
+        2026-07-09: dream_end moved out of "always" -- confirmed live,
+        found via a real thread-dump of the running process, not a
+        report: every dream cycle ending queued a full ~24MB multipart
+        S3 upload (guala_atlas.json ~7MB, guala_deep_atlas.json ~9MB,
+        guala_organism.pkl.gz ~5MB, guala_sections.json ~2.8MB, plus
+        the rest) unconditionally, no rate limit at all -- and dream
+        cycles complete every few minutes under ordinary operation.
+        With uploads queuing faster than s3transfer's own multipart
+        threads could always finish each one, this produced sustained,
+        continuous CPU spend on SSL + CRC32 checksums (confirmed via a
+        live /debug/thread_dump: 10+ worker threads permanently busy in
+        s3transfer's upload_part). Real memory each dream consolidates
+        deserves a real backup, but not more than once per
+        S3_MIN_INTERVAL_SECONDS regardless of how many dreams happen in
+        that window -- same rate limit already governing every other
+        frequent, non-manual save reason below."""
+        always = ("shutdown", "backup")
+        ratelimited = ("activity_ended", "backstop", "presence_quiet", "dream_end")
         if reason in always:
             self.queue_s3(self.state_dir, self.guala.tick, reason)
             self._last_s3_enqueue_wall = time.monotonic()
