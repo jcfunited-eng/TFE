@@ -2459,20 +2459,6 @@ async def gualaloom_chat(msg: GLMessage):
             # explicit bundle teaching too.
             bundle_sound_signal = None
 
-            # ── WORD lane ──
-            if caption:
-                try:
-                    _guala.read_sentence(caption, source="joe")
-                    from dsf_ai_service.v4.gualaloom_v5_engine import _normalize_text
-                    for w in _normalize_text(caption):
-                        from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
-                        tk = LanguageKrimelack()
-                        tk.transduce(w)
-                        bundle_chis.append(tk.winding % 100)
-                    results.append(f"told her \"{caption}\"")
-                except Exception as e:
-                    results.append(f"word ERROR: {e}")
-
             # ── SIGHT lane (H1: process_viewing, H5a: shared decode) ──
             # Support both base64 upload and reference to existing picture (3.12)
             img_b64 = bundle_data.get("image_b64")
@@ -2608,6 +2594,7 @@ async def gualaloom_chat(msg: GLMessage):
                                                   "n_events": c["n_events"]}
                                              for bn, c in cochlear.items()},
                                 "times_attended": 0, "last_attended_tick": 0,
+                                "created_tick": _guala.tick,
                                 "raw_signal": samples.tolist(),
                             }
                             bundle_sound_signal = samples.tolist()
@@ -2649,6 +2636,28 @@ async def gualaloom_chat(msg: GLMessage):
                                        f"({len(channel_results)} channels)")
                     except Exception as e:
                         results.append(f"{sense_name} ERROR: {e}")
+
+            # ── WORD lane ──
+            # 2026-07-09 credo fix: moved to AFTER the sight/sound/touch/
+            # smell/taste lanes (was first) so that when this caption's
+            # word commits (Section.receive -> window_manager.add_entry),
+            # _current_window_has_real_grounding() sees whatever real
+            # sensory entries this same bundle call already added to the
+            # still-open window -- same window, same tick range, same
+            # results either way, just reordered so the word actually
+            # gets to know what else was really part of this experience.
+            if caption:
+                try:
+                    _guala.read_sentence(caption, source="joe")
+                    from dsf_ai_service.v4.gualaloom_v5_engine import _normalize_text
+                    for w in _normalize_text(caption):
+                        from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
+                        tk = LanguageKrimelack()
+                        tk.transduce(w)
+                        bundle_chis.append(tk.winding % 100)
+                    results.append(f"told her \"{caption}\"")
+                except Exception as e:
+                    results.append(f"word ERROR: {e}")
 
             # ── ORGANISM teach: real auditory signal + word, one binding ──
             # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test wiring.
@@ -2809,6 +2818,7 @@ async def gualaloom_chat(msg: GLMessage):
                                  for bn, c in cochlear.items()},
                     "duration_s": round(duration_s, 2),
                     "times_attended": 0, "last_attended_tick": 0,
+                    "created_tick": _guala.tick,
                     # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test
                     # wiring: the 200Hz-downsampled waveform (already
                     # computed above for cochlear_transduce) is the exact

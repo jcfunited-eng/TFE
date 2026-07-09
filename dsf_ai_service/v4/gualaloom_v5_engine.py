@@ -496,6 +496,36 @@ def _organism_signal(word, transducer):
 # not a measured constant -- stated plainly, not dressed as derived.
 SENSE_BINDING_WINDOW_SEC = 3.0
 
+# 2026-07-09 credo fix (Joe: "language cannot really have meaning without
+# the equality of experience as tied to our senses"): which atlas section
+# NAMES represent a genuinely real or deliberately-curated sensory moment,
+# versus the always-on, word-triggered SENSORY_DNA/sensory_generators
+# auto-fire that happens on ~150-190 hardcoded words regardless of whether
+# any real camera/mic/experience is involved (read_word's `modal_{m}`
+# writer, `_bind_sensory_words`'s `modal_{modality}` writer -- both
+# confirmed fake, admitted placeholders in their own source comments).
+# Real/deliberate sections, by construction, never use the "modal_"
+# prefix: bare "sight" and "audio_*" (real camera/mic frames or an
+# uploaded picture/sound, process_sight_frame/process_sound_frame,
+# gualaloom_v5_engine.py ~7262-7396), and "touch_*"/"smell_*"/"taste_*"
+# (app.py's /bundle: give_experience handler -- a human deliberately
+# asserting a real sensory quality for an actual experience, run through
+# sensory_generators.py's real waveform-shape physics, never automatic).
+REAL_GROUNDING_SECTION_PREFIXES = ("audio_", "touch_", "smell_", "taste_")
+REAL_GROUNDING_EXACT_SECTIONS = {"sight"}
+FAKE_MODAL_SECTIONS = {"modal_sight", "modal_sound", "modal_touch",
+                        "modal_smell", "modal_taste"}
+
+
+def _require_grounded_speech():
+    """Joe's ruling, 2026-07-09: only speak words tied to a real experience,
+    or say nothing. Kill switch (not a hedge on the ruling itself, a dial
+    for the measured severity of its effect) -- default ON, same
+    env-var-gate convention as DEEP_ATLAS_ENABLED/DEEP_PRIOR_ENABLED.
+    Re-read per call (hot path, but a plain dict lookup -- same convention
+    read_word already uses for DECAY_PAUSED)."""
+    return os.environ.get("REQUIRE_GROUNDED_SPEECH", "1") != "0"
+
 # --- GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 (dual-write/dual-read) ---
 # HEURISTIC: ENTRY_CHI_BAND=8 -- how far chi injection reaches when
 # selecting entry neurons for a chi-anchored input. Class: from-design.
@@ -1096,11 +1126,19 @@ class Section:
             else:
                 atlas.record(self.name, mode_idx, chi, atlas_tick, salience=salience,
                              dwell_ticks=dwell_ticks, **(atlas_kwargs or {}))
+            # 2026-07-09 credo fix: real_grounding is threaded in read_word's
+            # atlas_kwargs (see _current_window_has_real_grounding) -- carries
+            # whether this specific commit happened in the same binding
+            # window as a real/deliberate sensory entry, not the always-on
+            # fake modal_* auto-fire. Absent for callers that don't pass
+            # atlas_kwargs (e.g. direct test/reinstatement paths) -- honest
+            # False, not assumed grounded.
             self.commits.append({
                 "tick": atlas_tick,
                 "mode": mode_idx,
                 "chi": chi,
                 "word": word_label,
+                "grounded": bool((atlas_kwargs or {}).get("real_grounding", False)),
             })
             if len(self.commits) > SECTION_COMMITS_MAX:
                 del self.commits[0]
@@ -2214,6 +2252,107 @@ class Guala:
         self._sit_cache_tick = self.tick
         return result
 
+    def _current_window_has_real_grounding(self):
+        """2026-07-09 credo fix: is the CURRENTLY OPEN binding window (see
+        window_manager.py) carrying a genuinely real or deliberately-
+        curated sensory entry -- as opposed to the always-on fake
+        SENSORY_DNA/sensory_generators auto-fire (FAKE_MODAL_SECTIONS)?
+
+        This is the single real signal available for "was this word
+        actually experienced, not just read" -- window_manager's whole
+        purpose (per its own module docstring) is recording "these were
+        together," and give_experience's picture/sound lanes plus the
+        real live camera/mic frame handlers all already route through it
+        (REAL_GROUNDING_EXACT_SECTIONS/_PREFIXES). No window open, or a
+        window with only fake/modal_ entries so far, is honest false --
+        not everything she reads is grounded, and it shouldn't look like
+        it is."""
+        win = getattr(self.window_manager, "current", None)
+        if win is None:
+            return False
+        for e in win.entries:
+            sec = e.section
+            if sec in FAKE_MODAL_SECTIONS:
+                continue
+            if sec in REAL_GROUNDING_EXACT_SECTIONS or sec.startswith(REAL_GROUNDING_SECTION_PREFIXES):
+                return True
+        return False
+
+    def _forget_stale_sensory_items(self):
+        """2026-07-09 bloat fix: real uploaded pictures/sounds/videos had
+        NO forgetting at all -- every item stayed in memory (and, for
+        pictures/videos, on real EFS disk) forever, regardless of whether
+        she'd attended it in months. Reuses Section.MODE_FORGET_TICKS
+        (already derived from LivingAtlas's own real decay constants:
+        ln(0.02)/-0.0001 ticks) as the same "how long unattended before
+        forgotten" window a word mode uses -- a picture she hasn't
+        attended in that long is exactly as forgotten as a word would be.
+        Deliberately NOT a count-based cap (unlike window_manager's
+        MAX_CLOSED_WINDOWS, pure bookkeeping with no meaning of its own)
+        -- this is real content, so it decays on the same real attention-
+        recency physics as anything else she remembers, per Joe's ruling
+        2026-07-09 ("decay and forgetting properly utilized where it
+        makes sense"), not an arbitrary ceiling.
+
+        Grace period: a just-created, never-yet-attended item is judged
+        from its OWN creation tick (shown_at_tick for pictures/videos,
+        created_tick for sounds -- added alongside this fix since sounds
+        never tracked one before), not tick 0 -- else everything freshly
+        added would look infinitely stale before the attention loop ever
+        reaches it. Missing created_tick on pre-existing sound records
+        (saved before this fix) defaults to "now," not 0 -- an unknown
+        creation time must never look ancient by default; that would mass-
+        forget a whole category of real content the first time this runs.
+
+        Best-effort file cleanup for pictures/videos (their real EFS
+        artifacts) -- swallows errors, never crashes the substrate, same
+        convention as S3Consumer._delete_object."""
+        threshold = Section.MODE_FORGET_TICKS
+        forgotten = {"pictures": 0, "sounds": 0, "videos": 0}
+
+        for pid in list(self._pictures.keys()):
+            pic = self._pictures[pid]
+            last_active = max(pic.last_attended_tick, pic.shown_at_tick)
+            if self.tick - last_active <= threshold:
+                continue
+            orig_path = getattr(pic, "original_path", None)
+            if orig_path:
+                try:
+                    if os.path.exists(orig_path):
+                        os.remove(orig_path)
+                except Exception:
+                    pass
+            del self._pictures[pid]
+            forgotten["pictures"] += 1
+
+        for sid in list(self._sounds.keys()):
+            snd = self._sounds[sid]
+            last_active = max(snd.get("last_attended_tick", 0),
+                              snd.get("created_tick", self.tick))
+            if self.tick - last_active > threshold:
+                del self._sounds[sid]
+                forgotten["sounds"] += 1
+
+        for vid in list(self._videos.keys()):
+            vitem = self._videos[vid]
+            last_active = max(vitem.last_attended_tick, vitem.shown_at_tick)
+            if self.tick - last_active <= threshold:
+                continue
+            frame_dir = getattr(vitem, "frame_dir", None)
+            if frame_dir:
+                try:
+                    import shutil
+                    if os.path.isdir(frame_dir):
+                        shutil.rmtree(frame_dir, ignore_errors=True)
+                except Exception:
+                    pass
+            del self._videos[vid]
+            forgotten["videos"] += 1
+
+        if any(forgotten.values()):
+            self._log_substrate_event("sensory_items_forgotten", **forgotten)
+        return forgotten
+
     # ------------------------------------------------------------------
     # Read one word: fire all krimelacks, compute DSF, route to sections
     # ------------------------------------------------------------------
@@ -2391,6 +2530,12 @@ class Guala:
                 _akw["place"] = place
             if ambient is not None:
                 _akw["ambient"] = ambient
+            # 2026-07-09 credo fix: real/deliberate sensory co-occurrence
+            # in the currently-open binding window, threaded down to
+            # Section.receive's commit record (see _rebuild_word_to_
+            # emission_index and REQUIRE_GROUNDED_SPEECH for how this
+            # gates what she's allowed to speak).
+            _akw["real_grounding"] = self._current_window_has_real_grounding()
 
             fam_listen = self.atlas.match_score(lang_chi, "listen")
             _listen_committed, _listen_mode_idx, _ = self.sections["listen"].receive(
@@ -2428,8 +2573,19 @@ class Guala:
                 if _committed:
                     self._index_word_at_chi(primary_section, _mode_idx, lang_chi)
                 # Incremental update of word→emission-section index
+                # 2026-07-09 credo fix: only add a brand-new word to the
+                # speakable index immediately if THIS first occurrence was
+                # itself really grounded (_akw["real_grounding"], same value
+                # already computed above for this word event). A word whose
+                # first occurrence isn't grounded but is later re-taught in
+                # a genuinely grounded moment still becomes speakable --
+                # just at the next _rebuild_word_to_emission_index() full
+                # scan (boot/restore), not instantly here, since reinforcement
+                # of an existing mode doesn't change len(modes) and so never
+                # reaches this incremental branch at all.
                 if (primary_section in self._EMISSION_SECTIONS
-                        and len(self.sections[primary_section].modes) > n_modes_before):
+                        and len(self.sections[primary_section].modes) > n_modes_before
+                        and (not _require_grounded_speech() or _akw.get("real_grounding"))):
                     wl = word.lower()
                     mi = len(self.sections[primary_section].modes) - 1
                     if wl not in self._word_to_emission_sections:
@@ -2455,6 +2611,7 @@ class Guala:
                     dwell_ticks=dwell,
                     deep_atlas=self.deep_atlas,
                     engine_tick=self.tick,
+                    atlas_kwargs=_akw,
                     index_callback=self._index_word_at_chi,
                     window_manager=self.window_manager)
                 if _ground_committed:
@@ -2509,6 +2666,7 @@ class Guala:
                     dwell_ticks=dwell,
                     deep_atlas=self.deep_atlas,
                     engine_tick=self.tick,
+                    atlas_kwargs=_akw,
                     index_callback=self._index_word_at_chi,
                     window_manager=self.window_manager)
                 if _intro_committed:
@@ -2530,6 +2688,7 @@ class Guala:
                     forget_hemisphere_atlases(self)
                 for _sec in self.sections.values():
                     _sec.forget_stale_modes(self.tick)
+                self._forget_stale_sensory_items()
 
             # 8b. V5: Generate questions from gaps in this word's bindings
             # 9. Coordinator regulation pass (homeostasis + awareness)
@@ -2558,8 +2717,20 @@ class Guala:
         single intro-section word, every time, on every deploy (this
         rebuild runs at every boot/state-load). Fixed by ordering on each
         commit's real engine tick (Section.commits already records one)
-        instead of iteration/append order."""
+        instead of iteration/append order.
+
+        2026-07-09 credo fix: when _require_grounded_speech() is on, a word
+        only enters this index (i.e. is allowed to be spoken at all -- see
+        _brain_emission_candidates_legacy/_association_from_organism/
+        _deep_atlas_neighbor_candidates, which all gate on membership here)
+        if it has EVER had a real-grounded commit. Going forward that comes
+        straight from Section.commits' own "grounded" field (set in
+        read_word/Section.receive from _current_window_has_real_grounding).
+        For vocabulary taught before this field existed, the only real
+        signal available is deep_atlas's own co_occurrence record --
+        _backfill_grounded_from_deep_atlas cross-references it once here."""
         entries = []
+        grounded_words = set()
         for es in self._EMISSION_SECTIONS:
             es_sec = self.sections.get(es)
             if not es_sec:
@@ -2568,14 +2739,56 @@ class Guala:
                 w = c.get("word")
                 if w:
                     entries.append((c.get("tick", 0), es, c.get("mode"), w))
+                    if c.get("grounded"):
+                        grounded_words.add(w.lower())
+        if _require_grounded_speech():
+            grounded_words |= self._backfill_grounded_from_deep_atlas()
         entries.sort(key=lambda e: e[0])
         idx = {}
         for _tick, es, mi, w in entries:
             wl = w.lower()
+            if _require_grounded_speech() and wl not in grounded_words:
+                continue
             if wl not in idx:
                 idx[wl] = []
             idx[wl].append((es, mi, w))
         self._word_to_emission_sections = idx
+        self._grounded_words = grounded_words
+
+    def _backfill_grounded_from_deep_atlas(self):
+        """2026-07-09 credo fix: retroactive grounding signal for vocabulary
+        committed before Section.commits tracked "grounded" directly.
+        deep_atlas's own co_occurrence invariant (_update_invariant in
+        deep_atlas.py) already records, per promoted entry, every OTHER
+        section that shared its chi neighborhood at promotion/reinforcement
+        time -- real/deliberate sections (REAL_GROUNDING_EXACT_SECTIONS/
+        _PREFIXES) showing up there means a real sensory moment genuinely
+        touched that neighborhood, which is exactly what "grounded" means.
+        Only entries in the 6 real speakable sections are considered (deep_
+        atlas also holds the fake modal_* population itself, which this
+        never treats as grounding evidence on its own). Honest empty if
+        deep_atlas has nothing for a word -- no assumption either way."""
+        grounded = set()
+        for chi_k, des in self.deep_atlas.entries.items():
+            for de in des:
+                section = de.get("section")
+                if section not in self._EMISSION_SECTIONS:
+                    continue
+                co = de.get("co_occurrence") or {}
+                has_real = any(
+                    (s in REAL_GROUNDING_EXACT_SECTIONS or s.startswith(REAL_GROUNDING_SECTION_PREFIXES))
+                    for s in co if s not in FAKE_MODAL_SECTIONS
+                )
+                if not has_real:
+                    continue
+                sec_obj = self.sections.get(section)
+                motif = de.get("motif")
+                if sec_obj is None or motif is None or motif >= len(sec_obj.modes):
+                    continue
+                word_label = sec_obj.modes[motif][2]
+                if word_label:
+                    grounded.add(word_label.lower())
+        return grounded
 
     def _choose_role_sections(self, role_dna, position_hint):
         """Route word commit. Position wins for sentence boundaries (object,
@@ -4093,6 +4306,16 @@ class Guala:
                         continue
                     wl = word_label.lower()
                     if wl in exclude or wl in seen:
+                        continue
+                    # 2026-07-09 credo fix: sec_obj.modes is the RAW mode
+                    # list, ungated -- resolving a candidate word straight
+                    # from it (as this always has) bypasses the grounded-
+                    # speech filter entirely, since that filter lives in
+                    # _word_to_emission_sections, not on modes itself. The
+                    # seed_word check above only gates where the walk is
+                    # allowed to START; every candidate WORD it surfaces
+                    # needs the same real-grounding bar the seed word did.
+                    if _require_grounded_speech() and wl not in self._word_to_emission_sections:
                         continue
                     seen.add(wl)
                     out.append((word_label, w * entry_strength, section, mid))
@@ -6391,6 +6614,7 @@ class Guala:
                         forget_hemisphere_atlases(self)
                     for _sec in self.sections.values():
                         _sec.forget_stale_modes(self.tick)
+                    self._forget_stale_sensory_items()
                 if self.tick % 5 == 0:
                     self.coordinator.regulate(self, self.needs, self.atlas,
                                              self.sections, self.tick)
@@ -7777,6 +8001,7 @@ class Guala:
                         forget_hemisphere_atlases(self)
                     for _sec in self.sections.values():
                         _sec.forget_stale_modes(self.tick)
+                    self._forget_stale_sensory_items()
                 if self.tick % 5 == 0:
                     self.coordinator.regulate(self, self.needs, self.atlas,
                                              self.sections, self.tick)

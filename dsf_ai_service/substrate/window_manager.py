@@ -80,6 +80,23 @@ class WindowManager:
     """
 
     QUIET_TIMEOUT_SEC_DEFAULT = 0.5
+    # 2026-07-09 bloat fix: self.windows (== atlas.windows when wired to
+    # the real engine) has grown by one permanent entry per window close
+    # since this class shipped (GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1)
+    # with no eviction anywhere -- confirmed live: every read_word commit
+    # already closes/reopens windows via the real word/sight/sound/touch/
+    # smell/taste lanes, so this was never a rare event. It hasn't shown
+    # up as an incident yet only because atlas.windows was never actually
+    # included in the atlas's own save/load serialization (a separate gap,
+    # not a mitigation) -- every restart silently resets it before it grows
+    # large enough to matter. Bounding it directly, same evict-oldest
+    # pattern as SECTION_COMMITS_MAX/MAX_ENTRIES_PER_CHI_KEY elsewhere in
+    # the substrate, rather than relying on an accidental reset. 2000 is a
+    # judgment call, not derived -- same order of magnitude as
+    # SECTION_COMMITS_MAX (5000 per section); a closed window bundles many
+    # entries at once (whole multi-modal moments, not single words), so
+    # fewer of them are needed for a comparable amount of real history.
+    MAX_CLOSED_WINDOWS = 2000
 
     def __init__(
         self,
@@ -250,6 +267,12 @@ class WindowManager:
                 for e in window.entries
             ],
         }
+
+        # 2026-07-09 bloat fix: evict oldest first (dict preserves
+        # insertion order) once the bound is exceeded -- see
+        # MAX_CLOSED_WINDOWS docstring above.
+        if len(self.windows) > self.MAX_CLOSED_WINDOWS:
+            del self.windows[next(iter(self.windows))]
 
         self._log_event(
             "window_closed",
