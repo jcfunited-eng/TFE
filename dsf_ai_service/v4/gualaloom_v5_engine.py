@@ -810,6 +810,41 @@ IMAGINATION_ENABLED = os.environ.get("IMAGINATION_ENABLED", "1") != "0"
 IMAGINATION_WEIGHT_SCALE = 0.3
 IMAGINATION_MAX_CANDIDATES_PER_TURN = 1
 
+# GL-CMD-REFLECTION-EMISSION-EVE-20260710 (reflection half, follow-on to
+# the imagination half above): surfaces words that were genuinely
+# co-present in a real remembered episode as low-weight emission
+# candidates via _reflection_candidates -- see that function's own
+# docstring for the full design and why this draws from self._reflections
+# (real _form_reflection output), a completely different real-data pool
+# from _imagination_candidates' deep_atlas hypothesis walk. Same
+# kill-switch convention as IMAGINATION_ENABLED/REORGANIZE_ENABLED/
+# SENSORY_ECHO_REPLAY_ENABLED. Default ON, decided only after inspecting
+# _form_reflection and its restore path directly (2026-07-10): every
+# reflection field traces to _record_episodic_experience (a genuinely
+# curated give_experience call, never plain corpus reading) or her own
+# real current needs state, nothing fabricated, and self._reflections
+# itself is never persisted/restored (fresh empty deque every process
+# boot, same honest-empty-on-restart convention as _novelty_history) --
+# so there is no restored-JSON-shaped attack surface here the way there
+# is for _form_reflection's own episodic-memory inputs. Same real-
+# committed-section-home gate as every other candidate source.
+# REFLECTION_BASE_STRENGTH is an engineered constant, not a derived/
+# stored weight -- a reflection has no per-word co_occurrence value the
+# way a deep_atlas hypothesis entry does (reflections are never written
+# to deep_atlas at all), so every candidate word from a single matched
+# reflection shares one fixed, deliberately low strength, chosen in the
+# same ballpark as REORGANIZE_HYPOTHESIS_STRENGTH so a reflection
+# candidate competes at roughly the same order of magnitude as an
+# imagined one. REFLECTION_EMISSION_WEIGHT_SCALE damps that further, same
+# role as IMAGINATION_WEIGHT_SCALE, so a confirmed real candidate of
+# equal raw strength always wins. REFLECTION_EMISSION_MAX_CANDIDATES_
+# PER_TURN keeps this a subtle background flavor, never a second voice --
+# same cap value and reasoning as imagination's.
+REFLECTION_EMISSION_ENABLED = os.environ.get("REFLECTION_EMISSION_ENABLED", "1") != "0"
+REFLECTION_BASE_STRENGTH = 0.05
+REFLECTION_EMISSION_WEIGHT_SCALE = 0.3
+REFLECTION_EMISSION_MAX_CANDIDATES_PER_TURN = 1
+
 
 # ============================================================
 # v7: Autonomy Dataclasses
@@ -4866,6 +4901,29 @@ class Guala:
                     input_words_lower.add(word_label.lower())
                     n_imagination_candidates += 1
 
+        # GL-CMD-REFLECTION-EMISSION-EVE-20260710 (reflection half): a
+        # separate, narrowly-scoped, low-weight source, structurally
+        # parallel to imagination above but drawing from self._reflections
+        # (real remembered episodes) instead of deep_atlas hypotheses --
+        # see _reflection_candidates' own docstring. Capped at
+        # REFLECTION_EMISSION_MAX_CANDIDATES_PER_TURN so a remembered
+        # moment stays a subtle background flavor, never a competing
+        # voice.
+        n_reflection_candidates = 0
+        if REFLECTION_EMISSION_ENABLED:
+            for q in queries:
+                if n_reflection_candidates >= REFLECTION_EMISSION_MAX_CANDIDATES_PER_TURN:
+                    break
+                for word_label, weight, section, mode_idx in \
+                        self._reflection_candidates(q, exclude_words=input_words_lower):
+                    if n_reflection_candidates >= REFLECTION_EMISSION_MAX_CANDIDATES_PER_TURN:
+                        break
+                    co = {section: {str(mode_idx): weight}}
+                    de = {"co_occurrence": co, "clarity": weight, "origin": "reflection"}
+                    candidates.append((de, co, weight))
+                    input_words_lower.add(word_label.lower())
+                    n_reflection_candidates += 1
+
         # GL-CMD-VOICE-ORGANISM-CANDIDATES-195 P3 (c1 addition -- not in the
         # attached patch, added here to satisfy D2/X1's reporting need):
         # vote-spread visibility, the same blind spot -187 named for the
@@ -4880,6 +4938,7 @@ class Guala:
                                   n_with_section_home=n_with_section_home,
                                   n_deep_candidates=n_deep_candidates,
                                   n_imagination_candidates=n_imagination_candidates,
+                                  n_reflection_candidates=n_reflection_candidates,
                                   n_candidates=len(candidates))
         return candidates
 
@@ -5023,6 +5082,97 @@ class Guala:
                     seen.add(wl)
                     out.append((word_label, w * entry_strength * IMAGINATION_WEIGHT_SCALE,
                                section, mid))
+        return out
+
+    def _reflection_candidates(self, seed_word, exclude_words=None):
+        """GL-CMD-REFLECTION-EMISSION-EVE-20260710: surface words that
+        were genuinely co-present in a real remembered episode as
+        LOW-WEIGHT emission candidates -- structurally the same act as
+        _imagination_candidates above, but drawn from self._reflections
+        (see _form_reflection's own docstring) instead of deep_atlas
+        sleep-formed hypotheses. self._reflections' own "context_then"
+        field traces back to _record_episodic_experience's "context"
+        field, itself only ever populated from self._episodic_recent_
+        concepts at the moment of a genuinely curated give_experience
+        call (never plain corpus reading) -- so every word this can
+        possibly surface is a real thing she really experienced
+        alongside the concept she's reflecting on, nothing invented.
+
+        Deliberately a separate, narrower mechanism from
+        _imagination_candidates: reflection has no per-word
+        co_occurrence weight the way a deep_atlas hypothesis entry does
+        (reflections are never written to deep_atlas at all), so every
+        candidate word from a single matched reflection shares one
+        fixed, deliberately low REFLECTION_BASE_STRENGTH, damped
+        further by REFLECTION_EMISSION_WEIGHT_SCALE -- same role as
+        IMAGINATION_WEIGHT_SCALE, so a real candidate of equal raw
+        strength from any other source always outweighs a remembered
+        one.
+
+        Same real-grounding gate as every other candidate source: only
+        words she can already really speak are surfaced. Unlike
+        _imagination_candidates / _deep_atlas_neighbor_candidates (which
+        walk deep_atlas's own ungated sec_obj.modes and must separately
+        check _require_grounded_speech()), every candidate word here is
+        resolved directly through self._word_to_emission_sections, which
+        is itself already built under that same gate (see its own
+        rebuild-time filtering) -- so a direct lookup already IS the
+        gate, no second check needed.
+
+        Reads self._reflections newest-first (a deque, so this is a
+        simple reversed() walk) and stops at the first reflection whose
+        concept matches seed_word, mirroring _record_episodic_
+        experience's own "never merge distinct stories" principle --
+        a fresher reflection about the same concept is used whole,
+        never blended with an older one still sitting in the bounded
+        history.
+
+        2026-07-10 adversarial review note: every entry in
+        self._reflections is written only by _form_reflection's own
+        controlled dict literal (all fields always present) and this
+        deque is never persisted/restored across a process restart (see
+        its own __init__ comment) -- so a malformed/legacy entry is not
+        reachable through any live path today. The isinstance()/.get()/
+        `or` defensive accessors below are kept anyway as cheap
+        insurance against a future writer changing that, matching this
+        codebase's established convention (same style _form_reflection
+        itself uses for its own, genuinely-restorable episodic-memory
+        inputs) -- 2026-07-10 adversarial review caught and this fixes a
+        real crash here: a non-string entry inside context_then (e.g. a
+        stray int) reached word_label.lower() unguarded and raised
+        AttributeError, which would have propagated out of
+        _brain_emission_candidates_legacy uncaught (no try/except
+        wraps that call site, same as its sibling _imagination_
+        candidates/_deep_atlas_neighbor_candidates calls) -- a single
+        malformed context_then entry would have broken emission
+        candidate gathering for the whole turn."""
+        if not seed_word or seed_word.lower() not in self._word_to_emission_sections:
+            return []
+        exclude = set(exclude_words or ())
+        exclude.add(seed_word.lower())
+        seed_lower = seed_word.lower()
+        out = []
+        seen = set()
+        for reflection in reversed(self._reflections):
+            concept = reflection.get("concept")
+            if not concept or not isinstance(concept, str) or concept.lower() != seed_lower:
+                continue
+            context_then = reflection.get("context_then") or []
+            for word_label in context_then:
+                if not word_label or not isinstance(word_label, str):
+                    continue
+                wl = word_label.lower()
+                if wl in exclude or wl in seen:
+                    continue
+                locations = self._word_to_emission_sections.get(wl)
+                if not locations:
+                    continue  # real-committed-section-home gate
+                section, mode_idx, matched_word = self._best_fit_location(locations)
+                seen.add(wl)
+                out.append((matched_word or word_label,
+                            REFLECTION_BASE_STRENGTH * REFLECTION_EMISSION_WEIGHT_SCALE,
+                            section, mode_idx))
+            break  # only the single freshest matching reflection
         return out
 
     def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
