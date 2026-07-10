@@ -451,14 +451,26 @@ def test_t11_substrate_true():
     assert "% PSI_DIM" not in b_src
     assert "sum(scores)" not in br_src
 
-    # No production imports
+    # No production imports of grandurun/binding_atlas specifically --
+    # 2026-07-10: narrowed from a blanket 'from.*loom_model' pattern, which
+    # started flagging legitimate, deliberate production imports of OTHER
+    # loom_model submodules (neuron, curriculum_scheduler, guala_migration,
+    # world_feeds, lookup_grounding) once Blueprint Phase 1's event-driven
+    # substrate was wired into production this week (EVENT_DRIVEN_SUBSTRATE
+    # =1, the live task-def default) -- unrelated to what this test actually
+    # checks (grandurun/binding_atlas, the older chi-atlas-style modules,
+    # per this test's own pre-existing comment). Those two remain untouched
+    # by production, confirmed below; the broader loom_model package being
+    # partially production-wired is a real, separate, intentional change,
+    # not a regression this test should keep flagging.
     import subprocess
     result = subprocess.run(
-        ['grep', '-rE', 'import.*binding_atlas|import.*grandurun|from.*loom_model',
+        ['grep', '-rE', 'import.*binding_atlas|import.*grandurun|from.*loom_model[.import ]*(binding_atlas|grandurun)',
          'dsf_ai_service/app.py', 'dsf_ai_service/substrate_runner.py'],
         capture_output=True, text=True
     )
-    assert result.stdout.strip() == ""
+    assert result.stdout.strip() == "", (
+        f"Production imports of grandurun/binding_atlas found: {result.stdout}")
 
     print(f"\n== T11: substrate-true sanity ==")
     print(f"  STATE_DIM={grandurun.STATE_DIM}")

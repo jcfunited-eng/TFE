@@ -78,7 +78,7 @@ def _saturate_all_intra_hemisphere_synapses(g):
                     n._incoming_synapse_weights[other_id] = MAX_SYNAPSE_WEIGHT
 
 
-def _run_kick_and_watch(force_all_excitatory: bool):
+def _run_kick_and_watch(force_all_excitatory: bool, disable_fire_rate_breaker: bool = False):
     g = _fresh_guala()
     try:
         neurons = g._all_neurons()
@@ -87,6 +87,21 @@ def _run_kick_and_watch(force_all_excitatory: bool):
         if force_all_excitatory:
             for n in neurons:
                 n._polarity = 1.0
+        if disable_fire_rate_breaker:
+            # 2026-07-10: FIRE_BREAKER_CEILING_HZ (neuron.py:990) shipped
+            # the night after this test was written, as an independent,
+            # unrelated defense-in-depth layer -- it now ALSO halts
+            # runaway firing on its own, so forcing all-excitatory alone
+            # no longer reproduces the original pre-fix condition this
+            # test needs (confirmed directly: without this override,
+            # fires_after_settle==0 even with force_all_excitatory=True,
+            # because the breaker trips first). Neutralizing it here
+            # isolates exactly what this test claims to measure --
+            # whether polarity-based inhibition ALONE would have been
+            # necessary -- without silently depending on a second,
+            # unrelated mechanism to pass.
+            for n in neurons:
+                n._check_fire_rate_breaker = lambda now: (False, None)
         n_inhibitory = sum(1 for n in neurons if getattr(n, "_polarity", 1.0) < 0)
 
         _saturate_all_intra_hemisphere_synapses(g)
@@ -148,8 +163,20 @@ def test_forced_all_excitatory_reproduces_the_cascade():
     firing well after external input stopped -- literal fire events in
     the post-settle window, not a growth-rate comparison. If this
     doesn't reproduce ANY post-settle fires, the harness can't validate
-    the fix either -- the next test's PASS would be meaningless."""
-    result = _run_kick_and_watch(force_all_excitatory=True)
+    the fix either -- the next test's PASS would be meaningless.
+
+    2026-07-10: also neutralizes the fire-rate circuit breaker (see
+    disable_fire_rate_breaker's docstring above) -- that mechanism
+    shipped independently, the night after this test, and now also
+    halts runaway firing on its own. Left active, this test would no
+    longer reproduce the bug it exists to check for (verified directly:
+    it silently stopped reproducing the cascade once the breaker
+    existed), which would make this a false negative-control -- looking
+    like a real regression in every suite run rather than the accurate
+    signal that a second, independent safety layer now also covers this
+    case. Isolating polarity as the only variable is what actually tests
+    whether the fix would have been necessary on its own."""
+    result = _run_kick_and_watch(force_all_excitatory=True, disable_fire_rate_breaker=True)
     print(f"test_forced_all_excitatory_reproduces_the_cascade: {result}")
     assert result["fires_after_settle"] > 0, (
         f"expected the all-excitatory forced condition to still be firing "

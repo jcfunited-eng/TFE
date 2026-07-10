@@ -410,15 +410,26 @@ def test_t8_substrate_true():
     assert 'FOLD_' not in exp_source
     assert 'GROWTH_' not in exp_source
 
-    # No production imports of loom_model
+    # No production imports of the folding/growth driver (experience.py's
+    # ExperiencePipeline) specifically -- 2026-07-10: narrowed from a
+    # blanket 'from.*loom_model' pattern, which started flagging
+    # legitimate, deliberate production imports of OTHER loom_model
+    # submodules (neuron, curriculum_scheduler, guala_migration,
+    # world_feeds, lookup_grounding) once Blueprint Phase 1's event-driven
+    # substrate was wired into production this week (EVENT_DRIVEN_SUBSTRATE
+    # =1, the live task-def default) -- a real, separate, intentional
+    # change unrelated to what this test actually checks: that the
+    # folding/growth pipeline this file's other assertions are about
+    # (ExperiencePipeline, process_folds) is demo-only and never reaches
+    # production. That remains true, confirmed below.
     import subprocess
     result = subprocess.run(
-        ['grep', '-r', 'from.*loom_model', 'dsf_ai_service/app.py',
-         'dsf_ai_service/substrate_runner.py'],
+        ['grep', '-rE', r'from.*loom_model[.import ]*experience\b|ExperiencePipeline',
+         'dsf_ai_service/app.py', 'dsf_ai_service/substrate_runner.py'],
         capture_output=True, text=True
     )
     assert result.stdout.strip() == "", (
-        f"Production imports of loom_model found: {result.stdout}"
+        f"Production imports of the folding/growth driver found: {result.stdout}"
     )
 
     print(f"\n== T8: substrate-true sanity ==")
