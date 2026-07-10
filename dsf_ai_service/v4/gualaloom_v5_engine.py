@@ -5072,14 +5072,33 @@ class Guala:
         # subject → verb → object, wide chi band
         sys_.add_keyhole("subject", -50, 50, "verb", goal_strength=0.4)
         sys_.add_keyhole("verb", -50, 50, "object", goal_strength=0.4)
-        # modifier/ground/intro (added alongside _EMISSION_SECTIONS above)
-        # deliberately get NO keyhole wiring in this pass -- conservative,
-        # lower-risk shape: they settle independently from their own
-        # candidate-driven psi drive (section_drives below), same as
-        # "listen" already does, rather than guessing a cascade topology
-        # for them against code with a documented history of settling
-        # regressions (H_base oscillation, socket timeouts). A designed
-        # cascade for them is future work, not assumed here.
+        # 2026-07-10 GL-CMD-KEYHOLE-EXTENSION: object → modifier → ground →
+        # intro, continuing the exact same designed cascade in
+        # _EMISSION_SECTIONS' own declared order, same wide chi band and
+        # goal_strength as the two links above -- no new topology theory,
+        # no new tuning, just carrying the already-proven pattern to the
+        # three sections that were deliberately left unwired in the
+        # earlier, more conservative pass (see this file's own prior
+        # comment, preserved below). Per this session's research into
+        # completing the AE-Substrate blueprint (Dell 1986 interactive
+        # activation; Houghton 1990/Bullock & Rhodes 2003 competitive
+        # queuing), a designed excitatory chain across ALL grammar slots,
+        # not just the first two, is what actually produces graded,
+        # ordered multi-slot output instead of three slots settling
+        # independently with no relation to what came before them.
+        sys_.add_keyhole("object", -50, 50, "modifier", goal_strength=0.4)
+        sys_.add_keyhole("modifier", -50, 50, "ground", goal_strength=0.4)
+        sys_.add_keyhole("ground", -50, 50, "intro", goal_strength=0.4)
+        # Prior conservative-pass rationale, preserved: modifier/ground/
+        # intro previously got NO keyhole wiring at all, settling
+        # independently from their own candidate-driven psi drive
+        # (section_drives below), same as "listen" already does, rather
+        # than guessing a cascade topology for them against code with a
+        # documented history of settling regressions (H_base oscillation,
+        # socket timeouts). That caution is still the reason this
+        # extension reuses the identical wide band/goal_strength already
+        # proven safe on subject→verb→object, rather than inventing new
+        # parameters for the extension.
 
         # Prevent bootstrap/novel_mode commits during emission settling —
         # we only want to read from modes we explicitly installed from candidates.
