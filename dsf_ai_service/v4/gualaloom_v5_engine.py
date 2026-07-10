@@ -979,6 +979,22 @@ class Section:
         # check in receive() instead of an O(n_modes) sum() on every
         # single new-word commit.
         self._n_alive = 0
+        # GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1 #3b (v2
+        # fix, post-adversarial-review): the real mode-indices that are
+        # currently alive, maintained incrementally at every mutation
+        # site (append/evict/forget/rebuild) -- O(1) add/discard, never
+        # a scan. _evict_weakest_mode() needs exactly this (which real
+        # indices are alive) and NOTHING else; it must not go through
+        # _get_modes_matrix()/_alive_row_of_mode; that path (re)builds a
+        # full (n_alive, 8) numpy similarity matrix from range(len(self.
+        # modes)) -- the FULL PHYSICAL HISTORY -- whenever _modes_dirty
+        # is set, which _evict_weakest_mode() itself sets on every call.
+        # A section needing multiple evictions in one receive() (the
+        # exact live state this fix ships into: 127-148% over cap) was
+        # measured triggering that full rebuild on every eviction after
+        # the first -- 2.0-5.7s for a single word, inside self.lock,
+        # confirmed by direct adversarial review before this version.
+        self._alive_indices = set()
 
     # HEURISTIC: reuses LivingAtlas's own real, already-tuned decay
     # constants (DECAY_LAMBDA=1e-4/tick, FORGETTING_THRESHOLD=0.02) to
@@ -1012,6 +1028,7 @@ class Section:
         # every call. O(n) but this method only runs at load/deserialize
         # time, never in the per-word hot path.
         self._n_alive = sum(1 for a in self._mode_alive if a)
+        self._alive_indices = {i for i, a in enumerate(self._mode_alive) if a}
         self._modes_dirty = True
 
     def _get_modes_matrix(self):
@@ -1066,6 +1083,7 @@ class Section:
                 if word and self._word_to_mode_idx.get(word.lower()) == i:
                     del self._word_to_mode_idx[word.lower()]
                 self._n_alive -= 1
+                self._alive_indices.discard(i)
                 changed = True
         if changed:
             self._modes_dirty = True
@@ -1081,34 +1099,42 @@ class Section:
         after a deploy) fall back to lowest index first, i.e. the
         oldest-appended survivor -- deterministic, not arbitrary.
 
-        Scans only the ALIVE set via _get_modes_matrix()'s cached
-        _alive_row_of_mode, NOT range(len(self.modes)) -- self.modes
-        never shrinks (tombstone-in-place, same as forget_stale_modes)
-        and, once a busy section is at cap, this runs on essentially
-        every new-word commit going forward. A full-physical-history
-        scan here would silently grow unbounded with total lifetime
-        vocabulary ever seen (dead entries included) even though the
-        ALIVE count stays capped -- the exact class of unbounded
-        O(n_modes) cost GL-BUG-MODES-MATRIX-THRASH already had to fix
-        once (measured ~26s live at 14,000+ modes). _get_modes_matrix()
-        is a no-op read here in the expected case: receive() already
-        calls it moments earlier in the same call (whenever word_match_
-        idx is None and self.modes is non-empty, which is required to
-        reach this method at all), so _alive_row_of_mode is already
-        fresh and this costs O(n_alive) (bounded by the cap), not
-        O(n_total_ever_appended).
+        Scans only self._alive_indices, an incrementally-maintained set
+        (add on append, discard on evict/forget, rebuilt from scratch
+        only at load time) -- NOT _get_modes_matrix()/_alive_row_of_mode
+        and NOT range(len(self.modes)). self.modes never shrinks
+        (tombstone-in-place, same as forget_stale_modes), and once a
+        busy section is at cap, this runs on essentially every new-word
+        commit going forward, often several times in a row within one
+        _append_new_mode() call (a section currently 127-148% over cap
+        needs many evictions on its very first qualifying commit after
+        this fix ships). V1 of this fix called _get_modes_matrix() here
+        instead, reasoning it would be a cheap no-op since receive()
+        already calls it moments earlier in the same word -- true for
+        the FIRST eviction in a call, but _evict_weakest_mode() itself
+        sets _modes_dirty=True at its own end (tombstoning always does),
+        so every SUBSEQUENT eviction in the same multi-eviction call hit
+        _get_modes_matrix()'s full-rebuild branch, which scans
+        range(len(self.modes)) -- the entire physical lifetime history,
+        not the alive set. Adversarial review measured this costing
+        2.0-5.7s for a single word under production's real numbers
+        (127-148% over cap, 14,000+ physical modes), inside self.lock --
+        i.e. this fix, as first built, would have made the exact
+        symptom under repair worse on the first turn after every future
+        deploy. Iterating self._alive_indices directly is O(n_alive)
+        (bounded by the cap) unconditionally, with no dependency on
+        _modes_dirty or physical history size at all.
 
         Same tombstone-in-place contract as forget_stale_modes: never
         shrinks or reorders self.modes, only flips _mode_alive so every
         existing atlas/deep_atlas/window reference by mode_idx stays
         valid. Returns the evicted index, or None if there is no alive
         mode to evict (cap <= 0 or section already fully tombstoned)."""
-        self._get_modes_matrix()  # ensure _alive_row_of_mode is current
         weakest_idx = None
         weakest_tick = None
-        for i in self._alive_row_of_mode.keys():  # real mode indices, alive only
+        for i in self._alive_indices:  # real mode indices, alive only, O(1) membership already guaranteed
             t = self._mode_last_active_tick[i]
-            if weakest_tick is None or t < weakest_tick:
+            if weakest_tick is None or t < weakest_tick or (t == weakest_tick and i < weakest_idx):
                 weakest_tick = t
                 weakest_idx = i
         if weakest_idx is None:
@@ -1118,6 +1144,7 @@ class Section:
         if word and self._word_to_mode_idx.get(word.lower()) == weakest_idx:
             del self._word_to_mode_idx[word.lower()]
         self._n_alive -= 1
+        self._alive_indices.discard(weakest_idx)
         self._modes_dirty = True
         return weakest_idx
 
@@ -1148,6 +1175,7 @@ class Section:
         self._mode_last_active_tick.append(atlas_tick)
         self._mode_alive.append(True)
         self._n_alive += 1
+        self._alive_indices.add(mode_idx)
         if word_label:
             self._word_to_mode_idx[word_label.lower()] = mode_idx
         self._modes_dirty = True

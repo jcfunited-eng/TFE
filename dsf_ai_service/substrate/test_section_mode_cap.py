@@ -104,7 +104,12 @@ def test_cap_respected_after_many_commits():
             sec2._mode_last_active_tick.append(100)  # all tie, like post-restart
             sec2._mode_alive.append(True)
             sec2._word_to_mode_idx[word] = i
-        sec2._n_alive = 30
+        # Real restored sections always go through _rebuild_word_index()
+        # (never hand-populate _n_alive/_alive_indices directly -- that's
+        # exactly the path that must stay correct after a real deploy,
+        # not a test-only shortcut) -- this derives _n_alive AND
+        # _alive_indices from _mode_alive, the actual source of truth.
+        sec2._rebuild_word_index(current_tick=100)
         assert sec2._n_alive > engine_mod.SECTION_MODE_CAP, "test setup must start over cap"
 
         committed, mode_idx, _ = commit_word(sec2, atlas, "genuinely_new", tick=200)
@@ -280,6 +285,98 @@ def test_eviction_cost_bounded_by_cap_not_lifetime_history():
         engine_mod.SECTION_MODE_CAP = orig_cap
 
 
+def test_multi_eviction_single_call_stays_fast_with_large_history():
+    """Regression guard for the v1-vs-v2 bug an adversarial review caught
+    before v1 could ship: a section needing MANY evictions within ONE
+    receive() call (the exact live production state this fix ships
+    into -- listen/verb/intro confirmed at 127-148% of cap) combined
+    with a large physical mode history (14,000+, matching this file's
+    own documented prior incident).
+
+    v1 called _get_modes_matrix() inside _evict_weakest_mode(). The
+    FIRST eviction in a call was cheap (the matrix was already fresh
+    from receive()'s own earlier call), but _evict_weakest_mode() sets
+    _modes_dirty=True at its own end -- so every SUBSEQUENT eviction in
+    the same multi-eviction call hit the full-rebuild branch, which
+    scans range(len(self.modes)), the entire physical history, not the
+    alive set. Adversarially measured: 2.0-5.7s for a single word under
+    these exact numbers, inside self.lock -- would have made the "50+
+    second turn" symptom this whole fix exists to repair worse on the
+    first turn after every future deploy.
+
+    This constructs that exact scenario directly (restored section, a
+    large physical history via a big alive_count fill then most of it
+    retired down to a small alive set to build up history cheaply,
+    then blown back over cap the way a real post-restart section would
+    be) and asserts the single call that must evict many modes at once
+    stays fast -- not just that repeated single-eviction calls stay
+    flat (test 4 already covers that separately)."""
+    import time
+    print("  Test 5: many evictions in ONE call stays fast even with large physical history...", end=" ")
+    atlas = FakeAtlas()
+    orig_cap = engine_mod.SECTION_MODE_CAP
+    try:
+        engine_mod.SECTION_MODE_CAP = 5000
+        sec = Section(name="t5_production_shape")
+
+        # Build a large physical history (14,000+, matching the
+        # documented prior incident) cheaply: append directly (this is
+        # what restoring a real long-lived save looks like -- self.modes
+        # only ever grows, tombstones are in-place, never compacted).
+        n_physical = 14000
+        for i in range(n_physical):
+            dsf = make_dsf(i)
+            sec.modes.append((dsf, i % 997, f"hist{i}"))
+            sec._mode_last_active_tick.append(i)  # monotonic -- distinct weakest each time
+            sec._mode_alive.append(True)
+            sec._word_to_mode_idx[f"hist{i}"] = i
+        # Real production shape: this section is confirmed live at
+        # 127-148% of cap -- simulate 148% (7400 alive out of 14000
+        # physical) by tombstoning the rest directly (still bypassing
+        # the fix's own eviction, matching "already over cap before
+        # this fix's first deploy" exactly).
+        n_alive_target = 7400
+        for i in range(n_alive_target, n_physical):
+            sec._mode_alive[i] = False
+            del sec._word_to_mode_idx[f"hist{i}"]
+        # Real restore path -- this is what actually runs after a real
+        # deploy, and is what populates _alive_indices correctly.
+        sec._rebuild_word_index(current_tick=n_physical)
+        assert sec._n_alive == n_alive_target
+        assert len(sec._alive_indices) == n_alive_target
+        assert sec._n_alive > engine_mod.SECTION_MODE_CAP, "test setup must start over cap"
+        evictions_needed = sec._n_alive - engine_mod.SECTION_MODE_CAP
+        assert evictions_needed == 2400
+
+        # The single call that must converge this section back to cap --
+        # this is the exact moment v1's bug fired.
+        t0 = time.perf_counter()
+        committed, mode_idx, _ = commit_word(sec, atlas, "genuinely_new_word", tick=n_physical + 1)
+        elapsed = time.perf_counter() - t0
+
+        assert committed
+        assert sec._n_alive == engine_mod.SECTION_MODE_CAP, (
+            f"single call should have converged to cap ({evictions_needed} "
+            f"evictions needed), got _n_alive={sec._n_alive}")
+        assert sec._n_alive == len(sec._alive_indices) == sum(1 for a in sec._mode_alive if a)
+        assert sec._mode_alive[mode_idx] is True, "the new word itself must survive"
+
+        print(f"({evictions_needed} evictions, {n_physical} physical history, "
+              f"{elapsed*1000:.1f}ms)", end=" ")
+        # v1 measured 2.0-5.7s for this exact shape. Generous ceiling --
+        # not a tight perf assertion, just a guard against the O(n_total)
+        # regression reappearing.
+        assert elapsed < 0.5, (
+            f"single multi-eviction call took {elapsed*1000:.1f}ms -- looks "
+            f"like eviction is scanning full physical history again inside "
+            f"self.lock, the exact v1 bug this test exists to catch")
+
+        print("PASS")
+        return True
+    finally:
+        engine_mod.SECTION_MODE_CAP = orig_cap
+
+
 def main():
     print("GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1 #3b: "
           "Section mode-cap enforcement")
@@ -289,6 +386,7 @@ def main():
         test_weakest_entry_picked(),
         test_retired_word_reappears_cleanly(),
         test_eviction_cost_bounded_by_cap_not_lifetime_history(),
+        test_multi_eviction_single_call_stays_fast_with_large_history(),
     ]
     overall = all(results)
     print("=" * 70)
