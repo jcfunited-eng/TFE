@@ -5048,6 +5048,24 @@ async def startup():
 
     # GL-CMD-WAVE-SEMANTICS-85 Part D.2: S3 lifecycle policy at startup
     # hourly backups expire 7d, auto/ dailies expire 60d, named restores permanent
+    #
+    # 2026-07-10: this function runs on EVERY boot and OVERWRITES the
+    # bucket's entire lifecycle config -- confirmed root cause of a
+    # storage config fix silently disappearing twice tonight after
+    # routine deploys. The bucket has versioning Enabled; the original
+    # 3 rules here only ever set Expiration (which just adds a delete
+    # marker on a versioned bucket, never reclaiming bytes), with no
+    # NoncurrentVersionExpiration anywhere -- root cause of a real,
+    # already-once-manually-purged 0.3GB->11.7TB runaway (2026-06-26 to
+    # 2026-07-09). Extended to match the corrected policy applied
+    # directly tonight: NoncurrentVersionExpiration on every rule, plus
+    # coverage for 3 previously-uncovered prefixes found actually
+    # growing (guala/events/, guala/checkpoints/, guala/UNPAUSE-PRE-,
+    # alb-access-logs/), plus a bucket-wide noncurrent/delete-marker
+    # catch-all for anything not explicitly listed. This is now the
+    # single source of truth for this bucket's lifecycle -- any future
+    # AWS-console/CLI-only change here will be silently reverted on the
+    # next deploy, same as tonight, unless it's also made here.
     def _apply_s3_lifecycle():
         try:
             import boto3 as _b3
@@ -5061,23 +5079,62 @@ async def startup():
                             "Status": "Enabled",
                             "Filter": {"Prefix": "guala/2"},  # date-stamped hourly: guala/2026-...
                             "Expiration": {"Days": 7},
+                            "NoncurrentVersionExpiration": {"NoncurrentDays": 7},
                         },
                         {
                             "ID": "guala-auto-expire-60d",
                             "Status": "Enabled",
                             "Filter": {"Prefix": "guala/auto/"},
                             "Expiration": {"Days": 60},
+                            "NoncurrentVersionExpiration": {"NoncurrentDays": 60},
                         },
                         {
                             "ID": "guala-wave-migrate-expire-90d",
                             "Status": "Enabled",
                             "Filter": {"Prefix": "guala/wave_migrate_pre/"},
                             "Expiration": {"Days": 90},
+                            "NoncurrentVersionExpiration": {"NoncurrentDays": 90},
+                        },
+                        {
+                            "ID": "guala-events-expire-7d",
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": "guala/events/"},
+                            "Expiration": {"Days": 7},
+                            "NoncurrentVersionExpiration": {"NoncurrentDays": 7},
+                        },
+                        {
+                            "ID": "guala-checkpoints-expire-7d",
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": "guala/checkpoints/"},
+                            "Expiration": {"Days": 7},
+                            "NoncurrentVersionExpiration": {"NoncurrentDays": 7},
+                        },
+                        {
+                            "ID": "guala-unpause-pre-expire-30d",
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": "guala/UNPAUSE-PRE-"},
+                            "Expiration": {"Days": 30},
+                            "NoncurrentVersionExpiration": {"NoncurrentDays": 30},
+                        },
+                        {
+                            "ID": "guala-alb-access-logs-expire-90d",
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": "alb-access-logs/"},
+                            "Expiration": {"Days": 90},
+                            "NoncurrentVersionExpiration": {"NoncurrentDays": 90},
+                        },
+                        {
+                            "ID": "guala-bucketwide-noncurrent-catchall-30d",
+                            "Status": "Enabled",
+                            "Filter": {},
+                            "NoncurrentVersionExpiration": {"NoncurrentDays": 30},
+                            "Expiration": {"ExpiredObjectDeleteMarker": True},
                         },
                     ]
                 },
             )
-            print("[85-D2] S3 lifecycle policy applied: hourly→7d, auto/→60d, wave_migrate→90d")
+            print("[85-D2] S3 lifecycle policy applied: 8 rules (7d/60d/90d expirations "
+                  "+ noncurrent-version reclaim on all, bucket-wide catch-all)")
         except Exception as _le:
             print(f"[85-D2] S3 lifecycle policy failed (non-fatal): {_le}")
     loop = asyncio.get_event_loop()
