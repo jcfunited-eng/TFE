@@ -911,6 +911,21 @@ class SubstrateEvent:
 # always claimed.
 SECTION_COMMITS_MAX = 5000
 
+# GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1 #3b (wC live
+# telemetry): self.modes -- the actual per-section vocabulary bank --
+# has NEVER had a size cap at all (only self.commits does, above).
+# Confirmed live: three sections (listen/verb/intro, the generic/common
+# ones) had already grown to 127-148% of this exact number with zero
+# bound, while subject/object/modifier/ground -- the sections that would
+# hold real topic-specific content -- sat 8-36% full. The emission
+# agreement mechanism needs multiple sections to agree; three sections
+# flooded with generic filler and four starved of real content is
+# exactly why replies collapse to single generic words. Reusing the
+# SAME number as SECTION_COMMITS_MAX (not inventing a second heuristic)
+# since it's already the number every status readout and this class's
+# own prior comment (above) treated as the intended ceiling.
+SECTION_MODE_CAP = 5000
+
 
 class Section:
     """A region in the substrate. Has trit register, mode bank, gamma,
@@ -955,6 +970,31 @@ class Section:
         # never mass-forgets everything on its first tick.
         self._mode_last_active_tick = []  # index-aligned with self.modes
         self._mode_alive = []             # index-aligned with self.modes
+        # GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1 #3b: running
+        # count of alive (non-tombstoned) modes, kept in sync by every
+        # place that flips _mode_alive (append, _evict_weakest_mode,
+        # forget_stale_modes) and recomputed from scratch in
+        # _rebuild_word_index (the one place _mode_alive itself can be
+        # reset out from under this counter, e.g. on load). O(1) cap
+        # check in receive() instead of an O(n_modes) sum() on every
+        # single new-word commit.
+        self._n_alive = 0
+        # GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1 #3b (v2
+        # fix, post-adversarial-review): the real mode-indices that are
+        # currently alive, maintained incrementally at every mutation
+        # site (append/evict/forget/rebuild) -- O(1) add/discard, never
+        # a scan. _evict_weakest_mode() needs exactly this (which real
+        # indices are alive) and NOTHING else; it must not go through
+        # _get_modes_matrix()/_alive_row_of_mode; that path (re)builds a
+        # full (n_alive, 8) numpy similarity matrix from range(len(self.
+        # modes)) -- the FULL PHYSICAL HISTORY -- whenever _modes_dirty
+        # is set, which _evict_weakest_mode() itself sets on every call.
+        # A section needing multiple evictions in one receive() (the
+        # exact live state this fix ships into: 127-148% over cap) was
+        # measured triggering that full rebuild on every eviction after
+        # the first -- 2.0-5.7s for a single word, inside self.lock,
+        # confirmed by direct adversarial review before this version.
+        self._alive_indices = set()
 
     # HEURISTIC: reuses LivingAtlas's own real, already-tuned decay
     # constants (DECAY_LAMBDA=1e-4/tick, FORGETTING_THRESHOLD=0.02) to
@@ -981,6 +1021,14 @@ class Section:
             self._mode_last_active_tick = [current_tick] * n
         if len(self._mode_alive) != n:
             self._mode_alive = [True] * n
+        # GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1 #3b: always
+        # recompute (not just on the branches above) -- this is the one
+        # place _mode_alive can be reset out from under the running
+        # counter (fresh load), so re-derive it from source of truth
+        # every call. O(n) but this method only runs at load/deserialize
+        # time, never in the per-word hot path.
+        self._n_alive = sum(1 for a in self._mode_alive if a)
+        self._alive_indices = {i for i, a in enumerate(self._mode_alive) if a}
         self._modes_dirty = True
 
     def _get_modes_matrix(self):
@@ -1034,9 +1082,104 @@ class Section:
                 word = self.modes[i][2]
                 if word and self._word_to_mode_idx.get(word.lower()) == i:
                     del self._word_to_mode_idx[word.lower()]
+                self._n_alive -= 1
+                self._alive_indices.discard(i)
                 changed = True
         if changed:
             self._modes_dirty = True
+
+    def _evict_weakest_mode(self):
+        """Tombstone the single weakest alive mode to make room under
+        SECTION_MODE_CAP. 'Weakest' reuses forget_stale_modes' own
+        existing definition -- least-recently-active tick -- rather than
+        inventing a new strength field; ties (e.g. every mode restored
+        by the same load, GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-
+        20260710-v1 -- staleness tracking does not persist across
+        restarts, so everything ties on last-active=boot-tick right
+        after a deploy) fall back to lowest index first, i.e. the
+        oldest-appended survivor -- deterministic, not arbitrary.
+
+        Scans only self._alive_indices, an incrementally-maintained set
+        (add on append, discard on evict/forget, rebuilt from scratch
+        only at load time) -- NOT _get_modes_matrix()/_alive_row_of_mode
+        and NOT range(len(self.modes)). self.modes never shrinks
+        (tombstone-in-place, same as forget_stale_modes), and once a
+        busy section is at cap, this runs on essentially every new-word
+        commit going forward, often several times in a row within one
+        _append_new_mode() call (a section currently 127-148% over cap
+        needs many evictions on its very first qualifying commit after
+        this fix ships). V1 of this fix called _get_modes_matrix() here
+        instead, reasoning it would be a cheap no-op since receive()
+        already calls it moments earlier in the same word -- true for
+        the FIRST eviction in a call, but _evict_weakest_mode() itself
+        sets _modes_dirty=True at its own end (tombstoning always does),
+        so every SUBSEQUENT eviction in the same multi-eviction call hit
+        _get_modes_matrix()'s full-rebuild branch, which scans
+        range(len(self.modes)) -- the entire physical lifetime history,
+        not the alive set. Adversarial review measured this costing
+        2.0-5.7s for a single word under production's real numbers
+        (127-148% over cap, 14,000+ physical modes), inside self.lock --
+        i.e. this fix, as first built, would have made the exact
+        symptom under repair worse on the first turn after every future
+        deploy. Iterating self._alive_indices directly is O(n_alive)
+        (bounded by the cap) unconditionally, with no dependency on
+        _modes_dirty or physical history size at all.
+
+        Same tombstone-in-place contract as forget_stale_modes: never
+        shrinks or reorders self.modes, only flips _mode_alive so every
+        existing atlas/deep_atlas/window reference by mode_idx stays
+        valid. Returns the evicted index, or None if there is no alive
+        mode to evict (cap <= 0 or section already fully tombstoned)."""
+        weakest_idx = None
+        weakest_tick = None
+        for i in self._alive_indices:  # real mode indices, alive only, O(1) membership already guaranteed
+            t = self._mode_last_active_tick[i]
+            if weakest_tick is None or t < weakest_tick or (t == weakest_tick and i < weakest_idx):
+                weakest_tick = t
+                weakest_idx = i
+        if weakest_idx is None:
+            return None
+        self._mode_alive[weakest_idx] = False
+        word = self.modes[weakest_idx][2]
+        if word and self._word_to_mode_idx.get(word.lower()) == weakest_idx:
+            del self._word_to_mode_idx[word.lower()]
+        self._n_alive -= 1
+        self._alive_indices.discard(weakest_idx)
+        self._modes_dirty = True
+        return weakest_idx
+
+    def _append_new_mode(self, dsf, chi, word_label, atlas_tick):
+        """Append a genuinely new mode, enforcing SECTION_MODE_CAP.
+        GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1 #3b: self.
+        modes previously had NO size limit at all -- unlike self.commits
+        (SECTION_COMMITS_MAX), nothing ever retired an existing mode, so
+        three production sections had grown to 127-148% of the intended
+        cap with real content permanently locked out. While the section
+        is at/over cap, retire the weakest alive mode first (see
+        _evict_weakest_mode) so a section that is CURRENTLY over cap
+        (e.g. right after this fix first deploys) actually converges
+        back down to the cap rather than merely being frozen at whatever
+        already-over-cap count it started at -- not just a one-in/
+        one-out hold. Bounded: each loop iteration retires one real mode
+        and the loop only runs while over cap, so it terminates in at
+        most _n_alive - SECTION_MODE_CAP + 1 steps.
+
+        Always appends to self.modes itself (never shrinks/reorders --
+        mode_idx is load-bearing elsewhere, same invariant as
+        forget_stale_modes)."""
+        while self._n_alive >= SECTION_MODE_CAP:
+            if self._evict_weakest_mode() is None:
+                break  # nothing left to evict (cap <= 0) -- avoid infinite loop
+        self.modes.append((dsf, chi, word_label))
+        mode_idx = len(self.modes) - 1
+        self._mode_last_active_tick.append(atlas_tick)
+        self._mode_alive.append(True)
+        self._n_alive += 1
+        self._alive_indices.add(mode_idx)
+        if word_label:
+            self._word_to_mode_idx[word_label.lower()] = mode_idx
+        self._modes_dirty = True
+        return mode_idx
 
     def receive(self, dsf, chi, word_label, atlas, familiarity, salience=1.0,
                 dwell_ticks=1, deep_atlas=None, engine_tick=None,
@@ -1190,26 +1333,14 @@ class Section:
             committed = True
         elif len(self.modes) < 24:
             # Bootstrap — new word, accept liberally
-            self.modes.append((dsf, chi, word_label))
-            mode_idx = len(self.modes) - 1
-            self._mode_last_active_tick.append(atlas_tick)
-            self._mode_alive.append(True)
-            if word_label:
-                self._word_to_mode_idx[word_label.lower()] = mode_idx
-            self._modes_dirty = True
+            mode_idx = self._append_new_mode(dsf, chi, word_label, atlas_tick)
             committed = True
         else:
             # Post-bootstrap: new word, decide by dead-zone gate
             novel_thresh = self.gamma["novel_dist"] + self.dead_zone * 0.2
             if best_sim < (1.0 - novel_thresh) or word_label:
                 # word labels always get a chance to take root
-                self.modes.append((dsf, chi, word_label))
-                mode_idx = len(self.modes) - 1
-                self._mode_last_active_tick.append(atlas_tick)
-                self._mode_alive.append(True)
-                if word_label:
-                    self._word_to_mode_idx[word_label.lower()] = mode_idx
-                self._modes_dirty = True
+                mode_idx = self._append_new_mode(dsf, chi, word_label, atlas_tick)
                 committed = True
 
         if committed:
