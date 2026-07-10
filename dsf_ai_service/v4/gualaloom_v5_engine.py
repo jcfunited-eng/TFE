@@ -455,6 +455,15 @@ _ORGANISM_SIGNAL_N_SAMPLES = 20  # see Guala.__init__'s comment on this choice
 # self._last_surprise in between -- not a cache of a stale computed value.
 RECOGNITION_EVERY_N_WORDS = 3
 
+# GL-FIX-LOCK-GRANULARITY-C1-20260710: sentinel distinguishing "caller did
+# not pass prev_phase_vec at all" (legacy direct-caller behavior -- read_word
+# reads/updates the shared self._prev_phase_vec instance attribute exactly
+# as before) from "caller explicitly passed None" (a real value meaning "no
+# previous word in THIS call-local chain yet" -- read_sentence's own case
+# for a sentence's first word). Plain None can't distinguish these two
+# cases, hence the dedicated sentinel object.
+_PHASE_VEC_UNSET = object()
+
 
 def _organism_signal(word, transducer):
     """GL-CMD-SENSES-TO-BRAIN-EVE-20260705-191 N3: touch/smell/taste
@@ -2406,16 +2415,27 @@ class Guala:
             "need_pressure": self.needs.need_pressure(),
         }
 
-    def _grounding_kwargs(self, binding_window=None):
+    def _grounding_kwargs(self, binding_window=None, episode_ref=None):
         """GL-CLARITY-INVARIANCE-UNCAGE: grounding kwargs (separate from affect
         to avoid double-providing when call sites pass sensory_refs explicitly).
         GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.1: binding_window kwarg —
         when supplied, uses sentence-local list (thread-safe, fresh per sentence).
-        Falls back to self._current_binding_window for direct callers."""
+        Falls back to self._current_binding_window for direct callers.
+        GL-FIX-LOCK-GRANULARITY-C1-20260710: episode_ref is now a plain
+        pass-through — read_word resolves the effective value once (its own
+        episode_ref param, falling back to self._current_episode for direct
+        callers) and supplies it explicitly at every call site here, so this
+        helper no longer reads self._current_episode itself. That instance
+        attribute used to be mutated by read_sentence around its whole
+        per-word loop (shared mutable state live for the sentence's full
+        duration); now read_sentence never touches it at all — it resolves
+        its own call-local episode id and passes it into each read_word()
+        call explicitly instead, so two concurrent sentences can no longer
+        cross-contaminate each other's episode tag."""
         bw = binding_window if binding_window is not None else self._current_binding_window
         return {
             "sensory_refs": list(bw),
-            "episode_ref": self._current_episode[0] if self._current_episode else None,
+            "episode_ref": episode_ref,
         }
 
     def _current_situation(self):
@@ -2662,7 +2682,7 @@ class Guala:
     def read_word(self, word, position_hint=None, source="corpus", bundle_id=None,
                   salience=None, episode_ref=None, presence=None,
                   location=None, sky_state=None, binding_window=None,
-                  place=None, ambient=None):
+                  place=None, ambient=None, prev_phase_vec=_PHASE_VEC_UNSET):
         """v6: salience-modulated binding + decay heartbeat.
 
         salience: if provided, overrides _compute_salience() — used for backfill
@@ -2677,6 +2697,22 @@ class Guala:
         sentence-local [] from read_sentence(). When supplied, used instead of
         self._current_binding_window (prevents unbounded growth across sentences).
         Falls back to self._current_binding_window for direct callers.
+        GL-FIX-LOCK-GRANULARITY-C1-20260710: prev_phase_vec kwarg — the
+        previous word's phase vector for 60-L rotation/negation, call-local
+        from read_sentence()'s own loop variable (never touches the shared
+        self._prev_phase_vec instance attribute when supplied, even when the
+        supplied value is None — a sentence's first word legitimately has no
+        predecessor). Omitting the kwarg entirely (the _PHASE_VEC_UNSET
+        default) preserves the OLD behavior exactly for direct callers that
+        don't thread it: read from and write back to self._prev_phase_vec.
+        Returns this word's own computed phase vector (or None) as the 4th
+        element of the return tuple so a caller chaining calls (read_sentence)
+        can feed it back in as next word's prev_phase_vec without ever
+        reading engine instance state. The 5th element is this call's own
+        profiling dict (previously read back afterward via the instance
+        attribute self._read_word_last_profile — see that attribute's
+        assignment below for why a caller now reads it from here instead).
+        Full return shape: (lang_chi, role, senses, phase_vec, profile).
         """
         with self.lock:
             # GL-DIAG-READ-WORD-TIMING (Joe, 2026-07-06): instrumentation
@@ -2790,24 +2826,55 @@ class Guala:
                 dwell = 1
 
             # 60-L: phase-rotation negation — compute rotation from consecutive phase vectors
+            # GL-FIX-LOCK-GRANULARITY-C1-20260710: prev_phase_vec is call-local
+            # when the caller (read_sentence) supplies it explicitly -- only
+            # falls back to the shared self._prev_phase_vec instance attribute
+            # for legacy direct callers that omit the kwarg entirely (see
+            # _PHASE_VEC_UNSET / docstring above). This is what lets
+            # read_sentence's per-word loop run without holding self.lock for
+            # the whole sentence: two concurrent sentences each carry their
+            # own local "previous word" state instead of racing on one
+            # shared instance attribute.
+            _prev_phase_vec_unset = prev_phase_vec is _PHASE_VEC_UNSET
+            _effective_prev_phase_vec = self._prev_phase_vec if _prev_phase_vec_unset else prev_phase_vec
             _rotation = 0.0
-            if _phase_vec is not None and self._prev_phase_vec is not None:
+            if _phase_vec is not None and _effective_prev_phase_vec is not None:
                 try:
                     import numpy as _np_rot
-                    _inner = _np_rot.vdot(self._prev_phase_vec, _phase_vec)
+                    _inner = _np_rot.vdot(_effective_prev_phase_vec, _phase_vec)
                     _rotation = float(abs(_np_rot.angle(_inner)))
                 except Exception:
                     _rotation = 0.0
             self._last_rotation = _rotation
-            # Update prev for next word (reset at sentence start by read_sentence)
-            if _phase_vec is not None:
+            # Update prev for next word. Legacy direct-caller path (kwarg
+            # omitted) still mutates the shared instance attribute exactly as
+            # before (reset at sentence start by read_sentence in the old
+            # code -- read_sentence no longer does this at all now, see
+            # below). Call-scoped path (read_sentence) leaves self._prev_
+            # phase_vec untouched entirely; the caller threads the new value
+            # through via this function's return value instead.
+            if _prev_phase_vec_unset and _phase_vec is not None:
                 self._prev_phase_vec = _phase_vec
             # Polarity from rotation: strong rotation (> π/2) → negation context
             _polarity = -1 if _rotation > (math.pi / 2) else 1
 
+            # GL-FIX-LOCK-GRANULARITY-C1-20260710: resolve episode_ref once,
+            # locally, instead of letting _grounding_kwargs() read the shared
+            # self._current_episode instance attribute (formerly mutated by
+            # read_sentence around its whole per-word loop -- see that
+            # function's own comment). Direct callers that don't pass
+            # episode_ref still fall back to self._current_episode exactly as
+            # before; read_sentence now always supplies its own call-local
+            # value explicitly, so this fallback is effectively dormant for
+            # the sentence path (by design -- self._current_episode is no
+            # longer written by anything).
+            _effective_episode_ref = (episode_ref if episode_ref is not None
+                                       else (self._current_episode[0] if self._current_episode else None))
+
             # GL-CLARITY-INVARIANCE-UNCAGE: affect + grounding kwargs for record() calls
             # §1.1: pass sentence-local binding_window to _grounding_kwargs
-            _akw = {**self._affect_kwargs(surprise), **self._grounding_kwargs(binding_window=_bw)}
+            _akw = {**self._affect_kwargs(surprise),
+                    **self._grounding_kwargs(binding_window=_bw, episode_ref=_effective_episode_ref)}
             # C1.4: real source reaches atlas entry (fixes "corpus" default on all reads)
             _akw["source"] = source
             # 60-C: phase_vec + function_score forwarded to both LivingAtlas and WaveAtlas
@@ -2819,9 +2886,12 @@ class Guala:
             # GL-CMD-CROSS-MODAL-BUNDLE: thread bundle_id into atlas writes
             if bundle_id is not None:
                 _akw["bundle_id"] = bundle_id
-            # GL-CMD-EPISODE-BINDING: situational context forwarded if supplied
-            if episode_ref is not None:
-                _akw["episode_ref"] = episode_ref
+            # GL-CMD-EPISODE-BINDING: situational context -- episode_ref is
+            # already resolved into _akw via _grounding_kwargs() above (GL-FIX-
+            # LOCK-GRANULARITY-C1-20260710); this block no longer needs to
+            # re-override it (removed 2026-07-10, was dead-equivalent logic
+            # duplicating the same precedence _effective_episode_ref already
+            # applies).
             if presence is not None:
                 _akw["presence"] = presence
             if location is not None:
@@ -2932,7 +3002,16 @@ class Guala:
                             trigger_reason="word",
                             salience=salience,
                             **self._affect_kwargs(surprise),
-                            **self._grounding_kwargs())
+                            # GL-FIX-LOCK-GRANULARITY-C1-20260710: this call
+                            # site used to call _grounding_kwargs() bare,
+                            # relying on it to read self._current_episode
+                            # directly -- now that read_sentence no longer
+                            # writes that attribute, the resolved call-local
+                            # value has to be threaded through explicitly
+                            # here too, same as the _akw build above, or
+                            # modal window entries would silently lose their
+                            # episode tag in the common (no-contention) case.
+                            **self._grounding_kwargs(episode_ref=_effective_episode_ref))
             _prof_t0 = _prof_mark("ground_modal", _prof_t0)
 
             # GL-BUG-SELFHEAR-INTRO-RATCHET (found live 2026-07-06): this commit
@@ -3001,7 +3080,19 @@ class Guala:
             _prof_mark("decay_coordinator", _prof_t0)
             self._read_word_last_profile = _prof
 
-            return lang_chi, role, list(senses.keys())
+            # GL-FIX-LOCK-GRANULARITY-C1-20260710: _phase_vec appended so
+            # read_sentence() can chain it into the NEXT word's prev_phase_vec
+            # without ever touching self._prev_phase_vec (see docstring).
+            # _prof appended too — read_sentence used to read this call's
+            # profile back via self._read_word_last_profile immediately after
+            # the call returned, which was only race-free because the outer
+            # self.lock used to stay held for the whole sentence; now that
+            # the lock releases between words, that instance-attribute
+            # read-back could otherwise be clobbered by a different thread's
+            # read_word() call in the gap, so it's threaded through the
+            # return value instead. self._read_word_last_profile itself is
+            # left in place unchanged for any other/future direct introspection.
+            return lang_chi, role, list(senses.keys()), _phase_vec, _prof
 
     def _rebuild_word_to_emission_index(self):
         """Build the word→emission-section lookup from section commits.
@@ -3147,8 +3238,40 @@ class Guala:
         GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.1:
         binding_window lifted to sentence-local [] — prevents unbounded growth
         of self._current_binding_window that caused -46's crash.
-        Outer lock RETAINED (§1.3 phasing deferred: requires deeper investigation
-        of _emit_dynamics / _emission_system concurrent access before unlocking).
+
+        GL-FIX-LOCK-GRANULARITY-C1-20260710: the per-word loop below no
+        longer holds self.lock for the whole sentence. It USED to (see prior
+        revisions of this docstring: "Outer lock RETAINED, §1.3 phasing
+        deferred") because self.lock is also contended by camera/mic frame
+        handling and periodic autosave — holding it across every word of a
+        sentence (each read_word() call doing real, non-trivial work: organism
+        recall, tapestry settle physics, section commits) measured as real
+        12-48s live stalls, with a single user turn once spending ~20 of its
+        ~50+ total seconds just waiting on this lock for free. read_word()
+        itself already wraps its own body in `with self.lock:` — the fix is
+        this function no longer ALSO wraps the loop, so the lock is acquired
+        and released once per word instead of once per sentence.
+        This only became safe to do once two pieces of state this function
+        used to mutate on `self` — self._current_episode and
+        self._prev_phase_vec — stopped being shared mutable instance
+        attributes read/written by every word of every concurrent sentence
+        (see read_word's episode_ref/prev_phase_vec params and its own
+        docstring). Both are now call-local variables here instead, threaded
+        explicitly into (and, for the phase vector, back out of) each
+        read_word() call — two concurrent sentences from different sources
+        can no longer corrupt each other's episode tag or rotation/negation
+        signal by interleaving between words.
+        The brief preamble above the loop (pair-bond bookkeeping, modal
+        signal caching, episode id derivation) and the brief epilogue below
+        it (profile-timing log, last-place/ambient bookkeeping) are each
+        still individually locked — they run ONCE per sentence (not once per
+        word) and were never the source of the measured stalls, so keeping
+        them atomic costs nothing and preserves their existing consistency
+        guarantees unchanged. Per dispatch: no broader lock split (e.g.
+        separate locks for camera/mic/autosave) is in scope here — self.tick,
+        self.atlas.entries, self.sections[*].modes, and self.window_manager
+        are one shared object graph that would need its own locking design
+        first.
 
         place/ambient: GL-CMD-SCENE-LANES-B1-188 V1/V2. If the caller leaves
         both None (the normal case — no caller passes these explicitly today),
@@ -3192,10 +3315,18 @@ class Guala:
             _sal_estimate = self._compute_salience(source=source, input_novelty=0.5)
             self.coordinator._record_interaction(source, _sal_estimate, self.tick)
 
-            # GL-CLARITY-INVARIANCE-UNCAGE: episode tracking per sentence
+            # GL-CLARITY-INVARIANCE-UNCAGE: episode tracking per sentence.
+            # GL-FIX-LOCK-GRANULARITY-C1-20260710: call-local now — NOT
+            # written to self._current_episode (formerly shared instance
+            # state, mutated here and read by every word's read_word() call;
+            # see this function's own docstring for why that was unsafe once
+            # the per-word loop stopped holding self.lock continuously).
+            # A caller-supplied episode_ref (rare — no production caller
+            # passes one today) still wins over the auto-generated id below,
+            # same precedence as before.
             import hashlib as _hl
             ep_id = _hl.md5(f"{source}:{text[:50]}:{self.tick}".encode()).hexdigest()[:8]
-            self._current_episode = (ep_id, self.tick)
+            _resolved_episode_ref = episode_ref if episode_ref is not None else ep_id
             # §1.1: binding_window is sentence-local — prevents unbounded growth
             binding_window = []
             # GL-DIAG-READ-WORD-TIMING: aggregate read_word's per-call profile
@@ -3204,33 +3335,60 @@ class Guala:
             # (same gate converse_timing already uses) to avoid per-word
             # spam from autonomous curriculum/corpus reading.
             _read_profile_agg = {}
+            # 60-L: previous word's phase vector, call-local now (was
+            # self._prev_phase_vec, reset by this function at sentence start/
+            # end — see read_word's prev_phase_vec param and docstring for
+            # why sharing it on `self` was unsafe once the loop below stopped
+            # holding self.lock for the whole sentence).
+            _prev_phase_vec_local = None
 
-            for i, word in enumerate(words):
-                if len(words) == 1:
-                    hint = "standalone"
-                elif i == 0:
-                    hint = "first"
-                elif i == len(words) - 1:
-                    hint = "last"
-                else:
-                    hint = "middle"
-                self.read_word(word, position_hint=hint, source=source,
-                              bundle_id=bundle_id, salience=salience,
-                              episode_ref=episode_ref, presence=presence,
-                              location=location, sky_state=sky_state,
-                              place=place, ambient=ambient,
-                              binding_window=binding_window)
-                _wp = getattr(self, "_read_word_last_profile", None)
-                if _wp:
-                    for _k, _v in _wp.items():
-                        _read_profile_agg[_k] = _read_profile_agg.get(_k, 0.0) + _v
+        # GL-FIX-LOCK-GRANULARITY-C1-20260710: self.lock is released here.
+        # Each read_word() call below acquires/releases it individually (it
+        # already wraps its own body in `with self.lock:`) — this is the
+        # actual fix: the lock's critical section shrinks from "one
+        # sentence" to "one word," so camera/mic frame handling and
+        # autosave, contending for the same lock, are blocked for at most
+        # one word's worth of work instead of the whole sentence.
+        for i, word in enumerate(words):
+            if len(words) == 1:
+                hint = "standalone"
+            elif i == 0:
+                hint = "first"
+            elif i == len(words) - 1:
+                hint = "last"
+            else:
+                hint = "middle"
+            _, _, _, _new_phase_vec, _wp = self.read_word(
+                word, position_hint=hint, source=source,
+                bundle_id=bundle_id, salience=salience,
+                episode_ref=_resolved_episode_ref, presence=presence,
+                location=location, sky_state=sky_state,
+                place=place, ambient=ambient,
+                binding_window=binding_window,
+                prev_phase_vec=_prev_phase_vec_local)
+            # 60-L: only advance on a real vector — a word whose transduction
+            # didn't yield one leaves the last known-good vector in place for
+            # the next word's rotation comparison (identical to the original
+            # self._prev_phase_vec semantics: `if _phase_vec is not None:
+            # self._prev_phase_vec = _phase_vec`).
+            if _new_phase_vec is not None:
+                _prev_phase_vec_local = _new_phase_vec
+            # GL-FIX-LOCK-GRANULARITY-C1-20260710: read via this call's own
+            # return value, not self._read_word_last_profile — that instance
+            # attribute is still set (for other/future direct introspection)
+            # but reading it back here, after the lock is released between
+            # words, would otherwise race against a different thread's
+            # read_word() call clobbering it in the gap.
+            if _wp:
+                for _k, _v in _wp.items():
+                    _read_profile_agg[_k] = _read_profile_agg.get(_k, 0.0) + _v
+
+        with self.lock:
             if source in ("joe", "joe_voice", "wc", "c1", "gate_test") and _read_profile_agg:
                 self._log_substrate_event("read_sentence_timing",
                                           n_words=len(words),
                                           **{k: round(v, 1) for k, v in _read_profile_agg.items()})
             # 60-N: read_count no longer incremented here; property derives from atlas
-            self._current_episode = None
-            self._prev_phase_vec = None   # 60-L: reset rotation tracking at sentence boundary
             self._negation_pending = 0    # kept for load compatibility
             # GL-CMD-SCENE-LANES-B1-188 V5: last-sentence scene, surfaced live
             # via introspect()/loomscan (mirrors _last_surprise's pattern).
