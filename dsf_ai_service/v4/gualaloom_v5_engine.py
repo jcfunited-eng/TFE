@@ -7571,9 +7571,48 @@ class Guala:
         pre_strength = self.atlas.total_strength()
         chi_keys = list(self.atlas.entries.keys())
         if chi_keys:
-            sample_chis = [chi_keys[i % len(chi_keys)]
-                           for i in range(self.tick % max(1, len(chi_keys)),
-                                          min(self.tick % max(1, len(chi_keys)) + 3, len(chi_keys)))]
+            # 2026-07-10 priority replay (Foster & Wilson 2006 on
+            # hippocampal replay prioritizing recent/salient experience
+            # over uniform scan; Schaul et al. 2015's Prioritized
+            # Experience Replay is the same principle in RL): real sleep
+            # consolidation is not a blind round-robin over everything
+            # ever learned -- it favors what was just experienced. The
+            # round-robin below was previously the ONLY selection: a
+            # freshly grounded word got the exact same priority as
+            # something read weeks ago, so a real new experience could
+            # sit unpromoted for a long time before the rotation ever
+            # reached its chi again -- directly measured tonight: teaching
+            # two words together and dreaming immediately produced zero
+            # deep_atlas promotions until the sample happened to include
+            # their chi.
+            #
+            # Priority-first, round-robin second: always include the
+            # most-recently-touched chi keys (by each chi's own real
+            # last_tick, already tracked for other reasons) ahead of the
+            # existing rotation, so fresh grounded experience gets a real
+            # chance to consolidate close to when it happened, without
+            # starving old content of ever being revisited -- the
+            # round-robin still runs, just fills the remaining slots.
+            # Total sample size capped at 5 (was 3) -- a modest, bounded
+            # increase in per-dream-cycle cost, not a new unbounded scan.
+            _recency_ranked = sorted(
+                chi_keys,
+                key=lambda ck: max(
+                    (e.get("last_tick", 0) for e in self.atlas.entries.get(ck, [])),
+                    default=0),
+                reverse=True)
+            _n_priority = min(2, len(_recency_ranked))
+            _priority_chis = _recency_ranked[:_n_priority]
+            _rr_offset = self.tick % max(1, len(chi_keys))
+            _roundrobin_chis = [chi_keys[i % len(chi_keys)]
+                                for i in range(_rr_offset, min(_rr_offset + 3, len(chi_keys)))]
+            _seen_chis = set()
+            sample_chis = []
+            for ck in _priority_chis + _roundrobin_chis:
+                if ck not in _seen_chis:
+                    _seen_chis.add(ck)
+                    sample_chis.append(ck)
+            sample_chis = sample_chis[:5]
             for chi_k in sample_chis:
                 for e in self.atlas.entries.get(chi_k, []):
                     sec_name = e.get("section", "")
