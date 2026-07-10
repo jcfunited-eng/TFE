@@ -774,6 +774,24 @@ REORGANIZE_HYPOTHESIS_TTL_TICKS = 40_000  # ~ a few real sleep cycles at 200-tic
 # not an arbitrary smaller number.
 REORGANIZE_TRACKING_MAX = REORGANIZE_MAX_PER_CYCLE * (REORGANIZE_HYPOTHESIS_TTL_TICKS // 200)
 
+# 2026-07-10 GL-CMD-SENSORY-ECHO-REPLAY-REVISIT: _replay_sensory_echo (see
+# its own docstring) was built, shipped, then hard-disabled (`if False and`)
+# the same night after live converse_timing showed read_ms jump from ~6s to
+# 24.4s of a 27.2s turn -- a 200-entry scan cap was added as a mitigation
+# attempt but "didn't bring it back down" per that incident's own report
+# (docs/GL-RPT-ENABLE-COGNITION-C1-20260705-211-v1-RCA.md), and the real
+# cost was never actually isolated before it was cut out. Direct
+# measurement tonight against a realistic-scale atlas (~9000 entries/200
+# chi keys, matching real production) with the CURRENT cap in place shows
+# ~0.03ms/call -- roughly 3 orders of magnitude too fast to explain that
+# regression, which doesn't match the incident report and needs a live,
+# monitored trial to resolve (local testing on a fresh, low-density
+# organism has already been shown once this week not to catch every
+# production-scale effect). Gated behind its own kill switch, DEFAULT OFF
+# -- this restores an operator's ability to try it without a code change,
+# it does NOT itself re-enable the mechanism.
+SENSORY_ECHO_REPLAY_ENABLED = os.environ.get("SENSORY_ECHO_REPLAY_ENABLED", "0") != "0"
+
 
 # ============================================================
 # v7: Autonomy Dataclasses
@@ -4052,10 +4070,10 @@ class Guala:
         # didn't bring it back down, and a raw profile of the cheap parts
         # (LanguageKrimelack.transduce: 0.05ms/word) doesn't explain the
         # gap, so something about this call's real cost isn't understood
-        # yet. Cutting it out cleanly rather than guessing again live --
-        # same "disabled, not deleted, re-enable after it's actually
-        # understood" pattern this file already uses for RICH_SENSORY_INPUT.
-        if False and sight_signal is None and sound_signal is None:
+        # yet. 2026-07-10: gated behind SENSORY_ECHO_REPLAY_ENABLED (default
+        # OFF, see its own comment above) instead of hardcoded off, so it
+        # can be tried live and instantly reverted without a redeploy.
+        if SENSORY_ECHO_REPLAY_ENABLED and sight_signal is None and sound_signal is None:
             _replay_sight, _replay_sound = self._replay_sensory_echo(word)
             if _replay_sight is not None:
                 sight_signal = _replay_sight
