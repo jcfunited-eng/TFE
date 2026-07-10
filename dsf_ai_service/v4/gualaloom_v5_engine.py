@@ -35,6 +35,7 @@ import math
 import json
 import time
 import calendar
+import contextlib
 import queue as _queue
 import hashlib as _hashlib
 import heapq as _heapq
@@ -3239,6 +3240,94 @@ class Guala:
     # ------------------------------------------------------------------
     # Conversation: input -> substrate -> output via cascade
     # ------------------------------------------------------------------
+    def _renew_presence(self, source):
+        """GL-FIX-PRESENCE-KEEPALIVE-C1-20260710: renew this source's
+        last-input tick right now. Single-shot -- see _presence_keepalive()
+        for the real fix (a heartbeat spanning the whole call). Kept as a
+        small standalone helper because _presence_keepalive's own first
+        renewal, and a couple of natural checkpoints, use it directly."""
+        if source in ("joe", "wc", "c1"):
+            self.coordinator.update_last_input(source, self.tick)
+
+    @contextlib.contextmanager
+    def _presence_keepalive(self, source, interval_s=0.5):
+        """GL-FIX-PRESENCE-KEEPALIVE-C1-20260710: keep `source`'s presence
+        alive for the full wall-clock duration of the wrapped block, not
+        just at its start.
+
+        Root cause (GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1
+        item #4): presence.timeout_check() compares a single GLOBAL
+        engine.tick against a per-source _last_input_tick snapshot taken
+        once, at the moment read_sentence started. engine.tick advances
+        from every source combined (autonomous curriculum/worldfeed
+        reading, sensory frame processing, other sessions' own turns —
+        every read_word() call anywhere bumps it), not just this source's
+        own words. Real turns now take 50+ seconds end-to-end, and:
+          (a) a caller can sit blocked well before read_sentence ever
+              runs, waiting on self.lock (confirmed live: frame calls
+              holding it 12-48s, one case ~93s) — their presence isn't
+              renewed at all during that wait under the pre-fix code;
+          (b) _converse_phased's own Phase 6 (emission) deliberately
+              releases self.lock (self._emission_lock is a separate lock)
+              so curriculum/autonomy CAN interleave and advance the
+              global tick while this source's own turn is still inside
+              that phase; and
+          (c) (found by real-threading adversarial testing, not just
+              reasoning: a single slow phase -- e.g. emission alone under
+              load -- can by itself exceed 1500 ticks of background
+              advancement before that phase even returns, so renewing
+              only at phase BOUNDARIES is provably insufficient; a real
+              call-duration heartbeat is required.)
+        Either way, 1500 ticks (PRESENCE_TIMEOUT_TICKS — validated
+        elsewhere, NOT changed here) of unrelated background advancement
+        can plausibly elapse during one still-in-flight exchange, so
+        timeout_check() (invoked from ANY thread's read_word, every 5
+        global ticks) auto-rests a source who never actually left.
+
+        Mechanism: renews once immediately (synchronous, covers the
+        instant this call began — including time spent waiting for
+        self.lock before read_sentence even starts), then starts a
+        lightweight daemon thread that renews every `interval_s` wall-
+        clock seconds until the wrapped block exits (success or
+        exception) — interval_s=0.5s gives ~2 renewals/sec, far more
+        frequent than any realistic single phase could burn through 1500
+        ticks of background load (measured background read_word rate on
+        a cold engine: ~250 calls/s — even at that rate 0.5s is only
+        ~125 ticks, 12x headroom under the threshold).
+
+        Scoping / safety: no-ops entirely for sources that aren't
+        presence-tracked ("corpus", "curriculum", "joe_voice", etc. — same
+        gate read_sentence's original single renewal already used). Only
+        ever touches `source`'s own _last_input_tick — never any other
+        source's — so it cannot make another source's presence "stick".
+        Does not touch PRESENCE_TIMEOUT_TICKS. update_last_input() is a
+        single dict-key assignment on an already-existing key (no read-
+        modify-write), so calling it from the heartbeat thread without
+        self.lock introduces no new race — this is pure bookkeeping-
+        timestamp plumbing, never memory/recall/decision content."""
+        if source not in ("joe", "wc", "c1"):
+            yield
+            return
+        self._renew_presence(source)
+        stop_event = threading.Event()
+
+        def _heartbeat():
+            while not stop_event.wait(interval_s):
+                try:
+                    self._renew_presence(source)
+                except Exception:
+                    pass  # heartbeat must never break the real turn
+
+        hb_thread = threading.Thread(
+            target=_heartbeat, daemon=True,
+            name=f"presence-keepalive-{source}")
+        hb_thread.start()
+        try:
+            yield
+        finally:
+            stop_event.set()
+            hb_thread.join(timeout=interval_s + 2.0)
+
     def converse(self, text, source="unknown", emission_mode=None, bundle_id=None,
                  episode_ref=None, presence=None, location=None, sky_state=None,
                  organ_candidates=None):
@@ -3258,6 +3347,22 @@ class Guala:
         # too. Caller-supplied values (none exist today) still win.
         if presence is None and location is None and sky_state is None:
             presence, location, sky_state = self._current_situation()
+        # GL-FIX-PRESENCE-KEEPALIVE-C1-20260710: keep this source's presence
+        # alive for the FULL wall-clock duration of this call -- BEFORE any
+        # lock wait, BEFORE the math-parse shortcut in either path below
+        # (both of which could otherwise skip read_sentence's own renewal
+        # entirely), and THROUGHOUT any single slow phase (a heartbeat
+        # thread, not just phase-boundary renewals -- see
+        # _presence_keepalive's docstring for why boundary-only renewal was
+        # proven insufficient by real-threading adversarial testing).
+        with self._presence_keepalive(source):
+            return self._converse_body(
+                text, source, emission_mode, bundle_id, episode_ref,
+                presence, location, sky_state, organ_candidates)
+
+    def _converse_body(self, text, source, emission_mode, bundle_id,
+                       episode_ref, presence, location, sky_state,
+                       organ_candidates):
         # GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.2: feature-flagged phased path.
         # CONVERSE_PHASED=1 → _converse_phased (split self.lock + self._emission_lock).
         # CONVERSE_PHASED=0 (default) → original single-lock body below.
