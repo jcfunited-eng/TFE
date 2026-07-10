@@ -721,6 +721,19 @@ AUTONOMOUS_EMISSION_ENABLED = True          # single flag to disable without cod
 AUTONOMOUS_THROTTLE_TICKS = 27000           # ~90s between autonomous emissions
 AUTONOMOUS_CONVERSATION_COOLDOWN_TICKS = 9000  # ~30s cooldown after any conversation
 
+# 2026-07-10 GL-CMD-AUTONOMOUS-INTEREST-REFINEMENT: real research (Schmidhuber
+# 1991/2010 compression-progress; Oudeyer & Kaplan 2007 learning-progress
+# intrinsic motivation) says a sustained novelty LEVEL just means "under-
+# stimulated" -- the real trigger for unprompted expression is the RATE
+# novelty is moving, not its level. NOVELTY_HISTORY_MAX bounds a per-gate-
+# check recent sample window (same evict-oldest convention used elsewhere
+# in this file). NOVELTY_RISE_MIN is the minimum real increase across that
+# window to count as "rising" rather than noise -- set to 10% of Needs.
+# DECAY["novelty"] (0.03, this codebase's own existing scale for "one
+# meaningful positive nudge"), not an invented number.
+NOVELTY_HISTORY_MAX = 20
+NOVELTY_RISE_MIN = 0.003
+
 # GL-CMD-TEACHER-SUBSTRATE-TRUE: tick-window cap for emission records
 # = ln(1/FORGETTING_THRESHOLD) / (DECAY_LAMBDA / SLOW_DIV)
 # = ln(50) / 8.33e-6 ≈ 469_443 ticks (≈ 48h at current tick rate)
@@ -1957,6 +1970,14 @@ class Guala:
         self.last_autonomous_emission_tick = -100_000
         self.last_autonomous_attempt_tick = -100_000
         self.autonomous_emissions_count = 0
+        # GL-CMD-AUTONOMOUS-INTEREST-REFINEMENT: bounded (tick, novelty)
+        # samples for the derivative-based trigger -- see NOVELTY_HISTORY_
+        # MAX/NOVELTY_RISE_MIN above. Not persisted (a gap across a
+        # restart just means one restart's worth of history has to
+        # rebuild, same honest-empty-until-earned pattern as other bounded
+        # trackers here, not worth the save/load complexity for a signal
+        # this short-lived).
+        self._novelty_history = deque(maxlen=NOVELTY_HISTORY_MAX)
         self._last_emission_id = None
         self._emission_records = {}  # emission_id -> record (tick-window expiry)
         self._teaching_feedback_log = []
@@ -8202,28 +8223,75 @@ class Guala:
         any_present = any(pres.get(k, False) for k in ("joe", "wc", "c1", "eve"))
         if not any_present:
             return False
-        # Need-state urgency: substrate has something to say
+        # Need-state urgency: substrate has something to say.
         needs = self.needs.snapshot()
+
+        # 2026-07-10 GL-CMD-AUTONOMOUS-INTEREST-REFINEMENT (Schmidhuber
+        # 1991/2010 compression-progress; Oudeyer & Kaplan 2007 learning-
+        # progress intrinsic motivation): a sustained novelty LEVEL just
+        # means "under-stimulated" -- indistinguishable from idle chatbot
+        # filler. The real trigger is the RATE novelty is moving. Record
+        # this check's sample, then require a real net rise across the
+        # recent bounded window (see NOVELTY_HISTORY_MAX/NOVELTY_RISE_MIN
+        # above) instead of a flat >0.85 threshold. tick_drift() pulls
+        # novelty DOWN every autonomy-loop iteration absent real
+        # reinforcement, so any real net rise here already means
+        # something genuinely counteracted that drift.
+        self._novelty_history.append((self.tick, needs.get("novelty", 0.0)))
+        novelty_rising = False
+        if len(self._novelty_history) >= 2:
+            oldest_tick, oldest_novelty = self._novelty_history[0]
+            newest_tick, newest_novelty = self._novelty_history[-1]
+            if newest_tick > oldest_tick:
+                novelty_rising = (newest_novelty - oldest_novelty) >= NOVELTY_RISE_MIN
+
+        # Valence/stability gates (Sterling 2012 allostasis; Berridge &
+        # Robinson 1998 incentive salience): rising novelty under negative
+        # valence is aversive arousal, not interest, and shouldn't produce
+        # approach/speech; stability below target means cohesion is going
+        # to defense/repair, not surplus for exploratory expression.
+        valence_ok = needs.get("valence", 0.0) >= 0.0
+        stability_ok = needs.get("stability", 0.0) >= self.needs.TARGETS["stability"]
+
         urgency = (
             needs.get("dream_pressure", 0) > 0.30 or
             needs.get("connection", 0) > 0.70 or
-            (needs.get("novelty", 0) > 0.85 and needs.get("arousal", 0) > 0.50)
+            (novelty_rising and needs.get("arousal", 0) > 0.50
+             and valence_ok and stability_ok)
         )
         return urgency
 
     def _sample_autonomous_seeds(self, n=12):
         """Sample strong atlas entries as chi seeds for autonomous composition.
-        Returns list of {chi_key, strength} dicts, weighted by strength × recency."""
+        Returns list of {chi_key, strength} dicts, weighted by strength ×
+        recency × cross-modal bonus × connection-deficit bias.
+
+        2026-07-10 GL-CMD-AUTONOMOUS-INTEREST-REFINEMENT: per Buckner &
+        Carroll 2007 (default-mode self-referential retrieval -- mind-
+        wandering replays whatever the internal model was just working
+        on, not a random topic), the existing recency weighting already
+        biases toward whatever real recent structure most likely drove
+        the trigger. Added here: when the connection need is currently
+        starved, bias further toward entries carrying a real cross-modal
+        bundle_id tie (genuinely shared, sense-grounded experience -- the
+        same real/fake distinction the credo grounding gate draws
+        elsewhere), since shared experience is what the connection need
+        is actually about. The bias never applies to plain, ungrounded
+        text-only bindings, so it cannot manufacture false "connection"
+        content out of ordinary reading."""
         candidates = []
         now = self.tick
+        connection_deficit = max(0.0, self.needs.TARGETS["connection"] - self.needs.connection)
         for chi, binds in self.atlas.entries.items():
             for e in binds:
                 s = e.get("strength", 0)
                 if s < 0.3:
                     continue
                 recency = max(0.1, 1.0 - (now - e.get("last_tick", 0)) / 10000.0)
-                cross_modal = 1.3 if e.get("bundle_id") is not None else 1.0
-                weight = s * recency * cross_modal
+                is_cross_modal = e.get("bundle_id") is not None
+                cross_modal = 1.3 if is_cross_modal else 1.0
+                connection_bias = (1.0 + connection_deficit) if is_cross_modal else 1.0
+                weight = s * recency * cross_modal * connection_bias
                 candidates.append((weight, chi, s))
         if not candidates:
             return []
