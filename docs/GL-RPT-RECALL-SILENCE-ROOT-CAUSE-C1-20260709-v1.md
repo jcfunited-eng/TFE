@@ -117,7 +117,58 @@ responsible use of that authorization.
 
 ---
 
+## v2 update: corrected finding, real fix shipped, live proof
+
+The v1 conclusion above was too pessimistic, and traced to a bug in my OWN
+test, not the substrate. `_run_dream_cycle` silently no-ops unless called
+at an exact tick checkpoint (`tick % 200 == 0`); my first local test wasn't
+hitting that checkpoint, so the promotion gate never ran at all, and I
+mistook "my test didn't exercise the code" for "the mechanism doesn't
+work." Once corrected, direct testing showed the deep_atlas association
+path works exactly as designed: teaching two real, grounded, co-occurring
+concepts and then dreaming correctly surfaces a genuine (non-self-echo)
+association.
+
+The real, narrower gap: `_run_dream_cycle`'s chi sampling was pure
+round-robin with no recency weighting, so freshly-taught real experience
+had to wait for the rotation to cycle back to its own chi before ever
+getting a chance to promote — measured directly with 66 competing older
+chi keys already in the atlas, a fresh grounded pair produced zero
+promotions on the next dream under the old sampling.
+
+**Fix shipped** (commit `b1d0eca`): priority-replay dream sampling —
+recently-touched chi keys sampled first, ahead of the existing
+round-robin, grounded in real sleep/memory research (Foster & Wilson 2006
+on hippocampal replay prioritization; Schaul et al. 2015's Prioritized
+Experience Replay in RL is the same principle). Verified locally (fresh
+pair promotes and surfaces a real association on the very next dream, even
+against 66 competitors) and then **live, in production**: taught
+"whiskers" and "cat" back-to-back via real `give_experience` calls, forced
+one real dream cycle, and real conversational recall on "cat" returned
+`"dog"` — a real, different, non-empty, non-echo word (both "cat" and
+"dog" were taught tonight with the same real touch descriptors,
+soft/fuzzy — a genuine, sensible association, not a fabrication).
+Reproducible (asked twice, got "dog" both times) and differentiated
+(asked about "apple" instead, got a different real word, "suit" — not a
+fixed default answer repeating regardless of input, the exact shape of
+bug this filter was built to prevent).
+
+This is the first real, non-empty, non-echo conversational response
+observed this session. The self-echo filter itself was never the real
+blocker for genuine association queries — only for literal single-word
+self-identity queries, which is its correct, intended behavior, not a bug.
+Full test suite after the fix: 222 passed, 5 failed, all 5 pre-existing
+and unrelated — zero regressions.
+
+---
+
 ### Changelog
+- v2 (2026-07-10, c1): corrected v1's conclusion. Root cause was an
+  under-scaled/misaligned test on my part, not a structural self-echo
+  dead-end. Real gap was non-prioritized dream sampling; shipped a
+  real, research-grounded fix (priority replay); verified locally and
+  live in production (real, differentiated, reproducible non-empty
+  conversational responses for the first time this session).
 - v1 (2026-07-09, c1): initial report. Root cause of conversational silence
   confirmed via direct local testing against a real organism (not just code
   reading): self-echo filtering is structurally permanent for single-word
