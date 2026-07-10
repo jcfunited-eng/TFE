@@ -792,6 +792,23 @@ REORGANIZE_TRACKING_MAX = REORGANIZE_MAX_PER_CYCLE * (REORGANIZE_HYPOTHESIS_TTL_
 # it does NOT itself re-enable the mechanism.
 SENSORY_ECHO_REPLAY_ENABLED = os.environ.get("SENSORY_ECHO_REPLAY_ENABLED", "0") != "0"
 
+# GL-CMD-REFLECTION-EVE-20260710 (imagination half): surfaces
+# reorganize_hypothesis entries (see _dream_reorganize) as low-weight
+# emission candidates via _imagination_candidates -- see that function's
+# own docstring for the full design and why this is NOT the same pool
+# _deep_atlas_neighbor_candidates draws from. IMAGINATION_ENABLED: same
+# kill-switch convention as REORGANIZE_ENABLED/SENSORY_ECHO_REPLAY_ENABLED
+# -- default ON since this only ever surfaces already-real, already-
+# gated content at a damped weight, but instantly revertible without a
+# redeploy if live behavior looks wrong. IMAGINATION_WEIGHT_SCALE damps
+# a hypothesis's raw (already-low, REORGANIZE_HYPOTHESIS_STRENGTH=0.05
+# ceiling) weight further, so a confirmed real candidate of equal raw
+# strength always wins. IMAGINATION_MAX_CANDIDATES_PER_TURN keeps this
+# a subtle background flavor, not a second voice.
+IMAGINATION_ENABLED = os.environ.get("IMAGINATION_ENABLED", "1") != "0"
+IMAGINATION_WEIGHT_SCALE = 0.3
+IMAGINATION_MAX_CANDIDATES_PER_TURN = 1
+
 
 # ============================================================
 # v7: Autonomy Dataclasses
@@ -1855,6 +1872,14 @@ class Guala:
     # memory -- not a growing pile, not a single flattened definition.
     EPISODIC_MEMORY_MAX_PER_CONCEPT = 20
     EPISODIC_RECENT_CONTEXT_WINDOW = 50
+    # GL-CMD-REFLECTION-EVE-20260710: bounded, same evict-oldest convention.
+    REFLECTION_MAX_HISTORY = 20
+    # Gated, not every tick -- a real periodic cognitive act, matching the
+    # spacing convention already used for dream cycles (tick % 200) and
+    # play's own emission-trigger check (tick % 300); reflection is rarer
+    # still since it should feel like an occasional inward moment, not
+    # constant narration.
+    REFLECTION_MIN_TICKS_BETWEEN = 500
 
     def __init__(self):
         self.sections = {
@@ -2061,6 +2086,16 @@ class Guala:
         # episodic_layer.py's same design (a real prior draft of this
         # exact idea that was built but never wired into the live engine).
         self._episodic_recent_concepts = deque(maxlen=self.EPISODIC_RECENT_CONTEXT_WINDOW)
+        # GL-CMD-REFLECTION-EVE-20260710: bounded history of real internal
+        # representations formed by _form_reflection -- "I felt X when Y,
+        # near Z," built only from episodic memory + her own real needs
+        # state, never fabricated. Deliberately NOT wired into speech (same
+        # "one mind, one mouth" rule episodic memory itself respects) --
+        # write-only tonight, until observed producing sane output over
+        # real time. Not persisted -- same honest-empty-on-restart
+        # convention as _novelty_history.
+        self._reflections = deque(maxlen=self.REFLECTION_MAX_HISTORY)
+        self._last_reflection_tick = 0
         # GL-CMD-SLEEP-REORGANIZE: (chi, section, motif, born_tick) for every
         # live tentative hypothesis entry _dream_reorganize has written into
         # deep_atlas, so the TTL check below can find and expire them without
@@ -2473,6 +2508,51 @@ class Guala:
         if mode == "recent":
             return records[-1]
         return max(records, key=lambda r: len(r.get("context", [])))
+
+    def _form_reflection(self):
+        """GL-CMD-REFLECTION-EVE-20260710: a real cognitive act, distinct
+        from introspect()'s external debug snapshot -- picks the most
+        recently formed episodic memory (a genuinely experienced, situated
+        moment, never a fabricated one) and compares its recorded
+        affective state against her CURRENT real needs state, producing
+        one internal representation: "I felt X then, near Z; I feel Y
+        now." Every field traces to something she really experienced or
+        really feels right now -- no invented content.
+
+        Honest empty if there is nothing real to reflect on yet (no
+        episodic memory formed this process's life) -- reflection is
+        never manufactured from nothing, same principle
+        _episodic_context_for already uses for its own None return.
+
+        Deliberately NOT wired into speech or emission candidate scoring
+        -- matches the "one mind, one mouth" rule _record_episodic_
+        experience's own commit message states, and the standing rule
+        against dressing new scaffolding up as her real voice before it's
+        been observed working. This writes to a bounded internal history
+        only; surfacing it through the real emission path is real
+        follow-up work, once real reflections have been observed here
+        and judged sane, not assumed sane in advance."""
+        if not self._episodic_recent_concepts:
+            return None
+        concept = self._episodic_recent_concepts[-1]
+        record = self._episodic_context_for(concept, mode="recent")
+        if record is None:
+            return None
+        reflection = {
+            "concept": concept,
+            "tick": self.tick,
+            "remembered_tick": record.get("tick", 0),
+            "location_then": record.get("location"),
+            "affective_then": record.get("affective", {"valence": 0.0, "arousal": 0.5}),
+            "affective_now": {
+                "valence": round(self.needs.valence(), 3),
+                "arousal": round(self.needs.arousal(), 3),
+            },
+            "context_then": record.get("context", []),
+        }
+        self._reflections.append(reflection)
+        self._last_reflection_tick = self.tick
+        return reflection
 
     def _current_window_has_real_grounding(self):
         """2026-07-09 credo fix: is the CURRENTLY OPEN binding window (see
@@ -4660,6 +4740,27 @@ class Guala:
                 input_words_lower.add(word_label.lower())
                 n_deep_candidates += 1
 
+        # GL-CMD-REFLECTION-EVE-20260710 (imagination half): a separate,
+        # narrowly-scoped, low-weight source -- see _imagination_
+        # candidates' own docstring for why this is NOT merged into the
+        # deep_atlas loop above. Capped at IMAGINATION_MAX_CANDIDATES_
+        # PER_TURN so a speculative recombination stays a subtle
+        # background flavor, never a competing voice.
+        n_imagination_candidates = 0
+        if IMAGINATION_ENABLED:
+            for q in queries:
+                if n_imagination_candidates >= IMAGINATION_MAX_CANDIDATES_PER_TURN:
+                    break
+                for word_label, weight, section, mode_idx in \
+                        self._imagination_candidates(q, exclude_words=input_words_lower):
+                    if n_imagination_candidates >= IMAGINATION_MAX_CANDIDATES_PER_TURN:
+                        break
+                    co = {section: {str(mode_idx): weight}}
+                    de = {"co_occurrence": co, "clarity": weight, "origin": "imagination"}
+                    candidates.append((de, co, weight))
+                    input_words_lower.add(word_label.lower())
+                    n_imagination_candidates += 1
+
         # GL-CMD-VOICE-ORGANISM-CANDIDATES-195 P3 (c1 addition -- not in the
         # attached patch, added here to satisfy D2/X1's reporting need):
         # vote-spread visibility, the same blind spot -187 named for the
@@ -4673,6 +4774,7 @@ class Guala:
                                   n_voted_words=len(merged_votes),
                                   n_with_section_home=n_with_section_home,
                                   n_deep_candidates=n_deep_candidates,
+                                  n_imagination_candidates=n_imagination_candidates,
                                   n_candidates=len(candidates))
         return candidates
 
@@ -4751,6 +4853,71 @@ class Guala:
                         continue
                     seen.add(wl)
                     out.append((word_label, w * entry_strength, section, mid))
+        return out
+
+    def _imagination_candidates(self, seed_word, exclude_words=None):
+        """GL-CMD-REFLECTION-EVE-20260710 (imagination half): surface
+        tentative, never-yet-confirmed cross-domain links _dream_
+        reorganize formed during sleep (source_path=="reorganize_
+        hypothesis") as LOW-WEIGHT emission candidates -- structurally
+        the same act as association (_deep_atlas_neighbor_candidates
+        above), but over hypotheses instead of dream-confirmed memory.
+        Both sides of every hypothesis are real, previously-experienced
+        entries (see _dream_reorganize's own docstring) -- nothing here
+        is invented content, only an honestly speculative RECOMBINATION
+        of two real things she's actually experienced, never linked
+        before.
+
+        Deliberately excluded from _deep_atlas_neighbor_candidates
+        (2026-07-10 adversarial review) because an unconfirmed guess
+        must never be indistinguishable from real, dream-confirmed
+        association in the SAME candidate pool at full weight. This is
+        the narrow, opposite mechanism: hypotheses ONLY, explicitly
+        tagged ("origin": "imagination" at the caller), and damped by
+        IMAGINATION_WEIGHT_SCALE so a real candidate of equal raw
+        strength always outweighs an imagined one -- a speculative
+        thought competes for attention, it does not compete on equal
+        footing with something she actually, confirmedly knows.
+
+        Same real-grounding gate as the association path: only words she
+        can already really speak are ever surfaced -- a hypothesis's
+        chi-proximity guess is never allowed to unlock NEW vocabulary on
+        its own (that's exactly what _backfill_grounded_from_deep_atlas's
+        own hypothesis exclusion already guards, unchanged here)."""
+        if not seed_word or seed_word.lower() not in self._word_to_emission_sections:
+            return []
+        exclude = set(exclude_words or ())
+        exclude.add(seed_word.lower())
+        ek = LanguageKrimelack()
+        ek.transduce(seed_word)
+        chi = ek.winding
+        out = []
+        seen = set()
+        for de in self.deep_atlas.entries.get(chi, []):
+            if de.get("source_path") != "reorganize_hypothesis":
+                continue
+            entry_strength = de.get("strength", 0.0)
+            if entry_strength <= 0.0:
+                continue
+            for section, motif_dict in de.get("co_occurrence", {}).items():
+                sec_obj = self.sections.get(section)
+                if sec_obj is None:
+                    continue
+                for mid_str, w in motif_dict.items():
+                    mid = int(mid_str)
+                    if mid >= len(sec_obj.modes):
+                        continue
+                    _, _, word_label = sec_obj.modes[mid]
+                    if not word_label:
+                        continue
+                    wl = word_label.lower()
+                    if wl in exclude or wl in seen:
+                        continue
+                    if _require_grounded_speech() and wl not in self._word_to_emission_sections:
+                        continue
+                    seen.add(wl)
+                    out.append((word_label, w * entry_strength * IMAGINATION_WEIGHT_SCALE,
+                               section, mid))
         return out
 
     def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
@@ -6935,6 +7102,24 @@ class Guala:
                         connection=_ns["connection"], valence=_ns["valence"],
                         arousal=_ns["arousal"]),
                         daemon=True, name="needs-log").start()
+                except Exception:
+                    pass
+
+            # GL-CMD-REFLECTION-EVE-20260710: real reflection, gated the
+            # same way (periodic, not per-tick) -- see _form_reflection's
+            # own docstring for why this stays internal-only tonight.
+            # Wrapped same as its sibling block above -- a malformed
+            # restored episodic record must never truncate the rest of
+            # this tick's autonomy body (adversarial review, 2026-07-10).
+            if (self.tick - self._last_reflection_tick >= self.REFLECTION_MIN_TICKS_BETWEEN):
+                try:
+                    reflection = self._form_reflection()
+                    if reflection is not None:
+                        self._log_substrate_event("reflection_formed",
+                            concept=reflection["concept"],
+                            remembered_tick=reflection["remembered_tick"],
+                            affective_then=reflection["affective_then"],
+                            affective_now=reflection["affective_now"])
                 except Exception:
                     pass
 
@@ -11559,6 +11744,14 @@ class Guala:
                 "concepts_with_multiple_memories": sorted(
                     c for c, v in self._episodic_memory.items() if len(v) > 1
                 )[:20],
+            },
+            # GL-CMD-REFLECTION-EVE-20260710: real internal representations
+            # formed from episodic memory + current needs -- see
+            # _form_reflection's own docstring. Not wired into speech;
+            # exposed here only for observability, same as episodic_memory.
+            "reflections": {
+                "n_formed": len(self._reflections),
+                "most_recent": (self._reflections[-1] if self._reflections else None),
             },
             "pictures": [{"item_id": p.item_id, "title": p.title,
                           "times_attended": p.times_attended}

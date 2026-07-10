@@ -2160,6 +2160,7 @@ async def gualaloom_chat(msg: GLMessage):
             # scene_lanes/organism_growth earlier tonight. Forwarded here
             # so it doesn't silently repeat a fourth time.
             "episodic_memory": s.get("episodic_memory", {}),
+            "reflections": s.get("reflections", {}),
         }
 
     # ── /wake — substrate-physical wake event ──
