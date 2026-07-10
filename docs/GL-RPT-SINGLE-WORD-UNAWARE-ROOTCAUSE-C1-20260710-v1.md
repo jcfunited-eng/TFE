@@ -193,6 +193,61 @@ Queue as dedicated follow-up work, not same-night patches:
 
 ---
 
+## Build outcome (v2 addendum)
+
+Built and adversarially reviewed all three recommended tonight-fixes,
+each in an isolated worktree, matching the discipline the "corrections"
+section above exists to enforce:
+
+1. **Presence-keepalive (#4) — SHIPPED, DEPLOYED, VERIFIED LIVE.**
+   Confirmed the mechanism precisely (only one `_last_input_tick`
+   renewal call site, firing once at turn start; `engine.tick` is
+   global and shared across sources, so background/other-session
+   activity can plausibly race a source's own idle counter past the
+   timeout during one of its own still-in-flight turns). Implemented a
+   heartbeat that renews presence for the specific in-flight source
+   only, without touching the validated `PRESENCE_TIMEOUT_TICKS`
+   constant itself. Adversarial review: zero correctness bugs, no
+   deadlocks, no leaks, no scope creep, retry-storm and concurrent-
+   source tests both clean. Full local suite (loom_model/tests,
+   substrate/, tests/, dsf_ai_service/tests/) run in full before
+   deploy: clean except the two already-known pre-existing issues
+   (`test_t8_noise_robustness` failure, `test_t3_corpus_growth` xfail),
+   zero new regressions. Deployed task-def `dsf-ai-task:586`, commit
+   `4bfaa87`. Verified live: `running_sha` matches exactly, task
+   healthy, clean boot log, `tick_rate` 0.66 -> 6.74 immediately after
+   (fresh-boot effect, not solely attributable to this fix -- needs a
+   real interactive session to confirm the actual presence/dwell
+   improvement, not yet observed).
+
+2. **Cascade-timing (#3a) — investigated, NO CHANGE SHIPPED, correctly
+   so.** Built the proposed revert of `2d83ca4`'s keyhole extension,
+   tested against a real harness at production's actual configured
+   1.5s budget: the revert is a **net regression** -- silence roughly
+   doubles (25% -> 50%) on the metric that determines whether a real
+   reply comes back at all. Independently reproduced by the adversarial
+   reviewer, exact same numbers. Correctly declined to ship. This
+   commit stays as-is; it is not, on its own, a fix to chase further --
+   the harness result suggests oversubscription/lock contention (#2)
+   is the more likely dominant lever, not this specific cascade change.
+
+3. **Section-cap-retirement (#3b) — built, NEEDS_REVISION, NOT
+   deployed.** Root cause confirmed real (`Section.modes` has no size
+   cap, only `.commits` does) and the core eviction design (tombstone
+   weakest-by-recency) is correct. But adversarial review found a real,
+   serious bug before it could ship: `_evict_weakest_mode()` triggers a
+   full similarity-matrix rebuild scoped to the *entire physical
+   lifetime* mode count (not the alive set) on every single eviction --
+   and the three sections this fix targets need many evictions per call
+   right now (127-148% over cap). Reproduced directly: a single
+   `receive()` call would cost 2.0-5.7 seconds under real production
+   numbers, inside the same global lock #2 already identifies as the
+   dominant bottleneck -- i.e. this fix, as built, would have made the
+   exact symptom under repair worse on the first turn after every
+   future deploy. Needs the eviction path decoupled from the expensive
+   rebuild before it's safe; not attempted again same-night per this
+   report's own established discipline.
+
 ### Changelog
 - v1 (2026-07-10, c1): Combined findings from a 12-agent code/log
   investigation and wC's independent live-telemetry analysis. Five
@@ -201,3 +256,10 @@ Queue as dedicated follow-up work, not same-night patches:
   inert; deep-memory population is healthy). Recommends building the
   three safest, best-scoped fixes tonight; queues lock-scope narrowing,
   MCP timeout redesign, and growth-pool wiring as dedicated follow-up.
+- v2 (2026-07-10, c1): Build outcome for the three recommended fixes.
+  Presence-keepalive shipped, deployed, verified live (task-def 586,
+  commit 4bfaa87). Cascade-timing revert tested and correctly declined
+  (would have doubled silence rate). Section-cap-retirement found a
+  real, serious performance bug in review before it could ship --
+  deferred pending a redesign that decouples eviction from the
+  expensive full-rebuild path.
