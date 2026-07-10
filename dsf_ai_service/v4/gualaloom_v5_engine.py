@@ -742,6 +742,38 @@ EMISSION_RECORDS_TICK_WINDOW = 469_443
 # Safety cap: prevent pathological growth above 1000 records.
 EMISSION_RECORDS_CAP = 1000
 
+# 2026-07-10 GL-CMD-SLEEP-REORGANIZE: Blueprint Phase 5 ("sleep as work").
+# Diekelmann & Born 2010 (active systems consolidation) and Wagner et al.
+# (sleep-inspires-insight) both describe sleep forming NEW tentative links
+# between recently co-active regions, distinct from strengthening links
+# already known -- deep_atlas's existing promote()/dream_promotion_gate only
+# does the latter (reinforce an existing working-atlas entry). This adds the
+# former as a separate, low-confidence, explicitly-tagged, real-data-only
+# mechanism: pair up real entries from THIS dream cycle's own sample_chis
+# (never fabricated content) that are chi-proximate and not already linked,
+# write a tentative hypothesis entry using deep_atlas's real schema. Kept
+# out of promote() itself since promote() expects a working-atlas-style
+# entry and derives co_occurrence from live neighborhood -- not the right
+# shape for "two specific things just co-occurred in this reorganize pass."
+# REORGANIZE_ENABLED: single flag, same convention as DEEP_ATLAS_ENABLED/
+# EVENT_DRIVEN_SUBSTRATE -- instant live rollback without a redeploy.
+REORGANIZE_ENABLED = os.environ.get("REORGANIZE_ENABLED", "1") != "0"
+REORGANIZE_CHI_BAND = 3            # tighter than working atlas's default band=2 search+1 slack
+REORGANIZE_HYPOTHESIS_STRENGTH = 0.05   # just above deep_atlas.FORGETTING_THRESHOLD (0.02)
+REORGANIZE_MAX_PER_CYCLE = 5        # bounded: sample_chis itself is capped at 5, so <=10 pairs considered
+REORGANIZE_HYPOTHESIS_TTL_TICKS = 40_000  # ~ a few real sleep cycles at 200-tick dream spacing
+# GL-CMD-SLEEP-REORGANIZE follow-on (adversarial review, 2026-07-10): the
+# tracking deque must hold every entry alive for the FULL TTL window at the
+# max sustained creation rate, or deque(maxlen=...) silently FIFO-evicts
+# still-young entries before they ever reach the TTL check -- orphaning them
+# to deep_atlas's own near-zero decay (hundreds of thousands of ticks),
+# recreating the exact class of bloat incident this file has hit twice
+# before. Worst case: REORGANIZE_MAX_PER_CYCLE new/merged entries every
+# dream cycle (every 200 ticks) for the entire TTL window =
+# 5 * (40_000 / 200) = 1000. Set the cap to exactly that derived worst case,
+# not an arbitrary smaller number.
+REORGANIZE_TRACKING_MAX = REORGANIZE_MAX_PER_CYCLE * (REORGANIZE_HYPOTHESIS_TTL_TICKS // 200)
+
 
 # ============================================================
 # v7: Autonomy Dataclasses
@@ -1019,7 +1051,23 @@ class Section:
             for e in deep_atlas.entries.get(chi, []):
                 if _reinst_count >= 50:  # cap: bound O(n²) while preserving enough evidence
                     break
-                if e.get("section") == self.name and e["strength"] >= DF_THRESH:
+                # GL-CMD-SLEEP-REORGANIZE follow-on (adversarial review,
+                # 2026-07-10): this reinstatement writes a FULL-weight real
+                # atlas.record() the moment strength clears FORGETTING_
+                # THRESHOLD, with no scaling by how confident the entry
+                # actually is -- a rock-solid real memory and a just-created,
+                # never-confirmed reorganize hypothesis (both >= threshold)
+                # get identical treatment. That's an existing, accepted
+                # design tradeoff for real (survival/episodic) promotions;
+                # it was never evaluated for a genuinely untested guess.
+                # Excluding hypothesis-tagged entries here keeps them out of
+                # every real-recall-facing write path until something real
+                # actually confirms them (dream_promotion_gate, same
+                # mechanism as any other entry) -- narrower than reworking
+                # the existing reinstatement design for entries this
+                # dispatch doesn't own.
+                if (e.get("section") == self.name and e["strength"] >= DF_THRESH
+                        and e.get("source_path") != "reorganize_hypothesis"):
                     motif = e["motif"]
                     # GL-FIX-ATLAS-INTEGRITY: skip OOB reinstatements.
                     # Deep atlas entry was promoted when the section had more modes.
@@ -1995,6 +2043,14 @@ class Guala:
         # episodic_layer.py's same design (a real prior draft of this
         # exact idea that was built but never wired into the live engine).
         self._episodic_recent_concepts = deque(maxlen=self.EPISODIC_RECENT_CONTEXT_WINDOW)
+        # GL-CMD-SLEEP-REORGANIZE: (chi, section, motif, born_tick) for every
+        # live tentative hypothesis entry _dream_reorganize has written into
+        # deep_atlas, so the TTL check below can find and expire them without
+        # scanning all of deep_atlas.entries. Not persisted -- same
+        # honest-empty-on-restart convention as _novelty_history; a lost
+        # hypothesis on restart just means it never gets a chance to be
+        # reinforced or expire, which is fine at this strength/scale.
+        self._reorganize_hypothesis_tracking = deque(maxlen=REORGANIZE_TRACKING_MAX)
         self._corpora = {}          # corpus_id -> _Corpus
         self._sensory_items = {}    # item_id -> SensoryItem
         self._sounds = {}           # item_id -> {cochlear, title, samples, sr, ...}
@@ -2919,6 +2975,15 @@ class Guala:
         grounded = set()
         for chi_k, des in self.deep_atlas.entries.items():
             for de in des:
+                # GL-CMD-SLEEP-REORGANIZE follow-on (adversarial review,
+                # 2026-07-10): a reorganize hypothesis's co_occurrence is a
+                # speculative chi-proximity guess, not a real sensory
+                # moment -- letting it satisfy the credo/grounding gate
+                # would unlock a word for real speech on the strength of a
+                # never-confirmed pairing, defeating the whole point of
+                # this gate (2026-07-09 credo fix, same docstring above).
+                if de.get("source_path") == "reorganize_hypothesis":
+                    continue
                 section = de.get("section")
                 if section not in self._EMISSION_SECTIONS:
                     continue
@@ -4632,6 +4697,15 @@ class Guala:
         for de in self.deep_atlas.entries.get(chi, []):
             entry_strength = de.get("strength", 0.0)
             if entry_strength <= 0.0:
+                continue
+            # GL-CMD-SLEEP-REORGANIZE follow-on (adversarial review,
+            # 2026-07-10): this is the live conversational recall path --
+            # a reorganize_hypothesis entry's single, never-confirmed link
+            # would otherwise surface as a real spoken word candidate,
+            # indistinguishable from a genuine dream-confirmed cross-modal
+            # association. Reorganize is deliberately silent until
+            # something real (dream_promotion_gate) confirms it.
+            if de.get("source_path") == "reorganize_hypothesis":
                 continue
             for section, motif_dict in de.get("co_occurrence", {}).items():
                 sec_obj = self.sections.get(section)
@@ -6540,6 +6614,18 @@ class Guala:
             if far_candidates:
                 far_chi = far_candidates[snap_tick % len(far_candidates)]
                 for de in self.deep_atlas.entries.get(far_chi, []):  # deep_atlas reads are safe
+                    # GL-CMD-SLEEP-REORGANIZE follow-on (adversarial review,
+                    # 2026-07-10): without this, a reorganize hypothesis's
+                    # single, never-confirmed co_occurrence link could
+                    # surface here as a "far_word" novel-jump discovery --
+                    # written into the real working atlas AND logged as a
+                    # daydream_novel event, indistinguishable from a
+                    # genuine, organism-earned association. Reorganize's
+                    # own honest-low-confidence design is defeated if a
+                    # different mechanism launders it into a real-looking
+                    # "discovery" the moment it's created.
+                    if de.get("source_path") == "reorganize_hypothesis":
+                        continue
                     co = de.get("co_occurrence", {})
                     if not co:
                         continue
@@ -7577,6 +7663,187 @@ class Guala:
         else:
             self._run_dream_cycle(caller_kind="DREAMING")
 
+    def _priority_replay_sample_chis(self, chi_keys, tick):
+        """2026-07-10 priority replay (Foster & Wilson 2006 on hippocampal
+        replay prioritizing recent/salient experience over uniform scan;
+        Schaul et al. 2015's Prioritized Experience Replay is the same
+        principle in RL): real sleep consolidation is not a blind
+        round-robin over everything ever learned -- it favors what was
+        just experienced. Pure round-robin was previously the ONLY
+        selection: a freshly grounded word got the exact same priority as
+        something read weeks ago, so a real new experience could sit
+        unpromoted for a long time before the rotation ever reached its
+        chi again -- directly measured: teaching two words together and
+        dreaming immediately produced zero deep_atlas promotions until
+        the sample happened to include their chi.
+
+        Priority-first, round-robin second: always include the
+        most-recently-touched chi keys (by each chi's own real last_tick)
+        ahead of the existing rotation, so fresh grounded experience gets
+        a real chance to consolidate close to when it happened, without
+        starving old content of ever being revisited. Total sample size
+        capped at 5.
+
+        GL-CMD-SLEEP-REORGANIZE follow-on: extracted from _run_dream_cycle's
+        own inline block into a shared helper so _run_dream_cycle_phased
+        (the actual live path when DREAM_CYCLE_PHASED=1, confirmed via
+        deploy_dsf_ai.sh) computes sample_chis identically instead of
+        keeping its own separately-drifting copy -- the two bodies had
+        already diverged once (this fix), which is exactly the class of
+        bug a second hand-maintained copy would repeat indefinitely."""
+        if not chi_keys:
+            return []
+        _recency_ranked = sorted(
+            chi_keys,
+            key=lambda ck: max(
+                (e.get("last_tick", 0) for e in self.atlas.entries.get(ck, [])),
+                default=0),
+            reverse=True)
+        _n_priority = min(2, len(_recency_ranked))
+        _priority_chis = _recency_ranked[:_n_priority]
+        _rr_offset = tick % max(1, len(chi_keys))
+        _roundrobin_chis = [chi_keys[i % len(chi_keys)]
+                            for i in range(_rr_offset, min(_rr_offset + 3, len(chi_keys)))]
+        _seen_chis = set()
+        sample_chis = []
+        for ck in _priority_chis + _roundrobin_chis:
+            if ck not in _seen_chis:
+                _seen_chis.add(ck)
+                sample_chis.append(ck)
+        return sample_chis[:5]
+
+    def _dream_reorganize(self, sample_chis, tick):
+        """GL-CMD-SLEEP-REORGANIZE: form NEW tentative associations between
+        real, already-experienced entries this dream cycle just touched
+        (sample_chis, see priority-replay above) -- distinct from
+        dream_promotion_gate's job of reinforcing an entry ALREADY known.
+        Never fabricates content: both sides of every pair are real working-
+        atlas entries the organism really formed. Returns count created.
+
+        Adversarial review (2026-07-10) found the first version could write
+        a SECOND, duplicate dict at the same (chi,section,motif) key when
+        chi_a paired with more than one partner across pairs/cycles, because
+        the old already_linked check only inspected the first matching deep
+        entry rather than merging into it. Fixed: if any deep entry already
+        exists at (chi_a,sec_a,mid_a), this NEVER creates a second one --
+        a REAL (already promoted) entry is left alone entirely (its
+        co_occurrence is deep_atlas's own principled, mass-conserving
+        machinery's job via _update_invariant, not this mechanism's), and
+        an existing reorganize_hypothesis entry gets the new partner merged
+        into its own co_occurrence dict instead of a duplicate write."""
+        if not REORGANIZE_ENABLED or len(sample_chis) < 2:
+            return 0
+        reps = []
+        for chi_k in sample_chis:
+            entries = self.atlas.entries.get(chi_k, [])
+            if not entries:
+                continue
+            best = max(entries, key=lambda e: e.get("strength", 0.0))
+            reps.append((chi_k, best))
+        n_new = 0
+        for i in range(len(reps)):
+            for j in range(i + 1, len(reps)):
+                if n_new >= REORGANIZE_MAX_PER_CYCLE:
+                    return n_new
+                chi_a, entry_a = reps[i]
+                chi_b, entry_b = reps[j]
+                if chi_a == chi_b or abs(chi_a - chi_b) > REORGANIZE_CHI_BAND:
+                    continue
+                sec_a, mid_a = entry_a.get("section", ""), entry_a.get("motif", 0)
+                sec_b, mid_b = entry_b.get("section", ""), entry_b.get("motif", 0)
+                if sec_a == sec_b and mid_a == mid_b:
+                    continue
+                already_linked = False
+                existing_hyp = None
+                for de in self.deep_atlas.entries.get(chi_a, []):
+                    if de.get("section") == sec_a and de.get("motif") == mid_a:
+                        if de.get("source_path") != "reorganize_hypothesis":
+                            # A real, already-promoted entry lives here --
+                            # not this mechanism's to touch.
+                            already_linked = True
+                        elif str(mid_b) in de.get("co_occurrence", {}).get(sec_b, {}):
+                            already_linked = True
+                        else:
+                            existing_hyp = de
+                        break
+                if already_linked:
+                    continue
+                if existing_hyp is not None:
+                    sec_dict = existing_hyp.setdefault("co_occurrence", {}).setdefault(sec_b, {})
+                    sec_dict[str(mid_b)] = max(sec_dict.get(str(mid_b), 0.0),
+                                               REORGANIZE_HYPOTHESIS_STRENGTH)
+                    n_new += 1
+                    continue
+                hyp_entry = {
+                    "section": sec_a, "motif": mid_a, "chi": chi_a,
+                    "strength": REORGANIZE_HYPOTHESIS_STRENGTH,
+                    "last_tick": tick, "born_tick": tick,
+                    "encoded_strength_at_write": REORGANIZE_HYPOTHESIS_STRENGTH,
+                    "dwell_at_write": 0,
+                    "source_path": "reorganize_hypothesis",
+                    "promoted_at_tick": tick,
+                    "clarity": 0.1, "initial_clarity": 0.1,
+                    "arousal": entry_a.get("arousal", 0.5),
+                    "valence": entry_a.get("valence", 0.0),
+                    "surprise": entry_a.get("surprise", 0.0),
+                    "source": "reorganize",
+                    "polarity": 1.0,
+                    "sensory_refs": [], "episode_refs": [],
+                    "co_occurrence": {sec_b: {str(mid_b): REORGANIZE_HYPOTHESIS_STRENGTH}},
+                }
+                self.deep_atlas.entries[chi_a].append(hyp_entry)
+                self._reorganize_hypothesis_tracking.append((chi_a, sec_a, mid_a, tick))
+                n_new += 1
+        return n_new
+
+    def _prune_stale_reorganize_hypotheses(self, tick):
+        """GL-CMD-SLEEP-REORGANIZE: explicit, bounded expiry for hypothesis
+        entries -- deep_atlas's own decay() is calibrated near-zero
+        (DECAY_LAMBDA) for real, promoted memories that should persist a
+        long time, so a low-confidence hypothesis would take far longer
+        than REORGANIZE_HYPOTHESIS_TTL_TICKS to fade on that alone, defeating
+        'discard if never reinforced.'
+
+        Adversarial review (2026-07-10) found the original strength-based
+        expiry check (strength <= 1.5x the write floor) could delete a
+        GENUINELY reinforced entry: dream_promotion_gate's minimum
+        qualifying real promotion (a working-atlas entry right at
+        FORGETTING_THRESHOLD) only adds
+        FORGETTING_THRESHOLD*TRANSFER_RATIO=0.01 on top of the 0.05 write
+        floor -- landing at 0.06, still under the old 0.075 cutoff, so a
+        real confirmation could still be pruned as if nothing had touched
+        it. Fixed: promote()'s reinforce branch always advances last_tick
+        on ANY real reinforcement, and this mechanism itself never touches
+        last_tick when merging a second speculative link (see
+        _dream_reorganize) -- so last_tick strictly equal to born_tick is
+        the one unambiguous 'nothing real ever touched this' signal,
+        independent of how small the real reinforcement bump was."""
+        still_tracking = deque(maxlen=self._reorganize_hypothesis_tracking.maxlen)
+        for chi_k, section, motif, born_tick in self._reorganize_hypothesis_tracking:
+            if tick - born_tick < REORGANIZE_HYPOTHESIS_TTL_TICKS:
+                still_tracking.append((chi_k, section, motif, born_tick))
+                continue
+            entries = self.deep_atlas.entries.get(chi_k)
+            if not entries:
+                continue
+            survivors = []
+            expired = False
+            for de in entries:
+                if (de.get("source_path") == "reorganize_hypothesis"
+                        and de.get("section") == section and de.get("motif") == motif
+                        and de.get("last_tick", born_tick) <= born_tick):
+                    expired = True
+                    continue
+                survivors.append(de)
+            if expired:
+                self._log_substrate_event("dream_reorganize_expired",
+                    chi=chi_k, section=section, motif=motif, tick=tick)
+            if survivors:
+                self.deep_atlas.entries[chi_k] = survivors
+            elif chi_k in self.deep_atlas.entries:
+                del self.deep_atlas.entries[chi_k]
+        self._reorganize_hypothesis_tracking = still_tracking
+
     def _run_dream_cycle(self, caller_kind="DREAMING"):
         """GL-CMD-DAYDREAMING M-09-1: shared dream cycle callable.
         Runs LTP replay consolidation + deep atlas promotion gate.
@@ -7610,49 +7877,8 @@ class Guala:
         reinforcement_count = 0
         pre_strength = self.atlas.total_strength()
         chi_keys = list(self.atlas.entries.keys())
+        sample_chis = self._priority_replay_sample_chis(chi_keys, self.tick)
         if chi_keys:
-            # 2026-07-10 priority replay (Foster & Wilson 2006 on
-            # hippocampal replay prioritizing recent/salient experience
-            # over uniform scan; Schaul et al. 2015's Prioritized
-            # Experience Replay is the same principle in RL): real sleep
-            # consolidation is not a blind round-robin over everything
-            # ever learned -- it favors what was just experienced. The
-            # round-robin below was previously the ONLY selection: a
-            # freshly grounded word got the exact same priority as
-            # something read weeks ago, so a real new experience could
-            # sit unpromoted for a long time before the rotation ever
-            # reached its chi again -- directly measured tonight: teaching
-            # two words together and dreaming immediately produced zero
-            # deep_atlas promotions until the sample happened to include
-            # their chi.
-            #
-            # Priority-first, round-robin second: always include the
-            # most-recently-touched chi keys (by each chi's own real
-            # last_tick, already tracked for other reasons) ahead of the
-            # existing rotation, so fresh grounded experience gets a real
-            # chance to consolidate close to when it happened, without
-            # starving old content of ever being revisited -- the
-            # round-robin still runs, just fills the remaining slots.
-            # Total sample size capped at 5 (was 3) -- a modest, bounded
-            # increase in per-dream-cycle cost, not a new unbounded scan.
-            _recency_ranked = sorted(
-                chi_keys,
-                key=lambda ck: max(
-                    (e.get("last_tick", 0) for e in self.atlas.entries.get(ck, [])),
-                    default=0),
-                reverse=True)
-            _n_priority = min(2, len(_recency_ranked))
-            _priority_chis = _recency_ranked[:_n_priority]
-            _rr_offset = self.tick % max(1, len(chi_keys))
-            _roundrobin_chis = [chi_keys[i % len(chi_keys)]
-                                for i in range(_rr_offset, min(_rr_offset + 3, len(chi_keys)))]
-            _seen_chis = set()
-            sample_chis = []
-            for ck in _priority_chis + _roundrobin_chis:
-                if ck not in _seen_chis:
-                    _seen_chis.add(ck)
-                    sample_chis.append(ck)
-            sample_chis = sample_chis[:5]
             for chi_k in sample_chis:
                 for e in self.atlas.entries.get(chi_k, []):
                     sec_name = e.get("section", "")
@@ -7718,6 +7944,14 @@ class Guala:
         for rej in self.deep_atlas.gate_rejects[-5:]:
             self._log_substrate_event("deep_gate_reject", **rej)
         self.deep_atlas.gate_rejects = []
+        # GL-CMD-SLEEP-REORGANIZE: forms NEW tentative associations between
+        # real entries this same cycle already sampled -- separate from the
+        # reinforcement-only promotion gate above. See _dream_reorganize.
+        n_reorganized = self._dream_reorganize(sample_chis, self.tick)
+        if n_reorganized:
+            self._log_substrate_event("dream_reorganize",
+                n_hypotheses=n_reorganized, caller_kind=caller_kind)
+        self._prune_stale_reorganize_hypotheses(self.tick)
         _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
         self.deep_atlas.decay(self.tick, rate_scale=0.0 if _paused else 1.0)
         if not _paused:
@@ -7749,13 +7983,15 @@ class Guala:
                 entries = self.atlas.entries.get(chi_k, [])
                 atlas_snapshot.append((chi_k, [dict(e) for e in entries]))
 
-            # Sample 3 chis for replay reinforcement
-            sample_chis = []
-            if chi_keys:
-                sample_chis = [chi_keys[i % len(chi_keys)]
-                               for i in range(snap_tick % max(1, len(chi_keys)),
-                                              min(snap_tick % max(1, len(chi_keys)) + 3,
-                                                  len(chi_keys)))]
+            # GL-CMD-SLEEP-REORGANIZE follow-on: this used to be its own
+            # plain round-robin sample, independent of and older than the
+            # priority-replay logic added to the non-phased body above --
+            # since DREAM_CYCLE_PHASED=1 is the actual live production
+            # setting (see deploy_dsf_ai.sh), that fix was never really
+            # exercised in production even though it shipped and looked
+            # verified in a local/live smoke test. Now both bodies call
+            # the same helper so they cannot drift apart again.
+            sample_chis = self._priority_replay_sample_chis(chi_keys, snap_tick)
 
             # Capture replay targets + dream_words/pics (while lock held)
             replay_targets = []
@@ -7840,6 +8076,15 @@ class Guala:
             for rej in self.deep_atlas.gate_rejects[-5:]:
                 self._log_substrate_event("deep_gate_reject", **rej)
             self.deep_atlas.gate_rejects = []
+
+            # GL-CMD-SLEEP-REORGANIZE: mirrors the non-phased body's call --
+            # see _dream_reorganize's own docstring. sample_chis here is the
+            # same list computed in Phase 1 via the shared helper above.
+            n_reorganized = self._dream_reorganize(sample_chis, self.tick)
+            if n_reorganized:
+                self._log_substrate_event("dream_reorganize",
+                    n_hypotheses=n_reorganized, caller_kind=caller_kind)
+            self._prune_stale_reorganize_hypotheses(self.tick)
 
             _paused = os.environ.get("DECAY_PAUSED", "0") == "1"
             self.deep_atlas.decay(self.tick, rate_scale=0.0 if _paused else 1.0)
