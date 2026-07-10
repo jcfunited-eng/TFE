@@ -23,12 +23,20 @@ A binding's state_vec is either:
     radius cosine search (see recall_best()'s comment for why a single
     fixed radius regressed partial-cue/noisy recall).
 (b) a Dict[str, np.ndarray] of PER-LANE sub-vectors — the resonant_spectral
-    encoding (neuron.encode_state). Not currently live in production
-    (Embryo() there hardcodes observable="event_count"), so it keeps the
-    simpler append-log storage -208 shipped; the fix that dispatch cared
-    about was MATCHING (masked, lane-normalized cosine over only the
-    lanes the query actually has present), not storage complexity, and
-    that fix is preserved here unchanged.
+    encoding (neuron.encode_state). CORRECTION (2026-07-10): the line
+    above used to claim this was "not currently live in production" --
+    that was wrong. Embryo.__init__ actually defaults to
+    observable="resonant_spectral" (embryo.py:132), so THIS is the real
+    path production's live recall (brain.py's
+    _recall_fast_resonant_spectral) uses, not (a). -208's original fix
+    was about MATCHING (masked, lane-normalized cosine over only the
+    lanes the query actually has present) and shipped with the simpler
+    append-log storage on the (correct, at the time) assumption that
+    storage wasn't a live concern; GL-FIX-RECALL-LANE-DEDUP (2026-07-10,
+    see record()'s lane branch) closed that gap once the append-log was
+    found growing unbounded in real production, the same incident shape
+    (a) already had and already fixed once (see the flat-vector
+    paragraph above).
 A given atlas is homogeneous in which of (a)/(b) it holds — determined once
 by the owning neuron's `observable`, which does not change after
 construction — so the two storage paths never mix within one atlas.
@@ -148,10 +156,52 @@ class BindingAtlas:
         # reinforcement goes straight there -- O(1), not a radius guess.
         self._concept_to_chi: Dict[str, int] = {}
         # GL-CMD-CROSS-SENSE-RECALL-208: per-lane (resonant_spectral)
-        # bindings, kept as a simple list -- not currently a production
-        # scaling concern (Embryo() hardcodes observable="event_count"),
-        # and -208's own fix was about matching correctness, not storage.
+        # bindings, kept as a simple list. CORRECTION (2026-07-10): the
+        # "not currently a production scaling concern" claim above was
+        # WRONG -- Embryo() actually defaults to observable=
+        # "resonant_spectral" (embryo.py:132), so this IS the real
+        # production recall path (brain.py's _recall_fast_resonant_
+        # spectral), and it was growing unbounded exactly like -207's
+        # flat-vector append-log did before ITS fix: measured live at
+        # ~6,000-8,000 entries/neuron after only ~5 days, on the same
+        # trajectory that hit 1.3M+ entries / 77-99s per call for the
+        # flat-vector path before that fix landed.
+        #
+        # GL-FIX-RECALL-LANE-DEDUP (2026-07-10), v2 after an adversarial
+        # review reproduced a real misrecall from v1: v1 keyed
+        # reinforcement by concept alone and MERGED (dict.update) whatever
+        # new lanes arrived into the one stored dict. Lane dicts are
+        # honestly partial by design (resonant_chi.py's lane_features
+        # omits absent modalities; gualaloom_v5_engine.py's
+        # _organism_signal_with_senses only adds visual/auditory/etc when
+        # that sense actually fired this moment) -- teaching "dog" with
+        # sight+sound once, then again language-only later, is the normal
+        # case, not a rare edge case. Merging those two moments into one
+        # combined-lane entry changes what _lane_match_score's masked
+        # average compares against a competing concept's query, and a
+        # real adversarial test reproduced recall_best flipping its
+        # answer from the correct concept to a wrong one purely because
+        # of this merge -- a genuine accuracy regression, not just a
+        # storage optimization, in the exact functional class (recall)
+        # this codebase has already had three real incidents in this
+        # week. v2 fixes this by keying reinforcement on
+        # (concept, frozenset(lane keys present)) instead of concept
+        # alone: two teachings of "dog" with the SAME set of lanes present
+        # (the overwhelming common case -- most reads/conversation have no
+        # live camera/mic, so most repeat teachings of a word share the
+        # exact same lane shape) correctly collapse into one, freshest-
+        # wins entry, matching the flat-vector path's own established
+        # "freshest encoding wins" convention (see record()'s flat-vector
+        # branch below). Two teachings with a GENUINELY DIFFERENT lane
+        # shape (sight+sound vs sight-alone) are never merged -- they stay
+        # separate entries, exactly as pre-fix behavior kept them, so
+        # recall_best's argmax still sees and can pick whichever real
+        # snapshot fits a given query best. Matching itself
+        # (_lane_match_score/_recall_best_lanes) is completely untouched
+        # -- storage only, and only within an identical-lane-shape
+        # equivalence class.
         self._lane_bindings: List[dict] = []
+        self._lane_concept_shape_to_idx: Dict[Tuple[str, frozenset], int] = {}
 
     def __setstate__(self, state: dict) -> None:
         """Pickle compatibility (found live in production, 2026-07-05,
@@ -168,15 +218,48 @@ class BindingAtlas:
         taken after this rewrite already has `cells` and restores as-is."""
         if "cells" in state:
             self.__dict__.update(state)
+            # GL-FIX-RECALL-LANE-DEDUP (2026-07-10): every organism ever
+            # saved between -208's original deploy and this fix has
+            # `_lane_bindings` but no `_lane_concept_shape_to_idx` --
+            # confirmed this IS production's real current shape (found by
+            # adversarial review of v1 of this fix). Without a rebuild,
+            # record() would treat every restored neuron as having an
+            # empty index, silently re-duplicating from tick zero instead
+            # of ever compacting the real, already-live backlog this fix
+            # exists to bound. Rebuild once here, same "if the index is
+            # missing, derive it fresh from the real data" principle
+            # _mirror_rebuild already uses for the flat-vector mirror.
+            if not hasattr(self, "_lane_concept_shape_to_idx"):
+                self._rebuild_lane_index()
             return
         self.cells = {}
         self._concept_to_chi = {}
         self._lane_bindings = []
+        self._lane_concept_shape_to_idx = {}
         for b in state.get("_bindings", []):
             try:
                 self.record(b["concept"], b["state_vec"], b.get("tick", 0))
             except Exception:
                 continue  # best-effort migration; never let one bad entry crash the whole restore
+
+    def _rebuild_lane_index(self) -> None:
+        """Compact an already-populated, unindexed _lane_bindings list
+        (real production shape between -208's deploy and this fix) down
+        to one entry per (concept, lane-shape) -- same equivalence class
+        record() uses going forward. Keeps the LAST (freshest, by list
+        order = insertion order = non-decreasing tick) entry per class,
+        matching "freshest encoding wins" everywhere else in this file."""
+        self._lane_concept_shape_to_idx = {}
+        compacted: List[dict] = []
+        for b in self._lane_bindings:
+            key = (b["concept"], frozenset(b["state_vec"].keys()))
+            existing_idx = self._lane_concept_shape_to_idx.get(key)
+            if existing_idx is not None:
+                compacted[existing_idx] = b  # freshest wins: later entry replaces earlier
+            else:
+                self._lane_concept_shape_to_idx[key] = len(compacted)
+                compacted.append(b)
+        self._lane_bindings = compacted
 
     def record(self, concept: str, state_vec: StateVec, tick: int) -> None:
         """Reinforce the existing binding for this concept if one exists,
@@ -191,7 +274,42 @@ class BindingAtlas:
         if isinstance(state_vec, dict):
             for m, v in state_vec.items():
                 assert v.ndim == 1, f"lane {m!r} must be 1-D, got shape {v.shape}"
-            self._lane_bindings.append({"concept": concept, "state_vec": state_vec, "tick": tick})
+            # GL-FIX-RECALL-LANE-DEDUP v2 (2026-07-10): reinforcement is
+            # keyed on (concept, frozenset(lanes present)), not concept
+            # alone -- see __init__'s comment for why v1's plain-concept
+            # MERGE was a real accuracy regression (adversarially
+            # reproduced) and why this equivalence class is safe. idx_of
+            # is lazily healed via getattr (not a hard requirement on old
+            # saves) -- __setstate__ rebuilds it explicitly for organisms
+            # restored from a pre-fix save; a bare getattr fallback here
+            # covers any other construction path (e.g. copy.deepcopy)
+            # that might skip __setstate__.
+            idx_of = getattr(self, "_lane_concept_shape_to_idx", None)
+            if idx_of is None:
+                idx_of = self._lane_concept_shape_to_idx = {}
+            shape_key = (concept, frozenset(state_vec.keys()))
+            idx = idx_of.get(shape_key)
+            if (idx is not None and 0 <= idx < len(self._lane_bindings)
+                    and self._lane_bindings[idx].get("concept") == concept):
+                # Same concept, same exact set of lanes present as an
+                # existing entry -- genuinely the same kind of moment
+                # recurring (e.g. reading this word again with no live
+                # camera/mic, same as every other time), not a different
+                # sensory combination. Freshest wins, matching the flat-
+                # vector convention -- no keys are merged across
+                # different shapes, so no cross-modality dilution is
+                # possible. _lane_match_score/_recall_best_lanes below
+                # are completely unchanged -- this is a storage-only fix.
+                self._lane_bindings[idx]["state_vec"] = dict(state_vec)
+                self._lane_bindings[idx]["tick"] = tick
+                return
+            # Genuinely new (concept, lane-shape) combination -- append a
+            # new, separate entry, exactly as pre-fix behavior always did
+            # for ANY repeat teaching. dict(...) copies the mapping (not
+            # the arrays) so a later external mutation of the caller's
+            # dict object can't silently alias into stored history.
+            idx_of[shape_key] = len(self._lane_bindings)
+            self._lane_bindings.append({"concept": concept, "state_vec": dict(state_vec), "tick": tick})
             return
 
         assert state_vec.ndim == 1, f"state_vec must be 1-D, got shape {state_vec.shape}"
@@ -226,8 +344,12 @@ class BindingAtlas:
 
     def _recall_best_lanes(self, query_lanes: Dict[str, np.ndarray]) -> Tuple[Optional[str], float]:
         """GL-CMD-CROSS-SENSE-RECALL-208: unchanged brute-force scan over
-        per-lane bindings -- not a production scaling concern today (see
-        module docstring)."""
+        per-lane bindings. This IS the real, live production recall path
+        (see module docstring's 2026-07-10 correction) -- bounded to
+        O(distinct concept/lane-shape combinations) by GL-FIX-RECALL-
+        LANE-DEDUP in record(), not O(lifetime experiences). The
+        matching algorithm itself (this function, _lane_match_score) is
+        untouched by that fix -- storage only."""
         best_concept, best_score = None, 0.0
         found = False
         for b in self._lane_bindings:
@@ -403,6 +525,7 @@ class BindingAtlas:
         self.cells.clear()
         self._concept_to_chi.clear()
         self._lane_bindings.clear()
+        self._lane_concept_shape_to_idx = {}
         self._m_row = {}
         self._m_concepts = []
         self._m_matrix = None
