@@ -536,6 +536,22 @@ def _require_grounded_speech():
     read_word already uses for DECAY_PAUSED)."""
     return os.environ.get("REQUIRE_GROUNDED_SPEECH", "1") != "0"
 
+
+def _deep_atlas_eligibility_backfill_enabled():
+    """GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711 Part 1: kill switch
+    for wiring DeepAtlas.strength into the real-speech eligibility backfill
+    (_entry_grants_grounding / _backfill_grounded_from_deep_atlas /
+    _backfill_eligibility_for_promotion). Default OFF pending real live
+    validation -- matches the daydream-reconnect precedent from earlier
+    tonight (gl-daydream-reconnect-20260711), except this is HIGHER blast
+    radius, not lower: it is a second, independent path to a word ever
+    being eligible to speak at all, layered on top of the real-grounding
+    gate _require_grounded_speech() already enforces. Re-read per call,
+    same convention as _require_grounded_speech (this is not a hot path --
+    only consulted during boot-time index rebuilds and the once-per-real-
+    dream-cycle-promotion trigger, both already-infrequent events)."""
+    return os.environ.get("DEEP_ATLAS_ELIGIBILITY_BACKFILL_ENABLED", "0") == "1"
+
 # --- GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 (dual-write/dual-read) ---
 # HEURISTIC: ENTRY_CHI_BAND=8 -- how far chi injection reaches when
 # selecting entry neurons for a chi-anchored input. Class: from-design.
@@ -2290,6 +2306,14 @@ class Guala:
         self._cross_hemi_links = []  # list of CrossHemiLink (populated by cognition bundle)
         # perf/cache-word-section-index: emission-section routing lookup
         self._word_to_emission_sections = {}  # word.lower() → [(section, motif_idx, word)]
+        # GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711 Part 1: was
+        # previously only ever created inside _rebuild_word_to_emission_index
+        # (i.e. absent on a fresh instance until boot/restore first ran that
+        # full scan). _backfill_eligibility_for_promotion's live per-word
+        # trigger can now fire before that first full scan (right after any
+        # real dream-cycle promotion), so this needs an honest empty default
+        # here too -- same convention as _word_to_emission_sections above.
+        self._grounded_words = set()
         # GL-CMD-RECALL-WORD-INDEX-57: reverse index for O(1) recall lookups.
         # Maps word.lower() → set of chi addresses where that word has committed.
         # Eliminates O(atlas_size) full scans in _recall_from_atlas / _recall_sight_from_atlas.
@@ -3688,7 +3712,15 @@ class Guala:
         Only entries in the 6 real speakable sections are considered (deep_
         atlas also holds the fake modal_* population itself, which this
         never treats as grounding evidence on its own). Honest empty if
-        deep_atlas has nothing for a word -- no assumption either way."""
+        deep_atlas has nothing for a word -- no assumption either way.
+
+        GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711 Part 1: the
+        per-entry decision itself now lives in _entry_grants_grounding
+        (shared with _backfill_eligibility_for_promotion's live per-word
+        trigger, so there is exactly one definition of "grounded enough").
+        This function's own iteration, ordering, and cost profile
+        (O(all deep_atlas entries), called only from
+        _rebuild_word_to_emission_index at boot/restore) are UNCHANGED."""
         grounded = set()
         for chi_k, des in self.deep_atlas.entries.items():
             for de in des:
@@ -3704,12 +3736,7 @@ class Guala:
                 section = de.get("section")
                 if section not in self._EMISSION_SECTIONS:
                     continue
-                co = de.get("co_occurrence") or {}
-                has_real = any(
-                    (s in REAL_GROUNDING_EXACT_SECTIONS or s.startswith(REAL_GROUNDING_SECTION_PREFIXES))
-                    for s in co if s not in FAKE_MODAL_SECTIONS
-                )
-                if not has_real:
+                if not self._entry_grants_grounding(de):
                     continue
                 sec_obj = self.sections.get(section)
                 motif = de.get("motif")
@@ -3719,6 +3746,120 @@ class Guala:
                 if word_label:
                     grounded.add(word_label.lower())
         return grounded
+
+    def _entry_grants_grounding(self, de):
+        """GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711 Part 1: single
+        source of truth for whether one deep-atlas entry counts as real
+        grounding evidence for the credo/emission-eligibility gate. Used by
+        both _backfill_grounded_from_deep_atlas's full boot-time scan and
+        _backfill_eligibility_for_promotion's live per-word trigger (fired
+        right after DeepAtlas.dream_promotion_gate promotes an entry) --
+        one definition, reused in both places, never a second parallel one.
+
+        Two independent real signals, either sufficient on its own:
+        1. has_real (2026-07-09 credo fix, unchanged): this entry's
+           co_occurrence invariant shows its chi neighborhood genuinely
+           touched a real camera/mic/touch/smell/taste section at some
+           point.
+        2. DEEP_ATLAS_ELIGIBILITY_BACKFILL_ENABLED (default OFF): this
+           entry's OWN accumulated strength has reached DeepAtlas's
+           existing Path-A survival bar (deep_atlas.ELIGIBILITY_STRENGTH_
+           THETA -- literally SURVIVAL_THETA reused, not a new number).
+           That is the same graduated "promoted enough" notion
+           dream_promotion_gate already requires real, repeated survival
+           across SURVIVAL_CONSECUTIVE dream cycles to reach -- reused
+           here instead of a second, invented threshold. This is what
+           lets a word taught ONLY through text (e.g. "ocean"), never
+           once co-occurring with real sensory grounding, still earn real
+           speakability purely through survived repetition -- exactly the
+           comprehension/production dissociation the research behind this
+           change describes. A word with zero real exposure never reaches
+           this path at all: strength only exists on an entry because a
+           real working-atlas commit (Section.receive, a real read_word
+           event) put it there and a real dream cycle promoted it."""
+        co = de.get("co_occurrence") or {}
+        has_real = any(
+            (s in REAL_GROUNDING_EXACT_SECTIONS or s.startswith(REAL_GROUNDING_SECTION_PREFIXES))
+            for s in co if s not in FAKE_MODAL_SECTIONS
+        )
+        if has_real:
+            return True
+        if not _deep_atlas_eligibility_backfill_enabled():
+            return False
+        from dsf_ai_service.substrate.deep_atlas import ELIGIBILITY_STRENGTH_THETA
+        return de.get("strength", 0.0) >= ELIGIBILITY_STRENGTH_THETA
+
+    def _backfill_eligibility_for_promotion(self, chi_k, section, motif):
+        """GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711 Part 1: real,
+        already-rate-limited trigger -- called immediately after
+        DeepAtlas.dream_promotion_gate actually promotes ONE entry (see
+        _run_dream_cycle/_run_dream_cycle_phased, right after their
+        `promoted` loop), never continuously and never a full
+        _rebuild_word_to_emission_index() scan. Re-checks JUST this one
+        word's eligibility using the exact same _entry_grants_grounding
+        logic the boot-time backfill uses, and if it now qualifies, folds
+        it into self._word_to_emission_sections/self._grounded_words
+        directly via _grant_emission_eligibility_for_word.
+
+        No-op (a couple of cheap dict/env-var checks) unless
+        DEEP_ATLAS_ELIGIBILITY_BACKFILL_ENABLED=1 AND
+        _require_grounded_speech() is on -- with the kill switch at its
+        default OFF this function does nothing at all beyond the first
+        env-var read, adding no meaningful cost to the real dream-cycle
+        path (which already holds self.lock at both call sites)."""
+        if not _deep_atlas_eligibility_backfill_enabled():
+            return
+        if not _require_grounded_speech():
+            return
+        if section not in self._EMISSION_SECTIONS:
+            return
+        sec_obj = self.sections.get(section)
+        if sec_obj is None or motif is None or motif >= len(sec_obj.modes):
+            return
+        word = sec_obj.modes[motif][2]
+        if not word:
+            return
+        wl = word.lower()
+        if wl in self._word_to_emission_sections:
+            return  # already eligible -- nothing to add, never re-derived/removed
+        de = None
+        for e in self.deep_atlas.entries.get(chi_k, []):
+            if e.get("section") == section and e.get("motif") == motif:
+                de = e
+                break
+        if de is None or de.get("source_path") == "reorganize_hypothesis":
+            return
+        if not self._entry_grants_grounding(de):
+            return
+        self._grant_emission_eligibility_for_word(word)
+
+    def _grant_emission_eligibility_for_word(self, word):
+        """GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711 Part 1: scoped,
+        single-word version of _rebuild_word_to_emission_index's core loop
+        -- collects every EXISTING real commit for this ONE word across the
+        real emission sections (Section.commits, already-recorded history,
+        nothing new fabricated) and installs them, without rescanning any
+        other word's commits (that full scan remains
+        _rebuild_word_to_emission_index's job alone, still boot/restore-
+        only, cost profile unchanged). Additive only: the sole caller
+        (_backfill_eligibility_for_promotion) already checked this word is
+        not yet in self._word_to_emission_sections, so this only ever ADDS
+        a new key, never overwrites or removes an existing one."""
+        wl = word.lower()
+        entries = []
+        for es in self._EMISSION_SECTIONS:
+            es_sec = self.sections.get(es)
+            if not es_sec:
+                continue
+            for c in es_sec.commits:
+                w = c.get("word")
+                if w and w.lower() == wl:
+                    entries.append((c.get("tick", 0), es, c.get("mode"), w))
+        if not entries:
+            return
+        entries.sort(key=lambda e: e[0])
+        self._word_to_emission_sections[wl] = [(es, mi, w) for _tick, es, mi, w in entries]
+        self._grounded_words.add(wl)
 
     def _choose_role_sections(self, role_dna, position_hint):
         """Route word commit. Position wins for sentence boundaries (object,
@@ -9221,6 +9362,12 @@ class Guala:
             self.atlas.release_to_fast(chi_k, sec, mid)
             self._log_substrate_event("deep_release",
                 section=sec, motif=mid, chi=chi_k)
+            # GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711 Part 1: the
+            # real, already-rate-limited trigger point -- see
+            # _backfill_eligibility_for_promotion's own docstring. No-op
+            # (single env-var check) unless
+            # DEEP_ATLAS_ELIGIBILITY_BACKFILL_ENABLED=1.
+            self._backfill_eligibility_for_promotion(chi_k, sec, mid)
         for rej in self.deep_atlas.gate_rejects[-5:]:
             self._log_substrate_event("deep_gate_reject", **rej)
         self.deep_atlas.gate_rejects = []
@@ -9353,6 +9500,12 @@ class Guala:
                 self.atlas.release_to_fast(chi_k, sec, mid)
                 self._log_substrate_event("deep_release",
                     section=sec, motif=mid, chi=chi_k)
+                # GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711 Part 1:
+                # mirrors the non-phased body's call -- see
+                # _backfill_eligibility_for_promotion's own docstring. Still
+                # inside this Phase 3b `with self.lock:` block, same as the
+                # rest of this loop's writes.
+                self._backfill_eligibility_for_promotion(chi_k, sec, mid)
             for rej in self.deep_atlas.gate_rejects[-5:]:
                 self._log_substrate_event("deep_gate_reject", **rej)
             self.deep_atlas.gate_rejects = []

@@ -27,6 +27,19 @@ SURVIVAL_THETA = 0.4            # Path A: binding must stay above this
 SURVIVAL_CONSECUTIVE = 3        # Path A: for this many consecutive dream cycles
 TRANSFER_RATIO = 0.5            # deep starts at this fraction of working strength
 
+# GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711 Part 1: the threshold
+# gualaloom_v5_engine.py's _entry_grants_grounding uses on a PROMOTED deep
+# entry's own accumulated `strength` to decide it has earned real-speech
+# eligibility (see that function's docstring). Deliberately reuses
+# SURVIVAL_THETA itself rather than defining a second, parallel notion of
+# "promoted enough" -- this is the same bar Path A already requires the
+# WORKING-atlas evidence to clear (repeatedly, for SURVIVAL_CONSECUTIVE
+# dream cycles) before an entry is even created here; requiring the DEEP
+# entry's own post-TRANSFER_RATIO strength to independently reach that
+# same fraction of STRENGTH_CAP means real, repeated post-promotion
+# reinforcement, not just scraping past the gate once.
+ELIGIBILITY_STRENGTH_THETA = SURVIVAL_THETA
+
 # GL-CMD-DEEP-STORE-PHYSICS-86 Part 1: bounded co_occurrence container
 # P1b derived floor: minimum single-step contribution from a band entry at
 # the working-atlas forgetting threshold from zero weight:
