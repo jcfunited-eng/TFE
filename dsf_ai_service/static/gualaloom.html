@@ -1395,9 +1395,9 @@ const COGMETER_ROWS=[
   {name:'association',connected:'yes',pointer:'-164',
     firing:'a real, live chi-neighbor lookup exists and answers queries',
     impact:'no pass/fail test has ever been run against it -- reachable, unmeasured'},
-  {name:'retention',connected:'watch',pointer:'-163',
-    firing:'3 of 10 one-shot taught words were mostly or fully forgotten within about a day of activity',
-    impact:'measured 2026-07-04 -- see “teaching survives to sleep” below, same finding'},
+  {name:'retention',connected:'yes',pointer:'-163',
+    firing:'root cause found: heterosynaptic redistribution (reinforcing any word steals strength from co-located entries) had no exemption for deliberately-taught content, and consolidation only runs during real DREAMING -- one-shot bindings could be fully erased first. Fixed: taught bindings get a bounded protection window; verified bit-for-bit that ordinary content decay is completely unchanged',
+    impact:'FIX SHIPPED 2026-07-11: re-measured against real 5000-tick activity -- all 10 taught words now survive at their pure-decay-predicted strength (0.00000 gap), where 5 of 10 were previously fully evicted'},
   {name:'cross-sense recall',connected:'yes',pointer:'-164',
     firing:'real, tested mechanism (RecallEngine, substrate/recall_query.py) -- a sound-only query genuinely returns the full cross-modal window (sight+sound+touch entries intact), verified 2026-07-06. give_experience response now exposes the retrieved cross-modal content directly (cross_modal_entries, capped 25/window) -- shipped and end-to-end tested 2026-07-11. Deliberately still NOT wired into real conversational emission (a "one mind, one mouth" ruling, avoiding a known past regression from a second atlas-sourced candidate stream fighting the organism)',
     impact:'FIX SHIPPED 2026-07-11: give_experience callers can now genuinely observe a sound cue retrieving its bound sight/touch content end-to-end, not just a window id -- the prior "computed but discarded" gap is closed'},
@@ -1500,9 +1500,9 @@ const COGMETER_ROWS=[
   {name:'play',connected:'absent',pointer:'-185',
     firing:'no live counter exists — no code path for this yet (re-confirmed: _atick_playing exists but is functionally identical to _atick_idle, no world interaction)',
     impact:'none observed -- standing design item (Engine·Play·World packet), not a shim, per Joe\'s own ruling'},
-  {name:'teaching survives to sleep',connected:'watch',pointer:'-163',
-    firing:'3 of 10 words taught once were mostly or fully forgotten within about a day of activity, before any rest',
-    impact:'measured 2026-07-04 (-163)'},
+  {name:'teaching survives to sleep',connected:'yes',pointer:'-163',
+    firing:'same fix as "retention" above -- taught bindings are now protected from redistribution theft for a bounded window, giving them a real chance to reach a consolidation cycle instead of being erased first',
+    impact:'FIX SHIPPED 2026-07-11: see "retention" row for the measurement'},
   // GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 / GL-NOTE-VOICE-WIRING-RULING:
   // the whole-brain move's own new rows, per the standing "no row, no
   // ship" rule. Built and locally verified (sandbox, not yet her live
