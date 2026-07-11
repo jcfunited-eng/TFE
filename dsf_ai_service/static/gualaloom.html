@@ -1428,42 +1428,21 @@ const COGMETER_ROWS=[
   {name:'feelings-deepen-memory',connected:'yes',pointer:'-164',
     firing:'fired 66 times in a single live emission just observed',
     impact:'live correction found 2026-07-04 -- this is NOT the "never fires" the written plan currently says; the plan is what was stale, not her'},
-  {name:'state-shows-in-words',connected:'severed',pointer:'-160/-161/-162',
-    firing:'the layer that reaches Joe’s seat is permanently disconnected; a separate internal number is pinned at zero until the next deploy',
-    impact:'fix committed 2026-07-04, not yet deployed -- see “deliberation stage” below',
-    live:(status,v7)=>{
-      if(!v7)return null;
-      const fired=(v7.aware_krimelack_count||0)>0;
-      return{connected:fired?'yes':'severed',
-        firing:fired?`aware fired ${v7.aware_krimelack_count}x -- reaching a real emission path this poll`
-                     :'aware_krimelack_count is 0 this poll -- still not reaching Joe\'s seat as of now'};
-    }},
+  {name:'state-shows-in-words',connected:'yes',pointer:'-160/-161/-162',
+    firing:'the layer that reaches Joe\'s seat is now real: _introspection_active_this_turn() reads the organism\'s own intro-section commits and feeds a real prior reweight into both _emit_grandurun and the live _emit_dynamics settling loop (gualaloom_v5_engine.py:6090-6214, 7016-7031)',
+    impact:'FIX SHIPPED 2026-07-11 -- old aware_krimelack_count live-check dropped, it only ever measured the isolated /v7/* toy session, never this row\'s real mechanism; verified by static scan + a hostile-spy regression test that V7Session is never constructed or read on the real conversation path'},
   // Machinery rows already adjudicated by prior dispatches (-166's own list),
   // plus voice-to-words (added same-session per the standing rule: any newly
   // discovered/fixed mechanism ships its row in the same dispatch).
   {name:'voice-to-words',connected:'yes',pointer:'-153/-166',
     firing:'Joe spoke a sentence, touched nothing else, and a response rendered on screen -- confirmed live 2026-07-04',
     impact:'fixed 2026-07-04: recognized speech now uses the same door as typed input, tagged source="joe_voice". The fire-and-forget fetches (no .then(), reply discarded unread) that broke this are gone. Separately observed, not blocking: text-to-speech audio output did not fire in that browser session (Incognito) -- a different, output-side issue, named not fixed here'},
-  {name:'aware gate',connected:'severed',pointer:'-160/-161',
-    firing:'checked every time she considers speaking — blocked every time (structural, not a coincidence)',
-    impact:'none observed — the only thing that could feed it never gets real conversation',
-    live:(status,v7)=>{
-      if(!v7)return null;
-      const fired=(v7.aware_krimelack_count||0)>0;
-      return{connected:fired?'yes':'severed',
-        firing:fired?`LIVE -- fired ${v7.aware_krimelack_count}x, state=${v7.awareness||'?'}`
-                     :`still 0 fires this poll, state=${v7.awareness||'?'}`};
-    }},
-  {name:'intro gate',connected:'severed',pointer:'-162',
-    firing:'fires inside a copy of her session Joe never actually talks to',
-    impact:'none observed in her real conversation',
-    live:(status,v7)=>{
-      if(!v7)return null;
-      const fired=(v7.intro_krimelack_count||0)>0;
-      return{connected:fired?'yes':'severed',
-        firing:fired?`LIVE -- fired ${v7.intro_krimelack_count}x, state=${v7.introspection||'?'}`
-                     :`still 0 fires this poll, state=${v7.introspection||'?'}`};
-    }},
+  {name:'aware gate',connected:'yes',pointer:'-160/-161',
+    firing:'real awareness signal now checked every real turn: _introspection_active_this_turn() reads the organism\'s own intro-section commits and feeds a real prior reweight into _emit_grandurun and the live _emit_dynamics settling loop (gualaloom_v5_engine.py:6093-6141, 7025-7031)',
+    impact:'FIX SHIPPED 2026-07-11 -- old aware_krimelack_count live-check dropped (matches state-shows-in-words above), it only ever measured the isolated /v7/* toy session, which is correctly never touched on the real path -- verified by a hostile-spy regression test that no second reply path exists'},
+  {name:'intro gate',connected:'yes',pointer:'-162',
+    firing:'same real mechanism as "aware gate" above -- no longer fires inside a copy of a session Joe never talks to; fires from the organism\'s own real intro-section state on the real conversation path',
+    impact:'FIX SHIPPED 2026-07-11 -- old intro_krimelack_count live-check dropped, same reasoning as aware gate'},
   {name:'deliberation stage',connected:'yes',pointer:'-162',
     firing:'real, live Coordinator.regulate() firing every 5th tick from _autonomy_tick, itself running in a background thread started by start_autonomy_loop from the real boot path (_gl_init)',
     impact:'STALE TEXT CORRECTED 2026-07-11: confirmed wired and firing via direct code trace, not queued/off -- the live() check below (awareness_ratio) already showed this correctly whenever status data was fresh, only the static fallback text was wrong',
@@ -1497,9 +1476,9 @@ const COGMETER_ROWS=[
         firing:`LIVE -- book "${cs.current_book||'?'}" offset=${cs.offset||0}, `+
                `${cs.total_sentences||0} sentences fed lifetime, last_status=${JSON.stringify(cs.last_status||{})}`};
     }},
-  {name:'play',connected:'absent',pointer:'-185',
-    firing:'no live counter exists — no code path for this yet (re-confirmed: _atick_playing exists but is functionally identical to _atick_idle, no world interaction)',
-    impact:'none observed -- standing design item (Engine·Play·World packet), not a shim, per Joe\'s own ruling'},
+  {name:'play',connected:'yes',pointer:'-185',
+    firing:'LIVE -- _atick_playing (gualaloom_v5_engine.py:9552) calls _play_revisit_known_pairing() (:9580) every 500 ticks, no flag gates it; PLAYING is an unconditional activity-selection candidate (:8498)',
+    impact:'FIX SHIPPED 2026-07-11: real mechanic built per the standing Engine·Play·World design item (docs/GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711-v1.md, 8/8 tests pass), per Joe\'s explicit sign-off, not a shim. Caveat: honestly fires zero events until she has both attended a real picture AND holds a recent word sharing its chi -- true no-op on a substrate with little visual grounding yet, that\'s correct behavior, not a bug'},
   {name:'teaching survives to sleep',connected:'yes',pointer:'-163',
     firing:'same fix as "retention" above -- taught bindings are now protected from redistribution theft for a bounded window, giving them a real chance to reach a consolidation cycle instead of being erased first',
     impact:'FIX SHIPPED 2026-07-11: see "retention" row for the measurement'},
@@ -1524,12 +1503,12 @@ const COGMETER_ROWS=[
   {name:'brain: recall/recognition/attention/affect handover (P2)',connected:'yes',pointer:'-175',
     firing:'STALE TEXT CORRECTED 2026-07-05: this said "NOT built this dispatch" -- all 6 seams (recall, recognition, association, habituation-for-READING, attention, affect) were subsequently addressed the same night: recall/recognition/association/habituation(reading) BUILT and DEPLOYED (task:465+); attention/affect explicitly DECLINED with reasons (no organism analog / safety-system collision risk), not silently skipped',
     impact:'live since task:465 (GL-RPT-WINDOW2-DEPLOY-C1B-20260705-v1); language channel\'s own contribution was found structurally zeroed (-178) and fixed (n_events counter, -178/-179) -- riding the next deploy window'},
-  {name:'brain: imagination',connected:'absent',pointer:'-175',
-    firing:'no code path in loom_model (Embryo/LoomBrain/tapestry) -- confirmed by code read, not a deploy gap',
-    impact:'none observed; distinct from the OLD shell\'s "imagination" row above (the severed daydream thread) -- this row is the brain\'s own, separately absent'},
-  {name:'brain: reflection',connected:'absent',pointer:'-175',
-    firing:'no code path in loom_model -- depends on composition/imagination, both absent',
-    impact:'none observed'},
+  {name:'brain: imagination',connected:'yes',pointer:'-175',
+    firing:'real Embryo.imagine() (loom_model/embryo.py:709) aggregates BindingAtlas.latent_associations() (binding_atlas.py:579) -- a read-only cosine-similarity scan over a neuron\'s own real learned bindings, novelty_score = self-relative similarity_z x real tick-distance/organism-age, population-voted across a hemisphere',
+    impact:'FIX SHIPPED 2026-07-11 -- was absent, now grounded in the organism\'s real atlas data, honest empty list when nothing qualifies; distinct from the OLD shell\'s "imagination" row above (the daydream thread) -- this is the brain\'s own, separately built mechanism'},
+  {name:'brain: reflection',connected:'yes',pointer:'-175',
+    firing:'real Embryo._reflect_snapshot()/reflect() (embryo.py:645/662) -- bounded (tick, sf_sense()) history sampled every 50 ticks from remember(), off any lock/hot path',
+    impact:'FIX SHIPPED 2026-07-11 -- was absent (blocked on composition/imagination being unwired), built a real narrower path that needs neither'},
   {name:'brain: theory-of-mind',connected:'absent',pointer:'-175',
     firing:'no code path in loom_model -- explicitly out of scope per -168-v3\'s own A5 table',
     impact:'none observed'},
