@@ -5780,25 +5780,94 @@ class Guala:
         return " ".join(emitted)
 
     # Phase 3b constants — context prior weights
-    V7_RECENCY_BOOST = 2.0
+    INTRO_RECENCY_BOOST = 2.0
     ACTIVITY_BOOST = 1.5
     AWARE_BLOCKED_ATTENUATION = 0.5
     PRIOR_WEIGHT_CAP = 5.0
     CONTEXT_WINDOW_COMMITS = 10
     CONTEXT_WINDOW_TICKS = 50
+    # GL-CMD-V7-AWARENESS-REAL-PATH-C1-20260711: bounded tail scanned by
+    # _introspection_active_this_turn/_introspection_recent_words below.
+    # self.sections["intro"].commits is allowed to grow to SECTION_COMMITS_
+    # MAX (5000) over the organism's life -- this keeps both real-signal
+    # lookups O(200) regardless, same "generous headroom, real bound"
+    # convention as SUFFERING_LOG_MAX/ATTENTIONS_MAX elsewhere in this file.
+    INTROSPECTION_SCAN_TAIL = 200
+
+    def _introspection_active_this_turn(self):
+        """Real, grounded replacement for the retired v7_session.aware_
+        recently_fired(within_ticks=25) gate. GL-CMD-V7-AWARENESS-REAL-
+        PATH-C1-20260711.
+
+        True iff the organism's OWN real "intro" (introspection) section
+        actually committed -- Section.receive() -> self.commits.append(),
+        see ~line 1408 -- while THIS turn's real input words were being
+        read. Reads self._last_converse_tick (stamped at the very top of
+        both _converse_body and _converse_phased, before read_sentence()
+        runs -- see those methods) against self.sections["intro"].commits
+        (the same real, bounded, persistent commit list read_word() has
+        always populated for every real conversational turn, independent
+        of this change). This reuses the exact tick_before_read/tick_
+        after_read "did X happen during THIS turn" boundary _converse_
+        body's own response-binding tagging already relies on (see the
+        v8 FIX 1 block there) instead of inventing a new recency-window
+        constant with no empirical basis.
+
+        Never constructs, attaches, or calls anything on a V7Session
+        (substrate/v7_engine.py) -- that object is a fully separate,
+        isolated toy substrate reachable only via the /v7/* endpoints,
+        and its own aware/intro gates only ever reflect ITS OWN separate
+        simulated conversation (populated by V7Session.converse(), which
+        the real conversation path must never call)."""
+        sec = self.sections.get("intro")
+        if not sec or not sec.commits:
+            return False
+        since_tick = getattr(self, "_last_converse_tick", None)
+        if since_tick is None:
+            return False
+        return any(c.get("tick", 0) > since_tick
+                   for c in sec.commits[-self.INTROSPECTION_SCAN_TAIL:])
+
+    def _introspection_recent_words(self, max_n=10, max_ticks=50):
+        """Real, grounded replacement for the retired v7_session.
+        get_recent_words(). Returns the set of words the organism's own
+        real "intro" section actually committed recently -- read directly
+        from self.sections["intro"].commits (real {tick, mode, chi, word,
+        grounded} entries, see Section.receive() ~line 1408), never from a
+        separate/simulated session. See _introspection_active_this_turn
+        for why this is safe and grounded."""
+        sec = self.sections.get("intro")
+        if not sec or not sec.commits:
+            return set()
+        tail = sec.commits[-self.INTROSPECTION_SCAN_TAIL:]
+        tick = self.tick
+        by_count = {c["word"].lower() for c in tail[-max_n:] if c.get("word")}
+        by_tick = {c["word"].lower() for c in tail
+                   if c.get("word") and tick - c.get("tick", 0) <= max_ticks}
+        return by_count | by_tick
 
     def _build_context_priors(self, v7_session=None):
         """GL-CMD-FOUNDATIONS Phase 3b: context priors from substrate state.
-        Returns {word: prior_weight}. Pure substrate geometry — no ML."""
+        Returns {word: prior_weight}. Pure substrate geometry — no ML.
+
+        GL-CMD-V7-AWARENESS-REAL-PATH-C1-20260711: Source 1 now reads the
+        organism's own real introspection history directly (see
+        _introspection_recent_words) instead of v7_session.get_recent_
+        words(). v7_session (a fully separate, isolated simulated
+        substrate -- see substrate/v7_engine.py:V7Session) is never
+        constructed, attached, or read on this path any more. Kept as an
+        accepted, now-unused parameter (same convention as
+        organ_candidates on _emit_from_invariants above) purely so
+        existing call sites that still thread it through don't need to
+        change."""
         priors = {}
 
-        # Source 1: v7 recent word commits
-        if v7_session is not None:
-            recent = v7_session.get_recent_words(
-                max_n=self.CONTEXT_WINDOW_COMMITS,
-                max_ticks=self.CONTEXT_WINDOW_TICKS)
-            for word in recent:
-                priors[word] = priors.get(word, 1.0) * self.V7_RECENCY_BOOST
+        # Source 1: organism's own real introspection-section recent words
+        recent = self._introspection_recent_words(
+            max_n=self.CONTEXT_WINDOW_COMMITS,
+            max_ticks=self.CONTEXT_WINDOW_TICKS)
+        for word in recent:
+            priors[word] = priors.get(word, 1.0) * self.INTRO_RECENCY_BOOST
 
         # Source 2: current activity's section — recent atlas bindings
         if self._current_activity:
@@ -5825,9 +5894,17 @@ class Guala:
         """Get priors with aware-blocked attenuation.
         If aware fired recently, build fresh priors and cache.
         If aware blocked, attenuate cached priors to 0.5×.
-        If no cache (cold start), return empty dict."""
-        aware_active = (v7_session is not None
-                        and v7_session.aware_recently_fired(within_ticks=25))
+        If no cache (cold start), return empty dict.
+
+        GL-CMD-V7-AWARENESS-REAL-PATH-C1-20260711: aware_active now reads
+        the organism's OWN real state (_introspection_active_this_turn)
+        instead of v7_session.aware_recently_fired() -- v7_session was
+        never populated on this path in production anyway (_v7_session is
+        only ever assigned by the isolated /v7/* endpoint handlers, see
+        substrate_runner.py:_ensure_v7_link), so this gate was previously
+        permanently dead. v7_session kept as an accepted, unused
+        parameter -- see _build_context_priors docstring."""
+        aware_active = self._introspection_active_this_turn()
 
         if aware_active:
             priors = self._build_context_priors(v7_session)
@@ -6643,6 +6720,23 @@ class Guala:
         if not candidates:
             return None
 
+        # GL-CMD-V7-AWARENESS-REAL-PATH-C1-20260711: real introspection-
+        # derived bias, same shape as the gp-bias reweight above but
+        # sourced from the organism's own real "intro" section state (see
+        # _get_emission_priors / _introspection_active_this_turn) rather
+        # than a synthetic/session signal. Applied ONCE here, before the
+        # per-tick settling loop below -- a single O(len(candidates))
+        # reweight, not a per-tick cost, so it cannot affect the wall-
+        # clock settling budget (_WALL_BUDGET_S) that loop is already
+        # bounded by. Never constructs or touches V7Session.
+        _aware_priors = self._get_emission_priors(v7_session)
+        if _aware_priors:
+            for _c in candidates:
+                _prior = _aware_priors.get((_c.get("word") or "").lower())
+                if _prior:
+                    _c["coherent_magnitude"] = _c["coherent_magnitude"] * _prior
+            candidates.sort(key=lambda c: -c["coherent_magnitude"])
+
         # Build/get emission system
         sys_ = self._build_emission_system()
 
@@ -7004,7 +7098,9 @@ class Guala:
                                   organ_in_commits=any(
                                       c.get("origin") == "organ"
                                       for c in emit_commits),
-                                  gp_bias_applied=_gp_bias_applied)
+                                  gp_bias_applied=_gp_bias_applied,
+                                  aware_priors_applied=bool(_aware_priors),
+                                  n_aware_priors=len(_aware_priors))
         # GL-CMD-V5-VOICE-STAGE1: store quality metadata for _cmd_converse gate
         arcs_fallback_used = any(
             isinstance(v, tuple) and len(v) > 2 and v[2] == "arcs_fallback"
