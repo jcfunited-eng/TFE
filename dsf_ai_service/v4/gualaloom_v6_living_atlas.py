@@ -253,6 +253,26 @@ class LivingAtlas:
                 # GL-CMD-EPISODE-BINDING: situation — last-write-wins
                 if presence is not None:
                     existing["presence"] = presence
+                    # GL-FIX-EXPOSURE-GAP-C1-20260711: the last-write-wins
+                    # assignment above discards WHO-was-here history on every
+                    # reinforcement -- a binding first formed with Joe
+                    # present, later touched while he's away, would silently
+                    # forget Joe was ever there (or the reverse). presence_
+                    # ever/presence_observations accumulate the SAME real
+                    # per-call presence snapshot instead of overwriting it --
+                    # no new data source, this only retains what this call
+                    # already computed. See exposure_gap() below for the one
+                    # honest, bounded claim this supports: knowledge-GAP
+                    # tracking (present/absent-in-the-record), never belief
+                    # modeling -- absence of a record is not evidence a
+                    # source truly never learned this elsewhere.
+                    existing["presence_observations"] = (
+                        existing.get("presence_observations", 0) + 1)
+                    _ever = existing.get("presence_ever", [])
+                    for _seen_src in presence:
+                        if _seen_src not in _ever:
+                            _ever.append(_seen_src)
+                    existing["presence_ever"] = _ever
                 if location is not None:
                     existing["location"] = location
                 if sky_state is not None:
@@ -373,6 +393,18 @@ class LivingAtlas:
                     # GL-CMD-EPISODE-BINDING: situational context at binding formation
                     "episode_ref": episode_ref,
                     "presence":   presence,
+                    # GL-FIX-EXPOSURE-GAP-C1-20260711: see the reinforce
+                    # branch above for the full rationale. presence_
+                    # observations counts real presence checks made on this
+                    # binding (0 if `presence` was never resolved for it, as
+                    # with plain corpus/curriculum reads -- honest "no data",
+                    # never treated as "nobody was here"). presence_ever is
+                    # the union of every source-name this binding has ever
+                    # actually co-occurred with, across creation AND every
+                    # reinforcement -- unlike "presence" above (last-write-
+                    # wins), this is never overwritten, only appended to.
+                    "presence_observations": 1 if presence is not None else 0,
+                    "presence_ever": list(presence) if presence else [],
                     "location":   location,
                     "sky_state":  sky_state,
                     # GL-CMD-SCENE-LANES-B1-188 V1: WHERE/AMBIENT, bound at
@@ -796,6 +828,73 @@ class LivingAtlas:
             "episode_ref": best.get("episode_ref"),
             "strength": best["strength"],
         }
+
+    def exposure_gap(self, chi_value, tracked_sources):
+        """GL-FIX-EXPOSURE-GAP-C1-20260711: real, gradable knowledge-GAP
+        signal. NOT theory of mind -- read the honest-limits section below
+        before using this anywhere near that phrase.
+
+        Answers, for whatever live binding(s) sit at this chi neighborhood:
+        "has source S's presence ever been recorded on a record() call that
+        touched this binding?" Built entirely from presence_ever/presence_
+        observations (see record()'s own comments) -- the same real
+        Coordinator._presence snapshot record() already receives every call
+        via its `presence` kwarg, just retained across calls instead of
+        being overwritten. Nothing here is fabricated or inferred beyond
+        what was actually recorded.
+
+        Aggregates over every live entry in the chi band (not just the
+        single strongest one recall_scene() picks) -- any real observation,
+        from any binding instance at this address, counts. This mirrors
+        query_associations()'s own whole-band aggregation, not recall_
+        scene()'s single-winner selection, because a gap claim should be
+        as complete as the record allows, not keyed to whichever entry
+        happens to be strongest right now.
+
+        Returns None if there is no live binding here, or if none of the
+        live bindings here have ever had a single real presence check
+        recorded (honest "unknown" -- absence of DATA is never read as
+        absence of a source).
+
+        Returns {source: bool} otherwise. True = "this source has never
+        once been recorded present when any live binding at this address
+        formed or was reinforced." False = "recorded present at least
+        once."
+
+        HONEST LIMITS (do not build on this past what it actually says):
+          - True ("gap") means "no record of exposure in THIS substrate's
+            own presence log," never "this source doesn't know the
+            concept" -- they could have learned it anywhere outside
+            anything Guala tracks. This is a claim about Guala's own
+            records, not about the other person's mind.
+          - False ("seen") means presence co-occurred at least once, NOT
+            that the source attended to, understood, retained, or agrees
+            with the content. Co-occurrence is not comprehension.
+          - This cannot represent a source holding a FALSE belief -- only
+            "recorded absent" vs "recorded present" vs "unknown." It has
+            no second, independent representation of anyone else's mental
+            state, so it is not theory of mind and must never be labeled
+            as such (see GL-RPT-BRAIN-THEORY-OF-MIND-SCOPE-C1-20260711-v1
+            for the full reasoning this deliberately stays inside of).
+          - tracked_sources must be supplied by the caller (no hardcoded
+            roster here) -- callers should read it live from whatever
+            tracks real presence (e.g. Coordinator._presence's own keys)
+            so this never drifts out of sync with the actual roster.
+        """
+        if not tracked_sources:
+            return None
+        observed = False
+        ever = set()
+        for d in range(-self.band, self.band + 1):
+            for e in self.entries.get(chi_value + d, []):
+                if e["strength"] < FORGETTING_THRESHOLD:
+                    continue
+                if e.get("presence_observations", 0) > 0:
+                    observed = True
+                    ever.update(e.get("presence_ever", []))
+        if not observed:
+            return None
+        return {s: (s not in ever) for s in tracked_sources}
 
     # --- New living-atlas interfaces ---
 
