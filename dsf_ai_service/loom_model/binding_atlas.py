@@ -44,7 +44,7 @@ construction — so the two storage paths never mix within one atlas.
 
 import os
 import sys
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -516,6 +516,151 @@ class BindingAtlas:
             if self._m_len == 0:
                 return None, 0.0
         return _cosine_best(target_vec, self._m_matrix[: self._m_len], self._m_concepts)
+
+    # ── GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711, built for
+    # real 2026-07-11 (Joe: build it, not another "don't build" doc) ──────
+    # latent_associations(): the organism-brain subsystem's own real
+    # "imagination" primitive -- read-only, no Composition (LoomTapestry/
+    # LoomMosaic) required, no autonomous spike propagation required.
+    # Grounded entirely in bindings THIS neuron has actually recorded
+    # (real, learned, already-live per P1/P2) -- no synthetic vectors, no
+    # fabricated pairs, no randomness in content selection (any capping is
+    # recency-ordered, deterministic).
+
+    def _concept_vectors(self, max_concepts: int) -> Dict[str, Tuple["StateVec", int]]:
+        """Deduplicated concept -> (state_vec, tick) map over every REAL
+        binding this atlas holds, across whichever of the two storage paths
+        (flat-vector `cells` / per-lane `_lane_bindings`) this atlas's
+        neuron actually uses (module docstring: an atlas is homogeneous in
+        which one it populates, so in practice only one of the two loops
+        below ever contributes). `tick` is each concept's most recent
+        binding tick (record()'s own "freshest wins" convention -- see
+        record()'s comments), so it already means "the last real moment
+        this neuron experienced this concept."
+
+        Capped to `max_concepts` by RECENCY (most-recently-bound concepts
+        kept), not randomly -- deterministic, and keeps the scan honest
+        about being bounded (same discipline gauge_association's own
+        n_controls cap already used) without introducing an RNG dependency
+        into what is otherwise a pure, deterministic read."""
+        out: Dict[str, Tuple["StateVec", int]] = {}
+        for cell in self.cells.values():
+            for b in cell.bindings:
+                out[b["concept"]] = (b["state_vec"], int(b["tick"]))
+        for b in self._lane_bindings:
+            c = b["concept"]
+            cur = out.get(c)
+            if cur is None or int(b["tick"]) >= cur[1]:
+                out[c] = (b["state_vec"], int(b["tick"]))
+        if len(out) > max_concepts:
+            newest = sorted(out.items(), key=lambda kv: kv[1][1], reverse=True)[:max_concepts]
+            out = dict(newest)
+        return out
+
+    @staticmethod
+    def _pair_cosine(va: "StateVec", vb: "StateVec") -> Optional[float]:
+        """Real cosine similarity between two ALREADY-RECORDED bindings'
+        state vectors -- the identical math this file already uses
+        elsewhere (recall_best's flat-vector path / _lane_match_score's
+        per-lane path), just applied concept-to-concept instead of
+        query-to-atlas. Returns None (not 0.0) when the two bindings are
+        not comparable (mismatched flat/lane representation, or a
+        zero-norm vector/lane) -- an honest "can't compare," not a
+        fabricated low score."""
+        if isinstance(va, dict) and isinstance(vb, dict):
+            return _lane_match_score(va, vb)
+        if isinstance(va, dict) or isinstance(vb, dict):
+            return None
+        na, nb = float(np.linalg.norm(va)), float(np.linalg.norm(vb))
+        if na < 1e-12 or nb < 1e-12:
+            return None
+        return float(np.dot(va, vb) / (na * nb))
+
+    def latent_associations(self, top_k: int = 5, max_concepts: int = 200,
+                             current_tick: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Real, read-only novel-combination surfacing over this neuron's
+        OWN already-learned concept geometry -- §4b of GL-RPT-BRAIN-
+        IMAGINATION-REFLECTION-DESIGN-C1-20260711-v1, built for real this
+        time rather than left as a scoped-but-unbuilt design.
+
+        For every pair of concepts this neuron has actually bound, computes
+        two real, traceable quantities:
+          - cosine similarity between their real stored state vectors
+            (`_pair_cosine`, identical math to this file's own recall path)
+          - `temporal_fraction`: real tick-distance between the two
+            bindings' most recent write, divided by `current_tick` (the
+            organism's own age in ticks, passed by the caller -- see
+            Embryo.imagine() -- or, absent that, the newest tick seen among
+            these concepts, an honest lower-bound fallback). Every word
+            this organism ever learns advances `self.tick` by exactly ONE
+            (Embryo.remember()) -- so two concepts bound on adjacent ticks
+            were LITERALLY experienced back-to-back (the ordinary,
+            unsurprising co-occurrence case); concepts bound many ticks
+            apart were never near each other in her real experience
+            stream. This is a real fact about her own history, not an
+            invented proxy corpus.
+
+        A pair's `novelty_score` = max(0, similarity_z) * temporal_fraction,
+        where `similarity_z` is that pair's cosine similarity expressed as
+        a z-score AGAINST THIS NEURON'S OWN PAIRWISE SIMILARITY
+        DISTRIBUTION (mean + std over every pair actually scanned this
+        call) -- self-relative, not a universal tuned constant, matching
+        this codebase's existing "derived arithmetically, not tuned"
+        convention (e.g. FIRE_BREAKER_CEILING_HZ, neuron.py). A pair only
+        scores above zero if it is BOTH more similar than this neuron's own
+        average pair AND separated by real experience-time -- surfacing
+        concept pairs the neuron's own geometry treats as close despite
+        the real record showing they were never taught near each other.
+
+        Returns the top_k pairs by novelty_score, each carrying every field
+        that produced it (concept_a/b, cosine, tick_a/b, tick_gap,
+        temporal_fraction, similarity_z, novelty_score) so the result is
+        independently re-derivable from the atlas's own real data -- no
+        field is presentation-only. Returns [] (not fabricated content)
+        when there are fewer than 3 concepts or no pair scores above zero
+        -- "nothing to surface yet" is a valid, expected, honest answer."""
+        concept_vecs = self._concept_vectors(max_concepts)
+        concepts = list(concept_vecs.keys())
+        if len(concepts) < 3:
+            return []
+
+        if current_tick is None:
+            current_tick = max(t for _, t in concept_vecs.values())
+        current_tick = max(1, int(current_tick))
+
+        pairs: List[Dict[str, Any]] = []
+        for i in range(len(concepts)):
+            for j in range(i + 1, len(concepts)):
+                ca, cb = concepts[i], concepts[j]
+                va, ta = concept_vecs[ca]
+                vb, tb = concept_vecs[cb]
+                sim = self._pair_cosine(va, vb)
+                if sim is None:
+                    continue
+                pairs.append({
+                    "concept_a": ca, "concept_b": cb, "cosine": sim,
+                    "tick_a": ta, "tick_b": tb, "tick_gap": abs(ta - tb),
+                })
+        if len(pairs) < 3:
+            return []
+
+        sims = np.array([p["cosine"] for p in pairs], dtype=np.float64)
+        mean_sim, std_sim = float(sims.mean()), float(sims.std())
+
+        scored = []
+        for p in pairs:
+            z = (p["cosine"] - mean_sim) / std_sim if std_sim > 1e-9 else 0.0
+            temporal_fraction = p["tick_gap"] / current_tick
+            novelty = max(0.0, z) * temporal_fraction
+            if novelty <= 0.0:
+                continue
+            p["temporal_fraction"] = temporal_fraction
+            p["similarity_z"] = z
+            p["novelty_score"] = novelty
+            scored.append(p)
+
+        scored.sort(key=lambda p: p["novelty_score"], reverse=True)
+        return scored[:top_k]
 
     @property
     def bindings(self) -> int:
