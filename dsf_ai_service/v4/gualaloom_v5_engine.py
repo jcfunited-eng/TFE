@@ -2696,6 +2696,103 @@ class Guala:
             return records[-1]
         return max(records, key=lambda r: len(r.get("context", [])))
 
+    def _most_recent_word_tick(self, word):
+        """GL-CMD-WORD-ORDER-RELATION-C1-20260711: read-only helper for
+        _word_order_relation. Returns the highest (most recent) real tick
+        at which `word` was genuinely committed anywhere, or None if she
+        has never committed it at all -- honest None, never a guess.
+
+        Two independent real sources, both already written elsewhere for
+        their own unrelated reasons (this adds no new writes):
+          1. Every Section's self.commits -- {"tick", "mode", "chi",
+             "word", "grounded"} dicts appended once per real word commit
+             in Section.receive() (~line 1408), persisted across restarts
+             (save_full_state/load, not a rebuilt-on-load cache). A word
+             may live in more than one section (e.g. committed once as
+             subject, again later as object); this checks all of them and
+             keeps the largest tick. Each section's own commits list is
+             strictly tick-ordered (Section.tick only moves forward), so
+             scanning newest-first and stopping at the first match is
+             both correct and fast for the common case.
+          2. self._episodic_memory (via _episodic_context_for) -- a
+             concept can be episodically experienced (give_experience)
+             without ever being committed as a section word; checking
+             this too means a word absent from every section's commits
+             but present in episodic memory still resolves, instead of
+             going unknown for no real reason.
+
+        Caller (_word_order_relation) holds self.lock around this call --
+        self.commits is mutated by Section.receive(), always invoked from
+        read_word() under self.lock (an RLock, so nested acquisition here
+        would be safe too, but the read itself doesn't take the lock on
+        its own to avoid a second acquisition on every section scanned)."""
+        if not word:
+            return None
+        wl = word.lower()
+        best = None
+        for sec in self.sections.values():
+            for entry in reversed(sec.commits):
+                w = entry.get("word")
+                if w and w.lower() == wl:
+                    t = entry.get("tick")
+                    if t is not None and (best is None or t > best):
+                        best = t
+                    break  # newest-first: first match in this section is its most recent
+        record = self._episodic_context_for(word, mode="recent")
+        if record is not None:
+            t = record.get("tick")
+            if t is not None and (best is None or t > best):
+                best = t
+        return best
+
+    def _word_order_relation(self, word_a, word_b):
+        """GL-CMD-WORD-ORDER-RELATION-C1-20260711: a real "did A happen
+        before or after B" answer, grounded in the same monotonic tick
+        every section commit and episodic-memory entry already carries.
+
+        This substrate otherwise has NO mechanism for real order/sequence
+        between words or events: position_hint (~line 3362-3394, 3518-
+        3526) only routes "first"/"middle"/"last" ROUTING WORDS to
+        subject/verb/object by SENTENCE position, real text recall now
+        runs through _recall_from_organism's single population vote keyed
+        on the last content word only (no role, no order), and the one
+        novelty counter that exists is explicitly order-blind ("sorted so
+        order-invariant"). This method is a pure reader over tick data
+        that already exists for unrelated reasons (Section.commits,
+        self._episodic_memory) -- not a new instrumentation channel, and
+        never a guess: any word with no real commit or episodic record
+        resolves to "unknown", not a fabricated order.
+
+        Returns one of:
+          "before"  -- word_a's most recent real tick is strictly earlier
+          "after"   -- word_a's most recent real tick is strictly later
+          "same"    -- both resolve to the identical tick (e.g. committed
+                       together in the same read_word() call, which
+                       shares one engine tick across every section it
+                       touches -- a real simultaneity, not a tie-break)
+          "unknown" -- either word has no real commit/episodic record at
+                       all yet (honest unknown)
+
+        Read-only: takes self.lock briefly around the lookup (Section.
+        commits is mutated only under self.lock, via Section.receive() <-
+        read_word(); self.lock is an RLock, so this is safe even when
+        called from a path that already holds it, e.g. _form_reflection()
+        from _autonomy_tick()). No new locks, no writes, no hot-path
+        changes -- _form_reflection() is gated to run at most once every
+        REFLECTION_MIN_TICKS_BETWEEN ticks, not per-tick."""
+        if not word_a or not word_b:
+            return "unknown"
+        with self.lock:
+            tick_a = self._most_recent_word_tick(word_a)
+            tick_b = self._most_recent_word_tick(word_b)
+        if tick_a is None or tick_b is None:
+            return "unknown"
+        if tick_a < tick_b:
+            return "before"
+        if tick_a > tick_b:
+            return "after"
+        return "same"
+
     def _form_reflection(self):
         """GL-CMD-REFLECTION-EVE-20260710: a real cognitive act, distinct
         from introspect()'s external debug snapshot -- picks the most
@@ -2718,13 +2815,29 @@ class Guala:
         been observed working. This writes to a bounded internal history
         only; surfacing it through the real emission path is real
         follow-up work, once real reflections have been observed here
-        and judged sane, not assumed sane in advance."""
+        and judged sane, not assumed sane in advance.
+
+        GL-CMD-WORD-ORDER-RELATION-C1-20260711: also records, for each
+        real context word remembered alongside `concept` (context_then),
+        whether she encountered that word before or after `concept` --
+        real sequence information (_word_order_relation, grounded in
+        Section.commits/_episodic_memory ticks), not the order-blind
+        word-bag this substrate otherwise has everywhere else. "unknown"
+        for any context word with no real commit/episodic record at all;
+        never a guess. This is the one existing consumer that already
+        compares 'then' vs 'now' for a remembered concept, so the new
+        capability is genuinely used here rather than sitting dead."""
         if not self._episodic_recent_concepts:
             return None
         concept = self._episodic_recent_concepts[-1]
         record = self._episodic_context_for(concept, mode="recent")
         if record is None:
             return None
+        context_then = record.get("context", []) or []
+        context_order = {
+            cw: self._word_order_relation(cw, concept)
+            for cw in context_then if isinstance(cw, str) and cw
+        }
         reflection = {
             "concept": concept,
             "tick": self.tick,
@@ -2735,7 +2848,8 @@ class Guala:
                 "valence": round(self.needs.valence(), 3),
                 "arousal": round(self.needs.arousal(), 3),
             },
-            "context_then": record.get("context", []),
+            "context_then": context_then,
+            "context_order": context_order,
         }
         self._reflections.append(reflection)
         self._last_reflection_tick = self.tick
