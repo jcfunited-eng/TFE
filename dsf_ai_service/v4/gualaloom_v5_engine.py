@@ -6512,7 +6512,45 @@ class Guala:
         # This lets EMISSION_DYNAMICS=1 run without ever timing out the socket.
         # GL-FIX-CONVERSE-LATENCY: reduce from 5s → 1.5s so /converse Phase 6
         # (_emission_lock) + autonomy emission (_emission_lock) combined stay under 3s.
-        _WALL_BUDGET_S = float(os.environ.get("EMISSION_WALL_BUDGET_S", "1.5"))
+        #
+        # GL-FIX-EMISSION-BUDGET-RETIME-20260710: 1.5s -> 3.0s. 2026-07-10's
+        # keyhole wiring extension (2d83ca4) added excitatory handoffs
+        # object->modifier->ground->intro on top of the existing
+        # subject->verb->object chain, without raising this budget -- root-
+        # caused live (GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1
+        # #3) to real conversation windows closing on quiet_timeout with zero
+        # commits. A straight revert of 2d83ca4 was built and measured
+        # against a real harness at this budget and produced a NET
+        # REGRESSION (silence 25% -> 50%) -- correctly declined, not repeated
+        # here; the extra excitatory edges only ever LOWER downstream commit
+        # thresholds, they help.
+        #
+        # This is a re-time, not a guess: 2d83ca4 added handoffs, not
+        # per-tick compute -- all six _EMISSION_SECTIONS + listen were
+        # already built and evolved every tick since 2026-07-05's
+        # GL-CMD-NO-CAPS-COHERENCE-SPEAKS-203, so a naive "3x the handoffs ->
+        # 2.5x the budget" scaling would be measuring the wrong thing. Real
+        # live per-tick cost (GL-RPT-EMISSION-COST-C1-20260702-87-v2, median
+        # 2.175ms/tick, p95 2.228ms/tick, same zeroed-H_base/no-inhibition
+        # config still deployed today) puts a full 80-tick run at ~178ms of
+        # pure compute -- an 8.4x margin under the old 1.5s already. A local
+        # harness reproduced that same per-tick cost. The deadline being hit
+        # in production despite that margin is best explained by real
+        # GIL/thread contention inflating wall-clock cost per tick under
+        # load (this session's own broader findings: tick_rate collapse,
+        # severe lock contention elsewhere in the same process) -- not by
+        # 2d83ca4 making the settling loop itself more expensive to compute.
+        # 3.0s gives real headroom against that contention while landing
+        # exactly on the ceiling this constant's OWN prior comment already
+        # established as safe ("combined stay under 3s"); it does not
+        # override that design intent, it uses the rest of the budget that
+        # intent always allowed. _emission_lock's other caller (autonomous
+        # emission, below) acquires non-blocking specifically so it never
+        # stacks with /converse's blocking use, so this budget's only real
+        # cost is /converse's own Phase 6 -- a small, bounded addition
+        # against a real total turn time (~50-55s, per the same root-cause
+        # doc) dominated by other locks, not this one.
+        _WALL_BUDGET_S = float(os.environ.get("EMISSION_WALL_BUDGET_S", "3.0"))
         _t_deadline = t1 + _WALL_BUDGET_S
         n_ticks = EMISSION_DYNAMICS_TICKS
         emit_commits = []
