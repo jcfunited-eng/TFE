@@ -1364,6 +1364,46 @@ def _gl_init():
 
     # v7: Start autonomy loop. 0.2s per GL-BRIEF-NEEDS-PHYSICS (not 0.05).
     g.start_autonomy_loop(interval=0.2)
+
+    # GL-FIX-DAYDREAM-RECONNECT-C1-20260711: start_daydream_loop() (added
+    # GL-CMD-DAYDREAM-PARALLEL-EVE-20260629-42) was only ever called from
+    # substrate_runner.boot_substrate() -- which the GL-CMD-PROCESS-COLLAPSE-61
+    # refactor (2026-07-01, ~36h after daydream shipped) superseded with this
+    # function (_gl_init) without porting the direct g.start_daydream_loop()
+    # call sitting right next to g.start_autonomy_loop() above (the same line
+    # THIS call mirrors). Confirmed accidental, not deliberate: no HALT-style
+    # doc or comment anywhere says daydream should stay off; the opposite --
+    # the original dispatch specified it should run unconditionally from
+    # __init__, and five follow-on commits since (through 2026-07-10) kept
+    # investing real correctness work in _daydream_tick/_update_invariant
+    # "because it feeds live daydream/novel-jump writes," and two unrelated
+    # audit reports (GL-RPT-QUEUE-RUNAWAY-ROOT-CAUSE-C1-20260707,
+    # GL-RPT-MULTIPROCESS-DESIGN-C1-20260710) both inventory it as an
+    # already-running thread. It never was. Locking verified compatible with
+    # tonight's read_sentence per-word lock fix (5fd8cca): _daydream_tick's
+    # three-phase pattern (snapshot under self.lock / associate+select with
+    # no lock / write under self.lock) never touches _current_episode or
+    # _prev_phase_vec (the two attributes that fix made call-local), and its
+    # unlocked deep_atlas/organism reads already match this codebase's
+    # existing accepted pattern (the live emission candidate path reads the
+    # same structures the same way). reorganize_hypothesis entries are still
+    # excluded from daydream's novel-jump surfacing (verified current,
+    # dated 2026-07-10 in the code itself) and daydream's own writes are
+    # excluded from _imagination_candidates by its source_path filter, so
+    # there is no "one mind, one mouth" collision either direction.
+    # Default OFF, not the REORGANIZE_ENABLED/EVENT_DRIVEN_SUBSTRATE-style
+    # default-on convention: unlike those, THIS substrate is, tonight,
+    # already under measured real lock contention (live tick_rate 0.04/s
+    # against a 5/s nominal target at the moment this was checked, plus
+    # tonight's own 12-93s stall incidents and a same-night background-
+    # thread perf regression from GL-CMD-HEMISPHERIC-INTEGRATION-V3).
+    # Enabling a new perpetual 2Hz self.lock-acquiring thread should happen
+    # with live tick_rate/lock-wait telemetry open, not by default on the
+    # next unrelated deploy. Flip DAYDREAM_LOOP_ENABLED=1 to turn it on.
+    if os.environ.get("DAYDREAM_LOOP_ENABLED", "0") == "1":
+        g.start_daydream_loop()
+        print("[GualaLoom] daydream loop started (DAYDREAM_LOOP_ENABLED=1)")
+
     s = g.introspect()
     print(f"[GualaLoom v7] Booted: vocab={s['vocab']} reads={s['reads']} "
           f"tick={g.tick} pair_bond={'on' if s['pair_bond_active'] else 'off'} "
