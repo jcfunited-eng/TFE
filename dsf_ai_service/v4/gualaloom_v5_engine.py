@@ -677,6 +677,25 @@ EMISSION_COHESION_THRESHOLD = 0.65
 EMISSION_COOLDOWN_TICKS = 200
 PAIR_BOND_SOURCES = {"joe", "wc", "c1"}
 
+# GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711: how often, within a single
+# PLAYING activity, _atick_playing checks for a real, already-known
+# picture+word pairing to revisit (see docs/GL-DES-ENGINE-PLAY-WORLD-V0-
+# C1-20260711-v1.md §3.1). 500 keeps this cheaper than the codebase's
+# existing amortized-check cadences (target_familiarity decay/snapshot
+# and forget_stale_* both run at tick%200; Play's own emission-trigger
+# check already runs at tick%300) -- roughly 2-3 checks per full
+# 1500-tick PLAYING session (ACTIVITY_TICK_BUDGETS["PLAYING"]), not a
+# per-tick cost. _atick_playing runs inside the caller's already-held
+# self.lock (an RLock, 5Hz nominal tick rate) -- see the design doc §3.3
+# for the full cost/lock analysis behind this choice.
+PLAY_REVISIT_INTERVAL_TICKS = 500
+# Deliberately ~10x smaller than ATTENDING_VISUAL's up-to-0.2-per-full-
+# session familiarity step (GL-CMD-ATTEND-GROOVE-107): a brief, passing
+# re-notice during play is not a dedicated viewing session and should
+# not earn as much familiarity as one. Same field, same 0.9 cap, smaller
+# step -- see design doc §3.1 step 4.
+PLAY_FAMILIARITY_BUMP = 0.02
+
 # GL-CMD-CREDO-LOOP-REPAIR-167 Change 2: dream_pressure accumulates from
 # unjudged backlog (real substrate load since the last EXECUTED dream
 # tick), not a flat wall-clock rate. Q2's named signals: working-atlas
@@ -9017,16 +9036,98 @@ class Guala:
 
     def _atick_playing(self, a):
         """Free-settle: chi space walk. No novelty gain — internal
-        exploration doesn't introduce new experience."""
+        exploration doesn't introduce new experience.
+
+        GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711: shares IDLE's coherence-
+        gated stability restore below (real, unchanged, legitimate shared
+        physics -- both are low-engagement waking states) plus the
+        existing emission-trigger check, and adds the one thing this
+        activity genuinely didn't do before tonight: an occasional, cheap
+        check for a real picture+word pairing she has already,
+        independently formed (both sides really attended/committed
+        through their normal production paths), just to notice it again.
+        See docs/GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711-v1.md for the
+        full design reasoning, honesty checks, and scope limits -- in
+        particular §3.2 for why novelty/connection are deliberately NOT
+        touched here."""
         # Occasionally check for emission trigger during play
         if self.tick % 300 == 0:
             self._check_emission_trigger("play_cohesion")
+        if self.tick % PLAY_REVISIT_INTERVAL_TICKS == 0:
+            self._play_revisit_known_pairing()
         # GL-CMD-STAB-PHYSICS-FIX-88: coherence-gated quiet-restore (same as IDLE)
         _n_total = sum(len(v) for v in self.atlas.entries.values())
         _coherence = self.atlas.n_live_bindings() / max(_n_total, 1)
         _dstab = (_coherence * max(0.0, NEEDS_TARGET_V7 - self.needs.stability)
                   * NEEDS_DRIFT_RATE / NEEDS_TARGET_V7)
         self.needs.stability = saturate(self.needs.stability, _dstab)
+
+    def _play_revisit_known_pairing(self):
+        """GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711: one real "revisit".
+
+        Picks a word she has actually, recently processed (the same
+        bounded last-10-commits-per-section snapshot _daydream_tick
+        already takes -- reused, not reinvented), looks for a picture
+        ALREADY bound near that word's real chi neighborhood via the
+        existing recall path (_recall_sight_from_atlas -- the same
+        function _recall_response already calls on the live
+        conversational recall path; no new chi-distance metric is
+        invented here), and requires the picture to be one she has
+        genuinely, previously looked at (times_attended > 0). A picture
+        that only happens to sit near this word's chi but has never
+        actually been attended is a fresh discovery, not a revisit --
+        that belongs to ATTENDING_VISUAL / daydream's novel-jump, not to
+        play; crediting it here would quietly fabricate a "known" pairing
+        that isn't real.
+
+        On a real hit: logs a play_revisit event carrying only real,
+        already-true values (the word, its real chi, the picture's real
+        id/title/times_attended, familiarity before/after) and nudges
+        target_familiarity -- the same field ATTENDING_VISUAL writes, by
+        a much smaller step (PLAY_FAMILIARITY_BUMP vs. ATTENDING_VISUAL's
+        up-to-0.2-per-session step). Does NOT touch needs.novelty (this
+        is explicitly non-novel content -- see _atick_playing's own long-
+        standing "No novelty gain" docstring line, finally honored) or
+        needs.connection (no real social content in an internal, solitary
+        re-notice -- crediting it would fabricate a social meaning that
+        isn't there; see design doc §3.2).
+
+        Returns True if a revisit was logged, False on an honest empty
+        (no eligible pairing found -- not padded with anything
+        invented)."""
+        recent_words = []
+        for sec in self.sections.values():
+            for c in sec.commits[-10:]:
+                w = c.get("word", "")
+                if w:
+                    recent_words.append((w, c.get("chi")))
+        if not recent_words:
+            return False
+        # seed_chi is the REAL chi that commit was written at (not
+        # recomputed) -- used only for the logged event below;
+        # _recall_sight_from_atlas resolves its own chi neighborhood
+        # internally from _word_to_chi_index (populated at the same real
+        # commit time), not from the chi this call passes it, so no
+        # separate re-derivation is needed here.
+        word, seed_chi = recent_words[self.tick % len(recent_words)]
+        pairs = self._recall_sight_from_atlas([seed_chi], [word])
+        if not pairs:
+            return False
+        for motif, source_id in pairs:
+            pic = self._pictures.get(source_id)
+            if pic is None or pic.times_attended <= 0:
+                continue
+            old_fam = self.target_familiarity.get(source_id, 0.0)
+            new_fam = min(0.9, old_fam + PLAY_FAMILIARITY_BUMP)
+            self.target_familiarity[source_id] = new_fam
+            self._log_substrate_event(
+                "play_revisit",
+                word=word, chi=seed_chi, picture_id=source_id,
+                picture_title=pic.title, times_attended=pic.times_attended,
+                familiarity_before=round(old_fam, 4),
+                familiarity_after=round(new_fam, 4))
+            return True
+        return False
 
     def _atick_idle(self, a):
         """GL-CMD-STAB-PHYSICS-FIX-88: coherence-gated quiet-restore gain.
