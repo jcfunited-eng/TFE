@@ -396,7 +396,7 @@ def _grandurun_select_candidates(input_chis, deep_candidates, sections,
 try:
     from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack, SensoryBank, SENSORY_DNA, ROLE_DNA, scene_tags_from_words
     from dsf_ai_service.v4.gualaloom_v4_uf_kernel import DSF, compute_dsf
-    from dsf_ai_service.v4.gualaloom_v4_chi_atlas_l6 import L6_TCL
+    from dsf_ai_service.v4.gualaloom_v4_chi_atlas_l6 import L6_TCL, CHI_BAND as _CHI_ATLAS_BAND
     from dsf_ai_service.v4.gualaloom_v4_trit_register import TritRegister
     from dsf_ai_service.v4.gualaloom_v6_living_atlas import (
         LivingAtlas, DECAY_LAMBDA, BASE_REINFORCEMENT,
@@ -408,7 +408,7 @@ except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from gualaloom_v4_krimelack_dna import LanguageKrimelack, SensoryBank, SENSORY_DNA, ROLE_DNA, scene_tags_from_words
     from gualaloom_v4_uf_kernel import DSF, compute_dsf
-    from gualaloom_v4_chi_atlas_l6 import L6_TCL
+    from gualaloom_v4_chi_atlas_l6 import L6_TCL, CHI_BAND as _CHI_ATLAS_BAND
     from gualaloom_v4_trit_register import TritRegister
     from gualaloom_v6_living_atlas import (
         LivingAtlas, DECAY_LAMBDA, BASE_REINFORCEMENT,
@@ -970,6 +970,25 @@ SECTION_COMMITS_MAX = 5000
 # own prior comment (above) treated as the intended ceiling.
 SECTION_MODE_CAP = 5000
 
+# GL-RPT-READ-MS-ROOTCAUSE-C1-20260711-v1 fix #1: Section.receive()'s
+# similarity-scan fallback (for any word that misses the O(1)
+# word-identity fast path) previously scanned EVERY alive mode in the
+# section -- confirmed the dominant real cost of a live conversational
+# turn (77-92% of total wall-clock, "listen" section alone measured
+# 8,000-16,000ms/sentence once it passed 14,000+ modes,
+# GL-BUG-MODES-MATRIX-THRASH). Biological framing (Joe-approved):
+# sensory input is coarsely pre-categorized (e.g. odorant receptor
+# type) BEFORE any detailed comparison, so only a small, already-
+# relevant neighborhood is ever compared in detail -- this codebase
+# already has exactly this pattern for cross-section chi binding
+# (ChiAtlas, dsf_ai_service/v4/gualaloom_v4_chi_atlas_l6.py, CHI_BAND=2),
+# just never applied to a single section's OWN mode bank. Reuses that
+# same already-tuned band width (not a new heuristic) for the
+# analogous "how far in chi is still worth comparing in detail"
+# tradeoff, applied read-side the same way ChiAtlas.match_score() scans
+# +/-band around the query chi.
+SECTION_CHI_BAND = _CHI_ATLAS_BAND
+
 
 class Section:
     """A region in the substrate. Has trit register, mode bank, gamma,
@@ -1039,6 +1058,78 @@ class Section:
         # the first -- 2.0-5.7s for a single word, inside self.lock,
         # confirmed by direct adversarial review before this version.
         self._alive_indices = set()
+        # GL-RPT-READ-MS-ROOTCAUSE-C1-20260711-v1 fix #1: chi_value (int,
+        # the exact value passed into receive() and stored per-mode as
+        # self.modes[i][1]) -> set of currently-alive real mode indices
+        # with that exact chi. Maintained incrementally at the SAME
+        # mutation sites _alive_indices already is (add in
+        # _append_new_mode, discard in _evict_weakest_mode and
+        # forget_stale_modes, full rebuild in _rebuild_word_index) --
+        # never scanned/rebuilt from self.modes in the per-word hot
+        # path. receive()'s similarity-scan fallback uses this (via
+        # _chi_neighborhood_indices/_get_chi_neighborhood_matrix below)
+        # to restrict the O(n) matmul fallback to a small +/-
+        # SECTION_CHI_BAND neighborhood instead of every alive mode in
+        # the section -- the coarse pre-categorization step described
+        # above. A chi key's set is deleted once empty (discard helper
+        # below) so this doesn't accumulate empty entries forever across
+        # a section's full lifetime chi range.
+        self._chi_buckets = {}
+
+    def _chi_bucket_add(self, chi, mode_idx):
+        """Add mode_idx to its exact-chi bucket. See self._chi_buckets."""
+        self._chi_buckets.setdefault(chi, set()).add(mode_idx)
+
+    def _chi_bucket_discard(self, chi, mode_idx):
+        """Remove mode_idx from its exact-chi bucket (mode tombstoned/
+        evicted), deleting the bucket entirely once empty so a long-
+        lived section's full lifetime chi range doesn't leave behind an
+        ever-growing number of empty set entries."""
+        bucket = self._chi_buckets.get(chi)
+        if bucket is not None:
+            bucket.discard(mode_idx)
+            if not bucket:
+                del self._chi_buckets[chi]
+
+    def _chi_neighborhood_indices(self, chi):
+        """Union of alive real mode indices whose OWN chi falls within
+        SECTION_CHI_BAND of the query chi -- same read-side band-scan
+        ChiAtlas.match_score() already uses (+/-CHI_BAND around the
+        query key), applied here to this section's own per-mode chi
+        instead of ChiAtlas's cross-section binding entries."""
+        out = set()
+        for d in range(-SECTION_CHI_BAND, SECTION_CHI_BAND + 1):
+            bucket = self._chi_buckets.get(chi + d)
+            if bucket:
+                out |= bucket
+        return out
+
+    def _get_chi_neighborhood_matrix(self, chi):
+        """Vectorized sim data restricted to alive modes within
+        SECTION_CHI_BAND of the given chi -- the O(n_alive) full-section
+        fallback scan's replacement (GL-RPT-READ-MS-ROOTCAUSE-C1-
+        20260711-v1 fix #1). Returns (real_indices, matrix, norms), all
+        None if no alive mode falls in the neighborhood.
+
+        Deliberately NOT cached and deliberately independent of
+        _get_modes_matrix()/_modes_matrix/_modes_dirty/
+        _alive_row_of_mode -- that is a SEPARATE full-alive-set cache
+        that existed solely to serve the full-section scan this method
+        replaces (see the reinforcement branch's comment in receive(),
+        word_match_idx hit, for what became of it: an already-existing,
+        already-safe "cache not built yet" fallback, not a new gap).
+        This method is small and chi-varying per call (bounded by
+        neighborhood occupancy, not section size), so it is simply
+        recomputed each time rather than cached; it never reads or
+        invalidates the other cache, and the other cache never reads or
+        invalidates this one."""
+        candidate_indices = self._chi_neighborhood_indices(chi)
+        if not candidate_indices:
+            return None, None, None
+        real_indices = list(candidate_indices)
+        vecs = np.array([self.modes[i][0].to_array() for i in real_indices])
+        norms = np.linalg.norm(vecs, axis=1) + 1e-12
+        return real_indices, vecs, norms
 
     # HEURISTIC: reuses LivingAtlas's own real, already-tuned decay
     # constants (DECAY_LAMBDA=1e-4/tick, FORGETTING_THRESHOLD=0.02) to
@@ -1073,22 +1164,36 @@ class Section:
         # time, never in the per-word hot path.
         self._n_alive = sum(1 for a in self._mode_alive if a)
         self._alive_indices = {i for i, a in enumerate(self._mode_alive) if a}
+        # GL-RPT-READ-MS-ROOTCAUSE-C1-20260711-v1 fix #1: rebuild the
+        # chi-bucket index from source of truth the same way
+        # _alive_indices itself is rebuilt just above -- this is the one
+        # place _chi_buckets can be reset out from under a load (same
+        # reasoning as _n_alive's comment above). O(n_alive), load/
+        # deserialize time only, never the per-word hot path.
+        self._chi_buckets = {}
+        for i in self._alive_indices:
+            self._chi_bucket_add(self.modes[i][1], i)
         self._modes_dirty = True
 
     def _get_modes_matrix(self):
         """Return cached (n_alive, 8) matrix + (n_alive,) norms for
-        vectorized sim, restricted to modes not yet forgotten. The
-        argmax over the result (in receive(), below) is only ever used
-        to read back through `sims`/`mat` itself, never to index back
-        into self.modes -- see the comment there -- so a compacted,
-        real-index-agnostic matrix is safe for that purpose.
+        vectorized sim, restricted to modes not yet forgotten.
 
-        Also (re)builds self._alive_row_of_mode, a real-mode_idx ->
-        compacted-row-idx map, needed by the SEPARATE in-place
-        reinforcement optimization below (GL-BUG-MODES-MATRIX-THRASH):
-        that code updates one existing row without a full rebuild, and
-        now that the matrix excludes tombstoned rows, "row index" and
-        "real mode_idx" are no longer the same number.
+        GL-RPT-READ-MS-ROOTCAUSE-C1-20260711-v1 fix #1: this built the
+        FULL alive-set matrix receive()'s similarity-scan fallback used
+        to compare a new word against -- confirmed the dominant real
+        cost of a live turn once a section passed ~14,000 modes. receive()
+        now calls _get_chi_neighborhood_matrix() instead (a small, chi-
+        restricted matrix built fresh per call, not this cache), so this
+        method has no remaining call site and self._alive_row_of_mode
+        (below) is never populated -- the reinforcement branch in
+        receive() (word_match_idx hit) already had an explicit, safe
+        "cache not built yet" fallback for exactly this state (mark
+        _modes_dirty and move on), so nothing reads a stale/empty value
+        here. Left in place rather than deleted to keep this fix's diff
+        scoped to the scan it replaces; a future change is free to remove
+        this and the in-place-update branch together if it wants the
+        dead weight gone, but doing so is out of scope for this fix.
 
         Rebuilds only when _modes_dirty is set (modes changed or a
         forget pass ran since last build)."""
@@ -1128,6 +1233,7 @@ class Section:
                     del self._word_to_mode_idx[word.lower()]
                 self._n_alive -= 1
                 self._alive_indices.discard(i)
+                self._chi_bucket_discard(self.modes[i][1], i)
                 changed = True
         if changed:
             self._modes_dirty = True
@@ -1189,6 +1295,7 @@ class Section:
             del self._word_to_mode_idx[word.lower()]
         self._n_alive -= 1
         self._alive_indices.discard(weakest_idx)
+        self._chi_bucket_discard(self.modes[weakest_idx][1], weakest_idx)
         self._modes_dirty = True
         return weakest_idx
 
@@ -1220,6 +1327,7 @@ class Section:
         self._mode_alive.append(True)
         self._n_alive += 1
         self._alive_indices.add(mode_idx)
+        self._chi_bucket_add(chi, mode_idx)
         if word_label:
             self._word_to_mode_idx[word_label.lower()] = mode_idx
         self._modes_dirty = True
@@ -1320,16 +1428,25 @@ class Section:
         word_match_idx = self._word_to_mode_idx.get(word_label.lower()) if word_label else None
 
         # Similarity scan — only needed when word is not already known.
+        # GL-RPT-READ-MS-ROOTCAUSE-C1-20260711-v1 fix #1: previously
+        # scanned _get_modes_matrix() -- EVERY alive mode in the whole
+        # section (confirmed the dominant real cost of a live turn,
+        # 8,000-16,000ms/sentence on "listen" once it passed 14,000+
+        # modes). Restricted to a small chi neighborhood (coarse
+        # pre-categorization by the same chi value already computed and
+        # passed into this call, before any detailed vector comparison
+        # -- see SECTION_CHI_BAND/_get_chi_neighborhood_matrix above).
         nearest = None
         best_sim = -1.0
         if word_match_idx is None and self.modes:
             cur_v = dsf.to_array()
-            mat, norms = self._get_modes_matrix()
+            real_indices, mat, norms = self._get_chi_neighborhood_matrix(chi)
             if mat is not None:
                 cur_norm = float(np.linalg.norm(cur_v)) + 1e-12
                 sims = (mat @ cur_v) / (norms * cur_norm)
-                nearest = int(np.argmax(sims))
-                best_sim = float(sims[nearest])
+                _row = int(np.argmax(sims))
+                nearest = real_indices[_row]
+                best_sim = float(sims[_row])
 
         committed = False
         mode_idx = None
@@ -1364,6 +1481,22 @@ class Section:
             # instead of assuming they're the same number. Falls back to
             # the same mark-dirty behavior as before if the map doesn't
             # have this mode yet (cache not built, or somehow stale).
+            # GL-RPT-READ-MS-ROOTCAUSE-C1-20260711-v1 fix #1: the ONLY
+            # thing that ever built/warmed this cache (_get_modes_matrix(),
+            # called from receive()'s full-section similarity scan) has
+            # been replaced by the chi-bucketed _get_chi_neighborhood_
+            # matrix() below, which does not populate _modes_matrix/
+            # _alive_row_of_mode. So _row is always None now and this
+            # block always takes the mark-dirty else branch below --
+            # exactly the pre-existing, already-safe fallback path this
+            # same code was written to fall back to "if the cache doesn't
+            # exist yet" (see comment above). No behavior change: nothing
+            # else in this class reads _modes_matrix for information (only
+            # _get_modes_matrix() itself, which is now unreachable) -- this
+            # was always solely in service of the scan this fix replaced.
+            # Left as-is (not deleted) to keep this fix's diff minimal and
+            # scoped to the scan itself, per this exact area's standing
+            # "verify empirically, don't scope-creep" discipline.
             _row = self._alive_row_of_mode.get(word_match_idx)
             if self._modes_matrix is not None and _row is not None and _row < len(self._modes_matrix):
                 _new_vec = new_dsf.to_array()
