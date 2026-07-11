@@ -178,6 +178,15 @@ class Embryo:
         # "growth we cannot see is growth we cannot verify."
         self._total_divisions = 0
         self._fold_events_buffer = []
+        # GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711, built for
+        # real 2026-07-11: bounded (tick, sf_sense_vector) history for real
+        # self-state-then-vs-now reflection (see reflect()/_reflect_snapshot()
+        # below). Same bounded-deque discipline as every other unbounded-
+        # growth fix this project has already shipped (population lane-
+        # recompute, fold-events buffer, lane-binding dedup) -- oldest
+        # evicted, never unbounded.
+        from collections import deque
+        self._reflection_snapshots = deque(maxlen=self.REFLECTION_HISTORY_MAXLEN)
         self._seed_dna_diversity()
 
     def _seed_dna_diversity(self):
@@ -594,6 +603,18 @@ class Embryo:
             rows.append((tag, pop, mean_neff, min_neff))
         return rows
 
+    # GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711: not tuned to
+    # any corpus -- 50 ticks is simply "not every word" (remember() advances
+    # self.tick by exactly one per word, so a snapshot every word would be
+    # both wasteful and would make "then" and "now" nearly always identical,
+    # defeating the point of a THEN-vs-NOW comparison); 20 kept snapshots at
+    # that interval covers 1000 ticks of real history at any moment, bounded,
+    # same "keep a short real window, not the whole lifetime" discipline
+    # REFLECTION_MAX_HISTORY already uses for the v5-engine's own
+    # `_reflections` deque (gualaloom_v5_engine.py).
+    REFLECTION_SNAPSHOT_INTERVAL = 50
+    REFLECTION_HISTORY_MAXLEN = 20
+
     # --- the WORKING mechanism wired into the seed: perceive -> remember -> recall ---
     def remember(self, concept, signals):
         """Write the concept across all hemispheres via the resonant-spectral chi
@@ -612,6 +633,152 @@ class Embryo:
             for n in h.cluster.neurons:
                 n.experience_moment(concept, signals, self.tick, precomputed_lanes)
         self.tick += 1
+        # GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711: periodic,
+        # off-hot-path self-state snapshot -- see _reflect_snapshot()/
+        # reflect() below. A modulo check plus an O(n_hemispheres) sf_sense()
+        # call every 50 real experiences; no lock, no spike-bus interaction,
+        # no Composition dependency, nowhere near the class of cost that
+        # caused this project's real firing-path incidents.
+        if self.tick % self.REFLECTION_SNAPSHOT_INTERVAL == 0:
+            self._reflect_snapshot()
+
+    def _reflect_snapshot(self) -> None:
+        """Append a real (tick, sf_sense()) reading to the bounded reflection
+        history. sf_sense() is already real, already computed, already live
+        (the test harness's gauge_meta_monitoring reads it every checkpoint)
+        -- the only piece that was missing was KEEPING a bounded history of
+        it so a later moment can compare against an earlier one. Self-heals
+        the attribute (same getattr/backfill pattern -198 already
+        established for _fold_events_buffer/_total_divisions) so a real
+        organism pickled before this dispatch restores and keeps working --
+        it just starts its reflection history from whenever this first
+        runs, honestly, rather than crashing or fabricating a backfilled
+        past it never actually experienced."""
+        if not hasattr(self, "_reflection_snapshots"):
+            from collections import deque
+            self._reflection_snapshots = deque(maxlen=self.REFLECTION_HISTORY_MAXLEN)
+        self._reflection_snapshots.append((int(self.tick), self.sf_sense()))
+
+    def reflect(self, against: str = "oldest"):
+        """Real self-state-then-vs-now reflection -- §4a of GL-RPT-BRAIN-
+        IMAGINATION-REFLECTION-DESIGN-C1-20260711-v1, built for real this
+        time. Compares the CURRENT sf_sense() reading against a real,
+        previously-recorded snapshot from this organism's own bounded
+        history (_reflect_snapshot(), called periodically from remember()).
+
+        `against`: "oldest" (default -- the longest-range comparison still
+        held, i.e. as far back as the bounded history reaches) or "latest"
+        (the most recent snapshot before now -- the shortest-range, most
+        sensitive comparison).
+
+        Returns None (not a fabricated zero-baseline) if no snapshot has
+        been taken yet -- an honest "nothing to reflect on yet."
+
+        This is structurally the SAME move the v5-engine's own
+        _form_reflection already makes (then vs. now) -- just over the
+        organism's own introspectable axis (arousal / population / per-
+        organ binding strength, sf_sense()'s own real fields) instead of
+        external episodic affect. A distinct, organism-native signal, not
+        a renamed copy of the v5-engine's mechanism (per §3 of the design
+        doc)."""
+        history = getattr(self, "_reflection_snapshots", None)
+        if not history:
+            return None
+        if against == "latest":
+            then_tick, then_vec = history[-1]
+        else:
+            then_tick, then_vec = history[0]
+        now_tick = int(self.tick)
+        now_vec = self.sf_sense()
+        delta = now_vec - then_vec
+        field_names = ["arousal", "pop_mean", "pop_max"] + [t for t, _ in OPERATIONS]
+        per_field = {
+            name: {"then": float(then_vec[i]), "now": float(now_vec[i]),
+                   "delta": float(delta[i])}
+            for i, name in enumerate(field_names)
+        }
+        return {
+            "against": against,
+            "tick_then": then_tick,
+            "tick_now": now_tick,
+            "ticks_elapsed": now_tick - then_tick,
+            "delta_norm": float(np.linalg.norm(delta)),
+            "per_field": per_field,
+        }
+
+    def imagine(self, op_tag: str = "sc", top_k: int = 5, max_concepts: int = 200):
+        """Real, organism-native "imagination" -- §4b of GL-RPT-BRAIN-
+        IMAGINATION-REFLECTION-DESIGN-C1-20260711-v1, built for real this
+        time. Population-vote aggregation of BindingAtlas.latent_
+        associations() (binding_atlas.py) across every neuron in ONE
+        hemisphere: every neuron runs the SAME real, read-only scan
+        independently over its OWN real bindings (no two neurons see the
+        same vectors -- per-neuron chemical DNA differentiates the
+        encoding, see _seed_dna_diversity), surfacing concept pairs its own
+        learned geometry treats as unexpectedly close. Concept-pairs are
+        then tallied by how many neurons' independent scans agreed on them
+        -- a population vote, the SAME aggregation shape recall()/
+        recall_op() already use elsewhere in this file (Counter-based, no
+        lookup table, no label matching, no fabricated content).
+
+        Deliberately does NOT depend on Composition (LoomTapestry/
+        LoomMosaic -- confirmed still genuinely unwired into Embryo/
+        LoomBrain, re-checked this session) or on autonomous spike/STDP
+        propagation (confirmed still shadow-only in production, re-checked
+        this session against GL-RPT-NEURON-AUTONOMY-INHIBITION-DESIGN-
+        C1-20260710-v1) -- both would be scope creep into separately-owned,
+        larger efforts. This is read-only: no state mutation, no firing-
+        path involvement, zero interaction with either.
+
+        Cost, measured (not assumed): each neuron's latent_associations()
+        scan is O(max_concepts^2), bounded by the recency cap regardless of
+        real vocabulary size -- ~100ms/neuron at the max_concepts=200
+        default (measured locally). At a grown 32-neuron hemisphere that is
+        ~3.6s for one imagine() call -- real, non-trivial, but a ONE-TIME
+        per-checkpoint cost, not a per-word/per-tick one, and this method is
+        NOT called from remember()/experience_word() or any other automatic/
+        periodic trigger (unlike reflect(), which is cheap -- O(n_hemispheres)
+        -- and IS auto-triggered). Only an explicit caller (this file's own
+        raise_session() test harness, or a future one) pays this cost, and
+        only when it asks to. Do not wire this into a hot or per-tick path
+        without re-measuring at real production population/vocabulary scale
+        first -- this project has had multiple real incidents from exactly
+        that class of mistake.
+
+        Returns [] (not fabricated content) if the hemisphere has fewer
+        than 3 real concepts bound anywhere, or if no neuron's scan
+        surfaced anything -- an honest "nothing to imagine yet" is a valid
+        answer for a young or sparsely-taught organism."""
+        if op_tag not in self.hemi_by_op:
+            return []
+        from collections import Counter
+        hemi = self.hemi_by_op[op_tag]
+        tally = Counter()
+        detail = {}   # (concept_a, concept_b) -> [novelty_score, ...] across neurons
+        n_neurons_scanned = 0
+        for n in hemi.cluster.neurons:
+            pairs = n.binding_atlas.latent_associations(
+                top_k=top_k, max_concepts=max_concepts, current_tick=self.tick)
+            if pairs:
+                n_neurons_scanned += 1
+            for p in pairs:
+                key = tuple(sorted((p["concept_a"], p["concept_b"])))
+                tally[key] += 1
+                detail.setdefault(key, []).append(p["novelty_score"])
+
+        results = []
+        for key, count in tally.items():
+            scores = detail[key]
+            results.append({
+                "concept_a": key[0],
+                "concept_b": key[1],
+                "n_neurons_agree": count,
+                "n_neurons_scanned": n_neurons_scanned,
+                "mean_novelty_score": float(np.mean(scores)),
+                "op_tag": op_tag,
+            })
+        results.sort(key=lambda r: (r["n_neurons_agree"], r["mean_novelty_score"]), reverse=True)
+        return results[:top_k]
 
     def recall(self, signals):
         """Population-vote recall (resonant ternary chi). Verified n=200 -> 100%."""

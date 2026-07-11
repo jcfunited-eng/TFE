@@ -238,8 +238,15 @@ def gauge_association(emb, corpus_sentences, probe_word, rng, n_controls=5):
     sc_hemi = emb.hemi_by_op["sc"]
     vecs = {}
     for n in sc_hemi.cluster.neurons:
-        for b in n.binding_atlas._bindings:
-            vecs.setdefault(b["concept"], []).append(b["state_vec"])
+        # GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711 found this
+        # stale (2026-07-10 wave-memory migration replaced the flat
+        # `_bindings` list with per-neuron wave `cells`; this file predates
+        # that by one commit family) and flagged it for whoever next
+        # touched this harness -- that's this session. Same accessor
+        # test_cognition_path.py already uses post-migration.
+        for c in n.binding_atlas.cells.values():
+            for b in c.bindings:
+                vecs.setdefault(b["concept"], []).append(b["state_vec"])
     if probe_word not in vecs:
         return None
     co_occurring = sorted({
@@ -578,7 +585,17 @@ def fingerprint(emb, pipe, probe_words):
                 "polarity": float(getattr(n, "_polarity", 0.0)),
                 "q": float(getattr(n, "_q", 0.0)),
                 "neighbors": list(n.couplings.neighbors),
-                "n_bindings": len(n.binding_atlas._bindings),
+                # GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711:
+                # same stale-accessor bug as gauge_association above
+                # (`_bindings` retired by the 2026-07-10 wave-memory
+                # migration) -- found while auditing this file for the
+                # same issue. BindingAtlas.bindings is the class's own
+                # already-correct, already-tested property (sums both the
+                # flat-vector `cells` path and the per-lane `_lane_bindings`
+                # path), so this fix also makes fingerprint() correct for a
+                # resonant_spectral-observable organism, which the old
+                # accessor never was.
+                "n_bindings": n.binding_atlas.bindings,
             })
     recall_votes = {w: emb.recall(pipe._build_multi_modal_signals(w)).most_common(3)
                     for w in probe_words}
@@ -772,9 +789,28 @@ def raise_session(n_days=1, n_sleep_replay=15, out=None):
                                           in gauge_hemisphere_integration(emb).items()},
             "g14_affect_arousal": gauge_affect(emb),
             "g15_meta_sf_sense": gauge_meta_monitoring(emb),
-            "g2_composition": "ABSENT — no code path (per -168-v3 A5)",
-            "g10_imagination": "ABSENT — no code path (per -168-v3 A5)",
-            "g11_reflection": "ABSENT — depends on absent composition (per -168-v3 A5)",
+            "g2_composition": "ABSENT — no code path (per -168-v3 A5; LoomTapestry/"
+                               "LoomMosaic re-confirmed genuinely unwired into Embryo/"
+                               "LoomBrain, GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-"
+                               "C1-20260711-v1 §1, re-checked by direct grep this session)",
+            # GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711-v1 §4,
+            # built for real 2026-07-11 (Embryo.imagine()/BindingAtlas.
+            # latent_associations(), embryo.py/binding_atlas.py): real,
+            # organism-native, population-vote novel-combination surfacing
+            # over the "sc" hemisphere's own already-learned bindings —
+            # narrower than the -168-v3 A5 "strong reading" (no emission
+            # path exists yet to speak these), honestly still a diagnostic,
+            # but no longer a hardcoded ABSENT string — real numbers from a
+            # real mechanism, [] when there is genuinely nothing to surface
+            # yet (not fabricated).
+            "g10_imagination": emb.imagine(op_tag="sc", top_k=5),
+            # Embryo.reflect()/_reflect_snapshot(): real self-state then-
+            # vs-now comparison over sf_sense() history, sampled every 50
+            # ticks by remember() itself (see embryo.py). None until the
+            # organism has accumulated at least one real snapshot -- an
+            # honest "nothing to reflect on yet" for a very young session,
+            # not a fabricated baseline.
+            "g11_reflection": emb.reflect(),
             "g13_theory_of_mind": "ABSENT — out of scope (per -168-v3 A5)",
             "folding": post_fold,
             "folding_event_this_day": {
