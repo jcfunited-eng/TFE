@@ -72,6 +72,55 @@ SLOW_DIV = 12          # slow channel = DECAY_LAMBDA / SLOW_DIV (~2.3h half-life
 DWELL_GATE_META = 4    # dwell >= this → slow channel
 META_K = 2.0           # metaplastic slowdown factor
 
+# GL-FIX-ONESHOT-REDISTRIBUTION-PROTECTION-C1-20260711: bounded immunity
+# from heterosynaptic redistribution theft (see record()'s reinforce
+# branch below) for freshly-taught, interactively-attended bindings.
+#
+# Root cause (GL-RPT-INDEX-INVARIANT-C1-20260704-163-v1 Part B, re-
+# confirmed live against this current code 2026-07-11): a one-shot
+# give_experience-taught word can be evicted well before it ever gets a
+# second genuine re-exposure OR survives to a real dream/consolidation
+# cycle (dream_promotion_gate only evaluates entries during an actual
+# DREAMING/DAYDREAMING state transition -- reading/chatting alone never
+# triggers it), because *other* words reinforced at its shared chi
+# address steal from it every single time via the mass-conservation
+# redistribution below, long before any such cycle runs.
+#
+# Scope, deliberately narrow:
+#  - CREATION-TIME ONLY. Set once, when a brand-new binding is written
+#    (see the `else:` branch of record()); never renewed on later
+#    touches. A word that goes on to be genuinely, repeatedly
+#    re-encountered earns its durability the normal way (reinforcement_
+#    count's own existing metaplastic slowdown), not through an
+#    indefinitely-extending shield.
+#  - INTERACTIVE SOURCES ONLY. Reuses the exact dwell_ticks=8 signal
+#    read_word already assigns to attended sources (see that method's
+#    "v8 (GL-BRIEF-032): dwell_ticks by source" block) -- not a new
+#    concept, not a new per-caller flag threaded through the codebase.
+#  - HARD TICK CEILING. Bounded regardless of whether/when a real dream
+#    cycle ever fires for this entry, so this can never become
+#    unbounded immunity in practice. Order of magnitude reused from
+#    REORGANIZE_HYPOTHESIS_TTL_TICKS (gualaloom_v5_engine.py, "~ a few
+#    real sleep cycles at 200-tick dream spacing") -- same purpose (give
+#    real consolidation a fair chance before content is treated as
+#    abandoned), same derivation; restated here since this module does
+#    not import that constant.
+#  - VICTIM-SIDE ONLY. A protected entry is exempt from LOSING strength
+#    to another entry's reinforcement at the same chi. It is NOT exempt
+#    from decay() (entropy is untouched, see that method -- unmodified
+#    by this fix), and if a protected entry is itself reinforced, its
+#    own reinforcement still draws from unprotected neighbors exactly as
+#    before (this fix grants no extra offensive power, only defense).
+#
+# ONE_SHOT_PROTECTED_ENABLED: single flag, same rollback convention as
+# META_DECAY_ENABLED/REORGANIZE_ENABLED elsewhere in this codebase.
+ONE_SHOT_PROTECTION_TICKS = 40_000
+ONE_SHOT_PROTECTED_SOURCES = frozenset({"joe", "joe_voice", "wc", "c1"})
+
+
+def _one_shot_protection_enabled():
+    return os.environ.get("ONE_SHOT_PROTECTED_ENABLED", "1") != "0"
+
 
 def _meta_decay_enabled():
     return os.environ.get("META_DECAY_ENABLED", "1") != "0"
@@ -243,9 +292,40 @@ class LivingAtlas:
                 actual_delta = existing["strength"] - old_strength
                 if actual_delta > 0:
                     others = [e for e in entries if e is not existing]
+                    # total_other/share are computed over ALL others, exactly
+                    # as before this fix -- deliberately NOT narrowed to
+                    # unprotected entries. Narrowing the denominator would
+                    # concentrate a protected neighbor's exempted share onto
+                    # the REMAINING ordinary entries at this chi (each would
+                    # then lose MORE than the pre-fix formula gives them,
+                    # purely because of who else happens to share the
+                    # address) -- a real second-order distortion of ordinary
+                    # physics an earlier version of this fix had (caught by
+                    # this file's own adversarial re-review, 2026-07-11).
+                    # Computing shares against the unchanged population and
+                    # only skipping the WRITE for protected entries (below)
+                    # keeps every unprotected entry's own loss identical,
+                    # tick for tick, to what it would have been with no
+                    # protection mechanism in play at all -- the exempted
+                    # share simply goes uncollected (same class of bounded
+                    # non-conservation this method already accepts when
+                    # total_other is 0, i.e. no other residents at all).
                     total_other = sum(e["strength"] for e in others)
                     if total_other > 0:
+                        _protection_on = _one_shot_protection_enabled()
                         for e in others:
+                            # GL-FIX-ONESHOT-REDISTRIBUTION-PROTECTION-C1-20260711:
+                            # entries still inside their one-shot protection
+                            # window (see ONE_SHOT_PROTECTION_TICKS docstring
+                            # above) do not pay heterosynaptic tax -- skip the
+                            # write, not the share calculation. Ordinary
+                            # bindings (protected_until_tick absent/0, the
+                            # overwhelming common case) are never skipped:
+                            # this branch is then byte-identical to the
+                            # pre-fix code for every entry present.
+                            if (_protection_on
+                                    and e.get("protected_until_tick", 0) > tick):
+                                continue
                             share = e["strength"] / total_other
                             e["strength"] = max(0.0,
                                                 e["strength"] - actual_delta * share)
@@ -263,6 +343,20 @@ class LivingAtlas:
                     "dwell_ticks": dwell_ticks,
                     "reinforcement_count": 0,
                     "released": False,
+                    # GL-FIX-ONESHOT-REDISTRIBUTION-PROTECTION-C1-20260711:
+                    # set ONCE at creation for interactively-taught bindings
+                    # only (see ONE_SHOT_PROTECTION_TICKS docstring above);
+                    # never renewed on later reinforcement. 0 (falsy against
+                    # any real tick) for every ordinary corpus/background/
+                    # self-heard binding -- these are physically identical
+                    # to today's entries in every other respect.
+                    "protected_until_tick": (
+                        tick + ONE_SHOT_PROTECTION_TICKS
+                        if (_one_shot_protection_enabled()
+                            and source in ONE_SHOT_PROTECTED_SOURCES
+                            and dwell_ticks >= DWELL_GATE_META)
+                        else 0
+                    ),
                     "clarity": clarity,
                     "initial_clarity": clarity,
                     "sensory_refs": list(sensory_refs) if sensory_refs else [],
