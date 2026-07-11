@@ -329,7 +329,24 @@ out = {
                 # override to 0, pause/update-service/wake, verify via
                 # /debug/stdp_state, then fix this file so the revert
                 # survives the next deploy too.
-                {'name': 'EVENT_DRIVEN_SUBSTRATE', 'value': '1'}
+                {'name': 'EVENT_DRIVEN_SUBSTRATE', 'value': '1'},
+                # GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711: kill
+                # switch for wiring DeepAtlas.strength into real-speech
+                # eligibility, so text-only vocabulary (e.g. "ocean") can
+                # earn the right to be spoken through real repeated
+                # exposure surviving real dream-cycle consolidation --
+                # never a shortcut, never fabricated. Enabled 2026-07-11
+                # for live validation per Joe's explicit go-ahead, after
+                # independent line-by-line review confirmed every write
+                # path is additive-only (an eligible word can never become
+                # ineligible) and every signal traces to real committed
+                # data (never fabricated). Effect is gradual by design --
+                # requires real dream cycles to actually promote entries,
+                # not instant. If this ever needs reverting, do it exactly
+                # like the EVENT_DRIVEN_SUBSTRATE precedent above: task-def
+                # env override to 0, pause/update-service/wake, then fix
+                # this file so the revert survives the next deploy too.
+                {'name': 'DEEP_ATLAS_ELIGIBILITY_BACKFILL_ENABLED', 'value': '1'}
             ] + ([{'name': 'FORCE_S3_RESTORE', 'value': '1'}] if os.environ.get('_FORCE_S3_RESTORE_INJECT') == '1' else []),
             'mountPoints': [
                 {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
