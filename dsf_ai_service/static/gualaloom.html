@@ -1398,15 +1398,15 @@ const COGMETER_ROWS=[
   {name:'retention',connected:'watch',pointer:'-163',
     firing:'3 of 10 one-shot taught words were mostly or fully forgotten within about a day of activity',
     impact:'measured 2026-07-04 -- see “teaching survives to sleep” below, same finding'},
-  {name:'cross-sense recall',connected:'absent',pointer:'-164',
-    firing:'only a same-instant binding COUNT exists (108 cross-modal bindings) -- no sound-cue-retrieves-picture test has ever been built',
-    impact:'none observed; the "1.4%" figure on record has no live mechanism behind it'},
+  {name:'cross-sense recall',connected:'watch',pointer:'-164',
+    firing:'real, tested mechanism exists (RecallEngine, substrate/recall_query.py) -- a sound-only query genuinely returns the full cross-modal window (sight+sound+touch entries intact), verified 2026-07-06 and unchanged at HEAD -- but it only runs inside give_experience, and even that response discards the retrieved cross-modal content before returning it. Deliberately NOT wired into real conversational emission (a "one mind, one mouth" ruling, avoiding a known past regression from a second atlas-sourced candidate stream fighting the organism)',
+    impact:'STALE TEXT CORRECTED 2026-07-11: the "no test has ever been built" claim was wrong -- the mechanism is real and verified, just not observable end-to-end (give_experience response never surfaces what it retrieved) and intentionally not wired into speech'},
   {name:'getting-bored-of-repeats',connected:'yes',pointer:'-181',
     firing:'GL-CMD-METER-LIVENESS-187 M2 correction: the -107 fix (this row\'s old pointer) was superseded -- -181 found and fixed the flat-floor collapse (deployed task:468, confirmed live: differentiated top-5 scores observed, e.g. 0.0607/0.0542/0.054/0.0536/0.0533). -185/B2 found and fixed a second, deeper gap the same night (no recency-recovery from historical over-exposure, e.g. audio locked out since early smoke-testing) -- built, pending its own deploy window as of this correction',
     impact:'STALE TEXT CORRECTED 2026-07-05: the old "not yet deployed" claim was wrong by the time Joe read it -- -181 had already shipped hours earlier'},
-  {name:'recognizing-things-in-new-forms',connected:'absent',pointer:'-164',
-    firing:'no live counter exists -- no code path for this yet',
-    impact:'none observed'},
+  {name:'recognizing-things-in-new-forms',connected:'yes',pointer:'-164',
+    firing:'real and live: chi is computed from word text alone (_chi_for_word), so the same concept gets the same chi regardless of which sense produced it; real YOLOv8/Whisper models (process_sight_with_recognition/process_sound_with_recognition) feed recognized labels back through the IDENTICAL read_sentence() pipeline text uses, running live in the InputRing consumer thread',
+    impact:'STALE TEXT CORRECTED 2026-07-11: confirmed live via direct code trace (grounded_vocab_integration.py:74-79, 92-236), not absent -- live cross-modal binding count (122/203 chi-keys) already exceeds this row\'s stale 108 figure'},
   {name:'attention spread',connected:'yes',pointer:'-181',
     firing:'the empty-familiarity-tie mechanism this row named is the SAME one -181 fixed (deployed task:468) -- ties are no longer flattened to an identical floor; real per-target differentiation confirmed live',
     impact:'STALE TEXT CORRECTED 2026-07-05: still not a standing pass/fail number, but the underlying mechanism this row describes changed under it -- see "getting-bored-of-repeats" above'},
@@ -1419,12 +1419,12 @@ const COGMETER_ROWS=[
   {name:'hearing-her-own-voice',connected:'yes',pointer:'-164',
     firing:'fires on every real reply to Joe/wc/c1, weighted well below a real conversation partner',
     impact:'fired live moments ago -- a self-heard binding actually shaped what she said next'},
-  {name:'organ influence on speech',connected:'severed',pointer:'-164',
-    firing:'0 -- confirmed false on a live emission just now; her separate organ process has had no way to run since 2026-06-25',
-    impact:'none observed'},
-  {name:'who-tags',connected:'absent',pointer:'-164',
-    firing:'no live counter exists -- a future building block, not built yet',
-    impact:'none observed'},
+  {name:'organ influence on speech',connected:'yes',pointer:'-164',
+    firing:'real, live _recognition_from_organism calling into organism.recall(), hit every Nth word inside read_word (converse -> _converse_body -> read_sentence -> read_word), the real default (non-phased) conversation path',
+    impact:'STALE TEXT CORRECTED 2026-07-11: confirmed live via direct code trace (gualaloom_v5_engine.py:2977 called from the real converse path at 3743), not severed'},
+  {name:'who-tags',connected:'yes',pointer:'-164',
+    firing:'real: presence/place/ambient written on record() and read back in recall_scene(); speaker/source stored in _record_episodic_experience and retrievable via _episodic_context_for; extended to ordinary converse turns 2026-07-10 (previously autonomous-attending only)',
+    impact:'STALE TEXT CORRECTED 2026-07-11: confirmed live via direct code trace (gualaloom_v6_living_atlas.py:105-113 write, 666-704 read; gualaloom_v5_engine.py:2560-2572, 3666-3673), not absent'},
   {name:'feelings-deepen-memory',connected:'yes',pointer:'-164',
     firing:'fired 66 times in a single live emission just observed',
     impact:'live correction found 2026-07-04 -- this is NOT the "never fires" the written plan currently says; the plan is what was stale, not her'},
@@ -1464,9 +1464,9 @@ const COGMETER_ROWS=[
         firing:fired?`LIVE -- fired ${v7.intro_krimelack_count}x, state=${v7.introspection||'?'}`
                      :`still 0 fires this poll, state=${v7.introspection||'?'}`};
     }},
-  {name:'deliberation stage',connected:'queued',pointer:'-162',
-    firing:'off all boot (0 fires) in the live process; the fix is committed, waiting for a deploy window',
-    impact:'none yet — moves once the next deploy ships',
+  {name:'deliberation stage',connected:'yes',pointer:'-162',
+    firing:'real, live Coordinator.regulate() firing every 5th tick from _autonomy_tick, itself running in a background thread started by start_autonomy_loop from the real boot path (_gl_init)',
+    impact:'STALE TEXT CORRECTED 2026-07-11: confirmed wired and firing via direct code trace, not queued/off -- the live() check below (awareness_ratio) already showed this correctly whenever status data was fresh, only the static fallback text was wrong',
     live:(status,v7)=>{
       if(!status||!status.ladder)return null;
       const ratio=status.ladder.awareness_ratio;
@@ -1475,9 +1475,9 @@ const COGMETER_ROWS=[
         firing:fired?`LIVE -- awareness_ratio=${ratio} (deliberation_ticks nonzero)`
                      :'awareness_ratio=0 this poll -- deliberation has not fired yet on this boot'};
     }},
-  {name:'day-cycle / sleep trigger',connected:'investigating',pointer:'-165',
-    firing:'she’s been awake doing only two things (looking, speaking) for hours — no sleep, no rest, no play seen',
-    impact:'investigation just opened — no verdict yet',
+  {name:'day-cycle / sleep trigger',connected:'yes',pointer:'-165',
+    firing:'real, load-driven (not wall-clock/circadian) trigger: dream_pressure accumulates from real read/write backlog, soft-competes at 0.7, hard-overrides at 1.0 ("physics-triggered instead of button-triggered"), wired into the live _autonomy_tick loop -- shipped and Joe-ratified',
+    impact:'STALE TEXT CORRECTED 2026-07-11: confirmed live right now (current_activity.kind=DREAMING at time of this correction), not investigating -- this row\'s own live() check below already agrees when polled fresh',
     live:(status)=>{
       if(!status||!status.activity_history_summary)return null;
       const kinds=Object.keys(status.activity_history_summary);
@@ -1486,9 +1486,9 @@ const COGMETER_ROWS=[
         firing:`kinds seen this window: ${kinds.join(', ')||'(none)'}`+
                (sawSleep?'':' -- still no SLEEPING/DREAMING in the visible activity history')};
     }},
-  {name:'curriculum feeders',connected:'severed',pointer:'-156',
-    firing:'0 — confirmed not running in her real deployed process',
-    impact:'none observed',
+  {name:'curriculum feeders',connected:'yes',pointer:'-156',
+    firing:'real CurriculumScheduler.start() from _embedded_post_boot/_gl_init boot path, reconnected 2026-07-05 (cac6684); enabled=True by default',
+    impact:'STALE TEXT CORRECTED 2026-07-11: confirmed live via direct code trace, not severed -- the live() check below never fires because /status does not expose a curriculum_status field yet, so this row always fell back to stale text regardless of real state',
     live:(status)=>{
       const cs=status&&status.curriculum_status;
       if(cs===undefined)return null;  // field not present -- older deploy, fall back to audit text
