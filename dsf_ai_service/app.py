@@ -2761,10 +2761,45 @@ async def gualaloom_chat(msg: GLMessage):
                            "n_chis": len(bundle_chis)},
             }
             if recall_result is not None:
+                # GL-CMD-CROSS-SENSE-RECALL-EXPOSE: RecallEngine.query()
+                # already walks each returned window's real entries
+                # (recall_query.py's RecallResult.windows[i]['entries'] --
+                # the same modality/section/chi/source_tag dicts
+                # window_manager.close() recorded) -- this was computed
+                # every call and then discarded, leaving only window_ids/
+                # top_affect_strength observable. Surface the OTHER
+                # entries each retrieved window actually bound (excluding
+                # this same call's own chis -- those are the cue just
+                # given, not retrieved memory), so a sound-only cue's
+                # response can show the picture/word it was bound with,
+                # not just an opaque window id. Purely additive to the
+                # existing "recall" block; does not touch RecallEngine's
+                # own ranking/matching logic. NOT wired into conversational
+                # emission (see the note above on the standing "one mind,
+                # one mouth" ruling) -- give_experience's own response only.
+                _query_chis = set(bundle_chis)
+                _cross_modal_entries = []
+                for _w in recall_result.windows:
+                    for _e in (_w.get("entries") or []):
+                        if _e.get("chi") in _query_chis:
+                            continue  # the cue itself, not retrieved content
+                        _cross_modal_entries.append({
+                            "window_id": _w.get("window_id"),
+                            "modality": _e.get("modality"),
+                            "section": _e.get("section"),
+                            "chi": _e.get("chi"),
+                            "ref_or_text": _e.get("source_tag") or "",
+                        })
+                # A window can hold many entries (multi-lane bundles); cap
+                # so this response never balloons on a busy window. 25 is
+                # a judgment call, generous for any real bundle (touch/
+                # smell/taste each fire a handful of channels at most).
+                _CROSS_MODAL_ENTRIES_CAP = 25
                 response_payload["recall"] = {
                     "query_id": recall_result.query_id,
                     "windows_returned": recall_result.window_ids(),
                     "top_affect_strength": round(recall_result.top_affect_strength(), 4),
+                    "cross_modal_entries": _cross_modal_entries[:_CROSS_MODAL_ENTRIES_CAP],
                 }
             return response_payload
         return await _loop.run_in_executor(None, _decode_bundle)
