@@ -2704,6 +2704,33 @@ class Guala:
         temp_krim.transduce(word)
         return self.atlas.recall_scene(temp_krim.winding)
 
+    def exposure_gap_for_word(self, word):
+        """GL-FIX-EXPOSURE-GAP-C1-20260711: word-level convenience over
+        LivingAtlas.exposure_gap(), same transduce-then-lookup pattern
+        recall_scene_for_word() above uses. Real, gradable knowledge-GAP
+        signal built from atlas-level presence history -- NOT theory of
+        mind. See LivingAtlas.exposure_gap()'s own docstring for the full
+        honest-limits statement (do not build on this past what it says);
+        the short version: a True result means "no record of this source's
+        presence in Guala's own log," never "this source doesn't know the
+        word" -- and this can never represent a source holding a FALSE
+        belief, only recorded-absent vs. recorded-present vs. unknown.
+
+        tracked_sources is read live from self.coordinator._presence's own
+        keys, never hardcoded here -- stays correct if that roster ever
+        changes, same sourcing _current_situation() already uses for the
+        presence values themselves.
+
+        Returns None if the word has no live binding anywhere, or if no
+        real presence check was ever recorded against it. Returns
+        {source: bool} otherwise."""
+        if not word:
+            return None
+        temp_krim = LanguageKrimelack()
+        temp_krim.transduce(word)
+        tracked_sources = tuple(self.coordinator._presence.keys())
+        return self.atlas.exposure_gap(temp_krim.winding, tracked_sources)
+
     def _affect_kwargs(self, surprise=None):
         """GL-CLARITY-INVARIANCE-UNCAGE: build affect-only kwargs dict for atlas.record.
         sensory_refs and episode_ref are passed explicitly by call sites that have them."""
@@ -2828,6 +2855,46 @@ class Guala:
         if mode == "recent":
             return records[-1]
         return max(records, key=lambda r: len(r.get("context", [])))
+
+    def _episodic_exposure_gap(self, concept):
+        """GL-FIX-EXPOSURE-GAP-C1-20260711: real knowledge-GAP signal from
+        curated episodic memory -- NOT theory of mind. Companion to
+        LivingAtlas.exposure_gap()/exposure_gap_for_word() above; see
+        LivingAtlas.exposure_gap()'s docstring for the full honest-limits
+        statement that applies equally here (a True result means "no
+        record of this source's presence," never "this source doesn't
+        know it," and this cannot represent a FALSE belief).
+
+        Reads the same signal from a different, in some ways stronger,
+        source: _episodic_memory already keeps EVERY distinct remembered
+        moment for a concept (append-only, never overwritten -- see
+        _record_episodic_experience()'s own docstring), each carrying its
+        own real presence snapshot from _current_situation() at the
+        moment it was recorded. This method only READS that existing
+        history; it does not change how _record_episodic_experience()
+        writes.
+
+        Returns None if this concept has no episodic memory at all
+        (honest "no data", never inferred as a gap). Returns
+        {source: bool} otherwise, True = "recorded present in zero of
+        this concept's episodic memories."
+
+        Scope: only concepts that passed through the curated
+        give_experience path have episodic memory at all (see
+        _record_episodic_experience()'s own docstring for why that is the
+        only real call site today) -- an ordinary corpus/converse-learned
+        concept with no episodic record returns None here even though it
+        may still have atlas-level presence data (see
+        exposure_gap_for_word() for that separate, broader-coverage
+        signal)."""
+        records = list(self._episodic_memory.get(concept.lower(), []))
+        if not records:
+            return None
+        tracked_sources = tuple(self.coordinator._presence.keys())
+        ever = set()
+        for r in records:
+            ever.update(r.get("presence") or [])
+        return {s: (s not in ever) for s in tracked_sources}
 
     def _most_recent_word_tick(self, word):
         """GL-CMD-WORD-ORDER-RELATION-C1-20260711: read-only helper for
