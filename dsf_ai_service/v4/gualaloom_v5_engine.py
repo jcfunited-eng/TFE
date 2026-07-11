@@ -854,6 +854,34 @@ REFLECTION_BASE_STRENGTH = 0.05
 REFLECTION_EMISSION_WEIGHT_SCALE = 0.3
 REFLECTION_EMISSION_MAX_CANDIDATES_PER_TURN = 1
 
+# GL-RPT-READ-MS-ROOTCAUSE-C1-20260711-v1 / GL-CMD-CREDO-RELEVANCE-WEIGHT-
+# C1-20260711: the credo/grounded-speech gate (_word_to_emission_sections
+# membership, REQUIRE_GROUNDED_SPEECH) is a binary pass/fail with zero
+# notion of how relevant an eligible candidate actually is to the CURRENT
+# turn -- a common function word clears "has she ever said this" far more
+# reliably than a specific content word, so candidate generation
+# structurally favored generic filler. Fix (see _brain_emission_
+# candidates_legacy's deep_atlas gather): a candidate word that resonates
+# with MORE THAN ONE of the turn's own input words -- i.e. shows up in
+# more than one query word's own real deep_atlas co-occurrence
+# neighborhood, via _deep_atlas_neighbor_candidates' existing walk, not a
+# new relevance mechanism -- is real spreading-activation convergence and
+# is weighted up accordingly. DEEP_ATLAS_RELEVANCE_BOOST_PER_SEED: how
+# much extra weight each additional distinct converging input word adds
+# (linear, HEURISTIC, same "class: from-design" convention as this file's
+# other engineered constants -- e.g. CHI_CORR_LENGTH, IMAGINATION_WEIGHT_
+# SCALE). DEEP_ATLAS_RELEVANCE_BOOST_MAX caps the multiplier so a turn
+# with many query words can't let convergence COUNT alone dominate the
+# real, measured co-occurrence strength that still anchors every
+# candidate's base weight. A candidate that only ONE seed word surfaces
+# (the common case) gets a 1.0x boost -- i.e. numerically IDENTICAL
+# behavior to before this fix; only genuine multi-word convergence
+# changes anything. This never changes ELIGIBILITY (the real-grounding
+# gate itself, and _deep_atlas_neighbor_candidates' own walk, are
+# untouched) -- only the WEIGHT/ORDER among already-eligible candidates.
+DEEP_ATLAS_RELEVANCE_BOOST_PER_SEED = 0.5
+DEEP_ATLAS_RELEVANCE_BOOST_MAX = 3.0
+
 
 # ============================================================
 # v7: Autonomy Dataclasses
@@ -5184,7 +5212,15 @@ class Guala:
         queries the organism once per input word (bounded, see cap below)
         and merges the vote distributions, giving candidates a chance to
         resonate with the whole thought instead of whichever word
-        happened to land last."""
+        happened to land last.
+
+        GL-CMD-CREDO-RELEVANCE-WEIGHT-C1-20260711: the deep_atlas gather
+        below additionally ranks/weights its candidates by real
+        cross-query convergence (see DEEP_ATLAS_RELEVANCE_BOOST_PER_SEED's
+        own comment) -- a word that resonates with more than one of this
+        turn's input words outranks one only a single, possibly generic,
+        seed word surfaces. Eligibility (the real-grounding gate) is
+        unchanged; only weight/order among already-eligible candidates."""
         queries = list(input_words) if input_words else (
             [self._tapestry_prev_word] if self._tapestry_prev_word else [])
         if not queries:
@@ -5273,15 +5309,45 @@ class Guala:
         # addition, not a replacement, so a query word that hasn't yet
         # survived to deep memory still falls back to whatever the
         # organism-vote path above can offer.
-        n_deep_candidates = 0
+        # GL-CMD-CREDO-RELEVANCE-WEIGHT-C1-20260711: survey pass first --
+        # call the SAME _deep_atlas_neighbor_candidates walk per query
+        # word (unchanged function, unchanged real co-occurrence data),
+        # but against a FIXED exclusion snapshot rather than one that
+        # grows as we go -- so a candidate word that genuinely co-occurs
+        # with more than one of this turn's own input words is visible
+        # as such, instead of being silently claimed by whichever query
+        # happened to run first and hidden from every later query's own
+        # walk. This only changes what the RANKING pass below can see;
+        # it does not add, remove, or re-gate any candidate word.
+        _deep_exclude_snapshot = set(input_words_lower)
+        _deep_proposals = {}  # word.lower() -> [(weight, section, mode_idx, word_label, query)]
         for q in queries:
             for word_label, weight, section, mode_idx in \
-                    self._deep_atlas_neighbor_candidates(q, exclude_words=input_words_lower):
-                co = {section: {str(mode_idx): weight}}
-                de = {"co_occurrence": co, "clarity": weight, "origin": "deep_atlas"}
-                candidates.append((de, co, weight))
-                input_words_lower.add(word_label.lower())
-                n_deep_candidates += 1
+                    self._deep_atlas_neighbor_candidates(q, exclude_words=_deep_exclude_snapshot):
+                _deep_proposals.setdefault(word_label.lower(), []).append(
+                    (weight, section, mode_idx, word_label, q))
+
+        n_deep_candidates = 0
+        for wl, proposals in _deep_proposals.items():
+            if wl in input_words_lower:
+                continue  # already claimed by an earlier source this turn
+            # Relevance = how many DISTINCT input words this candidate's
+            # own real co-occurrence data actually resonates with --
+            # spreading-activation convergence, not raw frequency. A
+            # word proposed by only one seed (the common case) gets
+            # n_distinct_queries==1 -> boost factor 1.0 -> unchanged
+            # weight/behavior.
+            n_distinct_queries = len(set(p[4] for p in proposals))
+            best_weight, section, mode_idx, word_label, _q = max(proposals, key=lambda p: p[0])
+            relevance_boost = 1.0 + min(
+                DEEP_ATLAS_RELEVANCE_BOOST_MAX - 1.0,
+                DEEP_ATLAS_RELEVANCE_BOOST_PER_SEED * (n_distinct_queries - 1))
+            weight = best_weight * relevance_boost
+            co = {section: {str(mode_idx): weight}}
+            de = {"co_occurrence": co, "clarity": weight, "origin": "deep_atlas"}
+            candidates.append((de, co, weight))
+            input_words_lower.add(wl)
+            n_deep_candidates += 1
 
         # GL-CMD-REFLECTION-EVE-20260710 (imagination half): a separate,
         # narrowly-scoped, low-weight source -- see _imagination_
