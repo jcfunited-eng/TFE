@@ -276,11 +276,25 @@ out = {
                 {'name': 'YOLO_MODEL_PATH', 'value': '/app/yolov8n.onnx'},
                 {'name': 'WHISPER_MODEL_PATH', 'value': 'tiny'},
                 # GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2: dual-
-                # write/dual-read Phase 1. RECALL_BACKEND=legacy is the
-                # code's own default when unset, but set explicitly here
-                # so the deployed backend is visible in infra config, not
-                # just implicit in source.
-                {'name': 'RECALL_BACKEND', 'value': 'legacy'},
+                # write/dual-read Phase 1. This shadow-comparison mode was
+                # built 2026-07-09 (GL-CMD-EMISSION-SHADOW-EVE-20260709)
+                # and never once turned on until now (2026-07-12), despite
+                # the blueprint's own written rollout plan calling for
+                # exactly this as step one. Independently verified before
+                # enabling: both dispatch sites (gualaloom_v5_engine.py
+                # _brain_emission_candidates, loom_model/brain.py
+                # recall_fast) compute the new backend inside a try/except
+                # and ALWAYS return the legacy result unchanged -- real
+                # output is provably untouched even if the new backend
+                # throws. Do NOT change this to 'stdp' without first
+                # confirming real shadow-comparison data shows agreement
+                # (the new backend currently has ~7 real synapses and 0
+                # word-neuron associations after 3+ hours of real
+                # conversation -- flipping to 'stdp' today would silence
+                # real replies almost every turn, confirmed by code trace,
+                # not guessed). This flag's only job right now is to start
+                # collecting the comparison data nobody has ever collected.
+                {'name': 'RECALL_BACKEND', 'value': 'shadow'},
                 # 2026-07-09: this template previously left
                 # EVENT_DRIVEN_SUBSTRATE UNSET (defaults to 1 in code) on
                 # the theory it was only meant to be overridden for
