@@ -330,6 +330,38 @@ out = {
                 # wouldn't do anything real yet.
                 {'name': 'HOMEOSTATIC_SCALING_ENABLED', 'value': '1'},
                 {'name': 'ENTRY_NEURON_BROADEN_ENABLED', 'value': '1'},
+                # 2026-07-12: GL-FIX-KEYHOLE-CONTENT-COUPLING. Real reply
+                # generation (assemblage.py, /converse path, unrelated to
+                # the loom_model/RECALL_BACKEND shadow subsystem above)
+                # currently produces mostly one-word/empty replies because
+                # its six per-role sections settle independently and only
+                # borrow a commit-threshold discount from each other
+                # (the existing "keyhole" mechanism) -- never real content.
+                # docs/ArcLoom_Master_Specification_v5_0.tex Ch.3 prescribes
+                # phase-coupled sections settling toward one coherent field;
+                # a full single-field rewrite is out of scope for one
+                # night's work, so this is a first, conservative step: a
+                # sender's committed word becomes a bounded, auto-expiring
+                # Hamiltonian goal in the receiver, reusing the exact
+                # goal-injection machinery hear_speaker() already uses
+                # safely in production (goal_op_for_template +
+                # standing_goals) -- not new Hamiltonian-term code. Kept
+                # directional (matching the existing acyclic keyhole chain,
+                # not bidirectional) to avoid same-turn 2-cycle oscillation.
+                # Verified: off-by-default is a true no-op, injected
+                # operators are Hermitian/bounded, standing_goals never
+                # grows past the existing 5-tick expiry window under
+                # sustained pressure, a 300-tick zero-input stress run
+                # shows no self-sustaining cascade (same detection method
+                # as the 2026-07-08 STDP-cascade regression writeup), and
+                # the full existing assemblage test suite (gamma
+                # persistence, chi-bucket, mode-cap) still passes unchanged
+                # -- see dsf_ai_service/substrate/test_keyhole_content_coupling.py.
+                # Real end-to-end efficacy (does this raise the live
+                # commit rate) is an observe-after-deploy question, same as
+                # every other flag graduated tonight -- watch for it.
+                # Revert by setting this back to '0' and redeploying.
+                {'name': 'KEYHOLE_CONTENT_COUPLING_ENABLED', 'value': '1'},
                 # 2026-07-09: this template previously left
                 # EVENT_DRIVEN_SUBSTRATE UNSET (defaults to 1 in code) on
                 # the theory it was only meant to be overridden for

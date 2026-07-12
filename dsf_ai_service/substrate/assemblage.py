@@ -491,6 +491,60 @@ class System:
         self.keyholes.append({"sender": sender, "chi_lo": chi_lo, "chi_hi": chi_hi,
                               "receiver": receiver, "goal_strength": goal_strength})
 
+    def _apply_keyhole_content_coupling(self, commits_this_tick):
+        """GL-FIX-KEYHOLE-CONTENT-COUPLING-20260712: real content-level
+        coupling between adjacent emission sections, layered on top of
+        the existing (unchanged) threshold-discount handoff above.
+
+        ArcLoom_Master_Specification_v5_0.tex Ch.3 "Nonlinear Coupling"
+        describes sections settling as ONE phase-coupled field, not
+        independent processes nudged only by a borrowed commit-threshold
+        discount -- the existing keyhole mechanism changes WHEN a
+        receiver can commit but never WHAT it settles toward. This is a
+        conservative first step toward real coupling: a sender's
+        committed content becomes a bounded, auto-expiring Hamiltonian
+        goal in the receiver, reusing the exact goal-injection machinery
+        hear_speaker() already uses safely in production
+        (goal_op_for_template + standing_goals) rather than new
+        Hamiltonian-term code.
+
+        Deliberately kept directional (sender->receiver only, matching
+        the existing acyclic keyhole chain) rather than bidirectional --
+        spec invariant #9 wants symmetric coupling, but a same-turn
+        receiver->sender nudge risks a 2-cycle oscillation this first
+        step avoids. Bounded and non-self-reinforcing: goal strength is
+        the same frozen add_keyhole() constant already used for the
+        threshold discount (no new tunable, not learned/fitted), the
+        injected operator is a bounded projector (eigenvalues in
+        [-1, 0], identical shape to hear_speaker's), and it expires
+        automatically via the existing "hf_"-prefixed
+        handoff_lifetime=5 rule in expire_standing_goals() -- already
+        called unconditionally every tick below -- so this cannot
+        accumulate state or self-reinforce.
+        """
+        if os.environ.get("KEYHOLE_CONTENT_COUPLING_ENABLED", "0") != "1":
+            return
+        for c in commits_this_tick:
+            if c["reason"] != "entropic_flip":
+                continue
+            sender = c["section"]
+            chi = c["chi"]
+            mode_id = c["mode_id"]
+            sender_sec = self.sections.get(sender)
+            if (sender_sec is None or mode_id < 0
+                    or mode_id >= len(sender_sec.mode_bank)):
+                continue
+            template = sender_sec.mode_bank[mode_id]
+            for kh in self.keyholes:
+                if kh["sender"] != sender or not (kh["chi_lo"] <= chi <= kh["chi_hi"]):
+                    continue
+                rec_sec = self.sections.get(kh["receiver"])
+                if rec_sec is None:
+                    continue
+                op = goal_op_for_template(template)
+                rec_sec.standing_goals.append(
+                    (f"hf_kh_t{self.tick}", op, kh["goal_strength"], "handoff"))
+
     def project_into(self, section, evidence):
         if section.map_inject is None or evidence is None:
             return None
@@ -625,6 +679,8 @@ class System:
                     # Set excitation in receiver
                     rec_sec.excitation_expires_at = self.tick + 8  # ~one phase
                     rec_sec.excitation_strength = kh["goal_strength"]
+
+        self._apply_keyhole_content_coupling(commits_this_tick)
 
         # Coordinator
         coordinator_fired_this_tick = False
