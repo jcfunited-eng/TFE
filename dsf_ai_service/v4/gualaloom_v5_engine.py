@@ -5244,6 +5244,28 @@ class Guala:
         registry and re-applies the same references) and safe to call
         when self._spike_bus is None (EVENT_DRIVEN_SUBSTRATE=0 or not
         constructed yet), in which case it's a no-op.
+
+        GL-CMD-MOOD-BROADCAST-WIRE-20260712: also (re-)wires the global
+        mood/affect broadcast (neuron.py's LoomNeuron.set_mood_source /
+        brain.py's LoomBrain.wire_mood_broadcast) onto the same
+        just-rebuilt neuron population, via the same call sites this
+        method already has (construction, gualaloom_v5_engine.py:2586;
+        post-restore, gualaloom_v5_engine.py:12078+) -- deliberately NOT
+        a new, separate call site of its own. Correct to gate this on the
+        same early return above: LoomNeuron.receive_spike() -- the only
+        place _mood_source is ever read (see neuron.py) -- is itself only
+        ever invoked by SpikeBus delivery (substrate/spike_bus.py), so
+        with no spike bus there is no receive_spike() call for a mood
+        source to modulate either way; wiring it independently of the bus
+        would be a real no-op dressed as a live connection. self.needs
+        (gualaloom_v5_engine.py:2355) is constructed once in __init__,
+        before this method's first call, and is only ever mutated in
+        place thereafter (_apply_needs et al. assign fields, never
+        rebind self.needs) -- so the SAME real Needs instance stays
+        correctly wired across every restore, with no risk of wiring a
+        stale/discarded one. MOOD_BROADCAST_ENABLED stays the sole
+        behavior gate (default OFF): this only ever assigns a reference,
+        exactly mirroring set_spike_bus/set_word_firing_callback above.
         """
         if getattr(self, '_spike_bus', None) is None:
             return
@@ -5266,6 +5288,7 @@ class Guala:
 
         self.organism.brain.set_spike_bus(self._spike_bus)
         self.organism.brain._guala_ref = self
+        self.organism.brain.wire_mood_broadcast(self.needs)
 
     # ------------------------------------------------------------------
     # GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2: word<->neuron
