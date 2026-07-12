@@ -102,6 +102,49 @@ MAX_SYNAPSE_WEIGHT = 5.0
 MIN_SYNAPSE_WEIGHT = 0.0
 STDP_DEFAULT_SYNAPSE_WEIGHT = 0.05  # weight for a not-yet-potentiated synapse
 
+# --- GL-CMD-MOOD-BROADCAST-C1-20260712-v1: global mood/affect broadcast ---
+# Real-world grounding: in a real nervous system, a global neuromodulator
+# broadcast (locus-coeruleus norepinephrine for arousal -- Aston-Jones &
+# Cohen's adaptive-gain theory: tonic NE level modulates the GAIN of
+# neural responses brain-wide; dopaminergic signaling for valence/reward,
+# well established to shift the THRESHOLD at which a response happens)
+# reaches the whole brain at once and changes how READILY neurons respond,
+# rather than every region computing its own local mood independently.
+# This substrate already has exactly that signal, real and already
+# computed every tick: gualaloom_v5_engine.py's Needs.arousal()/
+# .valence() (self.needs on the live Guala engine -- see guala_status's
+# "needs: stab=... nov=... conn=... v=... a=..." line). This file (and
+# this dispatch) NEVER imports or constructs a Needs object, never writes
+# to one, and never touches gualaloom_v5_engine.py at all (verified via
+# `git diff` -- zero lines changed there by this dispatch) -- LoomNeuron
+# only ever calls two zero-argument READ methods, .arousal()/.valence(),
+# on whatever object is wired via set_mood_source() below. One-way
+# broadcast: engine -> organism, never the reverse.
+#
+# HEURISTIC: MOOD_MODULATION_MAX_FRACTION=0.10 -- a neuromodulator
+# broadcast should be a small bias layered on top of this neuron's own
+# real dynamics, not a dominant driver (an aggressive, unbounded effect
+# size is exactly the class of risk this codebase has repeatedly hit from
+# new mechanisms wired into the firing path -- see
+# test_lateral_inhibition_cascade.py's history). Every multiplier this
+# mechanism produces is explicitly clamped to
+# [1-MOOD_MODULATION_MAX_FRACTION, 1+MOOD_MODULATION_MAX_FRACTION]
+# regardless of how extreme the real arousal/valence inputs are (see
+# _read_mood_modulation below) -- a real, bounded modulation, never a
+# state override. Class: from-design. Measurement plan: if live behavior
+# ever shows this is too weak/strong to be a measurable-but-safe nudge,
+# adjust this one constant, not the modulation logic.
+MOOD_MODULATION_MAX_FRACTION = 0.10
+
+# Kill switch: MOOD_BROADCAST_ENABLED, default OFF ("0"), read live on
+# every receive_spike() call -- same live-read, opt-in-only convention as
+# HOMEOSTATIC_SCALING_ENABLED (embryo.py) / gualaloom_v5_engine.py's
+# WAVE_ATLAS_DECAY_ENABLED. With the switch OFF (the only state this
+# ships in), _read_mood_modulation() returns (1.0, 1.0) immediately --
+# a pure no-op, zero behavior change from before this addition (see
+# test_mood_broadcast.py's off-switch parity test).
+MOOD_BROADCAST_ENABLED_ENV = "MOOD_BROADCAST_ENABLED"
+
 # 2026-07-09 real, measured finding (test_stdp_repeated_exposure_learning.py):
 # the existing pre-before-post rule above (STDP_POTENTIATION_AMPLITUDE) can
 # only ever run inside _fire() -- it requires the POSTsynaptic neuron to
@@ -735,6 +778,13 @@ class LoomNeuron:
         # (cluster.py, brain.py, embryo.py all construct LoomNeuron without
         # a bus argument) are unaffected.
         self._spike_bus = None
+        # GL-CMD-MOOD-BROADCAST: read-only reference to a global mood/
+        # affect source, set via set_mood_source() (see that method and
+        # the MOOD_MODULATION_MAX_FRACTION module comment above). None by
+        # default -- _read_mood_modulation() treats an unset source
+        # exactly like the kill switch being off, so every neuron nothing
+        # ever wires this on is completely unaffected.
+        self._mood_source = None
 
         # --- GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v1: STDP state ---
         # source_neuron_id -> [(fire_time_s, spike_weight), ...], pruned to
@@ -802,11 +852,17 @@ class LoomNeuron:
         _spike_bus: runtime reference, re-wired at boot by Guala.wire_spike_bus().
         _word_firing_callback: bound method into Guala -- pickling it would
             drag the entire Guala object graph into this one neuron's state.
+        _mood_source: GL-CMD-MOOD-BROADCAST -- same reasoning as
+            _spike_bus/_word_firing_callback: a live, runtime-only
+            reference (the real Guala engine's Needs object), re-wired by
+            whatever future call site invokes set_mood_source()/
+            LoomBrain.wire_mood_broadcast() after restore, never pickled.
         """
         state = self.__dict__.copy()
         state.pop('_neuron_lock', None)
         state.pop('_spike_bus', None)
         state.pop('_word_firing_callback', None)
+        state.pop('_mood_source', None)
         return state
 
     def __setstate__(self, state):
@@ -821,6 +877,17 @@ class LoomNeuron:
         """
         self.__dict__.update(state)
         self._neuron_lock = threading.Lock()
+
+        # GL-CMD-MOOD-BROADCAST backfill: a pre-this-dispatch pickle has
+        # no _mood_source key at all (it was popped from state in
+        # __getstate__ above, same as _spike_bus/_word_firing_callback).
+        # Backfill to None (the real __init__ default) explicitly, not
+        # left absent -- _read_mood_modulation() defensively handles None,
+        # but an absent attribute would raise AttributeError instead of
+        # degrading to a no-op. A real wiring call (once one exists) sets
+        # this for real shortly after restore, same as _spike_bus.
+        if not hasattr(self, '_mood_source'):
+            self._mood_source = None
 
         # PHASE_1_V2_BACKFILL -- keep in sync with __init__ above.
         if not hasattr(self, 'membrane_potential'):
@@ -906,6 +973,101 @@ class LoomNeuron:
         None by default, so untouched neurons are unaffected."""
         self._word_firing_callback = callback
 
+    def set_mood_source(self, mood_source) -> None:
+        """GL-CMD-MOOD-BROADCAST: wire this neuron to a read-only global
+        mood/affect state source.
+
+        mood_source must expose zero-argument .arousal() -> float
+        (roughly [0,1]) and .valence() -> float (roughly [-1,1]) methods
+        -- the real gualaloom_v5_engine.py Needs class (self.needs on the
+        live Guala engine) already does, unchanged, via its existing
+        arousal()/valence() methods. This neuron NEVER calls anything
+        else on mood_source, and never calls a mutating method on it --
+        one-way broadcast, no write path back to the source exists
+        anywhere in this class. Optional -- None by default (see
+        __init__), so _fire()/receive_spike() work exactly as before on
+        any neuron this is never called on."""
+        self._mood_source = mood_source
+
+    def _read_mood_modulation(self) -> float:
+        """GL-CMD-MOOD-BROADCAST: cheap (O(1), no lock acquired here),
+        defensive read of the wired mood source. Returns gain_mult, a
+        single bounded multiplier -- see MOOD_MODULATION_MAX_FRACTION's
+        module comment for the full real-world grounding and safety
+        reasoning -- applied to a spike's contribution to membrane
+        potential (see receive_spike below). Scaling contribution up/down
+        is this substrate's version of "how readily this neuron responds"
+        (real neuromodulatory gain modulation): it acts on the exact same
+        firing decision a threshold shift would, without needing a second,
+        separate application point.
+
+        Combines both real mood dimensions into the one multiplier:
+        arousal (NE/LC-style adaptive gain) and valence (dopamine/reward-
+        style facilitation), each weighted at half of
+        MOOD_MODULATION_MAX_FRACTION so neither dimension alone can reach
+        the full bound, and the combined result is still explicitly
+        clamped to
+        [1-MOOD_MODULATION_MAX_FRACTION, 1+MOOD_MODULATION_MAX_FRACTION]
+        regardless of the two inputs' values.
+
+        Arousal is used DIRECTLY, not centered on any midpoint: the real
+        Needs.arousal() this is grounded in is already a zero-based
+        magnitude (0.0 = perfectly calm/no disequilibrium, 1.0 = maximal),
+        not a bipolar signal around some resting average -- centering it
+        on 0.5 would have invented a "medium arousal is neutral" semantic
+        this substrate's own Needs class does not have. So arousal only
+        ever pushes gain UP (any real disequilibrium -- good or bad --
+        is more alerting than genuine calm, same real-world grounding as
+        LC-NE firing rising for salient events of either valence), and
+        zero arousal (needs exactly at target) contributes exactly zero.
+        Valence is already the bipolar term (Needs.valence() is signed,
+        0.0 exactly at target) and needs no such transform: positive
+        valence (needs met) nudges gain up further, negative valence
+        (needs unmet / distress) pulls it back down. For this substrate's
+        real Needs arithmetic the two terms are correlated (arousal is
+        bounded below by an increasing function of |valence|), so a real,
+        non-adversarial Needs state can never drive gain_mult below 1.0 --
+        an honest structural fact about this specific real signal, not a
+        design flaw (only genuine homeostatic calm is the true floor);
+        the adversarial-source tests below confirm the DOWNWARD half of
+        the bound is still real and enforced for any duck-typed source
+        that isn't this particular correlated shape.
+
+        Returns 1.0 -- a pure no-op -- unless ALL of: the
+        MOOD_BROADCAST_ENABLED kill switch is on, a mood source is wired,
+        and it yields two finite floats. Never raises: any failure
+        reading the source (unset, wrong type, a stale/partially-restored
+        object, an exception inside its own methods) is treated
+        identically to "no mood signal this call" -- a broadcast reader
+        must never be able to destabilize the neuron it modulates or the
+        caller's own hot path.
+
+        Deliberately called OUTSIDE self._neuron_lock by receive_spike()
+        below -- this reads only the external mood_source and module-
+        level constants, none of this neuron's own locked state, so
+        holding the lock for it would only lengthen the critical section
+        for no correctness benefit.
+        """
+        if os.environ.get(MOOD_BROADCAST_ENABLED_ENV, "0") != "1":
+            return 1.0
+        source = self._mood_source
+        if source is None:
+            return 1.0
+        try:
+            arousal = float(source.arousal())
+            valence = float(source.valence())
+        except Exception:
+            return 1.0
+        if not (math.isfinite(arousal) and math.isfinite(valence)):
+            return 1.0
+        arousal = max(0.0, min(1.0, arousal))
+        valence = max(-1.0, min(1.0, valence))
+        half = MOOD_MODULATION_MAX_FRACTION * 0.5
+        gain_mult = 1.0 + half * arousal + half * valence
+        gain_mult = max(1.0 - MOOD_MODULATION_MAX_FRACTION,
+                         min(1.0 + MOOD_MODULATION_MAX_FRACTION, gain_mult))
+        return gain_mult
+
     def _prune_presynaptic_history(self, source_id: str, now: float) -> None:
         history = self._recent_presynaptic_fires.get(source_id)
         if not history:
@@ -927,8 +1089,16 @@ class LoomNeuron:
         checks threshold, fires if crossed and not refractory.
         Thread-safe -- spike arrivals are concurrent from the bus's
         delivery thread and (potentially) other callers.
+
+        GL-CMD-MOOD-BROADCAST: contribution is additionally scaled by
+        _read_mood_modulation()'s gain_mult -- 1.0 (no-op) unless the
+        MOOD_BROADCAST_ENABLED kill switch is on and a mood source is
+        wired (see that method and set_mood_source above). Read once,
+        before the lock (cheap, and touches no locked state -- see
+        _read_mood_modulation's own docstring for why that's safe).
         """
         is_external = spike.source_neuron_id.startswith(EXTERNAL_SOURCE_PREFIX)
+        mood_gain_mult = self._read_mood_modulation()
 
         with self._neuron_lock:
             now = time.monotonic()
@@ -941,7 +1111,7 @@ class LoomNeuron:
                 )
 
             if is_external:
-                contribution = spike.weight
+                contribution = spike.weight * mood_gain_mult
             else:
                 # STDP-only path: record presynaptic fire history (pruned
                 # to STDP_WINDOW_MS) for potentiation on our own next
@@ -952,7 +1122,16 @@ class LoomNeuron:
                 self._prune_presynaptic_history(spike.source_neuron_id, now)
                 synapse_weight = self._incoming_synapse_weights.get(
                     spike.source_neuron_id, STDP_DEFAULT_SYNAPSE_WEIGHT)
-                contribution = spike.weight * synapse_weight
+                # GL-CMD-MOOD-BROADCAST: mood-modulated weight is clamped
+                # back into the SAME [MIN_SYNAPSE_WEIGHT, MAX_SYNAPSE_WEIGHT]
+                # range every other writer of this value already respects
+                # (_apply_stdp_potentiation, _apply_subthreshold_
+                # potentiation, _receive_upstream_fire_notification above)
+                # -- mood can never push an effective weight outside this
+                # file's own existing, already-reasoned synapse bound.
+                effective_weight = max(MIN_SYNAPSE_WEIGHT, min(
+                    MAX_SYNAPSE_WEIGHT, synapse_weight * mood_gain_mult))
+                contribution = spike.weight * effective_weight
 
             self.membrane_potential += contribution
             self.last_update_time_s = now

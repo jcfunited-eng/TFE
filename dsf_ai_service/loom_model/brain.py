@@ -148,6 +148,33 @@ class LoomBrain:
     def set_spike_bus(self, spike_bus) -> None:
         self._spike_bus = spike_bus
 
+    def wire_mood_broadcast(self, mood_source) -> None:
+        """GL-CMD-MOOD-BROADCAST: wire a read-only global mood/affect
+        source (see neuron.py's LoomNeuron.set_mood_source docstring for
+        the contract -- must expose zero-arg .arousal()/.valence()
+        methods; the real gualaloom_v5_engine.py Needs instance, self.needs
+        on the live Guala engine, already does) onto every neuron in this
+        brain.
+
+        One-way: this call only ever WRITES a reference onto each neuron
+        via set_mood_source(); it never reads or mutates anything on
+        mood_source itself, and neither this file nor neuron.py ever call
+        a mutating method on it -- only .arousal()/.valence(), both pure
+        reads on the real Needs class.
+
+        Mirrors gualaloom_v5_engine.py's wire_spike_bus() neuron-loop
+        idiom, kept here (not there) so this dispatch touches zero lines
+        of gualaloom_v5_engine.py -- the file this dispatch is explicitly
+        scoped to never modify (verified via `git diff`). NOT called
+        automatically from anywhere in this dispatch -- a future caller
+        (Guala.wire_spike_bus(), or any other boot/restore hook) wires it
+        in with one line: `self.organism.brain.wire_mood_broadcast(self.needs)`.
+        Idempotent and safe to call multiple times, or with
+        mood_source=None (clears the wiring on every neuron)."""
+        for hemi in self.hemispheres:
+            for neuron in hemi.cluster.neurons:
+                neuron.set_mood_source(mood_source)
+
     def _wire_cross_hemi(self):
         """Wire projection neurons to targets in adjacent hemispheres.
 
