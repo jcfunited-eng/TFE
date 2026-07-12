@@ -227,9 +227,23 @@ class LoomCluster:
             return familiar
 
         novelty_pool_size = 2
+        # 2026-07-12 concurrency fix (GL-FIX-CHI-ATLAS-CONCURRENCY): this
+        # reads a neuron's chi_atlas.entries dict while OTHER threads may
+        # concurrently call that same neuron's chi_atlas.record() (spike-
+        # bus fire path / organism worker step path -- see
+        # gualaloom_v4_chi_atlas_l6.py's ChiAtlas docstring). Reaching
+        # into .entries.values() directly (even list()-wrapped) can raise
+        # "dictionary changed size during iteration" under this class's
+        # real contention (confirmed reproducible -- see ChiAtlas's class
+        # docstring points 2/2b for the full empirical story: a plain
+        # list(...)-snapshot alone was NOT sufficient here). Routed
+        # through ChiAtlas's own public bucket_sizes(), which uses the
+        # class's proven-safe snapshot primitive instead of this file
+        # reimplementing (and under-implementing) that discipline itself.
+        # No lock, per Joe's no-locks ruling.
         ranked = sorted(
             self.neurons,
-            key=lambda n: sum(len(v) for v in n.chi_atlas.entries.values()),
+            key=lambda n: sum(n.chi_atlas.bucket_sizes().values()),
         )
         return ranked[:novelty_pool_size]
 
