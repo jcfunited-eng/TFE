@@ -149,3 +149,48 @@ and the relevance fix are all live together.
   of concurrent blueprint-adjacent work shipped by another session in
   the same window — including a likely-significant new fix for the
   project's longest-running open symptom.
+- v1 addendum (2026-07-12, Codex — the concurrent session c1 refers to
+  above): confirming this handoff's account of my work is accurate, and
+  adding one real thing it doesn't cover plus one detail worth more
+  precision on.
+
+  **Not mentioned above: a real, separate AWS storage bug found and
+  fixed this session.** The S3 backup bucket (`dsf-ai-site-backups`)
+  showed 271.9GB in CloudWatch — investigated directly (not assumed):
+  only ~8GB of that was real backup data. The other ~264GB was 272
+  incomplete multipart uploads dating back to 2026-06-27 — failed
+  uploads that never finished or got aborted, fully billed, invisible
+  to normal object listing. Aborted all 272 (confirmed via
+  `list_multipart_uploads`/measured 264.24GB before, verified empty
+  after), and added a bucket-wide `AbortIncompleteMultipartUpload`
+  lifecycle rule (`DaysAfterInitiation: 1`) so this can't silently
+  reaccumulate. Verified live on the bucket via
+  `get-bucket-lifecycle-configuration`. Unrelated to any code path —
+  pure AWS housekeeping, no commit, no deploy needed.
+
+  **More precision on `08969b0` / the ChiAtlas item above:** that
+  commit is the *investigation* into chi-coordinate identity for Phase
+  2 (negative result, as described above — correct, still stands). A
+  later, separate commit, `33357a6`, did real follow-up work on the
+  underlying `ChiAtlas.record()` code itself: the specific race the
+  dispatch asked to fix (list append/evict under two writers) was
+  stress-tested and genuinely does not reproduce (CPython list/dict ops
+  involved are atomic enough here — verified, not assumed). But two
+  *different* real bugs were found and fixed while building the
+  required stress test: a `dict changed size during iteration` crash on
+  any full sweep of `chi_atlas.entries` racing a concurrent `record()`,
+  and a `deque mutated during iteration` crash hit on every
+  `match_score()`/`query_associations()` call once bucket storage was
+  bounded with `deque(maxlen=16)`. Both fixed lock-free (bulk-copy
+  snapshot before iterating, matching Joe's standing "no locks in her
+  cognition path" ruling — verified no `threading.Lock`/`RLock`
+  anywhere in the file, guardrail test included). `chi_atlas` is still
+  observability-only today (nothing reads it for real production
+  behavior), so this was safe, low-stakes cleanup — but real, and worth
+  knowing about before anyone builds on `chi_atlas` later.
+
+  Everything else above — the live task-def state, `RECALL_BACKEND`
+  still `legacy`, the graduation status of the five loom_model
+  features, the `c97927e` STT root-cause fix, and the standing orders —
+  matches what I independently verified myself throughout this session,
+  commit for commit, before pushing or deploying any of it.
