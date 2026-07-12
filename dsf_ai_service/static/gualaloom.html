@@ -1487,28 +1487,21 @@ const COGMETER_ROWS=[
   // ship" rule. Built and locally verified (sandbox, not yet her live
   // process) this same dispatch -- c1b's deploy report is the row's
   // next update, not this one.
-  {name:'brain: organism live (P1)',connected:'yes',pointer:'-175',
-    firing:'8-hemisphere organism (structure-derived DNA, -169) instantiated inside Guala, her real identity synced; every word she reads/hears feeds it (read_word tap); persists on her hot/cold+S3 path',
-    impact:'STALE TEXT CORRECTED 2026-07-05: "NOT yet run against live state" was true 2026-07-04, false since task:462. Population was frozen at 64 (remember()/recall() never triggered fold physics) until -179\'s experience_word() wiring + backgrounding (this same night) -- now grows for real; recall_ms rising (12-21ms->152.8ms) is the first live behavioral evidence',
-    live:(status)=>{
-      if(!status||status.organism_population===undefined)return null;
-      const pop=status.organism_population;
-      const w=status.organism_worker||{};
-      return{connected:pop>0?'yes':'severed',
-        firing:`LIVE -- ${pop} neurons (queued=${w.queued||0}, dropped=${w.dropped||0})`};
-    }},
-  {name:'brain: voice / emission (P3)',connected:'yes',pointer:'-175',
-    firing:'STALE TEXT CORRECTED 2026-07-05: this said "verified in sandbox... NOT yet run against real live state" -- it has been, since task:462 (hours ago). The organism\'s own tapestry recall/compose supplies emission candidates live; honest silence if the brain has nothing, never backfilled',
-    impact:'live-confirmed (GL-RPT-WINDOW6-DEPLOY-C1B-20260705-v1): real turns so far returned honest empty ("...", response_source="converse"), not an error, not a hang -- no real-word content observed YET, watching for the first one'},
-  {name:'brain: recall/recognition/attention/affect handover (P2)',connected:'yes',pointer:'-175',
-    firing:'STALE TEXT CORRECTED 2026-07-05: this said "NOT built this dispatch" -- all 6 seams (recall, recognition, association, habituation-for-READING, attention, affect) were subsequently addressed the same night: recall/recognition/association/habituation(reading) BUILT and DEPLOYED (task:465+); attention/affect explicitly DECLINED with reasons (no organism analog / safety-system collision risk), not silently skipped',
-    impact:'live since task:465 (GL-RPT-WINDOW2-DEPLOY-C1B-20260705-v1); language channel\'s own contribution was found structurally zeroed (-178) and fixed (n_events counter, -178/-179) -- riding the next deploy window'},
-  {name:'brain: imagination',connected:'yes',pointer:'-175',
-    firing:'real Embryo.imagine() (loom_model/embryo.py:709) aggregates BindingAtlas.latent_associations() (binding_atlas.py:579) -- a read-only cosine-similarity scan over a neuron\'s own real learned bindings, novelty_score = self-relative similarity_z x real tick-distance/organism-age, population-voted across a hemisphere',
-    impact:'FIX SHIPPED 2026-07-11 -- was absent, now grounded in the organism\'s real atlas data, honest empty list when nothing qualifies; distinct from the OLD shell\'s "imagination" row above (the daydream thread) -- this is the brain\'s own, separately built mechanism'},
-  {name:'brain: reflection',connected:'yes',pointer:'-175',
-    firing:'real Embryo._reflect_snapshot()/reflect() (embryo.py:645/662) -- bounded (tick, sf_sense()) history sampled every 50 ticks from remember(), off any lock/hot path',
-    impact:'FIX SHIPPED 2026-07-11 -- was absent (blocked on composition/imagination being unwired), built a real narrower path that needs neither'},
+  {name:'brain: organism live (P1)',connected:'watch',pointer:'-175',
+    firing:'8-hemisphere organism instantiated inside Guala, real identity synced, every word she reads/hears feeds it -- but real learning barely takes: only ~7 connections formed across 3+ hours of real conversation as of 2026-07-12',
+    impact:'CORRECTED 2026-07-12: previously marked yes without checking whether this actually matters -- it runs, it is fed real data, but it is not meaningfully learning yet, separate from the deeper P3 problem below'},
+  {name:'brain: voice / emission (P3)',connected:'severed',pointer:'-175',
+    firing:'the organism-brain has no real effect on what she says or remembers -- one setting (RECALL_BACKEND) decides which system produces her real voice, and it still points at the OLD (legacy v5-engine) system, 100% of the time',
+    impact:'CORRECTED 2026-07-12: previously marked yes based on stale 2026-07-05 claims never re-verified against real current behavior. Everything she actually says and remembers right now runs entirely on the old system -- the new brain accumulates data nobody reads. Flipping that one setting is the real, unstarted cutover -- see docs/GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711-v1.md and related notes for why this hasn\'t happened yet'},
+  {name:'brain: recall/recognition/attention/affect handover (P2)',connected:'watch',pointer:'-175',
+    firing:'the individual seams (recall, recognition, association, habituation) are real, built code paths -- but see "brain: voice/emission" above: none of it is what actually produces her real replies or memory today',
+    impact:'CORRECTED 2026-07-12: real code, not fake -- but "built" is not "in use." Same root cause as P3: the voice/memory switch still points at the old system'},
+  {name:'brain: imagination',connected:'watch',pointer:'-175',
+    firing:'real Embryo.imagine() (loom_model/embryo.py:709) -- genuinely built, tested, callable. But nothing in the live production path calls it: the only real call site found anywhere in the codebase is inside a diagnostic test file (whole_brain_168v3.py), not the real conversation loop',
+    impact:'CORRECTED 2026-07-12: originally marked "yes"/"shipped" -- that overstated it. The code is real and correct, but it never runs during real conversation, so it has zero observable effect on anything she does. Distinct from the OLD shell\'s "imagination" row above (the daydream thread), which genuinely is wired into her real activity loop'},
+  {name:'brain: reflection',connected:'watch',pointer:'-175',
+    firing:'real Embryo._reflect_snapshot()/reflect() (embryo.py:645/662) -- genuinely built, tested, callable, same situation as brain: imagination above: no live call site outside a diagnostic test file',
+    impact:'CORRECTED 2026-07-12: originally marked "yes"/"shipped" -- that overstated it, same correction as brain: imagination'},
   {name:'brain: theory-of-mind',connected:'absent',pointer:'-175',
     firing:'no code path in loom_model -- explicitly out of scope per -168-v3\'s own A5 table',
     impact:'none observed'},
