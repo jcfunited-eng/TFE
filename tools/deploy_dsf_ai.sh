@@ -302,6 +302,34 @@ out = {
                 # system only. Do not re-enable without his explicit
                 # instruction.
                 {'name': 'RECALL_BACKEND', 'value': 'legacy'},
+                # 2026-07-12: graduating the two safest of five same-night
+                # kill-switched loom_model features, per a dedicated real
+                # investigation (docs/GL-RPT-INERT-FEATURES-GRADUATION-
+                # PLAN-CODEX-20260712-v1) that ranked all five by risk.
+                # Both ship with real concurrency-stress tests and both
+                # re-pass the existing cascade regression test with the
+                # flag on. Neither can affect real speech/memory today --
+                # RECALL_BACKEND=legacy above means loom_model doesn't
+                # drive her real voice yet, so the only real risk is a
+                # crash/corruption in the shadow subsystem, which is
+                # exactly what these tests targeted. Homeostatic scaling
+                # only ever reduces an over-saturated neuron's synapse
+                # weights (same direction as STDP depression, away from
+                # the saturation that caused the 2026-07-08 cascade).
+                # Entry-neuron broadening is capped by a structural (not
+                # tuned) ceiling -- any subset of one 8-neuron hemisphere
+                # clique as entries can never exceed that hemisphere's own
+                # 12.5% injection breadth, half the 25%-of-population
+                # threshold that caused the entry-neuron over-injection
+                # incident this fix's own commit documents. Energy-limit
+                # and mood-broadcast stay OFF -- the graduation plan's own
+                # ordering says sequence energy-limit in after these two
+                # are observed, not alongside them. Vocabulary-seeding
+                # stays OFF -- it only ever teaches a disposable practice
+                # copy, not her real saved memory, so enabling it
+                # wouldn't do anything real yet.
+                {'name': 'HOMEOSTATIC_SCALING_ENABLED', 'value': '1'},
+                {'name': 'ENTRY_NEURON_BROADEN_ENABLED', 'value': '1'},
                 # 2026-07-09: this template previously left
                 # EVENT_DRIVEN_SUBSTRATE UNSET (defaults to 1 in code) on
                 # the theory it was only meant to be overridden for
