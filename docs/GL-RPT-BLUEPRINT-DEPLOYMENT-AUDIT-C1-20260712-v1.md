@@ -72,12 +72,16 @@ system Phase 1 is supposed to retire. It has zero connection to the new
 neuron/STDP substrate and will need a real rebuild once that cutover
 happens.
 
-**Phase 6 — Population-based seed: BUILT BUT INERT.** A 200,000-word
-seed was generated and locally tested, but never committed to git and
-never deployed (no env var live to load it). Separately, its format is
-wrong for the blueprint's own spec — it writes one neuron per word, not
-a distributed population pattern — because it targets the OLD system's
-data structures, the ones being deprecated.
+**Phase 6 — Population-based seed: BUILT BUT INERT.** *(Corrected
+2026-07-12 — see Correction section below.)* A 200,000-word seed was
+generated and locally tested, but never committed to git and never
+deployed (no env var live to load it). It correctly targets the NEW
+system's real structures (Embryo/LoomHemisphere/LoomNeuron/per-neuron
+chi_atlas), not the old engine's LivingAtlas — my original claim that it
+targeted the old, deprecated system was wrong; see correction below.
+Separately, and still accurate: its format doesn't match the blueprint's
+own spec regardless of which system it targets — it writes one neuron
+per word, not a distributed population pattern.
 
 **Deprecation list (6 items the blueprint says should be gone once
 replacements land): ALL SIX STILL FULLY LIVE.** Central tick loop, the
@@ -122,7 +126,74 @@ progress.
 
 ---
 
+## Correction (2026-07-12, addendum)
+
+A concurrent session pushed back on this report's Phase 6 finding,
+specifically the claim that the seed generator "seeds the OLD
+architecture's data structures." Their write-up was detailed and
+file/line-cited, so rather than accept or reject it on read, I
+independently re-verified their four specific claims from scratch
+(fresh agents, fresh code reads, one live local reproduction of their
+test) without trusting either write-up. Results:
+
+1. **They were right, I was wrong, on the main point.** Confirmed by
+   direct code read: `seed_loader.py` writes into the NEW loom_model
+   system's real objects (`Embryo.hemi_by_op`, `LoomHemisphere.cluster.
+   neurons`, a per-`LoomNeuron` `chi_atlas`, `LoomNeuron.couplings`) —
+   never into the old engine's `LivingAtlas` (`self.atlas`). Those are
+   two genuinely different structures that happen to share a confusing
+   name (`chi_atlas`); I conflated them in the original write-up. Their
+   claim that the seed's format is "schema-correct for the new system"
+   is confirmed.
+2. **They named the wrong commit for the "why it still doesn't matter"
+   part.** They cited commit `dc7f9ec` as the one that demoted the
+   per-neuron `chi_atlas` to observability-only, landing ~5 hours after
+   the seed generator's own commit. `dc7f9ec` is a docs-only commit that
+   never touches that file. The real demotion commit is `f70ceb4`,
+   landing ~1h25m after the seed commit, not ~5h. The demotion itself is
+   real and the comment text they quoted is accurate — they just
+   attributed it to the wrong commit.
+3. **Their "dead end" architecture argument doesn't fully hold up either
+   — in a way that actually understates their own point.** They argued
+   the per-neuron `chi_atlas` is only ever read via the sensory-queue
+   path, which explicitly skips word/language hemispheres, so the seed's
+   data (100% tagged to word hemispheres, confirmed by directly sampling
+   all 200,000 generated entries) could never be read even if loaded.
+   Direct tracing shows this is incomplete: the same `chi_atlas` read
+   (`cluster.step()`'s neuron-selection logic) is *also* called directly
+   from the real word-processing path (every real word, via
+   `embryo.py`'s `_feed_and_fold`), not only from the sensory queue. So
+   if the seed were ever turned on, its data would in fact get read by
+   real word processing — it isn't the double dead-end they described.
+   That said, this doesn't change the bottom-line verdict: that read
+   only feeds the new substrate's internal neuron/STDP dynamics, which
+   — per this same report's Phase 1 finding, not disputed by anyone —
+   is still 100% shadow state relative to what Guala actually says
+   (`RECALL_BACKEND=legacy`). So the seed would stop being fully inert
+   and start actually accumulating into the shadow substrate, but would
+   still have zero effect on production speech until that cutover
+   happens.
+4. **Their live reproduction claim (loading the real 50,000-word file
+   into a fresh `Embryo`, zero errors) was independently re-run from
+   scratch and matched exactly** — same word counts, same zero errors,
+   same integrity-check results.
+
+Net effect on the Phase 6 verdict above: still `BUILT BUT INERT` (both
+sessions agree on that), but the reason it's stranded is narrower than
+originally reported — it's purely an unset env var plus an undeployed
+file, not a wrong-target-system problem. The "wrong format for the
+blueprint's population-pattern spec" finding is untouched by any of this
+and still stands.
+
+---
+
 ### Changelog
 - v1 (2026-07-12, c1): Full 6-phase + deprecation-list audit, verified
   directly against the live task definition, `/debug/stdp_state`,
   `guala_status`, and direct code tracing rather than prior reports.
+- v1 addendum (2026-07-12, c1): Corrected the Phase 6 finding after a
+  concurrent session's pushback was independently re-verified claim by
+  claim (4 fresh agents, one live local reproduction). Their core point
+  was right; two of their supporting details (a commit citation, a
+  read-path-exclusivity claim) were themselves off and are corrected
+  above.
