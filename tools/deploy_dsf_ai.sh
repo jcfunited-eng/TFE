@@ -278,10 +278,11 @@ out = {
                 # GL-CMD-VOICE-TO-WORDS-153 Part B: real Whisper speech-to-
                 # text (app.py sound_frame -> process_sound_with_recognition,
                 # whisper-tiny, already baked into the image). Was built and
-                # gated OFF by default ("flips to 1 only on Eve GO after the
-                # cost line is filed") -- that approval never happened and
-                # nobody ever revisited it, so real spoken input was silently
-                # never transcribed despite the model being right there.
+                # gated OFF by default, comment said it flips to 1 only on
+                # Eve GO after the cost line is filed -- that approval never
+                # happened and nobody ever revisited it, so real spoken
+                # input was silently never transcribed despite the model
+                # being right there.
                 # Enabled 2026-07-12 after Joe reported speaking and seeing
                 # no STT at all -- confirmed live via CloudWatch logs (zero
                 # [voice-whisper] lines despite continuous real sound_frame
