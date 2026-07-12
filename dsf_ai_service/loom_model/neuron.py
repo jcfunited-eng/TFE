@@ -304,6 +304,103 @@ FIRE_BREAKER_CEILING_HZ = 250.0  # HEURISTIC: see reasoning above.
 # problem exists and how long it's lasted without flooding.
 FIRE_BREAKER_LOG_INTERVAL_S = 1.0  # HEURISTIC: once/sec/neuron is plenty for visibility.
 
+# --- Per-neuron metabolic energy limit ---
+# Real-world grounding: biological neurons pay a genuine metabolic cost to
+# fire (ATP-consuming ion pumps restore the resting potential after every
+# action potential) -- a real resource constraint on how much a neuron can
+# fire, not an arbitrary throttle. This is DISTINCT from both mechanisms
+# already in this file:
+#   - refractory_period_ms is a fixed, absolute TIME the neuron cannot fire
+#     again, regardless of how much or little it has recently fired.
+#   - FIRE_BREAKER_CEILING_HZ (above) is a HEURISTIC circuit breaker that
+#     only suppresses OUTGOING spike-bus propagation once a runaway BURST
+#     pattern is unambiguous (a full FIRE_BREAKER_WINDOW_N-fire window at
+#     > 250Hz) -- membrane reset, refractory, and STDP bookkeeping all
+#     still happen even on a tripped fire, and the first
+#     FIRE_BREAKER_WINDOW_N-1 fires of ANY burst, at ANY rate, never trip
+#     it (not enough history to judge yet).
+#
+# This mechanism is a real, depletable resource: every fire adds
+# ENERGY_COST_PER_FIRE to a per-neuron accumulator (_expended_energy), and
+# that accumulator leaks back down at ENERGY_RECOVERY_PER_S per real
+# elapsed second -- the SAME time.monotonic()-based real-elapsed-time
+# convention this file already uses for membrane_potential's own leaky
+# decay in receive_spike() above. Once the accumulator reaches
+# ENERGY_CEILING, the neuron CANNOT FIRE AT ALL -- checked in
+# receive_spike() at the same decision point as the refractory check,
+# BEFORE _fire() is ever called, so an energy-exhausted neuron's
+# threshold-crossing spike is absorbed (membrane potential stays where it
+# is, nothing resets) exactly like a refractory spike is -- not merely
+# stripped of its outgoing propagation the way a breaker-tripped fire is.
+# This makes it strictly MORE conservative than either existing mechanism
+# alone: it can block a fire independent of whatever the breaker's own
+# window/rate math would have decided, and independent of whether the
+# absolute refractory period has elapsed.
+#
+# Additive-only / never-loosening, by construction: this gate can only
+# ever ADD a new way for a fire to be blocked (an extra `if` before the
+# existing call to _fire()) -- it never touches membrane_potential,
+# membrane_threshold, refractory_until_s, _polarity (Dale's-law
+# inhibition sign), or _check_fire_rate_breaker's own trip decision. A
+# neuron that would not have fired before this addition (refractory, or
+# membrane below threshold) still does not fire; the only behavior this
+# can change is turning some additional "would have fired" cases into
+# "does not fire" ones, and only when ENERGY_LIMIT_ENABLED is explicitly
+# on.
+#
+# ENERGY_COST_PER_FIRE=1.0: arbitrary base unit (no physical energy scale
+# exists in this substrate to anchor to) -- ENERGY_CEILING and
+# ENERGY_RECOVERY_PER_S below are both derived FROM this unit, not
+# independently invented, so only the unit itself is arbitrary, not the
+# relationships between the three numbers. Class: from-design.
+ENERGY_COST_PER_FIRE = 1.0
+
+# ENERGY_CEILING=5.0 (5x ENERGY_COST_PER_FIRE): a neuron can fire 5 times
+# back-to-back with zero recovery time before the 6th is blocked. Set well
+# under FIRE_BREAKER_WINDOW_N=30 (this file's own existing window-size
+# constant, above) so a tight burst is caught by energy exhaustion long
+# before the breaker's own window could even finish filling enough to
+# judge a rate -- the two mechanisms cover different parts of the same
+# failure mode, not the same part twice. Class: from-design, derived
+# arithmetically from FIRE_BREAKER_WINDOW_N and ENERGY_COST_PER_FIRE, not
+# independently tuned. Measurement plan: if a legitimate burst of normal
+# activity (not a runaway) is ever observed tripping this in production,
+# that is a real over-tightness signal -- raise the ceiling; do not shrink
+# ENERGY_COST_PER_FIRE as a workaround (mirrors the FIRE_BREAKER_WINDOW_N
+# guidance above).
+ENERGY_CEILING = ENERGY_COST_PER_FIRE * 5.0
+
+# ENERGY_RECOVERY_PER_S=50.0: the SAME ~50Hz "no legitimate learning
+# signal ever needs a SUSTAINED rate faster than this" bound the
+# FIRE_BREAKER_CEILING_HZ reasoning above already derived from
+# tau_m_ms=20.0 (1000.0 / 20.0 = 50 Hz) -- reused here, not re-derived, so
+# a neuron sustaining fires at exactly that realistic bound recovers
+# energy at the same rate it spends it (steady state, never exhausts). A
+# neuron sustaining anything MEANINGFULLY faster than 50Hz -- including
+# rates still well under FIRE_BREAKER_CEILING_HZ=250Hz, which the breaker
+# would never trip on -- spends energy faster than it recovers and, given
+# enough real elapsed time, crosses ENERGY_CEILING and gets throttled.
+# This is the mechanism's actual complementary coverage: sustained
+# moderate-but-still-abnormal activity the rate breaker structurally
+# cannot see (it only trips above 250Hz), caught here instead. Class:
+# from-design, reuses tau_m_ms's own already-reasoned 50Hz bound rather
+# than inventing a new one. Measurement plan: same as
+# FIRE_BREAKER_CEILING_HZ above -- if legitimate high-activity neurons are
+# observed exhausting this in production, that is a real over-tightness
+# signal; raise ENERGY_RECOVERY_PER_S or ENERGY_CEILING, do not remove the
+# mechanism.
+ENERGY_RECOVERY_PER_S = 50.0
+
+# Kill switch: default OFF ("0"), read live on every call -- same
+# opt-in-only convention as HOMEOSTATIC_SCALING_ENABLED (embryo.py) /
+# gualaloom_v5_engine.py's WAVE_ATLAS_DECAY_ENABLED. Nothing in this
+# subsystem goes live-by-default. With the switch OFF (the current
+# default, and the only state this ships in), _energy_limit_blocks_fire()
+# always returns False immediately and _expend_energy_locked() never
+# touches self._expended_energy -- zero behavior change from before this
+# addition.
+ENERGY_LIMIT_ENABLED_ENV = "ENERGY_LIMIT_ENABLED"
+
 # Reserved source_id prefix for non-synaptic (external) spike sources --
 # direct word/cue injection from LoomBrain.step or recall's cue injection,
 # as opposed to a real neuron-to-neuron spike. STDP only applies to real
@@ -830,6 +927,27 @@ class LoomNeuron:
         # decision itself depends on and must never be throttled.
         self._last_breaker_log_time_s: float = 0.0
 
+        # --- Per-neuron metabolic energy limit state (see ENERGY_CEILING
+        # module comment above for the full design/safety reasoning) ---
+        # Accumulated "expended energy" -- grows by ENERGY_COST_PER_FIRE on
+        # every real fire, leaks back down at ENERGY_RECOVERY_PER_S per
+        # real elapsed second. Only ever mutated while self._neuron_lock is
+        # held (same discipline as every other per-neuron mutable field in
+        # this class).
+        self._expended_energy: float = 0.0
+        # time.monotonic() timestamp of the last recovery application --
+        # separate from last_update_time_s (membrane decay) and
+        # _last_fire_time_s (STDP/refractory) so this mechanism's own
+        # leaky-recovery arithmetic is self-contained and doesn't silently
+        # depend on either of those being updated in some particular order.
+        self._last_energy_update_time_s: float = 0.0
+        # Observability only -- total number of fires this neuron has ever
+        # had blocked outright by energy exhaustion, since construction or
+        # last restore. Never read by the gate's own decision (that's
+        # purely a function of _expended_energy) -- same convention as
+        # _fire_breaker_trip_count above.
+        self._energy_block_count: int = 0
+
         # Apply birth_params if this is a daughter neuron
         if birth_params is not None:
             self._apply_birth_params(birth_params)
@@ -936,6 +1054,19 @@ class LoomNeuron:
             self._spike_bus = None
         if not hasattr(self, '_word_firing_callback'):
             self._word_firing_callback = None
+        # Per-neuron metabolic energy limit backfill (see ENERGY_CEILING
+        # module comment). A pickle written before this field existed
+        # backfills cold (0.0 expended energy) -- correct: we have no real
+        # accumulated-cost history for fires that happened before this
+        # field existed, and fabricating one would violate this codebase's
+        # substrate-true rule against invented data (same reasoning the
+        # fire-rate breaker's own backfill above already uses).
+        if not hasattr(self, '_expended_energy'):
+            self._expended_energy = 0.0
+        if not hasattr(self, '_last_energy_update_time_s'):
+            self._last_energy_update_time_s = 0.0
+        if not hasattr(self, '_energy_block_count'):
+            self._energy_block_count = 0
 
     # ------------------------------------------------------------------
     # Commit c1's parked neuron-side Phase 1 work per GL-CMD-BLUEPRINT-
@@ -1143,6 +1274,19 @@ class LoomNeuron:
                 return  # absorbed but no firing
 
             if self.membrane_potential >= self.membrane_threshold:
+                # Metabolic energy gate -- checked at the SAME decision
+                # point as the refractory check above, BEFORE _fire() is
+                # ever called (see ENERGY_CEILING module comment for full
+                # reasoning). An energy-exhausted neuron's threshold-
+                # crossing spike is absorbed exactly like a refractory
+                # spike is: nothing resets, no propagation, no STDP
+                # bookkeeping -- strictly more conservative than the
+                # fire-rate breaker (which only strips propagation from a
+                # fire that still fully happens). No-op with the kill
+                # switch off (the shipped default).
+                if self._energy_limit_blocks_fire(now):
+                    self._energy_block_count += 1
+                    return  # absorbed but no firing -- energy exhausted
                 self._fire(now, triggering_spike=spike)
 
     def _apply_subthreshold_potentiation(self, source_id: str) -> None:
@@ -1311,6 +1455,77 @@ class LoomNeuron:
             if target is not None:
                 target._receive_upstream_fire_notification(self.neuron_id, now)
 
+    # ------------------------------------------------------------------
+    # Per-neuron metabolic energy limit. See ENERGY_CEILING module
+    # comment above for the full design/safety reasoning. Only ever
+    # called while self._neuron_lock is held (receive_spike() and
+    # _fire(), the same discipline every other per-neuron mutator in
+    # this class already follows).
+    # ------------------------------------------------------------------
+
+    def _recover_energy_locked(self, now: float) -> float:
+        """Leaky recovery of the per-neuron metabolic energy accumulator
+        -- same real-elapsed-time (time.monotonic()) leaky-decay
+        convention as membrane_potential's own decay in receive_spike()
+        above, applied to _expended_energy instead. Caller holds
+        self._neuron_lock. Returns the recovered value (also written
+        back to self._expended_energy) so callers don't need a second
+        read.
+
+        Never produces a negative value (clamped at 0.0 -- "fully
+        recovered", not a debt that could go the other way and someday
+        make a neuron MORE willing to fire than baseline)."""
+        dt_s = now - self._last_energy_update_time_s
+        if dt_s > 0:
+            self._expended_energy = max(
+                0.0, self._expended_energy - ENERGY_RECOVERY_PER_S * dt_s)
+            self._last_energy_update_time_s = now
+        return self._expended_energy
+
+    def _energy_limit_blocks_fire(self, now: float) -> bool:
+        """Returns True if this neuron's accumulated metabolic energy is
+        at or over ENERGY_CEILING and firing must be blocked outright --
+        see ENERGY_CEILING module comment for the full design/safety
+        reasoning and how this differs from the fire-rate breaker.
+
+        Kill switch (ENERGY_LIMIT_ENABLED, default OFF) read live on
+        every call, same opt-in-only convention as HOMEOSTATIC_SCALING_
+        ENABLED. With it off, this always returns False immediately and
+        never touches _expended_energy / _last_energy_update_time_s at
+        all -- zero behavior change from before this addition, and no
+        stale recovery bookkeeping silently accumulates while the switch
+        is off (if it's later turned on mid-run, the neuron starts
+        recovering from whatever now is, not from some frozen past
+        state).
+
+        Caller holds self._neuron_lock (called only from receive_spike(),
+        at the same decision point as the refractory check, strictly
+        BEFORE _fire() is ever invoked)."""
+        if os.environ.get(ENERGY_LIMIT_ENABLED_ENV, "0") != "1":
+            return False
+        return self._recover_energy_locked(now) >= ENERGY_CEILING
+
+    def _expend_energy_locked(self, now: float) -> None:
+        """Applied inside _fire(), on every fire that actually happens.
+        Because receive_spike() already refuses to call _fire() at all
+        when _energy_limit_blocks_fire() returns True, this only ever
+        adds cost for a fire that was actually allowed to occur -- it
+        cannot, by construction, push _expended_energy past ENERGY_
+        CEILING plus at most one fire's worth of cost (ENERGY_COST_PER_
+        FIRE) on the exact fire that first reaches the ceiling.
+
+        Kill switch read live, same gate as _energy_limit_blocks_fire()
+        -- the two can never disagree about whether the mechanism is
+        active, since both re-check the same env var independently
+        rather than caching a decision at construction time. Caller
+        holds self._neuron_lock (only ever called from _fire(), which is
+        only ever called from receive_spike() while the lock is held, or
+        directly by a test)."""
+        if os.environ.get(ENERGY_LIMIT_ENABLED_ENV, "0") != "1":
+            return
+        self._recover_energy_locked(now)
+        self._expended_energy += ENERGY_COST_PER_FIRE
+
     def _check_fire_rate_breaker(self, now: float) -> Tuple[bool, Optional[float]]:
         """Phase 1 delivery plan Step 2: HEURISTIC circuit breaker, NOT a
         physical mechanism (see FIRE_BREAKER_CEILING_HZ comment above for
@@ -1355,7 +1570,15 @@ class LoomNeuron:
         synchronous downstream depression notification, and chi_atlas
         bookkeeping below all still happen unconditionally; only the
         propagation that would sustain a runaway reverberating loop is
-        stopped."""
+        stopped.
+
+        Per-neuron metabolic energy limit: records this fire's cost
+        (_expend_energy_locked, no-op with the kill switch off) -- the
+        GATE that decides whether a fire is allowed to happen at all
+        lives in receive_spike(), one level up, strictly before _fire()
+        is ever called; by the time this method runs, that decision has
+        already been made and this fire is happening regardless."""
+        self._expend_energy_locked(now)
         self._apply_stdp_potentiation(now)
 
         self.membrane_potential = self.membrane_rest
