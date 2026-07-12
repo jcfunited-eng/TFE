@@ -78,7 +78,8 @@ def _saturate_all_intra_hemisphere_synapses(g):
                     n._incoming_synapse_weights[other_id] = MAX_SYNAPSE_WEIGHT
 
 
-def _run_kick_and_watch(force_all_excitatory: bool, disable_fire_rate_breaker: bool = False):
+def _run_kick_and_watch(force_all_excitatory: bool, disable_fire_rate_breaker: bool = False,
+                         disable_energy_limit: bool = False):
     g = _fresh_guala()
     try:
         neurons = g._all_neurons()
@@ -102,6 +103,30 @@ def _run_kick_and_watch(force_all_excitatory: bool, disable_fire_rate_breaker: b
             # unrelated mechanism to pass.
             for n in neurons:
                 n._check_fire_rate_breaker = lambda now: (False, None)
+        if disable_energy_limit:
+            # 2026-07-12: ENERGY_LIMIT_ENABLED (eafcb95, neuron.py's
+            # ENERGY_CEILING gate in receive_spike(), checked strictly
+            # before _fire()) is a THIRD independent defense-in-depth
+            # layer, same masking risk as FIRE_BREAKER_CEILING_HZ above --
+            # confirmed directly (GL-RPT-INERT-FEATURES-GRADUATION-PLAN-
+            # CODEX-20260712-v1): running this suite with
+            # ENERGY_LIMIT_ENABLED=1 set makes fires_after_settle==0 even
+            # with force_all_excitatory=True and the fire-rate breaker
+            # already neutralized above -- ENERGY_CEILING=5.0 fires before
+            # ENERGY_RECOVERY_PER_S=50.0 catches up is, by itself, now
+            # enough to halt the saturated worst case. Left unneutralized,
+            # this test would silently stop reproducing the bug it exists
+            # to check for the moment ENERGY_LIMIT_ENABLED=1 is set
+            # anywhere in the environment (e.g. a future graduation
+            # deploy) -- the same false negative-control failure mode the
+            # fire-rate-breaker neutralization above already documents.
+            # Monkeypatching _energy_limit_blocks_fire() (not the
+            # ENERGY_LIMIT_ENABLED env var itself) mirrors the exact
+            # pattern used for the breaker: neutralize the mechanism's
+            # decision, not the kill switch, so this stays correct
+            # regardless of what the environment happens to have set.
+            for n in neurons:
+                n._energy_limit_blocks_fire = lambda now: False
         n_inhibitory = sum(1 for n in neurons if getattr(n, "_polarity", 1.0) < 0)
 
         _saturate_all_intra_hemisphere_synapses(g)
@@ -175,8 +200,23 @@ def test_forced_all_excitatory_reproduces_the_cascade():
     like a real regression in every suite run rather than the accurate
     signal that a second, independent safety layer now also covers this
     case. Isolating polarity as the only variable is what actually tests
-    whether the fix would have been necessary on its own."""
-    result = _run_kick_and_watch(force_all_excitatory=True, disable_fire_rate_breaker=True)
+    whether the fix would have been necessary on its own.
+
+    2026-07-12: also neutralizes the per-neuron metabolic energy limit
+    (see disable_energy_limit's docstring above) -- same masking class as
+    the fire-rate breaker, confirmed directly: with ENERGY_LIMIT_ENABLED=1
+    set in the environment, this test previously failed
+    (fires_after_settle==0) even with the breaker already neutralized,
+    because ENERGY_CEILING alone is sufficient to halt the saturated
+    all-excitatory worst case. That is not a regression in the polarity
+    fix -- it is this negative control silently going blind, which would
+    let a real future regression in the polarity fix through undetected
+    as long as the energy-limit flag happened to be set. Neutralizing it
+    here keeps this test's job -- proving the harness itself can still
+    detect a real cascade -- independent of which other opt-in
+    defense-in-depth layers happen to be enabled in the environment."""
+    result = _run_kick_and_watch(force_all_excitatory=True, disable_fire_rate_breaker=True,
+                                  disable_energy_limit=True)
     print(f"test_forced_all_excitatory_reproduces_the_cascade: {result}")
     assert result["fires_after_settle"] > 0, (
         f"expected the all-excitatory forced condition to still be firing "
