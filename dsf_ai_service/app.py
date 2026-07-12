@@ -1828,12 +1828,15 @@ async def sound_frame(msg: GLMessage):
                     try:
                         from dsf_ai_service.substrate.grounded_vocab_integration import (
                             process_sound_with_recognition)
-                        _words = process_sound_with_recognition(_guala, wav, source="joe_voice")
-                        if _words:
-                            _spoken = " ".join(w.get("word", "") for w in _words if w.get("word"))
-                            if _spoken.strip():
-                                _guala.read_sentence(_spoken, source="joe",
-                                                     bundle_id=f"sound_frame:{_guala.tick}")
+                        _bindings, _spoken = process_sound_with_recognition(
+                            _guala, wav, source="joe_voice")
+                        # 2026-07-12: use the FULL real transcribed text, not
+                        # _bindings (only already-known words) -- else a real
+                        # sentence with any new word silently collapses to a
+                        # fragment or nothing before it ever reaches her.
+                        if _spoken.strip():
+                            _guala.read_sentence(_spoken, source="joe",
+                                                 bundle_id=f"sound_frame:{_guala.tick}")
                     except Exception as _we:
                         print(f"[voice-whisper] error: {_we}")
                     finally:

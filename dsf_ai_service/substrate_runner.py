@@ -1019,15 +1019,17 @@ def _start_input_ring_consumer():
                             # Also run whisper for speech/lyrics (bonus — fails gracefully)
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
                                 process_sound_with_recognition)
-                            _words = process_sound_with_recognition(
+                            _bindings, _spoken = process_sound_with_recognition(
                                 _guala, audio_bytes, source=data.get("source", "ambient"))
-                            if _words:
-                                _spoken = " ".join(w.get("word","") for w in _words if w.get("word"))
-                                if _spoken.strip():
-                                    # Site 5 REPLACE: route Whisper transcription to v5 atlas (grounded)
-                                    _guala.read_sentence(_spoken, source="unknown",
-                                                         bundle_id=f"sound_frame:{_guala.tick}")
-                                    print(f"[sound] heard words: {_spoken}")
+                            # 2026-07-12: use the FULL real transcribed text,
+                            # not _bindings (only already-known words) -- else
+                            # a real sentence with any new word silently
+                            # collapses to a fragment or nothing.
+                            if _spoken.strip():
+                                # Site 5 REPLACE: route Whisper transcription to v5 atlas (grounded)
+                                _guala.read_sentence(_spoken, source="unknown",
+                                                     bundle_id=f"sound_frame:{_guala.tick}")
+                                print(f"[sound] heard words: {_spoken}")
                         except Exception as _e:
                             print(f"[sound] frame error: {_e}")
             except Exception:
@@ -2586,14 +2588,15 @@ def handle_sound_frame(args):
         # Grounded vocab: speech transcription / ambient classification
         from dsf_ai_service.substrate.grounded_vocab_integration import (
             process_sound_with_recognition)
-        _sbind = process_sound_with_recognition(_guala, audio_bytes, source=source)
+        _sbind, _txt = process_sound_with_recognition(_guala, audio_bytes, source=source)
         # organ-brain learns the words it heard (transcribed speech -> succession)
-        if _sbind:
+        # 2026-07-12: use the FULL real transcribed text, not _sbind (only
+        # already-known words) -- else a real sentence with any new word
+        # silently collapses to a fragment or nothing.
+        if _txt.strip():
             # Site 10 REPLACE: route Whisper transcription to v5 atlas (grounded)
-            _txt = " ".join(b.get("word", "") for b in _sbind)
-            if _txt.strip():
-                _guala.read_sentence(_txt, source="unknown",
-                                     bundle_id=f"sound_frame:{_guala.tick}")
+            _guala.read_sentence(_txt, source="unknown",
+                                 bundle_id=f"sound_frame:{_guala.tick}")
         # Publish to ring
         if _substrate_ring is not None:
             _substrate_ring.publish("sound_frame", _guala.tick, source=source)

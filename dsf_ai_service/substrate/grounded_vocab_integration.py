@@ -162,8 +162,15 @@ def process_sound_with_recognition(guala, audio_bytes, source="ambient"):
     """Run speech transcription or ambient classification on audio.
 
     Called after raw cochlear binding in process_sound_frame. For voice
-    input, each transcribed word in guala.vocab gets recorded in the atlas
-    with cross-modal linking.
+    input, each transcribed word already in guala.vocab additionally gets
+    recorded in the atlas with cross-modal linking (a bonus enrichment on
+    top of the real transcription -- it does NOT gate whether the speech
+    itself reaches her). The full transcribed text is always returned
+    regardless of vocabulary membership, the same way typed text is never
+    filtered by what she already knows -- otherwise a real sentence with
+    any word she hasn't learned yet gets silently reduced to a fragment
+    or nothing before it ever reaches read_sentence(), which is what was
+    actually happening here (found and fixed 2026-07-12).
 
     Args:
         guala: the GualaLoom engine instance.
@@ -172,18 +179,20 @@ def process_sound_with_recognition(guala, audio_bytes, source="ambient"):
                 ambient classification.
 
     Returns:
-        list[dict]: bindings created (voice), or empty list (ambient stub).
+        tuple[list[dict], str]: (atlas bindings for already-known words,
+        the FULL real transcribed text -- use the text for read_sentence,
+        not the bindings, or new words never get a chance to be learned).
     """
     bindings = []
 
     if source == "joe_voice":
         recognizer = get_speech_recognizer()
         if not recognizer.available:
-            return []
+            return [], ""
 
         text = recognizer.transcribe(audio_bytes)
         if not text:
-            return []
+            return [], ""
 
         for raw_word in text.lower().split():
             word = raw_word.strip(".,!?;:'\"")
@@ -232,5 +241,6 @@ def process_sound_with_recognition(guala, audio_bytes, source="ambient"):
         if label and label.lower() in guala.vocab:
             # Placeholder for ambient sound binding — model needed
             pass
+        return bindings, ""
 
-    return bindings
+    return bindings, text.strip()
