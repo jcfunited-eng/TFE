@@ -564,6 +564,60 @@ ENTRY_CHI_BAND = 8
 # measure recognition quality under the fallback path; adjust if too
 # silent or too broad.
 ENTRY_SAMPLE_SIZE = 16
+
+# --- GL-CMD-ENTRY-NEURON-BROADEN (kill-switched, default OFF) ---
+# Real, measured finding (2026-07-12): commit 712578f's fix (16 -> 1 entry
+# neuron per word) correctly closed the 25%-of-population-per-word
+# over-injection incident, but as a side effect real connection formation
+# (distinct (source, target) synapse pairs ever touched, tracked in
+# LoomNeuron._incoming_synapse_weights) collapsed to almost nothing: a
+# live production boot ran 3+ hours of real conversation and only ever
+# touched 7 synapses total -- exactly ENTRY_CHI_BAND's k_neighbors=7 for
+# ONE hemisphere, i.e. only ONE entry-neuron firing event's propagation
+# ever completed (see GL-RPT-BLUEPRINT-DEPLOYMENT-AUDIT-C1-20260712-v1).
+#
+# Direct measurement (fresh organism, 243 distinct words, see this
+# dispatch's own test file) of what widening entry count actually costs:
+#   entries=1 (today):  breadth mean=0.125, max=0.125 (1 hemisphere, always)
+#   entries=2 (nearest by chi, GLOBALLY): breadth max=0.250 -- lands
+#       exactly on the incident's own 25% threshold whenever the 2nd
+#       nearest neuron falls in a DIFFERENT hemisphere (measured: it does,
+#       for essentially every word tested).
+#   entries=3/4 (nearest by chi, GLOBALLY): breadth = 0.250 for EVERY word
+#       tested -- unsafe, matches the incident condition, not shipped.
+#
+# The safe version constrains broadening to the PRIMARY match's OWN
+# hemisphere (see _broaden_entry_neurons_same_hemisphere): every
+# hemisphere is a fully-connected 8-neuron clique (SEED_SIZE_PER_
+# HEMISPHERE=8, k_neighbors clamped to 7, see cluster.py), so ANY subset
+# of that one hemisphere's 8 neurons as entries can never make the
+# propagation-touched set exceed that same 8-neuron hemisphere --
+# 8/64=0.125 injection breadth, HALF the 25% incident threshold, and
+# INDEPENDENT of how many of the 8 are chosen as entries (2, 3, or even
+# all 8) -- this is a structural ceiling, not a tuned number. Verified
+# directly: see test_entry_neuron_broaden.py's
+# test_broaden_on_stays_bounded_to_one_hemisphere.
+#
+# What DOES grow with entry count is exactly the thing that was measured
+# anemic: 1 entry -> 7 possible (source, target) pairs get a chance to be
+# touched per word (that one entry's own 7 outgoing synapses); 2 entries
+# in the same clique -> up to 14 DISTINCT pairs (each entry's own 7
+# outgoing edges, no overlap between the two entries' own outgoing sets)
+# -- literally double the connection-formation surface per word, at zero
+# additional injection-breadth cost. Default count of 2 is the smallest
+# possible increase over today's 1 (task's own guidance: "1 -> 2 or 3,
+# not back to 16"); left configurable via ENTRY_NEURON_BROADEN_COUNT for
+# a future, separately-decided step to 3 (also measured safe, still
+# bounded to one hemisphere) without a code change.
+#
+# Kill switch: default OFF (ENTRY_NEURON_BROADEN_ENABLED unset or != "1"),
+# read fresh on every call (same convention as SENSORY_SPIKE_INJECTION_
+# ENABLED above) so it can be toggled per-test without reconstructing
+# Guala or reloading this module. When OFF, _select_entry_neurons is
+# byte-identical to pre-this-change behavior -- the broadening branch is
+# never even reached (see test_broaden_default_off_is_byte_identical_to_
+# baseline).
+ENTRY_NEURON_BROADEN_COUNT = 2
 # HEURISTIC: EMISSION_THRESHOLD=0.5, TOP_K_EMISSION=20 -- membrane-state
 # emission candidate selection (RECALL_BACKEND=stdp only; not used in
 # production during Phase 1). Class: from-design. Measurement plan:
@@ -5313,13 +5367,86 @@ class Guala:
         (or if chi-proximity finds nothing -- always true in Phase 1 per
         _chi_to_neurons's note above) falls back to a small random
         sample. Called from LoomBrain._inject_input_as_spikes via
-        self._guala_ref."""
+        self._guala_ref.
+
+        GL-CMD-ENTRY-NEURON-BROADEN (see ENTRY_NEURON_BROADEN_COUNT's
+        module comment for the full safety reasoning): when
+        ENTRY_NEURON_BROADEN_ENABLED="1" and chi-proximity found at least
+        one real candidate, widen the entry set to up to
+        ENTRY_NEURON_BROADEN_COUNT neurons drawn from the SAME hemisphere
+        as the primary match -- never touches the random-fallback branch
+        below, never crosses a hemisphere boundary. Default OFF: this
+        branch is not reached at all unless the env var is explicitly
+        set, so existing behavior is unchanged byte-for-byte by default."""
         if input_chi is not None:
             candidates = self._chi_to_neurons(input_chi)
             if candidates:
+                if os.environ.get("ENTRY_NEURON_BROADEN_ENABLED", "0") == "1":
+                    candidates = self._broaden_entry_neurons_same_hemisphere(
+                        candidates, input_chi)
                 return candidates
         all_neurons = self._all_neurons()
         return random.sample(all_neurons, min(ENTRY_SAMPLE_SIZE, len(all_neurons)))
+
+    def _broaden_entry_neurons_same_hemisphere(self, candidates, input_chi):
+        """Widen `candidates` (chi-proximity matches, at least one real
+        neuron per caller) up to ENTRY_NEURON_BROADEN_COUNT total, adding
+        only neurons from the SAME hemisphere as candidates[0] -- see
+        ENTRY_NEURON_BROADEN_COUNT's module comment for why this
+        structurally bounds injection breadth to one hemisphere
+        (8/64=12.5%) regardless of the target count.
+
+        No-op (returns `candidates` unchanged) if already at or above the
+        target count, if the primary's hemisphere can't be resolved, or
+        once the hemisphere's own population is exhausted -- this never
+        raises and never returns fewer than it was given.
+
+        Additional neurons are chosen deterministically: nearest by
+        wrapped chi-distance to `input_chi` first (same metric
+        _chi_to_neurons already uses), neuron_id as a tie-breaker so two
+        runs with identical state always pick the same set -- no
+        randomness introduced here, unlike the unrelated random-fallback
+        branch in the caller.
+
+        Scope of the "bounded to one hemisphere" guarantee: this method
+        only ever ADDS same-hemisphere-as-candidates[0] neurons -- it
+        does not filter `candidates` itself down to one hemisphere. On
+        today's real population, _chi_to_neurons empirically always
+        returns exactly one candidate (verified across 163 real words in
+        test_entry_neuron_broaden.py), so this distinction is moot in
+        production right now. If population growth (Phase 2, not yet
+        built -- see GL-RPT-BLUEPRINT-DEPLOYMENT-AUDIT-C1-20260712-v1)
+        ever makes _chi_to_neurons itself return multi-hemisphere
+        candidates, that would already be true with this flag OFF -- a
+        pre-existing property of chi-proximity matching, not a new risk
+        this addition introduces. test_broaden_on_stays_bounded_to_one_
+        hemisphere asserts the single-hemisphere invariant directly
+        against real state rather than assuming it, so it will fail
+        loudly (not silently drift) if that ever changes.
+        """
+        target_count = max(1, int(
+            os.environ.get("ENTRY_NEURON_BROADEN_COUNT", str(ENTRY_NEURON_BROADEN_COUNT))))
+        if len(candidates) >= target_count:
+            return candidates
+        primary = candidates[0]
+        hemi_id = primary.neuron_id.split("_n")[0]
+        hemi = self.organism.brain._hemi_map.get(hemi_id)
+        if hemi is None:
+            return candidates
+        existing_ids = {n.neuron_id for n in candidates}
+        space = self._CHI_ADDRESS_SPACE
+        chi_wrapped = input_chi % space
+        pool = []
+        for n in hemi.cluster.neurons:
+            if n.neuron_id in existing_ids or n.chi_position is None:
+                continue
+            raw_dist = abs(n.chi_position - chi_wrapped)
+            wrap_dist = min(raw_dist, space - raw_dist)
+            pool.append((wrap_dist, n.neuron_id, n))
+        pool.sort(key=lambda t: (t[0], t[1]))
+        extra_needed = target_count - len(candidates)
+        extended = list(candidates) + [n for _, _, n in pool[:extra_needed]]
+        return extended
 
     def _brain_emission_candidates(self, input_words):
         """GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2 item 8, extended
