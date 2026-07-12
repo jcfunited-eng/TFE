@@ -641,6 +641,43 @@ class Embryo:
         # caused this project's real firing-path incidents.
         if self.tick % self.REFLECTION_SNAPSHOT_INTERVAL == 0:
             self._reflect_snapshot()
+            self._apply_homeostatic_scaling_pass()
+
+    # GL-CMD-LOOM-HOMEOSTATIC-SCALING: population-level driver for
+    # LoomNeuron.apply_homeostatic_scaling() -- see neuron.py's
+    # HOMEOSTATIC_SCALING_CEILING module comment for the full safety
+    # reasoning (multiplicative-decrease-only, derived ceiling, same
+    # _neuron_lock discipline as every other mutator of
+    # _incoming_synapse_weights).
+    def _apply_homeostatic_scaling_pass(self) -> None:
+        """Kill switch: HOMEOSTATIC_SCALING_ENABLED, default OFF ("0"),
+        read live on every call -- same live-read, opt-in-only convention
+        as gualaloom_v5_engine.py's WAVE_ATLAS_DECAY_ENABLED. Nothing in
+        this subsystem goes live-by-default. With the switch OFF (the
+        current default, and the only state this ships in), this method
+        returns immediately and touches nothing -- zero behavior change
+        from before this addition.
+
+        Called only from remember()'s existing REFLECTION_SNAPSHOT_INTERVAL
+        tick-modulo hook -- the same call site _reflect_snapshot() already
+        uses, at most once every 50 real experiences. NOT called from
+        gualaloom_v5_engine.py, _fire(), receive_spike(), or anywhere else
+        on the spike-bus hot path.
+
+        Snapshots hemispheres and each cluster's neuron list with list()
+        before iterating (the WaveAtlas v3 lesson: never iterate a
+        population/dict that could be mutated concurrently without
+        snapshotting first) -- defensive, since folding division
+        (_charge_and_fold above) can grow a cluster's neuron list between
+        ticks. Per-neuron weight-dict safety is handled inside
+        LoomNeuron.apply_homeostatic_scaling() itself (same _neuron_lock
+        every STDP mutator already uses).
+        """
+        if os.environ.get("HOMEOSTATIC_SCALING_ENABLED", "0") != "1":
+            return
+        for h in list(self.brain.hemispheres):
+            for n in list(h.cluster.neurons):
+                n.apply_homeostatic_scaling()
 
     def _reflect_snapshot(self) -> None:
         """Append a real (tick, sf_sense()) reading to the bounded reflection

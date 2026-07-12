@@ -137,6 +137,56 @@ STDP_DEFAULT_SYNAPSE_WEIGHT = 0.05  # weight for a not-yet-potentiated synapse
 # _incoming_synapse_weights, which already round-trips correctly).
 STDP_SUBTHRESHOLD_POTENTIATION_AMPLITUDE = STDP_POTENTIATION_AMPLITUDE * 0.1
 
+# --- GL-CMD-LOOM-HOMEOSTATIC-SCALING: bounded per-neuron maintenance pass ---
+# Real 2026-07 finding: the loom_model organism (LoomNeuron/LoomBrain/
+# LoomHemisphere/LoomCluster) has NO periodic maintenance/consolidation
+# mechanism of any kind -- the only periodic hook anywhere in this
+# subsystem is Embryo.reflect()/_reflect_snapshot() (embryo.py), and that
+# is strictly read-only (snapshots sf_sense(), touches no weights). STDP
+# (this file) only ever nudges ONE synapse at a time, in response to a
+# real spike pairing -- nothing bounds the SUM of a neuron's incoming
+# synaptic weights, only each individual synapse's own MAX_SYNAPSE_WEIGHT
+# clamp (already enforced in _apply_stdp_potentiation /
+# _apply_subthreshold_potentiation above). A neuron whose whole population
+# of incoming synapses each independently, legitimately potentiates over
+# time has no mechanism pulling its TOTAL incoming drive back down.
+#
+# This is the smallest possible real step toward a maintenance mechanism:
+# per neuron, if the sum of _incoming_synapse_weights exceeds a ceiling,
+# multiplicatively rescale every incoming weight down by the same factor
+# so the sum returns to the ceiling. Safety-reasoned as sound for one
+# specific, checkable reason: it can only ever REDUCE a weight (the
+# rescale factor is always in (0, 1) on the only branch that mutates
+# anything -- see apply_homeostatic_scaling below), moving weights toward
+# MIN_SYNAPSE_WEIGHT, the SAME direction STDP depression already moves
+# them, and away from MAX_SYNAPSE_WEIGHT saturation -- the failure
+# direction implicated in the 2026-07-08 reverberating-cascade incident
+# (GL-RPT-PHASE-1-V2-REVIVE-C1-20260708-v3, test_lateral_inhibition_
+# cascade.py). It never increases any weight, under any code path, ever.
+#
+# Ceiling: derived from MAX_SYNAPSE_WEIGHT (this file's own existing,
+# already-reasoned per-synapse ceiling), not a new invented tunable -- a
+# neuron's TOTAL incoming synaptic drive is bounded at the same value a
+# single, fully-saturated synapse could already legally reach alone. This
+# is the standard "synaptic scaling" framing (Turrigiano): a total input
+# budget, not a per-synapse average, is what's conserved, so the ceiling
+# does not scale with fan-in count -- a neuron with only a handful of
+# active incoming synapses is held to the same total budget as one with
+# many. Class: from-design, derived arithmetically from
+# MAX_SYNAPSE_WEIGHT, not independently measured or tuned. Measurement
+# plan: if this trips on a real healthy population under ordinary
+# learning (not a synthetic worst case), that is a real over-tightness
+# signal -- raise the ceiling; do not remove the mechanism.
+#
+# Trigger + kill switch live in embryo.py's remember(), reusing the
+# existing REFLECTION_SNAPSHOT_INTERVAL tick-modulo hook (the same call
+# site _reflect_snapshot() already uses) -- never called from anywhere on
+# the spike-bus hot path (_fire, receive_spike are untouched by this
+# addition). HOMEOSTATIC_SCALING_ENABLED, default OFF, same opt-in-only
+# convention as gualaloom_v5_engine.py's WAVE_ATLAS_DECAY_ENABLED --
+# nothing in this subsystem goes live-by-default.
+HOMEOSTATIC_SCALING_CEILING = MAX_SYNAPSE_WEIGHT
+
 # --- Phase 1 delivery plan Step 2: per-neuron fire-rate circuit breaker ---
 # Real 2026-07-08/09 incident: one neuron fired continuously at ~3800/sec
 # for an unknown duration (likely hours) before being caught by chance
@@ -963,6 +1013,101 @@ class LoomNeuron:
                     source_id, STDP_DEFAULT_SYNAPSE_WEIGHT)
                 self._incoming_synapse_weights[source_id] = max(
                     current - delta, MIN_SYNAPSE_WEIGHT)
+
+    # ------------------------------------------------------------------
+    # GL-CMD-LOOM-HOMEOSTATIC-SCALING: bounded per-neuron maintenance pass.
+    # See the HOMEOSTATIC_SCALING_CEILING module comment above for the
+    # full design/safety reasoning. Not called from _fire()/receive_spike()
+    # or anywhere else on the spike-bus hot path -- only from embryo.py's
+    # remember(), at most once per REFLECTION_SNAPSHOT_INTERVAL ticks, and
+    # only when HOMEOSTATIC_SCALING_ENABLED is set.
+    # ------------------------------------------------------------------
+
+    def _homeostatic_scale_locked(self, ceiling: float) -> Optional[float]:
+        """Core homeostatic scaling logic. Caller MUST hold
+        self._neuron_lock for the entire call -- same convention as
+        _apply_stdp_potentiation / _apply_subthreshold_potentiation above
+        ("Caller holds self._neuron_lock"). This method does not acquire
+        the lock itself, so every mutation of _incoming_synapse_weights
+        stays serialized through the ONE lock every other mutator of this
+        dict already uses (receive_spike, _apply_subthreshold_
+        potentiation, _apply_stdp_potentiation,
+        _receive_upstream_fire_notification). No new lock, no lock-free
+        scheme invented for this pass.
+
+        Dict-iteration safety: keys are snapshotted with list() before
+        iterating, matching the WaveAtlas v3 fix's discipline
+        (GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v3) -- defense in depth.
+        Not strictly required for correctness here (holding
+        self._neuron_lock already rules out any concurrent mutation of
+        this exact dict during this call, which the lock-free WaveAtlas
+        decay pass never had), but costs nothing and protects against any
+        future caller that ever touches this dict without the lock.
+
+        Only ever multiplies existing values by a factor in (0, 1) --
+        never assigns a fresh value, never adds, never increases
+        anything. Returns the factor applied if a rescale happened, or
+        None if this neuron's total incoming synaptic weight was already
+        at or under `ceiling` (the common case -- most calls are a cheap
+        no-op: one sum over a small, topology-bounded dict).
+
+        Defensive guard: `ceiling <= 0` is a no-op (returns None), not a
+        ZeroDivisionError or a sign flip into negative weights. Unreachable
+        today (the only call site passes no argument, defaulting to
+        HOMEOSTATIC_SCALING_CEILING=5.0 > 0), but this keeps the "never
+        produces an out-of-[MIN_SYNAPSE_WEIGHT, MAX_SYNAPSE_WEIGHT] value"
+        invariant true unconditionally, not just for today's one caller.
+        """
+        if ceiling <= 0:
+            return None
+        weights = self._incoming_synapse_weights
+        keys = list(weights.keys())
+        if not keys:
+            return None
+        total = 0.0
+        for k in keys:
+            v = weights.get(k)
+            if v is not None:
+                total += v
+        if total <= ceiling:
+            return None
+        factor = ceiling / total  # total > ceiling > 0 here, so 0 < factor < 1
+        for k in keys:
+            v = weights.get(k)
+            if v is not None:
+                weights[k] = v * factor
+        return factor
+
+    def apply_homeostatic_scaling(self, ceiling: Optional[float] = None) -> bool:
+        """Bounded, per-neuron homeostatic synaptic-scaling maintenance
+        pass -- see the HOMEOSTATIC_SCALING_CEILING module comment above
+        for the full safety reasoning. If this neuron's total incoming
+        synaptic weight (sum of _incoming_synapse_weights) exceeds
+        `ceiling` (default HOMEOSTATIC_SCALING_CEILING), rescales every
+        incoming weight down by the same multiplicative factor so the sum
+        returns to exactly `ceiling`. Never increases any weight, under
+        any code path, ever -- the only branch that mutates anything
+        multiplies by a factor strictly less than 1.
+
+        Acquires self._neuron_lock for the whole read-then-write critical
+        section (see _homeostatic_scale_locked's docstring for why this
+        makes the WaveAtlas-class lost-write race structurally
+        impossible here, not just mitigated -- every real writer of this
+        dict already serializes through this same lock). Cheap and
+        bounded: O(number of this neuron's currently-connected incoming
+        synapses), which is topology-bounded (ring k_neighbors, 16 by
+        default -- see cluster.py) regardless of how long the organism
+        has been running.
+
+        Returns True if a rescale was applied, False if this neuron's
+        total was already at or under the ceiling (no-op, the common
+        case).
+        """
+        if ceiling is None:
+            ceiling = HOMEOSTATIC_SCALING_CEILING
+        with self._neuron_lock:
+            factor = self._homeostatic_scale_locked(ceiling)
+        return factor is not None
 
     def _notify_downstream_of_fire(self, now: float) -> None:
         """Synchronously inform each coupled downstream neuron that we
