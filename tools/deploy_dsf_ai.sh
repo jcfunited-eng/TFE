@@ -275,6 +275,23 @@ out = {
                 {'name': 'WAVE_ATLAS_ENABLED', 'value': '1'},
                 {'name': 'YOLO_MODEL_PATH', 'value': '/app/yolov8n.onnx'},
                 {'name': 'WHISPER_MODEL_PATH', 'value': 'tiny'},
+                # GL-CMD-VOICE-TO-WORDS-153 Part B: real Whisper speech-to-
+                # text (app.py sound_frame -> process_sound_with_recognition,
+                # whisper-tiny, already baked into the image). Was built and
+                # gated OFF by default ("flips to 1 only on Eve GO after the
+                # cost line is filed") -- that approval never happened and
+                # nobody ever revisited it, so real spoken input was silently
+                # never transcribed despite the model being right there.
+                # Enabled 2026-07-12 after Joe reported speaking and seeing
+                # no STT at all -- confirmed live via CloudWatch logs (zero
+                # [voice-whisper] lines despite continuous real sound_frame
+                # traffic) before flipping this. Runs in a background thread,
+                # off the request path, joe-tagged sources only, whisper-tiny
+                # is a small/fast model -- real but bounded cost. Watch for
+                # any new load/latency signal after this specific flag if
+                # something regresses; revert by setting this back to '0'
+                # and redeploying, same pattern as every other flag here.
+                {'name': 'VOICE_WHISPER', 'value': '1'},
                 # GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2: dual-
                 # write/dual-read Phase 1. This shadow-comparison mode was
                 # built 2026-07-09 (GL-CMD-EMISSION-SHADOW-EVE-20260709)
