@@ -390,7 +390,52 @@ def _grandurun_select_candidates(input_chis, deep_candidates, sections,
     # just a performance cost. This is a real constraint on the emission
     # mechanism's own correctness, not an arbitrary slot limit -- kept
     # as-is. See the accompanying report.
-    return candidates[:top_k]
+    #
+    # GRANDURUN_SECTION_FLOOR_ENABLED (default OFF, byte-identical to prior
+    # behavior when off): a flat global top_k cut on one shared
+    # coherent_magnitude ranking systematically starves whichever of the 6
+    # _EMISSION_SECTIONS her learned vocabulary scores lower for this turn
+    # (measured live: modifier/ground sat at 8-36% "capacity" vs 127-148%
+    # for subject/verb/intro) -- those sections then get ZERO candidates,
+    # so evidence_pressure==0, so Section.commit_check's evidence floor
+    # (assemblage.py, "if evidence_pressure < 0.15: return False, None")
+    # hard-blocks them regardless of keyhole excitation. Fix: reserve a
+    # small per-section floor from each section's OWN best-scoring
+    # candidates (same coherent_magnitude ordering, just filtered), then
+    # fill the rest of top_k by the existing global ranking. This is a
+    # redistribution of the same ranked candidate list, not synthetic
+    # evidence -- a section with fewer real candidates than the floor just
+    # contributes what it has.
+    if os.environ.get("GRANDURUN_SECTION_FLOOR_ENABLED", "0") != "1":
+        return candidates[:top_k]
+
+    _FLOOR_SECTIONS = ("subject", "verb", "object", "modifier", "ground", "intro")
+    # ~1/4 of top_k spread across the 6 sections, floor of 3 so even a
+    # small top_k still guarantees every section a real shot.
+    min_per_section = max(3, top_k // (len(_FLOOR_SECTIONS) * 4))
+
+    floor_selected = []
+    floor_taken_ids = set()
+    for sec_name in _FLOOR_SECTIONS:
+        # `candidates` is already globally sorted by -coherent_magnitude,
+        # so filtering preserves that same per-section ordering -- no
+        # re-sort needed to get each section's own best first.
+        sec_cands = [c for c in candidates if c["section"] == sec_name]
+        take = sec_cands[:min_per_section]
+        floor_selected.extend(take)
+        floor_taken_ids.update(id(c) for c in take)
+
+    remaining_budget = max(0, top_k - len(floor_selected))
+    overflow = [c for c in candidates if id(c) not in floor_taken_ids][:remaining_budget]
+
+    result = floor_selected + overflow
+    result.sort(key=lambda c: -c["coherent_magnitude"])
+    # Defensive cap: only binds if a pathologically small top_k makes the
+    # floor reservation itself (min_per_section * 6 sections) exceed top_k
+    # -- never happens at the real GRANDURUN_TOPK=200 default (floor sums
+    # to ~50) but keeps the "returns at most top_k" contract callers rely
+    # on for any configured value.
+    return result[:top_k]
 
 
 try:
