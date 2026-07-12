@@ -102,6 +102,55 @@ MAX_SYNAPSE_WEIGHT = 5.0
 MIN_SYNAPSE_WEIGHT = 0.0
 STDP_DEFAULT_SYNAPSE_WEIGHT = 0.05  # weight for a not-yet-potentiated synapse
 
+# --- GL-FIX-CHI-ATLAS-BUCKET-ORDER-20260712: chi_atlas.record argument order ---
+# GL-CMD-CHI-UNIFICATION-EVE-20260707-v3 intended chi_atlas to bucket its
+# entries by the UPSTREAM chi (the same krimelack-derived chi the wave
+# atlas uses), not by dominant_mode (an internal 0-15 argmax index) -- see
+# that dispatch's own text: "chi_atlas gets the upstream chi so match_score
+# can compare against future inputs", and the comment above the commit
+# call below. But ChiAtlas.record's real signature is record(section_name,
+# motif_id, chi_value, tick) (gualaloom_v4_chi_atlas_l6.py:46) -- chi_value
+# is the THIRD positional slot, and it is what .entries is actually
+# bucketed/keyed by (record() does `self.entries[chi_value + d]`, not
+# motif_id). The call this dispatch shipped has always passed the upstream
+# chi into the motif_id slot (2nd) and dominant_mode into the chi_value
+# slot (3rd) -- backwards from the dispatch's own stated intent. Verified
+# directly against the real code (2026-07-12): repeated commits of the
+# same wide-range input_chi never raise match_score above 0.0, and
+# chi_atlas.entries never contains a key anywhere near that input_chi --
+# only dominant_mode's small 0-15-ish range. Swapping the two positional
+# args restores the intended behavior (verified: match_score correctly
+# rises 0.0 -> 0.5 -> 1.0 across repeats of the same chi once swapped).
+#
+# This is the same "two incompatible numeric ranges" symptom v3 itself was
+# written to fix, reintroduced one argument slot over -- silent since it
+# shipped 2026-07-07, because match_score/committed/spike_intensity all
+# degrade gracefully (no crash, just a permanently-near-zero familiarity
+# signal) rather than erroring.
+#
+# This also directly gates LoomCluster._select_by_chi_familiarity
+# (cluster.py:211-234, "the chi-familiarity neuron gate") -- with the bug,
+# `familiar` is effectively always empty for real wide-range chi, so every
+# tick falls through to the 2-lowest-entry-count novelty pool, and WHICH
+# 2 neurons that is keeps drifting tick to tick (verified directly: 6
+# ticks of the identical input_chi selected 6 different neuron pairs).
+# With the fix, the same repeated chi correctly converges onto and stays
+# on the same familiar neuron pair from the second tick onward -- a real,
+# first-order change to production neuron-selection routing for the
+# organ-brain's per-neuron learning subsystem, not a cosmetic fix. Per
+# this project's standing caution around previously-inert gates going
+# live (documented cascade/perf-regression history elsewhere in this
+# file), this ships OFF by default so it can be validated live before it
+# changes anything.
+#
+# Kill switch: CHI_ATLAS_BUCKET_FIX_ENABLED, default OFF ("0"), read live
+# on every commit -- same opt-in-only convention as ENERGY_LIMIT_ENABLED /
+# MOOD_BROADCAST_ENABLED / HOMEOSTATIC_SCALING_ENABLED. OFF reproduces
+# today's exact (buggy) production call byte-for-byte; ON records
+# chi_value=the upstream chi (motif_id=dominant_mode), the dispatch's
+# actual intent.
+CHI_ATLAS_BUCKET_FIX_ENABLED_ENV = "CHI_ATLAS_BUCKET_FIX_ENABLED"
+
 # --- GL-CMD-MOOD-BROADCAST-C1-20260712-v1: global mood/affect broadcast ---
 # Real-world grounding: in a real nervous system, a global neuromodulator
 # broadcast (locus-coeruleus norepinephrine for arousal -- Aston-Jones &
@@ -1868,8 +1917,26 @@ class LoomNeuron:
             _chi_for_atlas = input_chi if input_chi is not None else dominant_mode
             self._last_commit_chi = _chi_for_atlas
 
-            # Record in chi atlas for familiarity tracking
-            self.chi_atlas.record("neuron", _chi_for_atlas, dominant_mode, tick)
+            # Record in chi atlas for familiarity tracking.
+            #
+            # GL-FIX-CHI-ATLAS-BUCKET-ORDER-20260712 (see constant block
+            # above): ChiAtlas.record's real signature is (section_name,
+            # motif_id, chi_value, tick) -- chi_value (3rd slot) is what
+            # entries are bucketed by, motif_id (2nd slot) is just a label.
+            # The line below (kill switch OFF, the only state this has
+            # ever shipped in) preserves the exact call GL-CMD-CHI-
+            # UNIFICATION-EVE-20260707-v3 shipped: _chi_for_atlas in the
+            # motif_id slot, dominant_mode in the chi_value slot -- which
+            # means chi_atlas has always bucketed by dominant_mode (0-15),
+            # not by the upstream chi that dispatch's own text says was
+            # the point. Kill switch ON records the corrected order:
+            # motif_id=dominant_mode (bookkeeping label only, matching
+            # this dispatch's own DO-NOT against changing dominant_mode's
+            # role), chi_value=_chi_for_atlas (the real bucketing key).
+            if os.environ.get(CHI_ATLAS_BUCKET_FIX_ENABLED_ENV, "0") == "1":
+                self.chi_atlas.record("neuron", dominant_mode, _chi_for_atlas, tick)
+            else:
+                self.chi_atlas.record("neuron", _chi_for_atlas, dominant_mode, tick)
 
             # f. Spike: base intensity = dominant mode probability
             base_intensity = float(probs[dominant_mode])
