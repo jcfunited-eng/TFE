@@ -4032,6 +4032,21 @@ class Guala:
             # v6-bridge: update last_input_tick for presence timeout
             if source in {"joe", "wc", "c1"}:
                 self.coordinator.update_last_input(source, self.tick)
+                # GL-FIX-VOICE-PRESENCE-20260712: contact IS presence, same
+                # rule _open_response_window already applies for converse()
+                # (GL-CMD-REST-RETIRE-ORIENT-73) -- extended here so intake
+                # paths that call read_sentence() directly without going
+                # through converse() (namely: the passive mic/Whisper
+                # pipeline, GL-CMD-VOICE-TO-WORDS-153) also establish real
+                # presence. This does NOT force a reply -- no
+                # _check_emission_trigger call here -- it only unblocks the
+                # existing need-driven scheduler/autonomous-emission loop to
+                # organically consider reacting to what she just heard, the
+                # same way she already can react to anything else she senses.
+                # Joe's direction: she is not a chatbot gated on being
+                # directly addressed.
+                if not self.coordinator._presence.get(source, False):
+                    self.coordinator.wake(source, self, self.needs, self.atlas)
 
             # 60-K: record interaction for continuous pair-bond strength
             _sal_estimate = self._compute_salience(source=source, input_novelty=0.5)
