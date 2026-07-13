@@ -108,6 +108,83 @@ def _orthogonal_residual(
     return residual
 
 
+def _certified_reciprocal_basis_activation_energies(
+    flint,
+    raw_sources: Sequence[Sequence[object]],
+    present: Sequence[object],
+    precision_bits: int,
+) -> tuple[tuple[object, ...] | None, tuple[str, CertifiedBall] | None]:
+    """Certify the exact raw-source Gram matrix is nonsingular and return each
+    stored source's own reciprocal-basis activation energy against present.
+
+    Projecting the present vector onto a sequentially Gram-Schmidt-
+    orthonormalized basis is order-dependent: an earlier stored source's
+    orthonormal mode absorbs whatever energy a later, structurally related
+    source shares with it, so the later source can never uniquely dominate its
+    own recognition.  The reciprocal (dual) basis removes that bias.  Let G be
+    the exact Gram matrix of the raw (never orthogonalized) stored sources,
+    G[i][j] = <source_i, source_j>, and b the vector of raw-source inner
+    products against the present vector, b[i] = <source_i, present>.  The
+    reciprocal coefficients c solve G @ c = b.  When present is exactly one
+    stored source, c is exactly the standard basis vector naming that source
+    alone -- independent of insertion order and independent of how much exact
+    structure the stored sources share -- because b then equals the matching
+    column of G exactly, and G^-1 times its own column is a unit vector.  Each
+    source's activation energy is its coefficient's squared modulus scaled by
+    its own exact self energy, which is exactly the existing orthonormal-basis
+    projection energy in the degenerate case where the stored sources are
+    already mutually orthogonal.
+    """
+
+    rank = len(raw_sources)
+    if rank == 0:
+        return (), None
+    self_energies = tuple(_energy(flint, source) for source in raw_sources)
+    rows: list[list[object]] = []
+    for row in range(rank):
+        entries: list[object] = []
+        for column in range(rank):
+            if column < row:
+                entries.append(rows[column][row].conjugate())
+            elif column == row:
+                entries.append(flint.acb(self_energies[row]))
+            else:
+                entries.append(
+                    _inner(flint, raw_sources[row], raw_sources[column])
+                )
+        rows.append(entries)
+    gram = flint.acb_mat(rank, rank, [value for row in rows for value in row])
+    determinant_ball = canonical_ball(gram.det().real, precision_bits)
+    if not _certified_positive(determinant_ball):
+        return None, (
+            "stored source expressions do not certify a nonsingular exact "
+            "reciprocal-basis Gram matrix",
+            determinant_ball,
+        )
+    projections = flint.acb_mat(
+        rank,
+        1,
+        [_inner(flint, source, present) for source in raw_sources],
+    )
+    try:
+        coefficients = gram.solve(projections)
+    except ZeroDivisionError:
+        return None, (
+            "certified nonsingular exact reciprocal-basis Gram matrix could "
+            "not be solved",
+            determinant_ball,
+        )
+    activations = tuple(
+        (
+            coefficients[index, 0].real * coefficients[index, 0].real
+            + coefficients[index, 0].imag * coefficients[index, 0].imag
+        )
+        * self_energies[index]
+        for index in range(rank)
+    )
+    return activations, None
+
+
 def _mode_growth_proof_payload(
     *,
     mode_index: int,
@@ -746,8 +823,10 @@ def evaluate_expression_mode_boundary(
                 return expression_memo[expression.receipt_sha256]
 
             normalized_modes: list[tuple[object, ...]] = []
+            raw_sources: list[tuple[object, ...]] = []
             for mode in bank.modes:
                 source = field(mode.source_expression)
+                raw_sources.append(source)
                 residual = _orthogonal_residual(
                     flint,
                     source,
@@ -783,80 +862,82 @@ def evaluate_expression_mode_boundary(
                         total_energy_ball,
                     )
                 else:
-                    activation_values = tuple(
-                        (
-                            lambda activation: (
-                                activation.real * activation.real
-                                + activation.imag * activation.imag
-                            )
-                        )(_inner(flint, mode, present))
-                        for mode in normalized_modes
-                    )
-                    if matching_mode_index is None:
-                        present_residual = _orthogonal_residual(
+                    activation_values, gram_failure = (
+                        _certified_reciprocal_basis_activation_energies(
                             flint,
+                            raw_sources,
                             present,
-                            normalized_modes,
+                            precision_bits,
                         )
-                        residual_energy_value = _energy(
-                            flint,
-                            present_residual,
-                        )
+                    )
+                    if gram_failure is not None:
+                        basis_failure = gram_failure
                     else:
-                        residual_energy_value = flint.arb(0)
-                    residual_energy_ball = canonical_ball(
-                        residual_energy_value,
-                        precision_bits,
-                    )
-                    residual_probability_ball = canonical_ball(
-                        residual_energy_value / total_energy_value,
-                        precision_bits,
-                    )
-                    probabilities = tuple(
-                        ExpressionModeProbability(
-                            mode_index=index,
-                            mode_receipt_sha256=mode.receipt_sha256,
-                            certified_activation_energy=canonical_ball(
-                                activation,
-                                precision_bits,
-                            ),
-                            certified_probability=canonical_ball(
-                                activation / total_energy_value,
-                                precision_bits,
-                            ),
+                        if matching_mode_index is None:
+                            present_residual = _orthogonal_residual(
+                                flint,
+                                present,
+                                normalized_modes,
+                            )
+                            residual_energy_value = _energy(
+                                flint,
+                                present_residual,
+                            )
+                        else:
+                            residual_energy_value = flint.arb(0)
+                        residual_energy_ball = canonical_ball(
+                            residual_energy_value,
+                            precision_bits,
                         )
-                        for index, (mode, activation) in enumerate(
-                            zip(
-                                bank.modes,
-                                activation_values,
-                                strict=True,
+                        residual_probability_ball = canonical_ball(
+                            residual_energy_value / total_energy_value,
+                            precision_bits,
+                        )
+                        probabilities = tuple(
+                            ExpressionModeProbability(
+                                mode_index=index,
+                                mode_receipt_sha256=mode.receipt_sha256,
+                                certified_activation_energy=canonical_ball(
+                                    activation,
+                                    precision_bits,
+                                ),
+                                certified_probability=canonical_ball(
+                                    activation / total_energy_value,
+                                    precision_bits,
+                                ),
+                            )
+                            for index, (mode, activation) in enumerate(
+                                zip(
+                                    bank.modes,
+                                    activation_values,
+                                    strict=True,
+                                )
                             )
                         )
-                    )
-                    if bank.rank >= 2:
-                        probability_bounds = tuple(
-                            _bounds(value.certified_probability)
-                            for value in probabilities
-                        )
-                        residual_bounds = _bounds(
-                            residual_probability_ball
-                        )
-                        all_bounds = (
-                            *probability_bounds,
-                            residual_bounds,
-                        )
-                        winners = tuple(
-                            index
-                            for index, (lower, _) in enumerate(all_bounds)
-                            if all(
-                                lower > other_upper
-                                for other_index, (
-                                    _,
-                                    other_upper,
-                                ) in enumerate(all_bounds)
-                                if other_index != index
+                        if bank.rank >= 2:
+                            probability_bounds = tuple(
+                                _bounds(value.certified_probability)
+                                for value in probabilities
                             )
-                        )
+                            residual_bounds = _bounds(
+                                residual_probability_ball
+                            )
+                            all_bounds = (
+                                *probability_bounds,
+                                residual_bounds,
+                            )
+                            winners = tuple(
+                                index
+                                for index, (lower, _) in enumerate(all_bounds)
+                                if all(
+                                    lower > other_upper
+                                    for other_index, (
+                                        _,
+                                        other_upper,
+                                    ) in enumerate(all_bounds)
+                                    if other_index != index
+                                )
+                            )
 
         if basis_failure is None:
             if (
