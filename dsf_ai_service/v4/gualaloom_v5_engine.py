@@ -4396,6 +4396,68 @@ class Guala:
             bundle_id=bundle_id,
         )
 
+    def _bind_certified_fact_emission_to_active_window(self, turn_result):
+        """Complete the lived exchange with the words Guala actually emitted."""
+        if (not isinstance(turn_result, ConversationTurnResult)
+                or turn_result.response_source != "fact_strand_commit"
+                or not turn_result.response):
+            return 0
+        words = _normalize_text(turn_result.response)
+        if (not words
+                or turn_result.committed_sections != tuple(
+                    "language_fact" for _ in words)):
+            raise ValueError(
+                "certified Fact emission and committed words disagree")
+        context_id = self.window_manager.active_context_id
+        window = self.window_manager.current
+        if context_id is None or window is None:
+            raise RuntimeError(
+                "certified Fact emission lacks an active experience window")
+        detail = window.context_detail or {}
+        origin = detail.get("experience_origin")
+        if origin not in {"emulated", "observed"}:
+            raise ValueError(
+                "active emission experience lacks an approved origin")
+        existing_positions = [
+            entry.language_position for entry in window.entries
+            if entry.modality == "word" and entry.language_position is not None
+        ]
+        first_position = max(existing_positions, default=-1) + 1
+        for offset, word in enumerate(words):
+            self._add_canonical_language_entry(
+                word,
+                first_position + offset,
+                context_id=context_id,
+                source="guala:self",
+                episode_ref=detail.get("episode_ref"),
+                bundle_id=detail.get("bundle_id"),
+                experience_origin=origin,
+            )
+        return len(words)
+
+    @staticmethod
+    def _observed_sight_receipts_are_certified(window):
+        """Require complete, content-bound native sight evidence."""
+        from dsf_ai_service.visual_krimelack import (
+            validate_visual_fragment_receipt,
+        )
+
+        sight_entries = [
+            entry for entry in window.get("entries") or []
+            if entry.get("modality") == "sight"
+        ]
+        if not sight_entries:
+            return False
+        has_native_events = False
+        for entry in sight_entries:
+            receipt = (entry.get("provenance") or {}).get(
+                "structural_fact")
+            if not validate_visual_fragment_receipt(receipt):
+                return False
+            if receipt["events"]:
+                has_native_events = True
+        return has_native_events
+
     def _remember_closed_language_window(self, window_id):
         """Commit closed-window language facts with exact lived citations."""
         from dsf_ai_service.substrate.language_fact_strand import (
@@ -4420,6 +4482,12 @@ class Guala:
         if origin not in {"emulated", "observed"}:
             raise ValueError(
                 f"BindingWindow {window_id!r} lacks an approved experience origin")
+        if (origin == "observed"
+                and any(entry.get("modality") == "sight"
+                        for entry in window.get("entries") or [])
+                and not self._observed_sight_receipts_are_certified(window)):
+            raise ValueError(
+                f"BindingWindow {window_id!r} lacks certified native sight")
         modalities = tuple(dict.fromkeys(
             str(entry["modality"]).strip().lower()
             for entry in window.get("entries") or []))
@@ -4598,6 +4666,12 @@ class Guala:
                         return False
                     origin = (window.get("context_detail") or {}).get(
                         "experience_origin")
+                    if (origin == "observed"
+                            and any(entry.get("modality") == "sight"
+                                    for entry in window.get("entries") or [])
+                            and not self._observed_sight_receipts_are_certified(
+                                window)):
+                        return False
                     modalities = tuple(dict.fromkeys(
                         str(entry["modality"]).strip().lower()
                         for entry in window.get("entries") or []))
@@ -10973,7 +11047,10 @@ class Guala:
         except Exception as _sfe:
             print(f"[GualaLoom] process_sight_frame: sight signal cache failed "
                   f"(non-fatal, senses stay honestly absent): {_sfe}")
-        from dsf_ai_service.visual_krimelack import view_picture
+        from dsf_ai_service.visual_krimelack import (
+            view_picture,
+            visual_fragment_receipt,
+        )
         fragments = view_picture(grid, source_id="camera_stream",
                                  born_tick=_tick_snapshot, seed=_tick_snapshot % 10000,
                                  n_fixations=3, ticks_per_fixation=50)
@@ -10983,17 +11060,41 @@ class Guala:
             motif, is_new, overlap = self.sight.process_viewing(
                 fragments, "camera_stream", self.tick)
             if motif:
-                chi_val = motif.motif_id % 100
-                self.window_manager.add_entry(
-                    modality="sight", section="sight",
-                    motif_id=motif.motif_id, chi=chi_val, tick=self.tick,
-                    source_tag="cam:live", trigger_reason="sight",
-                    salience=0.8,
-                    sensory_refs=["cam:live"],
-                    **self._affect_kwargs())
+                derived_transition = {
+                    "motif": {
+                        "motif_id": motif.motif_id,
+                        "section": motif.section,
+                        "chi_profile": dict(motif.chi_profile),
+                        "cluster_state": list(motif.cluster_state),
+                        "angle": list(motif.angle),
+                        "n_firings": motif.n_firings,
+                        "source_history": list(motif.source_history),
+                        "founded_at_tick": motif.founded_at_tick,
+                    },
+                    "transition": {
+                        "is_new": bool(is_new),
+                        "overlap": float(overlap),
+                    },
+                }
+                for fragment in fragments:
+                    receipt = visual_fragment_receipt(fragment)
+                    self.window_manager.add_entry(
+                        modality="sight", section="sight_fragment",
+                        motif_id=int(receipt["receipt_sha256"][:16], 16),
+                        chi=int(fragment.winding_count), tick=self.tick,
+                        source_tag="cam:live", trigger_reason="sight",
+                        salience=0.8, mirror_atlas=False,
+                        structural_fact=receipt,
+                        sensory_refs=["cam:live"],
+                        detail={
+                            "source_tick": _tick_snapshot,
+                            "derived_visual_transition": derived_transition,
+                        },
+                        **self._affect_kwargs())
                 self._log_substrate_event("sight_frame_bound",
                                           motif_id=motif.motif_id,
-                                          chi=chi_val, is_new=is_new)
+                                          fragment_count=len(fragments),
+                                          is_new=is_new)
 
     @_engine_mutation_entry
     def process_sound_frame(self, audio_bytes, source="mic:live"):

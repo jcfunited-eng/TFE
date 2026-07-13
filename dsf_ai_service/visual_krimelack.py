@@ -6,6 +6,9 @@ AdaptingFoveaKrimelack + SaccadeController + chi-binding profile identity.
 No CNN, no embeddings, no pre-trained vision. Fovea krimelack does perception.
 """
 
+import hashlib
+import hmac
+import json
 import math
 import numpy as np
 from dataclasses import dataclass, field
@@ -127,10 +130,114 @@ class SaccadeController:
 @dataclass
 class VisualPerceptFragment:
     fixation_coord: tuple
-    event_ticks: list    # LOAD-BEARING — full sequence
+    event_ticks: list    # Temporal projection used by chi interval geometry
+    event_records: list  # Full native records: time, winding direction, signal
     winding_count: int
     source_id: str       # label only, NOT identity
     born_tick: int
+
+
+VISUAL_FRAGMENT_RECEIPT_SCHEMA = "guala.native_sight_fragment.v1"
+_VISUAL_DSF_UNKNOWN_REASON = (
+    "native_visual_fragment_has_no_ratified_full_field_operator")
+
+
+def _receipt_digest(payload):
+    encoded = json.dumps(
+        payload,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def visual_fragment_receipt(fragment):
+    """Preserve one native foveal output without inventing missing DSF fields."""
+    payload = {
+        "schema": VISUAL_FRAGMENT_RECEIPT_SCHEMA,
+        "fixation_coord": [
+            int(fragment.fixation_coord[0]),
+            int(fragment.fixation_coord[1]),
+        ],
+        "events": [
+            {
+                "t": int(event["t"]),
+                "dw": int(event["dw"]),
+                "s": float(event["s"]),
+            }
+            for event in fragment.event_records
+        ],
+        "winding_count": int(fragment.winding_count),
+        "source_id": str(fragment.source_id),
+        "born_tick": int(fragment.born_tick),
+        "dsf": {
+            "status": "unknown",
+            "reason": _VISUAL_DSF_UNKNOWN_REASON,
+        },
+    }
+    return {**payload, "receipt_sha256": _receipt_digest(payload)}
+
+
+def validate_visual_fragment_receipt(receipt):
+    """Fail closed unless a stored foveal receipt is complete and untampered."""
+    if not isinstance(receipt, dict):
+        return False
+    expected_keys = {
+        "schema", "fixation_coord", "events", "winding_count",
+        "source_id", "born_tick", "dsf", "receipt_sha256",
+    }
+    if set(receipt) != expected_keys:
+        return False
+    if receipt.get("schema") != VISUAL_FRAGMENT_RECEIPT_SCHEMA:
+        return False
+    fixation = receipt.get("fixation_coord")
+    if (not isinstance(fixation, list) or len(fixation) != 2
+            or any(isinstance(value, bool) or not isinstance(value, int)
+                   for value in fixation)):
+        return False
+    if (not isinstance(receipt.get("source_id"), str)
+            or not receipt["source_id"]):
+        return False
+    for name in ("winding_count", "born_tick"):
+        value = receipt.get(name)
+        if isinstance(value, bool) or not isinstance(value, int):
+            return False
+    if receipt.get("dsf") != {
+            "status": "unknown", "reason": _VISUAL_DSF_UNKNOWN_REASON}:
+        return False
+    events = receipt.get("events")
+    if not isinstance(events, list):
+        return False
+    previous_t = None
+    for event in events:
+        if not isinstance(event, dict) or set(event) != {"t", "dw", "s"}:
+            return False
+        t = event.get("t")
+        dw = event.get("dw")
+        signal = event.get("s")
+        if (isinstance(t, bool) or not isinstance(t, int)
+                or dw not in (-1, 1) or isinstance(dw, bool)
+                or isinstance(signal, bool)
+                or not isinstance(signal, (int, float))
+                or not math.isfinite(float(signal))
+                or (previous_t is not None and t < previous_t)):
+            return False
+        previous_t = t
+    supplied_digest = receipt.get("receipt_sha256")
+    if not isinstance(supplied_digest, str) or len(supplied_digest) != 64:
+        return False
+    payload = {
+        key: receipt[key]
+        for key in expected_keys
+        if key != "receipt_sha256"
+    }
+    try:
+        actual_digest = _receipt_digest(payload)
+    except (TypeError, ValueError):
+        return False
+    return hmac.compare_digest(supplied_digest, actual_digest)
 
 
 # =========================================================================
@@ -219,6 +326,14 @@ def view_picture(image, source_id, born_tick, seed=None,
         frag = VisualPerceptFragment(
             fixation_coord=fixation,
             event_ticks=[event["t"] for event in krim.events],
+            event_records=[
+                {
+                    "t": event["t"],
+                    "dw": event["dw"],
+                    "s": event["s"],
+                }
+                for event in krim.events
+            ],
             winding_count=krim.winding_count,
             source_id=source_id,
             born_tick=start_t,

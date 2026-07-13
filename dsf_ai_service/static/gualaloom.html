@@ -356,6 +356,28 @@ function startSightStream(){
 }
 function stopSightStream(){if(sightStreamTimer){clearInterval(sightStreamTimer);sightStreamTimer=null}}
 
+async function captureConversationSight(){
+  if(!camStream)return null;
+  const vid=document.getElementById('cam-preview');
+  if(!vid||vid.readyState<2)return null;
+  try{
+    const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
+    canvas.getContext('2d').drawImage(vid,0,0,128,128);
+    const blob=await new Promise((resolve,reject)=>
+      canvas.toBlob(value=>value?resolve(value):reject(new Error('camera produced no frame')),'image/jpeg',0.5));
+    const dataUrl=await new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+    return String(dataUrl).replace(/^data:image\/jpeg;base64,/,'');
+  }catch(error){
+    const status=document.getElementById('cam-status');
+    status.textContent='turn sight capture failed: '+error.message;status.style.color='#f85149';
+    return null;
+  }
+}
+
 async function requestCam(){
   const btn=document.getElementById('cam-perm');
   if(camStream){
@@ -884,7 +906,8 @@ async function _pollConverseTask(pollUrl, retryAfterMs, onTick){
 // is shown rather than discarded.
 async function _converseAndRender(text,source){
   // GL-CMD-CONVERSE-TASK-PATTERN-62: 202+poll replaces SSE
-  const startR=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source})});
+  const sight_b64=await captureConversationSight();
+  const startR=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source,sight_b64})});
   if(startR.status===503||startR.status===500){handleNotReady('converse');}
   else if(startR.status===202){
     const start=await startR.json();

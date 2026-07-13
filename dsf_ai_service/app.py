@@ -145,7 +145,52 @@ def _fail_inflight_converse_tasks(reason):
     return n_failed
 
 
-async def _run_converse(task_id: str, text: str, source: str, emission_mode=None):
+def _run_embedded_observed_conversation(
+        *, task_id: str, text: str, source: str, sight_b64: str):
+    """Bind one send-time camera event and its words as one experience."""
+    import base64
+
+    if _guala is None:
+        raise RuntimeError("guala_not_ready")
+    if not isinstance(sight_b64, str) or not sight_b64:
+        raise ValueError("observed conversation requires camera bytes")
+    context_id = f"live-conversation:{task_id}"
+    if _guala.window_manager.active_context_id is not None:
+        raise RuntimeError("observed conversation inherited another BindingWindow")
+    _guala.window_manager.begin_context(
+        context_id,
+        trigger_reason="live_observed_conversation",
+        context_detail={
+            "experience_origin": "observed",
+            "source": source,
+            "task_id": task_id,
+        },
+    )
+    complete = False
+    result = None
+    try:
+        image_bytes = base64.b64decode(sight_b64, validate=True)
+        _image, grid, _width, _height = decode_image_bytes(image_bytes)
+        _guala.process_sight_frame(grid)
+        result = _guala.converse(text, source=source)
+        _guala._bind_certified_fact_emission_to_active_window(result)
+        complete = True
+    finally:
+        window_id = _guala.window_manager.end_context(
+            context_id,
+            "context_complete" if complete else "context_failed",
+        )
+    if not complete or result is None:
+        raise RuntimeError("observed conversation did not complete")
+    if window_id is None:
+        raise RuntimeError("observed conversation BindingWindow did not close")
+    _guala._remember_closed_language_window(window_id)
+    return result
+
+
+async def _run_converse(
+        task_id: str, text: str, source: str, emission_mode=None,
+        sight_b64: Optional[str] = None):
     """Run substrate converse in executor, write result to task registry."""
     task = _converse_tasks.get(task_id)
     if task is None:
@@ -214,8 +259,17 @@ async def _run_converse(task_id: str, text: str, source: str, emission_mode=None
         else:
             if _guala is None:
                 raise RuntimeError("guala_not_ready")
-            turn_result = await _run_lifecycle_executor(
-                lambda: _guala.converse(text, source=source))
+            if sight_b64:
+                turn_result = await _run_lifecycle_executor(
+                    lambda: _run_embedded_observed_conversation(
+                        task_id=task_id,
+                        text=text,
+                        source=source,
+                        sight_b64=sight_b64,
+                    ))
+            else:
+                turn_result = await _run_lifecycle_executor(
+                    lambda: _guala.converse(text, source=source))
             response = turn_result.response
             response_source = turn_result.response_source
             motifs = len(_guala.vocab)
@@ -2035,6 +2089,7 @@ class GLMessage(BaseModel):
     command: Optional[str] = None
     source: Optional[str] = None   # v7-bridge: source-tagged input (joe/wc/c1)
     emission_mode: Optional[str] = None  # "topk" | "grandurun" per-request override
+    sight_b64: Optional[str] = None
 
 
 @app.post("/sight_frame")
@@ -2294,7 +2349,8 @@ async def gualaloom_chat(msg: GLMessage):
         }
         _schedule_mutating_background(
             lambda: _run_converse(
-                task_id, msg.text or "", msg.source or "joe", msg.emission_mode),
+                task_id, msg.text or "", msg.source or "joe",
+                msg.emission_mode, msg.sight_b64),
             name=f"converse-{task_id}",
         )
         return JSONResponse(

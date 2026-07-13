@@ -75,7 +75,7 @@ def test_multiword_context_distinguishes_successor_and_single_word_stops(guala):
     assert lone.content == ""
 
 
-def test_nested_observed_bundle_keeps_sight_and_words_in_same_window(guala):
+def test_label_only_observed_sight_cannot_certify_language(guala):
     guala.window_manager.open(
         "give_experience", experience_origin="observed", bundle_name="fox")
     outer_context = guala.window_manager.active_context_id
@@ -88,11 +88,12 @@ def test_nested_observed_bundle_keeps_sight_and_words_in_same_window(guala):
     assert guala.window_manager.active_context_id == outer_context
     assert not guala.window_manager.snapshot()["windows"]
     window_id = guala.window_manager.close("give_experience_complete")
-    guala._remember_closed_language_window(window_id)
+    with pytest.raises(ValueError, match="lacks certified native sight"):
+        guala._remember_closed_language_window(window_id)
     window = guala.window_manager.closed_window(window_id)
     assert {entry["modality"] for entry in window["entries"]} >= {
         "sight", "word"}
-    assert len(guala._ordered_language_windows) == 1
+    assert not guala._ordered_language_windows
 
 
 def test_failed_partial_sentence_never_enters_memory_or_rebuild(guala, monkeypatch):
