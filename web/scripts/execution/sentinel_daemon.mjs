@@ -37,8 +37,31 @@ const pool = new pg.Pool({
 });
 
 // ── Daily entry pass tracking ────────────────────────────────────────────
-// Entries run ONCE per trading day. This tracks whether today's pass has run.
+// Persisted to DB so daemon restarts during market hours don't re-fire.
+// In-memory variable is loaded from DB at startup in main().
 let lastEntryPassDate = null;
+
+async function loadEntryPassDate() {
+  try {
+    const r = await pool.query(
+      `SELECT value FROM pee1_execution_config WHERE key = 'lastEntryPassDate' LIMIT 1`
+    );
+    lastEntryPassDate = r.rows[0]?.value ?? null;
+    if (lastEntryPassDate) {
+      console.log(`[SENTINEL-DAEMON] Entry pass already ran: ${lastEntryPassDate}`);
+    }
+  } catch { /* non-fatal — defaults to null */ }
+}
+
+async function persistEntryPassDate(date) {
+  try {
+    await pool.query(
+      `INSERT INTO pee1_execution_config (key, value) VALUES ('lastEntryPassDate', $1)
+       ON CONFLICT (key) DO UPDATE SET value = $1`,
+      [date]
+    );
+  } catch { /* non-fatal */ }
+}
 
 /**
  * Fetch account state from Alpaca.
@@ -296,6 +319,7 @@ async function runDailyEntryPass() {
 
 async function main() {
   console.log("[SENTINEL-DAEMON] Started. Sentinel every 5 min. Entries once daily after open.");
+  await loadEntryPassDate();
 
   while (running) {
     if (!isTradingDay()) {
@@ -321,6 +345,7 @@ async function main() {
       const today = new Date().toISOString().slice(0, 10);
       if (isEntryWindow() && lastEntryPassDate !== today) {
         lastEntryPassDate = today;
+        await persistEntryPassDate(today);
         try {
           await runDailyEntryPass();
         } catch (err) {

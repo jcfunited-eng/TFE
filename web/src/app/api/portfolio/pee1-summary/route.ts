@@ -106,9 +106,8 @@ export async function GET(request: NextRequest) {
       totalInvested += entry * shares;
     }
 
-    // Realized P&L from all closed trades (total portfolio view)
+    // Realized P&L from all closed trades (for per-trade breakdown)
     const totalRealized = closedTrades.reduce((sum, r) => sum + (parseFloat(r.p_l ?? "0") || 0), 0);
-    const totalPl = totalRealized + totalUnrealized;
 
     // Win rate: fence CH3 and admin closures from primary validation
     const ADMIN_EXIT_REASONS = ["stale_position_cleanup", "manual_close_stale", "manual_portfolio_reset"];
@@ -124,11 +123,18 @@ export async function GET(request: NextRequest) {
     }
 
     const cashOnHand = fundedAmount - totalInvested;
-    const portfolioValue = cashOnHand + totalInvested + totalUnrealized;
-    const totalPlPct = fundedAmount > 0 ? (totalPl / fundedAmount) * 100 : null;
 
-    // Try to get Alpaca account equity for validation
+    // Try to get Alpaca account equity — use as ground truth for portfolio value and P&L.
+    // The DB-calculated P&L has gaps (null exit prices on bracket exits, delisted tickers).
+    // Alpaca equity is the actual dollar amount in the account right now.
     const alpacaAccount = await fetchAlpacaAccount(executionMode);
+
+    const portfolioValue = alpacaAccount?.equity
+      ?? Math.round((cashOnHand + totalInvested + totalUnrealized) * 100) / 100;
+    const totalPl = alpacaAccount
+      ? alpacaAccount.equity - fundedAmount
+      : totalRealized + totalUnrealized;
+    const totalPlPct = fundedAmount > 0 ? (totalPl / fundedAmount) * 100 : null;
 
     // Realized P&L split: CH1/CH2 vs CH3
     const realizedCh1Ch2 = closedCh1Ch2.reduce((sum, r) => sum + (parseFloat(r.p_l ?? "0") || 0), 0);
