@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import importlib
 import importlib.metadata
 from dataclasses import dataclass
@@ -47,8 +48,17 @@ class CertifiedBall:
             raise ReceiptError("certified ball lower endpoint exceeds upper endpoint")
 
 
-def load_pinned_flint():
-    """Load only the audited backend.  There is deliberately no fallback."""
+@functools.lru_cache(maxsize=1)
+def _pinned_flint_identity():
+    """Resolve and validate the pinned python-flint/FLINT package identity.
+
+    This covers only static, process-lifetime-invariant facts: which module
+    is importable and what version metadata it reports.  Those cannot change
+    between calls within one process, so this half of the check is safe to
+    memoize.  It deliberately excludes the live execution-context check
+    (thread count), which must be re-verified on every call -- see
+    ``load_pinned_flint`` below.
+    """
 
     try:
         flint = importlib.import_module("flint")
@@ -62,6 +72,13 @@ def load_pinned_flint():
         raise CertifiedBackendUnavailable(
             "certified backend mismatch: expected python-flint 0.9.0 / FLINT 3.6.0"
         )
+    return flint
+
+
+def load_pinned_flint():
+    """Load only the audited backend.  There is deliberately no fallback."""
+
+    flint = _pinned_flint_identity()
     if getattr(flint.ctx, "threads", None) != 1:
         raise CertifiedBackendUnavailable(
             "certified backend requires the mounted single-thread execution context"

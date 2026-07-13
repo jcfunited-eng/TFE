@@ -188,17 +188,26 @@ def _fraction_text(value: Fraction) -> str:
 def _extend_records(
     registry: ReceiptRegistry, records: Iterable[ReceiptRecord]
 ) -> ReceiptRegistry:
-    mounted = {value.digest: value.payload for value in registry.records}
+    # NOTE: `mounted` maps digest -> the already-validated ReceiptRecord
+    # object (not just its payload).  Every record already reached this
+    # function through its own ReceiptRecord.__post_init__ (digest-format
+    # check, nonempty-payload check, and a sha256 recompute-and-compare), so
+    # re-running that validation for records we already hold -- which the
+    # previous implementation did on every call, for the whole accumulated
+    # registry -- is pure repeated work.  Reusing the existing objects here
+    # keeps the same digest/payload pairs (ReceiptRecord equality is
+    # value-based) without recomputing any hash or regex we already trust.
+    mounted = {value.digest: value for value in registry.records}
     for record in records:
         if not isinstance(record, ReceiptRecord):
             raise ReceiptError("story Global-UF received an untyped receipt")
         prior = mounted.get(record.digest)
-        if prior is not None and prior != record.payload:
+        if prior is not None and prior.payload != record.payload:
             raise ReceiptError("story Global-UF receipt digest collision")
-        mounted[record.digest] = record.payload
+        mounted[record.digest] = record
     return ReceiptRegistry(
         registry.profile_binding_sha256,
-        tuple(ReceiptRecord(key, mounted[key]) for key in sorted(mounted)),
+        tuple(sorted(mounted.values(), key=lambda value: value.digest)),
     )
 
 

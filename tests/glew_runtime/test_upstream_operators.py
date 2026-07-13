@@ -291,9 +291,17 @@ def test_missing_certified_backend_fails_closed(monkeypatch):
             raise ImportError("not installed")
         return real_import(name)
 
+    # The pinned-identity resolution is memoized per process (it is static
+    # package metadata).  Force a clean cache here so this test observes the
+    # "flint genuinely absent" path exactly as it would on first load,
+    # regardless of what earlier tests in this process already resolved.
+    backend._pinned_flint_identity.cache_clear()
     monkeypatch.setattr(backend.importlib, "import_module", absent)
-    with pytest.raises(CertifiedBackendUnavailable, match="required"):
-        backend.load_pinned_flint()
+    try:
+        with pytest.raises(CertifiedBackendUnavailable, match="required"):
+            backend.load_pinned_flint()
+    finally:
+        backend._pinned_flint_identity.cache_clear()
 
 
 @pytest.mark.skipif(not HAS_FLINT, reason="pinned certified backend is not on this test path")
