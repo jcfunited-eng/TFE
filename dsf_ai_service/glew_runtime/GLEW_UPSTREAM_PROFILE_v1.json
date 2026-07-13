@@ -1,0 +1,159 @@
+{
+  "authority": {
+    "architecture_status": "ratified_executable",
+    "full_glew_language_commit_authority": false,
+    "implementation_authority": "upstream_and_field_operator_bundle_only"
+  },
+  "clean_genesis": {
+    "accepted_prior_state": "none",
+    "disruption_recovery": "baseline_not_established_latch_clear_and_no_recovery_pending_until_the_first_complete_experience",
+    "field": "empty_mounted_topology_dimension_zero_no_field_state_and_no_evolution_event",
+    "identity_entropy": "one_new_RFC_4122_UUIDv4_from_operating_system_CSPRNG",
+    "initial_state": "exact_time_zero_empty_ports_empty_windows_empty_faults_unknown_S_UF_unknown_R_UF_empty_fixed42_rows_empty_facts_memory_and_output",
+    "profile_binding": "SHA-256_over_the_exact_canonical_profile_bytes",
+    "storage_generation_identity": "deterministically_derived_from_the_new_identity_and_profile_SHA256"
+  },
+  "created_utc": "2026-07-13T00:00:00Z",
+  "description": "Ratified executable GLEW upstream, topology-derived field operator, and fixed-42 boundary. Entropy, mode, commit, and output authority remain absent, so this is not full GLEW language-commit authority.",
+  "downstream": {
+    "field_evolution": "operator_conformant_no_live_mounted_topology",
+    "full_GLEW_commit": "forbidden",
+    "missing_authorities": [
+      "entropy_operator",
+      "mode_authority",
+      "commit_operator",
+      "language_output_binding"
+    ]
+  },
+  "field_operator": {
+    "backend": {
+      "flint": "3.6.0",
+      "python_flint": "0.9.0",
+      "python_flint_wheel_sha256": "376b88cacd30612479e839ffdba887599d3f9c8c0e214852bf80bb2b194e4d76",
+      "threads": 1
+    },
+    "component_factorization": "exact_connected_components_of_the_exact_Hamiltonian_sparsity_graph_in_canonical_index_order_then_one_augmented_matrix_exponential_per_component",
+    "conformance": {
+      "schema": "glew.field.operator_conformance.v1",
+      "status": "operator_conformant_no_live_mounted_topology"
+    },
+    "coordinate_order_per_port": [
+      "TVR_T",
+      "TVR_V",
+      "TVR_R",
+      "w_k",
+      "CV_T",
+      "CV_V",
+      "CV_R",
+      "S_k",
+      "U_k",
+      "IAS_k",
+      "URF_k",
+      "D_k",
+      "M_k",
+      "R_rev_k",
+      "U_star_k",
+      "C_k",
+      "P_k",
+      "B_k",
+      "N_gate"
+    ],
+    "evolution": {
+      "equation": "dpsi_dt=(diag(growth-decay)-i*H/hbar)*psi+J",
+      "hamiltonian": "exact_sparse_complex_rational_and_exactly_Hermitian",
+      "local_growth_decay": "nonnegative_exact_rational_coefficients_bound_to_the_same_evolution_authority_receipt; zero_pairs_omitted",
+      "physical_profile_authority": "one_mounted_immutable_physical_profile_derivation_receipt_is_required_for_H_hbar_units_local_growth_decay_and_structural_source_time; exact_rationals_without_external_derivation_or_measurement_provenance_have_no_evolution_authority",
+      "solver": "canonical_sparse_components_augmented_acb_matrix_exponential",
+      "source": "J_equals_the_exact_integrated_MapInject_charge_divided_by_the_exact_positive_source_time_delta",
+      "time": "one_exact_positive_source_time_interval_with_no_fixed_step_count"
+    },
+    "fiber_dimension": 19,
+    "map_inject": "exact_direct_identity_inclusion_of_every_valid_receipted_port_record_into_its_declared_fiber_without_projection_averaging_normalization_hashing_or_QR",
+    "receipt_boundary": "topology_MapInject_evolution_coefficients_initial_state_result_state_and_evolution_result_are_each_content_bound_to_exact_canonical_receipts",
+    "topology": "field_dimension_equals_19_times_the_number_of_ordered_unique_mounted_port_fibers; validity_never_changes_dimension; empty_mounted_topology_has_dimension_zero_and_no_evolution_authority"
+  },
+  "fixed42": {
+    "ambient_columns": 42,
+    "capture_proof": {
+      "backend": "python-flint_0.9.0_FLINT_3.6.0_Arb",
+      "expression": "n_effective < 42/exp(1)",
+      "threads": 1
+    },
+    "constraint_rows": "one_signed_provider_native_exact_seven_coefficient_Fraction_covector_directly_embedded_in_its_own_lane_block; zero_covectors_forbidden; multiple_ports_remain_multiple_rows",
+    "field_order": [
+      "D_k",
+      "M_k",
+      "R_rev_k",
+      "U_star_k",
+      "C_k",
+      "P_k",
+      "B_k"
+    ],
+    "lane_order": [
+      "language",
+      "sight",
+      "sound",
+      "touch",
+      "smell",
+      "taste"
+    ],
+    "lock": "at_least_four_canonical_active_lanes_with_complete_receipted_constraint_sets_and_exact_U_star_zero_AND_disruption_clear_AND_exact_combined_n_effective_less_than_42_over_e",
+    "rank": "one_exact_Fraction_Gaussian_elimination_over_the_complete_vertical_row_stack",
+    "unknown": "missing_incomplete_mismatched_noncanonical_or_indeterminate_input_is_unknown_no_lock"
+  },
+  "forbidden": [
+    "legacy_state_import",
+    "compatibility_loader",
+    "machine_learning",
+    "probabilistic_or_heuristic_substitution",
+    "native_port_averaging_selection_or_scalar_flattening",
+    "DSF_field_weighted_sum_or_score_authority",
+    "lookup_language_or_vocabulary_authority",
+    "unratified_24_node_or_144_dimension_runtime_authority",
+    "hash_derived_projection_or_QR",
+    "fixed_step_or_per_gate_integration_count",
+    "dimension_from_lane_count_without_mounted_ports",
+    "zero_constraint_rows"
+  ],
+  "native_evidence": {
+    "calibration": "one_signed_exact_rational_affine_calibration_and_phase_kappa_receipt_per_native_port",
+    "fault_rule": "faults_advance_only_provable_source_order_latch_disruption_and_never_extrapolate_phase",
+    "multi_port_rule": "each_native_port_remains_one_independent_receipted_EvidenceStream_in_declared_order; no_averaging_selection_or_scalar_flattening",
+    "phase": "exact_rational_turns_persistent_across_batches_and_windows",
+    "receipt_registry": "every_profile_calibration_relevance_grid_domain_graph_operator_topology_MapInject_evolution_and_genesis_digest_must_resolve_to_exact_bytes_under_one_profile_binding",
+    "relevance": "native_relevance_is_supplied_only_by_the_native_ports_receipted_physical_operator"
+  },
+  "profile_id": "guala.glew.upstream.executable.v1",
+  "ratification": {
+    "scope": "clean_genesis_native_multi_port_typed_language_S_UF_R_UF_topology_derived_field_operator_and_fixed42_only",
+    "status": "ratified_executable_bundle"
+  },
+  "schema": "glew.upstream.executable_profile.v1",
+  "structural_facts": {
+    "R_UF": {
+      "backend": {
+        "flint": "3.6.0",
+        "python_flint": "0.9.0",
+        "python_flint_wheel_sha256": "376b88cacd30612479e839ffdba887599d3f9c8c0e214852bf80bb2b194e4d76",
+        "threads": 1
+      },
+      "edge_operator": "gamma_squared_equals_absolute_squared_common_grid_inner_product_of_sqrt_relevance_phase_phasors_divided_by_both_weighted_relevance_energies",
+      "graph": "finite_meet_over_the_profile_mounted_nonempty_unique_required_edge_set",
+      "unknown": "missing_edge_grid_receipt_operator_receipt_backend_match_or_unique_interval_result_fails_closed",
+      "zero_energy": "a_proved_zero_energy_required_edge_is_exactly_zero"
+    },
+    "S_UF": {
+      "operator": "finite_lattice_meet_of_each_profile_required_ports_exact_minimum_relevance_on_the_receipted_common_causal_grid",
+      "optional_ports": "retain_each_optional_port_floor_fact_but_exclude_it_from_the_required_meet",
+      "unknown": "empty_required_domain_missing_required_port_or_grid_misalignment_fails_closed"
+    },
+    "relationship": "S_UF_and_R_UF_remain_separate_upstream_facts_outside_the_19_coordinate_numeric_transport_and_are_never_collapsed_into_a_score"
+  },
+  "typed_language": {
+    "encoding": "Unicode_NFC_then_minimal_balanced_ternary_in_14_places_least_significant_first_with_padding_validity",
+    "kind": "explicit_artificial_interface_event_not_ligand_chemistry",
+    "relevance": "each_admitted_valid_balanced_trit_has_exact_unit_event_relevance_one_independent_of_signal_value_or_semantics",
+    "source": "original_UTF8_normalized_scalars_exact_source_time_interface_receipt_and_phase_calibration_receipt_are_preserved"
+  },
+  "version": "1.1.0"
+}
