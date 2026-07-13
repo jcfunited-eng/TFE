@@ -71,7 +71,6 @@ class DeepAtlas:
         # Instrumentation
         self.promotions_survival = 0
         self.promotions_episodic = 0
-        self.reinstatements = 0
         self.gate_rejects = []  # recent rejects for diagnostics (capped)
         # Cache env-var reads at init time — these flags don't change at runtime.
         self._prior_enabled = _deep_prior_enabled()
@@ -279,18 +278,6 @@ class DeepAtlas:
                 return min(PRIOR_CAP, e["strength"] * 0.3)
         return 0.0
 
-    def reinstate(self, chi_value, section, motif, tick):
-        """Reinstate a working atlas entry from deep.
-        Returns the reinstatement strength, or 0.0 if not in deep."""
-        if not self._prior_enabled:
-            return 0.0
-        for e in self.entries.get(chi_value, []):
-            if (e["strength"] >= FORGETTING_THRESHOLD
-                    and e["section"] == section and e["motif"] == motif):
-                self.reinstatements += 1
-                return e["strength"] * 0.3
-        return 0.0
-
     def dream_promotion_gate(self, working_atlas, tick, survival_history):
         """Evaluate both promotion paths at dream time.
 
@@ -373,7 +360,6 @@ class DeepAtlas:
             "total_strength": round(self.total_strength(), 2),
             "promotions_survival": self.promotions_survival,
             "promotions_episodic": self.promotions_episodic,
-            "reinstatements_since_boot": self.reinstatements,
             "enabled": _deep_atlas_enabled(),
             "prior_enabled": _deep_prior_enabled(),
             "recent_gate_rejects": self.gate_rejects[-5:],
@@ -396,7 +382,6 @@ class DeepAtlas:
             "entries": entries_ser,
             "promotions_survival": self.promotions_survival,
             "promotions_episodic": self.promotions_episodic,
-            "reinstatements": self.reinstatements,
         }
 
     def load_from_json(self, data):
@@ -408,7 +393,6 @@ class DeepAtlas:
         self.tick = data.get("tick", 0)
         self.promotions_survival = data.get("promotions_survival", 0)
         self.promotions_episodic = data.get("promotions_episodic", 0)
-        self.reinstatements = data.get("reinstatements", 0)
         self.entries = defaultdict(list)
         for k, es in data.get("entries", {}).items():
             self.entries[int(k)] = list(es)

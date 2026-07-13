@@ -1496,34 +1496,20 @@ class Section:
         return mode_idx
 
     def receive(self, dsf, chi, word_label, atlas, familiarity, salience=1.0,
-                dwell_ticks=1, deep_atlas=None, engine_tick=None,
-                atlas_kwargs=None, index_callback=None, window_manager=None):
+                dwell_ticks=1, engine_tick=None, atlas_kwargs=None,
+                window_manager=None):
         """v6: word-anchored mode identity + salience-modulated binding.
         v8 (GL-BRIEF-032): dwell_ticks tagged at write time for deep gate.
-        deep_atlas: if provided, on-attention prior applied for matching entries.
         engine_tick: MUST be passed — atlas entries use engine clock, not section clock.
         GL-FIND-TICK-DOMAIN-C1: section.tick stays for internal counting only.
         atlas_kwargs: GL-CLARITY-INVARIANCE-UNCAGE affect+grounding kwargs for record().
-        index_callback: GL-CMD-INDEX-INVARIANT-COMPLETE-163 Part A — optional
-        callable(section_name, motif_id, chi_value), called for every
-        atlas.record() this method issues directly (the deep-atlas
-        reinstatement block below), since Section has no engine reference
-        and can't call self._atlas_record() itself. The caller (Guala.
-        read_word) passes self._index_word_at_chi. The primary commit's
-        OWN indexing is still done by the caller from receive()'s return
-        value (GL-CMD-RECALL-REACH-159 Part C) — this callback covers ONLY
-        the reinstatement writes, which the return value doesn't surface.
 
         window_manager: GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1,
         optional (default None preserves exact prior behavior for any
         caller that doesn't pass it). When supplied, the PRIMARY commit
         below routes through window_manager.add_entry() instead of
         atlas.record() directly -- same call, same arguments, same
-        resulting atlas write, plus window bookkeeping and events. The
-        deep-atlas reinstatement block does NOT route through it (that's
-        reinstating an existing memory on attention, not a new experience
-        moment -- out of this dispatch's scope, same as dream/correction
-        writes elsewhere in the engine)."""
+        resulting atlas write, plus window bookkeeping and events."""
         self.tick += 1
         # Atlas records use engine tick (one clock — GL-FIND-TICK-DOMAIN-C1)
         if engine_tick is None:
@@ -1533,57 +1519,6 @@ class Section:
                 "A missing engine_tick silently reintroduces the instant-death bug.")
         atlas_tick = engine_tick
         self.dead_zone = 0.20 + 0.5 * familiarity
-
-        # v8: On-attention deep prior (before commit, affects familiarity landscape)
-        # EVE-FIX: compute prior/reinstate directly from e (already found by outer
-        # loop) — avoids get_prior() and reinstate() each doing a redundant O(n)
-        # linear scan of the same chi bucket. Was O(n²) per section receive.
-        if deep_atlas is not None and deep_atlas._prior_enabled:
-            from dsf_ai_service.substrate.deep_atlas import FORGETTING_THRESHOLD as DF_THRESH, PRIOR_CAP
-            _reinst_count = 0
-            for e in deep_atlas.entries.get(chi, []):
-                if _reinst_count >= 50:  # cap: bound O(n²) while preserving enough evidence
-                    break
-                # GL-CMD-SLEEP-REORGANIZE follow-on (adversarial review,
-                # 2026-07-10): this reinstatement writes a FULL-weight real
-                # atlas.record() the moment strength clears FORGETTING_
-                # THRESHOLD, with no scaling by how confident the entry
-                # actually is -- a rock-solid real memory and a just-created,
-                # never-confirmed reorganize hypothesis (both >= threshold)
-                # get identical treatment. That's an existing, accepted
-                # design tradeoff for real (survival/episodic) promotions;
-                # it was never evaluated for a genuinely untested guess.
-                # Excluding hypothesis-tagged entries here keeps them out of
-                # every real-recall-facing write path until something real
-                # actually confirms them (dream_promotion_gate, same
-                # mechanism as any other entry) -- narrower than reworking
-                # the existing reinstatement design for entries this
-                # dispatch doesn't own.
-                if (e.get("section") == self.name and e["strength"] >= DF_THRESH
-                        and e.get("source_path") != "reorganize_hypothesis"):
-                    motif = e["motif"]
-                    # GL-FIX-ATLAS-INTEGRITY: skip OOB reinstatements.
-                    # Deep atlas entry was promoted when the section had more modes.
-                    # If the section has since been loaded from an older save with
-                    # fewer modes, reinstating the old motif_id creates an OOB atlas
-                    # entry that fails _validate_integrity(). Skip and let the deep
-                    # entry naturally expire via decay.
-                    if motif >= len(self.modes):
-                        continue
-                    p = min(PRIOR_CAP, e["strength"] * 0.3)  # same formula as get_prior
-                    if p > 0:
-                        deep_atlas.reinstatements += 1
-                        _reinst_count += 1
-                        atlas.record(self.name, motif, chi, atlas_tick,
-                                     salience=0.3, dwell_ticks=0,
-                                     **(atlas_kwargs or {}))
-                        # GL-CMD-INDEX-INVARIANT-COMPLETE-163 Part A: this
-                        # reinstatement writes a binding for the COHABITANT
-                        # word at `motif`, not the word being taught — index
-                        # it too, or it's invisible to recall until restart
-                        # exactly like -159 F-3 was.
-                        if index_callback is not None:
-                            index_callback(self.name, motif, chi)
 
         # Fast path: O(1) word-identity lookup BEFORE similarity scan.
         # For known words (the majority in converse), this skips the scan entirely.
@@ -3566,10 +3501,8 @@ class Guala:
                 self.atlas, fam_listen,
                 salience=salience,
                 dwell_ticks=dwell,
-                deep_atlas=self.deep_atlas,
                 engine_tick=self.tick,
                 atlas_kwargs=_akw,
-                index_callback=self._index_word_at_chi,
                 window_manager=self.window_manager)
             # GL-CMD-RECALL-REACH-159 Part C (F-3): Section.receive commits via
             # atlas.record() directly, not self._atlas_record() (Section has no
@@ -3588,10 +3521,8 @@ class Guala:
                     self.atlas, fam,
                     salience=salience,
                     dwell_ticks=dwell,
-                    deep_atlas=self.deep_atlas,
                     engine_tick=self.tick,
                     atlas_kwargs=_akw,
-                    index_callback=self._index_word_at_chi,
                     window_manager=self.window_manager)
                 if _committed:
                     self._index_word_at_chi(primary_section, _mode_idx, lang_chi)
@@ -3632,10 +3563,8 @@ class Guala:
                     self.atlas, fam_ground,
                     salience=salience,
                     dwell_ticks=dwell,
-                    deep_atlas=self.deep_atlas,
                     engine_tick=self.tick,
                     atlas_kwargs=_akw,
-                    index_callback=self._index_word_at_chi,
                     window_manager=self.window_manager)
                 if _ground_committed:
                     self._index_word_at_chi("ground", _ground_mode_idx, ground_chi)
@@ -3696,10 +3625,8 @@ class Guala:
                     self.atlas, 0.0,
                     salience=salience,
                     dwell_ticks=dwell,
-                    deep_atlas=self.deep_atlas,
                     engine_tick=self.tick,
                     atlas_kwargs=_akw,
-                    index_callback=self._index_word_at_chi,
                     window_manager=self.window_manager)
                 if _intro_committed:
                     self._index_word_at_chi("intro", _intro_mode_idx, lang_chi)

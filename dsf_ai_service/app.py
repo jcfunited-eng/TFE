@@ -2116,8 +2116,7 @@ async def gualaloom_chat(msg: GLMessage):
                 f"deep: {s.get('deep_atlas', {}).get('n_entries', 0)} entries "
                 f"str={s.get('deep_atlas', {}).get('total_strength', 0)} "
                 f"surv={s.get('deep_atlas', {}).get('promotions_survival', 0)} "
-                f"ep={s.get('deep_atlas', {}).get('promotions_episodic', 0)} "
-                f"reinst={s.get('deep_atlas', {}).get('reinstatements_since_boot', 0)}"
+                f"ep={s.get('deep_atlas', {}).get('promotions_episodic', 0)}"
             ),
             "motifs": s["vocab"],
             "vocab": s["vocab"],
