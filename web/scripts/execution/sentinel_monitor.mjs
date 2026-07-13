@@ -572,6 +572,19 @@ export async function runSentinel() {
                  LIMIT 1`, [ticker]
               );
               if (existing.rows.length > 0) continue;
+              // Skip re-adoption if we deliberately closed this position.
+              // Handles delisted/acquired assets (e.g. CWAN, HTBK) that Alpaca
+              // still holds pending corporate-action settlement — we can't sell
+              // them, and adopting them creates a failed-kill loop.
+              const wasClosed = await pool.query(
+                `SELECT id FROM personal_trade_ledger
+                 WHERE UPPER(TRIM(ticker)) = $1 AND status = 'closed'
+                 LIMIT 1`, [ticker]
+              );
+              if (wasClosed.rows.length > 0) {
+                console.log(`[SENTINEL] Orphan skip: ${ticker} — closed in ledger, skipping re-adoption (corporate action pending?)`);
+                continue;
+              }
               // Recover real entry date: check for the most recent closed row
               // for this ticker to carry the original entry_filled_at forward.
               // Never use NOW() — that resets hold timers off phantom timestamps.
