@@ -1025,9 +1025,20 @@ def _case_language_transport(
             last_timestamp=sample.timestamp,
             phase_turns=sample.phase_turns,
         )
+    if case.kind is NativeReplayCaseKind.BASE:
+        # The base case is the same heard/typed event replayed with zero
+        # perturbation -- it must keep the pre-replay stream's own identity
+        # exactly, so anything that authenticates speech against the
+        # original typed-language capture (e.g. learned-expression binding)
+        # can recognize this as the same event.  Only a genuinely perturbed
+        # (counterfactual) adjacency gets a new, distinctly tagged identity,
+        # so it can never be confused with the real event.
+        evidence_id = typed_input.stream.evidence_id
+    else:
+        evidence_id = f"{typed_input.event.event_id}:native:{case.case_index}"
     stream = replace(
         typed_input.stream,
-        evidence_id=f"{typed_input.event.event_id}:native:{case.case_index}",
+        evidence_id=evidence_id,
         samples=tuple(samples),
     )
     stream_payload = source_evidence_stream_receipt_payload(stream)
