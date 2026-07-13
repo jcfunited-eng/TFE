@@ -89,10 +89,15 @@ _TASK_TTL_SECONDS = 300  # 5 min after complete before GC
 # immediately (never queued) with an honest response and a counter,
 # rather than piling up silently.
 import threading
+import concurrent.futures as _concurrent_futures
 _frame_inflight_lock = threading.Lock()
 _FRAME_INFLIGHT_MAX = 2
 _frame_inflight = {"sight": 0, "sound": 0}
 _frame_dropped = {"sight": 0, "sound": 0}
+_speech_recognition_executor = _concurrent_futures.ThreadPoolExecutor(
+    max_workers=1,
+    thread_name_prefix="speech-recognition",
+)
 
 
 def _frame_backpressure_acquire(kind):
@@ -1804,7 +1809,16 @@ async def sound_frame(msg: GLMessage):
             wav = _sr._webm_to_wav_bytes(audio_bytes)
             if not wav:
                 return {"ok": False, "error": "decode_failed"}
-            _guala.process_sound_frame(wav)
+            recognition_future = None
+            if os.environ.get("VOICE_WHISPER", "0") == "1" and src == "joe_voice":
+                from dsf_ai_service.substrate.grounded_vocab_integration import (
+                    transcribe_sound,
+                )
+                recognition_future = _speech_recognition_executor.submit(
+                    transcribe_sound,
+                    wav,
+                )
+            _guala.process_sound_frame(wav, source=src)
             # GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204 S1: Part A SEVERED.
             # _audio_to_sensory_words classifies mic ENERGY into fixed labels
             # (quiet room -> "faint" +warm/smooth/steady) and this fed them
@@ -1821,29 +1835,43 @@ async def sound_frame(msg: GLMessage):
             # off by default (VOICE_WHISPER=0), joe-tagged sources only, async
             # off the request path — flips to 1 only on Eve GO after the cost
             # line is filed.
-            if os.environ.get("VOICE_WHISPER", "0") == "1" and src == "joe_voice":
-                import threading as _th
-                def _whisper_bg():
-                    tw0 = time.time()
-                    try:
+            recognition_status = "disabled"
+            spoken = ""
+            if recognition_future is not None:
+                tw0 = time.time()
+                try:
+                    spoken = recognition_future.result()
+                    recognition_status = "recognized" if spoken.strip() else "no_speech"
+                    if spoken.strip():
                         from dsf_ai_service.substrate.grounded_vocab_integration import (
-                            process_sound_with_recognition)
-                        _bindings, _spoken = process_sound_with_recognition(
-                            _guala, wav, source="joe_voice")
-                        # 2026-07-12: use the FULL real transcribed text, not
-                        # _bindings (only already-known words) -- else a real
-                        # sentence with any new word silently collapses to a
-                        # fragment or nothing before it ever reaches her.
-                        if _spoken.strip():
-                            _guala.read_sentence(_spoken, source="joe",
-                                                 bundle_id=f"sound_frame:{_guala.tick}")
-                    except Exception as _we:
-                        print(f"[voice-whisper] error: {_we}")
-                    finally:
-                        print(f"[voice-whisper] {time.time()-tw0:.3f}s")
-                _th.Thread(target=_whisper_bg, daemon=True).start()
+                            bind_transcribed_speech,
+                        )
+                        bind_transcribed_speech(_guala, spoken)
+                        _guala.read_sentence(
+                            spoken,
+                            source="joe",
+                            bundle_id=f"sound_frame:{_guala.tick}",
+                        )
+                except Exception as recognition_error:
+                    recognition_status = "error"
+                    print(
+                        "[voice-whisper] error="
+                        f"{type(recognition_error).__name__}: {recognition_error}"
+                    )
+                finally:
+                    print(f"[voice-whisper] {time.time()-tw0:.3f}s status={recognition_status}")
             print(f"[sound-frame] {time.time()-t0:.3f}s")
-            return {"ok": True, "tick": _guala.tick}
+            result = {
+                "ok": recognition_status != "error",
+                "tick": _guala.tick,
+                "raw_sound": "accepted",
+                "speech_recognition": recognition_status,
+            }
+            if spoken.strip():
+                result["transcript"] = spoken.strip()
+            if recognition_status == "error":
+                result["error"] = "speech_recognition_failed"
+            return result
         except Exception as e:
             return {"ok": False, "error": str(e)}
     try:
@@ -4903,6 +4931,21 @@ async def startup():
         loop = asyncio.get_event_loop()
         t0 = time.time()
         await loop.run_in_executor(None, _gl_init)
+        if os.environ.get("VOICE_WHISPER", "0") == "1":
+            try:
+                from dsf_ai_service.substrate.grounded_vocab_integration import (
+                    require_speech_recognizer,
+                )
+                await loop.run_in_executor(
+                    _speech_recognition_executor,
+                    require_speech_recognizer,
+                )
+                print("[voice-whisper] recognizer ready")
+            except Exception as recognition_error:
+                print(
+                    "[voice-whisper] initialization error="
+                    f"{type(recognition_error).__name__}: {recognition_error}"
+                )
         dt = time.time() - t0
         print(f"[DSF-AI] Guala initialized in {dt:.1f}s")
         _init_complete = True

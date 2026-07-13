@@ -8,6 +8,8 @@ installed. The CrossModalBinder is fully functional (pure Python).
 Models (YOLOv8-nano ONNX, Whisper-tiny ONNX, YAMNet) are added later.
 """
 
+import threading
+
 # -- COCO 80 class labels (YOLOv8 ordering) --------------------------------
 COCO_LABELS = [
     "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train",
@@ -138,25 +140,37 @@ class ObjectRecognizer:
         return results
 
 
+class SpeechRecognitionUnavailable(RuntimeError):
+    """The configured speech recognizer could not be constructed."""
+
+
+class SpeechTranscriptionError(RuntimeError):
+    """A configured recognizer failed while processing an audio event."""
+
+
 class SpeechRecognizer:
     """Whisper-tiny speech-to-text via faster-whisper (CTranslate2).
 
     Uses faster-whisper which is CPU-optimized and doesn't require torch.
-    If faster-whisper is not installed, self.available is False and
-    transcribe() returns an empty string.
+    Construction and inference are serialized because one CTranslate2 model is
+    one physical recognition resource.  Configuration or inference failures
+    are raised explicitly; valid audio containing no speech still returns an
+    empty string.
     """
 
     def __init__(self, model_path=None):
         self.available = False
         self._model = None
+        self._initialization_error = None
+        self._transcribe_lock = threading.Lock()
         try:
             from faster_whisper import WhisperModel
             model_size = model_path or "tiny"
             self._model = WhisperModel(model_size, device="cpu",
                                         compute_type="int8")
             self.available = True
-        except Exception:
-            self.available = False
+        except Exception as error:
+            self._initialization_error = error
 
     def transcribe(self, audio_bytes, sample_rate=16000):
         """Transcribe audio bytes to text.
@@ -166,14 +180,24 @@ class SpeechRecognizer:
             sample_rate: sample rate of the audio (default 16000).
 
         Returns:
-            str: transcribed text, or "" when model is unavailable.
+            str: transcribed text, or "" when the audio contains no speech.
+
+        Raises:
+            SpeechRecognitionUnavailable: model construction failed.
+            SpeechTranscriptionError: inference failed.
         """
         if not self.available or self._model is None:
-            return ""
-        try:
-            return self._run_transcription(audio_bytes, sample_rate)
-        except Exception:
-            return ""
+            detail = type(self._initialization_error).__name__ if self._initialization_error else "unknown"
+            raise SpeechRecognitionUnavailable(
+                f"speech recognizer unavailable ({detail})"
+            ) from self._initialization_error
+        with self._transcribe_lock:
+            try:
+                return self._run_transcription(audio_bytes, sample_rate)
+            except Exception as error:
+                raise SpeechTranscriptionError(
+                    f"speech transcription failed ({type(error).__name__})"
+                ) from error
 
     def _run_transcription(self, audio_bytes, sample_rate):
         """Internal: decode audio and run faster-whisper."""
