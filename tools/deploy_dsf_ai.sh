@@ -757,6 +757,45 @@ if [ "${EFS_BACKUP_POLICY}" != "ENABLED" ]; then
 fi
 echo "[recovery] EFS automatic backup policy verified enabled."
 
+# GL-FIX-S3-LIFECYCLE-SELF-HEAL-20260713: the AbortIncompleteMultipartUpload
+# rule on the backups bucket (added after the 2026-07-06 incident where 272
+# incomplete multipart uploads silently cost ~264GB) was found silently gone
+# twice since (2026-07-12, 2026-07-13). S3's PutBucketLifecycleConfiguration
+# always replaces the entire rule set, so any other actor's lifecycle PUT
+# (nothing in this repo makes one -- some external/manual call did) wipes it
+# with no error and nothing in these logs. This deploy already runs many
+# times a day, so re-asserting the one rule this depends on every run means
+# it can never stay missing "silently" for more than a few hours. Get-merge-
+# put by fixed rule ID: only this one rule is ever asserted present, so any
+# OTHER rule anyone else adds to this bucket is never touched or clobbered.
+echo ""
+echo "[recovery] Verifying S3 backup-bucket multipart-abort safety rule..."
+S3_BACKUP_BUCKET="dsf-ai-site-backups"
+REQUIRED_RULE_ID="guala-abort-incomplete-multipart-1d"
+CURRENT_LIFECYCLE_JSON=$(aws s3api get-bucket-lifecycle-configuration \
+    --bucket "${S3_BACKUP_BUCKET}" --query 'Rules' --output json 2>/dev/null || echo '[]')
+MERGED_LIFECYCLE_JSON=$(CURRENT_LIFECYCLE_JSON="${CURRENT_LIFECYCLE_JSON}" \
+    REQUIRED_RULE_ID="${REQUIRED_RULE_ID}" python3 -c '
+import json, os
+rules = json.loads(os.environ["CURRENT_LIFECYCLE_JSON"]) or []
+rule_id = os.environ["REQUIRED_RULE_ID"]
+if not any(r.get("ID") == rule_id for r in rules):
+    rules.append({
+        "ID": rule_id,
+        "Filter": {},
+        "Status": "Enabled",
+        "AbortIncompleteMultipartUpload": {"DaysAfterInitiation": 1},
+    })
+print(json.dumps({"Rules": rules}))
+')
+LIFECYCLE_TMP=$(mktemp)
+printf '%s' "${MERGED_LIFECYCLE_JSON}" > "${LIFECYCLE_TMP}"
+aws s3api put-bucket-lifecycle-configuration \
+    --bucket "${S3_BACKUP_BUCKET}" \
+    --lifecycle-configuration "file://${LIFECYCLE_TMP}"
+rm -f "${LIFECYCLE_TMP}"
+echo "[recovery] S3 backup-bucket multipart-abort rule verified present (rule id: ${REQUIRED_RULE_ID})."
+
 # URL host remains dsf-ai.com so certificate/SNI verification is real; curl
 # connects that origin directly to the ALB rather than the static CloudFront DNS.
 CONTROL_CONNECT=(--connect-to "dsf-ai.com:443:${ALB_DNS}:443")
