@@ -16,6 +16,15 @@ authority receipt.  The solve uses an augmented matrix exponential in pinned
 python-flint/FLINT Arb arithmetic.  Exact generator sparsity is factored into
 canonical connected components before exponentiation; this is an exact direct
 sum, never a numerical approximation.
+
+Native ports do not share a clock.  ``SparseMapInjection`` therefore records
+one exact causal source time and only the native fibers whose gates actually
+closed at that time.  The mounted topology and the complete field state remain
+unchanged.  An absent fiber is named explicitly in the receipt and contributes
+no source term; it is never represented by fabricated transport evidence,
+interpolation, resampling, or a held prior observation.  The original dense
+``MapInjection`` remains available, unchanged, for genuinely simultaneous
+full-topology events.
 """
 
 from __future__ import annotations
@@ -599,6 +608,264 @@ def map_inject(
 
 
 @dataclass(frozen=True, slots=True)
+class SparseMapInjection:
+    """One asynchronous source event over a still-complete mounted topology.
+
+    ``mapped_fibers`` contains only ports whose native gate closed at
+    ``source_time``.  ``absent_fibers`` is the exact canonical complement in
+    the mounted topology.  Absence means no new integrated source charge at
+    this event; it is not numeric evidence and has no coordinate tuple.
+    """
+
+    topology_id: str
+    topology_authority_receipt_sha256: str
+    source_time: Fraction
+    field_dimension: int
+    mapped_fibers: tuple[MappedPortFiber, ...]
+    absent_fibers: tuple[PortFiber, ...]
+    receipt_sha256: str
+    receipt_payload: bytes
+
+    def __post_init__(self) -> None:
+        require_identifier(self.topology_id, "sparse MapInject topology id")
+        sha256_digest(
+            self.topology_authority_receipt_sha256,
+            "sparse MapInject topology authority receipt",
+        )
+        require_fraction(self.source_time, "sparse MapInject source_time")
+        if (
+            isinstance(self.field_dimension, bool)
+            or not isinstance(self.field_dimension, int)
+            or self.field_dimension <= 0
+        ):
+            raise ReceiptError("sparse MapInject field dimension must be positive")
+        if not self.mapped_fibers:
+            raise ReceiptError("sparse MapInject requires at least one closed native gate")
+        if not all(isinstance(value, MappedPortFiber) for value in self.mapped_fibers):
+            raise ReceiptError("sparse MapInject contains an invalid mapped fiber")
+        if not all(isinstance(value, PortFiber) for value in self.absent_fibers):
+            raise ReceiptError("sparse MapInject contains an invalid absent fiber")
+        sha256_digest(self.receipt_sha256, "sparse MapInject receipt")
+
+    @property
+    def dimension(self) -> int:
+        return self.field_dimension
+
+    @property
+    def integrated_charge_terms(self) -> tuple[tuple[int, Fraction], ...]:
+        """Canonical nonzero full-field indices and exact integrated charges."""
+
+        return tuple(
+            (mapped.offset + local_index, value)
+            for mapped in self.mapped_fibers
+            for local_index, value in enumerate(mapped.coordinates)
+            if value != 0
+        )
+
+    @property
+    def exact_input_fractions(self) -> tuple[Fraction, ...]:
+        return (
+            self.source_time,
+            *(value for mapped in self.mapped_fibers for value in mapped.coordinates),
+        )
+
+    def verify(
+        self,
+        topology: MountedFieldTopology,
+        receipt_registry: ReceiptRegistry,
+    ) -> None:
+        topology.verify(receipt_registry)
+        if self.topology_id != topology.topology_id:
+            raise ReceiptError("sparse MapInject event carries a different topology id")
+        if self.topology_authority_receipt_sha256 != topology.authority_receipt_sha256:
+            raise ReceiptError("sparse MapInject event belongs to a different topology")
+        if self.field_dimension != topology.dimension:
+            raise ReceiptError("sparse MapInject changed the mounted field dimension")
+
+        topology_positions = {
+            fiber.key: index for index, fiber in enumerate(topology.ordered_port_fibers)
+        }
+        active_keys = tuple(mapped.fiber.key for mapped in self.mapped_fibers)
+        if len(set(active_keys)) != len(active_keys):
+            raise ReceiptError("sparse MapInject contains duplicate active fibers")
+        if any(key not in topology_positions for key in active_keys):
+            raise ReceiptError("sparse MapInject contains a fiber outside mounted topology")
+        expected_active_keys = tuple(
+            sorted(active_keys, key=topology_positions.__getitem__)
+        )
+        if active_keys != expected_active_keys:
+            raise ReceiptError("sparse MapInject active fibers are out of canonical topology order")
+
+        for mapped in self.mapped_fibers:
+            mapped.evidence.verify(receipt_registry)
+            if mapped.evidence.validity.state is not EvidenceValidityState.VALID:
+                raise ReceiptError(
+                    "invalid or unknown evidence has no sparse MapInject authority"
+                )
+            if mapped.evidence.key != mapped.fiber.key:
+                raise ReceiptError("sparse MapInject evidence names a different fiber")
+            topology_index = topology_positions[mapped.fiber.key]
+            if topology.ordered_port_fibers[topology_index] != mapped.fiber:
+                raise ReceiptError("sparse MapInject fiber differs from mounted topology")
+            if mapped.offset != topology_index * FIBER_DIMENSION:
+                raise ReceiptError(
+                    "sparse MapInject fiber offset is not the canonical direct-sum offset"
+                )
+            if mapped.coordinates != mapped.evidence.coordinates.as_tuple():
+                raise ReceiptError(
+                    "sparse MapInject coordinates differ from exact port evidence"
+                )
+            if mapped.evidence.provenance.source_timestamp != self.source_time:
+                raise ReceiptError(
+                    "sparse MapInject evidence did not close at the event source time"
+                )
+
+        active_key_set = set(active_keys)
+        expected_absent = tuple(
+            fiber
+            for fiber in topology.ordered_port_fibers
+            if fiber.key not in active_key_set
+        )
+        if self.absent_fibers != expected_absent:
+            raise ReceiptError(
+                "sparse MapInject absence is not the exact canonical topology complement"
+            )
+        expected_payload = _sparse_map_injection_payload(
+            topology=topology,
+            source_time=self.source_time,
+            mapped_fibers=self.mapped_fibers,
+            absent_fibers=self.absent_fibers,
+        )
+        if self.receipt_payload != expected_payload:
+            raise ReceiptError("sparse MapInject receipt payload is not canonical")
+        if self.receipt_sha256 != receipt_sha256(expected_payload):
+            raise ReceiptError(
+                "sparse MapInject receipt digest does not match its canonical payload"
+            )
+
+
+def _sparse_map_injection_payload(
+    *,
+    topology: MountedFieldTopology,
+    source_time: Fraction,
+    mapped_fibers: Sequence[MappedPortFiber],
+    absent_fibers: Sequence[PortFiber],
+) -> bytes:
+    return _canonical_bytes(
+        {
+            "absence_semantics": (
+                "no_new_source_event;no_evidence;field_state_persists_under_mounted_evolution"
+            ),
+            "active_mapped_fibers": [
+                {
+                    "evidence_receipt_sha256": mapped.evidence.evidence_receipt_sha256,
+                    "lane_id": mapped.fiber.lane_id,
+                    "offset": mapped.offset,
+                    "port_id": mapped.fiber.port_id,
+                    "values": [_fraction_text(value) for value in mapped.coordinates],
+                    "validity": mapped.evidence.validity.state.value,
+                }
+                for mapped in mapped_fibers
+            ],
+            "absent_fibers": [
+                {"lane_id": fiber.lane_id, "port_id": fiber.port_id}
+                for fiber in absent_fibers
+            ],
+            "field_dimension": topology.dimension,
+            "map_operator": "exact_asynchronous_sparse_direct_identity_inclusion.v1",
+            "schema": "glew.field.sparse_map_injection.v1",
+            "source_time": _fraction_text(source_time),
+            "topology_authority_receipt_sha256": topology.authority_receipt_sha256,
+            "topology_id": topology.topology_id,
+        }
+    )
+
+
+def sparse_map_inject(
+    topology: MountedFieldTopology,
+    evidence_records: Sequence[PortTransportEvidence],
+    source_time: Fraction,
+    receipt_registry: ReceiptRegistry,
+) -> SparseMapInjection:
+    """Inject exactly the native gates that close at one causal source time."""
+
+    if not isinstance(topology, MountedFieldTopology):
+        raise ReceiptError("sparse MapInject requires a mounted field topology")
+    if not isinstance(receipt_registry, ReceiptRegistry):
+        raise ReceiptError("sparse MapInject requires an immutable receipt registry")
+    require_fraction(source_time, "sparse MapInject source_time")
+    topology.verify(receipt_registry)
+    if not topology.available:
+        raise ReceiptError(
+            "empty genesis topology has dimension zero and unavailable sparse MapInject"
+        )
+
+    records = tuple(evidence_records)
+    if not records:
+        raise ReceiptError("sparse MapInject requires at least one closed native gate")
+    if not all(isinstance(value, PortTransportEvidence) for value in records):
+        raise ReceiptError("sparse MapInject accepts only typed port evidence")
+    keys = tuple(value.key for value in records)
+    if len(set(keys)) != len(keys):
+        raise ReceiptError("sparse MapInject contains duplicate transport evidence")
+
+    topology_positions = {
+        fiber.key: index for index, fiber in enumerate(topology.ordered_port_fibers)
+    }
+    if any(key not in topology_positions for key in keys):
+        raise ReceiptError("sparse MapInject evidence lies outside mounted topology")
+    if keys != tuple(sorted(keys, key=topology_positions.__getitem__)):
+        raise ReceiptError(
+            "sparse MapInject evidence is out of canonical mounted-fiber order"
+        )
+    for value in records:
+        value.verify(receipt_registry)
+        if value.validity.state is not EvidenceValidityState.VALID:
+            raise ReceiptError(
+                "invalid or unknown evidence preserves its topology fiber but has no sparse MapInject authority"
+            )
+        if value.provenance.source_timestamp != source_time:
+            raise ReceiptError(
+                "sparse MapInject evidence did not close at the declared source time"
+            )
+
+    by_key = {value.key: value for value in records}
+    mapped = tuple(
+        MappedPortFiber(
+            fiber=topology.ordered_port_fibers[topology_positions[value.key]],
+            offset=topology_positions[value.key] * FIBER_DIMENSION,
+            coordinates=value.coordinates.as_tuple(),
+            evidence=value,
+        )
+        for value in records
+    )
+    absent = tuple(
+        fiber for fiber in topology.ordered_port_fibers if fiber.key not in by_key
+    )
+    payload = _sparse_map_injection_payload(
+        topology=topology,
+        source_time=source_time,
+        mapped_fibers=mapped,
+        absent_fibers=absent,
+    )
+    result = SparseMapInjection(
+        topology_id=topology.topology_id,
+        topology_authority_receipt_sha256=topology.authority_receipt_sha256,
+        source_time=source_time,
+        field_dimension=topology.dimension,
+        mapped_fibers=mapped,
+        absent_fibers=absent,
+        receipt_sha256=receipt_sha256(payload),
+        receipt_payload=payload,
+    )
+    result.verify(topology, receipt_registry)
+    return result
+
+
+FieldInjection = MapInjection | SparseMapInjection
+
+
+@dataclass(frozen=True, slots=True)
 class HamiltonianEntry:
     row: int
     column: int
@@ -639,6 +906,48 @@ class SourceCoefficient:
             raise ReceiptError("source index must be a nonnegative integer")
         if not isinstance(self.value, ExactComplex) or self.value.is_zero:
             raise ReceiptError("zero source coefficients must be omitted")
+
+
+def source_coefficients_for_injection(
+    injection: FieldInjection,
+    delta: Fraction,
+) -> tuple[SourceCoefficient, ...]:
+    """Return exact affine source coefficients for one integrated event charge.
+
+    Dense events expose their complete direct-sum vector.  Asynchronous events
+    expose only active nonzero terms.  The latter never materializes absent
+    fibers as evidence or held values.
+    """
+
+    require_fraction(delta, "source interval delta")
+    if delta <= 0:
+        raise ReceiptError("source interval delta must be strictly positive")
+    if isinstance(injection, SparseMapInjection):
+        terms = injection.integrated_charge_terms
+    elif isinstance(injection, MapInjection):
+        terms = tuple(
+            (index, value)
+            for index, value in enumerate(injection.vector)
+            if value != 0
+        )
+    else:
+        raise ReceiptError("field source requires a typed dense or sparse MapInject event")
+    return tuple(
+        SourceCoefficient(index, ExactComplex(value / delta))
+        for index, value in terms
+    )
+
+
+def injection_exact_input_fractions(
+    injection: FieldInjection,
+) -> tuple[Fraction, ...]:
+    """Exact rational leaves contributed by one typed injection receipt."""
+
+    if isinstance(injection, SparseMapInjection):
+        return injection.exact_input_fractions
+    if isinstance(injection, MapInjection):
+        return injection.vector
+    raise ReceiptError("field expression contains an untyped MapInject event")
 
 
 def _validate_sparse_indices(
@@ -817,10 +1126,14 @@ class FieldEvolutionAuthority:
     def verify(
         self,
         topology: MountedFieldTopology,
-        injection: MapInjection,
+        injection: FieldInjection,
         receipt_registry: ReceiptRegistry,
     ) -> tuple[tuple[int, ...], ...]:
         topology.verify(receipt_registry)
+        if not isinstance(injection, (MapInjection, SparseMapInjection)):
+            raise ReceiptError(
+                "evolution authority requires a typed dense or sparse MapInject event"
+            )
         injection.verify(topology, receipt_registry)
         receipt_registry.resolve(
             self.physical_profile_receipt_sha256,
@@ -830,6 +1143,13 @@ class FieldEvolutionAuthority:
             raise ReceiptError("evolution authority belongs to a different topology")
         if self.map_injection_receipt_sha256 != injection.receipt_sha256:
             raise ReceiptError("evolution authority belongs to a different MapInject event")
+        if (
+            isinstance(injection, SparseMapInjection)
+            and injection.source_time != self.source_time_end
+        ):
+            raise ReceiptError(
+                "asynchronous MapInject source time differs from the evolution event boundary"
+            )
         dimension = topology.dimension
         _validate_sparse_indices(
             dimension=dimension,
@@ -845,11 +1165,7 @@ class FieldEvolutionAuthority:
         ):
             raise ReceiptError("exact connected component exceeds mounted resource authority")
 
-        expected_source = tuple(
-            SourceCoefficient(index, ExactComplex(value / self.delta))
-            for index, value in enumerate(injection.vector)
-            if value != 0
-        )
+        expected_source = source_coefficients_for_injection(injection, self.delta)
         if self.source != expected_source:
             raise ReceiptError(
                 "source coefficients are not the exact integrated MapInject charge divided by delta"
@@ -1081,7 +1397,7 @@ def _evolution_receipt_payload(
 def evolve_field(
     *,
     topology: MountedFieldTopology,
-    injection: MapInjection,
+    injection: FieldInjection,
     authority: FieldEvolutionAuthority,
     initial_state: ExactFieldState | CertifiedFieldState,
     receipt_registry: ReceiptRegistry,

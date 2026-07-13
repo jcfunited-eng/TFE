@@ -97,7 +97,7 @@
       "smell",
       "taste"
     ],
-    "lock": "at_least_four_canonical_active_lanes_with_complete_receipted_constraint_sets_and_exact_U_star_zero_AND_disruption_clear_AND_exact_combined_n_effective_less_than_42_over_e",
+    "lock": "at_least_four_canonical_active_lanes_with_complete_receipted_constraint_sets_AND_disruption_clear_AND_exact_combined_n_effective_less_than_42_over_e; U_star_remains_in_the_seven_field_rows_and_joint_full_field_expression_and_is_never_a_standalone_veto",
     "rank": "one_exact_Fraction_Gaussian_elimination_over_the_complete_vertical_row_stack",
     "unknown": "missing_incomplete_mismatched_noncanonical_or_indeterminate_input_is_unknown_no_lock"
   },
@@ -155,5 +155,5 @@
     "relevance": "each_admitted_valid_balanced_trit_has_exact_unit_event_relevance_one_independent_of_signal_value_or_semantics",
     "source": "original_UTF8_normalized_scalars_exact_source_time_interface_receipt_and_phase_calibration_receipt_are_preserved"
   },
-  "version": "1.1.0"
+  "version": "1.2.0"
 }

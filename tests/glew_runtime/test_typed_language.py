@@ -112,6 +112,20 @@ def test_valid_zero_trit_is_a_real_interface_event_with_separate_signal_and_rele
     assert evidence.samples[0].relevance == 1
 
 
+
+def test_typed_event_rejects_trits_that_differ_from_its_unicode_scalar():
+    original = _event("b")
+    changed_first = replace(
+        original.trits[0],
+        value=-original.trits[0].value,
+    )
+
+    with pytest.raises(ReceiptError, match="canonical scalar encoding"):
+        replace(
+            original,
+            trits=(changed_first, *original.trits[1:]),
+        )
+
 def test_typed_event_does_not_invent_source_timestamps():
     with pytest.raises(ReceiptError, match="one exact source timestamp"):
         TypedLanguageEvent.from_text(
