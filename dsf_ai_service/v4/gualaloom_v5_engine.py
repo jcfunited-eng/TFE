@@ -15530,7 +15530,28 @@ class Guala:
             # f.flush() pushes Python buffer to OS; fsync() commits to NFS server.
             f.flush()
             os.fsync(f.fileno())
-        os.rename(tmp, path)
+        # GL-FIX-ATOMIC-RENAME-RETRY-20260713: the fsync above still leaves a
+        # real, observed gap on EFS -- os.rename() has been seen raising
+        # ENOENT immediately after a successful fsync (confirmed live: a
+        # dozen "HOT SAVE CRITICAL FAILURE" events over ~30h, all "No such
+        # file or directory: '...tmp' -> '...'", clustered every time
+        # several hot-lane files rename concurrently into the same
+        # directory -- a directory-entry visibility lag on the NFS client,
+        # not a really-missing file; the data is already durably fsync'd
+        # above, only the rename's own lookup is stale). A short bounded
+        # retry is safe here specifically because nothing else in this
+        # process deletes its own just-fsynced .tmp file out from under it
+        # -- the only failure mode ever observed is transient ENOENT, never
+        # a persistent one -- so exhausting the retries still re-raises
+        # rather than silently swallowing a real failure.
+        for attempt in range(4):
+            try:
+                os.rename(tmp, path)
+                return
+            except FileNotFoundError:
+                if attempt == 3:
+                    raise
+                time.sleep(0.05 * (attempt + 1))
 
     # ── Persistence health for /status ──
 
