@@ -632,9 +632,13 @@ export async function executeBracketOrder(signal, opts = {}) {
 // Backtest (85 trades): win/loss ratio 1.91:1. At 2.5% same trades produce
 // $4,413 P&L vs $1,633 at 0.917%. Utilization ~60% vs ~23%.
 const CH2_RISK_PCT         = 2.5;
-const CH2_TAKE_PROFIT_MULT = 1.0;   // bracket TP kept as wide ceiling (sentinel trailing handles real exit)
-const CH2_STOP_LOSS_MULT   = 1.0;   // 1×ATR bracket SL restored — April's validated width.
-const CH2_MIN_BRACKET_PCT  = 0.05;  // minimum 5% bracket width — tight brackets on cheap stocks get stopped out prematurely
+// Brackets are disaster backstops only — spec exit is EXIT-B (ticker D_k collapse).
+// 1×ATR SL fires on normal daily noise and kills valid positions before the
+// basin can release. 3×ATR gives the position room to breathe through intraday
+// volatility while still catching real structural failures.
+// TP bracket removed — sentinel EXIT-B handles upside when the wave releases.
+const CH2_STOP_LOSS_MULT   = 3.0;   // 3×ATR — backstop only, not primary exit
+const CH2_MIN_SL_PCT       = 0.05;  // minimum 5% stop regardless of ATR
 
 /**
  * Validate a Ch2 signal. Binary — every check must pass or the trade fails.
@@ -723,19 +727,19 @@ export async function executeCh2BracketOrder(signal) {
   // Kinetic buffer: 0.1% above current price to catch accelerating entries.
   // 0.99x discount tested May 19 — killed 4/12 fills. Reverted.
   const KINETIC_BUFFER = 1.001;
-  const entryPrice      = parseFloat((currentPrice * KINETIC_BUFFER).toFixed(2));
-  // TP: at least 5% above entry, or 1×ATR — whichever is larger.
-  // Backtest: trades with <5% brackets won at 50%, trades with 5-15% brackets won at 80%.
-  const minTpDistance   = entryPrice * CH2_MIN_BRACKET_PCT;
-  const atrTpDistance   = CH2_TAKE_PROFIT_MULT * atr;
-  const takeProfitPrice = parseFloat((entryPrice + Math.max(minTpDistance, atrTpDistance)).toFixed(2));
-  const stopLossPrice   = parseFloat((entryPrice - CH2_STOP_LOSS_MULT * atr).toFixed(2));
+  const entryPrice     = parseFloat((currentPrice * KINETIC_BUFFER).toFixed(2));
+  // SL: 3×ATR below entry, minimum 5% — backstop only. Primary exit is EXIT-B (D_k collapse).
+  const atrSlDistance  = CH2_STOP_LOSS_MULT * atr;
+  const minSlDistance  = entryPrice * CH2_MIN_SL_PCT;
+  const stopLossPrice  = parseFloat((entryPrice - Math.max(atrSlDistance, minSlDistance)).toFixed(2));
+  // No TP bracket — let winners ride to EXIT-B.
+  const takeProfitPrice = null;
 
   if (stopLossPrice <= 0) {
     return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice} (ATR=${atr.toFixed(4)})`);
   }
 
-  console.log(`[CH2-BRIDGE] ${ticker} | shares=${shares} | entry=${entryPrice} | TP=${takeProfitPrice} | SL=${stopLossPrice} (1xATR) | ATR=${atr.toFixed(4)}`);
+  console.log(`[CH2-BRIDGE] ${ticker} | shares=${shares} | entry=${entryPrice} | SL=${stopLossPrice} (3xATR=${(atrSlDistance).toFixed(2)} min5%=${(minSlDistance).toFixed(2)}) | no TP`);
 
   let ledgerId;
   try {
@@ -787,18 +791,17 @@ export async function executeCh2BracketOrder(signal) {
 
   let order;
   try {
+    // oto (one-triggers-other) with stop-loss only — no TP bracket.
+    // Primary exit is sentinel EXIT-B (ticker D_k collapse).
     order = await alpacaPost("/v2/orders", {
-      symbol:         ticker,
-      qty:            shares,
-      side:           "buy",
-      type:           "limit",
-      limit_price:    entryPrice,
-      time_in_force:  "day",
+      symbol:          ticker,
+      qty:             shares,
+      side:            "buy",
+      type:            "limit",
+      limit_price:     entryPrice,
+      time_in_force:   "day",
       client_order_id: dedupeKey,
-      order_class:    "bracket",
-      take_profit: {
-        limit_price: takeProfitPrice,
-      },
+      order_class:     "oto",
       stop_loss: {
         stop_price: stopLossPrice,
       },
