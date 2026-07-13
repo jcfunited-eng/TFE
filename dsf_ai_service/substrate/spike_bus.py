@@ -60,6 +60,8 @@ class SpikeBus:
         self._neuron_registry = neuron_registry
         self._stopping = threading.Event()
         self._thread: Optional[threading.Thread] = None
+        self._admission_lock = threading.Lock()
+        self._accepting = True
         # Observability -- read by health checks / harness event-driven
         # verification (queue depth over time, delivered/dropped counts).
         self.delivered_count = 0
@@ -69,6 +71,8 @@ class SpikeBus:
     def start(self) -> None:
         if self._thread is not None:
             return
+        with self._admission_lock:
+            self._accepting = True
         self._stopping.clear()
         self._thread = threading.Thread(
             target=self._delivery_loop, daemon=True, name="spike_bus"
@@ -86,16 +90,35 @@ class SpikeBus:
 
     def inject(self, target_id: str, source_id: str, weight: float,
                arrival_delay_ms: float = 0.0, metadata: Optional[dict] = None) -> None:
-        arrival_time = time.monotonic() + arrival_delay_ms / 1000.0
-        spike = PendingSpike(
-            arrival_time=arrival_time,
-            target_neuron_id=target_id,
-            source_neuron_id=source_id,
-            weight=weight,
-            metadata=metadata or {},
-        )
-        self._queue.put(spike)
-        self.injected_count += 1
+        with self._admission_lock:
+            if not self._accepting:
+                raise RuntimeError("spike admission is quiesced")
+            arrival_time = time.monotonic() + arrival_delay_ms / 1000.0
+            spike = PendingSpike(
+                arrival_time=arrival_time,
+                target_neuron_id=target_id,
+                source_neuron_id=source_id,
+                weight=weight,
+                metadata=metadata or {},
+            )
+            self._queue.put(spike)
+            self.injected_count += 1
+
+    def quiesce(self, timeout: float = 120.0) -> None:
+        """Close admission, deliver every accepted spike, then join."""
+        with self._admission_lock:
+            self._accepting = False
+            accepted = self.injected_count
+        deadline = time.monotonic() + float(timeout)
+        while (self.delivered_count + self.dropped_count < accepted
+               or self._queue.qsize() != 0):
+            if time.monotonic() >= deadline:
+                raise RuntimeError(
+                    "spike bus did not drain "
+                    f"(accepted={accepted}, delivered={self.delivered_count}, "
+                    f"dropped={self.dropped_count}, queued={self._queue.qsize()})")
+            time.sleep(self._QUEUE_POLL_TIMEOUT_S)
+        self.stop()
 
     def _delivery_loop(self) -> None:
         while not self._stopping.is_set():

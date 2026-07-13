@@ -143,7 +143,8 @@ def _run_trial(g, wall_budget_s, per_tick_delay_s=0.0):
     asm_mod.System.tick_once = _counting
     t0 = time.monotonic()
     try:
-        reply = g._emit_from_invariants([], [], mode_override="grandurun")
+        reply = g._emit_from_invariants(
+            [], [], mode_override="grandurun").content or None
     finally:
         asm_mod.System.tick_once = orig_tick_once
     wall_ms = (time.monotonic() - t0) * 1000
@@ -192,7 +193,8 @@ def test_1_default_budget_is_3s_not_1point5s():
     try:
         os.environ.pop("EMISSION_WALL_BUDGET_S", None)  # exercise the code default
         t0 = time.monotonic()
-        reply = g._emit_from_invariants([], [], mode_override="grandurun")
+        reply = g._emit_from_invariants(
+            [], [], mode_override="grandurun").content or None
         wall_s = time.monotonic() - t0
     finally:
         asm_mod.System.tick_once = orig_tick_once

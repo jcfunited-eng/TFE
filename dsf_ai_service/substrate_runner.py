@@ -27,6 +27,59 @@ _guala_organ_brain = None  # her 8-organ brain, merged live in the substrate
 # GL-CMD-BIGRAM-DELETE-EVE-20260629-34: _guala_cognition global deleted.
 _curriculum = None  # autonomous study scheduler (she reads on her own)
 _shutdown = False
+_shutdown_event = threading.Event()
+_background_threads = []
+_background_threads_lock = threading.Lock()
+_curriculum_process = None
+
+
+def _start_background_thread(target, name, *, daemon=True):
+    """Start and retain one joinable runner-owned background thread."""
+    with _background_threads_lock:
+        if _shutdown_event.is_set():
+            raise RuntimeError(
+                f"runner background admission is quiesced; rejected {name}")
+        thread = threading.Thread(target=target, daemon=daemon, name=name)
+        _background_threads.append(thread)
+        thread.start()
+    return thread
+
+
+def quiesce_background_loops(timeout=120.0):
+    """Stop and join every runner-owned loop or fail with exact owners."""
+    global _shutdown, _cascade_monitor_running
+    _shutdown = True
+    _shutdown_event.set()
+    _cascade_monitor_running = False
+    if _curriculum is not None and hasattr(_curriculum, "stop"):
+        _curriculum.stop()
+    process = _curriculum_process
+    if process is not None and process.poll() is None:
+        process.terminate()
+    deadline = time.monotonic() + float(timeout)
+    while globals().get("_backup_in_flight", False):
+        if time.monotonic() >= deadline:
+            raise RuntimeError("runner quiescence timed out waiting for backup")
+        _shutdown_event.wait(0.05)
+    with _background_threads_lock:
+        threads = tuple(_background_threads)
+    alive = []
+    for thread in threads:
+        if thread is threading.current_thread():
+            continue
+        thread.join(timeout=max(0.0, deadline - time.monotonic()))
+        if thread.is_alive():
+            alive.append(thread.name)
+    if alive:
+        raise RuntimeError(
+            "runner quiescence timed out joining: " + ", ".join(sorted(alive)))
+    return {"runner_threads_joined": len(threads), "alive": []}
+
+
+def resume_background_loops():
+    """A stopped composite runner cannot be reopened symmetrically."""
+    raise RuntimeError(
+        "runner quiescence is irreversible; process replacement is required")
 
 # Ring buffers — initialized on boot
 _substrate_ring = None
@@ -190,11 +243,8 @@ def _bind_sensory_words(text):
     generation + atlas-binding logic moved onto Guala itself
     (gualaloom_v5_engine.py, Guala._bind_sensory_words) so the engine's own
     _atick_reading tick (every corpus READING -- natural rotation or the
-    force_reading hook) can call it directly, closing the gap where only
-    the curriculum/lookup/bulk-load paths ever bound sensory words. This
-    module-level function is now a thin delegator -- unchanged signature,
-    same 3 call sites (curriculum feed, lookup grounding, bulk corpus load)
-    keep working without modification."""
+    force_reading hook) can call it directly. This module-level function
+    remains a thin delegator for curriculum and bulk-corpus compatibility."""
     if _guala is None:
         return 0
     return _guala._bind_sensory_words(text)
@@ -227,7 +277,7 @@ def _activity_bundle_id():
 
 
 # ── GL-CMD-BLOCK-SCHEDULE-151: §8 duty-cycle blocks (config, not vibes) ──
-# Gates the MACHINE's scheduled pushes only (curriculum/worldfeed/lookup, all of
+# Gates the MACHINE's scheduled pushes only (curriculum/worldfeed, both of
 # which funnel through _curriculum_feed_chunk below). Never touches her own
 # activity selection, converse()/-listen (Joe/Eve input), or attending/emitting.
 _BLOCK_SHARES = [  # (name, share of BLOCK_CYCLE_SEC) — GL-SPC-EXPERIENCE-FIRST v2.0 §8
@@ -344,108 +394,11 @@ def _curriculum_is_busy():
         return True
 
 
-# ── lookup grounding (GL-CMD-NEXT Increment 4): feed what she focuses on ──
-# Look an item up (OpenAI child-safe description — substitute for the absent Google
-# key) and feed the description through her senses + organ-brain. Exception-walled.
-
-def _lookup_and_ground(term):
-    """Look up `term`, feed the description into her engine + organ-brain + senses.
-    Returns the description text, or None. Never raises into her runtime.
-    GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.2: network call wrapped with 10s
-    timeout via ThreadPoolExecutor. Leaked worker thread dies when HTTP completes.
-    GL-CMD-BLOCK-SCHEDULE-151: a scheduled machine push too — same §8 gate."""
-    block = _current_block()
-    if block in _SUPPRESSED_BLOCKS:
-        try:
-            _guala._log_substrate_event("block_intake_ledger", block=block,
-                                        planned=1, actual=0, capped=True,
-                                        reason="suppressed", feeder="lookup")
-        except Exception:
-            pass
-        return None
-    try:
-        from dsf_ai_service.loom_model.lookup_grounding import describe
-        import concurrent.futures as _cf
-        # NOT using 'with' — same reason as worldfeed: return inside 'with' calls
-        # shutdown(wait=True) which blocks on hanging network I/O.
-        _ex = _cf.ThreadPoolExecutor(max_workers=1)
-        _future = _ex.submit(describe, term)
-        _ex.shutdown(wait=False)
-        try:
-            desc = _future.result(timeout=10)
-        except (_cf.TimeoutError, Exception):
-            return None
-        if not desc:
-            return None
-        _pause_autonomy_for_bulk()
-        try:
-            _guala.read_sentence(desc, source="lookup")
-            # Site 2 DELETE: _cognition_learn(desc) removed (v5 atlas gets this above)
-            _bind_sensory_words(desc)
-        finally:
-            _resume_autonomy_for_bulk()
-        try:
-            _guala._log_substrate_event("lookup_grounded", term=term, text=desc[:120])
-        except Exception:
-            pass
-        return desc
-    except Exception:
-        return None
-
-
-_LOOKUP_STATE = {"idx": 0}
-
-
 def _lookup_once():
-    """Ground the next of her pictures (one autonomous lookup). Returns status dict."""
-    try:
-        titles = [getattr(p, "title", None)
-                  for p in (getattr(_guala, "_pictures", {}) or {}).values()]
-        titles = [t for t in titles if t]
-        if not titles:
-            return {"state": "no_pictures"}
-        term = titles[_LOOKUP_STATE["idx"] % len(titles)]
-        _LOOKUP_STATE["idx"] += 1
-        d = _lookup_and_ground(term)
-        return {"state": "grounded" if d else "empty", "term": term,
-                "text": (d or "")[:80]}
-    except Exception as e:
-        return {"state": "error", "error": str(e)}
+    """Compatibility status for the retired external-model lookup path."""
+    from dsf_ai_service.loom_model.lookup_grounding import status
 
-
-def _start_lookup_loop():
-    """Autonomous grounding of the things she looks at — OFF unless LOOKUP_AUTONOMOUS=1.
-    When on, periodically grounds one of her pictures so her words mean real things."""
-    if os.environ.get("LOOKUP_AUTONOMOUS", "0").strip() == "0":
-        print("[lookup] autonomous grounding OFF (set LOOKUP_AUTONOMOUS=1 to enable)")
-        return
-    try:
-        interval = int(os.environ.get("LOOKUP_INTERVAL_SEC", "600") or 600)
-    except Exception:
-        interval = 600
-
-    def loop():
-        idx = 0
-        while not _shutdown:
-            time.sleep(interval)
-            try:
-                if _curriculum_is_busy():
-                    continue
-                titles = [getattr(p, "title", None)
-                          for p in (getattr(_guala, "_pictures", {}) or {}).values()]
-                titles = [t for t in titles if t]
-                if not titles:
-                    continue
-                term = titles[idx % len(titles)]
-                idx += 1
-                d = _lookup_and_ground(term)
-                if d:
-                    print(f"[lookup] grounded {term!r}: {d[:60]}")
-            except Exception as e:
-                print(f"[lookup] loop error (non-fatal): {e}")
-
-    threading.Thread(target=loop, daemon=True, name="lookup-grounding").start()
-    print(f"[lookup] autonomous grounding ON interval={interval}s")
+    return status()
 
 
 # ── world feeds (Khan Academy + YouTube): she reads beyond her books ──
@@ -453,13 +406,16 @@ _WORLD_FEED_STATE = {"feed_idx": 0, "query_idx": 0, "last_status": {}}
 
 
 def _world_feed_once():
-    """Pull one chunk from the next world feed (khan/youtube) and feed it to her."""
+    """Pull one chunk from a currently available world feed."""
     try:
         from dsf_ai_service.loom_model import world_feeds as wf
-        if not wf.FEEDS:
-            return {"state": "no_feeds"}
-        fi = _WORLD_FEED_STATE["feed_idx"] % len(wf.FEEDS)
-        feed = wf.FEEDS[fi]
+        availability = wf.feed_status()
+        feeds = wf.available_feeds()
+        _WORLD_FEED_STATE["feed_availability"] = availability
+        if not feeds:
+            return {"state": "no_feeds", "feed_status": availability}
+        fi = _WORLD_FEED_STATE["feed_idx"] % len(feeds)
+        feed = feeds[fi]
         qi = _WORLD_FEED_STATE["query_idx"] % len(feed["queries"])
         query = feed["queries"][qi]
         _WORLD_FEED_STATE["feed_idx"] += 1
@@ -478,15 +434,18 @@ def _world_feed_once():
             sents = _future.result(timeout=10)
         except (_cf.TimeoutError, Exception) as _fe:
             print(f"[worldfeed] fetch timeout/error for {query!r}: {_fe}")
-            return {"state": "timeout", "feed": feed.get("name", ""), "query": query}
+            return {"state": "timeout", "feed": feed.get("name", ""), "query": query,
+                    "feed_status": availability}
         if not sents:
-            st = {"state": "empty", "feed": feed["name"], "query": query}
+            st = {"state": "empty", "feed": feed["name"], "query": query,
+                  "feed_status": availability}
             _WORLD_FEED_STATE["last_status"] = st
             return st
         # Quality gate: drop sentences containing compound-word garbage (any word >20 chars)
         sents = [s for s in sents if not any(len(w) > 20 for w in s.split())]
         if not sents:
-            st = {"state": "filtered", "feed": feed["name"], "query": query}
+            st = {"state": "filtered", "feed": feed["name"], "query": query,
+                  "feed_status": availability}
             _WORLD_FEED_STATE["last_status"] = st
             print(f"[worldfeed] {feed['name']} {query!r}: all sentences filtered (compound words)")
             return st
@@ -500,7 +459,8 @@ def _world_feed_once():
         except Exception:
             pass
         st = {"state": "studied", "feed": feed["name"], "query": query,
-              "n_fed": n_fed, "organ_tokens": learned}
+              "n_fed": n_fed, "organ_tokens": learned,
+              "feed_status": availability}
         _WORLD_FEED_STATE["last_status"] = st
         print(f"[worldfeed] {feed['name']} {query!r}: n_fed={n_fed} organ+={learned}")
         return st
@@ -509,7 +469,7 @@ def _world_feed_once():
 
 
 def _start_world_feed_loop():
-    """She reads Khan + YouTube on a gentle timer alongside her books. OFF if
+    """She reads registered world feeds on a gentle timer alongside her books. OFF if
     WORLD_FEEDS=0. Respects sleep/bulk-load; exception-walled."""
     if os.environ.get("WORLD_FEEDS", "1").strip() == "0":
         print("[worldfeed] OFF (set WORLD_FEEDS=1 to enable)")
@@ -521,7 +481,8 @@ def _start_world_feed_loop():
 
     def loop():
         while not _shutdown:
-            time.sleep(interval)
+            if _shutdown_event.wait(interval):
+                break
             try:
                 if _curriculum_is_busy():
                     continue
@@ -529,8 +490,13 @@ def _start_world_feed_loop():
             except Exception as e:
                 print(f"[worldfeed] loop error (non-fatal): {e}")
 
-    threading.Thread(target=loop, daemon=True, name="world-feeds").start()
-    print(f"[worldfeed] ON interval={interval}s feeds=khan,youtube")
+    from dsf_ai_service.loom_model import world_feeds as wf
+    status = wf.feed_status()
+    enabled = [name for name, detail in status.items() if detail["enabled"]]
+    disabled = {name: detail["reason"] for name, detail in status.items()
+                if not detail["enabled"]}
+    _start_background_thread(loop, "world-feeds")
+    print(f"[worldfeed] ON interval={interval}s enabled={enabled} disabled={disabled}")
 
 
 def _write_runtime_config(data):
@@ -744,8 +710,9 @@ def boot_substrate():
         import threading as _threading
         def _live_organ_update():
             from dsf_ai_service.loom_model.guala_migration import SECTION_TO_ORGAN
-            while True:
-                time.sleep(30)
+            while not _shutdown:
+                if _shutdown_event.wait(30):
+                    break
                 try:
                     if _guala is None or _guala_organ_brain is None:
                         continue
@@ -769,7 +736,7 @@ def boot_substrate():
                     _guala_organ_brain["atlas_by_organ"] = live
                 except Exception:
                     pass
-        _threading.Thread(target=_live_organ_update, daemon=True, name="organ-live-update").start()
+        _start_background_thread(_live_organ_update, "organ-live-update")
     except Exception as _e:
         print(f"[merge] organ-brain load skipped (non-fatal): {_e}")
 
@@ -854,13 +821,11 @@ def boot_substrate():
     try:
         from dsf_ai_service.loom_model.curriculum_scheduler import CurriculumScheduler
         global _curriculum
-        # Interleave the world feeds + lookup INTO the one study scheduler so they
-        # share its reliable awake windows (separate loops get starved). Gated by env.
+        # Interleave available world feeds into the one study scheduler so they
+        # share its reliable awake windows (separate loops get starved).
         _interleave = []
         if os.environ.get("WORLD_FEEDS", "1").strip() != "0":
             _interleave.append(("worldfeed", _world_feed_once))
-        if os.environ.get("LOOKUP_AUTONOMOUS", "0").strip() != "0":
-            _interleave.append(("lookup", _lookup_once))
         _curriculum = CurriculumScheduler(
             state_dir=STATE_DIR,
             feed_chunk=_curriculum_feed_chunk,
@@ -877,10 +842,9 @@ def boot_substrate():
     except Exception as _e:
         print(f"[curriculum] scheduler start skipped (non-fatal): {_e}")
 
-    # NOTE: lookup grounding (Increment 4) and world feeds (Khan/YouTube) now run
-    # INTERLEAVED inside the curriculum scheduler above (so they share its reliable
-    # study windows instead of starving as separate loops). Manual ops /lookup and
-    # /worldfeed remain available. The standalone loops are intentionally NOT started.
+    # World feeds run interleaved inside the curriculum scheduler above so they
+    # share its study windows. Manual /worldfeed remains available. /lookup is an
+    # explicit unavailable boundary because model output is not Fact-Strand experience.
 
     # GL-CMD-WIRE-ORGAN-CANDIDATES-F2: start organ surface poll
     _start_organ_surface_poll()
@@ -962,7 +926,8 @@ def _start_input_ring_consumer():
     def _drain_loop():
         while not _shutdown:
             if _input_ring is None or _guala is None:
-                time.sleep(1)
+                if _shutdown_event.wait(1):
+                    break
                 continue
             try:
                 events = _input_ring.drain(max_n=10)
@@ -980,17 +945,10 @@ def _start_input_ring_consumer():
                             _img = _PIL_Image.open(_sio.BytesIO(img_bytes)).convert('L').resize((64, 64))
                             grid = __import__('numpy').array(_img, dtype=__import__('numpy').float64) / 255.0
                             _guala.process_sight_frame(grid)
-                            # YOLO gets raw bytes (full color at original resolution)
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
-                                process_sight_with_recognition)
-                            bindings = process_sight_with_recognition(_guala, img_bytes)
-                            if bindings:
-                                _scene = " ".join(b.get("word","") for b in bindings)
-                                # Site 3 REPLACE: route YOLO labels to v5 atlas (grounded)
-                                if _scene.strip():
-                                    _guala.read_sentence(_scene, source="unknown",
-                                                         bundle_id=f"sight_frame:{_guala.tick}")
-                                print(f"[sight] detected: {_scene}")
+                                object_name_recognition_unavailable)
+                            object_name_recognition_unavailable(
+                                _guala, source=ev.get("source", "camera_stream"))
                         except Exception as _e:
                             print(f"[sight] frame error: {_e}")
                     elif kind == "sound_window":
@@ -1000,44 +958,25 @@ def _start_input_ring_consumer():
                                 continue
                             # GL-CMD-MIC-EMBEDDED-DECODE-110: single shared decoder.
                             _wav = _webm_to_wav_bytes(audio_bytes)
-                            if _wav:
-                                _guala.process_sound_frame(_wav)
-                            # GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204 S1:
-                            # Site 4 SEVERED. _audio_to_sensory_words classifies
-                            # mic ENERGY into fixed labels (quiet room -> "faint"
-                            # +warm/smooth/steady) and this fed them into
-                            # read_sentence as heard language every ~5s,
-                            # continuously, including during sleep -- a
-                            # resonance loop with no real experience behind it
-                            # (root-caused live: it funded the -198 growth-pool
-                            # burst on artifact input and swamped the organism
-                            # vote distribution with "faint", her most-repeated
-                            # non-word of all time). process_sound_frame above
-                            # (real cochlear hearing) and Whisper transcription
-                            # below (real speech) are the honest senses; this
-                            # classifier-as-language route is not.
-                            # Also run whisper for speech/lyrics (bonus — fails gracefully)
+                            if not _wav:
+                                _guala._log_substrate_event(
+                                    "sound_frame_decode_failed",
+                                    source=ev.get("source", "ambient"))
+                                continue
+                            source = ev.get("source", "ambient")
+                            _guala.process_sound_frame(_wav, source=source)
                             from dsf_ai_service.substrate.grounded_vocab_integration import (
-                                process_sound_with_recognition)
-                            _bindings, _spoken = process_sound_with_recognition(
-                                _guala, audio_bytes, source=data.get("source", "ambient"))
-                            # 2026-07-12: use the FULL real transcribed text,
-                            # not _bindings (only already-known words) -- else
-                            # a real sentence with any new word silently
-                            # collapses to a fragment or nothing.
-                            if _spoken.strip():
-                                # Site 5 REPLACE: route Whisper transcription to v5 atlas (grounded)
-                                _guala.read_sentence(_spoken, source="unknown",
-                                                     bundle_id=f"sound_frame:{_guala.tick}")
-                                print(f"[sound] heard words: {_spoken}")
+                                spoken_word_recognition_unavailable)
+                            spoken_word_recognition_unavailable(
+                                _guala, source=source)
                         except Exception as _e:
                             print(f"[sound] frame error: {_e}")
-            except Exception:
-                pass
-            time.sleep(0.5)
+            except Exception as _drain_error:
+                print(f"[input-ring] drain error: {_drain_error}")
+            if _shutdown_event.wait(0.5):
+                break
 
-    t = threading.Thread(target=_drain_loop, daemon=True, name="input-ring-consumer")
-    t.start()
+    _start_background_thread(_drain_loop, "input-ring-consumer")
     print("[substrate] InputRing consumer started (R3/R4)")
 
 
@@ -1061,9 +1000,11 @@ def dispatch(op, args):
 def handle_v7_state(args):
     session_id = args.get("session_id", "default")
     t0 = time.time()
-    from dsf_ai_service.substrate.v7_engine import get_or_create_session
-    session = get_or_create_session(session_id, engine=_guala)
-    _ensure_v7_link(session)
+    from dsf_ai_service.substrate.v7_engine import _sessions, _sessions_lock
+    with _sessions_lock:
+        session = _sessions.get(session_id)
+    if session is None:
+        return {"error": "v7 session not found", "status_code": 404}
     t1 = time.time()
     result = session.get_state(engine=_guala)
     t2 = time.time()
@@ -1107,20 +1048,9 @@ def handle_v7_feedback(args):
         pass
     result["session_id"] = session_id
 
-    # GL-CMD-TEACHER-CORRECTION-BINDING: also apply to v5 Guala
-    if _guala and hasattr(_guala, 'apply_teacher_correction'):
-        original_input = getattr(_guala, '_last_converse_input', None)
-        her_emission = getattr(_guala, '_last_converse_reply', None)
-        if original_input and her_emission:
-            expected = " ".join(expected_tokens) if expected_tokens else None
-            _guala.apply_teacher_correction(
-                original_input=original_input,
-                her_emission=her_emission,
-                correct=bool(correct),
-                expected_response=expected,
-                source="joe",
-            )
-
+    # V7 feedback remains inside its isolated V7 session.  The V7→V5 atlas
+    # wiring decision is explicitly deferred; no uncertified shared "last
+    # reply" may be reinforced into the persistent V5 organism.
     return result
 
 
@@ -1182,6 +1112,7 @@ def handle_gualaloom_post(args):
             quiet_kind = getattr(ca, 'kind', 'sleeping').lower() if ca else 'sleeping'
             return {
                 "response": f"she is {quiet_kind}...",
+                "response_source": "sleep_quiet",
                 "asleep": True,
                 "sleep_tick": _guala.tick,
                 "motifs": _guala.introspect()["vocab"],
@@ -1272,16 +1203,10 @@ def handle_gualaloom_post(args):
         _curriculum.enabled = (command == "/curriculum_on")
         return {"response": f"curriculum enabled={_curriculum.enabled}"}
     elif command == "/lookup":
-        # look a thing up and feed the description through her senses + organ-brain
-        if not (text or "").strip():
-            return {"response": "usage: /lookup <thing>"}
-        if _curriculum_is_busy():
-            return {"response": "she is asleep or bulk-loading; try again when awake"}
-        desc = _lookup_and_ground(text)
-        return {"response": desc or "lookup unavailable (no key or no result)",
-                "grounded": bool(desc)}
+        boundary = _lookup_once()
+        return {"response": boundary["reason"], "grounded": False, **boundary}
     elif command == "/worldfeed":
-        # force one Khan/YouTube study chunk now (validation aid)
+        # force one registered world-feed study chunk now (validation aid)
         if _curriculum_is_busy():
             return {"response": "she is asleep or bulk-loading; try again when awake"}
         return {"response": json.dumps(_world_feed_once())}
@@ -1984,7 +1909,7 @@ def _cmd_listen(text, source):
 
 def _synthesize_voice(text):
     """Synthesize speech via espeak-ng. Returns base64 WAV or None."""
-    if not text or text == "...":
+    if not text:
         return None
     wav_path = "/tmp/guala_utt.wav"
     try:
@@ -2000,9 +1925,16 @@ def _synthesize_voice(text):
 
 
 def _cmd_converse(text, source, emission_mode=None):
+    """Run one conversation turn and transport the engine's emission truth.
+
+    Guala.converse() is the sole authority for both content and source.  This
+    interface must not manufacture fallback speech or impose a second commit
+    policy after the field has settled.
+    """
     text = text.strip()
     if not text:
-        return {"response": "...", "motifs": _guala.introspect()["vocab"]}
+        return {"response": "", "motifs": _guala.introspect()["vocab"],
+                "response_source": "silence_empty_input"}
     if source not in {"joe", "wc", "c1"}:
         source = "joe"
     # GL-CMD-CROSS-MODAL-BUNDLE: auto-bundle words spoken while attending a sensory item.
@@ -2016,7 +1948,6 @@ def _cmd_converse(text, source, emission_mode=None):
             bundle_id = f"context:snd:{ca.target}:{_guala.tick // 100}"
     # GL-CMD-EPISODE-BINDING C2.1: situational context on every converse turn
     presence, location, sky_state = _guala._current_situation()
-    episode_ref = f"episode:converse:{_guala.tick}:{source}"
 
     # GL-CMD-WIRE-ORGAN-CANDIDATES-F2: organ candidate stream from cached surface.
     # Design choice: CACHED (not sync-per-turn). _ORGAN_SURFACE_CACHE is updated
@@ -2027,54 +1958,28 @@ def _cmd_converse(text, source, emission_mode=None):
     if _cache_age < _ORGAN_SURFACE_STALE_S and _ORGAN_SURFACE_CACHE.get("surfaced"):
         _organ_refs = _translate_organ_surface(_ORGAN_SURFACE_CACHE["surfaced"])
 
-    response = _guala.converse(text, source=source, emission_mode=emission_mode,
-                               bundle_id=bundle_id, episode_ref=episode_ref,
-                               presence=presence, location=location, sky_state=sky_state,
-                               organ_candidates=_organ_refs if _organ_refs else None)
+    turn_result = _guala.converse(
+        text, source=source, emission_mode=emission_mode,
+        bundle_id=bundle_id, episode_ref=None,
+        presence=presence, location=location, sky_state=sky_state,
+        organ_candidates=_organ_refs if _organ_refs else None)
+    response = turn_result.response
+    response_source = turn_result.response_source
+    committed_sections_out = list(turn_result.committed_sections)
+    emission_id = turn_result.emission_id
     # GL-FIX-LOG-EFS-LATENCY: log_event writes to EFS (events.jsonl). On EFS
     # this can take 1-5s, blocking the /converse response. Defer to background thread.
-    _src, _words_in, _src_count = source, len(text.split()), _guala.source_history.get(source, 0)
+    _src = source
+    _words_in = len(text.split())
+    _src_count = turn_result.source_turn_index
     import threading as _t
-    _t.Thread(target=lambda: _guala.log_event(STATE_DIR, "source_interaction",
-              source=_src, words_in=_words_in, source_count=_src_count),
-              daemon=True, name="source-log").start()
+    _start_background_thread(
+        lambda: _guala.log_event(
+            STATE_DIR, "source_interaction",
+            source=_src, words_in=_words_in, source_count=_src_count),
+        "source-log")
 
-    # GL-CMD-BIGRAM-RETIRE: substrate truth gate. One brain, one voice, or silence.
-    # v5_commit:        dynamics committed ≥2 sections → surface v5 content
-    # silence_v5_failed:  dynamics ran, arcs_fallback only, no real commits → ""
-    # silence_v5_empty:   dynamics ran but produced no content → ""
-    # silence_no_v5:      dynamics didn't run this turn → ""
-    # Bigram retired (-23) and deleted (-34). No fallback voice path.
-    # for diagnostics but is not called from /converse.
-    tick_after = _guala.tick
-    dyn = getattr(_guala, '_last_dynamics_result', None)
-    response_source = "silence_no_v5"
-    committed_sections_out = []
-
-    if dyn is not None and (tick_after - dyn.get("tick", 0)) < 200:
-        cs = dyn.get("committed_sections", [])
-        nc = dyn.get("n_commits", 0)
-        arcs = dyn.get("arcs_fallback", False)
-        dyn_content = dyn.get("content") or ""
-        committed_sections_out = cs
-
-        if len(cs) >= 2 and nc > 0 and dyn_content and dyn_content != "...":
-            response = dyn_content      # v5 committed — her real voice
-            # GL-CMD-WIRE-ORGAN-CANDIDATES-F2: attribute organ participation
-            if dyn.get("organ_in_commits"):
-                response_source = "v5_commit_organ"
-            else:
-                response_source = "v5_commit"
-        elif arcs:
-            response = ""               # arcs_fallback is not her voice
-            response_source = "silence_v5_failed"
-        else:
-            response = ""               # dynamics ran, nothing committed
-            response_source = "silence_v5_empty"
-    else:
-        response = ""                   # no dynamics this turn
-
-    recalled_pics = getattr(_guala, '_last_recalled_pictures', [])
+    recalled_pics = turn_result.recalled_pictures
     picture_refs = []
     seen_ids = set()
     for motif, item_id in recalled_pics:
@@ -2088,16 +1993,17 @@ def _cmd_converse(text, source, emission_mode=None):
         if len(picture_refs) >= 4:
             break
     result = {"response": response or "", "motifs": _guala.introspect()["vocab"],
-              "response_source": response_source}
-    # GL-CMD-BIGRAM-RETIRE: TTS only on v5_commit; silence turns carry no speech field
-    if response_source == "v5_commit" and response:
+              "response_source": response_source,
+              "source_turn_index": turn_result.source_turn_index,
+              "commit_provenance": [
+                  provenance.as_record()
+                  for provenance in turn_result.commit_provenance]}
+    if response_source == "fact_strand_commit" and response:
         wav = _synthesize_voice(response)
         if wav:
             result["speech"] = wav
     if committed_sections_out:
         result["committed_sections"] = committed_sections_out
-    # GL-CMD-TEACHER-CORRECTION-UI: surface emission_id
-    emission_id = getattr(_guala, '_last_emission_id', None)
     if emission_id:
         result["emission_id"] = emission_id
     if picture_refs:
@@ -2114,11 +2020,11 @@ def handle_teacher_feedback(args):
     if source not in ("joe", "wc"):
         return {"error": "invalid source"}
 
-    # Look up emission record for context
-    rec = _guala._emission_records.get(emission_id, {})
-    original_input = rec.get("input_text") or getattr(_guala, '_last_converse_input', "")
-    her_emission = rec.get("text") or getattr(_guala, '_last_converse_reply', "")
-
+    rec = _guala._certified_emission_record(emission_id)
+    if rec is None:
+        return {"error": "emission is not source-certified"}
+    original_input = rec.get("input_text", "")
+    her_emission = rec.get("text", "")
     if not original_input or not her_emission:
         return {"error": "no conversation context"}
 
@@ -2156,11 +2062,11 @@ def handle_teacher_correction(args):
     if not corrected_text.strip():
         return {"error": "corrected_text required"}
 
-    # Look up emission record for context
-    rec = _guala._emission_records.get(emission_id, {})
-    original_input = rec.get("input_text") or getattr(_guala, '_last_converse_input', "")
-    her_emission = rec.get("text") or getattr(_guala, '_last_converse_reply', "")
-
+    rec = _guala._certified_emission_record(emission_id)
+    if rec is None:
+        return {"error": "emission is not source-certified"}
+    original_input = rec.get("input_text", "")
+    her_emission = rec.get("text", "")
     if not original_input or not her_emission:
         return {"error": "no conversation context"}
 
@@ -2350,12 +2256,12 @@ def handle_load_corpus(args):
     # _do_corpus_load's finally block calls _resume_autonomy_for_bulk().
     _pause_autonomy_for_bulk()
 
-    t = threading.Thread(
-        target=_do_corpus_load,
-        args=(corpus_id, title, lines, vocab_before, reads_before, strength_before),
-        daemon=True,
+    _start_background_thread(
+        lambda: _do_corpus_load(
+            corpus_id, title, lines, vocab_before, reads_before,
+            strength_before),
+        f"corpus-load-{corpus_id}",
     )
-    t.start()
 
     return {
         "status": "queued",
@@ -2517,12 +2423,12 @@ def handle_chi_density(args):
 
 
 def handle_backup(args):
-    """Save to EFS, queue S3 upload. Returns immediately after EFS save.
-    GL-CMD-97/104: API Gateway has 30s timeout — cannot wait for S3 queue.
-    S3 upload runs in background thread via SaveCoordinator. Caller polls
-    /status for last_s3_backup to confirm completion."""
+    """Save locally and report remote persistence only when it was enabled."""
     from dsf_ai_service.save_coordinator import SAVE_COORDINATOR
     t0 = time.time()
+    s3_enabled = bool(
+        SAVE_COORDINATOR is not None
+        and getattr(SAVE_COORDINATOR, "s3_bucket", None))
     if SAVE_COORDINATOR:
         SAVE_COORDINATOR.force_save(reason="backup")
     else:
@@ -2533,81 +2439,88 @@ def handle_backup(args):
     global _last_successful_backup_wall
     with _backup_lock:
         _last_successful_backup_wall = time.time()
-    print(f"[backup] EFS saved in {dt:.2f}s, {n_entries} entries, S3 queued")
+    storage_scope = "local-and-s3-queued" if s3_enabled else "local-only"
+    s3_status = "queued" if s3_enabled else "disabled"
+    print(
+        f"[backup] local save complete in {dt:.2f}s, {n_entries} entries, "
+        f"storage={storage_scope}")
     return {"backup": "complete", "save_time_s": round(dt, 2),
             "atlas_entries": n_entries, "tick": _guala.tick,
-            "s3": "queued"}
+            "storage": storage_scope, "s3": s3_status}
 
 
 def handle_sight_frame(args):
-    """Transient camera frame → sight krimelack + object recognition."""
+    """Transient camera frame into raw sight; object naming is unavailable."""
     import base64
+    from dsf_ai_service.substrate.grounded_vocab_integration import (
+        object_name_recognition_unavailable)
+
+    recognition = object_name_recognition_unavailable(
+        source=args.get("source", "camera_stream"))
     b64_data = (args.get("text") or "").strip()
     if not b64_data:
-        return {"ok": False, "error": "no frame data"}
+        return {"ok": False, "error": "no frame data",
+                "object_name_recognition": recognition}
     t0 = time.time()
     try:
         img_bytes = base64.b64decode(b64_data)
         from dsf_ai_service.app import decode_image_bytes
         _, grid, _, _ = decode_image_bytes(img_bytes)
         _guala.process_sight_frame(grid)
-        # Grounded vocab: YOLO needs raw bytes (full color), not the 64x64 gray grid
-        from dsf_ai_service.substrate.grounded_vocab_integration import (
-            process_sight_with_recognition)
-        bindings = process_sight_with_recognition(_guala, img_bytes)
-        # organ-brain learns the scene it saw (co-seen objects -> succession)
-        _scene = " ".join(b.get("word", "") for b in (bindings or []))
-        # Site 9 REPLACE: route YOLO labels to v5 atlas (grounded)
-        if _scene.strip():
-            _guala.read_sentence(_scene, source="unknown",
-                                 bundle_id=f"sight_frame:{_guala.tick}")
+        recognition = object_name_recognition_unavailable(
+            _guala, source=args.get("source", "camera_stream"))
         # Publish to ring
         if _substrate_ring is not None:
             _substrate_ring.publish("sight_frame", _guala.tick,
-                                    n_bindings=len(bindings))
+                                    raw_sight="accepted",
+                                    object_name_recognition="unavailable")
         dt = time.time() - t0
         if dt > 0.5:
             print(f"[sight-frame] {dt:.3f}s (slow)")
         return {"ok": True, "tick": _guala.tick,
-                "recognized": [b["word"] for b in bindings]}
+                "raw_sight": "accepted",
+                "object_name_recognition": recognition}
     except Exception as e:
-        return {"ok": False, "error": str(e)}
+        return {"ok": False, "error": str(e),
+                "object_name_recognition": recognition}
 
 
 def handle_sound_frame(args):
-    """Transient mic audio → sound krimelack + speech/ambient recognition."""
+    """Transient mic audio into raw sound; word recognition is unavailable."""
     import base64
+    from dsf_ai_service.substrate.grounded_vocab_integration import (
+        spoken_word_recognition_unavailable)
+
     b64_data = (args.get("text") or "").strip()
     source = args.get("source", "ambient")
+    recognition = spoken_word_recognition_unavailable(source=source)
     if not b64_data:
-        return {"ok": False, "error": "no audio data"}
+        return {"ok": False, "error": "no audio data",
+                "spoken_word_recognition": recognition}
     t0 = time.time()
     try:
         audio_bytes = base64.b64decode(b64_data)
-        _guala.process_sound_frame(audio_bytes)
-        # Grounded vocab: speech transcription / ambient classification
-        from dsf_ai_service.substrate.grounded_vocab_integration import (
-            process_sound_with_recognition)
-        _sbind, _txt = process_sound_with_recognition(_guala, audio_bytes, source=source)
-        # organ-brain learns the words it heard (transcribed speech -> succession)
-        # 2026-07-12: use the FULL real transcribed text, not _sbind (only
-        # already-known words) -- else a real sentence with any new word
-        # silently collapses to a fragment or nothing.
-        if _txt.strip():
-            # Site 10 REPLACE: route Whisper transcription to v5 atlas (grounded)
-            _guala.read_sentence(_txt, source="unknown",
-                                 bundle_id=f"sound_frame:{_guala.tick}")
+        wav = _webm_to_wav_bytes(audio_bytes)
+        if not wav:
+            return {"ok": False, "error": "decode_failed",
+                    "spoken_word_recognition": recognition}
+        _guala.process_sound_frame(wav, source=source)
+        recognition = spoken_word_recognition_unavailable(
+            _guala, source=source)
         # Publish to ring
         if _substrate_ring is not None:
-            _substrate_ring.publish("sound_frame", _guala.tick, source=source)
-        return {"ok": True, "tick": _guala.tick}
+            _substrate_ring.publish(
+                "sound_frame", _guala.tick, source=source,
+                raw_sound="accepted", spoken_word_recognition="unavailable")
+        return {"ok": True, "tick": _guala.tick,
+                "raw_sound": "accepted",
+                "spoken_word_recognition": recognition}
     except Exception as e:
-        return {"ok": False, "error": str(e)}
+        return {"ok": False, "error": str(e),
+                "spoken_word_recognition": recognition}
 
 
 def handle_sleep_for_deploy(args):
-    if _guala.is_asleep:
-        return {"ok": True, "already_asleep": True, "sleep_tick": _guala.tick}
     _pause_autonomy_for_bulk()
     try:
         _guala.manual_sleep(state_dir=STATE_DIR)
@@ -2643,7 +2556,8 @@ def _cascade_monitor_loop(baseline, interval):
           f"strength={baseline['strength']:.1f} saturated={baseline['saturated']} "
           f"interval={interval}s")
     while _cascade_monitor_running:
-        time.sleep(interval)
+        if _shutdown_event.wait(interval):
+            break
         if _guala is None or not _cascade_monitor_running:
             continue
         try:
@@ -2688,9 +2602,9 @@ def handle_start_cascade_monitor(args):
     interval = max(5, args.get("interval_s", 10))
     _cascade_baseline = baseline
     _cascade_monitor_running = True
-    t = threading.Thread(target=_cascade_monitor_loop, args=(baseline, interval),
-                         daemon=True)
-    t.start()
+    _start_background_thread(
+        lambda: _cascade_monitor_loop(baseline, interval),
+        "cascade-monitor")
     return {"cascade_monitor": "started", "baseline": baseline, "interval_s": interval}
 
 
@@ -2884,8 +2798,9 @@ def _start_organ_surface_poll():
                     _ORGAN_SURFACE_CACHE["ts"] = time.time()
             except Exception:
                 pass
-            time.sleep(90)
-    threading.Thread(target=_poll, daemon=True, name="organ-surface-poll").start()
+            if _shutdown_event.wait(90):
+                break
+    _start_background_thread(_poll, "organ-surface-poll")
     print("[organ-f2] surface poll started (90s interval)")
 
 
@@ -2901,7 +2816,8 @@ def _start_autonomous_emission_loop():
     Stores result in _last_autonomous_thought for /thought polling."""
     def _loop():
         global _last_autonomous_thought
-        time.sleep(60)  # let boot settle
+        if _shutdown_event.wait(60):
+            return
         while not _shutdown:
             try:
                 if _guala is not None:
@@ -2915,10 +2831,17 @@ def _start_autonomous_emission_loop():
                         if result is not None:
                             content = result["content"]
                             _guala.autonomous_emissions_count += 1
+                            autonomous_emission_id = (
+                                f"autonomous:{_guala.autonomous_emissions_count}:"
+                                f"{result['settlement_tick']}")
                             _guala.last_autonomous_emission_tick = _guala.tick
                             _guala._log_substrate_event(
                                 "autonomous_emission",
                                 content=content,
+                                emission_id=autonomous_emission_id,
+                                response_source=result["response_source"],
+                                committed_sections=result["committed_sections"],
+                                commit_provenance=result["commit_provenance"],
                                 seeds_used=result.get("seeds_used", 0),
                                 count=_guala.autonomous_emissions_count,
                             )
@@ -2929,13 +2852,23 @@ def _start_autonomous_emission_loop():
                                     "ts": time.time(),
                                     "category": "autonomous",
                                     "source": "guala",
+                                    "response_source": result["response_source"],
+                                    "emission_id": autonomous_emission_id,
+                                    "committed_sections": result["committed_sections"],
+                                    "commit_provenance": result["commit_provenance"],
                                 }
-                            # Self-hearing: write back to atlas
+                            # Certified self-hearing through the same boundary
+                            # as conversational emission; never raw re-ingest.
                             try:
-                                with _guala.lock:
-                                    _guala.read_sentence(content, source="guala")
-                            except Exception:
-                                pass
+                                _guala._self_hear(
+                                    content, "guala",
+                                    emission_id=autonomous_emission_id,
+                                    response_source=result["response_source"])
+                            except Exception as self_hear_error:
+                                _guala._log_substrate_event(
+                                    "autonomous_self_hear_error",
+                                    emission_id=autonomous_emission_id,
+                                    error=str(self_hear_error))
                             # Agency organ writes
                             try:
                                 if _guala_organ_brain is not None:
@@ -2959,8 +2892,9 @@ def _start_autonomous_emission_loop():
                                                 error=str(_e))
                 except Exception:
                     pass
-            time.sleep(90)
-    threading.Thread(target=_loop, daemon=True, name="autonomous-emission").start()
+            if _shutdown_event.wait(90):
+                break
+    _start_background_thread(_loop, "autonomous-emission")
     print("[autonomous] emission loop started (90s interval)")
 
 
@@ -3004,19 +2938,32 @@ def _orchestrated_backup(reason, blocking=False, _result_holder=None):
     try:
         from dsf_ai_service.save_coordinator import SAVE_COORDINATOR
         t0 = time.time()
+        s3_enabled = bool(
+            SAVE_COORDINATOR is not None
+            and getattr(SAVE_COORDINATOR, "s3_bucket", None))
         if SAVE_COORDINATOR:
             SAVE_COORDINATOR.force_save(reason=reason)
         else:
             _guala.save_full_state(STATE_DIR)
-        _guala._log_substrate_event("auto_backup", reason=reason,
-                                    s3_prefix=f"guala/auto/{reason}/",
-                                    files=12, tick=_guala.tick)
+        storage_scope = "local-and-s3-queued" if s3_enabled else "local-only"
+        s3_status = "queued" if s3_enabled else "disabled"
+        _guala._log_substrate_event(
+            "auto_backup", reason=reason, storage=storage_scope,
+            s3_status=s3_status, tick=_guala.tick)
         elapsed = time.time() - t0
-        print(f"[backup_orchestrator] {reason} completed in {elapsed:.1f}s")
+        print(
+            f"[backup_orchestrator] {reason} completed in {elapsed:.1f}s "
+            f"storage={storage_scope}")
         with _backup_lock:
             _last_successful_backup_wall = time.time()
             _backup_in_flight = False
-        result = {"ok": True, "reason": reason, "elapsed_s": round(elapsed, 1)}
+        result = {
+            "ok": True,
+            "reason": reason,
+            "elapsed_s": round(elapsed, 1),
+            "storage": storage_scope,
+            "s3": s3_status,
+        }
         if _result_holder is not None:
             _result_holder[0] = result
         return result
@@ -3147,8 +3094,9 @@ def handle_atlas_surgery(args):
 
     if backup_age < freshness_window:
         # Path 1: recent backup exists — async tag and proceed immediately
-        threading.Thread(target=_orchestrated_backup, args=(_op_reason,),
-                         daemon=True).start()
+        _start_background_thread(
+            lambda: _orchestrated_backup(_op_reason),
+            f"backup-{_op_reason}")
 
     elif in_flight:
         # Path 2: backup running — wait up to 180s for it to finish
@@ -3160,8 +3108,9 @@ def handle_atlas_surgery(args):
                 backup_age = time.time() - _last_successful_backup_wall
             if not in_flight:
                 if backup_age < freshness_window + 300:  # generous window after wait
-                    threading.Thread(target=_orchestrated_backup,
-                                     args=(_op_reason,), daemon=True).start()
+                    _start_background_thread(
+                        lambda: _orchestrated_backup(_op_reason),
+                        f"backup-{_op_reason}")
                     break
                 else:
                     _guala._log_substrate_event("surgery_refused",
@@ -3183,9 +3132,9 @@ def handle_atlas_surgery(args):
         # block here until it finishes. EFS write ~170s.
         holder = [None]
         sync_reason = f"pre_surgery_synchronous_{operation_id.replace(':', '_')[:50]}"
-        t = threading.Thread(target=_orchestrated_backup,
-                             args=(sync_reason, True, holder), daemon=True)
-        t.start()
+        t = _start_background_thread(
+            lambda: _orchestrated_backup(sync_reason, True, holder),
+            f"backup-{sync_reason}")
         t.join(timeout=300)   # wait up to 5 min
         result = holder[0]
         if not result or not result.get("ok"):
@@ -3357,7 +3306,8 @@ def _start_curriculum_orchestrator():
         # Delay start: boot + dream cycle settle. She boots sleeping, dreams,
         # then wakes. Dream cycle can hold the atlas lock for 30-60s.
         # Wait 90s to avoid delivery timeouts during boot dream.
-        time.sleep(90)
+        if _shutdown_event.wait(90):
+            return
         interval = os.environ.get("CURRICULUM_ORCHESTRATOR_INTERVAL_SEC", "5")
         seed_path = os.environ.get("CURRICULUM_SEED_PATH",
                                    "/app/tools/curriculum_seed.json")
@@ -3366,6 +3316,7 @@ def _start_curriculum_orchestrator():
                                        "http://localhost:8080")
         while not _shutdown:
             try:
+                global _curriculum_process
                 proc = subprocess.Popen(
                     [_sys.executable, "/app/tools/sensory_curriculum_orchestrator.py",
                      "--curriculum", seed_path,
@@ -3377,20 +3328,22 @@ def _start_curriculum_orchestrator():
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                 )
+                _curriculum_process = proc
                 for line in proc.stdout:
                     print(f"[curriculum] {line.decode().rstrip()}", flush=True)
                 proc.wait()
                 # After one full pass through seed, pause then loop again
                 # (density growth = repeated multi-modal exposure)
                 if not _shutdown:
-                    time.sleep(60)
+                    if _shutdown_event.wait(60):
+                        break
             except Exception as e:
                 print(f"[curriculum] orchestrator error: {e}, restarting in 60s",
                       flush=True)
-                time.sleep(60)
+                if _shutdown_event.wait(60):
+                    break
 
-    t = threading.Thread(target=_runner, daemon=True, name="curriculum")
-    t.start()
+    _start_background_thread(_runner, "curriculum")
     print("[curriculum] autostart thread started", flush=True)
 
 
@@ -3401,8 +3354,7 @@ def start_background_loops():
     _start_input_ring_consumer()
     _start_curriculum_orchestrator()
     import threading
-    hb_thread = threading.Thread(target=heartbeat_loop, daemon=True)
-    hb_thread.start()
+    _start_background_thread(heartbeat_loop, "heartbeat")
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -3426,6 +3378,5 @@ def heartbeat_loop():
                 }))
         except Exception:
             pass
-        time.sleep(5)
-
-
+        if _shutdown_event.wait(5):
+            break

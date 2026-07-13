@@ -14,15 +14,14 @@ v5 additions (the real conversation fix):
   - QuestionBucket: open questions accumulate during reading via gap detection
     (incomplete sensory binding, unknown role, etc). When she has nothing to
     recall, she voices a related question instead of echoing.
-  - Honest SafeMode fallback: when neither recall nor bucket has anything
-    for the input, return "..." rather than echo.
+  - Honest SafeMode: when the field does not commit, remain silent.
   - Fixed math parser: handles multi-word numbers (ten thousand, five hundred)
     via state machine. Fails honestly on mixed word+digit input rather than
     returning partial garbage.
 
 Six capabilities (now meaningful):
   1. Syntax — keyhole cascade with role differentiation
-  2. Conversation — recall from substrate atlas, fallback to question, then "..."
+  2. Conversation — speech only from committed substrate settlement
   3. Introspection — needs/valence/arousal + question bucket state
   4. Self-improvement — gamma drift + needs-targeted parameter tuning
   5. Awareness — coordinator detection + regulation
@@ -36,6 +35,7 @@ import json
 import time
 import calendar
 import contextlib
+import functools
 import queue as _queue
 import hashlib as _hashlib
 import heapq as _heapq
@@ -47,10 +47,279 @@ from collections import deque
 import random
 
 
+def _engine_mutation_entry(method):
+    """Make one public engine mutation participate in quiescence admission.
+
+    The underlying scope is re-entrant per thread, so public entry points may
+    call one another without double-counting or being rejected midway through
+    an already-admitted operation.
+    """
+    @functools.wraps(method)
+    def guarded(self, *args, **kwargs):
+        with self._engine_mutation_scope(method.__name__):
+            return method(self, *args, **kwargs)
+    return guarded
+
+
 def saturate(current, gain):
     """Asymptotic receptor saturation. As current → 1.0, effective gain → 0.
     GL-BRIEF-NEEDS-PHYSICS: prevents needs from pinning at ceiling."""
     return max(0.0, min(1.0, current + gain * (1.0 - current)))
+
+
+@dataclass(frozen=True)
+class ConversationTurnResult:
+    """Immutable truth produced by one complete conversation turn."""
+
+    response: str
+    response_source: str
+    emission_id: str | None = None
+    committed_sections: tuple = ()
+    recalled_pictures: tuple = ()
+    source_turn_index: int | None = None
+    commit_provenance: tuple = ()
+
+
+@dataclass(frozen=True)
+class EmissionCandidateProvenance:
+    """Exact candidate attribution carried by a committed installed mode."""
+
+    section: str
+    mode_id: int
+    word: str
+    source: str | None = None
+    origin: str | None = None
+    chi: object = None
+    sensory_refs: tuple = ()
+    episode_refs: tuple = ()
+    bundle_ids: tuple = ()
+    window_id: str | None = None
+    window_entry_index: int | None = None
+    trace_id: str | None = None
+    source_strand_id: str | None = None
+    structural_fingerprint: str | None = None
+    modalities: tuple = ()
+
+    def as_record(self):
+        return {
+            "section": self.section,
+            "mode_id": self.mode_id,
+            "word": self.word,
+            "source": self.source,
+            "origin": self.origin,
+            "chi": self.chi,
+            "sensory_refs": list(self.sensory_refs),
+            "episode_refs": list(self.episode_refs),
+            "bundle_ids": list(self.bundle_ids),
+            "window_id": self.window_id,
+            "window_entry_index": self.window_entry_index,
+            "trace_id": self.trace_id,
+            "source_strand_id": self.source_strand_id,
+            "structural_fingerprint": self.structural_fingerprint,
+            "modalities": list(self.modalities),
+        }
+
+
+@dataclass(frozen=True)
+class EmissionSettlement:
+    """Turn-local result of one assemblage emission settlement."""
+
+    content: str = ""
+    committed_sections: tuple = ()
+    n_commits: int = 0
+    organ_in_commits: bool = False
+    tick: int = 0
+    commit_provenance: tuple = ()
+
+
+@dataclass(frozen=True)
+class FactEmissionSupport:
+    """One exact closed-window entry supporting one emitted Fact token."""
+
+    window_id: str
+    entry_index: int
+    experience_origin: str
+    source_tag: str
+    trace_id: str
+    source_strand_id: str
+    modalities: tuple
+
+    def as_record(self):
+        return {
+            "window_id": self.window_id,
+            "entry_index": self.entry_index,
+            "experience_origin": self.experience_origin,
+            "source_tag": self.source_tag,
+            "trace_id": self.trace_id,
+            "source_strand_id": self.source_strand_id,
+            "modalities": list(self.modalities),
+        }
+
+
+@dataclass(frozen=True)
+class FactEmissionTokenProvenance:
+    """Full structural class and every exact occurrence behind one token."""
+
+    word: str
+    structural_fingerprint: str
+    recognized_strand_ids: tuple
+    supports: tuple
+
+    def as_record(self):
+        return {
+            "authority": "language_fact_strand_reciprocity_v1",
+            "word": self.word,
+            "structural_fingerprint": self.structural_fingerprint,
+            "recognized_strand_ids": list(self.recognized_strand_ids),
+            "supports": [support.as_record() for support in self.supports],
+        }
+
+
+def _provenance_tuple(value):
+    """Freeze an existing metadata value without inferring missing entries."""
+    if value is None:
+        return ()
+    if isinstance(value, (list, tuple)):
+        return tuple(value)
+    return (value,)
+
+
+_CANDIDATE_PROVENANCE_KEYS = (
+    "source", "origin", "chi", "sensory_refs",
+    "episode_ref", "episode_refs", "bundle_id", "bundle_ids",
+)
+
+
+def _candidate_provenance_evidence(record, origin=None):
+    """Copy only provenance evidence that an upstream record actually has."""
+    evidence = {
+        key: record[key]
+        for key in _CANDIDATE_PROVENANCE_KEYS
+        if key in record
+    }
+    if origin is not None:
+        evidence["origin"] = origin
+    return evidence
+
+
+def _freeze_candidate_provenance(candidate, section, mode_id):
+    evidence = candidate.get("_provenance_evidence")
+    if not isinstance(evidence, dict):
+        evidence = _candidate_provenance_evidence(candidate)
+    episode_refs = _provenance_tuple(evidence.get("episode_refs"))
+    if not episode_refs:
+        episode_refs = _provenance_tuple(evidence.get("episode_ref"))
+    bundle_ids = _provenance_tuple(evidence.get("bundle_ids"))
+    if not bundle_ids:
+        bundle_ids = _provenance_tuple(evidence.get("bundle_id"))
+    return EmissionCandidateProvenance(
+        section=section,
+        mode_id=mode_id,
+        word=candidate.get("word") or "",
+        source=evidence.get("source"),
+        origin=evidence.get("origin"),
+        chi=evidence.get("chi"),
+        sensory_refs=_provenance_tuple(evidence.get("sensory_refs")),
+        episode_refs=episode_refs,
+        bundle_ids=bundle_ids)
+
+
+def _committed_candidate_provenance(selected_commits, installed_provenance):
+    """Return attribution only for the exact commits rendered as words.
+
+    A section can commit more than once while settling, but emission rendering
+    selects one final mapped mode per section and can then suppress that word
+    when it repeats the input or an earlier rendered word.  Attribution must
+    follow that rendered selection rather than every transient dynamics
+    commit, or an earlier displaced candidate can falsely certify the utterance.
+    """
+    committed = []
+    for commit in selected_commits:
+        matches = tuple(
+            provenance
+            for provenance in installed_provenance.get(
+                (commit["section"], commit["mode_id"]), ())
+            if provenance.word == commit["word"])
+        if len(matches) != 1:
+            return ()
+        committed.append(matches[0])
+    return tuple(committed)
+
+
+def _provenance_has_lived_link(provenance):
+    if not isinstance(provenance, EmissionCandidateProvenance):
+        return False
+    if not isinstance(provenance.source, str) or not provenance.source.strip():
+        return False
+    if not isinstance(provenance.origin, str) or not provenance.origin.strip():
+        return False
+    return any(
+        ref is not None and ref != ""
+        for refs in (provenance.sensory_refs,
+                     provenance.episode_refs,
+                     provenance.bundle_ids)
+        for ref in refs)
+
+
+def _settlement_has_certified_provenance(settlement):
+    if not isinstance(settlement, EmissionSettlement):
+        return False
+    provenance = settlement.commit_provenance
+    sections = settlement.committed_sections
+    if (settlement.n_commits <= 0
+            or settlement.n_commits != len(sections)
+            or settlement.n_commits != len(provenance)):
+        return False
+    for section, item in zip(sections, provenance):
+        if (not _provenance_has_lived_link(item)
+                or item.section != section
+                or not isinstance(item.mode_id, int)
+                or item.mode_id < 0
+                or not item.word):
+            return False
+    if settlement.content != " ".join(item.word for item in provenance):
+        return False
+    has_organ = any(item.origin == "organ" for item in provenance)
+    return settlement.organ_in_commits is has_organ
+
+
+def _record_has_certified_provenance(record):
+    if not isinstance(record, dict):
+        return False
+    provenance = record.get("commit_provenance")
+    sections = record.get("committed_sections")
+    n_commits = record.get("n_commits")
+    if (not isinstance(provenance, list)
+            or not isinstance(sections, list)
+            or not isinstance(n_commits, int)
+            or n_commits <= 0
+            or n_commits != len(sections)
+            or n_commits != len(provenance)):
+        return False
+    words = []
+    has_organ = False
+    for section, item in zip(sections, provenance):
+        if not isinstance(item, dict):
+            return False
+        source = item.get("source")
+        origin = item.get("origin")
+        links = (
+            _provenance_tuple(item.get("sensory_refs"))
+            + _provenance_tuple(item.get("episode_refs"))
+            + _provenance_tuple(item.get("bundle_ids")))
+        if (not isinstance(source, str) or not source.strip()
+                or not isinstance(origin, str) or not origin.strip()
+                or item.get("section") != section
+                or not isinstance(item.get("mode_id"), int)
+                or item["mode_id"] < 0
+                or not item.get("word")
+                or not any(link is not None and link != "" for link in links)):
+            return False
+        words.append(item["word"])
+        has_organ = has_organ or origin == "organ"
+    expected_source = "v5_commit_organ" if has_organ else "v5_commit"
+    return (record.get("text") == " ".join(words)
+            and record.get("response_source") == expected_source)
 
 
 import cmath
@@ -312,19 +581,18 @@ def _grandurun_select_candidates(input_chis, deep_candidates, sections,
     _input_chis_arr = input_chis if input_chis else [0]
 
     # Pass 1: collect pending candidates (no amplitude computation yet)
-    pending = []  # (de_chi, strength, sec_name, mid, word_label, metadata_dict)
+    pending = []  # chi, strength, section, mode, word, physics, evidence
     seen = set()
 
     for de, co, clarity in deep_candidates:
         de_chi = de.get("chi", 0)
-        meta = {
-            "source": de.get("source", "corpus"),
+        physics_meta = {
             "arousal": de.get("arousal", 0.5),
             "valence": de.get("valence", 0.0),
             "surprise": de.get("surprise", 0.0),
             "polarity": de.get("polarity", 1.0),
-            "sensory_refs": de.get("sensory_refs", []),
         }
+        provenance_evidence = _candidate_provenance_evidence(de)
         for sec_name in co:
             sec_co = co[sec_name]
             if not sec_co:
@@ -343,7 +611,9 @@ def _grandurun_select_candidates(input_chis, deep_candidates, sections,
                 if key in seen:
                     continue
                 seen.add(key)
-                pending.append((de_chi, float(strength), sec_name, mid, word_label, meta))
+                pending.append((de_chi, float(strength), sec_name, mid,
+                                word_label, physics_meta,
+                                provenance_evidence))
 
     if not pending:
         return []
@@ -366,16 +636,23 @@ def _grandurun_select_candidates(input_chis, deep_candidates, sections,
 
     # Attach coh_mag and build result dicts
     candidates = []
-    for i, (de_chi, strength, sec_name, mid, word_label, meta) in enumerate(pending):
-        candidates.append({
+    for i, (de_chi, strength, sec_name, mid, word_label, physics_meta,
+            provenance_evidence) in enumerate(pending):
+        candidate = {
             "chi": de_chi,
             "section": sec_name,
             "motif": mid,
             "word": word_label,
             "strength": strength,
             "coherent_magnitude": float(coh_mags[i]),
-            **meta,
-        })
+            "_provenance_evidence": dict(provenance_evidence),
+            **physics_meta,
+        }
+        if "source" in provenance_evidence:
+            candidate["source"] = provenance_evidence["source"]
+        if "origin" in provenance_evidence:
+            candidate["origin"] = provenance_evidence["origin"]
+        candidates.append(candidate)
 
     candidates.sort(key=lambda c: -c["coherent_magnitude"])
     # GL-CMD-SLOT-LIMITS-REMOVAL-EVE-20260707-v1: audited, NOT removed.
@@ -1032,7 +1309,8 @@ class Activity:
     def snapshot(self):
         return {"kind": self.kind, "target": self.target,
                 "started_tick": self.started_tick,
-                "expected_end_tick": self.expected_end_tick}
+                "expected_end_tick": self.expected_end_tick,
+                "metadata": dict(self.metadata)}
 
 
 @dataclass
@@ -1496,34 +1774,20 @@ class Section:
         return mode_idx
 
     def receive(self, dsf, chi, word_label, atlas, familiarity, salience=1.0,
-                dwell_ticks=1, deep_atlas=None, engine_tick=None,
-                atlas_kwargs=None, index_callback=None, window_manager=None):
+                dwell_ticks=1, engine_tick=None, atlas_kwargs=None,
+                window_manager=None):
         """v6: word-anchored mode identity + salience-modulated binding.
         v8 (GL-BRIEF-032): dwell_ticks tagged at write time for deep gate.
-        deep_atlas: if provided, on-attention prior applied for matching entries.
         engine_tick: MUST be passed — atlas entries use engine clock, not section clock.
         GL-FIND-TICK-DOMAIN-C1: section.tick stays for internal counting only.
         atlas_kwargs: GL-CLARITY-INVARIANCE-UNCAGE affect+grounding kwargs for record().
-        index_callback: GL-CMD-INDEX-INVARIANT-COMPLETE-163 Part A — optional
-        callable(section_name, motif_id, chi_value), called for every
-        atlas.record() this method issues directly (the deep-atlas
-        reinstatement block below), since Section has no engine reference
-        and can't call self._atlas_record() itself. The caller (Guala.
-        read_word) passes self._index_word_at_chi. The primary commit's
-        OWN indexing is still done by the caller from receive()'s return
-        value (GL-CMD-RECALL-REACH-159 Part C) — this callback covers ONLY
-        the reinstatement writes, which the return value doesn't surface.
 
         window_manager: GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1,
         optional (default None preserves exact prior behavior for any
         caller that doesn't pass it). When supplied, the PRIMARY commit
         below routes through window_manager.add_entry() instead of
         atlas.record() directly -- same call, same arguments, same
-        resulting atlas write, plus window bookkeeping and events. The
-        deep-atlas reinstatement block does NOT route through it (that's
-        reinstating an existing memory on attention, not a new experience
-        moment -- out of this dispatch's scope, same as dream/correction
-        writes elsewhere in the engine)."""
+        resulting atlas write, plus window bookkeeping and events."""
         self.tick += 1
         # Atlas records use engine tick (one clock — GL-FIND-TICK-DOMAIN-C1)
         if engine_tick is None:
@@ -1533,57 +1797,6 @@ class Section:
                 "A missing engine_tick silently reintroduces the instant-death bug.")
         atlas_tick = engine_tick
         self.dead_zone = 0.20 + 0.5 * familiarity
-
-        # v8: On-attention deep prior (before commit, affects familiarity landscape)
-        # EVE-FIX: compute prior/reinstate directly from e (already found by outer
-        # loop) — avoids get_prior() and reinstate() each doing a redundant O(n)
-        # linear scan of the same chi bucket. Was O(n²) per section receive.
-        if deep_atlas is not None and deep_atlas._prior_enabled:
-            from dsf_ai_service.substrate.deep_atlas import FORGETTING_THRESHOLD as DF_THRESH, PRIOR_CAP
-            _reinst_count = 0
-            for e in deep_atlas.entries.get(chi, []):
-                if _reinst_count >= 50:  # cap: bound O(n²) while preserving enough evidence
-                    break
-                # GL-CMD-SLEEP-REORGANIZE follow-on (adversarial review,
-                # 2026-07-10): this reinstatement writes a FULL-weight real
-                # atlas.record() the moment strength clears FORGETTING_
-                # THRESHOLD, with no scaling by how confident the entry
-                # actually is -- a rock-solid real memory and a just-created,
-                # never-confirmed reorganize hypothesis (both >= threshold)
-                # get identical treatment. That's an existing, accepted
-                # design tradeoff for real (survival/episodic) promotions;
-                # it was never evaluated for a genuinely untested guess.
-                # Excluding hypothesis-tagged entries here keeps them out of
-                # every real-recall-facing write path until something real
-                # actually confirms them (dream_promotion_gate, same
-                # mechanism as any other entry) -- narrower than reworking
-                # the existing reinstatement design for entries this
-                # dispatch doesn't own.
-                if (e.get("section") == self.name and e["strength"] >= DF_THRESH
-                        and e.get("source_path") != "reorganize_hypothesis"):
-                    motif = e["motif"]
-                    # GL-FIX-ATLAS-INTEGRITY: skip OOB reinstatements.
-                    # Deep atlas entry was promoted when the section had more modes.
-                    # If the section has since been loaded from an older save with
-                    # fewer modes, reinstating the old motif_id creates an OOB atlas
-                    # entry that fails _validate_integrity(). Skip and let the deep
-                    # entry naturally expire via decay.
-                    if motif >= len(self.modes):
-                        continue
-                    p = min(PRIOR_CAP, e["strength"] * 0.3)  # same formula as get_prior
-                    if p > 0:
-                        deep_atlas.reinstatements += 1
-                        _reinst_count += 1
-                        atlas.record(self.name, motif, chi, atlas_tick,
-                                     salience=0.3, dwell_ticks=0,
-                                     **(atlas_kwargs or {}))
-                        # GL-CMD-INDEX-INVARIANT-COMPLETE-163 Part A: this
-                        # reinstatement writes a binding for the COHABITANT
-                        # word at `motif`, not the word being taught — index
-                        # it too, or it's invisible to recall until restart
-                        # exactly like -159 F-3 was.
-                        if index_callback is not None:
-                            index_callback(self.name, motif, chi)
 
         # Fast path: O(1) word-identity lookup BEFORE similarity scan.
         # For known words (the majority in converse), this skips the scan entirely.
@@ -2353,6 +2566,7 @@ class Guala:
     REFLECTION_MIN_TICKS_BETWEEN = 500
 
     def __init__(self):
+        self._identity_record = None
         self.sections = {
             "listen":   Section("listen"),
             "subject":  Section("subject",  role_class="subject"),
@@ -2383,10 +2597,17 @@ class Guala:
         # atlas.windows live (no caching, no copy) -- never writes it.
         from dsf_ai_service.substrate.recall_query import RecallEngine
         self.recall_engine = RecallEngine(
-            atlas_windows_fn=lambda: self.atlas.windows,
+            window_manager=self.window_manager,
             get_tick_fn=lambda: self.tick,
             log_event_fn=self._log_substrate_event,
         )
+        # Language recognition authority.  This store is reconstructed from
+        # durable canonical BindingWindows on boot; legacy Atlas modes and
+        # compatibility Chi routing never populate it.
+        from dsf_ai_service.substrate.language_fact_strand import LanguageFactMemory
+        self.language_fact_memory = LanguageFactMemory()
+        self._language_fact_lock = threading.RLock()
+        self._ordered_language_windows = {}
         # WAVE_ATLAS_ENABLED: Phase 1 flag. 0 = atlas built but inactive; 1 = parallel writes.
         if os.environ.get("WAVE_ATLAS_ENABLED") == "1":
             from dsf_ai_service.v4.wave_atlas import WaveAtlas as _WaveAtlas
@@ -2434,6 +2655,17 @@ class Guala:
         self._read_count_compat = 0  # kept for load compatibility only; superseded by property
         self.dream_log = []
         self.lock = threading.RLock()
+        # Persistence is a separate state domain from cognition.  Every
+        # multi-file save, WaveAtlas write, event compaction, and snapshot
+        # enters this one reentrant boundary so two generations can never
+        # share or steal the same on-disk temporary files.  It must always be
+        # acquired before ``self.lock`` when both are needed; save methods
+        # retain their existing brief cognition-lock snapshot semantics.
+        self._persistence_lock = threading.RLock()
+        # Appends do not take the (long-held) persistence lock.  This narrow
+        # lock makes append/rotation and compact's read-replace indivisible,
+        # preserving every event on one side of the compaction boundary.
+        self._event_log_lock = threading.RLock()
         # GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.1: separate lock for emission
         # compute. _emit_dynamics clears/rebuilds _emission_system.sections per call;
         # concurrent access corrupts mode_bank/psi state causing hangs. RLock so
@@ -2506,8 +2738,12 @@ class Guala:
         # this call site's share of read_word's cost by roughly (N-1)/N.
         self._recognition_call_count = 0
         self._current_binding_window = []  # sensory_refs accumulated this tick
-        # GL-CMD-V5-VOICE-STAGE1: dynamics quality from most recent _emit_dynamics call
-        self._last_dynamics_result = None  # {content, committed_sections, n_commits, arcs_fallback, tick}
+        # Emission truth from the most recent dynamics settlement.  Speech is
+        # permitted only when this record certifies at least one real commit.
+        self._last_dynamics_result = None
+        self._last_response_source = "silence_no_commit"
+        self._live_converse_pending = 0
+        self._live_converse_state_lock = threading.Lock()
         # GL-CMD-DEEP-ATLAS-PERSIST: boot loss alarm result
         self._deep_atlas_loss_at_boot = None
         # GL-CMD-C1-POLARITY: one-shot negation flip pending (resets per utterance)
@@ -2680,6 +2916,15 @@ class Guala:
         # 50 items), surfaced in /status -- should stay roughly flat now
         # regardless of lifetime history (see _organism_worker_loop).
         self._organism_item_ms_recent = []
+        self._engine_quiesced = False
+        self._engine_quiescence_complete = False
+        self._engine_mutation_condition = threading.Condition()
+        self._engine_mutation_admission_open = True
+        self._engine_active_mutations = 0
+        self._engine_mutation_local = threading.local()
+        self._engine_raw_threads = set()
+        self._engine_raw_threads_started = 0
+        self._engine_raw_threads_completed = 0
 
         # GL-CMD-175 P2 fix (root cause behind seams 1-2's near-zero
         # discrimination): the validated recall mechanism (embryo.py's own
@@ -2745,6 +2990,7 @@ class Guala:
         if word:
             self._word_to_chi_index[word.lower()].add(chi_value)
 
+    @_engine_mutation_entry
     def _atlas_record(self, section_name, motif_id, chi_value, tick=None, **kwargs):
         """GL-CMD-RECALL-WORD-INDEX-57 §1.2: single binding-creation entry point.
         ALL self.atlas.record() callsites in engine code must go through here.
@@ -3329,6 +3575,7 @@ class Guala:
     # ------------------------------------------------------------------
     # Read one word: fire all krimelacks, compute DSF, route to sections
     # ------------------------------------------------------------------
+    @_engine_mutation_entry
     def read_word(self, word, position_hint=None, source="corpus", bundle_id=None,
                   salience=None, episode_ref=None, presence=None,
                   location=None, sky_state=None, binding_window=None,
@@ -3566,11 +3813,9 @@ class Guala:
                 self.atlas, fam_listen,
                 salience=salience,
                 dwell_ticks=dwell,
-                deep_atlas=self.deep_atlas,
                 engine_tick=self.tick,
                 atlas_kwargs=_akw,
-                index_callback=self._index_word_at_chi,
-                window_manager=self.window_manager)
+                window_manager=None)
             # GL-CMD-RECALL-REACH-159 Part C (F-3): Section.receive commits via
             # atlas.record() directly, not self._atlas_record() (Section has no
             # engine reference) — so the -57 reverse index has to be updated
@@ -3588,11 +3833,9 @@ class Guala:
                     self.atlas, fam,
                     salience=salience,
                     dwell_ticks=dwell,
-                    deep_atlas=self.deep_atlas,
                     engine_tick=self.tick,
                     atlas_kwargs=_akw,
-                    index_callback=self._index_word_at_chi,
-                    window_manager=self.window_manager)
+                    window_manager=None)
                 if _committed:
                     self._index_word_at_chi(primary_section, _mode_idx, lang_chi)
                 # Incremental update of word→emission-section index
@@ -3632,11 +3875,9 @@ class Guala:
                     self.atlas, fam_ground,
                     salience=salience,
                     dwell_ticks=dwell,
-                    deep_atlas=self.deep_atlas,
                     engine_tick=self.tick,
                     atlas_kwargs=_akw,
-                    index_callback=self._index_word_at_chi,
-                    window_manager=self.window_manager)
+                    window_manager=None)
                 if _ground_committed:
                     self._index_word_at_chi("ground", _ground_mode_idx, ground_chi)
 
@@ -3644,12 +3885,13 @@ class Guala:
                     if sense_fps[m] is not None:
                         modal_chi = self.senses.krimelacks[m].winding
                         sec_name = f"modal_{m}"
-                        self.window_manager.add_entry(
-                            modality=m, section=sec_name,
-                            motif_id=deterministic_motif_id(word),
-                            chi=modal_chi, tick=self.tick,
-                            source_tag=source,
-                            trigger_reason="word",
+                        # Legacy SENSORY_DNA compatibility record.  It is not
+                        # an observed or emulated experience and therefore
+                        # must never enter canonical BindingWindow memory.
+                        self._atlas_record(
+                            sec_name, deterministic_motif_id(word),
+                            modal_chi, tick=self.tick,
+                            source=source,
                             salience=salience,
                             **self._affect_kwargs(surprise),
                             # GL-FIX-LOCK-GRANULARITY-C1-20260710: this call
@@ -3696,11 +3938,9 @@ class Guala:
                     self.atlas, 0.0,
                     salience=salience,
                     dwell_ticks=dwell,
-                    deep_atlas=self.deep_atlas,
                     engine_tick=self.tick,
                     atlas_kwargs=_akw,
-                    index_callback=self._index_word_at_chi,
-                    window_manager=self.window_manager)
+                    window_manager=None)
                 if _intro_committed:
                     self._index_word_at_chi("intro", _intro_mode_idx, lang_chi)
             _prof_t0 = _prof_mark("intro_receive", _prof_t0)
@@ -3997,9 +4237,421 @@ class Guala:
     # ------------------------------------------------------------------
     # Read a sentence (sequence of words with position context + source)
     # ------------------------------------------------------------------
+    @staticmethod
+    def _canonical_context_values(value):
+        """Preserve supplied scene values in deterministic first-seen order."""
+        if value is None:
+            return ()
+        if isinstance(value, dict):
+            values = [key for key, active in value.items() if active]
+        elif isinstance(value, (list, tuple, set)):
+            values = list(value)
+        else:
+            values = [value]
+        return tuple(dict.fromkeys(
+            str(item).strip().lower() for item in values
+            if str(item).strip()))
+
+    def _add_canonical_scene_entries(
+            self, *, context_id, source, episode_ref, bundle_id,
+            place, ambient, presence, experience_origin):
+        """Bind only explicitly sourced story/context lanes in this window."""
+        from dsf_ai_service.substrate.language_fact_strand import (
+            construct_language_fact_strand,
+        )
+
+        lanes = (
+            ("place", self._canonical_context_values(place)),
+            ("ambient", self._canonical_context_values(ambient)),
+            ("participant", self._canonical_context_values(presence)),
+        )
+        for modality, values in lanes:
+            for value in values:
+                fact = construct_language_fact_strand(value)
+                self.window_manager.add_entry(
+                    modality=modality,
+                    section=f"story_{modality}",
+                    motif_id=int(fact.structural_fingerprint[:16], 16),
+                    chi=fact.topology.chi,
+                    tick=self.tick,
+                    source_tag=source,
+                    context_id=context_id,
+                    trigger_reason="story_context",
+                    mirror_atlas=False,
+                    structural_fact=fact.to_dict(),
+                    detail={
+                        "context_value": value,
+                        "experience_origin": experience_origin,
+                    },
+                    source=source,
+                    episode_ref=episode_ref,
+                    bundle_id=bundle_id,
+                )
+
+    def _add_canonical_emulator_entries(
+            self, words, *, context_id, source, episode_ref, bundle_id,
+            experience_origin):
+        """Bind exact descriptor waveforms and their complete DSF fields.
+
+        Each descriptor is transduced independently.  Multiple descriptors
+        are never averaged into a single proxy, because doing so would erase
+        the distinctions this emulator exists to supply.
+        """
+        from dsf_ai_service.substrate.krimelack import Krimelack
+        from dsf_ai_service.substrate.language_fact_strand import ExplicitDSF
+        from dsf_ai_service.substrate.sensory_generators import (
+            generate_sensory_signals,
+        )
+
+        mapping = self._sensory_word_map()
+        descriptors = tuple(dict.fromkeys(
+            word for word in words if word in mapping))
+        organism_lanes = {}
+        for descriptor in descriptors:
+            modality = mapping[descriptor]
+            signals = generate_sensory_signals(modality, [descriptor])
+            lane = self._MODALITY_TO_ORGANISM_LANE.get(modality)
+            if lane and signals:
+                organism_lanes.setdefault(lane, []).extend(
+                    np.asarray(waveform, dtype=float)
+                    for waveform in signals.values())
+            for channel, waveform in signals.items():
+                samples = np.asarray(waveform, dtype=float)
+                if samples.size < 2:
+                    continue
+                maximum = float(np.max(np.abs(samples)))
+                if maximum < 1e-9:
+                    continue
+                transducer = Krimelack(
+                    omega_0=2.0, kappa=60.0, dt=0.02,
+                    integration_threshold=math.pi / 3)
+                transducer.feed_signal(samples / maximum)
+                sensory_dsf = ExplicitDSF.from_kernel(
+                    compute_dsf(transducer.events))
+                sensory_fact = {
+                    "schema": "canonical_sensory_field_v1",
+                    "descriptor": descriptor,
+                    "channel": channel,
+                    "waveform": [float(sample) for sample in samples],
+                    "events": [dict(event) for event in transducer.events],
+                    "dsf": sensory_dsf.to_dict(),
+                    "winding": int(transducer.winding),
+                    "chi": int(transducer.winding % 100),
+                }
+                self.window_manager.add_entry(
+                    modality=modality,
+                    section=f"emulator_{modality}",
+                    motif_id=deterministic_motif_id(
+                        f"{modality}:{descriptor}:{channel}"),
+                    chi=sensory_fact["chi"],
+                    tick=self.tick,
+                    source_tag=source,
+                    context_id=context_id,
+                    trigger_reason="experience_emulator",
+                    mirror_atlas=False,
+                    structural_fact=sensory_fact,
+                    sensory_refs=[f"{modality}:{descriptor}:{channel}"],
+                    detail={
+                        "descriptor": descriptor,
+                        "channel": channel,
+                        "experience_origin": experience_origin,
+                    },
+                    source=source,
+                    episode_ref=episode_ref,
+                    bundle_id=bundle_id,
+                )
+        return {
+            lane: np.concatenate(waveforms)
+            for lane, waveforms in organism_lanes.items()
+            if waveforms
+        }
+
+    def _add_canonical_language_entry(
+            self, word, language_position, *, context_id, source,
+            episode_ref, bundle_id, experience_origin):
+        """Add exactly one ordered full-field language fact for one token."""
+        from dsf_ai_service.substrate.language_fact_strand import (
+            construct_language_fact_strand,
+        )
+
+        fact = construct_language_fact_strand(word)
+        self.window_manager.add_entry(
+            modality="word",
+            section="language_fact",
+            motif_id=int(fact.structural_fingerprint[:16], 16),
+            chi=fact.topology.chi,
+            tick=self.tick,
+            source_tag=source,
+            context_id=context_id,
+            trigger_reason="language_fact",
+            language_position=language_position,
+            mirror_atlas=False,
+            structural_fact=fact.to_dict(),
+            detail={
+                "language_form": fact.language_form,
+                "experience_origin": experience_origin,
+            },
+            source=source,
+            episode_ref=episode_ref,
+            bundle_id=bundle_id,
+        )
+
+    def _remember_closed_language_window(self, window_id):
+        """Commit closed-window language facts with exact lived citations."""
+        from dsf_ai_service.substrate.language_fact_strand import (
+            BindingWindowCitation,
+            FactProvenance,
+            LanguageFactStrand,
+            construct_language_fact_strand,
+        )
+        from dsf_ai_service.substrate.language_fact_composer import (
+            OrderedBindingWindow,
+            WindowTokenOccurrence,
+        )
+
+        window = self.window_manager.closed_window(window_id)
+        if window is None:
+            raise RuntimeError(f"closed BindingWindow {window_id!r} is absent")
+        if window.get("close_reason") not in {
+                "context_complete", "give_experience_complete"}:
+            raise ValueError(
+                f"BindingWindow {window_id!r} is not a completed experience")
+        origin = (window.get("context_detail") or {}).get("experience_origin")
+        if origin not in {"emulated", "observed"}:
+            raise ValueError(
+                f"BindingWindow {window_id!r} lacks an approved experience origin")
+        modalities = tuple(dict.fromkeys(
+            str(entry["modality"]).strip().lower()
+            for entry in window.get("entries") or []))
+        citation = BindingWindowCitation(
+            window_id=window_id,
+            experience_origin=origin,
+            modalities=modalities,
+        )
+        facts = []
+        occurrences = []
+        for entry in window.get("entries") or []:
+            if entry.get("modality") != "word":
+                continue
+            stored = (entry.get("provenance") or {}).get("structural_fact")
+            if not isinstance(stored, dict):
+                raise ValueError(
+                    f"language entry {entry.get('entry_index')} lacks a Fact Strand")
+            provisional = LanguageFactStrand.from_dict(stored)
+            fact = construct_language_fact_strand(
+                provisional.language_form,
+                provenance=FactProvenance(
+                    source_tag=entry.get("source_tag") or "",
+                    trace_id=f"{window_id}:{entry['entry_index']}",
+                    windows=(citation,),
+                ),
+            )
+            facts.append(fact)
+            if citation.is_multimodal_language_experience:
+                occurrences.append(WindowTokenOccurrence(
+                    fact=fact,
+                    window_id=window_id,
+                    entry_index=int(entry["entry_index"]),
+                ))
+        with self._language_fact_lock:
+            remembered = sum(
+                int(self.language_fact_memory.remember(fact))
+                for fact in facts
+                if fact.has_structural_evidence)
+            if occurrences:
+                self._ordered_language_windows[window_id] = OrderedBindingWindow(
+                    window_id=window_id,
+                    experience_origin=origin,
+                    tokens=tuple(occurrences),
+                )
+        return remembered
+
+    def _rebuild_language_fact_memory_from_windows(self):
+        """Rebuild the derivative recognition index from durable windows."""
+        from dsf_ai_service.substrate.language_fact_strand import LanguageFactMemory
+
+        with self._language_fact_lock:
+            self.language_fact_memory = LanguageFactMemory()
+            self._ordered_language_windows = {}
+        snapshot = self.window_manager.snapshot()
+        remembered = 0
+        for window_id in sorted(snapshot["windows"]):
+            window = snapshot["windows"][window_id]
+            if window.get("close_reason") not in {
+                    "context_complete", "give_experience_complete"}:
+                continue
+            origin = (window.get("context_detail") or {}).get("experience_origin")
+            if origin not in {"emulated", "observed"}:
+                continue
+            if not any(entry.get("modality") == "word"
+                       for entry in window.get("entries") or []):
+                continue
+            remembered += self._remember_closed_language_window(window_id)
+        return remembered
+
+    def _compose_language_fact_settlement(self, words):
+        """Compose only from the atomically published Fact/window state."""
+        from dsf_ai_service.substrate.language_fact_composer import (
+            DeterministicWindowComposer,
+        )
+        from dsf_ai_service.substrate.language_fact_strand import (
+            construct_language_fact_strand,
+        )
+
+        try:
+            queries = tuple(
+                construct_language_fact_strand(word) for word in words)
+        except (TypeError, ValueError):
+            return EmissionSettlement(tick=self.tick)
+
+        with self._language_fact_lock:
+            composer = DeterministicWindowComposer(
+                self.language_fact_memory,
+                tuple(
+                    self._ordered_language_windows[window_id]
+                    for window_id in sorted(self._ordered_language_windows)),
+            )
+            continuation = composer.continue_from_sequence(queries)
+
+        provenance = []
+        for token in continuation.emitted_tokens:
+            supports = tuple(
+                FactEmissionSupport(
+                    window_id=item.window_id,
+                    entry_index=item.entry_index,
+                    experience_origin=item.experience_origin,
+                    source_tag=item.source_tag,
+                    trace_id=item.trace_id,
+                    source_strand_id=item.source_strand_id,
+                    modalities=item.modalities,
+                )
+                for item in token.entry_provenance)
+            provenance.append(FactEmissionTokenProvenance(
+                word=token.language_form,
+                structural_fingerprint=token.structural_fingerprint,
+                recognized_strand_ids=tuple(
+                    strand.strand_id for strand in token.recognized_strands),
+                supports=supports,
+            ))
+        if not provenance:
+            return EmissionSettlement(tick=self.tick)
+        return EmissionSettlement(
+            content=" ".join(item.word for item in provenance),
+            committed_sections=tuple("language_fact" for _ in provenance),
+            n_commits=len(provenance),
+            organ_in_commits=False,
+            tick=self.tick,
+            commit_provenance=tuple(provenance),
+        )
+
+    def _fact_settlement_has_certified_provenance(self, settlement):
+        """Recheck every full-field lock and exact window entry before speech."""
+        from dsf_ai_service.substrate.language_fact_strand import (
+            BindingWindowCitation,
+            FactProvenance,
+            LanguageFactStrand,
+            construct_language_fact_strand,
+        )
+
+        if not isinstance(settlement, EmissionSettlement):
+            return False
+        provenance = settlement.commit_provenance
+        if (settlement.n_commits <= 0
+                or settlement.n_commits != len(provenance)
+                or settlement.committed_sections != tuple(
+                    "language_fact" for _ in provenance)
+                or settlement.organ_in_commits):
+            return False
+        verified_words = []
+        with self._language_fact_lock:
+            for item in provenance:
+                if (not isinstance(item, FactEmissionTokenProvenance)
+                        or not item.word
+                        or not item.supports):
+                    return False
+                try:
+                    query = construct_language_fact_strand(item.word)
+                except (TypeError, ValueError):
+                    return False
+                recall = self.language_fact_memory.recall(query)
+                if not recall.recognized:
+                    return False
+                recalled_classes = {
+                    strand.structural_fingerprint
+                    for strand in recall.matched_strands}
+                recalled_ids = {
+                    strand.strand_id for strand in recall.matched_strands}
+                if (recalled_classes != {item.structural_fingerprint}
+                        or not item.recognized_strand_ids
+                        or not set(item.recognized_strand_ids).issubset(
+                            recalled_ids)):
+                    return False
+
+                for support in item.supports:
+                    if not isinstance(support, FactEmissionSupport):
+                        return False
+                    window = self.window_manager.closed_window(
+                        support.window_id)
+                    if (window is None
+                            or window.get("close_reason") not in {
+                                "context_complete", "give_experience_complete"}):
+                        return False
+                    origin = (window.get("context_detail") or {}).get(
+                        "experience_origin")
+                    modalities = tuple(dict.fromkeys(
+                        str(entry["modality"]).strip().lower()
+                        for entry in window.get("entries") or []))
+                    if (origin != support.experience_origin
+                            or modalities != support.modalities):
+                        return False
+                    entries = window.get("entries") or []
+                    if (support.entry_index < 0
+                            or support.entry_index >= len(entries)):
+                        return False
+                    entry = entries[support.entry_index]
+                    if (entry.get("entry_index") != support.entry_index
+                            or entry.get("modality") != "word"
+                            or entry.get("source_tag", "") != support.source_tag
+                            or support.trace_id != (
+                                f"{support.window_id}:{support.entry_index}")):
+                        return False
+                    stored = (entry.get("provenance") or {}).get(
+                        "structural_fact")
+                    if not isinstance(stored, dict):
+                        return False
+                    try:
+                        provisional = LanguageFactStrand.from_dict(stored)
+                        citation = BindingWindowCitation(
+                            window_id=support.window_id,
+                            experience_origin=origin,
+                            modalities=modalities,
+                        )
+                        if not citation.is_multimodal_language_experience:
+                            return False
+                        reconstructed = construct_language_fact_strand(
+                            provisional.language_form,
+                            provenance=FactProvenance(
+                                source_tag=support.source_tag,
+                                trace_id=support.trace_id,
+                                windows=(citation,),
+                            ),
+                        )
+                    except (TypeError, ValueError):
+                        return False
+                    if (provisional.language_form != item.word
+                            or reconstructed.structural_fingerprint
+                            != item.structural_fingerprint
+                            or reconstructed.strand_id
+                            != support.source_strand_id
+                            or support.source_strand_id not in recalled_ids):
+                        return False
+                verified_words.append(item.word)
+        return settlement.content == " ".join(verified_words)
+
+    @_engine_mutation_entry
     def read_sentence(self, text, source="corpus", bundle_id=None, salience=None,
                       episode_ref=None, presence=None, location=None, sky_state=None,
-                      place=None, ambient=None):
+                      place=None, ambient=None, experience_origin="emulated"):
         """Read a sentence into the substrate.
 
         GL-CMD-CURRICULUM-LOCK-RELEASE-V2-46v2 §1.1:
@@ -4058,21 +4710,32 @@ class Guala:
         as sight/sound (-191). Only set when the sentence actually
         contains a descriptor word -- honest absence otherwise (M5).
         """
+        if experience_origin not in {"emulated", "observed"}:
+            raise ValueError(
+                "experience_origin must be exactly 'emulated' or 'observed'")
+        _existing_context_id = self.window_manager.active_context_id
+        if _existing_context_id is not None:
+            _existing_window = self.window_manager.current
+            _existing_origin = (
+                (_existing_window.context_detail or {}).get("experience_origin")
+                if _existing_window is not None else None)
+            if _existing_origin not in {"emulated", "observed"}:
+                raise ValueError(
+                    f"outer BindingWindow {_existing_context_id!r} lacks an "
+                    "approved experience_origin")
+            experience_origin = _existing_origin
         with self.lock:
             words = _normalize_text(text)
             if not words:
                 return
             if place is None and ambient is None:
                 place, ambient = scene_tags_from_words(words)
-            _modal = self._sentence_modal_signals(words)
-            if _modal:
-                self._last_read_modal_signals = _modal
-                self._last_read_modal_wall_time = time.time()
             # 60-M: connection weight earned from relationship, not configured
             # 0.15 was Joe's peak; sources earn up to it via pair_bond_strength
             weight = self.coordinator.pair_bond_strength(source, self.tick) * 0.15
             self.recent_connection_boost = max(self.recent_connection_boost, weight)
             self.source_history[source] += 1
+            source_turn_index = self.source_history[source]
 
             # v6-bridge: update last_input_tick for presence timeout
             if source in {"joe", "wc", "c1"}:
@@ -4106,9 +4769,12 @@ class Guala:
             # A caller-supplied episode_ref (rare — no production caller
             # passes one today) still wins over the auto-generated id below,
             # same precedence as before.
-            import hashlib as _hl
-            ep_id = _hl.md5(f"{source}:{text[:50]}:{self.tick}".encode()).hexdigest()[:8]
+            ep_id = f"episode:{source}:{source_turn_index}"
             _resolved_episode_ref = episode_ref if episode_ref is not None else ep_id
+            _fact_context_id = (
+                _existing_context_id
+                or f"language:{source}:{source_turn_index}")
+            _owns_fact_context = _existing_context_id is None
             # §1.1: binding_window is sentence-local — prevents unbounded growth
             binding_window = []
             # GL-DIAG-READ-WORD-TIMING: aggregate read_word's per-call profile
@@ -4124,46 +4790,92 @@ class Guala:
             # holding self.lock for the whole sentence).
             _prev_phase_vec_local = None
 
-        # GL-FIX-LOCK-GRANULARITY-C1-20260710: self.lock is released here.
-        # Each read_word() call below acquires/releases it individually (it
-        # already wraps its own body in `with self.lock:`) — this is the
-        # actual fix: the lock's critical section shrinks from "one
-        # sentence" to "one word," so camera/mic frame handling and
-        # autosave, contending for the same lock, are blocked for at most
-        # one word's worth of work instead of the whole sentence.
-        for i, word in enumerate(words):
-            if len(words) == 1:
-                hint = "standalone"
-            elif i == 0:
-                hint = "first"
-            elif i == len(words) - 1:
-                hint = "last"
-            else:
-                hint = "middle"
-            _, _, _, _new_phase_vec, _wp = self.read_word(
-                word, position_hint=hint, source=source,
-                bundle_id=bundle_id, salience=salience,
-                episode_ref=_resolved_episode_ref, presence=presence,
-                location=location, sky_state=sky_state,
-                place=place, ambient=ambient,
-                binding_window=binding_window,
-                prev_phase_vec=_prev_phase_vec_local)
-            # 60-L: only advance on a real vector — a word whose transduction
-            # didn't yield one leaves the last known-good vector in place for
-            # the next word's rotation comparison (identical to the original
-            # self._prev_phase_vec semantics: `if _phase_vec is not None:
-            # self._prev_phase_vec = _phase_vec`).
-            if _new_phase_vec is not None:
-                _prev_phase_vec_local = _new_phase_vec
-            # GL-FIX-LOCK-GRANULARITY-C1-20260710: read via this call's own
-            # return value, not self._read_word_last_profile — that instance
-            # attribute is still set (for other/future direct introspection)
-            # but reading it back here, after the lock is released between
-            # words, would otherwise race against a different thread's
-            # read_word() call clobbering it in the gap.
-            if _wp:
-                for _k, _v in _wp.items():
-                    _read_profile_agg[_k] = _read_profile_agg.get(_k, 0.0) + _v
+        # The caller owns this exact sentence boundary.  A failed sentence is
+        # still closed for audit, but is never committed to recognition.
+        if _owns_fact_context:
+            self.window_manager.begin_context(
+                _fact_context_id,
+                trigger_reason="language_experience",
+                context_detail={
+                    "experience_origin": experience_origin,
+                    "source": source,
+                    "episode_ref": _resolved_episode_ref,
+                    "bundle_id": bundle_id,
+                },
+            )
+        _sentence_complete = False
+        try:
+            self._add_canonical_scene_entries(
+                context_id=_fact_context_id,
+                source=source,
+                episode_ref=_resolved_episode_ref,
+                bundle_id=bundle_id,
+                place=place,
+                ambient=ambient,
+                presence=presence,
+                experience_origin=experience_origin,
+            )
+            _modal = self._add_canonical_emulator_entries(
+                words,
+                context_id=_fact_context_id,
+                source=source,
+                episode_ref=_resolved_episode_ref,
+                bundle_id=bundle_id,
+                experience_origin=experience_origin,
+            )
+            if _modal:
+                with self.lock:
+                    self._last_read_modal_signals = _modal
+                    self._last_read_modal_wall_time = time.time()
+
+            # GL-FIX-LOCK-GRANULARITY-C1-20260710: self.lock is released
+            # between words.  The BindingWindow context is caller-local and
+            # remains exact even when other sentences interleave.
+            for i, word in enumerate(words):
+                if len(words) == 1:
+                    hint = "standalone"
+                elif i == 0:
+                    hint = "first"
+                elif i == len(words) - 1:
+                    hint = "last"
+                else:
+                    hint = "middle"
+                _, _, _, _new_phase_vec, _wp = self.read_word(
+                    word, position_hint=hint, source=source,
+                    bundle_id=bundle_id, salience=salience,
+                    episode_ref=_resolved_episode_ref, presence=presence,
+                    location=location, sky_state=sky_state,
+                    place=place, ambient=ambient,
+                    binding_window=binding_window,
+                    prev_phase_vec=_prev_phase_vec_local)
+                self._add_canonical_language_entry(
+                    word,
+                    i,
+                    context_id=_fact_context_id,
+                    source=source,
+                    episode_ref=_resolved_episode_ref,
+                    bundle_id=bundle_id,
+                    experience_origin=experience_origin,
+                )
+                if _new_phase_vec is not None:
+                    _prev_phase_vec_local = _new_phase_vec
+                if _wp:
+                    for _k, _v in _wp.items():
+                        _read_profile_agg[_k] = (
+                            _read_profile_agg.get(_k, 0.0) + _v)
+            _sentence_complete = True
+        finally:
+            _closed_window_id = None
+            if _owns_fact_context:
+                _closed_window_id = self.window_manager.end_context(
+                    _fact_context_id,
+                    "context_complete" if _sentence_complete else "context_failed")
+
+        if _owns_fact_context:
+            if _closed_window_id is None:
+                raise RuntimeError(
+                    f"language BindingWindow {_fact_context_id!r} did not close")
+            self._remember_closed_language_window(_closed_window_id)
 
         with self.lock:
             if source in ("joe", "joe_voice", "wc", "c1", "gate_test") and _read_profile_agg:
@@ -4176,6 +4888,7 @@ class Guala:
             # via introspect()/loomscan (mirrors _last_surprise's pattern).
             self._last_place_tags = place
             self._last_ambient_tags = ambient
+        return source_turn_index
 
     # ------------------------------------------------------------------
     # Conversation: input -> substrate -> output via cascade
@@ -4258,16 +4971,16 @@ class Guala:
                 except Exception:
                     pass  # heartbeat must never break the real turn
 
-        hb_thread = threading.Thread(
-            target=_heartbeat, daemon=True,
+        hb_thread = self._start_engine_background_thread(
+            _heartbeat, daemon=True,
             name=f"presence-keepalive-{source}")
-        hb_thread.start()
         try:
             yield
         finally:
             stop_event.set()
             hb_thread.join(timeout=interval_s + 2.0)
 
+    @_engine_mutation_entry
     def converse(self, text, source="unknown", emission_mode=None, bundle_id=None,
                  episode_ref=None, presence=None, location=None, sky_state=None,
                  organ_candidates=None):
@@ -4275,7 +4988,7 @@ class Guala:
         - If atlas has cross-section bindings near the input chi values, emit
           those (real recall from corpus accumulation).
         - If recall finds nothing, check question bucket for a related question.
-        - If neither, return "..." honestly (SafeMode quiet).
+        - If neither, return neutral silence.
 
         Then read the input into substrate (so she learns from this exchange).
         """
@@ -4295,10 +5008,18 @@ class Guala:
         # thread, not just phase-boundary renewals -- see
         # _presence_keepalive's docstring for why boundary-only renewal was
         # proven insufficient by real-threading adversarial testing).
-        with self._presence_keepalive(source):
-            return self._converse_body(
-                text, source, emission_mode, bundle_id, episode_ref,
-                presence, location, sky_state, organ_candidates)
+        with self._live_converse_state_lock:
+            self._live_converse_pending += 1
+        try:
+            with self._presence_keepalive(source):
+                return self._converse_body(
+                    text, source, emission_mode, bundle_id, episode_ref,
+                    presence, location, sky_state, organ_candidates)
+        finally:
+            with self._live_converse_state_lock:
+                if self._live_converse_pending <= 0:
+                    raise RuntimeError("live converse counter underflow")
+                self._live_converse_pending -= 1
 
     def _converse_body(self, text, source, emission_mode, bundle_id,
                        episode_ref, presence, location, sky_state,
@@ -4317,20 +5038,26 @@ class Guala:
         # Retained original single-lock pattern. §1.1 (binding_window in
         # read_sentence) and §1.2 (network timeouts) are the active fixes.
         self._last_converse_tick = self.tick
-        self._last_dynamics_result = None  # clear so stale prior-turn result never leaks
+        response_source = "silence_no_commit"
+        committed_sections = ()
         # Math route — MathLoom BSIL adapter (with v5 fixed parser)
         parsed = self._parse_math(text)
         if parsed:
             op, a, b = parsed
             result = self._mathloom_solve(op, a, b)
-            return self._num_to_word(result)
+            response = self._num_to_word(result)
+            self._last_response_source = "mathloom"  # diagnostic only
+            self._last_emission_id = None  # diagnostic only
+            return ConversationTurnResult(response, "mathloom")
 
         with self.lock:
             _t_converse_start = time.monotonic()
             # 1. Tokenize input (GL-BRIEF-035: shared normalization)
             words = _normalize_text(text)
             if not words:
-                return "..."
+                self._last_response_source = "silence_empty_input"  # diagnostic only
+                self._last_emission_id = None  # diagnostic only
+                return ConversationTurnResult("", "silence_empty_input")
 
             # 2. Get chi-state for each input word via fresh krimelack transduction
             #    (Don't commit — just measure where input lives in chi-space)
@@ -4350,15 +5077,18 @@ class Guala:
                                            source_context={"text": text[:50]})
 
             # 3. RECALL from atlas BEFORE reading input — corpus-only bindings
-            recalled = self._recall_response(input_chis, input_word_chis, words)
+            recalled, recalled_pictures = self._recall_response(
+                input_chis, input_word_chis, words)
+            fact_settlement = self._compose_language_fact_settlement(words)
             _t_recall = time.monotonic()
 
             # 4. Read input into substrate (so she learns from this interaction)
             # Snapshot tick before read — only entries born in THIS read get tagged
             tick_before_read = self.tick
-            self.read_sentence(text, source=source, bundle_id=bundle_id,
-                               episode_ref=episode_ref, presence=presence,
-                               location=location, sky_state=sky_state)
+            source_turn_index = self.read_sentence(
+                text, source=source, bundle_id=bundle_id,
+                episode_ref=episode_ref, presence=presence,
+                location=location, sky_state=sky_state)
             tick_after_read = self.tick
             _t_read = time.monotonic()
 
@@ -4385,24 +5115,16 @@ class Guala:
             _t_tag = time.monotonic()
 
             # 5. Choose response — GL-FIX-RETIRE-TEMPLATES
-            reply = None
-            if recalled and self._last_recalled_pictures:
-                # Recall found pictures — keep the association
-                pass  # pictures set on self._last_recalled_pictures
-            # 6. Emit from the organism's recall/compose (GL-CMD-175 P3)
-            self._last_converse_source = source  # for dynamics NMDA context
-            if not reply:
-                reply = self._emit_from_invariants(input_chis, words,
-                                                    mode_override=emission_mode,
-                                                    v7_session=getattr(self, '_v7_session', None),
-                                                    organ_candidates=organ_candidates)
+            # 6. The full-field Fact-Strand composer is the sole language
+            # authority.  Legacy assemblage/Atlas candidates remain
+            # diagnostic state and are never promoted into this settlement.
+            self._last_converse_source = source
+            settlement = fact_settlement
             _t_emit = time.monotonic()
-            # GL-NOTE-VOICE-WIRING-RULING W3: the old unslotted-atlas-binding
-            # fallback disconnects at cutover -- same "old gather" family as
-            # the SVO-recall fallback it names explicitly. One mind, one
-            # mouth: honest silence, never backfilled from atlas bindings.
-            if not reply:
-                reply = "..."
+            reply, response_source = self._committed_emission_response(
+                settlement)
+            if reply:
+                committed_sections = settlement.committed_sections
 
             # GL-CMD-TEACHER-CORRECTION-BINDING: track last conversation pair
             self._last_converse_input = text
@@ -4416,7 +5138,7 @@ class Guala:
             # left, fixed here for consistency, same pattern.)
             self._last_converse_source = source
             reply_chis = []
-            if reply and reply != "...":
+            if reply:
                 for ew in _normalize_text(reply):
                     ek = LanguageKrimelack()
                     ek.transduce(ew)
@@ -4424,11 +5146,19 @@ class Guala:
                 committed_chis = reply_chis
                 first_chi = min(committed_chis) if committed_chis else 0
                 n_committed = len(committed_chis)
-                eid = f"{self.tick}_{first_chi}_{n_committed}"
-                self._last_emission_id = eid
+                eid = (f"{source}:{source_turn_index}:"
+                       f"{self.tick}_{first_chi}_{n_committed}")
+                emission_id = eid
                 rec = {"emission_id": eid, "text": reply, "tick": self.tick,
                        "input_text": text, "source": source,
-                       "committed_chis": committed_chis}
+                       "committed_chis": committed_chis,
+                       "committed_sections": list(
+                           settlement.committed_sections),
+                       "n_commits": settlement.n_commits,
+                       "response_source": response_source,
+                       "commit_provenance": [
+                           provenance.as_record()
+                           for provenance in settlement.commit_provenance]}
                 self._last_emission_record = rec
                 self._emission_records[eid] = rec
                 # Tick-window expiry: drop records older than slow-decay forget window
@@ -4444,8 +5174,15 @@ class Guala:
                     for old_k in oldest[:len(self._emission_records) - EMISSION_RECORDS_CAP]:
                         del self._emission_records[old_k]
             else:
-                self._last_emission_id = None
+                emission_id = None
+                self._last_emission_record = None
+            # Retained only for introspection/diagnostics. Interfaces consume
+            # the immutable turn result below, never these shared fields.
+            self._last_response_source = response_source
+            self._last_emission_id = emission_id
             _t_reply_ready = time.monotonic()
+            reply_emission_id = emission_id
+            reply_response_source = response_source
 
             # GL-CMD-TURN-LATENCY-EVE-20260705-197 P2: release the reply
             # before self-hear -- same background-continuation pattern as
@@ -4459,8 +5196,11 @@ class Guala:
             def _post_reply_continuation():
                 _t_ph_start = time.monotonic()
                 # v8 (GL-BRIEF-034): Self-hearing — read reply into substrate
-                if reply and reply != "..." and source in ("joe", "joe_voice", "wc", "c1"):
-                    self._self_hear(reply, source, reply_chis=reply_chis)
+                if reply and source in ("joe", "joe_voice", "wc", "c1"):
+                    self._self_hear(
+                        reply, source, reply_chis=reply_chis,
+                        emission_id=reply_emission_id,
+                        response_source=reply_response_source)
                 _t_ph_selfhear = time.monotonic()
                 # GL-CMD-COGNITION-BUNDLE: run hemisphere updates after emission
                 try:
@@ -4486,9 +5226,17 @@ class Guala:
                         total_ms=round((_t_reply_ready - _t_converse_start) * 1000, 1),
                         n_words=len(words), released_before_selfhear=True)
 
-            threading.Thread(target=_post_reply_continuation, daemon=True,
-                             name="converse-posthear").start()
-            return reply
+            self._start_engine_background_thread(
+                _post_reply_continuation, daemon=True,
+                name="converse-posthear")
+            return ConversationTurnResult(
+                response=reply,
+                response_source=response_source,
+                emission_id=emission_id,
+                committed_sections=committed_sections,
+                recalled_pictures=recalled_pictures,
+                source_turn_index=source_turn_index,
+                commit_provenance=settlement.commit_provenance)
 
     # ── GL-CMD-CONVERSE-PHASING-EMISSION-LOCK-52 §1.2 ──────────────────────────
 
@@ -4510,18 +5258,24 @@ class Guala:
         """
         _t0 = time.monotonic()
         self._last_converse_tick = self.tick
-        self._last_dynamics_result = None
+        response_source = "silence_no_commit"
+        committed_sections = ()
 
         # Phase 1: tokenize + chi transduction (no lock — pure local computation)
         parsed = self._parse_math(text)
         if parsed:
             op, a, b = parsed
             result = self._mathloom_solve(op, a, b)
-            return self._num_to_word(result)
+            response = self._num_to_word(result)
+            self._last_response_source = "mathloom"  # diagnostic only
+            self._last_emission_id = None  # diagnostic only
+            return ConversationTurnResult(response, "mathloom")
 
         words = _normalize_text(text)
         if not words:
-            return "..."
+            self._last_response_source = "silence_empty_input"  # diagnostic only
+            self._last_emission_id = None  # diagnostic only
+            return ConversationTurnResult("", "silence_empty_input")
 
         input_chis = []
         input_word_chis = {}
@@ -4540,14 +5294,17 @@ class Guala:
                                            source_context={"text": text[:50]})
 
         # Phase 3: recall (no lock — reads atlas, race-tolerant)
-        recalled = self._recall_response(input_chis, input_word_chis, words)
+        recalled, recalled_pictures = self._recall_response(
+            input_chis, input_word_chis, words)
+        fact_settlement = self._compose_language_fact_settlement(words)
         _t_recall = time.monotonic()
 
         # Phase 4: read input (per-word self.lock internally via -46v2 §1.1)
         tick_before_read = self.tick
-        self.read_sentence(text, source=source, bundle_id=bundle_id,
-                           episode_ref=episode_ref, presence=presence,
-                           location=location, sky_state=sky_state)
+        source_turn_index = self.read_sentence(
+            text, source=source, bundle_id=bundle_id,
+            episode_ref=episode_ref, presence=presence,
+            location=location, sky_state=sky_state)
         tick_after_read = self.tick
         _t_read = time.monotonic()
 
@@ -4581,31 +5338,12 @@ class Guala:
         with self._emission_lock:
             _lock_wait_ms = (time.monotonic() - _lock_wait_start) * 1000
             _emit_start = time.monotonic()
-            self._last_converse_source = source  # for dynamics NMDA context
-            reply = None
-            if recalled and self._last_recalled_pictures:
-                pass  # pictures set on self._last_recalled_pictures
-            if not reply:
-                reply = self._emit_from_invariants(input_chis, words,
-                                                   mode_override=emission_mode,
-                                                   v7_session=getattr(self, '_v7_session', None),
-                                                   organ_candidates=organ_candidates)
-            # GL-NOTE-VOICE-WIRING-RULING W3: the old unslotted-atlas-binding
-            # fallback disconnects at cutover -- same "old gather" family as
-            # the SVO-recall fallback it names explicitly.
-            if not reply:
-                # -48 Path D: clarification shape on high-surprise, low-coherence input
-                # GL-CMD-175 P2 seam 2/6: organism consensus, not atlas chi.
-                _input_surprise = max(
-                    (self._recognition_from_organism(w) for w in words),
-                    default=0.0) if words else 0.0
-                if _input_surprise > SURPRISE_HIGH_THRESHOLD:
-                    self._log_substrate_event("agency_clarification_shape",
-                        surprise=round(_input_surprise, 3),
-                        input_words=words[:5], source=source)
-                    reply = "hm"  # minimal clarification signal
-                else:
-                    reply = "..."
+            self._last_converse_source = source
+            settlement = fact_settlement
+            reply, response_source = self._committed_emission_response(
+                settlement)
+            if reply:
+                committed_sections = settlement.committed_sections
             _emit_compute_ms = (time.monotonic() - _emit_start) * 1000
         _t_emit = time.monotonic()
 
@@ -4629,7 +5367,7 @@ class Guala:
             self._last_converse_reply = reply
             self._last_converse_source = source
             reply_chis = []
-            if reply and reply != "...":
+            if reply:
                 for ew in _normalize_text(reply):
                     ek = LanguageKrimelack()
                     ek.transduce(ew)
@@ -4637,11 +5375,19 @@ class Guala:
                 committed_chis = reply_chis
                 first_chi = min(committed_chis) if committed_chis else 0
                 n_committed = len(committed_chis)
-                eid = f"{self.tick}_{first_chi}_{n_committed}"
-                self._last_emission_id = eid
+                eid = (f"{source}:{source_turn_index}:"
+                       f"{self.tick}_{first_chi}_{n_committed}")
+                emission_id = eid
                 rec = {"emission_id": eid, "text": reply, "tick": self.tick,
                        "input_text": text, "source": source,
-                       "committed_chis": committed_chis}
+                       "committed_chis": committed_chis,
+                       "committed_sections": list(
+                           settlement.committed_sections),
+                       "n_commits": settlement.n_commits,
+                       "response_source": response_source,
+                       "commit_provenance": [
+                           provenance.as_record()
+                           for provenance in settlement.commit_provenance]}
                 self._last_emission_record = rec
                 self._emission_records[eid] = rec
                 old_threshold = self.tick - EMISSION_RECORDS_TICK_WINDOW
@@ -4655,8 +5401,15 @@ class Guala:
                     for k in oldest[:len(self._emission_records) - EMISSION_RECORDS_CAP]:
                         del self._emission_records[k]
             else:
-                self._last_emission_id = None
+                emission_id = None
+                self._last_emission_record = None
+            # Diagnostic mirrors only; the immutable return value is the
+            # interface authority for this exact turn.
+            self._last_response_source = response_source
+            self._last_emission_id = emission_id
         _t_reply_ready = time.monotonic()
+        reply_emission_id = emission_id
+        reply_response_source = response_source
 
         # GL-CMD-TURN-LATENCY-EVE-20260705-197 P2: RELEASE THE REPLY BEFORE
         # SELF-HEAR. Phases 8 (self_hear) and 9 (hemisphere updates) used to
@@ -4678,8 +5431,11 @@ class Guala:
         def _post_reply_continuation():
             _t_ph_start = time.monotonic()
             # Phase 8: self-hear (per-word self.lock internally)
-            if reply and reply != "..." and source in ("joe", "joe_voice", "wc", "c1"):
-                self._self_hear(reply, source, reply_chis=reply_chis)
+            if reply and source in ("joe", "joe_voice", "wc", "c1"):
+                self._self_hear(
+                    reply, source, reply_chis=reply_chis,
+                    emission_id=reply_emission_id,
+                    response_source=reply_response_source)
             _t_ph_selfhear = time.monotonic()
             # Phase 9: hemisphere updates (no lock — separate state domain)
             try:
@@ -4707,9 +5463,281 @@ class Guala:
                     n_words=len(words),
                     phased=True, released_before_selfhear=True)
 
-        threading.Thread(target=_post_reply_continuation, daemon=True,
-                         name="converse-posthear").start()
-        return reply
+        self._start_engine_background_thread(
+            _post_reply_continuation, daemon=True,
+            name="converse-posthear")
+        return ConversationTurnResult(
+            response=reply,
+            response_source=response_source,
+            emission_id=emission_id,
+            committed_sections=committed_sections,
+            recalled_pictures=recalled_pictures,
+            source_turn_index=source_turn_index,
+            commit_provenance=settlement.commit_provenance)
+
+    def _ensure_engine_lifecycle_state(self):
+        """Initialize lifecycle fields on narrow legacy/test constructions."""
+        if hasattr(self, "_engine_mutation_condition"):
+            return
+        bootstrap_lock = self.__dict__.setdefault(
+            "_engine_lifecycle_bootstrap_lock", threading.Lock())
+        with bootstrap_lock:
+            if hasattr(self, "_engine_mutation_condition"):
+                return
+            self._engine_quiesced = getattr(self, "_engine_quiesced", False)
+            self._engine_quiescence_complete = False
+            self._engine_mutation_condition = threading.Condition()
+            self._engine_mutation_admission_open = True
+            self._engine_active_mutations = 0
+            self._engine_mutation_local = threading.local()
+            self._engine_raw_threads = set()
+            self._engine_raw_threads_started = 0
+            self._engine_raw_threads_completed = 0
+
+    @contextlib.contextmanager
+    def _engine_mutation_scope(self, owner):
+        """Atomically admit one engine mutation, including nested calls."""
+        self._ensure_engine_lifecycle_state()
+        depth = getattr(self._engine_mutation_local, "depth", 0)
+        if depth:
+            self._engine_mutation_local.depth = depth + 1
+            try:
+                yield
+            finally:
+                self._engine_mutation_local.depth = depth
+            return
+
+        with self._engine_mutation_condition:
+            if not self._engine_mutation_admission_open:
+                raise RuntimeError(
+                    f"engine mutation rejected during quiescence: {owner}")
+            self._engine_active_mutations += 1
+        self._engine_mutation_local.depth = 1
+        try:
+            yield
+        finally:
+            self._engine_mutation_local.depth = 0
+            with self._engine_mutation_condition:
+                if self._engine_active_mutations <= 0:
+                    raise RuntimeError("engine mutation counter underflow")
+                self._engine_active_mutations -= 1
+                self._engine_mutation_condition.notify_all()
+
+    def _start_engine_background_thread(self, target, *, name, args=(),
+                                        daemon=True):
+        """Start and retain an accepted engine continuation.
+
+        Registration and mutation counting happen before ``Thread.start``.
+        A continuation spawned by an already-admitted mutation remains part of
+        that accepted operation even if quiescence closes admission between the
+        foreground return and the continuation's work.
+        """
+        self._ensure_engine_lifecycle_state()
+        inherited = getattr(self._engine_mutation_local, "depth", 0) > 0
+
+        def run_registered():
+            self._engine_mutation_local.depth = 1
+            try:
+                target(*args)
+            finally:
+                self._engine_mutation_local.depth = 0
+                with self._engine_mutation_condition:
+                    self._engine_raw_threads_completed += 1
+                    if self._engine_active_mutations <= 0:
+                        raise RuntimeError("engine background counter underflow")
+                    self._engine_active_mutations -= 1
+                    self._engine_mutation_condition.notify_all()
+
+        thread = threading.Thread(target=run_registered, daemon=daemon,
+                                  name=name)
+        with self._engine_mutation_condition:
+            if not self._engine_mutation_admission_open and not inherited:
+                raise RuntimeError(
+                    f"engine background work rejected during quiescence: {name}")
+            self._engine_raw_threads = {
+                registered
+                for registered in self._engine_raw_threads
+                if registered.is_alive()
+            }
+            self._engine_active_mutations += 1
+            self._engine_raw_threads_started += 1
+            self._engine_raw_threads.add(thread)
+            try:
+                thread.start()
+            except Exception:
+                self._engine_raw_threads.discard(thread)
+                self._engine_raw_threads_started -= 1
+                self._engine_active_mutations -= 1
+                self._engine_mutation_condition.notify_all()
+                raise
+        return thread
+
+    def _close_engine_mutation_admission(self):
+        self._ensure_engine_lifecycle_state()
+        with self._engine_mutation_condition:
+            self._engine_mutation_admission_open = False
+            self._engine_mutation_condition.notify_all()
+
+    def _wait_for_engine_mutations(self, deadline):
+        with self._engine_mutation_condition:
+            while self._engine_active_mutations:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise RuntimeError(
+                        "engine quiescence timed out with "
+                        f"{self._engine_active_mutations} mutation(s) active")
+                self._engine_mutation_condition.wait(timeout=remaining)
+
+    def _join_engine_raw_threads(self, deadline):
+        with self._engine_mutation_condition:
+            threads = tuple(self._engine_raw_threads)
+        alive = []
+        for thread in threads:
+            if thread is threading.current_thread():
+                alive.append(thread.name)
+                continue
+            thread.join(timeout=max(0.0, deadline - time.monotonic()))
+            if thread.is_alive():
+                alive.append(thread.name)
+        if alive:
+            raise RuntimeError(
+                "engine quiescence timed out joining raw threads: "
+                + ", ".join(sorted(alive)))
+        with self._engine_mutation_condition:
+            if (self._engine_raw_threads_completed
+                    != self._engine_raw_threads_started):
+                raise RuntimeError(
+                    "engine raw-thread completion mismatch "
+                    f"(started={self._engine_raw_threads_started}, "
+                    f"completed={self._engine_raw_threads_completed})")
+            self._engine_raw_threads.clear()
+            return {
+                "started": self._engine_raw_threads_started,
+                "completed": self._engine_raw_threads_completed,
+                "joined_at_quiescence": len(threads),
+                "alive": [],
+            }
+
+    def quiesce_background_workers(self, timeout=120.0):
+        """Stop, drain, and join every engine-owned mutation source.
+
+        This is a lifecycle boundary, not a best-effort shutdown.  It either
+        proves every engine thread/queue is quiet or raises with the exact
+        owners still active; callers must not seal persistence after failure.
+        """
+        deadline = time.monotonic() + float(timeout)
+
+        def remaining():
+            return max(0.0, deadline - time.monotonic())
+
+        self._engine_quiescence_complete = False
+        self._close_engine_mutation_admission()
+        self._reading_stop.set()
+        self._daydream_running = False
+
+        for thread_name in ("_reading_thread", "_daydream_thread"):
+            thread = getattr(self, thread_name, None)
+            if thread is not None and thread is not threading.current_thread():
+                thread.join(timeout=remaining())
+                if thread.is_alive():
+                    raise RuntimeError(
+                        f"quiescence timed out joining {thread.name}")
+
+        self._wait_for_engine_mutations(deadline)
+        with self._live_converse_state_lock:
+            pending_turns = self._live_converse_pending
+        if pending_turns:
+            raise RuntimeError(
+                f"engine mutation counter reached zero with {pending_turns} "
+                "conversation(s) still active")
+        raw_thread_certificate = self._join_engine_raw_threads(deadline)
+
+        # No foreground operation, accepted continuation, or engine loop can
+        # now produce another queue item. Freeze the lazy queues before
+        # measuring and draining their accepted work.
+        self._engine_quiesced = True
+
+        queues = tuple(
+            (name, queue)
+            for name, queue in (
+                ("organism", getattr(self, "_organism_queue", None)),
+                ("organism_sensory", getattr(
+                    self, "_organism_sensory_queue", None)),
+                ("tapestry", getattr(self, "_tapestry_queue", None)),
+                ("diary", getattr(self, "_diary_queue", None)),
+            )
+            if queue is not None)
+        for name, queue in queues:
+            while queue.unfinished_tasks:
+                if remaining() <= 0:
+                    raise RuntimeError(
+                        f"quiescence timed out draining {name} queue "
+                        f"({queue.unfinished_tasks} unfinished)")
+                time.sleep(min(0.05, remaining()))
+
+        worker_specs = (
+            (getattr(self, "_organism_queue", None),
+             getattr(self, "_organism_worker_thread", None)),
+            (getattr(self, "_tapestry_queue", None),
+             getattr(self, "_tapestry_worker_thread", None)),
+            (getattr(self, "_diary_queue", None),
+             getattr(self, "_diary_thread", None)),
+        )
+        for queue, thread in worker_specs:
+            if queue is None or thread is None or not thread.is_alive():
+                continue
+            queue.put(None, timeout=remaining())
+            thread.join(timeout=remaining())
+            if thread.is_alive():
+                raise RuntimeError(
+                    f"quiescence timed out joining {thread.name}")
+            if queue.unfinished_tasks:
+                raise RuntimeError(
+                    f"{thread.name} exited with unfinished queue tasks")
+
+        spike_certificate = {"enabled": False}
+        if getattr(self, "_spike_bus", None) is not None:
+            spike_certificate = {
+                "enabled": True,
+                "injected_before_drain": self._spike_bus.injected_count,
+                "delivered_before_drain": self._spike_bus.delivered_count,
+                "dropped_before_drain": self._spike_bus.dropped_count,
+                "queued_before_drain": self._spike_bus.qsize(),
+            }
+            self._spike_bus.quiesce(timeout=remaining())
+            spike_certificate.update({
+                "injected": self._spike_bus.injected_count,
+                "delivered": self._spike_bus.delivered_count,
+                "dropped": self._spike_bus.dropped_count,
+                "queued": self._spike_bus.qsize(),
+                "thread_alive": bool(
+                    getattr(self._spike_bus, "_thread", None)
+                    and self._spike_bus._thread.is_alive()),
+            })
+
+        queue_certificate = {
+            name: {"unfinished": queue.unfinished_tasks, "queued": queue.qsize()}
+            for name, queue in queues
+        }
+        self._engine_quiescence_complete = True
+        return {
+            "pending_turns": 0,
+            "active_mutations": 0,
+            "engine_threads_joined": True,
+            "queues_drained": True,
+            "raw_threads": raw_thread_certificate,
+            "queues": queue_certificate,
+            "spike_bus": spike_certificate,
+        }
+
+    def resume_after_failed_quiescence(self):
+        """Composite quiescence is intentionally irreversible."""
+        raise RuntimeError(
+            "engine quiescence is irreversible; process replacement is required")
+
+    def strict_shutdown(self, timeout=120.0):
+        """Quiesce a discarded instance and propagate any incomplete proof."""
+        return self.quiesce_background_workers(timeout=timeout)
 
     def shutdown(self):
         """GL-BUG-GUALA-WORKER-THREAD-LEAK (found live during -203/-205
@@ -4730,32 +5758,39 @@ class Guala:
         -> 10 -> 13), a genuine multi-minute hang at just a handful of
         instances. Call this when an instance is truly done (test teardown,
         any future re-init path) to signal all three workers to exit."""
-        for q in (getattr(self, "_organism_queue", None),
-                  getattr(self, "_tapestry_queue", None),
-                  getattr(self, "_diary_queue", None)):
-            if q is not None:
-                try:
-                    q.put_nowait(None)
-                except Exception:
-                    pass
-        # GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2: stop the spike
-        # bus's delivery thread cleanly. None if EVENT_DRIVEN_SUBSTRATE=0
-        # was set at construction (mechanism never wired) -- no-op then.
-        if getattr(self, "_spike_bus", None) is not None:
-            self._spike_bus.stop()
+        try:
+            self.quiesce_background_workers(timeout=5.0)
+        except Exception:
+            # Test/process teardown fallback only.  Production sealing calls
+            # quiesce_background_workers directly and must propagate failure.
+            self._reading_stop.set()
+            self._daydream_running = False
+            for q in (getattr(self, "_organism_queue", None),
+                      getattr(self, "_tapestry_queue", None),
+                      getattr(self, "_diary_queue", None)):
+                if q is not None:
+                    try:
+                        q.put_nowait(None)
+                    except Exception:
+                        pass
+            if getattr(self, "_spike_bus", None) is not None:
+                self._spike_bus.stop()
 
     def _tapestry_worker_loop(self):
         """GL-CMD-175 P2 perf fix: single persistent background writer for
         tapestry exposure -- see _enqueue_tapestry_expose."""
         while True:
             item = self._tapestry_queue.get()
-            if item is None:
-                return
-            word_a, word_b = item
-            with self._tapestry_lock:
-                for m in self.tapestry.mosaics:
-                    m.expose(word_a, word_b)
-                self.tapestry._tick += 2
+            try:
+                if item is None:
+                    return
+                word_a, word_b = item
+                with self._tapestry_lock:
+                    for m in self.tapestry.mosaics:
+                        m.expose(word_a, word_b)
+                    self.tapestry._tick += 2
+            finally:
+                self._tapestry_queue.task_done()
 
     def _ensure_tapestry_worker(self):
         if self._tapestry_queue is not None:
@@ -4788,6 +5823,8 @@ class Guala:
         load), not a silent stall. self._tapestry_lock (held here and by
         compose()'s callers) keeps a concurrent read from observing a
         neuron mid-settle."""
+        if self._engine_quiesced:
+            raise RuntimeError("tapestry mutation rejected after quiescence")
         try:
             self._ensure_tapestry_worker()
             self._tapestry_queue.put_nowait((word_a, word_b))
@@ -5042,6 +6079,8 @@ class Guala:
         input_chi: GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2, passed
         through to hemi.step at drain time. None (default) preserves prior
         behavior exactly (all neurons step)."""
+        if self._engine_quiesced:
+            raise RuntimeError("organism sensory mutation rejected after quiescence")
         self._ensure_organism_worker()
         self._organism_sensory_queue.put((hemi_id, input_signal, tick, input_chi))
 
@@ -5204,6 +6243,8 @@ class Guala:
                 sight_signal = _replay_sight
             if _replay_sound is not None:
                 sound_signal = _replay_sound
+        if self._engine_quiesced:
+            raise RuntimeError("organism mutation rejected after quiescence")
         try:
             self._ensure_organism_worker()
             self._organism_queue.put_nowait(
@@ -5229,6 +6270,8 @@ class Guala:
         worker already drains, so it is the SAME experience_word() call,
         same single-writer FIFO discipline, same worker thread -- no new
         organism-write mechanism, only a second way to reach the queue."""
+        if self._engine_quiesced:
+            raise RuntimeError("explicit organism mutation rejected after quiescence")
         try:
             self._ensure_organism_worker()
             self._organism_queue.put_nowait((word, sight_signal, sound_signal, None))
@@ -6214,73 +7257,105 @@ class Guala:
             break  # only the single freshest matching reflection
         return out
 
+    def _committed_emission_response(self, settlement):
+        """Return source-certified speech or deterministic neutral silence.
+
+        Language Fact-Strand reciprocity is the sole language authority.
+        Legacy assemblage settlements remain diagnostic evidence only; their
+        reduced field cannot be described as full DSF recognition.
+        """
+        if self._fact_settlement_has_certified_provenance(settlement):
+            return settlement.content, "fact_strand_commit"
+        return "", "silence_no_commit"
+
+    def _fact_record_has_certified_provenance(self, record):
+        """Rehydrate a stored Fact settlement and run the live verifier."""
+        if (not isinstance(record, dict)
+                or record.get("response_source") != "fact_strand_commit"):
+            return False
+        try:
+            items = []
+            for raw in record.get("commit_provenance") or []:
+                if raw.get("authority") != "language_fact_strand_reciprocity_v1":
+                    return False
+                supports = tuple(FactEmissionSupport(
+                    window_id=support["window_id"],
+                    entry_index=support["entry_index"],
+                    experience_origin=support["experience_origin"],
+                    source_tag=support["source_tag"],
+                    trace_id=support["trace_id"],
+                    source_strand_id=support["source_strand_id"],
+                    modalities=tuple(support["modalities"]),
+                ) for support in raw["supports"])
+                items.append(FactEmissionTokenProvenance(
+                    word=raw["word"],
+                    structural_fingerprint=raw["structural_fingerprint"],
+                    recognized_strand_ids=tuple(raw["recognized_strand_ids"]),
+                    supports=supports,
+                ))
+            settlement = EmissionSettlement(
+                content=record.get("text", ""),
+                committed_sections=tuple(record.get("committed_sections") or ()),
+                n_commits=record.get("n_commits", 0),
+                organ_in_commits=False,
+                tick=record.get("tick", 0),
+                commit_provenance=tuple(items),
+            )
+        except (KeyError, TypeError, ValueError):
+            return False
+        return self._fact_settlement_has_certified_provenance(settlement)
+
+    def _certified_emission_record(self, emission_id):
+        """Return a feedback-safe emission record, or None.
+
+        Records written before response-source provenance was introduced
+        cannot distinguish a genuine commit from the retired fallback.  They
+        remain persisted as history but are deliberately ineligible for new
+        reinforcement; guessing would risk strengthening fabricated speech.
+        """
+        if not emission_id:
+            return None
+        record = self._emission_records.get(emission_id)
+        if not self._fact_record_has_certified_provenance(record):
+            return None
+        return record
+
+    def _try_acquire_autonomous_emission(self):
+        """Enter emission only when no conversation was counted first.
+
+        The state lock makes the pending-turn check and nonblocking RLock
+        acquisition one ordering decision.  Autonomous callers that already
+        hold ``self.lock`` must never wait for the emission lock because a
+        phased conversation can hold that lock before taking ``self.lock``.
+        """
+        with self._live_converse_state_lock:
+            if self._live_converse_pending > 0:
+                return False
+            return self._emission_lock.acquire(blocking=False)
+
     def _emit_from_invariants(self, input_chis, input_words, mode_override=None,
                               v7_session=None, organ_candidates=None):
-        """Compose emission from the organism's recall/compose output.
-        GL-CMD-175 P3 / GL-NOTE-VOICE-WIRING-RULING: candidates come from
-        the brain (see _brain_emission_candidates), NOT the deep-atlas
-        co-occurrence gather -- disconnected at cutover (W3). If the
-        brain supplies nothing, this returns None (honest empty); no
-        backfill from deep_atlas. organ_candidates kept as an accepted
-        (now-unused) parameter -- its only real caller is the dead
-        remote-mode substrate_runner.py path (not exercised in embedded
-        production); removing the parameter isn't necessary for the
-        cutover and keeps that dead call site from erroring outright.
-        GL-BRIEF-GRANDURUN: branches on EMISSION_MODE (topk or grandurun),
-        unchanged below this candidate-source swap.
-        GL-CMD-DYNAMICS-EMISSION-RESTORATION: EMISSION_DYNAMICS=1 routes to
-        two-stage path (grandurun candidates → assemblage dynamics settling).
-        Phase 3b: v7_session provides context priors for grounded emission."""
-        mode = mode_override or os.environ.get("EMISSION_MODE", "topk")
-        input_words_set = set(w.lower() for w in input_words)
+        """Settle organism candidates and return committed content only.
 
-        deep_candidates = self._brain_emission_candidates(input_words)
-        if not deep_candidates:
-            return None
+        The former ``topk`` and scalar-grandurun branches returned ranked
+        candidates without a dynamics commit.  They remain available as
+        diagnostic functions but are retired as voice paths.  Production
+        speech now has one source: assemblage dynamics with a real commit.
+        """
+        with self._emission_lock:
+            mode = mode_override or os.environ.get("EMISSION_MODE", "topk")
+            if (os.environ.get("EMISSION_DYNAMICS", "0") != "1"
+                    or mode != "grandurun"):
+                return EmissionSettlement(tick=self.tick)
 
-        # GL-CMD-DYNAMICS-EMISSION-RESTORATION: two-stage dynamics path
-        if os.environ.get("EMISSION_DYNAMICS", "0") == "1" and mode == "grandurun":
-            return self._emit_dynamics(input_chis, input_words_set,
-                                       deep_candidates, v7_session=v7_session,
-                                       input_words=input_words)
+            input_words_set = set(w.lower() for w in input_words)
+            deep_candidates = self._brain_emission_candidates(input_words)
+            if not deep_candidates:
+                return EmissionSettlement(tick=self.tick)
 
-        if mode == "grandurun":
-            return self._emit_grandurun(input_chis, input_words_set,
-                                        deep_candidates,
-                                        v7_session=v7_session)
-
-        # topk path (existing behavior, unchanged)
-        deep_candidates.sort(key=lambda x: x[2], reverse=True)
-        emitted = []
-        seen_words = set()
-        for de, co, clarity in deep_candidates[:5]:
-            ordered_sections = sorted(
-                [s for s in co.keys() if co.get(s)],
-                key=lambda s: max(co[s].values()) if co[s] else 0.0,
-                reverse=True
-            )
-            for sec_name in ordered_sections:
-                sec_co = co[sec_name]
-                if not sec_co:
-                    continue
-                best_mid = max(sec_co, key=sec_co.get)
-                best_w = float(sec_co[best_mid])
-                if best_w < 0.01:
-                    continue
-                mid = int(best_mid)
-                sec = self.sections.get(sec_name)
-                if sec is None or mid >= len(sec.modes):
-                    continue
-                _, _, word_label = sec.modes[mid]
-                if (word_label and word_label.lower() not in input_words_set
-                        and word_label.lower() not in seen_words):
-                    emitted.append(word_label)
-                    seen_words.add(word_label.lower())
-            if len(emitted) >= 6:
-                break
-        if not emitted:
-            return None
-        return " ".join(emitted)
+            return self._emit_dynamics(
+                input_chis, input_words_set, deep_candidates,
+                v7_session=v7_session, input_words=input_words)
 
     # Phase 3b constants — context prior weights
     INTRO_RECENCY_BOOST = 2.0
@@ -6873,12 +7948,10 @@ class Guala:
                         "word": word_label,
                         "strength": e["strength"],
                         "coherent_magnitude": e["strength"] * max(0.0, 1.0 + _e_val),
-                        "source": e.get("source", "corpus"),
                         "arousal": e.get("arousal", 0.5),
                         "valence": _e_val,
                         "surprise": e.get("surprise", 0.0),
                         "polarity": e.get("polarity", 1.0),
-                        "sensory_refs": e.get("sensory_refs", []),
                         # GL-CMD-SCENE-LANES-B1-188 V4: reader -- these were
                         # write-only on the atlas entry (-164's audit finding)
                         # until recall actually surfaced them here.
@@ -6887,6 +7960,11 @@ class Guala:
                         "place": e.get("place"),
                         "ambient": e.get("ambient"),
                         "origin": "cross_modal",
+                        "_provenance_evidence":
+                            _candidate_provenance_evidence(
+                                e, origin="cross_modal"),
+                        **({"source": e["source"]}
+                           if "source" in e else {}),
                     })
 
         # Source B: deep-atlas co-occurrence candidates from ALL input chis.
@@ -6926,17 +8004,20 @@ class Guala:
                             "word": word_label,
                             "strength": float(strength),
                             "coherent_magnitude": float(strength) * max(0.0, 1.0 + _de_val),
-                            "source": de.get("source", "corpus"),
                             "arousal": de.get("arousal", 0.5),
                             "valence": _de_val,
                             "surprise": de.get("surprise", 0.0),
                             "polarity": de.get("polarity", 1.0),
-                            "sensory_refs": de.get("sensory_refs", []),
                             "presence": de.get("presence"),
                             "location": de.get("location"),
                             "place": de.get("place"),
                             "ambient": de.get("ambient"),
                             "origin": "cross_modal_deep",
+                            "_provenance_evidence":
+                                _candidate_provenance_evidence(
+                                    de, origin="cross_modal_deep"),
+                            **({"source": de["source"]}
+                               if "source" in de else {}),
                         })
 
         # Phase 4: One-level cofire spread with affect weighting
@@ -6978,17 +8059,20 @@ class Guala:
                         "word": word_label,
                         "strength": e["strength"],
                         "coherent_magnitude": transmission,
-                        "source": e.get("source", "corpus"),
                         "arousal": e_aro,
                         "valence": e_val,
                         "surprise": e.get("surprise", 0.0),
                         "polarity": e.get("polarity", 1.0),
-                        "sensory_refs": e.get("sensory_refs", []),
                         "presence": e.get("presence"),
                         "location": e.get("location"),
                         "place": e.get("place"),
                         "ambient": e.get("ambient"),
                         "origin": "cofire_spread",
+                        "_provenance_evidence":
+                            _candidate_provenance_evidence(
+                                e, origin="cofire_spread"),
+                        **({"source": e["source"]}
+                           if "source" in e else {}),
                     })
 
         all_candidates = cross_modal + spread_candidates
@@ -7044,12 +8128,16 @@ class Guala:
                     rkey = (es, mi)
                     if rkey not in seen:
                         seen.add(rkey)
+                        rerouted_evidence = dict(
+                            cand.get("_provenance_evidence", {}))
+                        rerouted_evidence["origin"] = "emission_reroute"
                         routed.append({
                             **cand,
                             "section": es,
                             "motif": mi,
                             "word": w,
                             "origin": "emission_reroute",
+                            "_provenance_evidence": rerouted_evidence,
                         })
         all_candidates.extend(routed)
 
@@ -7153,34 +8241,6 @@ class Guala:
             if _s0 > 0 and abs(_s0 - _s1) / _s0 < 0.05:
                 _raw_tie = True
 
-        # -48 Path C: cross-modal fallback — promote from deep atlas when live gives nothing
-        if not candidates and deep_candidates:
-            self._log_substrate_event("agency_cross_modal_fallback",
-                input_chis=input_chis[:5], n_deep=len(deep_candidates))
-            _best_de, _best_co, _best_clarity = max(deep_candidates, key=lambda x: x[2])
-            for _sec_name, _co_sec in _best_co.items():
-                if _sec_name not in self._EMISSION_SECTIONS or not _co_sec:
-                    continue
-                _best_mid_str = max(_co_sec, key=_co_sec.get)
-                _mid = int(_best_mid_str)
-                _sec = self.sections.get(_sec_name)
-                if _sec and _mid < len(_sec.modes):
-                    _, _, _word = _sec.modes[_mid]
-                    if _word:
-                        candidates.append({
-                            "chi": _best_de.get("chi", 0),
-                            "section": _sec_name, "motif": _mid, "word": _word,
-                            "strength": float(_co_sec[_best_mid_str]),
-                            "coherent_magnitude": _best_clarity,
-                            "source": _best_de.get("source", "corpus"),
-                            "arousal": _best_de.get("arousal", 0.5),
-                            "valence": _best_de.get("valence", 0.0),
-                            "polarity": _best_de.get("polarity", 1.0),
-                            "sensory_refs": _best_de.get("sensory_refs", []),
-                            "origin": "cross_modal_fallback",
-                        })
-                        break
-
         # gp-bias: multiply coherent_magnitude by chi-proximity to dominant-need goal seed
         _gp_bias_applied = False
         _gp_hemi = getattr(self, 'hemispheres', {}).get('gp') if candidates else None
@@ -7221,7 +8281,7 @@ class Guala:
                 gp_bias_applied=_gp_bias_applied)
 
         if not candidates:
-            return None
+            return EmissionSettlement(tick=self.tick)
 
         # GL-CMD-V7-AWARENESS-REAL-PATH-C1-20260711: real introspection-
         # derived bias, same shape as the gp-bias reweight above but
@@ -7249,6 +8309,7 @@ class Guala:
         # Install candidate modes and compute per-section drive biases
         section_drives = {s: np.zeros(N, dtype=complex) for s in self._EMISSION_SECTIONS}
         listen_drive = np.zeros(N, dtype=complex)
+        installed_candidate_provenance = {}
 
         for cand in candidates:
             sec_name = cand["section"]
@@ -7260,6 +8321,11 @@ class Guala:
 
             if mode_idx is None:
                 continue  # section at mode cap; candidate still counted but not installed
+
+            provenance = _freeze_candidate_provenance(
+                cand, sec_name, mode_idx)
+            installed_candidate_provenance.setdefault(
+                (sec_name, mode_idx), []).append(provenance)
 
             # Bias section psi toward this candidate's mode
             mode_vec = sys_.sections[sec_name].mode_bank[mode_idx]
@@ -7288,7 +8354,7 @@ class Guala:
         # speech transcription sets "joe_voice". All four are pair-bond sources.
         # Prior code checked only "joe_voice" — always False for typed input.
         joe_candidates_present = any(
-            c["source"] in ("joe", "joe_voice", "wc", "c1")
+            c.get("source") in ("joe", "joe_voice", "wc", "c1")
             for c in candidates
         )
 
@@ -7350,10 +8416,9 @@ class Guala:
 
         # Stage 2: Dynamics settling
         t1 = _time.monotonic()
-        # Fix 2 (Eve): hard wall-clock budget — the degenerate case where no commit
-        # ever fires runs all N ticks → socket timeout. Cap at 5s regardless.
-        # "no commit fires" → arcs_fallback is the correct bounded degradation.
-        # This lets EMISSION_DYNAMICS=1 run without ever timing out the socket.
+        # The wall-clock budget bounds a degenerate settlement.  Reaching the
+        # deadline without a commit produces neutral silence, never a ranked
+        # candidate presented as if the field had settled.
         # GL-FIX-CONVERSE-LATENCY: reduce from 5s → 1.5s so /converse Phase 6
         # (_emission_lock) + autonomy emission (_emission_lock) combined stay under 3s.
         #
@@ -7407,7 +8472,7 @@ class Guala:
             # Hard wall-clock check EVERY tick — each tick can be slow on 2vCPU.
             # Checking every 20 ticks was too coarse: 20 * 0.75s = 15s before check.
             if t > 0 and _time.monotonic() > _t_deadline:
-                break   # degenerate: fallback to arcs() argmax below
+                break
             # GL-CMD-STRUCTURED-NOISE: update tick for phase oscillation
             for sec_name in self._EMISSION_SECTIONS:
                 sys_.sections[sec_name]._noise_tick = t
@@ -7486,15 +8551,12 @@ class Guala:
 
         stage2_ms = (_time.monotonic() - t1) * 1000
 
-        # Read emission: committed modes per section in cascade order.
-        # GL-CMD-LATERAL-INHIBITION: with inhibition on, commit_check fires
-        # for real via entropic_flip. Collect the last committed mode per
-        # section. Fall back to arcs() argmax only if no commit fired.
+        # Read only modes that genuinely committed during this settlement.
         emission_words = []
+        selected_commits = []
         per_section_dominant = {}
-        committed_sections = set()
+        committed_sections = []
         for sec_name in self._EMISSION_SECTIONS:
-            sec = sys_.sections[sec_name]
             # Check if this section had a committed mode during dynamics
             committed_word = None
             committed_mode = None
@@ -7504,7 +8566,6 @@ class Guala:
                     if w:
                         committed_mode = c["mode_id"]
                         committed_word = w
-                        committed_sections.add(sec_name)
                         break
 
             if committed_word:
@@ -7512,50 +8573,14 @@ class Guala:
                 if (committed_word.lower() not in input_words_set
                         and committed_word not in emission_words):
                     emission_words.append(committed_word)
+                    committed_sections.append(sec_name)
+                    selected_commits.append({
+                        "section": sec_name,
+                        "mode_id": committed_mode,
+                        "word": committed_word,
+                    })
             else:
                 per_section_dominant[sec_name] = (None, None, "none")
-
-        # GL-BUG-SLOTS-NOT-PATTERNS (Joe 2026-07-06): arcs_fallback used to
-        # run unconditionally for EVERY section that never got a real
-        # commit, manufacturing a word from mere installed-candidate
-        # strength (arcs() argmax) regardless of whether the dynamics ever
-        # actually converged there. That was the literal mechanism forcing
-        # fake content into empty "slots" -- a role that never resonated
-        # isn't part of this thought, and shouldn't speak just because the
-        # fixed six-section template tries to fill all six every turn.
-        # There is no real "how many roles does this thought need" step
-        # upstream of this loop, so the number of words she says should
-        # come from how many sections genuinely settled, not from how many
-        # sections happen to have any installed candidate at all.
-        # Now used only as a whole-turn safety net: if NOTHING anywhere
-        # genuinely committed, fall back once (single best candidate across
-        # all sections) so a turn where the dynamics didn't converge in
-        # time isn't flatly mute -- never as a per-section default when
-        # other sections DID commit for real.
-        if not emission_words:
-            best_fallback = None
-            best_fallback_score = -1.0
-            for sec_name in self._EMISSION_SECTIONS:
-                sec = sys_.sections[sec_name]
-                arcs = sec.arcs()
-                if len(arcs) == 0:
-                    continue
-                sorted_modes = sorted(range(len(arcs)), key=lambda i: -arcs[i])
-                for mi in sorted_modes:
-                    w = self._emission_word_map.get((sec_name, mi))
-                    if w:
-                        if arcs[mi] > best_fallback_score:
-                            best_fallback_score = arcs[mi]
-                            best_fallback = (sec_name, mi, w)
-                        break
-            if best_fallback is not None:
-                fb_sec, fb_mi, fb_word = best_fallback
-                per_section_dominant[fb_sec] = (fb_mi, fb_word, "arcs_fallback")
-                if fb_word.lower() not in input_words_set:
-                    emission_words.append(fb_word)
-
-        if not emission_words:
-            return None
 
         emission_text = " ".join(emission_words)
 
@@ -7571,15 +8596,26 @@ class Guala:
         for c in candidates:
             sn = c.get("section", "unknown")
             section_candidate_counts[sn] = section_candidate_counts.get(sn, 0) + 1
-            orig = c.get("origin", "grandurun")
-            origin_counts[orig] = origin_counts.get(orig, 0) + 1
-            src = c.get("source", "corpus")
-            source_counts[src] = source_counts.get(src, 0) + 1
+            orig = c.get("origin")
+            if orig is not None:
+                origin_counts[orig] = origin_counts.get(orig, 0) + 1
+            src = c.get("source")
+            if src is not None:
+                source_counts[src] = source_counts.get(src, 0) + 1
+
+        commit_provenance = _committed_candidate_provenance(
+            selected_commits, installed_candidate_provenance)
+        organ_in_commits = any(
+            provenance.origin == "organ"
+            for provenance in commit_provenance)
+        commit_provenance_records = [
+            provenance.as_record() for provenance in commit_provenance]
 
         self._log_substrate_event("emission_dynamics",
                                   content=emission_text,
                                   n_candidates=len(candidates),
-                                  n_commits=len(emit_commits),
+                                  n_commits=len(selected_commits),
+                                  dynamics_commits=len(emit_commits),
                                   per_section_dominant=per_section_dominant,
                                   keyhole_fires=len(keyhole_fires),
                                   nmda_fired=nmda_fired_count,
@@ -7598,26 +8634,29 @@ class Guala:
                                   polarity_mixed=any(
                                       c.get("polarity", 1) != 1
                                       for c in emit_commits),
-                                  organ_in_commits=any(
-                                      c.get("origin") == "organ"
-                                      for c in emit_commits),
+                                  organ_in_commits=organ_in_commits,
+                                  commit_provenance=commit_provenance_records,
                                   gp_bias_applied=_gp_bias_applied,
                                   aware_priors_applied=bool(_aware_priors),
                                   n_aware_priors=len(_aware_priors))
-        # GL-CMD-V5-VOICE-STAGE1: store quality metadata for _cmd_converse gate
-        arcs_fallback_used = any(
-            isinstance(v, tuple) and len(v) > 2 and v[2] == "arcs_fallback"
-            for v in per_section_dominant.values()
-        )
+        # Store the settlement truth consumed by every speech interface.
+        settlement = EmissionSettlement(
+            content=emission_text,
+            committed_sections=tuple(committed_sections),
+            n_commits=len(selected_commits),
+            organ_in_commits=organ_in_commits,
+            tick=self.tick,
+            commit_provenance=commit_provenance)
         self._last_dynamics_result = {
             "content": emission_text,
             "committed_sections": list(committed_sections),
-            "n_commits": len(emit_commits),
-            "arcs_fallback": arcs_fallback_used,
-            "organ_in_commits": any(c.get("origin") == "organ" for c in emit_commits),
+            "n_commits": len(selected_commits),
+            "dynamics_commits": len(emit_commits),
+            "organ_in_commits": settlement.organ_in_commits,
+            "commit_provenance": commit_provenance_records,
             "tick": self.tick,
         }
-        return emission_text
+        return settlement
 
     def _compose_from_cortex(self, selected_words, deep_candidates):
         """Reorder selected words by best co-occurrence triple from deep atlas.
@@ -7856,10 +8895,10 @@ class Guala:
         picture recall honestly stays on the old path until a real visual
         tap is built; noted, not silently left ambiguous.
 
-        target_sections kept as a parameter for signature compatibility
-        (tools/guala_recall_bitexact_replay.py calls this with
-        target_sections=... explicitly) but no longer consulted --
-        the organism has no section structure to select from."""
+        target_sections is retained for diagnostic replay selection but is no
+        longer consulted by the organism.  Returns the text recall and an
+        immutable picture-recall snapshot from this exact call; callers never
+        read the shared last-picture diagnostic to construct a response."""
         recalled_text = self._recall_from_organism(input_words)
 
         # v7 Phase 2: recall sight motifs via chi-neighborhood (unchanged)
@@ -7867,13 +8906,13 @@ class Guala:
 
         if not recalled_text and not recalled_pictures:
             self._last_recalled_pictures = []  # GL-CMD-155: don't leak a stale hit
-            return None
+            return None, ()
 
         if recalled_pictures:
             self._last_recalled_pictures = recalled_pictures
-            return recalled_text  # even None — caller will check _last_recalled_pictures
+            return recalled_text, tuple(recalled_pictures)
         self._last_recalled_pictures = []
-        return recalled_text
+        return recalled_text, ()
 
     def _chis_for_text(self, text):
         """Transduce text to chi addresses (read-only, no atlas mutation)."""
@@ -8086,7 +9125,12 @@ class Guala:
     # ------------------------------------------------------------------
     # Continuous reading (background, not turn-based)
     # ------------------------------------------------------------------
+    @_engine_mutation_entry
     def start_continuous_reading(self, corpus_lines, interval=0.02):
+        current = getattr(self, "_reading_thread", None)
+        if current is not None and current.is_alive():
+            return
+
         def loop():
             i = 0
             while not self._reading_stop.is_set():
@@ -8120,9 +9164,9 @@ class Guala:
                           "emission"):
             try:
                 _ek, _det = event_kind, dict(detail)
-                import threading as _t
-                _t.Thread(target=lambda: self.log_event("state", _ek, **_det),
-                          daemon=True, name=f"ev-log-{event_kind[:8]}").start()
+                self._start_engine_background_thread(
+                    lambda: self.log_event("state", _ek, **_det),
+                    daemon=True, name=f"ev-log-{event_kind[:8]}")
             except Exception:
                 pass
         # GL-CMD-EVENT-RETENTION-FIX-172 R3: EVERY event kind also goes to
@@ -8136,17 +9180,20 @@ class Guala:
 
     # ── GL-CMD-DAYDREAM-PARALLEL-42: background associative activation ──────
 
+    @_engine_mutation_entry
     def start_daydream_loop(self):
         """Parallel chi-neighborhood walk. Runs alongside all foreground activity.
         Does NOT trigger commit gate or emission. 0.5s interval (2 Hz)."""
-        if getattr(self, '_daydream_thread', None) is not None:
+        current = getattr(self, '_daydream_thread', None)
+        if current is not None and current.is_alive():
             return
         self._daydream_running = True
 
         def _loop():
             while self._daydream_running:
                 try:
-                    self._daydream_tick()
+                    with self._engine_mutation_scope("daydream_tick"):
+                        self._daydream_tick()
                 except Exception:
                     pass
                 time.sleep(0.5)
@@ -8302,6 +9349,7 @@ class Guala:
                             chi=top_chi, section=top_sec, motif=top_mid)
                         break
 
+    @_engine_mutation_entry
     def add_corpus(self, corpus_id, title, lines):
         """Register a corpus for autonomous reading."""
         self._corpora[corpus_id] = _Corpus(
@@ -8368,6 +9416,7 @@ class Guala:
     # not silently dropped.
     _AUTONOMY_YIELD_SEC = 0.02
 
+    @_engine_mutation_entry
     def start_autonomy_loop(self, interval=None):
         """GL-CMD-COGNITION-AT-SPEED-EVE-20260705-205 C1: COMPUTE FOLLOWS
         NEED (Joe's ruling). The fixed interval=0.05s/0.2s sleep here was
@@ -8383,6 +9432,10 @@ class Guala:
         `interval` kwarg accepted for backward compatibility with
         existing callers (app.py, substrate_runner.py) -- ignored; a
         deprecation note, not a new pacing knob."""
+        current = getattr(self, "_reading_thread", None)
+        if current is not None and current.is_alive():
+            return
+
         def loop():
             _window_start = time.monotonic()
             _window_ticks = 0
@@ -8390,7 +9443,8 @@ class Guala:
             self._tick_rate_ref_time = _window_start
             while not self._reading_stop.is_set():
                 try:
-                    self._autonomy_tick()
+                    with self._engine_mutation_scope("autonomy_tick"):
+                        self._autonomy_tick()
                 except Exception as e:
                     print(f"[GualaLoom] Autonomy tick error: {e}")
                 _window_ticks += 1
@@ -8523,13 +9577,13 @@ class Guala:
                 try:
                     ns = self.needs.snapshot()
                     _ns = dict(ns)
-                    import threading as _t
-                    _t.Thread(target=lambda: self.log_event(
-                        "state", "needs_snapshot",
-                        stability=_ns["stability"], novelty=_ns["novelty"],
-                        connection=_ns["connection"], valence=_ns["valence"],
-                        arousal=_ns["arousal"]),
-                        daemon=True, name="needs-log").start()
+                    self._start_engine_background_thread(
+                        lambda: self.log_event(
+                            "state", "needs_snapshot",
+                            stability=_ns["stability"], novelty=_ns["novelty"],
+                            connection=_ns["connection"], valence=_ns["valence"],
+                            arousal=_ns["arousal"]),
+                        daemon=True, name="needs-log")
                 except Exception:
                     pass
 
@@ -9093,9 +10147,8 @@ class Guala:
                             f.flush(); os.fsync(f.fileno())
                     except Exception:
                         pass
-                import threading as _t
-                _t.Thread(target=_write_gate, daemon=True,
-                          name="dream-gate-write").start()
+                self._start_engine_background_thread(
+                    _write_gate, daemon=True, name="dream-gate-write")
                 self._log_substrate_event("dream_gate_cleared", tick=self.tick)
             self._activity_history.append(self._current_activity)
             if len(self._activity_history) > 500:
@@ -9231,7 +10284,6 @@ class Guala:
         pos = corpus.position % len(corpus.lines)
         line = corpus.lines[pos]
         self.read_sentence(line, source="corpus")
-        self._bind_sensory_words(line)  # feel/smell/taste the sensory words she reads
         corpus.position += 1
         corpus.last_read_tick = self.tick
         if corpus.position >= len(corpus.lines):
@@ -9879,6 +10931,7 @@ class Guala:
             si.times_attended += 1
             si.last_attended_tick = self.tick
 
+    @_engine_mutation_entry
     def process_sight_frame(self, grid):
         """GL-BRIEF-SENSORY-IO Part C: feed a transient camera frame into
         sight krimelack. No PictureItem, no storage. Just krimelack + atlas.
@@ -9942,6 +10995,7 @@ class Guala:
                                           motif_id=motif.motif_id,
                                           chi=chi_val, is_new=is_new)
 
+    @_engine_mutation_entry
     def process_sound_frame(self, audio_bytes, source="mic:live"):
         """GL-BRIEF-SENSORY-IO Part D: feed a transient mic audio chunk into
         sound krimelack. No _sounds entry, no storage. Just cochlear + atlas.
@@ -10158,13 +11212,13 @@ class Guala:
     def _atick_emitting(self, a):
         """Emission: fires once at start, satisfies connection-need."""
         if self.tick == a.started_tick + 1:
-            self._do_emit()
-            # Emission satisfies connection-need substantially
+            emitted = self._do_emit()
+            # Only actual committed speech satisfies connection need.
             any_pair_present = any(
                 self.coordinator._presence.get(s, False)
                 and self.coordinator._pair_bond.get(s, False)
                 for s in PAIR_BOND_SOURCES)
-            if any_pair_present:
+            if emitted and any_pair_present:
                 self.needs.connection = saturate(self.needs.connection, 0.25)
 
     def _check_emission_trigger(self, reason):
@@ -10295,6 +11349,7 @@ class Guala:
                 break
         return seeds
 
+    @_engine_mutation_entry
     def compose_autonomous(self):
         """Run v5 composer on current internal state, no external input.
         Returns dict with content/metadata if commit gate fires; None otherwise.
@@ -10303,14 +11358,29 @@ class Guala:
         if not seeds:
             return None
         input_chis = [s["chi_key"] for s in seeds]
-        result = self._emit_from_invariants(input_chis, [],
-                                            v7_session=getattr(self, '_v7_session', None))
-        if result and result not in ("...", ""):
+        if not self._try_acquire_autonomous_emission():
+            return None
+        try:
+            settlement = self._emit_from_invariants(
+                input_chis, [],
+                v7_session=getattr(self, '_v7_session', None))
+        finally:
+            self._emission_lock.release()
+        content, response_source = self._committed_emission_response(
+            settlement)
+        if content:
             return {
-                "content": result,
+                "content": content,
                 "source": "guala",
+                "response_source": response_source,
                 "category": "autonomous",
                 "seeds_used": len(seeds),
+                "settlement_tick": settlement.tick,
+                "committed_sections": list(
+                    settlement.committed_sections),
+                "commit_provenance": [
+                    provenance.as_record()
+                    for provenance in settlement.commit_provenance],
             }
         return None
 
@@ -10335,13 +11405,13 @@ class Guala:
                 try:
                     ns = self.needs.snapshot()
                     _ns = dict(ns)
-                    import threading as _t
-                    _t.Thread(target=lambda: self.log_event(
-                        "state", "needs_snapshot",
-                        stability=_ns["stability"], novelty=_ns["novelty"],
-                        connection=_ns["connection"], valence=_ns["valence"],
-                        arousal=_ns["arousal"]),
-                        daemon=True, name="needs-log-p").start()
+                    self._start_engine_background_thread(
+                        lambda: self.log_event(
+                            "state", "needs_snapshot",
+                            stability=_ns["stability"], novelty=_ns["novelty"],
+                            connection=_ns["connection"], valence=_ns["valence"],
+                            arousal=_ns["arousal"]),
+                        daemon=True, name="needs-log-p")
                 except Exception:
                     pass
 
@@ -10469,16 +11539,17 @@ class Guala:
             if not recent_chis:
                 to_sources = [s for s in PAIR_BOND_SOURCES
                               if self.coordinator._presence.get(s, False)]
-                self._log_substrate_event("emission", content="...",
+                self._log_substrate_event("emission_silence",
+                                         reason="no_recent_chi",
                                          to_sources=to_sources)
-                return
+                return False
 
         # Phase 2 (self._emission_lock): emit dynamics + SVO fallback
         # Non-blocking acquire: if /converse holds _emission_lock, skip this tick.
         # Autonomous emission fires every 0.2s so one missed tick is harmless;
         # blocking here would add up to 5s latency to every /converse call.
-        if not self._emission_lock.acquire(blocking=False):
-            return
+        if not self._try_acquire_autonomous_emission():
+            return False
         _lock_wait_ms = 0.0
         _emit_compute_ms = 0.0
         _emit_start = time.monotonic()
@@ -10486,15 +11557,16 @@ class Guala:
             input_words = []
             content = self._emit_from_invariants(recent_chis, input_words,
                                                   v7_session=getattr(self, '_v7_session', None))
-            # GL-NOTE-VOICE-WIRING-RULING W3: the old SVO-recall fallback
-            # (deep-atlas-adjacent, via _recall_from_atlas) disconnects at
-            # cutover. If the brain supplies no candidates, the emission
-            # is honestly empty -- never backfilled from the old gather.
-            if not content:
-                content = "..."
+            content, response_source = self._committed_emission_response(content)
             _emit_compute_ms = (time.monotonic() - _emit_start) * 1000
         finally:
             self._emission_lock.release()
+
+        if not content:
+            with self.lock:
+                self._log_substrate_event("emission_silence",
+                                          reason=response_source)
+            return False
 
         # §1.4: log contention above threshold
         if _lock_wait_ms > 100 or _emit_compute_ms > 1500:
@@ -10516,7 +11588,7 @@ class Guala:
                                      to_sources=to_sources,
                                      picture_ids=pic_ids)
 
-            words = content.split() if content and content != "..." else []
+            words = content.split()
             self._total_emissions += 1
             self._emission_lengths.append(len(words))
             if len(self._emission_lengths) > 100:
@@ -10543,6 +11615,7 @@ class Guala:
                 for s in PAIR_BOND_SOURCES)
             if any_pair_present:
                 self.needs.connection = saturate(self.needs.connection, 0.25)
+        return True
 
     def _do_emit(self):
         """Generate an autonomous emission via the organism's recall/
@@ -10555,18 +11628,28 @@ class Guala:
             for c in sec.commits[-5:]:
                 recent_chis.append(c["chi"])
         if not recent_chis:
-            self._log_substrate_event("emission",
-                                     content="...",
+            self._log_substrate_event("emission_silence",
+                                     reason="no_recent_chi",
                                      to_sources=[s for s in PAIR_BOND_SOURCES
                                                  if self.coordinator._presence.get(s, False)])
-            return
+            return False
 
         # Use the invariants path (grandurun or topk per EMISSION_MODE)
         input_words = []  # autonomous — no input words to exclude
-        content = self._emit_from_invariants(recent_chis, input_words,
-                                             v7_session=getattr(self, '_v7_session', None))
+        if not self._try_acquire_autonomous_emission():
+            return False
+        try:
+            settlement = self._emit_from_invariants(
+                recent_chis, input_words,
+                v7_session=getattr(self, '_v7_session', None))
+        finally:
+            self._emission_lock.release()
+        content, response_source = self._committed_emission_response(
+            settlement)
         if not content:
-            content = "..."
+            self._log_substrate_event("emission_silence",
+                                     reason=response_source)
+            return False
 
         # Sight recall — find pictures bound at recent chi addresses
         recalled_pics = self._recall_sight_from_atlas(recent_chis, [])
@@ -10580,7 +11663,7 @@ class Guala:
                                  picture_ids=pic_ids)
 
         # 1.9: Ladder metrics
-        words = content.split() if content and content != "..." else []
+        words = content.split()
         self._total_emissions += 1
         self._emission_lengths.append(len(words))
         if len(self._emission_lengths) > 100:
@@ -10605,6 +11688,7 @@ class Guala:
         if recent_chis:
             self._open_response_window("guala", recent_chis,
                                        source_context={"content": content})
+        return True
 
     # ------------------------------------------------------------------
     # v8: Response Binding (GL-BRIEF-028)
@@ -10715,6 +11799,7 @@ class Guala:
     # GL-CMD-TEACHER-CORRECTION-BINDING-EVE-20260618-12
     # ------------------------------------------------------------------
 
+    @_engine_mutation_entry
     def apply_teacher_correction(self, original_input, her_emission,
                                   correct, expected_response=None,
                                   source="joe", correction_affect=None,
@@ -10968,7 +12053,9 @@ class Guala:
                 "affected": affected,
             }
 
-    def _self_hear(self, reply, responding_to_source, reply_chis=None):
+    @_engine_mutation_entry
+    def _self_hear(self, reply, responding_to_source, reply_chis=None,
+                   emission_id=None, response_source=None):
         """GL-BRIEF-034: Self-hearing — Guala hears her own conversational reply.
         (1) read_sentence at 0.5x salience (no question generation, no recursion)
         (2) open "guala" response window with reply chi-keys
@@ -10983,6 +12070,9 @@ class Guala:
         import os
         if os.environ.get("SELF_HEARING_ENABLED", "1") == "0":
             return
+        if (response_source != "fact_strand_commit"
+                or not emission_id):
+            return
 
         reply_words = _normalize_text(reply)
         if not reply_words:
@@ -10992,18 +12082,16 @@ class Guala:
         # Suppress question generation by using _self_hearing flag.
         self._self_hearing = True
         tick_before = self.tick
-        for i, word in enumerate(reply_words):
-            if len(reply_words) == 1:
-                hint = "standalone"
-            elif i == 0:
-                hint = "first"
-            elif i == len(reply_words) - 1:
-                hint = "last"
-            else:
-                hint = "middle"
-            self.read_word(word, position_hint=hint, source="guala")
-        tick_after = self.tick
-        self._self_hearing = False
+        try:
+            self.read_sentence(
+                reply,
+                source="guala",
+                episode_ref=f"emission:{emission_id}:{response_source}",
+                experience_origin="emulated",
+            )
+        finally:
+            tick_after = self.tick
+            self._self_hearing = False
 
         # (2) Compute reply chi-keys and open "guala" response window
         reply_chis = []
@@ -11040,7 +12128,9 @@ class Guala:
         self._log_substrate_event("self_heard",
                                   reply_summary=reply[:50],
                                   n_chis=len(reply_chis),
-                                  salience="0.5x")
+                                  salience="0.5x",
+                                  emission_id=emission_id,
+                                  response_source=response_source)
 
         # (4) Self-voice: generate espeak WAV and feed into sound krimelack
         #     Runs on background thread — must not block the converse response
@@ -11061,8 +12151,9 @@ class Guala:
                     self.process_sound_frame(f.read(), source="voice:self")
             except Exception:
                 pass
-        threading.Thread(target=_inject_self_voice, args=(reply,),
-                        daemon=True).start()
+        self._start_engine_background_thread(
+            _inject_self_voice, args=(reply,), daemon=True,
+            name="self-voice")
 
     # ------------------------------------------------------------------
     # Fix C (GL-FIX-THREE): Decay modulation — wC-only, presence-gated
@@ -11097,6 +12188,7 @@ class Guala:
             return True
         return False
 
+    @_engine_mutation_entry
     def request_decay_modulation(self, factor, source):
         """Scale working-atlas decay. wC-only, requires ACTIVE presence."""
         if source != "wc":
@@ -11110,6 +12202,7 @@ class Guala:
                                   factor=factor, source="wc")
         return factor
 
+    @_engine_mutation_entry
     def reset_decay_modulation(self, source):
         if source != "wc":
             raise PermissionError("decay modulation is wC-only system control")
@@ -11125,40 +12218,68 @@ class Guala:
             self._log_substrate_event("decay_modulation_reset",
                                       source="wc", reason="presence_ended")
 
-    def manual_sleep(self, state_dir="state"):
-        """Manual sleep trigger from UI or deploy script."""
-        with self.lock:
-            if self._current_activity:
-                self._end_activity()
-            sleep = Activity(
-                kind="SLEEPING", target=None,
-                started_tick=self.tick,
-                expected_end_tick=self.tick + ACTIVITY_TICK_BUDGETS["SLEEPING"],
-                metadata={"trigger": "manual"})
-            self._start_activity(sleep)
-            self._log_substrate_event("sleep_manual", trigger="ui")
-            # Sleep-during-deploy plumbing (GL-BRIEF-SLEEP-DURING-DEPLOY)
-            try:
-                self.save_full_state(state_dir)
-            except Exception as e:
-                print(f"[sleep] save_full_state failed: {e}")
-                raise
-            # GL-CMD-WAVE-DIET-82: WaveAtlas on clean shutdown
-            # GL-CMD-SAVE-CONTAINMENT-91: wrap — .sleeping marker must still write on exception
-            try:
-                self._save_wave_atlas(state_dir)
-            except Exception as _wse:
-                print(f"[wave] save failed (non-fatal): {_wse}")
-            try:
-                marker_path = os.path.join(state_dir, ".sleeping")
-                with open(marker_path, 'w') as f:
-                    json.dump({"sleep_tick": self.tick,
-                               "sleep_ts": time.time()}, f)
-            except Exception as e:
-                print(f"[sleep] marker write failed: {e}")
-            return {"event": "sleep_started", "tick": self.tick,
-                    "expected_end_tick": sleep.expected_end_tick}
+    def persistence_transaction(self):
+        """Return the single reentrant boundary for durable state changes.
 
+        Compound callers deliberately hold this context across offset capture,
+        save, compaction, WaveAtlas persistence, and snapshot creation.  Each
+        individual persistence method also enters it, so direct callers are
+        safe and nested compound operations remain deadlock-free.
+        """
+        return self._persistence_lock
+
+    @staticmethod
+    def _raise_persistence_failures(operation, failures):
+        """Raise one complete error after all requested writes were attempted."""
+        if not failures:
+            return
+        detail = "; ".join(f"{name}: {error}" for name, error in failures)
+        raise RuntimeError(f"{operation} failed ({len(failures)} file(s)): {detail}")
+
+    @_engine_mutation_entry
+    def manual_sleep(self, state_dir="state"):
+        """Put Guala to sleep and durably verify the deploy handoff.
+
+        Being in a SLEEPING activity is not proof that a prior persistence
+        attempt completed.  Repeated calls therefore re-run the full durable
+        sequence and publish the marker only after every required write
+        succeeds.  The persistence lock is acquired before the cognition lock
+        to preserve one global lock order with periodic saves.
+        """
+        with self.persistence_transaction():
+            with self.lock:
+                current = self._current_activity
+                if current is None or current.kind != "SLEEPING":
+                    if current is not None:
+                        self._end_activity()
+                    current = Activity(
+                        kind="SLEEPING", target=None,
+                        started_tick=self.tick,
+                        expected_end_tick=(
+                            self.tick + ACTIVITY_TICK_BUDGETS["SLEEPING"]),
+                        metadata={"trigger": "manual"})
+                    self._start_activity(current)
+                    self._log_substrate_event("sleep_manual", trigger="ui")
+
+                marker_path = os.path.join(state_dir, self.SLEEPING_MARKER)
+                if os.path.exists(marker_path):
+                    os.remove(marker_path)
+
+                # These public methods re-enter the same persistence RLock.
+                # Any failure propagates and the marker remains absent, so a
+                # deploy caller cannot mistake sleep state for a verified save.
+                self.save_full_state(state_dir)
+                self._save_wave_atlas(state_dir)
+                self._atomic_write(
+                    marker_path,
+                    {"sleep_tick": self.tick, "sleep_ts": time.time()})
+                return {
+                    "event": "sleep_started",
+                    "tick": self.tick,
+                    "expected_end_tick": current.expected_end_tick,
+                }
+
+    @_engine_mutation_entry
     def wake_from_sleep(self, state_dir="state"):
         """Transition out of SLEEPING or DREAMING activity.
         GL-CMD-RESUME-QUEUE Part 1: DREAMING is now also ended on auto-wake so
@@ -11201,12 +12322,16 @@ class Guala:
     # Identity tag, schema versioning, snapshots, event log, integrity
     # ------------------------------------------------------------------
 
-    SCHEMA_VERSION = "v7.2.0"
+    SCHEMA_VERSION = "v7.3.0"
     STATE_FILES = [
         "guala_core.json", "guala_needs.json", "guala_coordinator.json",
         "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
+        "guala_windows.json",
     ]
     IDENTITY_FILE = "guala_identity.json"
+    ENGINE_CONTINUITY_CONTRACT = "engine_continuity_v1"
+    BINARY_BINDING_CONTRACT = "guala_binary_binding_v1"
+    BINARY_BINDING_SUFFIX = ".binding.json"
     SLEEPING_MARKER = ".sleeping"
     EVENTS_LOG = "events.log"
     MAX_SNAPSHOTS = 20
@@ -11252,6 +12377,7 @@ class Guala:
             "first_boot_timestamp": ts,
             "first_boot_notes": "Genesis. Pair-bond active. Seed corpus only.",
         }
+        self._identity_record = dict(identity_data)
         self._atomic_write(os.path.join(state_dir, self.IDENTITY_FILE), identity_data)
         print(f"[GualaLoom] GENESIS: identity={self._guala_identity} at {ts}")
 
@@ -11262,22 +12388,58 @@ class Guala:
             return None
         with open(path) as f:
             d = json.load(f)
+        self._identity_record = dict(d)
         return d.get("guala_identity")
+
+    def _ensure_identity_in_target(self, state_dir):
+        """Write this same identity into every fresh full-state target.
+
+        A generation staging directory is intentionally empty.  Identity is
+        therefore copied from the loaded identity record rather than being
+        skipped merely because ``_guala_identity`` is already populated in
+        memory.
+        """
+        path = os.path.join(state_dir, self.IDENTITY_FILE)
+        if os.path.exists(path):
+            with open(path) as fh:
+                existing = json.load(fh)
+            if existing.get("guala_identity") != self._guala_identity:
+                raise ValueError(
+                    f"{self.IDENTITY_FILE}: identity "
+                    f"{existing.get('guala_identity')} != {self._guala_identity}")
+            return
+        if not self._guala_identity:
+            raise ValueError("cannot persist state without a Guala identity")
+        record = dict(self._identity_record or {})
+        record["schema_version"] = self.SCHEMA_VERSION
+        record["guala_identity"] = self._guala_identity
+        record.setdefault(
+            "first_boot_notes",
+            "Identity continuity copy; genesis metadata unavailable in memory.")
+        self._atomic_write(path, record)
+        self._identity_record = dict(record)
 
     # ── Envelope: wraps every state file with identity + schema ──
 
-    def _envelope(self, data):
+    def _envelope(self, data, *, saved_at_tick=None):
         """Wrap data dict with identity + schema + timestamp."""
+        envelope_tick = self.tick if saved_at_tick is None else saved_at_tick
+        if (isinstance(envelope_tick, bool)
+                or not isinstance(envelope_tick, int)
+                or envelope_tick < 0):
+            raise ValueError(f"invalid envelope tick: {envelope_tick!r}")
         return {
             "schema_version": self.SCHEMA_VERSION,
             "guala_identity": self._guala_identity,
-            "saved_at_tick": self.tick,
+            "saved_at_tick": envelope_tick,
             "saved_at_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "data": data,
         }
 
     # Schema migrations
-    COMPATIBLE_SCHEMAS = {"v5.5.0", "v6.0.0", "v7.0.0", "v7.1.0", "v7.2.0"}
+    COMPATIBLE_SCHEMAS = {
+        "v5.5.0", "v6.0.0", "v7.0.0", "v7.1.0", "v7.2.0", "v7.3.0",
+    }
 
     def _unwrap(self, raw, filename):
         """Validate envelope, return data dict. Raises on mismatch."""
@@ -11289,7 +12451,672 @@ class Guala:
             raise ValueError(f"{filename}: identity {gi} != {self._guala_identity}")
         return raw.get("data", raw)
 
+    @staticmethod
+    def _sha256_regular_file(path):
+        """Hash one persistence artifact without accepting link indirection."""
+        import stat
+
+        info = os.lstat(path)
+        if (not stat.S_ISREG(info.st_mode)
+                or os.path.islink(path)):
+            raise ValueError(f"persistence artifact is not a regular file: {path}")
+        digest = _hashlib.sha256()
+        size = 0
+        with open(path, "rb") as artifact:
+            for block in iter(lambda: artifact.read(1024 * 1024), b""):
+                digest.update(block)
+                size += len(block)
+        if size != info.st_size:
+            raise ValueError(
+                f"persistence artifact changed while hashing: {path}")
+        return digest.hexdigest(), size
+
+    @classmethod
+    def _binary_binding_path(cls, artifact_path):
+        return artifact_path + cls.BINARY_BINDING_SUFFIX
+
+    def _write_binary_binding(self, artifact_path, saved_at_tick):
+        """Bind one opaque state artifact to this identity and save tick.
+
+        The immutable deployment generation separately hashes this receipt.
+        This inner receipt prevents a valid binary from a different engine
+        save from being substituted into an otherwise valid state tree.
+        """
+        digest, size = self._sha256_regular_file(artifact_path)
+        filename = os.path.basename(artifact_path)
+        binding_path = self._binary_binding_path(artifact_path)
+        self._atomic_write(
+            binding_path,
+            self._envelope({
+                "binding_contract": self.BINARY_BINDING_CONTRACT,
+                "artifact": filename,
+                "sha256": digest,
+                "bytes": size,
+                "saved_at_tick": saved_at_tick,
+            }, saved_at_tick=saved_at_tick))
+        return binding_path
+
+    def _verify_binary_binding(self, artifact_path, expected_tick):
+        """Verify the exact receipt and bytes for one required artifact."""
+        filename = os.path.basename(artifact_path)
+        binding_path = self._binary_binding_path(artifact_path)
+        if not os.path.isfile(binding_path) or os.path.islink(binding_path):
+            raise ValueError(f"required binary binding is missing: {filename}")
+        with open(binding_path) as binding_file:
+            raw = json.load(binding_file)
+        self._validate_exact_envelope(raw, os.path.basename(binding_path), expected_tick)
+        data = self._unwrap(raw, os.path.basename(binding_path))
+        if not isinstance(data, dict):
+            raise ValueError(f"{filename}: binary binding payload must be an object")
+        if data.get("binding_contract") != self.BINARY_BINDING_CONTRACT:
+            raise ValueError(f"{filename}: unknown binary binding contract")
+        if data.get("artifact") != filename:
+            raise ValueError(f"{filename}: binary binding artifact mismatch")
+        if data.get("saved_at_tick") != expected_tick:
+            raise ValueError(f"{filename}: binary binding tick mismatch")
+        expected_size = data.get("bytes")
+        expected_digest = data.get("sha256")
+        if (isinstance(expected_size, bool)
+                or not isinstance(expected_size, int)
+                or expected_size < 0):
+            raise ValueError(f"{filename}: invalid binary binding byte count")
+        if (not isinstance(expected_digest, str)
+                or len(expected_digest) != 64
+                or any(ch not in "0123456789abcdef" for ch in expected_digest)):
+            raise ValueError(f"{filename}: invalid binary binding digest")
+        actual_digest, actual_size = self._sha256_regular_file(artifact_path)
+        if actual_size != expected_size:
+            raise ValueError(
+                f"{filename}: binary size {actual_size} != bound {expected_size}")
+        if actual_digest != expected_digest:
+            raise ValueError(f"{filename}: binary digest differs from binding")
+
+    def _validate_exact_envelope(self, raw, filename, expected_tick):
+        """Prove that one JSON component belongs to the same save tick."""
+        if not isinstance(raw, dict):
+            raise ValueError(f"{filename}: envelope must be an object")
+        if "data" not in raw or "guala_identity" not in raw:
+            raise ValueError(f"{filename}: exact restore requires an envelope")
+        saved_tick = raw.get("saved_at_tick")
+        if (isinstance(saved_tick, bool)
+                or not isinstance(saved_tick, int)
+                or saved_tick < 0):
+            raise ValueError(f"{filename}: invalid saved_at_tick {saved_tick!r}")
+        if saved_tick != expected_tick:
+            raise ValueError(
+                f"{filename}: saved_at_tick {saved_tick} != {expected_tick}")
+        if not isinstance(raw.get("data"), dict):
+            raise ValueError(f"{filename}: envelope data must be an object")
+
+    @staticmethod
+    def _exact_int(value, field, *, minimum=0, maximum=None):
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise ValueError(f"{field} must be an integer")
+        if value < minimum or (maximum is not None and value > maximum):
+            raise ValueError(f"{field} is outside its structural range")
+        return value
+
+    @staticmethod
+    def _exact_number(value, field, *, minimum=None, maximum=None):
+        if (isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(float(value))):
+            raise ValueError(f"{field} must be a finite number")
+        number = float(value)
+        if minimum is not None and number < minimum:
+            raise ValueError(f"{field} is below its structural range")
+        if maximum is not None and number > maximum:
+            raise ValueError(f"{field} is above its structural range")
+        return number
+
+    @classmethod
+    def _validate_deep_atlas_payload(cls, data, engine_tick):
+        if not isinstance(data, dict):
+            raise ValueError("deep-atlas payload must be an object")
+        if data.get("schema") != "deep_atlas_v1":
+            raise ValueError(f"unknown deep-atlas schema: {data.get('schema')!r}")
+        cls._exact_int(data.get("tick"), "deep_atlas.tick", maximum=engine_tick)
+        saved_count = cls._exact_int(
+            data.get("saved_n_entries"), "deep_atlas.saved_n_entries")
+        for counter in (
+                "promotions_survival", "promotions_episodic", "reinstatements"):
+            cls._exact_int(data.get(counter), f"deep_atlas.{counter}")
+        entries = data.get("entries")
+        if not isinstance(entries, dict):
+            raise ValueError("deep_atlas.entries must be an object")
+        for chi_text, bucket in entries.items():
+            if (not isinstance(chi_text, str)
+                    or not chi_text.lstrip("-").isdigit()):
+                raise ValueError("deep_atlas entry key must be an integer string")
+            chi = int(chi_text)
+            if not isinstance(bucket, list):
+                raise ValueError(f"deep_atlas.entries[{chi_text}] must be a list")
+            for index, entry in enumerate(bucket):
+                label = f"deep_atlas.entries[{chi_text}][{index}]"
+                if not isinstance(entry, dict):
+                    raise ValueError(f"{label} must be an object")
+                required = (
+                    "section", "motif", "chi", "strength", "last_tick",
+                    "born_tick", "encoded_strength_at_write",
+                    "dwell_at_write", "source_path", "promoted_at_tick",
+                    "clarity", "initial_clarity", "arousal", "valence",
+                    "surprise", "source", "polarity", "sensory_refs",
+                    "episode_refs", "co_occurrence")
+                missing = [name for name in required if name not in entry]
+                if missing:
+                    raise ValueError(f"{label} is missing {missing}")
+                if not isinstance(entry["section"], str):
+                    raise ValueError(f"{label}.section must be a string")
+                cls._exact_int(entry["motif"], f"{label}.motif")
+                entry_chi = cls._exact_int(
+                    entry["chi"], f"{label}.chi", minimum=-2**63)
+                if entry_chi != chi:
+                    raise ValueError(f"{label}.chi does not match its bucket")
+                cls._exact_number(entry["strength"], f"{label}.strength", minimum=0.0)
+                for field in ("last_tick", "born_tick", "promoted_at_tick"):
+                    cls._exact_int(
+                        entry[field], f"{label}.{field}", maximum=engine_tick)
+                cls._exact_int(entry["dwell_at_write"], f"{label}.dwell_at_write")
+                for field in (
+                        "encoded_strength_at_write", "clarity",
+                        "initial_clarity", "arousal", "valence", "surprise",
+                        "polarity"):
+                    cls._exact_number(entry[field], f"{label}.{field}")
+                for field in ("source_path", "source"):
+                    if not isinstance(entry[field], str):
+                        raise ValueError(f"{label}.{field} must be a string")
+                for field in ("sensory_refs", "episode_refs"):
+                    if (not isinstance(entry[field], list)
+                            or any(not isinstance(item, str)
+                                   for item in entry[field])):
+                        raise ValueError(f"{label}.{field} must be a string list")
+                co_occurrence = entry["co_occurrence"]
+                if not isinstance(co_occurrence, dict):
+                    raise ValueError(f"{label}.co_occurrence must be an object")
+                for section, motifs in co_occurrence.items():
+                    if not isinstance(section, str) or not isinstance(motifs, dict):
+                        raise ValueError(
+                            f"{label}.co_occurrence has an invalid section")
+                    for motif, weight in motifs.items():
+                        if (not isinstance(motif, str)
+                                or not motif.lstrip("-").isdigit()):
+                            raise ValueError(
+                                f"{label}.co_occurrence motif must be an integer string")
+                        cls._exact_number(
+                            weight,
+                            f"{label}.co_occurrence[{section}][{motif}]",
+                            minimum=0.0)
+        return saved_count
+
+    @classmethod
+    def _validate_survival_payload(cls, data):
+        if not isinstance(data, dict):
+            raise ValueError("survival payload must be an object")
+        histories = data.get("deep_survival_history")
+        if not isinstance(histories, dict):
+            raise ValueError("deep_survival_history must be an object")
+        for key, strengths in histories.items():
+            if not isinstance(key, str):
+                raise ValueError("survival-history key must be a string")
+            parts = key.split("|", 2)
+            if (len(parts) != 3 or not parts[0].lstrip("-").isdigit()
+                    or not parts[1]
+                    or not parts[2].lstrip("-").isdigit()):
+                raise ValueError(f"invalid survival-history key: {key!r}")
+            cls._exact_int(int(parts[2]), f"survival[{key}].motif")
+            if not isinstance(strengths, list) or len(strengths) > 10:
+                raise ValueError(f"survival[{key}] must contain at most 10 strengths")
+            for index, strength in enumerate(strengths):
+                cls._exact_number(
+                    strength, f"survival[{key}][{index}]", minimum=0.0)
+
+    @classmethod
+    def _validate_teaching_payload(cls, data, engine_tick):
+        if not isinstance(data, dict):
+            raise ValueError("teaching payload must be an object")
+        for field in ("feedback_log", "correction_log"):
+            records = data.get(field)
+            if (not isinstance(records, list) or len(records) > 500
+                    or any(not isinstance(record, dict) for record in records)):
+                raise ValueError(f"teaching.{field} must be a bounded object list")
+            for index, record in enumerate(records):
+                if "tick" in record:
+                    cls._exact_int(
+                        record["tick"], f"teaching.{field}[{index}].tick",
+                        maximum=engine_tick)
+        emissions = data.get("emission_records")
+        if (not isinstance(emissions, dict)
+                or len(emissions) > EMISSION_RECORDS_CAP):
+            raise ValueError("teaching.emission_records must be a bounded object")
+        for emission_id, record in emissions.items():
+            if not isinstance(emission_id, str) or not isinstance(record, dict):
+                raise ValueError("teaching emission record is structurally invalid")
+            if record.get("emission_id") != emission_id:
+                raise ValueError(
+                    f"teaching emission {emission_id!r} has an identity mismatch")
+            cls._exact_int(
+                record.get("tick"), f"teaching.emission[{emission_id}].tick",
+                maximum=engine_tick)
+
+    @classmethod
+    def _validate_episodic_payload(cls, data, engine_tick, max_per_concept,
+                                   recent_limit):
+        if not isinstance(data, dict):
+            raise ValueError("episodic payload must be an object")
+        memories = data.get("episodic_memory")
+        recent = data.get("episodic_recent_concepts")
+        if not isinstance(memories, dict):
+            raise ValueError("episodic_memory must be an object")
+        if (not isinstance(recent, list) or len(recent) > recent_limit
+                or any(not isinstance(item, str) for item in recent)):
+            raise ValueError("episodic_recent_concepts is structurally invalid")
+        for concept, records in memories.items():
+            if (not isinstance(concept, str) or not concept
+                    or not isinstance(records, list)
+                    or len(records) > max_per_concept):
+                raise ValueError(f"episodic concept {concept!r} is invalid")
+            for index, record in enumerate(records):
+                label = f"episodic[{concept}][{index}]"
+                if not isinstance(record, dict):
+                    raise ValueError(f"{label} must be an object")
+                required = (
+                    "concept", "tick", "presence", "location", "sky_state",
+                    "affective", "context", "source")
+                missing = [field for field in required if field not in record]
+                if missing:
+                    raise ValueError(f"{label} is missing {missing}")
+                if (not isinstance(record["concept"], str)
+                        or record["concept"].lower() != concept):
+                    raise ValueError(f"{label}.concept does not match its key")
+                cls._exact_int(record["tick"], f"{label}.tick", maximum=engine_tick)
+                for field in ("presence", "context"):
+                    if (not isinstance(record[field], list)
+                            or any(not isinstance(item, str)
+                                   for item in record[field])):
+                        raise ValueError(f"{label}.{field} must be a string list")
+                for field in ("location", "sky_state", "source"):
+                    if not isinstance(record[field], str):
+                        raise ValueError(f"{label}.{field} must be a string")
+                affective = record["affective"]
+                if not isinstance(affective, dict):
+                    raise ValueError(f"{label}.affective must be an object")
+                cls._exact_number(
+                    affective.get("valence"), f"{label}.affective.valence",
+                    minimum=-1.0, maximum=1.0)
+                cls._exact_number(
+                    affective.get("arousal"), f"{label}.affective.arousal",
+                    minimum=0.0, maximum=1.0)
+
+    @classmethod
+    def _validate_sounds_payload(cls, data, engine_tick):
+        if not isinstance(data, dict):
+            raise ValueError("sounds payload must be an object")
+        for item_id, sound in data.items():
+            label = f"sound[{item_id}]"
+            if not isinstance(item_id, str) or not isinstance(sound, dict):
+                raise ValueError(f"{label} must be an object")
+            if sound.get("item_id") != item_id:
+                raise ValueError(f"{label}.item_id mismatch")
+            if not isinstance(sound.get("title"), str):
+                raise ValueError(f"{label}.title must be a string")
+            cochlear = sound.get("cochlear")
+            if not isinstance(cochlear, dict):
+                raise ValueError(f"{label}.cochlear must be an object")
+            for band, state in cochlear.items():
+                if not isinstance(band, str) or not isinstance(state, dict):
+                    raise ValueError(f"{label}.cochlear band is invalid")
+                cls._exact_int(state.get("winding"), f"{label}.{band}.winding",
+                               minimum=-2**63)
+                cls._exact_int(state.get("n_events"), f"{label}.{band}.n_events")
+            for field in ("times_attended", "last_attended_tick"):
+                cls._exact_int(sound.get(field), f"{label}.{field}",
+                               maximum=engine_tick)
+            if "created_tick" in sound:
+                cls._exact_int(sound["created_tick"], f"{label}.created_tick",
+                               maximum=engine_tick)
+            if "duration_s" in sound:
+                cls._exact_number(sound["duration_s"], f"{label}.duration_s",
+                                  minimum=0.0)
+            if "raw_signal" in sound:
+                signal = sound["raw_signal"]
+                if not isinstance(signal, list):
+                    raise ValueError(f"{label}.raw_signal must be a list")
+                for index, sample in enumerate(signal):
+                    cls._exact_number(sample, f"{label}.raw_signal[{index}]")
+
+    @classmethod
+    def _validate_wave_npz_payload(cls, path):
+        """Reject malformed WaveAtlas arrays before its loader can normalize."""
+        import gzip
+        from dsf_ai_service.v4.wave_atlas import PHASE_DIMS
+
+        required = {
+            "chi_indices", "aggregate_strengths", "last_ticks", "saturated",
+            "phase_vecs_re", "phase_vecs_im", "phase_vecs_valid",
+            "bindings_gz"}
+        with np.load(path, allow_pickle=False) as payload:
+            missing = required - set(payload.files)
+            if missing:
+                raise ValueError(f"WaveAtlas NPZ is missing {sorted(missing)}")
+            chi = payload["chi_indices"]
+            strength = payload["aggregate_strengths"]
+            last_ticks = payload["last_ticks"]
+            saturated = payload["saturated"]
+            phase_re = payload["phase_vecs_re"]
+            phase_im = payload["phase_vecs_im"]
+            phase_valid = payload["phase_vecs_valid"]
+            if chi.ndim != 1 or chi.dtype.kind not in "iu":
+                raise ValueError("WaveAtlas chi_indices must be an integer vector")
+            count = len(chi)
+            for name, array in (
+                    ("aggregate_strengths", strength),
+                    ("last_ticks", last_ticks),
+                    ("saturated", saturated),
+                    ("phase_vecs_valid", phase_valid)):
+                if array.ndim != 1 or len(array) != count:
+                    raise ValueError(f"WaveAtlas {name} length mismatch")
+            if (phase_re.shape != (count, PHASE_DIMS)
+                    or phase_im.shape != (count, PHASE_DIMS)):
+                raise ValueError("WaveAtlas phase-vector shape mismatch")
+            if len(set(int(value) for value in chi.tolist())) != count:
+                raise ValueError("WaveAtlas contains duplicate cell indices")
+            if (not np.all(np.isfinite(strength))
+                    or np.any(strength < 0)
+                    or np.any(last_ticks < 0)
+                    or not np.all(np.isfinite(phase_re))
+                    or not np.all(np.isfinite(phase_im))):
+                raise ValueError("WaveAtlas arrays contain invalid structural values")
+            try:
+                bindings = json.loads(gzip.decompress(
+                    payload["bindings_gz"].tobytes()).decode("utf-8"))
+            except Exception as error:
+                raise ValueError(
+                    f"WaveAtlas bindings payload is invalid: {error}") from error
+        if not isinstance(bindings, list) or len(bindings) != count:
+            raise ValueError("WaveAtlas bindings length mismatch")
+        for cell_index, cell_bindings in enumerate(bindings):
+            if not isinstance(cell_bindings, list):
+                raise ValueError(
+                    f"WaveAtlas bindings[{cell_index}] must be a list")
+            for binding_index, binding in enumerate(cell_bindings):
+                label = f"WaveAtlas bindings[{cell_index}][{binding_index}]"
+                if not isinstance(binding, dict):
+                    raise ValueError(f"{label} must be an object")
+                if not isinstance(binding.get("section"), str):
+                    raise ValueError(f"{label}.section must be a string")
+                cls._exact_int(binding.get("motif"), f"{label}.motif")
+                cls._exact_int(binding.get("chi"), f"{label}.chi", minimum=-2**63)
+                cls._exact_number(
+                    binding.get("strength"), f"{label}.strength", minimum=0.0)
+
     # ── Save ──
+
+    @staticmethod
+    def _asset_key(item_id):
+        return _hashlib.sha256(str(item_id).encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _asset_extension(path):
+        suffix = os.path.splitext(str(path or ""))[1].lower()
+        if (suffix.startswith(".") and len(suffix) <= 16
+                and suffix[1:].isalnum()):
+            return suffix
+        return ".bin"
+
+    def _picture_persistence_snapshot(self):
+        records = {}
+        assets = {}
+        for pid, picture in self._pictures.items():
+            key = self._asset_key(pid)
+            grid_path = (f"assets/pictures/{key}/grid.npy"
+                         if picture.intensity_grid is not None else None)
+            source_original = getattr(picture, "original_path", None)
+            original_path = None
+            if source_original:
+                original_path = (
+                    f"assets/pictures/{key}/original"
+                    f"{self._asset_extension(source_original)}")
+            records[pid] = {
+                "item_id": picture.item_id,
+                "title": picture.title,
+                "source": picture.source,
+                "shown_at_tick": picture.shown_at_tick,
+                "times_attended": picture.times_attended,
+                "last_attended_tick": picture.last_attended_tick,
+                "has_grid": picture.intensity_grid is not None,
+                "grid_path": grid_path,
+                "original_path": original_path,
+                "original_width": getattr(picture, "original_width", None),
+                "original_height": getattr(picture, "original_height", None),
+            }
+            assets[pid] = {
+                "grid": picture.intensity_grid,
+                "grid_path": grid_path,
+                "source_original": source_original,
+                "original_path": original_path,
+            }
+        return records, assets
+
+    def _video_persistence_snapshot(self):
+        records = {}
+        assets = {}
+        for vid, video in self._videos.items():
+            key = self._asset_key(vid)
+            frame_path = f"assets/videos/{key}/frames"
+            source_audio = getattr(video, "audio_path", "") or ""
+            audio_path = ""
+            if source_audio:
+                audio_path = (
+                    f"assets/videos/{key}/audio"
+                    f"{self._asset_extension(source_audio)}")
+            records[vid] = {
+                "item_id": video.item_id,
+                "title": video.title,
+                "frame_dir": frame_path,
+                "audio_path": audio_path,
+                "duration_ms": video.duration_ms,
+                "n_frames": video.n_frames,
+                "source": video.source,
+                "shown_at_tick": video.shown_at_tick,
+                "times_attended": video.times_attended,
+                "last_attended_tick": video.last_attended_tick,
+            }
+            assets[vid] = {
+                "source_frame_dir": video.frame_dir,
+                "frame_dir": frame_path,
+                "source_audio": source_audio,
+                "audio_path": audio_path,
+            }
+        return records, assets
+
+    @staticmethod
+    def _copy_regular_file(source, target):
+        import shutil
+        if not os.path.isfile(source) or os.path.islink(source):
+            raise ValueError(f"referenced media is not a regular file: {source}")
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        shutil.copy2(source, target)
+        with open(target, "rb") as fh:
+            os.fsync(fh.fileno())
+
+    def _materialize_media_assets(
+            self, state_dir, picture_assets, video_assets):
+        """Build one exact, relocatable media tree and replace the old tree.
+
+        The staging tree contains only currently referenced assets, so a
+        completed save cannot retain an orphan grid, picture original, frame,
+        audio file, or prior item directory.
+        """
+        import shutil
+        import uuid
+
+        os.makedirs(state_dir, exist_ok=True)
+        token = uuid.uuid4().hex
+        staging = os.path.join(state_dir, f".assets.{token}.tmp")
+        final = os.path.join(state_dir, "assets")
+        previous = os.path.join(state_dir, f".assets.{token}.previous")
+        os.makedirs(staging)
+        moved_previous = False
+        try:
+            for spec in picture_assets.values():
+                if spec["grid_path"]:
+                    grid_target = os.path.join(staging, *spec["grid_path"].split("/")[1:])
+                    os.makedirs(os.path.dirname(grid_target), exist_ok=True)
+                    with open(grid_target, "wb") as fh:
+                        np.save(fh, spec["grid"])
+                        fh.flush()
+                        os.fsync(fh.fileno())
+                if spec["original_path"]:
+                    original_target = os.path.join(
+                        staging, *spec["original_path"].split("/")[1:])
+                    self._copy_regular_file(
+                        spec["source_original"], original_target)
+
+            for spec in video_assets.values():
+                source_frames = spec["source_frame_dir"]
+                if (not os.path.isdir(source_frames)
+                        or os.path.islink(source_frames)):
+                    raise ValueError(
+                        f"referenced video frame directory is unavailable: "
+                        f"{source_frames}")
+                frame_target = os.path.join(
+                    staging, *spec["frame_dir"].split("/")[1:])
+                os.makedirs(frame_target, exist_ok=True)
+                for root, dirs, files in os.walk(source_frames):
+                    dirs.sort()
+                    files.sort()
+                    if any(os.path.islink(os.path.join(root, name)) for name in dirs):
+                        raise ValueError(
+                            f"video frame directory contains a symlink: {root}")
+                    relative_root = os.path.relpath(root, source_frames)
+                    target_root = (frame_target if relative_root == "." else
+                                   os.path.join(frame_target, relative_root))
+                    os.makedirs(target_root, exist_ok=True)
+                    for name in files:
+                        self._copy_regular_file(
+                            os.path.join(root, name),
+                            os.path.join(target_root, name))
+                if spec["audio_path"]:
+                    audio_target = os.path.join(
+                        staging, *spec["audio_path"].split("/")[1:])
+                    self._copy_regular_file(spec["source_audio"], audio_target)
+
+            if os.path.exists(final):
+                os.rename(final, previous)
+                moved_previous = True
+            os.rename(staging, final)
+            if moved_previous:
+                shutil.rmtree(previous)
+
+            # Loaded objects must continue to point at the newly installed
+            # self-contained tree after the old source directory is retired.
+            with self.lock:
+                for pid, spec in picture_assets.items():
+                    picture = self._pictures.get(pid)
+                    if picture is not None and spec["original_path"]:
+                        picture.original_path = os.path.join(
+                            state_dir, *spec["original_path"].split("/"))
+                for vid, spec in video_assets.items():
+                    video = self._videos.get(vid)
+                    if video is not None:
+                        video.frame_dir = os.path.join(
+                            state_dir, *spec["frame_dir"].split("/"))
+                        video.audio_path = (
+                            os.path.join(state_dir, *spec["audio_path"].split("/"))
+                            if spec["audio_path"] else "")
+
+            # Pre-contract grids/originals lived here.  They have all been
+            # copied above; retaining the directory would preserve orphans.
+            legacy_pictures = os.path.join(state_dir, "pictures")
+            if os.path.isdir(legacy_pictures):
+                shutil.rmtree(legacy_pictures)
+            directory_fd = os.open(state_dir, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+        except BaseException:
+            shutil.rmtree(staging, ignore_errors=True)
+            if moved_previous and not os.path.exists(final):
+                os.rename(previous, final)
+            elif moved_previous:
+                shutil.rmtree(previous, ignore_errors=True)
+            raise
+
+    def _media_assets_are_current(
+            self, state_dir, picture_assets, video_assets):
+        """Return true when a hot save can reuse the exact durable media tree."""
+        assets_root = os.path.join(state_dir, "assets")
+        pictures_root = os.path.join(assets_root, "pictures")
+        videos_root = os.path.join(assets_root, "videos")
+        expected_picture_keys = {
+            self._asset_key(item_id) for item_id in picture_assets}
+        expected_video_keys = {
+            self._asset_key(item_id) for item_id in video_assets}
+
+        def directory_names(path):
+            if not os.path.exists(path):
+                return set()
+            if os.path.islink(path) or not os.path.isdir(path):
+                return None
+            return {
+                name for name in os.listdir(path)
+                if os.path.isdir(os.path.join(path, name))
+                and not os.path.islink(os.path.join(path, name))
+            }
+
+        if directory_names(pictures_root) != expected_picture_keys:
+            return False
+        if directory_names(videos_root) != expected_video_keys:
+            return False
+
+        for spec in picture_assets.values():
+            if spec["grid_path"] and not os.path.isfile(
+                    os.path.join(state_dir, *spec["grid_path"].split("/"))):
+                return False
+            if spec["original_path"]:
+                target = os.path.join(
+                    state_dir, *spec["original_path"].split("/"))
+                if (not os.path.isfile(target)
+                        or os.path.realpath(spec["source_original"])
+                        != os.path.realpath(target)):
+                    return False
+        for spec in video_assets.values():
+            frame_target = os.path.join(
+                state_dir, *spec["frame_dir"].split("/"))
+            if (not os.path.isdir(frame_target)
+                    or os.path.realpath(spec["source_frame_dir"])
+                    != os.path.realpath(frame_target)):
+                return False
+            if spec["audio_path"]:
+                audio_target = os.path.join(
+                    state_dir, *spec["audio_path"].split("/"))
+                if (not os.path.isfile(audio_target)
+                        or os.path.realpath(spec["source_audio"])
+                        != os.path.realpath(audio_target)):
+                    return False
+        return True
+
+    @staticmethod
+    def _resolve_state_reference(state_dir, stored_path, expected_kind,
+                                 allow_legacy_absolute=False):
+        if not stored_path:
+            return ""
+        if os.path.isabs(stored_path):
+            if not allow_legacy_absolute:
+                raise ValueError(
+                    f"absolute state reference is not relocatable: {stored_path}")
+            candidate = os.path.realpath(stored_path)
+        else:
+            root = os.path.realpath(state_dir)
+            candidate = os.path.realpath(os.path.join(state_dir, stored_path))
+            if os.path.commonpath((root, candidate)) != root:
+                raise ValueError(f"state reference escapes state directory: {stored_path}")
+        exists = (os.path.isfile(candidate) if expected_kind == "file"
+                  else os.path.isdir(candidate))
+        if not exists:
+            raise ValueError(f"persisted {expected_kind} is unavailable: {stored_path}")
+        return candidate
 
     def _serialize_sight_motifs(self):
         """GL-194: one serialization for both lanes (cold always; hot only
@@ -11304,6 +13131,11 @@ class Guala:
         })
 
     def save_hot_state(self, state_dir="state"):
+        """Persist the hot lane as one serialized multi-file generation."""
+        with self.persistence_transaction():
+            return self._save_hot_state_locked(state_dir)
+
+    def _save_hot_state_locked(self, state_dir="state"):
         """GL-CMD-DEEP-STORE-PHYSICS-86 P2: hot-lane save.
         Writes small stores only (core/needs/coord/visual/sounds/videos/bucket/teaching).
         Target <5s. Advances _last_save_tick. Cold stores (sections/atlas/deep_atlas)
@@ -11316,8 +13148,10 @@ class Guala:
             ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             if self._guala_identity is None:
                 self._generate_genesis_identity(state_dir)
+            self._ensure_identity_in_target(state_dir)
 
             corpora_ser = {cid: {"corpus_id": c.corpus_id, "title": c.title,
+                                  "lines": list(c.lines),
                                   "position": c.position,
                                   "times_read_through": c.times_read_through,
                                   "last_read_tick": c.last_read_tick,
@@ -11328,7 +13162,10 @@ class Guala:
                                   "times_attended": s.times_attended,
                                   "last_attended_tick": s.last_attended_tick}
                            for sid, s in self._sensory_items.items()}
+            pictures_ser, picture_assets = self._picture_persistence_snapshot()
+            videos_ser, video_assets = self._video_persistence_snapshot()
             snap_core = self._envelope({
+                "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
                 "tick": self.tick, "read_count": self.read_count,
                 "vocab": sorted(self.vocab),
                 "source_history": dict(self.source_history),
@@ -11343,6 +13180,10 @@ class Guala:
                 "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
                 "corpora_state": corpora_ser,
                 "sensory_state": sensory_ser,
+                "current_activity": (
+                    _copy.deepcopy(self._current_activity.snapshot())
+                    if self._current_activity is not None else None),
+                "last_save_tick": self.tick,
                 "deep_survival_history": {},  # GL-102: empty sentinel; data in guala_survival.json
                 "total_emissions": self._total_emissions,
             })
@@ -11371,6 +13212,7 @@ class Guala:
                 "last_real_dream_tick": self._last_real_dream_tick,
             })
             snap_coord = self._envelope({
+                "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
                 "pair_bond": dict(self.coordinator._pair_bond),
                 "pair_bond_active": self.coordinator.pair_bond_active,
                 "distress_ticks": self.coordinator.distress_ticks,
@@ -11378,6 +13220,8 @@ class Guala:
                 "need_history": list(self.coordinator.need_history[-200:]),
                 "attentions_count": len(self.coordinator.attentions),
                 "actions_count": len(self.coordinator.actions),
+                "presence": dict(self.coordinator._presence),
+                "last_input_tick": dict(self.coordinator._last_input_tick),
                 "source_interaction_log": {
                     src: list(entries[-200:])
                     for src, entries in self.coordinator._source_interaction_log.items()
@@ -11394,17 +13238,8 @@ class Guala:
             # boot if the file is absent (migration write — closes the crash
             # window between deploy-boot and the first cold save).
             snap_visual = self._envelope({
-                "pictures": {
-                    pid: {"item_id": p.item_id, "title": p.title,
-                          "source": p.source, "shown_at_tick": p.shown_at_tick,
-                          "times_attended": p.times_attended,
-                          "last_attended_tick": p.last_attended_tick,
-                          "has_grid": p.intensity_grid is not None,
-                          "original_path": getattr(p, 'original_path', None),
-                          "original_width": getattr(p, 'original_width', None),
-                          "original_height": getattr(p, 'original_height', None)}
-                    for pid, p in self._pictures.items()
-                },
+                "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
+                "pictures": pictures_ser,
                 "sight_motifs": [],
                 "sight_motifs_file": "guala_sight_motifs.json",
                 "n_sight_motifs": len(self.sight.motifs) if hasattr(self, 'sight') else 0,
@@ -11417,16 +13252,19 @@ class Guala:
                                  if _need_motif_migration else None)
             snap_sounds = self._envelope(dict(self._sounds))
             snap_videos = self._envelope({
-                vid: {"item_id": v.item_id, "title": v.title,
-                      "source": getattr(v, 'source', ''),
-                      "times_attended": v.times_attended,
-                      "last_attended_tick": v.last_attended_tick}
-                for vid, v in self._videos.items()
+                "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
+                "videos": videos_ser,
             })
             save_tick = self.tick
             snap_vocab_len = len(self.vocab)
             snap_bucket = self._envelope({"removed": True, "vocab_count": snap_vocab_len})
+            snap_windows = self._envelope(self.window_manager.snapshot())
         # lock released
+
+        if not self._media_assets_are_current(
+                state_dir, picture_assets, video_assets):
+            self._materialize_media_assets(
+                state_dir, picture_assets, video_assets)
 
         # GL-CMD-HOTLANE-DIET-102: survival history is cold-only; hot save skips it.
         # snap_core["data"]["deep_survival_history"] remains None (backward-compat field).
@@ -11447,7 +13285,7 @@ class Guala:
                                f"Set GUALA_FORCE_SAVE=1 to override.")
                         print(msg)
                         if os.environ.get("GUALA_FORCE_SAVE") != "1":
-                            return {}
+                            raise RuntimeError(msg)
             except (json.JSONDecodeError, OSError) as _e:
                 print(f"[save-hot] prior state read failed (proceeding): {_e}")
 
@@ -11459,6 +13297,7 @@ class Guala:
             ("guala_visual.json", snap_visual),
             ("guala_sounds.json", snap_sounds),
             ("guala_videos.json", snap_videos),
+            ("guala_windows.json", snap_windows),
         ]
         if snap_sight_motifs is not None:
             # GL-194 one-time migration write (see snap_visual comment).
@@ -11522,14 +13361,15 @@ class Guala:
                 else:
                     results[filename] = size
 
-        _critical_hot = {"guala_core.json", "guala_needs.json", "guala_coordinator.json"}
-        _critical_failures = [(f, e) for f, e in _failures if f in _critical_hot]
-        if not _critical_failures:
+        if not _failures:
             self._last_save_tick = save_tick
             self._last_save_timestamp = ts
         else:
-            print(f"[GualaLoom] HOT SAVE CRITICAL FAILURE at tick {save_tick}: "
-                  f"{[f for f, _ in _critical_failures]}")
+            self._log_substrate_event(
+                "save_hot_failure", tick=save_tick,
+                failed_files=[f for f, _ in _failures])
+            print(f"[GualaLoom] HOT SAVE FAILURE at tick {save_tick}: "
+                  f"{[f for f, _ in _failures]}")
         # GL-CMD-TURN-LATENCY-EVE-20260705-197 P1 (c1 addition): per-file
         # write timing -- "if any stage still spikes, its number and lock
         # owner go in the report, no hand-waving." -194's fix (evict
@@ -11539,9 +13379,15 @@ class Guala:
         # rather than guessing further from the aggregate number alone.
         _slowest = max(_per_file_ms.items(), key=lambda kv: kv[1]) if _per_file_ms else (None, 0)
         print(f"[save-hot-detail] {_per_file_ms} slowest={_slowest[0]}({_slowest[1]}ms)")
+        self._raise_persistence_failures("hot save", _failures)
         return results
 
     def save_full_state(self, state_dir="state"):
+        """Persist the full lane as one serialized multi-file generation."""
+        with self.persistence_transaction():
+            return self._save_full_state_locked(state_dir)
+
+    def _save_full_state_locked(self, state_dir="state"):
         """Round-trip every mutable attribute. Atomic writes. Identity-stamped.
         GL-FIX-SAVE-LOCK: snapshot data under lock (fast), write to disk outside
         lock (slow). Lock hold time drops from ~20s to milliseconds."""
@@ -11554,9 +13400,11 @@ class Guala:
 
             if self._guala_identity is None:
                 self._generate_genesis_identity(state_dir)
+            self._ensure_identity_in_target(state_dir)
 
             # 1. Core
             corpora_ser = {cid: {"corpus_id": c.corpus_id, "title": c.title,
+                                  "lines": list(c.lines),
                                   "position": c.position,
                                   "times_read_through": c.times_read_through,
                                   "last_read_tick": c.last_read_tick,
@@ -11567,11 +13415,15 @@ class Guala:
                                   "times_attended": s.times_attended,
                                   "last_attended_tick": s.last_attended_tick}
                            for sid, s in self._sensory_items.items()}
+            pictures_ser, picture_assets = self._picture_persistence_snapshot()
+            videos_ser, video_assets = self._video_persistence_snapshot()
             # Shallow-copy survival history under lock (fast), serialize outside lock.
             # Building surv_ser (57k string-format ops) takes ~400ms — too slow under lock.
             _surv_snap = dict(self._deep_survival_history)
 
             snap_core = self._envelope({
+                "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
+                "binary_binding_contract": self.BINARY_BINDING_CONTRACT,
                 "tick": self.tick, "read_count": self.read_count,
                 "vocab": sorted(self.vocab),
                 "source_history": dict(self.source_history),
@@ -11586,6 +13438,10 @@ class Guala:
                 "target_familiarity": {k: round(v, 4) for k, v in self.target_familiarity.items()},
                 "corpora_state": corpora_ser,
                 "sensory_state": sensory_ser,
+                "current_activity": (
+                    _copy.deepcopy(self._current_activity.snapshot())
+                    if self._current_activity is not None else None),
+                "last_save_tick": self.tick,
                 "deep_survival_history": {},  # GL-102: empty sentinel; data in guala_survival.json
                 "total_emissions": self._total_emissions,
             })
@@ -11611,6 +13467,7 @@ class Guala:
 
             # 3. Coordinator
             snap_coord = self._envelope({
+                "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
                 "pair_bond": dict(self.coordinator._pair_bond),
                 "pair_bond_active": self.coordinator.pair_bond_active,
                 "distress_ticks": self.coordinator.distress_ticks,
@@ -11618,6 +13475,8 @@ class Guala:
                 "need_history": list(self.coordinator.need_history[-200:]),
                 "attentions_count": len(self.coordinator.attentions),
                 "actions_count": len(self.coordinator.actions),
+                "presence": dict(self.coordinator._presence),
+                "last_input_tick": dict(self.coordinator._last_input_tick),
                 # 60-K: interaction log (last 200 entries per source for state portability)
                 "source_interaction_log": {
                     src: list(entries[-200:])
@@ -11648,22 +13507,16 @@ class Guala:
                     "dead_zone": sec.dead_zone,
                     "gamma": dict(sec.gamma),
                     "tick": sec.tick,
+                    "mode_last_active_tick": list(
+                        sec._mode_last_active_tick),
+                    "mode_alive": list(sec._mode_alive),
                 }
             snap_sections = self._envelope(sections_data)
 
             # 8. Visual
             snap_visual = self._envelope({
-                "pictures": {
-                    pid: {"item_id": p.item_id, "title": p.title,
-                          "source": p.source, "shown_at_tick": p.shown_at_tick,
-                          "times_attended": p.times_attended,
-                          "last_attended_tick": p.last_attended_tick,
-                          "has_grid": p.intensity_grid is not None,
-                          "original_path": getattr(p, 'original_path', None),
-                          "original_width": getattr(p, 'original_width', None),
-                          "original_height": getattr(p, 'original_height', None)}
-                    for pid, p in self._pictures.items()
-                },
+                "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
+                "pictures": pictures_ser,
                 "sight_motifs": [],
                 "sight_motifs_file": "guala_sight_motifs.json",
                 "n_sight_motifs": len(self.sight.motifs) if hasattr(self, 'sight') else 0,
@@ -11671,21 +13524,13 @@ class Guala:
             })
             # GL-194: vocab-scaled motif store rides the COLD lane only.
             snap_sight_motifs = self._serialize_sight_motifs()
-            # Snapshot picture grids (numpy arrays are immutable-ish, shallow copy OK)
-            snap_pic_grids = {pid: p.intensity_grid
-                              for pid, p in self._pictures.items()
-                              if p.intensity_grid is not None}
-
             # 9. Sounds
             snap_sounds = self._envelope(dict(self._sounds))
 
             # 10. Videos
             snap_videos = self._envelope({
-                vid: {"item_id": v.item_id, "title": v.title,
-                      "source": getattr(v, 'source', ''),
-                      "times_attended": v.times_attended,
-                      "last_attended_tick": v.last_attended_tick}
-                for vid, v in self._videos.items()
+                "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
+                "videos": videos_ser,
             })
 
             save_tick = self.tick
@@ -11693,7 +13538,11 @@ class Guala:
             snap_atlas_count = sum(len(v) for v in self.atlas.entries.values())
             # 7. Bucket (removed — Phase E; GL-102: carries vocab_count for guard diet)
             snap_bucket = self._envelope({"removed": True, "vocab_count": snap_vocab_len})
+            snap_windows = self._envelope(self.window_manager.snapshot())
         # ── lock released ──
+
+        self._materialize_media_assets(
+            state_dir, picture_assets, video_assets)
 
         # ── T1.2: Regression sanity check — refuse to overwrite richer state ──
         # GL-CMD-HOTLANE-DIET-102: read vocab_count from guala_bucket.json (~1KB)
@@ -11725,7 +13574,9 @@ class Guala:
             surv_ser[f"{chi_k}|{sec}|{mid}"] = strengths[-10:]
         # GL-CMD-HOTLANE-DIET-102: survival history moves to own cold file.
         # snap_core["data"]["deep_survival_history"] remains None (backward-compat field).
-        snap_survival = self._envelope({"deep_survival_history": surv_ser})
+        snap_survival = self._envelope(
+            {"deep_survival_history": surv_ser},
+            saved_at_tick=save_tick)
         results = {}
         # GL-FIX-ATLAS-INTEGRITY: sections written BEFORE atlas so that if the process
         # is interrupted mid-save, the loaded sections have >= modes as atlas motif IDs.
@@ -11744,6 +13595,7 @@ class Guala:
             ("guala_sight_motifs.json", snap_sight_motifs),  # GL-194: cold, vocab-scaled
             ("guala_sounds.json", snap_sounds),
             ("guala_videos.json", snap_videos),
+            ("guala_windows.json", snap_windows),
         ]
         # GL-CMD-PERSIST-FIX-74: per-file error isolation. Prior to this fix, any
         # single atomic_write failure aborted the entire save loop, dropping every
@@ -11773,7 +13625,7 @@ class Guala:
             "feedback_log": self._teaching_feedback_log[-500:],
             "correction_log": self._teaching_correction_log[-500:],
             "emission_records": dict(list(self._emission_records.items())[-EMISSION_RECORDS_CAP:]),
-        })
+        }, saved_at_tick=save_tick)
         # GL-CMD-PERSIST-CLOBBER-FIX-81: teaching is non-critical — isolate so it
         # cannot prevent _last_save_tick from advancing when core files succeed.
         try:
@@ -11794,7 +13646,7 @@ class Guala:
         snap_episodic = self._envelope({
             "episodic_memory": {c: list(recs) for c, recs in self._episodic_memory.items()},
             "episodic_recent_concepts": list(self._episodic_recent_concepts),
-        })
+        }, saved_at_tick=save_tick)
         try:
             self._atomic_write(os.path.join(state_dir, "guala_episodic.json"), snap_episodic)
         except Exception as _ee:
@@ -11845,7 +13697,13 @@ class Guala:
             # every read path and the writer's own per-item work above are
             # lock-free now.
             with self._organism_lock:
-                self.organism.save_full_state(os.path.join(state_dir, "guala_organism.pkl.gz"))
+                organism_path = os.path.join(
+                    state_dir, "guala_organism.pkl.gz")
+                self.organism.save_full_state(organism_path)
+                organism_binding = self._write_binary_binding(
+                    organism_path, save_tick)
+                results[os.path.basename(organism_binding)] = os.path.getsize(
+                    organism_binding)
         except Exception as _oe:
             _save_failures.append(("guala_organism.pkl.gz", str(_oe)))
             print(f"[GualaLoom] save failed for guala_organism.pkl.gz: {_oe}")
@@ -11861,49 +13719,32 @@ class Guala:
                 # had a None query -> honest empty (audit-proven live cause
                 # of the 2026-07-05 all-night silence).
                 self.tapestry._engine_prev_word = self._tapestry_prev_word
-                self.tapestry.save_full_state(os.path.join(state_dir, "guala_tapestry.pkl.gz"))
+                tapestry_path = os.path.join(
+                    state_dir, "guala_tapestry.pkl.gz")
+                self.tapestry.save_full_state(tapestry_path)
+                tapestry_binding = self._write_binary_binding(
+                    tapestry_path, save_tick)
+                results[os.path.basename(tapestry_binding)] = os.path.getsize(
+                    tapestry_binding)
         except Exception as _te:
             _save_failures.append(("guala_tapestry.pkl.gz", str(_te)))
             print(f"[GualaLoom] save failed for guala_tapestry.pkl.gz: {_te}")
 
-        # Picture grids — incremental + per-item isolation.
-        # Grids are immutable post-upload (same pid = same 64×64 content).
-        # Skip existing files with correct size to avoid hammering EFS.
-        pic_dir = os.path.join(state_dir, "pictures")
-        os.makedirs(pic_dir, exist_ok=True)
-        _GRID_BYTES = 32896  # 64×64 float64 array + numpy header ≈ 32896 B
-        _grids_t0 = time.time()
-        for pid, grid in snap_pic_grids.items():
-            if grid is None:
-                continue
-            grid_path = os.path.join(pic_dir, f"{pid}.npy")
-            try:
-                if os.path.exists(grid_path) and os.path.getsize(grid_path) == _GRID_BYTES:
-                    continue  # already on EFS, skip
-                np.save(grid_path, grid)
-            except Exception as _ge:
-                _save_failures.append((f"pictures/{pid}.npy", str(_ge)))
-                print(f"[GualaLoom] save failed for pictures/{pid}.npy: {_ge}")
-        results["_grids_dt"] = time.time() - _grids_t0
-
-        # GL-CMD-PERSIST-FIX-74: mark survival based on critical-file success only.
-        _critical = {"guala_core.json", "guala_needs.json", "guala_coordinator.json",
-                     "guala_sections.json", "guala_atlas.json"}
-        _critical_failures = [(f, e) for f, e in _save_failures if f in _critical]
-        if not _critical_failures:
+        # A full save is one requested generation.  No mutable-state file is
+        # optional: a caller may inspect the partial files for diagnosis, but
+        # save metadata advances and success is returned only when every file
+        # completed.
+        if not _save_failures:
             self._last_save_tick = save_tick
             self._last_cold_save_tick = save_tick  # GL-CMD-DEEP-STORE-PHYSICS-86 P2
             self._last_save_timestamp = ts
-            if _save_failures:
-                self._log_substrate_event("save_partial",
-                                          tick=save_tick,
-                                          failed_files=[f for f, _ in _save_failures])
         else:
-            self._log_substrate_event("save_critical_failure",
+            self._log_substrate_event("save_full_failure",
                                       tick=save_tick,
-                                      failed_files=[f for f, _ in _critical_failures])
-            print(f"[GualaLoom] CRITICAL SAVE FAILURE at tick {save_tick}: "
-                  f"{[f for f, _ in _critical_failures]}")
+                                      failed_files=[f for f, _ in _save_failures])
+            print(f"[GualaLoom] FULL SAVE FAILURE at tick {save_tick}: "
+                  f"{[f for f, _ in _save_failures]}")
+            self._raise_persistence_failures("full save", _save_failures)
 
         # GL-CMD-DEEP-ATLAS-PERSIST: emit save confirmation event
         _n_deep = self.deep_atlas.live_count()
@@ -11916,16 +13757,22 @@ class Guala:
         return results
 
     def _save_wave_atlas(self, state_dir):
+        """Persist WaveAtlas inside the shared persistence transaction."""
+        with self.persistence_transaction():
+            return self._save_wave_atlas_locked(state_dir)
+
+    def _save_wave_atlas_locked(self, state_dir):
         """GL-CMD-WAVE-SEMANTICS-85 Part C.1: persist WaveAtlas as numpy .npz.
         Much smaller than JSON after Part B.3 migration (~8-25k bindings → <5MB).
-        Falls back to JSON if npz write fails (non-fatal in both cases)."""
+        A configured WaveAtlas is required state; write failures propagate."""
         if self.wave_atlas is None:
             return
+        npz_path = os.path.join(state_dir, "wave_atlas.npz")
+        tmp_path = npz_path + ".tmp"
+        save_tick = self.tick
         try:
             n_cells = len(self.wave_atlas.cells)
             n_bind = sum(len(c.bindings) for c in self.wave_atlas.cells.values())
-            npz_path = os.path.join(state_dir, "wave_atlas.npz")
-            tmp_path = npz_path + ".tmp"
             self.wave_atlas.to_npz(tmp_path)
             # GL-RPT-PERSIST-FIX-74 discipline: fsync data + directory before rename
             with open(tmp_path, "rb") as _f:
@@ -11936,11 +13783,23 @@ class Guala:
             finally:
                 os.close(_dir_fd)
             os.rename(tmp_path, npz_path)
+            binding_path = self._write_binary_binding(npz_path, save_tick)
             file_mb = os.path.getsize(npz_path) / 1e6
             print(f"[GualaLoom] WaveAtlas saved (npz): {n_cells} cells, "
                   f"{n_bind} bindings, {file_mb:.1f}MB")
+            return {
+                "path": npz_path,
+                "bytes": os.path.getsize(npz_path),
+                "binding_path": binding_path,
+            }
         except Exception as _we:
-            print(f"[GualaLoom] WaveAtlas npz save failed (non-fatal): {_we}")
+            if os.path.exists(tmp_path):
+                try:
+                    os.remove(tmp_path)
+                except OSError:
+                    pass
+            print(f"[GualaLoom] WaveAtlas npz save failed: {_we}")
+            raise
 
     # ── Load ──
 
@@ -11955,44 +13814,61 @@ class Guala:
     def events_log_size(self, state_dir):
         """Return current event log file size in bytes."""
         path = os.path.join(state_dir, self.EVENTS_LOG)
-        if not os.path.exists(path):
-            return 0
-        return os.path.getsize(path)
+        with self._event_log_lock:
+            if not os.path.exists(path):
+                return 0
+            return os.path.getsize(path)
 
     def compact_events(self, state_dir, keep_after_offset=0):
+        """Compact crash-replay events inside the persistence transaction."""
+        with self.persistence_transaction():
+            return self._compact_events_locked(state_dir, keep_after_offset)
+
+    def _compact_events_locked(self, state_dir, keep_after_offset=0):
         """Keep only events written after keep_after_offset bytes.
         Events appended during the save window survive; only pre-save
         events (already captured in the snapshot) are discarded."""
         path = os.path.join(state_dir, self.EVENTS_LOG)
-        if not os.path.exists(path):
-            return 0
-        try:
+        tmp = path + ".tmp"
+        with self._event_log_lock:
+            if not os.path.exists(path):
+                return 0
             with open(path, "rb") as f:
                 f.seek(keep_after_offset)
                 tail = f.read()
             size_before = os.path.getsize(path)
-            tmp = path + ".tmp"
-            with open(tmp, "wb") as f:
-                f.write(tail)
-                f.flush()
-                os.fsync(f.fileno())
-            os.replace(tmp, path)
+            try:
+                with open(tmp, "wb") as f:
+                    f.write(tail)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(tmp, path)
+            except Exception:
+                if os.path.exists(tmp):
+                    try:
+                        os.remove(tmp)
+                    except OSError:
+                        pass
+                raise
             kept = len(tail.strip().split(b"\n")) if tail.strip() else 0
             discarded = size_before - len(tail)
             if discarded > 0:
                 print(f"[GualaLoom] Event log compacted: {discarded} bytes discarded, "
                       f"{kept} events kept")
             return kept
-        except Exception as e:
-            print(f"[GualaLoom] Compaction error: {e}")
-            return 0
 
-    def load_full_state(self, state_dir="state"):
+    @_engine_mutation_entry
+    def load_full_state(self, state_dir="state", *, require_exact_binary=False):
         """Load with identity verification, schema check, integrity validation."""
         self._load_errors = []
         self._load_successful = False
         self._integrity_errors = []
         self._events_replayed_at_boot = 0
+        self._binary_restore_status = {
+            "organism": False,
+            "tapestry": False,
+            "wave_atlas": False,
+        }
 
         identity_path = os.path.join(state_dir, self.IDENTITY_FILE)
         has_identity = os.path.exists(identity_path)
@@ -12037,7 +13913,18 @@ class Guala:
         self._guala_identity = self._load_identity(state_dir)
         self.organism.identity_uuid = self._guala_identity  # GL-CMD-175 P1
         missing = [f for f in self.STATE_FILES if f not in present]
-        if missing:
+        _window_migration = False
+        if missing == ["guala_windows.json"]:
+            # v7.3 introduces first-class BindingWindow persistence.  An
+            # older core may honestly migrate with empty canonical memory;
+            # a v7.3 core missing this file is a partial generation and must
+            # fail closed rather than silently erase recognition history.
+            with open(os.path.join(state_dir, "guala_core.json")) as _core_fh:
+                _prior_core = json.load(_core_fh)
+            _prior_schema = _prior_core.get("schema_version", "unknown")
+            _window_migration = _prior_schema in (
+                self.COMPATIBLE_SCHEMAS - {"v7.3.0"})
+        if missing and not _window_migration:
             msg = f"[GualaLoom] ABORT: partial state. Missing: {missing}"
             print(msg)
             self._load_errors.append(msg)
@@ -12046,13 +13933,14 @@ class Guala:
         try:
             # Load all files, verify envelopes
             raw = {}
-            for f in self.STATE_FILES:
+            load_files = [f for f in self.STATE_FILES if f in present]
+            for f in load_files:
                 with open(os.path.join(state_dir, f)) as fh:
                     raw[f] = json.load(fh)
 
             # Unwrap + validate identity/schema
             data = {}
-            for f in self.STATE_FILES:
+            for f in load_files:
                 r = raw[f]
                 if "data" in r and "guala_identity" in r:
                     data[f] = self._unwrap(r, f)
@@ -12070,17 +13958,70 @@ class Guala:
             core = data["guala_core.json"]
             if not isinstance(core.get("tick"), (int, float)):
                 raise ValueError(f"Invalid tick: {core.get('tick')}")
+            if (core.get("continuity_contract") ==
+                    self.ENGINE_CONTINUITY_CONTRACT):
+                missing_continuity = [
+                    name for name in (
+                        "guala_visual.json", "guala_videos.json",
+                        "guala_sight_motifs.json")
+                    if not os.path.isfile(os.path.join(state_dir, name))]
+                if missing_continuity:
+                    raise ValueError(
+                        "continuity generation missing: "
+                        f"{missing_continuity}")
+            exact_binary = bool(
+                require_exact_binary
+                or core.get("continuity_contract") ==
+                self.ENGINE_CONTINUITY_CONTRACT)
+            binding_contract = core.get("binary_binding_contract")
+            if (binding_contract is not None
+                    and binding_contract != self.BINARY_BINDING_CONTRACT):
+                raise ValueError(
+                    f"unknown binary binding contract: {binding_contract}")
+            bound_generation = (
+                binding_contract == self.BINARY_BINDING_CONTRACT)
+            core_envelope_tick = raw["guala_core.json"].get("saved_at_tick")
+            if exact_binary:
+                self._exact_int(
+                    core_envelope_tick, "guala_core.json.saved_at_tick")
+                self._exact_int(core.get("tick"), "guala_core.json.tick")
+                self._exact_int(
+                    core.get("last_save_tick"),
+                    "guala_core.json.last_save_tick")
+                if core["tick"] != core_envelope_tick:
+                    raise ValueError(
+                        "guala_core.json: engine tick differs from save tick")
+                if core["last_save_tick"] != core_envelope_tick:
+                    raise ValueError(
+                        "guala_core.json: last_save_tick differs from save tick")
+                for filename in load_files:
+                    self._validate_exact_envelope(
+                        raw[filename], filename, core_envelope_tick)
 
             # Apply state
             with self.lock:
                 self._apply_core(core)
                 self._apply_needs(nd)
                 self._apply_coordinator(data["guala_coordinator.json"])
-                self._apply_atlas(data["guala_atlas.json"])
-                self._apply_sections(data["guala_sections.json"])
+                self._apply_atlas(
+                    data["guala_atlas.json"], exact=bound_generation)
+                self._apply_sections(
+                    data["guala_sections.json"], exact=bound_generation)
                 self._rebuild_word_to_emission_index()
-                self._migrate_tick_domain()
+                if not bound_generation:
+                    self._migrate_tick_domain()
                 self._apply_bucket(data["guala_bucket.json"])
+
+            if "guala_windows.json" in data:
+                self.window_manager.restore(data["guala_windows.json"])
+            else:
+                # Explicit one-time migration from pre-v7.3: no canonical
+                # window history existed, so recognition begins honestly
+                # empty rather than being fabricated from legacy Atlas rows.
+                self._log_substrate_event(
+                    "binding_window_state_migrated_empty",
+                    prior_schema=_prior_schema)
+            self._rebuild_language_fact_memory_from_windows()
 
             # Load deep atlas if present (GL-BRIEF-032 — separate table)
             # GL-CMD-DEEP-ATLAS-PERSIST: load first, then run loss alarm
@@ -12090,7 +14031,15 @@ class Guala:
                 try:
                     with open(deep_path) as fh:
                         draw = json.load(fh)
-                    ddata = draw.get("data", draw)
+                    ddata = (self._unwrap(draw, "guala_deep_atlas.json")
+                             if "data" in draw and "guala_identity" in draw
+                             else draw)
+                    if exact_binary:
+                        self._validate_exact_envelope(
+                            draw, "guala_deep_atlas.json",
+                            core_envelope_tick)
+                        self._validate_deep_atlas_payload(
+                            ddata, core_envelope_tick)
                     _deep_saved_count = self.deep_atlas.load_from_json(ddata)
                     _deep_loaded = self.deep_atlas.live_count()
                     print(f"[GualaLoom] Deep atlas loaded: {_deep_loaded} entries "
@@ -12108,10 +14057,19 @@ class Guala:
                         }
                     else:
                         self._deep_atlas_loss_at_boot = None
+                    if exact_binary and _deep_loaded != _deep_saved_count:
+                        raise ValueError(
+                            "exact deep-atlas restore count mismatch: "
+                            f"loaded={_deep_loaded} persisted={_deep_saved_count}")
                 except Exception as e:
                     print(f"[GualaLoom] Deep atlas load FAILED: {e}")
                     self._deep_atlas_loss_at_boot = {"error": str(e)}
+                    if exact_binary:
+                        raise ValueError(
+                            f"required deep-atlas restore failed: {e}") from e
             else:
+                if exact_binary:
+                    raise ValueError("required guala_deep_atlas.json is missing")
                 print("[GualaLoom] Deep atlas file not found — starting fresh (events will rebuild)")
                 self._deep_atlas_loss_at_boot = None
 
@@ -12127,11 +14085,20 @@ class Guala:
             organism_path = os.path.join(state_dir, "guala_organism.pkl.gz")
             if os.path.exists(organism_path):
                 try:
-                    self.organism = type(self.organism).load_full_state(organism_path)
+                    organism_type = type(self.organism)
+                    if bound_generation:
+                        self._verify_binary_binding(
+                            organism_path, core_envelope_tick)
+                    self.organism = organism_type.load_full_state(organism_path)
+                    if exact_binary and not isinstance(self.organism, organism_type):
+                        raise ValueError("organism pickle restored an unexpected type")
                     if self.organism.identity_uuid != self._guala_identity:
                         # G-2-class anomaly: her identity is authoritative
                         # (_load_identity, above) -- never let a mismatched
                         # organism silently pass as a second identity.
+                        if exact_binary:
+                            raise ValueError(
+                                "organism identity differs from Guala identity")
                         print(f"[GualaLoom] WARNING: organism identity "
                               f"{self.organism.identity_uuid} != her identity "
                               f"{self._guala_identity} -- correcting to hers")
@@ -12142,6 +14109,16 @@ class Guala:
                     # alone doesn't show whether a restore lost divisions
                     # (a fallback to an older save); total_divisions does.
                     _gs = self.organism.growth_snapshot()
+                    if exact_binary:
+                        self._exact_int(
+                            getattr(self.organism, "tick", None),
+                            "organism.tick")
+                        if not isinstance(_gs, dict):
+                            raise ValueError(
+                                "organism growth snapshot must be an object")
+                        for field in ("total_neurons", "total_divisions"):
+                            self._exact_int(
+                                _gs.get(field), f"organism.{field}")
                     print(f"[GualaLoom] Organism restored: identity={self.organism.identity_uuid} "
                           f"tick={self.organism.tick} pop={_gs['total_neurons']} "
                           f"total_divisions={_gs['total_divisions']} "
@@ -12160,6 +14137,9 @@ class Guala:
                     try:
                         self.wire_spike_bus()
                     except Exception as _wire_e:
+                        if exact_binary:
+                            raise ValueError(
+                                f"restored organism spike wiring failed: {_wire_e}") from _wire_e
                         print(f"[GualaLoom] wire_spike_bus after organism "
                               f"restore failed (non-fatal): {_wire_e}")
                     # membrane_threshold/chi_position backfill (2026-07-08
@@ -12179,11 +14159,12 @@ class Guala:
                     # kappa/threshold. Own try/except, same reasoning as
                     # wire_spike_bus's: a failure here must never be
                     # misreported as organism restore FAILED.
-                    try:
-                        self.organism._seed_dna_diversity()
-                    except Exception as _chem_e:
-                        print(f"[GualaLoom] membrane chemistry backfill after "
-                              f"organism restore failed (non-fatal): {_chem_e}")
+                    if not exact_binary:
+                        try:
+                            self.organism._seed_dna_diversity()
+                        except Exception as _chem_e:
+                            print(f"[GualaLoom] membrane chemistry backfill after "
+                                  f"organism restore failed (non-fatal): {_chem_e}")
                     # 2026-07-08 pruning fix: reclaim chi_atlas bloat
                     # accumulated before the per-key cap existed --
                     # confirmed live, one real neuron had 80,355
@@ -12193,15 +14174,22 @@ class Guala:
                     # entries need this one-time trim to actually free
                     # the memory. Idempotent, own try/except, same
                     # non-fatal-failure reasoning as above.
-                    try:
-                        for _n in self._all_neurons():
-                            _n.chi_atlas.trim_all()
-                    except Exception as _trim_e:
-                        print(f"[GualaLoom] chi_atlas trim after organism "
-                              f"restore failed (non-fatal): {_trim_e}")
+                    if not exact_binary:
+                        try:
+                            for _n in self._all_neurons():
+                                _n.chi_atlas.trim_all()
+                        except Exception as _trim_e:
+                            print(f"[GualaLoom] chi_atlas trim after organism "
+                                  f"restore failed (non-fatal): {_trim_e}")
+                    self._binary_restore_status["organism"] = True
                 except Exception as e:
+                    if exact_binary:
+                        raise ValueError(
+                            f"required organism restore failed: {e}") from e
                     print(f"[GualaLoom] Organism restore FAILED (organism from boot stands): {e}")
             else:
+                if exact_binary:
+                    raise ValueError("required guala_organism.pkl.gz is missing")
                 print("[GualaLoom] No guala_organism.pkl.gz — organism starts fresh this boot")
 
             # GL-NOTE-VOICE-WIRING-RULING W1: restore the tapestry alongside
@@ -12209,7 +14197,25 @@ class Guala:
             tapestry_path = os.path.join(state_dir, "guala_tapestry.pkl.gz")
             if os.path.exists(tapestry_path):
                 try:
-                    self.tapestry = type(self.tapestry).load_full_state(tapestry_path)
+                    tapestry_type = type(self.tapestry)
+                    if bound_generation:
+                        self._verify_binary_binding(
+                            tapestry_path, core_envelope_tick)
+                    self.tapestry = tapestry_type.load_full_state(tapestry_path)
+                    if exact_binary and not isinstance(self.tapestry, tapestry_type):
+                        raise ValueError("tapestry pickle restored an unexpected type")
+                    if exact_binary:
+                        self._exact_int(
+                            getattr(self.tapestry, "_tick", None),
+                            "tapestry.tick")
+                        self._exact_int(
+                            self.tapestry.total_neurons,
+                            "tapestry.total_neurons", minimum=1)
+                        if (not isinstance(self.tapestry.mosaics, list)
+                                or len(self.tapestry.mosaics)
+                                != self.tapestry.n_mosaics):
+                            raise ValueError(
+                                "tapestry mosaic count differs from its structure")
                     # GL-195: restore the emission query source (see save).
                     _pw = getattr(self.tapestry, "_engine_prev_word", None)
                     if _pw:
@@ -12223,17 +14229,24 @@ class Guala:
                     # class and were the larger contributor measured
                     # live (chi_atlas alone was ~99% of one tapestry
                     # neuron's ~2MB pickled size).
-                    try:
-                        for _mosaic in self.tapestry.mosaics:
-                            for _cluster in _mosaic.clusters:
-                                for _n in _cluster.neurons:
-                                    _n.chi_atlas.trim_all()
-                    except Exception as _trim_e:
-                        print(f"[GualaLoom] tapestry chi_atlas trim failed "
-                              f"(non-fatal): {_trim_e}")
+                    if not exact_binary:
+                        try:
+                            for _mosaic in self.tapestry.mosaics:
+                                for _cluster in _mosaic.clusters:
+                                    for _n in _cluster.neurons:
+                                        _n.chi_atlas.trim_all()
+                        except Exception as _trim_e:
+                            print(f"[GualaLoom] tapestry chi_atlas trim failed "
+                                  f"(non-fatal): {_trim_e}")
+                    self._binary_restore_status["tapestry"] = True
                 except Exception as e:
+                    if exact_binary:
+                        raise ValueError(
+                            f"required tapestry restore failed: {e}") from e
                     print(f"[GualaLoom] Tapestry restore FAILED (tapestry from boot stands): {e}")
             else:
+                if exact_binary:
+                    raise ValueError("required guala_tapestry.pkl.gz is missing")
                 print("[GualaLoom] No guala_tapestry.pkl.gz — tapestry starts fresh this boot")
 
             # GL-CMD-HOTLANE-DIET-102: load survival history from own cold file.
@@ -12244,7 +14257,13 @@ class Guala:
                 try:
                     with open(survival_path) as fh:
                         sraw = json.load(fh)
-                    sdata = sraw.get("data", sraw)
+                    sdata = (self._unwrap(sraw, "guala_survival.json")
+                             if "data" in sraw and "guala_identity" in sraw
+                             else sraw)
+                    if exact_binary:
+                        self._validate_exact_envelope(
+                            sraw, "guala_survival.json", core_envelope_tick)
+                        self._validate_survival_payload(sdata)
                     surv_raw = sdata.get("deep_survival_history", {})
                     self._deep_survival_history = defaultdict(list)
                     for key_str, strengths in surv_raw.items():
@@ -12255,8 +14274,13 @@ class Guala:
                     print(f"[GualaLoom] Survival history loaded from guala_survival.json: "
                           f"{len(self._deep_survival_history)} entries")
                 except Exception as e:
+                    if exact_binary:
+                        raise ValueError(
+                            f"required survival-history restore failed: {e}") from e
                     print(f"[GualaLoom] Survival history load FAILED: {e} — using core.json fallback")
             else:
+                if exact_binary:
+                    raise ValueError("required guala_survival.json is missing")
                 _sc = len(self._deep_survival_history)
                 print(f"[GualaLoom] No guala_survival.json — survival history from core.json "
                       f"fallback ({_sc} entries)")
@@ -12267,13 +14291,30 @@ class Guala:
                 try:
                     with open(teaching_path) as f:
                         td = json.load(f)
-                    tdata = td.get("data", td)
-                    self._teaching_feedback_log = tdata.get("feedback_log", [])
-                    self._teaching_correction_log = tdata.get("correction_log", [])
-                    for eid, rec in tdata.get("emission_records", {}).items():
-                        self._emission_records[eid] = rec
-                except Exception:
-                    pass
+                    tdata = (self._unwrap(td, "guala_teaching.json")
+                             if "data" in td and "guala_identity" in td
+                             else td)
+                    if exact_binary:
+                        self._validate_exact_envelope(
+                            td, "guala_teaching.json", core_envelope_tick)
+                        self._validate_teaching_payload(
+                            tdata, core_envelope_tick)
+                    self._teaching_feedback_log = list(
+                        tdata.get("feedback_log", []))
+                    self._teaching_correction_log = list(
+                        tdata.get("correction_log", []))
+                    if exact_binary:
+                        self._emission_records = dict(
+                            tdata.get("emission_records", {}))
+                    else:
+                        for eid, rec in tdata.get("emission_records", {}).items():
+                            self._emission_records[eid] = rec
+                except Exception as error:
+                    if exact_binary:
+                        raise ValueError(
+                            f"required teaching restore failed: {error}") from error
+            elif exact_binary:
+                raise ValueError("required guala_teaching.json is missing")
 
             # GL-CMD-EPISODIC-MEMORY: real, situational memories (backward-
             # compatible -- absent entirely on any organism saved before
@@ -12283,16 +14324,34 @@ class Guala:
                 try:
                     with open(episodic_path) as f:
                         ed = json.load(f)
-                    edata = ed.get("data", ed)
+                    edata = (self._unwrap(ed, "guala_episodic.json")
+                             if "data" in ed and "guala_identity" in ed
+                             else ed)
+                    if exact_binary:
+                        self._validate_exact_envelope(
+                            ed, "guala_episodic.json", core_envelope_tick)
+                        self._validate_episodic_payload(
+                            edata, core_envelope_tick,
+                            self.EPISODIC_MEMORY_MAX_PER_CONCEPT,
+                            self.EPISODIC_RECENT_CONTEXT_WINDOW)
+                        self._episodic_memory = {}
+                        self._episodic_recent_concepts.clear()
                     for concept, recs in edata.get("episodic_memory", {}).items():
                         dq = deque(maxlen=self.EPISODIC_MEMORY_MAX_PER_CONCEPT)
-                        for r in recs[-self.EPISODIC_MEMORY_MAX_PER_CONCEPT:]:
+                        selected_records = (
+                            recs if exact_binary else
+                            recs[-self.EPISODIC_MEMORY_MAX_PER_CONCEPT:])
+                        for r in selected_records:
                             dq.append(r)
                         self._episodic_memory[concept] = dq
                     for c in edata.get("episodic_recent_concepts", []):
                         self._episodic_recent_concepts.append(c)
-                except Exception:
-                    pass
+                except Exception as error:
+                    if exact_binary:
+                        raise ValueError(
+                            f"required episodic restore failed: {error}") from error
+            elif exact_binary:
+                raise ValueError("required guala_episodic.json is missing")
 
             # Load sounds if present (1.4)
             sounds_path = os.path.join(state_dir, "guala_sounds.json")
@@ -12300,61 +14359,153 @@ class Guala:
                 try:
                     with open(sounds_path) as fh:
                         sraw = json.load(fh)
-                    sdata = sraw.get("data", sraw)
+                    sdata = (self._unwrap(sraw, "guala_sounds.json")
+                             if "data" in sraw and "guala_identity" in sraw
+                             else sraw)
+                    if exact_binary:
+                        self._validate_exact_envelope(
+                            sraw, "guala_sounds.json", core_envelope_tick)
+                        self._validate_sounds_payload(
+                            sdata, core_envelope_tick)
                     self._sounds = dict(sdata)
                     print(f"[GualaLoom] Sounds loaded: {len(self._sounds)} items")
                 except Exception as e:
+                    if exact_binary:
+                        raise ValueError(
+                            f"required sounds restore failed: {e}") from e
                     print(f"[GualaLoom] Sounds load: {e}")
+            elif exact_binary:
+                raise ValueError("required guala_sounds.json is missing")
 
             # Load videos if present (1.4)
             videos_path = os.path.join(state_dir, "guala_videos.json")
             if os.path.exists(videos_path):
-                try:
-                    with open(videos_path) as fh:
-                        vraw = json.load(fh)
-                    vdata = vraw.get("data", vraw)
-                    for vid, vinfo in vdata.items():
-                        self._videos[vid] = PictureItem(
-                            item_id=vinfo["item_id"], title=vinfo["title"],
-                            intensity_grid=None, source=vinfo.get("source", ""),
-                            shown_at_tick=0,
-                            times_attended=vinfo.get("times_attended", 0),
-                            last_attended_tick=vinfo.get("last_attended_tick", 0))
-                    print(f"[GualaLoom] Videos loaded: {len(vdata)} items")
-                except Exception as e:
-                    print(f"[GualaLoom] Videos load: {e}")
+                with open(videos_path) as fh:
+                    vraw = json.load(fh)
+                vdata = (self._unwrap(vraw, "guala_videos.json")
+                         if "data" in vraw and "guala_identity" in vraw
+                         else vraw)
+                if exact_binary:
+                    self._validate_exact_envelope(
+                        vraw, "guala_videos.json", core_envelope_tick)
+                video_contract = vdata.get("continuity_contract")
+                if (video_contract is not None
+                        and video_contract != self.ENGINE_CONTINUITY_CONTRACT):
+                    raise ValueError(
+                        f"unknown video continuity contract: {video_contract}")
+                strict_videos = (
+                    video_contract == self.ENGINE_CONTINUITY_CONTRACT)
+                if strict_videos:
+                    video_records = vdata.get("videos")
+                    if not isinstance(video_records, dict):
+                        raise ValueError(
+                            "guala_videos.json: videos must be an object")
+                    self._videos = {}
+                else:
+                    video_records = vdata
+                for vid, vinfo in video_records.items():
+                    if not isinstance(vinfo, dict):
+                        raise ValueError(f"video {vid}: state must be an object")
+                    if strict_videos:
+                        required = (
+                            "item_id", "title", "frame_dir", "audio_path",
+                            "duration_ms", "n_frames", "source",
+                            "shown_at_tick", "times_attended",
+                            "last_attended_tick")
+                        missing_video = [
+                            name for name in required if name not in vinfo]
+                        if missing_video:
+                            raise ValueError(
+                                f"video {vid}: missing {missing_video}")
+                        if vinfo["item_id"] != vid:
+                            raise ValueError(f"video {vid}: item_id mismatch")
+                        frame_dir = self._resolve_state_reference(
+                            state_dir, vinfo["frame_dir"], "directory")
+                        audio_path = (
+                            self._resolve_state_reference(
+                                state_dir, vinfo["audio_path"], "file")
+                            if vinfo["audio_path"] else "")
+                    else:
+                        frame_stored = vinfo.get("frame_dir", "")
+                        try:
+                            frame_dir = (
+                                self._resolve_state_reference(
+                                    state_dir, frame_stored, "directory",
+                                    allow_legacy_absolute=True)
+                                if frame_stored else "")
+                        except ValueError:
+                            frame_dir = ""
+                        audio_stored = vinfo.get("audio_path", "")
+                        try:
+                            audio_path = (
+                                self._resolve_state_reference(
+                                    state_dir, audio_stored, "file",
+                                    allow_legacy_absolute=True)
+                                if audio_stored else "")
+                        except ValueError:
+                            audio_path = ""
+                    self._videos[vid] = VideoItem(
+                        item_id=vinfo["item_id"],
+                        title=vinfo["title"],
+                        frame_dir=frame_dir,
+                        audio_path=audio_path,
+                        duration_ms=int(vinfo.get("duration_ms", 0)),
+                        n_frames=int(vinfo.get("n_frames", 0)),
+                        source=vinfo.get("source", ""),
+                        shown_at_tick=int(vinfo.get("shown_at_tick", 0)),
+                        times_attended=int(vinfo.get("times_attended", 0)),
+                        last_attended_tick=int(
+                            vinfo.get("last_attended_tick", 0)))
+                print(f"[GualaLoom] Videos loaded: {len(video_records)} items")
+            elif exact_binary:
+                raise ValueError("required guala_videos.json is missing")
 
             # Load visual data if present
             visual_path = os.path.join(state_dir, "guala_visual.json")
             if os.path.exists(visual_path):
-                try:
-                    with open(visual_path) as fh:
-                        vraw = json.load(fh)
-                    vdata = vraw.get("data", vraw)
-                    # GL-194: motifs live in their own cold file now.
-                    # Prefer it; fall back to legacy inline sight_motifs
-                    # (pre-194 saves) so no on-disk state is stranded.
-                    sm_path = os.path.join(state_dir, "guala_sight_motifs.json")
-                    if os.path.exists(sm_path):
-                        try:
-                            with open(sm_path) as fh2:
-                                smraw = json.load(fh2)
-                            smdata = smraw.get("data", smraw)
-                            vdata["sight_motifs"] = smdata.get("sight_motifs", [])
-                        except Exception as _sme:
-                            print(f"[GualaLoom] sight_motifs load failed, "
-                                  f"using inline legacy if any: {_sme}")
-                    self._apply_visual(vdata, state_dir)
-                except Exception as e:
-                    print(f"[GualaLoom] Visual load: {e}")
+                with open(visual_path) as fh:
+                    vraw = json.load(fh)
+                vdata = (self._unwrap(vraw, "guala_visual.json")
+                         if "data" in vraw and "guala_identity" in vraw
+                         else vraw)
+                if exact_binary:
+                    self._validate_exact_envelope(
+                        vraw, "guala_visual.json", core_envelope_tick)
+                # GL-194: motifs live in their own cold file now.
+                # Prefer it; fall back to legacy inline sight_motifs only for
+                # a pre-contract save. A continuity save references the file
+                # explicitly, so absence/corruption is a torn generation.
+                sm_path = os.path.join(state_dir, "guala_sight_motifs.json")
+                strict_visual = (
+                    vdata.get("continuity_contract") ==
+                    self.ENGINE_CONTINUITY_CONTRACT)
+                if os.path.exists(sm_path):
+                    with open(sm_path) as fh2:
+                        smraw = json.load(fh2)
+                    smdata = (
+                        self._unwrap(smraw, "guala_sight_motifs.json")
+                        if "data" in smraw and "guala_identity" in smraw
+                        else smraw)
+                    if exact_binary:
+                        self._validate_exact_envelope(
+                            smraw, "guala_sight_motifs.json",
+                            core_envelope_tick)
+                    vdata["sight_motifs"] = smdata.get("sight_motifs", [])
+                elif strict_visual or exact_binary:
+                    raise ValueError(
+                        "guala_visual.json: referenced sight motif state missing")
+                self._apply_visual(vdata, state_dir)
+            elif exact_binary:
+                raise ValueError("required guala_visual.json is missing")
 
             # Replay events since last save
             self._events_replayed_at_boot = self._replay_events(state_dir)
 
             # Integrity validation
             self._validate_integrity()
-
-            self._load_successful = True
+            if exact_binary and self._integrity_errors:
+                raise ValueError(
+                    f"integrity validation failed: {self._integrity_errors}")
             # GL-CMD-DEEP-ATLAS-PERSIST: emit loss alarm event if detected at boot
             if getattr(self, '_deep_atlas_loss_at_boot', None):
                 loss = self._deep_atlas_loss_at_boot
@@ -12396,12 +14547,23 @@ class Guala:
 
                 if os.path.exists(_wave_npz):
                     try:
+                        if bound_generation:
+                            self._verify_binary_binding(
+                                _wave_npz, core_envelope_tick)
+                        if exact_binary:
+                            self._validate_wave_npz_payload(_wave_npz)
                         n_cells = self.wave_atlas.load_from_npz(_wave_npz)
                         print(f"[GualaLoom] WaveAtlas loaded from disk (npz): {n_cells} cells, "
                               f"{self.wave_atlas.binding_count()} bindings")
                         _wave_loaded = True
                     except Exception as _wle:
+                        if exact_binary:
+                            raise ValueError(
+                                f"required WaveAtlas NPZ restore failed: {_wle}") from _wle
                         print(f"[GualaLoom] WaveAtlas npz load failed ({_wle}), trying json")
+
+                if exact_binary and not os.path.exists(_wave_npz):
+                    raise ValueError("required wave_atlas.npz is missing")
 
                 if not _wave_loaded and os.path.exists(_wave_json):
                     try:
@@ -12428,8 +14590,9 @@ class Guala:
                                 print(f"[wave] json fallback archived to S3 ({len(_gz_bytes)/1e6:.1f}MB)")
                             except Exception as _ae:
                                 print(f"[wave] json S3 archive failed (non-fatal): {_ae}")
-                        import threading as _thr
-                        _thr.Thread(target=_archive_json_to_s3, daemon=True).start()
+                        self._start_engine_background_thread(
+                            _archive_json_to_s3, daemon=True,
+                            name="wave-json-archive")
                     except Exception as _wle:
                         print(f"[GualaLoom] WaveAtlas json load failed ({_wle}), rebuilding")
 
@@ -12439,13 +14602,31 @@ class Guala:
                     print(f"[GualaLoom] WaveAtlas rebuilt from LivingAtlas (one-time): "
                           f"{self.wave_atlas.cell_count()} cells, "
                           f"{self.wave_atlas.binding_count()} bindings")
+                else:
+                    self._binary_restore_status["wave_atlas"] = True
 
-                # R2: collapse-on-load (idempotent; near-free post-migration)
-                _pre_col = self.wave_atlas.binding_count()
-                _col_r = self.wave_atlas.collapse_by_key()
-                _post_col = _col_r["after"]
-                print(f"[wave] collapse-on-load: {_pre_col}→{_post_col} bindings "
-                      f"(wired={self.atlas._wave_atlas is self.wave_atlas})")
+                if not exact_binary:
+                    # Legacy compatibility may perform the historical
+                    # duplicate-collapse migration.  An exact generation is
+                    # never rewritten during restore: its persisted cells and
+                    # bindings remain byte-for-structure identical.
+                    _pre_col = self.wave_atlas.binding_count()
+                    _col_r = self.wave_atlas.collapse_by_key()
+                    _post_col = _col_r["after"]
+                    print(f"[wave] collapse-on-load: {_pre_col}→{_post_col} bindings "
+                          f"(wired={self.atlas._wave_atlas is self.wave_atlas})")
+
+            if exact_binary:
+                required_status = {"organism": True, "tapestry": True}
+                if self.wave_atlas is not None:
+                    required_status["wave_atlas"] = True
+                missing_binary = [
+                    name for name, expected in required_status.items()
+                    if self._binary_restore_status.get(name) is not expected]
+                if missing_binary:
+                    raise ValueError(
+                        f"required binary restore proof absent: {missing_binary}")
+            self._load_successful = True
 
         except Exception as e:
             msg = f"[GualaLoom] ABORT load: {e}"
@@ -12477,6 +14658,9 @@ class Guala:
                 self._migrate_tick_domain()
                 if "guala_bucket.json" in raw:
                     self._apply_bucket(raw["guala_bucket.json"])
+            if "guala_windows.json" in raw:
+                self.window_manager.restore(raw["guala_windows.json"])
+            self._rebuild_language_fact_memory_from_windows()
             self._load_successful = True
             # Immediately re-save with envelopes
             self.save_full_state(state_dir)
@@ -12487,6 +14671,22 @@ class Guala:
     # ── Apply helpers (shared by load paths) ──
 
     def _apply_core(self, core):
+        contract = core.get("continuity_contract")
+        if (contract is not None
+                and contract != self.ENGINE_CONTINUITY_CONTRACT):
+            raise ValueError(f"unknown core continuity contract: {contract}")
+        strict = contract == self.ENGINE_CONTINUITY_CONTRACT
+        if strict:
+            for required in (
+                    "corpora_state", "sensory_state", "current_activity",
+                    "last_save_tick"):
+                if required not in core:
+                    raise ValueError(
+                        f"guala_core.json: continuity field missing: {required}")
+            if not isinstance(core["corpora_state"], dict):
+                raise ValueError("guala_core.json: corpora_state must be an object")
+            if not isinstance(core["sensory_state"], dict):
+                raise ValueError("guala_core.json: sensory_state must be an object")
         self.tick = int(core.get("tick", 0))
         self.read_count = int(core.get("read_count", 0))
         self.vocab = set(core.get("vocab", []))
@@ -12501,17 +14701,85 @@ class Guala:
         self.last_autonomous_attempt_tick = int(core.get("last_autonomous_attempt_tick", -100_000))
         self.autonomous_emissions_count = int(core.get("autonomous_emissions_count", 0))
         self.target_familiarity = {k: float(v) for k, v in core.get("target_familiarity", {}).items()}
-        # Restore corpora positions (lines reloaded from seed at boot)
-        for cid, cstate in core.get("corpora_state", {}).items():
-            if cid in self._corpora:
-                self._corpora[cid].position = cstate.get("position", 0)
-                self._corpora[cid].times_read_through = cstate.get("times_read_through", 0)
-                self._corpora[cid].last_read_tick = cstate.get("last_read_tick", 0)
-        # Restore sensory item attendance
-        for sid, sstate in core.get("sensory_state", {}).items():
-            if sid in self._sensory_items:
-                self._sensory_items[sid].times_attended = sstate.get("times_attended", 0)
-                self._sensory_items[sid].last_attended_tick = sstate.get("last_attended_tick", 0)
+        corpora_state = core.get("corpora_state", {})
+        if strict:
+            restored_corpora = {}
+            for cid, cstate in corpora_state.items():
+                if not isinstance(cstate, dict):
+                    raise ValueError(f"corpus {cid}: state must be an object")
+                lines = cstate.get("lines")
+                if (not isinstance(lines, list)
+                        or any(not isinstance(line, str) for line in lines)):
+                    raise ValueError(f"corpus {cid}: lines must be a string list")
+                if cstate.get("corpus_id") != cid:
+                    raise ValueError(f"corpus {cid}: corpus_id mismatch")
+                title = cstate.get("title")
+                if not isinstance(title, str):
+                    raise ValueError(f"corpus {cid}: title must be a string")
+                restored_corpora[cid] = _Corpus(
+                    corpus_id=cid,
+                    title=title,
+                    lines=list(lines),
+                    position=int(cstate.get("position", 0)),
+                    times_read_through=int(cstate.get("times_read_through", 0)),
+                    last_read_tick=int(cstate.get("last_read_tick", 0)))
+            self._corpora = restored_corpora
+        else:
+            # Older states persisted only positions. Their definitions were
+            # legitimately supplied by the boot seed registration path.
+            for cid, cstate in corpora_state.items():
+                if cid in self._corpora:
+                    self._corpora[cid].position = cstate.get("position", 0)
+                    self._corpora[cid].times_read_through = cstate.get("times_read_through", 0)
+                    self._corpora[cid].last_read_tick = cstate.get("last_read_tick", 0)
+
+        sensory_state = core.get("sensory_state", {})
+        if strict:
+            restored_sensory = {}
+            for sid, sstate in sensory_state.items():
+                if not isinstance(sstate, dict):
+                    raise ValueError(f"sensory item {sid}: state must be an object")
+                if sstate.get("item_id") != sid:
+                    raise ValueError(f"sensory item {sid}: item_id mismatch")
+                kind = sstate.get("kind")
+                title = sstate.get("title")
+                if not isinstance(kind, str) or not isinstance(title, str):
+                    raise ValueError(
+                        f"sensory item {sid}: kind/title must be strings")
+                restored_sensory[sid] = SensoryItem(
+                    item_id=sid,
+                    kind=kind,
+                    title=title,
+                    times_attended=int(sstate.get("times_attended", 0)),
+                    last_attended_tick=int(
+                        sstate.get("last_attended_tick", 0)))
+            self._sensory_items = restored_sensory
+        else:
+            for sid, sstate in sensory_state.items():
+                if sid in self._sensory_items:
+                    self._sensory_items[sid].times_attended = sstate.get("times_attended", 0)
+                    self._sensory_items[sid].last_attended_tick = sstate.get("last_attended_tick", 0)
+
+        activity = core.get("current_activity")
+        if activity is None:
+            self._current_activity = None
+        elif isinstance(activity, dict):
+            metadata = activity.get("metadata", {})
+            if not isinstance(metadata, dict):
+                raise ValueError("current_activity.metadata must be an object")
+            kind = activity.get("kind")
+            if not isinstance(kind, str):
+                raise ValueError("current_activity.kind must be a string")
+            self._current_activity = Activity(
+                kind=kind,
+                target=activity.get("target"),
+                started_tick=int(activity["started_tick"]),
+                expected_end_tick=int(activity["expected_end_tick"]),
+                metadata=dict(metadata))
+        else:
+            raise ValueError("current_activity must be an object or null")
+        self._last_save_tick = int(core.get(
+            "last_save_tick", self.tick if strict else 0))
         # Restore deep survival history (Path A promotion gate)
         surv_raw = core.get("deep_survival_history", {})
         self._deep_survival_history = defaultdict(list)
@@ -12566,6 +14834,26 @@ class Guala:
               f"{self.needs.dream_pressure:.4f} (GL-CMD-TURN-LATENCY-197 P4)")
 
     def _apply_coordinator(self, cd):
+        contract = cd.get("continuity_contract")
+        if (contract is not None
+                and contract != self.ENGINE_CONTINUITY_CONTRACT):
+            raise ValueError(
+                f"unknown coordinator continuity contract: {contract}")
+        strict = contract == self.ENGINE_CONTINUITY_CONTRACT
+        if strict:
+            if not isinstance(cd.get("presence"), dict):
+                raise ValueError("guala_coordinator.json: presence must be an object")
+            if not isinstance(cd.get("last_input_tick"), dict):
+                raise ValueError(
+                    "guala_coordinator.json: last_input_tick must be an object")
+            if any(not isinstance(value, bool)
+                   for value in cd["presence"].values()):
+                raise ValueError(
+                    "guala_coordinator.json: presence values must be booleans")
+            if any(not isinstance(value, int) or isinstance(value, bool)
+                   for value in cd["last_input_tick"].values()):
+                raise ValueError(
+                    "guala_coordinator.json: last_input_tick values must be integers")
         # v6-bridge: per-source pair bonds
         pb = cd.get("pair_bond", cd.get("pair_bond_state", None))
         if isinstance(pb, dict):
@@ -12585,6 +14873,15 @@ class Guala:
         self.coordinator.distress_ticks = cd.get("distress_ticks", 0)
         self.coordinator.suffering_log = cd.get("suffering_log", [])
         self.coordinator.need_history = cd.get("need_history", [])[-200:]
+        if strict:
+            self.coordinator._presence = {
+                str(source): present
+                for source, present in cd["presence"].items()
+            }
+            self.coordinator._last_input_tick = {
+                str(source): int(tick)
+                for source, tick in cd["last_input_tick"].items()
+            }
         # 60-K: restore interaction log (list of [tick, salience] from JSON)
         raw_log = cd.get("source_interaction_log", {})
         merged_log = {
@@ -12607,9 +14904,45 @@ class Guala:
             merged_log["joe"] = combined
         self.coordinator._source_interaction_log = merged_log
 
-    def _apply_atlas(self, ad):
+    def _apply_atlas(self, ad, *, exact=False):
+        if not isinstance(ad, dict):
+            raise ValueError("guala_atlas.json must contain an object")
         self.atlas.entries = defaultdict(list)
         entries = ad.get("entries", {})
+        if not isinstance(entries, dict):
+            raise ValueError("guala_atlas.json: entries must be an object")
+        if exact:
+            self._exact_int(
+                ad.get("tick"), "guala_atlas.json.tick",
+                maximum=self.tick)
+            for chi_text, bucket in entries.items():
+                if (not isinstance(chi_text, str)
+                        or not chi_text.lstrip("-").isdigit()
+                        or not isinstance(bucket, list)):
+                    raise ValueError(
+                        "guala_atlas.json: entry buckets are invalid")
+                for index, entry in enumerate(bucket):
+                    label = f"guala_atlas[{chi_text}][{index}]"
+                    if not isinstance(entry, dict):
+                        raise ValueError(f"{label} must be an object")
+                    for field in (
+                            "section", "motif", "chi", "strength",
+                            "last_tick", "born_tick", "hemisphere_id"):
+                        if field not in entry:
+                            raise ValueError(f"{label} lacks {field}")
+                    if (not isinstance(entry["section"], str)
+                            or not isinstance(entry["hemisphere_id"], str)):
+                        raise ValueError(
+                            f"{label} section/hemisphere must be strings")
+                    self._exact_int(entry["motif"], f"{label}.motif")
+                    self._exact_int(
+                        entry["chi"], f"{label}.chi", minimum=-2**63)
+                    self._exact_number(
+                        entry["strength"], f"{label}.strength", minimum=0.0)
+                    for field in ("last_tick", "born_tick"):
+                        self._exact_int(
+                            entry[field], f"{label}.{field}",
+                            maximum=self.tick)
         # v5.5→v6 migration: add strength/last_tick/born_tick if missing
         from collections import Counter
         needs_migration = False
@@ -12617,6 +14950,9 @@ class Guala:
         for k, es in entries.items():
             for e in es:
                 if "strength" not in e:
+                    if exact:
+                        raise ValueError(
+                            "guala_atlas.json: exact binding lacks strength")
                     needs_migration = True
                     commit_counts[(e.get("section", ""), e.get("motif", 0))] += 1
         if needs_migration:
@@ -12642,6 +14978,9 @@ class Guala:
         for k, entries in self.atlas.entries.items():
             for e in entries:
                 if "hemisphere_id" not in e:
+                    if exact:
+                        raise ValueError(
+                            "guala_atlas.json: exact binding lacks hemisphere_id")
                     e["hemisphere_id"] = "em"
                     hemi_tagged += 1
         if hemi_tagged:
@@ -12649,16 +14988,70 @@ class Guala:
 
         # Tick-domain migration moved to _migrate_tick_domain (runs after _apply_sections)
 
-    def _apply_sections(self, sd):
+    def _apply_sections(self, sd, *, exact=False):
+        if not isinstance(sd, dict):
+            raise ValueError("guala_sections.json must contain an object")
+        if exact:
+            missing_sections = set(self.sections) - set(sd)
+            if missing_sections:
+                raise ValueError(
+                    "guala_sections.json: missing sections "
+                    f"{sorted(missing_sections)}")
         for nm, s in sd.items():
             if nm not in self.sections:
+                if exact:
+                    raise ValueError(
+                        f"guala_sections.json: unknown section {nm!r}")
                 continue
+            if not isinstance(s, dict):
+                raise ValueError(f"section {nm}: state must be an object")
             sec = self.sections[nm]
-            sec.modes = [(DSF(*m["dsf"]), m["chi"], m["word"]) for m in s.get("modes", [])]
+            modes = s.get("modes", [])
+            if not isinstance(modes, list):
+                raise ValueError(f"section {nm}: modes must be a list")
+            if exact:
+                for index, mode in enumerate(modes):
+                    if not isinstance(mode, dict):
+                        raise ValueError(
+                            f"section {nm}: mode {index} must be an object")
+                    dsf = mode.get("dsf")
+                    if (not isinstance(dsf, list) or len(dsf) != 8):
+                        raise ValueError(
+                            f"section {nm}: mode {index} DSF must have 8 fields")
+                    for field_index, value in enumerate(dsf):
+                        self._exact_number(
+                            value,
+                            f"section {nm}.mode[{index}].dsf[{field_index}]")
+                    self._exact_int(
+                        mode.get("chi"),
+                        f"section {nm}.mode[{index}].chi",
+                        minimum=-2**63)
+                    if not isinstance(mode.get("word"), str):
+                        raise ValueError(
+                            f"section {nm}: mode {index} word must be a string")
+            sec.modes = [(DSF(*m["dsf"]), m["chi"], m["word"]) for m in modes]
             sec.commits = s.get("commits", [])
             sec.dead_zone = s.get("dead_zone", 0.20)
             sec.gamma = s.get("gamma", {"det_thresh": 0.55, "novel_dist": 0.40})
             sec.tick = s.get("tick", 0)
+            if exact:
+                last_active = s.get("mode_last_active_tick")
+                alive = s.get("mode_alive")
+                if (not isinstance(last_active, list)
+                        or len(last_active) != len(sec.modes)):
+                    raise ValueError(
+                        f"section {nm}: mode_last_active_tick length mismatch")
+                if (not isinstance(alive, list)
+                        or len(alive) != len(sec.modes)
+                        or any(not isinstance(value, bool) for value in alive)):
+                    raise ValueError(f"section {nm}: mode_alive length mismatch")
+                for index, active_tick in enumerate(last_active):
+                    self._exact_int(
+                        active_tick,
+                        f"section {nm}.mode_last_active_tick[{index}]",
+                        maximum=self.tick)
+                sec._mode_last_active_tick = list(last_active)
+                sec._mode_alive = list(alive)
             # current_tick=self.tick (the ENGINE's tick, not sec.tick which
             # may be stale relative to it, GL-FIND-TICK-DOMAIN-C1) so every
             # restored mode starts as "just active," not instantly eligible
@@ -12699,16 +15092,50 @@ class Guala:
 
     def _apply_visual(self, vd, state_dir):
         """Restore visual data from saved state."""
+        contract = vd.get("continuity_contract")
+        if (contract is not None
+                and contract != self.ENGINE_CONTINUITY_CONTRACT):
+            raise ValueError(f"unknown visual continuity contract: {contract}")
+        strict = contract == self.ENGINE_CONTINUITY_CONTRACT
+        pictures = vd.get("pictures")
+        if strict and not isinstance(pictures, dict):
+            raise ValueError("guala_visual.json: pictures must be an object")
+        pictures = pictures or {}
         print(f"[GualaLoom] _apply_visual: {len(vd.get('pictures',{}))} pictures, {len(vd.get('sight_motifs',[]))} motifs in data")
         from dsf_ai_service.visual_krimelack import VisualMotif
         pic_dir = os.path.join(state_dir, "pictures")
+        if strict:
+            self._pictures = {}
         # Restore pictures
-        for pid, pdata in vd.get("pictures", {}).items():
+        for pid, pdata in pictures.items():
             try:
+                if not isinstance(pdata, dict):
+                    raise ValueError("picture state must be an object")
+                if strict:
+                    required = (
+                        "item_id", "title", "source", "shown_at_tick",
+                        "times_attended", "last_attended_tick", "has_grid",
+                        "grid_path", "original_path", "original_width",
+                        "original_height")
+                    missing_picture = [
+                        name for name in required if name not in pdata]
+                    if missing_picture:
+                        raise ValueError(f"missing {missing_picture}")
+                    if pdata["item_id"] != pid:
+                        raise ValueError("item_id mismatch")
+                    if not isinstance(pdata["has_grid"], bool):
+                        raise ValueError("has_grid must be a boolean")
                 grid = None
-                grid_path = os.path.join(pic_dir, f"{pid}.npy")
-                if os.path.exists(grid_path):
-                    grid = np.load(grid_path)
+                if strict and pdata["has_grid"]:
+                    grid_path = self._resolve_state_reference(
+                        state_dir, pdata["grid_path"], "file")
+                    grid = np.load(grid_path, allow_pickle=False)
+                elif strict and pdata["grid_path"] is not None:
+                    raise ValueError("grid_path exists while has_grid is false")
+                elif not strict:
+                    legacy_grid_path = os.path.join(pic_dir, f"{pid}.npy")
+                    if os.path.exists(legacy_grid_path):
+                        grid = np.load(legacy_grid_path, allow_pickle=False)
                 pic = PictureItem(
                     item_id=pdata["item_id"], title=pdata.get("title", pid),
                     intensity_grid=grid, source=pdata.get("source", "restored"),
@@ -12716,12 +15143,25 @@ class Guala:
                     times_attended=pdata.get("times_attended", 0),
                     last_attended_tick=pdata.get("last_attended_tick", 0))
                 orig_path = pdata.get("original_path")
-                if orig_path and os.path.exists(orig_path):
-                    pic.original_path = orig_path
-                    pic.original_width = pdata.get("original_width")
-                    pic.original_height = pdata.get("original_height")
+                if orig_path:
+                    if strict:
+                        resolved_original = self._resolve_state_reference(
+                            state_dir, orig_path, "file")
+                    else:
+                        try:
+                            resolved_original = self._resolve_state_reference(
+                                state_dir, orig_path, "file",
+                                allow_legacy_absolute=True)
+                        except ValueError:
+                            resolved_original = ""
+                    if resolved_original:
+                        pic.original_path = resolved_original
+                        pic.original_width = pdata.get("original_width")
+                        pic.original_height = pdata.get("original_height")
                 self._pictures[pid] = pic
             except Exception as _pe:
+                if strict:
+                    raise ValueError(f"picture {pid}: {_pe}") from _pe
                 print(f"[GualaLoom] picture load failed for {pid}: {_pe}")
         # Restore sight motifs
         for sm in vd.get("sight_motifs", []):
@@ -12747,8 +15187,12 @@ class Guala:
         entry.update(kwargs)
         try:
             line = json.dumps(entry)
-            with open(path, "a") as f:
-                f.write(line + "\n")
+            with self._event_log_lock:
+                with open(path, "a") as f:
+                    f.write(line + "\n")
+                # Rotate only while appenders and compaction are excluded.
+                if os.path.getsize(path) > self.EVENTS_MAX_BYTES:
+                    self._rotate_events(state_dir)
             # GL-CMD-EVENT-RETENTION-FIX-172 R4: mirror to stdout so the
             # unlimited-retention CloudWatch log group becomes a backstop
             # independent of events.log's own (crash-replay-sized) window.
@@ -12756,25 +15200,23 @@ class Guala:
             # called for the 12 whitelisted kinds (_log_substrate_event)
             # plus this same explicit call path — no new per-tick spam.
             print(f"[GualaLoom][diary-mirror] {line}", flush=True)
-            # Rotate if too large
-            if os.path.getsize(path) > self.EVENTS_MAX_BYTES:
-                self._rotate_events(state_dir)
         except Exception:
             pass  # event log is best-effort, never crashes substrate
 
     def _rotate_events(self, state_dir):
-        base = os.path.join(state_dir, self.EVENTS_LOG)
-        for i in range(self.EVENTS_MAX_ROTATED, 0, -1):
-            src = f"{base}.{i}" if i > 0 else base
-            dst = f"{base}.{i+1}"
-            if i == self.EVENTS_MAX_ROTATED:
-                if os.path.exists(f"{base}.{i}"):
-                    os.remove(f"{base}.{i}")
-            elif os.path.exists(src):
-                os.rename(src, dst)
-        # Current becomes .1
-        if os.path.exists(base):
-            os.rename(base, f"{base}.1")
+        with self._event_log_lock:
+            base = os.path.join(state_dir, self.EVENTS_LOG)
+            for i in range(self.EVENTS_MAX_ROTATED, 0, -1):
+                src = f"{base}.{i}" if i > 0 else base
+                dst = f"{base}.{i+1}"
+                if i == self.EVENTS_MAX_ROTATED:
+                    if os.path.exists(f"{base}.{i}"):
+                        os.remove(f"{base}.{i}")
+                elif os.path.exists(src):
+                    os.rename(src, dst)
+            # Current becomes .1
+            if os.path.exists(base):
+                os.rename(base, f"{base}.1")
 
     def _replay_events(self, state_dir):
         """Replay events logged after last save tick. Returns count replayed."""
@@ -12869,10 +15311,13 @@ class Guala:
         pattern."""
         while True:
             item = self._diary_queue.get()
-            if item is None:
-                return
-            event_kind, detail, tick, ts = item
-            self._write_diary_entry(state_dir, event_kind, detail, tick, ts)
+            try:
+                if item is None:
+                    return
+                event_kind, detail, tick, ts = item
+                self._write_diary_entry(state_dir, event_kind, detail, tick, ts)
+            finally:
+                self._diary_queue.task_done()
 
     def _ensure_diary_worker(self, state_dir):
         if self._diary_queue is not None:
@@ -12898,6 +15343,8 @@ class Guala:
         disk whitelist) — non-blocking, drops under back-pressure rather
         than ever stalling the caller (same never-crash-substrate
         contract as log_event)."""
+        if self._engine_quiesced:
+            return False
         try:
             self._ensure_diary_worker(state_dir)
             self._diary_queue.put_nowait((event_kind, dict(detail), tick, ts))
@@ -12955,6 +15402,11 @@ class Guala:
     # ── Snapshots ──
 
     def snapshot_state(self, state_dir="state", reason="manual"):
+        """Create a snapshot inside the shared persistence transaction."""
+        with self.persistence_transaction():
+            return self._snapshot_state_locked(state_dir, reason)
+
+    def _snapshot_state_locked(self, state_dir="state", reason="manual"):
         """Copy all state files to a timestamped backup directory.
         Snapshots go INSIDE state_dir (on EFS) not alongside it."""
         import shutil
@@ -12964,11 +15416,7 @@ class Guala:
         os.makedirs(snap_dir, exist_ok=True)
         print(f"[GualaLoom] Creating snapshot: {snap_dir}")
         # GL-CMD-WAVE-DIET-82: save WaveAtlas before snapshot
-        # GL-CMD-SAVE-CONTAINMENT-91: wrap — file copy loop must continue regardless
-        try:
-            self._save_wave_atlas(state_dir)
-        except Exception as _wse:
-            print(f"[wave] save failed (non-fatal): {_wse}")
+        self._save_wave_atlas(state_dir)
         # Copy identity + all state files
         for f in [self.IDENTITY_FILE] + self.STATE_FILES:
             src = os.path.join(state_dir, f)
@@ -12976,8 +15424,9 @@ class Guala:
                 shutil.copy2(src, os.path.join(snap_dir, f))
         # Also copy events log
         evlog = os.path.join(state_dir, self.EVENTS_LOG)
-        if os.path.exists(evlog):
-            shutil.copy2(evlog, os.path.join(snap_dir, self.EVENTS_LOG))
+        with self._event_log_lock:
+            if os.path.exists(evlog):
+                shutil.copy2(evlog, os.path.join(snap_dir, self.EVENTS_LOG))
         # Rotate old snapshots
         self._rotate_snapshots(state_dir)
         return snap_dir
@@ -12993,7 +15442,13 @@ class Guala:
             oldest = snaps.pop(0)
             shutil.rmtree(os.path.join(backup_root, oldest))
 
+    @_engine_mutation_entry
     def restore_from_snapshot(self, snapshot_dir, state_dir="state"):
+        """Restore a snapshot without overlapping any persistence writer."""
+        with self.persistence_transaction():
+            return self._restore_from_snapshot_locked(snapshot_dir, state_dir)
+
+    def _restore_from_snapshot_locked(self, snapshot_dir, state_dir="state"):
         """Restore state from a snapshot directory. Validates identity first."""
         import shutil
         # Verify identity matches

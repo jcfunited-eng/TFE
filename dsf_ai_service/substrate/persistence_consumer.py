@@ -63,11 +63,13 @@ class PersistenceConsumer:
         )
         self._thread.start()
 
-    def stop(self):
-        """Signal the thread to stop and wait for it."""
+    def stop(self, timeout=120.0):
+        """Signal, join, fsync, and fail loudly if the writer remains live."""
         self._stop.set()
         if self._thread is not None:
-            self._thread.join(timeout=5.0)
+            self._thread.join(timeout=float(timeout))
+            if self._thread.is_alive():
+                raise RuntimeError("persistence consumer did not stop")
         if self._log_fd is not None:
             self._flush_fsync()
             self._log_fd.close()
@@ -209,13 +211,16 @@ class S3Consumer:
     the event log segment since the previous checkpoint. Never blocks substrate.
     """
 
-    def __init__(self, ring, state_dir, bucket=None):
+    def __init__(self, ring, state_dir, bucket=None, s3_client=None):
         """
         Args:
             ring: SubstrateRing to subscribe to (used to track position).
             state_dir: Directory where PersistenceConsumer writes files.
             bucket: S3 bucket name. Defaults to GUALA_S3_BACKUP_BUCKET env var
                     or "dsf-ai-site-backups".
+            s3_client: Optional already-constructed S3-compatible client.  This
+                       is the production test seam; when supplied, start() does
+                       not construct a second client.
         """
         self._ring = ring
         self._state_dir = state_dir
@@ -225,30 +230,43 @@ class S3Consumer:
         self._last_uploaded_seq = -1
         self._stop = threading.Event()
         self._thread = None
-        self._s3 = None
+        self._s3 = s3_client
+        self._failure = None
 
     def start(self):
         """Start the S3 upload thread."""
-        try:
-            import boto3
-            self._s3 = boto3.client("s3")
-        except Exception:
-            logger.warning("boto3 not available — S3Consumer disabled")
-            return
+        if self._s3 is None:
+            try:
+                import boto3
+                self._s3 = boto3.client("s3")
+            except Exception:
+                logger.exception("S3 client construction failed")
+                raise
+        self._failure = None
         self._thread = threading.Thread(
             target=self._run, name="s3-consumer", daemon=True
         )
         self._thread.start()
 
-    def stop(self):
-        """Signal the thread to stop and wait."""
+    def stop(self, timeout=120.0):
+        """Signal and join, failing if an S3 upload remains live."""
         self._stop.set()
         if self._thread is not None:
-            self._thread.join(timeout=10.0)
+            self._thread.join(timeout=float(timeout))
+            if self._thread.is_alive():
+                raise RuntimeError("S3 consumer did not stop")
+        if self._failure is not None:
+            raise RuntimeError("S3 consumer failed") from self._failure
 
     def _run(self):
         while not self._stop.is_set():
-            self._check_and_upload()
+            try:
+                self._check_and_upload()
+            except Exception as exc:
+                self._failure = exc
+                logger.exception("S3 consumer stopped after persistence failure")
+                self._stop.set()
+                return
             self._stop.wait(timeout=5.0)
 
     def _check_and_upload(self):
@@ -309,47 +327,38 @@ class S3Consumer:
         seq, cp_path = checkpoint_files_by_seq[-1]
         base = os.path.basename(cp_path)
 
-        # Local cleanup: every OTHER local checkpoint file is dead weight
-        # (recover() will never read it) -- remove it now rather than
-        # let it accumulate forever, same reasoning as the S3-side delete
-        # below, just applied locally too.
-        for stale_seq, stale_path in checkpoint_files_by_seq[:-1]:
-            try:
-                os.remove(stale_path)
-            except Exception:
-                logger.exception("stale local checkpoint cleanup failed: %s", stale_path)
-
         if seq <= self._last_uploaded_seq:
             return
         prev_seq = self._last_uploaded_seq
-        # Upload checkpoint
+        # A recovery point consists of its checkpoint and, when present, the
+        # event-log segment captured with it.  Upload both before advancing the
+        # local cursor or deleting any prior recovery point.  upload_file is
+        # synchronous: return means the S3 client accepted the complete object;
+        # any failure propagates and leaves all prior state intact.
         self._upload_file(cp_path, f"guala/checkpoints/{base}")
-        # Upload events.log snapshot
         events_path = os.path.join(self._state_dir, "events.log")
         if os.path.exists(events_path):
             self._upload_file(
                 events_path, f"guala/events/events-upto-{seq}.log"
             )
-        self._last_uploaded_seq = seq
-        logger.info("S3 upload complete for checkpoint seq=%d", seq)
+
+        # The replacement now exists in full.  Superseded remote and local
+        # recovery points may be retired.  Deletion failures propagate; they
+        # are persistence failures, even though retaining an older recovery
+        # point is safe.
         if prev_seq >= 0:
             self._delete_object(f"guala/checkpoints/checkpoint-{prev_seq}.json")
             self._delete_object(f"guala/events/events-upto-{prev_seq}.log")
+        for stale_seq, stale_path in checkpoint_files_by_seq[:-1]:
+            os.remove(stale_path)
+
+        self._last_uploaded_seq = seq
+        logger.info("S3 replacement complete for checkpoint seq=%d", seq)
 
     def _delete_object(self, s3_key):
-        """Best-effort delete of a superseded recovery-point object.
-        Swallows errors -- never crashes the substrate, and a leftover
-        old object is no worse than today's status quo."""
-        try:
-            self._s3.delete_object(Bucket=self._bucket, Key=s3_key)
-        except Exception:
-            logger.exception("S3 delete failed (non-fatal): s3://%s/%s",
-                             self._bucket, s3_key)
+        """Delete one superseded object and propagate an unproven result."""
+        self._s3.delete_object(Bucket=self._bucket, Key=s3_key)
 
     def _upload_file(self, local_path, s3_key):
-        """Upload a single file to S3. Swallows errors — never crashes substrate."""
-        try:
-            self._s3.upload_file(local_path, self._bucket, s3_key)
-        except Exception:
-            logger.exception("S3 upload failed: %s -> s3://%s/%s",
-                             local_path, self._bucket, s3_key)
+        """Upload one complete object and propagate an unproven result."""
+        self._s3.upload_file(local_path, self._bucket, s3_key)

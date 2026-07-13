@@ -176,7 +176,7 @@ def run_emissions(g, label, spin_vector_flag):
 
         reply = g._emit_from_invariants(
             input_chis, words, mode_override="grandurun",
-            v7_session=getattr(g, '_v7_session', None))
+            v7_session=getattr(g, '_v7_session', None)).content or None
 
         # Extract dim_contributions from substrate events
         dim_contributions = None

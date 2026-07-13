@@ -22,6 +22,7 @@ This implementation is domain-agnostic — no financial assumptions.
 """
 
 from dataclasses import dataclass
+from enum import Enum
 import numpy as np
 import pandas as pd
 
@@ -39,8 +40,15 @@ class SEV:
     dF: float            # ΔF_norm(t)
     sigma: float         # local variance of F_norm
     kappa: float         # curvature proxy
-    relevance: float     # placeholder (fixed = 1.0)
+    relevance: float     # deterministic domain-adapter relevance r(t)
     N: int               # structural negative-space indicator (0 or 1)
+
+
+class RelevanceMode(str, Enum):
+    """Deterministic domain-adapter authority for the SEV relevance field."""
+
+    LEGACY_UNIT = "legacy_unit"
+    STRUCTURAL_ACTIVITY_DIAGNOSTIC = "structural_activity_diagnostic"
 
 
 # ---------------------------------------------------------------------------
@@ -86,7 +94,12 @@ def input_health_verification(df: pd.DataFrame, field_col: str) -> bool:
 # L0 — Structural Field Normalization (Corrected)
 # ---------------------------------------------------------------------------
 
-def compute_sev_series(df: pd.DataFrame, field_col: str = "Close"):
+def compute_sev_series(
+    df: pd.DataFrame,
+    field_col: str = "Close",
+    *,
+    relevance_mode: RelevanceMode | str = RelevanceMode.LEGACY_UNIT,
+):
     """
     Corrected L0:
 
@@ -101,6 +114,7 @@ def compute_sev_series(df: pd.DataFrame, field_col: str = "Close"):
         4. Compute σ(t) over window w (in normalized space).
         5. Compute κ(t) (discrete curvature of normalized field).
         6. Compute N(t) using structural thresholds on normalized operators.
+        7. Resolve r(t) from the explicit domain-adapter relevance mode.
 
     Output:
         List[SEV]
@@ -122,7 +136,6 @@ def compute_sev_series(df: pd.DataFrame, field_col: str = "Close"):
     dF = np.zeros(n)
     sigma = np.zeros(n)
     kappa = np.zeros(n)
-    relevance = np.ones(n)  # Placeholder; L5 may refine later
     N_vec = np.zeros(n, dtype=int)
 
     # ΔF_norm(t)
@@ -152,6 +165,36 @@ def compute_sev_series(df: pd.DataFrame, field_col: str = "Close"):
         cond_dF    = (abs(dF[i]) <= τ_delta)
         cond_kappa = (kappa[i] <= τ_kappa)
         N_vec[i] = 1 if (cond_sigma and cond_dF and cond_kappa) else 0
+
+    try:
+        resolved_relevance_mode = RelevanceMode(relevance_mode)
+    except ValueError as exc:
+        allowed = ", ".join(mode.value for mode in RelevanceMode)
+        raise ValueError(
+            f"Unsupported relevance_mode={relevance_mode!r}; expected one of: {allowed}"
+        ) from exc
+
+    if resolved_relevance_mode is RelevanceMode.LEGACY_UNIT:
+        # Preserve the frozen financial-domain behavior for existing callers.
+        relevance = np.ones(n, dtype=float)
+    else:
+        # Diagnostic only: this proves that replacing the legacy hardcoded
+        # relevance restores Negative Space while preserving graded activity.
+        # It is not GLEW production authority; the ratified bioequivalent
+        # chemical transducer must supply production relevance.
+        alpha1 = float(KERNEL_THRESHOLDS.alpha1)
+        alpha2 = float(KERNEL_THRESHOLDS.alpha2)
+        alpha3 = float(KERNEL_THRESHOLDS.alpha3)
+        tau_D = float(KERNEL_THRESHOLDS.tau_D)
+        if tau_D <= 0.0:
+            raise ValueError("KERNEL_THRESHOLDS.tau_D must be positive.")
+
+        deviation = alpha1 * np.abs(dF) + alpha2 * sigma + alpha3 * kappa
+        relevance = np.where(
+            N_vec == 1,
+            0.0,
+            deviation / (deviation + tau_D),
+        )
 
     # Build SEV list
     sev_list = [

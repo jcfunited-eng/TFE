@@ -61,7 +61,7 @@ def main():
         ("joe", "what about a bird"),         # corpus: "a bird sings"
     ]
     for src, text in recall_tests:
-        r = g.converse(text, source=src)
+        r = g.converse(text, source=src).response
         print(f"  [{src}] {text}")
         print(f"  guala:  {r}")
         print()
@@ -76,7 +76,7 @@ def main():
         ("joe", "what is gravity"),
     ]
     for src, text in unknown_tests:
-        r = g.converse(text, source=src)
+        r = g.converse(text, source=src).response
         print(f"  [{src}] {text}")
         print(f"  guala:  {r}")
         print()
@@ -91,7 +91,7 @@ def main():
         ("joe", "are you there"),
     ]
     for src, text in curiosity_tests:
-        r = g.converse(text, source=src)
+        r = g.converse(text, source=src).response
         print(f"  [{src}] {text}")
         print(f"  guala:  {r}")
         print()
@@ -105,7 +105,7 @@ def main():
         ("joe", "what is 50 plus 50"),
     ]
     for src, text in math_tests:
-        r = g.converse(text, source=src)
+        r = g.converse(text, source=src).response
         print(f"  [{src}] {text}")
         print(f"  guala:  {r}")
 
@@ -118,7 +118,7 @@ def main():
         ("joe", "an apple is sweet"),
     ]
     for src, text in pair_tests:
-        r = g.converse(text, source=src)
+        r = g.converse(text, source=src).response
         print(f"  [{src}] {text}")
         print(f"  guala:  {r}")
         print()

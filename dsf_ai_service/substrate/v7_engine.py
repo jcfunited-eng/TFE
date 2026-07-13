@@ -737,7 +737,8 @@ class V7Session:
 # ---- Session manager ----
 _sessions = {}
 _sessions_lock = threading.Lock()
-STATE_DIR = "/app/state/v7_sessions"
+ACTIVE_STATE_DIR = os.environ.get("STATE_DIR", "/mnt/efs/guala")
+STATE_DIR = os.path.join(ACTIVE_STATE_DIR, "v7_sessions")
 
 
 def get_or_create_session(session_id, engine=None):

@@ -18,7 +18,7 @@ from dsf_ai_service.visual_krimelack import (
     view_picture, SightSection, COFIRE_OVERLAP_THRESHOLD,
 )
 from dsf_ai_service.v4.gualaloom_v5_engine import (
-    Guala, CorpusItem, PictureItem,
+    Guala, PictureItem,
 )
 
 
@@ -77,6 +77,11 @@ def test_gate2_saccade_and_fragments():
     assert len(fragments) > 0, "No fragments produced"
     has_events = sum(1 for f in fragments if len(f.event_ticks) > 0)
     assert has_events > 0, "No fragments have event_ticks"
+    assert all(
+        isinstance(t, (int, float, np.integer, np.floating))
+        for fragment in fragments
+        for t in fragment.event_ticks
+    ), "event_ticks must contain numeric timestamps, not event records"
     # Check fragment structure
     f = fragments[0]
     assert isinstance(f.event_ticks, list), "event_ticks must be a list"
@@ -179,12 +184,12 @@ def test_gate6_same_content_different_noise():
     print(f"  chi_overlap = {overlap:.3f}")
     print(f"  threshold = {COFIRE_OVERLAP_THRESHOLD}")
 
-    if not new2:
-        print(f"  PASS: same motif (fired existing, overlap={ov:.3f})")
-    else:
-        print(f"  INFO: committed separate motif (overlap={overlap:.3f} "
-              f"below threshold {COFIRE_OVERLAP_THRESHOLD})")
-        print(f"  This may need threshold tuning.")
+    assert m1 is not None and m2 is not None, "Viewing produced no motif"
+    assert not new2, (
+        f"Same content committed a second motif (overlap={overlap:.3f})")
+    assert m1.motif_id == m2.motif_id
+    assert overlap >= COFIRE_OVERLAP_THRESHOLD
+    print(f"  PASS: same motif (fired existing, overlap={ov:.3f})")
 
 
 def test_gate7_threshold_sensitivity():
@@ -195,15 +200,24 @@ def test_gate7_threshold_sensitivity():
     imgs = [make_test_image("bright_blob", seed=42),
             make_test_image("bright_blob", seed=99)]
 
+    motif_counts = []
     for thresh in [0.85, 0.95]:
         old = vk.COFIRE_OVERLAP_THRESHOLD
         vk.COFIRE_OVERLAP_THRESHOLD = thresh
-        sight = SightSection()
-        for i, img in enumerate(imgs):
-            frags = view_picture(img, f"pic_{i}", i * 1000, seed=11 + i)
-            sight.process_viewing(frags, f"pic_{i}", 100 + i)
-        vk.COFIRE_OVERLAP_THRESHOLD = old
+        try:
+            sight = SightSection()
+            for i, img in enumerate(imgs):
+                frags = view_picture(
+                    img, f"pic_{i}", i * 1000, seed=11 + i)
+                motif, _, _ = sight.process_viewing(
+                    frags, f"pic_{i}", 100 + i)
+                assert motif is not None, (
+                    f"threshold={thresh} viewing {i} produced no motif")
+        finally:
+            vk.COFIRE_OVERLAP_THRESHOLD = old
+        motif_counts.append(len(sight.motifs))
         print(f"  threshold={thresh}: {len(sight.motifs)} motifs")
+    assert motif_counts == [1, 1]
     print("  PASS: threshold sensitivity documented")
 
 
@@ -226,71 +240,68 @@ def test_gate8_cluster_evolution():
           f"to {[round(s, 3) for s in state_1]}")
 
 
-def test_gate9_cross_modal_binding():
-    """Gate 9: Visual + word motifs bind at same chi address."""
-    print("\nGate 9: Cross-modal binding...")
+def _build_visual_word_binding():
+    """Build one real visual motif and bind it at a real word chi."""
     g = Guala()
-    g._corpora["test"] = CorpusItem(
-        corpus_id="test", title="Test",
-        lines=["the moon is round", "moon moon moon"])
+    try:
+        g.read_sentence("moon", source="corpus")
+        word_chis = g._word_to_chi_index.get("moon", set())
+        assert word_chis, "Real word intake produced no chi binding"
+        word_chi = min(word_chis)
 
-    # Read some corpus to get "moon" into atlas
-    for _ in range(200):
-        g._autonomy_tick()
+        img = make_test_image("bright_blob")
+        pic = PictureItem(item_id="moon_pic", title="moon picture",
+                          intensity_grid=img, source="test")
+        g._pictures[pic.item_id] = pic
+        frags = view_picture(img, pic.item_id, g.tick, seed=42)
+        motif, is_new, overlap = g.sight.process_viewing(
+            frags, pic.item_id, g.tick)
+        assert motif is not None and is_new, (
+            f"Real visual viewing produced no new motif (overlap={overlap})")
 
-    # Upload and attend a picture
-    img = make_test_image("bright_blob")
-    pic = PictureItem(item_id="moon_pic", title="moon picture",
-                      intensity_grid=img, source="test")
-    g._pictures["moon_pic"] = pic
+        g.atlas.record(
+            "sight", motif.motif_id, word_chi, g.tick, salience=1.2,
+            sensory_refs=[f"pic:{pic.item_id}"], source="test")
+        return g, motif, word_chi
+    except Exception:
+        g.shutdown()
+        raise
 
-    # Process visual viewing directly
-    from dsf_ai_service.visual_krimelack import view_picture as vp
-    frags = vp(img, "moon_pic", g.tick, seed=42)
-    motif, is_new, ov = g.sight.process_viewing(frags, "moon_pic", g.tick)
 
-    if motif:
-        chi_val = motif.motif_id % 100
-        g.atlas.record("sight", motif.motif_id, chi_val, g.tick, salience=1.2)
-        # Check if "moon" word exists in atlas at nearby chi
-        word_chi = None
-        for chi_k, entries in g.atlas.entries.items():
-            for e in entries:
-                if e.get("section") == "listen":
-                    sec = g.sections.get("listen")
-                    if sec and e.get("motif", 0) < len(sec.modes):
-                        _, _, w = sec.modes[e["motif"]]
-                        if w and w.lower() == "moon":
-                            word_chi = chi_k
-                            break
-            if word_chi is not None:
-                break
-        print(f"  visual motif chi={chi_val}, word 'moon' chi={word_chi}")
-        if word_chi is not None:
-            print(f"  PASS: both modalities have atlas bindings")
-        else:
-            print(f"  INFO: 'moon' not yet in atlas (may need more reading)")
-    else:
-        print(f"  INFO: no visual motif produced")
+def test_gate9_cross_modal_binding():
+    """Gate 9: Visual + word motifs bind at the same real chi address."""
+    print("\nGate 9: Cross-modal binding...")
+    g, motif, word_chi = _build_visual_word_binding()
+    try:
+        sight_at_word = [
+            entry
+            for entry in g.atlas.entries.get(word_chi, [])
+            if entry.get("section") == "sight"
+            and entry.get("motif") == motif.motif_id
+        ]
+        assert sight_at_word, "Sight motif was not bound at the word chi"
+        assert any(
+            "pic:moon_pic" in (entry.get("sensory_refs") or [])
+            for entry in sight_at_word)
+        print(f"  PASS: visual motif and 'moon' share chi={word_chi}")
+    finally:
+        g.shutdown()
 
 
 def test_gate10_recall():
     """Gate 10: Recall surfaces cross-modal bindings."""
     print("\nGate 10: Recall via chi cascade...")
-    # This is tested indirectly through the converse() mechanism
-    # Full validation requires corpus + visual bindings at same chi
-    g = Guala()
-    g._corpora["test"] = CorpusItem(
-        corpus_id="test", title="Test",
-        lines=["moon moon moon", "the moon shines"])
-    for _ in range(300):
-        g._autonomy_tick()
-    resp = g.converse("tell me about moon", source="joe")
-    print(f"  Response to 'tell me about moon': '{resp}'")
-    if resp and resp != "...":
-        print(f"  PASS: recall produced output")
-    else:
-        print(f"  INFO: recall returned silence (atlas needs more growth)")
+    g, motif, word_chi = _build_visual_word_binding()
+    try:
+        recalled = g._recall_sight_from_atlas([word_chi], ["moon"])
+        assert recalled, "Real sight recall returned no bound picture"
+        assert any(
+            recalled_motif.motif_id == motif.motif_id
+            and picture_id == "moon_pic"
+            for recalled_motif, picture_id in recalled)
+        print("  PASS: 'moon' recalled the bound moon_pic visual motif")
+    finally:
+        g.shutdown()
 
 
 if __name__ == "__main__":

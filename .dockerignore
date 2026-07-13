@@ -27,13 +27,15 @@ web/tsconfig.tsbuildinfo
 # DSF-AI service (GualaLoom) build inputs.
 !dsf_ai_service/
 !dsf_ai_service/**
+# Pretrained recognition artifacts are not part of the production boundary.
+dsf_ai_service/models/
+dsf_ai_service/models/**
 !tools/derive_sppu_weights.py
 !tools/wave_constants.py
 !tools/wave_spillover.py
 !tools/sensory_curriculum_orchestrator.py
 !tools/curriculum_seed.json
-!yolov8n.onnx
-!yolov8n.onnx
+yolov8n.onnx
 
 # Root runtime files copied by the Dockerfile.
 !certs/

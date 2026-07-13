@@ -54,14 +54,19 @@ class SaveCoordinator:
         self._last_s3_enqueue_wall = 0.0
         self._lock = threading.Lock()
         self._last_s3_result = None  # GL-CMD-97: set by _s3_loop after upload
+        self._stopping = threading.Event()
+        self._s3_thread = None
 
         if s3_bucket:
             t = threading.Thread(target=self._s3_loop, daemon=True,
                                  name="s3-saver")
             t.start()
+            self._s3_thread = t
 
     def queue_s3(self, state_dir, tick, reason):
         """Queue an S3 backup of the files already written to state_dir."""
+        if self._stopping.is_set():
+            raise RuntimeError("S3 save queue is quiesced")
         try:
             self.s3_queue.put_nowait((state_dir, tick, reason))
         except queue.Full:
@@ -72,20 +77,25 @@ class SaveCoordinator:
         GL-CMD-DEEP-STORE-PHYSICS-86 P2: activity transitions → hot save.
         Cold stores (atlas/deep_atlas/sections) written by force_save or
         _periodic_v6_save cold lane (30-min bound)."""
+        # Keep the coordinator decision and its result metadata together.
+        # The engine's persistence transaction performs cross-caller
+        # serialization; this lock prevents two coordinator hooks that passed
+        # the same stale rate check from queuing redundant saves back-to-back.
         with self._lock:
             if not self._should_save(reason):
                 return False
+            try:
+                self.guala.save_hot_state(self.state_dir)
+            except Exception as e:
+                log.error("[save] failed: %s", e)
+                return False
             self.last_save_tick = self.guala.tick
             self.last_save_wall = time.monotonic()
-            self.last_save_timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        try:
-            self.guala.save_hot_state(self.state_dir)
+            self.last_save_timestamp = time.strftime(
+                "%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             if self.s3_bucket:
                 self._maybe_queue_s3(reason)
             return True
-        except Exception as e:
-            log.error("[save] failed: %s", e)
-            return False
 
     def _maybe_queue_s3(self, reason):
         """Enqueue an S3 backup if reason warrants it.
@@ -145,13 +155,15 @@ class SaveCoordinator:
         return True
 
     def force_save(self, reason="shutdown"):
-        """Save immediately regardless of conditions."""
+        """Save immediately; propagate failure and queue S3 only on success."""
         try:
-            self.guala.save_full_state(self.state_dir)
-            if self.s3_bucket:
-                self.queue_s3(self.state_dir, self.guala.tick, reason)
+            result = self.guala.save_full_state(self.state_dir)
         except Exception as e:
             log.error("[save] force failed: %s", e)
+            raise
+        if self.s3_bucket:
+            self.queue_s3(self.state_dir, self.guala.tick, reason)
+        return result
 
     def _s3_loop(self):
         """Dedicated S3 upload thread — never blocks substrate."""
@@ -159,8 +171,11 @@ class SaveCoordinator:
         s3 = boto3.client("s3", region_name="us-east-1")
         prefix_base = os.environ.get("GUALA_S3_BACKUP_PREFIX", "guala/auto")
         while True:
-            state_dir, tick, reason = self.s3_queue.get()
+            item = self.s3_queue.get()
             try:
+                if item is None:
+                    return
+                state_dir, tick, reason = item
                 ts_label = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
                 s3_prefix = f"{prefix_base}/{ts_label}_{reason}"
                 all_files = [
@@ -213,3 +228,19 @@ class SaveCoordinator:
                 log.error("[s3] upload failed: %s", e)
             finally:
                 self.s3_queue.task_done()
+
+    def stop(self, timeout=120.0):
+        """Drain the S3 writer and join it, or fail quiescence loudly."""
+        self._stopping.set()
+        deadline = time.monotonic() + float(timeout)
+        while self.s3_queue.unfinished_tasks:
+            if time.monotonic() >= deadline:
+                raise RuntimeError(
+                    "S3 saver did not drain "
+                    f"({self.s3_queue.unfinished_tasks} unfinished)")
+            time.sleep(0.05)
+        if self._s3_thread is not None and self._s3_thread.is_alive():
+            self.s3_queue.put(None, timeout=max(0.0, deadline - time.monotonic()))
+            self._s3_thread.join(timeout=max(0.0, deadline - time.monotonic()))
+            if self._s3_thread.is_alive():
+                raise RuntimeError("S3 saver did not stop")

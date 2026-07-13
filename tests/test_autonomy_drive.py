@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dsf_ai_service.v4.gualaloom_v5_engine import (
     Guala, Needs, NEEDS_DRIFT_RATE, NEEDS_TARGET_V7,
-    CorpusItem, SensoryItem, Activity,
+    SensoryItem, Activity,
     ACTIVITY_TICK_BUDGETS, EMISSION_COOLDOWN_TICKS,
 )
 
@@ -57,12 +57,11 @@ def test_gate2_activity_scheduler():
     print("\nGate 2: Activity scheduler...")
     g = Guala()
     # Add corpora
-    g._corpora["test1"] = CorpusItem(
-        corpus_id="test1", title="Test Book",
-        lines=["the cat sat", "the dog ran", "the bird flew"])
-    g._corpora["test2"] = CorpusItem(
-        corpus_id="test2", title="Test Book 2",
-        lines=["one two three", "four five six"])
+    g.add_corpus(
+        "test1", "Test Book",
+        ["the cat sat", "the dog ran", "the bird flew"])
+    g.add_corpus(
+        "test2", "Test Book 2", ["one two three", "four five six"])
     # Add sensory item
     g._sensory_items["pic1"] = SensoryItem(
         item_id="pic1", kind="picture", title="test picture")
@@ -85,9 +84,7 @@ def test_gate3_event_stream():
     """Gate 3: events emitted during autonomous run."""
     print("\nGate 3: Event stream...")
     g = Guala()
-    g._corpora["test"] = CorpusItem(
-        corpus_id="test", title="Test",
-        lines=["hello world", "test sentence"])
+    g.add_corpus("test", "Test", ["hello world", "test sentence"])
 
     for _ in range(3000):
         g._autonomy_tick()
@@ -108,9 +105,9 @@ def test_gate4_autonomous_emission():
     """Gate 4: emission fires when pair-bond source presence is set."""
     print("\nGate 4: Autonomous emission with presence...")
     g = Guala()
-    g._corpora["test"] = CorpusItem(
-        corpus_id="test", title="Test",
-        lines=["the sun is warm", "i see the moon", "the bird sings"])
+    g.add_corpus(
+        "test", "Test",
+        ["the sun is warm", "i see the moon", "the bird sings"])
 
     # Read some corpus to build atlas content first
     for _ in range(200):
@@ -156,9 +153,8 @@ def test_gate5_conn_rises_after_emission():
     """Gate 5: connection-need rises after emission."""
     print("\nGate 5: Connection-need rises after emission...")
     g = Guala()
-    g._corpora["test"] = CorpusItem(
-        corpus_id="test", title="Test",
-        lines=["the sun is warm", "i feel the wind"])
+    g.add_corpus(
+        "test", "Test", ["the sun is warm", "i feel the wind"])
 
     # Set presence
     g.coordinator._presence["joe"] = True
@@ -176,6 +172,10 @@ def test_gate5_conn_rises_after_emission():
                   expected_end_tick=g.tick + ACTIVITY_TICK_BUDGETS["EMITTING"],
                   metadata={})
     g._start_activity(em)
+    # This gate isolates the need-update contract.  Candidate settlement is
+    # covered by the committed-emission suite; a fresh organism now remains
+    # honestly silent and must not be treated as if speech occurred.
+    g._do_emit = lambda: True
     # Tick past start
     g.tick += 1
     g._atick_emitting(em)
@@ -184,9 +184,9 @@ def test_gate5_conn_rises_after_emission():
 
     assert conn_after > conn_before, \
         f"Conn should rise: {conn_before:.3f} -> {conn_after:.3f}"
-    expected = min(1.0, conn_before + 0.25)
+    expected = conn_before + 0.25 * (1.0 - conn_before)
     assert abs(conn_after - expected) < 0.01, \
-        f"Conn jump should be +0.25: expected {expected}, got {conn_after}"
+        f"Conn saturation mismatch: expected {expected}, got {conn_after}"
 
     print(f"  PASS: conn {conn_before:.3f} -> {conn_after:.3f} (+{conn_after - conn_before:.3f})")
 
@@ -206,18 +206,17 @@ def test_signed_distance():
     print(f"  PASS: signed_distance = {sd}")
 
 
-def test_manual_sleep():
+def test_manual_sleep(tmp_path):
     """Verify manual sleep trigger works."""
     print("\nBonus: Manual sleep...")
     g = Guala()
-    g._corpora["test"] = CorpusItem(
-        corpus_id="test", title="Test", lines=["hello"])
+    g.add_corpus("test", "Test", ["hello"])
 
     # Start some activity first
     g._autonomy_tick()
     assert g._current_activity is not None
 
-    result = g.manual_sleep()
+    result = g.manual_sleep(state_dir=str(tmp_path))
     assert g._current_activity.kind == "SLEEPING", \
         f"Should be sleeping, got {g._current_activity.kind}"
     assert "tick" in result

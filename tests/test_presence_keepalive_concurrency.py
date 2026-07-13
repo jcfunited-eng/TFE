@@ -85,7 +85,7 @@ def test_concurrent_background_load_does_not_time_out_active_source():
     bg_thread.start()
     t0 = time.monotonic()
     try:
-        reply = g.converse("tell me something", source="joe")
+        reply = g.converse("tell me something", source="joe").response
     finally:
         stop_flag.set()
         bg_thread.join(timeout=5)
@@ -200,7 +200,7 @@ def test_default_path_survives_long_wait_for_lock():
     g.coordinator._last_input_tick["joe"] = g.tick
 
     t0 = time.monotonic()
-    reply = g.converse("hello, are you there", source="joe")
+    reply = g.converse("hello, are you there", source="joe").response
     elapsed = time.monotonic() - t0
     holder.join(timeout=5)
 

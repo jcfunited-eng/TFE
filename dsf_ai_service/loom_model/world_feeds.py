@@ -1,4 +1,4 @@
-"""world_feeds.py — Guala reads beyond her books: Khan Academy + YouTube.
+"""World-feed adapters with explicit registration and availability truth.
 
 Two extra text feeds for her autonomous study, using the keys that are present:
   - KHAN: Tavily web search restricted to khanacademy.org -> real article text.
@@ -6,9 +6,9 @@ Two extra text feeds for her autonomous study, using the keys that are present:
     video titles + descriptions. (Transcripts need OAuth / are IP-blocked from the
     datacenter, so this is the text ABOUT the videos, reliably available.)
 
-Network IO lives here; feeding the substrate stays in the caller. Key-optional and
-fully exception-walled: any miss returns [] so her study loop just moves on. Content
-is lightly cleaned (drop boilerplate/URLs); her clean-token gate does the rest.
+Network IO lives here; feeding the substrate stays in the caller.  A feed is not
+registered without its credential.  ``feed_status`` always reports why an optional
+feed is disabled, so missing configuration cannot masquerade as an empty result.
 """
 
 import json
@@ -107,8 +107,31 @@ def youtube_text(query, timeout=25):
         return []
 
 
-# the feeds, named, with their rotating query lists — for round-robin study
-FEEDS = [
-    {"name": "khan", "queries": KHAN_QUERIES, "fetch": khan_text},
-    {"name": "youtube", "queries": YOUTUBE_QUERIES, "fetch": youtube_text},
-]
+_FEED_DEFINITIONS = (
+    ("khan", "TAVILY_API_KEY", KHAN_QUERIES, khan_text),
+    ("youtube", "YOUTUBE_API_KEY", YOUTUBE_QUERIES, youtube_text),
+)
+
+
+def feed_status() -> dict[str, dict[str, object]]:
+    """Report each feed's registration state without exposing credentials."""
+    return {
+        name: {
+            "enabled": bool(os.environ.get(secret_name, "").strip()),
+            "reason": (
+                "configured"
+                if os.environ.get(secret_name, "").strip()
+                else f"disabled: {secret_name} is not configured"
+            ),
+        }
+        for name, secret_name, _queries, _fetch in _FEED_DEFINITIONS
+    }
+
+
+def available_feeds() -> list[dict[str, object]]:
+    """Return only feeds whose credential is configured at call time."""
+    return [
+        {"name": name, "queries": queries, "fetch": fetch}
+        for name, secret_name, queries, fetch in _FEED_DEFINITIONS
+        if os.environ.get(secret_name, "").strip()
+    ]

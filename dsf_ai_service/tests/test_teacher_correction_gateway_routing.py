@@ -79,19 +79,14 @@ def _fresh_guala(event_driven=True):
     return Guala()
 
 
-def _seed_real_emission(g, input_text, reply_text, source="joe"):
-    """A fresh, unseeded Guala() reliably produces '...' (honest silence)
-    from converse() -- getting a real spontaneous non-silent reply
-    requires substantial accumulated state (see
-    GL-RPT-SINGLE-WORD-UNAWARE-ROOTCAUSE-C1-20260710-v1 /
-    GL-RPT-READ-MS-ROOTCAUSE-C1-20260711-v1 -- a separate, already
-    documented problem, not this one). To exercise the REAL
-    emission_id -> _emission_records resolution path this fix's bug
-    lived downstream of, feed input_text through the real intake
-    pipeline (read_sentence -- genuinely grounds the words) and record
-    the emission using the exact dict shape production's own converse()
-    creates at gualaloom_v5_engine.py ~3925-3931, keyed the same way
-    (f"{tick}_{first_chi}_{n_committed}")."""
+def _seed_certified_emission_fixture(g, input_text, reply_text, source="joe"):
+    """Install an explicit source-certified record for route-only testing.
+
+    This is deliberately a fixture, not a claim that a fresh organism spoke.
+    The live emission boundary is tested separately.  These tests exercise the
+    downstream emission-id lookup and teacher routing with every certification
+    field present and internally consistent.
+    """
     from dsf_ai_service.v4.gualaloom_v5_engine import LanguageKrimelack, _normalize_text
 
     g.read_sentence(input_text, source=source)
@@ -102,10 +97,32 @@ def _seed_real_emission(g, input_text, reply_text, source="joe"):
         reply_chis.append(ek.winding)
     first_chi = min(reply_chis) if reply_chis else 0
     eid = f"{g.tick}_{first_chi}_{len(reply_chis)}"
+    words = _normalize_text(reply_text)
+    sections = list(g._EMISSION_SECTIONS[:len(words)])
+    episode_ref = f"episode:{source}:{g.source_history[source]}"
+    provenance = [
+        {
+            "section": section,
+            "mode_id": mode_id,
+            "word": word,
+            "source": source,
+            "origin": "teacher_route_fixture",
+            "chi": reply_chis[mode_id],
+            "sensory_refs": [],
+            "episode_refs": [episode_ref],
+            "bundle_ids": [],
+        }
+        for mode_id, (section, word) in enumerate(zip(sections, words))
+    ]
     rec = {"emission_id": eid, "text": reply_text, "tick": g.tick,
            "input_text": input_text, "source": source,
-           "committed_chis": reply_chis}
+           "committed_chis": reply_chis,
+           "committed_sections": sections,
+           "n_commits": len(words),
+           "response_source": "v5_commit",
+           "commit_provenance": provenance}
     g._last_emission_id = eid
+    g._last_response_source = "v5_commit"
     g._emission_records[eid] = rec
     g._last_converse_input = input_text
     g._last_converse_reply = reply_text
@@ -115,8 +132,8 @@ def _seed_real_emission(g, input_text, reply_text, source="joe"):
 # ── Part 1: local/code-level -- was never actually broken, keep it that way ──
 
 def test_teacher_correction_route_resolves_real_emission_locally():
-    """Real Guala() boot, a real emission_id (see _seed_real_emission),
-    then POST /api/v1/teacher/correction through the actual FastAPI app
+    """Real Guala() boot plus a certified record fixture, then POST
+    /api/v1/teacher/correction through the actual FastAPI app
     via TestClient (in-process -- no gateway, no network). Must NOT
     return the 'Not found' shape and must NOT return an 'error' key --
     proves the code path itself is sound."""
@@ -127,7 +144,7 @@ def test_teacher_correction_route_resolves_real_emission_locally():
     old_guala = appmod._guala
     appmod._guala = g
     try:
-        emission_id = _seed_real_emission(
+        emission_id = _seed_certified_emission_fixture(
             g, "hello there, how are you", "old speech five"
         )
         assert emission_id in g._emission_records, (
@@ -170,7 +187,8 @@ def test_teacher_feedback_route_resolves_real_emission_locally():
     old_guala = appmod._guala
     appmod._guala = g
     try:
-        emission_id = _seed_real_emission(g, "what a nice day", "ball rain best")
+        emission_id = _seed_certified_emission_fixture(
+            g, "what a nice day", "ball rain best")
         assert emission_id in g._emission_records
 
         client = TestClient(appmod.app)

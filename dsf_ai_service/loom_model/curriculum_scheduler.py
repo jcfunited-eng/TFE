@@ -244,14 +244,21 @@ class CurriculumScheduler:
         self.study_once()
 
     def start(self):
-        if self._thread is not None:
+        if self._thread is not None and self._thread.is_alive():
             return
+        self._stop.clear()
         self._thread = threading.Thread(target=self._loop, daemon=True,
                                         name="curriculum-scheduler")
         self._thread.start()
 
-    def stop(self):
+    def stop(self, timeout=120.0):
         self._stop.set()
+        if (self._thread is not None
+                and self._thread is not threading.current_thread()):
+            self._thread.join(timeout=float(timeout))
+            if self._thread.is_alive():
+                raise RuntimeError("curriculum scheduler did not stop")
+            self._thread = None
 
     def status(self):
         bi = self.progress.get("book_index", 0)

@@ -90,7 +90,8 @@ def test_daydream_loop_concurrent_with_real_conversation_no_crash_no_deadlock():
 
     def _do_converse():
         try:
-            conv_result["reply"] = g.converse("tell me something", source="joe")
+            conv_result["reply"] = g.converse(
+                "tell me something", source="joe").response
         except Exception as e:
             conv_result["error"] = e
 

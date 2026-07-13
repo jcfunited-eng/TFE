@@ -29,20 +29,11 @@ ENV PATH="/root/.local/bin:${PATH}"
 RUN uv python install 3.14t
 RUN uv venv --python 3.14t /opt/nogil-venv
 
-# Same production dependency set MINUS faster-whisper -- tokenizers (a
-# hard, non-optional faster-whisper dependency) has never published a
-# free-threading-compatible wheel at any version (confirmed empirically,
-# see GL-RPT-NOGIL-PYTHON-TEST-C1-20260707-v2.md). Excluding it is safe:
-# dsf_ai_service/substrate/grounded_vocab.py's SpeechRecognizer already
-# wraps `from faster_whisper import WhisperModel` in try/except and is
-# explicitly documented to degrade to self.available=False, transcribe()
-# returning "" -- a supported degraded mode, not a hack. None of this
-# dispatch's own harness scenarios or contention metric touch audio
-# transcription. --only-binary=:all: enforced throughout so this build
-# fails loudly instead of silently falling back to an unverified,
-# dispatch-forbidden source build for anything else either.
+# This test variant uses the same ML-free dependency boundary as production.
+# --only-binary=:all: is retained so dependency installation fails loudly
+# instead of compiling an unverified source build.
 RUN uv pip install --python /opt/nogil-venv/bin/python --only-binary=:all: \
-    fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 onnxruntime websockets
+    fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 websockets
 
 # Copy only what the service needs (mirrors the production Dockerfile)
 COPY uf_core/ /app/uf_core/
@@ -51,10 +42,6 @@ COPY tools/derive_sppu_weights.py tools/wave_constants.py tools/wave_spillover.p
 COPY tools/sensory_curriculum_orchestrator.py tools/curriculum_seed.json /app/tools/
 COPY dsf_ai_service/ /app/dsf_ai_service/
 COPY dsf_ai_service/corpus/ /app/corpus/
-COPY dsf_ai_service/models/ /app/models/
-COPY yolov8n.onnx /app/yolov8n.onnx
-
-# No whisper-tiny pre-download (faster-whisper excluded from this variant)
 
 # GualaLoom state dir -- ephemeral container-local storage for this test
 # variant. Deliberately NOT mounting the production EFS volume

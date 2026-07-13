@@ -35,23 +35,10 @@ class AdaptingFoveaKrimelack:
     Adaptation: sustained bright → adapt_state decays → coupling drops.
     Removal → adapt_state recovers slowly (asymmetric).
 
-    GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: phase was
-    being driven by omega directly (self.phase += omega * DT), i.e. by raw
-    intensity plus the omega_0 carrier baseline -- since intensity is
-    physically always >= 0 (a photoresistor reading), phase only ever
-    increased, and events only ever recorded a hardcoded placeholder
-    (dw=+1, s=1.0) with zero real variation. Every other winding-oscillator
-    in this codebase (OscillatorKrimelack in sensory_krimelacks.py,
-    Krimelack in substrate/krimelack.py, used for touch/smell/taste/audio/
-    language) instead accumulates delta_phi = (omega - omega_0) * dt --
-    phase driven by the signal's DEVIATION from baseline, not the raw
-    signal -- and records the real signal value into each event. Brought
-    in line with that same, already-proven pattern here: phase is now
-    driven by intensity's CHANGE tick-to-tick (which genuinely can be
-    positive or negative, unlike raw intensity), giving real magnitude
-    variation and real reversal instead of a constant. Adaptation
-    behavior (adapt_state) is unchanged -- still modulates kappa_eff
-    from raw intensity, exactly as before."""
+    Pixel intensity is the photoresistor signal itself.  The canonical
+    visual equation advances phase from omega, not from the tick-to-tick
+    derivative of intensity.  Event records retain the actual intensity
+    present at each winding transition."""
     omega_0: float = OMEGA_0
     kappa_max: float = KAPPA_MAX
     adapt_tau: float = 12.0       # seconds at strong signal to half-adapt
@@ -60,25 +47,20 @@ class AdaptingFoveaKrimelack:
     winding_count: int = 0
     events: list = field(default_factory=list)
     adapt_state: float = 1.0
-    _prev_intensity: float = None
 
     def tick(self, intensity, t):
         kappa_eff = self.kappa_max * self.adapt_state
-        delta = 0.0 if self._prev_intensity is None else (intensity - self._prev_intensity)
-        self._prev_intensity = intensity
-        delta_phi = kappa_eff * delta * DT
-        self.phase += delta_phi
+        omega = self.omega_0 + kappa_eff * intensity
+        self.phase += omega * DT
         while self.phase >= WINDING_PHASE:
             self.winding_count += 1
             self.phase -= WINDING_PHASE
-            self.events.append({"t": t, "dw": +1, "s": delta})
+            self.events.append({"t": t, "dw": +1, "s": intensity})
         while self.phase <= -WINDING_PHASE:
             self.winding_count -= 1
             self.phase += WINDING_PHASE
-            self.events.append({"t": t, "dw": -1, "s": delta})
-        # Adaptation (unchanged -- still driven by raw intensity, not delta;
-        # sustained brightness should still desensitize regardless of
-        # whether it's currently changing)
+            self.events.append({"t": t, "dw": -1, "s": intensity})
+        # Sustained brightness desensitizes the receptor.
         if intensity > 0.1:
             self.adapt_state -= self.adapt_state * (intensity / self.adapt_tau) * DT
         else:
@@ -95,7 +77,6 @@ class AdaptingFoveaKrimelack:
         self.phase = 0.0
         self.events = []
         self.adapt_state = 1.0
-        self._prev_intensity = None
 
 
 # =========================================================================
@@ -237,7 +218,7 @@ def view_picture(image, source_id, born_tick, seed=None,
 
         frag = VisualPerceptFragment(
             fixation_coord=fixation,
-            event_ticks=list(krim.events),
+            event_ticks=[event["t"] for event in krim.events],
             winding_count=krim.winding_count,
             source_id=source_id,
             born_tick=start_t,

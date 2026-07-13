@@ -117,7 +117,7 @@ def _converse(g, text, source="joe"):
 
     reply = g._emit_from_invariants(
         input_chis, words, mode_override="grandurun",
-        v7_session=getattr(g, '_v7_session', None))
+        v7_session=getattr(g, '_v7_session', None)).content or None
 
     # Compute emission chis
     emission_chis = []

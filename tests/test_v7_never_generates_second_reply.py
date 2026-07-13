@@ -51,7 +51,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("EMISSION_MODE", "grandurun")
 
 import dsf_ai_service.v4.gualaloom_v5_engine as engine_mod  # noqa: E402
-from dsf_ai_service.v4.gualaloom_v5_engine import Guala  # noqa: E402
+from dsf_ai_service.v4.gualaloom_v5_engine import (  # noqa: E402
+    ConversationTurnResult,
+    Guala,
+)
 from dsf_ai_service.substrate.v7_engine import V7Session  # noqa: E402
 
 
@@ -159,29 +162,40 @@ def _run_real_turn_with_hostile_v7_session(converse_phased):
 
     V7Session.converse = _forbidden_converse
 
-    emit_calls = {"n": 0}
+    legacy_emit_calls = {"n": 0}
+    fact_compose_calls = {"n": 0}
     orig_emit = Guala._emit_from_invariants
+    orig_fact_compose = Guala._compose_language_fact_settlement
 
     def _counting_emit(self, *a, **kw):
-        emit_calls["n"] += 1
+        legacy_emit_calls["n"] += 1
         return orig_emit(self, *a, **kw)
 
+    def _counting_fact_compose(self, *a, **kw):
+        fact_compose_calls["n"] += 1
+        return orig_fact_compose(self, *a, **kw)
+
     Guala._emit_from_invariants = _counting_emit
+    Guala._compose_language_fact_settlement = _counting_fact_compose
 
     try:
         g = Guala()
         g._v7_session = _NeverTouchedV7Session()
         reply = g.converse("tell me a real thing about the real world",
                            source="joe")
-        assert isinstance(reply, str), f"expected a string reply, got {reply!r}"
-        assert emit_calls["n"] == 1, (
-            "expected _emit_from_invariants -- the ONE real reply "
-            f"composer -- to run exactly once per turn, ran {emit_calls['n']} "
-            "times: more than one reply-generation pathway may be active")
+        assert isinstance(reply, ConversationTurnResult), (
+            f"expected an immutable turn result, got {reply!r}")
+        assert isinstance(reply.response, str)
+        assert legacy_emit_calls["n"] == 0, (
+            "retired invariant composer ran on the real Fact-Strand path")
+        assert fact_compose_calls["n"] == 1, (
+            "expected the one canonical Fact-Strand composer exactly once, "
+            f"ran {fact_compose_calls['n']} times")
         return reply
     finally:
         V7Session.converse = orig_v7_converse
         Guala._emit_from_invariants = orig_emit
+        Guala._compose_language_fact_settlement = orig_fact_compose
         if old_phased is None:
             os.environ.pop("CONVERSE_PHASED", None)
         else:

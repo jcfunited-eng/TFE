@@ -1,132 +1,213 @@
-"""Recall query: chi values in, ranked binding windows out.
+"""Chi routing over canonical binding-window memory.
 
-Per GL-SPEC-SUBSTRATE-FOUNDATION-EVE-20260706-v1 and
-GL-CMD-CROSS-SENSE-RECALL-BUILD-EVE-20260706-v1. Turns "the sound cue
-came in" into "here are the windows that had this sound, one of which
-also has the picture and the word." Reads GL-CMD-BINDING-WINDOWS-BUILD-
-EVE-20260706-v1's atlas.windows (closed binding windows, plain dicts)
--- never writes to it, never touches how windows are formed.
-
-Scope of this build (GL-CMD-CROSS-SENSE-RECALL-BUILD-EVE-20260706-v1):
-walk atlas.windows, rank by exactly three factors (recency, affect
-strength at window formation, section match), return top-N. No
-caching -- runs live every call. No new ranking factors. Recall
-results are NOT wired into the live conversational emission/
-composition path in this build -- see the module docstring note below
-and the build report for why.
+Recall returns every complete window containing any requested Chi.  It never
+reduces a window to a weighted score and never uses a top-k truncation as a
+decision authority.  Chi coverage is explicitly a reduced routing projection,
+not structural recognition.  Language Fact-Strand reciprocity remains the
+only language-recognition authority.
 """
 from __future__ import annotations
 
+import copy
+import hashlib
+import json
+import threading
 import time
-import uuid
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Optional
+
+from dsf_ai_service.substrate.window_manager import (
+    WindowManager,
+    _json_safe,
+    manager_for_compatibility_mirror,
+)
 
 
 @dataclass
 class RecallQuery:
-    """Query parameters for a recall lookup."""
+    """Exact structural query.
 
-    chis: list          # list[int] -- the chi values to search for
-    section_hint: Optional[str] = None   # e.g. "sound" -- boosts matching windows
+    ``max_results`` remains accepted for transport compatibility but is not
+    applied.  Truncating structurally matching memory would manufacture a
+    winner from storage order.
+    """
+
+    chis: list
+    section_hint: Optional[str] = None
     source_context: dict = field(default_factory=dict)
-    max_results: int = 5
+    max_results: Optional[int] = 5
 
 
 @dataclass
 class RecallResult:
-    """Ranked list of windows matching a query."""
+    """Full structural candidates and their honest resolution state."""
 
     query_id: str
-    windows: list = field(default_factory=list)   # list[dict] -- ranked, highest first
+    windows: list = field(default_factory=list)
+    candidates: list = field(default_factory=list)
+    resolution: str = "unknown"
+    selected_window_id: Optional[str] = None
+    unknown_reason: Optional[str] = None
+    routing_projection: str = "chi_index"
+    decision_authority: bool = False
+    source_context: dict = field(default_factory=dict)
     duration_ms: float = 0.0
+    truncated: bool = False
 
     def window_ids(self) -> list:
-        return [w.get("window_id") for w in self.windows]
+        return [window.get("window_id") for window in self.windows]
+
+    def selected_window(self) -> Optional[dict]:
+        if self.selected_window_id is None:
+            return None
+        return next(
+            (window for window in self.windows
+             if window.get("window_id") == self.selected_window_id),
+            None)
 
     def top_affect_strength(self) -> float:
-        if not self.windows:
-            return 0.0
-        return _affect_strength(self.windows[0])
+        """Compatibility helper: affect of the uniquely resolved window only.
+
+        There is deliberately no "top" affect value when recall is ambiguous;
+        returning zero preserves the old numeric response field without using
+        affect magnitude to break a structural tie.
+        """
+        selected = self.selected_window()
+        return _affect_strength(selected) if selected is not None else 0.0
 
 
-def _affect_strength(window: dict) -> float:
-    """Affect strength at window formation: arousal (magnitude of
-    activation) plus |valence| (magnitude of pleasant/unpleasant pull) --
-    both already captured in the window's own affect_snapshot at close()
-    time, no new signal invented."""
-    snap = window.get("affect_snapshot") or {}
-    return abs(snap.get("arousal", 0.0)) + abs(snap.get("valence", 0.0))
+def _affect_strength(window: Optional[dict]) -> float:
+    if not window:
+        return 0.0
+    snapshot = window.get("affect_snapshot") or {}
+    arousal = snapshot.get("arousal", 0.0)
+    valence = snapshot.get("valence", 0.0)
+    if not isinstance(arousal, (int, float)) or not isinstance(
+            valence, (int, float)):
+        return 0.0
+    return abs(float(arousal)) + abs(float(valence))
+
+
+def _candidate_for(window: dict, query_chis: tuple[int, ...],
+                   section_hint: Optional[str]) -> dict:
+    query_set = set(query_chis)
+    hit_entries = [
+        entry for entry in window.get("entries") or []
+        if entry.get("chi") in query_set
+    ]
+    matched_set = {int(entry["chi"]) for entry in hit_entries}
+    matched_chis = [chi for chi in query_chis if chi in matched_set]
+    hint_match = None
+    if section_hint is not None:
+        hint_match = any(
+            entry.get("section") == section_hint
+            or entry.get("modality") == section_hint
+            for entry in hit_entries)
+    facts = []
+    for entry in hit_entries:
+        fact = (entry.get("provenance") or {}).get("structural_fact")
+        if fact is not None:
+            facts.append(copy.deepcopy(fact))
+    return {
+        "window_id": window["window_id"],
+        "matched_chis": matched_chis,
+        "unmatched_chis": [chi for chi in query_chis if chi not in matched_set],
+        "matched_entry_indices": [entry["entry_index"] for entry in hit_entries],
+        "matched_modalities": list(dict.fromkeys(
+            entry.get("modality") for entry in hit_entries)),
+        "matched_sections": list(dict.fromkeys(
+            entry.get("section") for entry in hit_entries)),
+        "section_hint": section_hint,
+        "section_hint_match": hint_match,
+        "structural_facts": facts,
+    }
+
+
+def _resolve(candidates: list[dict]) -> tuple[str, Optional[str], Optional[str]]:
+    if not candidates:
+        return "unknown", None, "no_chi_route"
+    return "routing_candidates", None, "requires_fact_strand_reciprocity"
 
 
 class RecallEngine:
-    """Reads atlas.windows (never writes it). One method: query()."""
+    """Reads only WindowManager's canonical memory and per-Chi index."""
 
-    def __init__(self, atlas_windows_fn, get_tick_fn, log_event_fn):
-        """
-        atlas_windows_fn: callable() -> dict, returns the atlas's own
-            `windows` dict (same object each call, read live -- no
-            caching, no copy taken at construction time).
-        get_tick_fn: callable() -> int, current engine tick (for recency
-            scoring relative to "now").
-        log_event_fn: Guala._log_substrate_event.
-        """
-        self._get_windows = atlas_windows_fn
-        self._get_tick = get_tick_fn
-        self._log_event = log_event_fn
+    def __init__(self, atlas_windows_fn=None, get_tick_fn=None,
+                 log_event_fn=None, *, window_manager: Optional[WindowManager] = None):
+        # Current engine wiring passes only lambda: atlas.windows.  Resolve that
+        # compatibility mirror to its owner once; query() never scans the mirror.
+        if window_manager is None and atlas_windows_fn is not None:
+            mirror = atlas_windows_fn()
+            window_manager = manager_for_compatibility_mirror(mirror)
+        if window_manager is None:
+            raise ValueError(
+                "RecallEngine requires canonical WindowManager memory; an "
+                "unregistered Atlas windows mapping cannot be recall authority")
+        self._window_manager = window_manager
+        self._get_tick = get_tick_fn or (lambda: 0)
+        self._log_event = log_event_fn or (lambda *_args, **_kwargs: None)
+        self._query_lock = threading.Lock()
+        self._query_sequence = 0
+
+    def _next_query_id(self, query_chis: tuple[int, ...],
+                       source_context: dict) -> str:
+        with self._query_lock:
+            sequence = self._query_sequence
+            self._query_sequence += 1
+        identity = hashlib.sha256(json.dumps(
+            {"chis": query_chis, "source_context": source_context},
+            allow_nan=False, separators=(",", ":"), sort_keys=True,
+        ).encode("utf-8")).hexdigest()[:16]
+        return f"rq_{sequence:016x}_{identity}"
 
     def query(self, request: RecallQuery) -> RecallResult:
-        t0 = time.monotonic()
-        query_id = f"rq_{uuid.uuid4().hex[:12]}"
-        query_chis = set(request.chis or [])
-        windows = self._get_windows()
-        now_tick = self._get_tick()
+        if not isinstance(request, RecallQuery):
+            raise TypeError("request must be RecallQuery")
+        started = time.monotonic()
+        query_chis = tuple(dict.fromkeys(int(chi) for chi in (request.chis or [])))
+        source_context = _json_safe(
+            request.source_context or {}, "recall.source_context")
+        query_id = self._next_query_id(query_chis, source_context)
 
-        matches = []
-        for window in windows.values():
-            entries = window.get("entries") or []
-            hit_entries = [e for e in entries if e.get("chi") in query_chis]
-            if not hit_entries:
-                continue
-
-            # Factor 1: recency -- higher (more recent) closed_tick wins.
-            # Scored as closeness to "now" so it combines cleanly with the
-            # other two [0, ~few] factors instead of dwarfing them with a
-            # raw tick number.
-            closed_tick = window.get("closed_tick") or window.get("opened_tick", 0)
-            age = max(0, now_tick - closed_tick)
-            recency_score = 1.0 / (1.0 + age / 1000.0)
-
-            # Factor 2: affect strength at window formation.
-            affect_score = _affect_strength(window)
-
-            # Factor 3: section match -- query's section hint matches any
-            # hit entry's section/modality.
-            section_score = 0.0
-            if request.section_hint:
-                for e in hit_entries:
-                    if (e.get("section") == request.section_hint
-                            or e.get("modality") == request.section_hint):
-                        section_score = 1.0
-                        break
-
-            rank_score = recency_score + affect_score + section_score
-            matches.append((rank_score, window))
-
-        matches.sort(key=lambda m: -m[0])
-        top_windows = [w for _score, w in matches[:max(1, request.max_results)]]
-
-        duration_ms = (time.monotonic() - t0) * 1000
-        result = RecallResult(query_id=query_id, windows=top_windows,
-                              duration_ms=duration_ms)
+        windows = list(self._window_manager.recall_snapshot(list(query_chis)))
+        windows.sort(key=lambda window: window["window_id"])
+        candidates = [
+            _candidate_for(window, query_chis, request.section_hint)
+            for window in windows
+        ]
+        resolution, selected_window_id, unknown_reason = _resolve(candidates)
+        duration_ms = (time.monotonic() - started) * 1000.0
+        result = RecallResult(
+            query_id=query_id,
+            windows=windows,
+            candidates=candidates,
+            resolution=resolution,
+            selected_window_id=selected_window_id,
+            unknown_reason=unknown_reason,
+            routing_projection="chi_index",
+            decision_authority=False,
+            source_context=source_context,
+            duration_ms=duration_ms,
+            truncated=False,
+        )
 
         self._log_event(
             "recall_query_executed",
             query_id=query_id,
-            input_chis=list(query_chis)[:20],
-            windows_returned_count=len(top_windows),
+            input_chis=list(query_chis),
+            source_context=source_context,
+            windows_returned_count=len(windows),
             windows_returned_ids=result.window_ids(),
-            top_result_affect_strength=round(result.top_affect_strength(), 4),
+            resolution=resolution,
+            selected_window_id=selected_window_id,
+            unknown_reason=unknown_reason,
+            chi_routing_candidates=copy.deepcopy(candidates),
+            routing_projection="chi_index",
+            decision_authority=False,
+            max_results_ignored=request.max_results,
+            top_result_affect_strength=round(
+                result.top_affect_strength(), 4),
+            query_tick=int(self._get_tick()),
             wall_clock=time.time(),
             duration_ms=round(duration_ms, 3),
         )

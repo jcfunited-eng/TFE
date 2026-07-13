@@ -18,7 +18,7 @@ WORKDIR /app
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg espeak-ng && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 onnxruntime websockets faster-whisper
+RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 websockets
 
 # Copy only what the service needs (no TFE trading code)
 COPY uf_core/ /app/uf_core/
@@ -27,13 +27,6 @@ COPY tools/derive_sppu_weights.py tools/wave_constants.py tools/wave_spillover.p
 COPY tools/sensory_curriculum_orchestrator.py tools/curriculum_seed.json /app/tools/
 COPY dsf_ai_service/ /app/dsf_ai_service/
 COPY dsf_ai_service/corpus/ /app/corpus/
-COPY dsf_ai_service/models/ /app/models/
-# YOLO model for visual scene recognition (tracked in git for build reproducibility)
-COPY yolov8n.onnx /app/yolov8n.onnx
-
-# Pre-download whisper-tiny model at build time so it's available at runtime
-# without needing internet access. Baked into the image (~150MB).
-RUN python3 -c "from faster_whisper import WhisperModel; WhisperModel('tiny', device='cpu', compute_type='int8'); print('whisper-tiny baked')" 2>&1 || echo "whisper pre-download failed (non-fatal)"
 
 # GualaLoom state dir (persists via ECS volume or recreates on deploy)
 RUN mkdir -p /app/state/dreams

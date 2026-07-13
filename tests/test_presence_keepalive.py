@@ -67,7 +67,7 @@ def test_keepalive_survives_simulated_long_turn():
     # itself in _presence_keepalive(source), which renews immediately, so
     # this alone should already refresh the stale timestamp even before
     # read_sentence or emission run.
-    reply = g.converse("hello there", source="joe")
+    reply = g.converse("hello there", source="joe").response
     assert isinstance(reply, str)
 
     # Now jump tick forward again by another 1200 (would be 2200 total
@@ -96,7 +96,7 @@ def test_phased_path_survives_lockfree_emission_window():
         g = Guala()
         _wake_all(g)
         g.tick += 1_000
-        reply = g.converse("what is the weather", source="joe")
+        reply = g.converse("what is the weather", source="joe").response
         assert isinstance(reply, str)
         g.tick += 1_200
         g.coordinator.timeout_check(g)
@@ -147,7 +147,7 @@ def test_only_the_active_source_is_renewed():
     g.coordinator._last_input_tick["joe"] = g.tick
 
     # joe has a real turn in flight -- should renew ONLY joe.
-    reply = g.converse("just checking in", source="joe")
+    reply = g.converse("just checking in", source="joe").response
     assert isinstance(reply, str)
 
     # Advance a bit more and check timeout for all three.
@@ -191,8 +191,9 @@ def test_default_nonphased_path_still_works_end_to_end():
         "test must run with CONVERSE_PHASED unset/0 to exercise the default path"
     g = Guala()
     _wake_all(g)
-    reply = g.converse("the sky is blue today", source="joe")
-    assert isinstance(reply, str) and len(reply) > 0
+    turn = g.converse("the sky is blue today", source="joe")
+    reply = turn.response
+    assert isinstance(reply, str)
     print(f"  OK: reply={reply!r}")
 
 

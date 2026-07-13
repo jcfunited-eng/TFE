@@ -28,6 +28,8 @@ tests/test_read_sentence_lock_granularity_concurrency.py.
 """
 
 import os
+
+import pytest
 import sys
 import time
 
@@ -161,13 +163,14 @@ def _chi_for(word):
     return k.winding
 
 
-def test_live_emission_dynamics_path_applies_real_aware_bias():
+def test_live_emission_dynamics_applies_aware_bias_without_fabricating_speech():
     """The LIVE production emission path (EMISSION_DYNAMICS=1) must now
     genuinely apply the real introspection-derived bias to candidates --
-    not just the non-default scalar _emit_grandurun path. Same Stage-1
-    stubbing convention as test_emission_wall_budget_retime.py: only
-    candidate SOURCING is stubbed; the real Stage-2 settling loop and the
-    real bias-application code under test run unmodified."""
+    not just the retired scalar _emit_grandurun path. Same Stage-1 stubbing
+    convention as test_emission_wall_budget_retime.py: only candidate sourcing
+    is stubbed; the real Stage-2 settling loop and real bias application run
+    unmodified. If that dynamics window produces no commit, silence is the
+    only truthful result; candidate bias is not itself permission to speak."""
     print("Test: live _emit_dynamics path applies real aware-derived bias "
           "to candidates (shapes what actually gets said)...")
     old_env = {k: os.environ.get(k) for k in
@@ -190,8 +193,10 @@ def test_live_emission_dynamics_path_applies_real_aware_bias():
         # Stage 1 stub: a weak candidate that MATCHES the real aware
         # signal vs. a strong candidate that does not -- if the aware
         # bias genuinely applies, the weak-but-aware candidate should win.
+        stage1_candidates = []
+
         def stub_stage1(*_a, **_kw):
-            return [
+            stage1_candidates.extend([
                 {"chi": _chi_for(aware_word), "section": "subject",
                  "motif": f"subject:{aware_word}", "word": aware_word,
                  "strength": 0.2, "coherent_magnitude": 0.2, "source": "corpus",
@@ -202,10 +207,12 @@ def test_live_emission_dynamics_path_applies_real_aware_bias():
                  "strength": 0.9, "coherent_magnitude": 0.9, "source": "corpus",
                  "arousal": 0.5, "valence": 0.3, "polarity": 1.0,
                  "sensory_refs": [], "origin": "grandurun"},
-            ]
+            ])
+            return stage1_candidates
         engine_mod._grandurun_select_candidates = stub_stage1
 
-        reply = g._emit_from_invariants([], [], mode_override="grandurun")
+        settlement = g._emit_from_invariants(
+            [], [], mode_override="grandurun")
 
         ev = {}
         for evt in g._substrate_events:
@@ -216,15 +223,20 @@ def test_live_emission_dynamics_path_applies_real_aware_bias():
             f"-- got event={ev}")
         assert ev.get("n_aware_priors", 0) > 0
 
-        print(f"  reply={reply!r} aware_word={aware_word!r} "
+        candidates_by_word = {
+            candidate["word"]: candidate for candidate in stage1_candidates}
+        priors = g._get_emission_priors()
+        assert candidates_by_word[aware_word]["coherent_magnitude"] == pytest.approx(
+            0.2 * priors[aware_word])
+        assert candidates_by_word["unrelatedword"]["coherent_magnitude"] == pytest.approx(
+            0.9)
+
+        print(f"  reply={settlement.content!r} aware_word={aware_word!r} "
               f"n_aware_priors={ev.get('n_aware_priors')}")
-        assert reply is not None and aware_word in reply.split(), (
-            f"expected the aware-boosted low-magnitude candidate "
-            f"{aware_word!r} to win over the higher-magnitude "
-            f"'unrelatedword' candidate -- bias did not shape the reply "
-            f"(reply={reply!r})")
-        print("  OK: real introspection signal genuinely shaped the live "
-              "emission path's output")
+        assert settlement.n_commits == 0
+        assert settlement.content == ""
+        print("  OK: real introspection changed the live candidate field; "
+              "zero commits remained honest silence")
     finally:
         engine_mod._grandurun_select_candidates = orig_select
         for k, v in old_env.items():
@@ -240,7 +252,7 @@ if __name__ == "__main__":
         test_v7_session_argument_is_never_read_for_the_gate,
         test_cold_start_before_any_conversation_returns_empty_priors,
         test_aware_blocked_attenuates_cached_priors_not_live_v7_data,
-        test_live_emission_dynamics_path_applies_real_aware_bias,
+        test_live_emission_dynamics_applies_aware_bias_without_fabricating_speech,
     ]
     failures = []
     for t in tests:

@@ -41,7 +41,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 os.environ.setdefault("EMISSION_MODE", "grandurun")
 
-from dsf_ai_service.v4.gualaloom_v5_engine import Guala, Section  # noqa: E402
+from dsf_ai_service.v4.gualaloom_v5_engine import (  # noqa: E402
+    ConversationTurnResult,
+    Guala,
+    Section,
+)
 
 
 class _SlowSectionReceive:
@@ -184,7 +188,9 @@ def test_two_concurrent_real_turns_do_not_corrupt_shared_aware_cache():
     assert not errors, f"concurrent converse() raised: {errors}"
     assert set(replies) == {"a", "b"}, f"both turns must complete: {replies}"
     for key, reply in replies.items():
-        assert isinstance(reply, str), f"turn {key}: expected str reply, got {reply!r}"
+        assert isinstance(reply, ConversationTurnResult), (
+            f"turn {key}: expected turn result, got {reply!r}")
+        assert isinstance(reply.response, str)
 
     # After both turns, the gate methods must still be callable and
     # internally consistent (no partially-written cache state left behind).

@@ -23,11 +23,18 @@ set -euo pipefail
 
 # Parse optional flags
 FORCE_S3_RESTORE_FLAG=""
-for arg in "$@"; do
-  if [ "$arg" = "--force-s3-restore" ]; then
-    FORCE_S3_RESTORE_FLAG="yes"
-    echo "[deploy] --force-s3-restore: FORCE_S3_RESTORE=1 will be injected for this deploy only."
-  fi
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --force-s3-restore)
+            FORCE_S3_RESTORE_FLAG="yes"
+            echo "[deploy] --force-s3-restore: FORCE_S3_RESTORE=1 will be injected for this deploy only."
+            shift
+            ;;
+        *)
+            echo "ERROR: unknown deployment argument: $1"
+            exit 1
+            ;;
+    esac
 done
 
 # ── Constants ──
@@ -41,35 +48,23 @@ TASK_FAMILY="dsf-ai-task"
 CODEBUILD_PROJECT="dsf-ai-image-build"
 S3_BUCKET="tfe-codebuild-src-${AWS_ACCOUNT}-${AWS_REGION}"
 S3_KEY="deploy/dsf_ai_codebuild_src.zip"
+TASK_SECURITY_GROUP="sg-057566437ba8d4b48"
+ALB_SECURITY_GROUP="sg-0c9ff138eba21a6fa"
+ALB_DNS="dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com"
+CONTROL_ORIGIN="https://dsf-ai.com"
+DEPLOY_CONFIG="maximumPercent=100,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=true}"
+
+# Required runtime secrets must exist in AWS before deployment.  External-model
+# lookup is retired: OpenAI is neither required nor injected.  YouTube is an
+# optional world feed and remains explicitly disabled when its key is absent.
+# There is no .env/plaintext fallback for the required credentials.
+GUALALOOM_SECRET_ID="gualaloom/api-key/prod"
+TAVILY_SECRET_ID="tfe/tavily/prod"
+ANTHROPIC_SECRET_ID="wc-companion/anthropic-key"
 
 TIMESTAMP=$(date -u +"%Y%m%dT%H%M%SZ")
 IMAGE_TAG="deploy-${TIMESTAMP}"
 IMAGE_URI="${ECR_URI}:${IMAGE_TAG}"
-
-# ── External-API keys for her runtime (lookup grounding + future feeds) ──
-# Sourced at deploy time from the local .env (gitignored — no secret enters git)
-# and Secrets Manager. Injected into the substrate container env below so her
-# process can actually reach OpenAI/Tavily/Anthropic. Empty if absent (features
-# stay gracefully disabled).
-_envval() { grep -E "^$1=" .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'; }
-OPENAI_API_KEY="$(_envval OPENAI_API_KEY)"
-TAVILY_API_KEY="$(_envval TAVILY_API_KEY)"
-YOUTUBE_API_KEY="$(_envval YOUTUBE_API_KEY)"
-# GL-INCIDENT-APIKEY-101: admin key rotated 2026-07-03; must never be hardcoded
-# in this script again. Sourced from .env only (gitignored).
-GUALALOOM_API_KEY="$(_envval GUALALOOM_API_KEY_NEW)"
-if [ -z "$GUALALOOM_API_KEY" ]; then
-  echo "ERROR: GUALALOOM_API_KEY_NEW not found in .env — refusing to deploy with no admin key"
-  echo "       (prevents silently reverting to a hardcoded/leaked value)"
-  exit 1
-fi
-ANTHROPIC_API_KEY="$(aws secretsmanager get-secret-value --secret-id wc-companion/anthropic-key \
-  --query 'SecretString' --output text 2>/dev/null | python3 -c 'import sys,json;
-s=sys.stdin.read().strip()
-try: print(json.loads(s).get("ANTHROPIC_API_KEY") or json.loads(s).get("api_key") or (s if s.startswith("sk-") else ""))
-except Exception: print(s if s.startswith("sk-") else "")' 2>/dev/null)"
-export OPENAI_API_KEY TAVILY_API_KEY ANTHROPIC_API_KEY YOUTUBE_API_KEY GUALALOOM_API_KEY
-echo "  runtime keys: openai=$([ -n "$OPENAI_API_KEY" ] && echo yes || echo no) tavily=$([ -n "$TAVILY_API_KEY" ] && echo yes || echo no) anthropic=$([ -n "$ANTHROPIC_API_KEY" ] && echo yes || echo no) youtube=$([ -n "$YOUTUBE_API_KEY" ] && echo yes || echo no)"
 
 echo "═══════════════════════════════════════════"
 echo "  DSF-AI (GualaLoom) Deploy via CodeBuild"
@@ -80,43 +75,300 @@ echo "════════════════════════�
 echo ""
 echo "[0/6] Preflight checks..."
 
-if ! command -v aws &>/dev/null; then
-    echo "ERROR: aws CLI not found"
+for required_command in aws curl git python3 tar zip; do
+    if ! command -v "${required_command}" &>/dev/null; then
+        echo "ERROR: required command not found: ${required_command}"
+        exit 1
+    fi
+done
+
+if ! GIT_SHA=$(git rev-parse --verify HEAD 2>/dev/null); then
+    echo "ERROR: repository has no deployable HEAD commit"
     exit 1
 fi
 
-GIT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+# One release is one reviewed commit.  This includes untracked files: silently
+# omitting a new module is just as dangerous as silently omitting a modification.
+if [ -n "$(git status --porcelain=v1 --untracked-files=all)" ]; then
+    echo "ERROR: working tree is dirty or has untracked files; refusing to deploy"
+    echo "       Commit the complete reviewed release before packaging."
+    git status --short
+    exit 1
+fi
+
+require_secret_arn() {
+    local secret_id="$1"
+    local secret_arn
+    if ! secret_arn=$(aws secretsmanager describe-secret \
+        --secret-id "${secret_id}" --query ARN --output text); then
+        echo "ERROR: required Secrets Manager secret is absent or unreadable: ${secret_id}" >&2
+        return 1
+    fi
+    if [ -z "${secret_arn}" ] || [ "${secret_arn}" = "None" ]; then
+        echo "ERROR: required Secrets Manager secret has no ARN: ${secret_id}" >&2
+        return 1
+    fi
+    printf '%s' "${secret_arn}"
+}
+
+GUALALOOM_SECRET_ARN=$(require_secret_arn "${GUALALOOM_SECRET_ID}") || exit 1
+TAVILY_SECRET_ARN=$(require_secret_arn "${TAVILY_SECRET_ID}") || exit 1
+ANTHROPIC_SECRET_ARN=$(require_secret_arn "${ANTHROPIC_SECRET_ID}") || exit 1
+export GUALALOOM_SECRET_ARN TAVILY_SECRET_ARN ANTHROPIC_SECRET_ARN
+
+# The deploy control credential is held only in this process and sent only over
+# verified TLS.  It is never copied into task-definition environment plaintext.
+if ! DEPLOY_API_KEY=$(aws secretsmanager get-secret-value \
+    --secret-id "${GUALALOOM_SECRET_ARN}" --query SecretString --output text); then
+    echo "ERROR: deploy control credential could not be read"
+    exit 1
+fi
+if [ -z "${DEPLOY_API_KEY}" ] || [ "${DEPLOY_API_KEY}" = "None" ]; then
+    echo "ERROR: deploy control credential is empty"
+    exit 1
+fi
+DEPLOY_NONCE=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
+
+TASK_DEF_JSON=$(aws ecs describe-task-definition \
+    --task-definition "${TASK_FAMILY}" \
+    --query taskDefinition --output json)
+EXECUTION_ROLE_ARN=$(printf '%s' "${TASK_DEF_JSON}" | python3 -c '
+import json, sys
+value = json.load(sys.stdin).get("executionRoleArn")
+if not value:
+    raise SystemExit("task definition has no executionRoleArn")
+print(value)
+')
+
+# ECS resolves `secrets.valueFrom` with the execution role.  Registering a task
+# that cannot read every referenced secret would only move the failure to boot.
+SECRET_ACCESS=$(aws iam simulate-principal-policy \
+    --policy-source-arn "${EXECUTION_ROLE_ARN}" \
+    --action-names secretsmanager:GetSecretValue \
+    --resource-arns "${GUALALOOM_SECRET_ARN}" "${TAVILY_SECRET_ARN}" \
+        "${ANTHROPIC_SECRET_ARN}" \
+    --query 'EvaluationResults[].EvalDecision' --output text)
+if ! SECRET_ACCESS="${SECRET_ACCESS}" python3 -c '
+import os
+decisions = os.environ["SECRET_ACCESS"].split()
+if len(decisions) != 3 or any(value != "allowed" for value in decisions):
+    raise SystemExit(1)
+'; then
+    echo "ERROR: ECS execution role lacks GetSecretValue on every runtime secret"
+    echo "       role: ${EXECUTION_ROLE_ARN}"
+    exit 1
+fi
+
+OLD_TASKS_TEXT=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
+    --service-name "${ECS_SERVICE}" --desired-status RUNNING \
+    --query 'taskArns' --output text)
+read -r -a OLD_TASK_ARNS <<< "${OLD_TASKS_TEXT}"
+if [ "${#OLD_TASK_ARNS[@]}" -ne 1 ] || [ "${OLD_TASK_ARNS[0]}" = "None" ]; then
+    echo "ERROR: expected exactly one current state owner, found ${#OLD_TASK_ARNS[@]}"
+    exit 1
+fi
+OLD_TASK_ARN="${OLD_TASK_ARNS[0]}"
+OLD_TASK_JSON=$(aws ecs describe-tasks \
+    --cluster "${ECS_CLUSTER}" --tasks "${OLD_TASK_ARN}" \
+    --query 'tasks[0]' --output json)
+if ! OLD_OWNER_IDENTITY=$(printf '%s' "${OLD_TASK_JSON}" | python3 -c '
+import json, re, sys
+task = json.load(sys.stdin)
+containers = task.get("containers", [])
+task_definition = task.get("taskDefinitionArn")
+if task.get("lastStatus") != "RUNNING":
+    raise SystemExit("current owner is not RUNNING")
+if not isinstance(task_definition, str) or not task_definition:
+    raise SystemExit("current owner has no task definition")
+if len(containers) != 1:
+    raise SystemExit("current owner does not have exactly one container")
+image_digest = containers[0].get("imageDigest")
+if not isinstance(image_digest, str) or not re.fullmatch(
+        r"sha256:[0-9a-f]{64}", image_digest):
+    raise SystemExit("current owner has no exact image digest")
+print(task_definition, image_digest, sep="\t")
+'); then
+    echo "ERROR: current state owner identity could not be proven"
+    exit 1
+fi
+IFS=$'\t' read -r OLD_TASK_DEFINITION_ARN OLD_IMAGE_DIGEST <<< "${OLD_OWNER_IDENTITY}"
+OLD_SEALED_BOOT=$(aws ecs describe-task-definition \
+    --task-definition "${OLD_TASK_DEFINITION_ARN}" \
+    --query "taskDefinition.containerDefinitions[?name=='dsf-ai'].environment[]" \
+    --output json | python3 -c '
+import json, sys
+items = json.load(sys.stdin)
+values = {item.get("name"): item.get("value") for item in items}
+print("1" if values.get("GUALA_REQUIRE_SEALED_STATE") == "1" else "0")
+')
+if [ "${OLD_SEALED_BOOT}" != "1" ]; then
+    echo "ERROR: current production owner is legacy and has no clean-generation seal"
+    echo "       Legacy migration is forbidden. Create and ratify a clean genesis generation"
+    echo "       before running deployment; revision 614 remains online and untouched."
+    exit 1
+fi
+
+# Remove direct internet access to port 8080 and retain only ALB-to-task ingress.
+TASK_SG_JSON=$(aws ec2 describe-security-groups --group-ids "${TASK_SECURITY_GROUP}" \
+    --query 'SecurityGroups[0]' --output json)
+if TASK_SG_JSON="${TASK_SG_JSON}" python3 -c '
+import json, os
+sg = json.loads(os.environ["TASK_SG_JSON"])
+for rule in sg.get("IpPermissions", []):
+    if rule.get("IpProtocol") == "tcp" and rule.get("FromPort") <= 8080 <= rule.get("ToPort"):
+        if any(item.get("CidrIp") == "0.0.0.0/0" for item in rule.get("IpRanges", [])):
+            raise SystemExit(0)
+raise SystemExit(1)
+'; then
+    aws ec2 revoke-security-group-ingress --group-id "${TASK_SECURITY_GROUP}" \
+        --protocol tcp --port 8080 --cidr 0.0.0.0/0
+fi
+
+TASK_SG_JSON=$(aws ec2 describe-security-groups --group-ids "${TASK_SECURITY_GROUP}" \
+    --query 'SecurityGroups[0]' --output json)
+if ! TASK_SG_JSON="${TASK_SG_JSON}" ALB_SECURITY_GROUP="${ALB_SECURITY_GROUP}" python3 -c '
+import json, os
+sg = json.loads(os.environ["TASK_SG_JSON"])
+alb = os.environ["ALB_SECURITY_GROUP"]
+allowed = False
+for rule in sg.get("IpPermissions", []):
+    if rule.get("IpProtocol") != "tcp" or not (rule.get("FromPort") <= 8080 <= rule.get("ToPort")):
+        continue
+    if rule.get("IpRanges") or rule.get("Ipv6Ranges"):
+        raise SystemExit("task port 8080 still has CIDR ingress")
+    if any(item.get("GroupId") == alb for item in rule.get("UserIdGroupPairs", [])):
+        allowed = True
+if not allowed:
+    raise SystemExit("task port 8080 is not restricted to the ALB security group")
+'; then
+    echo "ERROR: task security group is not ALB-only on port 8080"
+    exit 1
+fi
+
 echo "  Git SHA: ${GIT_SHA}"
 echo "  Image:   ${IMAGE_URI}"
-
-# GL-BRIEF-SLEEP-DURING-DEPLOY: pause-based deploy (max=100, min=0)
-# GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: deploy-sleep is not sleep — the
-# old task pauses before the new one starts. No overlap needed.
-CFG=$(aws ecs describe-services --cluster ${ECS_CLUSTER} \
-  --services ${ECS_SERVICE} \
-  --query 'services[0].deploymentConfiguration.[maximumPercent,minimumHealthyPercent]' \
-  --output text)
-echo "  Deploy config: max/min = $CFG"
+echo "  Old owner: ${OLD_TASK_ARN}"
 
 # ── Step 1: Package source ──
 echo ""
 echo "[1/6] Packaging source..."
 
-STAGING=$(mktemp -d)
-trap "rm -rf ${STAGING}" EXIT
+DEPLOY_WORK_DIR=$(mktemp -d)
+STAGING="${DEPLOY_WORK_DIR}/source"
+ARCHIVE_ZIP="${DEPLOY_WORK_DIR}/dsf_ai_codebuild_src.zip"
+mkdir -p "${STAGING}"
+OWNER_FAIL_CLOSED=0
 
-# Extract committed source tree (clean, no local artifacts)
-git archive HEAD | tar -x -C "${STAGING}"
+fail_closed_owner_cleanup() {
+    local cleanup_failed=0
+    local family_tasks_text=""
+    local task_arn=""
+    local final_service_json=""
+    local FAMILY_REMAINING=""
+
+    echo "[turnover] Failure after handoff began; enforcing zero state owners."
+    if ! aws ecs update-service --cluster "${ECS_CLUSTER}" \
+        --service "${ECS_SERVICE}" --desired-count 0 \
+        --deployment-configuration "${DEPLOY_CONFIG}"; then
+        echo "ERROR: fail-closed cleanup could not set desired count to zero"
+        cleanup_failed=1
+    fi
+    if ! aws ecs wait services-stable --cluster "${ECS_CLUSTER}" \
+        --services "${ECS_SERVICE}"; then
+        echo "ERROR: fail-closed cleanup could not prove service stability at zero"
+        cleanup_failed=1
+    fi
+
+    # Catch any untracked family task as well.  At this point the old owner is
+    # retired and service desired count is zero, so every RUNNING-family task is
+    # an unauthorized standalone owner and must be stopped explicitly.
+    if family_tasks_text=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
+        --family "${TASK_FAMILY}" --desired-status RUNNING \
+        --query 'taskArns' --output text); then
+        for task_arn in ${family_tasks_text}; do
+            if [ "${task_arn}" = "None" ]; then
+                continue
+            fi
+            if ! aws ecs stop-task --cluster "${ECS_CLUSTER}" \
+                --task "${task_arn}" \
+                --reason "Fail-closed Guala deployment family cleanup"; then
+                echo "ERROR: fail-closed cleanup could not stop family task ${task_arn}"
+                cleanup_failed=1
+                continue
+            fi
+            if ! aws ecs wait tasks-stopped --cluster "${ECS_CLUSTER}" \
+                --tasks "${task_arn}"; then
+                echo "ERROR: fail-closed cleanup could not prove family task STOPPED: ${task_arn}"
+                cleanup_failed=1
+            fi
+        done
+    else
+        echo "ERROR: fail-closed cleanup could not enumerate task-family owners"
+        cleanup_failed=1
+    fi
+
+    if final_service_json=$(aws ecs describe-services --cluster "${ECS_CLUSTER}" \
+        --services "${ECS_SERVICE}" --query 'services[0]' --output json); then
+        if ! printf '%s' "${final_service_json}" | python3 -c '
+import json, sys
+service = json.load(sys.stdin)
+counts = {name: service.get(name) for name in (
+    "desiredCount", "runningCount", "pendingCount")}
+if counts != {"desiredCount": 0, "runningCount": 0, "pendingCount": 0}:
+    raise SystemExit("service ownership counts are not all zero: " + str(counts))
+'; then
+            echo "ERROR: fail-closed service ownership proof is not zero"
+            cleanup_failed=1
+        fi
+    else
+        echo "ERROR: fail-closed cleanup could not inspect final service counts"
+        cleanup_failed=1
+    fi
+    if FAMILY_REMAINING=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
+        --family "${TASK_FAMILY}" --desired-status RUNNING \
+        --query 'length(taskArns)' --output text); then
+        if [ "${FAMILY_REMAINING}" != "0" ]; then
+            echo "ERROR: fail-closed cleanup left ${FAMILY_REMAINING} RUNNING-family task(s)"
+            cleanup_failed=1
+        fi
+    else
+        echo "ERROR: fail-closed cleanup could not prove the task family empty"
+        cleanup_failed=1
+    fi
+    return "${cleanup_failed}"
+}
+
+deployment_exit_cleanup() {
+    local exit_code=$?
+    local final_code="${exit_code}"
+    trap - EXIT
+    if [ "${OWNER_FAIL_CLOSED}" = "1" ] && [ "${exit_code}" != "0" ]; then
+        if ! fail_closed_owner_cleanup; then
+            echo "ERROR: fail-closed owner cleanup did not complete exactly"
+            final_code=1
+        fi
+    fi
+    if ! rm -rf "${DEPLOY_WORK_DIR}"; then
+        echo "ERROR: local deployment staging cleanup failed: ${DEPLOY_WORK_DIR}"
+        final_code=1
+    fi
+    exit "${final_code}"
+}
+trap deployment_exit_cleanup EXIT
+
+# Extract the exact reviewed commit.  This directory is authoritative for both
+# the image source and the static assets published after readiness verification.
+git archive "${GIT_SHA}" | tar -x -C "${STAGING}"
 
 # Create zip
-(cd "${STAGING}" && zip -rq /tmp/dsf_ai_codebuild_src.zip .)
-ZIP_SIZE=$(du -sh /tmp/dsf_ai_codebuild_src.zip | cut -f1)
+(cd "${STAGING}" && zip -rq "${ARCHIVE_ZIP}" .)
+ZIP_SIZE=$(du -sh "${ARCHIVE_ZIP}" | cut -f1)
 echo "  Package: ${ZIP_SIZE}"
 
 # ── Step 2: Upload to S3 ──
 echo ""
 echo "[2/6] Uploading to S3..."
-aws s3 cp /tmp/dsf_ai_codebuild_src.zip "s3://${S3_BUCKET}/${S3_KEY}" --quiet
+aws s3 cp "${ARCHIVE_ZIP}" "s3://${S3_BUCKET}/${S3_KEY}" --quiet
 echo "  Uploaded: s3://${S3_BUCKET}/${S3_KEY}"
 
 # ── Step 3: Trigger CodeBuild ──
@@ -157,6 +409,19 @@ while true; do
     sleep 15
 done
 
+EXPECTED_IMAGE_DIGEST=$(aws ecr describe-images \
+    --repository-name "${ECR_REPO}" --image-ids imageTag="${IMAGE_TAG}" \
+    --query 'imageDetails[0].imageDigest' --output text)
+if ! EXPECTED_IMAGE_DIGEST="${EXPECTED_IMAGE_DIGEST}" python3 -c '
+import os, re
+if not re.fullmatch(r"sha256:[0-9a-f]{64}", os.environ["EXPECTED_IMAGE_DIGEST"]):
+    raise SystemExit(1)
+'; then
+    echo "ERROR: built image has no valid immutable digest"
+    exit 1
+fi
+echo "  Image digest: ${EXPECTED_IMAGE_DIGEST}"
+
 # ── Step 4: Also push as :latest ──
 # CodeBuild pushed the timestamped tag. We also need :latest for the task def.
 # Since we don't have Docker locally, we'll use the ECR manifest copy API.
@@ -168,29 +433,28 @@ MANIFEST=$(aws ecr batch-get-image \
     --repository-name "${ECR_REPO}" \
     --image-ids imageTag="${IMAGE_TAG}" \
     --query 'images[0].imageManifest' \
-    --output text 2>/dev/null || echo "")
+    --output text) || {
+    echo "ERROR: failed to read ECR manifest for ${IMAGE_TAG}; latest was not tagged"
+    exit 1
+}
 
 if [ -n "${MANIFEST}" ] && [ "${MANIFEST}" != "None" ]; then
-    aws ecr put-image \
+    if ! aws ecr put-image \
         --repository-name "${ECR_REPO}" \
         --image-tag "latest" \
-        --image-manifest "${MANIFEST}" 2>/dev/null || true
+        --image-manifest "${MANIFEST}"; then
+        echo "ERROR: failed to tag ${IMAGE_TAG} as latest"
+        exit 1
+    fi
     echo "  Tagged ${IMAGE_TAG} as latest"
 else
-    echo "  WARNING: Could not tag as latest (image may already exist)"
+    echo "ERROR: ECR returned no manifest for ${IMAGE_TAG}; latest was not tagged"
+    exit 1
 fi
 
 # ── Step 5: Register new task definition ──
-# GL-ARCH-FRONTEND-SPLIT Phase 2: two containers in one task.
-# Frontend: serves HTTP, ALB health, proxies to substrate via Unix socket.
-# Substrate: holds _guala, listens on /shared/substrate.sock.
 echo ""
-echo "[5/6] Registering new task definition (two-container split)..."
-
-TASK_DEF_JSON=$(aws ecs describe-task-definition \
-    --task-definition ${TASK_FAMILY} \
-    --query 'taskDefinition' \
-    --output json)
+echo "[5/6] Registering new task definition..."
 
 # GL-CMD-81: inject FORCE_S3_RESTORE only when --force-s3-restore flag was passed
 if [ "${FORCE_S3_RESTORE_FLAG}" = "yes" ]; then
@@ -228,7 +492,7 @@ out = {
             'efsVolumeConfiguration': {
                 'fileSystemId': 'fs-0abb85854a3251b3c',
                 'rootDirectory': '/',
-                'transitEncryption': 'DISABLED'
+                'transitEncryption': 'ENABLED'
             }
         }
     ],
@@ -244,21 +508,19 @@ out = {
             ],
             'environment': [
                 {'name': 'SUBSTRATE_MODE', 'value': 'embedded'},
-                {'name': 'SUBSTRATE_HEARTBEAT', 'value': '/app/state/substrate.alive'},
-                {'name': 'STATE_DIR', 'value': '/app/state'},
+                {'name': 'SUBSTRATE_HEARTBEAT', 'value': '/app/guala/substrate.alive'},
+                {'name': 'STATE_DIR', 'value': '/app/guala/active'},
+                {'name': 'GUALA_GENERATION_STORE_ROOT', 'value': '/app/guala/sealed'},
+                {'name': 'GUALA_OWNER_LOCK_PATH', 'value': '/app/guala/.guala-owner.lock'},
+                {'name': 'GUALA_REQUIRE_SEALED_STATE', 'value': '1'},
                 {'name': 'DECAY_PAUSED', 'value': '0'},
-                {'name': 'GUALALOOM_API_KEY', 'value': '${GUALALOOM_API_KEY}'},
                 {'name': 'EMISSION_MODE', 'value': 'grandurun'},
                 {'name': 'ORGAN_BRAIN_URL', 'value': 'http://localhost:8090'},
                 {'name': 'PYTHONUNBUFFERED', 'value': '1'},
                 {'name': 'GRANDURUN_SPIN_VECTOR', 'value': '1'},
                 {'name': 'EMISSION_DYNAMICS', 'value': '1'},
-                {'name': 'OPENAI_API_KEY', 'value': '${OPENAI_API_KEY}'},
-                {'name': 'TAVILY_API_KEY', 'value': '${TAVILY_API_KEY}'},
-                {'name': 'ANTHROPIC_API_KEY', 'value': '${ANTHROPIC_API_KEY}'},
-                {'name': 'YOUTUBE_API_KEY', 'value': '${YOUTUBE_API_KEY}'},
-                {'name': 'LOOKUP_AUTONOMOUS', 'value': '1'},
-                {'name': 'LOOKUP_INTERVAL_SEC', 'value': '900'},
+                {'name': 'DEPLOY_EXPECTED_GIT_SHA', 'value': '${GIT_SHA}'},
+                {'name': 'DEPLOY_EXPECTED_IMAGE_DIGEST', 'value': '${EXPECTED_IMAGE_DIGEST}'},
                 {'name': 'WORLD_FEEDS', 'value': '1'},
                 {'name': 'WORLD_FEED_INTERVAL_SEC', 'value': '600'},
                 {'name': 'CURRICULUM_CHUNK_SIZE', 'value': '30'},
@@ -273,26 +535,6 @@ out = {
                 {'name': 'DREAM_CYCLE_PHASED', 'value': '1'},
                 {'name': 'EMISSION_DYNAMICS_TICKS', 'value': '80'},  # GL-CMD-87: 40→80
                 {'name': 'WAVE_ATLAS_ENABLED', 'value': '1'},
-                {'name': 'YOLO_MODEL_PATH', 'value': '/app/yolov8n.onnx'},
-                {'name': 'WHISPER_MODEL_PATH', 'value': 'tiny'},
-                # GL-CMD-VOICE-TO-WORDS-153 Part B: real Whisper speech-to-
-                # text (app.py sound_frame -> process_sound_with_recognition,
-                # whisper-tiny, already baked into the image). Was built and
-                # gated OFF by default, comment said it flips to 1 only on
-                # Eve GO after the cost line is filed -- that approval never
-                # happened and nobody ever revisited it, so real spoken
-                # input was silently never transcribed despite the model
-                # being right there.
-                # Enabled 2026-07-12 after Joe reported speaking and seeing
-                # no STT at all -- confirmed live via CloudWatch logs (zero
-                # [voice-whisper] lines despite continuous real sound_frame
-                # traffic) before flipping this. Runs in a background thread,
-                # off the request path, joe-tagged sources only, whisper-tiny
-                # is a small/fast model -- real but bounded cost. Watch for
-                # any new load/latency signal after this specific flag if
-                # something regresses; revert by setting this back to '0'
-                # and redeploying, same pattern as every other flag here.
-                {'name': 'VOICE_WHISPER', 'value': '1'},
                 # GL-CMD-BLUEPRINT-PHASE-1-MERGED-EVE-20260707-v2: dual-
                 # write/dual-read Phase 1. RECALL_BACKEND=legacy is the
                 # code's own default when unset, set explicitly here so
@@ -429,8 +671,16 @@ out = {
                 # this file so the revert survives the next deploy too.
                 {'name': 'DEEP_ATLAS_ELIGIBILITY_BACKFILL_ENABLED', 'value': '1'}
             ] + ([{'name': 'FORCE_S3_RESTORE', 'value': '1'}] if os.environ.get('_FORCE_S3_RESTORE_INJECT') == '1' else []),
+            'secrets': [
+                {'name': 'GUALALOOM_API_KEY',
+                 'valueFrom': os.environ['GUALALOOM_SECRET_ARN']},
+                {'name': 'TAVILY_API_KEY',
+                 'valueFrom': os.environ['TAVILY_SECRET_ARN'] + ':TAVILY_API_KEY::'},
+                {'name': 'ANTHROPIC_API_KEY',
+                 'valueFrom': os.environ['ANTHROPIC_SECRET_ARN']},
+            ],
             'mountPoints': [
-                {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/state',
+                {'sourceVolume': 'gualaloom-state', 'containerPath': '/app/guala',
                  'readOnly': False}
             ],
             'healthCheck': {
@@ -443,7 +693,10 @@ out = {
                 'retries': 3,
                 'startPeriod': 300
             },
-            'stopTimeout': 30,
+            # Fargate's documented hard maximum is 120 seconds.  The sealed
+            # deploy handoff must make shutdown save-free; this is only a
+            # bounded thread/process-exit allowance, never persistence time.
+            'stopTimeout': 120,
             'logConfiguration': {
                 'logDriver': 'awslogs',
                 'options': {
@@ -465,80 +718,319 @@ NEW_REV=$(aws ecs register-task-definition \
 
 echo "  Registered: ${TASK_FAMILY}:${NEW_REV}"
 
-# ── Step 6: Pause + Update service ──
+# ── Step 6: Authenticated seal + single-owner turnover ──
 echo ""
-echo "[6/7] Pausing her for the deploy window..."
-API_ENDPOINT="https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com"
-ALB_ENDPOINT="http://dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com"
-SLEEP_RESPONSE=$(curl -sS -w "\n__HTTP__%{http_code}" -X POST \
-  "${ALB_ENDPOINT}/sleep_for_deploy")
-SLEEP_HTTP=$(echo "$SLEEP_RESPONSE" | grep "__HTTP__" | sed 's/__HTTP__//')
-SLEEP_BODY=$(echo "$SLEEP_RESPONSE" | grep -v "__HTTP__")
-echo "[pause] HTTP $SLEEP_HTTP"
-echo "[pause] Body: $SLEEP_BODY"
+echo "[6/7] Requesting authenticated sealed-generation handoff..."
 
-# GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: deploy-sleep is not sleep (proven,
-# -165 Q5 — it never runs consolidation). Its honest name is a deploy pause.
-# Only this narration changed; /sleep_for_deploy's route name and API fields
-# are untouched for compatibility.
-if [ "$SLEEP_HTTP" = "200" ]; then
-    echo "[pause] She is paused. Proceeding with deploy."
-elif [ "$SLEEP_HTTP" = "404" ]; then
-    echo "[pause] /sleep_for_deploy not present on running task —"
-    echo "        this is expected for the first deploy. Proceeding."
-else
-    echo "[pause] WARNING: pause returned HTTP $SLEEP_HTTP — proceeding anyway."
-    echo "        State will be recovered from last EFS snapshot + event log."
+aws efs put-backup-policy --file-system-id fs-0abb85854a3251b3c \
+    --backup-policy Status=ENABLED >/dev/null
+EFS_BACKUP_POLICY=$(aws efs describe-backup-policy \
+    --file-system-id fs-0abb85854a3251b3c \
+    --query 'BackupPolicy.Status' --output text)
+if [ "${EFS_BACKUP_POLICY}" != "ENABLED" ]; then
+    echo "ERROR: EFS automatic backup policy is not enabled"
+    exit 1
+fi
+echo "[recovery] EFS automatic backup policy verified enabled."
+
+# URL host remains dsf-ai.com so certificate/SNI verification is real; curl
+# connects that origin directly to the ALB rather than the static CloudFront DNS.
+CONTROL_CONNECT=(--connect-to "dsf-ai.com:443:${ALB_DNS}:443")
+
+# Image construction can take long enough for the service to change underneath
+# the preflight observation.  Re-prove the exact same sole owner immediately
+# before the first handoff request; a different ARN, task definition, image, or
+# service/family count aborts without touching the runtime.
+CURRENT_SERVICE_JSON=$(aws ecs describe-services --cluster "${ECS_CLUSTER}" \
+    --services "${ECS_SERVICE}" --query 'services[0]' --output json)
+CURRENT_SERVICE_TASKS_TEXT=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
+    --service-name "${ECS_SERVICE}" --desired-status RUNNING \
+    --query 'taskArns' --output text)
+CURRENT_FAMILY_TASKS_TEXT=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
+    --family "${TASK_FAMILY}" --desired-status RUNNING \
+    --query 'taskArns' --output text)
+CURRENT_OLD_TASK_JSON=$(aws ecs describe-tasks --cluster "${ECS_CLUSTER}" \
+    --tasks "${OLD_TASK_ARN}" --query 'tasks[0]' --output json)
+if ! CURRENT_SERVICE_JSON="${CURRENT_SERVICE_JSON}" \
+    CURRENT_SERVICE_TASKS_TEXT="${CURRENT_SERVICE_TASKS_TEXT}" \
+    CURRENT_FAMILY_TASKS_TEXT="${CURRENT_FAMILY_TASKS_TEXT}" \
+    CURRENT_OLD_TASK_JSON="${CURRENT_OLD_TASK_JSON}" \
+    OLD_TASK_ARN="${OLD_TASK_ARN}" \
+    OLD_TASK_DEFINITION_ARN="${OLD_TASK_DEFINITION_ARN}" \
+    OLD_IMAGE_DIGEST="${OLD_IMAGE_DIGEST}" python3 -c '
+import json, os
+service = json.loads(os.environ["CURRENT_SERVICE_JSON"])
+service_tasks = os.environ["CURRENT_SERVICE_TASKS_TEXT"].split()
+family_tasks = os.environ["CURRENT_FAMILY_TASKS_TEXT"].split()
+old_arn = os.environ["OLD_TASK_ARN"]
+if service_tasks != [old_arn] or family_tasks != [old_arn]:
+    raise SystemExit("the captured task is no longer the sole family/service owner")
+counts = {name: service.get(name) for name in (
+    "desiredCount", "runningCount", "pendingCount")}
+if counts != {"desiredCount": 1, "runningCount": 1, "pendingCount": 0}:
+    raise SystemExit("service ownership counts changed: " + str(counts))
+if service.get("taskDefinition") != os.environ["OLD_TASK_DEFINITION_ARN"]:
+    raise SystemExit("service task definition changed")
+task = json.loads(os.environ["CURRENT_OLD_TASK_JSON"])
+if task.get("taskArn") != old_arn or task.get("lastStatus") != "RUNNING":
+    raise SystemExit("captured owner is no longer RUNNING")
+if task.get("taskDefinitionArn") != os.environ["OLD_TASK_DEFINITION_ARN"]:
+    raise SystemExit("captured owner task definition changed")
+containers = task.get("containers", [])
+if len(containers) != 1 or containers[0].get("imageDigest") != os.environ["OLD_IMAGE_DIGEST"]:
+    raise SystemExit("captured owner image digest changed")
+'; then
+    echo "ERROR: the original sole owner changed during build; refusing handoff"
+    exit 1
+fi
+echo "[turnover] Original sole owner re-proven immediately before handoff."
+
+# Re-prove the captured task directly before the irreversible seal request.
+FINAL_OLD_SERVICE_JSON=$(aws ecs describe-services --cluster "${ECS_CLUSTER}" \
+    --services "${ECS_SERVICE}" --query 'services[0]' --output json)
+FINAL_OLD_FAMILY_TASKS=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
+    --family "${TASK_FAMILY}" --desired-status RUNNING \
+    --query 'taskArns' --output text)
+FINAL_OLD_TASK_JSON=$(aws ecs describe-tasks --cluster "${ECS_CLUSTER}" \
+    --tasks "${OLD_TASK_ARN}" --query 'tasks[0]' --output json)
+if ! FINAL_OLD_SERVICE_JSON="${FINAL_OLD_SERVICE_JSON}" \
+    FINAL_OLD_FAMILY_TASKS="${FINAL_OLD_FAMILY_TASKS}" \
+    FINAL_OLD_TASK_JSON="${FINAL_OLD_TASK_JSON}" OLD_TASK_ARN="${OLD_TASK_ARN}" \
+    OLD_TASK_DEFINITION_ARN="${OLD_TASK_DEFINITION_ARN}" \
+    OLD_IMAGE_DIGEST="${OLD_IMAGE_DIGEST}" python3 -c '
+import json, os
+old_arn = os.environ["OLD_TASK_ARN"]
+if os.environ["FINAL_OLD_FAMILY_TASKS"].split() != [old_arn]:
+    raise SystemExit("captured task is no longer the sole family owner")
+service = json.loads(os.environ["FINAL_OLD_SERVICE_JSON"])
+counts = {name: service.get(name) for name in (
+    "desiredCount", "runningCount", "pendingCount")}
+if counts != {"desiredCount": 1, "runningCount": 1, "pendingCount": 0}:
+    raise SystemExit("service ownership counts changed immediately before handoff")
+if service.get("taskDefinition") != os.environ["OLD_TASK_DEFINITION_ARN"]:
+    raise SystemExit("service task definition changed immediately before handoff")
+task = json.loads(os.environ["FINAL_OLD_TASK_JSON"])
+containers = task.get("containers", [])
+if (task.get("taskArn") != old_arn or task.get("lastStatus") != "RUNNING"
+        or task.get("taskDefinitionArn") != os.environ["OLD_TASK_DEFINITION_ARN"]
+        or len(containers) != 1
+        or containers[0].get("imageDigest") != os.environ["OLD_IMAGE_DIGEST"]):
+    raise SystemExit("captured task identity changed immediately before handoff")
+'; then
+    echo "ERROR: original sole owner changed immediately before handoff"
+    exit 1
+fi
+echo "[turnover] Original sole owner re-proven directly before the seal request."
+# From the first authenticated sleep/seal request onward, a failed or timed-out
+# controller cannot know whether the runtime crossed its irreversible boundary.
+# The composite EXIT trap therefore retires every possible owner on any failure.
+OWNER_FAIL_CLOSED=1
+if ! SLEEP_RESPONSE=$(curl -sS "${CONTROL_CONNECT[@]}" \
+    --connect-timeout 10 --max-time 900 -w "\n__HTTP__%{http_code}" \
+    -X POST -H 'Content-Type: application/json' \
+    -H "X-API-Key: ${DEPLOY_API_KEY}" \
+    -H "X-Deploy-Nonce: ${DEPLOY_NONCE}" \
+    -d "{\"deploy_nonce\":\"${DEPLOY_NONCE}\"}" \
+    "${CONTROL_ORIGIN}/sleep_for_deploy"); then
+    echo "ERROR: authenticated deploy seal request failed"
+    exit 1
+fi
+SLEEP_HTTP=$(printf '%s\n' "${SLEEP_RESPONSE}" | awk -F__HTTP__ '/__HTTP__/{print $2}')
+SLEEP_BODY=$(printf '%s\n' "${SLEEP_RESPONSE}" | awk '!/__HTTP__/')
+if [ "${SLEEP_HTTP}" != "200" ]; then
+    echo "ERROR: deploy seal returned HTTP ${SLEEP_HTTP}; refusing turnover"
+    exit 1
 fi
 
-echo ""
-echo "[7/7] Updating ECS service..."
-aws ecs update-service \
-    --cluster ${ECS_CLUSTER} \
-    --service ${ECS_SERVICE} \
-    --task-definition "${TASK_FAMILY}:${NEW_REV}" \
-    --force-new-deployment \
-    --query 'service.deployments[0].{status:status,taskDef:taskDefinition}' \
-    --output table
+if ! SEAL_PROOF=$(printf '%s' "${SLEEP_BODY}" | DEPLOY_NONCE="${DEPLOY_NONCE}" python3 -c '
+import json, os, re, sys
+value = json.load(sys.stdin)
+generation = value.get("generation")
+identity = value.get("identity")
+manifest = value.get("manifest_sha256")
+if value.get("ok") is not True or value.get("state") != "SEALED":
+    raise SystemExit("quiesce response is not SEALED")
+if value.get("deploy_nonce") != os.environ["DEPLOY_NONCE"]:
+    raise SystemExit("quiesce nonce mismatch")
+if not isinstance(generation, str) or not re.fullmatch(r"[A-Za-z0-9._:-]{1,160}", generation):
+    raise SystemExit("invalid sealed generation")
+if not isinstance(identity, str) or not identity:
+    raise SystemExit("missing sealed identity")
+if not isinstance(manifest, str) or not re.fullmatch(r"[0-9a-f]{64}", manifest):
+    raise SystemExit("invalid manifest SHA-256")
+print(generation, identity, manifest, sep="\t")
+'); then
+    echo "ERROR: deploy seal did not return nonce-bound generation proof"
+    exit 1
+fi
+IFS=$'\t' read -r SEALED_GENERATION SEALED_IDENTITY SEALED_MANIFEST <<< "${SEAL_PROOF}"
+echo "[seal] generation=${SEALED_GENERATION} identity=${SEALED_IDENTITY:0:8} manifest=${SEALED_MANIFEST:0:12}..."
+
+echo "[turnover] Scaling service to zero before any new owner may start..."
+aws ecs update-service --cluster "${ECS_CLUSTER}" --service "${ECS_SERVICE}" \
+    --desired-count 0 --deployment-configuration "${DEPLOY_CONFIG}" \
+    --query 'service.{desired:desiredCount,deploy:deploymentConfiguration}' --output json
+aws ecs wait services-stable --cluster "${ECS_CLUSTER}" --services "${ECS_SERVICE}"
+aws ecs wait tasks-stopped --cluster "${ECS_CLUSTER}" --tasks "${OLD_TASK_ARN}"
+OLD_STATUS=$(aws ecs describe-tasks --cluster "${ECS_CLUSTER}" --tasks "${OLD_TASK_ARN}" \
+    --query 'tasks[0].lastStatus' --output text)
+if [ "${OLD_STATUS}" != "STOPPED" ]; then
+    echo "ERROR: prior state owner is not STOPPED: ${OLD_STATUS}"
+    exit 1
+fi
+REMAINING_TASKS=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
+    --service-name "${ECS_SERVICE}" --desired-status RUNNING \
+    --query 'length(taskArns)' --output text)
+if [ "${REMAINING_TASKS}" != "0" ]; then
+    echo "ERROR: running task remains after owner retirement"
+    exit 1
+fi
+echo "[turnover] Old owner STOPPED; new owner start is now permitted."
 
 echo ""
-echo "Waiting for service stability (timeout: 5 min)..."
-if aws ecs wait services-stable \
-    --cluster ${ECS_CLUSTER} \
-    --services ${ECS_SERVICE} 2>/dev/null; then
-    echo "  Service stable."
-else
-    echo "  WARNING: wait timed out. Check AWS Console."
+echo "[7/7] Starting exactly one new owner..."
+aws ecs update-service --cluster "${ECS_CLUSTER}" --service "${ECS_SERVICE}" \
+    --desired-count 1 --task-definition "${TASK_FAMILY}:${NEW_REV}" \
+    --deployment-configuration "${DEPLOY_CONFIG}" --force-new-deployment \
+    --query 'service.deployments[0].{status:status,taskDef:taskDefinition}' --output table
+if ! aws ecs wait services-stable --cluster "${ECS_CLUSTER}" --services "${ECS_SERVICE}"; then
+    echo "ERROR: ECS service did not stabilize; circuit-breaker rollback is authoritative"
+    exit 1
 fi
 
-echo ""
-echo "[wake] New task is running. Sending wake — deploy paused her, deploy resumes her."
-echo "       Her natural rhythm governs everything after this. Not the UI. Not Joe."
-for i in 1 2 3 4 5 6; do
-    sleep 15
-    # Send wake — the deploy is responsible for cleaning up the pause it caused
-    curl -sS -X POST \
-      -H 'Content-Type: application/json' \
-      -d '{"text":"","command":"/wake"}' \
-      "${API_ENDPOINT}/api/v1/gualaloom" > /dev/null 2>&1 || true
-    WAKE_RESPONSE=$(curl -sS -X POST \
-      -H 'Content-Type: application/json' \
-      -d '{"text":"","command":"/status"}' \
-      "${API_ENDPOINT}/api/v1/gualaloom")
-    ASLEEP=$(echo "$WAKE_RESPONSE" | python3 -c "
-import sys,json
-try:
-  d=json.loads(sys.stdin.read())
-  print('paused' if d.get('asleep') else 'awake' if d.get('vocab') else 'loading')
-except:
-  print('error')
-")
-    echo "[wake] t+$((i*15))s — $ASLEEP"
-    if [ "$ASLEEP" = "awake" ]; then
-        echo "[wake] She is awake. Her world continues on its own from here."
-        break
+NEW_TASKS_TEXT=$(aws ecs list-tasks --cluster "${ECS_CLUSTER}" \
+    --service-name "${ECS_SERVICE}" --desired-status RUNNING \
+    --query 'taskArns' --output text)
+read -r -a NEW_TASK_ARNS <<< "${NEW_TASKS_TEXT}"
+if [ "${#NEW_TASK_ARNS[@]}" -ne 1 ] || [ "${NEW_TASK_ARNS[0]}" = "None" ]; then
+    echo "ERROR: expected exactly one new owner, found ${#NEW_TASK_ARNS[@]}"
+    exit 1
+fi
+NEW_TASK_ARN="${NEW_TASK_ARNS[0]}"
+if [ "${NEW_TASK_ARN}" = "${OLD_TASK_ARN}" ]; then
+    echo "ERROR: ECS returned the retired task as the new owner"
+    exit 1
+fi
+NEW_TASK_JSON=$(aws ecs describe-tasks --cluster "${ECS_CLUSTER}" --tasks "${NEW_TASK_ARN}" \
+    --query 'tasks[0]' --output json)
+if ! NEW_TASK_JSON="${NEW_TASK_JSON}" EXPECTED_TASK_DEFINITION="${TASK_FAMILY}:${NEW_REV}" \
+    EXPECTED_IMAGE_DIGEST="${EXPECTED_IMAGE_DIGEST}" python3 -c '
+import json, os
+task = json.loads(os.environ["NEW_TASK_JSON"])
+if task.get("lastStatus") != "RUNNING":
+    raise SystemExit("new task is not RUNNING")
+if not task.get("taskDefinitionArn", "").endswith("/" + os.environ["EXPECTED_TASK_DEFINITION"]):
+    raise SystemExit("task-definition mismatch")
+containers = task.get("containers", [])
+if len(containers) != 1 or containers[0].get("imageDigest") != os.environ["EXPECTED_IMAGE_DIGEST"]:
+    raise SystemExit("image-digest mismatch")
+'; then
+    echo "ERROR: new ECS owner does not match expected task definition and image digest"
+    exit 1
+fi
+
+echo "[ready] Waiting for authenticated deep generation/build proof..."
+READINESS_VERIFIED=0
+EXPECTED_TASK_DEFINITION="${TASK_FAMILY}:${NEW_REV}"
+for i in $(seq 1 90); do
+    if READY_CALL=$(curl -sS "${CONTROL_CONNECT[@]}" \
+        --connect-timeout 5 --max-time 20 -w "\n__HTTP__%{http_code}" \
+        -H "X-API-Key: ${DEPLOY_API_KEY}" \
+        -H "X-Deploy-Nonce: ${DEPLOY_NONCE}" \
+        "${CONTROL_ORIGIN}/ready/guala"); then
+        READY_HTTP=$(printf '%s\n' "${READY_CALL}" | awk -F__HTTP__ '/__HTTP__/{print $2}')
+        READY_BODY=$(printf '%s\n' "${READY_CALL}" | awk '!/__HTTP__/')
+        if [ "${READY_HTTP}" = "200" ] && printf '%s' "${READY_BODY}" | \
+            GIT_SHA="${GIT_SHA}" SEALED_GENERATION="${SEALED_GENERATION}" \
+            SEALED_IDENTITY="${SEALED_IDENTITY}" SEALED_MANIFEST="${SEALED_MANIFEST}" \
+            EXPECTED_TASK_DEFINITION="${EXPECTED_TASK_DEFINITION}" \
+            EXPECTED_IMAGE_DIGEST="${EXPECTED_IMAGE_DIGEST}" python3 -c '
+import json, os, sys
+value = json.load(sys.stdin)
+checks = {
+    "ready": value.get("ready") is True,
+    "owner": value.get("owner") is True,
+    "git_sha": value.get("git_sha") == os.environ["GIT_SHA"],
+    "generation": value.get("generation") == os.environ["SEALED_GENERATION"],
+    "identity": value.get("identity") == os.environ["SEALED_IDENTITY"],
+    "manifest": value.get("manifest_sha256") == os.environ["SEALED_MANIFEST"],
+    "task_definition": value.get("task_definition") == os.environ["EXPECTED_TASK_DEFINITION"],
+    "image_digest": value.get("image_digest") == os.environ["EXPECTED_IMAGE_DIGEST"],
+}
+if not all(checks.values()):
+    raise SystemExit("deep-readiness mismatch: " + ",".join(k for k, ok in checks.items() if not ok))
+'; then
+            READINESS_VERIFIED=1
+            break
+        fi
     fi
+    echo "[ready] attempt ${i}/90: exact deep proof not yet available"
+    sleep 10
 done
+if [ "${READINESS_VERIFIED}" != "1" ]; then
+    echo "ERROR: new owner never proved exact build and sealed generation readiness"
+    exit 1
+fi
+
+echo "[wake] Deep readiness verified; waking the new owner."
+AWAKE_VERIFIED=0
+for i in $(seq 1 12); do
+    if WAKE_CALL=$(curl -sS "${CONTROL_CONNECT[@]}" \
+        --connect-timeout 5 --max-time 30 -w "\n__HTTP__%{http_code}" -X POST \
+        -H 'Content-Type: application/json' -H "X-API-Key: ${DEPLOY_API_KEY}" \
+        -H "X-Deploy-Nonce: ${DEPLOY_NONCE}" \
+        -d '{"text":"","command":"/wake"}' \
+        "${CONTROL_ORIGIN}/api/v1/gualaloom"); then
+        WAKE_HTTP=$(printf '%s\n' "${WAKE_CALL}" | awk -F__HTTP__ '/__HTTP__/{print $2}')
+        if [ "${WAKE_HTTP}" = "200" ]; then
+            if STATUS_CALL=$(curl -sS "${CONTROL_CONNECT[@]}" \
+                --connect-timeout 5 --max-time 30 -w "\n__HTTP__%{http_code}" -X POST \
+                -H 'Content-Type: application/json' -H "X-API-Key: ${DEPLOY_API_KEY}" \
+                -H "X-Deploy-Nonce: ${DEPLOY_NONCE}" \
+                -d '{"text":"","command":"/status"}' \
+                "${CONTROL_ORIGIN}/api/v1/gualaloom"); then
+                STATUS_HTTP=$(printf '%s\n' "${STATUS_CALL}" | awk -F__HTTP__ '/__HTTP__/{print $2}')
+                STATUS_BODY=$(printf '%s\n' "${STATUS_CALL}" | awk '!/__HTTP__/')
+                if [ "${STATUS_HTTP}" = "200" ] && printf '%s' "${STATUS_BODY}" | python3 -c '
+import json, sys
+value = json.load(sys.stdin)
+if value.get("asleep") is not False:
+    raise SystemExit(1)
+'; then
+                    AWAKE_VERIFIED=1
+                    break
+                fi
+            fi
+        fi
+    fi
+    echo "[wake] attempt ${i}/12: awake state not yet proven"
+    sleep 10
+done
+if [ "${AWAKE_VERIFIED}" != "1" ]; then
+    echo "ERROR: new owner did not prove awake state"
+    exit 1
+fi
+
+FINAL_SERVICE_JSON=$(aws ecs describe-services --cluster "${ECS_CLUSTER}" \
+    --services "${ECS_SERVICE}" --query 'services[0]' --output json)
+if ! FINAL_SERVICE_JSON="${FINAL_SERVICE_JSON}" EXPECTED_TASK_DEFINITION="${EXPECTED_TASK_DEFINITION}" python3 -c '
+import json, os
+service = json.loads(os.environ["FINAL_SERVICE_JSON"])
+config = service.get("deploymentConfiguration", {})
+breaker = config.get("deploymentCircuitBreaker", {})
+if config.get("maximumPercent") != 100 or config.get("minimumHealthyPercent") != 0:
+    raise SystemExit("unsafe deployment percentages")
+if breaker.get("enable") is not True or breaker.get("rollback") is not True:
+    raise SystemExit("rollback circuit breaker is not armed")
+if service.get("desiredCount") != 1 or service.get("runningCount") != 1:
+    raise SystemExit("service does not have exactly one owner")
+if not service.get("taskDefinition", "").endswith("/" + os.environ["EXPECTED_TASK_DEFINITION"]):
+    raise SystemExit("service task definition mismatch")
+'; then
+    echo "ERROR: final service ownership/deployment configuration is not exact"
+    exit 1
+fi
+OWNER_FAIL_CLOSED=0
 
 # ── Step 8: Sync static files to S3 + CloudFront invalidation ──
 echo ""
@@ -547,7 +1039,7 @@ echo "[deploy] Syncing static files to S3 and invalidating CloudFront..."
 CF_DIST_ID="E17JT9XGBFU493"
 S3_SITE_BUCKET="dsf-ai-site"
 
-aws s3 sync dsf_ai_service/static/ "s3://${S3_SITE_BUCKET}/" \
+aws s3 sync "${STAGING}/dsf_ai_service/static/" "s3://${S3_SITE_BUCKET}/" \
     --exclude "*.csv" --exclude "*.xml" --exclude "robots.txt" \
     --cache-control "no-cache, must-revalidate"
 
@@ -560,10 +1052,11 @@ echo "  CloudFront invalidation: ${INV_ID}"
 
 if aws cloudfront wait invalidation-completed \
     --distribution-id "${CF_DIST_ID}" \
-    --id "${INV_ID}" 2>/dev/null; then
+    --id "${INV_ID}"; then
     echo "[deploy] Static sync + CloudFront invalidation complete."
 else
-    echo "[deploy] WARNING: CloudFront invalidation timed out. May take a few more minutes."
+    echo "ERROR: CloudFront invalidation did not complete within the waiter timeout"
+    exit 1
 fi
 
 # ── Summary ──
@@ -573,7 +1066,7 @@ echo "  Deploy complete"
 echo "  Image:    ${IMAGE_URI}"
 echo "  Task def: ${TASK_FAMILY}:${NEW_REV}"
 echo "  Git SHA:  ${GIT_SHA}"
-echo "  Static:   s3://${S3_SITE_BUCKET}/ synced"
+echo "  Static:   s3://${S3_SITE_BUCKET}/ from ${GIT_SHA} archive"
 echo ""
 echo "  dsf-ai.com should reflect changes within 1-2 minutes."
 echo "═══════════════════════════════════════════"

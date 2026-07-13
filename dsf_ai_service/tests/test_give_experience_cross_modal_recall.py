@@ -10,14 +10,10 @@ test_debug_stdp_state.py: a real Guala() boot (not production state)
 plus the actual FastAPI route via TestClient. No mocks of RecallEngine,
 WindowManager, or the atlas.
 
-Scenario (mirrors GL-RPT-CROSS-SENSE-RECALL-BUILD-C1-20260706-v1's own
-local verification, but driven through the real HTTP give_experience
-path instead of calling RecallEngine.query() directly):
-  1. POST /bundle: a caption bundle for "ball" -- a grounded-vocab word
-     with real sight/sound/touch modal fingerprints (confirmed live:
-     sight chi=31, sound chi=16, touch chi=25, deterministic across
-     fresh boots). This closes one binding window containing word +
-     sight + sound + touch entries together.
+Scenario:
+  1. Establish one explicit observed test experience containing word +
+     sight + sound + touch entries together.  This does not invoke a
+     vocabulary recognizer or manufacture object labels from sensory data.
   2. POST /bundle: a SOUND-ONLY cue (a referenced sound item whose
      stored winding is engineered to equal the same chi=16 the first
      bundle's sound modality used) -- a single-lane bundle, so
@@ -55,6 +51,36 @@ def _bundle_post(client, name, bundle_dict):
     )
 
 
+def _establish_observed_ball_window(g, extra_modal_entries=0):
+    """Create one explicit observed fixture without semantic recognition."""
+    g.window_manager.open(
+        "test_observed_experience", experience_origin="observed")
+    for modality, chi in (("sight", 31), ("sound", 16), ("touch", 25)):
+        g.window_manager.add_entry(
+            modality=modality,
+            section=f"test_{modality}",
+            motif_id=chi,
+            chi=chi,
+            tick=g.tick,
+            source_tag="test_observed_fixture",
+            mirror_atlas=False,
+        )
+    for index in range(extra_modal_entries):
+        g.window_manager.add_entry(
+            modality="smell",
+            section="test_smell",
+            motif_id=1000 + index,
+            chi=1000 + index,
+            tick=g.tick,
+            source_tag="test_observed_fixture",
+            mirror_atlas=False,
+        )
+    g.read_sentence("ball", source="joe")
+    window_id = g.window_manager.close("give_experience_complete")
+    g._remember_closed_language_window(window_id)
+    return window_id
+
+
 def test_sound_only_cue_surfaces_sight_entry_from_original_binding():
     """The core scenario: a sound-only give_experience cue must return
     the picture/word content it was bound with, not just a window id."""
@@ -67,20 +93,14 @@ def test_sound_only_cue_surfaces_sight_entry_from_original_binding():
     try:
         client = TestClient(appmod.app)
 
-        # ── Step 1: establish the binding -- "ball" grounds word + sight
-        # + sound + touch entries into one window (real grounded-vocab
-        # modal fingerprints, not fabricated -- confirmed live above:
-        # sight=31, sound=16, touch=25). ──
-        r1 = _bundle_post(client, "ball_experience", {"caption": "ball"})
-        assert r1.status_code == 200, r1.text
-        d1 = r1.json()
-        assert d1["bundle"]["n_chis"] >= 1
+        # ── Step 1: establish an explicit observed binding. ──
+        window1_id = _establish_observed_ball_window(g)
 
         closed_windows = g.window_manager.windows
         assert len(closed_windows) == 1, (
             f"expected exactly one closed window after bundle 1, got "
             f"{len(closed_windows)}")
-        window1_id, window1 = next(iter(closed_windows.items()))
+        window1 = closed_windows[window1_id]
         entry_modalities = {e["modality"]: e["chi"] for e in window1["entries"]}
         assert entry_modalities.get("sight") == 31
         assert entry_modalities.get("sound") == 16
@@ -150,8 +170,7 @@ def test_cross_modal_entries_exclude_the_cue_itself():
     appmod._guala = g
     try:
         client = TestClient(appmod.app)
-        r1 = _bundle_post(client, "ball_experience", {"caption": "ball"})
-        assert r1.status_code == 200, r1.text
+        _establish_observed_ball_window(g)
 
         g._sounds["probe_snd"] = {
             "item_id": "probe_snd", "title": "probe sound",
@@ -186,19 +205,7 @@ def test_cross_modal_entries_capped_on_a_busy_window():
     appmod._guala = g
     try:
         client = TestClient(appmod.app)
-        r1 = _bundle_post(client, "ball_experience", {"caption": "ball"})
-        assert r1.status_code == 200, r1.text
-
-        window1_id = next(iter(g.window_manager.windows))
-        window1 = g.window_manager.windows[window1_id]
-        # Pad with 40 synthetic other-modality entries (chi values that
-        # cannot collide with the probe's own cue chi below).
-        for i in range(40):
-            window1["entries"].append({
-                "modality": "smell", "section": "modal_smell",
-                "motif_id": i, "chi": 1000 + i, "tick": 0,
-                "source_tag": "joe", "provenance": {},
-            })
+        _establish_observed_ball_window(g, extra_modal_entries=40)
 
         g._sounds["probe_snd"] = {
             "item_id": "probe_snd", "title": "probe sound",

@@ -44,9 +44,8 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 #input-row input{flex:1;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:11px;outline:none}
 #input-row input:focus{border-color:var(--accent)}
 #input-row button{background:var(--accent);color:#0d1117;border:none;padding:6px 14px;border-radius:6px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer}
-#mic-btn,#snap-btn{display:none;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:11px;cursor:pointer}
-#mic-btn:hover,#snap-btn:hover{border-color:var(--accent);color:var(--text)}
-#mic-btn.recording{border-color:var(--nmda-block);color:var(--nmda-block);animation:pulse 1s infinite}
+#snap-btn{display:none;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:11px;cursor:pointer}
+#snap-btn:hover{border-color:var(--accent);color:var(--text)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 #live-transcript{font-size:11px;color:var(--ev-emission);padding:2px 14px;min-height:16px;overflow:hidden;font-style:italic}
 #state-panel{width:280px;border-left:1px solid var(--border);background:var(--bg-alt);overflow-y:auto;padding:8px;font-size:9px}
@@ -96,8 +95,9 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 <!-- Permission Strip -->
 <div id="perm-strip">
   <button class="perm-btn" id="mic-perm" onclick="requestMic()">Enable Microphone</button>
-  <span id="mic-status" style="font-size:11px;color:var(--text-muted);margin-left:4px"></span>
+  <span id="mic-status" style="font-size:11px;color:var(--text-muted);margin-left:4px">raw sound only — spoken-word recognition unavailable</span>
   <button class="perm-btn" id="cam-perm" onclick="requestCam()">Enable Camera</button>
+  <span id="cam-status" style="font-size:11px;color:var(--text-muted);margin-left:4px">raw sight only — object naming unavailable</span>
   <span id="speaker-badge" onclick="unlockAudio()">&#x1f507; Click anywhere to enable audio</span>
   <button id="mute-toggle" onclick="toggleMute()">unmuted</button>
 </div>
@@ -129,7 +129,6 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
 <div id="main-area">
 <div id="convo-col">
   <div id="transcript"></div>
-  <div id="live-transcript">&nbsp;</div>
   <div id="upload-bar">
     <button class="upload-btn" onclick="uploadBook()">&#x1f4d6; book</button>
     <button class="upload-btn" onclick="uploadPDF()">&#x1f4d5; PDF</button>
@@ -143,7 +142,6 @@ header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--b
   <video id="cam-preview" autoplay playsinline muted></video>
   <div id="input-row">
     <input id="msg" type="text" placeholder="say something..." autocomplete="off">
-    <button id="mic-btn" style="display:none;padding:6px 14px;font-size:12px" onclick="toggleSTT()">&#x1f399; mic off</button>
     <button id="brain-toggle" onclick="toggleBrainMode()" style="display:none">🧠</button>
     <button onclick="sendMsg()">send</button>
   </div>
@@ -201,7 +199,6 @@ const API='https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
 const transcript=document.getElementById('transcript');
 const msgInput=document.getElementById('msg');
 const voiceEl=document.getElementById('voice');
-const liveT=document.getElementById('live-transcript');
 const evDiv=document.getElementById('sp-events');
 const statsLine=document.getElementById('stats-line');
 
@@ -209,7 +206,7 @@ let sid=localStorage.getItem('guala_session_id');
 if(!sid){sid='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sid)}
 document.getElementById('session-line').textContent='session: '+sid;
 
-let lastTick=0,audioUnlocked=false,muted=false,micGranted=false,camStream=null,sttActive=false,recognition=null;
+let lastTick=0,audioUnlocked=false,muted=false,micGranted=false,camStream=null;
 let last503msg=0; // debounce 503 messages
 
 // --- 503/500 handling ---
@@ -247,7 +244,8 @@ async function triggerSleep(){
 }
 
 // --- Permission Strip (5a: toggle off support) ---
-// GL-BRIEF-SENSORY-IO Part D: mic audio streaming to sound krimelack
+// Microphone audio is raw sound experience only. Spoken-word recognition is
+// unavailable until deterministic Fact-Strand reciprocity exists.
 // GL-CMD-MIC-CHUNKING-111: restart-per-interval, not timeslice. A long-lived
 // MediaRecorder(stream,{...}).start(5000) only emits a self-contained WebM
 // on its FIRST ondataavailable blob; every later 5s blob is a headerless
@@ -260,14 +258,24 @@ function _sendMicChunk(blob){
   const reader=new FileReader();
   reader.onload=()=>{
     const b64=reader.result.split(',')[1];
-    fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',source:'joe_voice'})},8000).catch(()=>{});
+    fetchT(`${API}/sound_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',source:'joe_voice'})},8000)
+      .then(r=>r.json())
+      .then(d=>{
+        const status=document.getElementById('mic-status');
+        if(!d.ok){status.textContent='raw sound failed: '+(d.error||d.reason||'unknown error');status.style.color='#f85149';return}
+        status.textContent='raw sound active — spoken-word recognition unavailable';status.style.color='var(--text-muted)';
+      })
+      .catch(e=>{const status=document.getElementById('mic-status');status.textContent='raw sound failed: '+e.message;status.style.color='#f85149'});
   };
   reader.readAsDataURL(blob);
 }
 function _startOneMicCycle(stream){
   if(!micCycleActive)return;
   try{micRecorder=new MediaRecorder(stream,{mimeType:'audio/webm'})}
-  catch(e){try{micRecorder=new MediaRecorder(stream)}catch(e2){return}}
+  catch(e){try{micRecorder=new MediaRecorder(stream)}catch(e2){
+    const status=document.getElementById('mic-status');status.textContent='raw sound recorder unavailable: '+e2.message;status.style.color='#f85149';
+    micCycleActive=false;return
+  }}
   const _cycleStartTs=Date.now();
   if(_micLastCycleEndTs){
     console.log('[mic-cycle] inter-cycle gap ms:', _cycleStartTs-_micLastCycleEndTs);
@@ -296,13 +304,11 @@ async function requestMic(){
   const btn=document.getElementById('mic-perm');
   if(micGranted){
     // Turn OFF
-    sttWanted=false;
-    if(sttActive&&recognition){try{recognition.abort()}catch(e){};sttActive=false}
     stopMicSoundStream();
     micGranted=false;
     btn.textContent='Enable Microphone';btn.className='perm-btn';
-    document.getElementById('mic-btn').style.display='none';
-    document.getElementById('mic-btn').textContent='\ud83c\udf99 mic off';
+    const status=document.getElementById('mic-status');
+    status.textContent='raw sound off — spoken-word recognition unavailable';status.style.color='var(--text-muted)';
     return;
   }
   try{
@@ -312,12 +318,14 @@ async function requestMic(){
       autoGainControl:true      // DO boost gain to capture room audio
     }});
     btn.textContent='\u2705 Microphone ON';btn.className='perm-btn granted';micGranted=true;
-    document.getElementById('mic-btn').style.display='inline-block';
-    // Start sound streaming to her krimelack
+    const status=document.getElementById('mic-status');
+    status.textContent='raw sound active — spoken-word recognition unavailable';status.style.color='var(--text-muted)';
+    // Start raw sound streaming to her krimelack. No transcript is produced.
     startMicSoundStream(micStream);
-    // Auto-start always-on STT
-    toggleSTT();
-  }catch(e){btn.textContent='\u274c Microphone denied \u2014 typing only';btn.className='perm-btn denied'}
+  }catch(e){
+    btn.textContent='\u274c Microphone denied \u2014 typing only';btn.className='perm-btn denied';
+    const status=document.getElementById('mic-status');status.textContent='raw sound unavailable: '+e.message;status.style.color='#f85149';
+  }
 }
 // GL-BRIEF-SENSORY-IO Part C: camera sight streaming
 let sightStreamTimer=null;
@@ -333,10 +341,17 @@ function startSightStream(){
       const reader=new FileReader();
       reader.onload=async()=>{
         const b64=reader.result.replace(/^data:image\/jpeg;base64,/,'');
-        fetchT(`${API}/sight_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:''})},4000).catch(()=>{});
+        fetchT(`${API}/sight_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:''})},4000)
+          .then(r=>r.json())
+          .then(d=>{
+            const status=document.getElementById('cam-status');
+            if(!d.ok){status.textContent='raw sight failed: '+(d.error||d.reason||'unknown error');status.style.color='#f85149';return}
+            status.textContent='raw sight active — object naming unavailable';status.style.color='var(--text-muted)';
+          })
+          .catch(e=>{const status=document.getElementById('cam-status');status.textContent='raw sight failed: '+e.message;status.style.color='#f85149'});
       };
       reader.readAsDataURL(blob);
-    }catch(e){}
+    }catch(e){const status=document.getElementById('cam-status');status.textContent='raw sight failed: '+e.message;status.style.color='#f85149'}
   },5000); // 0.2 fps — slow sight streaming (fast rate starves substrate socket)
 }
 function stopSightStream(){if(sightStreamTimer){clearInterval(sightStreamTimer);sightStreamTimer=null}}
@@ -350,14 +365,16 @@ async function requestCam(){
     const vid=document.getElementById('cam-preview');vid.srcObject=null;vid.style.display='none';
     document.getElementById('snap-btn').style.display='none';
     btn.textContent='Enable Camera';btn.className='perm-btn';
+    const status=document.getElementById('cam-status');status.textContent='raw sight off — object naming unavailable';status.style.color='var(--text-muted)';
     return;
   }
   try{camStream=await navigator.mediaDevices.getUserMedia({video:true});
     const vid=document.getElementById('cam-preview');vid.srcObject=camStream;vid.style.display='inline-block';
     btn.textContent='\u2705 Camera ON';btn.className='perm-btn granted';
     document.getElementById('snap-btn').style.display='inline-block';
+    const status=document.getElementById('cam-status');status.textContent='raw sight active — object naming unavailable';status.style.color='var(--text-muted)';
     startSightStream(); // Start streaming frames to her sight krimelack
-  }catch(e){btn.textContent='\u274c Camera denied';btn.className='perm-btn denied'}
+  }catch(e){btn.textContent='\u274c Camera denied';btn.className='perm-btn denied';const status=document.getElementById('cam-status');status.textContent='raw sight unavailable: '+e.message;status.style.color='#f85149'}
 }
 function unlockAudio(){
   if(audioUnlocked)return;audioUnlocked=true;
@@ -442,93 +459,6 @@ function gualaSpeak(text){
 }
 // C4: cancel speech on page hide
 document.addEventListener('visibilitychange',()=>{if(document.hidden)window.speechSynthesis.cancel()});
-
-// --- Speech-to-Text (always-on phone mode) ---
-let sttWanted=false; // user wants mic on (persists across recognition restarts)
-let _sttCooldown=false; // prevent rapid-fire sends that starve the substrate socket
-let _sttLastSent=''; // dedup: don't send the same text twice in a row
-function toggleSTT(){
-  if(!micGranted)return;
-  const btn=document.getElementById('mic-btn');
-  if(sttWanted){
-    // Turn off
-    sttWanted=false;sttActive=false;
-    if(recognition){try{recognition.abort()}catch(e){}}
-    btn.classList.remove('recording');btn.textContent='\ud83c\udf99 mic off';btn.style.background='none';btn.style.color='var(--text-muted)';
-    document.getElementById('mic-status').innerHTML='';
-    liveT.textContent='';
-    return;
-  }
-  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
-    addMsg('Speech recognition not supported in this browser','system');return;
-  }
-  sttWanted=true;
-  btn.textContent='\ud83c\udf99 LISTENING';btn.style.background='#3fb950';btn.style.color='#0d1117';
-  document.getElementById('mic-status').innerHTML='\u2705 LISTENING';
-  document.getElementById('mic-status').style.color='#3fb950';
-  document.getElementById('mic-status').style.fontWeight='bold';
-  startContinuousSTT();
-}
-function startContinuousSTT(){
-  if(!sttWanted)return;
-  const btn=document.getElementById('mic-btn');
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  // Cleanly terminate old instance before creating a new one.
-  // Nulling onend first prevents the old instance's cleanup from
-  // triggering a second restart and causing InvalidStateError on start().
-  if(recognition){
-    try{recognition.onend=null;recognition.onerror=null;recognition.abort();}catch(e){}
-  }
-  recognition=new SR();
-  recognition.continuous=true;
-  recognition.interimResults=true;
-  recognition.lang='en-US';
-  recognition.onstart=()=>{sttActive=true;btn.classList.add('recording')};
-  recognition.onresult=ev=>{
-    let interim='',final='';
-    for(let i=ev.resultIndex;i<ev.results.length;i++){
-      if(ev.results[i].isFinal)final+=ev.results[i][0].transcript;
-      else interim+=ev.results[i][0].transcript;
-    }
-    liveT.textContent=interim||final;
-    if(final&&final.trim()){
-      const t=final.trim();
-      if(_sttCooldown||t===_sttLastSent){liveT.textContent='(waiting...)';return}
-      _sttLastSent=t;liveT.textContent='';
-      addMsg(t,'user');
-      // GL-CMD-VOICE-TO-WORDS-COMPLETION-JOE-20260704: recognized speech now
-      // enters the SAME door as typed input (_converseAndRender), tagged
-      // source="joe_voice" (established elsewhere in the engine -- pair-bond
-      // matching, Whisper transcription -- not "joe" (typed text) and not
-      // "voice:self"/-152's self-voice tag). Previously this fired two
-      // fetches, both fire-and-forget with .catch(()=>{}) and no .then():
-      // the /experience call was a confirmed no-op (SUBSTRATE_MODE=embedded
-      // in production, so its _is_remote()-gated body never runs) and the
-      // /listen call DID reach converse() correctly but its 202 {poll_url}
-      // response was never read -- so no reply from spoken input could ever
-      // reach the screen no matter what the server did. This is the fix.
-      _converseAndRender(t,'joe_voice').catch(e=>{
-        addMsg('(voice reply error: '+e.message+')','system');
-      });
-      _sttCooldown=true;setTimeout(()=>{_sttCooldown=false;_sttLastSent=''},800);
-    }
-  };
-  recognition.onerror=ev=>{
-    sttActive=false;btn.classList.remove('recording');
-    if(ev.error==='aborted')return; // intentional stop
-    // no-speech, network, and other errors: restart promptly
-    if(sttWanted)setTimeout(startContinuousSTT,ev.error==='no-speech'?200:800);
-  };
-  recognition.onend=()=>{
-    sttActive=false;btn.classList.remove('recording');
-    // Auto-restart if user still wants mic on
-    if(sttWanted)setTimeout(startContinuousSTT,200);
-  };
-  try{recognition.start();}catch(e){
-    // InvalidStateError or similar — back off and retry
-    sttActive=false;if(sttWanted)setTimeout(startContinuousSTT,500);
-  }
-}
 
 // --- Snapshot (P1: multipart FormData to /upload/picture) ---
 async function takeSnapshot(){
@@ -743,14 +673,17 @@ function addEmissionMsg(text,emissionId){
 }
 
 function addResponseBlock(result){
+  const tokens=result.response_tokens||[];
+  const emissionText=tokens.map(t=>t.token).join(' ')||result.response||'';
+  if(!emissionText){addMsg('(she had nothing — emission was empty)','system');return}
+  const committedSource=result.response_source==='fact_strand_commit';
+  if(!committedSource){addMsg(emissionText,'system');return}
   const block=document.createElement('div');block.className='response-block';
   // GL-CMD-TEACHER-CORRECTION-UI: store emission context on block
   if(result.emission_id) block.dataset.emissionId=result.emission_id;
-  const emissionText=(result.response_tokens||[]).map(t=>t.token).join(' ')||result.response||'...';
   block.dataset.emissionText=emissionText;
   const textDiv=document.createElement('div');textDiv.className='response-text';
-  const tokens=result.response_tokens||[];
-  textDiv.innerHTML=tokens.length?tokens.map(t=>`${t.token}<span class="tok-anno">(s=${t.mode_strength.toFixed(1)})</span>`).join(' '):'...';
+  textDiv.innerHTML=tokens.length?tokens.map(t=>`${t.token}<span class="tok-anno">(s=${t.mode_strength.toFixed(1)})</span>`).join(' '):emissionText;
   block.appendChild(textDiv);
   const meta=document.createElement('div');meta.className='response-meta';
   const nFired=(result.nmda_events||[]).filter(e=>e.fired).length;
@@ -946,12 +879,9 @@ async function _pollConverseTask(pollUrl, retryAfterMs, onTick){
     _terminal_reason:'ceiling'};
 }
 
-// GL-CMD-VOICE-TO-WORDS-COMPLETION-JOE-20260704 (voice-to-words):
-// shared converse-and-render path, factored out of sendMsg()'s non-command
-// branch so spoken input (STT) can use the SAME door as typed input instead
-// of firing a fetch whose response was never read. Anything that reaches
-// her real conversation must consume the 202+poll_url task pattern to ever
-// show a reply on screen -- this was the missing half of the voice leg.
+// Shared typed converse-and-render path. Anything that reaches her real
+// conversation consumes the 202+poll_url task pattern so the terminal result
+// is shown rather than discarded.
 async function _converseAndRender(text,source){
   // GL-CMD-CONVERSE-TASK-PATTERN-62: 202+poll replaces SSE
   const startR=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source})});
@@ -964,19 +894,20 @@ async function _converseAndRender(text,source){
     const d=await _pollConverseTask(start.poll_url, start.retry_after_ms||500,
       (elapsedSec)=>{if(phEl&&phEl.parentNode)phEl.textContent=`thinking — ${elapsedSec}s...`;});
     if(phEl&&phEl.parentNode)phEl.parentNode.removeChild(phEl);
-    const resp=d.response||'...';
+    const resp=d.response||'';
     // GL-CMD-SEAT-TRUTH-UI-180 S1/S2: an error/terminal-timeout result is
     // ALWAYS said in plain words (never re-collapsed to a generic "quiet"),
     // a genuine empty emission gets its own honest label distinct from that
     if(d._terminal_reason){addMsg(resp,'system');}
-    else if(resp&&resp!=='...'){
+    else if(resp&&d.response_source==='fact_strand_commit'){
       addEmissionMsg(resp,d.emission_id);gualaSpeak(resp);
-    }else{addMsg('(she had nothing — emission was empty)','system');}
+    }else if(resp){addMsg(resp,'system');}
+    else{addMsg('(she had nothing — emission was empty)','system');}
     if(d.pictures)renderPictures(d.pictures);
   }else{
     const d=await startR.json().catch(()=>({}));
-    const resp=d.response||'...';
-    if(resp&&resp!=='...')addMsg(resp,'system');
+    const resp=d.response||'';
+    if(resp)addMsg(resp,'system');
   }
 }
 
@@ -1195,8 +1126,6 @@ function _handleEvent(ev){
     const d=ev.detail||ev.data||{};
     if(d.content)det=' "'+d.content+'"';
     if(d.source)det+=' ['+d.source+']';
-    // Show recognized objects from YOLO
-    if(ev.kind==='visual_recognition'&&d.objects)det=' ['+d.objects.join(', ')+']';
     if(ev.kind==='cross_modal_link')det=' '+d.word+' → '+JSON.stringify(d.modalities);
     if(ev.kind==='speech_heard')det=' "'+d.word+'"';
     el.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
@@ -1404,9 +1333,9 @@ const COGMETER_ROWS=[
   {name:'getting-bored-of-repeats',connected:'yes',pointer:'-181',
     firing:'GL-CMD-METER-LIVENESS-187 M2 correction: the -107 fix (this row\'s old pointer) was superseded -- -181 found and fixed the flat-floor collapse (deployed task:468, confirmed live: differentiated top-5 scores observed, e.g. 0.0607/0.0542/0.054/0.0536/0.0533). -185/B2 found and fixed a second, deeper gap the same night (no recency-recovery from historical over-exposure, e.g. audio locked out since early smoke-testing) -- built, pending its own deploy window as of this correction',
     impact:'STALE TEXT CORRECTED 2026-07-05: the old "not yet deployed" claim was wrong by the time Joe read it -- -181 had already shipped hours earlier'},
-  {name:'recognizing-things-in-new-forms',connected:'yes',pointer:'-164',
-    firing:'real and live: chi is computed from word text alone (_chi_for_word), so the same concept gets the same chi regardless of which sense produced it; real YOLOv8/Whisper models (process_sight_with_recognition/process_sound_with_recognition) feed recognized labels back through the IDENTICAL read_sentence() pipeline text uses, running live in the InputRing consumer thread',
-    impact:'STALE TEXT CORRECTED 2026-07-11: confirmed live via direct code trace (grounded_vocab_integration.py:74-79, 92-236), not absent -- live cross-modal binding count (122/203 chi-keys) already exceeds this row\'s stale 108 figure'},
+  {name:'recognizing-things-in-new-forms',connected:'absent',pointer:'honest-recognition-boundary',
+    firing:'spoken-word recognition and object naming are explicitly unavailable; microphone and camera provide raw Krimelack sensory experience only',
+    impact:'typed text remains available; no browser speech service, pretrained speech model, pretrained object detector, vocabulary lookup, or threshold is presented as recognition'},
   {name:'attention spread',connected:'yes',pointer:'-181',
     firing:'the empty-familiarity-tie mechanism this row named is the SAME one -181 fixed (deployed task:468) -- ties are no longer flattened to an identical floor; real per-target differentiation confirmed live',
     impact:'STALE TEXT CORRECTED 2026-07-05: still not a standing pass/fail number, but the underlying mechanism this row describes changed under it -- see "getting-bored-of-repeats" above'},

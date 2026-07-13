@@ -54,7 +54,7 @@ from dsf_ai_service.v4.gualaloom_v5_engine import Guala  # noqa: E402
 from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack  # noqa: E402
 from dsf_ai_service.substrate.krimelack import event_stream_to_vector  # noqa: E402
 
-_EP_ID_RE = re.compile(r"^[0-9a-f]{8}$")
+_EP_ID_RE = re.compile(r"^episode:[^:]+:[1-9][0-9]*$")
 
 
 def _spy_on_atlas_record(g):
@@ -100,7 +100,8 @@ def test_episode_ref_consistent_across_multiword_sentence():
         f"values -- episode tagging is no longer sentence-consistent: {ep_refs}")
     assert _EP_ID_RE.match(ep_refs[0]), (
         f"episode_ref {ep_refs[0]!r} doesn't look like a real generated id "
-        "(8 lowercase hex chars) -- looks like a placeholder/stub value")
+        "(episode:<source>:<persisted source turn>) -- looks like a "
+        "placeholder/stub value")
     print(f"  OK: all {len(ep_refs)} words share episode_ref={ep_refs[0]!r}")
 
 

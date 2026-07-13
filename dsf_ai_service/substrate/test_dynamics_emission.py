@@ -148,7 +148,7 @@ def run_config(g, label, dynamics_flag, inhibition_flag):
         input_chis, words = compute_input_chis(text)
         reply = g._emit_from_invariants(
             input_chis, words, mode_override="grandurun",
-            v7_session=getattr(g, '_v7_session', None))
+            v7_session=getattr(g, '_v7_session', None)).content or None
 
         event_data = {}
         for evt in g._substrate_events:

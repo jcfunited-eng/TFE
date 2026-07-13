@@ -176,9 +176,9 @@ def probe(g, word, target_sections=("subject", "verb", "object")):
         tk.transduce(w)
         input_chis.append(tk.winding)
         input_word_chis[w] = tk.winding
-    recalled_text = g._recall_response(input_chis, input_word_chis, words,
-                                        target_sections=target_sections)
-    pics = getattr(g, "_last_recalled_pictures", [])
+    recalled_text, pics = g._recall_response(
+        input_chis, input_word_chis, words,
+        target_sections=target_sections)
     return {
         "word": word,
         "hit": bool(recalled_text) or bool(pics),

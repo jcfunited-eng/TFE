@@ -150,8 +150,6 @@ async def _run_converse(task_id: str, text: str, source: str, emission_mode=None
     task = _converse_tasks.get(task_id)
     if task is None:
         return
-    import asyncio as _aio
-    loop = _aio.get_event_loop()
     task["status"] = "settling"
     task["phase"] = "processing"
     # GL-BUG-CURRICULUM-LOCK-PRIORITY (Joe, 2026-07-06): "let talking be its
@@ -168,8 +166,6 @@ async def _run_converse(task_id: str, text: str, source: str, emission_mode=None
     # sentences and yield early -- reusing the SAME graceful partial-chunk
     # pattern that function already uses for its own rate-cap gate, so an
     # interrupted chunk just resumes next cycle, nothing is lost.
-    if _guala is not None:
-        _guala._live_converse_pending = True
     try:
         # Conversations should auto-wake her -- talking to her should wake her.
         # substrate_runner.py's handle_gualaloom_post() already does this
@@ -206,53 +202,94 @@ async def _run_converse(task_id: str, text: str, source: str, emission_mode=None
                 emission_mode=emission_mode,
                 timeout=300.0,
             )
-            response = result.get("response", "") if isinstance(result, dict) else str(result)
-            response_source = result.get("response_source", "converse") if isinstance(result, dict) else "converse"
-            motifs = result.get("motifs", 0) if isinstance(result, dict) else 0
-            emission_id = result.get("emission_id") if isinstance(result, dict) else None
+            if not isinstance(result, dict):
+                raise TypeError("remote converse returned a non-object result")
+            response = result["response"]
+            response_source = result["response_source"]
+            motifs = result.get("motifs", 0)
+            emission_id = result.get("emission_id")
+            committed_sections = result.get("committed_sections", [])
+            picture_refs = result.get("pictures", [])
+            source_turn_index = result.get("source_turn_index")
         else:
             if _guala is None:
                 raise RuntimeError("guala_not_ready")
-            result = await loop.run_in_executor(
-                None, lambda: _guala.converse(text, source=source)
-            )
-            response = result if isinstance(result, str) else str(result)
-            response_source = getattr(_guala, "_last_response_source", "converse")
+            turn_result = await _run_lifecycle_executor(
+                lambda: _guala.converse(text, source=source))
+            response = turn_result.response
+            response_source = turn_result.response_source
             motifs = len(_guala.vocab)
-            # GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: this
-            # was never read here, so no rendered reply ever carried a real
-            # emission_id -- every thumbs-up/down click fell back to
-            # "whatever she last said in direct conversation" instead of
-            # the specific line clicked (teacher/feedback + /correction
-            # routes fall back to _last_converse_input/reply when the
-            # emission_id they're given doesn't resolve).
-            emission_id = getattr(_guala, "_last_emission_id", None)
+            emission_id = turn_result.emission_id
+            committed_sections = list(turn_result.committed_sections)
+            source_turn_index = turn_result.source_turn_index
+            picture_refs = []
+            seen_picture_ids = set()
+            for _motif, item_id in turn_result.recalled_pictures:
+                if item_id in seen_picture_ids:
+                    continue
+                picture = _guala._pictures.get(item_id)
+                if picture is None:
+                    continue
+                seen_picture_ids.add(item_id)
+                picture_refs.append({"item_id": item_id,
+                                     "title": picture.title})
+                if len(picture_refs) >= 4:
+                    break
 
-        # EFS log_event is fire-and-forget
-        if _guala is not None:
-            import threading as _th
-            _th.Thread(
-                target=lambda: _guala.log_event(
+        # This write is part of the accepted turn.  Await it so deployment
+        # quiescence cannot certify the turn complete while its event writer
+        # is still mutating EFS in an unowned thread.
+        event_guala = _guala
+        if event_guala is not None:
+            await _run_lifecycle_executor(
+                lambda: event_guala.log_event(
                     STATE_DIR, "source_interaction",
                     source=source, words_in=len(text.split()),
-                    source_count=_guala.source_history.get(source, 0)),
-                daemon=True, name="converse-log"
-            ).start()
+                    source_count=source_turn_index),
+            )
 
         task["status"] = "complete"
         task["response"] = response
         task["response_source"] = response_source
         task["motifs"] = motifs
         task["emission_id"] = emission_id
+        task["committed_sections"] = committed_sections
+        task["pictures"] = picture_refs
+        task["source_turn_index"] = source_turn_index
         task["completed_tick"] = _guala.tick if _guala else 0
         task["completed_at"] = time.time()
     except Exception as _e:
         task["status"] = "error"
         task["error"] = str(_e)[:500]
         task["completed_at"] = time.time()
-    finally:
-        if _guala is not None:
-            _guala._live_converse_pending = False
+
+
+def _schedule_mutating_background(coroutine_factory, *, name):
+    """Atomically own a background mutation until its coroutine finishes.
+
+    HTTP middleware owns only the request lifetime.  Endpoints returning 202
+    must acquire this second lifecycle count *before* returning, otherwise a
+    deploy can close admission between response creation and task startup.
+    """
+    if not _deployment_lifecycle.admit_mutation():
+        raise HTTPException(
+            status_code=503,
+            detail="deployment quiescence is active",
+            headers={"Retry-After": "30"},
+        )
+
+    async def _owned():
+        try:
+            return await coroutine_factory()
+        finally:
+            _deployment_lifecycle.finish_mutation()
+
+    import asyncio as _aio
+    try:
+        return _aio.create_task(_owned(), name=name)
+    except BaseException:
+        _deployment_lifecycle.finish_mutation()
+        raise
 
 def _get_substrate_client():
     """Lazy-init the substrate client for remote mode."""
@@ -285,6 +322,185 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class _DeploymentLifecycle:
+    """Single process admission and sealed-owner state machine."""
+
+    STATES = ("RUNNING", "QUIESCING", "SEALED", "RETIRED")
+
+    def __init__(self):
+        import threading
+        self._condition = threading.Condition()
+        self._state = "RUNNING"
+        self._nonce = None
+        self._active_mutations = 0
+        self._certificate = None
+        self._failure = None
+
+    def snapshot(self):
+        with self._condition:
+            return {
+                "state": self._state,
+                "nonce": self._nonce,
+                "active_mutations": self._active_mutations,
+                "certificate": self._certificate,
+                "failure": self._failure,
+            }
+
+    def admit_mutation(self):
+        with self._condition:
+            if self._state != "RUNNING":
+                return False
+            self._active_mutations += 1
+            return True
+
+    def finish_mutation(self):
+        with self._condition:
+            if self._active_mutations <= 0:
+                raise RuntimeError("deployment mutation counter underflow")
+            self._active_mutations -= 1
+            self._condition.notify_all()
+
+    def begin_quiescence(self, nonce):
+        with self._condition:
+            if self._state == "RUNNING":
+                self._state = "QUIESCING"
+                self._nonce = nonce
+                self._failure = None
+                return
+            if self._state in {"QUIESCING", "SEALED"} and self._nonce == nonce:
+                return
+            raise RuntimeError(
+                f"lifecycle is {self._state} for a different deployment")
+
+    def wait_for_mutations(self, timeout):
+        import time
+        deadline = time.monotonic() + float(timeout)
+        with self._condition:
+            while self._active_mutations:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise RuntimeError(
+                        f"{self._active_mutations} mutating request(s) did not finish")
+                self._condition.wait(timeout=remaining)
+
+    def seal(self, certificate):
+        with self._condition:
+            if self._state != "QUIESCING":
+                raise RuntimeError("only a quiescing owner can seal")
+            self._certificate = certificate
+            self._state = "SEALED"
+            self._condition.notify_all()
+
+    def fail_quiescence(self, error, *, resumed):
+        with self._condition:
+            self._failure = str(error)
+            if resumed:
+                self._state = "RUNNING"
+                self._nonce = None
+            self._condition.notify_all()
+
+    def retire(self):
+        with self._condition:
+            if self._state != "SEALED":
+                raise RuntimeError("only a sealed owner can retire")
+            self._state = "RETIRED"
+            self._condition.notify_all()
+
+
+_deployment_lifecycle = _DeploymentLifecycle()
+import contextvars as _contextvars
+_lifecycle_mutation_depth = _contextvars.ContextVar(
+    "guala_lifecycle_mutation_depth", default=0)
+_app_lifecycle_tasks = set()
+
+
+def _start_app_lifecycle_task(coroutine, *, name):
+    """Retain a process-owned asyncio loop so quiescence can stop it."""
+    import asyncio
+    task = asyncio.create_task(coroutine, name=name)
+    _app_lifecycle_tasks.add(task)
+    task.add_done_callback(_app_lifecycle_tasks.discard)
+    return task
+
+
+async def _run_lifecycle_executor(function, *args):
+    """Run one writer in the executor while retaining lifecycle ownership.
+
+    Cancellation waits for the underlying thread to finish; asyncio cannot
+    otherwise stop a running executor function, and releasing the mutation
+    count early would create a false seal.
+    """
+    inherited = _lifecycle_mutation_depth.get() > 0
+    if not inherited and not _deployment_lifecycle.admit_mutation():
+        raise RuntimeError("deployment quiescence is active")
+    import asyncio
+    loop = asyncio.get_running_loop()
+    future = loop.run_in_executor(None, function, *args)
+    try:
+        try:
+            return await asyncio.shield(future)
+        except asyncio.CancelledError:
+            await asyncio.shield(future)
+            raise
+    finally:
+        if not inherited:
+            _deployment_lifecycle.finish_mutation()
+
+
+async def _stop_app_lifecycle_tasks(timeout):
+    """Cancel and join every retained app-owned background coroutine."""
+    import asyncio
+    current = asyncio.current_task()
+    tasks = [task for task in tuple(_app_lifecycle_tasks)
+             if task is not current and not task.done()]
+    for task in tasks:
+        task.cancel()
+    if tasks:
+        done, pending = await asyncio.wait(tasks, timeout=float(timeout))
+        if pending:
+            raise RuntimeError(
+                "app background tasks did not stop: "
+                + ", ".join(sorted(task.get_name() for task in pending)))
+        for task in done:
+            if task.cancelled():
+                continue
+            error = task.exception()
+            if error is not None:
+                raise RuntimeError(
+                    f"app background task {task.get_name()} failed: {error}")
+    return {"app_tasks_stopped": len(tasks)}
+
+
+_CONTROL_PATHS = frozenset({
+    "/internal/deployment/quiesce",
+    "/internal/deployment/readiness",
+    "/ready",
+    "/ready/guala",
+})
+@app.middleware("http")
+async def deployment_mutation_admission(request, call_next):
+    mutating = request.method.upper() not in {"GET", "HEAD", "OPTIONS"}
+    if not mutating or request.url.path in _CONTROL_PATHS:
+        return await call_next(request)
+    if not _deployment_lifecycle.admit_mutation():
+        return JSONResponse(
+            status_code=503,
+            content={
+                "ok": False,
+                "error": "deployment_quiescence",
+                "lifecycle": _deployment_lifecycle.snapshot(),
+            },
+            headers={"Retry-After": "30"},
+        )
+    depth_token = _lifecycle_mutation_depth.set(
+        _lifecycle_mutation_depth.get() + 1)
+    try:
+        return await call_next(request)
+    finally:
+        _lifecycle_mutation_depth.reset(depth_token)
+        _deployment_lifecycle.finish_mutation()
 
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 
@@ -728,7 +944,22 @@ from fastapi.responses import StreamingResponse
 _guala = None
 _persist_every = 50   # save every N exchanges
 _exchange_count = 0
-STATE_DIR = "state"
+STATE_DIR = os.environ.get("STATE_DIR", "state")
+GENERATION_STORE_ROOT = os.environ.get(
+    "GUALA_GENERATION_STORE_ROOT",
+    os.path.join(
+        os.path.dirname(os.path.abspath(STATE_DIR)),
+        os.path.basename(os.path.abspath(STATE_DIR)) + "-sealed",
+    ),
+)
+OWNER_LOCK_PATH = os.environ.get(
+    "GUALA_OWNER_LOCK_PATH",
+    os.path.join(os.path.dirname(GENERATION_STORE_ROOT), ".guala-owner.lock"),
+)
+_REQUIRE_SEALED_STATE = os.environ.get(
+    "GUALA_REQUIRE_SEALED_STATE", "0").strip() == "1"
+_generation_owner_lock = None
+_loaded_generation = None
 # GL-CMD-LANGUAGE-SEED-PHASE2-GENERATOR-EVE-20260707-v1: rich/programmatic
 # seed load progress, polled by /health. None until a seed load is attempted.
 _seed_load_progress = None
@@ -1237,10 +1468,67 @@ SEED_CORPORA["simple_sentences"] = {
 SEED_CORPORA["legacy_seed"] = {"title": "Seed Corpus", "lines": CORPUS}
 
 
+def _prepare_generation_boot():
+    """Acquire the sole EFS owner and activate fully verified CURRENT state."""
+    global _generation_owner_lock, _loaded_generation
+    if not _REQUIRE_SEALED_STATE:
+        return None
+    if _generation_owner_lock is not None:
+        return _loaded_generation
+    from dsf_ai_service.substrate.deployment_generation import (
+        ProcessLifetimeEFSOwnerLock,
+        materialize_current,
+    )
+    owner = ProcessLifetimeEFSOwnerLock(OWNER_LOCK_PATH).acquire()
+    try:
+        materialized = materialize_current(
+            store_root=GENERATION_STORE_ROOT,
+            active_directory=STATE_DIR,
+        )
+    except BaseException:
+        owner.release()
+        raise
+    _generation_owner_lock = owner
+    _loaded_generation = materialized
+    app.state.generation_owner = owner
+    app.state.loaded_generation = materialized
+    return materialized
+
+
+def _strict_discard_guala(instance, *, reason):
+    """Stop every worker on a rejected instance before losing its reference."""
+    if instance is None:
+        return
+    try:
+        instance.quiesce_background_workers(timeout=120.0)
+    except Exception as error:
+        raise RuntimeError(
+            f"discarded Guala instance could not quiesce ({reason}): {error}") from error
+
+
+def _boot_generation_and_guala():
+    """Boot under the process-lifetime owner lock, releasing it on failure."""
+    global _generation_owner_lock, _loaded_generation
+    try:
+        _prepare_generation_boot()
+        _gl_init()
+    except BaseException:
+        if _generation_owner_lock is not None:
+            _generation_owner_lock.release()
+            _generation_owner_lock = None
+            _loaded_generation = None
+            app.state.generation_owner = None
+            app.state.loaded_generation = None
+        raise
+
+
 def _gl_init():
     global _guala, _seed_load_progress
     if _guala is not None:
         return
+    if _REQUIRE_SEALED_STATE and _generation_owner_lock is None:
+        raise RuntimeError(
+            "sealed-state owner boot is not complete; direct initialization refused")
 
     os.makedirs(STATE_DIR, exist_ok=True)
     # CRITICAL: build into local var — only set _guala AFTER successful load.
@@ -1249,6 +1537,10 @@ def _gl_init():
     # GL-RESTORE-CTRL: if FORCE_S3_RESTORE=1, download from S3 before loading EFS.
     # Used for targeted state restores (e.g. recovering from save-bug data loss).
     # After one successful restore boot, remove env var so subsequent restarts load normally.
+    if (_REQUIRE_SEALED_STATE
+            and os.environ.get("FORCE_S3_RESTORE", "0") == "1"):
+        raise RuntimeError(
+            "FORCE_S3_RESTORE conflicts with required immutable CURRENT state")
     if os.environ.get("FORCE_S3_RESTORE", "0") == "1":
         print("[GualaLoom] FORCE_S3_RESTORE=1 — restoring from most-recent S3 backup...")
         try:
@@ -1276,6 +1568,7 @@ def _gl_init():
         if is_stale and _load_attempts < 3:
             print(f"[GualaLoom] EFS stale handle on attempt {_load_attempts}, retrying...")
             import time as _t; _t.sleep(2)
+            _strict_discard_guala(g, reason="EFS stale-handle retry")
             g = Guala()
             for cid, cdata in SEED_CORPORA.items():
                 g.add_corpus(cid, cdata["title"], cdata["lines"])
@@ -1287,6 +1580,11 @@ def _gl_init():
     # via S3 restore. Only raise if S3 restore also fails.
     if not getattr(g, '_load_successful', True):
         errs = getattr(g, '_load_errors', [])
+        if _REQUIRE_SEALED_STATE:
+            _strict_discard_guala(g, reason="verified CURRENT load failure")
+            raise RuntimeError(
+                "verified immutable CURRENT failed engine load; refusing legacy restore: "
+                f"{errs}")
         print(f"[GualaLoom] State load failed: {errs}. Attempting S3 restore...")
         try:
             _restore_from_s3(STATE_DIR)
@@ -1297,8 +1595,11 @@ def _gl_init():
             if getattr(g2, '_load_successful', False):
                 print(f"[GualaLoom] S3 restore succeeded: "
                       f"identity={(getattr(g2, '_guala_identity', '') or '')[:8]}")
+                old_g = g
                 g = g2
+                _strict_discard_guala(old_g, reason="legacy restore replacement")
             else:
+                _strict_discard_guala(g2, reason="failed legacy restore candidate")
                 raise RuntimeError(f"[GualaLoom] S3 restore loaded but _load_successful=False")
         except Exception as _r_err:
             raise RuntimeError(
@@ -1327,7 +1628,19 @@ def _gl_init():
     # deploy-specific code. Updated to the real current identity.
     EXPECTED_IDENTITY = "0b4c244a"
     loaded_id = getattr(g, '_guala_identity', None) or ""
-    if loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY):
+    if _REQUIRE_SEALED_STATE:
+        if _loaded_generation is None:
+            _strict_discard_guala(g, reason="missing materialized generation proof")
+            raise RuntimeError("required immutable generation was not materialized")
+        if (loaded_id != _loaded_generation.identity
+                or g.tick != _loaded_generation.tick):
+            _strict_discard_guala(g, reason="generation identity/tick mismatch")
+            raise RuntimeError(
+                "engine load does not match immutable generation: "
+                f"loaded identity={loaded_id!r} tick={g.tick}; "
+                f"generation identity={_loaded_generation.identity!r} "
+                f"tick={_loaded_generation.tick}")
+    elif loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY):
         print(f"[GualaLoom] IDENTITY MISMATCH: got {loaded_id[:8]}, "
               f"expected {EXPECTED_IDENTITY}. Restoring from S3 backup...")
         try:
@@ -1339,9 +1652,12 @@ def _gl_init():
             restored_id = getattr(g2, '_guala_identity', None) or ""
             if restored_id.startswith(EXPECTED_IDENTITY):
                 print(f"[GualaLoom] Restore succeeded: identity={restored_id[:8]}")
+                old_g = g
                 g = g2
+                _strict_discard_guala(old_g, reason="identity restore replacement")
             else:
                 print(f"[GualaLoom] Restore FAILED: got identity={restored_id[:8]}")
+                _strict_discard_guala(g2, reason="identity-mismatch restore candidate")
         except Exception as e:
             print(f"[GualaLoom] Restore error: {e}")
 
@@ -1549,7 +1865,7 @@ def _embedded_post_boot(g):
     # curriculum_scheduler.py itself). Reused verbatim rather than
     # reimplemented: _sr._guala was just aliased to this same live `g`
     # two blocks up, so _sr's own _curriculum_feed_chunk/_curriculum_is_
-    # busy/_world_feed_once/_lookup_once (already proven live-safe --
+    # busy/_world_feed_once (already proven live-safe --
     # the same pattern the three loops just above already use through
     # this exact alias) operate on the real, live organism, not a copy.
     try:
@@ -1557,8 +1873,6 @@ def _embedded_post_boot(g):
         _interleave = []
         if os.environ.get("WORLD_FEEDS", "1").strip() != "0":
             _interleave.append(("worldfeed", _sr._world_feed_once))
-        if os.environ.get("LOOKUP_AUTONOMOUS", "0").strip() != "0":
-            _interleave.append(("lookup", _sr._lookup_once))
         _sr._curriculum = CurriculumScheduler(
             state_dir=STATE_DIR,
             feed_chunk=_sr._curriculum_feed_chunk,
@@ -1580,8 +1894,12 @@ def _embedded_post_boot(g):
         from dsf_ai_service.save_coordinator import SaveCoordinator
         import dsf_ai_service.save_coordinator as _sc
         _s3_bucket = os.environ.get("GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
-        save_coord = SaveCoordinator(g, STATE_DIR, s3_bucket=_s3_bucket)
+        # Full-state S3 authority belongs exclusively to verified immutable
+        # generations.  The legacy coordinator's partial filename list cannot
+        # represent a recovery generation and is therefore local-save only.
+        save_coord = SaveCoordinator(g, STATE_DIR, s3_bucket=None)
         _sc.SAVE_COORDINATOR = save_coord
+        app.state.save_coordinator = save_coord
 
         # Wrap _end_activity to trigger saves on activity end (verbatim from run_server).
         if hasattr(g, '_end_activity'):
@@ -1590,26 +1908,28 @@ def _embedded_post_boot(g):
                 ending = getattr(g, '_current_activity', None)
                 ending_kind = ending.kind if ending else None
                 result = _orig_end_activity(*a, **kw)
-                if _sr._autonomy_pause_refcount > 0:
+                if getattr(app.state, "deployment_quiescing", False):
+                    print(f"[save] defer {ending_kind} activity save — deployment quiescing")
+                elif _sr._autonomy_pause_refcount > 0:
                     print(f"[save] defer {ending_kind} save — curriculum running "
                           f"(refcount={_sr._autonomy_pause_refcount})")
                 else:
                     reason = "dream_end" if ending_kind == "DREAMING" else "activity_ended"
-                    _threading.Thread(
-                        target=lambda: save_coord.maybe_save(reason=reason),
-                        daemon=True, name=f"activity-save-{ending_kind}"
-                    ).start()
-                import time as _time
-                with _sr._backup_lock:
-                    _sr._last_successful_backup_wall = _time.time()
+                    def _save_activity_end():
+                        if save_coord.maybe_save(reason=reason):
+                            import time as _time
+                            with _sr._backup_lock:
+                                _sr._last_successful_backup_wall = _time.time()
+                    _sr._start_background_thread(
+                        _save_activity_end, f"activity-save-{ending_kind}")
                 return result
             g._end_activity = _end_activity_with_save
 
         # Backstop: 5-minute save safety net (sync thread version for embedded mode).
         def _save_backstop_thread():
-            import time as _time
             while not _sr._shutdown:
-                _time.sleep(300)
+                if _sr._shutdown_event.wait(300):
+                    break
                 if g is None or _sr._shutdown:
                     continue
                 try:
@@ -1617,8 +1937,7 @@ def _embedded_post_boot(g):
                         save_coord.maybe_save("backstop")
                 except Exception as _be:
                     print(f"[save] backstop error: {_be}")
-        _threading.Thread(target=_save_backstop_thread, daemon=True,
-                          name="save-backstop").start()
+        _sr._start_background_thread(_save_backstop_thread, "save-backstop")
 
         # Ring persistence + S3 consumers.
         if _sr._substrate_ring is not None:
@@ -1631,11 +1950,13 @@ def _embedded_post_boot(g):
                 state_dir=_events_dir,
                 build_snapshot_fn=lambda: g.introspect())
             _pers.start()
+            app.state.persistence_consumer = _pers
             _s3c = S3Consumer(
                 ring=_sr._substrate_ring,
                 state_dir=_events_dir,
                 bucket=_s3_bucket)
             _s3c.start()
+            app.state.s3_consumer = _s3c
             print("[substrate] Ring consumers started: persistence + S3")
 
         print("[app] Substrate booted, background loops running")
@@ -1644,8 +1965,7 @@ def _embedded_post_boot(g):
 
     # Heartbeat thread.
     try:
-        _threading.Thread(target=_sr.heartbeat_loop, daemon=True,
-                          name="heartbeat").start()
+        _sr._start_background_thread(_sr.heartbeat_loop, "heartbeat")
     except Exception as _e:
         print(f"[substrate] Heartbeat start skipped: {_e}")
 
@@ -1710,89 +2030,104 @@ class GLMessage(BaseModel):
     emission_mode: Optional[str] = None  # "topk" | "grandurun" per-request override
 
 
-# GL-BRIEF-SENSORY-IO Parts C+D: streaming sight and sound
-def _ob_post_bg(path: str, body: dict):
-    """Fire-and-forget POST to organ-brain service in a daemon thread."""
-    import threading, urllib.request as _ur, json as _js
-    def _send():
-        try:
-            _ob_url = os.environ.get("ORGAN_BRAIN_URL", "http://localhost:8090")
-            _req = _ur.Request(f"{_ob_url}{path}",
-                               data=_js.dumps(body).encode(),
-                               headers={"content-type": "application/json"})
-            _ur.urlopen(_req, timeout=6)
-        except Exception:
-            pass
-    threading.Thread(target=_send, daemon=True).start()
-
-
 @app.post("/sight_frame")
 async def sight_frame(msg: GLMessage):
-    """Streaming sight: feed a camera frame into her sight krimelack + organ-brain."""
+    """Stream raw sight while reporting that object naming is unavailable."""
+    from dsf_ai_service.substrate.grounded_vocab_integration import (
+        object_name_recognition_unavailable)
+
     b64_data = (msg.text or "").strip()
-    # Fire organ-brain visual experience async (non-blocking)
-    if b64_data:
-        _ob_post_bg("/visual", {"image_b64": b64_data, "concept": "scene"})
+    recognition = object_name_recognition_unavailable(
+        source="camera_stream")
     if _is_remote():
         # R3: write to InputRing (non-blocking) instead of socket call
         client = _get_substrate_client()
         try:
-            return await client.call("ring_write",
+            result = await client.call("ring_write",
                 kind="sight_frame", source="camera_stream",
                 data={"frame_b64": b64_data}, timeout=3.0)
+            if not isinstance(result, dict):
+                raise TypeError("ring write returned a non-object result")
+            result["object_name_recognition"] = recognition
+            return result
         except (ConnectionError, Exception):
-            return {"ok": False, "error": "ring write failed"}
+            return {"ok": False, "error": "ring write failed",
+                    "object_name_recognition": recognition}
     if _guala is None:
-        raise HTTPException(503, "guala_not_ready")
+        return JSONResponse(
+            status_code=503,
+            content={"ok": False, "error": "guala_not_ready",
+                     "object_name_recognition": recognition})
     import base64, asyncio as _aio
     b64_data = (msg.text or "").strip()
     if not b64_data:
-        return {"ok": False, "error": "no frame data"}
+        return {"ok": False, "error": "no frame data",
+                "object_name_recognition": recognition}
     if not _frame_backpressure_acquire("sight"):
         return {"ok": False, "dropped": True,
                 "reason": "backpressure — sight-frame processing at capacity",
-                "n_dropped": _frame_dropped["sight"]}
+                "n_dropped": _frame_dropped["sight"],
+                "object_name_recognition": recognition}
     def _decode():
         t0 = time.time()
         try:
             img_bytes = base64.b64decode(b64_data)
             _, grid, _, _ = decode_image_bytes(img_bytes)
             _guala.process_sight_frame(grid)
+            frame_recognition = object_name_recognition_unavailable(
+                _guala, source="camera_stream")
             print(f"[sight-frame] {time.time()-t0:.3f}s")
-            return {"ok": True, "tick": _guala.tick}
+            return {"ok": True, "tick": _guala.tick,
+                    "raw_sight": "accepted",
+                    "object_name_recognition": frame_recognition}
         except Exception as e:
-            return {"ok": False, "error": str(e)}
+            return {"ok": False, "error": str(e),
+                    "object_name_recognition": recognition}
     try:
-        return await _aio.get_event_loop().run_in_executor(None, _decode)
+        return await _run_lifecycle_executor(_decode)
     finally:
         _frame_backpressure_release("sight")
 
 
 @app.post("/sound_frame")
 async def sound_frame(msg: GLMessage):
-    """Streaming sound: feed a mic audio chunk into her sound krimelack + organ-brain."""
+    """Stream raw sound while reporting that word recognition is unavailable."""
+    from dsf_ai_service.substrate.grounded_vocab_integration import (
+        spoken_word_recognition_unavailable)
+
     b64_data = (msg.text or "").strip()
     src = msg.source or "ambient"
+    recognition = spoken_word_recognition_unavailable(source=src)
     if _is_remote():
         # R3: write to InputRing (non-blocking) instead of socket call
         client = _get_substrate_client()
         try:
-            return await client.call("ring_write",
+            result = await client.call("ring_write",
                 kind="sound_window", source=src,
                 data={"audio_b64": b64_data,
                       "source": src}, timeout=3.0)
+            if not isinstance(result, dict):
+                raise TypeError("ring write returned a non-object result")
+            result["spoken_word_recognition"] = recognition
+            return result
         except (ConnectionError, Exception):
-            return {"ok": False, "error": "ring write failed"}
+            return {"ok": False, "error": "ring write failed",
+                    "spoken_word_recognition": recognition}
     if _guala is None:
-        raise HTTPException(503, "guala_not_ready")
+        return JSONResponse(
+            status_code=503,
+            content={"ok": False, "error": "guala_not_ready",
+                     "spoken_word_recognition": recognition})
     import base64, asyncio as _aio
     b64_data = (msg.text or "").strip()
     if not b64_data:
-        return {"ok": False, "error": "no audio data"}
+        return {"ok": False, "error": "no audio data",
+                "spoken_word_recognition": recognition}
     if not _frame_backpressure_acquire("sound"):
         return {"ok": False, "dropped": True,
                 "reason": "backpressure — sound-frame processing at capacity",
-                "n_dropped": _frame_dropped["sound"]}
+                "n_dropped": _frame_dropped["sound"],
+                "spoken_word_recognition": recognition}
     def _decode():
         t0 = time.time()
         try:
@@ -1803,51 +2138,20 @@ async def sound_frame(msg: GLMessage):
             # process_sound_frame from this path.
             wav = _sr._webm_to_wav_bytes(audio_bytes)
             if not wav:
-                return {"ok": False, "error": "decode_failed"}
-            _guala.process_sound_frame(wav)
-            # GL-CMD-SEVER-MIC-WORD-LOOP-EVE-20260705-204 S1: Part A SEVERED.
-            # _audio_to_sensory_words classifies mic ENERGY into fixed labels
-            # (quiet room -> "faint" +warm/smooth/steady) and this fed them
-            # into read_sentence as heard language, source="joe" (maximal
-            # pair-bond weight), every ~5s continuously including during
-            # sleep -- a resonance loop with no real experience behind it.
-            # Root-caused live: funded the -198 growth-pool burst on
-            # artifact input and swamped the organism vote distribution
-            # ("faint" became her most-experienced word of all time, tagged
-            # as if Joe said it). process_sound_frame above (real cochlear
-            # hearing) is untouched; Part B below (Whisper, real speech) is
-            # untouched.
-            # GL-CMD-VOICE-TO-WORDS-153 Part B: Whisper transcription, flagged
-            # off by default (VOICE_WHISPER=0), joe-tagged sources only, async
-            # off the request path — flips to 1 only on Eve GO after the cost
-            # line is filed.
-            if os.environ.get("VOICE_WHISPER", "0") == "1" and src == "joe_voice":
-                import threading as _th
-                def _whisper_bg():
-                    tw0 = time.time()
-                    try:
-                        from dsf_ai_service.substrate.grounded_vocab_integration import (
-                            process_sound_with_recognition)
-                        _bindings, _spoken = process_sound_with_recognition(
-                            _guala, wav, source="joe_voice")
-                        # 2026-07-12: use the FULL real transcribed text, not
-                        # _bindings (only already-known words) -- else a real
-                        # sentence with any new word silently collapses to a
-                        # fragment or nothing before it ever reaches her.
-                        if _spoken.strip():
-                            _guala.read_sentence(_spoken, source="joe",
-                                                 bundle_id=f"sound_frame:{_guala.tick}")
-                    except Exception as _we:
-                        print(f"[voice-whisper] error: {_we}")
-                    finally:
-                        print(f"[voice-whisper] {time.time()-tw0:.3f}s")
-                _th.Thread(target=_whisper_bg, daemon=True).start()
+                return {"ok": False, "error": "decode_failed",
+                        "spoken_word_recognition": recognition}
+            _guala.process_sound_frame(wav, source=src)
+            frame_recognition = spoken_word_recognition_unavailable(
+                _guala, source=src)
             print(f"[sound-frame] {time.time()-t0:.3f}s")
-            return {"ok": True, "tick": _guala.tick}
+            return {"ok": True, "tick": _guala.tick,
+                    "raw_sound": "accepted",
+                    "spoken_word_recognition": frame_recognition}
         except Exception as e:
-            return {"ok": False, "error": str(e)}
+            return {"ok": False, "error": str(e),
+                    "spoken_word_recognition": recognition}
     try:
-        return await _aio.get_event_loop().run_in_executor(None, _decode)
+        return await _run_lifecycle_executor(_decode)
     finally:
         _frame_backpressure_release("sound")
 
@@ -1904,9 +2208,7 @@ async def gualaloom_chat(msg: GLMessage):
                 pass
         return {"ok": True}
     if _cmd == "/listen":
-        # GL-CMD-VOICE-TO-WORDS-153 Part C: intentional route (was previously
-        # only reached by accident via the "belt-and-suspenders" fallback
-        # below). Client (gualaloom.html STT) posts here with source="joe".
+        # Explicit text-listen route used by authenticated text callers.
         import asyncio as _aio
         _prune_stale_tasks()
         tick = _guala.tick if _guala else 0
@@ -1917,7 +2219,11 @@ async def gualaloom_chat(msg: GLMessage):
             "response": None, "response_source": None, "motifs": 0,
             "started_tick": tick, "started_at": time.time(), "source": source,
         }
-        _aio.create_task(_run_converse(task_id, msg.text or "", source, msg.emission_mode))
+        _schedule_mutating_background(
+            lambda: _run_converse(
+                task_id, msg.text or "", source, msg.emission_mode),
+            name=f"converse-{task_id}",
+        )
         return JSONResponse(status_code=202, content={
             "task_id": task_id, "status": "accepted",
             "poll_url": f"/api/v1/gualaloom/task/{task_id}",
@@ -1979,8 +2285,11 @@ async def gualaloom_chat(msg: GLMessage):
             "started_at": time.time(),
             "source": msg.source or "joe",
         }
-        _aio.create_task(_run_converse(
-            task_id, msg.text or "", msg.source or "joe", msg.emission_mode))
+        _schedule_mutating_background(
+            lambda: _run_converse(
+                task_id, msg.text or "", msg.source or "joe", msg.emission_mode),
+            name=f"converse-{task_id}",
+        )
         return JSONResponse(
             status_code=202,
             content={
@@ -2024,7 +2333,8 @@ async def gualaloom_chat(msg: GLMessage):
             return {"response": "initializing... please wait",
                     "motifs": 0, "persistence_health": {},
                     "atlas_health": {}, "n_motifs": 0}
-        return {"response": "...", "motifs": 0}
+        return {"response": "", "response_source": "silence_initializing",
+                "motifs": 0}
 
     # GL-BRIEF-SLEEP-DURING-DEPLOY Part B: surface sleep state
     # GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: reserve "dreaming" for a cycle
@@ -2039,6 +2349,7 @@ async def gualaloom_chat(msg: GLMessage):
             return {
                 "response": "she is dreaming..." if consolidating
                             else "she is paused, not yet consolidating...",
+                "response_source": "sleep_quiet",
                 "asleep": True,
                 "consolidating": consolidating,
                 "sleep_tick": _guala.tick,
@@ -2215,10 +2526,9 @@ async def gualaloom_chat(msg: GLMessage):
         result = _guala.coordinator.wake(wake_source, _guala, _guala.needs, _guala.atlas)
         # GL-CMD-73: log_event does EFS write blocking async loop 5-31s under load.
         # Coordinator.wake() has already flipped presence; log is diagnostic bookkeeping.
-        import asyncio as _aio
-        _aio.get_event_loop().run_in_executor(
-            None, lambda: _guala.log_event(STATE_DIR, "wake", source=wake_source)
-        )
+        await _run_lifecycle_executor(
+            lambda: _guala.log_event(
+                STATE_DIR, "wake", source=wake_source))
         return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
 
     # ── /rest — substrate-physical rest event ──
@@ -2226,10 +2536,9 @@ async def gualaloom_chat(msg: GLMessage):
         rest_source = msg.text.strip().lower() if msg.text else "joe"
         result = _guala.coordinator.rest(rest_source, _guala, reason="voluntary")
         # GL-CMD-73: same executor-wrap as /wake
-        import asyncio as _aio
-        _aio.get_event_loop().run_in_executor(
-            None, lambda: _guala.log_event(STATE_DIR, "rest", source=rest_source)
-        )
+        await _run_lifecycle_executor(
+            lambda: _guala.log_event(
+                STATE_DIR, "rest", source=rest_source))
         return {"response": json.dumps(result), "motifs": _guala.introspect()["vocab"]}
 
     # ── /diag — reach distribution + strength histogram for wC ──
@@ -2351,8 +2660,7 @@ async def gualaloom_chat(msg: GLMessage):
     # ── /addpdf:<filename> — extract text from PDF, register as corpus ──
     # C8: entire decode runs in executor (never blocks health checks)
     if cmd.startswith("/addpdf:"):
-        import asyncio as _aio, base64
-        _loop = _aio.get_event_loop()
+        import base64
         filename = cmd[len("/addpdf:"):]
         title = filename.replace('.pdf', '').replace('_', ' ')
         corpus_id = filename.replace('.pdf', '').replace(' ', '_').lower()
@@ -2429,13 +2737,12 @@ async def gualaloom_chat(msg: GLMessage):
                           "motifs": _guala.introspect()["vocab"]}
             print(f"[decode-pdf] {time.time()-t0:.2f}s")
             return result
-        return await _loop.run_in_executor(None, _decode_pdf)
+        return await _run_lifecycle_executor(_decode_pdf)
 
     # ── /addpicture:<filename> — preserve original, derive krimelack grid ──
     # C8: decode in executor
     if cmd.startswith("/addpicture:"):
-        import asyncio as _aio, base64, hashlib
-        _loop = _aio.get_event_loop()
+        import base64, hashlib
         filename = cmd[len("/addpicture:"):]
         title = filename.rsplit('.', 1)[0] if '.' in filename else filename
         b64_data = msg.text.strip()
@@ -2471,14 +2778,13 @@ async def gualaloom_chat(msg: GLMessage):
                           "motifs": _guala.introspect()["vocab"]}
             print(f"[decode-picture] {time.time()-t0:.2f}s")
             return result
-        return await _loop.run_in_executor(None, _decode_picture)
+        return await _run_lifecycle_executor(_decode_picture)
 
     # ── /bundle:<name> — experience bundle: all senses in one window (A4) ──
     # H5b: entire handler wrapped — always returns structured JSON
     # C8: entire bundle decode runs in executor
     if cmd.startswith("/bundle:"):
-        import asyncio as _aio, base64
-        _loop = _aio.get_event_loop()
+        import base64
         bundle_name = cmd[len("/bundle:"):]
         try:
             bundle_data = json.loads(msg.text) if msg.text else {}
@@ -2497,8 +2803,26 @@ async def gualaloom_chat(msg: GLMessage):
             # here (not left to the first lane's implicit auto-open) so an
             # empty-caption bundle (sight/sound/touch only) still gets one
             # shared window across every lane below.
-            _guala.window_manager.open("give_experience")
+            _bundle_uses_emulator = any(
+                bool(bundle_data.get(sense_name))
+                for sense_name in ("touch", "smell", "taste"))
+            _bundle_has_observed_lane = bool(
+                bundle_data.get("image_b64")
+                or bundle_data.get("picture_id")
+                or bundle_data.get("sound_b64")
+                or bundle_data.get("sound_id"))
+            _bundle_origin = (
+                "observed"
+                if _bundle_has_observed_lane and not _bundle_uses_emulator
+                else "emulated")
+            _guala.window_manager.open(
+                "give_experience",
+                experience_origin=_bundle_origin,
+                source=bundle_source,
+                bundle_name=bundle_name,
+            )
             caption = bundle_data.get("caption", "")
+            caption_bound = False
             # GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live-test wiring:
             # the real numeric waveform for whichever sound this bundle
             # names (ref or freshly-uploaded), if one is available -- set
@@ -2700,6 +3024,7 @@ async def gualaloom_chat(msg: GLMessage):
             if caption:
                 try:
                     _guala.read_sentence(caption, source="joe")
+                    caption_bound = True
                     from dsf_ai_service.v4.gualaloom_v5_engine import _normalize_text
                     for w in _normalize_text(caption):
                         from dsf_ai_service.v4.gualaloom_v4_krimelack_dna import LanguageKrimelack
@@ -2792,7 +3117,14 @@ async def gualaloom_chat(msg: GLMessage):
             # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: close the
             # binding window opened at the top of this function -- give_
             # experience's explicit open/add_entry-per-lane/close, complete.
-            _guala.window_manager.close("give_experience_complete")
+            _closed_bundle_window = _guala.window_manager.close(
+                "give_experience_complete")
+            if caption_bound:
+                if _closed_bundle_window is None:
+                    raise RuntimeError(
+                        "give_experience BindingWindow did not close")
+                _guala._remember_closed_language_window(
+                    _closed_bundle_window)
 
             # H5b: always structured JSON, never raw 500
             print(f"[decode-bundle] {time.time()-t0:.2f}s")
@@ -2845,13 +3177,12 @@ async def gualaloom_chat(msg: GLMessage):
                     "cross_modal_entries": _cross_modal_entries[:_CROSS_MODAL_ENTRIES_CAP],
                 }
             return response_payload
-        return await _loop.run_in_executor(None, _decode_bundle)
+        return await _run_lifecycle_executor(_decode_bundle)
 
     # ── /addsound:<filename> — decode base64 audio, run through cochlear pipeline ──
     # C8: entire decode in executor
     if cmd.startswith("/addsound:"):
-        import asyncio as _aio, base64, hashlib, tempfile, subprocess
-        _loop = _aio.get_event_loop()
+        import base64, hashlib, tempfile, subprocess
         filename = cmd[len("/addsound:"):]
         title = filename.rsplit('.', 1)[0] if '.' in filename else filename
         b64_data = msg.text.strip()
@@ -2958,7 +3289,7 @@ async def gualaloom_chat(msg: GLMessage):
                           "motifs": _guala.introspect()["vocab"]}
             print(f"[decode-sound] {time.time()-t0:.2f}s")
             return result
-        return await _loop.run_in_executor(None, _decode_sound)
+        return await _run_lifecycle_executor(_decode_sound)
 
     # ── /organism_recall_auditory:<sound_item_id> — cross-sense recall
     # verification. GL-CMD-CROSS-SENSE-RECALL-EVE-20260705-208 live test:
@@ -3013,9 +3344,10 @@ async def gualaloom_chat(msg: GLMessage):
 
     # ── Normal conversation — now handled by 202 + task poll path above ──
     # This branch is only reached for text messages if _is_converse was False
-    # (e.g., empty text with no command). Return "..." sentinel.
+    # (for example, empty text with no command). Empty input is neutral silence.
     if not (msg.text or "").strip():
-        return {"response": "...", "motifs": _guala.introspect()["vocab"] if _guala else 0}
+        return {"response": "", "response_source": "silence_empty_input",
+                "motifs": _guala.introspect()["vocab"] if _guala else 0}
 
     # Fallback for any command not explicitly handled above, with non-empty
     # text. GL-CMD-VOICE-TO-WORDS-153 Part C: /listen no longer relies on
@@ -3031,7 +3363,11 @@ async def gualaloom_chat(msg: GLMessage):
         "response": None, "response_source": None, "motifs": 0,
         "started_tick": tick, "started_at": time.time(), "source": source,
     }
-    _aio.create_task(_run_converse(task_id, msg.text or "", source, msg.emission_mode))
+    _schedule_mutating_background(
+        lambda: _run_converse(
+            task_id, msg.text or "", source, msg.emission_mode),
+        name=f"converse-{task_id}",
+    )
     return JSONResponse(status_code=202, content={
         "task_id": task_id, "status": "accepted",
         "poll_url": f"/api/v1/gualaloom/task/{task_id}",
@@ -3069,6 +3405,9 @@ async def get_converse_task(task_id: str):
             # missing entirely, so no polled reply ever carried a real
             # emission_id to the frontend -- see _run_converse's own note.
             "emission_id": task.get("emission_id"),
+            "committed_sections": task.get("committed_sections", []),
+            "pictures": task.get("pictures", []),
+            "source_turn_index": task.get("source_turn_index"),
             "started_tick": task["started_tick"],
             "completed_tick": task.get("completed_tick"),
             "elapsed_ms": int((task.get("completed_at", time.time()) - task["started_at"]) * 1000),
@@ -3177,7 +3516,8 @@ async def admin_force_dream():
                 print(f"[UNPAUSE] Dream cycle complete at tick {_guala.tick}")
                 return
         print(f"[UNPAUSE] Dream cycle timeout at tick {_guala.tick}")
-    _aio.create_task(_bg_dream())
+    _schedule_mutating_background(
+        lambda: _bg_dream(), name="admin-force-dream")
     return JSONResponse(
         status_code=202,
         content={"force_dream": "accepted", "start_tick": start_tick,
@@ -3317,6 +3657,12 @@ async def admin_familiarity_debug():
 @app.post("/api/v1/gualaloom/admin/backup", dependencies=[Depends(_api_key_dep)])
 async def admin_backup():
     """Step 0: Full state backup to dedicated UNPAUSE-PRE S3 prefix. Verified."""
+    if _REQUIRE_SEALED_STATE:
+        raise HTTPException(
+            status_code=409,
+            detail=("partial legacy backup is disabled; use the authenticated "
+                    "immutable generation seal"),
+        )
     if _is_remote():
         # GL-CMD-104: API Gateway has 30s timeout. force_save takes 10-25s.
         # Fire-and-forget: kick off backup in background, return 202 immediately.
@@ -3328,7 +3674,8 @@ async def admin_backup():
                 await client.call("backup", timeout=55.0)
             except Exception as e:
                 print(f"[backup] remote backup error: {e}")
-        _aio.create_task(_do_remote_backup())
+        _schedule_mutating_background(
+            lambda: _do_remote_backup(), name="admin-remote-backup")
         return JSONResponse(
             status_code=202,
             content={"backup": "accepted", "message": "EFS+S3 backup started. Poll /status for last_s3_backup."},
@@ -3339,8 +3686,7 @@ async def admin_backup():
     # Fix B: embedded mode uses same 202+background pattern as remote mode.
     # save_full_state + S3 upload takes 30-120s; API GW has 30s timeout.
     # Fire-and-forget: return 202 immediately, backup runs in background thread.
-    import asyncio as _aio, boto3 as _boto3
-    loop = _aio.get_event_loop()
+    import boto3 as _boto3
     def _do_backup():
         t0 = time.time()
         s3 = _boto3.client("s3", region_name="us-east-1")
@@ -3393,10 +3739,11 @@ async def admin_backup():
     # Caller polls /status for last_s3_backup to confirm completion.
     async def _bg_backup():
         try:
-            await loop.run_in_executor(None, _do_backup)
+            await _run_lifecycle_executor(_do_backup)
         except Exception as e:
             print(f"[backup] embedded backup error: {e}")
-    _aio.create_task(_bg_backup())
+    _schedule_mutating_background(
+        lambda: _bg_backup(), name="admin-embedded-backup")
     return JSONResponse(
         status_code=202,
         content={"backup": "accepted", "message": "EFS+S3 backup started. Poll /status for last_s3_backup."},
@@ -3539,11 +3886,17 @@ async def admin_restore_from_s3_prefix(request: Request):
     Downloads all files (including pictures/) to STATE_DIR.
     Requires substrate restart to load restored state.
     """
+    if _REQUIRE_SEALED_STATE:
+        raise HTTPException(
+            status_code=409,
+            detail=("legacy mutable-root restore is disabled; restore a fully "
+                    "verified immutable generation while no owner is running"),
+        )
     body = await request.json()
     prefix = body.get("prefix", "").strip("/") + "/"
     if not prefix or prefix == "/":
         raise HTTPException(400, "prefix required")
-    import boto3, asyncio as _aio
+    import boto3
     def _do_restore():
         s3 = boto3.client("s3", region_name="us-east-1")
         bucket = "dsf-ai-site-backups"
@@ -3562,8 +3915,7 @@ async def admin_restore_from_s3_prefix(request: Request):
                 s3.download_file(bucket, key, local_path)
                 files_restored.append(rel)
         return files_restored
-    loop = _aio.get_event_loop()
-    restored = await loop.run_in_executor(None, _do_restore)
+    restored = await _run_lifecycle_executor(_do_restore)
     return {"restored": len(restored), "files": restored,
             "note": "restart substrate to load restored state"}
 
@@ -3578,7 +3930,6 @@ async def admin_compact_wave_atlas():
     """
     if _guala is None or _guala.wave_atlas is None:
         raise HTTPException(503, "substrate not ready")
-    import asyncio as _aio
     def _do_compact():
         wa = _guala.wave_atlas
         atlas = _guala.atlas
@@ -3611,8 +3962,7 @@ async def admin_compact_wave_atlas():
                 "removed": before - after,
                 "before_cells": before_cells, "after_cells": after_cells,
                 "live_keys_in_atlas": len(live_keys)}
-    loop = _aio.get_event_loop()
-    result = await loop.run_in_executor(None, _do_compact)
+    result = await _run_lifecycle_executor(_do_compact)
     return result
 
 
@@ -3627,8 +3977,7 @@ async def admin_migrate_wave_atlas():
     """
     if _guala is None or _guala.wave_atlas is None:
         raise HTTPException(503, "substrate not ready")
-    import asyncio as _aio, boto3 as _boto3, gzip as _gzip, json as _json, io as _io
-    loop = _aio.get_event_loop()
+    import boto3 as _boto3, gzip as _gzip, json as _json, io as _io
 
     def _do_migrate():
         wa = _guala.wave_atlas
@@ -3651,8 +4000,9 @@ async def admin_migrate_wave_atlas():
             snap_uri = f"s3://dsf-ai-site-backups/{snap_key}"
             print(f"[85-B3] Pre-migration snapshot: {snap_uri} ({len(compressed)/1e6:.1f}MB)")
         except Exception as _se:
-            snap_uri = f"FAILED: {_se}"
-            print(f"[85-B3] S3 snapshot failed (non-fatal): {_se}")
+            raise RuntimeError(
+                f"WaveAtlas migration refused because its pre-state snapshot failed: {_se}"
+            ) from _se
 
         # Step 2: collapse by (chi, section, motif)
         collapse_result = wa.collapse_by_key()
@@ -3661,10 +4011,7 @@ async def admin_migrate_wave_atlas():
         print(f"[85-B3] Collapse: {before_b}→{after_b} bindings, {before_c}→{after_c} cells")
 
         # Step 3: save collapsed atlas to npz
-        try:
-            _guala._save_wave_atlas(STATE_DIR)
-        except Exception as _e:
-            print(f"[wave] save failed (non-fatal): {_e}")
+        _guala._save_wave_atlas(STATE_DIR)
 
         return {
             "before_bindings": before_b,
@@ -3675,7 +4022,7 @@ async def admin_migrate_wave_atlas():
             "s3_snapshot": snap_uri,
         }
 
-    result = await loop.run_in_executor(None, _do_migrate)
+    result = await _run_lifecycle_executor(_do_migrate)
     return result
 
 
@@ -4049,17 +4396,17 @@ async def gualaloom_upload_picture(file: UploadFile = File(...)):
                                  command=f"/addpicture:{file.filename}",
                                  text=b64, timeout=30.0)
     _gl_init()
-    import asyncio as _aio, hashlib
+    import hashlib
     content = await file.read()
     if len(content) > 10 * 1024 * 1024:
         raise HTTPException(400, "File too large (max 10MB)")
     _fname = file.filename
     def _decode():
-        """GL-CMD-PICTURE-UPLOAD-FAST-76: fast path. Decode + register in memory,
-        then background the EFS bytes write. The intensity_grid is what the substrate
-        uses for perception — it lands in _pictures before we return. The original
-        bytes are for UI redisplay and can arrive on disk seconds later without
-        blocking the upload response."""
+        """Decode, persist the original atomically, then register the picture.
+
+        Registration cannot point at an unfinished EFS write: deployment
+        quiescence owns this entire worker through _run_lifecycle_executor.
+        """
         t0 = time.time()
         try:
             try:
@@ -4092,43 +4439,35 @@ async def gualaloom_upload_picture(file: UploadFile = File(...)):
         pic.original_path = orig_path
         pic.original_width = orig_w
         pic.original_height = orig_h
-        # In-memory registration BEFORE the slow EFS write — this is what makes the
-        # picture perceivable. Response can return once this lands.
+        import uuid as _picture_uuid
+        tmp_path = f"{orig_path}.{_picture_uuid.uuid4().hex}.tmp"
+        try:
+            with open(tmp_path, 'wb') as original_file:
+                original_file.write(content)
+                original_file.flush()
+                os.fsync(original_file.fileno())
+            os.replace(tmp_path, orig_path)
+            directory_fd = os.open(pic_dir, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+        except BaseException:
+            try:
+                os.unlink(tmp_path)
+            except FileNotFoundError:
+                pass
+            raise
+
+        # Publish only after the exact original exists on EFS.
         _guala._pictures[item_id] = pic
         _guala._log_substrate_event("picture_uploaded",
                                     item_id=item_id, title=title)
-        print(f"[decode-upload-picture] fast-path {time.time()-t0:.2f}s")
-
-        # Background the original-bytes write. Don't block the response on EFS.
-        import threading as _t
-        def _write_original_bg(_content=content, _path=orig_path, _iid=item_id):
-            _t0 = time.time()
-            try:
-                _tmp = _path + ".tmp"
-                with open(_tmp, 'wb') as _f:
-                    _f.write(_content)
-                os.rename(_tmp, _path)
-                print(f"[decode-upload-picture] bg-write {_iid} {time.time()-_t0:.2f}s")
-            except Exception as _we:
-                print(f"[decode-upload-picture] bg-write {_iid} FAILED "
-                      f"after {time.time()-_t0:.2f}s: {_we}")
-                # Best-effort: keep _pictures entry with original_path pointing
-                # to a file that won't exist. Perception still works from grid.
-                # UI redisplay of original will fail gracefully.
-        _t.Thread(target=_write_original_bg, daemon=True,
-                  name=f"pic-write-{item_id[:6]}").start()
+        print(f"[decode-upload-picture] complete {time.time()-t0:.2f}s")
 
         return {"message": f"picture \"{title}\" uploaded ({grid.shape[0]}x{grid.shape[1]})",
                 "item_id": item_id}
-    # GL-FIX-PIC-UPLOAD-EXECUTOR: dedicated 4-thread pool so picture decode
-    # never queues behind saves (fsync-heavy) or converse tasks in the default
-    # executor. Default pool saturates under load; uploads hung indefinitely.
-    import concurrent.futures as _cf
-    _pic_exec = getattr(gualaloom_upload_picture, "_executor", None)
-    if _pic_exec is None:
-        _pic_exec = _cf.ThreadPoolExecutor(max_workers=4, thread_name_prefix="pic-dec")
-        gualaloom_upload_picture._executor = _pic_exec
-    result = await _aio.get_event_loop().run_in_executor(_pic_exec, _decode)
+    result = await _run_lifecycle_executor(_decode)
     if "error" in result:
         raise HTTPException(400, result["error"])
     return result
@@ -4191,7 +4530,7 @@ async def gualaloom_upload_video(file: UploadFile = File(...)):
         return {"message": f"video saved ({len(content)//1024}KB) — processing queued",
                 "item_id": vid_id}
     _gl_init()
-    import asyncio as _aio, hashlib, tempfile, subprocess
+    import hashlib, tempfile, subprocess
     content = await file.read()
     if len(content) > 50 * 1024 * 1024:
         raise HTTPException(400, "File too large (max 50MB)")
@@ -4246,7 +4585,7 @@ async def gualaloom_upload_video(file: UploadFile = File(...)):
         print(f"[decode-video] {time.time()-t0:.2f}s")
         return {"message": f"video \"{title}\" decoded ({n_frames} frames, {duration_ms}ms)",
                 "item_id": item_id}
-    return await _aio.get_event_loop().run_in_executor(None, _decode)
+    return await _run_lifecycle_executor(_decode)
 
 
 # ════════════════════════════════════════════════════════════════
@@ -4408,7 +4747,6 @@ async def v7_converse(req: V7ConverseRequest):
             "retry_after_seconds": 10,
             "message": "she is still loading — try again in a moment"
         })
-    import asyncio as _aio
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     sid = req.session_id or str(_uuid.uuid4())[:8]
     text = req.text
@@ -4425,12 +4763,9 @@ async def v7_converse(req: V7ConverseRequest):
                     result["bridge_v7_to_mm"] = bridge_result
         except Exception:
             pass
+        save_session(session)
         return session, result
-    session, result = await _aio.get_event_loop().run_in_executor(None, _do_converse)
-    try:
-        await _aio.get_event_loop().run_in_executor(None, save_session, session)
-    except Exception:
-        pass
+    session, result = await _run_lifecycle_executor(_do_converse)
     result["session_id"] = sid
     return result
 
@@ -4449,7 +4784,6 @@ async def v7_feedback(req: V7FeedbackRequest):
             "retry_after_seconds": 10,
             "message": "she is still loading — try again in a moment"
         })
-    import asyncio as _aio
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     feedback_sid = req.session_id
     correct = req.correct
@@ -4457,12 +4791,9 @@ async def v7_feedback(req: V7FeedbackRequest):
     def _do_feedback():
         session = get_or_create_session(feedback_sid, engine=_guala)
         result = session.apply_feedback(correct, expected_tokens)
+        save_session(session)
         return session, result
-    session, result = await _aio.get_event_loop().run_in_executor(None, _do_feedback)
-    try:
-        await _aio.get_event_loop().run_in_executor(None, save_session, session)
-    except Exception:
-        pass
+    session, result = await _run_lifecycle_executor(_do_feedback)
     result["session_id"] = feedback_sid
     return result
 
@@ -4515,9 +4846,12 @@ async def teacher_correction(req: TeacherCorrectionRequest):
 
 
 def handle_teacher_feedback_local(req):
-    rec = _guala._emission_records.get(req.emission_id, {})
-    original_input = rec.get("input_text") or getattr(_guala, '_last_converse_input', "")
-    her_emission = rec.get("text") or getattr(_guala, '_last_converse_reply', "")
+    rec = _guala._certified_emission_record(req.emission_id)
+    if rec is None:
+        raise HTTPException(status_code=400,
+                            detail="emission is not source-certified")
+    original_input = rec.get("input_text", "")
+    her_emission = rec.get("text", "")
     if not original_input or not her_emission:
         raise HTTPException(status_code=400, detail="no conversation context")
     return _guala.apply_teacher_correction(
@@ -4526,9 +4860,12 @@ def handle_teacher_feedback_local(req):
 
 
 def handle_teacher_correction_local(req):
-    rec = _guala._emission_records.get(req.emission_id, {})
-    original_input = rec.get("input_text") or getattr(_guala, '_last_converse_input', "")
-    her_emission = rec.get("text") or getattr(_guala, '_last_converse_reply', "")
+    rec = _guala._certified_emission_record(req.emission_id)
+    if rec is None:
+        raise HTTPException(status_code=400,
+                            detail="emission is not source-certified")
+    original_input = rec.get("input_text", "")
+    her_emission = rec.get("text", "")
     if not original_input or not her_emission:
         raise HTTPException(status_code=400, detail="no conversation context")
     return _guala.apply_teacher_correction(
@@ -4652,7 +4989,10 @@ async def load_corpus(req: LoadCorpusRequest):
     job_id = job["job_id"]
 
     # Kick off background asyncio task
-    _aio.create_task(_run_load_job(job_id, req.corpus_id, req.title, lines))
+    _schedule_mutating_background(
+        lambda: _run_load_job(job_id, req.corpus_id, req.title, lines),
+        name=f"corpus-load-{job_id}",
+    )
 
     return {
         "job_id": job_id,
@@ -4694,17 +5034,23 @@ async def v7_state(session_id: str = "default"):
             "message": "she is still loading — try again in a moment"
         })
     import asyncio as _aio, time as _t7
-    from dsf_ai_service.substrate.v7_engine import get_or_create_session
+    from dsf_ai_service.substrate.v7_engine import _sessions, _sessions_lock
     def _do_state():
         _t0 = _t7.time()
-        session = get_or_create_session(session_id, engine=_guala)
+        with _sessions_lock:
+            session = _sessions.get(session_id)
+        if session is None:
+            return None
         _t1 = _t7.time()
         result = session.get_state(engine=_guala)
         _t2 = _t7.time()
         print(f"[v7-state] sid={session_id} session={(_t1-_t0)*1000:.0f}ms "
               f"get_state={(_t2-_t1)*1000:.0f}ms total={(_t2-_t0)*1000:.0f}ms")
         return result
-    return await _aio.get_event_loop().run_in_executor(None, _do_state)
+    result = await _aio.get_event_loop().run_in_executor(None, _do_state)
+    if result is None:
+        raise HTTPException(status_code=404, detail="v7 session not found")
+    return result
 
 @app.post("/v7/quiet")
 async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
@@ -4719,7 +5065,6 @@ async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
             "retry_after_seconds": 10,
             "message": "she is still loading — try again in a moment"
         })
-    import asyncio as _aio
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     capped_ticks = min(n_ticks, 50)
     def _do_quiet():
@@ -4727,13 +5072,10 @@ async def v7_quiet(session_id: str = "default", n_ticks: int = 10):
         results = session.quiet_tick(capped_ticks)
         total_replayed = sum(len(r["replayed"]) for r in results)
         total_commits = sum(len(r["commits"]) for r in results)
-        return session, {"session_id": session_id, "ticks": len(results),
-                         "replayed": total_replayed, "commits": total_commits}
-    session, result = await _aio.get_event_loop().run_in_executor(None, _do_quiet)
-    try:
-        await _aio.get_event_loop().run_in_executor(None, save_session, session)
-    except Exception:
-        pass
+        save_session(session)
+        return {"session_id": session_id, "ticks": len(results),
+                "replayed": total_replayed, "commits": total_commits}
+    result = await _run_lifecycle_executor(_do_quiet)
     return result
 
 
@@ -4749,7 +5091,6 @@ async def v7_save(session_id: str = "default"):
             "retry_after_seconds": 10,
             "message": "she is still loading — try again in a moment"
         })
-    import asyncio as _aio
     from dsf_ai_service.substrate.v7_engine import get_or_create_session, save_session
     def _do_save():
         session = get_or_create_session(session_id, engine=_guala)
@@ -4761,7 +5102,7 @@ async def v7_save(session_id: str = "default"):
                 "n_sections": len(data.get("sections", {})),
                 "vocab_size": sum(len(v) for v in session.vocab.values())}
     try:
-        return await _aio.get_event_loop().run_in_executor(None, _do_save)
+        return await _run_lifecycle_executor(_do_save)
     except Exception as e:
         return {"saved": False, "error": str(e)}
 
@@ -4846,12 +5187,13 @@ async def v6_events_histogram(source: str = "diary"):
 # ════════════════════════════════════════════════════════════════
 
 _init_complete = False  # V2: health gate
+_init_error = None
 _BOOT_START = time.time()   # module load time — for elapsed_ms in readiness responses
 _LIFESPAN_STARTED = False   # set True as soon as startup event fires
 
 @app.on_event("startup")
 async def startup():
-    global _init_complete, _LIFESPAN_STARTED
+    global _init_complete, _init_error, _LIFESPAN_STARTED
     _LIFESPAN_STARTED = True   # shallow-ready gate: uvicorn is up
     # GL-CMD-HOTFIX-BUNDLE-95 item 4: build identity in the boot banner —
     # the running code must name its own commit.
@@ -4872,47 +5214,26 @@ async def startup():
     # Embedded mode: print the T1 boot banner before _gl_init fires
     print("[app] Booting substrate in-process...")
 
-    # SIGTERM handler — defensive save for crash scenarios
-    import signal as _signal
-    def _shutdown_handler(signum, frame):
-        print(f"[GualaLoom] Signal {signum} — shutting down cleanly")
-        # GL-CMD-LOCK-CONTENTION-FIX-182 L2: defense in depth -- normally
-        # /sleep_for_deploy already failed in-flight tasks loudly before
-        # this fires, but a directly-killed container (no deploy pause
-        # step) should not orphan a conversation silently either.
-        _fail_inflight_converse_tasks("turn lost — server shut down mid-conversation, please resend")
-        if _guala is not None:
-            try:
-                _guala.save_full_state(STATE_DIR)
-                print("[GualaLoom] Final save complete")
-            except Exception as e:
-                print(f"[GualaLoom] Final save failed: {e}")
-            # GL-CMD-WAVE-DIET-82: WaveAtlas on clean shutdown
-            try:
-                _guala._save_wave_atlas(STATE_DIR)
-            except Exception as _e:
-                print(f"[wave] save failed (non-fatal): {_e}")
-        sys.exit(0)
-    _signal.signal(_signal.SIGTERM, _shutdown_handler)
-    _signal.signal(_signal.SIGINT, _shutdown_handler)
-    print("[GualaLoom] SIGTERM/SIGINT handlers installed")
+    # Uvicorn owns SIGTERM/SIGINT and runs the async lifespan shutdown below.
+    # A synchronous signal handler cannot drain asyncio-owned mutations and
+    # previously performed a second, unsealed root save after deploy sealing.
 
     # V2 EAGER INIT: initialize in background so health check passes immediately
     import asyncio
     async def _eager_init():
-        global _init_complete
-        loop = asyncio.get_event_loop()
+        global _init_complete, _init_error
         t0 = time.time()
-        await loop.run_in_executor(None, _gl_init)
-        dt = time.time() - t0
-        print(f"[DSF-AI] Guala initialized in {dt:.1f}s")
-        _init_complete = True
-        # D3: S3 backup after init
         try:
-            await loop.run_in_executor(None, _backup_to_s3, STATE_DIR)
-        except Exception as e:
-            print(f"[DSF-AI] Startup S3 backup failed: {e}")
-    asyncio.ensure_future(_eager_init())
+            await _run_lifecycle_executor(_boot_generation_and_guala)
+        except Exception as error:
+            _init_error = str(error)
+            print(f"[DSF-AI] Guala initialization FAILED: {error}")
+            raise
+        else:
+            dt = time.time() - t0
+            print(f"[DSF-AI] Guala initialized in {dt:.1f}s")
+            _init_complete = True
+    _start_app_lifecycle_task(_eager_init(), name="guala-eager-init")
 
     # Server-side background replay for v7 sessions
     # GL-BUG-V7-SESSION-LEAK (Joe, 2026-07-06): _sessions never evicted
@@ -4980,8 +5301,8 @@ async def startup():
                 today = time.strftime("%Y-%m-%d", time.gmtime())
                 if _v7_last_prune_day[0] != today:
                     _v7_last_prune_day[0] = today
-                    loop = asyncio.get_event_loop()
-                    await loop.run_in_executor(None, _prune_old_v7_session_files)
+                    await _run_lifecycle_executor(
+                        _prune_old_v7_session_files)
                 with _sessions_lock:
                     session_ids = list(_sessions.keys())
                 for sid in session_ids:
@@ -4992,8 +5313,7 @@ async def startup():
                     idle = time.time() - getattr(session, '_last_converse_time', 0)
                     if idle > V7_SESSION_EVICT_AFTER_SECONDS:
                         try:
-                            loop = asyncio.get_event_loop()
-                            await loop.run_in_executor(None, save_session, session)
+                            await _run_lifecycle_executor(save_session, session)
                             with _sessions_lock:
                                 _sessions.pop(sid, None)
                             print(f"[v7-evict] session={sid} idle={idle:.0f}s "
@@ -5007,50 +5327,56 @@ async def startup():
                             total_c = sum(len(r.get("commits", [])) for r in results)
                             if total_c > 0:
                                 print(f"[v7-replay] session={sid}: {total_c} commits from replay")
-                            loop = asyncio.get_event_loop()
-                            await loop.run_in_executor(None, save_session, session)
+                            await _run_lifecycle_executor(save_session, session)
                         except Exception:
                             pass
             except Exception:
                 pass
-    asyncio.ensure_future(_background_replay())
+    _start_app_lifecycle_task(_background_replay(), name="v7-background-replay")
 
     # N2: Periodic save + backup in executor (never blocks event loop)
     # GL-CMD-DEEP-STORE-PHYSICS-86 P2: hot/cold split.
     # Hot: small stores every 60s (target <5s). Cold: full state every 30 min.
     def _do_hot_save_and_compact():
         """Hot-lane: small stores only + event compact. Target <5s."""
-        t0 = time.time()
-        pre_size = _guala.events_log_size(STATE_DIR)
-        _guala.save_hot_state(STATE_DIR)
-        t1 = time.time()
-        _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
-        t2 = time.time()
+        with _guala.persistence_transaction():
+            t0 = time.time()
+            pre_size = _guala.events_log_size(STATE_DIR)
+            _guala.save_hot_state(STATE_DIR)
+            t1 = time.time()
+            _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
+            t2 = time.time()
         total_dt = t2 - t0
         print(f"[save-hot] {total_dt:.2f}s core={t1-t0:.2f}s compact={t2-t1:.2f}s")
         return total_dt
 
     def _do_save_and_compact(write_wave: bool = False):
-        """Cold-lane: full state + event compact + optional wave write."""
-        t0 = time.time()
-        pre_size = _guala.events_log_size(STATE_DIR)
-        results = _guala.save_full_state(STATE_DIR)
-        t1 = time.time()
-        _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
-        t2 = time.time()
+        """Cold lane: one full+compact+optional snapshot transaction."""
+        with _guala.persistence_transaction():
+            t0 = time.time()
+            pre_size = _guala.events_log_size(STATE_DIR)
+            results = _guala.save_full_state(STATE_DIR)
+            t1 = time.time()
+            _guala.compact_events(STATE_DIR, keep_after_offset=pre_size)
+            t2 = time.time()
+            snapshot_dir = None
+            snapshot_dt = 0.0
+            if write_wave:
+                t3 = time.time()
+                # snapshot_state performs the one required WaveAtlas write;
+                # keeping it inside this outer transaction prevents another
+                # save generation from entering between save and snapshot.
+                snapshot_dir = _guala.snapshot_state(
+                    STATE_DIR, reason="periodic")
+                snapshot_dt = time.time() - t3
         core_dt = t1 - t0
         compact_dt = t2 - t1
         grids_dt = results.get("_grids_dt", 0.0) if isinstance(results, dict) else 0.0
         if write_wave:
-            t3 = time.time()
-            try:
-                _guala._save_wave_atlas(STATE_DIR)
-            except Exception as _e:
-                print(f"[wave] save failed (non-fatal): {_e}")
-            wave_dt = time.time() - t3
-            total_dt = t2 - t0 + wave_dt
+            total_dt = t2 - t0 + snapshot_dt
             print(f"[save] {total_dt:.2f}s core={core_dt:.2f}s grids={grids_dt:.2f}s "
-                  f"wave={wave_dt:.2f}s compact={compact_dt:.2f}s")
+                  f"snapshot={snapshot_dt:.2f}s compact={compact_dt:.2f}s")
+            print(f"[v6] Snapshot: {snapshot_dir}")
         else:
             total_dt = t2 - t0
             print(f"[save] {total_dt:.2f}s core={core_dt:.2f}s grids={grids_dt:.2f}s "
@@ -5070,36 +5396,18 @@ async def startup():
             do_wave = save_count > 0 and save_count % 10 == 0
             try:
                 if do_cold:
-                    await loop.run_in_executor(None, _do_save_and_compact, do_wave)
+                    await _run_lifecycle_executor(
+                        _do_save_and_compact, do_wave)
                     _last_cold_wall = loop.time()
                 else:
-                    await loop.run_in_executor(None, _do_hot_save_and_compact)
+                    await _run_lifecycle_executor(_do_hot_save_and_compact)
             except Exception as e:
                 print(f"[save] error: {e}")
             finally:
                 # GL-CMD-SAVE-CONTAINMENT-91: save_count in finally — wave/snapshot
                 # exceptions can never jam the counter at #10.
                 save_count += 1
-            if do_wave and do_cold:
-                try:
-                    snap_dir = await loop.run_in_executor(
-                        None, lambda: _guala.snapshot_state(STATE_DIR, reason="periodic"))
-                    print(f"[v6] Snapshot: {snap_dir}")
-                except Exception as e:
-                    print(f"[wave] snapshot failed (non-fatal): {e}")
-    asyncio.ensure_future(_periodic_v6_save())
-
-    # Daily S3 backup (also in executor)
-    async def _daily_s3_backup():
-        loop = asyncio.get_event_loop()
-        while True:
-            await asyncio.sleep(86400)
-            try:
-                if _guala is not None:
-                    await loop.run_in_executor(None, _backup_to_s3, STATE_DIR)
-            except Exception as e:
-                print(f"[DSF-AI] S3 backup error: {e}")
-    asyncio.ensure_future(_daily_s3_backup())
+    _start_app_lifecycle_task(_periodic_v6_save(), name="periodic-v6-save")
 
     # GL-CMD-SAVE-TRUTH-84 (retired 2026-07-09): this ran _backup_to_s3 --
     # the SAME upload as _daily_s3_backup just above -- every hour,
@@ -5122,7 +5430,7 @@ async def startup():
                     print(f"[job-gc] Evicted {n} expired job(s)")
             except Exception:
                 pass
-    asyncio.ensure_future(_job_registry_gc())
+    _start_app_lifecycle_task(_job_registry_gc(), name="job-registry-gc")
 
     # GL-CMD-WAVE-SEMANTICS-85 Part D.2: S3 lifecycle policy at startup
     # hourly backups expire 7d, auto/ dailies expire 60d, named restores permanent
@@ -5215,8 +5523,8 @@ async def startup():
                   "+ noncurrent-version reclaim on all, bucket-wide catch-all)")
         except Exception as _le:
             print(f"[85-D2] S3 lifecycle policy failed (non-fatal): {_le}")
-    loop = asyncio.get_event_loop()
-    loop.run_in_executor(None, _apply_s3_lifecycle)
+    # Bucket lifecycle is infrastructure state.  Application boot must never
+    # mutate it asynchronously or overwrite an operator-reviewed policy.
 
 
 _last_s3_backup = None  # D3: tracked for persistence_health
@@ -5320,21 +5628,42 @@ def _backup_to_s3(state_dir):
     return f"s3://{bucket}/{prefix}"
 
 
-# C3: Graceful SIGTERM — final save + lock release for zero-downtime deploys
 @app.on_event("shutdown")
 async def shutdown():
-    if _guala is not None:
-        import asyncio
-        loop = asyncio.get_event_loop()
-        def _final_save():
-            t0 = time.time()
-            try:
-                _guala.save_full_state(STATE_DIR)
-                dt = time.time() - t0
-                print(f"[shutdown] final save {dt:.2f}s")
-            except Exception as e:
-                print(f"[shutdown] save error: {e}")
-        await loop.run_in_executor(None, _final_save)
+    """Retire a sealed owner without ever writing a second generation."""
+    global _generation_owner_lock
+    import asyncio
+    _fail_inflight_converse_tasks(
+        "turn lost — server shut down mid-conversation, please resend")
+    snapshot = _deployment_lifecycle.snapshot()
+    if (snapshot["state"] == "RUNNING" and _guala is not None
+            and _REQUIRE_SEALED_STATE):
+        # Defense for an external stop that did not use the deploy route.  If
+        # this cannot finish inside the platform stop allowance, the prior
+        # immutable CURRENT remains authoritative; no torn pointer is exposed.
+        import secrets
+        try:
+            await _quiesce_and_seal(secrets.token_hex(32))
+            snapshot = _deployment_lifecycle.snapshot()
+        except Exception as error:
+            print(f"[shutdown] emergency generation seal failed: {error}")
+            snapshot = _deployment_lifecycle.snapshot()
+    elif snapshot["state"] == "RUNNING" and _guala is not None:
+        # Local/non-production mode has no immutable recovery contract, but
+        # still must prove its threads have stopped before interpreter exit.
+        try:
+            await _stop_app_lifecycle_tasks(timeout=120.0)
+            import dsf_ai_service.substrate_runner as _sr
+            await asyncio.to_thread(_sr.quiesce_background_loops, 120.0)
+            await asyncio.to_thread(_guala.strict_shutdown, 120.0)
+        except Exception as error:
+            print(f"[shutdown] strict local quiescence failed: {error}")
+
+    if snapshot["state"] == "SEALED":
+        _deployment_lifecycle.retire()
+    if _generation_owner_lock is not None:
+        _generation_owner_lock.release()
+        _generation_owner_lock = None
 
 
 # ── GL-CMD-STDP-INTROSPECTION-EVE-20260707-v1: read-only STDP state ──
@@ -5807,13 +6136,23 @@ async def health():
 
 @app.get("/ready")
 async def ready():
-    """Shallow readiness — 200 as soon as uvicorn is up.
-    ECS health check hits this path. Never returns 503 for boot delay.
-    guala_ready field shows whether Guala is loaded.
-
-    64-B: split from deep readiness so ECS doesn't cycle during 195s embedded boot.
-    """
+    """Container readiness; sealed production never reports shallow success."""
     elapsed_ms = int((time.time() - _BOOT_START) * 1000)
+    if _REQUIRE_SEALED_STATE:
+        try:
+            proof = _production_runtime_proof()
+        except Exception as error:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "ready": False,
+                    "error": str(error),
+                    "initialization_error": _init_error,
+                    "elapsed_ms": elapsed_ms,
+                },
+                headers={"Retry-After": "10"},
+            )
+        return {"ready": True, **proof, "elapsed_ms": elapsed_ms}
     guala_ready = _guala is not None
     return {
         "ready": True,           # always 200 after lifespan starts
@@ -5823,13 +6162,139 @@ async def ready():
     }
 
 
+def _read_build_git_sha():
+    with open("/BUILD_INFO", encoding="utf-8") as handle:
+        fields = dict(
+            item.split("=", 1)
+            for item in handle.read().split()
+            if "=" in item)
+    git_sha = fields.get("git_sha")
+    if not isinstance(git_sha, str) or len(git_sha) != 40:
+        raise RuntimeError("BUILD_INFO has no exact git SHA")
+    return git_sha
+
+
+def _ecs_task_runtime_identity():
+    import json
+    import urllib.request
+    uri = os.environ.get("ECS_CONTAINER_METADATA_URI_V4", "")
+    if not uri:
+        raise RuntimeError("ECS task metadata URI is absent")
+    with urllib.request.urlopen(uri.rstrip("/") + "/task", timeout=3.0) as response:
+        metadata = json.load(response)
+    family = metadata.get("Family")
+    revision = metadata.get("Revision")
+    containers = [
+        item for item in metadata.get("Containers", [])
+        if item.get("Name") == "dsf-ai"]
+    if not family or revision is None or len(containers) != 1:
+        raise RuntimeError("ECS task metadata identity is incomplete")
+    image_digest = containers[0].get("ImageID")
+    if (not isinstance(image_digest, str)
+            or not image_digest.startswith("sha256:")):
+        raise RuntimeError("ECS task metadata image digest is absent")
+    return {
+        "task_definition": f"{family}:{revision}",
+        "image_digest": image_digest,
+    }
+
+
+def _production_runtime_proof(nonce=None):
+    """Prove code, task, image, owner, CURRENT, seal, and live identity."""
+    if not _init_complete or _init_error is not None or _guala is None:
+        raise RuntimeError(_init_error or "Guala initialization is incomplete")
+    if _deployment_lifecycle.snapshot()["state"] != "RUNNING":
+        raise RuntimeError("deployment lifecycle is not RUNNING")
+    if (_generation_owner_lock is None
+            or not _generation_owner_lock.acquired):
+        raise RuntimeError("process does not hold the EFS owner lease")
+    if _loaded_generation is None:
+        raise RuntimeError("no immutable generation was materialized")
+
+    from dsf_ai_service.substrate.deployment_generation import (
+        load_and_verify_deployment_seal,
+    )
+    certificate = load_and_verify_deployment_seal(
+        GENERATION_STORE_ROOT,
+        hmac_key=_deploy_hmac_key(),
+        expected_nonce=nonce,
+    )
+    expected = {
+        "generation_uuid": _loaded_generation.generation_uuid,
+        "identity": _loaded_generation.identity,
+        "manifest_sha256": _loaded_generation.manifest_sha256,
+        "tick": _loaded_generation.tick,
+    }
+    for field, value in expected.items():
+        if certificate.get(field) != value:
+            raise RuntimeError(f"deployment seal {field} mismatch")
+    if getattr(_guala, "_guala_identity", None) != expected["identity"]:
+        raise RuntimeError("live Guala identity differs from immutable generation")
+
+    git_sha = _read_build_git_sha()
+    task = _ecs_task_runtime_identity()
+    expected_git = os.environ.get("DEPLOY_EXPECTED_GIT_SHA")
+    expected_image = os.environ.get("DEPLOY_EXPECTED_IMAGE_DIGEST")
+    expected_task_definition = os.environ.get(
+        "DEPLOY_EXPECTED_TASK_DEFINITION")
+    if expected_git != git_sha:
+        raise RuntimeError("running git SHA differs from task expectation")
+    if expected_image != task["image_digest"]:
+        raise RuntimeError("running image digest differs from task expectation")
+    if (expected_task_definition is not None
+            and expected_task_definition != task["task_definition"]):
+        raise RuntimeError(
+            "running task definition differs from task expectation")
+    return {
+        "owner": True,
+        "git_sha": git_sha,
+        "generation": expected["generation_uuid"],
+        "identity": expected["identity"],
+        "manifest_sha256": expected["manifest_sha256"],
+        "generation_tick": expected["tick"],
+        **task,
+    }
+
+
+def _require_readiness_control(request):
+    import hmac
+    if not _GUALALOOM_API_KEY:
+        raise HTTPException(
+            status_code=503, detail="deployment control is not configured")
+    supplied_key = request.headers.get("X-API-Key", "")
+    if not supplied_key or not hmac.compare_digest(
+            supplied_key, _GUALALOOM_API_KEY):
+        raise HTTPException(status_code=401, detail="invalid deployment credential")
+    nonce = request.headers.get("X-Deploy-Nonce", "")
+    if not nonce:
+        raise HTTPException(status_code=400, detail="deployment nonce is required")
+    return nonce
+
+
+@app.get("/internal/deployment/readiness")
 @app.get("/ready/guala")
-async def ready_guala():
+async def ready_guala(request: Request):
     """Deep readiness — 200 only when Guala is fully loaded.
     Non-critical consumers (bridge, UI) can poll this to know when to expect responses.
     Returns 503 with Retry-After during boot.
     """
     elapsed_ms = int((time.time() - _BOOT_START) * 1000)
+    if _REQUIRE_SEALED_STATE:
+        nonce = _require_readiness_control(request)
+        try:
+            proof = _production_runtime_proof(nonce=nonce)
+        except Exception as error:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "ready": False,
+                    "error": str(error),
+                    "initialization_error": _init_error,
+                    "elapsed_ms": elapsed_ms,
+                },
+                headers={"Retry-After": "10"},
+            )
+        return {"ready": True, **proof, "elapsed_ms": elapsed_ms}
     if _guala is None:
         return JSONResponse(
             status_code=503,
@@ -5843,40 +6308,255 @@ async def ready_guala():
         "tick": _guala.tick,
     }
 
+def _deploy_hmac_key():
+    """Derive a fixed-width seal key from the authenticated control secret."""
+    if not _GUALALOOM_API_KEY:
+        raise RuntimeError("deployment control credential is not configured")
+    return _hashlib.sha256(
+        ("guala-deployment-seal-v1\0" + _GUALALOOM_API_KEY).encode("utf-8")
+    ).digest()
+
+
+async def _require_deploy_control(request: Request):
+    """Authenticate one nonce-bound deployment request before any mutation."""
+    import hmac
+    if not _GUALALOOM_API_KEY:
+        raise HTTPException(
+            status_code=503, detail="deployment control is not configured")
+    supplied_key = request.headers.get("X-API-Key", "")
+    if not supplied_key or not hmac.compare_digest(
+            supplied_key, _GUALALOOM_API_KEY):
+        raise HTTPException(status_code=401, detail="invalid deployment credential")
+    header_nonce = request.headers.get("X-Deploy-Nonce", "")
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    body_nonce = body.get("deploy_nonce") if isinstance(body, dict) else None
+    if (not isinstance(header_nonce, str) or not header_nonce
+            or not isinstance(body_nonce, str) or not body_nonce
+            or not hmac.compare_digest(header_nonce, body_nonce)):
+        raise HTTPException(
+            status_code=400, detail="matching deployment nonce is required")
+    return header_nonce
+
+
+def _stop_embedded_persistence_components(timeout):
+    """Stop retained non-engine persistence writers, propagating every failure."""
+    stopped = []
+    for attribute in ("s3_consumer", "persistence_consumer", "save_coordinator"):
+        component = getattr(app.state, attribute, None)
+        if component is None:
+            continue
+        component.stop(timeout=float(timeout))
+        stopped.append(attribute)
+    return {"persistence_components_stopped": stopped}
+
+
+def _flush_v7_sessions_for_seal():
+    """Persist every admitted v7 session after HTTP admission is drained."""
+    from dsf_ai_service.substrate.v7_engine import (
+        _sessions,
+        _sessions_lock,
+        save_session,
+    )
+    with _sessions_lock:
+        sessions = tuple(_sessions.values())
+    for session in sessions:
+        save_session(session)
+    return {"v7_sessions_flushed": len(sessions)}
+
+
+def _copy_generation_auxiliary_tree(source, destination, *, suffixes):
+    """Copy a finite, validated auxiliary tree without following links."""
+    import shutil
+    import stat
+    if not os.path.exists(source):
+        return 0
+    if os.path.islink(source) or not os.path.isdir(source):
+        raise RuntimeError(f"auxiliary state is not a real directory: {source}")
+    copied = 0
+    for current_root, directory_names, file_names in os.walk(
+            source, topdown=True, followlinks=False):
+        current = os.path.abspath(current_root)
+        relative_root = os.path.relpath(current, source)
+        target_root = (
+            destination if relative_root == "."
+            else os.path.join(destination, relative_root))
+        os.makedirs(target_root, exist_ok=True)
+        for name in directory_names:
+            path = os.path.join(current, name)
+            if os.path.islink(path) or not stat.S_ISDIR(os.lstat(path).st_mode):
+                raise RuntimeError(f"unsafe auxiliary directory: {path}")
+        for name in file_names:
+            path = os.path.join(current, name)
+            info = os.lstat(path)
+            if (os.path.islink(path) or not stat.S_ISREG(info.st_mode)
+                    or info.st_nlink != 1):
+                raise RuntimeError(f"unsafe auxiliary file: {path}")
+            if not name.endswith(tuple(suffixes)):
+                raise RuntimeError(f"unexpected auxiliary file: {path}")
+            shutil.copy2(path, os.path.join(target_root, name))
+            copied += 1
+    return copied
+
+
+def _copy_generation_file(source, destination, *, required=False):
+    import shutil
+    import stat
+    try:
+        info = os.lstat(source)
+    except FileNotFoundError:
+        if required:
+            raise RuntimeError(f"required generation file is absent: {source}")
+        return False
+    if (os.path.islink(source) or not stat.S_ISREG(info.st_mode)
+            or info.st_nlink != 1):
+        raise RuntimeError(f"generation source is not a unique regular file: {source}")
+    shutil.copy2(source, destination)
+    return True
+
+
+def _write_runtime_generation_stage(stage):
+    """Write the complete runtime recovery contract into one private stage."""
+    _guala.save_full_state(str(stage))
+    _guala._save_wave_atlas(str(stage))
+    if (os.environ.get("WAVE_ATLAS_ENABLED", "0") == "1"
+            and (getattr(_guala, "wave_atlas", None) is None
+                 or not os.path.isfile(stage / "wave_atlas.npz"))):
+        raise RuntimeError(
+            "configured WaveAtlas is absent from the generation stage")
+    identity_source = os.path.join(STATE_DIR, _guala.IDENTITY_FILE)
+    _copy_generation_file(
+        identity_source, stage / _guala.IDENTITY_FILE, required=True)
+    for relative_path in (
+            "dream_gate_cleared.json",
+            "guala_runtime_config.json",
+            "curriculum_progress.json",
+            "curriculum.json",
+            "world_state.json"):
+        source = os.path.join(STATE_DIR, relative_path)
+        _copy_generation_file(source, stage / relative_path)
+    _copy_generation_auxiliary_tree(
+        os.path.join(STATE_DIR, "v7_sessions"),
+        os.path.join(stage, "v7_sessions"),
+        suffixes=(".json", ".events.jsonl"),
+    )
+
+
+def _seal_runtime_generation(nonce, *, pre_publish_validator=None):
+    """Create, upload, read back, and publish one exact stopped generation."""
+    import boto3
+    from dsf_ai_service.substrate.deployment_generation import (
+        persist_deployment_seal,
+        stage_commit_upload,
+        verify_deployment_seal,
+    )
+
+    identity = getattr(_guala, "_guala_identity", None)
+    if not isinstance(identity, str) or not identity:
+        raise RuntimeError("Guala identity is absent; generation cannot be sealed")
+    tick = int(_guala.tick)
+
+    bucket = os.environ.get(
+        "GUALA_S3_BACKUP_BUCKET", "dsf-ai-site-backups")
+    prefix = os.environ.get(
+        "GUALA_GENERATION_S3_PREFIX", "guala/generations")
+    key = _deploy_hmac_key()
+    result = stage_commit_upload(
+        store_root=GENERATION_STORE_ROOT,
+        identity=identity,
+        tick=tick,
+        save_callback=_write_runtime_generation_stage,
+        s3_client=boto3.client("s3", region_name="us-east-1"),
+        bucket=bucket,
+        prefix=prefix,
+        hmac_key=key,
+        nonce=nonce,
+        pre_publish_validator=pre_publish_validator,
+    )
+    certificate_bytes = result.seal_certificate_bytes()
+    certificate = verify_deployment_seal(
+        certificate_bytes, hmac_key=key, expected_nonce=nonce)
+    persist_deployment_seal(
+        GENERATION_STORE_ROOT,
+        certificate_bytes,
+        hmac_key=key,
+        expected_nonce=nonce,
+    )
+    return certificate
+
+
+async def _quiesce_and_seal(nonce):
+    """Execute RUNNING -> QUIESCING -> SEALED without a partial resume."""
+    import asyncio
+    lifecycle = _deployment_lifecycle
+    lifecycle.begin_quiescence(nonce)
+    destructive_started = False
+    try:
+        # At this first boundary no component has been stopped.  A drain
+        # failure can safely reopen admission because process state is intact.
+        await asyncio.to_thread(lifecycle.wait_for_mutations, 120.0)
+
+        destructive_started = True
+        await _stop_app_lifecycle_tasks(timeout=120.0)
+        await asyncio.to_thread(lifecycle.wait_for_mutations, 120.0)
+        _fail_inflight_converse_tasks(
+            "turn lost — deployment quiescence began before completion")
+
+        if _guala is None:
+            raise RuntimeError("Guala is not loaded")
+        app.state.deployment_quiescing = True
+        await asyncio.to_thread(_guala.manual_sleep, STATE_DIR)
+        v7_proof = await asyncio.to_thread(_flush_v7_sessions_for_seal)
+
+        await asyncio.to_thread(
+            _stop_embedded_persistence_components, 120.0)
+        import dsf_ai_service.substrate_runner as _sr
+        runner_proof = await asyncio.to_thread(
+            _sr.quiesce_background_loops, 120.0)
+        engine_proof = await asyncio.to_thread(
+            _guala.quiesce_background_workers, 120.0)
+        certificate = await asyncio.to_thread(_seal_runtime_generation, nonce)
+        proof = {
+            **certificate,
+            "runner": runner_proof,
+            "engine": engine_proof,
+            "v7": v7_proof,
+        }
+        lifecycle.seal(proof)
+        return proof
+    except Exception as error:
+        lifecycle.fail_quiescence(
+            error,
+            resumed=not destructive_started,
+        )
+        raise
+
+
+@app.post("/internal/deployment/quiesce")
 @app.post("/sleep_for_deploy")
-async def sleep_for_deploy():
-    """GL-BRIEF-SLEEP-DURING-DEPLOY: deploy script POSTs this
-    before update-service. Puts her to sleep, saves state,
-    writes .sleeping marker. Returns sleep tick."""
-    # GL-CMD-LOCK-CONTENTION-FIX-182 L2: fail any in-flight conversation
-    # loudly before the process that owns them goes away — see
-    # _fail_inflight_converse_tasks's own docstring for why.
-    _fail_inflight_converse_tasks("turn lost — server was redeployed mid-conversation, please resend")
-    if _is_remote():
-        client = _get_substrate_client()
-        try:
-            return await client.call("sleep_for_deploy")
-        except (RuntimeError, ConnectionError, OSError) as e:
-            # Substrate returned ok=False or socket closed during shutdown.
-            # Return 200 so the deploy script can proceed — state is recoverable
-            # from EFS snapshot taken before the substrate process exited.
-            return JSONResponse(status_code=200,
-                                content={"ok": False, "error": str(e)})
-    if _guala is None:
+async def sleep_for_deploy(request: Request):
+    """Authenticated compatibility route for the canonical sealed handoff."""
+    nonce = await _require_deploy_control(request)
+    try:
+        proof = await _quiesce_and_seal(nonce)
+    except Exception as error:
         return JSONResponse(
             status_code=503,
-            content={"ok": False,
-                     "message": "guala not loaded — cannot sleep"})
-    if _guala.is_asleep:
-        return {"ok": True,
-                "already_asleep": True,
-                "sleep_tick": _guala.tick}
-    try:
-        _guala.manual_sleep(state_dir=STATE_DIR)
-        return {"ok": True,
-                "sleep_tick": _guala.tick,
-                "vocab": len(_guala.vocab)}
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={"ok": False, "error": str(e)})
+            content={
+                "ok": False,
+                "error": str(error),
+                "lifecycle": _deployment_lifecycle.snapshot(),
+            },
+        )
+    return {
+        "ok": True,
+        "state": "SEALED",
+        "deploy_nonce": nonce,
+        "generation": proof["generation_uuid"],
+        "identity": proof["identity"],
+        "tick": proof["tick"],
+        "manifest_sha256": proof["manifest_sha256"],
+        "seal_hmac_sha256": proof["seal_hmac_sha256"],
+    }
