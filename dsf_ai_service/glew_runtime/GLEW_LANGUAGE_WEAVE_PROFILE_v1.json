@@ -1,0 +1,202 @@
+{
+  "schema": "glew.language_weave.profile.v1",
+  "profile_id": "guala.glew.language_weave.v1",
+  "status": "proposed_pending_ratification",
+  "created_utc": "2026-07-13T23:29:27Z",
+  "authored_from_head": "341103aafd7247f279b3a1812d5a0fdfee6b6bfd",
+  "governing_spec": "docs/GL-SPC-GLEW-AE-CONVERSATION-REARCHITECTURE-HANDOFF-20260713-v1.md",
+  "note": "This profile documents which existing, tested GLEW mechanisms would become the sole language authority once ratified and wired into production. It does not itself grant full_glew_language_commit_authority -- that flag stays false in GLEW_UPSTREAM_PROFILE_v1.json until Steps 2-9 of the governing spec are built, proven, and separately cut over. This file contains no response content, vocabulary, target phrases, desired test results, or tuned thresholds.",
+
+  "upstream_profile": {
+    "profile_id": "guala.glew.upstream.executable.v1",
+    "schema": "glew.upstream.executable_profile.v1",
+    "file": "dsf_ai_service/glew_runtime/GLEW_UPSTREAM_PROFILE_v1.json",
+    "canonicalization": "json.dumps(value, allow_nan=False, ensure_ascii=False, indent=2, sort_keys=True) + newline, per genesis.py",
+    "digest_sha256_of_raw_file_bytes": "b96d00e46b513c350127529344348956605ccd93f60c021e4dfee7f24127ddf7",
+    "verified": "raw file bytes equal the canonical form exactly; digest computed directly against the live file, not asserted"
+  },
+
+  "five_sense_chemistry_profile": {
+    "file": "dsf_ai_service/glew_runtime/profiles/production_virtual_story_chemistry_profile_v1.json",
+    "canonicalization": "json.dumps(value, separators=(',',':'), sort_keys=True), file is canonical_body + trailing newline, per story_chemistry.py",
+    "digest_sha256_of_canonical_body_no_trailing_newline": "931d15c6ec9380571169d5e87b0cf45210bb731903272fdefbb453496c984901",
+    "digest_sha256_of_raw_file_bytes": "8ed2374c3760588fa1c06bc64e15906e0236f71ae22f4f3b121c4de4253e04ec",
+    "ports": ["sight", "sound", "touch", "smell", "taste"],
+    "per_port_fields": ["kernel_binding.lane_id", "initial_state", "rates.A_to_R_deactivation", "rates.A_to_D_desensitization", "rates.D_to_R_recovery", "time_unit", "activation_susceptibility"],
+    "operator_ids": {
+      "manifest_schema": "glew.virtual_story_chemistry_manifest.v2",
+      "checkpoint_schema": "glew.virtual_story_chemistry_checkpoint.v1",
+      "boundary_observation_schema": "glew.virtual_story_physical_boundary.v1",
+      "binary64_relevance_schema": "glew.certified_binary64_relevance.v1",
+      "authentication_algorithm": "HMAC-SHA256",
+      "native_replay_operator_id": "glew.story_native_replay.frozen_l0_l4.v1"
+    },
+    "verified_anti_patterns_absent": [
+      "no port derived from a word label or hash (confirmed zero derivation logic in story_chemistry.py / story_native_replay.py)",
+      "no hardcoded sight/sound precedence over touch/smell/taste (PRODUCTION_STORY_PORT_LANES is alphabetic and used only for exact-set membership, never ordering)"
+    ]
+  },
+
+  "typed_language": {
+    "operator_ids": {
+      "native_replay": "glew.typed_language.actual_frozen_kernel_native_replay.v2",
+      "contingent_cone": "glew.typed_language.bouligand_one_sided_tangent_cone.v1",
+      "direction_row": "glew.l6.typed_language.directed_exact_secant.v1"
+    },
+    "trit_places": 14,
+    "event_fields": ["trits (value + validity per trit)", "valid_sample_times", "phase_calibration_id/phase_kappa/phase_calibration_receipt_sha256", "original_utf8", "normalized_text (NFC)"],
+    "replay_case_kinds": {
+      "BASE": "same event replayed with zero perturbation; keeps the pre-replay stream's own evidence_id and receipt exactly",
+      "SENSOR_ADJACENT_CODE": "one directed adjacent perturbation of a sensor coordinate; always gets a distinct, non-matching evidence_id",
+      "LANGUAGE_TYPED_TRIT": "one directed +/-1 perturbation of a single language-trit coordinate; always gets a distinct, non-matching evidence_id"
+    },
+    "counterfactual_guard": "only BASE reuses the original evidence_id; any other kind's distinct evidence_id makes its sealed receipt structurally unable to match a real coexperienced output's source_stream_receipt_sha256 (verified directly, not assumed)"
+  },
+
+  "expression_mode": {
+    "operator_ids": {
+      "mode": "reevaluated_shared_arb_gram_schmidt.v1",
+      "recognition": "unique_full_interval_vector_dominance.v1"
+    },
+    "growth_rule": "certified_residual_energy_lower_bound_strictly_positive",
+    "recognition_rule": "one_lower_bound_strictly_exceeds_every_other_upper_bound",
+    "recognition_mechanism": "certified reciprocal/dual-basis solve over the raw (never orthogonalized) stored source vectors -- order-independent by construction, not the earlier order-biased Gram-Schmidt projection",
+    "outcomes": ["RECOGNIZED", "NOVEL_SILENCE", "UNKNOWN", "AMBIGUOUS_SILENCE"],
+    "no_threshold_confirmed": true
+  },
+
+  "entropy_disposition": {
+    "excluded_from_language_commit_authority": true,
+    "legacy_operator_id_not_ratified": "full_probability_vector_shannon_receipt.v1",
+    "legacy_operator_location": "dsf_ai_service/glew_runtime/modes.py",
+    "verified": "zero references to ENTROPY_OPERATOR_ID or modes.py from expression_modes.py or commit.py",
+    "rationale": "expression distinction is governed by certified full-field residual growth, unique interval dominance, Global-UF, L5 applicability, and L6 -- entropy is not required and must not be reintroduced as a language authority",
+    "requires_explicit_ratification": true
+  },
+
+  "safe_mode": {
+    "operator_id": "glew.exact_required_integrity_meet.v1",
+    "rule": "exact fail-closed meet over a mounted, signed required_fact_ids set; any FAULT -> FAIL; any missing/duplicate/extra/UNKNOWN fact -> UNKNOWN; only all-CLEAR -> PASS; no defaults, scores, or timeouts"
+  },
+
+  "event_support": {
+    "operator_ids": {
+      "full_rank": "glew.exact_full_port_gram_event_support.v1",
+      "exterior_geometry": "glew.exact_port_gram_exterior_geometry.v1"
+    },
+    "full_rank_rule": "exact Gram determinant over all mounted non-language ports; requires complete interval + at least 4 lived lanes; rank/lane shortfall zeroes geometry rather than fabricating a value",
+    "exterior_receipt_rule": "reports exact rank and per-subset normalized volume for every nonempty port subset from the identical mounted evidence; does not select, average, or threshold ports; does not change the full-rank fail-closed behavior",
+    "confirmed_structural_finding": "a single closed-experience boundary genuinely produces rank 3 of 5 (25 of 31 subsets non-degenerate even though the full 5-port determinant is exactly zero) -- verified by direct experiment with genuinely distinct per-lane parameters, not a fixture artifact"
+  },
+
+  "global_uf": {
+    "operator_id": "glew.global_uf.exact_adjacent_state_replay.v2",
+    "rule": "binary structural-replay-consistency authority: every required adjacent-state replay must exactly byte-match the BASE replay's structural payload; any mismatch -> FAIL, any unresolved replay -> UNKNOWN, all-match -> PASS; not a scoring function"
+  },
+
+  "fixed42_l6": {
+    "n_start": 42,
+    "lanes": ["language", "sight", "sound", "touch", "smell", "taste"],
+    "fields_per_lane": ["D_k", "M_k", "R_rev_k", "U_star_k", "C_k", "P_k", "B_k"],
+    "heterogeneous_assembly_operator_id": "glew.l6.exact_five_sensor_plus_language_cone.v1",
+    "rule": "language is never wrapped as a continuous replay bundle and is never averaged, selected, normalized, scored, or otherwise reduced; the five continuous sensory lanes and the discrete typed-language cone are bound into one immutable six-lane assembly receipt"
+  },
+
+  "l5_applicability": {
+    "status": "mechanism_ratified_rule_not_ratified",
+    "open_gap": true,
+    "mechanism_confirmed_real": "schema, receipts, coverage checks, and UNKNOWN/FAIL propagation into commit are fully wired (commit.py L5Applicability, closed_experience.py MountedL5GovernanceProfile/L5ApplicabilityRule)",
+    "gap": "no ratified rule exists for when a native port is genuinely inapplicable; every known test/call site sets every port/fact to REQUIRED; NOT_APPLICABLE has never been exercised",
+    "requires_explicit_ratification": true,
+    "proposed_starting_rule_for_ratification_only_not_authoritative": "a port becomes NOT_APPLICABLE only when its underlying sensor is verifiably absent or disconnected at the hardware/interface level -- never merely quiet. A present-but-quiet sensor stays REQUIRED and must evolve through natural decay, per section 9.4 of the governing spec."
+  },
+
+  "commit": {
+    "operator_ids": {
+      "commit": "glew.full_field_expression_unique_mode_commit.v1",
+      "pending_global_uf": "glew.full_field_expression_pending_global_uf_conjunction.v1"
+    },
+    "outcomes": ["commit", "no_commit", "unknown_no_commit"],
+    "pending_outcomes": ["ready_except_global_uf", "no_commit", "unknown"],
+    "conjunction_members": ["expression_recognition", "closed_experience", "safe_mode", "global_uf_validation (when applicable)", "event_support", "l6_evaluation/l6_scope (Fixed-42)", "explicit_evidence_receipts (topology.ordered_port_fibers)", "l5_applicability", "field_topology.verify() binding"],
+    "decision_rule": "any unknown finding -> UNKNOWN_NO_COMMIT; else any negative finding -> NO_COMMIT; else -> COMMIT",
+    "no_threshold_score_or_vote_confirmed": true
+  },
+
+  "learning": {
+    "operator_id": "glew.learning.committed_coexperience_binding.v1",
+    "checkpoint_algorithm": "HMAC-SHA256",
+    "entry_point": "expression_learning.py:learn_committed_binding_transaction",
+    "requires": ["prior LearnedBindingState self-verifies", "registry is a strict append-only extension", "state is not terminal and has a pending_relation", "caller's prior_relation is byte-identical to state.pending_relation", "CommittedCoexperience.verify() matches every embedded receipt digest between the commit and the sealed experience"],
+    "counterfactual_guard_verified": "CoexperiencedOutput.verify() rejects any typed scalar whose sealed source_stream_receipt_sha256 does not exactly match the original pre-replay capture; a genuinely perturbed replay case cannot satisfy this by construction, confirmed directly"
+  },
+
+  "output_binding": {
+    "binding_kinds": ["LANGUAGE_SCALAR", "NO_OUTPUT"],
+    "rule": "a binding must contain exactly one scalar and zero no-output facts, or exactly one no-output fact and zero scalars -- enforced at construction, not by convention",
+    "sensory_citation_rule": "a motif-output binding must cite the closed experience's complete non-language sensory receipts; it cannot be free-floating from the coexperienced senses"
+  },
+
+  "fresh_recall": {
+    "operator_ids": {
+      "self_sense_reentry": "glew.recall.fresh_self_sense_full_field_reentry.v1",
+      "language_transduction": "glew.recall.exact_binding_language_transport.v1"
+    },
+    "exact_close_gate": "a released settlement (status EXPRESSION_RELEASED) is the only settlement kind that may carry visible_text or emitted_scalar_codepoints; every other settlement kind structurally cannot, enforced in output.py's _output_settlement_receipt_payload -- confirmed a real enforced gate by passing tamper/fragment-leak tests, not descriptive text only",
+    "precomputed_continuation_forbidden": true
+  },
+
+  "persistence": {
+    "distinct_concepts_do_not_conflate": [
+      "genesis.py: genesis of the ratified upstream GLEW executable profile / field-operator bundle (schema glew.upstream.genesis.v1, kind clean_generation_genesis)",
+      "expression_learning.py: genesis of LearnedBindingState (create_learned_binding_genesis, HMAC-SHA256 signed checkpoint)",
+      "deployment_generation.py / immutable_generation_store.py: EFS-backed deployment-sealing/materialization, unrelated to GLEW cognition state"
+    ],
+    "hard_fail_assertions_confirmed_current": [
+      "profile.authority.architecture_status must equal ratified_executable",
+      "profile.authority.implementation_authority must equal upstream_and_field_operator_bundle_only",
+      "profile.authority.full_glew_language_commit_authority must be false",
+      "profile.downstream.field_evolution must match the field-operator status",
+      "profile.downstream.full_GLEW_commit must equal forbidden",
+      "clean genesis requires an unused root; existing state is never imported (_require_unused_root)"
+    ]
+  },
+
+  "prohibitions": [
+    "a canned response for hello, identity questions, or any validation prompt",
+    "a question/answer table or context-indexed dialogue script",
+    "a vocabulary lookup as semantic or emission authority",
+    "a weighted sum of DSF fields",
+    "an arbitrary minimum word count",
+    "lowering a commit threshold until tests pass",
+    "selecting the most frequent or highest-scoring candidate",
+    "converting absent sensory evidence into invented values",
+    "generating sight, sound, touch, smell, or taste from a word hash",
+    "treating static descriptor dictionaries as lived sensory truth",
+    "an LLM, embedding model, classifier, or probabilistic language model",
+    "Shannon entropy as GLEW mode or commit authority",
+    "importing legacy derived Atlas state into clean GLEW state",
+    "a second ECS service, alternate production, audit shadow, or background writer",
+    "tests that return False instead of asserting the required result",
+    "test fixtures or monkeypatches presented as proof of the production path"
+  ],
+
+  "conformance_tests": [
+    "tests/glew_runtime/test_expression_learning.py (test_atomic_commit_binds_exact_mode_to_motif_to_typed_output, test_explicit_no_output_closes_only_after_the_committed_content_successor, test_authenticated_checkpoint_is_bit_identical_and_tamper_fails_closed)",
+    "tests/glew_runtime/test_remembered_expression_output.py (test_multiword_memory_is_released_only_after_exact_close, test_one_word_fragment_never_crosses_the_actuation_boundary, test_conflict_and_language_no_output_mix_are_unknown_silence, test_exact_repeated_state_and_edge_proves_cycle_and_discards_stage, test_unicode_arithmetic_and_tamper_failure_are_exact_and_silent)",
+    "tests/glew_runtime/test_recall_self_sense_reentry.py (test_real_full_field_reentry_releases_one_complete_expression, test_missing_reentry_provider_is_typed_unknown_and_never_leaks_fragment)",
+    "tests/glew_runtime/test_atomic_conversation_transaction.py (test_atomic_transaction_delegates_complete_release_to_fresh_reentry, test_fresh_reentry_unknown_never_leaks_private_text)",
+    "tests/glew_runtime/test_genesis.py (test_minimal_genesis_is_profile_bound_empty_and_cold_restorable, test_genesis_S_UF_and_R_UF_are_explicit_unknown_not_numeric_zero, test_existing_state_is_never_imported_or_overwritten, test_cold_restore_rejects_changed_executable_profile, test_discovery_rejects_noncanonical_current_before_identity_use, test_old_proposed_full_profile_is_rejected_before_mutation)",
+    "tests/glew_runtime/test_event_support_exterior_receipt.py (real rank-3 production-pipeline regression proof, tamper/order-independence/synthetic-full-rank control)"
+  ],
+
+  "open_decisions_requiring_explicit_ratification": [
+    "entropy exclusion (recommended: exclude, per entropy_disposition above)",
+    "expression-mode operator IDs (recommended: ratify as-is, per expression_mode above -- already fixed and verified)",
+    "commit conjunction (recommended: ratify as-is, per commit above -- verified no threshold/score/vote)",
+    "coexperienced Unicode output and exact-close release (recommended: ratify as-is, per fresh_recall above -- verified real enforced gate)",
+    "L5 applicability rule for genuinely-unavailable ports (open gap -- see l5_applicability.proposed_starting_rule_for_ratification_only_not_authoritative; requires explicit sign-off, this is a real design decision, not a technical formality)",
+    "clean education source and acceptable seed provenance (not addressed in this profile -- content/policy decision, requires explicit sign-off)",
+    "conversational latency SLO as a product constraint, separate from cognition physics (not addressed in this profile -- product decision, requires explicit sign-off; governing spec proposes a starting candidate of first-response under 2s / p95 under 5s for already-learned turns)"
+  ]
+}
