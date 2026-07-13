@@ -202,10 +202,27 @@ values = {item.get("name"): item.get("value") for item in items}
 print("1" if values.get("GUALA_REQUIRE_SEALED_STATE") == "1" else "0")
 ')
 if [ "${OLD_SEALED_BOOT}" != "1" ]; then
-    echo "ERROR: current production owner is legacy and has no clean-generation seal"
-    echo "       Legacy migration is forbidden. Create and ratify a clean genesis generation"
-    echo "       before running deployment; revision 614 remains online and untouched."
-    exit 1
+    # A transitional owner may have the complete authenticated generation
+    # sealer while not yet having booted from a sealed generation itself.
+    # Admit that one-way cutover only when the live process proves the exact
+    # seal endpoint is mounted.  The later nonce-bound seal/read-back remains
+    # the hard state gate; failure there occurs before the old owner stops.
+    LEGACY_OPENAPI=$(curl -sS \
+        --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
+        --connect-timeout 10 --max-time 30 \
+        "${CONTROL_ORIGIN}/openapi.json")
+    if ! printf '%s' "${LEGACY_OPENAPI}" | python3 -c '
+import json, sys
+paths = json.load(sys.stdin).get("paths", {})
+route = paths.get("/sleep_for_deploy", {})
+if "post" not in route:
+    raise SystemExit("live owner has no authenticated generation-seal endpoint")
+'; then
+        echo "ERROR: current production owner cannot create the first sealed generation"
+        echo "       Production remains online and untouched."
+        exit 1
+    fi
+    echo "[generation] Live transitional owner proved the authenticated seal endpoint."
 fi
 
 # Remove direct internet access to port 8080 and retain only ALB-to-task ingress.

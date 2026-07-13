@@ -103,16 +103,17 @@ def test_old_owner_is_proven_stopped_before_new_owner_can_start():
     assert "Old owner STOPPED; new owner start is now permitted" in TEXT
 
 
-def test_legacy_owner_is_rejected_before_any_mutating_release_step():
-    rejection = TEXT.index("current production owner is legacy")
+def test_transitional_owner_requires_live_seal_capability_before_mutation():
+    capability = TEXT.index("LEGACY_OPENAPI=")
     security_group_mutation = TEXT.index("aws ec2 revoke-security-group-ingress")
     package = TEXT.index("── Step 1: Package source")
     handoff = TEXT.index("Requesting authenticated sealed-generation handoff")
     owner_stop = TEXT.index("Scaling service to zero")
 
-    assert rejection < security_group_mutation < package < handoff < owner_stop
-    assert "Legacy migration is forbidden" in TEXT
-    assert "revision 614 remains online and untouched" in TEXT
+    assert capability < security_group_mutation < package < handoff < owner_stop
+    assert 'paths.get("/sleep_for_deploy", {})' in TEXT
+    assert "live owner has no authenticated generation-seal endpoint" in TEXT
+    assert "Production remains online and untouched" in TEXT
     assert 'if [ "${OLD_SEALED_BOOT}" != "1" ]' in TEXT
 
 
