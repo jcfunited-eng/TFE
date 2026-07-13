@@ -1005,41 +1005,25 @@ export async function runSentinel() {
       // on day 15. The +5% threshold was hardcoded with no derivation.
       // EXIT-C (full τ exhaustion) remains as the structural-energy-based exit.
 
-      // Exit C — Exhaustion Timer (τ_out)
-      // τ already computed in pre-fetch above.
+      // Exit C — Exhaustion Timer (τ_out) DISABLED.
+      // τ_out = floor(τ_in/3) produced 1-3 day hold windows for stocks with
+      // short compression phases (τ_in=5d → τ_out=1d), killing winners on day 1.
+      // CH2 exits are now: EXIT-B (D_k collapse), EXIT-F (-10% catastrophic),
+      // and the 25-day calendar cap. break_agreement is the physics-based gate.
       try {
         const cached = (global._tauCache ?? {})[pos.ticker];
         if (cached && cached.tau_out_days > 0) {
           const tauIn = cached.tau_in_days;
           const tauOut = cached.tau_out_days;
-
           const entryDate = pos.signal_detected_at ?? pos.created_at;
           let positionAge = 0;
           if (entryDate) {
             positionAge = Math.floor((Date.now() - new Date(entryDate).getTime()) / (1000*60*60*24));
           }
-
-          if (positionAge > tauOut) {
-            // 7-day minimum hold: if tau says exit but position is young and losing, wait
-            if (isYoung && currentPnlPct !== null && currentPnlPct < 0) {
-              console.log(
-                `[SENTINEL] CH2 EXIT-C ${pos.ticker} | τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d — ` +
-                `MIN HOLD GUARD: τ spent but P&L=${currentPnlPct.toFixed(1)}%, holding until ${MIN_HOLD_DAYS}d`
-              );
-            } else {
-              console.log(
-                `[SENTINEL] CH2 EXIT-C ${pos.ticker} | τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d — ` +
-                `structural energy spent, exiting`
-              );
-              await killPosition(pos, "ch2_exit_tau_exhaustion", ALPACA_BASE);
-              continue;
-            }
-          }
-
           const remaining = tauOut - positionAge;
           console.log(
             `[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | ` +
-            `τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d (${remaining}d remaining)`
+            `τ_in=${tauIn}d τ_out=${tauOut}d age=${positionAge}d (τ exit disabled)`
           );
         } else {
           console.log(`[SENTINEL] CH2 ${pos.ticker} CLEAR | S_UF=${currentSUf ?? "n/a"} | D_k=${currentDk ?? "n/a"} | no τ data`);
@@ -1116,7 +1100,10 @@ export async function runSentinel() {
         // (brackets use DAY TIF and expire — EXIT-F catches the downside,
         // this catches stale positions that are slightly profitable but
         // the bracket TP never hit and expired).
-        const ch3EntryTime = pos.entry_filled_at ?? pos.signal_detected_at ?? pos.created_at;
+        // Age from actual fill only — signal_detected_at is from the prior day
+        // and would make a freshly-filled position look 1 day old at market open,
+        // causing immediate fuel-exhausted kills when Polygon volume=0 at 9:31 AM.
+        const ch3EntryTime = pos.entry_filled_at ?? null;
         const ch3AgeDays = ch3EntryTime
           ? Math.floor((Date.now() - new Date(ch3EntryTime).getTime()) / (1000*60*60*24))
           : 0;
