@@ -437,7 +437,14 @@ async def _run_lifecycle_executor(function, *args):
         raise RuntimeError("deployment quiescence is active")
     import asyncio
     loop = asyncio.get_running_loop()
-    future = loop.run_in_executor(None, function, *args)
+    # Executor workers are reused.  Running directly on the worker lets a
+    # ContextVar written by one mutation (notably WindowManager's bound
+    # BindingWindow) survive into a later, unrelated mutation on that thread.
+    # Enter one caller-derived context per job so caller-local authority is
+    # preserved while prior worker state can never become the next caller's.
+    caller_context = _contextvars.copy_context()
+    future = loop.run_in_executor(
+        None, caller_context.run, function, *args)
     try:
         try:
             return await asyncio.shield(future)
