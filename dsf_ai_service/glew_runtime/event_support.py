@@ -25,10 +25,22 @@ All arithmetic is Fraction arithmetic.  There is no floor, epsilon, clamp,
 normalization, lane average, score, or positive threshold.  Missing physical
 energy authority is UNKNOWN; exact zero remains zero; any exact positive
 result is positive.
+
+``exact_port_gram_exterior_geometry`` is a separate, additive artifact over
+the identical mounted port evidence.  A short common-grid replay window can
+structurally force the full port set below full rank (e.g. exactly rank 3 of
+5 non-language senses); rather than forcing full rank or collapsing that
+structure to one fabricated score, this reports the exact rank and, for
+every nonempty subset of ports, the exact Gram determinant and (when
+nonzero) its normalized volume -- the same identity, generalized down to
+whatever lower-rank exterior geometry the ports actually span.  It never
+changes ``exact_port_gram_geometry``'s or ``evaluate_event_support``'s
+existing rank-5-or-fail-closed behavior.
 """
 
 from __future__ import annotations
 
+import itertools
 import json
 from dataclasses import dataclass
 from enum import Enum
@@ -202,6 +214,45 @@ def _inner(left: tuple[Fraction, ...], right: tuple[Fraction, ...]) -> Fraction:
     )
 
 
+def _product(values: tuple[Fraction, ...]) -> Fraction:
+    result = Fraction(1)
+    for value in values:
+        result *= value
+    return result
+
+
+def _gram_subset_geometry(
+    vectors: tuple[tuple[Fraction, ...], ...],
+) -> tuple[Fraction, Fraction]:
+    """Return the exact (Gram determinant, normalized Gram volume) for a subset.
+
+    This is the single shared exact-arithmetic core: the same Fraction Gram
+    matrix, the same Gaussian-elimination determinant, and the same
+    ``det(K) / product(diag(K))`` normalization that ``exact_port_gram_geometry``
+    applies to the full port set, generalized to any nonempty subset of port
+    vectors.  A zero-energy port (zero diagonal) collapses the subset to an
+    exact zero, exactly as the full-set computation already does; it is never
+    treated as an error, a missing dimension, or a fabricated volume.
+    """
+
+    gram = tuple(
+        tuple(_inner(left, right) for right in vectors) for left in vectors
+    )
+    diagonal = tuple(gram[index][index] for index in range(len(gram)))
+    if any(value < 0 for value in diagonal):
+        raise ReceiptError("event-support Gram diagonal is negative")
+    if any(value == 0 for value in diagonal):
+        return Fraction(0), Fraction(0)
+    denominator = _product(diagonal)
+    determinant = _determinant(gram)
+    if determinant < 0:
+        raise ReceiptError("exact Gram determinant is negative")
+    normalized = determinant / denominator
+    if not 0 <= normalized <= 1:
+        raise ReceiptError("exact normalized Gram geometry lies outside [0,1]")
+    return determinant, normalized
+
+
 def exact_port_gram_geometry(
     evidence: tuple[PortTransportEvidence, ...],
 ) -> Fraction:
@@ -213,30 +264,266 @@ def exact_port_gram_geometry(
     if keys != tuple(sorted(set(keys))):
         raise ReceiptError("event-support port evidence is not canonical and unique")
     vectors = tuple(value.coordinates.as_tuple() for value in evidence)
-    gram = tuple(
-        tuple(_inner(left, right) for right in vectors)
-        for left in vectors
+    _determinant_value, normalized = _gram_subset_geometry(vectors)
+    return normalized
+
+
+EXTERIOR_GRAM_GEOMETRY_OPERATOR_ID = "glew.exact_port_gram_exterior_geometry.v1"
+
+
+def _canonical_port_key_pair(key: tuple[str, str]) -> list[str]:
+    lane_id, port_id = key
+    require_identifier(lane_id, "exterior Gram port lane_id")
+    require_identifier(port_id, "exterior Gram port port_id")
+    return [lane_id, port_id]
+
+
+def _ordered_nonempty_subsets(
+    port_keys: tuple[tuple[str, str], ...],
+) -> tuple[tuple[tuple[str, str], ...], ...]:
+    """Every nonempty subset of ``port_keys``, canonically ordered by size then key."""
+
+    return tuple(
+        combo
+        for size in range(1, len(port_keys) + 1)
+        for combo in itertools.combinations(port_keys, size)
     )
-    diagonal = tuple(gram[index][index] for index in range(len(gram)))
-    if any(value < 0 for value in diagonal):
-        raise ReceiptError("event-support Gram diagonal is negative")
-    if any(value == 0 for value in diagonal):
-        return Fraction(0)
-    denominator = _product(diagonal)
-    determinant = _determinant(gram)
-    if determinant < 0:
-        raise ReceiptError("exact Gram determinant is negative")
-    result = determinant / denominator
-    if not 0 <= result <= 1:
-        raise ReceiptError("exact normalized Gram geometry lies outside [0,1]")
-    return result
 
 
-def _product(values: tuple[Fraction, ...]) -> Fraction:
-    result = Fraction(1)
-    for value in values:
-        result *= value
-    return result
+def exterior_port_gram_subset_volume_payload(
+    *,
+    port_keys: tuple[tuple[str, str], ...],
+    exact_gram_determinant: Fraction,
+    nonzero: bool,
+    exact_normalized_volume: Fraction,
+) -> dict[str, object]:
+    require_fraction(exact_gram_determinant, "exterior Gram subset determinant")
+    require_fraction(exact_normalized_volume, "exterior Gram subset normalized volume")
+    if not isinstance(nonzero, bool):
+        raise ReceiptError("exterior Gram subset nonzero flag must be bool")
+    return {
+        "exact_gram_determinant": _fraction_text(exact_gram_determinant),
+        "exact_normalized_volume": _fraction_text(exact_normalized_volume),
+        "nonzero": nonzero,
+        "port_keys": [_canonical_port_key_pair(key) for key in port_keys],
+    }
+
+
+@dataclass(frozen=True, slots=True)
+class ExteriorPortGramSubsetVolume:
+    """One principal Gram minor: an exact lower-rank exterior volume witness.
+
+    ``exact_gram_determinant`` is the exact Gram determinant of exactly this
+    port subset.  By the standard Gram identity this is the squared
+    exterior/wedge-product volume that subset's port vectors genuinely span
+    -- nonzero exactly when those ports are independent.  ``nonzero`` names
+    that fact explicitly.  ``exact_normalized_volume`` divides the
+    determinant by the product of the subset's own diagonal (squared-norm)
+    entries: the identical normalization ``exact_port_gram_geometry`` already
+    applies to the full five-port case, generalized to this subset alone.
+    """
+
+    port_keys: tuple[tuple[str, str], ...]
+    exact_gram_determinant: Fraction
+    nonzero: bool
+    exact_normalized_volume: Fraction
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.port_keys, tuple) or not self.port_keys:
+            raise ReceiptError(
+                "exterior Gram subset requires a nonempty immutable port-key tuple"
+            )
+        for key in self.port_keys:
+            if not isinstance(key, tuple) or len(key) != 2:
+                raise ReceiptError(
+                    "exterior Gram subset port key is not a (lane_id, port_id) pair"
+                )
+            require_identifier(key[0], "exterior Gram port lane_id")
+            require_identifier(key[1], "exterior Gram port port_id")
+        if tuple(sorted(set(self.port_keys))) != self.port_keys:
+            raise ReceiptError(
+                "exterior Gram subset port keys are not canonical and unique"
+            )
+        require_fraction(
+            self.exact_gram_determinant, "exterior Gram subset determinant"
+        )
+        require_fraction(
+            self.exact_normalized_volume, "exterior Gram subset normalized volume"
+        )
+        if self.exact_gram_determinant < 0:
+            raise ReceiptError("exterior Gram subset determinant is negative")
+        if not 0 <= self.exact_normalized_volume <= 1:
+            raise ReceiptError(
+                "exterior Gram subset normalized volume lies outside [0,1]"
+            )
+        if not isinstance(self.nonzero, bool):
+            raise ReceiptError("exterior Gram subset nonzero flag must be bool")
+        if self.nonzero != (self.exact_gram_determinant != 0):
+            raise ReceiptError(
+                "exterior Gram subset nonzero flag differs from its exact determinant"
+            )
+        if (self.exact_gram_determinant == 0) != (self.exact_normalized_volume == 0):
+            raise ReceiptError(
+                "exterior Gram subset volume differs from its determinant's zero class"
+            )
+
+    def as_payload(self) -> dict[str, object]:
+        return exterior_port_gram_subset_volume_payload(
+            port_keys=self.port_keys,
+            exact_gram_determinant=self.exact_gram_determinant,
+            nonzero=self.nonzero,
+            exact_normalized_volume=self.exact_normalized_volume,
+        )
+
+
+def exact_port_gram_exterior_receipt_payload(
+    *,
+    port_keys: tuple[tuple[str, str], ...],
+    rank: int,
+    subsets: tuple[ExteriorPortGramSubsetVolume, ...],
+) -> bytes:
+    if not isinstance(port_keys, tuple) or not port_keys:
+        raise ReceiptError(
+            "exterior Gram receipt requires a nonempty immutable port-key tuple"
+        )
+    if tuple(sorted(set(port_keys))) != port_keys:
+        raise ReceiptError("exterior Gram receipt port keys are not canonical and unique")
+    if isinstance(rank, bool) or not isinstance(rank, int):
+        raise ReceiptError("exterior Gram receipt rank must be an integer")
+    if not 0 <= rank <= len(port_keys):
+        raise ReceiptError("exterior Gram receipt rank lies outside the mounted port count")
+    if not isinstance(subsets, tuple) or not all(
+        isinstance(value, ExteriorPortGramSubsetVolume) for value in subsets
+    ):
+        raise ReceiptError("exterior Gram receipt subsets must be a typed immutable tuple")
+    expected_subset_keys = _ordered_nonempty_subsets(port_keys)
+    if tuple(value.port_keys for value in subsets) != expected_subset_keys:
+        raise ReceiptError(
+            "exterior Gram receipt does not cover every principal port subset exactly once"
+        )
+    largest_independent = max(
+        (len(value.port_keys) for value in subsets if value.nonzero),
+        default=0,
+    )
+    if rank != largest_independent:
+        raise ReceiptError(
+            "exterior Gram receipt rank differs from its largest independent principal subset"
+        )
+    return _canonical_bytes(
+        {
+            "operator_id": EXTERIOR_GRAM_GEOMETRY_OPERATOR_ID,
+            "port_keys": [_canonical_port_key_pair(key) for key in port_keys],
+            "rank": rank,
+            "schema": "glew.event_support.exterior_gram_geometry.v1",
+            "subset_count": len(subsets),
+            "subsets": [value.as_payload() for value in subsets],
+        }
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class ExactPortGramExteriorReceipt:
+    """Exact exterior-grade receipt: every principal Gram minor of one port set.
+
+    This never replaces ``exact_port_gram_geometry``'s rank-5-or-fail-closed
+    full-volume result and never changes ``evaluate_event_support``.  It is
+    an additive, richer artifact reporting the exact rank plus every nonzero
+    principal Gram volume so a future L5 governor may recognize viable
+    lower-rank exterior structure without inventing missing dimensions or
+    collapsing every subset to one support-minus-drag score.
+    """
+
+    port_keys: tuple[tuple[str, str], ...]
+    rank: int
+    subsets: tuple[ExteriorPortGramSubsetVolume, ...]
+    receipt_sha256: str
+
+    def payload(self) -> bytes:
+        return exact_port_gram_exterior_receipt_payload(
+            port_keys=self.port_keys,
+            rank=self.rank,
+            subsets=self.subsets,
+        )
+
+    def subset(
+        self, port_keys: tuple[tuple[str, str], ...]
+    ) -> ExteriorPortGramSubsetVolume:
+        """Return the exact receipt entry for one principal port subset."""
+
+        canonical = tuple(sorted(port_keys))
+        for value in self.subsets:
+            if value.port_keys == canonical:
+                return value
+        raise ReceiptError("exterior Gram receipt has no matching principal subset")
+
+    def verify(self, receipt_registry: ReceiptRegistry) -> None:
+        expected_payload = self.payload()
+        if receipt_sha256(expected_payload) != self.receipt_sha256:
+            raise ReceiptError(
+                "exterior Gram geometry receipt differs from its exact canonical bytes"
+            )
+        _mounted_exact(
+            receipt_registry,
+            self.receipt_sha256,
+            expected_payload,
+            "exterior Gram geometry receipt",
+        )
+
+
+def exact_port_gram_exterior_geometry(
+    evidence: tuple[PortTransportEvidence, ...],
+) -> ExactPortGramExteriorReceipt:
+    """Return the exact exterior-grade receipt over every principal port subset.
+
+    For every nonempty subset of the mounted ports this reports the exact
+    Gram determinant -- by the standard Gram identity, the squared
+    exterior/wedge-product volume that subset's port vectors genuinely span
+    -- whether it is nonzero, and (using the identical normalization
+    ``exact_port_gram_geometry`` already applies) its normalized volume.  The
+    exact rank of the full port set is the size of the largest principal
+    subset that is genuinely independent, which by construction equals the
+    ordinary linear-algebraic rank of the mounted port vectors.
+
+    This does not select, average, or threshold ports, and it does not
+    change ``exact_port_gram_geometry``'s or ``evaluate_event_support``'s
+    existing rank-5-or-fail-closed behavior; it is an additional artifact
+    computed alongside them from the identical mounted evidence.
+    """
+
+    if not isinstance(evidence, tuple) or not evidence:
+        raise ReceiptError("exterior Gram geometry requires at least one mounted port")
+    keys = tuple(value.key for value in evidence)
+    if keys != tuple(sorted(set(keys))):
+        raise ReceiptError("event-support port evidence is not canonical and unique")
+    by_key = {value.key: value.coordinates.as_tuple() for value in evidence}
+    port_keys = tuple(sorted(by_key))
+
+    subsets = []
+    for combo in _ordered_nonempty_subsets(port_keys):
+        determinant, normalized = _gram_subset_geometry(
+            tuple(by_key[key] for key in combo)
+        )
+        subsets.append(
+            ExteriorPortGramSubsetVolume(
+                port_keys=combo,
+                exact_gram_determinant=determinant,
+                nonzero=determinant != 0,
+                exact_normalized_volume=normalized,
+            )
+        )
+    subsets = tuple(subsets)
+    rank = max((len(value.port_keys) for value in subsets if value.nonzero), default=0)
+    payload = exact_port_gram_exterior_receipt_payload(
+        port_keys=port_keys,
+        rank=rank,
+        subsets=subsets,
+    )
+    return ExactPortGramExteriorReceipt(
+        port_keys=port_keys,
+        rank=rank,
+        subsets=subsets,
+        receipt_sha256=receipt_sha256(payload),
+    )
 
 
 def _interval_source_energy(
@@ -788,12 +1075,18 @@ def evaluate_event_support(
 
 __all__ = (
     "EVENT_SUPPORT_OPERATOR_ID",
+    "EXTERIOR_GRAM_GEOMETRY_OPERATOR_ID",
+    "ExactPortGramExteriorReceipt",
     "EventSupportEvaluation",
     "EventSupportEvaluationStatus",
     "EventSupportInterval",
+    "ExteriorPortGramSubsetVolume",
     "MemoryEnergyAuthority",
     "evaluate_event_support",
     "event_support_result_receipt_payload",
+    "exact_port_gram_exterior_geometry",
+    "exact_port_gram_exterior_receipt_payload",
     "exact_port_gram_geometry",
+    "exterior_port_gram_subset_volume_payload",
     "memory_energy_authority_receipt_payload",
 )
