@@ -30,6 +30,18 @@ type PEE1Position = {
   alpaca_order_id: string | null;
 };
 
+type ClosedTrade = {
+  ticker: string;
+  signal_class: string;
+  shares: number;
+  entry: number;
+  exit: number;
+  pnl: number;
+  pnl_pct: number | null;
+  exit_reason: string;
+  closed_at: string;
+};
+
 type PEE1Summary = {
   funded_amount: number;
   cash_on_hand: number;
@@ -46,6 +58,7 @@ type PEE1Summary = {
   losses: number;
   win_rate: string;
   exit_reasons: Record<string, number>;
+  recent_closed_trades: ClosedTrade[];
   execution_mode: string;
   auto_tfe_enabled: boolean;
   entries_halted: boolean;
@@ -456,6 +469,51 @@ export default function PortfolioTFEManager() {
           </div>
         )}
       </div>
+
+      {/* ── Closed Trade History ─────────────────────────────────────────────── */}
+      {summary && summary.recent_closed_trades && summary.recent_closed_trades.length > 0 && (
+        <div className="tfe-panel" style={{ padding: 0, overflow: "hidden" }}>
+          <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: 10 }}>
+            <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700 }}>Closed Trades</h3>
+            <span style={{ background: "#e5e7eb", borderRadius: 10, padding: "2px 8px", fontSize: "0.72rem", fontWeight: 600 }}>{summary.closed_trades}</span>
+            <span style={{ marginLeft: "auto", fontSize: "0.78rem", color: "#6b7280" }}>
+              {summary.wins}W / {summary.losses}L &nbsp;·&nbsp; WR {summary.win_rate}
+              &nbsp;·&nbsp; Realized <span style={{ fontWeight: 700, color: plColor(summary.total_realized) }}>{fmtDollar(summary.total_realized)}</span>
+            </span>
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table className="tfe-table">
+              <caption style={{position:"absolute",width:"1px",height:"1px",padding:0,margin:"-1px",overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>Closed Trades</caption>
+              <thead>
+                <tr style={{ background: "rgba(0,0,0,0.03)", textAlign: "left" }}>
+                  {["Date","Ticker","Ch","Shares","Entry","Exit","P&L $","P&L %","Exit Reason"].map(h => (
+                    <th key={h} scope="col" style={{ whiteSpace: "nowrap", textAlign: ["Shares","Entry","Exit","P&L $","P&L %"].includes(h) ? "right" : "left" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {summary.recent_closed_trades.map((t, i) => (
+                  <tr key={i} style={{ borderTop: "1px solid rgba(0,0,0,0.05)", background: i % 2 === 0 ? "transparent" : "rgba(0,0,0,0.015)" }}>
+                    <td style={{ color: "#6b7280", whiteSpace: "nowrap" }}>{new Date(t.closed_at).toLocaleDateString()}</td>
+                    <td style={{ fontWeight: 700, fontFamily: "var(--font-geist-mono, monospace)" }}>{t.ticker}</td>
+                    <td>{signalBadge(t.signal_class)}</td>
+                    <td style={{ textAlign: "right" }}>{t.shares.toLocaleString()}</td>
+                    <td style={{ textAlign: "right" }}>{fmtDollar(t.entry)}</td>
+                    <td style={{ textAlign: "right" }}>{fmtDollar(t.exit)}</td>
+                    <td style={{ textAlign: "right", fontWeight: 700, color: plColor(t.pnl) }}>
+                      {t.pnl >= 0 ? "+" : ""}{fmtDollar(t.pnl)}
+                    </td>
+                    <td style={{ textAlign: "right", color: plColor(t.pnl_pct) }}>
+                      {t.pnl_pct !== null ? `${t.pnl_pct >= 0 ? "+" : ""}${fmt(t.pnl_pct)}%` : "—"}
+                    </td>
+                    <td style={{ color: "#6b7280", fontSize: "0.78rem", whiteSpace: "nowrap" }}>{t.exit_reason.replace(/_/g, " ")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* ── Exit Reasons (if any closed trades) ─────────────────────────────── */}
       {summary && Object.keys(summary.exit_reasons).length > 0 && (

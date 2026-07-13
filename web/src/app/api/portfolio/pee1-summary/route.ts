@@ -135,6 +135,22 @@ export async function GET(request: NextRequest) {
     const closedCh3 = closedTrades.filter(r => r.signal_class === "CH3");
     const realizedCh3 = closedCh3.reduce((sum, r) => sum + (parseFloat(r.p_l ?? "0") || 0), 0);
 
+    const recentClosedTrades = closedTrades
+      .filter(r => r.exit_filled_price && r.entry_filled_price && r.p_l !== null)
+      .sort((a, b) => (b.signal_detected_at > a.signal_detected_at ? 1 : -1))
+      .slice(0, 30)
+      .map(r => ({
+        ticker: r.ticker,
+        signal_class: r.signal_class ?? "—",
+        shares: Number(r.shares),
+        entry: parseFloat(r.entry_filled_price ?? "0"),
+        exit: parseFloat(r.exit_filled_price ?? "0"),
+        pnl: Math.round(parseFloat(r.p_l ?? "0") * 100) / 100,
+        pnl_pct: r.p_l_pct ? Math.round(parseFloat(r.p_l_pct) * 100) / 100 : null,
+        exit_reason: r.exit_reason ?? "—",
+        closed_at: r.signal_detected_at,
+      }));
+
     return NextResponse.json({
       funded_amount: fundedAmount,
       cash_on_hand: Math.round(cashOnHand * 100) / 100,
@@ -156,6 +172,7 @@ export async function GET(request: NextRequest) {
       win_rate: winRate,
       win_rate_note: "CH1/CH2 only — CH3 on separate track",
       exit_reasons: exitReasons,
+      recent_closed_trades: recentClosedTrades,
       execution_mode: executionMode,
       auto_tfe_enabled: configMap.auto_tfe_enabled === "true",
       entries_halted: process.env.TFE_ENTRIES_HALTED === "1" || configMap.entries_halted === "true",
