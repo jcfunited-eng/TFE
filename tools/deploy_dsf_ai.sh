@@ -741,9 +741,16 @@ echo "[6/7] Requesting authenticated sealed-generation handoff..."
 
 aws efs put-backup-policy --file-system-id fs-0abb85854a3251b3c \
     --backup-policy Status=ENABLED >/dev/null
-EFS_BACKUP_POLICY=$(aws efs describe-backup-policy \
-    --file-system-id fs-0abb85854a3251b3c \
-    --query 'BackupPolicy.Status' --output text)
+EFS_BACKUP_POLICY=""
+for _backup_attempt in $(seq 1 12); do
+    EFS_BACKUP_POLICY=$(aws efs describe-backup-policy \
+        --file-system-id fs-0abb85854a3251b3c \
+        --query 'BackupPolicy.Status' --output text)
+    if [ "${EFS_BACKUP_POLICY}" = "ENABLED" ]; then
+        break
+    fi
+    sleep 5
+done
 if [ "${EFS_BACKUP_POLICY}" != "ENABLED" ]; then
     echo "ERROR: EFS automatic backup policy is not enabled"
     exit 1
