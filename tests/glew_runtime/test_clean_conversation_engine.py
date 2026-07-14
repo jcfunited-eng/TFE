@@ -667,8 +667,11 @@ def test_real_end_to_end_commit_and_learn_no_monkeypatching(fixture, tmp_path_fa
     archive_payload = current.payload(ARCHIVE_CHECKPOINT_RELATIVE_PATH)
     identity_payload = current.payload(GENERATION_IDENTITY_BINDING_RELATIVE_PATH)
     assert learning_payload["body"]["schema"] == "glew.learning.binding_checkpoint.v1"
-    assert archive_payload["body"]["schema"] == "glew.recall.story_episode_archive_checkpoint.v1"
+    assert archive_payload["body"]["schema"] == "glew.recall.coexperienced_scene_archive_checkpoint.v1"
     assert identity_payload["schema"] == "glew.identity.generation_binding.v1"
+    # The engine archived the coexperienced scene it just learned (design 7.1.3):
+    # exactly one episode, keyed to the learned binding's six-lane receipts.
+    assert len(archive_payload["body"]["episodes"]) == 1
 
 
 def test_missing_fresh_recall_provider_is_rejected_at_construction(fixture, tmp_path_factory):

@@ -33,11 +33,10 @@ from dsf_ai_service.glew_runtime.expression_learning import (
     learn_committed_binding_transaction,
     learned_binding_checkpoint_payload,
 )
-from dsf_ai_service.glew_runtime.fresh_recall_executor import FreshRecallClosedExperienceExecutor
-from dsf_ai_service.glew_runtime.fresh_recall_provider import (
-    FullFieldFreshRecallProvider,
-    fresh_recall_provider_authority_receipt_payload,
+from dsf_ai_service.glew_runtime.coexperienced_scene_recall_provider import (
+    CoexperiencedSceneRecallProvider,
 )
+from dsf_ai_service.glew_runtime.recall_reentry import FRESH_RECALL_SELF_SENSE_OPERATOR_ID
 from dsf_ai_service.glew_runtime.generation_identity import bind_generation_identity
 from dsf_ai_service.glew_runtime.model import ReceiptError, receipt_sha256
 from dsf_ai_service.glew_runtime.operators import RequiredEdge
@@ -48,9 +47,9 @@ from dsf_ai_service.glew_runtime.production_runtime_bootstrap import (
     bootstrap_production_clean_conversation_engine,
     resolve_default_generation_store_root,
 )
-from dsf_ai_service.glew_runtime.recall_story_episode_archive import (
-    RecallStoryEpisodeArchive,
-    recall_story_archive_checkpoint_payload,
+from dsf_ai_service.glew_runtime.coexperienced_scene_archive import (
+    CoexperiencedSceneArchive,
+    coexperienced_scene_archive_checkpoint_payload,
 )
 from dsf_ai_service.glew_runtime.six_lane_runtime_mount import mount_six_lane_runtime
 from dsf_ai_service.glew_runtime.story_chemistry import (
@@ -168,56 +167,14 @@ def _six_lane_runtime_parameters() -> SixLaneRuntimeBootstrapParameters:
     )
 
 
-def _real_fresh_recall_provider(*, profile_binding_sha256: str):
-    """The real, unmodified ``FullFieldFreshRecallProvider`` wired to a real
-    but genuinely empty ``RecallStoryEpisodeArchive`` -- mirrors exactly
-    ``test_clean_conversation_engine.py``'s own choice: every turn this test
-    drives through it exercises the real archive-lookup failure path
-    honestly, rather than faking success."""
-
-    provider_id = f"{_ENGINE_ID}-fresh-recall-provider"
-    provider_payload = fresh_recall_provider_authority_receipt_payload(
-        provider_id=provider_id, profile_binding_sha256=profile_binding_sha256
-    )
-    executor = FreshRecallClosedExperienceExecutor(
-        executor_id=f"{_ENGINE_ID}-fresh-recall-executor",
-        archive=RecallStoryEpisodeArchive(),
-        runtime_resolver=None,
-        language_interface=None,
-        integrity_provider=None,
-    )
-    return FullFieldFreshRecallProvider(
-        provider_id=provider_id,
-        profile_binding_sha256=profile_binding_sha256,
-        executor=executor,
-        motif_kinds=(),
-        authority_receipt_sha256=receipt_sha256(provider_payload),
-    )
-
-
 def _bootstrap(tmp_path, *, generation_identity=None):
+    """Cold-start (or restore) through the real bootstrap. Per design section
+    7.2.1 the bootstrap now constructs the real
+    ``CoexperiencedSceneRecallProvider`` itself -- there is no injected
+    fresh-recall provider to supply."""
+
     parameters = _six_lane_runtime_parameters()
     generation_identity = generation_identity or _generation_identity()
-
-    # ``fresh_recall_provider`` needs the engine's eventual profile binding;
-    # since the engine itself derives that from the mounted runtime's own
-    # topology (unknown ahead of time to this test), reuse
-    # ``mount_six_lane_runtime`` once here, exactly the way the engine will,
-    # to compute the same profile binding a real provider can be bound to.
-    envelope = authenticate_production_story_chemistry_profile(
-        profile_body_payload=production_story_chemistry_profile_payload(),
-        runtime_authentication_key=_CHEM_KEY,
-        runtime_key_id=_CHEM_KEY_ID,
-    )
-    probe_runtime = mount_six_lane_runtime(
-        story_chemistry_profile_bytes=envelope,
-        story_chemistry_authentication_key=_CHEM_KEY,
-        story_chemistry_expected_key_id=_CHEM_KEY_ID,
-        **parameters.as_mount_kwargs(),
-    )
-    fresh_recall_provider = _real_fresh_recall_provider(
-        profile_binding_sha256=probe_runtime.receipt_registry.profile_binding_sha256
-    )
 
     engine = bootstrap_production_clean_conversation_engine(
         generation_store_root=tmp_path,
@@ -227,7 +184,6 @@ def _bootstrap(tmp_path, *, generation_identity=None):
         checkpoint_authentication_key=_CHECKPOINT_KEY,
         checkpoint_key_id=_CHECKPOINT_KEY_ID,
         generation_identity=generation_identity,
-        fresh_recall_provider=fresh_recall_provider,
         engine_id=_ENGINE_ID,
     )
     return engine, parameters
@@ -276,20 +232,23 @@ def test_cold_start_against_empty_directory_produces_real_fresh_genesis_engine(t
     assert result.recognition_receipt_sha256 is not None
 
 
-def test_cold_start_is_rejected_without_a_fresh_recall_provider(tmp_path):
-    parameters = _six_lane_runtime_parameters()
-    with pytest.raises(ReceiptError, match="fresh-recall provider"):
-        bootstrap_production_clean_conversation_engine(
-            generation_store_root=tmp_path,
-            story_chemistry_authentication_key=_CHEM_KEY,
-            story_chemistry_key_id=_CHEM_KEY_ID,
-            six_lane_runtime_parameters=parameters,
-            checkpoint_authentication_key=_CHECKPOINT_KEY,
-            checkpoint_key_id=_CHECKPOINT_KEY_ID,
-            generation_identity=_generation_identity(),
-            fresh_recall_provider=None,
-            engine_id=_ENGINE_ID,
-        )
+def test_cold_start_constructs_the_real_coexperienced_scene_recall_provider(tmp_path):
+    """Design section 7.2.1: the bootstrap now constructs the real
+    ``CoexperiencedSceneRecallProvider`` itself (the whole point of "build
+    recall before wiring live"), rather than demanding an injected stub."""
+
+    engine, _parameters = _bootstrap(tmp_path)
+    provider = engine._fresh_recall_provider
+    assert isinstance(provider, CoexperiencedSceneRecallProvider)
+    assert provider.operator_id == FRESH_RECALL_SELF_SENSE_OPERATOR_ID
+    # The provider's authority receipt is mounted in the engine's registry, so
+    # a real committing turn could reach it (the transaction resolves it).
+    assert engine._registry.resolve(
+        provider.authority_receipt_sha256, "provider authority"
+    )
+    # The provider shares the engine's live holder, so it recognizes against
+    # the engine's live grown bank and sees prior-turn scene episodes.
+    assert provider.executor.live_recall_state is engine._live_recall_state
 
 
 # ---------------------------------------------------------------------------
@@ -375,8 +334,8 @@ def test_restore_round_trip_matches_persisted_learned_state(tmp_path):
         authentication_key=_CHECKPOINT_KEY,
         key_id=_CHECKPOINT_KEY_ID,
     )
-    archive_bytes = recall_story_archive_checkpoint_payload(
-        archive=RecallStoryEpisodeArchive(),
+    archive_bytes = coexperienced_scene_archive_checkpoint_payload(
+        archive=CoexperiencedSceneArchive(),
         checkpoint_id=archive_checkpoint_id,
         authentication_key=_CHECKPOINT_KEY,
         key_id=_CHECKPOINT_KEY_ID,
@@ -507,8 +466,8 @@ def _bootstrap_and_persist_one_learned_successor(tmp_path, generation_identity):
         authentication_key=_CHECKPOINT_KEY,
         key_id=_CHECKPOINT_KEY_ID,
     )
-    archive_bytes = recall_story_archive_checkpoint_payload(
-        archive=RecallStoryEpisodeArchive(),
+    archive_bytes = coexperienced_scene_archive_checkpoint_payload(
+        archive=CoexperiencedSceneArchive(),
         checkpoint_id=archive_checkpoint_id,
         authentication_key=_CHECKPOINT_KEY,
         key_id=_CHECKPOINT_KEY_ID,

@@ -96,30 +96,33 @@ silence path stays byte-for-byte consistent with every other typed-silence
 receipt this substrate produces, rather than duplicating (and risking
 drifting from) that schema.
 
-The fresh-recall gap (deliberately not fixed here)
-----------------------------------------------------
-Section 9.6's ``FullFieldFreshRecallProvider`` /
-``FreshRecallClosedExperienceExecutor`` /
-``ProductionRecallStoryRuntimeResolver`` /
-``ProductionRecallReplayIntegrityProvider`` are all real, already committed
-(Step 5). But ``recall_story_runtime_resolver.py``'s own module docstring
-records a confirmed, load-bearing structural gap: a ``RecallStoryEpisode``
-can only ever resolve for real recall if its pre-window state was built
-against the real six-lane basin authorities from the start, and no episode
-produced through this engine's own turn-building path (which follows Step
-4's ``_build_expression``/``_commit_real_scene`` pattern, sharing that
-pattern's own simple, basin-independent pre-window construction) can ever
-satisfy that. Fixing that cross-subsystem schema mismatch is out of this
-module's scope -- a different, concurrent investigation owns it. This
-engine therefore never constructs its own ``fresh_recall_provider``: it is a
-required constructor parameter, so whichever real implementation eventually
-closes that gap can be supplied without touching this file. Until then, a
-caller may inject any genuinely real (never monkeypatched, never a bare
-stub returning success) ``FreshRecallSelfSenseProvider`` -- for example, the
-real, unmodified ``FullFieldFreshRecallProvider`` wired to a real, currently
-empty ``RecallStoryEpisodeArchive`` -- which will honestly and correctly
-resolve to typed silence for every turn the archive has no matching episode
-for, exactly the behavior the accompanying tests exercise and assert.
+Fresh recall of freshly-learned content (design GL-SPC-RECALL-BASIN-RECONCILIATION)
+------------------------------------------------------------------------------------
+The five-sense ``FullFieldFreshRecallProvider`` /
+``FreshRecallClosedExperienceExecutor`` / ``RecallStoryEpisodeArchive`` stack
+(Step 5) can never resolve, or even recognize, a scalar this engine actually
+learns: a five-sense episode's per-port sensory receipts can never equal the
+*six-lane* receipts a real learned binding carries (design section 3), and the
+frozen basin's empty genesis mode bank returns UNKNOWN for a real grown scene
+(section 3.4). ``docs/GL-SPC-RECALL-BASIN-RECONCILIATION-DESIGN-20260714-v1.md``
+resolves this by recalling a learned scene through the engine's OWN
+deterministic six-lane turn construction, natively in the six-lane universe
+the engine commits and learns in.
+
+This engine wires that resolution with three small, named couplings, all
+additive and none touching recognition / commit / learning / the transaction:
+``coexperienced_scene_archive`` (a six-lane-native scene archive, replacing the
+unused five-sense episode archive), a shared ``live_recall_state`` holder the
+engine republishes each turn (so the injected provider recognizes against this
+engine's live grown bank and sees prior-turn episodes), and archive-on-learn in
+:meth:`_learn_and_persist`. This engine still never constructs its own
+``fresh_recall_provider``: it remains a required constructor parameter. The
+bootstrap (``production_runtime_bootstrap.py``) constructs the real
+``CoexperiencedSceneRecallProvider`` against the same shared holder; a caller
+may inject any genuinely real (never monkeypatched, never a bare stub returning
+success) ``FreshRecallSelfSenseProvider``, and any turn whose scene has no
+matching archived episode -- or whose learned expression has not been closed --
+honestly resolves to typed silence.
 
 Constructor coupling this engine cannot avoid
 ------------------------------------------------
@@ -197,6 +200,7 @@ from .expression_learning import (
     CoexperiencedOutput,
     CommittedCoexperience,
     LearnedBindingState,
+    _sensory_receipts,
     learn_committed_binding_transaction,
     learned_binding_checkpoint_payload,
 )
@@ -215,7 +219,12 @@ from .real_experience_learning_pipeline import (
     _seal,
 )
 from .recall_reentry import FreshRecallSelfSenseProvider
-from .recall_story_episode_archive import RecallStoryEpisodeArchive, recall_story_archive_checkpoint_payload
+from .coexperienced_scene_archive import (
+    CoexperiencedSceneArchive,
+    coexperienced_scene_archive_checkpoint_payload,
+    create_coexperienced_scene_episode,
+)
+from .coexperienced_scene_recall_executor import LiveRecallState
 from .generation_identity import bind_generation_identity
 from .safe_mode import IntegrityFact, IntegrityFactState, MountedSafeModeScope, evaluate_safe_mode, integrity_fact_receipt_payload, safe_mode_scope_receipt_payload
 from .six_lane_runtime_mount import MountedSixLaneRuntime
@@ -225,7 +234,7 @@ from dsf_ai_service.substrate.immutable_generation_store import ImmutableGenerat
 
 
 LEARNING_CHECKPOINT_RELATIVE_PATH = "clean_conversation_learning_checkpoint.json"
-ARCHIVE_CHECKPOINT_RELATIVE_PATH = "clean_conversation_archive_checkpoint.json"
+ARCHIVE_CHECKPOINT_RELATIVE_PATH = "coexperienced_scene_archive_checkpoint.json"
 GENERATION_IDENTITY_BINDING_RELATIVE_PATH = "clean_conversation_generation_identity_binding.json"
 CHECKPOINT_RELATIVE_PATHS = (
     LEARNING_CHECKPOINT_RELATIVE_PATH,
@@ -551,7 +560,8 @@ class ProductionCleanConversationEngine:
         generation_store: ImmutableGenerationStore,
         checkpoint_authentication_key: bytes,
         checkpoint_key_id: str,
-        recall_story_episode_archive: RecallStoryEpisodeArchive | None = None,
+        coexperienced_scene_archive: CoexperiencedSceneArchive | None = None,
+        live_recall_state: LiveRecallState | None = None,
         engine_id: str = "clean-conversation-engine",
     ) -> None:
         if not isinstance(mounted_runtime, MountedSixLaneRuntime):
@@ -589,11 +599,26 @@ class ProductionCleanConversationEngine:
         self._generation_store = generation_store
         self._checkpoint_authentication_key = checkpoint_authentication_key
         self._checkpoint_key_id = checkpoint_key_id
-        self._archive = (
-            RecallStoryEpisodeArchive()
-            if recall_story_episode_archive is None
-            else recall_story_episode_archive
+        self._scene_archive = (
+            CoexperiencedSceneArchive()
+            if coexperienced_scene_archive is None
+            else coexperienced_scene_archive
         )
+        # One shared mutable holder the engine updates each turn and the
+        # injected recall provider reads at settle time (design section 5 /
+        # 6.2). A real caller (the bootstrap) supplies the SAME holder the
+        # provider was constructed against, so recall recognizes against this
+        # engine's live grown bank and sees prior-turn scene episodes. When no
+        # holder is injected (e.g. a caller wiring a recall provider that does
+        # not consult it), the engine owns a private one so its own bank /
+        # archive / motif-kind growth stays consistent.
+        if live_recall_state is None:
+            live_recall_state = LiveRecallState(
+                mode_bank=self._mode_bank,
+                scene_archive=self._scene_archive,
+                motif_kinds=self._learned_state.motif_kinds,
+            )
+        self._live_recall_state = live_recall_state
         self._checkpoint_tick = 0
         self._lock = threading.Lock()
 
@@ -746,6 +771,17 @@ class ProductionCleanConversationEngine:
         # recognition see everything genuinely experienced so far.
         self._mode_bank = recognition.post_growth_bank
         self._registry = registry
+        # The single line that lets the injected recall provider recognize
+        # against this engine's live grown bank (design section 3.4) and see
+        # every prior-turn scene episode (section 5): publish the current bank,
+        # scene archive, and learned motif-kind authorities into the shared
+        # holder BEFORE run_clean_conversation_transaction consults the
+        # provider.
+        self._live_recall_state.update(
+            mode_bank=self._mode_bank,
+            scene_archive=self._scene_archive,
+            motif_kinds=self._learned_state.motif_kinds,
+        )
 
         if self._learned_state.initial_event is None:
             # Section 9.5: "A commit cannot speak unless a clean learned
@@ -905,6 +941,49 @@ class ProductionCleanConversationEngine:
             # Expression already explicitly closed; nothing further to learn.
             return
 
+        # Expression-close decision (a genuine cognition/policy call the
+        # design's own section 12 flagged as separate and, in its own words,
+        # one that "does not change any file named above"):
+        #
+        # This engine learns each committed turn's single coexperienced scalar
+        # with ``expression_close=False`` -- it does NOT auto-close after one
+        # scalar. That is the structurally correct choice for this engine's
+        # real usage pattern, for three grounded reasons:
+        #
+        # 1. This model genuinely accumulates a multi-scalar expression across
+        #    turns. ``learn_committed_binding_transaction`` chains
+        #    ``pending_relation.selected_mode -> new content motif`` and moves
+        #    ``pending`` forward to the new scene, so each committing turn
+        #    extends the single ``LearnedBindingState``'s chain by exactly one
+        #    scalar (``initial_event`` stays anchored to genesis, so recall
+        #    replays the whole accumulated chain as one expression). This is
+        #    precisely "a real multi-scalar expression accumulates across
+        #    several learn calls before closing."
+        # 2. Unconditionally closing here is both wrong and fail-closed.
+        #    ``learn_committed_binding_transaction(expression_close=True)``
+        #    rejects a typed-scalar close (it requires an explicit no-output
+        #    coexperience), so a close is necessarily a second learn call
+        #    mapping the committed scene's mode -> a close motif. That mapping
+        #    raises ``ReceiptError("prior committed mode already has a learned
+        #    successor")`` whenever the turn's scene mode already anchors a
+        #    successor -- which is exactly the case for every recall-trigger
+        #    turn (you trigger recall by RE-experiencing a known anchor scene).
+        #    So an auto-close would fail-closed on the very turns recall is
+        #    meant to fire on, truncate the accumulating expression, and force
+        #    the single-expression state terminal after one turn.
+        # 3. WHEN an expression closes is a cognition decision this engine has
+        #    no signal for (``CleanConversationTurn`` carries only task_id /
+        #    text / source -- no utterance boundary). Choosing the close point
+        #    belongs to the not-yet-built section 9.3 multi-scalar turn
+        #    scheduler; fabricating a close policy here would be inventing
+        #    cognition, which this substrate forbids.
+        #
+        # Emission of a learned scalar on recall is therefore gated on an
+        # explicit close (via the real, unchanged
+        # ``learn_committed_binding_transaction(expression_close=True)``
+        # mechanism, exercised by ``real_experience_learning_pipeline.
+        # close_real_multimodal_expression``), applied when an utterance is
+        # genuinely complete -- not smuggled into every single-scalar turn.
         new_state = learn_committed_binding_transaction(
             state=self._learned_state,
             committed=committed,
@@ -914,8 +993,50 @@ class ProductionCleanConversationEngine:
             expression_close=False,
             receipt_registry=registry,
         )
+
+        # Archive the coexperienced scene so a later turn's fresh full-field
+        # recall can deterministically reconstruct it (design section 7.1.3).
+        # The episode stores only the learned binding's identity plus the
+        # reconstruction key ``(task_id, text)``; the sensory receipts recorded
+        # are exactly the six-lane, non-language receipts the new binding
+        # already carries (``_sensory_receipts(sealed)``), so a real learned
+        # binding resolves it (section 3.2).
+        prior_binding_ids = {
+            value.binding_receipt_sha256 for value in self._learned_state.output_bank.bindings
+        }
+        new_bindings = tuple(
+            value
+            for value in new_state.output_bank.bindings
+            if value.binding_receipt_sha256 not in prior_binding_ids
+        )
+        if len(new_bindings) != 1:
+            raise ReceiptError(
+                "clean conversation engine expected exactly one new output binding to archive"
+            )
+        new_binding = new_bindings[0]
+        sensory_receipts = _sensory_receipts(sealed)
+        if new_binding.sensory_evidence_receipt_sha256s != sensory_receipts:
+            raise ReceiptError(
+                "learned binding sensory evidence differs from the sealed scene's six-lane receipts"
+            )
+        episode = create_coexperienced_scene_episode(
+            profile_binding_sha256=new_state.receipt_registry.profile_binding_sha256,
+            motif_receipt_sha256=new_binding.motif_receipt_sha256,
+            sensory_evidence_receipt_sha256s=sensory_receipts,
+            coexperienced_scalar_text=turn.text,
+            scene_task_id=turn.task_id,
+            scene_language_text=turn.text,
+            engine_id=self._engine_id,
+        )
+        self._scene_archive = self._scene_archive.with_episode(episode)
+
         self._learned_state = new_state
         self._registry = new_state.receipt_registry
+        self._live_recall_state.update(
+            mode_bank=self._mode_bank,
+            scene_archive=self._scene_archive,
+            motif_kinds=self._learned_state.motif_kinds,
+        )
         self._persist_checkpoint()
 
     def _persist_checkpoint(self) -> None:
@@ -930,8 +1051,8 @@ class ProductionCleanConversationEngine:
             authentication_key=self._checkpoint_authentication_key,
             key_id=self._checkpoint_key_id,
         )
-        archive_bytes = recall_story_archive_checkpoint_payload(
-            archive=self._archive,
+        archive_bytes = coexperienced_scene_archive_checkpoint_payload(
+            archive=self._scene_archive,
             checkpoint_id=archive_checkpoint_id,
             authentication_key=self._checkpoint_authentication_key,
             key_id=self._checkpoint_key_id,

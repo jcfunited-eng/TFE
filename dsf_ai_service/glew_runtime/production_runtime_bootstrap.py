@@ -20,7 +20,7 @@ production functions ``six_lane_runtime_mount.mount_six_lane_runtime``,
 ``expression_learning.create_learned_binding_genesis`` /
 ``learn_committed_binding_transaction`` /
 ``restore_learned_binding_checkpoint``,
-``recall_story_episode_archive.restore_recall_story_archive_checkpoint``,
+``coexperienced_scene_archive.restore_coexperienced_scene_archive_checkpoint``,
 ``generation_identity.bind_generation_identity`` /
 ``verify_generation_identity_binding``, and
 ``immutable_generation_store.ImmutableGenerationStore`` already prove correct
@@ -191,8 +191,17 @@ from .real_experience_learning_pipeline import (
     _physical_l6_evaluation,
     _seal,
 )
-from .recall_reentry import FreshRecallSelfSenseProvider
-from .recall_story_episode_archive import RecallStoryEpisodeArchive, restore_recall_story_archive_checkpoint
+from .recall_reentry import fresh_recall_provider_authority_receipt_payload
+from .coexperienced_scene_archive import (
+    CoexperiencedSceneArchive,
+    restore_coexperienced_scene_archive_checkpoint,
+)
+from .coexperienced_scene_recall_executor import (
+    CoexperiencedSceneRecallExecutor,
+    CoexperiencedSceneRecallRuntime,
+    LiveRecallState,
+)
+from .coexperienced_scene_recall_provider import CoexperiencedSceneRecallProvider
 from .six_lane_runtime_mount import MountedSixLaneRuntime, mount_six_lane_runtime
 from .story_chemistry import (
     StoryChemistryRuntime,
@@ -736,7 +745,7 @@ def bootstrap_genesis_learned_binding_state(
 
 # ---------------------------------------------------------------------------
 # Restore path: real ``ImmutableGenerationStore`` -> real restored
-# LearnedBindingState / RecallStoryEpisodeArchive / GenerationIdentityBinding.
+# LearnedBindingState / CoexperiencedSceneArchive / GenerationIdentityBinding.
 # ---------------------------------------------------------------------------
 
 
@@ -746,12 +755,12 @@ def _restore_generation(
     checkpoint_authentication_key: bytes,
     checkpoint_key_id: str,
     generation_identity: GenerationIdentityParameters,
-) -> tuple[LearnedBindingState, RecallStoryEpisodeArchive]:
-    """Restore the real learned-binding state and recall archive from one
-    verified ``LoadedGeneration``, then cross-check the persisted generation
-    identity binding against the caller's own current genesis identity and
-    the two checkpoints' own restored ``checkpoint_id`` fields -- rejecting a
-    restart that mixes generations (``generation_identity.
+) -> tuple[LearnedBindingState, CoexperiencedSceneArchive]:
+    """Restore the real learned-binding state and coexperienced-scene archive
+    from one verified ``LoadedGeneration``, then cross-check the persisted
+    generation identity binding against the caller's own current genesis
+    identity and the two checkpoints' own restored ``checkpoint_id`` fields --
+    rejecting a restart that mixes generations (``generation_identity.
     verify_generation_identity_binding``'s own stated purpose)."""
 
     learning_envelope = loaded.payload(LEARNING_CHECKPOINT_RELATIVE_PATH)
@@ -768,7 +777,7 @@ def _restore_generation(
         authentication_key=checkpoint_authentication_key,
         expected_key_id=checkpoint_key_id,
     )
-    archive = restore_recall_story_archive_checkpoint(
+    archive = restore_coexperienced_scene_archive_checkpoint(
         checkpoint_payload=_archive_canonical_bytes(archive_envelope),
         authentication_key=checkpoint_authentication_key,
         expected_key_id=checkpoint_key_id,
@@ -808,7 +817,6 @@ def bootstrap_production_clean_conversation_engine(
     checkpoint_authentication_key: bytes,
     checkpoint_key_id: str,
     generation_identity: GenerationIdentityParameters,
-    fresh_recall_provider: FreshRecallSelfSenseProvider,
     engine_id: str = "clean-conversation-engine",
     genesis_root_scene_id: str | None = None,
     genesis_bootstrap_scene_id: str | None = None,
@@ -827,16 +835,20 @@ def bootstrap_production_clean_conversation_engine(
     3. Opens a real ``ImmutableGenerationStore`` at ``generation_store_root``.
        If a prior real generation already exists there (its ``CURRENT``
        pointer is present), restores ``LearnedBindingState``/
-       ``RecallStoryEpisodeArchive``/generation-identity from it via the
+       ``CoexperiencedSceneArchive``/generation-identity from it via the
        real, already-existing restore functions, cross-checked against
        ``generation_identity``. If none exists yet, lives two real scenes
        through the mounted runtime and builds a real, honest fresh-genesis
        ``LearnedBindingState`` (``initial_event`` always ``None``) --
        never fabricated learned content.
-    4. Returns a fully real, constructed ``ProductionCleanConversationEngine``
-       -- except ``fresh_recall_provider``, which remains a required,
-       pass-through parameter this function never constructs or defaults
-       (a separate, concurrent effort owns that gap).
+    4. Constructs the real fresh full-field recall subsystem
+       (``CoexperiencedSceneRecallProvider`` over a ``CoexperiencedScene
+       RecallExecutor``, sharing one ``LiveRecallState`` holder with the
+       engine) per ``docs/GL-SPC-RECALL-BASIN-RECONCILIATION-DESIGN-20260714-
+       v1.md`` section 7.2, and returns a fully real, constructed
+       ``ProductionCleanConversationEngine``. This is the whole point of
+       "build recall before wiring live": the bootstrap now constructs the
+       real provider instead of demanding an injected stub.
 
     See this module's own docstring, "Honest remaining gaps," for the two
     real limitations this function does not attempt to solve: no production
@@ -844,15 +856,11 @@ def bootstrap_production_clean_conversation_engine(
     ``six_lane_runtime_parameters``), and no ``ExpressionModeBank``
     checkpoint/restore mechanism exists anywhere in this repository (a
     restored generation's mode bank is always freshly mounted at rank zero,
-    regardless of how much has previously been learned).
+    so a restored generation's learned bindings and scene episodes survive
+    but become recall-inert until the substrate re-lives enough experience to
+    regrow their modes -- design section 9, the single remaining gate on
+    cross-restart recall).
     """
-
-    if fresh_recall_provider is None:
-        raise ReceiptError(
-            "production runtime bootstrap requires an injected fresh-recall "
-            "provider; constructing one is out of this module's scope (see "
-            "module docstring)"
-        )
 
     chemistry_envelope = authenticate_production_story_chemistry_profile(
         profile_body_payload=production_story_chemistry_profile_payload(),
@@ -911,10 +919,59 @@ def bootstrap_production_clean_conversation_engine(
         grown_runtime = result.mounted_runtime
         learned_state = result.genesis
         registry = result.receipt_registry
-        recall_archive = RecallStoryEpisodeArchive()
+        recall_archive = CoexperiencedSceneArchive()
 
     if receipt_registry is not None:
         registry = _merge_registry(receipt_registry, registry)
+
+    # -- construct the real fresh full-field recall subsystem (design 7.2.1) --
+    # One shared holder the engine republishes each turn and the provider reads
+    # at settle time (design section 5). Seeded with the current bank, the
+    # restored-or-empty scene archive, and the current learned motif-kind
+    # authorities.
+    live_recall_state = LiveRecallState(
+        mode_bank=grown_runtime.expression_mode_bank,
+        scene_archive=recall_archive,
+        motif_kinds=learned_state.motif_kinds,
+    )
+    # The same reused Fixed-42 L6 the engine computes once from the mounted
+    # runtime's already-reconciled pre-window (design section 3.6 / 6.2 step 6);
+    # deterministic, so this and the engine's own construction agree byte-for-
+    # byte. Its receipts fold into ``registry`` (deduplicated by the engine).
+    l6_evaluation, registry = _physical_l6_evaluation(
+        topology=grown_runtime.field_topology,
+        pre_window=grown_runtime.pre_window_state,
+        registry=registry,
+    )
+    recall_runtime = CoexperiencedSceneRecallRuntime(
+        mounted_runtime=grown_runtime,
+        engine_id=engine_id,
+        physical_profile_receipt_sha256=receipt_sha256(
+            _engine_physical_profile_payload(engine_id)
+        ),
+        typed_language_phase_calibration_id=six_lane_runtime_parameters.typed_language_phase_calibration_id,
+        typed_language_phase_kappa=six_lane_runtime_parameters.typed_language_phase_kappa,
+        chemistry_authentication_key=story_chemistry_authentication_key,
+        chemistry_key_id=story_chemistry_key_id,
+        l6_evaluation=l6_evaluation,
+    )
+    recall_executor = CoexperiencedSceneRecallExecutor(
+        executor_id=f"{engine_id}-coexperienced-scene-recall-executor",
+        runtime=recall_runtime,
+        live_recall_state=live_recall_state,
+    )
+    provider_id = f"{engine_id}-coexperienced-scene-recall-provider"
+    provider_authority_payload = fresh_recall_provider_authority_receipt_payload(
+        provider_id=provider_id,
+        profile_binding_sha256=registry.profile_binding_sha256,
+    )
+    registry = _extend_registry(registry, provider_authority_payload)
+    fresh_recall_provider = CoexperiencedSceneRecallProvider(
+        provider_id=provider_id,
+        profile_binding_sha256=registry.profile_binding_sha256,
+        executor=recall_executor,
+        authority_receipt_sha256=receipt_sha256(provider_authority_payload),
+    )
 
     return ProductionCleanConversationEngine(
         mounted_runtime=grown_runtime,
@@ -927,7 +984,8 @@ def bootstrap_production_clean_conversation_engine(
         generation_store=store,
         checkpoint_authentication_key=checkpoint_authentication_key,
         checkpoint_key_id=checkpoint_key_id,
-        recall_story_episode_archive=recall_archive,
+        coexperienced_scene_archive=recall_archive,
+        live_recall_state=live_recall_state,
         engine_id=engine_id,
     )
 
