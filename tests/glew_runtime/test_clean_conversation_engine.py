@@ -31,6 +31,7 @@ from dsf_ai_service.glew_runtime.clean_conversation_engine import (
     LEARNING_CHECKPOINT_RELATIVE_PATH,
     GenerationIdentityParameters,
     ProductionCleanConversationEngine,
+    _LEARN_SUCCESSOR_ALREADY_EXISTS_MESSAGE,
     _scene_descriptors,
 )
 from dsf_ai_service.glew_runtime.commit import CommitStatus
@@ -690,6 +691,98 @@ def test_real_end_to_end_commit_and_learn_no_monkeypatching(fixture, tmp_path_fa
     # The engine archived the coexperienced scene it just learned (design 7.1.3):
     # exactly one episode, keyed to the learned binding's six-lane receipts.
     assert len(archive_payload["body"]["episodes"]) == 1
+
+
+def test_committed_turn_whose_mode_is_exhausted_degrades_to_honest_silence_not_a_raised_error(
+    fixture, tmp_path_factory, capsys
+):
+    """The exact fault class the live "hello there" turn hit, reproduced at
+    the real engine boundary with no monkeypatching.
+
+    Driving the fixture's own root scene ('a') against the fixture's real
+    ``learned`` state commits and learns a new successor for real (the first
+    call is exactly ``test_real_end_to_end_commit_and_learn_no_monkeypatching``
+    above -- it persists checkpoint generation 0 and now leaves BOTH of this
+    two-mode bank's modes holding their one permitted successor). Replaying
+    that SAME real root scene immediately afterward genuinely recognizes and
+    fully commits again -- so its learn step runs for real -- but the mode it
+    committed against already holds its one learned successor, so
+    ``expression_learning.learn_committed_binding_transaction`` hits its real
+    one-successor-per-mode invariant.
+
+    Per the owner's explicit instruction ("failure must remain loud in
+    diagnostics but must never become spoken output"), that structurally
+    expected learn fault is degraded to honest typed silence -- the real,
+    already-succeeded recognition + commit result is kept and returned, never
+    raised as a ``ReceiptError`` and never fabricated into content -- while
+    the real exception type and message are logged loudly to the ``[glew]``
+    diagnostics channel. No further checkpoint generation is persisted for the
+    silent turn (there was nothing new to learn)."""
+
+    generation_store = _new_generation_store(tmp_path_factory)
+    engine = _build_engine(
+        mounted_runtime=fixture["mounted_runtime"],
+        learned_state=fixture["learned"],
+        registry=fixture["registry"],
+        generation_store=generation_store,
+    )
+
+    turn = _turn(fixture["root_task_id"], "a")
+
+    # First call: a real commit that genuinely learns + persists generation 0.
+    first = engine.run_clean_conversation(turn=turn, story_chemistry=fixture["root_chemistry"])
+    first.verify()
+    assert first.initial_event_receipt_sha256 is not None
+    assert generation_store.load_current().tick == 0
+    capsys.readouterr()  # discard first-call output; we assert on the second
+
+    # Second call: same real scene. Recognition + full-field commit succeed
+    # again, but the learn step now hits the one-successor-per-mode invariant.
+    second = engine.run_clean_conversation(turn=turn, story_chemistry=fixture["root_chemistry"])
+    second.verify()
+
+    # The commit really happened (this is why the learn step ran at all) ...
+    assert second.initial_event_receipt_sha256 is not None
+    # ... but the turn honestly learned nothing new, so its output is typed
+    # silence -- NOT a raised error, NOT fabricated content.
+    assert second.status is ConversationStatus.EXPLICIT_UNKNOWN_SILENCE
+    assert second.silent is True
+    assert second.visible_text == ""
+
+    # The real fault stayed LOUD in diagnostics (stdout), carrying the real
+    # exception type and message -- never surfaced as spoken output.
+    captured = capsys.readouterr()
+    assert "learn-and-persist degraded to honest typed silence" in captured.out
+    assert _LEARN_SUCCESSOR_ALREADY_EXISTS_MESSAGE in captured.out
+    assert "ReceiptError" in captured.out
+
+    # No new checkpoint generation was persisted for the silent turn: the
+    # engine's learned state was left exactly as the first call left it.
+    assert generation_store.load_current().tick == 0
+
+
+def test_learn_guard_does_not_swallow_a_genuinely_malformed_caller_turn(
+    fixture, tmp_path_factory
+):
+    """Proof the honest-silence degradation did NOT overcorrect into hiding
+    real caller/transport defects. The learn-path guard converts exactly one
+    exact, named, structurally-verified fault (the one-successor-per-mode
+    invariant) to silence; a genuinely malformed caller request -- here, a
+    story chemistry that is not a real mounted ``StoryChemistryRuntime`` --
+    is an actual integration bug, not honest cognitive uncertainty, and must
+    still surface as a real, raised error rather than being silently swallowed
+    into fabricated typed silence."""
+
+    generation_store = _new_generation_store(tmp_path_factory)
+    engine = _build_engine(
+        mounted_runtime=fixture["mounted_runtime"],
+        learned_state=fixture["learned"],
+        registry=fixture["registry"],
+        generation_store=generation_store,
+    )
+    turn = _turn(fixture["root_task_id"], "a")
+    with pytest.raises(ReceiptError, match="mounted story chemistry runtime"):
+        engine.run_clean_conversation(turn=turn, story_chemistry=object())
 
 
 def test_missing_fresh_recall_provider_is_rejected_at_construction(fixture, tmp_path_factory):

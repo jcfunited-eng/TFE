@@ -266,6 +266,24 @@ _SOMATIC_ROTATION: tuple[tuple[str | None, str | None, str | None], ...] = (
     ("dry", None, None),
 )
 
+# The exact, single message ``expression_learning.
+# learn_committed_binding_transaction`` raises (that module, the "prior
+# committed mode already has a learned successor" guard) when a real,
+# already-committed turn cannot ALSO learn a new successor because the mode it
+# committed against already holds its one permitted learned successor. This is
+# a real, intentional one-successor-per-mode invariant -- ``LearnedBindingState.
+# verify`` treats "learned mode has more than one successor" as a first-class
+# state invariant too. This module never re-implements that invariant; it only
+# recognizes this exact fault (see ``_learn_and_persist``) so it can degrade it
+# to honest typed silence instead of letting a raw internal fault surface as
+# spoken output. Kept as a named constant, mirrored by a test that asserts it
+# still equals the message the committed code actually raises, so a future
+# reword of that message fails a test loudly (re-surfacing the raw error, the
+# safe direction) rather than silently un-catching in production.
+_LEARN_SUCCESSOR_ALREADY_EXISTS_MESSAGE = (
+    "prior committed mode already has a learned successor"
+)
+
 
 def _canonical_bytes(value: object) -> bytes:
     return json.dumps(
@@ -1038,15 +1056,71 @@ class ProductionCleanConversationEngine:
         # mechanism, exercised by ``real_experience_learning_pipeline.
         # close_real_multimodal_expression``), applied when an utterance is
         # genuinely complete -- not smuggled into every single-scalar turn.
-        new_state = learn_committed_binding_transaction(
-            state=self._learned_state,
-            committed=committed,
-            coexperienced_output=CoexperiencedOutput.from_typed_scalar(language_input),
-            prior_relation=prior_relation,
-            relation_id=f"{turn.task_id}-learn-{self._checkpoint_tick}",
-            expression_close=False,
-            receipt_registry=registry,
-        )
+        try:
+            new_state = learn_committed_binding_transaction(
+                state=self._learned_state,
+                committed=committed,
+                coexperienced_output=CoexperiencedOutput.from_typed_scalar(language_input),
+                prior_relation=prior_relation,
+                relation_id=f"{turn.task_id}-learn-{self._checkpoint_tick}",
+                expression_close=False,
+                receipt_registry=registry,
+            )
+        except ReceiptError as learn_error:
+            # A real, already-succeeded recognition + full-field commit for
+            # this turn (the caller only reaches this method when
+            # ``result.initial_event_receipt_sha256 is not None``) cannot ALSO
+            # learn a new successor, because the mode it committed against
+            # already holds its one permitted learned successor. This is the
+            # STRUCTURALLY-EXPECTED outcome of re-experiencing a known anchor
+            # scene -- exactly how recall is meant to be triggered (see this
+            # method's own expression-close reasoning above), and exactly the
+            # fault the live "hello there" turn hit. It is honest cognitive
+            # "nothing new to learn this turn," NOT a malformed-input/transport
+            # defect, and never a reason to fabricate output: the real,
+            # already-computed recognition + commit result is kept and returned
+            # unchanged by ``_run_locked``; only this learn-and-persist side
+            # effect is skipped. ``learn_committed_binding_transaction`` raises
+            # this BEFORE mutating any state (it builds a new state and returns
+            # it; on this raise nothing is assigned to ``self``), so this
+            # engine's learned state, scene archive, registry and checkpoint
+            # tick are all left exactly as they were.
+            #
+            # This converts ONLY that one exact, named, structurally-verified
+            # fault to honest silence. Any OTHER real learn fault is a genuine
+            # internal defect, not honest uncertainty, and must still surface
+            # loudly as a real error -- so it is deliberately re-raised unless
+            # BOTH the exact invariant message AND the live structural
+            # precondition (the mode really does already have a successor in
+            # this engine's own unmutated stable bank) hold. When unsure,
+            # louder is safer than silently hiding a genuine bug.
+            mode_already_has_successor = any(
+                binding.mode_receipt_sha256
+                == prior_relation.selected_mode_receipt_sha256
+                for binding in self._learned_state.stable_bank.bindings
+            )
+            if (
+                _LEARN_SUCCESSOR_ALREADY_EXISTS_MESSAGE not in str(learn_error)
+                or not mode_already_has_successor
+            ):
+                raise
+            # Loud diagnostic, per the owner's explicit instruction: failure
+            # stays loud in diagnostics but must never become spoken output.
+            # Printed to stdout (the established ``[glew]`` diagnostics channel;
+            # captured by the deployment's log stream) with the real exception
+            # type and message, so this remains fully diagnosable by a real
+            # operator while the conversational interface only ever sees honest
+            # typed silence.
+            print(
+                "[glew] learn-and-persist degraded to honest typed silence for "
+                f"turn {turn.task_id!r}: {type(learn_error).__name__}: "
+                f"{learn_error} -- the committed mode already holds its one "
+                "learned successor, so this turn learned nothing new; the real "
+                "recognition+commit result is kept unchanged (no fabricated "
+                "output).",
+                flush=True,
+            )
+            return
 
         # Archive the coexperienced scene so a later turn's fresh full-field
         # recall can deterministically reconstruct it (design section 7.1.3).

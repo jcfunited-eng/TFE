@@ -193,8 +193,8 @@ def test_multi_scalar_turn_commits_and_learns_from_its_first_scalar(fixture, tmp
     assert learning_payload["body"]["schema"] == "glew.learning.binding_checkpoint.v1"
 
 
-def test_multi_scalar_turn_second_scalar_honestly_fails_once_the_first_exhausts_the_only_open_learning_slot(
-    fixture, tmp_path_factory
+def test_multi_scalar_turn_second_scalar_exhausts_its_only_open_learning_slot_and_stays_honest_silence(
+    fixture, tmp_path_factory, capsys
 ):
     """A real, empirically-confirmed (not assumed) consequence of running two
     scalars in real sequence on the same engine instance: this fixture's
@@ -214,15 +214,20 @@ def test_multi_scalar_turn_second_scalar_honestly_fails_once_the_first_exhausts_
     above), and the SECOND scalar -- run on the very same engine instance
     immediately afterward, its own recognition and commit conjunction ALSO
     genuinely succeeding -- finds both of this bank's two modes already
-    used up. Its own real learning step therefore genuinely, honestly fails
-    closed. This is a real per-scalar consequence of the first scalar's own
-    real learning, not a fabricated symptom -- and this scheduler does not
-    swallow it, retry it, or convert it into a fabricated typed silence: it
-    propagates as a real ``ReceiptError``, exactly like the underlying
-    engine's own fail-closed behavior elsewhere (``_learn_and_persist`` is
-    called outside any try/except in ``clean_conversation_engine.py``'s own
-    ``_run_locked``, so this is the engine's own real behavior, not
-    something the scheduler introduces)."""
+    used up. Its own real learning step therefore genuinely, honestly hits
+    the one-successor-per-mode invariant.
+
+    This is the EXACT class of fault the live "hello there" turn hit. Per the
+    owner's explicit instruction ("failure must remain loud in diagnostics
+    but must never become spoken output"), the engine now degrades ONLY that
+    learn-and-persist failure to honest typed silence -- keeping the real,
+    already-succeeded recognition+commit result -- and logs the real fault
+    loudly to the ``[glew]`` diagnostics channel. So the second scalar is a
+    genuine commit that honestly learned nothing new (typed silence), NOT a
+    raised ``ReceiptError`` surfaced as the conversational response, and NOT
+    fabricated content. This scheduler still never swallows, retries, or
+    fabricates anything itself: it simply reports the engine's real per-scalar
+    results verbatim."""
 
     generation_store = _new_generation_store(tmp_path_factory)
     engine = _build_engine(
@@ -233,17 +238,34 @@ def test_multi_scalar_turn_second_scalar_honestly_fails_once_the_first_exhausts_
     )
     scheduler = MultiScalarTurnScheduler(engine=engine)
 
-    with pytest.raises(ReceiptError, match="already has a learned successor"):
-        scheduler.run_turn(
-            task_id="multi-scalar-exhaust-turn",
-            text="qp",
-            story_chemistry=fixture["root_chemistry"],
-        )
+    result = scheduler.run_turn(
+        task_id="multi-scalar-exhaust-turn",
+        text="qp",
+        story_chemistry=fixture["root_chemistry"],
+    )
 
-    # The first scalar's real commit+learn+persist still genuinely happened
-    # before the second scalar's real failure -- this scheduler does not
-    # roll it back, since the underlying engine itself owns no such
-    # transactionality across two separate real causal windows either.
+    # No raised error reaches the caller -- the exhausted second scalar is
+    # honest typed silence, not a raw internal fault surfaced as output.
+    assert len(result.outcomes) == 2
+    second = result.outcomes[1]
+    # The second scalar's own recognition + full-field commit genuinely
+    # succeeded (that is precisely why its learn step ran at all) ...
+    assert second.committed is True
+    # ... but it honestly learned nothing new, so its real output is typed
+    # silence, never a fabricated reply.
+    assert second.silent is True
+    assert second.result.visible_text == ""
+    assert result.all_silent is True
+
+    # The real fault stayed LOUD in diagnostics: the engine printed the real
+    # exception type and message to the [glew] channel (never spoken output).
+    captured = capsys.readouterr()
+    assert "learn-and-persist degraded to honest typed silence" in captured.out
+    assert "already has a learned successor" in captured.out
+
+    # The first scalar's real commit+learn+persist still genuinely happened;
+    # the second scalar's skipped learn persisted nothing further -- exactly
+    # one checkpoint generation, not two.
     current = generation_store.load_current()
     assert current.tick == 0
 
