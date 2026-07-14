@@ -208,7 +208,9 @@ def _build_scene(*, mounted_runtime, task_id: str, text: str, chemistry_runtime,
 
     trits = encode_balanced_ternary_scalar(ord(text))
     valid_count = sum(1 for trit in trits if trit.valid)
-    descriptors = _scene_descriptors(task_id, count=valid_count)
+    # ``task_id`` no longer feeds sensory content (design v3); it still names
+    # this scene's receipts below, exactly as the engine's own path does.
+    descriptors = _scene_descriptors(count=valid_count)
     bridge = _evolve_real_causal_window(
         chemistry_runtime, scene_id=task_id, descriptors=descriptors
     )

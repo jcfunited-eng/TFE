@@ -386,7 +386,13 @@ class CoexperiencedSceneRecallExecutor:
         chemistry = self._mount_chemistry()
         trits = encode_balanced_ternary_scalar(ord(text))
         valid_count = sum(1 for trit in trits if trit.valid)
-        descriptors = _scene_descriptors(task_id, count=valid_count)
+        # Sensory content is a function of ``valid_count`` (the archived text's
+        # length) alone -- NOT ``task_id`` (design v3). Reproduction of an
+        # archived scene therefore no longer depends on threading the exact id
+        # string into a hash; it depends only on the archived text, which
+        # ``episode`` already holds. ``task_id`` still names the reconstructed
+        # receipts below, exactly as at learn time, so their hashes match.
+        descriptors = _scene_descriptors(count=valid_count)
         bridge = _evolve_real_causal_window(chemistry, scene_id=task_id, descriptors=descriptors)
         registry = _merge_registry(registry, bridge.receipt_registry)
 

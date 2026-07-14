@@ -477,7 +477,11 @@ def _build_genesis_scene(
 
     trits = encode_balanced_ternary_scalar(ord(text))
     valid_count = sum(1 for trit in trits if trit.valid)
-    descriptors = _scene_descriptors(task_id, count=valid_count)
+    # Genesis "a" and "b" now share the exact same fixed sensory scene and
+    # differ only in their language lane -- the request UUID (here the fixed
+    # genesis ``task_id``) has no physical authority over sensory content
+    # (design v3). ``task_id`` still names the scene's receipts below.
+    descriptors = _scene_descriptors(count=valid_count)
     bridge = _evolve_real_causal_window(chemistry_runtime, scene_id=task_id, descriptors=descriptors)
     registry = _merge_registry(registry, bridge.receipt_registry)
 

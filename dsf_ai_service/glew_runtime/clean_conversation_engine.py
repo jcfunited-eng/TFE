@@ -271,6 +271,20 @@ _SOMATIC_ROTATION: tuple[tuple[str | None, str | None, str | None], ...] = (
     ("dry", None, None),
 )
 
+# The fixed, canonical sight/sound reading that stands in for "no real
+# camera/mic attached this turn" -- see ``_scene_descriptors``. These are the
+# exact values the prior per-``task_id`` SHA-256 seed produced when its seed
+# byte was zero (``fill_value = 0.15 + (0/255)*0.7 == 0.15``; ``visual_seed =
+# 10_000 + index*257 + 0``; ``born_tick = index*100 + 0``), so the descriptor
+# formulas, the ``InstantDescriptor`` shape, and every downstream frame are
+# byte-identical in structure -- only the cross-request random variation is
+# removed. Named and greppable so the "this is the reproducible placeholder for
+# absent real capture, NOT a sensed value" intent is legible: the request UUID
+# has no physical authority over sensory content (design
+# ``GL-SPC-REPRODUCIBLE-EXPERIENCE-IDENTITY-DESIGN-20260714-v3`` sections 2, 4.3).
+_CANONICAL_ABSENT_FILL_VALUE = 0.15
+_CANONICAL_ABSENT_VISUAL_SEED_BASE = 10_000
+
 # The exact, single message ``expression_learning.
 # learn_committed_binding_transaction`` raises (that module, the "prior
 # committed mode already has a learned successor" guard) when a real,
@@ -353,10 +367,11 @@ def _merge_registry(registry: ReceiptRegistry, addition: ReceiptRegistry) -> Rec
 
 
 def _scene_descriptors(
-    task_id: str, *, count: int = _SCENE_INSTANT_COUNT
+    *, count: int = _SCENE_INSTANT_COUNT
 ) -> tuple[InstantDescriptor, ...]:
-    """``count`` real, deterministic-but-turn-distinguishing instant
-    descriptors.
+    """``count`` real, deterministic instant descriptors representing the
+    fixed, reproducible "no real camera/mic attached this turn" sensory
+    reading.
 
     ``count`` MUST equal how many valid balanced-ternary trit places the
     scene's own typed-language scalar requires (see
@@ -372,14 +387,24 @@ def _scene_descriptors(
     four places, against a caller that had hardcoded five) rather than
     silently fabricating anything.
 
-    Derived only from ``task_id`` -- an opaque transport identifier, never
-    the turn's spoken/typed meaning -- via a plain SHA-256 digest (not
-    Python's salted ``hash()``; this substrate's own history
-    (``gualaloom-capacity-probe-reproducibility``) already found that
-    ``hash()`` is unsuitable for anything requiring cross-process
-    reproducibility). Touch/smell/taste rotate through the same fixed
-    "legitimate somatic vocabulary" tuples Step 4's own descriptors already
-    use; no sensory value is ever derived from the text content itself.
+    Derived from the instant POSITION only -- never from the turn's transport
+    id (the request UUID is deliberately removed from this function's
+    signature so it CANNOT have physical authority over sensory content:
+    design ``GL-SPC-REPRODUCIBLE-EXPERIENCE-IDENTITY-DESIGN-20260714-v3``
+    sections 2, 3.3, 4) and never from the turn's text content (the standing
+    prohibition -- no sensory value is ever derived from the spoken/typed
+    meaning). The same canonical scene is therefore produced for every turn of
+    a given length, so recognition (which operates on the numeric field, not
+    on any id) can see a recurring language pattern across distinct moments;
+    distinct MOMENTS are still distinguished, correctly, by their receipt
+    identity (the id-bearing ``scene_id``/``event_id``/``identity`` naming the
+    callers keep), not by manufactured sensory noise. Sight/sound take the
+    fixed ``_CANONICAL_ABSENT_*`` reading (byte-identical in structure to the
+    old per-id formulas with a zero seed byte, so intra-scene variation across
+    ``index`` is preserved and only the cross-request randomness is removed);
+    touch/smell/taste rotate through the same fixed "legitimate somatic
+    vocabulary" tuples -- already position-indexed and thus never part of the
+    request-id defect.
     """
 
     if not isinstance(count, int) or count < 2:
@@ -387,15 +412,12 @@ def _scene_descriptors(
             "scene descriptor count must be a real integer of at least two "
             "(a causal window candidate requires at least two real instants)"
         )
-    import hashlib
 
-    digest = hashlib.sha256(task_id.encode("utf-8")).digest()
     descriptors = []
     for index in range(count):
-        byte = digest[index]
-        fill_value = 0.15 + (byte / 255.0) * 0.7
-        visual_seed = 10_000 + (index * 257) + byte
-        born_tick = index * 100 + byte
+        fill_value = _CANONICAL_ABSENT_FILL_VALUE
+        visual_seed = _CANONICAL_ABSENT_VISUAL_SEED_BASE + (index * 257)
+        born_tick = index * 100
         touch, smell, taste = _SOMATIC_ROTATION[index % len(_SOMATIC_ROTATION)]
         descriptors.append(
             InstantDescriptor(fill_value, visual_seed, born_tick, touch, smell, taste)
@@ -742,7 +764,12 @@ class ProductionCleanConversationEngine:
             )
 
         registry = self._registry
-        descriptors = _scene_descriptors(turn.task_id, count=valid_count)
+        # NB: ``turn.task_id`` is deliberately NOT passed here -- the request
+        # UUID has no physical authority over sensory content (design v3). It
+        # legitimately remains the scene's receipt-identity naming below
+        # (``scene_id``/``event_id``/``source_epoch``/``identity``), which is
+        # bookkeeping, not physical percept.
+        descriptors = _scene_descriptors(count=valid_count)
         bridge = _evolve_real_causal_window(
             story_chemistry,
             scene_id=turn.task_id,
