@@ -198,8 +198,18 @@ def production_six_lane_runtime_parameters(
         sensor_port_receipt_payloads=sensor_port_receipt_payloads,
         five_sense_topology_id=f"{engine_id}-five-sense-topology",
         causal_grid_id=f"{engine_id}-causal-grid",
-        causal_timestamps=tuple(Fraction(index) for index in range(1, 6)),
-        causal_positive_weights=tuple(Fraction(1) for _ in range(5)),
+        # Six, not five: confirmed live that the mounted runtime's own
+        # max grid size is a hard ceiling per turn (any scalar needing more
+        # valid balanced-ternary trit places than this is honestly rejected,
+        # clean_conversation_engine.py's _build_turn_expression). Measured
+        # directly across the full standard keyboard + Latin-1 range
+        # (codepoints 32-255): the true maximum is six valid trit places
+        # (e.g. 'z'), not five -- a grid of five silently rejected roughly a
+        # third of ordinary printable characters, which is why "coherent
+        # multiword" typed conversation could not work: any sentence
+        # containing one of those characters failed outright.
+        causal_timestamps=tuple(Fraction(index) for index in range(1, 7)),
+        causal_positive_weights=tuple(Fraction(1) for _ in range(6)),
         five_sense_support_domain_id=f"{engine_id}-five-sense-support",
         five_sense_resonance_graph_id=f"{engine_id}-five-sense-resonance",
         five_sense_resonance_required_edges=five_sense_edges,

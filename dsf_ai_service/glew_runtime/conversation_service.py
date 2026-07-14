@@ -64,7 +64,7 @@ def clean_conversation_turn_receipt_payload(
     text: str,
     source: str,
 ) -> bytes:
-    if not isinstance(text, str) or not text.strip():
+    if not isinstance(text, str) or not text:
         raise ReceiptError("clean conversation text must contain an experience")
     return _canonical_bytes(
         {

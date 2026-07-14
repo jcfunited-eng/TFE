@@ -84,7 +84,7 @@ from .expressions import (
     evaluate_closed_experience_expression,
 )
 from .field import PortTransportEvidence
-from .language import TypedLanguageFrozenKernelInput
+from .language import TypedLanguageFrozenKernelInput, encode_balanced_ternary_scalar
 from .model import ReceiptError, ReceiptRecord, ReceiptRegistry, receipt_sha256, require_identifier
 from .output import (
     CommittedMotifEvent,
@@ -99,6 +99,7 @@ from .real_experience_learning_pipeline import (
     _build_expression,
     _build_typed_language_lane,
     _evolve_real_causal_window,
+    _mount_causal_grid,
     _seal,
 )
 from .safe_mode import (
@@ -383,9 +384,21 @@ class CoexperiencedSceneRecallExecutor:
         text = episode.scene_language_text
 
         chemistry = self._mount_chemistry()
-        descriptors = _scene_descriptors(task_id)
+        trits = encode_balanced_ternary_scalar(ord(text))
+        valid_count = sum(1 for trit in trits if trit.valid)
+        descriptors = _scene_descriptors(task_id, count=valid_count)
         bridge = _evolve_real_causal_window(chemistry, scene_id=task_id, descriptors=descriptors)
         registry = _merge_registry(registry, bridge.receipt_registry)
+
+        # Same real length as this scene's own streams (valid_count), not the
+        # engine's fixed mounted causal_grid -- see clean_conversation_engine
+        # ._build_turn_expression's own comment for why a size mismatch here
+        # raises "native stream does not match common causal grid".
+        scene_grid, registry = _mount_causal_grid(
+            grid_id=f"{task_id}-scene-causal-grid",
+            timestamps=tuple(Fraction(index) for index in range(1, valid_count + 1)),
+            registry=registry,
+        )
 
         language_input, registry = _build_typed_language_lane(
             binding=mounted.typed_language_kernel_binding,
@@ -402,7 +415,7 @@ class CoexperiencedSceneRecallExecutor:
             streams=(language_input.stream, *bridge.streams),
             kernel_inputs=(language_input.kernel_input, *bridge.kernel_inputs),
             source_time_start=Fraction(0),
-            grid=mounted.causal_grid,
+            grid=scene_grid,
             support_domain=mounted.support_domain,
             resonance_graph=mounted.resonance_graph,
             resonance_operator=mounted.resonance_operator,

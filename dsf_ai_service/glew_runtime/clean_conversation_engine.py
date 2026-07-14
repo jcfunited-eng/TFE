@@ -215,6 +215,7 @@ from .real_experience_learning_pipeline import (
     _build_expression,
     _build_typed_language_lane,
     _evolve_real_causal_window,
+    _mount_causal_grid,
     _physical_l6_evaluation,
     _seal,
 )
@@ -243,11 +244,19 @@ CHECKPOINT_RELATIVE_PATHS = (
 )
 
 _SCENE_INSTANT_COUNT = 5
-"""Matches ``real_experience_learning_pipeline.py``'s own five-instant scene
-shape (see that module's docstring: the typed-language scalar's real
-balanced-ternary encoding needs up to five valid trit places for the
-characters this engine has actually been proven against, and the language
-lane must share one common causal grid with the senses)."""
+"""Historical default retained only for callers that still want a fixed
+five-instant scene (e.g. bootstrap genesis scenes using 'a'/'b', which both
+happen to need exactly five valid trit places). Real per-turn scene
+construction must NOT assume this -- see ``_scene_descriptors``'s ``count``
+parameter and ``real_experience_learning_pipeline._evolve_real_causal_window``'s
+own docstring: N is driven by how many valid balanced-ternary trit places
+the scene's own typed-language scalar actually requires, which is NOT always
+five (confirmed directly: space needs four, many letters need six). A prior
+version of this module hardcoded five unconditionally, which every existing
+test happened never to catch because every fixture only ever used 'a'/'b' --
+both of which need exactly five. This was found live, from a real multi-word
+sentence containing a space failing with "native stream does not match
+common causal grid"."""
 
 _SOMATIC_ROTATION: tuple[tuple[str | None, str | None, str | None], ...] = (
     ("warm", None, None),
@@ -314,8 +323,25 @@ def _merge_registry(registry: ReceiptRegistry, addition: ReceiptRegistry) -> Rec
     return _extend_registry(registry, *(value.payload for value in addition.records))
 
 
-def _scene_descriptors(task_id: str) -> tuple[InstantDescriptor, ...]:
-    """Five real, deterministic-but-turn-distinguishing instant descriptors.
+def _scene_descriptors(
+    task_id: str, *, count: int = _SCENE_INSTANT_COUNT
+) -> tuple[InstantDescriptor, ...]:
+    """``count`` real, deterministic-but-turn-distinguishing instant
+    descriptors.
+
+    ``count`` MUST equal how many valid balanced-ternary trit places the
+    scene's own typed-language scalar requires (see
+    ``_evolve_real_causal_window``'s own docstring) -- the sensory lanes
+    built from these descriptors must share one common causal grid with the
+    language lane, and the language lane only ever produces one real sample
+    per valid trit place. Every caller MUST compute this from the real
+    scalar being processed (``sum(1 for trit in encode_balanced_ternary_scalar(
+    ord(text)) if trit.valid)``); the parameter has no safe default because a
+    fixed guess silently produces a shorter or longer sensory stream than the
+    real language stream, which fails closed downstream (a real, caught
+    integrity check -- confirmed live for a space character, which needs
+    four places, against a caller that had hardcoded five) rather than
+    silently fabricating anything.
 
     Derived only from ``task_id`` -- an opaque transport identifier, never
     the turn's spoken/typed meaning -- via a plain SHA-256 digest (not
@@ -327,11 +353,16 @@ def _scene_descriptors(task_id: str) -> tuple[InstantDescriptor, ...]:
     use; no sensory value is ever derived from the text content itself.
     """
 
+    if not isinstance(count, int) or count < 2:
+        raise ReceiptError(
+            "scene descriptor count must be a real integer of at least two "
+            "(a causal window candidate requires at least two real instants)"
+        )
     import hashlib
 
     digest = hashlib.sha256(task_id.encode("utf-8")).digest()
     descriptors = []
-    for index in range(_SCENE_INSTANT_COUNT):
+    for index in range(count):
         byte = digest[index]
         fill_value = 0.15 + (byte / 255.0) * 0.7
         visual_seed = 10_000 + (index * 257) + byte
@@ -682,13 +713,31 @@ class ProductionCleanConversationEngine:
             )
 
         registry = self._registry
-        descriptors = _scene_descriptors(turn.task_id)
+        descriptors = _scene_descriptors(turn.task_id, count=valid_count)
         bridge = _evolve_real_causal_window(
             story_chemistry,
             scene_id=turn.task_id,
             descriptors=descriptors,
         )
         registry = _merge_registry(registry, bridge.receipt_registry)
+
+        # This turn's own real streams (sensory, from the `valid_count`
+        # descriptors above; language, filtered to `valid_count` valid trit
+        # timestamps by _build_typed_language_lane below) carry exactly
+        # `valid_count` samples -- never the engine's fixed mounted
+        # causal_grid's own timestamp count (which is a per-generation
+        # maximum, not every turn's real length; see `_scene_descriptors`'s
+        # own docstring). `prepare_closed_experience_evidence` requires every
+        # stream's real timestamps to equal this grid's exactly, so the grid
+        # passed to it here must be minted to this turn's own real length,
+        # not the runtime's fixed one -- found live: a mismatch here is what
+        # raised "native stream does not match common causal grid" for any
+        # scalar (e.g. a space) needing fewer places than the runtime's max.
+        scene_grid, registry = _mount_causal_grid(
+            grid_id=f"{turn.task_id}-scene-causal-grid",
+            timestamps=tuple(Fraction(index) for index in range(1, valid_count + 1)),
+            registry=registry,
+        )
 
         language_input, registry = _build_typed_language_lane(
             binding=self._mounted_runtime.typed_language_kernel_binding,
@@ -704,6 +753,7 @@ class ProductionCleanConversationEngine:
         preparation = self._prepare_evidence(
             language_input=language_input,
             bridge=bridge,
+            grid=scene_grid,
             registry=registry,
         )
         registry = preparation.receipt_registry
@@ -718,14 +768,14 @@ class ProductionCleanConversationEngine:
         )
         return expression, language_input, preparation, registry
 
-    def _prepare_evidence(self, *, language_input, bridge, registry: ReceiptRegistry):
+    def _prepare_evidence(self, *, language_input, bridge, grid, registry: ReceiptRegistry):
         from .closed_experience import ClosedExperienceProviderUnknown, prepare_closed_experience_evidence
 
         preparation = prepare_closed_experience_evidence(
             streams=(language_input.stream, *bridge.streams),
             kernel_inputs=(language_input.kernel_input, *bridge.kernel_inputs),
             source_time_start=Fraction(0),
-            grid=self._mounted_runtime.causal_grid,
+            grid=grid,
             support_domain=self._mounted_runtime.support_domain,
             resonance_graph=self._mounted_runtime.resonance_graph,
             resonance_operator=self._mounted_runtime.resonance_operator,

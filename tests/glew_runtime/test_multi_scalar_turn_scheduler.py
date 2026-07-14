@@ -288,11 +288,15 @@ def test_multi_scalar_turn_raises_from_a_later_scalar_after_an_earlier_one_succe
     silence result to paper over it (see ``clean_conversation_engine.py``'s
     own module docstring: "a malformed turn is a caller/transport defect,
     not a case of honest cognitive uncertainty"). ``'a'`` (codepoint 97)
-    needs only 5 valid balanced-ternary trit places, exactly matching this
-    fixture's 5-timestamp causal grid; ``'z'`` (codepoint 122) genuinely
-    needs 6, which this real fixture's real causal grid cannot carry --
-    confirmed directly against ``encode_balanced_ternary_scalar`` before
-    writing this test, not assumed."""
+    needs only 5 valid balanced-ternary trit places, comfortably inside this
+    fixture's 6-timestamp causal grid (the real, verified maximum across the
+    standard keyboard + Latin-1 range -- confirmed live this session that a
+    5-timestamp grid silently rejected roughly a third of ordinary printable
+    characters, e.g. 'z', which needs exactly 6 and now fits); ``'ŭ'``
+    (u-breve, codepoint 365) genuinely needs 7, which this real fixture's
+    real causal grid cannot carry -- confirmed directly against
+    ``encode_balanced_ternary_scalar`` before writing this test, not
+    assumed."""
 
     generation_store = _new_generation_store(tmp_path_factory)
     engine = _build_engine(
@@ -306,6 +310,59 @@ def test_multi_scalar_turn_raises_from_a_later_scalar_after_an_earlier_one_succe
     with pytest.raises(ReceiptError, match="valid balanced-ternary"):
         scheduler.run_turn(
             task_id="overflowing-scalar-turn",
-            text="az",
+            text="aŭ",
             story_chemistry=_mount_test_chemistry_runtime(),
         )
+
+
+def test_multi_word_sentence_with_spaces_and_wide_character_coverage(
+    fixture, tmp_path_factory
+):
+    """Regression proof for a real, previously-live bug: every character in
+    a real multi-word sentence must process without error, INCLUDING the
+    space between words.
+
+    Found live this session: ``clean_conversation_engine.py`` built the
+    sensory lanes' causal window from a hardcoded five-instant descriptor
+    count, while the language lane already correctly sized itself to
+    however many valid balanced-ternary trit places the turn's own scalar
+    needed. Every prior test in this codebase happened to use only 'a'/'b'
+    as scalars, which both need exactly five places, so the mismatch never
+    surfaced. A space needs four; a real sentence containing one failed
+    outright with "native stream does not match common causal grid" --
+    meaning no real multi-word sentence could ever be processed, which is
+    exactly the coherent-multiword-conversation objective this whole
+    engine exists to serve. Fixed by minting a per-turn causal grid sized
+    to the scalar's own real valid-place count instead of assuming a fixed
+    size, and by widening the engine's own mounted maximum grid from five
+    to six (the real, measured maximum across the standard keyboard +
+    Latin-1 range) so characters like 'z' (needing six) are not honestly
+    but unnecessarily rejected either.
+
+    Drives a real sentence with a space, punctuation, and a mix of 4/5/6
+    -valid-place characters through the real scheduler end-to-end -- no
+    monkeypatching, no fabricated feature vectors."""
+
+    generation_store = _new_generation_store(tmp_path_factory)
+    engine = _build_engine(
+        mounted_runtime=fixture["mounted_runtime"],
+        learned_state=fixture["genesis"],
+        registry=fixture["registry"],
+        generation_store=generation_store,
+    )
+    scheduler = MultiScalarTurnScheduler(engine=engine)
+
+    text = "hello there, friend!"  # real space, comma, exclamation, letters
+    result = scheduler.run_turn(
+        task_id="multi-word-sentence-turn",
+        text=text,
+        story_chemistry=_mount_test_chemistry_runtime(),
+    )
+    assert len(result.outcomes) == len(text)
+    for scalar, outcome in zip(text, result.outcomes):
+        assert outcome.scalar_text == scalar
+        # Every scalar must produce a real, honest result -- never an
+        # exception, regardless of whether it happens to be a letter,
+        # a space, or punctuation.
+        assert outcome.result is not None
+        outcome.result.verify()

@@ -57,6 +57,7 @@ from dsf_ai_service.glew_runtime.real_experience_learning_pipeline import (
     _build_typed_language_lane,
     _commit_real_scene,
     _evolve_real_causal_window,
+    _mount_causal_grid,
     _physical_l6_evaluation,
     _seal,
 )
@@ -141,8 +142,12 @@ def _build_mounted_runtime():
         sensor_port_receipt_payloads=sensor_port_receipt_payloads,
         five_sense_topology_id=f"{_ENGINE_ID}-five-sense-topology",
         causal_grid_id=f"{_ENGINE_ID}-causal-grid",
-        causal_timestamps=tuple(Fraction(index) for index in range(1, 6)),
-        causal_positive_weights=tuple(Fraction(1) for _ in range(5)),
+        # Six, matching production's real, verified maximum (see
+        # PRODUCTION_SENSOR_CALIBRATION_UNRATIFIED_v1.py's own comment): the
+        # true max valid balanced-ternary trit count across the standard
+        # keyboard + Latin-1 range is six, not five.
+        causal_timestamps=tuple(Fraction(index) for index in range(1, 7)),
+        causal_positive_weights=tuple(Fraction(1) for _ in range(6)),
         five_sense_support_domain_id=f"{_ENGINE_ID}-five-sense-support",
         five_sense_resonance_graph_id=f"{_ENGINE_ID}-five-sense-resonance",
         five_sense_resonance_required_edges=five_sense_edges,
@@ -197,12 +202,25 @@ def _build_scene(*, mounted_runtime, task_id: str, text: str, chemistry_runtime,
         ClosedExperienceProviderUnknown,
         prepare_closed_experience_evidence,
     )
+    from dsf_ai_service.glew_runtime.language import encode_balanced_ternary_scalar
 
-    descriptors = _scene_descriptors(task_id)
+    trits = encode_balanced_ternary_scalar(ord(text))
+    valid_count = sum(1 for trit in trits if trit.valid)
+    descriptors = _scene_descriptors(task_id, count=valid_count)
     bridge = _evolve_real_causal_window(
         chemistry_runtime, scene_id=task_id, descriptors=descriptors
     )
     registry = _merge(registry, bridge.receipt_registry)
+
+    # Same real length as this scene's own streams (valid_count), not the
+    # engine's fixed mounted causal_grid -- see clean_conversation_engine
+    # ._build_turn_expression's own comment for why a size mismatch here
+    # raises "native stream does not match common causal grid".
+    scene_grid, registry = _mount_causal_grid(
+        grid_id=f"{task_id}-scene-causal-grid",
+        timestamps=tuple(Fraction(index) for index in range(1, valid_count + 1)),
+        registry=registry,
+    )
 
     language_input, registry = _build_typed_language_lane(
         binding=mounted_runtime.typed_language_kernel_binding,
@@ -219,7 +237,7 @@ def _build_scene(*, mounted_runtime, task_id: str, text: str, chemistry_runtime,
         streams=(language_input.stream, *bridge.streams),
         kernel_inputs=(language_input.kernel_input, *bridge.kernel_inputs),
         source_time_start=Fraction(0),
-        grid=mounted_runtime.causal_grid,
+        grid=scene_grid,
         support_domain=mounted_runtime.support_domain,
         resonance_graph=mounted_runtime.resonance_graph,
         resonance_operator=mounted_runtime.resonance_operator,

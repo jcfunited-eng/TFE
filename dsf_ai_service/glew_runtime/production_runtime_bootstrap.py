@@ -180,7 +180,7 @@ from .expression_learning import (
 from .expression_modes import ExpressionModeBoundaryResult, ExpressionRecognitionStatus, evaluate_expression_mode_boundary
 from .field import HamiltonianEntry, LocalRate
 from .generation_identity import bind_generation_identity, verify_generation_identity_binding
-from .language import TypedLanguageFrozenKernelInput
+from .language import TypedLanguageFrozenKernelInput, encode_balanced_ternary_scalar
 from .model import ReceiptError, ReceiptRecord, ReceiptRegistry, receipt_sha256
 from .operators import PortKey, RequiredEdge
 from .real_experience_learning_pipeline import (
@@ -188,6 +188,7 @@ from .real_experience_learning_pipeline import (
     _build_typed_language_lane,
     _commit_real_scene,
     _evolve_real_causal_window,
+    _mount_causal_grid,
     _physical_l6_evaluation,
     _seal,
 )
@@ -474,9 +475,21 @@ def _build_genesis_scene(
     replaying the same ``task_id``/``text`` reconstructs this same scene
     bit-for-bit."""
 
-    descriptors = _scene_descriptors(task_id)
+    trits = encode_balanced_ternary_scalar(ord(text))
+    valid_count = sum(1 for trit in trits if trit.valid)
+    descriptors = _scene_descriptors(task_id, count=valid_count)
     bridge = _evolve_real_causal_window(chemistry_runtime, scene_id=task_id, descriptors=descriptors)
     registry = _merge_registry(registry, bridge.receipt_registry)
+
+    # Same real length as this scene's own streams (valid_count), not the
+    # engine's fixed mounted causal_grid -- see clean_conversation_engine
+    # ._build_turn_expression's own comment for why a size mismatch here
+    # raises "native stream does not match common causal grid".
+    scene_grid, registry = _mount_causal_grid(
+        grid_id=f"{task_id}-scene-causal-grid",
+        timestamps=tuple(Fraction(index) for index in range(1, valid_count + 1)),
+        registry=registry,
+    )
 
     language_input, registry = _build_typed_language_lane(
         binding=mounted_runtime.typed_language_kernel_binding,
@@ -493,7 +506,7 @@ def _build_genesis_scene(
         streams=(language_input.stream, *bridge.streams),
         kernel_inputs=(language_input.kernel_input, *bridge.kernel_inputs),
         source_time_start=Fraction(0),
-        grid=mounted_runtime.causal_grid,
+        grid=scene_grid,
         support_domain=mounted_runtime.support_domain,
         resonance_graph=mounted_runtime.resonance_graph,
         resonance_operator=mounted_runtime.resonance_operator,
