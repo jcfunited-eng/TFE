@@ -18,7 +18,11 @@ WORKDIR /app
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg espeak-ng && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 websockets
+# python-flint 0.9.0 (bundled FLINT 3.6.0) is required by the GLEW runtime's
+# exact-rational certified-ball arithmetic (dsf_ai_service/glew_runtime/) --
+# absent from this image until GLEW existed. Pinned to the exact version
+# GLEW's own error messages name, matching the verified working dev version.
+RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 websockets python-flint==0.9.0
 
 # Copy only what the service needs (no TFE trading code)
 COPY uf_core/ /app/uf_core/
