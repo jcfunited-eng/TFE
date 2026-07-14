@@ -141,18 +141,22 @@ def _extend_payloads(
     than imported so this module has no import-time dependency on a sibling
     module's private helper)."""
 
-    mounted = {value.digest: value.payload for value in registry.records}
+    records = list(registry.records)
+    mounted = {value.digest: value.payload for value in records}
     for payload in payloads:
         if not isinstance(payload, bytes) or not payload:
             raise ReceiptError("recall replay integrity generated an empty receipt")
         digest = receipt_sha256(payload)
         prior = mounted.get(digest)
-        if prior is not None and prior != payload:
-            raise ReceiptError("recall replay integrity receipt digest collision")
+        if prior is not None:
+            if prior != payload:
+                raise ReceiptError("recall replay integrity receipt digest collision")
+            continue
         mounted[digest] = payload
+        records.append(ReceiptRecord(digest, payload))
     return ReceiptRegistry(
         registry.profile_binding_sha256,
-        tuple(ReceiptRecord(key, mounted[key]) for key in sorted(mounted)),
+        tuple(records),
     )
 
 

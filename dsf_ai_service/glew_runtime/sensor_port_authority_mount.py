@@ -166,20 +166,24 @@ def _extend_receipt_registry(
     a sibling module under concurrent, active edit.
     """
 
-    merged: dict[str, bytes] = {record.digest: record.payload for record in registry.records}
+    records = list(registry.records)
+    merged: dict[str, bytes] = {record.digest: record.payload for record in records}
     for payload in payloads:
         if not isinstance(payload, bytes) or not payload:
             raise ReceiptError("mounted receipt payload must be nonempty exact bytes")
         digest = receipt_sha256(payload)
         existing = merged.get(digest)
-        if existing is not None and existing != payload:
-            raise ReceiptError(
-                "mounted receipt digest collides with different payload bytes"
-            )
+        if existing is not None:
+            if existing != payload:
+                raise ReceiptError(
+                    "mounted receipt digest collides with different payload bytes"
+                )
+            continue
         merged[digest] = payload
+        records.append(ReceiptRecord(digest, payload))
     return ReceiptRegistry(
         registry.profile_binding_sha256,
-        tuple(ReceiptRecord(digest, merged[digest]) for digest in sorted(merged)),
+        tuple(records),
     )
 
 

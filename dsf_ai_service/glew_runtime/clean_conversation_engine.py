@@ -274,16 +274,20 @@ def _extend_registry(registry: ReceiptRegistry, *payloads: bytes) -> ReceiptRegi
     this file has no import-time dependency on a module under concurrent
     edit)."""
 
-    values = {item.digest: item.payload for item in registry.records}
+    records = list(registry.records)
+    values = {item.digest: item.payload for item in records}
     for payload in payloads:
         digest = receipt_sha256(payload)
         existing = values.get(digest)
-        if existing is not None and existing != payload:
-            raise ReceiptError("clean conversation engine receipt digest collision")
+        if existing is not None:
+            if existing != payload:
+                raise ReceiptError("clean conversation engine receipt digest collision")
+            continue
         values[digest] = payload
+        records.append(ReceiptRecord(digest, payload))
     return ReceiptRegistry(
         registry.profile_binding_sha256,
-        tuple(ReceiptRecord(key, values[key]) for key in sorted(values)),
+        tuple(records),
     )
 
 

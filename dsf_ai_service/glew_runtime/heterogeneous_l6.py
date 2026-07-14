@@ -98,7 +98,8 @@ def _extend_registry(
 ) -> ReceiptRegistry:
     if not isinstance(registry, ReceiptRegistry):
         raise ReceiptError("heterogeneous L6 requires a mounted receipt registry")
-    mounted = {record.digest: record.payload for record in registry.records}
+    result = list(registry.records)
+    mounted = {record.digest: record.payload for record in result}
     for source in sources:
         if not isinstance(source, ReceiptRegistry):
             raise ReceiptError("heterogeneous L6 source registry is not typed")
@@ -106,20 +107,26 @@ def _extend_registry(
             raise ReceiptError("heterogeneous L6 source registry changed profile")
         for record in source.records:
             previous = mounted.get(record.digest)
-            if previous is not None and previous != record.payload:
-                raise ReceiptError("heterogeneous L6 receipt digest collision")
+            if previous is not None:
+                if previous != record.payload:
+                    raise ReceiptError("heterogeneous L6 receipt digest collision")
+                continue
             mounted[record.digest] = record.payload
+            result.append(record)
     for payload in payloads:
         if not isinstance(payload, bytes) or not payload:
             raise ReceiptError("heterogeneous L6 generated an empty receipt")
         digest = receipt_sha256(payload)
         previous = mounted.get(digest)
-        if previous is not None and previous != payload:
-            raise ReceiptError("heterogeneous L6 generated receipt collision")
+        if previous is not None:
+            if previous != payload:
+                raise ReceiptError("heterogeneous L6 generated receipt collision")
+            continue
         mounted[digest] = payload
+        result.append(ReceiptRecord(digest, payload))
     return ReceiptRegistry(
         registry.profile_binding_sha256,
-        tuple(ReceiptRecord(digest, mounted[digest]) for digest in sorted(mounted)),
+        tuple(result),
     )
 
 

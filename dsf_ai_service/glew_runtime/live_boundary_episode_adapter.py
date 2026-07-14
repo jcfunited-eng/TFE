@@ -149,8 +149,9 @@ def _extend_receipt_registry(
     import-time dependency on a sibling module under concurrent edit.
     """
 
+    records = list(registry.records)
     merged: dict[str, bytes] = {
-        record.digest: record.payload for record in registry.records
+        record.digest: record.payload for record in records
     }
     for payload in payloads:
         if not isinstance(payload, bytes) or not payload:
@@ -159,15 +160,18 @@ def _extend_receipt_registry(
             )
         digest = receipt_sha256(payload)
         existing = merged.get(digest)
-        if existing is not None and existing != payload:
-            raise ReceiptError(
-                "live boundary episode adapter receipt digest collides with "
-                "different payload bytes"
-            )
+        if existing is not None:
+            if existing != payload:
+                raise ReceiptError(
+                    "live boundary episode adapter receipt digest collides with "
+                    "different payload bytes"
+                )
+            continue
         merged[digest] = payload
+        records.append(ReceiptRecord(digest, payload))
     return ReceiptRegistry(
         registry.profile_binding_sha256,
-        tuple(ReceiptRecord(digest, merged[digest]) for digest in sorted(merged)),
+        tuple(records),
     )
 
 

@@ -135,18 +135,22 @@ def _canonical_bytes(value: object) -> bytes:
 
 
 def _extend_registry(registry: ReceiptRegistry, *payloads: bytes) -> ReceiptRegistry:
-    values = {item.digest: item.payload for item in registry.records}
+    records = list(registry.records)
+    values = {item.digest: item.payload for item in records}
     for payload in payloads:
         if not isinstance(payload, bytes) or not payload:
             raise ReceiptError("coexperienced scene recall generated an empty receipt")
         digest = receipt_sha256(payload)
         existing = values.get(digest)
-        if existing is not None and existing != payload:
-            raise ReceiptError("coexperienced scene recall receipt digest collision")
+        if existing is not None:
+            if existing != payload:
+                raise ReceiptError("coexperienced scene recall receipt digest collision")
+            continue
         values[digest] = payload
+        records.append(ReceiptRecord(digest, payload))
     return ReceiptRegistry(
         registry.profile_binding_sha256,
-        tuple(ReceiptRecord(key, values[key]) for key in sorted(values)),
+        tuple(records),
     )
 
 

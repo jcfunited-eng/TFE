@@ -133,17 +133,21 @@ def _extend_records(
 ) -> ReceiptRegistry:
     if not isinstance(registry, ReceiptRegistry):
         raise ReceiptError("fresh recall requires an immutable receipt registry")
-    mounted = {value.digest: value.payload for value in registry.records}
+    result = list(registry.records)
+    mounted = {value.digest: value.payload for value in result}
     for record in records:
         if not isinstance(record, ReceiptRecord):
             raise ReceiptError("fresh recall received an untyped receipt record")
         prior = mounted.get(record.digest)
-        if prior is not None and prior != record.payload:
-            raise ReceiptError("fresh recall receipt digest collision")
+        if prior is not None:
+            if prior != record.payload:
+                raise ReceiptError("fresh recall receipt digest collision")
+            continue
         mounted[record.digest] = record.payload
+        result.append(record)
     return ReceiptRegistry(
         registry.profile_binding_sha256,
-        tuple(ReceiptRecord(key, mounted[key]) for key in sorted(mounted)),
+        tuple(result),
     )
 
 
