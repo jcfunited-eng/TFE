@@ -188,6 +188,181 @@ def _run_embedded_observed_conversation(
     return result
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# GLEW clean-conversation-engine cutover (feature-flagged, embedded mode only)
+# ═══════════════════════════════════════════════════════════════════════════
+# When GLEW_CONVERSATION_ENGINE_ENABLED is truthy, the single embedded converse
+# path (_run_converse) drives the new ProductionCleanConversationEngine (via
+# MultiScalarTurnScheduler) INSTEAD OF the legacy _guala.converse(). This is a
+# true cutover of the one existing mouth, never a second parallel path:
+#   - flag OFF (default/unset): behaviour is 100% identical to today; the new
+#     engine is never constructed and never called.
+#   - flag ON: the legacy converse()/sleep-gate/event-log path is not run for
+#     that turn -- one mouth, never both. NO SHADOW MODE.
+# The engine + scheduler + one mounted story-chemistry runtime are constructed
+# exactly once at app startup (fail-closed: a construction failure fails startup
+# loudly rather than silently degrading).
+_GLEW_ENGINE_ENABLED = os.environ.get(
+    "GLEW_CONVERSATION_ENGINE_ENABLED", "0").strip().lower() in (
+        "1", "true", "yes", "on")
+# Named env vars for the two runtime HMAC secrets. Populated from AWS Secrets
+# Manager at deploy time (see report). NEVER hardcode a fallback: a checkpoint
+# signed with a boot-random key could never verify after a restart, and a
+# hardcoded key is a security hole.
+GLEW_CHEMISTRY_HMAC_KEY_ENV = "GLEW_CHEMISTRY_HMAC_KEY"
+GLEW_CHECKPOINT_HMAC_KEY_ENV = "GLEW_CHECKPOINT_HMAC_KEY"
+_glew_engine = None
+_glew_scheduler = None
+_glew_story_chemistry = None
+
+
+def _boot_glew_conversation_engine():
+    """Construct the single, long-lived ProductionCleanConversationEngine plus
+    its MultiScalarTurnScheduler and one mounted story-chemistry runtime, once,
+    at app startup. Fail-closed and loud: any failure raises (failing startup)
+    rather than silently degrading. Only invoked when _GLEW_ENGINE_ENABLED is
+    true and SUBSTRATE_MODE is embedded (the actually-live production mode)."""
+    global _glew_engine, _glew_scheduler, _glew_story_chemistry
+
+    from dsf_ai_service.glew_runtime import (
+        PRODUCTION_SENSOR_CALIBRATION_UNRATIFIED_v1 as _glew_cal,
+    )
+    from dsf_ai_service.glew_runtime.production_runtime_bootstrap import (
+        bootstrap_production_clean_conversation_engine,
+        resolve_default_generation_store_root,
+    )
+    from dsf_ai_service.glew_runtime.clean_conversation_engine import (
+        GenerationIdentityParameters,
+    )
+    from dsf_ai_service.glew_runtime.multi_scalar_turn_scheduler import (
+        MultiScalarTurnScheduler,
+    )
+    from dsf_ai_service.glew_runtime.story_chemistry import (
+        StoryChemistryStatus, mount_packaged_production_story_chemistry,
+    )
+
+    # Fail-closed secret loading. The env vars are populated from AWS Secrets
+    # Manager at deploy time; if either is absent, refuse to run rather than
+    # invent a key.
+    chem_secret = os.environ.get(GLEW_CHEMISTRY_HMAC_KEY_ENV, "")
+    ckpt_secret = os.environ.get(GLEW_CHECKPOINT_HMAC_KEY_ENV, "")
+    if not chem_secret:
+        raise RuntimeError(
+            f"GLEW_CONVERSATION_ENGINE_ENABLED is on but "
+            f"{GLEW_CHEMISTRY_HMAC_KEY_ENV} is unset -- create the AWS Secrets "
+            "Manager secret gualaloom/glew-chemistry-hmac/prod and wire it into "
+            "the task definition before enabling the engine")
+    if not ckpt_secret:
+        raise RuntimeError(
+            f"GLEW_CONVERSATION_ENGINE_ENABLED is on but "
+            f"{GLEW_CHECKPOINT_HMAC_KEY_ENV} is unset -- create the AWS Secrets "
+            "Manager secret gualaloom/glew-checkpoint-hmac/prod and wire it into "
+            "the task definition before enabling the engine")
+    chem_key = chem_secret.encode("utf-8")
+    ckpt_key = ckpt_secret.encode("utf-8")
+
+    if getattr(_glew_cal, "STATUS", None) != "unratified_placeholder":
+        raise RuntimeError(
+            "GLEW sensor calibration module lost its unratified_placeholder marker")
+
+    # Real, discoverable persistent-storage root on the container's EFS volume.
+    # Default derivation: sibling of STATE_DIR named STATE_DIR + basename +
+    # "-glew-conversation-engine" (distinct from the legacy "-sealed" store and
+    # from GLEW_GENESIS_ROOT). In production STATE_DIR=/app/guala/active, so this
+    # resolves to /app/guala/active-glew-conversation-engine on the EFS mount.
+    store_root = resolve_default_generation_store_root()
+    store_root.mkdir(parents=True, exist_ok=True)
+
+    params = _glew_cal.production_six_lane_runtime_parameters(
+        engine_id=_glew_cal.ENGINE_ID,
+        chemistry_authentication_key=chem_key,
+        chemistry_key_id=_glew_cal.CHEMISTRY_HMAC_KEY_ID,
+    )
+    identity = GenerationIdentityParameters(
+        genesis_identity=_glew_cal.GENESIS_IDENTITY_UUID,
+        genesis_generation_uuid=_glew_cal.GENESIS_GENERATION_UUID,
+        genesis_tick=0,
+    )
+    engine = bootstrap_production_clean_conversation_engine(
+        generation_store_root=store_root,
+        story_chemistry_authentication_key=chem_key,
+        story_chemistry_key_id=_glew_cal.CHEMISTRY_HMAC_KEY_ID,
+        six_lane_runtime_parameters=params,
+        checkpoint_authentication_key=ckpt_key,
+        checkpoint_key_id=_glew_cal.CHECKPOINT_HMAC_KEY_ID,
+        generation_identity=identity,
+        engine_id=_glew_cal.ENGINE_ID,
+    )
+    mounted = mount_packaged_production_story_chemistry(
+        runtime_authentication_key=chem_key,
+        runtime_key_id=_glew_cal.CHEMISTRY_HMAC_KEY_ID,
+    )
+    if mounted.status is not StoryChemistryStatus.MOUNTED or mounted.runtime is None:
+        raise RuntimeError(f"GLEW story chemistry mount failed: {mounted.reason}")
+
+    _glew_engine = engine
+    _glew_story_chemistry = mounted.runtime
+    _glew_scheduler = MultiScalarTurnScheduler(engine=engine)
+    fresh = engine._learned_state.initial_event is None
+    print(
+        f"[glew] ProductionCleanConversationEngine constructed; "
+        f"store_root={store_root} mode_bank_rank={engine._mode_bank.rank} "
+        + ("state=fresh_genesis(honest-silence-until-a-first-successor-is-"
+           "learned+persisted)" if fresh else "state=restored(can-commit-and-"
+           "learn-on-live-turns)"))
+
+
+async def _run_glew_converse_turn(task, task_id, text, source):
+    """Drive one real conversational turn through the new engine instead of
+    _guala.converse(). Fully replaces the legacy path for this turn (never
+    both). Translates the real MultiScalarTurnResult into the existing task
+    poll contract, using only real data from the result -- honest empty output
+    when the engine is genuinely silent, never a fabricated reply."""
+    if _glew_scheduler is None or _glew_story_chemistry is None:
+        # Flag on but engine missing -> honest error, never a silent fall-back
+        # to the legacy path (startup already fails loudly if construction
+        # failed, so this is defense-in-depth).
+        raise RuntimeError("glew_engine_enabled_but_not_constructed")
+
+    text = text or ""
+    if not text.strip():
+        response = ""
+        response_source = "glew_typed_silence"
+    else:
+        turn_result = await _run_lifecycle_executor(
+            lambda: _glew_scheduler.run_turn(
+                task_id=task_id, text=text,
+                story_chemistry=_glew_story_chemistry, source=source))
+        if turn_result.all_silent:
+            # Genuinely nothing to release -- honest silence, no placeholder.
+            response = ""
+            response_source = "glew_typed_silence"
+        else:
+            # Every scalar that actually released visible text, in real causal
+            # order. Concatenated for the single-string response contract; never
+            # a fabricated single sentence.
+            response = "".join(turn_result.visible_scalar_texts)
+            response_source = "glew_expression_released"
+
+    # mode_bank rank is the honest new-engine analogue of the legacy vocab count
+    # (how many distinct expression modes have been grown), a real int.
+    try:
+        motifs = _glew_engine._mode_bank.rank if _glew_engine is not None else 0
+    except Exception:
+        motifs = 0
+
+    task["status"] = "complete"
+    task["response"] = response
+    task["response_source"] = response_source
+    task["motifs"] = motifs
+    task["emission_id"] = None          # new engine has no emission_id concept
+    task["committed_sections"] = []     # new engine has no legacy "sections"
+    task["pictures"] = []               # picture recall not wired on this path
+    task["source_turn_index"] = None
+    task["completed_tick"] = _guala.tick if _guala else 0
+    task["completed_at"] = time.time()
+
+
 async def _run_converse(
         task_id: str, text: str, source: str, emission_mode=None,
         sight_b64: Optional[str] = None):
@@ -212,6 +387,15 @@ async def _run_converse(
     # pattern that function already uses for its own rate-cap gate, so an
     # interrupted chunk just resumes next cycle, nothing is lost.
     try:
+        # GLEW cutover: when the new conversation engine is enabled, IT is the
+        # single embedded mouth for this turn. Drive it and return -- the legacy
+        # sleep-gate / remote-vs-embedded / _guala.converse() / event-log path
+        # below is not run at all for this turn (one mouth, never both -- no
+        # shadow mode). Any error here falls to the outer except and is recorded
+        # as an honest task error, never silently swallowed or routed to legacy.
+        if _GLEW_ENGINE_ENABLED:
+            await _run_glew_converse_turn(task, task_id, text, source)
+            return
         # Conversations should auto-wake her -- talking to her should wake her.
         # substrate_runner.py's handle_gualaloom_post() already does this
         # (coordinator.wake() alone only sets presence, it does NOT end a
@@ -5288,6 +5472,15 @@ async def startup():
         t0 = time.time()
         try:
             await _run_lifecycle_executor(_boot_generation_and_guala)
+            # GLEW cutover: construct the new conversation engine once, here,
+            # only when explicitly enabled. Fail-closed: a construction failure
+            # propagates and fails startup loudly rather than leaving the app
+            # serving with the flag on but no engine (which _run_glew_converse_turn
+            # would then reject per-turn anyway).
+            if _GLEW_ENGINE_ENABLED:
+                print("[glew] GLEW_CONVERSATION_ENGINE_ENABLED=on -- constructing "
+                      "new ProductionCleanConversationEngine")
+                await _run_lifecycle_executor(_boot_glew_conversation_engine)
         except Exception as error:
             _init_error = str(error)
             print(f"[DSF-AI] Guala initialization FAILED: {error}")
