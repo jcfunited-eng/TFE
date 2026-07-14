@@ -23,26 +23,42 @@ What is PROVEN here (all real, no monkeypatching):
   proven by ``test_expression_mode_growth_arbiter.py`` continuing to pass
   under the fix.
 
-What is HONESTLY DISPROVEN here (real evidence, not papered over):
+What was the located, blocking gap -- and how it is NOW RESOLVED
+(``GL-SPC-RECOGNITION-FIELD-IDENTITY-DESIGN-20260714``):
 
-* Making the field identical is NECESSARY but NOT SUFFICIENT for the live
-  engine to RECOGNIZE a repeat.  Under the LIVE certified-residual arbiter
-  (``clean_conversation_engine.py`` line ~880), the only path to
-  ``RECOGNIZED`` for an in-span input is a certified-ZERO orthogonal residual,
-  and the only way that residual is exactly zero is the exact-DAG-match branch
-  (``expression_modes.py`` ``matching_mode_index``), which compares
-  ``receipt_sha256``.  Because the design deliberately keeps ``task_id`` in the
-  field expression's ``identity`` (receipt-identity bookkeeping, section 5),
-  the second occurrence's receipt differs, ``matching_mode_index`` never fires,
-  the numerically-computed residual straddles zero, and the turn resolves to
-  ``AMBIGUOUS_SILENCE`` -- honest silence, but NOT the ``RECOGNIZED`` the
-  reviewer's harm requires.  The fix is a strict improvement over the pre-fix
-  random-sensory baseline (which manufactured a spurious ``NOVEL_SILENCE``
-  growth for every repeat), but the true unblock for recognition-of-a-repeat
-  is a reproducible field-expression identity (or a recognition-rule change),
-  not this sensory fix alone.  These tests pin that real, measured behaviour so
-  a future change that reaches ``RECOGNIZED`` fails them loudly (the safe
-  direction) rather than a false claim silently standing.
+* Making the field identical was NECESSARY but, on its own, NOT SUFFICIENT.
+  Under the LIVE certified-residual arbiter (``clean_conversation_engine.py``
+  line ~880), the only path to ``RECOGNIZED`` for an in-span input is a
+  certified-ZERO orthogonal residual, and the only way that residual is
+  exactly zero is the exact-match branch (``expression_modes.py``
+  ``matching_mode_index``).  That branch USED to compare the full
+  ``receipt_sha256``, which still binds the turn's request/scene bookkeeping
+  (the injection/provenance receipts), so two genuinely different real request
+  ids never matched, the numerically-computed residual straddled zero
+  (``[negative, positive]`` -- ``canonical_ball`` emits a nonzero-radius
+  enclosure for a true zero), and the turn resolved to ``AMBIGUOUS_SILENCE``.
+* The fix (proven below) keys that exact-match branch on the expression's
+  FIELD-EVALUATION identity (``ClosedExperienceFieldExpression.
+  field_evaluation_identity_sha256``) -- a digest over exactly the exact
+  leaves ``evaluate_closed_experience_in_arb`` reads, with the request/scene
+  bookkeeping (which has no physical authority) excluded.  A fresh-id repeat's
+  field-evaluation identity equals the stored mode's, so its residual is
+  retained as exact ``[0,0]`` (no tolerance, no threshold), and the arbiter
+  now returns ``RECOGNIZED`` with no spurious growth.  Genuinely different text
+  still has a distinct field-evaluation identity and still grows.
+
+What honestly REMAINS a downstream gap (pinned, not papered over):
+
+* Recognition now composes end-to-end (a fresh-id repeat RECOGNIZES, commits,
+  and learns), but the recalled OUTPUT is still gated by
+  ``conversation.py``'s ``_preflight_initial_output`` (lines ~383/~395), which
+  requires the learned genesis ``initial_event``'s stored full commit/
+  expression RECEIPTS to byte-equal this turn's -- a sibling of the same
+  root cause one layer down, in the output-recall binding rather than
+  recognition.  ``CommittedMotifEvent`` stores only those receipt digests (not
+  re-derivable field content), so closing that gap is a separate schema-level
+  change, out of scope for this recognition fix.  The end-to-end test below
+  pins exactly that real, measured behaviour.
 """
 
 from __future__ import annotations
@@ -288,28 +304,28 @@ def test_genuinely_different_text_grows_a_new_mode_from_language_alone(rank_two_
 
 
 # --------------------------------------------------------------------------
-# The honest disproof -- a same-text repeat is NOT recognized under the live
-# arbiter, it is AMBIGUOUS_SILENCE (necessary-but-not-sufficient).
+# The fix -- a same-text repeat under a FRESH real request id is now
+# RECOGNIZED, with a certified EXACT-ZERO residual and no spurious growth.
 # --------------------------------------------------------------------------
 
 
-def test_same_text_repeat_under_live_arbiter_is_ambiguous_not_recognized_and_not_grown(
+def test_same_text_repeat_under_live_arbiter_is_recognized_with_exact_zero_residual(
     rank_two_world,
 ):
-    """Necessary-but-not-sufficient, proven with real numbers.
+    """The recognition fix, proven with real, certified-exact numbers.
 
     A same-text repeat under a fresh real request id has a field IDENTICAL to
-    the stored mode (proven above), so under the LIVE certified-residual
-    arbiter it (correctly) does NOT manufacture a spurious NOVEL_SILENCE growth
-    -- the strict improvement over the pre-fix random-sensory baseline.  But it
-    also does NOT reach RECOGNIZED: the certified residual straddles zero (never
-    exactly [0,0], because the exact-DAG-match ``matching_mode_index`` path
-    needs an exact ``receipt_sha256`` match, which the fresh request id breaks),
-    so the arbiter honestly returns AMBIGUOUS_SILENCE.  This is the real,
-    located gap -- pinned here, not papered over.
+    the stored root mode (proven above) AND -- the load-bearing fact for the
+    fix -- the SAME field-evaluation identity (a digest over exactly the exact
+    leaves the field evaluator reads, with the request/scene bookkeeping that
+    differs between the two turns excluded).  So the exact-match branch fires
+    even though the full receipts differ, the residual is retained as exact
+    ``[0,0]`` (no tolerance, no threshold), and the LIVE certified-residual
+    arbiter returns RECOGNIZED naming the root mode -- growing nothing.
     """
 
     mounted_runtime = rank_two_world["mounted_runtime"]
+    root_expr = rank_two_world["root_expr"]
 
     # A fresh-request-id turn of the SAME text as the stored root mode "a".
     repeat_expr, _, _, registry = _build_scene(
@@ -320,10 +336,17 @@ def test_same_text_repeat_under_live_arbiter_is_ambiguous_not_recognized_and_not
         registry=rank_two_world["registry"],
     )
 
-    # Its field is identical to the stored root mode (fresh id, same text).
-    assert _field_repr(repeat_expr) == _field_repr(rank_two_world["root_expr"])
-    # But its receipt differs (so matching_mode_index cannot fire).
-    assert repeat_expr.receipt_sha256 != rank_two_world["root_expr"].receipt_sha256
+    # Its field is identical to the stored root mode (fresh id, same text)...
+    assert _field_repr(repeat_expr) == _field_repr(root_expr)
+    # ...its receipt differs (distinct moment -- bookkeeping)...
+    assert repeat_expr.receipt_sha256 != root_expr.receipt_sha256
+    # ...but its FIELD-EVALUATION identity is EQUAL -- this is exactly what the
+    # fix keys the exact-match branch on, and why recognition no longer depends
+    # on the request/scene bookkeeping matching.
+    assert (
+        repeat_expr.field_evaluation_identity_sha256
+        == root_expr.field_evaluation_identity_sha256
+    )
 
     result = evaluate_expression_mode_boundary(
         topology=rank_two_world["topology"],
@@ -334,34 +357,89 @@ def test_same_text_repeat_under_live_arbiter_is_ambiguous_not_recognized_and_not
     )
     result.verify()
 
-    # Honest silence, NOT recognition, and crucially NOT a spurious growth.
-    assert result.status is ExpressionRecognitionStatus.AMBIGUOUS_SILENCE
-    assert result.winner_mode_index is None
+    # RECOGNIZED as the root mode, and crucially NOT a spurious growth.
+    assert result.status is ExpressionRecognitionStatus.RECOGNIZED
+    assert result.winner_mode_index == 0  # the stored root mode "a"
     assert result.mutation is False
     assert result.post_growth_bank.rank == 2  # no spurious mode manufactured
 
-    # The certified residual straddles zero: not certified-positive (so no
-    # growth) and not certified-zero (so no RECOGNIZED).
+    # The certified residual is EXACTLY [0,0] -- a real certified-exact zero
+    # (both dyadic endpoints exactly Fraction(0)), not an approximation and not
+    # a straddling ball squashed by a tolerance.
     ball = result.certified_residual_energy
     lower = _ball_bound(ball.lower_mantissa, ball.lower_exponent)
     upper = _ball_bound(ball.upper_mantissa, ball.upper_exponent)
-    assert lower < 0 < upper
+    assert lower == 0 and upper == 0
 
 
-def test_end_to_end_fresh_id_repeat_through_real_engine_stays_silent_without_growth(
+def test_field_evaluation_identity_ignores_request_id_but_discriminates_text(
+    rank_two_world,
+):
+    """Pin the exact mechanism of the fix directly.
+
+    The field-evaluation identity is EQUAL for the same text under two
+    genuinely different real request ids (bookkeeping stripped) and DISTINCT
+    for genuinely different text (the numeric field-defining leaves differ) --
+    so the exact-match branch recognizes real repeats without ever collapsing
+    genuinely different experiences together.
+    """
+
+    mounted_runtime = rank_two_world["mounted_runtime"]
+    registry = rank_two_world["registry"]
+
+    same_a, _, _, registry = _build_scene(
+        mounted_runtime=mounted_runtime,
+        task_id=_real_request_task_id(),
+        text="a",
+        chemistry_runtime=_mount_test_chemistry_runtime(),
+        registry=registry,
+    )
+    different_text, _, _, registry = _build_scene(
+        mounted_runtime=mounted_runtime,
+        task_id=_real_request_task_id(),
+        text="q",
+        chemistry_runtime=_mount_test_chemistry_runtime(),
+        registry=registry,
+    )
+    root_expr = rank_two_world["root_expr"]
+
+    # Same text, different real request id: identity EQUAL, full receipt NOT.
+    assert (
+        same_a.field_evaluation_identity_sha256
+        == root_expr.field_evaluation_identity_sha256
+    )
+    assert same_a.receipt_sha256 != root_expr.receipt_sha256
+    # Genuinely different text: identity DISTINCT (no false collapse).
+    assert (
+        different_text.field_evaluation_identity_sha256
+        != root_expr.field_evaluation_identity_sha256
+    )
+
+
+def test_end_to_end_fresh_id_repeat_now_recognizes_and_commits_recall_output_still_receipt_gated(
     fixture, tmp_path_factory
 ):
     """Highest-fidelity confirmation, end-to-end through the REAL
-    ``ProductionCleanConversationEngine.run_clean_conversation``.
+    ``ProductionCleanConversationEngine.run_clean_conversation``, of what the
+    recognition fix changes -- and what it honestly does NOT.
 
     ``test_clean_conversation_engine.test_real_end_to_end_commit_and_learn_no_
-    monkeypatching`` commits+learns ONLY because it reuses ``fixture[
-    "root_task_id"]`` verbatim (the exact-DAG-match shortcut).  Real live
-    traffic never reuses an id.  Driving the SAME text under a FRESH real
-    request id -- what production actually does -- the engine recognizes at the
-    field level but the live certified-residual arbiter returns
-    AMBIGUOUS_SILENCE, so no commit and no learn occur, and (unlike the pre-fix
-    random-sensory baseline) no spurious mode is grown.
+    monkeypatching`` commits+learns while REUSING ``fixture["root_task_id"]``
+    verbatim.  Real live traffic never reuses an id.  Driving the SAME text
+    under a FRESH real request id -- what production actually does -- now
+    RECOGNIZES (the fix: a real commit and learn genuinely happen, a checkpoint
+    is persisted), where before the fix it dead-ended at recognition-ambiguous
+    silence with no commit at all.
+
+    It does NOT yet SPEAK the recalled output: the transaction's
+    ``_preflight_initial_output`` (``conversation.py`` ~lines 383/395) still
+    requires the learned genesis ``initial_event``'s stored full commit and
+    expression RECEIPTS to byte-equal this turn's, and a fresh request id
+    breaks that byte-equality.  So the turn resolves to
+    EXPLICIT_UNKNOWN_SILENCE naming exactly that downstream commit-binding
+    mismatch -- the located remaining gap (a sibling of the same root cause,
+    one layer down in output recall, out of scope for the recognition fix).
+    This pins that real, measured behaviour.
     """
 
     generation_store = _new_generation_store(tmp_path_factory)
@@ -380,17 +458,20 @@ def test_end_to_end_fresh_id_repeat_through_real_engine_stays_silent_without_gro
     )
     result.verify()
 
-    # Recognition ran for real, but no commit / no learn happened -- the engine
-    # has a dedicated status for exactly this: the certified-residual arbiter
-    # returned ambiguous silence for the fresh-id repeat, so there is no
-    # RECOGNIZED mode to commit against.
+    # Recognition ran AND a real full-field commit genuinely happened this turn
+    # -- the strict improvement the fix delivers (before the fix both were
+    # blocked at recognition-ambiguous silence, commit_receipt was None).
     assert result.recognition_receipt_sha256 is not None
-    assert result.status is ConversationStatus.EXPLICIT_NO_COMMIT_SILENCE
-    assert result.reason == "recognition_ambiguous_silence"
-    assert result.commit_receipt_sha256 is None
-    assert result.initial_event_receipt_sha256 is None
-    assert result.silent
+    assert result.commit_receipt_sha256 is not None
 
-    # No spurious mode was manufactured for the repeat (the real improvement
-    # over the pre-fix random-sensory baseline, which grew one per repeat).
+    # The recalled OUTPUT is still gated by the genesis initial_event's stored
+    # commit receipt (the downstream receipt-bookkeeping dependency), so the
+    # turn is honest typed silence -- never fabricated content.
+    assert result.status is ConversationStatus.EXPLICIT_UNKNOWN_SILENCE
+    assert "initial event cites a different full-field commit" in result.reason
+    assert result.silent
+    assert result.visible_text == ""
+
+    # No spurious mode was manufactured for the recognized repeat (it is the
+    # existing root mode, not a new one): the bank rank is unchanged.
     assert engine._mode_bank.rank == rank_before

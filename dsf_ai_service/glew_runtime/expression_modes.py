@@ -761,11 +761,16 @@ def evaluate_expression_mode_boundary(
     tolerance, midpoint, threshold, or carried numeric representative obtains
     decision authority.
 
-    When the present expression receipt is exactly one stored source-expression
-    receipt, both name the same immutable DAG.  Its residual against the
+    When the present expression's field-evaluation identity is exactly one
+    stored source-expression's, both compute the identical mathematical field
+    from identical exact leaves (they may differ only in receipt bookkeeping --
+    request/scene identity, provenance, injection receipts -- which the field
+    evaluator never reads and which carries no physical authority).  The
+    present vector is then exactly one basis mode, so its residual against the
     complete basis that contains it is algebraically zero.  That correlation is
-    retained as exact zero instead of subtracting two interval evaluations of
-    the same DAG and thereby inventing enclosure width.
+    retained as exact zero instead of subtracting two interval evaluations and
+    thereby inventing enclosure width -- a straddling ``[negative, positive]``
+    ball that could never certify as exact zero even for a bit-identical field.
     """
 
     if recognition_arbiter not in (
@@ -810,12 +815,28 @@ def evaluate_expression_mode_boundary(
             reason="deterministic shared precision exceeds mounted maximum",
         )
 
+    # Exact-match shortcut, keyed on the FIELD-EVALUATION identity rather than
+    # the full receipt digest.  Two expressions share this identity iff they
+    # evaluate to the identical mathematical field at every shared precision
+    # (equal exact initial amplitudes and equal exact per-gate Hamiltonian,
+    # Hermitian-leaf identities, local rates, source coefficients, delta, and
+    # hbar -- exactly the leaves the evaluator reads).  The full receipt also
+    # binds request/scene bookkeeping (injection/provenance receipts) that the
+    # evaluator never consults; keying on it here gave that bookkeeping
+    # physical authority over recognition, so a genuine repeat under a fresh
+    # request id -- a bit-identical field -- could never reach the exact-zero
+    # residual and was misresolved as ambiguous.  The field-evaluation identity
+    # removes that authority (owner rule: a request identifier is bookkeeping
+    # only) while staying a strict refinement: an exact whole-receipt match
+    # implies an exact field-evaluation match, so every prior exact-DAG repeat
+    # still fires this branch.
+    input_field_identity = input_expression.field_evaluation_identity_sha256
     matching_mode_index = next(
         (
             mode.mode_index
             for mode in bank.modes
-            if mode.source_expression.receipt_sha256
-            == input_expression.receipt_sha256
+            if mode.source_expression.field_evaluation_identity_sha256
+            == input_field_identity
         ),
         None,
     )
@@ -1068,8 +1089,10 @@ def evaluate_expression_mode_boundary(
                     # Certified within the existing span and one stored mode
                     # uniquely dominates the complete interval vector: recognize
                     # it (grows nothing -- the residual is exact zero).  Exact
-                    # repeats reach here through the matching-DAG residual-zero
-                    # path, so within-span recognition is preserved.
+                    # repeats reach here through the matching field-evaluation-
+                    # identity residual-zero path (a repeat under a fresh
+                    # request id included), so within-span recognition is
+                    # preserved.
                     return _make_result(
                         status=ExpressionRecognitionStatus.RECOGNIZED,
                         winner=winners[0],

@@ -54,6 +54,7 @@ from .model import (
 PRECISION_SCHEDULE_ID = "exact_input_span_power_of_two_then_explicit_doubling.v1"
 CENTROID_OPERATOR_ID = "equal_weight_sum_of_every_post_gate_state.v1"
 FIELD_EXPRESSION_SOLVER_ID = "shared_dag_augmented_acb_matrix_exponential.v1"
+FIELD_EVALUATION_IDENTITY_ID = "closed_experience_field_evaluation_leaves.v1"
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -480,6 +481,91 @@ def _collect_exact_input_bit_lengths(
     return tuple((*(_exact_bit_length(value) for value in fractions), *declared))
 
 
+def field_evaluation_identity_payload(
+    *,
+    topology_authority_receipt_sha256: str,
+    dimension: int,
+    initial_state: ExactFieldState,
+    steps: Sequence[FieldExpressionStep],
+) -> bytes:
+    """Canonical bytes over EXACTLY the exact leaves that
+    ``evaluate_closed_experience_in_arb`` reads, and nothing else.
+
+    Two closed-experience expressions with equal payloads here evaluate to the
+    identical mathematical field at every shared Arb precision, because the
+    evaluator is a deterministic function of precisely these leaves: the exact
+    initial amplitudes, and per gate (in order) the exact Hermitian upper
+    terms, the identities of any mounted Hermitian expression leaves, the exact
+    local growth/decay rates, the exact affine source coefficients, the exact
+    source-time delta, and hbar.  It deliberately omits every receipt that is
+    pure bookkeeping for the numeric field: the MapInject/injection receipts
+    (their integrated charge already appears as the exact ``source``
+    coefficients), the evolution-authority receipt, the physical-profile
+    receipt, the initial-state authority receipt, the absolute source-time
+    endpoints, the authority id, and the source-time unit -- none of which the
+    evaluator ever consults.  This is the field-content sibling of
+    ``receipt_sha256``: same content-addressing discipline, with the
+    request/scene bookkeeping (which the owner ruled has no physical authority)
+    excluded so that two truly-identical physical experiences share one
+    identity regardless of the distinct moments that named them.
+    """
+
+    return _canonical_bytes(
+        {
+            "dimension": dimension,
+            "initial_amplitudes": [
+                _complex_payload(value) for value in initial_state.amplitudes
+            ],
+            "operator_id": FIELD_EVALUATION_IDENTITY_ID,
+            "schema": "glew.expression.field_evaluation_identity.v1",
+            "steps": [
+                {
+                    "delta": _fraction_text(step.authority.delta),
+                    "hamiltonian_upper": [
+                        {
+                            "column": column,
+                            "row": row,
+                            "value": _complex_payload(value),
+                        }
+                        for row, column, value in _exact_upper_terms(step.authority)
+                    ],
+                    "hbar": _fraction_text(step.authority.hbar),
+                    "hermitian_leaves": [
+                        {
+                            "dimension": leaf.dimension,
+                            "provider_expression_receipt_sha256": (
+                                leaf.provider_expression_receipt_sha256
+                            ),
+                            "upper_nonzero_positions": [
+                                [row, column]
+                                for row, column in leaf.upper_nonzero_positions
+                            ],
+                        }
+                        for leaf in step.hermitian_leaves
+                    ],
+                    "local_rates": [
+                        {
+                            "decay": _fraction_text(rate.decay),
+                            "growth": _fraction_text(rate.growth),
+                            "index": rate.index,
+                        }
+                        for rate in step.authority.local_rates
+                    ],
+                    "source": [
+                        {
+                            "index": coefficient.index,
+                            "value": _complex_payload(coefficient.value),
+                        }
+                        for coefficient in step.authority.source
+                    ],
+                }
+                for step in steps
+            ],
+            "topology_authority_receipt_sha256": topology_authority_receipt_sha256,
+        }
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class ClosedExperienceFieldExpression:
     topology: MountedFieldTopology
@@ -493,6 +579,27 @@ class ClosedExperienceFieldExpression:
     @property
     def dimension(self) -> int:
         return self.topology.dimension
+
+    @property
+    def field_evaluation_identity_sha256(self) -> str:
+        """Digest of this expression's numeric-field-defining leaves only.
+
+        Equal iff two expressions evaluate to the identical mathematical field
+        at every shared precision; independent of the receipt bookkeeping
+        (request/scene identity, provenance, injection receipts) that the field
+        evaluator never reads.  See ``field_evaluation_identity_payload``.
+        """
+
+        return receipt_sha256(
+            field_evaluation_identity_payload(
+                topology_authority_receipt_sha256=(
+                    self.topology_authority_receipt_sha256
+                ),
+                dimension=self.dimension,
+                initial_state=self.initial_state,
+                steps=self.steps,
+            )
+        )
 
     @property
     def topology_authority_receipt_sha256(self) -> str:
@@ -1070,6 +1177,7 @@ class ModeExpressionInput:
 
 __all__ = (
     "CENTROID_OPERATOR_ID",
+    "FIELD_EVALUATION_IDENTITY_ID",
     "ClosedExperienceFieldExpression",
     "EvaluatedHermitianUpperEntry",
     "ExpressionEvaluationStatus",
@@ -1085,6 +1193,7 @@ __all__ = (
     "create_hermitian_leaf_reference",
     "evaluate_closed_experience_expression",
     "evaluate_closed_experience_in_arb",
+    "field_evaluation_identity_payload",
     "hermitian_leaf_reference_receipt_payload",
     "indeterminate_proof_request_receipt_payload",
     "precision_schedule_authority_receipt_payload",
