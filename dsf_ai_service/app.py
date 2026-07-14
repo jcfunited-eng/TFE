@@ -145,11 +145,81 @@ def _fail_inflight_converse_tasks(reason):
     return n_failed
 
 
+def _process_observed_sight_frame(sight_b64):
+    """GL-CMD-CAMERA-TURN-LATENCY dedup fix: route the send-time,
+    utterance-co-occurring conversation camera frame through the SAME bounded
+    sight backpressure gate the continuous /sight_frame stream already uses
+    (_frame_backpressure_acquire('sight')), instead of calling
+    _guala.process_sight_frame() directly and UNPROTECTED.
+
+    Before this, a conversation-with-camera turn processed its attached frame
+    on a second, ungated path while the 5s /sight_frame stream processed its
+    own frames on the gated path -- two paths for sight, one of them with no
+    backpressure at all. Now there is exactly one ordered, capacity-limited
+    sight path. The send-time frame is still processed when there is capacity
+    (it carries information the up-to-5s-stale streamed frame does not: it is
+    captured exactly at the utterance, so process_sight_frame's cached
+    _last_sight_signal is fresh inside SENSE_BINDING_WINDOW_SEC of the words),
+    but when the shared cap is already full it is DROPPED -- honestly, counted
+    in _frame_dropped['sight'] by the gate, never a second unprotected call.
+    The word binding then falls back to the most recent streamed sight still
+    in window.
+
+    Returns a small outcome dict; never silent. base64/decode errors
+    propagate unchanged (same strict contract the observed path had before)."""
+    import base64
+    if not isinstance(sight_b64, str) or not sight_b64:
+        return {"processed": False, "reason": "no_frame"}
+    if not _frame_backpressure_acquire("sight"):
+        return {"processed": False, "dropped": True,
+                "reason": "backpressure — sight-frame processing at capacity",
+                "n_dropped": _frame_dropped["sight"]}
+    try:
+        image_bytes = base64.b64decode(sight_b64, validate=True)
+        _image, grid, _width, _height = decode_image_bytes(image_bytes)
+        _guala.process_sight_frame(grid)
+        return {"processed": True}
+    finally:
+        _frame_backpressure_release("sight")
+
+
+class _live_interaction_scope:
+    """GL-CMD-CAMERA-TURN-LATENCY priority gate (caller side). Context manager
+    that marks a live human interaction (a converse turn, or a real sight/
+    sound frame) as pending, so the in-process background lock-hogs (the
+    autonomous emission loop, the 5Hz autonomy tick) defer their self.lock
+    acquisition and let the live work win the lock first.
+
+    No-op in remote mode or before the substrate is ready (no in-process
+    _guala). __exit__ ALWAYS releases the mark -- including on exception -- so
+    a turn that raises can never leave her background cognition permanently
+    deferred (the try/finally correctness the mandate requires)."""
+    __slots__ = ("_guala_ref", "_entered")
+
+    def __enter__(self):
+        guala = _guala  # snapshot: release on the same instance we entered
+        self._guala_ref = guala
+        self._entered = False
+        if guala is not None and hasattr(guala, "_enter_live_interaction"):
+            try:
+                guala._enter_live_interaction()
+                self._entered = True
+            except Exception:
+                self._entered = False
+        return self
+
+    def __exit__(self, *exc):
+        if self._entered and self._guala_ref is not None:
+            try:
+                self._guala_ref._exit_live_interaction()
+            except Exception:
+                pass
+        return False
+
+
 def _run_embedded_observed_conversation(
         *, task_id: str, text: str, source: str, sight_b64: str):
     """Bind one send-time camera event and its words as one experience."""
-    import base64
-
     if _guala is None:
         raise RuntimeError("guala_not_ready")
     if not isinstance(sight_b64, str) or not sight_b64:
@@ -169,9 +239,23 @@ def _run_embedded_observed_conversation(
     complete = False
     result = None
     try:
-        image_bytes = base64.b64decode(sight_b64, validate=True)
-        _image, grid, _width, _height = decode_image_bytes(image_bytes)
-        _guala.process_sight_frame(grid)
+        sight_outcome = _process_observed_sight_frame(sight_b64)
+        if sight_outcome.get("dropped"):
+            # Honest, counted degradation: the send-time frame hit the shared
+            # sight backpressure cap (the continuous stream already has frames
+            # in flight). Do NOT process it a second time on an unprotected
+            # path; the word binding falls back to the most recent streamed
+            # sight still within SENSE_BINDING_WINDOW_SEC. Non-silent: counted
+            # by the gate (_frame_dropped) and logged to the event stream here.
+            print(f"[observed-sight] dropped: {sight_outcome.get('reason')} "
+                  f"(n_dropped={sight_outcome.get('n_dropped')})")
+            try:
+                _guala._log_substrate_event(
+                    "observed_sight_frame_dropped",
+                    reason=sight_outcome.get("reason"),
+                    n_dropped=sight_outcome.get("n_dropped"))
+            except Exception:
+                pass
         result = _guala.converse(text, source=source)
         _guala._bind_certified_fact_emission_to_active_window(result)
         complete = True
@@ -443,17 +527,23 @@ async def _run_converse(
         else:
             if _guala is None:
                 raise RuntimeError("guala_not_ready")
-            if sight_b64:
-                turn_result = await _run_lifecycle_executor(
-                    lambda: _run_embedded_observed_conversation(
-                        task_id=task_id,
-                        text=text,
-                        source=source,
-                        sight_b64=sight_b64,
-                    ))
-            else:
-                turn_result = await _run_lifecycle_executor(
-                    lambda: _guala.converse(text, source=source))
+            # GL-CMD-CAMERA-TURN-LATENCY: mark this live turn pending for its
+            # whole duration so the autonomous emission loop / autonomy tick
+            # defer self.lock to it. Scope brackets the await: entered before
+            # the executor thread runs converse (which takes self.lock),
+            # released after it completes OR raises (see _live_interaction_scope).
+            with _live_interaction_scope():
+                if sight_b64:
+                    turn_result = await _run_lifecycle_executor(
+                        lambda: _run_embedded_observed_conversation(
+                            task_id=task_id,
+                            text=text,
+                            source=source,
+                            sight_b64=sight_b64,
+                        ))
+                else:
+                    turn_result = await _run_lifecycle_executor(
+                        lambda: _guala.converse(text, source=source))
             response = turn_result.response
             response_source = turn_result.response_source
             motifs = len(_guala.vocab)
@@ -2330,7 +2420,10 @@ async def sight_frame(msg: GLMessage):
             return {"ok": False, "error": str(e),
                     "object_name_recognition": recognition}
     try:
-        return await _run_lifecycle_executor(_decode)
+        # GL-CMD-CAMERA-TURN-LATENCY: a real sight frame is a live interaction
+        # too -- mark it pending so background emission/autonomy defer to it.
+        with _live_interaction_scope():
+            return await _run_lifecycle_executor(_decode)
     finally:
         _frame_backpressure_release("sight")
 
@@ -2397,7 +2490,10 @@ async def sound_frame(msg: GLMessage):
             return {"ok": False, "error": str(e),
                     "spoken_word_recognition": recognition}
     try:
-        return await _run_lifecycle_executor(_decode)
+        # GL-CMD-CAMERA-TURN-LATENCY: a real sound frame is a live interaction
+        # too -- mark it pending so background emission/autonomy defer to it.
+        with _live_interaction_scope():
+            return await _run_lifecycle_executor(_decode)
     finally:
         _frame_backpressure_release("sound")
 

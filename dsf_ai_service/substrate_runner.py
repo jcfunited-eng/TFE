@@ -2820,7 +2820,18 @@ def _start_autonomous_emission_loop():
             return
         while not _shutdown:
             try:
-                if _guala is not None:
+                # GL-CMD-CAMERA-TURN-LATENCY: this loop is the worst self.lock
+                # offender -- it holds the lock across the FULL six-section
+                # compose_autonomous() (measured 49-94s live). If a live human
+                # interaction is pending, defer this whole cycle rather than
+                # start a fresh long lock-hold in front of the waiting turn.
+                # The loop already retries on its own 90s cadence, so a
+                # deferred cycle simply runs next time -- background emission
+                # is never dropped, only postponed, and the safety valve in
+                # _defer_for_live_interaction guarantees it can't be starved.
+                if (_guala is not None
+                        and not _guala._defer_for_live_interaction(
+                            "autonomous_emission")):
                     should = False
                     with _guala.lock:
                         should = _guala._should_attempt_autonomous_emission()

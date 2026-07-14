@@ -2565,6 +2565,24 @@ class Guala:
     # constant narration.
     REFLECTION_MIN_TICKS_BETWEEN = 500
 
+    # GL-CMD-CAMERA-TURN-LATENCY: live human interaction (a converse turn or
+    # a real sight/sound frame) must win self.lock over her own background
+    # self-directed activity (the autonomous emission loop, the autonomy
+    # tick). self.lock is an unfair RLock -- a fast-looping background holder
+    # can re-acquire it the instant it frees it, ahead of a waiting live
+    # turn, so a live turn can wait through MANY background iterations, not
+    # just one. The gate below lets a background lock-hog SKIP its own next
+    # acquisition while a live interaction is pending, so the waiting turn
+    # gets the lock after at most the one already-in-progress background
+    # iteration -- never an unbounded run of them. This is a real DEFERRAL
+    # (the background work still happens, just not WHILE a live turn waits),
+    # never a permanent skip. This cap is the starvation safety valve: no
+    # single background site defers longer than this many seconds of
+    # CONTINUOUS deferral, so even under sustained back-to-back live use --
+    # or a leaked pending counter -- background work still gets a slice and
+    # can never be starved forever. See _defer_for_live_interaction.
+    _LIVE_INTERACTION_MAX_DEFER_SEC = 2.0
+
     def __init__(self):
         self._identity_record = None
         self.sections = {
@@ -2655,6 +2673,22 @@ class Guala:
         self._read_count_compat = 0  # kept for load compatibility only; superseded by property
         self.dream_log = []
         self.lock = threading.RLock()
+        # GL-CMD-CAMERA-TURN-LATENCY: live-interaction priority gate (see the
+        # _LIVE_INTERACTION_MAX_DEFER_SEC class constant above and
+        # _defer_for_live_interaction below). A plain int counter guarded by a
+        # dedicated micro-lock -- held only for the ~microsecond of an
+        # increment/decrement, never during real work, so it introduces no
+        # contention of its own. NOT persisted (save_full_state serializes
+        # explicit fields only; this is live-only runtime state), NOT the same
+        # lock as self.lock. Reads on the background hot path are lock-free
+        # (a single GIL-atomic int load); only the counter writes take the
+        # micro-lock.
+        self._live_interaction_pending = 0
+        self._live_interaction_lock = threading.Lock()
+        # Per background-site monotonic timestamp of when it FIRST started
+        # deferring in the current contention episode; used by the starvation
+        # safety valve. Guarded by _live_interaction_lock.
+        self._live_interaction_defer_since = {}
         # Persistence is a separate state domain from cognition.  Every
         # multi-file save, WaveAtlas write, event compaction, and snapshot
         # enters this one reentrant boundary so two generations can never
@@ -9569,8 +9603,95 @@ class Guala:
             return 0.0
         return (self.tick - ref_tick) / elapsed
 
+    def _enter_live_interaction(self):
+        """Mark one live human interaction (a converse turn or a real sight/
+        sound frame) as in progress, so background lock-hogs defer their
+        self.lock acquisition until it clears. Counter, not a boolean: several
+        live interactions can overlap (a turn plus concurrent camera frames).
+        Callers MUST pair this with _exit_live_interaction in a try/finally so
+        the count is always released even if processing raises."""
+        # Defensive getattr: a Guala reconstructed by a path that somehow
+        # skipped these __init__ attributes still degrades to "never defer"
+        # rather than raising, so the priority gate can never itself break a
+        # live turn or a save.
+        lock = getattr(self, "_live_interaction_lock", None)
+        if lock is None:
+            return
+        with lock:
+            self._live_interaction_pending = getattr(
+                self, "_live_interaction_pending", 0) + 1
+
+    def _exit_live_interaction(self):
+        """Release one live-interaction mark taken by _enter_live_interaction.
+        Clamped at zero so a stray extra release can never drive the counter
+        negative and permanently suppress deferral."""
+        lock = getattr(self, "_live_interaction_lock", None)
+        if lock is None:
+            return
+        with lock:
+            self._live_interaction_pending = max(
+                0, getattr(self, "_live_interaction_pending", 0) - 1)
+
+    def _defer_for_live_interaction(self, site):
+        """Return True if this background site (identified by `site`) should
+        SKIP acquiring self.lock this cycle to let a pending live interaction
+        through first; False if it should proceed normally.
+
+        Starvation-free by construction: while a live interaction is pending,
+        a site defers only up to _LIVE_INTERACTION_MAX_DEFER_SEC of CONTINUOUS
+        deferral, then the safety valve forces it to proceed (and re-arms), so
+        background work always gets a slice even under sustained live use or a
+        leaked pending counter. When nothing is pending, deferral state for
+        the site is cleared so the next contention episode starts fresh."""
+        lock = getattr(self, "_live_interaction_lock", None)
+        if lock is None:
+            return False
+        # Defer if EITHER "live interaction" counter is positive:
+        #  - _live_interaction_pending: app-level marks for the paths engine
+        #    converse() does not itself cover -- the /sight_frame and
+        #    /sound_frame routes, and the observed-conversation sight window
+        #    that runs BEFORE converse() is entered.
+        #  - _live_converse_pending: the PRE-EXISTING per-turn counter that
+        #    converse() self-increments (under _live_converse_state_lock; see
+        #    line ~5120) and that _try_acquire_autonomous_emission already
+        #    honors for the emission LOCK. We only READ it here -- never write
+        #    it -- so this self.lock priority gate mirrors/extends that
+        #    existing attribute without changing its semantics or its
+        #    underflow-checked write path.
+        pending = (getattr(self, "_live_interaction_pending", 0)
+                   + getattr(self, "_live_converse_pending", 0))
+        with lock:
+            since_map = getattr(self, "_live_interaction_defer_since", None)
+            if since_map is None:
+                since_map = self._live_interaction_defer_since = {}
+            if pending <= 0:
+                since_map.pop(site, None)
+                return False
+            now = time.monotonic()
+            since = since_map.get(site)
+            if since is None:
+                since_map[site] = now
+                return True
+            if now - since >= self._LIVE_INTERACTION_MAX_DEFER_SEC:
+                # Safety valve: this site has yielded long enough. Proceed and
+                # re-arm so the next contention episode gets its own full
+                # window rather than firing the valve on every subsequent call.
+                since_map.pop(site, None)
+                print(f"[live-priority] {site}: max-defer reached, proceeding "
+                      f"(pending={pending})")
+                return False
+            return True
+
     def _autonomy_tick(self):
         """One iteration of the autonomy loop."""
+        # GL-CMD-CAMERA-TURN-LATENCY: yield to a pending live interaction
+        # before taking self.lock. The tick body is entirely under self.lock
+        # (and can hold it for a long EMITTING compute), so deferring the
+        # WHOLE tick is exactly what frees the lock for a waiting live turn.
+        # Bounded by the safety valve in _defer_for_live_interaction, so her
+        # background cognition can never be permanently frozen by this gate.
+        if self._defer_for_live_interaction("autonomy_tick"):
+            return
         # GL-CMD-AUTONOMY-EMITTING-PHASING-53 §1.1: env-var gate.
         # AUTONOMY_PHASED=1 → _autonomy_tick_phased() which releases self.lock
         # during EMITTING activity compute (uses self._emission_lock instead).
