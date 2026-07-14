@@ -421,13 +421,26 @@ def _preflight_initial_output(
     selected_receipt = commit.selected_mode_receipt_sha256
     if selected_receipt is None:
         raise ReceiptError("initial committed event has no selected stable mode")
+    winner = recognition.winner_mode_index
+    if winner is None or winner >= len(recognition.pre_growth_bank.modes):
+        raise ReceiptError("recognized full field lacks a selected stable mode")
+    selected_mode = recognition.pre_growth_bank.modes[winner]
+    if selected_mode.receipt_sha256 != selected_receipt:
+        raise ReceiptError("commit selected a different mode than recognition")
     # The initial event names the root transition's own successor.  Resolve it
     # by the event's own source-relation Fact Strand (its ``fact_strand_
     # receipt_sha256`` is exactly the root binding's ``source_fact_strand``),
     # so a root mode that owns sibling successors (owner Requirement 2) does
-    # not make this verification ambiguous.
+    # not make this verification ambiguous.  The mode itself is keyed on its
+    # content-only field-evaluation identity, never its bookkeeping-tainted
+    # full receipt: a fresh process regrows this mode into a NEW receipt (no
+    # ExpressionModeBank checkpoint exists), so keying on the receipt would
+    # fail to find the genesis successor after any restart even though the
+    # regrown mode is the identical physical field.
     stable = output.stable_mode_motif_bank.resolve_for_source_relation(
-        mode_receipt_sha256=selected_receipt,
+        mode_field_evaluation_identity_sha256=(
+            selected_mode.source_expression.field_evaluation_identity_sha256
+        ),
         source_fact_strand_receipt_sha256=event.fact_strand_receipt_sha256,
         receipt_registry=receipt_registry,
     )

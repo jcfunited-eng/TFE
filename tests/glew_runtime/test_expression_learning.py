@@ -786,7 +786,7 @@ def test_atomic_commit_binds_exact_mode_to_motif_to_typed_output(
     assert learned.initial_event is not None
     assert learned.initial_event.event_kind is MotifEventKind.CONTENT
     stable = learned.stable_bank.resolve_unique(
-        learning_world.root.selected_mode.receipt_sha256,
+        learning_world.root.selected_mode.source_expression.field_evaluation_identity_sha256,
         learned.receipt_registry,
     )
     assert stable.motif_receipt_sha256 == learned.initial_event.motif_receipt_sha256
@@ -845,7 +845,7 @@ def test_explicit_no_output_closes_only_after_the_committed_content_successor(
     )
     assert len(close_kinds) == 1
     close_stable = closed.stable_bank.resolve_unique(
-        learning_world.content.selected_mode.receipt_sha256,
+        learning_world.content.selected_mode.source_expression.field_evaluation_identity_sha256,
         closed.receipt_registry,
     )
     assert close_stable.motif_receipt_sha256 == close_kinds[0].motif_receipt_sha256

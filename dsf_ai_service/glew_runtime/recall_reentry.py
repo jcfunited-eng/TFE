@@ -357,6 +357,7 @@ def stable_mode_motif_binding_receipt_payload(
     binding_id: str,
     profile_binding_sha256: str,
     mode_receipt_sha256: str,
+    mode_field_evaluation_identity_sha256: str,
     motif_receipt_sha256: str,
     source_fact_strand_receipt_sha256: str,
     transition_context_receipt_sha256: str,
@@ -366,6 +367,10 @@ def stable_mode_motif_binding_receipt_payload(
     for value, name in (
         (profile_binding_sha256, "mode/motif profile receipt"),
         (mode_receipt_sha256, "stable mode receipt"),
+        (
+            mode_field_evaluation_identity_sha256,
+            "stable mode field-evaluation identity",
+        ),
         (motif_receipt_sha256, "stable motif receipt"),
         (source_fact_strand_receipt_sha256, "mode/motif Fact Strand receipt"),
         (
@@ -382,10 +387,21 @@ def stable_mode_motif_binding_receipt_payload(
         {
             "binding_id": binding_id,
             "cardinality": {"mode": 1, "motif": 1},
+            # The content-only mode identity is the actual successor-resolution
+            # key (owner rule: a mode's identity is the exact field its source
+            # expression evaluates to, not the request/scene bookkeeping baked
+            # into its full mode receipt).  ``mode_receipt_sha256`` is retained
+            # as sealed provenance -- the exact mode receipt that was live when
+            # this binding was learned -- but a fresh process regrows that mode
+            # into a new receipt (no ExpressionModeBank checkpoint exists), so
+            # resolution must key on the reproducible field-evaluation identity.
+            "mode_field_evaluation_identity_sha256": (
+                mode_field_evaluation_identity_sha256
+            ),
             "mode_receipt_sha256": mode_receipt_sha256,
             "motif_receipt_sha256": motif_receipt_sha256,
             "profile_binding_sha256": profile_binding_sha256,
-            "schema": "glew.recall.stable_mode_motif_binding.v2",
+            "schema": "glew.recall.stable_mode_motif_binding.v3",
             "source_fact_strand_receipt_sha256": (
                 source_fact_strand_receipt_sha256
             ),
@@ -402,6 +418,7 @@ class StableModeMotifBinding:
     binding_id: str
     profile_binding_sha256: str
     mode_receipt_sha256: str
+    mode_field_evaluation_identity_sha256: str
     motif_receipt_sha256: str
     source_fact_strand_receipt_sha256: str
     transition_context_receipt_sha256: str
@@ -419,6 +436,9 @@ class StableModeMotifBinding:
             binding_id=self.binding_id,
             profile_binding_sha256=self.profile_binding_sha256,
             mode_receipt_sha256=self.mode_receipt_sha256,
+            mode_field_evaluation_identity_sha256=(
+                self.mode_field_evaluation_identity_sha256
+            ),
             motif_receipt_sha256=self.motif_receipt_sha256,
             source_fact_strand_receipt_sha256=(
                 self.source_fact_strand_receipt_sha256
@@ -509,6 +529,9 @@ def stable_mode_motif_bank_receipt_payload(
                 {
                     "binding_id": value.binding_id,
                     "binding_receipt_sha256": value.binding_receipt_sha256,
+                    "mode_field_evaluation_identity_sha256": (
+                        value.mode_field_evaluation_identity_sha256
+                    ),
                     "mode_receipt_sha256": value.mode_receipt_sha256,
                     "motif_receipt_sha256": value.motif_receipt_sha256,
                     "transition_context_match_sha256": (
@@ -522,7 +545,7 @@ def stable_mode_motif_bank_receipt_payload(
             ],
             "completeness_scope": "complete_active_stable_mode_motif_bank",
             "profile_binding_sha256": profile_binding_sha256,
-            "schema": "glew.recall.stable_mode_motif_bank.v2",
+            "schema": "glew.recall.stable_mode_motif_bank.v3",
         }
     )
 
@@ -534,7 +557,7 @@ class StableModeMotifBank:
     bindings: tuple[StableModeMotifBinding, ...]
     bank_receipt_sha256: str
     bank_receipt_payload: bytes
-    _by_mode: Mapping[str, tuple[StableModeMotifBinding, ...]] = field(
+    _by_mode_identity: Mapping[str, tuple[StableModeMotifBinding, ...]] = field(
         init=False,
         repr=False,
         compare=False,
@@ -551,12 +574,20 @@ class StableModeMotifBank:
             raise ReceiptError("stable mode/motif bank differs from exact receipt bytes")
         if receipt_sha256(expected) != self.bank_receipt_sha256:
             raise ReceiptError("stable mode/motif bank digest differs from exact bytes")
+        # Successor resolution keys on the content-only mode identity, never on
+        # the sealed ``mode_receipt_sha256`` provenance: a fresh process regrows
+        # a learned mode into a NEW full receipt (no ExpressionModeBank
+        # checkpoint exists), while its field-evaluation identity is
+        # reproducible, so a resolver keyed on the receipt would fail to find
+        # the successor of a legitimately regrown mode.
         grouped: dict[str, list[StableModeMotifBinding]] = {}
         for value in self.bindings:
-            grouped.setdefault(value.mode_receipt_sha256, []).append(value)
+            grouped.setdefault(
+                value.mode_field_evaluation_identity_sha256, []
+            ).append(value)
         object.__setattr__(
             self,
-            "_by_mode",
+            "_by_mode_identity",
             MappingProxyType(
                 {key: tuple(values) for key, values in grouped.items()}
             ),
@@ -564,7 +595,7 @@ class StableModeMotifBank:
 
     def _verified_candidates(
         self,
-        mode_receipt_sha256: str,
+        mode_field_evaluation_identity_sha256: str,
         receipt_registry: ReceiptRegistry,
     ) -> tuple[StableModeMotifBinding, ...]:
         if self.profile_binding_sha256 != receipt_registry.profile_binding_sha256:
@@ -575,7 +606,9 @@ class StableModeMotifBank:
             self.bank_receipt_payload,
             "stable mode/motif bank receipt",
         )
-        values = self._by_mode.get(mode_receipt_sha256, ())
+        values = self._by_mode_identity.get(
+            mode_field_evaluation_identity_sha256, ()
+        )
         if not values:
             raise ReceiptError("selected mode has no stable motif binding")
         for value in values:
@@ -584,10 +617,11 @@ class StableModeMotifBank:
 
     def resolve_unique(
         self,
-        mode_receipt_sha256: str,
+        mode_field_evaluation_identity_sha256: str,
         receipt_registry: ReceiptRegistry,
     ) -> StableModeMotifBinding:
-        """Resolve the sole successor of a mode.
+        """Resolve the sole successor of a mode (keyed on its field-evaluation
+        identity, not its bookkeeping-tainted full receipt).
 
         This is the recall-transition resolver: a self-recall re-run only
         knows the *predecessor* scene when it must choose a mode's successor,
@@ -597,7 +631,9 @@ class StableModeMotifBank:
         modes (the exact-repeat recall path) resolve unchanged.
         """
 
-        values = self._verified_candidates(mode_receipt_sha256, receipt_registry)
+        values = self._verified_candidates(
+            mode_field_evaluation_identity_sha256, receipt_registry
+        )
         motifs = {value.motif_receipt_sha256 for value in values}
         if len(motifs) != 1:
             raise ReceiptError("selected mode has conflicting stable motif bindings")
@@ -606,7 +642,7 @@ class StableModeMotifBank:
     def resolve_for_transition(
         self,
         *,
-        mode_receipt_sha256: str,
+        mode_field_evaluation_identity_sha256: str,
         transition_context_match_sha256: str,
         receipt_registry: ReceiptRegistry,
     ) -> StableModeMotifBinding:
@@ -617,7 +653,9 @@ class StableModeMotifBank:
             transition_context_match_sha256,
             "resolve transition-context match receipt",
         )
-        values = self._verified_candidates(mode_receipt_sha256, receipt_registry)
+        values = self._verified_candidates(
+            mode_field_evaluation_identity_sha256, receipt_registry
+        )
         matches = tuple(
             value
             for value in values
@@ -637,7 +675,7 @@ class StableModeMotifBank:
     def resolve_for_source_relation(
         self,
         *,
-        mode_receipt_sha256: str,
+        mode_field_evaluation_identity_sha256: str,
         source_fact_strand_receipt_sha256: str,
         receipt_registry: ReceiptRegistry,
     ) -> StableModeMotifBinding:
@@ -654,7 +692,9 @@ class StableModeMotifBank:
             source_fact_strand_receipt_sha256,
             "resolve source relation Fact Strand receipt",
         )
-        values = self._verified_candidates(mode_receipt_sha256, receipt_registry)
+        values = self._verified_candidates(
+            mode_field_evaluation_identity_sha256, receipt_registry
+        )
         matches = tuple(
             value
             for value in values
@@ -1147,8 +1187,12 @@ class RecallTransitionSettlement:
             "recall full-field commit decision receipt",
         )
 
+        # Successor resolution keys on the selected mode's field-evaluation
+        # identity (content), never its full receipt: on a fresh process the
+        # recognized mode is regrown into a new receipt but the identical field
+        # yields the identical identity, so the stored successor still resolves.
         stable = stable_mode_motif_bank.resolve_unique(
-            selected_mode.receipt_sha256,
+            selected_mode.source_expression.field_evaluation_identity_sha256,
             self.receipt_registry,
         )
         if (

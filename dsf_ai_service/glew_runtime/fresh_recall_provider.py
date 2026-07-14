@@ -460,12 +460,24 @@ class FullFieldFreshRecallProvider:
             raise ReceiptError("fresh recall executor commit changed on recomputation")
         if commit.status is not CommitStatus.COMMIT or commit.selected_mode_receipt_sha256 is None:
             raise ReceiptError("fresh recall full field did not commit one mode")
+        winner = recognition.winner_mode_index
+        if winner is None or winner >= len(recognition.pre_growth_bank.modes):
+            raise ReceiptError("fresh recall recognition lacks a selected mode")
+        selected_mode = recognition.pre_growth_bank.modes[winner]
+        if selected_mode.receipt_sha256 != commit.selected_mode_receipt_sha256:
+            raise ReceiptError(
+                "fresh recall commit selected a different mode than recognition"
+            )
         registry = _extend_registry(
             execution.receipt_registry,
             (commit.receipt_payload,),
         )
+        # Resolve the successor by the selected mode's field-evaluation identity
+        # (content), never its bookkeeping-tainted full receipt: a fresh process
+        # regrows this mode into a NEW receipt, so keying on the receipt would
+        # fail to find the stored successor even for the identical physical field.
         stable = stable_mode_motif_bank.resolve_unique(
-            commit.selected_mode_receipt_sha256,
+            selected_mode.source_expression.field_evaluation_identity_sha256,
             registry,
         )
         motif_kind = self._motif_kinds.get(stable.motif_receipt_sha256)

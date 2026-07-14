@@ -361,7 +361,13 @@ def _stable_binding(
     binding_id: str,
     mode_receipt_sha256: str,
     motif_receipt_sha256: str,
+    mode_field_evaluation_identity_sha256: str | None = None,
 ) -> StableModeMotifBinding:
+    # Successor resolution keys on the mode's content-only field-evaluation
+    # identity; a synthetic single-mode fixture may reuse the receipt as a
+    # stand-in, but a real-mode fixture must pass the mode's true identity.
+    if mode_field_evaluation_identity_sha256 is None:
+        mode_field_evaluation_identity_sha256 = mode_receipt_sha256
     strand = world.fact(f"{binding_id}:mode-motif-strand")
     prior = world.fact(f"{binding_id}:prior-relation")
     input_expr = world.fact(f"{binding_id}:input-expression")
@@ -390,6 +396,9 @@ def _stable_binding(
         binding_id=binding_id,
         profile_binding_sha256=world.profile_sha256,
         mode_receipt_sha256=mode_receipt_sha256,
+        mode_field_evaluation_identity_sha256=(
+            mode_field_evaluation_identity_sha256
+        ),
         motif_receipt_sha256=motif_receipt_sha256,
         source_fact_strand_receipt_sha256=strand,
         transition_context_receipt_sha256=context_digest,
@@ -399,6 +408,9 @@ def _stable_binding(
         binding_id=binding_id,
         profile_binding_sha256=world.profile_sha256,
         mode_receipt_sha256=mode_receipt_sha256,
+        mode_field_evaluation_identity_sha256=(
+            mode_field_evaluation_identity_sha256
+        ),
         motif_receipt_sha256=motif_receipt_sha256,
         source_fact_strand_receipt_sha256=strand,
         transition_context_receipt_sha256=context_digest,
@@ -734,12 +746,18 @@ def _scenario():
         world,
         binding_id="mode-to-o",
         mode_receipt_sha256=mode_for_first.receipt_sha256,
+        mode_field_evaluation_identity_sha256=(
+            mode_for_first.source_expression.field_evaluation_identity_sha256
+        ),
         motif_receipt_sha256=motif_o,
     )
     stable_second = _stable_binding(
         world,
         binding_id="mode-to-close",
         mode_receipt_sha256=mode_for_second.receipt_sha256,
+        mode_field_evaluation_identity_sha256=(
+            mode_for_second.source_expression.field_evaluation_identity_sha256
+        ),
         motif_receipt_sha256=motif_close,
     )
     stable_bank = _stable_bank(world, (stable_first, stable_second))
@@ -900,7 +918,7 @@ def test_stable_bank_holds_and_resolves_multiple_successors_of_one_mode():
     # resolve_for_transition selects the sibling for THIS reproducible context.
     assert (
         bank.resolve_for_transition(
-            mode_receipt_sha256=mode,
+            mode_field_evaluation_identity_sha256=mode,
             transition_context_match_sha256=binding_a.transition_context_match_sha256,
             receipt_registry=registry,
         ).binding_receipt_sha256
@@ -908,7 +926,7 @@ def test_stable_bank_holds_and_resolves_multiple_successors_of_one_mode():
     )
     assert (
         bank.resolve_for_transition(
-            mode_receipt_sha256=mode,
+            mode_field_evaluation_identity_sha256=mode,
             transition_context_match_sha256=binding_b.transition_context_match_sha256,
             receipt_registry=registry,
         ).binding_receipt_sha256
@@ -918,7 +936,7 @@ def test_stable_bank_holds_and_resolves_multiple_successors_of_one_mode():
     # resolve_for_source_relation selects the sibling by its source relation.
     assert (
         bank.resolve_for_source_relation(
-            mode_receipt_sha256=mode,
+            mode_field_evaluation_identity_sha256=mode,
             source_fact_strand_receipt_sha256=binding_a.source_fact_strand_receipt_sha256,
             receipt_registry=registry,
         ).binding_receipt_sha256
@@ -933,7 +951,7 @@ def test_stable_bank_holds_and_resolves_multiple_successors_of_one_mode():
     # An unknown transition context is honest fail-closed silence, not a guess.
     with pytest.raises(ReceiptError, match="under this transition context"):
         bank.resolve_for_transition(
-            mode_receipt_sha256=mode,
+            mode_field_evaluation_identity_sha256=mode,
             transition_context_match_sha256=world.fact("g2-unknown-context"),
             receipt_registry=registry,
         )

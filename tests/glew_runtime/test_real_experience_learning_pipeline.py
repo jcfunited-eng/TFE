@@ -72,7 +72,7 @@ def test_two_real_independent_scenes_commit_and_learn(
     assert learned.initial_event is not None
     assert learned.initial_event.event_kind is MotifEventKind.CONTENT
     stable = learned.stable_bank.resolve_unique(
-        result.root_committed.selected_mode.receipt_sha256,
+        result.root_committed.selected_mode.source_expression.field_evaluation_identity_sha256,
         learned.receipt_registry,
     )
     assert stable.motif_receipt_sha256 == learned.initial_event.motif_receipt_sha256

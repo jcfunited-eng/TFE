@@ -416,6 +416,7 @@ def committed_relation_receipt_payload(
     profile_binding_sha256: str,
     commit_receipt_sha256: str,
     selected_mode_receipt_sha256: str,
+    selected_mode_field_evaluation_identity_sha256: str,
     topology_authority_receipt_sha256: str,
     closed_experience_receipt_sha256: str,
     expression_receipt_sha256: str,
@@ -430,6 +431,10 @@ def committed_relation_receipt_payload(
         (profile_binding_sha256, "committed relation profile"),
         (commit_receipt_sha256, "committed relation commit"),
         (selected_mode_receipt_sha256, "committed relation mode"),
+        (
+            selected_mode_field_evaluation_identity_sha256,
+            "committed relation selected-mode field-evaluation identity",
+        ),
         (topology_authority_receipt_sha256, "committed relation topology"),
         (closed_experience_receipt_sha256, "committed relation experience"),
         (expression_receipt_sha256, "committed relation expression"),
@@ -464,7 +469,16 @@ def committed_relation_receipt_payload(
             "profile_binding_sha256": profile_binding_sha256,
             "recognition_receipt_sha256": recognition_receipt_sha256,
             "relation_id": relation_id,
-            "schema": "glew.learning.committed_mode_relation.v2",
+            "schema": "glew.learning.committed_mode_relation.v3",
+            # The content-only identity of the mode this relation committed
+            # against.  It is the reproducible successor-resolution key (a fresh
+            # process regrows the same mode into a different full receipt, so
+            # ``selected_mode_receipt_sha256`` alone cannot bridge learning to a
+            # later live recognition); the full receipt is retained as sealed
+            # provenance.
+            "selected_mode_field_evaluation_identity_sha256": (
+                selected_mode_field_evaluation_identity_sha256
+            ),
             "selected_mode_receipt_sha256": selected_mode_receipt_sha256,
             "sensory_evidence_receipt_sha256s": list(
                 sensory_evidence_receipt_sha256s
@@ -482,6 +496,7 @@ class CommittedModeRelation:
     profile_binding_sha256: str
     commit_receipt_sha256: str
     selected_mode_receipt_sha256: str
+    selected_mode_field_evaluation_identity_sha256: str
     topology_authority_receipt_sha256: str
     closed_experience_receipt_sha256: str
     expression_receipt_sha256: str
@@ -498,6 +513,9 @@ class CommittedModeRelation:
             profile_binding_sha256=self.profile_binding_sha256,
             commit_receipt_sha256=self.commit_receipt_sha256,
             selected_mode_receipt_sha256=self.selected_mode_receipt_sha256,
+            selected_mode_field_evaluation_identity_sha256=(
+                self.selected_mode_field_evaluation_identity_sha256
+            ),
             topology_authority_receipt_sha256=(
                 self.topology_authority_receipt_sha256
             ),
@@ -589,6 +607,9 @@ def derive_committed_mode_relation(
         profile_binding_sha256=receipt_registry.profile_binding_sha256,
         commit_receipt_sha256=committed.commit.receipt_sha256,
         selected_mode_receipt_sha256=committed.selected_mode.receipt_sha256,
+        selected_mode_field_evaluation_identity_sha256=(
+            committed.selected_mode.source_expression.field_evaluation_identity_sha256
+        ),
         topology_authority_receipt_sha256=(
             committed.sealed.expression.topology_authority_receipt_sha256
         ),
@@ -615,6 +636,9 @@ def derive_committed_mode_relation(
         profile_binding_sha256=registry.profile_binding_sha256,
         commit_receipt_sha256=committed.commit.receipt_sha256,
         selected_mode_receipt_sha256=committed.selected_mode.receipt_sha256,
+        selected_mode_field_evaluation_identity_sha256=(
+            committed.selected_mode.source_expression.field_evaluation_identity_sha256
+        ),
         topology_authority_receipt_sha256=(
             committed.sealed.expression.topology_authority_receipt_sha256
         ),
@@ -769,7 +793,7 @@ class LearnedBindingState:
             raise ReceiptError("learned motif has duplicate kind authorities")
         stable_pairs = tuple(
             (
-                value.mode_receipt_sha256,
+                value.mode_field_evaluation_identity_sha256,
                 value.transition_context_match_sha256,
             )
             for value in self.stable_bank.bindings
@@ -778,8 +802,11 @@ class LearnedBindingState:
             value.motif_receipt_sha256 for value in self.stable_bank.bindings
         }
         # A committed mode may own many successors (owner Requirement 2); what
-        # must stay unique is the (mode, reproducible-transition-context) pair.
-        # Two successors sharing both would be a true-duplicate defect.
+        # must stay unique is the (mode-identity, reproducible-transition-
+        # context) pair -- keyed on the content-only mode identity, exactly as
+        # the resolvers are, so verify's notion of "duplicate" cannot diverge
+        # from resolution's notion of "conflicting".  Two successors sharing
+        # both would be a true-duplicate defect.
         if len(set(stable_pairs)) != len(stable_pairs):
             raise ReceiptError("learned mode/transition-context pair is not unique")
         if stable_motifs != set(kind_by_motif):
@@ -811,8 +838,8 @@ class LearnedBindingState:
             ):
                 raise ReceiptError("learned initial event cites a stale output bank")
             stable = self.stable_bank.resolve_for_source_relation(
-                mode_receipt_sha256=(
-                    self.initial_relation.selected_mode_receipt_sha256
+                mode_field_evaluation_identity_sha256=(
+                    self.initial_relation.selected_mode_field_evaluation_identity_sha256
                 ),
                 source_fact_strand_receipt_sha256=(
                     self.initial_relation.fact_strand_receipt_sha256
@@ -957,7 +984,9 @@ def _make_initial_event(
     # since have acquired sibling successors from other chain positions (owner
     # Requirement 2), and this event must stay pinned to the root transition.
     stable = stable_bank.resolve_for_source_relation(
-        mode_receipt_sha256=root.selected_mode_receipt_sha256,
+        mode_field_evaluation_identity_sha256=(
+            root.selected_mode_field_evaluation_identity_sha256
+        ),
         source_fact_strand_receipt_sha256=root.fact_strand_receipt_sha256,
         receipt_registry=receipt_registry,
     )
@@ -1251,6 +1280,9 @@ def learn_committed_binding_transaction(
         binding_id=stable_id,
         profile_binding_sha256=working.profile_binding_sha256,
         mode_receipt_sha256=prior_relation.selected_mode_receipt_sha256,
+        mode_field_evaluation_identity_sha256=(
+            prior_relation.selected_mode_field_evaluation_identity_sha256
+        ),
         motif_receipt_sha256=motif_digest,
         source_fact_strand_receipt_sha256=(
             prior_relation.fact_strand_receipt_sha256
@@ -1262,6 +1294,9 @@ def learn_committed_binding_transaction(
         binding_id=stable_id,
         profile_binding_sha256=working.profile_binding_sha256,
         mode_receipt_sha256=prior_relation.selected_mode_receipt_sha256,
+        mode_field_evaluation_identity_sha256=(
+            prior_relation.selected_mode_field_evaluation_identity_sha256
+        ),
         motif_receipt_sha256=motif_digest,
         source_fact_strand_receipt_sha256=(
             prior_relation.fact_strand_receipt_sha256
@@ -1270,11 +1305,15 @@ def learn_committed_binding_transaction(
         transition_context_match_sha256=context_match,
         binding_receipt_sha256=receipt_sha256(stable_payload),
     )
+    # The duplicate guard keys on the content-only mode identity (not the full
+    # mode receipt): "this prior mode already learned this exact transition
+    # context" is a statement about the mode's physical field, which the
+    # resolvers likewise key on.
     duplicate = [
         value
         for value in state.stable_bank.bindings
-        if value.mode_receipt_sha256
-        == prior_relation.selected_mode_receipt_sha256
+        if value.mode_field_evaluation_identity_sha256
+        == prior_relation.selected_mode_field_evaluation_identity_sha256
         and value.transition_context_match_sha256 == context_match
     ]
     if duplicate:
@@ -1433,13 +1472,20 @@ def _restore_relation(
 ) -> CommittedModeRelation:
     payload = registry.resolve(digest, "restored committed relation")
     value = _strict_object(payload, "restored committed relation")
-    if value.get("schema") != "glew.learning.committed_mode_relation.v2":
+    if value.get("schema") != "glew.learning.committed_mode_relation.v3":
+        # A checkpoint written under the pre-content-identity relation shape is
+        # schema-incompatible; fail closed rather than restore a bank whose
+        # successor resolution key is absent.  The clean path is a fresh reseed
+        # via ``seed_first_production_successor.py``.
         raise ReceiptError("checkpoint relation has another schema")
     relation = CommittedModeRelation(
         relation_id=value["relation_id"],
         profile_binding_sha256=value["profile_binding_sha256"],
         commit_receipt_sha256=value["commit_receipt_sha256"],
         selected_mode_receipt_sha256=value["selected_mode_receipt_sha256"],
+        selected_mode_field_evaluation_identity_sha256=(
+            value["selected_mode_field_evaluation_identity_sha256"]
+        ),
         topology_authority_receipt_sha256=(
             value["topology_authority_receipt_sha256"]
         ),
@@ -1535,10 +1581,11 @@ def _restore_stable_bank(
 ) -> StableModeMotifBank:
     payload = registry.resolve(digest, "restored stable bank")
     value = _strict_object(payload, "restored stable bank")
-    if value.get("schema") != "glew.recall.stable_mode_motif_bank.v2":
-        # A checkpoint written under the pre-Requirement-2 single-successor
-        # binding shape is schema-incompatible; fail closed rather than restore
-        # a silently corrupt bank.  The clean path is a fresh reseed via
+    if value.get("schema") != "glew.recall.stable_mode_motif_bank.v3":
+        # A checkpoint written under the pre-content-identity binding shape is
+        # schema-incompatible; fail closed rather than restore a bank whose
+        # successor resolution key (the content-only mode identity) is absent.
+        # The clean path is a fresh reseed via
         # ``seed_first_production_successor.py`` (design section 7).
         raise ReceiptError("checkpoint stable bank has another schema")
     if not isinstance(value.get("bindings"), list):
@@ -1552,19 +1599,23 @@ def _restore_stable_bank(
         )
         item = _strict_object(binding_payload, "restored stable binding")
         for required in (
+            "mode_field_evaluation_identity_sha256",
             "transition_context_receipt_sha256",
             "transition_context_match_sha256",
         ):
             if required not in item:
                 raise ReceiptError(
-                    "checkpoint stable binding lacks its transition-context "
-                    "fields; reseed under the current schema"
+                    "checkpoint stable binding lacks its content-identity or "
+                    "transition-context fields; reseed under the current schema"
                 )
         bindings.append(
             StableModeMotifBinding(
                 binding_id=item["binding_id"],
                 profile_binding_sha256=item["profile_binding_sha256"],
                 mode_receipt_sha256=item["mode_receipt_sha256"],
+                mode_field_evaluation_identity_sha256=(
+                    item["mode_field_evaluation_identity_sha256"]
+                ),
                 motif_receipt_sha256=item["motif_receipt_sha256"],
                 source_fact_strand_receipt_sha256=(
                     item["source_fact_strand_receipt_sha256"]

@@ -140,6 +140,12 @@ def _conversation_fixture():
         world,
         binding_id="conversation-mode-content",
         mode_receipt_sha256=selected.receipt_sha256,
+        # Successor resolution keys on the mode's content-only field-evaluation
+        # identity (the fixed preflight/recall path), so the binding must carry
+        # the real recognized mode's identity, not the synthetic receipt default.
+        mode_field_evaluation_identity_sha256=(
+            selected.source_expression.field_evaluation_identity_sha256
+        ),
         motif_receipt_sha256=motif,
     )
     stable_bank = _stable_bank(world, (stable,))
