@@ -13480,7 +13480,14 @@ class Guala:
             save_tick = self.tick
             snap_vocab_len = len(self.vocab)
             snap_bucket = self._envelope({"removed": True, "vocab_count": snap_vocab_len})
-            snap_windows = self._envelope(self.window_manager.snapshot())
+            # GL-WAL-INCREMENTAL: binding windows persist via an append-only
+            # write-ahead log. Closed windows were already appended once, at
+            # close time; the hot save writes only the small manifest (open
+            # contexts + counters + durable WAL marker) instead of
+            # re-serialising the whole ~220MB closed-window store every cycle.
+            self.window_manager.configure_wal_under(state_dir)
+            snap_windows = self._envelope(
+                self.window_manager.snapshot_incremental())
         # lock released
 
         if not self._media_assets_are_current(
@@ -13760,7 +13767,14 @@ class Guala:
             snap_atlas_count = sum(len(v) for v in self.atlas.entries.values())
             # 7. Bucket (removed — Phase E; GL-102: carries vocab_count for guard diet)
             snap_bucket = self._envelope({"removed": True, "vocab_count": snap_vocab_len})
-            snap_windows = self._envelope(self.window_manager.snapshot())
+            # GL-WAL-INCREMENTAL: cold-lane periodic compaction. Fold the WAL
+            # (base + appended segments) into one fresh base segment, then
+            # write the small manifest pointing at it. This is the rare (~30
+            # min) compaction the hot lane never does.
+            self.window_manager.configure_wal_under(state_dir)
+            self.window_manager.compact()
+            snap_windows = self._envelope(
+                self.window_manager.snapshot_incremental())
         # ── lock released ──
 
         self._materialize_media_assets(
@@ -14235,7 +14249,11 @@ class Guala:
                 self._apply_bucket(data["guala_bucket.json"])
 
             if "guala_windows.json" in data:
-                self.window_manager.restore(data["guala_windows.json"])
+                # GL-WAL-INCREMENTAL: dispatches to WAL replay (new manifest
+                # format) or the legacy full-snapshot restore, configuring the
+                # WAL directory either way.
+                self.window_manager.restore_persisted(
+                    data["guala_windows.json"], state_dir)
             else:
                 # Explicit one-time migration from pre-v7.3: no canonical
                 # window history existed, so recognition begins honestly
@@ -14881,7 +14899,10 @@ class Guala:
                 if "guala_bucket.json" in raw:
                     self._apply_bucket(raw["guala_bucket.json"])
             if "guala_windows.json" in raw:
-                self.window_manager.restore(raw["guala_windows.json"])
+                # GL-WAL-INCREMENTAL: WAL replay or legacy restore (see
+                # restore_persisted).
+                self.window_manager.restore_persisted(
+                    raw["guala_windows.json"], state_dir)
             self._rebuild_language_fact_memory_from_windows()
             self._load_successful = True
             # Immediately re-save with envelopes

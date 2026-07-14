@@ -186,6 +186,13 @@ class SaveCoordinator:
                     "guala_sections.json", "guala_bucket.json",
                     "guala_visual.json", "guala_sounds.json",
                     "guala_videos.json", "guala_teaching.json",
+                    # GL-WAL-INCREMENTAL: the binding-window manifest (small now;
+                    # the bulk of window memory lives in the guala_windows_wal/
+                    # directory mirrored just below). The old monolithic
+                    # guala_windows.json was never in this list at all, so window
+                    # recognition history had no off-box S3 copy -- this closes
+                    # that pre-existing gap.
+                    "guala_windows.json",
                     "guala_organism.pkl.gz", "guala_tapestry.pkl.gz",  # GL-CMD-175 P1
                 ]
                 uploaded = 0
@@ -215,6 +222,27 @@ class SaveCoordinator:
                         s3.upload_file(fpath, self.s3_bucket,
                                        f"{s3_prefix}/{fname}")
                     uploaded += 1
+                # GL-WAL-INCREMENTAL: mirror the append-only binding-window WAL
+                # directory. Its segments are text JSONL, so gzip in-flight for
+                # the S3 copy exactly like the .json files above; the local EFS
+                # copies stay uncompressed. Uploading the whole directory is
+                # simplest and safe -- a restore only reads the current
+                # generation, and stale generations are small and pruned on boot.
+                wal_dir = os.path.join(state_dir, "guala_windows_wal")
+                if os.path.isdir(wal_dir):
+                    import gzip as _gzip
+                    import io as _io
+                    for seg_name in sorted(os.listdir(wal_dir)):
+                        seg_path = os.path.join(wal_dir, seg_name)
+                        if not os.path.isfile(seg_path):
+                            continue
+                        with open(seg_path, "rb") as f:
+                            raw = f.read()
+                        buf = _io.BytesIO(_gzip.compress(raw))
+                        s3.upload_fileobj(
+                            buf, self.s3_bucket,
+                            f"{s3_prefix}/guala_windows_wal/{seg_name}.gz")
+                        uploaded += 1
                 # GL-CMD-97: track last S3 result for handle_backup to report
                 self._last_s3_result = {
                     "s3_prefix": f"{s3_prefix}/",

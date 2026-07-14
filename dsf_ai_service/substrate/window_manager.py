@@ -30,6 +30,71 @@ from typing import Any, Callable, Mapping, Optional
 SCHEMA_NAME = "dsf.binding_windows"
 SCHEMA_VERSION = 2
 
+# ── Incremental (write-ahead log) persistence ──────────────────────────────
+# Closed windows are strictly immutable/append-only (a window record is
+# written exactly once, at end_context, and never mutated again).  Rather than
+# re-serialising the entire closed-window store every save cycle (the full
+# snapshot() path deepcopies + re-validates + re-serialises every window on
+# every 60s save -- ~44s over ~220MB in production), each just-closed window is
+# appended once, as one canonical hash-verified JSON line, to a rolling segment
+# file under WAL_DIRNAME.  The periodic save then writes only a tiny manifest
+# (open contexts + counters + a durable WAL marker), never the closed records.
+WAL_DIRNAME = "guala_windows_wal"
+WAL_SEGMENT_PREFIX = "seg-"
+WAL_SEGMENT_SUFFIX = ".jsonl"
+# Roll to a fresh segment file at whichever of these limits is hit first, so no
+# single segment grows unbounded even between compactions.
+WAL_SEGMENT_MAX_RECORDS = 10_000
+WAL_SEGMENT_MAX_BYTES = 64 * 1024 * 1024
+# Value of the "format" key that marks guala_windows.json as a WAL manifest
+# rather than a legacy full-snapshot payload.
+MANIFEST_FORMAT = "wal_manifest"
+
+
+def _canonical_wal_bytes(value: Any) -> bytes:
+    """Deterministic canonical JSON bytes for one persisted record/line.
+
+    Mirrors the project's established hash-verified-record convention
+    (glew_runtime/*._canonical_bytes): sorted keys, tight separators,
+    ASCII-escaped, non-finite floats rejected.  A record hashes and
+    re-serialises identically across a json round-trip, so the stored digest
+    verifies the exact bytes on restore.
+    """
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+        allow_nan=False,
+    ).encode("ascii")
+
+
+def _sha256_hex(payload: bytes) -> str:
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _fsync_dir(path: str) -> None:
+    """Commit a directory entry to disk (required on EFS/NFS after create/rename)."""
+    fd = os.open(path, os.O_RDONLY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def _atomic_rename_with_retry(tmp: str, final: str) -> None:
+    """Rename tmp->final, retrying transient EFS/NFS ENOENT (matches the
+    engine's _atomic_write discipline: the data is already fsync'd, only the
+    directory-entry lookup can lag on the NFS client)."""
+    for attempt in range(4):
+        try:
+            os.rename(tmp, final)
+            return
+        except FileNotFoundError:
+            if attempt == 3:
+                raise
+            time.sleep(0.05 * (attempt + 1))
+
 
 class WindowIntegrityError(ValueError):
     """Raised when a window snapshot or internal index is inconsistent."""
@@ -300,6 +365,26 @@ class WindowManager:
         self._chi_index: dict[int, list[dict]] = {}
         self._window_sequence = 0
         self._context_sequence = 0
+
+        # ── Write-ahead-log (incremental persistence) state ──
+        # Guarded by its own lock so appending a closed record never blocks
+        # concurrent open-context work on ``self._lock``.  Lock order is
+        # always self._lock -> self._wal_lock (never the reverse) so the two
+        # can be held together (compact/snapshot) without deadlock.
+        self._wal_lock = threading.Lock()
+        self._wal_dir: Optional[str] = None
+        self._wal_enabled = False
+        self._wal_generation = 0            # bumped once per compaction
+        self._wal_segment_index = 0         # rolls within a generation
+        self._wal_segment_records = 0       # records in the active segment file
+        self._wal_segment_bytes = 0         # bytes in the active segment file
+        self._wal_record_count = 0          # durable records in this generation
+        self._wal_digest_hasher = hashlib.sha256()  # rolling digest of record hashes
+        # False means the closed-window store is NOT yet reflected in the WAL
+        # (fresh-with-windows or a just-migrated legacy snapshot); the next
+        # save folds it into a base segment.  Fresh-empty starts True.
+        self._wal_base_written = True
+
         self._compatibility_windows = (
             atlas_windows if atlas_windows is not None else {})
 
@@ -702,6 +787,11 @@ class WindowManager:
                 "affect_snapshot": copy.deepcopy(window.affect_snapshot),
             }
             window_id = window.window_id
+        # Durably append the just-closed record to the WAL outside ``self._lock``
+        # so its small fsync never blocks concurrent open-context work.  The
+        # record was fully built and validated (closed=True) inside the lock and
+        # closed windows are immutable, so serialising it here is race-free.
+        self._wal_on_close(record)
         self._log_event("window_closed", **event)
         return window_id
 
@@ -795,10 +885,515 @@ class WindowManager:
             self._compatibility_windows.clear()
             self._compatibility_windows.update(copy.deepcopy(closed))
             self._bound_context.set(None)
+            # This full-snapshot restore replaced the closed-window store; the
+            # WAL (if any) does not reflect it.  A non-empty store must be
+            # folded into a fresh base segment by the next save (see
+            # snapshot_incremental); an empty store needs no base.
+            with self._wal_lock:
+                self._wal_base_written = (len(closed) == 0)
         self._log_event(
             "window_state_restored",
             windows=len(closed), open_contexts=len(contexts),
             chi_buckets=len(chi_index))
+
+    # ── Incremental / write-ahead-log persistence ─────────────────────────
+    #
+    # Design: a closed window is written exactly once.  Instead of the O(store)
+    # full snapshot() every save, each just-closed record is appended as one
+    # canonical hash-verified JSON line to a rolling segment file, and the
+    # periodic save writes only a tiny manifest (open contexts + counters + a
+    # durable WAL marker: generation, record count, rolling digest).  restore
+    # replays the segments, re-validating every record and rebuilding the chi
+    # index from scratch (with O(1) dedup -- never the O(n) ``_index_closed_
+    # window`` list scan, which would reintroduce the boot-time O(n^2) hang
+    # fixed in _validate_snapshot).  Compaction folds the store into a fresh
+    # base segment on the (rarer) cold-save path.
+
+    @staticmethod
+    def _parse_segment_name(name: str) -> Optional[tuple[int, int]]:
+        """Return (generation, index) for a WAL segment filename, else None."""
+        if (not name.startswith(WAL_SEGMENT_PREFIX)
+                or not name.endswith(WAL_SEGMENT_SUFFIX)):
+            return None
+        core = name[len(WAL_SEGMENT_PREFIX):-len(WAL_SEGMENT_SUFFIX)]
+        parts = core.split("-")
+        if len(parts) != 2:
+            return None
+        try:
+            return int(parts[0]), int(parts[1])
+        except ValueError:
+            return None
+
+    def _wal_segment_path(self, generation: int, index: int) -> str:
+        return os.path.join(
+            self._wal_dir,
+            f"{WAL_SEGMENT_PREFIX}{generation:08d}-{index:08d}{WAL_SEGMENT_SUFFIX}")
+
+    def _scan_wal_max_generation(self, wal_dir: str) -> int:
+        max_gen = -1
+        for name in os.listdir(wal_dir):
+            parsed = self._parse_segment_name(name)
+            if parsed is not None:
+                max_gen = max(max_gen, parsed[0])
+        return max_gen
+
+    def _list_wal_segments(self, generation: int) -> list[tuple[int, str]]:
+        """Ordered (index, path) for every segment of one generation on disk."""
+        found: list[tuple[int, str]] = []
+        for name in os.listdir(self._wal_dir):
+            parsed = self._parse_segment_name(name)
+            if parsed is not None and parsed[0] == generation:
+                found.append((parsed[1], os.path.join(self._wal_dir, name)))
+        found.sort(key=lambda item: item[0])
+        return found
+
+    def _delete_wal_generations(self, *, keep: Optional[int] = None,
+                                below: Optional[int] = None) -> None:
+        """Remove stale segment files (keep exactly one generation, or all
+        strictly below a bound).  Never removes the live generation's data."""
+        if self._wal_dir is None:
+            return
+        for name in os.listdir(self._wal_dir):
+            parsed = self._parse_segment_name(name)
+            if parsed is None:
+                continue
+            gen = parsed[0]
+            drop = False
+            if keep is not None and gen != keep:
+                drop = True
+            if below is not None and gen < below:
+                drop = True
+            if drop:
+                try:
+                    os.remove(os.path.join(self._wal_dir, name))
+                except OSError:
+                    pass
+
+    def configure_wal(self, wal_dir: str) -> str:
+        """Point the WAL at ``wal_dir`` (idempotent).  Safe before any append.
+
+        Starts a generation strictly above any leftover segments so a fresh or
+        legacy-migrated store can never mix with stale data; restore_from_wal
+        overrides the generation to the manifest's own.
+        """
+        if self._wal_enabled and self._wal_dir == wal_dir:
+            return self._wal_dir
+        os.makedirs(wal_dir, exist_ok=True)
+        max_gen = self._scan_wal_max_generation(wal_dir)
+        with self._wal_lock:
+            self._wal_dir = wal_dir
+            self._wal_enabled = True
+            self._wal_generation = max_gen + 1 if max_gen >= 0 else 0
+            self._wal_segment_index = 0
+            self._wal_segment_records = 0
+            self._wal_segment_bytes = 0
+            self._wal_record_count = 0
+            self._wal_digest_hasher = hashlib.sha256()
+        return wal_dir
+
+    def configure_wal_under(self, state_dir: str) -> str:
+        """Configure the WAL directory as ``state_dir/WAL_DIRNAME``."""
+        return self.configure_wal(os.path.join(state_dir, WAL_DIRNAME))
+
+    def _wal_append_line(self, line: bytes, record_hash: str) -> None:
+        """Append one durable, fsync'd record line to the active segment.
+
+        Caller must hold ``self._wal_lock``.  Counters/digest advance only
+        after the bytes are fsync'd, so the manifest never claims a record
+        durable before it truly is.
+        """
+        if (self._wal_segment_records > 0
+                and (self._wal_segment_records >= WAL_SEGMENT_MAX_RECORDS
+                     or self._wal_segment_bytes + len(line) > WAL_SEGMENT_MAX_BYTES)):
+            self._wal_segment_index += 1
+            self._wal_segment_records = 0
+            self._wal_segment_bytes = 0
+        path = self._wal_segment_path(self._wal_generation, self._wal_segment_index)
+        new_file = self._wal_segment_records == 0
+        with open(path, "ab") as handle:
+            handle.write(line)
+            handle.flush()
+            os.fsync(handle.fileno())
+        if new_file:
+            _fsync_dir(self._wal_dir)
+        self._wal_segment_records += 1
+        self._wal_segment_bytes += len(line)
+        self._wal_record_count += 1
+        self._wal_digest_hasher.update(record_hash.encode("ascii"))
+        self._wal_digest_hasher.update(b"\n")
+
+    def append_closed_record(self, record: Mapping[str, Any]) -> bytes:
+        """Validate a closed-window record and append it to the WAL.
+
+        Returns the exact canonical line bytes that were (or would be) written.
+        When the WAL is not configured the bytes are still produced but not
+        persisted (so callers can serialise without a directory).
+        """
+        if not isinstance(record, Mapping):
+            raise TypeError("append_closed_record requires a window record mapping")
+        self._validate_window_record(record, closed=True)
+        record_hash = _sha256_hex(_canonical_wal_bytes(record))
+        line = _canonical_wal_bytes(
+            {"record": record, "sha256": record_hash}) + b"\n"
+        with self._wal_lock:
+            if self._wal_enabled:
+                self._wal_append_line(line, record_hash)
+        return line
+
+    def _wal_on_close(self, record: Mapping[str, Any]) -> None:
+        """Durably append a just-closed record when the WAL already reflects
+        the store.  If the record cannot be appended durably right now -- the
+        WAL is not configured yet (e.g. a close before the first save on a
+        fresh boot), or the store is a legacy migration awaiting its first base
+        compaction -- the WAL no longer reflects the store, so mark it for a
+        fold-into-base by the next save rather than silently losing the record.
+        """
+        with self._wal_lock:
+            if not (self._wal_enabled and self._wal_base_written):
+                self._wal_base_written = False
+                return
+            record_hash = _sha256_hex(_canonical_wal_bytes(record))
+            line = _canonical_wal_bytes(
+                {"record": record, "sha256": record_hash}) + b"\n"
+            self._wal_append_line(line, record_hash)
+
+    def snapshot_incremental(self, since_seq: Optional[int] = None) -> dict:
+        """Return the small save-cycle manifest (open contexts + counters + a
+        durable WAL marker).  Closed records are NOT included here: each was
+        already appended durably at close time, so the periodic save cost is
+        proportional to the number of OPEN contexts, never the whole store.
+
+        ``since_seq`` is accepted for API compatibility; it is unnecessary in
+        the append-at-close design because closed records are already durable.
+        """
+        with self._lock:
+            if not self._wal_enabled:
+                raise WindowIntegrityError(
+                    "WAL directory is not configured; call configure_wal first")
+            if not self._wal_base_written:
+                # First save after a legacy migration or a fresh-with-windows
+                # start: fold the current closed store into a base segment so
+                # the manifest faithfully represents it.
+                self._compact_locked()
+            with self._wal_lock:
+                generation = self._wal_generation
+                durable_count = self._wal_record_count
+                digest = self._wal_digest_hasher.copy().hexdigest()
+            open_contexts = {
+                context_id: window.to_record()
+                for context_id, window in self._contexts.items()
+            }
+            for context_id, record in open_contexts.items():
+                if record.get("context_id") != context_id:
+                    raise WindowIntegrityError(
+                        f"open context key/id mismatch for {context_id!r}")
+                self._validate_window_record(record, closed=False)
+            manifest = {
+                "schema": SCHEMA_NAME,
+                "version": SCHEMA_VERSION,
+                "format": MANIFEST_FORMAT,
+                "wal_generation": generation,
+                "wal_durable_count": durable_count,
+                "wal_digest": digest,
+                "closed_window_count": len(self._windows),
+                "open_contexts": open_contexts,
+                "next_window_sequence": self._window_sequence,
+                "next_context_sequence": self._context_sequence,
+            }
+            # Final strict-JSON guarantee, including NaN rejection (mirrors
+            # snapshot()'s last line of defence).
+            json.dumps(manifest, allow_nan=False, sort_keys=True)
+            return manifest
+
+    def compact(self, wal_dir: Optional[str] = None) -> dict:
+        """Fold the entire closed-window store into a single fresh base
+        segment and reset the WAL to it.  Cold-save (rare) path."""
+        with self._lock:
+            if wal_dir is not None:
+                self.configure_wal(wal_dir)
+            if not self._wal_enabled:
+                raise WindowIntegrityError(
+                    "WAL directory is not configured; call configure_wal first")
+            return self._compact_locked()
+
+    def _compact_locked(self) -> dict:
+        """Write a new base segment holding every current closed window, make
+        it durable, then switch the live WAL onto it.  Caller holds ``_lock``.
+        """
+        records = list(self._windows.values())
+        new_generation = self._wal_generation + 1
+        tmp_path = self._wal_segment_path(new_generation, 0) + ".tmp"
+        final_path = self._wal_segment_path(new_generation, 0)
+        digest = hashlib.sha256()
+        total_bytes = 0
+        with open(tmp_path, "wb") as handle:
+            for record in records:
+                record_hash = _sha256_hex(_canonical_wal_bytes(record))
+                line = _canonical_wal_bytes(
+                    {"record": record, "sha256": record_hash}) + b"\n"
+                handle.write(line)
+                total_bytes += len(line)
+                digest.update(record_hash.encode("ascii"))
+                digest.update(b"\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        _fsync_dir(self._wal_dir)
+        _atomic_rename_with_retry(tmp_path, final_path)
+        _fsync_dir(self._wal_dir)
+        with self._wal_lock:
+            prev_generation = self._wal_generation
+            self._wal_generation = new_generation
+            self._wal_segment_index = 0
+            self._wal_segment_records = len(records)
+            self._wal_segment_bytes = total_bytes
+            self._wal_record_count = len(records)
+            self._wal_digest_hasher = digest
+            self._wal_base_written = True
+        # Older generations are now fully superseded by this base and safe to
+        # drop.  The PREVIOUS generation is kept until the caller's manifest
+        # (pointing here) is durable; the next compaction / a boot restore
+        # removes it -- so a crash mid-compaction can always fall back to the
+        # last committed generation.
+        self._delete_wal_generations(below=prev_generation)
+        self._log_event(
+            "window_wal_compacted", generation=new_generation,
+            records=len(records), bytes=total_bytes)
+        return {"generation": new_generation, "records": len(records),
+                "path": final_path, "bytes": total_bytes}
+
+    @classmethod
+    def _verify_wal_line(cls, raw: bytes) -> tuple[dict, str]:
+        """Parse+verify one WAL line, returning (record, record_hash).
+
+        Raises on any malformation, hash mismatch, or record-integrity fault.
+        """
+        obj = json.loads(raw)
+        if not isinstance(obj, dict):
+            raise ValueError("WAL line is not a JSON object")
+        record = obj.get("record")
+        stored_hash = obj.get("sha256")
+        if not isinstance(record, dict) or not isinstance(stored_hash, str):
+            raise ValueError("WAL line missing record/sha256")
+        actual_hash = _sha256_hex(_canonical_wal_bytes(record))
+        if actual_hash != stored_hash:
+            raise ValueError("WAL record hash mismatch")
+        cls._validate_window_record(record, closed=True)
+        return record, stored_hash
+
+    @staticmethod
+    def _parse_window_sequence(window_id: Any) -> int:
+        """Best-effort sequence embedded in ``win_<seq:016x>_<id>``; -1 if not."""
+        if not isinstance(window_id, str) or not window_id.startswith("win_"):
+            return -1
+        try:
+            return int(window_id.split("_")[1], 16)
+        except (IndexError, ValueError):
+            return -1
+
+    @staticmethod
+    def _parse_context_sequence(context_id: Any) -> int:
+        """Sequence embedded in a manager-generated ``legacy:<16hex>`` /
+        ``implicit:<16hex>`` context id -- the only forms ``_next_context_id``
+        emits, and thus the only ones whose sequence could collide with a
+        future generated id.  Returns -1 for any caller-supplied context id
+        (``episode:...``, ``bundle:...``, or an arbitrary explicit string), so
+        next_context_sequence is bumped only by real generated sequences."""
+        if not isinstance(context_id, str):
+            return -1
+        for prefix in ("legacy:", "implicit:"):
+            if context_id.startswith(prefix):
+                try:
+                    return int(context_id[len(prefix):], 16)
+                except ValueError:
+                    return -1
+        return -1
+
+    def restore_from_wal(self, manifest: Mapping[str, Any], wal_dir: str) -> None:
+        """Replay the WAL segments for the manifest's generation, verifying
+        every record, and atomically install the reconstructed state.
+
+        Records the manifest counted as durable are digest-verified as a
+        matched prefix; any records appended after the last manifest but before
+        a crash are individually hash-verified and recovered (less loss than
+        the old full-save-only model).  A torn/incomplete trailing record (only
+        ever possible as the very last line) is discarded, never accepted.
+        """
+        if not isinstance(manifest, Mapping):
+            raise WindowIntegrityError("WAL manifest must be a mapping")
+        if manifest.get("format") != MANIFEST_FORMAT:
+            raise WindowIntegrityError("payload is not a WAL manifest")
+        if manifest.get("schema") != SCHEMA_NAME:
+            raise WindowIntegrityError("WAL manifest schema mismatch")
+        if manifest.get("version") != SCHEMA_VERSION:
+            raise WindowIntegrityError("WAL manifest version mismatch")
+        os.makedirs(wal_dir, exist_ok=True)
+        self._wal_dir = wal_dir
+
+        generation = int(manifest["wal_generation"])
+        durable_count = int(manifest["wal_durable_count"])
+        expected_digest = str(manifest["wal_digest"])
+        if durable_count < 0:
+            raise WindowIntegrityError("WAL durable_count must be non-negative")
+
+        segments = self._list_wal_segments(generation)
+        records: list[dict] = []
+        record_hashes: list[str] = []
+        torn_discarded = 0
+        for seg_pos, (_, path) in enumerate(segments):
+            is_last_segment = seg_pos == len(segments) - 1
+            with open(path, "rb") as handle:
+                content = handle.read()
+            if not content:
+                continue
+            ends_with_newline = content.endswith(b"\n")
+            lines = content.split(b"\n")
+            if ends_with_newline:
+                lines = lines[:-1]
+            for line_pos, raw in enumerate(lines):
+                is_trailing_partial = (
+                    is_last_segment
+                    and line_pos == len(lines) - 1
+                    and not ends_with_newline)
+                if raw == b"":
+                    # Blank line: only tolerable as a torn trailing artifact.
+                    if is_trailing_partial:
+                        torn_discarded += 1
+                        continue
+                    raise WindowIntegrityError(
+                        f"WAL segment {os.path.basename(path)} has an empty "
+                        f"interior record at line {line_pos}")
+                try:
+                    record, record_hash = self._verify_wal_line(raw)
+                except (ValueError, KeyError, TypeError,
+                        json.JSONDecodeError, WindowIntegrityError) as exc:
+                    if is_trailing_partial:
+                        torn_discarded += 1
+                        continue
+                    raise WindowIntegrityError(
+                        f"WAL segment {os.path.basename(path)} line {line_pos} "
+                        f"is corrupt and is not the trailing record: {exc}")
+                records.append(record)
+                record_hashes.append(record_hash)
+
+        if len(records) < durable_count:
+            raise WindowIntegrityError(
+                f"WAL generation {generation} holds {len(records)} valid "
+                f"records, fewer than the {durable_count} the manifest marks "
+                f"durable -- committed data is missing")
+        verify = hashlib.sha256()
+        for record_hash in record_hashes[:durable_count]:
+            verify.update(record_hash.encode("ascii"))
+            verify.update(b"\n")
+        if verify.hexdigest() != expected_digest:
+            raise WindowIntegrityError(
+                "WAL durable prefix digest does not match the manifest")
+
+        # Rebuild windows + chi index with O(1) dedup (never _index_closed_
+        # window's O(n) list scan) so a large single-chi bucket cannot make
+        # boot O(n^2).  Every (window_id, entry_index) is unique by
+        # construction, so the dedup is defensive only.
+        windows: dict[str, dict] = {}
+        chi_index: dict[int, list[dict]] = {}
+        chi_seen: dict[int, set] = {}
+        max_window_seq = -1
+        for record in records:
+            window_id = record["window_id"]
+            windows[window_id] = record
+            max_window_seq = max(
+                max_window_seq, self._parse_window_sequence(window_id))
+            for entry in record.get("entries") or []:
+                chi = int(entry["chi"])
+                entry_index = int(entry["entry_index"])
+                seen = chi_seen.setdefault(chi, set())
+                key = (window_id, entry_index)
+                if key in seen:
+                    continue
+                seen.add(key)
+                chi_index.setdefault(chi, []).append(
+                    {"window_id": window_id, "entry_index": entry_index})
+
+        # Open contexts from the manifest; a context whose window already
+        # appears closed in the WAL (a close that raced the manifest read) is
+        # superseded by the closed record and dropped from the open set.
+        open_contexts: dict[str, BindingWindow] = {}
+        max_context_seq = -1
+        for context_id, raw_record in (manifest.get("open_contexts") or {}).items():
+            record = _json_safe(raw_record, f"manifest.open_contexts.{context_id}")
+            if record.get("context_id") != context_id:
+                raise WindowIntegrityError(
+                    f"open context key/id mismatch for {context_id!r}")
+            self._validate_window_record(record, closed=False)
+            window = BindingWindow.from_record(record)
+            max_window_seq = max(
+                max_window_seq, self._parse_window_sequence(window.window_id))
+            max_context_seq = max(
+                max_context_seq, self._parse_context_sequence(context_id))
+            if window.window_id in windows:
+                continue
+            open_contexts[context_id] = window
+        for window_id_key in windows:
+            record = windows[window_id_key]
+            max_context_seq = max(
+                max_context_seq,
+                self._parse_context_sequence(record.get("context_id")))
+
+        next_window_sequence = max(
+            int(manifest["next_window_sequence"]),
+            len(windows),
+            max_window_seq + 1)
+        next_context_sequence = max(
+            int(manifest["next_context_sequence"]),
+            max_context_seq + 1)
+
+        last_index = segments[-1][0] if segments else -1
+        rolling = hashlib.sha256()
+        for record_hash in record_hashes:
+            rolling.update(record_hash.encode("ascii"))
+            rolling.update(b"\n")
+
+        with self._lock:
+            self._windows.clear()
+            self._windows.update(windows)
+            self.windows = self._windows  # legacy direct-read surface
+            self._contexts = open_contexts
+            self._chi_index = chi_index
+            self._window_sequence = next_window_sequence
+            self._context_sequence = next_context_sequence
+            self._compatibility_windows.clear()
+            self._compatibility_windows.update(copy.deepcopy(windows))
+            self._bound_context.set(None)
+            with self._wal_lock:
+                self._wal_dir = wal_dir
+                self._wal_enabled = True
+                self._wal_generation = generation
+                # New closes append to a FRESH segment after the last existing
+                # one, so they can never merge with a discarded torn tail.
+                self._wal_segment_index = last_index + 1
+                self._wal_segment_records = 0
+                self._wal_segment_bytes = 0
+                self._wal_record_count = len(records)
+                self._wal_digest_hasher = rolling
+                self._wal_base_written = True
+        # Drop any non-current generation (older superseded, or an orphan base
+        # from a compaction that crashed before its manifest committed).
+        self._delete_wal_generations(keep=generation)
+        self._log_event(
+            "window_state_restored_wal",
+            windows=len(windows), open_contexts=len(open_contexts),
+            chi_buckets=len(chi_index), durable_count=durable_count,
+            recovered=len(records) - durable_count,
+            torn_discarded=torn_discarded, generation=generation)
+
+    def restore_persisted(self, data: Mapping[str, Any], state_dir: str) -> None:
+        """Restore window state from either a WAL manifest (new format) or a
+        legacy full snapshot, configuring the WAL either way."""
+        wal_dir = os.path.join(state_dir, WAL_DIRNAME)
+        self.configure_wal(wal_dir)
+        if isinstance(data, Mapping) and data.get("format") == MANIFEST_FORMAT:
+            self.restore_from_wal(data, wal_dir)
+        else:
+            # Legacy full snapshot; the next save folds it into a WAL base.
+            self.restore(data)
 
     def validate_integrity(self) -> tuple[str, ...]:
         """Return all integrity errors without modifying state."""
