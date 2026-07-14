@@ -154,6 +154,13 @@ def _conversation_fixture():
         edge=world.fact("conversation:edge"),
         result_state=world.fact("conversation:result-state"),
         full_field=first.expression.receipt_sha256,
+        # The genesis event stores the CONTENT identity of its full field (the
+        # field-evaluation identity), which the fixed preflight compares against
+        # the turn's input expression -- so it must be the real identity of the
+        # expression recognition ran on, not the synthetic placeholder default.
+        full_field_evaluation_identity=(
+            first.expression.field_evaluation_identity_sha256
+        ),
         field_commit=commit.receipt_sha256,
         dominant_binding=stable.binding_receipt_sha256,
         closed_experience=commit.closed_experience_receipt_sha256,

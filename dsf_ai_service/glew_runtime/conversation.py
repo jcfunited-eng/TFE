@@ -364,6 +364,7 @@ def _h_mem_provider_map(
 def _preflight_initial_output(
     *,
     output: RememberedOutputProviders,
+    input_expression: ClosedExperienceFieldExpression,
     recognition: ExpressionModeBoundaryResult,
     commit: CommitDecision,
     receipt_registry: ReceiptRegistry,
@@ -380,24 +381,43 @@ def _preflight_initial_output(
         output.binding_bank.bank_receipt_sha256
     ):
         raise ReceiptError("initial event cites a different output binding bank")
-    if event.field_commit_receipt_sha256 != commit.receipt_sha256:
-        raise ReceiptError("initial event cites a different full-field commit")
-    if event.closed_experience_receipt_sha256 != (
-        commit.closed_experience_receipt_sha256
+    # This turn must be the SAME PHYSICAL EXPERIENCE the genesis motif was
+    # learned from.  The load-bearing content identity is the full field's
+    # field-evaluation identity -- a digest over exactly the exact leaves the
+    # field evaluator reads (``ClosedExperienceFieldExpression.
+    # field_evaluation_identity_sha256``), with the per-turn request/scene
+    # bookkeeping excluded.  It is the very equality recognition itself keys on
+    # to reach RECOGNIZED (``expression_modes`` ``matching_mode_index``): the
+    # genesis event stores mode 0's own source field-evaluation identity, and a
+    # RECOGNIZED in-span input carries that identity exactly.
+    #
+    # The removed equalities (field_commit / closed_experience /
+    # full_field_state / sensory-evidence RECEIPT comparisons) bound the event
+    # to the specific REQUEST/SCENE instance that first learned it: those
+    # receipts embed per-request UUID and per-scene provenance bookkeeping that
+    # has no physical authority, so a genuine repeat under a fresh real request
+    # id -- a bit-identical field, recognized as the same mode under the same L6
+    # lock -- spuriously failed here.  Keying on the field-evaluation identity
+    # is a strict refinement: an exact whole-receipt match (the only case that
+    # released before) implies an exact field-evaluation match, so nothing that
+    # released before stops releasing, while genuinely different fields still
+    # differ.  No tolerance, no threshold: exact equality only.
+    if recognition.input_expression_receipt_sha256 != (
+        input_expression.receipt_sha256
     ):
-        raise ReceiptError("initial event cites a different closed experience")
+        raise ReceiptError(
+            "preflight input expression is not the recognized full field"
+        )
+    if event.full_field_evaluation_identity_sha256 != (
+        input_expression.field_evaluation_identity_sha256
+    ):
+        raise ReceiptError("initial event cites a different full-field expression")
+    # The L6 structural lock is field-content-defined (it carries no request or
+    # scene bookkeeping) and stays an exact equality.
     if event.corrected_l6_lock_receipt_sha256 != (
         commit.l6_evaluation_receipt_sha256
     ):
         raise ReceiptError("initial event cites a different corrected L6 result")
-    if event.full_field_state_receipt_sha256 != (
-        recognition.input_expression_receipt_sha256
-    ):
-        raise ReceiptError("initial event cites a different full-field expression")
-    if not set(event.sensory_evidence_receipt_sha256s).issubset(
-        set(commit.evidence_receipt_sha256s)
-    ):
-        raise ReceiptError("initial event sensory evidence is outside the commit")
     selected_receipt = commit.selected_mode_receipt_sha256
     if selected_receipt is None:
         raise ReceiptError("initial committed event has no selected stable mode")
@@ -549,6 +569,7 @@ def run_clean_conversation_transaction(
         initial_event = remembered_output.initial_event
         _preflight_initial_output(
             output=remembered_output,
+            input_expression=input_expression,
             recognition=recognition,
             commit=commit,
             receipt_registry=receipt_registry,

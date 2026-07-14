@@ -115,6 +115,9 @@ def _real_committed_event(
         fact_strand_receipt_sha256=receipt_sha256(placeholders["strand"]),
         sensory_evidence_receipt_sha256s=sensory,
         full_field_state_receipt_sha256=receipt_sha256(placeholders["full_field"]),
+        full_field_evaluation_identity_sha256=receipt_sha256(
+            b"recall-replay-integrity-field-evaluation-identity"
+        ),
         field_commit_receipt_sha256=receipt_sha256(placeholders["field_commit"]),
         dominant_motif_commit_receipt_sha256=receipt_sha256(placeholders["dominant"]),
         corrected_l6_lock_receipt_sha256=receipt_sha256(placeholders["l6"]),

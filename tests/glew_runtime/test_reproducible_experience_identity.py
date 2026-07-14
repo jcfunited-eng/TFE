@@ -47,18 +47,31 @@ What was the located, blocking gap -- and how it is NOW RESOLVED
   now returns ``RECOGNIZED`` with no spurious growth.  Genuinely different text
   still has a distinct field-evaluation identity and still grows.
 
-What honestly REMAINS a downstream gap (pinned, not papered over):
+What was the downstream gap -- and how it is NOW RESOLVED
+(``GL-SPC-PREFLIGHT-FIELD-IDENTITY-DESIGN-20260714``):
 
-* Recognition now composes end-to-end (a fresh-id repeat RECOGNIZES, commits,
-  and learns), but the recalled OUTPUT is still gated by
-  ``conversation.py``'s ``_preflight_initial_output`` (lines ~383/~395), which
-  requires the learned genesis ``initial_event``'s stored full commit/
-  expression RECEIPTS to byte-equal this turn's -- a sibling of the same
-  root cause one layer down, in the output-recall binding rather than
-  recognition.  ``CommittedMotifEvent`` stores only those receipt digests (not
-  re-derivable field content), so closing that gap is a separate schema-level
-  change, out of scope for this recognition fix.  The end-to-end test below
-  pins exactly that real, measured behaviour.
+* Recognition composing end-to-end (a fresh-id repeat RECOGNIZES, commits, and
+  learns) was necessary but not sufficient to SPEAK the recalled output: that
+  was still gated by ``conversation.py``'s ``_preflight_initial_output``, which
+  required the learned genesis ``initial_event``'s stored full commit/
+  expression/closed-experience/sensory RECEIPTS to byte-equal this turn's --
+  a sibling of the same root cause one layer down, in the output-recall binding
+  rather than recognition (those receipts embed the same per-request/scene
+  bookkeeping).  The fix adds ``CommittedMotifEvent.full_field_evaluation_
+  identity_sha256`` (the genesis full field's field-evaluation identity, the
+  content sibling of its ``full_field_state_receipt_sha256``) and keys the
+  preflight on it -- exact equality, no tolerance -- plus the field-content-
+  defined L6 lock and the already-content-stable selected-mode/stable-motif
+  resolution.  A fresh-id repeat's field-evaluation identity equals the
+  genesis's, so the preflight now passes; the removed receipt equalities were
+  pure request/scene bookkeeping.  This is a persisted-checkpoint schema change
+  (``committed_motif_event.v1`` -> ``.v2``, ``committed_mode_relation.v1`` ->
+  ``.v2``): old-shape checkpoints fail closed at their schema check, and the
+  first-successor seeder reseeds to the new shape via the same real learning
+  pipeline.  ``test_recall_basin_reconciliation_end_to_end`` proves a fresh-id
+  repeat against a POPULATED archive now genuinely SPEAKS; the end-to-end test
+  below pins that this fixture's empty-archive turn now reaches the separate,
+  documented fresh-recall gap instead of the removed preflight gate.
 """
 
 from __future__ import annotations
@@ -416,30 +429,40 @@ def test_field_evaluation_identity_ignores_request_id_but_discriminates_text(
     )
 
 
-def test_end_to_end_fresh_id_repeat_now_recognizes_and_commits_recall_output_still_receipt_gated(
+def test_end_to_end_fresh_id_repeat_now_passes_preflight_only_empty_archive_gap_remains(
     fixture, tmp_path_factory
 ):
     """Highest-fidelity confirmation, end-to-end through the REAL
-    ``ProductionCleanConversationEngine.run_clean_conversation``, of what the
-    recognition fix changes -- and what it honestly does NOT.
+    ``ProductionCleanConversationEngine.run_clean_conversation``, that the
+    downstream preflight-bookkeeping gate is now REMOVED.
 
     ``test_clean_conversation_engine.test_real_end_to_end_commit_and_learn_no_
     monkeypatching`` commits+learns while REUSING ``fixture["root_task_id"]``
     verbatim.  Real live traffic never reuses an id.  Driving the SAME text
     under a FRESH real request id -- what production actually does -- now
-    RECOGNIZES (the fix: a real commit and learn genuinely happen, a checkpoint
-    is persisted), where before the fix it dead-ended at recognition-ambiguous
-    silence with no commit at all.
+    behaves IDENTICALLY to reusing the id: recognition runs, a real full-field
+    commit happens, and the genesis ``initial_event``'s preflight
+    (``conversation.py`` ``_preflight_initial_output``) PASSES.  The fix keys
+    that preflight on the full field's FIELD-EVALUATION identity (the content
+    the field evaluator actually reads) instead of on the commit/expression/
+    closed-experience/sensory RECEIPTS, which embed per-request UUID and
+    per-scene provenance bookkeeping with no physical authority -- the same
+    class of defect as the recognition fix above, one layer down in the output-
+    recall binding.  A fresh-id repeat's field-evaluation identity equals the
+    genesis event's exactly, so it no longer trips
+    ``"initial event cites a different full-field commit"``.
 
-    It does NOT yet SPEAK the recalled output: the transaction's
-    ``_preflight_initial_output`` (``conversation.py`` ~lines 383/395) still
-    requires the learned genesis ``initial_event``'s stored full commit and
-    expression RECEIPTS to byte-equal this turn's, and a fresh request id
-    breaks that byte-equality.  So the turn resolves to
-    EXPLICIT_UNKNOWN_SILENCE naming exactly that downstream commit-binding
-    mismatch -- the located remaining gap (a sibling of the same root cause,
-    one layer down in output recall, out of scope for the recognition fix).
-    This pins that real, measured behaviour.
+    Against THIS fixture the turn still resolves to typed silence -- but for a
+    DIFFERENT, pre-existing, separately-documented reason: the fixture wires the
+    real, unmodified fresh-recall provider to a genuinely EMPTY archive
+    (``test_clean_conversation_engine._real_fresh_recall_provider`` /
+    ``clean_conversation_engine.py``'s "Fresh recall of freshly-learned
+    content"), so recall honestly misses.  That is the SAME
+    ``fresh_reentry_UNKNOWN`` state the same-id commit-and-learn test reaches --
+    no longer the removed preflight gate.
+    ``test_recall_basin_reconciliation_end_to_end`` proves the same fresh-id
+    repeat, against a POPULATED archive, now genuinely SPEAKS the recalled
+    scalar.  This pins the real, measured behaviour.
     """
 
     generation_store = _new_generation_store(tmp_path_factory)
@@ -458,17 +481,23 @@ def test_end_to_end_fresh_id_repeat_now_recognizes_and_commits_recall_output_sti
     )
     result.verify()
 
-    # Recognition ran AND a real full-field commit genuinely happened this turn
-    # -- the strict improvement the fix delivers (before the fix both were
-    # blocked at recognition-ambiguous silence, commit_receipt was None).
+    # Recognition ran, a real full-field commit happened, and the genesis
+    # initial_event was reached -- all under a fresh request id.
     assert result.recognition_receipt_sha256 is not None
     assert result.commit_receipt_sha256 is not None
+    assert result.initial_event_receipt_sha256 is not None
 
-    # The recalled OUTPUT is still gated by the genesis initial_event's stored
-    # commit receipt (the downstream receipt-bookkeeping dependency), so the
-    # turn is honest typed silence -- never fabricated content.
+    # The preflight bookkeeping gate is GONE: a fresh request id no longer trips
+    # the removed commit-receipt equality.
+    assert (
+        "initial event cites a different full-field commit" not in result.reason
+    )
+
+    # The only remaining blocker for THIS fixture is the separate, pre-existing,
+    # documented empty-archive fresh-recall gap -- the exact same state the
+    # same-id commit-and-learn test reaches, never fabricated content.
     assert result.status is ConversationStatus.EXPLICIT_UNKNOWN_SILENCE
-    assert "initial event cites a different full-field commit" in result.reason
+    assert "fresh_reentry_UNKNOWN" in result.reason
     assert result.silent
     assert result.visible_text == ""
 

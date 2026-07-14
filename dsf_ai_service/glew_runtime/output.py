@@ -561,6 +561,7 @@ def committed_motif_event_receipt_payload(
     fact_strand_receipt_sha256: str,
     sensory_evidence_receipt_sha256s: tuple[str, ...],
     full_field_state_receipt_sha256: str,
+    full_field_evaluation_identity_sha256: str,
     field_commit_receipt_sha256: str,
     dominant_motif_commit_receipt_sha256: str,
     corrected_l6_lock_receipt_sha256: str,
@@ -580,6 +581,10 @@ def committed_motif_event_receipt_payload(
         (closed_experience_receipt_sha256, "event closed-experience receipt"),
         (fact_strand_receipt_sha256, "event Fact Strand receipt"),
         (full_field_state_receipt_sha256, "event full-field state receipt"),
+        (
+            full_field_evaluation_identity_sha256,
+            "event full-field evaluation identity",
+        ),
         (field_commit_receipt_sha256, "event field-commit receipt"),
         (
             dominant_motif_commit_receipt_sha256,
@@ -625,6 +630,9 @@ def committed_motif_event_receipt_payload(
             "expression_id": expression_id,
             "fact_strand_receipt_sha256": fact_strand_receipt_sha256,
             "field_commit_receipt_sha256": field_commit_receipt_sha256,
+            "full_field_evaluation_identity_sha256": (
+                full_field_evaluation_identity_sha256
+            ),
             "full_field_state_receipt_sha256": full_field_state_receipt_sha256,
             "motif_receipt_sha256": motif_receipt_sha256,
             "output_binding_bank_receipt_sha256": (
@@ -632,7 +640,7 @@ def committed_motif_event_receipt_payload(
             ),
             "profile_binding_sha256": profile_binding_sha256,
             "result_state_receipt_sha256": result_state_receipt_sha256,
-            "schema": "glew.output.committed_motif_event.v1",
+            "schema": "glew.output.committed_motif_event.v2",
             "sensory_evidence_cardinality": len(
                 sensory_evidence_receipt_sha256s
             ),
@@ -658,6 +666,7 @@ class CommittedMotifEvent:
     fact_strand_receipt_sha256: str
     sensory_evidence_receipt_sha256s: tuple[str, ...]
     full_field_state_receipt_sha256: str
+    full_field_evaluation_identity_sha256: str
     field_commit_receipt_sha256: str
     dominant_motif_commit_receipt_sha256: str
     corrected_l6_lock_receipt_sha256: str
@@ -684,6 +693,9 @@ class CommittedMotifEvent:
             ),
             full_field_state_receipt_sha256=(
                 self.full_field_state_receipt_sha256
+            ),
+            full_field_evaluation_identity_sha256=(
+                self.full_field_evaluation_identity_sha256
             ),
             field_commit_receipt_sha256=self.field_commit_receipt_sha256,
             dominant_motif_commit_receipt_sha256=(
@@ -722,6 +734,9 @@ class CommittedMotifEvent:
             ),
             full_field_state_receipt_sha256=(
                 self.full_field_state_receipt_sha256
+            ),
+            full_field_evaluation_identity_sha256=(
+                self.full_field_evaluation_identity_sha256
             ),
             field_commit_receipt_sha256=self.field_commit_receipt_sha256,
             dominant_motif_commit_receipt_sha256=(

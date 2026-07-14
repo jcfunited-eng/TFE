@@ -453,6 +453,7 @@ def _committed_event(
     l6_lock: str,
     kind: MotifEventKind = MotifEventKind.CONTENT,
     fact_strand: str | None = None,
+    full_field_evaluation_identity: str | None = None,
 ) -> CommittedMotifEvent:
     close_authority = None
     if kind is MotifEventKind.EXPRESSION_CLOSE:
@@ -473,6 +474,11 @@ def _committed_event(
     sensory_digests = tuple(
         value.evidence_receipt_sha256 for value in sensory
     )
+    full_field_identity = (
+        full_field_evaluation_identity
+        if full_field_evaluation_identity is not None
+        else receipt_sha256(f"{full_field}:field-evaluation-identity".encode())
+    )
     payload = committed_motif_event_receipt_payload(
         expression_id=expression_id,
         event_id=event_id,
@@ -483,6 +489,7 @@ def _committed_event(
         fact_strand_receipt_sha256=strand,
         sensory_evidence_receipt_sha256s=sensory_digests,
         full_field_state_receipt_sha256=full_field,
+        full_field_evaluation_identity_sha256=full_field_identity,
         field_commit_receipt_sha256=field_commit,
         dominant_motif_commit_receipt_sha256=dominant_binding,
         corrected_l6_lock_receipt_sha256=l6_lock,
@@ -502,6 +509,7 @@ def _committed_event(
         fact_strand_receipt_sha256=strand,
         sensory_evidence_receipt_sha256s=sensory_digests,
         full_field_state_receipt_sha256=full_field,
+        full_field_evaluation_identity_sha256=full_field_identity,
         field_commit_receipt_sha256=field_commit,
         dominant_motif_commit_receipt_sha256=dominant_binding,
         corrected_l6_lock_receipt_sha256=l6_lock,

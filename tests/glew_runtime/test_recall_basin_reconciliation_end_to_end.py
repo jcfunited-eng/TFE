@@ -55,6 +55,7 @@ release end to end.
 from __future__ import annotations
 
 import dataclasses
+import uuid
 from fractions import Fraction
 
 import pytest
@@ -103,6 +104,9 @@ from dsf_ai_service.glew_runtime.coexperienced_scene_recall_executor import (
 )
 from dsf_ai_service.glew_runtime.coexperienced_scene_recall_provider import (
     CoexperiencedSceneRecallProvider,
+)
+from dsf_ai_service.glew_runtime.multi_scalar_turn_scheduler import (
+    MultiScalarTurnScheduler,
 )
 from dsf_ai_service.glew_runtime.recall_reentry import (
     fresh_recall_provider_authority_receipt_payload,
@@ -398,6 +402,103 @@ def test_T1_recall_emission_succeeds_and_releases_the_recalled_scalar(world, tmp
     assert result.visible_text == "b"  # the learned content motif's real scalar
     # The commit genuinely happened and the recall settlement now verifies.
     assert result.commit_receipt_sha256 is not None
+
+
+def test_T1_recall_emission_succeeds_under_a_genuinely_fresh_request_id(
+    world, tmp_path_factory
+):
+    """The preflight-field-identity fix, proven end to end: the SAME trigger
+    scene as ``test_T1_recall_emission_succeeds_and_releases_the_recalled_
+    scalar`` but under a GENUINELY FRESH real request id -- a fresh ``uuid4``,
+    exactly what live production mints per turn and NEVER a reused fixed string
+    -- still RELEASES the recalled scalar 'b'.
+
+    Before the fix, ``conversation.py``'s ``_preflight_initial_output`` required
+    the genesis ``initial_event``'s stored commit/expression/closed-experience/
+    sensory RECEIPTS to byte-equal this turn's; those receipts embed per-request
+    UUID and per-scene provenance bookkeeping, so a fresh request id -- a
+    bit-identical field -- dead-ended at ``EXPLICIT_UNKNOWN_SILENCE`` naming
+    ``"initial event cites a different full-field commit"``.  The fix keys the
+    preflight on the full field's field-evaluation identity (exact, no
+    tolerance) instead, so a fresh-id repeat that is the same physical field,
+    recognized as the same mode under the same L6 lock, now passes and speaks.
+    The recall reconstruction itself never depended on the trigger id: the
+    executor rebuilds the scene from the archived episode's own stored
+    ``scene_task_id`` (T3's tamper tripwire pins that)."""
+
+    tick = uuid.uuid4().int % 1_000_000
+    fresh_task_id = f"cv_{tick}_{uuid.uuid4().hex[:8]}"
+    assert fresh_task_id != _ROOT_TASK
+
+    store = _new_store(tmp_path_factory)
+    engine, provider, executor = _build_engine(
+        world, learned_state=world["closed"], scene_archive=world["scene_archive"],
+        mode_bank=world["grown_bank"], generation_store=store,
+    )
+    # Same root scene text "a", but a genuinely fresh, never-before-seen id.
+    turn = CCE._turn(fresh_task_id, "a")
+    result = engine.run_clean_conversation(turn=turn, story_chemistry=world["root_chemistry"])
+    result.verify()
+
+    # It SPEAKS the recalled scalar under a fresh request id -- the removed
+    # preflight bookkeeping gate no longer appears in the reason.
+    assert result.status is ConversationStatus.EXPRESSION_RELEASED
+    assert result.visible_text == "b"
+    assert result.commit_receipt_sha256 is not None
+    assert (
+        "initial event cites a different full-field commit" not in result.reason
+    )
+
+
+def test_T1_recall_emission_through_real_production_entry_point_two_requests(
+    world, tmp_path_factory
+):
+    """The fix, proven through the REAL production entry point
+    (``MultiScalarTurnScheduler`` -> ``run_clean_conversation``): a repeated
+    phrase submitted under TWO genuinely different real production request ids
+    -- exactly what live traffic does, never a reused id -- SPEAKS the recalled
+    scalar on BOTH, and each scalar of a genuine multi-scalar phrase releases
+    its own recalled scalar in real causal order (never a fabricated sentence:
+    the scheduler reports ``visible_scalar_texts`` per scalar, by design)."""
+
+    store = _new_store(tmp_path_factory)
+    engine, _, _ = _build_engine(
+        world, learned_state=world["closed"], scene_archive=world["scene_archive"],
+        mode_bank=world["grown_bank"], generation_store=store,
+    )
+    scheduler = MultiScalarTurnScheduler(engine=engine)
+
+    seen_request_ids = set()
+    for _ in range(2):
+        tick = uuid.uuid4().int % 1_000_000
+        request_id = f"cv_{tick}_{uuid.uuid4().hex[:8]}"
+        assert request_id not in seen_request_ids
+        seen_request_ids.add(request_id)
+        # The single learned+archived scalar 'a' (the world learns 'a' -> 'b').
+        result = scheduler.run_turn(
+            task_id=request_id, text="a", story_chemistry=world["root_chemistry"],
+        )
+        assert len(result.outcomes) == 1
+        outcome = result.outcomes[0]
+        outcome.result.verify()
+        assert outcome.result.status is ConversationStatus.EXPRESSION_RELEASED
+        assert outcome.result.visible_text == "b"
+        assert result.visible_scalar_texts == ("b",)
+
+    # A genuine multi-scalar phrase under a fresh request id: every scalar is an
+    # independent real turn through the same entry point; each learned+archived
+    # 'a' releases its own recalled 'b'.
+    tick = uuid.uuid4().int % 1_000_000
+    request_id = f"cv_{tick}_{uuid.uuid4().hex[:8]}"
+    multi = scheduler.run_turn(
+        task_id=request_id, text="aa", story_chemistry=world["root_chemistry"],
+    )
+    assert len(multi.outcomes) == 2
+    for outcome in multi.outcomes:
+        outcome.result.verify()
+        assert outcome.result.status is ConversationStatus.EXPRESSION_RELEASED
+        assert outcome.result.visible_text == "b"
+    assert multi.visible_scalar_texts == ("b", "b")
 
 
 # ---------------------------------------------------------------------------

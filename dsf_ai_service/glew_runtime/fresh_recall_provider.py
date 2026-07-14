@@ -567,6 +567,9 @@ class FullFieldFreshRecallProvider:
             full_field_state_receipt_sha256=(
                 execution.expression_evaluation.receipt_sha256
             ),
+            full_field_evaluation_identity_sha256=(
+                expression.field_evaluation_identity_sha256
+            ),
             field_commit_receipt_sha256=commit.receipt_sha256,
             dominant_motif_commit_receipt_sha256=stable.binding_receipt_sha256,
             corrected_l6_lock_receipt_sha256=(
@@ -609,6 +612,9 @@ class FullFieldFreshRecallProvider:
             ),
             full_field_state_receipt_sha256=(
                 execution.expression_evaluation.receipt_sha256
+            ),
+            full_field_evaluation_identity_sha256=(
+                expression.field_evaluation_identity_sha256
             ),
             field_commit_receipt_sha256=commit.receipt_sha256,
             dominant_motif_commit_receipt_sha256=stable.binding_receipt_sha256,

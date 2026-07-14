@@ -970,6 +970,9 @@ def stage_learned_content_second_occurrence(
             current_relation.sensory_evidence_receipt_sha256s
         ),
         full_field_state_receipt_sha256=current_relation.expression_receipt_sha256,
+        full_field_evaluation_identity_sha256=(
+            current_relation.expression_field_evaluation_identity_sha256
+        ),
         field_commit_receipt_sha256=current_relation.commit_receipt_sha256,
         dominant_motif_commit_receipt_sha256=source_binding.binding_receipt_sha256,
         corrected_l6_lock_receipt_sha256=current_relation.l6_evaluation_receipt_sha256,

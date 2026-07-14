@@ -208,6 +208,7 @@ def _event(
     closed = world.closed_experience(event_id, sensory)
     strand = world.fact(f"{event_id}:strand")
     full_field = world.fact(f"{event_id}:full-field")
+    full_field_identity = world.fact(f"{event_id}:full-field-identity")
     field_commit = world.fact(f"{event_id}:field-commit")
     motif_commit = world.fact(f"{event_id}:motif-commit")
     l6_lock = world.fact(f"{event_id}:l6-lock")
@@ -221,6 +222,7 @@ def _event(
         fact_strand_receipt_sha256=strand,
         sensory_evidence_receipt_sha256s=sensory,
         full_field_state_receipt_sha256=full_field,
+        full_field_evaluation_identity_sha256=full_field_identity,
         field_commit_receipt_sha256=field_commit,
         dominant_motif_commit_receipt_sha256=motif_commit,
         corrected_l6_lock_receipt_sha256=l6_lock,
@@ -240,6 +242,7 @@ def _event(
         fact_strand_receipt_sha256=strand,
         sensory_evidence_receipt_sha256s=sensory,
         full_field_state_receipt_sha256=full_field,
+        full_field_evaluation_identity_sha256=full_field_identity,
         field_commit_receipt_sha256=field_commit,
         dominant_motif_commit_receipt_sha256=motif_commit,
         corrected_l6_lock_receipt_sha256=l6_lock,

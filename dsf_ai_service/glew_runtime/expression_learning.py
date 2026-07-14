@@ -419,6 +419,7 @@ def committed_relation_receipt_payload(
     topology_authority_receipt_sha256: str,
     closed_experience_receipt_sha256: str,
     expression_receipt_sha256: str,
+    expression_field_evaluation_identity_sha256: str,
     recognition_receipt_sha256: str,
     l6_evaluation_receipt_sha256: str,
     sensory_evidence_receipt_sha256s: tuple[str, ...],
@@ -432,6 +433,10 @@ def committed_relation_receipt_payload(
         (topology_authority_receipt_sha256, "committed relation topology"),
         (closed_experience_receipt_sha256, "committed relation experience"),
         (expression_receipt_sha256, "committed relation expression"),
+        (
+            expression_field_evaluation_identity_sha256,
+            "committed relation expression field-evaluation identity",
+        ),
         (recognition_receipt_sha256, "committed relation recognition"),
         (l6_evaluation_receipt_sha256, "committed relation L6"),
         (fact_strand_receipt_sha256, "committed relation Fact Strand"),
@@ -449,6 +454,9 @@ def committed_relation_receipt_payload(
                 closed_experience_receipt_sha256
             ),
             "commit_receipt_sha256": commit_receipt_sha256,
+            "expression_field_evaluation_identity_sha256": (
+                expression_field_evaluation_identity_sha256
+            ),
             "expression_receipt_sha256": expression_receipt_sha256,
             "fact_strand_receipt_sha256": fact_strand_receipt_sha256,
             "l6_evaluation_receipt_sha256": l6_evaluation_receipt_sha256,
@@ -456,7 +464,7 @@ def committed_relation_receipt_payload(
             "profile_binding_sha256": profile_binding_sha256,
             "recognition_receipt_sha256": recognition_receipt_sha256,
             "relation_id": relation_id,
-            "schema": "glew.learning.committed_mode_relation.v1",
+            "schema": "glew.learning.committed_mode_relation.v2",
             "selected_mode_receipt_sha256": selected_mode_receipt_sha256,
             "sensory_evidence_receipt_sha256s": list(
                 sensory_evidence_receipt_sha256s
@@ -477,6 +485,7 @@ class CommittedModeRelation:
     topology_authority_receipt_sha256: str
     closed_experience_receipt_sha256: str
     expression_receipt_sha256: str
+    expression_field_evaluation_identity_sha256: str
     recognition_receipt_sha256: str
     l6_evaluation_receipt_sha256: str
     sensory_evidence_receipt_sha256s: tuple[str, ...]
@@ -496,6 +505,9 @@ class CommittedModeRelation:
                 self.closed_experience_receipt_sha256
             ),
             expression_receipt_sha256=self.expression_receipt_sha256,
+            expression_field_evaluation_identity_sha256=(
+                self.expression_field_evaluation_identity_sha256
+            ),
             recognition_receipt_sha256=self.recognition_receipt_sha256,
             l6_evaluation_receipt_sha256=(
                 self.l6_evaluation_receipt_sha256
@@ -584,6 +596,9 @@ def derive_committed_mode_relation(
             committed.sealed.closed_experience.authority_receipt_sha256
         ),
         expression_receipt_sha256=committed.sealed.expression.receipt_sha256,
+        expression_field_evaluation_identity_sha256=(
+            committed.sealed.expression.field_evaluation_identity_sha256
+        ),
         recognition_receipt_sha256=committed.sealed.recognition.receipt_sha256,
         l6_evaluation_receipt_sha256=(
             committed.commit.l6_evaluation_receipt_sha256
@@ -607,6 +622,9 @@ def derive_committed_mode_relation(
             committed.sealed.closed_experience.authority_receipt_sha256
         ),
         expression_receipt_sha256=committed.sealed.expression.receipt_sha256,
+        expression_field_evaluation_identity_sha256=(
+            committed.sealed.expression.field_evaluation_identity_sha256
+        ),
         recognition_receipt_sha256=committed.sealed.recognition.receipt_sha256,
         l6_evaluation_receipt_sha256=(
             committed.commit.l6_evaluation_receipt_sha256
@@ -988,6 +1006,9 @@ def _make_initial_event(
             root.sensory_evidence_receipt_sha256s
         ),
         full_field_state_receipt_sha256=root.expression_receipt_sha256,
+        full_field_evaluation_identity_sha256=(
+            root.expression_field_evaluation_identity_sha256
+        ),
         field_commit_receipt_sha256=root.commit_receipt_sha256,
         dominant_motif_commit_receipt_sha256=stable.binding_receipt_sha256,
         corrected_l6_lock_receipt_sha256=(
@@ -1013,6 +1034,9 @@ def _make_initial_event(
             root.sensory_evidence_receipt_sha256s
         ),
         full_field_state_receipt_sha256=root.expression_receipt_sha256,
+        full_field_evaluation_identity_sha256=(
+            root.expression_field_evaluation_identity_sha256
+        ),
         field_commit_receipt_sha256=root.commit_receipt_sha256,
         dominant_motif_commit_receipt_sha256=stable.binding_receipt_sha256,
         corrected_l6_lock_receipt_sha256=(
@@ -1409,7 +1433,7 @@ def _restore_relation(
 ) -> CommittedModeRelation:
     payload = registry.resolve(digest, "restored committed relation")
     value = _strict_object(payload, "restored committed relation")
-    if value.get("schema") != "glew.learning.committed_mode_relation.v1":
+    if value.get("schema") != "glew.learning.committed_mode_relation.v2":
         raise ReceiptError("checkpoint relation has another schema")
     relation = CommittedModeRelation(
         relation_id=value["relation_id"],
@@ -1423,6 +1447,9 @@ def _restore_relation(
             value["closed_experience_receipt_sha256"]
         ),
         expression_receipt_sha256=value["expression_receipt_sha256"],
+        expression_field_evaluation_identity_sha256=(
+            value["expression_field_evaluation_identity_sha256"]
+        ),
         recognition_receipt_sha256=value["recognition_receipt_sha256"],
         l6_evaluation_receipt_sha256=(
             value["l6_evaluation_receipt_sha256"]
@@ -1568,7 +1595,7 @@ def _restore_event(
         registry.resolve(digest, "restored initial event"),
         "restored initial event",
     )
-    if value.get("schema") != "glew.output.committed_motif_event.v1":
+    if value.get("schema") != "glew.output.committed_motif_event.v2":
         raise ReceiptError("checkpoint initial event has another schema")
     return CommittedMotifEvent(
         expression_id=value["expression_id"],
@@ -1585,6 +1612,9 @@ def _restore_event(
         ),
         full_field_state_receipt_sha256=(
             value["full_field_state_receipt_sha256"]
+        ),
+        full_field_evaluation_identity_sha256=(
+            value["full_field_evaluation_identity_sha256"]
         ),
         field_commit_receipt_sha256=value["field_commit_receipt_sha256"],
         dominant_motif_commit_receipt_sha256=(
