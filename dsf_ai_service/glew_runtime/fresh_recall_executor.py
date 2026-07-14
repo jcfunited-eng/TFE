@@ -84,6 +84,7 @@ from .output import (
     MotifOutputBinding,
     OutputActuation,
     OutputBindingKind,
+    OutputReason,
     OutputStatus,
     StageDisposition,
 )
@@ -596,13 +597,53 @@ class FreshRecallClosedExperienceExecutor:
         ):
             raise ReceiptError("fresh recall event and source binding differ")
         settlement = staged_output.receipt
+        # A STAGED_PRIVATE settlement can never legitimately carry
+        # `binding_receipt_sha256s`. `output._output_settlement_receipt_payload`
+        # enforces this as a fail-closed contract on its OWN construction: any
+        # non-``EXPRESSION_RELEASED`` status must have an EMPTY
+        # `binding_receipt_sha256s` (and empty `visible_text` /
+        # `emitted_scalar_codepoints` / `contributing_event_receipt_sha256s`) --
+        # only the ``EXPRESSION_RELEASED``/``EXPRESSION_CLOSE`` branch of
+        # `output.RememberedExpressionActuator._process_verified` ever
+        # populates it, from the actuator's private `_staged` accumulator.
+        # This check used to compare
+        # `settlement.binding_receipt_sha256s == (source_binding.binding_receipt_sha256,)`,
+        # a value the real actuator's `STAGED_PRIVATE` branch never produces
+        # (it stays the default empty tuple), so that comparison failed
+        # closed on every genuine private-staged recall, not just a tampered
+        # one (independently documented in
+        # `recall_replay_integrity_provider.py`'s module docstring, which for
+        # the same reason deliberately does not compare
+        # `binding_receipt_sha256s` in its own `persistence` fact either).
+        #
+        # What genuinely ties this settlement back to `source_binding` for a
+        # non-released status is NOT a settlement field naming the binding
+        # directly -- which specific binding among possibly-several equal-
+        # scalar bindings for one motif was staged is legitimately private
+        # until release (see `RememberedExpressionActuator._process_verified`:
+        # it picks `decoded[0]` from `binding_bank.for_motif(...)` and only
+        # records that choice in the private `_staged` list). The real,
+        # already-populated correlation is the existing chain: this
+        # settlement's own `event_receipt_sha256` (checked below) ties it to
+        # `source_event`, and `source_event.motif_receipt_sha256` /
+        # `sensory_evidence_receipt_sha256s` (checked above) tie that same
+        # event to `source_binding`. What is left to verify ON the settlement
+        # itself, without inventing a new field, is that it carries exactly
+        # the values a genuine STAGED_PRIVATE settlement can carry: `reason`
+        # is `UNIQUE_COEXPERIENCED_LANGUAGE_BINDING` -- the only reason the
+        # real actuator ever pairs with `STAGED_PRIVATE` (its sole production
+        # call site), even though the payload builder does not itself
+        # constrain `reason` against `status` -- and `binding_receipt_sha256s`
+        # is exactly the empty tuple the actuator's own contract requires
+        # (defense-in-depth against a malformed/foreign settlement object,
+        # since a real one could never have been constructed otherwise).
         if (
             staged_output.text
             or settlement.status is not OutputStatus.STAGED_PRIVATE
+            or settlement.reason is not OutputReason.UNIQUE_COEXPERIENCED_LANGUAGE_BINDING
             or settlement.stage_disposition is not StageDisposition.RETAINED_PRIVATE
             or settlement.event_receipt_sha256 != source_event.event_receipt_sha256
-            or settlement.binding_receipt_sha256s
-            != (source_binding.binding_receipt_sha256,)
+            or settlement.binding_receipt_sha256s != ()
         ):
             raise ReceiptError("fresh recall scalar was not exactly private-staged")
 
