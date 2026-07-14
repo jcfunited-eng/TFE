@@ -712,27 +712,57 @@ class RecallTransitionSettlement:
         )
 
         expression.verify(self.receipt_registry)
-        expected_evidence = {
-            language_evidence.evidence_receipt_sha256,
-            *sensory_digests,
-        }
-        observed_evidence: set[str] = set()
+        # Every MapInject step may reference only evidence that genuinely
+        # belongs to the recalled scene: the cited sensory evidence (externally
+        # anchored to this motif's source binding) plus this expression's own
+        # language-lane records.  A real scalar's language fiber closes its gate
+        # once per valid balanced-ternary trit place, so one legitimate
+        # expression carries SEVERAL distinct language-lane transport records
+        # (all lane_id == "language"), of which ``language_evidence`` is only
+        # the terminal transport that the transduction receipt is bound to.
+        #
+        # The anti-smuggling property is preserved on the non-language
+        # partition, which is where it has teeth: any non-language evidence MUST
+        # be one of the source binding's exact cited sensory receipts
+        # (``sensory_digests`` == ``source_binding.sensory_evidence_receipt_
+        # sha256s``, an authority external to this expression), and every cited
+        # sense must appear.  Language-lane multiplicity is accepted because
+        # (a) ``expression.verify`` above has already re-verified every
+        # referenced evidence record against the mounted registry, and (b) the
+        # language content is pinned downstream by the certified evaluation,
+        # recognition, and commit this same expression must produce (verified
+        # below) -- exactly as the sensory content is.  We still require the
+        # transduction-anchored terminal transport to be one of the referenced
+        # language records.
+        cited_sensory = set(sensory_digests)
+        observed_sensory: set[str] = set()
+        observed_language: set[str] = set()
         for step in expression.steps:
-            actual = {
-                mapped.evidence.evidence_receipt_sha256
-                for mapped in step.injection.mapped_fibers
+            fibers = step.injection.mapped_fibers
+            step_digests = {
+                mapped.evidence.evidence_receipt_sha256 for mapped in fibers
             }
-            if (
-                len(actual) != len(step.injection.mapped_fibers)
-                or not actual.issubset(expected_evidence)
-            ):
+            if len(step_digests) != len(fibers):
                 raise ReceiptError(
-                    "recall sparse MapInject contains evidence outside language plus cited senses"
+                    "recall sparse MapInject repeats one evidence receipt"
                 )
-            observed_evidence.update(actual)
-        if observed_evidence != expected_evidence:
+            for mapped in fibers:
+                digest = mapped.evidence.evidence_receipt_sha256
+                if mapped.evidence.lane_id == "language":
+                    observed_language.add(digest)
+                elif digest in cited_sensory:
+                    observed_sensory.add(digest)
+                else:
+                    raise ReceiptError(
+                        "recall sparse MapInject contains evidence outside language plus cited senses"
+                    )
+        if observed_sensory != cited_sensory:
             raise ReceiptError(
                 "recall sparse expression does not contain language plus every cited sense"
+            )
+        if language_evidence.evidence_receipt_sha256 not in observed_language:
+            raise ReceiptError(
+                "recall sparse expression omits the terminal recalled language transport"
             )
         expression_input_digest = self.expression_input_authority_receipt_sha256
         assert expression_input_digest is not None

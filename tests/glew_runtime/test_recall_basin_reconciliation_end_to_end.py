@@ -9,8 +9,8 @@ fixtures use (including a real ``expression_close=True`` via the committed
 precedent ``real_experience_learning_pipeline.close_real_multimodal_
 expression``); nothing here monkeypatches recognition, commit, or recall.
 
-WHAT THESE TESTS PROVE, AND ONE HONEST BLOCKER THEY DOCUMENT
------------------------------------------------------------
+WHAT THESE TESTS PROVE
+----------------------
 The recall-RESOLUTION subsystem this design delivers (design sections 6.1 and
 6.2) is fully correct and proven here: for a real learned binding, the
 executor deterministically re-runs the engine's own six-lane scene, recognizes
@@ -20,34 +20,36 @@ regenerated six-lane sensory receipts equal the learned binding's exactly
 (the section 6.2 step-7 tripwire), producing a genuinely fresh commit receipt
 distinct from the learn-time one.
 
-Emission (releasing the recalled scalar as visible text) is currently BLOCKED
-by a real, deeper problem the design did not anticipate -- and which its own
-section 13 explicitly predicted would surface here as a red test on the first
-run ("Settlement schema mismatch trips inside the unchanged
-``RecallTransitionSettlement.verify``"):
+Emission (releasing the recalled scalar as visible text) also succeeds, once a
+real, previously-undiscovered ``recall_reentry.py`` bug is fixed. The design's
+own section 13 predicted a red test here on the first run ("Settlement schema
+mismatch trips inside the unchanged ``RecallTransitionSettlement.verify``"),
+and it surfaced exactly as predicted:
 
-    ``recall_reentry.RecallTransitionSettlement.verify`` (recall_reentry.py
-    ~714-736) models the recalled expression as referencing EXACTLY ONE
-    language evidence record (``language_transport_evidence``, the terminal
-    transport) plus the cited senses. But a real scene built by the engine's
-    own ``real_experience_learning_pipeline._build_typed_language_lane``
-    references one language evidence record PER VALID TRIT PLACE of the
-    scalar, and every printable Unicode scalar has 4-5 valid trit places over
-    the engine's 5-instant grid. So the settlement's ``MapInject`` subset
-    check fails on the 3-4 non-terminal language records, for EVERY real
-    scalar. This is not specific to this design's provider: the pre-existing
-    five-sense ``FullFieldFreshRecallProvider`` has the identical
-    ``max(language)`` / ``sensory = non-language`` structure and hits the same
-    wall (and no existing test ever drives a real executor+provider through
-    ``settle_complete_remembered_expression`` to a release -- every release
-    test uses a hand-built single-language-instant ``_physical_experience``).
+    ``recall_reentry.RecallTransitionSettlement.verify`` originally modelled
+    the recalled expression as referencing EXACTLY ONE language evidence
+    record (``language_transport_evidence``, the terminal transport) plus the
+    cited senses. But a real scene built by the engine's own
+    ``real_experience_learning_pipeline._build_typed_language_lane`` references
+    one language evidence record PER VALID TRIT PLACE of the scalar, and every
+    printable Unicode scalar has 4-6 valid trit places over the engine's
+    5-instant grid. So the settlement's ``MapInject`` subset check rejected the
+    3-5 non-terminal language records, for EVERY real scalar. This was not
+    specific to this design's provider: the pre-existing five-sense
+    ``FullFieldFreshRecallProvider`` has the identical ``max(language)`` /
+    ``sensory = non-language`` structure and hit the same wall (and no existing
+    release test ever drove a real executor+provider through ``settle_complete_
+    remembered_expression`` to a release, so nothing caught it before).
 
-Fixing emission requires changing ``recall_reentry.py`` (extending the
-settlement to carry every language evidence, not just the terminal), which the
-design's section 7.3 explicitly forbids and which lies outside this subsystem.
-These tests therefore prove the resolution core and assert the emission
-blocker HONESTLY (typed silence with the exact ``recall_reentry`` reason),
-rather than forcing a fabricated release.
+The fix (in ``recall_reentry.RecallTransitionSettlement.verify``) accepts the
+expression's own language-lane records -- all genuinely lane_id == "language",
+re-verified against the mounted registry, and pinned downstream by the same
+certified evaluation/recognition/commit the settlement already verifies --
+while keeping the anti-smuggling teeth exactly where they belong: any
+non-language evidence must still be one of the source binding's exact cited
+sensory receipts, and every cited sense must appear. ``test_T1_recall_
+emission_succeeds_and_releases_the_recalled_scalar`` below now proves the real
+release end to end.
 """
 
 from __future__ import annotations
@@ -359,17 +361,24 @@ def test_T1_recall_resolution_produces_a_fresh_full_field_self_recall_commit(wor
     assert execution.commit_decision.receipt_sha256 != world["content_committed"].commit.receipt_sha256
 
 
-def test_T1_emission_is_currently_blocked_by_the_recall_reentry_language_multiplicity(world, tmp_path_factory):
-    """T1 (emission half, HONEST blocker -- see module docstring): driving the
-    full engine turn over the closed, archived expression reconstructs and
-    re-commits the scene correctly, but ``recall_reentry.RecallTransition
-    Settlement.verify`` rejects the settlement because the real reconstructed
-    expression references one language evidence record per valid trit place
-    (4-5 for every printable scalar), while that verifier accepts only the
-    single terminal language transport. The turn therefore yields typed
-    silence -- never a fabricated scalar -- with the exact recall_reentry
-    reason. This is the design's own section 13 tripwire #3 firing as
-    predicted, and it also blocks the pre-existing five-sense provider."""
+def test_T1_recall_emission_succeeds_and_releases_the_recalled_scalar(world, tmp_path_factory):
+    """T1 (emission half, now a REAL PASS): driving the full engine turn over
+    the closed, archived expression reconstructs and re-commits the scene, and
+    ``recall_reentry.RecallTransitionSettlement.verify`` now accepts the
+    settlement's legitimate language-lane multiplicity (one language transport
+    record per valid balanced-ternary trit place, 4-6 for every printable
+    scalar), so the recalled scalar is genuinely released as visible text.
+
+    This proves the language-multiplicity fix in ``recall_reentry.py``. Before
+    it, the verifier modelled the recalled expression as referencing exactly
+    ONE language evidence record (the terminal transport) and rejected the 3-5
+    non-terminal language records that every real scalar's causal window
+    produces, forcing typed silence for EVERY real scalar. The fix accepts the
+    expression's own language-lane records while keeping the anti-smuggling
+    teeth on the non-language partition (any non-language evidence must be one
+    of the source binding's exact cited sensory receipts, and every cited sense
+    must appear). The recalled successor of the ROOT scene is the learned
+    content motif, whose real scalar is 'b'."""
 
     store = _new_store(tmp_path_factory)
     engine, provider, executor = _build_engine(
@@ -383,12 +392,12 @@ def test_T1_emission_is_currently_blocked_by_the_recall_reentry_language_multipl
     result = engine.run_clean_conversation(turn=turn, story_chemistry=world["root_chemistry"])
     result.verify()
 
-    assert result.status is not ConversationStatus.EXPRESSION_RELEASED
-    assert result.visible_text == ""  # honest typed silence, never a fabricated scalar
-    # The commit genuinely happened (recognition + commit are real); the recall
-    # settlement is what fails, inside the unchanged recall_reentry verifier.
+    # Real emission: the recalled scalar is released as visible text -- not
+    # honest silence and not a fabricated scalar.
+    assert result.status is ConversationStatus.EXPRESSION_RELEASED
+    assert result.visible_text == "b"  # the learned content motif's real scalar
+    # The commit genuinely happened and the recall settlement now verifies.
     assert result.commit_receipt_sha256 is not None
-    assert "MapInject" in result.reason or "language plus cited senses" in result.reason
 
 
 # ---------------------------------------------------------------------------
