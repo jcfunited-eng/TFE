@@ -879,17 +879,21 @@ class WindowManager:
                 "next_window_sequence cannot precede retained windows")
 
         derived_index: dict[str, list[dict]] = {}
+        derived_seen: dict[str, set[tuple[str, int]]] = {}
         for window_id, record in windows.items():
             if record.get("window_id") != window_id:
                 raise WindowIntegrityError(
                     f"window key/id mismatch for {window_id!r}")
             cls._validate_window_record(record, closed=True)
             for entry in record.get("entries") or []:
-                location = {"window_id": window_id,
-                            "entry_index": entry["entry_index"]}
-                bucket = derived_index.setdefault(str(entry["chi"]), [])
-                if location not in bucket:
-                    bucket.append(location)
+                chi_key = str(entry["chi"])
+                dedupe_key = (window_id, entry["entry_index"])
+                seen = derived_seen.setdefault(chi_key, set())
+                if dedupe_key not in seen:
+                    seen.add(dedupe_key)
+                    derived_index.setdefault(chi_key, []).append(
+                        {"window_id": window_id,
+                         "entry_index": entry["entry_index"]})
 
         for context_id, record in open_contexts.items():
             if record.get("context_id") != context_id:
