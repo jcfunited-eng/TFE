@@ -36,6 +36,25 @@ from .model import ReceiptError, ReceiptRegistry, receipt_sha256, sha256_digest
 EXPRESSION_MODE_OPERATOR_ID = "reevaluated_shared_arb_gram_schmidt.v1"
 EXPRESSION_RECOGNITION_OPERATOR_ID = "unique_full_interval_vector_dominance.v1"
 
+# Rank >= 2 recognition/growth arbiter selection.  The receipt payload, schema,
+# and decision-rule string are identical for both; only the internal branch
+# that decides RECOGNIZED vs NOVEL_SILENCE vs (refine ->) AMBIGUOUS_SILENCE
+# differs, so every downstream verify() stays byte-compatible.
+#
+# * CERTIFIED_RESIDUAL (owner Requirement 1): genuine certified energy outside
+#   every existing mode grows a new mode and stays novel-silent; recognition
+#   is reserved for certified within-span inputs; indeterminate refines then
+#   returns honest AMBIGUOUS_SILENCE.  Used by the live conversation
+#   recognition path, where distinctness must grow rather than misrecognize.
+# * INTERVAL_DOMINANCE (legacy, default): winner-take-all nearest-reference
+#   classification -- the input is recognized as whichever candidate uniquely
+#   dominates the complete interval vector.  Used by callers that classify an
+#   input against a FIXED reference basis rather than grow live experience
+#   (e.g. deterministic sound voicing discrimination), which genuinely need
+#   nearest-match, not distinctness-grows.
+RECOGNITION_ARBITER_INTERVAL_DOMINANCE = "interval_dominance"
+RECOGNITION_ARBITER_CERTIFIED_RESIDUAL = "certified_residual"
+
 
 def _canonical_bytes(value: object) -> bytes:
     return json.dumps(
@@ -732,6 +751,7 @@ def evaluate_expression_mode_boundary(
     input_expression: ClosedExperienceFieldExpression,
     receipt_registry: ReceiptRegistry,
     hermitian_evaluators: Mapping[str, HermitianExpressionEvaluator] | None = None,
+    recognition_arbiter: str = RECOGNITION_ARBITER_INTERVAL_DOMINANCE,
 ) -> ExpressionModeBoundaryResult:
     """Reevaluate the full bank with exact correlation and certified refinement.
 
@@ -748,6 +768,11 @@ def evaluate_expression_mode_boundary(
     the same DAG and thereby inventing enclosure width.
     """
 
+    if recognition_arbiter not in (
+        RECOGNITION_ARBITER_INTERVAL_DOMINANCE,
+        RECOGNITION_ARBITER_CERTIFIED_RESIDUAL,
+    ):
+        raise ReceiptError("unknown expression-mode recognition arbiter")
     bank.verify(topology=topology, receipt_registry=receipt_registry)
     input_expression.verify(receipt_registry)
     if (
@@ -990,7 +1015,92 @@ def evaluate_expression_mode_boundary(
                         "DAG; correlated residual is zero"
                     ),
                 )
-            if bank.rank >= 2 and len(winners) == 1:
+            if (
+                bank.rank >= 2
+                and residual_energy_ball is not None
+                and recognition_arbiter == RECOGNITION_ARBITER_CERTIFIED_RESIDUAL
+            ):
+                # Certified-residual growth/recognition arbiter (owner
+                # Requirement 1).  The orthogonal residual against the full
+                # basis -- energy outside *every* existing mode, dimension
+                # independent -- is the arbiter, not winner-take-all interval
+                # dominance.  No threshold, midpoint, or tolerance is
+                # introduced: the decision is made only by the module's own
+                # exact-interval `_certified_positive` / `_certified_zero`
+                # primitives, and it reuses the growth-append and the
+                # precision-doubling loop already present.
+                if _certified_positive(residual_energy_ball):
+                    # Genuine energy outside every existing mode: the full
+                    # field is structurally distinct.  Grow a new mode (when
+                    # there is room) and stay novel-silent -- regardless of
+                    # which existing mode's activation happened to be larger.
+                    after = bank
+                    if bank.rank < bank.max_rank:
+                        after = _append_expression_mode(
+                            topology=topology,
+                            bank=bank,
+                            source_expression=input_expression,
+                            certified_residual_energy=residual_energy_ball,
+                            precision_bits=precision_bits,
+                        )
+                    return _make_result(
+                        status=ExpressionRecognitionStatus.NOVEL_SILENCE,
+                        winner=None,
+                        input_expression=input_expression,
+                        before=bank,
+                        after=after,
+                        probabilities=probabilities,
+                        residual_energy=residual_energy_ball,
+                        residual_probability=residual_probability_ball,
+                        total_energy=total_energy_ball,
+                        precision_bits=precision_bits,
+                        reason=(
+                            "certified orthogonal residual carries energy "
+                            "outside every existing mode; novel experience "
+                            "grows and remains silent"
+                        ),
+                    )
+                if (
+                    _certified_zero(residual_energy_ball)
+                    and len(winners) == 1
+                    and winners[0] < bank.rank
+                ):
+                    # Certified within the existing span and one stored mode
+                    # uniquely dominates the complete interval vector: recognize
+                    # it (grows nothing -- the residual is exact zero).  Exact
+                    # repeats reach here through the matching-DAG residual-zero
+                    # path, so within-span recognition is preserved.
+                    return _make_result(
+                        status=ExpressionRecognitionStatus.RECOGNIZED,
+                        winner=winners[0],
+                        input_expression=input_expression,
+                        before=bank,
+                        after=bank,
+                        probabilities=probabilities,
+                        residual_energy=residual_energy_ball,
+                        residual_probability=residual_probability_ball,
+                        total_energy=total_energy_ball,
+                        precision_bits=precision_bits,
+                        reason=(
+                            "one stored expression mode uniquely dominates "
+                            "the complete interval vector"
+                        ),
+                    )
+                # Indeterminate residual (neither certified positive nor exact
+                # zero at this precision), or certified within-span without a
+                # unique dominating mode: do not decide.  Fall through to the
+                # precision-doubling loop below and, on mounted-precision
+                # exhaustion, return honest AMBIGUOUS_SILENCE rather than force
+                # a match.
+            elif bank.rank >= 2 and len(winners) == 1:
+                # Legacy winner-take-all interval dominance
+                # (RECOGNITION_ARBITER_INTERVAL_DOMINANCE).  This is the
+                # nearest-reference classification rule: the input is
+                # recognized as whichever probability-vector candidate uniquely
+                # dominates.  It is deliberately NOT the owner-Requirement-1
+                # growth arbiter above; it is retained for callers that
+                # classify an input against a fixed reference basis rather than
+                # grow live experience (e.g. sound voicing discrimination).
                 unique = winners[0]
                 after = bank
                 if (
@@ -1099,6 +1209,8 @@ def evaluate_expression_mode_boundary(
 __all__ = (
     "EXPRESSION_MODE_OPERATOR_ID",
     "EXPRESSION_RECOGNITION_OPERATOR_ID",
+    "RECOGNITION_ARBITER_CERTIFIED_RESIDUAL",
+    "RECOGNITION_ARBITER_INTERVAL_DOMINANCE",
     "ExpressionMode",
     "ExpressionModeBank",
     "ExpressionModeBoundaryResult",

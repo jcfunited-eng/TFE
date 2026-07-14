@@ -30,7 +30,13 @@ from dsf_ai_service.glew_runtime.field import (
     PortTransportEvidence,
 )
 from dsf_ai_service.glew_runtime.language import encode_balanced_ternary_scalar
-from dsf_ai_service.glew_runtime.model import ReceiptRegistry, receipt_sha256
+import pytest
+
+from dsf_ai_service.glew_runtime.model import (
+    ReceiptError,
+    ReceiptRegistry,
+    receipt_sha256,
+)
 from dsf_ai_service.glew_runtime.output import (
     CommittedMotifEvent,
     MotifBindingBank,
@@ -56,6 +62,8 @@ from dsf_ai_service.glew_runtime.recall_reentry import (
     settle_complete_remembered_expression,
     stable_mode_motif_bank_receipt_payload,
     stable_mode_motif_binding_receipt_payload,
+    transition_context_match_receipt_payload,
+    transition_context_receipt_payload,
 )
 from tests.glew_runtime.test_field import (
     COMMON_AUTHORITIES,
@@ -355,12 +363,37 @@ def _stable_binding(
     motif_receipt_sha256: str,
 ) -> StableModeMotifBinding:
     strand = world.fact(f"{binding_id}:mode-motif-strand")
+    prior = world.fact(f"{binding_id}:prior-relation")
+    input_expr = world.fact(f"{binding_id}:input-expression")
+    sensory = (world.fact(f"{binding_id}:sensory"),)
+    context_payload = transition_context_receipt_payload(
+        profile_binding_sha256=world.profile_sha256,
+        mode_receipt_sha256=mode_receipt_sha256,
+        prior_relation_receipt_sha256=prior,
+        input_expression_receipt_sha256=input_expr,
+        sensory_evidence_receipt_sha256s=sensory,
+        closed_experience_receipt_sha256=world.fact(f"{binding_id}:closed"),
+        recognition_receipt_sha256=world.fact(f"{binding_id}:recognition"),
+        commit_receipt_sha256=world.fact(f"{binding_id}:commit"),
+        memory_output_bank_receipt_sha256=world.fact(f"{binding_id}:mem-output"),
+        memory_stable_bank_receipt_sha256=world.fact(f"{binding_id}:mem-stable"),
+    )
+    context_digest = world.mount(context_payload)
+    context_match = receipt_sha256(
+        transition_context_match_receipt_payload(
+            prior_relation_receipt_sha256=prior,
+            input_expression_receipt_sha256=input_expr,
+            sensory_evidence_receipt_sha256s=sensory,
+        )
+    )
     payload = stable_mode_motif_binding_receipt_payload(
         binding_id=binding_id,
         profile_binding_sha256=world.profile_sha256,
         mode_receipt_sha256=mode_receipt_sha256,
         motif_receipt_sha256=motif_receipt_sha256,
         source_fact_strand_receipt_sha256=strand,
+        transition_context_receipt_sha256=context_digest,
+        transition_context_match_sha256=context_match,
     )
     return StableModeMotifBinding(
         binding_id=binding_id,
@@ -368,6 +401,8 @@ def _stable_binding(
         mode_receipt_sha256=mode_receipt_sha256,
         motif_receipt_sha256=motif_receipt_sha256,
         source_fact_strand_receipt_sha256=strand,
+        transition_context_receipt_sha256=context_digest,
+        transition_context_match_sha256=context_match,
         binding_receipt_sha256=world.mount(payload),
     )
 
@@ -417,6 +452,7 @@ def _committed_event(
     closed_experience: str,
     l6_lock: str,
     kind: MotifEventKind = MotifEventKind.CONTENT,
+    fact_strand: str | None = None,
 ) -> CommittedMotifEvent:
     close_authority = None
     if kind is MotifEventKind.EXPRESSION_CLOSE:
@@ -425,7 +461,15 @@ def _committed_event(
             close_motif_receipt_sha256=motif_receipt_sha256,
         )
         close_authority = world.mount(close_payload)
-    strand = world.fact(f"{event_id}:event-strand")
+    # A genesis-anchored initial event's Fact Strand is exactly the root
+    # binding's ``source_fact_strand`` (``expression_learning._make_initial_
+    # event`` guarantees it); callers verifying that event resolve the binding
+    # by that strand, so they can pass it explicitly here.
+    strand = (
+        fact_strand
+        if fact_strand is not None
+        else world.fact(f"{event_id}:event-strand")
+    )
     sensory_digests = tuple(
         value.evidence_receipt_sha256 for value in sensory
     )
@@ -803,3 +847,85 @@ def test_missing_reentry_provider_is_typed_unknown_and_never_leaks_fragment() ->
     assert result.status is CompleteExpressionStatus.UNKNOWN_SILENCE
     assert result.text == ""
     assert result.missing_operator_id == FRESH_RECALL_SELF_SENSE_OPERATOR_ID
+
+
+def test_stable_bank_holds_and_resolves_multiple_successors_of_one_mode():
+    """Owner Requirement 2 (successor keying), bank mechanics, design G2.
+
+    A committed mode may now own several successors keyed by distinct
+    transition contexts.  ``resolve_for_transition`` fires the successor for a
+    given reproducible context; ``resolve_for_source_relation`` re-derives the
+    genesis-anchored root successor; and the recall-transition
+    ``resolve_unique`` honestly fails closed on a multi-successor mode (the
+    fresh-commit self-recall chain cannot disambiguate siblings of the same
+    mode at recall time), never returning a wrong successor.
+    """
+
+    world = _World()
+    mode = world.fact("g2-shared-mode")
+    binding_a = _stable_binding(
+        world,
+        binding_id="g2-successor-a",
+        mode_receipt_sha256=mode,
+        motif_receipt_sha256=world.fact("g2-motif-a"),
+    )
+    binding_b = _stable_binding(
+        world,
+        binding_id="g2-successor-b",
+        mode_receipt_sha256=mode,
+        motif_receipt_sha256=world.fact("g2-motif-b"),
+    )
+    # Two successors, SAME mode, genuinely distinct transition contexts.
+    assert binding_a.mode_receipt_sha256 == binding_b.mode_receipt_sha256
+    assert (
+        binding_a.transition_context_match_sha256
+        != binding_b.transition_context_match_sha256
+    )
+    assert (
+        binding_a.source_fact_strand_receipt_sha256
+        != binding_b.source_fact_strand_receipt_sha256
+    )
+
+    bank = _stable_bank(world, (binding_a, binding_b))
+    registry = world.registry()
+
+    # resolve_for_transition selects the sibling for THIS reproducible context.
+    assert (
+        bank.resolve_for_transition(
+            mode_receipt_sha256=mode,
+            transition_context_match_sha256=binding_a.transition_context_match_sha256,
+            receipt_registry=registry,
+        ).binding_receipt_sha256
+        == binding_a.binding_receipt_sha256
+    )
+    assert (
+        bank.resolve_for_transition(
+            mode_receipt_sha256=mode,
+            transition_context_match_sha256=binding_b.transition_context_match_sha256,
+            receipt_registry=registry,
+        ).binding_receipt_sha256
+        == binding_b.binding_receipt_sha256
+    )
+
+    # resolve_for_source_relation selects the sibling by its source relation.
+    assert (
+        bank.resolve_for_source_relation(
+            mode_receipt_sha256=mode,
+            source_fact_strand_receipt_sha256=binding_a.source_fact_strand_receipt_sha256,
+            receipt_registry=registry,
+        ).binding_receipt_sha256
+        == binding_a.binding_receipt_sha256
+    )
+
+    # The recall-transition resolver honestly fails closed on a mode that owns
+    # several distinct successors (never a wrong successor).
+    with pytest.raises(ReceiptError, match="conflicting stable motif bindings"):
+        bank.resolve_unique(mode, registry)
+
+    # An unknown transition context is honest fail-closed silence, not a guess.
+    with pytest.raises(ReceiptError, match="under this transition context"):
+        bank.resolve_for_transition(
+            mode_receipt_sha256=mode,
+            transition_context_match_sha256=world.fact("g2-unknown-context"),
+            receipt_registry=registry,
+        )

@@ -204,7 +204,12 @@ from .expression_learning import (
     learn_committed_binding_transaction,
     learned_binding_checkpoint_payload,
 )
-from .expression_modes import ExpressionModeBank, ExpressionModeBoundaryResult, evaluate_expression_mode_boundary
+from .expression_modes import (
+    RECOGNITION_ARBITER_CERTIFIED_RESIDUAL,
+    ExpressionModeBank,
+    ExpressionModeBoundaryResult,
+    evaluate_expression_mode_boundary,
+)
 from .experience_origin import ExperienceOriginAuthority, ExperienceOriginKind, experience_origin_authority_receipt_payload
 from .field import MountedFieldTopology
 from .l6 import L6Evaluation
@@ -281,7 +286,13 @@ _SOMATIC_ROTATION: tuple[tuple[str | None, str | None, str | None], ...] = (
 # reword of that message fails a test loudly (re-surfacing the raw error, the
 # safe direction) rather than silently un-catching in production.
 _LEARN_SUCCESSOR_ALREADY_EXISTS_MESSAGE = (
-    "prior committed mode already has a learned successor"
+    "prior committed mode already learned this exact transition context"
+)
+# Raised by ``CoexperiencedSceneArchive.with_episode`` when the same scene
+# (same six-lane sensory receipt set) is archived under a different episode --
+# the "same scene, two successors" boundary of owner Requirement 2.
+_SCENE_ALREADY_ARCHIVED_MESSAGE = (
+    "this exact binding receipt set is already archived"
 )
 
 
@@ -836,6 +847,10 @@ class ProductionCleanConversationEngine:
             bank=pre_growth_bank,
             input_expression=expression,
             receipt_registry=registry,
+            # Live experience must GROW when the full field is structurally
+            # distinct from every existing mode (owner Requirement 1), not
+            # misrecognize it as the nearest reference.
+            recognition_arbiter=RECOGNITION_ARBITER_CERTIFIED_RESIDUAL,
         )
         registry = _extend_registry(registry, *self._mode_payloads(recognition))
         # Real growth is a load-bearing side effect of recognition itself
@@ -1035,14 +1050,14 @@ class ProductionCleanConversationEngine:
         #    ``learn_committed_binding_transaction(expression_close=True)``
         #    rejects a typed-scalar close (it requires an explicit no-output
         #    coexperience), so a close is necessarily a second learn call
-        #    mapping the committed scene's mode -> a close motif. That mapping
-        #    raises ``ReceiptError("prior committed mode already has a learned
-        #    successor")`` whenever the turn's scene mode already anchors a
-        #    successor -- which is exactly the case for every recall-trigger
-        #    turn (you trigger recall by RE-experiencing a known anchor scene).
-        #    So an auto-close would fail-closed on the very turns recall is
-        #    meant to fire on, truncate the accumulating expression, and force
-        #    the single-expression state terminal after one turn.
+        #    mapping the committed scene's mode -> a close motif. A committed
+        #    mode may now own several successors keyed by distinct transition
+        #    contexts (owner Requirement 2), so that mapping raises
+        #    ``ReceiptError("prior committed mode already learned this exact
+        #    transition context")`` only when the IDENTICAL transition context
+        #    is closed twice -- but auto-closing every single-scalar turn would
+        #    still truncate the accumulating expression and force the
+        #    single-expression state terminal after one turn.
         # 3. WHEN an expression closes is a cognition decision this engine has
         #    no signal for (``CleanConversationTurn`` carries only task_id /
         #    text / source -- no utterance boundary). Choosing the close point
@@ -1069,29 +1084,30 @@ class ProductionCleanConversationEngine:
         except ReceiptError as learn_error:
             # A real, already-succeeded recognition + full-field commit for
             # this turn (the caller only reaches this method when
-            # ``result.initial_event_receipt_sha256 is not None``) cannot ALSO
-            # learn a new successor, because the mode it committed against
-            # already holds its one permitted learned successor. This is the
-            # STRUCTURALLY-EXPECTED outcome of re-experiencing a known anchor
-            # scene -- exactly how recall is meant to be triggered (see this
-            # method's own expression-close reasoning above), and exactly the
-            # fault the live "hello there" turn hit. It is honest cognitive
-            # "nothing new to learn this turn," NOT a malformed-input/transport
-            # defect, and never a reason to fabricate output: the real,
-            # already-computed recognition + commit result is kept and returned
-            # unchanged by ``_run_locked``; only this learn-and-persist side
-            # effect is skipped. ``learn_committed_binding_transaction`` raises
-            # this BEFORE mutating any state (it builds a new state and returns
-            # it; on this raise nothing is assigned to ``self``), so this
-            # engine's learned state, scene archive, registry and checkpoint
-            # tick are all left exactly as they were.
+            # ``result.initial_event_receipt_sha256 is not None``) can now
+            # normally ALSO learn a new successor -- a committed mode may own
+            # several successors keyed by distinct transition contexts (owner
+            # Requirement 2). The one exception is re-living an IDENTICAL
+            # transition context (same mode, same prior relation, same scene,
+            # same senses): there is genuinely nothing new to learn, so
+            # ``learn_committed_binding_transaction`` raises the exact
+            # true-duplicate guard. That is honest cognitive "nothing new to
+            # learn this turn," NOT a malformed-input/transport defect, and
+            # never a reason to fabricate output: the real, already-computed
+            # recognition + commit result is kept and returned unchanged by
+            # ``_run_locked``; only this learn-and-persist side effect is
+            # skipped. ``learn_committed_binding_transaction`` raises this
+            # BEFORE mutating any state (it builds a new state and returns it;
+            # on this raise nothing is assigned to ``self``), so this engine's
+            # learned state, scene archive, registry and checkpoint tick are
+            # all left exactly as they were.
             #
             # This converts ONLY that one exact, named, structurally-verified
             # fault to honest silence. Any OTHER real learn fault is a genuine
             # internal defect, not honest uncertainty, and must still surface
             # loudly as a real error -- so it is deliberately re-raised unless
-            # BOTH the exact invariant message AND the live structural
-            # precondition (the mode really does already have a successor in
+            # BOTH the exact true-duplicate message AND the live structural
+            # precondition (the mode really does already hold a successor in
             # this engine's own unmutated stable bank) hold. When unsure,
             # louder is safer than silently hiding a genuine bug.
             mode_already_has_successor = any(
@@ -1156,7 +1172,36 @@ class ProductionCleanConversationEngine:
             scene_language_text=turn.text,
             engine_id=self._engine_id,
         )
-        self._scene_archive = self._scene_archive.with_episode(episode)
+        try:
+            updated_archive = self._scene_archive.with_episode(episode)
+        except ReceiptError as archive_error:
+            # A committed mode may now own several successors keyed by distinct
+            # transition contexts (owner Requirement 2), so re-experiencing an
+            # ALREADY-ARCHIVED scene from a new prior context genuinely learns a
+            # sibling successor above.  But the coexperienced-scene archive is
+            # keyed by the scene's own six-lane sensory receipts (one episode
+            # per scene), so that identical scene cannot be archived a second
+            # time under a different motif -- exactly the "same scene, two
+            # successors" boundary the fresh-commit self-recall chain cannot
+            # reproduce at recall time either.  Rather than crash or persist a
+            # learned/archived split, degrade THIS turn to honest typed silence
+            # atomically: nothing is assigned to ``self``, so the engine's
+            # learned state, scene archive, registry and checkpoint tick are
+            # left exactly as they were.  Any OTHER archive fault is a genuine
+            # defect and stays loud.
+            if _SCENE_ALREADY_ARCHIVED_MESSAGE not in str(archive_error):
+                raise
+            print(
+                "[glew] learn-and-persist degraded to honest typed silence for "
+                f"turn {turn.task_id!r}: {type(archive_error).__name__}: "
+                f"{archive_error} -- this scene is already archived, so a "
+                "Requirement-2 sibling successor for the same scene cannot be "
+                "durably re-archived; the real recognition+commit result is "
+                "kept unchanged (no fabricated output).",
+                flush=True,
+            )
+            return
+        self._scene_archive = updated_archive
 
         self._learned_state = new_state
         self._registry = new_state.receipt_registry

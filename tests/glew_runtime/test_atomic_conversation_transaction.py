@@ -158,6 +158,10 @@ def _conversation_fixture():
         dominant_binding=stable.binding_receipt_sha256,
         closed_experience=commit.closed_experience_receipt_sha256,
         l6_lock=commit.l6_evaluation_receipt_sha256,
+        # The initial event's Fact Strand is the root binding's own
+        # ``source_fact_strand`` (as ``_make_initial_event`` mints it), so
+        # ``_verify_initial_event`` resolves exactly this binding.
+        fact_strand=stable.source_fact_strand_receipt_sha256,
     )
     provider = _RealObjectProvider(world, ())
     output = RememberedOutputProviders(

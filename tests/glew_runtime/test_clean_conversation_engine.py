@@ -32,6 +32,7 @@ from dsf_ai_service.glew_runtime.clean_conversation_engine import (
     GenerationIdentityParameters,
     ProductionCleanConversationEngine,
     _LEARN_SUCCESSOR_ALREADY_EXISTS_MESSAGE,
+    _SCENE_ALREADY_ARCHIVED_MESSAGE,
     _scene_descriptors,
 )
 from dsf_ai_service.glew_runtime.commit import CommitStatus
@@ -693,31 +694,28 @@ def test_real_end_to_end_commit_and_learn_no_monkeypatching(fixture, tmp_path_fa
     assert len(archive_payload["body"]["episodes"]) == 1
 
 
-def test_committed_turn_whose_mode_is_exhausted_degrades_to_honest_silence_not_a_raised_error(
+def test_re_experiencing_an_already_archived_scene_degrades_to_honest_silence_not_a_raised_error(
     fixture, tmp_path_factory, capsys
 ):
-    """The exact fault class the live "hello there" turn hit, reproduced at
-    the real engine boundary with no monkeypatching.
+    """Re-pinned for owner Requirement 2 (mode growth + successor keying).
 
-    Driving the fixture's own root scene ('a') against the fixture's real
-    ``learned`` state commits and learns a new successor for real (the first
-    call is exactly ``test_real_end_to_end_commit_and_learn_no_monkeypatching``
-    above -- it persists checkpoint generation 0 and now leaves BOTH of this
-    two-mode bank's modes holding their one permitted successor). Replaying
-    that SAME real root scene immediately afterward genuinely recognizes and
-    fully commits again -- so its learn step runs for real -- but the mode it
-    committed against already holds its one learned successor, so
-    ``expression_learning.learn_committed_binding_transaction`` hits its real
-    one-successor-per-mode invariant.
+    Under the pre-Requirement-2 single-successor invariant this scenario hit
+    ``expression_learning``'s "prior committed mode already has a learned
+    successor" wall on the SECOND call and degraded there.  A committed mode
+    may now own several successors keyed by distinct transition contexts, so
+    re-driving the fixture's own root scene ('a') twice now genuinely LEARNS a
+    sibling successor on the second call instead of hitting that wall.
 
-    Per the owner's explicit instruction ("failure must remain loud in
-    diagnostics but must never become spoken output"), that structurally
-    expected learn fault is degraded to honest typed silence -- the real,
-    already-succeeded recognition + commit result is kept and returned, never
-    raised as a ``ReceiptError`` and never fabricated into content -- while
-    the real exception type and message are logged loudly to the ``[glew]``
-    diagnostics channel. No further checkpoint generation is persisted for the
-    silent turn (there was nothing new to learn)."""
+    The honest-silence outcome is preserved, for a different, deeper reason:
+    the coexperienced-scene archive is keyed by the scene's own six-lane
+    sensory receipt set (one episode per scene), so the identical scene 'a'
+    cannot be archived a second time under the sibling's different motif --
+    exactly the "same scene, two successors" boundary the fresh-commit
+    self-recall chain cannot reproduce at recall time either.  The engine
+    degrades THAT turn to honest typed silence atomically (no state mutation,
+    no new checkpoint generation) and logs the real fault loudly to the
+    ``[glew]`` diagnostics channel, never a ``ReceiptError`` surfaced as output
+    and never fabricated content."""
 
     generation_store = _new_generation_store(tmp_path_factory)
     engine = _build_engine(
@@ -729,7 +727,8 @@ def test_committed_turn_whose_mode_is_exhausted_degrades_to_honest_silence_not_a
 
     turn = _turn(fixture["root_task_id"], "a")
 
-    # First call: a real commit that genuinely learns + persists generation 0.
+    # First call: a real commit that genuinely learns a Requirement-2 sibling
+    # successor and persists generation 0 (its scene 'a' is now archived).
     first = engine.run_clean_conversation(turn=turn, story_chemistry=fixture["root_chemistry"])
     first.verify()
     assert first.initial_event_receipt_sha256 is not None
@@ -737,23 +736,28 @@ def test_committed_turn_whose_mode_is_exhausted_degrades_to_honest_silence_not_a
     capsys.readouterr()  # discard first-call output; we assert on the second
 
     # Second call: same real scene. Recognition + full-field commit succeed
-    # again, but the learn step now hits the one-successor-per-mode invariant.
+    # again and the learn step now genuinely produces a sibling successor, but
+    # that identical scene is already archived, so the turn degrades.
     second = engine.run_clean_conversation(turn=turn, story_chemistry=fixture["root_chemistry"])
     second.verify()
 
     # The commit really happened (this is why the learn step ran at all) ...
     assert second.initial_event_receipt_sha256 is not None
-    # ... but the turn honestly learned nothing new, so its output is typed
+    # ... but the sibling could not be durably archived, so its output is typed
     # silence -- NOT a raised error, NOT fabricated content.
     assert second.status is ConversationStatus.EXPLICIT_UNKNOWN_SILENCE
     assert second.silent is True
     assert second.visible_text == ""
 
+    # No new checkpoint generation was persisted for the degraded turn: the
+    # engine state stayed exactly at generation 0 (atomic degradation).
+    assert generation_store.load_current().tick == 0
+
     # The real fault stayed LOUD in diagnostics (stdout), carrying the real
     # exception type and message -- never surfaced as spoken output.
     captured = capsys.readouterr()
     assert "learn-and-persist degraded to honest typed silence" in captured.out
-    assert _LEARN_SUCCESSOR_ALREADY_EXISTS_MESSAGE in captured.out
+    assert _SCENE_ALREADY_ARCHIVED_MESSAGE in captured.out
     assert "ReceiptError" in captured.out
 
     # No new checkpoint generation was persisted for the silent turn: the

@@ -29,6 +29,7 @@ from .commit import (
 )
 from .expression_memory import ExpressionHMemEvaluator
 from .expression_modes import (
+    RECOGNITION_ARBITER_CERTIFIED_RESIDUAL,
     ExpressionModeBank,
     ExpressionModeBoundaryResult,
     ExpressionRecognitionStatus,
@@ -400,9 +401,15 @@ def _preflight_initial_output(
     selected_receipt = commit.selected_mode_receipt_sha256
     if selected_receipt is None:
         raise ReceiptError("initial committed event has no selected stable mode")
-    stable = output.stable_mode_motif_bank.resolve_unique(
-        selected_receipt,
-        receipt_registry,
+    # The initial event names the root transition's own successor.  Resolve it
+    # by the event's own source-relation Fact Strand (its ``fact_strand_
+    # receipt_sha256`` is exactly the root binding's ``source_fact_strand``),
+    # so a root mode that owns sibling successors (owner Requirement 2) does
+    # not make this verification ambiguous.
+    stable = output.stable_mode_motif_bank.resolve_for_source_relation(
+        mode_receipt_sha256=selected_receipt,
+        source_fact_strand_receipt_sha256=event.fact_strand_receipt_sha256,
+        receipt_registry=receipt_registry,
     )
     if (
         stable.motif_receipt_sha256 != event.motif_receipt_sha256
@@ -443,6 +450,10 @@ def run_clean_conversation_transaction(
             input_expression=input_expression,
             receipt_registry=receipt_registry,
             hermitian_evaluators=h_mem,
+            # Live experience must GROW when the full field is structurally
+            # distinct from every existing mode (owner Requirement 1), not
+            # misrecognize it as the nearest reference.
+            recognition_arbiter=RECOGNITION_ARBITER_CERTIFIED_RESIDUAL,
         )
         recognition.verify()
         recognition.pre_growth_bank.verify(

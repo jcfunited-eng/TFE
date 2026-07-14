@@ -83,6 +83,28 @@ def _mounted_exact(
         raise ReceiptError(f"{description} differs from mounted exact bytes")
 
 
+def _strict_transition_context(payload: bytes) -> dict[str, object]:
+    def reject_duplicate_keys(
+        pairs: list[tuple[str, object]],
+    ) -> dict[str, object]:
+        value: dict[str, object] = {}
+        for key, item in pairs:
+            if key in value:
+                raise ReceiptError("stable transition context repeats a JSON key")
+            value[key] = item
+        return value
+
+    try:
+        parsed = json.loads(payload, object_pairs_hook=reject_duplicate_keys)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ReceiptError("stable transition context is not canonical JSON") from exc
+    if not isinstance(parsed, dict) or _canonical_bytes(parsed) != payload:
+        raise ReceiptError("stable transition context is not canonical JSON bytes")
+    if parsed.get("schema") != TRANSITION_CONTEXT_SCHEMA:
+        raise ReceiptError("stable transition context has another schema")
+    return parsed
+
+
 def _require_registry_extension(
     before: ReceiptRegistry,
     after: ReceiptRegistry,
@@ -195,6 +217,141 @@ def recall_expression_input_receipt_payload(
     )
 
 
+TRANSITION_CONTEXT_SCHEMA = "glew.recall.transition_context.v1"
+TRANSITION_CONTEXT_MATCH_SCHEMA = "glew.recall.transition_context_match.v1"
+
+
+def _sorted_distinct_sensory(
+    sensory_evidence_receipt_sha256s: tuple[str, ...],
+) -> tuple[str, ...]:
+    if not isinstance(sensory_evidence_receipt_sha256s, tuple):
+        raise ReceiptError("transition context sensory evidence must be a tuple")
+    for index, digest in enumerate(sensory_evidence_receipt_sha256s):
+        sha256_digest(digest, f"transition context sensory evidence[{index}]")
+    if sensory_evidence_receipt_sha256s != tuple(
+        sorted(set(sensory_evidence_receipt_sha256s))
+    ):
+        raise ReceiptError("transition context sensory evidence is not canonical")
+    return sensory_evidence_receipt_sha256s
+
+
+def _reproducible_match_object(
+    *,
+    prior_relation_receipt_sha256: str,
+    input_expression_receipt_sha256: str,
+    sensory_evidence_receipt_sha256s: tuple[str, ...],
+) -> dict[str, object]:
+    """The canonical reproducible-match sub-object (owner Requirement 2).
+
+    Folds the receipts a deterministic scene re-run reproduces bit-for-bit:
+    the departing prior relation, the bank-independent full-field input
+    expression, and the six-lane sensory evidence.  Kept as a single builder
+    so the standalone match digest and the nested object inside the full
+    :func:`transition_context_receipt_payload` are byte-identical.
+    """
+
+    sha256_digest(prior_relation_receipt_sha256, "transition prior relation receipt")
+    sha256_digest(
+        input_expression_receipt_sha256, "transition input expression receipt"
+    )
+    return {
+        "input_expression_receipt_sha256": input_expression_receipt_sha256,
+        "prior_relation_receipt_sha256": prior_relation_receipt_sha256,
+        "schema": TRANSITION_CONTEXT_MATCH_SCHEMA,
+        "sensory_evidence_receipt_sha256s": list(
+            _sorted_distinct_sensory(sensory_evidence_receipt_sha256s)
+        ),
+    }
+
+
+def transition_context_match_receipt_payload(
+    *,
+    prior_relation_receipt_sha256: str,
+    input_expression_receipt_sha256: str,
+    sensory_evidence_receipt_sha256s: tuple[str, ...],
+) -> bytes:
+    """Canonical bytes of the reproducible match sub-digest alone."""
+
+    return _canonical_bytes(
+        _reproducible_match_object(
+            prior_relation_receipt_sha256=prior_relation_receipt_sha256,
+            input_expression_receipt_sha256=input_expression_receipt_sha256,
+            sensory_evidence_receipt_sha256s=sensory_evidence_receipt_sha256s,
+        )
+    )
+
+
+def transition_context_receipt_payload(
+    *,
+    profile_binding_sha256: str,
+    mode_receipt_sha256: str,
+    prior_relation_receipt_sha256: str,
+    input_expression_receipt_sha256: str,
+    sensory_evidence_receipt_sha256s: tuple[str, ...],
+    closed_experience_receipt_sha256: str,
+    recognition_receipt_sha256: str,
+    commit_receipt_sha256: str,
+    memory_output_bank_receipt_sha256: str,
+    memory_stable_bank_receipt_sha256: str,
+) -> bytes:
+    """One sealed transition context (owner Requirement 2, design section 5.1).
+
+    Two named sub-objects: a ``reproducible_match`` (the receipts a
+    deterministic scene re-run reproduces) whose digest keys a learned
+    successor, and a sealed ``provenance`` strand (the receipts a re-run
+    cannot reproduce -- recognition folds the growing pre-growth bank, the
+    closed-experience seal folds recognition, the self-recall commit is minted
+    fresh, and the memory banks are mutable) that is the audited context, not
+    an independent recall discriminator.
+    """
+
+    for value, name in (
+        (profile_binding_sha256, "transition context profile receipt"),
+        (mode_receipt_sha256, "transition context mode receipt"),
+        (
+            closed_experience_receipt_sha256,
+            "transition context closed-experience receipt",
+        ),
+        (recognition_receipt_sha256, "transition context recognition receipt"),
+        (commit_receipt_sha256, "transition context commit receipt"),
+        (
+            memory_output_bank_receipt_sha256,
+            "transition context memory output-bank receipt",
+        ),
+        (
+            memory_stable_bank_receipt_sha256,
+            "transition context memory stable-bank receipt",
+        ),
+    ):
+        sha256_digest(value, name)
+    reproducible_match = _reproducible_match_object(
+        prior_relation_receipt_sha256=prior_relation_receipt_sha256,
+        input_expression_receipt_sha256=input_expression_receipt_sha256,
+        sensory_evidence_receipt_sha256s=sensory_evidence_receipt_sha256s,
+    )
+    return _canonical_bytes(
+        {
+            "mode_receipt_sha256": mode_receipt_sha256,
+            "profile_binding_sha256": profile_binding_sha256,
+            "provenance": {
+                "closed_experience_receipt_sha256": (
+                    closed_experience_receipt_sha256
+                ),
+                "commit_receipt_sha256": commit_receipt_sha256,
+                "memory_output_bank_receipt_sha256": (
+                    memory_output_bank_receipt_sha256
+                ),
+                "memory_stable_bank_receipt_sha256": (
+                    memory_stable_bank_receipt_sha256
+                ),
+                "recognition_receipt_sha256": recognition_receipt_sha256,
+            },
+            "reproducible_match": reproducible_match,
+            "schema": TRANSITION_CONTEXT_SCHEMA,
+        }
+    )
+
+
 def stable_mode_motif_binding_receipt_payload(
     *,
     binding_id: str,
@@ -202,6 +359,8 @@ def stable_mode_motif_binding_receipt_payload(
     mode_receipt_sha256: str,
     motif_receipt_sha256: str,
     source_fact_strand_receipt_sha256: str,
+    transition_context_receipt_sha256: str,
+    transition_context_match_sha256: str,
 ) -> bytes:
     require_identifier(binding_id, "stable mode/motif binding id")
     for value, name in (
@@ -209,6 +368,14 @@ def stable_mode_motif_binding_receipt_payload(
         (mode_receipt_sha256, "stable mode receipt"),
         (motif_receipt_sha256, "stable motif receipt"),
         (source_fact_strand_receipt_sha256, "mode/motif Fact Strand receipt"),
+        (
+            transition_context_receipt_sha256,
+            "stable transition-context receipt",
+        ),
+        (
+            transition_context_match_sha256,
+            "stable transition-context match receipt",
+        ),
     ):
         sha256_digest(value, name)
     return _canonical_bytes(
@@ -218,9 +385,13 @@ def stable_mode_motif_binding_receipt_payload(
             "mode_receipt_sha256": mode_receipt_sha256,
             "motif_receipt_sha256": motif_receipt_sha256,
             "profile_binding_sha256": profile_binding_sha256,
-            "schema": "glew.recall.stable_mode_motif_binding.v1",
+            "schema": "glew.recall.stable_mode_motif_binding.v2",
             "source_fact_strand_receipt_sha256": (
                 source_fact_strand_receipt_sha256
+            ),
+            "transition_context_match_sha256": transition_context_match_sha256,
+            "transition_context_receipt_sha256": (
+                transition_context_receipt_sha256
             ),
         }
     )
@@ -233,6 +404,8 @@ class StableModeMotifBinding:
     mode_receipt_sha256: str
     motif_receipt_sha256: str
     source_fact_strand_receipt_sha256: str
+    transition_context_receipt_sha256: str
+    transition_context_match_sha256: str
     binding_receipt_sha256: str
 
     def __post_init__(self) -> None:
@@ -250,6 +423,12 @@ class StableModeMotifBinding:
             source_fact_strand_receipt_sha256=(
                 self.source_fact_strand_receipt_sha256
             ),
+            transition_context_receipt_sha256=(
+                self.transition_context_receipt_sha256
+            ),
+            transition_context_match_sha256=(
+                self.transition_context_match_sha256
+            ),
         )
 
     def verify(self, receipt_registry: ReceiptRegistry) -> None:
@@ -261,6 +440,31 @@ class StableModeMotifBinding:
             self.source_fact_strand_receipt_sha256,
             "mode/motif Fact Strand receipt",
         )
+        # The sealed transition context binds this successor to the full,
+        # already-receipted prior state / memory / chemistry / causal context
+        # it arose from (owner Requirement 2).  Its reproducible-match
+        # sub-digest must equal the stored match, so the audited context and
+        # the successor key can never silently diverge.
+        context_payload = receipt_registry.resolve(
+            self.transition_context_receipt_sha256,
+            "stable transition-context receipt",
+        )
+        context = _strict_transition_context(context_payload)
+        if context.get("mode_receipt_sha256") != self.mode_receipt_sha256:
+            raise ReceiptError(
+                "stable transition context names a different committed mode"
+            )
+        if context.get("profile_binding_sha256") != self.profile_binding_sha256:
+            raise ReceiptError("stable transition context has a different profile")
+        reproducible = context.get("reproducible_match")
+        if not isinstance(reproducible, dict):
+            raise ReceiptError("stable transition context lost its reproducible match")
+        if receipt_sha256(_canonical_bytes(reproducible)) != (
+            self.transition_context_match_sha256
+        ):
+            raise ReceiptError(
+                "stable transition-context match digest differs from its context"
+            )
         _mounted_exact(
             receipt_registry,
             self.binding_receipt_sha256,
@@ -307,12 +511,18 @@ def stable_mode_motif_bank_receipt_payload(
                     "binding_receipt_sha256": value.binding_receipt_sha256,
                     "mode_receipt_sha256": value.mode_receipt_sha256,
                     "motif_receipt_sha256": value.motif_receipt_sha256,
+                    "transition_context_match_sha256": (
+                        value.transition_context_match_sha256
+                    ),
+                    "transition_context_receipt_sha256": (
+                        value.transition_context_receipt_sha256
+                    ),
                 }
                 for value in bindings
             ],
             "completeness_scope": "complete_active_stable_mode_motif_bank",
             "profile_binding_sha256": profile_binding_sha256,
-            "schema": "glew.recall.stable_mode_motif_bank.v1",
+            "schema": "glew.recall.stable_mode_motif_bank.v2",
         }
     )
 
@@ -352,11 +562,11 @@ class StableModeMotifBank:
             ),
         )
 
-    def resolve_unique(
+    def _verified_candidates(
         self,
         mode_receipt_sha256: str,
         receipt_registry: ReceiptRegistry,
-    ) -> StableModeMotifBinding:
+    ) -> tuple[StableModeMotifBinding, ...]:
         if self.profile_binding_sha256 != receipt_registry.profile_binding_sha256:
             raise ReceiptError("stable mode/motif bank has a different profile")
         _mounted_exact(
@@ -370,10 +580,96 @@ class StableModeMotifBank:
             raise ReceiptError("selected mode has no stable motif binding")
         for value in values:
             value.verify(receipt_registry)
+        return values
+
+    def resolve_unique(
+        self,
+        mode_receipt_sha256: str,
+        receipt_registry: ReceiptRegistry,
+    ) -> StableModeMotifBinding:
+        """Resolve the sole successor of a mode.
+
+        This is the recall-transition resolver: a self-recall re-run only
+        knows the *predecessor* scene when it must choose a mode's successor,
+        so a mode that legitimately owns several successors (owner Requirement
+        2) cannot be disambiguated at that point and raises here -- yielding
+        honest fail-closed silence, never a wrong successor.  Single-successor
+        modes (the exact-repeat recall path) resolve unchanged.
+        """
+
+        values = self._verified_candidates(mode_receipt_sha256, receipt_registry)
         motifs = {value.motif_receipt_sha256 for value in values}
         if len(motifs) != 1:
             raise ReceiptError("selected mode has conflicting stable motif bindings")
         return values[0]
+
+    def resolve_for_transition(
+        self,
+        *,
+        mode_receipt_sha256: str,
+        transition_context_match_sha256: str,
+        receipt_registry: ReceiptRegistry,
+    ) -> StableModeMotifBinding:
+        """Resolve the one successor of ``mode`` learned under an exact
+        reproducible transition context (owner Requirement 2)."""
+
+        sha256_digest(
+            transition_context_match_sha256,
+            "resolve transition-context match receipt",
+        )
+        values = self._verified_candidates(mode_receipt_sha256, receipt_registry)
+        matches = tuple(
+            value
+            for value in values
+            if value.transition_context_match_sha256
+            == transition_context_match_sha256
+        )
+        if len(matches) > 1:
+            raise ReceiptError(
+                "conflicting stable motif bindings for one transition context"
+            )
+        if not matches:
+            raise ReceiptError(
+                "no stable motif binding for this mode under this transition context"
+            )
+        return matches[0]
+
+    def resolve_for_source_relation(
+        self,
+        *,
+        mode_receipt_sha256: str,
+        source_fact_strand_receipt_sha256: str,
+        receipt_registry: ReceiptRegistry,
+    ) -> StableModeMotifBinding:
+        """Resolve the one successor of ``mode`` whose learned transition
+        departed from an exact source relation (its Fact Strand).
+
+        Used to rebuild and re-verify an expression's genesis-anchored initial
+        event: the root transition is identified by the state's own
+        ``initial_relation`` Fact Strand, robust to a root mode that has since
+        acquired sibling successors from other chain positions.
+        """
+
+        sha256_digest(
+            source_fact_strand_receipt_sha256,
+            "resolve source relation Fact Strand receipt",
+        )
+        values = self._verified_candidates(mode_receipt_sha256, receipt_registry)
+        matches = tuple(
+            value
+            for value in values
+            if value.source_fact_strand_receipt_sha256
+            == source_fact_strand_receipt_sha256
+        )
+        if len(matches) > 1:
+            raise ReceiptError(
+                "conflicting stable motif bindings for one source relation"
+            )
+        if not matches:
+            raise ReceiptError(
+                "selected mode has no stable motif binding for this source relation"
+            )
+        return matches[0]
 
 
 class RecallTransitionStatus(str, Enum):
@@ -1123,6 +1419,8 @@ __all__ = (
     "RecallTransitionStatus",
     "StableModeMotifBank",
     "StableModeMotifBinding",
+    "TRANSITION_CONTEXT_MATCH_SCHEMA",
+    "TRANSITION_CONTEXT_SCHEMA",
     "fresh_recall_provider_authority_receipt_payload",
     "recall_expression_input_receipt_payload",
     "recall_transition_settlement_receipt_payload",
@@ -1130,4 +1428,6 @@ __all__ = (
     "settle_complete_remembered_expression",
     "stable_mode_motif_bank_receipt_payload",
     "stable_mode_motif_binding_receipt_payload",
+    "transition_context_match_receipt_payload",
+    "transition_context_receipt_payload",
 )

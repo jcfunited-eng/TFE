@@ -142,19 +142,23 @@ def test_multi_scalar_turn_produces_one_real_distinct_outcome_per_scalar(fixture
     assert result.visible_scalar_texts == ()
 
 
-def test_multi_scalar_turn_commits_and_learns_from_its_first_scalar(fixture, tmp_path_factory):
-    """The load-bearing positive case: a multi-character turn whose FIRST
-    scalar is a genuinely new, never-seen character. Against this fixture's
-    already rank-two-bootstrapped mode bank and already-learned state (root
-    -> content), content's own mode has never been used as a learned
-    successor's source -- so this scalar's real recognition and real commit
-    conjunction succeed, and the engine really learns a new binding and
-    atomically persists a new checkpoint generation, exactly the same real,
-    observable side effect
-    ``test_clean_conversation_engine.py::
-    test_real_end_to_end_commit_and_learn_no_monkeypatching`` asserts for a
-    single turn driven directly, now reached through the scheduler's own
-    per-scalar path."""
+def test_multi_scalar_turn_first_scalar_grows_a_new_mode_and_stays_silent(
+    fixture, tmp_path_factory
+):
+    """Re-pinned for owner Requirement 1 (certified-residual growth arbiter).
+
+    Under the pre-Requirement-1 winner-take-all dominance rule, a genuinely
+    new one-scalar scene was RECOGNIZED as one of the two bootstrap modes and
+    committed (the old premise of this test).  The recognition boundary now
+    makes the certified orthogonal residual against the whole existing basis
+    the arbiter: a scalar carrying genuine energy outside every existing mode
+    GROWS a new mode and stays novel-silent instead of being absorbed.
+
+    So this fixture's genuinely new scalar 'q' no longer commits -- it grows a
+    third mode and returns honest ``NOVEL_SILENCE``.  Its real recognition
+    still ran (proving the real per-scalar sensory/expression pipeline
+    executed), no commit or learn occurred, and no checkpoint generation was
+    persisted."""
 
     generation_store = _new_generation_store(tmp_path_factory)
     engine = _build_engine(
@@ -163,10 +167,11 @@ def test_multi_scalar_turn_commits_and_learns_from_its_first_scalar(fixture, tmp
         registry=fixture["registry"],
         generation_store=generation_store,
     )
+    rank_before = engine._mode_bank.rank
     scheduler = MultiScalarTurnScheduler(engine=engine)
 
     result = scheduler.run_turn(
-        task_id="multi-scalar-commit-turn",
+        task_id="multi-scalar-grow-turn",
         text="q",
         story_chemistry=fixture["root_chemistry"],
     )
@@ -176,57 +181,41 @@ def test_multi_scalar_turn_commits_and_learns_from_its_first_scalar(fixture, tmp
     assert outcome.scalar_index == 0
     assert outcome.scalar_text == "q"
     outcome.result.verify()
+    # Real recognition genuinely ran, but the certified out-of-span residual
+    # grew a new mode and stayed silent: no commit, no learn.
     assert outcome.result.recognition_receipt_sha256 is not None
-    assert outcome.result.commit_receipt_sha256 is not None
-    assert outcome.result.initial_event_receipt_sha256 is not None
-    assert outcome.committed
-    assert result.any_commit is True
-    assert result.committed_scalar_indices == (0,)
+    assert outcome.result.commit_receipt_sha256 is None
+    assert outcome.result.initial_event_receipt_sha256 is None
+    assert not outcome.committed
+    assert outcome.silent
+    assert outcome.result.status is ConversationStatus.EXPLICIT_NO_COMMIT_SILENCE
+    assert "novel_silence" in outcome.result.reason
+    assert result.any_commit is False
+    assert result.committed_scalar_indices == ()
 
-    # A real commit happened, so the engine really learned a new binding and
-    # persisted a new checkpoint generation.
-    current = generation_store.load_current()
-    assert current.tick == 0
-    learning_payload = current.payload(
-        "clean_conversation_learning_checkpoint.json"
-    )
-    assert learning_payload["body"]["schema"] == "glew.learning.binding_checkpoint.v1"
+    # The novel scalar grew a genuinely new mode (Requirement 1) ...
+    assert engine._mode_bank.rank == rank_before + 1
+    # ... and, because nothing committed or learned, no new checkpoint
+    # generation was persisted.
+    assert not (generation_store.root / "CURRENT").exists()
 
 
-def test_multi_scalar_turn_second_scalar_exhausts_its_only_open_learning_slot_and_stays_honest_silence(
-    fixture, tmp_path_factory, capsys
+def test_multi_scalar_turn_novel_scalars_each_grow_their_own_mode_and_stay_silent(
+    fixture, tmp_path_factory
 ):
-    """A real, empirically-confirmed (not assumed) consequence of running two
-    scalars in real sequence on the same engine instance: this fixture's
-    mode bank has exactly two modes (root's, content's -- bootstrapped to
-    rank two, see the shared fixture's own docstring), and
-    ``expression_learning.learn_committed_binding_transaction`` permits at
-    most one learned successor per mode, ever (its own "prior committed mode
-    already has a learned successor" guard). Root's mode already has one
-    (content -- from this fixture's own original construction). Empirically,
-    every well-formed, genuinely novel one-scalar scene tried against this
-    bank's real recognition independently recognized as one of these two
-    existing modes (a two-mode bank at this scale apparently has no real
-    "stays novel" attractor) and its full commit conjunction independently
-    passed -- so the FIRST scalar here consumes content's own, previously
-    open slot for real (see
-    ``test_multi_scalar_turn_commits_and_learns_from_its_first_scalar``
-    above), and the SECOND scalar -- run on the very same engine instance
-    immediately afterward, its own recognition and commit conjunction ALSO
-    genuinely succeeding -- finds both of this bank's two modes already
-    used up. Its own real learning step therefore genuinely, honestly hits
-    the one-successor-per-mode invariant.
+    """Re-pinned for owner Requirement 1 (certified-residual growth arbiter).
 
-    This is the EXACT class of fault the live "hello there" turn hit. Per the
-    owner's explicit instruction ("failure must remain loud in diagnostics
-    but must never become spoken output"), the engine now degrades ONLY that
-    learn-and-persist failure to honest typed silence -- keeping the real,
-    already-succeeded recognition+commit result -- and logs the real fault
-    loudly to the ``[glew]`` diagnostics channel. So the second scalar is a
-    genuine commit that honestly learned nothing new (typed silence), NOT a
-    raised ``ReceiptError`` surfaced as the conversational response, and NOT
-    fabricated content. This scheduler still never swallows, retries, or
-    fabricates anything itself: it simply reports the engine's real per-scalar
+    Under the pre-Requirement-1 winner-take-all rule this fixture's two novel
+    scalars were each RECOGNIZED as an existing mode and committed, and the
+    SECOND then hit the one-successor-per-mode wall -- the exact class of fault
+    the live "hello there" turn hit.  With the certified-residual arbiter, each
+    genuinely new scalar instead carries certified energy outside every
+    existing mode, so each GROWS its own new mode and stays novel-silent.
+
+    Running two novel scalars ('q', then 'p') in real sequence on the same
+    engine therefore grows the mode bank by exactly two, commits neither, and
+    stays honestly silent throughout -- no exhaustion wall, no raised error, no
+    fabricated content.  The scheduler reports the engine's real per-scalar
     results verbatim."""
 
     generation_store = _new_generation_store(tmp_path_factory)
@@ -236,38 +225,37 @@ def test_multi_scalar_turn_second_scalar_exhausts_its_only_open_learning_slot_an
         registry=fixture["registry"],
         generation_store=generation_store,
     )
+    rank_before = engine._mode_bank.rank
     scheduler = MultiScalarTurnScheduler(engine=engine)
 
     result = scheduler.run_turn(
-        task_id="multi-scalar-exhaust-turn",
+        task_id="multi-scalar-grow-turn",
         text="qp",
         story_chemistry=fixture["root_chemistry"],
     )
 
-    # No raised error reaches the caller -- the exhausted second scalar is
-    # honest typed silence, not a raw internal fault surfaced as output.
     assert len(result.outcomes) == 2
-    second = result.outcomes[1]
-    # The second scalar's own recognition + full-field commit genuinely
-    # succeeded (that is precisely why its learn step ran at all) ...
-    assert second.committed is True
-    # ... but it honestly learned nothing new, so its real output is typed
-    # silence, never a fabricated reply.
-    assert second.silent is True
-    assert second.result.visible_text == ""
+    for outcome in result.outcomes:
+        outcome.result.verify()
+        # Each novel scalar's recognition genuinely ran, grew a new mode, and
+        # stayed silent: no commit, no learn.
+        assert outcome.result.recognition_receipt_sha256 is not None
+        assert not outcome.committed
+        assert outcome.silent
+        assert outcome.result.status is (
+            ConversationStatus.EXPLICIT_NO_COMMIT_SILENCE
+        )
+        assert "novel_silence" in outcome.result.reason
+        assert outcome.result.visible_text == ""
+
+    # Each of the two genuinely novel scalars grew its own new mode
+    # (Requirement 1), so the bank grew by exactly two -- no exhaustion wall.
+    assert engine._mode_bank.rank == rank_before + 2
+    assert result.any_commit is False
+    assert result.committed_scalar_indices == ()
     assert result.all_silent is True
-
-    # The real fault stayed LOUD in diagnostics: the engine printed the real
-    # exception type and message to the [glew] channel (never spoken output).
-    captured = capsys.readouterr()
-    assert "learn-and-persist degraded to honest typed silence" in captured.out
-    assert "already has a learned successor" in captured.out
-
-    # The first scalar's real commit+learn+persist still genuinely happened;
-    # the second scalar's skipped learn persisted nothing further -- exactly
-    # one checkpoint generation, not two.
-    current = generation_store.load_current()
-    assert current.tick == 0
+    # Nothing committed or learned, so no checkpoint generation was persisted.
+    assert not (generation_store.root / "CURRENT").exists()
 
 
 def test_multi_scalar_turn_propagates_a_real_receipt_error_from_one_scalar(fixture, tmp_path_factory):
