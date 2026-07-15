@@ -383,6 +383,7 @@ def test_legacy_intra_cycle_forward_skew_accepted_but_mixed_eras_rejected():
 
     class _Legacy:
         _expected_file_ticks = None  # pre-manifest state
+        _INTRA_CYCLE_TICK_SKEW = Guala._INTRA_CYCLE_TICK_SKEW
 
     envelope = {"data": {}, "guala_identity": "x", "saved_at_tick": 3375633}
     # exactly the live halt case: teaching 1 tick ahead of core 3375632

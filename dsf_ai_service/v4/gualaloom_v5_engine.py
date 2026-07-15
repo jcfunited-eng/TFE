@@ -12799,6 +12799,14 @@ class Guala:
         if actual_digest != expected_digest:
             raise ValueError(f"{filename}: binary digest differs from binding")
 
+    # GL-FIX-LEGACY-INTRA-CYCLE-SKEW: the tick loop advances while a save
+    # cycle writes its files sequentially, so envelope stamps and inner
+    # per-item ticks in files written after guala_core.json can run a
+    # moment ahead of core's stamp. Bounded allowance -- one save cycle's
+    # worth of ticks; genuinely mixed save sets differ by thousands and
+    # still reject.
+    _INTRA_CYCLE_TICK_SKEW = 1200
+
     def _validate_exact_envelope(self, raw, filename, expected_tick):
         """Prove that one JSON component belongs to a legitimate save set.
 
@@ -12848,13 +12856,13 @@ class Guala:
             # still reject genuinely mixed save sets (different eras differ by
             # thousands of ticks). Manifest-bearing saves (the branch above)
             # never reach here, so this acceptance retires with legacy state.
-            if saved_tick - expected_tick <= 1200:
+            if saved_tick - expected_tick <= self._INTRA_CYCLE_TICK_SKEW:
                 print(
                     f"[GualaLoom][legacy-skew] {filename}: saved_at_tick "
                     f"{saved_tick} is {saved_tick - expected_tick} tick(s) "
                     f"ahead of core {expected_tick} -- accepted as intra-cycle "
                     "write skew from a pre-manifest hot save (real data, same "
-                    "save cycle; bounded at 1200 ticks)",
+                    "save cycle; bounded)",
                     flush=True,
                 )
             else:
@@ -14443,7 +14451,7 @@ class Guala:
                             draw, "guala_deep_atlas.json",
                             core_envelope_tick)
                         self._validate_deep_atlas_payload(
-                            ddata, core_envelope_tick)
+                            ddata, core_envelope_tick + self._INTRA_CYCLE_TICK_SKEW)
                     _deep_saved_count = self.deep_atlas.load_from_json(ddata)
                     _deep_loaded = self.deep_atlas.live_count()
                     print(f"[GualaLoom] Deep atlas loaded: {_deep_loaded} entries "
@@ -14702,7 +14710,7 @@ class Guala:
                         self._validate_exact_envelope(
                             td, "guala_teaching.json", core_envelope_tick)
                         self._validate_teaching_payload(
-                            tdata, core_envelope_tick)
+                            tdata, core_envelope_tick + self._INTRA_CYCLE_TICK_SKEW)
                     self._teaching_feedback_log = list(
                         tdata.get("feedback_log", []))
                     self._teaching_correction_log = list(
@@ -14735,7 +14743,7 @@ class Guala:
                         self._validate_exact_envelope(
                             ed, "guala_episodic.json", core_envelope_tick)
                         self._validate_episodic_payload(
-                            edata, core_envelope_tick,
+                            edata, core_envelope_tick + self._INTRA_CYCLE_TICK_SKEW,
                             self.EPISODIC_MEMORY_MAX_PER_CONCEPT,
                             self.EPISODIC_RECENT_CONTEXT_WINDOW)
                         self._episodic_memory = {}
@@ -14770,7 +14778,7 @@ class Guala:
                         self._validate_exact_envelope(
                             sraw, "guala_sounds.json", core_envelope_tick)
                         self._validate_sounds_payload(
-                            sdata, core_envelope_tick)
+                            sdata, core_envelope_tick + self._INTRA_CYCLE_TICK_SKEW)
                     self._sounds = dict(sdata)
                     print(f"[GualaLoom] Sounds loaded: {len(self._sounds)} items")
                 except Exception as e:
