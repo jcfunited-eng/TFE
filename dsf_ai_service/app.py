@@ -6266,6 +6266,8 @@ async def shutdown():
             await _stop_app_lifecycle_tasks(timeout=120.0)
             import dsf_ai_service.substrate_runner as _sr
             await asyncio.to_thread(_sr.quiesce_background_loops, 120.0)
+            from dsf_ai_service.speech_transducer import shutdown_speech_worker
+            await asyncio.to_thread(shutdown_speech_worker, 30.0)
             await asyncio.to_thread(_guala.strict_shutdown, 120.0)
         except Exception as error:
             print(f"[shutdown] strict local quiescence failed: {error}")
@@ -7142,12 +7144,18 @@ async def _quiesce_and_seal(nonce):
         import dsf_ai_service.substrate_runner as _sr
         runner_proof = await asyncio.to_thread(
             _sr.quiesce_background_loops, 120.0)
+        # Boundary STT worker is its own OS process (like the curriculum
+        # subprocess quiesce_background_loops stops just above); terminate and
+        # join it here on seal.  A no-op when the worker was never spawned.
+        from dsf_ai_service.speech_transducer import shutdown_speech_worker
+        speech_proof = await asyncio.to_thread(shutdown_speech_worker, 30.0)
         engine_proof = await asyncio.to_thread(
             _guala.quiesce_background_workers, 120.0)
         certificate = await asyncio.to_thread(_seal_runtime_generation, nonce)
         proof = {
             **certificate,
             "runner": runner_proof,
+            "speech_worker": speech_proof,
             "engine": engine_proof,
             "v7": v7_proof,
         }
