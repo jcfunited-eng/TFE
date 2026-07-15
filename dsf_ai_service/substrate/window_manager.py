@@ -363,6 +363,15 @@ class WindowManager:
         self._windows: dict[str, dict] = {}
         self.windows = self._windows  # legacy direct-read surface
         self._chi_index: dict[int, list[dict]] = {}
+        # Persistent O(1) dedup companion to _chi_index: chi -> set of
+        # (window_id, entry_index).  Kept in lockstep at every _chi_index
+        # mutation site (init / _index_closed_window / restore /
+        # restore_from_wal).  The prior ``location not in bucket`` list scan
+        # made one giant-window close O(entries x bucket) inside self._lock —
+        # measured live 2026-07-15 as a 5+ minute whole-substrate stall
+        # (engine loop, saves, autonomy all queued behind one audio-episode
+        # close on the post-restore state).
+        self._chi_index_seen: dict[int, set] = {}
         self._window_sequence = 0
         self._context_sequence = 0
 
@@ -748,17 +757,29 @@ class WindowManager:
         self._log_event("window_entry_added", **event)
         return index
 
+    @staticmethod
+    def _seen_from_chi_index(chi_index: Mapping[int, list]) -> dict[int, set]:
+        """Rebuild the O(1) dedup companion from a chi index (restore paths)."""
+        return {
+            chi: {(location["window_id"], int(location["entry_index"]))
+                  for location in locations}
+            for chi, locations in chi_index.items()
+        }
+
     def _index_closed_window(self, record: Mapping[str, Any]) -> None:
         window_id = record["window_id"]
         for entry in record.get("entries") or []:
             chi = int(entry["chi"])
-            location = {
+            entry_index = int(entry["entry_index"])
+            seen = self._chi_index_seen.setdefault(chi, set())
+            key = (window_id, entry_index)
+            if key in seen:
+                continue
+            seen.add(key)
+            self._chi_index.setdefault(chi, []).append({
                 "window_id": window_id,
-                "entry_index": int(entry["entry_index"]),
-            }
-            bucket = self._chi_index.setdefault(chi, [])
-            if location not in bucket:
-                bucket.append(location)
+                "entry_index": entry_index,
+            })
 
     def end_context(self, context_id: str,
                     reason: str = "context_complete") -> Optional[str]:
@@ -891,6 +912,7 @@ class WindowManager:
             self._windows.update(closed)
             self._contexts = contexts
             self._chi_index = chi_index
+            self._chi_index_seen = self._seen_from_chi_index(chi_index)
             self._window_sequence = next_window_sequence
             self._context_sequence = next_context_sequence
             # Mirror content retired (GL-RPT-WAL-BLOAT F1); mapping identity
@@ -1369,6 +1391,9 @@ class WindowManager:
             self.windows = self._windows  # legacy direct-read surface
             self._contexts = open_contexts
             self._chi_index = chi_index
+            # The replay's own dedup sets become the live O(1) companion —
+            # same (window_id, entry_index) keys _index_closed_window uses.
+            self._chi_index_seen = chi_seen
             self._window_sequence = next_window_sequence
             self._context_sequence = next_context_sequence
             # Mirror content retired (GL-RPT-WAL-BLOAT F1); mapping identity
