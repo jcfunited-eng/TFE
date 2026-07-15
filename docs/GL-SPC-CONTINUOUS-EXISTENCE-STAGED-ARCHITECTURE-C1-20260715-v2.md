@@ -1,6 +1,6 @@
 # GL-SPC-CONTINUOUS-EXISTENCE-STAGED-ARCHITECTURE-C1-20260715-v2
 
-Status: PROPOSED — pending Joe's approval. No production change until ratified.
+Status: **APPROVED by Joe, 2026-07-15** (stated to the c1 RAM/boot session: "I approved that spec"; ratification relayed here so the authoring session has it on-origin). Production work per the staging plan may begin.
 Author: c1. Date: 2026-07-15. Branch: guala-live.
 Supersedes: GL-SPC-UTTERANCE-TRANSACTION-ARCHITECTURE-C1-20260715-v1 (kept untouched for
 history). v1's verified technical facts carry forward; its framing does not.

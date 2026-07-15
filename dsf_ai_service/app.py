@@ -214,8 +214,23 @@ def _fail_inflight_converse_tasks(reason):
             task["error"] = reason
             task["completed_at"] = now
             n_failed += 1
-    if n_failed:
-        print(f"[converse-tasks] {n_failed} in-flight task(s) marked error: {reason}")
+    # GL-RPT-RAM-FIXES-DEPLOYED-AND-SEAL-DEFECTS defect 3 (2026-07-15):
+    # marking the registry alone released NOTHING — the asyncio coroutines
+    # kept running and kept their _schedule_mutating_background slots, so a
+    # seal drain that relied on this helper could never converge.  Cancel the
+    # owning tasks too: cancellation still waits out any in-flight executor
+    # thread (_run_lifecycle_executor shields it), and the coroutine's finally
+    # releases the mutation slot.  A cancelled turn is exactly as lost as it
+    # was a moment later when the deploy retired the process.
+    n_cancelled = 0
+    for background_task in tuple(_mutating_background_tasks):
+        if (background_task.get_name().startswith("converse-")
+                and not background_task.done()):
+            background_task.cancel()
+            n_cancelled += 1
+    if n_failed or n_cancelled:
+        print(f"[converse-tasks] {n_failed} in-flight task(s) marked error, "
+              f"{n_cancelled} cancelled: {reason}")
     return n_failed
 
 
@@ -678,6 +693,22 @@ async def _run_converse(
         _converse_turn_end()
 
 
+_mutating_background_tasks = set()
+
+
+def _unfinished_mutating_task_names():
+    """Names of background mutation owners that have not finished.
+
+    The lifecycle counter is anonymous; when a seal drain times out this is
+    the only surface that can say WHICH owner is stuck (defect 2 of
+    GL-RPT-RAM-FIXES-DEPLOYED-AND-SEAL-DEFECTS: three deploys failed on an
+    unidentifiable holder).
+    """
+    return sorted(
+        task.get_name() for task in _mutating_background_tasks
+        if not task.done())
+
+
 def _schedule_mutating_background(coroutine_factory, *, name):
     """Atomically own a background mutation until its coroutine finishes.
 
@@ -700,10 +731,13 @@ def _schedule_mutating_background(coroutine_factory, *, name):
 
     import asyncio as _aio
     try:
-        return _aio.create_task(_owned(), name=name)
+        task = _aio.create_task(_owned(), name=name)
     except BaseException:
         _deployment_lifecycle.finish_mutation()
         raise
+    _mutating_background_tasks.add(task)
+    task.add_done_callback(_mutating_background_tasks.discard)
+    return task
 
 def _get_substrate_client():
     """Lazy-init the substrate client for remote mode."""
@@ -899,6 +933,12 @@ _CONTROL_PATHS = frozenset({
     "/internal/deployment/readiness",
     "/ready",
     "/ready/guala",
+    # GL-RPT-RAM-FIXES-DEPLOYED-AND-SEAL-DEFECTS defect 1 (2026-07-15): this
+    # alias serves the SAME quiesce handler.  Counting it as a mutation made
+    # the seal wait on a counter that included the seal request itself, so a
+    # scripted seal could never drain below 1 — every deploy 503'd at 120 s.
+    # A control request is not a data mutation on either route.
+    "/sleep_for_deploy",
 })
 @app.middleware("http")
 async def deployment_mutation_admission(request, call_next):
@@ -6958,7 +6998,23 @@ async def _quiesce_and_seal(nonce):
     try:
         # At this first boundary no component has been stopped.  A drain
         # failure can safely reopen admission because process state is intact.
-        await asyncio.to_thread(lifecycle.wait_for_mutations, 120.0)
+        # In-flight conversational turns are failed FIRST (the shutdown
+        # handler's long-standing order): they hold background mutation slots
+        # for their full settle time and may await engine progress that
+        # quiescence pauses, so waiting on them deadlocked the drain (defect 2
+        # of GL-RPT-RAM-FIXES-DEPLOYED-AND-SEAL-DEFECTS).  A turn failed here
+        # is exactly as lost as it would be seconds later at owner turnover,
+        # and its client gets the honest error either way.
+        _fail_inflight_converse_tasks(
+            "turn lost — deployment quiescence began before completion")
+        try:
+            await asyncio.to_thread(lifecycle.wait_for_mutations, 120.0)
+        except RuntimeError as drain_error:
+            stuck = _unfinished_mutating_task_names()
+            raise RuntimeError(
+                f"{drain_error}; unfinished background owners: "
+                f"{stuck if stuck else 'none — holder is an HTTP request or executor job'}"
+            ) from drain_error
 
         destructive_started = True
         await _stop_app_lifecycle_tasks(timeout=120.0)

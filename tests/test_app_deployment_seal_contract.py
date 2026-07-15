@@ -152,8 +152,15 @@ def test_authenticated_handoff_orders_every_writer_before_seal(
 
     assert response.status_code == 200
     assert response.json()["state"] == "SEALED"
+    # GL-RPT-RAM-FIXES-DEPLOYED-AND-SEAL-DEFECTS defect 2 (2026-07-15):
+    # in-flight converse turns hold background mutation slots and can await
+    # engine progress that quiescence pauses, so they are terminalized (and
+    # their tasks cancelled) BEFORE the first drain — otherwise the drain
+    # deadlocks on them.  The original post-stop terminalization remains as
+    # defense in depth, so the event appears twice.
     assert ordered_handoff.events == [
         "auth",
+        "converse_task_terminalization",
         "admission_drain_1",
         "app_task_stop",
         "admission_drain_2",

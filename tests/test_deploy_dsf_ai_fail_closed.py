@@ -98,9 +98,28 @@ def test_old_owner_is_proven_stopped_before_new_owner_can_start():
     stopped_wait = TEXT.index("aws ecs wait tasks-stopped", turnover)
     stopped_exact = TEXT.index('if [ "${OLD_STATUS}" != "STOPPED" ]', turnover)
     no_remaining = TEXT.index('if [ "${REMAINING_TASKS}" != "0" ]', turnover)
-    one = TEXT.index("--desired-count 1")
+    # The success-path new-owner start is the first desired-count 1 AFTER the
+    # turnover marker (the EXIT trap's fail-back, which appears earlier in the
+    # file, restores the ORIGINAL owner and only after zero owners is proven —
+    # asserted separately below).
+    one = TEXT.index("--desired-count 1", turnover)
     assert zero < stopped_wait < stopped_exact < no_remaining < one
     assert "Old owner STOPPED; new owner start is now permitted" in TEXT
+
+
+def test_failed_turnover_fails_back_to_the_original_owner():
+    """GL-RPT-RAM-FIXES-DEPLOYED-AND-SEAL-DEFECTS defect 5: a failed handoff
+    must not strand production at zero owners; after the zero-owner proof the
+    trap restores exactly one task on the ORIGINAL task definition."""
+    trap = TEXT.index("deployment_exit_cleanup()")
+    cleanup_call = TEXT.index("fail_closed_owner_cleanup", trap)
+    fail_back = TEXT.index("[fail-back] Restoring the original owner", trap)
+    restore = TEXT.index('--task-definition "${OLD_TASK_DEFINITION_ARN}"', trap)
+    restore_one = TEXT.index("--desired-count 1", trap)
+    trap_end = TEXT.index("trap deployment_exit_cleanup EXIT")
+    assert trap < cleanup_call < fail_back < restore < trap_end
+    assert trap < restore_one < trap_end
+    assert "production is DOWN and needs manual desired-count=1" in TEXT
 
 
 def test_transitional_owner_requires_live_seal_capability_before_mutation():

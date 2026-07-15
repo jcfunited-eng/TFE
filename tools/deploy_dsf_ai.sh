@@ -364,6 +364,26 @@ deployment_exit_cleanup() {
             echo "ERROR: fail-closed owner cleanup did not complete exactly"
             final_code=1
         fi
+        # GL-RPT-RAM-FIXES-DEPLOYED-AND-SEAL-DEFECTS defect 5 (2026-07-15):
+        # zero owners is the correct instant of the failure, not the correct
+        # end state.  Three failed seals that night each left production DOWN
+        # until an operator manually restored it.  With zero owners proven,
+        # restarting ONE task on the ORIGINAL task definition can never create
+        # a second owner — it is a pure fail-back to the pre-deploy world.
+        echo "[fail-back] Restoring the original owner (${OLD_TASK_DEFINITION_ARN})..."
+        if aws ecs update-service --cluster "${ECS_CLUSTER}" \
+            --service "${ECS_SERVICE}" \
+            --task-definition "${OLD_TASK_DEFINITION_ARN}" \
+            --desired-count 1 \
+            --deployment-configuration "${DEPLOY_CONFIG}" >/dev/null \
+            && aws ecs wait services-stable --cluster "${ECS_CLUSTER}" \
+                --services "${ECS_SERVICE}"; then
+            echo "[fail-back] Original owner restored and stable."
+        else
+            echo "ERROR: fail-back could not restore the original owner —"
+            echo "       production is DOWN and needs manual desired-count=1"
+            final_code=1
+        fi
     fi
     if ! rm -rf "${DEPLOY_WORK_DIR}"; then
         echo "ERROR: local deployment staging cleanup failed: ${DEPLOY_WORK_DIR}"
@@ -888,13 +908,19 @@ echo "[turnover] Original sole owner re-proven directly before the seal request.
 # controller cannot know whether the runtime crossed its irreversible boundary.
 # The composite EXIT trap therefore retires every possible owner on any failure.
 OWNER_FAIL_CLOSED=1
+# GL-RPT-RAM-FIXES-DEPLOYED-AND-SEAL-DEFECTS defect 1 (2026-07-15): seal via
+# the admission-exempt control route.  /sleep_for_deploy sits behind the
+# mutation-counting middleware on images before the same-day app fix, so the
+# seal request counted ITSELF and wait_for_mutations could never drain — every
+# scripted seal 503'd at 120 s.  The exempt alias serves the same handler and
+# works against both old and fixed images.
 if ! SLEEP_RESPONSE=$(curl -sS "${CONTROL_CONNECT[@]}" \
     --connect-timeout 10 --max-time 900 -w "\n__HTTP__%{http_code}" \
     -X POST -H 'Content-Type: application/json' \
     -H "X-API-Key: ${DEPLOY_API_KEY}" \
     -H "X-Deploy-Nonce: ${DEPLOY_NONCE}" \
     -d "{\"deploy_nonce\":\"${DEPLOY_NONCE}\"}" \
-    "${CONTROL_ORIGIN}/sleep_for_deploy"); then
+    "${CONTROL_ORIGIN}/internal/deployment/quiesce"); then
     echo "ERROR: authenticated deploy seal request failed"
     exit 1
 fi
