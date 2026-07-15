@@ -131,15 +131,38 @@ def _frame_backpressure_release(kind):
 # where the contention exists (remote mode ring-writes frames to another
 # process). A plain GIL-atomic counter (mirrors _frame_inflight) with a
 # balanced begin/finally in _run_converse guarantees it can never stick "on".
+#
+# TIME-BOXED (amendment after the first live deploy): unconditional whole-turn
+# shedding had two verified defects (full code-trace, 2026-07-15): (1) a SLOW
+# turn blacked out all sensory intake for its entire duration AND silenced both
+# background tick sources (frame ingestion is itself an incidental tick source
+# via Section.receive, and autonomy is paused during converse), making the
+# substrate look frozen; (2) a turn whose executor call never returns would
+# shed frames until process restart (the finally can't run if the await never
+# completes). The trace also proved the priority window that actually matters
+# is the first few seconds -- the real quiet-turn compute is ~1.7-2.7s -- so
+# shedding is now bounded: frames are shed only within the first
+# _CONVERSE_PRIORITY_WINDOW_S of the OLDEST in-flight turn, then flow again
+# even while it is still settling. This reuses the codebase's own max-defer
+# safety-valve pattern (see autonomous_emission's live-priority defer). The
+# deadline doubles as the stuck-counter watchdog: a hung turn's window simply
+# expires, so a never-returning await can no longer blind the process.
 _converse_inflight_lock = threading.Lock()
 _converse_inflight = 0
+_converse_window_started_at = 0.0
+_CONVERSE_PRIORITY_WINDOW_S = 2.5
 
 
 def _converse_turn_begin():
     """Mark that a real conversational turn is settling in this process."""
-    global _converse_inflight
+    global _converse_inflight, _converse_window_started_at
     with _converse_inflight_lock:
         _converse_inflight += 1
+        if _converse_inflight == 1:
+            # Window opens with the FIRST concurrent turn only; queued turns
+            # serialize on the engine lock anyway, and re-arming per turn
+            # would let a steady stream of turns black out senses forever.
+            _converse_window_started_at = time.time()
 
 
 def _converse_turn_end():
@@ -150,8 +173,15 @@ def _converse_turn_end():
 
 
 def _converse_turn_in_flight():
-    """True while >=1 real conversational turn is settling in this process."""
-    return _converse_inflight > 0
+    """True only while a settling turn is inside its bounded priority window.
+
+    A turn that outlives _CONVERSE_PRIORITY_WINDOW_S keeps settling but loses
+    frame priority: senses resume, background ticking resumes, and a hung turn
+    can never blind the process until restart.
+    """
+    if _converse_inflight <= 0:
+        return False
+    return (time.time() - _converse_window_started_at) < _CONVERSE_PRIORITY_WINDOW_S
 
 
 def _prune_stale_tasks():

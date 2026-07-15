@@ -39,12 +39,15 @@ import dsf_ai_service.app as appmod  # noqa: E402
 def clean_converse_flag():
     """Snapshot + restore the in-flight counter and _guala around each test."""
     saved = appmod._converse_inflight
+    saved_started = appmod._converse_window_started_at
     saved_guala = appmod._guala
     appmod._converse_inflight = 0
+    appmod._converse_window_started_at = 0.0
     try:
         yield
     finally:
         appmod._converse_inflight = saved
+        appmod._converse_window_started_at = saved_started
         appmod._guala = saved_guala
 
 
@@ -76,6 +79,52 @@ def test_flag_is_a_counter_for_overlapping_turns(clean_converse_flag):
     appmod._converse_turn_end()
     assert appmod._converse_inflight == 0
     assert appmod._converse_turn_in_flight() is False
+
+
+# ── the priority window is TIME-BOXED (verified-defect amendment) ────────────
+
+def test_priority_window_expires_for_a_slow_turn(clean_converse_flag):
+    """A turn that outlives _CONVERSE_PRIORITY_WINDOW_S keeps settling but
+    loses frame priority: senses resume mid-turn.  This is the fix for the
+    verified defect where a slow turn blacked out all sensory intake (and both
+    background tick sources) for its entire duration."""
+    appmod._converse_turn_begin()
+    try:
+        assert appmod._converse_turn_in_flight() is True
+        # age the window past the deadline instead of sleeping
+        appmod._converse_window_started_at = (
+            appmod.time.time() - appmod._CONVERSE_PRIORITY_WINDOW_S - 0.01)
+        assert appmod._converse_inflight == 1, "turn is genuinely still settling"
+        assert appmod._converse_turn_in_flight() is False, (
+            "frames flow again even while the slow turn settles")
+    finally:
+        appmod._converse_turn_end()
+
+
+def test_hung_turn_cannot_blind_frames_until_restart(clean_converse_flag):
+    """The deadline doubles as the stuck-counter watchdog: if a turn's executor
+    call never returns (finally never runs, counter never decrements), the
+    expired window still lets frames through -- the verified shed-forever
+    failure mode is structurally impossible now."""
+    appmod._converse_turn_begin()          # simulate: never ended (hung await)
+    appmod._converse_window_started_at = (
+        appmod.time.time() - appmod._CONVERSE_PRIORITY_WINDOW_S - 0.01)
+    assert appmod._converse_inflight == 1, "counter is stuck, by construction"
+    assert appmod._converse_turn_in_flight() is False, (
+        "frames are NOT shed despite the stuck counter")
+
+
+def test_queued_turns_do_not_rearm_the_window(clean_converse_flag):
+    """A steady stream of overlapping turns must not re-open the shed window
+    each time (that would black out senses indefinitely under conversation
+    load): the window is armed by the FIRST concurrent turn only."""
+    appmod._converse_turn_begin()
+    armed_at = appmod._converse_window_started_at
+    appmod._converse_turn_begin()          # overlapping second turn
+    assert appmod._converse_window_started_at == armed_at, (
+        "second concurrent turn did not re-arm the window")
+    appmod._converse_turn_end()
+    appmod._converse_turn_end()
 
 
 # ── frames SHED while a turn is in flight ───────────────────────────────────
