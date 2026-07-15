@@ -94,6 +94,43 @@ _FRAME_INFLIGHT_MAX = 2
 _frame_inflight = {"sight": 0, "sound": 0}
 _frame_dropped = {"sight": 0, "sound": 0}
 
+# ── STT boundary transducer (port of stranded a8277fa onto the live
+# lineage) ──────────────────────────────────────────────────────────────────
+# One CTranslate2 whisper model is one physical recognition resource: a
+# dedicated single-worker executor owns it, serializing inference and
+# keeping STT decode trivially movable to its own process later (today it
+# runs in this uvicorn process, embedded mode — the GIL story).  Whisper is
+# a SENSE TRANSDUCER at the boundary, like the ffmpeg WebM->WAV decode:
+# never part of cognition.  See dsf_ai_service/speech_transducer.py.
+import concurrent.futures as _concurrent_futures
+_speech_recognition_executor = _concurrent_futures.ThreadPoolExecutor(
+    max_workers=1,
+    thread_name_prefix="speech-recognition",
+)
+
+
+def _speech_transduction_enabled():
+    """Live read (never cached) so config honesty survives env changes."""
+    return os.environ.get("VOICE_WHISPER", "0") == "1"
+
+
+def _spoken_word_recognition_report(source):
+    """Honest per-request capability report for /sound_frame's early exits.
+
+    When the boundary transducer is configured for this source, the honest
+    status is "not_attempted" (this request never reached transcription) —
+    NOT "unavailable", which would misstate a configured capability.  For
+    every other case the Fact-Strand-era unavailable report stands
+    unchanged.
+    """
+    if _speech_transduction_enabled() and source == "joe_voice":
+        from dsf_ai_service.speech_transducer import (
+            spoken_word_transduction_status)
+        return spoken_word_transduction_status("not_attempted")
+    from dsf_ai_service.substrate.grounded_vocab_integration import (
+        spoken_word_recognition_unavailable)
+    return spoken_word_recognition_unavailable(source=source)
+
 
 def _frame_backpressure_acquire(kind):
     """True if this frame may proceed; False if it was dropped (over capacity)."""
@@ -2568,13 +2605,20 @@ async def sight_frame(msg: GLMessage):
 
 @app.post("/sound_frame")
 async def sound_frame(msg: GLMessage):
-    """Stream raw sound while reporting that word recognition is unavailable."""
+    """Stream raw sound; transcribe joe-tagged speech at the boundary.
+
+    With VOICE_WHISPER=1 and a joe_voice source, the owned STT transducer
+    transcribes the decoded audio and the FULL transcript enters through
+    read_sentence(source="joe") — the same real door typed text and heard
+    speech already use (establishes presence, GL-FIX-VOICE-PRESENCE-
+    20260712).  Otherwise word recognition honestly reports unavailable.
+    """
     from dsf_ai_service.substrate.grounded_vocab_integration import (
         spoken_word_recognition_unavailable)
 
     b64_data = (msg.text or "").strip()
     src = msg.source or "ambient"
-    recognition = spoken_word_recognition_unavailable(source=src)
+    recognition = _spoken_word_recognition_report(src)
     if _is_remote():
         # R3: write to InputRing (non-blocking) instead of socket call
         client = _get_substrate_client()
@@ -2629,13 +2673,59 @@ async def sound_frame(msg: GLMessage):
             if not wav:
                 return {"ok": False, "error": "decode_failed",
                         "spoken_word_recognition": recognition}
+            # a8277fa ordering: submit transcription to the owned single-
+            # worker executor BEFORE raw-sense processing so STT decode
+            # overlaps process_sound_frame instead of following it.
+            recognition_future = None
+            if _speech_transduction_enabled() and src == "joe_voice":
+                from dsf_ai_service.speech_transducer import transcribe_sound
+                recognition_future = _speech_recognition_executor.submit(
+                    transcribe_sound, wav)
             _guala.process_sound_frame(wav, source=src)
-            frame_recognition = spoken_word_recognition_unavailable(
-                _guala, source=src)
+            if recognition_future is None:
+                frame_recognition = spoken_word_recognition_unavailable(
+                    _guala, source=src)
+                print(f"[sound-frame] {time.time()-t0:.3f}s")
+                return {"ok": True, "tick": _guala.tick,
+                        "raw_sound": "accepted",
+                        "spoken_word_recognition": frame_recognition}
+            from dsf_ai_service.speech_transducer import (
+                spoken_word_transduction_status)
+            tw0 = time.time()
+            recognition_status = "no_speech"
+            spoken = ""
+            try:
+                spoken = (recognition_future.result() or "").strip()
+                if spoken:
+                    recognition_status = "recognized"
+                    # Full real transcript, never a vocab-filtered fragment
+                    # (c97927e's rule) — through the same door heard speech
+                    # uses.  read_sentence establishes presence itself.
+                    _guala.read_sentence(
+                        spoken, source="joe",
+                        bundle_id=f"sound_frame:{_guala.tick}")
+            except Exception as recognition_error:
+                recognition_status = "error"
+                print("[voice-whisper] error="
+                      f"{type(recognition_error).__name__}: "
+                      f"{recognition_error}")
+            finally:
+                print(f"[voice-whisper] {time.time()-tw0:.3f}s "
+                      f"status={recognition_status}")
             print(f"[sound-frame] {time.time()-t0:.3f}s")
-            return {"ok": True, "tick": _guala.tick,
-                    "raw_sound": "accepted",
-                    "spoken_word_recognition": frame_recognition}
+            result = {
+                "ok": recognition_status != "error",
+                "tick": _guala.tick,
+                "raw_sound": "accepted",
+                "spoken_word_recognition": spoken_word_transduction_status(
+                    recognition_status,
+                    transcript=spoken or None),
+            }
+            if spoken:
+                result["transcript"] = spoken
+            if recognition_status == "error":
+                result["error"] = "speech_recognition_failed"
+            return result
         except Exception as e:
             return {"ok": False, "error": str(e),
                     "spoken_word_recognition": recognition}
@@ -5718,6 +5808,25 @@ async def startup():
         t0 = time.time()
         try:
             await _run_lifecycle_executor(_boot_generation_and_guala)
+            # a8277fa: pre-warm the owned STT transducer at boot on its own
+            # executor so the first real spoken frame never pays model
+            # construction, and a broken configuration is announced HERE,
+            # loudly, instead of surfacing per-frame later.  Boot proceeds
+            # either way — every subsequent frame then reports the same
+            # failure visibly (status="error"), never silence.
+            if _speech_transduction_enabled():
+                try:
+                    from dsf_ai_service.speech_transducer import (
+                        require_speech_recognizer)
+                    _stt_loop = asyncio.get_running_loop()
+                    await _stt_loop.run_in_executor(
+                        _speech_recognition_executor,
+                        require_speech_recognizer)
+                    print("[voice-whisper] recognizer ready")
+                except Exception as recognition_error:
+                    print("[voice-whisper] initialization error="
+                          f"{type(recognition_error).__name__}: "
+                          f"{recognition_error}")
             # GLEW cutover: construct the new conversation engine once, here,
             # only when explicitly enabled. Fail-closed: a construction failure
             # propagates and fails startup loudly rather than leaving the app

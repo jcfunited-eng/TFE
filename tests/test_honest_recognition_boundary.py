@@ -123,33 +123,92 @@ def test_raw_audio_krimelack_transduction_remains_available():
 
 
 def test_production_surfaces_contain_no_pretrained_recognition_authority():
-    paths = [
+    """Semantic recognition inside the substrate stays Fact-Strand-only.
+
+    Amended for the a8277fa STT port (2026-07-15): a boundary speech-to-text
+    TRANSDUCER (dsf_ai_service/speech_transducer.py) is permitted at the
+    service edge only — it converts audio to words exactly like the ffmpeg
+    decode converts WebM to WAV, and the words enter through read_sentence
+    like typed text.  It is NOT a semantic authority: no cognition surface
+    may import or name it, and nothing anywhere may reinstate object-naming
+    classifiers or the legacy vocab-binding path
+    (process_*_with_recognition / confidence-tagged atlas writes).
+    """
+    cognition_paths = [
         "dsf_ai_service/substrate/grounded_vocab.py",
         "dsf_ai_service/substrate/grounded_vocab_integration.py",
-        "dsf_ai_service/app.py",
         "dsf_ai_service/substrate_runner.py",
+        "dsf_ai_service/substrate/language_fact_strand.py",
+        "dsf_ai_service/v4/gualaloom_v5_engine.py",
+    ]
+    stt_tokens = [
+        "faster_whisper",
+        "WhisperModel",
+        "VOICE_WHISPER",
+        "WHISPER_MODEL_PATH",
+        "speech_transducer",
+        "transcribe_sound",
+        "SpeechRecognition",
+    ]
+    cognition_combined = "\n".join(
+        (ROOT / path).read_text() for path in cognition_paths)
+    for token in stt_tokens:
+        assert token not in cognition_combined, (
+            f"STT transducer token {token!r} leaked into a cognition surface")
+
+    all_paths = cognition_paths + [
+        "dsf_ai_service/app.py",
+        "dsf_ai_service/speech_transducer.py",
         "dsf_ai_service/static/gualaloom.html",
         "dsf_ai_service/Dockerfile",
         "dsf_ai_service/Dockerfile.nogil",
         "tools/deploy_dsf_ai.sh",
     ]
-    forbidden = [
-        "faster_whisper",
-        "WhisperModel",
+    forbidden_everywhere = [
         "onnxruntime",
         "yolov8n.onnx",
-        "SpeechRecognition",
         "webkitSpeechRecognition",
-        "VOICE_WHISPER",
         "YOLO_MODEL_PATH",
-        "WHISPER_MODEL_PATH",
         "process_sight_with_recognition",
         "process_sound_with_recognition",
+        "bind_transcribed_speech",
     ]
-
-    combined = "\n".join((ROOT / path).read_text() for path in paths)
-    for token in forbidden:
+    combined = "\n".join((ROOT / path).read_text() for path in all_paths)
+    for token in forbidden_everywhere:
         assert token not in combined
+
+    # The transducer itself never reaches INTO the substrate: it imports
+    # nothing from this codebase and never touches memory or language.
+    transducer = (ROOT / "dsf_ai_service/speech_transducer.py").read_text()
+    assert "class SpeechRecognizer" in transducer
+    assert "SpeechRecognitionUnavailable" in transducer
+    assert "SpeechTranscriptionError" in transducer
+    assert "from dsf_ai_service" not in transducer
+    assert "import dsf_ai_service" not in transducer
+    assert "read_sentence" not in transducer
+    assert "_atlas_record" not in transducer
+
+    # app.py owns one recognizer on a dedicated executor and transcripts
+    # enter through the one real door (read_sentence), failing loudly.
+    app_text = (ROOT / "dsf_ai_service/app.py").read_text()
+    assert "_speech_recognition_executor.submit" in app_text
+    assert "max_workers=1" in app_text
+    assert "speech_recognition_failed" in app_text
+
+    # The image carries the pinned transducer runtime and bakes the model
+    # at build time; the nogil experiment image and the deploy script stay
+    # transducer-free (task-def env is not the flag authority anymore).
+    dockerfile = (ROOT / "dsf_ai_service/Dockerfile").read_text()
+    assert "faster-whisper==" in dockerfile
+    assert "WhisperModel('tiny'" in dockerfile
+    assert "ENV VOICE_WHISPER=1" in dockerfile
+    other_surfaces = "\n".join(
+        (ROOT / path).read_text()
+        for path in ["dsf_ai_service/Dockerfile.nogil",
+                     "tools/deploy_dsf_ai.sh"])
+    for token in ["faster_whisper", "faster-whisper", "WhisperModel",
+                  "VOICE_WHISPER", "WHISPER_MODEL_PATH"]:
+        assert token not in other_surfaces
 
     html = (ROOT / "dsf_ai_service/static/gualaloom.html").read_text()
     assert "spoken-word recognition unavailable" in html

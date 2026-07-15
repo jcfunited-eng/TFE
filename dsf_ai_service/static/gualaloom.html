@@ -244,8 +244,12 @@ async function triggerSleep(){
 }
 
 // --- Permission Strip (5a: toggle off support) ---
-// Microphone audio is raw sound experience only. Spoken-word recognition is
-// unavailable until deterministic Fact-Strand reciprocity exists.
+// Microphone audio is raw sound experience, PLUS boundary speech-to-text
+// when the server has VOICE_WHISPER on (port of a8277fa): the transducer
+// converts joe_voice audio to words at the boundary and they enter through
+// the same read_sentence door as typed text. Semantic recognition inside
+// the substrate remains Fact-Strand-only; when the transducer is off the
+// server reports spoken-word recognition unavailable and this UI says so.
 // GL-CMD-MIC-CHUNKING-111: restart-per-interval, not timeslice. A long-lived
 // MediaRecorder(stream,{...}).start(5000) only emits a self-contained WebM
 // on its FIRST ondataavailable blob; every later 5s blob is a headerless
@@ -263,6 +267,14 @@ function _sendMicChunk(blob){
       .then(d=>{
         const status=document.getElementById('mic-status');
         if(!d.ok){status.textContent='raw sound failed: '+(d.error||d.reason||'unknown error');status.style.color='#f85149';return}
+        // Render the server's real report — never assume. The boundary STT
+        // transducer (port of a8277fa) may be on (status recognized/no_speech),
+        // erroring (loud red), or absent (honest unavailable line).
+        const rec=d.spoken_word_recognition||{};
+        if(rec.status==='recognized'&&d.transcript){status.textContent='heard: "'+d.transcript+'"';status.style.color='var(--text-muted)';return}
+        if(rec.status==='no_speech'){status.textContent='raw sound active — listening (no speech in last chunk)';status.style.color='var(--text-muted)';return}
+        if(rec.status==='error'){status.textContent='speech recognition FAILED — see server logs';status.style.color='#f85149';return}
+        if(rec.status==='not_attempted'){status.textContent='raw sound active — speech recognition pending';status.style.color='var(--text-muted)';return}
         status.textContent='raw sound active — spoken-word recognition unavailable';status.style.color='var(--text-muted)';
       })
       .catch(e=>{const status=document.getElementById('mic-status');status.textContent='raw sound failed: '+e.message;status.style.color='#f85149'});

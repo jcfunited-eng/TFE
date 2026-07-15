@@ -23,6 +23,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg espeak-n
 # absent from this image until GLEW existed. Pinned to the exact version
 # GLEW's own error messages name, matching the verified working dev version.
 RUN pip install --no-cache-dir fastapi uvicorn python-multipart numpy pandas cryptography Pillow pillow-heif PyMuPDF boto3 websockets python-flint==0.9.0
+# STT boundary transducer (port of stranded a8277fa): faster-whisper is the
+# CPU-optimized CTranslate2 whisper runtime — a sense transducer at the
+# boundary (like ffmpeg above), never part of cognition (Fact-Strand
+# reciprocity remains the sole semantic authority).  Pinned; installed as
+# its own layer so the heavy transitive deps (ctranslate2, the ONNX VAD
+# runtime, av, tokenizers, huggingface-hub — several hundred MB installed)
+# stay one visible, revertable line.
+RUN pip install --no-cache-dir faster-whisper==1.2.1
+# Bake whisper-tiny at BUILD time so boot needs no network and the first
+# real spoken frame never pays a model download.  Fail-closed on purpose:
+# a build that cannot fetch the model must fail loudly here, not ship an
+# image whose STT dies at runtime (a8277fa's fail-visible rule; the old
+# pre-8835cfc image made this non-fatal and that silence is exactly what
+# this port removes).
+RUN python3 -c "from faster_whisper import WhisperModel; WhisperModel('tiny', device='cpu', compute_type='int8'); print('whisper-tiny baked')"
 
 # Copy only what the service needs (no TFE trading code)
 COPY uf_core/ /app/uf_core/
@@ -70,6 +85,15 @@ ENV LATERAL_INHIBITION_ENABLED=1
 # rate is healthy; revisit then, not deleted.
 ENV RICH_SENSORY_INPUT=0
 ENV EMISSION_STRUCTURED_NOISE=0
+# STT boundary transducer ON by default (port of stranded a8277fa; original
+# enable was 4f1d01b, GL-CMD-VOICE-TO-WORDS-153 Part B, after Joe reported
+# speaking with no STT at all).  8835cfc removed the flag from the deploy
+# script's task-def env, so the image default here is now the single
+# authority — task-def env still overrides if ever re-added.  joe_voice-
+# tagged sources only; transcription runs on a dedicated single-worker
+# executor in this process.  Revert by setting 0 and redeploying.
+ENV VOICE_WHISPER=1
+ENV WHISPER_MODEL_PATH=tiny
 # GL-CMD-EMISSION-COST-SAMPLE-87: dynamics window 40→80 (rider condition MET, cost CLEAN)
 ENV EMISSION_DYNAMICS_TICKS=80
 
