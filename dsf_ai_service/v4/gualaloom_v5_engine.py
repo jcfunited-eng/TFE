@@ -12838,9 +12838,30 @@ class Guala:
                 raise ValueError(
                     f"{filename}: saved_at_tick {saved_tick} != {expected_tick}")
         elif saved_tick > expected_tick:
-            raise ValueError(
-                f"{filename}: saved_at_tick {saved_tick} is newer than core "
-                f"{expected_tick} -- torn save set")
+            # GL-FIX-LEGACY-INTRA-CYCLE-SKEW: legacy (pre-manifest) hot saves
+            # stamp each file's saved_at_tick at its own write moment while the
+            # tick loop keeps advancing, so a file written seconds after core
+            # can legitimately record a slightly NEWER tick (observed live:
+            # guala_teaching.json exactly 1 tick ahead, 2026-07-15). That is
+            # real data from the same save cycle, not a tear. Accept a forward
+            # skew bounded by one save-cycle's worth of ticks, loudly, and
+            # still reject genuinely mixed save sets (different eras differ by
+            # thousands of ticks). Manifest-bearing saves (the branch above)
+            # never reach here, so this acceptance retires with legacy state.
+            if saved_tick - expected_tick <= 1200:
+                print(
+                    f"[GualaLoom][legacy-skew] {filename}: saved_at_tick "
+                    f"{saved_tick} is {saved_tick - expected_tick} tick(s) "
+                    f"ahead of core {expected_tick} -- accepted as intra-cycle "
+                    "write skew from a pre-manifest hot save (real data, same "
+                    "save cycle; bounded at 1200 ticks)",
+                    flush=True,
+                )
+            else:
+                raise ValueError(
+                    f"{filename}: saved_at_tick {saved_tick} is newer than core "
+                    f"{expected_tick} by more than one save cycle -- torn or "
+                    "mixed save set")
         if not isinstance(raw.get("data"), dict):
             raise ValueError(f"{filename}: envelope data must be an object")
 

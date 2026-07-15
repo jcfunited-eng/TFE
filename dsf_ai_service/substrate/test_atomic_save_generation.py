@@ -368,3 +368,29 @@ if __name__ == "__main__":
             traceback.print_exc()
     print(f"\n{passed}/{len(fns)} passed")
     sys.exit(0 if passed == len(fns) else 1)
+
+
+def test_legacy_intra_cycle_forward_skew_accepted_but_mixed_eras_rejected():
+    """GL-FIX-LEGACY-INTRA-CYCLE-SKEW: the exact live 2026-07-15 signature --
+    a pre-manifest hot save whose file was stamped 1 tick after core (the tick
+    loop advances while the save cycle writes files sequentially) must load;
+    a file from a genuinely different era (>1200 ticks ahead) must still be
+    rejected as torn/mixed."""
+    import pytest
+    from dsf_ai_service.v4.gualaloom_v5_engine import Guala
+
+    validate = Guala._validate_exact_envelope
+
+    class _Legacy:
+        _expected_file_ticks = None  # pre-manifest state
+
+    envelope = {"data": {}, "guala_identity": "x", "saved_at_tick": 3375633}
+    # exactly the live halt case: teaching 1 tick ahead of core 3375632
+    validate(_Legacy(), envelope, "guala_teaching.json", 3375632)
+    # boundary: accepted at +1200
+    validate(_Legacy(), dict(envelope, saved_at_tick=3375632 + 1200),
+             "guala_teaching.json", 3375632)
+    # different-era mix: rejected past the one-cycle bound
+    with pytest.raises(ValueError, match="more than one save cycle"):
+        validate(_Legacy(), dict(envelope, saved_at_tick=3375632 + 1201),
+                 "guala_teaching.json", 3375632)
