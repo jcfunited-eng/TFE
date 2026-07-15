@@ -4575,10 +4575,19 @@ class Guala:
         with self._language_fact_lock:
             self.language_fact_memory = LanguageFactMemory()
             self._ordered_language_windows = {}
-        snapshot = self.window_manager.snapshot()
+        # GL-AUDIT-RAM-6GB (2026-07-15): filter over the canonical store's
+        # legacy direct-read surface instead of snapshot().  snapshot()
+        # deepcopies every closed window AND re-encodes the whole store as one
+        # JSON string; at production scale (~0.7 GB canonical JSON) that
+        # allocated transient GBs at every boot which pymalloc never returns
+        # to the OS.  Closed records are write-once/immutable (the WAL design
+        # invariant), both call sites run on boot/migration paths before
+        # ticking starts, this loop only reads, and the per-window commit
+        # below still receives its own detached copy via closed_window().
+        store = self.window_manager.windows
         remembered = 0
-        for window_id in sorted(snapshot["windows"]):
-            window = snapshot["windows"][window_id]
+        for window_id in sorted(store):
+            window = store[window_id]
             if window.get("close_reason") not in {
                     "context_complete", "give_experience_complete"}:
                 continue

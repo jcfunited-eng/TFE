@@ -774,8 +774,19 @@ class WindowManager:
             self._validate_window_record(record, closed=True)
             self._windows[window.window_id] = record
             self._index_closed_window(record)
-            # Atlas receives a detached compatibility copy.  Recall never reads it.
-            self._compatibility_windows[window.window_id] = copy.deepcopy(record)
+            # GL-AUDIT-RAM-6GB / GL-RPT-WAL-BLOAT F1 (2026-07-15): the Atlas
+            # compatibility mirror is no longer populated.  Its content was a
+            # full deepcopy of every closed record (~1.7 GB at production
+            # scale) that nothing reads: its only consumer compares mapping
+            # identity (manager_for_compatibility_mirror), recall resolves the
+            # owning manager and reads canonical memory, and the Atlas never
+            # persists it.  Keeping it EMPTY -- rather than sharing record
+            # references -- also preserves the original detachment guarantee:
+            # no writer can ever corrupt canonical memory through the mirror.
+            # The dict OBJECT itself must survive untouched; its identity is
+            # the registry key that lets RecallEngine find this manager, and
+            # pre-existing content remains honored as a one-time migration
+            # input at construction.
             if self._bound_context.get() == context_id:
                 self._bound_context.set(None)
             event = {
@@ -882,8 +893,9 @@ class WindowManager:
             self._chi_index = chi_index
             self._window_sequence = next_window_sequence
             self._context_sequence = next_context_sequence
+            # Mirror content retired (GL-RPT-WAL-BLOAT F1); mapping identity
+            # preserved for the registry.
             self._compatibility_windows.clear()
-            self._compatibility_windows.update(copy.deepcopy(closed))
             self._bound_context.set(None)
             # This full-snapshot restore replaced the closed-window store; the
             # WAL (if any) does not reflect it.  A non-empty store must be
@@ -1359,8 +1371,9 @@ class WindowManager:
             self._chi_index = chi_index
             self._window_sequence = next_window_sequence
             self._context_sequence = next_context_sequence
+            # Mirror content retired (GL-RPT-WAL-BLOAT F1); mapping identity
+            # preserved for the registry.
             self._compatibility_windows.clear()
-            self._compatibility_windows.update(copy.deepcopy(windows))
             self._bound_context.set(None)
             with self._wal_lock:
                 self._wal_dir = wal_dir

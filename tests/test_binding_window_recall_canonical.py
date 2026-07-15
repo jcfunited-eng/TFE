@@ -14,6 +14,7 @@ from dsf_ai_service.substrate.recall_query import RecallEngine, RecallQuery
 from dsf_ai_service.substrate.window_manager import (
     WindowIntegrityError,
     WindowManager,
+    manager_for_compatibility_mirror,
 )
 
 
@@ -102,12 +103,17 @@ def test_complete_json_provenance_ordered_language_and_fact_strand():
     assert provenance["structural_fact"]["relation"] == "is"
     json.dumps(manager.snapshot(), allow_nan=False)
 
-    # Atlas receives only a compatibility cross-reference.  Its mapping is a
-    # detached copy and cannot become the recall authority.
+    # Atlas receives only a compatibility cross-reference.  The mirror mapping
+    # is intentionally EMPTY (GL-RPT-WAL-BLOAT F1, 2026-07-15): its content
+    # was a full deepcopy of every closed record that nothing read, while its
+    # only real role is identity -- the registry key resolving the owning
+    # manager.  Empty preserves the original guarantee this test encoded (the
+    # mirror can never become the recall authority, and no writer can corrupt
+    # canonical memory through it) while retiring the duplicate store.
     assert atlas_calls[0][4]["window_id"] == window_id
     assert atlas_calls[0][4]["window_entry_index"] == 0
-    assert mirror[window_id] == record
-    assert mirror[window_id] is not record
+    assert window_id not in mirror
+    assert manager_for_compatibility_mirror(mirror) is manager
 
 
 def test_concurrent_contexts_and_adds_are_isolated_and_ordered():
@@ -212,7 +218,10 @@ def test_snapshot_restore_is_atomic_and_rejects_index_corruption():
     assert restored.validate_integrity() == ()
     assert restored.lookup_chi(41)[0]["window_id"] == closed_id
     assert "still-open" in restored.snapshot()["open_contexts"]
-    assert mirror2 == snapshot["windows"]
+    # Mirror content retired (GL-RPT-WAL-BLOAT F1): restore repopulates only
+    # canonical memory; the mirror stays empty and keeps its registry identity.
+    assert mirror2 == {}
+    assert manager_for_compatibility_mirror(mirror2) is restored
 
     before = restored.snapshot()
     corrupt = copy.deepcopy(snapshot)
