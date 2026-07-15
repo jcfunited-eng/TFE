@@ -14100,7 +14100,18 @@ class Guala:
         generation so boot recovery can fall back to the previous complete
         generation instead of silently time-travelling to a days-old S3 backup.
         Never raises into the save path -- a publish failure only means no new
-        fallback point this cycle."""
+        fallback point this cycle.
+
+        Operator kill-switch: set GUALA_ATOMIC_GENERATIONS=0 to disable ONLY
+        this per-save snapshot cost (hard-links + a few fsyncs). The
+        load-bearing hot/cold tick-manifest fix (Piece A) is independent of
+        this and stays active; with the switch off, boot recovery simply finds
+        no local generations and halts loudly instead of falling back to an
+        older one -- it still never silently reaches for S3. Provided because
+        per-save cost at production scale has historically been the one class
+        of regression local testing cannot catch."""
+        if os.environ.get("GUALA_ATOMIC_GENERATIONS", "1") == "0":
+            return
         try:
             from dsf_ai_service.substrate import atomic_state_generation as _asg
         except Exception:
