@@ -557,11 +557,20 @@ def boot_substrate():
     load_ok = getattr(g, '_load_successful', False)
     vocab_count = len(getattr(g, 'vocab', set()))
     seed_state = vocab_count < 100  # real state has 2800+ words; seed has ~20-40
-    if not load_ok or seed_state or (loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY)):
+    # Joe 2026-07-15 ("old state can never be silently recalled"): S3 restore is
+    # a human-only, explicit path -- never an automatic fallback. This function
+    # (boot_substrate) is dead in the live process (app.py._gl_init is the real
+    # boot path; see that file), but the automatic S3 restore below is gated
+    # here too so no code path, live or dormant, can silently time-travel. A
+    # human sets FORCE_S3_RESTORE=1 to deliberately restore.
+    _human_s3_restore = os.environ.get("FORCE_S3_RESTORE", "0") == "1"
+    if _human_s3_restore and (
+            not load_ok or seed_state
+            or (loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY))):
         reason = ("LOAD_FAILED" if not load_ok
                   else f"SEED_STATE(vocab={vocab_count})" if seed_state
                   else f"IDENTITY_MISMATCH({loaded_id[:8]})")
-        print(f"[substrate] {reason} — restoring from S3 backup...")
+        print(f"[substrate] {reason} — FORCE_S3_RESTORE=1, restoring from S3 backup...")
         try:
             import boto3
             s3 = boto3.client("s3", region_name="us-east-1")

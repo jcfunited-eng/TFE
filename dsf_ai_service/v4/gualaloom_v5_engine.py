@@ -2780,6 +2780,23 @@ class Guala:
         self._live_converse_state_lock = threading.Lock()
         # GL-CMD-DEEP-ATLAS-PERSIST: boot loss alarm result
         self._deep_atlas_loss_at_boot = None
+        # GL-FIX-HOTCOLD-TICK-MANIFEST: the hot lane persists a small subset of
+        # the state files every ~60s and advances core's save tick each time,
+        # while the cold (full) lane rewrites the big stores (atlas, sections,
+        # deep_atlas, survival, organism, tapestry) only every ~30 min or at
+        # shutdown. The two lanes therefore leave the state directory with
+        # files at DIFFERENT save ticks by design (e.g. core at 3357078,
+        # atlas still at 3355078). The loader used to demand every state file
+        # share ONE tick -- so any boot whose last save was a hot save was
+        # rejected as inconsistent and silently time-travelled to a days-old
+        # S3 backup. This map records, per persisted file, the tick it was
+        # actually last written at, so the loader can validate each file
+        # against its own real tick (proving the set is a legitimate hot/cold
+        # mix) instead of against core's tick. Written into guala_core.json's
+        # data on every save; read back at load and exposed to the envelope
+        # validator via self._expected_file_ticks.
+        self._state_file_ticks = {}
+        self._expected_file_ticks = None
         # GL-CMD-C1-POLARITY: one-shot negation flip pending (resets per utterance)
         self._negation_pending = 0  # kept for atlas load compatibility; superseded by 60-L
         self._prev_phase_vec = None  # 60-L: previous word's phase vector for rotation
@@ -12559,6 +12576,26 @@ class Guala:
         "guala_atlas.json", "guala_sections.json", "guala_bucket.json",
         "guala_windows.json",
     ]
+    # GL-FIX-HOTCOLD-TICK-MANIFEST: which JSON state files each save lane
+    # actually rewrites. The loader validates each of these by its own recorded
+    # save tick (see _validate_exact_envelope). The FULL (cold) lane rewrites
+    # every one at a single tick; the HOT lane rewrites only the small subset
+    # below, leaving the big cold stores (atlas/sections/deep_atlas/survival/
+    # sight_motifs) at their last cold-save tick -- which is exactly why the
+    # loader must not demand a single shared tick.
+    FULL_SAVE_MANIFEST_FILES = (
+        "guala_core.json", "guala_needs.json", "guala_coordinator.json",
+        "guala_sections.json", "guala_atlas.json", "guala_deep_atlas.json",
+        "guala_survival.json", "guala_bucket.json", "guala_visual.json",
+        "guala_sight_motifs.json", "guala_sounds.json", "guala_videos.json",
+        "guala_windows.json", "guala_teaching.json", "guala_episodic.json",
+    )
+    HOT_SAVE_MANIFEST_FILES = (
+        "guala_core.json", "guala_needs.json", "guala_coordinator.json",
+        "guala_bucket.json", "guala_visual.json", "guala_sounds.json",
+        "guala_videos.json", "guala_windows.json", "guala_teaching.json",
+        "guala_episodic.json",
+    )
     IDENTITY_FILE = "guala_identity.json"
     ENGINE_CONTINUITY_CONTRACT = "engine_continuity_v1"
     BINARY_BINDING_CONTRACT = "guala_binary_binding_v1"
@@ -12763,7 +12800,22 @@ class Guala:
             raise ValueError(f"{filename}: binary digest differs from binding")
 
     def _validate_exact_envelope(self, raw, filename, expected_tick):
-        """Prove that one JSON component belongs to the same save tick."""
+        """Prove that one JSON component belongs to a legitimate save set.
+
+        GL-FIX-HOTCOLD-TICK-MANIFEST: the hot and cold save lanes deliberately
+        leave the state directory with files at different save ticks (see the
+        _state_file_ticks docstring in __init__). ``expected_tick`` is core's
+        own save tick; it remains the exact requirement for guala_core.json and
+        for any file whose tick the manifest does not describe. For every other
+        file we validate against the tick the manifest (carried in core) says
+        that file was actually written at -- an exact, torn-save-detecting
+        check that also accepts the by-design hot/cold tick skew. When there is
+        no manifest entry (legacy state written before this fix), we accept any
+        valid tick that is not NEWER than core: a file newer than the core that
+        was written after it is the signature of a torn save and is rejected,
+        while an older cold file under a newer hot core is the normal, valid
+        hot/cold mix and is accepted.
+        """
         if not isinstance(raw, dict):
             raise ValueError(f"{filename}: envelope must be an object")
         if "data" not in raw or "guala_identity" not in raw:
@@ -12773,9 +12825,22 @@ class Guala:
                 or not isinstance(saved_tick, int)
                 or saved_tick < 0):
             raise ValueError(f"{filename}: invalid saved_at_tick {saved_tick!r}")
-        if saved_tick != expected_tick:
+        overrides = self._expected_file_ticks
+        manifest_tick = (overrides.get(filename)
+                         if isinstance(overrides, dict) else None)
+        if manifest_tick is not None:
+            if saved_tick != manifest_tick:
+                raise ValueError(
+                    f"{filename}: saved_at_tick {saved_tick} != {manifest_tick} "
+                    f"(state-file-ticks manifest) -- torn or mixed save set")
+        elif filename == "guala_core.json":
+            if saved_tick != expected_tick:
+                raise ValueError(
+                    f"{filename}: saved_at_tick {saved_tick} != {expected_tick}")
+        elif saved_tick > expected_tick:
             raise ValueError(
-                f"{filename}: saved_at_tick {saved_tick} != {expected_tick}")
+                f"{filename}: saved_at_tick {saved_tick} is newer than core "
+                f"{expected_tick} -- torn save set")
         if not isinstance(raw.get("data"), dict):
             raise ValueError(f"{filename}: envelope data must be an object")
 
@@ -13395,6 +13460,14 @@ class Guala:
                            for sid, s in self._sensory_items.items()}
             pictures_ser, picture_assets = self._picture_persistence_snapshot()
             videos_ser, video_assets = self._video_persistence_snapshot()
+            # GL-FIX-HOTCOLD-TICK-MANIFEST: this hot cycle rewrites only the
+            # small subset in HOT_SAVE_MANIFEST_FILES at self.tick; the cold
+            # stores (atlas/sections/deep_atlas/survival/sight_motifs) keep
+            # whatever tick their last cold save recorded. Stamp the subset,
+            # carry the rest, and persist the merged map inside core so the
+            # loader can validate each file against its own real tick.
+            for _mf in self.HOT_SAVE_MANIFEST_FILES:
+                self._state_file_ticks[_mf] = self.tick
             snap_core = self._envelope({
                 "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
                 "tick": self.tick, "read_count": self.read_count,
@@ -13417,6 +13490,7 @@ class Guala:
                 "last_save_tick": self.tick,
                 "deep_survival_history": {},  # GL-102: empty sentinel; data in guala_survival.json
                 "total_emissions": self._total_emissions,
+                "state_file_ticks": dict(self._state_file_ticks),
             })
             # GL-CMD-FLOOD-HUNT-156: owed -107 diagnostic. Same dict_id at
             # write-time (target_familiarity_update) and here, with n_keys
@@ -13617,6 +13691,8 @@ class Guala:
         # rather than guessing further from the aggregate number alone.
         _slowest = max(_per_file_ms.items(), key=lambda kv: kv[1]) if _per_file_ms else (None, 0)
         print(f"[save-hot-detail] {_per_file_ms} slowest={_slowest[0]}({_slowest[1]}ms)")
+        if not _failures:
+            self._publish_state_generation(state_dir, save_tick)
         self._raise_persistence_failures("hot save", _failures)
         return results
 
@@ -13659,6 +13735,13 @@ class Guala:
             # Building surv_ser (57k string-format ops) takes ~400ms — too slow under lock.
             _surv_snap = dict(self._deep_survival_history)
 
+            # GL-FIX-HOTCOLD-TICK-MANIFEST: the full (cold) lane rewrites every
+            # persisted JSON store at one tick, so stamp the whole manifest set
+            # to self.tick. This realigns any cold files a prior hot save had
+            # left lagging, and gives the loader an exact per-file tick to
+            # validate against.
+            for _mf in self.FULL_SAVE_MANIFEST_FILES:
+                self._state_file_ticks[_mf] = self.tick
             snap_core = self._envelope({
                 "continuity_contract": self.ENGINE_CONTINUITY_CONTRACT,
                 "binary_binding_contract": self.BINARY_BINDING_CONTRACT,
@@ -13682,6 +13765,7 @@ class Guala:
                 "last_save_tick": self.tick,
                 "deep_survival_history": {},  # GL-102: empty sentinel; data in guala_survival.json
                 "total_emissions": self._total_emissions,
+                "state_file_ticks": dict(self._state_file_ticks),
             })
 
             # 2. Needs
@@ -13999,7 +14083,34 @@ class Guala:
 
         # S3 backup handled by SaveCoordinator (non-blocking background thread)
 
+        # GL-FIX-ATOMIC-SAVE-GENERATIONS: publish an atomic snapshot of the
+        # just-written flat set as a recoverable generation. Only on full
+        # success (every file landed); best-effort, never raises here.
+        if not _save_failures:
+            self._publish_state_generation(state_dir, save_tick)
+
         return results
+
+    def _publish_state_generation(self, state_dir, save_tick):
+        """Best-effort atomic generation snapshot of the flat state dir.
+
+        GL-FIX-ATOMIC-SAVE-GENERATIONS-20260715: a kill between the individual
+        per-file writes of a save cycle can leave the flat directory mixing two
+        cycles. This captures each completed cycle as an immutable, hard-linked
+        generation so boot recovery can fall back to the previous complete
+        generation instead of silently time-travelling to a days-old S3 backup.
+        Never raises into the save path -- a publish failure only means no new
+        fallback point this cycle."""
+        try:
+            from dsf_ai_service.substrate import atomic_state_generation as _asg
+        except Exception:
+            return
+        try:
+            _asg.publish_generation(
+                state_dir, int(save_tick), self._guala_identity,
+                keep=3, log=print)
+        except Exception as _ge:
+            print(f"[gen] generation publish skipped (non-fatal): {_ge}")
 
     def _save_wave_atlas(self, state_dir):
         """Persist WaveAtlas inside the shared persistence transaction."""
@@ -14203,6 +14314,18 @@ class Guala:
             core = data["guala_core.json"]
             if not isinstance(core.get("tick"), (int, float)):
                 raise ValueError(f"Invalid tick: {core.get('tick')}")
+            # GL-FIX-HOTCOLD-TICK-MANIFEST: adopt the per-file save-tick manifest
+            # core carries, so the envelope validator checks each companion file
+            # against the tick IT was really written at (hot/cold lanes diverge
+            # by design) rather than against core's tick. Absent for pre-fix
+            # legacy state -> validator falls back to "not newer than core",
+            # which accepts the existing on-disk hot/cold mix without loss.
+            _sft = core.get("state_file_ticks")
+            self._expected_file_ticks = (
+                {k: v for k, v in _sft.items()
+                 if isinstance(v, int) and not isinstance(v, bool)}
+                if isinstance(_sft, dict) else None)
+            self._state_file_ticks = dict(self._expected_file_ticks or {})
             if (core.get("continuity_contract") ==
                     self.ENGINE_CONTINUITY_CONTRACT):
                 missing_continuity = [

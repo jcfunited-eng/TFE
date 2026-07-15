@@ -2083,28 +2083,45 @@ def _gl_init():
             raise RuntimeError(
                 "verified immutable CURRENT failed engine load; refusing legacy restore: "
                 f"{errs}")
-        print(f"[GualaLoom] State load failed: {errs}. Attempting S3 restore...")
-        try:
-            _restore_from_s3(STATE_DIR)
-            g2 = Guala()
+        # GL-FIX-ATOMIC-SAVE-GENERATIONS + Joe 2026-07-15 ("old state can never
+        # be silently recalled"): the flat state failed engine load (torn or
+        # corrupt). Recovery order is LOCAL ONLY: newest complete atomic
+        # generation, then older ones. If none validate we HALT LOUDLY and
+        # leave the flat files untouched -- we NEVER silently reach for a
+        # days-old S3 backup. S3 restore is a deliberate, human-triggered,
+        # one-shot path (FORCE_S3_RESTORE=1), never an automatic fallback.
+        print(f"[GualaLoom] State load failed: {errs}. "
+              f"Trying LOCAL atomic generations (newest first)...")
+        recovered = _recover_from_local_generations(STATE_DIR)
+        if recovered is not None:
+            _strict_discard_guala(
+                g, reason="flat load failed; local generation recovered")
+            g = Guala()
             for cid, cdata in SEED_CORPORA.items():
-                g2.add_corpus(cid, cdata["title"], cdata["lines"])
-            g2.load_full_state(STATE_DIR)
-            if getattr(g2, '_load_successful', False):
-                print(f"[GualaLoom] S3 restore succeeded: "
-                      f"identity={(getattr(g2, '_guala_identity', '') or '')[:8]}")
-                old_g = g
-                g = g2
-                _strict_discard_guala(old_g, reason="legacy restore replacement")
-            else:
-                _strict_discard_guala(g2, reason="failed legacy restore candidate")
-                raise RuntimeError(f"[GualaLoom] S3 restore loaded but _load_successful=False")
-        except Exception as _r_err:
+                g.add_corpus(cid, cdata["title"], cdata["lines"])
+            g.load_full_state(STATE_DIR)
+            if not getattr(g, '_load_successful', False):
+                raise RuntimeError(
+                    "[GualaLoom] recovered a local generation but it failed to "
+                    "reload -- refusing to boot. Load errors: "
+                    f"{getattr(g, '_load_errors', [])}")
+            print(f"[GualaLoom] Recovered from LOCAL generation "
+                  f"tick={recovered.get('tick')} "
+                  f"identity={(getattr(g, '_guala_identity', '') or '')[:8]}")
+        else:
+            _strict_discard_guala(
+                g, reason="flat load + all local generations failed")
             raise RuntimeError(
-                f"[GualaLoom] State load failed and S3 restore failed — "
-                f"refusing to boot blank. Load errors: {errs}. "
-                f"Restore error: {_r_err}"
-            ) from _r_err
+                "\n"
+                "================= LOCAL STATE UNRECOVERABLE =================\n"
+                f"The flat state in {STATE_DIR} failed to load ({errs}) and NO\n"
+                "local atomic generation validated. Per Joe's standing order,\n"
+                "old state is NEVER silently recalled, so this process is NOT\n"
+                "auto-restoring from S3. The flat state files are left UNTOUCHED\n"
+                "for inspection. To deliberately restore the most recent off-box\n"
+                "S3 backup, a HUMAN must set FORCE_S3_RESTORE=1 on the task\n"
+                "definition and redeploy (one-shot -- remove it afterward).\n"
+                "============================================================")
 
     # P0: Identity guard — if EFS state was overwritten by a blank genesis
     # (e.g. from the _gl_init bug fixed in 475de3e), detect and restore from S3.
@@ -2139,25 +2156,17 @@ def _gl_init():
                 f"generation identity={_loaded_generation.identity!r} "
                 f"tick={_loaded_generation.tick}")
     elif loaded_id and not loaded_id.startswith(EXPECTED_IDENTITY):
-        print(f"[GualaLoom] IDENTITY MISMATCH: got {loaded_id[:8]}, "
-              f"expected {EXPECTED_IDENTITY}. Restoring from S3 backup...")
-        try:
-            _restore_from_s3(STATE_DIR)
-            g2 = Guala()
-            for cid, cdata in SEED_CORPORA.items():
-                g2.add_corpus(cid, cdata["title"], cdata["lines"])
-            g2.load_full_state(STATE_DIR)
-            restored_id = getattr(g2, '_guala_identity', None) or ""
-            if restored_id.startswith(EXPECTED_IDENTITY):
-                print(f"[GualaLoom] Restore succeeded: identity={restored_id[:8]}")
-                old_g = g
-                g = g2
-                _strict_discard_guala(old_g, reason="identity restore replacement")
-            else:
-                print(f"[GualaLoom] Restore FAILED: got identity={restored_id[:8]}")
-                _strict_discard_guala(g2, reason="identity-mismatch restore candidate")
-        except Exception as e:
-            print(f"[GualaLoom] Restore error: {e}")
+        # Joe 2026-07-15 ("old state can never be silently recalled"): do NOT
+        # auto-restore S3 on an identity mismatch. The state loaded cleanly; an
+        # unexpected identity is either a legitimate identity transition (this
+        # EXPECTED_IDENTITY constant has gone stale before -- see the incident
+        # note above, where a stale constant OOM-killed every restart) or a real
+        # anomaly a human must judge. Keep the loaded, self-consistent state and
+        # flag it loudly rather than time-travelling to a days-old S3 backup.
+        print(f"[GualaLoom] IDENTITY MISMATCH (NON-FATAL): loaded {loaded_id[:8]} "
+              f"but EXPECTED_IDENTITY={EXPECTED_IDENTITY}. Continuing with the "
+              f"cleanly-loaded state; NOT auto-restoring from S3. If this is "
+              f"genuinely wrong, a HUMAN must set FORCE_S3_RESTORE=1 and redeploy.")
 
     # D5: Dream gate enforcement — decay must not resume before forced dream
     gate_marker = os.path.join(STATE_DIR, "dream_gate_cleared.json")
@@ -6140,8 +6149,39 @@ async def startup():
 
 _last_s3_backup = None  # D3: tracked for persistence_health
 
+def _recover_from_local_generations(state_dir):
+    """GL-FIX-ATOMIC-SAVE-GENERATIONS: try to recover from the newest complete
+    LOCAL atomic generation, then older ones. Returns the recovered manifest
+    dict (and materializes it into ``state_dir``) or None if no local
+    generation validates. NEVER touches S3 -- Joe's standing order is that old
+    state can never be silently recalled; S3 is a human-only, explicit path."""
+    try:
+        from dsf_ai_service.substrate import atomic_state_generation as _asg
+    except Exception as _imp_err:
+        print(f"[GualaLoom] generation recovery unavailable: {_imp_err}")
+        return None
+
+    def _load_test(gen_dir):
+        probe = Guala()
+        for cid, cdata in SEED_CORPORA.items():
+            probe.add_corpus(cid, cdata["title"], cdata["lines"])
+        probe.load_full_state(gen_dir)
+        ok = bool(getattr(probe, "_load_successful", False))
+        _strict_discard_guala(probe, reason="generation load-test probe")
+        return ok
+
+    return _asg.recover_from_generations(state_dir, _load_test, log=print)
+
+
 def _restore_from_s3(state_dir):
-    """P0: Restore state files from most recent S3 backup."""
+    """P0: Restore state files from most recent S3 backup.
+
+    HUMAN-ONLY PATH. Reachable only via the explicit FORCE_S3_RESTORE=1 env
+    flag (set by a human on the task definition, one-shot). No automatic boot
+    path may call this: Joe's standing order (2026-07-15) is that old state can
+    never be silently recalled. See the guard test
+    test_no_silent_s3_restore.py, which fails the build if any automatic caller
+    is reintroduced."""
     import boto3
     s3 = boto3.client("s3", region_name="us-east-1")
     bucket = "dsf-ai-site-backups"
