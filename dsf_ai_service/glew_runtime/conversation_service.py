@@ -109,6 +109,7 @@ class CleanConversationEngine(Protocol):
         turn: CleanConversationTurn,
         story_chemistry: StoryChemistryRuntime,
         is_final_scalar: bool = False,
+        defer_persistence: bool = False,
     ) -> ConversationTransactionResult:
         """Return only the typed result of ``run_clean_conversation_transaction``.
 
@@ -119,6 +120,15 @@ class CleanConversationEngine(Protocol):
         behaviour. Only a genuinely-final scalar that commits closes the
         accumulated expression (see ``clean_conversation_engine`` design section
         12).
+
+        ``defer_persistence`` is the second scheduler-owned structural signal
+        (utterance-transaction Milestone 1): ``True`` marks this call as one
+        scalar of one real multi-scalar turn, so the engine batches its durable
+        generation-store commit at that turn's final scalar (every learn still
+        happens per scalar, in memory, with all receipt mechanisms unchanged;
+        a turn that changes no learned state commits nothing). It defaults to
+        ``False`` so every single-scalar caller keeps the historical
+        commit-immediately behaviour.
         """
 
 

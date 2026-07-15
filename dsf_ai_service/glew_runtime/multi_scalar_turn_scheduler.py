@@ -158,8 +158,9 @@ plus honestly derived (never fabricated) aggregate facts.
 
 from __future__ import annotations
 
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Protocol, Sequence, runtime_checkable
 
 from .conversation import ConversationTransactionResult
 from .conversation_service import (
@@ -169,6 +170,22 @@ from .conversation_service import (
 )
 from .model import ReceiptError, receipt_sha256, require_identifier
 from .story_chemistry import StoryChemistryRuntime
+
+
+@runtime_checkable
+class _TurnSerializingEngine(Protocol):
+    """An engine that can serialize a WHOLE turn against its own single shared
+    learned state.
+
+    This is a narrow, optional capability kept deliberately separate from the
+    ``CleanConversationEngine`` Protocol so adding it never changes that
+    Protocol's ``isinstance`` contract for the unrelated engine doubles other
+    modules inject. ``ProductionCleanConversationEngine.serialize_turn``
+    provides it; any engine that does not is simply run without turn-level
+    serialization (a ``nullcontext``).
+    """
+
+    def serialize_turn(self) -> AbstractContextManager: ...
 
 
 def default_scalar_task_id(task_id: str, index: int) -> str:
@@ -376,53 +393,110 @@ class MultiScalarTurnScheduler:
                     "multi-scalar turn scalar_task_ids must be distinct"
                 )
 
+        # Turn-level serialization (Fix 1). The engine's own lock serializes
+        # individual SCALARS, not whole turns: two overlapping ``/converse``
+        # requests each call ``run_turn`` on the SAME shared engine through
+        # app.py's lifecycle executor, and without a turn mutex their scalars
+        # interleave against that engine's single shared learned state, letting
+        # one turn's end-of-turn deferred flush durably commit ANOTHER turn's
+        # mid-turn, in-flight learns. Holding the engine's turn mutex for the
+        # whole scalar sequence makes turns fully serial -- architecture-
+        # consistent for a system that deliberately speaks with one mouth, one
+        # conversation turn at a time -- so each turn's single deferred flush
+        # covers exactly its own learns. The mutex lives on the ENGINE (not on
+        # this scheduler instance), so two schedulers wrapping the same engine
+        # still serialize. Engines without the capability run unchanged.
+        if isinstance(self._engine, _TurnSerializingEngine):
+            turn_guard: AbstractContextManager = self._engine.serialize_turn()
+        else:
+            turn_guard = nullcontext()
+
         outcomes: list[ScalarTurnOutcome] = []
-        for index, scalar in enumerate(text):
-            scalar_task_id = resolved_task_ids[index]
-            payload = clean_conversation_turn_receipt_payload(
-                task_id=scalar_task_id, text=scalar, source=source
-            )
-            turn = CleanConversationTurn(
-                task_id=scalar_task_id,
-                text=scalar,
-                source=source,
-                receipt_sha256=receipt_sha256(payload),
-                receipt_payload=payload,
-            )
-            turn.verify()
-            # The one real, non-fabricated end-of-message fact this scheduler
-            # already knows structurally: whether this is the LAST real Unicode
-            # scalar of the real per-request message. It is threaded to the
-            # engine so that, per design section 12, the final scalar of a
-            # committing turn closes the accumulated expression (making it
-            # emittable at exact close) while every earlier scalar keeps
-            # accumulating. This is a true fact about where the real message
-            # ends -- not a guess about semantic completeness, and not invented
-            # content. The scheduler owns no cognition here: it only reports the
-            # real index; the engine owns whether a close actually happens (only
-            # if the final scalar genuinely committed).
-            is_final_scalar = index == len(text) - 1
-            result = self._engine.run_clean_conversation(
-                turn=turn,
-                story_chemistry=story_chemistry,
-                is_final_scalar=is_final_scalar,
-            )
-            if not isinstance(result, ConversationTransactionResult):
-                raise ReceiptError(
-                    "clean conversation engine returned an untyped result for "
-                    f"scalar {index} of a real multi-scalar turn"
+        with turn_guard:
+            for index, scalar in enumerate(text):
+                outcomes.append(
+                    self._run_one_scalar(
+                        index=index,
+                        scalar=scalar,
+                        total=len(text),
+                        scalar_task_id=resolved_task_ids[index],
+                        story_chemistry=story_chemistry,
+                        source=source,
+                    )
                 )
-            result.verify()
-            outcomes.append(
-                ScalarTurnOutcome(
-                    scalar_index=index,
-                    scalar_text=scalar,
-                    scalar_task_id=scalar_task_id,
-                    result=result,
-                )
-            )
 
         return MultiScalarTurnResult(task_id=task_id, text=text, outcomes=tuple(outcomes))
+
+    def _run_one_scalar(
+        self,
+        *,
+        index: int,
+        scalar: str,
+        total: int,
+        scalar_task_id: str,
+        story_chemistry: StoryChemistryRuntime,
+        source: str,
+    ) -> ScalarTurnOutcome:
+        """Run exactly one real Unicode scalar of a turn through the engine's
+        own unmodified ``run_clean_conversation`` and wrap its real, unmodified
+        result. Called only from inside :meth:`run_turn`'s turn-serialization
+        guard, in real causal order; owns no cognition, recognition, or commit
+        rule of its own."""
+
+        payload = clean_conversation_turn_receipt_payload(
+            task_id=scalar_task_id, text=scalar, source=source
+        )
+        turn = CleanConversationTurn(
+            task_id=scalar_task_id,
+            text=scalar,
+            source=source,
+            receipt_sha256=receipt_sha256(payload),
+            receipt_payload=payload,
+        )
+        turn.verify()
+        # The one real, non-fabricated end-of-message fact this scheduler
+        # already knows structurally: whether this is the LAST real Unicode
+        # scalar of the real per-request message. It is threaded to the
+        # engine so that, per design section 12, the final scalar of a
+        # committing turn closes the accumulated expression (making it
+        # emittable at exact close) while every earlier scalar keeps
+        # accumulating. This is a true fact about where the real message
+        # ends -- not a guess about semantic completeness, and not invented
+        # content. The scheduler owns no cognition here: it only reports the
+        # real index; the engine owns whether a close actually happens (only
+        # if the final scalar genuinely committed).
+        is_final_scalar = index == total - 1
+        # ``defer_persistence=True`` is the second real, structural fact
+        # this scheduler owns (utterance-transaction Milestone 1): these N
+        # one-scalar calls are ONE real per-request turn, so their durable
+        # store commit is batched -- every scalar still learns for real,
+        # per scalar, in memory (all receipt mechanisms unchanged), and
+        # the engine fires exactly one ImmutableGenerationStore commit at
+        # this turn's final scalar iff any scalar changed learned state.
+        # A death mid-turn leaves the store at the pre-turn generation
+        # (the deferred turn performs no store write before its single
+        # flush), which is the store's own atomic-commit contract extended
+        # to the whole turn. Single-scalar callers that bypass this
+        # scheduler keep the historical commit-immediately behaviour
+        # (the engine's parameter defaults to False).
+        result = self._engine.run_clean_conversation(
+            turn=turn,
+            story_chemistry=story_chemistry,
+            is_final_scalar=is_final_scalar,
+            defer_persistence=True,
+        )
+        if not isinstance(result, ConversationTransactionResult):
+            raise ReceiptError(
+                "clean conversation engine returned an untyped result for "
+                f"scalar {index} of a real multi-scalar turn"
+            )
+        result.verify()
+        return ScalarTurnOutcome(
+            scalar_index=index,
+            scalar_text=scalar,
+            scalar_task_id=scalar_task_id,
+            result=result,
+        )
 
 
 __all__ = (

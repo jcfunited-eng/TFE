@@ -707,7 +707,33 @@ class ProductionCleanConversationEngine:
             )
         self._live_recall_state = live_recall_state
         self._checkpoint_tick = 0
+        # Deferred-persistence bookkeeping (utterance-transaction Milestone 1)
+        # is kept in TWO deliberately separate pieces of state, because the
+        # engine has to answer two genuinely different questions honestly:
+        #
+        # 1. ``_deferred_checkpoint_tick`` -- the FLUSH TARGET. ``None`` means
+        #    there is no batched, not-yet-attempted commit outstanding; an
+        #    ``int`` is the checkpoint tick a real multi-scalar turn
+        #    (``defer_persistence=True``) consumed for a learned-state change
+        #    whose store commit it BATCHED and never attempted yet. Only the
+        #    defer path sets this. It is what the turn's single end-of-turn
+        #    flush (and the abort-flush) commits, so those never re-attempt an
+        #    immediate commit that already failed.
+        #
+        # 2. ``_unpersisted_learned_change`` -- the HONESTY flag's backing.
+        #    ``True`` iff this engine's in-memory learned state is ahead of the
+        #    last generation a store commit actually SUCCEEDED in publishing.
+        #    Set ``True`` before ANY store write is attempted (deferred or
+        #    immediate) and cleared ONLY after a commit genuinely succeeds, so
+        #    :attr:`has_unpersisted_learned_state` stays truthful in every
+        #    failure path -- including an immediate commit that raises
+        #    mid-write, where there is no deferred tick at all.
+        self._deferred_checkpoint_tick: int | None = None
+        self._unpersisted_learned_change: bool = False
         self._lock = threading.Lock()
+        # Turn-level mutex (Fix 1). ``self._lock`` above serializes individual
+        # SCALARS; this one serializes whole TURNS. See :meth:`serialize_turn`.
+        self._turn_lock = threading.Lock()
 
         registry = _merge_registry(receipt_registry, mounted_runtime.receipt_registry)
         registry = _merge_registry(registry, learned_state.receipt_registry)
@@ -853,6 +879,7 @@ class ProductionCleanConversationEngine:
         turn: CleanConversationTurn,
         story_chemistry: StoryChemistryRuntime,
         is_final_scalar: bool = False,
+        defer_persistence: bool = False,
     ) -> ConversationTransactionResult:
         """Return only the typed result of ``run_clean_conversation_transaction``.
 
@@ -867,19 +894,116 @@ class ProductionCleanConversationEngine:
         (if it commits) closes the accumulating expression. This is a true fact
         about where the real message ends -- not a guess about semantic
         completeness, and not invented content.
+
+        ``defer_persistence`` is the second real scheduler-owned signal
+        (utterance-transaction Milestone 1): ``True`` means this call is one
+        scalar of one real multi-scalar turn whose durable store commit is
+        batched at the turn's final scalar. Every learn this call performs
+        still happens for real, per scalar, in memory -- every receipt
+        mechanism, every learn transaction, every checkpoint-tick advance is
+        byte-identical to the immediate-persistence path -- but the
+        ``ImmutableGenerationStore`` commit itself (8 fsyncs + two full
+        verification passes per commit) is deferred and fired exactly once,
+        after the final scalar's own result is complete, so long as ANY scalar
+        of the turn genuinely changed learned state. A turn that changes no
+        learned state commits nothing. It defaults to ``False`` so every
+        existing single-scalar caller keeps today's commit-immediately
+        behaviour unchanged. Crash honesty is preserved structurally: a
+        deferred turn performs NO store write before its single flush, so a
+        death anywhere mid-turn leaves the store's last published generation
+        exactly as it was before the turn began (the store's own atomic-commit
+        contract), and :attr:`has_unpersisted_learned_state` reports honestly
+        whenever in-memory learned state is ahead of the persisted generation.
         """
 
         if not isinstance(is_final_scalar, bool):
             raise ReceiptError(
                 "is_final_scalar must be a real boolean end-of-message signal"
             )
+        if not isinstance(defer_persistence, bool):
+            raise ReceiptError(
+                "defer_persistence must be a real boolean turn-batching signal"
+            )
         turn.verify()
         with self._lock:
-            return self._run_locked(
-                turn=turn,
-                story_chemistry=story_chemistry,
-                is_final_scalar=is_final_scalar,
-            )
+            try:
+                result = self._run_locked(
+                    turn=turn,
+                    story_chemistry=story_chemistry,
+                    is_final_scalar=is_final_scalar,
+                    defer_persistence=defer_persistence,
+                )
+            except Exception:
+                # Aborted-turn durability (Fix 2). A genuine exception
+                # propagated out of this scalar's real processing (a fail-closed
+                # ReceiptError, a store fault, etc.). That scalar is fail-closed
+                # -- it mutated no learned state before raising -- but EARLIER
+                # scalars of the same deferred turn already learned, each
+                # individually passed every receipt gate, and left a batched
+                # deferred checkpoint (``_deferred_checkpoint_tick``) that was
+                # never written. Baseline per-scalar mode would have durably
+                # persisted those learns; flushing them now, before the abort
+                # propagates, keeps an aborted turn exactly as durable as
+                # baseline and leaves no stranded pending state for deploy
+                # quiescence to lose. Nothing is invented (the aborted scalar
+                # itself learned nothing), and because only a genuinely
+                # DEFERRED (never-attempted) checkpoint is flushed, this never
+                # re-attempts an immediate commit that just failed and single-
+                # scalar immediate callers (which never defer) are untouched.
+                # Deliberately ``Exception``, not ``BaseException``: a
+                # process-directed ``KeyboardInterrupt``/``SystemExit`` is
+                # crash-like, and the crash-mid-turn contract is to leave the
+                # untouched pre-turn generation (see the crash tests), so those
+                # propagate WITHOUT a flush.
+                if defer_persistence:
+                    self._flush_deferred_checkpoint()
+                raise
+            # The one deferred flush point on the SUCCESS path: the turn's real
+            # final scalar has fully completed (commit or honest silence alike
+            # -- the flush fires whether or not the final scalar ITSELF
+            # committed, so long as some scalar of the turn changed learned
+            # state). A successful expression-close already persisted
+            # immediately inside ``_close_learned_expression`` (that persist IS
+            # this turn's one commit, and it clears the flush target), in which
+            # case this is a no-op.
+            if defer_persistence and is_final_scalar:
+                self._flush_deferred_checkpoint()
+            return result
+
+    def serialize_turn(self):
+        """Return the turn-level mutex (Fix 1), a real context manager the
+        ``MultiScalarTurnScheduler`` holds for the WHOLE duration of one real
+        multi-scalar turn.
+
+        This engine's own ``self._lock`` serializes individual SCALARS, not
+        whole turns. Two concurrent ``MultiScalarTurnScheduler.run_turn`` calls
+        -- exactly what two overlapping ``/converse`` requests produce through
+        app.py's lifecycle executor -- would otherwise interleave their scalars
+        against this engine's single shared learned state at ``self._lock``
+        granularity, so one turn's end-of-turn deferred flush could durably
+        commit ANOTHER turn's mid-turn, still-in-flight learns (and lower its
+        honesty flag). Holding this mutex for a whole turn makes turns fully
+        serial -- architecture-consistent for a system that deliberately speaks
+        with one mouth, one conversation turn at a time -- so each turn's
+        single deferred flush covers exactly its own learns. Direct
+        single-scalar callers of :meth:`run_clean_conversation` never acquire
+        it and keep today's behaviour unchanged.
+        """
+
+        return self._turn_lock
+
+    @property
+    def has_unpersisted_learned_state(self) -> bool:
+        """True iff this engine's in-memory learned state is ahead of the last
+        generation a store commit actually SUCCEEDED in publishing. This is
+        truthful in every path (Fix 3): it is raised before any store write is
+        attempted -- deferred or immediate -- and lowered only after a commit
+        genuinely succeeds, so it never reads False while memory is ahead, not
+        even when an immediate commit raises mid-write. Any later successful
+        checkpoint commit (deferred flush or immediate persist) writes the full
+        current state and clears this."""
+
+        return self._unpersisted_learned_change
 
     def _run_locked(
         self,
@@ -887,6 +1011,7 @@ class ProductionCleanConversationEngine:
         turn: CleanConversationTurn,
         story_chemistry: StoryChemistryRuntime,
         is_final_scalar: bool,
+        defer_persistence: bool,
     ) -> ConversationTransactionResult:
         expression, language_input, preparation, registry = self._build_turn_expression(
             turn=turn, story_chemistry=story_chemistry
@@ -1029,6 +1154,7 @@ class ProductionCleanConversationEngine:
                 commit_decision=commit_decision,
                 language_input=language_input,
                 is_final_scalar=is_final_scalar,
+                defer_persistence=defer_persistence,
             )
 
         return result
@@ -1061,6 +1187,7 @@ class ProductionCleanConversationEngine:
         commit_decision: CommitDecision,
         language_input,
         is_final_scalar: bool,
+        defer_persistence: bool = False,
     ) -> None:
         if commit_decision.status is not CommitStatus.COMMIT:
             raise ReceiptError(
@@ -1271,7 +1398,11 @@ class ProductionCleanConversationEngine:
             scene_archive=self._scene_archive,
             motif_kinds=self._learned_state.motif_kinds,
         )
-        self._persist_checkpoint()
+        # A deferred (real multi-scalar) turn advances the checkpoint tick
+        # exactly as an immediate persist would -- so every relation id /
+        # checkpoint id stays byte-identical to the per-scalar commit chain --
+        # but batches the actual store commit at the turn's final scalar.
+        self._persist_checkpoint(defer=defer_persistence)
 
     def _close_learned_expression(
         self,
@@ -1351,9 +1482,64 @@ class ProductionCleanConversationEngine:
         )
         self._persist_checkpoint()
 
-    def _persist_checkpoint(self) -> None:
+    def _persist_checkpoint(self, *, defer: bool = False) -> None:
+        """Record one learned-state change at the next checkpoint tick.
+
+        ``defer=False`` (the default, and the exact historical behaviour every
+        existing caller keeps): build this tick's checkpoint payloads and
+        commit a new immutable generation NOW.
+
+        ``defer=True`` (only a real multi-scalar turn's non-final state
+        changes): consume the checkpoint tick exactly as an immediate persist
+        would -- the tick counter is the input to every relation id and
+        checkpoint id, so consuming it identically is what keeps the deferred
+        turn's learned state byte-identical to the per-scalar commit chain --
+        but record the tick as the flush target instead of committing, so the
+        turn's single flush (:meth:`_flush_deferred_checkpoint`) commits the
+        full accumulated state once, labelled with the LAST consumed tick (the
+        same tick today's final per-scalar commit of the same turn would
+        carry).
+
+        Either way, the honesty flag ``_unpersisted_learned_change`` is raised
+        FIRST -- before any store write is attempted -- and cleared only inside
+        :meth:`_commit_checkpoint_generation` after a commit genuinely
+        succeeds, so :attr:`has_unpersisted_learned_state` is truthful even if
+        an immediate commit raises mid-write (Fix 3). A successful immediate
+        commit also clears any pending deferred flush target: a generation
+        commit always persists this engine's ENTIRE current learned state, so
+        whatever change the deferred tick was recording is durably included in
+        the newer generation.
+        """
+
         tick = self._checkpoint_tick
         self._checkpoint_tick += 1
+        # Truthful in every failure path: in-memory learned state is now ahead
+        # of the last durable commit. Recorded before ANY store write.
+        self._unpersisted_learned_change = True
+        if defer:
+            self._deferred_checkpoint_tick = tick
+            return
+        self._commit_checkpoint_generation(tick)
+
+    def _flush_deferred_checkpoint(self) -> None:
+        """Commit the one pending DEFERRED (batched, never-attempted) generation,
+        if any, and clear the flush target.
+
+        Called on a deferred turn's final scalar (success) and on abort of a
+        deferred turn (Fix 2). No-op when no deferred commit is outstanding --
+        either the turn never changed learned state (a turn with zero state
+        changes commits nothing), or the final scalar's own successful
+        expression-close already persisted immediately (that immediate persist
+        was this turn's single commit and cleared the flush target). Because it
+        only ever fires for a genuinely-deferred tick, it never re-attempts an
+        immediate commit that already raised."""
+
+        tick = self._deferred_checkpoint_tick
+        if tick is None:
+            return
+        self._commit_checkpoint_generation(tick)
+
+    def _commit_checkpoint_generation(self, tick: int) -> None:
         learning_checkpoint_id = f"{self._engine_id}-learning-{tick}"
         archive_checkpoint_id = f"{self._engine_id}-archive-{tick}"
 
@@ -1385,6 +1571,14 @@ class ProductionCleanConversationEngine:
                 GENERATION_IDENTITY_BINDING_RELATIVE_PATH: binding.receipt_payload,
             },
         )
+        # The commit published this engine's ENTIRE current learned state, so
+        # every outstanding marker is now durably satisfied. Cleared ONLY here,
+        # after ``store.commit`` actually returned -- if it raised, both markers
+        # stay set and ``has_unpersisted_learned_state`` keeps reporting the
+        # truth (Fix 3), while the deferred flush target is left intact so the
+        # never-attempted work is not silently forgotten.
+        self._deferred_checkpoint_tick = None
+        self._unpersisted_learned_change = False
 
 
 __all__ = (
