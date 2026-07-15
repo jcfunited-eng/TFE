@@ -110,6 +110,50 @@ def _frame_backpressure_release(kind):
         _frame_inflight[kind] = max(0, _frame_inflight[kind] - 1)
 
 
+# ── GL-CMD-CONVERSE-FRAME-PRIORITY: talking has priority over raw frames ─────
+# Root cause, measured live (mic+camera streaming): the conversational turn
+# (legacy converse() OR the GLEW MultiScalarTurnScheduler) runs in the SAME
+# single uvicorn process as continuous /sound_frame (~0.2-0.35s CPU each) and
+# /sight_frame processing. One core + the GIL means those always-runnable frame
+# jobs starve the turn's pure-Python/flint compute: a local harness reproduced
+# the exact mechanism -- the same real 5-scalar turn stretched x1.9 under 1
+# competing CPU thread, x5.9 under 2, x12.9 under 4 (super-linear, because the
+# flint turn keeps releasing/re-acquiring the GIL against greedy competitors).
+# The legacy engine suffered identically under the same load in production
+# (a 'hello' took 111s), confirming this is process-level contention, not
+# GLEW-specific compute.
+#
+# Fix (Joe's standing ruling, "let talking be its own thing"): while a real
+# conversational turn is settling, shed incoming sensory frames using the SAME
+# honest backpressure path these endpoints already have (the UI already renders
+# it gracefully), so the turn gets the core. This is a pure capacity/priority
+# yield -- never gated on frame CONTENT, and only in embedded (in-process) mode
+# where the contention exists (remote mode ring-writes frames to another
+# process). A plain GIL-atomic counter (mirrors _frame_inflight) with a
+# balanced begin/finally in _run_converse guarantees it can never stick "on".
+_converse_inflight_lock = threading.Lock()
+_converse_inflight = 0
+
+
+def _converse_turn_begin():
+    """Mark that a real conversational turn is settling in this process."""
+    global _converse_inflight
+    with _converse_inflight_lock:
+        _converse_inflight += 1
+
+
+def _converse_turn_end():
+    """Clear one settling-turn mark (always called from a finally)."""
+    global _converse_inflight
+    with _converse_inflight_lock:
+        _converse_inflight = max(0, _converse_inflight - 1)
+
+
+def _converse_turn_in_flight():
+    """True while >=1 real conversational turn is settling in this process."""
+    return _converse_inflight > 0
+
+
 def _prune_stale_tasks():
     """Remove completed tasks older than TTL. Called opportunistically."""
     now = time.time()
@@ -470,6 +514,13 @@ async def _run_converse(
     # sentences and yield early -- reusing the SAME graceful partial-chunk
     # pattern that function already uses for its own rate-cap gate, so an
     # interrupted chunk just resumes next cycle, nothing is lost.
+    #
+    # GL-CMD-CONVERSE-FRAME-PRIORITY: mark a real conversational turn in flight
+    # for its whole duration (legacy OR GLEW path -- both go through here) so the
+    # in-process /sound_frame and /sight_frame handlers shed frames and stop
+    # starving this turn's core. Balanced by the finally below: it can never
+    # stick "on", even if the turn raises.
+    _converse_turn_begin()
     try:
         # GLEW cutover: when the new conversation engine is enabled, IT is the
         # single embedded mouth for this turn. Drive it and return -- the legacy
@@ -590,6 +641,11 @@ async def _run_converse(
         task["status"] = "error"
         task["error"] = str(_e)[:500]
         task["completed_at"] = time.time()
+    finally:
+        # GL-CMD-CONVERSE-FRAME-PRIORITY: always clear the in-flight mark, on
+        # normal completion, early return, or error -- frames must resume the
+        # instant the turn settles.
+        _converse_turn_end()
 
 
 def _schedule_mutating_background(coroutine_factory, *, name):
@@ -2399,6 +2455,18 @@ async def sight_frame(msg: GLMessage):
     if not b64_data:
         return {"ok": False, "error": "no frame data",
                 "object_name_recognition": recognition}
+    # GL-CMD-CONVERSE-FRAME-PRIORITY: while a real conversational turn is
+    # settling in this process, shed this frame (talking has priority for the
+    # core) using the SAME honest backpressure response the capacity gate below
+    # returns, which the UI already renders gracefully. Pure capacity/priority
+    # yield: never gated on frame content; embedded-only (remote mode already
+    # returned above); cleared the instant the turn settles.
+    if _converse_turn_in_flight():
+        return {"ok": False, "dropped": True,
+                "reason": "backpressure — sight-frame processing at capacity",
+                "converse_priority": True,
+                "n_dropped": _frame_dropped["sight"],
+                "object_name_recognition": recognition}
     if not _frame_backpressure_acquire("sight"):
         return {"ok": False, "dropped": True,
                 "reason": "backpressure — sight-frame processing at capacity",
@@ -2461,6 +2529,18 @@ async def sound_frame(msg: GLMessage):
     b64_data = (msg.text or "").strip()
     if not b64_data:
         return {"ok": False, "error": "no audio data",
+                "spoken_word_recognition": recognition}
+    # GL-CMD-CONVERSE-FRAME-PRIORITY: while a real conversational turn is
+    # settling in this process, shed this frame (talking has priority for the
+    # core) using the SAME honest backpressure response the capacity gate below
+    # returns, which the UI already renders gracefully. Pure capacity/priority
+    # yield: never gated on frame content; embedded-only (remote mode already
+    # returned above); cleared the instant the turn settles.
+    if _converse_turn_in_flight():
+        return {"ok": False, "dropped": True,
+                "reason": "backpressure — sound-frame processing at capacity",
+                "converse_priority": True,
+                "n_dropped": _frame_dropped["sound"],
                 "spoken_word_recognition": recognition}
     if not _frame_backpressure_acquire("sound"):
         return {"ok": False, "dropped": True,
