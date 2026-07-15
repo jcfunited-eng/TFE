@@ -111,4 +111,29 @@ Also housekeeping: stale WAL generation 13 (~707 MB) sits on EFS beside gen 14
 and should be reaped by the next compaction/restore; worth verifying it
 actually is.
 
+## Addendum (multi-agent deep sweep, same day)
+
+Five independent tracing agents cross-checked the above; the ranking holds
+(window store + copies ≈ 75–85% of heap). New confirmed details:
+
+- **The mirror is never read by recall.** In-code comment at the per-close
+  deepcopy site (window_manager.py:778): "Atlas receives a detached
+  compatibility copy. Recall never reads it." So option 4 (narrowing the
+  mirror) is lower-risk than assumed — the copy exists for legacy readers of
+  `atlas.windows`, not for the recall path. Still Eve's design; her call.
+- **Boot-transient triple-copy inflates RSS.** At boot, the language-fact
+  rebuild takes `window_manager.snapshot()` — a third full deepcopy — then
+  `json.dumps` the entire store into one throwaway multi-hundred-MB string.
+  CPython's allocator rarely returns those arenas, so ~1–3 GB of the RSS is
+  high-water-mark bloat, not live objects. Fixing the snapshot-based rebuild
+  would cut RSS without touching recall data at all.
+- **No cap exists even in name:** `MAX_CLOSED_WINDOWS` appears only in a
+  comment (engine:3544), never in code.
+- Organism pickle expands to ~0.45 GB; substrate ring ceiling ~0.3–0.4 GB;
+  both minor. The sweep's "open contexts ~0.15–0.19 GB" claim is WRONG —
+  live manifest measured 0 open contexts (the 27 MB manifest bulk is the
+  legacy-format `data` payload, not leaked contexts).
+- Generation ambiguity resolved empirically (see §4): live store = gen 14
+  = 708 MB; gen 13 (~707 MB) is a stale on-disk duplicate.
+
 — c1, 2026-07-15
