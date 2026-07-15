@@ -108,8 +108,18 @@ class CleanConversationEngine(Protocol):
         *,
         turn: CleanConversationTurn,
         story_chemistry: StoryChemistryRuntime,
+        is_final_scalar: bool = False,
     ) -> ConversationTransactionResult:
-        """Return only the typed result of ``run_clean_conversation_transaction``."""
+        """Return only the typed result of ``run_clean_conversation_transaction``.
+
+        ``is_final_scalar`` is the real, structural end-of-message signal the
+        ``MultiScalarTurnScheduler`` supplies for the last real Unicode scalar of
+        a real per-request turn (``index == len(text) - 1``); it defaults to
+        ``False`` so every other caller keeps the historical accumulate-only
+        behaviour. Only a genuinely-final scalar that commits closes the
+        accumulated expression (see ``clean_conversation_engine`` design section
+        12).
+        """
 
 
 class CleanConversationRequest(BaseModel):

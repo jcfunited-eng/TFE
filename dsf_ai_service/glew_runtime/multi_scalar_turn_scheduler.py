@@ -390,8 +390,22 @@ class MultiScalarTurnScheduler:
                 receipt_payload=payload,
             )
             turn.verify()
+            # The one real, non-fabricated end-of-message fact this scheduler
+            # already knows structurally: whether this is the LAST real Unicode
+            # scalar of the real per-request message. It is threaded to the
+            # engine so that, per design section 12, the final scalar of a
+            # committing turn closes the accumulated expression (making it
+            # emittable at exact close) while every earlier scalar keeps
+            # accumulating. This is a true fact about where the real message
+            # ends -- not a guess about semantic completeness, and not invented
+            # content. The scheduler owns no cognition here: it only reports the
+            # real index; the engine owns whether a close actually happens (only
+            # if the final scalar genuinely committed).
+            is_final_scalar = index == len(text) - 1
             result = self._engine.run_clean_conversation(
-                turn=turn, story_chemistry=story_chemistry
+                turn=turn,
+                story_chemistry=story_chemistry,
+                is_final_scalar=is_final_scalar,
             )
             if not isinstance(result, ConversationTransactionResult):
                 raise ReceiptError(

@@ -38,6 +38,9 @@ from dsf_ai_service.glew_runtime.expression_learning import (
     learn_committed_binding_transaction,
 )
 from dsf_ai_service.glew_runtime.model import receipt_sha256
+from dsf_ai_service.glew_runtime.multi_scalar_turn_scheduler import (
+    MultiScalarTurnScheduler,
+)
 from dsf_ai_service.glew_runtime.production_runtime_bootstrap import (
     _merge_registry,
     bootstrap_genesis_learned_binding_state,
@@ -612,3 +615,227 @@ def test_production_path_speaks_when_successor_is_archived_and_closed(tmp_path):
     assert (
         "initial event cites a different full-field commit" not in result.reason
     )
+
+
+# ===========================================================================
+# The final, fully-automatic proof: the SAME real seed -> off-disk restart ->
+# live rank-0->rank-2 regrowth -> repeat under a fresh id reproduction, but now
+# driven END TO END through the REAL PRODUCTION ENTRY POINT
+# (``MultiScalarTurnScheduler``, exactly what ``app.py``'s
+# ``_run_glew_converse_turn`` calls), reaches ``EXPRESSION_RELEASED`` with real,
+# non-empty ``visible_text`` WITHOUT ANY MANUAL INTERVENTION -- no
+# hand-installed learned state, no hand-injected episode, no manually-forced
+# close. The close is produced by the engine's own ``_learn_and_persist`` when
+# the scheduler reports the real final scalar of a real per-request message
+# (``index == len(text) - 1``) and that scalar genuinely commits.
+# ===========================================================================
+
+
+def _scheduler_turn(scheduler, story_chemistry, task_id: str, text: str):
+    """One real turn through the exact production entry point -- the scheduler
+    owns whether a scalar is final (``index == len(text) - 1``) and threads it
+    to the engine; nothing here forces a close."""
+
+    return scheduler.run_turn(
+        task_id=task_id, text=text, story_chemistry=story_chemistry, source="scheduler-recall-test"
+    )
+
+
+def test_scheduler_final_scalar_close_speaks_after_restart_no_manual_steps(tmp_path):
+    """DEFINITIVE, FULLY-AUTOMATIC end-to-end proof (design section 12's named
+    cognition gate, now closed by a real signal).
+
+    Real seed (root -> 'b', open) -> genuine second cold-start off disk -> live
+    rank-0 -> rank-2 mode-bank regrowth THROUGH THE REAL SCHEDULER -> a repeat
+    of the learned scalar under a genuinely fresh request id, all driven through
+    ``MultiScalarTurnScheduler`` (the exact production entry point ``app.py``
+    uses). No learned state is hand-installed, no episode is hand-injected, and
+    no close is manually forced anywhere: the ONLY new behaviour is that the
+    engine now closes the accumulated expression when the scheduler reports the
+    real final scalar of a committing turn.
+
+    The first repeat-'a' turn's recall runs BEFORE that turn's own close (recall
+    is silence: 'b' has no successor yet), and the turn then closes the seeded
+    'b' expression at its leaf. The SECOND repeat-'a' turn (a genuinely fresh
+    request id) recalls the now-closed expression and RELEASES 'b'. This is the
+    exact spoken output the whole investigation chain was chasing, reached with
+    zero manual intervention.
+    """
+
+    chemistry_hmac_key, checkpoint_hmac_key = _keys()
+    seed_first_successor(
+        generation_store_root=tmp_path,
+        chemistry_hmac_key=chemistry_hmac_key,
+        checkpoint_hmac_key=checkpoint_hmac_key,
+    )
+
+    # A genuine second cold-start off disk (a distinct in-memory engine).
+    engine = _cold_start(tmp_path, chemistry_hmac_key, checkpoint_hmac_key)
+    scheduler = MultiScalarTurnScheduler(engine=engine)
+    story_chemistry = _story_chemistry(chemistry_hmac_key)
+
+    # The seeded expression is genuinely OPEN going in (nothing closed by the
+    # seeder -- the seeder must never fabricate a close).
+    assert not engine._learned_state.terminal
+    assert engine._learned_state.pending_relation is not None
+    assert len(engine._scene_archive.episodes) == 1
+    assert engine._mode_bank.rank == 0
+
+    # Regrow the rank-0 bank live to rank two THROUGH THE SCHEDULER (both turns
+    # are honest no-commit silence -- growth only, no commit, so nothing closes).
+    r_a = _scheduler_turn(scheduler, story_chemistry, "regrow-a", "a")
+    r_b = _scheduler_turn(scheduler, story_chemistry, "regrow-b", "b")
+    assert r_a.all_silent and r_b.all_silent
+    assert engine._mode_bank.rank == 2
+    # Growth committed nothing, so the expression is still open and unarchived-anew.
+    assert not engine._learned_state.terminal
+    assert len(engine._scene_archive.episodes) == 1
+
+    # First repeat 'a' through the scheduler (its single scalar IS the final
+    # scalar): its recall is honest silence (the seeded 'b' still has no
+    # successor at recall time), and THEN -- automatically, no manual step --
+    # the engine closes the accumulated 'b' expression at its leaf.
+    first = _scheduler_turn(scheduler, story_chemistry, "close-a-fresh-id", "a")
+    assert first.all_silent
+    assert first.outcomes[0].result.visible_text == ""
+    # The close genuinely happened via the real mechanism: state is now terminal.
+    assert engine._learned_state.terminal
+    assert engine._learned_state.pending_relation is None
+    # A close archives no new scene (it carries no reconstructable coexperienced
+    # scene); the one seeded episode is untouched.
+    assert len(engine._scene_archive.episodes) == 1
+
+    # Second repeat 'a' under a genuinely fresh request id -> REAL SPOKEN OUTPUT,
+    # produced with ZERO manual intervention anywhere in this test.
+    second = _scheduler_turn(scheduler, story_chemistry, "emit-a-fresh-id", "a")
+    assert not second.all_silent
+    assert second.visible_scalar_texts == ("b",)
+    outcome = second.outcomes[0]
+    result = outcome.result
+    result.verify()
+    assert result.status is ConversationStatus.EXPRESSION_RELEASED
+    assert result.visible_text == "b"
+    # A genuine FRESH re-commit for turn B's recall (design section 11's T1
+    # requirement): a real commit receipt, not a replayed stored value.
+    assert result.commit_receipt_sha256 is not None
+    # None of the bookkeeping gates the prior fixes removed, and not the close
+    # gap this change closes.
+    assert "no coexperienced scene" not in result.reason
+    assert "no stable motif binding" not in result.reason
+    assert "fresh_reentry_UNKNOWN" not in result.reason
+
+
+def _committing_turn(engine, story_chemistry, task_id: str, text: str, is_final_scalar: bool):
+    payload = clean_conversation_turn_receipt_payload(
+        task_id=task_id, text=text, source="restart-recall-test"
+    )
+    turn = CleanConversationTurn(
+        task_id=task_id,
+        text=text,
+        source="restart-recall-test",
+        receipt_sha256=receipt_sha256(payload),
+        receipt_payload=payload,
+    )
+    turn.verify()
+    return engine.run_clean_conversation(
+        turn=turn, story_chemistry=story_chemistry, is_final_scalar=is_final_scalar
+    )
+
+
+def test_only_final_scalar_closes_nonfinal_stays_open(tmp_path):
+    """The multi-character-message invariant (design step 6): a committing
+    NON-final scalar keeps ``expression_close=False`` (stays open, still
+    accumulating) and must NOT spuriously close; a committing FINAL scalar
+    closes. Proven at the real engine surface with the real threaded
+    ``is_final_scalar`` signal -- no monkeypatch.
+
+    Deliberately proven on two independent fresh engines so neither half ever
+    drives a recall over a *cyclic* learned graph: with only two committable
+    genesis modes ('a' -> mode0, 'b' -> mode1) plus the seeded ``mode0 -> 'b'``,
+    accumulating a SECOND content successor (``mode1 -> 'a'``) makes the learned
+    graph cyclic, and the UNCHANGED recall settlement (``recall_reentry.
+    settle_complete_remembered_expression``) does not terminate on such a cycle
+    -- a real, PRE-EXISTING recall-mechanism limitation, wholly independent of
+    this close change (the cycle is created by the historical, unchanged
+    ``expression_close=False`` accumulation path, not by any close). This test
+    therefore verifies the close SEMANTICS without driving recall over a cyclic
+    graph; the cyclic-recall limitation is documented, not exercised here.
+    """
+
+    # -- half 1: a committing NON-final scalar accumulates but does NOT close --
+    chem1, ckpt1 = _keys()
+    seed_first_successor(
+        generation_store_root=tmp_path / "engine_a",
+        chemistry_hmac_key=chem1,
+        checkpoint_hmac_key=ckpt1,
+    )
+    engine_a = _cold_start(tmp_path / "engine_a", chem1, ckpt1)
+    sc1 = _story_chemistry(chem1)
+    _run_turn(engine_a, sc1, "regrow-a", "a")
+    _run_turn(engine_a, sc1, "regrow-b", "b")
+    assert engine_a._mode_bank.rank == 2
+    assert not engine_a._learned_state.terminal
+
+    # This turn's OWN recall runs on the still-acyclic seeded graph (mode1 has no
+    # successor yet -> honest silence, fast); its learn then accumulates a real
+    # content successor with expression_close=False. We assert it committed and
+    # did NOT close, then STOP (never driving another recall over the now-cyclic
+    # graph).
+    nonfinal = _committing_turn(engine_a, sc1, "nonfinal-a", "a", is_final_scalar=False)
+    assert nonfinal.initial_event_receipt_sha256 is not None  # it really committed
+    assert not engine_a._learned_state.terminal  # ... and did NOT close
+    assert engine_a._learned_state.pending_relation is not None
+
+    # -- half 2: a committing FINAL scalar DOES close (clean leaf, no cycle) --
+    chem2, ckpt2 = _keys()
+    seed_first_successor(
+        generation_store_root=tmp_path / "engine_b",
+        chemistry_hmac_key=chem2,
+        checkpoint_hmac_key=ckpt2,
+    )
+    engine_b = _cold_start(tmp_path / "engine_b", chem2, ckpt2)
+    sc2 = _story_chemistry(chem2)
+    _run_turn(engine_b, sc2, "regrow-a", "a")
+    _run_turn(engine_b, sc2, "regrow-b", "b")
+    assert not engine_b._learned_state.terminal
+
+    # Same scalar, but flagged as the real FINAL scalar: it closes the
+    # accumulated expression at its pending leaf (mode1 -> close), making the
+    # state terminal. Its recall runs on the acyclic seeded graph (fast silence).
+    final = _committing_turn(engine_b, sc2, "final-a", "a", is_final_scalar=True)
+    assert final.initial_event_receipt_sha256 is not None
+    assert engine_b._learned_state.terminal  # the final scalar closed it
+    assert engine_b._learned_state.pending_relation is None
+
+
+def test_scheduler_final_scalar_that_does_not_commit_forces_no_close(tmp_path):
+    """A real final scalar that does NOT commit has nothing to close, and the
+    engine forces no close attempt (design step 4: never force a close when
+    there is nothing real to close).
+
+    A brand-new scalar just grows the bank (honest no-commit silence). Even
+    though it is the final scalar of its turn, ``_learn_and_persist`` is never
+    reached (no commit), so the accumulated expression stays open, untouched.
+    """
+
+    chemistry_hmac_key, checkpoint_hmac_key = _keys()
+    seed_first_successor(
+        generation_store_root=tmp_path,
+        chemistry_hmac_key=chemistry_hmac_key,
+        checkpoint_hmac_key=checkpoint_hmac_key,
+    )
+    engine = _cold_start(tmp_path, chemistry_hmac_key, checkpoint_hmac_key)
+    scheduler = MultiScalarTurnScheduler(engine=engine)
+    story_chemistry = _story_chemistry(chemistry_hmac_key)
+
+    assert not engine._learned_state.terminal
+
+    # A genuinely novel single scalar (never grown) is the final scalar of its
+    # turn but only GROWS a mode -- it never commits, so it cannot and must not
+    # close anything.
+    result = _scheduler_turn(scheduler, story_chemistry, "novel-scalar", "q")
+    assert result.all_silent
+    assert not result.any_commit
+    # Nothing closed: the seeded expression is still open.
+    assert not engine._learned_state.terminal
+    assert engine._learned_state.pending_relation is not None

@@ -1362,6 +1362,31 @@ def settle_complete_remembered_expression(
     current_event = initial_event
     current_registry = receipt_registry
     transition_receipts: list[str] = []
+    # Second, independent structural termination bound (the first is the
+    # actuator's exact ``(source_state, transition_edge)`` cycle guard).  That
+    # guard cannot see a mutually-referencing learned cycle: every committed
+    # transition hash-chains the prior result state into the next one (see
+    # ``CoexperiencedSceneRecallProvider.settle``'s ``fresh_result_state`` /
+    # ``fresh_transition_edge`` payloads), so the exact state and edge advance
+    # every iteration and never repeat, even while the underlying mode/motif
+    # content revisits the same two nodes forever.
+    #
+    # A genuinely terminating settlement is bounded regardless.  Each committed
+    # content transition resolves exactly one successor binding from the FIXED
+    # ``stable_mode_motif_bank`` (``resolve_unique`` keyed on the selected
+    # mode's content-only field-evaluation identity), and that resolution is
+    # deterministic: the same mode identity always resolves the same successor,
+    # so a terminating walk can never revisit a mode it already left (revisiting
+    # one would deterministically re-enter that successor forever).  Distinct
+    # mode identities own disjoint binding groups, so the number of committed
+    # transitions a terminating walk can make is strictly bounded by the number
+    # of distinct learned successor bindings in the bank -- and, because the
+    # initial event's own successor binding is consumed before the loop, a
+    # legitimate chain stays at least one under that count.  Exceeding it is
+    # therefore proof of a real cycle, never a false positive on a long-but-
+    # finite chain.  This is a real, non-fabricated quantity (the current count
+    # of learned successors), not a wall clock or an arbitrary iteration cap.
+    max_committed_transitions = len(stable_mode_motif_bank.bindings)
     while True:
         output = actuator.process(
             event=current_event,
@@ -1449,6 +1474,37 @@ def settle_complete_remembered_expression(
             )
         if transition.next_event is None:
             raise ReceiptError("committed recall transition lost its next event")
+        if len(transition_receipts) > max_committed_transitions:
+            # Loud diagnostic on the established ``[glew]`` channel (matches the
+            # honest-failure pattern used elsewhere this session), but the turn
+            # resolves to honest typed silence -- never a raw exception, never a
+            # hang, never fabricated output.
+            print(
+                "[glew] recall settlement exceeded the learned-successor "
+                f"ceiling for expression {expression_id!r}: "
+                f"{len(transition_receipts)} committed transitions > "
+                f"{max_committed_transitions} distinct learned successor "
+                "bindings in the fixed stable mode/motif bank. A genuinely "
+                "terminating remembered expression resolves at most one "
+                "distinct successor binding per content transition and never "
+                "revisits a mode it already left, so exceeding that count is a "
+                "real recall cycle the exact (source_state, transition_edge) "
+                "actuator guard cannot see (the result state hash-chains "
+                "forward every iteration and so never repeats exactly). Failing "
+                "closed to honest typed silence -- no fabricated output, no hang.",
+                flush=True,
+            )
+            return _make_complete_result(
+                status=CompleteExpressionStatus.UNKNOWN_SILENCE,
+                text="",
+                final_output=output,
+                transition_receipts=tuple(transition_receipts),
+                missing_operator_id=FRESH_RECALL_SELF_SENSE_OPERATOR_ID,
+                reason=(
+                    "recall settlement exceeded the learned-successor ceiling; "
+                    "suspected cyclic remembered expression, failing closed to silence"
+                ),
+            )
         current_event = transition.next_event
         current_registry = transition.receipt_registry
 

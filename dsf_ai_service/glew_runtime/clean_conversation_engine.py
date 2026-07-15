@@ -201,6 +201,7 @@ from .expression_learning import (
     CommittedCoexperience,
     LearnedBindingState,
     _sensory_receipts,
+    create_coexperienced_no_output,
     learn_committed_binding_transaction,
     learned_binding_checkpoint_payload,
 )
@@ -851,18 +852,41 @@ class ProductionCleanConversationEngine:
         *,
         turn: CleanConversationTurn,
         story_chemistry: StoryChemistryRuntime,
+        is_final_scalar: bool = False,
     ) -> ConversationTransactionResult:
-        """Return only the typed result of ``run_clean_conversation_transaction``."""
+        """Return only the typed result of ``run_clean_conversation_transaction``.
 
+        ``is_final_scalar`` is the one real, non-fabricated close signal (see
+        :meth:`_learn_and_persist`): the ``MultiScalarTurnScheduler`` already
+        knows, structurally, which scalar (by ``index == len(text) - 1``) is the
+        last real Unicode scalar of the real per-request message a real person
+        actually sent this request, and threads that fact here. It defaults to
+        ``False`` so every lower-level or single-turn caller (and every existing
+        test) keeps the historical accumulate-only behaviour unchanged: only the
+        scheduler's genuinely-final scalar carries ``True``, and only that turn
+        (if it commits) closes the accumulating expression. This is a true fact
+        about where the real message ends -- not a guess about semantic
+        completeness, and not invented content.
+        """
+
+        if not isinstance(is_final_scalar, bool):
+            raise ReceiptError(
+                "is_final_scalar must be a real boolean end-of-message signal"
+            )
         turn.verify()
         with self._lock:
-            return self._run_locked(turn=turn, story_chemistry=story_chemistry)
+            return self._run_locked(
+                turn=turn,
+                story_chemistry=story_chemistry,
+                is_final_scalar=is_final_scalar,
+            )
 
     def _run_locked(
         self,
         *,
         turn: CleanConversationTurn,
         story_chemistry: StoryChemistryRuntime,
+        is_final_scalar: bool,
     ) -> ConversationTransactionResult:
         expression, language_input, preparation, registry = self._build_turn_expression(
             turn=turn, story_chemistry=story_chemistry
@@ -1004,6 +1028,7 @@ class ProductionCleanConversationEngine:
                 sealed=sealed,
                 commit_decision=commit_decision,
                 language_input=language_input,
+                is_final_scalar=is_final_scalar,
             )
 
         return result
@@ -1035,6 +1060,7 @@ class ProductionCleanConversationEngine:
         sealed: SealedClosedExperience,
         commit_decision: CommitDecision,
         language_input,
+        is_final_scalar: bool,
     ) -> None:
         if commit_decision.status is not CommitStatus.COMMIT:
             raise ReceiptError(
@@ -1052,52 +1078,60 @@ class ProductionCleanConversationEngine:
 
         prior_relation = self._learned_state.pending_relation
         if prior_relation is None:
-            # Expression already explicitly closed; nothing further to learn.
+            # Expression already explicitly closed (state is terminal); there is
+            # nothing left to accumulate OR to close.
             return
 
-        # Expression-close decision (a genuine cognition/policy call the
-        # design's own section 12 flagged as separate and, in its own words,
-        # one that "does not change any file named above"):
+        # Expression-close decision -- now driven by a real, non-fabricated
+        # signal (design section 12's named cognition gate).
         #
-        # This engine learns each committed turn's single coexperienced scalar
-        # with ``expression_close=False`` -- it does NOT auto-close after one
-        # scalar. That is the structurally correct choice for this engine's
-        # real usage pattern, for three grounded reasons:
+        # ``is_final_scalar`` is the one true fact the ``MultiScalarTurnScheduler``
+        # already knows structurally: which real Unicode scalar is the LAST one
+        # in the real per-request message a real person actually sent this
+        # request (``index == len(text) - 1``). That is a fact about where the
+        # real message ends -- not a guess about semantic completeness, and not
+        # invented content. Using it as the close signal encodes exactly one new
+        # decision: "the real per-request message has ended, so if its last real
+        # character committed, close what has been accumulated." It changes no
+        # recognition/commit/preflight/stable-binding mechanism.
         #
-        # 1. This model genuinely accumulates a multi-scalar expression across
-        #    turns. ``learn_committed_binding_transaction`` chains
-        #    ``pending_relation.selected_mode -> new content motif`` and moves
-        #    ``pending`` forward to the new scene, so each committing turn
-        #    extends the single ``LearnedBindingState``'s chain by exactly one
-        #    scalar (``initial_event`` stays anchored to genesis, so recall
-        #    replays the whole accumulated chain as one expression). This is
-        #    precisely "a real multi-scalar expression accumulates across
-        #    several learn calls before closing."
-        # 2. Unconditionally closing here is both wrong and fail-closed.
-        #    ``learn_committed_binding_transaction(expression_close=True)``
-        #    rejects a typed-scalar close (it requires an explicit no-output
-        #    coexperience), so a close is necessarily a second learn call
-        #    mapping the committed scene's mode -> a close motif. A committed
-        #    mode may now own several successors keyed by distinct transition
-        #    contexts (owner Requirement 2), so that mapping raises
-        #    ``ReceiptError("prior committed mode already learned this exact
-        #    transition context")`` only when the IDENTICAL transition context
-        #    is closed twice -- but auto-closing every single-scalar turn would
-        #    still truncate the accumulating expression and force the
-        #    single-expression state terminal after one turn.
-        # 3. WHEN an expression closes is a cognition decision this engine has
-        #    no signal for (``CleanConversationTurn`` carries only task_id /
-        #    text / source -- no utterance boundary). Choosing the close point
-        #    belongs to the not-yet-built section 9.3 multi-scalar turn
-        #    scheduler; fabricating a close policy here would be inventing
-        #    cognition, which this substrate forbids.
+        # * Every NON-final scalar keeps ``expression_close=False`` -- the
+        #   historical accumulate-only path, unchanged: it chains
+        #   ``pending_relation.selected_mode -> new content motif`` and moves
+        #   ``pending`` forward, so the single ``LearnedBindingState``'s chain
+        #   grows by one real scalar while ``initial_event`` stays anchored to
+        #   genesis (recall replays the whole accumulated chain as one
+        #   expression). This is "a real multi-scalar expression accumulates
+        #   across several learn calls before closing."
         #
-        # Emission of a learned scalar on recall is therefore gated on an
-        # explicit close (via the real, unchanged
-        # ``learn_committed_binding_transaction(expression_close=True)``
-        # mechanism, exercised by ``real_experience_learning_pipeline.
-        # close_real_multimodal_expression``), applied when an utterance is
-        # genuinely complete -- not smuggled into every single-scalar turn.
+        # * The FINAL scalar of a committing turn closes the accumulated
+        #   expression instead of extending it. ``learn_committed_binding_
+        #   transaction(expression_close=True)`` rejects a typed-scalar close --
+        #   it REQUIRES an explicit no-output coexperience (that module's own
+        #   "expression close requires explicit no-output coexperience" guard),
+        #   so a close is not "flip a boolean" but a genuinely different learn
+        #   call mapping the accumulated leaf mode -> a close motif via a real
+        #   ``create_coexperienced_no_output`` fact bound to this real committed
+        #   scene, exactly as ``real_experience_learning_pipeline.
+        #   close_real_multimodal_expression`` establishes (adapted here to reuse
+        #   THIS engine's own six-lane runtime and atomic persistence rather than
+        #   that narrower pipeline's). Because the close attaches to the current
+        #   ``pending`` leaf and adds no content binding, it makes the accumulated
+        #   expression terminal and emittable at exact close (``output.py`` /
+        #   ``recall_reentry.py`` release visible text only at exact expression
+        #   close) -- without ever fabricating a scalar or a meaning. This is the
+        #   single, honest cognition the scheduler's real end-of-message fact
+        #   authorises.
+        if is_final_scalar:
+            self._close_learned_expression(
+                turn=turn,
+                sealed=sealed,
+                committed=committed,
+                commit_decision=commit_decision,
+                prior_relation=prior_relation,
+            )
+            return
+
         try:
             new_state = learn_committed_binding_transaction(
                 state=self._learned_state,
@@ -1232,6 +1266,84 @@ class ProductionCleanConversationEngine:
 
         self._learned_state = new_state
         self._registry = new_state.receipt_registry
+        self._live_recall_state.update(
+            mode_bank=self._mode_bank,
+            scene_archive=self._scene_archive,
+            motif_kinds=self._learned_state.motif_kinds,
+        )
+        self._persist_checkpoint()
+
+    def _close_learned_expression(
+        self,
+        *,
+        turn: CleanConversationTurn,
+        sealed: SealedClosedExperience,
+        committed: CommittedCoexperience,
+        commit_decision: CommitDecision,
+        prior_relation,
+    ) -> None:
+        """Close the currently-accumulated expression at its pending leaf.
+
+        Called only for the real final scalar of a committing turn (see
+        :meth:`_learn_and_persist`). A close is NOT a content learn and NOT a
+        boolean flip: ``learn_committed_binding_transaction(expression_close=
+        True)`` requires an explicit ``create_coexperienced_no_output`` fact
+        bound to a real sealed committed scene (its own "expression close
+        requires explicit no-output coexperience" guard). This reuses the exact
+        real construction ``real_experience_learning_pipeline.
+        close_real_multimodal_expression`` establishes, but against THIS turn's
+        own just-committed six-lane scene and this engine's own atomic
+        persistence -- so the close is native to the same runtime the engine
+        commits and learns in, per this session's own two-pipeline distinction.
+
+        The close maps ``prior_relation.selected_mode`` (the accumulated leaf
+        mode) -> a close motif, adds no output binding, and makes the state
+        terminal; ``output.py`` / ``recall_reentry.py`` then release the
+        accumulated visible text at this exact close. No new scene is archived
+        (a close carries no reconstructable coexperienced scene); the existing
+        scene archive is untouched.
+
+        Fail-closed and honest: any receipt fault here is confined to this
+        learn/persist side effect. The real recognition+commit+recall result for
+        this turn was already computed and returned by ``_run_locked`` BEFORE
+        this method runs, so a close-side fault must never crash the turn and
+        must never become fabricated output. It is degraded to loud ``[glew]``
+        diagnostics (the owner's explicit rule: failure stays loud in
+        diagnostics but never becomes spoken output) with nothing assigned to
+        ``self`` -- the engine's learned state, archive, registry and checkpoint
+        tick are left exactly as they were.
+        """
+
+        registry = self._registry
+        try:
+            no_output, registry = create_coexperienced_no_output(
+                event_id=f"{turn.task_id}-expression-close-{self._checkpoint_tick}",
+                sealed=sealed,
+                source_authority_receipt_sha256=commit_decision.receipt_sha256,
+                receipt_registry=registry,
+            )
+            closed_state = learn_committed_binding_transaction(
+                state=self._learned_state,
+                committed=committed,
+                coexperienced_output=CoexperiencedOutput.from_no_output(no_output),
+                prior_relation=prior_relation,
+                relation_id=f"{turn.task_id}-expression-close-relation-{self._checkpoint_tick}",
+                expression_close=True,
+                receipt_registry=registry,
+            )
+        except ReceiptError as close_error:
+            print(
+                "[glew] expression-close degraded to honest typed silence for "
+                f"turn {turn.task_id!r}: {type(close_error).__name__}: "
+                f"{close_error} -- the accumulated expression could not be closed "
+                "this turn; the real recognition+commit+recall result is kept "
+                "unchanged (no fabricated output).",
+                flush=True,
+            )
+            return
+
+        self._learned_state = closed_state
+        self._registry = closed_state.receipt_registry
         self._live_recall_state.update(
             mode_bank=self._mode_bank,
             scene_archive=self._scene_archive,
