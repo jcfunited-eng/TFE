@@ -136,4 +136,37 @@ Five independent tracing agents cross-checked the above; the ranking holds
 - Generation ambiguity resolved empirically (see §4): live store = gen 14
   = 708 MB; gen 13 (~707 MB) is a stale on-disk duplicate.
 
+## Addendum 2 — corrections + fixes shipped (same night, after cross-session handoff)
+
+Cross-checked against GL-RPT-WAL-BLOAT-RAM-ROOT-CAUSE-C1-20260715-v1 (the
+concurrent session's independent 3-reader verification). Two corrections to
+this document:
+
+- **Gen 13 is NOT stale.** Compaction deliberately retains the previous
+  generation as crash fallback until the next compaction (window_manager
+  `_compact_locked` deletes only generations below the previous). The
+  "should be reaped" housekeeping note above is withdrawn. The real disk
+  issue is different: compact() runs unconditionally every ~30 min cold
+  save, rewriting the full ~707 MB store each time (their finding F3).
+- **My "0 open contexts" rebuttal was wrong.** My probe read the manifest's
+  top level; open_contexts sit under the envelope's `data` wrapper. The
+  concurrent session verified live: 170 never-closed contexts / 30,507
+  entries / 24.5 MB re-embedded in the manifest every ~60 s save, caused by
+  the close guard requiring the closing thread's bound contextvar (their
+  finding #2 / fix direction F2). The sweep agent was right; my correction
+  is retracted.
+
+Fixes shipped this night (verified, 94 tests pass, measured on
+production-shaped state):
+
+- **Mirror retired (F1, empty-sentinel variant)**: ~1.7 GB retained cut.
+- **Boot rebuild without snapshot() (option 5)**: ~3.6 GB transient
+  allocation per boot cut.
+
+Still open, in priority order: F2 (cross-thread close guard — also the
+mechanism that lets attending episodes grow without end), F3 (divergence-
+gated compaction), lazy closed-window store (RAM prune without deleting any
+memory — needs recall-latency design), reinforce-in-place for per-tick
+audio band entries (changes learning semantics — Eve), F4 robustness items.
+
 — c1, 2026-07-15
