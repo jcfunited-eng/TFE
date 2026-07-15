@@ -110,8 +110,12 @@ from dsf_ai_service.glew_runtime import (
 from dsf_ai_service.glew_runtime.clean_conversation_engine import (
     GenerationIdentityParameters,
 )
+from dsf_ai_service.glew_runtime.coexperienced_scene_archive import (
+    create_coexperienced_scene_episode,
+)
 from dsf_ai_service.glew_runtime.expression_learning import (
     CoexperiencedOutput,
+    _sensory_receipts,
     learn_committed_binding_transaction,
 )
 from dsf_ai_service.glew_runtime.production_runtime_bootstrap import (
@@ -139,6 +143,21 @@ GLEW_CHECKPOINT_HMAC_KEY_ENV = "GLEW_CHECKPOINT_HMAC_KEY"
 # Arbitrary-but-fixed technical id, in the same spirit as the bootstrap's own
 # ``{root_scene_id}-initial-relation``.
 FIRST_SUCCESSOR_RELATION_ID = f"{calibration.ENGINE_ID}-first-production-successor-relation"
+
+# The real scene id ``production_runtime_bootstrap.bootstrap_genesis_learned_
+# binding_state`` lives the ``"b"`` bootstrap scene under (its own default
+# ``bootstrap_scene_id`` == ``f"{engine_id}-genesis-bootstrap"``; the seeder
+# calls that function without overriding it, so this is the real, byte-exact id
+# that produced the seeded successor's six-lane sensory receipts). The seeded
+# coexperienced scene MUST be archived under this exact id: a later real recall
+# rebuilds the scene from ``(scene_task_id, scene_language_text)`` and that
+# ``task_id`` names the reconstructed receipts, so any other value would make
+# the archived episode unreconstructable (design section 6.2 /
+# ``coexperienced_scene_recall_executor._rebuild_scene``). A consistency gate in
+# ``seed_first_successor`` asserts this equals the genesis's own derived scene id
+# (via ``bootstrap_language.event.event_id``), failing closed if the bootstrap's
+# naming ever drifts.
+FIRST_SUCCESSOR_SCENE_TASK_ID = f"{calibration.ENGINE_ID}-genesis-bootstrap"
 
 
 class AlreadySeededError(RuntimeError):
@@ -286,12 +305,19 @@ def seed_first_successor(
        loudly otherwise -- that means the store is already seeded).
     3. Learn one real successor (the ``"b"`` genesis scalar) via the real
        ``learn_committed_binding_transaction`` mechanism.
-    4. Persist via the live engine's OWN ``_persist_checkpoint`` -- the same
+    4. Archive the SAME real ``CoexperiencedSceneEpisode`` the live learn path
+       (``clean_conversation_engine._learn_and_persist``) archives on every
+       real successful learn, built from the just-learned binding's own real
+       values, so the seeded scene episode survives restart via the checkpoint
+       (design section 7.1.3 / 9) instead of being lost to an empty archive.
+    5. Persist via the live engine's OWN ``_persist_checkpoint`` -- the same
        real ``ImmutableGenerationStore.commit(...)`` the running engine uses,
        not a reimplementation.
-    5. Cold-start AGAIN off disk (a genuine restore, a distinct in-memory
+    6. Cold-start AGAIN off disk (a genuine restore, a distinct in-memory
        object) and assert the restored ``initial_event`` is non-None and
-       byte-matches what was just persisted.
+       byte-matches what was just persisted, AND that the restored scene
+       archive is non-empty and resolves the seeded episode by the restored
+       binding's own six-lane key.
     """
 
     if not isinstance(chemistry_hmac_key, bytes) or not chemistry_hmac_key:
@@ -348,19 +374,83 @@ def seed_first_successor(
             "genesis; refusing to persist an inconsistent successor"
         )
 
-    # --- 4. persist via the engine's OWN real persistence path -----------
+    # --- 4. archive the coexperienced scene the learn just produced ------
+    # Mirror ``clean_conversation_engine._learn_and_persist``'s own real,
+    # proven "archive on learn" step exactly (design section 7.1.3 / 9): build
+    # the SAME ``CoexperiencedSceneEpisode`` a real live learn transaction
+    # archives for the scene it just learned, so the seeded scene episode
+    # SURVIVES restart via the checkpoint instead of being lost to an empty
+    # archive. Every value below is the real one this specific learn produced,
+    # cited exactly as ``_learn_and_persist`` cites them:
+    #   * the new binding is the sole output binding this learn added to the
+    #     genesis output bank (identical diff ``_learn_and_persist`` computes);
+    #   * ``sensory_receipts`` are the committed ``"b"`` scene's own six-lane,
+    #     non-language receipts (``_sensory_receipts(committed.sealed)``), which
+    #     the new binding already carries -- asserted equal, as the live path
+    #     asserts, so an inconsistent episode fails closed;
+    #   * the coexperienced scalar / scene language text are the real learned
+    #     ``"b"`` scalar (``bootstrap_language.event.normalized_text``);
+    #   * the scene task id is the real bootstrap scene id this seeding lived
+    #     the ``"b"`` scene under (gate below ties it to the genesis's own
+    #     derived id);
+    #   * the engine id is the engine's own real id.
+    prior_binding_ids = {
+        value.binding_receipt_sha256
+        for value in genesis_result.genesis.output_bank.bindings
+    }
+    new_bindings = tuple(
+        value
+        for value in learned.output_bank.bindings
+        if value.binding_receipt_sha256 not in prior_binding_ids
+    )
+    if len(new_bindings) != 1:
+        raise RuntimeError(
+            "seeder expected exactly one new learned output binding to archive"
+        )
+    new_binding = new_bindings[0]
+    sensory_receipts = _sensory_receipts(genesis_result.bootstrap_committed.sealed)
+    if new_binding.sensory_evidence_receipt_sha256s != sensory_receipts:
+        raise RuntimeError(
+            "seeded binding sensory evidence differs from the committed bootstrap "
+            "scene's six-lane receipts; refusing to archive an inconsistent episode"
+        )
+    scalar_text = genesis_result.bootstrap_language.event.normalized_text
+    # Fail closed if the bootstrap's scene-id naming ever drifts from the id
+    # this seeder archives under (the recall rebuild is keyed on it): the
+    # genesis's own language event id is ``f"{bootstrap_scene_id}-language"``.
+    if genesis_result.bootstrap_language.event.event_id != (
+        f"{FIRST_SUCCESSOR_SCENE_TASK_ID}-language"
+    ):
+        raise RuntimeError(
+            "re-derived bootstrap scene id does not match the seeder's archived "
+            "scene task id; refusing to archive an unreconstructable episode"
+        )
+    episode = create_coexperienced_scene_episode(
+        profile_binding_sha256=learned.receipt_registry.profile_binding_sha256,
+        motif_receipt_sha256=new_binding.motif_receipt_sha256,
+        sensory_evidence_receipt_sha256s=sensory_receipts,
+        coexperienced_scalar_text=scalar_text,
+        scene_task_id=FIRST_SUCCESSOR_SCENE_TASK_ID,
+        scene_language_text=scalar_text,
+        engine_id=engine._engine_id,
+    )
+
+    # --- 5. persist via the engine's OWN real persistence path -----------
     # Reuse ``_persist_checkpoint`` exactly (do not reimplement persistence):
-    # install the just-learned state as the engine's learned state and drive
-    # the engine's own checkpoint commit. ``engine._scene_archive`` is the
-    # empty ``CoexperiencedSceneArchive`` the fresh-genesis bootstrap already
-    # constructed -- persisting it matches the proven round-trip template
-    # (which also persists an empty archive; a restored generation's mode bank
-    # is re-mounted at rank zero, so scene episodes would be recall-inert until
-    # re-lived anyway -- design section 9).
+    # install the just-learned state AND the just-built non-empty scene archive
+    # as the engine's own, mirror ``_learn_and_persist``'s own live-recall-state
+    # republish, and drive the engine's own checkpoint commit -- the same real
+    # ``ImmutableGenerationStore.commit(...)`` the running engine uses.
     engine._learned_state = learned
+    engine._scene_archive = engine._scene_archive.with_episode(episode)
+    engine._live_recall_state.update(
+        mode_bank=engine._mode_bank,
+        scene_archive=engine._scene_archive,
+        motif_kinds=learned.motif_kinds,
+    )
     engine._persist_checkpoint()
 
-    # --- 5. genuine round-trip proof (real restore off disk) -------------
+    # --- 6. genuine round-trip proof (real restore off disk) -------------
     restored_engine = _cold_start(
         generation_store_root=generation_store_root,
         chemistry_hmac_key=chemistry_hmac_key,
@@ -398,6 +488,35 @@ def seed_first_successor(
     if restored.terminal != learned.terminal:
         raise RuntimeError("round-trip restored terminal flag does not match")
     restored.verify()
+
+    # The seeded coexperienced scene episode SURVIVED the restart via the
+    # checkpoint (design section 9's promise, now actually met) and is
+    # resolvable by the restored successor binding's own six-lane key -- the
+    # exact resolve the live recall path performs. A genuinely empty restored
+    # archive (the pre-fix bug) fails closed here, before the seeder ever
+    # reports success.
+    if len(restored.output_bank.bindings) != 1:
+        raise RuntimeError(
+            "round-trip restored output bank does not hold exactly the one seeded "
+            "binding"
+        )
+    restored_binding = restored.output_bank.bindings[0]
+    if not restored_engine._scene_archive.episodes:
+        raise RuntimeError(
+            "round-trip restore produced an EMPTY coexperienced scene archive after "
+            "seeding -- the seeded scene episode did not survive restart"
+        )
+    resolved_episode = restored_engine._scene_archive.resolve(
+        profile_binding_sha256=restored_binding.profile_binding_sha256,
+        sensory_evidence_receipt_sha256s=(
+            restored_binding.sensory_evidence_receipt_sha256s
+        ),
+    )
+    resolved_episode.verify()
+    if resolved_episode.episode_receipt_sha256 != episode.episode_receipt_sha256:
+        raise RuntimeError(
+            "round-trip restored scene episode does not byte-match the seeded episode"
+        )
 
 
 def _resolve_store_root(argv: list[str]) -> Path:
@@ -462,7 +581,9 @@ def main(argv: list[str] | None = None) -> int:
         f"SEED_RESULT=SUCCESS store_root={store_root} "
         f"engine_id={calibration.ENGINE_ID} "
         f"relation_id={FIRST_SUCCESSOR_RELATION_ID} "
-        "(one real first learned successor persisted and round-trip restored; "
+        f"scene_task_id={FIRST_SUCCESSOR_SCENE_TASK_ID} "
+        "(one real first learned successor persisted with its coexperienced "
+        "scene episode archived, and round-trip restored; "
         "GLEW_CONVERSATION_ENGINE_ENABLED may now be turned on)"
     )
     return 0
@@ -477,6 +598,7 @@ __all__ = (
     "GLEW_CHEMISTRY_HMAC_KEY_ENV",
     "GLEW_CHECKPOINT_HMAC_KEY_ENV",
     "FIRST_SUCCESSOR_RELATION_ID",
+    "FIRST_SUCCESSOR_SCENE_TASK_ID",
     "seed_first_successor",
     "main",
 )

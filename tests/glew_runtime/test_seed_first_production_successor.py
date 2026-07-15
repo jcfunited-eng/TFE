@@ -229,11 +229,16 @@ def test_seeded_successor_resolves_after_restart_and_live_bank_regrowth(tmp_path
     resolves its stored successor.
 
     This drives the REAL production seeder + bootstrap restore + live engine --
-    no monkeypatching -- and proves the failure is gone.  This fixture seeds an
-    EMPTY coexperienced-scene archive, so the turn then honestly lands on the
-    separate, pre-existing, documented empty-archive fresh-recall gap (the same
-    ``fresh_reentry_UNKNOWN`` state ``test_reproducible_experience_identity``'s
-    same-process end-to-end test reaches), never fabricated output.
+    no monkeypatching -- and proves the fourth-layer failure is gone.  The
+    seeder now ALSO archives the successor's coexperienced scene episode (the
+    fifth-layer empty-archive gap is closed), so recall genuinely resolves and
+    stages the scalar.  What honestly remains is the SEPARATE, expected
+    expression-close gap: the seeder learns 'b' without closing the expression
+    (a genuine cognition/policy decision, handled separately -- the seeder must
+    never fabricate a close), so the recalled 'b' scene's own mode has no
+    learned successor and the chain cannot advance to an exact close.  The turn
+    therefore honestly stays typed silence (``fresh_reentry_UNKNOWN``), never
+    fabricated output.
     """
 
     chemistry_hmac_key, checkpoint_hmac_key = _keys()
@@ -278,22 +283,40 @@ def test_seeded_successor_resolves_after_restart_and_live_bank_regrowth(tmp_path
     assert result.commit_receipt_sha256 is not None
     assert result.initial_event_receipt_sha256 is not None
 
-    # The fixed defect is GONE: a legitimately regrown mode no longer fails the
-    # bookkeeping-tainted receipt lookup.
-    assert "no stable motif binding" not in result.reason
+    # The fourth-layer defect is GONE: a legitimately regrown mode no longer
+    # fails the bookkeeping-tainted receipt lookup at the initial-output
+    # preflight (that failure surfaced as ``receipt_failure:...``; the real
+    # commit + non-None initial event above already prove that preflight
+    # resolved).
+    assert "receipt_failure:" not in result.reason
 
-    # Only the separate, documented empty-archive fresh-recall gap remains.
+    # The fifth-layer empty-archive gap is ALSO gone: the seeder now archives
+    # the successor's coexperienced scene episode, so recall no longer misses
+    # for lack of a stored scene -- ``no coexperienced scene`` is absent.
+    assert "no coexperienced scene" not in result.reason
+
+    # What honestly remains is the SEPARATE, expected expression-close gap:
+    # recall resolves the archived 'b' scene and privately stages 'b', then
+    # finds the recalled 'b' scene's own mode has no learned successor -- because
+    # this seeder learns 'b' WITHOUT closing the expression (a genuine
+    # cognition/policy decision, handled separately; the seeder must never
+    # fabricate a close). The chain therefore cannot advance to an exact
+    # expression-close and honestly stays typed silence.
     assert result.status is ConversationStatus.EXPLICIT_UNKNOWN_SILENCE
-    assert "fresh_reentry_UNKNOWN" in result.reason
-    assert "no coexperienced scene" in result.reason
+    assert result.reason == (
+        "fresh_reentry_UNKNOWN:fresh recall transition failed exact "
+        "verification: selected mode has no stable motif binding"
+    )
     assert result.silent
     assert result.visible_text == ""
 
 
 # ---------------------------------------------------------------------------
-# The FIFTH-layer investigation: the restart+regrow archive-miss is the empty
-# archive, NOT a bookkeeping-vs-content key mismatch -- and what actually gates
-# real spoken output. (docs handoff: GL-FIX-RECALL-FIFTH-LAYER-*.)
+# The FIFTH-layer gap is now CLOSED: the seeder archives the successor's
+# coexperienced scene episode, so the restart+regrow recall no longer misses on
+# an empty archive. The reproduction below confirms the archive is non-empty and
+# resolvable, and the failure mode has shifted to the separate, expected
+# expression-close gap. (docs handoff: GL-FIX-RECALL-FIFTH-LAYER-*.)
 # ---------------------------------------------------------------------------
 
 
@@ -339,28 +362,79 @@ def _bootstrap_scene_task_id() -> str:
     return f"{calibration.ENGINE_ID}-genesis-bootstrap"
 
 
-def test_restart_regrow_archive_miss_is_the_empty_archive_not_a_key_mismatch(tmp_path):
-    """The restart+regrow recall miss is the seed's EMPTY archive, not a
-    bookkeeping-vs-content mismatch in the archive resolve KEY.
+def test_seed_first_successor_archives_a_resolvable_scene_episode(tmp_path):
+    """After the fix, the seeder persists a NON-EMPTY coexperienced scene
+    archive whose single episode round-trips through a genuine cold-start
+    restore and resolves by the restored successor binding's OWN six-lane key
+    ``(profile_binding_sha256, sensory_evidence_receipt_sha256s)`` -- with no
+    key change at all.
 
-    The hypothesized "fifth layer" was that ``archive.resolve`` misses because a
-    fresh turn's own recomputed ``sensory_evidence_receipt_sha256s`` differ from
-    the stored episode's (a bookkeeping-tainted lookup, the sibling of the four
-    fixes before it). This test proves that is NOT what happens here: the miss
-    occurs against a genuinely EMPTY archive (``seed_first_successor`` persists
-    an empty ``CoexperiencedSceneArchive`` -- ``seed_first_production_successor.
-    py`` lines under "-- 4. persist ..."), and the regrowth turns 'a'/'b' commit
-    nothing (rank-0/rank-1 growth is ``EXPLICIT_NO_COMMIT_SILENCE``), so they
-    never learn or archive anything either. There is simply no episode to
-    resolve -- a genuinely different, pre-existing limitation, not the receipt
-    defect class.
+    This is the direct, focused proof of condition (1) of the recall design's
+    own stated intent (``GL-SPC-RECALL-BASIN-RECONCILIATION-DESIGN``): scene
+    episodes survive restart via the checkpoint.  Before the fix the seeder
+    persisted an empty ``CoexperiencedSceneArchive``; the restored archive here
+    is now non-empty and its episode is the exact one the seeder built from the
+    real learned binding, byte-verifiable via its own receipt.  Drives the REAL
+    seeder + real bootstrap restore off disk; no monkeypatching.
+    """
 
-    It then REFUTES the key-mismatch hypothesis directly: the restored
-    successor binding's own six-lane sensory receipts ARE a valid, resolvable
-    archive key -- the episode a close-capable seed would have archived (built
-    from the restored binding + the deterministic bootstrap scene id) resolves
-    that exact binding with no key change at all. So the resolve key is not the
-    blocker; the archive being empty is.
+    chemistry_hmac_key, checkpoint_hmac_key = _keys()
+    seed_first_successor(
+        generation_store_root=tmp_path,
+        chemistry_hmac_key=chemistry_hmac_key,
+        checkpoint_hmac_key=checkpoint_hmac_key,
+    )
+
+    # A genuine, independent second cold-start off the same directory: the scene
+    # archive is RESTORED from the checkpoint the seeder wrote.
+    engine = _cold_start(tmp_path, chemistry_hmac_key, checkpoint_hmac_key)
+
+    # NON-EMPTY: the seeded successor's coexperienced scene episode survived the
+    # restart (the pre-fix bug persisted an empty archive here).
+    assert len(engine._scene_archive.episodes) == 1
+    episode = engine._scene_archive.episodes[0]
+    episode.verify()  # byte-exact content address holds after the round trip
+    assert episode.coexperienced_scalar_text == "b"
+    assert episode.scene_language_text == "b"
+    assert episode.scene_task_id == _bootstrap_scene_task_id()
+    assert episode.engine_id == calibration.ENGINE_ID
+
+    # RESOLVABLE by the restored successor binding's OWN six-lane key -- exactly
+    # the resolve the live recall path performs -- with no key change.
+    restored_binding = engine._learned_state.output_bank.bindings[0]
+    assert restored_binding.decoded_scalar() == "b"
+    resolved = engine._scene_archive.resolve(
+        profile_binding_sha256=restored_binding.profile_binding_sha256,
+        sensory_evidence_receipt_sha256s=(
+            restored_binding.sensory_evidence_receipt_sha256s
+        ),
+    )
+    assert resolved.episode_receipt_sha256 == episode.episode_receipt_sha256
+    # The archived episode's cited receipts ARE the learned binding's own
+    # six-lane sensory receipts and its content motif -- not a re-derived guess.
+    assert resolved.motif_receipt_sha256 == restored_binding.motif_receipt_sha256
+    assert (
+        resolved.sensory_evidence_receipt_sha256s
+        == restored_binding.sensory_evidence_receipt_sha256s
+    )
+
+
+def test_restart_regrow_now_reaches_close_gap_not_archive_miss(tmp_path):
+    """The restart+regrow reproduction, adapted: the fifth-layer empty-archive
+    miss is GONE, and the failure mode has shifted to the separate, expected
+    expression-close gap.
+
+    Before the fix, the seeded archive was empty, so the regrown third-'a' turn
+    honestly missed with ``no coexperienced scene``.  Now the seeder archives
+    the successor's coexperienced scene episode, so that same turn RESOLVES the
+    archived 'b' scene and privately stages 'b' -- then honestly stops because
+    the recalled 'b' scene's own mode has no learned successor (this seeder
+    learns 'b' WITHOUT closing the expression, a genuine cognition/policy
+    decision handled separately; the seeder must never fabricate a close).
+
+    Drives the REAL seeder + real bootstrap restore + live regrowth -- no
+    monkeypatching.  Confirms the exact new honest reason string and that the
+    old archive-miss signature is absent.
     """
 
     chemistry_hmac_key, checkpoint_hmac_key = _keys()
@@ -372,51 +446,51 @@ def test_restart_regrow_archive_miss_is_the_empty_archive_not_a_key_mismatch(tmp
     engine = _cold_start(tmp_path, chemistry_hmac_key, checkpoint_hmac_key)
     story_chemistry = _story_chemistry(chemistry_hmac_key)
 
-    # The seed persisted an EMPTY scene archive -- nothing to recall against.
-    assert engine._scene_archive.episodes == ()
+    # The seeded scene archive is NON-EMPTY going into the reproduction (the
+    # pre-fix bug left it empty here) -- so recall has a real scene to resolve.
+    assert len(engine._scene_archive.episodes) == 1
 
     # Regrow the rank-0 bank; both regrowth turns are honest no-commit silence
-    # (growth, never a commit), so they archive nothing.
+    # (growth, never a commit), so they archive nothing new.
     r_a = _run_turn(engine, story_chemistry, "restart-a-1", "a")
     r_b = _run_turn(engine, story_chemistry, "restart-b-1", "b")
     assert r_a.status is ConversationStatus.EXPLICIT_NO_COMMIT_SILENCE
     assert r_b.status is ConversationStatus.EXPLICIT_NO_COMMIT_SILENCE
     assert engine._mode_bank.rank == 2
-    # The archive is STILL empty going into the third 'a' -- the resolve that is
-    # about to miss runs against zero stored episodes.
-    assert engine._scene_archive.episodes == ()
+    # The one seeded episode is still the only archived scene going into the
+    # third 'a' (regrowth committed nothing, so archived nothing new).
+    assert len(engine._scene_archive.episodes) == 1
 
     result = _run_turn(engine, story_chemistry, "restart-a-2-fresh-id", "a")
     result.verify()
-    assert result.status is ConversationStatus.EXPLICIT_UNKNOWN_SILENCE
-    assert "no coexperienced scene" in result.reason
 
-    # --- Refute the key-mismatch hypothesis directly -------------------------
-    # The restored successor binding's own sensory receipts ARE a resolvable
-    # key: the episode a close-capable seed would have persisted (built from the
-    # restored binding + the deterministic bootstrap scene id, NO key change)
-    # resolves that exact binding. The resolve key was never the blocker.
+    # The archive miss is GONE: recall resolved the archived 'b' scene rather
+    # than missing on an empty archive.
+    assert "no coexperienced scene" not in result.reason
+    # The exact NEXT honest state is the separate, expected expression-close
+    # gap: the recalled 'b' scene's own mode has no learned successor because the
+    # expression was never closed, so the recall chain cannot advance to an exact
+    # expression-close and honestly stays typed silence.
+    assert result.status is ConversationStatus.EXPLICIT_UNKNOWN_SILENCE
+    assert result.reason == (
+        "fresh_reentry_UNKNOWN:fresh recall transition failed exact "
+        "verification: selected mode has no stable motif binding"
+    )
+    assert result.silent
+    assert result.visible_text == ""
+
+    # Directly reconfirm the resolve key was never the blocker: the restored
+    # successor binding's own six-lane receipts resolve the seeded episode with
+    # no key change at all.
     restored_binding = engine._learned_state.output_bank.bindings[0]
     assert restored_binding.decoded_scalar() == "b"
-    would_be_episode = create_coexperienced_scene_episode(
-        profile_binding_sha256=engine._registry.profile_binding_sha256,
-        motif_receipt_sha256=restored_binding.motif_receipt_sha256,
-        sensory_evidence_receipt_sha256s=(
-            restored_binding.sensory_evidence_receipt_sha256s
-        ),
-        coexperienced_scalar_text="b",
-        scene_task_id=_bootstrap_scene_task_id(),
-        scene_language_text="b",
-        engine_id=calibration.ENGINE_ID,
-    )
-    populated = CoexperiencedSceneArchive().with_episode(would_be_episode)
-    resolved = populated.resolve(
+    resolved = engine._scene_archive.resolve(
         profile_binding_sha256=restored_binding.profile_binding_sha256,
         sensory_evidence_receipt_sha256s=(
             restored_binding.sensory_evidence_receipt_sha256s
         ),
     )
-    assert resolved.episode_receipt_sha256 == would_be_episode.episode_receipt_sha256
+    assert resolved.motif_receipt_sha256 == restored_binding.motif_receipt_sha256
 
 
 def test_production_path_speaks_when_successor_is_archived_and_closed(tmp_path):
