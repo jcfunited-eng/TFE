@@ -902,6 +902,9 @@ SLEEP_HTTP=$(printf '%s\n' "${SLEEP_RESPONSE}" | awk -F__HTTP__ '/__HTTP__/{prin
 SLEEP_BODY=$(printf '%s\n' "${SLEEP_RESPONSE}" | awk '!/__HTTP__/')
 if [ "${SLEEP_HTTP}" != "200" ]; then
     echo "ERROR: deploy seal returned HTTP ${SLEEP_HTTP}; refusing turnover"
+    # The 503 body carries the runtime's actual refusal reason and lifecycle
+    # snapshot; without it a failed seal is undiagnosable (2026-07-15).
+    echo "       seal response body: ${SLEEP_BODY}"
     exit 1
 fi
 
