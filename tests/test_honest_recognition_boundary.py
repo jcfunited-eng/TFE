@@ -202,13 +202,26 @@ def test_production_surfaces_contain_no_pretrained_recognition_authority():
     assert "faster-whisper==" in dockerfile
     assert "WhisperModel('tiny'" in dockerfile
     assert "ENV VOICE_WHISPER=1" in dockerfile
-    other_surfaces = "\n".join(
-        (ROOT / path).read_text()
-        for path in ["dsf_ai_service/Dockerfile.nogil",
-                     "tools/deploy_dsf_ai.sh"])
+    nogil_dockerfile = (ROOT / "dsf_ai_service/Dockerfile.nogil").read_text()
     for token in ["faster_whisper", "faster-whisper", "WhisperModel",
                   "VOICE_WHISPER", "WHISPER_MODEL_PATH"]:
-        assert token not in other_surfaces
+        assert token not in nogil_dockerfile
+    # 0238cc3 (Change 4 STT staging): the deploy chain deliberately pins
+    # VOICE_WHISPER '0' in the task definition — the image defaults it on,
+    # the SENSE stays off until the acceptance gate (spec v3 criterion 7)
+    # passes live, and enabling is done by DELETING the pin, never by
+    # editing it. The pin is configuration, not recognition authority: the
+    # deploy script still may not name the model/library surfaces, and the
+    # pin's value must remain exactly '0'.
+    deploy_script = (ROOT / "tools/deploy_dsf_ai.sh").read_text()
+    for token in ["faster_whisper", "faster-whisper", "WhisperModel",
+                  "WHISPER_MODEL_PATH"]:
+        assert token not in deploy_script
+    assert "{'name': 'VOICE_WHISPER', 'value': '0'}" in deploy_script
+    assert deploy_script.count("VOICE_WHISPER") == deploy_script.count(
+        "{'name': 'VOICE_WHISPER', 'value': '0'}") + deploy_script.count(
+        "VOICE_WHISPER=1")  # prose mentions of the image default only
+    assert "{'name': 'VOICE_WHISPER', 'value': '1'}" not in deploy_script
 
     html = (ROOT / "dsf_ai_service/static/gualaloom.html").read_text()
     assert "spoken-word recognition unavailable" in html
