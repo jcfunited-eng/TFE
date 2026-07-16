@@ -17,8 +17,13 @@ processes, real queues, real death and respawn — never a mocked process:
   - a per-request inference error is reported without crashing the worker;
   - seal teardown terminates and joins the child (deploy-seal lifecycle);
   - the public surface (transcribe_sound / require_speech_recognizer) routes
-    to the worker only when VOICE_WHISPER_WORKER=1, and is otherwise the
-    unchanged in-process path.
+    to the worker BY DEFAULT (spec v3 STT staging: VOICE_WHISPER_WORKER
+    defaults 1); VOICE_WHISPER_WORKER=0 is the explicit embedded escape
+    hatch that keeps the unchanged in-process path;
+  - the RSS watchdog (acceptance criterion 7): a worker that grows past
+    SPEECH_WORKER_RSS_BUDGET_MB is killed — the worker, never the parent —
+    the breach is counted in telemetry, and the existing respawn-with-
+    backoff machinery recovers the sense on the next demand.
 
 Fake worker targets are module-level (picklable across spawn); the tests dir
 is placed on sys.path so the spawned child can import this module to resolve
@@ -83,7 +88,31 @@ def _fake_worker_inference_error(request_q, response_q, model_path):
         response_q.put((req_id, "error", "RuntimeError: inference exploded"))
 
 
+def _fake_worker_bloat_on_command(request_q, response_q, model_path):
+    """Ready worker that REALLY gets fat (~128MB resident) on b"__bloat__".
+
+    Real memory in a real spawned process — the watchdog reads actual
+    /proc RSS, no faked numbers anywhere.
+    """
+    response_q.put((_WORKER_STARTUP_TAG, "ready", ""))
+    ballast = []
+    while True:
+        item = request_q.get()
+        if item == _WORKER_SHUTDOWN:
+            return
+        req_id, audio = item
+        if audio == b"__bloat__":
+            ballast.append(b"\xab" * (128 * 1024 * 1024))
+        response_q.put((req_id, "ok", f"ballast:{len(ballast)}"))
+
+
 # ── helpers ─────────────────────────────────────────────────────────────────
+
+import time as _time_mod
+
+_time_now = _time_mod.monotonic
+_time_sleep = _time_mod.sleep
+
 
 def _fake_manager(target, **kwargs):
     kwargs.setdefault("startup_timeout", 20.0)
@@ -274,8 +303,10 @@ def test_require_speech_recognizer_readies_worker_when_enabled(monkeypatch):
     assert handle.available is True
 
 
-def test_disabled_worker_flag_keeps_the_in_process_path(monkeypatch):
-    monkeypatch.delenv("VOICE_WHISPER_WORKER", raising=False)
+def test_escape_hatch_zero_keeps_the_in_process_path(monkeypatch):
+    # Spec v3 staged truth: worker lane is the default; "0" is the explicit
+    # embedded escape hatch and must still be byte-for-byte the old path.
+    monkeypatch.setenv("VOICE_WHISPER_WORKER", "0")
 
     class _FakeRecognizer:
         available = True
@@ -296,8 +327,209 @@ def test_disabled_worker_flag_keeps_the_in_process_path(monkeypatch):
     assert transducer.transcribe_sound(b"aud") == "in-process"
 
 
-def test_worker_flag_is_off_by_default(monkeypatch):
+def test_worker_lane_is_the_default_with_explicit_escape_hatch(monkeypatch):
+    # Spec v3 STT staging (acceptance criterion 7): out-of-process worker is
+    # the DEFAULT lane when STT is on; 0 is the explicit escape hatch.
     monkeypatch.delenv("VOICE_WHISPER_WORKER", raising=False)
+    assert transducer._speech_worker_enabled() is True
+    monkeypatch.setenv("VOICE_WHISPER_WORKER", "0")
     assert transducer._speech_worker_enabled() is False
     monkeypatch.setenv("VOICE_WHISPER_WORKER", "1")
     assert transducer._speech_worker_enabled() is True
+
+
+# ── RSS watchdog: a fat worker dies, the substrate never does ────────────────
+
+def test_rss_reader_reports_a_real_process():
+    rss = transducer._read_process_rss_bytes(os.getpid())
+    assert rss is not None and rss > 1024 * 1024, "our own RSS is > 1MB"
+    assert transducer._read_process_rss_bytes(2**22 + 12345) is None
+
+
+def test_rss_budget_default_and_env_override(monkeypatch):
+    monkeypatch.delenv("SPEECH_WORKER_RSS_BUDGET_MB", raising=False)
+    manager = _fake_manager(_fake_worker_echo_crash)
+    assert manager._rss_budget_bytes() == 1024 * 1024 * 1024, "1GB default"
+    monkeypatch.setenv("SPEECH_WORKER_RSS_BUDGET_MB", "512")
+    assert manager._rss_budget_bytes() == 512 * 1024 * 1024, "env-tunable"
+    override = _fake_manager(_fake_worker_echo_crash, rss_budget_mb=64)
+    assert override._rss_budget_bytes() == 64 * 1024 * 1024
+
+
+def test_rss_watchdog_kills_fat_worker_then_respawn_recovers_the_sense():
+    manager = _fake_manager(
+        _fake_worker_bloat_on_command,
+        rss_budget_mb=64, rss_poll_interval=0.05)
+    try:
+        # Healthy worker under budget: served, watched, unbreached.
+        assert manager.transcribe(b"hello") == "ballast:0"
+        assert manager.rss_breaches == 0
+        first_pid = manager._proc.pid
+
+        # The worker gets fat (real ~128MB allocation in the real child).
+        # The watchdog may kill it mid-request (equally valid: the death is
+        # visible, never a fabricated transcript) or just after replying.
+        try:
+            assert manager.transcribe(b"__bloat__") == "ballast:1"
+        except transducer.SpeechTranscriptionError:
+            pass
+
+        # The watchdog observes the real RSS and kills the WORKER.
+        deadline = _time_now() + 15.0
+        while manager.available and _time_now() < deadline:
+            _time_sleep(0.05)
+        assert not manager.available, "watchdog killed the fat worker"
+        assert manager.rss_breaches == 1
+
+        # Telemetry is honest and exposed.
+        status = manager.status()
+        assert status["state"] == "down"
+        assert status["rss_breaches"] == 1
+        assert status["rss_budget_bytes"] == 64 * 1024 * 1024
+        assert status["last_breach_rss_bytes"] > status["rss_budget_bytes"]
+
+        # The parent (the substrate's process) is alive; the existing
+        # respawn machinery recovers the sense on the next demand.
+        assert manager.transcribe(b"again") == "ballast:0"
+        assert manager.starts == 2
+        assert manager._proc.pid != first_pid
+        assert manager.rss_breaches == 1, "recovery is not a breach"
+    finally:
+        manager.shutdown(5.0)
+
+
+def test_rss_knob_parsing_never_crashes_the_watchdog_math(monkeypatch):
+    """Adversarial-review item 2: 'inf'/'1e309' used to OverflowError at
+    int(), 'nan' ValueError'd, '-5' fed sleep(-5) — all inside the watchdog
+    loop.  Garbage now falls back to defaults; small positives clamp."""
+    manager = _fake_manager(_fake_worker_echo_crash)
+    for garbage in ("inf", "-inf", "nan", "1e309", "-100", "0", "banana", ""):
+        monkeypatch.setenv("SPEECH_WORKER_RSS_BUDGET_MB", garbage)
+        budget = manager._rss_budget_bytes()
+        assert isinstance(budget, int)
+        assert budget == 1024 * 1024 * 1024, f"garbage {garbage!r} -> default"
+        monkeypatch.setenv("SPEECH_WORKER_RSS_POLL_SEC", garbage)
+        assert manager._rss_poll_interval() == 5.0, (
+            f"garbage {garbage!r} -> default poll")
+    monkeypatch.setenv("SPEECH_WORKER_RSS_POLL_SEC", "0.2")
+    assert manager._rss_poll_interval() == 1.0, "env poll floors at 1s"
+    monkeypatch.setenv("SPEECH_WORKER_RSS_BUDGET_MB", "0.5")
+    assert manager._rss_budget_bytes() == 1024 * 1024, "budget floors at 1MB"
+
+
+def test_watchdog_survives_reader_errors_and_garbage_env_then_still_kills(
+        monkeypatch):
+    """The watchdog must never die while its worker lives: RSS-reader
+    exceptions and garbage env are absorbed by the exception wall, and the
+    watchdog goes on to enforce the (defaulted) budget."""
+    monkeypatch.setenv("SPEECH_WORKER_RSS_BUDGET_MB", "banana")  # -> 1GB
+    calls = {"n": 0}
+
+    def flaky_then_fat(pid):
+        calls["n"] += 1
+        if calls["n"] <= 3:
+            raise RuntimeError("rss reader exploded")
+        return 2 * 1024 ** 3  # 2GB, over the defaulted 1GB budget
+
+    monkeypatch.setattr(transducer, "_read_process_rss_bytes",
+                        flaky_then_fat)
+    manager = _fake_manager(_fake_worker_echo_crash, rss_poll_interval=0.05)
+    try:
+        try:
+            assert manager.transcribe(b"one") == "heard:one"
+        except transducer.SpeechTranscriptionError:
+            pass  # watchdog killed mid-request — visible, not silent
+        deadline = _time_now() + 15.0
+        while manager.available and _time_now() < deadline:
+            _time_sleep(0.05)
+        assert not manager.available, (
+            "watchdog survived 3 reader errors + garbage env and killed")
+        assert manager.rss_breaches == 1
+        assert calls["n"] >= 4, "the loop kept polling through the errors"
+    finally:
+        manager.shutdown(5.0)
+
+
+# ── dead-worker queue teardown never blocks the parent ──────────────────────
+
+def _wrap_queue_teardown(calls, name, q):
+    orig_cancel, orig_close = q.cancel_join_thread, q.close
+
+    def _cancel():
+        calls.append((name, "cancel_join_thread"))
+        return orig_cancel()
+
+    def _close():
+        calls.append((name, "close"))
+        return orig_close()
+
+    q.cancel_join_thread = _cancel
+    q.close = _close
+
+
+def _assert_torn_down(calls, name):
+    assert (name, "cancel_join_thread") in calls, f"{name}: no cancel"
+    assert (name, "close") in calls, f"{name}: no close"
+    assert (calls.index((name, "cancel_join_thread"))
+            < calls.index((name, "close"))), (
+        f"{name}: join-thread must be cancelled BEFORE close, or the "
+        "GC-time Queue._finalize_join can still block forever")
+
+
+def test_reap_cancels_and_closes_both_queues_of_a_dead_worker():
+    """Adversarial-review item 1: a worker that dies with a payload in the
+    pipe must not leave queues whose GC blocks the executor thread (and the
+    deploy seal's wait_for_mutations)."""
+    manager = _fake_manager(_fake_worker_echo_crash)
+    try:
+        assert manager.transcribe(b"one") == "heard:one"
+        calls = []
+        _wrap_queue_teardown(calls, "request", manager._request_q)
+        _wrap_queue_teardown(calls, "response", manager._response_q)
+        with pytest.raises(transducer.SpeechTranscriptionError):
+            manager.transcribe(b"__die__")
+        _assert_torn_down(calls, "request")
+        _assert_torn_down(calls, "response")
+    finally:
+        manager.shutdown(5.0)
+
+
+def test_shutdown_tears_down_both_queues_for_the_seal_path():
+    manager = _fake_manager(_fake_worker_echo_crash)
+    manager.ensure_ready()
+    calls = []
+    _wrap_queue_teardown(calls, "request", manager._request_q)
+    _wrap_queue_teardown(calls, "response", manager._response_q)
+
+    proof = manager.shutdown(5.0)
+
+    assert proof["speech_worker"] == "stopped"
+    _assert_torn_down(calls, "request")
+    _assert_torn_down(calls, "response")
+
+
+def test_module_status_never_constructs_and_counts_breaches(monkeypatch):
+    monkeypatch.setattr(transducer, "_speech_worker", None)
+    monkeypatch.setattr(transducer, "_speech_recognizer", None)
+    status = transducer.speech_transducer_status()
+    assert status["worker"] == {
+        "state": "never_started", "starts": 0, "rss_breaches": 0}
+    assert transducer._speech_worker is None, "status must never construct"
+
+    manager = _fake_manager(
+        _fake_worker_bloat_on_command,
+        rss_budget_mb=64, rss_poll_interval=0.05)
+    monkeypatch.setattr(transducer, "_speech_worker", manager)
+    try:
+        try:
+            manager.transcribe(b"__bloat__")
+        except transducer.SpeechTranscriptionError:
+            pass  # killed mid-request by the watchdog — visible, not silent
+        deadline = _time_now() + 15.0
+        while manager.available and _time_now() < deadline:
+            _time_sleep(0.05)
+        status = transducer.speech_transducer_status()
+        assert status["worker"]["rss_breaches"] == 1
+        assert status["worker"]["state"] == "down"
+    finally:
+        manager.shutdown(5.0)
