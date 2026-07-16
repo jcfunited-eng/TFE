@@ -7324,6 +7324,13 @@ async def _quiesce_and_seal(nonce):
             raise RuntimeError("Guala is not loaded")
         app.state.deployment_quiescing = True
         await asyncio.to_thread(_guala.manual_sleep, STATE_DIR)
+        # Seal settle (2026-07-16): sleep stops intake; the workers now get
+        # their own budget to drain accumulated backlog before the strict
+        # 120s quiescence window opens. Script-side --max-time is 900s.
+        _settle_budget = float(
+            os.environ.get("SEAL_SETTLE_BUDGET_S", "420") or 420)
+        settle_proof = await asyncio.to_thread(
+            _guala.settle_queues, _settle_budget)
         v7_proof = await asyncio.to_thread(_flush_v7_sessions_for_seal)
 
         await asyncio.to_thread(
@@ -7345,6 +7352,7 @@ async def _quiesce_and_seal(nonce):
             "speech_worker": speech_proof,
             "engine": engine_proof,
             "v7": v7_proof,
+            "settle": settle_proof,
         }
         lifecycle.seal(proof)
         return proof

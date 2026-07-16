@@ -116,3 +116,44 @@ def test_worker_park_and_release_round_trip(engine):
            and time.monotonic() < deadline):
         time.sleep(0.05)
     assert g._organism_queue.unfinished_tasks == 0, "worker never resumed"
+
+
+def test_settle_queues_drains_backlog_then_reports(engine):
+    g, _ = engine
+    stop = threading.Event()
+
+    def _feeder():
+        for i in range(300):
+            if stop.is_set():
+                return
+            g._enqueue_organism_remember(f"settle{i % 53}")
+
+    t = threading.Thread(target=_feeder, daemon=True)
+    t.start()
+    t.join(timeout=10)
+    stop.set()
+    # Generous budget: the worker chews the backlog; settle returns
+    # telemetry instead of the 2026-07-16 seal 503.
+    proof = g.settle_queues(budget_s=120.0, threshold=8)
+    assert proof["settled"] is True
+    assert proof["started"].get("organism", 0) >= 0
+    assert all(v <= 8 for v in proof["remaining"].values())
+
+
+def test_settle_queues_budget_expiry_names_the_backlog(engine):
+    g, _ = engine
+    # Park the worker so the backlog cannot drain, then demand settle
+    # with a zero budget: it must raise naming the busy queue.
+    g._enqueue_organism_remember("hold")
+    deadline = time.monotonic() + 5.0
+    while g._organism_worker_thread is None and time.monotonic() < deadline:
+        time.sleep(0.01)
+    g._organism_pause_req.set()
+    assert g._organism_pause_ack.wait(10.0)
+    try:
+        for i in range(20):
+            g._enqueue_organism_remember(f"stuck{i}")
+        with pytest.raises(RuntimeError, match="settle budget expired.*organism"):
+            g.settle_queues(budget_s=0.0, threshold=1)
+    finally:
+        g._organism_pause_req.clear()

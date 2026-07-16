@@ -5834,6 +5834,44 @@ class Guala:
                 "alive": [],
             }
 
+    def settle_queues(self, budget_s=420.0, threshold=8):
+        """Pre-seal settle: with the substrate asleep (manual_sleep is the
+        intake hold), give the background workers their own generous budget
+        to chew accumulated backlog BEFORE the strict quiescence window
+        opens. 2026-07-16: two scripted seals 503'd on backlog drains
+        (organism 721 unfinished, then tapestry 1708) that no strict 120s
+        window can absorb once the substrate's life is rich enough to keep
+        its queues fed -- the fix is a settle phase, not a bigger strict
+        window. Settling is observational only: no admission close, no
+        thread joins, so failure leaves the substrate exactly as alive as
+        before. Raises RuntimeError with per-queue counts on budget expiry
+        (the seal surfaces it as an honest 503)."""
+        deadline = time.monotonic() + float(budget_s)
+        queues = tuple(
+            (name, q) for name, q in (
+                ("organism", getattr(self, "_organism_queue", None)),
+                ("organism_sensory", getattr(
+                    self, "_organism_sensory_queue", None)),
+                ("tapestry", getattr(self, "_tapestry_queue", None)),
+                ("diary", getattr(self, "_diary_queue", None)),
+            ) if q is not None)
+        started = {name: q.unfinished_tasks for name, q in queues}
+        while True:
+            busy = {name: q.unfinished_tasks for name, q in queues
+                    if q.unfinished_tasks > threshold}
+            if not busy:
+                remaining = {n: q.unfinished_tasks for n, q in queues}
+                print(f"[GualaLoom][seal-settle] settled: started={started} "
+                      f"remaining={remaining}", flush=True)
+                return {"settled": True, "budget_s": float(budget_s),
+                        "threshold": threshold, "started": started,
+                        "remaining": remaining}
+            if time.monotonic() >= deadline:
+                raise RuntimeError(
+                    "seal settle budget expired with backlog: "
+                    + ", ".join(f"{n}={c}" for n, c in sorted(busy.items())))
+            time.sleep(0.25)
+
     def quiesce_background_workers(self, timeout=120.0):
         """Stop, drain, and join every engine-owned mutation source.
 

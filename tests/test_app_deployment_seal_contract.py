@@ -46,6 +46,12 @@ class _OrderedGuala:
     def manual_sleep(self, state_dir):
         self.events.append("manual_sleep")
 
+    def settle_queues(self, budget_s=420.0, threshold=8):
+        # Seal settle (2026-07-16): backlog drains BEFORE the strict window.
+        self.events.append("settle_queues")
+        return {"settled": True, "started": {}, "remaining": {},
+                "budget_s": budget_s, "threshold": threshold}
+
     def quiesce_background_workers(self, timeout):
         self.events.append("engine_strict_stop")
         return {"engine_quiesced": True}
@@ -166,6 +172,7 @@ def test_authenticated_handoff_orders_every_writer_before_seal(
         "admission_drain_2",
         "converse_task_terminalization",
         "manual_sleep",
+        "settle_queues",
         "v7_flush",
         "persistence_stops",
         "runner_strict_stop",
@@ -234,7 +241,8 @@ def test_sealed_shutdown_writes_nothing_and_releases_owner(monkeypatch):
         def __getattr__(self, name):
             if name in {
                     "manual_sleep", "save_full_state", "_save_wave_atlas",
-                    "quiesce_background_workers", "strict_shutdown"}:
+                    "quiesce_background_workers", "strict_shutdown",
+                    "settle_queues"}:
                 def forbidden(*_args, **_kwargs):
                     events.append(name)
                     raise AssertionError(f"sealed shutdown called {name}")
