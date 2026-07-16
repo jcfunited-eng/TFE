@@ -179,13 +179,17 @@ def test_khan_fetch_respects_budget_through_the_real_code_path(monkeypatch):
         "the network read itself must be capped, not just the parsed text")
 
 
-def test_khan_fetch_rejects_a_response_over_the_network_cap(monkeypatch):
+def test_khan_fetch_rejects_a_response_over_the_network_cap(
+        monkeypatch, capsys):
     monkeypatch.setenv("TAVILY_API_KEY", "k")
     cap = max(8 * world_feeds._fetch_byte_budget(), 262144)
     fake = _FakeResponse(b"x" * (cap + 10))
     monkeypatch.setattr(world_feeds.urllib.request, "urlopen",
                         lambda req, timeout=0: fake)
     assert world_feeds.khan_text("anything") == []
+    # Adversarial-review nit: over-cap is distinguishable from genuinely
+    # empty in the logs, so a chronically oversize query can be spotted.
+    assert "response over network cap" in capsys.readouterr().out
 
 
 def test_youtube_fetch_respects_budget_and_quality_gate(monkeypatch):

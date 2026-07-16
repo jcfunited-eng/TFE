@@ -398,6 +398,116 @@ def test_rss_watchdog_kills_fat_worker_then_respawn_recovers_the_sense():
         manager.shutdown(5.0)
 
 
+def test_rss_knob_parsing_never_crashes_the_watchdog_math(monkeypatch):
+    """Adversarial-review item 2: 'inf'/'1e309' used to OverflowError at
+    int(), 'nan' ValueError'd, '-5' fed sleep(-5) — all inside the watchdog
+    loop.  Garbage now falls back to defaults; small positives clamp."""
+    manager = _fake_manager(_fake_worker_echo_crash)
+    for garbage in ("inf", "-inf", "nan", "1e309", "-100", "0", "banana", ""):
+        monkeypatch.setenv("SPEECH_WORKER_RSS_BUDGET_MB", garbage)
+        budget = manager._rss_budget_bytes()
+        assert isinstance(budget, int)
+        assert budget == 1024 * 1024 * 1024, f"garbage {garbage!r} -> default"
+        monkeypatch.setenv("SPEECH_WORKER_RSS_POLL_SEC", garbage)
+        assert manager._rss_poll_interval() == 5.0, (
+            f"garbage {garbage!r} -> default poll")
+    monkeypatch.setenv("SPEECH_WORKER_RSS_POLL_SEC", "0.2")
+    assert manager._rss_poll_interval() == 1.0, "env poll floors at 1s"
+    monkeypatch.setenv("SPEECH_WORKER_RSS_BUDGET_MB", "0.5")
+    assert manager._rss_budget_bytes() == 1024 * 1024, "budget floors at 1MB"
+
+
+def test_watchdog_survives_reader_errors_and_garbage_env_then_still_kills(
+        monkeypatch):
+    """The watchdog must never die while its worker lives: RSS-reader
+    exceptions and garbage env are absorbed by the exception wall, and the
+    watchdog goes on to enforce the (defaulted) budget."""
+    monkeypatch.setenv("SPEECH_WORKER_RSS_BUDGET_MB", "banana")  # -> 1GB
+    calls = {"n": 0}
+
+    def flaky_then_fat(pid):
+        calls["n"] += 1
+        if calls["n"] <= 3:
+            raise RuntimeError("rss reader exploded")
+        return 2 * 1024 ** 3  # 2GB, over the defaulted 1GB budget
+
+    monkeypatch.setattr(transducer, "_read_process_rss_bytes",
+                        flaky_then_fat)
+    manager = _fake_manager(_fake_worker_echo_crash, rss_poll_interval=0.05)
+    try:
+        try:
+            assert manager.transcribe(b"one") == "heard:one"
+        except transducer.SpeechTranscriptionError:
+            pass  # watchdog killed mid-request — visible, not silent
+        deadline = _time_now() + 15.0
+        while manager.available and _time_now() < deadline:
+            _time_sleep(0.05)
+        assert not manager.available, (
+            "watchdog survived 3 reader errors + garbage env and killed")
+        assert manager.rss_breaches == 1
+        assert calls["n"] >= 4, "the loop kept polling through the errors"
+    finally:
+        manager.shutdown(5.0)
+
+
+# ── dead-worker queue teardown never blocks the parent ──────────────────────
+
+def _wrap_queue_teardown(calls, name, q):
+    orig_cancel, orig_close = q.cancel_join_thread, q.close
+
+    def _cancel():
+        calls.append((name, "cancel_join_thread"))
+        return orig_cancel()
+
+    def _close():
+        calls.append((name, "close"))
+        return orig_close()
+
+    q.cancel_join_thread = _cancel
+    q.close = _close
+
+
+def _assert_torn_down(calls, name):
+    assert (name, "cancel_join_thread") in calls, f"{name}: no cancel"
+    assert (name, "close") in calls, f"{name}: no close"
+    assert (calls.index((name, "cancel_join_thread"))
+            < calls.index((name, "close"))), (
+        f"{name}: join-thread must be cancelled BEFORE close, or the "
+        "GC-time Queue._finalize_join can still block forever")
+
+
+def test_reap_cancels_and_closes_both_queues_of_a_dead_worker():
+    """Adversarial-review item 1: a worker that dies with a payload in the
+    pipe must not leave queues whose GC blocks the executor thread (and the
+    deploy seal's wait_for_mutations)."""
+    manager = _fake_manager(_fake_worker_echo_crash)
+    try:
+        assert manager.transcribe(b"one") == "heard:one"
+        calls = []
+        _wrap_queue_teardown(calls, "request", manager._request_q)
+        _wrap_queue_teardown(calls, "response", manager._response_q)
+        with pytest.raises(transducer.SpeechTranscriptionError):
+            manager.transcribe(b"__die__")
+        _assert_torn_down(calls, "request")
+        _assert_torn_down(calls, "response")
+    finally:
+        manager.shutdown(5.0)
+
+
+def test_shutdown_tears_down_both_queues_for_the_seal_path():
+    manager = _fake_manager(_fake_worker_echo_crash)
+    manager.ensure_ready()
+    calls = []
+    _wrap_queue_teardown(calls, "request", manager._request_q)
+    _wrap_queue_teardown(calls, "response", manager._response_q)
+
+    proof = manager.shutdown(5.0)
+
+    assert proof["speech_worker"] == "stopped"
+    _assert_torn_down(calls, "request")
+    _assert_torn_down(calls, "response")
+
+
 def test_module_status_never_constructs_and_counts_breaches(monkeypatch):
     monkeypatch.setattr(transducer, "_speech_worker", None)
     monkeypatch.setattr(transducer, "_speech_recognizer", None)

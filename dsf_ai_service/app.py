@@ -116,6 +116,24 @@ def _speech_transduction_enabled():
     return os.environ.get("VOICE_WHISPER", "0") == "1"
 
 
+def _speech_result_wall_timeout():
+    """Belt-and-braces wall for awaiting the STT future (3x the worker's own
+    per-request timeout).  Adversarial-review hardening: if the worker/queue
+    machinery ever wedges past its internal deadlines, the frame degrades to
+    the typed unavailable error instead of pinning the executor thread (and
+    its deployment-lifecycle mutation admit) forever.  Crash-safe parse:
+    garbage falls back to the default."""
+    try:
+        per_request = float(
+            os.environ.get("SPEECH_WORKER_REQUEST_TIMEOUT_S", "30"))
+    except (TypeError, ValueError):
+        per_request = 30.0
+    if not (per_request > 0) or per_request != per_request \
+            or per_request == float("inf"):
+        per_request = 30.0
+    return 3.0 * min(max(per_request, 0.1), 3600.0)
+
+
 def _prewarm_speech_transducer():
     """Steady-state STT pre-warm; runs on the owned speech executor thread.
 
@@ -2748,7 +2766,18 @@ async def sound_frame(msg: GLMessage):
             recognition_status = "no_speech"
             spoken = ""
             try:
-                spoken = (recognition_future.result() or "").strip()
+                try:
+                    spoken = (recognition_future.result(
+                        timeout=_speech_result_wall_timeout()) or "").strip()
+                except _concurrent_futures.TimeoutError as stt_timeout:
+                    # Belt-and-braces wall (adversarial review 2026-07-16):
+                    # a wedged worker/queue degrades THIS sense with the
+                    # typed error; it never pins the executor thread.
+                    from dsf_ai_service.speech_transducer import (
+                        SpeechRecognitionUnavailable)
+                    raise SpeechRecognitionUnavailable(
+                        "speech transduction exceeded the wall timeout"
+                    ) from stt_timeout
                 if spoken:
                     recognition_status = "recognized"
                     # Full real transcript, never a vocab-filtered fragment

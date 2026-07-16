@@ -271,6 +271,53 @@ def test_disabled_flag_keeps_the_honest_unavailable_report(
     assert sentences == []
 
 
+def test_wall_timeout_degrades_a_wedged_transducer_to_the_typed_error(
+        clean_frame_state, monkeypatch):
+    """Belt-and-braces wall (adversarial review 2026-07-16): a transducer
+    call that outlives 3x the worker request timeout is abandoned with the
+    typed unavailable error — the frame degrades, raw sound still lands,
+    the executor thread is never pinned forever."""
+    import time as _t
+
+    monkeypatch.setenv("VOICE_WHISPER", "1")
+    monkeypatch.setenv("SPEECH_WORKER_REQUEST_TIMEOUT_S", "0.2")
+    assert appmod._speech_result_wall_timeout() == pytest.approx(0.6)
+    guala, sentences, frames = _recording_guala()
+    appmod._guala = guala
+
+    def _wedged(_wav):
+        _t.sleep(1.5)  # far beyond the 0.6s wall
+        return "words that must never surface"
+
+    monkeypatch.setattr(transducer, "transcribe_sound", _wedged)
+
+    t0 = _t.monotonic()
+    resp = _post_sound_frame()
+    elapsed = _t.monotonic() - t0
+
+    assert elapsed < 1.4, "the frame returned at the wall, not the sleep"
+    assert resp["ok"] is False
+    assert resp["error"] == "speech_recognition_failed"
+    assert resp["spoken_word_recognition"]["status"] == "error"
+    assert "transcript" not in resp
+    assert sentences == [], "a timed-out transduction NEVER becomes words"
+    assert len(frames) == 1, "raw sound experience survives the wall"
+    _t.sleep(1.2)  # let the wedged stub drain off the shared executor
+
+
+def test_wall_timeout_parse_is_crash_safe(monkeypatch):
+    monkeypatch.setenv("SPEECH_WORKER_REQUEST_TIMEOUT_S", "banana")
+    assert appmod._speech_result_wall_timeout() == 90.0
+    monkeypatch.setenv("SPEECH_WORKER_REQUEST_TIMEOUT_S", "inf")
+    assert appmod._speech_result_wall_timeout() == 90.0
+    monkeypatch.setenv("SPEECH_WORKER_REQUEST_TIMEOUT_S", "nan")
+    assert appmod._speech_result_wall_timeout() == 90.0
+    monkeypatch.setenv("SPEECH_WORKER_REQUEST_TIMEOUT_S", "-30")
+    assert appmod._speech_result_wall_timeout() == 90.0
+    monkeypatch.delenv("SPEECH_WORKER_REQUEST_TIMEOUT_S", raising=False)
+    assert appmod._speech_result_wall_timeout() == 90.0
+
+
 def test_ambient_sources_are_never_transcribed(clean_frame_state, monkeypatch):
     monkeypatch.setenv("VOICE_WHISPER", "1")
     guala, sentences, _frames = _recording_guala()
@@ -301,7 +348,11 @@ def test_live_sound_route_owns_one_recognizer_and_starts_it_before_raw_sense():
     assert "_speech_recognition_executor.submit" in source
     assert source.index("_speech_recognition_executor.submit") < source.index(
         "_guala.process_sound_frame")
-    assert "recognition_future.result()" in source
+    # Adversarial-review hardening (2026-07-16): the await now carries a
+    # wall timeout (3x the worker's per-request timeout) so a wedged
+    # worker/queue can never pin the executor thread forever.
+    assert "recognition_future.result(" in source
+    assert "_speech_result_wall_timeout" in source
     assert "spoken_word_transduction_status" in source
     assert 'thread_name_prefix="speech-recognition"' in module_source
     assert "max_workers=1" in module_source

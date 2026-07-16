@@ -247,17 +247,23 @@ def _truncate_to_byte_budget(text):
     return encoded[:budget].decode("utf-8", "ignore")
 
 
+class FeedResponseOverCap(ValueError):
+    """A feed response exceeded the bounded network read cap."""
+
+
 def _read_response_capped(resp):
     """Bounded network read: never pull unbounded bytes off the wire.
 
     The hard cap is 8x the text budget (floor 256 KiB) so a normal JSON
-    envelope always fits; a response bigger than that raises and the fetch
-    reports empty like every other fetch failure here.
+    envelope always fits; a response bigger than that raises
+    FeedResponseOverCap and the fetch reports empty — with its own log line
+    so a chronically oversize query is distinguishable from a genuinely
+    empty one in telemetry (adversarial-review nit, 2026-07-16).
     """
     cap = max(8 * _fetch_byte_budget(), 262144)
     raw = resp.read(cap + 1)
     if len(raw) > cap:
-        raise ValueError(
+        raise FeedResponseOverCap(
             f"world-feed response exceeded the network cap ({cap} bytes)")
     return raw
 
@@ -307,6 +313,10 @@ def khan_text(query, timeout=25):
         text = " ".join((r.get("raw_content") or r.get("content") or "")
                         for r in data.get("results", []))
         return _clean_lines(_truncate_to_byte_budget(text))
+    except FeedResponseOverCap as over:
+        print(f"[worldfeed] khan {query!r}: response over network cap "
+              f"({over}) — reported empty")
+        return []
     except Exception:
         return []
 
@@ -332,6 +342,10 @@ def youtube_text(query, timeout=25):
             chunks.append(sn.get("description", ""))
         text = " . ".join(c for c in chunks if c)
         return _clean_lines(_truncate_to_byte_budget(text))
+    except FeedResponseOverCap as over:
+        print(f"[worldfeed] youtube {query!r}: response over network cap "
+              f"({over}) — reported empty")
+        return []
     except Exception:
         return []
 
