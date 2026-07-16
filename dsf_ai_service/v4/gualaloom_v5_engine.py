@@ -5010,10 +5010,11 @@ class Guala:
         # (see the imagined_window_excluded_from_certification event) and
         # re-enforced independently by language_fact_strand /
         # language_fact_composer's own frozenset validation.
-        if experience_origin not in {"emulated", "observed", "imagined"}:
+        if experience_origin not in {"emulated", "observed", "imagined",
+                                     "self_heard"}:
             raise ValueError(
-                "experience_origin must be exactly 'emulated', 'observed' "
-                "or 'imagined'")
+                "experience_origin must be exactly 'emulated', 'observed', "
+                "'imagined' or 'self_heard'")
         _existing_context_id = self.window_manager.active_context_id
         if _existing_context_id is not None:
             _existing_window = self.window_manager.current
@@ -5176,7 +5177,7 @@ class Guala:
             if _closed_window_id is None:
                 raise RuntimeError(
                     f"language BindingWindow {_fact_context_id!r} did not close")
-            if experience_origin == "imagined":
+            if experience_origin in ("imagined", "self_heard"):
                 # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagined
                 # experience closes and persists like any window (it IS her
                 # real experience of her own imagination) but is EXCLUDED
@@ -5184,8 +5185,25 @@ class Guala:
                 # never certify as lived fact for speech. Loud by design:
                 # one event per imagined window, so the exclusion is
                 # visible in the stream, never a silent swallow.
+                #
+                # F1 (2026-07-16 adversarial review): "self_heard" gets the
+                # SAME exclusion -- ALL releases (fact_strand_commit,
+                # assemblage_commit, organism_attempt) re-enter through
+                # _self_hear, and without this gate a babbled word order
+                # that never lived anywhere becomes certified-composer
+                # citation material one echo later (origin laundering).
+                # Certified echoes are excluded too: their source windows
+                # already accreted; re-accreting the echo double-counts.
+                # The window itself persists -- she genuinely remembers
+                # hearing herself speak; it just can never be its own
+                # citation source. Historical self-heard windows persist
+                # with origin="emulated"; their episode_ref="emission:..."
+                # prefix is the retroactive discriminator if cleanup is
+                # ever ordered.
                 self._log_substrate_event(
-                    "imagined_window_excluded_from_certification",
+                    "imagined_window_excluded_from_certification"
+                    if experience_origin == "imagined"
+                    else "self_heard_window_excluded_from_certification",
                     window_id=_closed_window_id,
                     words=" ".join(words)[:80])
             else:
@@ -6405,9 +6423,27 @@ class Guala:
                 # organism_fold event per real division, drained right
                 # after the experience_word() call that may have caused
                 # it (folding is synchronous within that call).
-                for _fold in self.organism.pop_fold_events():
+                _fold_events = self.organism.pop_fold_events()
+                for _fold in _fold_events:
                     self._log_substrate_event("organism_fold", word=word,
                                               **_fold)
+                if _fold_events:
+                    # Growth-law companion patch (2026-07-16 review):
+                    # daughters born by _charge_and_fold are invisible to
+                    # the spike bus (wire_spike_bus snapshots the registry
+                    # at boot/restore), so injections targeting them via
+                    # the LIVE cluster lists would drop with unknown-target
+                    # warnings and an STDP blind spot proportional to
+                    # growth. Re-wire after any fold: idempotent, rebuilds
+                    # against the current population, bounded (<=64
+                    # lifetime divisions under the flux asymptote), and the
+                    # registry swap is an atomic reference assignment safe
+                    # against the single delivery thread.
+                    try:
+                        self.wire_spike_bus()
+                    except Exception as _wb_e:
+                        print(f"[GualaLoom] post-fold spike-bus rewire "
+                              f"failed (non-fatal): {_wb_e}", flush=True)
             except Exception as _oe:
                 print(f"[GualaLoom] organism experience_word failed for "
                       f"{word!r} (non-fatal): {_oe}")
@@ -10179,24 +10215,30 @@ class Guala:
             # an emergency-off only.
             if (self.wave_atlas is not None
                     and os.environ.get("WAVE_ATLAS_DECAY_ENABLED", "1") != "0"):
-                _wa_strength_before = sum(
-                    c.aggregate_strength for c in self.wave_atlas.cells.values())
+                # F2+F4 (2026-07-16 adversarial review): at steady state
+                # prunes are near-continuous, so a prunes-are-loud guard
+                # degenerates to ~1 event/tick and wraps the 1000-slot
+                # observability ring in ~17s -- exactly when we need the
+                # ring to watch deploy-day growth. Prune counts ACCUMULATE
+                # and emit as ONE aggregated event per 500 ticks; the two
+                # O(cells) strength sums (they were computed every tick
+                # even when the log was suppressed) now run only on emit
+                # ticks.
                 _wa_bindings_pruned = self.wave_atlas.tick_decay()
-                _wa_strength_after = sum(
-                    c.aggregate_strength for c in self.wave_atlas.cells.values())
-                # Default-on now (see above): the event is rate-limited to
-                # real prunes + a 500-tick heartbeat so a per-tick decay
-                # can't drown the 1000-slot observability ring the way an
-                # unconditional per-tick log would.  Prunes stay loud.
-                if _wa_bindings_pruned or self.tick % 500 == 0:
+                self._wa_pruned_accum = (
+                    getattr(self, "_wa_pruned_accum", 0) + _wa_bindings_pruned)
+                if self.tick % 500 == 0:
+                    _wa_strength_now = sum(
+                        c.aggregate_strength
+                        for c in self.wave_atlas.cells.values())
                     self._log_substrate_event(
                         "wave_atlas_decay_tick",
                         tick=self.tick,
-                        bindings_pruned=_wa_bindings_pruned,
+                        bindings_pruned_last_500=self._wa_pruned_accum,
                         cells_total=self.wave_atlas.cell_count(),
-                        total_strength_before=round(_wa_strength_before, 4),
-                        total_strength_after=round(_wa_strength_after, 4),
+                        total_strength=round(_wa_strength_now, 4),
                     )
+                    self._wa_pruned_accum = 0
 
             # GL-CMD-HEMISPHERIC-INTEGRATION-BUILD-EVE-20260707-v3 Wiring 2,
             # rewired by GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1:
@@ -10216,7 +10258,13 @@ class Guala:
                 _wave_summary = sample_wave_summary(self.wave_atlas)
                 _push_payload = push_wave_summary_to_organism(
                     self, _wave_summary, self.tick)
-                self._log_substrate_event("wave_summary_pushed", **_push_payload)
+                # F2 (2026-07-16): sampled to the same 500-tick cadence as
+                # the decay event -- an unconditional per-tick log was the
+                # other half of the ring flood. The push itself stays
+                # per-tick; only the telemetry is sampled.
+                if self.tick % 500 == 0:
+                    self._log_substrate_event(
+                        "wave_summary_pushed", **_push_payload)
 
             # 1. Needs drift AWAY from target (once per iteration) -- paused
             # during SLEEPING/DREAMING (Change A: reuses dream_pressure's own
@@ -12458,7 +12506,7 @@ class Guala:
         return attempts[:AUTONOMOUS_COMPOSER_SEED_ATTEMPTS]
 
     @_engine_mutation_entry
-    def compose_autonomous(self):
+    def compose_autonomous(self, seed_attempts=None, organism_votes=None):
         """One autonomous release attempt through the one release policy.
         Returns dict with content/metadata if a release fires; None
         otherwise (explained silence — the caller logs the no-commit event,
@@ -12497,7 +12545,13 @@ class Guala:
         compose_deadline = time.monotonic() + budget_ms / 1000.0
 
         # 1. Certified composer, organism-sourced seeds (never the atlas).
-        seed_attempts = self._autonomous_composer_seed_attempts()
+        # F3 (2026-07-16): the runner snapshots seeds under a SHORT lock
+        # hold, precomputes the organism votes OUTSIDE self.lock, then
+        # passes both in -- so tier 3 never runs recall under the lock.
+        # Direct callers (tests) may omit them; tier 3 then refuses
+        # loudly rather than ever recalling under the lock.
+        if seed_attempts is None:
+            seed_attempts = self._autonomous_composer_seed_attempts()
         cycle_stop_reason = None
         if seed_attempts:
             # Change-1 cached composer: every attempt below hits
@@ -12625,14 +12679,55 @@ class Guala:
         # release path.  Same budget (compose_deadline), same repeat
         # window, same conversation barrier as the tiers above.
         organism_result = self._compose_organism_attempt(
-            seed_attempts, compose_deadline)
+            seed_attempts, compose_deadline, organism_votes=organism_votes)
         if organism_result is not None:
             return organism_result
 
         # 4. Explained silence — first-class outcome, logged by the caller.
         return None
 
-    def _compose_organism_attempt(self, seed_attempts, compose_deadline):
+    def precompute_organism_attempt(self, seed_attempts):
+        """F3 (2026-07-16 adversarial review): the LOCK-FREE half of the
+        organism voice.  Runs the recall_fast queries + STDP-weighted vote
+        merge with NO self.lock held (organism reads are lock-free per the
+        W3 no-locks ruling; STDP vote weights take only per-neuron locks).
+        The runner calls this between two short lock holds; the in-lock
+        tier below does assembly only and REFUSES (votes_not_precomputed)
+        rather than ever recalling under the lock -- the compose site has
+        a documented 49-94s full-hold history and a single recall_fast is
+        duration-unbounded.  Returns {"queries": [...], "merged": Counter}
+        or None when there is nothing to query."""
+        queries = []
+        for attempt in (seed_attempts or ()):
+            for w in attempt.get("words", ()):
+                wl = str(w).lower()
+                if wl and wl not in queries:
+                    queries.append(wl)
+                if len(queries) >= ORGANISM_ATTEMPT_MAX_QUERIES:
+                    break
+            if len(queries) >= ORGANISM_ATTEMPT_MAX_QUERIES:
+                break
+        if not queries:
+            return None
+        from collections import Counter as _Counter
+        merged = _Counter()
+        for q in queries:
+            try:
+                votes = self.organism.recall_fast(
+                    _organism_signal(q, self._organism_transducer))
+            except Exception as _oe:
+                print(f"[GualaLoom] organism attempt recall failed for "
+                      f"{q!r} (non-fatal): {_oe}", flush=True)
+                continue
+            if votes:
+                merged.update(votes)
+        # Association, not parroting: seed words never released.
+        for q in queries:
+            merged.pop(q, None)
+        return {"queries": queries, "merged": merged}
+
+    def _compose_organism_attempt(self, seed_attempts, compose_deadline,
+                                  organism_votes=None):
         """GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6): the organism
         voice, partial-and-honest version.  Queries organism.recall_fast
         (population vote over HER OWN binding atlases — every returned
@@ -12659,41 +12754,23 @@ class Guala:
                 "autonomous_organism_attempt", released=False,
                 stop_reason="compose_budget")
             return None
-        # Seed words: same organism-sourced material as tier 1 (already
-        # self-excluded there); deduped, order-preserving, bounded.
-        queries = []
-        for attempt in (seed_attempts or ()):
-            for w in attempt.get("words", ()):
-                wl = str(w).lower()
-                if wl and wl not in queries:
-                    queries.append(wl)
-                if len(queries) >= ORGANISM_ATTEMPT_MAX_QUERIES:
-                    break
-            if len(queries) >= ORGANISM_ATTEMPT_MAX_QUERIES:
-                break
-        if not queries:
+        # F3 (2026-07-16): NO recall under self.lock, ever.  The votes
+        # must arrive precomputed (precompute_organism_attempt, run by
+        # the caller outside the lock); an in-lock recall at this site is
+        # the documented 49-94s-hold failure class.  Refusal is loud and
+        # first-class.
+        if organism_votes is None:
+            self._log_substrate_event(
+                "autonomous_organism_attempt", released=False,
+                stop_reason="votes_not_precomputed")
+            return None
+        queries = organism_votes.get("queries") or []
+        merged = organism_votes.get("merged")
+        if not queries or merged is None:
             self._log_substrate_event(
                 "autonomous_organism_attempt", released=False,
                 stop_reason="no_seed_words")
             return None
-        from collections import Counter as _Counter
-        merged = _Counter()
-        for q in queries:
-            if time.monotonic() >= compose_deadline:
-                break
-            try:
-                votes = self.organism.recall_fast(
-                    _organism_signal(q, self._organism_transducer))
-            except Exception as _oe:
-                print(f"[GualaLoom] organism attempt recall failed for "
-                      f"{q!r} (non-fatal): {_oe}", flush=True)
-                continue
-            if votes:
-                merged.update(votes)
-        # The attempt is association, not parroting: the seed words
-        # themselves are excluded from the released content.
-        for q in queries:
-            merged.pop(q, None)
         top = [(str(w), float(v)) for w, v in merged.most_common(
             ORGANISM_ATTEMPT_MAX_WORDS) if str(w).strip()]
         if not top:
@@ -13449,7 +13526,7 @@ class Guala:
                 reply,
                 source="guala",
                 episode_ref=f"emission:{emission_id}:{response_source}",
-                experience_origin="emulated",
+                experience_origin="self_heard",
             )
         finally:
             tick_after = self.tick

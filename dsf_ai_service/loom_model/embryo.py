@@ -343,6 +343,15 @@ class Embryo:
             return 256
 
     def _novelty_of_signature(self, signature):
+        # KNOWN FIDELITY LIMIT (2026-07-16 review): the signature is raw
+        # rfft bin INDICES compared across composites of varying length --
+        # the same bin index means a different physical frequency at a
+        # different composite length, so a modality-set change (e.g.
+        # visual-only vs visual+auditory moment of the same scene) can read
+        # as novel. Errs toward over-funding, and is bounded either way by
+        # the flux law itself (refill can never outrun the maintenance
+        # asymptote, N <= 2*N_initial) plus the GUALA_MAX_TOTAL_NEURONS
+        # hard cap.
         """GL-FIX-GROWTH-POOL-LAW-20260716: novelty of THIS experience,
         measured on its spectral signature (resonance_and_signature's
         top-3 rfft bin indices -- the SAME bins the fold gate's own
@@ -405,6 +414,11 @@ class Embryo:
         # GL-FIX-GROWTH-POOL-LAW-20260716: whole-organism ceiling, checked
         # once per call (division only grows the population inside this
         # loop, tracked via len(new)).
+        # SAFETY NOTE (2026-07-16 review): this check-then-act is safe by
+        # SINGLE-THREADING, not by lock -- divisions and the division pool
+        # are mutated only on the engine's one organism worker thread
+        # (_organism_worker_loop -> experience_word, FIFO by construction).
+        # Anyone adding a second worker/writer must revisit this site first.
         total_now = sum(len(h.cluster.neurons) for h in self.brain.hemispheres)
         max_total = self._max_total_neurons()
         for neuron in list(hemi.cluster.neurons):
@@ -952,7 +966,10 @@ class Embryo:
         tally = Counter()
         detail = {}   # (concept_a, concept_b) -> [novelty_score, ...] across neurons
         n_neurons_scanned = 0
-        for n in hemi.cluster.neurons:
+        # list() snapshot (2026-07-16 review): the organism worker appends
+        # daughters concurrently; snapshot matches the WaveAtlas-v3
+        # iteration discipline.
+        for n in list(hemi.cluster.neurons):
             pairs = n.binding_atlas.latent_associations(
                 top_k=top_k, max_concepts=max_concepts, current_tick=self.tick)
             if pairs:

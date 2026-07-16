@@ -172,8 +172,12 @@ def push_wave_summary_to_organism(guala, summary: Dict[str, Tuple[float, list]],
         # re-derived, since a real chi is already sitting in top_chis.
         input_chi = top_chis[0][0] if top_chis else None
         guala._enqueue_organism_sensory(hemi.hemi_id, input_signal, tick, input_chi)
-        guala._log_substrate_event(
-            "sensory_organism_enqueued", tick=tick, hemi_id=hemi.hemi_id,
-            band=band, aggregate_amplitude=round(aggregate, 4))
+        # F2 (2026-07-16): sampled to the 500-tick telemetry cadence --
+        # per-tick-per-hemisphere events were the third contributor to the
+        # observability-ring flood. The enqueue itself stays per-tick.
+        if tick % 500 == 0:
+            guala._log_substrate_event(
+                "sensory_organism_enqueued", tick=tick, hemi_id=hemi.hemi_id,
+                band=band, aggregate_amplitude=round(aggregate, 4))
 
     return {"tick": tick, "bands": payload_bands}

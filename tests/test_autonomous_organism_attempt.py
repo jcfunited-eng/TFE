@@ -52,7 +52,9 @@ def test_organism_attempt_releases_labeled_babble():
         g.organism.recall_fast = lambda _sig: Counter(
             {"sky": 5.0, "blue": 3.0, "stone": 2.0})
         with g.lock:
-            result = g._compose_organism_attempt(_SEEDS, _deadline())
+            _votes = g.precompute_organism_attempt(_SEEDS)
+            result = g._compose_organism_attempt(
+                _SEEDS, _deadline(), organism_votes=_votes)
         assert result is not None, "organism attempt released nothing"
         assert result["response_source"] == "organism_attempt"
         assert result["category"] == "autonomous"
@@ -92,8 +94,12 @@ def test_repeat_suppression_shared_window():
     try:
         g.organism.recall_fast = lambda _sig: Counter({"sky": 5.0})
         with g.lock:
-            first = g._compose_organism_attempt(_SEEDS, _deadline())
-            second = g._compose_organism_attempt(_SEEDS, _deadline())
+            _votes = g.precompute_organism_attempt(_SEEDS)
+            first = g._compose_organism_attempt(
+                _SEEDS, _deadline(), organism_votes=_votes)
+            _votes2 = g.precompute_organism_attempt(_SEEDS)
+            second = g._compose_organism_attempt(
+                _SEEDS, _deadline(), organism_votes=_votes2)
         assert first is not None
         assert second is None, (
             "identical babble re-released inside the repeat window -- "
@@ -128,8 +134,10 @@ def test_conversation_barrier_recheck():
         with g._live_converse_state_lock:
             g._live_converse_pending = 1
         try:
+            _votes = g.precompute_organism_attempt(_SEEDS)
             with g.lock:
-                result = g._compose_organism_attempt(_SEEDS, _deadline())
+                result = g._compose_organism_attempt(
+                    _SEEDS, _deadline(), organism_votes=_votes)
         finally:
             with g._live_converse_state_lock:
                 g._live_converse_pending = 0
@@ -146,7 +154,9 @@ def test_honest_empty_when_organism_has_nothing():
     try:
         g.organism.recall_fast = lambda _sig: Counter()
         with g.lock:
-            result = g._compose_organism_attempt(_SEEDS, _deadline())
+            _votes = g.precompute_organism_attempt(_SEEDS)
+            result = g._compose_organism_attempt(
+                _SEEDS, _deadline(), organism_votes=_votes)
         assert result is None, "empty organism recall fabricated content"
         ev = _events(g, "autonomous_organism_attempt")[-1]
         assert ev.detail["stop_reason"] == "organism_empty"
@@ -162,7 +172,10 @@ def test_compose_autonomous_falls_through_to_organism_attempt():
         g._sample_autonomous_seeds = lambda n=12: []  # no assemblage seeds
         g.organism.recall_fast = lambda _sig: Counter({"sky": 4.0})
         with g.lock:
-            result = g.compose_autonomous()
+            _seeds = g._autonomous_composer_seed_attempts()
+            _votes = g.precompute_organism_attempt(_seeds)
+            result = g.compose_autonomous(
+                seed_attempts=_seeds, organism_votes=_votes)
         assert result is not None, (
             "compose_autonomous returned silence although the organism "
             "had an attempt -- babble beats silence was not wired")

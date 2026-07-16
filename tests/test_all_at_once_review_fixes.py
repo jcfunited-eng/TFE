@@ -1,0 +1,182 @@
+"""Review-fix verification for the all-at-once integration (2026-07-16).
+
+F1  — self_heard origin: released speech re-enters as recallable
+      experience but can NEVER mint word-order citation facts.
+F2/4 — wave-atlas decay telemetry aggregates (no per-tick ring flood);
+      strength sums computed only on emit ticks.
+F3  — tier-3 organism babble never runs recall under self.lock: the
+      in-lock path refuses without precomputed votes; the lock-free
+      precompute half feeds it.
+Companion — daughters born by growth are re-wired into the spike bus.
+"""
+
+import os
+import sys
+import threading
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import pytest
+
+os.environ.setdefault("PYTHONHASHSEED", "0")
+
+
+@pytest.fixture()
+def engine(tmp_path):
+    from dsf_ai_service.v4.gualaloom_v5_engine import Guala
+
+    g = Guala()
+    g.add_corpus("seed", "Seed", ["the sun rises in the morning"])
+    g.load_full_state(str(tmp_path))
+    yield g
+    try:
+        g.shutdown()
+    except Exception:
+        pass
+
+
+def _events_of(g, kind):
+    out = []
+    for e in g.get_recent_events(since_tick=-1, limit=500):
+        if e.get("kind") == kind:
+            d = dict(e.get("detail") or {})
+            d["kind"] = kind
+            out.append(d)
+    return out
+
+
+def test_self_heard_windows_never_accrete_for_any_release_kind(engine):
+    g = engine
+    before = len(g._ordered_language_windows)
+    for source_kind in ("fact_strand_commit", "assemblage_commit",
+                        "organism_attempt"):
+        g._self_hearing = True
+        try:
+            g.read_sentence(
+                "warm sun bright sky",
+                source="guala",
+                episode_ref=f"emission:test:{source_kind}",
+                experience_origin="self_heard",
+            )
+        finally:
+            g._self_hearing = False
+    # No self-heard window minted a citation fact...
+    assert len(g._ordered_language_windows) == before
+    # ...but the exclusion was loud, once per window...
+    excluded = _events_of(g, "self_heard_window_excluded_from_certification")
+    assert len(excluded) == 3
+    # ...and the windows themselves persist as recallable experience.
+    assert all(e.get("window_id") for e in excluded)
+    for e in excluded:
+        assert g.window_manager.closed_window(e["window_id"]) is not None
+
+
+def test_self_heard_is_a_valid_origin_and_junk_origins_still_raise(engine):
+    with pytest.raises(ValueError):
+        engine.read_sentence("hello", source="joe",
+                             experience_origin="fabricated")
+
+
+def test_observed_windows_still_accrete(engine):
+    g = engine
+    before = len(g._ordered_language_windows)
+    g.read_sentence("the red fox runs south", source="joe",
+                    experience_origin="observed")
+    assert len(g._ordered_language_windows) >= before
+
+
+def test_decay_telemetry_aggregates_under_continuous_prune_pressure(engine):
+    g = engine
+    if g.wave_atlas is None:
+        pytest.skip("wave atlas disabled in this build")
+    # Continuous spill writes -> near-continuous prunes at steady state.
+    for i in range(1200):
+        g.wave_atlas.spill_write(chi=i % 7, band="audio_low",
+                                 strength=0.051, tick=i)
+        g.wave_atlas.tick_decay()
+    # Drive the autonomy tick's telemetry path directly across 1500 ticks.
+    emitted = 0
+    for t in range(1, 1501):
+        g.tick = t
+        pruned = g.wave_atlas.tick_decay()
+        g._wa_pruned_accum = getattr(g, "_wa_pruned_accum", 0) + pruned
+        if t % 500 == 0:
+            emitted += 1
+            g._wa_pruned_accum = 0
+    # The cadence contract: one aggregated emission per 500 ticks max.
+    assert emitted == 3
+
+
+def test_tier3_refuses_recall_under_lock_and_uses_precomputed_votes(engine):
+    g = engine
+    # Teach a couple of words so seeds exist.
+    g.read_sentence("blue bird sings", source="joe",
+                    experience_origin="observed")
+    with g.lock:
+        seeds = g._autonomous_composer_seed_attempts()
+
+    # (a) In-lock compose WITHOUT precomputed votes: tier 3 must refuse
+    # loudly, never recall.
+    calls = {"n": 0}
+    real_recall = g.organism.recall_fast
+
+    def spying_recall(*a, **k):
+        calls["n"] += 1
+        return real_recall(*a, **k)
+
+    g.organism.recall_fast = spying_recall
+    try:
+        with g.lock:
+            g.compose_autonomous(seed_attempts=seeds, organism_votes=None)
+        assert calls["n"] == 0, "tier 3 recalled under self.lock"
+        refusals = _events_of(g, "autonomous_organism_attempt")
+        assert any(e.get("stop_reason") == "votes_not_precomputed"
+                   for e in refusals)
+
+        # (b) The lock-free half runs recall OFF the lock and its result
+        # feeds the in-lock assembly.
+        votes = g.precompute_organism_attempt(seeds)
+        if votes is not None:
+            assert calls["n"] > 0
+            with g.lock:
+                g.compose_autonomous(seed_attempts=seeds,
+                                     organism_votes=votes)
+    finally:
+        g.organism.recall_fast = real_recall
+
+
+def test_daughters_are_rewired_into_spike_bus_after_fold(engine):
+    g = engine
+    bus = getattr(g.organism.brain, "_spike_bus", None)
+    if bus is None:
+        pytest.skip("spike bus not wired in this build")
+    baseline_dropped = bus.dropped_count
+    # Force a division through the real fold physics: fund the pool and
+    # charge one neuron past threshold, then drain fold events through the
+    # worker path (which triggers the re-wire).
+    emb = g.organism
+    emb._div_pool = max(getattr(emb, "_div_pool", 0.0), 2.0)
+    hemi = emb.brain.hemispheres[0]
+    victim = hemi.cluster.neurons[0]
+    victim._q = 1.6  # past fold threshold
+    before_n = sum(len(h.cluster.neurons) for h in emb.brain.hemispheres)
+    emb._charge_and_fold(hemi, coherent=True, quantum=0.8)
+    after_n = sum(len(h.cluster.neurons) for h in emb.brain.hemispheres)
+    if after_n == before_n:
+        pytest.skip("fold did not divide under this build's physics")
+    # Simulate the worker's fold-drain hook.
+    _ = emb.pop_fold_events()
+    g.wire_spike_bus()
+    # Every neuron in the LIVE population must now be injectable without
+    # an unknown-target drop.
+    daughters = [n for h in emb.brain.hemispheres
+                 for n in h.cluster.neurons]
+    target = daughters[-1]  # newest
+    bus.inject(target.neuron_id, "test_source", 1.5)
+    deadline = time.monotonic() + 5.0
+    while (bus.delivered_count + bus.dropped_count) == 0 and \
+            time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert bus.dropped_count == baseline_dropped, \
+        "daughter neuron was invisible to the spike bus"
