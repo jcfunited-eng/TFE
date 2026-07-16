@@ -155,7 +155,9 @@ def test_scan_metadata_matches_records(tmp_path):
     assert meta["close_reason"] == "context_complete"
     assert meta["experience_origin"] == "emulated"
     assert meta["modalities"] == ("word", "sight")
-    assert meta["words"] == ("hello",)
+    # P1: a COUNT, never the resident word list (review 2026-07-16).
+    assert meta["word_count"] == 1
+    assert "words" not in meta
     assert meta["entry_count"] == 2
     assert meta["content_released"] is False
     assert meta["reinforcement_count"] == 1
@@ -193,10 +195,14 @@ def test_detached_copies_cannot_corrupt_canonical_memory(tmp_path):
 
 
 # ── (b) LRU cache: budget, eviction, correctness after eviction ─────────────
+# The budget accounts ESTIMATED RESIDENT bytes: each cached record costs
+# serialized_length x CACHE_RESIDENT_MULTIPLIER (parsed dicts occupy ~5x
+# their canonical JSON; review 2026-07-16).  A ~4KB padded record therefore
+# costs ~22KB of budget.
 
 def test_lru_cache_respects_byte_budget_and_still_serves(tmp_path):
     state = str(tmp_path)
-    # Tiny budget: ~64KB. Each padded record is ~4KB, so only a handful fit.
+    # ~64KB budget; each padded record costs ~22KB accounted, so ~2-3 fit.
     manager, tick, _ = _build(cache_mb=0.0625)
     manager.configure_wal_under(state)
     ids = list(_populate(manager, tick, 50, pad="y" * 4000))
@@ -217,7 +223,8 @@ def test_lru_cache_respects_byte_budget_and_still_serves(tmp_path):
 
 def test_lru_evicts_least_recently_used_first(tmp_path):
     state = str(tmp_path)
-    manager, tick, _ = _build(cache_mb=0.02)  # ~20KB: fits ~4 padded records
+    # ~100KB budget / ~22KB accounted cost each: fits ~4 padded records.
+    manager, tick, _ = _build(cache_mb=0.1)
     manager.configure_wal_under(state)
     ids = list(_populate(manager, tick, 8, pad="z" * 4000))
 

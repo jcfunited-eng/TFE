@@ -41,6 +41,20 @@ SCHEMA_VERSION = 2
 # this is a read-side re-architecture only.
 WINDOW_CACHE_MB_ENV = "GUALA_WINDOW_CACHE_MB"
 WINDOW_CACHE_DEFAULT_MB = 256
+# GUALA_WINDOW_CACHE_MB is a budget on ESTIMATED RESIDENT bytes, not
+# serialized bytes.  A parsed window record costs measurably more RAM than
+# its canonical JSON line (dict/str object overhead; measured ~4.9x on
+# production-shaped records, review 2026-07-16), so each cached record is
+# accounted at serialized_length x CACHE_RESIDENT_MULTIPLIER.  The default
+# 256MB budget therefore admits ~51MB of serialized content (~256MB
+# resident), keeping the cache honest against the <2GB process target.
+CACHE_RESIDENT_MULTIPLIER = 5
+
+# Appended to every named integrity-halt message so the 03:00 operator knows
+# the sanctioned recovery path without reading the spec.
+RESTORE_HINT = (
+    "Recovery: STOP the service, then restore a named S3 backup with "
+    "'python -m tools.restore_from_s3 --list' / '--backup <name>'.")
 
 # Record kinds inside a WAL line's "record" object.  A record with no
 # "record_kind" key is a full closed window (every record written today).
@@ -539,7 +553,7 @@ class WindowManager:
                 "context_origin": record.get("context_origin"),
                 "experience_origin": record.get("experience_origin"),
                 "modalities": tuple(record.get("modalities") or ()),
-                "words": tuple(record.get("words") or ()),
+                "word_count": int(record.get("word_count") or 0),
                 "entry_count": 0,
                 "opened_tick": record.get("opened_tick"),
                 "closed_tick": record.get("closed_tick"),
@@ -554,25 +568,25 @@ class WindowManager:
         entries = record.get("entries") or []
         modalities: list[str] = []
         seen_modalities: set[str] = set()
-        words: list[str] = []
+        # P1 review 2026-07-16: metadata keeps a word COUNT, never the word
+        # list — a resident per-window word list scales RAM with lifetime
+        # language experience, and qualification only needs the word-modality
+        # flag (in ``modalities``); qualifying windows are fetched anyway.
+        word_count = 0
         for entry in entries:
             modality = str(entry.get("modality") or "")
             if modality not in seen_modalities:
                 seen_modalities.add(modality)
                 modalities.append(modality)
             if modality == "word":
-                fact = (entry.get("provenance") or {}).get("structural_fact")
-                form = (fact.get("language_form")
-                        if isinstance(fact, Mapping) else None)
-                words.append(str(form) if form
-                             else str(entry.get("source_tag") or ""))
+                word_count += 1
         return {
             "close_reason": record.get("close_reason"),
             "context_origin": record.get("context_origin"),
             "experience_origin": (
                 (record.get("context_detail") or {}).get("experience_origin")),
             "modalities": tuple(modalities),
-            "words": tuple(words),
+            "word_count": word_count,
             "entry_count": len(entries),
             "opened_tick": record.get("opened_tick"),
             "closed_tick": record.get("closed_tick"),
@@ -613,22 +627,31 @@ class WindowManager:
             if hit is None:
                 return None
             self._content_cache.move_to_end(window_id)
-            return copy.deepcopy(hit[0])
+            record = hit[0]
+        # Deepcopy OUTSIDE the cache lock: cached records are private
+        # immutable copies (installed detached, only ever read), so copying
+        # after release is safe and keeps a big record's copy cost from
+        # serialising every other cache access.
+        return copy.deepcopy(record)
 
     def _cache_put(self, window_id: str, record: dict, nbytes: int) -> None:
-        if nbytes > self._content_cache_budget:
+        # Account ESTIMATED RESIDENT cost, not serialized bytes — a parsed
+        # record occupies ~CACHE_RESIDENT_MULTIPLIER x its canonical line
+        # (see the constant's note).  The budget is honest RAM, per P1.
+        cost = nbytes * CACHE_RESIDENT_MULTIPLIER
+        if cost > self._content_cache_budget:
             return  # larger than the whole budget: serve straight from disk
         detached = copy.deepcopy(record)
         with self._cache_lock:
             previous = self._content_cache.pop(window_id, None)
             if previous is not None:
                 self._content_cache_bytes -= previous[1]
-            self._content_cache[window_id] = (detached, nbytes)
-            self._content_cache_bytes += nbytes
+            self._content_cache[window_id] = (detached, cost)
+            self._content_cache_bytes += cost
             while (self._content_cache_bytes > self._content_cache_budget
                    and self._content_cache):
-                _, (_, evicted_bytes) = self._content_cache.popitem(last=False)
-                self._content_cache_bytes -= evicted_bytes
+                _, (_, evicted_cost) = self._content_cache.popitem(last=False)
+                self._content_cache_bytes -= evicted_cost
 
     def _cache_clear(self) -> None:
         with self._cache_lock:
@@ -711,6 +734,85 @@ class WindowManager:
                 meta["last_fetched_tick"] = int(self._get_tick())
             except Exception:
                 pass
+
+    def _fetch_many_detached(self, window_ids) -> dict[str, Optional[dict]]:
+        """Fetch a batch of closed records, reading cache misses through ONE
+        file handle per segment in (path, offset) order.
+
+        A per-window open()+seek() made a cold 200-window chi bucket cost
+        0.7-6s on EFS (review measurement 2026-07-16); grouped sequential
+        reads amortise the round trips.  Any per-record read/verify failure
+        falls back to the retrying single fetch (which absorbs compaction
+        races and raises the NAMED halt when truly unreadable)."""
+        results: dict[str, Optional[dict]] = {}
+        misses: list[tuple[str, WindowLocation]] = []
+        for window_id in window_ids:
+            window_id = str(window_id)
+            if window_id in results:
+                continue
+            with self._lock:
+                pending = self._pending.get(window_id)
+                if pending is not None:
+                    self._note_window_fetch(window_id)
+                    results[window_id] = copy.deepcopy(pending)
+                    continue
+                location = self._window_locator.get(window_id)
+            if location is None:
+                results[window_id] = None
+                continue
+            cached = self._cache_get(window_id)
+            if cached is not None:
+                with self._lock:
+                    self._note_window_fetch(window_id)
+                results[window_id] = cached
+                continue
+            misses.append((window_id, location))
+
+        misses.sort(key=lambda item: (item[1].path, item[1].offset))
+        handle = None
+        handle_path = None
+        try:
+            for window_id, location in misses:
+                try:
+                    if handle is None or handle_path != location.path:
+                        if handle is not None:
+                            handle.close()
+                            handle = None
+                        handle = open(location.path, "rb")
+                        handle_path = location.path
+                    handle.seek(location.offset)
+                    raw = handle.read(location.length)
+                    if len(raw) != location.length:
+                        raise WindowStoreIntegrityHalt(
+                            f"short read at "
+                            f"{os.path.basename(location.path)}"
+                            f"+{location.offset}")
+                    record, _record_hash = self._verify_wal_line(
+                        raw.rstrip(b"\n"))
+                    if record.get("window_id") != window_id:
+                        raise WindowStoreIntegrityHalt(
+                            f"located record holds "
+                            f"{record.get('window_id')!r}, "
+                            f"not {window_id!r}")
+                except (OSError, ValueError, KeyError, TypeError,
+                        WindowIntegrityError):
+                    # Segment may have been rewritten (compaction) or this
+                    # handle is stale — the single-fetch path re-resolves the
+                    # locator, retries, and halts loudly if truly corrupt.
+                    if handle is not None:
+                        handle.close()
+                        handle = None
+                        handle_path = None
+                    results[window_id] = self._fetch_window_detached(window_id)
+                    continue
+                self._cache_put(window_id, record, location.length)
+                with self._lock:
+                    self._note_window_fetch(window_id)
+                results[window_id] = copy.deepcopy(record)
+        finally:
+            if handle is not None:
+                handle.close()
+        return results
 
     def _new_window(self, context_id: str, trigger_reason: str,
                     context_origin: str, context_detail: Optional[Mapping]) -> BindingWindow:
@@ -1173,11 +1275,14 @@ class WindowManager:
                     continue
                 seen.add(window_id)
                 window_ids.append(window_id)
+        fetched = self._fetch_many_detached(window_ids)
         windows = []
         for window_id in window_ids:
-            record = self._fetch_window_detached(window_id)
+            record = fetched.get(window_id)
             if record is None:
-                raise KeyError(window_id)
+                raise WindowStoreIntegrityHalt(
+                    f"chi index references closed window {window_id!r} but "
+                    f"no durable content exists for it. {RESTORE_HINT}")
             windows.append(record)
         return tuple(windows)
 
@@ -1197,11 +1302,14 @@ class WindowManager:
                     if window_id not in seen:
                         seen.add(window_id)
                         window_ids.append(window_id)
+        fetched = self._fetch_many_detached(window_ids)
         results = []
         for window_id in window_ids:
-            record = self._fetch_window_detached(window_id)
+            record = fetched.get(window_id)
             if record is None:
-                raise KeyError(window_id)
+                raise WindowStoreIntegrityHalt(
+                    f"chi index references closed window {window_id!r} but "
+                    f"no durable content exists for it. {RESTORE_HINT}")
             results.append(record)
         return tuple(results)
 
@@ -1455,11 +1563,22 @@ class WindowManager:
             line = _canonical_wal_bytes(
                 {"record": record, "sha256": record_hash}) + b"\n"
             location = self._wal_append_line(line, record_hash)
+            append_generation = self._wal_generation
         # Publish the durable location and release the resident copy.  Lock
         # order stays self._lock -> self._wal_lock everywhere else, so the
         # wal lock is fully released before self._lock is taken here.
         window_id = record["window_id"]
         with self._lock:
+            with self._wal_lock:
+                current_generation = self._wal_generation
+            if current_generation != append_generation:
+                # A compaction ran between our append and this publish: it
+                # folded the pending copy into the NEW base and rebuilt the
+                # locator.  Our old-generation line is a superseded
+                # duplicate — publishing its location would point the
+                # locator at a file scheduled for deletion.  Discard.
+                self._pending.pop(window_id, None)
+                return
             self._pending.pop(window_id, None)
             self._window_locator[window_id] = location
         self._cache_put(window_id, record, location.length)
@@ -1524,12 +1643,14 @@ class WindowManager:
             return self._compact_locked()
 
     def _iter_record_lines_locked(self):
-        """Yield (window_id, canonical_line_bytes, record_hash, kind) for
-        every current closed record, one at a time, in durable append order.
+        """Yield (window_id, canonical_line_bytes, record_hash, kind, record)
+        for every current closed record, one at a time, in durable append
+        order.
 
         Streams disk-resident records straight from their located byte
         ranges (re-verified) and serialises pending records; content never
-        materializes wholesale.  Caller holds ``self._lock``."""
+        materializes wholesale (one record at a time).  Caller holds
+        ``self._lock``."""
         for window_id, location in list(self._window_locator.items()):
             with open(location.path, "rb") as handle:
                 handle.seek(location.offset)
@@ -1552,14 +1673,14 @@ class WindowManager:
                     f"expected {window_id!r}, found {record.get('window_id')!r}")
             kind = ("gist" if record.get(RECORD_KIND_KEY) == RECORD_KIND_GIST
                     else "window")
-            yield window_id, line, record_hash, kind
+            yield window_id, line, record_hash, kind, record
         for window_id, record in list(self._pending.items()):
             if window_id in self._window_locator:
                 continue
             record_hash = _sha256_hex(_canonical_wal_bytes(record))
             line = _canonical_wal_bytes(
                 {"record": record, "sha256": record_hash}) + b"\n"
-            yield window_id, line, record_hash, "window"
+            yield window_id, line, record_hash, "window", record
 
     def _compact_locked(self, rewrite_policy: Optional[Callable] = None) -> dict:
         """Write a new base segment holding every current closed window, make
@@ -1586,18 +1707,20 @@ class WindowManager:
         total_bytes = 0
         record_count = 0
         new_locator: dict[str, WindowLocation] = {}
+        new_meta: dict[str, dict] = {}
         with open(tmp_path, "wb") as handle:
-            for window_id, line, record_hash, kind in (
+            for window_id, line, record_hash, kind, record in (
                     self._iter_record_lines_locked()):
                 if rewrite_policy is not None:
                     line, record_hash = rewrite_policy(
                         window_id, line, record_hash)
                     # A policy may have rewritten a full record to a typed
-                    # gist record (Change 3); re-derive the locator kind
-                    # from what was actually written.
-                    rewritten, _ = self._verify_wal_line(line.rstrip(b"\n"))
+                    # gist record (Change 3); re-derive the locator kind AND
+                    # the metadata from what was actually written, so the
+                    # resident view can never go stale against the rewrite.
+                    record, _ = self._verify_wal_line(line.rstrip(b"\n"))
                     kind = ("gist"
-                            if rewritten.get(RECORD_KIND_KEY) == RECORD_KIND_GIST
+                            if record.get(RECORD_KIND_KEY) == RECORD_KIND_GIST
                             else "window")
                 offset = total_bytes
                 handle.write(line)
@@ -1605,6 +1728,14 @@ class WindowManager:
                 record_count += 1
                 new_locator[window_id] = WindowLocation(
                     final_path, offset, len(line), kind)
+                meta = self._window_metadata_from_record(record)
+                previous_meta = self._window_meta.get(window_id)
+                if previous_meta is not None:
+                    # Fetch recency is runtime state, not record content —
+                    # carry it across the rewrite (fade-policy input).
+                    meta["last_fetched_tick"] = previous_meta.get(
+                        "last_fetched_tick")
+                new_meta[window_id] = meta
                 digest.update(record_hash.encode("ascii"))
                 digest.update(b"\n")
             handle.flush()
@@ -1621,9 +1752,14 @@ class WindowManager:
             self._wal_record_count = record_count
             self._wal_digest_hasher = digest
             self._wal_base_written = True
-        # Install the rebuilt locator; pending records are now durable.
+        # Install the rebuilt locator AND metadata; pending records are now
+        # durable.  The content cache is cleared: under a rewrite_policy the
+        # cached full records may no longer match what the store holds, and
+        # a stale cache would silently serve pre-rewrite content forever.
         self._window_locator = new_locator
+        self._window_meta = new_meta
         self._pending.clear()
+        self._cache_clear()
         # Older generations are now fully superseded by this base and safe to
         # drop.  The PREVIOUS generation is kept until the caller's manifest
         # (pointing here) is durable; the next compaction / a boot restore
@@ -1749,6 +1885,7 @@ class WindowManager:
         chi_seen: dict[int, set] = {}
         record_count = 0
         torn_discarded = 0
+        torn_truncation: Optional[tuple[str, int]] = None
         max_window_seq = -1
         max_context_seq = -1
         verify_prefix = hashlib.sha256()   # first durable_count record hashes
@@ -1774,24 +1911,27 @@ class WindowManager:
                         # Blank line: only tolerable as a torn trailing artifact.
                         if is_trailing_partial:
                             torn_discarded += 1
+                            torn_truncation = (path, offset)
                             offset += line_length
                             line_pos += 1
                             continue
                         raise WindowStoreIntegrityHalt(
                             f"WAL segment {os.path.basename(path)} has an empty "
-                            f"interior record at line {line_pos}")
+                            f"interior record at line {line_pos}. {RESTORE_HINT}")
                     try:
                         record, record_hash = self._verify_wal_line(line)
                     except (ValueError, KeyError, TypeError,
                             json.JSONDecodeError, WindowIntegrityError) as exc:
                         if is_trailing_partial:
                             torn_discarded += 1
+                            torn_truncation = (path, offset)
                             offset += line_length
                             line_pos += 1
                             continue
                         raise WindowStoreIntegrityHalt(
                             f"WAL segment {os.path.basename(path)} line {line_pos} "
-                            f"is corrupt and is not the trailing record: {exc}")
+                            f"is corrupt and is not the trailing record: {exc}. "
+                            f"{RESTORE_HINT}")
                     # ── Index this record, then DISCARD its content ──
                     window_id = record["window_id"]
                     kind = ("gist"
@@ -1830,10 +1970,34 @@ class WindowManager:
             raise WindowStoreIntegrityHalt(
                 f"WAL generation {generation} holds {record_count} valid "
                 f"records, fewer than the {durable_count} the manifest marks "
-                f"durable -- committed data is missing")
+                f"durable -- committed data is missing. {RESTORE_HINT}")
         if verify_prefix.hexdigest() != expected_digest:
             raise WindowStoreIntegrityHalt(
-                "WAL durable prefix digest does not match the manifest")
+                f"WAL durable prefix digest does not match the manifest. "
+                f"{RESTORE_HINT}")
+
+        # ── Torn-tail SELF-HEAL (review blocker 1, 2026-07-16) ──
+        # Discarding a torn trailing record is not enough: the torn bytes
+        # stay on disk, new closes open a FRESH segment, and the NEXT boot
+        # then finds the torn line in an INTERIOR segment — a permanent
+        # named halt for what was one crash mid-append.  The torn record was
+        # never counted durable (counters/digest advance only after fsync),
+        # so truncating it back off changes nothing the manifest attests to.
+        # Loud by design: window_wal_torn_truncated names segment and bytes.
+        if torn_truncation is not None:
+            torn_path, torn_offset = torn_truncation
+            torn_size = os.path.getsize(torn_path)
+            fd = os.open(torn_path, os.O_RDWR)
+            try:
+                os.ftruncate(fd, torn_offset)
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+            self._log_event(
+                "window_wal_torn_truncated",
+                segment=os.path.basename(torn_path),
+                truncated_at=torn_offset,
+                bytes_removed=torn_size - torn_offset)
 
         # Open contexts from the manifest; a context whose window already
         # appears closed in the WAL (a close that raced the manifest read) is
