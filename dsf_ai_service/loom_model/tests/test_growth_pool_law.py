@@ -213,6 +213,29 @@ def test_novelty_history_is_bounded():
     assert len(emb._recent_input_signatures) <= emb.NOVELTY_HISTORY_MAXLEN
 
 
+def test_save_restore_roundtrip_growth_continues(tmp_path):
+    """Hypothesis-2 discriminator (pickle-restore state): the production
+    organism is restored from guala_organism.pkl.gz via load_full_state
+    (bypasses __init__ — the 2026-07-08 incident class). A grown organism
+    round-tripped through the REAL save/restore path must keep growing;
+    pre-fix it restored a permanently-frozen pool (0.0) and stopped dead
+    regardless of how rich later experience was."""
+    p = str(tmp_path / "org.pkl.gz")
+    emb = _drained(Embryo(**SEED_KW))
+    for i in range(120):
+        emb.experience_word(f"w{i}", _sense_signal(i))
+    before = emb.growth_snapshot()["total_divisions"]
+    assert before > 0
+    emb.save_full_state(p)
+
+    restored = Embryo.load_full_state(p)
+    assert restored.growth_snapshot()["total_divisions"] == before
+    for i in range(120, 240):
+        restored.experience_word(f"w{i}", _sense_signal(i))
+    after = restored.growth_snapshot()["total_divisions"]
+    assert after > before, "growth stopped dead after a real pickle restore"
+
+
 def test_restored_prefix_pickle_self_heals():
     """An organism pickled before this fix has no _recent_input_signatures
     / _growth_cap_hits (pickle bypasses __init__ — the -198 lesson). The
