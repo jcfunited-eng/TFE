@@ -10374,7 +10374,97 @@ class Guala:
             self._activity_history.append(self._current_activity)
             if len(self._activity_history) > 500:
                 self._activity_history = self._activity_history[-200:]
+            _ended_activity = self._current_activity
             self._current_activity = None
+            # GL-RPT-WAL-BLOAT F2 (2026-07-15): an activity end is the real
+            # experience boundary for every attending-episode BindingWindow
+            # -- and the only recurring boundary already-leaked contexts
+            # will ever see.  Close them by EXPLICIT context id; see the
+            # method's own comment for why this must never rely on this
+            # thread's bound contextvar.
+            self._close_boundary_window_contexts(_ended_activity)
+
+    # BindingWindow context-id prefixes that are provably activity/stream
+    # bounded and manager-generated -- never caller-owned:
+    #   episode:episode:attending_*  -- minted by _atick_attending_audio /
+    #       _atick_attending_visual via a.metadata["_episode_ref"] plus
+    #       WindowManager._inferred_context_id's own "episode:" prefix.
+    #       Each belongs to exactly ONE activity instance (started_tick is
+    #       part of the id), so once ANY activity ends every open one is
+    #       past its boundary by construction -- the engine has a single
+    #       _current_activity, and it is the one ending right now.
+    #   implicit:  -- WindowManager._context_for_entry's fallback container
+    #       for entries that declared no structure.  When minted inside an
+    #       executor job, app.py's per-job contextvar isolation discards
+    #       the only binding that could ever have closed it.
+    # Deliberately EXCLUDES caller-owned contexts ("language:...",
+    # "live-conversation:...", give_experience/addsound ids, "legacy:...",
+    # "bundle:...") -- those may legitimately be mid-build on another
+    # thread and their owners close them.
+    _BOUNDARY_WINDOW_CONTEXT_PREFIXES = (
+        "episode:episode:attending_", "implicit:")
+
+    def _close_boundary_window_contexts(self, ended_activity):
+        """GL-RPT-WAL-BLOAT F2 (2026-07-15): close attending-episode and
+        implicit BindingWindow contexts at their real boundary -- this
+        activity end -- by EXPLICIT context id.
+
+        The old close path resolved its target through the CLOSING
+        thread's bound contextvar; _end_activity runs from the autonomy
+        tick, converse auto-wake (wake_from_sleep), manual_sleep and the
+        admin force endpoints -- routinely a DIFFERENT thread than the one
+        that opened the context -- so the close silently no-oped.  Live
+        cost when found: 170 never-closed contexts / 30,507 entries /
+        24.5MB re-embedded into every ~60s save manifest, dominated by 4
+        episode:episode:attending_audio giants (one reached 8,910 entries).
+
+        NO TTL/timeout policy here (forbidden: a timer would fabricate an
+        experience boundary she never had).  This fires only on a real
+        boundary event and closes only context classes proven
+        activity/stream-bounded (see _BOUNDARY_WINDOW_CONTEXT_PREFIXES).
+
+        The closes run on a background engine thread because end_context
+        durably appends the closed record to the WAL with an fsync (EFS
+        can take seconds for a giant record) and _end_activity's callers
+        hold self.lock -- the same off-lock discipline as the dream-gate
+        write in _end_activity above.  end_context returning None means
+        another boundary already closed that context: a benign race, never
+        an error.  Closed windows stay write-once: a straggler entry with
+        a recurring context id starts a NEW window, never mutates the
+        closed record.
+        """
+        wm = getattr(self, "window_manager", None)
+        if wm is None:
+            return
+        to_close = []
+        for _prefix in self._BOUNDARY_WINDOW_CONTEXT_PREFIXES:
+            to_close.extend(wm.open_context_ids(_prefix))
+        if not to_close:
+            return
+        _ep_ref = None
+        if ended_activity is not None:
+            _ep_ref = (ended_activity.metadata or {}).get("_episode_ref")
+        _own_context_id = f"episode:{_ep_ref}" if _ep_ref else None
+
+        def _close_all():
+            for _cid in to_close:
+                try:
+                    wm.end_context(
+                        _cid,
+                        "activity_ended" if _cid == _own_context_id
+                        else "activity_boundary")
+                except Exception as _close_err:
+                    self._log_substrate_event(
+                        "window_boundary_close_error",
+                        context_id=_cid, error=str(_close_err))
+
+        try:
+            self._start_engine_background_thread(
+                _close_all, daemon=True, name="window-boundary-close")
+        except RuntimeError:
+            # Quiescence rejected a new thread (deploy drain): close
+            # inline -- draining exactly these is what the seal wants.
+            _close_all()
 
     # ── Activity tick effects ──
 
@@ -11203,45 +11293,60 @@ class Guala:
                                  n_fixations=3, ticks_per_fixation=50)
         if not fragments:
             return
-        with self.lock:
-            motif, is_new, overlap = self.sight.process_viewing(
-                fragments, "camera_stream", self.tick)
-            if motif:
-                derived_transition = {
-                    "motif": {
-                        "motif_id": motif.motif_id,
-                        "section": motif.section,
-                        "chi_profile": dict(motif.chi_profile),
-                        "cluster_state": list(motif.cluster_state),
-                        "angle": list(motif.angle),
-                        "n_firings": motif.n_firings,
-                        "source_history": list(motif.source_history),
-                        "founded_at_tick": motif.founded_at_tick,
-                    },
-                    "transition": {
-                        "is_new": bool(is_new),
-                        "overlap": float(overlap),
-                    },
-                }
-                for fragment in fragments:
-                    receipt = visual_fragment_receipt(fragment)
-                    self.window_manager.add_entry(
-                        modality="sight", section="sight_fragment",
-                        motif_id=int(receipt["receipt_sha256"][:16], 16),
-                        chi=int(fragment.winding_count), tick=self.tick,
-                        source_tag="cam:live", trigger_reason="sight",
-                        salience=0.8, mirror_atlas=False,
-                        structural_fact=receipt,
-                        sensory_refs=["cam:live"],
-                        detail={
-                            "source_tick": _tick_snapshot,
-                            "derived_visual_transition": derived_transition,
+        # GL-RPT-WAL-BLOAT F2 (2026-07-15): explicit per-frame context, same
+        # reasoning as process_sound_frame below -- the implicit-context
+        # fallback leaked one never-closable open context per camera-frame
+        # job (app.py's per-job contextvar isolation discards the only
+        # binding that could have closed it).
+        _frame_context_id = f"sense:sight:camera_stream:{time.time_ns():x}"
+        _frame_entries_bound = 0
+        try:
+            with self.lock:
+                motif, is_new, overlap = self.sight.process_viewing(
+                    fragments, "camera_stream", self.tick)
+                if motif:
+                    derived_transition = {
+                        "motif": {
+                            "motif_id": motif.motif_id,
+                            "section": motif.section,
+                            "chi_profile": dict(motif.chi_profile),
+                            "cluster_state": list(motif.cluster_state),
+                            "angle": list(motif.angle),
+                            "n_firings": motif.n_firings,
+                            "source_history": list(motif.source_history),
+                            "founded_at_tick": motif.founded_at_tick,
                         },
-                        **self._affect_kwargs())
-                self._log_substrate_event("sight_frame_bound",
-                                          motif_id=motif.motif_id,
-                                          fragment_count=len(fragments),
-                                          is_new=is_new)
+                        "transition": {
+                            "is_new": bool(is_new),
+                            "overlap": float(overlap),
+                        },
+                    }
+                    for fragment in fragments:
+                        receipt = visual_fragment_receipt(fragment)
+                        self.window_manager.add_entry(
+                            modality="sight", section="sight_fragment",
+                            motif_id=int(receipt["receipt_sha256"][:16], 16),
+                            chi=int(fragment.winding_count), tick=self.tick,
+                            source_tag="cam:live", trigger_reason="sight",
+                            context_id=_frame_context_id,
+                            salience=0.8, mirror_atlas=False,
+                            structural_fact=receipt,
+                            sensory_refs=["cam:live"],
+                            detail={
+                                "source_tick": _tick_snapshot,
+                                "derived_visual_transition": derived_transition,
+                            },
+                            **self._affect_kwargs())
+                        _frame_entries_bound += 1
+                    self._log_substrate_event("sight_frame_bound",
+                                              motif_id=motif.motif_id,
+                                              fragment_count=len(fragments),
+                                              is_new=is_new)
+        finally:
+            # Close OUTSIDE self.lock (WAL fsync; see process_sound_frame).
+            if _frame_entries_bound > 0:
+                self.window_manager.end_context(
+                    _frame_context_id, "sight_frame_complete")
 
     @_engine_mutation_entry
     def process_sound_frame(self, audio_bytes, source="mic:live"):
@@ -11296,25 +11401,46 @@ class Guala:
         # speech-vs-silence discrimination gate. Remove after gate is closed.
         print(f"[cochlear-debug] n_events_by_band="
               f"{ {bn: c['n_events'] for bn, c in cochlear.items()} }")
-        with self.lock:
-            n_bands_fired = 0
-            for bn, c in cochlear.items():
-                if c["n_events"] > 0:
-                    chi = c["winding"] % 100
-                    self.window_manager.add_entry(
-                        modality="sound", section=f"audio_{bn}",
-                        motif_id=deterministic_motif_id("mic_stream"),
-                        chi=chi, tick=self.tick,
-                        source_tag=source, trigger_reason="sound",
-                        salience=0.6, dwell_ticks=2,
-                        sensory_refs=[source],
-                        **self._affect_kwargs())
-                    n_bands_fired += 1
+        # GL-RPT-WAL-BLOAT F2 (2026-07-15): this frame is one complete
+        # sensory moment, so it gets an EXPLICIT per-frame context, opened
+        # and closed right here.  Relying on the implicit-context fallback
+        # leaked one never-closable open context per mic chunk: app.py's
+        # _run_lifecycle_executor runs every job in a fresh COPIED
+        # contextvars.Context that is discarded at job end, so the implicit
+        # binding could never be resolved by any later close.  Same entries,
+        # same provenance, same per-job window grouping as before -- the
+        # window simply closes at its real boundary now.
+        _frame_context_id = f"sense:sound:{source}:{time.time_ns():x}"
+        n_bands_fired = 0
+        try:
+            with self.lock:
+                for bn, c in cochlear.items():
+                    if c["n_events"] > 0:
+                        chi = c["winding"] % 100
+                        self.window_manager.add_entry(
+                            modality="sound", section=f"audio_{bn}",
+                            motif_id=deterministic_motif_id("mic_stream"),
+                            chi=chi, tick=self.tick,
+                            source_tag=source, trigger_reason="sound",
+                            context_id=_frame_context_id,
+                            salience=0.6, dwell_ticks=2,
+                            sensory_refs=[source],
+                            **self._affect_kwargs())
+                        n_bands_fired += 1
+                if n_bands_fired > 0:
+                    self._log_substrate_event("sound_frame_bound",
+                        n_bands=n_bands_fired,
+                        duration_s=round(len(samples)/sr, 2),
+                        source=source)
+        finally:
+            # Close OUTSIDE self.lock: end_context durably appends the closed
+            # record to the WAL with an fsync, and EFS latency must never
+            # ride under the engine lock (GL-CMD-LOCK-CONTENTION-FIX-182
+            # discipline).  In finally so a mid-loop error still closes the
+            # partially-bound frame at its boundary instead of leaking it.
             if n_bands_fired > 0:
-                self._log_substrate_event("sound_frame_bound",
-                    n_bands=n_bands_fired,
-                    duration_s=round(len(samples)/sr, 2),
-                    source=source)
+                self.window_manager.end_context(
+                    _frame_context_id, "sound_frame_complete")
 
     def _atick_attending_visual(self, a):
         """Phase 2: Attend to a picture — saccaded foveation through krimelack."""

@@ -3407,8 +3407,16 @@ async def gualaloom_chat(msg: GLMessage):
                 "observed"
                 if _bundle_has_observed_lane and not _bundle_uses_emulator
                 else "emulated")
+            # GL-RPT-WAL-BLOAT F2 (2026-07-15): the pair below opens AND
+            # closes with an EXPLICIT context id, so the close can never
+            # silently no-op on contextvar resolution (the failure mode
+            # that left contexts open forever, re-embedded into every ~60s
+            # save manifest).  Unique per request: a leaked context from a
+            # failed bundle can never absorb a later bundle's lanes.
+            _bundle_context_id = f"give_experience:{time.time_ns():x}"
             _guala.window_manager.open(
                 "give_experience",
+                context_id=_bundle_context_id,
                 experience_origin=_bundle_origin,
                 source=bundle_source,
                 bundle_name=bundle_name,
@@ -3710,7 +3718,7 @@ async def gualaloom_chat(msg: GLMessage):
             # binding window opened at the top of this function -- give_
             # experience's explicit open/add_entry-per-lane/close, complete.
             _closed_bundle_window = _guala.window_manager.close(
-                "give_experience_complete")
+                "give_experience_complete", context_id=_bundle_context_id)
             if caption_bound:
                 if _closed_bundle_window is None:
                     raise RuntimeError(
@@ -3824,7 +3832,12 @@ async def gualaloom_chat(msg: GLMessage):
                 # GL-CMD-BINDING-WINDOWS-BUILD-EVE-20260706-v1: standalone
                 # sound upload is its own complete experience -- explicit
                 # open/add_entry-per-band/close, same pattern as give_experience.
-                _guala.window_manager.open("addsound")
+                # GL-RPT-WAL-BLOAT F2: explicit context id, same reasoning
+                # as give_experience above -- the close must resolve its
+                # target by identity, never by contextvar.
+                _sound_context_id = f"addsound:{item_id}:{time.time_ns():x}"
+                _guala.window_manager.open(
+                    "addsound", context_id=_sound_context_id)
                 for band_name, c in cochlear.items():
                     chi = c["winding"] % 100
                     _guala.window_manager.add_entry(
@@ -3832,8 +3845,10 @@ async def gualaloom_chat(msg: GLMessage):
                         motif_id=deterministic_motif_id(item_id), chi=chi,
                         tick=_guala.tick, source_tag=f"addsound:{item_id}",
                         trigger_reason="addsound",
+                        context_id=_sound_context_id,
                         salience=1.2)
-                _guala.window_manager.close("addsound_complete")
+                _guala.window_manager.close(
+                    "addsound_complete", context_id=_sound_context_id)
                 _guala._sounds[item_id] = {
                     "item_id": item_id, "title": title,
                     "cochlear": {bn: {"winding": c["winding"], "n_events": c["n_events"]}

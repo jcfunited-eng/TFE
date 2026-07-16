@@ -561,10 +561,21 @@ class WindowManager:
         with self._lock:
             current = self._contexts.get(bound) if bound is not None else None
 
-        if (current is not None and current.context_origin == "inferred"
+        if (current is not None
+                and current.context_origin in ("inferred", "implicit")
                 and inferred is not None and inferred != current.context_id):
             # The caller supplied a new structural episode/bundle boundary.
-            # Close only this caller's previously-bound inferred context.
+            # Close only this caller's previously-bound manager-created
+            # context.  GL-RPT-WAL-BLOAT F2 (2026-07-15): "implicit" joins
+            # "inferred" here -- an implicit context is a manager-generated
+            # container for entries that declared no structure, so an entry
+            # that DOES declare structure is exactly its real boundary.
+            # Before this, an implicit-bound caller absorbed episode/bundle
+            # entries forever (origin was "legacy", which this check
+            # deliberately skips).  Explicit and legacy (caller-owned
+            # ``open()``) contexts still absorb structured entries
+            # unchanged -- that behavior is what binds a bundle's lanes and
+            # a sentence's words into one window.
             self.end_context(current.context_id, "context_boundary")
             current = None
 
@@ -575,9 +586,9 @@ class WindowManager:
                 inferred, trigger_reason, _origin="inferred")
             return self._contexts[inferred]
 
-        legacy_id = self._next_context_id("implicit")
-        self.begin_context(legacy_id, trigger_reason, _origin="legacy")
-        return self._contexts[legacy_id]
+        implicit_id = self._next_context_id("implicit")
+        self.begin_context(implicit_id, trigger_reason, _origin="implicit")
+        return self._contexts[implicit_id]
 
     def _entry_provenance(
         self,
@@ -828,11 +839,38 @@ class WindowManager:
         return window_id
 
     def close(self, reason: str, context_id: Optional[str] = None) -> Optional[str]:
-        """Backward-compatible close of only the caller's bound context."""
+        """Backward-compatible close of only the caller's bound context.
+
+        GL-RPT-WAL-BLOAT F2 (2026-07-15): a close that cannot resolve a
+        target is now LOUD (``window_close_unbound`` event + ``None``)
+        instead of an invisible no-op.  The bound contextvar is caller
+        local by design, so a close issued from a different thread -- or
+        from a different copied ``contextvars.Context`` (app.py runs every
+        executor job in a fresh copy) -- than the opener can never resolve
+        the window here.  Real boundary closes must pass ``context_id``
+        explicitly (or call ``end_context`` directly), which succeeds
+        regardless of thread.
+        """
         context_id = context_id or self._bound_context.get()
         if context_id is None:
+            self._log_event("window_close_unbound", close_reason=str(reason))
             return None
         return self.end_context(context_id, reason)
+
+    def open_context_ids(self, prefix: str = "") -> tuple[str, ...]:
+        """Point-in-time ids of currently-open contexts, optionally filtered
+        by id prefix.
+
+        Thread-independent read: unlike ``active_context_id`` (deliberately
+        caller-bound), this exposes every open context so a REAL experience
+        boundary (e.g. the engine's activity end) can close stragglers by
+        EXPLICIT id via ``end_context`` no matter which thread -- or long
+        discarded contextvar context -- opened them.  Read-only; the caller
+        decides what a real boundary is.  GL-RPT-WAL-BLOAT F2.
+        """
+        with self._lock:
+            return tuple(context_id for context_id in self._contexts
+                         if context_id.startswith(prefix))
 
     def lookup_chi(self, chi: int) -> tuple[dict, ...]:
         """Return full closed windows referenced by one canonical chi bucket."""
