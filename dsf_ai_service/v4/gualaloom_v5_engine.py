@@ -11883,6 +11883,7 @@ class Guala:
             # within each partition.
             recent.sort(key=lambda window: not _shared(window))
 
+        seen_openings = {attempt["words"] for attempt in attempts}
         for window in recent:
             if len(attempts) >= AUTONOMOUS_COMPOSER_SEED_ATTEMPTS:
                 break
@@ -11891,8 +11892,12 @@ class Guala:
             prefix_len = min(AUTONOMOUS_COMPOSER_SEED_PREFIX,
                              len(window.tokens) - 1)
             tokens = window.tokens[:prefix_len]
+            words = tuple(t.fact.language_form for t in tokens)
+            if words in seen_openings:
+                continue  # identical opening — same query, same stop
+            seen_openings.add(words)
             attempts.append({
-                "words": tuple(t.fact.language_form for t in tokens),
+                "words": words,
                 "provenance": [
                     {"word": t.fact.language_form,
                      "origin": "recent_window_commit",
