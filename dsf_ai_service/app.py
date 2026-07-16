@@ -741,6 +741,38 @@ async def _run_converse(
                         lambda: _guala.converse(text, source=source))
             response = turn_result.response
             response_source = turn_result.response_source
+            # All-at-once doctrine (Joe 2026-07-16, "gibberish if that is
+            # what it only knows"): a HUMAN turn ending in silence attempts
+            # an honest organism babble before answering with nothing.
+            # Seeds = the turn's own just-lived words; recall runs
+            # LOCK-FREE (two-phase precompute); the in-lock half is
+            # assembly-only; conversational=True because this IS the
+            # pending turn. Label stays organism_attempt end-to-end.
+            if (not response and response_source == "silence_no_commit"
+                    and os.environ.get(
+                        "CONVERSE_BABBLE_FALLTHROUGH", "1") != "0"):
+                try:
+                    _turn_seeds = [{"words": text.split()[:6],
+                                    "provenance": "conversation_turn_words"}]
+                    _votes = await _run_lifecycle_executor(
+                        lambda: _guala.precompute_organism_attempt(
+                            _turn_seeds))
+                    if _votes is not None:
+                        def _babble_assemble():
+                            import time as _bt
+                            with _guala.lock:
+                                return _guala._compose_organism_attempt(
+                                    _turn_seeds, _bt.monotonic() + 0.25,
+                                    organism_votes=_votes,
+                                    conversational=True)
+                        _babble = await _run_lifecycle_executor(
+                            _babble_assemble)
+                        if _babble is not None:
+                            response = _babble["content"]
+                            response_source = "organism_attempt"
+                except Exception as _bab_e:
+                    print(f"[converse-babble] fall-through failed (honest "
+                          f"silence kept): {_bab_e}", flush=True)
             motifs = len(_guala.vocab)
             emission_id = turn_result.emission_id
             committed_sections = list(turn_result.committed_sections)
