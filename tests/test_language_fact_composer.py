@@ -181,15 +181,21 @@ def test_every_query_token_must_pass_full_field_recall_before_suffix_selection()
     assert result.recall_reason is RecallReason.NO_STRUCTURAL_CANDIDATE
 
 
-def test_terminal_and_continuing_paths_are_ambiguous_and_stop():
+def test_terminal_paths_do_not_veto_a_unique_continuation():
+    """Ratified 2026-07-16 (teaching-correction fix): a window that merely
+    ENDS at the query is absence of evidence, not a competing claim --
+    every heard question mints such a window, and the old mixed-terminal
+    veto made any question permanently unanswerable once asked. The
+    unique-successor law applies among windows that actually testify."""
     end_facts, end_window = _window("win-terminal", ("red",), (1,))
     next_facts, next_window = _window("win-continuing", ("red", "fox"), (1, 4))
     result = DeterministicWindowComposer(
         LanguageFactMemory(end_facts + next_facts), (end_window, next_window)
     ).continue_from(construct_language_fact_strand("red"))
 
-    assert result.emitted_tokens == ()
-    assert result.stop_reason is ContinuationStopReason.MIXED_TERMINAL_AND_SUCCESSOR
+    assert [t.recognized_strands[0].language_form
+            for t in result.emitted_tokens] == ["fox"]
+    assert result.stop_reason is not ContinuationStopReason.MIXED_TERMINAL_AND_SUCCESSOR
 
 
 def test_structurally_ambiguous_successor_is_unknown_and_stops():

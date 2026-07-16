@@ -180,3 +180,30 @@ def test_daughters_are_rewired_into_spike_bus_after_fold(engine):
         time.sleep(0.01)
     assert bus.dropped_count == baseline_dropped, \
         "daughter neuron was invisible to the spike bus"
+
+
+def test_taught_correction_answers_the_question_next_time(engine):
+    """Joe 2026-07-16: corrections work always. A question asked (and
+    therefore minted as terminal windows), then corrected, must answer
+    with the taught continuation on the next ask -- terminal ask-windows
+    no longer veto (composer law), and the correction teaches the whole
+    exchange as one observed window."""
+    g = engine
+    # Ask twice first: mints terminal windows ending at the question.
+    for _ in range(2):
+        g.read_sentence("who are you", source="joe",
+                        experience_origin="observed")
+    # Correction teaches the exchange.
+    g.apply_teacher_correction(
+        original_input="who are you", her_emission="pray you wretched",
+        correct=False, corrected_text="i am guala", source="joe")
+    # The certified composer must now continue the question with the answer.
+    settlement = g._compose_language_fact_settlement(
+        ["who", "are", "you"])
+    assert settlement is not None, "no certified settlement after correction"
+    text = " ".join(
+        t if isinstance(t, str) else getattr(t, "word", str(t))
+        for t in getattr(settlement, "content", "").split()) \
+        if hasattr(settlement, "content") else None
+    content = getattr(settlement, "content", None) or text
+    assert content and "guala" in str(content).lower(), content

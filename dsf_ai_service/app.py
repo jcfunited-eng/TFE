@@ -5560,6 +5560,11 @@ class TeacherCorrectionRequest(BaseModel):
     temporal: Optional[str] = None
     sensory_freetext: Optional[str] = None
     source: Optional[str] = "joe"
+    # 2026-07-16 (Joe: "corrections should work always"): attempts carry no
+    # certified emission record, so the page supplies the conversation pair
+    # directly -- the question it answered and the attempt text itself.
+    original_input: Optional[str] = None
+    her_emission: Optional[str] = None
 
 @app.post("/api/v1/teacher/feedback")
 async def teacher_feedback(req: TeacherFeedbackRequest):
@@ -5611,11 +5616,15 @@ def handle_teacher_feedback_local(req):
 
 def handle_teacher_correction_local(req):
     rec = _guala._certified_emission_record(req.emission_id)
-    if rec is None:
-        raise HTTPException(status_code=400,
-                            detail="emission is not source-certified")
-    original_input = rec.get("input_text", "")
-    her_emission = rec.get("text", "")
+    if rec is not None:
+        original_input = rec.get("input_text", "")
+        her_emission = rec.get("text", "")
+    else:
+        # Attempt-labeled replies (organism babble) have no certified
+        # record; the page supplies the pair. Corrections must work for
+        # EVERY reply kind -- teaching is the consequence loop.
+        original_input = (req.original_input or "").strip()
+        her_emission = (req.her_emission or "").strip()
     if not original_input or not her_emission:
         raise HTTPException(status_code=400, detail="no conversation context")
     return _guala.apply_teacher_correction(

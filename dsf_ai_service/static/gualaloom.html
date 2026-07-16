@@ -826,6 +826,8 @@ async function submitCorrection(){
   const corrected=document.getElementById('cm-corrected').value.trim();
   if(!corrected)return;
   const body={emission_id:emissionId,corrected_text:corrected,source:'joe',
+    original_input:window._lastUserText||undefined,
+    her_emission:_correctionModal._emissionText||window._lastAttemptText||undefined,
     story:document.getElementById('cm-story').value.trim()||undefined,
     temporal:document.getElementById('cm-temporal').value.trim()||undefined,
     sensory_freetext:document.getElementById('cm-sensory').value.trim()||undefined};
@@ -937,6 +939,7 @@ async function _converseAndRender(text,source){
     else if(resp&&d.response_source==='fact_strand_commit'){
       addEmissionMsg(resp,d.emission_id);gualaSpeak(resp);
     }else if(resp&&d.response_source==='organism_attempt'){
+      window._lastAttemptText=resp;
       addEmissionMsg(resp+'  (attempt)',d.emission_id||null);gualaSpeak(resp);
     }else if(resp){addMsg(resp,'system');gualaSpeak(resp);}
     else{addMsg('(she had nothing — emission was empty)','system');}
@@ -954,6 +957,7 @@ async function sendMsg(){
   if(_sendingMsg){addMsg('(wait — still thinking...)','system');return}
   msgInput.value='';_sendingMsg=true;
   const isCmd=text.startsWith('/');addMsg(text,isCmd?'system':'user');
+  if(!isCmd)window._lastUserText=text;
   try{
     if(isCmd){
       const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:text})},10000);

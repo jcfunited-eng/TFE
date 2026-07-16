@@ -320,11 +320,16 @@ class DeterministicWindowComposer:
                     emitted_tokens=tuple(emitted),
                     stop_reason=ContinuationStopReason.NO_SUCCESSOR,
                 )
-            if terminal_paths:
-                return ContinuationResult(
-                    emitted_tokens=tuple(emitted),
-                    stop_reason=ContinuationStopReason.MIXED_TERMINAL_AND_SUCCESSOR,
-                )
+            # 2026-07-16 (teaching-correction fix): a terminal path is
+            # ABSENCE of evidence about what follows, not a competing
+            # claim. Every heard question mints a window ending at the
+            # question's last word, so the old mixed-terminal veto made
+            # any question permanently unanswerable once asked -- taught
+            # corrections could never surface. Terminal paths drop out;
+            # the unique-successor law applies among windows that actually
+            # testify. All-terminal still stops honestly (NO_SUCCESSOR
+            # above); MIXED_TERMINAL_AND_SUCCESSOR remains only as a
+            # historical stop reason for telemetry compatibility.
 
             recognized: list[
                 tuple[WindowTokenOccurrence, FactRecallResult, str]

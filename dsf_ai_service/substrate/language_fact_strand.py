@@ -62,6 +62,11 @@ LANGUAGE_MODALITIES = frozenset({"word", "language"})
 EXPERIENCE_MODALITIES = frozenset({
     "sight", "sound", "touch", "smell", "taste",
     "place", "ambient", "participant",
+    # 2026-07-16 (Joe: corrections work always): a teacher's correction is
+    # experience in its own right -- the taught exchange window carries one
+    # real teacher-presence entry, making abstract exchanges ("who are you
+    # -> i am guala") citable without sensory descriptor words.
+    "teacher",
 })
 
 

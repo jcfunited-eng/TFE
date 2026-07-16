@@ -4620,7 +4620,7 @@ class Guala:
                 has_native_events = True
         return has_native_events
 
-    def _remember_closed_language_window(self, window_id):
+    def _remember_closed_language_window(self, window_id, teaching=False):
         """Commit closed-window language facts with exact lived citations."""
         from dsf_ai_service.substrate.language_fact_strand import (
             BindingWindowCitation,
@@ -4677,7 +4677,13 @@ class Guala:
                 ),
             )
             facts.append(fact)
-            if citation.is_multimodal_language_experience:
+            # 2026-07-16 (Joe: corrections work always): a teacher-taught
+            # exchange qualifies as citable experience BY BEING TEACHING --
+            # the correction gateway is its own modality of experience (the
+            # spec's teaching row). Without this, abstract exchanges ("who
+            # are you -> i am guala") could never certify because they
+            # contain no sensory descriptor words.
+            if citation.is_multimodal_language_experience or teaching:
                 occurrences.append(WindowTokenOccurrence(
                     fact=fact,
                     window_id=window_id,
@@ -4940,6 +4946,7 @@ class Guala:
 
     @_engine_mutation_entry
     def read_sentence(self, text, source="corpus", bundle_id=None, salience=None,
+                      teaching=False,
                       episode_ref=None, presence=None, location=None, sky_state=None,
                       place=None, ambient=None, experience_origin="emulated"):
         """Read a sentence into the substrate.
@@ -5166,6 +5173,25 @@ class Guala:
                         _read_profile_agg[_k] = (
                             _read_profile_agg.get(_k, 0.0) + _v)
             _sentence_complete = True
+            if teaching and _owns_fact_context:
+                # Teaching gateway (2026-07-16): bind ONE real
+                # teacher-presence entry so the exchange window is
+                # genuinely multimodal (language + teacher) -- every
+                # downstream citation validator then passes naturally.
+                try:
+                    self.window_manager.add_entry(
+                        modality="teacher",
+                        section="teacher_correction",
+                        motif_id=deterministic_motif_id(f"teacher:{source}"),
+                        chi=deterministic_motif_id(f"teacher:{source}") % 100,
+                        tick=self.tick,
+                        source_tag=source,
+                        context_id=_fact_context_id,
+                        trigger_reason="teacher_correction",
+                    )
+                except Exception as _te:
+                    print(f"[teaching] teacher entry bind failed "
+                          f"(non-fatal): {_te}", flush=True)
         finally:
             _closed_window_id = None
             if _owns_fact_context:
@@ -5207,7 +5233,8 @@ class Guala:
                     window_id=_closed_window_id,
                     words=" ".join(words)[:80])
             else:
-                self._remember_closed_language_window(_closed_window_id)
+                self._remember_closed_language_window(
+                    _closed_window_id, teaching=teaching)
 
         with self.lock:
             if source in ("joe", "joe_voice", "wc", "c1", "gate_test") and _read_profile_agg:
@@ -13408,6 +13435,25 @@ class Guala:
                     # GL-CMD-TEACHER-SUBSTRATE-TRUE: corrected_text enters substrate
                     # at natural source-weight salience (no TEACHER_INPUT_SALIENCE_MULTIPLIER
                     # — pair_bond + source_weight already elevate joe/wc inputs).
+                    #
+                    # 2026-07-16 (Joe: "corrections should work always"): a
+                    # correction also teaches the WHOLE EXCHANGE as one
+                    # observed language window -- question words followed by
+                    # the corrected answer -- exactly like a parent modeling
+                    # the exchange out loud. The certified composer's
+                    # unique-successor law then answers the next identical
+                    # question with the taught continuation (terminal
+                    # ask-windows no longer veto; see language_fact_composer).
+                    try:
+                        _exchange_q = " ".join(_normalize_text(
+                            original_input or ""))
+                        if _exchange_q:
+                            self.read_sentence(
+                                f"{_exchange_q} {effective_correction}",
+                                source=source, teaching=True)
+                    except Exception as _ex_e:
+                        print(f"[teacher-correction] exchange-window teach "
+                              f"failed (non-fatal): {_ex_e}", flush=True)
                     try:
                         self.read_sentence(effective_correction, source=source)
                     except Exception:
