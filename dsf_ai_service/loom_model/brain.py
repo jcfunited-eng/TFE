@@ -46,6 +46,22 @@ RECALL_ACTIVATION_THRESHOLD = 0.3
 # concept selection differs qualitatively.
 VOTE_SCALE = 5
 
+# GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 4, STDP consumer):
+# RECALL_STDP_GAIN converts a neuron's learned mean incoming synapse
+# weight (above the untrained STDP_DEFAULT_SYNAPSE_WEIGHT baseline) into
+# extra population-vote weight, so what STDP learned on the spike bus has
+# a real consequence in recall instead of being write-only. Gain 1.0 is
+# the identity mapping (from-design, not tuned): a neuron whose synapses
+# average the untrained default votes with weight exactly 1.0 (behavior
+# identical to before this change); a neuron potentiated to the
+# per-synapse MAX_SYNAPSE_WEIGHT=5.0 ceiling votes with weight ~5.95 --
+# bounded by the same synapse ceiling STDP itself already enforces, so no
+# single neuron can outvote the population without having genuinely
+# earned it spike by spike. Measurement plan: teach-pattern-shifts-recall
+# test (tests/test_stdp_recall_consumer.py) + live /debug/stdp_state
+# weight distribution vs recall top-vote share.
+RECALL_STDP_GAIN = 1.0
+
 
 class LoomBrain:
     """8-hemisphere seed substrate with small-world cross-hemi coupling.
@@ -290,13 +306,24 @@ class LoomBrain:
         injections at entry neurons selected via Guala's chi-proximity
         helper. Runs ALONGSIDE _legacy_step_iteration, never instead of
         it, during Phase 1 transition."""
-        from .injection_weight import signal_to_injection_weight
+        from .injection_weight import (
+            signal_to_injection_weight, SPIKE_INJECTION_MIN_WEIGHT)
         if self._guala_ref is None:
             return  # no Guala wrapper -- nothing to select entry neurons from
         entry_neurons = self._guala_ref._select_entry_neurons(input_chi, modality)
         if not entry_neurons:
             return
         weight = signal_to_injection_weight(input_signal)
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 3): injection floor.
+        # A signal below SPIKE_INJECTION_MIN_WEIGHT is silence (or float
+        # dust from a not-yet-clamped wave residue) and injects NOTHING --
+        # this is the sink-side half of the 2026-07-09 continuous-kick fix
+        # (source-side half: WaveAtlas.tick_decay zero-clamp). Counted for
+        # observability, never silently invisible.
+        if weight < SPIKE_INJECTION_MIN_WEIGHT:
+            self._injection_floor_skips = getattr(
+                self, '_injection_floor_skips', 0) + 1
+            return
         word = input_signal if isinstance(input_signal, str) else None
         metadata = {"input_chi": input_chi, "modality": modality}
         if word is not None:
@@ -325,6 +352,43 @@ class LoomBrain:
     def topology_metrics(self) -> Dict:
         """Return validated topology metrics computed at boot."""
         return self._topology_metrics
+
+    def _stdp_vote_weight(self, neuron) -> float:
+        """GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 4): the STDP
+        CONSUMER. Neuron STDP has been updating _incoming_synapse_weights
+        on the spike bus since Phase 1 with no production reader --
+        learning without consequence. This converts a neuron's learned
+        synaptic state into its population-vote weight: neurons whose
+        incoming synapses were genuinely potentiated (taught patterns,
+        pre-before-post causality, subthreshold correlation credit) count
+        for more in every recall vote; untrained or depressed neurons
+        count exactly as before (weight 1.0 at/below the untrained
+        baseline -- depression never silences a neuron's vote, it only
+        removes earned emphasis).
+
+        weight = 1 + RECALL_STDP_GAIN * max(0, mean(learned) - default).
+
+        Read under the neuron's own _neuron_lock -- the same lock every
+        STDP mutator of this dict already holds (receive_spike,
+        _apply_stdp_potentiation, _apply_subthreshold_potentiation,
+        _receive_upstream_fire_notification, homeostatic scaling), so
+        this read can never observe a half-updated dict. A neuron with no
+        learned synapses at all (fresh, or restored pre-Phase-1) returns
+        1.0 -- byte-identical vote behavior to before this change."""
+        from .neuron import STDP_DEFAULT_SYNAPSE_WEIGHT
+        lock = getattr(neuron, '_neuron_lock', None)
+        weights = getattr(neuron, '_incoming_synapse_weights', None)
+        if not weights:
+            return 1.0
+        if lock is not None:
+            with lock:
+                vals = list(weights.values())
+        else:
+            vals = list(weights.values())
+        if not vals:
+            return 1.0
+        mean_w = sum(vals) / len(vals)
+        return 1.0 + RECALL_STDP_GAIN * max(0.0, mean_w - STDP_DEFAULT_SYNAPSE_WEIGHT)
 
     def recall(self, query_signals: Dict[str, Any]) -> "Counter":
         """Population-vote recall across all neurons.
@@ -380,7 +444,11 @@ class LoomBrain:
                 target_vec = neuron.encode_state(query_signals)
                 best_concept, _ = neuron.binding_atlas.recall_best(target_vec)
                 if best_concept is not None:
-                    votes[best_concept] += 1
+                    # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 4):
+                    # vote weighted by learned STDP synapse strength --
+                    # see _stdp_vote_weight. 1.0 (identical to the old
+                    # +=1) for any untrained neuron.
+                    votes[best_concept] += self._stdp_vote_weight(neuron)
 
                 # Restore full state — recall must not pollute training OR
                 # future recalls.
@@ -745,7 +813,10 @@ class LoomBrain:
             best_concept, _ = neuron.binding_atlas.recall_exact_or_best(
                 query_concept, deltas_matrix[i])
             if best_concept is not None:
-                votes[best_concept] += 1
+                # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 4): vote
+                # weighted by learned STDP synapse strength -- see
+                # _stdp_vote_weight. 1.0 for any untrained neuron.
+                votes[best_concept] += self._stdp_vote_weight(neuron)
 
         return votes
 
@@ -779,5 +850,12 @@ class LoomBrain:
                 target = neuron.encode_state(query_signals, precomputed_lanes)
                 best_concept, _ = neuron.binding_atlas.recall_best(target)
                 if best_concept is not None:
-                    votes[best_concept] += 1
+                    # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 4): THE
+                    # production recall path (observable=resonant_spectral
+                    # is the live default) -- votes weighted by learned
+                    # STDP synapse strength so spike-bus learning finally
+                    # has a consequence in what she recalls/says. 1.0 for
+                    # any untrained neuron (behavior identical to the old
+                    # +=1 until real potentiation exists).
+                    votes[best_concept] += self._stdp_vote_weight(neuron)
         return votes

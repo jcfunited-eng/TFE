@@ -2287,18 +2287,25 @@ def _gl_init():
     # dated 2026-07-10 in the code itself) and daydream's own writes are
     # excluded from _imagination_candidates by its source_path filter, so
     # there is no "one mind, one mouth" collision either direction.
-    # Default OFF, not the REORGANIZE_ENABLED/EVENT_DRIVEN_SUBSTRATE-style
-    # default-on convention: unlike those, THIS substrate is, tonight,
-    # already under measured real lock contention (live tick_rate 0.04/s
-    # against a 5/s nominal target at the moment this was checked, plus
-    # tonight's own 12-93s stall incidents and a same-night background-
-    # thread perf regression from GL-CMD-HEMISPHERIC-INTEGRATION-V3).
-    # Enabling a new perpetual 2Hz self.lock-acquiring thread should happen
-    # with live tick_rate/lock-wait telemetry open, not by default on the
-    # next unrelated deploy. Flip DAYDREAM_LOOP_ENABLED=1 to turn it on.
-    if os.environ.get("DAYDREAM_LOOP_ENABLED", "0") == "1":
+    # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 2): default flipped ON.
+    # The 2026-07-11 reconnect kept this OFF because the substrate was
+    # under measured lock contention (tick_rate 0.04/s vs 5/s nominal,
+    # 12-93s stalls) and the note demanded "live tick_rate/lock-wait
+    # telemetry open" before enabling. Both preconditions have since been
+    # met: the read-word coarse lock was narrowed (2026-07-10, 7037371
+    # series) and the O(n^2) close-index stall was fixed (2026-07-15,
+    # ccf2abf -- turn settle 5+min -> 0.4s); and the demanded telemetry
+    # now EXISTS and runs with the loop itself
+    # (Guala._daydream_telemetry_check: daydream self.lock-wait p95 > 50ms
+    # or tick_rate dropping >30% below the daydream-enabled baseline both
+    # raise a loud daydream_telemetry_alert event + stderr line). Per the
+    # 2026-07-16 all-at-once ruling there are no default-off cognitive
+    # gates: DAYDREAM_LOOP_ENABLED remains as an EMERGENCY-OFF only
+    # (set to 0 to stop the loop at next boot).
+    if os.environ.get("DAYDREAM_LOOP_ENABLED", "1") != "0":
         g.start_daydream_loop()
-        print("[GualaLoom] daydream loop started (DAYDREAM_LOOP_ENABLED=1)")
+        print("[GualaLoom] daydream loop started (default-on; "
+              "DAYDREAM_LOOP_ENABLED=0 is the emergency off)")
 
     s = g.introspect()
     print(f"[GualaLoom v7] Booted: vocab={s['vocab']} reads={s['reads']} "

@@ -361,6 +361,18 @@ class WaveAtlas:
     # iteration. Applies to tick_decay and any future sweeper.
     # ──────────────────────────────────────────────────────────────────────────
 
+    # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 3, sensory spike
+    # injection): epsilon below which a decayed strength is clamped to
+    # EXACTLY 0.0. Multiplicative decay (* (1 - rate)) asymptotically
+    # approaches zero but never reaches it -- the root mechanism behind
+    # the 2026-07-09 incident (wave cells never went exactly quiet, so
+    # the sensory injection branch kicked one entry neuron per hemisphere
+    # continuously: 14M+ fires, 3792/sec, zero synapses updated). Any
+    # strength that decays below this value IS silence and is recorded as
+    # exactly 0.0, so downstream "is this band quiet?" checks are exact
+    # comparisons against 0.0, not float-dust judgment calls.
+    ZERO_CLAMP_EPSILON = 1e-6
+
     def tick_decay(self, decay_rate: float = 0.02, prune_threshold: float = 0.05):
         total_bindings_pruned = 0
         # Snapshot values at iteration start. Concurrent spill_write can
@@ -368,10 +380,15 @@ class WaveAtlas:
         # avoids "dictionary changed size during iteration" and correctly
         # skips those newly-inserted cells (they get decayed next tick, at
         # full strength, no loss). See GL-CMD-WAVE-ATLAS-DECAY-EVE-20260707-v3.
+        eps = max(self.ZERO_CLAMP_EPSILON, 0.0)
         for cell in list(self.cells.values()):
-            # Decay in place -- no new list, no reference swap
+            # Decay in place -- no new list, no reference swap.
+            # Zero-clamp: a decayed strength below epsilon becomes EXACTLY
+            # 0.0 (see ZERO_CLAMP_EPSILON above) -- never an asymptotic
+            # never-zero residue.
             for b in cell.bindings:
-                b["strength"] = b.get("strength", 0.0) * (1.0 - decay_rate)
+                _s = b.get("strength", 0.0) * (1.0 - decay_rate)
+                b["strength"] = _s if _s >= eps else 0.0
             # Prune tail-to-head with pop() -- atomic under GIL,
             # concurrent appends land at tail after our current index
             i = len(cell.bindings) - 1
@@ -380,7 +397,9 @@ class WaveAtlas:
                     cell.bindings.pop(i)
                     total_bindings_pruned += 1
                 i -= 1
-            cell.aggregate_strength = sum(
-                b.get("strength", 0.0) for b in cell.bindings
-            )
+            _agg = sum(b.get("strength", 0.0) for b in cell.bindings)
+            # Same zero-clamp for the cell aggregate: an empty or fully
+            # decayed cell reads EXACTLY 0.0 to every consumer
+            # (sample_wave_summary's band aggregates included).
+            cell.aggregate_strength = _agg if _agg >= eps else 0.0
         return total_bindings_pruned

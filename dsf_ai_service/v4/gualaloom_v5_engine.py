@@ -3035,7 +3035,19 @@ class Guala:
         # thread as the word queue below. Eagerly created (unlike the word
         # queue's lazy self._organism_queue = None) so a sensory push can
         # never race the worker's own first-word startup.
-        self._organism_sensory_queue = _queue.Queue()
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 5): BOUNDED, per the
+        # spec's Cognition-core row -- the wave field returns to the
+        # organism as PROPOSALS over a bounded queue, never a firehose
+        # (the 2026-07-15 finding measured the unbounded version diverging
+        # 4:1 from the worker's drain rate). maxsize=64 = one full
+        # 8-hemisphere push cycle x 8 ticks of tolerated burst; overflow is
+        # drop-OLDEST (a stale wave summary is worthless -- the field has
+        # moved on), counted in _organism_sensory_dropped_count, logged
+        # loudly (first drop + every 50th), and surfaced in /status. See
+        # _enqueue_organism_sensory.
+        self._organism_sensory_queue = _queue.Queue(
+            maxsize=self.WAVE_PROPOSAL_QUEUE_MAX)
+        self._organism_sensory_dropped_count = 0
         # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's backgrounding
         # ruling: honest-degradation count, visible in status (not just
         # silently swallowed like the tapestry queue's drop today) -- see
@@ -6221,20 +6233,32 @@ class Guala:
                         #
                         # GL-CMD-SENSORY-SPIKE-GATE-EVE-20260709-v1: gated
                         # SEPARATELY from the word branch below via
-                        # SENSORY_SPIKE_INJECTION_ENABLED (default "0", i.e.
-                        # off), independent of EVENT_DRIVEN_SUBSTRATE. Real
-                        # incident tonight: wave-atlas cells never decay to
-                        # exactly zero, so this branch never goes quiet --
-                        # one entry neuron per hemisphere gets kicked
-                        # continuously (confirmed live: 14M+ fire events,
-                        # 3792/sec, zero synapses ever updated). The word
-                        # branch is not implicated and stays on the existing
-                        # EVENT_DRIVEN_SUBSTRATE gate, unchanged.
+                        # SENSORY_SPIKE_INJECTION_ENABLED, independent of
+                        # EVENT_DRIVEN_SUBSTRATE. The 2026-07-09 incident
+                        # (wave-atlas cells never decayed to exactly zero,
+                        # so this branch never went quiet -- one entry
+                        # neuron per hemisphere kicked continuously: 14M+
+                        # fire events, 3792/sec, zero synapses updated)
+                        # is now fixed AT THE MECHANISM, not the gate:
+                        # (1) WaveAtlas.tick_decay zero-clamps sub-epsilon
+                        # strengths to exactly 0.0 (wave_atlas.py, decay
+                        # default-on); (2) push_wave_summary_to_organism
+                        # skips silent bands per-band (wave_summary.py);
+                        # (3) _inject_input_as_spikes enforces
+                        # SPIKE_INJECTION_MIN_WEIGHT (brain.py /
+                        # injection_weight.py). With the mechanism fixed,
+                        # the default flips ON per the 2026-07-16
+                        # all-at-once ruling (no built-but-dark organs) --
+                        # the env var remains as an emergency-off only.
+                        # The word branch is not implicated and stays on
+                        # the existing EVENT_DRIVEN_SUBSTRATE gate,
+                        # unchanged. Tests:
+                        # loom_model/tests/test_sensory_spike_gate.py.
                         try:
                             _brain = self.organism.brain
                             if (getattr(_brain, '_spike_bus', None) is not None
                                     and os.environ.get(
-                                        "SENSORY_SPIKE_INJECTION_ENABLED", "0") == "1"):
+                                        "SENSORY_SPIKE_INJECTION_ENABLED", "1") != "0"):
                                 _brain._inject_input_as_spikes(
                                     input_signal=input_signal,
                                     input_chi=input_chi,
@@ -6377,13 +6401,29 @@ class Guala:
             t.start()
             self._organism_worker_thread = t
 
+    # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 5): wave-field
+    # proposal queue bound + drop-log cadence. 64 = one full 8-hemisphere
+    # push cycle x 8 ticks of tolerated burst (from-design; the worker
+    # drains at its own pace, the field re-samples every tick anyway so a
+    # dropped-oldest proposal is superseded, not lost knowledge). Drops
+    # are counted always, logged on the first and every 50th so the event
+    # stream sees a sustained divergence loudly without itself becoming a
+    # firehose.
+    WAVE_PROPOSAL_QUEUE_MAX = 64
+    WAVE_PROPOSAL_DROP_LOG_EVERY = 50
+
     def _enqueue_organism_sensory(self, hemi_id, input_signal, tick, input_chi=None):
-        """GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1: per-hemisphere
-        wave-summary push (see wave_summary.py), drained asynchronously
-        by the same worker thread as the word queue. self._organism_
-        sensory_queue is unbounded (no maxsize, unlike the word queue) --
-        put() here never blocks the caller (the main autonomy tick), by
-        construction, not by a size check.
+        """GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1, rebuilt bounded
+        by GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 5): per-hemisphere
+        wave-summary PROPOSAL push (see wave_summary.py), drained
+        asynchronously by the same worker thread as the word queue, over a
+        BOUNDED queue (maxsize=WAVE_PROPOSAL_QUEUE_MAX). put() here still
+        never blocks the caller (the main autonomy tick): on overflow the
+        OLDEST proposal is dropped to make room (a stale wave summary is
+        superseded by the newer one by construction -- the field is
+        re-sampled every tick), the drop is counted
+        (_organism_sensory_dropped_count, visible in /status) and logged
+        as a wave_proposal_dropped event on the first and every 50th drop.
 
         _ensure_organism_worker() is called here too (not just from the
         word-enqueue paths): the worker thread only starts on its first
@@ -6398,7 +6438,41 @@ class Guala:
         if self._engine_quiesced:
             raise RuntimeError("organism sensory mutation rejected after quiescence")
         self._ensure_organism_worker()
-        self._organism_sensory_queue.put((hemi_id, input_signal, tick, input_chi))
+        item = (hemi_id, input_signal, tick, input_chi)
+        try:
+            self._organism_sensory_queue.put_nowait(item)
+            return
+        except _queue.Full:
+            pass
+        # Overflow: drop-oldest, then retry once. task_done() for the
+        # evicted item keeps unfinished_tasks/join() balanced (the seal's
+        # settle_queues/quiesce paths depend on that accounting).
+        dropped = False
+        try:
+            self._organism_sensory_queue.get_nowait()
+            self._organism_sensory_queue.task_done()
+            dropped = True
+        except _queue.Empty:
+            pass
+        try:
+            self._organism_sensory_queue.put_nowait(item)
+        except _queue.Full:
+            # Lost the race to another producer -- this NEW item is the
+            # drop instead. Still counted + logged; never silent.
+            dropped = True
+        if dropped:
+            self._organism_sensory_dropped_count = getattr(
+                self, '_organism_sensory_dropped_count', 0) + 1
+            _n = self._organism_sensory_dropped_count
+            if _n == 1 or _n % self.WAVE_PROPOSAL_DROP_LOG_EVERY == 0:
+                print(f"[GualaLoom] wave proposal queue overflow: "
+                      f"{_n} proposals dropped so far "
+                      f"(bounded at {self.WAVE_PROPOSAL_QUEUE_MAX}, "
+                      f"drop-oldest)", flush=True)
+                self._log_substrate_event(
+                    "wave_proposal_dropped", dropped_total=_n,
+                    queue_max=self.WAVE_PROPOSAL_QUEUE_MAX,
+                    hemi_id=hemi_id, tick=tick)
 
     def _replay_sensory_echo(self, word):
         """GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: replay
@@ -9513,27 +9587,126 @@ class Guala:
 
     # ── GL-CMD-DAYDREAM-PARALLEL-42: background associative activation ──────
 
+    # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 2): the telemetry the
+    # 2026-07-11 reconnect note demanded before default-on. Constants are
+    # from-the-note, not tuned: 50ms p95 lock-wait and a 30% tick_rate
+    # drop are the note's own named alert thresholds; the check cadence
+    # (every 60 iterations = ~30s at 2 Hz) keeps the check itself off the
+    # hot path; deque maxlen 240 = ~2 minutes of per-tick lock waits
+    # (2 waits/tick x 2 ticks/s x 60s), bounded by construction.
+    DAYDREAM_LOCK_WAIT_P95_ALERT_MS = 50.0
+    DAYDREAM_TICK_RATE_DROP_ALERT_FRACTION = 0.30
+    DAYDREAM_TELEMETRY_EVERY_N = 60
+    DAYDREAM_LOCK_WAIT_WINDOW = 240
+    DAYDREAM_TICK_RATE_BASELINE_SAMPLES = 3
+
     @_engine_mutation_entry
     def start_daydream_loop(self):
         """Parallel chi-neighborhood walk. Runs alongside all foreground activity.
-        Does NOT trigger commit gate or emission. 0.5s interval (2 Hz)."""
+        Does NOT trigger commit gate or emission. 0.5s interval (2 Hz).
+
+        GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 2): runs with live
+        lock-wait + tick_rate telemetry (the reconnect note's own
+        condition for enablement): every DAYDREAM_TELEMETRY_EVERY_N
+        iterations, _daydream_telemetry_check() compares the p95 of this
+        thread's own recent self.lock waits against
+        DAYDREAM_LOCK_WAIT_P95_ALERT_MS, and the live autonomy tick_rate
+        against a baseline captured at loop start -- breaching either
+        logs a LOUD daydream_telemetry_alert event + stderr line. Alerts,
+        never silent self-throttling: the operator decides, via the
+        emergency-off env (DAYDREAM_LOOP_ENABLED=0), not the code."""
         current = getattr(self, '_daydream_thread', None)
         if current is not None and current.is_alive():
             return
         self._daydream_running = True
+        self._daydream_lock_wait_ms = deque(maxlen=self.DAYDREAM_LOCK_WAIT_WINDOW)
+        self._daydream_tick_rate_baseline = None
+        self._daydream_tick_rate_samples = []
 
         def _loop():
+            iteration = 0
             while self._daydream_running:
                 try:
                     with self._engine_mutation_scope("daydream_tick"):
                         self._daydream_tick()
                 except Exception:
                     pass
+                iteration += 1
+                if iteration % self.DAYDREAM_TELEMETRY_EVERY_N == 0:
+                    try:
+                        self._daydream_telemetry_check()
+                    except Exception as _te:
+                        # Telemetry must never kill the loop, but its
+                        # failure must be visible, not swallowed.
+                        print(f"[GualaLoom][daydream-telemetry] check "
+                              f"failed (non-fatal): {_te}", flush=True)
                 time.sleep(0.5)
 
         self._daydream_thread = threading.Thread(target=_loop, daemon=True,
                                                   name="daydream-loop")
         self._daydream_thread.start()
+
+    def _daydream_note_lock_wait(self, wait_ms):
+        """Record one real self.lock acquisition wait from the daydream
+        thread (bounded deque; see start_daydream_loop). Self-heals the
+        attribute for any path that reaches _daydream_tick without going
+        through start_daydream_loop (tests calling the tick directly)."""
+        buf = getattr(self, '_daydream_lock_wait_ms', None)
+        if buf is None:
+            buf = deque(maxlen=self.DAYDREAM_LOCK_WAIT_WINDOW)
+            self._daydream_lock_wait_ms = buf
+        buf.append(float(wait_ms))
+
+    def _daydream_telemetry_check(self):
+        """The reconnect note's two named alerts, checked periodically
+        from the daydream thread itself (never from the hot tick path).
+
+        Lock-wait p95: over the bounded window of this thread's own real
+        self.lock waits. Tick-rate drop: current get_tick_rate() vs a
+        baseline built from the first DAYDREAM_TICK_RATE_BASELINE_SAMPLES
+        non-zero readings taken while this loop runs -- i.e. the rate the
+        substrate actually sustains WITH daydreaming enabled; a >30% drop
+        from that is a real regression signal, not boot noise."""
+        waits = list(getattr(self, '_daydream_lock_wait_ms', ()) or ())
+        p95 = None
+        if waits:
+            _sorted = sorted(waits)
+            p95 = _sorted[min(len(_sorted) - 1, int(0.95 * len(_sorted)))]
+            if p95 > self.DAYDREAM_LOCK_WAIT_P95_ALERT_MS:
+                print(f"[GualaLoom][daydream-telemetry] ALERT: daydream "
+                      f"self.lock wait p95={p95:.1f}ms exceeds "
+                      f"{self.DAYDREAM_LOCK_WAIT_P95_ALERT_MS:.0f}ms over "
+                      f"the last {len(waits)} waits -- set "
+                      f"DAYDREAM_LOOP_ENABLED=0 to emergency-stop",
+                      flush=True)
+                self._log_substrate_event(
+                    "daydream_telemetry_alert", reason="lock_wait_p95",
+                    p95_ms=round(p95, 1), n_waits=len(waits),
+                    threshold_ms=self.DAYDREAM_LOCK_WAIT_P95_ALERT_MS)
+
+        rate = self.get_tick_rate()
+        if rate > 0:
+            if self._daydream_tick_rate_baseline is None:
+                self._daydream_tick_rate_samples.append(rate)
+                if (len(self._daydream_tick_rate_samples)
+                        >= self.DAYDREAM_TICK_RATE_BASELINE_SAMPLES):
+                    _s = sorted(self._daydream_tick_rate_samples)
+                    self._daydream_tick_rate_baseline = _s[len(_s) // 2]
+            else:
+                floor = (self._daydream_tick_rate_baseline
+                         * (1.0 - self.DAYDREAM_TICK_RATE_DROP_ALERT_FRACTION))
+                if rate < floor:
+                    print(f"[GualaLoom][daydream-telemetry] ALERT: tick_rate "
+                          f"{rate:.2f}/s dropped >30% below the "
+                          f"daydream-enabled baseline "
+                          f"{self._daydream_tick_rate_baseline:.2f}/s -- set "
+                          f"DAYDREAM_LOOP_ENABLED=0 to emergency-stop",
+                          flush=True)
+                    self._log_substrate_event(
+                        "daydream_telemetry_alert", reason="tick_rate_drop",
+                        tick_rate=round(rate, 2),
+                        baseline=round(self._daydream_tick_rate_baseline, 2),
+                        drop_fraction=self.DAYDREAM_TICK_RATE_DROP_ALERT_FRACTION)
 
     def _daydream_tick(self):
         """One pass of parallel associative surfacing.
@@ -9558,7 +9731,14 @@ class Guala:
         import random as _random
 
         # ── Phase 1: snapshot under lock ──────────────────────────────────────
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 2): both of this
+        # tick's real self.lock acquisitions are timed into the bounded
+        # telemetry window (see _daydream_note_lock_wait /
+        # _daydream_telemetry_check) -- the reconnect note's lock-wait
+        # telemetry, measured where the contention actually happens.
+        _lw_start = time.monotonic()
         with self.lock:
+            self._daydream_note_lock_wait((time.monotonic() - _lw_start) * 1000.0)
             recent_chis = []
             recent_words = []
             for sec in self.sections.values():
@@ -9639,7 +9819,9 @@ class Guala:
         do_consolidate = (snap_tick % max(1, snap_band * 10) == 0)
 
         # ── Phase 3: writes + log events under lock ────────────────────────────
+        _lw_start = time.monotonic()
         with self.lock:
+            self._daydream_note_lock_wait((time.monotonic() - _lw_start) * 1000.0)
             # Resolve word labels (need self.sections, must be under lock for consistency)
             word_label = ""
             if top_sec in self.sections:
@@ -9934,15 +10116,17 @@ class Guala:
             # the wave summary sampling below, decay + prune the wave
             # field so its size (and therefore the summary scan's own
             # cost) stays bounded instead of growing for the life of the
-            # process. GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1:
-            # this series is abandoned -- it was solving the wrong
-            # problem (sample_wave_summary's own cost was never the
-            # issue; see that report). Default flipped to OFF here so
-            # this deploy doesn't run it, while the code stays committed
-            # for a possible future revisit (flip back to "1", no code
-            # change needed).
+            # process. GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 3):
+            # default flipped back ON. The 20260707 series was shelved
+            # because it didn't fix the neuron.step cost it was chasing --
+            # but it was never harmful (v3 deployed clean, 0 errors, 0
+            # losses), and it is now LOAD-BEARING: the sensory spike
+            # injection gate needs wave cells to decay to EXACTLY zero
+            # (tick_decay's new zero-clamp) so silent bands stop kicking
+            # entry neurons (the 2026-07-09 incident). Env var remains as
+            # an emergency-off only.
             if (self.wave_atlas is not None
-                    and os.environ.get("WAVE_ATLAS_DECAY_ENABLED", "0") == "1"):
+                    and os.environ.get("WAVE_ATLAS_DECAY_ENABLED", "1") != "0"):
                 _wa_strength_before = sum(
                     c.aggregate_strength for c in self.wave_atlas.cells.values())
                 _wa_bindings_pruned = self.wave_atlas.tick_decay()
@@ -16842,6 +17026,13 @@ class Guala:
                 "queued": (self._organism_queue.qsize()
                           if self._organism_queue is not None else 0),
                 "dropped": self._organism_dropped_count,
+                # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 5): the
+                # bounded wave-proposal queue's live depth + drop-oldest
+                # count -- divergence between the wave field's push rate
+                # and the worker's drain rate is visible here, not silent.
+                "wave_proposals_queued": self._organism_sensory_queue.qsize(),
+                "wave_proposals_dropped": getattr(
+                    self, '_organism_sensory_dropped_count', 0),
                 # GL-CMD-ORGANISM-WAVE-MEMORY-207 W5: rolling mean/max over
                 # the last 50 processed items -- the honest per-item cost
                 # that used to climb unbounded with lifetime history.
