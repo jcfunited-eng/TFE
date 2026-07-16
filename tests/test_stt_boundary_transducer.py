@@ -68,6 +68,10 @@ def test_speech_singleton_is_constructed_once_with_configured_model(
 
 
 def test_recognizer_is_reused_across_transcriptions(monkeypatch):
+    # Spec v3 staged truth: the worker lane is now the default; this test
+    # proves the EMBEDDED lane (explicit VOICE_WHISPER_WORKER=0 escape
+    # hatch) is byte-for-byte the old owned-singleton path.
+    monkeypatch.setenv("VOICE_WHISPER_WORKER", "0")
     instances = []
 
     class FakeRecognizer:
@@ -97,7 +101,10 @@ def test_recognizer_is_reused_across_transcriptions(monkeypatch):
 def test_construction_failure_raises_visibly(monkeypatch):
     """A recognizer that cannot be constructed raises, with the cause
     chained — whether faster-whisper is absent (ImportError) or the model
-    path is unusable.  Entirely real: no monkeypatched internals."""
+    path is unusable.  Entirely real: no monkeypatched internals.
+    Pinned to the embedded lane (VOICE_WHISPER_WORKER=0 escape hatch) —
+    worker-lane startup failure is proven in test_stt_worker_process."""
+    monkeypatch.setenv("VOICE_WHISPER_WORKER", "0")
     recognizer = transducer.SpeechRecognizer(
         model_path="/nonexistent/whisper-model-dir")
 
