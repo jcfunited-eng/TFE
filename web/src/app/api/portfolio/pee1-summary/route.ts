@@ -129,12 +129,17 @@ export async function GET(request: NextRequest) {
     // Alpaca equity is the actual dollar amount in the account right now.
     const alpacaAccount = await fetchAlpacaAccount(executionMode);
 
-    const portfolioValue = alpacaAccount?.equity
-      ?? Math.round((cashOnHand + totalInvested + totalUnrealized) * 100) / 100;
+    const plBaseline = configMap.pl_reset_baseline
+      ? parseFloat(configMap.pl_reset_baseline)
+      : fundedAmount;
     const totalPl = alpacaAccount
-      ? alpacaAccount.equity - fundedAmount
+      ? alpacaAccount.equity - plBaseline
       : totalRealized + totalUnrealized;
-    const totalPlPct = fundedAmount > 0 ? (totalPl / fundedAmount) * 100 : null;
+    // Portfolio value = funded + gains/losses since last reset, so it reads $100k at a clean reset
+    const portfolioValue = alpacaAccount
+      ? Math.round((fundedAmount + totalPl) * 100) / 100
+      : Math.round((cashOnHand + totalInvested + totalUnrealized) * 100) / 100;
+    const totalPlPct = plBaseline > 0 ? (totalPl / plBaseline) * 100 : null;
 
     // Realized P&L split: CH1/CH2 vs CH3
     const realizedCh1Ch2 = closedCh1Ch2.reduce((sum, r) => sum + (parseFloat(r.p_l ?? "0") || 0), 0);
