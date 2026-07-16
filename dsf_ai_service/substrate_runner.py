@@ -1920,6 +1920,20 @@ def _synthesize_voice(text):
     """Synthesize speech via espeak-ng. Returns base64 WAV or None."""
     if not text:
         return None
+    # espeak-ng runs under a 5s timeout below; unbounded certified
+    # continuations exceeded it and the whole voice went silent.  Bounded,
+    # loud truncation instead (review 2026-07-16).  One authority for the
+    # cap: the engine's TTS_MAX_CHARS.
+    from dsf_ai_service.v4.gualaloom_v5_engine import TTS_MAX_CHARS
+    if len(text) > TTS_MAX_CHARS:
+        try:
+            if _guala is not None:
+                _guala._log_substrate_event(
+                    "tts_truncated", where="converse_voice",
+                    n_chars=len(text), cap=TTS_MAX_CHARS)
+        except Exception:
+            pass
+        text = text[:TTS_MAX_CHARS]
     wav_path = "/tmp/guala_utt.wav"
     try:
         subprocess.run([
@@ -2871,7 +2885,13 @@ def _start_autonomous_emission_loop():
                                 response_source=result["response_source"],
                                 committed_sections=result["committed_sections"],
                                 commit_provenance=result["commit_provenance"],
-                                seeds_used=result.get("seeds_used", 0),
+                                # Two seed semantics, two keys (review
+                                # 2026-07-16): certified releases count seed
+                                # WORDS; assemblage releases count chi seeds.
+                                seed_words_used=result.get(
+                                    "seed_words_used", 0),
+                                chi_seeds_used=result.get(
+                                    "chi_seeds_used", 0),
                                 # Change 4: certified autonomous releases
                                 # carry organism-sourced seed provenance
                                 # (window/activity origins, never atlas).

@@ -223,3 +223,168 @@ def test_autonomous_release_ordering_is_certified_then_assemblage(
     assert result is not None
     assert result["content"] == "runs warm"
     assert result["response_source"] == "fact_strand_commit"
+
+
+# ── 2026-07-16 adversarial-review fixes: the self-hear loop must not close ──
+
+
+def _events(guala, kind):
+    return [ev for ev in guala._substrate_events if ev.kind == kind]
+
+
+def _silence_assemblage(guala, monkeypatch):
+    monkeypatch.setattr(
+        guala, "_sample_autonomous_seeds", lambda *_a, **_k: [])
+    monkeypatch.setattr(
+        guala, "_emit_from_invariants",
+        lambda *_args, **_kwargs: pytest.fail(
+            "assemblage must not run in this scenario"))
+
+
+def test_self_heard_only_corpus_never_seeds_autonomous_speech(
+        guala, monkeypatch):
+    """F1a: her own released words are memory, never autonomous seeds.
+
+    Without this gate the loop closes: release -> _self_hear ->
+    read_sentence(source='guala') -> fresh multimodal emulated window ->
+    freshest entry of _ordered_language_windows -> next cycle's seed ->
+    she re-releases a shrinking suffix of her own last utterance forever.
+    """
+    # The exact shape a self-heard release produces: source 'guala'.
+    guala.read_sentence("red fox runs warm", source="guala")
+    assert len(guala._ordered_language_windows) == 1  # memory kept
+
+    attempts = guala._autonomous_composer_seed_attempts()
+    assert attempts == [], "self-heard windows must never seed"
+    excluded = _events(guala, "autonomous_seed_self_excluded")
+    assert excluded and excluded[-1].detail["n_windows"] == 1
+
+    # No certified autonomous release is possible from this corpus.
+    _silence_assemblage(guala, monkeypatch)
+    with guala.lock:
+        assert guala.compose_autonomous() is None
+
+    # But the window is still MEMORY: conversation recall still certifies.
+    settlement = guala._compose_language_fact_settlement(("red", "fox"))
+    assert guala._committed_emission_response(settlement) == (
+        "runs warm", "fact_strand_commit")
+
+
+def test_mixed_source_window_still_seeds(guala):
+    """A real exchange (her words + the other speaker's) is shared lived
+    experience, not an echo — it stays seed-eligible."""
+    guala.read_sentence("red fox runs warm", source="joe")
+    attempts = guala._autonomous_composer_seed_attempts()
+    assert attempts and attempts[0]["words"] == ("red", "fox")
+
+
+def test_repeated_autonomous_release_is_suppressed(guala, monkeypatch):
+    """F1b: identical-to-recent autonomous text never releases twice."""
+    guala.read_sentence("red fox runs warm", source="corpus")
+    monkeypatch.setattr(
+        guala, "_sample_autonomous_seeds", lambda *_a, **_k: [])
+
+    with guala.lock:
+        first = guala.compose_autonomous()
+    assert first is not None and first["content"] == "runs warm"
+    assert "runs warm" in guala._recent_autonomous_releases
+
+    with guala.lock:
+        second = guala.compose_autonomous()
+    assert second is None, "an identical release must be suppressed"
+    suppressed = _events(guala, "autonomous_repeat_suppressed")
+    assert suppressed and suppressed[-1].detail["content"] == "runs warm"
+    summary = _events(guala, "autonomous_fact_seed")[-1]
+    assert summary.detail["released"] is False
+    assert summary.detail["stop_reason"] == "repeat_suppressed"
+
+
+def test_repeated_assemblage_release_is_suppressed(guala, monkeypatch):
+    """F1b applies to every autonomous authority, assemblage included."""
+    monkeypatch.setattr(
+        guala, "_sample_autonomous_seeds",
+        lambda *_a, **_k: [{"chi_key": 4, "strength": 1.0}])
+    monkeypatch.setattr(
+        guala, "_emit_from_invariants",
+        lambda *_args, **_kwargs: _assemblage(["dog"]))
+
+    with guala.lock:
+        first = guala.compose_autonomous()
+    assert first is not None
+    assert first["response_source"] == "assemblage_commit"
+    assert first["chi_seeds_used"] == 1
+
+    with guala.lock:
+        second = guala.compose_autonomous()
+    assert second is None
+    suppressed = _events(guala, "autonomous_repeat_suppressed")
+    assert suppressed
+    assert suppressed[-1].detail["response_source"] == "assemblage_commit"
+
+
+def test_conversation_arriving_mid_compose_wins(guala, monkeypatch):
+    """F2: the entry barrier is re-checked after settlement — a turn that
+    arrives while the composer is settling is never talked over."""
+    guala.read_sentence("red fox runs warm", source="corpus")
+    _silence_assemblage(guala, monkeypatch)
+
+    original = guala._compose_language_fact_settlement
+
+    def arriving_mid_compose(words, composer=None):
+        with guala._live_converse_state_lock:
+            guala._live_converse_pending += 1
+        return original(words, composer=composer)
+
+    monkeypatch.setattr(
+        guala, "_compose_language_fact_settlement", arriving_mid_compose)
+    try:
+        with guala.lock:
+            assert guala.compose_autonomous() is None
+    finally:
+        with guala._live_converse_state_lock:
+            guala._live_converse_pending = 0
+
+    summary = _events(guala, "autonomous_fact_seed")[-1]
+    assert summary.detail["stop_reason"] == "conversation_arrived"
+    assert summary.detail["released"] is False
+    assert "runs warm" not in guala._recent_autonomous_releases
+
+
+def test_compose_budget_exhaustion_aborts_remaining_attempts(
+        guala, monkeypatch):
+    """F3: the wall-clock budget bounds the certified compose section.
+
+    Setup: attempt 1 stops honestly (terminal token, no successor); attempt
+    2 would release.  With a zero budget, attempt 2 is aborted with stop
+    reason compose_budget; with a generous budget the same state releases.
+    The snapshot plus attempt 1 always complete (checked BETWEEN attempts).
+    """
+    guala.read_sentence("red fox runs warm", source="corpus")
+    monkeypatch.setattr(
+        guala, "_sample_autonomous_seeds", lambda *_a, **_k: [])
+    attempts = [
+        {"words": ("warm",),  # last lived token: honest stop, no commit
+         "provenance": [
+             {"word": "warm", "origin": "recent_window_commit"}]},
+        {"words": ("red", "fox"),  # would release "runs warm"
+         "provenance": [
+             {"word": "red", "origin": "recent_window_commit"},
+             {"word": "fox", "origin": "recent_window_commit"}]},
+    ]
+    monkeypatch.setattr(
+        guala, "_autonomous_composer_seed_attempts",
+        lambda: [dict(a) for a in attempts])
+
+    monkeypatch.setenv("AUTONOMOUS_COMPOSE_BUDGET_MS", "0")
+    with guala.lock:
+        assert guala.compose_autonomous() is None
+    summary = _events(guala, "autonomous_fact_seed")[-1]
+    assert summary.detail["released"] is False
+    assert summary.detail["stop_reason"] == "compose_budget"
+
+    monkeypatch.setenv("AUTONOMOUS_COMPOSE_BUDGET_MS", "10000")
+    with guala.lock:
+        result = guala.compose_autonomous()
+    assert result is not None
+    assert result["content"] == "runs warm"
+    assert result["response_source"] == "fact_strand_commit"

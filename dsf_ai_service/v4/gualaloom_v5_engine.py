@@ -1160,6 +1160,32 @@ AUTONOMOUS_COMPOSER_SEED_WINDOWS = 6   # freshest committed windows considered
 AUTONOMOUS_COMPOSER_SEED_ATTEMPTS = 3  # composer queries per 90s cycle (cost bound)
 AUTONOMOUS_COMPOSER_SEED_PREFIX = 2    # lived-opening words used as one query
 
+# Change 4 adversarial-review fixes (2026-07-16).  F1: without these two
+# gates the self-hear loop CLOSES — an autonomous release re-enters via
+# _self_hear as a fresh emulated window (touch/taste/smell emulator entries
+# make it multimodal), lands in _ordered_language_windows as the FRESHEST
+# window, seeds the next cycle, and the composer re-releases a shrinking
+# suffix of her own last utterance forever under the certified label.
+# (a) Words she heard herself say are MEMORY — they still exist, still
+#     certify for conversation recall — but they never SEED autonomous
+#     speech.  These are the source tags her own released words carry.
+AUTONOMOUS_SEED_SELF_SOURCE_TAGS = frozenset({
+    "guala",        # _self_hear -> read_sentence(source="guala")
+    "guala:self",   # _bind_certified_fact_emission_to_active_window
+    "voice:self",   # self-voice audio injection (sound lane, listed for closure)
+})
+# (b) A release whose text equals any of the last K autonomous releases is
+#     refused (repeat_suppressed) — falls through to assemblage/silence.
+AUTONOMOUS_RELEASE_REPEAT_WINDOW = 8
+# F3: wall-clock budget for the certified compose section of one autonomous
+# cycle (the composer rebuild is O(corpus) until Change 1's cached composer
+# lands; this bound guards self.lock hold time now and stays correct after).
+AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT = 250.0
+# TTS input cap: espeak-ng runs under a 5s subprocess timeout; long certified
+# continuations blew past it and produced a silent voice.  Truncation is
+# logged (tts_truncated), never silent.
+TTS_MAX_CHARS = 200
+
 # 2026-07-10 GL-CMD-AUTONOMOUS-INTEREST-REFINEMENT: real research (Schmidhuber
 # 1991/2010 compression-progress; Oudeyer & Kaplan 2007 learning-progress
 # intrinsic motivation) says a sustained novelty LEVEL just means "under-
@@ -2853,6 +2879,10 @@ class Guala:
         # trackers here, not worth the save/load complexity for a signal
         # this short-lived).
         self._novelty_history = deque(maxlen=NOVELTY_HISTORY_MAX)
+        # F1b (Change 4 review): texts of the last K autonomous releases,
+        # per boot; compose_autonomous refuses to re-release any of them.
+        self._recent_autonomous_releases = deque(
+            maxlen=AUTONOMOUS_RELEASE_REPEAT_WINDOW)
         self._last_emission_id = None
         self._emission_records = {}  # emission_id -> record (tick-window expiry)
         self._teaching_feedback_log = []
@@ -11441,7 +11471,12 @@ class Guala:
             # Close OUTSIDE self.lock (WAL fsync; see process_sound_frame).
             # Never close a caller-owned bound experience -- its owner ends
             # it at the experience's real boundary.
-            if _frame_owns_context and _frame_entries_bound > 0:
+            # F4 (review 2026-07-16): close on "I created it", not "I bound
+            # entries" -- add_entry creates the context BEFORE entry
+            # validation, so a first-entry validation raise left an open
+            # context forever under the entries>0 gate.  end_context on a
+            # context that was never created is a benign no-op (None).
+            if _frame_owns_context:
                 self.window_manager.end_context(
                     _frame_context_id, "sight_frame_complete")
 
@@ -11545,7 +11580,10 @@ class Guala:
             # discipline).  In finally so a mid-loop error still closes the
             # partially-bound frame at its boundary instead of leaking it.
             # Never close a caller-owned bound experience (see sight above).
-            if _frame_owns_context and n_bands_fired > 0:
+            # F4 (review 2026-07-16): close on ownership, not bands-fired --
+            # a first-entry validation raise has already created the
+            # context; end_context on a never-created one is a no-op.
+            if _frame_owns_context:
                 self.window_manager.end_context(
                     _frame_context_id, "sound_frame_complete")
 
@@ -11909,11 +11947,24 @@ class Guala:
             recent.sort(key=lambda window: not _shared(window))
 
         seen_openings = {attempt["words"] for attempt in attempts}
+        n_self_excluded = 0
         for window in recent:
             if len(attempts) >= AUTONOMOUS_COMPOSER_SEED_ATTEMPTS:
                 break
             if len(window.tokens) < 2:
                 continue  # a lived opening needs a lived continuation
+            # F1a (review 2026-07-16): a window whose words are ALL her own
+            # released speech (self-heard) is memory, never a seed — this is
+            # one of the two gates that break the closed self-hear babble
+            # loop (release -> self-hear -> freshest window -> next seed).
+            # Mixed windows (a real exchange containing her reply AND the
+            # other speaker's words) still seed: that is shared lived
+            # experience, not an echo.
+            if all(token.fact.provenance.source_tag
+                   in AUTONOMOUS_SEED_SELF_SOURCE_TAGS
+                   for token in window.tokens):
+                n_self_excluded += 1
+                continue
             prefix_len = min(AUTONOMOUS_COMPOSER_SEED_PREFIX,
                              len(window.tokens) - 1)
             tokens = window.tokens[:prefix_len]
@@ -11931,6 +11982,12 @@ class Guala:
                      "source_tag": t.fact.provenance.source_tag}
                     for t in tokens],
             })
+        if n_self_excluded:
+            # Loud, auditable stop-reason trail for the F1a gate.
+            self._log_substrate_event(
+                "autonomous_seed_self_excluded",
+                n_windows=n_self_excluded,
+                n_attempts_remaining=len(attempts))
         return attempts[:AUTONOMOUS_COMPOSER_SEED_ATTEMPTS]
 
     @_engine_mutation_entry
@@ -11957,42 +12014,89 @@ class Guala:
 
         # 1. Certified composer, organism-sourced seeds (never the atlas).
         seed_attempts = self._autonomous_composer_seed_attempts()
+        cycle_stop_reason = None
         if seed_attempts:
+            # F3 (review 2026-07-16): wall-clock budget for this cycle's
+            # certified compose work — the composer rebuild is O(corpus)
+            # until Change 1's cached composer lands, and this whole section
+            # runs under self.lock.  Checked between attempts: the snapshot
+            # plus the first attempt always complete; remaining attempts
+            # abort loudly on exhaustion.
+            try:
+                budget_ms = float(os.environ.get(
+                    "AUTONOMOUS_COMPOSE_BUDGET_MS",
+                    str(AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT)))
+            except (TypeError, ValueError):
+                budget_ms = AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT
+            compose_deadline = time.monotonic() + budget_ms / 1000.0
             with self._language_fact_lock:
                 # One immutable composer snapshot shared by every attempt in
                 # this cycle — never one full window walk per attempt.
                 composer = self._build_language_fact_composer_locked()
             for attempt_index, attempt in enumerate(seed_attempts):
+                if (attempt_index > 0
+                        and time.monotonic() >= compose_deadline):
+                    cycle_stop_reason = "compose_budget"
+                    break
                 settlement = self._compose_language_fact_settlement(
                     attempt["words"], composer=composer)
                 content, response_source = self._committed_emission_response(
                     settlement)
-                if content and response_source == "fact_strand_commit":
+                if not content or response_source != "fact_strand_commit":
+                    continue
+                # F2 (review 2026-07-16): the entry barrier only covers
+                # arrival BEFORE this cycle; a conversation counted while
+                # the composer was settling must still win.  Re-check after
+                # settlement, before any release: the human turn is never
+                # talked over.
+                with self._live_converse_state_lock:
+                    conversation_arrived = self._live_converse_pending > 0
+                if conversation_arrived:
                     self._log_substrate_event(
                         "autonomous_fact_seed",
-                        released=True,
-                        n_attempts=attempt_index + 1,
-                        seed_words=list(attempt["words"]),
-                        seed_provenance=attempt["provenance"])
-                    return {
-                        "content": content,
-                        "source": "guala",
-                        "response_source": response_source,
-                        "category": "autonomous",
-                        "seeds_used": len(attempt["words"]),
-                        "seed_provenance": attempt["provenance"],
-                        "settlement_tick": settlement.tick,
-                        "committed_sections": list(
-                            settlement.committed_sections),
-                        "commit_provenance": [
-                            provenance.as_record()
-                            for provenance in settlement.commit_provenance],
-                    }
+                        released=False,
+                        stop_reason="conversation_arrived",
+                        n_attempts=attempt_index + 1)
+                    return None
+                # F1b (review 2026-07-16): never re-release recent
+                # autonomous text — the second gate breaking the self-hear
+                # babble loop.  Suppressed certified text falls through to
+                # the remaining seeds, then assemblage, then silence.
+                if content in self._recent_autonomous_releases:
+                    cycle_stop_reason = "repeat_suppressed"
+                    self._log_substrate_event(
+                        "autonomous_repeat_suppressed",
+                        response_source=response_source,
+                        content=content[:80])
+                    continue
+                self._log_substrate_event(
+                    "autonomous_fact_seed",
+                    released=True,
+                    n_attempts=attempt_index + 1,
+                    seed_words=list(attempt["words"]),
+                    seed_provenance=attempt["provenance"])
+                self._recent_autonomous_releases.append(content)
+                return {
+                    "content": content,
+                    "source": "guala",
+                    "response_source": response_source,
+                    "category": "autonomous",
+                    "seed_words_used": len(attempt["words"]),
+                    "seed_provenance": attempt["provenance"],
+                    "settlement_tick": settlement.tick,
+                    "committed_sections": list(
+                        settlement.committed_sections),
+                    "commit_provenance": [
+                        provenance.as_record()
+                        for provenance in settlement.commit_provenance],
+                }
             # Honest stop: every seed's stop reason is already in the
-            # per-query fact_compose events; this records the cycle summary.
+            # per-query fact_compose events; this records the cycle summary
+            # (compose_budget / repeat_suppressed when those cut it short).
             self._log_substrate_event(
                 "autonomous_fact_seed",
                 released=False,
+                stop_reason=cycle_stop_reason,
                 n_attempts=len(seed_attempts),
                 seed_words=[list(a["words"]) for a in seed_attempts])
 
@@ -12012,12 +12116,22 @@ class Guala:
         content, response_source = self._committed_emission_response(
             settlement)
         if content:
+            # F1b applies to EVERY autonomous release authority: an
+            # assemblage settlement repeating a recent autonomous release
+            # settles to explained silence, loudly.
+            if content in self._recent_autonomous_releases:
+                self._log_substrate_event(
+                    "autonomous_repeat_suppressed",
+                    response_source=response_source,
+                    content=content[:80])
+                return None
+            self._recent_autonomous_releases.append(content)
             return {
                 "content": content,
                 "source": "guala",
                 "response_source": response_source,
                 "category": "autonomous",
-                "seeds_used": len(seeds),
+                "chi_seeds_used": len(seeds),
                 "settlement_tick": settlement.tick,
                 "committed_sections": list(
                     settlement.committed_sections),
@@ -12792,6 +12906,17 @@ class Guala:
         def _inject_self_voice(text):
             try:
                 import subprocess
+                # espeak-ng runs under a 5s timeout; unbounded certified
+                # continuations blew past it -> silent voice.  Truncation
+                # is bounded and loud, never silent (review 2026-07-16).
+                if len(text) > TTS_MAX_CHARS:
+                    try:
+                        self._log_substrate_event(
+                            "tts_truncated", where="self_voice",
+                            n_chars=len(text), cap=TTS_MAX_CHARS)
+                    except Exception:
+                        pass
+                    text = text[:TTS_MAX_CHARS]
                 wav_path = "/tmp/guala_self_voice.wav"
                 subprocess.run([
                     "espeak-ng", "-v", "en+f3", "-p", "96", "-s", "145",
