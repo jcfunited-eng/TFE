@@ -12974,8 +12974,36 @@ class Guala:
             raise ValueError(f"{filename}: unknown binary binding contract")
         if data.get("artifact") != filename:
             raise ValueError(f"{filename}: binary binding artifact mismatch")
-        if data.get("saved_at_tick") != expected_tick:
-            raise ValueError(f"{filename}: binary binding tick mismatch")
+        # 2026-07-16 boot incident: this payload check demanded exact
+        # equality with core's tick, contradicting the manifest-aware
+        # hot/cold acceptance _validate_exact_envelope already grants the
+        # SAME file two calls earlier. Cold-cycle artifacts (organism,
+        # tapestry) legitimately carry the tick of their own last cold
+        # save; a failed later save leaves them older than core, which is
+        # recoverable-by-design, not a tear. Resolve through the same
+        # manifest the envelope check uses; without a manifest row, accept
+        # strictly-older (never newer) loudly -- content integrity is
+        # fully enforced by the hash+size checks below either way.
+        _binding_tick = data.get("saved_at_tick")
+        _overrides = self._expected_file_ticks
+        _manifest_tick = None
+        if isinstance(_overrides, dict):
+            _manifest_tick = _overrides.get(os.path.basename(binding_path))
+            if _manifest_tick is None:
+                _manifest_tick = _overrides.get(filename)
+        if _manifest_tick is not None:
+            if _binding_tick != _manifest_tick:
+                raise ValueError(f"{filename}: binary binding tick mismatch")
+        elif _binding_tick != expected_tick:
+            if (isinstance(_binding_tick, int)
+                    and not isinstance(_binding_tick, bool)
+                    and 0 <= _binding_tick < expected_tick):
+                print(f"[GualaLoom][cold-skew] {filename}: binding tick "
+                      f"{_binding_tick} older than core {expected_tick} -- "
+                      f"accepted as this artifact's last cold save "
+                      f"(hash-verified below)", flush=True)
+            else:
+                raise ValueError(f"{filename}: binary binding tick mismatch")
         expected_size = data.get("bytes")
         expected_digest = data.get("sha256")
         if (isinstance(expected_size, bool)
@@ -15217,7 +15245,20 @@ class Guala:
                         print(f"[GualaLoom] WaveAtlas npz load failed ({_wle}), trying json")
 
                 if exact_binary and not os.path.exists(_wave_npz):
-                    raise ValueError("required wave_atlas.npz is missing")
+                    # 2026-07-16 boot incident: a young life that has never
+                    # written a wave atlas can produce NO valid generation --
+                    # the validator demanded a file the writer never made,
+                    # structurally breaking the generation fallback since
+                    # genesis. The binding receipt is the truth: if a
+                    # receipt exists the artifact was written and its
+                    # absence is real corruption; no receipt = never
+                    # written = legitimately fresh.
+                    if os.path.isfile(self._binary_binding_path(_wave_npz)):
+                        raise ValueError("required wave_atlas.npz is missing")
+                    print("[GualaLoom][wave-atlas] no npz and no binding "
+                          "receipt -- this life has not written a wave "
+                          "atlas yet; starting fresh (accepted, loud)",
+                          flush=True)
 
                 if not _wave_loaded and os.path.exists(_wave_json):
                     try:
