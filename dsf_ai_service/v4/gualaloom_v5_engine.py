@@ -67,6 +67,21 @@ def saturate(current, gain):
     return max(0.0, min(1.0, current + gain * (1.0 - current)))
 
 
+class GualaBootIdentityUnreadableHalt(RuntimeError):
+    """NAMED loud halt (P4): guala_identity.json exists but cannot be read/
+    parsed.  The one boot method (GL-SPC-SUBSTRATE-TRUE §boot) has exactly
+    three identity outcomes: present -> continue, absent -> genesis,
+    unreadable -> THIS halt.  Never silently re-genesis over a real identity."""
+
+
+class GualaBootStateIntegrityHalt(RuntimeError):
+    """NAMED loud halt (P4): the state directory is internally inconsistent
+    at boot (identity present with state files vanished, or state files
+    present without an identity).  No flag overrides this; recovery is the
+    operator's explicit restore command (tools/restore_from_s3.py), run while
+    the service is stopped."""
+
+
 @dataclass(frozen=True)
 class ConversationTurnResult:
     """Immutable truth produced by one complete conversation turn."""
@@ -2626,6 +2641,13 @@ class Guala:
         self.language_fact_memory = LanguageFactMemory()
         self._language_fact_lock = threading.RLock()
         self._ordered_language_windows = {}
+        # GL-SPC-SUBSTRATE-TRUE Change 1 (P1): the certified composer is
+        # CACHED, not rebuilt from every ordered window on every conversation
+        # turn (its constructor precomputes successor maps over the whole
+        # ordered-window set -- O(corpus) per turn as the corpus grows).
+        # Invalidated when the ordered-window set changes or the memory
+        # object is replaced; guarded by _language_fact_lock.
+        self._language_fact_composer = None
         # WAVE_ATLAS_ENABLED: Phase 1 flag. 0 = atlas built but inactive; 1 = parallel writes.
         if os.environ.get("WAVE_ATLAS_ENABLED") == "1":
             from dsf_ai_service.v4.wave_atlas import WaveAtlas as _WaveAtlas
@@ -4583,36 +4605,45 @@ class Guala:
                     experience_origin=origin,
                     tokens=tuple(occurrences),
                 )
+                # New ordered window: the cached composer's precomputed
+                # successor maps are stale — rebuild lazily on next compose.
+                # (Memory-only growth needs no invalidation: the composer
+                # holds a live reference and recalls through it.)
+                self._language_fact_composer = None
         return remembered
 
     def _rebuild_language_fact_memory_from_windows(self):
-        """Rebuild the derivative recognition index from durable windows."""
+        """Rebuild the derivative recognition index from durable windows.
+
+        GL-SPC-SUBSTRATE-TRUE Change 1 (boot step 4, 'derived indexes'):
+        qualification runs over the boot scan's small per-window METADATA
+        (close reason, experience origin, modality summary) -- window
+        CONTENT is fetched on demand, and only for the windows that
+        qualify.  A non-qualifying window (the overwhelming majority:
+        audio episodes, sight-only windows, boundary closes) is never
+        materialized at all."""
         from dsf_ai_service.substrate.language_fact_strand import LanguageFactMemory
 
         with self._language_fact_lock:
             self.language_fact_memory = LanguageFactMemory()
             self._ordered_language_windows = {}
-        # GL-AUDIT-RAM-6GB (2026-07-15): filter over the canonical store's
-        # legacy direct-read surface instead of snapshot().  snapshot()
-        # deepcopies every closed window AND re-encodes the whole store as one
-        # JSON string; at production scale (~0.7 GB canonical JSON) that
-        # allocated transient GBs at every boot which pymalloc never returns
-        # to the OS.  Closed records are write-once/immutable (the WAL design
-        # invariant), both call sites run on boot/migration paths before
-        # ticking starts, this loop only reads, and the per-window commit
-        # below still receives its own detached copy via closed_window().
-        store = self.window_manager.windows
+            self._language_fact_composer = None  # memory object replaced
         remembered = 0
-        for window_id in sorted(store):
-            window = store[window_id]
-            if window.get("close_reason") not in {
+        for window_id in sorted(self.window_manager.window_ids()):
+            meta = self.window_manager.window_metadata(window_id)
+            if meta is None:
+                continue
+            if meta.get("content_released"):
+                # Distilled (gist-only) window: its language facts were
+                # extracted at close; verbatim entries no longer exist to
+                # re-cite (Change-3 forgetting lane).
+                continue
+            if meta.get("close_reason") not in {
                     "context_complete", "give_experience_complete"}:
                 continue
-            origin = (window.get("context_detail") or {}).get("experience_origin")
-            if origin not in {"emulated", "observed"}:
+            if meta.get("experience_origin") not in {"emulated", "observed"}:
                 continue
-            if not any(entry.get("modality") == "word"
-                       for entry in window.get("entries") or []):
+            if "word" not in (meta.get("modalities") or ()):
                 continue
             remembered += self._remember_closed_language_window(window_id)
         return remembered
@@ -4633,12 +4664,21 @@ class Guala:
             return EmissionSettlement(tick=self.tick)
 
         with self._language_fact_lock:
-            composer = DeterministicWindowComposer(
-                self.language_fact_memory,
-                tuple(
-                    self._ordered_language_windows[window_id]
-                    for window_id in sorted(self._ordered_language_windows)),
-            )
+            # Cached certified composer (GL-SPC-SUBSTRATE-TRUE Change 1, P1):
+            # construction precomputes successor maps over EVERY ordered
+            # window, so per-turn reconstruction scaled with the whole lived
+            # language corpus. Build once, reuse until a new ordered window
+            # arrives (invalidation in _remember_closed_language_window /
+            # _rebuild_language_fact_memory_from_windows).
+            composer = self._language_fact_composer
+            if composer is None:
+                composer = DeterministicWindowComposer(
+                    self.language_fact_memory,
+                    tuple(
+                        self._ordered_language_windows[window_id]
+                        for window_id in sorted(self._ordered_language_windows)),
+                )
+                self._language_fact_composer = composer
             continuation = composer.continue_from_sequence(queries)
             memory_strand_count = len(getattr(
                 self.language_fact_memory, "_by_id", ()) or ())
@@ -14066,12 +14106,14 @@ class Guala:
             snap_atlas_count = sum(len(v) for v in self.atlas.entries.values())
             # 7. Bucket (removed — Phase E; GL-102: carries vocab_count for guard diet)
             snap_bucket = self._envelope({"removed": True, "vocab_count": snap_vocab_len})
-            # GL-WAL-INCREMENTAL: cold-lane periodic compaction. Fold the WAL
-            # (base + appended segments) into one fresh base segment, then
-            # write the small manifest pointing at it. This is the rare (~30
-            # min) compaction the hot lane never does.
+            # GL-SPC-SUBSTRATE-TRUE Change 1: the unconditional cold-lane
+            # compact() is REMOVED. Compaction rewrites every segment file
+            # (and now also rebuilds the window locator), so it runs only on
+            # real divergence -- i.e. when the WAL does not reflect the store
+            # (legacy migration / closes before the WAL was configured), which
+            # snapshot_incremental() detects and folds itself. Steady-state
+            # cold saves write only the small manifest, same as the hot lane.
             self.window_manager.configure_wal_under(state_dir)
-            self.window_manager.compact()
             snap_windows = self._envelope(
                 self.window_manager.snapshot_incremental())
         # ── lock released ──
@@ -14448,42 +14490,80 @@ class Guala:
         present = [f for f in self.STATE_FILES
                    if os.path.exists(os.path.join(state_dir, f))]
 
+        # ── The one boot method (GL-SPC-SUBSTRATE-TRUE §boot, Change 1) ──
+        # Identity: present -> continue; absent -> genesis (loud genesis_boot
+        # event, empty stores); unreadable -> named halt.  The former
+        # GUALA_FORCE_FRESH and adopt-state-without-identity branches are
+        # DELETED per spec: no flag selects a boot path (P5), and the only
+        # recovery from an inconsistent state dir is the operator's explicit
+        # restore command run while the service is stopped (P4).
+
         if not has_identity and not present:
-            # True fresh boot — generate genesis identity
+            # Genesis: mint identity, loud genesis_boot event, empty stores.
             self._generate_genesis_identity(state_dir)
+            self.window_manager.configure_wal_under(state_dir)
+            self._log_substrate_event(
+                "genesis_boot",
+                identity=self._guala_identity,
+                state_dir=os.path.abspath(state_dir))
+            print(f"[GualaLoom] GENESIS BOOT: empty stores, identity "
+                  f"{self._guala_identity} minted at {state_dir}")
             self._load_successful = True
             return
 
         if has_identity and not present:
-            # T1.1: REFUSE TO BOOT when identity exists but state vanished.
-            # This is either a true wipe or an EFS race / mount-not-ready.
-            # Silently becoming fresh would overwrite real state on next save.
-            if os.environ.get("GUALA_FORCE_FRESH") != "1":
+            # Identity present but every state file vanished: a true wipe or
+            # an EFS race/mount-not-ready.  Silently becoming fresh would
+            # overwrite real state on the next save — NAMED loud halt, no
+            # env-flag override (the GUALA_FORCE_FRESH escape is deleted).
+            try:
                 self._guala_identity = self._load_identity(state_dir)
-                msg = (f"[GualaLoom] ABORT BOOT: identity present but state files "
-                       f"vanished for {self._guala_identity}. "
-                       f"Set GUALA_FORCE_FRESH=1 to confirm intentional wipe, "
-                       f"or restore from backup.")
-                print(msg)
-                self._load_errors.append(msg)
-                self._load_successful = False
-                raise RuntimeError(msg)
-            # Operator-confirmed fresh start
-            self._guala_identity = self._load_identity(state_dir)
-            self.organism.identity_uuid = self._guala_identity  # GL-CMD-175 P1
-            print(f"[GualaLoom] OPERATOR-CONFIRMED fresh substrate for {self._guala_identity}")
-            self._load_successful = True
-            return
+            except Exception:
+                self._guala_identity = None
+            msg = (f"[GualaLoom] BOOT HALT (GualaBootStateIntegrityHalt): "
+                   f"identity present but state files vanished for "
+                   f"{self._guala_identity}. This process will NOT boot "
+                   f"fresh over a real identity. To restore a named S3 "
+                   f"backup, STOP the service and run the operator command: "
+                   f"python -m tools.restore_from_s3 --list, then "
+                   f"python -m tools.restore_from_s3 --backup <name> "
+                   f"--state-dir {state_dir}. For a deliberate fresh start, "
+                   f"the operator removes {self.IDENTITY_FILE} explicitly.")
+            print(msg)
+            self._load_errors.append(msg)
+            self._load_successful = False
+            raise GualaBootStateIntegrityHalt(msg)
 
         if not has_identity and present:
-            # State without identity — pre-v5.5 state. Adopt it + generate identity.
-            self._generate_genesis_identity(state_dir)
-            # Load without identity checks (pre-envelope files)
-            self._load_pre_envelope(state_dir, present)
-            return
+            # State files without an identity: the pre-v5.5 adopt-and-migrate
+            # branch is DELETED (one boot method; no legacy reader).  Genesis
+            # here would orphan-overwrite real experience on the next save —
+            # NAMED loud halt instead.
+            msg = (f"[GualaLoom] BOOT HALT (GualaBootStateIntegrityHalt): "
+                   f"state files {present} exist without "
+                   f"{self.IDENTITY_FILE}. The legacy adopt-without-identity "
+                   f"migration is removed. STOP the service and either "
+                   f"restore a named S3 backup (python -m tools."
+                   f"restore_from_s3) or have the operator clear the state "
+                   f"directory explicitly for a genesis boot.")
+            print(msg)
+            self._load_errors.append(msg)
+            self._load_successful = False
+            raise GualaBootStateIntegrityHalt(msg)
 
         # Both identity and state exist — full verified load
-        self._guala_identity = self._load_identity(state_dir)
+        try:
+            self._guala_identity = self._load_identity(state_dir)
+        except Exception as identity_error:
+            msg = (f"[GualaLoom] BOOT HALT (GualaBootIdentityUnreadableHalt): "
+                   f"{self.IDENTITY_FILE} exists but is unreadable: "
+                   f"{identity_error}. Refusing to re-genesis over a real "
+                   f"identity. STOP the service and restore a named S3 backup "
+                   f"(python -m tools.restore_from_s3) or repair the file.")
+            print(msg)
+            self._load_errors.append(msg)
+            self._load_successful = False
+            raise GualaBootIdentityUnreadableHalt(msg) from identity_error
         self.organism.identity_uuid = self._guala_identity  # GL-CMD-175 P1
         missing = [f for f in self.STATE_FILES if f not in present]
         _window_migration = False
@@ -14607,6 +14687,8 @@ class Guala:
                 # Explicit one-time migration from pre-v7.3: no canonical
                 # window history existed, so recognition begins honestly
                 # empty rather than being fabricated from legacy Atlas rows.
+                # Configure the WAL now so closes are durable from first tick.
+                self.window_manager.configure_wal_under(state_dir)
                 self._log_substrate_event(
                     "binding_window_state_migrated_empty",
                     prior_schema=_prior_schema)
@@ -15218,47 +15300,25 @@ class Guala:
             self._load_successful = True
 
         except Exception as e:
+            from dsf_ai_service.substrate.window_manager import (
+                WindowStoreIntegrityHalt,
+            )
+            if isinstance(e, WindowStoreIntegrityHalt):
+                # GL-SPC-SUBSTRATE-TRUE Change 1 (P4): a hash/digest failure
+                # in durable window memory is a NAMED LOUD HALT.  It must
+                # never degrade into recover-and-continue (_load_errors +
+                # local-generation fallback) — propagate so boot stops.
+                print(f"[GualaLoom] BOOT HALT (WindowStoreIntegrityHalt): {e}")
+                self._load_errors.append(str(e))
+                raise
             msg = f"[GualaLoom] ABORT load: {e}"
             print(msg)
             self._load_errors.append(msg)
 
-    def _load_pre_envelope(self, state_dir, present):
-        """Load pre-v5.5 state files (no envelope). Adopts into new identity."""
-        try:
-            raw = {}
-            for f in present:
-                with open(os.path.join(state_dir, f)) as fh:
-                    raw[f] = json.load(fh)
-            with self.lock:
-                if "guala_core.json" in raw:
-                    self._apply_core(raw["guala_core.json"])
-                if "guala_needs.json" in raw:
-                    self._apply_needs(raw["guala_needs.json"])
-                if "guala_coordinator.json" in raw:
-                    self._apply_coordinator(raw["guala_coordinator.json"])
-                if "guala_atlas.json" in raw:
-                    self._apply_atlas(raw["guala_atlas.json"])
-                if "guala_deep_atlas.json" in raw:
-                    self.deep_atlas.load_from_json(raw["guala_deep_atlas.json"])
-                    print(f"[GualaLoom] Deep atlas loaded: {self.deep_atlas.live_count()} entries")
-                if "guala_sections.json" in raw:
-                    self._apply_sections(raw["guala_sections.json"])
-                self._rebuild_word_to_emission_index()
-                self._migrate_tick_domain()
-                if "guala_bucket.json" in raw:
-                    self._apply_bucket(raw["guala_bucket.json"])
-            if "guala_windows.json" in raw:
-                # GL-WAL-INCREMENTAL: WAL replay or legacy restore (see
-                # restore_persisted).
-                self.window_manager.restore_persisted(
-                    raw["guala_windows.json"], state_dir)
-            self._rebuild_language_fact_memory_from_windows()
-            self._load_successful = True
-            # Immediately re-save with envelopes
-            self.save_full_state(state_dir)
-            print(f"[GualaLoom] Migrated pre-v5.5 state to identity {self._guala_identity[:8]}..")
-        except Exception as e:
-            self._load_errors.append(f"Pre-envelope migration failed: {e}")
+    # _load_pre_envelope (pre-v5.5 adopt-state-without-identity migration)
+    # DELETED per GL-SPC-SUBSTRATE-TRUE Change 1: the one boot method never
+    # reads legacy formats; state-without-identity is a named loud halt in
+    # load_full_state.  Git history remains the archive.
 
     # ── Apply helpers (shared by load paths) ──
 

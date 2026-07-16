@@ -2118,9 +2118,12 @@ def _gl_init():
                 "local atomic generation validated. Per Joe's standing order,\n"
                 "old state is NEVER silently recalled, so this process is NOT\n"
                 "auto-restoring from S3. The flat state files are left UNTOUCHED\n"
-                "for inspection. To deliberately restore the most recent off-box\n"
-                "S3 backup, a HUMAN must set FORCE_S3_RESTORE=1 on the task\n"
-                "definition and redeploy (one-shot -- remove it afterward).\n"
+                "for inspection. To deliberately restore a NAMED off-box S3\n"
+                "backup, a HUMAN must STOP the service and run the operator\n"
+                "restore command (logged, integrity-verified):\n"
+                "    python -m tools.restore_from_s3 --list\n"
+                f"    python -m tools.restore_from_s3 --backup <name> --state-dir {STATE_DIR}\n"
+                "then start the service again.\n"
                 "============================================================")
 
     # P0: Identity guard — if EFS state was overwritten by a blank genesis
@@ -2166,7 +2169,9 @@ def _gl_init():
         print(f"[GualaLoom] IDENTITY MISMATCH (NON-FATAL): loaded {loaded_id[:8]} "
               f"but EXPECTED_IDENTITY={EXPECTED_IDENTITY}. Continuing with the "
               f"cleanly-loaded state; NOT auto-restoring from S3. If this is "
-              f"genuinely wrong, a HUMAN must set FORCE_S3_RESTORE=1 and redeploy.")
+              f"genuinely wrong, a HUMAN must STOP the service and run the "
+              f"operator restore command: python -m tools.restore_from_s3 "
+              f"--backup <name> --state-dir {STATE_DIR}")
 
     # D5: Dream gate enforcement — decay must not resume before forced dream
     gate_marker = os.path.join(STATE_DIR, "dream_gate_cleared.json")
