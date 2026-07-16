@@ -2206,7 +2206,13 @@ def _gl_init():
     # deploy -- confirmed by reproducing it on an otherwise-unmodified
     # prior task definition. Root cause is this stale constant, not
     # deploy-specific code. Updated to the real current identity.
-    EXPECTED_IDENTITY = "0b4c244a"
+    # 2026-07-16 update: stale AGAIN, exactly as this comment warns --
+    # "0b4c244a" predates Joe's 2026-07-16 full EFS wipe; the live
+    # post-wipe genesis identity is 1cc4e70a (spec v3 Change-0 record).
+    # The mismatch branch is non-fatal since 2026-07-15, so this staleness
+    # only spammed a loud warning every boot instead of OOM-killing, but
+    # the constant must still track reality.
+    EXPECTED_IDENTITY = "1cc4e70a"
     loaded_id = getattr(g, '_guala_identity', None) or ""
     if _REQUIRE_SEALED_STATE:
         if _loaded_generation is None:
