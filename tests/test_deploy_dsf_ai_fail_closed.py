@@ -61,19 +61,26 @@ def test_runtime_credentials_are_secret_references_not_plain_environment():
         "GUALALOOM_API_KEY",
         "TAVILY_API_KEY",
         "ANTHROPIC_API_KEY",
+        # 0238cc3 (Change 4 feeds): optional YouTube feed key — allowed
+        # ONLY as a Secrets Manager reference, injected only when the
+        # secret exists (the two conditional-shape assertions below).
+        # The previous rows forbidding YOUTUBE entirely predate Change 4.
+        "YOUTUBE_API_KEY",
     )
     for name in names:
         assert f"'name': '{name}'" not in environment
         assert f"'name': '{name}'" in secret_block
     assert secret_block.count("'valueFrom':") == len(names)
+    # YouTube stays conditional and reference-only: never a plaintext value,
+    # never unconditionally required.
+    assert "'valueFrom': os.environ['YOUTUBE_SECRET_ARN']" in secret_block
+    assert "if os.environ.get('YOUTUBE_SECRET_ARN') else []" in secret_block
     assert "_envval" not in TEXT
     assert "simulate-principal-policy" in TEXT
     assert "required Secrets Manager secret is absent" in TEXT
     assert "OPENAI_API_KEY" not in TEXT
     assert "OPENAI_SECRET" not in TEXT
     assert "LOOKUP_AUTONOMOUS" not in TEXT
-    assert "YOUTUBE_API_KEY" not in secret_block
-    assert "YOUTUBE_SECRET" not in TEXT
 
 
 def test_control_plane_uses_verified_tls_credential_and_nonce():

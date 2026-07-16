@@ -97,11 +97,13 @@ _frame_dropped = {"sight": 0, "sound": 0}
 # ── STT boundary transducer (port of stranded a8277fa onto the live
 # lineage) ──────────────────────────────────────────────────────────────────
 # One CTranslate2 whisper model is one physical recognition resource: a
-# dedicated single-worker executor owns it, serializing inference and
-# keeping STT decode trivially movable to its own process later (today it
-# runs in this uvicorn process, embedded mode — the GIL story).  Whisper is
-# a SENSE TRANSDUCER at the boundary, like the ffmpeg WebM->WAV decode:
-# never part of cognition.  See dsf_ai_service/speech_transducer.py.
+# dedicated single-worker executor owns the call side, serializing
+# inference.  Spec v3 STT staging: inference itself runs in the
+# out-of-process worker by DEFAULT (VOICE_WHISPER_WORKER, default 1) so it
+# never competes for this process's GIL or RAM; VOICE_WHISPER_WORKER=0 is
+# the explicit embedded escape hatch.  Whisper is a SENSE TRANSDUCER at the
+# boundary, like the ffmpeg WebM->WAV decode: never part of cognition.
+# See dsf_ai_service/speech_transducer.py.
 import concurrent.futures as _concurrent_futures
 _speech_recognition_executor = _concurrent_futures.ThreadPoolExecutor(
     max_workers=1,
@@ -112,6 +114,66 @@ _speech_recognition_executor = _concurrent_futures.ThreadPoolExecutor(
 def _speech_transduction_enabled():
     """Live read (never cached) so config honesty survives env changes."""
     return os.environ.get("VOICE_WHISPER", "0") == "1"
+
+
+def _speech_result_wall_timeout():
+    """Belt-and-braces wall for awaiting the STT future (3x the worker's own
+    per-request timeout).  Adversarial-review hardening: if the worker/queue
+    machinery ever wedges past its internal deadlines, the frame degrades to
+    the typed unavailable error instead of pinning the executor thread (and
+    its deployment-lifecycle mutation admit) forever.  Crash-safe parse:
+    garbage falls back to the default."""
+    try:
+        per_request = float(
+            os.environ.get("SPEECH_WORKER_REQUEST_TIMEOUT_S", "30"))
+    except (TypeError, ValueError):
+        per_request = 30.0
+    if not (per_request > 0) or per_request != per_request \
+            or per_request == float("inf"):
+        per_request = 30.0
+    return 3.0 * min(max(per_request, 0.1), 3600.0)
+
+
+def _prewarm_speech_transducer():
+    """Steady-state STT pre-warm; runs on the owned speech executor thread.
+
+    Spec v3 STT staging / acceptance criterion 7: the worker (or, under the
+    VOICE_WHISPER_WORKER=0 escape hatch, the in-process model) spawns at
+    steady state only — never during boot (the 2026-07-16 boot OOM is why).
+    Failure is loud but contained: every subsequent frame reports the same
+    failure visibly (status="error"), and the UI's honest banner path
+    ("spoken-word recognition unavailable") keeps working.
+    """
+    try:
+        from dsf_ai_service.speech_transducer import require_speech_recognizer
+        require_speech_recognizer()
+        print("[voice-whisper] recognizer ready (steady-state pre-warm)")
+    except Exception as recognition_error:
+        print("[voice-whisper] steady-state pre-warm error="
+              f"{type(recognition_error).__name__}: {recognition_error}")
+
+
+def _kick_speech_prewarm_after_ready():
+    """Kick the STT pre-warm strictly AFTER readiness; first use also warms.
+
+    Called only once _init_complete is True.  Returns the executor future
+    (tests observe it), or None when STT is off — in which case nothing is
+    ever constructed and the honest-unavailable report stands.
+    """
+    if not _speech_transduction_enabled():
+        return None
+    return _speech_recognition_executor.submit(_prewarm_speech_transducer)
+
+
+def _speech_status_snapshot():
+    """Telemetry for /health: never constructs a recognizer or a worker."""
+    try:
+        from dsf_ai_service.speech_transducer import speech_transducer_status
+        return {"enabled": _speech_transduction_enabled(),
+                **speech_transducer_status()}
+    except Exception as error:  # health must always answer
+        return {"enabled": _speech_transduction_enabled(),
+                "error": f"{type(error).__name__}: {error}"}
 
 
 def _spoken_word_recognition_report(source):
@@ -2118,9 +2180,12 @@ def _gl_init():
                 "local atomic generation validated. Per Joe's standing order,\n"
                 "old state is NEVER silently recalled, so this process is NOT\n"
                 "auto-restoring from S3. The flat state files are left UNTOUCHED\n"
-                "for inspection. To deliberately restore the most recent off-box\n"
-                "S3 backup, a HUMAN must set FORCE_S3_RESTORE=1 on the task\n"
-                "definition and redeploy (one-shot -- remove it afterward).\n"
+                "for inspection. To deliberately restore a NAMED off-box S3\n"
+                "backup, a HUMAN must STOP the service and run the operator\n"
+                "restore command (logged, integrity-verified):\n"
+                "    python -m tools.restore_from_s3 --list\n"
+                f"    python -m tools.restore_from_s3 --backup <name> --state-dir {STATE_DIR}\n"
+                "then start the service again.\n"
                 "============================================================")
 
     # P0: Identity guard — if EFS state was overwritten by a blank genesis
@@ -2141,7 +2206,13 @@ def _gl_init():
     # deploy -- confirmed by reproducing it on an otherwise-unmodified
     # prior task definition. Root cause is this stale constant, not
     # deploy-specific code. Updated to the real current identity.
-    EXPECTED_IDENTITY = "0b4c244a"
+    # 2026-07-16 update: stale AGAIN, exactly as this comment warns --
+    # "0b4c244a" predates Joe's 2026-07-16 full EFS wipe; the live
+    # post-wipe genesis identity is 1cc4e70a (spec v3 Change-0 record).
+    # The mismatch branch is non-fatal since 2026-07-15, so this staleness
+    # only spammed a loud warning every boot instead of OOM-killing, but
+    # the constant must still track reality.
+    EXPECTED_IDENTITY = "1cc4e70a"
     loaded_id = getattr(g, '_guala_identity', None) or ""
     if _REQUIRE_SEALED_STATE:
         if _loaded_generation is None:
@@ -2166,7 +2237,9 @@ def _gl_init():
         print(f"[GualaLoom] IDENTITY MISMATCH (NON-FATAL): loaded {loaded_id[:8]} "
               f"but EXPECTED_IDENTITY={EXPECTED_IDENTITY}. Continuing with the "
               f"cleanly-loaded state; NOT auto-restoring from S3. If this is "
-              f"genuinely wrong, a HUMAN must set FORCE_S3_RESTORE=1 and redeploy.")
+              f"genuinely wrong, a HUMAN must STOP the service and run the "
+              f"operator restore command: python -m tools.restore_from_s3 "
+              f"--backup <name> --state-dir {STATE_DIR}")
 
     # D5: Dream gate enforcement — decay must not resume before forced dream
     gate_marker = os.path.join(STATE_DIR, "dream_gate_cleared.json")
@@ -2704,7 +2777,18 @@ async def sound_frame(msg: GLMessage):
             recognition_status = "no_speech"
             spoken = ""
             try:
-                spoken = (recognition_future.result() or "").strip()
+                try:
+                    spoken = (recognition_future.result(
+                        timeout=_speech_result_wall_timeout()) or "").strip()
+                except _concurrent_futures.TimeoutError as stt_timeout:
+                    # Belt-and-braces wall (adversarial review 2026-07-16):
+                    # a wedged worker/queue degrades THIS sense with the
+                    # typed error; it never pins the executor thread.
+                    from dsf_ai_service.speech_transducer import (
+                        SpeechRecognitionUnavailable)
+                    raise SpeechRecognitionUnavailable(
+                        "speech transduction exceeded the wall timeout"
+                    ) from stt_timeout
                 if spoken:
                     recognition_status = "recognized"
                     # Full real transcript, never a vocab-filtered fragment
@@ -5795,6 +5879,31 @@ async def v6_events_histogram(source: str = "diary"):
 
 _init_complete = False  # V2: health gate
 _init_error = None
+# GL-SPC-SUBSTRATE-TRUE Change 1 review (2026-07-16): a NAMED boot halt
+# (integrity failure, P4) must be externally visible — before this, the halt
+# was caught by _eager_init and /ready kept answering 200, leaving a
+# healthy-looking zombie serving no substrate.  When set, /ready and
+# /ready/guala answer 503 with the halt reason.
+_boot_halted = None
+
+
+def _classify_boot_halt(error):
+    """Return the named-halt label for a P4 boot-halt exception, else None."""
+    try:
+        from dsf_ai_service.substrate.window_manager import (
+            WindowStoreIntegrityHalt,
+        )
+        from dsf_ai_service.v4.gualaloom_v5_engine import (
+            GualaBootIdentityUnreadableHalt,
+            GualaBootStateIntegrityHalt,
+        )
+    except ImportError:
+        return None
+    named = (WindowStoreIntegrityHalt, GualaBootIdentityUnreadableHalt,
+             GualaBootStateIntegrityHalt)
+    if isinstance(error, named):
+        return f"{type(error).__name__}: {error}"
+    return None
 _BOOT_START = time.time()   # module load time — for elapsed_ms in readiness responses
 _LIFESPAN_STARTED = False   # set True as soon as startup event fires
 
@@ -5828,29 +5937,15 @@ async def startup():
     # V2 EAGER INIT: initialize in background so health check passes immediately
     import asyncio
     async def _eager_init():
-        global _init_complete, _init_error
+        global _init_complete, _init_error, _boot_halted
         t0 = time.time()
         try:
             await _run_lifecycle_executor(_boot_generation_and_guala)
-            # a8277fa: pre-warm the owned STT transducer at boot on its own
-            # executor so the first real spoken frame never pays model
-            # construction, and a broken configuration is announced HERE,
-            # loudly, instead of surfacing per-frame later.  Boot proceeds
-            # either way — every subsequent frame then reports the same
-            # failure visibly (status="error"), never silence.
-            if _speech_transduction_enabled():
-                try:
-                    from dsf_ai_service.speech_transducer import (
-                        require_speech_recognizer)
-                    _stt_loop = asyncio.get_running_loop()
-                    await _stt_loop.run_in_executor(
-                        _speech_recognition_executor,
-                        require_speech_recognizer)
-                    print("[voice-whisper] recognizer ready")
-                except Exception as recognition_error:
-                    print("[voice-whisper] initialization error="
-                          f"{type(recognition_error).__name__}: "
-                          f"{recognition_error}")
+            # The a8277fa boot pre-warm used to live HERE.  Removed per spec
+            # v3 STT staging (acceptance criterion 7): the whisper worker/
+            # model must spawn at steady state only, after readiness, never
+            # during boot — see _kick_speech_prewarm_after_ready below,
+            # called strictly after _init_complete flips.
             # GLEW cutover: construct the new conversation engine once, here,
             # only when explicitly enabled. Fail-closed: a construction failure
             # propagates and fails startup loudly rather than leaving the app
@@ -5862,12 +5957,23 @@ async def startup():
                 await _run_lifecycle_executor(_boot_glew_conversation_engine)
         except Exception as error:
             _init_error = str(error)
+            halt = _classify_boot_halt(error)
+            if halt is not None:
+                # NAMED P4 boot halt: flip the readiness surface so the
+                # halt is externally visible (503, never a healthy zombie).
+                _boot_halted = halt
+                print(f"[DSF-AI] BOOT HALTED (named, readiness now 503): {halt}")
             print(f"[DSF-AI] Guala initialization FAILED: {error}")
             raise
         else:
             dt = time.time() - t0
             print(f"[DSF-AI] Guala initialized in {dt:.1f}s")
             _init_complete = True
+            # STT staging (spec v3, acceptance criterion 7): pre-warm the
+            # transducer only NOW — boot is over, readiness is flipped, and
+            # the kick runs on the speech executor, so the worker spawn can
+            # never compete with boot for memory again (2026-07-16 OOM).
+            _kick_speech_prewarm_after_ready()
     _start_app_lifecycle_task(_eager_init(), name="guala-eager-init")
 
     # Server-side background replay for v7 sessions
@@ -6800,12 +6906,28 @@ async def health():
     # matches current no-seed production behavior exactly).
     if _seed_load_progress is not None:
         result["seed_load"] = _seed_load_progress.as_dict()
+    # STT staging telemetry (spec v3, acceptance criterion 7): worker state
+    # and RSS-watchdog breach count.  Read-only snapshot — can never spawn
+    # a worker or load a model from this path.
+    result["speech"] = _speech_status_snapshot()
     return result
 
 @app.get("/ready")
 async def ready():
     """Container readiness; sealed production never reports shallow success."""
     elapsed_ms = int((time.time() - _BOOT_START) * 1000)
+    if _boot_halted is not None:
+        # A NAMED P4 boot halt is never a healthy container.  503 makes the
+        # orchestrator recycle/hold the task — the crash-loop IS the signal.
+        return JSONResponse(
+            status_code=503,
+            content={
+                "ready": False,
+                "boot_halted": _boot_halted,
+                "elapsed_ms": elapsed_ms,
+            },
+            headers={"Retry-After": "30"},
+        )
     if _REQUIRE_SEALED_STATE:
         try:
             proof = _production_runtime_proof()
@@ -6947,6 +7069,16 @@ async def ready_guala(request: Request):
     Returns 503 with Retry-After during boot.
     """
     elapsed_ms = int((time.time() - _BOOT_START) * 1000)
+    if _boot_halted is not None:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "ready": False,
+                "boot_halted": _boot_halted,
+                "elapsed_ms": elapsed_ms,
+            },
+            headers={"Retry-After": "30"},
+        )
     if _REQUIRE_SEALED_STATE:
         nonce = _require_readiness_control(request)
         try:

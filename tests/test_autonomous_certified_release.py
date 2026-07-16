@@ -330,10 +330,10 @@ def test_conversation_arriving_mid_compose_wins(guala, monkeypatch):
 
     original = guala._compose_language_fact_settlement
 
-    def arriving_mid_compose(words, composer=None):
+    def arriving_mid_compose(words):
         with guala._live_converse_state_lock:
             guala._live_converse_pending += 1
-        return original(words, composer=composer)
+        return original(words)
 
     monkeypatch.setattr(
         guala, "_compose_language_fact_settlement", arriving_mid_compose)
