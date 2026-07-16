@@ -239,8 +239,8 @@ def main() -> None:
                              "service is STOPPED (required to restore)")
     args = parser.parse_args()
 
-    s3 = _s3_client()
     if args.list:
+        s3 = _s3_client()
         for name in _list_backups(s3, args.bucket):
             print(name)
         return
@@ -257,6 +257,7 @@ def main() -> None:
             f"[restore] REFUSED: {newest_path} was written {age:.0f}s ago — "
             f"the service still looks ALIVE. A restore under a running "
             f"substrate silently corrupts state. Stop the service and retry.")
+    s3 = _s3_client()
 
     print("=" * 68)
     print(f"[restore] OPERATOR RESTORE — explicit state-vintage change (P4)")
