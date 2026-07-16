@@ -191,3 +191,39 @@ def test_receipt_without_npz_still_halts(tmp_path, monkeypatch):
     assert not rebooted._load_successful
     assert any("wave_atlas.npz is missing" in err
                for err in rebooted._load_errors)
+
+
+def test_manifest_row_one_tick_forward_skew_is_accepted_loudly(tmp_path, capsys):
+    """2026-07-16 :662 supersede halt: a graceful mid-life stop saves
+    guala_teaching.json one tick after its manifest row was recorded --
+    same-cycle real data, not a tear. Bounded forward skew on the
+    manifest branch must load; large gaps must still halt."""
+    from dsf_ai_service.v4.gualaloom_v5_engine import Guala
+
+    g = Guala()
+    g.add_corpus("seed", "Seed", ["the sun rises in the morning"])
+    g.load_full_state(str(tmp_path))
+    g.save_full_state(str(tmp_path))
+
+    import json as _json
+    core_path = tmp_path / "guala_core.json"
+    teaching_path = tmp_path / "guala_teaching.json"
+    core = _json.loads(core_path.read_text())
+    teaching = _json.loads(teaching_path.read_text())
+    row = core["data"]["state_file_ticks"]["guala_teaching.json"]
+    teaching["saved_at_tick"] = row + 1
+    teaching_path.write_text(_json.dumps(teaching))
+
+    g2 = Guala()
+    g2.add_corpus("seed", "Seed", ["the sun rises in the morning"])
+    g2.load_full_state(str(tmp_path))
+    assert getattr(g2, "_load_successful", False), getattr(g2, "_load_errors", [])
+    assert "[manifest-skew] guala_teaching.json" in capsys.readouterr().out
+
+    # A large forward gap is a genuinely mixed save set and must halt.
+    teaching["saved_at_tick"] = row + 100000
+    teaching_path.write_text(_json.dumps(teaching))
+    g3 = Guala()
+    g3.add_corpus("seed", "Seed", ["the sun rises in the morning"])
+    g3.load_full_state(str(tmp_path))
+    assert not getattr(g3, "_load_successful", True)

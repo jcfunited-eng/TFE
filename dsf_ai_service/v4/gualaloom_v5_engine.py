@@ -13138,9 +13138,32 @@ class Guala:
                          if isinstance(overrides, dict) else None)
         if manifest_tick is not None:
             if saved_tick != manifest_tick:
-                raise ValueError(
-                    f"{filename}: saved_at_tick {saved_tick} != {manifest_tick} "
-                    f"(state-file-ticks manifest) -- torn or mixed save set")
+                # 2026-07-16 (:662 supersede): the same intra-cycle write
+                # skew d357b57 accepted for pre-manifest saves occurs INSIDE
+                # manifest-bearing saves too -- the manifest row is recorded
+                # when core is written, and a file that lands a moment later
+                # in the SAME save cycle legitimately stamps one tick ahead.
+                # Accept the bounded forward skew loudly; genuinely mixed
+                # save sets differ by thousands of ticks and still halt.
+                if (isinstance(saved_tick, int)
+                        and not isinstance(saved_tick, bool)
+                        and saved_tick > manifest_tick
+                        and saved_tick - manifest_tick
+                        <= self._INTRA_CYCLE_TICK_SKEW):
+                    print(
+                        f"[GualaLoom][manifest-skew] {filename}: "
+                        f"saved_at_tick {saved_tick} is "
+                        f"{saved_tick - manifest_tick} tick(s) ahead of its "
+                        f"manifest row {manifest_tick} -- accepted as "
+                        f"intra-cycle write skew (same save cycle, real "
+                        f"data; bounded)",
+                        flush=True,
+                    )
+                else:
+                    raise ValueError(
+                        f"{filename}: saved_at_tick {saved_tick} != "
+                        f"{manifest_tick} (state-file-ticks manifest) -- "
+                        f"torn or mixed save set")
         elif filename == "guala_core.json":
             if saved_tick != expected_tick:
                 raise ValueError(
