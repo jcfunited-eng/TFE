@@ -934,8 +934,26 @@ class WindowManager:
                            trigger_reason: str,
         atlas_kwargs: Mapping[str, Any]) -> BindingWindow:
         if explicit_context_id is not None:
+            # An explicit context_id on an ENTRY is routing, not a binding
+            # claim.  begin_context() rebinds this caller's contextvar as a
+            # side effect; when the caller already held a DIFFERENT open
+            # binding, restore it so a targeted write (e.g. the per-frame
+            # sense contexts of process_sight_frame/process_sound_frame,
+            # GL-RPT-WAL-BLOAT F2) can never steal the thread's experience
+            # context.  Root cause of the observed-conversation empty-window
+            # bug (2026-07-16): a send-time camera frame rebound the turn's
+            # live-conversation binding to its frame context, whose close
+            # then reset the binding to None — every following word entry
+            # routed to fresh implicit contexts and the observed window
+            # closed with zero entries, so its BindingWindowCitation had no
+            # modalities to cite.
+            previous = self._bound_context.get()
             self.begin_context(explicit_context_id, trigger_reason)
             explicit_context_id = explicit_context_id.strip()
+            if previous is not None and previous != explicit_context_id:
+                with self._lock:
+                    if previous in self._contexts:
+                        self._bound_context.set(previous)
             return self._contexts[explicit_context_id]
 
         inferred = self._inferred_context_id(atlas_kwargs)

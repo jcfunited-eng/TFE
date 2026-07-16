@@ -1925,6 +1925,20 @@ def _synthesize_voice(text):
     """Synthesize speech via espeak-ng. Returns base64 WAV or None."""
     if not text:
         return None
+    # espeak-ng runs under a 5s timeout below; unbounded certified
+    # continuations exceeded it and the whole voice went silent.  Bounded,
+    # loud truncation instead (review 2026-07-16).  One authority for the
+    # cap: the engine's TTS_MAX_CHARS.
+    from dsf_ai_service.v4.gualaloom_v5_engine import TTS_MAX_CHARS
+    if len(text) > TTS_MAX_CHARS:
+        try:
+            if _guala is not None:
+                _guala._log_substrate_event(
+                    "tts_truncated", where="converse_voice",
+                    n_chars=len(text), cap=TTS_MAX_CHARS)
+        except Exception:
+            pass
+        text = text[:TTS_MAX_CHARS]
     wav_path = "/tmp/guala_utt.wav"
     try:
         subprocess.run([
@@ -2012,7 +2026,12 @@ def _cmd_converse(text, source, emission_mode=None):
               "commit_provenance": [
                   provenance.as_record()
                   for provenance in turn_result.commit_provenance]}
-    if response_source == "fact_strand_commit" and response:
+    # Change 4 (spec v3 release-policy note a): ONE MOUTH — every released
+    # label (certified AND assemblage) is voiced through this same TTS
+    # boundary; the label itself stays distinct in result["response_source"].
+    # Silence and retired legacy labels are never voiced.
+    from dsf_ai_service.v4.gualaloom_v5_engine import VOICED_RELEASE_SOURCES
+    if response and response_source in VOICED_RELEASE_SOURCES:
         wav = _synthesize_voice(response)
         if wav:
             result["speech"] = wav
@@ -2826,8 +2845,12 @@ _autonomous_thought_lock = threading.Lock()
 
 def _start_autonomous_emission_loop():
     """Background daemon: attempts autonomous emission every 90s.
-    Uses v5 compose_autonomous() — same composer as /converse, internal seeds only.
-    Stores result in _last_autonomous_thought for /thought polling."""
+    Uses compose_autonomous() — the SAME release policy as /converse
+    (Change 4): certified composer first, queried with organism-sourced
+    seeds (recent committed window words / current activity target — never
+    atlas dumps), the substrate's own assemblage commit second, explained
+    silence third.  Stores result in _last_autonomous_thought for /thought
+    polling."""
     def _loop():
         global _last_autonomous_thought
         if _shutdown_event.wait(60):
@@ -2867,7 +2890,18 @@ def _start_autonomous_emission_loop():
                                 response_source=result["response_source"],
                                 committed_sections=result["committed_sections"],
                                 commit_provenance=result["commit_provenance"],
-                                seeds_used=result.get("seeds_used", 0),
+                                # Two seed semantics, two keys (review
+                                # 2026-07-16): certified releases count seed
+                                # WORDS; assemblage releases count chi seeds.
+                                seed_words_used=result.get(
+                                    "seed_words_used", 0),
+                                chi_seeds_used=result.get(
+                                    "chi_seeds_used", 0),
+                                # Change 4: certified autonomous releases
+                                # carry organism-sourced seed provenance
+                                # (window/activity origins, never atlas).
+                                seed_provenance=result.get(
+                                    "seed_provenance", []),
                                 count=_guala.autonomous_emissions_count,
                             )
                             with _autonomous_thought_lock:
@@ -2882,8 +2916,13 @@ def _start_autonomous_emission_loop():
                                     "committed_sections": result["committed_sections"],
                                     "commit_provenance": result["commit_provenance"],
                                 }
-                            # Certified self-hearing through the same boundary
-                            # as conversational emission; never raw re-ingest.
+                            # One mouth (Change 4): every released label —
+                            # fact_strand_commit AND assemblage_commit —
+                            # self-hears through the same engine boundary as
+                            # conversational emission; never raw re-ingest.
+                            # _self_hear itself gates on
+                            # VOICED_RELEASE_SOURCES and keeps the label
+                            # distinct in its telemetry.
                             try:
                                 _guala._self_hear(
                                     content, "guala",

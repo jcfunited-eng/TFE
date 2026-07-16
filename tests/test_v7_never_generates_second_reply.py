@@ -162,17 +162,16 @@ def _run_real_turn_with_hostile_v7_session(converse_phased):
 
     V7Session.converse = _forbidden_converse
 
-    legacy_emit_calls = {"n": 0}
-    fact_compose_calls = {"n": 0}
+    authority_calls = []  # ordered consultations of the release authorities
     orig_emit = Guala._emit_from_invariants
     orig_fact_compose = Guala._compose_language_fact_settlement
 
     def _counting_emit(self, *a, **kw):
-        legacy_emit_calls["n"] += 1
+        authority_calls.append("assemblage")
         return orig_emit(self, *a, **kw)
 
     def _counting_fact_compose(self, *a, **kw):
-        fact_compose_calls["n"] += 1
+        authority_calls.append("fact")
         return orig_fact_compose(self, *a, **kw)
 
     Guala._emit_from_invariants = _counting_emit
@@ -186,11 +185,23 @@ def _run_real_turn_with_hostile_v7_session(converse_phased):
         assert isinstance(reply, ConversationTurnResult), (
             f"expected an immutable turn result, got {reply!r}")
         assert isinstance(reply.response, str)
-        assert legacy_emit_calls["n"] == 0, (
-            "retired invariant composer ran on the real Fact-Strand path")
-        assert fact_compose_calls["n"] == 1, (
+        # Joe's 2026-07-16 ruling (spec v3 release-policy row): the
+        # substrate's own assemblage settlement is a legitimate SECOND
+        # release authority when the certified composer has nothing —
+        # so on this fresh organism the assemblage voice may be consulted
+        # exactly once, strictly AFTER the one canonical Fact-Strand
+        # composer.  What stays forbidden forever: any V7 access (the
+        # hostile spy raises), any second reply generator, or the
+        # assemblage running before/without the certified composer.
+        assert authority_calls[:1] == ["fact"], (
+            "the canonical Fact-Strand composer must be consulted first, "
+            f"got {authority_calls}")
+        assert authority_calls.count("fact") == 1, (
             "expected the one canonical Fact-Strand composer exactly once, "
-            f"ran {fact_compose_calls['n']} times")
+            f"got {authority_calls}")
+        assert authority_calls.count("assemblage") <= 1, (
+            "the assemblage voice may settle a turn at most once, "
+            f"got {authority_calls}")
         return reply
     finally:
         V7Session.converse = orig_v7_converse
