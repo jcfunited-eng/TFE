@@ -132,3 +132,7 @@ yolov8n.onnx
 !tools/cp2_quality_audit.py
 !tools/evaluate_recommendation_policy_snapshot.py
 !tools/backfill_accumulate_fundamentals.py
+
+# Native organism kernels (GL native-core track, 2026-07-16)
+!native/guala_core/
+native/guala_core/target/
