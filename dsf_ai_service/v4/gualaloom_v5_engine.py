@@ -1142,6 +1142,24 @@ AUTONOMOUS_EMISSION_ENABLED = True          # single flag to disable without cod
 AUTONOMOUS_THROTTLE_TICKS = 27000           # ~90s between autonomous emissions
 AUTONOMOUS_CONVERSATION_COOLDOWN_TICKS = 9000  # ~30s cooldown after any conversation
 
+# Change 4 (GL-SPC-SUBSTRATE-TRUE-SINGLE-STACK-20260716-v3, release-policy
+# note a): ONE MOUTH.  Every release label in this tuple passes the same
+# voice (TTS) + self-hearing boundary; labels stay distinct end-to-end so
+# telemetry always says which authority released.  Silence and retired
+# legacy labels (e.g. "v5_commit") are deliberately NOT here — they never
+# gain a voice.  This is the single authority both the engine's _self_hear
+# gate and the runner's TTS gate consult; never fork a second copy.
+VOICED_RELEASE_SOURCES = ("fact_strand_commit", "assemblage_commit")
+
+# Change 4 (spec v3 release-policy note b): the autonomous loop queries the
+# certified composer with seeds drawn from the organism's own lived content.
+# HARD CONSTRAINT (documented production regression, GL 2026-07-06 recall
+# wiring): seeds NEVER come from atlas candidate/neighborhood dumps — only
+# from committed BindingWindow words and the current activity's target.
+AUTONOMOUS_COMPOSER_SEED_WINDOWS = 6   # freshest committed windows considered
+AUTONOMOUS_COMPOSER_SEED_ATTEMPTS = 3  # composer queries per 90s cycle (cost bound)
+AUTONOMOUS_COMPOSER_SEED_PREFIX = 2    # lived-opening words used as one query
+
 # 2026-07-10 GL-CMD-AUTONOMOUS-INTEREST-REFINEMENT: real research (Schmidhuber
 # 1991/2010 compression-progress; Oudeyer & Kaplan 2007 learning-progress
 # intrinsic motivation) says a sustained novelty LEVEL just means "under-
@@ -4617,11 +4635,28 @@ class Guala:
             remembered += self._remember_closed_language_window(window_id)
         return remembered
 
-    def _compose_language_fact_settlement(self, words):
-        """Compose only from the atomically published Fact/window state."""
+    def _build_language_fact_composer_locked(self):
+        """Construct the composer snapshot; caller holds _language_fact_lock.
+
+        The snapshot is immutable (tuples of frozen dataclasses), so a
+        caller may safely reuse one composer for several queries within one
+        cycle instead of rebuilding the full window walk per query — the
+        autonomous seed attempts (Change 4) do exactly that.  Certification
+        in _fact_settlement_has_certified_provenance always rechecks the
+        LIVE window state, so a slightly stale snapshot can never release
+        anything the substrate did not actually live."""
         from dsf_ai_service.substrate.language_fact_composer import (
             DeterministicWindowComposer,
         )
+        return DeterministicWindowComposer(
+            self.language_fact_memory,
+            tuple(
+                self._ordered_language_windows[window_id]
+                for window_id in sorted(self._ordered_language_windows)),
+        )
+
+    def _compose_language_fact_settlement(self, words, composer=None):
+        """Compose only from the atomically published Fact/window state."""
         from dsf_ai_service.substrate.language_fact_strand import (
             construct_language_fact_strand,
         )
@@ -4633,12 +4668,8 @@ class Guala:
             return EmissionSettlement(tick=self.tick)
 
         with self._language_fact_lock:
-            composer = DeterministicWindowComposer(
-                self.language_fact_memory,
-                tuple(
-                    self._ordered_language_windows[window_id]
-                    for window_id in sorted(self._ordered_language_windows)),
-            )
+            if composer is None:
+                composer = self._build_language_fact_composer_locked()
             continuation = composer.continue_from_sequence(queries)
             memory_strand_count = len(getattr(
                 self.language_fact_memory, "_by_id", ()) or ())
@@ -11774,11 +11805,168 @@ class Guala:
                 break
         return seeds
 
+    def _autonomous_composer_seed_attempts(self):
+        """Organism-sourced seed sequences for the certified composer.
+
+        Change 4 (spec v3 release-policy note b).  Seed sources, most
+        salient first:
+          1. current activity target — the words of the item the substrate
+             is attending/reading RIGHT NOW (live activity content);
+          2. recently committed window words — the lived openings of the
+             freshest closed, origin-approved language windows (dict
+             insertion order is commit order; the rebuild path inserts in
+             sorted-id order, which is chronological for win_{seq:016x}).
+        Needs state modulates ordering: when the connection need is starved,
+        recent windows carrying a pair-bond source tag (genuinely shared
+        lived experience) come first — the same real/fake distinction
+        _sample_autonomous_seeds already draws for the assemblage path.
+
+        HARD CONSTRAINT (documented production regression, 2026-07-06
+        recall wiring): this method NEVER reads self.atlas — no candidate
+        or neighborhood dumps.  Every seed word carries provenance naming
+        its lived source (window_id + entry_index, or the activity target),
+        and the release-contract tests assert exactly that.
+
+        Seeding cannot manufacture speech: the composer recognizes only
+        words that exist as lived Fact strands (INPUT_UNKNOWN stops
+        otherwise) and certification rechecks every cited window entry, so
+        seed choice only selects among continuations the substrate actually
+        lived.  Returns a bounded list of attempts, each
+        {"words": tuple, "provenance": [dict, ...]}.
+        """
+        attempts = []
+
+        # Source 1: current activity target (live salient content).
+        activity = getattr(self, "_current_activity", None)
+        target = getattr(activity, "target", None) if activity is not None else None
+        if target is not None:
+            title = None
+            for store_name in ("_pictures", "_videos", "_corpora"):
+                item = (getattr(self, store_name, None) or {}).get(target)
+                if item is not None:
+                    title = getattr(item, "title", None)
+                    break
+            if title is None:
+                sound = (getattr(self, "_sounds", None) or {}).get(target)
+                if isinstance(sound, dict):
+                    title = sound.get("title")
+            words = tuple(_normalize_text(title or "")[
+                :AUTONOMOUS_COMPOSER_SEED_PREFIX])
+            if words:
+                attempts.append({
+                    "words": words,
+                    "provenance": [
+                        {"word": w,
+                         "origin": "current_activity_target",
+                         "activity_kind": getattr(activity, "kind", None),
+                         "target_id": str(target)}
+                        for w in words],
+                })
+
+        # Source 2: recently committed window words (lived openings).
+        with self._language_fact_lock:
+            recent = list(self._ordered_language_windows.values())[
+                -AUTONOMOUS_COMPOSER_SEED_WINDOWS:]
+        recent.reverse()  # freshest commit first
+
+        try:
+            connection_deficit = max(
+                0.0, self.needs.TARGETS["connection"] - self.needs.connection)
+        except Exception:
+            connection_deficit = 0.0
+        if connection_deficit > 0.0:
+            def _shared(window):
+                return any(
+                    token.fact.provenance.source_tag in PAIR_BOND_SOURCES
+                    for token in window.tokens)
+            # Stable partition: shared lived experience first, recency kept
+            # within each partition.
+            recent.sort(key=lambda window: not _shared(window))
+
+        for window in recent:
+            if len(attempts) >= AUTONOMOUS_COMPOSER_SEED_ATTEMPTS:
+                break
+            if len(window.tokens) < 2:
+                continue  # a lived opening needs a lived continuation
+            prefix_len = min(AUTONOMOUS_COMPOSER_SEED_PREFIX,
+                             len(window.tokens) - 1)
+            tokens = window.tokens[:prefix_len]
+            attempts.append({
+                "words": tuple(t.fact.language_form for t in tokens),
+                "provenance": [
+                    {"word": t.fact.language_form,
+                     "origin": "recent_window_commit",
+                     "window_id": t.window_id,
+                     "entry_index": t.entry_index,
+                     "source_tag": t.fact.provenance.source_tag}
+                    for t in tokens],
+            })
+        return attempts[:AUTONOMOUS_COMPOSER_SEED_ATTEMPTS]
+
     @_engine_mutation_entry
     def compose_autonomous(self):
-        """Run v5 composer on current internal state, no external input.
-        Returns dict with content/metadata if commit gate fires; None otherwise.
-        Must be called with self.lock held."""
+        """One autonomous release attempt through the one release policy.
+        Returns dict with content/metadata if a release fires; None
+        otherwise (explained silence — the caller logs the no-commit event,
+        and fact_compose telemetry already recorded every composer stop
+        reason).  Must be called with self.lock held.
+
+        Change 4 (spec v3 release-policy note b): release ordering is the
+        SAME as conversation — certified composer preferred (queried with
+        organism-sourced seeds), the substrate's own assemblage commit
+        second, explained silence third.
+        """
+        # A conversation counted first is a hard barrier for EVERY
+        # autonomous release authority — the same rule
+        # _try_acquire_autonomous_emission enforces for the assemblage
+        # path's lock acquisition below.  Autonomous speech never
+        # front-runs a pending human turn.
+        with self._live_converse_state_lock:
+            if self._live_converse_pending > 0:
+                return None
+
+        # 1. Certified composer, organism-sourced seeds (never the atlas).
+        seed_attempts = self._autonomous_composer_seed_attempts()
+        if seed_attempts:
+            with self._language_fact_lock:
+                # One immutable composer snapshot shared by every attempt in
+                # this cycle — never one full window walk per attempt.
+                composer = self._build_language_fact_composer_locked()
+            for attempt_index, attempt in enumerate(seed_attempts):
+                settlement = self._compose_language_fact_settlement(
+                    attempt["words"], composer=composer)
+                content, response_source = self._committed_emission_response(
+                    settlement)
+                if content and response_source == "fact_strand_commit":
+                    self._log_substrate_event(
+                        "autonomous_fact_seed",
+                        released=True,
+                        n_attempts=attempt_index + 1,
+                        seed_words=list(attempt["words"]),
+                        seed_provenance=attempt["provenance"])
+                    return {
+                        "content": content,
+                        "source": "guala",
+                        "response_source": response_source,
+                        "category": "autonomous",
+                        "seeds_used": len(attempt["words"]),
+                        "seed_provenance": attempt["provenance"],
+                        "settlement_tick": settlement.tick,
+                        "committed_sections": list(
+                            settlement.committed_sections),
+                        "commit_provenance": [
+                            provenance.as_record()
+                            for provenance in settlement.commit_provenance],
+                    }
+            # Honest stop: every seed's stop reason is already in the
+            # per-query fact_compose events; this records the cycle summary.
+            self._log_substrate_event(
+                "autonomous_fact_seed",
+                released=False,
+                n_attempts=len(seed_attempts),
+                seed_words=[list(a["words"]) for a in seed_attempts])
+
+        # 2. The substrate's own assemblage voice (unchanged mechanism).
         seeds = self._sample_autonomous_seeds(n=12)
         if not seeds:
             return None
@@ -11807,6 +11995,7 @@ class Guala:
                     provenance.as_record()
                     for provenance in settlement.commit_provenance],
             }
+        # 3. Explained silence — first-class outcome, logged by the caller.
         return None
 
     # ── GL-CMD-AUTONOMY-EMITTING-PHASING-53 §1.2 ────────────────────────────────
@@ -12491,11 +12680,17 @@ class Guala:
         already transduced this exact reply text (converse's own
         committed_chis, same deterministic values), is reused here instead
         of a third redundant LanguageKrimelack pass. None (the default)
-        preserves old standalone-caller behavior exactly."""
+        preserves old standalone-caller behavior exactly.
+
+        Change 4 (spec v3 release-policy note a, one mouth): every RELEASED
+        label in VOICED_RELEASE_SOURCES self-hears through this one boundary
+        — assemblage_commit included, with its own label preserved in the
+        episode_ref and the self_heard event.  Silence and retired legacy
+        labels still never self-hear."""
         import os
         if os.environ.get("SELF_HEARING_ENABLED", "1") == "0":
             return
-        if (response_source != "fact_strand_commit"
+        if (response_source not in VOICED_RELEASE_SOURCES
                 or not emission_id):
             return
 
