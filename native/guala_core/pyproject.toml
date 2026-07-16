@@ -1,0 +1,12 @@
+[build-system]
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "guala_core"
+version = "0.1.0"
+description = "Native (Rust) hot-path kernels for the GualaLoom organism substrate -- exact ports of the Python oscillator/filter/settle math, GIL-released."
+requires-python = ">=3.9"
+
+[tool.maturin]
+bindings = "pyo3"

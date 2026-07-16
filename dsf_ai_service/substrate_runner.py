@@ -2873,9 +2873,23 @@ def _start_autonomous_emission_loop():
                     with _guala.lock:
                         should = _guala._should_attempt_autonomous_emission()
                     if should:
+                        # F3 (2026-07-16): two-phase compose. Seeds are
+                        # snapshotted under a SHORT hold, the organism
+                        # recall (duration-unbounded) runs with NO lock,
+                        # and the final compose under the lock is assembly
+                        # only -- it refuses to recall by contract
+                        # (votes_not_precomputed).
+                        seed_attempts = None
+                        with _guala.lock:
+                            seed_attempts = (
+                                _guala._autonomous_composer_seed_attempts())
+                        organism_votes = _guala.precompute_organism_attempt(
+                            seed_attempts)
                         result = None
                         with _guala.lock:
-                            result = _guala.compose_autonomous()
+                            result = _guala.compose_autonomous(
+                                seed_attempts=seed_attempts,
+                                organism_votes=organism_votes)
                         if result is not None:
                             content = result["content"]
                             _guala.autonomous_emissions_count += 1

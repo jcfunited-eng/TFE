@@ -65,6 +65,31 @@ def resonance_signal(arr):
     ps = ps / tot
     return float(np.sort(ps)[-3:].sum())
 
+
+def resonance_and_signature(arr):
+    """GL-FIX-GROWTH-POOL-LAW-20260716: resonance_signal() plus the top-3
+    spectral bin indices it already ranks -- ONE rfft serves both (this
+    runs once per experience_word on the organism worker's hot path).
+    The bin-index tuple is the growth law's novelty observable: WHICH
+    frequencies carried this experience's coherence (replay-stable, and
+    measured distinct for genuinely different signals), where sig_res is
+    only HOW MUCH coherence. Chosen over _compute_input_chi's winding %
+    100 after direct measurement: bipolar sensory composites wind both
+    ways and cancel, mapping 60 distinct signals onto {0, 1} -- useless
+    as an identity. Returns (0.0, None) for an empty/all-zero signal --
+    honest absence, same convention as resonance_signal()."""
+    s = np.asarray(arr, dtype=float)
+    s = s - s.mean()
+    if np.allclose(s, 0):
+        return 0.0, None
+    ps = np.abs(np.fft.rfft(s)) ** 2
+    tot = ps.sum()
+    if tot <= 0:
+        return 0.0, None
+    ps = ps / tot
+    top3 = np.argsort(ps)[-3:]
+    return float(ps[top3].sum()), tuple(int(b) for b in np.sort(top3))
+
 # H0..H7 -> cognitive operation + decay multiplier (map table, derived from timescales)
 OPERATIONS = [
     ("em",  1.0),    # embodiment: perception+emission+working memory  (~700 ticks)
@@ -178,6 +203,16 @@ class Embryo:
         # "growth we cannot see is growth we cannot verify."
         self._total_divisions = 0
         self._fold_events_buffer = []
+        # GL-FIX-GROWTH-POOL-LAW-20260716: bounded spectral-signature
+        # history for the novelty term of the refill flux (see
+        # _experience_core / resonance_and_signature). A repeated
+        # experience lands on the same top-3 spectral bins and stops
+        # funding; a novel one lands elsewhere and funds. Bounded deque,
+        # same discipline as _reflection_snapshots below. Restored-pickle
+        # organisms self-heal via _novelty_of_signature's getattr (same
+        # -198 pattern as _fold_events_buffer).
+        self._recent_input_signatures = None  # lazily created deque (see _novelty_of_signature)
+        self._growth_cap_hits = 0
         # GL-RPT-BRAIN-IMAGINATION-REFLECTION-DESIGN-C1-20260711, built for
         # real 2026-07-11: bounded (tick, sf_sense_vector) history for real
         # self-state-then-vs-now reflection (see reflect()/_reflect_snapshot()
@@ -294,6 +329,72 @@ class Embryo:
     # physics (N ≤ 2*N_initial << 256). If it fires: conservation pool has a bug.
     _POP_HARDSTOP = 256
 
+    # GL-FIX-GROWTH-POOL-LAW-20260716: organism-TOTAL neuron ceiling
+    # (the per-hemisphere _POP_HARDSTOP above allows 8*256=2048 total --
+    # not a real whole-organism bound). Config via env, default generous
+    # (4x seed; the flux law's own emergent asymptote is N <= 2*N_initial,
+    # so a correct organism never reaches this). Loudly logged when hit
+    # (Joe's standing rule: bounded RAM/CPU, no silent runaway growth).
+    @staticmethod
+    def _max_total_neurons():
+        try:
+            return int(os.environ.get("GUALA_MAX_TOTAL_NEURONS", "256"))
+        except (TypeError, ValueError):
+            return 256
+
+    def _novelty_of_signature(self, signature):
+        # KNOWN FIDELITY LIMIT (2026-07-16 review): the signature is raw
+        # rfft bin INDICES compared across composites of varying length --
+        # the same bin index means a different physical frequency at a
+        # different composite length, so a modality-set change (e.g.
+        # visual-only vs visual+auditory moment of the same scene) can read
+        # as novel. Errs toward over-funding, and is bounded either way by
+        # the flux law itself (refill can never outrun the maintenance
+        # asymptote, N <= 2*N_initial) plus the GUALA_MAX_TOTAL_NEURONS
+        # hard cap.
+        """GL-FIX-GROWTH-POOL-LAW-20260716: novelty of THIS experience,
+        measured on its spectral signature (resonance_and_signature's
+        top-3 rfft bin indices -- the SAME bins the fold gate's own
+        coherence measure ranks) against a bounded history of recent
+        experiences.
+
+        familiarity = mean bin-overlap fraction with the recent history
+        (|intersection| / 3 per past experience); novelty = 1 -
+        familiarity. A replayed/looped signal fills the history with its
+        own exact signature -> overlap 1.0 -> novelty -> 0 -> funds
+        nothing (growth can never scale with tick count, only with novel
+        experience). An empty history (first real experience) is fully
+        novel. None signature (no real signal) is 0.0 novelty -- a
+        silent moment funds nothing, same convention as sig_res.
+
+        Self-heals the history attribute for organisms restored from a
+        pre-fix pickle (same getattr pattern as _fold_events_buffer)."""
+        if signature is None:
+            return 0.0
+        history = getattr(self, "_recent_input_signatures", None)
+        if history is None:
+            from collections import deque
+            history = deque(maxlen=self.NOVELTY_HISTORY_MAXLEN)
+            self._recent_input_signatures = history
+        if not history:
+            history.append(signature)
+            return 1.0
+        sig_set = set(signature)
+        denom = float(len(signature))
+        fam = 0.0
+        for past in history:
+            fam += len(sig_set.intersection(past)) / denom
+        novelty = 1.0 - (fam / len(history))
+        history.append(signature)
+        return max(0.0, min(1.0, novelty))
+
+    # Bounded history length: structural bound only (same bounded-deque
+    # discipline as REFLECTION_HISTORY_MAXLEN / _fold_events_buffer), a
+    # judgment call stated plainly, not physics tuning: long enough that
+    # one experience's signature doesn't age out within a normal reading
+    # breath, short enough to stay O(hundreds) per experience.
+    NOVELTY_HISTORY_MAXLEN = 256
+
     def _charge_and_fold(self, hemi, coherent, quantum):
         """Physics-based folding. Each neuron accumulates coherent-constraint charge
         q from coherent experience; effective dimensionality collapses as
@@ -310,6 +411,16 @@ class Embryo:
                 gain = 1.0 + self.arousal * getattr(n, "_aff_gain", 1.0)
                 n._q += quantum * gain
         new = []
+        # GL-FIX-GROWTH-POOL-LAW-20260716: whole-organism ceiling, checked
+        # once per call (division only grows the population inside this
+        # loop, tracked via len(new)).
+        # SAFETY NOTE (2026-07-16 review): this check-then-act is safe by
+        # SINGLE-THREADING, not by lock -- divisions and the division pool
+        # are mutated only on the engine's one organism worker thread
+        # (_organism_worker_loop -> experience_word, FIFO by construction).
+        # Anyone adding a second worker/writer must revisit this site first.
+        total_now = sum(len(h.cluster.neurons) for h in self.brain.hemispheres)
+        max_total = self._max_total_neurons()
         for neuron in list(hemi.cluster.neurons):
             if len(hemi.cluster.neurons) + len(new) >= self._POP_HARDSTOP:
                 print(f"[embryo] _POP_HARDSTOP: {hemi._op_tag} at "
@@ -317,6 +428,21 @@ class Embryo:
                       flush=True)
                 break
             if getattr(neuron, "_q", 0.0) <= 1.0:   # n_eff = n_start*e^-q >= n_start/e
+                continue
+            if total_now + len(new) >= max_total:
+                # Hard population cap (GUALA_MAX_TOTAL_NEURONS). Held at
+                # basin edge, same idiom as pool exhaustion below. LOUD:
+                # first hit and every 1000th after (bounded log volume at
+                # production word rates, never silent).
+                neuron._q = 1.0
+                self._growth_cap_hits = getattr(self, "_growth_cap_hits", 0) + 1
+                if self._growth_cap_hits == 1 or self._growth_cap_hits % 1000 == 0:
+                    print(f"[embryo] GROWTH CAP HIT ({self._growth_cap_hits}x): "
+                          f"total neurons {total_now + len(new)} >= "
+                          f"GUALA_MAX_TOTAL_NEURONS={max_total} — division blocked. "
+                          f"If this fires, the flux-law asymptote (N <= 2*N_initial="
+                          f"{2 * self._N_initial}) has been exceeded; investigate before raising the cap.",
+                          flush=True)
                 continue
             sat = len(neuron.couplings.neighbors) / K_TOTAL
             if (1.0 - sat) ** 2 <= 0.0:
@@ -398,6 +524,10 @@ class Embryo:
             "division_pool": round(self._div_pool, 4),
             "n_q_over_0_5": q_over_0_5,
             "n_q_over_0_9": q_over_0_9,
+            # GL-FIX-GROWTH-POOL-LAW-20260716: hard-cap telemetry (0 unless
+            # the GUALA_MAX_TOTAL_NEURONS ceiling ever blocked a division).
+            "growth_cap_hits": getattr(self, "_growth_cap_hits", 0),
+            "max_total_neurons": self._max_total_neurons(),
         }
 
     BASE_LAMBDA = 0.02   # per-experience decay base; per-hemi multiplier scales it
@@ -517,7 +647,11 @@ class Embryo:
         """Shared fold-cascade body for experience()/experience_word() --
         extracted so the two callers can never drift apart on the actual
         growth physics, only on how `composite` gets built."""
-        sig_res = resonance_signal(composite)
+        # GL-FIX-GROWTH-POOL-LAW-20260716: one rfft yields both the
+        # coherence gate value (sig_res, numerically identical to
+        # resonance_signal(composite)) and the novelty observable
+        # (spectral signature) for the refill flux below.
+        sig_res, spectral_signature = resonance_and_signature(composite)
         theta_eff = theta   # gate is the noise floor; brake is the charge cycle, not theta
 
         # GL-CMD-GROWTH-TRUTH-EVE-20260705-198 P2 (Joe's growth law, ruled
@@ -539,17 +673,56 @@ class Embryo:
         # Engineering fallback ONLY (per dispatch: "not a choice"):
         # GUALA_GROWTH_LAW_LEGACY=1 restores the old seed-pegged refill
         # for emergency rollback.
+        #
+        # GL-FIX-GROWTH-POOL-LAW-20260716 — ROOT CAUSE of the live growth
+        # freeze (2M words -> total_divisions=0, division_pool=0.0,
+        # n_q_over_0_9=64), fixed at mechanism level:
+        #
+        # The -198 law was R = lambda*N_init*sig_res vs
+        # M = lambda*N_current. Since sig_res <= 1 by construction
+        # (top-3 spectral power FRACTION) and N_current >= N_init
+        # (populations can't shrink), R <= M for EVERY possible
+        # experience — the pool was monotonically non-increasing from
+        # birth, drained to 0 within the first ~100 words, and could
+        # never recover. The law's own flux-balance equilibrium was
+        # N_eq = N_init*sig_res < N_init: an equilibrium BELOW the seed,
+        # unreachable downward, so the pool pinned at 0 and every
+        # charged neuron was clamped at the basin edge (q=1.0) forever —
+        # exactly the observed live signature. Verified by driving the
+        # real experience_word() path: 200 consecutive best-case
+        # coherent multi-sense moments produced zero divisions and the
+        # per-word pool delta was never positive.
+        #
+        # Corrected conservation accounting (no new constants; the
+        # original -169 law's own algebra made explicit):
+        #   R = lambda * N_init * sig_res * novelty   (experience-funded,
+        #       novelty-scaled — a replayed signal stops funding, so
+        #       growth scales with NOVEL experience, never tick count)
+        #   M = lambda * (N_current - N_init)          (the pool pays
+        #       upkeep for the mass the pool itself created — daughters —
+        #       which is precisely the original law's net drain term
+        #       lambda*(N_init - N_current), sign made explicit; the seed
+        #       population's metabolism was never pool-funded)
+        #   pool capped at its birth capacity N_init (a capacitor has a
+        #       capacity; it was born full).
+        # Emergent asymptote: R = M at N_eq = N_init*(1 + E[sig_res*
+        # novelty]) <= 2*N_init — the bound the original design stated
+        # ("N <= 2*N_initial") but the -198 algebra made unreachable.
+        # Belt-and-braces: the GUALA_MAX_TOTAL_NEURONS hard cap in
+        # _charge_and_fold, loudly logged.
+        N_current = sum(len(h.cluster.neurons) for h in self.brain.hemispheres)
         if os.environ.get("GUALA_GROWTH_LAW_LEGACY") == "1":
             refill = self.BASE_LAMBDA * self._N_initial
+            self._div_pool = max(0.0,
+                self._div_pool
+                + refill                               # refill flux (seed-pegged, legacy)
+                - self.BASE_LAMBDA * N_current)        # maintenance flux (whole population, legacy)
         else:
-            refill = self.BASE_LAMBDA * self._N_initial * sig_res
-        # Closed energy loop: refill R (see above); upkeep M = BASE_LAMBDA*N_current.
-        # When M > R: pool drains to 0 → divisions blocked → asymptote.
-        N_current = sum(len(h.cluster.neurons) for h in self.brain.hemispheres)
-        self._div_pool = max(0.0,
-            self._div_pool
-            + refill                               # refill flux (experience-funded)
-            - self.BASE_LAMBDA * N_current)        # maintenance flux (scales with population)
+            novelty = self._novelty_of_signature(spectral_signature)
+            refill = self.BASE_LAMBDA * self._N_initial * sig_res * novelty
+            maintenance = self.BASE_LAMBDA * max(0, N_current - self._N_initial)
+            self._div_pool = min(float(self._N_initial),
+                                 max(0.0, self._div_pool + refill - maintenance))
 
         active, folds = {}, {}
         # 1. em perceives the raw senses
@@ -793,7 +966,10 @@ class Embryo:
         tally = Counter()
         detail = {}   # (concept_a, concept_b) -> [novelty_score, ...] across neurons
         n_neurons_scanned = 0
-        for n in hemi.cluster.neurons:
+        # list() snapshot (2026-07-16 review): the organism worker appends
+        # daughters concurrently; snapshot matches the WaveAtlas-v3
+        # iteration discipline.
+        for n in list(hemi.cluster.neurons):
             pairs = n.binding_atlas.latent_associations(
                 top_k=top_k, max_concepts=max_concepts, current_tick=self.tick)
             if pairs:

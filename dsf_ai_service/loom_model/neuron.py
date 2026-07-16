@@ -1482,6 +1482,11 @@ class LoomNeuron:
         return factor is not None
 
     def _notify_downstream_of_fire(self, now: float) -> None:
+        # DEADLOCK-SAFETY NOTE (2026-07-16 review): this nests downstream
+        # neuron locks under the firing neuron's lock (an ABBA shape on the
+        # cyclic topology). It is deadlock-free ONLY because the spike bus
+        # has a single delivery thread and no other path holds two neuron
+        # locks. Do NOT multi-thread the bus without redesigning this.
         """Synchronously inform each coupled downstream neuron that we
         just fired, so it can apply STDP depression if it fired first.
         Separate from the delayed spike-bus emission in _fire() -- this
