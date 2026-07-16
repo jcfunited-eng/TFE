@@ -262,20 +262,25 @@ def _run_gl_init_with_fake_guala(monkeypatch, tmp_path, daydream_env):
     return fake
 
 
-def test_gl_init_does_not_start_daydream_loop_by_default(monkeypatch, tmp_path):
-    print("Boot-wiring test: _gl_init() does NOT call start_daydream_loop() "
-          "when DAYDREAM_LOOP_ENABLED is unset (documented default: off)...")
+def test_gl_init_starts_daydream_loop_by_default(monkeypatch, tmp_path):
+    """GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 2): the ratified
+    default is now ON -- unset means the loop runs; the env var survives
+    only as an emergency-off. This test tracks that ruling (it used to
+    assert the opposite, pre-ratification default-off)."""
+    print("Boot-wiring test: _gl_init() DOES call start_daydream_loop() "
+          "when DAYDREAM_LOOP_ENABLED is unset (ratified default: on)...")
     fake = _run_gl_init_with_fake_guala(monkeypatch, tmp_path, daydream_env=None)
     assert ("start_autonomy_loop", 0.2) in fake.calls, (
         "start_autonomy_loop must still be called unconditionally -- "
         "this change must not touch that")
-    assert not any(c[0] == "start_daydream_loop" for c in fake.calls), (
-        "REGRESSION: daydream loop started even though DAYDREAM_LOOP_ENABLED "
-        "was not set to '1'")
-    print("  OK: autonomy loop started, daydream loop correctly stayed off")
+    assert any(c[0] == "start_daydream_loop" for c in fake.calls), (
+        "REGRESSION: daydream loop did NOT start with DAYDREAM_LOOP_ENABLED "
+        "unset -- the 2026-07-16 default-on ruling requires it to run")
+    print("  OK: autonomy loop started, daydream loop correctly on by default")
 
 
 def test_gl_init_does_not_start_daydream_loop_when_explicitly_zero(monkeypatch, tmp_path):
+    """The emergency-off: DAYDREAM_LOOP_ENABLED=0 must still stop the loop."""
     fake = _run_gl_init_with_fake_guala(monkeypatch, tmp_path, daydream_env="0")
     assert not any(c[0] == "start_daydream_loop" for c in fake.calls)
     print("  OK: DAYDREAM_LOOP_ENABLED=0 correctly keeps daydream loop off")

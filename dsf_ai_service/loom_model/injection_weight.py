@@ -22,6 +22,22 @@ WORD_INJECTION_WEIGHT = 1.5
 # same as above, applied to the numeric-signal path specifically.
 MAX_INJECTION_WEIGHT = 2.0
 
+# GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 3, sensory spike
+# injection): minimum injection weight -- the signal-strength FLOOR an
+# injection must clear before any spike is emitted. The 2026-07-09
+# incident (one entry neuron per hemisphere kicked continuously, 14M+
+# fires at 3792/sec, zero synapses updated) was driven by float-dust wave
+# residue that never reached exactly zero; the WaveAtlas zero-clamp fixes
+# the source, and this floor fixes the sink: silence and near-silence
+# inject NOTHING. 0.01 sits two orders of magnitude below a real signal
+# (a modest genuine band signal like [0.1..0.4] yields ~0.27 normalized
+# L2; a real word injects at WORD_INJECTION_WEIGHT=1.5) and three orders
+# above the decay clamp epsilon (1e-6) -- residue can't reach it, real
+# signals can't miss it. Class: from-design. Measurement plan: watch
+# fires-with-zero-synapse-updates in /debug/stdp_state stay flat while
+# real word/sense traffic still produces entry-neuron fires.
+SPIKE_INJECTION_MIN_WEIGHT = 0.01
+
 
 def signal_to_injection_weight(input_signal) -> float:
     """Word (string) input: fixed WORD_INJECTION_WEIGHT -- identity is

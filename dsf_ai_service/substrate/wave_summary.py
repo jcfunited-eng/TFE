@@ -155,6 +155,16 @@ def push_wave_summary_to_organism(guala, summary: Dict[str, Tuple[float, list]],
             # not this new sensory path.
             continue
         aggregate, top_chis = summary.get(band, (0.0, []))
+        if aggregate <= 0.0:
+            # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 3): PER-BAND
+            # skip-when-empty. The old global skip only fired when EVERY
+            # band was zero -- one live band kept enqueueing zero-signal
+            # work items for every OTHER (silent) hemisphere too, which is
+            # half of the 2026-07-09 continuous-kick incident (the other
+            # half was decay never reaching exactly zero -- fixed by the
+            # WaveAtlas.tick_decay zero-clamp). A silent band now enqueues
+            # NOTHING for its hemisphere: no step work, no injection.
+            continue
         input_signal = _band_signal(aggregate, top_chis)
         # GL-CMD-BRAIN-STEP-CHI-DISPATCH-EVE-20260707-v2: reuse the
         # highest-strength chi already computed for this band (top_chis is

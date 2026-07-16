@@ -1164,7 +1164,20 @@ AUTONOMOUS_CONVERSATION_COOLDOWN_TICKS = 9000  # ~30s cooldown after any convers
 # legacy labels (e.g. "v5_commit") are deliberately NOT here — they never
 # gain a voice.  This is the single authority both the engine's _self_hear
 # gate and the runner's TTS gate consult; never fork a second copy.
-VOICED_RELEASE_SOURCES = ("fact_strand_commit", "assemblage_commit")
+#
+# GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6): "organism_attempt" —
+# the organism's own recall-derived babble, Joe-approved (imperfect
+# attempts released and honestly labeled beat silence).  Third and last
+# autonomous release authority (after certified composer and assemblage;
+# see compose_autonomous).  It is voiced and self-heard through the SAME
+# one mouth, and it can NEVER be labeled/treated certified: every
+# certification gate in this file checks response_source ==
+# "fact_strand_commit" specifically (_fact_record_has_certified_provenance,
+# _certified_emission_record, _bind_certified_fact_emission_to_active_window),
+# so organism_attempt releases are structurally ineligible for
+# reinforcement, teach/correct feedback, and window fact-binding.
+VOICED_RELEASE_SOURCES = ("fact_strand_commit", "assemblage_commit",
+                          "organism_attempt")
 
 # Change 4 (spec v3 release-policy note b): the autonomous loop queries the
 # certified composer with seeds drawn from the organism's own lived content.
@@ -1196,6 +1209,14 @@ AUTONOMOUS_RELEASE_REPEAT_WINDOW = 8
 # cycle (the composer rebuild is O(corpus) until Change 1's cached composer
 # lands; this bound guards self.lock hold time now and stays correct after).
 AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT = 250.0
+
+# GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6): bounds for the
+# organism_attempt tier (from-design, cost bounds not tuned constants):
+# at most 4 recall queries (each O(population), the same per-word cost the
+# converse path already pays) and at most 3 released words per attempt --
+# babble is short by construction.
+ORGANISM_ATTEMPT_MAX_QUERIES = 4
+ORGANISM_ATTEMPT_MAX_WORDS = 3
 # TTS input cap: espeak-ng runs under a 5s subprocess timeout; long certified
 # continuations blew past it and produced a silent voice.  Truncation is
 # logged (tts_truncated), never silent.
@@ -3035,7 +3056,19 @@ class Guala:
         # thread as the word queue below. Eagerly created (unlike the word
         # queue's lazy self._organism_queue = None) so a sensory push can
         # never race the worker's own first-word startup.
-        self._organism_sensory_queue = _queue.Queue()
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 5): BOUNDED, per the
+        # spec's Cognition-core row -- the wave field returns to the
+        # organism as PROPOSALS over a bounded queue, never a firehose
+        # (the 2026-07-15 finding measured the unbounded version diverging
+        # 4:1 from the worker's drain rate). maxsize=64 = one full
+        # 8-hemisphere push cycle x 8 ticks of tolerated burst; overflow is
+        # drop-OLDEST (a stale wave summary is worthless -- the field has
+        # moved on), counted in _organism_sensory_dropped_count, logged
+        # loudly (first drop + every 50th), and surfaced in /status. See
+        # _enqueue_organism_sensory.
+        self._organism_sensory_queue = _queue.Queue(
+            maxsize=self.WAVE_PROPOSAL_QUEUE_MAX)
+        self._organism_sensory_dropped_count = 0
         # GL-CMD-BRAIN-GROWTH-UNFREEZE-EVE-20260704-179, Eve's backgrounding
         # ruling: honest-degradation count, visible in status (not just
         # silently swallowed like the tapestry queue's drop today) -- see
@@ -4967,16 +5000,27 @@ class Guala:
         as sight/sound (-191). Only set when the sentence actually
         contains a descriptor word -- honest absence otherwise (M5).
         """
-        if experience_origin not in {"emulated", "observed"}:
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): "imagined" is a
+        # valid WINDOW origin (Embryo.imagine() output re-entering as her
+        # own experience) but is deliberately NOT in MEANING_ORIGINS
+        # (language_fact_strand.py) -- an imagined window is real
+        # experience she can recall, but it can NEVER accrete into
+        # certified word-order facts or be cited by the composer for
+        # speech. The exclusion is enforced at the accretion gate below
+        # (see the imagined_window_excluded_from_certification event) and
+        # re-enforced independently by language_fact_strand /
+        # language_fact_composer's own frozenset validation.
+        if experience_origin not in {"emulated", "observed", "imagined"}:
             raise ValueError(
-                "experience_origin must be exactly 'emulated' or 'observed'")
+                "experience_origin must be exactly 'emulated', 'observed' "
+                "or 'imagined'")
         _existing_context_id = self.window_manager.active_context_id
         if _existing_context_id is not None:
             _existing_window = self.window_manager.current
             _existing_origin = (
                 (_existing_window.context_detail or {}).get("experience_origin")
                 if _existing_window is not None else None)
-            if _existing_origin not in {"emulated", "observed"}:
+            if _existing_origin not in {"emulated", "observed", "imagined"}:
                 raise ValueError(
                     f"outer BindingWindow {_existing_context_id!r} lacks an "
                     "approved experience_origin")
@@ -5132,7 +5176,20 @@ class Guala:
             if _closed_window_id is None:
                 raise RuntimeError(
                     f"language BindingWindow {_fact_context_id!r} did not close")
-            self._remember_closed_language_window(_closed_window_id)
+            if experience_origin == "imagined":
+                # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagined
+                # experience closes and persists like any window (it IS her
+                # real experience of her own imagination) but is EXCLUDED
+                # from language-fact accretion -- imagined content must
+                # never certify as lived fact for speech. Loud by design:
+                # one event per imagined window, so the exclusion is
+                # visible in the stream, never a silent swallow.
+                self._log_substrate_event(
+                    "imagined_window_excluded_from_certification",
+                    window_id=_closed_window_id,
+                    words=" ".join(words)[:80])
+            else:
+                self._remember_closed_language_window(_closed_window_id)
 
         with self.lock:
             if source in ("joe", "joe_voice", "wc", "c1", "gate_test") and _read_profile_agg:
@@ -6221,20 +6278,32 @@ class Guala:
                         #
                         # GL-CMD-SENSORY-SPIKE-GATE-EVE-20260709-v1: gated
                         # SEPARATELY from the word branch below via
-                        # SENSORY_SPIKE_INJECTION_ENABLED (default "0", i.e.
-                        # off), independent of EVENT_DRIVEN_SUBSTRATE. Real
-                        # incident tonight: wave-atlas cells never decay to
-                        # exactly zero, so this branch never goes quiet --
-                        # one entry neuron per hemisphere gets kicked
-                        # continuously (confirmed live: 14M+ fire events,
-                        # 3792/sec, zero synapses ever updated). The word
-                        # branch is not implicated and stays on the existing
-                        # EVENT_DRIVEN_SUBSTRATE gate, unchanged.
+                        # SENSORY_SPIKE_INJECTION_ENABLED, independent of
+                        # EVENT_DRIVEN_SUBSTRATE. The 2026-07-09 incident
+                        # (wave-atlas cells never decayed to exactly zero,
+                        # so this branch never went quiet -- one entry
+                        # neuron per hemisphere kicked continuously: 14M+
+                        # fire events, 3792/sec, zero synapses updated)
+                        # is now fixed AT THE MECHANISM, not the gate:
+                        # (1) WaveAtlas.tick_decay zero-clamps sub-epsilon
+                        # strengths to exactly 0.0 (wave_atlas.py, decay
+                        # default-on); (2) push_wave_summary_to_organism
+                        # skips silent bands per-band (wave_summary.py);
+                        # (3) _inject_input_as_spikes enforces
+                        # SPIKE_INJECTION_MIN_WEIGHT (brain.py /
+                        # injection_weight.py). With the mechanism fixed,
+                        # the default flips ON per the 2026-07-16
+                        # all-at-once ruling (no built-but-dark organs) --
+                        # the env var remains as an emergency-off only.
+                        # The word branch is not implicated and stays on
+                        # the existing EVENT_DRIVEN_SUBSTRATE gate,
+                        # unchanged. Tests:
+                        # loom_model/tests/test_sensory_spike_gate.py.
                         try:
                             _brain = self.organism.brain
                             if (getattr(_brain, '_spike_bus', None) is not None
                                     and os.environ.get(
-                                        "SENSORY_SPIKE_INJECTION_ENABLED", "0") == "1"):
+                                        "SENSORY_SPIKE_INJECTION_ENABLED", "1") != "0"):
                                 _brain._inject_input_as_spikes(
                                     input_signal=input_signal,
                                     input_chi=input_chi,
@@ -6377,13 +6446,29 @@ class Guala:
             t.start()
             self._organism_worker_thread = t
 
+    # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 5): wave-field
+    # proposal queue bound + drop-log cadence. 64 = one full 8-hemisphere
+    # push cycle x 8 ticks of tolerated burst (from-design; the worker
+    # drains at its own pace, the field re-samples every tick anyway so a
+    # dropped-oldest proposal is superseded, not lost knowledge). Drops
+    # are counted always, logged on the first and every 50th so the event
+    # stream sees a sustained divergence loudly without itself becoming a
+    # firehose.
+    WAVE_PROPOSAL_QUEUE_MAX = 64
+    WAVE_PROPOSAL_DROP_LOG_EVERY = 50
+
     def _enqueue_organism_sensory(self, hemi_id, input_signal, tick, input_chi=None):
-        """GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1: per-hemisphere
-        wave-summary push (see wave_summary.py), drained asynchronously
-        by the same worker thread as the word queue. self._organism_
-        sensory_queue is unbounded (no maxsize, unlike the word queue) --
-        put() here never blocks the caller (the main autonomy tick), by
-        construction, not by a size check.
+        """GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1, rebuilt bounded
+        by GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 5): per-hemisphere
+        wave-summary PROPOSAL push (see wave_summary.py), drained
+        asynchronously by the same worker thread as the word queue, over a
+        BOUNDED queue (maxsize=WAVE_PROPOSAL_QUEUE_MAX). put() here still
+        never blocks the caller (the main autonomy tick): on overflow the
+        OLDEST proposal is dropped to make room (a stale wave summary is
+        superseded by the newer one by construction -- the field is
+        re-sampled every tick), the drop is counted
+        (_organism_sensory_dropped_count, visible in /status) and logged
+        as a wave_proposal_dropped event on the first and every 50th drop.
 
         _ensure_organism_worker() is called here too (not just from the
         word-enqueue paths): the worker thread only starts on its first
@@ -6398,7 +6483,41 @@ class Guala:
         if self._engine_quiesced:
             raise RuntimeError("organism sensory mutation rejected after quiescence")
         self._ensure_organism_worker()
-        self._organism_sensory_queue.put((hemi_id, input_signal, tick, input_chi))
+        item = (hemi_id, input_signal, tick, input_chi)
+        try:
+            self._organism_sensory_queue.put_nowait(item)
+            return
+        except _queue.Full:
+            pass
+        # Overflow: drop-oldest, then retry once. task_done() for the
+        # evicted item keeps unfinished_tasks/join() balanced (the seal's
+        # settle_queues/quiesce paths depend on that accounting).
+        dropped = False
+        try:
+            self._organism_sensory_queue.get_nowait()
+            self._organism_sensory_queue.task_done()
+            dropped = True
+        except _queue.Empty:
+            pass
+        try:
+            self._organism_sensory_queue.put_nowait(item)
+        except _queue.Full:
+            # Lost the race to another producer -- this NEW item is the
+            # drop instead. Still counted + logged; never silent.
+            dropped = True
+        if dropped:
+            self._organism_sensory_dropped_count = getattr(
+                self, '_organism_sensory_dropped_count', 0) + 1
+            _n = self._organism_sensory_dropped_count
+            if _n == 1 or _n % self.WAVE_PROPOSAL_DROP_LOG_EVERY == 0:
+                print(f"[GualaLoom] wave proposal queue overflow: "
+                      f"{_n} proposals dropped so far "
+                      f"(bounded at {self.WAVE_PROPOSAL_QUEUE_MAX}, "
+                      f"drop-oldest)", flush=True)
+                self._log_substrate_event(
+                    "wave_proposal_dropped", dropped_total=_n,
+                    queue_max=self.WAVE_PROPOSAL_QUEUE_MAX,
+                    hemi_id=hemi_id, tick=tick)
 
     def _replay_sensory_echo(self, word):
         """GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: replay
@@ -9513,27 +9632,133 @@ class Guala:
 
     # ── GL-CMD-DAYDREAM-PARALLEL-42: background associative activation ──────
 
+    # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 2): the telemetry the
+    # 2026-07-11 reconnect note demanded before default-on. Constants are
+    # from-the-note, not tuned: 50ms p95 lock-wait and a 30% tick_rate
+    # drop are the note's own named alert thresholds; the check cadence
+    # (every 60 iterations = ~30s at 2 Hz) keeps the check itself off the
+    # hot path; deque maxlen 240 = ~2 minutes of per-tick lock waits
+    # (2 waits/tick x 2 ticks/s x 60s), bounded by construction.
+    DAYDREAM_LOCK_WAIT_P95_ALERT_MS = 50.0
+    DAYDREAM_TICK_RATE_DROP_ALERT_FRACTION = 0.30
+    DAYDREAM_TELEMETRY_EVERY_N = 60
+    DAYDREAM_LOCK_WAIT_WINDOW = 240
+    DAYDREAM_TICK_RATE_BASELINE_SAMPLES = 3
+
     @_engine_mutation_entry
     def start_daydream_loop(self):
         """Parallel chi-neighborhood walk. Runs alongside all foreground activity.
-        Does NOT trigger commit gate or emission. 0.5s interval (2 Hz)."""
+        Does NOT trigger commit gate or emission. 0.5s interval (2 Hz).
+
+        GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 2): runs with live
+        lock-wait + tick_rate telemetry (the reconnect note's own
+        condition for enablement): every DAYDREAM_TELEMETRY_EVERY_N
+        iterations, _daydream_telemetry_check() compares the p95 of this
+        thread's own recent self.lock waits against
+        DAYDREAM_LOCK_WAIT_P95_ALERT_MS, and the live autonomy tick_rate
+        against a baseline captured at loop start -- breaching either
+        logs a LOUD daydream_telemetry_alert event + stderr line. Alerts,
+        never silent self-throttling: the operator decides, via the
+        emergency-off env (DAYDREAM_LOOP_ENABLED=0), not the code."""
         current = getattr(self, '_daydream_thread', None)
         if current is not None and current.is_alive():
             return
         self._daydream_running = True
+        self._daydream_lock_wait_ms = deque(maxlen=self.DAYDREAM_LOCK_WAIT_WINDOW)
+        self._daydream_tick_rate_baseline = None
+        self._daydream_tick_rate_samples = []
 
         def _loop():
+            iteration = 0
             while self._daydream_running:
                 try:
                     with self._engine_mutation_scope("daydream_tick"):
                         self._daydream_tick()
                 except Exception:
                     pass
+                iteration += 1
+                if iteration % self.DAYDREAM_TELEMETRY_EVERY_N == 0:
+                    try:
+                        self._daydream_telemetry_check()
+                    except Exception as _te:
+                        # Telemetry must never kill the loop, but its
+                        # failure must be visible, not swallowed.
+                        print(f"[GualaLoom][daydream-telemetry] check "
+                              f"failed (non-fatal): {_te}", flush=True)
                 time.sleep(0.5)
 
         self._daydream_thread = threading.Thread(target=_loop, daemon=True,
                                                   name="daydream-loop")
         self._daydream_thread.start()
+
+    def _daydream_note_lock_wait(self, wait_ms):
+        """Record one real self.lock acquisition wait from the daydream
+        thread (bounded deque; see start_daydream_loop). Self-heals the
+        attribute for any path that reaches _daydream_tick without going
+        through start_daydream_loop (tests calling the tick directly)."""
+        buf = getattr(self, '_daydream_lock_wait_ms', None)
+        if buf is None:
+            buf = deque(maxlen=self.DAYDREAM_LOCK_WAIT_WINDOW)
+            self._daydream_lock_wait_ms = buf
+        buf.append(float(wait_ms))
+
+    def _daydream_telemetry_check(self):
+        """The reconnect note's two named alerts, checked periodically
+        from the daydream thread itself (never from the hot tick path).
+
+        Lock-wait p95: over the bounded window of this thread's own real
+        self.lock waits. Tick-rate drop: current get_tick_rate() vs a
+        baseline built from the first DAYDREAM_TICK_RATE_BASELINE_SAMPLES
+        non-zero readings taken while this loop runs -- i.e. the rate the
+        substrate actually sustains WITH daydreaming enabled; a >30% drop
+        from that is a real regression signal, not boot noise."""
+        waits = list(getattr(self, '_daydream_lock_wait_ms', ()) or ())
+        p95 = None
+        if waits:
+            _sorted = sorted(waits)
+            p95 = _sorted[min(len(_sorted) - 1, int(0.95 * len(_sorted)))]
+            if p95 > self.DAYDREAM_LOCK_WAIT_P95_ALERT_MS:
+                print(f"[GualaLoom][daydream-telemetry] ALERT: daydream "
+                      f"self.lock wait p95={p95:.1f}ms exceeds "
+                      f"{self.DAYDREAM_LOCK_WAIT_P95_ALERT_MS:.0f}ms over "
+                      f"the last {len(waits)} waits -- set "
+                      f"DAYDREAM_LOOP_ENABLED=0 to emergency-stop",
+                      flush=True)
+                self._log_substrate_event(
+                    "daydream_telemetry_alert", reason="lock_wait_p95",
+                    p95_ms=round(p95, 1), n_waits=len(waits),
+                    threshold_ms=self.DAYDREAM_LOCK_WAIT_P95_ALERT_MS)
+
+        rate = self.get_tick_rate()
+        if rate > 0:
+            # Self-heal (same getattr/backfill pattern as _daydream_note_
+            # lock_wait) so a direct caller that bypassed
+            # start_daydream_loop never crashes the telemetry itself.
+            if not hasattr(self, '_daydream_tick_rate_baseline'):
+                self._daydream_tick_rate_baseline = None
+            if not hasattr(self, '_daydream_tick_rate_samples'):
+                self._daydream_tick_rate_samples = []
+            if self._daydream_tick_rate_baseline is None:
+                self._daydream_tick_rate_samples.append(rate)
+                if (len(self._daydream_tick_rate_samples)
+                        >= self.DAYDREAM_TICK_RATE_BASELINE_SAMPLES):
+                    _s = sorted(self._daydream_tick_rate_samples)
+                    self._daydream_tick_rate_baseline = _s[len(_s) // 2]
+            else:
+                floor = (self._daydream_tick_rate_baseline
+                         * (1.0 - self.DAYDREAM_TICK_RATE_DROP_ALERT_FRACTION))
+                if rate < floor:
+                    print(f"[GualaLoom][daydream-telemetry] ALERT: tick_rate "
+                          f"{rate:.2f}/s dropped >30% below the "
+                          f"daydream-enabled baseline "
+                          f"{self._daydream_tick_rate_baseline:.2f}/s -- set "
+                          f"DAYDREAM_LOOP_ENABLED=0 to emergency-stop",
+                          flush=True)
+                    self._log_substrate_event(
+                        "daydream_telemetry_alert", reason="tick_rate_drop",
+                        tick_rate=round(rate, 2),
+                        baseline=round(self._daydream_tick_rate_baseline, 2),
+                        drop_fraction=self.DAYDREAM_TICK_RATE_DROP_ALERT_FRACTION)
 
     def _daydream_tick(self):
         """One pass of parallel associative surfacing.
@@ -9558,7 +9783,14 @@ class Guala:
         import random as _random
 
         # ── Phase 1: snapshot under lock ──────────────────────────────────────
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 2): both of this
+        # tick's real self.lock acquisitions are timed into the bounded
+        # telemetry window (see _daydream_note_lock_wait /
+        # _daydream_telemetry_check) -- the reconnect note's lock-wait
+        # telemetry, measured where the contention actually happens.
+        _lw_start = time.monotonic()
         with self.lock:
+            self._daydream_note_lock_wait((time.monotonic() - _lw_start) * 1000.0)
             recent_chis = []
             recent_words = []
             for sec in self.sections.values():
@@ -9639,7 +9871,9 @@ class Guala:
         do_consolidate = (snap_tick % max(1, snap_band * 10) == 0)
 
         # ── Phase 3: writes + log events under lock ────────────────────────────
+        _lw_start = time.monotonic()
         with self.lock:
+            self._daydream_note_lock_wait((time.monotonic() - _lw_start) * 1000.0)
             # Resolve word labels (need self.sections, must be under lock for consistency)
             word_label = ""
             if top_sec in self.sections:
@@ -9934,28 +10168,35 @@ class Guala:
             # the wave summary sampling below, decay + prune the wave
             # field so its size (and therefore the summary scan's own
             # cost) stays bounded instead of growing for the life of the
-            # process. GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1:
-            # this series is abandoned -- it was solving the wrong
-            # problem (sample_wave_summary's own cost was never the
-            # issue; see that report). Default flipped to OFF here so
-            # this deploy doesn't run it, while the code stays committed
-            # for a possible future revisit (flip back to "1", no code
-            # change needed).
+            # process. GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 3):
+            # default flipped back ON. The 20260707 series was shelved
+            # because it didn't fix the neuron.step cost it was chasing --
+            # but it was never harmful (v3 deployed clean, 0 errors, 0
+            # losses), and it is now LOAD-BEARING: the sensory spike
+            # injection gate needs wave cells to decay to EXACTLY zero
+            # (tick_decay's new zero-clamp) so silent bands stop kicking
+            # entry neurons (the 2026-07-09 incident). Env var remains as
+            # an emergency-off only.
             if (self.wave_atlas is not None
-                    and os.environ.get("WAVE_ATLAS_DECAY_ENABLED", "0") == "1"):
+                    and os.environ.get("WAVE_ATLAS_DECAY_ENABLED", "1") != "0"):
                 _wa_strength_before = sum(
                     c.aggregate_strength for c in self.wave_atlas.cells.values())
                 _wa_bindings_pruned = self.wave_atlas.tick_decay()
                 _wa_strength_after = sum(
                     c.aggregate_strength for c in self.wave_atlas.cells.values())
-                self._log_substrate_event(
-                    "wave_atlas_decay_tick",
-                    tick=self.tick,
-                    bindings_pruned=_wa_bindings_pruned,
-                    cells_total=self.wave_atlas.cell_count(),
-                    total_strength_before=round(_wa_strength_before, 4),
-                    total_strength_after=round(_wa_strength_after, 4),
-                )
+                # Default-on now (see above): the event is rate-limited to
+                # real prunes + a 500-tick heartbeat so a per-tick decay
+                # can't drown the 1000-slot observability ring the way an
+                # unconditional per-tick log would.  Prunes stay loud.
+                if _wa_bindings_pruned or self.tick % 500 == 0:
+                    self._log_substrate_event(
+                        "wave_atlas_decay_tick",
+                        tick=self.tick,
+                        bindings_pruned=_wa_bindings_pruned,
+                        cells_total=self.wave_atlas.cell_count(),
+                        total_strength_before=round(_wa_strength_before, 4),
+                        total_strength_after=round(_wa_strength_after, 4),
+                    )
 
             # GL-CMD-HEMISPHERIC-INTEGRATION-BUILD-EVE-20260707-v3 Wiring 2,
             # rewired by GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1:
@@ -10582,6 +10823,14 @@ class Guala:
             # method's own comment for why this must never rely on this
             # thread's bound contextvar.
             self._close_boundary_window_contexts(_ended_activity)
+            # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): reflection
+            # at the real activity boundary -- the one path every activity
+            # end (including DREAMING end, i.e. dream end) already runs
+            # through, right after its boundary windows close. Cheap
+            # (O(n_hemispheres)), bounded (once per activity end), loud
+            # (organism_reflection event, empty history reported honestly).
+            self._organism_reflect_boundary(
+                boundary=f"activity_end:{_ended_activity.kind}")
 
     # BindingWindow context-id prefixes that are provably activity/stream
     # bounded and manager-generated -- never caller-owned:
@@ -11061,6 +11310,11 @@ class Guala:
         # half of the SLEEPING budget) -- LIVE-CALIBRATE alongside the
         # accumulation rates above.
         self.needs.dream_pressure = max(0.0, self.needs.dream_pressure - DP_DISCHARGE_PER_DREAM_TICK)
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagination is
+        # part of DREAMING -- once per executed dream cycle (this method
+        # already gates itself to every 200th tick above), before the
+        # phased/non-phased split so both bodies get it identically.
+        self._organism_imagine_tick(context="dream")
         if os.environ.get("DREAM_CYCLE_PHASED", "0") == "1":
             self._run_dream_cycle_phased(caller_kind=caller_kind)
             return
@@ -11321,6 +11575,127 @@ class Guala:
         self.needs.dream_pressure = max(0.0, self.needs.dream_pressure - 0.00003)
         assert not self.is_asleep, "REST must not set is_asleep"
 
+    # ── GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagination +
+    # reflection, wired into the real activity loop. ─────────────────────
+    # Interval/budget constants (from-design, cost-derived, not tuned):
+    # IMAGINE_PLAY_INTERVAL_TICKS=500 -> at most 3 imagine() calls per
+    # 1500-tick PLAYING session. IMAGINE_MAX_CONCEPTS=48 bounds each
+    # neuron's latent_associations scan to O(48^2) pairs (~6ms/neuron,
+    # scaled from embryo.py's own measured ~100ms at max_concepts=200 --
+    # quadratic in the cap), so one imagine() over an 8-neuron hemisphere
+    # costs ~50ms -- a bounded, occasional cost, never per-tick (this
+    # project's real incident class; see embryo.imagine()'s own warning).
+    IMAGINE_PLAY_INTERVAL_TICKS = 500
+    IMAGINE_TOP_K = 3
+    IMAGINE_MAX_CONCEPTS = 48
+    # Rotation across engine-organ hemispheres: sc (meaning), sf/aff (the
+    # language hemispheres, per the 200k-seed mapping), em (emission) --
+    # imagination surfaces latent pairs from a different real lane each
+    # time instead of always mining one hemisphere.
+    IMAGINE_OP_TAGS = ("sc", "sf", "aff", "em")
+
+    def _organism_imagine_tick(self, context):
+        """One bounded imagination pass: Embryo.imagine() (built + tested
+        2026-07-11, dark until now) surfaces concept pairs the organism's
+        own learned geometry treats as unexpectedly close. Output lands as
+        a real imagination_formed event, and the top pair re-enters as
+        real experience through the ONE reading path, window-tagged
+        origin='imagined' -- recallable experience that can NEVER accrete
+        into certified word-order facts (see read_sentence's accretion
+        gate + language_fact_strand.MEANING_ORIGINS).
+
+        Read-only over the organism (imagine() mutates nothing); failures
+        are loud events, never silent."""
+        organism = getattr(self, 'organism', None)
+        if organism is None:
+            return
+        op_tags = [t for t in self.IMAGINE_OP_TAGS
+                   if t in getattr(organism, 'hemi_by_op', {})]
+        if not op_tags:
+            return
+        op_tag = op_tags[(self.tick // max(1, self.IMAGINE_PLAY_INTERVAL_TICKS))
+                         % len(op_tags)]
+        _t0 = time.monotonic()
+        try:
+            pairs = organism.imagine(op_tag=op_tag,
+                                     top_k=self.IMAGINE_TOP_K,
+                                     max_concepts=self.IMAGINE_MAX_CONCEPTS)
+        except Exception as _ie:
+            print(f"[GualaLoom] imagination pass failed "
+                  f"(context={context}, op={op_tag}): {_ie}", flush=True)
+            self._log_substrate_event("imagination_failed", context=context,
+                                      op_tag=op_tag, error=str(_ie)[:120])
+            return
+        _dur_ms = (time.monotonic() - _t0) * 1000.0
+        self._log_substrate_event(
+            "imagination_formed", context=context, op_tag=op_tag,
+            n_pairs=len(pairs), duration_ms=round(_dur_ms, 1),
+            pairs=[[str(p["concept_a"]), str(p["concept_b"]),
+                    round(float(p["mean_novelty_score"]), 4)]
+                   for p in pairs[:self.IMAGINE_TOP_K]])
+        if not pairs:
+            return  # honest "nothing to imagine yet" -- event already fired
+        top = pairs[0]
+        content = f"{top['concept_a']} {top['concept_b']}"
+        if self.window_manager.active_context_id is not None:
+            # Never feed imagined content while this thread is bound to a
+            # LIVED window: read_sentence inherits the outer window's
+            # origin, which would launder imagined content into an
+            # emulated/observed window -- exactly the certification leak
+            # this organ's design forbids. Deferred loudly, not silently.
+            self._log_substrate_event("imagined_experience_deferred",
+                                      reason="context_bound",
+                                      content=content[:60])
+            return
+        try:
+            # 0.5 salience: the same discount _self_hear applies to her
+            # own re-entrant speech -- imagined experience registers
+            # lighter than the world, by convention already in this file.
+            self.read_sentence(content, source="imagination", salience=0.5,
+                               experience_origin="imagined")
+        except Exception as _re:
+            print(f"[GualaLoom] imagined experience feed failed: {_re}",
+                  flush=True)
+            self._log_substrate_event("imagined_experience_failed",
+                                      error=str(_re)[:120],
+                                      content=content[:60])
+
+    def _organism_reflect_boundary(self, boundary):
+        """Embryo.reflect() (built + tested 2026-07-11, dark until now) at
+        a real activity boundary: compares the organism's CURRENT
+        sf_sense() reading against its own bounded snapshot history
+        (then-vs-now over arousal / population / per-organ binding
+        strength). O(n_hemispheres) -- cheap by construction. Output lands
+        as a real organism_reflection event; an empty history is reported
+        honestly (empty=True), never fabricated."""
+        organism = getattr(self, 'organism', None)
+        if organism is None:
+            return
+        try:
+            r = organism.reflect(against="oldest")
+        except Exception as _rex:
+            print(f"[GualaLoom] organism reflection failed "
+                  f"(boundary={boundary}): {_rex}", flush=True)
+            self._log_substrate_event("organism_reflection_failed",
+                                      boundary=boundary,
+                                      error=str(_rex)[:120])
+            return
+        if r is None:
+            self._log_substrate_event("organism_reflection",
+                                      boundary=boundary, empty=True)
+            return
+        _pf = r.get("per_field", {})
+        _arousal = _pf.get("arousal", {})
+        _pop = _pf.get("pop_mean", {})
+        self._log_substrate_event(
+            "organism_reflection", boundary=boundary, empty=False,
+            delta_norm=round(float(r["delta_norm"]), 4),
+            ticks_elapsed=int(r["ticks_elapsed"]),
+            tick_then=int(r["tick_then"]), tick_now=int(r["tick_now"]),
+            arousal_then=round(float(_arousal.get("then", 0.0)), 4),
+            arousal_now=round(float(_arousal.get("now", 0.0)), 4),
+            pop_mean_delta=round(float(_pop.get("delta", 0.0)), 4))
+
     def _atick_playing(self, a):
         """Free-settle: chi space walk. No novelty gain — internal
         exploration doesn't introduce new experience.
@@ -11342,6 +11717,11 @@ class Guala:
             self._check_emission_trigger("play_cohesion")
         if self.tick % PLAY_REVISIT_INTERVAL_TICKS == 0:
             self._play_revisit_known_pairing()
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagination is
+        # part of PLAYING -- same interval idiom as the revisit above,
+        # bounded cost (see _organism_imagine_tick's constants).
+        if self.tick % self.IMAGINE_PLAY_INTERVAL_TICKS == 0:
+            self._organism_imagine_tick(context="play")
         # GL-CMD-STAB-PHYSICS-FIX-88: coherence-gated quiet-restore (same as IDLE)
         _n_total = sum(len(v) for v in self.atlas.entries.values())
         _coherence = self.atlas.n_live_bindings() / max(_n_total, 1)
@@ -12099,23 +12479,27 @@ class Guala:
             if self._live_converse_pending > 0:
                 return None
 
+        # F3 (review 2026-07-16): wall-clock budget for this cycle's
+        # compose work — the composer rebuild is O(corpus) until Change 1's
+        # cached composer lands, and this whole section runs under
+        # self.lock.  Checked between attempts: the snapshot plus the first
+        # attempt always complete; remaining attempts abort loudly on
+        # exhaustion.  GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6):
+        # hoisted above tier 1 so the SAME single budget also bounds the
+        # organism_attempt tier below — one cycle, one budget, never a
+        # second clock.
+        try:
+            budget_ms = float(os.environ.get(
+                "AUTONOMOUS_COMPOSE_BUDGET_MS",
+                str(AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT)))
+        except (TypeError, ValueError):
+            budget_ms = AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT
+        compose_deadline = time.monotonic() + budget_ms / 1000.0
+
         # 1. Certified composer, organism-sourced seeds (never the atlas).
         seed_attempts = self._autonomous_composer_seed_attempts()
         cycle_stop_reason = None
         if seed_attempts:
-            # F3 (review 2026-07-16): wall-clock budget for this cycle's
-            # certified compose work — the composer rebuild is O(corpus)
-            # until Change 1's cached composer lands, and this whole section
-            # runs under self.lock.  Checked between attempts: the snapshot
-            # plus the first attempt always complete; remaining attempts
-            # abort loudly on exhaustion.
-            try:
-                budget_ms = float(os.environ.get(
-                    "AUTONOMOUS_COMPOSE_BUDGET_MS",
-                    str(AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT)))
-            except (TypeError, ValueError):
-                budget_ms = AUTONOMOUS_COMPOSE_BUDGET_MS_DEFAULT
-            compose_deadline = time.monotonic() + budget_ms / 1000.0
             # Change-1 cached composer: every attempt below hits
             # self._language_fact_composer through the one canonical
             # compose path — built at most once (on cache miss after an
@@ -12190,46 +12574,171 @@ class Guala:
                 seed_words=[list(a["words"]) for a in seed_attempts])
 
         # 2. The substrate's own assemblage voice (unchanged mechanism).
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6): no-seeds and a
+        # repeat-suppressed assemblage now FALL THROUGH to the organism
+        # attempt (babble beats silence, Joe-approved) instead of
+        # returning silence directly.  A failed emission-lock acquire
+        # stays a hard return: it means a live turn is in flight, and NO
+        # autonomous authority ever front-runs a human turn.
         seeds = self._sample_autonomous_seeds(n=12)
-        if not seeds:
-            return None
-        input_chis = [s["chi_key"] for s in seeds]
-        if not self._try_acquire_autonomous_emission():
-            return None
-        try:
-            settlement = self._emit_from_invariants(
-                input_chis, [],
-                v7_session=getattr(self, '_v7_session', None))
-        finally:
-            self._emission_lock.release()
-        content, response_source = self._committed_emission_response(
-            settlement)
-        if content:
-            # F1b applies to EVERY autonomous release authority: an
-            # assemblage settlement repeating a recent autonomous release
-            # settles to explained silence, loudly.
-            if content in self._recent_autonomous_releases:
-                self._log_substrate_event(
-                    "autonomous_repeat_suppressed",
-                    response_source=response_source,
-                    content=content[:80])
+        if seeds:
+            input_chis = [s["chi_key"] for s in seeds]
+            if not self._try_acquire_autonomous_emission():
                 return None
-            self._recent_autonomous_releases.append(content)
-            return {
-                "content": content,
-                "source": "guala",
-                "response_source": response_source,
-                "category": "autonomous",
-                "chi_seeds_used": len(seeds),
-                "settlement_tick": settlement.tick,
-                "committed_sections": list(
-                    settlement.committed_sections),
-                "commit_provenance": [
-                    provenance.as_record()
-                    for provenance in settlement.commit_provenance],
-            }
-        # 3. Explained silence — first-class outcome, logged by the caller.
+            try:
+                settlement = self._emit_from_invariants(
+                    input_chis, [],
+                    v7_session=getattr(self, '_v7_session', None))
+            finally:
+                self._emission_lock.release()
+            content, response_source = self._committed_emission_response(
+                settlement)
+            if content:
+                # F1b applies to EVERY autonomous release authority: an
+                # assemblage settlement repeating a recent autonomous
+                # release is refused, loudly — then the organism attempt
+                # below still gets its chance.
+                if content in self._recent_autonomous_releases:
+                    self._log_substrate_event(
+                        "autonomous_repeat_suppressed",
+                        response_source=response_source,
+                        content=content[:80])
+                else:
+                    self._recent_autonomous_releases.append(content)
+                    return {
+                        "content": content,
+                        "source": "guala",
+                        "response_source": response_source,
+                        "category": "autonomous",
+                        "chi_seeds_used": len(seeds),
+                        "settlement_tick": settlement.tick,
+                        "committed_sections": list(
+                            settlement.committed_sections),
+                        "commit_provenance": [
+                            provenance.as_record()
+                            for provenance in settlement.commit_provenance],
+                    }
+
+        # 3. Organism attempt — GL-CMD-SINGLE-STACK-ALL-LIVE-20260716
+        # (organ 6): the organism's own recall over its real learned
+        # structure, released as honestly-labeled babble through this SAME
+        # release path.  Same budget (compose_deadline), same repeat
+        # window, same conversation barrier as the tiers above.
+        organism_result = self._compose_organism_attempt(
+            seed_attempts, compose_deadline)
+        if organism_result is not None:
+            return organism_result
+
+        # 4. Explained silence — first-class outcome, logged by the caller.
         return None
+
+    def _compose_organism_attempt(self, seed_attempts, compose_deadline):
+        """GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 6): the organism
+        voice, partial-and-honest version.  Queries organism.recall_fast
+        (population vote over HER OWN binding atlases — every returned
+        concept is a word she really experienced, never an atlas
+        neighborhood dump; and per organ 4 the votes are now weighted by
+        learned STDP synapse strength, so what the spike bus taught her
+        shapes what she attempts to say) with the SAME organism-sourced
+        seed words the certified tier already built (committed window
+        words / current activity target, self-heard windows excluded), and
+        releases the top-voted associations as a short, honestly-labeled
+        organism_attempt.
+
+        NEVER certified: the label is structurally ineligible at every
+        certification gate (all check response_source ==
+        "fact_strand_commit").  Guards shared with the other autonomous
+        authorities: the cycle compose budget (compose_deadline), the
+        repeat-suppression window (_recent_autonomous_releases), and the
+        conversation barrier re-check.  Returns the release dict or None
+        (with the stop reason logged loudly either way).  Must be called
+        with self.lock held (compose_autonomous's own contract)."""
+        # Shared cycle budget — checked before this tier starts real work.
+        if time.monotonic() >= compose_deadline:
+            self._log_substrate_event(
+                "autonomous_organism_attempt", released=False,
+                stop_reason="compose_budget")
+            return None
+        # Seed words: same organism-sourced material as tier 1 (already
+        # self-excluded there); deduped, order-preserving, bounded.
+        queries = []
+        for attempt in (seed_attempts or ()):
+            for w in attempt.get("words", ()):
+                wl = str(w).lower()
+                if wl and wl not in queries:
+                    queries.append(wl)
+                if len(queries) >= ORGANISM_ATTEMPT_MAX_QUERIES:
+                    break
+            if len(queries) >= ORGANISM_ATTEMPT_MAX_QUERIES:
+                break
+        if not queries:
+            self._log_substrate_event(
+                "autonomous_organism_attempt", released=False,
+                stop_reason="no_seed_words")
+            return None
+        from collections import Counter as _Counter
+        merged = _Counter()
+        for q in queries:
+            if time.monotonic() >= compose_deadline:
+                break
+            try:
+                votes = self.organism.recall_fast(
+                    _organism_signal(q, self._organism_transducer))
+            except Exception as _oe:
+                print(f"[GualaLoom] organism attempt recall failed for "
+                      f"{q!r} (non-fatal): {_oe}", flush=True)
+                continue
+            if votes:
+                merged.update(votes)
+        # The attempt is association, not parroting: the seed words
+        # themselves are excluded from the released content.
+        for q in queries:
+            merged.pop(q, None)
+        top = [(str(w), float(v)) for w, v in merged.most_common(
+            ORGANISM_ATTEMPT_MAX_WORDS) if str(w).strip()]
+        if not top:
+            self._log_substrate_event(
+                "autonomous_organism_attempt", released=False,
+                stop_reason="organism_empty", queries=queries)
+            return None
+        content = " ".join(w for w, _v in top)
+        # Conversation barrier re-check (same F2 rule as tier 1): a human
+        # turn counted while recall ran still wins.
+        with self._live_converse_state_lock:
+            if self._live_converse_pending > 0:
+                self._log_substrate_event(
+                    "autonomous_organism_attempt", released=False,
+                    stop_reason="conversation_arrived")
+                return None
+        # Repeat-suppression window — same deque as every other authority.
+        if content in self._recent_autonomous_releases:
+            self._log_substrate_event(
+                "autonomous_repeat_suppressed",
+                response_source="organism_attempt",
+                content=content[:80])
+            self._log_substrate_event(
+                "autonomous_organism_attempt", released=False,
+                stop_reason="repeat_suppressed")
+            return None
+        self._recent_autonomous_releases.append(content)
+        self._log_substrate_event(
+            "autonomous_organism_attempt", released=True,
+            queries=queries,
+            candidates=[[w, round(v, 2)] for w, v in top],
+            content=content[:80])
+        return {
+            "content": content,
+            "source": "guala",
+            "response_source": "organism_attempt",
+            "category": "autonomous",
+            "organism_queries": queries,
+            "organism_votes": [[w, round(v, 2)] for w, v in top],
+            "settlement_tick": self.tick,
+            # No section settlement exists for babble — honest empties,
+            # shaped for the runner's release logging.
+            "committed_sections": [],
+            "commit_provenance": [],
+        }
 
     # ── GL-CMD-AUTONOMY-EMITTING-PHASING-53 §1.2 ────────────────────────────────
 
@@ -16842,6 +17351,13 @@ class Guala:
                 "queued": (self._organism_queue.qsize()
                           if self._organism_queue is not None else 0),
                 "dropped": self._organism_dropped_count,
+                # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 5): the
+                # bounded wave-proposal queue's live depth + drop-oldest
+                # count -- divergence between the wave field's push rate
+                # and the worker's drain rate is visible here, not silent.
+                "wave_proposals_queued": self._organism_sensory_queue.qsize(),
+                "wave_proposals_dropped": getattr(
+                    self, '_organism_sensory_dropped_count', 0),
                 # GL-CMD-ORGANISM-WAVE-MEMORY-207 W5: rolling mean/max over
                 # the last 50 processed items -- the honest per-item cost
                 # that used to climb unbounded with lifetime history.
