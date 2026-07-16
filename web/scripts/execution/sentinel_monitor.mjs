@@ -96,6 +96,20 @@ export function isMarketHoursForExitF(now = new Date()) {
   return minuteOfDay >= open && minuteOfDay <= close;
 }
 
+// ── CH3 same-day stall exit ────────────────────────────────────────────
+// A scalp thesis is morning momentum; if the move hasn't come after this
+// many hours the thesis is expired. 2026-07-16 AD entered 9:48 ET, hit
+// neither bracket, and sat dead 5.7h until the 15:30 curfew flushed it at
+// -0.65%. Dead zone bounds: below -1% is EXIT-F/stop territory, above
+// +0.5% the trade is alive enough to let the TP bracket keep working.
+export const CH3_STALL_EXIT_HOURS = 3;
+export function shouldCh3StallExit(entryFilledAt, plPct, nowMs = Date.now()) {
+  if (!entryFilledAt || !Number.isFinite(plPct)) return false;
+  const ageMs = nowMs - new Date(entryFilledAt).getTime();
+  if (!Number.isFinite(ageMs) || ageMs < CH3_STALL_EXIT_HOURS * 3600 * 1000) return false;
+  return plPct > -0.01 && plPct < 0.005;
+}
+
 // ── Phantom cleanup grace period (prevents killing orders still filling) ──
 // GENB was submitted at 13:34, zombie check at 13:39 (5 min) declared it
 // phantom because Alpaca hadn't filled yet. Grace period: 30 minutes.
@@ -1120,6 +1134,19 @@ export async function runSentinel() {
         const ch3AgeDays = ch3EntryTime
           ? Math.floor((Date.now() - new Date(ch3EntryTime).getTime()) / (1000*60*60*24))
           : 0;
+
+        // ── STALL EXIT: the move didn't come ────────────────────────────
+        // Same-day dead-zone hold (neither bracket reachable, thesis
+        // expired). Exits during market hours only so the fill is real.
+        if (ch3EntryTime && isMarketHoursForExitF() && shouldCh3StallExit(ch3EntryTime, plPct)) {
+          const heldH = ((Date.now() - new Date(ch3EntryTime).getTime()) / 3600000).toFixed(1);
+          console.log(
+            `[SENTINEL] CH3 ${pos.ticker} STALL EXIT | P&L=${(plPct*100).toFixed(2)}% | ` +
+            `held ${heldH}h with no move — freeing the slot`
+          );
+          await killPosition(pos, "ch3_stall_exit", ALPACA_BASE);
+          continue;
+        }
 
         // Day 1: let the brackets work. Don't interfere.
         // Day 2+: brackets expired. If profitable, grab it. If losing, EXIT-F handles it.
