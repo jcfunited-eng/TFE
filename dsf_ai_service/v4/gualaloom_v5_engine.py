@@ -4979,16 +4979,27 @@ class Guala:
         as sight/sound (-191). Only set when the sentence actually
         contains a descriptor word -- honest absence otherwise (M5).
         """
-        if experience_origin not in {"emulated", "observed"}:
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): "imagined" is a
+        # valid WINDOW origin (Embryo.imagine() output re-entering as her
+        # own experience) but is deliberately NOT in MEANING_ORIGINS
+        # (language_fact_strand.py) -- an imagined window is real
+        # experience she can recall, but it can NEVER accrete into
+        # certified word-order facts or be cited by the composer for
+        # speech. The exclusion is enforced at the accretion gate below
+        # (see the imagined_window_excluded_from_certification event) and
+        # re-enforced independently by language_fact_strand /
+        # language_fact_composer's own frozenset validation.
+        if experience_origin not in {"emulated", "observed", "imagined"}:
             raise ValueError(
-                "experience_origin must be exactly 'emulated' or 'observed'")
+                "experience_origin must be exactly 'emulated', 'observed' "
+                "or 'imagined'")
         _existing_context_id = self.window_manager.active_context_id
         if _existing_context_id is not None:
             _existing_window = self.window_manager.current
             _existing_origin = (
                 (_existing_window.context_detail or {}).get("experience_origin")
                 if _existing_window is not None else None)
-            if _existing_origin not in {"emulated", "observed"}:
+            if _existing_origin not in {"emulated", "observed", "imagined"}:
                 raise ValueError(
                     f"outer BindingWindow {_existing_context_id!r} lacks an "
                     "approved experience_origin")
@@ -5144,7 +5155,20 @@ class Guala:
             if _closed_window_id is None:
                 raise RuntimeError(
                     f"language BindingWindow {_fact_context_id!r} did not close")
-            self._remember_closed_language_window(_closed_window_id)
+            if experience_origin == "imagined":
+                # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagined
+                # experience closes and persists like any window (it IS her
+                # real experience of her own imagination) but is EXCLUDED
+                # from language-fact accretion -- imagined content must
+                # never certify as lived fact for speech. Loud by design:
+                # one event per imagined window, so the exclusion is
+                # visible in the stream, never a silent swallow.
+                self._log_substrate_event(
+                    "imagined_window_excluded_from_certification",
+                    window_id=_closed_window_id,
+                    words=" ".join(words)[:80])
+            else:
+                self._remember_closed_language_window(_closed_window_id)
 
         with self.lock:
             if source in ("joe", "joe_voice", "wc", "c1", "gate_test") and _read_profile_agg:
@@ -10766,6 +10790,14 @@ class Guala:
             # method's own comment for why this must never rely on this
             # thread's bound contextvar.
             self._close_boundary_window_contexts(_ended_activity)
+            # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): reflection
+            # at the real activity boundary -- the one path every activity
+            # end (including DREAMING end, i.e. dream end) already runs
+            # through, right after its boundary windows close. Cheap
+            # (O(n_hemispheres)), bounded (once per activity end), loud
+            # (organism_reflection event, empty history reported honestly).
+            self._organism_reflect_boundary(
+                boundary=f"activity_end:{_ended_activity.kind}")
 
     # BindingWindow context-id prefixes that are provably activity/stream
     # bounded and manager-generated -- never caller-owned:
@@ -11245,6 +11277,11 @@ class Guala:
         # half of the SLEEPING budget) -- LIVE-CALIBRATE alongside the
         # accumulation rates above.
         self.needs.dream_pressure = max(0.0, self.needs.dream_pressure - DP_DISCHARGE_PER_DREAM_TICK)
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagination is
+        # part of DREAMING -- once per executed dream cycle (this method
+        # already gates itself to every 200th tick above), before the
+        # phased/non-phased split so both bodies get it identically.
+        self._organism_imagine_tick(context="dream")
         if os.environ.get("DREAM_CYCLE_PHASED", "0") == "1":
             self._run_dream_cycle_phased(caller_kind=caller_kind)
             return
@@ -11505,6 +11542,127 @@ class Guala:
         self.needs.dream_pressure = max(0.0, self.needs.dream_pressure - 0.00003)
         assert not self.is_asleep, "REST must not set is_asleep"
 
+    # ── GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagination +
+    # reflection, wired into the real activity loop. ─────────────────────
+    # Interval/budget constants (from-design, cost-derived, not tuned):
+    # IMAGINE_PLAY_INTERVAL_TICKS=500 -> at most 3 imagine() calls per
+    # 1500-tick PLAYING session. IMAGINE_MAX_CONCEPTS=48 bounds each
+    # neuron's latent_associations scan to O(48^2) pairs (~6ms/neuron,
+    # scaled from embryo.py's own measured ~100ms at max_concepts=200 --
+    # quadratic in the cap), so one imagine() over an 8-neuron hemisphere
+    # costs ~50ms -- a bounded, occasional cost, never per-tick (this
+    # project's real incident class; see embryo.imagine()'s own warning).
+    IMAGINE_PLAY_INTERVAL_TICKS = 500
+    IMAGINE_TOP_K = 3
+    IMAGINE_MAX_CONCEPTS = 48
+    # Rotation across engine-organ hemispheres: sc (meaning), sf/aff (the
+    # language hemispheres, per the 200k-seed mapping), em (emission) --
+    # imagination surfaces latent pairs from a different real lane each
+    # time instead of always mining one hemisphere.
+    IMAGINE_OP_TAGS = ("sc", "sf", "aff", "em")
+
+    def _organism_imagine_tick(self, context):
+        """One bounded imagination pass: Embryo.imagine() (built + tested
+        2026-07-11, dark until now) surfaces concept pairs the organism's
+        own learned geometry treats as unexpectedly close. Output lands as
+        a real imagination_formed event, and the top pair re-enters as
+        real experience through the ONE reading path, window-tagged
+        origin='imagined' -- recallable experience that can NEVER accrete
+        into certified word-order facts (see read_sentence's accretion
+        gate + language_fact_strand.MEANING_ORIGINS).
+
+        Read-only over the organism (imagine() mutates nothing); failures
+        are loud events, never silent."""
+        organism = getattr(self, 'organism', None)
+        if organism is None:
+            return
+        op_tags = [t for t in self.IMAGINE_OP_TAGS
+                   if t in getattr(organism, 'hemi_by_op', {})]
+        if not op_tags:
+            return
+        op_tag = op_tags[(self.tick // max(1, self.IMAGINE_PLAY_INTERVAL_TICKS))
+                         % len(op_tags)]
+        _t0 = time.monotonic()
+        try:
+            pairs = organism.imagine(op_tag=op_tag,
+                                     top_k=self.IMAGINE_TOP_K,
+                                     max_concepts=self.IMAGINE_MAX_CONCEPTS)
+        except Exception as _ie:
+            print(f"[GualaLoom] imagination pass failed "
+                  f"(context={context}, op={op_tag}): {_ie}", flush=True)
+            self._log_substrate_event("imagination_failed", context=context,
+                                      op_tag=op_tag, error=str(_ie)[:120])
+            return
+        _dur_ms = (time.monotonic() - _t0) * 1000.0
+        self._log_substrate_event(
+            "imagination_formed", context=context, op_tag=op_tag,
+            n_pairs=len(pairs), duration_ms=round(_dur_ms, 1),
+            pairs=[[str(p["concept_a"]), str(p["concept_b"]),
+                    round(float(p["mean_novelty_score"]), 4)]
+                   for p in pairs[:self.IMAGINE_TOP_K]])
+        if not pairs:
+            return  # honest "nothing to imagine yet" -- event already fired
+        top = pairs[0]
+        content = f"{top['concept_a']} {top['concept_b']}"
+        if self.window_manager.active_context_id is not None:
+            # Never feed imagined content while this thread is bound to a
+            # LIVED window: read_sentence inherits the outer window's
+            # origin, which would launder imagined content into an
+            # emulated/observed window -- exactly the certification leak
+            # this organ's design forbids. Deferred loudly, not silently.
+            self._log_substrate_event("imagined_experience_deferred",
+                                      reason="context_bound",
+                                      content=content[:60])
+            return
+        try:
+            # 0.5 salience: the same discount _self_hear applies to her
+            # own re-entrant speech -- imagined experience registers
+            # lighter than the world, by convention already in this file.
+            self.read_sentence(content, source="imagination", salience=0.5,
+                               experience_origin="imagined")
+        except Exception as _re:
+            print(f"[GualaLoom] imagined experience feed failed: {_re}",
+                  flush=True)
+            self._log_substrate_event("imagined_experience_failed",
+                                      error=str(_re)[:120],
+                                      content=content[:60])
+
+    def _organism_reflect_boundary(self, boundary):
+        """Embryo.reflect() (built + tested 2026-07-11, dark until now) at
+        a real activity boundary: compares the organism's CURRENT
+        sf_sense() reading against its own bounded snapshot history
+        (then-vs-now over arousal / population / per-organ binding
+        strength). O(n_hemispheres) -- cheap by construction. Output lands
+        as a real organism_reflection event; an empty history is reported
+        honestly (empty=True), never fabricated."""
+        organism = getattr(self, 'organism', None)
+        if organism is None:
+            return
+        try:
+            r = organism.reflect(against="oldest")
+        except Exception as _rex:
+            print(f"[GualaLoom] organism reflection failed "
+                  f"(boundary={boundary}): {_rex}", flush=True)
+            self._log_substrate_event("organism_reflection_failed",
+                                      boundary=boundary,
+                                      error=str(_rex)[:120])
+            return
+        if r is None:
+            self._log_substrate_event("organism_reflection",
+                                      boundary=boundary, empty=True)
+            return
+        _pf = r.get("per_field", {})
+        _arousal = _pf.get("arousal", {})
+        _pop = _pf.get("pop_mean", {})
+        self._log_substrate_event(
+            "organism_reflection", boundary=boundary, empty=False,
+            delta_norm=round(float(r["delta_norm"]), 4),
+            ticks_elapsed=int(r["ticks_elapsed"]),
+            tick_then=int(r["tick_then"]), tick_now=int(r["tick_now"]),
+            arousal_then=round(float(_arousal.get("then", 0.0)), 4),
+            arousal_now=round(float(_arousal.get("now", 0.0)), 4),
+            pop_mean_delta=round(float(_pop.get("delta", 0.0)), 4))
+
     def _atick_playing(self, a):
         """Free-settle: chi space walk. No novelty gain — internal
         exploration doesn't introduce new experience.
@@ -11526,6 +11684,11 @@ class Guala:
             self._check_emission_trigger("play_cohesion")
         if self.tick % PLAY_REVISIT_INTERVAL_TICKS == 0:
             self._play_revisit_known_pairing()
+        # GL-CMD-SINGLE-STACK-ALL-LIVE-20260716 (organ 1): imagination is
+        # part of PLAYING -- same interval idiom as the revisit above,
+        # bounded cost (see _organism_imagine_tick's constants).
+        if self.tick % self.IMAGINE_PLAY_INTERVAL_TICKS == 0:
+            self._organism_imagine_tick(context="play")
         # GL-CMD-STAB-PHYSICS-FIX-88: coherence-gated quiet-restore (same as IDLE)
         _n_total = sum(len(v) for v in self.atlas.entries.values())
         _coherence = self.atlas.n_live_bindings() / max(_n_total, 1)
