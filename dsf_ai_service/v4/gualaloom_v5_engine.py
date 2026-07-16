@@ -9731,6 +9731,13 @@ class Guala:
 
         rate = self.get_tick_rate()
         if rate > 0:
+            # Self-heal (same getattr/backfill pattern as _daydream_note_
+            # lock_wait) so a direct caller that bypassed
+            # start_daydream_loop never crashes the telemetry itself.
+            if not hasattr(self, '_daydream_tick_rate_baseline'):
+                self._daydream_tick_rate_baseline = None
+            if not hasattr(self, '_daydream_tick_rate_samples'):
+                self._daydream_tick_rate_samples = []
             if self._daydream_tick_rate_baseline is None:
                 self._daydream_tick_rate_samples.append(rate)
                 if (len(self._daydream_tick_rate_samples)
@@ -10177,14 +10184,19 @@ class Guala:
                 _wa_bindings_pruned = self.wave_atlas.tick_decay()
                 _wa_strength_after = sum(
                     c.aggregate_strength for c in self.wave_atlas.cells.values())
-                self._log_substrate_event(
-                    "wave_atlas_decay_tick",
-                    tick=self.tick,
-                    bindings_pruned=_wa_bindings_pruned,
-                    cells_total=self.wave_atlas.cell_count(),
-                    total_strength_before=round(_wa_strength_before, 4),
-                    total_strength_after=round(_wa_strength_after, 4),
-                )
+                # Default-on now (see above): the event is rate-limited to
+                # real prunes + a 500-tick heartbeat so a per-tick decay
+                # can't drown the 1000-slot observability ring the way an
+                # unconditional per-tick log would.  Prunes stay loud.
+                if _wa_bindings_pruned or self.tick % 500 == 0:
+                    self._log_substrate_event(
+                        "wave_atlas_decay_tick",
+                        tick=self.tick,
+                        bindings_pruned=_wa_bindings_pruned,
+                        cells_total=self.wave_atlas.cell_count(),
+                        total_strength_before=round(_wa_strength_before, 4),
+                        total_strength_after=round(_wa_strength_after, 4),
+                    )
 
             # GL-CMD-HEMISPHERIC-INTEGRATION-BUILD-EVE-20260707-v3 Wiring 2,
             # rewired by GL-CMD-SENSORY-ORGANISM-QUEUE-EVE-20260707-v1:
